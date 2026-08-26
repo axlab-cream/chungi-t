@@ -53,6 +53,8 @@
 - 사주 등록 플로우 배포: `dpl_8iSuqACTsMWcwgzkHavno4Dub9u1`, bare `/`는 1페이지, CTA 이후 `#target`에서 `누구의 사주를 볼까요?` 등록 화면으로 검증됨
 - 로컬 스크롤 수정 검증: bare `/`에서 `stageScrollHeight 19674px`, `storyHeight 19650px`, wheel 후 `scrollTop 2200`으로 하단 스크롤 동작 확인
 - 로컬 영상 영역 검증: `readyState=4`, `paused=false`, `currentTime=2.44`, 원본 영상 크기 `1440x2232`, native controls 없음, 이미지 42/42 로드, CTA 후 `#target` 진입 확인
+- 영상 영역 수정 배포: `dpl_G2TAGUntNwsa2wd5ChrREyNfPx2F`, alias `https://chungi-t.vercel.app`
+- Production 영상 검증: `readyState=4`, `paused=false`, `currentTime=3.45`, 영역 높이 `659px`, 이미지 42/42 로드, CTA 후 `#target` 진입 확인
 
 ## 리스크와 메모
 
