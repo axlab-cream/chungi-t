@@ -27,6 +27,12 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(corpus.some((chunk) => chunk.domain === 'deep_saju_interpretation'))
     })
 
+    it('입력 선택지 맥락 corpus도 인덱스에 포함', () => {
+      const corpus = buildCorpusIndex()
+      assert.ok(corpus.some((chunk) => chunk.id === 'ic-001'))
+      assert.ok(corpus.some((chunk) => chunk.domain === 'input_context_interpretation'))
+    })
+
     it('직업 질문 → career intent', () => {
       assert.equal(detectIntent('이직을 고민 중인데 직업운이 어떤가요?'), 'career')
     })

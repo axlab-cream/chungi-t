@@ -38,7 +38,7 @@
 
 ## 검증
 
-- `npm test`: 20개 통과
+- `npm test`: 21개 통과
 - `npm run typecheck`: 통과
 - `npm run vercel-build`: 통과
 - 로컬 fallback API: `/api/saju/analyze` 응답 `report.status=pending`, 0.5초 뒤 `/api/report/:reportId`에서 `progress=7/7`, `status=complete`

@@ -5,7 +5,11 @@ import type { RagChunk, SajuAnalysis } from '../types/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
-const CORPUS_FILES = ['corpus/myeongri-basics.json', 'corpus/deep-saju-interpretation.json']
+const CORPUS_FILES = [
+  'corpus/myeongri-basics.json',
+  'corpus/deep-saju-interpretation.json',
+  'corpus/input-context-interpretation.json',
+]
 
 type Vector = Map<string, number>
 

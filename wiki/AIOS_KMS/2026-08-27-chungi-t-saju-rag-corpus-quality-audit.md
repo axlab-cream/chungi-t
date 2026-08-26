@@ -11,8 +11,8 @@
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
-| 코퍼스 규모 | 확인됨 | `data/corpus/myeongri-basics.json` 10개 청크 + `data/corpus/deep-saju-interpretation.json` 65개 청크 |
-| 실제 RAG 인덱스 | 확인됨 | `src/rag/retriever.ts`와 `src/rag/embedder.ts`가 기본 청크와 deep corpus를 함께 검색 |
+| 코퍼스 규모 | 확인됨 | `data/corpus/myeongri-basics.json` 10개 청크 + `data/corpus/deep-saju-interpretation.json` 65개 청크 + `data/corpus/input-context-interpretation.json` 22개 청크 |
+| 실제 RAG 인덱스 | 확인됨 | `src/rag/retriever.ts`와 `src/rag/embedder.ts`가 기본 청크, deep corpus, 입력 맥락 corpus를 함께 검색 |
 | 사주 요소 데이터 | 확인됨 | `data/corpus/saju-elements.json`에 천간 10개, 지지 12개, 오행 프로필 5개, 일간 조언 10개 |
 | 상담 템플릿 | 확인됨 | `data/corpus/consultation-templates.json`에 career/love/fortune/health/general 5개 intent |
 | 리포트 섹션 | 확인됨 | `src/report/report-generator.ts` 기본 7개 섹션 |
@@ -24,7 +24,7 @@
 
 | 평가축 | 점수 | 판단 |
 |---|---:|---|
-| 구현 안정성 | 86% | `npm test` 20개 통과, `npm run typecheck` 통과 |
+| 구현 안정성 | 88% | `npm test` 21개 통과, `npm run typecheck` 통과 |
 | RAG 검색 정밀도 | 38% | TF 기반 검색은 동작하지만 `vectorResults.length >= topK` 조기 반환으로 키워드/intent 보정이 거의 우회됨 |
 | 코퍼스 깊이 | 34% | 기초 개념은 있으나 항목별 심층 해석·사례·반례·위치별 십신·조후/격국 자료가 부족 |
 | 사주 계산/분석 근거성 | 50% | 4주·오행·일간·대운 구조는 있으나 음력/절기, 지장간, 월령, 합충형파해 적용이 제한적 |
