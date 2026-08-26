@@ -540,7 +540,7 @@ function buildInterpretation(
 
   const sections: Partial<Record<ReportFocus, string>> = {
     profile: [
-      `흠... ${name}님 사주의 중심은 ${dayPillar} 일주, 그중에서도 ${dayMaster} 일간입니다. 이 일간은 겉으로 드러나는 태도보다 속에서 먼저 판단하고, 작은 신호를 놓치지 않으려는 결을 갖습니다. 일간 강약으로는 신강·신약이라는 딱지보다 월령과 지장간이 더 중요하고, ${name}님은 ${strengthText} 팔자라서 마음이 움직이기 전까지는 쉽게 방향을 바꾸지 않지만, 한 번 흐름이 잡히면 생각보다 깊게 파고듭니다.`,
+      `흠... ${name}님 사주의 중심은 ${dayPillar} 일주, 그중에서도 ${dayMaster} 일간입니다. 이 일간은 겉으로 드러나는 태도보다 속에서 먼저 판단하고, 작은 신호를 놓치지 않으려는 결을 갖습니다. 이건 성향이자 기질의 기본값입니다. 일간 강약으로는 신강·신약이라는 딱지보다 월령과 지장간이 더 중요하고, ${name}님은 ${strengthText} 팔자라서 마음이 움직이기 전까지는 쉽게 방향을 바꾸지 않지만, 한 번 흐름이 잡히면 생각보다 깊게 파고듭니다.`,
       `년주 ${pillarLabel(p.year)}, 월주 ${monthPillar}, 시주 ${pillarLabel(p.hour)}를 같이 놓고 보면 ${dominant} 기운이 먼저 보입니다. ${ELEMENT_TRAIT[analysis.dominantElement]}이 사주의 앞쪽으로 올라와 있어, 남들이 보기에는 담담해 보여도 안쪽에서는 이미 많은 계산과 감지가 끝나 있는 사람입니다. ${analysis.dayMasterAdvice}`,
       `${manseryeokLine ? `${manseryeokLine} ` : ''}${ragLine} 그러니 ${name}님은 단순히 성격이 예민한 사람이 아닙니다. 사주가 먼저 주변의 온도를 읽고, 그 다음에 행동을 고르는 구조입니다. 이걸 장점으로 쓰면 직관이 되고, 눌러두면 혼자만 알아차린 피로가 됩니다.`,
     ].join('\n\n'),

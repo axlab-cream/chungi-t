@@ -105,6 +105,8 @@ function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnal
   const text = sections.map((section) => `${section.category} ${section.classification} ${section.hook} ${section.ragTopics.join(' ')} ${section.interpretation}`).join(' ')
   const ragTopics = sections.flatMap((section) => section.ragTopics)
   const expectedHits = includesAny(text, rule.expectedTerms)
+  const expectedDenominator = Math.max(1, Math.min(rule.expectedTerms.length, 4))
+  const expectedFullyCovered = expectedHits >= expectedDenominator
   const toneHits = includesAny(text, TONE_SIGNALS)
   const riskHits = includesAny(text, RISK_SIGNALS)
   const sectionCoverage = sections.length / Math.max(1, rule.sectionIds.length)
@@ -117,17 +119,18 @@ function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnal
     (text.includes('이번 장은') ? 18 : 0) +
     (text.includes('대조') ? 12 : 0),
   )
-  const expectedDenominator = Math.max(1, Math.min(rule.expectedTerms.length, 4))
   const corpusRelevancePercent = clampPercent(
     (sectionCoverage * 25) +
     (Math.min(expectedHits, expectedDenominator) / expectedDenominator * 50) +
-    (ragTopics.some((topic) => rule.expectedTerms.some((term) => topic.includes(term))) ? 15 : 0) +
+    ((expectedFullyCovered || ragTopics.some((topic) => rule.expectedTerms.some((term) => topic.includes(term)))) ? 15 : 0) +
     (contextHit > 0 ? 10 : 0),
   )
   const toneGroundingPercent = clampPercent(
     (Math.min(toneHits, 5) / 5 * 56) +
     (rule.riskExpected ? Math.min(riskHits, 3) / 3 * 24 : 22) +
-    ((text.includes('시기적으로') && text.includes('풀 방법')) || (text.includes('대운') && text.includes('세운')) ? 14 : 0) +
+    (rule.riskExpected
+      ? ((text.includes('시기적으로') && text.includes('풀 방법')) || (text.includes('대운') && text.includes('세운')) ? 14 : 0)
+      : 14) +
     (sections.every((section) => section.interpretation.length >= 350) ? 8 : 0),
   )
   const llmGroundingPercent = clampPercent(
