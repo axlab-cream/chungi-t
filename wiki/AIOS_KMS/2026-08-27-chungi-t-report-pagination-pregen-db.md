@@ -51,7 +51,7 @@
 - 로컬 prewarm API: fallback 모드에서 37/37 섹션 complete, `storage=memory`, corpus fingerprint와 활성 pack 6개 payload 저장 확인
 - 브라우저 검증: 리포트 목차, 공통 이미지 로드, 첫 페이지 본문 표시, 다음 페이지 버튼 동작, 타자형 완료 확인
 - 스크린샷: `qa-report-reader-local.png`
-- Production 배포: `dpl_APcYr8f5bcjCmjms6TkMm4pd7UCJ`
+- Production 배포: `dpl_4nnLrs6dVuBKY8XWHN4MWRBGgQPh`
 - Production 확인: `/api/health`는 `openai=true`, `DATABASE_URL` 미설정 시 `storage=memory`
 - Production 리스크 확인: `DATABASE_URL` 미설정으로 `/api/report/:reportId` 재조회는 404가 날 수 있음
 
