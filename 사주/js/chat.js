@@ -11,6 +11,119 @@ const reportState = {
 const HISTORY_KEY = 'cheongi_report_history_v1'
 const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
 let chatSaveTimer = 0
+const SECTION_COPY = {
+  profile: ['내가 가진 진짜 매력', '남들이 보는 나와 내가 숨기는 결'],
+  'target-context': ['이 풀이가 보는 사람', '지금 고민을 어디에 놓고 볼지'],
+  'pillars-structure': ['내 사주의 큰 그림', '태어난 순간에 깔린 기본 흐름'],
+  'year-pillar': ['어릴 때부터 남은 배경', '나도 모르게 반복된 시작점'],
+  'month-pillar': ['사회에서 보이는 내 얼굴', '일과 사람 앞에서 드러나는 분위기'],
+  'day-pillar': ['가까운 사람 앞의 내 모습', '사랑과 속마음이 움직이는 자리'],
+  'hour-pillar': ['뒤늦게 드러나는 가능성', '시간이 지나며 열리는 힘'],
+  'day-master-strength': ['내가 버티는 힘', '무너지지 않게 잡아주는 중심'],
+  'hidden-personality': ['겉으로 안 보이는 진짜 성격', '혼자 있을 때 더 선명한 마음'],
+  balance: ['내 기운이 어디로 쏠렸나', '좋은 흐름과 과한 흐름을 나눠 봅니다'],
+  'dominant-element': ['가장 강하게 올라오는 힘', '먼저 반응하고 먼저 움직이는 기운'],
+  'weak-element': ['내가 채워야 할 빈자리', '부족해서 더 신경 써야 하는 부분'],
+  'ten-gods-overview': ['사람과 돈을 대하는 방식', '관계, 책임, 욕심이 움직이는 결'],
+  'ten-gods-position': ['내 운이 움직이는 자리', '어디에서 복이 오고 어디서 막히는지'],
+  'useful-god-eokbu': ['나를 살리는 방향', '힘들 때 회복되는 선택의 기준'],
+  'useful-god-johu': ['뜨거움과 차가움의 균형', '마음과 생활 리듬을 맞추는 법'],
+  trap: ['내가 자주 빠지는 함정', '좋은 말보다 먼저 봐야 할 위험'],
+  'concern-loop': ['요즘 고민이 반복되는 이유', '같은 일이 다시 생기는 숨은 패턴'],
+  'relationship-orientation': ['내가 사랑을 보는 기준', '끌림과 안정감 중 무엇이 먼저인지'],
+  'relationship-status': ['지금 관계에서 봐야 할 것', '혼자인지, 만나는 중인지에 따라 달라지는 해석'],
+  'career-money': ['일과 돈이 엮이는 방식', '일이 돈으로 바뀌는 길'],
+  'work-context': ['요즘 일상에서 운이 움직이는 자리', '직장, 쉬는 시간, 생활 리듬의 신호'],
+  'career-transition': ['버틸지 옮길지 판단 기준', '지금 멈춰야 할지 움직여야 할지'],
+  'wealth-flow': ['돈이 들어오는 길', '내가 돈을 만들 때 강해지는 방식'],
+  'money-leak': ['돈이 새는 구멍', '작아 보여도 나중에 커지는 지출 신호'],
+  'wealth-timing': ['재물 기회가 붙는 타이밍', '돈 흐름이 살아나는 때'],
+  'love-loop': ['반복되는 인연 패턴', '왜 비슷한 사람에게 마음이 가는지'],
+  'destiny-partner': ['나와 맞는 사람의 분위기', '끌림보다 오래 남는 사람의 결'],
+  'avoid-relationship': ['멀리해야 할 관계 신호', '나를 흐리게 만드는 사람을 거르는 법'],
+  'love-timing': ['인연이 드러나는 때', '관계가 움직이기 쉬운 흐름'],
+  'future-flow': ['앞으로 크게 바뀔 흐름', '지금부터 방향이 달라지는 지점'],
+  'daewoon-detail': ['인생 무대가 바뀌는 구간', '크게 판이 바뀌는 시기'],
+  'sewoon-detail': ['올해 특히 봐야 할 신호', '올해 조심할 것과 붙잡을 것'],
+  'turning-years': ['삶이 꺾이고 열리는 시기', '선택이 커지는 전환점'],
+  'timing-place': ['나에게 맞는 시기와 장소', '언제, 어디에서 기운이 살아나는지'],
+  'action-guide': ['지금 바로 붙잡을 신호', '오늘부터 바꿔야 할 작은 기준'],
+  'long-report-depth': ['긴 풀이를 읽는 순서', '어디부터 봐야 내 이야기가 풀리는지'],
+}
+const SECTION_GROUPS = [
+  {
+    id: 'self',
+    title: '나',
+    subtitle: '성향, 기질, 내 안쪽 기운',
+    ids: [
+      'profile',
+      'target-context',
+      'pillars-structure',
+      'year-pillar',
+      'month-pillar',
+      'day-pillar',
+      'hour-pillar',
+      'day-master-strength',
+      'hidden-personality',
+      'balance',
+      'dominant-element',
+      'weak-element',
+      'ten-gods-overview',
+      'ten-gods-position',
+      'useful-god-eokbu',
+      'useful-god-johu',
+      'trap',
+      'concern-loop',
+    ],
+  },
+  {
+    id: 'relationship',
+    title: '관계·연애',
+    subtitle: '인연, 끌림, 피해야 할 사람',
+    ids: [
+      'relationship-orientation',
+      'relationship-status',
+      'love-loop',
+      'destiny-partner',
+      'avoid-relationship',
+      'love-timing',
+    ],
+  },
+  {
+    id: 'money',
+    title: '일·재물',
+    subtitle: '돈 들어오는 길, 새는 구멍, 일의 흐름',
+    ids: [
+      'career-money',
+      'work-context',
+      'career-transition',
+      'wealth-flow',
+      'money-leak',
+      'wealth-timing',
+    ],
+  },
+  {
+    id: 'future',
+    title: '미래 흐름',
+    subtitle: '앞으로 바뀔 때, 올해 신호, 전환점',
+    ids: [
+      'future-flow',
+      'daewoon-detail',
+      'sewoon-detail',
+      'turning-years',
+      'timing-place',
+    ],
+  },
+  {
+    id: 'action',
+    title: '지금 해법',
+    subtitle: '오늘부터 붙잡을 기준과 읽는 순서',
+    ids: [
+      'action-guide',
+      'long-report-depth',
+    ],
+  },
+]
 
 function parseJson(value, fallback) {
   try {
@@ -292,6 +405,36 @@ function getReportSections() {
   return getReport()?.sections || []
 }
 
+function sectionCopy(section) {
+  const copy = SECTION_COPY[section?.id]
+  return {
+    title: copy?.[0] || section?.category || '이 장의 풀이',
+    subtitle: copy?.[1] || section?.classification || '지금 봐야 할 흐름을 풀어드립니다.',
+  }
+}
+
+function groupedSections(sections) {
+  const byId = new Map(sections.map((section) => [section.id, section]))
+  const used = new Set()
+  const groups = SECTION_GROUPS.map((group) => {
+    const items = group.ids
+      .map((id) => byId.get(id))
+      .filter(Boolean)
+    items.forEach((item) => used.add(item.id))
+    return { ...group, items }
+  }).filter((group) => group.items.length)
+  const rest = sections.filter((section) => !used.has(section.id))
+  if (rest.length) {
+    groups.push({
+      id: 'etc',
+      title: '그 밖의 흐름',
+      subtitle: '놓치면 아쉬운 세부 풀이',
+      items: rest,
+    })
+  }
+  return groups
+}
+
 function getBirthPayload() {
   const birth = session.birth || {}
   return {
@@ -322,7 +465,7 @@ function renderBasicSpec() {
   const analysis = session.analysis || {}
   const birth = session.birth || {}
   const p = analysis.pillars || {}
-  const pillars = [p.year?.hanja, p.month?.hanja, p.day?.hanja, p.hour?.hanja].filter(Boolean).join(' · ') || '명식 확인 중'
+  const pillars = [p.year?.hanja, p.month?.hanja, p.day?.hanja, p.hour?.hanja].filter(Boolean).join(' · ') || '기운 확인 중'
   const name = birth.name || birth.target || '당신'
   const useful = analysis.usefulGod || analysis.weakElement || '균형'
   const dominant = analysis.dominantElement || analysis.dayMaster?.element || '기운'
@@ -344,15 +487,17 @@ function renderBasicSpec() {
 }
 
 function renderReportLoading(section) {
+  const display = sectionCopy(section)
   const loadingLines = [
-    '천기 선생님이 명식의 결, 지금의 기운, 마음에 걸린 질문을 맞춰 보고 있습니다.',
-    '흩어진 기운을 한 줄로 모아 이 장의 풀이를 여는 중입니다.',
-    '천년의 흐름 위에 당신의 사주 기둥을 올려 보고 있습니다.',
+    '천기 선생님이 지금 당신에게 먼저 보이는 흐름을 짚고 있습니다.',
+    '흩어진 마음의 신호를 한 줄로 모아 이 장을 여는 중입니다.',
+    '오래된 기운 위에 지금의 질문을 올려 보고 있습니다.',
+    '조금만 기다리세요. 이 장에서 먼저 볼 대목이 드러나고 있습니다.',
   ]
   const line = loadingLines[Math.floor(Math.random() * loadingLines.length)]
   return `
     <div class="report-section-loading" role="status" aria-live="polite">
-      <strong>${escapeHtml(section?.category || '풀이')}을 여는 중입니다</strong>
+      <strong>${escapeHtml(display.title)}을 여는 중입니다</strong>
       <div class="report-progress" aria-hidden="true"></div>
       <span>${escapeHtml(line)}</span>
     </div>
@@ -385,6 +530,7 @@ function renderSelectedSection() {
   const imageHook = section.hook || section.description || '사주의 결이 보입니다'
   const sectionIndex = sections.findIndex((item) => item.id === section.id)
   const displayOrder = String(sectionIndex >= 0 ? sectionIndex + 2 : section.order || 0).padStart(2, '0')
+  const display = sectionCopy(section)
 
   return `
     <article class="report-section-card">
@@ -393,9 +539,9 @@ function renderSelectedSection() {
         <div>${escapeHtml(imageHook)}</div>
       </div>
       <div class="report-section-head">
-        <span>${displayOrder} · ${escapeHtml(section.categoryEn || 'Report')}</span>
-        <h3>${escapeHtml(section.category)}</h3>
-        <p>${escapeHtml(section.classification || '선택한 분류의 해석입니다.')}</p>
+        <span>${displayOrder} · 천기 풀이</span>
+        <h3>${escapeHtml(display.title)}</h3>
+        <p>${escapeHtml(display.subtitle)}</p>
       </div>
       ${warning}
       <div class="report-reading">
@@ -418,22 +564,36 @@ function renderReportHub() {
     ${renderBasicSpec()}
     <section class="report-toc-panel">
       <div class="report-panel-head">
-        <span>전체 사주풀이 분류 목차</span>
+        <span>보고 싶은 운을 먼저 고르세요</span>
         <h2>${escapeHtml(report?.title || '천기 선생님 상세 풀이')}</h2>
-        <p>아래 목차를 누르면 해당 분류의 해석이 이 자리에서 열립니다.</p>
+        <p>재물운은 일·재물, 연애운은 관계·연애처럼 큰 문으로 먼저 나눴습니다.</p>
       </div>
       <div class="report-toc-grid" role="list">
-        ${sections.map((section, index) => `
-          <button
-            class="report-toc-item ${reportState.activeSectionId === section.id ? 'is-active' : ''}"
-            type="button"
-            data-report-section="${escapeHtml(section.id)}"
-            role="listitem"
-          >
-            <span>${String(index + 2).padStart(2, '0')}</span>
-            <strong>${escapeHtml(section.category)}</strong>
-            <em>${escapeHtml(section.classification || section.categoryEn || '')}</em>
-          </button>
+        ${groupedSections(sections).map((group) => `
+          <section class="report-toc-group" data-report-group="${escapeHtml(group.id)}">
+            <div class="report-group-head">
+              <strong>${escapeHtml(group.title)}</strong>
+              <span>${escapeHtml(group.subtitle)}</span>
+            </div>
+            <div class="report-group-list">
+              ${group.items.map((section) => {
+                const display = sectionCopy(section)
+                const index = sections.findIndex((item) => item.id === section.id)
+                return `
+                  <button
+                    class="report-toc-item ${reportState.activeSectionId === section.id ? 'is-active' : ''}"
+                    type="button"
+                    data-report-section="${escapeHtml(section.id)}"
+                    role="listitem"
+                  >
+                    <span>${String(index + 2).padStart(2, '0')}</span>
+                    <strong>${escapeHtml(display.title)}</strong>
+                    <em>${escapeHtml(display.subtitle)}</em>
+                  </button>
+                `
+              }).join('')}
+            </div>
+          </section>
         `).join('')}
       </div>
       <div class="report-selected" data-report-selected>

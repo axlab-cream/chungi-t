@@ -167,8 +167,49 @@ body {
 
 .report-toc-grid {
   display: grid;
-  gap: 8px;
+  gap: 12px;
   margin-top: 14px;
+}
+
+.report-toc-group {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 229, 188, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.report-group-head {
+  display: grid;
+  gap: 4px;
+  padding: 2px 2px 4px;
+}
+
+.report-group-head strong {
+  color: #fff8ef;
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.report-group-head span {
+  color: rgba(255, 232, 197, 0.62);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.report-group-list {
+  display: grid;
+  gap: 8px;
+}
+
+.report-toc-group[data-report-group="money"] {
+  border-color: rgba(242, 191, 107, 0.3);
+  background:
+    linear-gradient(180deg, rgba(104, 72, 18, 0.2), rgba(0, 0, 0, 0.16)),
+    rgba(255, 255, 255, 0.035);
 }
 
 .report-toc-item {
