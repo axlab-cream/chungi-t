@@ -344,11 +344,17 @@ function renderBasicSpec() {
 }
 
 function renderReportLoading(section) {
+  const loadingLines = [
+    '천기 선생님이 명식의 결, 지금의 기운, 마음에 걸린 질문을 맞춰 보고 있습니다.',
+    '흩어진 기운을 한 줄로 모아 이 장의 풀이를 여는 중입니다.',
+    '천년의 흐름 위에 당신의 사주 기둥을 올려 보고 있습니다.',
+  ]
+  const line = loadingLines[Math.floor(Math.random() * loadingLines.length)]
   return `
     <div class="report-section-loading" role="status" aria-live="polite">
       <strong>${escapeHtml(section?.category || '풀이')}을 여는 중입니다</strong>
       <div class="report-progress" aria-hidden="true"></div>
-      <span>천기 선생님이 명식, RAG 근거, 현재 고민을 맞춰 보고 있습니다.</span>
+      <span>${escapeHtml(line)}</span>
     </div>
   `
 }
@@ -363,7 +369,7 @@ function renderSelectedSection() {
     return `
       <div class="report-empty">
         <strong>목차를 누르면 해당 장이 열립니다.</strong>
-        <span>기본 스펙 다음부터는 실제 상담 화면에서 LLM이 한 장씩 풀어드립니다.</span>
+        <span>기본 스펙 다음부터는 천기 선생님이 한 장씩 깊게 풀어드립니다.</span>
       </div>
     `
   }
@@ -374,7 +380,7 @@ function renderSelectedSection() {
   if (reportState.loadingSectionId === section.id) return renderReportLoading(section)
 
   const warning = section.generatedBy === 'template'
-    ? '<p class="report-note">임시 기본 풀이입니다. OpenAI 생성이 완료되면 이 장은 더 풍부한 상담문으로 바뀝니다.</p>'
+    ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 천기 선생님이 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
     : ''
   const imageHook = section.hook || section.description || '사주의 결이 보입니다'
   const sectionIndex = sections.findIndex((item) => item.id === section.id)
