@@ -35,6 +35,7 @@
 - `extracted_decoded.html`을 운영 앱에 원본 HTML 통째로 복붙한 방식은 아니며, 해당 파일의 첫 페이지 시퀀스와 이미지/텍스트 자산을 현재 앱 구조 안에 재구성했다.
 - 랜딩/결과 stage가 flex 컨테이너로 동작하면서 긴 `.sample-story`가 화면 높이로 줄어 하단 스크롤이 막히던 문제를 수정했다. 랜딩/결과 stage는 block 흐름으로 두고, `.sample-story`는 줄어들지 않도록 고정한다.
 - 영상 영역은 원본 `extracted_decoded.html`처럼 자동재생 티저로 보여야 한다. 이전 `controls + preload="none"` 구성은 검은 컨트롤 띠처럼 보이는 문제가 있어 `autoplay muted playsinline preload="auto"`로 되돌리고 native controls를 제거했다.
+- `manseryeok` 섹션의 `네 팔자가 앞으로 어떻게 흘러갈까?` 문구는 원본처럼 배경 이미지가 시작되기 전 검은 상단 영역에 위치해야 한다. 배경을 `top:178px`, `height:507px`로 내리고 제목 레이어를 `z-index:4`로 올렸으며, 잘못 들어간 대운 캐릭터 이미지는 원본 말풍선 구조로 교체했다.
 
 ## QA 결과
 
@@ -55,6 +56,7 @@
 - 로컬 영상 영역 검증: `readyState=4`, `paused=false`, `currentTime=2.44`, 원본 영상 크기 `1440x2232`, native controls 없음, 이미지 42/42 로드, CTA 후 `#target` 진입 확인
 - 영상 영역 수정 배포: `dpl_G2TAGUntNwsa2wd5ChrREyNfPx2F`, alias `https://chungi-t.vercel.app`
 - Production 영상 검증: `readyState=4`, `paused=false`, `currentTime=3.45`, 영역 높이 `659px`, 이미지 42/42 로드, CTA 후 `#target` 진입 확인
+- 로컬 텍스트 레이어 검증: `manseryeok` 제목 중심점의 최상위 요소가 `H2`, 제목 `z-index=4`, 배경 시작 `top=223px`, 제목/말풍선 겹침 없음, 이미지 42/42 로드
 
 ## 리스크와 메모
 

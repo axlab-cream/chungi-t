@@ -960,6 +960,60 @@
         transform: translateX(-50%);
       }
 
+      .source-section[data-sample-section="manseryeok"] {
+        min-height: 760px;
+      }
+
+      .source-section[data-sample-section="manseryeok"] > .source-img {
+        inset: auto auto auto 50%;
+        top: 178px;
+        width: 100%;
+        height: 507px;
+        transform: translateX(-50%);
+      }
+
+      .source-section[data-sample-section="manseryeok"] > .source-fade {
+        inset: auto 0 auto 0;
+        top: 178px;
+        height: 507px;
+        background:
+          linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 17%, rgba(0, 0, 0, 0) 82%, #000 100%);
+      }
+
+      .source-section[data-sample-section="manseryeok"] .source-copy.top {
+        top: 46px;
+        z-index: 4;
+      }
+
+      .source-section[data-sample-section="manseryeok"] .source-copy h2 {
+        line-height: 1.6;
+      }
+
+      .source-asset.manseryeok-bubble-img {
+        left: 163px;
+        top: 460px;
+        z-index: 3;
+        width: 173px;
+      }
+
+      .source-manseryeok-bubble-text {
+        position: absolute;
+        left: 163px;
+        top: 460px;
+        z-index: 4;
+        display: grid;
+        place-items: center;
+        width: 173px;
+        height: 251px;
+        padding: 0 12px;
+        color: #000;
+        font-size: 25px;
+        font-weight: 800;
+        line-height: 1.4;
+        text-align: center;
+        word-break: keep-all;
+      }
+
       .source-full-img {
         display: block;
         width: 100%;
@@ -2066,7 +2120,8 @@
             ${sourceImg("manseryeokBg", "source-img", "만세력 흐름 배경")}
             <div class="source-fade"></div>
             <div class="source-copy top"><h2>네 팔자가 앞으로<br />어떻게 흘러갈까?</h2></div>
-            ${sourceImg("daewoonCharacter", "source-asset chart", "대운 캐릭터")}
+            ${sourceImg("speechBubbleThree", "source-asset manseryeok-bubble-img", "인생 스포 말풍선")}
+            <div class="source-manseryeok-bubble-text">소름이 돋는<br />인생스포<br />당하고 싶지?</div>
           </section>
 
           <section class="source-section" data-sample-section="frame-character">
