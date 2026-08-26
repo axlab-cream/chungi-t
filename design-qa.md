@@ -58,6 +58,8 @@
 - Report reader common image `/assets/hero-mystic.png` loaded with natural width `864`.
 - Report page 1 rendered `네 매력 기본 스펙`, body text, and enabled `다음 페이지`.
 - Report page 2 changed to `네 기운의 분포`; typing effect completed and left `typing-cursor=false`.
+- Local `/api/report/prewarm` returned `progress=7/7`, `status=complete` in fallback mode.
+- Production `/api/saju/analyze` returned `tocCount=7`, `storage=memory`; DB persistence needs `DATABASE_URL`.
 - Local report reader screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-report-reader-local.png`.
 
 final result: passed

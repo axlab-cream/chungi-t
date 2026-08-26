@@ -2646,6 +2646,29 @@
         return { ...json.section, generatedBy: json.generatedBy, model: json.model };
       }
 
+      async function prewarmReport() {
+        const reportId = state.analysis?.report?.reportId;
+        if (!reportId) return;
+        const birth = parseBirthInput();
+        try {
+          const res = await fetch("/api/report/prewarm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              birth,
+              reportId,
+              context: getReportContext(),
+            }),
+          });
+          const json = await res.json();
+          if (!res.ok || !json.report || !state.analysis) return;
+          state.analysis.report = json.report;
+          seedReportCache();
+        } catch (err) {
+          // The section API still falls back to on-demand generation.
+        }
+      }
+
       async function loadReportPage(index, force = false) {
         const sections = getReportSections();
         if (!sections.length) return;
@@ -2682,7 +2705,10 @@
       function setupReportReader() {
         if (!getReportSections().length) return;
         seedReportCache();
-        requestAnimationFrame(() => loadReportPage(state.reportPageIndex || 0));
+        requestAnimationFrame(() => {
+          loadReportPage(state.reportPageIndex || 0);
+          prewarmReport();
+        });
       }
 
       function go(scene, remember = true) {

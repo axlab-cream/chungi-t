@@ -7,7 +7,7 @@ import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
-import { generateReportSectionNow, startReportPreGeneration } from '../report/report-queue.js'
+import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
 import {
   createOrGetReportRecord,
   createReportId,
@@ -187,6 +187,38 @@ app.post('/api/report/section', async (req, res) => {
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '리포트 생성 실패' })
+  }
+})
+
+app.post('/api/report/prewarm', async (req, res) => {
+  try {
+    const birth = parseBirth(req.body.birth ?? req.body)
+    const context = parseReportContext(req.body)
+    const reportId = String(req.body.reportId ?? createReportId(birth, context)).trim()
+
+    if (!birth.year || !birth.month || !birth.day) {
+      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
+      return
+    }
+
+    const analysis = analyzeSaju(birth)
+    const templateReport = buildTemplateSajuReport(analysis, birth, context)
+    await createOrGetReportRecord({
+      reportId,
+      birth,
+      context,
+      templateReport,
+    })
+
+    const record = await preGenerateReport({ reportId, analysis, birth, context })
+    if (!record) {
+      res.status(404).json({ error: '리포트 사전 생성 대상을 찾지 못했습니다.' })
+      return
+    }
+
+    res.json({ report: toClientReport(record) })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 사전 생성 실패' })
   }
 })
 

@@ -5,13 +5,16 @@ import type { RagChunk, SajuAnalysis } from '../types/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
+const CORPUS_FILES = ['corpus/myeongri-basics.json', 'corpus/deep-saju-interpretation.json']
 
 type Vector = Map<string, number>
 
 function loadCorpus(): RagChunk[] {
-  const raw = readFileSync(join(DATA_ROOT, 'corpus/myeongri-basics.json'), 'utf-8')
-  const data = JSON.parse(raw) as { chunks?: RagChunk[]; domain?: string }
-  return (data.chunks ?? []).map((c) => ({ ...c, domain: data.domain }))
+  return CORPUS_FILES.flatMap((file) => {
+    const raw = readFileSync(join(DATA_ROOT, file), 'utf-8')
+    const data = JSON.parse(raw) as { chunks?: RagChunk[]; domain?: string }
+    return (data.chunks ?? []).map((c) => ({ ...c, domain: data.domain }))
+  })
 }
 
 function tokenize(text: string): string[] {

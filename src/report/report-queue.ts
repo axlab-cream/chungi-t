@@ -4,10 +4,11 @@ import { buildOpenAiSajuReportSection, getReportModel } from './report-generator
 import {
   getReportRecord,
   markReportStatus,
+  type ReportRecord,
   updateReportSection,
 } from './report-store.js'
 
-const inFlightReports = new Set<string>()
+const inFlightReports = new Map<string, Promise<ReportRecord | null>>()
 const inFlightSections = new Set<string>()
 
 async function completeWithTemplate(reportId: string, section: SajuReportSection, error?: string): Promise<SajuReportSection> {
@@ -82,16 +83,16 @@ export async function generateReportSectionNow(params: {
   }
 }
 
-export function startReportPreGeneration(params: {
+export async function preGenerateReport(params: {
   reportId: string
   analysis: SajuAnalysis
   birth: BirthInput
   context: SajuReportContext
-}): void {
-  if (inFlightReports.has(params.reportId)) return
-  inFlightReports.add(params.reportId)
+}): Promise<ReportRecord | null> {
+  const currentRun = inFlightReports.get(params.reportId)
+  if (currentRun) return currentRun
 
-  void (async () => {
+  const run = (async () => {
     try {
       await markReportStatus(params.reportId, 'generating')
       const record = await getReportRecord(params.reportId)
@@ -112,9 +113,9 @@ export function startReportPreGeneration(params: {
 
       const finished = await getReportRecord(params.reportId)
       const allComplete = finished?.report.sections.every((section) => section.status === 'complete')
-      await markReportStatus(params.reportId, allComplete ? 'complete' : 'failed')
+      return markReportStatus(params.reportId, allComplete ? 'complete' : 'failed')
     } catch (err) {
-      await markReportStatus(
+      return markReportStatus(
         params.reportId,
         'failed',
         err instanceof Error ? err.message : '리포트 사전 생성 실패',
@@ -123,4 +124,16 @@ export function startReportPreGeneration(params: {
       inFlightReports.delete(params.reportId)
     }
   })()
+
+  inFlightReports.set(params.reportId, run)
+  return run
+}
+
+export function startReportPreGeneration(params: {
+  reportId: string
+  analysis: SajuAnalysis
+  birth: BirthInput
+  context: SajuReportContext
+}): void {
+  void preGenerateReport(params)
 }

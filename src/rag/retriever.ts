@@ -5,6 +5,7 @@ import type { RagChunk, SajuAnalysis } from '../types/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
+const CORPUS_FILES = ['corpus/myeongri-basics.json', 'corpus/deep-saju-interpretation.json']
 
 interface CorpusFile {
   domain?: string
@@ -25,12 +26,13 @@ import { retrieveVectorRagChunks } from './embedder.js'
 
 /** O(n*m) — 코퍼스 인덱스 로드 */
 export function buildCorpusIndex(): RagChunk[] {
-  const basics = loadJson<CorpusFile>('corpus/myeongri-basics.json')
-  const chunks: RagChunk[] = (basics.chunks ?? []).map((c) => ({
-    ...c,
-    domain: basics.domain,
-  }))
-  return chunks
+  return CORPUS_FILES.flatMap((file) => {
+    const corpusFile = loadJson<CorpusFile>(file)
+    return (corpusFile.chunks ?? []).map((c) => ({
+      ...c,
+      domain: corpusFile.domain,
+    }))
+  })
 }
 
 function scoreChunk(
