@@ -16,7 +16,7 @@
 | 사전 생성 | 확인됨 | `src/report/report-queue.ts`에서 분석 직후 섹션을 순차 생성 |
 | 저장소 | 확인됨 | `src/report/report-store.ts`에서 `DATABASE_URL` 있으면 Postgres, 없으면 memory fallback |
 | 페이지 조회 | 확인됨 | `GET /api/report/:reportId`, `POST /api/report/section`, `POST /api/report/prewarm` |
-| UI | 확인됨 | `사주/사주/index.html` 목차, 이전/다음 페이지, 타자형 출력, 설정의 풀이 보관함, `reportId` 직접 조회 링크 |
+| UI | 확인됨 | `사주/사주/index.html` 목차, 이전/다음 페이지, 타자형 출력, 설정의 풀이 보관함, `reportId` 직접 조회 링크, LLM 해석 로딩바 |
 | 모델 분리 | 확인됨 | `data/runtime-config.json`의 `report.model = gpt-5.5` |
 
 ## 결정 사항
@@ -41,6 +41,8 @@
 - `?reportId=<id>` URL로 진입하면 브라우저 보관함을 먼저 확인하고, 없으면 `GET /api/report/:reportId`로 서버 저장 데이터를 조회해 결과 화면을 복원한다.
 - `GET /api/report/:reportId`는 리포트 본문뿐 아니라 `birth`, `context`, UI 복원용 `analysis`를 함께 반환한다.
 - `reportId`는 랜덤 값이 아니라 생년월일·시간·성별·상담 맥락·현재 corpus fingerprint로 만든 안정형 고유 ID다. 같은 조건의 동일한 풀이를 중복 생성하지 않기 위한 결정이다.
+- `/api/saju/analyze`와 `/api/report/section` 호출 중에는 정지 화면처럼 보이지 않도록 인디터미넌트 로딩바를 표시한다.
+- 전체 분석 로딩은 `명식 정렬 → 근거 회수 → 풀이 작성` 단계감을 주고, 섹션별 생성 로딩은 해당 장의 해석문이 열리는 중임을 작은 상태 카드로 보여준다.
 
 ## DB 운영 조건
 

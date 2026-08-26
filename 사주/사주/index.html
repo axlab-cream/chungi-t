@@ -588,23 +588,150 @@
       .loader {
         display: grid;
         place-items: center;
-        gap: 18px;
-        text-align: center;
-        padding-bottom: 22vh;
+        width: 100%;
+        padding: 0 0 18vh;
       }
 
-      .ring {
-        width: 92px;
-        height: 92px;
+      .interpret-loader-card {
+        width: min(100%, 340px);
+        display: grid;
+        gap: 16px;
+        padding: 22px 18px 18px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(170, 37, 27, 0.26), transparent 46%),
+          linear-gradient(180deg, rgba(34, 8, 7, 0.88), rgba(5, 2, 2, 0.94));
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+        text-align: center;
+      }
+
+      .interpret-orb {
+        position: relative;
+        width: 74px;
+        height: 74px;
+        margin: 0 auto;
         border-radius: 50%;
-        border: 2px solid rgba(242, 191, 107, 0.18);
-        border-top-color: var(--gold);
-        animation: spin 950ms linear infinite;
+        border: 1px solid rgba(242, 191, 107, 0.26);
+        background:
+          radial-gradient(circle at 50% 50%, rgba(242, 191, 107, 0.32), transparent 32%),
+          radial-gradient(circle at 50% 50%, rgba(156, 25, 20, 0.46), transparent 58%),
+          #080303;
+      }
+
+      .interpret-orb::before {
+        content: "";
+        position: absolute;
+        inset: -5px;
+        border-radius: inherit;
+        border: 2px solid rgba(242, 191, 107, 0.14);
+        border-top-color: #f2bf6b;
+        border-right-color: rgba(203, 56, 38, 0.76);
+        animation: spin 1.05s linear infinite;
+      }
+
+      .interpret-orb::after {
+        content: "";
+        position: absolute;
+        inset: 24px;
+        border-radius: inherit;
+        background: #f2bf6b;
+        box-shadow: 0 0 20px rgba(242, 191, 107, 0.86);
+        animation: pulse-glow 1.4s ease-in-out infinite;
+      }
+
+      .interpret-loader-copy {
+        display: grid;
+        gap: 8px;
+      }
+
+      .interpret-loader-copy .line-pill {
+        justify-self: center;
+        margin: 0;
+      }
+
+      .interpret-loader-copy p {
+        margin: 0;
+        color: rgba(255, 239, 211, 0.72);
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .interpret-progress {
+        position: relative;
+        height: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 226, 175, 0.13);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .interpret-progress::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 46%;
+        border-radius: inherit;
+        background:
+          linear-gradient(90deg, transparent, rgba(255, 244, 214, 0.84), transparent),
+          linear-gradient(90deg, #721812, #d44731 54%, #f2bf6b);
+        box-shadow: 0 0 18px rgba(242, 191, 107, 0.42);
+        animation: progress-scan 1.65s ease-in-out infinite;
+      }
+
+      .interpret-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+
+      .interpret-steps span {
+        min-width: 0;
+        padding: 7px 5px;
+        border: 1px solid rgba(255, 226, 175, 0.14);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.045);
+        color: rgba(255, 232, 197, 0.74);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .interpret-steps span:nth-child(2) {
+        color: #ffe4af;
+        animation: step-glow 1.65s ease-in-out infinite;
       }
 
       @keyframes spin {
         to {
           transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulse-glow {
+        50% {
+          opacity: 0.55;
+          transform: scale(0.78);
+        }
+      }
+
+      @keyframes progress-scan {
+        0% {
+          transform: translateX(-105%);
+        }
+        52% {
+          transform: translateX(92%);
+        }
+        100% {
+          transform: translateX(190%);
+        }
+      }
+
+      @keyframes step-glow {
+        50% {
+          border-color: rgba(242, 191, 107, 0.42);
+          background: rgba(146, 31, 23, 0.26);
         }
       }
 
@@ -1999,9 +2126,33 @@
       }
 
       .report-status {
-        color: #bfa78d;
+        display: grid;
+        gap: 10px;
+        padding: 13px;
+        border: 1px solid rgba(255, 226, 175, 0.14);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(44, 10, 8, 0.74), rgba(8, 3, 3, 0.86)),
+          #100505;
+        color: #d9c0a2;
         font-size: 13px;
         line-height: 1.6;
+      }
+
+      .report-status strong {
+        color: #fff3de;
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .report-status span {
+        color: rgba(255, 232, 197, 0.68);
+        font-weight: 800;
+      }
+
+      .report-status .interpret-progress {
+        height: 7px;
       }
 
       .report-pager {
@@ -3068,6 +3219,15 @@
       function renderReportPageMarkup(section, index, total, bodyHtml = "", status = "") {
         const hasPrev = index > 0;
         const hasNext = index < total - 1;
+        const statusMarkup = status
+          ? `
+            <div class="report-status" role="status" aria-live="polite">
+              <strong>${escapeHtml(status)}</strong>
+              <div class="interpret-progress" aria-hidden="true"></div>
+              <span>명식과 코퍼스 근거를 맞춰 해석문을 여는 중입니다</span>
+            </div>
+          `
+          : "";
         return `
           <div class="report-page-shell" data-report-page data-section-id="${escapeHtml(section.id)}">
             <div class="report-figure">
@@ -3079,7 +3239,7 @@
               <h3>${escapeHtml(section.category)}</h3>
               <p>${escapeHtml(section.classification)}</p>
             </div>
-            ${status ? `<div class="report-status typing-cursor">${escapeHtml(status)}</div>` : ""}
+            ${statusMarkup}
             <div class="report-body ${status ? "typing-cursor" : ""}" data-report-body>${bodyHtml}</div>
             <div class="report-pager">
               <button type="button" data-action="report-prev" ${hasPrev ? "" : "disabled"}>이전 페이지</button>
@@ -3500,10 +3660,18 @@
       function renderLoading() {
         stage.innerHTML = `
           <div class="loader">
-            <div class="ring" aria-hidden="true"></div>
-            <div>
-              <div class="line-pill">입력한 단서를 엮어보는 중</div>
-              <p class="fineprint">운의 방향을 정리하고 있습니다</p>
+            <div class="interpret-loader-card" role="status" aria-live="polite">
+              <div class="interpret-orb" aria-hidden="true"></div>
+              <div class="interpret-loader-copy">
+                <div class="line-pill">천기 선생님이 해석하고 있습니다</div>
+                <p>입력한 사주 기둥과 RAG 근거를 맞춰<br />당신에게만 열리는 풀이를 준비합니다</p>
+              </div>
+              <div class="interpret-progress" aria-hidden="true"></div>
+              <div class="interpret-steps" aria-hidden="true">
+                <span>명식 정렬</span>
+                <span>근거 회수</span>
+                <span>풀이 작성</span>
+              </div>
             </div>
           </div>
         `;
