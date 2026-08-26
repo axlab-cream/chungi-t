@@ -47,6 +47,7 @@
 - Production 브라우저 검증: 이미지 42/42, 텍스트 34/34, 콘솔 에러 0개
 - 라우팅 수정 배포: `dpl_EBVhwfrBwgGEpUNRHPWipeSNwntj`, bare `/`는 1페이지, `/#immersion`은 2페이지로 검증됨
 - 최신 라우팅 정정: 1페이지 다음은 연출 화면이 아니라 사주 등록 화면이므로 CTA는 `#target`으로 이동한다.
+- 사주 등록 플로우 배포: `dpl_8iSuqACTsMWcwgzkHavno4Dub9u1`, bare `/`는 1페이지, CTA 이후 `#target`에서 `누구의 사주를 볼까요?` 등록 화면으로 검증됨
 
 ## 리스크와 메모
 
