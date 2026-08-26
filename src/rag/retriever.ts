@@ -231,28 +231,63 @@ function scoreChunk(
   queryTokens: string[],
   personalTokens: string[],
   vectorBoost: number,
+  pinnedContextIds: Set<string>,
 ): number {
   const topic = normalizeText(chunk.topic)
   const content = normalizeText(chunk.content)
   const keywords = chunk.keywords.map(normalizeText)
   let score = vectorBoost
+  let keywordHit = false
+  let topicHit = false
+  let contentHit = false
+  let personalHit = false
 
-  for (const keyword of keywords) score += keywordScore(keyword, queryRaw, queryTokens)
+  for (const keyword of keywords) {
+    const next = keywordScore(keyword, queryRaw, queryTokens)
+    if (next > 0) keywordHit = true
+    score += next
+  }
 
   for (const token of queryTokens) {
     if (!token || token.length <= 1) continue
-    if (topic.includes(token)) score += 6
-    if (content.includes(token)) score += 2
+    if (topic.includes(token)) {
+      topicHit = true
+      score += 6
+    }
+    if (content.includes(token)) {
+      contentHit = true
+      score += 2
+    }
   }
 
   for (const token of personalTokens) {
     if (!token || token.length <= 1) continue
-    if (keywords.some((keyword) => keyword.includes(token) || token.includes(keyword))) score += 2
-    if (content.includes(token)) score += 1
+    if (keywords.some((keyword) => keyword.includes(token) || token.includes(keyword))) {
+      personalHit = true
+      score += 2
+    }
+    if (content.includes(token)) {
+      personalHit = true
+      score += 1
+    }
   }
 
   if (chunk.domain === 'input_context_interpretation') score += 1.5
   if (chunk.domain === 'deep_saju_interpretation') score += 1
+  if (pinnedContextIds.has(chunk.id)) score += 40
+
+  const binarySignals = [
+    pinnedContextIds.has(chunk.id),
+    keywordHit,
+    topicHit,
+    contentHit,
+    personalHit,
+    vectorBoost > 0,
+  ]
+  const hitCount = binarySignals.filter(Boolean).length
+  const smoothedCoverage = (hitCount + 1) / (binarySignals.length + 2)
+  score += smoothedCoverage * 10
+
   return score
 }
 
@@ -265,6 +300,37 @@ function contextText(context?: SajuReportContext): string {
     context.work,
     context.concern,
   ].filter(Boolean).join(' ')
+}
+
+function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
+  const ids = new Set<string>()
+  const target = context?.target ?? ''
+  const orientation = context?.orientation ?? ''
+  const relationship = context?.relationship ?? ''
+  const work = context?.work ?? ''
+
+  if (target.includes('본인')) ids.add('ic-001')
+  if (target.includes('가족')) ids.add('ic-002')
+  if (target.includes('연인')) ids.add('ic-003')
+  if (target.includes('친구')) ids.add('ic-004')
+  if (target.includes('기타')) ids.add('ic-005')
+  if (orientation.includes('이성 관계')) ids.add('ic-006')
+  if (orientation.includes('동성 관계')) ids.add('ic-007')
+  if (relationship.includes('솔로')) ids.add('ic-008')
+  if (relationship.includes('마음에 둔')) ids.add('ic-009')
+  if (relationship.includes('연애 중')) ids.add('ic-010')
+  if (relationship.includes('이별')) ids.add('ic-011')
+  if (relationship.includes('결혼')) ids.add('ic-012')
+  if (work.includes('학생')) ids.add('ic-013')
+  if (work.includes('일을 찾')) ids.add('ic-014')
+  if (work.includes('직장')) ids.add('ic-015')
+  if (work.includes('사업')) ids.add('ic-016')
+  if (work.includes('프리랜서')) ids.add('ic-017')
+  if (work.includes('쉬고')) ids.add('ic-018')
+  if (context?.concern?.trim()) ids.add('ic-019')
+  else ids.add('ic-020')
+
+  return ids
 }
 
 export function retrieveRagChunks(
@@ -285,6 +351,7 @@ export function retrieveRagChunks(
   ])
   const personalTokens = sajuTokens(saju)
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
+  const pinnedIds = pinnedContextChunkIds(context)
 
   const vectorResults = retrieveVectorRagChunks(
     [...queryTokens, ...personalTokens].join(' '),
@@ -296,13 +363,24 @@ export function retrieveRagChunks(
   const scored = corpus
     .map((chunk) => ({
       chunk,
-      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, vectorRank.get(chunk.id) ?? 0),
+      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds),
     }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))
 
-  if (scored.length === 0) return corpus.slice(0, topK)
-  return scored.slice(0, topK).map((item) => item.chunk)
+  const pinnedChunks = [...pinnedIds]
+    .map((id) => corpus.find((chunk) => chunk.id === id))
+    .filter((chunk): chunk is RagChunk => Boolean(chunk))
+
+  const rankedChunks = [
+    ...pinnedChunks,
+    ...scored
+      .map((item) => item.chunk)
+      .filter((chunk) => !pinnedIds.has(chunk.id)),
+  ]
+
+  if (rankedChunks.length === 0) return corpus.slice(0, topK)
+  return rankedChunks.slice(0, topK)
 }
 
 export function formatRagForPrompt(chunks: RagChunk[]): string {

@@ -27,11 +27,17 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     const analysis = analyzeSaju(sampleBirth)
     const report = buildTemplateSajuReport(analysis, sampleBirth, sampleContext)
 
-    assert.ok(report.sections.length >= 7)
+    assert.ok(report.sections.length >= 30)
     assert.ok(report.sections[0].patternKeys.some((key) => key.startsWith('dayPillar:')))
     assert.ok(report.sections[0].patternKeys.some((key) => key.startsWith('dayMaster:')))
+    assert.ok(report.sections[0].patternKeys.includes('target:본인'))
+    assert.ok(report.sections[0].patternKeys.includes('relationship:혼자'))
+    assert.ok(report.sections[0].patternKeys.includes('work:직장 다녀요'))
     assert.ok(report.sections[0].classification.includes('일간'))
     assert.ok(report.sections[0].interpretation.includes('정재용'))
+    assert.ok(report.sections.some((section) => section.id === 'relationship-orientation'))
+    assert.ok(report.sections.some((section) => section.id === 'work-context'))
+    assert.ok(report.sections.some((section) => section.ragTopics.some((topic) => topic.includes('직장'))))
   })
 
   it('같은 사주와 맥락은 같은 reportId로 저장된다', async () => {

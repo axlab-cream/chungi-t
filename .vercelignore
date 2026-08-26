@@ -9,3 +9,4 @@ node_modules
 *.tmp
 *.bak
 .cache
+사주/assets/consultation-targets/
