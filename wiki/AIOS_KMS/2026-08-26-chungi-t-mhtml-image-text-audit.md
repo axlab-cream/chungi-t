@@ -57,6 +57,8 @@
 - 영상 영역 수정 배포: `dpl_G2TAGUntNwsa2wd5ChrREyNfPx2F`, alias `https://chungi-t.vercel.app`
 - Production 영상 검증: `readyState=4`, `paused=false`, `currentTime=3.45`, 영역 높이 `659px`, 이미지 42/42 로드, CTA 후 `#target` 진입 확인
 - 로컬 텍스트 레이어 검증: `manseryeok` 제목 중심점의 최상위 요소가 `H2`, 제목 `z-index=4`, 배경 시작 `top=223px`, 제목/말풍선 겹침 없음, 이미지 42/42 로드
+- 텍스트 레이어 수정 배포: `dpl_3cb2AS5PDrtA1xWNwrywaBedfVqH`, alias `https://chungi-t.vercel.app`
+- Production 텍스트 레이어 검증: `manseryeok` 제목 중심점의 최상위 요소가 `H2`, 제목 `z-index=4`, 배경 시작 `top=223px`, 제목/말풍선 겹침 없음, 이미지 42/42 로드
 
 ## 리스크와 메모
 

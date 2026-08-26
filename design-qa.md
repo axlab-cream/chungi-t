@@ -21,7 +21,7 @@
 - State: landing top and result top after `정재용`, `양력 1975.09.26`, `결혼했어요`, `이성 관계 중심`, `직장 운`.
 - Local URL: `http://localhost:8791/`.
 - Production URL: `https://chungi-t.vercel.app/?qa=mhtml-final`.
-- Production deployment: `dpl_G2TAGUntNwsa2wd5ChrREyNfPx2F`.
+- Production deployment: `dpl_3cb2AS5PDrtA1xWNwrywaBedfVqH`.
 
 **Findings**
 - No remaining P0/P1/P2 findings.
@@ -44,7 +44,7 @@
 - Iteration 5: restored the source-like video behavior with `autoplay muted playsinline preload="auto"` and removed native controls. Local browser confirmed `readyState=4`, `paused=false`, `currentTime=2.44`, and source video size `1440x2232`.
 - Iteration 6: corrected the `manseryeok` section so the `네 팔자가 앞으로 어떻게 흘러갈까?` headline sits above the background image like the source. Local browser confirmed the headline center resolves to `H2`, the headline does not overlap the bubble, and all 42 source assets load.
 - Final local score: top first-view fidelity 95%; image/text load audit 100%.
-- Final production audit: video `readyState=4`, `paused=false`, `currentTime=3.45`, image 42/42 loaded, text rendered, CTA enters `#target`.
+- Final production audit: `manseryeok` headline center resolves to `H2`, headline and bubble do not overlap, image 42/42 loaded, text rendered.
 
 **Interaction Checks**
 - Landing page renders the MHTML top sequence first.
