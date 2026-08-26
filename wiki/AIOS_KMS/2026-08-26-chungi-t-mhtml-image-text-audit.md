@@ -7,6 +7,11 @@
 
 사용자가 지정한 MHTML 샘플의 최상단 구조를 기준으로 페이지를 다시 맞추고, 모든 이미지가 그대로 로드되는지와 각 영역 텍스트가 표시되는지 직접 확인한다.
 
+## 페이지 정의
+
+- 1페이지: 사용자가 지정한 MHTML 샘플 페이지. 운영 URL bare `/`에서 먼저 보여야 한다.
+- 2페이지: `천기 선생님 · 사주` 사주 등록 단계. 1페이지 CTA 이후 `#target` 상태로 `누구의 사주를 볼까요?` 화면부터 보여야 한다.
+
 ## 근거
 
 | 영역 | 상태 | 근거 |
@@ -26,7 +31,7 @@
 - 비디오는 `preload="none"`으로 두어 첨부 샘플처럼 검은 native control 상태로 보이게 했다.
 - 인트로 높이와 이미지 fade를 조정해 하단에 다음 말풍선이 살짝만 보이도록 맞췄다.
 - 샘플의 `범산 도령이다` 문구는 프로젝트 페르소나에 맞춰 `천기 선생님이다`로 치환했다.
-- `/`와 내부 장면이 혼동되지 않도록 첫 화면은 bare `/`에 고정하고, 이후 장면은 `#immersion`, `#target` 같은 URL hash로 구분한다.
+- `/`와 내부 장면이 혼동되지 않도록 1페이지는 bare `/`에 고정하고, 2페이지 사주 등록 화면은 `#target` URL hash로 구분한다.
 
 ## QA 결과
 
@@ -40,6 +45,8 @@
 - `design-qa.md`: `final result: passed`
 - Vercel production 배포: `dpl_ANLShpa8oAsGk4h2XpDbzDy2uQsK`, alias `https://chungi-t.vercel.app`
 - Production 브라우저 검증: 이미지 42/42, 텍스트 34/34, 콘솔 에러 0개
+- 라우팅 수정 배포: `dpl_EBVhwfrBwgGEpUNRHPWipeSNwntj`, bare `/`는 1페이지, `/#immersion`은 2페이지로 검증됨
+- 최신 라우팅 정정: 1페이지 다음은 연출 화면이 아니라 사주 등록 화면이므로 CTA는 `#target`으로 이동한다.
 
 ## 리스크와 메모
 

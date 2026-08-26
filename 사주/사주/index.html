@@ -1718,7 +1718,6 @@
 
       const historyStack = [];
       const urlScenes = new Set([
-        "immersion",
         "target",
         "birth",
         "time",
@@ -1825,7 +1824,7 @@
           handleValue(valueButton.dataset.key, valueButton.dataset.value, valueButton);
         }
 
-        if (action === "enter") go("immersion");
+        if (action === "enter") go("target");
         if (action === "look") go("target");
         if (action === "skip") go("target");
         if (action === "prev") {
@@ -2865,8 +2864,9 @@
       }
 
       const initialScene = location.hash.slice(1);
-      if (urlScenes.has(initialScene)) {
-        go(initialScene, false);
+      const resolvedInitialScene = initialScene === "immersion" ? "target" : initialScene;
+      if (urlScenes.has(resolvedInitialScene)) {
+        go(resolvedInitialScene, false);
       } else {
         syncSceneUrl("landing");
         renderLanding();
