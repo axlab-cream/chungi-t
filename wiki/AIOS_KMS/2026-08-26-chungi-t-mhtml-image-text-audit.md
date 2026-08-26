@@ -37,6 +37,8 @@
 - `npm run typecheck`: 통과
 - `npm run vercel-build`: 통과
 - `design-qa.md`: `final result: passed`
+- Vercel production 배포: `dpl_ANLShpa8oAsGk4h2XpDbzDy2uQsK`, alias `https://chungi-t.vercel.app`
+- Production 브라우저 검증: 이미지 42/42, 텍스트 34/34, 콘솔 에러 0개
 
 ## 리스크와 메모
 

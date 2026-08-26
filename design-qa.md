@@ -11,6 +11,8 @@
 - Source/implementation comparison: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-top-comparison-final.png`.
 - Asset audit JSON: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-audit.json`.
 - Result flow screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-result-top-v2.png`.
+- Production top screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-prod-sample-top-final.png`.
+- Production audit JSON: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-prod-final-audit.json`.
 
 **Viewport And State**
 - Source pixels: 439 x 807.
@@ -18,6 +20,8 @@
 - CSS viewport: 440 x 807, device scale default.
 - State: landing top and result top after `정재용`, `양력 1975.09.26`, `결혼했어요`, `이성 관계 중심`, `직장 운`.
 - Local URL: `http://localhost:8791/`.
+- Production URL: `https://chungi-t.vercel.app/?qa=mhtml-final`.
+- Production deployment: `dpl_ANLShpa8oAsGk4h2XpDbzDy2uQsK`.
 
 **Findings**
 - No remaining P0/P1/P2 findings.
@@ -38,6 +42,7 @@
 - Iteration 3: increased intro height so the next speech bubble appears only at the bottom edge.
 - Iteration 4: reduced the fan overlay darkness and matched source fade treatment.
 - Final local score: top first-view fidelity 95%; image/text load audit 100%.
+- Final production audit: image 42/42 loaded, text 34/34 rendered, console errors 0.
 
 **Interaction Checks**
 - Landing page renders the MHTML top sequence first.
