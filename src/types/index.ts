@@ -57,6 +57,7 @@ export interface SajuAnalysis {
   dayMasterAdvice: string
   fortune?: FortuneCycle
   preview?: SajuPreview
+  report?: SajuReport
 }
 
 export interface FortuneCycle {
@@ -71,6 +72,46 @@ export interface SajuPreview {
   wealthFortune: string
   personality: string
   elementBalance: string
+}
+
+export interface SajuReportContext {
+  name?: string
+  target?: string
+  concern?: string
+  relationship?: string
+  orientation?: string
+  work?: string
+}
+
+export interface SajuReportSection {
+  id: string
+  order: number
+  imageKey: string
+  imageSrc: string
+  imageAlt: string
+  category: string
+  categoryEn: string
+  classification: string
+  hook: string
+  patternKeys: string[]
+  ragTopics: string[]
+  interpretation: string
+  generatedBy?: 'template' | 'openai'
+  model?: string
+  status?: 'pending' | 'generating' | 'complete' | 'failed'
+  error?: string
+}
+
+export interface SajuReport {
+  reportId?: string
+  title: string
+  subtitle: string
+  model: string
+  generatedBy: 'template' | 'openai'
+  status?: 'pending' | 'generating' | 'complete' | 'failed'
+  progress?: { complete: number; total: number }
+  storage?: 'postgres' | 'memory'
+  sections: SajuReportSection[]
 }
 
 export interface ChatResponse {

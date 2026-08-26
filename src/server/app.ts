@@ -6,7 +6,15 @@ import { fileURLToPath } from 'node:url'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
-import type { BirthInput, ConversationTurn } from '../types/index.js'
+import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { generateReportSectionNow, startReportPreGeneration } from '../report/report-queue.js'
+import {
+  createOrGetReportRecord,
+  createReportId,
+  getReportRecord,
+  toClientReport,
+} from '../report/report-store.js'
+import type { BirthInput, ConversationTurn, SajuReportContext } from '../types/index.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -38,9 +46,39 @@ function parseBirth(body: Record<string, unknown>): BirthInput {
   }
 }
 
-function toUiAnalysis(birth: BirthInput) {
+function parseReportContext(body: Record<string, unknown>): SajuReportContext {
+  const context = (body.context ?? {}) as Record<string, unknown>
+  const value = (key: string): string | undefined => {
+    const raw = context[key] ?? body[key]
+    return typeof raw === 'string' && raw.trim() ? raw.trim() : undefined
+  }
+
+  return {
+    name: value('name'),
+    target: value('target'),
+    concern: value('concern'),
+    relationship: value('relationship'),
+    orientation: value('orientation'),
+    work: value('work'),
+  }
+}
+
+async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}) {
   const analysis = analyzeSaju(birth)
   const p = analysis.fourPillars
+  const reportId = createReportId(birth, context)
+  const templateReport = buildTemplateSajuReport(analysis, birth, context)
+  const { record } = await createOrGetReportRecord({
+    reportId,
+    birth,
+    context,
+    templateReport,
+  })
+
+  if (record.status !== 'complete') {
+    startReportPreGeneration({ reportId, analysis, birth, context })
+  }
+
   return {
     birth,
     pillars: {
@@ -62,6 +100,7 @@ function toUiAnalysis(birth: BirthInput) {
     tenGods: analysis.tenGods,
     fortune: analysis.fortune,
     preview: analysis.preview,
+    report: toClientReport(record),
     summary: analysis.summary,
   }
 }
@@ -70,16 +109,84 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, openai: isOpenAiConfigured() })
 })
 
-app.post('/api/saju/analyze', (req, res) => {
+app.post('/api/saju/analyze', async (req, res) => {
   try {
     const birth = parseBirth(req.body)
+    const context = parseReportContext(req.body)
     if (!birth.year || !birth.month || !birth.day) {
       res.status(400).json({ error: '생년월일을 입력해 주세요.' })
       return
     }
-    res.json(toUiAnalysis(birth))
+    res.json(await toUiAnalysis(birth, context))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
+  }
+})
+
+app.get('/api/report/:reportId', async (req, res) => {
+  try {
+    const reportId = String(req.params.reportId ?? '').trim()
+    const record = await getReportRecord(reportId)
+    if (!record) {
+      res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
+      return
+    }
+    res.json({ report: toClientReport(record) })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 조회 실패' })
+  }
+})
+
+app.post('/api/report/section', async (req, res) => {
+  try {
+    const birth = parseBirth(req.body.birth ?? req.body)
+    const context = parseReportContext(req.body)
+    const sectionId = String(req.body.sectionId ?? '').trim()
+    const reportId = String(req.body.reportId ?? createReportId(birth, context)).trim()
+
+    if (!birth.year || !birth.month || !birth.day) {
+      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
+      return
+    }
+    if (!sectionId) {
+      res.status(400).json({ error: 'sectionId가 필요합니다.' })
+      return
+    }
+
+    const analysis = analyzeSaju(birth)
+    const templateReport = buildTemplateSajuReport(analysis, birth, context)
+    const { record } = await createOrGetReportRecord({
+      reportId,
+      birth,
+      context,
+      templateReport,
+    })
+    const storedSection = record.report.sections.find((section) => section.id === sectionId)
+
+    if (storedSection?.status === 'complete') {
+      res.json({
+        section: storedSection,
+        report: toClientReport(record),
+        generatedBy: storedSection.generatedBy ?? 'template',
+        model: storedSection.model ?? 'template',
+      })
+      return
+    }
+
+    if (record.status !== 'complete') {
+      startReportPreGeneration({ reportId, analysis, birth, context })
+    }
+
+    const section = await generateReportSectionNow({ reportId, analysis, birth, context, sectionId })
+    const latest = await getReportRecord(reportId)
+    res.json({
+      section,
+      report: latest ? toClientReport(latest) : undefined,
+      generatedBy: section.generatedBy ?? (isOpenAiConfigured() ? 'openai' : 'template'),
+      model: section.model ?? 'template',
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 생성 실패' })
   }
 })
 

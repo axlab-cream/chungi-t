@@ -15,5 +15,11 @@
     "requiresSaju": true,
     "maxHistoryTurns": 10,
     "ragTopK": 5
+  },
+  "report": {
+    "model": "gpt-5.5",
+    "ragTopK": 4,
+    "sectionMaxTokens": 3000,
+    "maxTokens": 9000
   }
 }

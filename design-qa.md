@@ -54,5 +54,10 @@
 - UI flow was completed through the form to result state.
 - Result page contains the `open-chat` CTA for `/chat.html`.
 - Console-visible image load failures: 0 in the in-app browser audit.
+- Report reader renders 7 table-of-contents pages from the saved `reportId` flow.
+- Report reader common image `/assets/hero-mystic.png` loaded with natural width `864`.
+- Report page 1 rendered `네 매력 기본 스펙`, body text, and enabled `다음 페이지`.
+- Report page 2 changed to `네 기운의 분포`; typing effect completed and left `typing-cursor=false`.
+- Local report reader screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-report-reader-local.png`.
 
 final result: passed

@@ -1641,6 +1641,180 @@
         box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
       }
 
+      .report-reader-section {
+        padding-top: 54px;
+      }
+
+      .report-toc {
+        display: flex;
+        gap: 8px;
+        margin: 20px -20px 24px;
+        padding: 0 20px 2px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .report-toc::-webkit-scrollbar {
+        display: none;
+      }
+
+      .report-toc-button {
+        flex: 0 0 auto;
+        min-width: 132px;
+        padding: 11px 12px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.052);
+        color: #e9c9a7;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.35;
+        text-align: left;
+      }
+
+      .report-toc-button.is-active {
+        border-color: rgba(242, 191, 107, 0.68);
+        background:
+          linear-gradient(180deg, rgba(150, 33, 23, 0.48), rgba(58, 10, 9, 0.84)),
+          #120707;
+        color: #fff2d7;
+      }
+
+      .report-page-shell {
+        display: grid;
+        gap: 18px;
+      }
+
+      .report-figure {
+        position: relative;
+        min-height: 440px;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #050303;
+      }
+
+      .report-figure img {
+        width: 100%;
+        height: 440px;
+        object-fit: cover;
+        object-position: 50% 18%;
+        opacity: 0.88;
+        filter: saturate(1.05) contrast(1.02);
+      }
+
+      .report-figure::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.68) 70%, #050303 100%),
+          radial-gradient(circle at 50% 46%, rgba(154, 22, 18, 0.18), transparent 52%);
+      }
+
+      .report-bubble {
+        position: absolute;
+        right: 18px;
+        top: 126px;
+        z-index: 2;
+        width: 128px;
+        min-height: 128px;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.84);
+        color: #17110f;
+        font-size: 16px;
+        font-weight: 950;
+        line-height: 1.28;
+        text-align: center;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.36);
+      }
+
+      .report-meta {
+        display: grid;
+        gap: 8px;
+      }
+
+      .report-meta h3 {
+        margin: 0;
+        color: #fff6e9;
+        font-size: 26px;
+        line-height: 1.22;
+      }
+
+      .report-meta p {
+        margin: 0;
+        color: var(--gold);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.5;
+      }
+
+      .report-body {
+        min-height: 440px;
+        color: #e7d0b9;
+        font-size: 14px;
+        line-height: 1.86;
+      }
+
+      .report-body p + p {
+        margin-top: 16px;
+      }
+
+      .typing-cursor::after {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 1.1em;
+        margin-left: 3px;
+        vertical-align: -0.14em;
+        background: #f2bf6b;
+        animation: cursor-blink 0.84s step-end infinite;
+      }
+
+      @keyframes cursor-blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .report-status {
+        color: #bfa78d;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .report-pager {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      .report-pager button {
+        min-height: 54px;
+        border: 1px solid rgba(255, 226, 175, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: #fff1d7;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 950;
+      }
+
+      .report-pager button.primary {
+        background:
+          linear-gradient(180deg, #b83427 0%, #7f1b17 100%),
+          #8e231b;
+      }
+
+      .report-pager button:disabled {
+        color: rgba(255, 241, 215, 0.36);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
       .proof-stack {
         display: grid;
         gap: 14px;
@@ -1767,6 +1941,10 @@
         work: "",
         concern: "",
         analysis: null,
+        reportPageIndex: 0,
+        reportSectionCache: {},
+        reportRequestToken: 0,
+        reportTypingTimer: null,
         plan: "single",
         privacyAgree: false,
         paymentAgree: false,
@@ -1921,6 +2099,16 @@
         if (action === "open-chat") {
           location.href = "/chat.html";
         }
+        if (action === "report-prev") {
+          loadReportPage((state.reportPageIndex || 0) - 1);
+        }
+        if (action === "report-next") {
+          loadReportPage((state.reportPageIndex || 0) + 1);
+        }
+        if (action === "report-jump") {
+          const index = Number(event.target.closest("[data-report-index]")?.dataset.reportIndex ?? 0);
+          loadReportPage(index);
+        }
         if (action === "open-purchase") location.href = "/chat.html";
         if (action === "toggle-agree") {
           const key = event.target.closest("[data-agree]")?.dataset.agree;
@@ -1946,6 +2134,11 @@
           state.work = "";
           state.concern = "";
           state.analysis = null;
+          state.reportPageIndex = 0;
+          state.reportSectionCache = {};
+          state.reportRequestToken += 1;
+          if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
+          state.reportTypingTimer = null;
           state.plan = "single";
           state.privacyAgree = false;
           state.paymentAgree = false;
@@ -2028,10 +2221,23 @@
 
       async function analyzeBirth() {
         const birth = parseBirthInput();
+        const context = {
+          name: state.name,
+          target: state.target,
+          concern: state.concern,
+          relationship: state.relationship,
+          orientation: state.orientation,
+          work: state.work,
+        };
+        state.reportPageIndex = 0;
+        state.reportSectionCache = {};
+        state.reportRequestToken += 1;
+        if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
+        state.reportTypingTimer = null;
         const res = await fetch("/api/saju/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(birth),
+          body: JSON.stringify({ ...birth, ...context, context }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");
@@ -2280,6 +2486,203 @@
         if (`${location.pathname}${location.search}${location.hash}` !== nextUrl) {
           history.replaceState(null, "", nextUrl);
         }
+      }
+
+      function getReportSections() {
+        return state.analysis?.report?.sections || [];
+      }
+
+      function getReportContext() {
+        return {
+          name: state.name,
+          target: state.target,
+          concern: state.concern,
+          relationship: state.relationship,
+          orientation: state.orientation,
+          work: state.work,
+        };
+      }
+
+      function formatInterpretationHtml(text) {
+        const clean = String(text || "").trim();
+        if (!clean) return "";
+        return clean
+          .split(/\n{2,}/)
+          .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`)
+          .join("");
+      }
+
+      function renderReportTocMarkup(sections, activeIndex) {
+        return sections
+          .map((section, index) => `
+            <button
+              class="report-toc-button ${index === activeIndex ? "is-active" : ""}"
+              type="button"
+              data-action="report-jump"
+              data-report-index="${index}"
+              aria-pressed="${index === activeIndex}"
+            >
+              ${String(index + 1).padStart(2, "0")} · ${escapeHtml(section.category)}
+            </button>
+          `)
+          .join("");
+      }
+
+      function renderReportPageMarkup(section, index, total, bodyHtml = "", status = "") {
+        const hasPrev = index > 0;
+        const hasNext = index < total - 1;
+        return `
+          <div class="report-page-shell" data-report-page data-section-id="${escapeHtml(section.id)}">
+            <div class="report-figure">
+              <img src="${escapeHtml(section.imageSrc)}" alt="${escapeHtml(section.imageAlt)}" />
+              <div class="report-bubble">${escapeHtml(section.hook)}</div>
+            </div>
+            <div class="report-meta">
+              <p>${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")} · ${escapeHtml(section.categoryEn)}</p>
+              <h3>${escapeHtml(section.category)}</h3>
+              <p>${escapeHtml(section.classification)}</p>
+            </div>
+            ${status ? `<div class="report-status typing-cursor">${escapeHtml(status)}</div>` : ""}
+            <div class="report-body ${status ? "typing-cursor" : ""}" data-report-body>${bodyHtml}</div>
+            <div class="report-pager">
+              <button type="button" data-action="report-prev" ${hasPrev ? "" : "disabled"}>이전 페이지</button>
+              <button class="primary" type="button" data-action="report-next" ${hasNext ? "" : "disabled"}>${hasNext ? "다음 페이지" : "마지막 페이지"}</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderReportReaderMarkup(report) {
+        const sections = report?.sections || [];
+        if (!sections.length) return "";
+        const activeIndex = Math.min(Math.max(state.reportPageIndex || 0, 0), sections.length - 1);
+        const section = sections[activeIndex];
+        return `
+          <section class="story-section deep report-reader-section" data-sample-section="generated-report">
+            <span class="chapter">실제 풀이 목차</span>
+            <h2>${escapeHtml(report.title || "사주 리포트")}</h2>
+            <p>${escapeHtml(report.subtitle || "한 장씩 펼치며 사주의 패턴을 읽습니다.")}</p>
+            <div class="report-toc" data-report-toc>
+              ${renderReportTocMarkup(sections, activeIndex)}
+            </div>
+            <div data-report-reader>
+              ${renderReportPageMarkup(section, activeIndex, sections.length, "", "천기 선생님이 이 장의 기운을 펼치는 중입니다")}
+            </div>
+          </section>
+        `;
+      }
+
+      function seedReportCache() {
+        for (const section of getReportSections()) {
+          if (!state.reportSectionCache[section.id]) {
+            state.reportSectionCache[section.id] = { ...section, generatedBy: "template" };
+          }
+        }
+      }
+
+      function stopReportTyping() {
+        if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
+        state.reportTypingTimer = null;
+      }
+
+      function updateReportToc() {
+        const toc = document.querySelector("[data-report-toc]");
+        const sections = getReportSections();
+        if (toc && sections.length) {
+          toc.innerHTML = renderReportTocMarkup(sections, state.reportPageIndex);
+        }
+      }
+
+      function showReportPageFrame(section, status = "") {
+        const reader = document.querySelector("[data-report-reader]");
+        const sections = getReportSections();
+        if (!reader || !section || !sections.length) return;
+        reader.innerHTML = renderReportPageMarkup(section, state.reportPageIndex, sections.length, "", status);
+        updateReportToc();
+      }
+
+      function typeReportText(section, token) {
+        const body = document.querySelector("[data-report-body]");
+        const status = document.querySelector(".report-status");
+        if (!body || !section) return;
+        const fullText = String(section.interpretation || "");
+        let cursor = 0;
+        const step = Math.max(2, Math.ceil(fullText.length / 260));
+        body.classList.add("typing-cursor");
+        if (status) status.remove();
+
+        const tick = () => {
+          if (token !== state.reportRequestToken) return;
+          cursor = Math.min(fullText.length, cursor + step);
+          body.innerHTML = formatInterpretationHtml(fullText.slice(0, cursor));
+          if (cursor < fullText.length) {
+            state.reportTypingTimer = setTimeout(tick, 18);
+          } else {
+            body.classList.remove("typing-cursor");
+            state.reportTypingTimer = null;
+          }
+        };
+        tick();
+      }
+
+      async function fetchReportSection(section) {
+        const birth = parseBirthInput();
+        const res = await fetch("/api/report/section", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            birth,
+            reportId: state.analysis?.report?.reportId,
+            sectionId: section.id,
+            context: getReportContext(),
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "리포트 생성 실패");
+        if (json.report && state.analysis) {
+          state.analysis.report = json.report;
+          seedReportCache();
+        }
+        return { ...json.section, generatedBy: json.generatedBy, model: json.model };
+      }
+
+      async function loadReportPage(index, force = false) {
+        const sections = getReportSections();
+        if (!sections.length) return;
+        const nextIndex = Math.min(Math.max(index, 0), sections.length - 1);
+        state.reportPageIndex = nextIndex;
+        const templateSection = sections[nextIndex];
+        stopReportTyping();
+        const token = state.reportRequestToken + 1;
+        state.reportRequestToken = token;
+
+        const cached = state.reportSectionCache[templateSection.id];
+        if (cached && !force && cached.generatedBy === "openai") {
+          showReportPageFrame(cached, "");
+          typeReportText(cached, token);
+          return;
+        }
+
+        showReportPageFrame(templateSection, "천기 선생님이 이 장의 기운을 펼치는 중입니다");
+        try {
+          const generated = await fetchReportSection(templateSection);
+          if (token !== state.reportRequestToken) return;
+          state.reportSectionCache[templateSection.id] = generated;
+          showReportPageFrame(generated, "");
+          typeReportText(generated, token);
+        } catch (err) {
+          if (token !== state.reportRequestToken) return;
+          const fallback = cached || templateSection;
+          state.reportSectionCache[templateSection.id] = fallback;
+          showReportPageFrame(fallback, "");
+          typeReportText(fallback, token);
+        }
+      }
+
+      function setupReportReader() {
+        if (!getReportSections().length) return;
+        seedReportCache();
+        requestAnimationFrame(() => loadReportPage(state.reportPageIndex || 0));
       }
 
       function go(scene, remember = true) {
@@ -2786,6 +3189,8 @@
               </div>
             </section>
 
+            ${renderReportReaderMarkup(a?.report)}
+
             <section class="story-visual statement visual-saju" data-sample-section="last-saju-book">
               <div class="story-caption">
                 <p>실제 결과 리포트 예시</p>
@@ -2849,6 +3254,7 @@
             </div>
           </article>
         `;
+        setupReportReader();
       }
 
       function renderPurchase() {
