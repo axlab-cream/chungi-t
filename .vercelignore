@@ -1,0 +1,10 @@
+*.zip
+*.mhtml
+node_modules
+.env
+.env.local
+.git
+*.log
+*.tmp
+*.bak
+.cache
