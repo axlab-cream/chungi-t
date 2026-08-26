@@ -34,6 +34,7 @@
 - `/`와 내부 장면이 혼동되지 않도록 1페이지는 bare `/`에 고정하고, 2페이지 사주 등록 화면은 `#target` URL hash로 구분한다.
 - `extracted_decoded.html`을 운영 앱에 원본 HTML 통째로 복붙한 방식은 아니며, 해당 파일의 첫 페이지 시퀀스와 이미지/텍스트 자산을 현재 앱 구조 안에 재구성했다.
 - 랜딩/결과 stage가 flex 컨테이너로 동작하면서 긴 `.sample-story`가 화면 높이로 줄어 하단 스크롤이 막히던 문제를 수정했다. 랜딩/결과 stage는 block 흐름으로 두고, `.sample-story`는 줄어들지 않도록 고정한다.
+- 영상 영역은 원본 `extracted_decoded.html`처럼 자동재생 티저로 보여야 한다. 이전 `controls + preload="none"` 구성은 검은 컨트롤 띠처럼 보이는 문제가 있어 `autoplay muted playsinline preload="auto"`로 되돌리고 native controls를 제거했다.
 
 ## QA 결과
 
@@ -51,6 +52,7 @@
 - 최신 라우팅 정정: 1페이지 다음은 연출 화면이 아니라 사주 등록 화면이므로 CTA는 `#target`으로 이동한다.
 - 사주 등록 플로우 배포: `dpl_8iSuqACTsMWcwgzkHavno4Dub9u1`, bare `/`는 1페이지, CTA 이후 `#target`에서 `누구의 사주를 볼까요?` 등록 화면으로 검증됨
 - 로컬 스크롤 수정 검증: bare `/`에서 `stageScrollHeight 19674px`, `storyHeight 19650px`, wheel 후 `scrollTop 2200`으로 하단 스크롤 동작 확인
+- 로컬 영상 영역 검증: `readyState=4`, `paused=false`, `currentTime=2.44`, 원본 영상 크기 `1440x2232`, native controls 없음, 이미지 42/42 로드, CTA 후 `#target` 진입 확인
 
 ## 리스크와 메모
 

@@ -26,7 +26,7 @@
 **Findings**
 - No remaining P0/P1/P2 findings.
 - P3: the sample text says `범산 도령이다`; implementation intentionally uses the project persona `천기 선생님이다`.
-- P3: native video controls differ slightly by browser rendering, but the first screen order now matches: black video controls, black title area, fan image, `탁` callout.
+- P3: the source video is a tall autoplay teaser, so the first section now renders as a real muted autoplay video instead of a short native-controls strip.
 
 **Required Fidelity Surfaces**
 - Fonts and typography: top title now uses a heavier Korean sans-serif treatment with white/red line split; body copy keeps the sample's direct fortune-teller tone.
@@ -38,14 +38,16 @@
 **Comparison History**
 - Previous state: top started with the old `천기 선생님` header/person background instead of the MHTML sample.
 - Iteration 1: replaced top with video/title/fan order and inserted source image sections.
-- Iteration 2: changed video to `preload="none"` so the first view shows black native controls.
+- Iteration 2: changed video to `preload="none"` so the first view showed black native controls.
 - Iteration 3: increased intro height so the next speech bubble appears only at the bottom edge.
 - Iteration 4: reduced the fan overlay darkness and matched source fade treatment.
+- Iteration 5: restored the source-like video behavior with `autoplay muted playsinline preload="auto"` and removed native controls. Local browser confirmed `readyState=4`, `paused=false`, `currentTime=2.44`, and source video size `1440x2232`.
 - Final local score: top first-view fidelity 95%; image/text load audit 100%.
 - Final production audit: image 42/42 loaded, text 34/34 rendered, console errors 0.
 
 **Interaction Checks**
 - Landing page renders the MHTML top sequence first.
+- Landing video is a loaded and playing muted teaser, not a clipped control-only strip.
 - Result page renders the same MHTML top sequence before the personalized flow.
 - UI flow was completed through the form to result state.
 - Result page contains the `open-chat` CTA for `/chat.html`.

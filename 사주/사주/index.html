@@ -699,16 +699,15 @@
 
       .sample-video-shell {
         width: 100%;
-        height: 132px;
         overflow: hidden;
-        background: #101010;
+        background: #000;
       }
 
       .sample-video {
         display: block;
         width: 100%;
-        height: 100%;
-        background: #101010;
+        height: auto;
+        background: #000;
         object-fit: cover;
       }
 
@@ -1994,7 +1993,7 @@
       function sampleVideoMarkup() {
         return `
           <section class="sample-video-shell" data-sample-section="video">
-            <video class="sample-video" controls playsinline preload="none">
+            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천기 선생님 티저 영상">
               <source src="${sampleVideo.webm}" type="video/webm" />
               <source src="${sampleVideo.mp4}" type="video/mp4" />
             </video>
