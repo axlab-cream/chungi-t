@@ -425,6 +425,78 @@ function tenGodSentence(analysis: SajuAnalysis): string {
   return notes.join(' ')
 }
 
+function daewoonWindow(analysis: SajuAnalysis): string {
+  const fortune = analysis.fortune
+  if (!fortune) return '현재 대운'
+  const current = fortune.daewoon.find((d) => d.pillar === fortune.currentDaewoon)
+  if (!current) return `${fortune.currentDaewoon} 대운`
+  const start = current.startYear ? `${current.startYear}년부터 열린 ` : ''
+  return `${start}${current.age} ${current.pillar} 대운`
+}
+
+function timingRiskNote(focus: ReportFocus, analysis: SajuAnalysis): string {
+  const riskyInteraction = analysis.manseryeok?.interactions.find((i) => ['충', '형', '파', '해'].includes(i.type))
+  const daewoon = daewoonWindow(analysis)
+  const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : ELEMENT_KO[analysis.weakElement]
+  const signal = riskyInteraction
+    ? `${riskyInteraction.type}(${riskyInteraction.signs.join('')}) 신호`
+    : `${ELEMENT_KO[analysis.dominantElement]} 과다와 ${ELEMENT_KO[analysis.weakElement]} 부족 신호`
+
+  if (['relationshipContext', 'love', 'destiny'].includes(focus)) {
+    return `시기적으로는 ${daewoon}과 ${yearPillar} 세운에서 이 ${signal}가 관계의 말투, 거리감, 재회·정리 문제로 먼저 튀어나올 수 있습니다. 풀 방법은 감정이 커지는 때 바로 결론 내리지 말고, ${useful} 기운이 살아나는 느린 확인과 경계선부터 세우는 겁니다.`
+  }
+
+  if (['careerMoney', 'moneyLeak', 'workContext'].includes(focus)) {
+    return `시기적으로는 ${daewoon}과 ${yearPillar} 세운에서 이 ${signal}가 일의 확장, 계약, 지출, 사람 비용으로 먼저 드러날 수 있습니다. 풀 방법은 큰 결정보다 계약서·반복 수입·지출 상한선을 먼저 잠그는 겁니다.`
+  }
+
+  if (['future', 'timingPlace', 'action'].includes(focus)) {
+    return `시기적으로는 ${daewoon}과 ${yearPillar} 세운이 맞물릴 때 이 ${signal}가 전환 신호로 올라옵니다. 풀 방법은 들어오는 제안을 바로 잡는 게 아니라, ${useful} 기운이 살아나는 방향인지 한 번 걸러서 움직이는 겁니다.`
+  }
+
+  return `시기적으로는 ${daewoon}과 ${yearPillar} 세운에서 이 ${signal}가 반복 고민의 모양으로 올라올 수 있습니다. 풀 방법은 좋은 흐름을 기다리는 게 아니라, ${useful} 기운을 살리는 루틴으로 먼저 균형을 잡는 겁니다.`
+}
+
+function conditionalRiskNote(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReportContext): string {
+  const riskyGods = analysis.tenGods.filter((g) => ['겁재', '상관', '편관', '편인'].includes(g))
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const weakCount = analysis.elementCount[analysis.weakElement]
+  const relationship = context.relationship ?? ''
+  const work = context.work ?? ''
+  const concern = context.concern?.trim()
+
+  const timedClose = `${timingRiskNote(focus, analysis)} 이건 확정 예언이 아니라, 그 신호가 보일 때 한 번 멈춰 보라는 사전 경고입니다.`
+
+  if (focus === 'balance' && weakCount === 0) {
+    return `좋은 말만 하지는 않겠습니다. ${weak} 기운이 완전히 비어 있으면 그 영역은 평소엔 티가 덜 나다가, 일이 몰릴 때 회피·소진·판단 지연으로 꽤 못나게 드러날 수 있습니다. ${dominant}을 더 키우기보다 ${useful}을 살리는 루틴을 먼저 잡아야 합니다. ${timedClose}`
+  }
+
+  if (focus === 'trap' && riskyGods.length > 0) {
+    return `안 좋은 건 이렇게 보입니다. ${riskyGods.join(' · ')} 흐름이 강하게 드러날 때는 사람과 비교, 말의 충돌, 과한 책임, 혼자만의 해석이 고민을 키울 수 있습니다. ${concern ? `"${concern}" 문제에서는 ` : ''}좋은 말보다 먼저 반복되는 장면을 끊어야 합니다. 방치하면 같은 문제를 사람만 바꿔 다시 만날 가능성이 큽니다. ${timedClose}`
+  }
+
+  if (['relationshipContext', 'love', 'destiny'].includes(focus)) {
+    if (relationship.includes('이별') || relationship.includes('마음에 둔') || riskyGods.some((g) => ['겁재', '상관', '편관'].includes(g))) {
+      return `관계에서는 조심할 지점이 선명합니다. 끌림이 강할수록 확인 없이 마음을 키우거나, 서운함을 말로 세게 밀어붙이거나, 책임을 혼자 떠안는 흐름을 경계해야 합니다. 좋아하는 것과 맞는 건 다릅니다. 이걸 못 끊으면 설레는 사람에게 끌리고, 결국 나를 흐리게 만드는 패턴으로 돌아갈 수 있습니다. ${timedClose}`
+    }
+  }
+
+  if (['careerMoney', 'moneyLeak'].includes(focus)) {
+    if (work.includes('사업') || work.includes('프리랜서') || work.includes('직장') || riskyGods.some((g) => ['겁재', '상관'].includes(g))) {
+      return `일과 돈에서는 미리 막아야 할 구멍이 있습니다. 기준 없는 확장, 말로 생기는 충돌, 사람 때문에 나가는 비용, 계약 없이 시작하는 일은 작아 보여도 나중에 크게 돌아올 수 있습니다. 돈길을 보려면 먼저 새는 문부터 닫아야 합니다. 이건 듣기 좋은 말보다 중요한 현실 경고입니다. ${timedClose}`
+    }
+  }
+
+  if (['future', 'timingPlace', 'action'].includes(focus)) {
+    return `앞으로의 걱정도 하나 짚겠습니다. 운이 바뀔 때는 좋은 기회보다 먼저 생활 반경, 사람의 결, 지출 방식이 흔들립니다. 제안이 갑자기 커지거나 오래 미룬 관계가 다시 올라오면 바로 달려들지 말고, ${useful} 기운이 살아나는 선택인지 확인하세요. 과속하면 운이 열리는 게 아니라 사고가 먼저 납니다. ${timedClose}`
+  }
+
+  return ''
+}
+
 function buildInterpretation(
   focus: ReportFocus,
   analysis: SajuAnalysis,
@@ -549,10 +621,13 @@ function buildInterpretation(
     ].join('\n\n'),
   }
 
-  return sections[focus] ?? [
+  const base = sections[focus] ?? [
     `${name}님 사주의 ${focus} 흐름을 보겠습니다. ${dayPillar} 일주와 ${dominant} 기운, ${weak}의 빈자리를 함께 놓고 보면 지금 봐야 할 기준이 보입니다.`,
     `${ragLine} 이 장은 단정적인 예언보다 명식 근거와 선택지 맥락을 연결하는 데 초점을 둡니다. 같은 사주라도 ${contextLabel(context)}에 따라 읽어야 할 자리가 달라집니다.`,
   ].join('\n\n')
+
+  const riskNote = conditionalRiskNote(focus, analysis, context)
+  return riskNote ? `${base}\n\n${riskNote}` : base
 }
 
 export function buildTemplateSajuReport(
@@ -628,6 +703,8 @@ function reportPrompt(
         '당신은 천기 선생님 사주 리포트 작성 엔진입니다.',
         '입력된 사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 장문 풀이를 씁니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천기 선생님 말투를 유지합니다.',
+        '좋은 흐름과 안 좋은 함정을 둘 다 말합니다. 안 좋은 패턴은 “이 부분은 위험합니다”, “방치하면 반복됩니다”, “돈길보다 돈구멍이 먼저 보입니다”처럼 선명하게 말하되 공포를 팔지 않습니다.',
+        '각 섹션에 억지 경고를 넣지는 말되, 겁재·상관·편관, 합충형파해, 과다/부족 오행, 대운·세운 충돌, 사용자의 고민에서 위험 신호가 드러나면 반드시 주의할 것·피해야 할 선택·드러나는 시기·풀 행동 기준을 함께 알려줍니다.',
         '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
         '반드시 JSON만 출력하세요. Markdown 코드블록을 쓰지 마세요.',
       ].join('\n'),
@@ -635,7 +712,7 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1200~1800자 정도, 3~5문단입니다. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1200~1800자 정도, 3~5문단입니다. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요.',
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -677,6 +754,8 @@ function sectionPrompt(
         '한 번에 전체 리포트를 쓰지 말고, 사용자가 선택한 현재 페이지 섹션만 작성합니다.',
         '사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 하되 기계적으로 나열하지 않습니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천기 선생님 말투입니다.',
+        '이 섹션의 근거에서 위험 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 선명하게 덧붙입니다. 억지로 모든 섹션에 경고를 넣지 않습니다.',
+        '안 좋은 패턴을 말할 때는 반드시 대운·세운·전환 신호처럼 드러나는 시기와, 사용자가 그 흐름을 풀 행동 기준을 함께 제시합니다.',
         '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
         '반드시 JSON만 출력하세요. Markdown 코드블록을 쓰지 마세요.',
       ].join('\n'),
@@ -684,7 +763,7 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1200~1800자 정도의 3~5문단으로 작성하세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1200~1800자 정도의 3~5문단으로 작성하세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요.',
         outputShape: {
           id: section.id,
           hook: 'string',

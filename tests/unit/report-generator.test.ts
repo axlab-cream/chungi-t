@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
 import { createOrGetReportRecord, createReportId, toClientReport } from '../../src/report/report-store.js'
+import { getCorpusSnapshot } from '../../src/rag/corpus-registry.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
 
 const sampleBirth: BirthInput = {
@@ -38,11 +39,17 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     assert.ok(report.sections.some((section) => section.id === 'relationship-orientation'))
     assert.ok(report.sections.some((section) => section.id === 'work-context'))
     assert.ok(report.sections.some((section) => section.ragTopics.some((topic) => topic.includes('직장'))))
+    assert.ok(report.sections.some((section) => (
+      section.interpretation.includes('주의할')
+      || section.interpretation.includes('미리 봐야 할 위험 신호')
+      || section.interpretation.includes('미리 막아야 할')
+    )))
   })
 
   it('같은 사주와 맥락은 같은 reportId로 저장된다', async () => {
     const analysis = analyzeSaju(sampleBirth)
     const templateReport = buildTemplateSajuReport(analysis, sampleBirth, sampleContext)
+    const corpus = getCorpusSnapshot()
     const reportId = createReportId(sampleBirth, sampleContext)
 
     const first = await createOrGetReportRecord({
@@ -61,5 +68,13 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     assert.equal(first.record.reportId, second.record.reportId)
     assert.equal(second.created, false)
     assert.equal(toClientReport(second.record).reportId, reportId)
+    assert.equal(toClientReport(second.record).corpus?.fingerprint, corpus.fingerprint)
+  })
+
+  it('코퍼스 지문이 바뀌면 같은 입력도 새 reportId를 만든다', () => {
+    const oldCorpusId = createReportId(sampleBirth, sampleContext, 'corpus-v1')
+    const newCorpusId = createReportId(sampleBirth, sampleContext, 'corpus-v2')
+
+    assert.notEqual(oldCorpusId, newCorpusId)
   })
 })

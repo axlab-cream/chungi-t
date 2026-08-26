@@ -2,19 +2,15 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { RagChunk, SajuAnalysis } from '../types/index.js'
+import { getChunkCorpusFiles } from './corpus-registry.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
-const CORPUS_FILES = [
-  'corpus/myeongri-basics.json',
-  'corpus/deep-saju-interpretation.json',
-  'corpus/input-context-interpretation.json',
-]
 
 type Vector = Map<string, number>
 
 function loadCorpus(): RagChunk[] {
-  return CORPUS_FILES.flatMap((file) => {
+  return getChunkCorpusFiles().flatMap((file) => {
     const raw = readFileSync(join(DATA_ROOT, file), 'utf-8')
     const data = JSON.parse(raw) as { chunks?: RagChunk[]; domain?: string }
     return (data.chunks ?? []).map((c) => ({ ...c, domain: data.domain }))

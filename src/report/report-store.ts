@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { Pool } from 'pg'
-import type { BirthInput, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
+import { getCorpusSnapshot } from '../rag/corpus-registry.js'
+import type { BirthInput, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 
 export type ReportStatus = 'pending' | 'generating' | 'complete' | 'failed'
 export type ReportStorageMode = 'postgres' | 'memory'
@@ -9,6 +10,7 @@ export interface ReportRecord {
   reportId: string
   birth: BirthInput
   context: SajuReportContext
+  corpus?: CorpusSnapshot
   report: SajuReport
   status: ReportStatus
   createdAt: string
@@ -46,7 +48,11 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value)
 }
 
-export function createReportId(birth: BirthInput, context: SajuReportContext): string {
+export function createReportId(
+  birth: BirthInput,
+  context: SajuReportContext,
+  corpusFingerprint = getCorpusSnapshot().fingerprint,
+): string {
   const fingerprint = stableJson({
     birth: {
       year: birth.year,
@@ -58,6 +64,7 @@ export function createReportId(birth: BirthInput, context: SajuReportContext): s
       calendar: birth.calendar,
       isLeapMonth: birth.isLeapMonth ?? false,
     },
+    corpusFingerprint,
     context,
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
@@ -93,6 +100,7 @@ export function toClientReport(record: ReportRecord): SajuReport {
   report.reportId = record.reportId
   report.status = record.status
   report.storage = storageMode()
+  report.corpus = record.corpus ?? report.corpus
   report.progress = progressFor(report)
   return report
 }
@@ -145,11 +153,13 @@ export async function createOrGetReportRecord(params: {
   if (existing) return { record: existing, created: false }
 
   const timestamp = nowIso()
+  const corpus = getCorpusSnapshot()
   const report: SajuReport = {
     ...params.templateReport,
     reportId: params.reportId,
     status: 'pending',
     storage: storageMode(),
+    corpus,
     progress: { complete: 0, total: params.templateReport.sections.length },
     sections: params.templateReport.sections.map((section) => ({
       ...section,
@@ -162,6 +172,7 @@ export async function createOrGetReportRecord(params: {
     reportId: params.reportId,
     birth: params.birth,
     context: params.context,
+    corpus,
     report,
     status: 'pending',
     createdAt: timestamp,

@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildCorpusIndex, detectIntent, retrieveRagChunks } from '../../src/rag/retriever.js'
+import { getActiveCorpusPacks, getChunkCorpusFiles, getCorpusDomainBoost } from '../../src/rag/corpus-registry.js'
 import type { BirthInput } from '../../src/types/index.js'
 
 const sampleBirth: BirthInput = {
@@ -21,6 +22,13 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(corpus[0].content.length > 0)
     })
 
+    it('코퍼스 registry가 활성 pack과 검색 가중치를 관리', () => {
+      const packs = getActiveCorpusPacks()
+      assert.ok(packs.some((pack) => pack.id === 'saju-95-quality-bundles'))
+      assert.ok(getChunkCorpusFiles().includes('corpus/saju-95-quality-bundles.json'))
+      assert.ok(getCorpusDomainBoost('saju_95_quality_bundles') >= 10)
+    })
+
     it('장문 리포트용 deep corpus도 인덱스에 포함', () => {
       const corpus = buildCorpusIndex()
       assert.ok(corpus.some((chunk) => chunk.id === 'ds-001'))
@@ -31,6 +39,16 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       const corpus = buildCorpusIndex()
       assert.ok(corpus.some((chunk) => chunk.id === 'ic-001'))
       assert.ok(corpus.some((chunk) => chunk.domain === 'input_context_interpretation'))
+    })
+
+    it('95점 항목별 해석 번들이 모두 인덱스에 포함', () => {
+      const corpus = buildCorpusIndex()
+      const bundleIds = Array.from({ length: 16 }, (_, index) => `q95-${String(index + 1).padStart(3, '0')}`)
+
+      for (const id of bundleIds) {
+        assert.ok(corpus.some((chunk) => chunk.id === id), `${id} missing`)
+      }
+      assert.ok(corpus.some((chunk) => chunk.domain === 'saju_95_quality_bundles'))
     })
 
     it('직업 질문 → career intent', () => {
@@ -79,6 +97,33 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       })
       assert.ok(chunks.some((chunk) => chunk.id === 'ic-007'))
       assert.ok(chunks.some((chunk) => chunk.id === 'ic-004' || chunk.id === 'ic-009'))
+    })
+
+    it('감사표 15개 항목 질문 → 95점 번들 청크 검색', () => {
+      const saju = analyzeSaju(sampleBirth)
+      const cases = [
+        ['일간 강약 기질을 자세히 봐줘', 'q95-001'],
+        ['오행 균형과 부족한 오행 보완', 'q95-002'],
+        ['십신 관계성을 위치별로 설명해줘', 'q95-003'],
+        ['용신 희신 기신과 조후 통관을 봐줘', 'q95-004'],
+        ['성격 기질 리포트를 길게 써줘', 'q95-005'],
+        ['현재 고민과 선택지를 사주에 연결해줘', 'q95-006'],
+        ['대운 세운 흐름을 봐줘', 'q95-007'],
+        ['인생 전환 시기와 변곡점', 'q95-008'],
+        ['재물운 돈구멍 정재 편재를 봐줘', 'q95-009'],
+        ['일 직업 흐름과 이직 퇴사 고민', 'q95-010'],
+        ['연애운과 배우자궁 도화를 봐줘', 'q95-011'],
+        ['인연 운명의 상대 좋은 사람 기준', 'q95-012'],
+        ['관계 반복 패턴과 거리감을 봐줘', 'q95-013'],
+        ['시기와 장소 인연 장소 전환 장소', 'q95-014'],
+        ['5만 자 장문 리포트 목차와 섹션', 'q95-015'],
+        ['주의해야 할 것 위험한 것 미래 걱정을 미리 알아내는 것', 'q95-016'],
+      ] as const
+
+      for (const [query, expectedId] of cases) {
+        const chunks = retrieveRagChunks(query, saju, 5)
+        assert.ok(chunks.some((chunk) => chunk.id === expectedId), `${expectedId} not found for ${query}`)
+      }
     })
   })
 

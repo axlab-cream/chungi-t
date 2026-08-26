@@ -5,6 +5,7 @@ export type CalendarType = 'solar' | 'lunar'
 
 export type HeavenlyStem = '甲' | '乙' | '丙' | '丁' | '戊' | '己' | '庚' | '辛' | '壬' | '癸'
 export type EarthlyBranch = '子' | '丑' | '寅' | '卯' | '辰' | '巳' | '午' | '未' | '申' | '酉' | '戌' | '亥'
+export type SolarTermName = '소한' | '입춘' | '경칩' | '청명' | '입하' | '망종' | '소서' | '입추' | '백로' | '한로' | '입동' | '대설'
 
 export type TenGod =
   | '비견' | '겁재' | '식신' | '상관' | '편재' | '정재'
@@ -28,6 +29,19 @@ export interface Pillar {
   branchElement: Element
 }
 
+export interface ResolvedBirthDate {
+  originalCalendar: CalendarType
+  solarYear: number
+  solarMonth: number
+  solarDay: number
+  hour: number
+  minute: number
+  isLeapMonth: boolean
+  lunarYear?: number
+  lunarMonth?: number
+  lunarDay?: number
+}
+
 export interface FourPillars {
   year: Pillar
   month: Pillar
@@ -43,6 +57,40 @@ export interface ElementCount {
   water: number
 }
 
+export interface HiddenStemInfo {
+  branch: EarthlyBranch
+  stems: Array<{
+    stem: HeavenlyStem
+    element: Element
+    weight: number
+    tenGod?: TenGod
+  }>
+}
+
+export interface TenGodPlacement {
+  pillar: 'year' | 'month' | 'day' | 'hour'
+  stem: HeavenlyStem
+  tenGod: TenGod
+}
+
+export interface SajuInteraction {
+  type: '천간합' | '육합' | '충' | '형' | '파' | '해'
+  pillars: string[]
+  signs: string[]
+  meaning: string
+}
+
+export interface ManseryeokMeta {
+  resolvedBirth: ResolvedBirthDate
+  pillarYear: number
+  monthTerm: SolarTermName
+  hiddenStems: HiddenStemInfo[]
+  tenGodPlacements: TenGodPlacement[]
+  interactions: SajuInteraction[]
+  weightedElements: ElementCount
+  calculationNotes: string[]
+}
+
 export interface SajuAnalysis {
   fourPillars: FourPillars
   dayMaster: HeavenlyStem
@@ -55,6 +103,7 @@ export interface SajuAnalysis {
   dayMasterStrength: 'strong' | 'balanced' | 'weak'
   summary: string
   dayMasterAdvice: string
+  manseryeok?: ManseryeokMeta
   fortune?: FortuneCycle
   preview?: SajuPreview
   report?: SajuReport
@@ -63,8 +112,11 @@ export interface SajuAnalysis {
 export interface FortuneCycle {
   currentYear: number
   yearPillar: string
-  daewoon: Array<{ age: string; pillar: string }>
+  daewoon: Array<{ age: string; pillar: string; ageStart?: number; ageEnd?: number; startYear?: number }>
   currentDaewoon: string
+  direction?: 'forward' | 'backward'
+  startAge?: number
+  startAgeText?: string
 }
 
 export interface SajuPreview {
@@ -102,6 +154,25 @@ export interface SajuReportSection {
   error?: string
 }
 
+export interface CorpusPackSnapshot {
+  id: string
+  path: string
+  kind: 'chunks' | 'structured' | 'templates'
+  domain: string
+  status: 'active' | 'paused' | 'deprecated'
+  role: string
+  version: string
+  retrievalBoost?: number
+  contentHash: string
+}
+
+export interface CorpusSnapshot {
+  registryVersion: string
+  fingerprint: string
+  policy: string
+  activePacks: CorpusPackSnapshot[]
+}
+
 export interface SajuReport {
   reportId?: string
   title: string
@@ -111,6 +182,7 @@ export interface SajuReport {
   status?: 'pending' | 'generating' | 'complete' | 'failed'
   progress?: { complete: number; total: number }
   storage?: 'postgres' | 'memory'
+  corpus?: CorpusSnapshot
   sections: SajuReportSection[]
 }
 

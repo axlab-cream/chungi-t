@@ -2,15 +2,11 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { RagChunk, SajuAnalysis, SajuReportContext } from '../types/index.js'
+import { getChunkCorpusFiles, getCorpusDomainBoost } from './corpus-registry.js'
 import { retrieveVectorRagChunks } from './embedder.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
-const CORPUS_FILES = [
-  'corpus/myeongri-basics.json',
-  'corpus/deep-saju-interpretation.json',
-  'corpus/input-context-interpretation.json',
-]
 
 interface ConsultationTemplate {
   id: string
@@ -126,7 +122,7 @@ function buildElementChunks(): RagChunk[] {
 
 /** O(n) — 코퍼스 인덱스 로드 */
 export function buildCorpusIndex(): RagChunk[] {
-  const corpusChunks = CORPUS_FILES.flatMap((file) => {
+  const corpusChunks = getChunkCorpusFiles().flatMap((file) => {
     const data = loadJson<CorpusFile>(file)
     return (data.chunks ?? []).map((chunk) => ({
       ...chunk,
@@ -272,8 +268,7 @@ function scoreChunk(
     }
   }
 
-  if (chunk.domain === 'input_context_interpretation') score += 1.5
-  if (chunk.domain === 'deep_saju_interpretation') score += 1
+  score += getCorpusDomainBoost(chunk.domain)
   if (pinnedContextIds.has(chunk.id)) score += 40
 
   const binarySignals = [
@@ -304,6 +299,8 @@ function contextText(context?: SajuReportContext): string {
 
 function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
   const ids = new Set<string>()
+  if (!context) return ids
+
   const target = context?.target ?? ''
   const orientation = context?.orientation ?? ''
   const relationship = context?.relationship ?? ''

@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "policy": "RAG and corpus packs are living knowledge assets. Add, revise, score, and regression-test packs continuously instead of treating retrieval data as fixed application code.",
+  "packs": [
+    {
+      "id": "myeongri-basics",
+      "path": "corpus/myeongri-basics.json",
+      "kind": "chunks",
+      "domain": "myeongri_basics",
+      "status": "active",
+      "role": "stable_foundation",
+      "version": "1.0.0",
+      "retrievalBoost": 0
+    },
+    {
+      "id": "deep-saju-interpretation",
+      "path": "corpus/deep-saju-interpretation.json",
+      "kind": "chunks",
+      "domain": "deep_saju_interpretation",
+      "status": "active",
+      "role": "longform_depth",
+      "version": "1.0.0",
+      "retrievalBoost": 1
+    },
+    {
+      "id": "input-context-interpretation",
+      "path": "corpus/input-context-interpretation.json",
+      "kind": "chunks",
+      "domain": "input_context_interpretation",
+      "status": "active",
+      "role": "user_choice_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 1.5
+    },
+    {
+      "id": "saju-95-quality-bundles",
+      "path": "corpus/saju-95-quality-bundles.json",
+      "kind": "chunks",
+      "domain": "saju_95_quality_bundles",
+      "status": "active",
+      "role": "quality_gap_patch",
+      "version": "1.0.0",
+      "retrievalBoost": 14
+    },
+    {
+      "id": "saju-elements",
+      "path": "corpus/saju-elements.json",
+      "kind": "structured",
+      "domain": "saju_elements",
+      "status": "active",
+      "role": "structured_saju_atoms",
+      "version": "1.0.0",
+      "retrievalBoost": 0
+    },
+    {
+      "id": "consultation-templates",
+      "path": "corpus/consultation-templates.json",
+      "kind": "templates",
+      "domain": "consultation_templates",
+      "status": "active",
+      "role": "intent_and_prompt_frames",
+      "version": "1.1.0",
+      "retrievalBoost": 0
+    }
+  ]
+}

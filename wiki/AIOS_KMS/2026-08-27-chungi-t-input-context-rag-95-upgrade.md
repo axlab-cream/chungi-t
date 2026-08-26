@@ -35,15 +35,15 @@
 
 | 지표 | 결과 |
 |---|---:|
-| RAG 인덱스 청크 | 123개 |
-| RAG 도메인 | myeongri_basics, deep_saju_interpretation, input_context_interpretation, saju_elements, consultation_templates |
+| RAG 인덱스 청크 | 139개 |
+| RAG 도메인 | myeongri_basics, deep_saju_interpretation, input_context_interpretation, saju_95_quality_bundles, saju_elements, consultation_templates |
 | 리포트 섹션 | 37개 |
 | 템플릿 리포트 기본 글자 수 | 약 20,056자 |
 | 선택지 샘플 검색 | `본인`, `동성 관계 중심`, `마음에 둔 사람이 있어요`, `직장 다녀요`, `고민 입력` 청크가 상단 포함 |
 
 ## 테스트
 
-- `npm test`: 25개 통과
+- `npm test`: 34개 통과
 - `npm run typecheck`: 통과
 
 ## 품질 평가 갱신
@@ -61,3 +61,41 @@
 - 명리 계산 자체의 절기 기반 월주, 음력 변환, 지장간 실제 계산, 대운 시작 나이 정밀 계산은 별도 만세력 보강이 필요하다.
 - 이번 보강의 95점은 **RAG/코퍼스/리포트 개인화 품질 기준**에 대한 점수이며, 만세력 계산 정확도 95점을 의미하지 않는다.
 
+## 2026-08-27 항목별 95점 묶음 재보강
+
+상태: 확인됨
+
+사용자가 감사표의 낮은 점수 항목 전체가 실제로 만들어졌는지 재확인했고, `일간/강약/기질`, `오행 균형`, `십신 관계성`, `용신`, `성격/기질 리포트`, `현재 고민 연결`, `대운·세운`, `인생 전환 시기`, `재물운`, `일/직업 흐름`, `연애운`, `인연/운명의 상대`, `관계 반복 패턴`, `시기와 장소`, `5만 자 장문 리포트`를 하나의 재사용 가능한 RAG 묶음으로 다시 구성했다.
+
+### 추가 적용
+
+| 영역 | 변경 |
+|---|---|
+| 항목별 95점 번들 | `data/corpus/saju-95-quality-bundles.json` 추가. 15개 핵심 항목 + `위험·주의 신호와 미래 걱정` 보조 번들 구성 |
+| RAG 연결 | `src/rag/retriever.ts`, `src/rag/embedder.ts`가 새 번들을 함께 인덱싱 |
+| 검색 정밀도 | context가 없을 때 `고민 없음` 청크가 자동 핀 처리되어 항목별 번들을 밀어내던 문제 수정 |
+| 리포트 위험 신호 | `src/report/report-generator.ts`에 조건부 위험 문단 추가. 겁재·상관·편관, 과다/부족 오행, 대운·세운 변화, 사용자 고민에서 실제 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 안내 |
+| OpenAI 섹션 지시 | 전체 리포트/단일 섹션 프롬프트에 “억지 경고 금지, 드러난 위험 신호만 짧게 경고” 규칙 추가 |
+| 테스트 | `tests/unit/rag-retriever.test.ts`가 16개 q95 번들 포함, registry 관리, 항목별 질문 회수를 검증. `tests/unit/report-generator.test.ts`가 조건부 위험 문단 포함을 검증 |
+| Living RAG 구조 | `data/corpus/registry.json`과 `src/rag/corpus-registry.ts`를 추가해 pack 활성화, version, role, retrievalBoost를 중앙 관리 |
+
+### 갱신 수치
+
+| 지표 | 결과 |
+|---|---:|
+| RAG 인덱스 청크 | 139개 |
+| RAG 도메인 | myeongri_basics, deep_saju_interpretation, input_context_interpretation, saju_95_quality_bundles, saju_elements, consultation_templates |
+| 리포트 섹션 | 37개 |
+| 템플릿 리포트 기본 글자 수 | 약 23,061자 |
+| 조건부 위험 신호 포함 섹션 | 샘플 기준 12개 |
+
+### 검증
+
+- `npm test`: 34개 통과
+- `npm run typecheck`: 통과
+
+### 운영 기준
+
+- 위험 신호는 모든 섹션에 강제로 넣지 않는다.
+- 사주 구조와 사용자 선택지에서 실제 신호가 드러날 때만 `주의할 것`, `피해야 할 선택`, `미래에 먼저 흔들릴 지점`을 짧게 알려준다.
+- 경고는 확정 예언이 아니라 생활 기준이다. 질병 진단, 투자 수익 보장, 법률 판단, 특정 불행 단정은 금지한다.
