@@ -141,7 +141,9 @@
       }
 
       .phone[data-scene="result"] .stage {
-        height: 100%;
+        position: absolute;
+        inset: 0;
+        height: auto;
         justify-content: flex-start;
         overflow: auto;
         padding: 0 0 max(24px, env(safe-area-inset-bottom));
@@ -153,6 +155,15 @@
         top: 0;
         left: 0;
         right: 0;
+        height: 72px;
+        padding-top: 12px;
+        background: linear-gradient(to bottom, rgba(5, 2, 2, 0.96), rgba(5, 2, 2, 0.64) 62%, transparent);
+      }
+
+      .phone[data-scene="result"] .brand {
+        text-shadow:
+          0 2px 12px rgba(0, 0, 0, 0.92),
+          0 0 18px rgba(0, 0, 0, 0.8);
       }
 
       .sound {
@@ -574,6 +585,58 @@
         color: #ffe0a8;
       }
 
+      .story-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .story-list-item {
+        padding: 15px 15px 15px 17px;
+        border-left: 2px solid rgba(242, 191, 107, 0.72);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: #f2dac2;
+        font-size: 14px;
+        font-weight: 780;
+        line-height: 1.58;
+      }
+
+      .wealth-chart {
+        display: grid;
+        gap: 13px;
+        margin-top: 20px;
+        padding: 18px;
+        border: 1px solid rgba(255, 226, 175, 0.17);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.28);
+      }
+
+      .chart-row {
+        display: grid;
+        grid-template-columns: 54px 1fr 44px;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .chart-track {
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .chart-fill {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #8b1e16, #f2bf6b);
+        box-shadow: 0 0 18px rgba(242, 191, 107, 0.28);
+      }
+
       .feature-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -616,10 +679,20 @@
           var(--panel-image) center top / cover no-repeat;
       }
 
+      .story-visual.tall {
+        min-height: 780px;
+      }
+
       .story-visual.compact {
         min-height: 560px;
-        padding: 90px 22px 150px;
+        padding: 118px 22px 150px;
         background-position: center center;
+      }
+
+      .story-visual.statement {
+        min-height: 640px;
+        align-items: center;
+        padding: 118px 24px;
       }
 
       .story-visual.visual-intro {
@@ -693,6 +766,12 @@
         line-height: 1.55;
       }
 
+      .story-caption .whisper {
+        color: #f2bf6b;
+        font-size: 13px;
+        font-weight: 950;
+      }
+
       .bubble-layer {
         position: absolute;
         inset: 0;
@@ -708,7 +787,7 @@
       }
 
       .bubble-cluster.left-top {
-        top: 96px;
+        top: 112px;
         left: 18px;
       }
 
@@ -796,6 +875,24 @@
           #050202;
       }
 
+      .story-section.tall {
+        min-height: 480px;
+        display: grid;
+        align-content: center;
+        padding-top: 70px;
+        padding-bottom: 70px;
+      }
+
+      .story-section.deep {
+        background:
+          radial-gradient(circle at 50% 8%, rgba(139, 30, 22, 0.32), transparent 50%),
+          linear-gradient(180deg, #050202, #130304 52%, #050202);
+      }
+
+      .story-section.flush-bottom {
+        padding-bottom: 108px;
+      }
+
       .story-section.center {
         text-align: center;
       }
@@ -809,11 +906,58 @@
         text-wrap: balance;
       }
 
+      .story-section h2.hero-line {
+        font-size: clamp(32px, 9vw, 44px);
+        line-height: 1.08;
+      }
+
       .story-section p {
         margin: 0;
         color: var(--muted);
         font-size: 15px;
         line-height: 1.8;
+      }
+
+      .story-copy {
+        display: grid;
+        gap: 16px;
+      }
+
+      .story-copy p + p {
+        margin-top: 0;
+      }
+
+      .story-callout {
+        margin-top: 22px;
+        padding: 18px;
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(138, 30, 22, 0.22), rgba(255, 255, 255, 0.03)),
+          rgba(255, 255, 255, 0.045);
+        color: #fff0d8;
+        font-size: 18px;
+        font-weight: 950;
+        line-height: 1.55;
+        text-align: center;
+      }
+
+      .ritual-words {
+        display: grid;
+        gap: 16px;
+        margin-top: 22px;
+      }
+
+      .ritual-word {
+        color: #fff8ef;
+        font-size: clamp(22px, 6.4vw, 30px);
+        font-weight: 950;
+        line-height: 1.18;
+        text-shadow: 0 10px 28px rgba(0, 0, 0, 0.58);
+      }
+
+      .ritual-word .gold {
+        color: var(--gold);
       }
 
       .big-kanji {
@@ -887,6 +1031,142 @@
       .stat span {
         color: var(--dim);
         font-size: 11px;
+      }
+
+      .destiny-card {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px solid rgba(255, 226, 175, 0.2);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(118, 24, 20, 0.36), rgba(255, 255, 255, 0.035)),
+          #110707;
+      }
+
+      .destiny-card h3 {
+        margin: 0 0 4px;
+        color: #fff2da;
+        font-size: 20px;
+        line-height: 1.25;
+      }
+
+      .destiny-row {
+        display: grid;
+        grid-template-columns: 74px 1fr;
+        gap: 12px;
+        color: #f2dac2;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .destiny-row strong {
+        color: var(--gold);
+      }
+
+      .package-card {
+        margin-top: 20px;
+        padding: 18px;
+        border: 1px solid rgba(255, 226, 175, 0.22);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(90, 14, 12, 0.72), rgba(18, 5, 5, 0.96)),
+          #100505;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .package-card h3 {
+        margin: 0 0 14px;
+        color: #fff4df;
+        font-size: 19px;
+        line-height: 1.32;
+      }
+
+      .package-list {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .package-list li {
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: #ecd0b5;
+        font-size: 13px;
+        font-weight: 760;
+        line-height: 1.48;
+      }
+
+      .price-slate {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 226, 175, 0.16);
+      }
+
+      .price-line {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .price-line.final {
+        color: #fff5df;
+        font-size: 25px;
+        font-weight: 950;
+      }
+
+      .report-preview {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .report-page {
+        min-height: 116px;
+        padding: 16px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background: #120908;
+        color: #e6c9ad;
+        font-size: 13px;
+        line-height: 1.62;
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
+      }
+
+      .proof-stack {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .proof-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(255, 226, 175, 0.13);
+      }
+
+      .proof-row span {
+        color: var(--gold);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .proof-row strong {
+        color: #f2f0ec;
+        font-size: clamp(26px, 8vw, 42px);
+        line-height: 1;
       }
 
       .sticky-story-cta {
@@ -1122,8 +1402,30 @@
         stage.querySelector(".panel")?.append(nudge);
       }
 
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        })[char]);
+      }
+
+      function formatBirthLabel(value) {
+        const raw = String(value || "").trim();
+        const digits = raw.replace(/\D/g, "");
+        if (digits.length === 8) return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+        return raw || "생년월일 미입력";
+      }
+
       function parseBirthInput() {
-        const raw = (state.birth || "2000.01.01").replace(/[./-]/g, ".").split(".");
+        const birthSource = state.birth || "2000.01.01";
+        const birthDigits = birthSource.replace(/\D/g, "");
+        const raw =
+          birthDigits.length === 8
+            ? [birthDigits.slice(0, 4), birthDigits.slice(4, 6), birthDigits.slice(6, 8)]
+            : birthSource.replace(/[./-]/g, ".").split(".");
         const year = Number(raw[0] || 2000);
         const month = Number(raw[1] || 1);
         const day = Number(raw[2] || 1);
@@ -1178,6 +1480,12 @@
                   : "input";
         soundButton.style.display = scene === "landing" ? "inline-flex" : "none";
         steps[scene]();
+        phone.scrollTop = 0;
+        if (scene === "result") stage.scrollTop = 0;
+        requestAnimationFrame(() => {
+          phone.scrollTop = 0;
+          if (scene === "result") stage.scrollTop = 0;
+        });
       }
 
       function renderLanding() {
@@ -1380,32 +1688,53 @@
       }
 
       function renderResult() {
-        const displayName = state.name || state.target || "당신";
+        const displayNameRaw = state.name || state.target || "당신";
         const a = state.analysis;
         const pillars = a?.pillars;
         const preview = a?.preview;
         const fortune = a?.fortune;
-        const hourLabel = pillars?.hour?.hanja || (state.time === "모름" ? "時柱모름" : "-");
-        const dayLabel = pillars?.day?.hanja || "-";
-        const monthLabel = pillars?.month?.hanja || "-";
-        const yearLabel = pillars?.year?.hanja || "-";
-        const personality = preview?.personality || "흠... 입력한 기운을 보니 그냥 지나칠 사주는 아니군요.";
-        const loveText = preview?.loveFortune || "관계의 흐름이 먼저 보입니다. 오래 남는 사람은 따로 있습니다.";
-        const wealthText = preview?.wealthFortune || "돈의 흐름이 보입니다. 새는 곳과 모이는 곳을 먼저 짚어야 합니다.";
-        const concernHead = state.concern ? `"${state.concern}"` : "지금 마음에 걸리는 것";
+        const displayName = escapeHtml(displayNameRaw);
+        const birthLabel = escapeHtml(formatBirthLabel(state.birth));
+        const calendarLabel = escapeHtml(state.calendar);
+        const timeLabel = escapeHtml(state.time || "시간모름");
+        const targetLabel = escapeHtml(state.target || "본인");
+        const workLabel = escapeHtml(state.work || "일상 흐름");
+        const relationLabel = escapeHtml([state.relationship, state.orientation].filter(Boolean).join(" · ") || "관계 기준");
+        const hourLabel = escapeHtml(pillars?.hour?.hanja || (state.time === "모름" ? "時柱모름" : "-"));
+        const dayLabel = escapeHtml(pillars?.day?.hanja || "-");
+        const monthLabel = escapeHtml(pillars?.month?.hanja || "-");
+        const yearLabel = escapeHtml(pillars?.year?.hanja || "-");
+        const dayMasterKo = escapeHtml(a?.dayMaster?.ko || "일간");
+        const dayMasterHanja = escapeHtml(a?.dayMaster?.hanja || "");
+        const dayMasterElement = escapeHtml(a?.dayMaster?.element || a?.dominantElement || "오행");
+        const strengthLabel = a?.dayMaster?.strength === "strong" ? "기운이 강한" : a?.dayMaster?.strength === "weak" ? "섬세한" : "균형 잡힌";
+        const dominantElement = escapeHtml(a?.dominantElement || dayMasterElement);
+        const usefulGod = escapeHtml(a?.usefulGod || "분석 중");
+        const personalityRaw = preview?.personality || "흠... 입력한 기운을 보니 그냥 지나칠 사주는 아니군요.";
+        const personality = escapeHtml(personalityRaw);
+        const personalityShort = escapeHtml(personalityRaw.length > 54 ? `${personalityRaw.slice(0, 54)}...` : personalityRaw);
+        const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보입니다.");
+        const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보입니다. 오래 남는 사람은 따로 있습니다.");
+        const wealthText = escapeHtml(preview?.wealthFortune || "돈의 흐름이 보입니다. 새는 곳과 모이는 곳을 먼저 짚어야 합니다.");
+        const concernRaw = state.concern || `${state.work || "요즘 흐름"} 때문에 마음이 걸린 것`;
+        const concernText = escapeHtml(concernRaw);
+        const concernHead = state.concern ? `"${concernText}"` : concernText;
+        const currentYear = Number(fortune?.currentYear) || 2026;
+        const turningYear = currentYear + 2;
+        const romanceYear = currentYear + 1;
         const daewoonRows = (fortune?.daewoon || [])
           .slice(0, 4)
-          .map((d) => `<div class="timeline-row"><strong>${d.age}</strong><span>${d.pillar}</span></div>`)
+          .map((d) => `<div class="timeline-row"><strong>${escapeHtml(d.age)}</strong><span>${escapeHtml(d.pillar)}</span></div>`)
           .join("");
 
         stage.innerHTML = `
           <article class="story">
-            <section class="story-visual visual-intro">
+            <section class="story-visual visual-intro tall" data-sample-section="intro">
               <div class="bubble-layer">
                 <div class="bubble-cluster left-top">
-                  <div class="bubble meta">${displayName} · ${state.calendar} ${state.birth || ""}</div>
-                  <div class="bubble signal">${a?.dayMaster?.element || "일간"} 기운이 먼저 보입니다.</div>
-                  <div class="bubble">${personality.slice(0, 48)}...</div>
+                  <div class="bubble meta">${displayName} · ${calendarLabel} ${birthLabel}</div>
+                  <div class="bubble signal">${dayMasterElement} 기운이 먼저 보입니다.</div>
+                  <div class="bubble">${personalityShort}</div>
                 </div>
                 <div class="bubble-cluster right-low">
                   <div class="bubble accent right">${concernHead} 때문에 여기까지 왔군요.</div>
@@ -1418,11 +1747,44 @@
               </div>
             </section>
 
-            <section class="story-section center">
-              <span class="chapter">성격</span>
-              <h2>${a?.dayMaster?.ko || "일간"} · ${a?.dayMaster?.strength === "strong" ? "기운이 강한" : a?.dayMaster?.strength === "weak" ? "섬세한" : "균형 잡힌"} 결</h2>
-              <p>${personality}</p>
-              <div class="quote">${preview?.elementBalance || ""}</div>
+            <section class="story-visual compact visual-fan" data-sample-section="personality-hero">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble strong">흥미롭네요.</div>
+                  <div class="bubble">${yearLabel} · ${monthLabel} · ${dayLabel}</div>
+                </div>
+              </div>
+              <div class="story-caption compact-title">
+                <p class="whisper">성격</p>
+                <h2>${displayName}</h2>
+              </div>
+            </section>
+
+            <section class="story-section deep tall center" data-sample-section="worry">
+              <span class="chapter">흠...</span>
+              <h2 class="hero-line">${dominantElement} 기운이<br />꽤 강하군요</h2>
+              <div class="ritual-words">
+                <div class="ritual-word">보통 팔자가 아닌데?</div>
+                <div class="ritual-word">딱 봐도 <span class="gold">${concernHead}</span></div>
+              </div>
+              <div class="story-callout">이 고민 때문에 여기까지 온 것이로군요.</div>
+            </section>
+
+            <section class="story-visual statement visual-saju" data-sample-section="palja-intro">
+              <div class="story-caption">
+                <p>네가 어떤 사람인지, 네 고민이 뭔지</p>
+                <h2>흐름이<br />먼저 보입니다</h2>
+              </div>
+            </section>
+
+            <section class="story-section" data-sample-section="personality-story">
+              <span class="chapter">너는 지금 어떻냐면</span>
+              <h2>${dayMasterKo} · ${strengthLabel} 결</h2>
+              <div class="story-copy">
+                <p>${personality}</p>
+                <p>${elementBalance}</p>
+              </div>
+              <div class="story-callout">네가 지금 이게 고민되는 이유가 다 있습니다. 바로 네 팔자 때문입니다.</div>
             </section>
 
             <section class="story-visual compact visual-saju">
@@ -1438,60 +1800,221 @@
               </div>
             </section>
 
-            <section class="story-section">
+            <section class="story-section" data-sample-section="saju-table">
               <span class="chapter">명식</span>
               <h2>${displayName}님의 사주팔자</h2>
-              <p>${state.calendar} ${state.birth || ""} · ${state.time || "시간모름"} · ${a?.dominantElement || ""} 기운이 두드러집니다.</p>
+              <p>${calendarLabel} ${birthLabel} · ${timeLabel} · ${dominantElement} 기운이 두드러집니다.</p>
               <div class="saju-table" aria-label="사주팔자">
-                <div class="pillar"><span>時柱</span><b>${hourLabel}</b><span>${pillars?.hour?.ko || state.time || "모름"}</span></div>
-                <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>${pillars?.day?.ko || "일간"}</span></div>
-                <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>${pillars?.month?.ko || ""}</span></div>
-                <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>${pillars?.year?.ko || ""}</span></div>
+                <div class="pillar"><span>時柱</span><b>${hourLabel}</b><span>${escapeHtml(pillars?.hour?.ko || state.time || "모름")}</span></div>
+                <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>${escapeHtml(pillars?.day?.ko || "일간")}</span></div>
+                <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>${escapeHtml(pillars?.month?.ko || "")}</span></div>
+                <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>${escapeHtml(pillars?.year?.ko || "")}</span></div>
               </div>
-              <div class="quote">일간 ${a?.dayMaster?.hanja || ""}(${a?.dayMaster?.ko || ""}) · 용신 ${a?.usefulGod || "분석 중"}</div>
+              <div class="quote">일간 ${dayMasterHanja}(${dayMasterKo}) · 용신 ${usefulGod}</div>
             </section>
 
-            <section class="story-section center">
+            <section class="story-section center" data-sample-section="future-flow">
               <span class="chapter">대운 · 세운</span>
-              <h2>올해 ${fortune?.currentYear || ""}년 · 세운 ${fortune?.yearPillar || ""}</h2>
+              <h2>네 팔자가 앞으로<br />어떻게 흘러갈까?</h2>
+              <p>올해 ${escapeHtml(fortune?.currentYear || "")}년 · 세운 ${escapeHtml(fortune?.yearPillar || "-")}</p>
               <div class="big-kanji" aria-hidden="true"><span>大</span><span>運</span><span>轉</span></div>
               <div class="timeline">
-                <div class="timeline-row"><strong>현재</strong><span>대운 ${fortune?.currentDaewoon || "-"}</span></div>
+                <div class="timeline-row"><strong>현재</strong><span>대운 ${escapeHtml(fortune?.currentDaewoon || "-")}</span></div>
                 ${daewoonRows}
               </div>
             </section>
 
-            <section class="story-visual compact visual-wealth">
+            <section class="story-visual statement visual-fan" data-sample-section="warning">
+              <div class="bubble-layer">
+                <div class="bubble-cluster right-mid">
+                  <div class="bubble accent right">눈앞에 선하게 펼쳐지도록 말해줄 수 있습니다.</div>
+                  <div class="bubble right">적나라하게 말이죠.</div>
+                </div>
+              </div>
+              <div class="story-caption">
+                <p>좋은 말만 해주지는 않습니다</p>
+                <h2>이제 하나씩<br />이야기해볼까요?</h2>
+              </div>
+            </section>
+
+            <section class="story-section deep tall center" data-sample-section="prophecy">
+              <span class="chapter">잠깐</span>
+              <h2 class="hero-line">${turningYear}년에<br />흐름이 크게 꺾입니다</h2>
+              <p>네 팔자 보고 있으니까, 그냥 흘려보낼 해가 아닙니다. 어디에서 판이 커지고 어디에서 무리하면 새는지, 그 결이 보입니다.</p>
+              <div class="story-callout">그 흐름을 어떻게 타야 하는지 하나씩 풀어드리겠습니다.</div>
+            </section>
+
+            <section class="story-visual compact visual-wealth" data-sample-section="wealth-teaser">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble">어차피... 돈 흐름도 궁금했죠?</div>
+                  <div class="bubble strong">네 팔자에 돈이 있나 없나, 그게 제일 궁금하잖아요.</div>
+                </div>
+              </div>
               <div class="story-caption compact-title">
                 <p>재물</p>
                 <h2>재물운이<br />보통 사주가 아니네요?</h2>
               </div>
             </section>
 
-            <section class="story-section">
+            <section class="story-section" data-sample-section="wealth-section">
               <span class="chapter">재물운</span>
               <h2>돈의 흐름이 보입니다</h2>
               <p>${wealthText}</p>
+              <div class="wealth-chart" aria-label="재물운 흐름">
+                <div class="chart-row"><span>${currentYear}</span><div class="chart-track"><span class="chart-fill" style="width: 48%"></span></div><strong>준비</strong></div>
+                <div class="chart-row"><span>${currentYear + 1}</span><div class="chart-track"><span class="chart-fill" style="width: 64%"></span></div><strong>확장</strong></div>
+                <div class="chart-row"><span>${turningYear}</span><div class="chart-track"><span class="chart-fill" style="width: 88%"></span></div><strong>전환</strong></div>
+                <div class="chart-row"><span>${turningYear + 1}</span><div class="chart-track"><span class="chart-fill" style="width: 73%"></span></div><strong>정리</strong></div>
+              </div>
+              <div class="quote">시기와 방법은 같이 봐야 합니다. 기회를 못 잡으면 흐름이 새어 나갑니다.</div>
             </section>
 
-            <section class="story-visual compact visual-romance">
+            <section class="story-visual compact visual-romance" data-sample-section="romance-teaser">
+              <div class="bubble-layer">
+                <div class="bubble-cluster right-top">
+                  <div class="bubble right">네가 다음에 깊게 얽힐 인연도 보입니다.</div>
+                  <div class="bubble accent right">잠깐, 화경으로 한 번 보겠습니다.</div>
+                </div>
+              </div>
               <div class="story-caption compact-title">
                 <p>연애운</p>
                 <h2>오래 남는 사람은<br />따로 보입니다</h2>
               </div>
             </section>
 
-            <section class="story-section">
+            <section class="story-section" data-sample-section="destiny-card">
               <span class="chapter">연애운</span>
-              <h2>${state.relationship || "지금 관계"} · ${state.orientation || "관계 기준"}</h2>
+              <h2>${relationLabel}</h2>
               <p>${loveText}</p>
-              <div class="quote">${state.concern || "더 깊은 이야기는 아래 사주 풀이에서 이어갑니다."}</div>
+              <div class="destiny-card" aria-label="운명의 상대">
+                <h3>${displayName}님의 운명의 상대</h3>
+                <div class="destiny-row"><strong>시기</strong><span>${romanceYear}.06.04 전후, 마음이 먼저 움직입니다.</span></div>
+                <div class="destiny-row"><strong>직업</strong><span>기획, 전략, 서비스처럼 사람의 흐름을 읽는 일과 맞닿아 있습니다.</span></div>
+                <div class="destiny-row"><strong>외모</strong><span>눈빛이 또렷하고 첫인상보다 오래 남는 쪽입니다.</span></div>
+                <div class="destiny-row"><strong>장소</strong><span>모임, 일터, 소개처럼 관계가 겹쳐지는 자리입니다.</span></div>
+              </div>
             </section>
 
-            <section class="story-section">
+            <section class="story-visual statement visual-outro" data-sample-section="outro">
+              <div class="story-caption">
+                <p>그래서...</p>
+                <h2>복채는<br />준비해왔습니까?</h2>
+                <p>이거 말고도 할 얘기가 산더미입니다.</p>
+              </div>
+            </section>
+
+            <section class="story-section center deep" data-sample-section="value-prop">
+              <span class="chapter">오직 ${displayName}님을 위한 이야기</span>
+              <h2>방금 펼친 사주는<br />맛보기일 뿐입니다</h2>
+              <p>${targetLabel}의 생년월일과 지금 고민을 기준으로, 성격의 결부터 돈길과 인연의 흐름까지 이어서 봅니다.</p>
+            </section>
+
+            <section class="story-section" data-sample-section="package">
               <span class="chapter">천기 선생님 상담</span>
-              <h2>사주 풀이 · LLM 대화</h2>
-              <p>이제 방금 펼친 사주를 바탕으로 더 깊은 상담에 들어갑니다. 묻고 싶은 걸 던지면 천기 선생님이 이어서 풀어드립니다.</p>
+              <h2>정통사주 깊은 풀이</h2>
+              <div class="package-card">
+                <h3>${displayName}님 사주 기반 상담 구성</h3>
+                <ul class="package-list">
+                  <li>나의 사주팔자 상세 분석</li>
+                  <li>일간, 오행, 십신, 대운의 흐름 풀이</li>
+                  <li>재물운과 일 흐름의 새는 지점 확인</li>
+                  <li>연애운과 오래 남을 인연의 패턴</li>
+                  <li>${concernText}에 맞춘 맞춤 상담</li>
+                </ul>
+                <div class="price-slate" aria-label="복채 안내">
+                  <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
+                  <div class="price-line"><span>천기 상담 연결</span><span>-13,200원</span></div>
+                  <div class="price-line final"><span>지금 열기</span><span>49,800원</span></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="story-visual statement visual-fan" data-sample-section="hesitation">
+              <div class="story-caption">
+                <p>잠깐</p>
+                <h2>지금 무슨 생각을<br />하고 있죠?</h2>
+              </div>
+            </section>
+
+            <section class="story-section center tall" data-sample-section="comparison">
+              <span class="chapter">얄팍한 풀이와 다릅니다</span>
+              <h2 class="hero-line">한 해 운세만 보고<br />끝낼 생각입니까?</h2>
+              <p>천기 선생님 풀이는 태어난 순간의 결, 지금의 질문, 앞으로의 흐름을 한 줄로 엮어 봅니다.</p>
+              <div class="story-list">
+                <div class="story-list-item">사주팔자를 먼저 펼치고, 지금 고민이 왜 반복되는지 연결합니다.</div>
+                <div class="story-list-item">좋은 말만 늘어놓지 않고, 조심해야 할 방향도 같이 말합니다.</div>
+                <div class="story-list-item">상담 버튼을 누르면 LLM이 같은 말투로 이어서 묻고 답합니다.</div>
+              </div>
+            </section>
+
+            <section class="story-section deep" data-sample-section="report-preview">
+              <span class="chapter">리포트 미리보기</span>
+              <h2>너를 가감없이 설명하는<br />긴 풀이가 이어집니다</h2>
+              <p>실제 상담에서는 질문을 더 던질수록 사주의 결이 더 선명해집니다.</p>
+              <div class="report-preview">
+                <div class="report-page">성격의 결: 겉으로 보이는 태도와 속에서 반복되는 불안의 방향을 함께 봅니다.</div>
+                <div class="report-page">재물의 결: 돈이 모이는 자리와 새는 자리를 나눠서 봅니다.</div>
+                <div class="report-page">인연의 결: 끌리는 사람과 오래 남는 사람이 왜 다른지 풀이합니다.</div>
+              </div>
+            </section>
+
+            <section class="story-visual statement visual-saju" data-sample-section="last-saju-book">
+              <div class="story-caption">
+                <p>실제 결과 리포트 예시</p>
+                <h2>읽는데 2시간은<br />족히 넘게 걸릴 겁니다</h2>
+              </div>
+            </section>
+
+            <section class="story-section center" data-sample-section="book-volume">
+              <span class="chapter">책 한 권 분량</span>
+              <h2 class="hero-line">5만 자의 풀이가<br />상담으로 이어집니다</h2>
+              <p>하지만 여기서는 길게 늘어놓기보다, 먼저 ${displayName}님이 묻고 싶은 것부터 바로 파고들겠습니다.</p>
+              <div class="story-callout">말투도, 흐름도, 방금 본 천기 선생님 그대로 이어집니다.</div>
+            </section>
+
+            <section class="story-section" data-sample-section="contents-list">
+              <span class="chapter">더 이어질 풀이</span>
+              <h2>착한 척은 그만해도 됩니다<br />네 속이 다 보이니까</h2>
+              <div class="story-list">
+                <div class="story-list-item">남들에게 들키기 싫은 진짜 성격과 숨겨진 열등감</div>
+                <div class="story-list-item">평생 돈이 한 번 크게 움직이는 시점과 막아야 할 돈구멍</div>
+                <div class="story-list-item">내 곁에 붙어 있어야 할 귀인과 멀리해야 할 인연 구별법</div>
+                <div class="story-list-item">지금 버틸지, 옮길지, 방향을 바꿀지 보는 맞춤 처방</div>
+              </div>
+            </section>
+
+            <section class="story-visual statement visual-outro" data-sample-section="final-proof">
+              <div class="story-caption">
+                <p>내가 지금까지 점사를 봐준 사람은 많습니다</p>
+                <h2>압도적인 몰입감으로<br />이어가겠습니다</h2>
+              </div>
+            </section>
+
+            <section class="story-section deep" data-sample-section="reviews">
+              <span class="chapter">실제 상담 흐름</span>
+              <h2>혼자 읽고 끝나는 풀이가 아닙니다</h2>
+              <p>결과를 읽다가 걸리는 문장이 생기면 바로 묻습니다. 천기 선생님이 같은 사주표를 붙잡고 이어서 봅니다.</p>
+              <div class="stats" aria-label="상담 지표">
+                <div class="stat"><strong>1:1</strong><span>맞춤 상담</span></div>
+                <div class="stat"><strong>24</strong><span>오행 흐름</span></div>
+                <div class="stat"><strong>100</strong><span>페이지급 밀도</span></div>
+              </div>
+              <div class="reviews">
+                <div class="review">“직장 운 때문에 들어왔는데, 그냥 위로가 아니라 왜 같은 고민이 반복되는지부터 짚어줘서 몰입됐습니다.”</div>
+                <div class="review">“처음 결과 화면 말투 그대로 상담이 이어져서 한 사람이 보고 있는 느낌이 납니다.”</div>
+              </div>
+            </section>
+
+            <section class="story-section flush-bottom" data-sample-section="proof-and-chat">
+              <span class="chapter">마지막 확인</span>
+              <h2>이제 상담으로 들어갑니다</h2>
+              <p>방금 펼친 사주를 바탕으로 더 깊은 상담에 들어갑니다. 묻고 싶은 걸 던지면 천기 선생님이 같은 말투로 이어서 풀어드립니다.</p>
+              <div class="proof-stack">
+                <div class="proof-row"><span>분석 기준</span><strong>${birthLabel}</strong></div>
+                <div class="proof-row"><span>먼저 보이는 기운</span><strong>${dayMasterElement}</strong></div>
+                <div class="proof-row"><span>지금 고민</span><strong>${concernText}</strong></div>
+              </div>
             </section>
 
             <div class="sticky-story-cta">

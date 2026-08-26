@@ -7,6 +7,7 @@ dist/
 .env
 .env.local
 *.zip
+qa-*.png
 *.mhtml
 _check_env.txt
 scripts/check-env.ps1

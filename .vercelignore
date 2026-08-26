@@ -1,4 +1,5 @@
 *.zip
+qa-*.png
 *.mhtml
 node_modules
 .env
