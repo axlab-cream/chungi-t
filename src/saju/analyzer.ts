@@ -95,16 +95,24 @@ function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>, gende
   const hasLove = gender === 'male'
     ? analysis.tenGods.some((g) => g.includes('재'))
     : analysis.tenGods.some((g) => g.includes('관'))
+  const strengthText = analysis.dayMasterStrength === 'strong'
+    ? '기운이 강한'
+    : analysis.dayMasterStrength === 'weak'
+      ? '섬세한'
+      : '균형 잡힌'
+  const incomeFlow = analysis.dominantElement === 'earth' || analysis.dominantElement === 'metal'
+    ? '안정적으로 쌓아 올리는'
+    : '움직임 속에서 열리는'
 
   return {
-    personality: `${STEM_KO[analysis.dayMaster]}${ELEMENT_KO[analysis.dayMasterElement].charAt(0)} 일간으로 ${analysis.dayMasterStrength === 'strong' ? '기운이 강한' : analysis.dayMasterStrength === 'weak' ? '섬세한' : '균형 잡힌'} 성향입니다. ${analysis.dayMasterAdvice}`,
-    elementBalance: `오행 분포 — 목${analysis.elementCount.wood}·화${analysis.elementCount.fire}·토${analysis.elementCount.earth}·금${analysis.elementCount.metal}·수${analysis.elementCount.water}. ${ELEMENT_KO[analysis.dominantElement]} 기운이 두드러지고 ${ELEMENT_KO[analysis.weakElement]} 기운을 보완하면 좋습니다.`,
+    personality: `${STEM_KO[analysis.dayMaster]}${ELEMENT_KO[analysis.dayMasterElement].charAt(0)} 일간으로 ${strengthText} 성향입니다. 흥미롭네요. 겉으로 보이는 모습보다 안쪽의 결이 더 선명합니다. ${analysis.dayMasterAdvice}`,
+    elementBalance: `오행을 펼쳐보니 목${analysis.elementCount.wood}·화${analysis.elementCount.fire}·토${analysis.elementCount.earth}·금${analysis.elementCount.metal}·수${analysis.elementCount.water}입니다. ${ELEMENT_KO[analysis.dominantElement]} 기운이 먼저 보이고, ${ELEMENT_KO[analysis.weakElement]} 기운이 빈자리로 남아 있습니다. 이 빈자리를 어떻게 채우느냐가 흐름을 바꿉니다.`,
     loveFortune: hasLove
-      ? `일지 ${BRANCH_KO[analysis.fourPillars.day.branch]}(${analysis.fourPillars.day.branch}) 자리에 따뜻한 인연이 기운이 있습니다. ${analysis.usefulGod ? `${ELEMENT_KO[analysis.usefulGod]} 기운을 살리는 만남이 순탄할 수 있습니다.` : '마음을 열고 천천히 다가가면 좋은 인연이 이어질 수 있습니다.'}`
-      : `인성(印星) 기운이 두드러져 내면 성찰의 시간이 필요할 수 있습니다. 자신을 돌본 뒤 인연이 자연스럽게 찾아올 수 있습니다.`,
+      ? `일지 ${BRANCH_KO[analysis.fourPillars.day.branch]}(${analysis.fourPillars.day.branch}) 자리에 인연의 기운이 보입니다. 스쳐 지나가는 만남보다, ${analysis.usefulGod ? `${ELEMENT_KO[analysis.usefulGod]} 기운을 살리는 사람` : '마음을 천천히 열게 하는 사람'}에게 흐름이 붙습니다. 관계는 급히 잡지 말고 결을 보세요.`
+      : `관계운은 지금 바깥보다 안쪽을 먼저 보라고 말합니다. 혼자 버티는 시간이 길수록 마음의 문이 늦게 열릴 수 있습니다. 자신을 돌본 뒤에야 인연의 흐름도 선명해집니다.`,
     wealthFortune: hasWealth
-      ? `재성(財星) 기운이 사주에 있어 현실적 수입과 재물 관리에 감각이 있습니다. ${analysis.dominantElement === 'earth' || analysis.dominantElement === 'metal' ? '안정적 축적형' : '활동적 수입형'} 흐름으로 보입니다.`
-      : `식상(食傷)이나 관성 흐름으로 재물은 노력과 표현에서 열릴 수 있습니다. 꾸준한 전문성이 재물운을 붙드는 열쇠입니다.`,
+      ? `재성(財星) 기운이 사주 안에 들어 있습니다. 돈의 감각이 없는 팔자는 아닙니다. 다만 ${incomeFlow} 흐름이니, 크게 움직이기 전에는 타이밍과 기준을 먼저 보셔야 합니다.`
+      : `재물운은 한 번에 터지는 쪽보다 실력과 표현에서 열리는 흐름이 보입니다. 꾸준히 쌓은 전문성이 돈길을 붙드는 열쇠입니다. 조급하게 잡으려 하면 오히려 새는 돈이 생깁니다.`,
   }
 }
 

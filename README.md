@@ -1,6 +1,13 @@
 # chungi_t — 천기 선생님 개인 사주 LLM 대화 엔진
 
-바탕화면 `chungi_t` 폴더에서 **천기 선생님 대화 로직**을 별도로 개발하는 프로젝트입니다.
+**천기 선생님 대화 로직**을 별도로 개발하는 프로젝트입니다.
+
+## 연결 상태
+
+- GitHub: `https://github.com/jaeyong-planner/chungi-t.git`
+- Vercel: `ax-lab-cream/chungi-t`
+- Production: `https://chungi-t.vercel.app/`
+- Local Vercel link: `.vercel/project.json`에서 관리하며 Git에는 올리지 않습니다.
 
 ## 기능
 
@@ -12,7 +19,6 @@
 ## 빠른 시작
 
 ```bash
-cd C:\Users\USER\MCP\바탕화면\chungi_t
 npm install
 cp .env.example .env   # OPENAI_API_KEY 입력
 npm start
@@ -23,8 +29,15 @@ npm start
 ## 배포 (Vercel)
 
 ```bash
-# GitHub 연동 후 Vercel에서 Import 또는 CLI:
+# Vercel 프로젝트 링크 후 CLI 배포:
 vercel --prod
+```
+
+Vercel 프로젝트가 GitHub push 기반 자동 배포를 사용하려면 Vercel GitHub app에
+`jaeyong-planner/chungi-t` 저장소 접근 권한을 부여한 뒤 다음 명령을 실행합니다.
+
+```bash
+vercel git connect https://github.com/jaeyong-planner/chungi-t.git --scope ax-lab-cream
 ```
 
 **필수 환경 변수 (Vercel Dashboard → Settings → Environment Variables)**

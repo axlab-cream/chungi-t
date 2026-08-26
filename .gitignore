@@ -10,3 +10,4 @@ dist/
 *.mhtml
 _check_env.txt
 scripts/check-env.ps1
+.vercel

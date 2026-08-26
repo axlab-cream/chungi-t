@@ -5,36 +5,36 @@
     {
       "id": "ct-career",
       "intent": "career",
-      "keywords": ["직업", "일", "커리어", "취업", "이직", "사업"],
-      "promptHint": "관성(官星)·식상(食傷)·재성(財星)과 일간 강약을 연결해 직업 적성과 시기를 해석하세요.",
+      "keywords": ["직업", "직장", "회사", "일", "커리어", "취업", "이직", "퇴사", "사업", "버틸", "옮길"],
+      "promptHint": "관성(官星)·식상(食傷)·재성(財星)과 일간 강약을 연결해 직업 적성과 시기를 해석하세요. '직장고민 때문에 여기까지 왔군요. 일의 결부터 보겠습니다.' 같은 천기 선생님 말투를 유지하세요.",
       "responseFrame": "사주의 {dominantTenGod} 기운이 {careerArea}에 강합니다. {dayMasterAdvice} {cautionNote}"
     },
     {
       "id": "ct-love",
       "intent": "love",
       "keywords": ["연애", "사랑", "결혼", "배우자", "이별", "짝"],
-      "promptHint": "배우자궁(일지), 재성/관성, 합충을 참고해 관계 패턴을 해석하세요.",
+      "promptHint": "배우자궁(일지), 재성/관성, 합충을 참고해 관계 패턴을 해석하세요. '관계의 흐름이 먼저 보입니다'처럼 점사를 풀어주는 말투를 유지하세요.",
       "responseFrame": "일지 {dayBranch}와 {partnerStar}의 관계에서 {relationshipPattern}이 보입니다. {dayMasterAdvice}"
     },
     {
       "id": "ct-fortune",
       "intent": "fortune",
       "keywords": ["운세", "올해", "올해운", "대운", "흐름", "시기"],
-      "promptHint": "세운·대운과 용신·기신 관계를 참고해 올해 흐름을 해석하세요. 단정하지 마세요.",
+      "promptHint": "세운·대운과 용신·기신 관계를 참고해 올해 흐름을 해석하세요. 단정하지 말고 '흐름이 보입니다', '여기를 조심해야 합니다'의 말투를 유지하세요.",
       "responseFrame": "올해 {yearStem}{yearBranch} 세운이 사주와 {interaction} 관계입니다. {usefulGodNote} {cautionNote}"
     },
     {
       "id": "ct-health",
       "intent": "health",
       "keywords": ["건강", "몸", "스트레스", "피로", "마음"],
-      "promptHint": "부족·과다 오행과 해당 장부를 참고하되, 반드시 전문의 상담을 권하세요.",
+      "promptHint": "부족·과다 오행과 해당 장부를 참고하되, 반드시 전문의 상담을 권하세요. 건강 판단은 단정하지 말고 '몸의 신호를 가볍게 넘기지 마세요'처럼 안전하게 말하세요.",
       "responseFrame": "오행 중 {weakElement} 기운이 상대적으로 {balance}합니다. {elementAdvice} 다만 건강은 전문의와 상담하시길 권합니다."
     },
     {
       "id": "ct-general",
       "intent": "general",
       "keywords": ["고민", "마음", "조언", "앞으로", "어떻게"],
-      "promptHint": "일간 성격, 용신, 현재 고민을 연결해 따뜻하고 통찰력 있는 답변을 하세요.",
+      "promptHint": "일간 성격, 용신, 현재 고민을 연결하세요. '그 고민 때문에 여기까지 왔군요. 사주의 결부터 보겠습니다.' 같은 천기 선생님 말투를 유지하세요.",
       "responseFrame": "{empathy} {dayMasterAdvice} {elementBalanceNote}"
     }
   ]

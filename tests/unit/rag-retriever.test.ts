@@ -25,6 +25,10 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.equal(detectIntent('이직을 고민 중인데 직업운이 어떤가요?'), 'career')
     })
 
+    it('직장고민 표현 → career intent', () => {
+      assert.equal(detectIntent('직장고민이 있어요. 계속 버틸지 옮길지 모르겠어요.'), 'career')
+    })
+
     it('사주 + 질문 기반 RAG 검색', () => {
       const saju = analyzeSaju(sampleBirth)
       const chunks = retrieveRagChunks('올해 직업운과 재물운', saju, 3)

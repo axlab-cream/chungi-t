@@ -40,9 +40,9 @@ if (session) {
 
   if (session.history.length === 0) {
     appendBubble('assistant',
-      '반갑습니다. 천기 선생입니다. 방금 보신 사주를 바탕으로 마음속 이야기를 편하게 나눠 보시겠어요?')
+      '잘 오셨습니다. 방금 펼친 사주의 결을 이어서 보겠습니다. 묻고 싶은 걸 한 문장으로 던져보세요. 천기 선생님이 하나씩 풀어드리겠습니다.')
     if (session.initialConcern) {
-      appendBubble('assistant', `입력하신 "${session.initialConcern}"에 대해서도 함께 살펴보겠습니다.`)
+      appendBubble('assistant', `"${session.initialConcern}" 때문에 여기까지 왔군요. 그 고민도 사주의 흐름 안에서 같이 보겠습니다.`)
     }
   } else {
     for (const turn of session.history) appendBubble(turn.role, turn.content)

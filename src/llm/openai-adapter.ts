@@ -20,18 +20,30 @@ export interface OpenAiChatOptions {
   maxTokens?: number
 }
 
+function usesMaxCompletionTokens(model: string): boolean {
+  return /^(gpt-5|o[1-9]|o\d)/i.test(model)
+}
+
 /** OpenAI Chat Completions API 호출 */
 export async function chatWithOpenAI(
   messages: LlmMessage[],
   options: OpenAiChatOptions = {},
 ): Promise<string> {
   const openai = getClient()
-  const response = await openai.chat.completions.create({
-    model: options.model ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+  const model = options.model ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini'
+  const request: Record<string, unknown> = {
+    model,
     messages,
-    temperature: options.temperature ?? 0.7,
-    max_tokens: options.maxTokens ?? 800,
-  })
+  }
+
+  if (usesMaxCompletionTokens(model)) {
+    request.max_completion_tokens = options.maxTokens ?? 4000
+  } else {
+    request.temperature = options.temperature ?? 0.7
+    request.max_tokens = options.maxTokens ?? 800
+  }
+
+  const response = await openai.chat.completions.create(request as never)
 
   const content = response.choices[0]?.message?.content?.trim()
   if (!content) {
