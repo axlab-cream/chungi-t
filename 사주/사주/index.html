@@ -111,6 +111,10 @@
         padding: 0 18px;
       }
 
+      .topbar > .icon-button:last-child {
+        justify-self: end;
+      }
+
       .icon-button {
         display: grid;
         place-items: center;
@@ -130,6 +134,131 @@
         letter-spacing: 0;
       }
 
+      .settings-panel {
+        position: absolute;
+        inset: 0;
+        z-index: 8;
+        display: none;
+        padding: 70px 16px 18px;
+        background: rgba(2, 1, 1, 0.62);
+        backdrop-filter: blur(12px);
+      }
+
+      .settings-panel.is-open {
+        display: block;
+      }
+
+      .settings-sheet {
+        width: 100%;
+        max-height: 100%;
+        overflow: auto;
+        border: 1px solid rgba(255, 226, 183, 0.2);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(39, 8, 6, 0.98), rgba(6, 2, 2, 0.98)),
+          #100404;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.56);
+      }
+
+      .settings-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 18px 12px;
+        border-bottom: 1px solid rgba(255, 226, 183, 0.14);
+      }
+
+      .settings-head strong {
+        display: block;
+        color: #fff7ea;
+        font-size: 20px;
+        font-weight: 950;
+        line-height: 1.2;
+      }
+
+      .settings-head span {
+        display: block;
+        margin-top: 4px;
+        color: rgba(255, 236, 202, 0.58);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .settings-list {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .history-item {
+        width: 100%;
+        min-height: 88px;
+        padding: 13px;
+        border: 1px solid rgba(255, 226, 183, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 248, 239, 0.055);
+        color: #fff5e5;
+        text-align: left;
+      }
+
+      .history-item strong,
+      .history-empty strong {
+        display: block;
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .history-item span,
+      .history-empty span {
+        display: block;
+        margin-top: 6px;
+        color: rgba(255, 231, 194, 0.65);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.4;
+      }
+
+      .history-actions {
+        display: flex;
+        gap: 8px;
+        padding: 0 14px 14px;
+      }
+
+      .history-actions button,
+      .history-remove {
+        min-height: 40px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 226, 183, 0.18);
+        background: rgba(255, 248, 239, 0.07);
+        color: #ffe7c2;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .history-actions button {
+        flex: 1;
+      }
+
+      .history-row {
+        display: grid;
+        grid-template-columns: 1fr 54px;
+        gap: 8px;
+      }
+
+      .history-remove {
+        width: 54px;
+      }
+
+      .history-empty {
+        min-height: 96px;
+        padding: 18px;
+        border: 1px dashed rgba(255, 226, 183, 0.22);
+        border-radius: 8px;
+        color: #fff5e5;
+      }
+
       .stage {
         position: relative;
         z-index: 2;
@@ -147,7 +276,7 @@
         display: block;
         justify-content: flex-start;
         overflow: auto;
-        padding: 0 0 max(24px, env(safe-area-inset-bottom));
+        padding: 72px 0 max(24px, env(safe-area-inset-bottom));
         background: #050202;
       }
 
@@ -156,8 +285,6 @@
         opacity: 0;
       }
 
-      .phone[data-scene="landing"] .topbar,
-      .phone[data-scene="result"] .topbar,
       .phone[data-scene="landing"] .sound,
       .phone[data-scene="result"] .sound {
         display: none;
@@ -170,10 +297,11 @@
         display: block;
         justify-content: flex-start;
         overflow: auto;
-        padding: 0 0 max(24px, env(safe-area-inset-bottom));
+        padding: 72px 0 max(24px, env(safe-area-inset-bottom));
         background: #000;
       }
 
+      .phone[data-scene="landing"] .topbar,
       .phone[data-scene="result"] .topbar {
         position: absolute;
         top: 0;
@@ -1915,11 +2043,29 @@
           </svg>
         </button>
         <div class="brand">천기 선생님</div>
-        <span aria-hidden="true"></span>
+        <button class="icon-button" type="button" aria-label="설정 열기" data-open-settings>
+          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 15.3a3.3 3.3 0 1 0 0-6.6 3.3 3.3 0 0 0 0 6.6Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.08a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.87.34l-.05.05a2 2 0 0 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.08A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.05-.05a2 2 0 0 1 2.83-2.83l.05.05a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 0 1 4 0v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.05-.05a2 2 0 0 1 2.83 2.83l-.05.05a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 0 1 0 4h-.08A1.7 1.7 0 0 0 19.4 15Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
       </header>
 
       <button class="sound" type="button" id="soundButton">사운드를 켜려면 터치하세요</button>
       <section class="stage" id="stage" aria-live="polite"></section>
+      <aside class="settings-panel" data-settings-panel aria-hidden="true"></aside>
     </main>
 
     <script>
@@ -1927,6 +2073,10 @@
       const stage = document.querySelector("#stage");
       const soundButton = document.querySelector("#soundButton");
       const backGlobal = document.querySelector("[data-back-global]");
+      const settingsButton = document.querySelector("[data-open-settings]");
+      const settingsPanel = document.querySelector("[data-settings-panel]");
+      const HISTORY_KEY = "cheongi_report_history_v1";
+      const MAX_HISTORY_ITEMS = 12;
 
       const state = {
         scene: "landing",
@@ -2019,6 +2169,190 @@
         brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
       };
 
+      function readReportHistory() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed.filter((item) => item?.reportId && item?.analysis) : [];
+        } catch (err) {
+          return [];
+        }
+      }
+
+      function writeReportHistory(items) {
+        const next = items.slice(0, MAX_HISTORY_ITEMS);
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+        } catch (err) {
+          try {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(next.slice(0, 4)));
+          } catch (innerErr) {
+            // Storage can be full or disabled; the live result still remains usable.
+          }
+        }
+      }
+
+      function formatSavedAt(value) {
+        const date = new Date(value || Date.now());
+        if (Number.isNaN(date.getTime())) return "방금 전";
+        return date.toLocaleString("ko-KR", {
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function historySubtitle(entry) {
+        const bits = [
+          entry.birthState?.relationship,
+          entry.birthState?.work,
+          entry.birthState?.concern,
+        ].filter(Boolean);
+        const progress = entry.progress?.total
+          ? `${entry.progress.complete || 0}/${entry.progress.total}`
+          : "저장됨";
+        return `${bits.join(" · ") || "풀이 저장"} · ${progress} · ${formatSavedAt(entry.savedAt)}`;
+      }
+
+      function buildHistoryEntry() {
+        const report = state.analysis?.report;
+        if (!report?.reportId) return null;
+        const birthState = {
+          target: state.target,
+          calendar: state.calendar,
+          birth: state.birth,
+          gender: state.gender,
+          time: state.time,
+          name: state.name,
+          orientation: state.orientation,
+          relationship: state.relationship,
+          work: state.work,
+          concern: state.concern,
+        };
+        const titleName = state.name || state.target || "당신";
+        return {
+          reportId: report.reportId,
+          savedAt: new Date().toISOString(),
+          title: `${titleName} · ${state.calendar} ${formatBirthLabel(state.birth)}`,
+          birthState,
+          analysis: state.analysis,
+          progress: report.progress,
+          storage: report.storage,
+          corpusFingerprint: report.corpus?.fingerprint,
+        };
+      }
+
+      function saveCurrentReading() {
+        const entry = buildHistoryEntry();
+        if (!entry) return;
+        const items = readReportHistory().filter((item) => item.reportId !== entry.reportId);
+        writeReportHistory([entry, ...items]);
+      }
+
+      function renderSettingsPanel() {
+        const items = readReportHistory();
+        const listMarkup = items.length
+          ? items.map((entry) => `
+              <div class="history-row">
+                <button class="history-item" type="button" data-history-open="${escapeHtml(entry.reportId)}">
+                  <strong>${escapeHtml(entry.title || "저장된 풀이")}</strong>
+                  <span>${escapeHtml(historySubtitle(entry))}</span>
+                </button>
+                <button class="history-remove" type="button" data-history-delete="${escapeHtml(entry.reportId)}">삭제</button>
+              </div>
+            `).join("")
+          : `
+              <div class="history-empty">
+                <strong>저장된 풀이가 없습니다</strong>
+                <span>한 번 풀이를 열면 이곳에 남습니다.</span>
+              </div>
+            `;
+
+        settingsPanel.innerHTML = `
+          <div class="settings-sheet" role="dialog" aria-modal="true" aria-label="설정">
+            <div class="settings-head">
+              <div>
+                <strong>천기 선생님</strong>
+                <span>풀이 보관함</span>
+              </div>
+              <button class="icon-button" type="button" aria-label="설정 닫기" data-settings-close>
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+            <div class="settings-list">${listMarkup}</div>
+            <div class="history-actions">
+              <button type="button" data-history-new>새 사주 입력</button>
+              <button type="button" data-history-clear ${items.length ? "" : "disabled"}>전체 삭제</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function openSettings() {
+        renderSettingsPanel();
+        settingsPanel.classList.add("is-open");
+        settingsPanel.setAttribute("aria-hidden", "false");
+      }
+
+      function closeSettings() {
+        settingsPanel.classList.remove("is-open");
+        settingsPanel.setAttribute("aria-hidden", "true");
+      }
+
+      function resetReadingState() {
+        state.target = "";
+        state.calendar = "양력";
+        state.birth = "";
+        state.gender = "";
+        state.time = "모름";
+        state.name = "";
+        state.orientation = "";
+        state.relationship = "";
+        state.work = "";
+        state.concern = "";
+        state.analysis = null;
+        state.reportPageIndex = 0;
+        state.reportSectionCache = {};
+        state.reportRequestToken += 1;
+        stopReportTyping();
+      }
+
+      function restoreHistoryEntry(reportId) {
+        const entry = readReportHistory().find((item) => item.reportId === reportId);
+        if (!entry?.analysis) return;
+        const saved = entry.birthState || {};
+        state.target = saved.target || "";
+        state.calendar = saved.calendar || "양력";
+        state.birth = saved.birth || "";
+        state.gender = saved.gender || "";
+        state.time = saved.time || "모름";
+        state.name = saved.name || "";
+        state.orientation = saved.orientation || "";
+        state.relationship = saved.relationship || "";
+        state.work = saved.work || "";
+        state.concern = saved.concern || "";
+        state.analysis = entry.analysis;
+        state.reportPageIndex = 0;
+        state.reportSectionCache = {};
+        state.reportRequestToken += 1;
+        stopReportTyping();
+        sessionStorage.setItem("cheongi_analysis", JSON.stringify(entry.analysis));
+        sessionStorage.setItem("cheongi_birth", JSON.stringify({
+          ...parseBirthInput(),
+          target: state.target,
+          concern: state.concern,
+          relationship: state.relationship,
+          work: state.work,
+          orientation: state.orientation,
+        }));
+        if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
+        closeSettings();
+        historyStack.length = 0;
+        go("result", false);
+      }
+
       const steps = {
         landing: renderLanding,
         immersion: renderImmersion,
@@ -2039,6 +2373,41 @@
 
       soundButton.addEventListener("click", () => {
         soundButton.textContent = "몰입 모드가 준비됐어요";
+      });
+
+      settingsButton.addEventListener("click", openSettings);
+
+      settingsPanel.addEventListener("click", (event) => {
+        if (event.target === settingsPanel || event.target.closest("[data-settings-close]")) {
+          closeSettings();
+          return;
+        }
+
+        const openButton = event.target.closest("[data-history-open]");
+        if (openButton) {
+          restoreHistoryEntry(openButton.dataset.historyOpen);
+          return;
+        }
+
+        const deleteButton = event.target.closest("[data-history-delete]");
+        if (deleteButton) {
+          writeReportHistory(readReportHistory().filter((item) => item.reportId !== deleteButton.dataset.historyDelete));
+          renderSettingsPanel();
+          return;
+        }
+
+        if (event.target.closest("[data-history-clear]")) {
+          writeReportHistory([]);
+          renderSettingsPanel();
+          return;
+        }
+
+        if (event.target.closest("[data-history-new]")) {
+          closeSettings();
+          historyStack.length = 0;
+          resetReadingState();
+          go("target", false);
+        }
       });
 
       backGlobal.addEventListener("click", () => {
@@ -2123,22 +2492,7 @@
         }
         if (action === "restart") {
           historyStack.length = 0;
-          state.target = "";
-          state.calendar = "양력";
-          state.birth = "";
-          state.gender = "";
-          state.time = "모름";
-          state.name = "";
-          state.orientation = "";
-          state.relationship = "";
-          state.work = "";
-          state.concern = "";
-          state.analysis = null;
-          state.reportPageIndex = 0;
-          state.reportSectionCache = {};
-          state.reportRequestToken += 1;
-          if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
-          state.reportTypingTimer = null;
+          resetReadingState();
           state.plan = "single";
           state.privacyAgree = false;
           state.paymentAgree = false;
@@ -2245,6 +2599,7 @@
         sessionStorage.setItem("cheongi_birth", JSON.stringify({ ...birth, target: state.target, concern: state.concern, relationship: state.relationship, work: state.work, orientation: state.orientation }));
         sessionStorage.setItem("cheongi_analysis", JSON.stringify(json));
         if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
+        saveCurrentReading();
       }
 
       function sourceImg(key, className, alt) {
@@ -2642,6 +2997,7 @@
         if (json.report && state.analysis) {
           state.analysis.report = json.report;
           seedReportCache();
+          saveCurrentReading();
         }
         return { ...json.section, generatedBy: json.generatedBy, model: json.model };
       }
@@ -2664,6 +3020,7 @@
           if (!res.ok || !json.report || !state.analysis) return;
           state.analysis.report = json.report;
           seedReportCache();
+          saveCurrentReading();
         } catch (err) {
           // The section API still falls back to on-demand generation.
         }
@@ -2680,7 +3037,7 @@
         state.reportRequestToken = token;
 
         const cached = state.reportSectionCache[templateSection.id];
-        if (cached && !force && cached.generatedBy === "openai") {
+        if (cached && !force && (cached.generatedBy === "openai" || cached.status === "complete")) {
           showReportPageFrame(cached, "");
           typeReportText(cached, token);
           return;

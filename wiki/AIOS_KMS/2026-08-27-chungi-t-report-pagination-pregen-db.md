@@ -16,7 +16,7 @@
 | 사전 생성 | 확인됨 | `src/report/report-queue.ts`에서 분석 직후 섹션을 순차 생성 |
 | 저장소 | 확인됨 | `src/report/report-store.ts`에서 `DATABASE_URL` 있으면 Postgres, 없으면 memory fallback |
 | 페이지 조회 | 확인됨 | `GET /api/report/:reportId`, `POST /api/report/section`, `POST /api/report/prewarm` |
-| UI | 확인됨 | `사주/사주/index.html` 목차, 이전/다음 페이지, 타자형 출력 |
+| UI | 확인됨 | `사주/사주/index.html` 목차, 이전/다음 페이지, 타자형 출력, 설정의 풀이 보관함 |
 | 모델 분리 | 확인됨 | `data/runtime-config.json`의 `report.model = gpt-5.5` |
 
 ## 결정 사항
@@ -33,6 +33,10 @@
 - RAG는 사용자가 고른 대상, 관계 기준, 관계 상태, 일상 상태, 고민 문장을 우선 핀 처리해 해당 입력 맥락 청크가 먼저 들어오도록 한다.
 - RAG와 코퍼스는 `data/corpus/registry.json`을 단일 진입점으로 쓰는 living knowledge layer로 관리한다.
 - 생성된 리포트 payload에는 당시 활성 corpus pack, pack version, contentHash, registryVersion, fingerprint를 저장한다.
+- 첫 화면과 결과 화면 상단에는 `천기 선생님` 로고와 우측 설정 버튼을 둔다.
+- 설정의 풀이 보관함은 브라우저 `localStorage`에 최근 풀이를 저장한다. 같은 기기에서는 서버 DB가 없거나 서버리스 memory가 사라져도 저장된 전체 리포트를 다시 열 수 있다.
+- 보관함은 `reportId` 기준으로 중복 저장을 막고 최대 12개까지 보존한다.
+- 저장된 섹션이 `status=complete`이면 `/api/report/section`을 다시 호출하지 않고 로컬 본문을 바로 타자형으로 출력한다.
 
 ## DB 운영 조건
 
@@ -50,6 +54,7 @@
 - 로컬 섹션 API: `/api/report/section`에서 `profile` 섹션 `status=complete`, `generatedBy=template`
 - 로컬 prewarm API: fallback 모드에서 37/37 섹션 complete, `storage=memory`, corpus fingerprint와 활성 pack 6개 payload 저장 확인
 - 브라우저 검증: 리포트 목차, 공통 이미지 로드, 첫 페이지 본문 표시, 다음 페이지 버튼 동작, 타자형 완료 확인
+- 로컬 상단 바 검증: 첫 화면에서 `천기 선생님` 로고와 우측 설정 버튼 표시 확인, 스크린샷 `qa-settings-top-local.png`
 - 스크린샷: `qa-report-reader-local.png`
 - Production 배포: `dpl_4nnLrs6dVuBKY8XWHN4MWRBGgQPh`
 - Production 확인: `/api/health`는 `openai=true`, `DATABASE_URL` 미설정 시 `storage=memory`
