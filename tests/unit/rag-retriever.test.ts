@@ -25,8 +25,11 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
     it('코퍼스 registry가 활성 pack과 검색 가중치를 관리', () => {
       const packs = getActiveCorpusPacks()
       assert.ok(packs.some((pack) => pack.id === 'saju-95-quality-bundles'))
+      assert.ok(packs.some((pack) => pack.id === 'saju-advanced-manseryeok-gbr'))
       assert.ok(getChunkCorpusFiles().includes('corpus/saju-95-quality-bundles.json'))
+      assert.ok(getChunkCorpusFiles().includes('corpus/saju-advanced-manseryeok-gbr.json'))
       assert.ok(getCorpusDomainBoost('saju_95_quality_bundles') >= 10)
+      assert.ok(getCorpusDomainBoost('saju_advanced_manseryeok_gbr') >= 10)
     })
 
     it('장문 리포트용 deep corpus도 인덱스에 포함', () => {
@@ -51,6 +54,14 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(corpus.some((chunk) => chunk.domain === 'saju_95_quality_bundles'))
     })
 
+    it('고급 만세력/GBR 보강 pack도 인덱스에 포함', () => {
+      const corpus = buildCorpusIndex()
+      for (const id of ['adv-001', 'adv-002', 'adv-003', 'adv-004', 'adv-005', 'adv-006']) {
+        assert.ok(corpus.some((chunk) => chunk.id === id), `${id} missing`)
+      }
+      assert.ok(corpus.some((chunk) => chunk.domain === 'saju_advanced_manseryeok_gbr'))
+    })
+
     it('직업 질문 → career intent', () => {
       assert.equal(detectIntent('이직을 고민 중인데 직업운이 어떤가요?'), 'career')
     })
@@ -72,6 +83,21 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       const chunks = retrieveRagChunks('올해 직업운과 재물운', saju, 3)
       assert.ok(chunks.length > 0)
       assert.ok(chunks.length <= 3)
+    })
+
+    it('GBR 재랭킹 → 격국·조후·통관 질문에서 고급 청크를 회수', () => {
+      const saju = analyzeSaju(sampleBirth)
+      const chunks = retrieveRagChunks('용신을 격국 조후 통관까지 연결해서 봐줘', saju, 6)
+      const ids = chunks.map((chunk) => chunk.id)
+
+      assert.ok(ids.includes('adv-002') || ids.includes('adv-003') || ids.includes('adv-004'))
+    })
+
+    it('GBR 재랭킹 → 23시 자시 질문에서 자시 옵션 청크를 회수', () => {
+      const saju = analyzeSaju({ ...sampleBirth, hour: 23 })
+      const chunks = retrieveRagChunks('23시 자시 야자시 조자시 일주 변경 기준이 궁금해요', saju, 5)
+
+      assert.ok(chunks.some((chunk) => chunk.id === 'adv-001'))
     })
 
     it('대상 선택 본인 context → 본인 사주 청크 우선 검색', () => {

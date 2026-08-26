@@ -13,6 +13,7 @@ import { chatWithOpenAI } from '../llm/openai-adapter.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
+import { evaluateReportQuality } from './report-quality.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.png'
 const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? 'gpt-5.5'
@@ -374,11 +375,13 @@ function classificationFor(focus: ReportFocus, analysis: SajuAnalysis, context: 
   const weak = ELEMENT_KO[analysis.weakElement]
   const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : '보완 기운'
   const tenGod = analysis.tenGods[0] ?? '십신'
+  const gyeokguk = analysis.manseryeok?.gyeokguk.name
+  const climate = analysis.manseryeok?.climate
 
   const labels: Record<ReportFocus, string> = {
     profile: `${dayPillar} 일주 · ${STEM_KO[analysis.dayMaster]}${ELEMENT_KO[analysis.dayMasterElement].charAt(0)} 일간`,
     target: `${context.target ?? '본인'} 기준 · ${contextLabel(context)}`,
-    balance: `${dominant} 과다 · ${weak} 보완 · ${useful} 중심`,
+    balance: `${dominant} 과다 · ${weak} 보완 · ${useful} 중심${gyeokguk ? ` · ${gyeokguk}` : ''}${climate ? ` · 조후 ${climate.temperature}` : ''}`,
     trap: `${tenGod} 패턴 · 월주 ${monthPillar}의 사회 결`,
     relationshipContext: `${context.orientation ?? '관계 기준'} · ${context.relationship ?? '관계 상태 미입력'}`,
     workContext: `${context.work ?? '일상 상태 미입력'} · 월주 ${monthPillar}`,
@@ -523,12 +526,23 @@ function buildInterpretation(
   const target = cleanContextValue(context.target, '본인')
   const orientation = cleanContextValue(context.orientation, '관계 기준 미선택')
   const relationship = cleanContextValue(context.relationship, '관계 상태 미입력')
+  const gyeokguk = analysis.manseryeok?.gyeokguk
+  const climate = analysis.manseryeok?.climate
+  const bridge = analysis.manseryeok?.flowBridges[0]
+  const advancedLine = [
+    gyeokguk ? `월령 기준으로는 ${gyeokguk.name} 렌즈가 잡힙니다` : '',
+    climate ? `조후는 ${climate.temperature}/${climate.moisture} 쪽으로 읽힙니다` : '',
+    bridge ? `통관은 ${ELEMENT_KO[bridge.bridge]} 기운이 ${ELEMENT_KO[bridge.conflict[0]]}와 ${ELEMENT_KO[bridge.conflict[1]]} 사이를 풀어주는 후보입니다` : '',
+  ].filter(Boolean).join('. ')
+  const manseryeokLine = analysis.manseryeok
+    ? `만세력 계산은 ${analysis.manseryeok.monthTerm} 절기 이후의 월주, 지장간, ${analysis.manseryeok.dayBoundaryRule === 'zi_hour_next_day' ? '23시 자시 다음 날 일주 옵션' : '날짜 기준 자시'}을 바탕으로 잡았습니다. ${advancedLine ? `${advancedLine}.` : ''}`
+    : advancedLine
 
   const sections: Partial<Record<ReportFocus, string>> = {
     profile: [
-      `흠... ${name}님 사주의 중심은 ${dayPillar} 일주, 그중에서도 ${dayMaster} 일간입니다. 이 일간은 겉으로 드러나는 태도보다 속에서 먼저 판단하고, 작은 신호를 놓치지 않으려는 결을 갖습니다. ${strengthText} 팔자라서 마음이 움직이기 전까지는 쉽게 방향을 바꾸지 않지만, 한 번 흐름이 잡히면 생각보다 깊게 파고듭니다.`,
+      `흠... ${name}님 사주의 중심은 ${dayPillar} 일주, 그중에서도 ${dayMaster} 일간입니다. 이 일간은 겉으로 드러나는 태도보다 속에서 먼저 판단하고, 작은 신호를 놓치지 않으려는 결을 갖습니다. 일간 강약으로는 신강·신약이라는 딱지보다 월령과 지장간이 더 중요하고, ${name}님은 ${strengthText} 팔자라서 마음이 움직이기 전까지는 쉽게 방향을 바꾸지 않지만, 한 번 흐름이 잡히면 생각보다 깊게 파고듭니다.`,
       `년주 ${pillarLabel(p.year)}, 월주 ${monthPillar}, 시주 ${pillarLabel(p.hour)}를 같이 놓고 보면 ${dominant} 기운이 먼저 보입니다. ${ELEMENT_TRAIT[analysis.dominantElement]}이 사주의 앞쪽으로 올라와 있어, 남들이 보기에는 담담해 보여도 안쪽에서는 이미 많은 계산과 감지가 끝나 있는 사람입니다. ${analysis.dayMasterAdvice}`,
-      `${ragLine} 그러니 ${name}님은 단순히 성격이 예민한 사람이 아닙니다. 사주가 먼저 주변의 온도를 읽고, 그 다음에 행동을 고르는 구조입니다. 이걸 장점으로 쓰면 직관이 되고, 눌러두면 혼자만 알아차린 피로가 됩니다.`,
+      `${manseryeokLine ? `${manseryeokLine} ` : ''}${ragLine} 그러니 ${name}님은 단순히 성격이 예민한 사람이 아닙니다. 사주가 먼저 주변의 온도를 읽고, 그 다음에 행동을 고르는 구조입니다. 이걸 장점으로 쓰면 직관이 되고, 눌러두면 혼자만 알아차린 피로가 됩니다.`,
     ].join('\n\n'),
     target: [
       `이번 풀이는 ${target} 사주로 열렸습니다. 같은 명식이라도 본인을 보는지, 가족을 보는지, 연인이나 친구를 보는지에 따라 질문의 중심이 달라집니다. ${target} 기준에서는 사주의 좋은 말보다 먼저 '이 사람을 어떤 거리에서 이해해야 하는가'가 중요합니다.`,
@@ -544,12 +558,12 @@ function buildInterpretation(
     balance: [
       `오행을 펼쳐보니 목${analysis.elementCount.wood}·화${analysis.elementCount.fire}·토${analysis.elementCount.earth}·금${analysis.elementCount.metal}·수${analysis.elementCount.water}입니다. 여기서 ${dominant} 기운이 먼저 솟고, ${weak} 기운은 빈자리로 남습니다. 이 빈자리가 작아 보여도 실제 선택의 순간에는 꽤 크게 작동합니다.`,
       `${dominant}이 강하면 ${ELEMENT_TRAIT[analysis.dominantElement]}이 자연스럽게 앞섭니다. 반대로 ${weak}이 약하면 그 기운이 맡는 영역에서 망설임, 과로, 반복되는 미루기가 생길 수 있습니다. 용신으로는 ${useful} 흐름을 보는데, 이 기운이 들어올 때는 무리해서 밀어붙이는 것보다 균형을 되찾는 선택이 먼저입니다.`,
-      `${ragLine} 좋은 팔자는 강한 것만 많은 팔자가 아닙니다. 강한 기운을 어디에 쓰고, 빈 기운을 어떻게 채우는지가 더 중요합니다. ${name}님은 지금 강한 기운을 더 세게 만드는 것보다, 비어 있는 ${weak}의 자리를 생활 속에서 천천히 살려야 흐름이 안정됩니다.`,
+      `${advancedLine ? `${advancedLine}. ` : ''}${ragLine} 좋은 팔자는 강한 것만 많은 팔자가 아닙니다. 강한 기운을 어디에 쓰고, 빈 기운을 어떻게 채우는지가 더 중요합니다. ${name}님은 지금 강한 기운을 더 세게 만드는 것보다, 비어 있는 ${weak}의 자리를 생활 속에서 천천히 살려야 흐름이 안정됩니다.`,
     ].join('\n\n'),
     trap: [
-      `${concern}. 이 고민이 그냥 우연히 올라온 건 아닙니다. 사주 안의 십신을 보면 ${analysis.tenGods.join(' · ') || '십신'} 흐름이 보이고, 여기서 반복되는 반응 패턴이 있습니다. ${tenGodSentence(analysis)}`,
+      `${concern}. 이 고민이 그냥 우연히 올라온 건 아닙니다. 사주 안의 십신을 보면 ${analysis.tenGods.join(' · ') || '십신'} 흐름이 보이고, 여기서 반복되는 반응 패턴이 있습니다. 십신은 비겁·식상·재성·관성·인성으로 사람, 돈, 일, 표현, 보호의 방향을 읽는 관계 언어입니다. ${tenGodSentence(analysis)}`,
       `특히 월주 ${monthPillar}는 사회에서 드러나는 얼굴을 말합니다. 이 자리에 걸린 기운이 강하면, 혼자 있을 때의 나와 사람들 앞에서 버티는 내가 달라질 수 있습니다. 그래서 ${name}님은 괜찮은 척은 잘하지만, 정작 마음 깊은 곳에서는 이미 선을 넘었는지 아닌지를 계속 재고 있을 가능성이 큽니다.`,
-      `${ragLine} 함정은 늘 비슷합니다. 너무 빨리 읽어버리고, 너무 오래 참아버리고, 마지막에는 갑자기 끊어내는 식입니다. 이 패턴을 알면 피할 수 있습니다. 지금 필요한 건 더 세게 버티는 것이 아니라, 어떤 순간에 내가 무너지는지 정확히 이름 붙이는 일입니다.`,
+      `${advancedLine ? `${advancedLine}. ` : ''}${ragLine} 함정은 늘 비슷합니다. 너무 빨리 읽어버리고, 너무 오래 참아버리고, 마지막에는 갑자기 끊어내는 식입니다. 이 패턴을 알면 피할 수 있습니다. 지금 필요한 건 더 세게 버티는 것이 아니라, 어떤 순간에 내가 무너지는지 정확히 이름 붙이는 일입니다.`,
     ].join('\n\n'),
     relationshipContext: [
       `관계 기준은 ${orientation}, 현재 상태는 ${relationship}입니다. 이 두 선택지는 연애운의 렌즈를 바꿉니다. 이성 관계 중심이면 일지와 배우자성, 도화와 합을 더 보고, 동성 관계 중심이면 비겁·인성·식상처럼 비슷한 사람과의 거리감, 보호, 표현 방식을 더 봅니다.`,
@@ -611,7 +625,7 @@ function buildInterpretation(
     ].join('\n\n'),
     reportDepth: [
       `긴 리포트는 같은 말을 길게 늘리는 글이 아닙니다. 명식 구조, 일간, 오행, 십신, 용신, ${contextLabel(context)}, 현재 고민, 대운과 세운, 재물, 직업, 연애, 인연, 시기와 장소를 각각 다른 근거로 쌓아야 합니다.`,
-      `95점짜리 풀이가 되려면 각 장마다 세 가지가 들어가야 합니다. 첫째, 실제 사주 근거. 둘째, 사용자가 선택한 대상·관계·일상 상태와의 연결. 셋째, 지금 당장 볼 수 있는 행동 기준입니다. 이 세 가지가 없으면 말은 그럴듯해도 개인화가 약해집니다.`,
+      `95점짜리 풀이가 되려면 각 장마다 세 가지가 들어가야 합니다. 첫째, 실제 사주 근거. 둘째, 사용자가 선택한 대상·관계·일상 상태와의 연결. 셋째, 지금 당장 볼 수 있는 행동 기준입니다. 여기에 격국·조후·통관과 RAG 코퍼스 근거가 같이 붙어야 말이 그럴듯한 수준에서 끝나지 않습니다.`,
       `${ragLine} 그래서 이 리포트는 ${name}님을 한 문장으로 가두지 않고, 선택지마다 달라지는 해석의 초점을 따라가며 깊게 펼치는 구조로 설계됩니다.`,
     ].join('\n\n'),
     action: [
@@ -642,6 +656,9 @@ export function buildTemplateSajuReport(
     ...(context.relationship ? [`relationship:${context.relationship}`] : []),
     ...(context.work ? [`work:${context.work}`] : []),
     ...(context.concern ? [`concern:${context.concern}`] : []),
+    ...(analysis.manseryeok?.gyeokguk ? [`gyeokguk:${analysis.manseryeok.gyeokguk.name}`] : []),
+    ...(analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
+    ...(analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
   ]
   const name = cleanContextValue(context.name, cleanContextValue(context.target, '당신'))
   const sections: SajuReportSection[] = REPORT_BLUEPRINTS.map((blueprint, index) => {
@@ -669,13 +686,15 @@ export function buildTemplateSajuReport(
     }
   })
 
-  return {
+  const report: SajuReport = {
     title: `${name}님의 사주 리포트`,
     subtitle: '사주 기둥과 오행, 십신, 대운 흐름을 기준으로 순차 해석합니다.',
     model: 'template',
     generatedBy: 'template',
     sections,
   }
+  report.quality = evaluateReportQuality(report, analysis, context)
+  return report
 }
 
 function reportPrompt(
@@ -702,6 +721,8 @@ function reportPrompt(
       content: [
         '당신은 천기 선생님 사주 리포트 작성 엔진입니다.',
         '입력된 사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 장문 풀이를 씁니다.',
+        '개인 사주 요약에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
+        'RAG는 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 해석합니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천기 선생님 말투를 유지합니다.',
         '좋은 흐름과 안 좋은 함정을 둘 다 말합니다. 안 좋은 패턴은 “이 부분은 위험합니다”, “방치하면 반복됩니다”, “돈길보다 돈구멍이 먼저 보입니다”처럼 선명하게 말하되 공포를 팔지 않습니다.',
         '각 섹션에 억지 경고를 넣지는 말되, 겁재·상관·편관, 합충형파해, 과다/부족 오행, 대운·세운 충돌, 사용자의 고민에서 위험 신호가 드러나면 반드시 주의할 것·피해야 할 선택·드러나는 시기·풀 행동 기준을 함께 알려줍니다.',
@@ -712,7 +733,7 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1200~1800자 정도, 3~5문단입니다. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1200~1800자 정도, 3~5문단입니다. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 격국·조후·통관·GBR로 올라온 RAG 주제가 있으면 해당 섹션의 근거로 녹이세요.',
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -753,6 +774,8 @@ function sectionPrompt(
         '당신은 천기 선생님 사주 리포트의 한 페이지를 작성합니다.',
         '한 번에 전체 리포트를 쓰지 말고, 사용자가 선택한 현재 페이지 섹션만 작성합니다.',
         '사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 하되 기계적으로 나열하지 않습니다.',
+        '격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
+        'RAG 주제는 문장 안에서 현재 고민, 선택지, 명식 근거와 연결해 사용합니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천기 선생님 말투입니다.',
         '이 섹션의 근거에서 위험 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 선명하게 덧붙입니다. 억지로 모든 섹션에 경고를 넣지 않습니다.',
         '안 좋은 패턴을 말할 때는 반드시 대운·세운·전환 신호처럼 드러나는 시기와, 사용자가 그 흐름을 풀 행동 기준을 함께 제시합니다.',
@@ -763,7 +786,7 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1200~1800자 정도의 3~5문단으로 작성하세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1200~1800자 정도의 3~5문단으로 작성하세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. RAG/코퍼스 근거가 실제 판단에 쓰였다는 느낌이 나야 합니다.',
         outputShape: {
           id: section.id,
           hook: 'string',
@@ -791,7 +814,12 @@ function extractJsonObject(raw: string): unknown {
   return JSON.parse(cleaned.slice(start, end + 1)) as unknown
 }
 
-function mergeOpenAiReport(baseReport: SajuReport, rawReport: unknown): SajuReport {
+function mergeOpenAiReport(
+  baseReport: SajuReport,
+  rawReport: unknown,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+): SajuReport {
   const parsed = rawReport as {
     title?: unknown
     subtitle?: unknown
@@ -812,7 +840,7 @@ function mergeOpenAiReport(baseReport: SajuReport, rawReport: unknown): SajuRepo
     }
   })
 
-  return {
+  const report: SajuReport = {
     ...baseReport,
     title: typeof parsed.title === 'string' && parsed.title.trim() ? parsed.title.trim() : baseReport.title,
     subtitle: typeof parsed.subtitle === 'string' && parsed.subtitle.trim() ? parsed.subtitle.trim() : baseReport.subtitle,
@@ -820,6 +848,8 @@ function mergeOpenAiReport(baseReport: SajuReport, rawReport: unknown): SajuRepo
     generatedBy: 'openai',
     sections,
   }
+  report.quality = evaluateReportQuality(report, analysis, context)
+  return report
 }
 
 export async function buildOpenAiSajuReport(
@@ -832,7 +862,7 @@ export async function buildOpenAiSajuReport(
     model: REPORT_MODEL,
     maxTokens: runtimeConfig.report?.maxTokens ?? 9000,
   })
-  return mergeOpenAiReport(baseReport, extractJsonObject(raw))
+  return mergeOpenAiReport(baseReport, extractJsonObject(raw), analysis, context)
 }
 
 export async function buildOpenAiSajuReportSection(

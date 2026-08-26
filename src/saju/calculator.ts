@@ -1,6 +1,6 @@
 import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { Solar } from 'lunar-typescript'
-import type { BirthInput, EarthlyBranch, HeavenlyStem, Pillar, ResolvedBirthDate, SolarTermName } from '../types/index.js'
+import type { BirthInput, DayBoundaryRule, EarthlyBranch, HeavenlyStem, Pillar, ResolvedBirthDate, SolarTermName } from '../types/index.js'
 
 type KoreanLunarCalendarCtor = new () => {
   setLunarDate(lunarYear: number, lunarMonth: number, lunarDay: number, isIntercalation: boolean): boolean
@@ -123,6 +123,30 @@ export function getDayIndices(year: number, month: number, day: number): { stemI
   }
 }
 
+function nextSolarDate(year: number, month: number, day: number): { solarYear: number; solarMonth: number; solarDay: number } {
+  const next = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0))
+  return {
+    solarYear: next.getUTCFullYear(),
+    solarMonth: next.getUTCMonth() + 1,
+    solarDay: next.getUTCDate(),
+  }
+}
+
+function resolveDayCalculationDate(resolved: ResolvedBirthDate, rule: DayBoundaryRule): {
+  solarYear: number
+  solarMonth: number
+  solarDay: number
+} {
+  if (rule === 'zi_hour_next_day' && resolved.hour === 23) {
+    return nextSolarDate(resolved.solarYear, resolved.solarMonth, resolved.solarDay)
+  }
+  return {
+    solarYear: resolved.solarYear,
+    solarMonth: resolved.solarMonth,
+    solarDay: resolved.solarDay,
+  }
+}
+
 /** 五虎遁 — 년간 기준 월간 */
 function getMonthStemIndex(yearStemIdx: number, monthBranchIdx: number): number {
   const firstMonthStem = [2, 4, 6, 8, 0][mod(yearStemIdx, 5)]
@@ -204,12 +228,16 @@ export function calculateStemBranchIndices(birth: BirthInput): {
   hour: { stemIdx: number; branchIdx: number }
   resolved: ResolvedBirthDate
   pillarYear: number
+  dayBoundaryRule: DayBoundaryRule
+  dayCalculationDate: { solarYear: number; solarMonth: number; solarDay: number }
 } {
   const resolved = resolveBirthDate(birth)
+  const dayBoundaryRule = birth.dayBoundaryRule ?? 'midnight'
+  const dayCalculationDate = resolveDayCalculationDate(resolved, dayBoundaryRule)
   const year = getYearIndicesByIpchun(resolved)
   const monthBoundary = getMonthBoundary(resolved)
   const monthStemIdx = getMonthStemIndex(year.stemIdx, monthBoundary.branchIdx)
-  const day = getDayIndices(resolved.solarYear, resolved.solarMonth, resolved.solarDay)
+  const day = getDayIndices(dayCalculationDate.solarYear, dayCalculationDate.solarMonth, dayCalculationDate.solarDay)
   const hourBranchIdx = getHourBranchIndex(resolved.hour)
   const hourStemIdx = getHourStemIndex(day.stemIdx, hourBranchIdx)
 
@@ -220,6 +248,8 @@ export function calculateStemBranchIndices(birth: BirthInput): {
     hour: { stemIdx: hourStemIdx, branchIdx: hourBranchIdx },
     resolved,
     pillarYear: year.pillarYear,
+    dayBoundaryRule,
+    dayCalculationDate,
   }
 }
 

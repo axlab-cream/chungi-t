@@ -2,6 +2,7 @@ export type Element = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
 export type Polarity = 'yang' | 'yin'
 export type Gender = 'male' | 'female'
 export type CalendarType = 'solar' | 'lunar'
+export type DayBoundaryRule = 'midnight' | 'zi_hour_next_day'
 
 export type HeavenlyStem = '甲' | '乙' | '丙' | '丁' | '戊' | '己' | '庚' | '辛' | '壬' | '癸'
 export type EarthlyBranch = '子' | '丑' | '寅' | '卯' | '辰' | '巳' | '午' | '未' | '申' | '酉' | '戌' | '亥'
@@ -20,6 +21,7 @@ export interface BirthInput {
   gender: Gender
   calendar: CalendarType
   isLeapMonth?: boolean
+  dayBoundaryRule?: DayBoundaryRule
 }
 
 export interface Pillar {
@@ -80,14 +82,43 @@ export interface SajuInteraction {
   meaning: string
 }
 
+export interface GyeokgukInfo {
+  name: string
+  basis: string
+  tenGod: TenGod
+  confidence: number
+  note: string
+}
+
+export interface ClimateBalanceInfo {
+  season: 'spring' | 'summer' | 'autumn' | 'winter'
+  temperature: 'cold' | 'cool' | 'balanced' | 'warm' | 'hot'
+  moisture: 'dry' | 'balanced' | 'damp'
+  usefulElements: Element[]
+  cautionElements: Element[]
+  note: string
+}
+
+export interface FlowBridgeInfo {
+  conflict: [Element, Element]
+  bridge: Element
+  strength: number
+  note: string
+}
+
 export interface ManseryeokMeta {
   resolvedBirth: ResolvedBirthDate
   pillarYear: number
   monthTerm: SolarTermName
+  dayBoundaryRule: DayBoundaryRule
+  dayCalculationDate: { solarYear: number; solarMonth: number; solarDay: number }
   hiddenStems: HiddenStemInfo[]
   tenGodPlacements: TenGodPlacement[]
   interactions: SajuInteraction[]
   weightedElements: ElementCount
+  gyeokguk: GyeokgukInfo
+  climate: ClimateBalanceInfo
+  flowBridges: FlowBridgeInfo[]
   calculationNotes: string[]
 }
 
@@ -154,6 +185,27 @@ export interface SajuReportSection {
   error?: string
 }
 
+export interface SajuReportQualityCategory {
+  id: string
+  label: string
+  ragUsagePercent: number
+  corpusRelevancePercent: number
+  toneGroundingPercent: number
+  llmGroundingPercent: number
+  completenessPercent: number
+  sectionIds: string[]
+  evidence: string[]
+}
+
+export interface SajuReportQuality {
+  overallPercent: number
+  ragUsagePercent: number
+  corpusRelevancePercent: number
+  toneGroundingPercent: number
+  llmGroundingPercent: number
+  categories: SajuReportQualityCategory[]
+}
+
 export interface CorpusPackSnapshot {
   id: string
   path: string
@@ -183,6 +235,7 @@ export interface SajuReport {
   progress?: { complete: number; total: number }
   storage?: 'postgres' | 'memory'
   corpus?: CorpusSnapshot
+  quality?: SajuReportQuality
   sections: SajuReportSection[]
 }
 

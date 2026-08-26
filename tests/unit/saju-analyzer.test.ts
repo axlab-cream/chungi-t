@@ -77,6 +77,29 @@ describe('[TASK] 사주 분석 테스트 하네스', () => {
       assert.ok(pillars.hour)
     })
 
+    it('23시 자시는 옵션에 따라 다음 날 일주로 계산할 수 있다', () => {
+      const defaultPillars = calculateFourPillars({
+        year: 1990,
+        month: 5,
+        day: 15,
+        hour: 23,
+        gender: 'female',
+        calendar: 'solar',
+      })
+      const nextDayPillars = calculateFourPillars({
+        year: 1990,
+        month: 5,
+        day: 15,
+        hour: 23,
+        gender: 'female',
+        calendar: 'solar',
+        dayBoundaryRule: 'zi_hour_next_day',
+      })
+
+      assert.notEqual(label(defaultPillars, 'day'), label(nextDayPillars, 'day'))
+      assert.notEqual(label(defaultPillars, 'hour'), label(nextDayPillars, 'hour'))
+    })
+
     it('입춘 경계 전후로 년주와 월주가 갈린다', () => {
       const before = calculateFourPillars({
         year: 2024,
@@ -129,6 +152,18 @@ describe('[TASK] 사주 분석 테스트 하네스', () => {
       assert.equal(analysis.manseryeok?.resolvedBirth.solarDay, 3)
       assert.equal(label(analysis.fourPillars, 'year'), '丙申')
       assert.equal(label(analysis.fourPillars, 'month'), '庚寅')
+    })
+
+    it('격국·조후·통관 메타를 산출한다', () => {
+      const analysis = analyzeSaju(sampleBirth)
+
+      assert.ok(analysis.manseryeok?.gyeokguk.name.endsWith('격'))
+      assert.ok((analysis.manseryeok?.gyeokguk.confidence ?? 0) >= 60)
+      assert.ok(analysis.manseryeok?.climate.note.includes('명식'))
+      assert.ok(Array.isArray(analysis.manseryeok?.flowBridges))
+      assert.ok(analysis.summary.includes('격국 렌즈'))
+      assert.ok(analysis.summary.includes('조후 판단'))
+      assert.ok(analysis.summary.includes('통관 후보'))
     })
   })
 

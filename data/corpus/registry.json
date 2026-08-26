@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "policy": "RAG and corpus packs are living knowledge assets. Add, revise, score, and regression-test packs continuously instead of treating retrieval data as fixed application code.",
   "packs": [
     {
@@ -41,6 +41,16 @@
       "role": "quality_gap_patch",
       "version": "1.0.0",
       "retrievalBoost": 14
+    },
+    {
+      "id": "saju-advanced-manseryeok-gbr",
+      "path": "corpus/saju-advanced-manseryeok-gbr.json",
+      "kind": "chunks",
+      "domain": "saju_advanced_manseryeok_gbr",
+      "status": "active",
+      "role": "advanced_quality_gap_patch",
+      "version": "1.0.0",
+      "retrievalBoost": 12
     },
     {
       "id": "saju-elements",

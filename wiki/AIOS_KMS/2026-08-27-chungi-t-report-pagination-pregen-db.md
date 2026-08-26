@@ -16,7 +16,7 @@
 | 사전 생성 | 확인됨 | `src/report/report-queue.ts`에서 분석 직후 섹션을 순차 생성 |
 | 저장소 | 확인됨 | `src/report/report-store.ts`에서 `DATABASE_URL` 있으면 Postgres, 없으면 memory fallback |
 | 페이지 조회 | 확인됨 | `GET /api/report/:reportId`, `POST /api/report/section`, `POST /api/report/prewarm` |
-| UI | 확인됨 | `사주/사주/index.html` 목차, 이전/다음 페이지, 타자형 출력, 설정의 풀이 보관함 |
+| UI | 확인됨 | `사주/사주/index.html` 목차, 이전/다음 페이지, 타자형 출력, 설정의 풀이 보관함, `reportId` 직접 조회 링크 |
 | 모델 분리 | 확인됨 | `data/runtime-config.json`의 `report.model = gpt-5.5` |
 
 ## 결정 사항
@@ -37,12 +37,17 @@
 - 설정의 풀이 보관함은 브라우저 `localStorage`에 최근 풀이를 저장한다. 같은 기기에서는 서버 DB가 없거나 서버리스 memory가 사라져도 저장된 전체 리포트를 다시 열 수 있다.
 - 보관함은 `reportId` 기준으로 중복 저장을 막고 최대 12개까지 보존한다.
 - 저장된 섹션이 `status=complete`이면 `/api/report/section`을 다시 호출하지 않고 로컬 본문을 바로 타자형으로 출력한다.
+- 결과 화면에는 짧은 `풀이 ID`와 링크 복사 버튼을 표시한다.
+- `?reportId=<id>` URL로 진입하면 브라우저 보관함을 먼저 확인하고, 없으면 `GET /api/report/:reportId`로 서버 저장 데이터를 조회해 결과 화면을 복원한다.
+- `GET /api/report/:reportId`는 리포트 본문뿐 아니라 `birth`, `context`, UI 복원용 `analysis`를 함께 반환한다.
+- `reportId`는 랜덤 값이 아니라 생년월일·시간·성별·상담 맥락·현재 corpus fingerprint로 만든 안정형 고유 ID다. 같은 조건의 동일한 풀이를 중복 생성하지 않기 위한 결정이다.
 
 ## DB 운영 조건
 
 - 재방문 보존을 위해 Vercel Production에는 `DATABASE_URL` 환경변수가 필요하다.
 - `DATABASE_URL`이 없으면 `storage: memory`로 표시되며, 서버 재시작/서버리스 콜드 스타트 이후 리포트가 보존되지 않는다.
 - Postgres 사용 시 `cheongi_reports` 테이블은 앱이 자동 생성한다.
+- 같은 브라우저에서는 localStorage 보관함으로 재열람 가능하지만, 다른 기기/브라우저에서 `reportId`만으로 다시 열려면 Vercel Production의 `DATABASE_URL` 연결이 필수다.
 
 ## 검증
 

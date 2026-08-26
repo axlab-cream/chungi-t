@@ -71,6 +71,11 @@ const SYNONYMS: Record<string, string[]> = {
   시기: ['대운', '세운', '전환', '합충', '신호'],
   장소: ['오행', '생활공간', '인연장소', '사건장소'],
   리포트: ['장문', '상세풀이', '근거', '섹션', '95점'],
+  격국: ['월령', '십신', '사회적작동', '용신', '구조'],
+  조후: ['온도', '한난조습', '계절', '용신', '균형'],
+  통관: ['상생', '상극', '중재', '충돌완화', '용신'],
+  자시: ['23시', '야자시', '조자시', '일주변경', '시주'],
+  gbr: ['graph', '그래프', '재랭킹', '근거', '연결'],
   dominant: ['강한', '오행', '과다'],
   element: ['오행', '목', '화', '토', '금', '수'],
 }
@@ -217,8 +222,65 @@ function sajuTokens(saju: SajuAnalysis): string[] {
     ...(ELEMENT_TERMS[saju.dominantElement] ?? []),
     ...(ELEMENT_TERMS[saju.weakElement] ?? []),
     ...(saju.usefulGod ? ELEMENT_TERMS[saju.usefulGod] ?? [] : []),
+    saju.manseryeok?.gyeokguk.name ?? '',
+    saju.manseryeok?.gyeokguk.tenGod ?? '',
+    saju.manseryeok?.climate.season ?? '',
+    saju.manseryeok?.climate.temperature ?? '',
+    saju.manseryeok?.climate.moisture ?? '',
+    ...(saju.manseryeok?.flowBridges.map((bridge) => bridge.bridge) ?? []),
+    ...(saju.manseryeok?.interactions.flatMap((item) => [item.type, ...item.signs]) ?? []),
   ].filter(Boolean)
   return expandTokens(terms.map(String).flatMap(tokenize))
+}
+
+function graphBoostTokens(
+  queryTokens: string[],
+  saju: SajuAnalysis,
+  context?: SajuReportContext,
+): string[] {
+  const query = queryTokens.join(' ')
+  const contextValue = contextText(context)
+  const graph = new Set<string>()
+
+  for (const token of sajuTokens(saju)) graph.add(token)
+  if (saju.manseryeok?.gyeokguk) {
+    graph.add('격국')
+    graph.add('월령')
+    graph.add(saju.manseryeok.gyeokguk.name)
+    graph.add(saju.manseryeok.gyeokguk.tenGod)
+  }
+  if (saju.manseryeok?.climate) {
+    graph.add('조후')
+    graph.add('한난조습')
+    graph.add('계절')
+    for (const element of saju.manseryeok.climate.usefulElements) graph.add(element)
+  }
+  if ((saju.manseryeok?.flowBridges.length ?? 0) > 0) {
+    graph.add('통관')
+    graph.add('상생')
+    graph.add('상극')
+  }
+  if (saju.fortune) {
+    graph.add('대운')
+    graph.add('세운')
+    graph.add(saju.fortune.currentDaewoon)
+    graph.add(saju.fortune.yearPillar)
+  }
+
+  if (/연애|관계|인연|이별|재회|배우자|동성|이성/.test(`${query} ${contextValue}`)) {
+    for (const token of ['일지', '배우자궁', '비겁', '재성', '관성', '식상', '합충', '거리감']) graph.add(token)
+  }
+  if (/돈|재물|수입|지출|직업|직장|사업|프리랜서|계약/.test(`${query} ${contextValue}`)) {
+    for (const token of ['재성', '식상', '관성', '계약', '돈구멍', '편재', '정재']) graph.add(token)
+  }
+  if (/용신|희신|기신|격국|조후|통관|강약/.test(query)) {
+    for (const token of ['격국', '월령', '조후', '통관', '억부', '한난조습']) graph.add(token)
+  }
+  if (/23|자시|야자시|조자시/.test(query)) {
+    for (const token of ['자시', '23시', '일주변경', '시주']) graph.add(token)
+  }
+
+  return expandTokens([...graph].map(String).flatMap(tokenize))
 }
 
 function scoreChunk(
@@ -226,6 +288,7 @@ function scoreChunk(
   queryRaw: string,
   queryTokens: string[],
   personalTokens: string[],
+  graphTokens: string[],
   vectorBoost: number,
   pinnedContextIds: Set<string>,
 ): number {
@@ -237,6 +300,7 @@ function scoreChunk(
   let topicHit = false
   let contentHit = false
   let personalHit = false
+  let graphHit = false
 
   for (const keyword of keywords) {
     const next = keywordScore(keyword, queryRaw, queryTokens)
@@ -268,6 +332,22 @@ function scoreChunk(
     }
   }
 
+  for (const token of graphTokens) {
+    if (!token || token.length <= 1) continue
+    if (keywords.some((keyword) => keyword.includes(token) || token.includes(keyword))) {
+      graphHit = true
+      score += 3
+    }
+    if (topic.includes(token)) {
+      graphHit = true
+      score += 4
+    }
+    if (content.includes(token)) {
+      graphHit = true
+      score += 1.5
+    }
+  }
+
   score += getCorpusDomainBoost(chunk.domain)
   if (pinnedContextIds.has(chunk.id)) score += 40
 
@@ -277,6 +357,7 @@ function scoreChunk(
     topicHit,
     contentHit,
     personalHit,
+    graphHit,
     vectorBoost > 0,
   ]
   const hitCount = binarySignals.filter(Boolean).length
@@ -347,6 +428,7 @@ export function retrieveRagChunks(
     ...contextTokens(context),
   ])
   const personalTokens = sajuTokens(saju)
+  const gbrTokens = graphBoostTokens(queryTokens, saju, context)
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
 
@@ -360,7 +442,7 @@ export function retrieveRagChunks(
   const scored = corpus
     .map((chunk) => ({
       chunk,
-      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds),
+      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds),
     }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))

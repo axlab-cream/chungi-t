@@ -14,7 +14,8 @@ import {
   getReportRecord,
   toClientReport,
 } from '../report/report-store.js'
-import type { BirthInput, ConversationTurn, SajuReportContext } from '../types/index.js'
+import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
+import type { ReportRecord } from '../report/report-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -65,7 +66,6 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
 
 async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}) {
   const analysis = analyzeSaju(birth)
-  const p = analysis.fourPillars
   const reportId = createReportId(birth, context)
   const templateReport = buildTemplateSajuReport(analysis, birth, context)
   const { record } = await createOrGetReportRecord({
@@ -79,6 +79,11 @@ async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}) 
     startReportPreGeneration({ reportId, analysis, birth, context })
   }
 
+  return buildUiAnalysisPayload(analysis, birth, toClientReport(record))
+}
+
+function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
+  const p = analysis.fourPillars
   return {
     birth,
     pillars: {
@@ -100,9 +105,14 @@ async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}) 
     tenGods: analysis.tenGods,
     fortune: analysis.fortune,
     preview: analysis.preview,
-    report: toClientReport(record),
+    report,
     summary: analysis.summary,
   }
+}
+
+function toUiAnalysisFromRecord(record: ReportRecord) {
+  const analysis = analyzeSaju(record.birth)
+  return buildUiAnalysisPayload(analysis, record.birth, toClientReport(record))
 }
 
 app.get('/api/health', (_req, res) => {
@@ -131,7 +141,13 @@ app.get('/api/report/:reportId', async (req, res) => {
       res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
       return
     }
-    res.json({ report: toClientReport(record) })
+    const analysis = toUiAnalysisFromRecord(record)
+    res.json({
+      report: analysis.report,
+      birth: record.birth,
+      context: record.context,
+      analysis,
+    })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '리포트 조회 실패' })
   }
