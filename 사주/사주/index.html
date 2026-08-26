@@ -150,6 +150,28 @@
         background: #050202;
       }
 
+      .phone[data-scene="landing"] .hero,
+      .phone[data-scene="result"] .hero {
+        opacity: 0;
+      }
+
+      .phone[data-scene="landing"] .topbar,
+      .phone[data-scene="result"] .topbar,
+      .phone[data-scene="landing"] .sound,
+      .phone[data-scene="result"] .sound {
+        display: none;
+      }
+
+      .phone[data-scene="landing"] .stage {
+        position: absolute;
+        inset: 0;
+        height: auto;
+        justify-content: flex-start;
+        overflow: auto;
+        padding: 0 0 max(24px, env(safe-area-inset-bottom));
+        background: #000;
+      }
+
       .phone[data-scene="result"] .topbar {
         position: absolute;
         top: 0;
@@ -665,6 +687,426 @@
         color: var(--ink);
       }
 
+      .sample-story {
+        width: 100%;
+        overflow: hidden;
+        background: #000;
+        color: #fff;
+      }
+
+      .sample-video-shell {
+        width: 100%;
+        height: 132px;
+        overflow: hidden;
+        background: #101010;
+      }
+
+      .sample-video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #101010;
+        object-fit: cover;
+      }
+
+      .sample-intro-top {
+        position: relative;
+        height: 604px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .sample-intro-bg {
+        position: absolute;
+        top: 246px;
+        left: 50%;
+        width: 150%;
+        max-width: none;
+        transform: translateX(-50%);
+      }
+
+      .sample-intro-top::before,
+      .sample-intro-top::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .sample-intro-top::before {
+        background:
+          linear-gradient(rgba(0, 0, 0, 0) 82.692%, #000 100%),
+          linear-gradient(0deg, rgba(0, 0, 0, 0) 82.692%, #000 100%);
+      }
+
+      .sample-intro-top::after {
+        display: none;
+      }
+
+      .sample-intro-title {
+        position: absolute;
+        top: 108px;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        margin: 0;
+        color: #fff;
+        font-family: "Malgun Gothic", "Apple SD Gothic Neo", Pretendard, sans-serif;
+        font-size: 35px;
+        font-weight: 850;
+        line-height: 1.4;
+        text-align: center;
+        letter-spacing: 0;
+        text-shadow: 0 0 16px rgba(0, 0, 0, 0.72);
+      }
+
+      .sample-intro-title span {
+        display: inline-block;
+        background: linear-gradient(to bottom, #fff 0%, #ff554c 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .sample-sfx {
+        position: absolute;
+        top: 258px;
+        right: 33px;
+        z-index: 3;
+        display: grid;
+        place-items: center;
+        width: 69px;
+        height: 112px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 25px;
+        font-weight: 800;
+        line-height: 1.4;
+      }
+
+      .sample-enter {
+        display: grid;
+        gap: 12px;
+        padding: 34px 24px 48px;
+        background: #000;
+      }
+
+      .source-section {
+        position: relative;
+        min-height: 560px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .source-section.short {
+        min-height: 459px;
+      }
+
+      .source-section.tall {
+        min-height: 760px;
+      }
+
+      .source-section.book {
+        min-height: 1070px;
+      }
+
+      .source-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        object-fit: cover;
+      }
+
+      .source-img.contain {
+        object-fit: contain;
+      }
+
+      .source-img.center-wide {
+        left: 50%;
+        width: 142%;
+        transform: translateX(-50%);
+      }
+
+      .source-fade {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 16%, rgba(0, 0, 0, 0) 78%, #000 100%),
+          radial-gradient(circle at 50% 30%, transparent 0 24%, rgba(0, 0, 0, 0.26) 74%);
+        pointer-events: none;
+      }
+
+      .source-copy {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        z-index: 2;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      .source-copy.top {
+        top: 46px;
+      }
+
+      .source-copy.mid {
+        top: 45%;
+        transform: translateY(-50%);
+      }
+
+      .source-copy.bottom {
+        bottom: 42px;
+      }
+
+      .source-copy p,
+      .source-copy h2 {
+        margin: 0;
+        text-shadow: 0 0 20px rgba(0, 0, 0, 0.82);
+      }
+
+      .source-copy p {
+        color: #fff;
+        font-size: 25px;
+        font-weight: 800;
+        line-height: 1.6;
+      }
+
+      .source-copy h2 {
+        color: #fff;
+        font-size: 30px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      .source-copy .red {
+        color: #ff3b35;
+        text-shadow:
+          0 0 7px rgba(255, 0, 0, 0.8),
+          0 0 22px rgba(255, 0, 0, 0.36);
+      }
+
+      .source-bubble {
+        position: absolute;
+        z-index: 3;
+        display: grid;
+        place-items: center;
+        width: 132px;
+        min-height: 132px;
+        padding: 20px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.72);
+        color: #000;
+        font-size: 22px;
+        font-weight: 900;
+        line-height: 1.35;
+        text-align: center;
+        box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.24);
+      }
+
+      .source-bubble.left {
+        top: 24px;
+        left: 44px;
+      }
+
+      .source-bubble.right {
+        right: 24px;
+        bottom: 120px;
+      }
+
+      .source-asset {
+        position: absolute;
+        z-index: 2;
+        max-width: none;
+      }
+
+      .source-asset.intro-card {
+        right: 0;
+        bottom: 110px;
+        width: 240px;
+        transform: rotate(180deg);
+      }
+
+      .source-asset.bubble-img {
+        right: 22px;
+        bottom: 120px;
+        width: 170px;
+      }
+
+      .source-asset.bubble-one {
+        left: 28px;
+        bottom: 92px;
+        width: 150px;
+      }
+
+      .source-asset.divider-line {
+        left: 50%;
+        bottom: 98px;
+        width: 1px;
+        height: 72px;
+        transform: translateX(-50%);
+      }
+
+      .source-asset.chart {
+        left: 50%;
+        bottom: 72px;
+        width: 82%;
+        transform: translateX(-50%);
+      }
+
+      .source-full-img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .source-chapters {
+        position: relative;
+        display: grid;
+        gap: 78px;
+        padding: 70px 0 96px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .source-chapters::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.38;
+        background-image: var(--chapter-bg);
+        background-position: center top;
+        background-repeat: repeat-y;
+        background-size: 436px auto;
+        transform: scaleX(-1);
+      }
+
+      .chapter-card {
+        position: relative;
+        z-index: 1;
+        width: 304px;
+        min-height: 330px;
+        margin: 0 auto;
+        padding: 52px 28px 42px;
+        text-align: center;
+      }
+
+      .source-asset.union {
+        position: relative;
+        z-index: 1;
+        width: 335px;
+        margin: 0 auto -20px;
+      }
+
+      .source-asset.chapter-divider {
+        position: relative;
+        z-index: 1;
+        width: 48px;
+        margin: -28px auto;
+      }
+
+      .chapter-card > img {
+        position: absolute;
+        inset: -50px;
+        width: calc(100% + 100px);
+        height: calc(100% + 100px);
+        pointer-events: none;
+      }
+
+      .chapter-card strong {
+        position: relative;
+        z-index: 1;
+        display: inline-grid;
+        place-items: center;
+        width: 155px;
+        height: 59px;
+        border: 1px solid #000;
+        border-radius: 20px;
+        background: #720000;
+        color: #f45;
+        font-size: 32px;
+        font-weight: 950;
+      }
+
+      .chapter-card p,
+      .chapter-card ul {
+        position: relative;
+        z-index: 1;
+      }
+
+      .chapter-card p {
+        margin: 18px 0 18px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 17px;
+        line-height: 1.6;
+      }
+
+      .chapter-card ul {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        color: #fff;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .brand-proof {
+        position: relative;
+        background: #121212;
+      }
+
+      .brand-proof .solo-logo {
+        display: grid;
+        place-items: center;
+        gap: 4px;
+        padding: 36px 0;
+        color: #ff1f66;
+        font-weight: 800;
+      }
+
+      .brand-proof .solo-logo img {
+        width: 237px;
+        height: auto;
+      }
+
+      .brand-proof .proof-bg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .brand-stats {
+        display: grid;
+        gap: 24px;
+        padding: 28px 24px 60px;
+        background: #121212;
+      }
+
+      .brand-stats div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand-stats span {
+        color: #c9a227;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .brand-stats strong {
+        color: #e4e4e7;
+        font-size: 42px;
+        line-height: 1;
+      }
+
       .story-visual {
         --panel-image: url("assets/cut-01-intro.png");
         position: relative;
@@ -1170,11 +1612,22 @@
       }
 
       .sticky-story-cta {
-        position: sticky;
-        bottom: 0;
+        position: relative;
         z-index: 4;
-        padding: 14px 20px max(16px, env(safe-area-inset-bottom));
-        background: linear-gradient(to top, #050202 0 80%, transparent);
+        padding: 28px 20px max(34px, env(safe-area-inset-bottom));
+        background: #000;
+      }
+
+      .sample-enter .primary-cta,
+      .sticky-story-cta .primary-cta {
+        min-height: 90px;
+        border: 0;
+        background:
+          url("https://cdn.sajutight.me/products-media/products/mzmudang/onboarding/mzmudang_cta_button_bg.png")
+          center / 100% 100% no-repeat;
+        box-shadow:
+          0 0 40px rgba(139, 0, 0, 0.5),
+          0 0 80px rgba(139, 0, 0, 0.25);
       }
 
       .fineprint {
@@ -1264,6 +1717,57 @@
       };
 
       const historyStack = [];
+
+      const sampleVideo = {
+        webm: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.webm",
+        mp4: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.mp4",
+      };
+
+      const sampleAssets = {
+        introBg: "assets/mz-01-intro-bg.png",
+        heroCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/02_hero_character.png",
+        introAsset: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/03_intro_asset.png",
+        worryBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/04_worry_bg.png",
+        palzaBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/05_palza_bg.png",
+        assetOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/06_asset_1.png",
+        previewTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/06_preview2_bg.png",
+        assetTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/07_asset_2.png",
+        manseryeokBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/08_manseryeok_bg.png",
+        frameCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_frame8_character.png",
+        characterA: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/09_character_a.png",
+        characterC: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/12_character_c.png",
+        wealthBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/13_wealth_bg.png",
+        datePreviewOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/14_date_preview_1.png",
+        characterD: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/16_character_d.png",
+        romanceCloseup: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/16_romance_closeup.png",
+        handBells: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/17_hand_bells.png",
+        destinyCardBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/18_destiny_card_bg.png",
+        characterOutro: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/19_character_outro.png",
+        priceCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/20_price_character.png",
+        handReach: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/21_hand_reach.png",
+        maskHand: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/22_mask_hand.png",
+        sajuRadialBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/22_saju_radial_bg.png",
+        comparisonBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/24_comparison_bg.png",
+        destinyBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/25_destiny_bg.png",
+        datePreviewThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/26_date_preview_3.png",
+        lastSajuBook: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/27_last_saju_book.png",
+        finalSajuBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/28_final_saju_bg.png",
+        daewoonCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/36_daewoon_character.png",
+        chapterDecoration: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_decoration_bg.png",
+        chapterBorderOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_1.svg",
+        chapterBorderTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_2.svg",
+        chapterBorderThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_3.svg",
+        chapterBorderFour: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_4.svg",
+        chapterDivider: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_divider.svg",
+        dividerLine: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/divider_line.svg",
+        speechBubbleOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_1.svg",
+        speechBubbleTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_2.svg",
+        speechBubbleThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_3.svg",
+        unionDecoration: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/union_decoration.svg",
+        wealthChart: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/wealth_chart.png",
+        soloLogo: "https://cdn.sajutight.me/common/solorun_x_tight.png",
+        brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
+      };
 
       const steps = {
         landing: renderLanding,
@@ -1465,6 +1969,238 @@
         if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
       }
 
+      function sourceImg(key, className, alt) {
+        return `<img data-source-asset="${key}" alt="${alt}" class="${className}" src="${sampleAssets[key]}" />`;
+      }
+
+      function sampleVideoMarkup() {
+        return `
+          <section class="sample-video-shell" data-sample-section="video">
+            <video class="sample-video" controls playsinline preload="none">
+              <source src="${sampleVideo.webm}" type="video/webm" />
+              <source src="${sampleVideo.mp4}" type="video/mp4" />
+            </video>
+          </section>
+        `;
+      }
+
+      function sampleIntroMarkup() {
+        return `
+          <section class="sample-intro-top" data-sample-section="sample-top">
+            ${sourceImg("introBg", "sample-intro-bg", "부채를 펼치는 손")}
+            <h1 class="sample-intro-title">너의 점사를 풀<br /><span>천기 선생님이다</span></h1>
+            <div class="sample-sfx">탁</div>
+          </section>
+        `;
+      }
+
+      function sampleSourceSections(displayName, concernHead, dominantElement) {
+        return `
+          <section class="source-section tall" data-sample-section="hero-character">
+            ${sourceImg("heroCharacter", "source-img center-wide", "신당에 앉은 도령")}
+            <div class="source-fade"></div>
+            <div class="source-bubble left">흥미롭네</div>
+            ${sourceImg("introAsset", "source-asset intro-card", "사주 종이 장식")}
+            <div class="source-copy bottom"><h2>${displayName}<br />네 사주의 결이 보입니다</h2></div>
+          </section>
+
+          <section class="source-section short" data-sample-section="worry-bg">
+            ${sourceImg("worryBg", "source-img", "걱정을 짚는 배경")}
+            <div class="source-fade"></div>
+            ${sourceImg("dividerLine", "source-asset divider-line", "구분선")}
+            <div class="source-bubble left">흠...</div>
+            <div class="source-copy bottom">
+              <p><span class="red">${dominantElement}</span> 기운이 꽤 강하군요</p>
+              <p>보통 팔자가 아닌데?</p>
+            </div>
+          </section>
+
+          <section class="source-section" data-sample-section="palza-bg">
+            ${sourceImg("palzaBg", "source-img center-wide", "팔자의 결을 보는 배경")}
+            <div class="source-fade"></div>
+            ${sourceImg("speechBubbleOne", "source-asset bubble-one", "말풍선")}
+            ${sourceImg("speechBubbleTwo", "source-asset bubble-img", "말풍선")}
+            <div class="source-copy bottom"><p>네가 어떤 사람인지,<br />네 고민이 뭔지,<br />난 다 보여</p></div>
+          </section>
+
+          <section class="source-section tall" data-sample-section="asset-one">
+            ${sourceImg("assetOne", "source-img", "사주 풀이 장면")}
+            <div class="source-fade"></div>
+            <div class="source-copy top">
+              <p class="red">너는 지금 어떻냐면</p>
+              <h2>바로 네 <span class="red">팔자</span> 때문</h2>
+            </div>
+            <div class="source-copy bottom"><p>${concernHead} 때문에 여기까지 온 것이로군요.</p></div>
+          </section>
+
+          <section class="source-section" data-sample-section="preview-two">
+            ${sourceImg("previewTwo", "source-img", "사주 결과 미리보기 배경")}
+            <div class="source-fade"></div>
+            <div class="source-copy mid"><h2>사주의 결부터<br />차분히 풀어드리겠습니다</h2></div>
+          </section>
+
+          <section class="source-section" data-sample-section="asset-two">
+            ${sourceImg("assetTwo", "source-img contain", "명식 뒤 배경")}
+            <div class="source-fade"></div>
+            <div class="source-copy top"><p>${displayName}님의 사주<br />입력한 생년월일 기준</p></div>
+          </section>
+
+          <section class="source-section tall" data-sample-section="manseryeok">
+            ${sourceImg("manseryeokBg", "source-img", "만세력 흐름 배경")}
+            <div class="source-fade"></div>
+            <div class="source-copy top"><h2>네 팔자가 앞으로<br />어떻게 흘러갈까?</h2></div>
+            ${sourceImg("daewoonCharacter", "source-asset chart", "대운 캐릭터")}
+          </section>
+
+          <section class="source-section" data-sample-section="frame-character">
+            ${sourceImg("frameCharacter", "source-img", "인생 스포 장면")}
+            <div class="source-fade"></div>
+            ${sourceImg("speechBubbleThree", "source-asset bubble-img", "말풍선")}
+            <div class="source-copy top"><p>눈 앞에 선하게 펼쳐지도록<br />말해줄 수 있습니다</p></div>
+          </section>
+
+          <section class="source-section tall" data-sample-section="character-a">
+            ${sourceImg("characterA", "source-img center-wide", "좋은 말만 하지 않는 캐릭터")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><h2>나는 좋은 말만<br />해주지는 않습니다</h2></div>
+          </section>
+
+          <section class="source-section" data-sample-section="character-c">
+            ${sourceImg("characterC", "source-img center-wide", "더 깊은 풀이 캐릭터")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><h2>이제 하나씩<br />이야기해볼까요?</h2></div>
+          </section>
+
+          <section class="source-section tall" data-sample-section="wealth-bg">
+            ${sourceImg("wealthBg", "source-img", "재물운 배경")}
+            <div class="source-fade"></div>
+            ${sourceImg("wealthChart", "source-asset chart", "재물 흐름 차트")}
+            <div class="source-copy top"><h2>돈의 흐름이<br />보입니다</h2></div>
+          </section>
+
+          <section class="source-section" data-sample-section="date-preview-one">
+            ${sourceImg("datePreviewOne", "source-img", "날짜 미리보기")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><p>때가 오면 먼저 신호가 옵니다</p></div>
+          </section>
+
+          <section class="source-section" data-sample-section="romance-character">
+            ${sourceImg("characterD", "source-img center-wide", "연애운 캐릭터")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><h2>오래 남는 사람은<br />따로 보입니다</h2></div>
+          </section>
+
+          <section class="source-section" data-sample-section="romance-closeup">
+            ${sourceImg("romanceCloseup", "source-img", "연애운 클로즈업")}
+            <div class="source-fade"></div>
+            <div class="source-copy top"><p>인연은 겉보다<br />속의 결을 봐야 합니다</p></div>
+          </section>
+
+          <section class="source-section" data-sample-section="hand-bells">
+            ${sourceImg("handBells", "source-img", "방울을 든 손")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><p>작은 신호가 큰 답이 됩니다</p></div>
+          </section>
+
+          <section class="source-section" data-sample-section="destiny-card">
+            ${sourceImg("destinyCardBg", "source-img", "운명의 상대 카드 배경")}
+            <div class="source-fade"></div>
+            <div class="source-copy mid"><h2>${displayName}님의<br />운명의 상대</h2></div>
+          </section>
+
+          <section class="source-section" data-sample-section="character-outro">
+            ${sourceImg("characterOutro", "source-img center-wide", "마지막 풀이 캐릭터")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><h2>그래서...<br />복채는 준비해왔습니까?</h2></div>
+          </section>
+
+          <section class="source-section" data-sample-section="price-character">
+            ${sourceImg("priceCharacter", "source-img center-wide", "복채 안내 캐릭터")}
+            <div class="source-fade"></div>
+            <div class="source-copy top"><p>이거 말고도<br />할 이야기가 산더미입니다</p></div>
+          </section>
+
+          <section class="source-section" data-sample-section="hand-reach">
+            ${sourceImg("handReach", "source-img", "손을 뻗는 장면")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><h2>지금 무슨 생각을<br />하고 있죠?</h2></div>
+          </section>
+
+          <section class="source-section short" data-sample-section="mask-hand">
+            ${sourceImg("sajuRadialBg", "source-img contain", "붉은 원형 사주 배경")}
+            ${sourceImg("maskHand", "source-img contain", "가면을 든 손")}
+            <div class="source-fade"></div>
+            <div class="source-copy top"><p>얄팍한 사주와는<br />다르게 보겠습니다</p></div>
+          </section>
+
+          <section class="source-section tall" data-sample-section="comparison">
+            ${sourceImg("destinyBg", "source-img", "운명 배경")}
+            ${sourceImg("comparisonBg", "source-img", "비교 배경")}
+            <div class="source-fade"></div>
+            <div class="source-copy bottom"><p>태어나는 순간부터<br />눈감는 순간까지의 흐름을 봅니다</p></div>
+          </section>
+
+          <section class="source-section book" data-sample-section="date-preview-three">
+            ${sourceImg("datePreviewThree", "source-img", "결과 리포트 페이지 예시")}
+            <div class="source-fade"></div>
+            <div class="source-copy top"><p>너를 가감없이 설명하는<br />긴 풀이가 이어집니다</p></div>
+            <div class="source-copy bottom"><h2>읽는데 2시간은<br />족히 넘게 걸릴 겁니다</h2></div>
+          </section>
+
+          <section data-sample-section="last-saju-book">
+            ${sourceImg("lastSajuBook", "source-full-img", "사주 책 이미지")}
+          </section>
+
+          <section class="source-chapters" data-sample-section="chapters" style="--chapter-bg:url('${sampleAssets.chapterDecoration}')">
+            ${sourceImg("unionDecoration", "source-asset union", "장식선")}
+            <div class="chapter-card">
+              ${sourceImg("chapterBorderOne", "", "1장 테두리")}
+              <strong>第一章</strong>
+              <p>착한 척은 그만해도 됩니다</p>
+              <ul><li>숨겨진 진짜 성격</li><li>반복되는 고민의 결</li></ul>
+            </div>
+            ${sourceImg("chapterDivider", "source-asset chapter-divider", "챕터 구분 장식")}
+            <div class="chapter-card">
+              ${sourceImg("chapterBorderTwo", "", "2장 테두리")}
+              <strong>第二章</strong>
+              <p>네 안의 진짜 욕망은 따로 있습니다</p>
+              <ul><li>돈구멍을 막는 법</li><li>일의 방향을 바꾸는 때</li></ul>
+            </div>
+            <div class="chapter-card">
+              ${sourceImg("chapterBorderThree", "", "3장 테두리")}
+              <strong>第三章</strong>
+              <p>이상하지. 끌리는 사람은 따로 보입니다</p>
+              <ul><li>오래 남는 인연</li><li>멀리해야 할 관계</li></ul>
+            </div>
+            <div class="chapter-card">
+              ${sourceImg("chapterBorderFour", "", "4장 테두리")}
+              <strong>第四章</strong>
+              <p>인정하지. 아직 끝난 흐름이 아닙니다</p>
+              <ul><li>대운과 세운</li><li>지금 붙잡아야 할 신호</li></ul>
+            </div>
+          </section>
+
+          <section class="source-section" data-sample-section="final-saju-bg">
+            ${sourceImg("finalSajuBg", "source-img", "마지막 사주 배경")}
+            <div class="source-fade"></div>
+            <div class="source-copy mid"><h2>내가 지금까지<br />풀어온 점사가 많습니다</h2></div>
+          </section>
+
+          <section class="brand-proof" data-sample-section="brand-proof">
+            <div class="solo-logo">
+              <span>나는솔로 출연진과 함께한</span>
+              ${sourceImg("soloLogo", "", "솔로런 X TIGHT")}
+            </div>
+            ${sourceImg("brandPrize", "proof-bg", "브랜드 신뢰 지표")}
+            <div class="brand-stats">
+              <div><span>누적 고객</span><strong>2,001,882</strong></div>
+              <div><span>카카오 채널 친구</span><strong>58,182</strong></div>
+              <div><span>감사 후기</span><strong>35,760</strong></div>
+            </div>
+          </section>
+        `;
+      }
+
       function go(scene, remember = true) {
         if (remember && state.scene !== scene) historyStack.push(state.scene);
         state.scene = scene;
@@ -1478,7 +2214,7 @@
                 : scene === "result"
                   ? "result"
                   : "input";
-        soundButton.style.display = scene === "landing" ? "inline-flex" : "none";
+        soundButton.style.display = "none";
         steps[scene]();
         phone.scrollTop = 0;
         if (scene === "result") stage.scrollTop = 0;
@@ -1490,10 +2226,15 @@
 
       function renderLanding() {
         stage.innerHTML = `
-          <div class="line-pill">나를 마주할 준비가 됐다면 들어오세요</div>
-          <div class="cta-frame">
-            <button class="primary-cta" type="button" data-action="enter">지금 신당으로 들어가기</button>
-          </div>
+          <article class="sample-story">
+            ${sampleVideoMarkup()}
+            ${sampleIntroMarkup()}
+            ${sampleSourceSections("당신", "직장 운", "기운")}
+            <div class="sample-enter">
+              <button class="primary-cta" type="button" data-action="enter">천기 선생님에게 사주보기</button>
+              <p class="fineprint">원본 샘플의 이미지와 말투를 먼저 확인한 뒤, 입력 단계로 이어집니다.</p>
+            </div>
+          </article>
         `;
       }
 
@@ -1728,7 +2469,11 @@
           .join("");
 
         stage.innerHTML = `
-          <article class="story">
+          <article class="story sample-story">
+            ${sampleVideoMarkup()}
+            ${sampleIntroMarkup()}
+            ${sampleSourceSections(displayName, concernHead, dominantElement)}
+
             <section class="story-visual visual-intro tall" data-sample-section="intro">
               <div class="bubble-layer">
                 <div class="bubble-cluster left-top">

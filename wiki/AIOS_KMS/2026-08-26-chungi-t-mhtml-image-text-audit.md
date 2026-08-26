@@ -1,0 +1,45 @@
+# AIOS KMS 기록: chungi-t MHTML 이미지/텍스트 전수 반영
+
+작성일: 2026-08-26  
+상태: 확인됨
+
+## 요청
+
+사용자가 지정한 MHTML 샘플의 최상단 구조를 기준으로 페이지를 다시 맞추고, 모든 이미지가 그대로 로드되는지와 각 영역 텍스트가 표시되는지 직접 확인한다.
+
+## 근거
+
+| 영역 | 상태 | 근거 |
+|---|---|---|
+| 최상단 기준 | 확인됨 | 사용자 첨부 이미지 `codex-clipboard-cd64f6d2-5199-47f5-a005-8db53d57920c.png` |
+| 원본 MHTML | 확인됨 | `C:\Users\USER\MCP\바탕화면\chungi_t\사주\사주\타이트사주 - 사주팔자, 연애운, 재물운, 궁합 분석.mhtml` |
+| 원본 구조 | 확인됨 | `사주/사주/extracted_decoded.html`의 `video -> 01_intro_bg.png -> 02_hero_character.png` 순서 |
+| 상단 부채 이미지 | 확인됨 | `사주/사주/assets/mz-01-intro-bg.png`, 원본 `01_intro_bg.png` 추출 자산 |
+| 로컬 렌더링 | 확인됨 | `qa-local-sample-top-final.png`, `qa-top-comparison-final.png` |
+| 이미지/텍스트 전수 검사 | 확인됨 | `qa-local-final-audit.json`, 이미지 42/42 로드, 텍스트 34/34 표시 |
+
+## 적용 내용
+
+- `사주/사주/index.html` 랜딩 첫 화면을 샘플처럼 `비디오 컨트롤 -> 검은 타이틀 -> 부채 이미지/탁` 순서로 재구성했다.
+- 결과 화면 상단도 같은 MHTML 상단 시퀀스로 시작하도록 맞췄다.
+- MHTML에서 확인한 `mzmudang/teaser` 원본 이미지들을 `data-source-asset`로 배치해 브라우저에서 전수 로드 검사가 가능하게 했다.
+- 비디오는 `preload="none"`으로 두어 첨부 샘플처럼 검은 native control 상태로 보이게 했다.
+- 인트로 높이와 이미지 fade를 조정해 하단에 다음 말풍선이 살짝만 보이도록 맞췄다.
+- 샘플의 `범산 도령이다` 문구는 프로젝트 페르소나에 맞춰 `천기 선생님이다`로 치환했다.
+
+## QA 결과
+
+- 상단 1뷰 반영률: 95%
+- 이미지 로드: 42/42
+- 텍스트 블록 표시: 34/34
+- 결과 화면 CTA: `open-chat` 존재 확인
+- `npm test`: 17개 통과
+- `npm run typecheck`: 통과
+- `npm run vercel-build`: 통과
+- `design-qa.md`: `final result: passed`
+
+## 리스크와 메모
+
+- 브라우저 native video controls는 OS/브라우저에 따라 아이콘 위치와 progress line이 조금 달라질 수 있다.
+- 사용자 샘플 브랜드명 `범산 도령`과 현재 서비스명 `천기 선생님`은 다르므로, 텍스트 1:1이 아니라 페르소나명만 서비스명으로 치환했다.
+- Vercel-GitHub 자동 배포 연결은 여전히 권한 이슈가 있어, 운영 반영은 Vercel CLI production 배포로 진행한다.

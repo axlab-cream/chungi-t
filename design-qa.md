@@ -1,49 +1,49 @@
-# Design QA: chungi-t Sample Result Page
+# Design QA: chungi-t MHTML Sample Image/Text Pass
 
 **Source Visual Truth**
-- User browser annotation screenshots in this task: sample tone/result body screenshots for `https://chungi-t.vercel.app/`.
-- Local extracted source content: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\사주\사주\teaser_korean_content.md`.
-- Public source style capture: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-source-web.png`.
-- Note: direct `file://` opening of the original MHTML was blocked by browser security policy, so the comparison used the user's annotation screenshots plus the extracted MHTML content and public source style capture.
+- User attached top screenshot: `C:\Users\USER\AppData\Local\Temp\codex-clipboard-cd64f6d2-5199-47f5-a005-8db53d57920c.png`.
+- Original MHTML: `C:\Users\USER\MCP\바탕화면\chungi_t\사주\사주\타이트사주 - 사주팔자, 연애운, 재물운, 궁합 분석.mhtml`.
+- Extracted MHTML structure: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\사주\사주\extracted_decoded.html`.
+- Exact extracted top image: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\사주\사주\assets\mz-01-intro-bg.png`.
 
 **Implementation Evidence**
-- Before screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-live-before.png`.
-- Iteration 1 screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-after-iteration-1.png`.
-- Iteration 2 screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-after-iteration-2.png`.
-- Final top screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-top.png`.
-- Final mid screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-mid.png`.
-- Final bottom screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-bottom.png`.
-- Production screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-prod-final-top.png`.
+- Local top screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-sample-top-final.png`.
+- Source/implementation comparison: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-top-comparison-final.png`.
+- Asset audit JSON: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-audit.json`.
+- Result flow screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-result-top-v2.png`.
 
 **Viewport And State**
-- Viewport: 1317 x 912.
-- Phone frame: 440 x 864 CSS px.
-- Device density normalization: browser CSS pixels, device scale default.
-- State: result page for `정재용`, `양력 1975.09.26`, `05:00`, `결혼했어요`, `이성 관계 중심`, `직장 운`.
+- Source pixels: 439 x 807.
+- Implementation pixels: 440 x 807.
+- CSS viewport: 440 x 807, device scale default.
+- State: landing top and result top after `정재용`, `양력 1975.09.26`, `결혼했어요`, `이성 관계 중심`, `직장 운`.
 - Local URL: `http://localhost:8791/`.
 
 **Findings**
-- No remaining P0/P1/P2 findings after final iteration.
-- P3 residual: source MHTML contains more exact proprietary remote art, motion, and micro-copy than the current project assets. The implementation uses the existing local `cut-*` raster assets and keeps the same dark red mobile story rhythm.
+- No remaining P0/P1/P2 findings.
+- P3: the sample text says `범산 도령이다`; implementation intentionally uses the project persona `천기 선생님이다`.
+- P3: native video controls differ slightly by browser rendering, but the first screen order now matches: black video controls, black title area, fan image, `탁` callout.
 
 **Required Fidelity Surfaces**
-- Fonts and typography: heavy Korean display hierarchy, centered mobile hero titles, compact pill text, and large CTA type now match the sample rhythm closely.
-- Spacing and layout rhythm: result page now has 26 story sections, 11 visual cuts, a long scroll height of about 14122px, sticky bottom CTA, and corrected result header positioning.
-- Colors and tokens: black/red/gold palette, dark overlays, bordered speech bubbles, and red CTA treatment match the sample direction.
-- Image quality and asset fidelity: reused real local raster assets `hero-mystic.png` and `cut-01` through `cut-06`; no placeholder art added.
-- Copy and content: key sample flow is present: `보통 팔자가 아닌데`, `네 팔자가 앞으로`, `좋은 말만`, `재물운`, `운명의 상대`, `복채`, `얄팍한 풀이`, `5만 자의 풀이`, `실제 상담 흐름`, and `천기 선생님 상담`.
+- Fonts and typography: top title now uses a heavier Korean sans-serif treatment with white/red line split; body copy keeps the sample's direct fortune-teller tone.
+- Spacing and layout rhythm: the top sequence uses the source order and 807px comparison height; intro height was tuned so the next white speech bubble peeks from the bottom like the sample.
+- Colors and visual tokens: black page, red/pink title gradient, translucent white `탁` oval, and source-like top/bottom image fades are present.
+- Image quality and asset fidelity: 42 `data-source-asset` images were checked in-browser; 42/42 loaded with nonzero natural dimensions. The top fan image is the exact extracted MHTML asset.
+- Copy and content: 34 text blocks were checked; 34/34 were non-empty and rendered. Result flow also keeps the LLM 상담 CTA.
 
 **Comparison History**
-- Initial live score: 56%. The page used the right tone and mobile shell but only had a short result flow and missed major sample sections.
-- Iteration 1 score: 86%. Added long story structure, saju/future/wealth/romance/package/report sections, but header alignment and some proof content still needed adjustment.
-- Final score: 92%. Header is inside the phone frame, phone scroll resets to 0 on result entry, required sample sections are present, console errors are 0, and CTA opens `/chat.html`.
+- Previous state: top started with the old `천기 선생님` header/person background instead of the MHTML sample.
+- Iteration 1: replaced top with video/title/fan order and inserted source image sections.
+- Iteration 2: changed video to `preload="none"` so the first view shows black native controls.
+- Iteration 3: increased intro height so the next speech bubble appears only at the bottom edge.
+- Iteration 4: reduced the fan overlay darkness and matched source fade treatment.
+- Final local score: top first-view fidelity 95%; image/text load audit 100%.
 
 **Interaction Checks**
-- Result flow completed through the visible UI.
-- Sticky CTA clicked successfully.
-- `/chat.html` opened with the same 천기 선생님 tone and preserved the initial concern: `"직장 운" 때문에 여기까지 왔군요.`
-- Production `/api/health`: `{ ok: true, openai: true }`.
-- Production `/api/chat`: returned `intent: career` and the sample tone: `직장 고민 때문에 여기까지 오셨군요. 흐름이 보입니다. 일의 결부터 보겠습니다.`
-- Console errors: none.
+- Landing page renders the MHTML top sequence first.
+- Result page renders the same MHTML top sequence before the personalized flow.
+- UI flow was completed through the form to result state.
+- Result page contains the `open-chat` CTA for `/chat.html`.
+- Console-visible image load failures: 0 in the in-app browser audit.
 
 final result: passed
