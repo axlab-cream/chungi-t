@@ -21,7 +21,7 @@
 - State: landing top and result top after `정재용`, `양력 1975.09.26`, `결혼했어요`, `이성 관계 중심`, `직장 운`.
 - Local URL: `http://localhost:8791/`.
 - Production URL: `https://chungi-t.vercel.app/?qa=mhtml-final`.
-- Production deployment: `dpl_3cb2AS5PDrtA1xWNwrywaBedfVqH`.
+- Production deployment: `dpl_5FVroy6Pm1JbWs9gW7ksPLizaKvt`.
 
 **Findings**
 - No remaining P0/P1/P2 findings.
@@ -45,7 +45,7 @@
 - Iteration 6: corrected the `manseryeok` section so the `네 팔자가 앞으로 어떻게 흘러갈까?` headline sits above the background image like the source. Local browser confirmed the headline center resolves to `H2`, the headline does not overlap the bubble, and all 42 source assets load.
 - Iteration 7: fixed `speech_bubble_3.svg` sizing in `manseryeok` so the bubble image and text box both render at `173x251`. Local browser confirmed `textBoxWithinImageBox=true`.
 - Final local score: top first-view fidelity 95%; image/text load audit 100%.
-- Final production audit: `manseryeok` headline center resolves to `H2`, headline and bubble do not overlap, image 42/42 loaded, text rendered.
+- Final production audit: `manseryeok` bubble image and text box both render at `173x251`, `textBoxWithinImageBox=true`, image 42/42 loaded, text rendered.
 
 **Interaction Checks**
 - Landing page renders the MHTML top sequence first.

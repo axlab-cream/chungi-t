@@ -61,6 +61,8 @@
 - 텍스트 레이어 수정 배포: `dpl_3cb2AS5PDrtA1xWNwrywaBedfVqH`, alias `https://chungi-t.vercel.app`
 - Production 텍스트 레이어 검증: `manseryeok` 제목 중심점의 최상위 요소가 `H2`, 제목 `z-index=4`, 배경 시작 `top=223px`, 제목/말풍선 겹침 없음, 이미지 42/42 로드
 - 로컬 말풍선 맞춤 검증: `manseryeok` 말풍선 이미지 `173x251`, 텍스트 박스 `173x251`, `textBoxWithinImageBox=true`, 이미지 42/42 로드
+- 말풍선 크기 수정 배포: `dpl_5FVroy6Pm1JbWs9gW7ksPLizaKvt`, alias `https://chungi-t.vercel.app`
+- Production 말풍선 맞춤 검증: `manseryeok` 말풍선 이미지 `173x251`, 텍스트 박스 `173x251`, `textBoxWithinImageBox=true`, 이미지 42/42 로드
 
 ## 리스크와 메모
 
