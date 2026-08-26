@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { Pool } from 'pg'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
-import type { BirthInput, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
+import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 
 export type ReportStatus = 'pending' | 'generating' | 'complete' | 'failed'
 export type ReportStorageMode = 'postgres' | 'memory'
@@ -15,6 +15,7 @@ export interface ReportRecord {
   status: ReportStatus
   createdAt: string
   updatedAt: string
+  chatHistory?: ConversationTurn[]
   error?: string
 }
 
@@ -217,6 +218,19 @@ export async function updateReportSection(
   record.report.progress = progress
   record.status = progress.complete >= progress.total ? 'complete' : 'generating'
   record.report.status = record.status
+  return saveReportRecord(record)
+}
+
+export async function updateReportChatHistory(
+  reportId: string,
+  chatHistory: ConversationTurn[],
+): Promise<ReportRecord | null> {
+  const record = await getReportRecord(reportId)
+  if (!record) return null
+  record.chatHistory = chatHistory.map((turn) => ({
+    role: turn.role,
+    content: turn.content,
+  }))
   return saveReportRecord(record)
 }
 

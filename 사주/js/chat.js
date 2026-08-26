@@ -8,28 +8,175 @@ const reportState = {
   error: '',
   requestToken: 0,
 }
+const HISTORY_KEY = 'cheongi_report_history_v1'
+const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
+let chatSaveTimer = 0
+
+function parseJson(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback
+  } catch (err) {
+    return fallback
+  }
+}
+
+function readReportHistory() {
+  const parsed = parseJson(localStorage.getItem(HISTORY_KEY), [])
+  return Array.isArray(parsed) ? parsed.filter((item) => item?.reportId && item?.analysis) : []
+}
+
+function writeReportHistory(items) {
+  const seen = new Set()
+  const next = []
+  for (const item of items) {
+    if (!item?.reportId || seen.has(item.reportId)) continue
+    seen.add(item.reportId)
+    next.push(item)
+  }
+
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
+  } catch (err) {
+    console.warn('상담 보관함 저장 공간이 부족합니다. 기존 저장 데이터는 유지됩니다.', err)
+  }
+}
+
+function reportIdFromAnalysis(analysis) {
+  return analysis?.report?.reportId || ''
+}
+
+function saveActiveReportId(reportId) {
+  if (!reportId) return
+  sessionStorage.setItem(ACTIVE_REPORT_KEY, reportId)
+  localStorage.setItem(ACTIVE_REPORT_KEY, reportId)
+}
+
+function findStoredEntry(reportId) {
+  if (!reportId) return null
+  return readReportHistory().find((item) => item.reportId === reportId) || null
+}
 
 function loadSession() {
-  const birthRaw = sessionStorage.getItem('cheongi_birth')
-  const analysisRaw = sessionStorage.getItem('cheongi_analysis')
-  if (!birthRaw || !analysisRaw) {
+  const queryReportId = new URLSearchParams(location.search).get('reportId') || ''
+  const activeReportId = queryReportId
+    || sessionStorage.getItem(ACTIVE_REPORT_KEY)
+    || localStorage.getItem(ACTIVE_REPORT_KEY)
+    || ''
+  const stored = findStoredEntry(activeReportId) || readReportHistory()[0] || null
+  const birth = parseJson(sessionStorage.getItem('cheongi_birth'), stored?.birth || null)
+  const analysis = parseJson(sessionStorage.getItem('cheongi_analysis'), stored?.analysis || null)
+
+  if (!birth || !analysis) {
     location.href = '/'
     return null
   }
+  const reportId = reportIdFromAnalysis(analysis) || stored?.reportId || activeReportId
+  const sessionHistory = parseJson(sessionStorage.getItem('cheongi_chat_history'), [])
+  const storedHistory = Array.isArray(stored?.chatHistory) ? stored.chatHistory : []
+  const history = sessionHistory.length >= storedHistory.length ? sessionHistory : storedHistory
+  const initialConcern = sessionStorage.getItem('cheongi_initial_concern')
+    || stored?.initialConcern
+    || stored?.birthState?.concern
+    || stored?.context?.concern
+    || ''
+
+  saveActiveReportId(reportId)
+  sessionStorage.setItem('cheongi_birth', JSON.stringify(birth))
+  sessionStorage.setItem('cheongi_analysis', JSON.stringify(analysis))
+  sessionStorage.setItem('cheongi_chat_history', JSON.stringify(history))
+  if (initialConcern) sessionStorage.setItem('cheongi_initial_concern', initialConcern)
+
   return {
-    birth: JSON.parse(birthRaw),
-    analysis: JSON.parse(analysisRaw),
-    history: JSON.parse(sessionStorage.getItem('cheongi_chat_history') || '[]'),
-    initialConcern: sessionStorage.getItem('cheongi_initial_concern') || '',
+    birth,
+    analysis,
+    history,
+    initialConcern,
   }
 }
 
 function saveHistory(history) {
   sessionStorage.setItem('cheongi_chat_history', JSON.stringify(history))
+  persistConsultation({ syncServer: true })
 }
 
 function saveAnalysis(analysis) {
   sessionStorage.setItem('cheongi_analysis', JSON.stringify(analysis))
+  persistConsultation()
+}
+
+function buildStoredConsultationEntry(existing) {
+  const report = session?.analysis?.report
+  const reportId = report?.reportId || existing?.reportId
+  if (!reportId) return null
+  const birth = session.birth || existing?.birth || {}
+  const context = {
+    name: birth.name,
+    target: birth.target,
+    concern: birth.concern,
+    relationship: birth.relationship,
+    orientation: birth.orientation,
+    work: birth.work,
+  }
+  const titleName = birth.name || birth.target || '당신'
+  return {
+    ...existing,
+    reportId,
+    savedAt: new Date().toISOString(),
+    title: `${titleName} · ${birth.calendar === 'lunar' ? '음력' : '양력'} ${formatBirthLabel(birth)}`,
+    birth,
+    birthState: {
+      target: birth.target,
+      calendar: birth.calendar === 'lunar' ? '음력' : '양력',
+      birth: formatBirthLabel(birth),
+      gender: birth.gender === 'female' ? '여자' : '남자',
+      time: Number.isFinite(Number(birth.hour)) ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : '모름',
+      name: birth.name,
+      orientation: birth.orientation,
+      relationship: birth.relationship,
+      work: birth.work,
+      concern: birth.concern,
+    },
+    context,
+    analysis: session.analysis,
+    progress: report?.progress,
+    storage: report?.storage,
+    corpusFingerprint: report?.corpus?.fingerprint,
+    chatHistory: session.history || [],
+    initialConcern: session.initialConcern || birth.concern || existing?.initialConcern || '',
+  }
+}
+
+function persistConsultation(options = {}) {
+  if (!session) return
+  const reportId = reportIdFromAnalysis(session.analysis)
+  if (!reportId) return
+  saveActiveReportId(reportId)
+  const items = readReportHistory()
+  const existing = items.find((item) => item.reportId === reportId)
+  const entry = buildStoredConsultationEntry(existing)
+  if (!entry) return
+  writeReportHistory([entry, ...items.filter((item) => item.reportId !== reportId)])
+  if (options.syncServer) queueServerChatSave()
+}
+
+function queueServerChatSave() {
+  if (!reportIdFromAnalysis(session?.analysis)) return
+  clearTimeout(chatSaveTimer)
+  chatSaveTimer = setTimeout(() => {
+    saveServerChatHistory().catch(() => {
+      // Local paid consultation history remains preserved even if server sync fails.
+    })
+  }, 600)
+}
+
+async function saveServerChatHistory() {
+  const reportId = reportIdFromAnalysis(session?.analysis)
+  if (!reportId || !session?.history?.length) return
+  await fetch('/api/report/chat-history', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reportId, history: session.history }),
+  })
 }
 
 function escapeHtml(value) {
@@ -57,6 +204,63 @@ function sentenceChunks(block) {
     .match(/[^.!?。！？]+[.!?。！？]?/g) || [block]
 }
 
+function extractPointLabel(paragraph) {
+  const match = String(paragraph || '').match(/^\s*\[([^\]]{2,14})\]\s*(.+)$/)
+  if (!match) return null
+  return {
+    label: match[1].trim(),
+    text: match[2].trim(),
+  }
+}
+
+function classifyPoint(paragraph) {
+  const explicit = extractPointLabel(paragraph)
+  const text = explicit?.text || paragraph
+  const normalized = String(paragraph || '').replace(/\s+/g, '')
+  const label = explicit?.label || ''
+  const rules = [
+    {
+      type: 'danger',
+      label: '위험 신호',
+      test: /(위험|위기|방치하면|돈구멍|손실|무너|깨질|과속|사고|크게돌아|흔들릴)/,
+    },
+    {
+      type: 'caution',
+      label: '주의할 점',
+      test: /(주의|조심|경계|피해야|막아야|경고|서두르지|덮지말|무리하면)/,
+    },
+    {
+      type: 'focus',
+      label: '주목할 점',
+      test: /(주요포인트|핵심|주목|중요|먼저봐야|기준이보입니다|기억해야)/,
+    },
+    {
+      type: 'action',
+      label: '해법',
+      test: /(해법|풀방법|행동기준|바로해볼|이렇게하면|정리하세요|확인하세요)/,
+    },
+  ]
+  const direct = rules.find((rule) => label.includes(rule.label.replace(/\s/g, '')) || rule.test.test(label.replace(/\s+/g, '')))
+  const inferred = direct || rules.find((rule) => rule.test.test(normalized))
+  if (!inferred) return { type: '', label: '', text }
+  return {
+    type: inferred.type,
+    label: explicit?.label || inferred.label,
+    text,
+  }
+}
+
+function renderReadingParagraph(paragraph) {
+  const point = classifyPoint(paragraph)
+  if (!point.type) return `<p>${escapeHtml(point.text)}</p>`
+  return `
+    <div class="report-point report-point-${point.type}">
+      <span>${escapeHtml(point.label)}</span>
+      <p>${escapeHtml(point.text)}</p>
+    </div>
+  `
+}
+
 function formatReadableHtml(text) {
   const blocks = String(text || '').trim().split(/\n{2,}/).filter(Boolean)
   const paragraphs = []
@@ -76,7 +280,7 @@ function formatReadableHtml(text) {
   }
 
   return paragraphs
-    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+    .map(renderReadingParagraph)
     .join('')
 }
 
@@ -328,6 +532,7 @@ if (session) {
   } else {
     for (const turn of session.history) appendBubble(turn.role, turn.content, false)
   }
+  persistConsultation()
   chatLog.scrollTop = 0
 }
 

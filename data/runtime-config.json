@@ -14,7 +14,8 @@
   "conversation": {
     "requiresSaju": true,
     "maxHistoryTurns": 10,
-    "ragTopK": 7
+    "ragTopK": 7,
+    "maxTokens": 1800
   },
   "report": {
     "model": "gpt-5.5",

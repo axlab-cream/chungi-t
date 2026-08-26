@@ -13,10 +13,12 @@ import {
   createReportId,
   getReportRecord,
   toClientReport,
+  updateReportChatHistory,
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportRecord } from '../report/report-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
+import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '../..')
@@ -147,9 +149,49 @@ app.get('/api/report/:reportId', async (req, res) => {
       birth: record.birth,
       context: record.context,
       analysis,
+      chatHistory: record.chatHistory ?? [],
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '리포트 조회 실패' })
+  }
+})
+
+function parseConversationHistory(value: unknown): ConversationTurn[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((turn): turn is ConversationTurn => (
+      turn
+      && (turn.role === 'user' || turn.role === 'assistant')
+      && typeof turn.content === 'string'
+      && turn.content.trim().length > 0
+    ))
+    .map((turn) => ({
+      role: turn.role,
+      content: turn.content.trim(),
+    }))
+}
+
+app.post('/api/report/chat-history', async (req, res) => {
+  try {
+    const reportId = String(req.body.reportId ?? '').trim()
+    const history = parseConversationHistory(req.body.history)
+    if (!reportId) {
+      res.status(400).json({ error: 'reportId가 필요합니다.' })
+      return
+    }
+    const record = await updateReportChatHistory(reportId, history)
+    if (!record) {
+      res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
+      return
+    }
+    res.json({
+      ok: true,
+      reportId,
+      savedAt: record.updatedAt,
+      chatHistory: record.chatHistory ?? [],
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '상담 저장 실패' })
   }
 })
 
@@ -255,7 +297,9 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const prepared = prepareConversation({ birth, message, history })
-    const reply = await chatWithOpenAI(prepared.messages)
+    const reply = await chatWithOpenAI(prepared.messages, {
+      maxTokens: runtimeConfig.conversation?.maxTokens ?? 1800,
+    })
 
     res.json({
       reply,

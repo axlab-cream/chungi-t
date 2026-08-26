@@ -322,6 +322,83 @@ body {
   margin-top: 14px;
 }
 
+.report-point {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 13px 14px 14px;
+  border: 1px solid rgba(255, 226, 175, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.report-point::before {
+  content: "";
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--gold);
+}
+
+.report-point span {
+  width: fit-content;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(242, 191, 107, 0.14);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.report-point p {
+  margin: 0;
+  color: #fff4e4;
+  font-weight: 800;
+}
+
+.report-point-danger {
+  border-color: rgba(255, 104, 78, 0.34);
+  background: linear-gradient(180deg, rgba(126, 20, 15, 0.34), rgba(255, 255, 255, 0.045));
+}
+
+.report-point-danger::before {
+  background: #ff684e;
+}
+
+.report-point-danger span {
+  background: rgba(255, 104, 78, 0.16);
+  color: #ffb3a4;
+}
+
+.report-point-caution {
+  border-color: rgba(242, 191, 107, 0.36);
+  background: linear-gradient(180deg, rgba(122, 79, 15, 0.23), rgba(255, 255, 255, 0.045));
+}
+
+.report-point-focus {
+  border-color: rgba(255, 244, 214, 0.26);
+}
+
+.report-point-action {
+  border-color: rgba(149, 205, 168, 0.34);
+  background: linear-gradient(180deg, rgba(26, 90, 58, 0.22), rgba(255, 255, 255, 0.045));
+}
+
+.report-point-action::before {
+  background: #95cda8;
+}
+
+.report-point-action span {
+  background: rgba(149, 205, 168, 0.13);
+  color: #bde5ca;
+}
+
 .report-progress {
   position: relative;
   height: 8px;

@@ -250,12 +250,19 @@
 
       .history-row {
         display: grid;
-        grid-template-columns: 1fr 54px;
+        grid-template-columns: 1fr 44px;
         gap: 8px;
       }
 
       .history-remove {
-        width: 54px;
+        width: 44px;
+        min-height: 44px;
+        align-self: start;
+        border-color: rgba(255, 104, 78, 0.34);
+        background: rgba(126, 20, 15, 0.18);
+        color: #ffb3a4;
+        font-size: 22px;
+        line-height: 1;
       }
 
       .history-empty {
@@ -2317,7 +2324,7 @@
       const settingsButton = document.querySelector("[data-open-settings]");
       const settingsPanel = document.querySelector("[data-settings-panel]");
       const HISTORY_KEY = "cheongi_report_history_v1";
-      const MAX_HISTORY_ITEMS = 12;
+      const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
 
       const state = {
         scene: "landing",
@@ -2420,15 +2427,32 @@
       }
 
       function writeReportHistory(items) {
-        const next = items.slice(0, MAX_HISTORY_ITEMS);
+        const seen = new Set();
+        const next = items.filter((item) => {
+          if (!item?.reportId || seen.has(item.reportId)) return false;
+          seen.add(item.reportId);
+          return true;
+        });
         try {
           localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
         } catch (err) {
-          try {
-            localStorage.setItem(HISTORY_KEY, JSON.stringify(next.slice(0, 4)));
-          } catch (innerErr) {
-            // Storage can be full or disabled; the live result still remains usable.
-          }
+          console.warn("풀이 보관함 저장 공간이 부족합니다. 기존 저장 데이터는 유지됩니다.", err);
+        }
+      }
+
+      function setActiveReportId(reportId) {
+        if (!reportId) return;
+        sessionStorage.setItem(ACTIVE_REPORT_KEY, reportId);
+        localStorage.setItem(ACTIVE_REPORT_KEY, reportId);
+      }
+
+      function clearActiveReportId(reportId) {
+        if (sessionStorage.getItem(ACTIVE_REPORT_KEY) === reportId) {
+          sessionStorage.removeItem(ACTIVE_REPORT_KEY);
+          sessionStorage.removeItem("cheongi_chat_history");
+        }
+        if (localStorage.getItem(ACTIVE_REPORT_KEY) === reportId) {
+          localStorage.removeItem(ACTIVE_REPORT_KEY);
         }
       }
 
@@ -2498,6 +2522,9 @@
         stopReportTyping();
 
         const birthForSession = parseBirthInput();
+        const reportId = analysis.report?.reportId || payload.reportId || "";
+        const chatHistory = Array.isArray(payload.chatHistory) ? payload.chatHistory : [];
+        setActiveReportId(reportId);
         sessionStorage.setItem("cheongi_analysis", JSON.stringify(analysis));
         sessionStorage.setItem("cheongi_birth", JSON.stringify({
           ...birthForSession,
@@ -2507,6 +2534,7 @@
           work: state.work,
           orientation: state.orientation,
         }));
+        sessionStorage.setItem("cheongi_chat_history", JSON.stringify(chatHistory));
         if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
         return true;
       }
@@ -2526,6 +2554,13 @@
       function buildHistoryEntry() {
         const report = state.analysis?.report;
         if (!report?.reportId) return null;
+        const birth = parseBirthInput();
+        let chatHistory = [];
+        try {
+          chatHistory = JSON.parse(sessionStorage.getItem("cheongi_chat_history") || "[]");
+        } catch (err) {
+          chatHistory = [];
+        }
         const birthState = {
           target: state.target,
           calendar: state.calendar,
@@ -2543,19 +2578,31 @@
           reportId: report.reportId,
           savedAt: new Date().toISOString(),
           title: `${titleName} · ${state.calendar} ${formatBirthLabel(state.birth)}`,
+          birth,
           birthState,
+          context: getReportContext(),
           analysis: state.analysis,
           progress: report.progress,
           storage: report.storage,
           corpusFingerprint: report.corpus?.fingerprint,
+          chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
+          initialConcern: state.concern || "",
         };
       }
 
       function saveCurrentReading() {
         const entry = buildHistoryEntry();
         if (!entry) return;
-        const items = readReportHistory().filter((item) => item.reportId !== entry.reportId);
-        writeReportHistory([entry, ...items]);
+        setActiveReportId(entry.reportId);
+        const items = readReportHistory();
+        const existing = items.find((item) => item.reportId === entry.reportId);
+        const merged = {
+          ...existing,
+          ...entry,
+          chatHistory: entry.chatHistory.length ? entry.chatHistory : (existing?.chatHistory || []),
+          initialConcern: entry.initialConcern || existing?.initialConcern || "",
+        };
+        writeReportHistory([merged, ...items.filter((item) => item.reportId !== entry.reportId)]);
       }
 
       function renderSettingsPanel() {
@@ -2568,7 +2615,7 @@
                   <span>${escapeHtml(historySubtitle(entry))}</span>
                   <span class="history-id">ID ${escapeHtml(formatReportId(entry.reportId))}</span>
                 </button>
-                <button class="history-remove" type="button" data-history-delete="${escapeHtml(entry.reportId)}">삭제</button>
+                <button class="history-remove" type="button" aria-label="${escapeHtml(entry.title || "저장된 풀이")} 삭제" data-history-delete="${escapeHtml(entry.reportId)}">×</button>
               </div>
             `).join("")
           : `
@@ -2594,10 +2641,14 @@
             <div class="settings-list">${listMarkup}</div>
             <div class="history-actions">
               <button type="button" data-history-new>새 사주 입력</button>
-              <button type="button" data-history-clear ${items.length ? "" : "disabled"}>전체 삭제</button>
             </div>
           </div>
         `;
+      }
+
+      function confirmPermanentDelete(entry) {
+        const title = entry?.title || "저장된 상담";
+        return window.confirm(`${title}\n\n이 상담 내용과 저장된 풀이를 삭제합니다.\n삭제하면 되돌릴 수 없습니다.\n정말 삭제할까요?`);
       }
 
       function openSettings() {
@@ -2700,13 +2751,12 @@
 
         const deleteButton = event.target.closest("[data-history-delete]");
         if (deleteButton) {
-          writeReportHistory(readReportHistory().filter((item) => item.reportId !== deleteButton.dataset.historyDelete));
-          renderSettingsPanel();
-          return;
-        }
-
-        if (event.target.closest("[data-history-clear]")) {
-          writeReportHistory([]);
+          const reportId = deleteButton.dataset.historyDelete;
+          const items = readReportHistory();
+          const entry = items.find((item) => item.reportId === reportId);
+          if (!confirmPermanentDelete(entry)) return;
+          writeReportHistory(items.filter((item) => item.reportId !== reportId));
+          clearActiveReportId(reportId);
           renderSettingsPanel();
           return;
         }
@@ -2925,8 +2975,12 @@
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");
         state.analysis = json;
+        const reportId = json.report?.reportId || "";
+        const stored = readReportHistory().find((item) => item.reportId === reportId);
+        setActiveReportId(reportId);
         sessionStorage.setItem("cheongi_birth", JSON.stringify({ ...birth, target: state.target, concern: state.concern, relationship: state.relationship, work: state.work, orientation: state.orientation }));
         sessionStorage.setItem("cheongi_analysis", JSON.stringify(json));
+        sessionStorage.setItem("cheongi_chat_history", JSON.stringify(stored?.chatHistory || []));
         if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
         saveCurrentReading();
       }
