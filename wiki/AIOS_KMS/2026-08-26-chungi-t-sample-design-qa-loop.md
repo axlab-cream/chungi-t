@@ -16,6 +16,7 @@
 | 최종 로컬 화면 | 확인됨 | `qa-local-final-top.png`, `qa-local-final-mid.png`, `qa-local-final-bottom.png` |
 | 상담 CTA | 확인됨 | 결과 화면 CTA 클릭 시 `/chat.html` 이동 |
 | LLM 말투 연결 | 확인됨 | 채팅 인트로가 `"직장 운" 때문에 여기까지 왔군요` 말투 유지 |
+| Vercel production | 확인됨 | `dpl_DWcNRuxU3xhvuZEMLP27qv5rfri2`, alias `https://chungi-t.vercel.app` |
 
 ## 적용 내용
 
@@ -36,6 +37,9 @@
 - `npm test`: 17개 통과
 - `npm run typecheck`: 통과
 - `npm run vercel-build`: 통과
+- Vercel production 배포: `dpl_DWcNRuxU3xhvuZEMLP27qv5rfri2`
+- Live `/api/health`: `{ ok: true, openai: true }`
+- Live `/api/chat`: `직장 고민 때문에 여기까지 오셨군요. 흐름이 보입니다. 일의 결부터 보겠습니다.` 말투 확인
 
 ## 리스크와 메모
 

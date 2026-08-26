@@ -13,6 +13,7 @@
 - Final top screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-top.png`.
 - Final mid screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-mid.png`.
 - Final bottom screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-local-final-bottom.png`.
+- Production screenshot: `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생\qa-prod-final-top.png`.
 
 **Viewport And State**
 - Viewport: 1317 x 912.
@@ -41,6 +42,8 @@
 - Result flow completed through the visible UI.
 - Sticky CTA clicked successfully.
 - `/chat.html` opened with the same 천기 선생님 tone and preserved the initial concern: `"직장 운" 때문에 여기까지 왔군요.`
+- Production `/api/health`: `{ ok: true, openai: true }`.
+- Production `/api/chat`: returned `intent: career` and the sample tone: `직장 고민 때문에 여기까지 오셨군요. 흐름이 보입니다. 일의 결부터 보겠습니다.`
 - Console errors: none.
 
 final result: passed
