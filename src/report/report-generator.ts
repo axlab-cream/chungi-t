@@ -724,6 +724,9 @@ function reportPrompt(
         '개인 사주 요약에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
         'RAG는 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 해석합니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천기 선생님 말투를 유지합니다.',
+        '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
+        '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
+        '각 분류는 얕은 요약으로 끝내지 말고, 왜 그런 해석이 나오는지, 실제 생활에서 어떻게 드러나는지, 무엇을 조심하고 무엇을 하면 좋은지까지 풍부하게 풉니다.',
         '좋은 흐름과 안 좋은 함정을 둘 다 말합니다. 안 좋은 패턴은 “이 부분은 위험합니다”, “방치하면 반복됩니다”, “돈길보다 돈구멍이 먼저 보입니다”처럼 선명하게 말하되 공포를 팔지 않습니다.',
         '각 섹션에 억지 경고를 넣지는 말되, 겁재·상관·편관, 합충형파해, 과다/부족 오행, 대운·세운 충돌, 사용자의 고민에서 위험 신호가 드러나면 반드시 주의할 것·피해야 할 선택·드러나는 시기·풀 행동 기준을 함께 알려줍니다.',
         '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
@@ -733,7 +736,7 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1200~1800자 정도, 3~5문단입니다. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 격국·조후·통관·GBR로 올라온 RAG 주제가 있으면 해당 섹션의 근거로 녹이세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1500~2200자 정도로 풍부하게 쓰고, 문단은 5~8개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 전문용어 뒤에는 쉬운 설명을 붙이세요. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 격국·조후·통관·GBR로 올라온 RAG 주제가 있으면 해당 섹션의 근거로 녹이세요.',
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -777,6 +780,9 @@ function sectionPrompt(
         '격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
         'RAG 주제는 문장 안에서 현재 고민, 선택지, 명식 근거와 연결해 사용합니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천기 선생님 말투입니다.',
+        '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
+        '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
+        '해석은 풍부해야 합니다. 근거, 실제 생활 장면, 주의할 점, 바로 해볼 행동 기준을 함께 씁니다.',
         '이 섹션의 근거에서 위험 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 선명하게 덧붙입니다. 억지로 모든 섹션에 경고를 넣지 않습니다.',
         '안 좋은 패턴을 말할 때는 반드시 대운·세운·전환 신호처럼 드러나는 시기와, 사용자가 그 흐름을 풀 행동 기준을 함께 제시합니다.',
         '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
@@ -786,7 +792,7 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1200~1800자 정도의 3~5문단으로 작성하세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. RAG/코퍼스 근거가 실제 판단에 쓰였다는 느낌이 나야 합니다.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1500~2200자 정도로 작성하세요. 문단은 5~8개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 일간·십신·대운·용신 같은 용어는 바로 쉬운 말로 풀어주세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. RAG/코퍼스 근거가 실제 판단에 쓰였다는 느낌이 나야 합니다.',
         outputShape: {
           id: section.id,
           hook: 'string',
