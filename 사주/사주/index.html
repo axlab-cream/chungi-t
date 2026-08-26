@@ -1717,6 +1717,22 @@
       };
 
       const historyStack = [];
+      const urlScenes = new Set([
+        "immersion",
+        "target",
+        "birth",
+        "time",
+        "gender",
+        "name",
+        "orientation",
+        "relationship",
+        "work",
+        "concern",
+        "loading",
+        "result",
+        "purchase",
+        "paymentReady",
+      ]);
 
       const sampleVideo = {
         webm: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.webm",
@@ -2201,9 +2217,18 @@
         `;
       }
 
+      function syncSceneUrl(scene) {
+        const hash = scene === "landing" ? "" : `#${scene}`;
+        const nextUrl = `${location.pathname}${location.search}${hash}`;
+        if (`${location.pathname}${location.search}${location.hash}` !== nextUrl) {
+          history.replaceState(null, "", nextUrl);
+        }
+      }
+
       function go(scene, remember = true) {
         if (remember && state.scene !== scene) historyStack.push(state.scene);
         state.scene = scene;
+        syncSceneUrl(scene);
         phone.dataset.scene =
           scene === "landing"
             ? "landing"
@@ -2839,7 +2864,13 @@
         `;
       }
 
-      renderLanding();
+      const initialScene = location.hash.slice(1);
+      if (urlScenes.has(initialScene)) {
+        go(initialScene, false);
+      } else {
+        syncSceneUrl("landing");
+        renderLanding();
+      }
     </script>
   </body>
 </html>
