@@ -1,0 +1,16 @@
+{
+  "birth": {
+    "year": 1990,
+    "month": 5,
+    "day": 15,
+    "hour": 14,
+    "minute": 30,
+    "gender": "female",
+    "calendar": "solar"
+  },
+  "sampleQuestions": [
+    "올해 직업운이 어떤가요?",
+    "연애에서 어려움이 많은데 사주와 관련이 있을까요?",
+    "요즘 마음이 불안한데 조언해 주세요."
+  ]
+}

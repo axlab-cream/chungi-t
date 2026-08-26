@@ -1,0 +1,27 @@
+{
+  "name": "chungi_t",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "천기 선생님 개인 사주 기반 LLM 대화 엔진",
+  "scripts": {
+    "dev": "tsx src/cli/demo.ts",
+    "start": "tsx src/server/app.ts",
+    "test": "tsx --test tests/unit/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "npm run typecheck"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

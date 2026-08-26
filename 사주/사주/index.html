@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>천기 선생님 · 사주</title>
+    <meta name="description" content="천기 선생님 몰입형 사주 상담" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #fff8ef;
+        --muted: #e0c7ad;
+        --dim: rgba(255, 248, 239, 0.62);
+        --red: #8b1e16;
+        --red-deep: #360706;
+        --gold: #f2bf6b;
+        --line: rgba(255, 229, 188, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        min-height: 100%;
+        background: #eef1f5;
+        font-family:
+          Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        min-height: 100svh;
+        overflow: hidden;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, 440px);
+        height: 100svh;
+        max-height: 920px;
+        overflow: hidden;
+        background: #080302;
+        color: var(--ink);
+        box-shadow: 0 24px 80px rgba(13, 21, 35, 0.24);
+      }
+
+      .hero {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.02) 0%,
+            rgba(0, 0, 0, 0.04) 40%,
+            rgba(0, 0, 0, 0.5) 70%,
+            rgba(0, 0, 0, 0.92) 100%
+          ),
+          url("assets/hero-mystic.png") center top / cover no-repeat;
+        transform: scale(1);
+        transition:
+          transform 560ms ease,
+          filter 560ms ease,
+          opacity 560ms ease;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 18%, transparent 0 24%, rgba(0, 0, 0, 0.18) 58%),
+          linear-gradient(to right, rgba(0, 0, 0, 0.26), transparent 18% 82%, rgba(0, 0, 0, 0.26));
+      }
+
+      .phone[data-scene="immersion"] .hero,
+      .phone[data-scene="input"] .hero,
+      .phone[data-scene="loading"] .hero,
+      .phone[data-scene="result"] .hero {
+        filter: saturate(0.92) brightness(0.54);
+        transform: scale(1.08);
+      }
+
+      .phone[data-scene="result"] .hero {
+        opacity: 0;
+      }
+
+      .topbar {
+        position: relative;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: 44px 1fr 44px;
+        align-items: center;
+        height: 58px;
+        padding: 0 18px;
+      }
+
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.26);
+        color: var(--ink);
+        backdrop-filter: blur(8px);
+      }
+
+      .brand {
+        text-align: center;
+        font-size: 21px;
+        font-weight: 950;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+
+      .stage {
+        position: relative;
+        z-index: 2;
+        height: calc(100% - 58px);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0 22px max(24px, env(safe-area-inset-bottom));
+      }
+
+      .phone[data-scene="result"] .stage {
+        height: 100%;
+        justify-content: flex-start;
+        overflow: auto;
+        padding: 0 0 max(24px, env(safe-area-inset-bottom));
+        background: #050202;
+      }
+
+      .phone[data-scene="result"] .topbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+      }
+
+      .sound {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        z-index: 3;
+        display: inline-flex;
+        transform: translateX(-50%);
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border: 1px solid rgba(255, 235, 203, 0.24);
+        border-radius: 999px;
+        background: rgba(12, 5, 4, 0.56);
+        color: #fff0d8;
+        font-size: 13px;
+        font-weight: 850;
+        backdrop-filter: blur(10px);
+      }
+
+      .line-pill {
+        align-self: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        max-width: 100%;
+        padding: 9px 15px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(12, 4, 4, 0.68);
+        color: #ffe7c0;
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.25;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+      }
+
+      .cta-frame {
+        position: relative;
+        margin-top: 12px;
+        padding: 7px;
+        border: 1px solid rgba(255, 209, 137, 0.25);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(255, 218, 154, 0.2), transparent 28%),
+          linear-gradient(315deg, rgba(255, 218, 154, 0.14), transparent 26%),
+          rgba(47, 9, 7, 0.9);
+        box-shadow:
+          0 18px 36px rgba(0, 0, 0, 0.44),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .cta-frame::before,
+      .cta-frame::after {
+        content: "";
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 222, 169, 0.82), transparent);
+      }
+
+      .cta-frame::before {
+        top: 7px;
+      }
+
+      .cta-frame::after {
+        bottom: 7px;
+      }
+
+      .primary-cta {
+        width: 100%;
+        min-height: 76px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 225, 168, 0.34);
+        background: linear-gradient(180deg, #a22b20, #65120e);
+        color: #fff8e8;
+        font-size: clamp(21px, 6.5vw, 30px);
+        font-weight: 950;
+        letter-spacing: 0;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+      }
+
+      .skip {
+        align-self: center;
+        margin-top: 14px;
+        background: transparent;
+        color: rgba(255, 248, 239, 0.84);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .panel {
+        width: 100%;
+        max-height: calc(100svh - 92px);
+        overflow: auto;
+        padding: 22px;
+        border: 1px solid rgba(255, 227, 184, 0.18);
+        border-radius: 18px;
+        background: #100a0a;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+        animation: rise 260ms ease both;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .panel h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+        line-height: 1.22;
+        letter-spacing: 0;
+      }
+
+      .panel p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .choices {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .choices.single {
+        grid-template-columns: 1fr;
+      }
+
+      .choice,
+      .ghost,
+      .next-cta {
+        min-height: 54px;
+        border-radius: 8px;
+        font-weight: 850;
+      }
+
+      .choice {
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--ink);
+        transition:
+          border-color 180ms ease,
+          background 180ms ease,
+          transform 180ms ease;
+      }
+
+      .choice:active {
+        transform: translateY(1px);
+      }
+
+      .choice.is-selected {
+        border-color: rgba(242, 191, 107, 0.72);
+        background: rgba(184, 50, 36, 0.34);
+        transform: translateY(-2px);
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field label {
+        color: rgba(255, 247, 236, 0.72);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        min-height: 50px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--ink);
+        padding: 0 14px;
+        outline: none;
+      }
+
+      .field input:focus,
+      .field select:focus {
+        border-color: rgba(242, 191, 107, 0.78);
+        box-shadow: 0 0 0 3px rgba(242, 191, 107, 0.12);
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .segmented button {
+        min-height: 42px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--dim);
+        font-weight: 850;
+      }
+
+      .segmented button[aria-pressed="true"] {
+        border-color: rgba(242, 191, 107, 0.7);
+        background: rgba(242, 191, 107, 0.16);
+        color: var(--ink);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+      }
+
+      .next-cta {
+        border: 1px solid rgba(255, 225, 168, 0.34);
+        background: linear-gradient(180deg, #b83224, #73140f);
+        color: #fff8e8;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        margin-bottom: 12px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(242, 191, 107, 0.12);
+        color: #ffd894;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .loader {
+        display: grid;
+        place-items: center;
+        gap: 18px;
+        text-align: center;
+        padding-bottom: 22vh;
+      }
+
+      .ring {
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        border: 2px solid rgba(242, 191, 107, 0.18);
+        border-top-color: var(--gold);
+        animation: spin 950ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result-list {
+        display: grid;
+        gap: 10px;
+        margin: 14px 0;
+      }
+
+      .result-item {
+        padding: 14px;
+        border: 1px solid rgba(255, 226, 175, 0.14);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .result-item strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #ffe0a8;
+        font-size: 14px;
+      }
+
+      .result-item span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .teaser-panel {
+        padding: 18px;
+      }
+
+      .teaser-kicker {
+        color: var(--gold);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .teaser-title {
+        margin: 8px 0 10px;
+        font-size: 28px;
+        line-height: 1.18;
+        letter-spacing: 0;
+      }
+
+      .teaser-copy {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .teaser-block {
+        margin-top: 16px;
+        padding: 16px;
+        border: 1px solid rgba(255, 226, 175, 0.14);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+          rgba(24, 13, 12, 0.9);
+      }
+
+      .chapter {
+        display: inline-flex;
+        margin-bottom: 10px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(139, 30, 22, 0.42);
+        color: #ffd894;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .teaser-block h2 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .quote {
+        margin: 12px 0 0;
+        padding-left: 12px;
+        border-left: 2px solid rgba(242, 191, 107, 0.68);
+        color: #fff0d8;
+        font-size: 15px;
+        font-weight: 850;
+        line-height: 1.6;
+      }
+
+      .saju-table {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .pillar {
+        min-height: 74px;
+        display: grid;
+        place-items: center;
+        gap: 4px;
+        padding: 10px 6px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        background: rgba(0, 0, 0, 0.26);
+        text-align: center;
+      }
+
+      .pillar b {
+        color: #ffe0a8;
+        font-size: 22px;
+      }
+
+      .pillar span {
+        color: var(--dim);
+        font-size: 11px;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .timeline-row {
+        display: grid;
+        grid-template-columns: 58px 1fr;
+        gap: 10px;
+        align-items: start;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .timeline-row strong {
+        color: #ffe0a8;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .feature {
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .feature strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #ffe0a8;
+        font-size: 13px;
+      }
+
+      .story {
+        width: 100%;
+        color: var(--ink);
+      }
+
+      .story-visual {
+        --panel-image: url("assets/cut-01-intro.png");
+        position: relative;
+        min-height: 720px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 90px 22px 230px;
+        overflow: hidden;
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0) 0 52%, rgba(5, 2, 2, 0.25) 70%, #050202 100%),
+          var(--panel-image) center top / cover no-repeat;
+      }
+
+      .story-visual.compact {
+        min-height: 560px;
+        padding: 90px 22px 150px;
+        background-position: center center;
+      }
+
+      .story-visual.visual-intro {
+        --panel-image: url("assets/cut-01-intro.png");
+      }
+
+      .story-visual.visual-intro .story-caption {
+        padding: 0 12px 54px;
+      }
+
+      .story-visual.visual-intro .story-caption h1 {
+        font-size: clamp(26px, 8vw, 38px);
+      }
+
+      .story-visual.visual-intro .bubble-cluster.right-low {
+        bottom: 310px;
+      }
+
+      .story-visual.visual-fan {
+        --panel-image: url("assets/cut-02-fan.png");
+      }
+
+      .story-visual.visual-saju {
+        --panel-image: url("assets/cut-03-saju.png");
+      }
+
+      .story-visual.visual-wealth {
+        --panel-image: url("assets/cut-04-wealth.png");
+      }
+
+      .story-visual.visual-romance {
+        --panel-image: url("assets/cut-05-romance.png");
+      }
+
+      .story-visual.visual-outro {
+        --panel-image: url("assets/cut-06-outro.png");
+      }
+
+      .story-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 24%, transparent 0 24%, rgba(0, 0, 0, 0.32) 72%);
+      }
+
+      .story-caption {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .story-caption h1,
+      .story-caption h2 {
+        margin: 0;
+        font-size: clamp(30px, 9vw, 44px);
+        line-height: 1.12;
+        letter-spacing: 0;
+        word-break: keep-all;
+        text-wrap: balance;
+        text-shadow: 0 3px 18px rgba(0, 0, 0, 0.8);
+      }
+
+      .story-caption p {
+        margin: 0;
+        color: #ffe0ba;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .bubble-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .bubble-cluster {
+        position: absolute;
+        display: grid;
+        gap: 8px;
+        width: min(78%, 304px);
+      }
+
+      .bubble-cluster.left-top {
+        top: 96px;
+        left: 18px;
+      }
+
+      .bubble-cluster.right-top {
+        top: 120px;
+        right: 18px;
+        justify-items: end;
+      }
+
+      .bubble-cluster.left-mid {
+        top: 230px;
+        left: 18px;
+      }
+
+      .bubble-cluster.right-mid {
+        top: 244px;
+        right: 18px;
+        justify-items: end;
+      }
+
+      .bubble-cluster.left-low {
+        bottom: 220px;
+        left: 18px;
+      }
+
+      .bubble-cluster.right-low {
+        bottom: 220px;
+        right: 18px;
+        justify-items: end;
+      }
+
+      .bubble {
+        max-width: 100%;
+        padding: 11px 14px;
+        border: 1px solid rgba(255, 233, 208, 0.18);
+        border-radius: 18px 18px 18px 8px;
+        background: rgba(9, 7, 8, 0.8);
+        color: #fff3e4;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.45;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.34);
+      }
+
+      .bubble.right {
+        border-radius: 18px 18px 8px 18px;
+      }
+
+      .bubble.meta {
+        padding: 8px 12px;
+        color: rgba(255, 236, 212, 0.84);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .bubble.accent {
+        background: linear-gradient(180deg, rgba(146, 32, 26, 0.9), rgba(61, 10, 8, 0.9));
+        border-color: rgba(255, 207, 171, 0.24);
+      }
+
+      .bubble.signal {
+        background: rgba(0, 0, 0, 0.74);
+        color: #ffd8bf;
+      }
+
+      .bubble.strong {
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .story-caption.compact-title {
+        gap: 6px;
+      }
+
+      .story-caption.compact-title h2 {
+        font-size: clamp(24px, 7.2vw, 34px);
+      }
+
+      .story-section {
+        padding: 34px 24px;
+        background:
+          radial-gradient(circle at 50% 0, rgba(139, 30, 22, 0.24), transparent 44%),
+          #050202;
+      }
+
+      .story-section.center {
+        text-align: center;
+      }
+
+      .story-section h2 {
+        margin: 0 0 14px;
+        font-size: 28px;
+        line-height: 1.18;
+        letter-spacing: 0;
+        word-break: keep-all;
+        text-wrap: balance;
+      }
+
+      .story-section p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      .big-kanji {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 22px 0;
+        color: rgba(242, 191, 107, 0.28);
+        font-size: 64px;
+        font-weight: 950;
+        line-height: 1;
+        text-align: center;
+      }
+
+      .price-card {
+        margin-top: 18px;
+        padding: 18px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        background: rgba(255, 255, 255, 0.055);
+      }
+
+      .price-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 8px 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .price-row strong {
+        color: #fff1d6;
+      }
+
+      .reviews {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .review {
+        padding: 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .stat {
+        padding: 14px 8px;
+        border-radius: 8px;
+        background: rgba(139, 30, 22, 0.22);
+        text-align: center;
+      }
+
+      .stat strong {
+        display: block;
+        color: #fff1d6;
+        font-size: 20px;
+      }
+
+      .stat span {
+        color: var(--dim);
+        font-size: 11px;
+      }
+
+      .sticky-story-cta {
+        position: sticky;
+        bottom: 0;
+        z-index: 4;
+        padding: 14px 20px max(16px, env(safe-area-inset-bottom));
+        background: linear-gradient(to top, #050202 0 80%, transparent);
+      }
+
+      .fineprint {
+        margin-top: 14px;
+        color: rgba(255, 247, 236, 0.48);
+        font-size: 12px;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .choice:hover,
+      .choice:focus-visible,
+      .ghost:hover,
+      .ghost:focus-visible,
+      .next-cta:hover,
+      .next-cta:focus-visible,
+      .primary-cta:hover,
+      .primary-cta:focus-visible,
+      .skip:hover,
+      .skip:focus-visible,
+      .icon-button:hover,
+      .icon-button:focus-visible {
+        outline: 2px solid rgba(242, 191, 107, 0.75);
+        outline-offset: 2px;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .phone {
+          height: min(900px, calc(100vh - 48px));
+          border-radius: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-scene="landing" aria-label="운명의 문 랜딩 페이지">
+      <div class="hero" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <button class="icon-button" type="button" aria-label="뒤로가기" data-back-global>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M15 18l-6-6 6-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <div class="brand">천기 선생님</div>
+        <span aria-hidden="true"></span>
+      </header>
+
+      <button class="sound" type="button" id="soundButton">사운드를 켜려면 터치하세요</button>
+      <section class="stage" id="stage" aria-live="polite"></section>
+    </main>
+
+    <script>
+      const phone = document.querySelector(".phone");
+      const stage = document.querySelector("#stage");
+      const soundButton = document.querySelector("#soundButton");
+      const backGlobal = document.querySelector("[data-back-global]");
+
+      const state = {
+        scene: "landing",
+        target: "",
+        calendar: "양력",
+        birth: "",
+        gender: "",
+        time: "모름",
+        name: "",
+        orientation: "",
+        relationship: "",
+        work: "",
+        concern: "",
+        analysis: null,
+        plan: "single",
+        privacyAgree: false,
+        paymentAgree: false,
+        marketingAgree: false,
+      };
+
+      const historyStack = [];
+
+      const steps = {
+        landing: renderLanding,
+        immersion: renderImmersion,
+        target: renderTarget,
+        birth: renderBirth,
+        time: renderTime,
+        gender: renderGender,
+        name: renderName,
+        orientation: renderOrientation,
+        relationship: renderRelationship,
+        work: renderWork,
+        concern: renderConcern,
+        loading: renderLoading,
+        result: renderResult,
+        purchase: renderPurchase,
+        paymentReady: renderPaymentReady,
+      };
+
+      soundButton.addEventListener("click", () => {
+        soundButton.textContent = "몰입 모드가 준비됐어요";
+      });
+
+      backGlobal.addEventListener("click", () => {
+        if (historyStack.length === 0) {
+          go("landing", false);
+          return;
+        }
+
+        const previous = historyStack.pop();
+        go(previous, false);
+      });
+
+      stage.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        const valueButton = event.target.closest("[data-value]");
+
+        if (valueButton) {
+          handleValue(valueButton.dataset.key, valueButton.dataset.value, valueButton);
+        }
+
+        if (action === "enter") go("immersion");
+        if (action === "look") go("target");
+        if (action === "skip") go("target");
+        if (action === "prev") {
+          const previous = historyStack.pop();
+          go(previous || "landing", false);
+        }
+        if (action === "target-next") {
+          if (!state.target) return showNudge("누구의 운세인지 먼저 골라주세요.");
+          go("birth");
+        }
+        if (action === "birth-next") {
+          state.birth = document.querySelector("#birth")?.value.trim() || "";
+          go("time");
+        }
+        if (action === "time-next") {
+          state.time = document.querySelector("#birthtime")?.value.trim() || "모름";
+          go("gender");
+        }
+        if (action === "gender-next") {
+          if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
+          go("name");
+        }
+        if (action === "name-next") {
+          state.name = document.querySelector("#name")?.value.trim() || "";
+          go("orientation");
+        }
+        if (action === "concern-next") {
+          state.concern = document.querySelector("#concern")?.value.trim() || "";
+          go("loading");
+          analyzeBirth()
+            .then(() => go("result"))
+            .catch((err) => {
+              showNudge(err.message || "사주 분석에 실패했습니다.");
+              go("concern");
+            });
+        }
+        if (action === "open-chat") {
+          location.href = "/chat.html";
+        }
+        if (action === "open-purchase") location.href = "/chat.html";
+        if (action === "toggle-agree") {
+          const key = event.target.closest("[data-agree]")?.dataset.agree;
+          if (key) {
+            state[key] = !state[key];
+            renderPurchase();
+          }
+        }
+        if (action === "pay-demo") {
+          if (!state.privacyAgree || !state.paymentAgree) return showNudge("필수 동의를 먼저 체크해주세요.");
+          go("paymentReady");
+        }
+        if (action === "restart") {
+          historyStack.length = 0;
+          state.target = "";
+          state.calendar = "양력";
+          state.birth = "";
+          state.gender = "";
+          state.time = "모름";
+          state.name = "";
+          state.orientation = "";
+          state.relationship = "";
+          state.work = "";
+          state.concern = "";
+          state.analysis = null;
+          state.plan = "single";
+          state.privacyAgree = false;
+          state.paymentAgree = false;
+          state.marketingAgree = false;
+          go("landing", false);
+        }
+      });
+
+      function handleValue(key, value, button) {
+        state[key] = value;
+        button.parentElement
+          ?.querySelectorAll("[data-value]")
+          .forEach((item) => item.classList.toggle("is-selected", item === button));
+        button.parentElement
+          ?.querySelectorAll("[aria-pressed]")
+          .forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+
+        const next = button.dataset.next;
+        if (next) {
+          setTimeout(() => go(next), 170);
+        }
+      }
+
+      function showNudge(message) {
+        const existing = document.querySelector(".nudge");
+        if (existing) existing.remove();
+        const nudge = document.createElement("div");
+        nudge.className = "fineprint nudge";
+        nudge.textContent = message;
+        stage.querySelector(".panel")?.append(nudge);
+      }
+
+      function parseBirthInput() {
+        const raw = (state.birth || "2000.01.01").replace(/[./-]/g, ".").split(".");
+        const year = Number(raw[0] || 2000);
+        const month = Number(raw[1] || 1);
+        const day = Number(raw[2] || 1);
+        let hour = 12;
+        let minute = 0;
+        if (state.time && state.time !== "모름") {
+          const m = state.time.match(/(\d{1,2}):(\d{2})/);
+          if (m) {
+            hour = Number(m[1]);
+            minute = Number(m[2]);
+          }
+        }
+        return {
+          name: state.name,
+          year,
+          month,
+          day,
+          hour,
+          minute,
+          gender: state.gender === "여자" ? "female" : "male",
+          calendar: state.calendar === "음력" ? "lunar" : "solar",
+        };
+      }
+
+      async function analyzeBirth() {
+        const birth = parseBirthInput();
+        const res = await fetch("/api/saju/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(birth),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "분석 실패");
+        state.analysis = json;
+        sessionStorage.setItem("cheongi_birth", JSON.stringify({ ...birth, target: state.target, concern: state.concern, relationship: state.relationship, work: state.work, orientation: state.orientation }));
+        sessionStorage.setItem("cheongi_analysis", JSON.stringify(json));
+        if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
+      }
+
+      function go(scene, remember = true) {
+        if (remember && state.scene !== scene) historyStack.push(state.scene);
+        state.scene = scene;
+        phone.dataset.scene =
+          scene === "landing"
+            ? "landing"
+            : scene === "immersion"
+              ? "immersion"
+              : scene === "loading"
+                ? "loading"
+                : scene === "result"
+                  ? "result"
+                  : "input";
+        soundButton.style.display = scene === "landing" ? "inline-flex" : "none";
+        steps[scene]();
+      }
+
+      function renderLanding() {
+        stage.innerHTML = `
+          <div class="line-pill">나를 마주할 준비가 됐다면 들어오세요</div>
+          <div class="cta-frame">
+            <button class="primary-cta" type="button" data-action="enter">지금 신당으로 들어가기</button>
+          </div>
+        `;
+      }
+
+      function renderImmersion() {
+        stage.innerHTML = `
+          <div class="line-pill">붉은 등불이 켜지고, 안쪽에서 낮은 목소리가 들립니다</div>
+          <div class="cta-frame">
+            <button class="primary-cta" type="button" data-action="look">조용히 안으로 들어가기</button>
+          </div>
+          <button class="skip" type="button" data-action="skip">스토리 건너뛰기 &gt;</button>
+        `;
+      }
+
+      function renderTarget() {
+        stage.innerHTML = `
+          <section class="panel">
+            <h1>누구의 사주를 볼까요?</h1>
+            <p>상담의 방향을 먼저 정해야 해석이 빗나가지 않습니다.</p>
+            <div class="choices">
+              ${["본인", "가족", "연인", "친구", "기타"]
+                .map((label) => `<button class="choice" type="button" data-key="target" data-value="${label}">${label}</button>`)
+                .join("")}
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="prev">이전</button>
+              <button class="next-cta" type="button" data-action="target-next">다음으로</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderBirth() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.target || "대상"} 선택 완료</div>
+            <h1>생년월일을 알려주세요</h1>
+            <p>날짜 하나로 첫 번째 운의 결을 펼쳐봅니다.</p>
+            <div class="segmented" role="group" aria-label="달력 선택">
+              <button type="button" data-key="calendar" data-value="양력" aria-pressed="${state.calendar === "양력"}">양력</button>
+              <button type="button" data-key="calendar" data-value="음력" aria-pressed="${state.calendar === "음력"}">음력</button>
+            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="birth">생년월일</label>
+                <input id="birth" type="text" inputmode="numeric" placeholder="2000.01.01" value="${state.birth}" />
+              </div>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="prev">이전</button>
+              <button class="next-cta" type="button" data-action="birth-next">다음으로</button>
+            </div>
+          </section>
+        `;
+        document.querySelector("#birth")?.focus();
+      }
+
+      function renderTime() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
+            <h1>태어난 시간은요?</h1>
+            <p>정확한 시간이 있으면 더 섬세하게 보고, 몰라도 그대로 진행할 수 있습니다.</p>
+            <div class="field-grid">
+              <div class="field">
+                <label for="birthtime">태어난 시간</label>
+                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${state.time === "모름" ? "" : state.time}" />
+              </div>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-key="time" data-value="모름">시간모름</button>
+              <button class="next-cta" type="button" data-action="time-next">다음으로</button>
+            </div>
+          </section>
+        `;
+        document.querySelector("#birthtime")?.focus();
+      }
+
+      function renderGender() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.time || "시간모름"}</div>
+            <h1>성별은 어떻게 볼까요?</h1>
+            <p>풀이 기준을 잡기 위한 선택입니다.</p>
+            <div class="choices">
+              <button class="choice" type="button" data-key="gender" data-value="남자">남자</button>
+              <button class="choice" type="button" data-key="gender" data-value="여자">여자</button>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="prev">이전</button>
+              <button class="next-cta" type="button" data-action="gender-next">다음으로</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderName() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.gender || "성별"} 선택 완료</div>
+            <h1>이름은 뭐라고 부를까요?</h1>
+            <p>결과 화면에서 부를 이름입니다. 별명으로 입력해도 괜찮습니다.</p>
+            <div class="field-grid">
+              <div class="field">
+                <label for="name">이름 또는 별명</label>
+                <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" />
+              </div>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="prev">이전</button>
+              <button class="next-cta" type="button" data-action="name-next">확인</button>
+            </div>
+          </section>
+        `;
+        document.querySelector("#name")?.focus();
+      }
+
+      function renderOrientation() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.name || "이름 없음"}님</div>
+            <h1>관계 해석 기준을 정할게요</h1>
+            <p>마음이 향하는 방향에 맞춰 관계운을 읽어봅니다.</p>
+            <div class="choices single">
+              <button class="choice" type="button" data-key="orientation" data-value="이성 관계 중심" data-next="relationship">이성 관계 중심으로 볼게요</button>
+              <button class="choice" type="button" data-key="orientation" data-value="동성 관계 중심" data-next="relationship">동성 관계 중심으로 볼게요</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderRelationship() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.orientation || "관계 기준"} 선택 완료</div>
+            <h1>지금 관계 상태는요?</h1>
+            <p>연애운은 지금 놓인 자리부터 봐야 선명해집니다.</p>
+            <div class="choices single">
+              ${["솔로예요", "마음에 둔 사람이 있어요", "연애 중이에요", "이별 직후예요", "결혼했어요"]
+                .map((label) => `<button class="choice" type="button" data-key="relationship" data-value="${label}" data-next="work">${label}</button>`)
+                .join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderWork() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.relationship || "관계 상태"} 확인</div>
+            <h1>요즘 일상은 어떤가요?</h1>
+            <p>일과 생활의 흐름도 운세 해석에 함께 반영됩니다.</p>
+            <div class="choices single">
+              ${["학생이에요", "일을 찾고 있어요", "직장 다녀요", "사업해요", "프리랜서예요", "쉬고 있어요"]
+                .map((label) => `<button class="choice" type="button" data-key="work" data-value="${label}" data-next="concern">${label}</button>`)
+                .join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderConcern() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">${state.work || "일상"} 선택 완료</div>
+            <h1>따로 묻고 싶은 고민이 있나요?</h1>
+            <p>한 문장으로 적어도 좋고, 바로 건너뛰어도 됩니다.</p>
+            <div class="field-grid">
+              <div class="field">
+                <label for="concern">고민</label>
+                <input id="concern" type="text" placeholder="고민 입력하기" value="${state.concern}" autocomplete="off" />
+              </div>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="concern-next">없어요</button>
+              <button class="next-cta" type="button" data-action="concern-next">해석 시작</button>
+            </div>
+          </section>
+        `;
+        document.querySelector("#concern")?.focus();
+      }
+
+      function renderLoading() {
+        stage.innerHTML = `
+          <div class="loader">
+            <div class="ring" aria-hidden="true"></div>
+            <div>
+              <div class="line-pill">입력한 단서를 엮어보는 중</div>
+              <p class="fineprint">운의 방향을 정리하고 있습니다</p>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderResult() {
+        const displayName = state.name || state.target || "당신";
+        const a = state.analysis;
+        const pillars = a?.pillars;
+        const preview = a?.preview;
+        const fortune = a?.fortune;
+        const hourLabel = pillars?.hour?.hanja || (state.time === "모름" ? "時柱모름" : "-");
+        const dayLabel = pillars?.day?.hanja || "-";
+        const monthLabel = pillars?.month?.hanja || "-";
+        const yearLabel = pillars?.year?.hanja || "-";
+        const personality = preview?.personality || "입력하신 흐름을 바탕으로 성격의 결을 읽어냅니다.";
+        const loveText = preview?.loveFortune || "연애운의 윤곽이 서서히 드러납니다.";
+        const wealthText = preview?.wealthFortune || "재물운의 흐름을 차분히 짚어보겠습니다.";
+        const concernHead = state.concern ? `"${state.concern}"` : "지금 마음에 걸리는 것";
+        const daewoonRows = (fortune?.daewoon || [])
+          .slice(0, 4)
+          .map((d) => `<div class="timeline-row"><strong>${d.age}</strong><span>${d.pillar}</span></div>`)
+          .join("");
+
+        stage.innerHTML = `
+          <article class="story">
+            <section class="story-visual visual-intro">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble meta">${displayName} · ${state.calendar} ${state.birth || ""}</div>
+                  <div class="bubble signal">${a?.dayMaster?.element || "일간"} 기운이 먼저 보입니다.</div>
+                  <div class="bubble">${personality.slice(0, 48)}...</div>
+                </div>
+                <div class="bubble-cluster right-low">
+                  <div class="bubble accent right">${concernHead} 때문에 여기까지 왔군요.</div>
+                  <div class="bubble right">사주의 결부터 차분히 풀어드리겠습니다.</div>
+                </div>
+              </div>
+              <div class="story-caption">
+                <p>${displayName}님의 점사가 열렸습니다</p>
+                <h1>너의 점사를 풀<br /><span style="background:linear-gradient(to bottom,#fff,#cb3826);-webkit-background-clip:text;background-clip:text;color:transparent">천기 선생님이다</span></h1>
+              </div>
+            </section>
+
+            <section class="story-section center">
+              <span class="chapter">성격</span>
+              <h2>${a?.dayMaster?.ko || "일간"} · ${a?.dayMaster?.strength === "strong" ? "기운이 강한" : a?.dayMaster?.strength === "weak" ? "섬세한" : "균형 잡힌"} 결</h2>
+              <p>${personality}</p>
+              <div class="quote">${preview?.elementBalance || ""}</div>
+            </section>
+
+            <section class="story-visual compact visual-saju">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble">이 흔들림에는 이유가 있습니다.</div>
+                  <div class="bubble strong">결국 타고난 흐름에서 시작된 겁니다.</div>
+                </div>
+              </div>
+              <div class="story-caption compact-title">
+                <p>근거를 보죠</p>
+                <h2>${displayName}님의<br />사주팔자</h2>
+              </div>
+            </section>
+
+            <section class="story-section">
+              <span class="chapter">명식</span>
+              <h2>${displayName}님의 사주팔자</h2>
+              <p>${state.calendar} ${state.birth || ""} · ${state.time || "시간모름"} · ${a?.dominantElement || ""} 기운이 두드러집니다.</p>
+              <div class="saju-table" aria-label="사주팔자">
+                <div class="pillar"><span>時柱</span><b>${hourLabel}</b><span>${pillars?.hour?.ko || state.time || "모름"}</span></div>
+                <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>${pillars?.day?.ko || "일간"}</span></div>
+                <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>${pillars?.month?.ko || ""}</span></div>
+                <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>${pillars?.year?.ko || ""}</span></div>
+              </div>
+              <div class="quote">일간 ${a?.dayMaster?.hanja || ""}(${a?.dayMaster?.ko || ""}) · 용신 ${a?.usefulGod || "분석 중"}</div>
+            </section>
+
+            <section class="story-section center">
+              <span class="chapter">대운 · 세운</span>
+              <h2>올해 ${fortune?.currentYear || ""}년 · 세운 ${fortune?.yearPillar || ""}</h2>
+              <div class="big-kanji" aria-hidden="true"><span>大</span><span>運</span><span>轉</span></div>
+              <div class="timeline">
+                <div class="timeline-row"><strong>현재</strong><span>대운 ${fortune?.currentDaewoon || "-"}</span></div>
+                ${daewoonRows}
+              </div>
+            </section>
+
+            <section class="story-visual compact visual-wealth">
+              <div class="story-caption compact-title">
+                <p>재물</p>
+                <h2>재물운이<br />보통 사주가 아니네?</h2>
+              </div>
+            </section>
+
+            <section class="story-section">
+              <span class="chapter">재물운</span>
+              <h2>돈의 흐름</h2>
+              <p>${wealthText}</p>
+            </section>
+
+            <section class="story-visual compact visual-romance">
+              <div class="story-caption compact-title">
+                <p>연애운</p>
+                <h2>오래 남는 사람은<br />따로 있습니다</h2>
+              </div>
+            </section>
+
+            <section class="story-section">
+              <span class="chapter">연애운</span>
+              <h2>${state.relationship || "지금 관계"} · ${state.orientation || "관계 기준"}</h2>
+              <p>${loveText}</p>
+              <div class="quote">${state.concern || "더 깊은 이야기는 아래 사주 풀이에서 이어갑니다."}</div>
+            </section>
+
+            <section class="story-section">
+              <span class="chapter">천기 선생님 상담</span>
+              <h2>사주 풀이 · LLM 대화</h2>
+              <p>아래 버튼을 누르면 개인 사주를 바탕으로 천기 선생님과 텍스트 상담을 이어갈 수 있습니다.</p>
+            </section>
+
+            <div class="sticky-story-cta">
+              <button class="primary-cta" type="button" data-action="open-chat">사주 풀이 · 천기 선생님 상담</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderPurchase() {
+        const plans = [
+          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,800원" },
+          { id: "solo", title: "솔로탈출 패키지", badge: "추천", discount: "44%", origin: "108,000원", price: "60,000원" },
+          { id: "deep", title: "MZ 운세 패키지", badge: "인기", discount: "30%", origin: "96,000원", price: "67,000원" },
+        ];
+        const selected = plans.find((plan) => plan.id === state.plan) || plans[0];
+
+        stage.innerHTML = `
+          <section class="panel teaser-panel">
+            <div class="status">결제 안내 데모</div>
+            <h1>전체 풀이를 열어볼까요?</h1>
+            <p>${state.name || "당신"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. 실제 결제는 연결하지 않은 데모입니다.</p>
+
+            <div class="result-list">
+              ${plans
+                .map(
+                  (plan) => `
+                    <button class="result-item choice ${state.plan === plan.id ? "is-selected" : ""}" type="button" data-key="plan" data-value="${plan.id}">
+                      <strong>${plan.badge} · ${plan.title}</strong>
+                      <span>${plan.discount} 할인 · <s>${plan.origin}</s> → ${plan.price}</span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+
+            <div class="teaser-block">
+              <span class="chapter">결제 요약</span>
+              <div class="timeline">
+                <div class="timeline-row"><strong>상품</strong><span>${selected.title}</span></div>
+                <div class="timeline-row"><strong>판매가</strong><span>${selected.origin}</span></div>
+                <div class="timeline-row"><strong>할인</strong><span>${selected.discount} 적용</span></div>
+                <div class="timeline-row"><strong>결제금액</strong><span>${selected.price}</span></div>
+              </div>
+              <button class="ghost" type="button" style="width: 100%; margin-top: 12px;">쿠폰 적용</button>
+            </div>
+
+            <div class="teaser-block">
+              <span class="chapter">동의</span>
+              <div class="choices single">
+                <button class="choice ${state.privacyAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="privacyAgree">개인정보 처리방침 동의</button>
+                <button class="choice ${state.paymentAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="paymentAgree">결제 진행 필수 동의</button>
+                <button class="choice ${state.marketingAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="marketingAgree">마케팅 수신 동의 (선택)</button>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" type="button" data-action="prev">이전</button>
+              <button class="next-cta" type="button" data-action="pay-demo">결제하기</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderPaymentReady() {
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">여기서 실제 결제 모듈로 연결</div>
+            <h1>결제 직전 단계입니다</h1>
+            <p>원본 흐름에서는 이 다음에 외부 결제/주문 진행이 이어집니다. 이 데모는 안전하게 화면 전환까지만 구현했습니다.</p>
+            <div class="result-list">
+              <div class="result-item"><strong>선택 상품</strong><span>${state.plan === "single" ? "운명신당 정통사주" : state.plan === "solo" ? "솔로탈출 패키지" : "MZ 운세 패키지"}</span></div>
+              <div class="result-item"><strong>필수 동의</strong><span>개인정보 처리방침, 결제 진행 필수 동의 완료</span></div>
+            </div>
+            <button class="next-cta" type="button" data-action="restart" style="width: 100%">처음부터 다시 보기</button>
+          </section>
+        `;
+      }
+
+      renderLanding();
+    </script>
+  </body>
+</html>

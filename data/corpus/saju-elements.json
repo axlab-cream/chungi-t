@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "domain": "saju_elements",
+  "heavenlyStems": {
+    "甲": { "element": "wood", "polarity": "yang", "korean": "갑" },
+    "乙": { "element": "wood", "polarity": "yin", "korean": "을" },
+    "丙": { "element": "fire", "polarity": "yang", "korean": "병" },
+    "丁": { "element": "fire", "polarity": "yin", "korean": "정" },
+    "戊": { "element": "earth", "polarity": "yang", "korean": "무" },
+    "己": { "element": "earth", "polarity": "yin", "korean": "기" },
+    "庚": { "element": "metal", "polarity": "yang", "korean": "경" },
+    "辛": { "element": "metal", "polarity": "yin", "korean": "신" },
+    "壬": { "element": "water", "polarity": "yang", "korean": "임" },
+    "癸": { "element": "water", "polarity": "yin", "korean": "계" }
+  },
+  "earthlyBranches": {
+    "子": { "element": "water", "animal": "쥐", "korean": "자" },
+    "丑": { "element": "earth", "animal": "소", "korean": "축" },
+    "寅": { "element": "wood", "animal": "호랑이", "korean": "인" },
+    "卯": { "element": "wood", "animal": "토끼", "korean": "묘" },
+    "辰": { "element": "earth", "animal": "용", "korean": "진" },
+    "巳": { "element": "fire", "animal": "뱀", "korean": "사" },
+    "午": { "element": "fire", "animal": "말", "korean": "오" },
+    "未": { "element": "earth", "animal": "양", "korean": "미" },
+    "申": { "element": "metal", "animal": "원숭이", "korean": "신" },
+    "酉": { "element": "metal", "animal": "닭", "korean": "유" },
+    "戌": { "element": "earth", "animal": "개", "korean": "술" },
+    "亥": { "element": "water", "animal": "돼지", "korean": "해" }
+  },
+  "elementProfiles": {
+    "wood": {
+      "keywords": ["성장", "개척", "유연", "창의", "인내"],
+      "strongTraits": "추진력, 성장 욕구, 새로운 시작에 강함",
+      "weakTraits": "유연함 부족, 고집, 성급함",
+      "advice": "성장의 계절처럼 꾸준히 뿌리를 내리되, 바람에 유연하게 흔들리는 연습이 도움이 됩니다."
+    },
+    "fire": {
+      "keywords": ["열정", "표현", "밝음", "리더십", "활력"],
+      "strongTraits": "표현력, 열정, 사람을 끄는 힘",
+      "weakTraits": "조급, 감정 기복, 번아웃",
+      "advice": "불꽃처럼 밝게 빛내되, 때로는 잔불로 쉬어가는 시간도 필요합니다."
+    },
+    "earth": {
+      "keywords": ["안정", "포용", "신뢰", "실용", "중재"],
+      "strongTraits": "믿음직함, 현실 감각, 중재력",
+      "weakTraits": "고집, 변화 거부, 걱정",
+      "advice": "대지처럼 포용하되, 새로운 씨앗을 받아들이는 열린 마음이 운을 부릅니다."
+    },
+    "metal": {
+      "keywords": ["결단", "원칙", "정의", "날카로움", "완성"],
+      "strongTraits": "결단력, 원칙, 완성도",
+      "weakTraits": "융통성 부족, 냉정함",
+      "advice": "쇠처럼 단단하되, 때로는 부드럽게 구부러지는 유연함이 관계에 도움이 됩니다."
+    },
+    "water": {
+      "keywords": ["지혜", "직관", "적응", "깊이", "유동"],
+      "strongTraits": "직관, 적응력, 깊은 사고",
+      "weakTraits": "우유부단, 불안, 회피",
+      "advice": "물처럼 흐르되, 때로는 잔잔한 호수처럼 머무는 시간도 소중합니다."
+    }
+  },
+  "dayMasterAdvice": {
+    "甲": "곧은 나무처럼 방향을 정하고 한 걸음씩 나아가세요. 주변과의 협력이 더 큰 숲을 만듭니다.",
+    "乙": "부드러운 풀처럼 유연하게 적응하되, 자신의 뿌리를 잃지 마세요.",
+    "丙": "태양처럼 밝게 빛내세요. 다만 그늘에서 쉬는 시간도 잊지 마세요.",
+    "丁": "촛불처럼 따뜻한 빛을 나누세요. 작은 불꽃이 큰 위로가 됩니다.",
+    "戊": "큰 산처럼 든든히 서세요. 변화를 받아들이는 개방성이 더 큰 힘을 줍니다.",
+    "己": "비옥한 땅처럼 실용적으로, 세심하게 돌보세요.",
+    "庚": "쇠처럼 단단한 원칙을 지키되, 부드러운 면도 기르세요.",
+    "辛": "보석처럼 세련된 품격을 유지하세요. 날카로움보다 빛나는 지혜가 더 아름답습니다.",
+    "壬": "큰 강처럼 흐르는 지혜를 믿으세요. 때로는 고여 깊어지는 시간도 필요합니다.",
+    "癸": "이슬처럼 섬세한 직관을 따르세요. 작은 신호가 큰 답이 될 수 있습니다."
+  }
+}

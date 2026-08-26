@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tmp
+*.bak
+*.log
+.cache/
+.env
+.env.local
+*.zip
+*.mhtml
+_check_env.txt
+scripts/check-env.ps1

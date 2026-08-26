@@ -1,0 +1,19 @@
+{
+  "service": {
+    "type": "free_conversation",
+    "requiresLogin": false,
+    "route": "/chat/bosal-cheongi"
+  },
+  "ui": {
+    "hideLoginArea": true,
+    "primaryBanner": {
+      "title": "천기 선생님과 자유대화",
+      "cta": "자유대화 시작"
+    }
+  },
+  "conversation": {
+    "requiresSaju": true,
+    "maxHistoryTurns": 10,
+    "ragTopK": 5
+  }
+}
