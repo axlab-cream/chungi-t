@@ -43,6 +43,7 @@
 - Iteration 4: reduced the fan overlay darkness and matched source fade treatment.
 - Iteration 5: restored the source-like video behavior with `autoplay muted playsinline preload="auto"` and removed native controls. Local browser confirmed `readyState=4`, `paused=false`, `currentTime=2.44`, and source video size `1440x2232`.
 - Iteration 6: corrected the `manseryeok` section so the `네 팔자가 앞으로 어떻게 흘러갈까?` headline sits above the background image like the source. Local browser confirmed the headline center resolves to `H2`, the headline does not overlap the bubble, and all 42 source assets load.
+- Iteration 7: fixed `speech_bubble_3.svg` sizing in `manseryeok` so the bubble image and text box both render at `173x251`. Local browser confirmed `textBoxWithinImageBox=true`.
 - Final local score: top first-view fidelity 95%; image/text load audit 100%.
 - Final production audit: `manseryeok` headline center resolves to `H2`, headline and bubble do not overlap, image 42/42 loaded, text rendered.
 
