@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
@@ -20,7 +20,8 @@ import type { ReportRecord } from '../report/report-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 const ROOT = join(__dirname, '../..')
 const SAJU_UI = join(ROOT, '사주', '사주')
 const SAJU_ROOT = join(ROOT, '사주')
@@ -325,7 +326,9 @@ app.get('/', (_req, res) => {
 
 export default app
 
-if (!process.env.VERCEL) {
+const isDirectRun = process.argv[1] ? resolve(process.argv[1]) === resolve(__filename) : false
+
+if (isDirectRun) {
   app.listen(PORT, () => {
     console.log(`천기 선생님 서버: http://localhost:${PORT}`)
     console.log(`사주 입력: http://localhost:${PORT}/index.html`)

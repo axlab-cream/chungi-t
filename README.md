@@ -29,6 +29,10 @@ npm start
 
 브라우저에서 **http://localhost:8790** 접속
 
+`vercel env pull .env --environment=production --scope ax-lab-cream`로 환경변수를
+내려받을 수 있지만, Vercel sensitive 값은 로컬에서 빈 값으로 내려올 수 있습니다.
+그 경우 `.env`의 `OPENAI_API_KEY`만 직접 채우면 됩니다.
+
 ## 배포 (Vercel)
 
 현재 Vercel 프로젝트는 `ax-lab-cream/chungi-t`에 링크되어 있고, GitHub
