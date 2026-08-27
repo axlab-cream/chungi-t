@@ -4,9 +4,11 @@
 
 ## 연결 상태
 
-- GitHub: `https://github.com/jaeyong-planner/chungi-t.git`
+- GitHub origin: `https://github.com/axlab-cream/chungi-t.git`
+- GitHub upstream: `https://github.com/jaeyong-planner/chungi-t.git` (fetch only)
 - Vercel: `ax-lab-cream/chungi-t`
 - Production: `https://chungi-t.vercel.app/`
+- Supabase: `axlab-os/chungi-t` (`wdyzollywccgaepjeynu`, `ap-northeast-2`)
 - Local Vercel link: `.vercel/project.json`에서 관리하며 Git에는 올리지 않습니다.
 
 ## 기능
@@ -19,6 +21,7 @@
 ## 빠른 시작
 
 ```bash
+cd C:\Users\user\Desktop\chungi-t
 npm install
 cp .env.example .env   # OPENAI_API_KEY 입력
 npm start
@@ -28,24 +31,35 @@ npm start
 
 ## 배포 (Vercel)
 
-```bash
-# Vercel 프로젝트 링크 후 CLI 배포:
-vercel --prod
-```
-
-Vercel 프로젝트가 GitHub push 기반 자동 배포를 사용하려면 Vercel GitHub app에
-`jaeyong-planner/chungi-t` 저장소 접근 권한을 부여한 뒤 다음 명령을 실행합니다.
+현재 Vercel 프로젝트는 `ax-lab-cream/chungi-t`에 링크되어 있고, GitHub
+`axlab-cream/chungi-t`의 `main` 브랜치 push가 Production 배포를 트리거합니다.
 
 ```bash
-vercel git connect https://github.com/jaeyong-planner/chungi-t.git --scope ax-lab-cream
+git status --short --branch
+npm run typecheck
+npm test
+git push origin main
 ```
 
-**필수 환경 변수 (Vercel Dashboard → Settings → Environment Variables)**
+수동 배포가 필요할 때만 다음 명령을 사용합니다.
+
+```bash
+vercel --prod --scope ax-lab-cream
+```
+
+## 환경 변수
+
+Vercel Dashboard -> `ax-lab-cream/chungi-t` -> Settings -> Environment Variables에
+Production, Preview, Development 기준으로 등록합니다.
 
 | 변수 | 설명 |
 |------|------|
 | `OPENAI_API_KEY` | OpenAI API 키 |
 | `OPENAI_MODEL` | (선택) 기본 `gpt-4o-mini` |
+| `SUPABASE_URL` | Supabase API URL |
+| `SUPABASE_PROJECT_REF` | Supabase project ref |
+| `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+| `SUPABASE_ANON_KEY` | 레거시 anon key 호환용 |
 
 ## 화면 흐름
 
