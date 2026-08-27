@@ -6,6 +6,38 @@
     <title>천기 선생님 · 사주</title>
     <meta name="description" content="천기 선생님 몰입형 사주 상담" />
     <style>
+      @font-face {
+        font-family: "Maru Buri";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("assets/fonts/MaruBuri-SemiBold.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Noto Serif KR";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("assets/fonts/NotoSerifKR-Regular.ttf") format("truetype");
+      }
+
+      @font-face {
+        font-family: "Pretendard";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url("assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
       :root {
         color-scheme: dark;
         --ink: #fff8ef;
@@ -15,6 +47,10 @@
         --red-deep: #360706;
         --gold: #f2bf6b;
         --line: rgba(255, 229, 188, 0.22);
+        --font-brand: "Maru Buri", "Noto Serif KR", serif;
+        --font-saju-heading: "Maru Buri", "Noto Serif KR", serif;
+        --font-reading-body: "Noto Serif KR", "Apple SD Gothic Neo", serif;
+        --font-meta: "Pretendard", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       * {
@@ -1007,9 +1043,20 @@
       }
 
       .sample-video-shell {
+        position: relative;
         width: 100%;
         overflow: hidden;
         background: #000;
+      }
+
+      .sample-upload-blend::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.72) 8%, transparent 24%, transparent 74%, rgba(0, 0, 0, 0.78) 92%, #000 100%);
+        pointer-events: none;
       }
 
       .sample-video {
@@ -1018,6 +1065,11 @@
         height: auto;
         background: #000;
         object-fit: cover;
+      }
+
+      .sample-upload-blend .sample-video {
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.84) 10%, #000 24%, #000 74%, rgba(0, 0, 0, 0.84) 90%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.84) 10%, #000 24%, #000 74%, rgba(0, 0, 0, 0.84) 90%, transparent 100%);
       }
 
       .sample-intro-top {
@@ -1053,6 +1105,11 @@
 
       .sample-intro-top::after {
         display: none;
+      }
+
+      .sample-upload-image-blend .sample-intro-bg {
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.82) 12%, #000 24%, #000 74%, rgba(0, 0, 0, 0.82) 88%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.82) 12%, #000 24%, #000 74%, rgba(0, 0, 0, 0.82) 88%, transparent 100%);
       }
 
       .sample-intro-title {
@@ -1095,6 +1152,38 @@
         font-size: 25px;
         font-weight: 800;
         line-height: 1.4;
+      }
+
+      .sample-sfx.bubble-sfx {
+        top: 270px;
+        right: 28px;
+        width: 82px;
+        height: 64px;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 42px 42px 42px 18px;
+        background: rgba(255, 255, 255, 0.82);
+        color: #160d0b;
+        font-family: var(--font-brand);
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        text-shadow: none;
+        box-shadow:
+          0 12px 28px rgba(0, 0, 0, 0.32),
+          inset 0 0 18px rgba(255, 255, 255, 0.42);
+      }
+
+      .sample-sfx.bubble-sfx::after {
+        content: "";
+        position: absolute;
+        right: 16px;
+        bottom: -10px;
+        width: 18px;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.82);
+        border-right: 1px solid rgba(255, 255, 255, 0.72);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.72);
+        transform: rotate(45deg);
       }
 
       .sample-enter {
@@ -1185,6 +1274,13 @@
         font-size: 25px;
         font-weight: 800;
         line-height: 1.6;
+      }
+
+      .source-copy p.landing-worry-copy {
+        font-family: var(--font-reading-body);
+        font-size: 28px;
+        font-weight: 400;
+        line-height: 1.48;
       }
 
       .source-copy h2 {
@@ -2261,6 +2357,69 @@
         outline-offset: 2px;
       }
 
+      .brand,
+      .story-local-title,
+      .sample-intro-title span {
+        font-family: var(--font-brand);
+        font-weight: 700;
+      }
+
+      .sample-intro-title,
+      .panel h1,
+      .teaser-title,
+      .teaser-block h2,
+      .source-copy h2,
+      .story-caption h2,
+      .story-section h2,
+      .report-meta h3,
+      .ritual-word,
+      .story-callout,
+      .package-card h3,
+      .destiny-card h3 {
+        font-family: var(--font-saju-heading);
+        font-weight: 600;
+      }
+
+      .panel p,
+      .teaser-copy,
+      .source-copy p,
+      .story-section p,
+      .story-list-item,
+      .quote,
+      .review,
+      .report-page,
+      .report-body,
+      .report-body p {
+        font-family: var(--font-reading-body);
+        font-weight: 400;
+      }
+
+      .status,
+      .field label,
+      .field input,
+      .field select,
+      .segmented button,
+      .choice,
+      .ghost,
+      .next-cta,
+      .result-item,
+      .chapter,
+      .pillar,
+      .timeline-row,
+      .wealth-chart,
+      .price-row,
+      .price-line,
+      .proof-row,
+      .stat,
+      .report-id-strip,
+      .report-toc-button,
+      .report-pager button,
+      .history-item span,
+      .history-id {
+        font-family: var(--font-meta);
+        font-weight: 500;
+      }
+
       @media (min-width: 720px) {
         body {
           padding: 24px 0;
@@ -2369,6 +2528,20 @@
       const sampleVideo = {
         webm: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.webm",
         mp4: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.mp4",
+      };
+
+      const landingSampleVideo = {
+        mp4: "assets/chungi-landing-story.mp4",
+      };
+
+      const landingIntroAssets = {
+        introBg: "assets/chungi-intro-bg.png",
+      };
+
+      const landingSourceAssets = {
+        heroCharacter: "assets/chungi-source-hero.png",
+        worryBg: "assets/chungi-worry-bg.png",
+        palzaBg: "assets/chungi-palza-bg.png",
       };
 
       const sampleAssets = {
@@ -2989,54 +3162,53 @@
         return `<img data-source-asset="${key}" alt="${alt}" class="${className}" src="${sampleAssets[key]}" />`;
       }
 
-      function sampleVideoMarkup() {
+      function sampleVideoMarkup(video = sampleVideo, shellClass = "") {
         return `
-          <section class="sample-video-shell" data-sample-section="video">
+          <section class="sample-video-shell ${shellClass}" data-sample-section="video">
             <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천기 선생님 티저 영상">
-              <source src="${sampleVideo.webm}" type="video/webm" />
-              <source src="${sampleVideo.mp4}" type="video/mp4" />
+              ${video.webm ? `<source src="${video.webm}" type="video/webm" />` : ""}
+              <source src="${video.mp4}" type="video/mp4" />
             </video>
           </section>
         `;
       }
 
-      function sampleIntroMarkup() {
+      function sampleIntroMarkup(introBg = sampleAssets.introBg, sectionClass = "", sfxText = "탁", sfxClass = "") {
         return `
-          <section class="sample-intro-top" data-sample-section="sample-top">
-            ${sourceImg("introBg", "sample-intro-bg", "부채를 펼치는 손")}
+          <section class="sample-intro-top ${sectionClass}" data-sample-section="sample-top">
+            <img data-source-asset="introBg" alt="부채를 펼치는 손" class="sample-intro-bg" src="${introBg}" />
             <h1 class="sample-intro-title">너의 점사를 풀<br /><span>천기 선생님이다</span></h1>
-            <div class="sample-sfx">탁</div>
+            <div class="sample-sfx ${sfxClass}">${sfxText}</div>
           </section>
         `;
       }
 
-      function sampleSourceSections(displayName, concernHead, dominantElement) {
+      function sampleSourceSections(displayName, concernHead, dominantElement, heroCharacter = sampleAssets.heroCharacter, showHeroDecor = true, heroCopy = `${displayName}<br />네 사주의 결이 보입니다`, showWorryBubble = true, worryBg = sampleAssets.worryBg, worryCopy = `<p><span class="red">${dominantElement}</span> 기운이 꽤 강하군요</p><p>보통 팔자가 아닌데?</p>`, palzaCopy = `<p>네가 어떤 사람인지,<br />네 고민이 뭔지,<br />난 다 보여</p>`, showPalzaBubbleTwo = true, showPalzaBubbleOne = true, palzaBg = sampleAssets.palzaBg) {
         return `
           <section class="source-section tall" data-sample-section="hero-character">
-            ${sourceImg("heroCharacter", "source-img center-wide", "신당에 앉은 도령")}
+            <img data-source-asset="heroCharacter" alt="신당에 앉은 도령" class="source-img center-wide" src="${heroCharacter}" />
             <div class="source-fade"></div>
-            <div class="source-bubble left">흥미롭네</div>
-            ${sourceImg("introAsset", "source-asset intro-card", "사주 종이 장식")}
-            <div class="source-copy bottom"><h2>${displayName}<br />네 사주의 결이 보입니다</h2></div>
+            ${showHeroDecor ? `<div class="source-bubble left">흥미롭네</div>` : ""}
+            ${showHeroDecor ? sourceImg("introAsset", "source-asset intro-card", "사주 종이 장식") : ""}
+            <div class="source-copy bottom"><h2>${heroCopy}</h2></div>
           </section>
 
           <section class="source-section short" data-sample-section="worry-bg">
-            ${sourceImg("worryBg", "source-img", "걱정을 짚는 배경")}
+            <img data-source-asset="worryBg" alt="걱정을 짚는 배경" class="source-img" src="${worryBg}" />
             <div class="source-fade"></div>
             ${sourceImg("dividerLine", "source-asset divider-line", "구분선")}
-            <div class="source-bubble left">흠...</div>
+            ${showWorryBubble ? `<div class="source-bubble left">흠...</div>` : ""}
             <div class="source-copy bottom">
-              <p><span class="red">${dominantElement}</span> 기운이 꽤 강하군요</p>
-              <p>보통 팔자가 아닌데?</p>
+              ${worryCopy}
             </div>
           </section>
 
           <section class="source-section" data-sample-section="palza-bg">
-            ${sourceImg("palzaBg", "source-img center-wide", "팔자의 결을 보는 배경")}
+            <img data-source-asset="palzaBg" alt="팔자의 결을 보는 배경" class="source-img center-wide" src="${palzaBg}" />
             <div class="source-fade"></div>
-            ${sourceImg("speechBubbleOne", "source-asset bubble-one", "말풍선")}
-            ${sourceImg("speechBubbleTwo", "source-asset bubble-img", "말풍선")}
-            <div class="source-copy bottom"><p>네가 어떤 사람인지,<br />네 고민이 뭔지,<br />난 다 보여</p></div>
+            ${showPalzaBubbleOne ? sourceImg("speechBubbleOne", "source-asset bubble-one", "말풍선") : ""}
+            ${showPalzaBubbleTwo ? sourceImg("speechBubbleTwo", "source-asset bubble-img", "말풍선") : ""}
+            <div class="source-copy bottom">${palzaCopy}</div>
           </section>
 
           <section class="source-section tall" data-sample-section="asset-one">
@@ -3522,9 +3694,9 @@
         stage.innerHTML = `
           <article class="sample-story">
             ${storyTopNavMarkup()}
-            ${sampleVideoMarkup()}
-            ${sampleIntroMarkup()}
-            ${sampleSourceSections("당신", "직장 운", "기운")}
+            ${sampleVideoMarkup(landingSampleVideo, "sample-upload-blend")}
+            ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "훗", "bubble-sfx")}
+            ${sampleSourceSections("당신", "직장 운", "기운", landingSourceAssets.heroCharacter, false, '이미 당신 <span class="red">사주</span>는<br />정해져 있습니다.<br /><span class="red">그런데...</span>', false, landingSourceAssets.worryBg, '<p class="landing-worry-copy">사주를 보니 당신의<br /><span class="red">기운</span>과 <span class="red">운명</span>이<br />보이는 군요.</p>', '<p>이미 네 운명은 정해져 있어<br />그 굴레를 벗어나긴 힘들지...</p>', false, false, landingSourceAssets.palzaBg)}
             <div class="sample-enter">
               <button class="primary-cta" type="button" data-action="enter">천기 선생님에게 사주보기</button>
               <p class="fineprint">원본 샘플의 이미지와 말투를 먼저 확인한 뒤, 입력 단계로 이어집니다.</p>
