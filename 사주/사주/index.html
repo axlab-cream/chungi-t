@@ -3198,7 +3198,7 @@
           <section class="sample-intro-top ${sectionClass}" data-sample-section="sample-top">
             <img data-source-asset="introBg" alt="부채를 펼치는 손" class="sample-intro-bg" src="${introBg}" />
             <h1 class="sample-intro-title">너의 점사를 풀<br /><span>남부대공이다</span></h1>
-            <div class="sample-sfx ${sfxClass}">${sfxText}</div>
+            ${sfxText ? `<div class="sample-sfx ${sfxClass}">${sfxText}</div>` : ""}
           </section>
         `;
       }
@@ -3715,7 +3715,7 @@
           <article class="sample-story">
             ${storyTopNavMarkup()}
             ${sampleVideoMarkup(landingSampleVideo, "sample-upload-blend")}
-            ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "훗", "bubble-sfx")}
+            ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "", "")}
             ${sampleSourceSections("당신", "직장 운", "기운", landingSourceAssets.heroCharacter, false, '이미 당신 <span class="red">사주</span>는<br />정해져 있습니다.<br /><span class="red">그런데...</span>', false, landingSourceAssets.worryBg, '<p class="landing-worry-copy">사주를 보니 당신의<br /><span class="red">기운</span>과 <span class="red">운명</span>이<br />바뀌고 있네요.</p>', '<p>이미 네 <span class="red">팔자</span>는 정해져 있어<br />그 <span class="red">굴레</span>를 벗어나긴 힘들지...</p>', false, false, landingSourceAssets.palzaBg, landingSourceAssets.assetOne, false, '<p><span class="red">직장</span> 운 때문에 여기까지 나를 찾았나?<br />그것은 여러가지 <span class="red">기운</span>에 의해 변하게 되지</p>', '<h2>과거로부터 이어온<br />자네의 사주의 기운이<br />보이는 구나.</h2>')}
             <div class="sample-enter">
               <button class="primary-cta" type="button" data-action="enter">남부대공에게 사주보기</button>
