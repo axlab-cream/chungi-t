@@ -36,7 +36,7 @@ describe('[TASK] 사주 분석 테스트 하네스', () => {
       assert.ok(analysis.dayMasterAdvice.length > 0)
     })
 
-    it('간략풀이 preview는 남부대공 샘플 말투를 유지', () => {
+    it('간략풀이 preview는 천명대공(天命大公) 샘플 말투를 유지', () => {
       const analysis = analyzeSaju(sampleBirth)
       assert.ok(analysis.preview?.personality.includes('흥미롭네요'))
       assert.ok(analysis.preview?.elementBalance.includes('기운이 먼저 보이고'))

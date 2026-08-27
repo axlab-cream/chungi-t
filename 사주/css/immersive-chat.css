@@ -52,8 +52,9 @@ body {
 
 .brand {
   text-align: center;
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 950;
+  white-space: nowrap;
 }
 
 .saju-chip {

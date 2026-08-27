@@ -1,6 +1,6 @@
 # chungi_t 아키텍처
 
-남부대공 **개인 사주 기반 LLM 대화 엔진** 전용 프로젝트입니다.
+천명대공(天命大公) **개인 사주 기반 LLM 대화 엔진** 전용 프로젝트입니다.
 
 ## 데이터 흐름
 
@@ -19,7 +19,7 @@ flowchart TD
   J[Conversation History] --> H
   H --> K[LLM Messages]
   K --> L[외부 LLM API]
-  L --> M[남부대공 답변]
+  L --> M[천명대공(天命大公) 답변]
 ```
 
 ## 디렉토리 구조
