@@ -2565,6 +2565,7 @@
         previewTwo: "assets/chungi-preview-two.png",
         assetTwo: "assets/chungi-asset-two.png",
         manseryeokBg: "assets/chungi-manseryeok-bg.png",
+        characterA: "assets/chungi-character-a.png",
       };
 
       const sampleAssets = {
@@ -3206,7 +3207,7 @@
         `;
       }
 
-      function sampleSourceSections(displayName, concernHead, dominantElement, heroCharacter = sampleAssets.heroCharacter, showHeroDecor = true, heroCopy = `${displayName}<br />네 사주의 결이 보입니다`, showWorryBubble = true, worryBg = sampleAssets.worryBg, worryCopy = `<p><span class="red">${dominantElement}</span> 기운이 꽤 강하군요</p><p>보통 팔자가 아닌데?</p>`, palzaCopy = `<p>네가 어떤 사람인지,<br />네 고민이 뭔지,<br />난 다 보여</p>`, showPalzaBubbleTwo = true, showPalzaBubbleOne = true, palzaBg = sampleAssets.palzaBg, assetOne = sampleAssets.assetOne, showAssetOneTopCopy = true, assetOneBottomCopy = `<p>${concernHead} 때문에 여기까지 온 것이로군요.</p>`, previewTwoCopy = `<h2>사주의 결부터<br />차분히 풀어드리겠습니다</h2>`, previewTwo = sampleAssets.previewTwo, assetTwoTopCopy = `<p>${displayName}님의 사주<br />입력한 생년월일 기준</p>`, assetTwo = sampleAssets.assetTwo, showManseryeokBubble = true, manseryeokTopCopy = `<h2>네 팔자가 앞으로<br />어떻게 흘러갈까?</h2>`, manseryeokBg = sampleAssets.manseryeokBg, showFrameCharacter = true, showCharacterAImage = true, characterACopy = `<h2>나는 좋은 말만<br />해주지는 않습니다</h2>`, showCharacterCImage = true, showCharacterCCopy = true) {
+      function sampleSourceSections(displayName, concernHead, dominantElement, heroCharacter = sampleAssets.heroCharacter, showHeroDecor = true, heroCopy = `${displayName}<br />네 사주의 결이 보입니다`, showWorryBubble = true, worryBg = sampleAssets.worryBg, worryCopy = `<p><span class="red">${dominantElement}</span> 기운이 꽤 강하군요</p><p>보통 팔자가 아닌데?</p>`, palzaCopy = `<p>네가 어떤 사람인지,<br />네 고민이 뭔지,<br />난 다 보여</p>`, showPalzaBubbleTwo = true, showPalzaBubbleOne = true, palzaBg = sampleAssets.palzaBg, assetOne = sampleAssets.assetOne, showAssetOneTopCopy = true, assetOneBottomCopy = `<p>${concernHead} 때문에 여기까지 온 것이로군요.</p>`, previewTwoCopy = `<h2>사주의 결부터<br />차분히 풀어드리겠습니다</h2>`, previewTwo = sampleAssets.previewTwo, assetTwoTopCopy = `<p>${displayName}님의 사주<br />입력한 생년월일 기준</p>`, assetTwo = sampleAssets.assetTwo, showManseryeokBubble = true, manseryeokTopCopy = `<h2>네 팔자가 앞으로<br />어떻게 흘러갈까?</h2>`, manseryeokBg = sampleAssets.manseryeokBg, showFrameCharacter = true, characterA = sampleAssets.characterA, showCharacterAImage = true, characterACopy = `<h2>나는 좋은 말만<br />해주지는 않습니다</h2>`, showCharacterCImage = true, showCharacterCCopy = true) {
         return `
           <section class="source-section tall" data-sample-section="hero-character">
             <img data-source-asset="heroCharacter" alt="신당에 앉은 도령" class="source-img center-wide" src="${heroCharacter}" />
@@ -3272,7 +3273,7 @@
           </section>` : ""}
 
           <section class="source-section tall" data-sample-section="character-a">
-            ${showCharacterAImage ? sourceImg("characterA", "source-img center-wide", "좋은 말만 하지 않는 캐릭터") : ""}
+            ${showCharacterAImage ? `<img data-source-asset="characterA" alt="좋은 말만 하지 않는 캐릭터" class="source-img center-wide" src="${characterA}" />` : ""}
             <div class="source-fade"></div>
             ${characterACopy ? `<div class="source-copy bottom">${characterACopy}</div>` : ""}
           </section>
@@ -3719,7 +3720,7 @@
             ${storyTopNavMarkup()}
             ${sampleVideoMarkup(landingSampleVideo, "sample-upload-blend")}
             ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "", "")}
-            ${sampleSourceSections("당신", "직장 운", "기운", landingSourceAssets.heroCharacter, false, '이미 당신 <span class="red">사주</span>는<br />정해져 있습니다.<br /><span class="red">그런데...</span>', false, landingSourceAssets.worryBg, '<p class="landing-worry-copy">사주를 보니 당신의<br /><span class="red">기운</span>과 <span class="red">운명</span>이<br />바뀌고 있네요.</p>', '<p>이미 네 <span class="red">팔자</span>는 정해져 있어<br />그 <span class="red">굴레</span>를 벗어나긴 힘들지...</p>', false, false, landingSourceAssets.palzaBg, landingSourceAssets.assetOne, false, '<p><span class="red">직장</span> 운 때문에 여기까지 나를 찾았나?<br />그것은 여러가지 <span class="red">기운</span>에 의해 변하게 되지</p>', '<h2>과거로부터 이어온<br />자네의 <span class="red">팔자</span>가 보이는 구나.</h2>', landingSourceAssets.previewTwo, "", landingSourceAssets.assetTwo, false, '<h2>모든 운명은<br /><span class="red">시간</span>과 <span class="red">공간</span>이 얽히는<br />순간부터 시작되지....</h2>', landingSourceAssets.manseryeokBg, false, false, '<h2>인생의 굴곡엔<br />좋은운만 있지 않습니다.</h2>', false, false)}
+            ${sampleSourceSections("당신", "직장 운", "기운", landingSourceAssets.heroCharacter, false, '이미 당신 <span class="red">사주</span>는<br />정해져 있습니다.<br /><span class="red">그런데...</span>', false, landingSourceAssets.worryBg, '<p class="landing-worry-copy">사주를 보니 당신의<br /><span class="red">기운</span>과 <span class="red">운명</span>이<br />바뀌고 있네요.</p>', '<p>이미 네 <span class="red">팔자</span>는 정해져 있어<br />그 <span class="red">굴레</span>를 벗어나긴 힘들지...</p>', false, false, landingSourceAssets.palzaBg, landingSourceAssets.assetOne, false, '<p><span class="red">직장</span> 운 때문에 여기까지 나를 찾았나?<br />그것은 여러가지 <span class="red">기운</span>에 의해 변하게 되지</p>', '<h2>과거로부터 이어온<br />자네의 <span class="red">팔자</span>가 보이는 구나.</h2>', landingSourceAssets.previewTwo, "", landingSourceAssets.assetTwo, false, '<h2>모든 운명은<br /><span class="red">시간</span>과 <span class="red">공간</span>이 얽히는<br />순간부터 시작되지....</h2>', landingSourceAssets.manseryeokBg, false, landingSourceAssets.characterA, true, '<h2>인생의 굴곡엔<br />좋은운만 있지 않습니다.</h2>', false, false)}
             <div class="sample-enter">
               <button class="primary-cta" type="button" data-action="enter">남부대공에게 사주보기</button>
               <p class="fineprint">원본 샘플의 이미지와 말투를 먼저 확인한 뒤, 입력 단계로 이어집니다.</p>
