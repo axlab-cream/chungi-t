@@ -489,7 +489,7 @@ function renderBasicSpec() {
 function renderReportLoading(section) {
   const display = sectionCopy(section)
   const loadingLines = [
-    '천기 선생님이 지금 당신에게 먼저 보이는 흐름을 짚고 있습니다.',
+    '남부대공이 지금 당신에게 먼저 보이는 흐름을 짚고 있습니다.',
     '흩어진 마음의 신호를 한 줄로 모아 이 장을 여는 중입니다.',
     '오래된 기운 위에 지금의 질문을 올려 보고 있습니다.',
     '조금만 기다리세요. 이 장에서 먼저 볼 대목이 드러나고 있습니다.',
@@ -514,7 +514,7 @@ function renderSelectedSection() {
     return `
       <div class="report-empty">
         <strong>목차를 누르면 해당 장이 열립니다.</strong>
-        <span>기본 스펙 다음부터는 천기 선생님이 한 장씩 깊게 풀어드립니다.</span>
+        <span>기본 스펙 다음부터는 남부대공이 한 장씩 깊게 풀어드립니다.</span>
       </div>
     `
   }
@@ -525,7 +525,7 @@ function renderSelectedSection() {
   if (reportState.loadingSectionId === section.id) return renderReportLoading(section)
 
   const warning = section.generatedBy === 'template'
-    ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 천기 선생님이 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
+    ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 남부대공이 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
     : ''
   const imageHook = section.hook || section.description || '사주의 결이 보입니다'
   const sectionIndex = sections.findIndex((item) => item.id === section.id)
@@ -539,7 +539,7 @@ function renderSelectedSection() {
         <div>${escapeHtml(imageHook)}</div>
       </div>
       <div class="report-section-head">
-        <span>${displayOrder} · 천기 풀이</span>
+        <span>${displayOrder} · 남부대공 풀이</span>
         <h3>${escapeHtml(display.title)}</h3>
         <p>${escapeHtml(display.subtitle)}</p>
       </div>
@@ -565,7 +565,7 @@ function renderReportHub() {
     <section class="report-toc-panel">
       <div class="report-panel-head">
         <span>보고 싶은 운을 먼저 고르세요</span>
-        <h2>${escapeHtml(report?.title || '천기 선생님 상세 풀이')}</h2>
+        <h2>${escapeHtml(report?.title || '남부대공 상세 풀이')}</h2>
         <p>재물운은 일·재물, 연애운은 관계·연애처럼 큰 문으로 먼저 나눴습니다.</p>
       </div>
       <div class="report-toc-grid" role="list">
@@ -690,7 +690,7 @@ if (session) {
 
   if (session.history.length === 0) {
     appendBubble('assistant',
-      '잘 오셨습니다. 방금 펼친 사주의 결을 이어서 보겠습니다. 묻고 싶은 걸 한 문장으로 던져보세요. 천기 선생님이 하나씩 풀어드리겠습니다.',
+      '잘 오셨습니다. 방금 펼친 사주의 결을 이어서 보겠습니다. 묻고 싶은 걸 한 문장으로 던져보세요. 남부대공이 하나씩 풀어드리겠습니다.',
       false)
     if (session.initialConcern) {
       appendBubble('assistant', `"${session.initialConcern}" 때문에 여기까지 왔군요. 그 고민도 사주의 흐름 안에서 같이 보겠습니다.`, false)

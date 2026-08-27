@@ -25,7 +25,7 @@
 
 **Findings**
 - No remaining P0/P1/P2 findings.
-- P3: the sample text says `범산 도령이다`; implementation intentionally uses the project persona `천기 선생님이다`.
+- P3: the sample text says `범산 도령이다`; implementation intentionally uses the project persona `남부대공이다`.
 - P3: the source video is a tall autoplay teaser, so the first section now renders as a real muted autoplay video instead of a short native-controls strip.
 
 **Required Fidelity Surfaces**
@@ -36,7 +36,7 @@
 - Copy and content: 34 text blocks were checked; 34/34 were non-empty and rendered. Result flow also keeps the LLM 상담 CTA.
 
 **Comparison History**
-- Previous state: top started with the old `천기 선생님` header/person background instead of the MHTML sample.
+- Previous state: top started with the old `남부대공` header/person background instead of the MHTML sample.
 - Iteration 1: replaced top with video/title/fan order and inserted source image sections.
 - Iteration 2: changed video to `preload="none"` so the first view showed black native controls.
 - Iteration 3: increased intro height so the next speech bubble appears only at the bottom edge.

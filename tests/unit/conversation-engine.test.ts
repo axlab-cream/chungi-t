@@ -24,7 +24,7 @@ describe('[TASK] 대화 엔진 테스트 하네스', () => {
       assert.ok(result.messages[0].role === 'system')
       assert.ok(result.messages[0].content.includes('<personal_saju>'))
       assert.ok(result.messages[0].content.includes('<rag_knowledge>'))
-      assert.ok(result.messages[0].content.includes('천기 선생님'))
+      assert.ok(result.messages[0].content.includes('남부대공'))
       assert.ok(result.messages[0].content.includes('사주의 결부터 하나씩 풀어드리겠습니다'))
       assert.equal(result.intent, 'love')
       assert.ok(result.sajuAnalysis.dayMaster)

@@ -330,7 +330,7 @@ const isDirectRun = process.argv[1] ? resolve(process.argv[1]) === resolve(__fil
 
 if (isDirectRun) {
   app.listen(PORT, () => {
-    console.log(`천기 선생님 서버: http://localhost:${PORT}`)
+    console.log(`남부대공 서버: http://localhost:${PORT}`)
     console.log(`사주 입력: http://localhost:${PORT}/index.html`)
     console.log(`OpenAI: ${isOpenAiConfigured() ? '연결됨' : 'API 키 필요 (.env)'}`)
   })

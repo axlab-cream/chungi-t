@@ -11,7 +11,7 @@
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
-| Live site | 확인됨 | `https://chungi-t.vercel.app/` 첫 화면 제목은 `천기 선생님 · 사주` |
+| Live site | 확인됨 | `https://chungi-t.vercel.app/` 첫 화면 제목은 `남부대공 · 사주` |
 | Local Git | 확인됨 | 로컬 폴더 `C:\Users\USER\MCP\OneDrive\문서\ChatGPT\천기선생`은 `origin/main`을 추적 |
 | GitHub repo | 확인됨 | `jaeyong-planner/chungi-t`, default branch `main`, HEAD `5b8f70544751c2839af9a8cbd7dff92ce2036f3a` |
 | Vercel local link | 확인됨 | `.vercel/project.json` projectId `prj_83OG8hBV8JxhI10zAlbUVUXRpYV3`, orgId `team_l0ovcxd3Fv5NvzWfI2ltgPsA` |

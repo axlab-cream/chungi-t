@@ -13,7 +13,7 @@ const result = prepareConversation({
   message: sample.sampleQuestions[0],
 })
 
-console.log('=== 천기 선생님 대화 엔진 데모 ===\n')
+console.log('=== 남부대공 대화 엔진 데모 ===\n')
 console.log('【사주 분석】')
 console.log(result.sajuAnalysis.summary)
 console.log('\n【검색된 RAG】')

@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>천기 선생님 · 사주</title>
-    <meta name="description" content="천기 선생님 몰입형 사주 상담" />
+    <title>남부대공 · 사주</title>
+    <meta name="description" content="남부대공 몰입형 사주 상담" />
     <style>
       @font-face {
         font-family: "Maru Buri";
@@ -2449,7 +2449,7 @@
             />
           </svg>
         </button>
-        <div class="brand">천기 선생님</div>
+        <div class="brand">남부대공</div>
         <button class="icon-button" type="button" aria-label="설정 열기" data-open-settings>
           <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -2802,7 +2802,7 @@
           <div class="settings-sheet" role="dialog" aria-modal="true" aria-label="설정">
             <div class="settings-head">
               <div>
-                <strong>천기 선생님</strong>
+                <strong>남부대공</strong>
                 <span>풀이 보관함</span>
               </div>
               <button class="icon-button" type="button" aria-label="설정 닫기" data-settings-close>
@@ -3075,13 +3075,13 @@
 
       function storyTopNavMarkup() {
         return `
-          <nav class="story-local-nav" aria-label="천기 선생님 상단 메뉴">
+          <nav class="story-local-nav" aria-label="남부대공 상단 메뉴">
             <button class="icon-button" type="button" aria-label="뒤로가기" data-action="prev">
               <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
-            <div class="story-local-title">천기 선생님</div>
+            <div class="story-local-title">남부대공</div>
             <button class="story-vault-button" type="button" data-action="open-settings">보관함</button>
           </nav>
         `;
@@ -3165,7 +3165,7 @@
       function sampleVideoMarkup(video = sampleVideo, shellClass = "") {
         return `
           <section class="sample-video-shell ${shellClass}" data-sample-section="video">
-            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천기 선생님 티저 영상">
+            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="남부대공 티저 영상">
               ${video.webm ? `<source src="${video.webm}" type="video/webm" />` : ""}
               <source src="${video.mp4}" type="video/mp4" />
             </video>
@@ -3177,7 +3177,7 @@
         return `
           <section class="sample-intro-top ${sectionClass}" data-sample-section="sample-top">
             <img data-source-asset="introBg" alt="부채를 펼치는 손" class="sample-intro-bg" src="${introBg}" />
-            <h1 class="sample-intro-title">너의 점사를 풀<br /><span>천기 선생님이다</span></h1>
+            <h1 class="sample-intro-title">너의 점사를 풀<br /><span>남부대공이다</span></h1>
             <div class="sample-sfx ${sfxClass}">${sfxText}</div>
           </section>
         `;
@@ -3500,7 +3500,7 @@
               ${renderReportTocMarkup(sections, activeIndex)}
             </div>
             <div data-report-reader>
-              ${renderReportPageMarkup(section, activeIndex, sections.length, "", "천기 선생님이 이 장의 기운을 펼치는 중입니다")}
+              ${renderReportPageMarkup(section, activeIndex, sections.length, "", "남부대공이 이 장의 기운을 펼치는 중입니다")}
             </div>
           </section>
         `;
@@ -3641,7 +3641,7 @@
           return;
         }
 
-        showReportPageFrame(templateSection, "천기 선생님이 이 장의 기운을 펼치는 중입니다");
+        showReportPageFrame(templateSection, "남부대공이 이 장의 기운을 펼치는 중입니다");
         try {
           const generated = await fetchReportSection(templateSection);
           if (token !== state.reportRequestToken) return;
@@ -3698,7 +3698,7 @@
             ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "훗", "bubble-sfx")}
             ${sampleSourceSections("당신", "직장 운", "기운", landingSourceAssets.heroCharacter, false, '이미 당신 <span class="red">사주</span>는<br />정해져 있습니다.<br /><span class="red">그런데...</span>', false, landingSourceAssets.worryBg, '<p class="landing-worry-copy">사주를 보니 당신의<br /><span class="red">기운</span>과 <span class="red">운명</span>이<br />보이는 군요.</p>', '<p>이미 네 운명은 정해져 있어<br />그 굴레를 벗어나긴 힘들지...</p>', false, false, landingSourceAssets.palzaBg)}
             <div class="sample-enter">
-              <button class="primary-cta" type="button" data-action="enter">천기 선생님에게 사주보기</button>
+              <button class="primary-cta" type="button" data-action="enter">남부대공에게 사주보기</button>
               <p class="fineprint">원본 샘플의 이미지와 말투를 먼저 확인한 뒤, 입력 단계로 이어집니다.</p>
             </div>
           </article>
@@ -3889,7 +3889,7 @@
             <div class="interpret-loader-card" role="status" aria-live="polite">
               <div class="interpret-orb" aria-hidden="true"></div>
               <div class="interpret-loader-copy">
-                <div class="line-pill">천기 선생님이 해석하고 있습니다</div>
+                <div class="line-pill">남부대공이 해석하고 있습니다</div>
                 <p>입력한 사주 기둥과 지금의 기운을 맞춰<br />당신에게만 열리는 풀이를 준비합니다</p>
               </div>
               <div class="interpret-progress" aria-hidden="true"></div>
@@ -3964,7 +3964,7 @@
               </div>
               <div class="story-caption">
                 <p>${displayName}님의 점사가 열렸습니다</p>
-                <h1>너의 점사를 풀<br /><span style="background:linear-gradient(to bottom,#fff,#cb3826);-webkit-background-clip:text;background-clip:text;color:transparent">천기 선생님이다</span></h1>
+                <h1>너의 점사를 풀<br /><span style="background:linear-gradient(to bottom,#fff,#cb3826);-webkit-background-clip:text;background-clip:text;color:transparent">남부대공이다</span></h1>
               </div>
             </section>
 
@@ -4132,7 +4132,7 @@
             </section>
 
             <section class="story-section" data-sample-section="package">
-              <span class="chapter">천기 선생님 상담</span>
+              <span class="chapter">남부대공 상담</span>
               <h2>정통사주 깊은 풀이</h2>
               <div class="package-card">
                 <h3>${displayName}님 사주 기반 상담 구성</h3>
@@ -4145,7 +4145,7 @@
                 </ul>
                 <div class="price-slate" aria-label="복채 안내">
                   <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천기 상담 연결</span><span>-13,200원</span></div>
+                  <div class="price-line"><span>남부대공 상담 연결</span><span>-13,200원</span></div>
                   <div class="price-line final"><span>지금 열기</span><span>49,800원</span></div>
                 </div>
               </div>
@@ -4161,11 +4161,11 @@
             <section class="story-section center tall" data-sample-section="comparison">
               <span class="chapter">얄팍한 풀이와 다릅니다</span>
               <h2 class="hero-line">한 해 운세만 보고<br />끝낼 생각입니까?</h2>
-              <p>천기 선생님 풀이는 태어난 순간의 결, 지금의 질문, 앞으로의 흐름을 한 줄로 엮어 봅니다.</p>
+              <p>남부대공 풀이는 태어난 순간의 결, 지금의 질문, 앞으로의 흐름을 한 줄로 엮어 봅니다.</p>
               <div class="story-list">
                 <div class="story-list-item">사주팔자를 먼저 펼치고, 지금 고민이 왜 반복되는지 연결합니다.</div>
                 <div class="story-list-item">좋은 말만 늘어놓지 않고, 조심해야 할 방향도 같이 말합니다.</div>
-                <div class="story-list-item">상담 버튼을 누르면 천기 선생님이 같은 말투로 이어서 묻고 답합니다.</div>
+                <div class="story-list-item">상담 버튼을 누르면 남부대공이 같은 말투로 이어서 묻고 답합니다.</div>
               </div>
             </section>
 
@@ -4191,7 +4191,7 @@
               <span class="chapter">책 한 권 분량</span>
               <h2 class="hero-line">5만 자의 풀이가<br />상담으로 이어집니다</h2>
               <p>하지만 여기서는 길게 늘어놓기보다, 먼저 ${displayName}님이 묻고 싶은 것부터 바로 파고들겠습니다.</p>
-              <div class="story-callout">말투도, 흐름도, 방금 본 천기 선생님 그대로 이어집니다.</div>
+              <div class="story-callout">말투도, 흐름도, 방금 본 남부대공 그대로 이어집니다.</div>
             </section>
 
             <section class="story-section" data-sample-section="contents-list">
@@ -4215,7 +4215,7 @@
             <section class="story-section deep" data-sample-section="reviews">
               <span class="chapter">실제 상담 흐름</span>
               <h2>혼자 읽고 끝나는 풀이가 아닙니다</h2>
-              <p>결과를 읽다가 걸리는 문장이 생기면 바로 묻습니다. 천기 선생님이 같은 사주표를 붙잡고 이어서 봅니다.</p>
+              <p>결과를 읽다가 걸리는 문장이 생기면 바로 묻습니다. 남부대공이 같은 사주표를 붙잡고 이어서 봅니다.</p>
               <div class="stats" aria-label="상담 지표">
                 <div class="stat"><strong>1:1</strong><span>맞춤 상담</span></div>
                 <div class="stat"><strong>24</strong><span>오행 흐름</span></div>
@@ -4230,7 +4230,7 @@
             <section class="story-section flush-bottom" data-sample-section="proof-and-chat">
               <span class="chapter">마지막 확인</span>
               <h2>이제 상담으로 들어갑니다</h2>
-              <p>방금 펼친 사주를 바탕으로 더 깊은 상담에 들어갑니다. 묻고 싶은 걸 던지면 천기 선생님이 같은 말투로 이어서 풀어드립니다.</p>
+              <p>방금 펼친 사주를 바탕으로 더 깊은 상담에 들어갑니다. 묻고 싶은 걸 던지면 남부대공이 같은 말투로 이어서 풀어드립니다.</p>
               <div class="proof-stack">
                 <div class="proof-row"><span>분석 기준</span><strong>${birthLabel}</strong></div>
                 <div class="proof-row"><span>먼저 보이는 기운</span><strong>${dayMasterElement}</strong></div>
@@ -4239,7 +4239,7 @@
             </section>
 
             <div class="sticky-story-cta">
-              <button class="primary-cta" type="button" data-action="open-chat">사주 풀이 · 천기 선생님 상담</button>
+              <button class="primary-cta" type="button" data-action="open-chat">사주 풀이 · 남부대공 상담</button>
             </div>
           </article>
         `;
