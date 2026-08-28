@@ -17,6 +17,7 @@ import { evaluateReportQuality } from './report-quality.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? 'gpt-5.5'
+const MIN_OPENAI_SECTION_CHARS = 1700
 
 type ReportFocus =
   | 'profile'
@@ -664,6 +665,10 @@ function sectionBriefForSection(section: Pick<SajuReportSection, 'id'>): Section
   return mergeSectionBrief(FOCUS_SECTION_BRIEFS.reportDepth)
 }
 
+function sectionBlueprintForId(sectionId: string): ReportBlueprint | undefined {
+  return REPORT_BLUEPRINTS.find((item) => item.id === sectionId)
+}
+
 function sectionBriefQuery(brief: SectionBrief): string {
   return [
     brief.uniqueAngle,
@@ -984,6 +989,33 @@ function paidSpecificTail(
     sectionSceneParagraph(blueprint, analysis, context, brief),
     `[해법] ${name}님이 이 장에서 바로 확인할 기준은 ${slots}입니다. 생활에서는 ${anchors}을 먼저 관찰하세요. ${timing.currentYear}년 ${timing.yearPillar} 세운에는 신호가 커지기 전에 기록하고, ${timing.nextYear}년에는 남길 선택과 줄일 선택을 더 분명히 나누는 쪽이 좋습니다.`,
   ].join('\n\n')
+}
+
+function ensurePaidSectionDepth(
+  section: SajuReportSection,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+  interpretation: string,
+): string {
+  const cleaned = interpretation.trim()
+  if (cleaned.length >= MIN_OPENAI_SECTION_CHARS) return cleaned
+
+  const blueprint = sectionBlueprintForId(section.id)
+  if (!blueprint) return cleaned
+
+  const brief = sectionBriefForBlueprint(blueprint)
+  const name = cleanContextValue(context.name, cleanContextValue(context.target, '당신'))
+  const concern = cleanContextValue(context.concern, '지금 고민')
+  const timing = reportTiming(analysis)
+  const anchors = compactList(brief.sceneAnchors, 4)
+  const slots = compactList(brief.requiredSlots, 5)
+  const topUp = [
+    paidSpecificTail(blueprint, analysis, context, section.ragTopics),
+    `[주의할 점] ${name}님에게 이 장이 짧게 느껴지면 결제감이 떨어집니다. 그래서 ${concern}을 추상적인 위로로 끝내지 않고, ${anchors}에서 무엇이 반복되는지 다시 확인해야 합니다. ${timing.currentYear}년 ${timing.yearPillar} 세운에는 이 신호가 작게 먼저 올라오고, ${timing.nextYear}년에는 남길 선택과 끊을 선택의 차이가 더 분명해질 수 있습니다.`,
+    `[해법] 이 섹션의 결론은 ${slots}을 실제 행동으로 바꾸는 것입니다. 오늘 당장 할 일은 큰 결심이 아니라 기록 하나, 거절 기준 하나, 돈이나 관계가 새는 장면 하나를 잡는 겁니다. 이 문단까지 붙어야 49,800원 리포트에서 사용자가 “내 상황을 보고 쓴 글”이라고 느낄 수 있습니다.`,
+  ].join('\n\n')
+
+  return [cleaned, topUp].join('\n\n')
 }
 
 function buildInterpretation(
@@ -1339,9 +1371,10 @@ function mergeOpenAiReport(
   const sections = baseReport.sections.map((section) => {
     const next = generatedSections.find((item) => item.id === section.id)
     const hook = typeof next?.hook === 'string' && next.hook.trim() ? next.hook.trim() : section.hook
-    const interpretation = typeof next?.interpretation === 'string' && next.interpretation.trim()
+    const generatedInterpretation = typeof next?.interpretation === 'string' && next.interpretation.trim()
       ? next.interpretation.trim()
       : section.interpretation
+    const interpretation = ensurePaidSectionDepth(section, analysis, context, generatedInterpretation)
 
     return {
       ...section,
@@ -1389,12 +1422,14 @@ export async function buildOpenAiSajuReportSection(
   })
   const parsed = extractJsonObject(raw) as { hook?: unknown; interpretation?: unknown }
 
+  const generatedInterpretation = typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
+    ? parsed.interpretation.trim()
+    : section.interpretation
+
   return {
     ...section,
     hook: typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
-    interpretation: typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
-      ? parsed.interpretation.trim()
-      : section.interpretation,
+    interpretation: ensurePaidSectionDepth(section, analysis, context, generatedInterpretation),
   }
 }
 
