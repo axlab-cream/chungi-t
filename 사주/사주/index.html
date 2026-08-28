@@ -1520,98 +1520,6 @@
         height: auto;
       }
 
-      .source-chapters {
-        position: relative;
-        display: grid;
-        gap: 78px;
-        padding: 70px 0 96px;
-        overflow: hidden;
-        background: #000;
-      }
-
-      .source-chapters::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        opacity: 0.38;
-        background-image: var(--chapter-bg);
-        background-position: center top;
-        background-repeat: repeat-y;
-        background-size: 436px auto;
-        transform: scaleX(-1);
-      }
-
-      .chapter-card {
-        position: relative;
-        z-index: 1;
-        width: 304px;
-        min-height: 330px;
-        margin: 0 auto;
-        padding: 52px 28px 42px;
-        text-align: center;
-      }
-
-      .source-asset.union {
-        position: relative;
-        z-index: 1;
-        width: 335px;
-        margin: 0 auto -20px;
-      }
-
-      .source-asset.chapter-divider {
-        position: relative;
-        z-index: 1;
-        width: 48px;
-        margin: -28px auto;
-      }
-
-      .chapter-card > img {
-        position: absolute;
-        inset: -50px;
-        width: calc(100% + 100px);
-        height: calc(100% + 100px);
-        pointer-events: none;
-      }
-
-      .chapter-card strong {
-        position: relative;
-        z-index: 1;
-        display: inline-grid;
-        place-items: center;
-        width: 155px;
-        height: 59px;
-        border: 1px solid #000;
-        border-radius: 20px;
-        background: #720000;
-        color: #f45;
-        font-size: 32px;
-        font-weight: 950;
-      }
-
-      .chapter-card p,
-      .chapter-card ul {
-        position: relative;
-        z-index: 1;
-      }
-
-      .chapter-card p {
-        margin: 18px 0 18px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 17px;
-        line-height: 1.6;
-      }
-
-      .chapter-card ul {
-        display: grid;
-        gap: 10px;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        color: #fff;
-        font-size: 16px;
-        line-height: 1.5;
-      }
-
       .brand-proof {
         position: relative;
         background: #121212;
@@ -2683,17 +2591,10 @@
         lastSajuBook: "assets/chungi-last-saju-book.webp",
         finalSajuBg: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/28_final_saju_bg.png",
         daewoonCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/36_daewoon_character.png",
-        chapterDecoration: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_decoration_bg.png",
-        chapterBorderOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_1.svg",
-        chapterBorderTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_2.svg",
-        chapterBorderThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_3.svg",
-        chapterBorderFour: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_border_4.svg",
-        chapterDivider: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/chapter_divider.svg",
         dividerLine: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/divider_line.svg",
         speechBubbleOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_1.svg",
         speechBubbleTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_2.svg",
         speechBubbleThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_3.svg",
-        unionDecoration: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/union_decoration.svg",
         wealthChart: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/wealth_chart.png",
         soloLogo: "https://cdn.sajutight.me/common/solorun_x_tight.png",
         brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
@@ -3451,35 +3352,6 @@
           <section class="source-full-section" data-sample-section="last-saju-book">
             ${sourceImg("lastSajuBook", "source-full-img", "사주 책 이미지")}
             <div class="source-fade"></div>
-          </section>
-
-          <section class="source-chapters" data-sample-section="chapters" style="--chapter-bg:url('${sampleAssets.chapterDecoration}')">
-            ${sourceImg("unionDecoration", "source-asset union", "장식선")}
-            <div class="chapter-card">
-              ${sourceImg("chapterBorderOne", "", "1장 테두리")}
-              <strong>第一章</strong>
-              <p>착한 척은 그만해도 됩니다</p>
-              <ul><li>숨겨진 진짜 성격</li><li>반복되는 고민의 결</li></ul>
-            </div>
-            ${sourceImg("chapterDivider", "source-asset chapter-divider", "챕터 구분 장식")}
-            <div class="chapter-card">
-              ${sourceImg("chapterBorderTwo", "", "2장 테두리")}
-              <strong>第二章</strong>
-              <p>네 안의 진짜 욕망은 따로 있습니다</p>
-              <ul><li>돈구멍을 막는 법</li><li>일의 방향을 바꾸는 때</li></ul>
-            </div>
-            <div class="chapter-card">
-              ${sourceImg("chapterBorderThree", "", "3장 테두리")}
-              <strong>第三章</strong>
-              <p>이상하지. 끌리는 사람은 따로 보입니다</p>
-              <ul><li>오래 남는 인연</li><li>멀리해야 할 관계</li></ul>
-            </div>
-            <div class="chapter-card">
-              ${sourceImg("chapterBorderFour", "", "4장 테두리")}
-              <strong>第四章</strong>
-              <p>인정하지. 아직 끝난 흐름이 아닙니다</p>
-              <ul><li>앞으로 바뀔 큰 흐름</li><li>지금 붙잡아야 할 신호</li></ul>
-            </div>
           </section>
 
           ${showFinalSajuSection ? `<section class="source-section" data-sample-section="final-saju-bg">
