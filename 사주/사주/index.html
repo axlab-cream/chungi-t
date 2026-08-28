@@ -1261,6 +1261,12 @@
         min-height: 1070px;
       }
 
+      .source-full-section {
+        position: relative;
+        overflow: hidden;
+        background: #000;
+      }
+
       .source-img {
         position: absolute;
         inset: 0;
@@ -3399,8 +3405,9 @@
             <div class="source-copy bottom"><h2>읽는데 2시간은<br />족히 넘게 걸릴 겁니다</h2></div>
           </section>
 
-          <section data-sample-section="last-saju-book">
+          <section class="source-full-section" data-sample-section="last-saju-book">
             ${sourceImg("lastSajuBook", "source-full-img", "사주 책 이미지")}
+            <div class="source-fade"></div>
           </section>
 
           <section class="source-chapters" data-sample-section="chapters" style="--chapter-bg:url('${sampleAssets.chapterDecoration}')">
