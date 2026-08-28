@@ -1290,6 +1290,11 @@
         object-fit: contain;
       }
 
+      .source-img.soft-y-blend {
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+      }
+
       .source-img.center-wide {
         left: 50%;
         width: 142%;
@@ -3394,7 +3399,7 @@
 
           <section class="source-section short" data-sample-section="mask-hand">
             ${sourceImg("sajuRadialBg", "source-img contain", "붉은 원형 사주 배경")}
-            ${sourceImg("maskHand", "source-img contain", "가면을 든 손")}
+            ${sourceImg("maskHand", "source-img contain soft-y-blend", "가면을 든 손")}
             <div class="source-fade"></div>
           </section>
 
