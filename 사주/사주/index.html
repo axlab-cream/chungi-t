@@ -1033,6 +1033,7 @@
         position: absolute;
         top: 50%;
         right: 17px;
+        z-index: 2;
         width: 76px;
         height: 42px;
         transform: translateY(-50%);
@@ -1050,6 +1051,29 @@
       }
 
       .story-vault-button:focus-visible {
+        outline: 2px solid rgba(255, 226, 183, 0.86);
+        outline-offset: 3px;
+      }
+
+      .story-local-back {
+        position: absolute;
+        top: 50%;
+        left: 16px;
+        z-index: 2;
+        width: 42px;
+        height: 42px;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.18);
+        color: #fff8ef;
+        box-shadow: none;
+      }
+
+      .story-local-back:focus-visible {
         outline: 2px solid rgba(255, 226, 183, 0.86);
         outline-offset: 3px;
       }
@@ -3158,9 +3182,16 @@
         })[char]);
       }
 
-      function storyTopNavMarkup() {
+      function storyTopNavMarkup(showBack = false) {
         return `
           <nav class="story-local-nav" aria-label="천명대공(天命大公) 상단 메뉴">
+            ${showBack ? `
+              <button class="story-local-back" type="button" aria-label="뒤로가기" data-action="prev">
+                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            ` : ""}
             <div class="story-local-title" aria-label="천명대공(天命大公)">
               <img class="story-local-logo" src="assets/chungi-nav-logo.webp" alt="천명대공 상단 로고" />
             </div>
@@ -4027,7 +4058,7 @@
 
         stage.innerHTML = `
           <article class="story sample-story">
-            ${storyTopNavMarkup()}
+            ${storyTopNavMarkup(true)}
 
             <section class="story-visual visual-intro tall" data-sample-section="intro" aria-label="사주 결과 인트로 이미지"></section>
 
