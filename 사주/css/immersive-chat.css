@@ -33,14 +33,18 @@ body {
 }
 
 .topbar {
-  display: grid;
-  grid-template-columns: 44px 1fr 44px;
-  align-items: center;
-  height: 58px;
-  padding: 0 18px;
+  position: relative;
+  min-height: 58px;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
 }
 
 .icon-button {
+  position: absolute;
+  top: 12px;
+  left: 17px;
+  z-index: 2;
   width: 34px;
   height: 34px;
   border: 0;
@@ -50,11 +54,12 @@ body {
   cursor: pointer;
 }
 
-.brand {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 950;
-  white-space: nowrap;
+.chat-local-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  vertical-align: top;
 }
 
 .saju-chip {
