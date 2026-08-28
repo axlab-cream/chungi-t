@@ -10,6 +10,29 @@ const reportState = {
 }
 const HISTORY_KEY = 'cheongi_report_history_v1'
 const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
+const PDF_KEYWORDS = [
+  '천명대공',
+  '사주',
+  '팔자',
+  '기운',
+  '운명',
+  '인연',
+  '관계',
+  '재물',
+  '돈',
+  '고민',
+  '위험',
+  '해법',
+  '신호',
+  '시기',
+  '흐름',
+  '변화',
+  '비밀',
+  '진실',
+  '욕망',
+  '균형',
+  '선택',
+]
 let chatSaveTimer = 0
 const SECTION_COPY = {
   profile: ['내가 가진 진짜 매력', '남들이 보는 나와 내가 숨기는 결'],
@@ -397,6 +420,277 @@ function formatReadableHtml(text) {
     .join('')
 }
 
+function highlightPdfKeywords(value) {
+  const escaped = escapeHtml(value)
+  const pattern = new RegExp(`(${PDF_KEYWORDS.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g')
+  return escaped.replace(pattern, '<span class="pdf-key">$1</span>')
+}
+
+function normalizePdfText(text) {
+  return String(text || '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function markdownLikeHtml(text) {
+  const blocks = normalizePdfText(text).split(/\n{2,}/).filter(Boolean)
+  if (!blocks.length) return '<p>아직 이 장의 해석이 열리지 않았습니다.</p>'
+
+  return blocks.map((block) => {
+    const lines = block.split('\n').map((line) => line.trim()).filter(Boolean)
+    if (!lines.length) return ''
+
+    const heading = lines[0].match(/^(#{1,4})\s+(.+)$/)
+    if (heading) {
+      const level = Math.min(heading[1].length + 1, 4)
+      const rest = lines.slice(1).map((line) => `<p>${highlightPdfKeywords(line)}</p>`).join('')
+      return `<h${level}>${highlightPdfKeywords(heading[2])}</h${level}>${rest}`
+    }
+
+    if (lines.every((line) => /^[-*]\s+/.test(line))) {
+      return `<ul>${lines.map((line) => `<li>${highlightPdfKeywords(line.replace(/^[-*]\s+/, ''))}</li>`).join('')}</ul>`
+    }
+
+    return `<p>${lines.map(highlightPdfKeywords).join('<br>')}</p>`
+  }).join('')
+}
+
+function pdfSpecRows() {
+  const analysis = session?.analysis || {}
+  const birth = session?.birth || {}
+  const p = analysis.pillars || {}
+  const pillars = [p.year?.hanja, p.month?.hanja, p.day?.hanja, p.hour?.hanja].filter(Boolean).join(' · ') || '기운 확인 중'
+  return [
+    ['이름', birth.name || birth.target || '당신'],
+    ['생년월일', `${birth.calendar === 'lunar' ? '음력' : '양력'} ${formatBirthLabel(birth)}`],
+    ['사주 기둥', pillars],
+    ['먼저 보이는 기운', analysis.dominantElement || analysis.dayMaster?.element || '기운'],
+    ['보완할 흐름', analysis.usefulGod || analysis.weakElement || '균형'],
+    ['지금 물은 것', birth.concern || '지금 고민'],
+  ]
+}
+
+function buildPrintableReportHtml() {
+  const report = getReport()
+  const sections = getReportSections()
+  const title = report?.title || `${session?.birth?.name || '당신'}님의 사주 리포트`
+  const subtitle = report?.subtitle || '천명대공(天命大公)이 사주의 큰 흐름과 지금의 고민을 함께 정리했습니다.'
+  const generatedAt = new Date().toLocaleString('ko-KR', { dateStyle: 'long', timeStyle: 'short' })
+  const groups = groupedSections(sections)
+  const specRows = pdfSpecRows()
+
+  return `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="${escapeHtml(location.origin)}/" />
+  <title>${escapeHtml(title)} PDF</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0a0504;
+      color: #211715;
+      font-family: Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.74;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .sheet { max-width: 820px; margin: 0 auto; background: #fff9ef; }
+    .cover {
+      min-height: 100vh;
+      display: grid;
+      align-content: space-between;
+      gap: 32px;
+      padding: 36px;
+      color: #fff8ef;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(242, 191, 107, 0.36), transparent 30%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.1), #080302 68%),
+        #080302;
+      page-break-after: always;
+    }
+    .cover-logo { width: 100%; display: block; border-radius: 18px; }
+    .cover h1 { margin: 34px 0 0; font-size: 34px; line-height: 1.22; letter-spacing: 0; }
+    .cover p { max-width: 560px; margin: 16px 0 0; color: #e9d6bd; font-size: 16px; }
+    .cover-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 28px;
+    }
+    .cover-meta div {
+      padding: 13px 15px;
+      border: 1px solid rgba(242, 191, 107, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .cover-meta span { display: block; color: #f2bf6b; font-size: 12px; font-weight: 900; }
+    .cover-meta strong { display: block; margin-top: 4px; color: #fff8ef; font-size: 15px; }
+    .print-body { padding: 30px 36px 42px; }
+    .section { break-inside: avoid; padding: 24px 0; border-bottom: 1px solid #ead7bd; }
+    .section:last-child { border-bottom: 0; }
+    .kicker {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #f4e6cf;
+      color: #a52c22;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    h2 { margin: 12px 0 10px; color: #1a100e; font-size: 25px; line-height: 1.3; letter-spacing: 0; }
+    h3 { margin: 20px 0 8px; color: #2b1714; font-size: 19px; line-height: 1.38; letter-spacing: 0; }
+    h4 { margin: 16px 0 6px; color: #2b1714; font-size: 16px; line-height: 1.45; letter-spacing: 0; }
+    p { margin: 10px 0 0; word-break: keep-all; overflow-wrap: anywhere; }
+    ul { margin: 10px 0 0; padding-left: 20px; }
+    li { margin: 4px 0; }
+    .spec-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    .spec-table th, .spec-table td {
+      padding: 10px 0;
+      border-bottom: 1px solid #ead7bd;
+      text-align: left;
+      vertical-align: top;
+    }
+    .spec-table th { width: 120px; color: #a52c22; font-size: 13px; }
+    .toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .toc-group {
+      padding: 14px;
+      border: 1px solid #ead7bd;
+      border-radius: 12px;
+      background: #fff4e2;
+      break-inside: avoid;
+    }
+    .toc-group strong { display: block; color: #1a100e; font-size: 16px; }
+    .toc-group span { display: block; margin-top: 2px; color: #78554a; font-size: 12px; }
+    .toc-group ol { margin: 10px 0 0; padding-left: 22px; }
+    .toc-group li { padding-left: 2px; font-size: 12px; line-height: 1.5; }
+    .chapter { page-break-before: auto; }
+    .chapter-head {
+      padding: 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #24110e, #5b1712);
+      color: #fff8ef;
+    }
+    .chapter-head .kicker { background: rgba(242, 191, 107, 0.16); color: #f2bf6b; }
+    .chapter-head h2 { color: #fff8ef; }
+    .chapter-head p { color: #ead6bf; }
+    .reading { padding-top: 12px; color: #2a1d1a; font-size: 14px; }
+    .pdf-key { color: #d2342a; font-weight: 900; }
+    .footer {
+      padding: 18px 36px 28px;
+      color: #7a5a4c;
+      font-size: 11px;
+      text-align: center;
+      background: #fff9ef;
+    }
+    @media print {
+      body { background: #fff9ef; }
+      .sheet { max-width: none; }
+      .cover { min-height: 260mm; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <section class="cover">
+      <div>
+        <img class="cover-logo" src="/assets/chungi-nav-logo.webp" alt="천명대공" />
+        <h1>${highlightPdfKeywords(title)}</h1>
+        <p>${highlightPdfKeywords(subtitle)}</p>
+      </div>
+      <div>
+        <div class="cover-meta">
+          ${specRows.slice(0, 4).map(([label, value]) => `
+            <div><span>${escapeHtml(label)}</span><strong>${highlightPdfKeywords(value)}</strong></div>
+          `).join('')}
+        </div>
+        <p>생성일: ${escapeHtml(generatedAt)}</p>
+      </div>
+    </section>
+    <div class="print-body">
+      <section class="section">
+        <span class="kicker">기본값</span>
+        <h2>${highlightPdfKeywords('사주 기본 정보')}</h2>
+        <table class="spec-table">
+          <tbody>
+            ${specRows.map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${highlightPdfKeywords(value)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </section>
+      <section class="section">
+        <span class="kicker">목차</span>
+        <h2>${highlightPdfKeywords('해석 순서')}</h2>
+        <div class="toc">
+          ${groups.map((group) => `
+            <section class="toc-group">
+              <strong>${highlightPdfKeywords(group.title)}</strong>
+              <span>${highlightPdfKeywords(group.subtitle)}</span>
+              <ol>
+                ${group.items.map((section) => `<li>${highlightPdfKeywords(sectionCopy(section).title)}</li>`).join('')}
+              </ol>
+            </section>
+          `).join('')}
+        </div>
+      </section>
+      ${sections.map((section, index) => {
+        const display = sectionCopy(section)
+        const order = String(index + 2).padStart(2, '0')
+        return `
+          <section class="section chapter">
+            <div class="chapter-head">
+              <span class="kicker">${order} · 천명대공 풀이</span>
+              <h2>${highlightPdfKeywords(display.title)}</h2>
+              <p>${highlightPdfKeywords(display.subtitle)}</p>
+            </div>
+            <div class="reading">
+              ${markdownLikeHtml(section.interpretation)}
+            </div>
+          </section>
+        `
+      }).join('')}
+    </div>
+    <footer class="footer">천명대공(天命大公) 사주 리포트 · 화면의 해석 내용을 PDF 저장용으로 정리했습니다.</footer>
+  </main>
+</body>
+</html>`
+}
+
+function openReportPdf() {
+  const report = getReport()
+  if (!report) {
+    appendBubble('system', 'PDF로 정리할 사주 리포트를 찾지 못했습니다.')
+    return
+  }
+
+  const pdfWindow = window.open('', '_blank')
+  if (!pdfWindow) {
+    appendBubble('system', '팝업이 차단되어 PDF 창을 열지 못했습니다. 브라우저 팝업 허용 후 다시 눌러주세요.')
+    return
+  }
+
+  pdfWindow.document.open()
+  pdfWindow.document.write(buildPrintableReportHtml())
+  pdfWindow.document.close()
+
+  let printed = false
+  const printReport = () => {
+    if (printed) return
+    printed = true
+    pdfWindow.focus()
+    pdfWindow.print()
+  }
+
+  pdfWindow.addEventListener('load', () => {
+    setTimeout(printReport, 300)
+  }, { once: true })
+  setTimeout(printReport, 1200)
+}
+
 function getReport() {
   return session?.analysis?.report || null
 }
@@ -568,6 +862,9 @@ function renderReportHub() {
         <h2>${escapeHtml(report?.title || '천명대공(天命大公) 상세 풀이')}</h2>
         <p>재물운은 일·재물, 연애운은 관계·연애처럼 큰 문으로 먼저 나눴습니다.</p>
       </div>
+      <div class="report-panel-actions">
+        <button class="pdf-button" type="button" data-report-pdf>PDF 다운받기</button>
+      </div>
       <div class="report-toc-grid" role="list">
         ${groupedSections(sections).map((group) => `
           <section class="report-toc-group" data-report-group="${escapeHtml(group.id)}">
@@ -706,7 +1003,15 @@ document.getElementById('btn-back').addEventListener('click', () => {
   history.back()
 })
 
+document.getElementById('btn-pdf').addEventListener('click', openReportPdf)
+
 chatLog.addEventListener('click', (event) => {
+  const pdfButton = event.target.closest('[data-report-pdf]')
+  if (pdfButton) {
+    openReportPdf()
+    return
+  }
+
   const button = event.target.closest('[data-report-section]')
   if (!button) return
   loadReportSection(button.dataset.reportSection)

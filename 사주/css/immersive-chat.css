@@ -54,6 +54,28 @@ body {
   cursor: pointer;
 }
 
+.pdf-button {
+  min-height: 34px;
+  border: 1px solid rgba(255, 226, 175, 0.42);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #b32a1f, #74140f);
+  color: #fff8ef;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.topbar-pdf-button {
+  position: absolute;
+  top: 12px;
+  right: 17px;
+  z-index: 2;
+  padding: 0 12px;
+}
+
 .chat-local-logo {
   display: block;
   width: 100%;
@@ -160,6 +182,16 @@ body {
 
 .report-toc-panel {
   padding: 16px;
+}
+
+.report-panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.report-panel-actions .pdf-button {
+  padding: 0 14px;
 }
 
 .report-panel-head p,
