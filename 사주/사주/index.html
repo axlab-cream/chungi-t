@@ -1008,49 +1008,50 @@
         position: sticky;
         top: 0;
         z-index: 60;
-        display: grid;
-        grid-template-columns: 48px 1fr 86px;
-        align-items: center;
-        min-height: 68px;
-        padding: 12px 14px 8px;
-        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.74) 68%, transparent);
+        display: block;
+        padding: 0;
+        background: #000;
         color: #fff8ef;
+        overflow: hidden;
       }
 
       .story-local-title {
         min-width: 0;
-        text-align: center;
-        font-size: 18px;
-        font-weight: 950;
-        line-height: 1.2;
-        letter-spacing: 0;
-        white-space: nowrap;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+        line-height: 0;
       }
 
       .story-local-logo {
-        display: inline-block;
-        width: auto;
-        height: 42px;
-        max-width: 100%;
-        object-fit: contain;
-        vertical-align: middle;
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: none;
+        object-fit: cover;
+        vertical-align: top;
       }
 
       .story-vault-button {
-        justify-self: end;
+        position: absolute;
+        top: 50%;
+        right: 17px;
+        width: 76px;
+        height: 42px;
+        transform: translateY(-50%);
         display: inline-flex;
-        min-height: 34px;
         align-items: center;
         justify-content: center;
-        padding: 0 10px;
-        border: 1px solid rgba(255, 226, 183, 0.2);
-        border-radius: 999px;
-        background: rgba(0, 0, 0, 0.38);
-        color: #ffe7c2;
-        font-size: 12px;
+        padding: 0;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        color: transparent;
+        font-size: 0;
         font-weight: 950;
-        backdrop-filter: blur(8px);
+        box-shadow: none;
+      }
+
+      .story-vault-button:focus-visible {
+        outline: 2px solid rgba(255, 226, 183, 0.86);
+        outline-offset: 3px;
       }
 
       .sample-video-shell {
@@ -3155,15 +3156,10 @@
       function storyTopNavMarkup() {
         return `
           <nav class="story-local-nav" aria-label="천명대공(天命大公) 상단 메뉴">
-            <button class="icon-button" type="button" aria-label="뒤로가기" data-action="prev">
-              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
             <div class="story-local-title" aria-label="천명대공(天命大公)">
-              <img class="story-local-logo" src="assets/chungi-nav-logo.webp" alt="천명대공" />
+              <img class="story-local-logo" src="assets/chungi-nav-logo.webp" alt="천명대공 상단 로고" />
             </div>
-            <button class="story-vault-button" type="button" data-action="open-settings">보관함</button>
+            <button class="story-vault-button" type="button" data-action="open-settings" aria-label="보관함">보관함</button>
           </nav>
         `;
       }
