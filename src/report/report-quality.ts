@@ -41,10 +41,20 @@ const QUALITY_RULES: QualityRule[] = [
   { id: 'rag-precision', label: 'RAG 검색 정밀도', sectionIds: ['long-report-depth', 'concern-loop', 'relationship-status'], expectedTerms: ['이번 장은', '대조', '선택지', '근거', 'RAG'] },
   { id: 'corpus-quality', label: '코퍼스 근거성', sectionIds: ['long-report-depth', 'useful-god-johu', 'ten-gods-position'], expectedTerms: ['코퍼스', '근거', '격국', '조후', '통관'] },
   { id: 'risk-tone', label: '안 좋은 말투 / 경고', sectionIds: ['trap', 'avoid-relationship', 'money-leak', 'future-flow'], expectedTerms: ['좋은 말만', '위험', '조심', '방치', '돈구멍'], riskExpected: true },
+  { id: 'paid-narrative-density', label: '유료 리포트 서사 밀도', sectionIds: ['profile', 'hidden-personality', 'concern-loop', 'long-report-depth'], expectedTerms: ['장면', '검증', '현재', '미래', '해법', '기준', '생활'] },
+  { id: 'personal-scene-specificity', label: '개인 장면 구체성', sectionIds: ['month-pillar', 'day-pillar', 'work-context', 'relationship-status'], expectedTerms: ['회의', '카톡', '답장', '퇴근', '상사', '약속', '장면'] },
+  { id: 'premium-wealth-specificity', label: '프리미엄 재물 구체성', sectionIds: ['career-money', 'wealth-flow', 'money-leak', 'wealth-timing'], expectedTerms: ['월급', '성과급', '계약', '계좌', '지출', '상한선', '돈구멍'] },
+  { id: 'premium-relationship-specificity', label: '프리미엄 관계 구체성', sectionIds: ['relationship-orientation', 'relationship-status', 'love-loop', 'destiny-partner', 'avoid-relationship'], expectedTerms: ['카톡', '답장', '소개', '거리감', '약속', '상대', '생활 리듬'] },
+  { id: 'timeline-specificity', label: '연도별 미래 신호', sectionIds: ['future-flow', 'daewoon-detail', 'sewoon-detail', 'turning-years', 'love-timing'], expectedTerms: ['올해', '다음 해', '202', '대운', '세운', '전환', '신호'] },
+  { id: 'anti-repetition', label: '장문 중복 억제', sectionIds: ['long-report-depth', 'action-guide', 'money-leak', 'career-transition'], expectedTerms: ['중복', '반복', '다르게', '기준', '상한선', '거절', '버틸 조건', '옮길 조건'] },
 ]
 
 const TONE_SIGNALS = ['흠', '보입니다', '그 이유', '좋은 말만', '위험', '조심', '시기적으로', '풀 방법', '경고', '흐름', '기운', '기준']
 const RISK_SIGNALS = ['좋은 말만', '위험', '방치', '조심', '돈구멍', '과속', '경고']
+const SCENE_SIGNALS = ['장면', '회의', '보고', '상사', '동료', '퇴근', '출근', '카톡', '답장', '약속', '소개', '월급', '성과급', '계좌', '카드값', '경조사비', '계약', '온라인', '모임', '집에 돌아와', '생활 반경']
+const PAID_DENSITY_SIGNALS = ['검증', '현재', '미래', '해법', '근거', '고유 질문', '생활', '관찰', '구체', '상한선', '버틸 조건', '옮길 조건', '돈길', '돈구멍']
+const ACTION_SIGNALS = ['상한선', '기록', '분리', '정리', '거절', '확인', '관찰', '기준', '계약', '루틴', '나누', '잡아야', '피해야']
+const REPEATED_NEEDLES = ['수 용신', '하루 보류', '문서 확인', '천천히 확인', '좋은 운은 기다리는 사람', '색이나 방향']
 
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)))
@@ -57,6 +67,19 @@ function avg(values: number[]): number {
 
 function includesAny(text: string, terms: string[]): number {
   return terms.filter((term) => text.includes(term)).length
+}
+
+function regexHits(text: string, pattern: RegExp): number {
+  return text.match(pattern)?.length ?? 0
+}
+
+function repetitionPenalty(text: string): number {
+  let penalty = 0
+  for (const needle of REPEATED_NEEDLES) {
+    const count = text.split(needle).length - 1
+    if (count > 2) penalty += (count - 2) * 3
+  }
+  return Math.min(18, penalty)
 }
 
 function selectedSections(report: SajuReport, ids: string[]): SajuReportSection[] {
@@ -109,6 +132,11 @@ function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnal
   const expectedFullyCovered = expectedHits >= expectedDenominator
   const toneHits = includesAny(text, TONE_SIGNALS)
   const riskHits = includesAny(text, RISK_SIGNALS)
+  const sceneHits = includesAny(text, SCENE_SIGNALS)
+  const paidDensityHits = includesAny(text, PAID_DENSITY_SIGNALS)
+  const actionHits = includesAny(text, ACTION_SIGNALS)
+  const timingHits = regexHits(text, /20\d{2}년|올해|다음 해|내년|대운|세운|전환 구간|이번 달/g)
+  const repeatPenalty = repetitionPenalty(text)
   const sectionCoverage = sections.length / Math.max(1, rule.sectionIds.length)
   const contextHit = includesAny(text, contextTerms(context))
   const analysisHit = includesAny(text, analysisTerms(analysis))
@@ -116,7 +144,7 @@ function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnal
   const ragUsagePercent = clampPercent(
     (sectionCoverage * 24) +
     (Math.min(ragTopics.length, sections.length * 5) / Math.max(1, sections.length * 5) * 46) +
-    (text.includes('이번 장은') ? 18 : 0) +
+    ((text.includes('RAG') || text.includes('이번 장은')) ? 18 : 0) +
     (text.includes('대조') ? 12 : 0),
   )
   const corpusRelevancePercent = clampPercent(
@@ -126,25 +154,39 @@ function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnal
     (contextHit > 0 ? 10 : 0),
   )
   const toneGroundingPercent = clampPercent(
-    (Math.min(toneHits, 5) / 5 * 56) +
-    (rule.riskExpected ? Math.min(riskHits, 3) / 3 * 24 : 22) +
+    (Math.min(toneHits, 5) / 5 * 38) +
+    (rule.riskExpected ? Math.min(riskHits, 3) / 3 * 20 : 18) +
+    (Math.min(sceneHits, 4) / 4 * 16) +
+    (Math.min(actionHits, 4) / 4 * 14) +
     (rule.riskExpected
       ? ((text.includes('시기적으로') && text.includes('풀 방법')) || (text.includes('대운') && text.includes('세운')) ? 14 : 0)
       : 14) +
-    (sections.every((section) => section.interpretation.length >= 350) ? 8 : 0),
+    (sections.every((section) => section.interpretation.length >= 350) ? 8 : 0) -
+    repeatPenalty,
   )
   const llmGroundingPercent = clampPercent(
-    (analysisHit >= 6 ? 45 : analysisHit * 7) +
+    (analysisHit >= 6 ? 36 : analysisHit * 6) +
     (Math.min(expectedHits, expectedDenominator) / expectedDenominator * 25) +
     (contextHit > 0 ? 12 : 0) +
-    (text.includes('대운') || text.includes('세운') ? 8 : 0) +
-    (text.includes('조후') || text.includes('통관') || text.includes('격국') ? 10 : 0),
+    (text.includes('대운') || text.includes('세운') ? 7 : 0) +
+    (text.includes('조후') || text.includes('통관') || text.includes('격국') ? 8 : 0) +
+    (Math.min(sceneHits, 3) / 3 * 8) +
+    (timingHits > 0 ? 4 : 0),
+  )
+  const paidSpecificityPercent = clampPercent(
+    (Math.min(sceneHits, 5) / 5 * 30) +
+    (Math.min(paidDensityHits, 5) / 5 * 24) +
+    (Math.min(actionHits, 5) / 5 * 22) +
+    (Math.min(timingHits, 3) / 3 * 12) +
+    (contextHit > 0 ? 12 : 0) -
+    repeatPenalty,
   )
   const completenessPercent = clampPercent(
-    ragUsagePercent * 0.28 +
-    corpusRelevancePercent * 0.28 +
-    toneGroundingPercent * 0.2 +
-    llmGroundingPercent * 0.24,
+    ragUsagePercent * 0.22 +
+    corpusRelevancePercent * 0.22 +
+    toneGroundingPercent * 0.18 +
+    llmGroundingPercent * 0.2 +
+    paidSpecificityPercent * 0.18,
   )
 
   return {
@@ -161,6 +203,10 @@ function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnal
       `RAG topics ${ragTopics.length}`,
       `분류 키워드 ${expectedHits}/${rule.expectedTerms.length}`,
       `명식 근거 ${analysisHit}`,
+      `개인 장면 ${sceneHits}`,
+      `행동 기준 ${actionHits}`,
+      `시기 신호 ${timingHits}`,
+      repeatPenalty > 0 ? `반복 감점 ${repeatPenalty}` : '반복 감점 없음',
       contextHit > 0 ? `선택지/고민 반영 ${contextHit}` : '선택지/고민 직접 반영 약함',
     ],
   }
@@ -172,9 +218,11 @@ export function evaluateReportQuality(
   context: SajuReportContext = {},
 ): SajuReportQuality {
   const categories = QUALITY_RULES.map((rule) => scoreCategory(rule, report, analysis, context))
+  const fullText = report.sections.map((section) => section.interpretation).join(' ')
+  const globalRepeatPenalty = Math.min(8, repetitionPenalty(fullText) / 2)
 
   return {
-    overallPercent: clampPercent(avg(categories.map((category) => category.completenessPercent))),
+    overallPercent: clampPercent(avg(categories.map((category) => category.completenessPercent)) - globalRepeatPenalty),
     ragUsagePercent: clampPercent(avg(categories.map((category) => category.ragUsagePercent))),
     corpusRelevancePercent: clampPercent(avg(categories.map((category) => category.corpusRelevancePercent))),
     toneGroundingPercent: clampPercent(avg(categories.map((category) => category.toneGroundingPercent))),

@@ -26,10 +26,13 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       const packs = getActiveCorpusPacks()
       assert.ok(packs.some((pack) => pack.id === 'saju-95-quality-bundles'))
       assert.ok(packs.some((pack) => pack.id === 'saju-advanced-manseryeok-gbr'))
+      assert.ok(packs.some((pack) => pack.id === 'paid-report-scene-corpus'))
       assert.ok(getChunkCorpusFiles().includes('corpus/saju-95-quality-bundles.json'))
       assert.ok(getChunkCorpusFiles().includes('corpus/saju-advanced-manseryeok-gbr.json'))
+      assert.ok(getChunkCorpusFiles().includes('corpus/paid-report-scene-corpus.json'))
       assert.ok(getCorpusDomainBoost('saju_95_quality_bundles') >= 10)
       assert.ok(getCorpusDomainBoost('saju_advanced_manseryeok_gbr') >= 10)
+      assert.ok(getCorpusDomainBoost('paid_report_scene_corpus') >= 15)
     })
 
     it('장문 리포트용 deep corpus도 인덱스에 포함', () => {
@@ -62,6 +65,14 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(corpus.some((chunk) => chunk.domain === 'saju_advanced_manseryeok_gbr'))
     })
 
+    it('유료 리포트 장면성 보강 pack도 인덱스에 포함', () => {
+      const corpus = buildCorpusIndex()
+      for (const id of ['ps-001', 'ps-002', 'ps-003', 'ps-004', 'ps-005', 'ps-006', 'ps-007', 'ps-008']) {
+        assert.ok(corpus.some((chunk) => chunk.id === id), `${id} missing`)
+      }
+      assert.ok(corpus.some((chunk) => chunk.domain === 'paid_report_scene_corpus'))
+    })
+
     it('직업 질문 → career intent', () => {
       assert.equal(detectIntent('이직을 고민 중인데 직업운이 어떤가요?'), 'career')
     })
@@ -76,6 +87,19 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
 
     it('재물 질문 → wealth intent', () => {
       assert.equal(detectIntent('돈구멍과 재물운이 궁금해요'), 'wealth')
+    })
+
+    it('유료 리포트 장면 질문 → 장면성 코퍼스를 우선 회수', () => {
+      const saju = analyzeSaju(sampleBirth)
+      const chunks = retrieveRagChunks('돈을 내고 읽었다고 느끼는 개인 장면과 서사 밀도를 보강해줘', saju, 9, {
+        target: '본인',
+        relationship: '솔로예요',
+        orientation: '이성 관계 중심',
+        work: '직장 다녀요',
+        concern: '직장 고민',
+      })
+
+      assert.ok(chunks.some((chunk) => chunk.id.startsWith('ps-')), chunks.map((chunk) => chunk.id).join(', '))
     })
 
     it('사주 + 질문 기반 RAG 검색', () => {

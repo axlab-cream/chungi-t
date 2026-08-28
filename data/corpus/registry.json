@@ -53,6 +53,16 @@
       "retrievalBoost": 12
     },
     {
+      "id": "paid-report-scene-corpus",
+      "path": "corpus/paid-report-scene-corpus.json",
+      "kind": "chunks",
+      "domain": "paid_report_scene_corpus",
+      "status": "active",
+      "role": "paid_narrative_density_patch",
+      "version": "1.0.0",
+      "retrievalBoost": 18
+    },
+    {
       "id": "saju-elements",
       "path": "corpus/saju-elements.json",
       "kind": "structured",
