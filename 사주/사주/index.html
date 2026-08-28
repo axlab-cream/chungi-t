@@ -1028,6 +1028,15 @@
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
       }
 
+      .story-local-logo {
+        display: inline-block;
+        width: auto;
+        height: 42px;
+        max-width: 100%;
+        object-fit: contain;
+        vertical-align: middle;
+      }
+
       .story-vault-button {
         justify-self: end;
         display: inline-flex;
@@ -3151,7 +3160,9 @@
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
-            <div class="story-local-title">천명대공(天命大公)</div>
+            <div class="story-local-title" aria-label="천명대공(天命大公)">
+              <img class="story-local-logo" src="assets/chungi-nav-logo.webp" alt="천명대공" />
+            </div>
             <button class="story-vault-button" type="button" data-action="open-settings">보관함</button>
           </nav>
         `;
