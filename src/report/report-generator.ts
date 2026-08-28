@@ -42,6 +42,121 @@ interface ReportBlueprint {
   query: string
 }
 
+interface SectionBrief {
+  uniqueAngle: string
+  requiredSlots: string[]
+  sceneAnchors: string[]
+  antiRepeat: string[]
+  ragQuery: string
+}
+
+const BASE_ANTI_REPEAT = [
+  '같은 용신 처방 반복 금지',
+  '문서 확인·하루 보류 같은 처방 남발 금지',
+  '각 섹션의 마지막 결론은 서로 다르게 작성',
+]
+
+const FOCUS_SECTION_BRIEFS: Record<ReportFocus, SectionBrief> = {
+  profile: {
+    uniqueAngle: '겉으로 보이는 성격과 혼자 있을 때의 피로 장면을 분리',
+    requiredSlots: ['겉모습', '내면 반응', '피로가 쌓이는 장면', '회복 방식'],
+    sceneAnchors: ['첫인상', '혼자 집에 들어온 뒤', '결정 전 머뭇거림'],
+    antiRepeat: ['성격 좋다는 칭찬만 반복 금지'],
+    ragQuery: '개인 장면 성격 기질 검증 장면 숨은 피로',
+  },
+  target: {
+    uniqueAngle: '누구의 사주를 보는지에 따라 거리와 책임의 렌즈를 변경',
+    requiredSlots: ['대상 기준', '거리 조절', '책임 범위', '해석 금지선'],
+    sceneAnchors: ['가족 대화', '연인 갈등', '친구 비교', '본인 선택'],
+    antiRepeat: ['대상 선택지를 첫 문장에만 언급하고 끝내지 않기'],
+    ragQuery: '대상 선택 본인 가족 연인 친구 상담 맥락 개인화',
+  },
+  balance: {
+    uniqueAngle: '강한 오행의 장점과 빈 오행의 생활 결핍을 동시에 장면화',
+    requiredSlots: ['강한 오행 장점', '약한 오행 결핍', '조후·통관 보완', '생활 루틴'],
+    sceneAnchors: ['일이 몰리는 날', '쉬어야 하는데 못 쉬는 밤', '일정표와 공간 정리'],
+    antiRepeat: ['부족한 오행을 색·방향 처방으로만 끝내지 않기'],
+    ragQuery: '오행 균형 조후 통관 생활 루틴 과다 부족',
+  },
+  trap: {
+    uniqueAngle: '반복 고민이 실제로 터지는 말·돈·관계 장면을 특정',
+    requiredSlots: ['반복 패턴', '터지는 장면', '위험 신호', '끊는 행동'],
+    sceneAnchors: ['메신저 답장', '회의 중 말투', '사람 부탁', '혼자 참다가 끊는 순간'],
+    antiRepeat: ['위험하다는 말만 하고 해법을 생략하지 않기'],
+    ragQuery: '반복 고민 함정 위험 신호 생활 장면 해법',
+  },
+  relationshipContext: {
+    uniqueAngle: '관계 상태와 지향성에 따라 끌림·거리감·책임을 분리',
+    requiredSlots: ['현재 관계 상태', '끌림과 안정감 구분', '거리감', '말투 기준'],
+    sceneAnchors: ['카톡 답장 속도', '소개 자리', '약속 잡는 방식', '서운함을 꺼내는 순간'],
+    antiRepeat: ['좋은 인연이 온다는 추상 결론 반복 금지'],
+    ragQuery: '연애 관계 상태 동성 이성 카톡 소개 거리감',
+  },
+  workContext: {
+    uniqueAngle: '현재 일상 상태를 월주·관성·식상·재성으로 현실 번역',
+    requiredSlots: ['현재 일상', '업무 압박', '인정받는 방식', '소진 지점'],
+    sceneAnchors: ['회의', '보고', '상사 피드백', '업무 분장', '퇴근 후 소진'],
+    antiRepeat: ['이직 여부를 단정하지 않고 조건을 나누기'],
+    ragQuery: '직장 업무 장면 회의 보고 상사 피드백 전환 기준',
+  },
+  careerMoney: {
+    uniqueAngle: '일에서 만든 결과물이 돈으로 바뀌는 경로를 구체화',
+    requiredSlots: ['수입 경로', '성과 인정', '계약 기준', '확장 조건'],
+    sceneAnchors: ['월급일', '성과급', '프로젝트 제안', '계약서', '평가 면담'],
+    antiRepeat: ['돈이 들어온다는 단정 대신 돈길·돈구멍 분리'],
+    ragQuery: '재물운 직업운 돈길 계약 성과급 반복 수입',
+  },
+  moneyLeak: {
+    uniqueAngle: '새는 돈의 원인을 사람·비교·계약·보상소비로 분해',
+    requiredSlots: ['지출 구멍', '사람 비용', '계약 리스크', '상한선'],
+    sceneAnchors: ['카드값', '경조사비', '동업 제안', '계좌 이체', '보상 소비'],
+    antiRepeat: ['절약하라는 일반론 금지'],
+    ragQuery: '돈구멍 관계 비용 지출 상한선 계약 리스크 겁재',
+  },
+  love: {
+    uniqueAngle: '가까운 관계에서 반복되는 반응과 오래 남는 사람의 조건을 분리',
+    requiredSlots: ['일지 반응', '끌림', '불편한 반복', '오래 남는 조건'],
+    sceneAnchors: ['답장 기다림', '약속 취소', '만난 뒤 피로', '말투가 차가워지는 순간'],
+    antiRepeat: ['운명의 상대를 외형·직업으로 찍지 않기'],
+    ragQuery: '연애운 일지 배우자궁 관계 장면 카톡 답장 거리감',
+  },
+  destiny: {
+    uniqueAngle: '운명의 상대를 특정 인물이 아니라 생활 리듬과 안정감으로 설명',
+    requiredSlots: ['상대 분위기', '생활 리듬', '돈과 책임 태도', '알아보는 신호'],
+    sceneAnchors: ['소개 자리', '일 관련 모임', '대화의 온도', '약속을 지키는 방식'],
+    antiRepeat: ['곧 만난다는 예언 금지'],
+    ragQuery: '운명의 상대 상대 프로필 인연 장소 생활 리듬 안정감',
+  },
+  future: {
+    uniqueAngle: '대운·세운을 연도별로 확인 가능한 생활 변화 신호로 번역',
+    requiredSlots: ['현재 연도 신호', '다음 해 확인점', '대운 무대', '피해야 할 선택'],
+    sceneAnchors: ['이직 제안', '생활 반경 변화', '갑작스러운 지출', '오래 미룬 관계 정리'],
+    antiRepeat: ['대박·불운 단정 금지'],
+    ragQuery: '대운 세운 연도별 미래 신호 전환 구간 사건화',
+  },
+  timingPlace: {
+    uniqueAngle: '날짜와 장소를 찍지 않고 운이 먼저 반응하는 공간 유형을 제시',
+    requiredSlots: ['시기 신호', '장소 유형', '생활 반경', '확인 행동'],
+    sceneAnchors: ['온라인 채널', '교육 공간', '계약 자리', '이동 동선', '모임'],
+    antiRepeat: ['반드시 특정 장소라고 단정 금지'],
+    ragQuery: '시기 장소 공간 유형 생활 반경 온라인 계약 모임',
+  },
+  reportDepth: {
+    uniqueAngle: '장문 리포트가 복붙이 아니라 근거가 다른 장들의 누적임을 설명',
+    requiredSlots: ['근거층', '개인화 기준', '중복 방지', '읽는 순서'],
+    sceneAnchors: ['목차를 다시 펼쳐보는 장면', '중요 문단 표시', '행동 기준 확인'],
+    antiRepeat: ['분량 자랑만 하지 않기'],
+    ragQuery: '장문 리포트 5만자 서사 밀도 유료 리포트 중복 방지',
+  },
+  action: {
+    uniqueAngle: '지금 바로 붙잡을 행동을 돈·관계·일상 기준으로 나누기',
+    requiredSlots: ['이번 달 기준', '끊을 것', '붙잡을 것', '다시 볼 신호'],
+    sceneAnchors: ['이번 달 일정표', '계좌 정리', '거절 문장', '관계 거리 조절'],
+    antiRepeat: ['막연한 긍정 조언 금지'],
+    ragQuery: '구체적 행동 기준 이번 달 루틴 돈 관계 직장 해법',
+  },
+}
+
 const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   {
     id: 'profile',
@@ -304,6 +419,268 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   },
 ]
 
+const SECTION_BRIEF_OVERRIDES: Record<string, Partial<SectionBrief>> = {
+  profile: {
+    uniqueAngle: '첫인상과 실제 내면의 온도 차이를 사주 근거로 검증',
+    requiredSlots: ['첫인상', '혼자 있을 때의 반응'],
+    sceneAnchors: ['처음 만난 자리', '집에 돌아와 혼자 정리하는 시간'],
+    ragQuery: '첫인상 내면 온도 차이 성격 검증 장면',
+  },
+  'target-context': {
+    uniqueAngle: '상담 대상 선택이 풀이의 거리와 책임 범위를 바꾸는 지점',
+    requiredSlots: ['대상별 해석 렌즈', '상대에게 넘기면 안 되는 책임'],
+    sceneAnchors: ['본인 선택을 정리하는 장면', '상대의 말에 흔들리는 장면'],
+    ragQuery: '상담 대상 선택 책임 범위 거리 조절',
+  },
+  'pillars-structure': {
+    uniqueAngle: '년주·월주·일주·시주를 삶의 네 무대로 나눠 읽기',
+    requiredSlots: ['배경', '사회 얼굴', '가까운 관계', '후반부 욕망'],
+    sceneAnchors: ['가족에게서 배운 반응', '회사나 사회에서 쓰는 얼굴', '가까운 사람 앞의 태도'],
+    ragQuery: '사주 네 기둥 삶의 무대 년주 월주 일주 시주',
+  },
+  'year-pillar': {
+    uniqueAngle: '초년 환경과 가족 배경이 지금 반응에 남긴 흔적',
+    requiredSlots: ['가족 배경', '초년 습관', '현재 반복'],
+    sceneAnchors: ['어릴 때 익숙했던 분위기', '가족 앞에서 자동으로 나오는 말투'],
+    ragQuery: '년주 초년 가족 배경 현재 반복 장면',
+  },
+  'month-pillar': {
+    uniqueAngle: '사회에서 쓰는 얼굴과 직장 압박의 실제 장면',
+    requiredSlots: ['사회적 역할', '업무 압박', '평가받는 방식'],
+    sceneAnchors: ['회의', '보고', '상사 피드백', '동료 비교'],
+    ragQuery: '월주 사회 얼굴 직장 장면 평가 압박',
+  },
+  'day-pillar': {
+    uniqueAngle: '일지와 배우자궁이 가까운 관계에서 드러나는 방식',
+    requiredSlots: ['가까운 관계 반응', '서운함 처리', '오래 남는 조건'],
+    sceneAnchors: ['카톡 답장', '약속을 잡는 방식', '서운함을 삼키는 순간'],
+    ragQuery: '일주 일지 배우자궁 카톡 관계 장면',
+  },
+  'hour-pillar': {
+    uniqueAngle: '퇴근 후의 욕망과 후반부 삶에서 커지는 방향',
+    requiredSlots: ['숨은 욕망', '후반부 무대', '혼자 준비하는 일'],
+    sceneAnchors: ['퇴근 후 혼자 하는 일', '주말에 자꾸 찾는 관심사'],
+    ragQuery: '시주 후반부 잠재력 퇴근 후 욕망',
+  },
+  'day-master-strength': {
+    uniqueAngle: '강약을 칭찬·낙인이 아니라 버티는 방식으로 설명',
+    requiredSlots: ['강약 근거', '버티는 방식', '무너지는 조건'],
+    sceneAnchors: ['결정 직전', '부탁을 거절해야 하는 순간'],
+    ragQuery: '일간 강약 버티는 방식 결정 장면',
+  },
+  'hidden-personality': {
+    uniqueAngle: '괜찮은 척 뒤에 숨는 진짜 피로와 예민한 감지력',
+    requiredSlots: ['숨은 반응', '참는 방식', '갑자기 끊는 순간'],
+    sceneAnchors: ['메신저를 읽고 답을 미루는 밤', '혼자 마음속 선을 긋는 장면'],
+    ragQuery: '숨은 성격 피로 감지력 메신저 장면',
+  },
+  balance: {
+    uniqueAngle: '오행 분포를 실제 에너지 배분과 생활 루틴으로 번역',
+    requiredSlots: ['오행 개수', '과다 장면', '부족 장면', '보완 루틴'],
+    sceneAnchors: ['일이 몰린 날', '쉬어야 하는데 쉬지 못하는 밤'],
+    ragQuery: '오행 분포 생활 루틴 과다 부족 장면',
+  },
+  'dominant-element': {
+    uniqueAngle: '가장 강한 기운이 능력과 피로로 동시에 올라오는 장면',
+    requiredSlots: ['강한 기운의 장점', '과사용 경고', '속도를 낮추는 기준'],
+    sceneAnchors: ['사람들 앞에서 먼저 반응하는 순간', '혼자 과열되는 밤'],
+    ragQuery: '강한 오행 과다 능력 피로 과사용',
+  },
+  'weak-element': {
+    uniqueAngle: '빈 기운이 결핍이 아니라 의식적으로 키워야 할 기능인 이유',
+    requiredSlots: ['빈 기운', '생활 결핍', '보완 행동'],
+    sceneAnchors: ['정리되지 않은 일정', '미뤄둔 연락이나 서류'],
+    ragQuery: '약한 오행 부족 보완 생활 결핍',
+  },
+  'ten-gods-overview': {
+    uniqueAngle: '십신을 사람·돈·일·표현·보호의 관계 언어로 풀기',
+    requiredSlots: ['주요 십신', '관계성', '좋게 쓸 때', '꼬일 때'],
+    sceneAnchors: ['사람 부탁', '경쟁이 생기는 자리', '결과물을 보여주는 순간'],
+    ragQuery: '십신 관계성 사람 돈 일 표현 보호',
+  },
+  'ten-gods-position': {
+    uniqueAngle: '십신이 어느 기둥에 놓였는지에 따라 장면을 다르게 해석',
+    requiredSlots: ['위치 근거', '년월일시 차이', '현실 장면'],
+    sceneAnchors: ['가족 앞', '회사 안', '가까운 사람 앞', '퇴근 후'],
+    ragQuery: '십신 위치 년주 월주 일주 시주 장면',
+  },
+  'useful-god-eokbu': {
+    uniqueAngle: '억부 용신을 강약 조절과 선택 기준으로 내리기',
+    requiredSlots: ['억부 판단', '강한 기운 조절', '선택 기준'],
+    sceneAnchors: ['과하게 밀어붙이는 순간', '한 번 멈추고 기준을 세우는 장면'],
+    ragQuery: '용신 억부 강약 조절 선택 기준',
+  },
+  'useful-god-johu': {
+    uniqueAngle: '조후를 온도·습도·생활 리듬의 보완으로 설명',
+    requiredSlots: ['계절 온도', '습도 감각', '생활 리듬 보완'],
+    sceneAnchors: ['몸과 마음이 과열되는 날', '휴식 리듬을 다시 잡는 장면'],
+    ragQuery: '조후 온도 습도 생활 리듬 보완',
+  },
+  trap: {
+    uniqueAngle: '같은 고민이 사람만 바꿔 반복되는 구조',
+    requiredSlots: ['반복 장면', '위험 신호', '끊는 문장'],
+    sceneAnchors: ['참다가 갑자기 끊는 순간', '말이 세지는 회의'],
+    ragQuery: '반복 고민 함정 사람만 바뀌는 패턴',
+  },
+  'concern-loop': {
+    uniqueAngle: '현재 고민이 명식의 어떤 버튼을 누르는지 특정',
+    requiredSlots: ['고민 원문 반영', '눌리는 십신', '반복을 끊는 순서'],
+    sceneAnchors: ['고민을 다시 검색하는 밤', '같은 선택 앞에서 멈추는 장면'],
+    ragQuery: '현재 고민 원문 십신 버튼 반복 루프',
+  },
+  'relationship-orientation': {
+    uniqueAngle: '이성·동성 관계 중심에 따라 읽어야 할 십신을 변경',
+    requiredSlots: ['관계 렌즈', '배우자성 또는 비겁', '거리감'],
+    sceneAnchors: ['친구 같은 사람과의 편안함', '이성적 끌림이 강해지는 자리'],
+    ragQuery: '이성 동성 관계 중심 배우자성 비겁 거리감',
+  },
+  'relationship-status': {
+    uniqueAngle: '솔로·짝사랑·연애·이별·결혼 상태별로 장면을 바꾸기',
+    requiredSlots: ['현재 상태', '지금 먼저 볼 장면', '피해야 할 해석'],
+    sceneAnchors: ['답장을 기다리는 시간', '소개를 받는 자리', '재회 연락을 고민하는 밤'],
+    ragQuery: '관계 상태 솔로 짝사랑 연애 이별 결혼 장면',
+  },
+  'career-money': {
+    uniqueAngle: '일의 결과물이 돈으로 바뀌는 구조와 막히는 곳',
+    requiredSlots: ['일의 결과물', '보상 구조', '막히는 지점'],
+    sceneAnchors: ['성과를 보고하는 자리', '급여나 평가를 확인하는 순간'],
+    ragQuery: '일 돈 결과물 보상 구조 평가',
+  },
+  'work-context': {
+    uniqueAngle: '현재 일상 선택지를 직업운 해석의 출발점으로 삼기',
+    requiredSlots: ['현재 상태', '월주 작동', '소진 지점'],
+    sceneAnchors: ['출근길', '업무 분장', '퇴근 후 방전'],
+    ragQuery: '직장 일상 월주 출근 퇴근 소진',
+  },
+  'career-transition': {
+    uniqueAngle: '버틸 조건과 옮길 조건을 따로 제시',
+    requiredSlots: ['버틸 조건', '옮길 조건', '전환 신호'],
+    sceneAnchors: ['평가 면담', '이직 제안', '퇴사 버튼을 떠올리는 밤'],
+    ragQuery: '이직 퇴사 버틸 조건 옮길 조건 전환 신호',
+  },
+  'wealth-flow': {
+    uniqueAngle: '돈이 들어오는 문을 고정 수입과 기회 수입으로 나누기',
+    requiredSlots: ['정재 흐름', '편재 흐름', '수입 반복성'],
+    sceneAnchors: ['월급일', '성과급 제안', '새 거래 제안'],
+    ragQuery: '정재 편재 월급 성과급 수입 구조',
+  },
+  'money-leak': {
+    uniqueAngle: '돈이 새는 구멍을 사람·체면·계약·보상소비로 특정',
+    requiredSlots: ['돈구멍', '지출 상한선', '거절 기준'],
+    sceneAnchors: ['경조사비', '카드값', '동업 제안', '충동 구매'],
+    ragQuery: '돈구멍 경조사비 카드값 동업 충동 소비',
+  },
+  'wealth-timing': {
+    uniqueAngle: '재물 기회가 붙는 해와 먼저 새는 지출을 함께 보기',
+    requiredSlots: ['재물 시기', '선행 지출', '잡아야 할 기회'],
+    sceneAnchors: ['계약 제안', '큰 지출이 먼저 생기는 달', '보상 협상'],
+    ragQuery: '재물 시기 선행 지출 계약 제안 보상 협상',
+  },
+  'love-loop': {
+    uniqueAngle: '끌리는 사람과 오래 맞는 사람을 분리',
+    requiredSlots: ['끌림', '불편한 반복', '오래 맞는 조건'],
+    sceneAnchors: ['카톡 템포', '약속이 어긋나는 장면', '만난 뒤 마음이 편한지'],
+    ragQuery: '연애 반복 카톡 템포 끌림 안정감',
+  },
+  'destiny-partner': {
+    uniqueAngle: '운명의 상대를 생활 리듬·돈·책임 태도로 설명',
+    requiredSlots: ['상대 분위기', '돈 태도', '책임 태도', '알아보는 신호'],
+    sceneAnchors: ['소개 자리의 대화 온도', '약속을 지키는 방식', '일 관련 모임'],
+    ragQuery: '운명의 상대 생활 리듬 돈 책임 소개 자리',
+  },
+  'avoid-relationship': {
+    uniqueAngle: '멀리해야 할 사람을 성격 비난이 아니라 반복 장면으로 정의',
+    requiredSlots: ['피해야 할 장면', '거리 조절', '초기 신호'],
+    sceneAnchors: ['돈 부탁', '비교를 자극하는 말', '답을 재촉하는 연락'],
+    ragQuery: '멀리해야 할 관계 돈 부탁 비교 연락 재촉',
+  },
+  'love-timing': {
+    uniqueAngle: '인연이 드러나는 시기를 연락·공간·소개 신호로 보기',
+    requiredSlots: ['인연 시기', '연락 신호', '장소 신호'],
+    sceneAnchors: ['소개 연락', '모임 초대', '온라인 대화가 길어지는 순간'],
+    ragQuery: '인연 시기 연락 소개 모임 온라인 신호',
+  },
+  'future-flow': {
+    uniqueAngle: '큰 운의 방향을 확장·정리·재배치 중 무엇인지 판별',
+    requiredSlots: ['대운 방향', '세운 자극', '확장 또는 정리'],
+    sceneAnchors: ['생활 반경 변화', '큰 제안', '오래 미룬 정리'],
+    ragQuery: '대운 방향 세운 확장 정리 재배치',
+  },
+  'daewoon-detail': {
+    uniqueAngle: '10년짜리 무대가 바꾸는 사람·일·돈의 결',
+    requiredSlots: ['현재 대운', '다음 대운 힌트', '무대 변화'],
+    sceneAnchors: ['주로 만나는 사람의 변화', '일하는 방식의 변화'],
+    ragQuery: '대운 10년 무대 사람 일 돈 변화',
+  },
+  'sewoon-detail': {
+    uniqueAngle: '올해 세운이 먼저 건드리는 표면 사건',
+    requiredSlots: ['올해 신호', '먼저 흔들리는 영역', '올해 피할 선택'],
+    sceneAnchors: ['올해 들어 반복된 제안', '갑자기 늘어난 지출이나 연락'],
+    ragQuery: '올해 세운 표면 사건 제안 지출 연락',
+  },
+  'turning-years': {
+    uniqueAngle: '전환 구간을 연도와 생활 변화 신호로 묶기',
+    requiredSlots: ['전환 연도', '변곡 신호', '준비 행동'],
+    sceneAnchors: ['회사·집·관계 반경이 바뀌는 장면', '오래 잡고 있던 것을 놓는 순간'],
+    ragQuery: '인생 전환 연도 변곡 생활 변화',
+  },
+  'timing-place': {
+    uniqueAngle: '운이 먼저 반응하는 공간 유형과 이동 동선',
+    requiredSlots: ['공간 유형', '이동 동선', '만남 채널'],
+    sceneAnchors: ['온라인 채널', '교육 공간', '계약 자리', '이동 중 만나는 사람'],
+    ragQuery: '시기 장소 공간 유형 이동 동선 온라인 교육 계약',
+  },
+  'action-guide': {
+    uniqueAngle: '이번 달에 바로 실행할 돈·관계·일상 기준',
+    requiredSlots: ['이번 달 행동', '돈 기준', '관계 기준', '일 기준'],
+    sceneAnchors: ['계좌 정리', '일정표 수정', '거절 문장 준비'],
+    ragQuery: '이번 달 행동 계좌 일정표 거절 문장 관계 기준',
+  },
+  'long-report-depth': {
+    uniqueAngle: '리포트 전체를 반복 없는 유료 서사로 읽는 방법',
+    requiredSlots: ['읽는 순서', '중복 방지', '다시 확인할 장'],
+    sceneAnchors: ['목차를 열고 필요한 장을 다시 보는 장면', '표시된 위험 신호를 체크하는 장면'],
+    ragQuery: '장문 리포트 유료 서사 반복 없는 목차 읽는 법',
+  },
+}
+
+function mergeSectionBrief(base: SectionBrief, override: Partial<SectionBrief> = {}): SectionBrief {
+  return {
+    uniqueAngle: override.uniqueAngle ?? base.uniqueAngle,
+    requiredSlots: [...base.requiredSlots, ...(override.requiredSlots ?? [])],
+    sceneAnchors: [...base.sceneAnchors, ...(override.sceneAnchors ?? [])],
+    antiRepeat: [...BASE_ANTI_REPEAT, ...base.antiRepeat, ...(override.antiRepeat ?? [])],
+    ragQuery: [base.ragQuery, override.ragQuery].filter(Boolean).join(' '),
+  }
+}
+
+function sectionBriefForBlueprint(blueprint: ReportBlueprint): SectionBrief {
+  return mergeSectionBrief(FOCUS_SECTION_BRIEFS[blueprint.focus], SECTION_BRIEF_OVERRIDES[blueprint.id])
+}
+
+function sectionBriefForSection(section: Pick<SajuReportSection, 'id'>): SectionBrief {
+  const blueprint = REPORT_BLUEPRINTS.find((item) => item.id === section.id)
+  if (blueprint) return sectionBriefForBlueprint(blueprint)
+  return mergeSectionBrief(FOCUS_SECTION_BRIEFS.reportDepth)
+}
+
+function sectionBriefQuery(brief: SectionBrief): string {
+  return [
+    brief.uniqueAngle,
+    brief.ragQuery,
+    ...brief.requiredSlots,
+    ...brief.sceneAnchors,
+  ].join(' ')
+}
+
+const PAID_REPORT_QUALITY_CONTRACT = [
+  '각 섹션은 과거 검증 장면, 현재 생활 장면, 가까운 미래 신호, 행동 처방 중 최소 3개를 포함합니다.',
+  '사주 용어는 반드시 회의, 카톡, 월급일, 계좌, 계약, 소개 자리, 퇴근 후 소진처럼 사용자가 떠올릴 수 있는 장면으로 번역합니다.',
+  '돈 섹션은 돈길·돈구멍·지출 상한선·계약 기준을, 관계 섹션은 답장 템포·거리감·상대의 생활 리듬을, 직장 섹션은 회의·보고·평가·업무 분장을 반드시 구체화합니다.',
+  '대운·세운 섹션은 현재 연도와 다음 해를 기준으로 관찰 가능한 신호를 제시하되 확정 예언은 하지 않습니다.',
+  '리포트 전체에서 같은 처방을 반복하지 말고, sectionBrief.requiredSlots와 sceneAnchors에 맞춰 섹션별 결론을 다르게 씁니다.',
+]
+
 const ELEMENT_TRAIT: Record<Element, string> = {
   wood: '자라나려는 힘, 새 판을 여는 감각, 멈춰 있는 것을 견디기 어려운 기운',
   fire: '드러나는 힘, 표현과 확신, 사람의 시선을 끌어오는 기운',
@@ -398,7 +775,8 @@ function classificationFor(focus: ReportFocus, analysis: SajuAnalysis, context: 
   return labels[focus]
 }
 
-function hookFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReportContext): string {
+function hookFor(blueprint: ReportBlueprint, analysis: SajuAnalysis, context: SajuReportContext): string {
+  const focus = blueprint.focus
   const concern = cleanContextValue(context.concern, '요즘 마음에 걸리는 문제')
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const weak = ELEMENT_KO[analysis.weakElement]
@@ -420,7 +798,7 @@ function hookFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReport
     action: `${weak} 기운을 채우는 순간 흐름이 바뀝니다`,
   }
 
-  return hooks[focus]
+  return `${blueprint.category}에서 ${hooks[focus]}`
 }
 
 function tenGodSentence(analysis: SajuAnalysis): string {
@@ -500,12 +878,121 @@ function conditionalRiskNote(focus: ReportFocus, analysis: SajuAnalysis, context
   return ''
 }
 
-function buildInterpretation(
-  focus: ReportFocus,
+function reportTiming(analysis: SajuAnalysis): { currentYear: number; nextYear: number; yearPillar: string; daewoon: string } {
+  const currentYear = analysis.fortune?.currentYear ?? new Date().getFullYear()
+  return {
+    currentYear,
+    nextYear: currentYear + 1,
+    yearPillar: analysis.fortune?.yearPillar ?? '올해 세운',
+    daewoon: daewoonWindow(analysis),
+  }
+}
+
+function compactList(items: string[], limit = 4): string {
+  return items
+    .filter(Boolean)
+    .filter((item, index, list) => list.indexOf(item) === index)
+    .slice(0, limit)
+    .join(' / ')
+}
+
+function sectionSceneParagraph(
+  blueprint: ReportBlueprint,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+  brief: SectionBrief,
+): string {
+  const name = cleanContextValue(context.name, cleanContextValue(context.target, '당신'))
+  const work = cleanContextValue(context.work, '지금 하고 있는 일')
+  const relationship = cleanContextValue(context.relationship, '관계 상태 미입력')
+  const concern = cleanContextValue(context.concern, '지금 고민')
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const p = analysis.fourPillars
+  const dayPillar = pillarLabel(p.day)
+  const monthPillar = pillarLabel(p.month)
+  const timing = reportTiming(analysis)
+  const gods = compactList(analysis.tenGods, 3) || '십신'
+
+  const scenes: Record<string, string> = {
+    profile: `생활 장면으로 내리면 ${name}님은 처음 만난 자리에서 이미 사람의 온도와 말의 속도를 읽습니다. 겉으로는 담담해 보여도 집에 돌아와 혼자 있으면 그날 들은 말, 표정, 약속의 뉘앙스를 다시 정리하는 쪽입니다. 이 장면이 ${dayPillar} 일주와 ${dominant} 기운의 검증점입니다.`,
+    'target-context': `${context.target ?? '본인'} 기준으로 보면 핵심은 상대를 맞히는 데 있지 않습니다. 가족이면 식탁 대화에서 역할이 몰리는 장면, 연인이면 서운함을 꺼낼 때 책임이 한쪽으로 쏠리는 장면, 친구면 비교와 부탁이 돈이나 시간으로 번지는 장면을 먼저 봐야 합니다.`,
+    'pillars-structure': `네 기둥은 네 장면으로 읽으면 선명합니다. 년주는 익숙한 가족 배경, 월주 ${monthPillar}는 회사나 사회에서 쓰는 얼굴, 일주 ${dayPillar}는 가까운 사람 앞의 반응, 시주는 퇴근 후에도 포기하지 못하는 욕망입니다. 이 네 장면이 따로 놀 때 피로가 커집니다.`,
+    'year-pillar': `년주는 어린 시절에 익숙해진 공기처럼 남습니다. ${name}님은 가족이나 오래된 사람 앞에서 유난히 빨리 책임을 떠안거나, 반대로 마음속 선을 먼저 긋는 장면이 생길 수 있습니다. 이 반응은 현재의 ${concern}에서도 반복될 가능성이 있습니다.`,
+    'month-pillar': `월주 ${monthPillar}는 사회 얼굴입니다. 회의에서 의견을 내야 할 때, 상사 피드백을 받을 때, 동료 비교가 들어올 때 ${name}님이 쓰는 힘이 여기서 나옵니다. ${dominant}이 강하면 존재감은 생기지만, ${weak}이 비면 퇴근 후 소진이 크게 남을 수 있습니다.`,
+    'day-pillar': `일주는 가까운 관계의 실제 얼굴입니다. 카톡 답장이 늦어질 때 마음이 어디까지 흔들리는지, 약속을 잡는 방식에서 안정감을 느끼는지, 서운함을 바로 말하는지 삼키는지까지 봐야 합니다. ${relationship} 상태에서는 이 장면이 관계운의 핵심 검증점입니다.`,
+    'hour-pillar': `시주는 후반부와 혼자 있는 시간의 욕망입니다. 퇴근 후에도 자꾸 생각나는 일, 주말에 돈을 써서라도 배우고 싶은 것, 아직 밖으로 꺼내지 않은 재능이 이 자리에 걸립니다. ${timing.currentYear}년에는 이 욕망이 작은 준비로 먼저 드러납니다.`,
+    'day-master-strength': `일간 강약은 강하다 약하다의 판정이 아닙니다. ${name}님은 결정 직전까지 오래 재다가도 기준이 서면 고집스럽게 밀고 가는 장면이 있습니다. 반대로 부탁을 거절해야 하는 순간 ${weak} 기운이 약하면 피로가 먼저 쌓입니다.`,
+    'hidden-personality': `숨은 성격은 메신저를 읽고 바로 답하지 못하는 밤에 드러납니다. 겉으로는 괜찮다고 하지만 속으로는 이미 선을 넘었는지 계산하고, 참을 만큼 참은 뒤에는 갑자기 차가워질 수 있습니다. 이건 나쁜 성격이 아니라 위험 신호를 늦게 말하는 구조입니다.`,
+    balance: `오행은 생활 에너지 배분표로 보면 쉽습니다. ${dominant}이 강하면 일이 몰린 날에도 앞에 서는 힘이 있지만, ${weak}이 약하면 쉬어야 하는 밤에도 마음이 정리되지 않습니다. 일정표, 수면 리듬, 돈 관리처럼 작은 장치가 용신 ${useful}을 현실로 내려줍니다.`,
+    'dominant-element': `${dominant} 기운은 사람들이 ${name}님을 기억하게 만드는 힘입니다. 다만 강한 기운은 장점과 피로를 같이 만듭니다. 사람들 앞에서 먼저 반응하고, 집에 와서는 혼자 과열된 장면을 되감는다면 이미 과사용 신호가 올라온 겁니다.`,
+    'weak-element': `${weak} 기운의 빈자리는 약점 낙인이 아닙니다. 정리되지 않은 일정, 미뤄둔 연락, 처리해야 할 서류가 마음 한쪽을 붙잡는 식으로 나타납니다. 이 빈자리를 채우는 방법은 거창한 처방보다 작은 기록과 반복 루틴입니다.`,
+    'ten-gods-overview': `십신은 사람·돈·일·표현·보호가 어디서 꼬이는지 보여주는 언어입니다. ${gods} 흐름은 사람 부탁을 거절할 때, 경쟁이 생기는 자리에서, 결과물을 보여줘야 하는 순간에 드러납니다. 그래서 십신은 성격 설명이 아니라 생활 장면의 분류표입니다.`,
+    'ten-gods-position': `십신의 위치는 장면을 바꿉니다. 년주에 있으면 가족과 오래된 배경, 월주에 있으면 회사와 사회 역할, 일지에 있으면 가까운 관계, 시주에 있으면 후반부 욕망으로 나옵니다. 같은 ${gods}라도 어디에 놓였는지에 따라 처방이 달라집니다.`,
+    'useful-god-eokbu': `억부 용신은 과하게 치우친 힘을 조절하는 기준입니다. ${name}님이 과하게 밀어붙이는 순간에는 ${dominant}이 앞서고, 한 번 멈춰 기준을 세우는 순간에는 ${useful}이 살아납니다. 선택 앞에서는 빠른 확신보다 균형을 되찾는 장면을 먼저 봐야 합니다.`,
+    'useful-god-johu': `조후는 사주의 온도와 습도입니다. 마음이 과열되는 날, 사람 말에 쉽게 달아오르는 날, 쉬어도 회복이 더딘 날이 조후의 현실 장면입니다. ${useful} 보완은 색 하나를 고르는 일이 아니라 생활 리듬의 온도를 다시 맞추는 일입니다.`,
+    trap: `${concern}의 함정은 사람만 바뀌고 같은 장면이 반복되는 데 있습니다. 참다가 갑자기 끊는 순간, 회의에서 말이 세지는 순간, 부탁을 받고도 거절하지 못해 돈이나 시간이 새는 순간을 조심해야 합니다. 이 장면을 끊어야 다음 선택이 달라집니다.`,
+    'concern-loop': `현재 고민은 명식의 특정 버튼을 누릅니다. ${name}님이 같은 선택 앞에서 검색을 반복하거나, 마음속으로 이미 결론을 냈는데도 움직이지 못한다면 ${gods} 흐름이 눌린 겁니다. 이때 해법은 더 많은 예언이 아니라 첫 행동을 작게 자르는 것입니다.`,
+    'relationship-orientation': `${context.orientation ?? '관계 기준'}에서는 관계를 보는 렌즈가 달라집니다. 이성적 끌림이 강한 자리에서는 배우자성과 일지를 보고, 동성·친구형 관계에서는 비겁과 식상이 만드는 거리감을 봅니다. 편한 사람과 맞는 사람을 같은 뜻으로 보면 오판이 생깁니다.`,
+    'relationship-status': `${relationship} 상태라면 지금 먼저 볼 것은 결과가 아니라 장면입니다. 솔로는 소개 자리와 온라인 대화의 질, 마음에 둔 사람은 답장 템포, 연애 중은 약속을 정하는 방식, 이별 직후는 재회 연락을 기다리는 밤이 핵심 신호가 됩니다.`,
+    'career-money': `${work}에서 돈이 붙는 장면은 성과를 보고하고 평가를 받는 순간입니다. 결과물은 있는데 보상 구조가 흐리면 돈길이 막히고, 계약과 역할이 선명하면 재성의 흐름이 살아납니다. 일과 돈은 따로 보지 않고 인정받는 방식까지 같이 봐야 합니다.`,
+    'work-context': `${work} 상태에서는 출근길의 몸 상태, 업무 분장 앞의 반응, 퇴근 후 방전 정도가 운의 체감 지표입니다. 월주 ${monthPillar}가 사회 얼굴이라면, 지금 직장이나 일상에서 쓰는 얼굴이 너무 오래 켜져 있는지 봐야 합니다.`,
+    'career-transition': `버틸지 옮길지는 한 문장으로 정할 문제가 아닙니다. 평가 면담에서 역할과 보상이 분명해지는지, 이직 제안이 왔을 때 계약·업무 범위·성장 경로가 선명한지, 퇴사 생각이 밤마다 반복되는지 세 가지를 나눠 봐야 합니다.`,
+    'wealth-flow': `돈이 들어오는 방식은 월급일처럼 반복되는 정재와 성과급·거래 제안처럼 갑자기 붙는 편재로 나뉩니다. ${name}님에게는 새 기회보다 수입이 반복되는 구조가 먼저 안정되어야 합니다. 그래야 큰 제안이 와도 돈구멍으로 새지 않습니다.`,
+    'money-leak': `돈구멍은 카드값만이 아닙니다. 경조사비, 사람 부탁, 동업 제안, 기분을 달래는 보상 소비가 같은 흐름으로 묶일 수 있습니다. ${timing.currentYear}년에는 새로 들어오는 제안보다 먼저 빠져나가는 돈의 명목을 기록해야 합니다.`,
+    'wealth-timing': `재물 기회는 계약 제안, 보상 협상, 새 거래처럼 먼저 신호를 냅니다. 다만 돈이 들어오기 전 큰 지출이 같이 생기면 그건 기회가 아니라 시험일 수 있습니다. ${timing.currentYear}년은 잡을 기회와 닫을 지출을 함께 보는 해입니다.`,
+    'love-loop': `연애 반복은 카톡 템포에서 먼저 보입니다. 끌리는 사람은 답장을 기다리게 만들고, 오래 맞는 사람은 약속이 어긋나도 마음을 덜 소모시킵니다. ${name}님은 만난 뒤 편해지는지, 더 불안해지는지를 관계 판단의 첫 기준으로 삼아야 합니다.`,
+    'destiny-partner': `운명의 상대는 소개 자리의 대화 온도, 약속을 지키는 방식, 돈과 책임을 말할 때의 태도에서 보입니다. ${useful} 기운을 살리는 사람은 ${name}님을 더 조급하게 만들지 않고 생활 리듬을 안정시킵니다. 자극보다 회복감이 더 중요한 신호입니다.`,
+    'avoid-relationship': `멀리해야 할 관계는 나쁜 사람 목록이 아닙니다. 돈 부탁이 빠르거나, 비교를 자극하거나, 답을 재촉하는 연락으로 ${name}님의 기준을 흐리게 만드는 장면을 말합니다. 초기에 작은 불편함을 넘기면 나중에는 시간과 돈이 같이 샐 수 있습니다.`,
+    'love-timing': `인연 시기는 소개 연락, 모임 초대, 온라인 대화가 길어지는 순간처럼 작게 옵니다. ${timing.currentYear}년에는 관계의 시작보다 그 관계가 생활 리듬을 안정시키는지 확인해야 하고, ${timing.nextYear}년에는 남길 사람과 지나갈 사람이 더 선명해집니다.`,
+    'future-flow': `큰 운은 생활 반경 변화로 먼저 옵니다. 큰 제안이 들어오거나, 오래 미룬 정리가 다시 올라오거나, 만나는 사람의 결이 바뀌면 ${timing.daewoon}과 ${timing.yearPillar} 세운이 움직이는 신호입니다. 확장인지 정리인지부터 구분해야 합니다.`,
+    'daewoon-detail': `대운은 10년짜리 무대입니다. 이 무대가 바뀌면 주로 만나는 사람, 일하는 방식, 돈을 쓰는 기준이 함께 달라집니다. ${name}님은 ${timing.daewoon} 안에서 익숙한 역할을 반복할지, 새로운 보상 구조로 옮길지의 갈림길을 봐야 합니다.`,
+    'sewoon-detail': `${timing.currentYear}년 ${timing.yearPillar} 세운은 표면 사건으로 먼저 드러납니다. 올해 들어 제안, 지출, 연락, 업무 압박 중 무엇이 갑자기 늘었는지 확인하세요. 그 반복 항목이 올해 운이 건드리는 자리입니다.`,
+    'turning-years': `전환 구간은 회사·집·관계 반경이 바뀌는 장면으로 확인됩니다. 오래 잡고 있던 것을 놓아야 하는 순간, 새로운 제안이 커지는 순간, 돈이 들어오기 전 지출이 먼저 생기는 순간이 변곡점입니다. ${timing.currentYear}년부터 ${timing.nextYear}년까지는 이 신호를 기록해야 합니다.`,
+    'timing-place': `장소 신호는 특정 주소가 아니라 공간 유형입니다. 온라인 채널, 교육 공간, 계약 자리, 이동 중 만나는 사람, 자주 가는 모임에서 운이 먼저 반응할 수 있습니다. ${useful} 기운이 살아나는 공간을 알면 인연과 전환을 더 현실적으로 잡을 수 있습니다.`,
+    'action-guide': `이번 달 행동은 작아야 효과가 납니다. 계좌를 한 번 정리하고, 일정표에서 미룬 일을 하나만 고르고, 부탁을 거절할 문장을 미리 준비하세요. ${concern}은 큰 결심보다 작은 기준이 생길 때 풀리기 시작합니다.`,
+    'long-report-depth': `이 긴 리포트는 목차를 한 번에 읽고 끝내는 글이 아닙니다. 성격 장에서는 피로 장면을, 돈 장에서는 돈구멍을, 관계 장에서는 답장과 거리감을, 미래 장에서는 연도별 신호를 다시 확인해야 합니다. 반복 없이 다른 장면을 남겨야 진짜 장문 풀이가 됩니다.`,
+  }
+
+  return scenes[blueprint.id] ?? `${name}님에게 이 장은 ${brief.uniqueAngle}을 확인하는 자리입니다. ${compactList(brief.sceneAnchors, 3)} 같은 생활 장면에서 신호가 먼저 올라오니, 사주 용어를 추상으로 두지 말고 실제 선택 기준으로 내려야 합니다.`
+}
+
+function paidSpecificTail(
+  blueprint: ReportBlueprint,
   analysis: SajuAnalysis,
   context: SajuReportContext,
   ragTopics: string[],
 ): string {
+  const brief = sectionBriefForBlueprint(blueprint)
+  const name = cleanContextValue(context.name, cleanContextValue(context.target, '당신'))
+  const p = analysis.fourPillars
+  const dayPillar = pillarLabel(p.day)
+  const monthPillar = pillarLabel(p.month)
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const timing = reportTiming(analysis)
+  const ragGrounding = ragTopics.length > 0
+    ? `RAG 근거는 ${compactList(ragTopics, 3)} 쪽을 같이 붙였습니다.`
+    : 'RAG 근거가 약한 장은 명식과 입력 맥락을 우선합니다.'
+  const slots = compactList(brief.requiredSlots, 5)
+  const anchors = compactList(brief.sceneAnchors, 4)
+
+  return [
+    `[주목할 점] ${blueprint.category} 장의 고유 질문은 ${brief.uniqueAngle}입니다. 근거는 ${dayPillar} 일주, 월주 ${monthPillar}, ${dominant} 과다와 ${weak} 보완, 용신 후보 ${useful}을 함께 놓고 봅니다. ${ragGrounding}`,
+    sectionSceneParagraph(blueprint, analysis, context, brief),
+    `[해법] ${name}님이 이 장에서 바로 확인할 기준은 ${slots}입니다. 생활에서는 ${anchors}을 먼저 관찰하세요. ${timing.currentYear}년 ${timing.yearPillar} 세운에는 신호가 커지기 전에 기록하고, ${timing.nextYear}년에는 남길 선택과 줄일 선택을 더 분명히 나누는 쪽이 좋습니다.`,
+  ].join('\n\n')
+}
+
+function buildInterpretation(
+  blueprint: ReportBlueprint,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+  ragTopics: string[],
+): string {
+  const focus = blueprint.focus
   const name = cleanContextValue(context.name, cleanContextValue(context.target, '당신'))
   const concern = cleanContextValue(context.concern, '말하지 못한 고민')
   const work = cleanContextValue(context.work, '지금 하고 있는 일')
@@ -522,7 +1009,7 @@ function buildInterpretation(
     : analysis.dayMasterStrength === 'weak'
       ? '섬세하게 반응하는'
       : '중심을 맞추려는'
-  const ragLine = ragTopics.length > 0 ? `이번 장은 ${ragTopics.join(', ')}의 흐름을 같이 대조했습니다.` : ''
+  const ragLine = ragTopics.length > 0 ? `RAG 대조 근거로는 ${ragTopics.join(', ')}의 흐름을 붙였습니다.` : ''
   const target = cleanContextValue(context.target, '본인')
   const orientation = cleanContextValue(context.orientation, '관계 기준 미선택')
   const relationship = cleanContextValue(context.relationship, '관계 상태 미입력')
@@ -641,7 +1128,8 @@ function buildInterpretation(
   ].join('\n\n')
 
   const riskNote = conditionalRiskNote(focus, analysis, context)
-  return riskNote ? `${base}\n\n${riskNote}` : base
+  const paidTail = paidSpecificTail(blueprint, analysis, context, ragTopics)
+  return [base, paidTail, riskNote].filter(Boolean).join('\n\n')
 }
 
 export function buildTemplateSajuReport(
@@ -662,8 +1150,9 @@ export function buildTemplateSajuReport(
   ]
   const name = cleanContextValue(context.name, cleanContextValue(context.target, '당신'))
   const sections: SajuReportSection[] = REPORT_BLUEPRINTS.map((blueprint, index) => {
+    const brief = sectionBriefForBlueprint(blueprint)
     const chunks = retrieveRagChunks(
-      `${blueprint.query} ${reportContextQuery(context)}`,
+      `${blueprint.query} ${sectionBriefQuery(brief)} ${reportContextQuery(context)}`,
       analysis,
       runtimeConfig.report?.ragTopK ?? 4,
       context,
@@ -679,10 +1168,10 @@ export function buildTemplateSajuReport(
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
       classification: classificationFor(blueprint.focus, analysis, context),
-      hook: hookFor(blueprint.focus, analysis, context),
+      hook: hookFor(blueprint, analysis, context),
       patternKeys: keys,
       ragTopics,
-      interpretation: buildInterpretation(blueprint.focus, analysis, context, ragTopics),
+      interpretation: buildInterpretation(blueprint, analysis, context, ragTopics),
     }
   })
 
@@ -705,8 +1194,9 @@ function reportPrompt(
 ): LlmMessage[] {
   const ragBySection = baseReport.sections
     .map((section) => {
+      const brief = sectionBriefForSection(section)
       const chunks = retrieveRagChunks(
-        `${section.category} ${section.classification} ${reportContextQuery(context)}`,
+        `${section.category} ${section.classification} ${sectionBriefQuery(brief)} ${reportContextQuery(context)}`,
         analysis,
         runtimeConfig.report?.ragTopK ?? 4,
         context,
@@ -714,6 +1204,9 @@ function reportPrompt(
       return `## ${section.id}\n${formatRagForPrompt(chunks)}`
     })
     .join('\n\n')
+  const sectionBriefs = Object.fromEntries(
+    baseReport.sections.map((section) => [section.id, sectionBriefForSection(section)]),
+  )
 
   return [
     {
@@ -727,6 +1220,7 @@ function reportPrompt(
         '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '각 분류는 얕은 요약으로 끝내지 말고, 왜 그런 해석이 나오는지, 실제 생활에서 어떻게 드러나는지, 무엇을 조심하고 무엇을 하면 좋은지까지 풍부하게 풉니다.',
+        ...PAID_REPORT_QUALITY_CONTRACT,
         '각 섹션에는 중요한 문단 2~4개를 골라 문단 첫머리에 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 중 하나를 붙입니다. 표식은 남발하지 말고 실제로 강조가 필요한 문단에만 씁니다.',
         '논리 전개는 명식 근거 → 성향/상황 해석 → 좋은점 → 주의할점/위험/위기 → 구체적인 행동 기준이 보이게 씁니다.',
         '좋은 흐름과 안 좋은 함정을 둘 다 말합니다. 안 좋은 패턴은 “이 부분은 위험합니다”, “방치하면 반복됩니다”, “돈길보다 돈구멍이 먼저 보입니다”처럼 선명하게 말하되 공포를 팔지 않습니다.',
@@ -738,7 +1232,8 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 전문용어 뒤에는 쉬운 설명을 붙이세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 격국·조후·통관·GBR로 올라온 RAG 주제가 있으면 해당 섹션의 근거로 녹이세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 전문용어 뒤에는 쉬운 설명을 붙이세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern 선택지를 해당 섹션에 맞게 반영하세요. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. sectionBrief의 uniqueAngle, requiredSlots, sceneAnchors를 반드시 반영해 섹션별 결론이 서로 다르게 느껴지게 하세요. 격국·조후·통관·GBR로 올라온 RAG 주제가 있으면 해당 섹션의 근거로 녹이세요.',
+        paidReportQualityContract: PAID_REPORT_QUALITY_CONTRACT,
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -754,6 +1249,7 @@ function reportPrompt(
         context,
         sajuSummary: analysis.summary,
         baseReport,
+        sectionBriefs,
         ragBySection,
       }),
     },
@@ -766,8 +1262,9 @@ function sectionPrompt(
   context: SajuReportContext,
   section: SajuReportSection,
 ): LlmMessage[] {
+  const brief = sectionBriefForSection(section)
   const chunks = retrieveRagChunks(
-    `${section.category} ${section.classification} ${reportContextQuery(context)}`,
+    `${section.category} ${section.classification} ${sectionBriefQuery(brief)} ${reportContextQuery(context)}`,
     analysis,
     runtimeConfig.report?.ragTopK ?? 4,
     context,
@@ -785,6 +1282,7 @@ function sectionPrompt(
         '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '해석은 풍부해야 합니다. 근거, 실제 생활 장면, 주의할 점, 바로 해볼 행동 기준을 함께 씁니다.',
+        ...PAID_REPORT_QUALITY_CONTRACT,
         '중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙입니다. 실제 강조가 필요한 곳에만 씁니다.',
         '논리 전개는 명식 근거 → 성향/상황 해석 → 좋은점 → 주의할점/위험/위기 → 구체적인 행동 기준이 보이게 씁니다.',
         '이 섹션의 근거에서 위험 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 선명하게 덧붙입니다. 억지로 모든 섹션에 경고를 넣지 않습니다.',
@@ -796,7 +1294,8 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 일간·십신·대운·용신 같은 용어는 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. RAG/코퍼스 근거가 실제 판단에 쓰였다는 느낌이 나야 합니다.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 일간·십신·대운·용신 같은 용어는 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. sectionBrief.uniqueAngle을 장의 결론으로 삼고, requiredSlots와 sceneAnchors를 빠뜨리지 마세요. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. RAG/코퍼스 근거가 실제 판단에 쓰였다는 느낌이 나야 합니다.',
+        paidReportQualityContract: PAID_REPORT_QUALITY_CONTRACT,
         outputShape: {
           id: section.id,
           hook: 'string',
@@ -806,6 +1305,7 @@ function sectionPrompt(
         context,
         sajuSummary: analysis.summary,
         section,
+        sectionBrief: brief,
         rag: formatRagForPrompt(chunks),
       }),
     },
