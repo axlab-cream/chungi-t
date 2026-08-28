@@ -15,7 +15,7 @@ import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { evaluateReportQuality } from './report-quality.js'
 
-const COMMON_IMAGE_SRC = '/assets/hero-mystic.png'
+const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? 'gpt-5.5'
 
 type ReportFocus =

@@ -535,7 +535,7 @@ function renderSelectedSection() {
   return `
     <article class="report-section-card">
       <div class="report-section-image">
-        <img src="${escapeHtml(section.imageSrc || '/assets/hero-mystic.png')}" alt="${escapeHtml(section.imageAlt || section.category)}" />
+        <img src="${escapeHtml(section.imageSrc || '/assets/hero-mystic.webp')}" alt="${escapeHtml(section.imageAlt || section.category)}" />
         <div>${escapeHtml(imageHook)}</div>
       </div>
       <div class="report-section-head">
