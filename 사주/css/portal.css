@@ -989,6 +989,70 @@ a:focus-visible {
   transform: translateY(-2px);
 }
 
+.site-footer {
+  display: grid;
+  gap: 13px;
+  margin: 2px 20px 28px;
+  padding: 18px 0 2px;
+  border-top: 1px solid var(--line-soft);
+  color: rgba(163, 154, 140, 0.88);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.62;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.footer-links a,
+.footer-contact a {
+  color: rgba(232, 212, 154, 0.74);
+  transition:
+    color 160ms ease,
+    text-shadow 160ms ease;
+}
+
+.footer-links a {
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.footer-links a:hover,
+.footer-links a:focus-visible,
+.footer-contact a:hover,
+.footer-contact a:focus-visible {
+  color: var(--gold-200);
+  text-shadow: 0 0 14px rgba(216, 186, 114, 0.2);
+}
+
+.footer-links strong,
+.footer-company strong,
+.footer-contact strong {
+  color: var(--gold-400);
+  font-weight: 950;
+}
+
+.footer-company,
+.footer-contact {
+  display: grid;
+  gap: 4px;
+}
+
+.footer-company p,
+.footer-contact span {
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.footer-contact {
+  padding-top: 1px;
+}
+
 .bottom-nav {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

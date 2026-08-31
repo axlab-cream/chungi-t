@@ -17,6 +17,8 @@
 - 포스터 레일 드래그는 임계값을 넘은 뒤에만 포인터 캡처를 적용해 카드 클릭과 드래그가 충돌하지 않도록 했다.
 - `prefers-reduced-motion` 환경에서는 애니메이션을 최소화한다.
 - 테스트 실행 시 로컬 `.env`의 Supabase 설정이 리포트 저장 테스트를 오염시키지 않도록 test mode에서는 dotenv 로드를 건너뛰게 했다.
+- 상회 메인 스크롤 하단에 정책 링크와 사업자 정보를 담은 `site-footer`를 추가했다.
+- 푸터 정책 링크는 기존 천명대공 정책 앵커(`/cmdg/#terms`, `/cmdg/#privacy`, `/cmdg/#refund`, `/cmdg/#support`)로 연결한다.
 
 ## 검증
 
@@ -25,6 +27,7 @@
 - `npm test`
 - `npm run vercel-build`
 - Headless Chrome CDP 검증: 페이지 로드, hover 상태, 메뉴 열기, 연애 필터, 준비중 카드 클릭 토스트, 콘솔 오류 없음 확인
+- Headless Chrome CDP 푸터 검증: 모바일 폭에서 하단 스크롤 후 푸터 노출, 하단 탭과 비겹침, 링크 href, 콘솔 오류 없음 확인
 
 ## 재사용 포인트
 
