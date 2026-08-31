@@ -63,6 +63,17 @@
 - Supabase URL Configuration
   - Site URL: `https://chungi-t.vercel.app`
   - Redirect URLs: `https://chungi-t.vercel.app/**`, `http://localhost:8790/**`, `http://localhost:8791/**`
+- Google Cloud OAuth
+  - Project: `cheonmyeong-507206`
+  - OAuth client type: Web application
+  - Authorized JavaScript origin: `https://chungi-t.vercel.app`
+  - Authorized redirect URI: `https://wdyzollywccgaepjeynu.supabase.co/auth/v1/callback`
+  - Branding URLs:
+    - Homepage: `https://chungi-t.vercel.app`
+    - Privacy Policy: `https://chungi-t.vercel.app/privacy.html`
+    - Terms of Service: `https://chungi-t.vercel.app/terms.html`
+  - Supabase Auth > Providers > Google status: `Enabled`
+  - Client Secret은 Supabase provider 설정에만 저장하고 문서/Git에는 기록하지 않는다.
 - Supabase Custom Provider
   - Name: `Naver`
   - Identifier: `custom:naver`
@@ -71,6 +82,14 @@
   - Client Secret은 Supabase provider 설정에만 저장하고 문서/Git에는 기록하지 않는다.
 - 운영 페이지 검증
   - `https://chungi-t.vercel.app`의 `네이버로 계속하기` 클릭 시 `https://nid.naver.com/login/noauth/allow_oauth?...` 동의 화면까지 정상 이동한다.
+  - 임시 Chrome 프로필에서 `https://chungi-t.vercel.app` 접속 후 `해석 시작` 클릭 시 회원가입 모달이 표시된다.
+  - 같은 모달에서 `구글로 계속하기` 클릭 시 Google 계정 로그인 화면(`accounts.google.com`)까지 정상 이동한다.
+
+## Google 공개 상태 주의
+
+- Google Cloud Auth Platform > Audience의 게시 상태는 `테스트 중`일 수 있다.
+- 이 상태에서는 테스트 사용자만 OAuth 로그인을 끝까지 완료할 수 있으므로, 일반 고객 대상 운영 전에 `앱 게시` 상태를 확인한다.
+- 최종 계정 선택 및 동의 단계는 실제 Google 계정 정보가 Supabase Auth로 전달되는 단계이므로 사용자 본인이 진행한다.
 
 ## 주의
 
