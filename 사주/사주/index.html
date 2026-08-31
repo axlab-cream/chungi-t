@@ -1689,8 +1689,29 @@
         pointer-events: none;
       }
 
+      .sub-result .story-visual {
+        min-height: 600px;
+        padding: 70px 22px 96px;
+      }
+
+      .sub-result .story-visual.tall {
+        min-height: 600px;
+      }
+
+      .sub-result .story-visual.compact {
+        min-height: 500px;
+        padding: 64px 22px 76px;
+      }
+
+      .sub-result .story-visual.statement {
+        min-height: 530px;
+        padding: 64px 22px 76px;
+      }
+
       .sub-result [data-sample-section="intro"] {
         --panel-image: url("assets/chungi-source-hero.webp");
+        min-height: 560px;
+        background-position: center 62%;
       }
 
       .sub-result [data-sample-section="personality-hero"] {
@@ -1731,6 +1752,57 @@
 
       .sub-result [data-sample-section="final-proof"] {
         --panel-image: url("assets/chungi-comparison-bg.webp");
+      }
+
+      .sub-result .image-only .bubble-layer,
+      .sub-result .image-only .story-caption {
+        display: none;
+      }
+
+      .sub-result-text-band {
+        min-height: auto;
+        padding: 34px 22px 36px;
+        background:
+          radial-gradient(circle at 50% 0, rgba(154, 38, 31, 0.24), transparent 42%),
+          linear-gradient(180deg, #050202, #0d0504 52%, #050202);
+        text-align: center;
+      }
+
+      .sub-result-text-band .chapter {
+        margin-bottom: 10px;
+      }
+
+      .sub-result-text-band h2 {
+        margin: 0;
+        font-size: 29px;
+        line-height: 1.28;
+      }
+
+      .sub-result-text-band p {
+        max-width: 340px;
+        margin: 10px auto 0;
+        color: #f0d8bf;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.65;
+      }
+
+      .sub-result-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .sub-result-meta span {
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.045);
+        color: #eac784;
+        font-size: 12px;
+        font-weight: 900;
       }
 
       .sub-result [data-sample-section="worry"] {
@@ -4165,18 +4237,17 @@
 
             <section class="story-visual visual-intro tall" data-sample-section="intro" aria-label="사주 결과 인트로 이미지"></section>
 
-            <section class="story-visual compact visual-fan" data-sample-section="personality-hero">
-              <div class="bubble-layer">
-                <div class="bubble-cluster left-top">
-                  <div class="bubble strong">흥미롭네요.</div>
-                  <div class="bubble">${yearLabel} · ${monthLabel} · ${dayLabel}</div>
-                </div>
-              </div>
-              <div class="story-caption compact-title">
-                <p class="whisper">성격</p>
-                <h2>${displayName}</h2>
+            <section class="story-section sub-result-text-band" data-sample-section="personality-bridge">
+              <span class="chapter">흥미롭네요.</span>
+              <h2><span class="red">성격</span><br />${displayName}</h2>
+              <div class="sub-result-meta" aria-label="사주 기둥 요약">
+                <span>${yearLabel}</span>
+                <span>${monthLabel}</span>
+                <span>${dayLabel}</span>
               </div>
             </section>
+
+            <section class="story-visual compact visual-fan image-only" data-sample-section="personality-hero" aria-label="성격 흐름 이미지"></section>
 
             <section class="story-section deep tall center" data-sample-section="worry">
               <span class="chapter">흠...</span>
@@ -4189,11 +4260,11 @@
               <div class="story-callout">보통 <span class="red">팔자</span>가 아닙니다. 지금의 <span class="red">고민</span>도 이 흐름과 이어져 있습니다.</div>
             </section>
 
-            <section class="story-visual statement visual-saju" data-sample-section="palja-intro">
-              <div class="story-caption">
-                <p>네가 어떤 사람인지, 네 고민이 뭔지</p>
-                <h2>흐름이<br />먼저 보입니다</h2>
-              </div>
+            <section class="story-visual statement visual-saju image-only" data-sample-section="palja-intro" aria-label="팔자 흐름 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="palja-bridge">
+              <p>네가 어떤 사람인지, 네 고민이 뭔지</p>
+              <h2><span class="red">흐름</span>이<br />먼저 보입니다</h2>
             </section>
 
             <section class="story-section" data-sample-section="personality-story">
@@ -4206,17 +4277,11 @@
               <div class="story-callout">네가 지금 이게 고민되는 이유가 다 있습니다. 바로 네 <span class="red">팔자</span> 때문입니다.</div>
             </section>
 
-            <section class="story-visual compact visual-saju" data-sample-section="saju-evidence">
-              <div class="bubble-layer">
-                <div class="bubble-cluster left-top">
-                  <div class="bubble">지금 흔들리는 데에는 다 이유가 있습니다.</div>
-                  <div class="bubble strong">바로 <span class="red">팔자</span>의 결에서 시작된 겁니다.</div>
-                </div>
-              </div>
-              <div class="story-caption compact-title">
-                <p>근거를 보겠습니다</p>
-                <h2>${displayName}님의<br /><span class="red">사주 팔자</span></h2>
-              </div>
+            <section class="story-visual compact visual-saju image-only" data-sample-section="saju-evidence" aria-label="사주 근거 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="saju-evidence-bridge">
+              <p>지금 흔들리는 데에는 다 이유가 있습니다.</p>
+              <h2>${displayName}님의<br /><span class="red">사주 팔자</span></h2>
             </section>
 
             <section class="story-section" data-sample-section="saju-table">
@@ -4243,11 +4308,11 @@
               </div>
             </section>
 
-            <section class="story-visual statement visual-fan" data-sample-section="warning">
-              <div class="story-caption">
-                <p>대분석은 먼저 숨은 결부터 봅니다</p>
-                <h2>좋은 말보다<br /><span class="red">진짜 흐름</span>을 보겠습니다</h2>
-              </div>
+            <section class="story-visual statement visual-fan image-only" data-sample-section="warning" aria-label="숨은 결 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="warning-bridge">
+              <p>대분석은 먼저 숨은 결부터 봅니다.</p>
+              <h2>좋은 말보다<br /><span class="red">진짜 흐름</span>을 보겠습니다</h2>
             </section>
 
             <section class="story-section deep tall center" data-sample-section="prophecy">
@@ -4257,17 +4322,11 @@
               <div class="story-callout">그 전환을 어떻게 받아야 하는지 천천히 풀겠습니다.</div>
             </section>
 
-            <section class="story-visual compact visual-wealth" data-sample-section="wealth-teaser">
-              <div class="bubble-layer">
-                <div class="bubble-cluster left-top">
-                  <div class="bubble">돈은 따로 흐르는 것이 아닙니다.</div>
-                  <div class="bubble strong"><span class="red">일</span>과 <span class="red">관계</span>가 엮이는 곳에서 재물이 움직입니다.</div>
-                </div>
-              </div>
-              <div class="story-caption compact-title">
-                <p>재물</p>
-                <h2><span class="red">돈</span>이 모이는 자리와<br />새는 자리를 나눠 봅니다</h2>
-              </div>
+            <section class="story-visual compact visual-wealth image-only" data-sample-section="wealth-teaser" aria-label="재물 흐름 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="wealth-teaser-bridge">
+              <p><span class="red">일</span>과 <span class="red">관계</span>가 엮이는 곳에서 재물이 움직입니다.</p>
+              <h2><span class="red">돈</span>이 모이는 자리와<br />새는 자리를 나눠 봅니다</h2>
             </section>
 
             <section class="story-section" data-sample-section="wealth-section">
@@ -4283,17 +4342,11 @@
               <div class="quote"><span class="red">시기</span>와 방법을 같이 봐야 합니다. 기회가 와도 받아낼 그릇이 없으면 흐름은 지나갑니다.</div>
             </section>
 
-            <section class="story-visual compact visual-romance" data-sample-section="romance-teaser">
-              <div class="bubble-layer">
-                <div class="bubble-cluster right-top">
-                  <div class="bubble right">관계는 마음만으로 결정되지 않습니다.</div>
-                  <div class="bubble accent right"><span class="red">인연</span>의 결은 반복되는 선택에서 드러납니다.</div>
-                </div>
-              </div>
-              <div class="story-caption compact-title">
-                <p>연애운</p>
-                <h2>끌리는 사람과<br />남는 사람은 다릅니다</h2>
-              </div>
+            <section class="story-visual compact visual-romance image-only" data-sample-section="romance-teaser" aria-label="인연 흐름 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="romance-teaser-bridge">
+              <p><span class="red">인연</span>의 결은 반복되는 선택에서 드러납니다.</p>
+              <h2>끌리는 사람과<br />남는 사람은 다릅니다</h2>
             </section>
 
             <section class="story-section" data-sample-section="destiny-card">
@@ -4309,12 +4362,12 @@
               </div>
             </section>
 
-            <section class="story-visual statement visual-outro" data-sample-section="outro">
-              <div class="story-caption">
-                <p>여기부터가 진짜 시작입니다</p>
-                <h2>당신의 <span class="red">사주</span> 속<br />숨은 <span class="red">진실</span>이 펼쳐집니다</h2>
-                <p>가볍게 넘길 흐름과 붙잡아야 할 흐름을 구분합니다.</p>
-              </div>
+            <section class="story-visual statement visual-outro image-only" data-sample-section="outro" aria-label="진실 예고 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="outro-bridge">
+              <p>여기부터가 진짜 시작입니다.</p>
+              <h2>당신의 <span class="red">사주</span> 속<br />숨은 <span class="red">진실</span>이 펼쳐집니다</h2>
+              <p>가볍게 넘길 흐름과 붙잡아야 할 흐름을 구분합니다.</p>
             </section>
 
             <section class="story-section center deep" data-sample-section="value-prop">
@@ -4343,11 +4396,11 @@
               </div>
             </section>
 
-            <section class="story-visual statement visual-fan" data-sample-section="hesitation">
-              <div class="story-caption">
-                <p>천명대공의 시선</p>
-                <h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸 이야기</h2>
-              </div>
+            <section class="story-visual statement visual-fan image-only" data-sample-section="hesitation" aria-label="천명대공 해석 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="hesitation-bridge">
+              <p>천명대공의 시선</p>
+              <h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸 이야기</h2>
             </section>
 
             <section class="story-section center tall" data-sample-section="comparison">
@@ -4372,11 +4425,11 @@
               </div>
             </section>
 
-            <section class="story-visual statement visual-saju" data-sample-section="last-saju-book">
-              <div class="story-caption">
-                <p>사주의 처음과 끝</p>
-                <h2>처음과 끝<br /><span class="red">인생</span>의 굴곡이 보입니다</h2>
-              </div>
+            <section class="story-visual statement visual-saju image-only" data-sample-section="last-saju-book" aria-label="사주의 처음과 끝 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="last-saju-book-bridge">
+              <p>사주의 처음과 끝</p>
+              <h2>처음과 끝<br /><span class="red">인생</span>의 굴곡이 보입니다</h2>
             </section>
 
             <section class="story-section center" data-sample-section="book-volume">
@@ -4397,11 +4450,11 @@
               </div>
             </section>
 
-            <section class="story-visual statement visual-outro" data-sample-section="final-proof">
-              <div class="story-caption">
-                <p>마지막 확인</p>
-                <h2><span class="red">운명</span>은 정해진 길보다<br />읽어내는 방식이 중요합니다</h2>
-              </div>
+            <section class="story-visual statement visual-outro image-only" data-sample-section="final-proof" aria-label="마지막 확인 이미지"></section>
+
+            <section class="story-section sub-result-text-band" data-sample-section="final-proof-bridge">
+              <p>마지막 확인</p>
+              <h2><span class="red">운명</span>은 정해진 길보다<br />읽어내는 방식이 중요합니다</h2>
             </section>
 
             <section class="story-section deep" data-sample-section="reviews">
