@@ -280,7 +280,7 @@ const HOOK_CHAPTERS = {
     { no: '01', title: '너라는 사람부터 먼저 봅니다', subtitle: '스스로 아는 얼굴과 실제 반응의 차이', ids: ['profile', 'target-context'] },
     { no: '02', title: '밖에서 보이는 얼굴은 따로 있습니다', subtitle: '사회 속 모습과 혼자 남았을 때의 결', ids: ['month-pillar', 'hidden-personality'] },
     { no: '03', title: '어릴 때 남은 흔적이 지금도 움직입니다', subtitle: '반복되는 시작점과 감정의 습관', ids: ['pillars-structure', 'year-pillar'] },
-    { no: '04', title: '가까워질수록 드러나는 진짜 성격', subtitle: '사랑과 속마음이 움직이는 자리', ids: ['day-pillar', 'relationship-orientation'] },
+    { no: '04', title: '가까워질수록 드러나는 진짜 성격', subtitle: '가장 가까운 곳에서 먼저 드러나는 마음', ids: ['day-pillar'] },
     { no: '05', title: '버티는 힘과 무너지는 지점을 같이 봅니다', subtitle: '강점이 과해질 때 생기는 위험 신호', ids: ['hour-pillar', 'day-master-strength', 'dominant-element'] },
     { no: '06', title: '비어 있는 자리가 운을 흔듭니다', subtitle: '채워야 할 균형과 회복의 방향', ids: ['balance', 'weak-element'] },
     { no: '07', title: '살리는 선택과 망치는 선택은 다릅니다', subtitle: '풀릴 때와 꼬일 때의 결정적 차이', ids: ['useful-god-eokbu', 'useful-god-johu'] },
@@ -296,7 +296,7 @@ const HOOK_CHAPTERS = {
     { no: '15', title: '잡아야 할 돈과 피해야 할 돈', subtitle: '재물 기회가 붙는 방식과 때', ids: ['wealth-timing'] },
   ],
   relationship: [
-    { no: '16', title: '운명처럼 보이는 끌림을 가릅니다', subtitle: '지금 관계와 반복되는 인연 패턴', ids: ['relationship-status', 'love-loop'] },
+    { no: '16', title: '운명처럼 보이는 끌림을 가릅니다', subtitle: '사랑의 기준, 지금 관계, 반복되는 인연 패턴', ids: ['relationship-orientation', 'relationship-status', 'love-loop'] },
     { no: '17', title: '오래 남는 사람의 결은 따로 있습니다', subtitle: '끌림보다 오래 가는 상대의 분위기', ids: ['destiny-partner'] },
     { no: '18', title: '멀어져야 할 관계 신호를 봅니다', subtitle: '가까이 둘 사람과 흐리게 만드는 사람', ids: ['avoid-relationship', 'love-timing'] },
   ],
