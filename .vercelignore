@@ -2,6 +2,7 @@
 qa-*.png
 *.mhtml
 node_modules
+tmp/
 .env
 .env.local
 .git
