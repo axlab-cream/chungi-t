@@ -10,6 +10,9 @@ const reportState = {
 }
 const HISTORY_KEY = 'cheongi_report_history_v1'
 const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
+let authClient = null
+let authSession = null
+let authInitPromise = null
 const PDF_KEYWORDS = [
   '천명대공',
   '사주',
@@ -34,6 +37,42 @@ const PDF_KEYWORDS = [
   '선택',
 ]
 let chatSaveTimer = 0
+
+async function initAuth() {
+  if (authInitPromise) return authInitPromise
+  authInitPromise = (async () => {
+    try {
+      const res = await fetch('/api/auth/config')
+      const config = await res.json()
+      if (!config.enabled || !window.supabase?.createClient) return null
+      authClient = window.supabase.createClient(config.url, config.publishableKey, {
+        auth: {
+          persistSession: true,
+          detectSessionInUrl: false,
+          flowType: 'pkce',
+        },
+      })
+      const { data, error } = await authClient.auth.getSession()
+      if (error) return null
+      authSession = data.session || null
+      authClient.auth.onAuthStateChange((_event, sessionValue) => {
+        authSession = sessionValue || null
+      })
+      return authSession
+    } catch (err) {
+      return null
+    }
+  })()
+  return authInitPromise
+}
+
+async function authHeaders(base = {}) {
+  const headers = { ...base }
+  const sessionValue = authSession || await initAuth()
+  if (sessionValue?.access_token) headers.Authorization = `Bearer ${sessionValue.access_token}`
+  return headers
+}
+
 const SECTION_COPY = {
   profile: ['내가 가진 진짜 매력', '남들이 보는 나와 내가 숨기는 결'],
   'target-context': ['이 풀이가 보는 사람', '지금 고민을 어디에 놓고 볼지'],
@@ -310,7 +349,7 @@ async function saveServerChatHistory() {
   if (!reportId || !session?.history?.length) return
   await fetch('/api/report/chat-history', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ reportId, history: session.history }),
   })
 }
@@ -933,7 +972,7 @@ async function loadReportSection(sectionId) {
   try {
     const res = await fetch('/api/report/section', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         birth: getBirthPayload(),
         reportId: getReport()?.reportId,

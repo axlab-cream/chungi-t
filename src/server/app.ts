@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { Request } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
@@ -16,7 +17,7 @@ import {
   updateReportChatHistory,
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
-import type { ReportRecord } from '../report/report-store.js'
+import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
@@ -26,6 +27,14 @@ const ROOT = join(__dirname, '../..')
 const SAJU_UI = join(ROOT, '사주', '사주')
 const SAJU_ROOT = join(ROOT, '사주')
 const PORT = Number(process.env.PORT ?? 8790)
+const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
+const SUPABASE_PUBLIC_KEY =
+  process.env.SUPABASE_PUBLISHABLE_KEY
+  ?? process.env.SUPABASE_ANON_KEY
+  ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ?? process.env.VITE_SUPABASE_ANON_KEY
+  ?? ''
+const SUPABASE_NAVER_PROVIDER = process.env.SUPABASE_NAVER_PROVIDER ?? 'naver'
 
 const app = express()
 app.use(cors())
@@ -67,19 +76,71 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
   }
 }
 
-async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}) {
+function authConfig() {
+  return {
+    enabled: Boolean(SUPABASE_URL && SUPABASE_PUBLIC_KEY),
+    url: SUPABASE_URL,
+    publishableKey: SUPABASE_PUBLIC_KEY,
+    providers: {
+      google: 'google',
+      kakao: 'kakao',
+      naver: SUPABASE_NAVER_PROVIDER,
+    },
+  }
+}
+
+function bearerToken(req: Request): string {
+  const header = req.header('authorization') ?? ''
+  const match = header.match(/^Bearer\s+(.+)$/i)
+  return match?.[1]?.trim() ?? ''
+}
+
+async function verifySupabaseUser(req: Request): Promise<ReportOwner | undefined> {
+  const token = bearerToken(req)
+  if (!token) return undefined
+  if (!SUPABASE_URL || !SUPABASE_PUBLIC_KEY) {
+    throw new Error('Supabase 인증 설정이 필요합니다.')
+  }
+
+  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/auth/v1/user`, {
+    headers: {
+      apikey: SUPABASE_PUBLIC_KEY,
+      authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    throw new Error('회원 인증을 다시 진행해 주세요.')
+  }
+
+  const data = await response.json() as {
+    id?: string
+    email?: string
+    app_metadata?: { provider?: string }
+    identities?: Array<{ provider?: string }>
+  }
+  if (!data.id) throw new Error('회원 식별값을 확인하지 못했습니다.')
+  return {
+    id: data.id,
+    email: data.email,
+    provider: data.app_metadata?.provider ?? data.identities?.[0]?.provider,
+    accessToken: token,
+  }
+}
+
+async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}, owner?: ReportOwner) {
   const analysis = analyzeSaju(birth)
-  const reportId = createReportId(birth, context)
+  const reportId = createReportId(birth, context, undefined, owner?.id)
   const templateReport = buildTemplateSajuReport(analysis, birth, context)
   const { record } = await createOrGetReportRecord({
     reportId,
     birth,
     context,
     templateReport,
+    owner,
   })
 
   if (record.status !== 'complete') {
-    startReportPreGeneration({ reportId, analysis, birth, context })
+    startReportPreGeneration({ reportId, analysis, birth, context, owner })
   }
 
   return buildUiAnalysisPayload(analysis, birth, toClientReport(record))
@@ -122,6 +183,10 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, openai: isOpenAiConfigured() })
 })
 
+app.get('/api/auth/config', (_req, res) => {
+  res.json(authConfig())
+})
+
 app.post('/api/saju/analyze', async (req, res) => {
   try {
     const birth = parseBirth(req.body)
@@ -130,7 +195,12 @@ app.post('/api/saju/analyze', async (req, res) => {
       res.status(400).json({ error: '생년월일을 입력해 주세요.' })
       return
     }
-    res.json(await toUiAnalysis(birth, context))
+    const owner = await verifySupabaseUser(req)
+    if (authConfig().enabled && !owner) {
+      res.status(401).json({ error: '회원가입 후 해석을 시작해 주세요.' })
+      return
+    }
+    res.json(await toUiAnalysis(birth, context, owner))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
   }
@@ -139,7 +209,8 @@ app.post('/api/saju/analyze', async (req, res) => {
 app.get('/api/report/:reportId', async (req, res) => {
   try {
     const reportId = String(req.params.reportId ?? '').trim()
-    const record = await getReportRecord(reportId)
+    const owner = await verifySupabaseUser(req)
+    const record = await getReportRecord(reportId, owner?.accessToken)
     if (!record) {
       res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
       return
@@ -180,7 +251,8 @@ app.post('/api/report/chat-history', async (req, res) => {
       res.status(400).json({ error: 'reportId가 필요합니다.' })
       return
     }
-    const record = await updateReportChatHistory(reportId, history)
+    const owner = await verifySupabaseUser(req)
+    const record = await updateReportChatHistory(reportId, history, owner)
     if (!record) {
       res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
       return
@@ -201,7 +273,8 @@ app.post('/api/report/section', async (req, res) => {
     const birth = parseBirth(req.body.birth ?? req.body)
     const context = parseReportContext(req.body)
     const sectionId = String(req.body.sectionId ?? '').trim()
-    const reportId = String(req.body.reportId ?? createReportId(birth, context)).trim()
+    const owner = await verifySupabaseUser(req)
+    const reportId = String(req.body.reportId ?? createReportId(birth, context, undefined, owner?.id)).trim()
 
     if (!birth.year || !birth.month || !birth.day) {
       res.status(400).json({ error: '생년월일을 입력해 주세요.' })
@@ -209,6 +282,10 @@ app.post('/api/report/section', async (req, res) => {
     }
     if (!sectionId) {
       res.status(400).json({ error: 'sectionId가 필요합니다.' })
+      return
+    }
+    if (authConfig().enabled && !owner) {
+      res.status(401).json({ error: '회원가입 후 리포트를 이어서 볼 수 있습니다.' })
       return
     }
 
@@ -219,6 +296,7 @@ app.post('/api/report/section', async (req, res) => {
       birth,
       context,
       templateReport,
+      owner,
     })
     const storedSection = record.report.sections.find((section) => section.id === sectionId)
 
@@ -233,11 +311,11 @@ app.post('/api/report/section', async (req, res) => {
     }
 
     if (record.status !== 'complete') {
-      startReportPreGeneration({ reportId, analysis, birth, context })
+      startReportPreGeneration({ reportId, analysis, birth, context, owner })
     }
 
-    const section = await generateReportSectionNow({ reportId, analysis, birth, context, sectionId })
-    const latest = await getReportRecord(reportId)
+    const section = await generateReportSectionNow({ reportId, analysis, birth, context, sectionId, owner })
+    const latest = await getReportRecord(reportId, owner?.accessToken)
     res.json({
       section,
       report: latest ? toClientReport(latest) : undefined,
@@ -253,10 +331,15 @@ app.post('/api/report/prewarm', async (req, res) => {
   try {
     const birth = parseBirth(req.body.birth ?? req.body)
     const context = parseReportContext(req.body)
-    const reportId = String(req.body.reportId ?? createReportId(birth, context)).trim()
+    const owner = await verifySupabaseUser(req)
+    const reportId = String(req.body.reportId ?? createReportId(birth, context, undefined, owner?.id)).trim()
 
     if (!birth.year || !birth.month || !birth.day) {
       res.status(400).json({ error: '생년월일을 입력해 주세요.' })
+      return
+    }
+    if (authConfig().enabled && !owner) {
+      res.status(401).json({ error: '회원가입 후 리포트를 생성할 수 있습니다.' })
       return
     }
 
@@ -267,9 +350,10 @@ app.post('/api/report/prewarm', async (req, res) => {
       birth,
       context,
       templateReport,
+      owner,
     })
 
-    const record = await preGenerateReport({ reportId, analysis, birth, context })
+    const record = await preGenerateReport({ reportId, analysis, birth, context, owner })
     if (!record) {
       res.status(404).json({ error: '리포트 사전 생성 대상을 찾지 못했습니다.' })
       return
