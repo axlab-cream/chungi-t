@@ -3098,6 +3098,9 @@
           if (providerName === "google") {
             options.queryParams = { prompt: "select_account" };
           }
+          if (providerName === "kakao") {
+            options.queryParams = { scope: "profile_nickname profile_image" };
+          }
           const { error } = await authClient.auth.signInWithOAuth({ provider, options });
           if (error) throw error;
         } catch (err) {
