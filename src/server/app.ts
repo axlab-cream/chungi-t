@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Request } from 'express'
+import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
@@ -26,6 +26,7 @@ const __dirname = dirname(__filename)
 const ROOT = join(__dirname, '../..')
 const SAJU_UI = join(ROOT, '사주', '사주')
 const SAJU_ROOT = join(ROOT, '사주')
+const PORTAL_PAGE = join(SAJU_ROOT, 'portal.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -40,11 +41,34 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+function redirectToCmdg(req: Request, res: Response) {
+  const queryIndex = req.originalUrl.indexOf('?')
+  const query = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : ''
+  res.redirect(308, `/cmdg/${query}`)
+}
+
+app.get(['/', '/index.html'], (_req, res) => {
+  res.sendFile(PORTAL_PAGE)
+})
+app.get(/^\/cmdg$/, redirectToCmdg)
+app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_UI, 'index.html'))
+})
+app.get(['/cmdg/chat.html', '/cmdg/chat'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'chat.html'))
+})
+app.get(['/cmdg/result.html', '/cmdg/result'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'result.html'))
+})
+
 app.use('/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/js', express.static(join(SAJU_ROOT, 'js')))
-app.use(express.static(SAJU_UI))
-app.use(express.static(SAJU_ROOT))
+app.use('/cmdg/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/cmdg/css', express.static(join(SAJU_ROOT, 'css')))
+app.use('/cmdg/js', express.static(join(SAJU_ROOT, 'js')))
+app.use(express.static(SAJU_UI, { index: false }))
+app.use(express.static(SAJU_ROOT, { index: false }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {
   return {
@@ -407,10 +431,6 @@ app.get('/result.html', (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'result.html'))
 })
 
-app.get('/', (_req, res) => {
-  res.sendFile(join(SAJU_UI, 'index.html'))
-})
-
 export default app
 
 const isDirectRun = process.argv[1] ? resolve(process.argv[1]) === resolve(__filename) : false
@@ -418,7 +438,8 @@ const isDirectRun = process.argv[1] ? resolve(process.argv[1]) === resolve(__fil
 if (isDirectRun) {
   app.listen(PORT, () => {
     console.log(`천명대공(天命大公) 서버: http://localhost:${PORT}`)
-    console.log(`사주 입력: http://localhost:${PORT}/index.html`)
+    console.log(`UMSH 포탈: http://localhost:${PORT}/`)
+    console.log(`천명대공 입력: http://localhost:${PORT}/cmdg/`)
     console.log(`OpenAI: ${isOpenAiConfigured() ? '연결됨' : 'API 키 필요 (.env)'}`)
   })
 }
