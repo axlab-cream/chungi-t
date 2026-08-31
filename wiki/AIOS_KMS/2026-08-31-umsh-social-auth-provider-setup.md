@@ -26,6 +26,10 @@ Kakao uses the requested scopes `profile_nickname profile_image`.
 Google uses `prompt=select_account`.
 Naver uses Supabase Custom OAuth/OIDC with provider ID `custom:naver`.
 
+Production verification showed Vercel env values can arrive with trailing
+newlines if pasted from a shell or dashboard field. The server trims provider
+IDs before returning `/api/auth/config` so OAuth provider names stay stable.
+
 ## Supabase Auth URL Values
 
 Set these in Supabase Dashboard > Authentication > URL Configuration:

@@ -35,9 +35,10 @@ const SUPABASE_PUBLIC_KEY =
   ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ?? process.env.VITE_SUPABASE_ANON_KEY
   ?? ''
-const SUPABASE_GOOGLE_PROVIDER = process.env.SUPABASE_GOOGLE_PROVIDER ?? 'google'
-const SUPABASE_KAKAO_PROVIDER = process.env.SUPABASE_KAKAO_PROVIDER ?? 'kakao'
-const SUPABASE_NAVER_PROVIDER = process.env.SUPABASE_NAVER_PROVIDER ?? 'custom:naver'
+const envValue = (value: string | undefined, fallback: string): string => value?.trim() || fallback
+const SUPABASE_GOOGLE_PROVIDER = envValue(process.env.SUPABASE_GOOGLE_PROVIDER, 'google')
+const SUPABASE_KAKAO_PROVIDER = envValue(process.env.SUPABASE_KAKAO_PROVIDER, 'kakao')
+const SUPABASE_NAVER_PROVIDER = envValue(process.env.SUPABASE_NAVER_PROVIDER, 'custom:naver')
 
 const app = express()
 app.use(cors())
