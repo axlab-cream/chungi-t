@@ -2736,7 +2736,7 @@
 
       const state = {
         scene: "landing",
-        target: "",
+        target: "본인",
         calendar: "양력",
         birth: "",
         gender: "",
@@ -2759,14 +2759,9 @@
 
       const historyStack = [];
       const urlScenes = new Set([
-        "target",
         "birth",
         "time",
-        "gender",
         "name",
-        "orientation",
-        "relationship",
-        "work",
         "concern",
         "loading",
         "result",
@@ -2935,7 +2930,7 @@
         const saved = payload.birthState || {};
         const birth = payload.birth || analysis.birth || {};
         const context = payload.context || {};
-        state.target = saved.target || context.target || "";
+        state.target = saved.target || context.target || "본인";
         state.calendar = saved.calendar || (birth.calendar === "lunar" ? "음력" : "양력");
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
         state.gender = saved.gender || (birth.gender ? (birth.gender === "female" ? "여자" : "남자") : "");
@@ -3093,7 +3088,7 @@
       }
 
       function resetReadingState() {
-        state.target = "";
+        state.target = "본인";
         state.calendar = "양력";
         state.birth = "";
         state.gender = "";
@@ -3146,14 +3141,9 @@
       const steps = {
         landing: renderLanding,
         immersion: renderImmersion,
-        target: renderTarget,
         birth: renderBirth,
         time: renderTime,
-        gender: renderGender,
         name: renderName,
-        orientation: renderOrientation,
-        relationship: renderRelationship,
-        work: renderWork,
         concern: renderConcern,
         loading: renderLoading,
         result: renderResult,
@@ -3195,7 +3185,7 @@
           closeSettings();
           historyStack.length = 0;
           resetReadingState();
-          go("target", false);
+          go("name", false);
         }
       });
 
@@ -3217,16 +3207,21 @@
           handleValue(valueButton.dataset.key, valueButton.dataset.value, valueButton);
         }
 
-        if (action === "enter") go("target");
-        if (action === "look") go("target");
-        if (action === "skip") go("target");
+        if (action === "enter") {
+          resetReadingState();
+          go("name");
+        }
+        if (action === "look") {
+          resetReadingState();
+          go("name");
+        }
+        if (action === "skip") {
+          resetReadingState();
+          go("name");
+        }
         if (action === "prev") {
           const previous = historyStack.pop();
           go(previous || "landing", false);
-        }
-        if (action === "target-next") {
-          if (!state.target) return showNudge("누구의 운세인지 먼저 골라주세요.");
-          go("birth");
         }
         if (action === "birth-next") {
           state.birth = document.querySelector("#birth")?.value.trim() || "";
@@ -3234,15 +3229,12 @@
         }
         if (action === "time-next") {
           state.time = document.querySelector("#birthtime")?.value.trim() || "모름";
-          go("gender");
-        }
-        if (action === "gender-next") {
-          if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
-          go("name");
+          go("concern");
         }
         if (action === "name-next") {
           state.name = document.querySelector("#name")?.value.trim() || "";
-          go("orientation");
+          if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
+          go("birth");
         }
         if (action === "concern-next") {
           state.concern = document.querySelector("#concern")?.value.trim() || "";
@@ -4003,28 +3995,10 @@
         `;
       }
 
-      function renderTarget() {
-        stage.innerHTML = `
-          <section class="panel">
-            <h1>누구의 사주를 볼까요?</h1>
-            <p>상담의 방향을 먼저 정해야 해석이 빗나가지 않습니다.</p>
-            <div class="choices">
-              ${["본인", "가족", "연인", "친구", "기타"]
-                .map((label) => `<button class="choice" type="button" data-key="target" data-value="${label}">${label}</button>`)
-                .join("")}
-            </div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="target-next">다음으로</button>
-            </div>
-          </section>
-        `;
-      }
-
       function renderBirth() {
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">${state.target || "대상"} 선택 완료</div>
+            <div class="status">${state.name || "이름"} · ${state.gender || "성별"}</div>
             <h1>생년월일을 알려주세요</h1>
             <p>날짜 하나로 첫 번째 운의 결을 펼쳐봅니다.</p>
             <div class="segmented" role="group" aria-label="달력 선택">
@@ -4050,7 +4024,7 @@
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
-            <h1>태어난 시간은요?</h1>
+            <h1>태어난 시간</h1>
             <p>정확한 시간이 있으면 더 섬세하게 보고, 몰라도 그대로 진행할 수 있습니다.</p>
             <div class="field-grid">
               <div class="field">
@@ -4067,95 +4041,37 @@
         document.querySelector("#birthtime")?.focus();
       }
 
-      function renderGender() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.time || "시간모름"}</div>
-            <h1>성별은 어떻게 볼까요?</h1>
-            <p>풀이 기준을 잡기 위한 선택입니다.</p>
-            <div class="choices">
-              <button class="choice" type="button" data-key="gender" data-value="남자">남자</button>
-              <button class="choice" type="button" data-key="gender" data-value="여자">여자</button>
-            </div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="gender-next">다음으로</button>
-            </div>
-          </section>
-        `;
-      }
-
       function renderName() {
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">${state.gender || "성별"} 선택 완료</div>
-            <h1>이름은 뭐라고 부를까요?</h1>
-            <p>결과 화면에서 부를 이름입니다. 별명으로 입력해도 괜찮습니다.</p>
+            <div class="status">1단계</div>
+            <h1>이름과 성별</h1>
+            <p>사주 풀이에 사용할 기본 정보를 먼저 적어주세요.</p>
             <div class="field-grid">
               <div class="field">
-                <label for="name">이름 또는 별명</label>
+                <label for="name">이름</label>
                 <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" />
               </div>
             </div>
+            <div class="choices two">
+              <button class="choice ${state.gender === "남자" ? "is-selected" : ""}" type="button" data-key="gender" data-value="남자">남자</button>
+              <button class="choice ${state.gender === "여자" ? "is-selected" : ""}" type="button" data-key="gender" data-value="여자">여자</button>
+            </div>
             <div class="actions">
               <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="name-next">확인</button>
+              <button class="next-cta" type="button" data-action="name-next">다음으로</button>
             </div>
           </section>
         `;
         document.querySelector("#name")?.focus();
       }
 
-      function renderOrientation() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.name || "이름 없음"}님</div>
-            <h1>관계 해석 기준을 정할게요</h1>
-            <p>마음이 향하는 방향에 맞춰 관계운을 읽어봅니다.</p>
-            <div class="choices single">
-              <button class="choice" type="button" data-key="orientation" data-value="이성 관계 중심" data-next="relationship">이성 관계 중심으로 볼게요</button>
-              <button class="choice" type="button" data-key="orientation" data-value="동성 관계 중심" data-next="relationship">동성 관계 중심으로 볼게요</button>
-            </div>
-          </section>
-        `;
-      }
-
-      function renderRelationship() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.orientation || "관계 기준"} 선택 완료</div>
-            <h1>지금 관계 상태는요?</h1>
-            <p>연애운은 지금 놓인 자리부터 봐야 선명해집니다.</p>
-            <div class="choices single">
-              ${["솔로예요", "마음에 둔 사람이 있어요", "연애 중이에요", "이별 직후예요", "결혼했어요"]
-                .map((label) => `<button class="choice" type="button" data-key="relationship" data-value="${label}" data-next="work">${label}</button>`)
-                .join("")}
-            </div>
-          </section>
-        `;
-      }
-
-      function renderWork() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.relationship || "관계 상태"} 확인</div>
-            <h1>요즘 일상은 어떤가요?</h1>
-            <p>일과 생활의 흐름도 운세 해석에 함께 반영됩니다.</p>
-            <div class="choices single">
-              ${["학생이에요", "일을 찾고 있어요", "직장 다녀요", "사업해요", "프리랜서예요", "쉬고 있어요"]
-                .map((label) => `<button class="choice" type="button" data-key="work" data-value="${label}" data-next="concern">${label}</button>`)
-                .join("")}
-            </div>
-          </section>
-        `;
-      }
-
       function renderConcern() {
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">${state.work || "일상"} 선택 완료</div>
-            <h1>따로 묻고 싶은 고민이 있나요?</h1>
-            <p>한 문장으로 적어도 좋고, 바로 건너뛰어도 됩니다.</p>
+            <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
+            <h1>고민</h1>
+            <p>지금 가장 마음에 걸리는 질문을 적어주세요. 바로 건너뛰어도 됩니다.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="concern">고민</label>
@@ -4576,14 +4492,17 @@
       }
 
       const initialScene = location.hash.slice(1);
-      const resolvedInitialScene = initialScene === "immersion" ? "target" : initialScene;
+      const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
+      const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
+      const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
       const initialReportId = new URLSearchParams(location.search).get("reportId");
-      if (initialReportId) {
+      if (initialReportId && (!resolvedInitialScene || resolvedInitialScene === "result")) {
         go("loading", false);
         loadReportById(initialReportId).catch((err) => {
           renderReportLookupError(err.message);
         });
       } else if (urlScenes.has(resolvedInitialScene)) {
+        if (freshInputScenes.has(resolvedInitialScene)) resetReadingState();
         go(resolvedInitialScene, false);
       } else {
         syncSceneUrl("landing");
