@@ -57,6 +57,9 @@ app.get(/^\/cmdg$/, redirectToCmdg)
 app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
 })
+app.get(['/signup', '/signup/', '/signup.html'], (_req, res) => {
+  res.sendFile(join(SAJU_UI, 'index.html'))
+})
 app.get(['/cmdg/chat.html', '/cmdg/chat'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'chat.html'))
 })

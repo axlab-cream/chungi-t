@@ -192,6 +192,23 @@
         opacity: 1;
       }
 
+      .phone[data-scene="login"] .hero {
+        opacity: 0;
+      }
+
+      .phone[data-scene="login"] .concern-video-bg,
+      .phone[data-scene="login"] .concern-video-shade {
+        opacity: 1;
+      }
+
+      .phone[data-scene="login"] .stage {
+        justify-content: center;
+        padding: 22px 18px max(24px, env(safe-area-inset-bottom));
+        background:
+          radial-gradient(circle at 74% 2%, rgba(242, 191, 107, 0.12), transparent 14rem),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.64));
+      }
+
       .topbar {
         position: relative;
         z-index: 3;
@@ -324,32 +341,90 @@
       }
 
       .auth-card {
+        position: relative;
         width: 100%;
         display: grid;
-        gap: 14px;
-        padding: 20px;
-        border: 1px solid rgba(255, 226, 183, 0.22);
+        gap: 16px;
+        overflow: hidden;
+        padding: 22px;
+        border: 1px solid rgba(242, 191, 107, 0.28);
         border-radius: 8px;
         background:
-          radial-gradient(circle at 50% 0%, rgba(164, 39, 28, 0.25), transparent 44%),
-          linear-gradient(180deg, rgba(31, 9, 8, 0.98), rgba(5, 2, 2, 0.98));
-        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.56);
+          radial-gradient(circle at 84% 0%, rgba(242, 191, 107, 0.18), transparent 11rem),
+          linear-gradient(160deg, rgba(23, 21, 16, 0.98), rgba(8, 8, 7, 0.98) 72%);
+        box-shadow:
+          0 28px 70px rgba(0, 0, 0, 0.58),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .auth-card::after {
+        content: "命";
+        position: absolute;
+        top: 6px;
+        right: -12px;
+        color: rgba(242, 191, 107, 0.06);
+        font-family: var(--font-saju-heading);
+        font-size: 124px;
+        font-weight: 900;
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      .auth-card-head,
+      .auth-provider-list,
+      .auth-benefits,
+      .auth-message,
+      .auth-cancel {
+        position: relative;
+        z-index: 1;
+      }
+
+      .auth-card-head {
+        display: grid;
+        gap: 8px;
+      }
+
+      .auth-card-kicker {
+        color: #f2bf6b;
+        font-size: 10px;
+        font-weight: 950;
+        letter-spacing: 0.12em;
       }
 
       .auth-card h2 {
         margin: 0;
         font-family: var(--font-saju-heading);
-        font-size: 24px;
-        line-height: 1.25;
+        font-size: 27px;
+        line-height: 1.2;
         letter-spacing: 0;
       }
 
       .auth-card p {
         margin: 0;
-        color: rgba(255, 235, 205, 0.72);
-        font-size: 14px;
+        color: rgba(255, 248, 239, 0.72);
+        font-size: 13px;
         font-weight: 700;
-        line-height: 1.55;
+        line-height: 1.62;
+        word-break: keep-all;
+      }
+
+      .auth-benefits {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+
+      .auth-benefits span {
+        min-height: 38px;
+        padding: 8px 6px;
+        border: 1px solid rgba(242, 191, 107, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 248, 239, 0.045);
+        color: rgba(255, 235, 205, 0.78);
+        font-size: 10px;
+        font-weight: 850;
+        line-height: 1.25;
+        text-align: center;
       }
 
       .auth-provider-list {
@@ -358,16 +433,87 @@
       }
 
       .auth-provider {
+        position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
+        gap: 12px;
         min-height: 52px;
+        overflow: hidden;
+        padding: 0 14px;
         border: 1px solid rgba(255, 226, 183, 0.18);
         border-radius: 8px;
         background: rgba(255, 248, 239, 0.07);
         color: #fff7ea;
-        font-size: 15px;
+        text-align: left;
+        transform: translateY(0);
+        transition:
+          border-color 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease,
+          transform 180ms ease;
+      }
+
+      .auth-provider::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-70%);
+        transition:
+          opacity 180ms ease,
+          transform 360ms ease;
+      }
+
+      .auth-provider:hover,
+      .auth-provider:focus-visible,
+      .auth-provider.is-loading {
+        border-color: rgba(242, 191, 107, 0.46);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+        filter: brightness(1.04);
+        transform: translateY(-2px);
+      }
+
+      .auth-provider:hover::after,
+      .auth-provider:focus-visible::after,
+      .auth-provider.is-loading::after {
+        opacity: 1;
+        transform: translateX(70%);
+      }
+
+      .auth-provider-mark {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.28);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 14px;
         font-weight: 900;
+      }
+
+      .auth-provider-copy {
+        display: grid;
+        min-width: 0;
+        gap: 2px;
+      }
+
+      .auth-provider-copy strong {
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.2;
+      }
+
+      .auth-provider-copy small {
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1.2;
+        opacity: 0.68;
       }
 
       .auth-provider.kakao {
@@ -380,9 +526,21 @@
         color: #fff;
       }
 
+      .auth-provider.google {
+        background: #fff;
+        color: #211b18;
+      }
+
       .auth-provider.is-unavailable {
         cursor: not-allowed;
         opacity: 0.62;
+      }
+
+      .auth-provider.is-unavailable:hover,
+      .auth-provider.is-unavailable:focus-visible {
+        box-shadow: none;
+        filter: none;
+        transform: none;
       }
 
       .auth-provider.naver.is-unavailable {
@@ -391,14 +549,9 @@
         color: rgba(255, 255, 255, 0.82);
       }
 
-      .auth-provider.google {
-        background: #fff;
-        color: #211b18;
-      }
-
       .auth-message {
         min-height: 18px;
-        color: #ffd894;
+        color: #f2bf6b;
         font-size: 12px;
         font-weight: 800;
         line-height: 1.45;
@@ -407,10 +560,16 @@
       .auth-cancel {
         justify-self: center;
         min-height: 38px;
+        padding: 0 12px;
         background: transparent;
-        color: rgba(255, 236, 202, 0.72);
+        color: rgba(255, 236, 202, 0.76);
         font-size: 13px;
         font-weight: 850;
+      }
+
+      .auth-cancel:hover,
+      .auth-cancel:focus-visible {
+        color: #f2bf6b;
       }
 
       .settings-sheet {
@@ -3068,6 +3227,14 @@
       let authSession = null;
       let authInitPromise = null;
       let authGateMessage = "";
+      let authSignInProvider = "";
+
+      const initialAuthParams = new URLSearchParams(location.search);
+      const initialAuthEntry = initialAuthParams.get("authEntry") || initialAuthParams.get("entry") || "";
+      const isSignupPath = /^\/signup(?:\/|\.html)?$/i.test(location.pathname);
+      const isPortalSignupEntry = isSignupPath || initialAuthEntry === "today" || initialAuthEntry === "signup";
+      const isSignupReturn = initialAuthParams.get("signupReturn") === "1";
+      const isAuthReturn = initialAuthParams.get("authReturn") === "1";
 
       const state = {
         scene: "landing",
@@ -3109,8 +3276,33 @@
         const url = new URL(location.href);
         url.hash = "concern";
         url.searchParams.set("authReturn", "1");
+        url.searchParams.delete("authEntry");
+        url.searchParams.delete("entry");
+        url.searchParams.delete("signupReturn");
         url.searchParams.delete("reportId");
         return url.toString();
+      }
+
+      function signupReturnUrl() {
+        const url = new URL("/cmdg/", location.origin);
+        url.searchParams.set("signupReturn", "1");
+        url.hash = "name";
+        return url.toString();
+      }
+
+      function isStandaloneSignupFlow() {
+        return isPortalSignupEntry || isSignupReturn;
+      }
+
+      function clearSignupQuery() {
+        const url = new URL(location.href);
+        url.searchParams.delete("signupReturn");
+        url.searchParams.delete("authEntry");
+        url.searchParams.delete("entry");
+        const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+        if (`${location.pathname}${location.search}${location.hash}` !== nextUrl) {
+          history.replaceState(null, "", nextUrl);
+        }
       }
 
       function persistAuthFormState() {
@@ -3223,9 +3415,22 @@
       }
 
       async function signInWithProvider(providerName) {
+        let providerButton = null;
         try {
-          persistAuthFormState();
-          sessionStorage.setItem(AUTH_PENDING_KEY, "1");
+          authSignInProvider = providerName;
+          providerButton = document.querySelector(`[data-auth-provider="${providerName}"]`);
+          providerButton?.classList.add("is-loading");
+          providerButton?.setAttribute("aria-busy", "true");
+          setAuthMessage(`${authProviderLabel(providerName)} 회원가입으로 이동합니다.`);
+
+          if (isStandaloneSignupFlow()) {
+            sessionStorage.removeItem(AUTH_PENDING_KEY);
+            sessionStorage.removeItem(AUTH_FORM_KEY);
+          } else {
+            persistAuthFormState();
+            sessionStorage.setItem(AUTH_PENDING_KEY, "1");
+          }
+
           await initAuth();
           if (!authConfigData?.enabled || !authClient) {
             throw new Error("Supabase 공개 URL과 publishable key 설정을 확인해 주세요.");
@@ -3235,7 +3440,7 @@
             throw new Error(unavailableAuthMessage(providerName));
           }
           const options = {
-            redirectTo: authReturnUrl(),
+            redirectTo: isStandaloneSignupFlow() ? signupReturnUrl() : authReturnUrl(),
           };
           if (providerName === "kakao") {
             options.scopes = "profile_nickname profile_image";
@@ -3248,6 +3453,9 @@
           if (error) throw error;
         } catch (err) {
           sessionStorage.removeItem(AUTH_PENDING_KEY);
+          authSignInProvider = "";
+          providerButton?.classList.remove("is-loading");
+          providerButton?.removeAttribute("aria-busy");
           setAuthMessage(err.message || `${authProviderLabel(providerName)} 회원가입을 시작하지 못했습니다.`);
         }
       }
@@ -3700,6 +3908,10 @@
       });
 
       backGlobal.addEventListener("click", () => {
+        if (state.scene === "login" && isStandaloneSignupFlow()) {
+          location.href = "/";
+          return;
+        }
         if (historyStack.length === 0) {
           go("landing", false);
           return;
@@ -3810,6 +4022,11 @@
       });
 
       document.addEventListener("click", (event) => {
+        const loadingButton = event.target.closest("[data-auth-loading]");
+        if (loadingButton) {
+          setAuthMessage("소셜 회원가입 설정을 확인하는 중입니다.");
+          return;
+        }
         const unavailableButton = event.target.closest("[data-auth-unavailable]");
         if (unavailableButton) {
           setAuthMessage(unavailableAuthMessage(unavailableButton.dataset.authUnavailable));
@@ -3826,6 +4043,10 @@
           sessionStorage.removeItem(AUTH_PENDING_KEY);
           authGateMessage = "";
           if (state.scene === "login") {
+            if (isStandaloneSignupFlow()) {
+              location.href = "/";
+              return;
+            }
             go("concern");
           }
         }
@@ -4546,7 +4767,7 @@
         if (remember && state.scene !== scene) historyStack.push(state.scene);
         state.scene = scene;
         syncSceneUrl(scene);
-        phone.dataset.scene =
+        const phoneScene =
           scene === "landing"
             ? "landing"
             : scene === "immersion"
@@ -4555,7 +4776,10 @@
                 ? "loading"
                 : scene === "result"
                   ? "result"
-                  : "input";
+                  : scene === "login"
+                    ? "login"
+                    : "input";
+        phone.dataset.scene = phoneScene;
         phone.dataset.step = scene;
         soundButton.style.display = "none";
         steps[scene]();
@@ -4743,6 +4967,33 @@
         document.querySelector("#concern")?.focus();
       }
 
+      function renderAuthProviderButton(providerName, className, label, helper, mark) {
+        const isLoading = !authConfigData;
+        const isConfigured = Boolean(authConfigData?.providers?.[providerName]);
+        const isSigningIn = authSignInProvider === providerName;
+        const stateAttrs = isLoading
+          ? `data-auth-loading="${providerName}" aria-disabled="true"`
+          : isConfigured
+            ? `data-auth-provider="${providerName}"`
+            : `data-auth-unavailable="${providerName}" aria-disabled="true"`;
+        const stateClass = [
+          className,
+          isConfigured ? "" : "is-unavailable",
+          isSigningIn ? "is-loading" : "",
+        ].filter(Boolean).join(" ");
+        const statusText = isLoading ? "연결 확인 중" : helper;
+
+        return `
+          <button class="auth-provider ${stateClass}" type="button" ${stateAttrs}>
+            <span class="auth-provider-mark" aria-hidden="true">${escapeHtml(mark)}</span>
+            <span class="auth-provider-copy">
+              <strong>${escapeHtml(label)}</strong>
+              <small>${escapeHtml(statusText)}</small>
+            </span>
+          </button>
+        `;
+      }
+
       function renderLogin() {
         if (!authConfigData && !authInitPromise) {
           initAuth()
@@ -4754,20 +5005,32 @@
               if (state.scene === "login") renderLogin();
             });
         }
-        const naverProviderButton = authConfigData?.providers?.naver
-          ? `<button class="auth-provider naver" type="button" data-auth-provider="naver">네이버로 계속하기</button>`
-          : `<button class="auth-provider naver is-unavailable" type="button" data-auth-unavailable="naver" aria-disabled="true">네이버 준비 중</button>`;
+        const title = isStandaloneSignupFlow()
+          ? "오늘의 운을 보려면<br />먼저 가입해주세요"
+          : "먼저 가입하고<br />해석을 시작합니다";
+        const description = isStandaloneSignupFlow()
+          ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
+          : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
+        const closeLabel = isStandaloneSignupFlow() ? "상회로 돌아가기" : "돌아가기";
         stage.innerHTML = `
           <section class="panel auth-card" role="dialog" aria-label="회원가입">
-            <h2>먼저 로그인하고<br />해석을 시작합니다</h2>
-            <p>로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 관리자 기록에 저장됩니다.</p>
+            <div class="auth-card-head">
+              <span class="auth-card-kicker">FORTUNE SHOP · SIGN UP</span>
+              <h2>${title}</h2>
+              <p>${description}</p>
+            </div>
+            <div class="auth-benefits" aria-label="회원가입 혜택">
+              <span>무료 오늘운</span>
+              <span>풀이 보관</span>
+              <span>상담 이어보기</span>
+            </div>
             <div class="auth-provider-list">
-              <button class="auth-provider kakao" type="button" data-auth-provider="kakao">카카오로 계속하기</button>
-              ${naverProviderButton}
-              <button class="auth-provider google" type="button" data-auth-provider="google">구글로 계속하기</button>
+              ${renderAuthProviderButton("kakao", "kakao", "카카오로 시작하기", "Kakao 간편 가입", "K")}
+              ${renderAuthProviderButton("naver", "naver", "네이버로 시작하기", "Naver 계정 연결", "N")}
+              ${renderAuthProviderButton("google", "google", "구글로 시작하기", "Google 계정 연결", "G")}
             </div>
             <div class="auth-message" data-auth-message>${escapeHtml(authGateMessage)}</div>
-            <button class="auth-cancel" type="button" data-auth-close>돌아가기</button>
+            <button class="auth-cancel" type="button" data-auth-close>${closeLabel}</button>
           </section>
         `;
       }
@@ -5177,12 +5440,15 @@
         `;
       }
 
-      const initialScene = location.hash.slice(1);
+      const initialScene = isPortalSignupEntry && !location.hash.slice(1) ? "login" : location.hash.slice(1);
       const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
       const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
       const initialReportId = new URLSearchParams(location.search).get("reportId");
-      const isAuthReturn = new URLSearchParams(location.search).get("authReturn") === "1";
+      if (isStandaloneSignupFlow() && !isAuthReturn) {
+        sessionStorage.removeItem(AUTH_PENDING_KEY);
+        sessionStorage.removeItem(AUTH_FORM_KEY);
+      }
       if (isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
         restoreAuthFormState();
       }
@@ -5199,6 +5465,9 @@
       } else {
         syncSceneUrl("landing");
         renderLanding();
+      }
+      if (isSignupReturn) {
+        clearSignupQuery();
       }
       initAuth().then(() => {
         if ((isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") && authSession?.access_token) {

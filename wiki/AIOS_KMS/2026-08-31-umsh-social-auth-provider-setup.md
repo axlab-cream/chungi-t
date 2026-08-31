@@ -113,7 +113,12 @@ Naver Developers:
 
 ## Operational Notes
 
-- OAuth Client IDs and secrets must be issued in each provider developer console before the Supabase providers can be fully enabled.
+- Supabase hosted Auth providers were verified as enabled on 2026-08-31.
+- The Supabase authorize endpoint returned provider redirects for Google, Kakao, and Naver.
+- `redirect_to` was accepted for `https://umsh.kr/`, `https://www.umsh.kr/`, and `http://localhost:8790/`.
+- Portal Today free ticket now routes to `/signup?entry=today`, which renders the existing `#login` scene with UMSH store styling.
+- Standalone signup entry clears pending analysis state and returns social OAuth users to `/cmdg/?signupReturn=1#name` so empty analysis requests are not triggered.
+- OAuth Client IDs and secrets are managed in each provider developer console and Supabase Auth provider settings.
 - Do not commit provider secrets to `.env` or `.env.example`.
 - Vercel environment values only store provider IDs. Real provider secrets belong in Supabase Auth provider settings.
 - After DNS for `umsh.kr` resolves to Vercel, run a live login check for Kakao, Naver, and Google from the production domain.

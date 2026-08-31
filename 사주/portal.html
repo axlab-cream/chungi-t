@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-love-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260831-action-ui-v2" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260831-signup-entry-v1" />
   </head>
   <body>
     <div class="stage">
@@ -97,14 +97,14 @@
             </button>
           </section>
 
-          <section class="today-ticket service-card" data-category="흐름">
+          <a class="today-ticket service-card is-live" href="/signup?entry=today" data-category="흐름" aria-label="오늘 무료 운세 회원가입으로 보기">
             <div>
               <span>TODAY · 무료</span>
               <strong>오늘 나한테 들어오는 운</strong>
               <p>일진 · 일운 · 피해야 할 선택</p>
             </div>
-            <button type="button" data-soon>보기</button>
-          </section>
+            <span class="today-cta">보기</span>
+          </a>
 
           <section class="section-block">
             <div class="section-title">
@@ -196,6 +196,6 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
-    <script src="/js/portal.js?v=20260831-action-ui-v2"></script>
+    <script src="/js/portal.js?v=20260831-signup-entry-v1"></script>
   </body>
 </html>

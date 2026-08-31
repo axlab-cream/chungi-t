@@ -714,17 +714,19 @@ a:focus-visible {
   font-weight: 750;
 }
 
-.today-ticket button {
+.today-ticket .today-cta {
+  display: inline-grid;
   flex: 0 0 auto;
   height: 38px;
+  min-width: 54px;
   padding: 0 14px;
+  place-items: center;
   border: 1px solid var(--gold-600);
   border-radius: 999px;
   background: var(--gold-gradient);
   color: #070706;
   font-size: 12px;
   font-weight: 950;
-  cursor: pointer;
   transition:
     box-shadow 180ms ease,
     filter 180ms ease,
@@ -733,14 +735,16 @@ a:focus-visible {
 
 .today-ticket:hover,
 .today-ticket:focus-within,
+.today-ticket:focus-visible,
 .today-ticket.is-pointed {
   border-color: rgba(216, 186, 114, 0.44);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
   transform: translateY(-2px);
 }
 
-.today-ticket button:hover,
-.today-ticket button:focus-visible {
+.today-ticket:hover .today-cta,
+.today-ticket:focus-visible .today-cta,
+.today-ticket.is-pointed .today-cta {
   filter: brightness(1.08);
   box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.12);
   transform: translateY(-1px);
@@ -1022,12 +1026,14 @@ a:focus-visible {
 
 .poster[href],
 .product-card[href],
+.today-ticket[href],
 .bottom-nav a {
   cursor: pointer;
 }
 
 .poster[href] > *,
-.product-card[href] > * {
+.product-card[href] > *,
+.today-ticket[href] > * {
   pointer-events: none;
 }
 
