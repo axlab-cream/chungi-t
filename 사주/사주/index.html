@@ -51,6 +51,7 @@
         --font-saju-heading: "Maru Buri", "Noto Serif KR", serif;
         --font-reading-body: "Noto Serif KR", "Apple SD Gothic Neo", serif;
         --font-meta: "Pretendard", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --topbar-height: 96px;
       }
 
       * {
@@ -141,14 +142,26 @@
         position: relative;
         z-index: 3;
         display: grid;
-        grid-template-columns: 44px 1fr 44px;
+        grid-template-columns: 44px minmax(0, 1fr) 44px;
         align-items: center;
-        height: 58px;
-        padding: 0 18px;
+        height: var(--topbar-height);
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(242, 191, 107, 0.18);
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.9)),
+          #000;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.46);
       }
 
       .topbar > .icon-button:last-child {
         justify-self: end;
+      }
+
+      .topbar > .icon-button {
+        position: relative;
+        z-index: 2;
+        grid-column: 1;
+        grid-row: 1;
       }
 
       .icon-button {
@@ -171,18 +184,158 @@
         white-space: nowrap;
       }
 
+      .topbar-brand-logo {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-row: 1;
+        place-items: center;
+        min-width: 0;
+        line-height: 0;
+        pointer-events: none;
+      }
+
+      .topbar-logo {
+        display: block;
+        width: min(100%, 220px);
+        height: 78px;
+        object-fit: contain;
+      }
+
+      .topbar-vault-button {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        z-index: 2;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 58px;
+        min-height: 34px;
+        padding: 0 8px;
+        border: 1px solid rgba(242, 191, 107, 0.62);
+        border-radius: 999px;
+        background:
+          linear-gradient(180deg, rgba(255, 236, 191, 0.12), rgba(242, 191, 107, 0.04)),
+          rgba(0, 0, 0, 0.56);
+        color: #fff6df;
+        font-family: var(--font-meta);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0;
+        box-shadow:
+          inset 0 0 14px rgba(242, 191, 107, 0.1),
+          0 6px 18px rgba(0, 0, 0, 0.36);
+      }
+
       .settings-panel {
         position: absolute;
         inset: 0;
         z-index: 8;
         display: none;
-        padding: 70px 16px 18px;
+        padding: calc(var(--topbar-height) + 12px) 16px 18px;
         background: rgba(2, 1, 1, 0.62);
         backdrop-filter: blur(12px);
       }
 
       .settings-panel.is-open {
         display: block;
+      }
+
+      .auth-gate {
+        position: absolute;
+        inset: 0;
+        z-index: 12;
+        display: none;
+        place-items: end center;
+        padding: 18px 18px max(22px, env(safe-area-inset-bottom));
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.82)),
+          rgba(0, 0, 0, 0.58);
+        backdrop-filter: blur(10px);
+      }
+
+      .auth-gate.is-open {
+        display: grid;
+      }
+
+      .auth-card {
+        width: 100%;
+        display: grid;
+        gap: 14px;
+        padding: 20px;
+        border: 1px solid rgba(255, 226, 183, 0.22);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(164, 39, 28, 0.25), transparent 44%),
+          linear-gradient(180deg, rgba(31, 9, 8, 0.98), rgba(5, 2, 2, 0.98));
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.56);
+      }
+
+      .auth-card h2 {
+        margin: 0;
+        font-family: var(--font-saju-heading);
+        font-size: 24px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .auth-card p {
+        margin: 0;
+        color: rgba(255, 235, 205, 0.72);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+
+      .auth-provider-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .auth-provider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        border: 1px solid rgba(255, 226, 183, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 248, 239, 0.07);
+        color: #fff7ea;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .auth-provider.kakao {
+        background: #fee500;
+        color: #1b1200;
+      }
+
+      .auth-provider.naver {
+        background: #03c75a;
+        color: #fff;
+      }
+
+      .auth-provider.google {
+        background: #fff;
+        color: #211b18;
+      }
+
+      .auth-message {
+        min-height: 18px;
+        color: #ffd894;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      .auth-cancel {
+        justify-self: center;
+        min-height: 38px;
+        background: transparent;
+        color: rgba(255, 236, 202, 0.72);
+        font-size: 13px;
+        font-weight: 850;
       }
 
       .settings-sheet {
@@ -313,7 +466,7 @@
       .stage {
         position: relative;
         z-index: 2;
-        height: calc(100% - 58px);
+        height: calc(100% - var(--topbar-height));
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -372,7 +525,7 @@
 
       .sound {
         position: absolute;
-        top: 70px;
+        top: calc(var(--topbar-height) + 12px);
         left: 50%;
         z-index: 3;
         display: inline-flex;
@@ -2601,7 +2754,9 @@
       .skip:hover,
       .skip:focus-visible,
       .icon-button:hover,
-      .icon-button:focus-visible {
+      .icon-button:focus-visible,
+      .topbar-vault-button:hover,
+      .topbar-vault-button:focus-visible {
         outline: 2px solid rgba(242, 191, 107, 0.75);
         outline-offset: 2px;
       }
@@ -2698,24 +2853,11 @@
             />
           </svg>
         </button>
-        <div class="brand">천명대공(天命大公)</div>
-        <button class="icon-button" type="button" aria-label="설정 열기" data-open-settings>
-          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M12 15.3a3.3 3.3 0 1 0 0-6.6 3.3 3.3 0 0 0 0 6.6Z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.08a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.87.34l-.05.05a2 2 0 0 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.08A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.05-.05a2 2 0 0 1 2.83-2.83l.05.05a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 0 1 4 0v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.05-.05a2 2 0 0 1 2.83 2.83l-.05.05a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 0 1 0 4h-.08A1.7 1.7 0 0 0 19.4 15Z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+        <div class="brand topbar-brand-logo" aria-label="천명대공">
+          <img class="topbar-logo" src="assets/chungi-chat-logo.webp" alt="천명대공" />
+        </div>
+        <button class="topbar-vault-button" type="button" aria-label="보관함 열기" data-open-settings>
+          보관함
         </button>
       </header>
 
@@ -2724,6 +2866,7 @@
       <aside class="settings-panel" data-settings-panel aria-hidden="true"></aside>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       const phone = document.querySelector(".phone");
       const stage = document.querySelector("#stage");
@@ -2733,10 +2876,16 @@
       const settingsPanel = document.querySelector("[data-settings-panel]");
       const HISTORY_KEY = "cheongi_report_history_v1";
       const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
+      const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
+      const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
+      let authConfigData = null;
+      let authClient = null;
+      let authSession = null;
+      let authInitPromise = null;
 
       const state = {
         scene: "landing",
-        target: "",
+        target: "본인",
         calendar: "양력",
         birth: "",
         gender: "",
@@ -2759,20 +2908,180 @@
 
       const historyStack = [];
       const urlScenes = new Set([
-        "target",
         "birth",
         "time",
-        "gender",
         "name",
-        "orientation",
-        "relationship",
-        "work",
         "concern",
         "loading",
         "result",
         "purchase",
         "paymentReady",
       ]);
+
+      function authReturnUrl() {
+        const url = new URL(location.href);
+        url.hash = "concern";
+        url.searchParams.set("authReturn", "1");
+        url.searchParams.delete("reportId");
+        return url.toString();
+      }
+
+      function persistAuthFormState() {
+        sessionStorage.setItem(AUTH_FORM_KEY, JSON.stringify({
+          scene: state.scene,
+          target: state.target,
+          calendar: state.calendar,
+          birth: state.birth,
+          gender: state.gender,
+          time: state.time,
+          name: state.name,
+          orientation: state.orientation,
+          relationship: state.relationship,
+          work: state.work,
+          concern: state.concern,
+        }));
+      }
+
+      function restoreAuthFormState() {
+        try {
+          const saved = JSON.parse(sessionStorage.getItem(AUTH_FORM_KEY) || "null");
+          if (!saved || typeof saved !== "object") return;
+          Object.assign(state, {
+            target: saved.target || state.target,
+            calendar: saved.calendar || state.calendar,
+            birth: saved.birth || state.birth,
+            gender: saved.gender || state.gender,
+            time: saved.time || state.time,
+            name: saved.name || state.name,
+            orientation: saved.orientation || state.orientation,
+            relationship: saved.relationship || state.relationship,
+            work: saved.work || state.work,
+            concern: saved.concern || state.concern,
+          });
+        } catch (err) {
+          sessionStorage.removeItem(AUTH_FORM_KEY);
+        }
+      }
+
+      async function initAuth() {
+        if (authInitPromise) return authInitPromise;
+        authInitPromise = (async () => {
+          const configRes = await fetch("/api/auth/config", { cache: "no-store" });
+          const config = await configRes.json();
+          authConfigData = config;
+          if (!config.enabled) return null;
+          if (!window.supabase?.createClient) {
+            throw new Error("회원가입 모듈을 불러오지 못했습니다.");
+          }
+          authClient = window.supabase.createClient(config.url, config.publishableKey, {
+            auth: {
+              persistSession: true,
+              detectSessionInUrl: true,
+              flowType: "pkce",
+            },
+          });
+          const { data, error } = await authClient.auth.getSession();
+          if (error) throw error;
+          authSession = data.session || null;
+          authClient.auth.onAuthStateChange((_event, session) => {
+            authSession = session || null;
+          });
+          return authSession;
+        })();
+        return authInitPromise;
+      }
+
+      async function currentAuthSession() {
+        await initAuth();
+        if (!authClient) return null;
+        const { data, error } = await authClient.auth.getSession();
+        if (error) throw error;
+        authSession = data.session || null;
+        return authSession;
+      }
+
+      async function authHeaders(base = {}) {
+        const headers = { ...base };
+        const session = authSession || await currentAuthSession().catch(() => null);
+        if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+        return headers;
+      }
+
+      function authProviderLabel(provider) {
+        if (provider === "kakao") return "카카오";
+        if (provider === "naver") return "네이버";
+        return "구글";
+      }
+
+      function showAuthGate(message = "") {
+        document.querySelector("[data-auth-gate]")?.remove();
+        const gate = document.createElement("div");
+        gate.className = "auth-gate is-open";
+        gate.dataset.authGate = "true";
+        gate.innerHTML = `
+          <section class="auth-card" role="dialog" aria-modal="true" aria-label="회원가입">
+            <h2>먼저 가입하고<br />해석을 시작합니다</h2>
+            <p>가입 시 고유 ID가 생성되고, 입력한 사주 해석은 관리자 기록에 저장됩니다.</p>
+            <div class="auth-provider-list">
+              <button class="auth-provider kakao" type="button" data-auth-provider="kakao">카카오로 계속하기</button>
+              <button class="auth-provider naver" type="button" data-auth-provider="naver">네이버로 계속하기</button>
+              <button class="auth-provider google" type="button" data-auth-provider="google">구글로 계속하기</button>
+            </div>
+            <div class="auth-message" data-auth-message>${escapeHtml(message)}</div>
+            <button class="auth-cancel" type="button" data-auth-close>돌아가기</button>
+          </section>
+        `;
+        phone.append(gate);
+      }
+
+      function setAuthMessage(message) {
+        const target = document.querySelector("[data-auth-message]");
+        if (target) target.textContent = message;
+      }
+
+      async function signInWithProvider(providerName) {
+        try {
+          persistAuthFormState();
+          sessionStorage.setItem(AUTH_PENDING_KEY, "1");
+          await initAuth();
+          if (!authConfigData?.enabled || !authClient) {
+            throw new Error("Supabase 공개 URL과 publishable key 설정을 확인해 주세요.");
+          }
+          const provider = authConfigData.providers?.[providerName] || providerName;
+          const options = {
+            redirectTo: authReturnUrl(),
+          };
+          if (providerName === "google") {
+            options.queryParams = { prompt: "select_account" };
+          }
+          const { error } = await authClient.auth.signInWithOAuth({ provider, options });
+          if (error) throw error;
+        } catch (err) {
+          sessionStorage.removeItem(AUTH_PENDING_KEY);
+          setAuthMessage(err.message || `${authProviderLabel(providerName)} 회원가입을 시작하지 못했습니다.`);
+        }
+      }
+
+      async function beginAnalysisAfterAuth() {
+        const session = await currentAuthSession().catch((err) => {
+          showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
+          return null;
+        });
+        if (!session?.access_token) {
+          showAuthGate();
+          return;
+        }
+
+        sessionStorage.removeItem(AUTH_PENDING_KEY);
+        sessionStorage.removeItem(AUTH_FORM_KEY);
+        go("loading");
+        analyzeBirth()
+          .then(() => go("result"))
+          .catch((err) => {
+            showNudge(err.message || "사주 분석에 실패했습니다.");
+            go("concern");
+          });
+      }
 
       const sampleVideo = {
         webm: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.webm",
@@ -2935,7 +3244,7 @@
         const saved = payload.birthState || {};
         const birth = payload.birth || analysis.birth || {};
         const context = payload.context || {};
-        state.target = saved.target || context.target || "";
+        state.target = saved.target || context.target || "본인";
         state.calendar = saved.calendar || (birth.calendar === "lunar" ? "음력" : "양력");
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
         state.gender = saved.gender || (birth.gender ? (birth.gender === "female" ? "여자" : "남자") : "");
@@ -3093,7 +3402,7 @@
       }
 
       function resetReadingState() {
-        state.target = "";
+        state.target = "본인";
         state.calendar = "양력";
         state.birth = "";
         state.gender = "";
@@ -3130,7 +3439,9 @@
           return;
         }
 
-        const res = await fetch(`/api/report/${encodeURIComponent(trimmed)}`);
+        const res = await fetch(`/api/report/${encodeURIComponent(trimmed)}`, {
+          headers: await authHeaders(),
+        });
         const json = await res.json();
         if (!res.ok || !json.analysis) {
           throw new Error(json.error || "저장된 풀이를 찾지 못했습니다.");
@@ -3146,14 +3457,9 @@
       const steps = {
         landing: renderLanding,
         immersion: renderImmersion,
-        target: renderTarget,
         birth: renderBirth,
         time: renderTime,
-        gender: renderGender,
         name: renderName,
-        orientation: renderOrientation,
-        relationship: renderRelationship,
-        work: renderWork,
         concern: renderConcern,
         loading: renderLoading,
         result: renderResult,
@@ -3195,7 +3501,7 @@
           closeSettings();
           historyStack.length = 0;
           resetReadingState();
-          go("target", false);
+          go("name", false);
         }
       });
 
@@ -3217,16 +3523,21 @@
           handleValue(valueButton.dataset.key, valueButton.dataset.value, valueButton);
         }
 
-        if (action === "enter") go("target");
-        if (action === "look") go("target");
-        if (action === "skip") go("target");
+        if (action === "enter") {
+          resetReadingState();
+          go("name");
+        }
+        if (action === "look") {
+          resetReadingState();
+          go("name");
+        }
+        if (action === "skip") {
+          resetReadingState();
+          go("name");
+        }
         if (action === "prev") {
           const previous = historyStack.pop();
           go(previous || "landing", false);
-        }
-        if (action === "target-next") {
-          if (!state.target) return showNudge("누구의 운세인지 먼저 골라주세요.");
-          go("birth");
         }
         if (action === "birth-next") {
           state.birth = document.querySelector("#birth")?.value.trim() || "";
@@ -3234,25 +3545,17 @@
         }
         if (action === "time-next") {
           state.time = document.querySelector("#birthtime")?.value.trim() || "모름";
-          go("gender");
-        }
-        if (action === "gender-next") {
-          if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
-          go("name");
+          go("concern");
         }
         if (action === "name-next") {
           state.name = document.querySelector("#name")?.value.trim() || "";
-          go("orientation");
+          if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
+          go("birth");
         }
         if (action === "concern-next") {
           state.concern = document.querySelector("#concern")?.value.trim() || "";
-          go("loading");
-          analyzeBirth()
-            .then(() => go("result"))
-            .catch((err) => {
-              showNudge(err.message || "사주 분석에 실패했습니다.");
-              go("concern");
-            });
+          persistAuthFormState();
+          beginAnalysisAfterAuth();
         }
         if (action === "open-chat") {
           location.href = "/chat.html";
@@ -3293,6 +3596,19 @@
           state.paymentAgree = false;
           state.marketingAgree = false;
           go("landing", false);
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        const providerButton = event.target.closest("[data-auth-provider]");
+        if (providerButton) {
+          signInWithProvider(providerButton.dataset.authProvider);
+          return;
+        }
+        const closeButton = event.target.closest("[data-auth-close]");
+        if (closeButton) {
+          document.querySelector("[data-auth-gate]")?.remove();
+          sessionStorage.removeItem(AUTH_PENDING_KEY);
         }
       });
 
@@ -3401,9 +3717,10 @@
         state.reportRequestToken += 1;
         if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
         state.reportTypingTimer = null;
+        const headers = await authHeaders({ "Content-Type": "application/json" });
         const res = await fetch("/api/saju/analyze", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ ...birth, ...context, context }),
         });
         const json = await res.json();
@@ -3795,7 +4112,7 @@
         const birth = parseBirthInput();
         const res = await fetch("/api/report/section", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({
             birth,
             reportId: state.analysis?.report?.reportId,
@@ -3820,7 +4137,7 @@
         try {
           const res = await fetch("/api/report/prewarm", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: await authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({
               birth,
               reportId,
@@ -4003,28 +4320,10 @@
         `;
       }
 
-      function renderTarget() {
-        stage.innerHTML = `
-          <section class="panel">
-            <h1>누구의 사주를 볼까요?</h1>
-            <p>상담의 방향을 먼저 정해야 해석이 빗나가지 않습니다.</p>
-            <div class="choices">
-              ${["본인", "가족", "연인", "친구", "기타"]
-                .map((label) => `<button class="choice" type="button" data-key="target" data-value="${label}">${label}</button>`)
-                .join("")}
-            </div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="target-next">다음으로</button>
-            </div>
-          </section>
-        `;
-      }
-
       function renderBirth() {
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">${state.target || "대상"} 선택 완료</div>
+            <div class="status">${state.name || "이름"} · ${state.gender || "성별"}</div>
             <h1>생년월일을 알려주세요</h1>
             <p>날짜 하나로 첫 번째 운의 결을 펼쳐봅니다.</p>
             <div class="segmented" role="group" aria-label="달력 선택">
@@ -4050,7 +4349,7 @@
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
-            <h1>태어난 시간은요?</h1>
+            <h1>태어난 시간</h1>
             <p>정확한 시간이 있으면 더 섬세하게 보고, 몰라도 그대로 진행할 수 있습니다.</p>
             <div class="field-grid">
               <div class="field">
@@ -4067,95 +4366,37 @@
         document.querySelector("#birthtime")?.focus();
       }
 
-      function renderGender() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.time || "시간모름"}</div>
-            <h1>성별은 어떻게 볼까요?</h1>
-            <p>풀이 기준을 잡기 위한 선택입니다.</p>
-            <div class="choices">
-              <button class="choice" type="button" data-key="gender" data-value="남자">남자</button>
-              <button class="choice" type="button" data-key="gender" data-value="여자">여자</button>
-            </div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="gender-next">다음으로</button>
-            </div>
-          </section>
-        `;
-      }
-
       function renderName() {
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">${state.gender || "성별"} 선택 완료</div>
-            <h1>이름은 뭐라고 부를까요?</h1>
-            <p>결과 화면에서 부를 이름입니다. 별명으로 입력해도 괜찮습니다.</p>
+            <div class="status">1단계</div>
+            <h1>이름과 성별</h1>
+            <p>사주 풀이에 사용할 기본 정보를 먼저 적어주세요.</p>
             <div class="field-grid">
               <div class="field">
-                <label for="name">이름 또는 별명</label>
+                <label for="name">이름</label>
                 <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" />
               </div>
             </div>
+            <div class="choices two">
+              <button class="choice ${state.gender === "남자" ? "is-selected" : ""}" type="button" data-key="gender" data-value="남자">남자</button>
+              <button class="choice ${state.gender === "여자" ? "is-selected" : ""}" type="button" data-key="gender" data-value="여자">여자</button>
+            </div>
             <div class="actions">
               <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="name-next">확인</button>
+              <button class="next-cta" type="button" data-action="name-next">다음으로</button>
             </div>
           </section>
         `;
         document.querySelector("#name")?.focus();
       }
 
-      function renderOrientation() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.name || "이름 없음"}님</div>
-            <h1>관계 해석 기준을 정할게요</h1>
-            <p>마음이 향하는 방향에 맞춰 관계운을 읽어봅니다.</p>
-            <div class="choices single">
-              <button class="choice" type="button" data-key="orientation" data-value="이성 관계 중심" data-next="relationship">이성 관계 중심으로 볼게요</button>
-              <button class="choice" type="button" data-key="orientation" data-value="동성 관계 중심" data-next="relationship">동성 관계 중심으로 볼게요</button>
-            </div>
-          </section>
-        `;
-      }
-
-      function renderRelationship() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.orientation || "관계 기준"} 선택 완료</div>
-            <h1>지금 관계 상태는요?</h1>
-            <p>연애운은 지금 놓인 자리부터 봐야 선명해집니다.</p>
-            <div class="choices single">
-              ${["솔로예요", "마음에 둔 사람이 있어요", "연애 중이에요", "이별 직후예요", "결혼했어요"]
-                .map((label) => `<button class="choice" type="button" data-key="relationship" data-value="${label}" data-next="work">${label}</button>`)
-                .join("")}
-            </div>
-          </section>
-        `;
-      }
-
-      function renderWork() {
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">${state.relationship || "관계 상태"} 확인</div>
-            <h1>요즘 일상은 어떤가요?</h1>
-            <p>일과 생활의 흐름도 운세 해석에 함께 반영됩니다.</p>
-            <div class="choices single">
-              ${["학생이에요", "일을 찾고 있어요", "직장 다녀요", "사업해요", "프리랜서예요", "쉬고 있어요"]
-                .map((label) => `<button class="choice" type="button" data-key="work" data-value="${label}" data-next="concern">${label}</button>`)
-                .join("")}
-            </div>
-          </section>
-        `;
-      }
-
       function renderConcern() {
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">${state.work || "일상"} 선택 완료</div>
-            <h1>따로 묻고 싶은 고민이 있나요?</h1>
-            <p>한 문장으로 적어도 좋고, 바로 건너뛰어도 됩니다.</p>
+            <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
+            <h1>고민</h1>
+            <p>지금 가장 마음에 걸리는 질문을 적어주세요. 바로 건너뛰어도 됩니다.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="concern">고민</label>
@@ -4576,19 +4817,37 @@
       }
 
       const initialScene = location.hash.slice(1);
-      const resolvedInitialScene = initialScene === "immersion" ? "target" : initialScene;
+      const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
+      const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
+      const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
       const initialReportId = new URLSearchParams(location.search).get("reportId");
-      if (initialReportId) {
+      const isAuthReturn = new URLSearchParams(location.search).get("authReturn") === "1";
+      if (isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
+        restoreAuthFormState();
+      }
+      if (initialReportId && (!resolvedInitialScene || resolvedInitialScene === "result")) {
         go("loading", false);
         loadReportById(initialReportId).catch((err) => {
           renderReportLookupError(err.message);
         });
       } else if (urlScenes.has(resolvedInitialScene)) {
+        if (freshInputScenes.has(resolvedInitialScene) && !isAuthReturn && sessionStorage.getItem(AUTH_PENDING_KEY) !== "1") {
+          resetReadingState();
+        }
         go(resolvedInitialScene, false);
       } else {
         syncSceneUrl("landing");
         renderLanding();
       }
+      initAuth().then(() => {
+        if ((isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") && authSession?.access_token) {
+          beginAnalysisAfterAuth();
+        }
+      }).catch((err) => {
+        if (isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
+          showAuthGate(err.message || "회원 인증을 확인하지 못했습니다.");
+        }
+      });
     </script>
   </body>
 </html>

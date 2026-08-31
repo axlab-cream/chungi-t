@@ -4,6 +4,7 @@ import { buildOpenAiSajuReportSection, getReportModel } from './report-generator
 import {
   getReportRecord,
   markReportStatus,
+  type ReportOwner,
   type ReportRecord,
   updateReportSection,
 } from './report-store.js'
@@ -11,31 +12,16 @@ import {
 const inFlightReports = new Map<string, Promise<ReportRecord | null>>()
 const inFlightSections = new Set<string>()
 
-async function completeWithTemplate(reportId: string, section: SajuReportSection, error?: string): Promise<SajuReportSection> {
-  await updateReportSection(reportId, section, {
-    generatedBy: 'template',
-    model: 'template',
-    status: 'complete',
-    error,
-  })
-  return {
-    ...section,
-    generatedBy: 'template',
-    model: 'template',
-    status: 'complete',
-    error,
-  }
-}
-
 export async function generateReportSectionNow(params: {
   reportId: string
   analysis: SajuAnalysis
   birth: BirthInput
   context: SajuReportContext
   sectionId: string
+  owner?: ReportOwner
 }): Promise<SajuReportSection> {
   const key = `${params.reportId}:${params.sectionId}`
-  const record = await getReportRecord(params.reportId)
+  const record = await getReportRecord(params.reportId, params.owner?.accessToken)
   const section = record?.report.sections.find((item) => item.id === params.sectionId)
   if (!section) throw new Error('리포트 섹션을 찾지 못했습니다.')
   if (section.status === 'complete') return section
@@ -45,15 +31,37 @@ export async function generateReportSectionNow(params: {
   }
 
   inFlightSections.add(key)
-  await updateReportSection(params.reportId, section, {
-    generatedBy: section.generatedBy ?? 'template',
-    model: section.model ?? 'template',
-    status: 'generating',
-  })
+  await updateReportSection(
+    params.reportId,
+    section,
+    {
+      generatedBy: section.generatedBy ?? 'template',
+      model: section.model ?? 'template',
+      status: 'generating',
+    },
+    params.owner,
+  )
 
   try {
     if (!isOpenAiConfigured()) {
-      return await completeWithTemplate(params.reportId, section, 'OPENAI_API_KEY가 설정되지 않았습니다.')
+      await updateReportSection(
+        params.reportId,
+        section,
+        {
+          generatedBy: 'template',
+          model: 'template',
+          status: 'complete',
+          error: 'OPENAI_API_KEY가 설정되지 않았습니다.',
+        },
+        params.owner,
+      )
+      return {
+        ...section,
+        generatedBy: 'template',
+        model: 'template',
+        status: 'complete',
+        error: 'OPENAI_API_KEY가 설정되지 않았습니다.',
+      }
     }
     const generated = await buildOpenAiSajuReportSection(
       params.analysis,
@@ -61,11 +69,16 @@ export async function generateReportSectionNow(params: {
       params.sectionId,
       params.context,
     )
-    await updateReportSection(params.reportId, generated, {
-      generatedBy: 'openai',
-      model: getReportModel(),
-      status: 'complete',
-    })
+    await updateReportSection(
+      params.reportId,
+      generated,
+      {
+        generatedBy: 'openai',
+        model: getReportModel(),
+        status: 'complete',
+      },
+      params.owner,
+    )
     return {
       ...generated,
       generatedBy: 'openai',
@@ -73,11 +86,25 @@ export async function generateReportSectionNow(params: {
       status: 'complete',
     }
   } catch (err) {
-    return completeWithTemplate(
+    const error = err instanceof Error ? err.message : '리포트 섹션 생성 실패'
+    await updateReportSection(
       params.reportId,
       section,
-      err instanceof Error ? err.message : '리포트 섹션 생성 실패',
+      {
+        generatedBy: 'template',
+        model: 'template',
+        status: 'complete',
+        error,
+      },
+      params.owner,
     )
+    return {
+      ...section,
+      generatedBy: 'template',
+      model: 'template',
+      status: 'complete',
+      error,
+    }
   } finally {
     inFlightSections.delete(key)
   }
@@ -88,18 +115,19 @@ export async function preGenerateReport(params: {
   analysis: SajuAnalysis
   birth: BirthInput
   context: SajuReportContext
+  owner?: ReportOwner
 }): Promise<ReportRecord | null> {
   const currentRun = inFlightReports.get(params.reportId)
   if (currentRun) return currentRun
 
   const run = (async () => {
     try {
-      await markReportStatus(params.reportId, 'generating')
-      const record = await getReportRecord(params.reportId)
+      await markReportStatus(params.reportId, 'generating', undefined, params.owner)
+      const record = await getReportRecord(params.reportId, params.owner?.accessToken)
       const sections = record?.report.sections ?? []
 
       for (const section of sections) {
-        const current = await getReportRecord(params.reportId)
+        const current = await getReportRecord(params.reportId, params.owner?.accessToken)
         const latest = current?.report.sections.find((item) => item.id === section.id)
         if (latest?.status === 'complete') continue
         await generateReportSectionNow({
@@ -108,17 +136,19 @@ export async function preGenerateReport(params: {
           birth: params.birth,
           context: params.context,
           sectionId: section.id,
+          owner: params.owner,
         })
       }
 
-      const finished = await getReportRecord(params.reportId)
+      const finished = await getReportRecord(params.reportId, params.owner?.accessToken)
       const allComplete = finished?.report.sections.every((section) => section.status === 'complete')
-      return markReportStatus(params.reportId, allComplete ? 'complete' : 'failed')
+      return markReportStatus(params.reportId, allComplete ? 'complete' : 'failed', undefined, params.owner)
     } catch (err) {
       return markReportStatus(
         params.reportId,
         'failed',
         err instanceof Error ? err.message : '리포트 사전 생성 실패',
+        params.owner,
       )
     } finally {
       inFlightReports.delete(params.reportId)
@@ -134,6 +164,7 @@ export function startReportPreGeneration(params: {
   analysis: SajuAnalysis
   birth: BirthInput
   context: SajuReportContext
+  owner?: ReportOwner
 }): void {
   void preGenerateReport(params)
 }

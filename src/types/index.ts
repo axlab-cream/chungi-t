@@ -262,7 +262,7 @@ export interface SajuReport {
   generatedBy: 'template' | 'openai'
   status?: 'pending' | 'generating' | 'complete' | 'failed'
   progress?: { complete: number; total: number }
-  storage?: 'postgres' | 'memory'
+  storage?: 'postgres' | 'supabase' | 'memory'
   corpus?: CorpusSnapshot
   quality?: SajuReportQuality
   chapters?: SajuReportChapter[]
