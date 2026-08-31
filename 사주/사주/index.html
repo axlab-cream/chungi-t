@@ -3233,6 +3233,7 @@
           };
           if (providerName === "kakao") {
             options.scopes = "profile_nickname profile_image";
+            options.queryParams = { scope: "profile_nickname profile_image" };
           }
           if (providerName === "google") {
             options.queryParams = { prompt: "select_account" };
