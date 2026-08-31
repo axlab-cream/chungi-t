@@ -300,12 +300,24 @@ button {
   transform: scale(1.03);
 }
 
+.poster.is-cmdg img {
+  opacity: 0.7;
+  filter: saturate(0.82) contrast(1.06) brightness(0.72);
+  object-position: center 42%;
+}
+
 .poster-shade {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(180deg, rgba(5, 5, 4, 0.04), rgba(5, 5, 4, 0.36) 34%, rgba(5, 5, 4, 0.92) 100%),
     linear-gradient(90deg, rgba(5, 5, 4, 0.62), transparent 74%);
+}
+
+.poster.is-cmdg .poster-shade {
+  background:
+    linear-gradient(180deg, rgba(5, 5, 4, 0.02), rgba(5, 5, 4, 0.14) 30%, rgba(5, 5, 4, 0.88) 100%),
+    linear-gradient(90deg, rgba(5, 5, 4, 0.58), rgba(5, 5, 4, 0.08) 76%);
 }
 
 .badge,
@@ -337,6 +349,12 @@ button {
   font-weight: 900;
   line-height: 1.2;
   letter-spacing: 0;
+}
+
+.poster.is-cmdg strong,
+.poster.is-cmdg em,
+.poster.is-cmdg .scope-line {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
 }
 
 .poster em {
