@@ -45,14 +45,32 @@
 ### Naver
 
 - Supabase provider id: `custom:naver`
-- Supabase Auth > Providers > New Provider > Manual/OIDC 중 대시보드가 허용하는 방식으로 생성한다.
-- OIDC가 가능하면 issuer를 `https://nid.naver.com`으로 둔다.
+- Supabase Auth > Providers > New Provider > Auto-discovery (OIDC)로 생성한다.
+- Provider Identifier는 `custom:` prefix 뒤에 `naver`만 입력한다.
+- Issuer URL은 `https://nid.naver.com`으로 둔다.
+- Scopes는 `openid, profile`로 둔다. Naver OIDC discovery의 `scopes_supported`는 `openid`, `profile`만 반환하므로 `email`을 scope에 넣으면 `invalid_scope`로 로그인 복귀가 실패한다.
+- Naver Developers에서는 PC 웹 환경만 남기고 서비스 URL과 Supabase callback URL을 등록한다.
+- 이메일은 Naver Developers의 제공 정보 선택에서 추가 권한으로 둔다. OIDC scope에는 `email`을 넣지 않는다.
 - OAuth2 수동 설정이 필요하면 다음 값을 사용한다.
   - Authorization URL: `https://nid.naver.com/oauth2.0/authorize`
   - Token URL: `https://nid.naver.com/oauth2.0/token`
   - UserInfo URL: `https://openapi.naver.com/v1/nid/me`
-- Scope에는 최소 `openid`를 포함하고, 서비스 권한에서 이메일·닉네임·프로필 이미지를 허용한다.
+- Scope에는 최소 `openid`를 포함하되, OIDC 기준으로는 `openid, profile`만 사용한다.
 - Naver Developers의 Callback URL은 Supabase Custom Provider 화면에 표시되는 callback URL을 그대로 입력한다.
+
+## 2026-08-31 적용 결과
+
+- Supabase URL Configuration
+  - Site URL: `https://chungi-t.vercel.app`
+  - Redirect URLs: `https://chungi-t.vercel.app/**`, `http://localhost:8790/**`, `http://localhost:8791/**`
+- Supabase Custom Provider
+  - Name: `Naver`
+  - Identifier: `custom:naver`
+  - Type: `oidc`
+  - Status: `Enabled`
+  - Client Secret은 Supabase provider 설정에만 저장하고 문서/Git에는 기록하지 않는다.
+- 운영 페이지 검증
+  - `https://chungi-t.vercel.app`의 `네이버로 계속하기` 클릭 시 `https://nid.naver.com/login/noauth/allow_oauth?...` 동의 화면까지 정상 이동한다.
 
 ## 주의
 
