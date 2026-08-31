@@ -243,8 +243,22 @@ button {
   gap: 14px;
   overflow-x: auto;
   padding: 0 20px 20px;
+  cursor: grab;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+}
+
+.poster-rail.is-drag-ready,
+.poster-rail.is-dragging {
+  user-select: none;
+}
+
+.poster-rail.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+  scroll-snap-type: none;
 }
 
 .poster {
@@ -264,6 +278,7 @@ button {
   color: var(--cream-100);
   scroll-snap-align: center;
   text-align: left;
+  user-select: none;
 }
 
 .poster::before {
@@ -294,6 +309,7 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
+  -webkit-user-drag: none;
   object-fit: cover;
   opacity: 0.34;
   filter: saturate(0.46) contrast(1.08) brightness(0.7);
