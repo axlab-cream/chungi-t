@@ -330,18 +330,13 @@ body::-webkit-scrollbar,
     linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
 }
 
-.report-gate-hero {
-  min-height: 252px;
+.report-gate-heading {
   display: grid;
-  align-content: end;
-  gap: 10px;
-  padding: 22px 18px;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.1), #050202 86%),
-    url("/assets/chungi-grand-oracle.webp") center 20% / cover no-repeat;
+  gap: 8px;
+  padding: 18px 16px 8px;
 }
 
-.report-gate-hero span,
+.report-gate-heading span,
 .category-toc-cover span,
 .reader-copy span,
 .reader-top span {
@@ -350,7 +345,7 @@ body::-webkit-scrollbar,
   font-weight: 950;
 }
 
-.report-gate-hero h2,
+.report-gate-heading h2,
 .category-toc-cover h2 {
   margin: 0;
   color: #fff8ef;
@@ -360,7 +355,6 @@ body::-webkit-scrollbar,
   word-break: keep-all;
 }
 
-.report-gate-hero p,
 .category-toc-cover p {
   margin: 0;
   color: rgba(255, 232, 197, 0.76);
@@ -369,47 +363,52 @@ body::-webkit-scrollbar,
   line-height: 1.55;
 }
 
-.report-gate-button {
-  width: calc(100% - 32px);
-  margin: 16px;
+.report-gate-toc {
   display: grid;
-  gap: 6px;
-  padding: 17px 16px;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.report-gate-toc-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 14px;
   border: 1px solid rgba(255, 226, 175, 0.42);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(209, 51, 37, 0.94), rgba(105, 15, 11, 0.96));
+    linear-gradient(90deg, rgba(154, 33, 25, 0.84), rgba(22, 13, 11, 0.92));
   color: #fff8ef;
   text-align: left;
-  box-shadow: 0 18px 34px rgba(106, 15, 11, 0.28);
   cursor: pointer;
 }
 
-.report-gate-button strong {
+.report-gate-toc-item span {
+  grid-row: span 2;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.report-gate-toc-item strong {
   font-size: 18px;
   line-height: 1.25;
 }
 
-.report-gate-button span {
+.report-gate-toc-item em {
+  grid-column: 2 / 4;
   color: rgba(255, 232, 197, 0.78);
   font-size: 12px;
+  font-style: normal;
   font-weight: 850;
+  line-height: 1.45;
 }
 
-.report-gate-strip {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 0 16px 16px;
-}
-
-.report-gate-strip span {
-  flex: 0 0 auto;
-  padding: 8px 10px;
-  border: 1px solid rgba(242, 191, 107, 0.18);
-  border-radius: 999px;
-  color: #f6dfbc;
-  background: rgba(255, 255, 255, 0.05);
+.report-gate-toc-item small {
+  color: rgba(242, 191, 107, 0.82);
   font-size: 12px;
   font-weight: 900;
 }

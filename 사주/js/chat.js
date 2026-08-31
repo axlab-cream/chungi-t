@@ -1118,23 +1118,24 @@ function renderSelectedSection() {
 }
 
 function renderReportGate(groups, report) {
-  const birth = session.birth || {}
-  const name = birth.name || birth.target || '자네'
   return `
     <section class="report-gate-panel">
-      <div class="report-gate-hero">
-        <span>천명대공 해석문</span>
-        <h2>${highlightUiKeywords(`${name}님의 사주를 다섯 개의 문으로 나눠 보겠네`)}</h2>
-        <p>먼저 큰 흐름을 고르고, 그 안에서 중간 목차를 열어 보게.</p>
+      <div class="report-gate-heading">
+        <span>천명대공 목차</span>
+        <h2>대분류 목차</h2>
       </div>
-      <button class="report-gate-button" type="button" data-report-view="categories">
-        <strong>대분류 목차로 들어가기</strong>
-        <span>나 · 관계·연애 · 일·재물 · 미래 흐름 · 지금 해법</span>
-      </button>
-      <div class="report-gate-strip" aria-hidden="true">
+      <div class="report-gate-toc">
         ${groups.map((group) => {
           const design = categoryDesign(group.id)
-          return `<span>${escapeHtml(design.gate)} ${escapeHtml(group.title)}</span>`
+          const chapters = chaptersForGroup(group)
+          return `
+            <button class="report-gate-toc-item" type="button" data-report-group-open="${escapeHtml(group.id)}">
+              <span>${escapeHtml(design.gate)}</span>
+              <strong>${escapeHtml(group.title)}</strong>
+              <em>${escapeHtml(group.subtitle)}</em>
+              <small>${escapeHtml(String(chapters.length))}개 목차</small>
+            </button>
+          `
         }).join('')}
       </div>
       <div class="report-panel-actions">
