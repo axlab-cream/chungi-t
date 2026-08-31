@@ -9,6 +9,7 @@ import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
 import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
+import { buildTodayFortune } from '../saju/today-fortune.js'
 import {
   createOrGetReportRecord,
   createReportId,
@@ -18,6 +19,13 @@ import {
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
+import {
+  buildUserBirthProfile,
+  getUserBirthProfile,
+  getUserProfileStorageMode,
+  saveUserBirthProfile,
+} from '../user/profile-store.js'
+import type { UserBirthProfile } from '../user/profile-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
@@ -160,6 +168,97 @@ async function verifySupabaseUser(req: Request): Promise<ReportOwner | undefined
   }
 }
 
+async function requireSupabaseUser(req: Request, res: Response): Promise<ReportOwner | null> {
+  try {
+    const owner = await verifySupabaseUser(req)
+    if (owner) return owner
+  } catch (err) {
+    res.status(401).json({ error: err instanceof Error ? err.message : '회원 인증을 다시 진행해 주세요.' })
+    return null
+  }
+  res.status(401).json({ error: '회원가입 후 이용해 주세요.' })
+  return null
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+}
+
+function trimmedString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function validDateParts(year: number, month: number, day: number): boolean {
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year
+    && date.getMonth() === month - 1
+    && date.getDate() === day
+}
+
+function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwner): UserBirthProfile {
+  const birthBody = asObject(body.birth)
+  const source = Object.keys(birthBody).length ? birthBody : body
+  const name = trimmedString(body.name ?? birthBody.name)
+  const year = Number(source.year)
+  const month = Number(source.month)
+  const day = Number(source.day)
+  const birthTimeKnown = body.birthTimeKnown !== false
+  const hour = Number(source.hour ?? (birthTimeKnown ? Number.NaN : 12))
+  const minute = Number(source.minute ?? 0)
+  const gender = source.gender
+  const calendar = source.calendar
+
+  if (!/^[가-힣]{2,20}$/.test(name)) {
+    throw new Error('이름은 한글 2자 이상 20자 이하로 입력해 주세요.')
+  }
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day)) {
+    throw new Error('생년월일을 다시 확인해 주세요.')
+  }
+  if (year < 1900 || year > new Date().getFullYear()) {
+    throw new Error('생년월일의 연도를 다시 확인해 주세요.')
+  }
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
+    throw new Error('태어난 시간은 00:00부터 23:59 사이로 입력해 주세요.')
+  }
+  if (gender !== 'male' && gender !== 'female') {
+    throw new Error('성별을 선택해 주세요.')
+  }
+  if (calendar !== 'solar' && calendar !== 'lunar') {
+    throw new Error('양력 또는 음력을 선택해 주세요.')
+  }
+
+  const context = asObject(body.context)
+  return buildUserBirthProfile({
+    owner,
+    name,
+    birth: {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      gender,
+      calendar,
+      isLeapMonth: Boolean(source.isLeapMonth),
+    },
+    birthTimeKnown,
+    context: {
+      target: trimmedString(context.target),
+      relationship: trimmedString(context.relationship),
+      orientation: trimmedString(context.orientation),
+      work: trimmedString(context.work),
+    },
+  })
+}
+
+function userProfilePayload(profile: UserBirthProfile | null) {
+  return {
+    profile,
+    complete: Boolean(profile?.name && profile.birth.year && profile.birth.month && profile.birth.day),
+    storage: getUserProfileStorageMode(),
+  }
+}
+
 async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}, owner?: ReportOwner) {
   const analysis = analyzeSaju(birth)
   const reportId = createReportId(birth, context, undefined, owner?.id)
@@ -218,6 +317,50 @@ app.get('/api/health', (_req, res) => {
 
 app.get('/api/auth/config', (_req, res) => {
   res.json(authConfig())
+})
+
+app.get('/api/user/profile', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    res.json(userProfilePayload(profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '사주 프로필 조회 실패' })
+  }
+})
+
+async function saveUserProfileHandler(req: Request, res: Response) {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = parseUserProfileRequest(req.body, owner)
+    const saved = await saveUserBirthProfile(profile, owner)
+    res.json(userProfilePayload(saved))
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : '사주 프로필 저장 실패' })
+  }
+}
+
+app.post('/api/user/profile', saveUserProfileHandler)
+app.put('/api/user/profile', saveUserProfileHandler)
+
+app.post('/api/today/fortune', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '오늘의 운세를 보려면 기본 사주 정보를 먼저 입력해 주세요.' })
+      return
+    }
+    res.json({
+      todayFortune: buildTodayFortune(profile),
+      ...userProfilePayload(profile),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
+  }
 })
 
 app.post('/api/saju/analyze', async (req, res) => {

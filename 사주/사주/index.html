@@ -1232,6 +1232,82 @@
         line-height: 1.45;
       }
 
+      .today-result-card {
+        display: grid;
+        gap: 14px;
+      }
+
+      .today-result-card > p {
+        margin-bottom: 0;
+      }
+
+      .today-pillar-card,
+      .today-action-box {
+        display: grid;
+        gap: 7px;
+        padding: 15px;
+        border: 1px solid rgba(242, 191, 107, 0.24);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(242, 191, 107, 0.14), rgba(184, 50, 36, 0.12)),
+          rgba(255, 255, 255, 0.04);
+      }
+
+      .today-pillar-card span,
+      .today-reading-head span {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .today-pillar-card strong {
+        color: #fff2c5;
+        font-size: 25px;
+        line-height: 1.15;
+      }
+
+      .today-pillar-card small {
+        color: rgba(255, 247, 236, 0.7);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .today-reading-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .today-reading-head h2 {
+        margin: 0;
+        color: #fff8ec;
+        font-size: 21px;
+        line-height: 1.28;
+        letter-spacing: 0;
+      }
+
+      .today-reading-head p {
+        margin: 0;
+        color: rgba(255, 247, 236, 0.76);
+      }
+
+      .today-reading-list {
+        margin: 0;
+      }
+
+      .today-action-box strong {
+        color: #ffe0a8;
+        font-size: 14px;
+      }
+
+      .today-action-box span {
+        color: rgba(255, 247, 236, 0.78);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+
       .teaser-panel {
         padding: 18px;
       }
@@ -3222,6 +3298,9 @@
       const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
       const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
       const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
+      const USER_PROFILE_CACHE_KEY = "cheongi_user_birth_profile_v1";
+      const TODAY_ENTRY_KEY = "cheongi_today_entry_pending";
+      const TODAY_CONCERN = "오늘 나한테 들어오는 운, 일진, 일운, 피해야 할 선택";
       let authConfigData = null;
       let authClient = null;
       let authSession = null;
@@ -3235,6 +3314,10 @@
       const isPortalSignupEntry = isSignupPath || initialAuthEntry === "today" || initialAuthEntry === "signup";
       const isSignupReturn = initialAuthParams.get("signupReturn") === "1";
       const isAuthReturn = initialAuthParams.get("authReturn") === "1";
+      let todayEntryActive = initialAuthEntry === "today";
+      if (todayEntryActive) {
+        sessionStorage.setItem(TODAY_ENTRY_KEY, "1");
+      }
 
       const state = {
         scene: "landing",
@@ -3243,12 +3326,14 @@
         birth: "",
         gender: "",
         time: "모름",
+        birthTimeKnown: false,
         name: "",
         orientation: "",
         relationship: "",
         work: "",
         concern: "",
         analysis: null,
+        todayFortune: null,
         reportPageIndex: 0,
         reportSectionCache: {},
         reportRequestToken: 0,
@@ -3268,6 +3353,7 @@
         "login",
         "loading",
         "result",
+        "todayResult",
         "purchase",
         "paymentReady",
       ]);
@@ -3286,7 +3372,10 @@
       function signupReturnUrl() {
         const url = new URL("/cmdg/", location.origin);
         url.searchParams.set("signupReturn", "1");
-        url.hash = "name";
+        if (initialAuthEntry) {
+          url.searchParams.set("entry", initialAuthEntry);
+        }
+        url.hash = initialAuthEntry === "today" ? "loading" : "name";
         return url.toString();
       }
 
@@ -3313,6 +3402,7 @@
           birth: state.birth,
           gender: state.gender,
           time: state.time,
+          birthTimeKnown: state.birthTimeKnown,
           name: state.name,
           orientation: state.orientation,
           relationship: state.relationship,
@@ -3331,6 +3421,7 @@
             birth: saved.birth || state.birth,
             gender: saved.gender || state.gender,
             time: saved.time || state.time,
+            birthTimeKnown: saved.birthTimeKnown ?? Boolean(saved.time && saved.time !== "모름"),
             name: saved.name || state.name,
             orientation: saved.orientation || state.orientation,
             relationship: saved.relationship || state.relationship,
@@ -3386,6 +3477,213 @@
         return headers;
       }
 
+      function setTodayEntryPending() {
+        todayEntryActive = true;
+        sessionStorage.setItem(TODAY_ENTRY_KEY, "1");
+      }
+
+      function clearTodayEntryPending() {
+        todayEntryActive = false;
+        sessionStorage.removeItem(TODAY_ENTRY_KEY);
+      }
+
+      function wantsTodayEntry() {
+        return todayEntryActive || sessionStorage.getItem(TODAY_ENTRY_KEY) === "1";
+      }
+
+      function profileDateValue(birth = {}) {
+        if (!birth.year || !birth.month || !birth.day) return "";
+        return `${birth.year}${pad2(birth.month)}${pad2(birth.day)}`;
+      }
+
+      function readCachedUserProfile() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(USER_PROFILE_CACHE_KEY) || "null");
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch (err) {
+          localStorage.removeItem(USER_PROFILE_CACHE_KEY);
+          return null;
+        }
+      }
+
+      function writeCachedUserProfile(profile) {
+        if (!profile) return;
+        try {
+          localStorage.setItem(USER_PROFILE_CACHE_KEY, JSON.stringify(profile));
+        } catch (err) {
+          console.warn("사주 프로필 로컬 캐시 저장에 실패했습니다.", err);
+        }
+      }
+
+      function cachedProfileForSession(session) {
+        const cached = readCachedUserProfile();
+        if (!cached) return null;
+        if (!session?.user?.id) return cached;
+        return cached.userId === session.user.id ? cached : null;
+      }
+
+      function applyUserProfile(profile, options = {}) {
+        if (!profile?.birth) return false;
+        const birth = profile.birth;
+        state.name = profile.name || state.name;
+        state.target = profile.context?.target || state.target || "본인";
+        state.relationship = profile.context?.relationship || state.relationship;
+        state.orientation = profile.context?.orientation || state.orientation;
+        state.work = profile.context?.work || state.work;
+        state.calendar = birth.calendar === "lunar" ? "음력" : "양력";
+        state.birth = profileDateValue(birth);
+        state.gender = birth.gender === "female" ? "여자" : "남자";
+        state.birthTimeKnown = profile.birthTimeKnown !== false;
+        state.time = state.birthTimeKnown
+          ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}`
+          : "모름";
+        if (!options.preserveConcern) state.concern = state.concern || "";
+        syncBirthSessionFromState();
+        return true;
+      }
+
+      function localUserProfileFromState() {
+        const timestamp = new Date().toISOString();
+        return {
+          userId: "local",
+          name: state.name,
+          birth: parseBirthInput(),
+          birthTimeKnown: state.birthTimeKnown,
+          context: {
+            target: state.target,
+            relationship: state.relationship,
+            orientation: state.orientation,
+            work: state.work,
+          },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+      }
+
+      function syncBirthSessionFromState() {
+        const birth = parseBirthInput();
+        sessionStorage.setItem("cheongi_birth", JSON.stringify({
+          ...birth,
+          birthTimeKnown: state.birthTimeKnown,
+          target: state.target,
+          concern: state.concern,
+          relationship: state.relationship,
+          work: state.work,
+          orientation: state.orientation,
+        }));
+      }
+
+      async function fetchUserProfile(options = {}) {
+        const headers = await authHeaders();
+        if (!headers.Authorization) return null;
+        const res = await fetch("/api/user/profile", { headers });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "저장된 사주 프로필을 불러오지 못했습니다.");
+        if (json.profile) {
+          writeCachedUserProfile(json.profile);
+          if (options.apply !== false) applyUserProfile(json.profile, options);
+        }
+        return json.profile || null;
+      }
+
+      async function saveCurrentUserProfile() {
+        const localProfile = localUserProfileFromState();
+        writeCachedUserProfile(localProfile);
+        const headers = await authHeaders({ "Content-Type": "application/json" });
+        if (!headers.Authorization) return localProfile;
+        const res = await fetch("/api/user/profile", {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({
+            name: state.name,
+            birth: localProfile.birth,
+            birthTimeKnown: state.birthTimeKnown,
+            context: localProfile.context,
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "사주 프로필 저장에 실패했습니다.");
+        if (json.profile) {
+          writeCachedUserProfile(json.profile);
+          applyUserProfile(json.profile, { preserveConcern: true });
+        }
+        return json.profile || localProfile;
+      }
+
+      async function startStandardReading() {
+        clearTodayEntryPending();
+        resetReadingState();
+        let profile = null;
+        let session = null;
+        try {
+          session = await currentAuthSession();
+          if (session?.access_token) {
+            profile = await fetchUserProfile();
+          }
+        } catch (err) {
+          profile = cachedProfileForSession(session);
+          if (profile) applyUserProfile(profile);
+        }
+        go(profile ? "concern" : "name");
+      }
+
+      async function beginTodayAfterAuth() {
+        setTodayEntryPending();
+        let session = null;
+        try {
+          session = await currentAuthSession();
+        } catch (err) {
+          showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
+          return;
+        }
+        if (!session?.access_token) {
+          showAuthGate("오늘의 운을 보려면 먼저 가입해주세요.");
+          return;
+        }
+
+        sessionStorage.removeItem(AUTH_PENDING_KEY);
+        sessionStorage.removeItem(AUTH_FORM_KEY);
+        go("loading", false);
+
+        try {
+          const res = await fetch("/api/today/fortune", {
+            method: "POST",
+            headers: await authHeaders({ "Content-Type": "application/json" }),
+          });
+          const json = await res.json();
+          if (res.status === 409 || json.code === "PROFILE_REQUIRED") {
+            const cached = cachedProfileForSession(session);
+            if (cached) applyUserProfile(cached);
+            state.concern = TODAY_CONCERN;
+            go("name", false);
+            showNudge("오늘운을 보려면 기본 사주 정보를 먼저 저장해주세요.");
+            return;
+          }
+          if (!res.ok) throw new Error(json.error || "오늘의 운세를 불러오지 못했습니다.");
+          if (json.profile) applyUserProfile(json.profile, { preserveConcern: true });
+          state.concern = TODAY_CONCERN;
+          state.todayFortune = json.todayFortune;
+          syncBirthSessionFromState();
+          clearTodayEntryPending();
+          go("todayResult", false);
+        } catch (err) {
+          go("name", false);
+          showNudge(err.message || "오늘의 운세를 불러오지 못했습니다.");
+        }
+      }
+
+      async function completeTodayProfileFromInput() {
+        setTodayEntryPending();
+        go("loading", false);
+        try {
+          await saveCurrentUserProfile();
+          await beginTodayAfterAuth();
+        } catch (err) {
+          go("time", false);
+          showNudge(err.message || "사주 프로필 저장에 실패했습니다.");
+        }
+      }
+
       function authProviderLabel(provider) {
         if (provider === "kakao") return "카카오";
         if (provider === "naver") return "네이버";
@@ -3424,6 +3722,11 @@
           setAuthMessage(`${authProviderLabel(providerName)} 회원가입으로 이동합니다.`);
 
           if (isStandaloneSignupFlow()) {
+            if (initialAuthEntry === "today") {
+              setTodayEntryPending();
+            } else {
+              clearTodayEntryPending();
+            }
             sessionStorage.removeItem(AUTH_PENDING_KEY);
             sessionStorage.removeItem(AUTH_FORM_KEY);
           } else {
@@ -3650,6 +3953,7 @@
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
         state.gender = saved.gender || (birth.gender ? (birth.gender === "female" ? "여자" : "남자") : "");
         state.time = saved.time || (Number.isFinite(Number(birth.hour)) ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "모름");
+        state.birthTimeKnown = saved.birthTimeKnown ?? state.time !== "모름";
         state.name = saved.name || context.name || "";
         state.orientation = saved.orientation || context.orientation || "";
         state.relationship = saved.relationship || context.relationship || "";
@@ -3668,6 +3972,7 @@
         sessionStorage.setItem("cheongi_analysis", JSON.stringify(analysis));
         sessionStorage.setItem("cheongi_birth", JSON.stringify({
           ...birthForSession,
+          birthTimeKnown: state.birthTimeKnown,
           target: state.target,
           concern: state.concern,
           relationship: state.relationship,
@@ -3707,6 +4012,7 @@
           birth: state.birth,
           gender: state.gender,
           time: state.time,
+          birthTimeKnown: state.birthTimeKnown,
           name: state.name,
           orientation: state.orientation,
           relationship: state.relationship,
@@ -3808,12 +4114,14 @@
         state.birth = "";
         state.gender = "";
         state.time = "모름";
+        state.birthTimeKnown = false;
         state.name = "";
         state.orientation = "";
         state.relationship = "";
         state.work = "";
         state.concern = "";
         state.analysis = null;
+        state.todayFortune = null;
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -3865,6 +4173,7 @@
         login: renderLogin,
         loading: renderLoading,
         result: renderResult,
+        todayResult: renderTodayResult,
         purchase: renderPurchase,
         paymentReady: renderPaymentReady,
       };
@@ -3909,6 +4218,7 @@
 
       backGlobal.addEventListener("click", () => {
         if (state.scene === "login" && isStandaloneSignupFlow()) {
+          clearTodayEntryPending();
           location.href = "/";
           return;
         }
@@ -3930,16 +4240,16 @@
         }
 
         if (action === "enter") {
-          resetReadingState();
-          go("name");
+          startStandardReading();
+          return;
         }
         if (action === "look") {
-          resetReadingState();
-          go("name");
+          startStandardReading();
+          return;
         }
         if (action === "skip") {
-          resetReadingState();
-          go("name");
+          startStandardReading();
+          return;
         }
         if (action === "prev") {
           const previous = historyStack.pop();
@@ -3955,7 +4265,27 @@
           go("time");
         }
         if (action === "time-next") {
-          state.time = document.querySelector("#birthtime")?.value.trim() || "모름";
+          const timeValue = document.querySelector("#birthtime")?.value.trim() || "";
+          const timeError = validateTime(timeValue);
+          if (timeError) {
+            setFieldError("birthtime", timeError);
+            return;
+          }
+          state.time = normalizeTime(timeValue);
+          state.birthTimeKnown = true;
+          if (wantsTodayEntry()) {
+            completeTodayProfileFromInput();
+            return;
+          }
+          go("concern");
+        }
+        if (action === "time-unknown") {
+          state.time = "모름";
+          state.birthTimeKnown = false;
+          if (wantsTodayEntry()) {
+            completeTodayProfileFromInput();
+            return;
+          }
           go("concern");
         }
         if (action === "name-next") {
@@ -3972,6 +4302,21 @@
           state.concern = document.querySelector("#concern")?.value.trim() || "";
           persistAuthFormState();
           beginAnalysisAfterAuth();
+        }
+        if (action === "today-edit-profile") {
+          setTodayEntryPending();
+          state.todayFortune = null;
+          go("name");
+        }
+        if (action === "today-full-report") {
+          state.concern = TODAY_CONCERN;
+          go("loading");
+          analyzeBirth()
+            .then(() => go("result"))
+            .catch((err) => {
+              go("todayResult", false);
+              showNudge(err.message || "전체 풀이를 불러오지 못했습니다.");
+            });
         }
         if (action === "open-chat") {
           location.href = "/chat.html";
@@ -4005,6 +4350,7 @@
           go("paymentReady");
         }
         if (action === "restart") {
+          clearTodayEntryPending();
           historyStack.length = 0;
           resetReadingState();
           state.plan = "single";
@@ -4016,7 +4362,7 @@
       });
 
       stage.addEventListener("input", (event) => {
-        if (event.target.matches("#name, #birth")) {
+        if (event.target.matches("#name, #birth, #birthtime")) {
           clearFieldError(event.target.id);
         }
       });
@@ -4044,6 +4390,7 @@
           authGateMessage = "";
           if (state.scene === "login") {
             if (isStandaloneSignupFlow()) {
+              clearTodayEntryPending();
               location.href = "/";
               return;
             }
@@ -4101,6 +4448,26 @@
 
         if (!isValidDate) return "존재하지 않는 날짜입니다. 생년월일을 다시 확인해주세요.";
         if (year < 1900 || year > new Date().getFullYear()) return "생년월일의 연도를 다시 확인해주세요.";
+        return "";
+      }
+
+      function normalizeTime(value) {
+        const raw = String(value || "").trim();
+        const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+        if (!match) return raw;
+        return `${pad2(match[1])}:${pad2(match[2] || 0)}`;
+      }
+
+      function validateTime(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "태어난 시간을 입력하거나 시간모름을 선택해주세요.";
+        const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+        if (!match) return "태어난 시간은 13:30처럼 입력해주세요.";
+        const hour = Number(match[1]);
+        const minute = Number(match[2] || 0);
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+          return "태어난 시간은 00:00부터 23:59 사이로 입력해주세요.";
+        }
         return "";
       }
 
@@ -4182,6 +4549,7 @@
           orientation: state.orientation,
           work: state.work,
         };
+        await saveCurrentUserProfile();
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -4199,7 +4567,7 @@
         const reportId = json.report?.reportId || "";
         const stored = readReportHistory().find((item) => item.reportId === reportId);
         setActiveReportId(reportId);
-        sessionStorage.setItem("cheongi_birth", JSON.stringify({ ...birth, target: state.target, concern: state.concern, relationship: state.relationship, work: state.work, orientation: state.orientation }));
+        syncBirthSessionFromState();
         sessionStorage.setItem("cheongi_analysis", JSON.stringify(json));
         sessionStorage.setItem("cheongi_chat_history", JSON.stringify(stored?.chatHistory || []));
         if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
@@ -4467,8 +4835,17 @@
 
       function syncSceneUrl(scene) {
         const url = new URL(location.href);
+        if (/^\/signup(?:\/|\.html)?$/i.test(url.pathname) && scene !== "login") {
+          url.pathname = "/cmdg/";
+        }
         if (scene === "result" && state.analysis?.report?.reportId) {
           url.searchParams.set("reportId", state.analysis.report.reportId);
+        }
+        if (scene === "todayResult") {
+          url.searchParams.delete("authEntry");
+          url.searchParams.delete("entry");
+          url.searchParams.delete("signupReturn");
+          url.searchParams.delete("reportId");
         }
         const hash = scene === "landing" ? "" : `#${scene}`;
         const nextUrl = `${url.pathname}${url.search}${hash}`;
@@ -4776,6 +5153,8 @@
                 ? "loading"
                 : scene === "result"
                   ? "result"
+                  : scene === "todayResult"
+                    ? "result"
                   : scene === "login"
                     ? "login"
                     : "input";
@@ -4784,10 +5163,10 @@
         soundButton.style.display = "none";
         steps[scene]();
         phone.scrollTop = 0;
-        if (scene === "result") stage.scrollTop = 0;
+        if (scene === "result" || scene === "todayResult") stage.scrollTop = 0;
         requestAnimationFrame(() => {
           phone.scrollTop = 0;
-          if (scene === "result") stage.scrollTop = 0;
+          if (scene === "result" || scene === "todayResult") stage.scrollTop = 0;
         });
       }
 
@@ -4908,11 +5287,12 @@
             <div class="field-grid">
               <div class="field">
                 <label for="birthtime">태어난 시간</label>
-                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${state.time === "모름" ? "" : state.time}" />
+                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${state.time === "모름" ? "" : state.time}" aria-describedby="birthtime-error" />
+                <div class="field-error" id="birthtime-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="actions">
-              <button class="ghost" type="button" data-key="time" data-value="모름">시간모름</button>
+              <button class="ghost" type="button" data-action="time-unknown">시간모름</button>
               <button class="next-cta" type="button" data-action="time-next">다음으로</button>
             </div>
           </section>
@@ -5052,6 +5432,72 @@
               </div>
             </div>
           </div>
+        `;
+      }
+
+      function renderTodayResult() {
+        const fortune = state.todayFortune;
+        if (!fortune?.reading) {
+          stage.innerHTML = `
+            <section class="panel">
+              <div class="status">TODAY · 무료</div>
+              <h1>오늘의 운을 불러오지 못했습니다</h1>
+              <p>저장된 사주 정보를 다시 확인한 뒤 오늘운을 열어주세요.</p>
+              <div class="actions">
+                <button class="ghost" type="button" data-action="today-edit-profile">사주 수정</button>
+                <button class="next-cta" type="button" data-action="restart">처음으로</button>
+              </div>
+            </section>
+          `;
+          return;
+        }
+
+        const reading = fortune.reading;
+        const timeNote = fortune.profile.birthTimeKnown ? `${state.time} 출생 기준` : "태어난 시간 모름 기준";
+        const detailRows = [
+          ["일", reading.work],
+          ["돈", reading.money],
+          ["관계", reading.relationship],
+          ["피해야 할 선택", reading.caution],
+        ];
+
+        stage.innerHTML = `
+          <section class="panel today-result-card">
+            <div class="status">TODAY · 무료</div>
+            <h1>오늘 나한테<br />들어오는 운</h1>
+            <p>${escapeHtml(fortune.date.label)} · ${escapeHtml(state.name || fortune.profile.name)}님 ${escapeHtml(timeNote)}</p>
+
+            <div class="today-pillar-card">
+              <span>오늘 일진</span>
+              <strong>${escapeHtml(fortune.today.pillar)} · ${escapeHtml(fortune.today.pillarKo)}</strong>
+              <small>나의 일간 ${escapeHtml(fortune.user.dayMaster)}(${escapeHtml(fortune.user.dayMasterKo)}), 오늘의 ${escapeHtml(fortune.today.element)} 기운</small>
+            </div>
+
+            <div class="today-reading-head">
+              <span>오늘의 결론</span>
+              <h2>${escapeHtml(reading.title)}</h2>
+              <p>${escapeHtml(reading.summary)}</p>
+            </div>
+
+            <div class="result-list today-reading-list">
+              ${detailRows.map(([label, text]) => `
+                <div class="result-item">
+                  <strong>${escapeHtml(label)}</strong>
+                  <span>${escapeHtml(text)}</span>
+                </div>
+              `).join("")}
+            </div>
+
+            <div class="today-action-box">
+              <strong>오늘 행동 기준</strong>
+              <span>${escapeHtml(reading.action)}</span>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" type="button" data-action="today-edit-profile">사주 수정</button>
+              <button class="next-cta" type="button" data-action="today-full-report">전체 풀이</button>
+            </div>
+          </section>
         `;
       }
 
@@ -5470,6 +5916,10 @@
         clearSignupQuery();
       }
       initAuth().then(() => {
+        if (wantsTodayEntry() && authSession?.access_token) {
+          beginTodayAfterAuth();
+          return;
+        }
         if ((isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") && authSession?.access_token) {
           beginAnalysisAfterAuth();
         }

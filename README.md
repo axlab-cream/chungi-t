@@ -74,6 +74,9 @@ Production, Preview, Development 기준으로 등록합니다.
 
 | Method | Path | 설명 |
 |--------|------|------|
+| GET | `/api/user/profile` | 로그인 사용자의 기본 사주 프로필 조회 |
+| PUT/POST | `/api/user/profile` | 이름·생년월일·태어난 시간 저장 |
+| POST | `/api/today/fortune` | 저장 프로필 기반 오늘의 운세 생성 |
 | POST | `/api/saju/analyze` | 사주 분석 |
 | POST | `/api/chat` | LLM 상담 (OpenAI) |
 | GET | `/api/health` | 서버 상태 |
