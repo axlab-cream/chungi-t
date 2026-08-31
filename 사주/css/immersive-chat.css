@@ -12,20 +12,21 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  background: #eef1f5;
+  background: #000;
   font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
 }
 
 body {
   display: grid;
-  place-items: center;
+  place-items: start center;
   min-height: 100svh;
+  overflow: auto;
 }
 
 .phone {
   width: min(100vw, 440px);
   height: 100svh;
-  max-height: 920px;
+  max-height: none;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   background: #080302;
@@ -1247,6 +1248,10 @@ textarea {
 .send-btn:disabled { opacity: 0.5; }
 
 @media (min-width: 720px) {
-  body { padding: 24px 0; }
-  .phone { height: min(900px, calc(100vh - 48px)); border-radius: 24px; }
+  body { padding: 0; }
+  .phone {
+    height: 100svh;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
