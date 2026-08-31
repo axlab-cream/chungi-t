@@ -1685,167 +1685,71 @@
         --panel-image: url("assets/chungi-grand-report.webp");
       }
 
-      .result-grand {
-        background: #050202;
+      .sub-result .bubble-layer {
+        pointer-events: none;
       }
 
-      .result-grand .story-visual {
-        min-height: 640px;
-        align-items: flex-end;
-        padding: 78px 22px 82px;
-        background:
-          linear-gradient(to bottom, #050202 0%, rgba(5, 2, 2, 0.9) 7%, rgba(5, 2, 2, 0) 28%, rgba(5, 2, 2, 0) 56%, rgba(0, 0, 0, 0.78) 82%, #050202 100%),
-          var(--panel-image) center center / cover no-repeat;
-      }
-
-      .result-grand .story-visual.tall {
-        min-height: 700px;
-      }
-
-      .result-grand .story-visual.compact {
-        min-height: 570px;
-        padding: 78px 22px 76px;
-      }
-
-      .result-grand .story-visual.statement {
-        min-height: 620px;
-        align-items: flex-end;
-        padding: 78px 22px 84px;
-      }
-
-      .result-grand .story-visual.visual-intro {
-        background-position: center top;
-      }
-
-      .result-grand .story-visual.visual-wealth,
-      .result-grand .story-visual.visual-romance,
-      .result-grand .story-visual.visual-outro {
-        background-position: center center;
-      }
-
-      .result-grand .story-caption {
-        max-width: 360px;
-        gap: 8px;
-        margin: 0 auto;
-      }
-
-      .result-grand .story-caption::before {
-        inset: -26px -18px;
-        background:
-          linear-gradient(
-            to bottom,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(0, 0, 0, 0.74) 22%,
-            rgba(0, 0, 0, 0.84) 70%,
-            rgba(0, 0, 0, 0) 100%
-          );
-      }
-
-      .result-grand .story-caption h1,
-      .result-grand .story-caption h2 {
-        font-size: 31px;
-        line-height: 1.22;
-      }
-
-      .result-grand .story-caption p {
-        color: #ffe1bb;
-        font-size: 14px;
-      }
-
-      .result-grand .bubble-layer {
-        display: none;
-      }
-
-      .result-grand .story-section {
-        padding: 42px 22px;
-        background:
-          radial-gradient(circle at 50% 0, rgba(167, 36, 27, 0.2), transparent 46%),
-          linear-gradient(180deg, #050202, #0d0505 48%, #050202);
-      }
-
-      .result-grand .story-section.tall {
+      .sub-result [data-sample-section="worry"] {
         min-height: auto;
-        padding-top: 56px;
-        padding-bottom: 56px;
+        padding: 56px 22px;
+        background:
+          radial-gradient(circle at 50% 0, rgba(146, 32, 26, 0.28), transparent 48%),
+          linear-gradient(180deg, #050202, #100605 52%, #050202);
       }
 
-      .result-grand .story-section h2 {
-        margin-bottom: 12px;
-        font-size: 27px;
-        line-height: 1.28;
+      .sub-result [data-sample-section="worry"] .hero-line {
+        margin-bottom: 14px;
       }
 
-      .result-grand .story-section h2.hero-line {
-        font-size: 32px;
-        line-height: 1.18;
-      }
-
-      .result-grand .story-section p {
-        color: #f0d8bf;
-        font-size: 16px;
-        line-height: 1.78;
-      }
-
-      .result-analysis-grid {
+      .sub-result-summary {
         display: grid;
         gap: 10px;
-        margin-top: 18px;
+        width: 100%;
+        margin: 20px 0 16px;
       }
 
-      .result-analysis-card {
-        padding: 15px 16px;
+      .sub-result-card {
+        display: grid;
+        grid-template-columns: 86px 1fr;
+        gap: 12px;
+        align-items: center;
+        min-height: 70px;
+        padding: 14px 16px;
         border: 1px solid rgba(255, 226, 175, 0.16);
         border-radius: 8px;
         background:
-          linear-gradient(180deg, rgba(102, 20, 16, 0.28), rgba(255, 255, 255, 0.035)),
-          rgba(0, 0, 0, 0.32);
-        color: #efd6bd;
-        font-size: 14px;
-        font-weight: 760;
-        line-height: 1.6;
+          linear-gradient(135deg, rgba(127, 25, 18, 0.3), rgba(0, 0, 0, 0.22)),
+          rgba(255, 255, 255, 0.035);
+        text-align: left;
       }
 
-      .result-analysis-card strong {
-        display: block;
-        margin-bottom: 4px;
+      .sub-result-card strong {
         color: var(--gold);
         font-size: 13px;
-        font-weight: 950;
+        font-weight: 900;
       }
 
-      .result-grand .saju-table {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 18px;
+      .sub-result-card span {
+        color: #f5dfc7;
+        font-size: 15px;
+        font-weight: 760;
+        line-height: 1.45;
       }
 
-      .result-grand .pillar {
-        min-height: 94px;
-        padding: 13px 8px;
+      .sub-result [data-sample-section="personality-story"] {
         background:
-          linear-gradient(180deg, rgba(133, 28, 20, 0.26), rgba(255, 255, 255, 0.04)),
-          #120706;
+          linear-gradient(180deg, #050202, #120706 48%, #050202);
       }
 
-      .result-grand .pillar b {
-        font-size: 25px;
+      .sub-result [data-sample-section="personality-story"] .story-copy {
+        gap: 12px;
       }
 
-      .result-grand .destiny-card {
-        gap: 0;
-        padding: 18px 18px 8px;
-      }
-
-      .result-grand .destiny-row {
-        padding: 11px 0;
-        border-top: 1px solid rgba(255, 226, 175, 0.12);
-      }
-
-      .result-grand .story-list-item,
-      .result-grand .report-page,
-      .result-grand .review {
-        color: #efd7bf;
-        font-size: 14px;
+      .sub-result [data-sample-section="personality-story"] .story-copy p {
+        padding: 14px 15px;
+        border: 1px solid rgba(255, 226, 175, 0.12);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
       }
 
       .story-visual::after {
@@ -4212,38 +4116,38 @@
           .join("");
 
         stage.innerHTML = `
-          <article class="story sample-story result-grand">
+          <article class="story sample-story sub-result">
             ${storyTopNavMarkup(true)}
 
-            <section class="story-visual visual-intro tall" data-sample-section="intro" aria-label="사주 결과 인트로 이미지">
-              <div class="story-caption">
-                <p class="whisper">천명대공 대분석</p>
-                <h1>${displayName}님의<br /><span class="red">사주 흐름</span>을 엽니다</h1>
-              </div>
-            </section>
+            <section class="story-visual visual-intro tall" data-sample-section="intro" aria-label="사주 결과 인트로 이미지"></section>
 
             <section class="story-visual compact visual-fan" data-sample-section="personality-hero">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble strong">흥미롭네요.</div>
+                  <div class="bubble">${yearLabel} · ${monthLabel} · ${dayLabel}</div>
+                </div>
+              </div>
               <div class="story-caption compact-title">
-                <p class="whisper">명식 확인</p>
-                <h2>${yearLabel} · ${monthLabel} · ${dayLabel}</h2>
-                <p>${displayName}님의 태어난 결을 먼저 맞춥니다.</p>
+                <p class="whisper">성격</p>
+                <h2>${displayName}</h2>
               </div>
             </section>
 
             <section class="story-section deep tall center" data-sample-section="worry">
-              <span class="chapter">첫 해석</span>
-              <h2 class="hero-line">사주를 펼치니<br /><span class="red">${dominantElement}</span>의 <span class="red">기운</span>이 먼저 섭니다</h2>
-              <p>지금의 질문은 우연히 떠오른 고민이 아닙니다. 반복된 선택과 놓친 신호가 한곳으로 모인 자리입니다.</p>
-              <div class="result-analysis-grid">
-                <div class="result-analysis-card"><strong>먼저 보이는 기운</strong>${dominantElement}의 힘이 강하게 올라와 판단과 반응이 빠르게 움직입니다.</div>
-                <div class="result-analysis-card"><strong>지금 걸린 고민</strong><span class="gold">${concernHead}</span>을 중심으로 현실의 흐름을 다시 봐야 합니다.</div>
-                <div class="result-analysis-card"><strong>읽는 방향</strong>좋은 말보다 먼저 <span class="red">팔자</span>의 구조와 막힌 자리를 짚겠습니다.</div>
+              <span class="chapter">흠...</span>
+              <h2 class="hero-line"><span class="red">${dominantElement}</span> <span class="red">기운</span>이<br />꽤 강하군요</h2>
+              <div class="sub-result-summary" aria-label="서브 결과 요약">
+                <div class="sub-result-card"><strong>먼저 보이는 결</strong><span>${dominantElement}의 흐름이 강해 판단과 반응이 빠르게 움직입니다.</span></div>
+                <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>을 중심으로 현실의 흐름을 다시 봅니다.</span></div>
+                <div class="sub-result-card"><strong>해석 방향</strong><span>좋은 말보다 먼저 <span class="red">팔자</span>의 구조와 막힌 자리를 짚겠습니다.</span></div>
               </div>
+              <div class="story-callout">보통 <span class="red">팔자</span>가 아닙니다. 지금의 <span class="red">고민</span>도 이 흐름과 이어져 있습니다.</div>
             </section>
 
             <section class="story-visual statement visual-saju" data-sample-section="palja-intro">
               <div class="story-caption">
-                <p>겉으로 보이는 모습보다</p>
+                <p>네가 어떤 사람인지, 네 고민이 뭔지</p>
                 <h2>흐름이<br />먼저 보입니다</h2>
               </div>
             </section>
@@ -4259,10 +4163,15 @@
             </section>
 
             <section class="story-visual compact visual-saju">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble">지금 흔들리는 데에는 다 이유가 있습니다.</div>
+                  <div class="bubble strong">바로 <span class="red">팔자</span>의 결에서 시작된 겁니다.</div>
+                </div>
+              </div>
               <div class="story-caption compact-title">
                 <p>근거를 보겠습니다</p>
                 <h2>${displayName}님의<br /><span class="red">사주 팔자</span></h2>
-                <p>태어난 순간의 기운을 기준으로 다시 읽습니다.</p>
               </div>
             </section>
 
@@ -4305,10 +4214,15 @@
             </section>
 
             <section class="story-visual compact visual-wealth" data-sample-section="wealth-teaser">
+              <div class="bubble-layer">
+                <div class="bubble-cluster left-top">
+                  <div class="bubble">돈은 따로 흐르는 것이 아닙니다.</div>
+                  <div class="bubble strong"><span class="red">일</span>과 <span class="red">관계</span>가 엮이는 곳에서 재물이 움직입니다.</div>
+                </div>
+              </div>
               <div class="story-caption compact-title">
                 <p>재물</p>
-                <h2><span class="red">돈</span>이 모이는 자리와<br />새는 구멍을 나눠 봅니다</h2>
-                <p><span class="red">일</span>과 <span class="red">관계</span>가 엮이는 곳에서 재물이 움직입니다.</p>
+                <h2><span class="red">돈</span>이 모이는 자리와<br />새는 자리를 나눠 봅니다</h2>
               </div>
             </section>
 
@@ -4316,10 +4230,6 @@
               <span class="chapter">재물운</span>
               <h2><span class="red">돈</span>의 흐름이 보입니다</h2>
               <p>${wealthText}</p>
-              <div class="result-analysis-grid">
-                <div class="result-analysis-card"><strong>돈이 붙는 자리</strong>사람의 요구를 읽고 현실적인 형태로 정리할 때 <span class="red">재물</span>의 길이 열립니다.</div>
-                <div class="result-analysis-card"><strong>돈이 새는 자리</strong>기분으로 움직이는 지출, 미뤄둔 결정, 애매한 약속이 흐름을 흐립니다.</div>
-              </div>
               <div class="wealth-chart" aria-label="재물운 흐름">
                 <div class="chart-row"><span>${currentYear}</span><div class="chart-track"><span class="chart-fill" style="width: 48%"></span></div><strong>준비</strong></div>
                 <div class="chart-row"><span>${currentYear + 1}</span><div class="chart-track"><span class="chart-fill" style="width: 64%"></span></div><strong>확장</strong></div>
@@ -4330,10 +4240,15 @@
             </section>
 
             <section class="story-visual compact visual-romance" data-sample-section="romance-teaser">
+              <div class="bubble-layer">
+                <div class="bubble-cluster right-top">
+                  <div class="bubble right">관계는 마음만으로 결정되지 않습니다.</div>
+                  <div class="bubble accent right"><span class="red">인연</span>의 결은 반복되는 선택에서 드러납니다.</div>
+                </div>
+              </div>
               <div class="story-caption compact-title">
                 <p>연애운</p>
-                <h2><span class="red">인연</span>은 우연처럼 오지만<br />남는 <span class="red">관계</span>는 결이 다릅니다</h2>
-                <p>반복해서 끌리는 사람과 오래 남는 사람을 나눠 보겠습니다.</p>
+                <h2>끌리는 사람과<br />남는 사람은 다릅니다</h2>
               </div>
             </section>
 
@@ -4342,11 +4257,11 @@
               <h2>${relationLabel}</h2>
               <p>${loveText}</p>
               <div class="destiny-card" aria-label="운명의 상대">
-                <h3><span class="red">운명</span>의 상대가 보이는군요...</h3>
-                <div class="destiny-row"><strong>시기</strong><span>${romanceYear}.06.04 전후, 마음이 먼저 흔들리고 관계의 방향이 바뀝니다.</span></div>
-                <div class="destiny-row"><strong>분위기</strong><span>눈빛이 선명하고 말보다 태도로 오래 남는 사람입니다.</span></div>
-                <div class="destiny-row"><strong>자리</strong><span>모임, 일터, 소개처럼 이미 알고 있던 관계망 안에서 이어질 가능성이 큽니다.</span></div>
-                <div class="destiny-row"><strong>경계</strong><span>강하게 끌려도 급히 단정하지 말고, 반복되는 <span class="red">신호</span>를 봐야 합니다.</span></div>
+                <h3>${displayName}님의 <span class="red">운명</span>의 상대</h3>
+                <div class="destiny-row"><strong>시기</strong><span>${romanceYear}.06.04 전후, 마음이 먼저 움직입니다.</span></div>
+                <div class="destiny-row"><strong>직업</strong><span>기획, 전략, 서비스처럼 사람의 흐름을 읽는 일과 맞닿아 있습니다.</span></div>
+                <div class="destiny-row"><strong>외모</strong><span>눈빛이 또렷하고 첫인상보다 오래 남는 쪽입니다.</span></div>
+                <div class="destiny-row"><strong>장소</strong><span>모임, 일터, 소개처럼 관계가 겹쳐지는 자리입니다.</span></div>
               </div>
             </section>
 
@@ -4360,8 +4275,8 @@
 
             <section class="story-section center deep" data-sample-section="value-prop">
               <span class="chapter">오직 ${displayName}님을 위한 이야기</span>
-              <h2>방금 본 것은<br /><span class="red">입구</span>에 불과합니다</h2>
-              <p>${targetLabel}의 생년월일과 지금 고민을 기준으로, 성격의 결부터 <span class="red">돈</span>의 길과 <span class="red">인연</span>의 흐름까지 한 줄로 엮겠습니다.</p>
+              <h2>방금 본 것은<br />입구에 불과합니다</h2>
+              <p>${targetLabel}의 생년월일과 지금 고민을 기준으로, 성격의 결부터 <span class="red">돈</span>의 길과 <span class="red">인연</span>의 흐름까지 한 줄로 엮어 봅니다.</p>
             </section>
 
             <section class="story-section" data-sample-section="package">
@@ -4378,7 +4293,7 @@
                 </ul>
                 <div class="price-slate" aria-label="복채 안내">
                   <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천명대공 상담 연결</span><span>-13,200원</span></div>
+                  <div class="price-line"><span>천명대공(天命大公) 상담 연결</span><span>-13,200원</span></div>
                   <div class="price-line final"><span>지금 열기</span><span>49,800원</span></div>
                 </div>
               </div>
@@ -4398,7 +4313,7 @@
               <div class="story-list">
                 <div class="story-list-item"><span class="red">사주 팔자</span>를 먼저 펼치고, 지금 고민이 왜 반복되는지 연결합니다.</div>
                 <div class="story-list-item">좋은 말만 늘어놓지 않고, 조심해야 할 방향도 같이 말합니다.</div>
-                <div class="story-list-item">상담으로 들어가면 천명대공(天命大公)이 같은 결을 붙잡고 이어서 묻고 답합니다.</div>
+                <div class="story-list-item">상담 버튼을 누르면 천명대공(天命大公)이 같은 말투로 이어서 묻고 답합니다.</div>
               </div>
             </section>
 
@@ -4424,7 +4339,7 @@
               <span class="chapter">긴 풀이의 방향</span>
               <h2 class="hero-line">결코 짧게 끝낼 수 없는<br /><span class="red">대분석</span>입니다</h2>
               <p>하지만 여기서는 길게 늘어놓기보다, 먼저 ${displayName}님이 묻고 싶은 것을 바로 파고들겠습니다.</p>
-              <div class="story-callout">지금 열린 <span class="red">사주 흐름</span> 그대로 상담이 이어집니다.</div>
+              <div class="story-callout">방금 본 천명대공(天命大公)의 흐름 그대로 상담이 이어집니다.</div>
             </section>
 
             <section class="story-section" data-sample-section="contents-list">
