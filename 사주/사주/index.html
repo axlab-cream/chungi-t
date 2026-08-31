@@ -3182,7 +3182,7 @@
 
       function unavailableAuthMessage(provider) {
         if (provider === "naver") {
-          return "네이버 로그인은 현재 Supabase 기본 provider에 없어 별도 OAuth 연동 설정이 필요합니다.";
+          return "네이버 로그인은 Supabase Custom OAuth Provider 설정을 확인해 주세요.";
         }
         return `${authProviderLabel(provider)} 로그인 설정을 확인해 주세요.`;
       }

@@ -34,6 +34,7 @@ const SUPABASE_PUBLIC_KEY =
   ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ?? process.env.VITE_SUPABASE_ANON_KEY
   ?? ''
+const SUPABASE_NAVER_PROVIDER = process.env.SUPABASE_NAVER_PROVIDER ?? 'custom:naver'
 
 const app = express()
 app.use(cors())
@@ -86,7 +87,7 @@ function authConfig() {
     providers: {
       google: 'google',
       kakao: 'kakao',
-      naver: null,
+      naver: SUPABASE_NAVER_PROVIDER,
     },
   }
 }
