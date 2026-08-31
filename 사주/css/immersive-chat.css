@@ -93,12 +93,31 @@ body::-webkit-scrollbar,
   padding: 0 12px;
 }
 
-.chat-local-logo {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  vertical-align: top;
+.chat-brand-logo {
+  display: grid;
+  min-height: 58px;
+  place-items: center;
+  gap: 2px;
+  color: var(--gold);
+  line-height: 1;
+  text-align: center;
+}
+
+.chat-brand-logo span {
+  background: linear-gradient(120deg, #846427 0%, #b99142 27%, #e0c47b 54%, #f1e3b1 72%, #9a7531 100%);
+  background-clip: text;
+  color: transparent;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.chat-brand-logo b {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
 }
 
 .saju-chip {

@@ -255,6 +255,33 @@
         object-fit: contain;
       }
 
+      .umsh-service-logo {
+        display: inline-grid;
+        gap: 2px;
+        place-items: center;
+        color: #f2bf6b;
+        line-height: 1;
+        text-align: center;
+      }
+
+      .umsh-service-logo span {
+        background: linear-gradient(120deg, #846427 0%, #b99142 27%, #e0c47b 54%, #f1e3b1 72%, #9a7531 100%);
+        background-clip: text;
+        color: transparent;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+      }
+
+      .umsh-service-logo b {
+        color: #f2bf6b;
+        font-family: var(--font-meta);
+        font-size: 10px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
       .topbar-vault-button {
         position: absolute;
         top: 50%;
@@ -1282,6 +1309,17 @@
       .story-local-title {
         min-width: 0;
         line-height: 0;
+      }
+
+      .story-local-title.umsh-service-logo {
+        display: grid;
+        min-height: 112px;
+        background: #000;
+        line-height: 1;
+      }
+
+      .story-local-title.umsh-service-logo span {
+        font-size: 34px;
       }
 
       .story-local-logo {
@@ -3020,8 +3058,9 @@
             />
           </svg>
         </button>
-        <div class="brand topbar-brand-logo" aria-label="천명대공">
-          <img class="topbar-logo" src="assets/chungi-chat-logo.webp" alt="천명대공" />
+        <div class="brand topbar-brand-logo umsh-service-logo" aria-label="UMSH 운명상회">
+          <span>UMSH</span>
+          <b>운명상회</b>
         </div>
         <button class="topbar-vault-button" type="button" aria-label="보관함 열기" data-open-settings>
           보관함
@@ -3901,8 +3940,9 @@
                 </svg>
               </button>
             ` : ""}
-            <div class="story-local-title" aria-label="천명대공(天命大公)">
-              <img class="story-local-logo" src="assets/chungi-nav-logo.webp" alt="천명대공 상단 로고" />
+            <div class="story-local-title umsh-service-logo" aria-label="UMSH 운명상회">
+              <span>UMSH</span>
+              <b>운명상회</b>
             </div>
             <button class="story-vault-button" type="button" data-action="open-settings" aria-label="보관함">보관함</button>
           </nav>

@@ -4,6 +4,7 @@
   const pendingCards = Array.from(document.querySelectorAll('[data-soon], .is-soon'));
   const dragRails = Array.from(document.querySelectorAll('.poster-rail'));
   const toast = document.querySelector('#toast');
+  const dragThreshold = 14;
   let toastTimer = 0;
 
   function snapToNearestCard(rail) {
@@ -28,7 +29,7 @@
     let startX = 0;
     let startScrollLeft = 0;
     let didDrag = false;
-    let suppressNextClick = false;
+    let lastDragEndedAt = 0;
 
     rail.querySelectorAll('img').forEach((img) => {
       img.draggable = false;
@@ -52,9 +53,8 @@
       if (event.pointerId !== pointerId) return;
       const deltaX = event.clientX - startX;
 
-      if (Math.abs(deltaX) > 6) {
+      if (Math.abs(deltaX) > dragThreshold) {
         didDrag = true;
-        suppressNextClick = true;
         rail.classList.add('is-dragging');
       }
 
@@ -77,21 +77,20 @@
       rail.classList.remove('is-drag-ready', 'is-dragging');
 
       if (didDrag) {
+        lastDragEndedAt = Date.now();
         snapToNearestCard(rail);
-        window.setTimeout(() => {
-          suppressNextClick = false;
-        }, 120);
       }
     }
 
     rail.addEventListener('pointerup', finishDrag);
     rail.addEventListener('pointercancel', finishDrag);
+    document.addEventListener('pointerup', finishDrag);
+    document.addEventListener('pointercancel', finishDrag);
 
     rail.addEventListener('click', (event) => {
-      if (!suppressNextClick) return;
+      if (Date.now() - lastDragEndedAt > 260) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      suppressNextClick = false;
     }, true);
   }
 
