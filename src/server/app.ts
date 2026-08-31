@@ -34,7 +34,6 @@ const SUPABASE_PUBLIC_KEY =
   ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ?? process.env.VITE_SUPABASE_ANON_KEY
   ?? ''
-const SUPABASE_NAVER_PROVIDER = process.env.SUPABASE_NAVER_PROVIDER ?? 'naver'
 
 const app = express()
 app.use(cors())
@@ -77,14 +76,17 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
 }
 
 function authConfig() {
+  const callbackUrl = SUPABASE_URL ? `${SUPABASE_URL.replace(/\/$/, '')}/auth/v1/callback` : ''
+
   return {
     enabled: Boolean(SUPABASE_URL && SUPABASE_PUBLIC_KEY),
     url: SUPABASE_URL,
+    callbackUrl,
     publishableKey: SUPABASE_PUBLIC_KEY,
     providers: {
       google: 'google',
       kakao: 'kakao',
-      naver: SUPABASE_NAVER_PROVIDER,
+      naver: null,
     },
   }
 }

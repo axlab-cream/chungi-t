@@ -416,7 +416,7 @@ function buildStoredConsultationEntry(existing) {
     orientation: birth.orientation,
     work: birth.work,
   }
-  const titleName = birth.name || birth.target || '당신'
+  const titleName = birth.name || birth.target || '자네'
   return {
     ...existing,
     reportId,
@@ -626,7 +626,7 @@ function pdfSpecRows() {
   const p = analysis.pillars || {}
   const pillars = [p.year?.hanja, p.month?.hanja, p.day?.hanja, p.hour?.hanja].filter(Boolean).join(' · ') || '기운 확인 중'
   return [
-    ['이름', birth.name || birth.target || '당신'],
+    ['이름', birth.name || birth.target || '자네'],
     ['생년월일', `${birth.calendar === 'lunar' ? '음력' : '양력'} ${formatBirthLabel(birth)}`],
     ['사주 기둥', pillars],
     ['먼저 보이는 기운', analysis.dominantElement || analysis.dayMaster?.element || '기운'],
@@ -638,7 +638,7 @@ function pdfSpecRows() {
 function buildPrintableReportHtml() {
   const report = getReport()
   const sections = getReportSections()
-  const title = report?.title || `${session?.birth?.name || '당신'}님의 사주 리포트`
+  const title = report?.title || `${session?.birth?.name || '자네'}님의 사주 리포트`
   const subtitle = report?.subtitle || '천명대공(天命大公)이 사주의 큰 흐름과 지금의 고민을 함께 정리했습니다.'
   const generatedAt = new Date().toLocaleString('ko-KR', { dateStyle: 'long', timeStyle: 'short' })
   const groups = groupedSections(sections)
@@ -866,7 +866,7 @@ function sectionCopy(section) {
   const copy = SECTION_COPY[section?.id]
   return {
     title: copy?.[0] || section?.category || '이 장의 풀이',
-    subtitle: copy?.[1] || section?.classification || '지금 봐야 할 흐름을 풀어드립니다.',
+    subtitle: copy?.[1] || section?.classification || '지금 봐야 할 흐름을 풀어줄 걸세.',
   }
 }
 
@@ -1032,7 +1032,7 @@ function renderBasicSpec() {
   const birth = session.birth || {}
   const p = analysis.pillars || {}
   const pillars = [p.year?.hanja, p.month?.hanja, p.day?.hanja, p.hour?.hanja].filter(Boolean).join(' · ') || '기운 확인 중'
-  const name = birth.name || birth.target || '당신'
+  const name = birth.name || birth.target || '자네'
   const useful = analysis.usefulGod || analysis.weakElement || '균형'
   const dominant = analysis.dominantElement || analysis.dayMaster?.element || '기운'
   const concern = birth.concern || '지금 고민'
@@ -1055,15 +1055,15 @@ function renderBasicSpec() {
 function renderReportLoading(section) {
   const display = sectionCopy(section)
   const loadingLines = [
-    '천명대공(天命大公)이 지금 당신에게 먼저 보이는 흐름을 짚고 있습니다.',
-    '흩어진 마음의 신호를 한 줄로 모아 이 장을 여는 중입니다.',
-    '오래된 기운 위에 지금의 질문을 올려 보고 있습니다.',
-    '조금만 기다리세요. 이 장에서 먼저 볼 대목이 드러나고 있습니다.',
+    '천명대공(天命大公)이 지금 자네에게 먼저 보이는 흐름을 짚는 중일세.',
+    '흩어진 마음의 신호를 한 줄로 모아 이 장을 여는 중일세.',
+    '오래된 기운 위에 지금의 질문을 올려 보고 있네.',
+    '잠시 있어 보게. 이 장에서 먼저 볼 대목이 드러나고 있네.',
   ]
   const line = loadingLines[Math.floor(Math.random() * loadingLines.length)]
   return `
     <div class="report-section-loading" role="status" aria-live="polite">
-      <strong>${escapeHtml(display.title)}을 여는 중입니다</strong>
+      <strong>${escapeHtml(display.title)}을 여는 중일세</strong>
       <div class="report-progress" aria-hidden="true"></div>
       <span>${escapeHtml(line)}</span>
     </div>
@@ -1080,7 +1080,7 @@ function renderSelectedSection() {
     return `
       <div class="report-empty">
         <strong>목차를 누르면 해당 장이 열립니다.</strong>
-        <span>기본 스펙 다음부터는 천명대공(天命大公)이 한 장씩 깊게 풀어드립니다.</span>
+        <span>기본 스펙 다음부터는 천명대공(天命大公)이 한 장씩 깊게 풀어줄 걸세.</span>
       </div>
     `
   }
@@ -1093,7 +1093,7 @@ function renderSelectedSection() {
   const warning = section.generatedBy === 'template'
     ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 천명대공(天命大公)이 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
     : ''
-  const imageHook = section.hook || section.description || '사주의 결이 보입니다'
+  const imageHook = section.hook || section.description || '사주의 결이 보이는군'
   const sectionIndex = sections.findIndex((item) => item.id === section.id)
   const displayOrder = String(sectionIndex >= 0 ? sectionIndex + 2 : section.order || 0).padStart(2, '0')
   const display = sectionCopy(section)
@@ -1119,13 +1119,13 @@ function renderSelectedSection() {
 
 function renderReportGate(groups, report) {
   const birth = session.birth || {}
-  const name = birth.name || birth.target || '당신'
+  const name = birth.name || birth.target || '자네'
   return `
     <section class="report-gate-panel">
       <div class="report-gate-hero">
         <span>천명대공 해석문</span>
-        <h2>${highlightUiKeywords(`${name}님의 사주를 다섯 개의 문으로 나눠 봅니다`)}</h2>
-        <p>목록을 길게 펼치기보다, 먼저 큰 흐름을 고르고 그 안에서 중간 목차를 열어 보세요.</p>
+        <h2>${highlightUiKeywords(`${name}님의 사주를 다섯 개의 문으로 나눠 보겠네`)}</h2>
+        <p>먼저 큰 흐름을 고르고, 그 안에서 중간 목차를 열어 보게.</p>
       </div>
       <button class="report-gate-button" type="button" data-report-view="categories">
         <strong>대분류 목차로 들어가기</strong>
@@ -1366,10 +1366,10 @@ if (session) {
 
   if (session.history.length === 0) {
     appendBubble('assistant',
-      '잘 오셨습니다. 방금 펼친 사주의 결을 이어서 보겠습니다. 묻고 싶은 걸 한 문장으로 던져보세요. 천명대공(天命大公)이 하나씩 풀어드리겠습니다.',
+      '잘 왔네. 방금 펼친 사주의 결을 이어서 보겠네. 묻고 싶은 걸 한 문장으로 던져보게. 천명대공(天命大公)이 하나씩 풀어주겠네.',
       false)
     if (session.initialConcern) {
-      appendBubble('assistant', `"${session.initialConcern}" 때문에 여기까지 왔군요. 그 고민도 사주의 흐름 안에서 같이 보겠습니다.`, false)
+      appendBubble('assistant', `"${session.initialConcern}" 때문에 여기까지 온 것이군. 그 고민도 자네 사주의 흐름 안에서 같이 보겠네.`, false)
     }
   } else {
     for (const turn of session.history) appendBubble(turn.role, turn.content, false)

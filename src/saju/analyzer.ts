@@ -319,14 +319,14 @@ function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>, gende
     : '움직임 속에서 열리는'
 
   return {
-    personality: `${STEM_KO[analysis.dayMaster]}${ELEMENT_KO[analysis.dayMasterElement].charAt(0)} 일간으로 ${strengthText} 성향입니다. 흥미롭네요. 겉으로 보이는 모습보다 안쪽의 결이 더 선명합니다. ${analysis.dayMasterAdvice}`,
-    elementBalance: `오행을 펼쳐보니 목${analysis.elementCount.wood}·화${analysis.elementCount.fire}·토${analysis.elementCount.earth}·금${analysis.elementCount.metal}·수${analysis.elementCount.water}입니다. ${ELEMENT_KO[analysis.dominantElement]} 기운이 먼저 보이고, ${ELEMENT_KO[analysis.weakElement]} 기운이 빈자리로 남아 있습니다. 이 빈자리를 어떻게 채우느냐가 흐름을 바꿉니다.`,
+    personality: `${STEM_KO[analysis.dayMaster]}${ELEMENT_KO[analysis.dayMasterElement].charAt(0)} 일간으로 ${strengthText} 성향일세. 허허... 겉으로 보이는 모습보다 안쪽의 결이 더 선명하군. ${analysis.dayMasterAdvice}`,
+    elementBalance: `오행을 펼쳐보니 목${analysis.elementCount.wood}·화${analysis.elementCount.fire}·토${analysis.elementCount.earth}·금${analysis.elementCount.metal}·수${analysis.elementCount.water}일세. ${ELEMENT_KO[analysis.dominantElement]} 기운이 먼저 보이고, ${ELEMENT_KO[analysis.weakElement]} 기운이 빈자리로 남아 있군. 이 빈자리를 어떻게 채우느냐가 흐름을 바꾸는 법일세.`,
     loveFortune: hasLove
-      ? `일지 ${BRANCH_KO[analysis.fourPillars.day.branch]}(${analysis.fourPillars.day.branch}) 자리에 인연의 기운이 보입니다. 스쳐 지나가는 만남보다, ${analysis.usefulGod ? `${ELEMENT_KO[analysis.usefulGod]} 기운을 살리는 사람` : '마음을 천천히 열게 하는 사람'}에게 흐름이 붙습니다. 관계는 급히 잡지 말고 결을 보세요.`
-      : `관계운은 지금 바깥보다 안쪽을 먼저 보라고 말합니다. 혼자 버티는 시간이 길수록 마음의 문이 늦게 열릴 수 있습니다. 자신을 돌본 뒤에야 인연의 흐름도 선명해집니다.`,
+      ? `일지 ${BRANCH_KO[analysis.fourPillars.day.branch]}(${analysis.fourPillars.day.branch}) 자리에 인연의 기운이 보이는군. 스쳐 지나가는 만남보다, ${analysis.usefulGod ? `${ELEMENT_KO[analysis.usefulGod]} 기운을 살리는 사람` : '마음을 천천히 열게 하는 사람'}에게 흐름이 붙네. 관계는 급히 잡지 말고 결을 보게.`
+      : `관계운은 지금 바깥보다 안쪽을 먼저 보라고 말하는군. 혼자 버티는 시간이 길수록 마음의 문이 늦게 열릴 수 있네. 자신을 돌본 뒤에야 인연의 흐름도 선명해지는 법일세.`,
     wealthFortune: hasWealth
-      ? `재성(財星) 기운이 사주 안에 들어 있습니다. 돈의 감각이 없는 팔자는 아닙니다. 다만 ${incomeFlow} 흐름이 보입니다. 크게 움직이기 전에는 타이밍과 기준을 먼저 보셔야 합니다.`
-      : `재물운은 한 번에 터지는 쪽보다 실력과 표현에서 열리는 흐름이 보입니다. 꾸준히 쌓은 전문성이 돈길을 붙드는 열쇠입니다. 조급하게 잡으려 하면 오히려 새는 돈이 생깁니다.`,
+      ? `재성(財星) 기운이 사주 안에 들어 있네. 돈의 감각이 없는 팔자는 아닐세. 다만 ${incomeFlow} 흐름이 보이는군. 크게 움직이기 전에는 타이밍과 기준을 먼저 보게.`
+      : `재물운은 한 번에 터지는 쪽보다 실력과 표현에서 열리는 흐름이 보이는군. 꾸준히 쌓은 전문성이 돈길을 붙드는 열쇠일세. 조급하게 잡으려 하면 오히려 새는 돈이 생기네.`,
   }
 }
 
