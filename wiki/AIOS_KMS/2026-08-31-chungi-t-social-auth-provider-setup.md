@@ -80,10 +80,24 @@
   - Type: `oidc`
   - Status: `Enabled`
   - Client Secret은 Supabase provider 설정에만 저장하고 문서/Git에는 기록하지 않는다.
+- Kakao Developers
+  - App: `천명록`
+  - App ID: `1562321`
+  - App representative domain: `https://chungi-t.vercel.app`
+  - Kakao Login status: `ON`
+  - Kakao Login Redirect URI: `https://wdyzollywccgaepjeynu.supabase.co/auth/v1/callback`
+  - Kakao Login Client Secret은 활성화 상태이며 Supabase provider 설정에만 저장한다.
+- Supabase Auth > Providers > Kakao
+  - Status: `Enabled`
+  - Client ID에는 Kakao REST API key를 사용한다.
+  - Client Secret에는 Kakao Login Client Secret code를 사용한다.
+  - Kakao 앱이 아직 비즈 앱이 아니므로 `Allow users without an email`을 켜서 이메일 미제공 계정도 로그인 실패하지 않게 한다.
 - 운영 페이지 검증
   - `https://chungi-t.vercel.app`의 `네이버로 계속하기` 클릭 시 `https://nid.naver.com/login/noauth/allow_oauth?...` 동의 화면까지 정상 이동한다.
   - 임시 Chrome 프로필에서 `https://chungi-t.vercel.app` 접속 후 `해석 시작` 클릭 시 회원가입 모달이 표시된다.
   - 같은 모달에서 `구글로 계속하기` 클릭 시 Google 계정 로그인 화면(`accounts.google.com`)까지 정상 이동한다.
+  - Supabase Kakao authorize endpoint가 `Unsupported provider` 오류 없이 Kakao OAuth로 `302` 이동한다.
+  - 임시 Chrome 프로필에서 Kakao OAuth 시작 시 카카오계정 로그인 화면(`accounts.kakao.com/login`)까지 정상 이동한다.
 
 ## Google 공개 상태 주의
 
