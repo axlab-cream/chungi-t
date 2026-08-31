@@ -5,8 +5,13 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
-import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
+import { chatWithOpenAI, generateImageWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
+import {
+  buildDestinyPartnerSketchDescription,
+  buildDestinyPartnerSketchPrompt,
+  normalizeDestinySketchStyle,
+} from '../report/destiny-sketch.js'
 import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
 import {
   createOrGetReportRecord,
@@ -278,6 +283,41 @@ app.post('/api/report/prewarm', async (req, res) => {
     res.json({ report: toClientReport(record) })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '리포트 사전 생성 실패' })
+  }
+})
+
+app.post('/api/report/destiny-partner-sketch', async (req, res) => {
+  try {
+    const birth = parseBirth(req.body.birth ?? req.body)
+    const context = parseReportContext(req.body)
+    const style = normalizeDestinySketchStyle(req.body.style)
+
+    if (!birth.year || !birth.month || !birth.day) {
+      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
+      return
+    }
+    if (!isOpenAiConfigured()) {
+      res.status(503).json({ error: 'OPENAI_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.' })
+      return
+    }
+
+    const analysis = analyzeSaju(birth)
+    const prompt = buildDestinyPartnerSketchPrompt(analysis, birth, context, style)
+    const image = await generateImageWithOpenAI(prompt, {
+      size: '1024x1024',
+      quality: 'low',
+    })
+
+    res.json({
+      ok: true,
+      style,
+      imageSrc: image.imageSrc,
+      model: image.model,
+      description: buildDestinyPartnerSketchDescription(analysis, context),
+      revisedPrompt: image.revisedPrompt,
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '운명의 상대 이미지 생성 실패' })
   }
 })
 

@@ -253,7 +253,7 @@ body {
 .report-toc-item {
   width: 100%;
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 34px minmax(0, 1fr);
   gap: 8px 10px;
   align-items: start;
   padding: 12px;
@@ -289,6 +289,19 @@ body {
   font-style: normal;
   font-weight: 750;
   line-height: 1.4;
+}
+
+.report-toc-item small {
+  grid-column: 2;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(242, 191, 107, 0.1);
+  color: rgba(255, 232, 197, 0.66);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
 }
 
 .report-toc-item.is-active {
@@ -378,6 +391,144 @@ body {
   padding-top: 16px;
 }
 
+.report-chapter-points {
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+
+.report-chapter-point {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid rgba(255, 226, 175, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.048);
+}
+
+.report-chapter-point span {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(242, 191, 107, 0.12);
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.report-chapter-point strong {
+  color: #fff8ef;
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.report-chapter-point p,
+.report-chapter-point em {
+  margin: 0;
+  color: rgba(255, 232, 197, 0.68);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.destiny-sketch-panel {
+  display: grid;
+  gap: 12px;
+  margin: 14px 16px 0;
+  padding: 13px;
+  border: 1px solid rgba(242, 191, 107, 0.32);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(126, 28, 24, 0.22), rgba(0, 0, 0, 0.16)),
+    rgba(255, 255, 255, 0.052);
+}
+
+.destiny-sketch-head {
+  display: grid;
+  gap: 5px;
+}
+
+.destiny-sketch-head span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.destiny-sketch-head strong {
+  color: #fff8ef;
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.destiny-sketch-head p,
+.destiny-sketch-loading span,
+.destiny-sketch-error,
+.destiny-sketch-result figcaption {
+  margin: 0;
+  color: rgba(255, 232, 197, 0.7);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.5;
+}
+
+.destiny-style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.destiny-style-grid button,
+.destiny-generate-button {
+  min-height: 38px;
+  border: 1px solid rgba(255, 226, 175, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #fff2dc;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.destiny-style-grid button.is-active,
+.destiny-generate-button {
+  border-color: rgba(242, 191, 107, 0.56);
+  background: linear-gradient(180deg, rgba(177, 45, 33, 0.64), rgba(92, 15, 11, 0.8));
+}
+
+.destiny-generate-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.destiny-sketch-loading {
+  display: grid;
+  gap: 8px;
+}
+
+.destiny-sketch-error {
+  color: #f5aa93;
+}
+
+.destiny-sketch-result {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.destiny-sketch-result img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #050303;
+}
+
 .report-note {
   margin: 12px 0 0;
   color: rgba(255, 216, 148, 0.78);
@@ -399,6 +550,39 @@ body {
 
 .report-reading p:first-child {
   margin-top: 14px;
+}
+
+.report-subsection-stack {
+  display: grid;
+  gap: 12px;
+  padding: 4px 16px 18px;
+}
+
+.report-subsection {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 226, 175, 0.13);
+}
+
+.report-subsection > span {
+  display: block;
+  color: rgba(242, 191, 107, 0.72);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.report-subsection h4 {
+  margin: 5px 0 0;
+  color: #fff8ef;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.36;
+}
+
+.report-subsection .report-reading {
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.74;
 }
 
 .report-point {

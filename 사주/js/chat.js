@@ -4,9 +4,18 @@ const chatMessage = document.getElementById('chat-message')
 const btnSend = document.getElementById('btn-send')
 const reportState = {
   activeSectionId: '',
+  activeChapterId: '',
   loadingSectionId: '',
   error: '',
   requestToken: 0,
+  destinySketch: {
+    style: '연필 스케치',
+    loading: false,
+    imageSrc: '',
+    description: '',
+    model: '',
+    error: '',
+  },
 }
 const HISTORY_KEY = 'cheongi_report_history_v1'
 const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
@@ -146,6 +155,29 @@ const SECTION_GROUPS = [
       'long-report-depth',
     ],
   },
+]
+
+const DEFAULT_REPORT_CHAPTERS = [
+  { id: 'chapter-01', order: 1, groupId: 'self', groupTitle: '나의 본질', title: '너라는 사람부터 까보자', subtitle: '네가 생각하는 너와 실제 너는 얼마나 같을까?', sectionIds: ['profile', 'target-context'], points: [{ type: 'comparison', title: '자기 인식 차이표', detail: '내가 보는 나와 실제 반응을 비교합니다.' }, { type: 'highlight', title: '첫 장면 고정', detail: '첫인상과 혼자 남았을 때의 피로 장면을 찍습니다.' }] },
+  { id: 'chapter-02', order: 2, groupId: 'self', groupTitle: '나의 본질', title: '남들이 아는 너는 진짜 네가 아니다', subtitle: '사람들 앞의 얼굴과 혼자 남았을 때의 너', sectionIds: ['month-pillar', 'hidden-personality'], points: [{ type: 'graph', title: '외부 얼굴 vs 내면 피로', detail: '사회 얼굴과 혼자 있을 때의 온도 차이를 봅니다.' }, { type: 'image', title: '두 얼굴 이미지', detail: '밖의 얼굴과 집에 돌아온 뒤의 장면을 대비합니다.' }] },
+  { id: 'chapter-03', order: 3, groupId: 'self', groupTitle: '나의 본질', title: '너는 어릴 때부터 여기서 무너졌다', subtitle: '아직도 반복되고 있는 감정 패턴', sectionIds: ['pillars-structure', 'year-pillar'], points: [{ type: 'comparison', title: '초년 패턴 재현', detail: '어릴 때 반응이 지금 어디서 반복되는지 비교합니다.' }, { type: 'highlight', title: '오래된 감정 버튼', detail: '지금도 눌리는 감정 버튼을 특정합니다.' }] },
+  { id: 'chapter-04', order: 4, groupId: 'self', groupTitle: '나의 본질', title: '가까워져야만 들키는 네 진짜 성격', subtitle: '아무에게나 보여주지 않는 관계 속 본모습', sectionIds: ['day-pillar', 'relationship-orientation'], points: [{ type: 'table', title: '가까운 관계 반응표', detail: '카톡, 약속, 서운함 앞의 반응을 정리합니다.' }, { type: 'highlight', title: '관계 속 본모습', detail: '편한 사람 앞에서만 나오는 태도를 봅니다.' }] },
+  { id: 'chapter-05', order: 5, groupId: 'pattern', groupTitle: '무너지는 패턴', title: '네가 그렇게까지 버티는 데는 이유가 있다', subtitle: '가장 강한 장점이 가장 큰 약점이 되는 순간', sectionIds: ['hour-pillar', 'day-master-strength', 'dominant-element'], points: [{ type: 'graph', title: '강점 과사용 곡선', detail: '버티는 힘이 어느 순간 약점으로 바뀌는지 봅니다.' }, { type: 'highlight', title: '무너지기 직전 신호', detail: '말투, 표정, 생활 리듬의 변화를 잡습니다.' }] },
+  { id: 'chapter-06', order: 6, groupId: 'pattern', groupTitle: '무너지는 패턴', title: '이상하게 이것만은 늘 부족하다', subtitle: '네 명식에서 유독 비어 있는 자리', sectionIds: ['balance', 'weak-element'], points: [{ type: 'table', title: '부족한 자리 보완표', detail: '부족한 기운, 생활 증상, 보완 행동을 묶습니다.' }, { type: 'formula', title: '균형 회복 공식', detail: '부족한 자리를 회복 루틴으로 바꿉니다.' }] },
+  { id: 'chapter-07', order: 7, groupId: 'pattern', groupTitle: '무너지는 패턴', title: '너를 살리는 선택과 망치는 선택은 따로 있다', subtitle: '일이 풀릴 때와 꼬일 때의 결정적 차이', sectionIds: ['useful-god-eokbu', 'useful-god-johu'], points: [{ type: 'formula', title: '선택 판별식', detail: '살리는 선택과 망치는 선택을 기준으로 나눕니다.' }, { type: 'comparison', title: '풀릴 때 vs 꼬일 때', detail: '같은 선택이 다르게 흐르는 이유를 비교합니다.' }] },
+  { id: 'chapter-08', order: 8, groupId: 'pattern', groupTitle: '무너지는 패턴', title: '돈·사람·책임 앞에서 네 본성이 드러난다', subtitle: '평소에는 숨겨져 있던 진짜 반응', sectionIds: ['ten-gods-overview', 'ten-gods-position'], points: [{ type: 'table', title: '본성 반응표', detail: '돈, 사람 부탁, 책임 앞의 반응을 봅니다.' }, { type: 'highlight', title: '결정적 대목', detail: '실제로 흔들리는 순간의 문장을 강조합니다.' }] },
+  { id: 'chapter-09', order: 9, groupId: 'pattern', groupTitle: '무너지는 패턴', title: '너는 왜 매번 같은 곳에서 무너질까?', subtitle: '반복해서 빠지는 인생의 함정', sectionIds: ['trap'], points: [{ type: 'highlight', title: '위험 신호', detail: '무너지는 말, 돈, 관계 장면을 한 문장으로 찍습니다.' }, { type: 'graph', title: '함정 반복 루프', detail: '참음, 폭발, 후회, 반복의 흐름을 봅니다.' }] },
+  { id: 'chapter-10', order: 10, groupId: 'pattern', groupTitle: '무너지는 패턴', title: '고민은 바뀌는데 문제는 왜 계속 같을까?', subtitle: '네 인생에서 계속 돌아오는 패턴의 정체', sectionIds: ['concern-loop'], points: [{ type: 'comparison', title: '고민 이름만 바뀌는 구조', detail: '연애, 직장, 돈 속 같은 선택 구조를 비교합니다.' }, { type: 'formula', title: '반복 고민 공식', detail: '현재 고민과 약한 자리, 운의 자극을 묶습니다.' }] },
+  { id: 'chapter-11', order: 11, groupId: 'money', groupTitle: '일과 돈', title: '네 능력이 돈이 되는 데는 조건이 있다', subtitle: '열심히 하는 것과 돈을 버는 것은 다르다', sectionIds: ['career-money', 'wealth-flow'], points: [{ type: 'formula', title: '돈 전환력', detail: '결과물, 보상 구조, 반복성이 맞는지 봅니다.' }, { type: 'table', title: '수입 경로표', detail: '월급형, 성과형, 거래형, 콘텐츠형을 나눕니다.' }] },
+  { id: 'chapter-12', order: 12, groupId: 'money', groupTitle: '일과 돈', title: '요즘 자꾸 꼬인다면 이미 신호가 온 거다', subtitle: '일상에서 먼저 나타나는 운의 변화', sectionIds: ['work-context'], points: [{ type: 'comparison', title: '최근 전후 비교', detail: '최근 업무 압박과 사람 피로의 변화를 봅니다.' }, { type: 'highlight', title: '먼저 움직이는 증상', detail: '일이 터지기 전 나타나는 작은 신호를 잡습니다.' }] },
+  { id: 'chapter-13', order: 13, groupId: 'money', groupTitle: '일과 돈', title: '지금 버틸까, 나갈까? 답은 여기서 갈린다', subtitle: '직장·사업·이직에서 봐야 할 결정 기준', sectionIds: ['career-transition'], points: [{ type: 'table', title: '버틸 조건 vs 나갈 조건', detail: '역할, 보상, 평가, 사람 비용으로 판단합니다.' }, { type: 'formula', title: '전환 판단식', detail: '감정이 아니라 조건으로 움직이게 합니다.' }] },
+  { id: 'chapter-14', order: 14, groupId: 'money', groupTitle: '일과 돈', title: '돈이 없는 게 아니다. 어딘가에서 새고 있다', subtitle: '네 돈이 이상하게 남지 않는 이유', sectionIds: ['money-leak'], points: [{ type: 'formula', title: '돈구멍 계산', detail: '고정지출, 관계비, 충동소비, 계약 리스크를 봅니다.' }, { type: 'graph', title: '지출 누수 그래프', detail: '작은 지출이 커지는 흐름을 보여줍니다.' }] },
+  { id: 'chapter-15', order: 15, groupId: 'money', groupTitle: '일과 돈', title: '잡아야 할 돈과 절대 쫓으면 안 되는 돈', subtitle: '재물운이 붙는 방식과 타이밍', sectionIds: ['wealth-timing'], points: [{ type: 'graph', title: '재물 기회 타이밍', detail: '기회 시기와 선행 지출 신호를 같이 봅니다.' }, { type: 'comparison', title: '잡을 돈 vs 피할 돈', detail: '반복 수입과 사람 때문에 새는 돈을 분리합니다.' }] },
+  { id: 'chapter-16', order: 16, groupId: 'relationship', groupTitle: '관계와 인연', title: '그 사람, 운명일까? 또 네 패턴일까?', subtitle: '이상하게 비슷한 사람에게 끌리는 이유', sectionIds: ['relationship-status', 'love-loop'], points: [{ type: 'comparison', title: '운명처럼 보이는 끌림 vs 반복 패턴', detail: '진짜 인연 신호와 익숙한 반복을 나눕니다.' }, { type: 'highlight', title: '같은 사람에게 끌리는 이유', detail: '답장 템포와 거리감의 반복을 봅니다.' }] },
+  { id: 'chapter-17', order: 17, groupId: 'relationship', groupTitle: '관계와 인연', title: '네가 설레는 사람과 결국 남는 사람은 다르다', subtitle: '끌림과 인연은 같은 것이 아니다', sectionIds: ['destiny-partner'], points: [{ type: 'feature', title: '운명의 상대 확인하기', detail: '다가올 이성의 분위기를 스케치 풍 이미지로 생성합니다.' }, { type: 'image', title: '상대 분위기 스케치', detail: '눈빛, 옷차림, 만남 장면을 상징 이미지로 보여줍니다.' }], cta: { type: 'destiny-partner-sketch', label: '운명의 상대 확인하기', description: '다가올 이성의 분위기를 GPT 이미지 생성으로 연필 스케치처럼 보여줍니다.', sectionId: 'destiny-partner', options: ['연필 스케치', '잉크 라인', '수채 스케치', '무드보드'] } },
+  { id: 'chapter-18', order: 18, groupId: 'relationship', groupTitle: '관계와 인연', title: '이런 사람은 곁에 둘수록 너를 흐리게 만든다', subtitle: '가까이해야 할 인연과 멀어져야 할 인연', sectionIds: ['avoid-relationship', 'love-timing'], points: [{ type: 'table', title: '가까이할 인연 vs 멀어질 인연', detail: '연락, 돈 태도, 생활 리듬으로 분류합니다.' }, { type: 'highlight', title: '초기 경고 신호', detail: '매력처럼 보이지만 흐려지는 신호를 봅니다.' }] },
+  { id: 'chapter-19', order: 19, groupId: 'future', groupTitle: '미래 흐름', title: '올해 네 인생에서 가장 먼저 움직이는 신호', subtitle: '큰 변화가 오기 전에 먼저 나타나는 징조', sectionIds: ['future-flow', 'sewoon-detail'], points: [{ type: 'graph', title: '올해 신호 그래프', detail: '사람, 돈, 일, 이동 중 먼저 흔들리는 영역을 봅니다.' }, { type: 'comparison', title: '작년과 올해 비교', detail: '지난 흐름과 올해 새 신호를 나눕니다.' }] },
+  { id: 'chapter-20', order: 20, groupId: 'future', groupTitle: '미래 흐름', title: '인생 판이 바뀌기 직전, 먼저 흔들리는 곳이 있다', subtitle: '다음 대운으로 넘어가기 전에 나타나는 변화', sectionIds: ['daewoon-detail', 'turning-years', 'timing-place', 'action-guide', 'long-report-depth'], points: [{ type: 'comparison', title: '현재 대운 vs 다음 대운', detail: '사람, 일, 돈, 장소가 어떻게 바뀌는지 비교합니다.' }, { type: 'formula', title: '전환 준비 점수', detail: '지금 정리할 영역을 계산 포인트로 둡니다.' }] },
 ]
 
 function parseJson(value, fallback) {
@@ -478,7 +510,8 @@ function buildPrintableReportHtml() {
   const title = report?.title || `${session?.birth?.name || '당신'}님의 사주 리포트`
   const subtitle = report?.subtitle || '천명대공(天命大公)이 사주의 큰 흐름과 지금의 고민을 함께 정리했습니다.'
   const generatedAt = new Date().toLocaleString('ko-KR', { dateStyle: 'long', timeStyle: 'short' })
-  const groups = groupedSections(sections)
+  const chapters = getReportChapters()
+  const groups = groupedChapters(chapters)
   const specRows = pdfSpecRows()
 
   return `<!doctype html>
@@ -631,24 +664,37 @@ function buildPrintableReportHtml() {
               <strong>${highlightPdfKeywords(group.title)}</strong>
               <span>${highlightPdfKeywords(group.subtitle)}</span>
               <ol>
-                ${group.items.map((section) => `<li>${highlightPdfKeywords(sectionCopy(section).title)}</li>`).join('')}
+                ${group.items.map((chapter) => `<li>${highlightPdfKeywords(chapter.title)}</li>`).join('')}
               </ol>
             </section>
           `).join('')}
         </div>
       </section>
-      ${sections.map((section, index) => {
-        const display = sectionCopy(section)
-        const order = String(index + 2).padStart(2, '0')
+      ${chapters.map((chapter) => {
+        const chapterSections = chapter.sectionIds
+          .map((sectionId) => sections.find((section) => section.id === sectionId))
+          .filter(Boolean)
+        const primarySection = chapterSections[0]
+        const order = String(chapter.order || 0).padStart(2, '0')
         return `
           <section class="section chapter">
             <div class="chapter-head">
               <span class="kicker">${order} · 천명대공 풀이</span>
-              <h2>${highlightPdfKeywords(display.title)}</h2>
-              <p>${highlightPdfKeywords(display.subtitle)}</p>
+              <h2>${highlightPdfKeywords(chapter.title)}</h2>
+              <p>${highlightPdfKeywords(chapter.subtitle)}</p>
             </div>
             <div class="reading">
-              ${markdownLikeHtml(section.interpretation)}
+              ${chapter.points?.length ? `
+                <ul>
+                  ${chapter.points.map((point) => `<li>${highlightPdfKeywords(`${POINT_LABELS[point.type] || '포인트'} · ${point.title}: ${point.detail}`)}</li>`).join('')}
+                </ul>
+              ` : ''}
+            </div>
+            <div class="reading">
+              ${chapterSections.map((section) => `
+                <h3>${highlightPdfKeywords(section.category)}</h3>
+                ${markdownLikeHtml(section.interpretation)}
+              `).join('') || markdownLikeHtml(primarySection?.interpretation || '')}
             </div>
           </section>
         `
@@ -699,34 +745,150 @@ function getReportSections() {
   return getReport()?.sections || []
 }
 
-function sectionCopy(section) {
+const POINT_LABELS = {
+  table: '표',
+  image: '이미지',
+  highlight: '주요대목',
+  graph: '그래프',
+  formula: '계산식',
+  comparison: '비교',
+  feature: '기능',
+}
+
+function getReportChapters() {
+  const report = getReport()
+  const sections = getReportSections()
+  const byId = new Map(sections.map((section) => [section.id, section]))
+  const rawChapters = Array.isArray(report?.chapters) && report.chapters.length
+    ? report.chapters
+    : DEFAULT_REPORT_CHAPTERS
+
+  return rawChapters
+    .map((chapter) => {
+      const sectionIds = Array.isArray(chapter.sectionIds)
+        ? chapter.sectionIds.filter((id) => byId.has(id))
+        : []
+      return {
+        ...chapter,
+        points: Array.isArray(chapter.points) ? chapter.points : [],
+        sectionIds,
+        sections: sectionIds.map((id) => byId.get(id)).filter(Boolean),
+      }
+    })
+    .filter((chapter) => chapter.sectionIds.length)
+}
+
+function chapterForSectionId(sectionId) {
+  return getReportChapters().find((chapter) => chapter.sectionIds.includes(sectionId))
+}
+
+function activeReportChapter() {
+  const chapters = getReportChapters()
+  return chapters.find((chapter) => chapter.id === reportState.activeChapterId)
+    || chapters.find((chapter) => chapter.sectionIds.includes(reportState.activeSectionId))
+    || null
+}
+
+function detailSectionCopy(section) {
   const copy = SECTION_COPY[section?.id]
   return {
-    title: copy?.[0] || section?.category || '이 장의 풀이',
+    title: copy?.[0] || section?.category || '세부 풀이',
     subtitle: copy?.[1] || section?.classification || '지금 봐야 할 흐름을 풀어드립니다.',
   }
 }
 
-function groupedSections(sections) {
-  const byId = new Map(sections.map((section) => [section.id, section]))
-  const used = new Set()
-  const groups = SECTION_GROUPS.map((group) => {
-    const items = group.ids
-      .map((id) => byId.get(id))
-      .filter(Boolean)
-    items.forEach((item) => used.add(item.id))
-    return { ...group, items }
-  }).filter((group) => group.items.length)
-  const rest = sections.filter((section) => !used.has(section.id))
-  if (rest.length) {
-    groups.push({
-      id: 'etc',
-      title: '그 밖의 흐름',
-      subtitle: '놓치면 아쉬운 세부 풀이',
-      items: rest,
-    })
+function sectionCopy(section) {
+  const chapter = section?.id ? chapterForSectionId(section.id) : null
+  const detail = detailSectionCopy(section)
+  return {
+    title: chapter?.title || detail.title,
+    subtitle: chapter?.subtitle || detail.subtitle,
   }
+}
+
+function groupedChapters(chapters = getReportChapters()) {
+  const groups = []
+  const byGroup = new Map()
+
+  for (const chapter of chapters) {
+    const groupId = chapter.groupId || 'etc'
+    if (!byGroup.has(groupId)) {
+      const group = {
+        id: groupId,
+        title: chapter.groupTitle || '그 밖의 흐름',
+        subtitle: groupId === 'money'
+          ? '돈 들어오는 길, 새는 구멍, 일의 흐름'
+          : groupId === 'relationship'
+            ? '인연, 끌림, 피해야 할 사람'
+            : groupId === 'future'
+              ? '올해 신호와 인생 전환점'
+              : groupId === 'pattern'
+                ? '반복되는 함정과 선택 기준'
+                : '성향, 기질, 내 안쪽 기운',
+        items: [],
+      }
+      byGroup.set(groupId, group)
+      groups.push(group)
+    }
+    byGroup.get(groupId).items.push(chapter)
+  }
+
   return groups
+}
+
+function renderChapterPoints(chapter) {
+  const points = Array.isArray(chapter?.points) ? chapter.points.slice(0, 3) : []
+  if (!points.length) return ''
+  return `
+    <div class="report-chapter-points" aria-label="이 장의 핵심 장치">
+      ${points.map((point) => `
+        <div class="report-chapter-point report-chapter-point-${escapeHtml(point.type || 'highlight')}">
+          <span>${escapeHtml(POINT_LABELS[point.type] || '포인트')}</span>
+          <strong>${escapeHtml(point.title || '핵심 포인트')}</strong>
+          <p>${escapeHtml(point.detail || '')}</p>
+          ${point.metric ? `<em>${escapeHtml(point.metric)}</em>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `
+}
+
+function renderDestinySketchPanel(chapter) {
+  if (chapter?.cta?.type !== 'destiny-partner-sketch') return ''
+  const sketch = reportState.destinySketch
+  const options = Array.isArray(chapter.cta.options) && chapter.cta.options.length
+    ? chapter.cta.options
+    : ['연필 스케치', '잉크 라인', '수채 스케치', '무드보드']
+
+  return `
+    <section class="destiny-sketch-panel" aria-label="${escapeHtml(chapter.cta.label)}">
+      <div class="destiny-sketch-head">
+        <span>17번 옵션</span>
+        <strong>${escapeHtml(chapter.cta.label)}</strong>
+        <p>${escapeHtml(chapter.cta.description || '다가올 인연의 분위기를 스케치로 확인합니다.')}</p>
+      </div>
+      <div class="destiny-style-grid">
+        ${options.map((option) => `
+          <button
+            class="${sketch.style === option ? 'is-active' : ''}"
+            type="button"
+            data-destiny-style="${escapeHtml(option)}"
+          >${escapeHtml(option)}</button>
+        `).join('')}
+      </div>
+      <button class="destiny-generate-button" type="button" data-destiny-generate ${sketch.loading ? 'disabled' : ''}>
+        ${sketch.loading ? '스케치 생성 중' : '운명의 상대 확인하기'}
+      </button>
+      ${sketch.loading ? '<div class="destiny-sketch-loading"><div class="report-progress" aria-hidden="true"></div><span>명식의 보완 기운과 관계 패턴을 이미지로 바꾸는 중입니다.</span></div>' : ''}
+      ${sketch.error ? `<p class="destiny-sketch-error">${escapeHtml(sketch.error)}</p>` : ''}
+      ${sketch.imageSrc ? `
+        <figure class="destiny-sketch-result">
+          <img src="${escapeHtml(sketch.imageSrc)}" alt="운명의 상대 분위기 스케치" />
+          <figcaption>${escapeHtml(sketch.description || '다가올 인연의 분위기를 상징 스케치로 정리했습니다.')}</figcaption>
+        </figure>
+      ` : ''}
+    </section>
+  `
 }
 
 function getBirthPayload() {
@@ -767,7 +929,7 @@ function renderBasicSpec() {
 
   return `
     <section class="report-basic-card">
-      <span class="report-kicker">01 기본 스펙</span>
+      <span class="report-kicker">입력값 확인</span>
       <h2>${escapeHtml(name)}님의 사주 기본값</h2>
       <div class="spec-grid">
         <div><span>생년월일</span><strong>${escapeHtml(formatBirthLabel(birth))}</strong></div>
@@ -822,9 +984,13 @@ function renderSelectedSection() {
     ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 천명대공(天命大公)이 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
     : ''
   const imageHook = section.hook || section.description || '사주의 결이 보입니다'
-  const sectionIndex = sections.findIndex((item) => item.id === section.id)
-  const displayOrder = String(sectionIndex >= 0 ? sectionIndex + 2 : section.order || 0).padStart(2, '0')
+  const chapter = activeReportChapter() || chapterForSectionId(section.id)
+  const displayOrder = String(chapter?.order || section.order || 0).padStart(2, '0')
   const display = sectionCopy(section)
+  const chapterSections = chapter?.sectionIds
+    ?.map((sectionId) => sections.find((item) => item.id === sectionId))
+    .filter(Boolean) || [section]
+  const extraSections = chapterSections.filter((item) => item.id !== section.id)
 
   return `
     <article class="report-section-card">
@@ -837,10 +1003,28 @@ function renderSelectedSection() {
         <h3>${escapeHtml(display.title)}</h3>
         <p>${escapeHtml(display.subtitle)}</p>
       </div>
+      ${renderChapterPoints(chapter)}
+      ${renderDestinySketchPanel(chapter)}
       ${warning}
       <div class="report-reading">
         ${formatReadableHtml(section.interpretation)}
       </div>
+      ${extraSections.length ? `
+        <div class="report-subsection-stack">
+          ${extraSections.map((item) => {
+            const detail = detailSectionCopy(item)
+            return `
+              <section class="report-subsection">
+                <span>${escapeHtml(detail.subtitle)}</span>
+                <h4>${escapeHtml(detail.title)}</h4>
+                <div class="report-reading">
+                  ${formatReadableHtml(item.interpretation)}
+                </div>
+              </section>
+            `
+          }).join('')}
+        </div>
+      ` : ''}
     </article>
   `
 }
@@ -851,6 +1035,7 @@ function renderReportHub() {
 
   const sections = getReportSections()
   const report = getReport()
+  const chapters = getReportChapters()
   const hub = document.createElement('section')
   hub.id = 'report-hub'
   hub.className = 'report-hub'
@@ -860,32 +1045,34 @@ function renderReportHub() {
       <div class="report-panel-head">
         <span>보고 싶은 운을 먼저 고르세요</span>
         <h2>${escapeHtml(report?.title || '천명대공(天命大公) 상세 풀이')}</h2>
-        <p>재물운은 일·재물, 연애운은 관계·연애처럼 큰 문으로 먼저 나눴습니다.</p>
+        <p>복잡한 사주 용어보다 지금 읽혀야 할 장면부터 열어드립니다.</p>
       </div>
       <div class="report-panel-actions">
         <button class="pdf-button" type="button" data-report-pdf>PDF 다운받기</button>
       </div>
       <div class="report-toc-grid" role="list">
-        ${groupedSections(sections).map((group) => `
+        ${groupedChapters(chapters).map((group) => `
           <section class="report-toc-group" data-report-group="${escapeHtml(group.id)}">
             <div class="report-group-head">
               <strong>${escapeHtml(group.title)}</strong>
               <span>${escapeHtml(group.subtitle)}</span>
             </div>
             <div class="report-group-list">
-              ${group.items.map((section) => {
-                const display = sectionCopy(section)
-                const index = sections.findIndex((item) => item.id === section.id)
+              ${group.items.map((chapter) => {
+                const section = sections.find((item) => item.id === chapter.sectionIds[0])
+                if (!section) return ''
                 return `
                   <button
-                    class="report-toc-item ${reportState.activeSectionId === section.id ? 'is-active' : ''}"
+                    class="report-toc-item ${activeReportChapter()?.id === chapter.id ? 'is-active' : ''}"
                     type="button"
                     data-report-section="${escapeHtml(section.id)}"
+                    data-report-chapter="${escapeHtml(chapter.id)}"
                     role="listitem"
                   >
-                    <span>${String(index + 2).padStart(2, '0')}</span>
-                    <strong>${escapeHtml(display.title)}</strong>
-                    <em>${escapeHtml(display.subtitle)}</em>
+                    <span>${String(chapter.order || 0).padStart(2, '0')}</span>
+                    <strong>${escapeHtml(chapter.title)}</strong>
+                    <em>${escapeHtml(chapter.subtitle)}</em>
+                    <small>${escapeHtml(chapter.sectionIds.length > 1 ? `${chapter.sectionIds.length}개 상세 묶음` : '핵심 상세')}</small>
                   </button>
                 `
               }).join('')}
@@ -909,13 +1096,48 @@ function scrollActiveReportIntoView() {
   })
 }
 
-async function loadReportSection(sectionId) {
+async function generateDestinySketch() {
+  if (!session || reportState.destinySketch.loading) return
+
+  reportState.destinySketch.loading = true
+  reportState.destinySketch.error = ''
+  renderReportHub()
+  scrollActiveReportIntoView()
+
+  try {
+    const res = await fetch('/api/report/destiny-partner-sketch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        birth: getBirthPayload(),
+        reportId: getReport()?.reportId,
+        context: getContextPayload(),
+        style: reportState.destinySketch.style,
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error || '이미지 생성 실패')
+
+    reportState.destinySketch.imageSrc = json.imageSrc || ''
+    reportState.destinySketch.description = json.description || ''
+    reportState.destinySketch.model = json.model || ''
+  } catch (err) {
+    reportState.destinySketch.error = err.message || '운명의 상대 스케치를 만들지 못했습니다.'
+  } finally {
+    reportState.destinySketch.loading = false
+    renderReportHub()
+    scrollActiveReportIntoView()
+  }
+}
+
+async function loadReportSection(sectionId, chapterId = '') {
   if (!session) return
   const sections = getReportSections()
   const cached = sections.find((item) => item.id === sectionId)
   if (!cached) return
 
   reportState.activeSectionId = sectionId
+  reportState.activeChapterId = chapterId || chapterForSectionId(sectionId)?.id || ''
   reportState.error = ''
 
   if (cached.status === 'complete' && cached.generatedBy === 'openai') {
@@ -1012,9 +1234,23 @@ chatLog.addEventListener('click', (event) => {
     return
   }
 
+  const destinyStyleButton = event.target.closest('[data-destiny-style]')
+  if (destinyStyleButton) {
+    reportState.destinySketch.style = destinyStyleButton.dataset.destinyStyle || '연필 스케치'
+    reportState.destinySketch.error = ''
+    renderReportHub()
+    return
+  }
+
+  const destinyButton = event.target.closest('[data-destiny-generate]')
+  if (destinyButton) {
+    generateDestinySketch()
+    return
+  }
+
   const button = event.target.closest('[data-report-section]')
   if (!button) return
-  loadReportSection(button.dataset.reportSection)
+  loadReportSection(button.dataset.reportSection, button.dataset.reportChapter)
 })
 
 chatForm.addEventListener('submit', async (e) => {

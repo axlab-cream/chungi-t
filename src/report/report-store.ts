@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { Pool } from 'pg'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
+import { buildReportChapters } from './report-chapters.js'
 import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 
 export type ReportStatus = 'pending' | 'generating' | 'complete' | 'failed'
@@ -103,6 +104,7 @@ export function toClientReport(record: ReportRecord): SajuReport {
   report.storage = storageMode()
   report.corpus = record.corpus ?? report.corpus
   report.progress = progressFor(report)
+  report.chapters = report.chapters?.length ? report.chapters : buildReportChapters(report.sections)
   return report
 }
 
@@ -162,6 +164,7 @@ export async function createOrGetReportRecord(params: {
     storage: storageMode(),
     corpus,
     progress: { complete: 0, total: params.templateReport.sections.length },
+    chapters: params.templateReport.chapters ?? buildReportChapters(params.templateReport.sections),
     sections: params.templateReport.sections.map((section) => ({
       ...section,
       generatedBy: 'template',
@@ -216,6 +219,7 @@ export async function updateReportSection(
 
   const progress = progressFor(record.report)
   record.report.progress = progress
+  record.report.chapters = buildReportChapters(record.report.sections)
   record.status = progress.complete >= progress.total ? 'complete' : 'generating'
   record.report.status = record.status
   return saveReportRecord(record)

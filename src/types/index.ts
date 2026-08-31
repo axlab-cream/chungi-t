@@ -185,6 +185,35 @@ export interface SajuReportSection {
   error?: string
 }
 
+export type SajuReportPointType = 'table' | 'image' | 'highlight' | 'graph' | 'formula' | 'comparison' | 'feature'
+
+export interface SajuReportPoint {
+  type: SajuReportPointType
+  title: string
+  detail: string
+  metric?: string
+}
+
+export interface SajuReportChapterCta {
+  type: 'destiny-partner-sketch'
+  label: string
+  description: string
+  sectionId: string
+  options?: string[]
+}
+
+export interface SajuReportChapter {
+  id: string
+  order: number
+  groupId: string
+  groupTitle: string
+  title: string
+  subtitle: string
+  sectionIds: string[]
+  points: SajuReportPoint[]
+  cta?: SajuReportChapterCta
+}
+
 export interface SajuReportQualityCategory {
   id: string
   label: string
@@ -236,6 +265,7 @@ export interface SajuReport {
   storage?: 'postgres' | 'memory'
   corpus?: CorpusSnapshot
   quality?: SajuReportQuality
+  chapters?: SajuReportChapter[]
   sections: SajuReportSection[]
 }
 

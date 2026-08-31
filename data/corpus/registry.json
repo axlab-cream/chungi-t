@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "policy": "RAG and corpus packs are living knowledge assets. Add, revise, score, and regression-test packs continuously instead of treating retrieval data as fixed application code.",
   "packs": [
     {
@@ -61,6 +61,16 @@
       "role": "paid_narrative_density_patch",
       "version": "1.0.0",
       "retrievalBoost": 18
+    },
+    {
+      "id": "hooked-report-flow-20",
+      "path": "corpus/hooked-report-flow-20.json",
+      "kind": "chunks",
+      "domain": "hooked_report_flow_20",
+      "status": "active",
+      "role": "twenty_chapter_paid_hook_flow",
+      "version": "1.0.0",
+      "retrievalBoost": 22
     },
     {
       "id": "saju-elements",

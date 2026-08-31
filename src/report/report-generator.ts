@@ -13,6 +13,7 @@ import { chatWithOpenAI } from '../llm/openai-adapter.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
+import { buildReportChapters, chapterForSectionId, chapterSearchTextForSection } from './report-chapters.js'
 import { evaluateReportQuality } from './report-quality.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
@@ -1184,7 +1185,7 @@ export function buildTemplateSajuReport(
   const sections: SajuReportSection[] = REPORT_BLUEPRINTS.map((blueprint, index) => {
     const brief = sectionBriefForBlueprint(blueprint)
     const chunks = retrieveRagChunks(
-      `${blueprint.query} ${sectionBriefQuery(brief)} ${reportContextQuery(context)}`,
+      `${blueprint.query} ${sectionBriefQuery(brief)} ${chapterSearchTextForSection(blueprint.id)} ${reportContextQuery(context)}`,
       analysis,
       runtimeConfig.report?.ragTopK ?? 4,
       context,
@@ -1212,6 +1213,7 @@ export function buildTemplateSajuReport(
     subtitle: '사주 기둥과 오행, 십신, 대운 흐름을 기준으로 순차 해석합니다.',
     model: 'template',
     generatedBy: 'template',
+    chapters: buildReportChapters(sections),
     sections,
   }
   report.quality = evaluateReportQuality(report, analysis, context)
@@ -1228,7 +1230,7 @@ function reportPrompt(
     .map((section) => {
       const brief = sectionBriefForSection(section)
       const chunks = retrieveRagChunks(
-        `${section.category} ${section.classification} ${sectionBriefQuery(brief)} ${reportContextQuery(context)}`,
+        `${section.category} ${section.classification} ${sectionBriefQuery(brief)} ${chapterSearchTextForSection(section.id)} ${reportContextQuery(context)}`,
         analysis,
         runtimeConfig.report?.ragTopK ?? 4,
         context,
@@ -1239,6 +1241,9 @@ function reportPrompt(
   const sectionBriefs = Object.fromEntries(
     baseReport.sections.map((section) => [section.id, sectionBriefForSection(section)]),
   )
+  const chapterBySection = Object.fromEntries(
+    baseReport.sections.map((section) => [section.id, chapterForSectionId(section.id) ?? null]),
+  )
 
   return [
     {
@@ -1248,6 +1253,8 @@ function reportPrompt(
         '입력된 사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 장문 풀이를 씁니다.',
         '개인 사주 요약에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
         'RAG는 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 해석합니다.',
+        '사용자에게 보이는 외부 목차는 baseReport.chapters의 20개 챕터 제목을 기준으로 합니다. 용신·십신·일주·월주·세운·대운 같은 전문용어는 제목이 아니라 해석 근거 문단으로 내립니다.',
+        '각 상세 섹션은 자신이 속한 reportChapter의 제목, 부제, 표·이미지·주요대목·그래프·공식·비교 포인트를 원고 안에 자연스럽게 반영합니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천명대공(天命大公) 말투를 유지합니다.',
         '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
@@ -1281,6 +1288,8 @@ function reportPrompt(
         context,
         sajuSummary: analysis.summary,
         baseReport,
+        reportChapters: baseReport.chapters,
+        chapterBySection,
         sectionBriefs,
         ragBySection,
       }),
@@ -1295,8 +1304,9 @@ function sectionPrompt(
   section: SajuReportSection,
 ): LlmMessage[] {
   const brief = sectionBriefForSection(section)
+  const reportChapter = chapterForSectionId(section.id)
   const chunks = retrieveRagChunks(
-    `${section.category} ${section.classification} ${sectionBriefQuery(brief)} ${reportContextQuery(context)}`,
+    `${section.category} ${section.classification} ${sectionBriefQuery(brief)} ${chapterSearchTextForSection(section.id)} ${reportContextQuery(context)}`,
     analysis,
     runtimeConfig.report?.ragTopK ?? 4,
     context,
@@ -1310,6 +1320,8 @@ function sectionPrompt(
         '사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 하되 기계적으로 나열하지 않습니다.',
         '격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
         'RAG 주제는 문장 안에서 현재 고민, 선택지, 명식 근거와 연결해 사용합니다.',
+        '사용자에게 보이는 제목은 reportChapter.title입니다. 섹션 원고는 해당 챕터의 표·이미지·주요대목·그래프·공식·비교 포인트 중 관련 포인트를 최소 1개 이상 살려 씁니다.',
+        '용신·십신·일주·월주·세운·대운 같은 전문용어는 제목처럼 앞세우지 말고, 왜 그런 결론이 나왔는지 설명하는 근거 문단에서 쉬운 말과 함께 씁니다.',
         '말투는 “흠...”, “보입니다”, “그 이유가 있습니다”, “좋은 말만 하지는 않겠습니다” 계열의 천명대공(天命大公) 말투입니다.',
         '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
@@ -1337,6 +1349,7 @@ function sectionPrompt(
         context,
         sajuSummary: analysis.summary,
         section,
+        reportChapter,
         sectionBrief: brief,
         rag: formatRagForPrompt(chunks),
       }),
@@ -1389,6 +1402,7 @@ function mergeOpenAiReport(
     subtitle: typeof parsed.subtitle === 'string' && parsed.subtitle.trim() ? parsed.subtitle.trim() : baseReport.subtitle,
     model: REPORT_MODEL,
     generatedBy: 'openai',
+    chapters: buildReportChapters(sections),
     sections,
   }
   report.quality = evaluateReportQuality(report, analysis, context)

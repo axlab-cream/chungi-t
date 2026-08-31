@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
+import { REPORT_CHAPTERS } from '../../src/report/report-chapters.js'
 import { createOrGetReportRecord, createReportId, toClientReport } from '../../src/report/report-store.js'
 import { getCorpusSnapshot } from '../../src/rag/corpus-registry.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
@@ -39,6 +40,23 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     assert.ok(report.sections.some((section) => section.id === 'relationship-orientation'))
     assert.ok(report.sections.some((section) => section.id === 'work-context'))
     assert.ok(report.sections.some((section) => section.ragTopics.some((topic) => topic.includes('직장'))))
+    assert.equal(report.chapters?.length, 20)
+    assert.deepEqual(report.chapters?.map((chapter) => chapter.title), REPORT_CHAPTERS.map((chapter) => chapter.title))
+    assert.equal(report.chapters?.[0]?.title, '너라는 사람부터 까보자')
+    assert.equal(report.chapters?.[16]?.title, '네가 설레는 사람과 결국 남는 사람은 다르다')
+    assert.equal(report.chapters?.[16]?.cta?.type, 'destiny-partner-sketch')
+    assert.ok(report.chapters?.some((chapter) => chapter.points.some((point) => point.type === 'table')))
+    assert.ok(report.chapters?.some((chapter) => chapter.points.some((point) => point.type === 'image')))
+    assert.ok(report.chapters?.some((chapter) => chapter.points.some((point) => point.type === 'graph')))
+    assert.ok(report.chapters?.some((chapter) => chapter.points.some((point) => point.type === 'formula')))
+    assert.ok(report.chapters?.some((chapter) => chapter.points.some((point) => point.type === 'comparison')))
+    const mappedSectionIds = report.chapters?.flatMap((chapter) => chapter.sectionIds) ?? []
+    assert.equal(mappedSectionIds.length, report.sections.length)
+    assert.equal(new Set(mappedSectionIds).size, report.sections.length)
+    assert.deepEqual(
+      mappedSectionIds.slice().sort(),
+      report.sections.map((section) => section.id).sort(),
+    )
     assert.ok(report.sections.some((section) => (
       section.interpretation.includes('주의할')
       || section.interpretation.includes('미리 봐야 할 위험 신호')

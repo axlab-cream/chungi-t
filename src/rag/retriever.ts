@@ -88,6 +88,29 @@ const ELEMENT_TERMS: Record<string, string[]> = {
   water: ['수', '임', '계', '水', '직관', '흐름'],
 }
 
+const HOOKED_FLOW_PINS: Array<{ id: string; phrases: string[] }> = [
+  { id: 'hf20-001', phrases: ['너라는 사람부터', '자기 인식 차이표', '첫 장면 고정'] },
+  { id: 'hf20-002', phrases: ['남들이 아는 너는 진짜 네가 아니다', '외부 얼굴', '내면 피로'] },
+  { id: 'hf20-003', phrases: ['어릴 때부터 여기서 무너졌다', '초년 패턴', '감정 패턴'] },
+  { id: 'hf20-004', phrases: ['가까워져야만 들키는', '가까운 관계 반응표', '관계 속 본모습'] },
+  { id: 'hf20-005', phrases: ['그렇게까지 버티는', '강점 과사용', '무너지기 직전'] },
+  { id: 'hf20-006', phrases: ['이상하게 이것만은 늘 부족하다', '부족한 자리', '균형 회복'] },
+  { id: 'hf20-007', phrases: ['살리는 선택과 망치는 선택', '선택 판별식', '풀릴 때'] },
+  { id: 'hf20-008', phrases: ['돈·사람·책임', '돈 사람 책임', '본성 반응표'] },
+  { id: 'hf20-009', phrases: ['매번 같은 곳에서 무너질까', '위험 신호', '함정 반복'] },
+  { id: 'hf20-010', phrases: ['고민은 바뀌는데 문제는 왜 계속 같을까', '반복 고민 공식'] },
+  { id: 'hf20-011', phrases: ['능력이 돈이 되는', '돈 전환력', '수입 경로표'] },
+  { id: 'hf20-012', phrases: ['요즘 자꾸 꼬인다면', '최근 전후 비교', '먼저 움직이는 증상'] },
+  { id: 'hf20-013', phrases: ['지금 버틸까, 나갈까', '버틸 조건', '전환 판단식'] },
+  { id: 'hf20-014', phrases: ['돈이 없는 게 아니다', '돈구멍 계산', '지출 누수'] },
+  { id: 'hf20-015', phrases: ['잡아야 할 돈', '절대 쫓으면 안 되는 돈', '재물 기회 타이밍'] },
+  { id: 'hf20-016', phrases: ['그 사람, 운명일까', '또 네 패턴일까', '운명처럼 보이는 끌림'] },
+  { id: 'hf20-017', phrases: ['설레는 사람과 결국 남는 사람', '운명의 상대 확인하기', '상대 분위기 스케치'] },
+  { id: 'hf20-018', phrases: ['곁에 둘수록 너를 흐리게', '가까이할 인연', '멀어질 인연'] },
+  { id: 'hf20-019', phrases: ['올해 네 인생에서 가장 먼저 움직이는 신호', '올해 신호 그래프', '작년과 올해'] },
+  { id: 'hf20-020', phrases: ['인생 판이 바뀌기 직전', '현재 대운 vs 다음 대운', '전환 준비 점수'] },
+]
+
 function expandTokens(tokens: string[]): string[] {
   const expanded = new Set(tokens.filter(Boolean))
   for (const token of tokens) {
@@ -411,6 +434,17 @@ function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
   return ids
 }
 
+function pinnedHookedFlowChunkIds(queryText: string): Set<string> {
+  const normalized = normalizeText(queryText)
+  const ids = new Set<string>()
+  for (const pin of HOOKED_FLOW_PINS) {
+    if (pin.phrases.some((phrase) => normalized.includes(normalizeText(phrase)))) {
+      ids.add(pin.id)
+    }
+  }
+  return ids
+}
+
 export function retrieveRagChunks(
   message: string,
   saju: SajuAnalysis,
@@ -430,7 +464,10 @@ export function retrieveRagChunks(
   const personalTokens = sajuTokens(saju)
   const gbrTokens = graphBoostTokens(queryTokens, saju, context)
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
-  const pinnedIds = pinnedContextChunkIds(context)
+  const pinnedIds = new Set([
+    ...pinnedContextChunkIds(context),
+    ...pinnedHookedFlowChunkIds(queryText),
+  ])
 
   const vectorResults = retrieveVectorRagChunks(
     [...queryTokens, ...personalTokens].join(' '),
