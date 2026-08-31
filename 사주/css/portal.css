@@ -68,56 +68,25 @@ button {
 }
 
 .stage {
-  display: grid;
-  min-height: 100dvh;
-  place-items: center;
-  padding: 22px;
-}
-
-.stage-brand {
-  position: fixed;
-  top: 18px;
-  left: 50%;
-  z-index: 3;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 900;
-  transform: translateX(-50%);
-}
-
-.stage-brand span {
-  background: var(--gold-gradient);
-  background-clip: text;
-  color: transparent;
-  font-family: var(--font-brand);
-  font-size: 20px;
-  letter-spacing: 0.18em;
-}
-
-.stage-brand b {
-  min-width: max-content;
-  color: var(--gold-400);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 0;
 }
 
 .phone {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(430px, calc(100vw - 44px));
-  height: min(850px, calc(100dvh - 78px));
-  min-height: 660px;
+  width: min(430px, 100vw);
+  height: 100dvh;
+  min-height: 0;
   overflow: hidden;
-  border: 1px solid rgba(216, 186, 114, 0.32);
-  border-radius: 42px;
+  border: 0;
+  border-radius: 0;
   background: var(--black-950);
-  box-shadow:
-    0 50px 120px rgba(0, 0, 0, 0.56),
-    0 0 0 8px var(--black-850);
+  box-shadow: none;
 }
 
 .appbar,
@@ -713,10 +682,6 @@ button {
     display: block;
     min-height: 100dvh;
     padding: 0;
-  }
-
-  .stage-brand {
-    display: none;
   }
 
   .phone {
