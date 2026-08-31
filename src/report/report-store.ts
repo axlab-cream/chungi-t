@@ -190,6 +190,48 @@ export async function getReportRecord(reportId: string, accessToken?: string): P
   return result.rows[0]?.payload ? cloneRecord(result.rows[0].payload) : null
 }
 
+export async function deleteReportRecord(reportId: string, owner?: ReportOwner): Promise<boolean> {
+  const trimmed = reportId.trim()
+  if (!trimmed) return false
+
+  if (storageMode() === 'memory') {
+    return memoryReports.delete(trimmed)
+  }
+
+  if (storageMode() === 'supabase') {
+    if (!owner?.accessToken) {
+      throw new Error('회원 인증 정보가 없어 리포트를 삭제하지 못했습니다.')
+    }
+    const response = await fetch(`${supabaseRestUrl}?report_id=eq.${encodeURIComponent(trimmed)}&select=report_id`, {
+      method: 'DELETE',
+      headers: {
+        ...supabaseHeaders(owner.accessToken),
+        prefer: 'return=representation',
+      },
+    })
+    if (!response.ok) {
+      const message = await response.text().catch(() => '')
+      throw new Error(message || 'Supabase 리포트 삭제에 실패했습니다.')
+    }
+    const rows = await response.json().catch(() => []) as Array<{ report_id?: string }>
+    return Array.isArray(rows) ? rows.length > 0 : true
+  }
+
+  if (!pool) throw new Error('Postgres 저장소가 설정되지 않았습니다.')
+  await ensureDb()
+  const values = owner?.id ? [trimmed, owner.id] : [trimmed]
+  const result = await pool.query(
+    `
+      DELETE FROM cheongi_reports
+      WHERE report_id = $1
+      ${owner?.id ? 'AND user_id = $2' : ''}
+      RETURNING report_id
+    `,
+    values,
+  )
+  return result.rows.length > 0
+}
+
 export async function saveReportRecord(record: ReportRecord): Promise<ReportRecord> {
   const updated: ReportRecord = {
     ...record,

@@ -17,6 +17,7 @@ import { generateReportSectionNow, preGenerateReport, startReportPreGeneration }
 import {
   createOrGetReportRecord,
   createReportId,
+  deleteReportRecord,
   getReportRecord,
   toClientReport,
   updateReportChatHistory,
@@ -231,6 +232,27 @@ app.get('/api/report/:reportId', async (req, res) => {
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '리포트 조회 실패' })
+  }
+})
+
+app.delete('/api/report/:reportId', async (req, res) => {
+  try {
+    const reportId = String(req.params.reportId ?? '').trim()
+    if (!reportId) {
+      res.status(400).json({ error: 'reportId가 필요합니다.' })
+      return
+    }
+
+    const owner = await verifySupabaseUser(req)
+    if (authConfig().enabled && !owner) {
+      res.status(401).json({ error: '회원 인증 후 삭제할 수 있습니다.' })
+      return
+    }
+
+    const deleted = await deleteReportRecord(reportId, owner)
+    res.json({ ok: true, deleted, reportId })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 삭제 실패' })
   }
 })
 

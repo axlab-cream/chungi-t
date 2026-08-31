@@ -455,6 +455,48 @@
         line-height: 1;
       }
 
+      .history-confirm {
+        grid-column: 1 / -1;
+        padding: 12px;
+        border: 1px solid rgba(255, 104, 78, 0.32);
+        border-radius: 8px;
+        background: rgba(126, 20, 15, 0.22);
+      }
+
+      .history-confirm p {
+        margin: 0;
+        color: #ffe4d8;
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      .history-confirm-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .history-confirm-actions button {
+        min-height: 38px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .history-confirm-delete {
+        border: 1px solid rgba(255, 104, 78, 0.48);
+        background: rgba(213, 54, 38, 0.26);
+        color: #ffd8cf;
+      }
+
+      .history-confirm-cancel {
+        border: 1px solid rgba(255, 226, 183, 0.2);
+        background: rgba(255, 248, 239, 0.07);
+        color: #ffe7c2;
+      }
+
       .history-empty {
         min-height: 96px;
         padding: 18px;
@@ -2876,12 +2918,14 @@
       const settingsPanel = document.querySelector("[data-settings-panel]");
       const HISTORY_KEY = "cheongi_report_history_v1";
       const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
+      const DELETED_REPORTS_KEY = "cheongi_deleted_report_ids_v1";
       const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
       const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
       let authConfigData = null;
       let authClient = null;
       let authSession = null;
       let authInitPromise = null;
+      let pendingDeleteReportId = null;
 
       const state = {
         scene: "landing",
@@ -3158,8 +3202,11 @@
 
       function readReportHistory() {
         try {
+          const deletedIds = readDeletedReportIds();
           const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-          return Array.isArray(parsed) ? parsed.filter((item) => item?.reportId && item?.analysis) : [];
+          return Array.isArray(parsed)
+            ? parsed.filter((item) => item?.reportId && item?.analysis && !deletedIds.has(String(item.reportId)))
+            : [];
         } catch (err) {
           return [];
         }
@@ -3167,9 +3214,11 @@
 
       function writeReportHistory(items) {
         const seen = new Set();
+        const deletedIds = readDeletedReportIds();
         const next = items.filter((item) => {
-          if (!item?.reportId || seen.has(item.reportId)) return false;
-          seen.add(item.reportId);
+          const reportId = String(item?.reportId || "");
+          if (!reportId || seen.has(reportId) || deletedIds.has(reportId)) return false;
+          seen.add(reportId);
           return true;
         });
         try {
@@ -3177,6 +3226,44 @@
         } catch (err) {
           console.warn("풀이 보관함 저장 공간이 부족합니다. 기존 저장 데이터는 유지됩니다.", err);
         }
+      }
+
+      function readDeletedReportIds() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(DELETED_REPORTS_KEY) || "[]");
+          return new Set(Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : []);
+        } catch (err) {
+          return new Set();
+        }
+      }
+
+      function writeDeletedReportIds(ids) {
+        try {
+          localStorage.setItem(DELETED_REPORTS_KEY, JSON.stringify([...ids].slice(-120)));
+        } catch (err) {
+          // Deletion is still applied to the visible local history even if the tombstone cannot be persisted.
+        }
+      }
+
+      function isDeletedReportId(reportId) {
+        const trimmed = String(reportId || "").trim();
+        return trimmed ? readDeletedReportIds().has(trimmed) : false;
+      }
+
+      function rememberDeletedReportId(reportId) {
+        const trimmed = String(reportId || "").trim();
+        if (!trimmed) return;
+        const ids = readDeletedReportIds();
+        ids.add(trimmed);
+        writeDeletedReportIds(ids);
+      }
+
+      function forgetDeletedReportId(reportId) {
+        const trimmed = String(reportId || "").trim();
+        if (!trimmed) return;
+        const ids = readDeletedReportIds();
+        if (!ids.delete(trimmed)) return;
+        writeDeletedReportIds(ids);
       }
 
       function setActiveReportId(reportId) {
@@ -3332,6 +3419,7 @@
       function saveCurrentReading() {
         const entry = buildHistoryEntry();
         if (!entry) return;
+        if (isDeletedReportId(entry.reportId)) return;
         setActiveReportId(entry.reportId);
         const items = readReportHistory();
         const existing = items.find((item) => item.reportId === entry.reportId);
@@ -3347,7 +3435,9 @@
       function renderSettingsPanel() {
         const items = readReportHistory();
         const listMarkup = items.length
-          ? items.map((entry) => `
+          ? items.map((entry) => {
+              const isConfirming = pendingDeleteReportId === entry.reportId;
+              return `
               <div class="history-row">
                 <button class="history-item" type="button" data-history-open="${escapeHtml(entry.reportId)}">
                   <strong>${escapeHtml(entry.title || "저장된 풀이")}</strong>
@@ -3355,8 +3445,18 @@
                   <span class="history-id">ID ${escapeHtml(formatReportId(entry.reportId))}</span>
                 </button>
                 <button class="history-remove" type="button" aria-label="${escapeHtml(entry.title || "저장된 풀이")} 삭제" data-history-delete="${escapeHtml(entry.reportId)}">×</button>
+                ${isConfirming ? `
+                  <div class="history-confirm" role="alertdialog" aria-label="저장된 풀이 삭제 확인">
+                    <p>이 풀이와 상담 기록을 삭제할까요? 삭제하면 보관함에서 다시 보이지 않습니다.</p>
+                    <div class="history-confirm-actions">
+                      <button class="history-confirm-delete" type="button" data-history-delete-confirm="${escapeHtml(entry.reportId)}">삭제</button>
+                      <button class="history-confirm-cancel" type="button" data-history-delete-cancel>취소</button>
+                    </div>
+                  </div>
+                ` : ""}
               </div>
-            `).join("")
+            `;
+            }).join("")
           : `
               <div class="history-empty">
                 <strong>저장된 풀이가 없습니다</strong>
@@ -3385,18 +3485,55 @@
         `;
       }
 
-      function confirmPermanentDelete(entry) {
-        const title = entry?.title || "저장된 상담";
-        return window.confirm(`${title}\n\n이 상담 내용과 저장된 풀이를 삭제합니다.\n삭제하면 되돌릴 수 없습니다.\n정말 삭제할까요?`);
+      async function deleteReportFromServer(reportId) {
+        const headers = await authHeaders();
+        if (!headers.Authorization) return false;
+        const res = await fetch(`/api/report/${encodeURIComponent(reportId)}`, {
+          method: "DELETE",
+          headers,
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          throw new Error(json.error || "서버 저장 풀이를 삭제하지 못했습니다.");
+        }
+        const json = await res.json().catch(() => ({}));
+        return Boolean(json.deleted);
+      }
+
+      async function removeHistoryEntry(reportId) {
+        const trimmed = String(reportId || "").trim();
+        if (!trimmed) return;
+        const items = readReportHistory();
+        rememberDeletedReportId(trimmed);
+        writeReportHistory(items.filter((item) => item.reportId !== trimmed));
+        clearActiveReportId(trimmed);
+        pendingDeleteReportId = null;
+
+        const currentReportId = state.analysis?.report?.reportId || "";
+        const urlReportId = new URLSearchParams(location.search).get("reportId") || "";
+        if (currentReportId === trimmed || urlReportId === trimmed) {
+          historyStack.length = 0;
+          resetReadingState();
+          go("name", false);
+        }
+        renderSettingsPanel();
+
+        try {
+          await deleteReportFromServer(trimmed);
+        } catch (err) {
+          console.warn("서버 저장 풀이 삭제에 실패했습니다. 로컬 보관함에서는 삭제 상태를 유지합니다.", err);
+        }
       }
 
       function openSettings() {
+        pendingDeleteReportId = null;
         renderSettingsPanel();
         settingsPanel.classList.add("is-open");
         settingsPanel.setAttribute("aria-hidden", "false");
       }
 
       function closeSettings() {
+        pendingDeleteReportId = null;
         settingsPanel.classList.remove("is-open");
         settingsPanel.setAttribute("aria-hidden", "true");
       }
@@ -3423,6 +3560,7 @@
       function restoreHistoryEntry(reportId) {
         const entry = readReportHistory().find((item) => item.reportId === reportId);
         if (!entry?.analysis || !applyReadingPayload(entry)) return;
+        pendingDeleteReportId = null;
         closeSettings();
         historyStack.length = 0;
         go("result", false);
@@ -3431,6 +3569,7 @@
       async function loadReportById(reportId) {
         const trimmed = String(reportId || "").trim();
         if (!trimmed) throw new Error("풀이 ID가 비어 있습니다.");
+        if (isDeletedReportId(trimmed)) throw new Error("보관함에서 삭제된 풀이입니다.");
 
         const cached = readReportHistory().find((item) => item.reportId === trimmed);
         if (cached?.analysis && applyReadingPayload(cached)) {
@@ -3479,6 +3618,18 @@
           return;
         }
 
+        const deleteConfirmButton = event.target.closest("[data-history-delete-confirm]");
+        if (deleteConfirmButton) {
+          removeHistoryEntry(deleteConfirmButton.dataset.historyDeleteConfirm);
+          return;
+        }
+
+        if (event.target.closest("[data-history-delete-cancel]")) {
+          pendingDeleteReportId = null;
+          renderSettingsPanel();
+          return;
+        }
+
         const openButton = event.target.closest("[data-history-open]");
         if (openButton) {
           restoreHistoryEntry(openButton.dataset.historyOpen);
@@ -3487,12 +3638,7 @@
 
         const deleteButton = event.target.closest("[data-history-delete]");
         if (deleteButton) {
-          const reportId = deleteButton.dataset.historyDelete;
-          const items = readReportHistory();
-          const entry = items.find((item) => item.reportId === reportId);
-          if (!confirmPermanentDelete(entry)) return;
-          writeReportHistory(items.filter((item) => item.reportId !== reportId));
-          clearActiveReportId(reportId);
+          pendingDeleteReportId = deleteButton.dataset.historyDelete || null;
           renderSettingsPanel();
           return;
         }
@@ -3727,6 +3873,7 @@
         if (!res.ok) throw new Error(json.error || "분석 실패");
         state.analysis = json;
         const reportId = json.report?.reportId || "";
+        forgetDeletedReportId(reportId);
         const stored = readReportHistory().find((item) => item.reportId === reportId);
         setActiveReportId(reportId);
         sessionStorage.setItem("cheongi_birth", JSON.stringify({ ...birth, target: state.target, concern: state.concern, relationship: state.relationship, work: state.work, orientation: state.orientation }));

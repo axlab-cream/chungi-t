@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
 import { REPORT_CHAPTERS } from '../../src/report/report-chapters.js'
-import { createOrGetReportRecord, createReportId, toClientReport } from '../../src/report/report-store.js'
+import { createOrGetReportRecord, createReportId, deleteReportRecord, getReportRecord, toClientReport } from '../../src/report/report-store.js'
 import { getCorpusSnapshot } from '../../src/rag/corpus-registry.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
 
@@ -97,6 +97,25 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     assert.equal(second.created, false)
     assert.equal(toClientReport(second.record).reportId, reportId)
     assert.equal(toClientReport(second.record).corpus?.fingerprint, corpus.fingerprint)
+  })
+
+  it('저장된 리포트를 삭제한다', async () => {
+    const context = { ...sampleContext, concern: '삭제 테스트' }
+    const analysis = analyzeSaju(sampleBirth)
+    const templateReport = buildTemplateSajuReport(analysis, sampleBirth, context)
+    const reportId = createReportId(sampleBirth, context)
+
+    await createOrGetReportRecord({
+      reportId,
+      birth: sampleBirth,
+      context,
+      templateReport,
+    })
+
+    assert.ok(await getReportRecord(reportId))
+    assert.equal(await deleteReportRecord(reportId), true)
+    assert.equal(await getReportRecord(reportId), null)
+    assert.equal(await deleteReportRecord(reportId), false)
   })
 
   it('코퍼스 지문이 바뀌면 같은 입력도 새 reportId를 만든다', () => {
