@@ -3049,6 +3049,7 @@
       let authClient = null;
       let authSession = null;
       let authInitPromise = null;
+      let authGateMessage = "";
 
       const state = {
         scene: "landing",
@@ -3079,6 +3080,7 @@
         "time",
         "name",
         "concern",
+        "login",
         "loading",
         "result",
         "purchase",
@@ -3188,27 +3190,13 @@
       }
 
       function showAuthGate(message = "") {
-        document.querySelector("[data-auth-gate]")?.remove();
-        const gate = document.createElement("div");
-        gate.className = "auth-gate is-open";
-        gate.dataset.authGate = "true";
-        const naverProviderButton = authConfigData?.providers?.naver
-          ? `<button class="auth-provider naver" type="button" data-auth-provider="naver">네이버로 계속하기</button>`
-          : `<button class="auth-provider naver is-unavailable" type="button" data-auth-unavailable="naver" aria-disabled="true">네이버 준비 중</button>`;
-        gate.innerHTML = `
-          <section class="auth-card" role="dialog" aria-modal="true" aria-label="회원가입">
-            <h2>먼저 가입하고<br />해석을 시작합니다</h2>
-            <p>가입 시 고유 ID가 생성되고, 입력한 사주 해석은 관리자 기록에 저장됩니다.</p>
-            <div class="auth-provider-list">
-              <button class="auth-provider kakao" type="button" data-auth-provider="kakao">카카오로 계속하기</button>
-              ${naverProviderButton}
-              <button class="auth-provider google" type="button" data-auth-provider="google">구글로 계속하기</button>
-            </div>
-            <div class="auth-message" data-auth-message>${escapeHtml(message)}</div>
-            <button class="auth-cancel" type="button" data-auth-close>돌아가기</button>
-          </section>
-        `;
-        phone.append(gate);
+        authGateMessage = message;
+        sessionStorage.setItem(AUTH_PENDING_KEY, "1");
+        if (state.scene !== "login") {
+          go("login");
+          return;
+        }
+        renderLogin();
       }
 
       function setAuthMessage(message) {
@@ -3247,10 +3235,13 @@
       }
 
       async function beginAnalysisAfterAuth() {
-        const session = await currentAuthSession().catch((err) => {
+        let session = null;
+        try {
+          session = await currentAuthSession();
+        } catch (err) {
           showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
-          return null;
-        });
+          return;
+        }
         if (!session?.access_token) {
           showAuthGate();
           return;
@@ -3645,6 +3636,7 @@
         time: renderTime,
         name: renderName,
         concern: renderConcern,
+        login: renderLogin,
         loading: renderLoading,
         result: renderResult,
         purchase: renderPurchase,
@@ -3814,6 +3806,10 @@
         if (closeButton) {
           document.querySelector("[data-auth-gate]")?.remove();
           sessionStorage.removeItem(AUTH_PENDING_KEY);
+          authGateMessage = "";
+          if (state.scene === "login") {
+            go("concern");
+          }
         }
       });
 
@@ -4741,6 +4737,35 @@
           </section>
         `;
         document.querySelector("#concern")?.focus();
+      }
+
+      function renderLogin() {
+        if (!authConfigData && !authInitPromise) {
+          initAuth()
+            .then(() => {
+              if (state.scene === "login") renderLogin();
+            })
+            .catch((err) => {
+              authGateMessage = err.message || "회원가입 설정을 확인하지 못했습니다.";
+              if (state.scene === "login") renderLogin();
+            });
+        }
+        const naverProviderButton = authConfigData?.providers?.naver
+          ? `<button class="auth-provider naver" type="button" data-auth-provider="naver">네이버로 계속하기</button>`
+          : `<button class="auth-provider naver is-unavailable" type="button" data-auth-unavailable="naver" aria-disabled="true">네이버 준비 중</button>`;
+        stage.innerHTML = `
+          <section class="panel auth-card" role="dialog" aria-label="회원가입">
+            <h2>먼저 로그인하고<br />해석을 시작합니다</h2>
+            <p>로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 관리자 기록에 저장됩니다.</p>
+            <div class="auth-provider-list">
+              <button class="auth-provider kakao" type="button" data-auth-provider="kakao">카카오로 계속하기</button>
+              ${naverProviderButton}
+              <button class="auth-provider google" type="button" data-auth-provider="google">구글로 계속하기</button>
+            </div>
+            <div class="auth-message" data-auth-message>${escapeHtml(authGateMessage)}</div>
+            <button class="auth-cancel" type="button" data-auth-close>돌아가기</button>
+          </section>
+        `;
       }
 
       function renderLoading() {
