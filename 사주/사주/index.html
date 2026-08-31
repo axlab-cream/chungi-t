@@ -126,6 +126,39 @@
           linear-gradient(to right, rgba(0, 0, 0, 0.26), transparent 18% 82%, rgba(0, 0, 0, 0.26));
       }
 
+      .concern-video-bg,
+      .concern-video-shade {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 260ms ease;
+      }
+
+      .concern-video-bg {
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scale(1.035);
+        filter: saturate(0.94) brightness(0.68);
+        background: #000;
+      }
+
+      .concern-video-shade {
+        z-index: 1;
+        background:
+          linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.46) 24%,
+            rgba(0, 0, 0, 0.18) 48%,
+            rgba(0, 0, 0, 0.66) 76%,
+            rgba(0, 0, 0, 0.98) 100%
+          ),
+          linear-gradient(to right, rgba(0, 0, 0, 0.42), transparent 18% 82%, rgba(0, 0, 0, 0.42));
+      }
+
       .phone[data-scene="immersion"] .hero,
       .phone[data-scene="input"] .hero,
       .phone[data-scene="loading"] .hero,
@@ -136,6 +169,15 @@
 
       .phone[data-scene="result"] .hero {
         opacity: 0;
+      }
+
+      .phone[data-step="concern"] .hero {
+        opacity: 0;
+      }
+
+      .phone[data-step="concern"] .concern-video-bg,
+      .phone[data-step="concern"] .concern-video-shade {
+        opacity: 1;
       }
 
       .topbar {
@@ -631,6 +673,17 @@
         animation: rise 260ms ease both;
       }
 
+      .phone[data-step="concern"] .panel {
+        border-color: rgba(255, 227, 184, 0.22);
+        background:
+          linear-gradient(180deg, rgba(16, 10, 10, 0.32), rgba(8, 4, 4, 0.2)),
+          rgba(7, 4, 4, 0.14);
+        box-shadow:
+          0 18px 58px rgba(0, 0, 0, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(4px);
+      }
+
       @keyframes rise {
         from {
           opacity: 0;
@@ -722,6 +775,13 @@
         outline: none;
       }
 
+      .phone[data-step="concern"] .field input,
+      .phone[data-step="concern"] .field select {
+        border-color: rgba(255, 226, 175, 0.28);
+        background: rgba(15, 10, 10, 0.22);
+        box-shadow: inset 0 1px 10px rgba(0, 0, 0, 0.2);
+      }
+
       .field input:focus,
       .field select:focus {
         border-color: rgba(242, 191, 107, 0.78);
@@ -761,6 +821,11 @@
         border: 1px solid rgba(255, 226, 175, 0.16);
         background: rgba(255, 255, 255, 0.05);
         color: var(--muted);
+      }
+
+      .phone[data-step="concern"] .ghost {
+        border-color: rgba(255, 226, 175, 0.24);
+        background: rgba(18, 12, 12, 0.24);
       }
 
       .next-cta {
@@ -2837,8 +2902,12 @@
     </style>
   </head>
   <body>
-    <main class="phone" data-scene="landing" aria-label="운명의 문 랜딩 페이지">
+    <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
+      <video class="concern-video-bg" aria-hidden="true" autoplay muted loop playsinline preload="auto">
+        <source src="assets/chungi-concern-loop.mp4" type="video/mp4" />
+      </video>
+      <div class="concern-video-shade" aria-hidden="true"></div>
 
       <header class="topbar">
         <button class="icon-button" type="button" aria-label="뒤로가기" data-back-global>
@@ -3098,23 +3167,23 @@
 
       const landingSourceAssets = {
         heroCharacter: "assets/chungi-grand-oracle.webp",
-        worryBg: "assets/chungi-grand-report.webp",
-        palzaBg: "assets/chungi-grand-thread.webp",
-        assetOne: "assets/chungi-grand-oracle.webp",
-        previewTwo: "assets/chungi-grand-report.webp",
-        assetTwo: "assets/chungi-grand-thread.webp",
-        manseryeokBg: "assets/chungi-grand-relationship.webp",
-        characterA: "assets/chungi-grand-oracle.webp",
-        characterC: "assets/chungi-grand-thread.webp",
-        wealthBg: "assets/chungi-grand-report.webp",
-        datePreviewOne: "assets/chungi-grand-relationship.webp",
-        characterD: "assets/chungi-grand-relationship.webp",
-        romanceCloseup: "assets/chungi-grand-relationship.webp",
-        handBells: "assets/chungi-grand-thread.webp",
-        destinyCardBg: "assets/chungi-grand-relationship.webp",
-        characterOutro: "assets/chungi-grand-oracle.webp",
-        priceCharacter: "assets/chungi-grand-report.webp",
-        handReach: "assets/chungi-grand-oracle.webp",
+        worryBg: "assets/chungi-worry-bg.webp",
+        palzaBg: "assets/chungi-palza-bg.webp",
+        assetOne: "assets/chungi-asset-one.webp",
+        previewTwo: "assets/chungi-preview-two.webp",
+        assetTwo: "assets/chungi-asset-two.webp",
+        manseryeokBg: "assets/chungi-manseryeok-bg.webp",
+        characterA: "assets/chungi-character-a.webp",
+        characterC: "assets/chungi-wealth-transition.webp",
+        wealthBg: "assets/chungi-wealth-bg.webp",
+        datePreviewOne: "assets/chungi-date-preview-one.webp",
+        characterD: "assets/chungi-character-d.webp",
+        romanceCloseup: "assets/chungi-romance-closeup.webp",
+        handBells: "assets/chungi-hand-bells.webp",
+        destinyCardBg: "assets/chungi-destiny-card-bg.webp",
+        characterOutro: "assets/chungi-character-outro.webp",
+        priceCharacter: "assets/chungi-price-character.webp",
+        handReach: "assets/chungi-hand-reach.webp",
       };
 
       const sampleAssets = {
@@ -3140,12 +3209,12 @@
         priceCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/20_price_character.png",
         handReach: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/21_hand_reach.png",
         maskHand: "assets/chungi-mask-hand.webp",
-        sajuRadialBg: "assets/chungi-grand-thread.webp",
+        sajuRadialBg: "assets/chungi-asset-two.webp",
         comparisonBg: "assets/chungi-comparison-bg.webp",
-        destinyBg: "assets/chungi-grand-relationship.webp",
+        destinyBg: "assets/chungi-date-preview-three.webp",
         datePreviewThree: "assets/honggildong-saju-report-list.webp",
-        lastSajuBook: "assets/chungi-grand-report.webp",
-        finalSajuBg: "assets/chungi-grand-oracle.webp",
+        lastSajuBook: "assets/chungi-last-saju-book.webp",
+        finalSajuBg: "assets/chungi-source-hero.webp",
         daewoonCharacter: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/36_daewoon_character.png",
         dividerLine: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/divider_line.svg",
         speechBubbleOne: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_1.svg",
@@ -4229,6 +4298,7 @@
                 : scene === "result"
                   ? "result"
                   : "input";
+        phone.dataset.step = scene;
         soundButton.style.display = "none";
         steps[scene]();
         phone.scrollTop = 0;

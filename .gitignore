@@ -14,3 +14,4 @@ _check_env.txt
 scripts/check-env.ps1
 .vercel
 사주/assets/consultation-targets/
+.env*.local

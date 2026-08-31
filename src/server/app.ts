@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import '../env/load.js'
 import express from 'express'
 import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'

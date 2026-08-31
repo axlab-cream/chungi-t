@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import '../env/load.js'
 import { Pool } from 'pg'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
 import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
