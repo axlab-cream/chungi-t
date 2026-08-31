@@ -304,6 +304,10 @@ button {
   line-height: 1;
 }
 
+.poster.is-cmdg::after {
+  display: none;
+}
+
 .poster img {
   position: absolute;
   inset: 0;
@@ -317,9 +321,9 @@ button {
 }
 
 .poster.is-cmdg img {
-  opacity: 0.7;
-  filter: saturate(0.82) contrast(1.06) brightness(0.72);
-  object-position: center 42%;
+  opacity: 0.96;
+  filter: saturate(1.04) contrast(1.08) brightness(0.94);
+  object-position: center 38%;
 }
 
 .poster-shade {
@@ -332,8 +336,8 @@ button {
 
 .poster.is-cmdg .poster-shade {
   background:
-    linear-gradient(180deg, rgba(5, 5, 4, 0.02), rgba(5, 5, 4, 0.14) 30%, rgba(5, 5, 4, 0.88) 100%),
-    linear-gradient(90deg, rgba(5, 5, 4, 0.58), rgba(5, 5, 4, 0.08) 76%);
+    linear-gradient(180deg, rgba(5, 5, 4, 0), rgba(5, 5, 4, 0.03) 30%, rgba(5, 5, 4, 0.34) 58%, rgba(5, 5, 4, 0.9) 100%),
+    linear-gradient(90deg, rgba(5, 5, 4, 0.36), rgba(5, 5, 4, 0.02) 76%);
 }
 
 .badge,

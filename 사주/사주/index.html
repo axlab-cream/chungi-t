@@ -51,7 +51,7 @@
         --font-saju-heading: "Maru Buri", "Noto Serif KR", serif;
         --font-reading-body: "Noto Serif KR", "Apple SD Gothic Neo", serif;
         --font-meta: "Pretendard", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --topbar-height: 96px;
+        --topbar-height: 72px;
       }
 
       * {
@@ -195,27 +195,21 @@
       .topbar {
         position: relative;
         z-index: 3;
-        display: grid;
-        grid-template-columns: 44px minmax(0, 1fr) 44px;
+        display: flex;
         align-items: center;
+        justify-content: space-between;
+        gap: 14px;
         height: var(--topbar-height);
-        padding: 0 14px;
+        padding: 12px 20px;
         border-bottom: 1px solid rgba(242, 191, 107, 0.18);
-        background:
-          linear-gradient(to bottom, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.9)),
-          #000;
-        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.46);
+        background: rgba(8, 8, 7, 0.96);
+        box-shadow: none;
       }
 
-      .topbar > .icon-button:last-child {
-        justify-self: end;
-      }
-
-      .topbar > .icon-button {
-        position: relative;
-        z-index: 2;
-        grid-column: 1;
-        grid-row: 1;
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .icon-button {
@@ -223,9 +217,10 @@
         place-items: center;
         width: 34px;
         height: 34px;
+        border: 1px solid rgba(242, 191, 107, 0.22);
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.26);
-        color: var(--ink);
+        color: var(--gold);
         backdrop-filter: blur(8px);
       }
 
@@ -239,13 +234,10 @@
       }
 
       .topbar-brand-logo {
-        display: grid;
-        grid-column: 1 / -1;
-        grid-row: 1;
-        place-items: center;
+        display: inline-grid;
+        place-items: start;
         min-width: 0;
-        line-height: 0;
-        pointer-events: none;
+        text-decoration: none;
       }
 
       .topbar-logo {
@@ -257,11 +249,11 @@
 
       .umsh-service-logo {
         display: inline-grid;
-        gap: 2px;
-        place-items: center;
+        gap: 1px;
+        place-items: start;
         color: #f2bf6b;
         line-height: 1;
-        text-align: center;
+        text-align: left;
       }
 
       .umsh-service-logo span {
@@ -269,44 +261,35 @@
         background-clip: text;
         color: transparent;
         font-family: Georgia, "Times New Roman", serif;
-        font-size: 30px;
+        font-size: 24px;
         font-weight: 700;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.14em;
+        line-height: 1.1;
       }
 
       .umsh-service-logo b {
         color: #f2bf6b;
         font-family: var(--font-meta);
-        font-size: 10px;
-        font-weight: 950;
-        letter-spacing: 0.08em;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
       }
 
       .topbar-vault-button {
-        position: absolute;
-        top: 50%;
-        right: 12px;
-        z-index: 2;
-        transform: translateY(-50%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 58px;
+        display: grid;
+        width: 34px;
         min-height: 34px;
-        padding: 0 8px;
-        border: 1px solid rgba(242, 191, 107, 0.62);
-        border-radius: 999px;
-        background:
-          linear-gradient(180deg, rgba(255, 236, 191, 0.12), rgba(242, 191, 107, 0.04)),
-          rgba(0, 0, 0, 0.56);
-        color: #fff6df;
+        place-items: center;
+        padding: 0;
+        border: 1px solid rgba(242, 191, 107, 0.22);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.26);
+        color: var(--gold);
         font-family: var(--font-meta);
-        font-size: 12px;
-        font-weight: 800;
+        font-size: 18px;
+        font-weight: 900;
         letter-spacing: 0;
-        box-shadow:
-          inset 0 0 14px rgba(242, 191, 107, 0.1),
-          0 6px 18px rgba(0, 0, 0, 0.36);
+        box-shadow: none;
       }
 
       .settings-panel {
@@ -569,7 +552,10 @@
 
       .phone[data-scene="result"] .stage {
         position: absolute;
-        inset: 0;
+        top: var(--topbar-height);
+        right: 0;
+        bottom: 0;
+        left: 0;
         height: auto;
         display: block;
         justify-content: flex-start;
@@ -590,25 +576,16 @@
 
       .phone[data-scene="landing"] .stage {
         position: absolute;
-        inset: 0;
+        top: var(--topbar-height);
+        right: 0;
+        bottom: 0;
+        left: 0;
         height: auto;
         display: block;
         justify-content: flex-start;
         overflow: auto;
         padding: 0 0 max(24px, env(safe-area-inset-bottom));
         background: #000;
-      }
-
-      .phone[data-scene="landing"] .topbar,
-      .phone[data-scene="result"] .topbar {
-        display: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 72px;
-        padding-top: 12px;
-        background: linear-gradient(to bottom, rgba(5, 2, 2, 0.96), rgba(5, 2, 2, 0.64) 62%, transparent);
       }
 
       .phone[data-scene="result"] .brand {
@@ -3046,25 +3023,27 @@
       <div class="concern-video-shade" aria-hidden="true"></div>
 
       <header class="topbar">
-        <button class="icon-button" type="button" aria-label="뒤로가기" data-back-global>
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M15 18l-6-6 6-6"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
-        <div class="brand topbar-brand-logo umsh-service-logo" aria-label="UMSH 운명상회">
+        <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="UMSH 운명상회 홈">
           <span>UMSH</span>
           <b>운명상회</b>
+        </a>
+        <div class="topbar-actions">
+          <button class="icon-button" type="button" aria-label="뒤로가기" data-back-global>
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 18l-6-6 6-6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <button class="topbar-vault-button" type="button" aria-label="보관함 열기" data-open-settings>
+            <span aria-hidden="true">☰</span>
+          </button>
         </div>
-        <button class="topbar-vault-button" type="button" aria-label="보관함 열기" data-open-settings>
-          보관함
-        </button>
       </header>
 
       <button class="sound" type="button" id="soundButton">사운드를 켜려면 터치하세요</button>
@@ -3930,23 +3909,8 @@
         })[char]);
       }
 
-      function storyTopNavMarkup(showBack = false) {
-        return `
-          <nav class="story-local-nav" aria-label="천명대공(天命大公) 상단 메뉴">
-            ${showBack ? `
-              <button class="story-local-back" type="button" aria-label="뒤로가기" data-action="prev">
-                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
-            ` : ""}
-            <div class="story-local-title umsh-service-logo" aria-label="UMSH 운명상회">
-              <span>UMSH</span>
-              <b>운명상회</b>
-            </div>
-            <button class="story-vault-button" type="button" data-action="open-settings" aria-label="보관함">보관함</button>
-          </nav>
-        `;
+      function storyTopNavMarkup(_showBack = false) {
+        return "";
       }
 
       function formatBirthLabel(value) {

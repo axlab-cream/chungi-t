@@ -1,8 +1,14 @@
 (() => {
+  if (location.hash === '#cmdg') {
+    location.replace('/cmdg/');
+    return;
+  }
+
   const filterButtons = Array.from(document.querySelectorAll('[data-filter]'));
   const serviceCards = Array.from(document.querySelectorAll('.service-card'));
   const pendingCards = Array.from(document.querySelectorAll('[data-soon], .is-soon'));
   const dragRails = Array.from(document.querySelectorAll('.poster-rail'));
+  const liveLinks = Array.from(document.querySelectorAll('a.is-live, a.is-cmdg'));
   const toast = document.querySelector('#toast');
   const dragThreshold = 14;
   let toastTimer = 0;
@@ -78,7 +84,11 @@
 
       if (didDrag) {
         lastDragEndedAt = Date.now();
+        rail.dataset.dragged = '1';
         snapToNearestCard(rail);
+        window.setTimeout(() => {
+          delete rail.dataset.dragged;
+        }, 260);
       }
     }
 
@@ -120,6 +130,14 @@
 
   pendingCards.forEach((card) => {
     card.addEventListener('click', showPendingMessage);
+  });
+
+  liveLinks.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (link.closest('.poster-rail')?.dataset.dragged === '1') return;
+      event.preventDefault();
+      location.assign(link.href);
+    });
   });
 
   dragRails.forEach(bindMouseDrag);
