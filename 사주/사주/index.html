@@ -126,6 +126,39 @@
           linear-gradient(to right, rgba(0, 0, 0, 0.26), transparent 18% 82%, rgba(0, 0, 0, 0.26));
       }
 
+      .concern-video-bg,
+      .concern-video-shade {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 260ms ease;
+      }
+
+      .concern-video-bg {
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scale(1.035);
+        filter: saturate(0.94) brightness(0.68);
+        background: #000;
+      }
+
+      .concern-video-shade {
+        z-index: 1;
+        background:
+          linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.46) 24%,
+            rgba(0, 0, 0, 0.18) 48%,
+            rgba(0, 0, 0, 0.66) 76%,
+            rgba(0, 0, 0, 0.98) 100%
+          ),
+          linear-gradient(to right, rgba(0, 0, 0, 0.42), transparent 18% 82%, rgba(0, 0, 0, 0.42));
+      }
+
       .phone[data-scene="immersion"] .hero,
       .phone[data-scene="input"] .hero,
       .phone[data-scene="loading"] .hero,
@@ -136,6 +169,15 @@
 
       .phone[data-scene="result"] .hero {
         opacity: 0;
+      }
+
+      .phone[data-scene="input"] .hero {
+        opacity: 0;
+      }
+
+      .phone[data-scene="input"] .concern-video-bg,
+      .phone[data-scene="input"] .concern-video-shade {
+        opacity: 1;
       }
 
       .topbar {
@@ -673,6 +715,17 @@
         animation: rise 260ms ease both;
       }
 
+      .phone[data-scene="input"] .panel {
+        border-color: rgba(255, 227, 184, 0.22);
+        background:
+          linear-gradient(180deg, rgba(16, 10, 10, 0.24), rgba(8, 4, 4, 0.12)),
+          rgba(7, 4, 4, 0.08);
+        box-shadow:
+          0 18px 58px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(4px);
+      }
+
       @keyframes rise {
         from {
           opacity: 0;
@@ -741,6 +794,10 @@
         gap: 10px;
       }
 
+      .phone[data-step="name"] .field-grid {
+        margin-bottom: 16px;
+      }
+
       .field {
         display: grid;
         gap: 7px;
@@ -764,10 +821,33 @@
         outline: none;
       }
 
+      .phone[data-scene="input"] .field input,
+      .phone[data-scene="input"] .field select {
+        border-color: rgba(255, 226, 175, 0.28);
+        background: rgba(15, 10, 10, 0.18);
+        box-shadow: inset 0 1px 10px rgba(0, 0, 0, 0.2);
+      }
+
       .field input:focus,
       .field select:focus {
         border-color: rgba(242, 191, 107, 0.78);
         box-shadow: 0 0 0 3px rgba(242, 191, 107, 0.12);
+      }
+
+      .field input[aria-invalid="true"],
+      .field select[aria-invalid="true"] {
+        border-color: rgba(255, 78, 64, 0.86);
+        box-shadow:
+          0 0 0 3px rgba(255, 78, 64, 0.14),
+          inset 0 1px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .field-error {
+        min-height: 18px;
+        color: #ff5a4f;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.45;
       }
 
       .segmented {
@@ -2879,8 +2959,12 @@
     </style>
   </head>
   <body>
-    <main class="phone" data-scene="landing" aria-label="운명의 문 랜딩 페이지">
+    <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
+      <video class="concern-video-bg" aria-hidden="true" autoplay muted loop playsinline preload="auto">
+        <source src="assets/chungi-concern-loop.mp4" type="video/mp4" />
+      </video>
+      <div class="concern-video-shade" aria-hidden="true"></div>
 
       <header class="topbar">
         <button class="icon-button" type="button" aria-label="뒤로가기" data-back-global>
@@ -3081,6 +3165,25 @@
       function setAuthMessage(message) {
         const target = document.querySelector("[data-auth-message]");
         if (target) target.textContent = message;
+      }
+
+      function authReturnErrorMessage(params) {
+        const error = params.get("error") || "";
+        const description = params.get("error_description") || "";
+        const detail = description || error;
+        if (!detail) return "";
+        if (/invalid_scope|account_email/i.test(detail)) {
+          return "카카오 로그인 권한 요청이 맞지 않아 중단됐습니다. 최신 버전은 카카오 프로필 권한만 요청하도록 수정했으니 다시 시도해 주세요.";
+        }
+        return detail;
+      }
+
+      function clearAuthErrorParams() {
+        const url = new URL(location.href);
+        url.searchParams.delete("authReturn");
+        url.searchParams.delete("error");
+        url.searchParams.delete("error_description");
+        history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
       }
 
       async function signInWithProvider(providerName) {
@@ -3690,6 +3793,11 @@
         }
         if (action === "birth-next") {
           state.birth = document.querySelector("#birth")?.value.trim() || "";
+          const birthError = validateBirth(state.birth);
+          if (birthError) {
+            setFieldError("birth", birthError);
+            return;
+          }
           go("time");
         }
         if (action === "time-next") {
@@ -3698,6 +3806,11 @@
         }
         if (action === "name-next") {
           state.name = document.querySelector("#name")?.value.trim() || "";
+          const nameError = validateName(state.name);
+          if (nameError) {
+            setFieldError("name", nameError);
+            return;
+          }
           if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
           go("birth");
         }
@@ -3748,6 +3861,12 @@
         }
       });
 
+      stage.addEventListener("input", (event) => {
+        if (event.target.matches("#name, #birth")) {
+          clearFieldError(event.target.id);
+        }
+      });
+
       document.addEventListener("click", (event) => {
         const providerButton = event.target.closest("[data-auth-provider]");
         if (providerButton) {
@@ -3783,6 +3902,50 @@
         nudge.className = "fineprint nudge";
         nudge.textContent = message;
         stage.querySelector(".panel")?.append(nudge);
+      }
+
+      function validateName(value) {
+        const name = String(value || "").trim();
+        if (!name) return "이름을 입력해주세요.";
+        if (name.length < 2) return "이름은 한글 2자 이상 입력해주세요.";
+        if (name.length > 5) return "이름은 한글 5자까지만 입력해주세요.";
+        if (!/^[가-힣]+$/.test(name)) return "이름은 한글만 입력해주세요. 영어, 숫자, 특수기호는 사용할 수 없습니다.";
+        return "";
+      }
+
+      function validateBirth(value) {
+        const birth = String(value || "").trim();
+        if (!birth) return "생년월일을 입력해주세요.";
+        if (!/^\d{8}$/.test(birth)) return "생년월일은 숫자 8자리로 입력해주세요. 예: 19750926";
+
+        const year = Number(birth.slice(0, 4));
+        const month = Number(birth.slice(4, 6));
+        const day = Number(birth.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        const isValidDate =
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day;
+
+        if (!isValidDate) return "존재하지 않는 날짜입니다. 생년월일을 다시 확인해주세요.";
+        if (year < 1900 || year > new Date().getFullYear()) return "생년월일의 연도를 다시 확인해주세요.";
+        return "";
+      }
+
+      function setFieldError(fieldId, message) {
+        const input = document.querySelector(`#${fieldId}`);
+        const error = document.querySelector(`#${fieldId}-error`);
+        if (!input || !error) return showNudge(message);
+        input.setAttribute("aria-invalid", "true");
+        error.textContent = message;
+        input.focus();
+      }
+
+      function clearFieldError(fieldId) {
+        const input = document.querySelector(`#${fieldId}`);
+        const error = document.querySelector(`#${fieldId}-error`);
+        input?.removeAttribute("aria-invalid");
+        if (error) error.textContent = "";
       }
 
       function escapeHtml(value) {
@@ -4379,6 +4542,7 @@
                 : scene === "result"
                   ? "result"
                   : "input";
+        phone.dataset.step = scene;
         soundButton.style.display = "none";
         steps[scene]();
         phone.scrollTop = 0;
@@ -4483,7 +4647,8 @@
             <div class="field-grid">
               <div class="field">
                 <label for="birth">생년월일</label>
-                <input id="birth" type="text" inputmode="numeric" placeholder="2000.01.01" value="${state.birth}" />
+                <input id="birth" type="text" inputmode="numeric" placeholder="19750926" value="${state.birth}" aria-describedby="birth-error" />
+                <div class="field-error" id="birth-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="actions">
@@ -4525,7 +4690,8 @@
             <div class="field-grid">
               <div class="field">
                 <label for="name">이름</label>
-                <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" />
+                <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" aria-describedby="name-error" />
+                <div class="field-error" id="name-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="choices two">
@@ -4970,8 +5136,13 @@
       const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
       const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
-      const initialReportId = new URLSearchParams(location.search).get("reportId");
-      const isAuthReturn = new URLSearchParams(location.search).get("authReturn") === "1";
+      const initialSearchParams = new URLSearchParams(location.search);
+      const initialReportId = initialSearchParams.get("reportId");
+      const initialAuthError = authReturnErrorMessage(initialSearchParams);
+      const isAuthReturn = initialSearchParams.get("authReturn") === "1";
+      if (initialAuthError) {
+        sessionStorage.removeItem(AUTH_PENDING_KEY);
+      }
       if (isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
         restoreAuthFormState();
       }
@@ -4989,7 +5160,12 @@
         syncSceneUrl("landing");
         renderLanding();
       }
+      if (initialAuthError) {
+        showAuthGate(initialAuthError);
+        clearAuthErrorParams();
+      }
       initAuth().then(() => {
+        if (initialAuthError) return;
         if ((isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") && authSession?.access_token) {
           beginAnalysisAfterAuth();
         }
