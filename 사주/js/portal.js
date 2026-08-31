@@ -10,7 +10,7 @@
   const dragRails = Array.from(document.querySelectorAll('.poster-rail'));
   const liveLinks = Array.from(document.querySelectorAll('a.is-live, a.is-cmdg'));
   const toast = document.querySelector('#toast');
-  const dragThreshold = 14;
+  const dragThreshold = 24;
   let toastTimer = 0;
 
   function snapToNearestCard(rail) {
@@ -124,6 +124,12 @@
     }, 1600);
   }
 
+  function navigateToLink(link) {
+    const href = link.getAttribute('href');
+    if (!href) return;
+    location.assign(new URL(href, location.href).href);
+  }
+
   filterButtons.forEach((button) => {
     button.addEventListener('click', () => setFilter(button.dataset.filter || 'all'));
   });
@@ -133,10 +139,41 @@
   });
 
   liveLinks.forEach((link) => {
+    let clickStart = null;
+    let pointerNavigationAt = 0;
+
+    link.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      clickStart = {
+        x: event.clientX,
+        y: event.clientY,
+        pointerId: event.pointerId,
+      };
+    }, true);
+
+    link.addEventListener('pointerup', (event) => {
+      if (!clickStart || event.pointerType !== 'mouse' || event.pointerId !== clickStart.pointerId) return;
+      const movedX = Math.abs(event.clientX - clickStart.x);
+      const movedY = Math.abs(event.clientY - clickStart.y);
+      const rail = link.closest('.poster-rail');
+      const isClick = movedX <= dragThreshold && movedY <= dragThreshold;
+      clickStart = null;
+
+      if (!isClick || rail?.dataset.dragged === '1') return;
+      pointerNavigationAt = Date.now();
+      event.preventDefault();
+      event.stopPropagation();
+      navigateToLink(link);
+    }, true);
+
     link.addEventListener('click', (event) => {
+      if (Date.now() - pointerNavigationAt < 500) {
+        event.preventDefault();
+        return;
+      }
       if (link.closest('.poster-rail')?.dataset.dragged === '1') return;
       event.preventDefault();
-      location.assign(link.href);
+      navigateToLink(link);
     });
   });
 

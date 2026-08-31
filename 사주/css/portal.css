@@ -329,6 +329,7 @@ button {
 .poster-shade {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background:
     linear-gradient(180deg, rgba(5, 5, 4, 0.04), rgba(5, 5, 4, 0.36) 34%, rgba(5, 5, 4, 0.92) 100%),
     linear-gradient(90deg, rgba(5, 5, 4, 0.62), transparent 74%);
@@ -359,6 +360,15 @@ button {
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.1em;
+}
+
+.poster > .badge {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  max-width: calc(100% - 40px);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
 }
 
 .poster strong {
