@@ -51,6 +51,7 @@
         --font-saju-heading: "Maru Buri", "Noto Serif KR", serif;
         --font-reading-body: "Noto Serif KR", "Apple SD Gothic Neo", serif;
         --font-meta: "Pretendard", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --topbar-height: 96px;
       }
 
       * {
@@ -141,14 +142,26 @@
         position: relative;
         z-index: 3;
         display: grid;
-        grid-template-columns: 44px 1fr 44px;
+        grid-template-columns: 44px minmax(0, 1fr) 44px;
         align-items: center;
-        height: 58px;
-        padding: 0 18px;
+        height: var(--topbar-height);
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(242, 191, 107, 0.18);
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.9)),
+          #000;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.46);
       }
 
       .topbar > .icon-button:last-child {
         justify-self: end;
+      }
+
+      .topbar > .icon-button {
+        position: relative;
+        z-index: 2;
+        grid-column: 1;
+        grid-row: 1;
       }
 
       .icon-button {
@@ -171,12 +184,56 @@
         white-space: nowrap;
       }
 
+      .topbar-brand-logo {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-row: 1;
+        place-items: center;
+        min-width: 0;
+        line-height: 0;
+        pointer-events: none;
+      }
+
+      .topbar-logo {
+        display: block;
+        width: min(100%, 220px);
+        height: 78px;
+        object-fit: contain;
+      }
+
+      .topbar-vault-button {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        z-index: 2;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 58px;
+        min-height: 34px;
+        padding: 0 8px;
+        border: 1px solid rgba(242, 191, 107, 0.62);
+        border-radius: 999px;
+        background:
+          linear-gradient(180deg, rgba(255, 236, 191, 0.12), rgba(242, 191, 107, 0.04)),
+          rgba(0, 0, 0, 0.56);
+        color: #fff6df;
+        font-family: var(--font-meta);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0;
+        box-shadow:
+          inset 0 0 14px rgba(242, 191, 107, 0.1),
+          0 6px 18px rgba(0, 0, 0, 0.36);
+      }
+
       .settings-panel {
         position: absolute;
         inset: 0;
         z-index: 8;
         display: none;
-        padding: 70px 16px 18px;
+        padding: calc(var(--topbar-height) + 12px) 16px 18px;
         background: rgba(2, 1, 1, 0.62);
         backdrop-filter: blur(12px);
       }
@@ -313,7 +370,7 @@
       .stage {
         position: relative;
         z-index: 2;
-        height: calc(100% - 58px);
+        height: calc(100% - var(--topbar-height));
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -372,7 +429,7 @@
 
       .sound {
         position: absolute;
-        top: 70px;
+        top: calc(var(--topbar-height) + 12px);
         left: 50%;
         z-index: 3;
         display: inline-flex;
@@ -2601,7 +2658,9 @@
       .skip:hover,
       .skip:focus-visible,
       .icon-button:hover,
-      .icon-button:focus-visible {
+      .icon-button:focus-visible,
+      .topbar-vault-button:hover,
+      .topbar-vault-button:focus-visible {
         outline: 2px solid rgba(242, 191, 107, 0.75);
         outline-offset: 2px;
       }
@@ -2698,24 +2757,11 @@
             />
           </svg>
         </button>
-        <div class="brand">천명대공(天命大公)</div>
-        <button class="icon-button" type="button" aria-label="설정 열기" data-open-settings>
-          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M12 15.3a3.3 3.3 0 1 0 0-6.6 3.3 3.3 0 0 0 0 6.6Z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.08a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.87.34l-.05.05a2 2 0 0 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.08A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.05-.05a2 2 0 0 1 2.83-2.83l.05.05a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 0 1 4 0v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.05-.05a2 2 0 0 1 2.83 2.83l-.05.05a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 0 1 0 4h-.08A1.7 1.7 0 0 0 19.4 15Z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+        <div class="brand topbar-brand-logo" aria-label="천명대공">
+          <img class="topbar-logo" src="assets/chungi-chat-logo.webp" alt="천명대공" />
+        </div>
+        <button class="topbar-vault-button" type="button" aria-label="보관함 열기" data-open-settings>
+          보관함
         </button>
       </header>
 
