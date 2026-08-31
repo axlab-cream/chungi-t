@@ -80,6 +80,11 @@ body::-webkit-scrollbar,
   cursor: pointer;
 }
 
+.pdf-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
 .topbar-pdf-button {
   position: absolute;
   top: 12px;

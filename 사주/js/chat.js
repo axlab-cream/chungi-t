@@ -10,6 +10,11 @@ const reportState = {
   error: '',
   requestToken: 0,
 }
+const pdfState = {
+  preparing: false,
+  total: 0,
+  done: 0,
+}
 const HISTORY_KEY = 'cheongi_report_history_v1'
 const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
 let authClient = null
@@ -635,6 +640,86 @@ function pdfSpecRows() {
   ]
 }
 
+function isGeneratedReportSection(section) {
+  return section?.status === 'complete' && section?.generatedBy === 'openai'
+}
+
+function setPdfState(preparing, total = 0, done = 0) {
+  pdfState.preparing = preparing
+  pdfState.total = total
+  pdfState.done = done
+  updatePdfButtons()
+}
+
+function updatePdfButtons() {
+  document.querySelectorAll('#btn-pdf, [data-report-pdf]').forEach((button) => {
+    button.disabled = pdfState.preparing
+    button.setAttribute('aria-busy', pdfState.preparing ? 'true' : 'false')
+    if (button.id === 'btn-pdf') {
+      button.textContent = pdfState.preparing ? 'PDF...' : 'PDF'
+      return
+    }
+    button.textContent = pdfState.preparing && pdfState.total
+      ? `PDF 준비 중 ${pdfState.done}/${pdfState.total}`
+      : 'PDF 다운받기'
+  })
+}
+
+function pdfVisualHtml(section) {
+  const groupId = sectionGroupId(section?.id)
+  const display = sectionCopy(section)
+  return `
+    <figure class="pdf-visual">
+      <img src="${escapeHtml(sectionVisualSrc(section, groupId))}" alt="${escapeHtml(section?.imageAlt || display.title)}" />
+    </figure>
+  `
+}
+
+function pdfSignalTableHtml(section) {
+  const groupId = sectionGroupId(section?.id)
+  const display = sectionCopy(section)
+  const design = categoryDesign(groupId)
+  const rows = [
+    ['먼저 볼 것', display.title],
+    ['숨은 기준', display.subtitle],
+    ['읽는 방향', `${design.title}의 흐름 안에서 ${design.metrics.join(' · ')}을 함께 봅니다.`],
+  ]
+  return `
+    <table class="signal-table">
+      <tbody>
+        ${rows.map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${highlightPdfKeywords(value)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  `
+}
+
+function pdfMiniGraphHtml(section) {
+  const groupId = sectionGroupId(section?.id)
+  const seed = String(section?.id || groupId)
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  const labels = groupId === 'money'
+    ? ['준비', '누수', '기회', '회수']
+    : groupId === 'relationship'
+      ? ['끌림', '거리', '반복', '정리']
+      : groupId === 'future'
+        ? ['지금', '흔들림', '전환', '방향']
+        : ['겉', '속', '반응', '회복']
+  return `
+    <div class="pdf-graph" aria-label="흐름 그래프">
+      ${labels.map((label, index) => {
+        const height = 32 + ((seed + index * 17) % 54)
+        return `
+          <div>
+            <i style="height:${height}px"></i>
+            <span>${escapeHtml(label)}</span>
+          </div>
+        `
+      }).join('')}
+    </div>
+  `
+}
+
 function buildPrintableReportHtml() {
   const report = getReport()
   const sections = getReportSections()
@@ -742,6 +827,74 @@ function buildPrintableReportHtml() {
     .chapter-head .kicker { background: rgba(242, 191, 107, 0.16); color: #f2bf6b; }
     .chapter-head h2 { color: #fff8ef; }
     .chapter-head p { color: #ead6bf; }
+    .pdf-visual {
+      position: relative;
+      margin: 16px 0 0;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #090403;
+      border: 1px solid #e5c17d;
+      break-inside: avoid;
+    }
+    .pdf-visual::before,
+    .pdf-visual::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 28%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .pdf-visual::before { top: 0; background: linear-gradient(180deg, #090403, rgba(9, 4, 3, 0)); }
+    .pdf-visual::after { bottom: 0; background: linear-gradient(0deg, #090403, rgba(9, 4, 3, 0)); }
+    .pdf-visual img {
+      display: block;
+      width: 100%;
+      max-height: 235px;
+      object-fit: cover;
+    }
+    .signal-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      border: 1px solid #ead7bd;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff4e2;
+    }
+    .signal-table th,
+    .signal-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #ead7bd;
+      text-align: left;
+      vertical-align: top;
+      font-size: 12px;
+    }
+    .signal-table tr:last-child th,
+    .signal-table tr:last-child td { border-bottom: 0; }
+    .signal-table th { width: 96px; color: #a52c22; }
+    .pdf-graph {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: end;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #21110f, #4a1510);
+      color: #fff8ef;
+      break-inside: avoid;
+    }
+    .pdf-graph div { display: grid; justify-items: center; gap: 6px; }
+    .pdf-graph i {
+      width: 100%;
+      max-width: 42px;
+      display: block;
+      border-radius: 999px 999px 4px 4px;
+      background: linear-gradient(180deg, #f2bf6b, #c83327);
+    }
+    .pdf-graph span { color: #f5dfbd; font-size: 11px; font-weight: 900; }
     .reading { padding-top: 12px; color: #2a1d1a; font-size: 14px; }
     .pdf-key { color: #d2342a; font-weight: 900; }
     .footer {
@@ -810,6 +963,9 @@ function buildPrintableReportHtml() {
               <h2>${highlightPdfKeywords(display.title)}</h2>
               <p>${highlightPdfKeywords(display.subtitle)}</p>
             </div>
+            ${pdfVisualHtml(section)}
+            ${pdfSignalTableHtml(section)}
+            ${pdfMiniGraphHtml(section)}
             <div class="reading">
               ${markdownLikeHtml(section.interpretation)}
             </div>
@@ -823,7 +979,104 @@ function buildPrintableReportHtml() {
 </html>`
 }
 
-function openReportPdf() {
+function buildPdfStatusHtml(message) {
+  return `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF 준비 중</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #050201;
+      color: #fff8ef;
+      font-family: Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
+    }
+    main {
+      width: min(520px, calc(100vw - 32px));
+      padding: 28px;
+      border: 1px solid rgba(242, 191, 107, 0.34);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(78, 16, 12, 0.72), rgba(5, 2, 1, 0.92));
+      text-align: center;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+    }
+    img { width: 100%; max-width: 360px; display: block; margin: 0 auto 18px; border-radius: 14px; }
+    h1 { margin: 0; font-size: 23px; line-height: 1.35; letter-spacing: 0; }
+    p { margin: 12px 0 0; color: #ead6bf; font-size: 14px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/assets/chungi-nav-logo.webp" alt="천명대공" />
+    <h1>${escapeHtml(message)}</h1>
+    <p>모든 장의 풀이를 먼저 저장한 뒤 PDF 저장 화면을 열겠습니다. 이 창은 닫지 말아주세요.</p>
+  </main>
+</body>
+</html>`
+}
+
+async function ensureAllReportSectionsForPdf() {
+  if (!session) return
+  const pending = getReportSections().filter((section) => !isGeneratedReportSection(section))
+  if (!pending.length) return
+
+  setPdfState(true, pending.length, 0)
+  appendBubble('system', 'PDF용 전체 풀이를 준비하는 중입니다. 모든 장을 저장한 뒤 PDF 창을 열겠습니다.')
+
+  for (const section of pending) {
+    const res = await fetch('/api/report/section', {
+      method: 'POST',
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        birth: getBirthPayload(),
+        reportId: getReport()?.reportId,
+        sectionId: section.id,
+        context: getContextPayload(),
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error || 'PDF용 풀이 생성에 실패했습니다.')
+
+    if (json.report && session.analysis) {
+      session.analysis.report = json.report
+    }
+    if (json.section && session.analysis?.report?.sections) {
+      session.analysis.report.sections = session.analysis.report.sections.map((item) => (
+        item.id === json.section.id
+          ? { ...json.section, generatedBy: json.generatedBy, model: json.model, status: json.section.status || 'complete' }
+          : item
+      ))
+    }
+    saveAnalysis(session.analysis)
+    pdfState.done += 1
+    updatePdfButtons()
+  }
+  persistConsultation({ syncServer: true })
+}
+
+function printPreparedPdf(pdfWindow) {
+  let printed = false
+  const printReport = () => {
+    if (printed) return
+    printed = true
+    pdfWindow.focus()
+    pdfWindow.print()
+  }
+
+  pdfWindow.addEventListener('load', () => {
+    setTimeout(printReport, 400)
+  }, { once: true })
+  setTimeout(printReport, 1400)
+}
+
+async function openReportPdf() {
+  if (pdfState.preparing) return
   const report = getReport()
   if (!report) {
     appendBubble('system', 'PDF로 정리할 사주 리포트를 찾지 못했습니다.')
@@ -837,21 +1090,25 @@ function openReportPdf() {
   }
 
   pdfWindow.document.open()
-  pdfWindow.document.write(buildPrintableReportHtml())
+  pdfWindow.document.write(buildPdfStatusHtml('PDF 해석을 준비하고 있습니다.'))
   pdfWindow.document.close()
 
-  let printed = false
-  const printReport = () => {
-    if (printed) return
-    printed = true
-    pdfWindow.focus()
-    pdfWindow.print()
+  setPdfState(true)
+  try {
+    await ensureAllReportSectionsForPdf()
+    pdfWindow.document.open()
+    pdfWindow.document.write(buildPrintableReportHtml())
+    pdfWindow.document.close()
+    printPreparedPdf(pdfWindow)
+  } catch (err) {
+    const message = err.message || 'PDF 준비 중 오류가 났습니다.'
+    pdfWindow.document.open()
+    pdfWindow.document.write(buildPdfStatusHtml(message))
+    pdfWindow.document.close()
+    appendBubble('system', message)
+  } finally {
+    setPdfState(false)
   }
-
-  pdfWindow.addEventListener('load', () => {
-    setTimeout(printReport, 300)
-  }, { once: true })
-  setTimeout(printReport, 1200)
 }
 
 function getReport() {
