@@ -18,7 +18,7 @@
 - `prefers-reduced-motion` 환경에서는 애니메이션을 최소화한다.
 - 테스트 실행 시 로컬 `.env`의 Supabase 설정이 리포트 저장 테스트를 오염시키지 않도록 test mode에서는 dotenv 로드를 건너뛰게 했다.
 - 상회 메인 스크롤 하단에 정책 링크와 사업자 정보를 담은 `site-footer`를 추가했다.
-- 푸터 정책 링크는 기존 천명대공 정책 앵커(`/cmdg/#terms`, `/cmdg/#privacy`, `/cmdg/#refund`, `/cmdg/#support`)로 연결한다.
+- 푸터 정책 링크는 정식 도메인 정책 앵커(`https://umsh.kr/cmdg/#terms`, `https://umsh.kr/cmdg/#privacy`, `https://umsh.kr/cmdg/#refund`, `https://umsh.kr/cmdg/#support`)로 연결한다.
 
 ## 검증
 
