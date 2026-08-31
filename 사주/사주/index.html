@@ -752,6 +752,10 @@
         gap: 10px;
       }
 
+      .phone[data-step="name"] .field-grid {
+        margin-bottom: 16px;
+      }
+
       .field {
         display: grid;
         gap: 7px;
@@ -786,6 +790,22 @@
       .field select:focus {
         border-color: rgba(242, 191, 107, 0.78);
         box-shadow: 0 0 0 3px rgba(242, 191, 107, 0.12);
+      }
+
+      .field input[aria-invalid="true"],
+      .field select[aria-invalid="true"] {
+        border-color: rgba(255, 78, 64, 0.86);
+        box-shadow:
+          0 0 0 3px rgba(255, 78, 64, 0.14),
+          inset 0 1px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .field-error {
+        min-height: 18px;
+        color: #ff5a4f;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.45;
       }
 
       .segmented {
@@ -3610,6 +3630,11 @@
         }
         if (action === "birth-next") {
           state.birth = document.querySelector("#birth")?.value.trim() || "";
+          const birthError = validateBirth(state.birth);
+          if (birthError) {
+            setFieldError("birth", birthError);
+            return;
+          }
           go("time");
         }
         if (action === "time-next") {
@@ -3618,6 +3643,11 @@
         }
         if (action === "name-next") {
           state.name = document.querySelector("#name")?.value.trim() || "";
+          const nameError = validateName(state.name);
+          if (nameError) {
+            setFieldError("name", nameError);
+            return;
+          }
           if (!state.gender) return showNudge("성별을 먼저 선택해주세요.");
           go("birth");
         }
@@ -3668,6 +3698,12 @@
         }
       });
 
+      stage.addEventListener("input", (event) => {
+        if (event.target.matches("#name, #birth")) {
+          clearFieldError(event.target.id);
+        }
+      });
+
       document.addEventListener("click", (event) => {
         const providerButton = event.target.closest("[data-auth-provider]");
         if (providerButton) {
@@ -3703,6 +3739,50 @@
         nudge.className = "fineprint nudge";
         nudge.textContent = message;
         stage.querySelector(".panel")?.append(nudge);
+      }
+
+      function validateName(value) {
+        const name = String(value || "").trim();
+        if (!name) return "이름을 입력해주세요.";
+        if (name.length < 2) return "이름은 한글 2자 이상 입력해주세요.";
+        if (name.length > 5) return "이름은 한글 5자까지만 입력해주세요.";
+        if (!/^[가-힣]+$/.test(name)) return "이름은 한글만 입력해주세요. 영어, 숫자, 특수기호는 사용할 수 없습니다.";
+        return "";
+      }
+
+      function validateBirth(value) {
+        const birth = String(value || "").trim();
+        if (!birth) return "생년월일을 입력해주세요.";
+        if (!/^\d{8}$/.test(birth)) return "생년월일은 숫자 8자리로 입력해주세요. 예: 19750926";
+
+        const year = Number(birth.slice(0, 4));
+        const month = Number(birth.slice(4, 6));
+        const day = Number(birth.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        const isValidDate =
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day;
+
+        if (!isValidDate) return "존재하지 않는 날짜입니다. 생년월일을 다시 확인해주세요.";
+        if (year < 1900 || year > new Date().getFullYear()) return "생년월일의 연도를 다시 확인해주세요.";
+        return "";
+      }
+
+      function setFieldError(fieldId, message) {
+        const input = document.querySelector(`#${fieldId}`);
+        const error = document.querySelector(`#${fieldId}-error`);
+        if (!input || !error) return showNudge(message);
+        input.setAttribute("aria-invalid", "true");
+        error.textContent = message;
+        input.focus();
+      }
+
+      function clearFieldError(fieldId) {
+        const input = document.querySelector(`#${fieldId}`);
+        const error = document.querySelector(`#${fieldId}-error`);
+        input?.removeAttribute("aria-invalid");
+        if (error) error.textContent = "";
       }
 
       function escapeHtml(value) {
@@ -4403,7 +4483,8 @@
             <div class="field-grid">
               <div class="field">
                 <label for="birth">생년월일</label>
-                <input id="birth" type="text" inputmode="numeric" placeholder="2000.01.01" value="${state.birth}" />
+                <input id="birth" type="text" inputmode="numeric" placeholder="19750926" value="${state.birth}" aria-describedby="birth-error" />
+                <div class="field-error" id="birth-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="actions">
@@ -4445,7 +4526,8 @@
             <div class="field-grid">
               <div class="field">
                 <label for="name">이름</label>
-                <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" />
+                <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" aria-describedby="name-error" />
+                <div class="field-error" id="name-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="choices two">
