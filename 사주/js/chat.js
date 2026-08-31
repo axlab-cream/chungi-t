@@ -1278,7 +1278,7 @@ function renderReportHub() {
   if (reportState.viewMode === 'categories') body = renderCategoryDoors(groups)
   if (reportState.viewMode === 'category') body = renderCategoryToc(groups)
   if (reportState.viewMode === 'reader') body = renderReportReader(groups)
-  hub.innerHTML = `${renderBasicSpec()}${body}`
+  hub.innerHTML = `${reportState.viewMode === 'gate' ? renderBasicSpec() : ''}${body}`
 
   chatLog.prepend(hub)
 }
