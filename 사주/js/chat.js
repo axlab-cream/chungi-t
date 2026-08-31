@@ -1201,10 +1201,12 @@ function renderCategoryToc(groups) {
       <div class="hook-chapter-list">
         ${chapters.map((chapter) => `
           <button class="hook-chapter" type="button" data-report-section="${escapeHtml(chapter.items[0].id)}" data-report-mode="reader">
-            <span>${escapeHtml(chapter.no)}</span>
-            <strong>${highlightUiKeywords(chapter.title)}</strong>
-            <em>${highlightUiKeywords(chapter.subtitle)}</em>
-            <small>${chapter.items.map((section) => sectionNumber(section)).join(' · ')}장 연결</small>
+            <span class="hook-chapter-no">${escapeHtml(chapter.no)}</span>
+            <span class="hook-chapter-body">
+              <strong>${highlightUiKeywords(chapter.title)}</strong>
+              <em>${highlightUiKeywords(chapter.subtitle)}</em>
+              <small>${chapter.items.map((section) => sectionNumber(section)).join(' · ')}장 연결</small>
+            </span>
           </button>
         `).join('')}
       </div>
