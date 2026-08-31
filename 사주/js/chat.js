@@ -4,6 +4,8 @@ const chatMessage = document.getElementById('chat-message')
 const btnSend = document.getElementById('btn-send')
 const reportState = {
   activeSectionId: '',
+  activeGroupId: '',
+  viewMode: 'gate',
   loadingSectionId: '',
   error: '',
   requestToken: 0,
@@ -186,6 +188,128 @@ const SECTION_GROUPS = [
     ],
   },
 ]
+const CATEGORY_DESIGNS = {
+  self: {
+    gate: '第一門',
+    title: '나의 본질',
+    headline: '겉으로 보이는 말투보다 먼저 반응하는 마음을 봅니다.',
+    hook: '성향, 기질, 숨은 피로와 반복되는 선택을 한 줄기로 묶어 읽습니다.',
+    asset: '/assets/chungi-grand-oracle.webp',
+    metrics: ['성향', '기질', '반복점'],
+  },
+  relationship: {
+    gate: '第二門',
+    title: '관계·연애',
+    headline: '끌리는 사람과 오래 남는 사람은 같은 결이 아닙니다.',
+    hook: '인연의 실타래, 관계의 거리, 피해야 할 신호를 따로 가릅니다.',
+    asset: '/assets/chungi-grand-relationship.webp',
+    metrics: ['인연', '끌림', '거리'],
+  },
+  money: {
+    gate: '第三門',
+    title: '일·재물',
+    headline: '돈은 욕심보다 흐름을 먼저 타고 들어옵니다.',
+    hook: '일이 돈으로 바뀌는 길, 새는 구멍, 움직여야 할 때를 정리합니다.',
+    asset: '/assets/chungi-grand-report.webp',
+    metrics: ['일', '재물', '타이밍'],
+  },
+  future: {
+    gate: '第四門',
+    title: '미래 흐름',
+    headline: '큰 변화는 갑자기 오지 않고 작은 신호부터 흔듭니다.',
+    hook: '올해의 징조, 대운의 전환, 장소와 시기의 힘을 이어 봅니다.',
+    asset: '/assets/chungi-grand-thread.webp',
+    metrics: ['신호', '전환', '방향'],
+  },
+  action: {
+    gate: '第五門',
+    title: '지금 해법',
+    headline: '긴 풀이를 오늘의 선택으로 내려놓아야 의미가 생깁니다.',
+    hook: '지금 붙잡을 기준과 먼저 읽어야 할 순서를 짧고 날카롭게 잡습니다.',
+    asset: '/assets/chungi-mask-hand.webp',
+    metrics: ['해법', '순서', '선택'],
+  },
+  etc: {
+    gate: '外傳',
+    title: '그 밖의 흐름',
+    headline: '큰 문에 들어가지 않은 잔여 기운도 버리지 않고 읽습니다.',
+    hook: '놓치면 해석이 비는 세부 흐름을 별도 목차로 정리합니다.',
+    asset: '/assets/chungi-last-saju-book.webp',
+    metrics: ['보강', '잔여', '확인'],
+  },
+}
+const GROUP_ASSETS = {
+  self: [
+    '/assets/chungi-grand-oracle.webp',
+    '/assets/chungi-source-hero.webp',
+    '/assets/chungi-palza-bg.webp',
+    '/assets/chungi-asset-one.webp',
+    '/assets/chungi-character-a.webp',
+    '/assets/chungi-grand-report.webp',
+  ],
+  relationship: [
+    '/assets/chungi-grand-relationship.webp',
+    '/assets/chungi-romance-closeup.webp',
+    '/assets/chungi-hand-bells.webp',
+    '/assets/chungi-date-preview-three.webp',
+    '/assets/chungi-character-d.webp',
+  ],
+  money: [
+    '/assets/chungi-wealth-bg.webp',
+    '/assets/chungi-wealth-transition.webp',
+    '/assets/chungi-hand-reach.webp',
+    '/assets/chungi-grand-report.webp',
+    '/assets/chungi-comparison-bg.webp',
+  ],
+  future: [
+    '/assets/chungi-grand-thread.webp',
+    '/assets/chungi-manseryeok-bg.webp',
+    '/assets/chungi-asset-two.webp',
+    '/assets/chungi-last-saju-book.webp',
+    '/assets/chungi-preview-two.webp',
+  ],
+  action: [
+    '/assets/honggildong-saju-report-list.webp',
+    '/assets/chungi-mask-hand.webp',
+    '/assets/chungi-character-outro.webp',
+  ],
+  etc: ['/assets/hero-mystic.webp'],
+}
+const HOOK_CHAPTERS = {
+  self: [
+    { no: '01', title: '너라는 사람부터 먼저 봅니다', subtitle: '스스로 아는 얼굴과 실제 반응의 차이', ids: ['profile', 'target-context'] },
+    { no: '02', title: '밖에서 보이는 얼굴은 따로 있습니다', subtitle: '사회 속 모습과 혼자 남았을 때의 결', ids: ['month-pillar', 'hidden-personality'] },
+    { no: '03', title: '어릴 때 남은 흔적이 지금도 움직입니다', subtitle: '반복되는 시작점과 감정의 습관', ids: ['pillars-structure', 'year-pillar'] },
+    { no: '04', title: '가까워질수록 드러나는 진짜 성격', subtitle: '사랑과 속마음이 움직이는 자리', ids: ['day-pillar', 'relationship-orientation'] },
+    { no: '05', title: '버티는 힘과 무너지는 지점을 같이 봅니다', subtitle: '강점이 과해질 때 생기는 위험 신호', ids: ['hour-pillar', 'day-master-strength', 'dominant-element'] },
+    { no: '06', title: '비어 있는 자리가 운을 흔듭니다', subtitle: '채워야 할 균형과 회복의 방향', ids: ['balance', 'weak-element'] },
+    { no: '07', title: '살리는 선택과 망치는 선택은 다릅니다', subtitle: '풀릴 때와 꼬일 때의 결정적 차이', ids: ['useful-god-eokbu', 'useful-god-johu'] },
+    { no: '08', title: '돈·사람·책임 앞에서 본성이 드러납니다', subtitle: '숨겨진 반응과 반복되는 판단 방식', ids: ['ten-gods-overview', 'ten-gods-position'] },
+    { no: '09', title: '같은 곳에서 무너지는 이유가 있습니다', subtitle: '좋은 말보다 먼저 봐야 할 함정', ids: ['trap'] },
+    { no: '10', title: '고민은 바뀌어도 패턴은 남습니다', subtitle: '요즘 일이 반복되는 숨은 구조', ids: ['concern-loop'] },
+  ],
+  money: [
+    { no: '11', title: '능력이 돈이 되는 조건을 봅니다', subtitle: '열심히 하는 것과 돈으로 바뀌는 것은 다릅니다', ids: ['career-money', 'wealth-flow'] },
+    { no: '12', title: '일상이 꼬일 때 먼저 오는 신호', subtitle: '직장, 쉬는 시간, 생활 리듬의 변화', ids: ['work-context'] },
+    { no: '13', title: '버틸지 옮길지 갈리는 기준', subtitle: '직장·사업·이직의 판단선을 나눕니다', ids: ['career-transition'] },
+    { no: '14', title: '돈이 남지 않는 숨은 구멍', subtitle: '작아 보이는 지출이 커지는 흐름', ids: ['money-leak'] },
+    { no: '15', title: '잡아야 할 돈과 피해야 할 돈', subtitle: '재물 기회가 붙는 방식과 때', ids: ['wealth-timing'] },
+  ],
+  relationship: [
+    { no: '16', title: '운명처럼 보이는 끌림을 가릅니다', subtitle: '지금 관계와 반복되는 인연 패턴', ids: ['relationship-status', 'love-loop'] },
+    { no: '17', title: '오래 남는 사람의 결은 따로 있습니다', subtitle: '끌림보다 오래 가는 상대의 분위기', ids: ['destiny-partner'] },
+    { no: '18', title: '멀어져야 할 관계 신호를 봅니다', subtitle: '가까이 둘 사람과 흐리게 만드는 사람', ids: ['avoid-relationship', 'love-timing'] },
+  ],
+  future: [
+    { no: '19', title: '올해 먼저 움직이는 신호', subtitle: '큰 변화 전에 드러나는 징조', ids: ['future-flow', 'sewoon-detail'] },
+    { no: '20', title: '인생 판이 바뀌기 전 흔들리는 곳', subtitle: '대운, 전환점, 살아나는 시기와 장소', ids: ['daewoon-detail', 'turning-years', 'timing-place'] },
+  ],
+  action: [
+    { no: '21', title: '오늘부터 붙잡을 기준', subtitle: '지금 바로 바꿔야 할 작은 선택', ids: ['action-guide'] },
+    { no: '22', title: '긴 풀이를 읽는 순서', subtitle: '어디부터 보면 내 이야기가 풀리는지', ids: ['long-report-depth'] },
+  ],
+}
+const UI_KEYWORDS = [...PDF_KEYWORDS, '성향', '기질', '실타래', '연애', '목차', '문', '대운', '전환점', '직장', '사업']
 
 function parseJson(value, fallback) {
   try {
@@ -768,6 +892,115 @@ function groupedSections(sections) {
   return groups
 }
 
+function categoryDesign(groupId) {
+  return CATEGORY_DESIGNS[groupId] || CATEGORY_DESIGNS.etc
+}
+
+function highlightUiKeywords(value) {
+  const escaped = escapeHtml(value)
+  const pattern = new RegExp(`(${UI_KEYWORDS.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g')
+  return escaped.replace(pattern, '<span class="ui-key">$1</span>')
+}
+
+function sectionNumber(section) {
+  const sections = getReportSections()
+  const index = sections.findIndex((item) => item.id === section?.id)
+  return String(index >= 0 ? index + 2 : section?.order || 0).padStart(2, '0')
+}
+
+function sectionGroupId(sectionId) {
+  return groupedSections(getReportSections()).find((group) => group.items.some((item) => item.id === sectionId))?.id || 'etc'
+}
+
+function groupSections(groupId) {
+  return groupedSections(getReportSections()).find((group) => group.id === groupId)?.items || []
+}
+
+function sectionVisualSrc(section, groupId) {
+  const items = groupSections(groupId)
+  const index = Math.max(0, items.findIndex((item) => item.id === section?.id))
+  const assets = GROUP_ASSETS[groupId] || GROUP_ASSETS.etc
+  if (section?.imageSrc && !section.imageSrc.includes('hero-mystic')) return section.imageSrc
+  return assets[index % assets.length]
+}
+
+function chaptersForGroup(group) {
+  const byId = new Map(group.items.map((section) => [section.id, section]))
+  const configured = HOOK_CHAPTERS[group.id] || []
+  const chapters = configured
+    .map((chapter) => ({
+      ...chapter,
+      items: chapter.ids.map((id) => byId.get(id)).filter(Boolean),
+    }))
+    .filter((chapter) => chapter.items.length)
+
+  const used = new Set(chapters.flatMap((chapter) => chapter.items.map((section) => section.id)))
+  const rest = group.items.filter((section) => !used.has(section.id))
+  rest.forEach((section) => {
+    const display = sectionCopy(section)
+    chapters.push({
+      no: sectionNumber(section),
+      title: display.title,
+      subtitle: display.subtitle,
+      ids: [section.id],
+      items: [section],
+    })
+  })
+  return chapters
+}
+
+function chapterForSection(groupId, sectionId) {
+  const group = groupedSections(getReportSections()).find((item) => item.id === groupId)
+  if (!group) return null
+  return chaptersForGroup(group).find((chapter) => chapter.items.some((section) => section.id === sectionId)) || null
+}
+
+function renderMiniGraph(section, groupId) {
+  const seed = String(section?.id || groupId)
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  const labels = groupId === 'money'
+    ? ['준비', '누수', '기회', '회수']
+    : groupId === 'relationship'
+      ? ['끌림', '거리', '반복', '정리']
+      : groupId === 'future'
+        ? ['지금', '흔들림', '전환', '방향']
+        : ['겉', '속', '반응', '회복']
+  return `
+    <div class="fate-graph" aria-label="흐름 그래프">
+      ${labels.map((label, index) => {
+        const height = 34 + ((seed + index * 17) % 46)
+        return `
+          <div>
+            <i style="height:${height}px"></i>
+            <span>${escapeHtml(label)}</span>
+          </div>
+        `
+      }).join('')}
+    </div>
+  `
+}
+
+function renderSignalTable(section, groupId) {
+  const display = sectionCopy(section)
+  const design = categoryDesign(groupId)
+  const rows = [
+    ['먼저 볼 것', display.title],
+    ['숨은 기준', display.subtitle],
+    ['읽는 방향', `${design.title}의 흐름 안에서 ${design.metrics.join(' · ')}을 함께 봅니다.`],
+  ]
+  return `
+    <div class="oracle-table" role="table" aria-label="해석 기준표">
+      ${rows.map(([label, value]) => `
+        <div role="row">
+          <span role="cell">${escapeHtml(label)}</span>
+          <strong role="cell">${highlightUiKeywords(value)}</strong>
+        </div>
+      `).join('')}
+    </div>
+  `
+}
+
 function getBirthPayload() {
   const birth = session.birth || {}
   return {
@@ -884,66 +1117,172 @@ function renderSelectedSection() {
   `
 }
 
+function renderReportGate(groups, report) {
+  const birth = session.birth || {}
+  const name = birth.name || birth.target || '당신'
+  return `
+    <section class="report-gate-panel">
+      <div class="report-gate-hero">
+        <span>천명대공 해석문</span>
+        <h2>${highlightUiKeywords(`${name}님의 사주를 다섯 개의 문으로 나눠 봅니다`)}</h2>
+        <p>목록을 길게 펼치기보다, 먼저 큰 흐름을 고르고 그 안에서 중간 목차를 열어 보세요.</p>
+      </div>
+      <button class="report-gate-button" type="button" data-report-view="categories">
+        <strong>대분류 목차로 들어가기</strong>
+        <span>나 · 관계·연애 · 일·재물 · 미래 흐름 · 지금 해법</span>
+      </button>
+      <div class="report-gate-strip" aria-hidden="true">
+        ${groups.map((group) => {
+          const design = categoryDesign(group.id)
+          return `<span>${escapeHtml(design.gate)} ${escapeHtml(group.title)}</span>`
+        }).join('')}
+      </div>
+      <div class="report-panel-actions">
+        <button class="pdf-button" type="button" data-report-pdf>PDF 다운받기</button>
+      </div>
+    </section>
+  `
+}
+
+function renderCategoryDoors(groups) {
+  return `
+    <section class="report-category-panel">
+      <div class="report-panel-head">
+        <span>중간 목차</span>
+        <h2>${highlightUiKeywords('보고 싶은 운명의 문을 먼저 고르세요')}</h2>
+        <p>각 문은 단순한 목록이 아니라, 해당 대분류의 핵심 훅과 해석 순서를 묶은 진입 화면입니다.</p>
+      </div>
+      <div class="category-door-grid">
+        ${groups.map((group) => {
+          const design = categoryDesign(group.id)
+          const chapters = chaptersForGroup(group)
+          return `
+            <button class="category-door" type="button" data-report-group-open="${escapeHtml(group.id)}">
+              <img src="${escapeHtml(design.asset)}" alt="" />
+              <span>${escapeHtml(design.gate)}</span>
+              <strong>${escapeHtml(group.title)}</strong>
+              <em>${highlightUiKeywords(design.headline)}</em>
+              <small>${escapeHtml(chapters.length)}개의 후킹 목차</small>
+            </button>
+          `
+        }).join('')}
+      </div>
+      <button class="report-backline" type="button" data-report-view="gate">처음 화면으로</button>
+    </section>
+  `
+}
+
+function renderCategoryToc(groups) {
+  const group = groups.find((item) => item.id === reportState.activeGroupId) || groups[0]
+  if (!group) return renderCategoryDoors(groups)
+  const design = categoryDesign(group.id)
+  const chapters = chaptersForGroup(group)
+  return `
+    <section class="category-toc-panel" data-active-category="${escapeHtml(group.id)}">
+      <div class="category-toc-cover">
+        <img src="${escapeHtml(design.asset)}" alt="" />
+        <div>
+          <span>${escapeHtml(design.gate)}</span>
+          <h2>${escapeHtml(design.title)}</h2>
+          <p>${highlightUiKeywords(design.hook)}</p>
+        </div>
+      </div>
+      <div class="category-tabs" role="list">
+        ${groups.map((item) => `
+          <button
+            type="button"
+            class="${item.id === group.id ? 'is-active' : ''}"
+            data-report-group-open="${escapeHtml(item.id)}"
+            role="listitem"
+          >${escapeHtml(item.title)}</button>
+        `).join('')}
+      </div>
+      <div class="hook-chapter-list">
+        ${chapters.map((chapter) => `
+          <button class="hook-chapter" type="button" data-report-section="${escapeHtml(chapter.items[0].id)}" data-report-mode="reader">
+            <span>${escapeHtml(chapter.no)}</span>
+            <strong>${highlightUiKeywords(chapter.title)}</strong>
+            <em>${highlightUiKeywords(chapter.subtitle)}</em>
+            <small>${chapter.items.map((section) => sectionNumber(section)).join(' · ')}장 연결</small>
+          </button>
+        `).join('')}
+      </div>
+      <button class="report-backline" type="button" data-report-view="categories">대분류로 돌아가기</button>
+    </section>
+  `
+}
+
+function renderReportReader(groups) {
+  const groupId = reportState.activeGroupId || sectionGroupId(reportState.activeSectionId)
+  const group = groups.find((item) => item.id === groupId) || groups[0]
+  if (!group) return renderCategoryDoors(groups)
+
+  const items = group.items
+  const activeIndex = Math.max(0, items.findIndex((section) => section.id === reportState.activeSectionId))
+  const section = items[activeIndex] || items[0]
+  const display = sectionCopy(section)
+  const design = categoryDesign(group.id)
+  const chapter = chapterForSection(group.id, section.id)
+  const warning = section.generatedBy === 'template'
+    ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 깊은 해석이 열리면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
+    : ''
+
+  return `
+    <section class="reader-panel" data-reader-group="${escapeHtml(group.id)}">
+      <div class="reader-top">
+        <button type="button" data-report-group-open="${escapeHtml(group.id)}">목차</button>
+        <div>
+          <span>${escapeHtml(design.gate)} · ${escapeHtml(group.title)}</span>
+          <strong>${escapeHtml(chapter?.title || display.title)}</strong>
+        </div>
+        <span>${activeIndex + 1}/${items.length}</span>
+      </div>
+      <article class="reader-card">
+        <div class="reader-visual">
+          <img src="${escapeHtml(sectionVisualSrc(section, group.id))}" alt="${escapeHtml(section.imageAlt || display.title)}" />
+        </div>
+        <div class="reader-copy">
+          <span>${sectionNumber(section)} · 천명대공 풀이</span>
+          <h3>${highlightUiKeywords(display.title)}</h3>
+          <p>${highlightUiKeywords(display.subtitle)}</p>
+        </div>
+        ${warning}
+        ${renderSignalTable(section, group.id)}
+        ${renderMiniGraph(section, group.id)}
+        <div class="report-reading">
+          ${formatReadableHtml(section.interpretation)}
+        </div>
+      </article>
+      <div class="reader-controls">
+        <button type="button" data-report-reader-prev ${activeIndex === 0 ? 'disabled' : ''}>이전</button>
+        <button type="button" data-report-reader-next ${activeIndex === items.length - 1 ? 'disabled' : ''}>다음</button>
+      </div>
+    </section>
+  `
+}
+
 function renderReportHub() {
   const existing = document.getElementById('report-hub')
   if (existing) existing.remove()
 
   const sections = getReportSections()
   const report = getReport()
+  const groups = groupedSections(sections)
   const hub = document.createElement('section')
   hub.id = 'report-hub'
   hub.className = 'report-hub'
-  hub.innerHTML = `
-    ${renderBasicSpec()}
-    <section class="report-toc-panel">
-      <div class="report-panel-head">
-        <span>보고 싶은 운을 먼저 고르세요</span>
-        <h2>${escapeHtml(report?.title || '천명대공(天命大公) 상세 풀이')}</h2>
-        <p>재물운은 일·재물, 연애운은 관계·연애처럼 큰 문으로 먼저 나눴습니다.</p>
-      </div>
-      <div class="report-panel-actions">
-        <button class="pdf-button" type="button" data-report-pdf>PDF 다운받기</button>
-      </div>
-      <div class="report-toc-grid" role="list">
-        ${groupedSections(sections).map((group) => `
-          <section class="report-toc-group" data-report-group="${escapeHtml(group.id)}">
-            <div class="report-group-head">
-              <strong>${escapeHtml(group.title)}</strong>
-              <span>${escapeHtml(group.subtitle)}</span>
-            </div>
-            <div class="report-group-list">
-              ${group.items.map((section) => {
-                const display = sectionCopy(section)
-                const index = sections.findIndex((item) => item.id === section.id)
-                return `
-                  <button
-                    class="report-toc-item ${reportState.activeSectionId === section.id ? 'is-active' : ''}"
-                    type="button"
-                    data-report-section="${escapeHtml(section.id)}"
-                    role="listitem"
-                  >
-                    <span>${String(index + 2).padStart(2, '0')}</span>
-                    <strong>${escapeHtml(display.title)}</strong>
-                    <em>${escapeHtml(display.subtitle)}</em>
-                  </button>
-                `
-              }).join('')}
-            </div>
-          </section>
-        `).join('')}
-      </div>
-      <div class="report-selected" data-report-selected>
-        ${renderSelectedSection()}
-      </div>
-    </section>
-  `
+  let body = renderReportGate(groups, report)
+  if (reportState.viewMode === 'categories') body = renderCategoryDoors(groups)
+  if (reportState.viewMode === 'category') body = renderCategoryToc(groups)
+  if (reportState.viewMode === 'reader') body = renderReportReader(groups)
+  hub.innerHTML = `${renderBasicSpec()}${body}`
 
   chatLog.prepend(hub)
 }
 
 function scrollActiveReportIntoView() {
   requestAnimationFrame(() => {
-    const target = document.querySelector('.report-section-card, .report-section-loading')
+    const target = document.querySelector('.reader-card, .report-section-card, .report-section-loading, .category-toc-panel')
     target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }
@@ -955,6 +1294,7 @@ async function loadReportSection(sectionId) {
   if (!cached) return
 
   reportState.activeSectionId = sectionId
+  reportState.activeGroupId = sectionGroupId(sectionId)
   reportState.error = ''
 
   if (cached.status === 'complete' && cached.generatedBy === 'openai') {
@@ -1051,8 +1391,41 @@ chatLog.addEventListener('click', (event) => {
     return
   }
 
+  const viewButton = event.target.closest('[data-report-view]')
+  if (viewButton) {
+    reportState.viewMode = viewButton.dataset.reportView
+    renderReportHub()
+    scrollActiveReportIntoView()
+    return
+  }
+
+  const groupButton = event.target.closest('[data-report-group-open]')
+  if (groupButton) {
+    reportState.activeGroupId = groupButton.dataset.reportGroupOpen
+    reportState.viewMode = 'category'
+    renderReportHub()
+    scrollActiveReportIntoView()
+    return
+  }
+
+  const prevButton = event.target.closest('[data-report-reader-prev]')
+  const nextButton = event.target.closest('[data-report-reader-next]')
+  if (prevButton || nextButton) {
+    const groupId = reportState.activeGroupId || sectionGroupId(reportState.activeSectionId)
+    const items = groupSections(groupId)
+    const currentIndex = items.findIndex((item) => item.id === reportState.activeSectionId)
+    const nextIndex = currentIndex + (nextButton ? 1 : -1)
+    const nextSection = items[nextIndex]
+    if (nextSection) {
+      reportState.viewMode = 'reader'
+      loadReportSection(nextSection.id)
+    }
+    return
+  }
+
   const button = event.target.closest('[data-report-section]')
   if (!button) return
+  reportState.viewMode = button.dataset.reportMode || 'reader'
   loadReportSection(button.dataset.reportSection)
 })
 
