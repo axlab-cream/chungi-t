@@ -52,7 +52,7 @@
       openLogin();
       return;
     }
-    authClient = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, detectSessionInUrl: true } });
+    authClient = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
     const result = await authClient.auth.getSession();
     session = result.data.session;
     if (!session) openLogin();

@@ -12,7 +12,7 @@
       global.location.replace(window.UMSHCommonAuth?.commonLoginUrl('leave', returnTo) || `/signup?entry=leave&returnTo=${encodeURIComponent(returnTo)}#login`);
       return;
     }
-    const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, detectSessionInUrl: true } });
+    const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
     const session = (await client.auth.getSession()).data.session;
     if (!session) { global.location.replace(window.UMSHCommonAuth.commonLoginUrl('leave', `${global.location.pathname}${global.location.search}`)); return; }
     form.addEventListener('submit', async (event) => {

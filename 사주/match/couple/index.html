@@ -32,6 +32,7 @@
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <link rel="stylesheet" href="/css/umsh-loading.css" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
     <style>
       :root {
         color-scheme: dark;
@@ -363,7 +364,7 @@
     </style>
   </head>
   <body>
-    <main class="stage">
+    <main class="stage" data-umsh-chrome data-service="커플궁합" data-price="19,900원">
       <header class="appbar">
         <button class="back" type="button" data-back aria-label="뒤로">‹</button>
         <div class="brand">
@@ -501,6 +502,8 @@
       </div>
     </main>
 
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-loading.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
@@ -528,7 +531,7 @@
       }
       function setLoading(on, copy) {
         if (on) {
-          window.UMSHLoading.show(copy || { title: '두 사람의 궁합 흐름을 정리하고 있습니다', subtitle: '명리궁합, 오행, 일지 RAG를 맞춰 보는 중입니다.' });
+          window.UMSHLoading.show(copy || { title: '두 사람의 궁합 흐름을 정리하고 있습니다', subtitle: '두 사람의 결을 맞춰 보는 중입니다.' });
         } else {
           window.UMSHLoading.hide();
         }
@@ -571,16 +574,23 @@
 
       async function initAuth() {
         state.authConfig = await fetch('/api/auth/config').then((res) => res.json());
-        if (!state.authConfig.enabled || !window.supabase) {
+        if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) {
           openCommonLogin();
           return;
         }
-        state.supabase = window.supabase.createClient(state.authConfig.url, state.authConfig.publishableKey);
+        state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey);
         const { data } = await state.supabase.auth.getSession();
-        state.session = data.session;
+        state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase);
         state.supabase.auth.onAuthStateChange((_event, session) => {
-          state.session = session;
-          routeAfterAuth();
+          window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase)
+            .then((nextSession) => {
+              state.session = nextSession;
+              routeAfterAuth();
+            })
+            .catch(() => {
+              state.session = session || null;
+              routeAfterAuth();
+            });
         });
         routeAfterAuth();
       }
@@ -594,7 +604,7 @@
         try {
           const payload = await api('/api/user/profile');
           state.profile = payload.profile;
-          if (payload.complete) {
+          if (payload.complete || window.UMSHAuthSession?.isSharedProfileComplete(payload.profile)) {
             $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주 프로필과 상대 사주로 커플궁합을 봅니다.`;
             showScreen('form');
             resumePaidRequest();

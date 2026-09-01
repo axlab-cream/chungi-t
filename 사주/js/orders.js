@@ -16,7 +16,7 @@
       global.location.replace(window.UMSHCommonAuth?.commonLoginUrl('orders', returnTo) || `/signup?entry=orders&returnTo=${encodeURIComponent(returnTo)}#login`);
       return;
     }
-    const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, detectSessionInUrl: true } });
+    const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
     const session = (await client.auth.getSession()).data.session;
     if (!session) { global.location.replace(window.UMSHCommonAuth.commonLoginUrl('orders', `${global.location.pathname}${global.location.search}`)); return; }
     const response = await fetch('/api/user/orders', { headers: { Authorization: `Bearer ${session.access_token}` } });

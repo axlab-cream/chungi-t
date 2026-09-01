@@ -24,6 +24,7 @@
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <link rel="stylesheet" href="/css/umsh-loading.css" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
     <style>
       :root { color-scheme: dark; --bg:#050403; --panel:rgba(20,14,12,.82); --line:rgba(222,188,113,.32); --gold:#e8c76f; --gold-soft:#f2dc9a; --text:#fff7df; --muted:rgba(255,247,223,.7); --danger:#ef4444; --red:#a8261e; }
       * { box-sizing:border-box; }
@@ -50,7 +51,7 @@
     </style>
   </head>
   <body>
-    <main class="stage">
+    <main class="stage" data-umsh-chrome data-service="재회운" data-price="12,900원">
       <header class="appbar"><button class="back" type="button" data-back aria-label="뒤로">‹</button><div class="brand"><strong>운명상회</strong><span>재회운</span></div><span class="small">12,900원</span></header>
       <div class="scroll">
         <section class="hero"><span class="eyebrow">LOVE · 재회운</span><h1>그 사람,<br />다시 돌아올까?</h1><p>세운과 궁합과 이별 뒤 관계 흐름을 겹쳐서, 그리움과 재회 신호를 구분해 봅니다.</p></section>
@@ -70,6 +71,8 @@
         <section class="report-shell hidden" data-screen="report"><div class="report-head"><span class="eyebrow">LOVE · AGAIN REPORT</span><h2 data-report-title>재회운 해석문</h2><p data-report-subtitle></p></div><div class="toc-grid" data-category-list></div><div class="chapter-list" data-chapter-list></div><article class="panel reading" data-reading></article></section>
       </div>
     </main>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-loading.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
@@ -88,8 +91,8 @@
       function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[char]); }
       function openCommonLogin() { const returnTo = window.UMSHCommonAuth?.currentPageReturnTo() || `${location.pathname}${location.search}${location.hash}`; const url = window.UMSHCommonAuth?.commonLoginUrl('love-again', returnTo) || `/signup?entry=love-again&returnTo=${encodeURIComponent(returnTo)}#login`; location.replace(url); }
       async function api(path, options = {}) { const response = await fetch(path, { ...options, headers:{ 'Content-Type':'application/json', ...authHeaders(), ...(options.headers || {}) } }); const payload = await response.json().catch(() => ({})); if (!response.ok) { const error = new Error(payload.error || '요청을 처리하지 못했습니다.'); error.code = payload.code; error.paymentUrl = payload.paymentUrl; throw error; } return payload; }
-      async function initAuth() { state.authConfig = await fetch('/api/auth/config').then((res) => res.json()); if (!state.authConfig.enabled || !window.supabase) { openCommonLogin(); return; } state.supabase = window.supabase.createClient(state.authConfig.url, state.authConfig.publishableKey); const { data } = await state.supabase.auth.getSession(); state.session = data.session; state.supabase.auth.onAuthStateChange((_event,session) => { state.session = session; routeAfterAuth(); }); routeAfterAuth(); }
-      async function routeAfterAuth() { if (!state.session) { openCommonLogin(); return; } setLoading(true); try { const payload = await api('/api/user/profile'); state.profile = payload.profile; if (payload.complete) { $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주와 이별 뒤 관계 흐름을 함께 봅니다.`; showScreen('form'); resumePaidRequest(); } else showScreen('profile'); } catch (_error) { showScreen('profile'); } finally { setLoading(false); } }
+      async function initAuth() { state.authConfig = await fetch('/api/auth/config').then((res) => res.json()); if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) { openCommonLogin(); return; } state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey); const { data } = await state.supabase.auth.getSession(); state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase); state.supabase.auth.onAuthStateChange((_event,session) => { window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase).then((nextSession) => { state.session = nextSession; routeAfterAuth(); }).catch(() => { state.session = session || null; routeAfterAuth(); }); }); routeAfterAuth(); }
+      async function routeAfterAuth() { if (!state.session) { openCommonLogin(); return; } setLoading(true); try { const payload = await api('/api/user/profile'); state.profile = payload.profile; if (payload.complete || window.UMSHAuthSession?.isSharedProfileComplete(payload.profile)) { $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주와 이별 뒤 관계 흐름을 함께 봅니다.`; showScreen('form'); resumePaidRequest(); } else showScreen('profile'); } catch (_error) { showScreen('profile'); } finally { setLoading(false); } }
       function validBirthText(value) { if (!/^\d{8}$/.test(value)) return false; const year=Number(value.slice(0,4)); const month=Number(value.slice(4,6)); const day=Number(value.slice(6,8)); const date=new Date(year,month-1,day); return year>=1900 && year<=new Date().getFullYear() && date.getFullYear()===year && date.getMonth()===month-1 && date.getDate()===day; }
       function validateProfile(form) { const errors={}; if (!/^[가-힣]{2,5}$/.test(form.name.value.trim())) errors.name='이름은 한글 2자 이상 5자 이하로 입력해 주세요.'; if (!validBirthText(form.birth.value.trim())) errors.birth='존재하는 날짜와 정상 연도를 입력해 주세요.'; ['name','birth'].forEach((key) => { const input=$(`[name="${key}"]`,form); const error=$(`[data-error-for="${key}"]`); input.classList.toggle('is-error',Boolean(errors[key])); error.textContent=errors[key] || ''; }); return Object.keys(errors).length===0; }
       function validateAgain(form) { const value=form.partnerBirth.value.trim(); const error=$('[data-error-for="partnerBirth"]'); const message=value && !validBirthText(value) ? '상대 생년월일은 존재하는 날짜의 숫자 8자리 YYYYMMDD로 입력해 주세요.' : ''; form.partnerBirth.classList.toggle('is-error',Boolean(message)); error.textContent=message; return !message; }

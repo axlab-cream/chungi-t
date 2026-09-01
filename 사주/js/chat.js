@@ -51,19 +51,19 @@ async function initAuth() {
     try {
       const res = await fetch('/api/auth/config')
       const config = await res.json()
-      if (!config.enabled || !window.supabase?.createClient) return null
-      authClient = window.supabase.createClient(config.url, config.publishableKey, {
-        auth: {
-          persistSession: true,
-          detectSessionInUrl: false,
-          flowType: 'pkce',
-        },
-      })
+      if (!config.enabled || !window.supabase?.createClient || !window.UMSHAuthSession) return null
+      authClient = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey)
       const { data, error } = await authClient.auth.getSession()
       if (error) return null
-      authSession = data.session || null
+      authSession = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session || null, authClient)
       authClient.auth.onAuthStateChange((_event, sessionValue) => {
-        authSession = sessionValue || null
+        window.UMSHAuthSession.enforceDeviceAuthSession(sessionValue || null, authClient)
+          .then((nextSession) => {
+            authSession = nextSession
+          })
+          .catch(() => {
+            authSession = sessionValue || null
+          })
       })
       return authSession
     } catch (err) {
