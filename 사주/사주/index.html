@@ -4353,10 +4353,7 @@
       }
 
       function shouldUseGoogleIdentity() {
-        // GIS popup requires Authorized JavaScript origins on the Google client.
-        // The umsh.kr web client currently 400s with origin_mismatch, so keep the
-        // working Supabase OAuth redirect until those origins are confirmed.
-        return false;
+        return googleIdentityOrigins().has(location.origin);
       }
 
       async function initializeGoogleIdentity() {
