@@ -30,7 +30,7 @@ test('UMSH_ADMIN_EMAILS 환경변수로 관리자를 추가할 수 있다', () =
 
 test('관리자 리포트는 결제 없이 paid entitlement 로 표시된다', () => {
   const unlocked = applyAdminReportUnlock(
-    { title: 't', subtitle: 's', model: 'm', generatedBy: 'template' as const, sections: [] },
+    { isPaid: false } as { isPaid?: boolean; entitlement?: string; unlockReason?: string },
     { email: 'good1621@gmail.com' },
   )
   assert.equal(unlocked.isPaid, true)
@@ -38,7 +38,7 @@ test('관리자 리포트는 결제 없이 paid entitlement 로 표시된다', (
   assert.equal(unlocked.unlockReason, 'admin')
 
   const locked = applyAdminReportUnlock(
-    { title: 't', subtitle: 's', model: 'm', generatedBy: 'template' as const, sections: [] },
+    {} as { isPaid?: boolean },
     { email: 'user@example.com' },
   )
   assert.equal(locked.isPaid, undefined)

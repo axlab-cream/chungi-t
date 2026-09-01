@@ -1384,24 +1384,29 @@ app.post('/api/saju/analyze', async (req, res) => {
       return
     }
     if (owner && context.name && isValidProfileName(context.name)) {
-      await saveUserBirthProfile(
-        buildUserBirthProfile({
+      try {
+        await saveUserBirthProfile(
+          buildUserBirthProfile({
+            owner,
+            name: context.name,
+            birth,
+            birthTimeKnown: context.birthTimeKnown !== false,
+            context: {
+              target: context.target,
+              relationship: context.relationship,
+              orientation: context.orientation,
+              work: context.work,
+            },
+          }),
           owner,
-          name: context.name,
-          birth,
-          birthTimeKnown: context.birthTimeKnown !== false,
-          context: {
-            target: context.target,
-            relationship: context.relationship,
-            orientation: context.orientation,
-            work: context.work,
-          },
-        }),
-        owner,
-      )
+        )
+      } catch (profileErr) {
+        console.error('[analyze] profile save failed', profileErr)
+      }
     }
     res.json(await toUiAnalysis(birth, context, owner))
   } catch (err) {
+    console.error('[analyze] failed', err)
     res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
   }
 })

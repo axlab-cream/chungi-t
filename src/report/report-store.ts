@@ -243,7 +243,10 @@ export async function getReportRecord(reportId: string, accessToken?: string): P
       headers: supabaseHeaders(accessToken),
     })
     if (!response.ok) {
-      throw new Error('Supabase 리포트 조회에 실패했습니다.')
+      const message = await response.text().catch(() => '')
+      console.error('[cheongi_reports] get failed', response.status, message)
+      const cached = memoryReports.get(reportId)
+      return cached ? ensurePublicId(cloneRecord(cached)) : null
     }
     const rows = await response.json() as Array<{ payload?: ReportRecord }>
     return ensurePublicIdPersisted(rows[0]?.payload ? cloneRecord(rows[0].payload) : null)
@@ -440,7 +443,10 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
     })
     if (!response.ok) {
       const message = await response.text().catch(() => '')
-      throw new Error(message || 'Supabase 리포트 저장에 실패했습니다.')
+      console.error('[cheongi_reports] save failed; falling back to memory', response.status, message)
+      stored.report.storage = 'memory'
+      memoryReports.set(stored.reportId, cloneRecord(stored))
+      return cloneRecord(stored)
     }
     return cloneRecord(stored)
   }
