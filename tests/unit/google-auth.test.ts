@@ -5,11 +5,13 @@ import test from 'node:test'
 const pagePath = new URL('../../사주/사주/index.html', import.meta.url)
 const serverPath = new URL('../../src/server/app.ts', import.meta.url)
 
-test('Google login uses Supabase OAuth until GIS origins are registered', async () => {
+test('Google login uses GIS on allowlisted origins and keeps OAuth fallback', async () => {
   const page = await readFile(pagePath, 'utf8')
 
   assert.match(page, /function shouldUseGoogleIdentity\(\)/)
+  assert.match(page, /googleIdentityOrigins\(\)\.has\(location\.origin\)/)
   assert.match(page, /options\.queryParams = \{ prompt: "select_account" \}/)
+  assert.match(page, /authClient\.auth\.signInWithIdToken\(\{/)
   assert.match(page, /authClient\.auth\.signInWithOAuth\(\{ provider, options \}\)/)
 })
 
