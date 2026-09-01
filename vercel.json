@@ -1,7 +1,6 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/", "destination": "/api/index?__umsh_path=" },
-    { "source": "/:path*", "destination": "/api/index?__umsh_path=:path*" }
+    { "source": "/(.*)", "destination": "/api/index?__umsh_path=$1" }
   ]
 }
