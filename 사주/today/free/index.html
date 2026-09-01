@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>운명상회｜오늘운</title>
+    <meta name="description" content="오늘운 상세 스토리는 준비 중입니다." />
+    <meta name="application-name" content="운명상회" />
+    <meta name="apple-mobile-web-app-title" content="운명상회" />
+    <meta property="og:title" content="운명상회｜오늘운" />
+    <meta property="og:description" content="오늘운 상세 스토리는 준비 중입니다." />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://umsh.kr/today/free" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="운명상회｜오늘운" />
+    <meta name="twitter:description" content="오늘운 상세 스토리는 준비 중입니다." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <link rel="image_src" href="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
+    <link rel="apple-touch-icon" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <link rel="stylesheet" href="/css/umsh-loading.css" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <link rel="stylesheet" href="/css/service-public-detail.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050403;
+        --panel: rgba(20, 14, 12, 0.78);
+        --line: rgba(222, 188, 113, 0.32);
+        --gold: #e8c76f;
+        --gold-soft: #f2dc9a;
+        --text: #fff7df;
+        --muted: rgba(255, 247, 223, 0.7);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #000;
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button {
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .stage {
+        width: min(100vw, 430px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--bg);
+        overflow: hidden;
+      }
+
+      .appbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 72px;
+        padding: 16px 20px;
+        background: rgba(4, 3, 2, 0.9);
+        border-bottom: 1px solid rgba(232, 199, 111, 0.14);
+        backdrop-filter: blur(12px);
+      }
+
+      .back {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid rgba(232, 199, 111, 0.35);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        font-size: 22px;
+      }
+
+      .brand {
+        display: grid;
+        justify-items: center;
+        gap: 2px;
+      }
+
+      .brand strong {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 24px;
+        letter-spacing: 0;
+        color: var(--gold-soft);
+      }
+
+      .brand span,
+      .eyebrow {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .scroll {
+        min-height: calc(100vh - 72px);
+        padding: 20px 20px 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <header class="appbar">
+        <button class="back" type="button" data-back aria-label="뒤로가기">‹</button>
+        <a class="brand" href="/" aria-label="운명상회 홈">
+          <strong>운명상회</strong>
+          <span>TODAY</span>
+        </a>
+        <span aria-hidden="true" style="width: 38px"></span>
+      </header>
+
+      <div class="scroll">
+        <div class="public-detail" data-public-detail data-service-public-detail></div>
+      </div>
+    </main>
+
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/service-step-url.js"></script>
+    <script src="/js/service-public-detail.js"></script>
+    <script>
+      const state = { supabase: null, session: null };
+
+      async function initAuth() {
+        if (!window.UMSHAuthSession?.init) return null;
+        const result = await window.UMSHAuthSession.init();
+        state.supabase = result.supabase;
+        state.session = result.session;
+        return result;
+      }
+
+      function openTodayLogin() {
+        const url = new URL('/signup', location.origin);
+        url.searchParams.set('entry', 'today');
+        url.hash = 'login';
+        location.assign(url.toString());
+      }
+
+      async function ensureSessionAndContinue() {
+        window.UMSHServiceSteps?.markAuth();
+        await initAuth().catch(() => undefined);
+        openTodayLogin();
+      }
+
+      document.addEventListener('click', async (event) => {
+        if (event.target.closest('[data-start-report]')) {
+          event.preventDefault();
+          await ensureSessionAndContinue();
+        }
+        if (event.target.closest('[data-back]')) {
+          history.length > 1 ? history.back() : location.assign('/');
+        }
+      });
+
+      showPublicDetail();
+
+      function showPublicDetail() {
+        window.UMSHServiceDetail?.render();
+        document.querySelector('[data-public-detail]')?.classList.remove('hidden');
+        window.UMSHServiceSteps?.markStory();
+      }
+    </script>
+  </body>
+</html>

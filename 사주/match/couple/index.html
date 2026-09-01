@@ -33,6 +33,7 @@
     <script src="/js/payment-bridge.js"></script>
     <link rel="stylesheet" href="/css/umsh-loading.css" />
     <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <link rel="stylesheet" href="/css/service-public-detail.css" />
     <style>
       :root {
         color-scheme: dark;
@@ -391,6 +392,7 @@
           <h1>우리 둘,<br />진짜 잘 맞아?</h1>
           <p>명리궁합, 오행, 일지의 흐름으로 끌림과 갈등, 오래 가는 방식을 봅니다.</p>
         </section>
+        <div class="public-detail" data-public-detail data-service-public-detail></div>
 
         <section class="panel" data-screen="auth">
           <span class="eyebrow">UMSH · 운명상회</span>
@@ -517,6 +519,8 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-loading.js"></script>
     <script src="/js/umsh-progressive-report.js"></script>
+    <script src="/js/service-step-url.js"></script>
+    <script src="/js/service-public-detail.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
       const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -539,8 +543,20 @@
         report: $('[data-screen="report"]'),
       };
 
-      function showScreen(name) {
-        Object.entries(screens).forEach(([key, node]) => node.classList.toggle('hidden', key !== name));
+      function showScreen(name) { $('[data-public-detail]')?.classList.add('hidden'); window.UMSHServiceSteps?.markByScreen(name); Object.entries(screens).forEach(([key, node]) => node.classList.toggle('hidden', key !== name));
+      }
+      function showPublicDetail() {
+        window.UMSHServiceDetail?.render();
+        $('[data-public-detail]')?.classList.remove('hidden'); window.UMSHServiceSteps?.markStory();
+        Object.values(screens).forEach((node) => node?.classList.add('hidden'));
+      }
+
+      async function ensureSessionAndContinue() {
+        window.UMSHServiceSteps?.markAuth();
+        await initAuth().catch((error) => {
+          setStatus(error.message);
+        });
+        if (!state.session) openCommonLogin();
       }
       function setLoading(on, copy) {
         if (on) {
@@ -588,7 +604,7 @@
       async function initAuth() {
         state.authConfig = await fetch('/api/auth/config').then((res) => res.json());
         if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) {
-          openCommonLogin();
+          showScreen('profile');
           return;
         }
         state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey);
@@ -610,7 +626,7 @@
 
       async function routeAfterAuth() {
         if (!state.session) {
-          openCommonLogin();
+          showScreen('profile');
           return;
         }
         setLoading(true);
@@ -684,6 +700,8 @@
         event.preventDefault();
         const form = event.currentTarget;
         if (!validateProfile(form)) return;
+        await initAuth().catch(() => undefined);
+        if (!state.session) { openCommonLogin(); return; }
         const birthText = form.birth.value.trim();
         setLoading(true);
         try {
@@ -743,6 +761,8 @@
         event.preventDefault();
         const form = event.currentTarget;
         if (!validateCouple(form)) return;
+        await initAuth().catch(() => undefined);
+        if (!state.session) { openCommonLogin(); return; }
         const requestBody = {
           partnerName: form.partnerName.value.trim(),
           partnerBirthText: form.partnerBirth.value.trim(),
@@ -869,6 +889,7 @@
         }
         if (event.target.closest('[data-prev]')) moveSection(-1);
         if (event.target.closest('[data-next]')) moveSection(1);
+        if (event.target.closest('[data-start-report]')) { event.preventDefault(); await ensureSessionAndContinue(); }
         if (event.target.closest('[data-back]')) history.length > 1 ? history.back() : location.assign('/');
         if (event.target.closest('[data-logout]') && state.supabase) {
           await state.supabase.auth.signOut();
@@ -883,10 +904,10 @@
       $('[data-profile-form]').addEventListener('submit', saveProfile);
       $('[data-couple-form]').addEventListener('submit', generateReport);
 
-      initAuth().catch((err) => {
-        setStatus(err.message);
-        openCommonLogin();
-      });
+      showPublicDetail();
+      if (window.UMSHServiceSteps?.isAuthStep()) {
+        ensureSessionAndContinue();
+      }
     </script>
   </body>
 </html>
