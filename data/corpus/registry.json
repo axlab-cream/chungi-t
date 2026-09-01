@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "policy": "RAG and corpus packs are living knowledge assets. Add, revise, score, and regression-test packs continuously instead of treating retrieval data as fixed application code.",
+  "version": "1.2.0",
+  "policy": "RAG and corpus packs are living knowledge assets. Store judgment-ready knowledge blocks, not finished user copy. Generation must follow calculation -> feature_json -> retrieval -> interpretation -> user_copy.",
   "packs": [
     {
       "id": "myeongri-basics",
@@ -39,7 +39,7 @@
       "domain": "love_this_year_service",
       "status": "active",
       "role": "single_service_love_grounding",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "retrievalBoost": 18
     },
     {
@@ -49,8 +49,18 @@
       "domain": "saju_95_quality_bundles",
       "status": "active",
       "role": "quality_gap_patch",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "retrievalBoost": 14
+    },
+    {
+      "id": "paid-report-scene-corpus",
+      "path": "corpus/paid-report-scene-corpus.json",
+      "kind": "chunks",
+      "domain": "paid_report_scene_corpus",
+      "status": "active",
+      "role": "paid_narrative_density_patch",
+      "version": "1.1.0",
+      "retrievalBoost": 18
     },
     {
       "id": "saju-advanced-manseryeok-gbr",
@@ -79,7 +89,7 @@
       "domain": "consultation_templates",
       "status": "active",
       "role": "intent_and_prompt_frames",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "retrievalBoost": 0
     }
   ]

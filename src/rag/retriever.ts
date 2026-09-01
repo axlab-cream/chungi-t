@@ -1,12 +1,15 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { RagChunk, SajuAnalysis, SajuReportContext } from '../types/index.js'
+import type { RagChunk, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../types/index.js'
 import { getChunkCorpusFiles, getCorpusDomainBoost } from './corpus-registry.js'
 import { retrieveVectorRagChunks } from './embedder.js'
+import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from './knowledge-block.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
+
+let cachedCorpusIndex: RagChunk[] | null = null
 
 interface ConsultationTemplate {
   id: string
@@ -18,6 +21,7 @@ interface ConsultationTemplate {
 interface CorpusFile {
   domain?: string
   chunks?: RagChunk[]
+  knowledgeBlocks?: RagKnowledgeBlock[]
   templates?: ConsultationTemplate[]
 }
 
@@ -102,37 +106,52 @@ function loadTemplates(): ConsultationTemplate[] {
 
 function buildElementChunks(): RagChunk[] {
   const elements = loadJson<SajuElementsFile>('corpus/saju-elements.json')
-  const profileChunks = Object.entries(elements.elementProfiles ?? {}).map(([element, profile]) => ({
+  const profileChunks = Object.entries(elements.elementProfiles ?? {}).map(([element, profile]) => knowledgeBlockToRagChunk({
     id: `el-${element}`,
     topic: `오행 프로필: ${element}`,
     keywords: [element, ...(profile.keywords ?? [])],
-    content: [
-      profile.strongTraits ? `강점: ${profile.strongTraits}` : '',
-      profile.weakTraits ? `주의: ${profile.weakTraits}` : '',
-      profile.advice ? `조언: ${profile.advice}` : '',
+    concept: `${element} 기운의 생활 표현`,
+    condition: `${element} 기운이 강하거나 약한 조건에서 적용`,
+    interpretation: [
+      profile.strongTraits ? `강하게 쓰일 때: ${profile.strongTraits}` : '',
+      profile.weakTraits ? `부족하거나 흔들릴 때: ${profile.weakTraits}` : '',
     ].filter(Boolean).join(' '),
-    domain: 'saju_elements',
-  }))
+    real_world_pattern: [
+      profile.strongTraits ?? '',
+      profile.weakTraits ?? '',
+    ].filter(Boolean),
+    risk: '오행 많고 적음을 성격 단정이나 미신적 처방으로만 연결하는 것',
+    opportunity: profile.advice ?? '생활 루틴, 관계 방식, 일의 환경으로 보완',
+    advice: profile.advice ?? '현재 질문 영역에서 실제 행동으로 다시 작성',
+    confidence: 'medium',
+    forbidden_generalization: '특정 오행 하나만으로 성격, 건강, 직업, 미래를 단정하지 않음',
+  }, 'saju_elements'))
 
-  const dayMasterChunks = Object.entries(elements.dayMasterAdvice ?? {}).map(([stem, advice]) => ({
+  const dayMasterChunks = Object.entries(elements.dayMasterAdvice ?? {}).map(([stem, advice]) => knowledgeBlockToRagChunk({
     id: `dm-${stem}`,
     topic: `일간 조언: ${stem}`,
     keywords: [stem, '일간', '기질', '성격', '조언'],
-    content: advice,
-    domain: 'saju_elements',
-  }))
+    concept: `${stem} 일간의 기본 반응`,
+    condition: `계산된 Feature JSON의 dayMaster가 ${stem}일 때 우선 적용`,
+    interpretation: advice,
+    real_world_pattern: ['결정 방식', '피로가 쌓이는 장면', '강점이 드러나는 상황'],
+    risk: '일간 하나만으로 사람 전체를 단정하는 것',
+    opportunity: '기본 반응을 현재 고민의 행동 기준으로 연결',
+    advice: '일간 설명은 한 번만 쓰고 곧바로 생활 언어로 번역',
+    confidence: 'medium',
+    forbidden_generalization: '일간만 보고 성격, 직업, 관계 결말을 확정하지 않음',
+  }, 'saju_elements'))
 
   return [...profileChunks, ...dayMasterChunks]
 }
 
 /** O(n) — 코퍼스 인덱스 로드 */
 export function buildCorpusIndex(): RagChunk[] {
+  if (cachedCorpusIndex) return cachedCorpusIndex
+
   const corpusChunks = getChunkCorpusFiles().flatMap((file) => {
     const data = loadJson<CorpusFile>(file)
-    return (data.chunks ?? []).map((chunk) => ({
-      ...chunk,
-      domain: data.domain,
-    }))
+    return corpusFileToChunks(data)
   })
 
   const templateChunks = loadTemplates().map((template) => ({
@@ -143,7 +162,8 @@ export function buildCorpusIndex(): RagChunk[] {
     domain: 'consultation_templates',
   }))
 
-  return [...corpusChunks, ...buildElementChunks(), ...templateChunks]
+  cachedCorpusIndex = [...corpusChunks, ...buildElementChunks(), ...templateChunks]
+  return cachedCorpusIndex
 }
 
 function keywordScore(keyword: string, queryRaw: string, queryTokens: string[]): number {
@@ -210,6 +230,9 @@ function contextTokens(context?: SajuReportContext): string[] {
   if (joined.includes('이별')) direct.push('이별', '재회', '정리')
   if (joined.includes('결혼')) direct.push('결혼', '배우자', '생활')
   if (context.serviceKey === 'love_this_year') direct.push('연애운', '도화', '배우자성', '세운', '궁합', '상대')
+  if (context.serviceKey === 'love_mind') direct.push('상대방', '마음', '감정', '연락', '관계흐름', '궁합', '일지', '합충', '거리감')
+  if (context.serviceKey === 'love_again') direct.push('재회', '이별', '재연결', '미련', '세운', '궁합', '관계흐름', '연락', '합충', '일지')
+  if (context.serviceKey === 'love_spouse') direct.push('배우자운', '배우자궁', '배우자성', '자미두수', '인연', '결혼', '일지', '대운', '세운', '생활', '책임')
   if (context.partner?.mode === 'known') direct.push('상대방', '궁합', '감정온도', '일간', '오행')
   if (joined.includes('학생')) direct.push('학생', '공부', '진로')
   if (joined.includes('일을 찾')) direct.push('구직', '취업', '일자리')
@@ -304,7 +327,7 @@ function scoreChunk(
   pinnedContextIds: Set<string>,
 ): number {
   const topic = normalizeText(chunk.topic)
-  const content = normalizeText(chunk.content)
+  const content = normalizeText(chunkSearchText(chunk))
   const keywords = chunk.keywords.map(normalizeText)
   let score = vectorBoost
   let keywordHit = false
@@ -482,13 +505,20 @@ export function retrieveRagChunks(
 }
 
 export function formatRagForPrompt(chunks: RagChunk[]): string {
-  if (chunks.length === 0) return '<rag_knowledge>\n(관련 지식 없음)\n</rag_knowledge>'
+  if (chunks.length === 0) return '<rag_knowledge mode="internal_knowledge_blocks">\n(관련 지식 없음)\n</rag_knowledge>'
 
   const body = chunks
-    .map((c, i) => `[${i + 1}] ${c.topic}\n${c.content}`)
+    .map((c, i) => `[${i + 1}] ${c.topic}\nid: ${c.id}\n${c.content}`)
     .join('\n\n')
 
-  return `<rag_knowledge>\n${body}\n</rag_knowledge>`
+  return [
+    '<rag_knowledge mode="internal_knowledge_blocks">',
+    'copy_policy: 아래 블록은 최종 답변 문장이 아니다. concept/condition/interpretation/risk/opportunity/advice의 의미만 추출해 현재 Feature JSON과 질문에 맞는 새 사용자 문장으로 작성한다.',
+    'priority: 명식 계산값 > 대운/세운 계산값 > 해석 규칙 > RAG 지식 블록 > 말투 참고 corpus',
+    '',
+    body,
+    '</rag_knowledge>',
+  ].join('\n')
 }
 
 export function getIntentPromptHint(intent: string): string {

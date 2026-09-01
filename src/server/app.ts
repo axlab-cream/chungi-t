@@ -7,7 +7,7 @@ import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
-import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { buildOpenAiReportFromBase, buildTemplateSajuReport } from '../report/report-generator.js'
 import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
 import { buildTodayFortune } from '../saju/today-fortune.js'
 import {
@@ -17,6 +17,7 @@ import {
   getReportStorageMode,
   getReportRecord,
   listReportRecords,
+  saveReportRecord,
   toClientReport,
   updateReportChatHistory,
 } from '../report/report-store.js'
@@ -24,12 +25,78 @@ import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReport
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import {
   buildUserBirthProfile,
+  deleteUserBirthProfile,
   getUserBirthProfile,
   getUserProfileStorageMode,
   saveUserBirthProfile,
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
+import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
+import { createInicisPaymentFields, createPaymentOrderId, approveInicisPayment, publicInicisConfig } from '../payment/inicis.js'
+import { isPaymentTestMode } from '../payment/test-mode.js'
+import {
+  getPaymentOrder,
+  getPaymentStorageMode,
+  listPaymentOrders,
+  savePaymentOrder,
+  updatePaymentOrder,
+} from '../payment/order-store.js'
+import type { PaymentOrder } from '../payment/order-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
+import {
+  buildHomePungsuContext,
+  buildHomePungsuReport,
+  createHomePungsuReportId,
+  parseHomePungsuRequest,
+} from '../pungsu/home-service.js'
+import {
+  buildWorkMoveContext,
+  buildWorkMoveReport,
+  createWorkMoveReportId,
+  parseWorkMoveRequest,
+} from '../work/move-service.js'
+import {
+  buildWorkJobContext,
+  buildWorkJobReport,
+  createWorkJobReportId,
+  parseWorkJobRequest,
+} from '../work/job-service.js'
+import {
+  buildMoneySaveContext,
+  buildMoneySaveReport,
+  createMoneySaveReportId,
+  parseMoneySaveRequest,
+} from '../money/save-service.js'
+import {
+  buildMarryMatchContext,
+  buildMarryMatchReport,
+  createMarryMatchReportId,
+  parseMarryMatchRequest,
+} from '../match/marry-service.js'
+import {
+  buildCoupleMatchContext,
+  buildCoupleMatchReport,
+  createCoupleMatchReportId,
+  parseCoupleMatchRequest,
+} from '../match/couple-service.js'
+import {
+  buildLoveMindContext,
+  buildLoveMindReport,
+  createLoveMindReportId,
+  parseLoveMindRequest,
+} from '../love/mind-service.js'
+import {
+  buildLoveAgainContext,
+  buildLoveAgainReport,
+  createLoveAgainReportId,
+  parseLoveAgainRequest,
+} from '../love/again-service.js'
+import {
+  buildLoveSpouseContext,
+  buildLoveSpouseReport,
+  createLoveSpouseReportId,
+  parseLoveSpouseRequest,
+} from '../love/spouse-service.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
 const __filename = fileURLToPath(import.meta.url)
@@ -38,11 +105,17 @@ const ROOT = join(__dirname, '../..')
 const SAJU_UI = join(ROOT, '사주', '사주')
 const SAJU_ROOT = join(ROOT, '사주')
 const PORTAL_PAGE = join(SAJU_ROOT, 'portal.html')
+const DESTINY_PAGE = join(SAJU_ROOT, 'destiny.html')
 const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
 const PRIVACY_PAGE = join(SAJU_ROOT, 'privacy.html')
 const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
 const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
-const DESTINY_PAGE = join(SAJU_ROOT, 'destiny.html')
+const PAYMENT_PAGE = join(SAJU_ROOT, 'payment', 'index.html')
+const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
+const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
+const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
+const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
+const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -59,6 +132,22 @@ const SUPABASE_NAVER_PROVIDER = envValue(process.env.SUPABASE_NAVER_PROVIDER, 'c
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
+async function enrichSpecializedReport(
+  report: SajuReport,
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  context: SajuReportContext,
+): Promise<SajuReport> {
+  if (!isOpenAiConfigured()) return report
+  try {
+    return await buildOpenAiReportFromBase(analysis, birth, context, report)
+  } catch (error) {
+    console.warn('전용 서비스 OpenAI 보강 실패, 품질 검증된 템플릿으로 응답합니다.', error instanceof Error ? error.message : 'unknown error')
+    return report
+  }
+}
 
 function redirectToCmdg(req: Request, res: Response) {
   const queryIndex = req.originalUrl.indexOf('?')
@@ -68,6 +157,9 @@ function redirectToCmdg(req: Request, res: Response) {
 
 app.get(['/', '/index.html'], (_req, res) => {
   res.sendFile(PORTAL_PAGE)
+})
+app.get(['/destiny', '/destiny/', '/destiny.html'], (_req, res) => {
+  res.sendFile(DESTINY_PAGE)
 })
 app.get(['/terms', '/terms/', '/terms.html'], (_req, res) => {
   res.sendFile(TERMS_PAGE)
@@ -81,11 +173,53 @@ app.get(['/refund', '/refund/', '/refund.html'], (_req, res) => {
 app.get(['/support', '/support/', '/support.html'], (_req, res) => {
   res.sendFile(SUPPORT_PAGE)
 })
+app.get(['/payment', '/payment/', '/payment/index.html'], (_req, res) => {
+  res.sendFile(PAYMENT_PAGE)
+})
+app.get(['/payment/result', '/payment/result/', '/payment/result.html'], (_req, res) => {
+  res.sendFile(PAYMENT_RESULT_PAGE)
+})
+app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res) => {
+  res.sendFile(PAYMENT_CLOSE_PAGE)
+})
+app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
+  res.sendFile(PAYMENT_TEST_PAGE)
+})
+app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
+  res.sendFile(PAYMENT_ORDERS_PAGE)
+})
+app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
+  res.sendFile(LEAVE_PAGE)
+})
 app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
 })
-app.get(['/destiny', '/destiny/', '/destiny.html'], (_req, res) => {
-  res.sendFile(DESTINY_PAGE)
+app.get(['/love/mind', '/love/mind/', '/love/mind/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'mind', 'index.html'))
+})
+app.get(['/love/again', '/love/again/', '/love/again/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'again', 'index.html'))
+})
+app.get(['/love/spouse', '/love/spouse/', '/love/spouse/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'spouse', 'index.html'))
+})
+app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'place', 'home', 'index.html'))
+})
+app.get(['/money/save', '/money/save/', '/money/save/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'money', 'save', 'index.html'))
+})
+app.get(['/work/move', '/work/move/', '/work/move/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'work', 'move', 'index.html'))
+})
+app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
+})
+app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'match', 'marry', 'index.html'))
+})
+app.get(['/match/couple', '/match/couple/', '/match/couple/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'match', 'couple', 'index.html'))
 })
 app.get(/^\/cmdg$/, redirectToCmdg)
 app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
@@ -107,6 +241,9 @@ app.use('/js', express.static(join(SAJU_ROOT, 'js')))
 app.use('/cmdg/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/this-year/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/mind/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/again/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/spouse/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/cmdg/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/cmdg/js', express.static(join(SAJU_ROOT, 'js')))
 app.use(express.static(SAJU_UI, { index: false }))
@@ -485,12 +622,296 @@ function historyEntryFromRecord(record: ReportRecord) {
   }
 }
 
+function paymentConfigPayload() {
+  const inicis = publicInicisConfig()
+  const storage = getPaymentStorageMode()
+  const enabled = inicis.enabled && storage !== 'memory'
+  const testMode = isPaymentTestMode()
+  return {
+    ...inicis,
+    configured: inicis.enabled,
+    enabled,
+    checkoutEnabled: enabled || testMode,
+    testMode,
+    storage,
+    catalog: listPaymentProducts().map(publicPaymentProduct),
+    setupMessage: enabled || testMode
+      ? ''
+      : '결제 모듈 연결 전입니다. 운영자는 이니시스 MID, SignKey, 결제 주문 저장소를 설정해 주세요.',
+  }
+}
+
+function clientPaymentOrder(order: PaymentOrder) {
+  return {
+    orderId: order.orderId,
+    productKey: order.productKey,
+    productTitle: order.productTitle,
+    amount: order.amount,
+    status: order.status,
+    tid: order.tid,
+    payMethod: order.payMethod,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  }
+}
+
+function paymentOrderRedirect(orderId: string, state: 'paid' | 'failed' | 'cancelled', message?: string, productKey?: string): string {
+  const params = new URLSearchParams({ orderId, state })
+  if (message) params.set('message', message.slice(0, 180))
+  if (productKey) params.set('product', productKey)
+  return `/payment/result?${params.toString()}`
+}
+
+async function ensurePaidServiceAccess(
+  req: Request,
+  res: Response,
+  owner: ReportOwner,
+  productKey: string,
+): Promise<boolean> {
+  const config = paymentConfigPayload()
+  if (!config.configured && !config.testMode) return true
+  if (!config.checkoutEnabled) {
+    res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
+    return false
+  }
+  const orderId = trimmedString(req.body?.orderId)
+  if (!orderId) {
+    const product = getPaymentProduct(productKey)
+    res.status(402).json({
+      code: 'PAYMENT_REQUIRED',
+      error: '결제 후 풀이를 열 수 있습니다.',
+      productKey,
+      paymentUrl: `/payment?product=${encodeURIComponent(productKey)}&returnTo=${encodeURIComponent(product?.returnPath || '/')}`,
+    })
+    return false
+  }
+  const order = await getPaymentOrder(orderId)
+  if (!order || order.ownerId !== owner.id || order.productKey !== productKey) {
+    res.status(403).json({ code: 'PAYMENT_INVALID', error: '이 상품의 결제 주문을 확인하지 못했습니다.' })
+    return false
+  }
+  if (order.status !== 'paid' && order.status !== 'viewed') {
+    res.status(402).json({ code: 'PAYMENT_REQUIRED', error: '결제가 완료된 주문만 풀이를 열 수 있습니다.', productKey })
+    return false
+  }
+  return true
+}
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, openai: isOpenAiConfigured() })
 })
 
 app.get('/api/auth/config', (_req, res) => {
   res.json(authConfig())
+})
+
+app.get('/api/payment/config', (_req, res) => {
+  res.json(paymentConfigPayload())
+})
+
+app.post('/api/payment/orders', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const config = paymentConfigPayload()
+    if (!config.checkoutEnabled) {
+      res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
+      return
+    }
+
+    const product = getPaymentProduct(req.body?.productKey)
+    if (!product) {
+      res.status(400).json({ error: '결제 상품을 확인해 주세요.' })
+      return
+    }
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결제 전에 기본 사주 프로필을 먼저 저장해 주세요.' })
+      return
+    }
+
+    const buyerEmail = trimmedString(req.body?.buyerEmail) || owner.email || ''
+    const buyerTel = trimmedString(req.body?.buyerTel)
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(buyerEmail)) {
+      res.status(400).json({ error: '결제 안내를 받을 이메일을 입력해 주세요.' })
+      return
+    }
+    if (!/^[0-9-]{7,20}$/.test(buyerTel)) {
+      res.status(400).json({ error: '숫자와 하이픈으로 휴대폰 번호를 입력해 주세요.' })
+      return
+    }
+
+    const timestamp = new Date().toISOString()
+    const order: PaymentOrder = {
+      orderId: createPaymentOrderId(),
+      ownerId: owner.id,
+      ownerEmail: owner.email,
+      buyerEmail,
+      buyerTel,
+      productKey: product.key,
+      productTitle: product.title,
+      amount: product.amount,
+      status: 'ready',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    }
+    const saved = await savePaymentOrder(order)
+    if (config.testMode) {
+      res.json({
+        order: clientPaymentOrder(saved),
+        product: publicPaymentProduct(product),
+        testMode: true,
+      })
+      return
+    }
+    const fields = createInicisPaymentFields({ order: saved, buyerName: profile.name })
+    res.json({
+      order: clientPaymentOrder(saved),
+      product: publicPaymentProduct(product),
+      fields,
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 생성 실패' })
+  }
+})
+
+app.post('/api/payment/test/approve', async (req, res) => {
+  try {
+    if (!isPaymentTestMode()) {
+      res.status(404).json({ error: '테스트 결제 모드가 아닙니다.' })
+      return
+    }
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const orderId = trimmedString(req.body?.orderId)
+    const order = await getPaymentOrder(orderId)
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '테스트 주문을 찾지 못했습니다.' })
+      return
+    }
+    if (order.status === 'paid' || order.status === 'viewed') {
+      res.json({ order: clientPaymentOrder(order), testMode: true })
+      return
+    }
+    if (order.status !== 'ready') {
+      res.status(409).json({ error: '테스트 승인을 진행할 수 없는 주문 상태입니다.' })
+      return
+    }
+    const paid = await updatePaymentOrder(order.orderId, {
+      status: 'paid',
+      tid: `TEST-${order.orderId}`,
+      payMethod: 'TEST',
+      approvalCode: 'TEST-0000',
+      message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
+    })
+    if (!paid) {
+      res.status(500).json({ error: '테스트 주문 상태를 저장하지 못했습니다.' })
+      return
+    }
+    res.json({ order: clientPaymentOrder(paid), testMode: true })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '테스트 결제 승인 실패' })
+  }
+})
+
+app.post('/api/payment/inicis/return', async (req, res) => {
+  const body = req.body as Record<string, unknown>
+  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid)
+  if (!orderId) {
+    res.redirect(303, paymentOrderRedirect('', 'failed', '결제 주문번호를 확인하지 못했습니다.'))
+    return
+  }
+
+  try {
+    const order = await getPaymentOrder(orderId)
+    if (!order) {
+      res.redirect(303, paymentOrderRedirect(orderId, 'failed', '결제 주문을 찾지 못했습니다.'))
+      return
+    }
+    if (order.status === 'paid' || order.status === 'viewed') {
+      res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey))
+      return
+    }
+
+    const resultCode = trimmedString(body.resultCode || body.P_STATUS)
+    const resultMessage = trimmedString(body.resultMsg || body.P_RMESG1) || '결제가 취소되었거나 승인되지 않았습니다.'
+    if (resultCode !== '0000') {
+      await updatePaymentOrder(order.orderId, { status: 'failed', message: resultMessage })
+      res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey))
+      return
+    }
+
+    const callbackMid = trimmedString(body.mid || body.P_MID)
+    if (callbackMid && callbackMid !== (process.env.INICIS_MID?.trim() ?? '')) {
+      throw new Error('결제 상점 정보를 확인하지 못했습니다.')
+    }
+    const authToken = trimmedString(body.authToken)
+    const authUrl = trimmedString(body.authUrl)
+    if (!authToken || !authUrl) throw new Error('결제 승인 정보를 받지 못했습니다.')
+
+    await updatePaymentOrder(order.orderId, { status: 'approving' })
+    const approval = await approveInicisPayment({ order, authToken, authUrl })
+    const paid = await updatePaymentOrder(order.orderId, {
+      status: 'paid',
+      tid: approval.tid,
+      payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode,
+      message: approval.resultMessage,
+    })
+    if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
+    res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey))
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
+    await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    const failedOrder = await getPaymentOrder(orderId).catch(() => null)
+    res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey))
+  }
+})
+
+app.get('/api/payment/orders/:orderId', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '결제 주문을 찾지 못했습니다.' })
+      return
+    }
+    res.json({ order: clientPaymentOrder(order) })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 조회 실패' })
+  }
+})
+
+app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '결제 주문을 찾지 못했습니다.' })
+      return
+    }
+    if (order.status !== 'paid' && order.status !== 'viewed') {
+      res.status(409).json({ error: '결제 완료 후 열람 처리할 수 있습니다.' })
+      return
+    }
+    const updated = await updatePaymentOrder(order.orderId, { status: 'viewed' })
+    res.json({ order: updated ? clientPaymentOrder(updated) : null })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '열람 상태 저장 실패' })
+  }
+})
+
+app.get('/api/user/orders', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const orders = await listPaymentOrders(owner.id, parseListLimit(req.query.limit))
+    res.json({ orders: orders.map(clientPaymentOrder), storage: getPaymentStorageMode() })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결제 내역 조회 실패' })
+  }
 })
 
 app.get('/api/user/profile', async (req, res) => {
@@ -596,6 +1017,408 @@ app.post('/api/today/fortune', async (req, res) => {
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
+  }
+})
+
+app.delete('/api/user/account', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const reports = await listReportRecords(owner, 100)
+    for (const report of reports) {
+      await deleteReportRecord(report.reportId, owner)
+    }
+    const profileDeleted = await deleteUserBirthProfile(owner)
+    res.json({
+      ok: true,
+      profileDeleted,
+      reportsDeleted: reports.length,
+      paymentRecords: '법령상 보관이 필요한 결제 기록은 보관 기간 후 파기됩니다.',
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '회원 탈퇴 처리 실패' })
+  }
+})
+
+app.post('/api/place/home/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'home_pungsu')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '집 풍수를 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseHomePungsuRequest(req.body)
+    const context = buildHomePungsuContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createHomePungsuReportId(owner.id, profile.birth, input)
+    const templateReport = buildHomePungsuReport(analysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '집 풍수 생성 실패' })
+  }
+})
+
+app.post('/api/work/move/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'work_move')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '이직운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseWorkMoveRequest(req.body)
+    const context = buildWorkMoveContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createWorkMoveReportId(owner.id, profile.birth, input)
+    const templateReport = buildWorkMoveReport(analysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '이직운 생성 실패' })
+  }
+})
+
+app.post('/api/work/job/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '직업운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseWorkJobRequest(req.body)
+    const context = buildWorkJobContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createWorkJobReportId(owner.id, profile.birth, input)
+    const templateReport = buildWorkJobReport(analysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '직업운 생성 실패' })
+  }
+})
+
+app.post('/api/money/save/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '소비성향을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseMoneySaveRequest(req.body)
+    const context = buildMoneySaveContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createMoneySaveReportId(owner.id, profile.birth, input)
+    const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '소비성향 생성 실패' })
+  }
+})
+
+app.post('/api/match/marry/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseMarryMatchRequest(req.body)
+    const partnerAnalysis = analyzeSaju(input.partnerBirth)
+    const context = buildMarryMatchContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createMarryMatchReportId(owner.id, profile.birth, input)
+    const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결혼궁합 생성 실패' })
+  }
+})
+
+app.post('/api/match/couple/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '커플궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseCoupleMatchRequest(req.body)
+    const partnerAnalysis = analyzeSaju(input.partnerBirth)
+    const context = buildCoupleMatchContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createCoupleMatchReportId(owner.id, profile.birth, input)
+    const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '커플궁합 생성 실패' })
+  }
+})
+
+app.post('/api/love/mind/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '상대방 마음을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveMindRequest(req.body)
+    const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
+    const context = buildLoveMindContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveMindReportId(owner.id, profile.birth, input)
+    const templateReport = buildLoveMindReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '상대방 마음 생성 실패' })
+  }
+})
+
+app.post('/api/love/again/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '재회운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveAgainRequest(req.body)
+    const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
+    const context = buildLoveAgainContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveAgainReportId(owner.id, profile.birth, input)
+    const templateReport = buildLoveAgainReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '재회운 생성 실패' })
+  }
+})
+
+app.post('/api/love/spouse/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '배우자운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveSpouseRequest(req.body)
+    const context = buildLoveSpouseContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveSpouseReportId(owner.id, profile.birth, input)
+    const templateReport = buildLoveSpouseReport(analysis, profile.birth, context, input, reportId)
+    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
+    const now = new Date().toISOString()
+    const record = await saveReportRecord({
+      reportId,
+      birth: profile.birth,
+      context,
+      owner,
+      report,
+      status: 'complete',
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    res.json({
+      report: toClientReport(record),
+      reportId,
+      birth: profile.birth,
+      context,
+      profile,
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '배우자운 생성 실패' })
   }
 })
 
@@ -839,9 +1662,9 @@ const isDirectRun = process.argv[1] ? resolve(process.argv[1]) === resolve(__fil
 
 if (isDirectRun) {
   app.listen(PORT, () => {
-    console.log(`천명대공(天命大公) 서버: http://localhost:${PORT}`)
+    console.log(`천명사주 서버: http://localhost:${PORT}`)
     console.log(`UMSH 포탈: http://localhost:${PORT}/`)
-    console.log(`천명대공 입력: http://localhost:${PORT}/cmdg/`)
+    console.log(`천명사주 입력: http://localhost:${PORT}/cmdg/`)
     console.log(`OpenAI: ${isOpenAiConfigured() ? '연결됨' : 'API 키 필요 (.env)'}`)
   })
 }

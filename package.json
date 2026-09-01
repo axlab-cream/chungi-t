@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "천명대공(天命大公) 개인 사주 기반 LLM 대화 엔진",
+  "description": "천명사주 개인 사주 기반 LLM 대화 엔진",
   "scripts": {
     "dev": "tsx src/cli/demo.ts",
     "start": "tsx src/server/app.ts",
     "test": "tsx --test --test-concurrency=1 tests/unit/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "npm run typecheck"
+    "vercel-build": "node scripts/prepare-vercel-public.mjs && npm run typecheck"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -1,3 +1,46 @@
+# Design QA: UMSH Destiny Record Page
+
+**Date**
+- 2026-09-01
+
+**Source Visual Truth**
+- Browser comment/reference URL: `https://www.sajutight.me/perpetual-calendar/manse/ae7690c4-4913-44e4-971d-c49fc8edd84d`.
+- Captured reference screenshot: `C:\Users\user\Desktop\chungi-t\tmp\product-design-audit-2026-09-01\02-sajutight-manse-reference.png`.
+- Same-width reference capture note: the source page renders blank/offset at 390px, so the user-provided/comment screenshot and default browser capture were used for information-structure comparison.
+
+**Implementation Evidence**
+- Local URL: `http://localhost:8790/destiny`.
+- Production URL: `https://umsh.kr/destiny`.
+- Production deployment: `dpl_3S9rqZzS3ax3UyoLdVLL6Ypbua51`.
+- Final mobile screenshot: `C:\Users\user\Desktop\chungi-t\tmp\product-design-audit-2026-09-01\08-umsh-destiny-mobile-no-toast.png`.
+- Structure comparison image: `C:\Users\user\Desktop\chungi-t\tmp\product-design-audit-2026-09-01\09-reference-vs-umsh-destiny.png`.
+
+**Required UX Surfaces**
+- Bottom navigation is exactly `홈 / 운명록 / 검색 / 보관함 / MY`.
+- `운명록` is a dedicated personal saju detail page, not a bottom sheet.
+- The page includes profile identity, day-pillar tags, section tabs, four-pillar cards, core interpretation, stars/tags, relation interactions, daewoon timeline, saved reports, share CTA, and new-record CTA.
+- Existing UMSH assets are used: `chungi-manseryeok-bg.webp` and `chungi-destiny-card-bg.webp`.
+
+**Checks**
+- `node --check 사주/js/destiny.js`: passed.
+- `node --check 사주/js/portal.js`: passed.
+- `npm run typecheck`: passed.
+- `npm test`: passed, 41 tests.
+- `npm run vercel-build`: passed.
+- Production `/`, `/destiny`, `/css/destiny.css`, `/js/destiny.js`, `/assets/chungi-destiny-card-bg.webp`, `/api/health`: passed.
+- Browser console errors on `/destiny`: 0.
+- Mobile viewport `390x844`: bottom labels fit, no text overflow, no auto-toast over nav, first pillar card is fully above the fixed CTA.
+- Internal `운명록` tabs scroll to the correct sections.
+- `/#search` opens the home search bottom menu and marks `검색` active.
+- `/cmdg/#vault` opens the existing 풀이 보관함 sheet.
+
+**Intentional Differences From Reference**
+- TIGHT mascot/bright accent style was not copied. UMSH uses its black/gold/red fortune-shop identity and existing cinematic assets.
+- The reference's abstract `바이브` tab is translated into clearer information architecture: `원국 / 해석 / 신살·길성 / 합충 / 대운 / 보관`.
+- The fixed CTA is retained, but content spacing was tuned so the first 원국 card remains visible above it on mobile.
+
+final result: passed
+
 # Design QA: chungi-t MHTML Sample Image/Text Pass
 
 **Source Visual Truth**
@@ -25,7 +68,7 @@
 
 **Findings**
 - No remaining P0/P1/P2 findings.
-- P3: the sample text says `범산 도령이다`; implementation intentionally uses the project persona `천명대공(天命大公)이다`.
+- P3: the sample text says `범산 도령이다`; implementation intentionally uses the project persona `천명사주가다`.
 - P3: the source video is a tall autoplay teaser, so the first section now renders as a real muted autoplay video instead of a short native-controls strip.
 
 **Required Fidelity Surfaces**
@@ -36,7 +79,7 @@
 - Copy and content: 34 text blocks were checked; 34/34 were non-empty and rendered. Result flow also keeps the LLM 상담 CTA.
 
 **Comparison History**
-- Previous state: top started with the old `천명대공(天命大公)` header/person background instead of the MHTML sample.
+- Previous state: top started with the old `천명사주` header/person background instead of the MHTML sample.
 - Iteration 1: replaced top with video/title/fan order and inserted source image sections.
 - Iteration 2: changed video to `preload="none"` so the first view showed black native controls.
 - Iteration 3: increased intro height so the next speech bubble appears only at the bottom edge.

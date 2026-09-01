@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import app from '../src/server/app.js'
 
 const forwardedPathParam = '__umsh_path'
+const functionPathPrefix = '/api/index'
 
 type VercelRequest = IncomingMessage & {
   query?: Record<string, string | string[] | undefined>
@@ -19,10 +20,13 @@ function normalizeForwardedPath(path: string | undefined): string {
 function restoreForwardedPath(req: VercelRequest): void {
   const currentUrl = new URL(req.url ?? '/', 'https://umsh.local')
   const forwardedPath = firstQueryValue(req.query?.[forwardedPathParam]) ?? currentUrl.searchParams.get(forwardedPathParam) ?? undefined
-  if (forwardedPath === undefined) return
+  if (forwardedPath === undefined && !currentUrl.pathname.startsWith(functionPathPrefix)) return
 
   currentUrl.searchParams.delete(forwardedPathParam)
-  req.url = `${normalizeForwardedPath(forwardedPath)}${currentUrl.search}`
+  const normalizedPath = forwardedPath === undefined
+    ? normalizeForwardedPath(currentUrl.pathname.slice(functionPathPrefix.length))
+    : normalizeForwardedPath(forwardedPath)
+  req.url = `${normalizedPath}${currentUrl.search}`
 }
 
 export default function handler(req: VercelRequest, res: ServerResponse) {

@@ -9,6 +9,7 @@ import type {
 } from '../types/index.js'
 import { ELEMENT_KO } from '../saju/analyzer-helpers.js'
 import { pillarLabel } from '../saju/calculator.js'
+import { normalizeReportCopy } from './copy-guide.js'
 
 interface QualityRule {
   id: string
@@ -59,9 +60,123 @@ const LOVE_THIS_YEAR_QUALITY_RULES: QualityRule[] = [
 
 const TONE_SIGNALS = ['흠', '보입니다', '그 이유', '좋은 말만', '위험', '조심', '시기적으로', '풀 방법', '경고', '흐름', '기운', '기준']
 const RISK_SIGNALS = ['좋은 말만', '위험', '방치', '조심', '돈구멍', '과속', '경고']
+const SPECIALIZED_SERVICE_KEYS = new Set([
+  'home_pungsu',
+  'money_save',
+  'work_move',
+  'work_job',
+  'marry_match',
+  'match_couple',
+  'love_mind',
+  'love_again',
+  'love_spouse',
+])
+
+const SPECIALIZED_SIGNALS: Record<string, string[]> = {
+  home_pungsu: ['주소', '현관', '거실', '침실', '주방', '욕실', '공간', '방향', '빛', '환기', '동선', '정리', '재배치', '생활'],
+  money_save: ['소비', '돈', '재성', '비겁', '수입', '지출', '저축', '습관', '관계 비용', '목표'],
+  work_move: ['이직', '퇴사', '직장', '회사', '대운', '세운', '관성', '조건', '계약', '전환', '지원', '면접'],
+  work_job: ['직업', '일', '직장', '관성', '식상', '적성', '업무', '결과물', '환경', '역량'],
+  marry_match: ['결혼', '궁합', '배우자궁', '배우자성', '합충', '생활', '책임', '갈등', '돈', '대운', '세운'],
+  match_couple: ['커플', '궁합', '일지', '오행', '끌림', '갈등', '회복', '연애', '약속', '거리'],
+  love_mind: ['상대', '마음', '궁합', '관계', '연락', '감정', '일지', '합충', '거리', '확인'],
+  love_again: ['재회', '이별', '상대', '세운', '궁합', '관계', '연락', '미련', '정리', '확인'],
+  love_spouse: ['배우자', '결혼', '배우자궁', '배우자성', '자미두수', '인연', '생활', '책임', '대운', '세운'],
+}
+
+const SPECIALIZED_ACTION_SIGNALS = ['확인', '기록', '정리', '대화', '약속', '기준', '살펴', '나누', '점검', '시도', '적어', '상한선', '재배치']
+const INTERNAL_COPY_TERMS = ['RAG', '코퍼스', '검색된 지식', '지식 블록']
 
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)))
+}
+
+function specializedCategoryLabel(serviceKey: string, category: string): string {
+  return `${serviceKey} ${category}`
+}
+
+function specializedSectionScore(
+  serviceKey: string,
+  section: SajuReportSection,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+): SajuReportQualityCategory {
+  const signals = SPECIALIZED_SIGNALS[serviceKey] ?? []
+  const text = `${specializedCategoryLabel(serviceKey, section.category)} ${section.classification} ${section.hook} ${section.ragTopics.join(' ')} ${section.interpretation}`
+  const paragraphCount = section.interpretation.split(/\n\s*\n/).filter(Boolean).length
+  const lengthScore = clampPercent(Math.min(100, (section.interpretation.length / 1200) * 100))
+  const structureScore = paragraphCount >= 6 ? 100 : paragraphCount >= 5 ? 82 : paragraphCount >= 3 ? 58 : 25
+  const signalHits = includesAny(text, signals)
+  const analysisHit = includesAny(text, analysisTerms(analysis))
+  const contextHit = includesAny(text, contextTerms(context))
+  const actionHit = includesAny(text, SPECIALIZED_ACTION_SIGNALS)
+  const internalTermCount = includesAny(section.interpretation, INTERNAL_COPY_TERMS)
+  const ragUsagePercent = clampPercent(
+    (section.ragTopics.length > 0 ? 45 : 0) +
+    (section.ragTopics.length >= 3 ? 20 : section.ragTopics.length >= 2 ? 12 : 0) +
+    (signalHits >= 3 ? 20 : signalHits > 0 ? 10 : 0) +
+    (analysisHit > 0 ? 15 : 0),
+  )
+  const corpusRelevancePercent = clampPercent(
+    (signalHits >= 5 ? 50 : signalHits >= 3 ? 38 : signalHits * 10) +
+    (section.category.trim() && section.classification.trim() ? 20 : 0) +
+    (contextHit > 0 ? 15 : 0) +
+    (analysisHit > 0 ? 15 : 0),
+  )
+  const toneGroundingPercent = clampPercent(
+    structureScore * 0.28 +
+    lengthScore * 0.42 +
+    (actionHit > 0 ? 18 : 0) +
+    (internalTermCount === 0 ? 14 : 0),
+  )
+  const llmGroundingPercent = section.generatedBy === 'openai'
+    ? clampPercent((section.interpretation.length >= 1000 ? 45 : 25) + (paragraphCount >= 6 ? 25 : 10) + (analysisHit > 0 ? 20 : 0) + (contextHit > 0 ? 10 : 0))
+    : 0
+  const completenessBase = (
+    ragUsagePercent * 0.22 +
+    corpusRelevancePercent * 0.25 +
+    toneGroundingPercent * 0.38 +
+    (section.generatedBy === 'openai' ? llmGroundingPercent * 0.15 : (actionHit > 0 ? 15 : 7.5))
+  )
+  const completenessPercent = clampPercent(
+    Math.min(section.generatedBy === 'openai' ? 100 : 82, completenessBase),
+  )
+
+  return {
+    id: section.id,
+    label: section.classification,
+    ragUsagePercent,
+    corpusRelevancePercent,
+    toneGroundingPercent,
+    llmGroundingPercent,
+    completenessPercent,
+    sectionIds: [section.id],
+    evidence: [
+      `분류 신호 ${signalHits}/${Math.max(1, signals.length)}`,
+      `RAG topics ${section.ragTopics.length}`,
+      `명식 근거 ${analysisHit}`,
+      contextHit > 0 ? `사용자 맥락 ${contextHit}` : '사용자 맥락 직접 반영 약함',
+      actionHit > 0 ? `행동 기준 ${actionHit}` : '행동 기준 약함',
+      internalTermCount === 0 ? '내부 용어 미노출' : `내부 용어 ${internalTermCount}건`,
+    ],
+  }
+}
+
+function evaluateSpecializedReportQuality(
+  report: SajuReport,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+): SajuReportQuality {
+  const serviceKey = context.serviceKey ?? ''
+  const categories = report.sections.map((section) => specializedSectionScore(serviceKey, section, analysis, context))
+  return {
+    overallPercent: clampPercent(avg(categories.map((category) => category.completenessPercent))),
+    ragUsagePercent: clampPercent(avg(categories.map((category) => category.ragUsagePercent))),
+    corpusRelevancePercent: clampPercent(avg(categories.map((category) => category.corpusRelevancePercent))),
+    toneGroundingPercent: clampPercent(avg(categories.map((category) => category.toneGroundingPercent))),
+    llmGroundingPercent: clampPercent(avg(categories.map((category) => category.llmGroundingPercent))),
+    categories,
+  }
 }
 
 function avg(values: number[]): number {
@@ -192,6 +307,9 @@ export function evaluateReportQuality(
   analysis: SajuAnalysis,
   context: SajuReportContext = {},
 ): SajuReportQuality {
+  if (context.serviceKey && SPECIALIZED_SERVICE_KEYS.has(context.serviceKey)) {
+    return evaluateSpecializedReportQuality(report, analysis, context)
+  }
   const rules = context.serviceKey === 'love_this_year' ? LOVE_THIS_YEAR_QUALITY_RULES : QUALITY_RULES
   const categories = rules.map((rule) => scoreCategory(rule, report, analysis, context))
 
@@ -203,4 +321,14 @@ export function evaluateReportQuality(
     llmGroundingPercent: clampPercent(avg(categories.map((category) => category.llmGroundingPercent))),
     categories,
   }
+}
+
+export function finalizeSpecializedReport(
+  report: SajuReport,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+): SajuReport {
+  const normalized = normalizeReportCopy(report)
+  normalized.quality = evaluateReportQuality(normalized, analysis, context)
+  return normalized
 }

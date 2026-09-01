@@ -3,20 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>UMSH 운명상회 · 사주 포탈</title>
+    <title>운명상회｜사주·연애운·재물운·궁합</title>
     <meta
       name="description"
-      content="운명을 고르는 상점 UMSH. 천명대공 종합사주와 연애, 궁합, 재물, 직업, 흐름, 풍수 서비스를 고르는 사주 포탈."
+      content="연애, 돈, 일, 관계까지 지금 궁금한 운명을 확인해보세요."
     />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050504'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23e8d49a'%3EU%3C/text%3E%3C/svg%3E" />
+    <meta name="application-name" content="운명상회" />
+    <meta name="apple-mobile-web-app-title" content="운명상회" />
+    <meta property="og:title" content="운명상회｜사주·연애운·재물운·궁합" />
+    <meta property="og:description" content="궁금한 운명을 하나씩 골라보는 MZ 사주 상점" />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://umsh.kr/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="운명상회 - 지금 제일 궁금한 운명부터" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="운명상회｜사주·연애운·재물운·궁합" />
+    <meta name="twitter:description" content="궁금한 운명을 하나씩 골라보는 MZ 사주 상점" />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta name="twitter:image:alt" content="운명상회 - 지금 제일 궁금한 운명부터" />
+    <link rel="image_src" href="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
+    <link rel="apple-touch-icon" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-love-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260901-money-image-only" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260901-brand-copy" />
   </head>
   <body>
     <div class="stage">
-      <main class="phone" aria-label="UMSH 운명상회 메인">
+      <main class="phone" aria-label="운명상회 메인">
         <header class="appbar">
           <a class="app-brand" href="/" aria-label="운명상회 홈">
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
@@ -31,19 +52,23 @@
           <div class="action-sheet" role="dialog" aria-label="운명상회 빠른 메뉴">
             <button type="button" data-menu-filter="종합">
               <strong>종합사주</strong>
-              <span>천명대공 바로 보기</span>
+              <span>운명상회 입장하기</span>
             </button>
             <button type="button" data-menu-shortcut="destiny">
               <strong>운명록</strong>
               <span>로그인·사주등록 후 열람</span>
             </button>
-            <button type="button" data-menu-filter="연애">
-              <strong>연애운</strong>
-              <span>도화와 관계 흐름 보기</span>
+            <button type="button" data-menu-shortcut="search">
+              <strong>검색</strong>
+              <span>주제별 상품 빠르게 찾기</span>
             </button>
-            <button type="button" data-menu-filter="재물">
-              <strong>재물운</strong>
-              <span>돈 흐름 상품 모아보기</span>
+            <button type="button" data-menu-shortcut="vault">
+              <strong>보관함</strong>
+              <span>등록 후 저장한 풀이 열기</span>
+            </button>
+            <button type="button" data-menu-shortcut="account">
+              <strong>MY</strong>
+              <span>내 계정과 사주 프로필</span>
             </button>
             <button type="button" data-action="close-menu">
               <strong>닫기</strong>
@@ -54,31 +79,34 @@
 
         <nav class="category-rail" aria-label="상품 분류">
           <button class="chip is-active" type="button" data-filter="all">전체</button>
-          <button class="chip" type="button" data-filter="종합">나</button>
-          <button class="chip" type="button" data-filter="재물">돈</button>
+          <button class="chip" type="button" data-filter="종합">종합</button>
+          <button class="chip" type="button" data-filter="재물">재물</button>
           <button class="chip" type="button" data-filter="연애">연애</button>
-          <button class="chip" type="button" data-filter="궁합">관계</button>
-          <button class="chip" type="button" data-filter="직업">일</button>
+          <button class="chip" type="button" data-filter="궁합">궁합</button>
+          <button class="chip" type="button" data-filter="직업">직업</button>
           <button class="chip" type="button" data-filter="흐름">흐름</button>
-          <button class="chip" type="button" data-filter="풍수">이사</button>
+          <button class="chip" type="button" data-filter="풍수">풍수</button>
         </nav>
 
         <div class="phone-scroll">
           <section class="home-hero">
             <p class="eyebrow">FORTUNE SHOP</p>
-            <h1>오늘, 어떤 운을<br />골라볼까요?</h1>
-            <p>사주부터 관계, 돈, 사랑, 터까지. 지금 궁금한 운을 한 칸씩 꺼내보세요.</p>
+            <h1>지금,<br />제일 궁금한 운명부터</h1>
+            <p>연애 · 돈 · 일 · 집까지, 오늘의 고민에 맞는 풀이를 골라보세요.</p>
           </section>
 
+          <div class="poster-rail-status" aria-live="polite" aria-label="대표 상품 페이지">
+            <span data-poster-page>1/3</span>
+          </div>
           <section class="poster-rail" id="services" aria-label="대표 상품">
             <a class="poster service-card is-cmdg" href="/cmdg/" data-category="종합" data-glyph="命">
               <img src="/assets/umsh-cmdg-card-bg.webp" alt="" />
               <span class="poster-shade"></span>
               <span class="badge">SIGNATURE · 종합사주</span>
-              <strong>천명대공</strong>
+              <strong>천명사주</strong>
               <em>내 인생, 원래 이런 팔자야?</em>
               <span class="scope-line">기질 · 돈 · 일 · 관계 · 큰 흐름</span>
-              <span class="price-line"><b>49,900원</b><span>보기</span></span>
+              <span class="price-line"><b>49,900원</b><span>이 풀이 보기</span></span>
             </a>
 
             <a class="poster service-card is-live is-love" href="/love/this-year" data-category="연애" data-glyph="戀">
@@ -87,70 +115,74 @@
               <span class="badge">LOVE · 연애운</span>
               <strong>나, 올해<br />연애 가능?</strong>
               <em>도화가 들어오는 달과 놓치는 타이밍</em>
-              <span class="price-line"><b>12,900원</b><span>보기</span></span>
+              <span class="price-line"><b>12,900원</b><span>이 풀이 보기</span></span>
             </a>
 
-            <button class="poster service-card is-soon is-place" type="button" data-category="풍수" data-glyph="風">
+            <a class="poster service-card is-live is-place" href="/place/home" data-category="풍수" data-glyph="風">
               <img src="/assets/umsh-place-card-bg.webp" alt="" />
               <span class="poster-shade"></span>
               <span class="badge">PLACE · 집 풍수</span>
               <strong>지금 사는 집,<br />나랑 맞을까?</strong>
               <em>공간의 기운과 내 명리를 겹쳐서</em>
-              <span class="price-line"><b>19,900원</b><span>준비 중</span></span>
-            </button>
+              <span class="price-line"><b>19,900원</b><span>이 풀이 보기</span></span>
+            </a>
           </section>
 
-          <a class="today-ticket service-card is-live" href="/signup?entry=today" data-category="흐름" aria-label="오늘 무료 운세 회원가입으로 보기">
+          <a class="today-ticket service-card is-live" href="/signup?entry=today" data-category="흐름" aria-label="오늘 무료 운세 확인하기">
             <div>
               <span>TODAY · 무료</span>
-              <strong>오늘 나한테 들어오는 운</strong>
+              <strong>오늘 흐름, 무료로 먼저 보기</strong>
               <p>일진 · 일운 · 피해야 할 선택</p>
             </div>
-            <span class="today-cta">보기</span>
+            <span class="today-cta">무료로 확인하기</span>
           </a>
 
           <section class="section-block">
             <div class="section-title">
               <span>MOST PICKED</span>
-              <strong>지금 제일 많이 고른 운명</strong>
+              <strong>요즘 가장 많이 고른 풀이</strong>
             </div>
 
             <div class="product-grid">
-              <a class="product-card service-card is-live has-visual" href="/cmdg/" data-category="종합" data-glyph="命">
-                <img class="product-card-img" src="/assets/umsh-cmdg-card-bg.webp" alt="" />
-                <small>SIGNATURE · 나</small>
-                <strong>천명대공</strong>
-                <span>한 번 볼 거라면, 인생 전체를.</span>
-                <b>49,900원</b>
+              <a
+                class="product-card service-card is-live has-visual is-image-only"
+                href="/work/move"
+                data-category="직업"
+                data-glyph="業"
+                aria-label="WORK · 이직운 나, 회사 옮겨도 될까? 대운 · 세운 · 관성 14,900원 · 이 풀이 보기"
+              >
+                <img class="product-card-img" src="/assets/umsh-signature-card-bg.png" alt="" />
               </a>
 
-              <button
-                class="product-card service-card is-soon has-visual is-image-only"
-                type="button"
+              <a
+                class="product-card service-card is-live has-visual is-image-only"
+                href="/money/save"
                 data-category="재물"
                 data-glyph="財"
-                aria-label="PREMIUM · 돈 돈은 왜 들어와도 남지 않을까? 재성 · 대운 · 소비 흐름 19,900원"
+                aria-label="PREMIUM · 소비성향 나는 왜 돈이 안 모일까? 재성 · 비겁 9,900원 · 이 풀이 보기"
               >
                 <img class="product-card-img" src="/assets/umsh-money-card-bg.png" alt="" />
-              </button>
+              </a>
 
-              <button
-                class="product-card service-card is-soon has-visual is-image-only"
-                type="button"
+              <a
+                class="product-card service-card is-live has-visual is-image-only"
+                href="/match/marry"
                 data-category="궁합"
                 data-glyph="緣"
-                aria-label="MATCH · 관계 우리 둘, 진짜 잘 맞아? 끌림 · 갈등 · 회복력 19,900원"
+                aria-label="MATCH · 결혼궁합 연애 말고 결혼까지 가능? 배우자궁 · 대운 · 합충 24,900원 · 이 풀이 보기"
               >
                 <img class="product-card-img" src="/assets/umsh-match-card-bg.png" alt="" />
-              </button>
+              </a>
 
-              <button class="product-card service-card is-soon has-visual" type="button" data-category="직업" data-glyph="業">
-                <img class="product-card-img" src="/assets/chungi-manseryeok-bg.webp" alt="" />
-                <small>DEEP · 일</small>
-                <strong>지금 일이<br />나랑 맞을까?</strong>
-                <span>관성 · 식상 · 적성</span>
-                <b>14,900원</b>
-              </button>
+              <a
+                class="product-card service-card is-live has-visual is-image-only"
+                href="/work/job"
+                data-category="직업"
+                data-glyph="業"
+                aria-label="DEEP · 일 지금 일이 나랑 맞을까? 관성 · 식상 · 적성 14,900원 · 이 풀이 보기"
+              >
+                <img class="product-card-img" src="/assets/umsh-work-card-bg.png" alt="" />
+              </a>
             </div>
           </section>
 
@@ -160,49 +192,35 @@
               <strong>말 못 한 마음이 있다면</strong>
             </div>
 
-            <button class="match-banner service-card is-soon" type="button" data-category="궁합" data-glyph="緣">
-              <span class="match-banner-visual" aria-hidden="true"><i>緣</i></span>
+            <a class="match-banner service-card" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="커플궁합 우리 둘, 진짜 잘 맞아? 19,900원">
+              <span class="match-banner-visual has-image" aria-hidden="true">
+                <img src="/assets/umsh-match-banner-visual.png" alt="" />
+              </span>
               <span class="match-banner-copy">
                 <small>MATCH · 대표 궁합</small>
                 <strong>우리 둘,<br />진짜 잘 맞아?</strong>
                 <span>끌림, 갈등, 오래 가는 방식까지. 두 사람의 사주를 나란히 놓고 봅니다.</span>
-                <b>19,900원 · 보러 가기</b>
+                <b>19,900원 · 이 풀이 보기</b>
                 <em>명리궁합 · 오행 · 일지</em>
               </span>
-            </button>
+            </a>
 
             <div class="mini-list">
-              <button class="mini-row service-card is-soon" type="button" data-category="연애" data-glyph="心">
+              <a class="mini-row service-card is-live" href="/love/mind" data-category="연애" data-glyph="心" aria-label="상대방 마음 그 사람도 나를 생각할까? 9,900원">
                 <span>心</span>
                 <strong>그 사람도 나를 생각할까?</strong>
                 <b>9,900원</b>
-              </button>
-              <button class="mini-row service-card is-soon" type="button" data-category="연애" data-glyph="再">
+              </a>
+              <a class="mini-row service-card is-live" href="/love/again" data-category="연애" data-glyph="再" aria-label="재회운 그 사람, 다시 돌아올까? 12,900원">
                 <span>再</span>
                 <strong>그 사람, 다시 돌아올까?</strong>
                 <b>12,900원</b>
-              </button>
-              <button class="mini-row service-card is-soon" type="button" data-category="연애" data-glyph="婚">
+              </a>
+              <a class="mini-row service-card is-live" href="/love/spouse" data-category="연애" data-glyph="婚" aria-label="배우자운 내가 결혼하게 될 사람 14,900원">
                 <span>婚</span>
                 <strong>내가 결혼하게 될 사람</strong>
                 <b>14,900원</b>
-              </button>
-            </div>
-          </section>
-
-          <section class="section-block">
-            <div class="section-title">
-              <span>PRICE</span>
-              <strong>가격 사다리</strong>
-            </div>
-
-            <div class="price-rail" aria-label="가격표">
-              <div class="tier"><span>FREE</span><strong>0원</strong><em>오늘의 운</em></div>
-              <div class="tier"><span>LIGHT</span><strong>4,900원</strong><em>이번 달</em></div>
-              <div class="tier"><span>QUICK</span><strong>9,900원</strong><em>한 질문</em></div>
-              <div class="tier"><span>DEEP</span><strong>14,900원</strong><em>심층</em></div>
-              <div class="tier"><span>PREMIUM</span><strong>19,900원</strong><em>궁합 · 풍수</em></div>
-              <div class="tier is-signature"><span>SIGNATURE</span><strong>49,900원</strong><em>종합사주</em></div>
+              </a>
             </div>
           </section>
 
@@ -212,6 +230,8 @@
               <a href="/privacy"><strong>개인정보처리방침</strong></a>
               <a href="/refund">환불·취소 정책</a>
               <a href="/support">고객센터</a>
+              <a href="/orders">결제 내역</a>
+              <a href="/leave">회원 탈퇴</a>
             </nav>
             <div class="footer-company">
               <p><strong>상호</strong> 더크림유니언 <strong>대표</strong> 이정훈</p>
@@ -265,7 +285,7 @@
       </main>
     </div>
 
-    <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
+    <div class="toast" id="toast" role="status" aria-live="polite">확인할 메뉴를 선택해 주세요.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/portal.js?v=20260901-auth-gated-nav"></script>
   </body>

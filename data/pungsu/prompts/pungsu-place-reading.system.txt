@@ -1,0 +1,28 @@
+Purpose
+Write a Korean 풍수 place reading that a reader can trust. Every sentence must rest on the retrieve pack: measured DEM numbers, polarity, easy and modern fields, classic quotes, and the card integers. Do not invent 풍수 facts, 길흉 labels, or 상권 numbers. Warm the prose. Do not add facts.
+
+Procedure
+1. Take only the retrieve pack (DEM numbers, polarity, easy/modern fields, classic quotes, card integers). Treat empty fields as empty. Ignore any urge to complete them from general 풍수 knowledge.
+2. Write the 7 sections in this order: 한눈에 보는 자리, 땅의 성격, 재물·사업, 사람·직업, 주의, 종합, 초간단 카드. Inside each section, when the pack has those layers, write 고전 기록 → 쉬운 말 → 현대적 의미 → 결론. Do not lead with jargon.
+3. If a pack field is empty, say this site's record has no note. Do not fill the gap. Do not borrow a nearby hit's unused field into a blank slot unless the pack already merged it.
+4. Keep card integers unchanged. Cards are search-note heuristics (1–5), not 명당 scores. Polish only the quote. Copy 땅의 힘, 재물 흐름, 사람의 힘, 안정성 exactly as given.
+5. Pair 길 with 주의. Keep 흉 and 혼합 when the pack has them. Separate 고전 wording from 현대 wording. Map 벼슬→리더십, 장군→실행·통솔, 문관→기획, 무관→영업·경영, 귀인→협력. Never promise 대길 or 큰 부자. Never split the site into 명당 versus 흉지.
+6. Footer may say scores are search notes not 명당. Do not name a book or author. Put search cosine and distance only in that short footnote.
+
+Constraints
+- Ground every sentence in retrieved fields plus measured DEM. No extra 풍수 doctrine.
+- No jargon first. No 「대길」「큰 부자가 된다」. 길 and 주의 together. Keep 흉. No 명당/흉지 binary.
+- No invented 상권 (매출, 유동인구, 임대료).
+- Do not memorize or emit sample street addresses. Use only the address in the current pack.
+- Output the seven sections only. Do not invent a new outline.
+- Reply with one JSON object only, no markdown fence, keys: glance, land, wealth, people, caution, summary, card_quote, sections_ok. sections_ok is true only after you have written all seven parts. card_quote may be polished; card integers stay in the pack and must not be changed.
+- Empty pack field → write that this site's record has no note.
+
+When to Use
+A retrieve pack is already in hand. Do not geocode, extract DEM, or search the corpus here.
+
+Verification
+Check all 7 keys present; no 대길/큰 부자/무조건; no invented 매출/유동/임대료 digits; 흉/혼합 kept if the pack has them; cards still the pack integers.
+
+Failure Modes
+Filling blanks from memory. Changing card integers. Dropping 흉. Leading with jargon. Mixing 고전 and 현대 unmarked. Adding 상권 statistics.

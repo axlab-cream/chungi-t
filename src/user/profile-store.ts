@@ -306,6 +306,36 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
   return rowToProfile(result.rows[0])
 }
 
+export async function deleteUserBirthProfile(owner: ReportOwner): Promise<boolean> {
+  if (storageMode() === 'memory') {
+    return memoryProfiles.delete(owner.id)
+  }
+
+  if (storageMode() === 'supabase') {
+    if (!owner.accessToken) return false
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('user_id', `eq.${owner.id}`)
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        ...supabaseHeaders(owner.accessToken),
+        prefer: 'return=representation',
+      },
+    })
+    if (!response.ok) {
+      const message = await response.text().catch(() => '')
+      throw new Error(message || 'Supabase 사주 프로필 삭제에 실패했습니다.')
+    }
+    const rows = await response.json().catch(() => []) as unknown[]
+    return rows.length > 0
+  }
+
+  if (!pool) return false
+  await ensureDb()
+  const result = await pool.query('DELETE FROM cheongi_user_profiles WHERE user_id = $1', [owner.id])
+  return Number(result.rowCount ?? 0) > 0
+}
+
 export function getUserProfileStorageMode(): ReportStorageMode {
   return storageMode()
 }

@@ -11,6 +11,8 @@ import type {
   HiddenStemInfo,
   ClimateBalanceInfo,
   SajuAnalysis,
+  SajuFeatureJson,
+  SajuReportContext,
   SajuInteraction,
   SajuPreview,
   TenGod,
@@ -438,8 +440,104 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
   }
 }
 
-export function formatSajuForPrompt(analysis: SajuAnalysis): string {
-  return `<personal_saju>\n${analysis.summary}\n\n일간 조언: ${analysis.dayMasterAdvice}\n</personal_saju>`
+export function buildSajuFeatureJson(
+  analysis: SajuAnalysis,
+  context?: SajuReportContext,
+): SajuFeatureJson {
+  const p = analysis.fourPillars
+  return {
+    calculation: {
+      pillars: {
+        year: pillarLabel(p.year),
+        month: pillarLabel(p.month),
+        day: pillarLabel(p.day),
+        hour: pillarLabel(p.hour),
+      },
+      dayMaster: analysis.dayMaster,
+      dayMasterElement: analysis.dayMasterElement,
+      dayMasterStrength: analysis.dayMasterStrength,
+      dayBoundaryRule: analysis.manseryeok?.dayBoundaryRule,
+    },
+    balance: {
+      elementCount: analysis.elementCount,
+      weightedElements: analysis.manseryeok?.weightedElements,
+      dominantElement: analysis.dominantElement,
+      weakElement: analysis.weakElement,
+      usefulElement: analysis.usefulGod,
+      climate: analysis.manseryeok?.climate
+        ? {
+            season: analysis.manseryeok.climate.season,
+            temperature: analysis.manseryeok.climate.temperature,
+            moisture: analysis.manseryeok.climate.moisture,
+            usefulElements: analysis.manseryeok.climate.usefulElements,
+            cautionElements: analysis.manseryeok.climate.cautionElements,
+          }
+        : undefined,
+      flowBridges: analysis.manseryeok?.flowBridges.map((bridge) => ({
+        conflict: bridge.conflict,
+        bridge: bridge.bridge,
+        strength: bridge.strength,
+      })) ?? [],
+    },
+    relationshipSignals: {
+      tenGods: analysis.tenGods,
+      placements: analysis.manseryeok?.tenGodPlacements ?? [],
+      interactions: analysis.manseryeok?.interactions ?? [],
+      gyeokguk: analysis.manseryeok?.gyeokguk
+        ? {
+            name: analysis.manseryeok.gyeokguk.name,
+            basis: analysis.manseryeok.gyeokguk.basis,
+            tenGod: analysis.manseryeok.gyeokguk.tenGod,
+            confidence: analysis.manseryeok.gyeokguk.confidence,
+          }
+        : undefined,
+    },
+    timing: analysis.fortune
+      ? {
+          currentYear: analysis.fortune.currentYear,
+          yearPillar: analysis.fortune.yearPillar,
+          currentDaewoon: analysis.fortune.currentDaewoon,
+          direction: analysis.fortune.direction,
+          startAge: analysis.fortune.startAge,
+        }
+      : undefined,
+    userContext: context,
+    guardrails: {
+      dataPriority: [
+        'calculation',
+        'timing',
+        'interpretation_rules',
+        'rag_knowledge_blocks',
+        'style_corpus',
+      ],
+      copyRule: 'Feature JSON is factual input. RAG blocks are judgment hints. Final user copy must be newly written in everyday language.',
+      forbiddenClaims: [
+        '확정 예언',
+        '투자 수익 보장',
+        '질병 진단',
+        '법률 판단',
+        '코퍼스 개인 사례 복사',
+      ],
+    },
+  }
+}
+
+export function formatSajuForPrompt(
+  analysis: SajuAnalysis,
+  context?: SajuReportContext,
+): string {
+  return [
+    '<personal_saju>',
+    '<calculation_summary>',
+    analysis.summary,
+    '',
+    `일간 조언: ${analysis.dayMasterAdvice}`,
+    '</calculation_summary>',
+    '<feature_json>',
+    JSON.stringify(buildSajuFeatureJson(analysis, context), null, 2),
+    '</feature_json>',
+    '</personal_saju>',
+  ].join('\n')
 }
 
 export { STEM_ELEMENT, ELEMENT_KO, STEM_KO, BRANCH_KO }

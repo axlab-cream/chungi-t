@@ -11,13 +11,15 @@ import type {
 } from '../types/index.js'
 import { chatWithOpenAI } from '../llm/openai-adapter.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
+import { buildSajuFeatureJson } from '../saju/analyzer.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { evaluateReportQuality } from './report-quality.js'
+import { consumerHook, normalizeReportCopy, normalizeUserCopy } from './copy-guide.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 const CHEONMYEONG_TONE_GUIDE = [
-  '천명대공(天命大公)은 조선 후기의 노련한 관상가·명리학자 같은 말투로 말합니다.',
+  '천명사주는 조선 후기의 노련한 관상가·명리학자 같은 말투로 말합니다.',
   '직접 부를 때는 "자네", 강조할 때는 "자네 말이야", 큰 운명을 짚을 때는 "자네라는 사람은..."을 씁니다.',
   '점괘를 설명할 때는 주어를 자주 생략하고, 같은 호칭을 문장마다 반복하지 않습니다.',
   '문장 끝은 "~하게", "~일세", "~군", "~보게", "~걸세"를 중심으로 씁니다.',
@@ -866,13 +868,13 @@ function buildInterpretation(
     ].join('\n\n'),
     reportDepth: [
       `긴 리포트는 같은 말을 길게 늘리는 글이 아닐세. 명식 구조, 일간, 오행, 십신, 용신, ${contextLabel(context)}, 현재 고민, 대운과 세운, 재물, 직업, 연애, 인연, 시기와 장소를 각각 다른 근거로 쌓아야 하네.`,
-      `95점짜리 풀이가 되려면 각 장마다 세 가지가 들어가야 하네. 첫째, 실제 사주 근거. 둘째, 사용자가 선택한 대상·관계·일상 상태와의 연결. 셋째, 지금 당장 볼 수 있는 행동 기준일세. 여기에 격국·조후·통관과 RAG 코퍼스 근거가 같이 붙어야 말이 그럴듯한 수준에서 끝나지 않네.`,
+      `95점짜리 풀이가 되려면 각 장마다 세 가지가 들어가야 하네. 첫째, 실제 사주 근거. 둘째, 사용자가 선택한 대상·관계·일상 상태와의 연결. 셋째, 지금 당장 볼 수 있는 행동 기준일세. 여기에 격국·조후·통관의 내부 근거와 생활 장면이 같이 붙어야 말이 그럴듯한 수준에서 끝나지 않네.`,
       `${ragLine} 그래서 이 리포트는 ${name}님을 한 문장으로 가두지 않고, 선택지마다 달라지는 해석의 초점을 따라가며 깊게 펼치는 구조로 설계되네.`,
     ].join('\n\n'),
     action: [
       `마지막으로 지금 붙잡아야 할 신호를 보겠네. ${name}님 사주에서 답은 거창한 결심보다 ${useful} 기운을 살리는 작은 반복에 있네. 강한 ${dominant}은 이미 충분하군. 이제는 부족한 ${weak}을 채워야 판이 안정되네.`,
       `${concern} 때문에 마음이 흔들린다면, 먼저 기준을 하나만 세워보게. 당장 모든 걸 바꾸려 하지 말고, 이번 달에 지킬 수 있는 약속 하나, 끊어낼 소비 하나, 정리할 관계 하나를 정하는 걸세. 사주는 방향을 보여주지만, 운을 붙드는 건 결국 반복일세.`,
-      `${ragLine} 천명대공(天命大公) 식으로 말하면 이렇네. 좋은 운은 기다리는 사람에게 오는 게 아니라, 들어왔을 때 담을 그릇을 만들어둔 사람에게 남는 법일세. 지금 ${name}님에게 필요한 건 더 많은 예언이 아니라, 이미 보이는 신호를 놓치지 않는 일일세.`,
+      `${ragLine} 천명사주 식으로 말하면 이렇네. 좋은 운은 기다리는 사람에게 오는 게 아니라, 들어왔을 때 담을 그릇을 만들어둔 사람에게 남는 법일세. 지금 ${name}님에게 필요한 건 더 많은 예언이 아니라, 이미 보이는 신호를 놓치지 않는 일일세.`,
     ].join('\n\n'),
   }
 
@@ -952,6 +954,7 @@ function reportPrompt(
   context: SajuReportContext,
   baseReport: SajuReport,
 ): LlmMessage[] {
+  const featureJson = buildSajuFeatureJson(analysis, context)
   const ragBySection = baseReport.sections
     .map((section) => {
       const chunks = retrieveRagChunks(
@@ -968,10 +971,13 @@ function reportPrompt(
     {
       role: 'system',
       content: [
-        '당신은 천명대공(天命大公) 사주 리포트 작성 엔진입니다.',
-        '입력된 사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 장문 풀이를 씁니다.',
-        '개인 사주 요약에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
-        'RAG는 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 해석합니다.',
+        '당신은 천명사주 사주 리포트 작성 엔진입니다.',
+        '작성 흐름은 명식 계산 → Feature JSON → RAG 검색 → Interpretation → User Copy입니다.',
+        '입력된 사주 기둥, 오행, 십신, 용신, 대운, 내부 지식 블록을 근거로 장문 풀이를 씁니다.',
+        'Feature JSON에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
+        '내부 지식 블록은 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 성향·실제 행동·위험·기회·조언으로 해석합니다.',
+        'serviceKey가 전용 서비스라면 그 서비스의 category/classification을 최우선 목차로 삼고, 일반 사주 풀이로 되돌리지 않습니다. 각 장의 질문에 직접 답합니다.',
+        '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
         CHEONMYEONG_TONE_GUIDE,
         '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
@@ -987,7 +993,7 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 전문용어 뒤에는 쉬운 설명을 붙이세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 격국·조후·통관·GBR로 올라온 RAG 주제가 있으면 해당 섹션의 근거로 녹이세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 전용 serviceKey라면 해당 상품의 category/classification을 직접 답하는 소비자용 목차로 유지하세요. 내부 지식 블록은 최종 문장이 아니라 판단 재료입니다. 전문용어는 꼭 필요할 때만 한 번 쓰고 즉시 사용자 언어로 번역하세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -1001,6 +1007,7 @@ function reportPrompt(
         },
         birth,
         context,
+        featureJson,
         sajuSummary: analysis.summary,
         baseReport,
         ragBySection,
@@ -1015,6 +1022,7 @@ function sectionPrompt(
   context: SajuReportContext,
   section: SajuReportSection,
 ): LlmMessage[] {
+  const featureJson = buildSajuFeatureJson(analysis, context)
   const chunks = retrieveRagChunks(
     `${section.category} ${section.classification} ${reportContextQuery(context)}`,
     analysis,
@@ -1025,11 +1033,14 @@ function sectionPrompt(
     {
       role: 'system',
       content: [
-        '당신은 천명대공(天命大公) 사주 리포트의 한 페이지를 작성합니다.',
+        '당신은 천명사주 사주 리포트의 한 페이지를 작성합니다.',
         '한 번에 전체 리포트를 쓰지 말고, 사용자가 선택한 현재 페이지 섹션만 작성합니다.',
-        '사주 기둥, 오행, 십신, 용신, 대운, RAG 지식을 근거로 하되 기계적으로 나열하지 않습니다.',
-        '격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
-        'RAG 주제는 문장 안에서 현재 고민, 선택지, 명식 근거와 연결해 사용합니다.',
+        '작성 흐름은 명식 계산 → Feature JSON → RAG 검색 → Interpretation → User Copy입니다.',
+        '사주 기둥, 오행, 십신, 용신, 대운, 내부 지식 블록을 근거로 하되 기계적으로 나열하지 않습니다.',
+        'Feature JSON의 격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
+        '내부 지식 블록은 문장 안에 복사하지 말고 현재 고민, 선택지, 명식 근거와 연결해 의미만 사용합니다.',
+        '전용 serviceKey라면 현재 상품의 category/classification 질문에 직접 답하고, 다른 상품의 일반적인 목차로 확장하지 않습니다.',
+        '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
         CHEONMYEONG_TONE_GUIDE,
         '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
@@ -1045,7 +1056,7 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 중학생도 이해할 수 있게 일간·십신·대운·용신 같은 용어는 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. RAG/코퍼스 근거가 실제 판단에 쓰였다는 느낌이 나야 합니다.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 복사하지 말고 의미만 뽑아 Feature JSON과 연결하세요. 일간·십신·대운·용신 같은 용어는 꼭 필요할 때만 한 번 쓰고 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
         outputShape: {
           id: section.id,
           hook: 'string',
@@ -1053,6 +1064,7 @@ function sectionPrompt(
         },
         birth,
         context,
+        featureJson,
         sajuSummary: analysis.summary,
         section,
         rag: formatRagForPrompt(chunks),
@@ -1085,7 +1097,7 @@ function mergeOpenAiReport(
     sections?: Array<{ id?: unknown; hook?: unknown; interpretation?: unknown }>
   }
   const generatedSections = Array.isArray(parsed.sections) ? parsed.sections : []
-  const sections = baseReport.sections.map((section) => {
+  const sections = baseReport.sections.map((section): SajuReportSection => {
     const next = generatedSections.find((item) => item.id === section.id)
     const hook = typeof next?.hook === 'string' && next.hook.trim() ? next.hook.trim() : section.hook
     const interpretation = typeof next?.interpretation === 'string' && next.interpretation.trim()
@@ -1096,6 +1108,9 @@ function mergeOpenAiReport(
       ...section,
       hook,
       interpretation,
+      generatedBy: 'openai',
+      model: REPORT_MODEL,
+      status: 'complete',
     }
   })
 
@@ -1107,8 +1122,9 @@ function mergeOpenAiReport(
     generatedBy: 'openai',
     sections,
   }
-  report.quality = evaluateReportQuality(report, analysis, context)
-  return report
+  const normalized = normalizeReportCopy(report)
+  normalized.quality = evaluateReportQuality(normalized, analysis, context)
+  return normalized
 }
 
 export async function buildOpenAiSajuReport(
@@ -1117,6 +1133,15 @@ export async function buildOpenAiSajuReport(
   context: SajuReportContext = {},
 ): Promise<SajuReport> {
   const baseReport = buildTemplateSajuReport(analysis, birth, context)
+  return buildOpenAiReportFromBase(analysis, birth, context, baseReport)
+}
+
+export async function buildOpenAiReportFromBase(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  context: SajuReportContext,
+  baseReport: SajuReport,
+): Promise<SajuReport> {
   const raw = await chatWithOpenAI(reportPrompt(analysis, birth, context, baseReport), {
     model: REPORT_MODEL,
     maxTokens: runtimeConfig.report?.maxTokens ?? 9000,
@@ -1140,10 +1165,19 @@ export async function buildOpenAiSajuReportSection(
 
   return {
     ...section,
-    hook: typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
-    interpretation: typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
-      ? parsed.interpretation.trim()
-      : section.interpretation,
+    hook: consumerHook(
+      section.classification,
+      typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
+      section.order,
+    ),
+    interpretation: normalizeUserCopy(
+      typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
+        ? parsed.interpretation.trim()
+        : section.interpretation,
+    ),
+    generatedBy: 'openai',
+    model: REPORT_MODEL,
+    status: 'complete',
   }
 }
 

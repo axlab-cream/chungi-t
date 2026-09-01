@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>이니시스 연결 테스트 · 운명상회</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  </head>
+  <body>
+    <main class="payment-page">
+      <section class="payment-shell" aria-labelledby="payment-test-title">
+        <p class="payment-eyebrow">KG INICIS · TEST MODE</p>
+        <h1 id="payment-test-title">결제창 연결 테스트</h1>
+        <p class="payment-intro">개발 환경 전용 화면입니다. 아래 승인 버튼은 실제 결제를 발생시키지 않습니다.</p>
+        <div class="payment-result" data-test-result>
+          <p data-test-status>테스트 주문을 확인하고 있습니다.</p>
+          <div class="payment-actions">
+            <button class="payment-submit" type="button" data-test-approve disabled>테스트 승인 처리</button>
+            <a href="/payment/close">창 닫기</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="/js/payment-test.js?v=20260901-inicis"></script>
+  </body>
+</html>

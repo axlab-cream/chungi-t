@@ -186,6 +186,64 @@ export interface SajuReportContext {
   }
 }
 
+export interface SajuFeatureJson {
+  calculation: {
+    pillars: {
+      year: string
+      month: string
+      day: string
+      hour: string
+    }
+    dayMaster: HeavenlyStem
+    dayMasterElement: Element
+    dayMasterStrength: SajuAnalysis['dayMasterStrength']
+    dayBoundaryRule?: DayBoundaryRule
+  }
+  balance: {
+    elementCount: ElementCount
+    weightedElements?: ElementCount
+    dominantElement: Element
+    weakElement: Element
+    usefulElement: Element | null
+    climate?: {
+      season: string
+      temperature: string
+      moisture: string
+      usefulElements: Element[]
+      cautionElements: Element[]
+    }
+    flowBridges: Array<{
+      conflict: [Element, Element]
+      bridge: Element
+      strength: number
+    }>
+  }
+  relationshipSignals: {
+    tenGods: TenGod[]
+    placements: TenGodPlacement[]
+    interactions: SajuInteraction[]
+    gyeokguk?: {
+      name: string
+      basis: string
+      tenGod: TenGod
+      confidence: number
+    }
+  }
+  timing?: {
+    currentYear: number
+    yearPillar: string
+    currentDaewoon: string
+    direction?: FortuneCycle['direction']
+    startAge?: number
+  }
+  userContext?: SajuReportContext
+  guardrails: {
+    dataPriority: string[]
+    copyRule: string
+    forbiddenClaims: string[]
+  }
+}
+
 export interface SajuReportSection {
   id: string
   order: number
@@ -271,6 +329,25 @@ export interface RagChunk {
   keywords: string[]
   content: string
   domain?: string
+  knowledge?: RagKnowledgeBlock
+  searchText?: string
+}
+
+export type RagKnowledgeConfidence = 'high' | 'medium' | 'low'
+
+export interface RagKnowledgeBlock {
+  id: string
+  topic?: string
+  keywords?: string[]
+  concept: string
+  condition: string
+  interpretation: string
+  real_world_pattern: string[]
+  risk: string
+  opportunity: string
+  advice: string
+  confidence: RagKnowledgeConfidence
+  forbidden_generalization: string
 }
 
 export interface ConversationTurn {

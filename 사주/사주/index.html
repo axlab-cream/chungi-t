@@ -3,8 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>천명대공(天命大公) · 사주</title>
-    <meta name="description" content="천명대공(天命大公) 몰입형 사주 상담" />
+    <title>운명상회｜사주·연애운·재물운·궁합</title>
+    <meta name="description" content="연애, 돈, 일, 관계까지 지금 궁금한 운명을 확인해보세요." />
+    <meta name="application-name" content="운명상회" />
+    <meta name="apple-mobile-web-app-title" content="운명상회" />
+    <meta property="og:title" content="운명상회｜사주·연애운·재물운·궁합" />
+    <meta property="og:description" content="궁금한 운명을 하나씩 골라보는 MZ 사주 상점" />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://umsh.kr/cmdg/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="운명상회 - 내 운명을 골라보는 곳" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="운명상회｜사주·연애운·재물운·궁합" />
+    <meta name="twitter:description" content="궁금한 운명을 하나씩 골라보는 MZ 사주 상점" />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <meta name="twitter:image:alt" content="운명상회 - 내 운명을 골라보는 곳" />
+    <link rel="image_src" href="https://umsh.kr/assets/umsh-share-banner.png?v=20260901-share-v3" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
+    <link rel="apple-touch-icon" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
     <style>
       @font-face {
         font-family: "Maru Buri";
@@ -3340,7 +3362,7 @@
       <div class="concern-video-shade" aria-hidden="true"></div>
 
       <header class="topbar">
-        <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="UMSH 운명상회 홈">
+        <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
           <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
         </a>
         <div class="topbar-actions">
@@ -3368,6 +3390,8 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/payment-bridge.js"></script>
     <script>
       const phone = document.querySelector(".phone");
       const stage = document.querySelector("#stage");
@@ -3396,6 +3420,12 @@
 
       const initialAuthParams = new URLSearchParams(location.search);
       const initialAuthEntry = initialAuthParams.get("authEntry") || initialAuthParams.get("entry") || "";
+      const requestedAuthReturnTo = initialAuthParams.get("returnTo");
+      const initialAuthReturnTo = requestedAuthReturnTo
+        ? window.UMSHCommonAuth?.resolveReturnTo(requestedAuthReturnTo) || ""
+        : initialAuthParams.get("signupReturn") === "1"
+          ? window.UMSHCommonAuth?.resolveReturnTo() || ""
+          : "";
       const LOVE_THIS_YEAR_SERVICE_KEY = "love_this_year";
       const pathServiceKey = /^\/love\/this-year(?:\/|\.html)?$/i.test(location.pathname)
         ? LOVE_THIS_YEAR_SERVICE_KEY
@@ -3412,7 +3442,7 @@
           title: "나, 올해 연애 가능?",
           eyebrow: "LOVE · 연애운",
           price: "12,900원",
-          cta: "운명상회 상담",
+          cta: "이 운명 확인하기",
           plan: "love-this-year",
           defaultConcern: "올해 새로운 연애가 들어오는 시기와 놓치기 쉬운 타이밍이 궁금해요.",
           defaultRelationship: "솔로예요",
@@ -3501,11 +3531,12 @@
       }
 
       function signupReturnUrl() {
+        if (initialAuthReturnTo && window.UMSHCommonAuth) {
+          return window.UMSHCommonAuth.oauthReturnUrl(initialAuthEntry, initialAuthReturnTo);
+        }
         const url = new URL("/cmdg/", location.origin);
         url.searchParams.set("signupReturn", "1");
-        if (initialAuthEntry) {
-          url.searchParams.set("entry", initialAuthEntry);
-        }
+        if (initialAuthEntry) url.searchParams.set("entry", initialAuthEntry);
         url.hash = initialAuthEntry === "today" ? "loading" : "name";
         return url.toString();
       }
@@ -3519,6 +3550,7 @@
         url.searchParams.delete("signupReturn");
         url.searchParams.delete("authEntry");
         url.searchParams.delete("entry");
+        url.searchParams.delete("returnTo");
         const nextUrl = `${url.pathname}${url.search}${url.hash}`;
         if (`${location.pathname}${location.search}${location.hash}` !== nextUrl) {
           history.replaceState(null, "", nextUrl);
@@ -3716,6 +3748,23 @@
         return todayEntryActive || sessionStorage.getItem(TODAY_ENTRY_KEY) === "1";
       }
 
+      function wantsProtectedProfileEntry() {
+        return protectedAuthEntries.has(initialAuthEntry);
+      }
+
+      function protectedEntryLabel() {
+        if (initialAuthEntry === "destiny") return "운명록";
+        if (initialAuthEntry === "vault") return "보관함";
+        if (initialAuthEntry === "my") return "MY";
+        return "해당 메뉴";
+      }
+
+      function protectedEntryTarget() {
+        if (initialAuthEntry === "destiny") return "/destiny";
+        if (initialAuthEntry === "vault") return "/cmdg/#vault";
+        return "";
+      }
+
       function currentService() {
         return SERVICE_CATALOG[state.serviceKey] || null;
       }
@@ -3776,23 +3825,6 @@
 
       function servicePathForCurrentPage() {
         return currentService()?.path || "/cmdg/";
-      }
-
-      function wantsProtectedProfileEntry() {
-        return protectedAuthEntries.has(initialAuthEntry);
-      }
-
-      function protectedEntryLabel() {
-        if (initialAuthEntry === "destiny") return "운명록";
-        if (initialAuthEntry === "vault") return "보관함";
-        if (initialAuthEntry === "my") return "MY";
-        return "해당 메뉴";
-      }
-
-      function protectedEntryTarget() {
-        if (initialAuthEntry === "destiny") return "/destiny";
-        if (initialAuthEntry === "vault") return "/cmdg/#vault";
-        return "";
       }
 
       function profileDateValue(birth = {}) {
@@ -4342,6 +4374,33 @@
         );
       }
 
+      function rememberPaidReportId(reportId) {
+        const trimmed = String(reportId || '').trim();
+        if (!trimmed) return;
+        const next = [trimmed, ...readPaidReportIds().filter((item) => item !== trimmed)].slice(0, 100);
+        localStorage.setItem(PAID_REPORTS_KEY, JSON.stringify(next));
+      }
+
+      async function completePaymentReturn() {
+        const query = new URLSearchParams(location.search);
+        if (query.get('paid') !== '1' || !query.get('orderId')) return;
+        const isLoveThisYear = location.pathname.replace(/\/+$/, '') === '/love/this-year';
+        const productKey = isLoveThisYear ? 'love_this_year' : 'cmdg';
+        const pendingKey = isLoveThisYear ? 'cheongi_pending_love_this_year_payment_report_id' : 'cheongi_pending_cmdg_payment_report_id';
+        const pendingReportId = sessionStorage.getItem(pendingKey) || '';
+        if (!pendingReportId) return;
+        const headers = await authHeaders();
+        if (!headers.Authorization) return;
+        const response = await fetch(`/api/payment/orders/${encodeURIComponent(query.get('orderId'))}`, { headers });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !['paid', 'viewed'].includes(payload.order?.status) || payload.order?.productKey !== productKey) return;
+        rememberPaidReportId(pendingReportId);
+        sessionStorage.removeItem(pendingKey);
+        const reportPath = isLoveThisYear ? '/love/this-year' : '/cmdg/';
+        history.replaceState(null, '', `${reportPath}?reportId=${encodeURIComponent(pendingReportId)}#result`);
+        await loadReportById(pendingReportId);
+      }
+
       function formatSavedAt(value) {
         const date = new Date(value || Date.now());
         if (Number.isNaN(date.getTime())) return "방금 전";
@@ -4544,7 +4603,7 @@
           <div class="settings-sheet" role="dialog" aria-modal="true" aria-label="설정">
             <div class="settings-head">
               <div>
-                <strong>천명대공(天命大公)</strong>
+                <strong>천명사주</strong>
                 <span>풀이 보관함</span>
               </div>
               <button class="icon-button" type="button" aria-label="설정 닫기" data-settings-close>
@@ -4880,7 +4939,14 @@
         }
         if (action === "pay-demo") {
           if (!state.privacyAgree || !state.paymentAgree) return showNudge("필수 동의를 먼저 체크해주세요.");
-          go("paymentReady");
+          const productKey = isLoveThisYearService() ? "love_this_year" : "cmdg";
+          const returnTo = isLoveThisYearService() ? "/love/this-year" : "/cmdg/";
+          if (productKey === "cmdg") {
+            sessionStorage.setItem('cheongi_pending_cmdg_payment_report_id', state.analysis?.report?.reportId || '');
+          } else {
+            sessionStorage.setItem('cheongi_pending_love_this_year_payment_report_id', state.analysis?.report?.reportId || '');
+          }
+          location.assign(`/payment?product=${encodeURIComponent(productKey)}&returnTo=${encodeURIComponent(returnTo)}`);
         }
         if (action === "restart") {
           clearTodayEntryPending();
@@ -4922,6 +4988,11 @@
           sessionStorage.removeItem(AUTH_PENDING_KEY);
           authGateMessage = "";
           if (state.scene === "login") {
+            if (initialAuthReturnTo) {
+              window.UMSHCommonAuth?.clearReturnTo();
+              location.href = "/";
+              return;
+            }
             if (isStandaloneSignupFlow()) {
               clearTodayEntryPending();
               location.href = "/";
@@ -5171,7 +5242,7 @@
       function sampleVideoMarkup(video = sampleVideo, shellClass = "") {
         return `
           <section class="sample-video-shell ${shellClass}" data-sample-section="video">
-            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천명대공(天命大公) 티저 영상">
+            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천명사주 티저 영상">
               ${video.webm ? `<source src="${video.webm}" type="video/webm" />` : ""}
               <source src="${video.mp4}" type="video/mp4" />
             </video>
@@ -5183,7 +5254,7 @@
         return `
           <section class="sample-intro-top ${sectionClass}" data-sample-section="sample-top">
             <img data-source-asset="introBg" alt="부채를 펼치는 손" class="sample-intro-bg" src="${introBg}" />
-            <h1 class="sample-intro-title">자네의 운명 실마리를 풀어줄<br /><span>천명대공일세.</span></h1>
+            <h1 class="sample-intro-title">자네의 운명 실마리를 풀어줄<br /><span>천명사주일세.</span></h1>
             ${sfxText ? `<div class="sample-sfx ${sfxClass}">${sfxText}</div>` : ""}
           </section>
         `;
@@ -5566,7 +5637,7 @@
               ${renderReportTocMarkup(sections, activeIndex)}
             </div>
             <div data-report-reader>
-              ${renderReportPageMarkup(section, activeIndex, sections.length, "", "천명대공(天命大公)이 이 장의 기운을 펼치는 중입니다")}
+              ${renderReportPageMarkup(section, activeIndex, sections.length, "", "천명사주가 이 장의 기운을 펼치는 중입니다")}
             </div>
           </section>
         `;
@@ -5707,7 +5778,7 @@
           return;
         }
 
-        showReportPageFrame(templateSection, "천명대공(天命大公)이 이 장의 기운을 펼치는 중입니다");
+        showReportPageFrame(templateSection, "천명사주가 이 장의 기운을 펼치는 중입니다");
         try {
           const generated = await fetchReportSection(templateSection);
           if (token !== state.reportRequestToken) return;
@@ -5887,8 +5958,8 @@
               '<h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸<br />자네만의 <span class="red">대분석</span></h2>'
             )}
             <div class="sample-enter">
-              <button class="primary-cta" type="button" data-action="enter">입장하기</button>
-              <p class="fineprint">천명대공(天命大公)의 대분석 흐름을 확인한 뒤, 입력 단계로 이어집니다.</p>
+              <button class="primary-cta" type="button" data-action="enter">운명상회 입장하기</button>
+              <p class="fineprint">천명사주의 대분석 흐름을 확인한 뒤, 입력 단계로 이어집니다.</p>
             </div>
             ${businessFooterMarkup()}
           </article>
@@ -5899,7 +5970,7 @@
         stage.innerHTML = `
           <div class="line-pill">붉은 등불이 켜지고, 안쪽에서 낮은 목소리가 들립니다</div>
           <div class="cta-frame">
-            <button class="primary-cta" type="button" data-action="look">조용히 안으로 들어가기</button>
+            <button class="primary-cta" type="button" data-action="look">운명상회 입장하기</button>
           </div>
           <button class="skip" type="button" data-action="skip">스토리 건너뛰기 &gt;</button>
         `;
@@ -6179,6 +6250,8 @@
           ? "오늘의 운을 보려면<br />먼저 가입해주세요"
           : wantsProtectedProfileEntry()
             ? `${protectedLabel}을 열려면<br />먼저 로그인해주세요`
+            : initialAuthReturnTo
+              ? "로그인 후<br />서비스를 이어갑니다"
             : isStandaloneSignupFlow()
               ? "회원가입 후<br />운을 열어보세요"
               : "먼저 가입하고<br />해석을 시작합니다";
@@ -6186,17 +6259,21 @@
           ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
           : wantsProtectedProfileEntry()
             ? `${protectedLabel}은 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
+            : initialAuthReturnTo
+              ? "운명상회 공통 계정으로 로그인하면 방금 열었던 서비스의 다음 단계로 자동 이동합니다."
             : isStandaloneSignupFlow()
               ? "소셜 계정으로 가입하면 오늘운, 운명록, 보관함을 같은 계정에서 이어서 볼 수 있습니다."
               : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
         const closeLabel = isStandaloneSignupFlow() ? "상회로 돌아가기" : "돌아가기";
         const benefitLabels = wantsProtectedProfileEntry()
           ? ["로그인 필수", "사주등록 필수", protectedLabel]
+          : initialAuthReturnTo
+            ? ["공통 로그인", "사주등록 연동", "이어서 보기"]
           : ["무료 오늘운", "풀이 보관", "30일 로그인 유지"];
         stage.innerHTML = `
           <section class="panel auth-card" role="dialog" aria-label="회원가입">
             <div class="auth-card-head">
-              <span class="auth-card-kicker">FORTUNE SHOP · SIGN UP</span>
+              <span class="auth-card-kicker">UMSH · 운명상회</span>
               <h2>${title}</h2>
               <p>${description}</p>
             </div>
@@ -6243,7 +6320,7 @@
             <div class="interpret-loader-card" role="status" aria-live="polite">
               <div class="interpret-orb" aria-hidden="true"></div>
               <div class="interpret-loader-copy">
-                <div class="line-pill">천명대공(天命大公)이 해석하고 있습니다</div>
+                <div class="line-pill">천명사주가 해석하고 있습니다</div>
                 <p>입력한 사주 기둥과 지금의 기운을 맞춰<br />자네에게만 열리는 풀이를 준비하네</p>
               </div>
               <div class="interpret-progress" aria-hidden="true"></div>
@@ -6694,7 +6771,7 @@
             </section>
 
             <section class="story-section" data-sample-section="package">
-              <span class="chapter">천명대공(天命大公) 상담</span>
+              <span class="chapter">천명사주 상담</span>
               <h2><span class="red">정통 사주</span> 깊은 풀이</h2>
               <div class="package-card">
                 <h3>${displayName}님 사주 기반 상담 구성</h3>
@@ -6707,27 +6784,27 @@
                 </ul>
                 <div class="price-slate" aria-label="복채 안내">
                   <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천명대공(天命大公) 상담 연결</span><span>-13,200원</span></div>
-                  <div class="price-line final"><span>지금 열기</span><span>49,800원</span></div>
+                  <div class="price-line"><span>천명사주 상담 연결</span><span>-13,200원</span></div>
+                  <div class="price-line final"><span>지금 열기</span><span>49,900원</span></div>
                 </div>
               </div>
             </section>
 
-            <section class="story-visual statement visual-fan image-only" data-sample-section="hesitation" aria-label="천명대공 해석 이미지"></section>
+            <section class="story-visual statement visual-fan image-only" data-sample-section="hesitation" aria-label="천명사주 해석 이미지"></section>
 
             <section class="story-section sub-result-text-band" data-sample-section="hesitation-bridge">
-              <p>천명대공의 시선</p>
+              <p>천명사주의 시선</p>
               <h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸 이야기</h2>
             </section>
 
             <section class="story-section center tall" data-sample-section="comparison">
               <span class="chapter">대분석의 기준</span>
               <h2 class="hero-line">한 해 운세가 아니라<br /><span class="red">인생의 구조</span>를 봅니다</h2>
-              <p>천명대공(天命大公) 풀이는 태어난 순간의 결, 지금의 질문, 앞으로의 흐름을 한 줄로 엮어 봅니다.</p>
+              <p>천명사주 풀이는 태어난 순간의 결, 지금의 질문, 앞으로의 흐름을 한 줄로 엮어 봅니다.</p>
               <div class="story-list">
                 <div class="story-list-item"><span class="red">사주 팔자</span>를 먼저 펼치고, 지금 고민이 왜 반복되는지 연결합니다.</div>
                 <div class="story-list-item">좋은 말만 늘어놓지 않고, 조심해야 할 방향도 같이 말합니다.</div>
-                <div class="story-list-item">상담 버튼을 누르면 천명대공(天命大公)이 같은 말투로 이어서 묻고 답합니다.</div>
+                <div class="story-list-item">상담 버튼을 누르면 천명사주가 같은 말투로 이어서 묻고 답합니다.</div>
               </div>
             </section>
 
@@ -6753,7 +6830,7 @@
               <span class="chapter">긴 풀이의 방향</span>
               <h2 class="hero-line">결코 짧게 끝낼 수 없는<br /><span class="red">대분석</span>입니다</h2>
               <p>하지만 여기서는 길게 늘어놓기보다, 먼저 ${displayName}님이 묻고 싶은 것을 바로 파고들겠습니다.</p>
-              <div class="story-callout">방금 본 천명대공(天命大公)의 흐름 그대로 상담이 이어집니다.</div>
+              <div class="story-callout">방금 본 천명사주의 흐름 그대로 상담이 이어집니다.</div>
             </section>
 
             <section class="story-section" data-sample-section="contents-list">
@@ -6777,7 +6854,7 @@
             <section class="story-section deep" data-sample-section="reviews">
               <span class="chapter">실제 상담 흐름</span>
               <h2>혼자 읽고 끝나는 풀이가 아닙니다</h2>
-              <p>결과를 읽다가 걸리는 문장이 생기면 바로 묻습니다. 천명대공(天命大公)이 같은 사주표를 붙잡고 이어서 봅니다.</p>
+              <p>결과를 읽다가 걸리는 문장이 생기면 바로 묻습니다. 천명사주가 같은 사주표를 붙잡고 이어서 봅니다.</p>
               <div class="stats" aria-label="상담 지표">
                 <div class="stat"><strong>1:1</strong><span>맞춤 상담</span></div>
                 <div class="stat"><strong>24</strong><span>오행 흐름</span></div>
@@ -6792,7 +6869,7 @@
             <section class="story-section flush-bottom" data-sample-section="proof-and-chat">
               <span class="chapter">마지막 확인</span>
               <h2>이제 상담으로 들어갑니다</h2>
-              <p>방금 펼친 사주를 바탕으로 더 깊은 상담에 들어가네. 묻고 싶은 걸 던지면 천명대공(天命大公)이 같은 말투로 이어서 풀어주겠네.</p>
+              <p>방금 펼친 사주를 바탕으로 더 깊은 상담에 들어가네. 묻고 싶은 걸 던지면 천명사주가 같은 말투로 이어서 풀어주겠네.</p>
               <div class="proof-stack">
                 <div class="proof-row"><span>분석 기준</span><strong>${birthLabel}</strong></div>
                 <div class="proof-row"><span>먼저 보이는 기운</span><strong>${dayMasterElement}</strong></div>
@@ -6801,7 +6878,7 @@
             </section>
 
             <div class="sticky-story-cta">
-              <button class="primary-cta" type="button" data-action="open-chat">천명대공 상담</button>
+              <button class="primary-cta" type="button" data-action="open-chat">이 운명 확인하기</button>
             </div>
             ${businessFooterMarkup()}
           </article>
@@ -6812,9 +6889,9 @@
         const service = currentService();
         stage.innerHTML = `
           <section class="panel teaser-panel">
-            <div class="status">결제 안내 데모</div>
+            <div class="status">결제 안내</div>
             <h1>${escapeHtml(service.title)}</h1>
-            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. 실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다.</p>
+            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. 결제 후 전체 풀이를 바로 열 수 있습니다.</p>
 
             <div class="teaser-block">
               <span class="chapter">상품 요약</span>
@@ -6848,7 +6925,7 @@
 
             <div class="actions">
               <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="pay-demo">결제하기</button>
+              <button class="next-cta" type="button" data-action="pay-demo">이 운명 확인하기</button>
             </div>
           </section>
         `;
@@ -6860,17 +6937,15 @@
           return;
         }
         const plans = [
-          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,800원" },
-          { id: "solo", title: "솔로탈출 패키지", badge: "추천", discount: "44%", origin: "108,000원", price: "60,000원" },
-          { id: "deep", title: "MZ 운세 패키지", badge: "인기", discount: "30%", origin: "96,000원", price: "67,000원" },
+          { id: "single", title: "천명사주", badge: "SIGNATURE", discount: "전체 풀이", origin: "", price: "49,900원" },
         ];
         const selected = plans.find((plan) => plan.id === state.plan) || plans[0];
 
         stage.innerHTML = `
           <section class="panel teaser-panel">
-            <div class="status">결제 안내 데모</div>
+            <div class="status">결제 안내</div>
             <h1>전체 풀이를 열어볼까요?</h1>
-            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. 실제 결제는 연결하지 않은 데모입니다.</p>
+            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트입니다. 결제 후 전체 풀이와 상담을 열 수 있습니다.</p>
 
             <div class="result-list">
               ${plans
@@ -6878,7 +6953,7 @@
                   (plan) => `
                     <button class="result-item choice ${state.plan === plan.id ? "is-selected" : ""}" type="button" data-key="plan" data-value="${plan.id}">
                       <strong>${plan.badge} · ${plan.title}</strong>
-                      <span>${plan.discount} 할인 · <s>${plan.origin}</s> → ${plan.price}</span>
+                      <span>${plan.discount} · ${plan.price}</span>
                     </button>
                   `,
                 )
@@ -6889,8 +6964,7 @@
               <span class="chapter">결제 요약</span>
               <div class="timeline">
                 <div class="timeline-row"><strong>상품</strong><span>${selected.title}</span></div>
-                <div class="timeline-row"><strong>판매가</strong><span>${selected.origin}</span></div>
-                <div class="timeline-row"><strong>할인</strong><span>${selected.discount} 적용</span></div>
+                <div class="timeline-row"><strong>구성</strong><span>${selected.discount}</span></div>
                 <div class="timeline-row"><strong>결제금액</strong><span>${selected.price}</span></div>
               </div>
               <button class="ghost" type="button" style="width: 100%; margin-top: 12px;">쿠폰 적용</button>
@@ -6907,7 +6981,7 @@
 
             <div class="actions">
               <button class="ghost" type="button" data-action="prev">이전</button>
-              <button class="next-cta" type="button" data-action="pay-demo">결제하기</button>
+              <button class="next-cta" type="button" data-action="pay-demo">이 운명 확인하기</button>
             </div>
           </section>
         `;
@@ -6918,29 +6992,29 @@
           const service = currentService();
           stage.innerHTML = `
             <section class="panel">
-              <div class="status">여기서 실제 결제 모듈로 연결</div>
+              <div class="status">결제 화면으로 이동</div>
               <h1>${escapeHtml(service.title)} 결제 직전 단계입니다</h1>
-              <p>원본 흐름에서는 이 다음에 외부 결제/주문 진행이 이어집니다. 이 데모는 안전하게 화면 전환까지만 구현했습니다.</p>
+              <p>결제 정보를 확인한 뒤 이니시스 안전 결제창으로 이동합니다.</p>
               <div class="result-list">
                 <div class="result-item"><strong>선택 상품</strong><span>${escapeHtml(service.title)}</span></div>
                 <div class="result-item"><strong>결제금액</strong><span>${escapeHtml(service.price)}</span></div>
                 <div class="result-item"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
               </div>
-              <button class="next-cta" type="button" data-action="restart" style="width: 100%">처음부터 다시 보기</button>
+              <button class="next-cta" type="button" data-action="pay-demo" style="width: 100%">이니시스 결제창 열기</button>
             </section>
           `;
           return;
         }
         stage.innerHTML = `
           <section class="panel">
-            <div class="status">여기서 실제 결제 모듈로 연결</div>
+            <div class="status">결제 화면으로 이동</div>
             <h1>결제 직전 단계입니다</h1>
-            <p>원본 흐름에서는 이 다음에 외부 결제/주문 진행이 이어집니다. 이 데모는 안전하게 화면 전환까지만 구현했습니다.</p>
+            <p>결제 정보를 확인한 뒤 이니시스 안전 결제창으로 이동합니다.</p>
             <div class="result-list">
-              <div class="result-item"><strong>선택 상품</strong><span>${state.plan === "single" ? "운명신당 정통사주" : state.plan === "solo" ? "솔로탈출 패키지" : "MZ 운세 패키지"}</span></div>
+              <div class="result-item"><strong>선택 상품</strong><span>천명사주</span></div>
               <div class="result-item"><strong>필수 동의</strong><span>개인정보 처리방침, 결제 진행 필수 동의 완료</span></div>
             </div>
-            <button class="next-cta" type="button" data-action="restart" style="width: 100%">처음부터 다시 보기</button>
+            <button class="next-cta" type="button" data-action="pay-demo" style="width: 100%">이니시스 결제창 열기</button>
           </section>
         `;
       }
@@ -6983,12 +7057,12 @@
           resetReadingState();
         }
         go(resolvedInitialScene, false);
-      } else if (legacyPolicyPaths[resolvedInitialScene]) {
-        location.replace(legacyPolicyPaths[resolvedInitialScene]);
       } else if (settingsEntryScenes.has(resolvedInitialScene)) {
         syncSceneUrl("landing");
         renderLanding();
         requestAnimationFrame(() => openSettings());
+      } else if (legacyPolicyPaths[resolvedInitialScene]) {
+        location.replace(legacyPolicyPaths[resolvedInitialScene]);
       } else {
         renderLanding();
         syncSceneUrl("landing");
@@ -6997,6 +7071,12 @@
         clearSignupQuery();
       }
       initAuth().then(() => {
+        completePaymentReturn().catch((err) => console.warn("결제 후 풀이 복원에 실패했습니다.", err));
+        if (initialAuthReturnTo && authSession?.access_token) {
+          window.UMSHCommonAuth?.clearReturnTo();
+          location.replace(initialAuthReturnTo);
+          return;
+        }
         if (wantsProtectedProfileEntry() && authSession?.access_token) {
           beginProtectedEntryAfterAuth();
           return;

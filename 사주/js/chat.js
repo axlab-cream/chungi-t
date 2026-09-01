@@ -21,7 +21,7 @@ let authClient = null
 let authSession = null
 let authInitPromise = null
 const PDF_KEYWORDS = [
-  '천명대공',
+  '천명사주',
   '사주',
   '팔자',
   '기운',
@@ -724,7 +724,7 @@ function buildPrintableReportHtml() {
   const report = getReport()
   const sections = getReportSections()
   const title = report?.title || `${session?.birth?.name || '자네'}님의 사주 리포트`
-  const subtitle = report?.subtitle || '천명대공(天命大公)이 사주의 큰 흐름과 지금의 고민을 함께 정리했습니다.'
+  const subtitle = report?.subtitle || '천명사주가 사주의 큰 흐름과 지금의 고민을 함께 정리했습니다.'
   const generatedAt = new Date().toLocaleString('ko-KR', { dateStyle: 'long', timeStyle: 'short' })
   const groups = groupedSections(sections)
   const specRows = pdfSpecRows()
@@ -762,7 +762,42 @@ function buildPrintableReportHtml() {
         #080302;
       page-break-after: always;
     }
-    .cover-logo { width: 100%; display: block; border-radius: 18px; }
+    .pdf-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      border: 1px solid rgba(242, 191, 107, 0.38);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(242, 191, 107, 0.14), rgba(0, 0, 0, 0.28));
+    }
+    .pdf-brand-mark {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border: 1px solid rgba(242, 191, 107, 0.55);
+      border-radius: 50%;
+      color: #f2bf6b;
+      font-size: 23px;
+      font-weight: 900;
+    }
+    .pdf-brand-title {
+      display: block;
+      color: #f7d98b;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    .pdf-brand-subtitle {
+      display: block;
+      margin-top: 7px;
+      color: #e8d7bd;
+      font-size: 12px;
+      font-weight: 700;
+    }
     .cover h1 { margin: 34px 0 0; font-size: 34px; line-height: 1.22; letter-spacing: 0; }
     .cover p { max-width: 560px; margin: 16px 0 0; color: #e9d6bd; font-size: 16px; }
     .cover-meta {
@@ -915,7 +950,13 @@ function buildPrintableReportHtml() {
   <main class="sheet">
     <section class="cover">
       <div>
-        <img class="cover-logo" src="/assets/chungi-nav-logo.webp" alt="천명대공" />
+        <div class="pdf-brand" aria-label="천명사주">
+          <span class="pdf-brand-mark">命</span>
+          <span>
+            <strong class="pdf-brand-title">천명사주</strong>
+            <span class="pdf-brand-subtitle">천명의 기운을 받아 인생을 송두리째 해석해 드립니다.</span>
+          </span>
+        </div>
         <h1>${highlightPdfKeywords(title)}</h1>
         <p>${highlightPdfKeywords(subtitle)}</p>
       </div>
@@ -959,7 +1000,7 @@ function buildPrintableReportHtml() {
         return `
           <section class="section chapter">
             <div class="chapter-head">
-              <span class="kicker">${order} · 천명대공 풀이</span>
+              <span class="kicker">${order} · 천명사주 풀이</span>
               <h2>${highlightPdfKeywords(display.title)}</h2>
               <p>${highlightPdfKeywords(display.subtitle)}</p>
             </div>
@@ -973,7 +1014,7 @@ function buildPrintableReportHtml() {
         `
       }).join('')}
     </div>
-    <footer class="footer">천명대공(天命大公) 사주 리포트 · 화면의 해석 내용을 PDF 저장용으로 정리했습니다.</footer>
+    <footer class="footer">천명사주 사주 리포트 · 화면의 해석 내용을 PDF 저장용으로 정리했습니다.</footer>
   </main>
 </body>
 </html>`
@@ -1006,14 +1047,57 @@ function buildPdfStatusHtml(message) {
       text-align: center;
       box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
     }
-    img { width: 100%; max-width: 360px; display: block; margin: 0 auto 18px; border-radius: 14px; }
+    .pdf-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 0 auto 18px;
+      padding: 16px 18px;
+      border: 1px solid rgba(242, 191, 107, 0.38);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(242, 191, 107, 0.14), rgba(0, 0, 0, 0.28));
+    }
+    .pdf-brand-mark {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(242, 191, 107, 0.55);
+      border-radius: 50%;
+      color: #f2bf6b;
+      font-size: 20px;
+      font-weight: 900;
+    }
+    .pdf-brand-title {
+      display: block;
+      color: #f7d98b;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    .pdf-brand-subtitle {
+      display: block;
+      margin-top: 6px;
+      color: #e8d7bd;
+      font-size: 11px;
+      font-weight: 700;
+    }
     h1 { margin: 0; font-size: 23px; line-height: 1.35; letter-spacing: 0; }
     p { margin: 12px 0 0; color: #ead6bf; font-size: 14px; line-height: 1.7; }
   </style>
 </head>
 <body>
   <main>
-    <img src="/assets/chungi-nav-logo.webp" alt="천명대공" />
+    <div class="pdf-brand" aria-label="천명사주">
+      <span class="pdf-brand-mark">命</span>
+      <span>
+        <strong class="pdf-brand-title">천명사주</strong>
+        <span class="pdf-brand-subtitle">PDF 해석문을 준비하고 있습니다.</span>
+      </span>
+    </div>
     <h1>${escapeHtml(message)}</h1>
     <p>모든 장의 풀이를 먼저 저장한 뒤 PDF 저장 화면을 열겠습니다. 이 창은 닫지 말아주세요.</p>
   </main>
@@ -1312,7 +1396,7 @@ function renderBasicSpec() {
 function renderReportLoading(section) {
   const display = sectionCopy(section)
   const loadingLines = [
-    '천명대공(天命大公)이 지금 자네에게 먼저 보이는 흐름을 짚는 중일세.',
+    '천명사주가 지금 자네에게 먼저 보이는 흐름을 짚는 중일세.',
     '흩어진 마음의 신호를 한 줄로 모아 이 장을 여는 중일세.',
     '오래된 기운 위에 지금의 질문을 올려 보고 있네.',
     '잠시 있어 보게. 이 장에서 먼저 볼 대목이 드러나고 있네.',
@@ -1337,7 +1421,7 @@ function renderSelectedSection() {
     return `
       <div class="report-empty">
         <strong>목차를 누르면 해당 장이 열립니다.</strong>
-        <span>기본 스펙 다음부터는 천명대공(天命大公)이 한 장씩 깊게 풀어줄 걸세.</span>
+        <span>기본 스펙 다음부터는 천명사주가 한 장씩 깊게 풀어줄 걸세.</span>
       </div>
     `
   }
@@ -1348,7 +1432,7 @@ function renderSelectedSection() {
   if (reportState.loadingSectionId === section.id) return renderReportLoading(section)
 
   const warning = section.generatedBy === 'template'
-    ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 천명대공(天命大公)이 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
+    ? '<p class="report-note">기본 풀이가 먼저 열렸습니다. 천명사주가 깊은 해석을 마치면 이 장은 더 세밀한 상담문으로 바뀝니다.</p>'
     : ''
   const imageHook = section.hook || section.description || '사주의 결이 보이는군'
   const sectionIndex = sections.findIndex((item) => item.id === section.id)
@@ -1362,7 +1446,7 @@ function renderSelectedSection() {
         <div>${escapeHtml(imageHook)}</div>
       </div>
       <div class="report-section-head">
-        <span>${displayOrder} · 천명대공(天命大公) 풀이</span>
+        <span>${displayOrder} · 천명사주 풀이</span>
         <h3>${escapeHtml(display.title)}</h3>
         <p>${escapeHtml(display.subtitle)}</p>
       </div>
@@ -1378,7 +1462,7 @@ function renderReportGate(groups, report) {
   return `
     <section class="report-gate-panel">
       <div class="report-gate-heading">
-        <span>천명대공 목차</span>
+        <span>천명사주 목차</span>
         <h2>대분류 목차</h2>
       </div>
       <div class="report-gate-toc">
@@ -1502,7 +1586,7 @@ function renderReportReader(groups) {
           <img src="${escapeHtml(sectionVisualSrc(section, group.id))}" alt="${escapeHtml(section.imageAlt || display.title)}" />
         </div>
         <div class="reader-copy">
-          <span>${sectionNumber(section)} · 천명대공 풀이</span>
+          <span>${sectionNumber(section)} · 천명사주 풀이</span>
           <h3>${highlightUiKeywords(display.title)}</h3>
           <p>${highlightUiKeywords(display.subtitle)}</p>
         </div>
@@ -1626,7 +1710,7 @@ if (session) {
 
   if (session.history.length === 0) {
     appendBubble('assistant',
-      '잘 왔네. 방금 펼친 사주의 결을 이어서 보겠네. 묻고 싶은 걸 한 문장으로 던져보게. 천명대공(天命大公)이 하나씩 풀어주겠네.',
+      '잘 왔네. 방금 펼친 사주의 결을 이어서 보겠네. 묻고 싶은 걸 한 문장으로 던져보게. 천명사주가 하나씩 풀어주겠네.',
       false)
     if (session.initialConcern) {
       appendBubble('assistant', `"${session.initialConcern}" 때문에 여기까지 온 것이군. 그 고민도 자네 사주의 흐름 안에서 같이 보겠네.`, false)

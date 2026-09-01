@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { RagChunk, SajuAnalysis } from '../types/index.js'
+import type { RagChunk, RagKnowledgeBlock, SajuAnalysis } from '../types/index.js'
 import { getChunkCorpusFiles } from './corpus-registry.js'
+import { chunkSearchText, corpusFileToChunks } from './knowledge-block.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
@@ -12,8 +13,8 @@ type Vector = Map<string, number>
 function loadCorpus(): RagChunk[] {
   return getChunkCorpusFiles().flatMap((file) => {
     const raw = readFileSync(join(DATA_ROOT, file), 'utf-8')
-    const data = JSON.parse(raw) as { chunks?: RagChunk[]; domain?: string }
-    return (data.chunks ?? []).map((c) => ({ ...c, domain: data.domain }))
+    const data = JSON.parse(raw) as { chunks?: RagChunk[]; knowledgeBlocks?: RagKnowledgeBlock[]; domain?: string }
+    return corpusFileToChunks(data)
   })
 }
 
@@ -50,7 +51,7 @@ function getIndexedCorpus(): Array<{ chunk: RagChunk; vector: Vector }> {
   const corpus = loadCorpus()
   cachedVectors = corpus.map((chunk) => ({
     chunk,
-    vector: toVector(tokenize(`${chunk.topic} ${chunk.keywords.join(' ')} ${chunk.content}`)),
+    vector: toVector(tokenize(chunkSearchText(chunk))),
   }))
   return cachedVectors
 }
