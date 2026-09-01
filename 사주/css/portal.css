@@ -926,6 +926,130 @@ a:focus-visible {
   color: var(--gold-200);
 }
 
+.match-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at var(--pointer-x, 18%) var(--pointer-y, 14%), rgba(216, 186, 114, 0.13), transparent 7rem),
+    linear-gradient(135deg, #18140f 0%, var(--black-950) 64%, #090806 100%);
+  color: var(--cream-100);
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.match-banner::after {
+  position: absolute;
+  right: -12px;
+  bottom: -18px;
+  color: rgba(216, 186, 114, 0.045);
+  content: attr(data-glyph);
+  font-family: var(--font-display);
+  font-size: 128px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.match-banner-visual {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 132px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(216, 186, 114, 0.2);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(232, 212, 154, 0.2), transparent 34%),
+    linear-gradient(145deg, rgba(105, 75, 42, 0.5), rgba(10, 9, 8, 0.92));
+}
+
+.match-banner-visual::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, transparent 0 42%, rgba(247, 242, 233, 0.08) 42% 44%, transparent 44% 100%);
+  content: "";
+}
+
+.match-banner-visual i {
+  color: rgba(240, 226, 184, 0.78);
+  font-family: var(--font-display);
+  font-size: 46px;
+  font-style: normal;
+  font-weight: 900;
+  text-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+.match-banner-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.match-banner-copy strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--cream-100);
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 950;
+  line-height: 1.24;
+}
+
+.match-banner-copy span {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1.54;
+}
+
+.match-banner-copy b {
+  display: block;
+  margin-top: 11px;
+  color: var(--gold-200);
+  font-family: var(--font-brand);
+  font-size: 14px;
+}
+
+.match-banner-copy em {
+  display: block;
+  margin-top: 6px;
+  color: var(--gold-400);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.match-banner:hover,
+.match-banner:focus-visible,
+.match-banner.is-pointed {
+  border-color: rgba(216, 186, 114, 0.42);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+  transform: translateY(-2px);
+}
+
+.match-banner:hover .match-banner-visual,
+.match-banner:focus-visible .match-banner-visual,
+.match-banner.is-pointed .match-banner-visual {
+  border-color: rgba(216, 186, 114, 0.34);
+}
+
 .price-rail {
   display: flex;
   gap: 8px;
