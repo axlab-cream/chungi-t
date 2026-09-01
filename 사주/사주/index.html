@@ -2070,6 +2070,7 @@
       }
 
       .source-copy p,
+      .source-copy h1,
       .source-copy h2 {
         margin: 0;
         text-shadow: 0 0 20px rgba(0, 0, 0, 0.82);
@@ -2089,6 +2090,7 @@
         line-height: 1.48;
       }
 
+      .source-copy h1,
       .source-copy h2 {
         color: #fff;
         font-size: 30px;
@@ -2355,19 +2357,19 @@
       }
 
       .story-visual.visual-love-hook {
-        --panel-image: url("assets/love-ty-hook-silhouettes.png");
+        --panel-image: url("assets/love-ty-char-hook.webp");
       }
 
       .story-visual.visual-love-feel {
-        --panel-image: url("assets/love-ty-feel-phone.png");
+        --panel-image: url("assets/love-ty-char-phone.webp");
       }
 
       .story-visual.visual-love-scene {
-        --panel-image: url("assets/love-ty-scene-cafe.png");
+        --panel-image: url("assets/love-ty-char-cafe.webp");
       }
 
       .story-visual.visual-love-chart {
-        --panel-image: url("assets/love-ty-chart-flow.png");
+        --panel-image: url("assets/love-ty-char-chart.webp");
       }
 
       .love-teaser-table {
@@ -3460,7 +3462,9 @@
       .panel h1,
       .teaser-title,
       .teaser-block h2,
+      .source-copy h1,
       .source-copy h2,
+      .story-caption h1,
       .story-caption h2,
       .story-section h2,
       .report-meta h3,
@@ -3945,6 +3949,16 @@
         return currentService()?.key === LOVE_THIS_YEAR_SERVICE_KEY;
       }
 
+      function productVaultLabel() {
+        return isLoveThisYearService() ? "운명상회" : "천명사주";
+      }
+
+      function reportExpandStatusText() {
+        return isLoveThisYearService()
+          ? "올해 연애운 해석을 펼치는 중입니다"
+          : "천명사주가 이 장의 기운을 펼치는 중입니다";
+      }
+
       function applyServiceDefaults(options = {}) {
         const service = currentService();
         if (!service) return;
@@ -4390,16 +4404,11 @@
       };
 
       const loveLandingAssets = {
-        hookSilhouettes: "assets/love-ty-hook-silhouettes.png",
-        feelPhone: "assets/love-ty-feel-phone.png",
-        sceneCafe: "assets/love-ty-scene-cafe.png",
-        chartFlow: "assets/love-ty-chart-flow.png",
+        hook: "assets/love-ty-char-hook.webp",
+        phone: "assets/love-ty-char-phone.webp",
+        cafe: "assets/love-ty-char-cafe.webp",
+        chart: "assets/love-ty-char-chart.webp",
         loveCard: "assets/umsh-love-card-bg.webp",
-        romanceCloseup: "assets/chungi-romance-closeup.webp",
-        handBells: "assets/chungi-hand-bells.webp",
-        cutRomance: "assets/cut-05-romance.webp",
-        destinyCard: "assets/chungi-destiny-card-bg.webp",
-        characterD: "assets/chungi-character-d.webp",
       };
 
       const sampleAssets = {
@@ -4788,7 +4797,7 @@
           <div class="settings-sheet" role="dialog" aria-modal="true" aria-label="설정">
             <div class="settings-head">
               <div>
-                <strong>천명사주</strong>
+                <strong>${productVaultLabel()}</strong>
                 <span>풀이 보관함</span>
               </div>
               <button class="icon-button" type="button" aria-label="설정 닫기" data-settings-close>
@@ -5910,7 +5919,7 @@
               ${renderReportTocMarkup(sections, activeIndex)}
             </div>
             <div data-report-reader>
-              ${renderReportPageMarkup(section, activeIndex, sections.length, "", "천명사주가 이 장의 기운을 펼치는 중입니다")}
+              ${renderReportPageMarkup(section, activeIndex, sections.length, "", reportExpandStatusText())}
             </div>
           </section>
         `;
@@ -6051,7 +6060,7 @@
           return;
         }
 
-        showReportPageFrame(templateSection, "천명사주가 이 장의 기운을 펼치는 중입니다");
+        showReportPageFrame(templateSection, reportExpandStatusText());
         try {
           const generated = await fetchReportSection(templateSection);
           if (token !== state.reportRequestToken) return;
@@ -6113,53 +6122,42 @@
           <article class="sample-story">
             ${storyTopNavMarkup()}
 
-            <section class="story-visual visual-love-hook tall" data-sample-section="love-hook-hero" aria-label="올해 인연 훅 이미지">
-              <div class="story-caption">
-                <span class="love-hook-kicker">LOVE · 올해 연애운</span>
-                <h1>올해, 자네 마음속에<br />남는 <span class="red">사람</span>은<br />이미 가까이 와 있을지도 모르네</h1>
-              </div>
-            </section>
-
-            <section class="source-section tall" data-sample-section="love-hook-silhouettes">
-              <img alt="가까이 다가온 인연의 실루엣" class="source-img center-wide" src="${a.hookSilhouettes}" />
+            <section class="source-section tall" data-sample-section="love-hook">
+              <img alt="올해 마음에 남는 사람" class="source-img center-wide" src="${a.hook}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
-                <p class="red">허허…</p>
-                <h2>스쳐 보낸 줄 알았던<br /><span class="red">인연</span>이, 올해는 발걸음을 멈추네</h2>
+                <span class="love-hook-kicker">LOVE · 올해 연애운</span>
+                <h2>올해, 마음에 남는 사람이<br /><span class="red">생길 수 있어</span></h2>
               </div>
             </section>
 
             <section class="story-section deep" data-sample-section="love-hook-bridge">
               <span class="chapter">첫 장면</span>
-              <h2>생길까 말까보다<br /><span class="red">알아채고도 지나친 밤</span>이 아쉽지 않은가</h2>
-              <div class="story-callout">마음이 먼저 동하는 해가 보이네. 앉아서 기다리는 해보다, 알아볼 준비가 된 해가 더 무섭고 아름다운 법일세.</div>
+              <h2>생길까 말까보다,<br /><span class="red">알아채고도 지나친 밤</span>이 더 아쉽지</h2>
+              <div class="story-callout">올해는 “누가 생길까”보다, 이미 스친 사람을 놓치지 않는 쪽이 더 중요하네.</div>
             </section>
 
             <section class="source-section" data-sample-section="love-feel-phone">
-              <img alt="설레는 연락의 순간" class="source-img center-wide" src="${a.feelPhone}" />
+              <img alt="설레는 연락 장면" class="source-img center-wide" src="${a.phone}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
-                <h2>설레는 순간, 자네는 늘<br />같은 <span class="red">장면</span>으로 빠져드는군</h2>
+                <h2>설렐 때, 같은 실수를<br /><span class="red">반복하고 있지 않아?</span></h2>
               </div>
             </section>
 
-            <section class="story-visual compact visual-love-feel image-only" data-sample-section="love-feel-panel" aria-label="설렘 장면 이미지"></section>
-
             <section class="story-section" data-sample-section="love-feel-copy">
-              <span class="chapter">끌림의 결</span>
+              <span class="chapter">끌림의 버릇</span>
               <h2>답장을 기다리는 밤,<br />괜찮은 척하는 그 <span class="red">침묵</span></h2>
-              <p>자극이 센 사람 앞에서는 금세 불이 붙고, 조용히 따뜻한 사람 앞에서는 오히려 심장이 헷갈리네. 올해는 설렘의 크기보다, 그 설렘이 자네를 흐리게 하는지 선명하게 하는지를 보게.</p>
+              <p>좋아하면서도 먼저 연락을 미루고, 상대 반응만 확대 해석하다가 타이밍을 놓치는 패턴이 보이네. 올해는 설렘이 클수록, 그 버릇을 한 번만 더 확인하게.</p>
             </section>
 
             <section class="source-section tall" data-sample-section="love-scene-cafe">
-              <img alt="카페에서 스치는 인연 장면" class="source-img center-wide" src="${a.sceneCafe}" />
+              <img alt="카페에서 스치는 인연" class="source-img center-wide" src="${a.cafe}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
-                <h2>놓친 인연은 큰 사건이 아니라,<br />작은 <span class="red">침묵</span>에서 시작되네</h2>
+                <h2>인연은 큰 사건보다,<br />말 한마디를 미룬 순간에 <span class="red">놓쳐</span></h2>
               </div>
             </section>
-
-            <section class="story-visual compact visual-love-scene image-only" data-sample-section="love-scene-panel" aria-label="카페 인연 장면"></section>
 
             <section class="story-section deep" data-sample-section="love-missed-signal">
               <span class="chapter">놓치기 쉬운 신호</span>
@@ -6172,17 +6170,17 @@
             </section>
 
             <section class="source-section" data-sample-section="love-chart-visual">
-              <img alt="올해 연애 월별 흐름 미리보기" class="source-img center-wide" src="${a.chartFlow}" />
+              <img alt="올해 연애가 뜨거워지는 달" class="source-img center-wide" src="${a.chart}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
                 <p class="red">미리보기</p>
-                <h2>올해 연애 온도가<br />출렁이는 <span class="red">달</span>들이 보이네</h2>
+                <h2>올해 연애가 뜨거워지는<br /><span class="red">달이 보여</span></h2>
               </div>
             </section>
 
             <section class="story-section" data-sample-section="love-teaser-table">
               <span class="chapter">흐름 미리보기</span>
-              <h2>마음이 흔들릴 때<br />이런 <span class="red">신호</span>가 먼저 오네</h2>
+              <h2>마음이 흔들릴 때<br />이런 <span class="red">신호</span>가 먼저 와</h2>
               <table class="love-teaser-table" aria-label="올해 연애 신호 표">
                 <thead>
                   <tr><th>마음 신호</th><th>올해의 장면</th></tr>
@@ -6194,28 +6192,12 @@
                 </tbody>
               </table>
               <div class="report-flow-chart" aria-label="연애 월별 흐름 미리보기" style="margin-top:16px">
-                <div class="chart-row"><span>초봄</span><div style="height:8px;border-radius:99px;background:linear-gradient(90deg,#8a1e16,#f2bf6b);width:62%"></div><strong>공기가 바뀌는 달</strong></div>
-                <div class="chart-row"><span>한여름</span><div style="height:8px;border-radius:99px;background:linear-gradient(90deg,#8a1e16,#f2bf6b);width:88%"></div><strong>도화 강한 구간</strong></div>
+                <div class="chart-row"><span>초봄</span><div style="height:8px;border-radius:99px;background:linear-gradient(90deg,#8a1e16,#f2bf6b);width:62%"></div><strong>만남이 늘기 쉬운 달</strong></div>
+                <div class="chart-row"><span>한여름</span><div style="height:8px;border-radius:99px;background:linear-gradient(90deg,#8a1e16,#f2bf6b);width:88%"></div><strong>연락·소개가 잦은 달</strong></div>
                 <div class="chart-row"><span>늦가을</span><div style="height:8px;border-radius:99px;background:linear-gradient(90deg,#8a1e16,#f2bf6b);width:54%"></div><strong>관계 고르는 달</strong></div>
                 <div class="chart-row"><span>연말</span><div style="height:8px;border-radius:99px;background:linear-gradient(90deg,#8a1e16,#f2bf6b);width:71%"></div><strong>남는 인연 점검</strong></div>
               </div>
-              <p class="fineprint" style="margin-top:12px">입력값에 맞춰 월별 흐름·도화 시기·성사 전략이 개인화됩니다.</p>
-            </section>
-
-            <section class="source-section" data-sample-section="love-romance-closeup">
-              <img alt="인연의 결을 보는 장면" class="source-img center-wide" src="${a.romanceCloseup}" />
-              <div class="source-fade"></div>
-              <div class="source-copy bottom">
-                <h2><span class="red">인연</span>은 우연처럼 오지만<br />남는 관계는 결이 다르네</h2>
-              </div>
-            </section>
-
-            <section class="source-section short" data-sample-section="love-hand-bells">
-              <img alt="흩어진 실타래를 푸는 장면" class="source-img" src="${a.handBells}" />
-              <div class="source-fade"></div>
-              <div class="source-copy bottom">
-                <p>흩어진 <span class="red">실타래</span>를<br />이제 하나씩 풀어보게</p>
-              </div>
+              <p class="fineprint" style="margin-top:12px">생년월일을 넣으면, 자네 기준으로 뜨거워지는 달과 놓치기 쉬운 달이 달라집니다.</p>
             </section>
 
             <section class="story-section" data-sample-section="love-service-toc">
@@ -6239,17 +6221,9 @@
               </div>
             </section>
 
-            <section class="source-section" data-sample-section="love-final-visual">
-              <img alt="운명 카드 배경" class="source-img center-wide" src="${a.destinyCard}" />
-              <div class="source-fade"></div>
-              <div class="source-copy bottom">
-                <h2>자네 앞에 놓인<br /><span class="red">사람</span>의 기운이 보이는군</h2>
-              </div>
-            </section>
-
             <div class="sample-enter">
               <button class="primary-cta" type="button" data-action="enter">${escapeHtml(service.cta)}</button>
-              <p class="fineprint">상대가 있으면 입력 단계에서 상대방 생년월일과 생시 모름 옵션을 선택할 수 있습니다.</p>
+              <p class="fineprint">버튼을 누르면 생년월일 입력으로 이어지고, 상대가 있으면 그 자리에서 함께 넣을 수 있습니다.</p>
             </div>
             ${businessFooterMarkup()}
           </article>
@@ -6843,20 +6817,18 @@
         const a = state.analysis;
         const pillars = a?.pillars;
         const preview = a?.preview;
-        const fortune = a?.fortune;
         const displayNameRaw = state.name || "자네";
         const displayName = escapeHtml(displayNameRaw);
         const birthLabel = escapeHtml(formatBirthLabel(state.birth));
         const dayLabel = escapeHtml(pillars?.day?.hanja || "-");
         const monthLabel = escapeHtml(pillars?.month?.hanja || "-");
         const yearLabel = escapeHtml(pillars?.year?.hanja || "-");
-        const currentYear = Number(fortune?.currentYear) || new Date().getFullYear();
         const dohwa = loveDohwaInfoFromPillars(pillars);
         const spouseStar = state.gender === "여자" ? "관성" : "재성";
         const partnerSummary = escapeHtml(lovePartnerSummary());
         const relationLabel = escapeHtml([state.relationship, state.orientation].filter(Boolean).join(" · ") || "관계 기준");
         const concernText = escapeHtml(state.concern || service.defaultConcern);
-        const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
+        const loveText = escapeHtml(preview?.loveFortune || "올해는 마음이 먼저 움직이는 순간이 보일 가능성이 있네. 다만 설렘만 쫓기보다, 연락과 약속을 미루는 버릇을 먼저 보게.");
         const sections = a?.report?.sections || [];
         const tocMarkup = sections.length
           ? sections.map((section, index) => `
@@ -6869,26 +6841,19 @@
           <article class="story sample-story sub-result">
             ${storyTopNavMarkup(true)}
 
-            <section class="story-visual visual-love-hook tall" data-sample-section="love-result-hero" aria-label="올해 인연 결과 훅">
-              <div class="story-caption">
-                <span class="love-hook-kicker">${escapeHtml(service.eyebrow)}</span>
-                <h1>${displayName}, 올해 마음속에<br />남는 <span class="red">사람</span>은<br />이미 가까이 와 있을지도 모르네</h1>
-              </div>
-            </section>
-
-            <section class="source-section tall" data-sample-section="love-result-silhouettes">
-              <img alt="가까이 다가온 인연의 실루엣" class="source-img center-wide" src="assets/love-ty-hook-silhouettes.png" />
+            <section class="source-section tall" data-sample-section="love-result-hook">
+              <img alt="올해 마음에 남는 사람" class="source-img center-wide" src="${loveLandingAssets.hook}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
-                <p class="red">허허…</p>
-                <h2>${currentYear}년, 스쳐 보내기엔<br />아쉬운 <span class="red">공기</span>가 보이네</h2>
+                <span class="love-hook-kicker">${escapeHtml(service.eyebrow)}</span>
+                <h2>${displayName}, 올해 마음에 남는 사람이<br /><span class="red">생길 수 있어</span></h2>
               </div>
             </section>
 
             <section class="story-section deep" data-sample-section="love-free-summary">
               <span class="chapter">무료 요약</span>
-              <h2>올해 인연은<br /><span class="red">타이밍</span>을 놓치지 않는 쪽일세</h2>
-              <div class="story-callout">마음이 먼저 동하는 해가 보이네. 생길까 말까보다, 알아채고도 지나친 밤이 아쉽지 않은가가 더 절실하지.</div>
+              <h2>생길까 말까보다,<br /><span class="red">알아채고도 지나친 밤</span>이 더 아쉽지</h2>
+              <div class="story-callout">올해 인연은 기다리는 쪽보다, 타이밍을 놓치지 않는 쪽이 유리해 보이네.</div>
               <p>${loveText}</p>
               <div class="sub-result-summary" aria-label="연애운 요약">
                 <div class="sub-result-card"><strong>나의 기준</strong><span>${birthLabel} · ${dayLabel} 일지 기준</span></div>
@@ -6898,25 +6863,25 @@
             </section>
 
             <section class="source-section" data-sample-section="love-free-feel">
-              <img alt="설레는 연락의 순간" class="source-img center-wide" src="assets/love-ty-feel-phone.png" />
+              <img alt="설레는 연락 장면" class="source-img center-wide" src="${loveLandingAssets.phone}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
-                <h2>설레는 순간, 자네는 늘<br />같은 <span class="red">장면</span>으로 빠져드는군</h2>
+                <h2>설렐 때, 같은 실수를<br /><span class="red">반복하고 있지 않아?</span></h2>
               </div>
             </section>
 
             <section class="source-section" data-sample-section="love-free-cafe">
-              <img alt="카페에서 스치는 인연" class="source-img center-wide" src="assets/love-ty-scene-cafe.png" />
+              <img alt="카페에서 스치는 인연" class="source-img center-wide" src="${loveLandingAssets.cafe}" />
               <div class="source-fade"></div>
               <div class="source-copy bottom">
-                <h2>놓친 인연은 큰 사건이 아니라,<br />작은 <span class="red">침묵</span>에서 시작되네</h2>
+                <h2>인연은 큰 사건보다,<br />말 한마디를 미룬 순간에 <span class="red">놓쳐</span></h2>
               </div>
             </section>
 
             <section class="story-section" data-sample-section="love-free-chart">
               <span class="chapter">흐름 미리보기</span>
-              <h2>올해 연애 온도가<br />출렁이는 <span class="red">달</span></h2>
-              <img alt="월별 연애 흐름 차트" src="assets/love-ty-chart-flow.png" style="width:100%;border-radius:12px;margin:12px 0;display:block;border:1px solid rgba(255,226,175,.16);" />
+              <h2>올해 연애가 뜨거워지는<br /><span class="red">달이 보여</span></h2>
+              <img alt="올해 연애 흐름 미리보기" src="${loveLandingAssets.chart}" style="width:100%;border-radius:12px;margin:12px 0;display:block;border:1px solid rgba(255,226,175,.16);" />
               <table class="love-teaser-table" aria-label="올해 연애 신호 표">
                 <thead>
                   <tr><th>마음 신호</th><th>자네의 장면</th></tr>
