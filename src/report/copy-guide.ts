@@ -56,6 +56,7 @@ export function normalizeReportCopy(report: SajuReport): SajuReport {
       ...section,
       hook: consumerHook(section.classification, section.hook, section.order),
       interpretation: normalizeUserCopy(section.interpretation),
+      storytelling: section.storytelling,
     })),
   }
 }

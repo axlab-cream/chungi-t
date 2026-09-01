@@ -16,6 +16,12 @@ import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { evaluateReportQuality } from './report-quality.js'
 import { consumerHook, normalizeReportCopy, normalizeUserCopy } from './copy-guide.js'
+import {
+  buildLoveThisYearStoryBeat,
+  formatStoryInterpretation,
+  loveThisYearHook,
+  toStorytellingPayload,
+} from './storytelling.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 const CHEONMYEONG_TONE_GUIDE = [
@@ -442,40 +448,6 @@ function contextLabel(context: SajuReportContext): string {
   ].filter(Boolean).join(' · ') || '기본 상담'
 }
 
-const BRANCH_MONTH_HINT: Record<string, string> = {
-  子: '12월 전후',
-  丑: '1월 전후',
-  寅: '2월 전후',
-  卯: '3월 전후',
-  辰: '4월 전후',
-  巳: '5월 전후',
-  午: '6월 전후',
-  未: '7월 전후',
-  申: '8월 전후',
-  酉: '9월 전후',
-  戌: '10월 전후',
-  亥: '11월 전후',
-}
-
-function dohwaBranchFromDayBranch(branch: string): string {
-  if ('申子辰'.includes(branch)) return '酉'
-  if ('寅午戌'.includes(branch)) return '卯'
-  if ('亥卯未'.includes(branch)) return '子'
-  if ('巳酉丑'.includes(branch)) return '午'
-  return '卯'
-}
-
-function partnerLabel(context: SajuReportContext): string {
-  const partner = context.partner
-  if (partner?.mode !== 'known') return '특정 상대 미입력'
-  return [
-    partner.name || '상대',
-    partner.relationship || '관계 미입력',
-    partner.dayMaster ? `상대 일간 ${partner.dayMaster}` : '',
-    partner.dominantElement ? `상대 중심 기운 ${partner.dominantElement}` : '',
-  ].filter(Boolean).join(' · ')
-}
-
 function partnerContextQuery(context: SajuReportContext): string {
   const partner = context.partner
   if (partner?.mode !== 'known') return '특정 상대 없음 새 인연 가능성'
@@ -652,89 +624,30 @@ function buildLoveThisYearInterpretation(
   ragTopics: string[],
   birth?: BirthInput,
 ): string {
-  const name = cleanContextValue(context.name, '자네')
-  const concern = cleanContextValue(context.concern, '올해 연애 가능성과 놓치기 쉬운 타이밍')
-  const relation = cleanContextValue(context.relationship, '현재 관계 상태 미입력')
-  const orientation = cleanContextValue(context.orientation, '관계 기준 미선택')
-  const p = analysis.fourPillars
-  const dayBranch = p.day.branch
-  const dohwaBranch = dohwaBranchFromDayBranch(dayBranch)
-  const dohwaMonth = BRANCH_MONTH_HINT[dohwaBranch] ?? '봄과 초여름 사이'
-  const dayPillar = pillarLabel(p.day)
-  const dominant = ELEMENT_KO[analysis.dominantElement]
-  const weak = ELEMENT_KO[analysis.weakElement]
-  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
-  const currentYear = analysis.fortune?.currentYear ?? new Date().getFullYear()
-  const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
-  const spouseStar = birth?.gender === 'female' ? '관성' : '재성'
-  const spouseStarPlain = spouseStar === '관성'
-    ? '나에게 책임감, 기준, 안정감을 느끼게 하는 사람의 흐름'
-    : '나에게 현실감, 끌림, 주고받는 온도를 느끼게 하는 사람의 흐름'
-  const partner = context.partner
-  const hasPartner = partner?.mode === 'known'
-  const partnerText = partnerLabel(context)
-  const partnerBirthText = partner?.birth
-    ? `${partner.birth.calendar === 'lunar' ? '음력' : '양력'} ${partner.birth.year}.${partner.birth.month}.${partner.birth.day}${partner.birthTimeKnown ? ` ${String(partner.birth.hour).padStart(2, '0')}:${String(partner.birth.minute ?? 0).padStart(2, '0')}` : ' 생시 모름'}`
-    : '상대 생년월일 미입력'
-  const ragLine = ragTopics.length > 0 ? `이번 장은 ${ragTopics.join(', ')}의 관계 조언과 시기 해석을 함께 대조했습니다.` : ''
+  const beat = buildLoveThisYearStoryBeat(sectionId, analysis, context, ragTopics, birth)
+  const riskNote = conditionalRiskNote(focus, analysis, context)
+  // Risk notes stay available for generation depth, but keep surface emotional:
+  // append only a short soft caution if present, stripped of textbook tone.
+  if (!riskNote) return formatStoryInterpretation(beat)
+  const softRisk = riskNote
+    .split(/(?<=\.)\s+/)
+    .slice(0, 2)
+    .join(' ')
+    .replace(/시기적으로는/g, '그즈음엔')
+    .replace(/풀 방법은/g, '그때는')
+  return `${formatStoryInterpretation(beat)}
 
-  const sections: Record<string, string> = {
-    'love-year-possibility': [
-      `흠... ${name}님의 올해 연애운은 ${dayPillar} 일지와 ${currentYear}년 ${yearPillar} 세운을 먼저 놓고 봅니다. 올해 연애 가능성은 "생긴다, 안 생긴다"로 자르는 문제가 아닙니다. 사람을 만나는 문이 열리는지, 마음이 움직여도 실제 관계로 이어질 힘이 있는지, 그리고 그 기회를 알아볼 상태인지가 핵심입니다.`,
-      `[주요 포인트] 현재 질문은 "${concern}"입니다. ${relation} 상태에서 ${orientation}으로 본다면, 올해는 감정의 크기보다 만남이 실제 약속으로 이어지는 구조를 봐야 합니다. ${dominant} 기운이 먼저 움직이고 ${weak} 기운이 비어 있으니, 끌림이 와도 속도를 조절하지 못하면 좋은 신호가 스쳐 지나갈 수 있습니다.`,
-      `${ragLine} 올해는 새 인연을 기다리는 것보다 내 생활 반경과 말의 온도를 바꾸는 쪽이 더 중요합니다. 연락, 소개, 모임, 일상 동선에서 반복해서 보이는 사람이 있다면 바로 결론 내리지 말고 한 번 더 확인하세요. 연애운은 우연히 떨어지는 사건이 아니라, 알아보고 붙잡을 준비가 되었을 때 현실이 됩니다.`,
-    ].join('\n\n'),
-    'love-attraction-pattern': [
-      `${name}님의 끌림 구조는 일지 ${BRANCH_KO[dayBranch]}(${dayBranch})에서 먼저 드러납니다. 일지는 가까운 사람 앞에서 내가 어떻게 반응하는지 보는 자리입니다. 겉으로는 담담해 보여도 관계가 가까워지면 기준, 불안, 기대가 훨씬 선명해질 수 있습니다.`,
-      `[주목할 점] ${dominant} 기운이 강하면 마음이 움직이는 순간 판단이 빨라집니다. 그런데 ${weak} 기운이 약하면 상대를 더 알아보기 전에 혼자 결론을 내거나, 반대로 확인해야 할 말을 오래 미룰 수 있습니다. 좋아하는 마음과 맞는 관계는 다릅니다. 올해는 "설렌다" 다음에 "지속 가능한가"를 꼭 확인해야 합니다.`,
-      `${hasPartner ? `특정 상대 기준은 ${partnerText}입니다. 상대 생년월일은 ${partnerBirthText}로 들어왔으니, 이 관계는 내 반응만 보지 않고 상대가 감정을 표현하는 속도까지 같이 봐야 합니다.` : '아직 특정 상대가 없다면, 올해는 자극이 강한 사람보다 내 일상을 덜 흔드는 사람이 더 오래 남을 가능성이 큽니다.'} ${ragLine}`,
-    ].join('\n\n'),
-    'love-dohwa-months': [
-      `도화는 매력을 뜻하지만, 단순히 인기가 많아진다는 뜻으로만 보면 가볍습니다. ${name}님의 일지 ${dayBranch} 기준으로 강하게 보는 도화 지지는 ${dohwaBranch}이며, 생활 월 흐름으로는 ${dohwaMonth} 전후를 먼저 체크합니다.`,
-      `[주요 포인트] 이 시기에는 연락, 소개, 외부 일정, 온라인 노출, 오랜만의 재회처럼 사람의 시선이 붙는 장면이 늘 수 있습니다. 다만 도화가 강한 달은 마음이 빨리 움직이는 만큼 오해도 빨리 생깁니다. 예쁘게 보이는 신호와 실제 관계로 이어지는 신호를 나눠야 합니다.`,
-      `올해 ${yearPillar} 세운과 도화 월이 맞물리면 새로운 만남의 입구가 열립니다. ${hasPartner ? `상대가 있는 경우에는 ${partnerText}와 연락 빈도나 만나는 약속이 늘어나는 때가 관찰 포인트입니다.` : '상대가 없는 경우에는 평소 가지 않던 모임, 소개, 취미 동선에서 신호가 먼저 옵니다.'} ${ragLine}`,
-    ].join('\n\n'),
-    'love-spouse-star': [
-      `${name}님의 배우자성은 ${spouseStar} 흐름을 중심으로 봅니다. ${spouseStar}은 쉬운 말로 ${spouseStarPlain}입니다. 전통 명리 기준을 그대로 단정하지 않고, 일지와 현재 관계 상태, 올해 세운을 함께 놓고 현실적인 인연 유형으로 바꿔 읽습니다.`,
-      `[주의할 점] 배우자성이 보인다고 해서 무조건 좋은 관계가 들어온다는 뜻은 아닙니다. ${dominant} 기운이 강하게 앞서고 ${weak} 기운이 약하면, 마음은 끌리는데 실제 약속과 생활 리듬이 맞지 않는 사람을 잡을 수 있습니다. 올해는 끌림보다 책임의 방식, 말의 안정감, 관계를 공개하고 유지하는 태도를 봐야 합니다.`,
-      `${hasPartner ? `특정 상대 ${partnerText}는 상대 일간과 중심 기운을 같이 대조해야 합니다. 상대가 나를 편안하게 하는지, 아니면 계속 확인하게 만드는지를 구분하는 것이 핵심입니다.` : '새 인연을 본다면 과하게 뜨거운 사람보다 약속을 흐리지 않는 사람이 더 좋은 신호입니다.'} ${ragLine}`,
-    ].join('\n\n'),
-    'love-monthly-flow': [
-      `월별 흐름은 한 달마다 운명이 바뀐다는 뜻이 아닙니다. 대운이라는 큰 물길 위에 올해 세운이 올라오고, 그 위에 월운이 사람과 약속의 장면으로 드러납니다. ${currentYear}년에는 ${yearPillar} 세운을 기준으로 봅니다.`,
-      `[주요 포인트] 봄에는 새 동선과 소개, 여름에는 표현과 고백, 가을에는 관계 정리와 확정, 겨울에는 마음을 확인하는 흐름이 강해집니다. 여기에 ${dohwaMonth} 전후 도화 신호가 겹치면 만남이 더 눈에 띕니다. 단, 피곤한 달에는 좋은 사람을 만나도 내가 받을 힘이 부족할 수 있습니다.`,
-      `${relation} 상태라면 월별로 볼 포인트도 달라집니다. 솔로는 만남의 입구, 썸은 약속의 확정, 연애 중은 관계의 리듬, 이별 직후는 재회보다 마음의 반복을 먼저 봅니다. ${ragLine}`,
-    ].join('\n\n'),
-    'love-progress-timing': [
-      `관계가 진전되는 타이밍은 "고백하기 좋은 날" 하나로 끝나지 않습니다. 상대의 반응, 내 마음의 속도, 약속이 현실적으로 반복되는지를 같이 봐야 합니다. ${name}님에게는 ${useful} 기운이 살아나는 방식으로 천천히 확인하는 것이 좋습니다.`,
-      `[해법] 좋은 타이밍은 말이 길어지는 때가 아니라 약속이 구체화되는 때입니다. 언제 볼지, 무엇을 같이 할지, 다음 연락이 자연스럽게 이어지는지 보세요. 도화가 올라오는 달에는 감정 표현이 쉬워지지만, 확인 없이 급하게 결론을 내리면 관계가 흐려질 수 있습니다.`,
-      `${hasPartner ? `${partnerText}와는 상대가 부담을 느끼지 않는 확인 문장을 쓰는 것이 좋습니다. "우리 사이를 정하자"보다 "다음 약속을 어떻게 잡을까"처럼 현실을 좁히는 말이 더 잘 맞습니다.` : '상대가 없는 경우에는 소개를 받을 때 조건을 너무 넓히기보다 생활 리듬과 말의 온도가 맞는 사람을 우선 보세요.'} ${ragLine}`,
-    ].join('\n\n'),
-    'love-missed-signals': [
-      `놓치기 쉬운 신호는 대부분 큰 사건이 아닙니다. 답장이 늦어지는 순간, 약속이 흐려지는 순간, 상대가 선을 긋는 말투, 내가 혼자 의미를 키우는 장면에서 먼저 보입니다. ${name}님 사주에서는 ${dominant} 기운이 빨리 반응할수록 이런 작은 신호를 자기 방식대로 해석할 수 있습니다.`,
-      `[위험 신호] 올해 조심할 패턴은 세 가지입니다. 첫째, 설렘이 생기자마자 확정하려는 마음. 둘째, 상대가 애매하게 굴 때 확인하지 않고 기다리는 습관. 셋째, 서운함이 쌓인 뒤 한 번에 말하는 방식입니다. 이 패턴은 도화가 강한 달에 더 커질 수 있습니다.`,
-      `${ragLine} 관계 자료에서 반복되는 핵심은 마음을 숨기는 것이 아니라 결론을 먼저 던지지 않는 것입니다. 올해는 "나는 이렇게 느꼈고, 이것을 확인하고 싶다"처럼 감정과 확인을 나누어 말해야 기회를 덜 놓칩니다.`,
-    ].join('\n\n'),
-    'love-partner-compatibility': [
-      `${hasPartner ? `상대방 사주는 ${partnerText}, ${partnerBirthText} 기준으로 들어왔습니다. 이 장에서는 두 사람의 좋고 나쁨을 단정하지 않고, 내 일지와 상대 일간, 서로의 중심 오행이 어떤 속도로 가까워지는지 봅니다.` : '아직 특정 상대 사주가 없으므로 이 장은 새 인연을 만났을 때 확인해야 할 궁합 기준으로 읽습니다. 상대 생년월일을 넣으면 이 부분은 실제 상대 기준으로 더 좁혀집니다.'}`,
-      `[주목할 점] 궁합은 맞다, 안 맞다의 점수가 아닙니다. 한쪽은 빠르게 표현하고 한쪽은 천천히 확인하는 구조라면 끌림은 있어도 온도가 어긋날 수 있습니다. 반대로 오행이 완전히 같지 않아도 서로의 빈자리를 무리 없이 채워주면 오래 갑니다.`,
-      `${hasPartner ? `상대의 중심 기운이 ${partner?.dominantElement ?? '상대 중심 기운'} 쪽이라면, ${name}님의 ${dominant} 기운과 부딪히는지 보완하는지 확인해야 합니다. 특히 약속, 답장 속도, 관계를 공개하는 방식이 궁합의 현실 지표입니다.` : `새 상대를 볼 때는 ${useful} 기운을 살리는 사람인지 먼저 보세요. 나를 급하게 만들기보다 선명하게 만드는 사람이 올해 좋은 궁합의 기준입니다.`} ${ragLine}`,
-    ].join('\n\n'),
-    'love-emotion-temperature': [
-      `감정 온도 차이는 사랑의 크기 차이가 아니라 속도 차이입니다. ${name}님은 ${dominant} 기운이 먼저 움직이는 만큼 마음이 선명해지면 빨리 답을 보고 싶어질 수 있습니다. 하지만 상대는 같은 속도로 움직이지 않을 수 있습니다.`,
-      `[주의할 점] 상대가 천천히 반응한다고 해서 마음이 없다고 단정하면 안 됩니다. 반대로 상대가 빠르게 다가온다고 해서 안정적인 관계라고 볼 수도 없습니다. 올해는 속도보다 반복성을 보세요. 말보다 약속이 반복되고, 감정보다 배려가 반복되는지가 중요합니다.`,
-      `${hasPartner ? `${partnerText}와의 온도 차이는 연락 빈도보다 "확인했을 때 피하지 않는가"가 핵심입니다. 상대가 부담을 느끼는 지점과 내가 불안해지는 지점을 따로 적어보면 관계의 실제 온도가 보입니다.` : '특정 상대가 없다면, 올해 만나는 사람에게 처음부터 많은 확신을 요구하지 않는 것이 좋습니다.'} ${ragLine}`,
-    ].join('\n\n'),
-    'love-action-strategy': [
-      `마지막으로 올해 연애 성사 전략을 보겠습니다. ${name}님에게 필요한 것은 운이 들어오는 달을 기다리는 것만이 아닙니다. ${useful} 기운을 살리는 생활 동선, 확인하는 말투, 관계의 속도 조절이 같이 가야 합니다.`,
-      `[해법] ${dohwaMonth} 전후에는 외부 약속과 소개를 열어두세요. 봄에는 새 동선, 여름에는 표현, 가을에는 관계 정리, 겨울에는 마음 확인에 힘을 두면 좋습니다. 단, 답을 빨리 얻으려는 말은 줄이고, 다음 약속을 만드는 말은 늘리는 것이 좋습니다.`,
-      `${hasPartner ? `특정 상대가 있으니 전략은 더 구체적입니다. ${partnerText}에게는 감정을 증명하라고 몰아붙이기보다, 같이 할 일을 하나 정하고 그 약속이 반복되는지 보세요.` : '특정 상대가 없다면 먼저 나를 보여줄 장면을 늘려야 합니다. 소개, 취미, 일상 모임처럼 자연스럽게 반복되는 자리가 올해 연애운의 입구입니다.'} ${ragLine}`,
-    ].join('\n\n'),
-  }
+[주의할 점] ${softRisk}`
+}
 
-  return sections[sectionId] ?? [
-    `${name}님의 올해 연애 흐름은 ${focus} 기준으로 봅니다. ${dayPillar} 일지, ${yearPillar} 세운, 도화 ${dohwaBranch}의 신호를 함께 놓고 해석합니다.`,
-    `${ragLine} 이 풀이는 확정 예언이 아니라 관계 신호를 놓치지 않기 위한 기준입니다.`,
-  ].join('\n\n')
+function buildLoveThisYearStorytelling(
+  sectionId: string,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+  ragTopics: string[],
+  birth?: BirthInput,
+) {
+  return toStorytellingPayload(buildLoveThisYearStoryBeat(sectionId, analysis, context, ragTopics, birth))
 }
 
 function buildInterpretation(
@@ -919,19 +832,26 @@ export function buildTemplateSajuReport(
     )
     const ragTopics = chunks.map((c) => c.topic)
 
+    const interpretation = buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth)
+    const loveStory = isLoveThisYear
+      ? buildLoveThisYearStorytelling(blueprint.id, analysis, context, ragTopics, birth)
+      : undefined
     return {
       id: blueprint.id,
       order: index + 1,
-      imageKey: 'common-mystic',
-      imageSrc: COMMON_IMAGE_SRC,
-      imageAlt: `${blueprint.category} 공통 이미지`,
+      imageKey: isLoveThisYear ? 'love-this-year' : 'common-mystic',
+      imageSrc: isLoveThisYear ? '/assets/umsh-love-card-bg.webp' : COMMON_IMAGE_SRC,
+      imageAlt: isLoveThisYear ? `${blueprint.category} 연애 장면` : `${blueprint.category} 공통 이미지`,
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
       classification: classificationFor(blueprint.focus, analysis, context),
-      hook: hookFor(blueprint.focus, analysis, context),
+      hook: isLoveThisYear
+        ? loveThisYearHook(blueprint.id, analysis, context, birth)
+        : hookFor(blueprint.focus, analysis, context),
       patternKeys: keys,
       ragTopics,
-      interpretation: buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth),
+      interpretation,
+      ...(loveStory ? { storytelling: loveStory } : {}),
     }
   })
 
@@ -979,6 +899,7 @@ function reportPrompt(
         'serviceKey가 전용 서비스라면 그 서비스의 category/classification을 최우선 목차로 삼고, 일반 사주 풀이로 되돌리지 않습니다. 각 장의 질문에 직접 답합니다.',
         '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
         CHEONMYEONG_TONE_GUIDE,
+        'serviceKey가 love_this_year이면 사용자 문장은 감성 후킹·장면·짧은 공감이 주인공입니다. 사주 용어 수업/[근거]/[논리] 교과서 톤을 쓰지 마세요. 명식 근거는 내부에서만 쓰고, 겉문장에는 분위기와 관계 장면으로 녹이세요. 표·월별 흐름·이미지 힌트는 감성적 캡션과 함께 유지하세요.',
         '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '각 분류는 얕은 요약으로 끝내지 말고, 왜 그런 해석이 나오는지, 실제 생활에서 어떻게 드러나는지, 무엇을 조심하고 무엇을 하면 좋은지까지 풍부하게 풉니다.',
@@ -993,7 +914,7 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 전용 serviceKey라면 해당 상품의 category/classification을 직접 답하는 소비자용 목차로 유지하세요. 내부 지식 블록은 최종 문장이 아니라 판단 재료입니다. 전문용어는 꼭 필요할 때만 한 번 쓰고 즉시 사용자 언어로 번역하세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 전용 serviceKey라면 해당 상품의 category/classification을 직접 답하는 소비자용 목차로 유지하세요. 내부 지식 블록은 최종 문장이 아니라 판단 재료입니다. 전문용어는 꼭 필요할 때만 한 번 쓰고 즉시 사용자 언어로 번역하세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 hook은 강한 감성 한 줄(장면·설렘·긴장·욕망)로 쓰고, interpretation은 감정→장면→짧은 행동 순으로 스토리텔링하세요. 사주 근거 나열/[근거]/[논리] 설명조는 금지입니다. 신뢰감은 일상어 한 줄 정도만 자연스럽게 넣으세요. 표·월별 타임라인·이미지 힌트(ko/en)가 있으면 감성 캡션과 함께 유지하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -1002,6 +923,7 @@ function reportPrompt(
               id: 'string',
               hook: 'string',
               interpretation: 'string',
+              storytelling: 'optional emotional payload for love_this_year',
             },
           ],
         },
@@ -1042,6 +964,7 @@ function sectionPrompt(
         '전용 serviceKey라면 현재 상품의 category/classification 질문에 직접 답하고, 다른 상품의 일반적인 목차로 확장하지 않습니다.',
         '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
         CHEONMYEONG_TONE_GUIDE,
+        'serviceKey가 love_this_year이면 사용자 문장은 감성 후킹·장면·짧은 공감이 주인공입니다. 사주 용어 수업/[근거]/[논리] 교과서 톤을 쓰지 마세요. 명식 근거는 내부에서만 쓰고, 겉문장에는 분위기와 관계 장면으로 녹이세요. 표·월별 흐름·이미지 힌트는 감성적 캡션과 함께 유지하세요.',
         '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '해석은 풍부해야 합니다. 근거, 실제 생활 장면, 주의할 점, 바로 해볼 행동 기준을 함께 씁니다.',
@@ -1056,7 +979,7 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 복사하지 말고 의미만 뽑아 Feature JSON과 연결하세요. 일간·십신·대운·용신 같은 용어는 꼭 필요할 때만 한 번 쓰고 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 복사하지 말고 의미만 뽑아 Feature JSON과 연결하세요. 일간·십신·대운·용신 같은 용어는 꼭 필요할 때만 한 번 쓰고 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 hook은 감성 후킹 한 줄, interpretation은 장면·공감·짧은 행동이 주인공이 되게 쓰세요. 명리학 강의조는 금지하고, storytelling 필드(feel/scene/actions/tableMd/chartPoints/imagePrompt)가 있으면 감성 톤을 유지한 채 보강하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
         outputShape: {
           id: section.id,
           hook: 'string',
