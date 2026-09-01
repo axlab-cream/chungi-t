@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-love-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260831-footer-v2" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260901-money-image-only" />
   </head>
   <body>
     <div class="stage">
@@ -32,6 +32,10 @@
             <button type="button" data-menu-filter="종합">
               <strong>종합사주</strong>
               <span>천명대공 바로 보기</span>
+            </button>
+            <button type="button" data-menu-shortcut="destiny">
+              <strong>운명록</strong>
+              <span>로그인·사주등록 후 열람</span>
             </button>
             <button type="button" data-menu-filter="연애">
               <strong>연애운</strong>
@@ -112,28 +116,36 @@
             </div>
 
             <div class="product-grid">
-              <a class="product-card service-card is-live" href="/cmdg/" data-category="종합" data-glyph="命">
+              <a class="product-card service-card is-live has-visual" href="/cmdg/" data-category="종합" data-glyph="命">
+                <img class="product-card-img" src="/assets/umsh-cmdg-card-bg.webp" alt="" />
                 <small>SIGNATURE · 나</small>
                 <strong>천명대공</strong>
                 <span>한 번 볼 거라면, 인생 전체를.</span>
                 <b>49,900원</b>
               </a>
 
-              <button class="product-card service-card is-soon" type="button" data-category="재물" data-glyph="財">
-                <small>PREMIUM · 돈</small>
-                <strong>돈은 왜 들어와도<br />남지 않을까?</strong>
-                <span>재성 · 대운 · 소비 흐름</span>
-                <b>19,900원</b>
+              <button
+                class="product-card service-card is-soon has-visual is-image-only"
+                type="button"
+                data-category="재물"
+                data-glyph="財"
+                aria-label="PREMIUM · 돈 돈은 왜 들어와도 남지 않을까? 재성 · 대운 · 소비 흐름 19,900원"
+              >
+                <img class="product-card-img" src="/assets/umsh-money-card-bg.png" alt="" />
               </button>
 
-              <button class="product-card service-card is-soon" type="button" data-category="궁합" data-glyph="緣">
-                <small>MATCH · 관계</small>
-                <strong>우리 둘,<br />진짜 잘 맞아?</strong>
-                <span>끌림 · 갈등 · 회복력</span>
-                <b>19,900원</b>
+              <button
+                class="product-card service-card is-soon has-visual is-image-only"
+                type="button"
+                data-category="궁합"
+                data-glyph="緣"
+                aria-label="MATCH · 관계 우리 둘, 진짜 잘 맞아? 끌림 · 갈등 · 회복력 19,900원"
+              >
+                <img class="product-card-img" src="/assets/umsh-match-card-bg.png" alt="" />
               </button>
 
-              <button class="product-card service-card is-soon" type="button" data-category="직업" data-glyph="業">
+              <button class="product-card service-card is-soon has-visual" type="button" data-category="직업" data-glyph="業">
+                <img class="product-card-img" src="/assets/chungi-manseryeok-bg.webp" alt="" />
                 <small>DEEP · 일</small>
                 <strong>지금 일이<br />나랑 맞을까?</strong>
                 <span>관성 · 식상 · 적성</span>
@@ -213,17 +225,48 @@
           </footer>
         </div>
 
-        <footer class="bottom-nav" aria-label="하단 메뉴">
-          <a class="is-active" href="/">상회</a>
-          <button type="button" data-soon>내 운명</button>
-          <button type="button" data-soon>견주기</button>
-          <button type="button" data-soon>보관함</button>
-          <button type="button" data-soon>MY</button>
+        <div class="bottom-menu-panel" id="bottomMenuPanel" aria-hidden="true">
+          <section
+            class="bottom-menu-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bottomMenuTitle"
+            aria-describedby="bottomMenuDesc"
+          >
+            <div class="bottom-menu-head">
+              <div>
+                <span id="bottomMenuEyebrow">MENU</span>
+                <strong id="bottomMenuTitle">메뉴</strong>
+                <p id="bottomMenuDesc">필요한 운세 메뉴를 고르세요.</p>
+              </div>
+              <button class="bottom-menu-close" type="button" data-action="close-bottom-menu" aria-label="하단 메뉴 닫기">닫기</button>
+            </div>
+            <div class="bottom-menu-list" data-bottom-menu-list></div>
+          </section>
+        </div>
+
+        <footer class="bottom-nav" aria-label="주요 메뉴">
+          <button class="is-active" type="button" data-bottom-menu="home" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <span class="tab-label">홈</span>
+          </button>
+          <button type="button" data-bottom-menu="destiny" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <span class="tab-label">운명록</span>
+          </button>
+          <button type="button" data-bottom-menu="search" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <span class="tab-label">검색</span>
+          </button>
+          <button type="button" data-bottom-menu="vault" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <span class="tab-label">보관함</span>
+          </button>
+          <button type="button" data-bottom-menu="account" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <span class="tab-label">MY</span>
+          </button>
         </footer>
       </main>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
-    <script src="/js/portal.js?v=20260831-footer-v2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/portal.js?v=20260901-auth-gated-nav"></script>
   </body>
 </html>

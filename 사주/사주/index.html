@@ -3421,7 +3421,12 @@
         },
       };
       const isSignupPath = /^\/signup(?:\/|\.html)?$/i.test(location.pathname);
-      const isPortalSignupEntry = isSignupPath || initialAuthEntry === "today" || initialAuthEntry === "signup";
+      const protectedAuthEntries = new Set(["destiny", "vault", "my"]);
+      const isPortalSignupEntry =
+        isSignupPath ||
+        initialAuthEntry === "today" ||
+        initialAuthEntry === "signup" ||
+        protectedAuthEntries.has(initialAuthEntry);
       const isSignupReturn = initialAuthParams.get("signupReturn") === "1";
       const isAuthReturn = initialAuthParams.get("authReturn") === "1";
       let todayEntryActive = initialAuthEntry === "today";
@@ -3470,6 +3475,7 @@
         "name",
         "concern",
         "login",
+        "my",
         "loading",
         "result",
         "todayResult",
@@ -3772,6 +3778,23 @@
         return currentService()?.path || "/cmdg/";
       }
 
+      function wantsProtectedProfileEntry() {
+        return protectedAuthEntries.has(initialAuthEntry);
+      }
+
+      function protectedEntryLabel() {
+        if (initialAuthEntry === "destiny") return "운명록";
+        if (initialAuthEntry === "vault") return "보관함";
+        if (initialAuthEntry === "my") return "MY";
+        return "해당 메뉴";
+      }
+
+      function protectedEntryTarget() {
+        if (initialAuthEntry === "destiny") return "/destiny";
+        if (initialAuthEntry === "vault") return "/cmdg/#vault";
+        return "";
+      }
+
       function profileDateValue(birth = {}) {
         if (!birth.year || !birth.month || !birth.day) return "";
         return `${birth.year}${pad2(birth.month)}${pad2(birth.day)}`;
@@ -3966,6 +3989,63 @@
           go("time", false);
           showNudge(err.message || "사주 프로필 저장에 실패했습니다.");
         }
+      }
+
+      async function completeProtectedProfileFromInput() {
+        go("loading", false);
+        try {
+          await saveCurrentUserProfile();
+          const target = protectedEntryTarget();
+          if (target) {
+            location.href = target;
+            return;
+          }
+          clearSignupQuery();
+          go("my", false);
+          showNudge("사주 프로필이 저장됐습니다.");
+        } catch (err) {
+          go("time", false);
+          showNudge(err.message || "사주 프로필 저장에 실패했습니다.");
+        }
+      }
+
+      async function beginProtectedEntryAfterAuth() {
+        const label = protectedEntryLabel();
+        let session = null;
+        try {
+          session = await currentAuthSession();
+        } catch (err) {
+          showAuthGate(err.message || `${label} 접근 상태를 확인하지 못했습니다.`);
+          return;
+        }
+        if (!session?.access_token) {
+          showAuthGate(`${label}은 로그인과 사주등록 후 열 수 있습니다.`);
+          return;
+        }
+
+        sessionStorage.removeItem(AUTH_PENDING_KEY);
+        sessionStorage.removeItem(AUTH_FORM_KEY);
+        let profile = null;
+        try {
+          profile = await fetchUserProfile();
+        } catch (err) {
+          profile = cachedProfileForSession(session);
+          if (profile) applyUserProfile(profile);
+        }
+
+        if (!profile?.name || !applyUserProfile(profile)) {
+          go("name", false);
+          showNudge(`${label}을 열려면 사주 프로필을 먼저 등록해주세요.`);
+          return;
+        }
+
+        const target = protectedEntryTarget();
+        if (target) {
+          location.href = target;
+          return;
+        }
+        clearSignupQuery();
+        go("my", false);
       }
 
       function authProviderLabel(provider) {
@@ -4486,7 +4566,31 @@
         return window.confirm(`${title}\n\n이 상담 내용과 저장된 풀이를 삭제합니다.\n삭제하면 되돌릴 수 없습니다.\n정말 삭제할까요?`);
       }
 
-      function openSettings() {
+      async function ensureVaultAccess() {
+        let session = null;
+        try {
+          session = await currentAuthSession();
+        } catch (err) {
+          console.warn("보관함 로그인 확인 실패", err);
+        }
+        if (!session?.access_token) {
+          location.href = "/signup?entry=vault";
+          return false;
+        }
+
+        try {
+          const profile = await fetchUserProfile();
+          if (profile?.name && applyUserProfile(profile)) return true;
+        } catch (err) {
+          console.warn("보관함 사주 프로필 확인 실패", err);
+        }
+
+        location.href = "/signup?entry=vault";
+        return false;
+      }
+
+      async function openSettings() {
+        if (!(await ensureVaultAccess())) return;
         renderSettingsPanel();
         settingsPanel.classList.add("is-open");
         settingsPanel.setAttribute("aria-hidden", "false");
@@ -4576,6 +4680,7 @@
         name: renderName,
         concern: renderConcern,
         login: renderLogin,
+        my: renderMy,
         loading: renderLoading,
         result: renderResult,
         todayResult: renderTodayResult,
@@ -4683,6 +4788,10 @@
             completeTodayProfileFromInput();
             return;
           }
+          if (wantsProtectedProfileEntry()) {
+            completeProtectedProfileFromInput();
+            return;
+          }
           go("concern");
         }
         if (action === "time-unknown") {
@@ -4690,6 +4799,10 @@
           state.birthTimeKnown = false;
           if (wantsTodayEntry()) {
             completeTodayProfileFromInput();
+            return;
+          }
+          if (wantsProtectedProfileEntry()) {
+            completeProtectedProfileFromInput();
             return;
           }
           go("concern");
@@ -4737,6 +4850,12 @@
         }
         if (action === "open-settings") {
           openSettings();
+        }
+        if (action === "my-edit-profile") {
+          go("name");
+        }
+        if (action === "my-open-destiny") {
+          location.href = "/destiny";
         }
         if (action === "copy-report-link") {
           copyReportLink(event.target.closest("[data-action]"));
@@ -5993,6 +6112,30 @@
         document.querySelector("#concern")?.focus();
       }
 
+      function renderMy() {
+        const birthText = `${state.calendar} ${formatBirthLabel(state.birth)} · ${state.birthTimeKnown ? state.time : "시간 모름"}`;
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">MY · 사주 프로필</div>
+            <h1>내 사주 프로필</h1>
+            <p>운명록과 보관함은 이 사주등록 정보를 기준으로 열립니다.</p>
+            <div class="auth-benefits" aria-label="내 사주 프로필 요약">
+              <span>${escapeHtml(state.name || "이름 미입력")}</span>
+              <span>${escapeHtml(state.gender || "성별 미입력")}</span>
+              <span>${escapeHtml(birthText)}</span>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="my-edit-profile">사주 수정</button>
+              <button class="next-cta" type="button" data-action="my-open-destiny">운명록 열기</button>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="open-settings">보관함 보기</button>
+              <button class="ghost" type="button" data-action="restart">처음으로</button>
+            </div>
+          </section>
+        `;
+      }
+
       function renderAuthProviderButton(providerName, className, label, helper, mark) {
         const isLoading = !authConfigData;
         const isConfigured = Boolean(authConfigData?.providers?.[providerName]);
@@ -6031,13 +6174,25 @@
               if (state.scene === "login") renderLogin();
             });
         }
-        const title = isStandaloneSignupFlow()
+        const protectedLabel = protectedEntryLabel();
+        const title = wantsTodayEntry()
           ? "오늘의 운을 보려면<br />먼저 가입해주세요"
-          : "먼저 가입하고<br />해석을 시작합니다";
-        const description = isStandaloneSignupFlow()
+          : wantsProtectedProfileEntry()
+            ? `${protectedLabel}을 열려면<br />먼저 로그인해주세요`
+            : isStandaloneSignupFlow()
+              ? "회원가입 후<br />운을 열어보세요"
+              : "먼저 가입하고<br />해석을 시작합니다";
+        const description = wantsTodayEntry()
           ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
-          : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
+          : wantsProtectedProfileEntry()
+            ? `${protectedLabel}은 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
+            : isStandaloneSignupFlow()
+              ? "소셜 계정으로 가입하면 오늘운, 운명록, 보관함을 같은 계정에서 이어서 볼 수 있습니다."
+              : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
         const closeLabel = isStandaloneSignupFlow() ? "상회로 돌아가기" : "돌아가기";
+        const benefitLabels = wantsProtectedProfileEntry()
+          ? ["로그인 필수", "사주등록 필수", protectedLabel]
+          : ["무료 오늘운", "풀이 보관", "30일 로그인 유지"];
         stage.innerHTML = `
           <section class="panel auth-card" role="dialog" aria-label="회원가입">
             <div class="auth-card-head">
@@ -6046,9 +6201,7 @@
               <p>${description}</p>
             </div>
             <div class="auth-benefits" aria-label="회원가입 혜택">
-              <span>무료 오늘운</span>
-              <span>풀이 보관</span>
-              <span>30일 로그인 유지</span>
+              ${benefitLabels.map((label) => `<span>${escapeHtml(label)}</span>`).join("")}
             </div>
             <div class="auth-provider-list">
               ${renderAuthProviderButton("kakao", "kakao", "카카오로 시작하기", "Kakao 간편 가입", "K")}
@@ -6811,6 +6964,7 @@
       const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
       const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
+      const settingsEntryScenes = new Set(["vault", "settings", "history"]);
       const initialReportId = new URLSearchParams(location.search).get("reportId");
       if (isStandaloneSignupFlow() && !isAuthReturn) {
         sessionStorage.removeItem(AUTH_PENDING_KEY);
@@ -6831,6 +6985,10 @@
         go(resolvedInitialScene, false);
       } else if (legacyPolicyPaths[resolvedInitialScene]) {
         location.replace(legacyPolicyPaths[resolvedInitialScene]);
+      } else if (settingsEntryScenes.has(resolvedInitialScene)) {
+        syncSceneUrl("landing");
+        renderLanding();
+        requestAnimationFrame(() => openSettings());
       } else {
         renderLanding();
         syncSceneUrl("landing");
@@ -6839,6 +6997,10 @@
         clearSignupQuery();
       }
       initAuth().then(() => {
+        if (wantsProtectedProfileEntry() && authSession?.access_token) {
+          beginProtectedEntryAfterAuth();
+          return;
+        }
         if (wantsTodayEntry() && authSession?.access_token) {
           beginTodayAfterAuth();
           return;

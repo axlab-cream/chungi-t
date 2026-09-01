@@ -42,6 +42,7 @@ const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
 const PRIVACY_PAGE = join(SAJU_ROOT, 'privacy.html')
 const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
 const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
+const DESTINY_PAGE = join(SAJU_ROOT, 'destiny.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -82,6 +83,9 @@ app.get(['/support', '/support/', '/support.html'], (_req, res) => {
 })
 app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
+})
+app.get(['/destiny', '/destiny/', '/destiny.html'], (_req, res) => {
+  res.sendFile(DESTINY_PAGE)
 })
 app.get(/^\/cmdg$/, redirectToCmdg)
 app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
@@ -527,6 +531,37 @@ app.get('/api/user/reports', async (req, res) => {
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '풀이 보관함 조회 실패' })
+  }
+})
+
+app.get('/api/user/destiny', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    const records = await listReportRecords(owner, parseListLimit(req.query.limit, 8))
+    if (!profile) {
+      res.json({
+        userId: owner.id,
+        complete: false,
+        profile: null,
+        reports: records.map(historyEntryFromRecord),
+        storage: getReportStorageMode(),
+      })
+      return
+    }
+
+    res.json({
+      userId: owner.id,
+      complete: true,
+      profile,
+      analysis: analyzeSaju(profile.birth),
+      todayFortune: buildTodayFortune(profile),
+      reports: records.map(historyEntryFromRecord),
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '운명록 조회 실패' })
   }
 })
 

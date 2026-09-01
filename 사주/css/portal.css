@@ -217,7 +217,8 @@ a:focus-visible {
   transform: translateY(0) scale(1);
 }
 
-.action-sheet button {
+.action-sheet button,
+.action-sheet a {
   position: relative;
   overflow: hidden;
   min-height: 58px;
@@ -235,7 +236,9 @@ a:focus-visible {
 }
 
 .action-sheet button:hover,
-.action-sheet button:focus-visible {
+.action-sheet button:focus-visible,
+.action-sheet a:hover,
+.action-sheet a:focus-visible {
   border-color: var(--line);
   background: rgba(216, 186, 114, 0.1);
   transform: translateX(-2px);
@@ -797,8 +800,65 @@ a:focus-visible {
     transform 180ms ease;
 }
 
+.product-card-img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.48;
+  filter: saturate(0.95) contrast(1.08);
+  transform: scale(1.04);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+  pointer-events: none;
+}
+
+.product-card.has-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-color: rgba(216, 186, 114, 0.28);
+  background: #070706;
+}
+
+.product-card.is-image-only {
+  aspect-ratio: 1086 / 1448;
+  min-height: auto;
+  padding: 0;
+}
+
+.product-card.is-image-only .product-card-img {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.product-card.has-visual::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.48) 58%, rgba(0, 0, 0, 0.22)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.46) 62%, rgba(0, 0, 0, 0.82)),
+    radial-gradient(circle at 72% 20%, rgba(216, 186, 114, 0.16), transparent 7rem);
+  pointer-events: none;
+}
+
+.product-card.is-image-only::before {
+  display: none;
+}
+
+.product-card.has-visual::after {
+  display: none;
+}
+
 .product-card::after {
   position: absolute;
+  z-index: 1;
   top: 16px;
   right: -8px;
   color: rgba(216, 186, 114, 0.055);
@@ -814,9 +874,10 @@ a:focus-visible {
 
 .product-card strong,
 .product-card span,
-.product-card b {
+.product-card b,
+.product-card small {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .product-card strong {
@@ -830,6 +891,13 @@ a:focus-visible {
   letter-spacing: 0;
 }
 
+.product-card.has-visual strong {
+  margin-top: 10px;
+  max-width: 58%;
+  font-size: 22px;
+  line-height: 1.18;
+}
+
 .product-card span {
   display: block;
   margin-top: 12px;
@@ -840,10 +908,24 @@ a:focus-visible {
   line-height: 1.5;
 }
 
+.product-card.has-visual span {
+  max-width: 62%;
+  min-height: 0;
+  margin-top: 8px;
+  color: rgba(247, 242, 233, 0.82);
+  font-size: 11px;
+}
+
 .product-card b {
   display: block;
   margin-top: 12px;
   font-size: 17px;
+}
+
+.product-card.has-visual b {
+  margin-top: 10px;
+  color: var(--gold-200);
+  font-size: 19px;
 }
 
 .product-card:hover,
@@ -855,6 +937,20 @@ a:focus-visible {
     linear-gradient(145deg, #1d1a13, var(--black-950));
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
   transform: translateY(-3px);
+}
+
+.product-card.has-visual:hover .product-card-img,
+.product-card.has-visual:focus-visible .product-card-img,
+.product-card.has-visual.is-pointed .product-card-img {
+  opacity: 0.58;
+  transform: scale(1.08);
+}
+
+.product-card.is-image-only:hover .product-card-img,
+.product-card.is-image-only:focus-visible .product-card-img,
+.product-card.is-image-only.is-pointed .product-card-img {
+  opacity: 1;
+  transform: scale(1.03);
 }
 
 .product-card:hover::after,
@@ -1184,9 +1280,205 @@ a:focus-visible {
   padding-top: 1px;
 }
 
+.bottom-menu-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px 86px;
+  background: rgba(5, 5, 4, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    background 180ms ease,
+    opacity 180ms ease;
+}
+
+.phone.is-bottom-menu-open .bottom-menu-panel {
+  background: rgba(5, 5, 4, 0.56);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-menu-sheet {
+  width: 100%;
+  max-height: min(520px, calc(100dvh - 164px));
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(216, 186, 114, 0.24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(216, 186, 114, 0.16), transparent 12rem),
+    rgba(12, 11, 10, 0.98);
+  box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.54);
+  transform: translateY(12px) scale(0.985);
+  transition: transform 180ms ease;
+}
+
+.phone.is-bottom-menu-open .bottom-menu-sheet {
+  transform: translateY(0) scale(1);
+}
+
+.bottom-menu-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 2px 12px;
+}
+
+.bottom-menu-head span {
+  display: block;
+  color: var(--gold-400);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.bottom-menu-head strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--cream-100);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.bottom-menu-head p {
+  max-width: 250px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.bottom-menu-close {
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--gold-300);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.bottom-menu-close:hover,
+.bottom-menu-close:focus-visible {
+  border-color: var(--line);
+  background: rgba(216, 186, 114, 0.1);
+}
+
+.bottom-menu-list {
+  display: grid;
+  gap: 8px;
+}
+
+.bottom-menu-search {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.bottom-menu-search span {
+  color: var(--gold-400);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.bottom-menu-search input {
+  width: 100%;
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid rgba(247, 242, 233, 0.12);
+  border-radius: 12px;
+  outline: 0;
+  background: rgba(5, 5, 4, 0.62);
+  color: var(--cream-100);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.bottom-menu-search input::placeholder {
+  color: rgba(163, 154, 140, 0.68);
+}
+
+.bottom-menu-search input:focus {
+  border-color: rgba(232, 212, 154, 0.62);
+  box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.1);
+}
+
+.bottom-menu-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--cream-100);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.bottom-menu-item:hover,
+.bottom-menu-item:focus-visible {
+  border-color: rgba(216, 186, 114, 0.42);
+  background: rgba(216, 186, 114, 0.09);
+  transform: translateY(-1px);
+}
+
+.bottom-menu-item strong,
+.bottom-menu-item small {
+  display: block;
+  min-width: 0;
+  word-break: keep-all;
+}
+
+.bottom-menu-item strong {
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.bottom-menu-item small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.45;
+}
+
+.bottom-menu-item em {
+  display: inline-grid;
+  min-width: 48px;
+  height: 30px;
+  padding: 0 10px;
+  place-items: center;
+  border: 1px solid rgba(216, 186, 114, 0.32);
+  border-radius: 999px;
+  color: var(--gold-300);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 950;
+}
+
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   height: 74px;
   border-top: 1px solid var(--line-soft);
   background: rgba(8, 8, 7, 0.96);
@@ -1195,13 +1487,16 @@ a:focus-visible {
 .bottom-nav a,
 .bottom-nav button {
   display: grid;
+  min-width: 0;
+  padding: 0;
   place-items: center;
   background: transparent;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   overflow: hidden;
   position: relative;
+  white-space: nowrap;
   transition:
     background 160ms ease,
     color 160ms ease;
@@ -1209,6 +1504,25 @@ a:focus-visible {
 
 .bottom-nav .is-active {
   color: var(--gold-300);
+}
+
+.bottom-nav .is-active::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--gold-400);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 3px;
+  text-overflow: ellipsis;
 }
 
 .bottom-nav a:hover,

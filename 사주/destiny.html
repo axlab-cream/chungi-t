@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UMSH 운명록 · 개인 사주 상세</title>
+    <meta
+      name="description"
+      content="UMSH 운명상회 운명록. 개인 사주 프로필, 원국, 신살과 길성, 합충 관계, 대운 흐름을 한 화면에서 확인합니다."
+    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050504'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23e8d49a'%3EU%3C/text%3E%3C/svg%3E" />
+    <link rel="preload" as="image" href="/assets/chungi-manseryeok-bg.webp" />
+    <link rel="preload" as="image" href="/assets/chungi-destiny-card-bg.webp" />
+    <link rel="stylesheet" href="/css/destiny.css?v=20260901-destiny-record" />
+  </head>
+  <body>
+    <div class="stage">
+      <main class="phone" aria-label="UMSH 운명록">
+        <header class="destiny-appbar">
+          <a class="app-brand" href="/" aria-label="운명상회 홈">
+            <span>UMSH</span>
+            <b>운명록</b>
+          </a>
+          <div class="app-actions">
+            <a class="mini-action" href="/signup?entry=destiny">편집</a>
+            <button class="mini-action" type="button" data-action="share-record">공유</button>
+          </div>
+        </header>
+
+        <div class="destiny-scroll" data-destiny-root>
+          <section class="destiny-loading" role="status" aria-live="polite">
+            <span>UMSH</span>
+            <strong>운명록을 펼치는 중입니다</strong>
+            <p>로그인과 사주등록 상태를 확인한 뒤 개인 운명록을 보여드립니다.</p>
+          </section>
+        </div>
+
+        <div class="record-cta-bar" aria-label="운명록 주요 행동">
+          <button type="button" data-action="share-record">공유하기</button>
+          <a href="/signup?entry=destiny" data-primary-record-cta>로그인하고 사주 등록하기</a>
+        </div>
+
+        <footer class="bottom-nav" aria-label="주요 메뉴">
+          <a href="/"><span class="tab-label">홈</span></a>
+          <a class="is-active" href="/destiny" aria-current="page"><span class="tab-label">운명록</span></a>
+          <a href="/#search"><span class="tab-label">검색</span></a>
+          <a href="/signup?entry=vault"><span class="tab-label">보관함</span></a>
+          <a href="/signup?entry=my"><span class="tab-label">MY</span></a>
+        </footer>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">운명록을 준비하고 있습니다.</div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/destiny.js?v=20260901-auth-gated-record"></script>
+  </body>
+</html>
