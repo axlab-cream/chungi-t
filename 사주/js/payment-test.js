@@ -26,7 +26,7 @@
       setStatus('로그인 설정을 확인할 수 없습니다.');
       return;
     }
-    const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, detectSessionInUrl: true } });
+    const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
     session = (await client.auth.getSession()).data.session;
     if (!session) {
       setStatus('로그인 상태를 확인할 수 없습니다. 원래 창에서 다시 시작해 주세요.');

@@ -31,6 +31,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/payment-bridge.js"></script>
+    <link rel="stylesheet" href="/css/umsh-loading.css" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
     <style>
       :root {
         color-scheme: dark;
@@ -359,44 +361,10 @@
         font: inherit;
         line-height: 1.72;
       }
-
-      .loading {
-        position: fixed;
-        inset: 0;
-        z-index: 50;
-        display: grid;
-        place-items: center;
-        background: rgba(0, 0, 0, 0.78);
-      }
-
-      .loading-card {
-        width: min(320px, calc(100vw - 48px));
-        padding: 22px;
-        border-radius: 18px;
-        border: 1px solid var(--line);
-        background: #110c0b;
-        text-align: center;
-      }
-
-      .spinner {
-        width: 34px;
-        height: 34px;
-        margin: 0 auto 14px;
-        border: 3px solid rgba(232, 199, 111, 0.22);
-        border-top-color: var(--gold);
-        border-radius: 50%;
-        animation: spin 0.9s linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
     </style>
   </head>
   <body>
-    <main class="stage">
+    <main class="stage" data-umsh-chrome data-service="결혼궁합" data-price="24,900원">
       <header class="appbar">
         <button class="back" type="button" data-back aria-label="뒤로">‹</button>
         <div class="brand">
@@ -533,14 +501,9 @@
       </div>
     </main>
 
-    <div class="loading hidden" data-loading>
-      <div class="loading-card">
-        <div class="spinner"></div>
-        <strong>결혼궁합 흐름을 정리하고 있습니다</strong>
-        <p>배우자궁, 대운, 합충 RAG를 맞춰 보는 중입니다.</p>
-      </div>
-    </div>
-
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-loading.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
       const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -565,9 +528,12 @@
       function showScreen(name) {
         Object.entries(screens).forEach(([key, node]) => node.classList.toggle('hidden', key !== name));
       }
-
-      function setLoading(on) {
-        $('[data-loading]').classList.toggle('hidden', !on);
+      function setLoading(on, copy) {
+        if (on) {
+          window.UMSHLoading.show(copy || { title: '결혼궁합 흐름을 정리하고 있습니다', subtitle: '결혼과 인연의 흐름을 살피는 중입니다.' });
+        } else {
+          window.UMSHLoading.hide();
+        }
       }
 
       function setStatus(message) {
@@ -607,16 +573,23 @@
 
       async function initAuth() {
         state.authConfig = await fetch('/api/auth/config').then((res) => res.json());
-        if (!state.authConfig.enabled || !window.supabase) {
+        if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) {
           openCommonLogin();
           return;
         }
-        state.supabase = window.supabase.createClient(state.authConfig.url, state.authConfig.publishableKey);
+        state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey);
         const { data } = await state.supabase.auth.getSession();
-        state.session = data.session;
+        state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase);
         state.supabase.auth.onAuthStateChange((_event, session) => {
-          state.session = session;
-          routeAfterAuth();
+          window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase)
+            .then((nextSession) => {
+              state.session = nextSession;
+              routeAfterAuth();
+            })
+            .catch(() => {
+              state.session = session || null;
+              routeAfterAuth();
+            });
         });
         routeAfterAuth();
       }
@@ -630,7 +603,7 @@
         try {
           const payload = await api('/api/user/profile');
           state.profile = payload.profile;
-          if (payload.complete) {
+          if (payload.complete || window.UMSHAuthSession?.isSharedProfileComplete(payload.profile)) {
             $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주 프로필과 상대 사주로 결혼궁합을 봅니다.`;
             showScreen('form');
             resumePaidRequest();
