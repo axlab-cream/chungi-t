@@ -5417,7 +5417,7 @@
           work: state.work,
           partner: getPartnerContext(),
         };
-        await saveCurrentUserProfile();
+        void saveCurrentUserProfile().catch((err) => console.warn("사주 프로필 저장 실패", err));
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -5428,6 +5428,7 @@
           method: "POST",
           headers,
           body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context }),
+          signal: AbortSignal.timeout(45000),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");

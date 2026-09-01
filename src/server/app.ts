@@ -576,9 +576,9 @@ async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}, 
     owner,
   })
 
-  if (record.status !== 'complete') {
-    startReportPreGeneration({ reportId, analysis, birth, context: enrichedContext, owner })
-  }
+  // Do not kick off full OpenAI pregen inside the analyze request.
+  // On Vercel it can keep the isolate busy and make the client appear stuck on #loading.
+  // Sections generate on demand via /api/report/section (and optional prewarm).
 
   return buildUiAnalysisPayload(analysis, birth, toClientReport(record))
 }
@@ -1384,25 +1384,23 @@ app.post('/api/saju/analyze', async (req, res) => {
       return
     }
     if (owner && context.name && isValidProfileName(context.name)) {
-      try {
-        await saveUserBirthProfile(
-          buildUserBirthProfile({
-            owner,
-            name: context.name,
-            birth,
-            birthTimeKnown: context.birthTimeKnown !== false,
-            context: {
-              target: context.target,
-              relationship: context.relationship,
-              orientation: context.orientation,
-              work: context.work,
-            },
-          }),
+      void saveUserBirthProfile(
+        buildUserBirthProfile({
           owner,
-        )
-      } catch (profileErr) {
+          name: context.name,
+          birth,
+          birthTimeKnown: context.birthTimeKnown !== false,
+          context: {
+            target: context.target,
+            relationship: context.relationship,
+            orientation: context.orientation,
+            work: context.work,
+          },
+        }),
+        owner,
+      ).catch((profileErr) => {
         console.error('[analyze] profile save failed', profileErr)
-      }
+      })
     }
     res.json(await toUiAnalysis(birth, context, owner))
   } catch (err) {
