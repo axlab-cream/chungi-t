@@ -1241,6 +1241,42 @@
         margin-bottom: 0;
       }
 
+      .today-score-card {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px 14px;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid rgba(242, 191, 107, 0.28);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(242, 191, 107, 0.16), rgba(146, 31, 23, 0.18)),
+          rgba(255, 255, 255, 0.045);
+      }
+
+      .today-score-card span,
+      .today-score-card small {
+        color: rgba(255, 238, 210, 0.74);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .today-score-card strong {
+        grid-row: span 2;
+        color: #fff2c5;
+        font-family: var(--font-brand);
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      .today-score-card em {
+        color: rgba(255, 238, 210, 0.58);
+        font-family: var(--font-reading-body);
+        font-size: 14px;
+        font-style: normal;
+      }
+
       .today-pillar-card,
       .today-action-box {
         display: grid;
@@ -1294,6 +1330,45 @@
 
       .today-reading-list {
         margin: 0;
+      }
+
+      .today-item-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 7px;
+      }
+
+      .today-item-head strong {
+        margin: 0;
+      }
+
+      .today-item-score {
+        flex: 0 0 auto;
+        min-width: 48px;
+        padding: 5px 8px;
+        border: 1px solid rgba(242, 191, 107, 0.28);
+        border-radius: 999px;
+        color: #ffe0a8;
+        background: rgba(242, 191, 107, 0.08);
+        font-size: 12px;
+        font-weight: 950;
+        text-align: center;
+      }
+
+      .today-detail-note {
+        display: block;
+        margin-top: 8px;
+        color: rgba(255, 238, 210, 0.68);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+      }
+
+      .today-detail-note b {
+        color: var(--gold);
+        font-weight: 950;
       }
 
       .today-action-box strong {
@@ -3359,6 +3434,7 @@
       const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
       const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
       const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
+      const PAID_REPORTS_KEY = "cheongi_paid_report_ids_v1";
       const USER_PROFILE_CACHE_KEY = "cheongi_user_birth_profile_v1";
       const AUTH_DEVICE_SESSION_KEY = "cheongi_auth_device_session_started_at_v1";
       const AUTH_DEVICE_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -4097,6 +4173,28 @@
         }
       }
 
+      function readPaidReportIds() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(PAID_REPORTS_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed.map(String) : [];
+        } catch (err) {
+          return [];
+        }
+      }
+
+      function isCurrentReportPaid() {
+        const report = state.analysis?.report || {};
+        const reportId = report.reportId || "";
+        const paidIds = readPaidReportIds();
+        return Boolean(
+          report.isPaid
+          || report.paid
+          || report.paymentStatus === "paid"
+          || report.entitlement === "paid"
+          || (reportId && paidIds.includes(reportId))
+        );
+      }
+
       function formatSavedAt(value) {
         const date = new Date(value || Date.now());
         if (Number.isNaN(date.getTime())) return "방금 전";
@@ -4119,6 +4217,15 @@
         url.searchParams.set("reportId", reportId);
         url.hash = "result";
         return url.href;
+      }
+
+      function syncFullReportResultUrl(reportId) {
+        if (!reportId) return;
+        const url = new URL("/cmdg/", location.origin);
+        url.searchParams.set("authReturn", "1");
+        url.searchParams.set("reportId", reportId);
+        url.hash = "result";
+        history.replaceState(null, "", url.toString());
       }
 
       function syncReportIdInUrl(reportId) {
@@ -4516,14 +4623,21 @@
           state.concern = TODAY_CONCERN;
           go("loading");
           analyzeBirth()
-            .then(() => go("result"))
+            .then(() => {
+              go("result");
+              syncFullReportResultUrl(state.analysis?.report?.reportId);
+            })
             .catch((err) => {
               go("todayResult", false);
               showNudge(err.message || "전체 풀이를 불러오지 못했습니다.");
             });
         }
         if (action === "open-chat") {
-          location.href = "/chat.html";
+          if (isCurrentReportPaid()) {
+            location.href = "/chat.html";
+            return;
+          }
+          go("purchase");
         }
         if (action === "open-settings") {
           openSettings();
@@ -4541,7 +4655,7 @@
           const index = Number(event.target.closest("[data-report-index]")?.dataset.reportIndex ?? 0);
           loadReportPage(index);
         }
-        if (action === "open-purchase") location.href = "/chat.html";
+        if (action === "open-purchase") go("purchase");
         if (action === "toggle-agree") {
           const key = event.target.closest("[data-agree]")?.dataset.agree;
           if (key) {
@@ -5717,6 +5831,22 @@
         `;
       }
 
+      function todayScoreSummary(score) {
+        const value = Number(score || 0);
+        if (value >= 80) return "밀어붙일 힘이 충분한 날";
+        if (value >= 70) return "기회와 주의가 함께 있는 날";
+        if (value >= 60) return "확인하고 움직이면 무난한 날";
+        return "속도를 낮추고 기준을 지킬 날";
+      }
+
+      function todayDetailFallback(label, text, score) {
+        return {
+          label,
+          text,
+          score: Number.isFinite(Number(score)) ? Number(score) : 60,
+        };
+      }
+
       function renderTodayResult() {
         const fortune = state.todayFortune;
         if (!fortune?.reading) {
@@ -5736,11 +5866,19 @@
 
         const reading = fortune.reading;
         const timeNote = fortune.profile.birthTimeKnown ? `${state.time} 출생 기준` : "태어난 시간 모름 기준";
+        const detailMap = reading.details || {};
+        const score = reading.score || {};
+        const totalScore = Number.isFinite(Number(score.total)) ? Number(score.total) : Math.round([
+          score.work,
+          score.money,
+          score.relationship,
+          score.caution,
+        ].map((value) => Number(value) || 60).reduce((sum, value) => sum + value, 0) / 4);
         const detailRows = [
-          ["일", reading.work],
-          ["돈", reading.money],
-          ["관계", reading.relationship],
-          ["피해야 할 선택", reading.caution],
+          { ...todayDetailFallback("일", reading.work, score.work), ...(detailMap.work || {}) },
+          { ...todayDetailFallback("돈", reading.money, score.money), ...(detailMap.money || {}) },
+          { ...todayDetailFallback("관계", reading.relationship, score.relationship), ...(detailMap.relationship || {}) },
+          { ...todayDetailFallback("피해야 할 선택", reading.caution, score.caution), ...(detailMap.caution || {}) },
         ];
 
         stage.innerHTML = `
@@ -5748,6 +5886,12 @@
             <div class="status">TODAY · 무료</div>
             <h1>오늘 나한테<br />들어오는 운</h1>
             <p>${escapeHtml(fortune.date.label)} · ${escapeHtml(state.name || fortune.profile.name)}님 ${escapeHtml(timeNote)}</p>
+
+            <div class="today-score-card" aria-label="오늘 일진 종합 점수">
+              <span>오늘 일진 종합 점수</span>
+              <strong>${escapeHtml(totalScore)}<em>/100</em></strong>
+              <small>${escapeHtml(todayScoreSummary(totalScore))}</small>
+            </div>
 
             <div class="today-pillar-card">
               <span>오늘 일진</span>
@@ -5762,10 +5906,15 @@
             </div>
 
             <div class="result-list today-reading-list">
-              ${detailRows.map(([label, text]) => `
+              ${detailRows.map((item) => `
                 <div class="result-item">
-                  <strong>${escapeHtml(label)}</strong>
-                  <span>${escapeHtml(text)}</span>
+                  <div class="today-item-head">
+                    <strong>${escapeHtml(item.label)}</strong>
+                    <span class="today-item-score">${escapeHtml(item.score)}점</span>
+                  </div>
+                  <span>${escapeHtml(item.text)}</span>
+                  ${item.opportunity ? `<small class="today-detail-note"><b>기회</b> ${escapeHtml(item.opportunity)}</small>` : ""}
+                  ${item.caution ? `<small class="today-detail-note"><b>주의</b> ${escapeHtml(item.caution)}</small>` : ""}
                 </div>
               `).join("")}
             </div>
@@ -6208,7 +6357,7 @@
           beginTodayAfterAuth();
           return;
         }
-        if ((isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") && authSession?.access_token) {
+        if (!initialReportId && (isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") && authSession?.access_token) {
           beginAnalysisAfterAuth();
         }
       }).catch((err) => {
