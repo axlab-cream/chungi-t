@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{data,prompts,사주}/**"
+    }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index?__umsh_path=$1" }
   ]
