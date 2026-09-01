@@ -425,29 +425,39 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
       throw new Error('회원 인증 정보가 없어 리포트를 저장하지 못했습니다.')
     }
     const upsertUrl = `${supabaseRestUrl}?on_conflict=report_id`
-    const response = await fetch(upsertUrl, {
-      method: 'POST',
-      headers: {
-        ...supabaseHeaders(accessToken),
-        'content-type': 'application/json',
-        prefer: 'resolution=merge-duplicates,return=representation',
-      },
-      body: JSON.stringify({
-        report_id: stored.reportId,
-        user_id: stored.owner.id,
-        user_email: stored.owner.email ?? null,
-        auth_provider: stored.owner.provider ?? null,
-        payload: stored,
-        ...adminColumns(stored),
-      }),
-    })
-    if (!response.ok) {
-      const message = await response.text().catch(() => '')
-      console.error('[cheongi_reports] save failed; falling back to memory', response.status, message)
-      stored.report.storage = 'memory'
-      memoryReports.set(stored.reportId, cloneRecord(stored))
-      return cloneRecord(stored)
+    const headers = {
+      ...supabaseHeaders(accessToken),
+      'content-type': 'application/json',
+      prefer: 'resolution=merge-duplicates,return=representation',
     }
+    const baseRow = {
+      report_id: stored.reportId,
+      user_id: stored.owner.id,
+      user_email: stored.owner.email ?? null,
+      auth_provider: stored.owner.provider ?? null,
+      payload: stored,
+    }
+    // Older projects may lack analytics columns; try full row then strip unknown cols.
+    const attempts: Array<Record<string, unknown>> = [
+      { ...baseRow, ...adminColumns(stored) },
+      baseRow,
+    ]
+    let lastMessage = ''
+    for (const body of attempts) {
+      const response = await fetch(upsertUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      })
+      if (response.ok) return cloneRecord(stored)
+      lastMessage = await response.text().catch(() => '')
+      console.error('[cheongi_reports] save attempt failed', response.status, lastMessage)
+      // PGRST204 = column missing from schema cache; retry leaner payload.
+      if (!lastMessage.includes('PGRST204')) break
+    }
+    console.error('[cheongi_reports] save failed; falling back to memory', lastMessage)
+    stored.report.storage = 'memory'
+    memoryReports.set(stored.reportId, cloneRecord(stored))
     return cloneRecord(stored)
   }
 
