@@ -130,6 +130,7 @@ const SUPABASE_PUBLIC_KEY =
   ?? process.env.VITE_SUPABASE_ANON_KEY
   ?? ''
 const envValue = (value: string | undefined, fallback: string): string => value?.trim() || fallback
+const SUPABASE_GOOGLE_CLIENT_ID = process.env.SUPABASE_GOOGLE_CLIENT_ID?.trim() ?? ''
 const SUPABASE_GOOGLE_PROVIDER = envValue(process.env.SUPABASE_GOOGLE_PROVIDER, 'google')
 const SUPABASE_KAKAO_PROVIDER = envValue(process.env.SUPABASE_KAKAO_PROVIDER, 'kakao')
 const SUPABASE_NAVER_PROVIDER = envValue(process.env.SUPABASE_NAVER_PROVIDER, 'custom:naver')
@@ -422,6 +423,7 @@ function authConfig() {
     url: SUPABASE_URL,
     callbackUrl,
     publishableKey: SUPABASE_PUBLIC_KEY,
+    googleClientId: SUPABASE_GOOGLE_CLIENT_ID,
     providers: {
       google: SUPABASE_GOOGLE_PROVIDER,
       kakao: SUPABASE_KAKAO_PROVIDER,

@@ -560,6 +560,17 @@
         color: #211b18;
       }
 
+      .google-identity-shell {
+        width: 100%;
+        min-height: 40px;
+        overflow: hidden;
+        border-radius: 12px;
+      }
+
+      .google-identity-shell > div {
+        width: 100% !important;
+      }
+
       .auth-provider.is-unavailable {
         cursor: not-allowed;
         opacity: 0.62;
@@ -3566,6 +3577,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <script>
@@ -3592,6 +3604,8 @@
       let authInitPromise = null;
       let authGateMessage = "";
       let authSignInProvider = "";
+      let googleIdentityInitPromise = null;
+      let googleIdentityNonce = "";
       let reportHistorySyncPromise = null;
 
       const initialAuthParams = new URLSearchParams(location.search);
@@ -4294,6 +4308,123 @@
         if (target) target.textContent = message;
       }
 
+      function prepareAuthContinuation() {
+        if (isStandaloneSignupFlow()) {
+          if (initialAuthEntry === "today") {
+            setTodayEntryPending();
+          } else {
+            clearTodayEntryPending();
+          }
+          sessionStorage.removeItem(AUTH_PENDING_KEY);
+          sessionStorage.removeItem(AUTH_FORM_KEY);
+        } else {
+          persistAuthFormState();
+          sessionStorage.setItem(AUTH_PENDING_KEY, "1");
+        }
+      }
+
+      function createGoogleIdentityNonce() {
+        const bytes = new Uint8Array(32);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+      }
+
+      async function sha256Hex(value) {
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+        return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      }
+
+      async function waitForGoogleIdentity() {
+        const deadline = Date.now() + 8000;
+        while (!window.google?.accounts?.id) {
+          if (Date.now() >= deadline) throw new Error("Google 로그인 모듈을 불러오지 못했습니다.");
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        return window.google.accounts.id;
+      }
+
+      async function initializeGoogleIdentity() {
+        if (googleIdentityInitPromise) return googleIdentityInitPromise;
+        googleIdentityInitPromise = (async () => {
+          await initAuth();
+          const clientId = authConfigData?.googleClientId;
+          if (!clientId || !authConfigData?.providers?.google) {
+            throw new Error("구글 로그인 설정을 확인해 주세요.");
+          }
+          const googleIdentity = await waitForGoogleIdentity();
+          googleIdentityNonce = createGoogleIdentityNonce();
+          googleIdentity.initialize({
+            client_id: clientId,
+            callback: handleGoogleCredentialResponse,
+            nonce: await sha256Hex(googleIdentityNonce),
+            auto_select: false,
+            ux_mode: "popup",
+            use_fedcm_for_prompt: true,
+          });
+          return googleIdentity;
+        })().catch((err) => {
+          googleIdentityInitPromise = null;
+          throw err;
+        });
+        return googleIdentityInitPromise;
+      }
+
+      async function renderGoogleIdentityButton() {
+        const container = document.querySelector("[data-google-identity-button]");
+        if (!container) return;
+        try {
+          const googleIdentity = await initializeGoogleIdentity();
+          if (!container.isConnected) return;
+          container.innerHTML = "";
+          googleIdentity.renderButton(container, {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+            width: Math.max(240, Math.round(container.getBoundingClientRect().width)),
+            locale: "ko",
+          });
+        } catch (err) {
+          setAuthMessage(err.message || "구글 로그인 설정을 확인해 주세요.");
+        }
+      }
+
+      async function handleGoogleCredentialResponse(response) {
+        const providerButton = document.querySelector("[data-google-identity-button]");
+        try {
+          authSignInProvider = "google";
+          providerButton?.classList.add("is-loading");
+          providerButton?.setAttribute("aria-busy", "true");
+          setAuthMessage("구글 계정으로 로그인하고 있습니다.");
+          prepareAuthContinuation();
+
+          await initAuth();
+          if (!authConfigData?.enabled || !authClient) {
+            throw new Error("Supabase 공개 URL과 publishable key 설정을 확인해 주세요.");
+          }
+          if (!response?.credential || !googleIdentityNonce) {
+            throw new Error("Google 인증 정보를 받지 못했습니다.");
+          }
+          const { data, error } = await authClient.auth.signInWithIdToken({
+            provider: "google",
+            token: response.credential,
+            nonce: googleIdentityNonce,
+          });
+          if (error) throw error;
+          authSession = await enforceDeviceAuthSession(data.session || null);
+          if (!authSession?.access_token) throw new Error("로그인 세션을 만들지 못했습니다.");
+          location.replace(isStandaloneSignupFlow() ? signupReturnUrl() : authReturnUrl());
+        } catch (err) {
+          sessionStorage.removeItem(AUTH_PENDING_KEY);
+          authSignInProvider = "";
+          providerButton?.classList.remove("is-loading");
+          providerButton?.removeAttribute("aria-busy");
+          setAuthMessage(err.message || "구글 회원가입을 시작하지 못했습니다.");
+        }
+      }
+
       async function signInWithProvider(providerName) {
         let providerButton = null;
         try {
@@ -4303,18 +4434,7 @@
           providerButton?.setAttribute("aria-busy", "true");
           setAuthMessage(`${authProviderLabel(providerName)} 회원가입으로 이동합니다.`);
 
-          if (isStandaloneSignupFlow()) {
-            if (initialAuthEntry === "today") {
-              setTodayEntryPending();
-            } else {
-              clearTodayEntryPending();
-            }
-            sessionStorage.removeItem(AUTH_PENDING_KEY);
-            sessionStorage.removeItem(AUTH_FORM_KEY);
-          } else {
-            persistAuthFormState();
-            sessionStorage.setItem(AUTH_PENDING_KEY, "1");
-          }
+          prepareAuthContinuation();
 
           await initAuth();
           if (!authConfigData?.enabled || !authClient) {
@@ -4330,9 +4450,6 @@
           if (providerName === "kakao") {
             options.scopes = "profile_nickname profile_image";
             options.queryParams = { scope: "profile_nickname profile_image" };
-          }
-          if (providerName === "google") {
-            options.queryParams = { prompt: "select_account" };
           }
           const { error } = await authClient.auth.signInWithOAuth({ provider, options });
           if (error) throw error;
@@ -6563,8 +6680,14 @@
 
       function renderAuthProviderButton(providerName, className, label, helper, mark) {
         const isLoading = !authConfigData;
-        const isConfigured = Boolean(authConfigData?.providers?.[providerName]);
+        const isConfigured = Boolean(
+          authConfigData?.providers?.[providerName]
+          && (providerName !== "google" || authConfigData?.googleClientId)
+        );
         const isSigningIn = authSignInProvider === providerName;
+        if (providerName === "google" && isConfigured) {
+          return `<div class="google-identity-shell" data-google-identity-button aria-label="Google 계정으로 계속하기"></div>`;
+        }
         const stateAttrs = isLoading
           ? `data-auth-loading="${providerName}" aria-disabled="true"`
           : isConfigured
@@ -6643,6 +6766,9 @@
             <button class="auth-cancel" type="button" data-auth-close>${closeLabel}</button>
           </section>
         `;
+        if (authConfigData?.googleClientId && authConfigData?.providers?.google) {
+          requestAnimationFrame(() => renderGoogleIdentityButton());
+        }
       }
 
       function renderLoading() {
