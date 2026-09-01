@@ -1578,13 +1578,17 @@ a:focus-visible {
 .poster[href],
 .product-card[href],
 .today-ticket[href],
+.match-banner[href],
+.mini-row[href],
 .bottom-nav a {
   cursor: pointer;
 }
 
 .poster[href] > *,
 .product-card[href] > *,
-.today-ticket[href] > * {
+.today-ticket[href] > *,
+.match-banner[href] > *,
+.mini-row[href] > * {
   pointer-events: none;
 }
 

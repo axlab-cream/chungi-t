@@ -20,7 +20,7 @@
   const dragRails = Array.from(document.querySelectorAll('.poster-rail, .category-rail, .price-rail'));
   const mainPosterRail = document.querySelector('#services');
   const posterPageText = document.querySelector('[data-poster-page]');
-  const liveLinks = Array.from(document.querySelectorAll('a.is-live, a.is-cmdg'));
+  const liveLinks = Array.from(document.querySelectorAll('a.service-card[href]'));
   const actionButtons = Array.from(document.querySelectorAll('[data-action]'));
   const menuFilterButtons = Array.from(document.querySelectorAll('[data-menu-filter]'));
   const menuShortcutButtons = Array.from(document.querySelectorAll('[data-menu-shortcut]'));
@@ -76,7 +76,7 @@
         { label: '홈 맨 위', meta: '처음 화면으로 이동', action: 'scroll-top', status: '이동' },
         { label: '대표 상품 보기', meta: '요즘 많이 고른 풀이', action: 'focus-services', status: '보기' },
         { label: '오늘운 무료 보기', meta: '오늘 흐름과 피할 선택 확인', href: '/signup?entry=today', status: '무료' },
-        { label: '가격 사다리', meta: '무료부터 종합사주까지 비교', action: 'focus-pricing', status: '확인' },
+        { label: '천명사주 보기', meta: '종합사주 풀이 시작하기', href: '/cmdg/', status: '시작' },
       ],
     },
     search: {
@@ -114,7 +114,7 @@
         { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
         { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
         { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/cmdg/#vault', status: '보기' },
-        { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/cmdg/#support', status: '문의' },
+        { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/support', status: '문의' },
       ],
     },
   };
@@ -282,11 +282,7 @@
       didDrag = false;
       rail.classList.add('is-drag-ready');
       if (rail.classList.contains('poster-rail')) pausePosterAutoRoll(6200);
-      try {
-        rail.setPointerCapture(pointerId);
-      } catch (_error) {
-        // Some embedded browser surfaces can reject pointer capture.
-      }
+      // Do NOT capture yet — early capture steals click from child links/buttons on desktop.
     });
 
     rail.addEventListener('pointermove', (event) => {
@@ -840,8 +836,11 @@
     if (action === 'focus-pricing') {
       activeBottomMenu = 'home';
       closeBottomMenu();
-      scrollWithinPhone(document.querySelector('.price-rail')?.closest('.section-block'));
-      showToast('가격 사다리로 이동했습니다.');
+      const pricingTarget = document.querySelector('.price-rail')?.closest('.section-block')
+        || document.querySelector('#services');
+      scrollWithinPhone(pricingTarget);
+      flashReadableTarget(serviceCards[0]);
+      showToast('대표 상품을 보여드립니다.');
       updateBottomMenuButtons();
       return;
     }
@@ -1070,12 +1069,49 @@
   }
 
   liveLinks.forEach((link) => {
+    let clickStart = null;
+    let pointerNavigationAt = 0;
+
+    link.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      clickStart = {
+        x: event.clientX,
+        y: event.clientY,
+        pointerId: event.pointerId,
+      };
+    }, true);
+
+    link.addEventListener('pointerup', (event) => {
+      if (!clickStart || event.pointerType !== 'mouse' || event.pointerId !== clickStart.pointerId) return;
+      const movedX = Math.abs(event.clientX - clickStart.x);
+      const movedY = Math.abs(event.clientY - clickStart.y);
+      const rail = link.closest('.poster-rail, .category-rail, .price-rail');
+      const isClick = movedX <= dragThreshold && movedY <= dragThreshold;
+      clickStart = null;
+
+      if (!isClick || rail?.dataset.dragged === '1') return;
+      pointerNavigationAt = Date.now();
+      event.preventDefault();
+      event.stopPropagation();
+      navigateToLink(link);
+    }, true);
+
+    link.addEventListener('pointercancel', () => {
+      clickStart = null;
+    }, true);
+
     link.addEventListener('click', (event) => {
-      if (link.closest('.poster-rail')?.dataset.dragged === '1') {
+      if (Date.now() - pointerNavigationAt < 500) {
         event.preventDefault();
         return;
       }
-      // Let the anchor perform native navigation so mouse, touch, keyboard, and assistive-tech activation share one path.
+      if (link.closest('.poster-rail, .category-rail, .price-rail')?.dataset.dragged === '1') {
+        event.preventDefault();
+        return;
+      }
+      // Explicit navigation keeps mouse/touch/keyboard activation consistent across breakpoints.
+      event.preventDefault();
+      navigateToLink(link);
     });
   });
 
