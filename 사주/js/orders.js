@@ -10,6 +10,7 @@
   function label(statusValue) { return ({ ready: '결제 대기', approving: '승인 확인 중', paid: '결제 완료', viewed: '풀이 열람', failed: '결제 실패', cancelled: '결제 취소' })[statusValue] || statusValue; }
 
   async function init() {
+    if (window.UMSHAccountPages && window.UMSHAccountPages.mountAccountChrome) window.UMSHAccountPages.mountAccountChrome('account');
     const authConfig = await fetch('/api/auth/config').then((response) => response.json());
     if (!authConfig.enabled || !global.supabase?.createClient) {
       const returnTo = `${global.location.pathname}${global.location.search}`;

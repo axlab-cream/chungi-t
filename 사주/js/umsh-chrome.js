@@ -43,7 +43,7 @@
       { id: 'destiny', label: '운명록', href: '/destiny' },
       { id: 'search', label: '검색', href: '/#search' },
       { id: 'vault', label: '보관함', href: '/signup?entry=vault' },
-      { id: 'account', label: 'MY', href: '/signup?entry=my' },
+      { id: 'account', label: 'MY', href: '/my' },
     ];
     var nav = document.createElement('footer');
     nav.id = BOTTOM_ID;

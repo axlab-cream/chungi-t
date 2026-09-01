@@ -6,12 +6,17 @@
     <title>결제 내역 · 운명상회</title>
     <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20260901-myhub" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-account-pages.js?v=20260901-myhub"></script>
   </head>
   <body>
-    <main class="payment-page">
-      <header class="payment-header"><a class="payment-brand" href="/">운명상회</a><a class="payment-back" href="/">홈으로</a></header>
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="payment-header"><a class="payment-brand" href="/">운명상회</a><a class="payment-back" href="/my">마이페이지</a></header>
       <section class="payment-shell" aria-labelledby="orders-title">
         <p class="payment-eyebrow">MY · ORDERS</p>
         <h1 id="orders-title">결제 내역</h1>

@@ -117,6 +117,9 @@ const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
 const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
 const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
 const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
+const MY_PAGE = join(SAJU_ROOT, 'my.html')
+const PROFILE_PAGE = join(SAJU_ROOT, 'profile.html')
+const REFUNDS_PAGE = join(SAJU_ROOT, 'refunds.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -196,6 +199,15 @@ app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
 })
 app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
   res.sendFile(LEAVE_PAGE)
+})
+app.get(['/my', '/my/', '/my.html'], (_req, res) => {
+  res.sendFile(MY_PAGE)
+})
+app.get(['/profile', '/profile/', '/profile.html'], (_req, res) => {
+  res.sendFile(PROFILE_PAGE)
+})
+app.get(['/refunds', '/refunds/', '/refunds.html'], (_req, res) => {
+  res.sendFile(REFUNDS_PAGE)
 })
 app.get(['/r/:publicId', '/r/:publicId/'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'report-view.html'))
