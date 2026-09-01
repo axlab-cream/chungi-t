@@ -61,9 +61,18 @@ Google Cloud Console > Auth Platform > Clients:
 - Application type: Web application
 - Production client name: `umsh.kr web`
 - Production client ID: `366440624896-f3trevr63eeubfkmho6n96pgnog9ht15.apps.googleusercontent.com`
-- Authorized JavaScript origins:
+- Authorized JavaScript origins (no trailing slash; Google rejects mismatches as `origin_mismatch`):
   - `https://umsh.kr`
-- Authorized redirect URI: not required for the Google Identity Services ID-token flow
+  - `https://www.umsh.kr`
+  - `https://chungi-t.vercel.app`
+  - `http://localhost:8790`
+- Authorized redirect URI:
+  - `https://wdyzollywccgaepjeynu.supabase.co/auth/v1/callback`
+
+GIS popup login is currently disabled in production because the umsh.kr web
+client returns `400 origin_mismatch`. Google sign-in uses Supabase OAuth
+redirect (`signInWithOAuth`) until the JavaScript origins above are saved on
+client `366440624896-f3trevr63eeubfkmho6n96pgnog9ht15`.
 
 Supabase Dashboard > Authentication > Providers > Google:
 
