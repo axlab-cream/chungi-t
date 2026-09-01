@@ -95,8 +95,14 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     ])
     assert.ok(report.title.includes('올해 연애운'))
     assert.ok(report.sections[0].patternKeys.includes('service:love_this_year'))
-    assert.ok(report.sections[7].interpretation.includes('상대방 사주'))
+    assert.ok(report.sections[7].storytelling)
+    assert.ok(
+      report.sections[7].interpretation.includes('상대')
+      || report.sections[7].interpretation.includes('궁합'),
+    )
+    assert.ok(report.sections.every((section) => section.storytelling?.imagePrompt.ko))
     assert.ok(report.sections.some((section) => section.ragTopics.some((topic) => topic.includes('연애') || topic.includes('궁합'))))
+    assert.ok(report.sections[0].hook !== report.sections[0].category)
     assert.notEqual(createReportId(sampleBirth, sampleContext), createReportId(sampleBirth, loveContext))
   })
 

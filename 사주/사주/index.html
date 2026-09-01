@@ -3129,6 +3129,120 @@
         margin-top: 16px;
       }
 
+      .report-body .story-feel {
+        color: #fff0d8;
+        font-size: 15px;
+        font-weight: 850;
+        line-height: 1.75;
+      }
+
+      .report-body .story-soft-bridge {
+        color: #f0c48a;
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0.92;
+      }
+
+      .report-md-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0 4px;
+        font-size: 12.5px;
+      }
+
+      .report-md-table th,
+      .report-md-table td {
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .report-md-table th {
+        color: #ffe2af;
+        background: rgba(138, 30, 22, 0.28);
+        font-weight: 900;
+      }
+
+      .report-md-table td {
+        color: #e7d0b9;
+      }
+
+      .report-flow-chart {
+        display: grid;
+        gap: 8px;
+        margin: 10px 0 4px;
+        padding: 12px;
+        border: 1px solid rgba(255, 226, 175, 0.14);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .report-flow-chart .chart-row {
+        display: grid;
+        grid-template-columns: 88px 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .report-flow-chart .chart-row span:first-child {
+        color: #f2bf6b;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .report-flow-chart .chart-row strong {
+        color: #f7e2c4;
+        font-size: 11px;
+        font-weight: 700;
+        max-width: 140px;
+        text-align: right;
+      }
+
+      .report-image-hint {
+        margin-top: 14px;
+        padding: 10px 12px;
+        border-left: 2px solid rgba(242, 191, 107, 0.45);
+        color: #cbb79a;
+        font-size: 12px;
+        line-height: 1.55;
+        opacity: 0.88;
+      }
+
+      .report-image-hint .whisper {
+        display: block;
+        margin-top: 4px;
+        color: #a8947a;
+        font-size: 11px;
+      }
+
+      .report-action-list {
+        display: grid;
+        gap: 8px;
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .report-action-list li {
+        position: relative;
+        padding-left: 14px;
+        color: #f3e0c6;
+        font-size: 13.5px;
+        line-height: 1.55;
+      }
+
+      .report-action-list li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.55em;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #f2bf6b;
+      }
+
       .typing-cursor::after {
         content: "";
         display: inline-block;
@@ -5554,12 +5668,100 @@
         `;
       }
 
+      function formatMarkdownTableHtml(block) {
+        const lines = String(block || "")
+          .split(/\n/)
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith("|"));
+        if (lines.length < 2) return null;
+        const splitRow = (line) => line
+          .replace(/^\|/, "")
+          .replace(/\|$/, "")
+          .split("|")
+          .map((cell) => cell.trim());
+        const rows = lines
+          .filter((line) => !/^\|\s*:?-{3,}/.test(line.replace(/\s/g, " ").replace(/\|[-: ]+\|/g, "|---|")))
+          .filter((line) => !line.replace(/\s/g, "").match(/^\|?(:?-+:?\|)+$/));
+        // Filter separator rows more reliably
+        const dataRows = lines.filter((line) => !/^(\|\s*:?-{3,}:?\s*)+\|?$/.test(line));
+        if (dataRows.length < 2) return null;
+        const header = splitRow(dataRows[0]);
+        const body = dataRows.slice(1).map(splitRow);
+        return `
+          <table class="report-md-table">
+            <thead><tr>${header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr></thead>
+            <tbody>
+              ${body.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function formatChartFromComment(paragraph) {
+        const match = String(paragraph).match(/<!--chart:([\s\S]*?)-->/);
+        if (!match) return null;
+        try {
+          const data = JSON.parse(match[1]);
+          const points = Array.isArray(data.points) ? data.points : [];
+          if (!points.length) return null;
+          const caption = String(paragraph).replace(/<!--chart:[\s\S]*?-->/, "").trim();
+          const rows = points.map((point) => {
+            const width = Math.max(8, Math.min(100, Number(point.value) || 0));
+            return `<div class="chart-row"><span>${escapeHtml(point.label || "")}</span><div class="chart-track"><span class="chart-fill" style="width:${width}%"></span></div><strong>${escapeHtml(point.note || "")}</strong></div>`;
+          }).join("");
+          return `${caption ? `<p class="story-soft-bridge">${escapeHtml(caption).replace(/\n/g, "<br />")}</p>` : ""}<div class="report-flow-chart wealth-chart" aria-label="연애 월별 흐름">${rows}</div>`;
+        } catch (err) {
+          return null;
+        }
+      }
+
       function formatInterpretationHtml(text) {
         const clean = String(text || "").trim();
         if (!clean) return "";
         return clean
           .split(/\n{2,}/)
-          .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`)
+          .map((paragraph) => {
+            const trimmed = paragraph.trim();
+            if (!trimmed) return "";
+
+            const chartHtml = formatChartFromComment(trimmed);
+            if (chartHtml) return chartHtml;
+
+            if (trimmed.includes("| ---") || trimmed.includes("|---")) {
+              const tableHtml = formatMarkdownTableHtml(trimmed);
+              if (tableHtml) {
+                const caption = trimmed.split("\n").filter((line) => !line.trim().startsWith("|")).join(" ").trim();
+                return `${caption ? `<p class="story-soft-bridge">${escapeHtml(caption)}</p>` : ""}${tableHtml}`;
+              }
+            }
+
+            if (trimmed.startsWith("장면 이미지 힌트")) {
+              const lines = trimmed.split(/\n/).map((line) => line.trim()).filter(Boolean);
+              const ko = lines[0].replace(/^장면 이미지 힌트\s*·\s*/, "");
+              const en = (lines.find((line) => line.startsWith("(en)")) || "").replace(/^\(en\)\s*/, "");
+              return `<div class="report-image-hint" data-image-prompt-ko="${escapeHtml(ko)}" data-image-prompt-en="${escapeHtml(en)}">${escapeHtml(ko)}${en ? `<span class="whisper">${escapeHtml(en)}</span>` : ""}</div>`;
+            }
+
+            if (trimmed.startsWith("[해법]") && trimmed.includes("\n- ")) {
+              const [head, ...rest] = trimmed.split(/\n/);
+              const items = rest
+                .map((line) => line.replace(/^\s*-\s*/, "").trim())
+                .filter(Boolean)
+                .map((item) => `<li>${escapeHtml(item)}</li>`)
+                .join("");
+              return `<p>${escapeHtml(head)}</p><ul class="report-action-list">${items}</ul>`;
+            }
+
+            // Strip chart comment leftovers from plain paragraphs
+            const plain = trimmed.replace(/<!--chart:[\s\S]*?-->/g, "").trim();
+            if (!plain) return "";
+            const cls = plain.startsWith("[주요 포인트]")
+              ? "story-feel"
+              : plain.startsWith("그래서 ") || plain.startsWith("천천히 ") || plain.startsWith("마음이 ")
+                ? "story-soft-bridge"
+                : "";
+            return `<p${cls ? ` class="${cls}"` : ""}>${escapeHtml(plain).replace(/\n/g, "<br />")}</p>`;
+          })
           .join("");
       }
 
@@ -6516,6 +6718,7 @@
             <section class="story-section deep" data-sample-section="love-free-summary">
               <span class="chapter">무료 요약</span>
               <h2>올해 인연은<br /><span class="red">타이밍</span>을 놓치지 않는 쪽입니다</h2>
+              <div class="story-callout">허허… 마음이 먼저 동하는 해가 보이네. 스쳐 보내기엔 아쉬운 공기가야.</div>
               <p>${loveText}</p>
               <div class="sub-result-summary" aria-label="연애운 요약">
                 <div class="sub-result-card"><strong>나의 기준</strong><span>${birthLabel} · ${dayLabel} 일지 기준</span></div>

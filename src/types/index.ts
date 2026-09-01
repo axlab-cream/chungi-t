@@ -244,6 +244,30 @@ export interface SajuFeatureJson {
   }
 }
 
+export interface StoryImagePrompt {
+  ko: string
+  en: string
+}
+
+export interface StoryChartPoint {
+  label: string
+  value: number
+  note: string
+}
+
+/** Emotional storytelling payload for UMSH narrative sections (love/this-year etc.). */
+export interface SectionStorytelling {
+  feel: string
+  softBridge?: string
+  tableMd?: string
+  tableCaption?: string
+  chartPoints?: StoryChartPoint[]
+  chartCaption?: string
+  scene: string
+  actions: string[]
+  imagePrompt: StoryImagePrompt
+}
+
 export interface SajuReportSection {
   id: string
   order: number
@@ -257,6 +281,8 @@ export interface SajuReportSection {
   patternKeys: string[]
   ragTopics: string[]
   interpretation: string
+  /** Optional cmdg-style story beats; emotion first, mechanics under the hood. */
+  storytelling?: SectionStorytelling
   generatedBy?: 'template' | 'openai'
   model?: string
   status?: 'pending' | 'generating' | 'complete' | 'failed'
