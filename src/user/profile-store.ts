@@ -55,6 +55,14 @@ const supabaseRestUrl = supabaseUrl
 
 const memoryProfiles = new Map<string, UserBirthProfile>()
 let dbReady: Promise<void> | null = null
+const SUPABASE_FETCH_TIMEOUT_MS = 8_000
+
+function supabaseFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), SUPABASE_FETCH_TIMEOUT_MS)
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer))
+}
+
 
 function storageMode(): ReportStorageMode {
   if (pool) return 'postgres'
@@ -194,7 +202,7 @@ export async function getUserBirthProfile(owner: ReportOwner): Promise<UserBirth
 
   if (storageMode() === 'supabase') {
     if (!owner.accessToken) return null
-    const response = await fetch(`${supabaseRestUrl}?user_id=eq.${encodeURIComponent(owner.id)}&select=*`, {
+    const response = await supabaseFetch(`${supabaseRestUrl}?user_id=eq.${encodeURIComponent(owner.id)}&select=*`, {
       headers: supabaseHeaders(owner.accessToken),
     })
     if (!response.ok) {
@@ -233,7 +241,7 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
     if (!owner.accessToken) {
       throw new Error('회원 인증 정보가 없어 사주 프로필을 저장하지 못했습니다.')
     }
-    const response = await fetch(supabaseRestUrl, {
+    const response = await supabaseFetch(supabaseRestUrl, {
       method: 'POST',
       headers: {
         ...supabaseHeaders(owner.accessToken),
@@ -315,7 +323,7 @@ export async function deleteUserBirthProfile(owner: ReportOwner): Promise<boolea
     if (!owner.accessToken) return false
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('user_id', `eq.${owner.id}`)
-    const response = await fetch(url, {
+    const response = await supabaseFetch(url, {
       method: 'DELETE',
       headers: {
         ...supabaseHeaders(owner.accessToken),

@@ -53,6 +53,14 @@ const supabaseRestUrl = supabaseUrl
 
 const memoryReports = new Map<string, ReportRecord>()
 let dbReady: Promise<void> | null = null
+const SUPABASE_FETCH_TIMEOUT_MS = 8_000
+
+function supabaseFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), SUPABASE_FETCH_TIMEOUT_MS)
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer))
+}
+
 
 function storageMode(): ReportStorageMode {
   if (pool) return 'postgres'
@@ -239,7 +247,7 @@ export async function getReportRecord(reportId: string, accessToken?: string): P
 
   if (storageMode() === 'supabase') {
     if (!accessToken) return null
-    const response = await fetch(`${supabaseRestUrl}?report_id=eq.${encodeURIComponent(reportId)}&select=payload`, {
+    const response = await supabaseFetch(`${supabaseRestUrl}?report_id=eq.${encodeURIComponent(reportId)}&select=payload`, {
       headers: supabaseHeaders(accessToken),
     })
     if (!response.ok) {
@@ -272,7 +280,7 @@ export async function getReportByPublicId(publicId: string, accessToken?: string
 
   if (storageMode() === 'supabase') {
     if (!accessToken) return null
-    const response = await fetch(`${supabaseRestUrl}?public_id=eq.${encodeURIComponent(id)}&select=payload`, {
+    const response = await supabaseFetch(`${supabaseRestUrl}?public_id=eq.${encodeURIComponent(id)}&select=payload`, {
       headers: supabaseHeaders(accessToken),
     })
     if (!response.ok) {
@@ -310,7 +318,7 @@ export async function listReportRecords(owner: ReportOwner, limit = 50): Promise
     url.searchParams.set('order', 'updated_at.desc')
     url.searchParams.set('limit', String(safeLimit))
 
-    const response = await fetch(url, {
+    const response = await supabaseFetch(url.toString(), {
       headers: supabaseHeaders(owner.accessToken),
     })
     if (!response.ok) {
@@ -383,7 +391,7 @@ export async function deleteReportRecord(reportId: string, owner: ReportOwner): 
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('report_id', `eq.${reportId}`)
     url.searchParams.set('user_id', `eq.${owner.id}`)
-    const response = await fetch(url, {
+    const response = await supabaseFetch(url.toString(), {
       method: 'DELETE',
       headers: {
         ...supabaseHeaders(owner.accessToken),
@@ -444,7 +452,7 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
     ]
     let lastMessage = ''
     for (const body of attempts) {
-      const response = await fetch(upsertUrl, {
+      const response = await supabaseFetch(upsertUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
