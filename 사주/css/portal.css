@@ -116,6 +116,13 @@ a:focus-visible {
   gap: 1px;
 }
 
+.app-brand img {
+  display: block;
+  width: 132px;
+  height: 50px;
+  object-fit: contain;
+}
+
 .app-brand span {
   color: var(--gold-300);
   font-family: var(--font-brand);
