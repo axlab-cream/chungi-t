@@ -38,6 +38,10 @@ const ROOT = join(__dirname, '../..')
 const SAJU_UI = join(ROOT, '사주', '사주')
 const SAJU_ROOT = join(ROOT, '사주')
 const PORTAL_PAGE = join(SAJU_ROOT, 'portal.html')
+const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
+const PRIVACY_PAGE = join(SAJU_ROOT, 'privacy.html')
+const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
+const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -63,6 +67,18 @@ function redirectToCmdg(req: Request, res: Response) {
 
 app.get(['/', '/index.html'], (_req, res) => {
   res.sendFile(PORTAL_PAGE)
+})
+app.get(['/terms', '/terms/', '/terms.html'], (_req, res) => {
+  res.sendFile(TERMS_PAGE)
+})
+app.get(['/privacy', '/privacy/', '/privacy.html'], (_req, res) => {
+  res.sendFile(PRIVACY_PAGE)
+})
+app.get(['/refund', '/refund/', '/refund.html'], (_req, res) => {
+  res.sendFile(REFUND_PAGE)
+})
+app.get(['/support', '/support/', '/support.html'], (_req, res) => {
+  res.sendFile(SUPPORT_PAGE)
 })
 app.get(/^\/cmdg$/, redirectToCmdg)
 app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
