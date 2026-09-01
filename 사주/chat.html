@@ -9,14 +9,22 @@
 <body>
   <main class="phone chat-phone" aria-label="천명사주 텍스트 상담">
     <header class="topbar">
-      <div class="chat-brand-logo" aria-label="UMSH 운명상회">
-        <span>UMSH</span>
-        <b>운명상회</b>
+      <a class="topbar-brand-logo" href="/" aria-label="운명상회 홈">
+        <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
+      </a>
+      <div class="topbar-actions">
+        <button class="icon-button" type="button" id="btn-back" aria-label="사주 결과로">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="topbar-vault-button" type="button" id="btn-vault" aria-label="보관함 열기"><span aria-hidden="true">☰</span></button>
       </div>
-      <button class="icon-button" type="button" id="btn-back" aria-label="사주 결과로">←</button>
-      <button class="pdf-button topbar-pdf-button" type="button" id="btn-pdf" aria-label="PDF 다운받기">PDF</button>
     </header>
-    <p class="saju-chip" id="chat-saju-label">개인 사주 기반 상담</p>
+    <div class="chat-contextbar">
+      <p class="saju-chip" id="chat-saju-label">개인 사주 기반 상담</p>
+      <button class="pdf-button context-pdf-button" type="button" id="btn-pdf">PDF 다운받기</button>
+    </div>
     <section id="chat-log" class="chat-log" aria-live="polite"></section>
     <form id="chat-form" class="chat-input">
       <textarea id="chat-message" rows="2" placeholder="지금 마음에 걸린 걸 그대로 적어주세요..." required></textarea>
