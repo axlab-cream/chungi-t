@@ -24,6 +24,7 @@ import {
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
+import { isAdminOwner } from '../auth/admin.js'
 import {
   buildUserBirthProfile,
   deleteUserBirthProfile,
@@ -713,6 +714,7 @@ async function ensurePaidServiceAccess(
   owner: ReportOwner,
   productKey: string,
 ): Promise<boolean> {
+  if (isAdminOwner(owner)) return true
   const config = paymentConfigPayload()
   if (!config.configured && !config.testMode) return true
   if (!config.checkoutEnabled) {
@@ -1382,24 +1384,29 @@ app.post('/api/saju/analyze', async (req, res) => {
       return
     }
     if (owner && context.name && isValidProfileName(context.name)) {
-      await saveUserBirthProfile(
-        buildUserBirthProfile({
+      try {
+        await saveUserBirthProfile(
+          buildUserBirthProfile({
+            owner,
+            name: context.name,
+            birth,
+            birthTimeKnown: context.birthTimeKnown !== false,
+            context: {
+              target: context.target,
+              relationship: context.relationship,
+              orientation: context.orientation,
+              work: context.work,
+            },
+          }),
           owner,
-          name: context.name,
-          birth,
-          birthTimeKnown: context.birthTimeKnown !== false,
-          context: {
-            target: context.target,
-            relationship: context.relationship,
-            orientation: context.orientation,
-            work: context.work,
-          },
-        }),
-        owner,
-      )
+        )
+      } catch (profileErr) {
+        console.error('[analyze] profile save failed', profileErr)
+      }
     }
     res.json(await toUiAnalysis(birth, context, owner))
   } catch (err) {
+    console.error('[analyze] failed', err)
     res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
   }
 })
