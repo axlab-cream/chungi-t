@@ -23,6 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/payment-bridge.js"></script>
+    <link rel="stylesheet" href="/css/umsh-loading.css" />
     <style>
       :root {
         color-scheme: dark;
@@ -157,10 +158,6 @@
       .reading h3 { margin: 18px 0 10px; font-size: 22px; line-height: 1.25; }
       .reading-hook { margin: 0 0 12px; color: #e8c76f; font-size: 14px; line-height: 1.5; }
       .reading pre { white-space: pre-wrap; margin: 0; color: rgba(255, 247, 223, 0.86); font: inherit; line-height: 1.72; }
-      .loading { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0, 0, 0, 0.78); }
-      .loading-card { width: min(320px, calc(100vw - 48px)); padding: 22px; border-radius: 18px; border: 1px solid var(--line); background: #110c0b; text-align: center; }
-      .spinner { width: 34px; height: 34px; margin: 0 auto 14px; border: 3px solid rgba(232, 199, 111, 0.22); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.9s linear infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
     </style>
   </head>
   <body>
@@ -236,15 +233,20 @@
       </div>
     </main>
 
-    <div class="loading hidden" data-loading><div class="loading-card"><div class="spinner"></div><strong>관계의 신호와 흐름을 정리하고 있습니다</strong><p>잠시만 기다려 주세요.</p></div></div>
-
+    <script src="/js/umsh-loading.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
       const state = { supabase: null, session: null, authConfig: null, profile: null, report: null, category: '', sectionId: '', paidResumeStarted: false };
       const screens = { auth: $('[data-screen="auth"]'), profile: $('[data-screen="profile"]'), form: $('[data-screen="form"]'), report: $('[data-screen="report"]') };
 
       function showScreen(name) { Object.entries(screens).forEach(([key, node]) => node.classList.toggle('hidden', key !== name)); }
-      function setLoading(on) { $('[data-loading]').classList.toggle('hidden', !on); }
+      function setLoading(on, copy) {
+        if (on) {
+          window.UMSHLoading.show(copy || { title: '관계의 신호와 흐름을 정리하고 있습니다', subtitle: '잠시만 기다려 주세요.' });
+        } else {
+          window.UMSHLoading.hide();
+        }
+      }
       function setStatus(message) { const node = $('[data-auth-status]'); node.textContent = message || ''; node.classList.toggle('hidden', !message); }
       function authHeaders() { return state.session?.access_token ? { Authorization: `Bearer ${state.session.access_token}` } : {}; }
       function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]); }

@@ -879,6 +879,24 @@ body::-webkit-scrollbar,
   scroll-margin-top: 84px;
 }
 
+.report-section-loading::before {
+  content: "";
+  width: 28px;
+  height: 28px;
+  margin: 2px 0 4px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(232, 199, 111, 0.18);
+  border-top-color: var(--gold, #e8c76f);
+  border-right-color: rgba(232, 199, 111, 0.5);
+  animation: umsh-report-spin 0.9s linear infinite;
+}
+
+@keyframes umsh-report-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .report-section-image {
   position: relative;
   min-height: 260px;
