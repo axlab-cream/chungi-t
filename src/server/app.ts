@@ -267,6 +267,9 @@ app.get(['/love/again', '/love/again/', '/love/again/index.html'], (_req, res) =
 app.get(['/love/spouse', '/love/spouse/', '/love/spouse/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'spouse', 'index.html'))
 })
+app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'today', 'free', 'index.html'))
+})
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'place', 'home', 'index.html'))
 })

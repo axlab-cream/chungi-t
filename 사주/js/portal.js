@@ -75,7 +75,7 @@
       items: [
         { label: '홈 맨 위', meta: '처음 화면으로 이동', action: 'scroll-top', status: '이동' },
         { label: '대표 상품 보기', meta: '요즘 많이 고른 풀이', action: 'focus-services', status: '보기' },
-        { label: '오늘운 무료 보기', meta: '오늘 흐름과 피할 선택 확인', href: '/signup?entry=today', status: '무료' },
+        { label: '오늘운 무료 보기', meta: '오늘 흐름과 피할 선택 확인', href: '/today/free', status: '무료' },
         { label: '천명사주 보기', meta: '종합사주 풀이 시작하기', href: '/cmdg/', status: '시작' },
       ],
     },
@@ -504,13 +504,16 @@
       const config = await configRes.json();
       authConfigData = config;
       if (!config.enabled || !window.supabase?.createClient) return null;
-      authClient = window.supabase.createClient(config.url, config.publishableKey, {
-        auth: {
-          persistSession: true,
-          detectSessionInUrl: true,
-          flowType: 'pkce',
-        },
-      });
+      authClient = window.UMSHAuthSession?.createClient(window.supabase, config.url, config.publishableKey)
+        || window.supabase.createClient(config.url, config.publishableKey, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            flowType: 'pkce',
+            storage: window.localStorage,
+          },
+        });
       const { data, error } = await authClient.auth.getSession();
       if (error) throw error;
       authSession = await enforceDeviceAuthSession(data.session || null);

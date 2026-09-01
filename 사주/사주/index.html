@@ -3579,6 +3579,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <script>
       const phone = document.querySelector(".phone");
@@ -3715,7 +3716,7 @@
           url.protocol = "https:";
           url.host = "umsh.kr";
         }
-        url.hash = "concern";
+        url.hash = "step-3-service-input";
         url.searchParams.set("authReturn", "1");
         url.searchParams.delete("authEntry");
         url.searchParams.delete("entry");
@@ -3731,7 +3732,7 @@
         const url = new URL("/cmdg/", /vercel\.app$/i.test(location.hostname) ? publicAppOrigin() : location.origin);
         url.searchParams.set("signupReturn", "1");
         if (initialAuthEntry) url.searchParams.set("entry", initialAuthEntry);
-        url.hash = initialAuthEntry === "today" ? "loading" : "name";
+        url.hash = initialAuthEntry === "today" ? "step-4-report" : "step-2-saju-input";
         return url.toString();
       }
 
@@ -3878,13 +3879,16 @@
           if (!window.supabase?.createClient) {
             throw new Error("회원가입 모듈을 불러오지 못했습니다.");
           }
-          authClient = window.supabase.createClient(config.url, config.publishableKey, {
-            auth: {
-              persistSession: true,
-              detectSessionInUrl: true,
-              flowType: "pkce",
-            },
-          });
+          authClient = window.UMSHAuthSession?.createClient(window.supabase, config.url, config.publishableKey)
+            || window.supabase.createClient(config.url, config.publishableKey, {
+              auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                flowType: "pkce",
+                storage: window.localStorage,
+              },
+            });
           const { data, error } = await authClient.auth.getSession();
           if (error) throw error;
           authSession = await enforceDeviceAuthSession(data.session || null);
@@ -5862,7 +5866,18 @@
           url.searchParams.delete("signupReturn");
           url.searchParams.delete("reportId");
         }
-        const hash = scene === "landing" ? "" : `#${scene}`;
+        const stepHashByScene = {
+          landing: "step-1-story",
+          login: "step-2-saju-input",
+          name: "step-2-saju-input",
+          birth: "step-2-saju-input",
+          time: "step-2-saju-input",
+          concern: "step-3-service-input",
+          loading: "step-4-report",
+          result: "step-4-report",
+          todayResult: "step-4-report",
+        };
+        const hash = `#${stepHashByScene[scene] || scene}`;
         const nextUrl = `${url.pathname}${url.search}${hash}`;
         if (`${location.pathname}${location.search}${location.hash}` !== nextUrl) {
           history.replaceState(null, "", nextUrl);
@@ -7575,7 +7590,14 @@
         `;
       }
 
-      const initialScene = isPortalSignupEntry && !location.hash.slice(1) ? "login" : location.hash.slice(1);
+      const stepSceneAliases = {
+        "step-1-story": "landing",
+        "step-2-saju-input": "name",
+        "step-3-service-input": "concern",
+        "step-4-report": "result",
+      };
+      const initialHashScene = isPortalSignupEntry && !location.hash.slice(1) ? "login" : location.hash.slice(1);
+      const initialScene = stepSceneAliases[initialHashScene] || initialHashScene;
       const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
       const freshInputScenes = new Set(["name", "birth", "time", "concern"]);

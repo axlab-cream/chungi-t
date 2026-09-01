@@ -156,6 +156,197 @@
         font-size: 14px;
       }
 
+      .public-detail {
+        padding-bottom: 28px;
+      }
+
+      .source-section {
+        position: relative;
+        min-height: 330px;
+        margin: 0 -20px;
+        overflow: hidden;
+        background: #090504;
+      }
+
+      .source-section.tall {
+        min-height: 420px;
+      }
+
+      .source-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .source-img.center-wide {
+        object-position: center;
+      }
+
+      .source-fade {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(5, 4, 3, 0.88) 82%, var(--bg)),
+          radial-gradient(circle at 50% 58%, rgba(232, 199, 111, 0.1), transparent 42%);
+      }
+
+      .source-copy {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        z-index: 2;
+      }
+
+      .source-copy.bottom {
+        bottom: 28px;
+      }
+
+      .source-copy h2,
+      .story-section h2 {
+        margin: 8px 0 0;
+        font-size: 28px;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+
+      .red {
+        color: #f04d3e;
+      }
+
+      .story-section {
+        padding: 34px 0;
+        border-bottom: 1px solid rgba(232, 199, 111, 0.14);
+      }
+
+      .story-section.deep {
+        padding: 42px 0;
+      }
+
+      .chapter {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(232, 199, 111, 0.12);
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .story-section p,
+      .fineprint {
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .story-callout {
+        margin-top: 18px;
+        padding: 16px;
+        border: 1px solid rgba(232, 199, 111, 0.28);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.045);
+        color: rgba(255, 247, 223, 0.88);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.58;
+      }
+
+      .story-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .story-list-item {
+        padding: 14px;
+        border: 1px solid rgba(232, 199, 111, 0.22);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.045);
+        color: rgba(255, 247, 223, 0.88);
+        line-height: 1.55;
+      }
+
+      .teaser-table {
+        width: 100%;
+        margin-top: 18px;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid rgba(232, 199, 111, 0.24);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .teaser-table th,
+      .teaser-table td {
+        padding: 13px 12px;
+        border-bottom: 1px solid rgba(232, 199, 111, 0.16);
+        text-align: left;
+        vertical-align: top;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .teaser-table th {
+        color: var(--gold);
+        font-weight: 900;
+      }
+
+      .teaser-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .report-flow-chart {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .chart-row {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        gap: 10px;
+        align-items: center;
+        color: rgba(255, 247, 223, 0.76);
+        font-size: 12px;
+      }
+
+      .chart-row strong {
+        grid-column: 2;
+        color: var(--text);
+        font-size: 13px;
+      }
+
+      .chart-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #6d1711, #c43b2f, #f2bf6b);
+      }
+
+      .sample-enter {
+        margin-top: 22px;
+        padding-bottom: 28px;
+      }
+
+      .primary-cta {
+        width: 100%;
+        min-height: 56px;
+        border: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #d94c3d, var(--red));
+        color: #fff7df;
+        font-size: 16px;
+        font-weight: 950;
+        box-shadow: 0 14px 34px rgba(168, 38, 30, 0.36);
+      }
+
       .panel {
         margin-top: 16px;
         padding: 20px;
@@ -392,7 +583,82 @@
           <p>대운, 세운, 관성의 흐름으로 지금 버틸지 옮길지의 기준을 봅니다.</p>
         </section>
 
-        <section class="panel" data-screen="auth">
+        <div class="public-detail" data-public-detail>
+          <section class="story-section deep">
+            <span class="chapter">일의 갈림길</span>
+            <h2>이직은 용기가 아니라,<br /><span class="red">타이밍을 읽는 문제</span>입니다</h2>
+            <div class="story-callout">지금 흔들리는 이유가 단순한 피로인지, 실제로 움직여야 할 운의 신호인지 사주 흐름과 현실 조건을 함께 놓고 봅니다.</div>
+          </section>
+
+          <section class="source-section tall" aria-label="이직운 상세 이미지">
+            <img alt="이직운 흐름을 상징하는 이미지" class="source-img center-wide" src="/assets/umsh-signature-card-bg.png" />
+            <div class="source-fade"></div>
+            <div class="source-copy bottom">
+              <span class="eyebrow">RISK · 놓치기 쉬운 신호</span>
+              <h2>버티면 안정일지,<br /><span class="red">더 큰 소모의 시작</span>일지 봅니다</h2>
+            </div>
+          </section>
+
+          <section class="story-section">
+            <span class="chapter">문제 제기</span>
+            <h2>퇴사하고 싶다는 마음만으로는<br />답이 부족합니다</h2>
+            <p>상사, 연봉, 성장 정체, 번아웃은 겉으로 드러난 이유입니다. 중요한 건 지금 나가면 기회가 열리는지, 아니면 같은 문제를 다른 회사로 옮겨가는지입니다.</p>
+            <div class="story-list">
+              <div class="story-list-item">지금 움직이면 조건은 좋아지지만 체력과 평판이 흔들릴 수 있는 경우</div>
+              <div class="story-list-item">버티는 편이 유리하지만 준비 없이 버티면 기회가 닫히는 경우</div>
+              <div class="story-list-item">직무 변경보다 조직, 보상, 계약 조건을 먼저 봐야 하는 경우</div>
+            </div>
+          </section>
+
+          <section class="story-section deep">
+            <span class="chapter">해답</span>
+            <h2>위험과 기회를 나눠야<br /><span class="red">움직일 기준</span>이 생깁니다</h2>
+            <table class="teaser-table" aria-label="이직운 분석 항목">
+              <thead>
+                <tr><th>분석 항목</th><th>확인하는 흐름</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>현재 직장운</td><td>버틸수록 쌓이는 자리인지, 소모가 커지는 자리인지 봅니다.</td></tr>
+                <tr><td>이직 위험</td><td>충동 퇴사, 조건 착시, 관계 손실이 생기기 쉬운 시기를 봅니다.</td></tr>
+                <tr><td>이직 기회</td><td>제안, 면접, 연봉 협상, 새 역할이 열리기 쉬운 흐름을 봅니다.</td></tr>
+                <tr><td>실행 기준</td><td>언제 준비하고, 언제 말하고, 언제 움직일지 현실 순서를 잡습니다.</td></tr>
+              </tbody>
+            </table>
+            <div class="report-flow-chart" aria-label="이직 흐름 미리보기">
+              <div class="chart-row"><span>현재 자리</span><div class="chart-bar" style="width:62%"></div><strong>남아서 얻는 것과 잃는 것</strong></div>
+              <div class="chart-row"><span>제안운</span><div class="chart-bar" style="width:84%"></div><strong>면접과 제안이 들어오기 쉬운 구간</strong></div>
+              <div class="chart-row"><span>협상운</span><div class="chart-bar" style="width:70%"></div><strong>연봉, 직급, 조건을 조정할 시점</strong></div>
+              <div class="chart-row"><span>주의운</span><div class="chart-bar" style="width:52%"></div><strong>급하게 결정하면 반복될 수 있는 문제</strong></div>
+            </div>
+          </section>
+
+          <section class="source-section" aria-label="이직운 해석 예시 이미지">
+            <img alt="이직운 해석 예시 이미지" class="source-img center-wide" src="/assets/umsh-signature-card-bg.png" />
+            <div class="source-fade"></div>
+            <div class="source-copy bottom">
+              <span class="eyebrow">PREVIEW · 해석 예시</span>
+              <h2>떠나는 게 답인지,<br /><span class="red">준비가 먼저인지</span> 구분합니다</h2>
+            </div>
+          </section>
+
+          <section class="story-section">
+            <span class="chapter">14,900원 · 확인할 내용</span>
+            <h2>내 사주와 현재 직무 기준으로<br /><span class="red">이직 판단</span>을 정리합니다</h2>
+            <div class="story-list">
+              <div class="story-list-item">지금 회사에서 더 얻을 수 있는 것과 이미 끝난 흐름</div>
+              <div class="story-list-item">퇴사, 면접, 제안, 협상에서 조심해야 할 위험 신호</div>
+              <div class="story-list-item">올해 움직이기 좋은 시기와 준비에 써야 할 시기</div>
+              <div class="story-list-item">옮긴다면 어떤 조직과 역할이 나에게 더 맞는지</div>
+            </div>
+          </section>
+
+          <div class="sample-enter">
+            <button class="primary-cta" type="button" data-start-report>다음 · 내 이직운 확인하기</button>
+            <p class="fineprint">다음 단계에서 로그인 상태를 확인합니다. 로그인 전에도 상세 내용을 먼저 볼 수 있습니다.</p>
+          </div>
+        </div>
+
+        <section class="panel hidden" data-screen="auth">
           <span class="eyebrow">UMSH · 운명상회</span>
           <h2>공통 로그인으로 연결 중</h2>
           <p>운명상회 로그인 페이지에서 인증한 뒤 이직운 풀이를 이어갑니다.</p>
@@ -500,6 +766,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-loading.js"></script>
     <script src="/js/umsh-progressive-report.js"></script>
+    <script src="/js/service-step-url.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
       const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -521,10 +788,25 @@
         form: $('[data-screen="form"]'),
         report: $('[data-screen="report"]'),
       };
+      let authInitPromise = null;
+      const PENDING_PROFILE_KEY = 'umsh_work_move_pending_profile_v1';
 
       function showScreen(name) {
+        $('[data-public-detail]')?.classList.add('hidden');
+        window.UMSHServiceSteps?.markByScreen(name);
         Object.entries(screens).forEach(([key, node]) => node.classList.toggle('hidden', key !== name));
       }
+
+      function showPublicDetail() {
+        $('[data-public-detail]')?.classList.remove('hidden');
+        window.UMSHServiceSteps?.markStory();
+        Object.values(screens).forEach((node) => node.classList.add('hidden'));
+      }
+
+      function shouldResumeAfterAuth() {
+        return window.UMSHServiceSteps?.isAuthStep() || new URLSearchParams(location.search).get('paid') === '1';
+      }
+
       function setLoading(on, copy) {
         if (on) {
           window.UMSHLoading.show(copy || { title: '이직 흐름을 정리하고 있습니다', subtitle: '일과 이직의 흐름을 살피는 중입니다.' });
@@ -544,9 +826,59 @@
       }
 
       function openCommonLogin() {
-        const returnTo = window.UMSHCommonAuth?.currentPageReturnTo() || `${location.pathname}${location.search}${location.hash}`;
+        const returnTo = `${location.pathname}${location.search}#step-2-saju-input`;
         const url = window.UMSHCommonAuth?.commonLoginUrl('work-move', returnTo) || `/signup?entry=work-move&returnTo=${encodeURIComponent(returnTo)}#login`;
         location.replace(url);
+      }
+
+      function buildProfileDraft(form) {
+        const birthText = form.birth.value.trim();
+        return {
+          name: form.name.value.trim(),
+          birthTimeKnown: false,
+          birth: {
+            year: Number(birthText.slice(0, 4)),
+            month: Number(birthText.slice(4, 6)),
+            day: Number(birthText.slice(6, 8)),
+            hour: 12,
+            minute: 0,
+            gender: form.gender.value,
+            calendar: form.calendar.value,
+          },
+        };
+      }
+
+      function savePendingProfile(profile) {
+        try {
+          sessionStorage.setItem(PENDING_PROFILE_KEY, JSON.stringify(profile));
+        } catch (_err) {}
+      }
+
+      function loadPendingProfile() {
+        try {
+          const raw = sessionStorage.getItem(PENDING_PROFILE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function clearPendingProfile() {
+        try {
+          sessionStorage.removeItem(PENDING_PROFILE_KEY);
+        } catch (_err) {}
+      }
+
+      async function persistProfileDraft(profile) {
+        return api('/api/user/profile', {
+          method: 'POST',
+          body: JSON.stringify(profile),
+        });
+      }
+
+      function applyProfile(profile) {
+        state.profile = profile;
+        $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주 프로필로 이직 타이밍을 봅니다.`;
       }
 
       async function api(path, options = {}) {
@@ -569,39 +901,66 @@
       }
 
       async function initAuth() {
-        state.authConfig = await fetch('/api/auth/config').then((res) => res.json());
-        if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) {
-          openCommonLogin();
-          return;
-        }
-        state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey);
-        const { data } = await state.supabase.auth.getSession();
-        state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase);
-        state.supabase.auth.onAuthStateChange((_event, session) => {
-          window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase)
-            .then((nextSession) => {
-              state.session = nextSession;
-              routeAfterAuth();
-            })
-            .catch(() => {
-              state.session = session || null;
-              routeAfterAuth();
-            });
-        });
-        routeAfterAuth();
+        if (authInitPromise) return authInitPromise;
+        authInitPromise = (async () => {
+          state.authConfig = await fetch('/api/auth/config').then((res) => res.json());
+          if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) {
+            return;
+          }
+          state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey);
+          const { data } = await state.supabase.auth.getSession();
+          state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase);
+          state.supabase.auth.onAuthStateChange((_event, session) => {
+            window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase)
+              .then((nextSession) => {
+                state.session = nextSession;
+                if (shouldResumeAfterAuth() && state.session) routeAfterAuth();
+              })
+              .catch(() => {
+                state.session = session || null;
+                if (shouldResumeAfterAuth() && state.session) routeAfterAuth();
+              });
+          });
+          if (shouldResumeAfterAuth() && state.session) routeAfterAuth();
+        })();
+        return authInitPromise;
       }
 
-      async function routeAfterAuth() {
+      async function ensureSessionAndContinue() {
+        window.UMSHServiceSteps?.markAuth();
+        setLoading(true, { title: '로그인 상태를 확인하고 있습니다', subtitle: '잠시만 기다려 주세요.' });
+        try {
+          await initAuth();
+        } finally {
+          setLoading(false);
+        }
         if (!state.session) {
           openCommonLogin();
           return;
         }
+        await routeAfterAuth();
+      }
+
+      async function routeAfterAuth() {
+        if (!state.session) {
+          showScreen('profile');
+          return;
+        }
         setLoading(true);
         try {
+          const pendingProfile = loadPendingProfile();
+          if (pendingProfile) {
+            const saved = await persistProfileDraft(pendingProfile);
+            clearPendingProfile();
+            applyProfile(saved.profile);
+            showScreen('form');
+            resumePaidRequest();
+            return;
+          }
           const payload = await api('/api/user/profile');
           state.profile = payload.profile;
           if (payload.complete || window.UMSHAuthSession?.isSharedProfileComplete(payload.profile)) {
-            $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주 프로필로 이직 타이밍을 봅니다.`;
+            applyProfile(state.profile);
             showScreen('form');
             resumePaidRequest();
           } else {
@@ -656,27 +1015,17 @@
         event.preventDefault();
         const form = event.currentTarget;
         if (!validateProfile(form)) return;
-        const birthText = form.birth.value.trim();
+        const profileDraft = buildProfileDraft(form);
+        await initAuth().catch(() => undefined);
+        if (!state.session) {
+          savePendingProfile(profileDraft);
+          openCommonLogin();
+          return;
+        }
         setLoading(true);
         try {
-          const payload = await api('/api/user/profile', {
-            method: 'POST',
-            body: JSON.stringify({
-              name: form.name.value.trim(),
-              birthTimeKnown: false,
-              birth: {
-                year: Number(birthText.slice(0, 4)),
-                month: Number(birthText.slice(4, 6)),
-                day: Number(birthText.slice(6, 8)),
-                hour: 12,
-                minute: 0,
-                gender: form.gender.value,
-                calendar: form.calendar.value,
-              },
-            }),
-          });
-          state.profile = payload.profile;
-          $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주 프로필로 이직 타이밍을 봅니다.`;
+          const payload = await persistProfileDraft(profileDraft);
+          applyProfile(payload.profile);
           showScreen('form');
         } catch (err) {
           setStatus(err.message);
@@ -722,6 +1071,11 @@
           pressure: form.pressure.value,
           concern: form.concern.value.trim(),
         };
+        await initAuth().catch(() => undefined);
+        if (!state.session) {
+          openCommonLogin();
+          return;
+        }
         setLoading(true);
         try {
           const payload = await api('/api/work/move/analyze', {
@@ -836,6 +1190,7 @@
         }
         if (event.target.closest('[data-prev]')) moveSection(-1);
         if (event.target.closest('[data-next]')) moveSection(1);
+        if (event.target.closest('[data-start-report]')) await ensureSessionAndContinue();
         if (event.target.closest('[data-back]')) history.length > 1 ? history.back() : location.assign('/');
         if (event.target.closest('[data-logout]') && state.supabase) {
           await state.supabase.auth.signOut();
@@ -850,10 +1205,13 @@
       $('[data-profile-form]').addEventListener('submit', saveProfile);
       $('[data-work-form]').addEventListener('submit', generateReport);
 
-      initAuth().catch((err) => {
+      showPublicDetail();
+      const authReady = initAuth().catch((err) => {
         setStatus(err.message);
-        openCommonLogin();
       });
+      if (window.UMSHServiceSteps?.isAuthStep()) {
+        authReady.finally(() => ensureSessionAndContinue());
+      }
     </script>
   </body>
 </html>
