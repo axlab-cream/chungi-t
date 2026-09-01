@@ -160,6 +160,23 @@ function specializedAnalyzeResponse(
   }
 }
 
+const CANONICAL_ORIGIN = 'https://umsh.kr'
+const CANONICAL_REDIRECT_HOSTS = new Set([
+  'chungi-t.vercel.app',
+  'www.chungi-t.vercel.app',
+  'chungi-t-ax-lab-cream.vercel.app',
+  'chungi-t-git-main-ax-lab-cream.vercel.app',
+])
+
+app.use((req, res, next) => {
+  const host = String(req.headers.host ?? '').split(':')[0].toLowerCase()
+  if (!CANONICAL_REDIRECT_HOSTS.has(host)) {
+    next()
+    return
+  }
+  res.redirect(308, `${CANONICAL_ORIGIN}${req.originalUrl}`)
+})
+
 function redirectToCmdg(req: Request, res: Response) {
   const queryIndex = req.originalUrl.indexOf('?')
   const query = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : ''

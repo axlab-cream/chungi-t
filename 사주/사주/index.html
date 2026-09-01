@@ -3711,6 +3711,10 @@
 
       function authReturnUrl() {
         const url = new URL(location.href);
+        if (/vercel\.app$/i.test(location.hostname)) {
+          url.protocol = "https:";
+          url.host = "umsh.kr";
+        }
         url.hash = "concern";
         url.searchParams.set("authReturn", "1");
         url.searchParams.delete("authEntry");
@@ -3724,7 +3728,7 @@
         if (initialAuthReturnTo && window.UMSHCommonAuth) {
           return window.UMSHCommonAuth.oauthReturnUrl(initialAuthEntry, initialAuthReturnTo);
         }
-        const url = new URL("/cmdg/", location.origin);
+        const url = new URL("/cmdg/", /vercel\.app$/i.test(location.hostname) ? publicAppOrigin() : location.origin);
         url.searchParams.set("signupReturn", "1");
         if (initialAuthEntry) url.searchParams.set("entry", initialAuthEntry);
         url.hash = initialAuthEntry === "today" ? "loading" : "name";
@@ -4343,11 +4347,14 @@
         return window.google.accounts.id;
       }
 
+      function publicAppOrigin() {
+        return "https://umsh.kr";
+      }
+
       function googleIdentityOrigins() {
         return new Set([
           "https://umsh.kr",
           "https://www.umsh.kr",
-          "https://chungi-t.vercel.app",
           "http://localhost:8790",
         ]);
       }
