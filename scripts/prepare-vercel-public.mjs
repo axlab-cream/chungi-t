@@ -39,6 +39,7 @@ copyFile(join(sajuRoot, 'chat.html'), join(publicRoot, 'chat.html'))
 copyFile(join(sajuRoot, 'result.html'), join(publicRoot, 'result.html'))
 copyFile(join(sajuRoot, 'orders.html'), join(publicRoot, 'orders.html'))
 copyFile(join(sajuRoot, 'leave.html'), join(publicRoot, 'leave.html'))
+copyFile(join(sajuRoot, 'report-view.html'), join(publicRoot, 'report-view.html'))
 copyFile(join(cmdgRoot, 'index.html'), join(publicRoot, 'cmdg', 'index.html'))
 
 copyDirectory(join(sajuRoot, 'css'), join(publicRoot, 'css'))

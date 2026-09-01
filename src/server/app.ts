@@ -7,7 +7,8 @@ import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
-import { buildOpenAiReportFromBase, buildTemplateSajuReport } from '../report/report-generator.js'
+import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
 import { buildTodayFortune } from '../saju/today-fortune.js'
 import {
@@ -15,9 +16,9 @@ import {
   createReportId,
   deleteReportRecord,
   getReportStorageMode,
+  getReportByPublicId,
   getReportRecord,
   listReportRecords,
-  saveReportRecord,
   toClientReport,
   updateReportChatHistory,
 } from '../report/report-store.js'
@@ -134,18 +135,23 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-async function enrichSpecializedReport(
-  report: SajuReport,
-  analysis: SajuAnalysis,
+function specializedAnalyzeResponse(
+  progressive: Awaited<ReturnType<typeof beginSpecializedProgressiveReport>>,
   birth: BirthInput,
   context: SajuReportContext,
-): Promise<SajuReport> {
-  if (!isOpenAiConfigured()) return report
-  try {
-    return await buildOpenAiReportFromBase(analysis, birth, context, report)
-  } catch (error) {
-    console.warn('전용 서비스 OpenAI 보강 실패, 품질 검증된 템플릿으로 응답합니다.', error instanceof Error ? error.message : 'unknown error')
-    return report
+  profile: UserBirthProfile,
+) {
+  return {
+    report: progressive.report,
+    reportId: progressive.reportId,
+    publicId: progressive.publicId,
+    publicUrl: progressive.publicId ? `/r/${progressive.publicId}` : undefined,
+    cached: progressive.cached,
+    resumed: progressive.resumed,
+    birth,
+    context,
+    profile,
+    storage: getReportStorageMode(),
   }
 }
 
@@ -190,6 +196,33 @@ app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
 })
 app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
   res.sendFile(LEAVE_PAGE)
+})
+app.get(['/r/:publicId', '/r/:publicId/'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'report-view.html'))
+})
+app.get('/api/r/:publicId', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const publicId = String(req.params.publicId ?? '').trim()
+    const record = await getReportByPublicId(publicId, owner.accessToken)
+    if (!record || (record.owner?.id && record.owner.id !== owner.id)) {
+      res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' })
+      return
+    }
+    res.json({
+      report: toClientReport(record),
+      reportId: record.reportId,
+      publicId: record.publicId,
+      publicUrl: `/r/${record.publicId}`,
+      birth: record.birth,
+      context: record.context,
+      chatHistory: record.chatHistory ?? [],
+      storage: getReportStorageMode(),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '공개 리포트 조회 실패' })
+  }
 })
 app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
@@ -1056,27 +1089,16 @@ app.post('/api/place/home/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createHomePungsuReportId(owner.id, profile.birth, input)
     const templateReport = buildHomePungsuReport(analysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '집 풍수 생성 실패' })
   }
@@ -1098,27 +1120,16 @@ app.post('/api/work/move/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createWorkMoveReportId(owner.id, profile.birth, input)
     const templateReport = buildWorkMoveReport(analysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '이직운 생성 실패' })
   }
@@ -1140,27 +1151,16 @@ app.post('/api/work/job/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createWorkJobReportId(owner.id, profile.birth, input)
     const templateReport = buildWorkJobReport(analysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '직업운 생성 실패' })
   }
@@ -1182,27 +1182,16 @@ app.post('/api/money/save/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createMoneySaveReportId(owner.id, profile.birth, input)
     const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '소비성향 생성 실패' })
   }
@@ -1225,27 +1214,16 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createMarryMatchReportId(owner.id, profile.birth, input)
     const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '결혼궁합 생성 실패' })
   }
@@ -1268,27 +1246,16 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createCoupleMatchReportId(owner.id, profile.birth, input)
     const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '커플궁합 생성 실패' })
   }
@@ -1311,27 +1278,16 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createLoveMindReportId(owner.id, profile.birth, input)
     const templateReport = buildLoveMindReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '상대방 마음 생성 실패' })
   }
@@ -1354,27 +1310,16 @@ app.post('/api/love/again/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createLoveAgainReportId(owner.id, profile.birth, input)
     const templateReport = buildLoveAgainReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '재회운 생성 실패' })
   }
@@ -1396,27 +1341,16 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     const reportId = createLoveSpouseReportId(owner.id, profile.birth, input)
     const templateReport = buildLoveSpouseReport(analysis, profile.birth, context, input, reportId)
-    const report = await enrichSpecializedReport(templateReport, analysis, profile.birth, context)
-    const now = new Date().toISOString()
-    const record = await saveReportRecord({
+    const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
       context,
+      templateReport,
+      analysis,
       owner,
-      report,
-      status: 'complete',
-      createdAt: now,
-      updatedAt: now,
+      orderId: trimmedString(req.body?.orderId) || undefined,
     })
-
-    res.json({
-      report: toClientReport(record),
-      reportId,
-      birth: profile.birth,
-      context,
-      profile,
-      storage: getReportStorageMode(),
-    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '배우자운 생성 실패' })
   }
@@ -1470,10 +1404,14 @@ app.get('/api/report/:reportId', async (req, res) => {
     const analysis = toUiAnalysisFromRecord(record)
     res.json({
       report: analysis.report,
+      reportId: record.reportId,
+      publicId: record.publicId,
+      publicUrl: record.publicId ? `/r/${record.publicId}` : undefined,
       birth: record.birth,
       context: record.context,
       analysis,
       chatHistory: record.chatHistory ?? [],
+      storage: getReportStorageMode(),
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '리포트 조회 실패' })

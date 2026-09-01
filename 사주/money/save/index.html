@@ -361,6 +361,17 @@
         font: inherit;
         line-height: 1.72;
       }
+    
+      .chapter-card.is-pending strong::after { content:" · 준비중"; color:rgba(232,199,111,.72); font-size:12px; font-weight:700; }
+      .chapter-card.is-generating strong::after { content:" · 작성중"; color:#f2dc9a; font-size:12px; font-weight:700; }
+      .chapter-card.is-ready strong::after { content:""; }
+      .umsh-section-skeleton { margin-top:14px; padding:18px; border-radius:14px; border:1px dashed rgba(232,199,111,.35); background:rgba(255,255,255,.04); }
+      .umsh-section-skeleton strong { display:block; margin-bottom:8px; color:#f2dc9a; }
+      .umsh-section-skeleton p { margin:0 0 14px; color:rgba(255,247,223,.72); line-height:1.6; font-size:14px; }
+      .interpret-progress { height:4px; border-radius:999px; overflow:hidden; background:rgba(232,199,111,.16); }
+      .interpret-progress::before { content:""; display:block; width:40%; height:100%; background:linear-gradient(90deg,#e8c76f,#a8261e); animation:progress-scan 1.65s ease-in-out infinite; }
+      @keyframes progress-scan { 0% { transform:translateX(-120%); } 100% { transform:translateX(280%); } }
+
     </style>
   </head>
   <body>
@@ -498,6 +509,7 @@
     <script src="/js/umsh-chrome.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-loading.js"></script>
+    <script src="/js/umsh-progressive-report.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
       const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -510,6 +522,7 @@
         category: '',
         sectionId: '',
         paidResumeStarted: false,
+        publicId: '',
       };
 
       const screens = {
@@ -682,6 +695,32 @@
         }
       }
 
+      
+      async function openProgressiveReport(payload) {
+        const apply = (next) => {
+          if (!next || !next.report) return;
+          state.report = next.report;
+          state.publicId = next.publicId || next.report.publicId || state.publicId || '';
+          const sections = state.report.sections || [];
+          if (!sections.length) return;
+          const still = sections.find((section) => section.id === state.sectionId);
+          if (!still) {
+            state.category = sections[0].category;
+            state.sectionId = sections[0].id;
+          } else {
+            state.category = still.category;
+          }
+          renderReport();
+          showScreen('report');
+        };
+        setLoading(false);
+        await window.UMSHProgressiveReport.followProgress({
+          payload,
+          fetchReport: (reportId) => api('/api/report/' + encodeURIComponent(reportId)),
+          onUpdate: apply,
+        });
+      }
+
       async function generateReport(event) {
         event.preventDefault();
         const form = event.currentTarget;
@@ -700,11 +739,7 @@
             method: 'POST',
             body: JSON.stringify(requestBody),
           });
-          state.report = payload.report;
-          state.category = state.report.sections[0].category;
-          state.sectionId = state.report.sections[0].id;
-          renderReport();
-          showScreen('report');
+          await openProgressiveReport(payload);
         } catch (err) {
           if (err.code === 'PAYMENT_REQUIRED') {
             window.UMSHPaymentBridge?.save('money_save', requestBody, location.pathname);
@@ -727,11 +762,7 @@
         setLoading(true);
         try {
           const payload = await api('/api/money/save/analyze', { method: 'POST', body: JSON.stringify({ ...pending.payload, orderId }) });
-          state.report = payload.report;
-          state.category = state.report.sections[0].category;
-          state.sectionId = state.report.sections[0].id;
-          renderReport();
-          showScreen('report');
+          await openProgressiveReport(payload);
           window.UMSHPaymentBridge?.clear();
           await api(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, { method: 'POST' }).catch(() => {});
           history.replaceState(null, '', location.pathname);
@@ -763,7 +794,7 @@
       function renderChapters() {
         const chapters = sectionsByCategory(state.category);
         $('[data-chapter-list]').innerHTML = chapters.map((section, index) => `
-          <button class="chapter-card ${section.id === state.sectionId ? 'is-active' : ''}" type="button" data-section-id="${section.id}">
+          <button class="chapter-card ${section.id === state.sectionId ? 'is-active' : ''} ${window.UMSHProgressiveReport.chapterStatusClass(section)}" type="button" data-section-id="${section.id}">
             <b>${String(index + 1).padStart(2, '0')}</b>
             <strong>${section.classification}</strong>
           </button>
@@ -777,12 +808,14 @@
       function renderReading() {
         const section = currentSection();
         const index = state.report.sections.findIndex((item) => item.id === section.id);
+        const body = window.UMSHProgressiveReport.sectionReady(section)
+          ? `<p class="reading-hook">${escapeHtml(section.hook)}</p><pre>${escapeHtml(section.interpretation)}</pre>`
+          : window.UMSHProgressiveReport.readingPlaceholder(section);
         $('[data-reading]').innerHTML = `
           <img src="${section.imageSrc}" alt="${section.imageAlt}" />
           <span class="eyebrow">${section.categoryEn} · ${index + 1}/${state.report.sections.length}</span>
           <h3>${section.classification}</h3>
-          <p class="reading-hook">${escapeHtml(section.hook)}</p>
-          <pre>${section.interpretation}</pre>
+          ${body}
           <div class="pager">
             <button class="btn" type="button" data-prev ${index <= 0 ? 'disabled' : ''}>이전</button>
             <button class="btn primary" type="button" data-next ${index >= state.report.sections.length - 1 ? 'disabled' : ''}>다음</button>

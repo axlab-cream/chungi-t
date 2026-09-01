@@ -159,6 +159,17 @@
       .reading h3 { margin: 18px 0 10px; font-size: 22px; line-height: 1.25; }
       .reading-hook { margin: 0 0 12px; color: #e8c76f; font-size: 14px; line-height: 1.5; }
       .reading pre { white-space: pre-wrap; margin: 0; color: rgba(255, 247, 223, 0.86); font: inherit; line-height: 1.72; }
+    
+      .chapter-card.is-pending strong::after { content:" · 준비중"; color:rgba(232,199,111,.72); font-size:12px; font-weight:700; }
+      .chapter-card.is-generating strong::after { content:" · 작성중"; color:#f2dc9a; font-size:12px; font-weight:700; }
+      .chapter-card.is-ready strong::after { content:""; }
+      .umsh-section-skeleton { margin-top:14px; padding:18px; border-radius:14px; border:1px dashed rgba(232,199,111,.35); background:rgba(255,255,255,.04); }
+      .umsh-section-skeleton strong { display:block; margin-bottom:8px; color:#f2dc9a; }
+      .umsh-section-skeleton p { margin:0 0 14px; color:rgba(255,247,223,.72); line-height:1.6; font-size:14px; }
+      .interpret-progress { height:4px; border-radius:999px; overflow:hidden; background:rgba(232,199,111,.16); }
+      .interpret-progress::before { content:""; display:block; width:40%; height:100%; background:linear-gradient(90deg,#e8c76f,#a8261e); animation:progress-scan 1.65s ease-in-out infinite; }
+      @keyframes progress-scan { 0% { transform:translateX(-120%); } 100% { transform:translateX(280%); } }
+
     </style>
   </head>
   <body>
@@ -237,6 +248,7 @@
     <script src="/js/umsh-chrome.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-loading.js"></script>
+    <script src="/js/umsh-progressive-report.js"></script>
     <script>
       const $ = (selector, root = document) => root.querySelector(selector);
       const state = { supabase: null, session: null, authConfig: null, profile: null, report: null, category: '', sectionId: '', paidResumeStarted: false };
@@ -322,13 +334,39 @@
           state.profile = payload.profile; $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주와 현재 관계 흐름을 함께 봅니다.`; showScreen('form');
         } catch (error) { setStatus(error.message); } finally { setLoading(false); }
       }
+      
+      async function openProgressiveReport(payload) {
+        const apply = (next) => {
+          if (!next || !next.report) return;
+          state.report = next.report;
+          state.publicId = next.publicId || next.report.publicId || state.publicId || '';
+          const sections = state.report.sections || [];
+          if (!sections.length) return;
+          const still = sections.find((section) => section.id === state.sectionId);
+          if (!still) {
+            state.category = sections[0].category;
+            state.sectionId = sections[0].id;
+          } else {
+            state.category = still.category;
+          }
+          renderReport();
+          showScreen('report');
+        };
+        setLoading(false);
+        await window.UMSHProgressiveReport.followProgress({
+          payload,
+          fetchReport: (reportId) => api('/api/report/' + encodeURIComponent(reportId)),
+          onUpdate: apply,
+        });
+      }
+
       async function generateReport(event) {
         event.preventDefault(); const form = event.currentTarget; if (!validateMind(form)) return; const partnerBirthText = form.partnerBirth.value.trim();
         const requestBody = { partnerName: form.partnerName.value.trim(), partnerBirthText, partnerBirth: { gender: form.partnerGender.value, calendar: form.partnerCalendar.value }, partnerBirthTimeKnown: false, relationshipStage: form.relationshipStage.value, contactPattern: form.contactPattern.value, recentSignal: form.recentSignal.value, concern: form.concern.value.trim() };
         setLoading(true);
         try {
           const payload = await api('/api/love/mind/analyze', { method: 'POST', body: JSON.stringify(requestBody) });
-          state.report = payload.report; state.category = state.report.sections[0].category; state.sectionId = state.report.sections[0].id; renderReport(); showScreen('report');
+          await openProgressiveReport(payload);
         } catch (error) { if (error.code === 'PROFILE_REQUIRED') showScreen('profile'); if (error.code === 'PAYMENT_REQUIRED') { window.UMSHPaymentBridge?.save('love_mind', requestBody, location.pathname); location.assign(error.paymentUrl || `/payment?product=love_mind&returnTo=${encodeURIComponent(location.pathname)}`); return; } setStatus(error.message); } finally { setLoading(false); }
       }
       async function resumePaidRequest() {
@@ -336,7 +374,7 @@
         const orderId = new URLSearchParams(location.search).get('orderId'); const pending = window.UMSHPaymentBridge?.load('love_mind');
         if (!orderId || !pending) return;
         state.paidResumeStarted = true; setLoading(true);
-        try { const payload = await api('/api/love/mind/analyze', { method: 'POST', body: JSON.stringify({ ...pending.payload, orderId }) }); state.report = payload.report; state.category = state.report.sections[0].category; state.sectionId = state.report.sections[0].id; renderReport(); showScreen('report'); window.UMSHPaymentBridge?.clear(); await api(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, { method: 'POST' }).catch(() => {}); history.replaceState(null, '', location.pathname); } catch (error) { setStatus(error.message); } finally { setLoading(false); }
+        try { const payload = await api('/api/love/mind/analyze', { method: 'POST', body: JSON.stringify({ ...pending.payload, orderId }) }); await openProgressiveReport(payload); window.UMSHPaymentBridge?.clear(); await api(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, { method: 'POST' }).catch(() => {}); history.replaceState(null, '', location.pathname); } catch (error) { setStatus(error.message); } finally { setLoading(false); }
       }
       function sectionsByCategory(category) { return state.report.sections.filter((section) => section.category === category); }
       function renderReport() {
@@ -346,11 +384,15 @@
         renderChapters(); renderReading();
       }
       function renderChapters() {
-        $('[data-chapter-list]').innerHTML = sectionsByCategory(state.category).map((section, index) => `<button class="chapter-card ${section.id === state.sectionId ? 'is-active' : ''}" type="button" data-section-id="${escapeHtml(section.id)}"><b>${String(index + 1).padStart(2, '0')}</b><strong>${escapeHtml(section.classification)}</strong></button>`).join('');
+        $('[data-chapter-list]').innerHTML = sectionsByCategory(state.category).map((section, index) => `<button class="chapter-card ${section.id === state.sectionId ? 'is-active' : ''} ${window.UMSHProgressiveReport.chapterStatusClass(section)}" type="button" data-section-id="${escapeHtml(section.id)}"><b>${String(index + 1).padStart(2, '0')}</b><strong>${escapeHtml(section.classification)}</strong></button>`).join('');
+      }" type="button" data-section-id="${escapeHtml(section.id)}"><b>${String(index + 1).padStart(2, '0')}</b><strong>${escapeHtml(section.classification)}</strong></button>`).join('');
       }
       function renderReading() {
         const section = state.report.sections.find((item) => item.id === state.sectionId) || state.report.sections[0]; const index = state.report.sections.findIndex((item) => item.id === section.id);
-        $('[data-reading]').innerHTML = `<img src="${escapeHtml(section.imageSrc)}" alt="${escapeHtml(section.imageAlt)}" /><span class="eyebrow">${escapeHtml(section.categoryEn)} · ${index + 1}/${state.report.sections.length}</span><h3>${escapeHtml(section.classification)}</h3><p class="reading-hook">${escapeHtml(section.hook)}</p><pre>${escapeHtml(section.interpretation)}</pre><div class="pager"><button class="btn" type="button" data-prev ${index <= 0 ? 'disabled' : ''}>이전</button><button class="btn primary" type="button" data-next ${index >= state.report.sections.length - 1 ? 'disabled' : ''}>다음</button></div>`;
+        const body = window.UMSHProgressiveReport.sectionReady(section)
+          ? `<p class="reading-hook">${escapeHtml(section.hook)}</p><pre>${escapeHtml(section.interpretation)}</pre>`
+          : window.UMSHProgressiveReport.readingPlaceholder(section);
+        $('[data-reading]').innerHTML = `<img src="${escapeHtml(section.imageSrc)}" alt="${escapeHtml(section.imageAlt)}" /><span class="eyebrow">${escapeHtml(section.categoryEn)} · ${index + 1}/${state.report.sections.length}</span><h3>${escapeHtml(section.classification)}</h3>${body}<div class="pager"><button class="btn" type="button" data-prev ${index <= 0 ? 'disabled' : ''}>이전</button><button class="btn primary" type="button" data-next ${index >= state.report.sections.length - 1 ? 'disabled' : ''}>다음</button></div>`;
       }
       function moveSection(delta) { const index = state.report.sections.findIndex((section) => section.id === state.sectionId); const next = state.report.sections[index + delta]; if (!next) return; state.category = next.category; state.sectionId = next.id; renderReport(); }
       document.addEventListener('click', async (event) => {

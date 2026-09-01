@@ -305,6 +305,8 @@ export interface CorpusSnapshot {
 
 export interface SajuReport {
   reportId?: string
+  /** Stable public discriminator for unique /r/{publicId} URLs and admin analytics. */
+  publicId?: string
   title: string
   subtitle: string
   model: string

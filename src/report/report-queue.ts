@@ -1,6 +1,6 @@
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
-import { buildOpenAiSajuReportSection, getReportModel } from './report-generator.js'
+import { buildOpenAiReportSectionFromBase, getReportModel } from './report-generator.js'
 import {
   getReportRecord,
   markReportStatus,
@@ -63,11 +63,11 @@ export async function generateReportSectionNow(params: {
         error: 'OPENAI_API_KEY가 설정되지 않았습니다.',
       }
     }
-    const generated = await buildOpenAiSajuReportSection(
+    const generated = await buildOpenAiReportSectionFromBase(
       params.analysis,
       params.birth,
-      params.sectionId,
       params.context,
+      section,
     )
     await updateReportSection(
       params.reportId,

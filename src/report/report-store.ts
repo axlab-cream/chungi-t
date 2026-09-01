@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import '../env/load.js'
 import { Pool } from 'pg'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
@@ -9,6 +9,8 @@ export type ReportStorageMode = 'postgres' | 'supabase' | 'memory'
 
 export interface ReportRecord {
   reportId: string
+  /** Unique public discriminator (UUID). Source of truth for /r/{publicId}. */
+  publicId?: string
   birth: BirthInput
   context: SajuReportContext
   owner?: ReportOwner
@@ -19,6 +21,8 @@ export interface ReportRecord {
   updatedAt: string
   chatHistory?: ConversationTurn[]
   error?: string
+  /** Optional paid order that unlocked this report. */
+  orderId?: string
 }
 
 export interface ReportOwner {
@@ -57,6 +61,48 @@ function storageMode(): ReportStorageMode {
 
 function nowIso(): string {
   return new Date().toISOString()
+}
+
+export function createReportPublicId(): string {
+  return randomUUID().replace(/-/g, '')
+}
+
+function ensurePublicId(record: ReportRecord): ReportRecord {
+  if (record.publicId) {
+    if (record.report) record.report.publicId = record.publicId
+    return record
+  }
+  const publicId = createReportPublicId()
+  record.publicId = publicId
+  if (record.report) record.report.publicId = publicId
+  return record
+}
+
+async function ensurePublicIdPersisted(record: ReportRecord | null): Promise<ReportRecord | null> {
+  if (!record) return null
+  const before = record.publicId
+  const ensured = ensurePublicId(record)
+  if (!before) {
+    return saveReportRecord(ensured)
+  }
+  return ensured
+}
+
+function serviceKeyOf(record: ReportRecord): string {
+  return String(record.context?.serviceKey ?? '').trim()
+}
+
+function adminColumns(record: ReportRecord) {
+  const progress = progressFor(record.report)
+  return {
+    public_id: record.publicId,
+    service_key: serviceKeyOf(record) || null,
+    status: record.status,
+    progress_complete: progress.complete,
+    progress_total: progress.total,
+    order_id: record.orderId ?? null,
+    input_fingerprint: record.reportId,
+  }
 }
 
 function stableJson(value: unknown): string {
@@ -101,11 +147,31 @@ async function ensureReportOwnerColumns(): Promise<void> {
       ADD COLUMN IF NOT EXISTS user_id TEXT,
       ADD COLUMN IF NOT EXISTS user_email TEXT,
       ADD COLUMN IF NOT EXISTS auth_provider TEXT,
-      ADD COLUMN IF NOT EXISTS admin_status TEXT NOT NULL DEFAULT 'new'
+      ADD COLUMN IF NOT EXISTS admin_status TEXT NOT NULL DEFAULT 'new',
+      ADD COLUMN IF NOT EXISTS public_id TEXT,
+      ADD COLUMN IF NOT EXISTS service_key TEXT,
+      ADD COLUMN IF NOT EXISTS status TEXT,
+      ADD COLUMN IF NOT EXISTS progress_complete INTEGER,
+      ADD COLUMN IF NOT EXISTS progress_total INTEGER,
+      ADD COLUMN IF NOT EXISTS order_id TEXT,
+      ADD COLUMN IF NOT EXISTS input_fingerprint TEXT
   `)
   await pool.query(`
     CREATE INDEX IF NOT EXISTS cheongi_reports_user_id_idx
       ON cheongi_reports (user_id)
+  `)
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS cheongi_reports_public_id_uidx
+      ON cheongi_reports (public_id)
+      WHERE public_id IS NOT NULL
+  `)
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS cheongi_reports_service_created_idx
+      ON cheongi_reports (service_key, created_at DESC)
+  `)
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS cheongi_reports_status_updated_idx
+      ON cheongi_reports (status, updated_at DESC)
   `)
 }
 
@@ -145,11 +211,13 @@ function progressFor(report: SajuReport): { complete: number; total: number } {
 }
 
 export function toClientReport(record: ReportRecord): SajuReport {
-  const report = cloneRecord(record).report
-  report.reportId = record.reportId
-  report.status = record.status
+  const ensured = ensurePublicId(cloneRecord(record))
+  const report = ensured.report
+  report.reportId = ensured.reportId
+  report.publicId = ensured.publicId
+  report.status = ensured.status
   report.storage = storageMode()
-  report.corpus = record.corpus ?? report.corpus
+  report.corpus = ensured.corpus ?? report.corpus
   report.progress = progressFor(report)
   return report
 }
@@ -165,7 +233,7 @@ function supabaseHeaders(accessToken?: string): Record<string, string> {
 export async function getReportRecord(reportId: string, accessToken?: string): Promise<ReportRecord | null> {
   if (storageMode() === 'memory') {
     const record = memoryReports.get(reportId)
-    return record ? cloneRecord(record) : null
+    return ensurePublicIdPersisted(record ? cloneRecord(record) : null)
   }
 
   if (storageMode() === 'supabase') {
@@ -177,7 +245,7 @@ export async function getReportRecord(reportId: string, accessToken?: string): P
       throw new Error('Supabase 리포트 조회에 실패했습니다.')
     }
     const rows = await response.json() as Array<{ payload?: ReportRecord }>
-    return rows[0]?.payload ? cloneRecord(rows[0].payload) : null
+    return ensurePublicIdPersisted(rows[0]?.payload ? cloneRecord(rows[0].payload) : null)
   }
 
   if (!pool) return null
@@ -186,7 +254,37 @@ export async function getReportRecord(reportId: string, accessToken?: string): P
     'SELECT payload FROM cheongi_reports WHERE report_id = $1',
     [reportId],
   )
-  return result.rows[0]?.payload ? cloneRecord(result.rows[0].payload) : null
+  return ensurePublicIdPersisted(result.rows[0]?.payload ? cloneRecord(result.rows[0].payload) : null)
+}
+
+export async function getReportByPublicId(publicId: string, accessToken?: string): Promise<ReportRecord | null> {
+  const id = String(publicId ?? '').trim()
+  if (!id) return null
+
+  if (storageMode() === 'memory') {
+    const record = Array.from(memoryReports.values()).find((item) => item.publicId === id)
+    return ensurePublicIdPersisted(record ? cloneRecord(record) : null)
+  }
+
+  if (storageMode() === 'supabase') {
+    if (!accessToken) return null
+    const response = await fetch(`${supabaseRestUrl}?public_id=eq.${encodeURIComponent(id)}&select=payload`, {
+      headers: supabaseHeaders(accessToken),
+    })
+    if (!response.ok) {
+      throw new Error('Supabase 공개 리포트 조회에 실패했습니다.')
+    }
+    const rows = await response.json() as Array<{ payload?: ReportRecord }>
+    return ensurePublicIdPersisted(rows[0]?.payload ? cloneRecord(rows[0].payload) : null)
+  }
+
+  if (!pool) return null
+  await ensureDb()
+  const result = await pool.query<{ payload: ReportRecord }>(
+    'SELECT payload FROM cheongi_reports WHERE public_id = $1 LIMIT 1',
+    [id],
+  )
+  return ensurePublicIdPersisted(result.rows[0]?.payload ? cloneRecord(result.rows[0].payload) : null)
 }
 
 export async function listReportRecords(owner: ReportOwner, limit = 50): Promise<ReportRecord[]> {
@@ -306,10 +404,10 @@ export async function deleteReportRecord(reportId: string, owner: ReportOwner): 
 }
 
 export async function saveReportRecord(record: ReportRecord): Promise<ReportRecord> {
-  const updated: ReportRecord = {
+  const updated = ensurePublicId({
     ...record,
     updatedAt: nowIso(),
-  }
+  })
   const accessToken = updated.owner?.accessToken
   const stored = recordForStorage(updated)
 
@@ -335,6 +433,7 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
         user_email: stored.owner.email ?? null,
         auth_provider: stored.owner.provider ?? null,
         payload: stored,
+        ...adminColumns(stored),
       }),
     })
     if (!response.ok) {
@@ -346,16 +445,28 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
 
   if (!pool) throw new Error('Postgres 저장소가 설정되지 않았습니다.')
   await ensureDb()
+  const admin = adminColumns(stored)
   await pool.query(
     `
-      INSERT INTO cheongi_reports (report_id, payload, user_id, user_email, auth_provider, created_at, updated_at)
-      VALUES ($1, $2::jsonb, $3, $4, $5, NOW(), NOW())
+      INSERT INTO cheongi_reports (
+        report_id, payload, user_id, user_email, auth_provider,
+        public_id, service_key, status, progress_complete, progress_total, order_id, input_fingerprint,
+        created_at, updated_at
+      )
+      VALUES ($1, $2::jsonb, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
       ON CONFLICT (report_id)
       DO UPDATE SET
         payload = EXCLUDED.payload,
         user_id = COALESCE(EXCLUDED.user_id, cheongi_reports.user_id),
         user_email = COALESCE(EXCLUDED.user_email, cheongi_reports.user_email),
         auth_provider = COALESCE(EXCLUDED.auth_provider, cheongi_reports.auth_provider),
+        public_id = COALESCE(EXCLUDED.public_id, cheongi_reports.public_id),
+        service_key = COALESCE(EXCLUDED.service_key, cheongi_reports.service_key),
+        status = EXCLUDED.status,
+        progress_complete = EXCLUDED.progress_complete,
+        progress_total = EXCLUDED.progress_total,
+        order_id = COALESCE(EXCLUDED.order_id, cheongi_reports.order_id),
+        input_fingerprint = COALESCE(EXCLUDED.input_fingerprint, cheongi_reports.input_fingerprint),
         updated_at = NOW()
     `,
     [
@@ -364,6 +475,13 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
       stored.owner?.id ?? null,
       stored.owner?.email ?? null,
       stored.owner?.provider ?? null,
+      admin.public_id,
+      admin.service_key,
+      admin.status,
+      admin.progress_complete,
+      admin.progress_total,
+      admin.order_id,
+      admin.input_fingerprint,
     ],
   )
   return cloneRecord(stored)
@@ -375,21 +493,36 @@ export async function createOrGetReportRecord(params: {
   context: SajuReportContext
   templateReport: SajuReport
   owner?: ReportOwner
+  orderId?: string
 }): Promise<{ record: ReportRecord; created: boolean }> {
   const existing = await getReportRecord(params.reportId, params.owner?.accessToken)
   if (existing) {
+    let dirty = false
     if (params.owner && !existing.owner?.id) {
       existing.owner = params.owner
+      dirty = true
+    }
+    if (!existing.publicId) {
+      ensurePublicId(existing)
+      dirty = true
+    }
+    if (params.orderId && !existing.orderId) {
+      existing.orderId = params.orderId
+      dirty = true
+    }
+    if (dirty) {
       return { record: await saveReportRecord(existing), created: false }
     }
-    return { record: existing, created: false }
+    return { record: ensurePublicId(existing), created: false }
   }
 
   const timestamp = nowIso()
   const corpus = getCorpusSnapshot()
+  const publicId = createReportPublicId()
   const report: SajuReport = {
     ...params.templateReport,
     reportId: params.reportId,
+    publicId,
     status: 'pending',
     storage: storageMode(),
     corpus,
@@ -397,12 +530,13 @@ export async function createOrGetReportRecord(params: {
     sections: params.templateReport.sections.map((section) => ({
       ...section,
       generatedBy: 'template',
-      model: 'template',
+      model: section.model ?? 'template',
       status: 'pending',
     })),
   }
   const record: ReportRecord = {
     reportId: params.reportId,
+    publicId,
     birth: params.birth,
     context: params.context,
     owner: params.owner,
@@ -411,6 +545,7 @@ export async function createOrGetReportRecord(params: {
     status: 'pending',
     createdAt: timestamp,
     updatedAt: timestamp,
+    orderId: params.orderId,
   }
   return { record: await saveReportRecord(record), created: true }
 }

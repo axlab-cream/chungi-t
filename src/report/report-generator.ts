@@ -1149,14 +1149,13 @@ export async function buildOpenAiReportFromBase(
   return mergeOpenAiReport(baseReport, extractJsonObject(raw), analysis, context)
 }
 
-export async function buildOpenAiSajuReportSection(
+/** Enrich one already-built section (general or specialized TOC) without rebuilding the whole report. */
+export async function buildOpenAiReportSectionFromBase(
   analysis: SajuAnalysis,
   birth: BirthInput,
-  sectionId: string,
-  context: SajuReportContext = {},
+  context: SajuReportContext,
+  section: SajuReportSection,
 ): Promise<SajuReportSection> {
-  const baseReport = buildTemplateSajuReport(analysis, birth, context)
-  const section = baseReport.sections.find((item) => item.id === sectionId) ?? baseReport.sections[0]
   const raw = await chatWithOpenAI(sectionPrompt(analysis, birth, context, section), {
     model: REPORT_MODEL,
     maxTokens: runtimeConfig.report?.sectionMaxTokens ?? 3000,
@@ -1179,6 +1178,17 @@ export async function buildOpenAiSajuReportSection(
     model: REPORT_MODEL,
     status: 'complete',
   }
+}
+
+export async function buildOpenAiSajuReportSection(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  sectionId: string,
+  context: SajuReportContext = {},
+): Promise<SajuReportSection> {
+  const baseReport = buildTemplateSajuReport(analysis, birth, context)
+  const section = baseReport.sections.find((item) => item.id === sectionId) ?? baseReport.sections[0]
+  return buildOpenAiReportSectionFromBase(analysis, birth, context, section)
 }
 
 export function getReportModel(): string {
