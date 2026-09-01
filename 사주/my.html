@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>마이페이지 · 운명상회</title>
+    <meta name="description" content="운명상회 마이페이지. 내 정보, 보관함, 결제·환불, 고객센터를 한곳에서 관리합니다." />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20260901-myhub" />
+  </head>
+  <body>
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="payment-header">
+        <a class="payment-brand" href="/">운명상회</a>
+        <a class="payment-back" href="/">홈으로</a>
+      </header>
+      <section class="payment-shell" aria-labelledby="my-title">
+        <p class="payment-eyebrow">MY</p>
+        <h1 id="my-title">마이페이지</h1>
+        <p class="payment-intro">계정 정보, 보관함, 결제·환불, 고객센터를 한곳에서 확인합니다.</p>
+        <div class="myhub-user" data-my-user role="status" aria-live="polite">로그인 상태를 확인하는 중입니다.</div>
+        <section class="myhub-section" aria-label="내 정보">
+          <h2>내 정보</h2>
+          <ul class="myhub-menu">
+            <li><a href="/profile"><strong>개인정보 수정</strong><small>이름·생년월일 등 사주 프로필 수정</small><span class="chip">수정</span></a></li>
+            <li><a href="/cmdg/#vault"><strong>보관함</strong><small>저장한 풀이와 상담 기록 다시 보기</small><span class="chip">열기</span></a></li>
+            <li><a href="/destiny"><strong>운명록</strong><small>원국·신살·대운을 한 화면에서 확인</small><span class="chip">보기</span></a></li>
+          </ul>
+        </section>
+        <section class="myhub-section" aria-label="결제·환불">
+          <h2>결제 · 환불</h2>
+          <ul class="myhub-menu">
+            <li><a href="/orders"><strong>결제 내역</strong><small>주문·결제 상태와 풀이 진입점</small><span class="chip">내역</span></a></li>
+            <li><a href="/refunds"><strong>환불 신청 · 내역</strong><small>결제 건 기준 환불 요청과 안내</small><span class="chip">환불</span></a></li>
+          </ul>
+        </section>
+        <section class="myhub-section" aria-label="고객지원">
+          <h2>고객지원</h2>
+          <ul class="myhub-menu">
+            <li><a href="/support"><strong>고객센터</strong><small>FAQ와 문의 접수</small><span class="chip">문의</span></a></li>
+            <li><a href="/leave" class="is-danger"><strong>회원 탈퇴</strong><small>사주 프로필과 풀이 기록 삭제</small><span class="chip">탈퇴</span></a></li>
+            <li><button type="button" data-my-logout><strong>로그아웃</strong><small>이 기기에서 로그인 세션 종료</small><span class="chip">나가기</span></button></li>
+          </ul>
+        </section>
+        <nav class="myhub-links" aria-label="약관 및 정책">
+          <a href="/terms">이용약관</a>
+          <a href="/privacy">개인정보처리방침</a>
+          <a href="/refund">환불·취소 정책</a>
+        </nav>
+        <p class="payment-status" data-my-status role="status" aria-live="polite"></p>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-account-pages.js?v=20260901-myhub"></script>
+    <script src="/js/my.js?v=20260901-myhub"></script>
+  </body>
+</html>

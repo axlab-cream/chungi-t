@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
     <link rel="apple-touch-icon" href="/assets/umsh-share-icon.png?v=20260901-share-v3" />
     <link rel="stylesheet" href="/css/policy.css?v=20260901-policy-pages" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20260901-myhub" />
   </head>
   <body>
     <main class="policy-page">
@@ -55,6 +56,39 @@
           <p>접수된 문의는 내용 확인 후 순차적으로 답변합니다. 결제 취소나 환불 요청은 결제수단사 처리 일정에 따라 실제 반영 시점이 달라질 수 있습니다.</p>
         </section>
 
+
+        <section class="policy-section" id="faq">
+          <h2>자주 묻는 질문</h2>
+          <div class="faq-list">
+            <details class="faq-item"><summary>결제는 어디에 기록되나요?</summary><p>로그인 계정의 결제 내역(/orders)에서 주문 상태와 풀이 진입점을 확인할 수 있습니다.</p></details>
+            <details class="faq-item"><summary>환불은 어떻게 신청하나요?</summary><p>마이페이지의 환불 신청·내역에서 결제 건을 고른 뒤 고객센터 메일로 요청해 주세요. 기준은 환불·취소 정책을 따릅니다.</p></details>
+            <details class="faq-item"><summary>보관함은 어디서 열리나요?</summary><p>하단 메뉴 보관함 또는 마이페이지의 보관함 메뉴에서 저장된 풀이를 다시 열 수 있습니다.</p></details>
+            <details class="faq-item"><summary>개인정보는 어디서 수정하나요?</summary><p>마이페이지 > 개인정보 수정에서 이름과 생년월일 등 사주 프로필을 바꿀 수 있습니다.</p></details>
+          </div>
+        </section>
+
+        <section class="policy-section" id="inquiry">
+          <h2>문의하기</h2>
+          <p>아래 내용을 채우면 고객센터 메일 작성 화면으로 연결됩니다.</p>
+          <form class="support-form" id="support-inquiry-form">
+            <label>이름<input name="name" type="text" required maxlength="40" /></label>
+            <label>이메일<input name="email" type="email" required /></label>
+            <label>문의 유형
+              <select name="category">
+                <option value="결제">결제</option>
+                <option value="환불">환불</option>
+                <option value="보관함">보관함</option>
+                <option value="기타">기타</option>
+              </select>
+            </label>
+            <label>문의 내용<textarea name="message" required maxlength="2000" placeholder="주문번호, 결제일, 증상 등을 적어 주세요."></textarea></label>
+            <button type="submit">메일로 문의 보내기</button>
+            <p class="support-status" data-support-status role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <p class="policy-section"><a href="/my">마이페이지로 돌아가기</a> · <a href="/refund">환불·취소 정책</a></p>
+
         <footer class="company-footer" aria-label="회사 정보">
           <p><strong>상호</strong> 더크림유니언 <strong>대표</strong> 이정훈</p>
           <p><strong>사업자등록번호</strong> 206-81-92596 <strong>통신판매업신고</strong> 2026-서울강남-03303</p>
@@ -63,5 +97,6 @@
         </footer>
       </article>
     </main>
+      <script src="/js/support.js?v=20260901-myhub"></script>
   </body>
 </html>

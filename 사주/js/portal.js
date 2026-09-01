@@ -61,7 +61,7 @@
     account: {
       eyebrow: 'LOCKED MY',
       title: 'MY',
-      href: '/signup?entry=my',
+      href: '/my',
       entry: 'my',
       desc: '내 계정과 사주 프로필을 확인하고 수정하는 메뉴입니다.',
     },
@@ -109,12 +109,14 @@
     account: {
       eyebrow: 'MY',
       title: 'MY',
-      desc: '로그인, 사주 프로필, 결제 내역을 관리합니다.',
+      desc: '로그인, 사주 프로필, 결제·환불, 고객센터를 관리합니다.',
       items: [
-        { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
-        { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
-        { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/cmdg/#vault', status: '보기' },
-        { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/support', status: '문의' },
+        { label: '마이페이지', meta: '계정·결제·환불·고객센터 허브', href: '/my', status: 'MY' },
+        { label: '개인정보 수정', meta: '이름과 생년월일 등 사주 프로필', href: '/profile', status: '수정' },
+        { label: '보관함', meta: '저장한 풀이와 상담 기록', href: '/cmdg/#vault', status: '열기' },
+        { label: '결제 내역', meta: '주문과 풀이 진입점', href: '/orders', status: '내역' },
+        { label: '환불 신청 · 내역', meta: '결제 건 기준 환불 문의', href: '/refunds', status: '환불' },
+        { label: '고객센터', meta: 'FAQ와 문의 접수', href: '/support', status: '문의' },
       ],
     },
   };
