@@ -59,13 +59,11 @@ so its Google account chooser identifies the relying site as `umsh.kr`.
 Google Cloud Console > Auth Platform > Clients:
 
 - Application type: Web application
+- Production client name: `umsh.kr web`
+- Production client ID: `366440624896-f3trevr63eeubfkmho6n96pgnog9ht15.apps.googleusercontent.com`
 - Authorized JavaScript origins:
   - `https://umsh.kr`
-  - `https://www.umsh.kr`
-  - `https://chungi-t.vercel.app`
-  - `http://localhost:8790`
-- Authorized redirect URI:
-  - `https://wdyzollywccgaepjeynu.supabase.co/auth/v1/callback`
+- Authorized redirect URI: not required for the Google Identity Services ID-token flow
 
 Supabase Dashboard > Authentication > Providers > Google:
 
