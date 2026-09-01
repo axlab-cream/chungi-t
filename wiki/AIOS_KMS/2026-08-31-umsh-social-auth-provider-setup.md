@@ -17,13 +17,15 @@ Provider identifiers are now environment-driven:
 
 ```env
 SUPABASE_GOOGLE_PROVIDER=google
+SUPABASE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 SUPABASE_KAKAO_PROVIDER=kakao
 SUPABASE_NAVER_PROVIDER=custom:naver
 ```
 
-The frontend calls `supabase.auth.signInWithOAuth()` with these provider IDs.
+Kakao and Naver call `supabase.auth.signInWithOAuth()` with these provider IDs.
 Kakao uses the requested scopes `profile_nickname profile_image`.
-Google uses `prompt=select_account`.
+Google renders the official Google Identity Services button on `umsh.kr` and
+passes its ID token to `supabase.auth.signInWithIdToken()`.
 Naver uses Supabase Custom OAuth/OIDC with provider ID `custom:naver`.
 
 Production verification showed Vercel env values can arrive with trailing
@@ -49,6 +51,8 @@ https://wdyzollywccgaepjeynu.supabase.co/auth/v1/callback
 ```
 
 Only replace this callback if a paid Supabase Auth custom domain is later enabled.
+The direct Google Identity Services flow does not navigate through this callback,
+so its Google account chooser identifies the relying site as `umsh.kr`.
 
 ## Google Provider
 
@@ -68,6 +72,10 @@ Supabase Dashboard > Authentication > Providers > Google:
 - Enable Google
 - Client ID: Google OAuth Web Client ID
 - Client Secret: Google OAuth Web Client Secret
+
+The same public Web Client ID is stored in Vercel as
+`SUPABASE_GOOGLE_CLIENT_ID`. Keep the secret only in the provider console and
+Supabase.
 
 ## Kakao Provider
 
