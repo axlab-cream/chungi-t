@@ -6,6 +6,7 @@ tmp/
 .env
 .env.local
 .git
+.vercel/output
 *.log
 *.tmp
 *.bak
