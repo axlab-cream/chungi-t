@@ -1469,34 +1469,26 @@ function renderReportGate(groups, report) {
         ${groups.map((group) => {
           const design = categoryDesign(group.id)
           const chapters = chaptersForGroup(group)
-          const isExpanded = reportState.activeGroupId === group.id
           return `
             <div class="report-gate-toc-group">
-              <button
-                class="report-gate-toc-item"
-                type="button"
-                data-report-gate-toggle="${escapeHtml(group.id)}"
-                aria-expanded="${isExpanded ? 'true' : 'false'}"
-              >
+              <div class="report-gate-toc-item">
                 <span>${escapeHtml(design.gate)}</span>
                 <strong>${escapeHtml(group.title)}</strong>
                 <em>${escapeHtml(group.subtitle)}</em>
-                <small>${escapeHtml(String(chapters.length))}개 목차 ${isExpanded ? '접기' : '펼치기'}</small>
-              </button>
-              ${isExpanded ? `
-                <div class="hook-chapter-list report-gate-chapter-list">
-                  ${chapters.map((chapter) => `
-                    <button class="hook-chapter" type="button" data-report-section="${escapeHtml(chapter.items[0].id)}" data-report-mode="reader">
-                      <span class="hook-chapter-no">${escapeHtml(chapter.no)}</span>
-                      <span class="hook-chapter-body">
-                        <strong>${highlightUiKeywords(chapter.title)}</strong>
-                        <em>${highlightUiKeywords(chapter.subtitle)}</em>
-                        <small>${chapter.items.map((section) => sectionNumber(section)).join(' · ')}장 연결</small>
-                      </span>
-                    </button>
-                  `).join('')}
-                </div>
-              ` : ''}
+                <small>${escapeHtml(String(chapters.length))}개 목차</small>
+              </div>
+              <div class="hook-chapter-list report-gate-chapter-list">
+                ${chapters.map((chapter) => `
+                  <button class="hook-chapter" type="button" data-report-section="${escapeHtml(chapter.items[0].id)}" data-report-mode="reader">
+                    <span class="hook-chapter-no">${escapeHtml(chapter.no)}</span>
+                    <span class="hook-chapter-body">
+                      <strong>${highlightUiKeywords(chapter.title)}</strong>
+                      <em>${highlightUiKeywords(chapter.subtitle)}</em>
+                      <small>${chapter.items.map((section) => sectionNumber(section)).join(' · ')}장 연결</small>
+                    </span>
+                  </button>
+                `).join('')}
+              </div>
             </div>
           `
         }).join('')}
@@ -1766,18 +1758,6 @@ chatLog.addEventListener('click', (event) => {
     reportState.viewMode = viewButton.dataset.reportView
     renderReportHub()
     scrollActiveReportIntoView()
-    return
-  }
-
-  const gateToggle = event.target.closest('[data-report-gate-toggle]')
-  if (gateToggle) {
-    const groupId = gateToggle.dataset.reportGateToggle
-    reportState.activeGroupId = reportState.activeGroupId === groupId ? '' : groupId
-    reportState.viewMode = 'gate'
-    renderReportHub()
-    requestAnimationFrame(() => {
-      document.querySelector('.report-gate-chapter-list')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    })
     return
   }
 

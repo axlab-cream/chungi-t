@@ -435,7 +435,7 @@ body::-webkit-scrollbar,
     linear-gradient(90deg, rgba(154, 33, 25, 0.84), rgba(22, 13, 11, 0.92));
   color: #fff8ef;
   text-align: left;
-  cursor: pointer;
+  cursor: default;
 }
 
 .report-gate-toc-item span {
@@ -468,11 +468,6 @@ body::-webkit-scrollbar,
 .report-gate-toc-group {
   display: grid;
   gap: 10px;
-}
-
-.report-gate-toc-item[aria-expanded="true"] {
-  border-color: rgba(242, 191, 107, 0.76);
-  box-shadow: 0 0 0 1px rgba(242, 191, 107, 0.12);
 }
 
 .report-gate-chapter-list {
