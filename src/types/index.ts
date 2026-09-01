@@ -158,6 +158,7 @@ export interface SajuPreview {
 }
 
 export interface SajuReportContext {
+  serviceKey?: string
   name?: string
   target?: string
   concern?: string
@@ -165,6 +166,24 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  partner?: {
+    mode?: 'none' | 'known'
+    name?: string
+    relationship?: string
+    birth?: BirthInput
+    birthTimeKnown?: boolean
+    pillars?: {
+      year: string
+      month: string
+      day: string
+      hour: string
+    }
+    dayMaster?: string
+    dayMasterElement?: string
+    dominantElement?: string
+    weakElement?: string
+    tenGods?: TenGod[]
+  }
 }
 
 export interface SajuReportSection {

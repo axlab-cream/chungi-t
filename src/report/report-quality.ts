@@ -43,6 +43,20 @@ const QUALITY_RULES: QualityRule[] = [
   { id: 'risk-tone', label: '안 좋은 말투 / 경고', sectionIds: ['trap', 'avoid-relationship', 'money-leak', 'future-flow'], expectedTerms: ['좋은 말만', '위험', '조심', '방치', '돈구멍'], riskExpected: true },
 ]
 
+const LOVE_THIS_YEAR_QUALITY_RULES: QualityRule[] = [
+  { id: 'love-possibility', label: '올해 연애 가능성', sectionIds: ['love-year-possibility'], expectedTerms: ['올해', '연애', '가능성', '세운', '관계'] },
+  { id: 'love-attraction', label: '연애 성향 / 끌림 구조', sectionIds: ['love-attraction-pattern'], expectedTerms: ['일지', '끌림', '성향', '관계', '반응'] },
+  { id: 'love-dohwa', label: '도화 시기', sectionIds: ['love-dohwa-months'], expectedTerms: ['도화', '시기', '월', '타이밍', '신호'] },
+  { id: 'love-spouse-star', label: '배우자성', sectionIds: ['love-spouse-star'], expectedTerms: ['배우자성', '재성', '관성', '인연', '유형'] },
+  { id: 'love-monthly-flow', label: '월별 흐름', sectionIds: ['love-monthly-flow'], expectedTerms: ['월별', '세운', '만남', '흐름', '관계'] },
+  { id: 'love-progress', label: '진전 타이밍', sectionIds: ['love-progress-timing'], expectedTerms: ['진전', '타이밍', '약속', '고백', '확인'] },
+  { id: 'love-risk', label: '놓치는 신호 / 실수 패턴', sectionIds: ['love-missed-signals'], expectedTerms: ['놓치', '신호', '실수', '패턴', '위험'], riskExpected: true },
+  { id: 'love-partner', label: '상대 사주 / 궁합 흐름', sectionIds: ['love-partner-compatibility'], expectedTerms: ['상대', '사주', '궁합', '일간', '오행'] },
+  { id: 'love-temperature', label: '감정 온도 차이', sectionIds: ['love-emotion-temperature'], expectedTerms: ['감정', '온도', '속도', '표현', '거리'] },
+  { id: 'love-action', label: '연애 성사 전략', sectionIds: ['love-action-strategy'], expectedTerms: ['전략', '행동', '약속', '소개', '해법'] },
+  { id: 'love-rag', label: 'LOVE RAG 근거성', sectionIds: ['love-year-possibility', 'love-dohwa-months', 'love-partner-compatibility'], expectedTerms: ['이번 장은', '대조', '관계', '시기', '상대'] },
+]
+
 const TONE_SIGNALS = ['흠', '보입니다', '그 이유', '좋은 말만', '위험', '조심', '시기적으로', '풀 방법', '경고', '흐름', '기운', '기준']
 const RISK_SIGNALS = ['좋은 말만', '위험', '방치', '조심', '돈구멍', '과속', '경고']
 
@@ -67,11 +81,18 @@ function selectedSections(report: SajuReport, ids: string[]): SajuReportSection[
 
 function contextTerms(context: SajuReportContext): string[] {
   return [
+    context.serviceKey,
     context.target,
     context.orientation,
     context.relationship,
     context.work,
     context.concern,
+    context.partner?.name,
+    context.partner?.relationship,
+    context.partner?.dayMaster,
+    context.partner?.dayMasterElement,
+    context.partner?.dominantElement,
+    ...(context.partner?.tenGods ?? []),
   ].filter((value): value is string => Boolean(value && value.trim()))
 }
 
@@ -171,7 +192,8 @@ export function evaluateReportQuality(
   analysis: SajuAnalysis,
   context: SajuReportContext = {},
 ): SajuReportQuality {
-  const categories = QUALITY_RULES.map((rule) => scoreCategory(rule, report, analysis, context))
+  const rules = context.serviceKey === 'love_this_year' ? LOVE_THIS_YEAR_QUALITY_RULES : QUALITY_RULES
+  const categories = rules.map((rule) => scoreCategory(rule, report, analysis, context))
 
   return {
     overallPercent: clampPercent(avg(categories.map((category) => category.completenessPercent))),

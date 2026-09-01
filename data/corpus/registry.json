@@ -33,6 +33,16 @@
       "retrievalBoost": 1.5
     },
     {
+      "id": "love-this-year-service",
+      "path": "corpus/love-this-year-service.json",
+      "kind": "chunks",
+      "domain": "love_this_year_service",
+      "status": "active",
+      "role": "single_service_love_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 18
+    },
+    {
       "id": "saju-95-quality-bundles",
       "path": "corpus/saju-95-quality-bundles.json",
       "kind": "chunks",

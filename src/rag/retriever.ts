@@ -177,11 +177,20 @@ export function detectIntent(message: string): string {
 function contextTokens(context?: SajuReportContext): string[] {
   if (!context) return []
   const values = [
+    context.serviceKey,
     context.target,
     context.relationship,
     context.orientation,
     context.work,
     context.concern,
+    context.partner?.mode,
+    context.partner?.name,
+    context.partner?.relationship,
+    context.partner?.dayMaster,
+    context.partner?.dayMasterElement,
+    context.partner?.dominantElement,
+    context.partner?.weakElement,
+    ...(context.partner?.tenGods ?? []),
   ].filter((value): value is string => Boolean(value && value.trim()))
 
   const rawTokens = values.flatMap(tokenize)
@@ -200,6 +209,8 @@ function contextTokens(context?: SajuReportContext): string[] {
   if (joined.includes('연애 중')) direct.push('연애', '관계반복')
   if (joined.includes('이별')) direct.push('이별', '재회', '정리')
   if (joined.includes('결혼')) direct.push('결혼', '배우자', '생활')
+  if (context.serviceKey === 'love_this_year') direct.push('연애운', '도화', '배우자성', '세운', '궁합', '상대')
+  if (context.partner?.mode === 'known') direct.push('상대방', '궁합', '감정온도', '일간', '오행')
   if (joined.includes('학생')) direct.push('학생', '공부', '진로')
   if (joined.includes('일을 찾')) direct.push('구직', '취업', '일자리')
   if (joined.includes('직장')) direct.push('직장', '회사', '업무')
@@ -370,11 +381,19 @@ function scoreChunk(
 function contextText(context?: SajuReportContext): string {
   if (!context) return ''
   return [
+    context.serviceKey,
     context.target,
     context.relationship,
     context.orientation,
     context.work,
     context.concern,
+    context.partner?.mode === 'known' ? '상대방 사주 궁합 감정 온도' : '',
+    context.partner?.relationship,
+    context.partner?.dayMaster,
+    context.partner?.dayMasterElement,
+    context.partner?.dominantElement,
+    context.partner?.weakElement,
+    ...(context.partner?.tenGods ?? []),
   ].filter(Boolean).join(' ')
 }
 

@@ -3390,6 +3390,30 @@
 
       const initialAuthParams = new URLSearchParams(location.search);
       const initialAuthEntry = initialAuthParams.get("authEntry") || initialAuthParams.get("entry") || "";
+      const LOVE_THIS_YEAR_SERVICE_KEY = "love_this_year";
+      const pathServiceKey = /^\/love\/this-year(?:\/|\.html)?$/i.test(location.pathname)
+        ? LOVE_THIS_YEAR_SERVICE_KEY
+        : "";
+      function normalizeServiceKey(value) {
+        const raw = String(value || "").trim();
+        return raw === LOVE_THIS_YEAR_SERVICE_KEY || raw === "love-this-year" || raw === "love" ? LOVE_THIS_YEAR_SERVICE_KEY : "";
+      }
+      const requestedServiceKey = normalizeServiceKey(initialAuthParams.get("service") || initialAuthEntry || pathServiceKey);
+      const SERVICE_CATALOG = {
+        [LOVE_THIS_YEAR_SERVICE_KEY]: {
+          key: LOVE_THIS_YEAR_SERVICE_KEY,
+          path: "/love/this-year",
+          title: "나, 올해 연애 가능?",
+          eyebrow: "LOVE · 연애운",
+          price: "12,900원",
+          cta: "운명상회 상담",
+          plan: "love-this-year",
+          defaultConcern: "올해 새로운 연애가 들어오는 시기와 놓치기 쉬운 타이밍이 궁금해요.",
+          defaultRelationship: "솔로예요",
+          defaultOrientation: "이성 관계 중심",
+          defaultWork: "일상 흐름",
+        },
+      };
       const isSignupPath = /^\/signup(?:\/|\.html)?$/i.test(location.pathname);
       const isPortalSignupEntry = isSignupPath || initialAuthEntry === "today" || initialAuthEntry === "signup";
       const isSignupReturn = initialAuthParams.get("signupReturn") === "1";
@@ -3401,6 +3425,7 @@
 
       const state = {
         scene: "landing",
+        serviceKey: requestedServiceKey,
         target: "본인",
         calendar: "양력",
         birth: "",
@@ -3412,13 +3437,21 @@
         relationship: "",
         work: "",
         concern: "",
+        partnerMode: "none",
+        partnerName: "",
+        partnerRelationship: "썸/관심 상대",
+        partnerCalendar: "양력",
+        partnerBirth: "",
+        partnerGender: "",
+        partnerTime: "모름",
+        partnerBirthTimeKnown: false,
         analysis: null,
         todayFortune: null,
         reportPageIndex: 0,
         reportSectionCache: {},
         reportRequestToken: 0,
         reportTypingTimer: null,
-        plan: "single",
+        plan: requestedServiceKey ? SERVICE_CATALOG[requestedServiceKey].plan : "single",
         privacyAgree: false,
         paymentAgree: false,
         marketingAgree: false,
@@ -3483,6 +3516,7 @@
       function persistAuthFormState() {
         sessionStorage.setItem(AUTH_FORM_KEY, JSON.stringify({
           scene: state.scene,
+          serviceKey: state.serviceKey,
           target: state.target,
           calendar: state.calendar,
           birth: state.birth,
@@ -3494,6 +3528,14 @@
           relationship: state.relationship,
           work: state.work,
           concern: state.concern,
+          partnerMode: state.partnerMode,
+          partnerName: state.partnerName,
+          partnerRelationship: state.partnerRelationship,
+          partnerCalendar: state.partnerCalendar,
+          partnerBirth: state.partnerBirth,
+          partnerGender: state.partnerGender,
+          partnerTime: state.partnerTime,
+          partnerBirthTimeKnown: state.partnerBirthTimeKnown,
         }));
       }
 
@@ -3502,6 +3544,7 @@
           const saved = JSON.parse(sessionStorage.getItem(AUTH_FORM_KEY) || "null");
           if (!saved || typeof saved !== "object") return;
           Object.assign(state, {
+            serviceKey: normalizeServiceKey(saved.serviceKey) || state.serviceKey,
             target: saved.target || state.target,
             calendar: saved.calendar || state.calendar,
             birth: saved.birth || state.birth,
@@ -3513,7 +3556,16 @@
             relationship: saved.relationship || state.relationship,
             work: saved.work || state.work,
             concern: saved.concern || state.concern,
+            partnerMode: saved.partnerMode || state.partnerMode,
+            partnerName: saved.partnerName || state.partnerName,
+            partnerRelationship: saved.partnerRelationship || state.partnerRelationship,
+            partnerCalendar: saved.partnerCalendar || state.partnerCalendar,
+            partnerBirth: saved.partnerBirth || state.partnerBirth,
+            partnerGender: saved.partnerGender || state.partnerGender,
+            partnerTime: saved.partnerTime || state.partnerTime,
+            partnerBirthTimeKnown: saved.partnerBirthTimeKnown ?? state.partnerBirthTimeKnown,
           });
+          applyServiceDefaults({ preserveConcern: true });
         } catch (err) {
           sessionStorage.removeItem(AUTH_FORM_KEY);
         }
@@ -3652,6 +3704,68 @@
         return todayEntryActive || sessionStorage.getItem(TODAY_ENTRY_KEY) === "1";
       }
 
+      function currentService() {
+        return SERVICE_CATALOG[state.serviceKey] || null;
+      }
+
+      function isLoveThisYearService() {
+        return currentService()?.key === LOVE_THIS_YEAR_SERVICE_KEY;
+      }
+
+      function applyServiceDefaults(options = {}) {
+        const service = currentService();
+        if (!service) return;
+        state.target = "본인";
+        state.plan = service.plan;
+        if (!options.preserveConcern && !state.concern) state.concern = service.defaultConcern;
+        if (!state.relationship) state.relationship = service.defaultRelationship;
+        if (!state.orientation) state.orientation = service.defaultOrientation;
+        if (!state.work) state.work = service.defaultWork;
+        if (!state.partnerMode) state.partnerMode = "none";
+      }
+
+      function parsePartnerBirthInput() {
+        const digits = String(state.partnerBirth || "").replace(/\D/g, "");
+        const year = Number(digits.slice(0, 4));
+        const month = Number(digits.slice(4, 6));
+        const day = Number(digits.slice(6, 8));
+        let hour = 12;
+        let minute = 0;
+        if (state.partnerBirthTimeKnown && state.partnerTime && state.partnerTime !== "모름") {
+          const m = state.partnerTime.match(/(\d{1,2}):(\d{2})/);
+          if (m) {
+            hour = Number(m[1]);
+            minute = Number(m[2]);
+          }
+        }
+        return {
+          year,
+          month,
+          day,
+          hour,
+          minute,
+          gender: state.partnerGender === "여자" ? "female" : "male",
+          calendar: state.partnerCalendar === "음력" ? "lunar" : "solar",
+        };
+      }
+
+      function getPartnerContext() {
+        if (!isLoveThisYearService() || state.partnerMode !== "known") {
+          return { mode: "none", relationship: state.partnerRelationship || "" };
+        }
+        return {
+          mode: "known",
+          name: state.partnerName,
+          relationship: state.partnerRelationship,
+          birthTimeKnown: state.partnerBirthTimeKnown,
+          birth: parsePartnerBirthInput(),
+        };
+      }
+
+      function servicePathForCurrentPage() {
+        return currentService()?.path || "/cmdg/";
+      }
+
       function profileDateValue(birth = {}) {
         if (!birth.year || !birth.month || !birth.day) return "";
         return `${birth.year}${pad2(birth.month)}${pad2(birth.day)}`;
@@ -3726,11 +3840,13 @@
         sessionStorage.setItem("cheongi_birth", JSON.stringify({
           ...birth,
           birthTimeKnown: state.birthTimeKnown,
+          serviceKey: state.serviceKey,
           target: state.target,
           concern: state.concern,
           relationship: state.relationship,
           work: state.work,
           orientation: state.orientation,
+          partner: getPartnerContext(),
         }));
       }
 
@@ -3785,6 +3901,7 @@
           profile = cachedProfileForSession(session);
           if (profile) applyUserProfile(profile);
         }
+        applyServiceDefaults({ preserveConcern: true });
         go(profile ? "concern" : "name");
       }
 
@@ -4197,6 +4314,8 @@
         const saved = payload.birthState || {};
         const birth = payload.birth || analysis.birth || {};
         const context = payload.context || {};
+        const partner = saved.partner || context.partner || {};
+        state.serviceKey = normalizeServiceKey(saved.serviceKey || context.serviceKey) || state.serviceKey;
         state.target = saved.target || context.target || "본인";
         state.calendar = saved.calendar || (birth.calendar === "lunar" ? "음력" : "양력");
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
@@ -4208,6 +4327,17 @@
         state.relationship = saved.relationship || context.relationship || "";
         state.work = saved.work || context.work || "";
         state.concern = saved.concern || context.concern || "";
+        state.partnerMode = partner.mode || "none";
+        state.partnerName = partner.name || "";
+        state.partnerRelationship = partner.relationship || "썸/관심 상대";
+        state.partnerCalendar = partner.birth?.calendar === "lunar" ? "음력" : "양력";
+        state.partnerBirth = partner.birth?.year ? `${partner.birth.year}${pad2(partner.birth.month || 1)}${pad2(partner.birth.day || 1)}` : "";
+        state.partnerGender = partner.birth?.gender === "female" ? "여자" : partner.birth?.gender === "male" ? "남자" : "";
+        state.partnerBirthTimeKnown = partner.birthTimeKnown === true;
+        state.partnerTime = state.partnerBirthTimeKnown && Number.isFinite(Number(partner.birth?.hour))
+          ? `${pad2(partner.birth.hour)}:${pad2(partner.birth.minute || 0)}`
+          : "모름";
+        applyServiceDefaults({ preserveConcern: true });
         state.analysis = analysis;
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
@@ -4222,11 +4352,13 @@
         sessionStorage.setItem("cheongi_birth", JSON.stringify({
           ...birthForSession,
           birthTimeKnown: state.birthTimeKnown,
+          serviceKey: state.serviceKey,
           target: state.target,
           concern: state.concern,
           relationship: state.relationship,
           work: state.work,
           orientation: state.orientation,
+          partner: getPartnerContext(),
         }));
         sessionStorage.setItem("cheongi_chat_history", JSON.stringify(chatHistory));
         if (state.concern) sessionStorage.setItem("cheongi_initial_concern", state.concern);
@@ -4256,6 +4388,7 @@
           chatHistory = [];
         }
         const birthState = {
+          serviceKey: state.serviceKey,
           target: state.target,
           calendar: state.calendar,
           birth: state.birth,
@@ -4267,6 +4400,7 @@
           relationship: state.relationship,
           work: state.work,
           concern: state.concern,
+          partner: getPartnerContext(),
         };
         const titleName = state.name || state.target || "자네";
         return {
@@ -4363,6 +4497,7 @@
       }
 
       function resetReadingState() {
+        const preservedServiceKey = state.serviceKey;
         state.target = "본인";
         state.calendar = "양력";
         state.birth = "";
@@ -4374,6 +4509,16 @@
         state.relationship = "";
         state.work = "";
         state.concern = "";
+        state.serviceKey = preservedServiceKey;
+        state.partnerMode = "none";
+        state.partnerName = "";
+        state.partnerRelationship = "썸/관심 상대";
+        state.partnerCalendar = "양력";
+        state.partnerBirth = "";
+        state.partnerGender = "";
+        state.partnerTime = "모름";
+        state.partnerBirthTimeKnown = false;
+        applyServiceDefaults();
         state.analysis = null;
         state.todayFortune = null;
         state.reportPageIndex = 0;
@@ -4554,7 +4699,8 @@
           go("birth");
         }
         if (action === "concern-next") {
-          state.concern = document.querySelector("#concern")?.value.trim() || "";
+          if (isLoveThisYearService() && !collectLoveConcernForm()) return;
+          state.concern = document.querySelector("#concern")?.value.trim() || state.concern || "";
           persistAuthFormState();
           beginAnalysisAfterAuth();
         }
@@ -4615,7 +4761,7 @@
           clearTodayEntryPending();
           historyStack.length = 0;
           resetReadingState();
-          state.plan = "single";
+          state.plan = currentService()?.plan || "single";
           state.privacyAgree = false;
           state.paymentAgree = false;
           state.marketingAgree = false;
@@ -4624,7 +4770,7 @@
       });
 
       stage.addEventListener("input", (event) => {
-        if (event.target.matches("#name, #birth, #birthtime")) {
+        if (event.target.matches("#name, #birth, #birthtime, #partnerBirth, #partnerTime")) {
           clearFieldError(event.target.id);
         }
       });
@@ -4662,7 +4808,15 @@
       });
 
       function handleValue(key, value, button) {
-        state[key] = value;
+        if (isLoveThisYearService() && state.scene === "concern") {
+          syncLoveConcernFieldsFromDom();
+        }
+        const normalizedValue = value === "true" ? true : value === "false" ? false : value;
+        state[key] = normalizedValue;
+        if (key === "partnerRelationship") {
+          const partnerRelationshipInput = document.querySelector("#partnerRelationship");
+          if (partnerRelationshipInput) partnerRelationshipInput.value = String(normalizedValue || "");
+        }
         button.parentElement
           ?.querySelectorAll("[data-value]")
           .forEach((item) => item.classList.toggle("is-selected", item === button));
@@ -4673,6 +4827,8 @@
         const next = button.dataset.next;
         if (next) {
           setTimeout(() => go(next), 170);
+        } else if (isLoveThisYearService() && state.scene === "concern" && (key === "partnerMode" || key === "partnerBirthTimeKnown")) {
+          renderConcern();
         }
       }
 
@@ -4731,6 +4887,51 @@
           return "태어난 시간은 00:00부터 23:59 사이로 입력해주세요.";
         }
         return "";
+      }
+
+      function syncLoveConcernFieldsFromDom() {
+        if (!isLoveThisYearService()) return;
+        const read = (selector) => document.querySelector(selector)?.value.trim();
+        state.concern = read("#concern") || state.concern || currentService()?.defaultConcern || "";
+        state.partnerName = read("#partnerName") || state.partnerName;
+        state.partnerRelationship = read("#partnerRelationship") || state.partnerRelationship;
+        state.partnerBirth = read("#partnerBirth") || state.partnerBirth;
+        if (state.partnerBirthTimeKnown) {
+          const time = read("#partnerTime");
+          state.partnerTime = time ? normalizeTime(time) : state.partnerTime;
+        } else {
+          state.partnerTime = "모름";
+        }
+      }
+
+      function collectLoveConcernForm() {
+        if (!isLoveThisYearService()) return true;
+        applyServiceDefaults({ preserveConcern: true });
+        syncLoveConcernFieldsFromDom();
+        if (!state.relationship) return showNudge("현재 관계 상태를 선택해주세요."), false;
+        if (!state.orientation) return showNudge("관계 기준을 선택해주세요."), false;
+        if (state.partnerMode !== "known") return true;
+
+        const birthError = validateBirth(state.partnerBirth);
+        if (birthError) {
+          setFieldError("partnerBirth", `상대방 ${birthError}`);
+          return false;
+        }
+        if (!state.partnerGender) {
+          showNudge("상대방 성별을 선택해주세요.");
+          return false;
+        }
+        if (state.partnerBirthTimeKnown) {
+          const timeError = validateTime(state.partnerTime);
+          if (timeError) {
+            setFieldError("partnerTime", `상대방 ${timeError}`);
+            return false;
+          }
+          state.partnerTime = normalizeTime(state.partnerTime);
+        } else {
+          state.partnerTime = "모름";
+        }
+        return true;
       }
 
       function setFieldError(fieldId, message) {
@@ -4804,12 +5005,14 @@
       async function analyzeBirth() {
         const birth = parseBirthInput();
         const context = {
+          serviceKey: state.serviceKey,
           name: state.name,
           target: state.target,
           concern: state.concern,
           relationship: state.relationship,
           orientation: state.orientation,
           work: state.work,
+          partner: getPartnerContext(),
         };
         await saveCurrentUserProfile();
         state.reportPageIndex = 0;
@@ -5122,12 +5325,14 @@
 
       function getReportContext() {
         return {
+          serviceKey: state.serviceKey,
           name: state.name,
           target: state.target,
           concern: state.concern,
           relationship: state.relationship,
           orientation: state.orientation,
           work: state.work,
+          partner: getPartnerContext(),
         };
       }
 
@@ -5432,7 +5637,68 @@
         });
       }
 
+      function renderLoveThisYearLanding() {
+        const service = currentService();
+        stage.innerHTML = `
+          <article class="sample-story">
+            ${storyTopNavMarkup()}
+            <section class="source-section tall" data-sample-section="love-service-hero">
+              <img alt="연애운 카드 배경" class="source-img center-wide" src="/assets/umsh-love-card-bg.webp" />
+              <div class="source-fade"></div>
+              <div class="source-copy bottom">
+                <p class="red">${escapeHtml(service.eyebrow)}</p>
+                <h2>${escapeHtml(service.title)}</h2>
+                <p>도화가 들어오는 달과 놓치기 쉬운 타이밍을 먼저 봅니다.</p>
+              </div>
+            </section>
+
+            <section class="story-section deep" data-sample-section="love-service-summary">
+              <span class="chapter">${escapeHtml(service.price)}</span>
+              <h2>내 사주만 봐도 되고<br />상대 사주까지 넣어도 됩니다</h2>
+              <p>특정 상대가 없으면 올해 새 인연 가능성으로, 마음에 둔 사람이 있으면 상대방 사주까지 받아 궁합 흐름과 감정 온도 차이를 같이 봅니다.</p>
+              <div class="story-list">
+                <div class="story-list-item">올해 연애 가능성과 도화가 강한 시기</div>
+                <div class="story-list-item">배우자성으로 보는 인연 유형</div>
+                <div class="story-list-item">상대방 사주 입력 시 궁합 흐름</div>
+                <div class="story-list-item">놓치기 쉬운 신호와 연애 성사 전략</div>
+              </div>
+            </section>
+
+            <section class="story-section" data-sample-section="love-service-toc">
+              <span class="chapter">해석 분류</span>
+              <h2>연애운 전용 목차</h2>
+              <div class="result-list">
+                ${[
+                  "올해 연애 가능성",
+                  "내 연애 성향과 끌림 구조",
+                  "도화가 강하게 들어오는 시기",
+                  "배우자성으로 보는 인연 유형",
+                  "만남이 생기기 쉬운 월별 흐름",
+                  "관계가 진전되는 타이밍",
+                  "놓치기 쉬운 신호와 실수 패턴",
+                  "상대방 사주 입력 시 궁합 흐름",
+                  "상대와 나의 감정 온도 차이",
+                  "연애 성사 전략",
+                ].map((item, index) => `
+                  <div class="result-item"><strong>${String(index + 1).padStart(2, "0")} · ${item}</strong><span>입력값에 맞춰 개인화됩니다</span></div>
+                `).join("")}
+              </div>
+            </section>
+
+            <div class="sample-enter">
+              <button class="primary-cta" type="button" data-action="enter">${escapeHtml(service.cta)}</button>
+              <p class="fineprint">상대가 있으면 입력 단계에서 상대방 생년월일과 생시 모름 옵션을 선택할 수 있습니다.</p>
+            </div>
+            ${businessFooterMarkup()}
+          </article>
+        `;
+      }
+
       function renderLanding() {
+        if (isLoveThisYearService()) {
+          renderLoveThisYearLanding();
+          return;
+        }
         stage.innerHTML = `
           <article class="sample-story">
             ${storyTopNavMarkup()}
@@ -5588,7 +5854,119 @@
         document.querySelector("#name")?.focus();
       }
 
+      function renderLoveConcern() {
+        applyServiceDefaults({ preserveConcern: true });
+        const service = currentService();
+        const relationshipOptions = ["솔로예요", "마음에 둔 사람이 있어요", "썸이에요", "연애 중이에요", "이별 직후예요"];
+        const orientationOptions = ["이성 관계 중심", "동성 관계 중심", "관계 패턴 중심"];
+        const partnerRelationshipOptions = ["썸/관심 상대", "연인", "전연인", "소개 예정"];
+        const optionButtons = (key, options, value) => options.map((item) => `
+          <button class="choice ${value === item ? "is-selected" : ""}" type="button" data-key="${key}" data-value="${escapeHtml(item)}" aria-pressed="${value === item}">${escapeHtml(item)}</button>
+        `).join("");
+        const partnerBlock = state.partnerMode === "known"
+          ? `
+            <div class="teaser-block">
+              <span class="chapter">상대방 사주</span>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="partnerName">상대 이름 또는 호칭</label>
+                  <input id="partnerName" type="text" placeholder="선택 입력" value="${escapeHtml(state.partnerName)}" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <label for="partnerRelationship">상대와의 관계</label>
+                  <input id="partnerRelationship" type="text" placeholder="예: 썸, 짝사랑, 전연인" value="${escapeHtml(state.partnerRelationship)}" autocomplete="off" />
+                </div>
+              </div>
+              <div class="choices two" role="group" aria-label="상대 달력 선택">
+                <button class="choice ${state.partnerCalendar === "양력" ? "is-selected" : ""}" type="button" data-key="partnerCalendar" data-value="양력" aria-pressed="${state.partnerCalendar === "양력"}">양력</button>
+                <button class="choice ${state.partnerCalendar === "음력" ? "is-selected" : ""}" type="button" data-key="partnerCalendar" data-value="음력" aria-pressed="${state.partnerCalendar === "음력"}">음력</button>
+              </div>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="partnerBirth">상대 생년월일</label>
+                  <input id="partnerBirth" type="text" inputmode="numeric" placeholder="19980123" value="${escapeHtml(state.partnerBirth)}" aria-describedby="partnerBirth-error" />
+                  <div class="field-error" id="partnerBirth-error" aria-live="polite"></div>
+                </div>
+              </div>
+              <div class="choices two" role="group" aria-label="상대 성별 선택">
+                <button class="choice ${state.partnerGender === "남자" ? "is-selected" : ""}" type="button" data-key="partnerGender" data-value="남자" aria-pressed="${state.partnerGender === "남자"}">남자</button>
+                <button class="choice ${state.partnerGender === "여자" ? "is-selected" : ""}" type="button" data-key="partnerGender" data-value="여자" aria-pressed="${state.partnerGender === "여자"}">여자</button>
+              </div>
+              <div class="choices two" role="group" aria-label="상대 생시 입력 여부">
+                <button class="choice ${state.partnerBirthTimeKnown === true ? "is-selected" : ""}" type="button" data-key="partnerBirthTimeKnown" data-value="true" aria-pressed="${state.partnerBirthTimeKnown === true}">생시 입력</button>
+                <button class="choice ${state.partnerBirthTimeKnown !== true ? "is-selected" : ""}" type="button" data-key="partnerBirthTimeKnown" data-value="false" aria-pressed="${state.partnerBirthTimeKnown !== true}">생시 모름</button>
+              </div>
+              ${state.partnerBirthTimeKnown ? `
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="partnerTime">상대 태어난 시간</label>
+                    <input id="partnerTime" type="text" inputmode="numeric" placeholder="13:30" value="${state.partnerTime === "모름" ? "" : escapeHtml(state.partnerTime)}" aria-describedby="partnerTime-error" />
+                    <div class="field-error" id="partnerTime-error" aria-live="polite"></div>
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          `
+          : `
+            <div class="teaser-block">
+              <span class="chapter">상대방 사주</span>
+              <p>특정 상대가 없으면 올해 새 인연 기준으로 보고, 상대가 생기면 이 화면에서 상대 사주를 넣어 다시 볼 수 있습니다.</p>
+            </div>
+          `;
+
+        stage.innerHTML = `
+          <section class="panel teaser-panel">
+            <div class="status">${escapeHtml(service.eyebrow)} · ${escapeHtml(service.price)}</div>
+            <h1>${escapeHtml(service.title)}</h1>
+            <p>내 사주만으로 올해 새 인연을 볼 수도 있고, 특정 상대가 있으면 상대방 사주까지 넣어 궁합 흐름을 같이 봅니다.</p>
+
+            <div class="teaser-block">
+              <span class="chapter">상담 유형</span>
+              <div class="choices two" role="group" aria-label="상대방 사주 입력 여부">
+                <button class="choice ${state.partnerMode !== "known" ? "is-selected" : ""}" type="button" data-key="partnerMode" data-value="none" aria-pressed="${state.partnerMode !== "known"}">상대 없음</button>
+                <button class="choice ${state.partnerMode === "known" ? "is-selected" : ""}" type="button" data-key="partnerMode" data-value="known" aria-pressed="${state.partnerMode === "known"}">특정 상대 있음</button>
+              </div>
+            </div>
+
+            <div class="teaser-block">
+              <span class="chapter">현재 관계 상태</span>
+              <div class="choices single">${optionButtons("relationship", relationshipOptions, state.relationship)}</div>
+            </div>
+
+            <div class="teaser-block">
+              <span class="chapter">관계 기준</span>
+              <div class="choices single">${optionButtons("orientation", orientationOptions, state.orientation)}</div>
+            </div>
+
+            ${state.partnerMode === "known" ? `
+              <div class="teaser-block">
+                <span class="chapter">상대 구분</span>
+                <div class="choices single">${optionButtons("partnerRelationship", partnerRelationshipOptions, state.partnerRelationship)}</div>
+              </div>
+            ` : ""}
+
+            ${partnerBlock}
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="concern">질문</label>
+                <input id="concern" type="text" placeholder="올해 연애에서 제일 궁금한 점" value="${escapeHtml(state.concern || service.defaultConcern)}" autocomplete="off" />
+              </div>
+            </div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="concern-next">그대로 보기</button>
+              <button class="next-cta" type="button" data-action="concern-next">해석 시작</button>
+            </div>
+          </section>
+        `;
+        document.querySelector("#concern")?.focus();
+      }
+
       function renderConcern() {
+        if (isLoveThisYearService()) {
+          renderLoveConcern();
+          return;
+        }
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
@@ -5678,6 +6056,29 @@
       }
 
       function renderLoading() {
+        if (isLoveThisYearService()) {
+          const partnerCopy = state.partnerMode === "known"
+            ? "내 사주와 상대방 사주의 결을 맞춰 궁합 흐름을 여는 중입니다"
+            : "내 사주의 도화와 올해 새 인연 흐름을 맞춰보는 중입니다";
+          stage.innerHTML = `
+            <div class="loader">
+              <div class="interpret-loader-card" role="status" aria-live="polite">
+                <div class="interpret-orb" aria-hidden="true"></div>
+                <div class="interpret-loader-copy">
+                  <div class="line-pill">LOVE · 올해 연애운 해석 중</div>
+                  <p>${partnerCopy}<br />도화, 세운, 배우자성의 신호를 정리하겠습니다</p>
+                </div>
+                <div class="interpret-progress" aria-hidden="true"></div>
+                <div class="interpret-steps" aria-hidden="true">
+                  <span>도화 확인</span>
+                  <span>상대 흐름</span>
+                  <span>전략 정리</span>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
         stage.innerHTML = `
           <div class="loader">
             <div class="interpret-loader-card" role="status" aria-live="polite">
@@ -5798,7 +6199,157 @@
         `;
       }
 
+      function loveDohwaInfoFromPillars(pillars) {
+        const dayHanja = String(pillars?.day?.hanja || "");
+        const dayBranch = dayHanja.length >= 2 ? dayHanja.slice(1, 2) : "卯";
+        const dohwaBranch = "申子辰".includes(dayBranch)
+          ? "酉"
+          : "寅午戌".includes(dayBranch)
+            ? "卯"
+            : "亥卯未".includes(dayBranch)
+              ? "子"
+              : "午";
+        const monthHint = {
+          子: "12월 전후",
+          丑: "1월 전후",
+          寅: "2월 전후",
+          卯: "3월 전후",
+          辰: "4월 전후",
+          巳: "5월 전후",
+          午: "6월 전후",
+          未: "7월 전후",
+          申: "8월 전후",
+          酉: "9월 전후",
+          戌: "10월 전후",
+          亥: "11월 전후",
+        }[dohwaBranch] || "봄과 초여름 사이";
+        return { dayBranch, dohwaBranch, monthHint };
+      }
+
+      function lovePartnerSummary() {
+        if (state.partnerMode !== "known") return "특정 상대 없음 · 올해 새 인연 기준";
+        return [
+          state.partnerName || "상대",
+          state.partnerRelationship || "관계 미입력",
+          state.partnerBirth ? formatBirthLabel(state.partnerBirth) : "생년월일 미입력",
+          state.partnerBirthTimeKnown ? state.partnerTime : "생시 모름",
+        ].filter(Boolean).join(" · ");
+      }
+
+      function renderLoveThisYearResult() {
+        const service = currentService();
+        const a = state.analysis;
+        const pillars = a?.pillars;
+        const preview = a?.preview;
+        const fortune = a?.fortune;
+        const displayNameRaw = state.name || "자네";
+        const displayName = escapeHtml(displayNameRaw);
+        const birthLabel = escapeHtml(formatBirthLabel(state.birth));
+        const dayLabel = escapeHtml(pillars?.day?.hanja || "-");
+        const monthLabel = escapeHtml(pillars?.month?.hanja || "-");
+        const yearLabel = escapeHtml(pillars?.year?.hanja || "-");
+        const currentYear = Number(fortune?.currentYear) || new Date().getFullYear();
+        const dohwa = loveDohwaInfoFromPillars(pillars);
+        const spouseStar = state.gender === "여자" ? "관성" : "재성";
+        const partnerSummary = escapeHtml(lovePartnerSummary());
+        const relationLabel = escapeHtml([state.relationship, state.orientation].filter(Boolean).join(" · ") || "관계 기준");
+        const concernText = escapeHtml(state.concern || service.defaultConcern);
+        const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
+        const sections = a?.report?.sections || [];
+        const tocMarkup = sections.length
+          ? sections.map((section, index) => `
+              <div class="result-item"><strong>${String(index + 1).padStart(2, "0")} · ${escapeHtml(section.category)}</strong><span>${escapeHtml(section.classification || "입력값 기준 해석")}</span></div>
+            `).join("")
+          : "";
+        const paidReportMarkup = isCurrentReportPaid() ? renderReportReaderMarkup(a?.report) : "";
+
+        stage.innerHTML = `
+          <article class="story sample-story sub-result">
+            ${storyTopNavMarkup(true)}
+
+            <section class="source-section tall" data-sample-section="love-result-hero">
+              <img alt="연애운 결과 배경" class="source-img center-wide" src="/assets/umsh-love-card-bg.webp" />
+              <div class="source-fade"></div>
+              <div class="source-copy bottom">
+                <p class="red">${escapeHtml(service.eyebrow)}</p>
+                <h2>${displayName}<br />올해 연애 가능성</h2>
+                <p>${currentYear}년 흐름과 도화 신호를 같이 봅니다.</p>
+              </div>
+            </section>
+
+            <section class="story-section deep" data-sample-section="love-free-summary">
+              <span class="chapter">무료 요약</span>
+              <h2>올해 인연은<br /><span class="red">타이밍</span>을 놓치지 않는 쪽입니다</h2>
+              <p>${loveText}</p>
+              <div class="sub-result-summary" aria-label="연애운 요약">
+                <div class="sub-result-card"><strong>나의 기준</strong><span>${birthLabel} · ${dayLabel} 일지 기준</span></div>
+                <div class="sub-result-card"><strong>도화 시기</strong><span>${escapeHtml(dohwa.dohwaBranch)} 도화 · ${escapeHtml(dohwa.monthHint)}</span></div>
+                <div class="sub-result-card"><strong>배우자성</strong><span>${spouseStar} 흐름으로 인연 유형 확인</span></div>
+              </div>
+            </section>
+
+            <section class="story-section" data-sample-section="love-context-proof">
+              <span class="chapter">입력 기준</span>
+              <h2>내 사주와 관계 상태를<br />같이 놓고 봅니다</h2>
+              <div class="saju-table" aria-label="사주팔자">
+                <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>바깥 흐름</span></div>
+                <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>관계 환경</span></div>
+                <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>가까운 관계</span></div>
+                <div class="pillar"><span>桃花</span><b>${escapeHtml(dohwa.dohwaBranch)}</b><span>${escapeHtml(dohwa.monthHint)}</span></div>
+              </div>
+              <div class="proof-stack">
+                <div class="proof-row"><span>관계 상태</span><strong>${relationLabel}</strong></div>
+                <div class="proof-row"><span>상대 입력</span><strong>${partnerSummary}</strong></div>
+                <div class="proof-row"><span>질문</span><strong>${concernText}</strong></div>
+              </div>
+            </section>
+
+            <section class="story-section deep" data-sample-section="love-partner-flow">
+              <span class="chapter">${state.partnerMode === "known" ? "상대방 사주 포함" : "새 인연 기준"}</span>
+              <h2>${state.partnerMode === "known" ? "궁합 흐름과 감정 온도 차이를 봅니다" : "상대가 없다면 만남의 입구를 봅니다"}</h2>
+              <p>${state.partnerMode === "known"
+                ? "상대방 생년월일을 함께 넣었으므로, 두 사람의 일간·오행·관계 속도를 비교하는 목차가 열립니다."
+                : "특정 상대가 없으면 올해 들어올 수 있는 인연 유형, 만남이 생기기 쉬운 달, 놓치기 쉬운 신호를 먼저 봅니다."}</p>
+              <div class="story-list">
+                <div class="story-list-item">도화가 강해지는 달에는 소개, 연락, 외부 약속을 열어둡니다.</div>
+                <div class="story-list-item">배우자성은 끌림보다 오래 남는 관계의 기준으로 읽습니다.</div>
+                <div class="story-list-item">상대가 있으면 감정 온도 차이와 관계 진전 타이밍을 따로 봅니다.</div>
+              </div>
+            </section>
+
+            <section class="story-section" data-sample-section="love-report-toc">
+              <span class="chapter">전체 리포트</span>
+              <h2>열리게 될 해석 분류</h2>
+              <div class="result-list">${tocMarkup}</div>
+            </section>
+
+            ${paidReportMarkup}
+
+            <section class="story-section flush-bottom" data-sample-section="love-final-cta">
+              <span class="chapter">${escapeHtml(service.price)}</span>
+              <h2>도화가 들어오는 달과<br />놓치는 타이밍을 끝까지 봅니다</h2>
+              <p>무료 요약은 입구입니다. 전체 풀이에서는 월별 흐름, 상대 사주 궁합, 감정 온도 차이, 연애 성사 전략까지 한 장씩 펼칩니다.</p>
+              <div class="proof-stack">
+                <div class="proof-row"><span>상품</span><strong>${escapeHtml(service.title)}</strong></div>
+                <div class="proof-row"><span>분류</span><strong>10개 연애운 목차</strong></div>
+                <div class="proof-row"><span>상대방 사주</span><strong>${state.partnerMode === "known" ? "포함" : "선택 안 함"}</strong></div>
+              </div>
+            </section>
+
+            <div class="sticky-story-cta">
+              <button class="primary-cta" type="button" data-action="open-chat">${escapeHtml(service.cta)}</button>
+            </div>
+            ${businessFooterMarkup()}
+          </article>
+        `;
+        if (paidReportMarkup) setupReportReader();
+      }
+
       function renderResult() {
+        if (isLoveThisYearService()) {
+          renderLoveThisYearResult();
+          return;
+        }
         const displayNameRaw = state.name || state.target || "자네";
         const a = state.analysis;
         const pillars = a?.pillars;
@@ -6098,7 +6649,57 @@
         `;
       }
 
+      function renderLoveThisYearPurchase() {
+        const service = currentService();
+        stage.innerHTML = `
+          <section class="panel teaser-panel">
+            <div class="status">결제 안내 데모</div>
+            <h1>${escapeHtml(service.title)}</h1>
+            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. 실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다.</p>
+
+            <div class="teaser-block">
+              <span class="chapter">상품 요약</span>
+              <div class="timeline">
+                <div class="timeline-row"><strong>상품</strong><span>${escapeHtml(service.title)}</span></div>
+                <div class="timeline-row"><strong>구성</strong><span>10개 연애운 전용 목차</span></div>
+                <div class="timeline-row"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
+                <div class="timeline-row"><strong>결제금액</strong><span>${escapeHtml(service.price)}</span></div>
+              </div>
+            </div>
+
+            <div class="result-list">
+              ${[
+                "올해 연애 가능성",
+                "도화가 강하게 들어오는 시기",
+                "배우자성으로 보는 인연 유형",
+                "상대방 사주 입력 시 궁합 흐름",
+                "상대와 나의 감정 온도 차이",
+                "연애 성사 전략",
+              ].map((item) => `<div class="result-item"><strong>${item}</strong><span>전체 풀이에서 상세 해석</span></div>`).join("")}
+            </div>
+
+            <div class="teaser-block">
+              <span class="chapter">동의</span>
+              <div class="choices single">
+                <button class="choice ${state.privacyAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="privacyAgree">개인정보 처리방침 동의</button>
+                <button class="choice ${state.paymentAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="paymentAgree">결제 진행 필수 동의</button>
+                <button class="choice ${state.marketingAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="marketingAgree">마케팅 수신 동의 (선택)</button>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" type="button" data-action="prev">이전</button>
+              <button class="next-cta" type="button" data-action="pay-demo">결제하기</button>
+            </div>
+          </section>
+        `;
+      }
+
       function renderPurchase() {
+        if (isLoveThisYearService()) {
+          renderLoveThisYearPurchase();
+          return;
+        }
         const plans = [
           { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,800원" },
           { id: "solo", title: "솔로탈출 패키지", badge: "추천", discount: "44%", origin: "108,000원", price: "60,000원" },
@@ -6154,6 +6755,23 @@
       }
 
       function renderPaymentReady() {
+        if (isLoveThisYearService()) {
+          const service = currentService();
+          stage.innerHTML = `
+            <section class="panel">
+              <div class="status">여기서 실제 결제 모듈로 연결</div>
+              <h1>${escapeHtml(service.title)} 결제 직전 단계입니다</h1>
+              <p>원본 흐름에서는 이 다음에 외부 결제/주문 진행이 이어집니다. 이 데모는 안전하게 화면 전환까지만 구현했습니다.</p>
+              <div class="result-list">
+                <div class="result-item"><strong>선택 상품</strong><span>${escapeHtml(service.title)}</span></div>
+                <div class="result-item"><strong>결제금액</strong><span>${escapeHtml(service.price)}</span></div>
+                <div class="result-item"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
+              </div>
+              <button class="next-cta" type="button" data-action="restart" style="width: 100%">처음부터 다시 보기</button>
+            </section>
+          `;
+          return;
+        }
         stage.innerHTML = `
           <section class="panel">
             <div class="status">여기서 실제 결제 모듈로 연결</div>

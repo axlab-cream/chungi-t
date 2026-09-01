@@ -80,6 +80,9 @@ app.get(['/refund', '/refund/', '/refund.html'], (_req, res) => {
 app.get(['/support', '/support/', '/support.html'], (_req, res) => {
   res.sendFile(SUPPORT_PAGE)
 })
+app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
+  res.sendFile(join(SAJU_UI, 'index.html'))
+})
 app.get(/^\/cmdg$/, redirectToCmdg)
 app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
@@ -98,6 +101,8 @@ app.use('/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/js', express.static(join(SAJU_ROOT, 'js')))
 app.use('/cmdg/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/this-year/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/cmdg/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/cmdg/js', express.static(join(SAJU_ROOT, 'js')))
 app.use(express.static(SAJU_UI, { index: false }))
@@ -116,22 +121,108 @@ function parseBirth(body: Record<string, unknown>): BirthInput {
   }
 }
 
+function parseOptionalPartnerContext(source: unknown): SajuReportContext['partner'] | undefined {
+  const partner = source && typeof source === 'object' && !Array.isArray(source)
+    ? source as Record<string, unknown>
+    : {}
+  const mode = typeof partner.mode === 'string' && partner.mode.trim() === 'known' ? 'known' : 'none'
+  const name = trimmedString(partner.name).slice(0, 20)
+  const relationship = trimmedString(partner.relationship).slice(0, 40)
+
+  if (mode !== 'known') {
+    return { mode: 'none', ...(relationship ? { relationship } : {}) }
+  }
+
+  const birthSource = asObject(partner.birth)
+  const year = Number(birthSource.year ?? partner.year)
+  const month = Number(birthSource.month ?? partner.month)
+  const day = Number(birthSource.day ?? partner.day)
+  const birthTimeKnown = partner.birthTimeKnown === true
+  const hour = Number(birthSource.hour ?? partner.hour ?? (birthTimeKnown ? Number.NaN : 12))
+  const minute = Number(birthSource.minute ?? partner.minute ?? 0)
+  const gender = birthSource.gender ?? partner.gender
+  const calendar = birthSource.calendar ?? partner.calendar
+
+  if (!validDateParts(year, month, day)) {
+    return { mode: 'none', ...(name ? { name } : {}), ...(relationship ? { relationship } : {}) }
+  }
+  if (gender !== 'male' && gender !== 'female') {
+    return { mode: 'none', ...(name ? { name } : {}), ...(relationship ? { relationship } : {}) }
+  }
+  if (calendar !== 'solar' && calendar !== 'lunar') {
+    return { mode: 'none', ...(name ? { name } : {}), ...(relationship ? { relationship } : {}) }
+  }
+  if (birthTimeKnown && (!Number.isFinite(hour) || !Number.isFinite(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59)) {
+    return { mode: 'none', ...(name ? { name } : {}), ...(relationship ? { relationship } : {}) }
+  }
+
+  return {
+    mode: 'known',
+    ...(name ? { name } : {}),
+    ...(relationship ? { relationship } : {}),
+    birthTimeKnown,
+    birth: {
+      year,
+      month,
+      day,
+      hour: birthTimeKnown ? hour : 12,
+      minute: Number.isFinite(minute) ? minute : 0,
+      gender: gender as BirthInput['gender'],
+      calendar: calendar as BirthInput['calendar'],
+    },
+  }
+}
+
+function enrichReportContext(context: SajuReportContext): SajuReportContext {
+  if (context.serviceKey !== 'love_this_year' || context.partner?.mode !== 'known' || !context.partner.birth) {
+    return context
+  }
+
+  const partnerAnalysis = analyzeSaju(context.partner.birth)
+  const p = partnerAnalysis.fourPillars
+
+  return {
+    ...context,
+    partner: {
+      ...context.partner,
+      pillars: {
+        year: `${p.year.stem}${p.year.branch}`,
+        month: `${p.month.stem}${p.month.branch}`,
+        day: `${p.day.stem}${p.day.branch}`,
+        hour: `${p.hour.stem}${p.hour.branch}`,
+      },
+      dayMaster: `${STEM_KO[partnerAnalysis.dayMaster]}(${partnerAnalysis.dayMaster})`,
+      dayMasterElement: ELEMENT_KO[partnerAnalysis.dayMasterElement],
+      dominantElement: ELEMENT_KO[partnerAnalysis.dominantElement],
+      weakElement: ELEMENT_KO[partnerAnalysis.weakElement],
+      tenGods: partnerAnalysis.tenGods,
+    },
+  }
+}
+
 function parseReportContext(body: Record<string, unknown>): SajuReportContext {
   const context = (body.context ?? {}) as Record<string, unknown>
   const value = (key: string): string | undefined => {
     const raw = context[key] ?? body[key]
     return typeof raw === 'string' && raw.trim() ? raw.trim() : undefined
   }
+  const rawServiceKey = context.serviceKey ?? context.service_key ?? body.serviceKey ?? body.service_key
+  const serviceKey = typeof rawServiceKey === 'string' && rawServiceKey.trim() === 'love_this_year'
+    ? 'love_this_year'
+    : undefined
 
   const birthTimeKnown = body.birthTimeKnown === false ? false : undefined
+  const partner = serviceKey ? parseOptionalPartnerContext(context.partner ?? body.partner) : undefined
 
   return {
+    serviceKey,
     name: value('name'),
     target: value('target'),
     concern: value('concern'),
     relationship: value('relationship'),
     orientation: value('orientation'),
     work: value('work'),
+    ...(partner ? { partner } : {}),
     ...(birthTimeKnown === false ? { birthTimeKnown } : {}),
   }
 }
@@ -287,18 +378,19 @@ function userProfilePayload(profile: UserBirthProfile | null) {
 
 async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}, owner?: ReportOwner) {
   const analysis = analyzeSaju(birth)
-  const reportId = createReportId(birth, context, undefined, owner?.id)
-  const templateReport = buildTemplateSajuReport(analysis, birth, context)
+  const enrichedContext = enrichReportContext(context)
+  const reportId = createReportId(birth, enrichedContext, undefined, owner?.id)
+  const templateReport = buildTemplateSajuReport(analysis, birth, enrichedContext)
   const { record } = await createOrGetReportRecord({
     reportId,
     birth,
-    context,
+    context: enrichedContext,
     templateReport,
     owner,
   })
 
   if (record.status !== 'complete') {
-    startReportPreGeneration({ reportId, analysis, birth, context, owner })
+    startReportPreGeneration({ reportId, analysis, birth, context: enrichedContext, owner })
   }
 
   return buildUiAnalysisPayload(analysis, birth, toClientReport(record))
@@ -359,6 +451,8 @@ function birthStateFromRecord(record: ReportRecord) {
     time: birthTimeKnown ? `${padNumber(birth.hour)}:${padNumber(birth.minute)}` : '모름',
     birthTimeKnown,
     name: context.name || '',
+    serviceKey: context.serviceKey || '',
+    ...(context.serviceKey === 'love_this_year' ? { partner: context.partner || { mode: 'none' } } : {}),
     orientation: context.orientation || '',
     relationship: context.relationship || '',
     work: context.work || '',
@@ -571,7 +665,7 @@ app.post('/api/report/chat-history', async (req, res) => {
 app.post('/api/report/section', async (req, res) => {
   try {
     const birth = parseBirth(req.body.birth ?? req.body)
-    const context = parseReportContext(req.body)
+    const context = enrichReportContext(parseReportContext(req.body))
     const sectionId = String(req.body.sectionId ?? '').trim()
     const owner = await verifySupabaseUser(req)
     const reportId = String(req.body.reportId ?? createReportId(birth, context, undefined, owner?.id)).trim()
@@ -630,7 +724,7 @@ app.post('/api/report/section', async (req, res) => {
 app.post('/api/report/prewarm', async (req, res) => {
   try {
     const birth = parseBirth(req.body.birth ?? req.body)
-    const context = parseReportContext(req.body)
+    const context = enrichReportContext(parseReportContext(req.body))
     const owner = await verifySupabaseUser(req)
     const reportId = String(req.body.reportId ?? createReportId(birth, context, undefined, owner?.id)).trim()
 
