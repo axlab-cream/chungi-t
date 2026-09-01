@@ -4555,6 +4555,17 @@
         }
       }
 
+      function isAdminUserEmail(email) {
+        const normalized = String(email || "").trim().toLowerCase();
+        if (!normalized) return false;
+        const envList = String(window.UMSH_ADMIN_EMAILS || "")
+          .split(",")
+          .map((item) => item.trim().toLowerCase())
+          .filter(Boolean);
+        const allow = new Set(["good1621@gmail.com", ...envList]);
+        return allow.has(normalized);
+      }
+
       function isCurrentReportPaid() {
         const report = state.analysis?.report || {};
         const reportId = report.reportId || "";
@@ -4564,6 +4575,8 @@
           || report.paid
           || report.paymentStatus === "paid"
           || report.entitlement === "paid"
+          || report.unlockReason === "admin"
+          || isAdminUserEmail(authSession?.user?.email)
           || (reportId && paidIds.includes(reportId))
         );
       }

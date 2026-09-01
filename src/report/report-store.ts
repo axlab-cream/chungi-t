@@ -3,6 +3,7 @@ import '../env/load.js'
 import { Pool } from 'pg'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
 import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
+import { applyAdminReportUnlock } from '../auth/admin.js'
 
 export type ReportStatus = 'pending' | 'generating' | 'complete' | 'failed'
 export type ReportStorageMode = 'postgres' | 'supabase' | 'memory'
@@ -219,7 +220,7 @@ export function toClientReport(record: ReportRecord): SajuReport {
   report.storage = storageMode()
   report.corpus = ensured.corpus ?? report.corpus
   report.progress = progressFor(report)
-  return report
+  return applyAdminReportUnlock(report, ensured.owner)
 }
 
 function supabaseHeaders(accessToken?: string): Record<string, string> {
@@ -420,7 +421,8 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
     if (!accessToken || !stored.owner?.id) {
       throw new Error('회원 인증 정보가 없어 리포트를 저장하지 못했습니다.')
     }
-    const response = await fetch(supabaseRestUrl, {
+    const upsertUrl = `${supabaseRestUrl}?on_conflict=report_id`
+    const response = await fetch(upsertUrl, {
       method: 'POST',
       headers: {
         ...supabaseHeaders(accessToken),

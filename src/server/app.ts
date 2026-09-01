@@ -24,6 +24,7 @@ import {
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
+import { isAdminOwner } from '../auth/admin.js'
 import {
   buildUserBirthProfile,
   deleteUserBirthProfile,
@@ -713,6 +714,7 @@ async function ensurePaidServiceAccess(
   owner: ReportOwner,
   productKey: string,
 ): Promise<boolean> {
+  if (isAdminOwner(owner)) return true
   const config = paymentConfigPayload()
   if (!config.configured && !config.testMode) return true
   if (!config.checkoutEnabled) {

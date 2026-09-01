@@ -343,6 +343,12 @@ export interface SajuReport {
   corpus?: CorpusSnapshot
   quality?: SajuReportQuality
   sections: SajuReportSection[]
+  /** Client unlock flags (admin / paid entitlement). */
+  isPaid?: boolean
+  paid?: boolean
+  entitlement?: string
+  paymentStatus?: string
+  unlockReason?: string
 }
 
 export interface ChatResponse {
