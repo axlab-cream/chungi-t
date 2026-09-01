@@ -3299,6 +3299,9 @@
       const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
       const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
       const USER_PROFILE_CACHE_KEY = "cheongi_user_birth_profile_v1";
+      const AUTH_DEVICE_SESSION_KEY = "cheongi_auth_device_session_started_at_v1";
+      const AUTH_DEVICE_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+      const REMOTE_HISTORY_SYNC_LIMIT = 50;
       const TODAY_ENTRY_KEY = "cheongi_today_entry_pending";
       const TODAY_CONCERN = "오늘 나한테 들어오는 운, 일진, 일운, 피해야 할 선택";
       let authConfigData = null;
@@ -3307,6 +3310,7 @@
       let authInitPromise = null;
       let authGateMessage = "";
       let authSignInProvider = "";
+      let reportHistorySyncPromise = null;
 
       const initialAuthParams = new URLSearchParams(location.search);
       const initialAuthEntry = initialAuthParams.get("authEntry") || initialAuthParams.get("entry") || "";
@@ -3433,6 +3437,65 @@
         }
       }
 
+      function clearDeviceAuthSession() {
+        try {
+          localStorage.removeItem(AUTH_DEVICE_SESSION_KEY);
+        } catch (err) {
+          // localStorage can be unavailable in restricted browser modes.
+        }
+      }
+
+      function deviceSessionStartedAt() {
+        try {
+          const value = Number(localStorage.getItem(AUTH_DEVICE_SESSION_KEY));
+          return Number.isFinite(value) && value > 0 ? value : 0;
+        } catch (err) {
+          return 0;
+        }
+      }
+
+      function inferDeviceSessionStartedAt(session) {
+        const lastSignIn = Date.parse(session?.user?.last_sign_in_at || "");
+        return Number.isFinite(lastSignIn) ? lastSignIn : Date.now();
+      }
+
+      function rememberDeviceAuthSession(session) {
+        if (!session?.access_token) {
+          clearDeviceAuthSession();
+          return 0;
+        }
+        const existing = deviceSessionStartedAt();
+        if (existing) return existing;
+        const startedAt = inferDeviceSessionStartedAt(session);
+        try {
+          localStorage.setItem(AUTH_DEVICE_SESSION_KEY, String(startedAt));
+        } catch (err) {
+          // Supabase still persists its own session when browser storage allows it.
+        }
+        return startedAt;
+      }
+
+      async function enforceDeviceAuthSession(session) {
+        if (!session?.access_token) {
+          clearDeviceAuthSession();
+          return null;
+        }
+        const startedAt = deviceSessionStartedAt();
+        if (!startedAt) {
+          const inferredStartedAt = rememberDeviceAuthSession(session);
+          if (Date.now() - inferredStartedAt <= AUTH_DEVICE_SESSION_MS) return session;
+        } else if (Date.now() - startedAt <= AUTH_DEVICE_SESSION_MS) {
+          return session;
+        }
+
+        clearDeviceAuthSession();
+        authGateMessage = "30일 로그인 유지 기간이 지나 다시 로그인해 주세요.";
+        if (authClient) {
+          await authClient.auth.signOut({ scope: "local" }).catch(() => undefined);
+        }
+        return null;
+      }
+
       async function initAuth() {
         if (authInitPromise) return authInitPromise;
         authInitPromise = (async () => {
@@ -3452,10 +3515,26 @@
           });
           const { data, error } = await authClient.auth.getSession();
           if (error) throw error;
-          authSession = data.session || null;
+          authSession = await enforceDeviceAuthSession(data.session || null);
           authClient.auth.onAuthStateChange((_event, session) => {
-            authSession = session || null;
+            enforceDeviceAuthSession(session || null)
+              .then((nextSession) => {
+                authSession = nextSession;
+                if (nextSession?.access_token) {
+                  setTimeout(() => {
+                    syncRemoteReportHistory().catch((err) => console.warn("원격 풀이 보관함 동기화에 실패했습니다.", err));
+                  }, 0);
+                }
+              })
+              .catch(() => {
+                authSession = session || null;
+              });
           });
+          if (authSession?.access_token) {
+            setTimeout(() => {
+              syncRemoteReportHistory().catch((err) => console.warn("원격 풀이 보관함 동기화에 실패했습니다.", err));
+            }, 0);
+          }
           return authSession;
         })();
         return authInitPromise;
@@ -3466,7 +3545,7 @@
         if (!authClient) return null;
         const { data, error } = await authClient.auth.getSession();
         if (error) throw error;
-        authSession = data.session || null;
+        authSession = await enforceDeviceAuthSession(data.session || null);
         return authSession;
       }
 
@@ -3876,11 +3955,68 @@
           seen.add(item.reportId);
           return true;
         });
+        next.sort((a, b) => historyTimestamp(b.savedAt) - historyTimestamp(a.savedAt));
         try {
           localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
         } catch (err) {
           console.warn("풀이 보관함 저장 공간이 부족합니다. 기존 저장 데이터는 유지됩니다.", err);
         }
+      }
+
+      function historyTimestamp(value) {
+        const time = new Date(value || 0).getTime();
+        return Number.isFinite(time) ? time : 0;
+      }
+
+      function mergeReportHistory(remoteItems = []) {
+        const usableRemoteItems = remoteItems.filter((item) => item?.reportId && item?.analysis);
+        if (!usableRemoteItems.length) return readReportHistory();
+        const localItems = readReportHistory();
+        const byReportId = new Map();
+        [...localItems, ...usableRemoteItems].forEach((item) => {
+          const existing = byReportId.get(item.reportId);
+          if (!existing || historyTimestamp(item.savedAt) >= historyTimestamp(existing.savedAt)) {
+            byReportId.set(item.reportId, {
+              ...existing,
+              ...item,
+              chatHistory: Array.isArray(item.chatHistory) && item.chatHistory.length
+                ? item.chatHistory
+                : (existing?.chatHistory || []),
+              initialConcern: item.initialConcern || existing?.initialConcern || "",
+            });
+          }
+        });
+        writeReportHistory(Array.from(byReportId.values()));
+        return readReportHistory();
+      }
+
+      async function syncRemoteReportHistory(force = false) {
+        if (reportHistorySyncPromise && !force) return reportHistorySyncPromise;
+        reportHistorySyncPromise = (async () => {
+          const headers = await authHeaders();
+          if (!headers.Authorization) return readReportHistory();
+          const res = await fetch(`/api/user/reports?limit=${REMOTE_HISTORY_SYNC_LIMIT}`, { headers });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || "원격 풀이 보관함을 불러오지 못했습니다.");
+          return mergeReportHistory(Array.isArray(json.reports) ? json.reports : []);
+        })();
+        try {
+          return await reportHistorySyncPromise;
+        } finally {
+          reportHistorySyncPromise = null;
+        }
+      }
+
+      async function deleteRemoteReport(reportId) {
+        const headers = await authHeaders();
+        if (!headers.Authorization) return false;
+        const res = await fetch(`/api/user/reports/${encodeURIComponent(reportId)}`, {
+          method: "DELETE",
+          headers,
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || "원격 풀이 삭제에 실패했습니다.");
+        return Boolean(json.deleted);
       }
 
       function setActiveReportId(reportId) {
@@ -4101,6 +4237,11 @@
         renderSettingsPanel();
         settingsPanel.classList.add("is-open");
         settingsPanel.setAttribute("aria-hidden", "false");
+        syncRemoteReportHistory(true)
+          .then(() => {
+            if (settingsPanel.classList.contains("is-open")) renderSettingsPanel();
+          })
+          .catch((err) => console.warn("원격 풀이 보관함 동기화에 실패했습니다.", err));
       }
 
       function closeSettings() {
@@ -4205,6 +4346,7 @@
           writeReportHistory(items.filter((item) => item.reportId !== reportId));
           clearActiveReportId(reportId);
           renderSettingsPanel();
+          deleteRemoteReport(reportId).catch((err) => console.warn("원격 풀이 삭제에 실패했습니다.", err));
           return;
         }
 
@@ -4559,7 +4701,7 @@
         const res = await fetch("/api/saju/analyze", {
           method: "POST",
           headers,
-          body: JSON.stringify({ ...birth, ...context, context }),
+          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");
@@ -5402,7 +5544,7 @@
             <div class="auth-benefits" aria-label="회원가입 혜택">
               <span>무료 오늘운</span>
               <span>풀이 보관</span>
-              <span>상담 이어보기</span>
+              <span>30일 로그인 유지</span>
             </div>
             <div class="auth-provider-list">
               ${renderAuthProviderButton("kakao", "kakao", "카카오로 시작하기", "Kakao 간편 가입", "K")}

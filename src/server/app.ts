@@ -13,7 +13,10 @@ import { buildTodayFortune } from '../saju/today-fortune.js'
 import {
   createOrGetReportRecord,
   createReportId,
+  deleteReportRecord,
+  getReportStorageMode,
   getReportRecord,
+  listReportRecords,
   toClientReport,
   updateReportChatHistory,
 } from '../report/report-store.js'
@@ -104,6 +107,8 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
     return typeof raw === 'string' && raw.trim() ? raw.trim() : undefined
   }
 
+  const birthTimeKnown = body.birthTimeKnown === false ? false : undefined
+
   return {
     name: value('name'),
     target: value('target'),
@@ -111,6 +116,7 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
     relationship: value('relationship'),
     orientation: value('orientation'),
     work: value('work'),
+    ...(birthTimeKnown === false ? { birthTimeKnown } : {}),
   }
 }
 
@@ -188,6 +194,10 @@ function trimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function isValidProfileName(value: string): boolean {
+  return /^[가-힣]{2,20}$/.test(value)
+}
+
 function validDateParts(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day)
   return date.getFullYear() === year
@@ -208,7 +218,7 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   const gender = source.gender
   const calendar = source.calendar
 
-  if (!/^[가-힣]{2,20}$/.test(name)) {
+  if (!isValidProfileName(name)) {
     throw new Error('이름은 한글 2자 이상 20자 이하로 입력해 주세요.')
   }
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day)) {
@@ -311,6 +321,56 @@ function toUiAnalysisFromRecord(record: ReportRecord) {
   return buildUiAnalysisPayload(analysis, record.birth, toClientReport(record))
 }
 
+function parseListLimit(value: unknown, fallback = 50): number {
+  const numeric = Number(Array.isArray(value) ? value[0] : value)
+  if (!Number.isFinite(numeric)) return fallback
+  return Math.min(Math.max(Math.trunc(numeric), 1), 100)
+}
+
+function padNumber(value: number | undefined): string {
+  return String(Number(value ?? 0)).padStart(2, '0')
+}
+
+function birthStateFromRecord(record: ReportRecord) {
+  const birth = record.birth
+  const context = record.context ?? {}
+  const birthTimeKnown = context.birthTimeKnown !== false && Number.isFinite(Number(birth.hour))
+  return {
+    target: context.target || '본인',
+    calendar: birth.calendar === 'lunar' ? '음력' : '양력',
+    birth: `${birth.year}.${padNumber(birth.month)}.${padNumber(birth.day)}`,
+    gender: birth.gender === 'female' ? '여자' : '남자',
+    time: birthTimeKnown ? `${padNumber(birth.hour)}:${padNumber(birth.minute)}` : '모름',
+    birthTimeKnown,
+    name: context.name || '',
+    orientation: context.orientation || '',
+    relationship: context.relationship || '',
+    work: context.work || '',
+    concern: context.concern || '',
+  }
+}
+
+function historyEntryFromRecord(record: ReportRecord) {
+  const analysis = toUiAnalysisFromRecord(record)
+  const birthState = birthStateFromRecord(record)
+  const savedAt = record.updatedAt || record.createdAt || new Date().toISOString()
+
+  return {
+    reportId: record.reportId,
+    savedAt,
+    title: `${birthState.name || birthState.target || '자네'} · ${birthState.calendar} ${birthState.birth}`,
+    birth: record.birth,
+    birthState,
+    context: record.context,
+    analysis,
+    progress: analysis.report?.progress,
+    storage: analysis.report?.storage,
+    corpusFingerprint: analysis.report?.corpus?.fingerprint,
+    chatHistory: record.chatHistory ?? [],
+    initialConcern: record.context?.concern || '',
+  }
+}
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, openai: isOpenAiConfigured() })
 })
@@ -345,6 +405,37 @@ async function saveUserProfileHandler(req: Request, res: Response) {
 app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
 
+app.get('/api/user/reports', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const records = await listReportRecords(owner, parseListLimit(req.query.limit))
+    res.json({
+      userId: owner.id,
+      storage: getReportStorageMode(),
+      reports: records.map(historyEntryFromRecord),
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '풀이 보관함 조회 실패' })
+  }
+})
+
+app.delete('/api/user/reports/:reportId', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const reportId = String(req.params.reportId ?? '').trim()
+    if (!reportId) {
+      res.status(400).json({ error: 'reportId가 필요합니다.' })
+      return
+    }
+    const deleted = await deleteReportRecord(reportId, owner)
+    res.json({ ok: true, reportId, deleted })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '풀이 삭제 실패' })
+  }
+})
+
 app.post('/api/today/fortune', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
@@ -375,6 +466,23 @@ app.post('/api/saju/analyze', async (req, res) => {
     if (authConfig().enabled && !owner) {
       res.status(401).json({ error: '회원가입 후 해석을 시작해 주세요.' })
       return
+    }
+    if (owner && context.name && isValidProfileName(context.name)) {
+      await saveUserBirthProfile(
+        buildUserBirthProfile({
+          owner,
+          name: context.name,
+          birth,
+          birthTimeKnown: context.birthTimeKnown !== false,
+          context: {
+            target: context.target,
+            relationship: context.relationship,
+            orientation: context.orientation,
+            work: context.work,
+          },
+        }),
+        owner,
+      )
     }
     res.json(await toUiAnalysis(birth, context, owner))
   } catch (err) {

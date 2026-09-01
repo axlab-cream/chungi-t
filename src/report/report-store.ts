@@ -189,6 +189,122 @@ export async function getReportRecord(reportId: string, accessToken?: string): P
   return result.rows[0]?.payload ? cloneRecord(result.rows[0].payload) : null
 }
 
+export async function listReportRecords(owner: ReportOwner, limit = 50): Promise<ReportRecord[]> {
+  const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
+
+  if (storageMode() === 'memory') {
+    return Array.from(memoryReports.values())
+      .filter((record) => record.owner?.id === owner.id)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .slice(0, safeLimit)
+      .map(cloneRecord)
+  }
+
+  if (storageMode() === 'supabase') {
+    if (!owner.accessToken) return []
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('user_id', `eq.${owner.id}`)
+    url.searchParams.set('select', 'payload,user_id,user_email,auth_provider,created_at,updated_at')
+    url.searchParams.set('order', 'updated_at.desc')
+    url.searchParams.set('limit', String(safeLimit))
+
+    const response = await fetch(url, {
+      headers: supabaseHeaders(owner.accessToken),
+    })
+    if (!response.ok) {
+      const message = await response.text().catch(() => '')
+      throw new Error(message || 'Supabase 리포트 목록 조회에 실패했습니다.')
+    }
+    const rows = await response.json() as Array<{
+      payload?: ReportRecord
+      user_id?: string
+      user_email?: string
+      auth_provider?: string
+      created_at?: string
+      updated_at?: string
+    }>
+    return rows
+      .filter((row) => row.payload?.reportId)
+      .map((row) => {
+        const record = cloneRecord(row.payload as ReportRecord)
+        record.owner = record.owner?.id
+          ? record.owner
+          : {
+              id: row.user_id ?? owner.id,
+              email: row.user_email ?? owner.email,
+              provider: row.auth_provider ?? owner.provider,
+            }
+        record.createdAt = record.createdAt || row.created_at || nowIso()
+        record.updatedAt = record.updatedAt || row.updated_at || record.createdAt
+        return record
+      })
+  }
+
+  if (!pool) return []
+  await ensureDb()
+  const result = await pool.query<{ payload: ReportRecord; user_id: string | null; user_email: string | null; auth_provider: string | null; created_at: string; updated_at: string }>(
+    `
+      SELECT payload, user_id, user_email, auth_provider, created_at, updated_at
+      FROM cheongi_reports
+      WHERE user_id = $1
+      ORDER BY updated_at DESC
+      LIMIT $2
+    `,
+    [owner.id, safeLimit],
+  )
+  return result.rows
+    .filter((row) => row.payload?.reportId)
+    .map((row) => {
+      const record = cloneRecord(row.payload)
+      record.owner = record.owner?.id
+        ? record.owner
+        : {
+            id: row.user_id ?? owner.id,
+            email: row.user_email ?? owner.email,
+            provider: row.auth_provider ?? owner.provider,
+          }
+      record.createdAt = record.createdAt || row.created_at || nowIso()
+      record.updatedAt = record.updatedAt || row.updated_at || record.createdAt
+      return record
+    })
+}
+
+export async function deleteReportRecord(reportId: string, owner: ReportOwner): Promise<boolean> {
+  if (storageMode() === 'memory') {
+    const record = memoryReports.get(reportId)
+    if (!record || record.owner?.id !== owner.id) return false
+    return memoryReports.delete(reportId)
+  }
+
+  if (storageMode() === 'supabase') {
+    if (!owner.accessToken) return false
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('report_id', `eq.${reportId}`)
+    url.searchParams.set('user_id', `eq.${owner.id}`)
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        ...supabaseHeaders(owner.accessToken),
+        prefer: 'return=representation',
+      },
+    })
+    if (!response.ok) {
+      const message = await response.text().catch(() => '')
+      throw new Error(message || 'Supabase 리포트 삭제에 실패했습니다.')
+    }
+    const rows = await response.json().catch(() => []) as unknown[]
+    return rows.length > 0
+  }
+
+  if (!pool) return false
+  await ensureDb()
+  const result = await pool.query(
+    'DELETE FROM cheongi_reports WHERE report_id = $1 AND user_id = $2',
+    [reportId, owner.id],
+  )
+  return Number(result.rowCount ?? 0) > 0
+}
+
 export async function saveReportRecord(record: ReportRecord): Promise<ReportRecord> {
   const updated: ReportRecord = {
     ...record,

@@ -164,6 +164,7 @@ export interface SajuReportContext {
   relationship?: string
   orientation?: string
   work?: string
+  birthTimeKnown?: boolean
 }
 
 export interface SajuReportSection {

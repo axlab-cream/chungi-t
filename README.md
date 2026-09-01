@@ -76,10 +76,14 @@ Production, Preview, Development 기준으로 등록합니다.
 |--------|------|------|
 | GET | `/api/user/profile` | 로그인 사용자의 기본 사주 프로필 조회 |
 | PUT/POST | `/api/user/profile` | 이름·생년월일·태어난 시간 저장 |
+| GET | `/api/user/reports` | 로그인 사용자의 계정별 풀이 보관함 조회 |
+| DELETE | `/api/user/reports/:reportId` | 로그인 사용자의 저장 풀이 삭제 |
 | POST | `/api/today/fortune` | 저장 프로필 기반 오늘의 운세 생성 |
 | POST | `/api/saju/analyze` | 사주 분석 |
 | POST | `/api/chat` | LLM 상담 (OpenAI) |
 | GET | `/api/health` | 서버 상태 |
+
+브라우저 로그인은 Supabase 세션 저장을 사용하며, 앱 레벨에서 기기별 30일 유지 후 재로그인을 요구합니다. 이름, 성별, 생년월일, 태어난 시간은 `cheongi_user_profiles.user_id`에 저장되고 풀이 이력은 `cheongi_reports.user_id` 기준으로 PC/모바일에서 동기화됩니다.
 
 ## 사용 예시
 

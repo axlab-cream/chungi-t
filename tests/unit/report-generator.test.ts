@@ -2,7 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
-import { createOrGetReportRecord, createReportId, toClientReport } from '../../src/report/report-store.js'
+import { createOrGetReportRecord, createReportId, deleteReportRecord, listReportRecords, saveReportRecord, toClientReport } from '../../src/report/report-store.js'
 import { getCorpusSnapshot } from '../../src/rag/corpus-registry.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
 
@@ -82,5 +82,43 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     const newCorpusId = createReportId(sampleBirth, sampleContext, 'corpus-v2')
 
     assert.notEqual(oldCorpusId, newCorpusId)
+  })
+
+  it('저장된 리포트 목록은 계정 고유 ID로 분리된다', async () => {
+    const analysis = analyzeSaju(sampleBirth)
+    const report = buildTemplateSajuReport(analysis, sampleBirth, sampleContext)
+    const timestamp = new Date().toISOString()
+    const ownerA = { id: 'user-history-a', email: 'a@example.com', provider: 'google' }
+    const ownerB = { id: 'user-history-b', email: 'b@example.com', provider: 'kakao' }
+
+    await saveReportRecord({
+      reportId: 'history-owner-a',
+      birth: sampleBirth,
+      context: sampleContext,
+      owner: ownerA,
+      report,
+      status: 'complete',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    })
+    await saveReportRecord({
+      reportId: 'history-owner-b',
+      birth: sampleBirth,
+      context: sampleContext,
+      owner: ownerB,
+      report,
+      status: 'complete',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    })
+
+    const records = await listReportRecords(ownerA)
+    const reportIds = records.map((record) => record.reportId)
+
+    assert.ok(reportIds.includes('history-owner-a'))
+    assert.ok(!reportIds.includes('history-owner-b'))
+
+    assert.equal(await deleteReportRecord('history-owner-b', ownerA), false)
+    assert.equal(await deleteReportRecord('history-owner-a', ownerA), true)
   })
 })
