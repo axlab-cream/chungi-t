@@ -166,6 +166,40 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  home?: {
+    addressOrBuilding?: string
+    roadAddress?: string
+    jibunAddress?: string
+    zonecode?: string
+    sido?: string
+    sigungu?: string
+    bname?: string
+    buildingName?: string
+    addressType?: string
+    buildingType?: string
+    livingPeriod?: string
+    mainPurpose?: string
+    stayDecision?: string
+    painPoints?: string[]
+    entranceFlow?: string
+    bedroomFeel?: string
+    deskPosition?: string
+    outsideFlow?: string
+    extraNote?: string
+  }
+  workMove?: {
+    decisionMode?: string
+    currentCompanySignal?: string
+    targetCompanyName?: string
+    targetRole?: string
+    workType?: string
+    commuteLocation?: string
+    salaryFeeling?: string
+    decisionDate?: string
+    discomfortPoint?: string
+    priority?: string
+    realityChecks?: string[]
+  }
   partner?: {
     mode?: 'none' | 'known'
     name?: string
