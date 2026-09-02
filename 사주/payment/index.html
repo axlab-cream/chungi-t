@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>결제 · 운명상회</title>
+    <meta name="description" content="운명상회 풀이 결제" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/umsh-share-icon.png" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+  </head>
+  <body>
+    <main class="payment-page">
+      <header class="payment-header">
+        <a class="payment-brand" href="/" aria-label="운명상회 홈"><img src="/assets/umsh-brand-logo.png" alt="운명상회" /></a>
+        <a class="payment-back" href="/">홈으로</a>
+      </header>
+      <section class="payment-shell" aria-labelledby="payment-title">
+        <p class="payment-eyebrow">CHECKOUT · KG INICIS</p>
+        <h1 id="payment-title">풀이를 시작할게요</h1>
+        <p class="payment-intro">로그인한 계정에 결제 내역을 연결하고, 결제가 확인되면 입력하던 서비스로 돌아갑니다.</p>
+        <div class="payment-summary">
+          <small data-product-eyebrow>상품 확인 중</small>
+          <strong data-product-title>상품을 불러오는 중입니다.</strong>
+          <p data-product-summary></p>
+          <div class="payment-price"><span>결제금액</span><b data-product-price>-</b></div>
+        </div>
+        <form class="payment-form" id="payment-form">
+          <label class="payment-label">결제 안내 이메일<input type="email" name="buyerEmail" autocomplete="email" placeholder="you@example.com" required /></label>
+          <label class="payment-label">휴대폰 번호<input type="tel" name="buyerTel" autocomplete="tel" inputmode="tel" placeholder="010-0000-0000" required /></label>
+          <label class="payment-consent"><input type="checkbox" name="paymentConsent" required /><span><a href="/terms">이용약관</a>, <a href="/privacy">개인정보처리방침</a>, <a href="/refund">환불·취소 정책</a>을 확인했고 결제를 진행합니다.</span></label>
+          <button class="payment-submit" type="submit" data-pay-button disabled>결제창 열기</button>
+          <p class="payment-status" data-payment-status role="status" aria-live="polite"></p>
+        </form>
+        <p class="payment-notice"><strong>결제 정보는 이니시스 결제창에서 처리됩니다.</strong><br />운명상회는 카드번호를 저장하지 않습니다. 디지털 풀이 열람 전 취소·환불은 고객센터에서 요청할 수 있습니다.</p>
+        <form id="SendPayForm" method="post" accept-charset="UTF-8" style="display:none"></form>
+      </section>
+    </main>
+    <script src="/js/payment.js?v=20260901-inicis"></script>
+  </body>
+</html>

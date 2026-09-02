@@ -9,6 +9,7 @@ import type {
 } from '../types/index.js'
 import { ELEMENT_KO } from '../saju/analyzer-helpers.js'
 import { pillarLabel } from '../saju/calculator.js'
+import { normalizeReportCopy } from './copy-guide.js'
 
 interface QualityRule {
   id: string
@@ -356,4 +357,14 @@ export function evaluateReportQuality(
     llmGroundingPercent: clampPercent(avg(categories.map((category) => category.llmGroundingPercent))),
     categories,
   }
+}
+
+export function finalizeSpecializedReport(
+  report: SajuReport,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+): SajuReport {
+  const normalized = normalizeReportCopy(report)
+  normalized.quality = evaluateReportQuality(normalized, analysis, context)
+  return normalized
 }

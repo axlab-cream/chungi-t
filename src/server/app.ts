@@ -8,6 +8,7 @@ import { analyzeSaju } from '../saju/analyzer.js'
 import { prepareConversation } from '../conversation/engine.js'
 import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
 import { buildTodayFortune } from '../saju/today-fortune.js'
 import {
@@ -22,6 +23,7 @@ import {
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
+import { isAdminOwner } from '../auth/admin.js'
 import {
   buildUserBirthProfile,
   getUserBirthProfile,
@@ -29,7 +31,30 @@ import {
   saveUserBirthProfile,
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
+import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
+import { createInicisPaymentFields, createPaymentOrderId, approveInicisPayment, publicInicisConfig } from '../payment/inicis.js'
+import { isPaymentTestMode } from '../payment/test-mode.js'
+import {
+  getPaymentOrder,
+  getPaymentStorageMode,
+  listPaymentOrders,
+  savePaymentOrder,
+  updatePaymentOrder,
+} from '../payment/order-store.js'
+import type { PaymentOrder } from '../payment/order-store.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
+import {
+  buildMoneySaveContext,
+  buildMoneySaveReport,
+  createMoneySaveReportId,
+  parseMoneySaveRequest,
+} from '../money/save-service.js'
+import {
+  buildCoupleMatchContext,
+  buildCoupleMatchReport,
+  createCoupleMatchReportId,
+  parseCoupleMatchRequest,
+} from '../match/couple-service.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
 const __filename = fileURLToPath(import.meta.url)
@@ -43,6 +68,10 @@ const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
 const PRIVACY_PAGE = join(SAJU_ROOT, 'privacy.html')
 const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
 const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
+const PAYMENT_PAGE = join(SAJU_ROOT, 'payment', 'index.html')
+const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
+const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
+const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -62,6 +91,26 @@ const WORK_MOVE_SERVICE_KEY = 'work_move'
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
+function specializedAnalyzeResponse(
+  progressive: Awaited<ReturnType<typeof beginSpecializedProgressiveReport>>,
+  birth: BirthInput,
+  context: SajuReportContext,
+  profile: UserBirthProfile,
+) {
+  return {
+    report: progressive.report,
+    reportId: progressive.reportId,
+    publicId: progressive.publicId,
+    publicUrl: progressive.publicId ? `/r/${progressive.publicId}` : undefined,
+    cached: progressive.cached,
+    resumed: progressive.resumed,
+    birth,
+    context,
+    profile,
+  }
+}
 
 function redirectToCmdg(req: Request, res: Response) {
   const queryIndex = req.originalUrl.indexOf('?')
@@ -87,11 +136,29 @@ app.get(['/refund', '/refund/', '/refund.html'], (_req, res) => {
 app.get(['/support', '/support/', '/support.html'], (_req, res) => {
   res.sendFile(SUPPORT_PAGE)
 })
+app.get(['/payment', '/payment/', '/payment/index.html'], (_req, res) => {
+  res.sendFile(PAYMENT_PAGE)
+})
+app.get(['/payment/result', '/payment/result/', '/payment/result.html'], (_req, res) => {
+  res.sendFile(PAYMENT_RESULT_PAGE)
+})
+app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res) => {
+  res.sendFile(PAYMENT_CLOSE_PAGE)
+})
+app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
+  res.sendFile(PAYMENT_TEST_PAGE)
+})
 app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
 })
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
+})
+app.get(['/money/save', '/money/save/', '/money/save/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'money', 'save', 'index.html'))
+})
+app.get(['/match/couple', '/match/couple/', '/match/couple/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'match', 'couple', 'index.html'))
 })
 app.get(['/place/home/input', '/place/home/input.html'], (_req, res) => {
   res.redirect(302, '/place/home/02-step-2-saju-input/index.html')
@@ -612,6 +679,82 @@ function historyEntryFromRecord(record: ReportRecord) {
   }
 }
 
+function paymentConfigPayload() {
+  const inicis = publicInicisConfig()
+  const storage = getPaymentStorageMode()
+  const enabled = inicis.enabled && storage !== 'memory'
+  const testMode = isPaymentTestMode()
+  return {
+    ...inicis,
+    configured: inicis.enabled,
+    enabled,
+    checkoutEnabled: enabled || testMode,
+    testMode,
+    storage,
+    catalog: listPaymentProducts().map(publicPaymentProduct),
+    setupMessage: enabled || testMode
+      ? ''
+      : '결제 모듈 연결 전입니다. 운영자는 이니시스 MID, SignKey, 결제 주문 저장소를 설정해 주세요.',
+  }
+}
+
+function clientPaymentOrder(order: PaymentOrder) {
+  return {
+    orderId: order.orderId,
+    productKey: order.productKey,
+    productTitle: order.productTitle,
+    amount: order.amount,
+    status: order.status,
+    tid: order.tid,
+    payMethod: order.payMethod,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  }
+}
+
+function paymentOrderRedirect(orderId: string, state: 'paid' | 'failed' | 'cancelled', message?: string, productKey?: string): string {
+  const params = new URLSearchParams({ orderId, state })
+  if (message) params.set('message', message.slice(0, 180))
+  if (productKey) params.set('product', productKey)
+  return `/payment/result?${params.toString()}`
+}
+
+async function ensurePaidServiceAccess(
+  req: Request,
+  res: Response,
+  owner: ReportOwner,
+  productKey: string,
+): Promise<boolean> {
+  if (isAdminOwner(owner)) return true
+  const config = paymentConfigPayload()
+  if (!config.configured && !config.testMode) return true
+  if (!config.checkoutEnabled) {
+    res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
+    return false
+  }
+  const orderId = trimmedString(req.body?.orderId)
+  if (!orderId) {
+    const product = getPaymentProduct(productKey)
+    res.status(402).json({
+      code: 'PAYMENT_REQUIRED',
+      error: '결제 후 풀이를 열 수 있습니다.',
+      productKey,
+      paymentUrl: `/payment?product=${encodeURIComponent(productKey)}&returnTo=${encodeURIComponent(product?.returnPath || '/')}`,
+    })
+    return false
+  }
+  const order = await getPaymentOrder(orderId)
+  if (!order || order.ownerId !== owner.id || order.productKey !== productKey) {
+    res.status(403).json({ code: 'PAYMENT_INVALID', error: '이 상품의 결제 주문을 확인하지 못했습니다.' })
+    return false
+  }
+  if (order.status !== 'paid' && order.status !== 'viewed') {
+    res.status(402).json({ code: 'PAYMENT_REQUIRED', error: '결제가 완료된 주문만 풀이를 열 수 있습니다.', productKey })
+    return false
+  }
+  return true
+}
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, openai: isOpenAiConfigured() })
 })
@@ -619,6 +762,216 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/auth/config', (_req, res) => {
   res.json(authConfig())
 })
+
+app.get('/api/payment/config', (_req, res) => {
+  res.json(paymentConfigPayload())
+})
+
+app.post('/api/payment/orders', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const config = paymentConfigPayload()
+    if (!config.checkoutEnabled) {
+      res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
+      return
+    }
+
+    const product = getPaymentProduct(req.body?.productKey)
+    if (!product) {
+      res.status(400).json({ error: '결제 상품을 확인해 주세요.' })
+      return
+    }
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결제 전에 기본 사주 프로필을 먼저 저장해 주세요.' })
+      return
+    }
+
+    const buyerEmail = trimmedString(req.body?.buyerEmail) || owner.email || ''
+    const buyerTel = trimmedString(req.body?.buyerTel)
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(buyerEmail)) {
+      res.status(400).json({ error: '결제 안내를 받을 이메일을 입력해 주세요.' })
+      return
+    }
+    if (!/^[0-9-]{7,20}$/.test(buyerTel)) {
+      res.status(400).json({ error: '숫자와 하이픈으로 휴대폰 번호를 입력해 주세요.' })
+      return
+    }
+
+    const timestamp = new Date().toISOString()
+    const order: PaymentOrder = {
+      orderId: createPaymentOrderId(),
+      ownerId: owner.id,
+      ownerEmail: owner.email,
+      buyerEmail,
+      buyerTel,
+      productKey: product.key,
+      productTitle: product.title,
+      amount: product.amount,
+      status: 'ready',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    }
+    const saved = await savePaymentOrder(order)
+    if (config.testMode) {
+      res.json({
+        order: clientPaymentOrder(saved),
+        product: publicPaymentProduct(product),
+        testMode: true,
+      })
+      return
+    }
+    const fields = createInicisPaymentFields({ order: saved, buyerName: profile.name })
+    res.json({
+      order: clientPaymentOrder(saved),
+      product: publicPaymentProduct(product),
+      fields,
+    })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 생성 실패' })
+  }
+})
+
+app.post('/api/payment/test/approve', async (req, res) => {
+  try {
+    if (!isPaymentTestMode()) {
+      res.status(404).json({ error: '테스트 결제 모드가 아닙니다.' })
+      return
+    }
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const orderId = trimmedString(req.body?.orderId)
+    const order = await getPaymentOrder(orderId)
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '테스트 주문을 찾지 못했습니다.' })
+      return
+    }
+    if (order.status === 'paid' || order.status === 'viewed') {
+      res.json({ order: clientPaymentOrder(order), testMode: true })
+      return
+    }
+    if (order.status !== 'ready') {
+      res.status(409).json({ error: '테스트 승인을 진행할 수 없는 주문 상태입니다.' })
+      return
+    }
+    const paid = await updatePaymentOrder(order.orderId, {
+      status: 'paid',
+      tid: `TEST-${order.orderId}`,
+      payMethod: 'TEST',
+      approvalCode: 'TEST-0000',
+      message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
+    })
+    if (!paid) {
+      res.status(500).json({ error: '테스트 주문 상태를 저장하지 못했습니다.' })
+      return
+    }
+    res.json({ order: clientPaymentOrder(paid), testMode: true })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '테스트 결제 승인 실패' })
+  }
+})
+
+app.post('/api/payment/inicis/return', async (req, res) => {
+  const body = req.body as Record<string, unknown>
+  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid)
+  if (!orderId) {
+    res.redirect(303, paymentOrderRedirect('', 'failed', '결제 주문번호를 확인하지 못했습니다.'))
+    return
+  }
+
+  try {
+    const order = await getPaymentOrder(orderId)
+    if (!order) {
+      res.redirect(303, paymentOrderRedirect(orderId, 'failed', '결제 주문을 찾지 못했습니다.'))
+      return
+    }
+    if (order.status === 'paid' || order.status === 'viewed') {
+      res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey))
+      return
+    }
+
+    const resultCode = trimmedString(body.resultCode || body.P_STATUS)
+    const resultMessage = trimmedString(body.resultMsg || body.P_RMESG1) || '결제가 취소되었거나 승인되지 않았습니다.'
+    if (resultCode !== '0000') {
+      await updatePaymentOrder(order.orderId, { status: 'failed', message: resultMessage })
+      res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey))
+      return
+    }
+
+    const callbackMid = trimmedString(body.mid || body.P_MID)
+    if (callbackMid && callbackMid !== (process.env.INICIS_MID?.trim() ?? '')) {
+      throw new Error('결제 상점 정보를 확인하지 못했습니다.')
+    }
+    const authToken = trimmedString(body.authToken)
+    const authUrl = trimmedString(body.authUrl)
+    if (!authToken || !authUrl) throw new Error('결제 승인 정보를 받지 못했습니다.')
+
+    await updatePaymentOrder(order.orderId, { status: 'approving' })
+    const approval = await approveInicisPayment({ order, authToken, authUrl })
+    const paid = await updatePaymentOrder(order.orderId, {
+      status: 'paid',
+      tid: approval.tid,
+      payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode,
+      message: approval.resultMessage,
+    })
+    if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
+    res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey))
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
+    await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    const failedOrder = await getPaymentOrder(orderId).catch(() => null)
+    res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey))
+  }
+})
+
+app.get('/api/payment/orders/:orderId', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '결제 주문을 찾지 못했습니다.' })
+      return
+    }
+    res.json({ order: clientPaymentOrder(order) })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 조회 실패' })
+  }
+})
+
+app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '결제 주문을 찾지 못했습니다.' })
+      return
+    }
+    if (order.status !== 'paid' && order.status !== 'viewed') {
+      res.status(409).json({ error: '결제 완료 후 열람 처리할 수 있습니다.' })
+      return
+    }
+    const updated = await updatePaymentOrder(order.orderId, { status: 'viewed' })
+    res.json({ order: updated ? clientPaymentOrder(updated) : null })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '열람 상태 저장 실패' })
+  }
+})
+
+app.get('/api/user/orders', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const orders = await listPaymentOrders(owner.id, parseListLimit(req.query.limit))
+    res.json({ orders: orders.map(clientPaymentOrder), storage: getPaymentStorageMode() })
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결제 내역 조회 실패' })
+  }
+})
+
 
 app.get('/api/user/profile', async (req, res) => {
   try {
@@ -723,6 +1076,69 @@ app.post('/api/today/fortune', async (req, res) => {
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
+  }
+})
+
+app.post('/api/money/save/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '소비성향을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseMoneySaveRequest(req.body)
+    const context = buildMoneySaveContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createMoneySaveReportId(owner.id, profile.birth, input)
+    const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '소비성향 생성 실패' })
+  }
+})
+
+app.post('/api/match/couple/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple')) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '커플궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseCoupleMatchRequest(req.body)
+    const partnerAnalysis = analyzeSaju(input.partnerBirth)
+    const context = buildCoupleMatchContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createCoupleMatchReportId(owner.id, profile.birth, input)
+    const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '커플궁합 생성 실패' })
   }
 })
 

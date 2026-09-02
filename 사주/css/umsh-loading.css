@@ -1,0 +1,141 @@
+/* Shared UMSH full-screen loading modal */
+
+#umsh-loading-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 220ms ease,
+    visibility 220ms ease;
+}
+
+#umsh-loading-root.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+#umsh-loading-root.is-closing {
+  opacity: 0;
+  visibility: visible;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease;
+}
+
+#umsh-loading-root .umsh-loading-card {
+  width: min(320px, calc(100vw - 48px));
+  padding: 24px 22px;
+  border-radius: 20px;
+  border: 1px solid var(--line, rgba(222, 188, 113, 0.32));
+  background: #110c0b;
+  text-align: center;
+  transform: scale(0.96);
+  transition: transform 220ms ease;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(232, 199, 111, 0.06) inset;
+}
+
+#umsh-loading-root.is-open .umsh-loading-card {
+  transform: scale(1);
+}
+
+#umsh-loading-root.is-closing .umsh-loading-card {
+  transform: scale(0.96);
+  transition: transform 180ms ease;
+}
+
+#umsh-loading-root .umsh-loading-spinner {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 16px;
+}
+
+#umsh-loading-root .umsh-loading-spinner::before,
+#umsh-loading-root .umsh-loading-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border-style: solid;
+  box-sizing: border-box;
+}
+
+#umsh-loading-root .umsh-loading-spinner::before {
+  border-width: 2.5px;
+  border-color: rgba(232, 199, 111, 0.18);
+}
+
+#umsh-loading-root .umsh-loading-spinner::after {
+  inset: 3px;
+  border-width: 2.5px;
+  border-color: transparent;
+  border-top-color: var(--gold, #e8c76f);
+  border-right-color: rgba(232, 199, 111, 0.55);
+  animation: umsh-loading-spin 0.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+#umsh-loading-root .umsh-loading-title {
+  display: block;
+  margin: 0;
+  color: #fff;
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+#umsh-loading-root .umsh-loading-title:empty {
+  display: none;
+}
+
+#umsh-loading-root .umsh-loading-subtitle {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+#umsh-loading-root .umsh-loading-subtitle:empty {
+  display: none;
+}
+
+body.umsh-loading-lock {
+  overflow: hidden !important;
+}
+
+body.umsh-loading-lock > *:not(#umsh-loading-root) {
+  pointer-events: none;
+}
+
+@keyframes umsh-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #umsh-loading-root,
+  #umsh-loading-root .umsh-loading-card,
+  #umsh-loading-root.is-closing,
+  #umsh-loading-root.is-closing .umsh-loading-card {
+    transition: none;
+  }
+
+  #umsh-loading-root .umsh-loading-spinner::after {
+    animation-duration: 1.4s;
+  }
+}

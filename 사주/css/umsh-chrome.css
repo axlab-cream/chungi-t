@@ -1,0 +1,165 @@
+/* Shared UMSH consultation chrome (GNB + fixed bottom nav) */
+
+:root {
+  --umsh-chrome-appbar-h: 72px;
+  --umsh-chrome-bottom-h: 74px;
+  --umsh-chrome-max: 430px;
+  --umsh-chrome-line: rgba(222, 188, 113, 0.22);
+  --umsh-chrome-gold: #e8c76f;
+  --umsh-chrome-gold-soft: #f2dc9a;
+  --umsh-chrome-muted: rgba(255, 247, 223, 0.62);
+}
+
+body.umsh-has-chrome {
+  padding-bottom: 0;
+}
+
+.umsh-chrome-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--umsh-chrome-appbar-h);
+  height: var(--umsh-chrome-appbar-h);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--umsh-chrome-line);
+  background: rgba(8, 8, 7, 0.96);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+}
+
+.umsh-chrome-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 199, 111, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff7df;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.umsh-chrome-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.umsh-chrome-brand img {
+  display: block;
+  width: 132px;
+  height: 50px;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.umsh-chrome-meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.umsh-chrome-service {
+  color: var(--umsh-chrome-gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.umsh-chrome-price {
+  color: var(--umsh-chrome-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.umsh-chrome-bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: min(100vw, var(--umsh-chrome-max));
+  height: calc(var(--umsh-chrome-bottom-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid var(--umsh-chrome-line);
+  background: rgba(8, 8, 7, 0.96);
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+.umsh-chrome-bottom-nav a {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  padding: 0 2px;
+  color: rgba(224, 199, 173, 0.72);
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.umsh-chrome-bottom-nav a.is-active {
+  color: var(--umsh-chrome-gold-soft);
+}
+
+.umsh-chrome-bottom-nav a.is-active::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--umsh-chrome-gold);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.umsh-chrome-bottom-nav .tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 3px;
+  text-overflow: ellipsis;
+}
+
+.umsh-chrome-bottom-nav a:hover,
+.umsh-chrome-bottom-nav a:focus-visible {
+  background: rgba(216, 186, 114, 0.07);
+  color: #f7e7c2;
+}
+
+/* Reserve space so content is never covered by the fixed bottom bar */
+body.umsh-has-chrome .stage {
+  min-height: 100vh;
+  padding-bottom: 0;
+}
+
+body.umsh-has-chrome .scroll {
+  height: calc(100vh - var(--umsh-chrome-appbar-h) - var(--umsh-chrome-bottom-h) - env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: 28px !important;
+  box-sizing: border-box;
+}
+
+@media (min-width: 860px) {
+  .umsh-chrome-bottom-nav,
+  .umsh-chrome-appbar {
+    /* Keep the same fixed/sticky treatment on PC as on mobile */
+  }
+
+  body.umsh-has-chrome .scroll {
+    height: calc(100vh - var(--umsh-chrome-appbar-h) - var(--umsh-chrome-bottom-h)) !important;
+  }
+}
