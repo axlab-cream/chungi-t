@@ -1,0 +1,169 @@
+{
+  "service": {
+    "service_key": "work_move",
+    "service_slug": "move",
+    "service_title": "나, 회사 옮겨도 될까?",
+    "category": "이직운",
+    "subcategory": "회사 이동 판단",
+    "price_krw": 14900,
+    "price_display": "14,900원",
+    "service_url_hint": "work.umsh.kr/move",
+    "analysis_basis": ["대운", "세운", "관성"],
+    "report_version": "work-move-v1.0",
+    "copy_version": "mz-work-move-v1",
+    "stage": "02-step-2-saju-input"
+  },
+  "input_schema": {
+    "subject_mode": "single",
+    "profile_policy": {
+      "if_existing_profile_complete": "do_not_ask_birth_profile_again",
+      "if_new_profile": "collect_minimum_birth_profile",
+      "long_term_storage": "do_not_store_company_birthdate_address_in_url_or_localStorage"
+    },
+    "fields": [
+      {"name": "profileMode", "label": "프로필 선택", "type": "radio", "required": true, "values": ["existing", "new"], "storage": "session_only"},
+      {"name": "nickname", "label": "이름 또는 부를 호칭", "type": "text", "required_when": "profileMode=new", "pii": true, "storage": "session_only"},
+      {"name": "genderContext", "label": "대운 계산용 성별 기준", "type": "select", "required_when": "profileMode=new", "pii": false, "storage": "session_only"},
+      {"name": "calendarType", "label": "생일 기준", "type": "select", "required_when": "profileMode=new", "storage": "session_only"},
+      {"name": "birthDate", "label": "생년월일", "type": "date", "required_when": "profileMode=new", "pii": true, "storage": "session_only"},
+      {"name": "birthTime", "label": "출생시간", "type": "time_or_unknown", "required_when": "profileMode=new", "pii": true, "storage": "session_only"},
+      {"name": "birthPlace", "label": "출생지", "type": "text", "required": false, "pii": true, "storage": "session_only"},
+      {"name": "decisionMode", "label": "지금 제일 가까운 상황", "type": "select", "required": true, "values": ["move_considering", "offer_review", "resignation_timing", "internal_transfer", "job_search_start"], "storage": "session_only"},
+      {"name": "currentCompanySignal", "label": "현 회사에서 가장 크게 걸리는 것", "type": "select", "required": true, "values": ["role_blur", "authority_blur", "boss_pressure", "peer_competition", "recognition_gap", "burnout"], "storage": "session_only"},
+      {"name": "targetCompanyName", "label": "새 회사 또는 오퍼명", "type": "text", "required": false, "pii": true, "storage": "session_only"},
+      {"name": "targetRole", "label": "희망·제안받은 직무", "type": "text", "required": true, "storage": "session_only"},
+      {"name": "workType", "label": "근무 형태", "type": "select", "required": true, "values": ["office", "hybrid", "remote", "shift", "field", "unknown"], "storage": "session_only"},
+      {"name": "commuteLocation", "label": "출퇴근·근무지 체감", "type": "text", "required": false, "pii": true, "storage": "session_only"},
+      {"name": "salaryFeeling", "label": "연봉·조건 체감", "type": "select", "required": true, "values": ["clear_up", "slight_up", "similar", "down_for_growth", "unclear"], "storage": "session_only"},
+      {"name": "decisionDate", "label": "입사·결정 예정일", "type": "date", "required": false, "storage": "session_only"},
+      {"name": "discomfortPoint", "label": "가장 찝찝한 포인트", "type": "textarea", "required": true, "minlength": 8, "storage": "session_only"},
+      {"name": "priority", "label": "이번 선택에서 제일 중요한 것", "type": "radio", "required": true, "values": ["money", "growth", "mental", "timing", "people", "stability"], "storage": "session_only"},
+      {"name": "realityChecks", "label": "현실 체크", "type": "checkbox[]", "required": false, "values": ["resume_ready", "offer_terms_checked", "buffer_ready", "exit_script_ready"], "storage": "session_only"}
+    ]
+  },
+  "interpretation_index_payload": {
+    "source": "01-step-1-story/INTERPRETATION_INDEX",
+    "persist_keys": [
+      "umsh:work_move:service",
+      "umsh:work_move:form_v1",
+      "umsh:work_move:interpretation_index_payload",
+      "umsh:work_move:handoff_v1"
+    ],
+    "groups": [
+      {"id": "decision_type", "order": 1, "major": "최종 결론 타입", "middle": ["이직각", "존버각", "준비각", "보류각", "조건부 환승각"]},
+      {"id": "career_constitution", "order": 2, "major": "내 커리어 체질", "middle": ["일간별 일 스타일", "오행 밸런스", "신강·신약 감당력", "용신 기반 보완 방향"]},
+      {"id": "role_fit", "order": 3, "major": "직무 핏 분석", "middle": ["비견: 주체성", "겁재: 승부·경쟁", "식신: 꾸준한 결과물", "상관: 개선·기획", "편재: 확장·영업", "정재: 계약·정산", "편관: 돌파·위기대응", "정관: 공식 역할·조직력", "편인: 연구·아이디어", "정인: 문서·교육·지원"]},
+      {"id": "current_company", "order": 4, "major": "현 회사 상태 풀이", "middle": ["역할 흐림", "결정권 애매함", "상사 압박", "동료·경쟁 스트레스", "인정 욕구", "번아웃 신호"]},
+      {"id": "new_company_fit", "order": 5, "major": "새 회사 궁합 풀이", "middle": ["관록궁: 일·직업궁", "천이궁: 이동·외부환경", "재백궁: 연봉·수입 흐름", "명궁·신궁: 내가 실제로 버틸 수 있는 방식"]},
+      {"id": "money_terms", "order": 6, "major": "돈 조건 풀이", "middle": ["연봉 상승각", "수입 구조 안정성", "계약서 체크", "지출 증가 리스크", "퇴사 전 버퍼 필요성"]},
+      {"id": "timing", "order": 7, "major": "타이밍 풀이", "middle": ["대운 초입·중반·말기", "대운 교차기", "세운·연간 흐름", "월운", "택일·일진", "입춘·새 출발 흐름"]},
+      {"id": "risk_brake", "order": 8, "major": "리스크 브레이크", "middle": ["공망: 확정 보류", "충: 부딪힘 조심", "형: 반복 마찰", "파: 기존 약속 점검", "해: 느슨한 확인", "화기: 역할 혼란·돈 걱정"]},
+      {"id": "action_guide", "order": 9, "major": "현실 액션 가이드", "middle": ["90일 테스트", "이력서·포트폴리오 정리", "면접 타이밍", "퇴사 대화 스크립트", "연봉·업무범위 체크리스트"]},
+      {"id": "mz_result_cards", "order": 10, "major": "MZ 톤 결과 카드", "middle": ["지금은 바로 런보다 준비각", "돈 조건 확인 전엔 설레발 금지", "현 회사는 역할정리 먼저", "새 회사는 핏보다 계약서가 찐", "멘탈 방전이면 운보다 회복이 먼저"]},
+      {"id": "safety_operation", "order": 11, "major": "안전·운영 기준", "middle": ["사주로 퇴사·채용·수익을 확정하지 않음", "근거와 개인 추론 분리", "감수 전 자료는 내부 참고", "무조건 성공·실패 표현 금지"]}
+    ]
+  },
+  "copy": {
+    "headline": "딱 필요한 정보만 받고 판단합니다.",
+    "lead": "회사명부터 생년월일시까지 길게 끌고 가지 않습니다. 지금 고민을 읽는 데 필요한 정보만 안전하게 담습니다.",
+    "profile_notice_new": "새 사주로 보는 흐름입니다. 입력값은 다음 단계 전달을 위해 이번 브라우저 세션에만 임시 보관합니다.",
+    "profile_notice_existing": "저장된 프로필을 사용합니다. 이 단계에서는 회사 이동 판단에 필요한 현재 고민만 받습니다.",
+    "submit_cta": "입력한 정보로 이직운 티저 보기",
+    "success_title": "입력값을 안전하게 임시 보관했습니다.",
+    "next_cta": "무료 티저 결과 보기",
+    "privacy_note": "회사명, 생년월일, 출생지 같은 민감 정보는 URL query와 장기 브라우저 저장소에 넣지 않습니다."
+  },
+  "image_manifest": [
+    {
+      "asset_key": "stage-02-input-form",
+      "filename": "assets/generated/move/02-input-form.webp",
+      "role": "stage_02_hero_background",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": ["Korean professional woman", "black blazer", "white shirt", "red scarf accent", "premium red and gold lighting"],
+      "generation_policy": "same-character-new-scene",
+      "prompt": "Use the project reference image as strict character and brand identity reference. Create a vertical red-black-gold identity image with the same illustrated Korean woman, dramatic black updo hair, black blazer, white shirt, red scarf accent, no readable text, no form UI, no phone screen.",
+      "alt": "기준 캐릭터 스타일을 유지한 이직운 입력 단계 대표 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".identity-image[data-asset='stage-02-input-form']"
+    }
+  ],
+  "character_reference": {
+    "reference_image": "IMAGE/umsh-signature-card-bg.png",
+    "reference_usage": "style_reference_only",
+    "style_bible": {
+      "character": "Korean professional woman, black blazer, white shirt, red scarf accent",
+      "palette": ["black", "oxblood red", "muted gold", "warm ivory", "muted green accent"],
+      "mood": "premium career fortune consultation without fear language"
+    }
+  },
+  "storage_contract": {
+    "url_query": "do_not_use_for_private_values",
+    "localStorage": "do_not_use_for_company_birthdate_address",
+    "sessionStorage_keys": [
+      "umsh:work_move:service",
+      "umsh:work_move:form_v1",
+      "umsh:work_move:interpretation_index_payload",
+      "umsh:work_move:handoff_v1"
+    ],
+    "auth_handoff": "공통 로그인 또는 프로필 확인 후 04-step-4-report로 이동"
+  },
+  "rag_evidence": {
+    "evidence_ids_carried_from_01": [
+      "rag-daewoon-001",
+      "rag-daewoon-002",
+      "rag-sewoon-001",
+      "rag-sewoon-002",
+      "rag-gwanseong-001",
+      "rag-gwanseong-002",
+      "rag-gwanseong-003",
+      "ziweidoushu-palace-001",
+      "ziweidoushu-palace-002",
+      "rag-contract-001"
+    ],
+    "input_stage_claims": [
+      {
+        "evidence_id": "input-policy-001",
+        "claim": "기존 프로필이 완성되어 있으면 생년월일시를 다시 묻지 않고, 새 사주로 보기일 때만 최소 사주 정보를 받는다.",
+        "applied_to": ["profileMode", "newProfileFields"]
+      },
+      {
+        "evidence_id": "input-policy-002",
+        "claim": "회사명, 생년월일, 주소성 정보는 URL query와 장기 localStorage에 저장하지 않는다.",
+        "applied_to": ["client_storage", "submit_handler"]
+      }
+    ]
+  },
+  "next_route": "../04-step-4-report/index.html#step-4-report",
+  "qa": {
+    "status": "ready_for_review",
+    "checked_at": "2026-09-02",
+    "scope_mismatch": [
+      {
+        "type": "legacy_prompt_values_detected",
+        "detail": "02-step-2-saju-input/PROMPT.md에는 기존 job-choice, 직장운, 9,900원 값이 남아 있었으나 이번 사용자 입력값을 우선 적용했다."
+      },
+      {
+        "type": "interpretation_group_count",
+        "detail": "사용자 검토 기준의 11개 대분류를 01에서 확정한 payload 그대로 보존했다."
+      }
+    ],
+    "checks": [
+      {"name": "service_identity", "status": "pass", "value": "work_move / move / 나, 회사 옮겨도 될까?"},
+      {"name": "required_birth_profile_when_new", "status": "pass", "value": ["nickname", "genderContext", "birthDate", "birthTime or unknown", "calendarType"]},
+      {"name": "existing_profile_skip", "status": "pass", "value": "profile completion flag can hide birth fields"},
+      {"name": "career_input_fields", "status": "pass", "value": ["decisionMode", "currentCompanySignal", "targetCompanyName", "targetRole", "workType", "commuteLocation", "salaryFeeling", "decisionDate", "discomfortPoint", "priority"]},
+      {"name": "no_private_query_storage", "status": "pass", "value": "form submit uses sessionStorage only and does not build query params"},
+      {"name": "interpretation_index_payload_preserved", "status": "pass", "value": 11},
+      {"name": "image_manifest_present", "status": "pass", "value": "assets/generated/move/02-input-form.webp"},
+      {"name": "single_html_image_delivery", "status": "pass", "value": "visible image is embedded as a data:image/webp URI"},
+      {"name": "customer_visible_internal_terms_removed", "status": "pass", "value": "internal source terms are not visible copy"}
+    ],
+    "blocked": [],
+    "next_step": "사용자 검토 후 '다음' 입력 시 04-step-4-report 진행"
+  }
+}

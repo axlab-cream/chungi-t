@@ -1,0 +1,42 @@
+body.work-move-page.has-umsh-service-shell {
+  background: #050505;
+}
+
+body.work-move-page.has-umsh-service-shell .page,
+body.work-move-page.has-umsh-service-shell .phone {
+  padding-bottom: 92px;
+}
+
+body.work-move-page.has-umsh-service-shell .page > .topbar,
+body.work-move-page.has-umsh-service-shell .phone > .topbar {
+  display: none !important;
+}
+
+body.work-move-page.has-umsh-service-shell .umsh-service-shell {
+  margin: 0 auto;
+  width: min(440px, 100vw);
+}
+
+body.work-move-page select,
+body.work-move-page option {
+  background-color: #171717;
+  color: #fff7e6;
+}
+
+body.work-move-page select:focus {
+  color: #fff7e6;
+}
+
+body.work-move-page option:checked,
+body.work-move-page option:hover {
+  background-color: #3a2a12;
+  color: #fff7e6;
+}
+
+body.work-move-page .report-group[data-dynamic-work-report="true"] summary {
+  cursor: default;
+}
+
+body.work-move-page .section-card[data-dynamic-work-section] {
+  min-height: 96px;
+}

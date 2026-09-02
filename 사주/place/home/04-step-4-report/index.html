@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>무료 방향 | 지금 사는 집, 나랑 잘 맞을까?</title>
+    <meta
+      name="description"
+      content="풍수지리와 개인 명리로 지금 사는 집과 내 생활 리듬의 무료 방향을 확인합니다."
+    />
+    <meta property="og:title" content="지금 사는 집, 나랑 잘 맞을까? 무료 방향" />
+    <meta property="og:description" content="이 집이 내 잠, 일, 돈, 관계 리듬과 맞는지 먼저 확인합니다." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://place.umsh.kr/home" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="assets/generated/home/04-free-report-hero.webp" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0c1110;
+        --surface: #141a17;
+        --surface-2: #1d2420;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.5);
+        --line: rgba(215, 234, 213, 0.18);
+        --sage: #9fb7a1;
+        --mint: #d8ecd4;
+        --brass: #e4c36f;
+        --clay: #bf6745;
+        --blue: #89a9bd;
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #050706;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -8%, rgba(159, 183, 161, 0.2), transparent 28rem),
+          linear-gradient(180deg, #050706 0%, #0f1412 42%, #050706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 1.2;
+      }
+
+      .brand span,
+      .step-badge,
+      .eyebrow {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .step-badge {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 29px;
+        line-height: 1.17;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        font-size: 15px;
+        line-height: 1.36;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .hero {
+        display: grid;
+        gap: 16px;
+        align-items: center;
+        padding: 24px 18px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .chips,
+      .micro-grid,
+      .state-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip,
+      .mini-state {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .visual-frame {
+        position: relative;
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(215, 234, 213, 0.24);
+        border-radius: 8px;
+        background: #eadfcb;
+      }
+
+      .visual-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .notice {
+        display: none;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(228, 195, 111, 0.2);
+        background: rgba(191, 103, 69, 0.12);
+      }
+
+      .notice.is-open {
+        display: block;
+      }
+
+      .band {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .result-shell {
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-row,
+      .signal-card,
+      .scope-card,
+      .state-card,
+      .receipt-row,
+      .action-tile {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .summary-row {
+        display: grid;
+        gap: 8px;
+        padding: 16px;
+      }
+
+      .summary-row strong,
+      .signal-card strong,
+      .scope-card strong,
+      .state-card strong,
+      .receipt-row strong {
+        display: block;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .summary-row span,
+      .signal-card span,
+      .scope-card span,
+      .state-card span,
+      .receipt-row span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .teaser-copy {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        background: rgba(228, 195, 111, 0.07);
+      }
+
+      .teaser-copy strong {
+        color: var(--brass);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .teaser-copy p {
+        margin: 0;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 780;
+        line-height: 1.7;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .verdict-box {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        border: 1px solid rgba(228, 195, 111, 0.28);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 88% 0%, rgba(228, 195, 111, 0.18), transparent 12rem),
+          linear-gradient(145deg, rgba(31, 41, 33, 0.96), rgba(18, 22, 19, 0.98));
+      }
+
+      .verdict-label {
+        width: fit-content;
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: rgba(159, 183, 161, 0.14);
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .verdict-box h2 {
+        font-size: 25px;
+      }
+
+      .signal-layout {
+        display: grid;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .signal-list,
+      .scope-list,
+      .receipt-list,
+      .action-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal-card {
+        display: grid;
+        gap: 7px;
+        padding: 14px;
+      }
+
+      .signal-card b,
+      .scope-card b {
+        color: var(--brass);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+      }
+
+      .scope-card {
+        display: grid;
+        gap: 7px;
+        padding: 14px;
+      }
+
+      .scope-card ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .scope-card li {
+        padding: 6px 8px;
+        border: 1px solid rgba(215, 234, 213, 0.12);
+        border-radius: 8px;
+        color: rgba(255, 248, 239, 0.72);
+        background: rgba(0, 0, 0, 0.14);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .state-card {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 148px;
+        padding: 12px;
+      }
+
+      .state-card strong {
+        color: var(--mint);
+        font-size: 12px;
+      }
+
+      .paid-band {
+        background:
+          radial-gradient(circle at 18% 0%, rgba(137, 169, 189, 0.18), transparent 13rem),
+          rgba(255, 255, 255, 0.02);
+      }
+
+      .cta-layout {
+        display: grid;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .price {
+        color: var(--brass);
+        font-size: 32px;
+        font-weight: 950;
+        letter-spacing: 0;
+        line-height: 1;
+      }
+
+      .receipt-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+      }
+
+      .receipt-row span {
+        text-align: right;
+      }
+
+      .cta-stack {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        display: grid;
+        gap: 10px;
+        padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(12, 17, 16, 0.95);
+        backdrop-filter: blur(16px);
+      }
+
+      .cta-primary,
+      .cta-secondary {
+        display: grid;
+        min-height: 52px;
+        place-items: center;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.25;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+
+      .cta-primary {
+        border: 1px solid rgba(228, 195, 111, 0.55);
+        background: linear-gradient(135deg, #efd47d, #c8913d);
+        color: #1b1207;
+      }
+
+      .cta-secondary {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .fallback-link {
+        color: var(--brass);
+        font-weight: 900;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      @media (max-width: 374px) {
+        .hero,
+        .signal-layout,
+        .cta-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .visual-frame {
+          width: 100%;
+          min-height: 0;
+          justify-self: center;
+        }
+
+        h1 {
+          font-size: 25px;
+        }
+
+        .verdict-box h2 {
+          font-size: 22px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+  </head>
+  <body>
+    <main class="app" id="step-4-report">
+      <div data-umsh-service-top></div>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <span class="eyebrow">지금 사는 집, 나랑 잘 맞을까?</span>
+          <h1 id="page-title">이 집은 지금 내 리듬과 맞는지 먼저 봅니다</h1>
+          <p id="hero-summary">
+            명당인지 흉지인지 딱 잘라 말하기보다, 이 집이 내 잠, 일, 돈, 관계를 살려주는 쪽인지 무료 방향부터 확인합니다.
+          </p>
+          <div class="chips" aria-label="분석 기준">
+            <span class="chip">풍수지리</span>
+            <span class="chip">개인 명리</span>
+            <span class="chip">생활 리듬</span>
+          </div>
+        </div>
+        <figure class="visual-frame" data-asset-key="home-04-free-report-hero">
+          <img src="assets/generated/home/04-free-report-hero.webp" alt="집 도면과 모형을 살피며 무료 방향을 준비하는 운명상회 가이드" />
+        </figure>
+      </section>
+
+      <section class="notice" id="missing-input">
+        <p>
+          방금 입력한 집 정보가 이 브라우저에 남아 있지 않습니다.
+          <a class="fallback-link" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력으로 돌아가기</a>
+        </p>
+      </section>
+
+      <section class="band">
+        <div class="section-head">
+          <span class="eyebrow">무료로 먼저 보이는 방향</span>
+          <h2>결론은 숨기지 않고, 범위는 가볍게</h2>
+          <p>전체 풀이의 맛보기라서 한 줄 방향과 강한 신호만 먼저 보여줍니다.</p>
+        </div>
+
+        <div class="verdict-box" aria-live="polite">
+          <span class="verdict-label" id="verdict-label">집 핏 예비 판정</span>
+          <h2 id="verdict-title">입력값을 기준으로 계속 살 각, 손볼 각, 비교 각을 나눕니다</h2>
+          <p id="verdict-summary">
+            집의 좋고 나쁨보다 내가 이 집에서 덜 흔들리고 잘 회복되는지를 먼저 봅니다.
+          </p>
+        </div>
+
+        <div class="result-shell" id="snapshot-list" aria-label="입력 요약">
+          <div class="summary-row">
+            <strong>입력 요약 대기</strong>
+            <span>02 단계에서 입력한 값이 있으면 이곳에 집 형태, 목적, 고민 포인트가 정리됩니다.</span>
+          </div>
+        </div>
+
+        <div class="result-shell" aria-label="개인화 무료 맛보기">
+          <div class="teaser-copy" id="personal-teaser">
+            <strong>개인화 맛보기 대기</strong>
+            <p>사주와 집 입력값이 연결되면, 지금 집에서 먼저 보이는 후킹 풀이가 이곳에 표시됩니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="signals-title">
+        <div class="section-head">
+          <span class="eyebrow">강한 신호 4개</span>
+          <h2 id="signals-title">지금 먼저 체크할 포인트</h2>
+          <p>현관, 침실, 책상, 창밖 흐름만 봐도 집이 나를 살리는지 피곤하게 하는지 윤곽이 잡힙니다.</p>
+        </div>
+
+        <div class="signal-layout">
+          <figure class="visual-frame" data-asset-key="home-04-key-signal">
+            <img src="assets/generated/home/04-key-signal.webp" alt="현관 동선과 가림막을 살피는 운명상회 가이드" />
+          </figure>
+          <div class="signal-list" id="signal-list">
+            <article class="signal-card">
+              <b>현관</b>
+              <strong>들어온 기운이 바로 빠지지 않는지</strong>
+              <span>현관에서 침실이나 큰 창이 바로 보이면 가림과 정리가 먼저 필요할 수 있습니다.</span>
+            </article>
+            <article class="signal-card">
+              <b>침실</b>
+              <strong>잠이 깊어지는 자리인지</strong>
+              <span>도로 소음, 시선, 문 방향이 강하면 회복감이 떨어지는 쪽으로 체감될 수 있습니다.</span>
+            </article>
+            <article class="signal-card">
+              <b>책상</b>
+              <strong>등 뒤가 받쳐주는지</strong>
+              <span>일과 공부 자리는 뒤가 비는 느낌보다 벽이나 안정된 면을 등지는 편이 낫습니다.</span>
+            </article>
+            <article class="signal-card">
+              <b>창밖</b>
+              <strong>앞은 트이고 압박은 덜한지</strong>
+              <span>열림과 받침의 균형을 봅니다. 좋다 나쁘다보다 내 생활 속도와 맞는지가 핵심입니다.</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band paid-band" aria-labelledby="paid-title">
+        <div class="section-head">
+          <span class="eyebrow">결제 후 열리는 전체 범위</span>
+          <h2 id="paid-title">9,900원 리포트에서는 10개 흐름을 이어서 봅니다</h2>
+          <p>무료 방향에서 멈추지 않고, 사주와 집의 오행 핏, 공간별 손질, 7일 액션까지 연결합니다.</p>
+        </div>
+
+        <div class="cta-layout">
+          <div class="receipt-list">
+            <div class="receipt-row">
+              <strong>상품</strong>
+              <span>지금 사는 집, 나랑 잘 맞을까?</span>
+            </div>
+            <div class="receipt-row">
+              <strong>제공 범위</strong>
+              <span>10개 대분류, 공간별 처방, 현실 액션</span>
+            </div>
+            <div class="receipt-row">
+              <strong>결제 금액</strong>
+              <span class="price">9,900원</span>
+            </div>
+          </div>
+          <figure class="visual-frame" data-asset-key="home-04-paid-preview">
+            <img src="assets/generated/home/04-paid-preview.webp" alt="집 모형과 빈 리포트 카드를 정리하는 운명상회 가이드" />
+          </figure>
+        </div>
+
+        <div class="state-grid" aria-label="로그인과 결제 상태">
+          <div class="state-card">
+            <strong>로그인 전</strong>
+            <span>로그인 후 방금 결과로 돌아옵니다.</span>
+          </div>
+          <div class="state-card">
+            <strong>결제 전</strong>
+            <span>무료 방향은 유지하고 전체 리포트만 잠겨 있습니다.</span>
+          </div>
+          <div class="state-card">
+            <strong>진행 중</strong>
+            <span>중복 결제를 막고 이어서 복구합니다.</span>
+          </div>
+          <div class="state-card">
+            <strong>취소 또는 실패</strong>
+            <span>무료 결과를 잃지 않고 다시 시도합니다.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="scope-title">
+        <div class="section-head">
+          <span class="eyebrow">전체 리포트 목차</span>
+          <h2 id="scope-title">이런 것까지 봅니다</h2>
+          <p>목차는 사용자가 지정한 대분류와 중분류를 그대로 이어받았습니다.</p>
+        </div>
+        <div class="scope-list" id="scope-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="action-title">
+        <div class="section-head">
+          <span class="eyebrow">지금 할 수 있는 것</span>
+          <h2 id="action-title">무료 방향만으로도 오늘 체크할 것</h2>
+          <p>전체 리포트 전에도, 아침과 저녁의 체감 차이는 바로 확인할 수 있습니다.</p>
+        </div>
+        <div class="action-list">
+          <div class="action-tile summary-row">
+            <strong>아침 1분</strong>
+            <span>현관에서 거실까지 시선이 어디로 바로 꽂히는지 봅니다.</span>
+          </div>
+          <div class="action-tile summary-row">
+            <strong>저녁 1분</strong>
+            <span>침대에 누웠을 때 문, 창, 소음 중 무엇이 제일 먼저 신경 쓰이는지 봅니다.</span>
+          </div>
+          <div class="action-tile summary-row">
+            <strong>주말 10분</strong>
+            <span>책상과 침대의 등 뒤를 먼저 정리하고, 못 옮기면 조명과 수납으로 보완합니다.</span>
+          </div>
+        </div>
+      </section>
+
+      <nav class="cta-stack" aria-label="다음 단계">
+        <a class="cta-primary" href="../05-step-5-chat/chat.html#step-5-chat" data-action="open-paid">
+          9,900원 전체 리포트 열기
+        </a>
+        <a class="cta-secondary" href="../02-step-2-saju-input/index.html#step-2-saju-input">
+          입력 다시 확인하기
+        </a>
+        <p class="fine-print">
+          결제와 권한 확인은 서버 기준으로 처리되어야 합니다. 취소와 환불 안내는 결제 단계에서 함께 확인합니다.
+        </p>
+      </nav>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "지금 사는 집, 나랑 잘 맞을까?",
+        "service_category": "집 풍수",
+        "rag": ["풍수지리", "개인 명리"],
+        "domain": "place.umsh.kr/home",
+        "price_krw": 9900,
+        "stage": "04-step-4-report"
+      }
+    </script>
+
+    <script type="application/json" id="FREE_REPORT_MODEL">
+      {
+        "teaser_ratio": "10-15%",
+        "free_components": ["한 줄 방향", "강한 신호 1개 이상", "조건 또는 시기", "방해 요인", "유료에서 열리는 항목"],
+        "decision_labels": ["계속 살 각", "손볼 각", "비교 각", "체감 보류"],
+        "client_authority": "무료 화면은 결제 성공이나 권한을 확정하지 않습니다."
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX_PAYLOAD">
+      {
+        "source": "user_seed",
+        "interpretation_index_version": "home-fit-index-v1",
+        "groups": [
+          {
+            "group_id": "home-fit-overall",
+            "title": "이 집, 나랑 찐으로 결 맞아?",
+            "items": ["전체 핏 판정", "계속 살 각/손볼 각/비교 각", "끌리는 이유", "묘하게 피곤한 포인트", "지금 내 시기와의 궁합", "한 줄 결론"]
+          },
+          {
+            "group_id": "house-energy",
+            "title": "집의 기본 기운",
+            "items": ["안정형/활동형/휴식형", "앞이 열린 집", "뒤가 받치는 집", "좌우 균형", "도로·골목·물길 흐름", "건물 압박·창밖 시야"]
+          },
+          {
+            "group_id": "saju-house-ohaeng",
+            "title": "내 사주 × 집 오행 핏",
+            "items": ["일간 생활 리듬", "오행 과다/부족 보완", "용신과 공간 결", "신강약별 집 속도", "나한테 과한 집", "나를 살려주는 집"]
+          },
+          {
+            "group_id": "sleep-recovery",
+            "title": "잠·회복·멘탈 리듬",
+            "items": ["침실 안정감", "수면 깊이", "집콕 회복력", "소음·시선 피로", "쉬는 칸 확보", "퇴근 후 충전감", "번아웃 방지 포인트"]
+          },
+          {
+            "group_id": "entrance-flow",
+            "title": "현관·동선 에너지",
+            "items": ["첫 느낌", "현관 정리 상태", "현관-거실-침실 직선 흐름", "엘베·복도 자극", "들어온 기운이 머무는지", "택배·신발 혼잡도"]
+          },
+          {
+            "group_id": "remote-focus",
+            "title": "재택·공부·일 집중력",
+            "items": ["책상 자리", "등 뒤 받침", "문·창 위치", "몰입 잘 되는 구석", "화상회의/통화 핏", "일 공간과 쉬는 공간 분리", "생산성 루틴"]
+          },
+          {
+            "group_id": "money-living",
+            "title": "돈·살림·소비 흐름",
+            "items": ["돈이 모이는 구조", "돈 새는 포인트", "월세·관리비 체감", "재택 수익 리듬", "중요 문서·금고 자리", "충동소비 트리거"]
+          },
+          {
+            "group_id": "relationship-cohabitation",
+            "title": "관계·가족·동거 케미",
+            "items": ["혼자 있을 때 편안함", "가족과 부딪히는 동선", "연인·친구 초대 핏", "룸메/동거 궁합", "이웃·소음 스트레스", "사생활 보호감"]
+          },
+          {
+            "group_id": "spatial-fix",
+            "title": "공간별 손질 처방",
+            "items": ["침대 위치", "책상 위치", "소파·식탁 자리", "화분·거울·TV 활용", "커튼·조명·수납 보완", "컬러·소재 힌트", "못 옮길 때 대안"]
+          },
+          {
+            "group_id": "reality-action",
+            "title": "현실 체크 & 액션 플랜",
+            "items": ["아침·저녁 체감 테스트", "계약 유지/이사 비교", "지금 바로 손볼 3가지", "피해야 할 배치", "7일 살아보기 체크", "다음 행동 추천"]
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      {
+        "basis": [
+          "ITEM-50_풍수지리/prompts/menu-home.txt",
+          "ITEM-50_풍수지리/prompts/menu-move.txt",
+          "ITEM-50_풍수지리/prompts/menu-compat.txt",
+          "ITEM-50_풍수지리/prompts/menu-place.txt",
+          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
+          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
+          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
+          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
+          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
+        ],
+        "interpretation_guardrails": [
+          "공간은 절대 명당·흉지로 단정하지 않고 생활 리듬과의 핏으로 풀이",
+          "현관-침실 직선 흐름은 가림과 정리 처방으로 완화",
+          "도로·창밖 자극은 수면과 체감 피로의 보조 신호로만 사용",
+          "일간, 오행, 신강약, 용신은 계산된 개인 리듬이 있을 때만 상세 연결"
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-04-free-report-hero",
+            "filename": "assets/generated/home/04-free-report-hero.webp",
+            "role": "hero",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["둥근 안경", "정돈된 짙은 머리", "베이지 니트 아우터", "세이지 톤", "따뜻한 실내 조명"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "집 도면과 모형을 살피며 무료 방향을 준비하는 장면. 이미지 안 텍스트 금지.",
+            "alt": "집 도면과 모형을 살피며 무료 방향을 준비하는 운명상회 가이드",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-free-report-hero'] img"
+          },
+          {
+            "asset_key": "home-04-key-signal",
+            "filename": "assets/generated/home/04-key-signal.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["둥근 안경", "정돈된 짙은 머리", "베이지 니트 아우터", "세이지 톤", "따뜻한 실내 조명"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "현관 동선과 가림막을 살피는 장면. 이미지 안 텍스트 금지.",
+            "alt": "현관 동선과 가림막을 살피는 운명상회 가이드",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-key-signal'] img"
+          },
+          {
+            "asset_key": "home-04-paid-preview",
+            "filename": "assets/generated/home/04-paid-preview.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["둥근 안경", "정돈된 짙은 머리", "베이지 니트 아우터", "세이지 톤", "따뜻한 실내 조명"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "집 모형과 빈 리포트 카드를 정리하는 결제 전 범위 예고 장면. 이미지 안 텍스트 금지.",
+            "alt": "집 모형과 빈 리포트 카드를 정리하는 운명상회 가이드",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-paid-preview'] img"
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "stage": "04-step-4-report",
+        "status": "ready_for_review",
+        "checks": [
+          { "name": "latest_user_service_values_applied", "pass": true },
+          { "name": "free_teaser_shows_direction_without_full_paid_detail", "pass": true },
+          { "name": "all_10_interpretation_groups_visible", "pass": true },
+          { "name": "all_10_interpretation_groups_preserved_in_json", "pass": true },
+          { "name": "client_does_not_assert_paid_authority", "pass": true },
+          { "name": "payment_failure_and_missing_input_states_have_recovery_copy", "pass": true },
+          { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
+          { "name": "images_are_full_width_single_blocks_without_side_layout", "pass": true },
+          { "name": "customer_copy_hides_internal_rag_kms_terms", "pass": true },
+          { "name": "no_deterministic_moving_or_money_claims", "pass": true },
+          { "name": "next_route_points_to_step_05", "pass": true }
+        ],
+        "scope_mismatch": [
+          "현재 프로젝트의 04 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 04 산출물은 사용자의 최신 집 풍수 입력값과 첨부 템플릿의 공통 계약을 우선 적용했다."
+        ]
+      }
+    </script>
+
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        service_title: "지금 사는 집, 나랑 잘 맞을까?",
+        category: "집 풍수",
+        subcategory: "집과 나의 생활 핏",
+        price_krw: 9900,
+        report_version: "home-fit-v1.0",
+        copy_version: "mz-home-pungsu-v1",
+        next_route: "../05-step-5-chat/chat.html#step-5-chat"
+      };
+
+      const STORAGE_KEYS = {
+        input: "umsh_home_fit_input_payload_v1",
+        paymentIntent: "umsh_home_fit_payment_intent_v1"
+      };
+
+      const LABELS = {
+        building_type: {
+          apartment: "아파트",
+          officetel: "오피스텔",
+          villa: "빌라",
+          studio: "원룸",
+          house: "단독주택",
+          other: "기타 주거"
+        },
+        main_purpose: {
+          recovery: "회복",
+          work_study: "일·공부 집중",
+          money: "돈·살림 안정",
+          relationship: "관계·동거",
+          move_decision: "이사 판단"
+        },
+        stay_decision: {
+          stay: "계속 살지 고민",
+          fix: "손보면 괜찮을지 고민",
+          compare: "이사 후보와 비교",
+          unknown: "원인부터 알고 싶음"
+        },
+        pain_points: {
+          sleep: "잠이 얕음",
+          noise: "소음이 신경 쓰임",
+          entrance: "현관이 어수선함",
+          focus: "집중이 안 됨",
+          money: "돈·살림이 신경 쓰임",
+          spending: "돈이 자꾸 새는 느낌",
+          relationship: "같이 살 때 부딪힘",
+          move: "이사·계약 판단이 걸림",
+          pressure: "창밖·건물 압박감"
+        },
+        entrance_flow: {
+          direct: "현관에서 안쪽이 거의 한 줄로 보임",
+          direct_bedroom: "현관에서 침실이 바로 보임",
+          direct_window: "현관에서 큰 창이 바로 보임",
+          bent: "동선이 한 번 꺾임",
+          blocked: "가림이 있음",
+          unknown: "잘 모르겠음"
+        },
+        bedroom_feel: {
+          quiet: "조용하고 안정적",
+          window_road: "창밖 소음·시선이 있음",
+          door_line: "문 방향이 신경 쓰임",
+          too_bright: "빛이 강하거나 쉬기 어려움",
+          cluttered: "물건이 많아 답답함",
+          unknown: "잘 모르겠음"
+        },
+        desk_position: {
+          back_wall: "등 뒤에 벽이 있음",
+          back_window: "등 뒤가 창이나 빈 공간",
+          face_door: "문을 정면으로 봄",
+          mixed_rest: "쉬는 자리와 섞임",
+          none: "정해진 자리가 없음"
+        },
+        outside_flow: {
+          open: "앞이 트인 편",
+          pressed: "맞은편 건물이 가까움",
+          road_noise: "도로·골목 자극이 있음",
+          balanced: "무난하고 안정적",
+          unknown: "잘 모르겠음"
+        }
+      };
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function fromSession(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function toSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function label(group, key, fallback = "미입력") {
+        return LABELS[group]?.[key] || fallback;
+      }
+
+      function snakeInputFromHome(home = {}) {
+        return {
+          address_or_building: home.addressOrBuilding,
+          building_type: home.buildingType,
+          living_period: home.livingPeriod,
+          main_purpose: home.mainPurpose,
+          stay_decision: home.stayDecision,
+          pain_points: home.painPoints,
+          entrance_flow: home.entranceFlow,
+          bedroom_feel: home.bedroomFeel,
+          desk_position: home.deskPosition,
+          outside_flow: home.outsideFlow,
+          extra_note: home.extraNote
+        };
+      }
+
+      function inputFromPayload(payload) {
+        return payload?.input || snakeInputFromHome(payload?.home || payload?.context?.home || {});
+      }
+
+      function reportFromPayload(payload) {
+        return payload?.analysis?.report || safeParse(fromSession("umsh_home_fit_report_v1"));
+      }
+
+      function reportSection(payload, ...ids) {
+        const report = reportFromPayload(payload);
+        const sections = Array.isArray(report?.sections) ? report.sections : [];
+        return ids.map((id) => sections.find((section) => section.id === id)).find(Boolean) || sections[0] || null;
+      }
+
+      function teaserParagraphs(section) {
+        const text = String(section?.interpretation || "").trim();
+        if (!text) return [];
+        return text
+          .split(/\n{2,}/)
+          .map((part) => part.replace(/^\[[^\]]+\]\s*/, "").trim())
+          .filter(Boolean)
+          .slice(0, 2);
+      }
+
+      function compactName(payload) {
+        if (payload?.context?.name) return payload.context.name;
+        if (payload?.profile?.name) return payload.profile.name;
+        if (payload?.profile?.nickname) return payload.profile.nickname;
+        return "나";
+      }
+
+      function deriveVerdict(input) {
+        const pain = new Set(Array.isArray(input.pain_points) ? input.pain_points : []);
+        const hasSleepDrag = pain.has("sleep") || pain.has("noise") || input.bedroom_feel === "window_road" || input.bedroom_feel === "door_line";
+        const hasFlowDrag = pain.has("entrance") || input.entrance_flow === "direct" || input.entrance_flow === "direct_bedroom" || input.entrance_flow === "direct_window";
+        const hasFocusDrag = pain.has("focus") || input.desk_position === "back_window" || input.desk_position === "mixed_rest";
+        const hasPressure = pain.has("pressure") || input.bedroom_feel === "too_bright" || input.outside_flow === "pressed" || input.outside_flow === "road_noise";
+
+        if (input.stay_decision === "compare") {
+          return {
+            label: "비교 각",
+            title: "지금은 바로 결정하기보다 다른 후보와 같이 보는 쪽이 맞습니다",
+            summary: "창밖 흐름, 잠자리 안정감, 월세 체감처럼 매일 반복되는 조건을 놓고 비교하면 판단이 훨씬 선명해집니다."
+          };
+        }
+
+        if (input.stay_decision === "fix" || hasFlowDrag || hasSleepDrag || hasFocusDrag || hasPressure) {
+          return {
+            label: "손볼 각",
+            title: "이 집은 손보면 살아나는 포인트가 먼저 보입니다",
+            summary: "이사 결론부터 내리기보다 현관 가림, 침실 안정, 책상 등 뒤 받침처럼 작은 배치를 먼저 잡아볼 만합니다."
+          };
+        }
+
+        if (input.stay_decision === "stay") {
+          return {
+            label: "계속 살 각 점검",
+            title: "계속 살아도 되는 집인지, 피로 신호만 따로 떼어 봅니다",
+            summary: "집 자체보다 내 생활 목적과 맞는지가 핵심입니다. 회복, 집중, 돈 흐름 중 어디가 제일 약한지부터 확인합니다."
+          };
+        }
+
+        return {
+          label: "체감 보류",
+          title: "아직 결론보다 체감 신호를 모아볼 타이밍입니다",
+          summary: "아침과 저녁의 몸 상태, 현관 첫 느낌, 침실에서의 시선 피로를 7일만 보면 방향이 더 정확해집니다."
+        };
+      }
+
+      function signalCards(input) {
+        const cards = [];
+        const entranceMap = {
+          direct: ["현관", "현관에서 안쪽이 거의 한 줄로 보임", "들어온 기운과 시선이 빠르게 이어질 수 있어, 낮은 수납이나 조명으로 한 번 머물게 하는 쪽이 좋습니다."],
+          direct_bedroom: ["현관", "현관에서 침실이 바로 보이는 구조", "바깥 자극이 쉬는 자리까지 곧장 들어오는 느낌이 생길 수 있어, 얇은 가림이나 낮은 수납으로 한 번 꺾어주는 쪽이 좋습니다."],
+          direct_window: ["현관", "들어온 기운이 큰 창으로 바로 빠지는 느낌", "현관과 창 사이에 러그, 조명, 식물처럼 시선을 머물게 하는 포인트를 두면 체감이 완만해집니다."],
+          bent: ["현관", "동선이 한 번 꺾여 안정감이 있는 편", "이 흐름은 살리고, 신발과 택배가 첫 느낌을 흐리지 않게 정리감만 유지하면 좋습니다."],
+          blocked: ["현관", "가림이 있어 집 안쪽이 바로 노출되지 않음", "외부 자극을 적당히 걸러주는 구조라, 조명과 수납만 정돈하면 첫 인상이 더 좋아집니다."]
+        };
+        const bedroomMap = {
+          quiet: ["침실", "회복감은 비교적 안정적인 편", "수면 리듬이 괜찮다면 침실은 크게 흔들기보다 조도와 침구 톤을 차분하게 유지하는 쪽이 낫습니다."],
+          window_road: ["침실", "도로·시선 자극이 잠을 건드릴 수 있음", "두꺼운 커튼, 침대 머리 방향, 창가 수납으로 자극을 낮추는 처방이 먼저입니다."],
+          door_line: ["침실", "문 방향이 심리적으로 걸리는 구조", "침대가 문과 바로 맞물리면 낮은 파티션, 협탁, 조명으로 시선을 부드럽게 끊어주는 게 좋습니다."],
+          too_bright: ["침실", "빛이 강해 쉬기 어려운 구조", "조도와 커튼을 먼저 낮추고, 침대에서 바로 보이는 밝은 면을 줄이면 회복감이 살아날 수 있습니다."],
+          cluttered: ["침실", "회복보다 물건의 압박이 먼저 느껴질 수 있음", "침대 주변 60cm만 비워도 쉬는 칸이 살아납니다. 전체 정리보다 수면 반경부터 봅니다."]
+        };
+        const deskMap = {
+          back_wall: ["책상", "등 뒤 받침이 있어 집중에는 유리", "문과 창의 자극만 덜어주면 재택, 공부, 통화 리듬이 안정되기 쉽습니다."],
+          back_window: ["책상", "등 뒤가 비어 집중이 새기 쉬움", "책상 방향을 바꾸기 어렵다면 등 뒤에 낮은 선반이나 커튼으로 받침감을 만드는 처방이 필요합니다."],
+          face_door: ["책상", "문을 정면으로 보는 긴장감", "업무에는 각성이 생기지만 오래 앉으면 피로할 수 있어 모니터 각도와 조명을 함께 봐야 합니다."],
+          mixed_rest: ["책상", "일과 휴식 자리가 섞여 있음", "작은 러그나 조명으로 일하는 칸과 쉬는 칸을 나누면 집콕 피로가 줄어듭니다."],
+          none: ["책상", "정해진 작업 자리가 없어 리듬이 흔들림", "집 안에서 가장 덜 방해받는 구석 하나를 고정해 루틴 자리로 만드는 게 먼저입니다."]
+        };
+        const outsideMap = {
+          open: ["창밖", "앞이 열린 구조는 숨통을 틔워줌", "활동성과 기분 전환에는 좋지만, 잠이 예민한 사람은 빛과 바람 조절까지 같이 봐야 합니다."],
+          pressed: ["창밖", "맞은편 압박이 체감 피로로 올 수 있음", "시선 차단 커튼, 식물, 창가 조명으로 압박을 낮추면 집 안의 안정감이 달라질 수 있습니다."],
+          road_noise: ["창밖", "도로·골목 흐름이 빠른 편", "좋고 나쁨보다 내 생활 속도와 맞는지가 핵심입니다. 수면과 집중 시간대에 특히 체크합니다."],
+          balanced: ["창밖", "외부 흐름은 무난하고 안정적인 편", "큰 결함이 적은 쪽이라 내부 동선과 침실, 책상 배치가 더 중요한 기준이 됩니다."]
+        };
+
+        [entranceMap[input.entrance_flow], bedroomMap[input.bedroom_feel], deskMap[input.desk_position], outsideMap[input.outside_flow]]
+          .filter(Boolean)
+          .forEach(([area, title, body]) => cards.push({ area, title, body }));
+
+        if (cards.length >= 4) return cards.slice(0, 4);
+
+        const fallback = [
+          { area: "현관", title: "첫 느낌이 집 전체 리듬을 잡습니다", body: "신발, 택배, 거울 위치를 먼저 보면 외부 자극이 머무는지 바로 빠지는지 감이 옵니다." },
+          { area: "침실", title: "잠이 집 핏의 1순위입니다", body: "침대가 안정되는지, 소음과 시선이 줄어드는지부터 보는 게 좋습니다." },
+          { area: "책상", title: "등 뒤 받침이 집중감을 만듭니다", body: "재택이나 공부가 잦다면 책상 위치가 집의 체감 점수를 크게 바꿉니다." },
+          { area: "창밖", title: "앞열림과 압박을 같이 봅니다", body: "트인 시야와 빠른 도로 흐름은 사람마다 다르게 체감됩니다." }
+        ];
+
+        fallback.forEach((item) => {
+          if (cards.length < 4 && !cards.some((card) => card.area === item.area)) cards.push(item);
+        });
+
+        return cards;
+      }
+
+      function renderSnapshot(payload) {
+        const input = inputFromPayload(payload);
+        const name = compactName(payload);
+        const pain = Array.isArray(input.pain_points) ? input.pain_points : [];
+        const painText = pain.length
+          ? pain.map((key) => label("pain_points", key, key)).join(", ")
+          : "아직 선택 없음";
+
+        document.getElementById("snapshot-list").innerHTML = [
+          ["기준", `${escapeHtml(name)}님의 사주 프로필과 현재 집 체감을 함께 봅니다.`],
+          ["집 형태", `${label("building_type", input.building_type)} · ${label("main_purpose", input.main_purpose, "목적 미입력")}`],
+          ["지금 고민", label("stay_decision", input.stay_decision, "고민 미입력")],
+          ["먼저 보이는 신호", painText]
+        ]
+          .map(([title, body]) => `<div class="summary-row"><strong>${title}</strong><span>${body}</span></div>`)
+          .join("");
+      }
+
+      function renderPersonalTeaser(payload) {
+        const teaser = document.getElementById("personal-teaser");
+        const mainSection = reportSection(payload, "home-fit-overall", "saju-house-ohaeng");
+        const elementSection = reportSection(payload, "saju-house-ohaeng");
+        const paragraphs = teaserParagraphs(mainSection);
+
+        if (!mainSection || paragraphs.length === 0) {
+          teaser.innerHTML = `
+            <strong>개인화 맛보기 준비 중</strong>
+            <p>입력값과 사주 계산이 연결되면, 지금 집이 나의 잠·일·돈·관계 리듬을 어떻게 건드리는지 먼저 보여줍니다.</p>
+          `;
+          return;
+        }
+
+        teaser.innerHTML = `
+          <strong>${escapeHtml(mainSection.category || "개인화 맛보기")} · ${escapeHtml(mainSection.hook || "")}</strong>
+          ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+          ${elementSection && elementSection.id !== mainSection.id ? `<p>${escapeHtml(elementSection.hook || "")}</p>` : ""}
+        `;
+      }
+
+      function renderSignals(input) {
+        document.getElementById("signal-list").innerHTML = signalCards(input)
+          .map(
+            (card) => `
+              <article class="signal-card">
+                <b>${escapeHtml(card.area)}</b>
+                <strong>${escapeHtml(card.title)}</strong>
+                <span>${escapeHtml(card.body)}</span>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function renderScope() {
+        const payload = readJsonBlock("INTERPRETATION_INDEX_PAYLOAD");
+        const groups = payload?.groups || [];
+        document.getElementById("scope-list").innerHTML = groups
+          .map(
+            (group, index) => `
+              <article class="scope-card">
+                <b>${String(index + 1).padStart(2, "0")}</b>
+                <strong>${escapeHtml(group.title)}</strong>
+                <ul>
+                  ${(group.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function applyPayload(payload) {
+        const input = inputFromPayload(payload);
+        const name = compactName(payload);
+        const verdict = deriveVerdict(input);
+        const firstSection = reportSection(payload, "home-fit-overall");
+        document.getElementById("page-title").textContent = `이 집은 지금 ${name}님에게 ${verdict.label}으로 보입니다`;
+        document.getElementById("hero-summary").textContent = firstSection?.hook
+          ? `${firstSection.hook} 무료 방향에서는 가장 강한 생활 신호만 먼저 잡습니다.`
+          : `${verdict.summary} 무료 방향에서는 가장 강한 생활 신호만 먼저 잡습니다.`;
+        document.getElementById("verdict-label").textContent = verdict.label;
+        document.getElementById("verdict-title").textContent = firstSection?.category || verdict.title;
+        document.getElementById("verdict-summary").textContent = firstSection?.hook || verdict.summary;
+        renderSnapshot(payload);
+        renderPersonalTeaser(payload);
+        renderSignals(input);
+      }
+
+      function init() {
+        renderScope();
+        const payload = safeParse(fromSession(STORAGE_KEYS.input));
+        if (!payload || payload.service?.service_key !== SERVICE.service_key) {
+          document.getElementById("missing-input").classList.add("is-open");
+          renderSignals({});
+        } else {
+          applyPayload(payload);
+        }
+
+        document.querySelectorAll("[data-action='open-paid']").forEach((link) => {
+          link.addEventListener("click", () => {
+            toSession(STORAGE_KEYS.paymentIntent, {
+              service: SERVICE,
+              requested_at: new Date().toISOString(),
+              from_stage: "04-step-4-report",
+              amount_krw: SERVICE.price_krw,
+              next_route: SERVICE.next_route,
+              report_id: payload?.reportId || payload?.analysis?.report?.reportId || "",
+              input_payload_present: Boolean(payload)
+            });
+          });
+        });
+      }
+
+      init();
+    </script>
+    <div data-umsh-service-bottom></div>
+    <script src="/js/service-shell.js?v=20260902-address-shell"></script>
+  </body>
+</html>

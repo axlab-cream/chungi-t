@@ -9,7 +9,6 @@ import type {
 } from '../types/index.js'
 import { ELEMENT_KO } from '../saju/analyzer-helpers.js'
 import { pillarLabel } from '../saju/calculator.js'
-import { normalizeReportCopy } from './copy-guide.js'
 
 interface QualityRule {
   id: string
@@ -58,125 +57,38 @@ const LOVE_THIS_YEAR_QUALITY_RULES: QualityRule[] = [
   { id: 'love-rag', label: 'LOVE RAG 근거성', sectionIds: ['love-year-possibility', 'love-dohwa-months', 'love-partner-compatibility'], expectedTerms: ['이번 장은', '대조', '관계', '시기', '상대'] },
 ]
 
+const HOME_FIT_QUALITY_RULES: QualityRule[] = [
+  { id: 'home-overall', label: '집 풍수 적합도', sectionIds: ['home-fit-overall'], expectedTerms: ['집', '풍수', '사주', '오행', '목적'] },
+  { id: 'home-energy', label: '집의 기본 기운', sectionIds: ['house-energy'], expectedTerms: ['현관', '창밖', '동선', '앞', '뒤'] },
+  { id: 'home-ohaeng', label: '사주 × 집 오행 핏', sectionIds: ['saju-house-ohaeng'], expectedTerms: ['오행', '목', '화', '토', '금', '수'] },
+  { id: 'home-sleep', label: '잠·회복·멘탈 리듬', sectionIds: ['sleep-recovery'], expectedTerms: ['잠', '회복', '침실', '멘탈', '조명'], riskExpected: true },
+  { id: 'home-entrance', label: '현관·동선 에너지', sectionIds: ['entrance-flow'], expectedTerms: ['현관', '동선', '문', '신발', '들어오는'] },
+  { id: 'home-focus', label: '재택·공부·일 집중력', sectionIds: ['remote-focus'], expectedTerms: ['책상', '재택', '공부', '일', '집중'] },
+  { id: 'home-money', label: '돈·살림·소비 흐름', sectionIds: ['money-living'], expectedTerms: ['돈', '살림', '소비', '수납', '주방'], riskExpected: true },
+  { id: 'home-relationship', label: '관계·가족·동거 케미', sectionIds: ['relationship-cohabitation'], expectedTerms: ['관계', '가족', '동거', '공간', '거리감'] },
+  { id: 'home-fix', label: '공간별 손질 처방', sectionIds: ['spatial-fix'], expectedTerms: ['손질', '처방', '현관', '침실', '책상'] },
+  { id: 'home-action', label: '현실 체크 & 액션 플랜', sectionIds: ['reality-action'], expectedTerms: ['현실', '이사', '7일', '테스트', '판단'], riskExpected: true },
+  { id: 'home-grounding', label: 'HOME RAG 근거성', sectionIds: ['home-fit-overall', 'saju-house-ohaeng', 'reality-action'], expectedTerms: ['이번 장은', '대조', '사주', '공간', '기준'] },
+]
+
+const WORK_MOVE_QUALITY_RULES: QualityRule[] = [
+  { id: 'work-decision', label: '이직 최종 판단', sectionIds: ['work-move-decision'], expectedTerms: ['이직', '회사', '판단', '대운', '세운'] },
+  { id: 'work-current-signal', label: '현 회사 신호', sectionIds: ['current-company-signal'], expectedTerms: ['현 회사', '역할', '관성', '신호', '반복'] },
+  { id: 'work-constitution', label: '커리어 체질', sectionIds: ['career-constitution'], expectedTerms: ['일간', '오행', '신강', '신약', '용신'] },
+  { id: 'work-role-fit', label: '직무 핏', sectionIds: ['role-fit'], expectedTerms: ['직무', '십신', '비견', '식상', '관성'] },
+  { id: 'work-new-company', label: '새 회사 궁합', sectionIds: ['new-company-fit'], expectedTerms: ['새 회사', '근무', '이동', '환경', '책임'] },
+  { id: 'work-money-terms', label: '연봉·계약 조건', sectionIds: ['money-terms'], expectedTerms: ['연봉', '계약', '업무범위', '돈', '재성'], riskExpected: true },
+  { id: 'work-timing', label: '이직 타이밍', sectionIds: ['timing-daewoon-sewoon'], expectedTerms: ['대운', '세운', '타이밍', '퇴사', '입사'] },
+  { id: 'work-risk', label: '리스크 브레이크', sectionIds: ['risk-brake'], expectedTerms: ['위험', '브레이크', '번아웃', '계약', '경고'], riskExpected: true },
+  { id: 'work-action', label: '90일 액션', sectionIds: ['ninety-day-action'], expectedTerms: ['90일', '이력서', '포트폴리오', '면접', '퇴사'] },
+  { id: 'work-grounding', label: 'WORK RAG 근거성', sectionIds: ['work-move-decision', 'money-terms', 'final-checklist'], expectedTerms: ['이번 장은', '대조', '사주', '조건', '기준'] },
+]
+
 const TONE_SIGNALS = ['흠', '보입니다', '그 이유', '좋은 말만', '위험', '조심', '시기적으로', '풀 방법', '경고', '흐름', '기운', '기준']
 const RISK_SIGNALS = ['좋은 말만', '위험', '방치', '조심', '돈구멍', '과속', '경고']
-const SPECIALIZED_SERVICE_KEYS = new Set([
-  'home_pungsu',
-  'money_save',
-  'work_move',
-  'work_job',
-  'marry_match',
-  'match_couple',
-  'love_mind',
-  'love_again',
-  'love_spouse',
-])
-
-const SPECIALIZED_SIGNALS: Record<string, string[]> = {
-  home_pungsu: ['주소', '현관', '거실', '침실', '주방', '욕실', '공간', '방향', '빛', '환기', '동선', '정리', '재배치', '생활'],
-  money_save: ['소비', '돈', '재성', '비겁', '수입', '지출', '저축', '습관', '관계 비용', '목표'],
-  work_move: ['이직', '퇴사', '직장', '회사', '대운', '세운', '관성', '조건', '계약', '전환', '지원', '면접'],
-  work_job: ['직업', '일', '직장', '관성', '식상', '적성', '업무', '결과물', '환경', '역량'],
-  marry_match: ['결혼', '궁합', '배우자궁', '배우자성', '합충', '생활', '책임', '갈등', '돈', '대운', '세운'],
-  match_couple: ['커플', '궁합', '일지', '오행', '끌림', '갈등', '회복', '연애', '약속', '거리'],
-  love_mind: ['상대', '마음', '궁합', '관계', '연락', '감정', '일지', '합충', '거리', '확인'],
-  love_again: ['재회', '이별', '상대', '세운', '궁합', '관계', '연락', '미련', '정리', '확인'],
-  love_spouse: ['배우자', '결혼', '배우자궁', '배우자성', '자미두수', '인연', '생활', '책임', '대운', '세운'],
-}
-
-const SPECIALIZED_ACTION_SIGNALS = ['확인', '기록', '정리', '대화', '약속', '기준', '살펴', '나누', '점검', '시도', '적어', '상한선', '재배치']
-const INTERNAL_COPY_TERMS = ['RAG', '코퍼스', '검색된 지식', '지식 블록']
 
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)))
-}
-
-function specializedCategoryLabel(serviceKey: string, category: string): string {
-  return `${serviceKey} ${category}`
-}
-
-function specializedSectionScore(
-  serviceKey: string,
-  section: SajuReportSection,
-  analysis: SajuAnalysis,
-  context: SajuReportContext,
-): SajuReportQualityCategory {
-  const signals = SPECIALIZED_SIGNALS[serviceKey] ?? []
-  const text = `${specializedCategoryLabel(serviceKey, section.category)} ${section.classification} ${section.hook} ${section.ragTopics.join(' ')} ${section.interpretation}`
-  const paragraphCount = section.interpretation.split(/\n\s*\n/).filter(Boolean).length
-  const lengthScore = clampPercent(Math.min(100, (section.interpretation.length / 1200) * 100))
-  const structureScore = paragraphCount >= 6 ? 100 : paragraphCount >= 5 ? 82 : paragraphCount >= 3 ? 58 : 25
-  const signalHits = includesAny(text, signals)
-  const analysisHit = includesAny(text, analysisTerms(analysis))
-  const contextHit = includesAny(text, contextTerms(context))
-  const actionHit = includesAny(text, SPECIALIZED_ACTION_SIGNALS)
-  const internalTermCount = includesAny(section.interpretation, INTERNAL_COPY_TERMS)
-  const ragUsagePercent = clampPercent(
-    (section.ragTopics.length > 0 ? 45 : 0) +
-    (section.ragTopics.length >= 3 ? 20 : section.ragTopics.length >= 2 ? 12 : 0) +
-    (signalHits >= 3 ? 20 : signalHits > 0 ? 10 : 0) +
-    (analysisHit > 0 ? 15 : 0),
-  )
-  const corpusRelevancePercent = clampPercent(
-    (signalHits >= 5 ? 50 : signalHits >= 3 ? 38 : signalHits * 10) +
-    (section.category.trim() && section.classification.trim() ? 20 : 0) +
-    (contextHit > 0 ? 15 : 0) +
-    (analysisHit > 0 ? 15 : 0),
-  )
-  const toneGroundingPercent = clampPercent(
-    structureScore * 0.28 +
-    lengthScore * 0.42 +
-    (actionHit > 0 ? 18 : 0) +
-    (internalTermCount === 0 ? 14 : 0),
-  )
-  const llmGroundingPercent = section.generatedBy === 'openai'
-    ? clampPercent((section.interpretation.length >= 1000 ? 45 : 25) + (paragraphCount >= 6 ? 25 : 10) + (analysisHit > 0 ? 20 : 0) + (contextHit > 0 ? 10 : 0))
-    : 0
-  const completenessBase = (
-    ragUsagePercent * 0.22 +
-    corpusRelevancePercent * 0.25 +
-    toneGroundingPercent * 0.38 +
-    (section.generatedBy === 'openai' ? llmGroundingPercent * 0.15 : (actionHit > 0 ? 15 : 7.5))
-  )
-  const completenessPercent = clampPercent(
-    Math.min(section.generatedBy === 'openai' ? 100 : 82, completenessBase),
-  )
-
-  return {
-    id: section.id,
-    label: section.classification,
-    ragUsagePercent,
-    corpusRelevancePercent,
-    toneGroundingPercent,
-    llmGroundingPercent,
-    completenessPercent,
-    sectionIds: [section.id],
-    evidence: [
-      `분류 신호 ${signalHits}/${Math.max(1, signals.length)}`,
-      `RAG topics ${section.ragTopics.length}`,
-      `명식 근거 ${analysisHit}`,
-      contextHit > 0 ? `사용자 맥락 ${contextHit}` : '사용자 맥락 직접 반영 약함',
-      actionHit > 0 ? `행동 기준 ${actionHit}` : '행동 기준 약함',
-      internalTermCount === 0 ? '내부 용어 미노출' : `내부 용어 ${internalTermCount}건`,
-    ],
-  }
-}
-
-function evaluateSpecializedReportQuality(
-  report: SajuReport,
-  analysis: SajuAnalysis,
-  context: SajuReportContext,
-): SajuReportQuality {
-  const serviceKey = context.serviceKey ?? ''
-  const categories = report.sections.map((section) => specializedSectionScore(serviceKey, section, analysis, context))
-  return {
-    overallPercent: clampPercent(avg(categories.map((category) => category.completenessPercent))),
-    ragUsagePercent: clampPercent(avg(categories.map((category) => category.ragUsagePercent))),
-    corpusRelevancePercent: clampPercent(avg(categories.map((category) => category.corpusRelevancePercent))),
-    toneGroundingPercent: clampPercent(avg(categories.map((category) => category.toneGroundingPercent))),
-    llmGroundingPercent: clampPercent(avg(categories.map((category) => category.llmGroundingPercent))),
-    categories,
-  }
 }
 
 function avg(values: number[]): number {
@@ -194,6 +106,124 @@ function selectedSections(report: SajuReport, ids: string[]): SajuReportSection[
     .filter((section): section is SajuReportSection => Boolean(section))
 }
 
+const HOME_CONTEXT_TERMS: Record<string, string> = {
+  apartment: '아파트',
+  officetel: '오피스텔',
+  villa: '빌라',
+  studio: '원룸',
+  house: '단독',
+  under_3m: '3개월',
+  '3m_1y': '1년',
+  '1y_3y': '1~3년',
+  over_3y: '3년',
+  rest: '잠',
+  work: '재택',
+  money: '돈',
+  relationship: '관계',
+  move: '이사',
+  stay: '계속',
+  fix: '손',
+  compare: '비교',
+  unknown: '궁금',
+  sleep: '잠',
+  entrance: '현관',
+  focus: '집중',
+  direct: '한 줄',
+  bent: '꺾',
+  blocked: '가려',
+  quiet: '조용',
+  window_road: '소음',
+  door_line: '문',
+  too_bright: '빛',
+  back_wall: '벽',
+  back_window: '창',
+  face_door: '문',
+  mixed_rest: '쉬는 자리',
+  open: '트여',
+  pressed: '압박',
+  road_noise: '소음',
+  balanced: '안정',
+}
+
+function homeContextTerms(context: SajuReportContext): string[] {
+  const home = context.home
+  if (!home) return []
+  const raw = [
+    home.addressOrBuilding,
+    home.roadAddress,
+    home.jibunAddress,
+    home.zonecode,
+    home.sido,
+    home.sigungu,
+    home.bname,
+    home.buildingName,
+    home.buildingType,
+    home.livingPeriod,
+    home.mainPurpose,
+    home.stayDecision,
+    ...(home.painPoints ?? []),
+    home.entranceFlow,
+    home.bedroomFeel,
+    home.deskPosition,
+    home.outsideFlow,
+    home.extraNote,
+  ].filter((value): value is string => Boolean(value && value.trim()))
+  return [...raw, ...raw.map((value) => HOME_CONTEXT_TERMS[value]).filter((value): value is string => Boolean(value))]
+}
+
+const WORK_MOVE_CONTEXT_TERMS: Record<string, string> = {
+  move_considering: '이직',
+  offer_review: '오퍼',
+  resignation_timing: '퇴사',
+  internal_transfer: '부서',
+  job_search_start: '이력서',
+  role_blur: '역할',
+  authority_blur: '결정권',
+  boss_pressure: '상사',
+  peer_competition: '경쟁',
+  recognition_gap: '인정',
+  burnout: '번아웃',
+  office: '사무실',
+  hybrid: '하이브리드',
+  remote: '원격',
+  shift: '교대',
+  field: '현장',
+  clear_up: '상승',
+  slight_up: '상승',
+  similar: '비슷',
+  down_for_growth: '성장',
+  unclear: '불명확',
+  money: '돈',
+  growth: '성장',
+  mental: '멘탈',
+  timing: '타이밍',
+  people: '사람',
+  stability: '안정',
+  resume_ready: '이력서',
+  offer_terms_checked: '계약',
+  buffer_ready: '버퍼',
+  exit_script_ready: '퇴사',
+}
+
+function workMoveContextTerms(context: SajuReportContext): string[] {
+  const workMove = context.workMove
+  if (!workMove) return []
+  const raw = [
+    workMove.decisionMode,
+    workMove.currentCompanySignal,
+    workMove.targetCompanyName,
+    workMove.targetRole,
+    workMove.workType,
+    workMove.commuteLocation,
+    workMove.salaryFeeling,
+    workMove.decisionDate,
+    workMove.discomfortPoint,
+    workMove.priority,
+    ...(workMove.realityChecks ?? []),
+  ].filter((value): value is string => Boolean(value && value.trim()))
+  return [...raw, ...raw.map((value) => WORK_MOVE_CONTEXT_TERMS[value]).filter((value): value is string => Boolean(value))]
+}
+
 function contextTerms(context: SajuReportContext): string[] {
   return [
     context.serviceKey,
@@ -208,6 +238,8 @@ function contextTerms(context: SajuReportContext): string[] {
     context.partner?.dayMasterElement,
     context.partner?.dominantElement,
     ...(context.partner?.tenGods ?? []),
+    ...homeContextTerms(context),
+    ...workMoveContextTerms(context),
   ].filter((value): value is string => Boolean(value && value.trim()))
 }
 
@@ -307,10 +339,13 @@ export function evaluateReportQuality(
   analysis: SajuAnalysis,
   context: SajuReportContext = {},
 ): SajuReportQuality {
-  if (context.serviceKey && SPECIALIZED_SERVICE_KEYS.has(context.serviceKey)) {
-    return evaluateSpecializedReportQuality(report, analysis, context)
-  }
-  const rules = context.serviceKey === 'love_this_year' ? LOVE_THIS_YEAR_QUALITY_RULES : QUALITY_RULES
+  const rules = context.serviceKey === 'love_this_year'
+    ? LOVE_THIS_YEAR_QUALITY_RULES
+    : context.serviceKey === 'home_fit'
+      ? HOME_FIT_QUALITY_RULES
+      : context.serviceKey === 'work_move'
+        ? WORK_MOVE_QUALITY_RULES
+        : QUALITY_RULES
   const categories = rules.map((rule) => scoreCategory(rule, report, analysis, context))
 
   return {
@@ -321,14 +356,4 @@ export function evaluateReportQuality(
     llmGroundingPercent: clampPercent(avg(categories.map((category) => category.llmGroundingPercent))),
     categories,
   }
-}
-
-export function finalizeSpecializedReport(
-  report: SajuReport,
-  analysis: SajuAnalysis,
-  context: SajuReportContext,
-): SajuReport {
-  const normalized = normalizeReportCopy(report)
-  normalized.quality = evaluateReportQuality(normalized, analysis, context)
-  return normalized
 }

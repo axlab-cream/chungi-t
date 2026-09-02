@@ -1,0 +1,509 @@
+.umsh-service-shell,
+.umsh-service-bottom,
+.umsh-service-toast {
+  --shell-width: 440px;
+  --shell-black-1000: #050504;
+  --shell-black-950: #080807;
+  --shell-black-900: #0c0b0a;
+  --shell-gold-600: #9e7b35;
+  --shell-gold-500: #c5a152;
+  --shell-gold-400: #d8ba72;
+  --shell-gold-300: #e8d49a;
+  --shell-gold-200: #f0e2b8;
+  --shell-cream-100: #f7f2e9;
+  --shell-muted: #a39a8c;
+  --shell-muted-2: #746e64;
+  --shell-line: rgba(216, 186, 114, 0.22);
+  --shell-line-soft: rgba(247, 242, 233, 0.1);
+  --shell-gradient: linear-gradient(120deg, #846427 0%, #b99142 27%, #e0c47b 54%, #f1e3b1 72%, #9a7531 100%);
+  --shell-font-ui: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+body.has-umsh-service-shell:not(.has-service-fixed-bottom) .app {
+  padding-bottom: 84px;
+}
+
+body.has-umsh-service-shell.has-chat-fixed-bottom .app {
+  padding-bottom: 212px;
+}
+
+body.has-umsh-service-shell.has-detail-fixed-bottom .app {
+  padding-bottom: 230px;
+}
+
+body.has-umsh-service-shell .cta-stack {
+  bottom: 74px;
+}
+
+body.has-umsh-service-shell .chat-input,
+body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] {
+  bottom: 74px;
+}
+
+.umsh-service-shell {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  width: 100%;
+  border-bottom: 1px solid var(--shell-line-soft);
+  background: var(--shell-black-950);
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+}
+
+.umsh-service-shell button,
+.umsh-service-bottom button {
+  border: 0;
+  color: inherit;
+  font: inherit;
+}
+
+.umsh-service-shell a,
+.umsh-service-bottom a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.umsh-service-shell .appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 21px 20px 12px;
+  border-bottom: 1px solid var(--shell-line-soft);
+  background: rgba(8, 8, 7, 0.96);
+}
+
+.umsh-service-shell .app-brand {
+  display: inline-grid;
+  gap: 1px;
+}
+
+.umsh-service-shell .app-brand img {
+  display: block;
+  width: 132px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.umsh-service-shell .app-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.umsh-service-shell .circle-button {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--shell-line);
+  border-radius: 50%;
+  background: rgba(216, 186, 114, 0.035);
+  color: var(--shell-gold-300);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-shell .circle-button:hover,
+.umsh-service-shell .circle-button:focus-visible,
+.umsh-service-shell .circle-button.is-pressing {
+  border-color: rgba(232, 212, 154, 0.74);
+  background: rgba(216, 186, 114, 0.12);
+  box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.08);
+  color: var(--shell-gold-200);
+  transform: translateY(-1px);
+}
+
+.umsh-service-shell .category-rail {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 12px 20px 16px;
+  background: var(--shell-black-950);
+  cursor: grab;
+  scrollbar-width: none;
+}
+
+.umsh-service-shell .category-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.umsh-service-shell .chip {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 32px;
+  overflow: hidden;
+  padding: 0 12px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: #aaa196;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 850;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.umsh-service-shell .chip.is-active {
+  border-color: var(--shell-gold-400);
+  background: var(--shell-gold-400);
+  color: var(--shell-black-950);
+  font-weight: 950;
+}
+
+.umsh-service-shell .chip:hover,
+.umsh-service-shell .chip:focus-visible {
+  border-color: rgba(216, 186, 114, 0.48);
+  background: rgba(216, 186, 114, 0.08);
+  color: var(--shell-gold-200);
+  transform: translateY(-1px);
+}
+
+.umsh-service-shell .chip.is-active:hover,
+.umsh-service-shell .chip.is-active:focus-visible {
+  color: var(--shell-black-950);
+}
+
+.umsh-service-shell .action-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 95;
+  display: flex;
+  width: min(var(--shell-width), 100vw);
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 74px 14px 0;
+  background: rgba(5, 5, 4, 0);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: background 180ms ease, opacity 180ms ease;
+}
+
+body.is-umsh-top-menu-open .umsh-service-shell .action-panel {
+  background: rgba(5, 5, 4, 0.52);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.umsh-service-shell .action-sheet {
+  display: grid;
+  width: min(260px, calc(100vw - 32px));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(216, 186, 114, 0.24);
+  border-radius: 18px;
+  background: radial-gradient(circle at 86% 0%, rgba(216, 186, 114, 0.14), transparent 9rem), rgba(12, 11, 10, 0.98);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.52);
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition: transform 180ms ease;
+}
+
+body.is-umsh-top-menu-open .umsh-service-shell .action-sheet {
+  transform: translateY(0) scale(1);
+}
+
+.umsh-service-shell .action-sheet button {
+  position: relative;
+  min-height: 58px;
+  overflow: hidden;
+  padding: 12px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 14px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--shell-cream-100);
+  cursor: pointer;
+  text-align: left;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-shell .action-sheet button:hover,
+.umsh-service-shell .action-sheet button:focus-visible {
+  border-color: var(--shell-line);
+  background: rgba(216, 186, 114, 0.1);
+  transform: translateX(-2px);
+}
+
+.umsh-service-shell .action-sheet strong,
+.umsh-service-shell .action-sheet span {
+  display: block;
+}
+
+.umsh-service-shell .action-sheet strong {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.umsh-service-shell .action-sheet span {
+  margin-top: 4px;
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.umsh-service-bottom {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 80;
+  width: min(var(--shell-width), 100vw);
+  margin: 0 auto;
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+}
+
+.umsh-service-bottom .bottom-menu-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 82;
+  display: flex;
+  width: min(var(--shell-width), 100vw);
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px 86px;
+  background: rgba(5, 5, 4, 0);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: background 180ms ease, opacity 180ms ease;
+}
+
+body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-panel {
+  background: rgba(5, 5, 4, 0.56);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.umsh-service-bottom .bottom-menu-sheet {
+  width: 100%;
+  max-height: min(520px, calc(100dvh - 164px));
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(216, 186, 114, 0.24);
+  border-radius: 18px;
+  background: radial-gradient(circle at 92% 8%, rgba(216, 186, 114, 0.16), transparent 12rem), rgba(12, 11, 10, 0.98);
+  box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.54);
+  transform: translateY(12px) scale(0.985);
+  transition: transform 180ms ease;
+}
+
+body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
+  transform: translateY(0) scale(1);
+}
+
+.umsh-service-bottom .bottom-menu-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 2px 12px;
+}
+
+.umsh-service-bottom .bottom-menu-head span {
+  display: block;
+  color: var(--shell-gold-400);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.umsh-service-bottom .bottom-menu-head strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--shell-cream-100);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.umsh-service-bottom .bottom-menu-head p {
+  max-width: 250px;
+  margin: 5px 0 0;
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.umsh-service-bottom .bottom-menu-close {
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 999px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--shell-gold-300);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.umsh-service-bottom .bottom-menu-list {
+  display: grid;
+  gap: 8px;
+}
+
+.umsh-service-bottom .bottom-menu-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 12px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 14px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--shell-cream-100);
+  cursor: pointer;
+  text-align: left;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-bottom .bottom-menu-item:hover,
+.umsh-service-bottom .bottom-menu-item:focus-visible {
+  border-color: rgba(216, 186, 114, 0.42);
+  background: rgba(216, 186, 114, 0.09);
+  transform: translateY(-1px);
+}
+
+.umsh-service-bottom .bottom-menu-item strong,
+.umsh-service-bottom .bottom-menu-item small {
+  display: block;
+  min-width: 0;
+  word-break: keep-all;
+}
+
+.umsh-service-bottom .bottom-menu-item strong {
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.umsh-service-bottom .bottom-menu-item small {
+  margin-top: 4px;
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.45;
+}
+
+.umsh-service-bottom .bottom-menu-item em {
+  display: inline-grid;
+  min-width: 48px;
+  height: 30px;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(216, 186, 114, 0.32);
+  border-radius: 999px;
+  color: var(--shell-gold-300);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.umsh-service-bottom .bottom-nav {
+  position: relative;
+  z-index: 84;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: 74px;
+  border-top: 1px solid var(--shell-line-soft);
+  background: rgba(8, 8, 7, 0.96);
+}
+
+.umsh-service-bottom .bottom-nav button {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+  color: var(--shell-muted-2);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.umsh-service-bottom .bottom-nav .is-active {
+  color: var(--shell-gold-300);
+}
+
+.umsh-service-bottom .bottom-nav .is-active::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--shell-gold-400);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.umsh-service-bottom .tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 3px;
+  text-overflow: ellipsis;
+}
+
+.umsh-service-bottom .bottom-nav button:hover,
+.umsh-service-bottom .bottom-nav button:focus-visible {
+  background: rgba(216, 186, 114, 0.07);
+  color: var(--shell-gold-200);
+}
+
+.umsh-service-toast {
+  position: fixed;
+  right: max(18px, calc((100vw - var(--shell-width)) / 2 + 18px));
+  bottom: 92px;
+  z-index: 100;
+  max-width: min(320px, calc(100% - 36px));
+  padding: 13px 16px;
+  border: 1px solid var(--shell-line);
+  border-radius: 14px;
+  background: var(--shell-black-900);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.36);
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+  font-size: 13px;
+  font-weight: 850;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 372px) {
+  .umsh-service-shell .appbar {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .umsh-service-shell .category-rail {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .umsh-service-shell .app-brand img {
+    width: 122px;
+  }
+}

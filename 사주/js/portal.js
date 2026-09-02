@@ -18,9 +18,7 @@
   const pendingCards = Array.from(document.querySelectorAll('[data-soon], .is-soon'));
   const sectionBlocks = Array.from(document.querySelectorAll('.section-block'));
   const dragRails = Array.from(document.querySelectorAll('.poster-rail, .category-rail, .price-rail'));
-  const mainPosterRail = document.querySelector('#services');
-  const posterPageText = document.querySelector('[data-poster-page]');
-  const liveLinks = Array.from(document.querySelectorAll('a.service-card[href]'));
+  const liveLinks = Array.from(document.querySelectorAll('a.is-live, a.is-cmdg'));
   const actionButtons = Array.from(document.querySelectorAll('[data-action]'));
   const menuFilterButtons = Array.from(document.querySelectorAll('[data-menu-filter]'));
   const menuShortcutButtons = Array.from(document.querySelectorAll('[data-menu-shortcut]'));
@@ -38,9 +36,6 @@
   let authClient = null;
   let authSession = null;
   let authInitPromise = null;
-  let posterAutoTimer = 0;
-  let posterResumeTimer = 0;
-  let posterPagerFrame = 0;
 
   const protectedMenuIds = new Set(['destiny', 'vault', 'account']);
   const protectedDestinations = {
@@ -61,7 +56,7 @@
     account: {
       eyebrow: 'LOCKED MY',
       title: 'MY',
-      href: '/my',
+      href: '/signup?entry=my',
       entry: 'my',
       desc: '내 계정과 사주 프로필을 확인하고 수정하는 메뉴입니다.',
     },
@@ -71,18 +66,18 @@
     home: {
       eyebrow: 'HOME',
       title: '홈',
-      desc: '지금 필요한 풀이를 고르고 무료 운부터 시작합니다.',
+      desc: '운명상회 첫 화면과 대표 상품으로 이동합니다.',
       items: [
         { label: '홈 맨 위', meta: '처음 화면으로 이동', action: 'scroll-top', status: '이동' },
-        { label: '대표 상품 보기', meta: '요즘 많이 고른 풀이', action: 'focus-services', status: '보기' },
-        { label: '오늘운 무료 보기', meta: '오늘 흐름과 피할 선택 확인', href: '/today/free', status: '무료' },
-        { label: '천명사주 보기', meta: '종합사주 풀이 시작하기', href: '/cmdg/', status: '시작' },
+        { label: '대표 상품 보기', meta: '천명대공과 추천 상품', action: 'focus-services', status: '보기' },
+        { label: '오늘운 무료 보기', meta: '회원가입 후 오늘 흐름 확인', href: '/signup?entry=today', status: '무료' },
+        { label: '가격 사다리', meta: '무료부터 종합사주까지', action: 'focus-pricing', status: '확인' },
       ],
     },
     search: {
       eyebrow: 'SEARCH',
       title: '검색',
-      desc: '지금 궁금한 주제부터 한 번에 골라보세요.',
+      desc: '궁금한 주제나 상품 분류로 빠르게 좁혀보세요.',
       search: true,
       items: [
         { label: '전체 상품', meta: '모든 운세 메뉴 보기', action: 'filter', category: 'all', status: '전체' },
@@ -98,7 +93,7 @@
     vault: {
       eyebrow: 'VAULT',
       title: '보관함',
-      desc: '저장한 풀이와 결제한 리포트를 다시 엽니다.',
+      desc: '저장한 풀이와 상담 기록을 다시 여는 곳입니다.',
       items: [
         { label: '풀이 보관함 열기', meta: '저장된 리포트 목록 보기', href: '/cmdg/#vault', status: '열기' },
         { label: '새 사주 저장하기', meta: '새 풀이를 만들고 보관함에 저장', href: '/cmdg/#name', status: '입력' },
@@ -109,14 +104,12 @@
     account: {
       eyebrow: 'MY',
       title: 'MY',
-      desc: '로그인, 사주 프로필, 결제·환불, 고객센터를 관리합니다.',
+      desc: '로그인과 사주등록을 마친 뒤 내 사주 프로필을 관리합니다.',
       items: [
-        { label: '마이페이지', meta: '계정·결제·환불·고객센터 허브', href: '/my', status: 'MY' },
-        { label: '개인정보 수정', meta: '이름과 생년월일 등 사주 프로필', href: '/profile', status: '수정' },
-        { label: '보관함', meta: '저장한 풀이와 상담 기록', href: '/cmdg/#vault', status: '열기' },
-        { label: '결제 내역', meta: '주문과 풀이 진입점', href: '/orders', status: '내역' },
-        { label: '환불 신청 · 내역', meta: '결제 건 기준 환불 문의', href: '/refunds', status: '환불' },
-        { label: '고객센터', meta: 'FAQ와 문의 접수', href: '/support', status: '문의' },
+        { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
+        { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
+        { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/cmdg/#vault', status: '보기' },
+        { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/cmdg/#support', status: '문의' },
       ],
     },
   };
@@ -200,71 +193,6 @@
     });
   }
 
-  function visiblePosters(rail = mainPosterRail) {
-    return rail ? Array.from(rail.querySelectorAll('.poster:not(.is-hidden)')) : [];
-  }
-
-  function currentPosterIndex(rail = mainPosterRail) {
-    const cards = visiblePosters(rail);
-    if (!cards.length || !rail) return -1;
-
-    const railCenter = rail.scrollLeft + rail.clientWidth / 2;
-    return cards.reduce((closest, card, index) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const distance = Math.abs(cardCenter - railCenter);
-      return distance < closest.distance ? { index, distance } : closest;
-    }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
-  }
-
-  function updatePosterPager() {
-    posterPagerFrame = 0;
-    if (!posterPageText) return;
-
-    const cards = visiblePosters();
-    const total = cards.length;
-    posterPageText.textContent = `${total ? currentPosterIndex() + 1 : 0}/${total}`;
-  }
-
-  function schedulePosterPagerUpdate() {
-    if (posterPagerFrame) return;
-    posterPagerFrame = window.requestAnimationFrame(updatePosterPager);
-  }
-
-  function scrollPosterToIndex(index) {
-    const cards = visiblePosters();
-    if (!mainPosterRail || !cards.length) return;
-    const card = cards[Math.max(0, Math.min(cards.length - 1, index))];
-    mainPosterRail.scrollTo({
-      left: card.offsetLeft - (mainPosterRail.clientWidth - card.offsetWidth) / 2,
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    });
-  }
-
-  function stopPosterAutoRoll() {
-    window.clearInterval(posterAutoTimer);
-    posterAutoTimer = 0;
-  }
-
-  function startPosterAutoRoll() {
-    stopPosterAutoRoll();
-    if (!mainPosterRail || prefersReducedMotion() || visiblePosters().length < 2) return;
-
-    posterAutoTimer = window.setInterval(() => {
-      const cards = visiblePosters();
-      if (document.hidden || cards.length < 2) return;
-      const nextIndex = (currentPosterIndex() + 1) % cards.length;
-      scrollPosterToIndex(nextIndex);
-      window.setTimeout(schedulePosterPagerUpdate, 360);
-    }, 4200);
-  }
-
-  function pausePosterAutoRoll(resumeDelay = 5200) {
-    stopPosterAutoRoll();
-    window.clearTimeout(posterResumeTimer);
-    if (!mainPosterRail || prefersReducedMotion()) return;
-    posterResumeTimer = window.setTimeout(startPosterAutoRoll, resumeDelay);
-  }
-
   function bindMouseDrag(rail) {
     let pointerId = 0;
     let startX = 0;
@@ -283,8 +211,6 @@
       startScrollLeft = rail.scrollLeft;
       didDrag = false;
       rail.classList.add('is-drag-ready');
-      if (rail.classList.contains('poster-rail')) pausePosterAutoRoll(6200);
-      // Do NOT capture yet — early capture steals click from child links/buttons on desktop.
     });
 
     rail.addEventListener('pointermove', (event) => {
@@ -304,7 +230,6 @@
       if (!didDrag) return;
       event.preventDefault();
       rail.scrollLeft = startScrollLeft - deltaX;
-      if (rail.classList.contains('poster-rail')) schedulePosterPagerUpdate();
     });
 
     function finishDrag(event) {
@@ -325,8 +250,6 @@
         rail.dataset.dragged = '1';
         if (rail.classList.contains('poster-rail')) {
           snapToNearestCard(rail);
-          window.setTimeout(schedulePosterPagerUpdate, 320);
-          pausePosterAutoRoll(6200);
         }
         window.setTimeout(() => {
           delete rail.dataset.dragged;
@@ -344,10 +267,6 @@
       event.preventDefault();
       event.stopImmediatePropagation();
     }, true);
-
-    if (rail.classList.contains('poster-rail')) {
-      rail.addEventListener('scroll', schedulePosterPagerUpdate, { passive: true });
-    }
   }
 
   function setFilter(category, options = {}) {
@@ -363,9 +282,6 @@
       const isMatch = selectedCategory === 'all' || card.dataset.category === selectedCategory;
       card.classList.toggle('is-hidden', !isMatch);
     });
-
-    updatePosterPager();
-    startPosterAutoRoll();
 
     sectionBlocks.forEach((section) => {
       const sectionCards = Array.from(section.querySelectorAll('.service-card'));
@@ -419,14 +335,11 @@
       scrollHorizontalCardIntoView(firstVisible);
       flashReadableTarget(firstVisible);
     }
-
-    updatePosterPager();
-    startPosterAutoRoll();
   }
 
   function showToast(message) {
     if (!toast) return;
-    toast.textContent = message || '확인할 메뉴를 선택해 주세요.';
+    toast.textContent = message || '이 서비스는 다음 단계에서 연결됩니다.';
     toast.classList.add('is-visible');
     window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => {
@@ -504,16 +417,13 @@
       const config = await configRes.json();
       authConfigData = config;
       if (!config.enabled || !window.supabase?.createClient) return null;
-      authClient = window.UMSHAuthSession?.createClient(window.supabase, config.url, config.publishableKey)
-        || window.supabase.createClient(config.url, config.publishableKey, {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            flowType: 'pkce',
-            storage: window.localStorage,
-          },
-        });
+      authClient = window.supabase.createClient(config.url, config.publishableKey, {
+        auth: {
+          persistSession: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce',
+        },
+      });
       const { data, error } = await authClient.auth.getSession();
       if (error) throw error;
       authSession = await enforceDeviceAuthSession(data.session || null);
@@ -657,7 +567,7 @@
   function showPendingMessage(event) {
     const source = event.currentTarget;
     const label = getLabel(source);
-    showToast(`${label}은 곧 이용할 수 있어요.`);
+    showToast(`${label}은 다음 단계에서 연결됩니다.`);
   }
 
   function navigateToLink(link) {
@@ -841,11 +751,8 @@
     if (action === 'focus-pricing') {
       activeBottomMenu = 'home';
       closeBottomMenu();
-      const pricingTarget = document.querySelector('.price-rail')?.closest('.section-block')
-        || document.querySelector('#services');
-      scrollWithinPhone(pricingTarget);
-      flashReadableTarget(serviceCards[0]);
-      showToast('대표 상품을 보여드립니다.');
+      scrollWithinPhone(document.querySelector('.price-rail')?.closest('.section-block'));
+      showToast('가격 사다리로 이동했습니다.');
       updateBottomMenuButtons();
       return;
     }
@@ -859,7 +766,7 @@
       return;
     }
 
-    showToast(button.dataset.message || '메뉴를 선택하면 다음 화면으로 이동합니다.');
+    showToast(button.dataset.message || '이 메뉴는 다음 단계에서 연결됩니다.');
   }
 
   function setMenuOpen(isOpen) {
@@ -896,52 +803,6 @@
     });
 
     revealTargets.forEach((target) => observer.observe(target));
-  }
-
-  function setupPosterRailControls() {
-    if (!mainPosterRail) return;
-
-    mainPosterRail.addEventListener('wheel', (event) => {
-      pausePosterAutoRoll(6200);
-      const absX = Math.abs(event.deltaX);
-      const absY = Math.abs(event.deltaY);
-      if (absY <= absX) return;
-
-      event.preventDefault();
-      mainPosterRail.scrollLeft += event.deltaY;
-      schedulePosterPagerUpdate();
-    }, { passive: false });
-
-    mainPosterRail.addEventListener('pointerdown', () => {
-      pausePosterAutoRoll(6200);
-    }, { passive: true });
-
-    mainPosterRail.addEventListener('mouseenter', () => {
-      stopPosterAutoRoll();
-    });
-
-    mainPosterRail.addEventListener('mouseleave', () => {
-      pausePosterAutoRoll(2200);
-    });
-
-    mainPosterRail.addEventListener('focusin', () => {
-      stopPosterAutoRoll();
-    });
-
-    mainPosterRail.addEventListener('focusout', () => {
-      pausePosterAutoRoll(2200);
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stopPosterAutoRoll();
-        return;
-      }
-      pausePosterAutoRoll(1200);
-    });
-
-    updatePosterPager();
-    startPosterAutoRoll();
   }
 
   filterButtons.forEach((button) => {
@@ -1090,7 +951,7 @@
       if (!clickStart || event.pointerType !== 'mouse' || event.pointerId !== clickStart.pointerId) return;
       const movedX = Math.abs(event.clientX - clickStart.x);
       const movedY = Math.abs(event.clientY - clickStart.y);
-      const rail = link.closest('.poster-rail, .category-rail, .price-rail');
+      const rail = link.closest('.poster-rail');
       const isClick = movedX <= dragThreshold && movedY <= dragThreshold;
       clickStart = null;
 
@@ -1110,18 +971,13 @@
         event.preventDefault();
         return;
       }
-      if (link.closest('.poster-rail, .category-rail, .price-rail')?.dataset.dragged === '1') {
-        event.preventDefault();
-        return;
-      }
-      // Explicit navigation keeps mouse/touch/keyboard activation consistent across breakpoints.
+      if (link.closest('.poster-rail')?.dataset.dragged === '1') return;
       event.preventDefault();
       navigateToLink(link);
     });
   });
 
   dragRails.forEach(bindMouseDrag);
-  setupPosterRailControls();
   hoverTargets.forEach(bindHoverReadability);
   pressTargets.forEach(bindPressFeedback);
   setFilter('all', { reveal: false });

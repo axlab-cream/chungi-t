@@ -55,14 +55,6 @@ const supabaseRestUrl = supabaseUrl
 
 const memoryProfiles = new Map<string, UserBirthProfile>()
 let dbReady: Promise<void> | null = null
-const SUPABASE_FETCH_TIMEOUT_MS = 8_000
-
-function supabaseFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), SUPABASE_FETCH_TIMEOUT_MS)
-  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer))
-}
-
 
 function storageMode(): ReportStorageMode {
   if (pool) return 'postgres'
@@ -202,7 +194,7 @@ export async function getUserBirthProfile(owner: ReportOwner): Promise<UserBirth
 
   if (storageMode() === 'supabase') {
     if (!owner.accessToken) return null
-    const response = await supabaseFetch(`${supabaseRestUrl}?user_id=eq.${encodeURIComponent(owner.id)}&select=*`, {
+    const response = await fetch(`${supabaseRestUrl}?user_id=eq.${encodeURIComponent(owner.id)}&select=*`, {
       headers: supabaseHeaders(owner.accessToken),
     })
     if (!response.ok) {
@@ -241,7 +233,7 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
     if (!owner.accessToken) {
       throw new Error('회원 인증 정보가 없어 사주 프로필을 저장하지 못했습니다.')
     }
-    const response = await supabaseFetch(supabaseRestUrl, {
+    const response = await fetch(supabaseRestUrl, {
       method: 'POST',
       headers: {
         ...supabaseHeaders(owner.accessToken),
@@ -312,36 +304,6 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
     ],
   )
   return rowToProfile(result.rows[0])
-}
-
-export async function deleteUserBirthProfile(owner: ReportOwner): Promise<boolean> {
-  if (storageMode() === 'memory') {
-    return memoryProfiles.delete(owner.id)
-  }
-
-  if (storageMode() === 'supabase') {
-    if (!owner.accessToken) return false
-    const url = new URL(supabaseRestUrl)
-    url.searchParams.set('user_id', `eq.${owner.id}`)
-    const response = await supabaseFetch(url, {
-      method: 'DELETE',
-      headers: {
-        ...supabaseHeaders(owner.accessToken),
-        prefer: 'return=representation',
-      },
-    })
-    if (!response.ok) {
-      const message = await response.text().catch(() => '')
-      throw new Error(message || 'Supabase 사주 프로필 삭제에 실패했습니다.')
-    }
-    const rows = await response.json().catch(() => []) as unknown[]
-    return rows.length > 0
-  }
-
-  if (!pool) return false
-  await ensureDb()
-  const result = await pool.query('DELETE FROM cheongi_user_profiles WHERE user_id = $1', [owner.id])
-  return Number(result.rowCount ?? 0) > 0
 }
 
 export function getUserProfileStorageMode(): ReportStorageMode {

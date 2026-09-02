@@ -15,13 +15,6 @@ import { buildSajuFeatureJson } from '../saju/analyzer.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { evaluateReportQuality } from './report-quality.js'
-import { consumerHook, normalizeReportCopy, normalizeUserCopy } from './copy-guide.js'
-import {
-  buildLoveThisYearStoryBeat,
-  formatStoryInterpretation,
-  loveThisYearHook,
-  toStorytellingPayload,
-} from './storytelling.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 const CHEONMYEONG_TONE_GUIDE = [
@@ -34,6 +27,8 @@ const CHEONMYEONG_TONE_GUIDE = [
 ].join('\n')
 const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? 'gpt-5.5'
 const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
+const HOME_FIT_SERVICE_KEY = 'home_fit'
+const WORK_MOVE_SERVICE_KEY = 'work_move'
 
 type ReportFocus =
   | 'profile'
@@ -394,6 +389,152 @@ const LOVE_THIS_YEAR_BLUEPRINTS: ReportBlueprint[] = [
   },
 ]
 
+const HOME_FIT_BLUEPRINTS: ReportBlueprint[] = [
+  {
+    id: 'home-fit-overall',
+    category: '이 집, 나랑 찐으로 결 맞아?',
+    categoryEn: 'Home Fit Overall',
+    focus: 'target',
+    query: '집 풍수 현재 사는 집 나와 맞는지 생활 목적 사주 오행 핏',
+  },
+  {
+    id: 'house-energy',
+    category: '집의 기본 기운',
+    categoryEn: 'House Energy',
+    focus: 'timingPlace',
+    query: '집 기본 기운 현관 채광 통풍 동선 앞열림 뒤받침 풍수',
+  },
+  {
+    id: 'saju-house-ohaeng',
+    category: '내 사주 × 집 오행 핏',
+    categoryEn: 'Saju House Elements',
+    focus: 'balance',
+    query: '사주 오행 집 공간 목 화 토 금 수 침실 책상 현관 보완',
+  },
+  {
+    id: 'sleep-recovery',
+    category: '잠·회복·멘탈 리듬',
+    categoryEn: 'Sleep Recovery',
+    focus: 'action',
+    query: '침실 수면 회복 멘탈 소음 빛 압박감 안정 집 풍수',
+  },
+  {
+    id: 'entrance-flow',
+    category: '현관·동선 에너지',
+    categoryEn: 'Entrance Flow',
+    focus: 'timingPlace',
+    query: '현관 동선 문 앞 신발장 통로 에너지 흐름 집 풍수',
+  },
+  {
+    id: 'remote-focus',
+    category: '재택·공부·일 집중력',
+    categoryEn: 'Remote Focus',
+    focus: 'workContext',
+    query: '재택 공부 책상 등 뒤 문 창 집중력 업무 공간 배치',
+  },
+  {
+    id: 'money-living',
+    category: '돈·살림·소비 흐름',
+    categoryEn: 'Money Living',
+    focus: 'careerMoney',
+    query: '돈 살림 소비 수납 주방 결제 충동 지출 집 풍수',
+  },
+  {
+    id: 'relationship-cohabitation',
+    category: '관계·가족·동거 케미',
+    categoryEn: 'Relationship Cohabitation',
+    focus: 'relationshipContext',
+    query: '관계 가족 동거 사생활 공용공간 거리감 집 풍수',
+  },
+  {
+    id: 'spatial-fix',
+    category: '공간별 손질 처방',
+    categoryEn: 'Spatial Fix',
+    focus: 'action',
+    query: '공간별 처방 커튼 조명 수납 배치 환기 침구 풍수 개선',
+  },
+  {
+    id: 'reality-action',
+    category: '현실 체크 & 액션 플랜',
+    categoryEn: 'Reality Action',
+    focus: 'reportDepth',
+    query: '이사 여부 현실 체크 7일 테스트 집 적합도 액션 플랜',
+  },
+]
+
+const WORK_MOVE_BLUEPRINTS: ReportBlueprint[] = [
+  {
+    id: 'work-move-decision',
+    category: '지금 회사, 옮길 각인가',
+    categoryEn: 'Move Decision',
+    focus: 'target',
+    query: '이직운 이직각 존버각 준비각 보류각 조건부 환승각 대운 세운 관성',
+  },
+  {
+    id: 'current-company-signal',
+    category: '현 회사에서 걸리는 신호',
+    categoryEn: 'Current Company Signal',
+    focus: 'workContext',
+    query: '현 회사 역할 흐림 결정권 상사 압박 동료 경쟁 인정 번아웃 관성',
+  },
+  {
+    id: 'career-constitution',
+    category: '내 커리어 체질',
+    categoryEn: 'Career Constitution',
+    focus: 'balance',
+    query: '일간 오행 신강 신약 용신 커리어 체질 감당력 직업',
+  },
+  {
+    id: 'role-fit',
+    category: '직무 핏과 일의 결',
+    categoryEn: 'Role Fit',
+    focus: 'careerMoney',
+    query: '직무 핏 비견 겁재 식신 상관 재성 관성 인성 역할 업무',
+  },
+  {
+    id: 'new-company-fit',
+    category: '새 회사 궁합',
+    categoryEn: 'New Company Fit',
+    focus: 'timingPlace',
+    query: '새 회사 궁합 관록궁 천이궁 재백궁 근무지 조직 이동 환경',
+  },
+  {
+    id: 'money-terms',
+    category: '연봉과 계약 조건',
+    categoryEn: 'Money Terms',
+    focus: 'moneyLeak',
+    query: '연봉 조건 계약서 업무범위 성과급 수입 지출 버퍼 재성',
+  },
+  {
+    id: 'timing-daewoon-sewoon',
+    category: '움직여도 되는 타이밍',
+    categoryEn: 'Move Timing',
+    focus: 'future',
+    query: '대운 세운 월운 택일 입춘 이직 타이밍 퇴사 입사 전환',
+  },
+  {
+    id: 'risk-brake',
+    category: '멈춰 봐야 할 브레이크',
+    categoryEn: 'Risk Brake',
+    focus: 'trap',
+    query: '공망 충 형 파 해 번아웃 계약 리스크 과속 보류 이직 위험',
+  },
+  {
+    id: 'ninety-day-action',
+    category: '90일 현실 액션',
+    categoryEn: '90 Day Action',
+    focus: 'action',
+    query: '90일 테스트 이력서 포트폴리오 면접 퇴사 대화 연봉 협상 체크리스트',
+  },
+  {
+    id: 'final-checklist',
+    category: '결정 전 마지막 체크',
+    categoryEn: 'Final Checklist',
+    focus: 'reportDepth',
+    query: '이직운 최종 체크리스트 의사결정 계약 조건 멘탈 성장 안정',
+  },
+]
+
 const ELEMENT_TRAIT: Record<Element, string> = {
   wood: '자라나려는 힘, 새 판을 여는 감각, 멈춰 있는 것을 견디기 어려운 기운',
   fire: '드러나는 힘, 표현과 확신, 사람의 시선을 끌어오는 기운',
@@ -420,6 +561,242 @@ function cleanContextValue(value: string | undefined, fallback: string): string 
   return next && next.length > 0 ? next : fallback
 }
 
+const HOME_VALUE_LABELS: Record<string, Record<string, string>> = {
+  buildingType: {
+    apartment: '아파트',
+    officetel: '오피스텔',
+    villa: '빌라·연립',
+    studio: '원룸',
+    house: '단독·다가구',
+    other: '기타 주거형',
+  },
+  livingPeriod: {
+    under_3m: '3개월 미만',
+    '3m_1y': '3개월~1년',
+    '1y_3y': '1~3년',
+    over_3y: '3년 이상',
+  },
+  mainPurpose: {
+    rest: '잠·회복',
+    work: '재택·공부 집중',
+    money: '돈·살림 안정',
+    relationship: '동거·가족·관계',
+    move: '계약 유지·이사 판단',
+  },
+  stayDecision: {
+    stay: '계속 살 각인지',
+    fix: '손보면 괜찮은지',
+    compare: '이사 후보와 비교할지',
+    unknown: '일단 이유가 궁금함',
+  },
+  painPoints: {
+    sleep: '잠·피로',
+    entrance: '현관·동선',
+    focus: '집중력',
+    money: '돈·살림',
+    relationship: '관계·동거',
+    move: '이사·계약 판단',
+  },
+  entranceFlow: {
+    direct: '현관에서 안쪽이 한 줄로 보임',
+    bent: '동선이 중간에 꺾임',
+    blocked: '문·가구로 가려짐',
+  },
+  bedroomFeel: {
+    quiet: '안쪽이고 조용한 침실',
+    window_road: '창밖 소음·시선이 있는 침실',
+    door_line: '문·복도 자극이 있는 침실',
+    too_bright: '빛이 강해 쉬기 어려운 침실',
+  },
+  deskPosition: {
+    back_wall: '등 뒤가 벽이라 안정적인 책상',
+    back_window: '등 뒤가 창이라 들뜨는 책상',
+    face_door: '문을 정면으로 보는 책상',
+    mixed_rest: '쉬는 자리와 섞인 책상',
+  },
+  outsideFlow: {
+    open: '앞이 트인 창밖',
+    pressed: '건물 압박감이 있는 창밖',
+    road_noise: '큰길·골목 소음이 있는 창밖',
+    balanced: '무난하고 안정적인 창밖',
+  },
+}
+
+function homeValueLabel(field: string, value?: string): string {
+  if (!value) return ''
+  return HOME_VALUE_LABELS[field]?.[value] ?? value
+}
+
+function homePainLabels(context: SajuReportContext): string[] {
+  return (context.home?.painPoints ?? []).map((value) => homeValueLabel('painPoints', value)).filter(Boolean)
+}
+
+function homeContextSummary(context: SajuReportContext): string {
+  const home = context.home
+  if (!home) return '집 정보 미입력'
+  return [
+    home.addressOrBuilding,
+    home.sido,
+    home.sigungu,
+    home.bname,
+    home.buildingName,
+    homeValueLabel('buildingType', home.buildingType),
+    homeValueLabel('livingPeriod', home.livingPeriod),
+    homeValueLabel('mainPurpose', home.mainPurpose),
+    homeValueLabel('stayDecision', home.stayDecision),
+    ...homePainLabels(context),
+  ].filter(Boolean).join(' · ') || '집 정보 미입력'
+}
+
+function homeContextQuery(context: SajuReportContext): string {
+  const home = context.home
+  if (!home) return '집 풍수 주거 공간 현관 침실 책상 창밖'
+  return [
+    '집 풍수 주거 공간 현관 침실 책상 창밖 오행 핏',
+    home.addressOrBuilding,
+    home.roadAddress,
+    home.jibunAddress,
+    home.zonecode,
+    home.sido,
+    home.sigungu,
+    home.bname,
+    home.buildingName,
+    homeValueLabel('buildingType', home.buildingType),
+    homeValueLabel('livingPeriod', home.livingPeriod),
+    homeValueLabel('mainPurpose', home.mainPurpose),
+    homeValueLabel('stayDecision', home.stayDecision),
+    ...homePainLabels(context),
+    homeValueLabel('entranceFlow', home.entranceFlow),
+    homeValueLabel('bedroomFeel', home.bedroomFeel),
+    homeValueLabel('deskPosition', home.deskPosition),
+    homeValueLabel('outsideFlow', home.outsideFlow),
+    home.extraNote,
+  ].filter(Boolean).join(' ')
+}
+
+function homePatternKeys(context: SajuReportContext): string[] {
+  const home = context.home
+  if (!home) return []
+  return [
+    home.buildingType ? `home:buildingType:${home.buildingType}` : '',
+    home.livingPeriod ? `home:livingPeriod:${home.livingPeriod}` : '',
+    home.mainPurpose ? `home:mainPurpose:${home.mainPurpose}` : '',
+    home.stayDecision ? `home:stayDecision:${home.stayDecision}` : '',
+    ...(home.painPoints ?? []).map((point) => `home:pain:${point}`),
+    home.entranceFlow ? `home:entranceFlow:${home.entranceFlow}` : '',
+    home.bedroomFeel ? `home:bedroomFeel:${home.bedroomFeel}` : '',
+    home.deskPosition ? `home:deskPosition:${home.deskPosition}` : '',
+    home.outsideFlow ? `home:outsideFlow:${home.outsideFlow}` : '',
+  ].filter((value): value is string => Boolean(value))
+}
+
+const WORK_MOVE_VALUE_LABELS: Record<string, Record<string, string>> = {
+  decisionMode: {
+    move_considering: '이직을 고민 중',
+    offer_review: '오퍼를 받은 상태',
+    resignation_timing: '퇴사 타이밍 고민',
+    internal_transfer: '부서 이동·직무 전환 고민',
+    job_search_start: '이력서부터 시작할지 고민',
+  },
+  currentCompanySignal: {
+    role_blur: '역할이 흐림',
+    authority_blur: '결정권이 애매함',
+    boss_pressure: '상사 압박이 큼',
+    peer_competition: '동료·경쟁 스트레스',
+    recognition_gap: '인정받는 느낌이 부족함',
+    burnout: '번아웃 신호가 있음',
+  },
+  workType: {
+    office: '사무실 출근',
+    hybrid: '하이브리드',
+    remote: '원격 중심',
+    shift: '교대·스케줄 근무',
+    field: '현장·외근 중심',
+    unknown: '아직 모름',
+  },
+  salaryFeeling: {
+    clear_up: '확실히 상승',
+    slight_up: '조금 상승',
+    similar: '비슷함',
+    down_for_growth: '성장 때문에 낮아져도 고민',
+    unclear: '아직 조건이 불명확함',
+  },
+  priority: {
+    money: '돈 조건',
+    growth: '성장',
+    mental: '멘탈',
+    timing: '타이밍',
+    people: '사람',
+    stability: '안정감',
+  },
+  realityChecks: {
+    resume_ready: '이력서·포트폴리오 정리됨',
+    offer_terms_checked: '오퍼·계약 조건 확인',
+    buffer_ready: '퇴사 전 현금 버퍼 확인',
+    exit_script_ready: '퇴사·이동 대화 준비',
+  },
+}
+
+function workMoveValueLabel(field: string, value?: string): string {
+  if (!value) return ''
+  return WORK_MOVE_VALUE_LABELS[field]?.[value] ?? value
+}
+
+function workMoveRealityLabels(context: SajuReportContext): string[] {
+  return (context.workMove?.realityChecks ?? []).map((value) => workMoveValueLabel('realityChecks', value)).filter(Boolean)
+}
+
+function workMoveContextSummary(context: SajuReportContext): string {
+  const workMove = context.workMove
+  if (!workMove) return '이직 입력값 미입력'
+  return [
+    workMoveValueLabel('decisionMode', workMove.decisionMode),
+    workMoveValueLabel('currentCompanySignal', workMove.currentCompanySignal),
+    workMove.targetCompanyName,
+    workMove.targetRole,
+    workMoveValueLabel('workType', workMove.workType),
+    workMove.commuteLocation,
+    workMoveValueLabel('salaryFeeling', workMove.salaryFeeling),
+    workMove.decisionDate,
+    workMoveValueLabel('priority', workMove.priority),
+    workMove.discomfortPoint,
+    ...workMoveRealityLabels(context),
+  ].filter(Boolean).join(' · ') || '이직 입력값 미입력'
+}
+
+function workMoveContextQuery(context: SajuReportContext): string {
+  const workMove = context.workMove
+  if (!workMove) return '이직운 회사 이동 판단 대운 세운 관성 연봉 계약 직무 핏'
+  return [
+    '이직운 회사 이동 판단 대운 세운 관성 식상 재성 직무 핏 연봉 계약',
+    workMoveValueLabel('decisionMode', workMove.decisionMode),
+    workMoveValueLabel('currentCompanySignal', workMove.currentCompanySignal),
+    workMove.targetCompanyName,
+    workMove.targetRole,
+    workMoveValueLabel('workType', workMove.workType),
+    workMove.commuteLocation,
+    workMoveValueLabel('salaryFeeling', workMove.salaryFeeling),
+    workMove.decisionDate,
+    workMoveValueLabel('priority', workMove.priority),
+    workMove.discomfortPoint,
+    ...workMoveRealityLabels(context),
+  ].filter(Boolean).join(' ')
+}
+
+function workMovePatternKeys(context: SajuReportContext): string[] {
+  const workMove = context.workMove
+  if (!workMove) return []
+  return [
+    workMove.decisionMode ? `workMove:decisionMode:${workMove.decisionMode}` : '',
+    workMove.currentCompanySignal ? `workMove:currentCompanySignal:${workMove.currentCompanySignal}` : '',
+    workMove.targetRole ? `workMove:targetRole:${workMove.targetRole}` : '',
+    workMove.workType ? `workMove:workType:${workMove.workType}` : '',
+    workMove.salaryFeeling ? `workMove:salaryFeeling:${workMove.salaryFeeling}` : '',
+    workMove.priority ? `workMove:priority:${workMove.priority}` : '',
+    ...(workMove.realityChecks ?? []).map((check) => `workMove:realityCheck:${check}`),
+  ].filter((value): value is string => Boolean(value))
+}
+
 function patternKeys(analysis: SajuAnalysis, birth: BirthInput): string[] {
   const p = analysis.fourPillars
   return [
@@ -444,8 +821,44 @@ function contextLabel(context: SajuReportContext): string {
     context.orientation,
     context.relationship,
     context.work,
+    context.serviceKey === HOME_FIT_SERVICE_KEY ? homeContextSummary(context) : undefined,
+    context.serviceKey === WORK_MOVE_SERVICE_KEY ? workMoveContextSummary(context) : undefined,
     context.partner?.mode === 'known' ? '상대방 사주 포함' : undefined,
   ].filter(Boolean).join(' · ') || '기본 상담'
+}
+
+const BRANCH_MONTH_HINT: Record<string, string> = {
+  子: '12월 전후',
+  丑: '1월 전후',
+  寅: '2월 전후',
+  卯: '3월 전후',
+  辰: '4월 전후',
+  巳: '5월 전후',
+  午: '6월 전후',
+  未: '7월 전후',
+  申: '8월 전후',
+  酉: '9월 전후',
+  戌: '10월 전후',
+  亥: '11월 전후',
+}
+
+function dohwaBranchFromDayBranch(branch: string): string {
+  if ('申子辰'.includes(branch)) return '酉'
+  if ('寅午戌'.includes(branch)) return '卯'
+  if ('亥卯未'.includes(branch)) return '子'
+  if ('巳酉丑'.includes(branch)) return '午'
+  return '卯'
+}
+
+function partnerLabel(context: SajuReportContext): string {
+  const partner = context.partner
+  if (partner?.mode !== 'known') return '특정 상대 미입력'
+  return [
+    partner.name || '상대',
+    partner.relationship || '관계 미입력',
+    partner.dayMaster ? `상대 일간 ${partner.dayMaster}` : '',
+    partner.dominantElement ? `상대 중심 기운 ${partner.dominantElement}` : '',
+  ].filter(Boolean).join(' · ')
 }
 
 function partnerContextQuery(context: SajuReportContext): string {
@@ -466,6 +879,8 @@ function partnerContextQuery(context: SajuReportContext): string {
 function reportContextQuery(context: SajuReportContext): string {
   return [
     context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY ? '올해 연애 가능성 도화 세운 배우자성 궁합 상대방 사주' : undefined,
+    context.serviceKey === HOME_FIT_SERVICE_KEY ? homeContextQuery(context) : undefined,
+    context.serviceKey === WORK_MOVE_SERVICE_KEY ? workMoveContextQuery(context) : undefined,
     context.target,
     context.orientation,
     context.relationship,
@@ -479,11 +894,89 @@ function isLoveThisYearContext(context: SajuReportContext): boolean {
   return context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY
 }
 
-function blueprintsForContext(context: SajuReportContext): ReportBlueprint[] {
-  return isLoveThisYearContext(context) ? LOVE_THIS_YEAR_BLUEPRINTS : REPORT_BLUEPRINTS
+function isHomeFitContext(context: SajuReportContext): boolean {
+  return context.serviceKey === HOME_FIT_SERVICE_KEY
 }
 
-function classificationFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReportContext): string {
+function isWorkMoveContext(context: SajuReportContext): boolean {
+  return context.serviceKey === WORK_MOVE_SERVICE_KEY
+}
+
+function blueprintsForContext(context: SajuReportContext): ReportBlueprint[] {
+  if (isLoveThisYearContext(context)) return LOVE_THIS_YEAR_BLUEPRINTS
+  if (isHomeFitContext(context)) return HOME_FIT_BLUEPRINTS
+  if (isWorkMoveContext(context)) return WORK_MOVE_BLUEPRINTS
+  return REPORT_BLUEPRINTS
+}
+
+function homeClassificationFor(sectionId: string, analysis: SajuAnalysis, context: SajuReportContext): string {
+  const p = analysis.fourPillars
+  const dayPillar = pillarLabel(p.day)
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const home = context.home
+  const building = homeValueLabel('buildingType', home?.buildingType) || '주거 형태 미입력'
+  const purpose = homeValueLabel('mainPurpose', home?.mainPurpose) || '생활 목적 미입력'
+  const decision = homeValueLabel('stayDecision', home?.stayDecision) || '판단 고민 미입력'
+  const pains = homePainLabels(context).join(' · ') || '체감 신호 미입력'
+  const entrance = homeValueLabel('entranceFlow', home?.entranceFlow) || '현관 미확인'
+  const bedroom = homeValueLabel('bedroomFeel', home?.bedroomFeel) || '침실 미확인'
+  const desk = homeValueLabel('deskPosition', home?.deskPosition) || '책상 미확인'
+  const outside = homeValueLabel('outsideFlow', home?.outsideFlow) || '창밖 미확인'
+
+  const labels: Record<string, string> = {
+    'home-fit-overall': `${dayPillar} 일주 · ${building} · ${purpose} · ${decision}`,
+    'house-energy': `${entrance} · ${outside} · 집의 앞열림/뒤받침 점검`,
+    'saju-house-ohaeng': `${dominant} 과다 · ${weak} 보완 · ${useful} 기운으로 공간 조율`,
+    'sleep-recovery': `${bedroom} · ${pains} · 회복 리듬 점검`,
+    'entrance-flow': `${entrance} · 들어오는 기운과 빠져나가는 동선`,
+    'remote-focus': `${desk} · ${context.work ?? '재택·공부·일상'} 집중 기준`,
+    'money-living': `${purpose} · ${pains} · 돈·살림 동선`,
+    'relationship-cohabitation': `${context.relationship ?? '관계 상태 미입력'} · ${pains} · 공용/사적 공간 거리감`,
+    'spatial-fix': `${useful} 보완 · 현관/침실/책상/창가 손질 우선순위`,
+    'reality-action': `${decision} · 7일 체감 테스트 · 이사보다 먼저 볼 현실 기준`,
+  }
+
+  return labels[sectionId] ?? `${homeContextSummary(context)} · ${dominant}/${weak} 오행 핏`
+}
+
+function workMoveClassificationFor(sectionId: string, analysis: SajuAnalysis, context: SajuReportContext): string {
+  const p = analysis.fourPillars
+  const dayPillar = pillarLabel(p.day)
+  const monthPillar = pillarLabel(p.month)
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const workMove = context.workMove
+  const decision = workMoveValueLabel('decisionMode', workMove?.decisionMode) || '이직 상황 미입력'
+  const signal = workMoveValueLabel('currentCompanySignal', workMove?.currentCompanySignal) || '현 회사 신호 미입력'
+  const role = workMove?.targetRole || '희망 직무 미입력'
+  const workType = workMoveValueLabel('workType', workMove?.workType) || '근무 형태 미입력'
+  const salary = workMoveValueLabel('salaryFeeling', workMove?.salaryFeeling) || '돈 조건 미입력'
+  const priority = workMoveValueLabel('priority', workMove?.priority) || '우선순위 미입력'
+  const checks = workMoveRealityLabels(context).join(' · ') || '현실 체크 미완료'
+
+  const labels: Record<string, string> = {
+    'work-move-decision': `${dayPillar} 일주 · ${decision} · ${priority}`,
+    'current-company-signal': `${signal} · 월주 ${monthPillar}의 직장 반응`,
+    'career-constitution': `${dominant} 과다 · ${weak} 보완 · ${useful} 기운으로 감당력 점검`,
+    'role-fit': `${role} · ${analysis.tenGods.join(' · ') || '십신'} 기반 직무 핏`,
+    'new-company-fit': `${workType} · ${workMove?.commuteLocation || '근무지 미입력'} · 새 환경 적응`,
+    'money-terms': `${salary} · 계약·업무범위·성과 기준 확인`,
+    'timing-daewoon-sewoon': `${analysis.fortune?.currentDaewoon ?? '현재 대운'} · ${analysis.fortune?.yearPillar ?? '올해 세운'} · ${workMove?.decisionDate || '날짜 미정'}`,
+    'risk-brake': `${signal} · ${workMove?.discomfortPoint || '찝찝한 지점 미입력'}`,
+    'ninety-day-action': `${checks} · 90일 테스트`,
+    'final-checklist': `${priority} · 돈/역할/멘탈/타이밍 최종 점검`,
+  }
+
+  return labels[sectionId] ?? `${workMoveContextSummary(context)} · ${dominant}/${weak} 커리어 핏`
+}
+
+function classificationFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReportContext, sectionId = ''): string {
+  if (isHomeFitContext(context)) return homeClassificationFor(sectionId, analysis, context)
+  if (isWorkMoveContext(context)) return workMoveClassificationFor(sectionId, analysis, context)
+
   const p = analysis.fourPillars
   const dayPillar = pillarLabel(p.day)
   const monthPillar = pillarLabel(p.month)
@@ -514,7 +1007,52 @@ function classificationFor(focus: ReportFocus, analysis: SajuAnalysis, context: 
   return labels[focus]
 }
 
-function hookFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReportContext): string {
+function homeHookFor(sectionId: string, analysis: SajuAnalysis, context: SajuReportContext): string {
+  const home = context.home
+  const purpose = homeValueLabel('mainPurpose', home?.mainPurpose) || '집에서 제일 중요한 목적'
+  const decision = homeValueLabel('stayDecision', home?.stayDecision) || '지금의 판단'
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const hooks: Record<string, string> = {
+    'home-fit-overall': `${purpose} 기준으로 보면 이 집의 결이 먼저 드러나는군`,
+    'house-energy': '현관과 창밖의 흐름이 집의 첫인상을 만들고 있네',
+    'saju-house-ohaeng': `${dominant}은 이미 강하고 ${weak}을 공간에서 보완해야 하네`,
+    'sleep-recovery': '잠이 편해야 집의 기운도 내 편이 되는 법일세',
+    'entrance-flow': '들어오는 길이 복잡하면 마음도 먼저 걸리는군',
+    'remote-focus': '책상 자리 하나가 집중력의 절반을 가져가네',
+    'money-living': '돈과 살림은 주방보다 동선과 수납에서 먼저 새는군',
+    'relationship-cohabitation': '같이 사는 결은 넓이보다 거리감에서 갈리는군',
+    'spatial-fix': '큰 공사보다 먼저 손댈 작은 자리가 있네',
+    'reality-action': `${decision}은 7일 체감으로 먼저 가려보게`,
+  }
+  return hooks[sectionId] ?? '집은 운을 바꾸는 마법보다 생활 리듬을 비추는 거울일세'
+}
+
+function workMoveHookFor(sectionId: string, analysis: SajuAnalysis, context: SajuReportContext): string {
+  const workMove = context.workMove
+  const decision = workMoveValueLabel('decisionMode', workMove?.decisionMode) || '지금 상황'
+  const signal = workMoveValueLabel('currentCompanySignal', workMove?.currentCompanySignal) || '현 회사 신호'
+  const priority = workMoveValueLabel('priority', workMove?.priority) || '우선순위'
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const hooks: Record<string, string> = {
+    'work-move-decision': `${decision}, 지금은 결론보다 조건을 먼저 봐야 하네`,
+    'current-company-signal': `${signal}이 단순 불만인지 반복 신호인지 가르겠습니다`,
+    'career-constitution': `${weak} 기운을 보완해야 새 판을 오래 버틸 수 있네`,
+    'role-fit': '직무가 맞으면 버티고, 역할이 흐리면 같은 피로가 반복되네',
+    'new-company-fit': '새 회사는 이름보다 일상 구조와 책임 범위가 먼저일세',
+    'money-terms': '연봉이 올라도 계약서가 흐리면 이직운은 흔들립니다',
+    'timing-daewoon-sewoon': '움직일 때는 대운과 세운의 속도를 같이 봐야 하네',
+    'risk-brake': '찝찝한 지점은 작을 때 잡아야 뒤탈이 적습니다',
+    'ninety-day-action': '이직운은 결심보다 90일 준비표에서 현실이 됩니다',
+    'final-checklist': `${priority} 기준으로 마지막 판단선을 세워보겠습니다`,
+  }
+  return hooks[sectionId] ?? '회사 이동은 운과 현실 조건을 같이 봐야 맞습니다'
+}
+
+function hookFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReportContext, sectionId = ''): string {
+  if (isHomeFitContext(context)) return homeHookFor(sectionId, analysis, context)
+  if (isWorkMoveContext(context)) return workMoveHookFor(sectionId, analysis, context)
+
   const concern = cleanContextValue(context.concern, '요즘 마음에 걸리는 문제')
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const weak = ELEMENT_KO[analysis.weakElement]
@@ -624,30 +1162,278 @@ function buildLoveThisYearInterpretation(
   ragTopics: string[],
   birth?: BirthInput,
 ): string {
-  const beat = buildLoveThisYearStoryBeat(sectionId, analysis, context, ragTopics, birth)
-  const riskNote = conditionalRiskNote(focus, analysis, context)
-  // Risk notes stay available for generation depth, but keep surface emotional:
-  // append only a short soft caution if present, stripped of textbook tone.
-  if (!riskNote) return formatStoryInterpretation(beat)
-  const softRisk = riskNote
-    .split(/(?<=\.)\s+/)
-    .slice(0, 2)
-    .join(' ')
-    .replace(/시기적으로는/g, '그즈음엔')
-    .replace(/풀 방법은/g, '그때는')
-  return `${formatStoryInterpretation(beat)}
+  const name = cleanContextValue(context.name, '자네')
+  const concern = cleanContextValue(context.concern, '올해 연애 가능성과 놓치기 쉬운 타이밍')
+  const relation = cleanContextValue(context.relationship, '현재 관계 상태 미입력')
+  const orientation = cleanContextValue(context.orientation, '관계 기준 미선택')
+  const p = analysis.fourPillars
+  const dayBranch = p.day.branch
+  const dohwaBranch = dohwaBranchFromDayBranch(dayBranch)
+  const dohwaMonth = BRANCH_MONTH_HINT[dohwaBranch] ?? '봄과 초여름 사이'
+  const dayPillar = pillarLabel(p.day)
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const currentYear = analysis.fortune?.currentYear ?? new Date().getFullYear()
+  const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
+  const spouseStar = birth?.gender === 'female' ? '관성' : '재성'
+  const spouseStarPlain = spouseStar === '관성'
+    ? '나에게 책임감, 기준, 안정감을 느끼게 하는 사람의 흐름'
+    : '나에게 현실감, 끌림, 주고받는 온도를 느끼게 하는 사람의 흐름'
+  const partner = context.partner
+  const hasPartner = partner?.mode === 'known'
+  const partnerText = partnerLabel(context)
+  const partnerBirthText = partner?.birth
+    ? `${partner.birth.calendar === 'lunar' ? '음력' : '양력'} ${partner.birth.year}.${partner.birth.month}.${partner.birth.day}${partner.birthTimeKnown ? ` ${String(partner.birth.hour).padStart(2, '0')}:${String(partner.birth.minute ?? 0).padStart(2, '0')}` : ' 생시 모름'}`
+    : '상대 생년월일 미입력'
+  const ragLine = ragTopics.length > 0 ? `이번 장은 ${ragTopics.join(', ')}의 관계 조언과 시기 해석을 함께 대조했습니다.` : ''
 
-[주의할 점] ${softRisk}`
+  const sections: Record<string, string> = {
+    'love-year-possibility': [
+      `흠... ${name}님의 올해 연애운은 ${dayPillar} 일지와 ${currentYear}년 ${yearPillar} 세운을 먼저 놓고 봅니다. 올해 연애 가능성은 "생긴다, 안 생긴다"로 자르는 문제가 아닙니다. 사람을 만나는 문이 열리는지, 마음이 움직여도 실제 관계로 이어질 힘이 있는지, 그리고 그 기회를 알아볼 상태인지가 핵심입니다.`,
+      `[주요 포인트] 현재 질문은 "${concern}"입니다. ${relation} 상태에서 ${orientation}으로 본다면, 올해는 감정의 크기보다 만남이 실제 약속으로 이어지는 구조를 봐야 합니다. ${dominant} 기운이 먼저 움직이고 ${weak} 기운이 비어 있으니, 끌림이 와도 속도를 조절하지 못하면 좋은 신호가 스쳐 지나갈 수 있습니다.`,
+      `${ragLine} 올해는 새 인연을 기다리는 것보다 내 생활 반경과 말의 온도를 바꾸는 쪽이 더 중요합니다. 연락, 소개, 모임, 일상 동선에서 반복해서 보이는 사람이 있다면 바로 결론 내리지 말고 한 번 더 확인하세요. 연애운은 우연히 떨어지는 사건이 아니라, 알아보고 붙잡을 준비가 되었을 때 현실이 됩니다.`,
+    ].join('\n\n'),
+    'love-attraction-pattern': [
+      `${name}님의 끌림 구조는 일지 ${BRANCH_KO[dayBranch]}(${dayBranch})에서 먼저 드러납니다. 일지는 가까운 사람 앞에서 내가 어떻게 반응하는지 보는 자리입니다. 겉으로는 담담해 보여도 관계가 가까워지면 기준, 불안, 기대가 훨씬 선명해질 수 있습니다.`,
+      `[주목할 점] ${dominant} 기운이 강하면 마음이 움직이는 순간 판단이 빨라집니다. 그런데 ${weak} 기운이 약하면 상대를 더 알아보기 전에 혼자 결론을 내거나, 반대로 확인해야 할 말을 오래 미룰 수 있습니다. 좋아하는 마음과 맞는 관계는 다릅니다. 올해는 "설렌다" 다음에 "지속 가능한가"를 꼭 확인해야 합니다.`,
+      `${hasPartner ? `특정 상대 기준은 ${partnerText}입니다. 상대 생년월일은 ${partnerBirthText}로 들어왔으니, 이 관계는 내 반응만 보지 않고 상대가 감정을 표현하는 속도까지 같이 봐야 합니다.` : '아직 특정 상대가 없다면, 올해는 자극이 강한 사람보다 내 일상을 덜 흔드는 사람이 더 오래 남을 가능성이 큽니다.'} ${ragLine}`,
+    ].join('\n\n'),
+    'love-dohwa-months': [
+      `도화는 매력을 뜻하지만, 단순히 인기가 많아진다는 뜻으로만 보면 가볍습니다. ${name}님의 일지 ${dayBranch} 기준으로 강하게 보는 도화 지지는 ${dohwaBranch}이며, 생활 월 흐름으로는 ${dohwaMonth} 전후를 먼저 체크합니다.`,
+      `[주요 포인트] 이 시기에는 연락, 소개, 외부 일정, 온라인 노출, 오랜만의 재회처럼 사람의 시선이 붙는 장면이 늘 수 있습니다. 다만 도화가 강한 달은 마음이 빨리 움직이는 만큼 오해도 빨리 생깁니다. 예쁘게 보이는 신호와 실제 관계로 이어지는 신호를 나눠야 합니다.`,
+      `올해 ${yearPillar} 세운과 도화 월이 맞물리면 새로운 만남의 입구가 열립니다. ${hasPartner ? `상대가 있는 경우에는 ${partnerText}와 연락 빈도나 만나는 약속이 늘어나는 때가 관찰 포인트입니다.` : '상대가 없는 경우에는 평소 가지 않던 모임, 소개, 취미 동선에서 신호가 먼저 옵니다.'} ${ragLine}`,
+    ].join('\n\n'),
+    'love-spouse-star': [
+      `${name}님의 배우자성은 ${spouseStar} 흐름을 중심으로 봅니다. ${spouseStar}은 쉬운 말로 ${spouseStarPlain}입니다. 전통 명리 기준을 그대로 단정하지 않고, 일지와 현재 관계 상태, 올해 세운을 함께 놓고 현실적인 인연 유형으로 바꿔 읽습니다.`,
+      `[주의할 점] 배우자성이 보인다고 해서 무조건 좋은 관계가 들어온다는 뜻은 아닙니다. ${dominant} 기운이 강하게 앞서고 ${weak} 기운이 약하면, 마음은 끌리는데 실제 약속과 생활 리듬이 맞지 않는 사람을 잡을 수 있습니다. 올해는 끌림보다 책임의 방식, 말의 안정감, 관계를 공개하고 유지하는 태도를 봐야 합니다.`,
+      `${hasPartner ? `특정 상대 ${partnerText}는 상대 일간과 중심 기운을 같이 대조해야 합니다. 상대가 나를 편안하게 하는지, 아니면 계속 확인하게 만드는지를 구분하는 것이 핵심입니다.` : '새 인연을 본다면 과하게 뜨거운 사람보다 약속을 흐리지 않는 사람이 더 좋은 신호입니다.'} ${ragLine}`,
+    ].join('\n\n'),
+    'love-monthly-flow': [
+      `월별 흐름은 한 달마다 운명이 바뀐다는 뜻이 아닙니다. 대운이라는 큰 물길 위에 올해 세운이 올라오고, 그 위에 월운이 사람과 약속의 장면으로 드러납니다. ${currentYear}년에는 ${yearPillar} 세운을 기준으로 봅니다.`,
+      `[주요 포인트] 봄에는 새 동선과 소개, 여름에는 표현과 고백, 가을에는 관계 정리와 확정, 겨울에는 마음을 확인하는 흐름이 강해집니다. 여기에 ${dohwaMonth} 전후 도화 신호가 겹치면 만남이 더 눈에 띕니다. 단, 피곤한 달에는 좋은 사람을 만나도 내가 받을 힘이 부족할 수 있습니다.`,
+      `${relation} 상태라면 월별로 볼 포인트도 달라집니다. 솔로는 만남의 입구, 썸은 약속의 확정, 연애 중은 관계의 리듬, 이별 직후는 재회보다 마음의 반복을 먼저 봅니다. ${ragLine}`,
+    ].join('\n\n'),
+    'love-progress-timing': [
+      `관계가 진전되는 타이밍은 "고백하기 좋은 날" 하나로 끝나지 않습니다. 상대의 반응, 내 마음의 속도, 약속이 현실적으로 반복되는지를 같이 봐야 합니다. ${name}님에게는 ${useful} 기운이 살아나는 방식으로 천천히 확인하는 것이 좋습니다.`,
+      `[해법] 좋은 타이밍은 말이 길어지는 때가 아니라 약속이 구체화되는 때입니다. 언제 볼지, 무엇을 같이 할지, 다음 연락이 자연스럽게 이어지는지 보세요. 도화가 올라오는 달에는 감정 표현이 쉬워지지만, 확인 없이 급하게 결론을 내리면 관계가 흐려질 수 있습니다.`,
+      `${hasPartner ? `${partnerText}와는 상대가 부담을 느끼지 않는 확인 문장을 쓰는 것이 좋습니다. "우리 사이를 정하자"보다 "다음 약속을 어떻게 잡을까"처럼 현실을 좁히는 말이 더 잘 맞습니다.` : '상대가 없는 경우에는 소개를 받을 때 조건을 너무 넓히기보다 생활 리듬과 말의 온도가 맞는 사람을 우선 보세요.'} ${ragLine}`,
+    ].join('\n\n'),
+    'love-missed-signals': [
+      `놓치기 쉬운 신호는 대부분 큰 사건이 아닙니다. 답장이 늦어지는 순간, 약속이 흐려지는 순간, 상대가 선을 긋는 말투, 내가 혼자 의미를 키우는 장면에서 먼저 보입니다. ${name}님 사주에서는 ${dominant} 기운이 빨리 반응할수록 이런 작은 신호를 자기 방식대로 해석할 수 있습니다.`,
+      `[위험 신호] 올해 조심할 패턴은 세 가지입니다. 첫째, 설렘이 생기자마자 확정하려는 마음. 둘째, 상대가 애매하게 굴 때 확인하지 않고 기다리는 습관. 셋째, 서운함이 쌓인 뒤 한 번에 말하는 방식입니다. 이 패턴은 도화가 강한 달에 더 커질 수 있습니다.`,
+      `${ragLine} 관계 자료에서 반복되는 핵심은 마음을 숨기는 것이 아니라 결론을 먼저 던지지 않는 것입니다. 올해는 "나는 이렇게 느꼈고, 이것을 확인하고 싶다"처럼 감정과 확인을 나누어 말해야 기회를 덜 놓칩니다.`,
+    ].join('\n\n'),
+    'love-partner-compatibility': [
+      `${hasPartner ? `상대방 사주는 ${partnerText}, ${partnerBirthText} 기준으로 들어왔습니다. 이 장에서는 두 사람의 좋고 나쁨을 단정하지 않고, 내 일지와 상대 일간, 서로의 중심 오행이 어떤 속도로 가까워지는지 봅니다.` : '아직 특정 상대 사주가 없으므로 이 장은 새 인연을 만났을 때 확인해야 할 궁합 기준으로 읽습니다. 상대 생년월일을 넣으면 이 부분은 실제 상대 기준으로 더 좁혀집니다.'}`,
+      `[주목할 점] 궁합은 맞다, 안 맞다의 점수가 아닙니다. 한쪽은 빠르게 표현하고 한쪽은 천천히 확인하는 구조라면 끌림은 있어도 온도가 어긋날 수 있습니다. 반대로 오행이 완전히 같지 않아도 서로의 빈자리를 무리 없이 채워주면 오래 갑니다.`,
+      `${hasPartner ? `상대의 중심 기운이 ${partner?.dominantElement ?? '상대 중심 기운'} 쪽이라면, ${name}님의 ${dominant} 기운과 부딪히는지 보완하는지 확인해야 합니다. 특히 약속, 답장 속도, 관계를 공개하는 방식이 궁합의 현실 지표입니다.` : `새 상대를 볼 때는 ${useful} 기운을 살리는 사람인지 먼저 보세요. 나를 급하게 만들기보다 선명하게 만드는 사람이 올해 좋은 궁합의 기준입니다.`} ${ragLine}`,
+    ].join('\n\n'),
+    'love-emotion-temperature': [
+      `감정 온도 차이는 사랑의 크기 차이가 아니라 속도 차이입니다. ${name}님은 ${dominant} 기운이 먼저 움직이는 만큼 마음이 선명해지면 빨리 답을 보고 싶어질 수 있습니다. 하지만 상대는 같은 속도로 움직이지 않을 수 있습니다.`,
+      `[주의할 점] 상대가 천천히 반응한다고 해서 마음이 없다고 단정하면 안 됩니다. 반대로 상대가 빠르게 다가온다고 해서 안정적인 관계라고 볼 수도 없습니다. 올해는 속도보다 반복성을 보세요. 말보다 약속이 반복되고, 감정보다 배려가 반복되는지가 중요합니다.`,
+      `${hasPartner ? `${partnerText}와의 온도 차이는 연락 빈도보다 "확인했을 때 피하지 않는가"가 핵심입니다. 상대가 부담을 느끼는 지점과 내가 불안해지는 지점을 따로 적어보면 관계의 실제 온도가 보입니다.` : '특정 상대가 없다면, 올해 만나는 사람에게 처음부터 많은 확신을 요구하지 않는 것이 좋습니다.'} ${ragLine}`,
+    ].join('\n\n'),
+    'love-action-strategy': [
+      `마지막으로 올해 연애 성사 전략을 보겠습니다. ${name}님에게 필요한 것은 운이 들어오는 달을 기다리는 것만이 아닙니다. ${useful} 기운을 살리는 생활 동선, 확인하는 말투, 관계의 속도 조절이 같이 가야 합니다.`,
+      `[해법] ${dohwaMonth} 전후에는 외부 약속과 소개를 열어두세요. 봄에는 새 동선, 여름에는 표현, 가을에는 관계 정리, 겨울에는 마음 확인에 힘을 두면 좋습니다. 단, 답을 빨리 얻으려는 말은 줄이고, 다음 약속을 만드는 말은 늘리는 것이 좋습니다.`,
+      `${hasPartner ? `특정 상대가 있으니 전략은 더 구체적입니다. ${partnerText}에게는 감정을 증명하라고 몰아붙이기보다, 같이 할 일을 하나 정하고 그 약속이 반복되는지 보세요.` : '특정 상대가 없다면 먼저 나를 보여줄 장면을 늘려야 합니다. 소개, 취미, 일상 모임처럼 자연스럽게 반복되는 자리가 올해 연애운의 입구입니다.'} ${ragLine}`,
+    ].join('\n\n'),
+  }
+
+  return sections[sectionId] ?? [
+    `${name}님의 올해 연애 흐름은 ${focus} 기준으로 봅니다. ${dayPillar} 일지, ${yearPillar} 세운, 도화 ${dohwaBranch}의 신호를 함께 놓고 해석합니다.`,
+    `${ragLine} 이 풀이는 확정 예언이 아니라 관계 신호를 놓치지 않기 위한 기준입니다.`,
+  ].join('\n\n')
 }
 
-function buildLoveThisYearStorytelling(
+function buildHomeFitInterpretation(
   sectionId: string,
+  focus: ReportFocus,
   analysis: SajuAnalysis,
   context: SajuReportContext,
   ragTopics: string[],
-  birth?: BirthInput,
-) {
-  return toStorytellingPayload(buildLoveThisYearStoryBeat(sectionId, analysis, context, ragTopics, birth))
+): string {
+  const name = cleanContextValue(context.name, '자네')
+  const home = context.home
+  const p = analysis.fourPillars
+  const dayPillar = pillarLabel(p.day)
+  const monthPillar = pillarLabel(p.month)
+  const dayMaster = `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const building = homeValueLabel('buildingType', home?.buildingType) || '주거 형태 미입력'
+  const living = homeValueLabel('livingPeriod', home?.livingPeriod) || '거주 기간 미입력'
+  const purpose = homeValueLabel('mainPurpose', home?.mainPurpose) || '집에서 제일 중요한 목적 미입력'
+  const decision = homeValueLabel('stayDecision', home?.stayDecision) || '판단 고민 미입력'
+  const painText = homePainLabels(context).join(' · ') || '아직 고른 체감 신호 없음'
+  const entrance = homeValueLabel('entranceFlow', home?.entranceFlow) || '현관 동선 미확인'
+  const bedroom = homeValueLabel('bedroomFeel', home?.bedroomFeel) || '침실 체감 미확인'
+  const desk = homeValueLabel('deskPosition', home?.deskPosition) || '책상 위치 미확인'
+  const outside = homeValueLabel('outsideFlow', home?.outsideFlow) || '창밖 흐름 미확인'
+  const address = home?.addressOrBuilding ? `${home.addressOrBuilding} 기준` : '현재 집 기준'
+  const daewoon = analysis.fortune?.currentDaewoon ?? '현재 대운'
+  const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
+  const ragLine = ragTopics.length > 0
+    ? `이번 장은 ${ragTopics.join(', ')}의 공간 기준을 함께 대조했습니다.`
+    : '이번 장은 집의 체감 신호와 사주 오행 기준을 함께 대조했습니다.'
+  const caution = '이 풀이는 이사를 강요하거나 명당·흉지를 확정하는 말이 아닙니다. 몸 상태, 재산, 계약 결과를 단정하지 않고 생활에서 확인할 수 있는 신호와 손질 순서를 잡는 데 둡니다.'
+  const houseLine = `${address}, ${building}, ${living}, 핵심 목적은 ${purpose}, 지금 고민은 ${decision}입니다. 신경 쓰이는 지점은 ${painText}로 들어왔습니다.`
+
+  const sections: Record<string, string> = {
+    'home-fit-overall': [
+      `흠... ${name}님의 집 풍수는 ${dayPillar} 일주와 ${dayMaster} 일간, 그리고 지금 집의 체감 신호를 겹쳐서 봅니다. ${houseLine} 집이 맞는지 아닌지는 한마디로 자를 일이 아닙니다. 이 집이 자네의 잠, 일, 돈, 관계 리듬을 얼마나 덜 흔들고 얼마나 잘 받쳐주는지가 먼저입니다.`,
+      `[주요 포인트] 원국에서는 ${dominant} 기운이 먼저 올라오고 ${weak} 기운이 보완 자리로 남습니다. 그래서 이 집이 ${dominant}을 더 과하게 밀어붙이는지, 아니면 ${useful} 기운을 살려 중심을 잡아주는지가 핵심입니다. ${ragLine}`,
+      `무료 맛보기로 먼저 말하자면, 이 집은 "${purpose}" 목적에 맞춰 볼 때 현관·침실·책상·창밖 중 어디가 자네의 기운을 먼저 빼앗는지 확인해야 합니다. ${daewoon}과 ${yearPillar} 흐름에서는 큰 이사 결정보다 7일 체감 테스트가 먼저입니다. ${caution}`,
+    ].join('\n\n'),
+    'house-energy': [
+      `집의 기본 기운은 현관, 창밖, 동선에서 먼저 잡힙니다. 입력된 현관은 ${entrance}, 창밖은 ${outside}입니다. 전통 풍수의 말로는 앞이 열리고 뒤가 받치는가를 보지만, 생활 언어로 풀면 들어오는 길이 답답하지 않은지, 앉고 쉬는 자리가 과하게 노출되지 않는지를 보는 겁니다.`,
+      `[주목할 점] ${name}님 사주는 ${dominant} 기운이 빨리 반응하므로, 집 안으로 들어오자마자 시선과 동선이 한 번에 몰리면 마음도 덩달아 급해질 수 있습니다. 반대로 통로가 너무 막히면 ${weak} 기운이 더 비어 피로가 쌓일 수 있네. 이건 미신적 단정이 아니라 매일 반복되는 자극의 문제입니다.`,
+      `${ragLine} 먼저 할 일은 현관 바닥을 비우고, 문을 열었을 때 바로 보이는 물건을 한 단계 줄이는 겁니다. 창밖 압박이나 소음이 있다면 커튼, 식물, 조명처럼 시선을 부드럽게 끊는 장치부터 보세요. 큰 공사보다 집의 첫 호흡을 정리하는 쪽이 먼저입니다.`,
+    ].join('\n\n'),
+    'saju-house-ohaeng': [
+      `${name}님의 오행은 ${dominant}이 먼저 강하고 ${weak}이 보완점입니다. 집 풍수에서 오행은 색 하나를 붙인다고 끝나는 처방이 아닙니다. 목은 성장과 환기, 화는 빛과 표현, 토는 안정과 수납, 금은 정리와 기준, 수는 휴식과 흐름처럼 생활 장면으로 읽어야 합니다.`,
+      `[주요 포인트] ${dayPillar} 일주와 월주 ${monthPillar}를 같이 보면, 이 집은 자네에게 ${useful} 기운을 살리는 방식으로 써야 합니다. ${purpose}가 중요하다면 공간도 그 목적에 맞게 우선순위를 가져야 합니다. 잠이 목적이면 침실, 일이 목적이면 책상, 돈과 살림이면 주방과 수납, 관계면 공용공간과 사생활 경계가 먼저입니다.`,
+      `${ragLine} 오행 보완은 과한 색상 처방보다 반복 루틴이 정확합니다. 부족한 ${weak}을 채우려면 ${home?.extraNote ? `특히 "${home.extraNote}"라고 적은 체감까지 같이 보고, ` : ''}빛·소리·물건 밀도·앉는 방향을 한 번에 바꾸지 말고 하나씩 조정해야 합니다. 그래야 어떤 변화가 자네에게 맞는지 분명히 보입니다.`,
+    ].join('\n\n'),
+    'sleep-recovery': [
+      `잠과 회복은 집 풍수에서 가장 먼저 봐야 할 자리입니다. 침실 입력은 ${bedroom}입니다. ${name}님 사주에서 ${dominant} 기운이 바깥으로 많이 쓰이면, 밤에는 오히려 ${weak} 기운이 받쳐줘야 회복이 됩니다. 침실이 밝거나 시끄럽거나 문·복도 자극을 받으면 머리가 쉬지 못할 수 있습니다.`,
+      `[주의할 점] 이 대목은 건강 진단이 아닙니다. 다만 잠들기 전 눈에 걸리는 물건, 창밖 소음, 침대에서 바로 보이는 문, 침구 색과 조명의 강도는 멘탈 리듬에 영향을 줍니다. ${daewoon}과 ${yearPillar} 흐름에서 일이 많아질수록 침실은 더 단순해야 합니다.`,
+      `${ragLine} 7일 동안 먼저 해볼 처방은 세 가지입니다. 침대 주변 바닥을 비우고, 자기 전 강한 빛을 줄이고, 문이나 창이 바로 압박하는 느낌이면 시선을 끊는 얇은 가림을 둡니다. 잠자리가 안정되면 집 전체 판단도 덜 감정적으로 보입니다.`,
+    ].join('\n\n'),
+    'entrance-flow': [
+      `현관·동선 에너지는 집으로 들어오는 첫 문장입니다. 현재 입력은 ${entrance}입니다. 현관에서 안쪽이 너무 곧게 보이면 기운이 빨리 들어와 빨리 빠지는 느낌을 만들 수 있고, 지나치게 막히면 들어올 일도 답답하게 느껴질 수 있습니다.`,
+      `[주요 포인트] ${name}님은 ${dayPillar} 일주의 반응 속도와 ${dominant} 기운이 함께 움직입니다. 그래서 현관이 복잡하면 작은 일도 먼저 거슬리고, 현관이 너무 노출되면 쉬기 전에 방어가 올라올 수 있습니다. 풍수의 핵심은 복을 부르는 물건보다 막힘과 과속을 줄이는 데 있습니다.`,
+      `${ragLine} 신발, 택배, 우산, 거울 위치를 먼저 보세요. 문을 열었을 때 한 번에 눈에 들어오는 물건을 줄이고, 꺾이는 동선이면 어두운 코너에 약한 조명을 둡니다. 이 정도만 해도 집에 들어올 때의 마음 속도가 달라질 수 있습니다.`,
+    ].join('\n\n'),
+    'remote-focus': [
+      `재택·공부·일 집중력은 책상 위치에서 크게 갈립니다. 현재 책상 입력은 ${desk}입니다. ${context.work ?? '일상 흐름'} 상태에서 ${purpose}가 중요하다면, 책상은 단순한 가구가 아니라 자네의 월주 ${monthPillar}가 현실에서 작동하는 자리입니다.`,
+      `[해법] 등 뒤가 벽이면 기준이 잡히기 쉽고, 등 뒤가 창이면 마음이 뜰 수 있습니다. 문을 정면으로 보면 통제감은 생기지만 긴장이 올라갈 수 있고, 쉬는 자리와 섞이면 일과 회복이 서로 침범합니다. ${dominant}이 강한 사람일수록 책상 위 물건 수를 줄여야 판단이 맑아집니다.`,
+      `${ragLine} 7일 테스트는 간단합니다. 책상 위에 지금 하는 일 하나만 남기고, 등 뒤 자극을 줄이고, 쉬는 물건과 일하는 물건을 분리하세요. 이사나 방 변경 전에도 집중 시간, 산만함, 끝낸 일의 개수가 달라지는지 먼저 확인할 수 있습니다.`,
+    ].join('\n\n'),
+    'money-living': [
+      `돈·살림·소비 흐름은 재물운을 집 안에서 보는 장입니다. ${purpose} 목적과 ${painText} 신호를 같이 놓으면, 돈은 단순히 들어오고 나가는 숫자가 아니라 물건이 쌓이는 방식, 주방과 수납의 흐름, 결제 습관으로 먼저 드러납니다.`,
+      `[주의할 점] ${name}님 사주에 ${analysis.tenGods.join(' · ') || '십신'} 흐름이 있으니 돈을 읽을 때도 재성만 보지 않습니다. ${dominant}이 과하게 움직이면 충동 구매나 사람 비용이 빨라질 수 있고, ${weak}이 비면 정리·기록·반복 관리가 밀릴 수 있습니다. 이건 수익 보장이 아니라 새는 지점을 먼저 찾는 풀이입니다.`,
+      `${ragLine} 먼저 냉장고, 현관 옆 수납, 결제 알림, 자주 두는 영수증 자리를 보세요. 돈길보다 돈구멍이 먼저 보이는 법입니다. 작은 바구니 하나, 주 1회 비우기, 자동결제 목록 점검처럼 토대가 잡히면 살림의 기운도 안정됩니다.`,
+    ].join('\n\n'),
+    'relationship-cohabitation': [
+      `관계·가족·동거 케미는 집의 넓이보다 거리감에서 갈립니다. 현재 관계 문맥은 ${context.relationship ?? '관계 상태 미입력'}, 핵심 목적은 ${purpose}, 체감 신호는 ${painText}입니다. 같이 사는 사람이 있든 없든 공용공간과 혼자 숨 쉬는 자리의 균형이 필요합니다.`,
+      `[주목할 점] ${dayPillar} 일주는 가까운 사람 앞에서 더 선명하게 반응합니다. ${dominant}이 강하면 내 방식이 맞다고 느끼기 쉽고, ${weak}이 비면 상대의 리듬을 기다리는 힘이 부족해질 수 있습니다. 그래서 이 집에서는 말로 푸는 것보다 각자의 자리와 동선을 분리하는 것이 먼저일 수 있습니다.`,
+      `${ragLine} 가족이나 동거인이 있다면 식탁, 소파, 침실 문 앞에 물건이 쌓이는지 보세요. 혼자 산다면 사람을 들인 뒤 피곤해지는 자리, 오래 통화하는 자리, 쉬는 공간과 일하는 공간이 섞이는 지점을 봐야 합니다. 관계운은 공간의 경계에서 현실이 됩니다.`,
+    ].join('\n\n'),
+    'spatial-fix': [
+      `공간별 손질 처방은 큰 비용을 쓰기 전에 하는 작은 조정입니다. ${name}님에게는 ${useful} 기운을 살리는 쪽이 우선입니다. 현관은 ${entrance}, 침실은 ${bedroom}, 책상은 ${desk}, 창밖은 ${outside}로 들어왔으니 네 곳을 한꺼번에 바꾸지 말고 순서를 잡아야 합니다.`,
+      `[해법] 첫째 현관은 바닥을 비우고 들어오는 시선을 정리합니다. 둘째 침실은 빛과 소리를 낮추고 잠드는 쪽을 단순하게 만듭니다. 셋째 책상은 등 뒤와 물건 수를 조정합니다. 넷째 창밖 압박은 커튼, 식물, 조명으로 부드럽게 끊습니다. 이 네 가지가 집 풍수의 현실 처방입니다.`,
+      `${ragLine} 색 처방은 마지막입니다. 먼저 물건 밀도, 빛, 소리, 동선을 조절해야 자네 사주의 오행 보완이 실제 체감으로 이어집니다. 고친 뒤에는 하루 기분보다 7일 평균을 보세요. 공간은 하루 반응보다 반복 반응이 더 정확합니다.`,
+    ].join('\n\n'),
+    'reality-action': [
+      `현실 체크의 결론은 ${decision}입니다. 이사할지, 고쳐 살지, 후보와 비교할지는 운세 한 줄로 정할 일이 아닙니다. ${name}님의 명식, ${daewoon}, ${yearPillar}, 그리고 현재 집의 현관·침실·책상·창밖 신호를 7일 단위로 확인해야 합니다.`,
+      `[주요 포인트] 7일 테스트 기준은 네 가지입니다. 집에 들어올 때 마음이 가라앉는가, 잠에서 깬 뒤 회복감이 있는가, 책상에서 한 가지 일을 끝내는가, 돈과 물건이 덜 새는가. 이 네 가지 중 두 가지 이상이 좋아지면 이 집은 손봐서 쓸 여지가 있습니다. 반대로 손질해도 같은 지점이 반복되면 비교 후보를 열어둘 수 있습니다.`,
+      `${ragLine} 마지막으로 다시 말하겠습니다. 이 풀이는 계약, 건강, 재산 결과를 보장하지 않습니다. 다만 지금 집이 자네의 기운을 돕는지 방해하는지, 어디부터 손보면 판단이 선명해지는지 알려주는 지도입니다. 큰 결정은 감정이 아니라 반복 관찰 뒤에 내려야 합니다.`,
+    ].join('\n\n'),
+  }
+
+  return sections[sectionId] ?? [
+    `${name}님의 집 풍수는 ${focus} 기준으로 봅니다. ${dayPillar} 일주와 ${dominant}/${weak} 오행, 그리고 ${homeContextSummary(context)}을 함께 놓고 해석합니다.`,
+    `${ragLine} 이 풀이는 확정 예언이 아니라 집과 생활 리듬의 맞물림을 확인하는 기준입니다.`,
+  ].join('\n\n')
+}
+
+function buildWorkMoveInterpretation(
+  sectionId: string,
+  focus: ReportFocus,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+  ragTopics: string[],
+): string {
+  const name = cleanContextValue(context.name, '자네')
+  const workMove = context.workMove
+  const p = analysis.fourPillars
+  const dayPillar = pillarLabel(p.day)
+  const monthPillar = pillarLabel(p.month)
+  const dayMaster = `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`
+  const dominant = ELEMENT_KO[analysis.dominantElement]
+  const weak = ELEMENT_KO[analysis.weakElement]
+  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const decision = workMoveValueLabel('decisionMode', workMove?.decisionMode) || '이직 상황 미입력'
+  const signal = workMoveValueLabel('currentCompanySignal', workMove?.currentCompanySignal) || '현 회사 신호 미입력'
+  const role = workMove?.targetRole || '희망·제안 직무 미입력'
+  const company = workMove?.targetCompanyName || '새 회사명 미입력'
+  const workType = workMoveValueLabel('workType', workMove?.workType) || '근무 형태 미입력'
+  const commute = workMove?.commuteLocation || '근무지 체감 미입력'
+  const salary = workMoveValueLabel('salaryFeeling', workMove?.salaryFeeling) || '연봉·조건 미입력'
+  const decisionDate = workMove?.decisionDate || '결정일 미정'
+  const priority = workMoveValueLabel('priority', workMove?.priority) || '우선순위 미입력'
+  const discomfort = workMove?.discomfortPoint || '찝찝한 포인트 미입력'
+  const checks = workMoveRealityLabels(context)
+  const checkText = checks.join(' · ') || '아직 확인된 현실 체크 없음'
+  const daewoon = analysis.fortune?.currentDaewoon ?? '현재 대운'
+  const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
+  const tenGods = analysis.tenGods.join(' · ') || '십신'
+  const ragLine = ragTopics.length > 0
+    ? `이번 장은 ${ragTopics.join(', ')}의 이직 판단 기준을 함께 대조했습니다.`
+    : '이번 장은 KMS 코퍼스의 이직 판단 기준과 사주 계산값을 함께 대조했습니다.'
+  const caution = '이 풀이는 퇴사, 합격, 연봉 상승, 채용 결과를 확정하지 않습니다. 운의 신호와 현실 조건을 나눠서 확인하는 의사결정 보조 자료입니다.'
+  const contextLine = `${decision}, 현 회사 신호는 ${signal}, 새 후보는 ${company}, 직무는 ${role}, 근무 형태는 ${workType}, 조건 체감은 ${salary}, 우선순위는 ${priority}입니다.`
+
+  const sections: Record<string, string> = {
+    'work-move-decision': [
+      `흠... ${name}님의 이직운은 ${dayPillar} 일주와 ${dayMaster} 일간, 그리고 지금 입력한 회사 이동 상황을 겹쳐서 봅니다. ${contextLine} 지금은 "옮겨도 된다, 안 된다"로 단정할 때가 아니라, 이직각·존버각·준비각·보류각·조건부 환승각 중 어디에 가까운지 먼저 가르는 흐름입니다.`,
+      `[주요 포인트] 원국에서는 ${dominant} 기운이 먼저 올라오고 ${weak} 기운이 보완 자리로 남습니다. 직장 판단에서는 관성이 책임과 조직, 식상이 결과물, 재성이 돈 조건으로 드러납니다. ${tenGods} 흐름을 보면 지금 선택은 마음의 불만보다 역할, 계약, 감당력의 문제로 봐야 합니다.`,
+      `${ragLine} 무료 맛보기 결론으로는 ${signal} 때문에 움직이고 싶은 마음이 생겼지만, ${priority} 기준을 만족하는지 확인해야 합니다. ${daewoon}과 ${yearPillar} 흐름에서는 큰 결심보다 조건 확인이 먼저입니다. ${caution}`,
+    ].join('\n\n'),
+    'current-company-signal': [
+      `현 회사에서 걸리는 신호는 ${signal}입니다. 이 신호는 단순한 짜증일 수도 있지만, 월주 ${monthPillar}가 사회에서 반복해서 부딪히는 패턴일 수도 있습니다. ${name}님은 ${dominant} 기운이 먼저 반응하므로, 같은 압박이 반복되면 마음보다 몸이 먼저 지칠 수 있습니다.`,
+      `[주의할 점] 현 회사를 싫어하는 감정과 실제로 옮겨야 할 구조는 다릅니다. 역할이 흐린지, 결정권이 부족한지, 상사 압박인지, 동료 경쟁인지, 인정 욕구인지, 번아웃인지에 따라 해법이 달라집니다. 관성은 책임을 만들지만 과하면 압박이 되고, 식상은 결과물을 만들지만 과하면 반발이 됩니다.`,
+      `${ragLine} 지금 입력한 찝찝한 지점은 "${discomfort}"입니다. 이 문장을 현 회사 안에서 해결할 수 있는 문제와 새 회사에서도 반복될 문제로 나누세요. 구분이 안 되면 이직은 해방이 아니라 같은 피로의 장소 이동이 될 수 있습니다.`,
+    ].join('\n\n'),
+    'career-constitution': [
+      `${name}님의 커리어 체질은 ${dayPillar} 일주, ${dominant} 과다, ${weak} 보완으로 읽습니다. 이직운에서 오행은 직업을 하나로 맞히는 도구가 아닙니다. 목은 성장과 시작, 화는 표현과 노출, 토는 안정과 운영, 금은 기준과 판단, 수는 정보와 흐름으로 실제 일의 방식에 번역됩니다.`,
+      `[주요 포인트] ${useful} 기운을 살리는 환경에서는 새 역할을 오래 감당하기 쉽습니다. 반대로 ${dominant}만 더 몰아붙이는 회사라면 처음엔 속도가 붙어도 번아웃이 빨리 올 수 있습니다. 신강·신약 감당력은 압박을 버티는 힘만이 아니라 회복 루틴을 만들 수 있는지까지 봐야 합니다.`,
+      `${ragLine} ${role} 직무가 맞는지 보려면 재능보다 하루 반복을 봐야 합니다. 출근, 회의, 산출물, 피드백, 평가 방식이 ${name}님의 기운을 살리는지 확인하세요. 체질에 맞는 일은 성과만 내는 일이 아니라 회복 후 다시 들어갈 수 있는 일입니다.`,
+    ].join('\n\n'),
+    'role-fit': [
+      `직무 핏은 "${role}" 기준으로 봅니다. 십신으로 보면 비견·겁재는 주체성과 경쟁, 식신·상관은 산출과 개선, 정재·편재는 돈과 시장, 정관·편관은 책임과 압박, 정인·편인은 문서·학습·해석의 결을 만듭니다. ${name}님 사주에는 ${tenGods} 흐름이 먼저 보입니다.`,
+      `[주목할 점] 새 직무가 내 강점을 쓰게 하는지, 약한 기운을 계속 방치하게 하는지가 핵심입니다. ${dominant}이 강하면 새 판을 빠르게 읽지만, ${weak}이 비면 반복 운영이나 회복에서 흔들릴 수 있습니다. 직무명보다 실제 업무범위와 평가 기준을 먼저 확인해야 합니다.`,
+      `${ragLine} ${company}의 역할 설명이 넓고 멋있게 들려도, 실제로는 누구에게 보고하고 어떤 결과물을 언제까지 내는지가 이직운의 현실 근거입니다. 이 부분이 흐리면 좋은 운도 불안한 자리로 들어갈 수 있습니다.`,
+    ].join('\n\n'),
+    'new-company-fit': [
+      `새 회사 궁합은 회사 이름보다 일상 구조를 봅니다. 후보는 ${company}, 근무 형태는 ${workType}, 출퇴근·근무지 체감은 ${commute}입니다. 천이궁식으로 말하면 이동과 외부 환경이 바뀌는 자리이고, 생활 언어로는 몸이 매일 감당할 거리와 리듬입니다.`,
+      `[주요 포인트] ${dayPillar} 일주의 사람은 새 공간에서 처음엔 ${dominant} 기운으로 적응하지만, 오래 버티는 힘은 ${useful} 기운이 받쳐야 합니다. 원격, 하이브리드, 사무실, 교대, 현장근무는 모두 다른 피로를 만듭니다. 새 회사가 좋아 보여도 생활 리듬이 맞지 않으면 만족도가 오래 가지 않습니다.`,
+      `${ragLine} 면접이나 오퍼 단계에서는 조직 문화보다 먼저 하루 흐름을 물어보세요. 회의 밀도, 의사결정 속도, 보고 라인, 재택 가능성, 야근 패턴을 확인하면 새 회사 궁합이 훨씬 선명해집니다.`,
+    ].join('\n\n'),
+    'money-terms': [
+      `연봉과 계약 조건은 ${salary}로 들어왔습니다. 재성은 돈만 뜻하지 않고 현실을 붙드는 감각입니다. 그래서 이직운에서 돈은 액수보다 구조로 봐야 합니다. 기본급, 성과급, 수습, 업무범위, 평가 기준, 출퇴근 비용, 장비·생활비 증가를 나눠야 합니다.`,
+      `[주의할 점] 연봉이 올라도 계약서가 흐리면 돈 조건은 아직 완성된 것이 아닙니다. ${name}님 사주에서 ${tenGods} 흐름이 돈과 책임을 동시에 건드리므로, 역할이 넓어지는 만큼 보상이 실제로 따라오는지 확인해야 합니다. ${priority}가 돈 조건이라면 더더욱 문서가 기준입니다.`,
+      `${ragLine} 현실 체크는 ${checkText}입니다. 오퍼레터와 계약서의 연봉·업무범위를 확인하지 않았다면 지금은 조건부 환승각에 가깝습니다. 돈길은 열릴 수 있지만, 돈구멍과 책임구멍을 먼저 막아야 합니다.`,
+    ].join('\n\n'),
+    'timing-daewoon-sewoon': [
+      `타이밍은 ${daewoon}과 ${yearPillar} 세운을 같이 봅니다. 대운은 큰 방향이고 세운은 올해 실제로 올라오는 사건의 결입니다. 결정 예정일은 ${decisionDate}로 들어왔습니다. 날짜 하나로 합격이나 퇴사를 확정하지 않고, 그 시기의 압박과 준비 상태를 같이 봐야 합니다.`,
+      `[주요 포인트] 대운 교차기나 세운의 충·형·파·해가 강한 때에는 이동 욕구가 빨라질 수 있습니다. 반대로 관성이 안정적으로 작동하면 책임이 늘어도 공식 역할을 얻을 수 있습니다. 지금 필요한 것은 좋은 날 찾기가 아니라 움직임이 과속인지, 준비된 전환인지 판단하는 것입니다.`,
+      `${ragLine} 면접, 연봉 협상, 퇴사 통보는 한 번에 몰지 마세요. 최소한 이력서·오퍼·현금 버퍼·퇴사 대화 순서를 나눠야 합니다. 타이밍은 운의 문제이면서 동시에 순서의 문제입니다.`,
+    ].join('\n\n'),
+    'risk-brake': [
+      `멈춰 봐야 할 브레이크는 "${discomfort}"입니다. 사주에서 충·형·파·해, 공망, 과한 상관, 과한 편관 같은 신호는 사건을 확정하는 말이 아니라 과속할 때 흔들리는 지점을 알려주는 경고입니다. 지금 이직운에서는 ${signal}이 그 경고의 입구입니다.`,
+      `[위험 신호] 좋은 말만 하지는 않겠습니다. 번아웃 상태에서 도망치듯 움직이거나, 계약 조건을 확인하지 않거나, 역할 범위를 애매하게 두거나, 사람 때문에 급히 결정하면 새 회사에서도 같은 피로가 반복될 수 있습니다. 특히 ${weak} 기운이 비어 있는 부분은 회복과 정리에서 먼저 무너질 수 있습니다.`,
+      `${ragLine} 브레이크는 포기하라는 뜻이 아닙니다. 멈춰서 확인해야 좋은 이동이 됩니다. 찝찝한 지점을 한 문장으로 적고, 그 문장이 계약서·업무범위·팀 문화·출퇴근 중 어디에 걸리는지 표시하세요. 표시가 안 되면 아직 정보가 부족한 겁니다.`,
+    ].join('\n\n'),
+    'ninety-day-action': [
+      `90일 현실 액션은 이직운을 실제 선택으로 바꾸는 구간입니다. 현재 체크된 항목은 ${checkText}입니다. 운이 좋아도 이력서, 포트폴리오, 오퍼 조건, 현금 버퍼, 퇴사 대화가 준비되지 않으면 좋은 흐름을 담을 그릇이 약합니다.`,
+      `[해법] 첫 30일은 이력서와 포트폴리오를 정리하고, 다음 30일은 면접과 역할 범위 질문을 준비하며, 마지막 30일은 연봉·계약·퇴사 대화를 문서화하세요. ${priority}를 기준으로 돈, 성장, 멘탈, 타이밍, 사람, 안정감 중 하나를 최우선 판단선으로 세워야 흔들리지 않습니다.`,
+      `${ragLine} ${name}님에게 필요한 건 무작정 버티기나 바로 런이 아닙니다. ${useful} 기운을 살리는 준비표입니다. 준비표가 채워지면 이직각인지, 준비각인지, 조건부 환승각인지가 훨씬 분명해집니다.`,
+    ].join('\n\n'),
+    'final-checklist': [
+      `마지막 체크는 ${priority} 기준입니다. ${contextLine} 이 입력값을 놓고 보면 결정 전에는 네 줄을 반드시 확인해야 합니다. 돈 조건, 역할 범위, 멘탈 회복, 타이밍입니다. 하나라도 빈칸이면 확정이 아니라 추가 확인입니다.`,
+      `[최종 기준] 돈은 연봉 액수보다 계약 구조, 역할은 직무명보다 실제 책임, 멘탈은 설렘보다 회복 가능성, 타이밍은 날짜보다 준비 순서입니다. 사주는 ${dayPillar} 일주와 ${dominant}/${weak} 오행, 관성·식상·재성의 흐름으로 이 네 기준을 읽어줍니다.`,
+      `${ragLine} 결론은 단정이 아니라 판단선입니다. ${company}로 움직일지 말지는 이 기준을 통과한 뒤 결정하세요. ${caution}`,
+    ].join('\n\n'),
+  }
+
+  return sections[sectionId] ?? [
+    `${name}님의 이직운은 ${focus} 기준으로 봅니다. ${dayPillar} 일주와 ${dominant}/${weak} 오행, 그리고 ${workMoveContextSummary(context)}을 함께 놓고 해석합니다.`,
+    `${ragLine} 이 풀이는 확정 예언이 아니라 회사 이동 판단 기준을 정리하는 데 초점을 둡니다.`,
+  ].join('\n\n')
 }
 
 function buildInterpretation(
@@ -692,6 +1478,14 @@ function buildInterpretation(
 
   if (isLoveThisYearContext(context)) {
     return buildLoveThisYearInterpretation(sectionId, focus, analysis, context, ragTopics, birth)
+  }
+
+  if (isHomeFitContext(context)) {
+    return buildHomeFitInterpretation(sectionId, focus, analysis, context, ragTopics)
+  }
+
+  if (isWorkMoveContext(context)) {
+    return buildWorkMoveInterpretation(sectionId, focus, analysis, context, ragTopics)
   }
 
   const sections: Partial<Record<ReportFocus, string>> = {
@@ -806,6 +1600,7 @@ export function buildTemplateSajuReport(
   context: SajuReportContext = {},
 ): SajuReport {
   const isLoveThisYear = isLoveThisYearContext(context)
+  const isWorkMove = isWorkMoveContext(context)
   const keys = [
     ...(context.serviceKey ? [`service:${context.serviceKey}`] : []),
     ...patternKeys(analysis, birth),
@@ -818,6 +1613,8 @@ export function buildTemplateSajuReport(
     ...(context.partner?.relationship ? [`partnerRelationship:${context.partner.relationship}`] : []),
     ...(context.partner?.dayMaster ? [`partnerDayMaster:${context.partner.dayMaster}`] : []),
     ...(context.partner?.dominantElement ? [`partnerDominant:${context.partner.dominantElement}`] : []),
+    ...homePatternKeys(context),
+    ...workMovePatternKeys(context),
     ...(analysis.manseryeok?.gyeokguk ? [`gyeokguk:${analysis.manseryeok.gyeokguk.name}`] : []),
     ...(analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
     ...(analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
@@ -832,34 +1629,37 @@ export function buildTemplateSajuReport(
     )
     const ragTopics = chunks.map((c) => c.topic)
 
-    const interpretation = buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth)
-    const loveStory = isLoveThisYear
-      ? buildLoveThisYearStorytelling(blueprint.id, analysis, context, ragTopics, birth)
-      : undefined
     return {
       id: blueprint.id,
       order: index + 1,
-      imageKey: isLoveThisYear ? 'love-this-year' : 'common-mystic',
-      imageSrc: isLoveThisYear ? '/assets/umsh-love-card-bg.webp' : COMMON_IMAGE_SRC,
-      imageAlt: isLoveThisYear ? `${blueprint.category} 연애 장면` : `${blueprint.category} 공통 이미지`,
+      imageKey: 'common-mystic',
+      imageSrc: COMMON_IMAGE_SRC,
+      imageAlt: `${blueprint.category} 공통 이미지`,
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
-      classification: classificationFor(blueprint.focus, analysis, context),
-      hook: isLoveThisYear
-        ? loveThisYearHook(blueprint.id, analysis, context, birth)
-        : hookFor(blueprint.focus, analysis, context),
+      classification: classificationFor(blueprint.focus, analysis, context, blueprint.id),
+      hook: hookFor(blueprint.focus, analysis, context, blueprint.id),
       patternKeys: keys,
       ragTopics,
-      interpretation,
-      ...(loveStory ? { storytelling: loveStory } : {}),
+      interpretation: buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth),
     }
   })
 
   const report: SajuReport = {
-    title: isLoveThisYear ? `${name}님의 올해 연애운 리포트` : `${name}님의 사주 리포트`,
+    title: isLoveThisYear
+      ? `${name}님의 올해 연애운 리포트`
+      : isHomeFitContext(context)
+        ? `${name}님의 집 풍수 리포트`
+        : isWorkMove
+          ? `${name}님의 이직운 리포트`
+          : `${name}님의 사주 리포트`,
     subtitle: isLoveThisYear
       ? '도화, 세운, 배우자성의 신호로 올해 연애 가능성과 놓치기 쉬운 타이밍을 봅니다.'
-      : '사주 기둥과 오행, 십신, 대운 흐름을 기준으로 순차 해석합니다.',
+      : isHomeFitContext(context)
+        ? '현관, 침실, 책상, 창밖 체감과 사주 오행 리듬을 겹쳐 지금 집의 핏을 봅니다.'
+        : isWorkMove
+          ? '대운, 세운, 관성, 식상, 재성 흐름과 입력한 회사 이동 조건을 겹쳐 이직 판단선을 봅니다.'
+          : '사주 기둥과 오행, 십신, 대운 흐름을 기준으로 순차 해석합니다.',
     model: 'template',
     generatedBy: 'template',
     sections,
@@ -896,10 +1696,8 @@ function reportPrompt(
         '입력된 사주 기둥, 오행, 십신, 용신, 대운, 내부 지식 블록을 근거로 장문 풀이를 씁니다.',
         'Feature JSON에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
         '내부 지식 블록은 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 성향·실제 행동·위험·기회·조언으로 해석합니다.',
-        'serviceKey가 전용 서비스라면 그 서비스의 category/classification을 최우선 목차로 삼고, 일반 사주 풀이로 되돌리지 않습니다. 각 장의 질문에 직접 답합니다.',
         '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
         CHEONMYEONG_TONE_GUIDE,
-        'serviceKey가 love_this_year이면 사용자 문장은 감성 후킹·장면·짧은 공감이 주인공입니다. 사주 용어 수업/[근거]/[논리] 교과서 톤을 쓰지 마세요. 명식 근거는 내부에서만 쓰고, 겉문장에는 분위기와 관계 장면으로 녹이세요. 표·월별 흐름·이미지 힌트는 감성적 캡션과 함께 유지하세요.',
         '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '각 분류는 얕은 요약으로 끝내지 말고, 왜 그런 해석이 나오는지, 실제 생활에서 어떻게 드러나는지, 무엇을 조심하고 무엇을 하면 좋은지까지 풍부하게 풉니다.',
@@ -907,6 +1705,8 @@ function reportPrompt(
         '논리 전개는 명식 근거 → 성향/상황 해석 → 좋은점 → 주의할점/위험/위기 → 구체적인 행동 기준이 보이게 씁니다.',
         '좋은 흐름과 안 좋은 함정을 둘 다 말합니다. 안 좋은 패턴은 “이 대목은 위험하네”, “방치하면 반복될 수 있네”, “돈길보다 돈구멍이 먼저 보이는군”처럼 선명하게 말하되 공포를 팔지 않습니다.',
         '각 섹션에 억지 경고를 넣지는 말되, 겁재·상관·편관, 합충형파해, 과다/부족 오행, 대운·세운 충돌, 사용자의 고민에서 위험 신호가 드러나면 반드시 주의할 것·피해야 할 선택·드러나는 시기·풀 행동 기준을 함께 알려줍니다.',
+        'serviceKey가 home_fit이면 집 풍수 단일 상품입니다. home.addressOrBuilding, buildingType, livingPeriod, mainPurpose, stayDecision, painPoints, entranceFlow, bedroomFeel, deskPosition, outsideFlow, extraNote를 사주 오행과 대운·세운에 겹쳐 해석합니다.',
+        'home_fit에서는 명당/흉지, 강제 이사, 건강·재산·계약 결과를 확정하지 말고, 현관·침실·책상·창밖·수납·동선에서 7일 동안 확인할 수 있는 현실 조정과 판단 기준을 씁니다.',
         '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
         '반드시 JSON만 출력하세요. Markdown 코드블록을 쓰지 마세요.',
       ].join('\n'),
@@ -914,7 +1714,7 @@ function reportPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 전용 serviceKey라면 해당 상품의 category/classification을 직접 답하는 소비자용 목차로 유지하세요. 내부 지식 블록은 최종 문장이 아니라 판단 재료입니다. 전문용어는 꼭 필요할 때만 한 번 쓰고 즉시 사용자 언어로 번역하세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 hook은 강한 감성 한 줄(장면·설렘·긴장·욕망)로 쓰고, interpretation은 감정→장면→짧은 행동 순으로 스토리텔링하세요. 사주 근거 나열/[근거]/[논리] 설명조는 금지입니다. 신뢰감은 일상어 한 줄 정도만 자연스럽게 넣으세요. 표·월별 타임라인·이미지 힌트(ko/en)가 있으면 감성 캡션과 함께 유지하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
+        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 최종 문장이 아니라 판단 재료입니다. 전문용어는 꼭 필요할 때만 한 번 쓰고 즉시 사용자 언어로 번역하세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner/home 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. serviceKey가 home_fit이면 집 풍수 상품이므로 현관·침실·책상·창밖·수납·동선·7일 체감 테스트와 사주 오행 핏을 중심으로 씁니다. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
         outputShape: {
           title: 'string',
           subtitle: 'string',
@@ -923,7 +1723,6 @@ function reportPrompt(
               id: 'string',
               hook: 'string',
               interpretation: 'string',
-              storytelling: 'optional emotional payload for love_this_year',
             },
           ],
         },
@@ -961,10 +1760,8 @@ function sectionPrompt(
         '사주 기둥, 오행, 십신, 용신, 대운, 내부 지식 블록을 근거로 하되 기계적으로 나열하지 않습니다.',
         'Feature JSON의 격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
         '내부 지식 블록은 문장 안에 복사하지 말고 현재 고민, 선택지, 명식 근거와 연결해 의미만 사용합니다.',
-        '전용 serviceKey라면 현재 상품의 category/classification 질문에 직접 답하고, 다른 상품의 일반적인 목차로 확장하지 않습니다.',
         '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
         CHEONMYEONG_TONE_GUIDE,
-        'serviceKey가 love_this_year이면 사용자 문장은 감성 후킹·장면·짧은 공감이 주인공입니다. 사주 용어 수업/[근거]/[논리] 교과서 톤을 쓰지 마세요. 명식 근거는 내부에서만 쓰고, 겉문장에는 분위기와 관계 장면으로 녹이세요. 표·월별 흐름·이미지 힌트는 감성적 캡션과 함께 유지하세요.',
         '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '해석은 풍부해야 합니다. 근거, 실제 생활 장면, 주의할 점, 바로 해볼 행동 기준을 함께 씁니다.',
@@ -972,6 +1769,7 @@ function sectionPrompt(
         '논리 전개는 명식 근거 → 성향/상황 해석 → 좋은점 → 주의할점/위험/위기 → 구체적인 행동 기준이 보이게 씁니다.',
         '이 섹션의 근거에서 위험 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 선명하게 덧붙입니다. 억지로 모든 섹션에 경고를 넣지 않습니다.',
         '안 좋은 패턴을 말할 때는 반드시 대운·세운·전환 신호처럼 드러나는 시기와, 사용자가 그 흐름을 풀 행동 기준을 함께 제시합니다.',
+        'serviceKey가 home_fit이면 집 풍수 단일 상품입니다. home 입력값을 중심으로 현관·침실·책상·창밖·수납·동선·7일 체감 테스트를 다루고, 명당/흉지나 강제 이사처럼 확정적인 표현은 쓰지 않습니다.',
         '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
         '반드시 JSON만 출력하세요. Markdown 코드블록을 쓰지 마세요.',
       ].join('\n'),
@@ -979,7 +1777,7 @@ function sectionPrompt(
     {
       role: 'user',
       content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 복사하지 말고 의미만 뽑아 Feature JSON과 연결하세요. 일간·십신·대운·용신 같은 용어는 꼭 필요할 때만 한 번 쓰고 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 hook은 감성 후킹 한 줄, interpretation은 장면·공감·짧은 행동이 주인공이 되게 쓰세요. 명리학 강의조는 금지하고, storytelling 필드(feel/scene/actions/tableMd/chartPoints/imagePrompt)가 있으면 감성 톤을 유지한 채 보강하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
+        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 복사하지 말고 의미만 뽑아 Feature JSON과 연결하세요. 일간·십신·대운·용신 같은 용어는 꼭 필요할 때만 한 번 쓰고 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner/home 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. serviceKey가 home_fit이면 현관·침실·책상·창밖·수납·동선·7일 체감 테스트와 사주 오행 핏을 중심으로 씁니다. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
         outputShape: {
           id: section.id,
           hook: 'string',
@@ -1020,7 +1818,7 @@ function mergeOpenAiReport(
     sections?: Array<{ id?: unknown; hook?: unknown; interpretation?: unknown }>
   }
   const generatedSections = Array.isArray(parsed.sections) ? parsed.sections : []
-  const sections = baseReport.sections.map((section): SajuReportSection => {
+  const sections = baseReport.sections.map((section) => {
     const next = generatedSections.find((item) => item.id === section.id)
     const hook = typeof next?.hook === 'string' && next.hook.trim() ? next.hook.trim() : section.hook
     const interpretation = typeof next?.interpretation === 'string' && next.interpretation.trim()
@@ -1031,9 +1829,6 @@ function mergeOpenAiReport(
       ...section,
       hook,
       interpretation,
-      generatedBy: 'openai',
-      model: REPORT_MODEL,
-      status: 'complete',
     }
   })
 
@@ -1045,9 +1840,8 @@ function mergeOpenAiReport(
     generatedBy: 'openai',
     sections,
   }
-  const normalized = normalizeReportCopy(report)
-  normalized.quality = evaluateReportQuality(normalized, analysis, context)
-  return normalized
+  report.quality = evaluateReportQuality(report, analysis, context)
+  return report
 }
 
 export async function buildOpenAiSajuReport(
@@ -1056,51 +1850,11 @@ export async function buildOpenAiSajuReport(
   context: SajuReportContext = {},
 ): Promise<SajuReport> {
   const baseReport = buildTemplateSajuReport(analysis, birth, context)
-  return buildOpenAiReportFromBase(analysis, birth, context, baseReport)
-}
-
-export async function buildOpenAiReportFromBase(
-  analysis: SajuAnalysis,
-  birth: BirthInput,
-  context: SajuReportContext,
-  baseReport: SajuReport,
-): Promise<SajuReport> {
   const raw = await chatWithOpenAI(reportPrompt(analysis, birth, context, baseReport), {
     model: REPORT_MODEL,
     maxTokens: runtimeConfig.report?.maxTokens ?? 9000,
   })
   return mergeOpenAiReport(baseReport, extractJsonObject(raw), analysis, context)
-}
-
-/** Enrich one already-built section (general or specialized TOC) without rebuilding the whole report. */
-export async function buildOpenAiReportSectionFromBase(
-  analysis: SajuAnalysis,
-  birth: BirthInput,
-  context: SajuReportContext,
-  section: SajuReportSection,
-): Promise<SajuReportSection> {
-  const raw = await chatWithOpenAI(sectionPrompt(analysis, birth, context, section), {
-    model: REPORT_MODEL,
-    maxTokens: runtimeConfig.report?.sectionMaxTokens ?? 3000,
-  })
-  const parsed = extractJsonObject(raw) as { hook?: unknown; interpretation?: unknown }
-
-  return {
-    ...section,
-    hook: consumerHook(
-      section.classification,
-      typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
-      section.order,
-    ),
-    interpretation: normalizeUserCopy(
-      typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
-        ? parsed.interpretation.trim()
-        : section.interpretation,
-    ),
-    generatedBy: 'openai',
-    model: REPORT_MODEL,
-    status: 'complete',
-  }
 }
 
 export async function buildOpenAiSajuReportSection(
@@ -1111,7 +1865,19 @@ export async function buildOpenAiSajuReportSection(
 ): Promise<SajuReportSection> {
   const baseReport = buildTemplateSajuReport(analysis, birth, context)
   const section = baseReport.sections.find((item) => item.id === sectionId) ?? baseReport.sections[0]
-  return buildOpenAiReportSectionFromBase(analysis, birth, context, section)
+  const raw = await chatWithOpenAI(sectionPrompt(analysis, birth, context, section), {
+    model: REPORT_MODEL,
+    maxTokens: runtimeConfig.report?.sectionMaxTokens ?? 3000,
+  })
+  const parsed = extractJsonObject(raw) as { hook?: unknown; interpretation?: unknown }
+
+  return {
+    ...section,
+    hook: typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
+    interpretation: typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
+      ? parsed.interpretation.trim()
+      : section.interpretation,
+  }
 }
 
 export function getReportModel(): string {

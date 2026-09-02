@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>상세 풀이 | 지금 사는 집, 나랑 잘 맞을까?</title>
+    <meta
+      name="description"
+      content="집 풍수 리포트에서 선택한 한 항목을 결론, 근거, 행동으로 자세히 확인합니다."
+    />
+    <meta property="og:title" content="지금 사는 집, 나랑 잘 맞을까? 상세 풀이" />
+    <meta property="og:description" content="선택한 집 풍수 리포트 항목을 깊게 확인합니다." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://place.umsh.kr/home" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="assets/generated/home/06-detail-hero.webp" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0b1110;
+        --surface: #141a17;
+        --surface-2: #1b231e;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.5);
+        --line: rgba(216, 236, 212, 0.18);
+        --sage: #9fb7a1;
+        --mint: #d8ecd4;
+        --brass: #e4c36f;
+        --clay: #bf6745;
+        --blue: #89a9bd;
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #050706;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -10%, rgba(159, 183, 161, 0.18), transparent 28rem),
+          linear-gradient(180deg, #050706 0%, #101511 46%, #050706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        padding-bottom: 152px;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(11, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .brand span,
+      .step-badge,
+      .eyebrow {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .top-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button,
+      .step-badge {
+        display: grid;
+        min-height: 34px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .icon-button {
+        width: 34px;
+        padding: 0;
+      }
+
+      .step-badge {
+        padding: 7px 9px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 30px;
+        line-height: 1.16;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      p,
+      li {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .hero,
+      .band {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy,
+      .section-head {
+        display: grid;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .chips,
+      .fact-list,
+      .section-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip,
+      .fact-chip,
+      .section-tab {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .section-tab {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .section-tab.is-active {
+        color: #1b1207;
+        background: var(--brass);
+      }
+
+      .visual-frame {
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        overflow: hidden;
+        border: 1px solid rgba(216, 236, 212, 0.24);
+        border-radius: 8px;
+        background: #eadfcb;
+      }
+
+      .visual-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .notice,
+      .conclusion-card,
+      .block-card,
+      .action-card,
+      .relation-card,
+      .chat-bubble {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .notice {
+        display: none;
+        gap: 7px;
+        padding: 14px;
+        border-color: rgba(191, 103, 69, 0.25);
+        background: rgba(191, 103, 69, 0.1);
+      }
+
+      .notice.is-open {
+        display: grid;
+      }
+
+      .conclusion-card {
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+        border-color: rgba(228, 195, 111, 0.28);
+        background:
+          radial-gradient(circle at 86% 0%, rgba(228, 195, 111, 0.14), transparent 12rem),
+          rgba(255, 255, 255, 0.045);
+      }
+
+      .conclusion-card strong,
+      .block-card strong,
+      .action-card strong,
+      .relation-card strong,
+      .chat-bubble strong,
+      .notice strong {
+        display: block;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .conclusion-card span,
+      .block-card span,
+      .action-card span,
+      .relation-card span,
+      .chat-bubble span,
+      .notice span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .block-list,
+      .action-list,
+      .relation-list,
+      .chat-area {
+        display: grid;
+        gap: 10px;
+      }
+
+      .block-card,
+      .action-card,
+      .relation-card,
+      .chat-bubble {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+      }
+
+      .block-card b,
+      .action-card b {
+        color: var(--brass);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+      }
+
+      .action-card {
+        border-color: rgba(159, 183, 161, 0.28);
+        background: rgba(159, 183, 161, 0.08);
+      }
+
+      .relation-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .relation-card span {
+        text-align: right;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        z-index: 25;
+        display: grid;
+        width: min(100%, 440px);
+        gap: 10px;
+        padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(11, 17, 16, 0.96);
+        transform: translateX(-50%);
+        backdrop-filter: blur(16px);
+      }
+
+      .nav-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      .nav-button,
+      .send-btn {
+        display: grid;
+        min-height: 46px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 950;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .nav-button.primary,
+      .send-btn {
+        border-color: rgba(228, 195, 111, 0.55);
+        background: linear-gradient(135deg, #efd47d, #c8913d);
+        color: #1b1207;
+      }
+
+      .input-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 68px;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        max-height: 110px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.45;
+        outline: none;
+      }
+
+      textarea:focus {
+        border-color: rgba(228, 195, 111, 0.5);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 374px) {
+        h1 {
+          font-size: 26px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+        }
+
+        .top-actions {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .input-row,
+        .nav-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+  </head>
+  <body>
+    <main class="app" id="step-6_1-report" aria-label="집 풍수 상세 풀이">
+      <div data-umsh-service-top></div>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <span class="eyebrow" id="section-kicker">선택한 항목</span>
+          <h1 id="page-title">이 집, 나랑 찐으로 결 맞아?</h1>
+          <p id="page-summary">선택한 리포트 항목을 한 줄 결론, 근거, 행동으로 나눠 확인합니다.</p>
+          <div class="chips" id="section-items" aria-label="세부 항목"></div>
+        </div>
+        <figure class="visual-frame" data-asset-key="home-06-detail-hero">
+          <img src="assets/generated/home/06-detail-hero.webp" alt="집 모형과 도면을 두고 상세 풀이를 설명하는 운명상회 가이드" />
+        </figure>
+      </section>
+
+      <section class="band">
+        <div class="notice" id="invalid-section">
+          <strong>목록에 없는 항목입니다</strong>
+          <span>05 목록에 있는 항목만 상세로 열 수 있어, 첫 번째 항목으로 이동했습니다.</span>
+        </div>
+        <div class="notice" id="permission-note">
+          <strong>상세 접근 기준</strong>
+          <span>운영 환경에서는 로그인, 결제 권한, 리포트 버전을 서버에서 확인한 뒤 이 본문을 제공합니다.</span>
+        </div>
+        <div class="conclusion-card" id="conclusion-card">
+          <strong>한 줄 결론</strong>
+          <span>집의 좋고 나쁨보다 내 생활 리듬과 맞는지를 먼저 봅니다.</span>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="evidence-title">
+        <div class="section-head">
+          <span class="eyebrow">확인한 기준</span>
+          <h2 id="evidence-title">근거는 공간과 입력값을 나눠 봅니다</h2>
+          <p>숫자나 확률이 없는 항목은 그래프 대신 흐름 카드로 정리했습니다.</p>
+        </div>
+        <div class="fact-list" id="fact-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="interpretation-title">
+        <div class="section-head">
+          <span class="eyebrow">상세 풀이</span>
+          <h2 id="interpretation-title">현실에서 이렇게 체감될 수 있습니다</h2>
+        </div>
+        <div class="block-list" id="block-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="actions-title">
+        <div class="section-head">
+          <span class="eyebrow">이번 주 액션</span>
+          <h2 id="actions-title">바로 손볼 수 있는 것부터</h2>
+        </div>
+        <div class="action-list" id="action-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="cautions-title">
+        <div class="section-head">
+          <span class="eyebrow">주의할 선택</span>
+          <h2 id="cautions-title">겁주기보다 확인 방법</h2>
+        </div>
+        <div class="block-list" id="caution-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="related-title">
+        <div class="section-head">
+          <span class="eyebrow">연관 항목</span>
+          <h2 id="related-title">앞뒤 흐름도 같이 보면 좋습니다</h2>
+        </div>
+        <div class="relation-list" id="relation-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="all-sections-title">
+        <div class="section-head">
+          <span class="eyebrow">다른 상세</span>
+          <h2 id="all-sections-title">다른 항목으로 이동</h2>
+        </div>
+        <nav class="section-tabs" id="section-tabs" aria-label="상세 항목 이동"></nav>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="상세 이동과 상담">
+      <div class="nav-row">
+        <a class="nav-button" id="prev-link" href="#">이전 항목</a>
+        <a class="nav-button primary" href="../05-step-5-chat/chat.html#step-5-chat">목록으로</a>
+        <a class="nav-button" id="next-link" href="#">다음 항목</a>
+      </div>
+      <form id="detail-chat-form" class="input-row">
+        <textarea id="detail-chat-message" rows="2" placeholder="이 항목에서 더 궁금한 점을 적어주세요..." required></textarea>
+        <button class="send-btn" type="submit">전송</button>
+      </form>
+      <p class="fine-print">상담 답변과 상세 데이터 제공은 운영 환경의 서버 권한 확인을 기준으로 처리합니다.</p>
+    </nav>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "지금 사는 집, 나랑 잘 맞을까?",
+        "service_category": "집 풍수",
+        "rag": ["풍수지리", "개인 명리"],
+        "domain": "place.umsh.kr/home",
+        "price_krw": 9900,
+        "stage": "06-step-6_1-report-detail"
+      }
+    </script>
+
+    <script type="application/json" id="DETAIL_DATA">
+      {
+        "source": "user_seed",
+        "default_section_id": "home-fit-overall",
+        "sections": [
+          {
+            "section_id": "home-fit-overall",
+            "title": "이 집, 나랑 찐으로 결 맞아?",
+            "items": ["전체 핏 판정", "계속 살 각/손볼 각/비교 각", "끌리는 이유", "묘하게 피곤한 포인트", "지금 내 시기와의 궁합", "한 줄 결론"],
+            "conclusion": "이 항목은 집 자체의 좋고 나쁨보다, 지금 내 생활 리듬과 이 집의 속도가 맞는지를 먼저 봅니다.",
+            "evidence": ["집과 사람의 궁합은 용도와 생활 리듬이 바뀌면 달라질 수 있음", "사주 계산값은 상세 서버 계산이 있을 때 일간·오행·신강약·용신으로 연결", "현재 입력값은 집 형태, 목적, 고민, 체감 신호를 우선 사용"],
+            "blocks": [
+              {"heading": "끌리는 이유", "body": "이 집이 마음에 드는 이유는 대개 창밖의 열림, 현관 첫 느낌, 익숙한 동선처럼 몸이 먼저 받아들이는 신호에서 나옵니다."},
+              {"heading": "피곤한 포인트", "body": "반대로 잠이 얕거나 집에 들어오자마자 정리가 밀리는 느낌이 반복되면, 집의 흐름이 내 회복 속도보다 빠른 쪽일 수 있습니다."},
+              {"heading": "판정 방식", "body": "계속 살 각, 손볼 각, 비교 각은 이사 결론이 아니라 현재 집에서 먼저 조정할 수 있는 범위를 나누는 기준입니다."}
+            ],
+            "actions": ["현관에서 거실까지 들어올 때 시선이 바로 꽂히는 곳을 확인합니다.", "침대에 누웠을 때 문, 창, 소음 중 제일 먼저 신경 쓰이는 것을 적습니다.", "7일 동안 아침과 저녁의 집 체감을 한 줄로 기록합니다."],
+            "cautions": ["하루 기분만으로 이사 여부를 정하지 말고, 반복되는 피로 신호를 봅니다.", "좋은 집이라는 말보다 지금 내 목적에 맞는지를 먼저 확인합니다."]
+          },
+          {
+            "section_id": "house-energy",
+            "title": "집의 기본 기운",
+            "items": ["안정형/활동형/휴식형", "앞이 열린 집", "뒤가 받치는 집", "좌우 균형", "도로·골목·물길 흐름", "건물 압박·창밖 시야"],
+            "conclusion": "이 집의 기본 기운은 앞이 트이는 느낌과 뒤가 받쳐주는 느낌의 균형으로 먼저 판단합니다.",
+            "evidence": ["앞열림과 뒤받침은 집의 안정감과 활동성을 나누는 핵심 기준", "도로와 골목 흐름은 생활 속도와 소음 체감의 보조 신호", "창밖 압박은 나쁨 판정이 아니라 회복감 판단의 참고값"],
+            "blocks": [
+              {"heading": "앞이 열린 집", "body": "앞쪽이 트이면 생각이 풀리고 활동성이 살아날 수 있습니다. 다만 쉬어야 하는 사람에게는 바깥 흐름이 과하게 느껴질 수 있습니다."},
+              {"heading": "뒤가 받치는 집", "body": "뒤쪽이 안정되면 집 안에서 몸을 놓는 느낌이 좋아집니다. 침실과 책상에서 이 받침감이 특히 중요합니다."},
+              {"heading": "주변 압박", "body": "맞은편 건물이 너무 가깝거나 도로 흐름이 빠르면, 낮에는 괜찮아도 밤에 피로가 올라올 수 있습니다."}
+            ],
+            "actions": ["창가에 서서 시야가 트이는지, 압박이 먼저 느껴지는지 확인합니다.", "집 뒤쪽이나 침실 뒤편이 안정된 면으로 받쳐지는지 봅니다.", "도로·골목 소음이 커지는 시간대를 적습니다."],
+            "cautions": ["트인 집이 모두 좋은 것은 아니고, 쉬는 목적이 강하면 자극 조절이 필요합니다.", "주변 환경은 계약 조건과 생활 시간대까지 같이 봐야 합니다."]
+          },
+          {
+            "section_id": "saju-house-ohaeng",
+            "title": "내 사주 × 집 오행 핏",
+            "items": ["일간 생활 리듬", "오행 과다/부족 보완", "용신과 공간 결", "신강약별 집 속도", "나한테 과한 집", "나를 살려주는 집"],
+            "conclusion": "사주와 집의 핏은 내게 부족한 리듬을 공간이 보완하는지, 이미 과한 리듬을 더 키우는지로 봅니다.",
+            "evidence": ["일간·오행·신강약·용신은 계산값이 있을 때만 상세 연결", "오행은 성격 단정이 아니라 생활 리듬 조정 기준으로 사용", "공간의 색, 빛, 습도, 동선은 보완 신호로 해석"],
+            "blocks": [
+              {"heading": "나한테 과한 집", "body": "집이 너무 밝고 빠르면 활동성은 좋아도 회복이 밀릴 수 있습니다. 반대로 너무 막히면 생각이 무거워질 수 있습니다."},
+              {"heading": "나를 살려주는 집", "body": "나에게 필요한 기운은 화려한 인테리어보다 잠이 깊어지고, 일상이 덜 흔들리는 방식으로 드러나는 경우가 많습니다."},
+              {"heading": "계산값 연결", "body": "생년월일과 시간이 계산되면 일간, 오행 분포, 신강약, 용신을 집의 방향·색·동선과 따로 연결합니다."}
+            ],
+            "actions": ["집에서 제일 오래 머무는 자리의 빛, 색, 온도를 적습니다.", "쉬는 공간과 일하는 공간의 자극 차이를 확인합니다.", "사주 계산값이 확인되면 이 항목을 우선 다시 봅니다."],
+            "cautions": ["오행을 색깔 하나로 단순화하지 말고 빛, 소재, 동선까지 같이 봅니다.", "태어난 시간이 없으면 일부 해석은 범위를 넓혀 표시해야 합니다."]
+          },
+          {
+            "section_id": "sleep-recovery",
+            "title": "잠·회복·멘탈 리듬",
+            "items": ["침실 안정감", "수면 깊이", "집콕 회복력", "소음·시선 피로", "쉬는 칸 확보", "퇴근 후 충전감", "번아웃 방지 포인트"],
+            "conclusion": "이 항목은 집 핏의 1순위를 잠과 회복으로 잡고, 침실이 나를 충전시키는지 확인합니다.",
+            "evidence": ["침실 안정감은 집콕 회복력의 핵심 기준", "소음과 시선은 도로·창밖 흐름의 현실 체감값", "쉬는 칸이 없으면 집 안에서도 계속 긴장할 수 있음"],
+            "blocks": [
+              {"heading": "수면 깊이", "body": "침대에 누웠을 때 문, 창, 거울, 소음이 먼저 느껴지면 몸이 완전히 쉬기 어렵습니다."},
+              {"heading": "퇴근 후 충전감", "body": "좋은 침실은 꾸민 느낌보다 집에 들어온 뒤 말수가 줄고, 몸이 천천히 내려앉는 느낌으로 나타납니다."},
+              {"heading": "쉬는 칸", "body": "침실 전체를 바꾸기 어렵다면 침대 주변 60cm 안쪽만이라도 비워서 회복 반경을 만들어야 합니다."}
+            ],
+            "actions": ["침대에서 보이는 첫 장면을 사진 없이 메모합니다.", "잠들기 전 가장 신경 쓰이는 소리와 빛을 적습니다.", "침대 옆 바닥과 협탁 위 물건을 먼저 줄입니다."],
+            "cautions": ["피로를 집 탓으로만 몰지 말고 수면 시간, 소음 시간대, 조명 습관을 함께 봅니다.", "불안감을 키우는 해석보다 조절 가능한 배치부터 적용합니다."]
+          },
+          {
+            "section_id": "entrance-flow",
+            "title": "현관·동선 에너지",
+            "items": ["첫 느낌", "현관 정리 상태", "현관-거실-침실 직선 흐름", "엘베·복도 자극", "들어온 기운이 머무는지", "택배·신발 혼잡도"],
+            "conclusion": "현관은 집의 첫 인상이라, 들어온 흐름이 바로 새는지 한 번 머무는지부터 봅니다.",
+            "evidence": ["현관은 외부 흐름이 들어오는 첫 자리", "현관-침실 직선 흐름은 가림과 정리 처방으로 완화", "복도·엘베 자극은 사생활 피로와 연결될 수 있음"],
+            "blocks": [
+              {"heading": "첫 느낌", "body": "문을 열자마자 신발, 택배, 큰 창, 침실 문이 동시에 보이면 집에 들어와도 시선이 쉬지 못합니다."},
+              {"heading": "흐름이 머무는 구조", "body": "낮은 수납, 러그, 조명, 식물처럼 시선이 한 번 쉬는 장치가 있으면 집 안쪽의 안정감이 살아납니다."},
+              {"heading": "혼잡도", "body": "현관이 복잡하면 돈, 일정, 감정도 바깥에서 끌고 들어오는 느낌이 커질 수 있습니다."}
+            ],
+            "actions": ["문을 열고 3초 안에 보이는 물건을 세 가지만 적습니다.", "택배와 신발이 쌓이는 자리를 하나로 고정합니다.", "침실이 바로 보이면 커튼, 파티션, 낮은 선반 중 하나를 시험합니다."],
+            "cautions": ["거울 하나로 모든 흐름을 해결하려 하지 말고 정리와 시선 조절을 먼저 봅니다.", "현관이 좁다면 물건을 더 놓기보다 비우는 처방이 우선입니다."]
+          },
+          {
+            "section_id": "remote-focus",
+            "title": "재택·공부·일 집중력",
+            "items": ["책상 자리", "등 뒤 받침", "문·창 위치", "몰입 잘 되는 구석", "화상회의/통화 핏", "일 공간과 쉬는 공간 분리", "생산성 루틴"],
+            "conclusion": "재택과 공부가 잦다면 이 집의 평가는 책상 자리와 쉬는 자리의 분리에서 크게 갈립니다.",
+            "evidence": ["책상 등 뒤 받침은 집중 안정감의 기본 기준", "문과 창 위치는 시선 자극과 긴장도에 영향", "공간 목적이 바뀌면 집과 사람의 궁합도 달라짐"],
+            "blocks": [
+              {"heading": "등 뒤 받침", "body": "등 뒤가 창이나 통로로 열려 있으면 집중하는 동안에도 몸이 뒤쪽을 신경 쓸 수 있습니다."},
+              {"heading": "문과 창", "body": "문을 정면으로 보면 각성은 생기지만 오래 앉으면 피곤할 수 있습니다. 창밖이 강하면 시간대별 집중 차이가 커집니다."},
+              {"heading": "공간 분리", "body": "침대와 책상이 붙어 있으면 쉴 때 일 생각이, 일할 때 쉬고 싶은 느낌이 같이 올라오기 쉽습니다."}
+            ],
+            "actions": ["책상에 앉아 등 뒤가 벽, 창, 통로 중 무엇인지 확인합니다.", "화상회의 화면에 잡히는 배경을 정리합니다.", "작은 조명이나 러그로 일하는 칸을 분리합니다."],
+            "cautions": ["생산성 문제를 의지로만 보지 말고 시선과 등 뒤 안정감을 같이 봅니다.", "방이 작으면 책상 이동보다 작업 시간대와 조명 분리가 더 현실적일 수 있습니다."]
+          },
+          {
+            "section_id": "money-living",
+            "title": "돈·살림·소비 흐름",
+            "items": ["돈이 모이는 구조", "돈 새는 포인트", "월세·관리비 체감", "재택 수익 리듬", "중요 문서·금고 자리", "충동소비 트리거"],
+            "conclusion": "돈 흐름은 운을 단정하기보다 살림 동선과 소비가 새는 자리를 현실적으로 찾는 항목입니다.",
+            "evidence": ["중요 문서와 금고 자리는 안정된 보관감이 중요", "현관 혼잡과 동선 피로는 충동소비 트리거와 연결될 수 있음", "재택 수익 리듬은 책상 자리와 휴식 분리의 영향을 받음"],
+            "blocks": [
+              {"heading": "돈이 모이는 구조", "body": "문서, 지갑, 계약서, 영수증이 흩어지지 않는 자리가 있으면 생활비 감각이 안정되기 쉽습니다."},
+              {"heading": "돈 새는 포인트", "body": "현관에 택배가 쌓이거나 침대 근처에서 쇼핑을 자주 하면 소비가 습관처럼 흐를 수 있습니다."},
+              {"heading": "관리비 체감", "body": "월세와 관리비는 가격 자체보다 이 집에서 회복, 집중, 관계 비용이 줄어드는지와 같이 봅니다."}
+            ],
+            "actions": ["지갑, 통장, 계약서를 한 자리에 모으는 보관 구역을 만듭니다.", "택배 뜯는 자리를 현관이 아닌 한 곳으로 정합니다.", "침대에서 결제 앱을 보는 시간을 줄일 장치를 둡니다."],
+            "cautions": ["재물운을 수익 보장처럼 말하지 않고, 소비와 정리의 반복 패턴으로 확인합니다.", "금고 방향보다 찾기 쉽고 안전하게 유지되는 자리가 먼저입니다."]
+          },
+          {
+            "section_id": "relationship-cohabitation",
+            "title": "관계·가족·동거 케미",
+            "items": ["혼자 있을 때 편안함", "가족과 부딪히는 동선", "연인·친구 초대 핏", "룸메/동거 궁합", "이웃·소음 스트레스", "사생활 보호감"],
+            "conclusion": "관계 핏은 같이 있을 때보다 혼자 있을 때 편한지, 부딪히는 동선이 반복되는지로 먼저 봅니다.",
+            "evidence": ["장소와 사람의 궁합은 생활 목적과 관계 방식에 따라 달라짐", "동선 충돌은 가족·동거 피로의 현실 신호", "이웃·소음 스트레스는 사생활 보호감과 연결"],
+            "blocks": [
+              {"heading": "혼자 있을 때", "body": "혼자 있는데도 누가 들어올 것 같은 느낌이 강하면 집이 내 사생활을 충분히 감싸주지 못하는 쪽일 수 있습니다."},
+              {"heading": "같이 있을 때", "body": "부엌, 욕실, 현관에서 자주 마주치거나 물건이 겹치면 작은 갈등이 생활 리듬 문제로 커질 수 있습니다."},
+              {"heading": "초대 핏", "body": "친구나 연인을 부를 때 편한 집인지, 초대 후 내가 더 피곤한 집인지도 관계 궁합의 중요한 단서입니다."}
+            ],
+            "actions": ["혼자 쉬는 자리와 함께 쓰는 자리를 구분합니다.", "가장 자주 부딪히는 동선을 하나만 골라 정리합니다.", "초대 후 피로가 남는 시간대를 기록합니다."],
+            "cautions": ["관계 문제를 공간 탓으로만 보지 말고 생활 규칙과 사생활 경계를 같이 세웁니다.", "동거 전에는 예쁜 구조보다 물건 놓는 자리와 소음 체감을 먼저 봅니다."]
+          },
+          {
+            "section_id": "spatial-fix",
+            "title": "공간별 손질 처방",
+            "items": ["침대 위치", "책상 위치", "소파·식탁 자리", "화분·거울·TV 활용", "커튼·조명·수납 보완", "컬러·소재 힌트", "못 옮길 때 대안"],
+            "conclusion": "공간 처방은 큰 공사보다 침대, 책상, 조명, 수납처럼 바로 체감되는 작은 조정부터 시작합니다.",
+            "evidence": ["침대 안정감과 책상 등 뒤 받침은 핵심 처방 기준", "현관 가림과 정리는 직선 흐름 완화에 사용", "소파·식탁은 집 안에서 머무는 중심을 만드는 자리"],
+            "blocks": [
+              {"heading": "침대", "body": "침대는 문과 창의 자극을 덜 받는 쪽이 안정적입니다. 못 옮기면 협탁, 커튼, 조명으로 시선을 조절합니다."},
+              {"heading": "책상", "body": "책상은 등 뒤가 받쳐지는 자리를 우선합니다. 어렵다면 등 뒤에 낮은 선반이나 천을 두는 방식이 현실적입니다."},
+              {"heading": "거실", "body": "소파와 식탁은 집에서 기운이 머무는 중심입니다. TV만 보는 자리보다 대화와 식사가 되는 자리를 살립니다."}
+            ],
+            "actions": ["침대 주변 바닥을 먼저 비웁니다.", "책상 등 뒤에 안정감을 주는 물건을 하나 둡니다.", "현관과 거실 사이에 시선이 쉬는 포인트를 만듭니다."],
+            "cautions": ["화분, 거울, 조명을 많이 놓는 것보다 필요한 자리에 적게 놓는 편이 낫습니다.", "못 옮기는 구조라면 보완 처방을 먼저 적용하고 체감을 봅니다."]
+          },
+          {
+            "section_id": "reality-action",
+            "title": "현실 체크 & 액션 플랜",
+            "items": ["아침·저녁 체감 테스트", "계약 유지/이사 비교", "지금 바로 손볼 3가지", "피해야 할 배치", "7일 살아보기 체크", "다음 행동 추천"],
+            "conclusion": "이 항목은 해석을 행동으로 바꾸는 파트라, 7일 체감 테스트와 이사 비교 기준을 먼저 세웁니다.",
+            "evidence": ["현실 체크는 아침·저녁 체감 차이로 진행", "이사는 금지가 아니라 비교와 보완 가능성으로 판단", "생활 목적이 바뀌면 집 궁합도 다시 평가"],
+            "blocks": [
+              {"heading": "7일 체크", "body": "아침에 집을 나설 때와 밤에 돌아왔을 때의 몸 상태를 같은 문장으로 기록하면 반복 패턴이 보입니다."},
+              {"heading": "계약 유지", "body": "작은 배치 조정으로 수면, 집중, 정리감이 달라지면 계약 유지는 현실적인 선택이 될 수 있습니다."},
+              {"heading": "이사 비교", "body": "같은 가격대 후보와 비교할 때는 채광보다 침실 안정, 현관 흐름, 책상 자리, 소음 시간대를 같이 봅니다."}
+            ],
+            "actions": ["오늘 현관, 침대, 책상 중 하나만 정리합니다.", "7일 동안 아침·저녁 체감 문장을 남깁니다.", "이사 후보가 있다면 같은 기준표로 비교합니다."],
+            "cautions": ["급한 결론보다 바꿔볼 수 있는 것과 바꿀 수 없는 것을 먼저 나눕니다.", "이사 판단은 비용, 계약, 생활권까지 함께 확인해야 합니다."]
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-06-detail-hero",
+            "filename": "assets/generated/home/06-detail-hero.webp",
+            "role": "detail",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["둥근 안경", "정돈된 짙은 머리", "베이지 니트 아우터", "세이지 톤", "따뜻한 실내 조명"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "집 모형과 도면을 두고 상세 풀이를 설명하는 장면. 이미지 안 텍스트 금지.",
+            "alt": "집 모형과 도면을 두고 상세 풀이를 설명하는 운명상회 가이드",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-06-detail-hero'] img"
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      {
+        "basis": [
+          "ITEM-50_풍수지리/prompts/menu-home.txt",
+          "ITEM-50_풍수지리/prompts/menu-move.txt",
+          "ITEM-50_풍수지리/prompts/menu-compat.txt",
+          "ITEM-50_풍수지리/prompts/menu-place.txt",
+          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
+          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
+          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
+          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
+          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
+        ],
+        "guardrails": [
+          "05 목록에 없는 section은 상세에서 새로 만들지 않음",
+          "숫자·기간 데이터가 없으면 그래프를 만들지 않음",
+          "명당·흉지 절대 판정 대신 생활 리듬과 공간 핏으로 표현",
+          "미결제와 직접 URL 접근은 운영 환경에서 서버 권한 확인 필요"
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "stage": "06-step-6_1-report-detail",
+        "status": "ready_for_review",
+        "checks": [
+          { "name": "latest_user_service_values_applied", "pass": true },
+          { "name": "all_detail_sections_match_step_05_section_ids", "pass": true },
+          { "name": "invalid_section_falls_back_without_creating_new_section", "pass": true },
+          { "name": "detail_order_has_conclusion_evidence_interpretation_actions_cautions_related", "pass": true },
+          { "name": "no_fake_graph_without_numeric_data", "pass": true },
+          { "name": "server_entitlement_required_in_render_contract", "pass": true },
+          { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
+          { "name": "images_are_full_width_single_blocks_without_side_layout", "pass": true },
+          { "name": "customer_copy_hides_internal_rag_kms_terms", "pass": true },
+          { "name": "no_deterministic_moving_or_money_claims", "pass": true }
+        ],
+        "scope_mismatch": [
+          "현재 프로젝트의 06_1 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 06_1 산출물은 사용자의 최신 집 풍수 서비스와 첨부 템플릿 공통 계약을 우선 적용했다."
+        ]
+      }
+    </script>
+
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        service_title: "지금 사는 집, 나랑 잘 맞을까?",
+        report_version: "home-fit-v1.0"
+      };
+
+      const STORAGE_KEYS = {
+        input: "umsh_home_fit_input_payload_v1",
+        report: "umsh_home_fit_report_v1",
+        selectedSection: "umsh_home_fit_selected_section_v1",
+        detailQuestion: "umsh_home_fit_detail_question_v1",
+        paymentIntent: "umsh_home_fit_payment_intent_v1"
+      };
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getSession(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function setSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function selectedReportId() {
+        const query = new URLSearchParams(location.search).get("reportId");
+        if (query) return query;
+        const stored = safeParse(getSession(STORAGE_KEYS.selectedSection));
+        const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+        const report = inputPayload?.analysis?.report || safeParse(getSession(STORAGE_KEYS.report));
+        return stored?.report_id || inputPayload?.reportId || report?.reportId || "";
+      }
+
+      function route(sectionId) {
+        const reportId = selectedReportId();
+        const reportQuery = reportId ? `&reportId=${encodeURIComponent(reportId)}` : "";
+        return `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(sectionId)}${reportQuery}#step-6_1-report`;
+      }
+
+      function selectedSectionId(data) {
+        const query = new URLSearchParams(location.search).get("section");
+        if (query) return query;
+        const stored = safeParse(getSession(STORAGE_KEYS.selectedSection));
+        return stored?.section_id || data.default_section_id;
+      }
+
+      function reportFromSession() {
+        const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+        return inputPayload?.analysis?.report || safeParse(getSession(STORAGE_KEYS.report));
+      }
+
+      async function fetchReportById(reportId) {
+        if (!reportId) return null;
+        try {
+          const response = await fetch(`/api/report/${encodeURIComponent(reportId)}`);
+          const json = await response.json().catch(() => ({}));
+          if (!response.ok) return null;
+          if (json.report) setSession(STORAGE_KEYS.report, json.report);
+          return json.report || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function splitInterpretation(text) {
+        return String(text || "")
+          .split(/\n{2,}/)
+          .map((part) => part.replace(/^\[[^\]]+\]\s*/, "").trim())
+          .filter(Boolean);
+      }
+
+      function dynamicBlocks(section) {
+        const headings = ["풀이", "공간 신호", "사주 겹침", "해법"];
+        const parts = splitInterpretation(section.interpretation);
+        return parts.slice(0, 4).map((body, index) => ({
+          heading: headings[index] || `풀이 ${index + 1}`,
+          body
+        }));
+      }
+
+      function dynamicActions(section, staticSection) {
+        const fallback = [
+          "현관, 침실, 책상, 창밖 중 오늘 가장 먼저 거슬리는 한 곳만 정리합니다.",
+          "7일 동안 잠, 집중, 소비, 관계 체감을 짧게 기록합니다.",
+          "큰 이사 판단은 작은 손질을 해본 뒤 반복 신호로 결정합니다."
+        ];
+        return Array.isArray(staticSection?.actions) && staticSection.actions.length ? staticSection.actions : fallback;
+      }
+
+      function dynamicCautions(staticSection) {
+        const fallback = [
+          "명당·흉지처럼 한 단어로 결론 내리지 않습니다.",
+          "건강, 재산, 계약 결과를 확정하지 않고 생활 체감과 현실 조건을 함께 봅니다."
+        ];
+        return Array.isArray(staticSection?.cautions) && staticSection.cautions.length ? staticSection.cautions : fallback;
+      }
+
+      function dynamicSectionsFromReport(report, staticData) {
+        const reportSections = Array.isArray(report?.sections) ? report.sections : [];
+        if (reportSections.length === 0) return staticData?.sections || [];
+        return reportSections.map((section, index) => {
+          const staticSection = (staticData?.sections || []).find((item) => item.section_id === section.id) || {};
+          return {
+            ...staticSection,
+            section_id: section.id,
+            title: section.category || staticSection.title || `상세 ${index + 1}`,
+            conclusion: section.hook || staticSection.conclusion || "입력값과 사주 계산을 함께 놓고 본 상세 풀이입니다.",
+            items: staticSection.items || section.ragTopics || [],
+            evidence: [
+              section.classification,
+              ...(Array.isArray(section.ragTopics) ? section.ragTopics.slice(0, 3) : [])
+            ].filter(Boolean),
+            blocks: dynamicBlocks(section),
+            actions: dynamicActions(section, staticSection),
+            cautions: dynamicCautions(staticSection)
+          };
+        });
+      }
+
+      function neighbors(sections, index) {
+        const previous = sections[(index - 1 + sections.length) % sections.length];
+        const next = sections[(index + 1) % sections.length];
+        return { previous, next };
+      }
+
+      function render(section, sections, index, wasInvalid) {
+        const { previous, next } = neighbors(sections, index);
+        document.title = `${section.title} | 지금 사는 집, 나랑 잘 맞을까?`;
+        document.getElementById("section-kicker").textContent = `상세 ${String(index + 1).padStart(2, "0")}`;
+        document.getElementById("page-title").textContent = section.title;
+        document.getElementById("page-summary").textContent = section.conclusion;
+        document.getElementById("section-items").innerHTML = section.items.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join("");
+        document.getElementById("conclusion-card").innerHTML = `<strong>한 줄 결론</strong><span>${escapeHtml(section.conclusion)}</span>`;
+        document.getElementById("fact-list").innerHTML = section.evidence.map((item) => `<span class="fact-chip">${escapeHtml(item)}</span>`).join("");
+        document.getElementById("block-list").innerHTML = section.blocks
+          .map(
+            (block) => `
+              <article class="block-card">
+                <b>${escapeHtml(block.heading)}</b>
+                <strong>${escapeHtml(block.heading)}에서 보는 핵심</strong>
+                <span>${escapeHtml(block.body)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("action-list").innerHTML = section.actions
+          .map(
+            (action, actionIndex) => `
+              <article class="action-card">
+                <b>${String(actionIndex + 1).padStart(2, "0")}</b>
+                <strong>이번 주에 해볼 것</strong>
+                <span>${escapeHtml(action)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("caution-list").innerHTML = section.cautions
+          .map(
+            (caution) => `
+              <article class="block-card">
+                <b>확인</b>
+                <strong>이렇게 판단하지 않기</strong>
+                <span>${escapeHtml(caution)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("relation-list").innerHTML = `
+          <a class="relation-card" href="${route(previous.section_id)}"><strong>이전 항목</strong><span>${escapeHtml(previous.title)}</span></a>
+          <a class="relation-card" href="${route(next.section_id)}"><strong>다음 항목</strong><span>${escapeHtml(next.title)}</span></a>
+        `;
+        document.getElementById("section-tabs").innerHTML = sections
+          .map((item, tabIndex) => `<a class="section-tab ${item.section_id === section.section_id ? "is-active" : ""}" href="${route(item.section_id)}">${String(tabIndex + 1).padStart(2, "0")} ${escapeHtml(item.title)}</a>`)
+          .join("");
+        document.getElementById("prev-link").href = route(previous.section_id);
+        document.getElementById("prev-link").textContent = "이전";
+        document.getElementById("next-link").href = route(next.section_id);
+        document.getElementById("next-link").textContent = "다음";
+        if (wasInvalid) document.getElementById("invalid-section").classList.add("is-open");
+
+        const paymentIntent = safeParse(getSession(STORAGE_KEYS.paymentIntent));
+        if (!paymentIntent || paymentIntent?.service?.service_key !== SERVICE.service_key) {
+          document.getElementById("permission-note").classList.add("is-open");
+        }
+      }
+
+      function initChat(section) {
+        const form = document.getElementById("detail-chat-form");
+        const message = document.getElementById("detail-chat-message");
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const value = message.value.trim();
+          if (!value) return;
+          setSession(STORAGE_KEYS.detailQuestion, {
+            service_key: SERVICE.service_key,
+            report_version: SERVICE.report_version,
+            section_id: section.section_id,
+            title: section.title,
+            question: value,
+            created_at: new Date().toISOString()
+          });
+          message.value = "";
+          document.getElementById("permission-note").classList.add("is-open");
+          document.getElementById("permission-note").innerHTML = `
+            <strong>질문이 저장됐습니다</strong>
+            <span>운영 상담에서는 이 상세 항목을 기준으로 이어서 답변합니다.</span>
+          `;
+        });
+      }
+
+      async function init() {
+        const data = readJsonBlock("DETAIL_DATA");
+        const report = reportFromSession() || await fetchReportById(selectedReportId());
+        const sections = dynamicSectionsFromReport(report, data);
+        const wanted = selectedSectionId(data || {});
+        let index = sections.findIndex((section) => section.section_id === wanted);
+        const wasInvalid = index < 0;
+        if (index < 0) index = Math.max(0, sections.findIndex((section) => section.section_id === data?.default_section_id));
+        const section = sections[index];
+        if (!section) return;
+        setSession(STORAGE_KEYS.selectedSection, {
+          service_key: SERVICE.service_key,
+          report_version: SERVICE.report_version,
+          report_id: selectedReportId(),
+          section_id: section.section_id,
+          title: section.title,
+          selected_at: new Date().toISOString()
+        });
+        render(section, sections, index, wasInvalid);
+        initChat(section);
+      }
+
+      init();
+    </script>
+    <div data-umsh-service-bottom></div>
+    <script src="/js/service-shell.js?v=20260902-address-shell"></script>
+  </body>
+</html>

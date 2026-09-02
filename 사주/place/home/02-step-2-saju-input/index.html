@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>입력하기 | 지금 사는 집, 나랑 잘 맞을까?</title>
+    <meta
+      name="description"
+      content="풍수지리와 개인 명리로 지금 사는 집과 내 생활 리듬의 핏을 보기 위한 최소 입력 화면"
+    />
+    <meta property="og:title" content="지금 사는 집, 나랑 잘 맞을까? 입력하기" />
+    <meta property="og:description" content="생년월일과 집의 기본 상태만 넣고, 내 집 핏을 확인합니다." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://place.umsh.kr/home" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="assets/generated/home/02-form-guide.webp" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0d1110;
+        --surface: #151917;
+        --surface-2: #1e231f;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.48);
+        --sage: #9fb7a1;
+        --mint: #d6ead5;
+        --brass: #e4c36f;
+        --clay: #b35a3a;
+        --danger: #ffb4a4;
+        --line: rgba(214, 234, 213, 0.18);
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #060706;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #060706 0%, #101310 48%, #060706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(13, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .step-badge,
+      .kicker {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .step-badge {
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .intro {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .intro-copy {
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      p,
+      fieldset {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 29px;
+        line-height: 1.16;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.24;
+      }
+
+      h3,
+      legend {
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.4;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+      }
+
+      .visual-card {
+        position: relative;
+        align-self: start;
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(214, 234, 213, 0.24);
+        border-radius: 8px;
+        background: #e8dfcf;
+      }
+
+      .visual-card img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .privacy-note {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(179, 90, 58, 0.08);
+      }
+
+      form {
+        display: grid;
+        gap: 0;
+      }
+
+      .form-section {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 13px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .address-control {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 92px;
+        gap: 8px;
+      }
+
+      .address-search-button,
+      .postcode-close {
+        display: grid;
+        min-height: 48px;
+        place-items: center;
+        border: 1px solid rgba(228, 195, 111, 0.48);
+        border-radius: 8px;
+        background: rgba(228, 195, 111, 0.1);
+        color: var(--brass);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      label,
+      .field-label {
+        color: rgba(255, 248, 239, 0.88);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(214, 234, 213, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        outline: none;
+      }
+
+      input,
+      select {
+        min-height: 48px;
+        padding: 0 13px;
+      }
+
+      select {
+        appearance: none;
+        color-scheme: dark;
+        background-image: linear-gradient(45deg, transparent 50%, var(--brass) 50%), linear-gradient(135deg, var(--brass) 50%, transparent 50%);
+        background-position: calc(100% - 17px) 20px, calc(100% - 12px) 20px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+      }
+
+      select option {
+        background-color: #151917 !important;
+        color: var(--ink) !important;
+      }
+
+      select option:checked,
+      select option:hover {
+        background-color: #263026 !important;
+        color: var(--ink) !important;
+      }
+
+      .postcode-layer {
+        display: grid;
+        gap: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(228, 195, 111, 0.28);
+        border-radius: 8px;
+        background: #111513;
+      }
+
+      .postcode-layer[hidden] {
+        display: none;
+      }
+
+      .postcode-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 10px 0;
+      }
+
+      .postcode-toolbar strong {
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .postcode-close {
+        min-height: 32px;
+        padding: 0 10px;
+      }
+
+      .postcode-frame {
+        width: 100%;
+        height: 430px;
+        background: #fff;
+      }
+
+      textarea {
+        min-height: 88px;
+        resize: vertical;
+        padding: 12px 13px;
+        line-height: 1.55;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 248, 239, 0.34);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus,
+      button:focus-visible,
+      a:focus-visible {
+        border-color: rgba(228, 195, 111, 0.75);
+        box-shadow: 0 0 0 3px rgba(228, 195, 111, 0.13);
+      }
+
+      .help {
+        color: var(--dim);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      .error {
+        min-height: 16px;
+        color: var(--danger);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      [aria-invalid="true"] {
+        border-color: rgba(255, 180, 164, 0.82);
+      }
+
+      .choice-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .choice,
+      .check {
+        position: relative;
+      }
+
+      .choice input,
+      .check input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+
+      .choice span,
+      .check span {
+        display: grid;
+        min-height: 46px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid rgba(214, 234, 213, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      .choice input:checked + span,
+      .check input:checked + span {
+        border-color: rgba(228, 195, 111, 0.62);
+        background: rgba(228, 195, 111, 0.14);
+        color: var(--ink);
+      }
+
+      .choice input:focus-visible + span,
+      .check input:focus-visible + span {
+        outline: 2px solid var(--brass);
+        outline-offset: 2px;
+      }
+
+      .check-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .profile-summary {
+        display: none;
+        gap: 8px;
+        padding: 14px;
+        border: 1px solid rgba(214, 234, 213, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .profile-summary.is-visible {
+        display: grid;
+      }
+
+      .profile-summary strong {
+        color: var(--mint);
+        font-size: 13px;
+      }
+
+      .conditional[hidden] {
+        display: none;
+      }
+
+      .submit-area {
+        display: grid;
+        gap: 12px;
+        padding: 22px 18px max(28px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(179, 90, 58, 0.1), transparent 58%), #0f1110;
+      }
+
+      .primary-cta,
+      .secondary-link {
+        display: inline-flex;
+        min-height: 52px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        padding: 13px 16px;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .primary-cta {
+        border: 1px solid rgba(228, 195, 111, 0.55);
+        background: var(--clay);
+        color: #fffaf0;
+      }
+
+      .secondary-link {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--mint);
+      }
+
+      .status {
+        min-height: 18px;
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.5;
+      }
+
+      .fineprint,
+      .footer {
+        color: var(--dim);
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      .footer {
+        padding: 18px 18px 26px;
+      }
+
+      @media (max-width: 372px) {
+        .intro {
+          grid-template-columns: 1fr;
+        }
+
+        .visual-card {
+          min-height: 0;
+        }
+
+        .two-col,
+        .address-control,
+        .choice-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 48px);
+          border: 1px solid rgba(214, 234, 213, 0.12);
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+  </head>
+  <body>
+    <main class="app" id="step-2-saju-input">
+      <div data-umsh-service-top></div>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <span class="kicker">필수만 쏙 · 약 2분</span>
+          <h1 id="page-title">집이랑 내 리듬, 필요한 것만 입력해요</h1>
+          <p>사주 기본값과 집에서 체감되는 포인트를 같이 받아야, “좋은 집”보다 “나한테 맞는 집”으로 볼 수 있습니다.</p>
+          <div class="chips" aria-label="입력 요약">
+            <span class="chip">기본 사주</span>
+            <span class="chip">집 상태</span>
+            <span class="chip">불편 신호</span>
+          </div>
+        </div>
+        <figure class="visual-card" data-asset-key="home-02-form-guide">
+          <img src="assets/generated/home/02-form-guide.webp" alt="집 모형과 빈 입력 화면 옆에서 안내하는 운명상회 가이드" />
+        </figure>
+      </section>
+
+      <div class="privacy-note">
+        <p>이름, 생년월일, 주소는 URL에 붙이지 않습니다. 이 검토 화면은 입력값을 현재 브라우저 세션에만 임시 보관합니다.</p>
+      </div>
+
+      <form id="home-fit-form" novalidate>
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>누구의 집 핏을 볼까요?</legend>
+            <p>저장된 사주 프로필이 있으면 다시 묻지 않고 이어갑니다. 다른 사주로 보려면 새로 입력해 주세요.</p>
+          </div>
+
+          <div class="choice-grid" role="radiogroup" aria-label="사주 프로필 선택">
+            <label class="choice">
+              <input type="radio" name="profile_mode" value="saved" checked />
+              <span>저장된 프로필로 보기</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="profile_mode" value="new" />
+              <span>새 사주로 보기</span>
+            </label>
+          </div>
+
+          <div class="profile-summary" id="saved-profile-summary" aria-live="polite">
+            <strong>기존 프로필 확인 중</strong>
+            <p>완전한 기본 사주 정보가 있으면 이 단계는 건너뜁니다.</p>
+          </div>
+
+          <div class="conditional field-grid" id="new-profile-fields" hidden>
+            <div class="field">
+              <label for="nickname">호칭</label>
+              <input id="nickname" name="nickname" autocomplete="off" placeholder="예: 민지" aria-describedby="nickname-help nickname-error" />
+              <p class="help" id="nickname-help">리포트에서 부를 이름입니다. 실명 아니어도 됩니다.</p>
+              <div class="error" id="nickname-error" aria-live="polite"></div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="gender">성별</label>
+                <select id="gender" name="gender" aria-describedby="gender-error">
+                  <option value="">선택</option>
+                  <option value="female">여성</option>
+                  <option value="male">남성</option>
+                  <option value="unknown">선택 안 함</option>
+                </select>
+                <div class="error" id="gender-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="calendar">생일 기준</label>
+                <select id="calendar" name="calendar" aria-describedby="calendar-error">
+                  <option value="">선택</option>
+                  <option value="solar">양력</option>
+                  <option value="lunar">음력</option>
+                </select>
+                <div class="error" id="calendar-error" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="birth_date">생년월일</label>
+                <input id="birth_date" name="birth_date" inputmode="numeric" placeholder="19980214" aria-describedby="birth-date-help birth_date-error" />
+                <p class="help" id="birth-date-help">숫자 8자리로 입력해 주세요.</p>
+                <div class="error" id="birth_date-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="birth_time">태어난 시간</label>
+                <input id="birth_time" name="birth_time" inputmode="numeric" placeholder="13:30" aria-describedby="birth-time-help birth_time-error" />
+                <p class="help" id="birth-time-help">모르면 아래 체크를 켜면 됩니다.</p>
+                <div class="error" id="birth_time-error" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <label class="check">
+              <input type="checkbox" id="birth_time_unknown" name="birth_time_unknown" />
+              <span>태어난 시간은 정확히 몰라요</span>
+            </label>
+
+            <div class="field">
+              <label for="birth_place">태어난 지역</label>
+              <input id="birth_place" name="birth_place" autocomplete="off" placeholder="예: 서울, 부산, 대전" aria-describedby="birth-place-help" />
+              <p class="help" id="birth-place-help">시간 보정이 필요한 경우 참고합니다. 모르면 비워도 됩니다.</p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>지금 집의 기본값</legend>
+            <p>정확한 주소보다 먼저, 생활이 닿는 범위와 집의 쓰임을 봅니다.</p>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="home_address">주소 또는 건물명</label>
+              <div class="address-control">
+                <input id="home_address" name="home_address" autocomplete="street-address" placeholder="주소 찾기에서 도로명·지번 주소 선택" aria-describedby="home-address-help home_address-error" readonly />
+                <button class="address-search-button" type="button" id="address-search-button">주소 찾기</button>
+              </div>
+              <input type="hidden" id="home_road_address" name="home_road_address" />
+              <input type="hidden" id="home_jibun_address" name="home_jibun_address" />
+              <input type="hidden" id="home_zonecode" name="home_zonecode" />
+              <input type="hidden" id="home_sido" name="home_sido" />
+              <input type="hidden" id="home_sigungu" name="home_sigungu" />
+              <input type="hidden" id="home_bname" name="home_bname" />
+              <input type="hidden" id="home_building_name" name="home_building_name" />
+              <input type="hidden" id="home_address_type" name="home_address_type" />
+              <div class="postcode-layer" id="postcode-layer" hidden>
+                <div class="postcode-toolbar">
+                  <strong>도로명·지번 주소 검색</strong>
+                  <button class="postcode-close" type="button" id="postcode-close">닫기</button>
+                </div>
+                <div class="postcode-frame" id="postcode-frame"></div>
+              </div>
+              <p class="help" id="home-address-help">주소 찾기에서 선택해 주세요. 호수는 적지 않아도 됩니다.</p>
+              <div class="error" id="home_address-error" aria-live="polite"></div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="building_type">집 형태</label>
+                <select id="building_type" name="building_type" aria-describedby="building_type-error">
+                  <option value="">선택</option>
+                  <option value="apartment">아파트</option>
+                  <option value="officetel">오피스텔</option>
+                  <option value="villa">빌라·연립</option>
+                  <option value="studio">원룸</option>
+                  <option value="house">단독·다가구</option>
+                  <option value="other">기타</option>
+                </select>
+                <div class="error" id="building_type-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="living_period">거주 기간</label>
+                <select id="living_period" name="living_period">
+                  <option value="">선택 안 함</option>
+                  <option value="under_3m">3개월 미만</option>
+                  <option value="3m_1y">3개월~1년</option>
+                  <option value="1y_3y">1~3년</option>
+                  <option value="over_3y">3년 이상</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="main_purpose">집에서 제일 중요한 것</label>
+                <select id="main_purpose" name="main_purpose" aria-describedby="main_purpose-error">
+                  <option value="">선택</option>
+                  <option value="rest">잠·회복</option>
+                  <option value="work">재택·공부 집중</option>
+                  <option value="money">돈·살림 안정</option>
+                  <option value="relationship">동거·가족·관계</option>
+                  <option value="move">계약 유지·이사 판단</option>
+                </select>
+                <div class="error" id="main_purpose-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="stay_decision">지금 고민</label>
+                <select id="stay_decision" name="stay_decision" aria-describedby="stay_decision-error">
+                  <option value="">선택</option>
+                  <option value="stay">계속 살 각인지</option>
+                  <option value="fix">손보면 괜찮은지</option>
+                  <option value="compare">이사 후보와 비교할지</option>
+                  <option value="unknown">일단 이유가 궁금함</option>
+                </select>
+                <div class="error" id="stay_decision-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>집에서 제일 신경 쓰이는 신호</legend>
+            <p>하나 이상 골라 주세요. 선택한 신호가 무료 티저와 유료 목차의 우선순위가 됩니다.</p>
+          </div>
+
+          <div class="check-list" aria-describedby="pain_points-error">
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="sleep" />
+              <span>잠이 얕거나 집에서 회복이 느려요</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="entrance" />
+              <span>현관·복도·택배 쪽이 늘 복잡해요</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="focus" />
+              <span>재택이나 공부 집중이 잘 안 잡혀요</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="money" />
+              <span>돈이나 살림 루틴이 이상하게 새요</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="relationship" />
+              <span>가족·동거·이웃 스트레스가 있어요</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="move" />
+              <span>계약 유지와 이사 사이에서 고민 중이에요</span>
+            </label>
+          </div>
+          <div class="error" id="pain_points-error" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>공간 체크</legend>
+            <p>모르는 건 건너뛰어도 됩니다. 입력할수록 04 무료 방향이 덜 뭉뚱그려집니다.</p>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="entrance_flow">현관에서 침실이 바로 보이나요?</label>
+              <select id="entrance_flow" name="entrance_flow">
+                <option value="">모름·건너뛰기</option>
+                <option value="direct">거의 한 줄로 보여요</option>
+                <option value="bent">중간에 꺾여요</option>
+                <option value="blocked">문·가구로 가려져요</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="bedroom_feel">침실 체감</label>
+              <select id="bedroom_feel" name="bedroom_feel">
+                <option value="">모름·건너뛰기</option>
+                <option value="quiet">안쪽이고 조용한 편</option>
+                <option value="window_road">창밖 소음·시선이 있음</option>
+                <option value="door_line">문·복도 자극이 있음</option>
+                <option value="too_bright">빛이 강하거나 쉬기 어려움</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="desk_position">책상이나 주 작업 자리</label>
+              <select id="desk_position" name="desk_position">
+                <option value="">모름·건너뛰기</option>
+                <option value="back_wall">등 뒤가 벽이라 안정적</option>
+                <option value="back_window">등 뒤가 창이라 들뜸</option>
+                <option value="face_door">문을 정면으로 봄</option>
+                <option value="mixed_rest">쉬는 자리와 섞여 있음</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="outside_flow">창밖·주변 흐름</label>
+              <select id="outside_flow" name="outside_flow">
+                <option value="">모름·건너뛰기</option>
+                <option value="open">앞이 트여 있음</option>
+                <option value="pressed">건물 압박감이 있음</option>
+                <option value="road_noise">큰길·골목 소음이 있음</option>
+                <option value="balanced">무난하고 안정적</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="extra_note">한 줄 메모</label>
+              <textarea id="extra_note" name="extra_note" placeholder="예: 집에 오면 쉬긴 하는데 아침에 몸이 무거워요."></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <section class="submit-area" aria-label="입력 완료">
+          <button class="primary-cta" type="submit">입력한 정보로 집 핏 보기</button>
+          <a class="secondary-link" href="../01-step-1-story/index.html#preview-title">열리는 풀이 다시 보기</a>
+          <p class="fineprint">
+            이 단계에서는 무료 방향을 만들기 위한 입력만 정리합니다. 결제 권한과 최종 리포트는 다음 단계에서 별도 확인합니다.
+          </p>
+          <div class="status" id="form-status" aria-live="polite"></div>
+        </section>
+      </form>
+
+      <footer class="footer">
+        운명상회 PLACE · 입력값은 확정 판정이 아니라 생활 점검형 집 궁합 리포트의 재료로 사용됩니다.
+      </footer>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "지금 사는 집, 나랑 잘 맞을까?",
+        "service_category": "집 풍수",
+        "service_subcategory": "집과 나의 생활 핏",
+        "service_price_krw": 9900,
+        "service_url_hint": "place.umsh.kr/home",
+        "service_key": "home_fit",
+        "service_slug": "home",
+        "target_question": "이 집, 나랑 찐으로 결 맞아?",
+        "analysis_basis": ["풍수지리", "개인 명리", "일간", "오행", "신강약", "용신"],
+        "stage": "02-step-2-saju-input"
+      }
+    </script>
+
+    <script type="application/json" id="INPUT_SCHEMA">
+      {
+        "subject_mode": "place",
+        "schema_version": "home-fit-input-v1",
+        "fields": [
+          {
+            "key": "profile_mode",
+            "label": "사주 프로필 선택",
+            "type": "radio",
+            "required": true,
+            "condition": "",
+            "why_needed": "기존 사주 프로필이 완전하면 생년월일을 다시 묻지 않기 위해 필요합니다.",
+            "error_message": "저장된 프로필 또는 새 사주 입력 중 하나를 선택해 주세요."
+          },
+          {
+            "key": "nickname",
+            "label": "호칭",
+            "type": "text",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "리포트에서 사용자를 부르는 이름입니다.",
+            "error_message": "새 사주로 볼 때는 호칭을 입력해 주세요."
+          },
+          {
+            "key": "gender",
+            "label": "성별",
+            "type": "select",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "사주 프로필 계산에 필요한 기본값입니다.",
+            "error_message": "새 사주로 볼 때는 성별을 선택해 주세요."
+          },
+          {
+            "key": "calendar",
+            "label": "생일 기준",
+            "type": "select",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "양력과 음력 기준을 구분하기 위해 필요합니다.",
+            "error_message": "양력 또는 음력을 선택해 주세요."
+          },
+          {
+            "key": "birth_date",
+            "label": "생년월일",
+            "type": "date",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "일간, 오행, 신강약, 용신 계산의 기본값입니다.",
+            "error_message": "생년월일은 숫자 8자리로 입력해 주세요."
+          },
+          {
+            "key": "birth_time",
+            "label": "태어난 시간",
+            "type": "time",
+            "required": false,
+            "condition": "profile_mode=new and birth_time_unknown=false",
+            "why_needed": "시간까지 있으면 개인 리듬을 더 세밀하게 볼 수 있습니다.",
+            "error_message": "태어난 시간은 13:30처럼 입력하거나 모름을 선택해 주세요."
+          },
+          {
+            "key": "birth_place",
+            "label": "태어난 지역",
+            "type": "text",
+            "required": false,
+            "condition": "profile_mode=new",
+            "why_needed": "시간 보정이 필요한 경우 참고합니다.",
+            "error_message": ""
+          },
+          {
+            "key": "home_address",
+            "label": "주소 또는 건물명",
+            "type": "address",
+            "required": true,
+            "condition": "",
+            "why_needed": "도로, 골목, 주변 압박, 열린 앞쪽 등 공간 흐름을 보기 위해 필요합니다.",
+            "error_message": "동네나 건물명 정도는 입력해 주세요."
+          },
+          {
+            "key": "building_type",
+            "label": "집 형태",
+            "type": "select",
+            "required": true,
+            "condition": "",
+            "why_needed": "아파트, 오피스텔, 원룸 등 구조별로 동선 체감이 다르기 때문입니다.",
+            "error_message": "집 형태를 선택해 주세요."
+          },
+          {
+            "key": "main_purpose",
+            "label": "집에서 제일 중요한 것",
+            "type": "select",
+            "required": true,
+            "condition": "",
+            "why_needed": "주거 목적에 따라 안정, 집중, 관계, 돈 흐름의 우선순위가 달라집니다.",
+            "error_message": "집에서 제일 중요한 목적을 골라 주세요."
+          },
+          {
+            "key": "stay_decision",
+            "label": "지금 고민",
+            "type": "select",
+            "required": true,
+            "condition": "",
+            "why_needed": "계속 살 각, 손볼 각, 비교 각을 나누기 위해 필요합니다.",
+            "error_message": "지금 고민을 하나 선택해 주세요."
+          },
+          {
+            "key": "pain_points",
+            "label": "신경 쓰이는 신호",
+            "type": "checkbox",
+            "required": true,
+            "condition": "",
+            "why_needed": "무료 티저와 전체 리포트의 우선순위를 정합니다.",
+            "error_message": "가장 신경 쓰이는 신호를 하나 이상 골라 주세요."
+          },
+          {
+            "key": "entrance_flow",
+            "label": "현관에서 침실이 바로 보이나요?",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "현관-거실-침실 직선 흐름과 외부 자극을 보기 위해 사용합니다.",
+            "error_message": ""
+          },
+          {
+            "key": "bedroom_feel",
+            "label": "침실 체감",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "수면, 회복, 시선 피로를 판단하는 보조값입니다.",
+            "error_message": ""
+          },
+          {
+            "key": "desk_position",
+            "label": "책상이나 주 작업 자리",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "재택, 공부, 일 집중력의 공간 핏을 보기 위해 사용합니다.",
+            "error_message": ""
+          },
+          {
+            "key": "outside_flow",
+            "label": "창밖·주변 흐름",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "앞열림, 건물 압박, 도로·골목 자극을 보기 위해 사용합니다.",
+            "error_message": ""
+          },
+          {
+            "key": "extra_note",
+            "label": "한 줄 메모",
+            "type": "text",
+            "required": false,
+            "condition": "",
+            "why_needed": "정량 입력으로 잡히지 않는 생활 체감을 보완합니다.",
+            "error_message": ""
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX_PAYLOAD">
+      {
+        "source": "user_seed",
+        "persist_keys": ["service_key", "service_slug", "schema_version", "report_version", "copy_version", "interpretation_index_version"],
+        "interpretation_index_version": "home-fit-index-v1",
+        "groups": [
+          { "group_id": "home-fit-overall", "title": "이 집, 나랑 찐으로 결 맞아?", "items": ["전체 핏 판정", "계속 살 각/손볼 각/비교 각", "끌리는 이유", "묘하게 피곤한 포인트", "지금 내 시기와의 궁합", "한 줄 결론"] },
+          { "group_id": "house-energy", "title": "집의 기본 기운", "items": ["안정형/활동형/휴식형", "앞이 열린 집", "뒤가 받치는 집", "좌우 균형", "도로·골목·물길 흐름", "건물 압박·창밖 시야"] },
+          { "group_id": "saju-house-ohaeng", "title": "내 사주 × 집 오행 핏", "items": ["일간 생활 리듬", "오행 과다/부족 보완", "용신과 공간 결", "신강약별 집 속도", "나한테 과한 집", "나를 살려주는 집"] },
+          { "group_id": "sleep-recovery", "title": "잠·회복·멘탈 리듬", "items": ["침실 안정감", "수면 깊이", "집콕 회복력", "소음·시선 피로", "쉬는 칸 확보", "퇴근 후 충전감", "번아웃 방지 포인트"] },
+          { "group_id": "entrance-flow", "title": "현관·동선 에너지", "items": ["첫 느낌", "현관 정리 상태", "현관-거실-침실 직선 흐름", "엘베·복도 자극", "들어온 기운이 머무는지", "택배·신발 혼잡도"] },
+          { "group_id": "remote-focus", "title": "재택·공부·일 집중력", "items": ["책상 자리", "등 뒤 받침", "문·창 위치", "몰입 잘 되는 구석", "화상회의/통화 핏", "일 공간과 쉬는 공간 분리", "생산성 루틴"] },
+          { "group_id": "money-living", "title": "돈·살림·소비 흐름", "items": ["돈이 모이는 구조", "돈 새는 포인트", "월세·관리비 체감", "재택 수익 리듬", "중요 문서·금고 자리", "충동소비 트리거"] },
+          { "group_id": "relationship-cohabitation", "title": "관계·가족·동거 케미", "items": ["혼자 있을 때 편안함", "가족과 부딪히는 동선", "연인·친구 초대 핏", "룸메/동거 궁합", "이웃·소음 스트레스", "사생활 보호감"] },
+          { "group_id": "spatial-fix", "title": "공간별 손질 처방", "items": ["침대 위치", "책상 위치", "소파·식탁 자리", "화분·거울·TV 활용", "커튼·조명·수납 보완", "컬러·소재 힌트", "못 옮길 때 대안"] },
+          { "group_id": "reality-action", "title": "현실 체크 & 액션 플랜", "items": ["아침·저녁 체감 테스트", "계약 유지/이사 비교", "지금 바로 손볼 3가지", "피해야 할 배치", "7일 살아보기 체크", "다음 행동 추천"] }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      {
+        "evidence_ids": [
+          "ITEM-50_풍수지리/prompts/menu-home.txt",
+          "ITEM-50_풍수지리/prompts/menu-move.txt",
+          "ITEM-50_풍수지리/prompts/menu-compat.txt",
+          "ITEM-50_풍수지리/prompts/menu-place.txt",
+          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
+          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
+          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
+          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
+          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
+        ],
+        "evidence_summary": [
+          "집 풍수 입력은 현관, 침실, 책상, 앞뒤 좌우, 창밖·도로 흐름, 주거 목적을 우선한다.",
+          "개인 명리 입력은 일간, 오행, 신강약, 용신을 계산할 수 있는 기본 사주 프로필이 필요하다.",
+          "주소와 생년월일 같은 개인정보는 URL과 장기 로컬 저장소에 남기지 않는다."
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-02-form-guide",
+            "filename": "assets/generated/home/02-form-guide.webp",
+            "role": "scene",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["둥근 안경", "정돈된 짙은 머리", "베이지 니트 아우터", "세이지 톤", "따뜻한 실내 조명"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "집 모형과 빈 입력 화면 옆에서 사주 프로필과 집 정보를 안내하는 장면. 이미지 안 텍스트 금지.",
+            "alt": "집 모형과 빈 입력 화면 옆에서 안내하는 운명상회 가이드",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-card[data-asset-key='home-02-form-guide'] img"
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "stage": "02-step-2-saju-input",
+        "status": "ready_for_review",
+        "checks": [
+          { "name": "latest_user_service_values_applied", "pass": true },
+          { "name": "job_choice_fields_removed", "pass": true },
+          { "name": "required_birth_profile_only_when_new_profile", "pass": true },
+          { "name": "home_fengshui_fields_present", "pass": true },
+          { "name": "interpretation_index_payload_preserved", "pass": true },
+          { "name": "no_personal_data_in_url_query", "pass": true },
+          { "name": "no_long_term_localstorage_write_for_personal_data", "pass": true },
+          { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
+          { "name": "images_are_full_width_single_blocks_without_side_layout", "pass": true },
+          { "name": "next_route_points_to_step_04", "pass": true }
+        ],
+        "scope_mismatch": [
+          "현재 프로젝트의 00-SERVICE-GENERATION-CONTRACT.md와 02 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 02 산출물은 사용자의 최신 집 풍수 입력값과 첨부 템플릿의 02 입력 폼 계약을 우선 적용했다."
+        ],
+        "review_note": "사용자 검토 후 '다음' 입력 시 04 무료 리포트 화면 제작으로 진행한다."
+      }
+    </script>
+
+    <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        schema_version: "home-fit-input-v1",
+        report_version: "home-fit-v1.0",
+        copy_version: "mz-home-pungsu-v1",
+        next_route: "../04-step-4-report/index.html#step-4-report"
+      };
+
+      const form = document.querySelector("#home-fit-form");
+      const statusEl = document.querySelector("#form-status");
+      const newProfileFields = document.querySelector("#new-profile-fields");
+      const savedProfileSummary = document.querySelector("#saved-profile-summary");
+      const birthTime = document.querySelector("#birth_time");
+      const birthTimeUnknown = document.querySelector("#birth_time_unknown");
+      const addressInput = document.querySelector("#home_address");
+      const addressSearchButton = document.querySelector("#address-search-button");
+      const postcodeLayer = document.querySelector("#postcode-layer");
+      const postcodeFrame = document.querySelector("#postcode-frame");
+      const postcodeClose = document.querySelector("#postcode-close");
+      let selectedAddress = null;
+
+      function readJsonBlock(id) {
+        return JSON.parse(document.querySelector(`#${id}`).textContent);
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+
+      function pad2(value) {
+        return String(Number(value || 0)).padStart(2, "0");
+      }
+
+      function getSavedProfileState() {
+        try {
+          const raw = localStorage.getItem("cheongi_user_birth_profile_v1");
+          if (!raw) return { complete: false, label: "저장된 프로필이 아직 없습니다.", profile: null };
+          const profile = safeParse(raw);
+          const birth = profile?.birth || {};
+          const gender = birth.gender === "female" ? "female" : birth.gender === "male" ? "male" : "";
+          const calendar = birth.calendar === "lunar" ? "lunar" : birth.calendar === "solar" ? "solar" : "";
+          const birthTimeKnown = profile?.birthTimeKnown !== false && Number.isFinite(Number(birth.hour));
+          const normalized = {
+            ...profile,
+            name: profile?.name || "",
+            birthTimeKnown,
+            birth: {
+              year: Number(birth.year),
+              month: Number(birth.month),
+              day: Number(birth.day),
+              hour: birthTimeKnown ? Number(birth.hour) : 12,
+              minute: Number(birth.minute || 0),
+              gender,
+              calendar
+            }
+          };
+          const complete = Boolean(normalized.name && normalized.birth.year && normalized.birth.month && normalized.birth.day && gender && calendar);
+          const timeLabel = birthTimeKnown ? `${pad2(normalized.birth.hour)}:${pad2(normalized.birth.minute)}` : "시간 모름";
+          return {
+            complete,
+            profile: complete ? normalized : null,
+            label: complete
+              ? `${normalized.name} · ${calendar === "lunar" ? "음력" : "양력"} ${normalized.birth.year}.${pad2(normalized.birth.month)}.${pad2(normalized.birth.day)} · ${timeLabel}`
+              : "저장된 프로필에 필요한 값이 부족합니다."
+          };
+        } catch {
+          return { complete: false, label: "저장된 프로필을 읽지 못했습니다. 새 사주로 입력해 주세요.", profile: null };
+        }
+      }
+
+      function setProfileMode(mode) {
+        const saved = getSavedProfileState();
+        const mustUseNew = mode === "saved" && !saved.complete;
+        const nextMode = mustUseNew ? "new" : mode;
+        document.querySelector(`input[name="profile_mode"][value="${nextMode}"]`).checked = true;
+        newProfileFields.hidden = nextMode !== "new";
+        savedProfileSummary.classList.toggle("is-visible", nextMode === "saved" || mustUseNew);
+        savedProfileSummary.querySelector("strong").textContent = saved.complete ? "기존 프로필 사용" : "새 입력이 필요해요";
+        savedProfileSummary.querySelector("p").textContent = mustUseNew ? saved.label : `${saved.label} · 생년월일을 다시 묻지 않고 집 정보 입력으로 이어갑니다.`;
+      }
+
+      function setBirthTimeMode() {
+        birthTime.disabled = birthTimeUnknown.checked;
+        birthTime.value = birthTimeUnknown.checked ? "" : birthTime.value;
+      }
+
+      function clearErrors() {
+        document.querySelectorAll(".error").forEach((node) => {
+          node.textContent = "";
+        });
+        document.querySelectorAll("[aria-invalid='true']").forEach((node) => {
+          node.removeAttribute("aria-invalid");
+        });
+      }
+
+      function setError(id, message) {
+        const input = document.querySelector(`#${id}`);
+        const error = document.querySelector(`#${id}-error`);
+        if (input && message) input.setAttribute("aria-invalid", "true");
+        if (input && !message) input.removeAttribute("aria-invalid");
+        if (error) error.textContent = message;
+      }
+
+      function validateBirthDate(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "생년월일을 입력해 주세요.";
+        if (!/^\\d{8}$/.test(raw)) return "생년월일은 숫자 8자리로 입력해 주세요. 예: 19980214";
+        const year = Number(raw.slice(0, 4));
+        const month = Number(raw.slice(4, 6));
+        const day = Number(raw.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        const valid = date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+        if (!valid) return "존재하지 않는 날짜입니다. 생년월일을 다시 확인해 주세요.";
+        if (year < 1900 || year > new Date().getFullYear()) return "생년월일의 연도를 다시 확인해 주세요.";
+        return "";
+      }
+
+      function validateTime(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        if (!/^([01]?\\d|2[0-3]):[0-5]\\d$/.test(raw)) return "태어난 시간은 13:30처럼 입력해 주세요.";
+        return "";
+      }
+
+      function formValue(name) {
+        return new FormData(form).get(name)?.toString().trim() || "";
+      }
+
+      function checkedValues(name) {
+        return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map((input) => input.value);
+      }
+
+      function setHiddenValue(id, value) {
+        const field = document.querySelector(`#${id}`);
+        if (field) field.value = value || "";
+      }
+
+      function compactAddressData(data) {
+        const roadAddress = data?.roadAddress || "";
+        const jibunAddress = data?.jibunAddress || data?.autoJibunAddress || "";
+        const baseAddress = roadAddress || jibunAddress || data?.address || "";
+        const buildingName = data?.buildingName || "";
+        const displayAddress = buildingName && !baseAddress.includes(buildingName) ? `${baseAddress} (${buildingName})` : baseAddress;
+        return {
+          displayAddress,
+          roadAddress,
+          jibunAddress,
+          zonecode: data?.zonecode || "",
+          sido: data?.sido || "",
+          sigungu: data?.sigungu || "",
+          bname: data?.bname || "",
+          buildingName,
+          addressType: data?.userSelectedType || data?.addressType || ""
+        };
+      }
+
+      function applyAddressData(data) {
+        selectedAddress = compactAddressData(data);
+        addressInput.value = selectedAddress.displayAddress;
+        addressInput.dataset.addressSelected = "true";
+        setHiddenValue("home_road_address", selectedAddress.roadAddress);
+        setHiddenValue("home_jibun_address", selectedAddress.jibunAddress);
+        setHiddenValue("home_zonecode", selectedAddress.zonecode);
+        setHiddenValue("home_sido", selectedAddress.sido);
+        setHiddenValue("home_sigungu", selectedAddress.sigungu);
+        setHiddenValue("home_bname", selectedAddress.bname);
+        setHiddenValue("home_building_name", selectedAddress.buildingName);
+        setHiddenValue("home_address_type", selectedAddress.addressType);
+        setError("home_address", "");
+      }
+
+      function closeAddressSearch() {
+        postcodeLayer.hidden = true;
+        postcodeFrame.innerHTML = "";
+      }
+
+      function openAddressSearch() {
+        if (!window.kakao?.Postcode) {
+          addressInput.readOnly = false;
+          addressInput.dataset.addressApiUnavailable = "true";
+          setError("home_address", "주소 검색 API를 불러오지 못했습니다. 직접 입력 후 진행해 주세요.");
+          addressInput.focus();
+          return;
+        }
+
+        postcodeLayer.hidden = false;
+        postcodeFrame.innerHTML = "";
+        new kakao.Postcode({
+          width: "100%",
+          height: "100%",
+          oncomplete(data) {
+            applyAddressData(data);
+            closeAddressSearch();
+          }
+        }).embed(postcodeFrame, {
+          q: addressInput.value || "",
+          autoClose: true
+        });
+      }
+
+      function validate() {
+        clearErrors();
+        const profileMode = formValue("profile_mode");
+        let valid = true;
+
+        if (profileMode === "new") {
+          if (!formValue("nickname")) {
+            setError("nickname", "리포트에서 부를 호칭을 입력해 주세요.");
+            valid = false;
+          }
+          if (!["female", "male"].includes(formValue("gender"))) {
+            setError("gender", "성별을 선택해 주세요.");
+            valid = false;
+          }
+          if (!formValue("calendar")) {
+            setError("calendar", "양력 또는 음력을 선택해 주세요.");
+            valid = false;
+          }
+          const birthError = validateBirthDate(formValue("birth_date"));
+          if (birthError) {
+            setError("birth_date", birthError);
+            valid = false;
+          }
+          const birthTimeValue = formValue("birth_time");
+          const timeError = validateTime(birthTimeValue);
+          if (!birthTimeUnknown.checked && !birthTimeValue) {
+            setError("birth_time", "태어난 시간을 입력하거나 모름을 체크해 주세요.");
+            valid = false;
+          } else if (!birthTimeUnknown.checked && timeError) {
+            setError("birth_time", timeError);
+            valid = false;
+          }
+        }
+
+        if (!formValue("home_address")) {
+          setError("home_address", "주소 찾기에서 도로명·지번 주소를 선택해 주세요.");
+          valid = false;
+        } else if (addressInput.dataset.addressSelected !== "true" && addressInput.dataset.addressApiUnavailable !== "true") {
+          setError("home_address", "정확한 입력을 위해 주소 찾기 결과에서 선택해 주세요.");
+          valid = false;
+        }
+        if (!formValue("building_type")) {
+          setError("building_type", "집 형태를 선택해 주세요.");
+          valid = false;
+        }
+        if (!formValue("main_purpose")) {
+          setError("main_purpose", "집에서 제일 중요한 목적을 골라 주세요.");
+          valid = false;
+        }
+        if (!formValue("stay_decision")) {
+          setError("stay_decision", "지금 고민을 하나 선택해 주세요.");
+          valid = false;
+        }
+        if (checkedValues("pain_points").length === 0) {
+          document.querySelector("#pain_points-error").textContent = "가장 신경 쓰이는 신호를 하나 이상 골라 주세요.";
+          valid = false;
+        }
+
+        return valid;
+      }
+
+      const LABELS = {
+        buildingType: {
+          apartment: "아파트",
+          officetel: "오피스텔",
+          villa: "빌라·연립",
+          studio: "원룸",
+          house: "단독·다가구",
+          other: "기타"
+        },
+        livingPeriod: {
+          under_3m: "3개월 미만",
+          "3m_1y": "3개월~1년",
+          "1y_3y": "1~3년",
+          over_3y: "3년 이상"
+        },
+        mainPurpose: {
+          rest: "잠·회복",
+          work: "재택·공부 집중",
+          money: "돈·살림 안정",
+          relationship: "동거·가족·관계",
+          move: "계약 유지·이사 판단"
+        },
+        stayDecision: {
+          stay: "계속 살 각인지",
+          fix: "손보면 괜찮은지",
+          compare: "이사 후보와 비교할지",
+          unknown: "일단 이유가 궁금함"
+        },
+        painPoints: {
+          sleep: "잠·피로",
+          entrance: "현관·동선",
+          focus: "집중력",
+          money: "돈·살림",
+          relationship: "관계·동거",
+          move: "이사·계약 판단"
+        }
+      };
+
+      function optionLabel(group, value, fallback = "") {
+        return LABELS[group]?.[value] || fallback || value || "";
+      }
+
+      function parseBirthDateParts(value) {
+        const raw = String(value || "").trim();
+        return {
+          year: Number(raw.slice(0, 4)),
+          month: Number(raw.slice(4, 6)),
+          day: Number(raw.slice(6, 8))
+        };
+      }
+
+      function parseBirthTimeParts(value, known) {
+        if (!known) return { hour: 12, minute: 0 };
+        const [hour, minute] = String(value || "12:00").split(":").map(Number);
+        return {
+          hour: Number.isFinite(hour) ? hour : 12,
+          minute: Number.isFinite(minute) ? minute : 0
+        };
+      }
+
+      function buildBirthState(profileMode) {
+        if (profileMode === "saved") {
+          const saved = getSavedProfileState();
+          if (!saved.complete || !saved.profile) throw new Error("저장된 사주 프로필을 찾지 못했습니다. 새 사주로 입력해 주세요.");
+          return {
+            name: saved.profile.name,
+            birth: saved.profile.birth,
+            birthTimeKnown: saved.profile.birthTimeKnown !== false,
+            source: "saved"
+          };
+        }
+
+        const birthDate = parseBirthDateParts(formValue("birth_date"));
+        const birthTimeKnown = !birthTimeUnknown.checked;
+        const birthTimeParts = parseBirthTimeParts(formValue("birth_time"), birthTimeKnown);
+        return {
+          name: formValue("nickname"),
+          birth: {
+            ...birthDate,
+            ...birthTimeParts,
+            gender: formValue("gender"),
+            calendar: formValue("calendar")
+          },
+          birthTimeKnown,
+          source: "new"
+        };
+      }
+
+      function buildHomeInput() {
+        const addressMeta = selectedAddress || {
+          displayAddress: formValue("home_address"),
+          roadAddress: formValue("home_road_address"),
+          jibunAddress: formValue("home_jibun_address"),
+          zonecode: formValue("home_zonecode"),
+          sido: formValue("home_sido"),
+          sigungu: formValue("home_sigungu"),
+          bname: formValue("home_bname"),
+          buildingName: formValue("home_building_name"),
+          addressType: formValue("home_address_type")
+        };
+        return {
+          addressOrBuilding: addressMeta.displayAddress || formValue("home_address"),
+          roadAddress: addressMeta.roadAddress,
+          jibunAddress: addressMeta.jibunAddress,
+          zonecode: addressMeta.zonecode,
+          sido: addressMeta.sido,
+          sigungu: addressMeta.sigungu,
+          bname: addressMeta.bname,
+          buildingName: addressMeta.buildingName,
+          addressType: addressMeta.addressType,
+          buildingType: formValue("building_type"),
+          livingPeriod: formValue("living_period"),
+          mainPurpose: formValue("main_purpose"),
+          stayDecision: formValue("stay_decision"),
+          painPoints: checkedValues("pain_points"),
+          entranceFlow: formValue("entrance_flow"),
+          bedroomFeel: formValue("bedroom_feel"),
+          deskPosition: formValue("desk_position"),
+          outsideFlow: formValue("outside_flow"),
+          extraNote: formValue("extra_note")
+        };
+      }
+
+      function snakeHomeInput(home) {
+        return {
+          address_or_building: home.addressOrBuilding,
+          road_address: home.roadAddress,
+          jibun_address: home.jibunAddress,
+          zonecode: home.zonecode,
+          sido: home.sido,
+          sigungu: home.sigungu,
+          bname: home.bname,
+          building_name: home.buildingName,
+          address_type: home.addressType,
+          building_type: home.buildingType,
+          living_period: home.livingPeriod,
+          main_purpose: home.mainPurpose,
+          stay_decision: home.stayDecision,
+          pain_points: home.painPoints,
+          entrance_flow: home.entranceFlow,
+          bedroom_feel: home.bedroomFeel,
+          desk_position: home.deskPosition,
+          outside_flow: home.outsideFlow,
+          extra_note: home.extraNote
+        };
+      }
+
+      function buildPayload() {
+        const profileMode = formValue("profile_mode");
+        const birthState = buildBirthState(profileMode);
+        const home = buildHomeInput();
+        const input = snakeHomeInput(home);
+        const painText = home.painPoints.map((point) => optionLabel("painPoints", point)).filter(Boolean).join(" · ");
+        const context = {
+          serviceKey: SERVICE.service_key,
+          name: birthState.name,
+          target: "본인",
+          relationship: "주거 공간",
+          orientation: "집과 나의 공간 핏",
+          work: optionLabel("mainPurpose", home.mainPurpose, "일상 흐름"),
+          concern: [optionLabel("stayDecision", home.stayDecision), painText].filter(Boolean).join(" · "),
+          birthTimeKnown: birthState.birthTimeKnown,
+          home
+        };
+
+        return {
+          service: {
+            ...SERVICE,
+            category: "집 풍수",
+            title: "지금 사는 집, 나랑 잘 맞을까?"
+          },
+          service_key: SERVICE.service_key,
+          service_slug: SERVICE.service_slug,
+          schema_version: SERVICE.schema_version,
+          report_version: SERVICE.report_version,
+          copy_version: SERVICE.copy_version,
+          stage: "02-step-2-saju-input",
+          next_route: SERVICE.next_route,
+          profile: {
+            mode: profileMode,
+            use_saved_profile: profileMode === "saved",
+            saved_profile_applied: profileMode === "saved",
+            nickname: birthState.name,
+            name: birthState.name,
+            gender: birthState.birth.gender,
+            calendar: birthState.birth.calendar,
+            birth_date: `${birthState.birth.year}${pad2(birthState.birth.month)}${pad2(birthState.birth.day)}`,
+            birth_time_known: birthState.birthTimeKnown,
+            birth_time: birthState.birthTimeKnown ? `${pad2(birthState.birth.hour)}:${pad2(birthState.birth.minute)}` : "",
+            birth_place: profileMode === "new" ? formValue("birth_place") : "",
+            source: birthState.source
+          },
+          birth: birthState.birth,
+          birthTimeKnown: birthState.birthTimeKnown,
+          context,
+          input,
+          home,
+          interpretation_index_payload: readJsonBlock("INTERPRETATION_INDEX_PAYLOAD"),
+          privacy: {
+            url_query_contains_personal_data: false,
+            long_term_localstorage_personal_write: false,
+            temporary_storage: "sessionStorage"
+          }
+        };
+      }
+
+      async function requestAnalysis(payload) {
+        const response = await fetch("/api/saju/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...payload.birth,
+            birth: payload.birth,
+            birthTimeKnown: payload.birthTimeKnown,
+            serviceKey: SERVICE.service_key,
+            service_key: SERVICE.service_key,
+            context: payload.context,
+            home: payload.home,
+            input: payload.input
+          })
+        });
+        const json = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(json.error || "분석 리포트를 생성하지 못했습니다.");
+        return json;
+      }
+
+      function saveForNextStep(payload) {
+        sessionStorage.setItem("umsh_home_fit_input_payload_v1", JSON.stringify(payload));
+        if (payload.analysis) {
+          sessionStorage.setItem("umsh_home_fit_report_v1", JSON.stringify(payload.analysis.report || null));
+          sessionStorage.setItem("cheongi_analysis", JSON.stringify(payload.analysis));
+        }
+        sessionStorage.setItem(
+          "umsh_home_fit_auth_return_v1",
+          JSON.stringify({
+            service_key: SERVICE.service_key,
+            service_slug: SERVICE.service_slug,
+            schema_version: SERVICE.schema_version,
+            from_stage: "02-step-2-saju-input",
+            next_route: SERVICE.next_route
+          })
+        );
+      }
+
+      document.querySelectorAll("input[name='profile_mode']").forEach((input) => {
+        input.addEventListener("change", () => setProfileMode(input.value));
+      });
+
+      birthTimeUnknown.addEventListener("change", setBirthTimeMode);
+      addressSearchButton.addEventListener("click", openAddressSearch);
+      addressInput.addEventListener("click", openAddressSearch);
+      postcodeClose.addEventListener("click", closeAddressSearch);
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!validate()) {
+          statusEl.textContent = "빠진 항목을 확인해 주세요.";
+          const firstInvalid = form.querySelector("[aria-invalid='true']");
+          firstInvalid?.focus();
+          return;
+        }
+        const submitButton = form.querySelector("button[type='submit']");
+        if (submitButton) submitButton.disabled = true;
+        statusEl.textContent = "입력값에 맞춰 무료 맛보기 풀이를 생성하고 있습니다.";
+        try {
+          const payload = buildPayload();
+          const analysis = await requestAnalysis(payload);
+          payload.analysis = analysis;
+          payload.reportId = analysis.report?.reportId || "";
+          saveForNextStep(payload);
+          statusEl.textContent = "개인화 풀이를 저장했습니다. 04 무료 방향으로 이동합니다.";
+          window.location.href = SERVICE.next_route;
+        } catch (error) {
+          statusEl.textContent = error instanceof Error ? error.message : "분석 리포트를 생성하지 못했습니다.";
+          if (submitButton) submitButton.disabled = false;
+        }
+      });
+
+      setProfileMode(getSavedProfileState().complete ? "saved" : "new");
+      setBirthTimeMode();
+    </script>
+    <div data-umsh-service-bottom></div>
+    <script src="/js/service-shell.js?v=20260902-address-shell"></script>
+  </body>
+</html>

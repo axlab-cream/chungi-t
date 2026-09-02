@@ -9,8 +9,6 @@ import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from '.
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
 
-let cachedCorpusIndex: RagChunk[] | null = null
-
 interface ConsultationTemplate {
   id: string
   intent: string
@@ -67,6 +65,9 @@ const SYNONYMS: Record<string, string[]> = {
   돈: ['재물', '재물운', '재성', '정재', '편재', '돈구멍'],
   재물: ['돈', '재물운', '재성', '정재', '편재', '수입'],
   직업: ['직장', '커리어', '관성', '식상', '월주', '일운'],
+  이직: ['퇴사', '회사이동', '오퍼', '직무', '관성', '식상', '재성', '대운', '세운'],
+  퇴사: ['이직', '회사이동', '타이밍', '계약', '버퍼', '대운', '세운'],
+  오퍼: ['이직', '새회사', '계약', '연봉', '업무범위', '재성', '관성'],
   연애: ['관계', '인연', '배우자궁', '일지', '도화'],
   관계: ['연애', '일지', '배우자궁', '비겁', '합충'],
   용신: ['희신', '기신', '억부', '조후', '통관', '보완'],
@@ -74,6 +75,14 @@ const SYNONYMS: Record<string, string[]> = {
   세운: ['올해', '연도', '대운', '신호', '운세'],
   시기: ['대운', '세운', '전환', '합충', '신호'],
   장소: ['오행', '생활공간', '인연장소', '사건장소'],
+  집: ['풍수', '주거', '공간', '현관', '침실', '책상', '창밖'],
+  풍수: ['집', '주거', '현관', '침실', '동선', '채광', '통풍'],
+  현관: ['입구', '동선', '문앞', '신발장', '들어오는길'],
+  침실: ['잠', '수면', '회복', '멘탈', '조명', '소음'],
+  책상: ['재택', '공부', '집중', '업무', '등뒤', '문'],
+  창밖: ['채광', '소음', '시선', '압박감', '앞열림'],
+  살림: ['수납', '주방', '정리', '소비', '돈'],
+  이사: ['계약', '비교', '거주', '7일테스트', '현실체크'],
   리포트: ['장문', '상세풀이', '근거', '섹션', '95점'],
   격국: ['월령', '십신', '사회적작동', '용신', '구조'],
   조후: ['온도', '한난조습', '계절', '용신', '균형'],
@@ -147,8 +156,6 @@ function buildElementChunks(): RagChunk[] {
 
 /** O(n) — 코퍼스 인덱스 로드 */
 export function buildCorpusIndex(): RagChunk[] {
-  if (cachedCorpusIndex) return cachedCorpusIndex
-
   const corpusChunks = getChunkCorpusFiles().flatMap((file) => {
     const data = loadJson<CorpusFile>(file)
     return corpusFileToChunks(data)
@@ -162,8 +169,7 @@ export function buildCorpusIndex(): RagChunk[] {
     domain: 'consultation_templates',
   }))
 
-  cachedCorpusIndex = [...corpusChunks, ...buildElementChunks(), ...templateChunks]
-  return cachedCorpusIndex
+  return [...corpusChunks, ...buildElementChunks(), ...templateChunks]
 }
 
 function keywordScore(keyword: string, queryRaw: string, queryTokens: string[]): number {
@@ -211,6 +217,35 @@ function contextTokens(context?: SajuReportContext): string[] {
     context.partner?.dominantElement,
     context.partner?.weakElement,
     ...(context.partner?.tenGods ?? []),
+    context.home?.addressOrBuilding,
+    context.home?.roadAddress,
+    context.home?.jibunAddress,
+    context.home?.zonecode,
+    context.home?.sido,
+    context.home?.sigungu,
+    context.home?.bname,
+    context.home?.buildingName,
+    context.home?.buildingType,
+    context.home?.livingPeriod,
+    context.home?.mainPurpose,
+    context.home?.stayDecision,
+    ...(context.home?.painPoints ?? []),
+    context.home?.entranceFlow,
+    context.home?.bedroomFeel,
+    context.home?.deskPosition,
+    context.home?.outsideFlow,
+    context.home?.extraNote,
+    context.workMove?.decisionMode,
+    context.workMove?.currentCompanySignal,
+    context.workMove?.targetCompanyName,
+    context.workMove?.targetRole,
+    context.workMove?.workType,
+    context.workMove?.commuteLocation,
+    context.workMove?.salaryFeeling,
+    context.workMove?.decisionDate,
+    context.workMove?.discomfortPoint,
+    context.workMove?.priority,
+    ...(context.workMove?.realityChecks ?? []),
   ].filter((value): value is string => Boolean(value && value.trim()))
 
   const rawTokens = values.flatMap(tokenize)
@@ -230,16 +265,27 @@ function contextTokens(context?: SajuReportContext): string[] {
   if (joined.includes('이별')) direct.push('이별', '재회', '정리')
   if (joined.includes('결혼')) direct.push('결혼', '배우자', '생활')
   if (context.serviceKey === 'love_this_year') direct.push('연애운', '도화', '배우자성', '세운', '궁합', '상대')
-  if (context.serviceKey === 'love_mind') direct.push('상대방', '마음', '감정', '연락', '관계흐름', '궁합', '일지', '합충', '거리감')
-  if (context.serviceKey === 'love_again') direct.push('재회', '이별', '재연결', '미련', '세운', '궁합', '관계흐름', '연락', '합충', '일지')
-  if (context.serviceKey === 'love_spouse') direct.push('배우자운', '배우자궁', '배우자성', '자미두수', '인연', '결혼', '일지', '대운', '세운', '생활', '책임')
   if (context.partner?.mode === 'known') direct.push('상대방', '궁합', '감정온도', '일간', '오행')
+  if (context.serviceKey === 'home_fit') direct.push('집', '풍수', '주거', '현관', '침실', '책상', '창밖', '동선', '오행')
+  if (context.serviceKey === 'work_move') direct.push('이직운', '이직', '퇴사', '회사', '직무', '오퍼', '연봉', '계약', '관성', '식상', '재성', '대운', '세운')
+  if (joined.includes('rest') || joined.includes('sleep') || joined.includes('잠')) direct.push('침실', '잠', '수면', '회복', '조명')
+  if (joined.includes('work') || joined.includes('focus') || joined.includes('재택') || joined.includes('공부')) direct.push('책상', '집중', '재택', '업무', '등뒤')
+  if (joined.includes('money') || joined.includes('살림') || joined.includes('소비')) direct.push('돈', '살림', '수납', '주방', '소비')
+  if (joined.includes('relationship') || joined.includes('동거') || joined.includes('가족')) direct.push('관계', '가족', '동거', '사생활', '거리감')
+  if (joined.includes('move') || joined.includes('compare') || joined.includes('이사')) direct.push('이사', '계약', '비교', '7일테스트')
+  if (joined.includes('entrance') || joined.includes('direct') || joined.includes('blocked')) direct.push('현관', '문앞', '동선', '신발장')
+  if (joined.includes('bedroom') || joined.includes('window_road') || joined.includes('door_line')) direct.push('침실', '소음', '시선', '문', '복도')
+  if (joined.includes('desk') || joined.includes('back_window') || joined.includes('face_door')) direct.push('책상', '등뒤', '문', '창')
+  if (joined.includes('outside') || joined.includes('pressed') || joined.includes('road_noise')) direct.push('창밖', '소음', '압박감', '앞열림')
   if (joined.includes('학생')) direct.push('학생', '공부', '진로')
   if (joined.includes('일을 찾')) direct.push('구직', '취업', '일자리')
   if (joined.includes('직장')) direct.push('직장', '회사', '업무')
   if (joined.includes('사업')) direct.push('사업', '편재', '시장')
   if (joined.includes('프리랜서')) direct.push('프리랜서', '프로젝트', '계약')
   if (joined.includes('쉬고')) direct.push('휴식', '공백기', '회복')
+  if (/move_considering|offer_review|resignation_timing|internal_transfer|job_search_start|이직|퇴사|오퍼/.test(joined)) direct.push('이직', '퇴사', '오퍼', '타이밍', '전환')
+  if (/role_blur|authority_blur|boss_pressure|peer_competition|recognition_gap|burnout|역할|상사|번아웃/.test(joined)) direct.push('현회사', '역할', '상사', '번아웃', '관성')
+  if (/salary|clear_up|slight_up|unclear|연봉|계약/.test(joined)) direct.push('연봉', '계약', '업무범위', '재성')
 
   return expandTokens([...rawTokens, ...direct])
 }
@@ -306,6 +352,12 @@ function graphBoostTokens(
   }
   if (/돈|재물|수입|지출|직업|직장|사업|프리랜서|계약/.test(`${query} ${contextValue}`)) {
     for (const token of ['재성', '식상', '관성', '계약', '돈구멍', '편재', '정재']) graph.add(token)
+  }
+  if (/이직|퇴사|오퍼|새 회사|직무|연봉|번아웃|면접|포트폴리오/.test(`${query} ${contextValue}`)) {
+    for (const token of ['이직', '퇴사', '오퍼', '관성', '식상', '재성', '대운', '세운', '계약', '업무범위', '버퍼']) graph.add(token)
+  }
+  if (/집|풍수|주거|현관|침실|책상|창밖|수면|재택|살림|동선|이사/.test(`${query} ${contextValue}`)) {
+    for (const token of ['집', '풍수', '현관', '침실', '책상', '창밖', '동선', '앞열림', '뒤받침', '오행']) graph.add(token)
   }
   if (/용신|희신|기신|격국|조후|통관|강약/.test(query)) {
     for (const token of ['격국', '월령', '조후', '통관', '억부', '한난조습']) graph.add(token)
@@ -417,6 +469,35 @@ function contextText(context?: SajuReportContext): string {
     context.partner?.dominantElement,
     context.partner?.weakElement,
     ...(context.partner?.tenGods ?? []),
+    context.home?.addressOrBuilding,
+    context.home?.roadAddress,
+    context.home?.jibunAddress,
+    context.home?.zonecode,
+    context.home?.sido,
+    context.home?.sigungu,
+    context.home?.bname,
+    context.home?.buildingName,
+    context.home?.buildingType,
+    context.home?.livingPeriod,
+    context.home?.mainPurpose,
+    context.home?.stayDecision,
+    ...(context.home?.painPoints ?? []),
+    context.home?.entranceFlow,
+    context.home?.bedroomFeel,
+    context.home?.deskPosition,
+    context.home?.outsideFlow,
+    context.home?.extraNote,
+    context.workMove?.decisionMode,
+    context.workMove?.currentCompanySignal,
+    context.workMove?.targetCompanyName,
+    context.workMove?.targetRole,
+    context.workMove?.workType,
+    context.workMove?.commuteLocation,
+    context.workMove?.salaryFeeling,
+    context.workMove?.decisionDate,
+    context.workMove?.discomfortPoint,
+    context.workMove?.priority,
+    ...(context.workMove?.realityChecks ?? []),
   ].filter(Boolean).join(' ')
 }
 
@@ -428,6 +509,8 @@ function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
   const orientation = context?.orientation ?? ''
   const relationship = context?.relationship ?? ''
   const work = context?.work ?? ''
+  const home = context?.home
+  const workMove = context?.workMove
 
   if (target.includes('본인')) ids.add('ic-001')
   if (target.includes('가족')) ids.add('ic-002')
@@ -449,6 +532,57 @@ function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
   if (work.includes('쉬고')) ids.add('ic-018')
   if (context?.concern?.trim()) ids.add('ic-019')
   else ids.add('ic-020')
+
+  if (context?.serviceKey === 'home_fit') {
+    ids.add('hfit-001')
+    ids.add('hfit-002')
+    ids.add('hfit-003')
+    const joinedHome = [
+      home?.mainPurpose,
+      home?.stayDecision,
+      ...(home?.painPoints ?? []),
+      home?.entranceFlow,
+      home?.bedroomFeel,
+      home?.deskPosition,
+      home?.outsideFlow,
+      home?.extraNote,
+    ].filter(Boolean).join(' ')
+
+    if (/sleep|rest|bedroom|window_road|door_line|too_bright|잠|수면|회복|소음/.test(joinedHome)) ids.add('hfit-004')
+    if (/entrance|direct|bent|blocked|현관|동선/.test(joinedHome)) ids.add('hfit-005')
+    if (/work|focus|desk|back_window|face_door|mixed_rest|재택|공부|집중/.test(joinedHome)) ids.add('hfit-006')
+    if (/money|살림|소비|수납|주방/.test(joinedHome)) ids.add('hfit-007')
+    if (/relationship|가족|동거|관계/.test(joinedHome)) ids.add('hfit-008')
+    if (/fix|손질|처방|커튼|조명/.test(joinedHome)) ids.add('hfit-009')
+    if (/stay|move|compare|unknown|이사|계약|비교/.test(joinedHome)) ids.add('hfit-010')
+  }
+
+  if (context?.serviceKey === 'work_move') {
+    ids.add('wmov-001')
+    ids.add('wmov-002')
+    ids.add('wmov-003')
+    const joinedWorkMove = [
+      workMove?.decisionMode,
+      workMove?.currentCompanySignal,
+      workMove?.targetRole,
+      workMove?.workType,
+      workMove?.commuteLocation,
+      workMove?.salaryFeeling,
+      workMove?.decisionDate,
+      workMove?.discomfortPoint,
+      workMove?.priority,
+      ...(workMove?.realityChecks ?? []),
+    ].filter(Boolean).join(' ')
+
+    if (/role_blur|authority_blur|boss_pressure|peer_competition|recognition_gap|burnout|역할|상사|번아웃/.test(joinedWorkMove)) ids.add('wmov-002')
+    if (/office|hybrid|remote|shift|field|직무|근무|출퇴근/.test(joinedWorkMove)) ids.add('wmov-004')
+    if (/clear_up|slight_up|similar|down_for_growth|unclear|offer_terms_checked|연봉|계약/.test(joinedWorkMove)) ids.add('wmov-005')
+    if (/decision|date|timing|resignation|입사|퇴사|타이밍/.test(joinedWorkMove)) ids.add('wmov-006')
+    if (/burnout|unclear|역할|계약|찝찝|위험/.test(joinedWorkMove)) ids.add('wmov-007')
+    if (/resume_ready|buffer_ready|exit_script_ready|포트폴리오|버퍼|대화/.test(joinedWorkMove)) ids.add('wmov-008')
+    if (/growth|mental|money|people|stability|성장|멘탈|돈|사람|안정/.test(joinedWorkMove)) ids.add('wmov-009')
+    ids.add('wmov-010')
+  }
 
   return ids
 }

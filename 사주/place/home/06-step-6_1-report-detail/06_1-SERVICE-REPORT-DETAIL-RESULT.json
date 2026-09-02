@@ -1,0 +1,258 @@
+{
+  "service": {
+    "service_key": "home_fit",
+    "service_slug": "home",
+    "service_title": "지금 사는 집, 나랑 잘 맞을까?",
+    "category": "집 풍수",
+    "subcategory": "집과 나의 생활 핏",
+    "price_krw": 9900,
+    "service_url_hint": "place.umsh.kr/home",
+    "target_question": "이 집, 나랑 찐으로 결 맞아?",
+    "analysis_basis": [
+      "풍수지리",
+      "개인 명리",
+      "일간",
+      "오행",
+      "신강약",
+      "용신"
+    ],
+    "report_version": "home-fit-v1.0",
+    "copy_version": "mz-home-pungsu-v1"
+  },
+  "detail": {
+    "section_id": "home-fit-overall",
+    "report_index_source": "user_seed",
+    "title": "이 집, 나랑 찐으로 결 맞아?",
+    "conclusion": "이 항목은 집 자체의 좋고 나쁨보다, 지금 내 생활 리듬과 이 집의 속도가 맞는지를 먼저 봅니다.",
+    "evidence": [
+      {
+        "type": "space_basis",
+        "label": "집과 사람의 궁합은 용도와 생활 리듬이 바뀌면 달라질 수 있음",
+        "evidence_ids": [
+          "fengshui.home",
+          "fengshui.compat"
+        ]
+      },
+      {
+        "type": "calculation_pending",
+        "label": "사주 계산값은 상세 서버 계산이 있을 때 일간·오행·신강약·용신으로 연결",
+        "calculated_fact_keys": [
+          "day_master",
+          "ohaeng_balance",
+          "singang_status",
+          "yongsin"
+        ]
+      },
+      {
+        "type": "input_basis",
+        "label": "현재 입력값은 집 형태, 목적, 고민, 체감 신호를 우선 사용",
+        "calculated_fact_keys": [
+          "building_type",
+          "main_purpose",
+          "stay_decision",
+          "pain_points"
+        ]
+      }
+    ],
+    "interpretation_blocks": [
+      {
+        "heading": "끌리는 이유",
+        "body": "이 집이 마음에 드는 이유는 대개 창밖의 열림, 현관 첫 느낌, 익숙한 동선처럼 몸이 먼저 받아들이는 신호에서 나옵니다.",
+        "evidence_ids": [
+          "guide.front-back",
+          "guide.entrance"
+        ]
+      },
+      {
+        "heading": "피곤한 포인트",
+        "body": "반대로 잠이 얕거나 집에 들어오자마자 정리가 밀리는 느낌이 반복되면, 집의 흐름이 내 회복 속도보다 빠른 쪽일 수 있습니다.",
+        "evidence_ids": [
+          "guide.road-window",
+          "guide.bed-stability"
+        ]
+      },
+      {
+        "heading": "판정 방식",
+        "body": "계속 살 각, 손볼 각, 비교 각은 이사 결론이 아니라 현재 집에서 먼저 조정할 수 있는 범위를 나누는 기준입니다.",
+        "evidence_ids": [
+          "fengshui.move",
+          "guide.reality-check"
+        ]
+      }
+    ],
+    "actions": [
+      "현관에서 거실까지 들어올 때 시선이 바로 꽂히는 곳을 확인합니다.",
+      "침대에 누웠을 때 문, 창, 소음 중 제일 먼저 신경 쓰이는 것을 적습니다.",
+      "7일 동안 아침과 저녁의 집 체감을 한 줄로 기록합니다."
+    ],
+    "cautions": [
+      "하루 기분만으로 이사 여부를 정하지 말고, 반복되는 피로 신호를 봅니다.",
+      "좋은 집이라는 말보다 지금 내 목적에 맞는지를 먼저 확인합니다."
+    ],
+    "related_sections": [
+      {
+        "relation": "previous",
+        "section_id": "reality-action",
+        "title": "현실 체크 & 액션 플랜",
+        "route": "../06-step-6_1-report-detail/index.html?section=reality-action#step-6_1-report"
+      },
+      {
+        "relation": "next",
+        "section_id": "house-energy",
+        "title": "집의 기본 기운",
+        "route": "../06-step-6_1-report-detail/index.html?section=house-energy#step-6_1-report"
+      }
+    ]
+  },
+  "available_sections": [
+    "home-fit-overall",
+    "house-energy",
+    "saju-house-ohaeng",
+    "sleep-recovery",
+    "entrance-flow",
+    "remote-focus",
+    "money-living",
+    "relationship-cohabitation",
+    "spatial-fix",
+    "reality-action"
+  ],
+  "image_manifest": [
+    {
+      "asset_key": "home-06-detail-hero",
+      "filename": "assets/generated/home/06-detail-hero.webp",
+      "role": "detail",
+      "aspect_ratio": "9:16",
+      "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+      "reference_status": "selected",
+      "character_style_lock": [
+        "둥근 안경",
+        "정돈된 짙은 머리",
+        "베이지 니트 아우터",
+        "세이지 톤",
+        "따뜻한 실내 조명"
+      ],
+      "generation_policy": "same-character-new-scene",
+      "prompt": "집 모형과 도면을 두고 상세 풀이를 설명하는 장면. 이미지 안 텍스트 금지.",
+      "alt": "집 모형과 도면을 두고 상세 풀이를 설명하는 운명상회 가이드",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".visual-frame[data-asset-key='home-06-detail-hero'] img"
+    }
+  ],
+  "character_reference": {
+    "reference_status": "selected",
+    "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+    "style_bible": {
+      "medium": "soft 3D illustration",
+      "identity_lock": [
+        "둥근 안경",
+        "정돈된 짙은 갈색 웨이브 헤어",
+        "밝고 친근한 표정",
+        "MZ 친화적인 생활형 공간 가이드"
+      ],
+      "wardrobe_lock": [
+        "베이지 니트 아우터",
+        "세이지 톤 상의",
+        "작은 나침반 소품"
+      ],
+      "palette": [
+        "#FFF8EF",
+        "#9FB7A1",
+        "#E4C36F",
+        "#BF6745",
+        "#89A9BD"
+      ],
+      "lighting": "따뜻한 실내 자연광과 부드러운 램프 조명",
+      "camera_language": "9:16 세로 구도, 과한 클로즈업 없이 공간 맥락 포함",
+      "texture": "니트, 원목, 집 모형, 도면, 커튼의 부드러운 질감",
+      "mood": "차분함, 실용성, 과한 공포감 없음",
+      "negative_prompt": [
+        "이미지 속 텍스트",
+        "개인정보",
+        "주소",
+        "생년월일",
+        "명당·흉지 단정"
+      ]
+    },
+    "generation_policy": "same-character-new-scene"
+  },
+  "render_contract": {
+    "back_route": "../05-step-5-chat/chat.html#step-5-chat",
+    "section_query_key": "section",
+    "default_section": "home-fit-overall",
+    "next_section": "house-energy",
+    "previous_section": "reality-action",
+    "invalid_section_behavior": "fallback_to_default_without_creating_new_section",
+    "selected_section_storage": "sessionStorage.umsh_home_fit_selected_section_v1",
+    "detail_question_storage": "sessionStorage.umsh_home_fit_detail_question_v1"
+  },
+  "entitlement_contract": {
+    "server_must_verify": [
+      "user_id",
+      "service_key",
+      "profile_id",
+      "report_id",
+      "report_version",
+      "entitlement"
+    ],
+    "client_paid_authority": false,
+    "unauthorized_fallback": "../04-step-4-report/index.html#step-4-report"
+  },
+  "rag_evidence": [
+    "ITEM-50_풍수지리/prompts/menu-home.txt",
+    "ITEM-50_풍수지리/prompts/menu-move.txt",
+    "ITEM-50_풍수지리/prompts/menu-compat.txt",
+    "ITEM-50_풍수지리/prompts/menu-place.txt",
+    "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
+    "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
+    "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
+    "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
+    "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
+  ],
+  "qa": [
+    {
+      "name": "latest_user_service_values_applied",
+      "pass": true
+    },
+    {
+      "name": "all_detail_sections_match_step_05_section_ids",
+      "pass": true
+    },
+    {
+      "name": "invalid_section_falls_back_without_creating_new_section",
+      "pass": true
+    },
+    {
+      "name": "detail_order_has_conclusion_evidence_interpretation_actions_cautions_related",
+      "pass": true
+    },
+    {
+      "name": "no_fake_graph_without_numeric_data",
+      "pass": true
+    },
+    {
+      "name": "server_entitlement_required_in_render_contract",
+      "pass": true
+    },
+    {
+      "name": "image_manifest_generated_file_exists_and_html_referenced",
+      "pass": true
+    },
+    {
+      "name": "images_are_full_width_single_blocks_without_side_layout",
+      "pass": true
+    },
+    {
+      "name": "customer_copy_hides_internal_rag_kms_terms",
+      "pass": true
+    },
+    {
+      "name": "no_deterministic_moving_or_money_claims",
+      "pass": true
+    }
+  ],
+  "scope_mismatch": [
+    "현재 프로젝트의 06_1 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 06_1 산출물은 사용자의 최신 집 풍수 서비스와 첨부 템플릿 공통 계약을 우선 적용했다."
+  ]
+}

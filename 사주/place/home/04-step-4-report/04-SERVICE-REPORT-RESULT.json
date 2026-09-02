@@ -1,0 +1,395 @@
+{
+  "service": {
+    "service_key": "home_fit",
+    "service_slug": "home",
+    "service_title": "지금 사는 집, 나랑 잘 맞을까?",
+    "category": "집 풍수",
+    "subcategory": "집과 나의 생활 핏",
+    "price_krw": 9900,
+    "service_url_hint": "place.umsh.kr/home",
+    "target_question": "이 집, 나랑 찐으로 결 맞아?",
+    "analysis_basis": [
+      "풍수지리",
+      "개인 명리",
+      "일간",
+      "오행",
+      "신강약",
+      "용신"
+    ],
+    "report_version": "home-fit-v1.0",
+    "copy_version": "mz-home-pungsu-v1"
+  },
+  "teaser": {
+    "headline": "이 집은 지금 내 리듬과 맞는지 먼저 봅니다",
+    "summary": "명당인지 흉지인지 딱 잘라 말하기보다, 이 집이 내 잠, 일, 돈, 관계를 살려주는 쪽인지 무료 방향부터 확인합니다.",
+    "free_components": [
+      "한 줄 방향",
+      "현관·침실·책상·창밖의 강한 신호",
+      "계속 살 각/손볼 각/비교 각 예비 판정",
+      "지금 바로 확인할 현실 체크",
+      "결제 후 열리는 10개 대분류 예고"
+    ],
+    "signals": [
+      {
+        "area": "현관",
+        "title": "들어온 기운이 바로 빠지지 않는지",
+        "basis": "현관-침실 직선 흐름은 가림과 정리 처방으로 완화"
+      },
+      {
+        "area": "침실",
+        "title": "잠이 깊어지는 자리인지",
+        "basis": "도로·창밖 자극은 수면과 체감 피로의 보조 신호로만 사용"
+      },
+      {
+        "area": "책상",
+        "title": "등 뒤가 받쳐주는지",
+        "basis": "등 뒤 받침은 집중과 작업 리듬의 기본 조건"
+      },
+      {
+        "area": "창밖",
+        "title": "앞은 트이고 압박은 덜한지",
+        "basis": "앞열림과 뒤받침의 균형을 생활 목적과 함께 판단"
+      }
+    ],
+    "paid_preview": [
+      "내 사주 × 집 오행 핏",
+      "잠·회복·멘탈 리듬",
+      "돈·살림·소비 흐름",
+      "공간별 손질 처방",
+      "현실 체크 & 액션 플랜"
+    ]
+  },
+  "paid_scope_preview": {
+    "source": "user_seed",
+    "interpretation_index_version": "home-fit-index-v1",
+    "groups": [
+      {
+        "group_id": "home-fit-overall",
+        "title": "이 집, 나랑 찐으로 결 맞아?",
+        "items": [
+          "전체 핏 판정",
+          "계속 살 각/손볼 각/비교 각",
+          "끌리는 이유",
+          "묘하게 피곤한 포인트",
+          "지금 내 시기와의 궁합",
+          "한 줄 결론"
+        ]
+      },
+      {
+        "group_id": "house-energy",
+        "title": "집의 기본 기운",
+        "items": [
+          "안정형/활동형/휴식형",
+          "앞이 열린 집",
+          "뒤가 받치는 집",
+          "좌우 균형",
+          "도로·골목·물길 흐름",
+          "건물 압박·창밖 시야"
+        ]
+      },
+      {
+        "group_id": "saju-house-ohaeng",
+        "title": "내 사주 × 집 오행 핏",
+        "items": [
+          "일간 생활 리듬",
+          "오행 과다/부족 보완",
+          "용신과 공간 결",
+          "신강약별 집 속도",
+          "나한테 과한 집",
+          "나를 살려주는 집"
+        ]
+      },
+      {
+        "group_id": "sleep-recovery",
+        "title": "잠·회복·멘탈 리듬",
+        "items": [
+          "침실 안정감",
+          "수면 깊이",
+          "집콕 회복력",
+          "소음·시선 피로",
+          "쉬는 칸 확보",
+          "퇴근 후 충전감",
+          "번아웃 방지 포인트"
+        ]
+      },
+      {
+        "group_id": "entrance-flow",
+        "title": "현관·동선 에너지",
+        "items": [
+          "첫 느낌",
+          "현관 정리 상태",
+          "현관-거실-침실 직선 흐름",
+          "엘베·복도 자극",
+          "들어온 기운이 머무는지",
+          "택배·신발 혼잡도"
+        ]
+      },
+      {
+        "group_id": "remote-focus",
+        "title": "재택·공부·일 집중력",
+        "items": [
+          "책상 자리",
+          "등 뒤 받침",
+          "문·창 위치",
+          "몰입 잘 되는 구석",
+          "화상회의/통화 핏",
+          "일 공간과 쉬는 공간 분리",
+          "생산성 루틴"
+        ]
+      },
+      {
+        "group_id": "money-living",
+        "title": "돈·살림·소비 흐름",
+        "items": [
+          "돈이 모이는 구조",
+          "돈 새는 포인트",
+          "월세·관리비 체감",
+          "재택 수익 리듬",
+          "중요 문서·금고 자리",
+          "충동소비 트리거"
+        ]
+      },
+      {
+        "group_id": "relationship-cohabitation",
+        "title": "관계·가족·동거 케미",
+        "items": [
+          "혼자 있을 때 편안함",
+          "가족과 부딪히는 동선",
+          "연인·친구 초대 핏",
+          "룸메/동거 궁합",
+          "이웃·소음 스트레스",
+          "사생활 보호감"
+        ]
+      },
+      {
+        "group_id": "spatial-fix",
+        "title": "공간별 손질 처방",
+        "items": [
+          "침대 위치",
+          "책상 위치",
+          "소파·식탁 자리",
+          "화분·거울·TV 활용",
+          "커튼·조명·수납 보완",
+          "컬러·소재 힌트",
+          "못 옮길 때 대안"
+        ]
+      },
+      {
+        "group_id": "reality-action",
+        "title": "현실 체크 & 액션 플랜",
+        "items": [
+          "아침·저녁 체감 테스트",
+          "계약 유지/이사 비교",
+          "지금 바로 손볼 3가지",
+          "피해야 할 배치",
+          "7일 살아보기 체크",
+          "다음 행동 추천"
+        ]
+      }
+    ]
+  },
+  "cta_states": {
+    "not_logged_in": {
+      "copy": "로그인 후 방금 결과로 돌아옵니다.",
+      "recovery": "sessionStorage의 서비스 키와 다음 경로를 유지합니다."
+    },
+    "logged_in_unpaid": {
+      "copy": "무료 방향은 유지하고 전체 리포트만 잠겨 있습니다.",
+      "price_krw": 9900
+    },
+    "payment_pending": {
+      "copy": "중복 결제를 막고 이어서 복구합니다.",
+      "client_authority": false
+    },
+    "paid_authorized": {
+      "copy": "서버 권한 확인 후 05 결과 목록으로 이동합니다.",
+      "next_route": "../05-step-5-chat/chat.html#step-5-chat"
+    },
+    "payment_failed_or_cancelled": {
+      "copy": "무료 결과를 잃지 않고 다시 시도합니다.",
+      "fallback_route": "../04-step-4-report/index.html#step-4-report"
+    },
+    "missing_or_expired_report": {
+      "copy": "입력으로 돌아가 새로 분석할 수 있습니다.",
+      "fallback_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+    }
+  },
+  "image_manifest": [
+    {
+      "asset_key": "home-04-free-report-hero",
+      "filename": "assets/generated/home/04-free-report-hero.webp",
+      "role": "hero",
+      "aspect_ratio": "9:16",
+      "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+      "reference_status": "selected",
+      "character_style_lock": [
+        "둥근 안경",
+        "정돈된 짙은 머리",
+        "베이지 니트 아우터",
+        "세이지 톤",
+        "따뜻한 실내 조명"
+      ],
+      "generation_policy": "same-character-new-scene",
+      "prompt": "집 도면과 모형을 살피며 무료 방향을 준비하는 장면. 이미지 안 텍스트 금지.",
+      "alt": "집 도면과 모형을 살피며 무료 방향을 준비하는 운명상회 가이드",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".visual-frame[data-asset-key='home-04-free-report-hero'] img"
+    },
+    {
+      "asset_key": "home-04-key-signal",
+      "filename": "assets/generated/home/04-key-signal.webp",
+      "role": "card",
+      "aspect_ratio": "9:16",
+      "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+      "reference_status": "selected",
+      "character_style_lock": [
+        "둥근 안경",
+        "정돈된 짙은 머리",
+        "베이지 니트 아우터",
+        "세이지 톤",
+        "따뜻한 실내 조명"
+      ],
+      "generation_policy": "same-character-new-scene",
+      "prompt": "현관 동선과 가림막을 살피는 장면. 이미지 안 텍스트 금지.",
+      "alt": "현관 동선과 가림막을 살피는 운명상회 가이드",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".visual-frame[data-asset-key='home-04-key-signal'] img"
+    },
+    {
+      "asset_key": "home-04-paid-preview",
+      "filename": "assets/generated/home/04-paid-preview.webp",
+      "role": "card",
+      "aspect_ratio": "9:16",
+      "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+      "reference_status": "selected",
+      "character_style_lock": [
+        "둥근 안경",
+        "정돈된 짙은 머리",
+        "베이지 니트 아우터",
+        "세이지 톤",
+        "따뜻한 실내 조명"
+      ],
+      "generation_policy": "same-character-new-scene",
+      "prompt": "집 모형과 빈 리포트 카드를 정리하는 결제 전 범위 예고 장면. 이미지 안 텍스트 금지.",
+      "alt": "집 모형과 빈 리포트 카드를 정리하는 운명상회 가이드",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".visual-frame[data-asset-key='home-04-paid-preview'] img"
+    }
+  ],
+  "character_reference": {
+    "reference_status": "selected",
+    "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+    "style_bible": {
+      "medium": "soft 3D illustration",
+      "identity_lock": [
+        "둥근 안경",
+        "정돈된 짙은 갈색 웨이브 헤어",
+        "밝고 친근한 표정",
+        "MZ 친화적인 생활형 공간 가이드"
+      ],
+      "wardrobe_lock": [
+        "베이지 니트 아우터",
+        "세이지 톤 상의",
+        "작은 나침반 소품"
+      ],
+      "palette": [
+        "#FFF8EF",
+        "#9FB7A1",
+        "#E4C36F",
+        "#BF6745",
+        "#89A9BD"
+      ],
+      "lighting": "따뜻한 실내 자연광과 부드러운 램프 조명",
+      "camera_language": "9:16 세로 구도, 과한 클로즈업 없이 공간 맥락 포함",
+      "texture": "니트, 원목, 커튼, 집 모형의 부드러운 질감",
+      "mood": "차분함, 실용성, 과한 공포감 없음",
+      "negative_prompt": [
+        "이미지 속 텍스트",
+        "개인정보",
+        "주소",
+        "생년월일",
+        "명당·흉지 단정"
+      ]
+    },
+    "generation_policy": "same-character-new-scene"
+  },
+  "next_route": "../05-step-5-chat/chat.html#step-5-chat",
+  "previous_route": "../02-step-2-saju-input/index.html#step-2-saju-input",
+  "storage_contract": {
+    "input_payload_source": "sessionStorage.umsh_home_fit_input_payload_v1",
+    "payment_intent_storage": "sessionStorage.umsh_home_fit_payment_intent_v1",
+    "url_query_personal_data": false,
+    "long_term_localstorage_personal_write": false,
+    "client_paid_authority": false
+  },
+  "rag_evidence": [
+    "ITEM-50_풍수지리/prompts/menu-home.txt",
+    "ITEM-50_풍수지리/prompts/menu-move.txt",
+    "ITEM-50_풍수지리/prompts/menu-compat.txt",
+    "ITEM-50_풍수지리/prompts/menu-place.txt",
+    "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
+    "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
+    "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
+    "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
+    "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
+  ],
+  "qa": [
+    {
+      "name": "latest_user_service_values_applied",
+      "pass": true
+    },
+    {
+      "name": "free_teaser_shows_direction_without_full_paid_detail",
+      "pass": true
+    },
+    {
+      "name": "all_10_interpretation_groups_visible",
+      "pass": true
+    },
+    {
+      "name": "all_10_interpretation_groups_preserved_in_json",
+      "pass": true
+    },
+    {
+      "name": "client_does_not_assert_paid_authority",
+      "pass": true
+    },
+    {
+      "name": "payment_failure_and_missing_input_states_have_recovery_copy",
+      "pass": true
+    },
+    {
+      "name": "image_manifest_generated_file_exists_and_html_referenced",
+      "pass": true
+    },
+    {
+      "name": "images_use_contain_display_to_avoid_overcropping",
+      "pass": true
+    },
+    {
+      "name": "images_are_full_width_single_blocks_without_side_layout",
+      "pass": true
+    },
+    {
+      "name": "customer_copy_hides_internal_rag_kms_terms",
+      "pass": true
+    },
+    {
+      "name": "no_deterministic_moving_or_money_claims",
+      "pass": true
+    },
+    {
+      "name": "next_route_points_to_step_05",
+      "pass": true
+    }
+  ],
+  "scope_mismatch": [
+    "현재 프로젝트의 04 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 04 산출물은 사용자의 최신 집 풍수 서비스와 첨부 템플릿 공통 계약을 우선 적용했다."
+  ]
+}

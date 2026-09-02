@@ -1,0 +1,346 @@
+{
+  "service": {
+    "service_key": "work_move",
+    "service_slug": "move",
+    "service_title": "나, 회사 옮겨도 될까?",
+    "category": "이직운",
+    "subcategory": "회사 이동 판단",
+    "price_krw": 14900,
+    "price_display": "14,900원",
+    "service_url_hint": "work.umsh.kr/move",
+    "analysis_basis": ["대운", "세운", "관성"],
+    "report_version": "work-move-v1.0",
+    "copy_version": "mz-work-move-v1",
+    "stage": "01-step-1-story"
+  },
+  "hook_question": "나, 회사 옮겨도 될까?",
+  "story_summary": {
+    "one_liner": "퇴사 버튼을 누르기 전, 지금이 이직각인지 준비각인지 현실 조건까지 같이 나눠보는 커리어 환승 판단 서비스.",
+    "target_audience": "이직, 퇴사, 오퍼 수락, 현 회사 존버 여부 앞에서 확신이 필요한 20~30대 직장인",
+    "customer_visible_basis_label": "큰 흐름 + 올해 흐름 + 직장 책임 신호",
+    "cta_label": "내 이직운 확인하러 가기",
+    "next_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+  },
+  "interpretation_index_preview": {
+    "source": "user_seed_preserved",
+    "groups": [
+      {
+        "id": "decision_type",
+        "order": 1,
+        "major": "최종 결론 타입",
+        "middle": ["이직각", "존버각", "준비각", "보류각", "조건부 환승각"],
+        "result_language_examples": ["지금은 바로 런보다 준비각", "조건 맞으면 환승 가능"]
+      },
+      {
+        "id": "career_constitution",
+        "order": 2,
+        "major": "내 커리어 체질",
+        "middle": ["일간별 일 스타일", "오행 밸런스", "신강·신약 감당력", "용신 기반 보완 방향"]
+      },
+      {
+        "id": "role_fit",
+        "order": 3,
+        "major": "직무 핏 분석",
+        "middle": [
+          "비견: 주체성",
+          "겁재: 승부·경쟁",
+          "식신: 꾸준한 결과물",
+          "상관: 개선·기획",
+          "편재: 확장·영업",
+          "정재: 계약·정산",
+          "편관: 돌파·위기대응",
+          "정관: 공식 역할·조직력",
+          "편인: 연구·아이디어",
+          "정인: 문서·교육·지원"
+        ]
+      },
+      {
+        "id": "current_company",
+        "order": 4,
+        "major": "현 회사 상태 풀이",
+        "middle": ["역할 흐림", "결정권 애매함", "상사 압박", "동료·경쟁 스트레스", "인정 욕구", "번아웃 신호"]
+      },
+      {
+        "id": "new_company_fit",
+        "order": 5,
+        "major": "새 회사 궁합 풀이",
+        "middle": ["관록궁: 일·직업궁", "천이궁: 이동·외부환경", "재백궁: 연봉·수입 흐름", "명궁·신궁: 내가 실제로 버틸 수 있는 방식"]
+      },
+      {
+        "id": "money_terms",
+        "order": 6,
+        "major": "돈 조건 풀이",
+        "middle": ["연봉 상승각", "수입 구조 안정성", "계약서 체크", "지출 증가 리스크", "퇴사 전 버퍼 필요성"]
+      },
+      {
+        "id": "timing",
+        "order": 7,
+        "major": "타이밍 풀이",
+        "middle": ["대운 초입·중반·말기", "대운 교차기", "세운·연간 흐름", "월운", "택일·일진", "입춘·새 출발 흐름"]
+      },
+      {
+        "id": "risk_brake",
+        "order": 8,
+        "major": "리스크 브레이크",
+        "middle": ["공망: 확정 보류", "충: 부딪힘 조심", "형: 반복 마찰", "파: 기존 약속 점검", "해: 느슨한 확인", "화기: 역할 혼란·돈 걱정"]
+      },
+      {
+        "id": "action_guide",
+        "order": 9,
+        "major": "현실 액션 가이드",
+        "middle": ["90일 테스트", "이력서·포트폴리오 정리", "면접 타이밍", "퇴사 대화 스크립트", "연봉·업무범위 체크리스트"]
+      },
+      {
+        "id": "mz_result_cards",
+        "order": 10,
+        "major": "MZ 톤 결과 카드",
+        "middle": [
+          "지금은 바로 런보다 준비각",
+          "돈 조건 확인 전엔 설레발 금지",
+          "현 회사는 역할정리 먼저",
+          "새 회사는 핏보다 계약서가 찐",
+          "멘탈 방전이면 운보다 회복이 먼저"
+        ]
+      },
+      {
+        "id": "safety_operation",
+        "order": 11,
+        "major": "안전·운영 기준",
+        "middle": ["사주로 퇴사·채용·수익을 확정하지 않음", "근거와 개인 추론 분리", "감수 전 자료는 내부 참고", "무조건 성공·실패 표현 금지"]
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "scene_01_question",
+      "asset_key": "scene-question",
+      "headline": "퇴근길에 갑자기 든 생각, 나 지금 옮겨도 되나?",
+      "body": "현 회사가 별로인지, 내가 지친 건지, 새 회사가 진짜 답인지 헷갈릴 때 흐름과 조건을 같이 본다.",
+      "visible_quote": "지금은 바로 런보다 준비각일 수도 있어요."
+    },
+    {
+      "scene_id": "scene_02_pressure",
+      "asset_key": "scene-pressure",
+      "headline": "문제는 회사가 아니라 역할일 수도 있어요.",
+      "body": "역할 흐림, 결정권 애매함, 상사 압박, 동료 경쟁 스트레스, 인정 욕구, 번아웃 신호를 분리한다.",
+      "visible_quote": "현 회사는 역할정리 먼저. 감정 퇴사는 잠깐 멈춤."
+    },
+    {
+      "scene_id": "scene_03_crossroad",
+      "asset_key": "scene-crossroad",
+      "headline": "결론은 다섯 가지로 딱 나눕니다.",
+      "body": "이직각, 존버각, 준비각, 보류각, 조건부 환승각으로 현실적인 판단 프레임을 제공한다."
+    },
+    {
+      "scene_id": "scene_04_basis",
+      "asset_key": "scene-basis",
+      "headline": "큰 흐름, 올해 흐름, 직장 책임 신호를 같이 봅니다.",
+      "body": "대운은 커리어의 큰 판, 세운은 올해의 분위기, 관성은 조직 안에서 맡는 역할과 압박의 신호로 번역한다."
+    },
+    {
+      "scene_id": "scene_05_index",
+      "asset_key": "scene-index",
+      "headline": "보고서는 이런 항목으로 열립니다.",
+      "body": "커리어 체질, 현 회사 상태, 새 회사 궁합, 돈 조건, 타이밍, 리스크, 현실 액션까지 이어지는 구조를 보여준다."
+    },
+    {
+      "scene_id": "scene_06_cta",
+      "asset_key": "scene-cta",
+      "headline": "무료 티저로 먼저 감 잡고, 진짜 판단은 조건까지 확인합니다.",
+      "body": "생년월일시와 현재 고민을 입력하는 02 단계로 연결한다."
+    }
+  ],
+  "image_manifest": {
+    "reference_image": "IMAGE/umsh-signature-card-bg.png",
+    "reference_usage": "style_reference_only_text_removed_in_generated_assets",
+    "character_style_lock": {
+      "character": "Korean professional woman, black blazer, white shirt, red scarf accent",
+      "mood": "premium fortune consultation, career decision, cinematic red and gold lighting",
+      "constraints": ["no readable text inside image", "no logo recreation", "consistent character styling across scenes"]
+    },
+    "assets": [
+      {
+        "asset_key": "scene-question",
+        "filename": "assets/generated/move/01-scene-01-question.webp",
+        "role": "hero_and_scene_01",
+        "aspect_ratio": "9:16",
+        "alt": "야근 후 퇴근길에 휴대폰을 보며 이직을 고민하는 직장인",
+        "text_in_image": false,
+        "generation_status": "generated",
+        "file_exists": true,
+        "html_usage_selector": ".scene-media[data-asset='scene-question']"
+      },
+      {
+        "asset_key": "scene-pressure",
+        "filename": "assets/generated/move/01-scene-02-pressure.webp",
+        "role": "scene_02_current_company_pressure",
+        "aspect_ratio": "9:16",
+        "alt": "늦은 밤 사무실 책상 위 업무 자료와 고민의 흔적",
+        "text_in_image": false,
+        "generation_status": "generated",
+        "file_exists": true,
+        "html_usage_selector": ".scene-media[data-asset='scene-pressure']"
+      },
+      {
+        "asset_key": "scene-crossroad",
+        "filename": "assets/generated/move/01-scene-03-crossroad.webp",
+        "role": "scene_03_decision_type",
+        "aspect_ratio": "9:16",
+        "alt": "익숙한 문과 새로운 문 사이에서 고민하는 커리어 선택 장면",
+        "text_in_image": false,
+        "generation_status": "generated",
+        "file_exists": true,
+        "html_usage_selector": ".scene-media[data-asset='scene-crossroad']"
+      },
+      {
+        "asset_key": "scene-basis",
+        "filename": "assets/generated/move/01-scene-04-basis.webp",
+        "role": "scene_04_analysis_basis",
+        "aspect_ratio": "9:16",
+        "alt": "커리어 상담 테이블에서 큰 흐름과 올해 흐름을 함께 분석하는 장면",
+        "text_in_image": false,
+        "generation_status": "generated",
+        "file_exists": true,
+        "html_usage_selector": ".scene-media[data-asset='scene-basis']"
+      },
+      {
+        "asset_key": "scene-index",
+        "filename": "assets/generated/move/01-scene-05-index.webp",
+        "role": "scene_05_interpretation_index",
+        "aspect_ratio": "9:16",
+        "alt": "열한 개의 결과 카드가 테이블 위에 펼쳐진 리포트 미리보기",
+        "text_in_image": false,
+        "generation_status": "generated",
+        "file_exists": true,
+        "html_usage_selector": ".scene-media[data-asset='scene-index']"
+      },
+      {
+        "asset_key": "scene-cta",
+        "filename": "assets/generated/move/01-scene-06-cta.webp",
+        "role": "scene_06_next_step_cta",
+        "aspect_ratio": "9:16",
+        "alt": "커리어 리포트 입력 단계로 들어가는 모바일 서비스 화면",
+        "text_in_image": false,
+        "generation_status": "generated",
+        "file_exists": true,
+        "html_usage_selector": ".scene-media[data-asset='scene-cta']"
+      }
+    ]
+  },
+  "rag_evidence": [
+    {
+      "evidence_id": "rag-daewoon-001",
+      "domain": "대운",
+      "source": "ITEM-19 대운 승인본 CSV",
+      "record_id": "item-19-p1-0111",
+      "locator": "atom:dae.정인.초입.관계",
+      "usable_claim": "대운 초입은 익숙한 판이 흔들리는 구간이므로 전부 뒤집기보다 90일 단위의 작은 시험이 적합하다.",
+      "applied_to": ["타이밍 풀이", "현실 액션 가이드"]
+    },
+    {
+      "evidence_id": "rag-daewoon-002",
+      "domain": "대운",
+      "source": "ITEM-19 대운 승인본 CSV",
+      "record_id": "item-19-p1-0076",
+      "locator": "atom:dae.편관.초입.관계",
+      "usable_claim": "편관 대운 초입은 압박, 결단, 주의 신호를 함께 보며 긴장 습관을 사람에게 옮기지 않도록 점검한다.",
+      "applied_to": ["현 회사 상태 풀이", "리스크 브레이크"]
+    },
+    {
+      "evidence_id": "rag-sewoon-001",
+      "domain": "세운",
+      "source": "ITEM-22 세운·연간 흐름 승인본 CSV",
+      "record_id": "item-22-p1-0064",
+      "locator": "atom:se.year.context",
+      "usable_claim": "세운만 보고 이직을 결정하지 않고 올해 조건과 대운의 겹침을 나누어 본다.",
+      "applied_to": ["최종 결론 타입", "타이밍 풀이"]
+    },
+    {
+      "evidence_id": "rag-sewoon-002",
+      "domain": "세운",
+      "source": "ITEM-22 세운·연간 흐름 승인본 CSV",
+      "record_id": "item-22-p1-0044",
+      "locator": "atom:se.정관.돈",
+      "usable_claim": "정관 세운의 돈 흐름은 역할, 약속, 눈에 보이는 책임과 연결되며 안정 수입은 빠른 모험보다 조건 확인을 우선한다.",
+      "applied_to": ["돈 조건 풀이", "새 회사 궁합 풀이"]
+    },
+    {
+      "evidence_id": "rag-gwanseong-001",
+      "domain": "관성",
+      "source": "ITEM-12 십성 분석 승인본 CSV",
+      "record_id": "item-12-p1-0057",
+      "locator": "atom:sibseong.정관",
+      "usable_claim": "정관은 역할, 약속, 눈에 보이는 책임을 중심으로 직장 내 공식 역할과 조직력을 해석한다.",
+      "applied_to": ["직무 핏 분석", "현 회사 상태 풀이"]
+    },
+    {
+      "evidence_id": "rag-gwanseong-002",
+      "domain": "관성",
+      "source": "ITEM-12 십성 분석 승인본 CSV",
+      "record_id": "item-12-p1-0049",
+      "locator": "atom:sibseong.편관",
+      "usable_claim": "편관은 압박, 결단, 어려운 책임을 중심으로 돌파와 위기 대응 역량을 해석한다.",
+      "applied_to": ["직무 핏 분석", "리스크 브레이크"]
+    },
+    {
+      "evidence_id": "rag-gwanseong-003",
+      "domain": "관성",
+      "source": "ITEM-12 십성 분석 승인본 CSV",
+      "record_id": "item-12-p1-0056",
+      "locator": "atom:sibseong.편관.current",
+      "usable_claim": "편관 흐름에서는 어려운 결정과 긴장 습관을 점검하고, 지금 몸과 마음이 압박을 어떻게 받는지 본다.",
+      "applied_to": ["현 회사 상태 풀이", "MZ 톤 결과 카드"]
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-001",
+      "domain": "자미두수",
+      "source": "자미두수 KMS 질문별 궁위",
+      "locator": "이직 질문=관록궁 주, 천이궁·재백궁 보조",
+      "usable_claim": "이직 질문은 관록궁을 주궁으로 보고 천이궁과 재백궁을 함께 확인한다.",
+      "applied_to": ["새 회사 궁합 풀이", "돈 조건 풀이"]
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-002",
+      "domain": "자미두수",
+      "source": "자미두수 KMS 십이궁 관록궁",
+      "locator": "관록궁=직업·사회적 역할·책임",
+      "usable_claim": "관록궁은 직업, 사회적 역할, 책임의 장이며 이직 판단에서는 이동과 수입 흐름을 함께 보아야 한다.",
+      "applied_to": ["새 회사 궁합 풀이", "현 회사 상태 풀이"]
+    },
+    {
+      "evidence_id": "rag-contract-001",
+      "domain": "운영계약",
+      "source": "RAG LLM RETRIEVAL CONTRACT",
+      "locator": "approved-first, source-vs-inference separation",
+      "usable_claim": "승인본 코퍼스를 우선하고, 근거와 개인화 추론을 분리하며, 퇴사·채용·수익 결과를 단정하지 않는다.",
+      "applied_to": ["안전·운영 기준"]
+    }
+  ],
+  "qa_result": {
+    "status": "ready_for_review",
+    "checked_at": "2026-09-02",
+    "scope_mismatch": [
+      {
+        "type": "legacy_contract_values_detected",
+        "detail": "00-SERVICE-GENERATION-CONTRACT.md와 01-step-1-story/PROMPT.md에는 기존 job-choice, 직장운, 9,900원, me.umsh.kr/job-choice 값이 남아 있었으나 이번 사용자 입력값을 우선 적용했다."
+      },
+      {
+        "type": "interpretation_group_count",
+        "detail": "01 프롬프트는 10개 대분류 구조를 요구하지만 사용자 검토 기준에는 안전·운영 기준을 포함한 11개 대분류가 제시되어 전부 보존했다."
+      }
+    ],
+    "checks": [
+      {"name": "service_title_applied", "status": "pass", "value": "나, 회사 옮겨도 될까?"},
+      {"name": "category_applied", "status": "pass", "value": "이직운"},
+      {"name": "price_applied", "status": "pass", "value": "14,900원"},
+      {"name": "domain_applied", "status": "pass", "value": "work.umsh.kr/move"},
+      {"name": "analysis_basis_applied", "status": "pass", "value": ["대운", "세운", "관성"]},
+      {"name": "customer_visible_internal_terms_removed", "status": "pass", "value": "RAG/KMS/LLM/internal path terms are kept out of visible copy"},
+      {"name": "generated_images_present", "status": "pass", "value": 6},
+      {"name": "image_text_policy", "status": "pass", "value": "no readable text designed inside generated images"},
+      {"name": "safety_language", "status": "pass", "value": "퇴사·채용·수익 확정 표현 없음"}
+    ],
+    "blocked": [],
+    "next_step": "사용자 검토 후 '다음' 입력 시 02-step-2-saju-input 진행"
+  }
+}

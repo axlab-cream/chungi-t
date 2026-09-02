@@ -1,0 +1,159 @@
+{
+  "service": {
+    "service_key": "work_move",
+    "service_slug": "move",
+    "service_title": "나, 회사 옮겨도 될까?",
+    "category": "이직운",
+    "subcategory": "회사 이동 판단",
+    "price_krw": 14900,
+    "price_display": "14,900원",
+    "service_url_hint": "work.umsh.kr/move",
+    "analysis_basis": ["대운", "세운", "관성"],
+    "report_version": "work-move-v1.0",
+    "copy_version": "mz-work-move-v1",
+    "stage": "04-step-4-report"
+  },
+  "teaser": {
+    "headline": "지금은 바로 런보다 준비각입니다.",
+    "summary": "지금 회사 이동은 가능성을 보되, 돈 조건과 역할 범위를 먼저 확인해야 하는 흐름에 가깝습니다.",
+    "free_scope_ratio": "10-15%",
+    "signals": [
+      {
+        "type": "직장 선택 한 줄 방향",
+        "title": "바로 런보다 준비각",
+        "evidence_ids": ["rag-sewoon-001", "rag-daewoon-001"]
+      },
+      {
+        "type": "강한 신호 1개",
+        "title": "역할 범위가 핵심입니다",
+        "evidence_ids": ["rag-gwanseong-001", "ziweidoushu-palace-002"]
+      },
+      {
+        "type": "조건 또는 시기 1개",
+        "title": "계약 조건 확인 전엔 설레발 금지",
+        "evidence_ids": ["rag-sewoon-002", "ziweidoushu-palace-001"]
+      },
+      {
+        "type": "방해 요인 1개",
+        "title": "멘탈 방전이면 운보다 회복이 먼저",
+        "evidence_ids": ["rag-gwanseong-003", "rag-contract-001"]
+      }
+    ],
+    "paid_preview": ["최종 결론 타입", "내 커리어 체질", "직무 핏 분석", "현 회사 상태 풀이", "새 회사 궁합 풀이", "돈 조건 풀이", "타이밍 풀이", "리스크 브레이크", "현실 액션 가이드", "MZ 톤 결과 카드", "안전·운영 기준"]
+  },
+  "paid_scope_preview": {
+    "source": "user_seed_preserved_from_01_02",
+    "groups": [
+      {"id": "decision_type", "order": 1, "major": "최종 결론 타입", "middle": ["이직각", "존버각", "준비각", "보류각", "조건부 환승각"]},
+      {"id": "career_constitution", "order": 2, "major": "내 커리어 체질", "middle": ["일간별 일 스타일", "오행 밸런스", "신강·신약 감당력", "용신 기반 보완 방향"]},
+      {"id": "role_fit", "order": 3, "major": "직무 핏 분석", "middle": ["비견: 주체성", "겁재: 승부·경쟁", "식신: 꾸준한 결과물", "상관: 개선·기획", "편재: 확장·영업", "정재: 계약·정산", "편관: 돌파·위기대응", "정관: 공식 역할·조직력", "편인: 연구·아이디어", "정인: 문서·교육·지원"]},
+      {"id": "current_company", "order": 4, "major": "현 회사 상태 풀이", "middle": ["역할 흐림", "결정권 애매함", "상사 압박", "동료·경쟁 스트레스", "인정 욕구", "번아웃 신호"]},
+      {"id": "new_company_fit", "order": 5, "major": "새 회사 궁합 풀이", "middle": ["관록궁: 일·직업궁", "천이궁: 이동·외부환경", "재백궁: 연봉·수입 흐름", "명궁·신궁: 내가 실제로 버틸 수 있는 방식"]},
+      {"id": "money_terms", "order": 6, "major": "돈 조건 풀이", "middle": ["연봉 상승각", "수입 구조 안정성", "계약서 체크", "지출 증가 리스크", "퇴사 전 버퍼 필요성"]},
+      {"id": "timing", "order": 7, "major": "타이밍 풀이", "middle": ["대운 초입·중반·말기", "대운 교차기", "세운·연간 흐름", "월운", "택일·일진", "입춘·새 출발 흐름"]},
+      {"id": "risk_brake", "order": 8, "major": "리스크 브레이크", "middle": ["공망: 확정 보류", "충: 부딪힘 조심", "형: 반복 마찰", "파: 기존 약속 점검", "해: 느슨한 확인", "화기: 역할 혼란·돈 걱정"]},
+      {"id": "action_guide", "order": 9, "major": "현실 액션 가이드", "middle": ["90일 테스트", "이력서·포트폴리오 정리", "면접 타이밍", "퇴사 대화 스크립트", "연봉·업무범위 체크리스트"]},
+      {"id": "mz_result_cards", "order": 10, "major": "MZ 톤 결과 카드", "middle": ["지금은 바로 런보다 준비각", "돈 조건 확인 전엔 설레발 금지", "현 회사는 역할정리 먼저", "새 회사는 핏보다 계약서가 찐", "멘탈 방전이면 운보다 회복이 먼저"]},
+      {"id": "safety_operation", "order": 11, "major": "안전·운영 기준", "middle": ["사주로 퇴사·채용·수익을 확정하지 않음", "근거와 개인 추론 분리", "감수 전 자료는 내부 참고", "무조건 성공·실패 표현 금지"]}
+    ]
+  },
+  "cta_states": {
+    "unauthenticated": "로그인 후 이 결과로 돌아오기",
+    "authenticated_unpaid": "14,900원 결제하고 전체 결과 열기",
+    "payment_pending": "결제 진행 중, 중복 주문 방지",
+    "paid_authorized": "전체 결과 목록으로 이동",
+    "payment_failed_or_canceled": "무료 티저 유지 후 재시도",
+    "expired_or_missing": "입력 다시 하기, 보관함 확인, 재시도"
+  },
+  "image_manifest": [
+    {
+      "asset_key": "stage-04-hero-teaser",
+      "filename": "assets/generated/move/04-hero-teaser.webp",
+      "role": "free_result_hero",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": ["dramatic black updo hair", "sharp confident gaze", "black blazer", "white shirt", "red scarf accent", "crimson red background", "gold saju lines"],
+      "generation_policy": "same-character-new-stage-scene",
+      "prompt": "Strictly match project reference character and red-black-gold identity. Free teaser result being revealed, no readable text.",
+      "alt": "기준 캐릭터가 이직운 무료 티저 결과를 보여주는 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": "img[data-asset='stage-04-hero-teaser']"
+    },
+    {
+      "asset_key": "stage-04-signal-card",
+      "filename": "assets/generated/move/04-signal-card.webp",
+      "role": "core_signal_card",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": ["dramatic black updo hair", "sharp confident gaze", "black blazer", "white shirt", "red scarf accent", "crimson red background", "gold saju lines"],
+      "generation_policy": "same-character-new-stage-scene",
+      "prompt": "Strictly match project reference character. Core career signal card on consultation table, no readable text.",
+      "alt": "기준 캐릭터가 이직운 핵심 신호를 살펴보는 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": "img[data-asset='stage-04-signal-card']"
+    },
+    {
+      "asset_key": "stage-04-paid-cta",
+      "filename": "assets/generated/move/04-paid-cta.webp",
+      "role": "paid_cta_visual",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": ["dramatic black updo hair", "sharp confident gaze", "black blazer", "white shirt", "red scarf accent", "crimson red background", "gold saju lines"],
+      "generation_policy": "same-character-new-stage-scene",
+      "prompt": "Strictly match project reference character. Full report opening moment, glowing blank report folder, no readable text.",
+      "alt": "기준 캐릭터가 전체 이직운 리포트를 여는 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": "img[data-asset='stage-04-paid-cta']"
+    }
+  ],
+  "character_reference": {
+    "reference_image": "IMAGE/umsh-signature-card-bg.png",
+    "reference_usage": "style_reference_only_text_removed_in_generated_assets",
+    "style_bible": {
+      "character": "illustrated Korean professional woman with dramatic black updo hair, sharp gaze, black blazer, white shirt, red scarf accent",
+      "palette": ["crimson red", "black", "ivory", "muted gold"],
+      "mood": "premium career fortune consultation without fear language"
+    }
+  },
+  "next_route": "../05-step-5-chat/chat.html#step-5-chat",
+  "qa": {
+    "status": "ready_for_review",
+    "checked_at": "2026-09-02",
+    "scope_mismatch": [
+      {
+        "type": "legacy_prompt_values_detected",
+        "detail": "04-step-4-report/PROMPT.md에는 기존 job-choice, 직장운, 9,900원 값이 남아 있었으나 이번 사용자 입력값을 우선 적용했다."
+      },
+      {
+        "type": "interpretation_group_count",
+        "detail": "사용자 검토 기준의 11개 대분류를 01과 02에서 확정한 payload 그대로 보존했다."
+      }
+    ],
+    "checks": [
+      {"name": "service_identity", "status": "pass", "value": "work_move / move / 나, 회사 옮겨도 될까?"},
+      {"name": "price_applied", "status": "pass", "value": "14,900원"},
+      {"name": "free_teaser_scope", "status": "pass", "value": "direction + one signal + one condition + one brake + paid scope preview"},
+      {"name": "paid_scope_groups_preserved", "status": "pass", "value": 11},
+      {"name": "client_paid_flag_not_used", "status": "pass", "value": "CTA stores payment intent only, no paid=true unlock"},
+      {"name": "payment_failure_copy", "status": "pass", "value": "free teaser is preserved on cancel or failure"},
+      {"name": "single_html_image_delivery", "status": "pass", "value": "visible images are embedded as data:image/webp URIs"},
+      {"name": "image_manifest_present", "status": "pass", "value": 3},
+      {"name": "customer_visible_internal_terms_removed", "status": "pass", "value": "internal source terms are not visible copy"},
+      {"name": "safety_language", "status": "pass", "value": "퇴사·채용·수익 확정 표현 없음"}
+    ],
+    "blocked": [],
+    "next_step": "사용자 검토 후 '다음' 입력 시 05-step-5-chat 진행"
+  }
+}
