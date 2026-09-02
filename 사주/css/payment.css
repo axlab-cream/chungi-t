@@ -39,7 +39,8 @@ button { cursor: pointer; }
 }
 
 .payment-header a { color: var(--payment-cream); text-decoration: none; }
-.payment-brand { color: var(--payment-gold) !important; font-family: Georgia, serif; font-size: 25px; font-weight: 900; }
+.payment-brand { display: inline-flex; align-items: center; }
+.payment-brand img { display: block; width: 132px; height: auto; }
 .payment-back { color: var(--payment-muted) !important; font-size: 12px; font-weight: 800; }
 
 .payment-shell { max-width: 520px; margin: 52px auto 0; }

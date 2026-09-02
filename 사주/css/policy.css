@@ -67,16 +67,14 @@ a {
 }
 
 .brand {
-  display: inline-grid;
-  gap: 3px;
-  font-family: var(--font-brand);
-  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
-.brand strong {
-  color: var(--gold);
-  font-size: 18px;
-  line-height: 1.1;
+.brand img {
+  display: block;
+  width: 132px;
+  height: auto;
 }
 
 .brand span {
