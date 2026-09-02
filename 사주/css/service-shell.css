@@ -1,7 +1,7 @@
 .umsh-service-shell,
 .umsh-service-bottom,
 .umsh-service-toast {
-  --shell-width: 440px;
+  --shell-width: 430px;
   --shell-black-1000: #050504;
   --shell-black-950: #080807;
   --shell-black-900: #0c0b0a;

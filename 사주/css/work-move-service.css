@@ -14,7 +14,7 @@ body.work-move-page.has-umsh-service-shell .phone > .topbar {
 
 body.work-move-page.has-umsh-service-shell .umsh-service-shell {
   margin: 0 auto;
-  width: min(440px, 100vw);
+  width: min(430px, 100vw);
 }
 
 body.work-move-page select,
