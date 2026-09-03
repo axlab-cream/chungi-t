@@ -37,6 +37,57 @@
   let authSession = null;
   let authInitPromise = null;
 
+  const splashScreen = document.querySelector('#splashScreen');
+  const splashVideo = document.querySelector('#splashVideo');
+  const splashSkip = document.querySelector('[data-splash-skip]');
+  const SPLASH_SESSION_KEY = 'umsh_splash_seen_v1';
+  let splashFallbackTimer = 0;
+
+  function hasSeenSplash() {
+    try {
+      return sessionStorage.getItem(SPLASH_SESSION_KEY) === '1';
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function markSplashSeen() {
+    try {
+      sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
+    } catch (_error) {
+      // Storage can be unavailable in privacy-restricted browser contexts.
+    }
+  }
+
+  function finishSplash() {
+    if (!splashScreen || splashScreen.hidden || splashScreen.classList.contains('is-closing')) return;
+    window.clearTimeout(splashFallbackTimer);
+    splashVideo?.pause();
+    splashScreen.classList.add('is-closing');
+    window.setTimeout(() => {
+      splashScreen.hidden = true;
+      splashScreen.classList.remove('is-closing');
+      splashScreen.setAttribute('aria-hidden', 'true');
+      phone.inert = false;
+    }, 280);
+  }
+
+  function startSplash() {
+    if (!splashScreen || !splashVideo || hasSeenSplash() || prefersReducedMotion()) return;
+    markSplashSeen();
+    phone.inert = true;
+    splashScreen.hidden = false;
+    splashScreen.setAttribute('aria-hidden', 'false');
+    splashVideo.currentTime = 0;
+    splashVideo.addEventListener('ended', finishSplash, { once: true });
+    splashVideo.addEventListener('error', finishSplash, { once: true });
+    splashFallbackTimer = window.setTimeout(finishSplash, 6500);
+    splashVideo.play().catch(finishSplash);
+  }
+
+  splashSkip?.addEventListener('click', finishSplash);
+  startSplash();
+
   const protectedMenuIds = new Set(['destiny', 'vault', 'account']);
   const protectedDestinations = {
     destiny: {

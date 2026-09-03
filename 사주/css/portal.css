@@ -73,6 +73,55 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  background: #000;
+  opacity: 1;
+  transition: opacity 280ms ease;
+}
+
+.splash-screen[hidden] {
+  display: none;
+}
+
+.splash-screen.is-closing {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.splash-video {
+  display: block;
+  width: min(430px, 100vw);
+  height: 100dvh;
+  object-fit: cover;
+  background: #000;
+}
+
+.splash-skip {
+  position: absolute;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(430px, 100vw);
+  padding: 12px 18px;
+  background: transparent;
+  color: rgba(247, 242, 233, 0.72);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: right;
+  transform: translateX(-50%);
+}
+
+.splash-skip:focus-visible {
+  outline-offset: -8px;
+}
+
 .stage {
   display: flex;
   align-items: stretch;

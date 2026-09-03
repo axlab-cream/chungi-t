@@ -13,9 +13,22 @@
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
+    <link rel="preload" as="video" href="/assets/umsh-splash.mp4?v=20260903" type="video/mp4" />
     <link rel="stylesheet" href="/css/portal.css?v=20260903-coming-soon" />
   </head>
   <body>
+    <div class="splash-screen" id="splashScreen" aria-hidden="true" hidden>
+      <video
+        class="splash-video"
+        id="splashVideo"
+        src="/assets/umsh-splash.mp4?v=20260903"
+        muted
+        playsinline
+        preload="auto"
+      ></video>
+      <button class="splash-skip" type="button" data-splash-skip>건너뛰기</button>
+    </div>
+
     <div class="stage">
       <main class="phone" aria-label="UMSH 운명상회 메인">
         <header class="appbar">
