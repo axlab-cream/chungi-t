@@ -16,6 +16,12 @@
 
       body.umsh-has-chrome .app{padding-bottom:calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px))}
       body.umsh-has-chrome .footer{padding-bottom:18px}
+
+      /* Native dropdowns ignore the translucent field background and fall back to the
+         OS light palette, so the popup list needs an explicit opaque dark surface. */
+      select{color-scheme:dark}
+      select option{background:#07120e;color:#fffdf2}
+      select option:checked{background:#0d1f19}
     </style>
     <link rel="stylesheet" href="/css/umsh-chrome.css" />
   </head>
