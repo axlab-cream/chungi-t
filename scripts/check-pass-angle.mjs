@@ -70,8 +70,42 @@ for (const page of PAGES) {
   }
 }
 
+// Contract §8 requires each step to ship its PROMPT input and RESULT artifact.
+const ARTIFACTS = [
+  ['01-step-1-story', '01-SERVICE-STORY-RESULT.json'],
+  ['02-step-2-saju-input', '02-SAJU-INPUT-RESULT.json'],
+  ['04-step-4-report', '04-REPORT-RESULT.json'],
+  ['05-step-5-chat', '05-CHAT-RESULT.json'],
+  ['06-step-6_1-report-detail', '06-REPORT-DETAIL-RESULT.json'],
+]
+
+for (const [step, artifact] of ARTIFACTS) {
+  if (!existsSync(join(ROOT, SERVICE_DIR, step, 'PROMPT.md'))) {
+    failures.push(`${step} :: PROMPT.md 없음`)
+  }
+  const body = read(`${SERVICE_DIR}/${step}/${artifact}`)
+  if (body === null) {
+    failures.push(`${step} :: ${artifact} 없음`)
+    continue
+  }
+  let parsed
+  try {
+    parsed = JSON.parse(body)
+  } catch {
+    failures.push(`${step} :: ${artifact} JSON 파싱 실패`)
+    continue
+  }
+  if (parsed.service?.service_key !== 'pass_angle') failures.push(`${step} :: service_key 불일치`)
+  if (!parsed.qa_result?.status) failures.push(`${step} :: qa_result 없음`)
+  for (const image of parsed.image_manifest ?? []) {
+    if (!existsSync(join(ROOT, image.filename))) {
+      failures.push(`${step} :: image_manifest 파일 없음 ${image.filename}`)
+    }
+  }
+}
+
 if (failures.length === 0) {
-  console.log('pass_angle 연동 지점 전부 정상 (%d개 계약, %d개 페이지)', CONTRACTS.length, PAGES.length)
+  console.log('pass_angle 연동 지점 전부 정상 (%d개 계약, %d개 페이지, %d개 산출물)', CONTRACTS.length, PAGES.length, ARTIFACTS.length)
   process.exit(0)
 }
 

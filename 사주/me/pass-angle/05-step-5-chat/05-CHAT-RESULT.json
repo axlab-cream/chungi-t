@@ -1,0 +1,133 @@
+{
+  "service": {
+    "service_key": "pass_angle",
+    "service_slug": "pass-angle",
+    "service_title": "나, 붙을 각이야?",
+    "category": "시험운",
+    "subcategory": "합격각 판정과 공부 전략",
+    "price_krw": 9900,
+    "price_display": "9,900원",
+    "service_url_hint": "umsh.kr/me/pass-angle",
+    "analysis_basis": [
+      "인성",
+      "관성",
+      "식상",
+      "일간 강약",
+      "대운",
+      "세운"
+    ],
+    "report_version": "pass-angle-v1.0",
+    "copy_version": "mz-pass-angle-v1",
+    "stage": "05-step-5-chat"
+  },
+  "report_index": {
+    "source": "report.sections (계약 §2.1의 INTERPRETATION_INDEX_SEED 1차 기준)",
+    "groups": [
+      {
+        "section_id": "pass-angle-verdict",
+        "title": "나, 붙을 각이야?",
+        "summary": "전체 흐름 판정, 밀어도 되는 구간인지, 순서를 바꿔야 하는지",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#pass-angle-verdict"
+      },
+      {
+        "section_id": "study-style",
+        "title": "내 머리 쓰는 법",
+        "summary": "암기형·이해형, 몰아치기·꾸준형, 혼공·스터디 궁합",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#study-style"
+      },
+      {
+        "section_id": "exam-type-fit",
+        "title": "나랑 맞는 시험",
+        "summary": "객관식, 서술형, 전문직, 어학, 실기, 면접·구술",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#exam-type-fit"
+      },
+      {
+        "section_id": "pass-timing",
+        "title": "붙는 타이밍",
+        "summary": "유리한 구간, 접수 시기, 재도전 판단 시점",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#pass-timing"
+      },
+      {
+        "section_id": "mental-stamina",
+        "title": "버티는 몸과 멘탈",
+        "summary": "번아웃 신호, 수면, 회복 리듬, 흔들릴 때의 한 문장",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#mental-stamina"
+      },
+      {
+        "section_id": "exam-day-routine",
+        "title": "시험 날 택일과 컨디션",
+        "summary": "전날·당일 루틴, 이동 동선, 시간 배분",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#exam-day-routine"
+      },
+      {
+        "section_id": "action-plan",
+        "title": "현실 액션 플랜",
+        "summary": "D-100, D-30, D-7, 버릴 것, 주 단위 배분",
+        "detail_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#action-plan"
+      }
+    ]
+  },
+  "image_manifest": [
+    {
+      "asset_key": "network",
+      "filename": "사주/me/pass-angle/assets/pass-angle/network.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "합격 전략 결과가 여러 항목으로 연결되는 황금빛 네트워크",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "8cbbd6ad",
+      "html_usage_selector": "#step-5-chat img[src$='network.webp']"
+    }
+  ],
+  "next_route": "/me/pass-angle/06-step-6_1-report-detail/index.html#step-6_1-report",
+  "qa_result": {
+    "status": "verified",
+    "checked_at": "2026-09-03",
+    "checked_on": [
+      "local http://localhost:8790",
+      "production https://umsh.kr"
+    ],
+    "stage": "05-step-5-chat",
+    "checks": [
+      {
+        "name": "route_redirects",
+        "status": "pass",
+        "value": "/me/pass-angle{,/input,/exam,/report,/chat,/detail} 모두 302"
+      },
+      {
+        "name": "shared_chrome_mounted",
+        "status": "pass",
+        "value": "상단 로고·뒤로가기 + 하단 5탭 GNB (umsh-chrome)"
+      },
+      {
+        "name": "image_references_resolve",
+        "status": "pass",
+        "value": "페이지 내 src/href 34건 전수 HTTP 200"
+      },
+      {
+        "name": "banned_phrases_absent",
+        "status": "pass",
+        "value": "무조건·반드시·100%·망한다 0건 (84섹션 전수)"
+      },
+      {
+        "name": "internal_terms_absent",
+        "status": "pass",
+        "value": "RAG·KMS·LLM·코퍼스·내부 라벨 0건"
+      },
+      {
+        "name": "all_items_link_to_detail",
+        "status": "pass",
+        "value": "7개 항목 전부 06_1 상세로 연결 (섹션 id 앵커)"
+      },
+      {
+        "name": "no_orphan_detail_section",
+        "status": "pass",
+        "value": "05 목록에 없는 상세 섹션 없음"
+      }
+    ],
+    "scope_mismatch": []
+  }
+}

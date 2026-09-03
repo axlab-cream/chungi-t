@@ -1,7 +1,7 @@
 .umsh-service-shell,
 .umsh-service-bottom,
 .umsh-service-toast {
-  --shell-width: 430px;
+  --shell-width: var(--umsh-page-width, 430px);
   --shell-black-1000: #050504;
   --shell-black-950: #080807;
   --shell-black-900: #0c0b0a;
@@ -86,9 +86,69 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
   object-fit: contain;
 }
 
+/**
+ * `umsh-chrome-appbar` stays on the shell's appbar as an alias so pages that look
+ * their back button up through `.umsh-chrome-appbar [data-back]` keep working. The
+ * old stylesheet is still linked on those pages, so its 72px grid appbar has to be
+ * turned off here or the 50px logo gets clipped.
+ */
+.umsh-service-shell .appbar.umsh-chrome-appbar {
+  position: static;
+  display: flex;
+  height: auto;
+  min-height: 0;
+  grid-template-columns: none;
+  backdrop-filter: none;
+  box-sizing: border-box;
+}
+
+/* Back button and service/price line, shown only on the consultation pages. */
+.umsh-service-shell .app-back {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(232, 212, 154, 0.35);
+  border-radius: 50%;
+  background: rgba(216, 186, 114, 0.035);
+  color: var(--shell-gold-200);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.umsh-service-shell .app-back:hover,
+.umsh-service-shell .app-back:focus-visible {
+  border-color: rgba(232, 212, 154, 0.74);
+  background: rgba(216, 186, 114, 0.12);
+}
+
+.umsh-service-shell .app-meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 0;
+  align-self: center;
+}
+
+.umsh-service-shell .app-meta-service {
+  color: var(--shell-gold-400);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.umsh-service-shell .app-meta-price {
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .umsh-service-shell .app-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .umsh-service-shell .circle-button {

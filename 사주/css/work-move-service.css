@@ -12,9 +12,15 @@ body.work-move-page.has-umsh-service-shell .phone > .topbar {
   display: none !important;
 }
 
+/**
+ * The shell used to be pinned to 430px here while this page's column is 480px,
+ * which left the hero bleeding past both edges of the GNB. The shell now fills
+ * whatever column it is mounted in, and service-shell.js measures that column
+ * so the fixed bottom menu lines up with it too.
+ */
 body.work-move-page.has-umsh-service-shell .umsh-service-shell {
   margin: 0 auto;
-  width: min(430px, 100vw);
+  width: 100%;
 }
 
 body.work-move-page select,

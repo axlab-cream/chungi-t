@@ -12,6 +12,42 @@
   }
   const activeCategory = topHost?.dataset.umshServiceCategory || document.body.dataset.umshServiceCategory || '풍수';
 
+  /**
+   * Pages do not agree on one column width: most sit at 430px, 집풍수 at 440px and
+   * 이직운 at 480px. The fixed bottom menu and the overlay panels are centred on
+   * --shell-width, so hardcoding it left the page bleeding past the GNB edges on
+   * the wider services. Measure the column the top mount lives in instead.
+   */
+  function syncShellWidth() {
+    const column = topHost?.parentElement
+      || document.querySelector('body > .page, body > .app, body > .phone, main.stage');
+    const width = Math.round(column?.getBoundingClientRect().width || 0);
+    if (width > 0) document.documentElement.style.setProperty('--umsh-page-width', `${width}px`);
+  }
+
+  syncShellWidth();
+  window.addEventListener('resize', syncShellWidth);
+
+  /**
+   * The consultation pages (합격운, 연애, 결혼궁합, 직업운 ...) used to draw their own
+   * appbar so they could show a back button and the service name with its price.
+   * The shell renders both now, which lets those pages share this one chrome
+   * instead of keeping a second look-alike of it.
+   */
+  const serviceName = topHost?.dataset.umshServiceName?.trim() || '';
+  const servicePrice = topHost?.dataset.umshServicePrice?.trim() || '';
+  const showBack = topHost?.hasAttribute('data-umsh-service-back') || false;
+  const activeTab = topHost?.dataset.umshServiceActive?.trim() || 'home';
+
+  /** Bottom tabs, kept in the same order the 하단 메뉴 has always used. */
+  const bottomTabs = [
+    ['home', '홈'],
+    ['destiny', '운명록'],
+    ['search', '검색'],
+    ['vault', '보관함'],
+    ['account', 'MY'],
+  ];
+
   const categories = [
     ['all', '전체'],
     ['종합', '종합'],
@@ -112,28 +148,32 @@
       return `<button class="chip${active}" type="button" data-shell-category="${escapeHtml(value)}">${escapeHtml(label)}</button>`;
     }).join('');
 
+    /**
+     * `data-back` and the two legacy class names are kept on purpose: pages that
+     * already wire their own back behaviour (결혼궁합, 저장된 해석) look the button up
+     * through `.umsh-chrome-appbar [data-back]`, so the shell must not own the click.
+     */
+    const backButton = showBack
+      ? '<button class="app-back umsh-chrome-back" type="button" data-back aria-label="뒤로">‹</button>'
+      : '';
+    const meta = serviceName || servicePrice
+      ? `<div class="app-meta">
+            <span class="app-meta-service">${escapeHtml(serviceName)}</span>
+            <span class="app-meta-price">${escapeHtml(servicePrice)}</span>
+          </div>`
+      : '';
+
     return `
       <div class="umsh-service-shell" aria-label="운명상회 공통 상단">
-        <header class="appbar">
+        <header class="appbar${showBack ? ' umsh-chrome-appbar' : ''}">
+          ${backButton}
           <a class="app-brand" href="/" aria-label="운명상회 홈">
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
           </a>
           <div class="app-actions">
-            <button class="circle-button" type="button" data-shell-action="focus-services" aria-label="대표 상품으로 이동">✎</button>
-            <button class="circle-button" type="button" data-shell-action="toggle-menu" aria-label="빠른 메뉴 열기" aria-expanded="false">☰</button>
+            ${meta}
           </div>
         </header>
-
-        <div class="action-panel" id="serviceActionPanel" aria-hidden="true">
-          <div class="action-sheet" role="dialog" aria-label="운명상회 빠른 메뉴">
-            <button type="button" data-shell-menu-filter="종합"><strong>종합사주</strong><span>천명사주 바로 보기</span></button>
-            <button type="button" data-shell-menu-shortcut="destiny"><strong>운명록</strong><span>로그인·사주등록 후 열람</span></button>
-            <button type="button" data-shell-menu-shortcut="search"><strong>검색</strong><span>주제별 상품 빠르게 찾기</span></button>
-            <button type="button" data-shell-menu-shortcut="vault"><strong>보관함</strong><span>등록 후 저장한 풀이 열기</span></button>
-            <button type="button" data-shell-menu-shortcut="account"><strong>MY</strong><span>내 계정과 사주 프로필</span></button>
-            <button type="button" data-shell-action="close-menu"><strong>닫기</strong><span>상회로 돌아가기</span></button>
-          </div>
-        </div>
 
         <nav class="category-rail" aria-label="상품 분류">
           ${categoryButtons}
@@ -186,21 +226,13 @@
         </div>
 
         <footer class="bottom-nav" aria-label="주요 메뉴">
-          <button class="is-active" type="button" data-shell-bottom-menu="home" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">홈</span></button>
-          <button type="button" data-shell-bottom-menu="destiny" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">운명록</span></button>
-          <button type="button" data-shell-bottom-menu="search" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">검색</span></button>
-          <button type="button" data-shell-bottom-menu="vault" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">보관함</span></button>
-          <button type="button" data-shell-bottom-menu="account" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">MY</span></button>
+          ${bottomTabs.map(([id, label]) => {
+            const active = id === activeTab ? ' class="is-active"' : '';
+            return `<button${active} type="button" data-shell-bottom-menu="${id}" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">${escapeHtml(label)}</span></button>`;
+          }).join('')}
         </footer>
       </div>
     `;
-  }
-
-  function setTopMenuOpen(isOpen) {
-    document.body.classList.toggle('is-umsh-top-menu-open', Boolean(isOpen));
-    document.querySelector('[data-shell-action="toggle-menu"]')?.setAttribute('aria-expanded', String(Boolean(isOpen)));
-    document.querySelector('#serviceActionPanel')?.setAttribute('aria-hidden', String(!isOpen));
-    if (isOpen) setBottomMenuOpen(false);
   }
 
   function setBottomMenuOpen(isOpen, menuId = 'home') {
@@ -211,42 +243,29 @@
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-expanded', String(Boolean(isOpen && active)));
     });
-    if (isOpen) {
-      setTopMenuOpen(false);
-      renderBottomMenu(menuId);
-    }
+    if (isOpen) renderBottomMenu(menuId);
   }
 
   if (topHost) topHost.innerHTML = topMarkup();
   if (bottomHost) bottomHost.innerHTML = bottomMarkup();
-  renderBottomMenu('home');
+  renderBottomMenu(activeTab);
 
   document.addEventListener('click', (event) => {
     const shellAction = event.target.closest?.('[data-shell-action]');
     if (shellAction) {
       const action = shellAction.dataset.shellAction;
-      if (action === 'toggle-menu') setTopMenuOpen(!document.body.classList.contains('is-umsh-top-menu-open'));
-      if (action === 'close-menu') setTopMenuOpen(false);
       if (action === 'close-bottom-menu') setBottomMenuOpen(false);
-      if (action === 'focus-services') navigate('/#services');
       return;
     }
 
-    const category = event.target.closest?.('[data-shell-category], [data-shell-menu-filter]');
+    const category = event.target.closest?.('[data-shell-category]');
     if (category) {
-      const value = category.dataset.shellCategory || category.dataset.shellMenuFilter || 'all';
+      const value = category.dataset.shellCategory || 'all';
       if (value === '풍수') {
         navigate('/place/home');
         return;
       }
       navigate(value === 'all' ? '/' : `/?category=${encodeURIComponent(value)}#services`);
-      return;
-    }
-
-    const shortcut = event.target.closest?.('[data-shell-menu-shortcut]');
-    if (shortcut) {
-      const id = shortcut.dataset.shellMenuShortcut || 'home';
-      setBottomMenuOpen(true, id);
       return;
     }
 
@@ -262,13 +281,11 @@
       return;
     }
 
-    if (event.target.id === 'serviceActionPanel') setTopMenuOpen(false);
     if (event.target.id === 'serviceBottomMenuPanel') setBottomMenuOpen(false);
   });
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
-    setTopMenuOpen(false);
     setBottomMenuOpen(false);
   });
 

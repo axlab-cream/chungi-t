@@ -1,0 +1,123 @@
+{
+  "service": {
+    "service_key": "pass_angle",
+    "service_slug": "pass-angle",
+    "service_title": "나, 붙을 각이야?",
+    "category": "시험운",
+    "subcategory": "합격각 판정과 공부 전략",
+    "price_krw": 9900,
+    "price_display": "9,900원",
+    "service_url_hint": "umsh.kr/me/pass-angle",
+    "analysis_basis": [
+      "인성",
+      "관성",
+      "식상",
+      "일간 강약",
+      "대운",
+      "세운"
+    ],
+    "report_version": "pass-angle-v1.0",
+    "copy_version": "mz-pass-angle-v1",
+    "stage": "02-step-2-saju-input"
+  },
+  "inputs": [
+    {
+      "id": "name",
+      "label": "이름 또는 닉네임",
+      "required": true
+    },
+    {
+      "id": "birth",
+      "label": "생년월일",
+      "type": "date",
+      "required": true
+    },
+    {
+      "id": "time",
+      "label": "태어난 시간",
+      "type": "time",
+      "required": false,
+      "note": "미입력 시 birthTimeKnown=false 로 저장하고 정오 기준으로 계산"
+    },
+    {
+      "id": "gender",
+      "label": "성별",
+      "type": "select",
+      "required": true
+    }
+  ],
+  "duplicate_entry_policy": {
+    "rule": "계정에 저장된 사주 프로필이 있으면 다시 묻지 않는다",
+    "storage_key": "cheongi_user_birth_profile_v1",
+    "behaviour": "저장값이 완전하면 입력 폼을 감추고 '저장된 사주로 진행합니다' 요약 카드를 보여준다. '다른 정보로 입력하기'를 누르면 저장값이 채워진 폼이 다시 열린다.",
+    "fallback": "저장값이 없거나 불완전하면 기존 폼을 그대로 노출하고, 제출 시 입력값을 프로필로 저장한다."
+  },
+  "image_manifest": [
+    {
+      "asset_key": "study",
+      "filename": "사주/me/pass-angle/assets/pass-angle/study.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "사주와 공부 성향을 분석하는 시험운 전략가",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "d08f1dfc",
+      "html_usage_selector": "#step-2-saju-input img[src$='study.png']"
+    }
+  ],
+  "next_route": "/me/pass-angle/03-step-3-service-input/index.html#step-3-service-input",
+  "qa_result": {
+    "status": "verified",
+    "checked_at": "2026-09-03",
+    "checked_on": [
+      "local http://localhost:8790",
+      "production https://umsh.kr"
+    ],
+    "stage": "02-step-2-saju-input",
+    "checks": [
+      {
+        "name": "route_redirects",
+        "status": "pass",
+        "value": "/me/pass-angle{,/input,/exam,/report,/chat,/detail} 모두 302"
+      },
+      {
+        "name": "shared_chrome_mounted",
+        "status": "pass",
+        "value": "상단 로고·뒤로가기 + 하단 5탭 GNB (umsh-chrome)"
+      },
+      {
+        "name": "image_references_resolve",
+        "status": "pass",
+        "value": "페이지 내 src/href 34건 전수 HTTP 200"
+      },
+      {
+        "name": "banned_phrases_absent",
+        "status": "pass",
+        "value": "무조건·반드시·100%·망한다 0건 (84섹션 전수)"
+      },
+      {
+        "name": "internal_terms_absent",
+        "status": "pass",
+        "value": "RAG·KMS·LLM·코퍼스·내부 라벨 0건"
+      },
+      {
+        "name": "saved_profile_reuse",
+        "status": "pass",
+        "value": "저장 프로필 존재 시 폼 숨김 + 요약 카드 표시 확인"
+      },
+      {
+        "name": "manual_override",
+        "status": "pass",
+        "value": "'다른 정보로 입력하기'로 저장값 프리필된 폼 복귀"
+      },
+      {
+        "name": "select_popup_contrast",
+        "status": "pass",
+        "value": "네이티브 드롭다운 option 배경 #07120e 고정 (라이트 팔레트 폴백 해결)"
+      }
+    ],
+    "scope_mismatch": []
+  }
+}
