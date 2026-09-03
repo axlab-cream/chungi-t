@@ -563,13 +563,17 @@
         }
       }
     
-      /* Shared UMSH chrome: keep the fixed bottom nav from covering the page tail. */
-      body.umsh-has-chrome .phone { padding-bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
-      /* The story hero filled the viewport minus the design's own 64px bar; it now shares
-         the screen with the chrome app bar and the fixed bottom nav, so its CTA stays visible. */
-      body.umsh-has-chrome #step-1-story .hero { min-height: calc(100svh - var(--umsh-chrome-appbar-h, 72px) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px)); }
-      body.umsh-has-chrome .composer { bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
-      body.umsh-has-chrome .chat-log, body.umsh-has-chrome .screen { padding-bottom: calc(112px + var(--umsh-chrome-bottom-h, 74px)); }
+      /* Shared UMSH chrome: keep the fixed bottom nav from covering the page tail.
+         The shell publishes its measured height in --umsh-chrome-bottom-h, but that
+         measurement can land before layout settles and report far less than the nav's
+         real 74px, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* The story hero filled the viewport minus the design's own 64px bar. It now shares the
+         screen with a taller app bar and the bottom nav; a fixed share keeps both CTAs above
+         the fold without depending on a chrome height that may not be measured yet. */
+      body.umsh-has-chrome #step-1-story .hero { min-height: 62svh; }
+      body.umsh-has-chrome .composer { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .chat-log, body.umsh-has-chrome .screen { padding-bottom: calc(112px + max(74px, var(--umsh-chrome-bottom-h, 74px))); }
       body.umsh-has-chrome .footer { padding-bottom: 18px; }
       /* The teaser cards were sized for one short sample sentence. Real readings run longer,
          and three columns inside a 375px phone wrapped them to two or three words per line. */
