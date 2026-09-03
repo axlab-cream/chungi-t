@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>내 애인 바람필까? | 상세 리포트</title>
+  <meta name="description" content="명리궁합, 오행, 일지 흐름으로 관계 온도와 확인 대화 타이밍을 보는 상세 리포트입니다." />
+  <meta name="application-name" content="운명상회" />
+  <meta property="og:title" content="내 애인 바람필까? | 상세 리포트" />
+  <meta property="og:description" content="단정 대신 관계 신호와 현실 확인 액션을 차분하게 정리합니다." />
+  <meta property="og:site_name" content="운명상회" />
+  <meta property="og:url" content="https://match.umsh.kr/couple-signal" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #040202;
+      --panel: rgba(255, 250, 242, 0.06);
+      --panel-strong: rgba(120, 18, 16, 0.42);
+      --ink: #fff8ef;
+      --muted: rgba(255, 232, 205, 0.72);
+      --soft: rgba(255, 232, 205, 0.56);
+      --gold: #f1bf6d;
+      --red: #c93a2f;
+      --deep-red: #6e1411;
+      --green: #93cfa8;
+      --line: rgba(255, 226, 183, 0.18);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(154, 24, 20, 0.28), transparent 42%),
+        linear-gradient(180deg, #0b0404, #040202 46%, #000);
+      color: var(--ink);
+      font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: start center;
+    }
+
+    button,
+    input {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: 0.42;
+    }
+
+    .phone {
+      width: min(100vw, 448px);
+      min-height: 100svh;
+      background: var(--bg);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 2, 2, 0.94);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .brand span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .brand strong {
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn,
+    .pill-btn {
+      min-height: 36px;
+      border: 1px solid rgba(255, 226, 183, 0.24);
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--ink);
+    }
+
+    .icon-btn {
+      width: 36px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .primary-btn {
+      border-color: rgba(255, 226, 183, 0.42);
+      background: linear-gradient(180deg, var(--red), var(--deep-red));
+      color: #fffaf2;
+    }
+
+    .contextbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(255, 226, 183, 0.1);
+      background: #070303;
+    }
+
+    .contextbar span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .offline {
+      display: none;
+      margin: 12px 16px 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 196, 118, 0.3);
+      border-radius: 8px;
+      background: rgba(132, 78, 14, 0.24);
+      color: #ffe4b8;
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.5;
+    }
+
+    .offline.is-visible { display: block; }
+
+    #detail-root {
+      display: grid;
+      gap: 14px;
+      padding: 14px 16px 96px;
+    }
+
+    .hero {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(201, 58, 47, 0.2), transparent 44%),
+        rgba(255, 255, 255, 0.04);
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 360px;
+      overflow: hidden;
+      background: #0a0505;
+    }
+
+    .hero-visual img {
+      display: block;
+      width: 100%;
+      height: 420px;
+      object-fit: cover;
+      object-position: 50% 22%;
+      opacity: 0.94;
+    }
+
+    .hero-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.08) 44%, #040202 96%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 40%, rgba(0, 0, 0, 0.36));
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .kicker,
+    .block-kicker {
+      width: fit-content;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(241, 191, 109, 0.13);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--ink);
+      font-size: 28px;
+      line-height: 1.2;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .hero-copy p {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 760;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    .status-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .status-line span {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 226, 183, 0.16);
+      border-radius: 999px;
+      color: rgba(255, 239, 215, 0.82);
+      background: rgba(255, 255, 255, 0.045);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .section-card,
+    .state-card,
+    .related-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(201, 58, 47, 0.13), transparent 34%),
+        rgba(255, 255, 255, 0.045);
+    }
+
+    .section-card {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .section-card h2 {
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+
+    .section-card > p,
+    .reading p,
+    .state-card p {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 740;
+      line-height: 1.72;
+      word-break: keep-all;
+    }
+
+    .headline-answer {
+      padding: 16px;
+      border: 1px solid rgba(241, 191, 109, 0.24);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(201, 58, 47, 0.28), rgba(0, 0, 0, 0.18)),
+        rgba(255, 255, 255, 0.045);
+    }
+
+    .headline-answer strong {
+      display: block;
+      color: #fffaf2;
+      font-size: 19px;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .evidence-grid,
+    .signal-grid,
+    .action-grid {
+      display: grid;
+      gap: 9px;
+    }
+
+    .evidence-row,
+    .signal-row,
+    .action-row {
+      display: grid;
+      gap: 6px;
+      padding: 12px;
+      border: 1px solid rgba(255, 226, 183, 0.13);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .evidence-row span,
+    .signal-row span,
+    .action-row span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .evidence-row strong,
+    .signal-row strong,
+    .action-row strong {
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.48;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .visual-block {
+      overflow: hidden;
+      border: 1px solid rgba(255, 226, 183, 0.14);
+      border-radius: 8px;
+      background: #0b0505;
+    }
+
+    .visual-block img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      object-position: 50% 18%;
+    }
+
+    .visual-block figcaption {
+      padding: 11px 12px 12px;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .visual-block.image-failed img {
+      display: none;
+    }
+
+    .hero.image-failed .hero-visual {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+    }
+
+    .hero.image-failed .hero-visual img {
+      display: none;
+    }
+
+    .hero.image-failed .hero-visual::before {
+      content: "이미지를 불러오지 못했어요. 해석은 계속 볼 수 있어요.";
+      position: relative;
+      z-index: 1;
+      max-width: 260px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 850;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .visual-block.image-failed figcaption::before {
+      content: "이미지를 불러오지 못했어요. ";
+      color: #ffd49b;
+    }
+
+    .reading {
+      display: grid;
+      gap: 12px;
+    }
+
+    .quote {
+      padding: 14px;
+      border-left: 3px solid var(--gold);
+      border-radius: 8px;
+      background: rgba(241, 191, 109, 0.1);
+      color: #fff4e2;
+      font-size: 15px;
+      font-weight: 850;
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    .signal-row.is-watch {
+      border-color: rgba(255, 172, 112, 0.26);
+      background: rgba(129, 59, 25, 0.19);
+    }
+
+    .action-row {
+      border-color: rgba(147, 207, 168, 0.22);
+      background: rgba(36, 89, 57, 0.16);
+    }
+
+    .action-row span {
+      color: #bde6ca;
+    }
+
+    .nav-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 16px max(14px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      background: rgba(7, 3, 3, 0.94);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-bar button {
+      min-height: 42px;
+      border: 1px solid rgba(255, 226, 183, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .nav-bar button:last-child {
+      border-color: rgba(255, 226, 183, 0.42);
+      background: linear-gradient(180deg, var(--red), var(--deep-red));
+      color: #fffaf2;
+    }
+
+    .related-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .related-card h2 {
+      font-size: 20px;
+      line-height: 1.28;
+    }
+
+    .related-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .related-list button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 54px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255, 226, 183, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--ink);
+      text-align: left;
+    }
+
+    .related-list strong {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .related-list span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .state-card {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .state-card h1 {
+      font-size: 24px;
+    }
+
+    .state-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .state-actions button {
+      min-height: 42px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 226, 183, 0.18);
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .state-actions button.primary-btn {
+      border-color: rgba(255, 226, 183, 0.42);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 78px;
+      z-index: 10;
+      width: min(360px, calc(100vw - 32px));
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 226, 183, 0.22);
+      border-radius: 8px;
+      background: rgba(18, 8, 7, 0.95);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.45;
+      box-shadow: var(--shadow);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @media (min-width: 860px) {
+      .phone {
+        width: min(100vw, 960px);
+      }
+
+      #detail-root {
+        grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+        align-items: start;
+        padding: 18px 22px 104px;
+      }
+
+      .hero,
+      .related-card {
+        position: sticky;
+        top: 86px;
+      }
+
+      .section-card {
+        gap: 16px;
+      }
+
+      .hero-visual img {
+        height: 520px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta,
+      body.umsh-has-chrome .sticky,
+      body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+<body>
+  <main class="phone" data-umsh-chrome data-service="관계 신호" data-price="19,900원" data-active="home" id="step-6_1-report" aria-label="내 애인 바람필까 상세 리포트">
+    <header class="appbar topbar">
+      <a class="brand" href="../01-step-1-story/index.html" aria-label="운명상회 홈">
+        <span>운명상회</span>
+        <strong>내 애인 바람필까?</strong>
+      </a>
+      <div class="top-actions">
+        <button class="icon-btn" type="button" id="btn-back" aria-label="목록으로 돌아가기">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="pill-btn" type="button" id="btn-save">보관</button>
+      </div>
+    </header>
+
+    <div class="contextbar">
+      <span id="context-label">명리궁합 · 오행 · 일지</span>
+      <button class="pill-btn primary-btn" type="button" id="btn-list">목록</button>
+    </div>
+
+    <div class="offline" id="offline">연결이 불안정해요. 이미 열린 상세 내용은 계속 볼 수 있고, 새 계산값은 연결이 돌아오면 다시 확인해 주세요.</div>
+    <div id="detail-root"></div>
+    <nav class="nav-bar" aria-label="상세 리포트 탐색">
+      <button type="button" id="btn-prev">이전</button>
+      <button type="button" id="btn-next">다음</button>
+    </nav>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const service = {
+        service_key: "couple_signal",
+        service_slug: "couple-signal",
+        service_title: "내 애인 바람필까?",
+        category: "커플궁합",
+        price_krw: 19900,
+        report_version: "couple-signal-v1",
+        basis: ["명리궁합", "오행", "일지"]
+      };
+
+      const keys = {
+        reportInput: "umsh:report-input:couple_signal",
+        reportPreview: "umsh:report-preview:couple_signal",
+        activeReport: "umsh:active-report:couple_signal",
+        activeSection: "umsh:active-report-section:couple_signal",
+        scrollReturn: "umsh:step5-return:couple_signal"
+      };
+
+      const groups = [
+        {
+          id: "relationship_temperature",
+          title: "지금 우리 관계 온도",
+          subtitle: "연락, 표현, 데이트 에너지가 식은 건지 안정된 건지 먼저 봅니다.",
+          axis: "관계 온도",
+          image: "../assets/signal/05-relationship_temperature.webp",
+          evidence_ids: ["zip-연예-qa-000024", "zip-연예-qa-000027", "item-22-p1-0027", "item-22-p1-0028"],
+          fact_keys: ["input.self.birth", "input.partner.birth", "calculated_facts.element_relation", "calculated_facts.day_branch_relation"],
+          items: [
+            ["relationship_temperature_true_love", "찐사랑 유지각", "표현은 줄어도 약속의 구체성과 생활 공유가 남아 있는지 봅니다."],
+            ["relationship_temperature_boredom", "권태기 살짝 온 듯", "새로움이 줄어든 건지 마음의 방향이 달라진 건지 분리합니다."],
+            ["relationship_temperature_attention_gap", "관심 식은 척인지 진짜인지", "반응 속도보다 먼저 봐야 할 말투와 태도 변화를 체크합니다."],
+            ["relationship_temperature_expression_left", "표현은 줄었는데 마음은 남은 케이스", "다정함의 방식이 바뀐 사람과 식은 사람의 차이를 봅니다."],
+            ["relationship_temperature_contact_tension", "연락 텐션 변화", "답장 간격, 질문 유무, 마무리 말투가 같이 변했는지 살핍니다."],
+            ["relationship_temperature_date_energy", "데이트 에너지 변화", "만남을 피하는 건지 익숙해서 덜 꾸미는 건지 생활 리듬으로 봅니다."],
+            ["relationship_temperature_stable_or_cold", "안정기인지 식은 건지 구분", "편안함과 무심함의 경계를 약속, 시간, 관심 배분으로 나눕니다."]
+          ]
+        },
+        {
+          id: "partner_signal_radar",
+          title: "애인의 바람기 레이더",
+          subtitle: "매력, 관심 욕구, 외부 유혹에 흔들릴 수 있는 환경을 봅니다.",
+          axis: "외부 변수",
+          image: "../assets/signal/05-partner_signal_radar.webp",
+          evidence_ids: ["zip-만세력-qa-000575", "zip-만세력-qa-000576", "item-12-p1-0037", "item-22-p1-0028"],
+          fact_keys: ["calculated_facts.dohwa", "calculated_facts.hongyeom", "calculated_facts.ten_god_partner", "calculated_facts.year_flow"],
+          items: [
+            ["partner_signal_radar_dohwa_hongyeom", "도화살·홍염살 기반 매력 과다 신호", "사람이 붙는 기운이 연애에서 어떤 변수로 나타나는지 봅니다."],
+            ["partner_signal_radar_social_magnet", "사람 끌어당기는 타입", "상대가 관심을 받는 자리에서 에너지가 살아나는지 확인합니다."],
+            ["partner_signal_radar_attention_enjoy", "관심받는 걸 즐기는 타입", "칭찬과 플러팅 사이에서 선을 지키는 방식을 봅니다."],
+            ["partner_signal_radar_boundary_environment", "선 넘기 쉬운 환경운", "회식, 모임, SNS처럼 관계 밖 접점이 늘어나는 구간을 살핍니다."],
+            ["partner_signal_radar_pyeonjae_schedule", "약속이 흩어지는 편재형 패턴", "재미와 즉흥성이 약속의 밀도를 흐리는지 봅니다."],
+            ["partner_signal_radar_multi_scene", "여러 판 동시에 여는 흐름", "관심사가 여러 갈래로 벌어질 때 관계 우선순위가 내려가는지 봅니다."],
+            ["partner_signal_radar_temptation_timing", "외부 유혹에 약한 시기", "새 인연보다 현재 관계의 지킬 선이 흔들리는 타이밍을 봅니다."]
+          ]
+        },
+        {
+          id: "switch_flirt_check",
+          title: "환승각·썸각 체크",
+          subtitle: "새 사람, 전애인, 직장·모임·SNS 변수까지 현실 접점을 봅니다.",
+          axis: "썸·환승 변수",
+          image: "../assets/signal/05-switch_flirt_check.webp",
+          evidence_ids: ["zip-연예-qa-000030", "zip-연예-qa-000047", "zip-연예-qa-000048", "item-22-p1-0027"],
+          fact_keys: ["calculated_facts.relationship_star", "calculated_facts.branch_contact", "calculated_facts.month_flow", "calculated_facts.social_contact"],
+          items: [
+            ["switch_flirt_check_new_person_timing", "새 사람에게 흔들릴 수 있는 타이밍", "새 자극이 들어올 때 현재 관계의 빈자리가 어디인지 봅니다."],
+            ["switch_flirt_check_easy_flirt_flow", "썸 타기 쉬운 운", "대화가 빠르게 가까워지는 흐름과 선 지키는 힘을 같이 봅니다."],
+            ["switch_flirt_check_friend_or_flirt", "친구인지 플러팅인지 애매한 관계", "농담, 빈도, 단둘이 만나는 맥락을 나눠 봅니다."],
+            ["switch_flirt_check_ex_return", "전애인 재등장 가능성", "과거 인연이 다시 연락될 때 흔들리는 이유를 봅니다."],
+            ["switch_flirt_check_work_sns_variable", "직장·모임·SNS 인연 변수", "자주 마주치는 환경이 관계 온도에 주는 영향을 봅니다."],
+            ["switch_flirt_check_attention_self_esteem", "외부 관심이 자존감 충전으로 작동하는 케이스", "상대가 사랑보다 인정 욕구를 먼저 채우는지 살핍니다."]
+          ]
+        },
+        {
+          id: "partner_palace_signal",
+          title: "부부궁·연인궁 시그널",
+          subtitle: "일지와 관계 자리의 붙는 구조, 밀어내는 구조를 살핍니다.",
+          axis: "일지·관계 자리",
+          image: "../assets/signal/05-partner_palace_signal.webp",
+          evidence_ids: ["zip-만세력-qa-000576", "zip-만세력-qa-000577", "zip-연예-qa-000047", "zip-연예-qa-000048"],
+          fact_keys: ["calculated_facts.self_day_branch", "calculated_facts.partner_day_branch", "calculated_facts.branch_relation", "calculated_facts.palace_signal"],
+          items: [
+            ["partner_palace_signal_partner_place", "애인 자리에 들어온 기운", "상대가 내 관계 자리에서 어떤 역할로 느껴지는지 봅니다."],
+            ["partner_palace_signal_branch_relation", "부부궁 충·합·형·파·해 체크", "붙는 힘과 부딪히는 힘이 생활에서 어떻게 나타나는지 봅니다."],
+            ["partner_palace_signal_wonjin_button", "원진살식 미움 포인트", "좋아하면서도 거슬리는 지점이 반복되는 이유를 봅니다."],
+            ["partner_palace_signal_distance_marker", "귀문·고란·고신·과숙 등 거리감 신호", "혼자 있고 싶은 흐름과 관계 피로를 구분합니다."],
+            ["partner_palace_signal_pull_push", "관계가 붙는 구조 vs 밀어내는 구조", "화해가 빠른 조합인지, 멀어져야 정리되는 조합인지 봅니다."],
+            ["partner_palace_signal_attached_but_tired", "애착은 있는데 피곤한 궁합", "정은 남아 있는데 체력이 빠지는 관계 리듬을 확인합니다."]
+          ]
+        },
+        {
+          id: "ten_gods_love_style",
+          title: "십성으로 보는 연애 스타일",
+          subtitle: "사람, 약속, 표현, 책임을 대하는 방식을 십성으로 풀어봅니다.",
+          axis: "십성 연애 방식",
+          image: "../assets/signal/05-ten_gods_love_style.webp",
+          evidence_ids: ["zip-만세력-qa-000551", "zip-만세력-qa-000552", "item-12-p1-0029", "item-12-p1-0037"],
+          fact_keys: ["calculated_facts.self_ten_god", "calculated_facts.partner_ten_god", "calculated_facts.ten_god_relation", "calculated_facts.communication_pattern"],
+          items: [
+            ["ten_gods_love_style_bigyeon", "비견: 친구처럼 편한데 선 흐림", "동등함이 장점이지만 관계 규칙이 흐려질 수 있는 타입입니다."],
+            ["ten_gods_love_style_geopjae", "겁재: 의리 있지만 경쟁심 강함", "내 편 의식과 자존심 반응이 같이 올라오는 방식을 봅니다."],
+            ["ten_gods_love_style_siksin", "식신: 챙겨주지만 익숙함에 갇힘", "편안함이 애정인지 습관인지 구분합니다."],
+            ["ten_gods_love_style_sanggwan", "상관: 솔직한데 말이 세게 나감", "대화가 빨라질 때 상처로 들리는 포인트를 봅니다."],
+            ["ten_gods_love_style_pyeonjae", "편재: 매력 있고 재밌지만 약속이 흩어짐", "재미와 즉흥성이 관계 안정감을 흔드는지 봅니다."],
+            ["ten_gods_love_style_jeongjae", "정재: 안정적이지만 계산적으로 보임", "책임감과 조건 따지기가 어떻게 섞이는지 봅니다."],
+            ["ten_gods_love_style_pyeongwan", "편관: 든든하지만 압박감 있음", "보호와 통제가 헷갈리는 순간을 확인합니다."],
+            ["ten_gods_love_style_jeonggwan", "정관: 믿음직하지만 규칙으로 상대를 잼", "원칙이 관계의 안정인지 부담인지 봅니다."],
+            ["ten_gods_love_style_pyeonin", "편인: 깊지만 현실 대화가 늦음", "생각은 많은데 말이 늦어지는 패턴을 봅니다."],
+            ["ten_gods_love_style_jeongin", "정인: 다정하지만 의존·보호가 섞임", "돌봄과 기대가 관계에서 어떻게 맞물리는지 봅니다."]
+          ]
+        },
+        {
+          id: "compatibility_chemistry",
+          title: "궁합 케미 분석",
+          subtitle: "천간, 지지, 오행의 상생상극으로 관계 리듬을 봅니다.",
+          axis: "궁합 케미",
+          image: "../assets/signal/05-compatibility_chemistry.webp",
+          evidence_ids: ["zip-연예-qa-000024", "zip-연예-qa-000025", "zip-연예-qa-000027", "zip-연예-qa-000030"],
+          fact_keys: ["calculated_facts.heavenly_stem_relation", "calculated_facts.earthly_branch_relation", "calculated_facts.generating_relation", "calculated_facts.controlling_relation"],
+          items: [
+            ["compatibility_chemistry_heavenly_stems", "천간 궁합: 끌림 포인트", "처음 끌리는 감정과 말투의 결을 봅니다."],
+            ["compatibility_chemistry_earthly_branches", "지지 궁합: 생활 리듬 궁합", "같이 지낼 때 드러나는 시간표와 습관 차이를 봅니다."],
+            ["compatibility_chemistry_generating", "오행 상생: 같이 있으면 편한 구간", "서로 힘을 보태는 장면이 어디서 살아나는지 봅니다."],
+            ["compatibility_chemistry_controlling", "오행 상극: 싸움 버튼 눌리는 구간", "다름이 매력인지 피로인지 갈리는 포인트를 봅니다."],
+            ["compatibility_chemistry_zodiac", "띠궁합 기반 조화·불화", "가벼운 참고 축으로 관계의 습관적 리듬을 보강합니다."],
+            ["compatibility_chemistry_communication", "의사소통 잘 되는 타입", "말이 통하는 순간과 엇갈리는 순간을 분리합니다."],
+            ["compatibility_chemistry_cold_pair", "냉담해지는 조합", "감정이 꺼져 보일 때 실제로 줄어든 신호를 봅니다."]
+          ]
+        },
+        {
+          id: "timing_flow",
+          title: "시기별 흔들림 운",
+          subtitle: "대운, 세운, 월운, 일진으로 관계 이슈가 커지는 때를 봅니다.",
+          axis: "시기 흐름",
+          image: "../assets/signal/05-timing_flow.webp",
+          evidence_ids: ["item-22-p1-0027", "item-22-p1-0028", "item-22-qa-0014", "zip-연예-qa-000048"],
+          fact_keys: ["calculated_facts.daewoon", "calculated_facts.sewoon", "calculated_facts.month_flow", "calculated_facts.daily_flow"],
+          items: [
+            ["timing_flow_daewoon", "대운: 장기 관계 패턴", "오래 반복되는 연애 방식과 큰 변화 구간을 봅니다."],
+            ["timing_flow_sewoon", "세운: 올해 흔들리는 포인트", "올해 관계에서 가까워질 일과 선을 지킬 일을 나눕니다."],
+            ["timing_flow_month", "월운: 이번 달 관계 이슈", "이번 달 연락, 약속, 감정 소모가 커지는 지점을 봅니다."],
+            ["timing_flow_day", "일진: 오늘 연락·만남 분위기", "오늘 대화가 잘 풀릴지 쉬어야 할지 분위기를 봅니다."],
+            ["timing_flow_entry", "초입: 갑자기 달라진 느낌", "변화가 막 시작될 때 보이는 첫 신호를 정리합니다."],
+            ["timing_flow_middle", "중반: 습관과 권태 누적", "작은 미룸과 무심함이 쌓이는 흐름을 봅니다."],
+            ["timing_flow_late", "말기: 정리·거리두기 신호", "회복보다 거리 조절이 필요한 장면을 조심스럽게 봅니다."]
+          ]
+        },
+        {
+          id: "anxiety_source",
+          title: "불안 원인 해석",
+          subtitle: "내 촉, 집착 버튼, 확인 욕구가 커지는 이유를 나눠 봅니다.",
+          axis: "불안의 출처",
+          image: "../assets/signal/05-anxiety_source.webp",
+          evidence_ids: ["item-12-p1-0029", "item-22-qa-0004", "item-22-qa-0014", "zip-연예-qa-000024"],
+          fact_keys: ["input.concern", "calculated_facts.communication_pattern", "calculated_facts.self_relation_trigger", "calculated_facts.current_flow"],
+          items: [
+            ["anxiety_source_intuition_or_fear", "내 촉이 맞는지 불안인지", "반복 증거와 순간 감정을 나눠 봅니다."],
+            ["anxiety_source_attachment_button", "집착 버튼 눌린 이유", "내가 특히 예민해지는 말투와 상황을 확인합니다."],
+            ["anxiety_source_hidden_feeling", "상대가 숨기는 게 있는 느낌", "숨김처럼 보이는 행동이 실제 회피인지 피로인지 봅니다."],
+            ["anxiety_source_less_talk", "대화가 줄어든 진짜 이유", "바쁨, 권태, 회피, 갈등 피로를 분리합니다."],
+            ["anxiety_source_one_sided", "나만 진심인 것 같은 구간", "애정 표현의 양과 책임 행동의 차이를 봅니다."],
+            ["anxiety_source_checking_urge", "확인 욕구가 커지는 시기", "질문이 추궁으로 들리지 않게 타이밍을 잡습니다."],
+            ["anxiety_source_self_worth", "관계에서 자존감 흔들리는 포인트", "상대 반응에 내 가치가 매달리는 순간을 봅니다."]
+          ]
+        },
+        {
+          id: "reality_check_action",
+          title: "현실 확인 액션",
+          subtitle: "추궁보다 확인, 감정보다 패턴 기록으로 다음 행동을 잡습니다.",
+          axis: "확인 액션",
+          image: "../assets/signal/05-reality_check_action.webp",
+          evidence_ids: ["item-22-qa-0002", "item-22-qa-0004", "item-22-qa-0011", "item-22-qa-0014"],
+          fact_keys: ["input.concern", "calculated_facts.contact_pattern", "calculated_facts.plan_change", "calculated_facts.resource_split"],
+          items: [
+            ["reality_check_action_question", "추궁 말고 확인 질문", "상대를 몰아붙이지 않고 필요한 사실을 묻는 문장을 잡습니다."],
+            ["reality_check_action_contact_pattern", "연락 패턴 체크리스트", "속도, 빈도, 주제, 마무리 말투를 따로 봅니다."],
+            ["reality_check_action_plan_change", "약속 변경 빈도 보기", "취소와 변경이 반복되는지, 사유가 구체적인지 확인합니다."],
+            ["reality_check_action_sns_group", "SNS·모임 변수 확인", "새 접점이 늘어난 시기와 관계 온도 변화를 같이 봅니다."],
+            ["reality_check_action_resource_split", "돈·시간·관심 분산 체크", "관계에 쓰는 자원이 줄었는지 현실 기준으로 봅니다."],
+            ["reality_check_action_talk_timing", "대화 타이밍 추천", "바로 묻기보다 대화가 덜 방어적으로 열리는 때를 잡습니다."],
+            ["reality_check_action_repair_sentence", "관계 회복용 한 문장", "상대를 탓하기보다 내 감정과 요청을 짧게 전하는 문장을 만듭니다."]
+          ]
+        },
+        {
+          id: "final_conclusion_type",
+          title: "최종 리포트 결론 타입",
+          subtitle: "안심, 관망, 대화, 경계, 정리, 재점검 흐름으로 결론을 정리합니다.",
+          axis: "결론 타입",
+          image: "../assets/signal/05-final_conclusion_type.webp",
+          evidence_ids: ["zip-연예-qa-000024", "zip-연예-qa-000027", "item-22-qa-0014", "item-12-p1-0029"],
+          fact_keys: ["calculated_facts.summary_type", "calculated_facts.relation_temperature", "calculated_facts.boundary_signal", "calculated_facts.action_priority"],
+          items: [
+            ["final_conclusion_type_relief", "안심각: 흔들림보다 안정이 큼", "관계의 기본 신뢰가 더 큰지 확인합니다."],
+            ["final_conclusion_type_watch", "관망각: 아직 증거보다 불안이 큼", "조금 더 지켜볼 신호와 기록할 기준을 잡습니다."],
+            ["final_conclusion_type_talk", "대화각: 말 안 하면 오해가 커짐", "지금 꺼내야 할 질문과 피해야 할 말투를 정리합니다."],
+            ["final_conclusion_type_boundary", "경계각: 선 넘는 환경이 보임", "관계 밖 변수에 대해 지킬 선을 분명히 잡습니다."],
+            ["final_conclusion_type_distance", "정리각: 마음보다 피로가 커진 상태", "감정 소모가 관계 유지보다 커진 장면을 봅니다."],
+            ["final_conclusion_type_recheck", "재점검각: 궁합보다 생활 패턴 조율 필요", "사주 흐름보다 실제 생활 약속을 다시 맞춰야 하는 구간입니다."]
+          ]
+        }
+      ];
+
+      const groupProfiles = {
+        relationship_temperature: {
+          answer: "지금은 상대의 마음을 단번에 재단하기보다, 약속의 구체성·생활 공유·연락 결이 같이 남아 있는지 보는 게 먼저예요.",
+          reality: "표현량만 줄었다고 마음이 식었다고 보기엔 이릅니다. 대신 약속을 잡는 태도, 하루 이야기를 공유하는 밀도, 먼저 묻는 질문이 함께 줄었는지를 나눠 보면 관계 온도가 더 선명해집니다.",
+          condition: "이 항목은 최근 2주 안의 연락 변화와 만남 약속이 함께 흔들릴 때 더 중요하게 봅니다. 한 번 늦은 답장보다 반복되는 미룸과 설명 없는 거리감이 핵심 신호예요.",
+          actions: ["답장 속도보다 대화 마무리 말투를 먼저 기록해요.", "다음 약속을 구체적으로 잡아보며 회피인지 피로인지 나눠 봐요.", "감정 확인은 밤늦게 몰아치기보다 쉬는 날 낮 시간에 짧게 꺼내요."],
+          caution: "불안한 날의 한 장면만으로 결론을 내리면 관계를 더 흔들 수 있어요. 행동이 반복되는지 먼저 확인하는 편이 낫습니다."
+        },
+        partner_signal_radar: {
+          answer: "매력이나 관심 욕구가 강한 흐름은 외부 접점이 많아질 수 있다는 뜻이지, 곧바로 선을 넘는다는 뜻은 아니에요.",
+          reality: "사람이 붙는 타입은 칭찬과 관심에서 에너지를 얻을 수 있습니다. 핵심은 인기가 아니라, 그 관심을 현재 관계 안에서 투명하게 다루는지예요.",
+          condition: "모임·SNS·회식처럼 관계 밖 접점이 늘어나는 시기에 이 항목의 체감이 커집니다. 일정 설명이 흐려지고 약속 우선순위가 밀릴 때는 대화가 필요합니다.",
+          actions: ["상대의 모임 자체보다 공유 방식이 바뀌었는지 봐요.", "숨기지 않아도 되는 기준을 둘이 같이 정해요.", "질문은 의심형보다 약속형으로 짧게 말해요."],
+          caution: "도화·홍염 같은 표현은 매력의 상징으로 읽어야 합니다. 그 자체를 잘못의 증거처럼 쓰면 대화가 막힙니다."
+        },
+        switch_flirt_check: {
+          answer: "새 자극이 들어오는 시기에는 현재 관계의 빈자리가 더 크게 느껴질 수 있어요. 그래서 사람보다 빈자리를 먼저 봐야 합니다.",
+          reality: "친구와 플러팅의 경계가 흐려지는 순간은 대개 대화 빈도, 단둘이 만나는 맥락, 감정 공유의 깊이에서 드러납니다. 단어보다 패턴을 보는 게 정확합니다.",
+          condition: "관계 안 대화가 줄고 외부 대화가 늘어날 때 이 흐름이 커집니다. 전애인이나 자주 보는 사람의 재등장도 확인 포인트가 됩니다.",
+          actions: ["누구와 만났는지보다 어떤 기준을 지키는지 물어봐요.", "단둘이 만나는 약속의 빈도와 이유를 차분히 확인해요.", "내가 원하는 선을 한 문장으로 먼저 정리해요."],
+          caution: "새 사람의 존재를 상상으로 키우면 확인보다 추궁이 앞서기 쉽습니다. 관찰 가능한 사실부터 좁혀야 합니다."
+        },
+        partner_palace_signal: {
+          answer: "일지와 관계 자리는 붙는 힘과 밀어내는 힘을 같이 봅니다. 좋아하는데 피곤한 관계라면 이 축을 먼저 살피는 게 좋아요.",
+          reality: "궁합이 잘 맞는다고 늘 편한 건 아니고, 부딪히는 조합이라도 대화 규칙이 있으면 오래 갑니다. 반복되는 미움 포인트와 회복 속도를 같이 봐야 합니다.",
+          condition: "같은 갈등이 반복되고 화해 뒤에도 피로가 남을 때 이 항목이 중요해집니다. 혼자 있고 싶은 흐름과 마음이 떠난 흐름은 구분해야 합니다.",
+          actions: ["싸움의 주제보다 싸움 뒤 회복 시간을 기록해요.", "반복되는 말투 버튼을 서로 하나씩만 공유해요.", "거리두기가 필요한 날과 대화가 필요한 날을 나눠요."],
+          caution: "원진·귀문 같은 용어는 관계 피로를 읽는 참고축입니다. 상대를 낙인찍는 말로 쓰면 풀이의 목적이 흐려집니다."
+        },
+        ten_gods_love_style: {
+          answer: "십성은 연애에서 약속, 표현, 책임을 다루는 방식을 보여줍니다. 같은 행동도 어떤 욕구에서 나왔는지 읽는 데 도움이 됩니다.",
+          reality: "어떤 사람은 다정함을 챙김으로 보이고, 어떤 사람은 책임감으로 보입니다. 그래서 표현량만 비교하면 어긋나고, 각자 사랑을 처리하는 방식을 봐야 합니다.",
+          condition: "약속 방식, 말투, 돈과 시간 사용, 주변 사람과의 경계가 반복적으로 비슷할 때 십성 해석이 더 선명해집니다.",
+          actions: ["상대가 사랑을 표현하는 기본 방식을 하나만 찾아봐요.", "내가 원하는 표현과 상대가 익숙한 표현을 나눠 말해요.", "약속을 지키는 방식이 다른지 확인해요."],
+          caution: "십성 하나로 사람 전체를 묶으면 오해가 커집니다. 사주 전체 구조와 지금 상황을 함께 봐야 합니다."
+        },
+        compatibility_chemistry: {
+          answer: "궁합 케미는 끌림과 생활 리듬을 따로 읽어야 합니다. 설레는데 자주 부딪히는 커플은 이 차이가 크게 보일 수 있어요.",
+          reality: "처음 끌리는 포인트는 말투와 분위기에서 오고, 오래 만날 때의 안정감은 생활 습관에서 갈립니다. 오행의 상생·상극은 이 둘을 나눠 보는 기준이 됩니다.",
+          condition: "함께 보내는 시간이 늘수록 이 항목이 선명해집니다. 데이트는 좋은데 일상 루틴에서 피곤하다면 지지와 생활 리듬 쪽을 봅니다.",
+          actions: ["싸움의 원인을 성격보다 생활 리듬에서 먼저 찾아봐요.", "서로 편해지는 장소와 피곤해지는 장소를 나눠요.", "다름을 고칠 문제와 조율할 문제로 구분해요."],
+          caution: "상극은 나쁨 하나로 읽지 않습니다. 차이가 강하다는 뜻일 수 있고, 조율 방식에 따라 긴장감이 매력이 되기도 합니다."
+        },
+        timing_flow: {
+          answer: "시기 흐름은 관계가 흔들릴 수 있는 구간을 보는 참고축입니다. 날짜 하나보다 반복되는 흐름을 함께 보는 게 안전해요.",
+          reality: "대운·세운·월운·일진은 큰 리듬과 짧은 컨디션을 나눠 봅니다. 오늘의 말투가 차갑다고 관계 전체가 식은 건 아니고, 올해의 반복 패턴과 같이 읽어야 합니다.",
+          condition: "일정 변경, 연락 텐션, 만남 피로가 특정 시기에 반복될 때 이 항목이 더 의미 있습니다. 한 시점의 감정만으로 크게 움직이지 않는 편이 좋습니다.",
+          actions: ["오늘 확인할 것과 이번 달 지켜볼 것을 나눠 적어요.", "바쁜 시기와 마음이 식은 시기를 구분해서 물어봐요.", "관계 결정을 서두르기보다 반복 신호를 확인해요."],
+          caution: "시기 해석은 선택을 대신하지 않습니다. 불안한 날에는 큰 결론보다 작은 대화가 먼저입니다."
+        },
+        anxiety_source: {
+          answer: "내 촉이 올라온 이유를 무시할 필요는 없지만, 감정과 반복 증거는 분리해서 봐야 합니다.",
+          reality: "불안은 상대 행동에서 오기도 하고, 내 애착 버튼에서 커지기도 합니다. 둘을 섞어버리면 확인 질문이 추궁처럼 들릴 수 있어요.",
+          condition: "상대의 반응이 불규칙해지고 내 확인 욕구가 함께 커질 때 이 항목이 중요해집니다. 특히 잠들기 전 대화는 감정이 과열되기 쉽습니다.",
+          actions: ["기분 기록과 실제 행동 기록을 따로 남겨요.", "확인 질문은 한 번에 하나만 해요.", "대답을 듣기 전에 내가 원하는 기준을 먼저 정리해요."],
+          caution: "불안을 없애려고 계속 확인하면 관계 피로가 쌓일 수 있습니다. 확인은 짧게, 기준은 분명하게 가는 편이 낫습니다."
+        },
+        reality_check_action: {
+          answer: "지금 필요한 건 추궁보다 확인 질문입니다. 상대를 몰아붙이는 말보다 기준을 맞추는 말이 관계를 덜 흔듭니다.",
+          reality: "연락, 약속, SNS, 시간 사용은 실제로 확인할 수 있는 영역입니다. 감정 해석만 반복하기보다 관찰 가능한 변화부터 정리해야 다음 대화가 선명해집니다.",
+          condition: "이미 마음이 과열된 상태라면 바로 따지기보다 질문을 짧게 줄이는 게 좋습니다. 대화 타이밍은 피곤한 밤보다 여유 있는 시간대가 낫습니다.",
+          actions: ["최근 바뀐 행동 세 가지만 적고, 추측은 빼요.", "첫 문장은 '요즘 내가 느낀 변화가 있어'처럼 내 감정으로 시작해요.", "대화 뒤에는 바로 결론을 내지 말고 다음 약속을 하나 잡아요."],
+          caution: "확인 질문이 감시처럼 느껴지면 방어가 올라갑니다. 사실 확인과 통제는 다르게 다뤄야 합니다."
+        },
+        final_conclusion_type: {
+          answer: "최종 타입은 관계의 답을 하나로 찍는 게 아니라, 지금 필요한 태도를 정리하는 결론입니다.",
+          reality: "안심, 관망, 대화, 경계, 정리, 재점검은 서로 다른 행동 방향입니다. 핵심은 상대를 단정하는 것이 아니라 지금 관계에 필요한 다음 움직임을 고르는 거예요.",
+          condition: "관계 온도, 외부 변수, 불안 원인, 현실 확인 결과가 함께 모였을 때 이 결론이 선명해집니다. 자료가 부족하면 관망이나 대화 쪽으로 열어두는 게 좋습니다.",
+          actions: ["오늘 할 행동 하나와 일주일 지켜볼 기준 하나를 고르세요.", "결론 타입을 상대에게 붙이는 말로 쓰지 마세요.", "관계 회복과 거리두기 중 지금 덜 후회할 선택을 비교해요."],
+          caution: "결론 타입은 현재 흐름의 정리일 뿐입니다. 새 대화와 행동이 들어오면 해석도 달라질 수 있습니다."
+        }
+      };
+
+      const sectionAssets = {
+        relationship_temperature_true_love: {
+          hero: "../assets/signal/06-relationship_temperature_true_love-hero.webp",
+          evidence: "../assets/signal/06-relationship_temperature_true_love-evidence.webp",
+          hero_alt: "레드 의상의 상담자가 두 장의 빈 카드와 붉은 실로 관계 온도를 살피는 장면",
+          evidence_alt: "레드 의상의 상담자가 오행석과 두 관계 판을 정리하는 장면"
+        }
+      };
+
+      const root = document.getElementById("detail-root");
+      const toast = document.getElementById("toast");
+      const offline = document.getElementById("offline");
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+
+      function currentParams() {
+        return new URLSearchParams(location.search);
+      }
+
+      function readJson(storage, key, fallback = null) {
+        try {
+          const raw = storage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      function writeJson(storage, key, value) {
+        try {
+          storage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function allItems() {
+        return groups.flatMap((group) => group.items.map((row, index) => ({
+          section_id: row[0],
+          title: row[1],
+          preview: row[2],
+          group,
+          order: index + 1,
+          evidence_ids: group.evidence_ids,
+          calculated_fact_keys: group.fact_keys
+        })));
+      }
+
+      function findItem(sectionId) {
+        return allItems().find((item) => item.section_id === sectionId);
+      }
+
+      function selectedSectionId() {
+        const stored = readJson(sessionStorage, keys.activeSection);
+        const query = currentParams();
+        const fromQuery = query.get("section") || query.get("section_id") || "";
+        return fromQuery || stored?.item?.section_id || "relationship_temperature_true_love";
+      }
+
+      function reportId() {
+        const query = currentParams();
+        const preview = readJson(sessionStorage, keys.reportPreview);
+        const active = readJson(sessionStorage, keys.activeReport);
+        const stored = readJson(sessionStorage, keys.activeSection);
+        return query.get("report_id") || query.get("reportId") || stored?.report_id || active?.report_id || preview?.report_id || "";
+      }
+
+      function isLocalReview() {
+        return location.protocol === "file:";
+      }
+
+      function hasAccess() {
+        if (isLocalReview()) return true;
+        const query = currentParams();
+        if (query.get("access") === "locked" || query.get("entitled") === "false") return false;
+        if (window.UMSH_SERVER_ENTITLEMENT?.couple_signal === true) return true;
+        if (window.UMSH_ENTITLEMENT?.couple_signal === true) return true;
+        const active = readJson(sessionStorage, keys.activeReport);
+        const preview = readJson(sessionStorage, keys.reportPreview);
+        return Boolean(
+          active?.entitlement === "verified"
+          || active?.paid === true
+          || active?.source === "step-4-report"
+          || active?.entry === "step-5-chat"
+          || preview?.entitlement === "verified"
+          || preview?.paid === true
+        );
+      }
+
+      function activeState() {
+        const query = currentParams();
+        if (query.get("state") === "generating") return "generating";
+        if (!hasAccess()) return "locked";
+        if (!isLocalReview() && !reportId()) return "missing";
+        return "ready";
+      }
+
+      function valueAt(object, path) {
+        return path.split(".").reduce((acc, key) => (acc && Object.prototype.hasOwnProperty.call(acc, key) ? acc[key] : undefined), object);
+      }
+
+      function inputStatus() {
+        const reportInput = readJson(sessionStorage, keys.reportInput);
+        const active = readJson(sessionStorage, keys.activeReport);
+        const preview = readJson(sessionStorage, keys.reportPreview);
+        return {
+          reportInput,
+          active,
+          preview,
+          merged: {
+            input: reportInput?.input || reportInput || {},
+            calculated_facts: active?.calculated_facts || preview?.calculated_facts || reportInput?.calculated_facts || {}
+          }
+        };
+      }
+
+      function factRows(item) {
+        const status = inputStatus();
+        const input = status.merged.input;
+        const facts = status.merged.calculated_facts;
+        const factObject = status.merged;
+        const selfReady = Boolean(input?.self?.birth?.year || input?.self?.birth?.month || input?.self?.birth?.day || input?.self?.birth);
+        const partnerReady = Boolean(input?.partner?.birth?.year || input?.partner?.birth?.month || input?.partner?.birth?.day || input?.partner?.birth);
+        const computed = (item.calculated_fact_keys || [])
+          .map((key) => [key, valueAt(factObject, key)])
+          .filter((entry) => entry[1] !== undefined && entry[1] !== null && entry[1] !== "");
+
+        return [
+          ["내 사주 입력", selfReady ? "입력 연결됨" : "입력값 대기"],
+          ["상대 사주 입력", partnerReady ? "입력 연결됨" : "입력값 대기"],
+          ["세부 계산값", computed.length ? computed.map((entry) => String(entry[1])).slice(0, 2).join(" · ") : "세부 계산값 대기"],
+          ["해석 기준", `${item.group.axis} · ${service.basis.join(" · ")}`]
+        ];
+      }
+
+      function sectionAsset(item) {
+        return sectionAssets[item.section_id] || {
+          hero: item.group.image,
+          evidence: "",
+          hero_alt: `${item.group.title} 대표 장면`,
+          evidence_alt: ""
+        };
+      }
+
+      function relatedFor(item) {
+        const list = allItems();
+        const index = list.findIndex((entry) => entry.section_id === item.section_id);
+        return {
+          previous: index > 0 ? list[index - 1] : null,
+          next: index >= 0 && index < list.length - 1 ? list[index + 1] : null,
+          siblings: list.filter((entry) => entry.group.id === item.group.id && entry.section_id !== item.section_id).slice(0, 4)
+        };
+      }
+
+      function detailCopy(item) {
+        const profile = groupProfiles[item.group.id] || groupProfiles.relationship_temperature;
+        return {
+          conclusion: `${item.title}은 상대를 몰아붙이는 결론이 아니라, ${item.preview}`,
+          answer: profile.answer,
+          reality: profile.reality,
+          condition: profile.condition,
+          actions: profile.actions,
+          caution: profile.caution,
+          basis: `${item.group.title}에서는 ${item.group.axis}을 중심으로 고전 용어와 현재 행동 신호를 나눠 봅니다.`
+        };
+      }
+
+      function renderStateCard(kind) {
+        const states = {
+          locked: {
+            title: "전체 리포트 열람 후 볼 수 있어요",
+            text: "상세 해석은 결제와 본인 리포트 확인이 끝난 뒤 열립니다. 무료 티저로 돌아가거나 결과 목록에서 다시 이어갈 수 있어요.",
+            primary: "무료 티저",
+            secondary: "목록"
+          },
+          generating: {
+            title: "상세 리포트를 여는 중이에요",
+            text: "결제는 다시 하지 않아도 됩니다. 결과 생성이 끝나면 같은 리포트에서 이어서 볼 수 있어요.",
+            primary: "다시 확인",
+            secondary: "목록"
+          },
+          missing: {
+            title: "리포트 연결이 끊겼어요",
+            text: "결과 목록에서 항목을 다시 선택하면 상세 해석을 이어서 볼 수 있습니다.",
+            primary: "목록",
+            secondary: "무료 티저"
+          },
+          invalid: {
+            title: "목록에 없는 항목이에요",
+            text: "05 결과 목록에 있는 항목만 상세로 열 수 있습니다. 목록에서 보고 싶은 항목을 다시 선택해 주세요.",
+            primary: "목록",
+            secondary: "무료 티저"
+          }
+        };
+        const state = states[kind] || states.missing;
+        root.innerHTML = `
+          <section class="state-card">
+            <span class="kicker">상태 확인</span>
+            <h1>${escapeHtml(state.title)}</h1>
+            <p>${escapeHtml(state.text)}</p>
+            <div class="state-actions">
+              <button class="primary-btn" type="button" data-state-primary>${escapeHtml(state.primary)}</button>
+              <button type="button" data-state-secondary>${escapeHtml(state.secondary)}</button>
+            </div>
+          </section>
+        `;
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
+      }
+
+      function renderEvidence(item, copy) {
+        const rows = factRows(item);
+        return `
+          <section class="section-card" data-evidence-ids="${escapeHtml(item.evidence_ids.join(" "))}" data-calculated-fact-keys="${escapeHtml(item.calculated_fact_keys.join(" "))}">
+            <div>
+              <span class="block-kicker">확인된 근거</span>
+              <h2>고전 기준과 입력값을 분리해서 봅니다</h2>
+            </div>
+            <div class="evidence-grid">
+              ${rows.map(([label, value]) => `
+                <div class="evidence-row">
+                  <span>${escapeHtml(label)}</span>
+                  <strong>${escapeHtml(value)}</strong>
+                </div>
+              `).join("")}
+            </div>
+            <p>${escapeHtml(copy.basis)} 계산값이 아직 연결되지 않은 항목은 새 숫자나 기간을 만들지 않고, 확인 가능한 관계 신호 중심으로만 읽습니다.</p>
+          </section>
+        `;
+      }
+
+      function renderVisualEvidence(item, asset) {
+        if (!asset.evidence) return "";
+        return `
+          <figure class="visual-block" data-asset-key="couple-signal-06-${escapeHtml(item.section_id)}-evidence">
+            <img src="${escapeHtml(asset.evidence)}" alt="${escapeHtml(asset.evidence_alt)}" loading="lazy" />
+            <figcaption>상세 근거 블록용 장면입니다. 해석 문구는 이미지가 아니라 본문에서만 제공합니다.</figcaption>
+          </figure>
+        `;
+      }
+
+      function renderSignals(item, copy) {
+        const rows = [
+          ["현실에서 보이는 모습", copy.reality],
+          ["시기·강약·조건", copy.condition],
+          ["주의할 선택", copy.caution]
+        ];
+        return `
+          <section class="section-card" data-evidence-ids="${escapeHtml(item.evidence_ids.join(" "))}" data-calculated-fact-keys="${escapeHtml(item.calculated_fact_keys.join(" "))}">
+            <div>
+              <span class="block-kicker">상세 해석</span>
+              <h2>관계 신호로 번역하면 이렇습니다</h2>
+            </div>
+            <div class="reading">
+              <p>${escapeHtml(copy.answer)}</p>
+              <div class="quote">${escapeHtml(copy.conclusion)}</div>
+            </div>
+            <div class="signal-grid">
+              ${rows.map(([label, value], index) => `
+                <div class="signal-row ${index === 2 ? "is-watch" : ""}">
+                  <span>${escapeHtml(label)}</span>
+                  <strong>${escapeHtml(value)}</strong>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderActions(item, copy) {
+        return `
+          <section class="section-card" data-evidence-ids="${escapeHtml(item.evidence_ids.join(" "))}" data-calculated-fact-keys="${escapeHtml(item.calculated_fact_keys.join(" "))}">
+            <div>
+              <span class="block-kicker">지금 할 행동</span>
+              <h2>오늘 또는 이번 주에 할 수 있는 것</h2>
+            </div>
+            <div class="action-grid">
+              ${copy.actions.map((action, index) => `
+                <div class="action-row">
+                  <span>${String(index + 1).padStart(2, "0")}</span>
+                  <strong>${escapeHtml(action)}</strong>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderRelated(item) {
+        const related = relatedFor(item);
+        const buttons = [
+          related.previous ? { label: "이전", item: related.previous } : null,
+          related.next ? { label: "다음", item: related.next } : null,
+          ...related.siblings.map((sibling) => ({ label: item.group.title, item: sibling }))
+        ].filter(Boolean).slice(0, 6);
+
+        return `
+          <section class="related-card">
+            <div>
+              <span class="block-kicker">연관 항목</span>
+              <h2>같이 보면 흐름이 선명해져요</h2>
+            </div>
+            <div class="related-list">
+              ${buttons.map((entry) => `
+                <button type="button" data-related-section="${escapeHtml(entry.item.section_id)}">
+                  <strong>${escapeHtml(entry.item.title)}</strong>
+                  <span>${escapeHtml(entry.label)}</span>
+                </button>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderDetail(item) {
+        const asset = sectionAsset(item);
+        const copy = detailCopy(item);
+        const related = relatedFor(item);
+        document.getElementById("context-label").textContent = `${item.group.title} · ${item.title}`;
+        btnPrev.disabled = !related.previous;
+        btnNext.disabled = !related.next;
+        btnPrev.dataset.target = related.previous?.section_id || "";
+        btnNext.dataset.target = related.next?.section_id || "";
+
+        root.innerHTML = `
+          <div>
+            <section class="hero" data-asset-key="couple-signal-06-${escapeHtml(item.section_id)}-hero">
+              <div class="hero-visual">
+                <img src="${escapeHtml(asset.hero)}" alt="${escapeHtml(asset.hero_alt)}" />
+              </div>
+              <div class="hero-copy">
+                <span class="kicker">${escapeHtml(item.group.title)}</span>
+                <h1>${escapeHtml(item.title)}</h1>
+                <p>${escapeHtml(item.preview)}</p>
+                <div class="status-line" aria-label="분석 기준">
+                  <span>${escapeHtml(service.category)}</span>
+                  <span>${escapeHtml(service.basis.join(" · "))}</span>
+                  <span>${escapeHtml(service.report_version)}</span>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div>
+            <section class="section-card" data-evidence-ids="${escapeHtml(item.evidence_ids.join(" "))}" data-calculated-fact-keys="${escapeHtml(item.calculated_fact_keys.join(" "))}">
+              <span class="block-kicker">한 줄 결론</span>
+              <div class="headline-answer">
+                <strong>${escapeHtml(copy.conclusion)}</strong>
+              </div>
+              <p>이 상세 페이지는 “그랬다/아니다”를 찍지 않고, 현재 관계에서 확인할 수 있는 온도·외부 변수·대화 타이밍을 순서대로 정리합니다.</p>
+            </section>
+            ${renderEvidence(item, copy)}
+            ${renderVisualEvidence(item, asset)}
+            ${renderSignals(item, copy)}
+            ${renderActions(item, copy)}
+            ${renderRelated(item)}
+          </div>
+        `;
+
+        writeJson(sessionStorage, keys.activeSection, {
+          service,
+          report_id: reportId(),
+          group: {
+            id: item.group.id,
+            title: item.group.title,
+            subtitle: item.group.subtitle,
+            image: item.group.image,
+            evidence_ids: item.group.evidence_ids
+          },
+          item: {
+            section_id: item.section_id,
+            title: item.title,
+            preview: item.preview,
+            evidence_ids: item.evidence_ids,
+            calculated_fact_keys: item.calculated_fact_keys
+          },
+          siblings: groups.find((group) => group.id === item.group.id).items.map((row) => ({
+            section_id: row[0],
+            title: row[1],
+            preview: row[2],
+            route: `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(row[0])}#step-6_1-report`
+          })),
+          created_at: new Date().toISOString()
+        });
+      }
+
+      function goList() {
+        writeJson(sessionStorage, keys.scrollReturn, {
+          section_id: selectedSectionId(),
+          report_id: reportId(),
+          created_at: new Date().toISOString()
+        });
+        if (document.referrer && document.referrer.includes("05-step-5-chat")) {
+          history.back();
+          return;
+        }
+        location.href = "../05-step-5-chat/chat.html#step-5-chat";
+      }
+
+      function navigateSection(sectionId, replace = false) {
+        const item = findItem(sectionId);
+        if (!item) {
+          renderStateCard("invalid");
+          return;
+        }
+        const nextUrl = `?service_key=${encodeURIComponent(service.service_key)}&report_id=${encodeURIComponent(reportId() || "local-review")}&report_version=${encodeURIComponent(service.report_version)}&group=${encodeURIComponent(item.group.id)}&section=${encodeURIComponent(item.section_id)}#step-6_1-report`;
+        if (replace) {
+          history.replaceState({ section_id: item.section_id }, "", nextUrl);
+        } else {
+          history.pushState({ section_id: item.section_id }, "", nextUrl);
+        }
+        renderDetail(item);
+        document.getElementById("step-6_1-report").scrollIntoView({ block: "start" });
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove("is-visible"), 2300);
+      }
+
+      function boot() {
+        const state = activeState();
+        const item = findItem(selectedSectionId());
+        if (state !== "ready") {
+          renderStateCard(state);
+          return;
+        }
+        if (!item) {
+          renderStateCard("invalid");
+          return;
+        }
+        navigateSection(item.section_id, true);
+      }
+
+      document.getElementById("btn-back").addEventListener("click", goList);
+      document.getElementById("btn-list").addEventListener("click", goList);
+      document.getElementById("btn-save").addEventListener("click", () => showToast("현재 상세 항목을 보관함에 연결해 둘게요."));
+      btnPrev.addEventListener("click", () => {
+        if (btnPrev.dataset.target) navigateSection(btnPrev.dataset.target);
+      });
+      btnNext.addEventListener("click", () => {
+        if (btnNext.dataset.target) navigateSection(btnNext.dataset.target);
+      });
+      root.addEventListener("click", (event) => {
+        const related = event.target.closest("[data-related-section]");
+        const primary = event.target.closest("[data-state-primary]");
+        const secondary = event.target.closest("[data-state-secondary]");
+        if (related) navigateSection(related.dataset.relatedSection);
+        if (primary || secondary) {
+          const label = (primary || secondary).textContent.trim();
+          if (label === "무료 티저") location.href = "../04-step-4-report/index.html#step-4-report";
+          else if (label === "다시 확인") location.reload();
+          else goList();
+        }
+      });
+      document.addEventListener("error", (event) => {
+        if (event.target?.tagName === "IMG") {
+          event.target.closest(".hero, .visual-block")?.classList.add("image-failed");
+        }
+      }, true);
+      window.addEventListener("popstate", () => {
+        const item = findItem(selectedSectionId());
+        if (item) renderDetail(item);
+      });
+      function updateOffline() {
+        offline.classList.toggle("is-visible", navigator.onLine === false);
+      }
+      window.addEventListener("online", updateOffline);
+      window.addEventListener("offline", updateOffline);
+      updateOffline();
+      boot();
+    })();
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/signal-service.js" defer></script>
+  </body>
+</html>

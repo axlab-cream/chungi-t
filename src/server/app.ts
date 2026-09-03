@@ -81,6 +81,12 @@ import {
   parseLoveMindRequest,
 } from '../love/mind-service.js'
 import {
+  buildLoveSignalContext,
+  buildLoveSignalReport,
+  createLoveSignalReportId,
+  parseLoveSignalRequest,
+} from '../love/signal-service.js'
+import {
   buildLoveAgainContext,
   buildLoveAgainReport,
   createLoveAgainReportId,
@@ -211,6 +217,31 @@ app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, 
 })
 app.get(['/love/mind', '/love/mind/', '/love/mind/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'mind', 'index.html'))
+})
+// 관계 신호 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/love/signal', '/love/signal/', '/love/signal/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/love/signal/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/love/signal/input', '/love/signal/input.html'], (_req, res) => {
+  res.redirect(302, '/love/signal/02-step-2-saju-input/index.html')
+})
+app.get(['/love/signal/report', '/love/signal/report.html'], (_req, res) => {
+  res.redirect(302, '/love/signal/04-step-4-report/index.html')
+})
+app.get(['/love/signal/chat', '/love/signal/chat.html'], (_req, res) => {
+  res.redirect(302, '/love/signal/05-step-5-chat/chat.html')
+})
+app.get(['/love/signal/detail', '/love/signal/detail.html'], (_req, res) => {
+  res.redirect(302, '/love/signal/06-step-6_1-report-detail/index.html')
 })
 app.get(['/love/again', '/love/again/', '/love/again/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'again', 'index.html'))
@@ -964,6 +995,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   match_couple: 'match_couple',
   work_job: 'work_job',
   quit_fortune: 'quit_fortune',
+  couple_signal: 'couple_signal',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
   love_again: 'love_again',
@@ -1594,6 +1626,38 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '상대방 마음 생성 실패' })
+  }
+})
+
+app.post('/api/love/signal/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '관계 신호를 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveSignalRequest(req.body)
+    const partnerAnalysis = analyzeSaju(input.partnerBirth)
+    const context = buildLoveSignalContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveSignalReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId)) return
+    const templateReport = buildLoveSignalReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '관계 신호 생성 실패' })
   }
 })
 

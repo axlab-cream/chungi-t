@@ -12,6 +12,7 @@ export type PaymentProductKey =
   | 'love_spouse'
   | 'pass_angle'
   | 'quit_fortune'
+  | 'couple_signal'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -98,6 +99,15 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     // Step 04 is where the paid request resumes, so the PG returns straight to it.
     returnPath: '/match/couple/04-step-4-report/index.html',
     summary: '명리궁합, 오행, 일지로 둘의 끌림과 갈등을 봅니다.',
+  },
+  couple_signal: {
+    key: 'couple_signal',
+    title: '관계 신호',
+    eyebrow: 'SECRET · 연애',
+    amount: 19900,
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/love/signal/04-step-4-report/index.html',
+    summary: '도화, 배우자성, 합충으로 지금 관계의 신호를 봅니다.',
   },
   love_mind: {
     key: 'love_mind',

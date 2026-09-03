@@ -1,0 +1,1458 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>사주 입력 | 내 애인 바람필까?</title>
+    <meta
+      name="description"
+      content="명리궁합, 오행, 일지 기준으로 관계 신호를 보기 위한 본인과 상대방 사주 입력 화면"
+    />
+    <meta name="application-name" content="운명상회" />
+    <meta name="theme-color" content="#080303" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080303;
+        --surface: rgba(18, 7, 7, 0.92);
+        --surface-strong: rgba(32, 9, 10, 0.94);
+        --surface-soft: rgba(255, 255, 255, 0.055);
+        --line: rgba(235, 189, 101, 0.22);
+        --line-strong: rgba(235, 189, 101, 0.48);
+        --gold: #e9bf6a;
+        --gold-soft: #ffe4aa;
+        --red: #b31e24;
+        --red-deep: #52080b;
+        --teal: #76c6bf;
+        --text: #fff7ea;
+        --muted: rgba(255, 247, 234, 0.72);
+        --dim: rgba(255, 247, 234, 0.52);
+        --danger: #ff6b5f;
+        --ok: #8bd6ae;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+        --font-ui: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        min-height: 100%;
+        background: #000;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(circle at 50% -12rem, rgba(179, 30, 36, 0.22), transparent 33rem),
+          radial-gradient(circle at 10% 18rem, rgba(118, 198, 191, 0.08), transparent 20rem),
+          #000;
+        color: var(--text);
+        font-family: var(--font-ui);
+      }
+
+      body,
+      button,
+      input,
+      select,
+      textarea {
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background:
+          linear-gradient(180deg, rgba(97, 10, 13, 0.3), transparent 22rem),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        min-height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(235, 189, 101, 0.14);
+        background: rgba(8, 3, 3, 0.88);
+        backdrop-filter: blur(16px);
+      }
+
+      .back-link {
+        width: 38px;
+        height: 38px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .brand {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand strong {
+        overflow: hidden;
+        color: var(--gold-soft);
+        font-family: var(--font-title);
+        font-size: 18px;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand span {
+        color: var(--dim);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .top-pill {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        border: 1px solid rgba(235, 189, 101, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 12px;
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
+      main {
+        padding: 16px 16px max(34px, env(safe-area-inset-bottom));
+      }
+
+      .hero {
+        position: relative;
+        min-height: 232px;
+        display: grid;
+        align-items: end;
+        overflow: hidden;
+        border: 1px solid rgba(235, 189, 101, 0.18);
+        border-radius: 8px;
+        background: #140706;
+      }
+
+      .hero img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 28%;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.36) 42%, rgba(0, 0, 0, 0.92)),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.66), transparent 54%);
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+      }
+
+      .eyebrow,
+      .section-kicker {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 12ch;
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: clamp(31px, 9vw, 42px);
+        line-height: 1.12;
+      }
+
+      .hero p {
+        max-width: 25rem;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.65;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 12px 0 14px;
+      }
+
+      .summary-item {
+        min-width: 0;
+        min-height: 62px;
+        display: grid;
+        align-content: center;
+        gap: 5px;
+        padding: 10px 8px;
+        border: 1px solid rgba(235, 189, 101, 0.15);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .summary-item span {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .summary-item strong {
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .form-shell {
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(235, 189, 101, 0.17);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(179, 30, 36, 0.16), transparent 16rem),
+          rgba(13, 5, 5, 0.88);
+      }
+
+      .panel-head {
+        display: grid;
+        gap: 8px;
+      }
+
+      .panel h2 {
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: 24px;
+        line-height: 1.28;
+      }
+
+      .panel-head p,
+      .helper,
+      .fineprint {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .helper {
+        font-size: 13px;
+      }
+
+      .fineprint {
+        color: var(--dim);
+        font-size: 12px;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      label,
+      .choice-label {
+        color: var(--gold-soft);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 50px;
+        border: 1px solid rgba(255, 226, 175, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.065);
+        color: var(--text);
+        outline: none;
+      }
+
+      input,
+      select {
+        padding: 0 14px;
+      }
+
+      textarea {
+        min-height: 92px;
+        resize: vertical;
+        padding: 13px 14px;
+        line-height: 1.55;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 247, 234, 0.34);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: rgba(242, 191, 107, 0.8);
+        box-shadow: 0 0 0 3px rgba(242, 191, 107, 0.12);
+      }
+
+      input[aria-invalid="true"],
+      textarea[aria-invalid="true"] {
+        border-color: rgba(255, 107, 95, 0.9);
+        box-shadow:
+          0 0 0 3px rgba(255, 107, 95, 0.14),
+          inset 0 1px 10px rgba(0, 0, 0, 0.22);
+      }
+
+      select {
+        appearance: none;
+        background:
+          linear-gradient(45deg, transparent 50%, var(--gold-soft) 50%) right 18px center / 8px 8px no-repeat,
+          linear-gradient(135deg, var(--gold-soft) 50%, transparent 50%) right 12px center / 8px 8px no-repeat,
+          rgba(255, 255, 255, 0.065);
+      }
+
+      .field-error,
+      .group-error {
+        min-height: 18px;
+        color: var(--danger);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      .choice-block {
+        display: grid;
+        gap: 8px;
+      }
+
+      .choice-grid {
+        display: grid;
+        gap: 8px;
+      }
+
+      .choice-grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .choice-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .choice {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 11px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .choice[aria-pressed="true"] {
+        border-color: rgba(242, 191, 107, 0.78);
+        background:
+          linear-gradient(180deg, rgba(179, 30, 36, 0.28), rgba(82, 8, 11, 0.34)),
+          rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        box-shadow: 0 0 0 1px rgba(242, 191, 107, 0.14) inset;
+      }
+
+      .profile-choice .choice {
+        justify-content: flex-start;
+        min-height: 64px;
+        text-align: left;
+      }
+
+      .choice strong,
+      .choice span {
+        display: block;
+      }
+
+      .choice span {
+        margin-top: 3px;
+        color: var(--dim);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .profile-preview {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(118, 198, 191, 0.22);
+        border-radius: 8px;
+        background: rgba(118, 198, 191, 0.08);
+      }
+
+      .profile-preview strong {
+        color: var(--ok);
+        font-size: 13px;
+      }
+
+      .profile-preview span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(235, 189, 101, 0.36), transparent);
+      }
+
+      .inline-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .is-hidden {
+        display: none !important;
+      }
+
+      .notice {
+        display: grid;
+        gap: 8px;
+        padding: 13px;
+        border: 1px solid rgba(235, 189, 101, 0.15);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .notice strong {
+        color: var(--gold-soft);
+        font-size: 13px;
+      }
+
+      .notice p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .status-line {
+        min-height: 22px;
+        color: var(--ok);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      .status-line.is-error {
+        color: var(--danger);
+      }
+
+      .actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 8;
+        display: grid;
+        grid-template-columns: 104px 1fr;
+        gap: 10px;
+        margin: 0 -16px;
+        padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(235, 189, 101, 0.15);
+        background: rgba(8, 3, 3, 0.9);
+        backdrop-filter: blur(16px);
+      }
+
+      .ghost,
+      .primary {
+        min-height: 52px;
+        border-radius: 8px;
+        font-weight: 950;
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 226, 175, 0.17);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+      }
+
+      .primary {
+        border: 1px solid rgba(255, 225, 168, 0.38);
+        background: linear-gradient(180deg, #b31e24, #650d10);
+        color: #fff8e8;
+        box-shadow: 0 16px 34px rgba(105, 9, 12, 0.34);
+      }
+
+      .primary:disabled {
+        cursor: not-allowed;
+        opacity: 0.58;
+      }
+
+      .footer {
+        padding: 18px 2px 0;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 26px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 52px);
+          border: 1px solid rgba(235, 189, 101, 0.16);
+          border-radius: 18px;
+          overflow: clip;
+        }
+
+        .topbar {
+          border-radius: 18px 18px 0 0;
+        }
+      }
+
+      @media (max-width: 370px) {
+        .choice-grid.three {
+          grid-template-columns: 1fr;
+        }
+
+        .summary-grid,
+        .inline-row {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          grid-template-columns: 88px 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .choice,
+        .primary,
+        .ghost,
+        .back-link {
+          transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease;
+        }
+
+        .choice:active,
+        .primary:active,
+        .ghost:active,
+        .back-link:active {
+          transform: translateY(1px);
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta,
+      body.umsh-has-chrome .sticky,
+      body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="app" data-umsh-chrome data-service="관계 신호" data-price="19,900원" data-active="home">
+      <header class="appbar topbar">
+        <a class="back-link" href="../01-step-1-story/index.html#step-1-story" aria-label="이전 단계로">‹</a>
+        <div class="brand">
+          <strong>내 애인 바람필까?</strong>
+          <span>커플궁합 · 정보 입력</span>
+        </div>
+        <span class="top-pill">19,900원</span>
+      </header>
+
+      <main id="step-2-saju-input">
+        <section class="hero" aria-labelledby="input-title">
+          <img
+            src="../assets/signal/02-form-guide.webp"
+            alt="레드 의상의 상담자가 두 사람의 관계 입력을 준비하는 장면"
+            loading="eager"
+          />
+          <div class="hero-copy">
+            <span class="eyebrow">STEP 02 · 두 사람 정보</span>
+            <h1 id="input-title">두 사람을 섞지 말고 나눠주세요</h1>
+            <p>바람을 단정하지 않고, 내 일지와 상대 일지, 오행의 붙는 지점과 밀리는 지점을 함께 봅니다.</p>
+          </div>
+        </section>
+
+        <div class="summary-grid" aria-label="입력 안내">
+          <div class="summary-item">
+            <span>입력량</span>
+            <strong>필수 7개</strong>
+          </div>
+          <div class="summary-item">
+            <span>예상 시간</span>
+            <strong>약 2분</strong>
+          </div>
+          <div class="summary-item">
+            <span>생시</span>
+            <strong>모름 가능</strong>
+          </div>
+        </div>
+
+        <form class="form-shell" id="signalForm" novalidate>
+          <section class="panel" aria-labelledby="profile-title">
+            <div class="panel-head">
+              <span class="section-kicker">MY PROFILE</span>
+              <h2 id="profile-title">내 정보</h2>
+              <p>이미 저장된 기본 사주가 있으면 다시 적지 않아도 됩니다. 없으면 직접 입력으로 이어가세요.</p>
+            </div>
+
+            <div class="choice-block">
+              <span class="choice-label" id="profile-mode-label">입력 방식</span>
+              <div class="choice-grid profile-choice" role="group" aria-labelledby="profile-mode-label">
+                <button class="choice" type="button" data-choice="profileMode" data-value="saved" aria-pressed="false">
+                  <span><strong>내 기본 사주 사용</strong><span>로그인 계정에 저장된 정보로 이어가기</span></span>
+                </button>
+                <button class="choice" type="button" data-choice="profileMode" data-value="manual" aria-pressed="true">
+                  <span><strong>직접 입력</strong><span>다른 사주나 새 정보로 확인하기</span></span>
+                </button>
+              </div>
+              <div class="group-error" data-error-for="profileMode" aria-live="polite"></div>
+            </div>
+
+            <div class="profile-preview is-hidden" data-profile-preview>
+              <strong>저장된 기본 사주를 사용합니다</strong>
+              <span data-profile-summary>계정의 기본 사주 정보가 있으면 이 화면에서 다시 묻지 않습니다.</span>
+            </div>
+
+            <div class="field-grid" data-self-fields>
+              <div class="field">
+                <label for="selfAlias">내 호칭 <span class="fineprint">선택</span></label>
+                <input id="selfAlias" name="selfAlias" type="text" placeholder="예: 나, 민지" autocomplete="off" />
+                <p class="helper">결과 화면에서 부를 이름입니다. 사주 계산에는 쓰지 않습니다.</p>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="self-gender-label">내 성별</span>
+                <div class="choice-grid two" role="group" aria-labelledby="self-gender-label">
+                  <button class="choice" type="button" data-choice="selfGender" data-value="female" aria-pressed="false">여성</button>
+                  <button class="choice" type="button" data-choice="selfGender" data-value="male" aria-pressed="false">남성</button>
+                </div>
+                <p class="helper">관성·재성처럼 관계 별을 구분하는 데 필요합니다.</p>
+                <div class="group-error" data-error-for="selfGender" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="self-calendar-label">내 생일 기준</span>
+                <div class="choice-grid two" role="group" aria-labelledby="self-calendar-label">
+                  <button class="choice" type="button" data-choice="selfCalendar" data-value="solar" aria-pressed="true">양력</button>
+                  <button class="choice" type="button" data-choice="selfCalendar" data-value="lunar" aria-pressed="false">음력</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="selfBirth">내 생년월일</label>
+                <input
+                  id="selfBirth"
+                  name="selfBirth"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="19980315"
+                  autocomplete="bday"
+                  aria-describedby="selfBirth-help selfBirth-error"
+                />
+                <p class="helper" id="selfBirth-help">숫자 8자리로 입력해주세요.</p>
+                <div class="field-error" id="selfBirth-error" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="self-time-label">내 태어난 시간</span>
+                <div class="choice-grid two" role="group" aria-labelledby="self-time-label">
+                  <button class="choice" type="button" data-choice="selfTimeKnown" data-value="true" aria-pressed="false">생시 입력</button>
+                  <button class="choice" type="button" data-choice="selfTimeKnown" data-value="false" aria-pressed="true">생시 모름</button>
+                </div>
+              </div>
+
+              <div class="field is-hidden" data-time-field="self">
+                <label for="selfTime">내 태어난 시간</label>
+                <input id="selfTime" name="selfTime" type="text" inputmode="numeric" placeholder="13:30" aria-describedby="selfTime-error" />
+                <div class="field-error" id="selfTime-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="partner-title">
+            <div class="panel-head">
+              <span class="section-kicker">PARTNER</span>
+              <h2 id="partner-title">상대 정보</h2>
+              <p>상대 정보가 비어 있으면 내 정보로 대신 채우지 않습니다. 궁합과 일지 비교를 위해 상대 생년월일은 필요합니다.</p>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="partnerAlias">상대 호칭 <span class="fineprint">선택</span></label>
+                <input id="partnerAlias" name="partnerAlias" type="text" placeholder="예: 애인, 그 사람" autocomplete="off" />
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="relationship-label">현재 관계</span>
+                <div class="choice-grid two" role="group" aria-labelledby="relationship-label">
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="lover" aria-pressed="true">연애 중</button>
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="situationship" aria-pressed="false">썸·애매함</button>
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="distance" aria-pressed="false">거리 둔 상태</button>
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="ex_variable" aria-pressed="false">전애인 변수</button>
+                </div>
+                <div class="group-error" data-error-for="relationshipStatus" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="partner-gender-label">상대 성별</span>
+                <div class="choice-grid two" role="group" aria-labelledby="partner-gender-label">
+                  <button class="choice" type="button" data-choice="partnerGender" data-value="female" aria-pressed="false">여성</button>
+                  <button class="choice" type="button" data-choice="partnerGender" data-value="male" aria-pressed="false">남성</button>
+                </div>
+                <div class="group-error" data-error-for="partnerGender" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="partner-calendar-label">상대 생일 기준</span>
+                <div class="choice-grid two" role="group" aria-labelledby="partner-calendar-label">
+                  <button class="choice" type="button" data-choice="partnerCalendar" data-value="solar" aria-pressed="true">양력</button>
+                  <button class="choice" type="button" data-choice="partnerCalendar" data-value="lunar" aria-pressed="false">음력</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="partnerBirth">상대 생년월일</label>
+                <input
+                  id="partnerBirth"
+                  name="partnerBirth"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="19980315"
+                  autocomplete="off"
+                  aria-describedby="partnerBirth-help partnerBirth-error"
+                />
+                <p class="helper" id="partnerBirth-help">상대 일지와 오행 흐름을 비교하기 위한 필수 정보입니다.</p>
+                <div class="field-error" id="partnerBirth-error" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="partner-time-label">상대 태어난 시간</span>
+                <div class="choice-grid two" role="group" aria-labelledby="partner-time-label">
+                  <button class="choice" type="button" data-choice="partnerTimeKnown" data-value="true" aria-pressed="false">생시 입력</button>
+                  <button class="choice" type="button" data-choice="partnerTimeKnown" data-value="false" aria-pressed="true">생시 모름</button>
+                </div>
+              </div>
+
+              <div class="field is-hidden" data-time-field="partner">
+                <label for="partnerTime">상대 태어난 시간</label>
+                <input id="partnerTime" name="partnerTime" type="text" inputmode="numeric" placeholder="13:30" aria-describedby="partnerTime-error" />
+                <div class="field-error" id="partnerTime-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="focus-title">
+            <div class="panel-head">
+              <span class="section-kicker">SIGNAL</span>
+              <h2 id="focus-title">지금 제일 걸리는 신호</h2>
+              <p>단정 증거를 묻는 단계가 아니라, 리포트에서 먼저 볼 관계 장면을 정하는 단계입니다.</p>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="signalFocus">먼저 보고 싶은 포인트</label>
+                <select id="signalFocus" name="signalFocus">
+                  <option value="contact_change">연락 텐션 변화</option>
+                  <option value="schedule_change">약속 변경이 잦아짐</option>
+                  <option value="sns_group">SNS·모임 변수</option>
+                  <option value="ex_return">전애인 재등장 느낌</option>
+                  <option value="cold_mood">표현이 식은 느낌</option>
+                  <option value="not_sure">아직 잘 모르겠음</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="concern">한 줄로 적어두기 <span class="fineprint">선택</span></label>
+                <textarea
+                  id="concern"
+                  name="concern"
+                  maxlength="120"
+                  placeholder="예: 요즘 답장이 늦고 약속을 자주 미뤄요"
+                  aria-describedby="concern-help"
+                ></textarea>
+                <p class="helper" id="concern-help">120자 안에서 적으면 04 리포트의 무료 티저 문구에 반영됩니다.</p>
+              </div>
+            </div>
+
+            <div class="notice">
+              <strong>운영 기준</strong>
+              <p>이 서비스는 외도 여부를 단정하지 않습니다. 관계 온도, 외부 유혹에 흔들릴 수 있는 구간, 확인 대화가 필요한 타이밍을 참고 해석으로 제공합니다.</p>
+            </div>
+          </section>
+
+          <div class="status-line" data-form-status aria-live="polite"></div>
+
+          <div class="actions">
+            <button class="ghost" type="button" data-back>이전</button>
+            <button class="primary" type="submit">입력한 정보로 관계 신호 보기</button>
+          </div>
+        </form>
+
+        <footer class="footer">
+          입력값은 다음 단계 연결을 위해 같은 브라우저 세션에만 임시 보관됩니다. 이름, 생년월일 같은 정보는 주소창에 넣지 않습니다.
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      const schemaVersion = "couple-signal-input-v1";
+      const serviceState = {
+        service_key: "couple_signal",
+        service_slug: "couple-signal",
+        service_title: "내 애인 바람필까?",
+        category: "커플궁합",
+        subcategory: "관계 신호",
+        price_krw: 19900,
+        analysis_basis: ["명리궁합", "오행", "일지"],
+        analysis_period: "현재 흐름과 가까운 시기",
+        target_question: "내 애인이 지금 다른 사람에게 흔들릴 가능성이 있는지 관계 신호를 보고 싶다.",
+        report_version: "couple-signal-v1",
+        copy_version: "input-red-v1"
+      };
+
+      const interpretationIndex = [
+        { id: "relationship_temperature", title: "지금 우리 관계 온도", items: ["찐사랑 유지각", "권태기 살짝 온 듯", "연락 텐션 변화", "데이트 에너지 변화"] },
+        { id: "partner_signal_radar", title: "애인의 바람기 레이더", items: ["도화·홍염 기반 매력 신호", "관심받는 걸 즐기는 타입", "선 넘기 쉬운 환경운", "외부 유혹에 약한 시기"] },
+        { id: "switch_flirt_check", title: "환승각·썸각 체크", items: ["새 사람에게 흔들릴 수 있는 타이밍", "SNS·모임 변수", "전애인 재등장 가능성"] },
+        { id: "partner_palace_signal", title: "부부궁·연인궁 시그널", items: ["부부궁 충·합·형·파·해 체크", "원진살식 미움 포인트", "관계가 붙는 구조 vs 밀어내는 구조"] },
+        { id: "ten_gods_love_style", title: "십성으로 보는 연애 스타일", items: ["상관", "편재", "정재", "정관", "편인", "정인"] },
+        { id: "compatibility_chemistry", title: "궁합 케미 분석", items: ["천간 궁합", "지지 궁합", "오행 상생", "오행 상극", "의사소통 잘 되는 타입"] },
+        { id: "timing_flow", title: "시기별 흔들림 운", items: ["대운", "세운", "월운", "일진", "초입", "중반", "말기"] },
+        { id: "anxiety_source", title: "불안 원인 해석", items: ["내 촉이 맞는지 불안인지", "집착 버튼 눌린 이유", "대화가 줄어든 진짜 이유"] },
+        { id: "reality_check_action", title: "현실 확인 액션", items: ["추궁 말고 확인 질문", "연락 패턴 체크리스트", "대화 타이밍 추천", "관계 회복용 한 문장"] },
+        { id: "final_conclusion_type", title: "최종 리포트 결론 타입", items: ["안심각", "관망각", "대화각", "경계각", "정리각", "재점검각"] }
+      ];
+
+      const storageKeys = {
+        service: "umsh:service:couple_signal",
+        draft: "umsh:input:couple_signal",
+        reportInput: "umsh:report-input:couple_signal",
+        authReturn: "umsh:auth:return:couple_signal",
+        legacyBirth: "cheongi_birth",
+        cachedProfile: "cheongi_user_birth_profile_v1"
+      };
+
+      const state = {
+        profileMode: "manual",
+        selfAlias: "",
+        selfGender: "",
+        selfCalendar: "solar",
+        selfBirth: "",
+        selfTimeKnown: false,
+        selfTime: "",
+        partnerAlias: "",
+        relationshipStatus: "lover",
+        partnerGender: "",
+        partnerCalendar: "solar",
+        partnerBirth: "",
+        partnerTimeKnown: false,
+        partnerTime: "",
+        signalFocus: "contact_change",
+        concern: ""
+      };
+
+      const labels = {
+        female: "여성",
+        male: "남성",
+        solar: "양력",
+        lunar: "음력",
+        lover: "연애 중",
+        situationship: "썸·애매함",
+        distance: "거리 둔 상태",
+        ex_variable: "전애인 변수"
+      };
+
+      const form = document.querySelector("#signalForm");
+      const statusLine = document.querySelector("[data-form-status]");
+      let cachedProfile = readCachedProfile();
+
+      function readJson(storage, key) {
+        try {
+          const value = storage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function writeSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function readCachedProfile() {
+        const sessionBirth = readJson(sessionStorage, storageKeys.legacyBirth);
+        if (sessionBirth?.year && sessionBirth?.month && sessionBirth?.day) {
+          return {
+            source: "session",
+            name: sessionBirth.name || "",
+            birth: sessionBirth,
+            birthTimeKnown: sessionBirth.birthTimeKnown !== false
+          };
+        }
+
+        const profile = readJson(localStorage, storageKeys.cachedProfile);
+        if (profile?.birth?.year && profile?.birth?.month && profile?.birth?.day) {
+          return {
+            source: "account_cache",
+            name: profile.name || "",
+            birth: profile.birth,
+            birthTimeKnown: profile.birthTimeKnown !== false
+          };
+        }
+
+        return null;
+      }
+
+      function normalizeBirthDigits(value) {
+        return String(value || "").replace(/\D/g, "").slice(0, 8);
+      }
+
+      function formatBirthLabel(value) {
+        const digits = normalizeBirthDigits(value);
+        if (digits.length !== 8) return value || "생년월일 미입력";
+        return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+      }
+
+      function profileBirthString(profile) {
+        const birth = profile?.birth || {};
+        if (!birth.year || !birth.month || !birth.day) return "";
+        return `${birth.year}${String(birth.month).padStart(2, "0")}${String(birth.day).padStart(2, "0")}`;
+      }
+
+      function profileSummary(profile) {
+        if (!profile) return "저장된 기본 사주가 아직 없습니다. 직접 입력으로 진행해주세요.";
+        const birth = profile.birth || {};
+        const calendar = birth.calendar === "lunar" ? "음력" : "양력";
+        const gender = birth.gender === "female" ? "여성" : birth.gender === "male" ? "남성" : "성별 저장됨";
+        const time = profile.birthTimeKnown === false ? "생시 모름" : `${String(birth.hour ?? 0).padStart(2, "0")}:${String(birth.minute ?? 0).padStart(2, "0")}`;
+        return `${profile.name ? `${profile.name} · ` : ""}${gender} · ${calendar} ${formatBirthLabel(profileBirthString(profile))} · ${time}`;
+      }
+
+      function restoreDraft() {
+        const draft = readJson(sessionStorage, storageKeys.draft);
+        if (!draft || draft.schema_version !== schemaVersion || draft.service_key !== serviceState.service_key) return false;
+        Object.assign(state, {
+          profileMode: draft.profileMode || state.profileMode,
+          selfAlias: draft.selfAlias || "",
+          selfGender: draft.selfGender || "",
+          selfCalendar: draft.selfCalendar || "solar",
+          selfBirth: draft.selfBirth || "",
+          selfTimeKnown: draft.selfTimeKnown === true,
+          selfTime: draft.selfTime || "",
+          partnerAlias: draft.partnerAlias || "",
+          relationshipStatus: draft.relationshipStatus || "lover",
+          partnerGender: draft.partnerGender || "",
+          partnerCalendar: draft.partnerCalendar || "solar",
+          partnerBirth: draft.partnerBirth || "",
+          partnerTimeKnown: draft.partnerTimeKnown === true,
+          partnerTime: draft.partnerTime || "",
+          signalFocus: draft.signalFocus || "contact_change",
+          concern: draft.concern || ""
+        });
+        return true;
+      }
+
+      function syncInputsFromState() {
+        const setValue = (id, value) => {
+          const target = document.querySelector(`#${id}`);
+          if (target) target.value = value || "";
+        };
+
+        setValue("selfAlias", state.selfAlias);
+        setValue("selfBirth", state.selfBirth);
+        setValue("selfTime", state.selfTime);
+        setValue("partnerAlias", state.partnerAlias);
+        setValue("partnerBirth", state.partnerBirth);
+        setValue("partnerTime", state.partnerTime);
+        setValue("signalFocus", state.signalFocus);
+        setValue("concern", state.concern);
+        renderChoices();
+        renderConditionalBlocks();
+      }
+
+      function collectTextInputs() {
+        const value = (id) => document.querySelector(`#${id}`)?.value.trim() || "";
+        state.selfAlias = value("selfAlias");
+        state.selfBirth = normalizeBirthDigits(value("selfBirth"));
+        state.selfTime = normalizeTime(value("selfTime"));
+        state.partnerAlias = value("partnerAlias");
+        state.partnerBirth = normalizeBirthDigits(value("partnerBirth"));
+        state.partnerTime = normalizeTime(value("partnerTime"));
+        state.signalFocus = document.querySelector("#signalFocus")?.value || state.signalFocus;
+        state.concern = value("concern").slice(0, 120);
+      }
+
+      function persistDraft() {
+        collectTextInputs();
+        writeSession(storageKeys.draft, {
+          schema_version: schemaVersion,
+          service_key: serviceState.service_key,
+          profileMode: state.profileMode,
+          selfAlias: state.selfAlias,
+          selfGender: state.selfGender,
+          selfCalendar: state.selfCalendar,
+          selfBirth: state.selfBirth,
+          selfTimeKnown: state.selfTimeKnown,
+          selfTime: state.selfTime,
+          partnerAlias: state.partnerAlias,
+          relationshipStatus: state.relationshipStatus,
+          partnerGender: state.partnerGender,
+          partnerCalendar: state.partnerCalendar,
+          partnerBirth: state.partnerBirth,
+          partnerTimeKnown: state.partnerTimeKnown,
+          partnerTime: state.partnerTime,
+          signalFocus: state.signalFocus,
+          concern: state.concern
+        });
+      }
+
+      function renderChoices() {
+        document.querySelectorAll("[data-choice]").forEach((button) => {
+          const key = button.dataset.choice;
+          const value = parseChoiceValue(button.dataset.value);
+          const selected = state[key] === value;
+          button.setAttribute("aria-pressed", String(selected));
+        });
+      }
+
+      function renderConditionalBlocks() {
+        const selfFields = document.querySelector("[data-self-fields]");
+        const profilePreview = document.querySelector("[data-profile-preview]");
+        const profileSummaryEl = document.querySelector("[data-profile-summary]");
+        const useSaved = state.profileMode === "saved" && cachedProfile;
+
+        selfFields?.classList.toggle("is-hidden", useSaved);
+        profilePreview?.classList.toggle("is-hidden", !useSaved);
+        if (profileSummaryEl) profileSummaryEl.textContent = profileSummary(cachedProfile);
+
+        document.querySelector("[data-time-field='self']")?.classList.toggle("is-hidden", !state.selfTimeKnown || useSaved);
+        document.querySelector("[data-time-field='partner']")?.classList.toggle("is-hidden", !state.partnerTimeKnown);
+      }
+
+      function parseChoiceValue(value) {
+        if (value === "true") return true;
+        if (value === "false") return false;
+        return value;
+      }
+
+      function setGroupError(key, message) {
+        const target = document.querySelector(`[data-error-for="${key}"]`);
+        if (target) target.textContent = message || "";
+      }
+
+      function setFieldError(id, message) {
+        const input = document.querySelector(`#${id}`);
+        const error = document.querySelector(`#${id}-error`);
+        if (input) {
+          input.setAttribute("aria-invalid", "true");
+          input.focus({ preventScroll: false });
+        }
+        if (error) error.textContent = message || "";
+      }
+
+      function clearFieldError(id) {
+        const input = document.querySelector(`#${id}`);
+        const error = document.querySelector(`#${id}-error`);
+        input?.removeAttribute("aria-invalid");
+        if (error) error.textContent = "";
+      }
+
+      function clearErrors() {
+        document.querySelectorAll("[aria-invalid='true']").forEach((input) => input.removeAttribute("aria-invalid"));
+        document.querySelectorAll(".field-error, .group-error").forEach((node) => {
+          node.textContent = "";
+        });
+      }
+
+      function showStatus(message, type = "ok") {
+        statusLine.textContent = message || "";
+        statusLine.classList.toggle("is-error", type === "error");
+      }
+
+      function validateBirth(value, ownerLabel) {
+        const birth = normalizeBirthDigits(value);
+        if (!birth) return `${ownerLabel} 생년월일을 입력해주세요.`;
+        if (!/^\d{8}$/.test(birth)) return `${ownerLabel} 생년월일은 숫자 8자리로 입력해주세요.`;
+
+        const year = Number(birth.slice(0, 4));
+        const month = Number(birth.slice(4, 6));
+        const day = Number(birth.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        const isValidDate =
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day;
+
+        if (!isValidDate) return `${ownerLabel} 생년월일에 없는 날짜가 들어갔어요.`;
+        if (year < 1900 || year > new Date().getFullYear()) return `${ownerLabel} 생년월일의 연도를 다시 확인해주세요.`;
+        return "";
+      }
+
+      function normalizeTime(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+        if (!match) return raw;
+        return `${String(Number(match[1])).padStart(2, "0")}:${String(Number(match[2] || 0)).padStart(2, "0")}`;
+      }
+
+      function validateTime(value, ownerLabel) {
+        const raw = String(value || "").trim();
+        if (!raw) return `${ownerLabel} 태어난 시간을 입력하거나 생시 모름을 선택해주세요.`;
+        const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+        if (!match) return `${ownerLabel} 태어난 시간은 13:30처럼 입력해주세요.`;
+        const hour = Number(match[1]);
+        const minute = Number(match[2] || 0);
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return `${ownerLabel} 태어난 시간은 00:00부터 23:59 사이로 입력해주세요.`;
+        return "";
+      }
+
+      function validateForm() {
+        clearErrors();
+        collectTextInputs();
+
+        if (state.profileMode === "saved" && !cachedProfile) {
+          setGroupError("profileMode", "저장된 기본 사주가 없어요. 직접 입력으로 바꿔주세요.");
+          showStatus("내 정보 입력 방식부터 확인해주세요.", "error");
+          document.querySelector("[data-choice='profileMode'][data-value='manual']")?.focus();
+          return false;
+        }
+
+        if (state.profileMode !== "saved") {
+          if (!state.selfGender) {
+            setGroupError("selfGender", "내 성별을 선택해주세요.");
+            document.querySelector("[data-choice='selfGender']")?.focus();
+            showStatus("내 정보에서 빠진 항목이 있어요.", "error");
+            return false;
+          }
+
+          const selfBirthError = validateBirth(state.selfBirth, "내");
+          if (selfBirthError) {
+            setFieldError("selfBirth", selfBirthError);
+            showStatus("내 생년월일을 다시 확인해주세요.", "error");
+            return false;
+          }
+
+          if (state.selfTimeKnown) {
+            const selfTimeError = validateTime(state.selfTime, "내");
+            if (selfTimeError) {
+              setFieldError("selfTime", selfTimeError);
+              showStatus("내 태어난 시간을 다시 확인해주세요.", "error");
+              return false;
+            }
+          }
+        }
+
+        if (!state.relationshipStatus) {
+          setGroupError("relationshipStatus", "현재 관계를 선택해주세요.");
+          showStatus("상대 정보에서 빠진 항목이 있어요.", "error");
+          return false;
+        }
+
+        if (!state.partnerGender) {
+          setGroupError("partnerGender", "상대 성별을 선택해주세요.");
+          document.querySelector("[data-choice='partnerGender']")?.focus();
+          showStatus("상대 정보에서 빠진 항목이 있어요.", "error");
+          return false;
+        }
+
+        const partnerBirthError = validateBirth(state.partnerBirth, "상대");
+        if (partnerBirthError) {
+          setFieldError("partnerBirth", partnerBirthError);
+          showStatus("상대 생년월일을 다시 확인해주세요.", "error");
+          return false;
+        }
+
+        if (state.partnerTimeKnown) {
+          const partnerTimeError = validateTime(state.partnerTime, "상대");
+          if (partnerTimeError) {
+            setFieldError("partnerTime", partnerTimeError);
+            showStatus("상대 태어난 시간을 다시 확인해주세요.", "error");
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function birthParts(value) {
+        const digits = normalizeBirthDigits(value);
+        return {
+          raw: digits,
+          year: Number(digits.slice(0, 4)),
+          month: Number(digits.slice(4, 6)),
+          day: Number(digits.slice(6, 8))
+        };
+      }
+
+      function profilePayload(profile) {
+        const birth = profile.birth || {};
+        return {
+          source: "saved_profile",
+          alias: profile.name || "나",
+          gender: birth.gender || "",
+          calendar: birth.calendar || "solar",
+          birth: {
+            raw: profileBirthString(profile),
+            year: Number(birth.year),
+            month: Number(birth.month),
+            day: Number(birth.day)
+          },
+          birth_time_known: profile.birthTimeKnown !== false,
+          time: profile.birthTimeKnown === false
+            ? ""
+            : `${String(birth.hour ?? 0).padStart(2, "0")}:${String(birth.minute ?? 0).padStart(2, "0")}`
+        };
+      }
+
+      function buildPayload() {
+        const self = state.profileMode === "saved" && cachedProfile
+          ? profilePayload(cachedProfile)
+          : {
+              source: "manual",
+              alias: state.selfAlias || "나",
+              gender: state.selfGender,
+              calendar: state.selfCalendar,
+              birth: birthParts(state.selfBirth),
+              birth_time_known: state.selfTimeKnown,
+              time: state.selfTimeKnown ? normalizeTime(state.selfTime) : ""
+            };
+
+        return {
+          service: serviceState,
+          schema_version: schemaVersion,
+          subject_mode: "pair",
+          submitted_at: new Date().toISOString(),
+          input: {
+            self,
+            partner: {
+              source: "manual_partner",
+              alias: state.partnerAlias || "상대",
+              relationship_status: state.relationshipStatus,
+              relationship_label: labels[state.relationshipStatus] || state.relationshipStatus,
+              gender: state.partnerGender,
+              calendar: state.partnerCalendar,
+              birth: birthParts(state.partnerBirth),
+              birth_time_known: state.partnerTimeKnown,
+              time: state.partnerTimeKnown ? normalizeTime(state.partnerTime) : ""
+            },
+            signal_focus: state.signalFocus,
+            concern: state.concern || "",
+            analysis_basis: serviceState.analysis_basis,
+            required_calculated_facts: [
+              "self_day_branch",
+              "partner_day_branch",
+              "five_element_relation",
+              "day_branch_relation",
+              "relationship_star_context"
+            ],
+            safety_contract: {
+              no_deterministic_cheating_claim: true,
+              partner_missing_not_filled_from_self: true,
+              price_is_not_entitlement: true
+            }
+          },
+          interpretation_index: interpretationIndex
+        };
+      }
+
+      function continueToReport() {
+        const payload = buildPayload();
+        const nextRoute = "../04-step-4-report/index.html";
+        const params = new URLSearchParams(window.location.search);
+        params.set("service_key", serviceState.service_key);
+        params.set("service_slug", serviceState.service_slug);
+        params.set("report_version", serviceState.report_version);
+        params.set("input_schema_version", schemaVersion);
+        params.set("entry", "step-2-saju-input");
+        params.delete("selfBirth");
+        params.delete("partnerBirth");
+        params.delete("name");
+
+        writeSession(storageKeys.service, {
+          service_key: serviceState.service_key,
+          service_slug: serviceState.service_slug,
+          category: serviceState.category,
+          report_version: serviceState.report_version,
+          entry: "step-2-saju-input"
+        });
+
+        writeSession(storageKeys.authReturn, {
+          service_key: serviceState.service_key,
+          schema_version: schemaVersion,
+          flow_step: "step-2-saju-input",
+          next_route: "../04-step-4-report/index.html#step-4-report",
+          return_hash: "step-4-report",
+          contains_personal_values: false
+        });
+
+        if (!writeSession(storageKeys.reportInput, payload)) {
+          showStatus("브라우저 저장 공간이 부족합니다. 입력 화면을 유지한 뒤 다시 시도해주세요.", "error");
+          return;
+        }
+
+        window.location.href = `${nextRoute}?${params.toString()}#step-4-report`;
+      }
+
+      document.querySelector("[data-back]")?.addEventListener("click", () => {
+        window.location.href = "../01-step-1-story/index.html#step-1-story";
+      });
+
+      document.querySelectorAll("[data-choice]").forEach((button) => {
+        button.addEventListener("click", () => {
+          collectTextInputs();
+          const key = button.dataset.choice;
+          const value = parseChoiceValue(button.dataset.value);
+          state[key] = value;
+
+          if (key === "profileMode" && value === "saved" && !cachedProfile) {
+            state.profileMode = "manual";
+            setGroupError("profileMode", "저장된 기본 사주가 없어요. 직접 입력으로 진행해주세요.");
+            showStatus("직접 입력으로 바꿔두었습니다.", "error");
+          } else {
+            setGroupError(key, "");
+            showStatus("");
+          }
+
+          renderChoices();
+          renderConditionalBlocks();
+          persistDraft();
+        });
+      });
+
+      form.addEventListener("input", (event) => {
+        const id = event.target?.id;
+        if (id) clearFieldError(id);
+        persistDraft();
+      });
+
+      form.addEventListener("change", () => {
+        persistDraft();
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!validateForm()) return;
+        persistDraft();
+        showStatus("입력값을 확인했습니다. 관계 신호 리포트로 이어갑니다.");
+        continueToReport();
+      });
+
+      const restored = restoreDraft();
+      if (!restored && cachedProfile) {
+        state.profileMode = "saved";
+      }
+      syncInputsFromState();
+
+      const query = new URLSearchParams(window.location.search);
+      if (query.get("authReturn") === "1") {
+        showStatus("로그인 후 입력 단계로 돌아왔어요. 확인 후 이어가면 됩니다.");
+      } else if (restored) {
+        showStatus("작성 중이던 입력값을 복원했습니다.");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/signal-service.js" defer></script>
+  </body>
+</html>

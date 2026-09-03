@@ -15,7 +15,8 @@
     "check:marry": "node scripts/check-marry.mjs",
     "check:save": "node scripts/check-save.mjs",
     "check:quit": "node scripts/check-quit.mjs",
-    "check:couple": "node scripts/check-couple.mjs"
+    "check:couple": "node scripts/check-couple.mjs",
+    "check:signal": "node scripts/check-signal.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
