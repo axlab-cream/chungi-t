@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>시험 정보 입력 | 나, 붙을 각이야?</title>
+    <style>
+      :root{color-scheme:dark;--bg:#030604;--surface:#07120e;--ink:#fffdf2;--muted:rgba(255,253,242,.72);--mint:#4effca;--yellow:#efff4a;--line:rgba(214,255,120,.22);font-family:Pretendard,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;background:#000;color:var(--ink)}.app{width:min(100%,440px);min-height:100svh;margin:0 auto;background:var(--bg);overflow:hidden}.topbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;min-height:64px;padding:12px 18px;background:rgba(3,6,4,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}.brand{color:inherit;text-decoration:none}.brand strong{display:block;font-size:15px;font-weight:950}.brand span{font-size:10px;color:rgba(255,253,242,.52);font-weight:850;letter-spacing:.12em}.chip{border:1px solid rgba(239,255,74,.4);border-radius:999px;padding:9px 12px;color:var(--yellow);font-size:12px;font-weight:950}
+      .visual{position:relative;min-height:390px;display:flex;align-items:flex-end;overflow:hidden}.visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.visual:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(3,6,4,.25),rgba(3,6,4,.05) 34%,var(--surface) 96%),linear-gradient(to right,rgba(0,0,0,.5),transparent)}.copy{position:relative;z-index:1;padding:28px 20px 34px}.eyebrow{display:inline-flex;gap:8px;align-items:center;margin-bottom:12px;color:var(--mint);font-size:11px;font-weight:950;letter-spacing:.12em}.eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 18px var(--mint)}
+      h1,h2,p{margin-top:0;word-break:keep-all}h1{font-size:43px;line-height:1.02;margin-bottom:12px;font-weight:950}h2{font-size:28px;line-height:1.1;margin-bottom:10px;font-weight:950}p{color:var(--muted);font-size:15px;line-height:1.65}.section{position:relative;margin-top:-1px;padding:30px 20px;background:var(--surface)}.section:before{content:"";position:absolute;left:0;right:0;top:-80px;height:80px;background:linear-gradient(to bottom,rgba(7,18,14,0),var(--surface))}
+      form{display:grid;gap:14px}.field{display:grid;gap:8px}.field label{font-size:13px;font-weight:900}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.055);color:var(--ink);padding:14px;font:inherit}input,select{min-height:52px}textarea{min-height:110px;resize:vertical}.chips{display:grid;grid-template-columns:1fr 1fr;gap:10px}.option{border:1px solid var(--line);border-radius:8px;padding:13px;background:rgba(255,255,255,.045);font-size:13px;font-weight:850}.button{min-height:56px;border:1px solid rgba(78,255,202,.75);border-radius:8px;background:linear-gradient(135deg,var(--mint),var(--yellow));color:#03120c;font-weight:950;text-decoration:none;display:flex;align-items:center;justify-content:center}.footer{padding:22px 20px 34px;color:rgba(255,253,242,.52);font-size:11px;line-height:1.7}
+
+      .option{cursor:pointer}
+      .option.is-picked{border-color:var(--mint);background:rgba(78,255,202,.12);color:var(--ink)}
+      .option:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+
+      body.umsh-has-chrome .app{padding-bottom:calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px))}
+      body.umsh-has-chrome .footer{padding-bottom:18px}
+    </style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" id="step-3-service-input" data-umsh-chrome data-service="PASS ANGLE" data-price="9,900원" data-active="home">
+      <header class="appbar topbar"><a class="brand" href="../01-step-1-story/index.html"><strong>운명상회</strong><span>PASS ANGLE</span></a><span class="chip">시험 정보</span></header>
+      <section class="visual"><img src="../assets/pass-angle/timing.png" alt="시험 타이밍과 접수 시기를 보는 장면" /><div class="copy"><span class="eyebrow">EXAM SETUP</span><h1>어떤 시험을 보고 있나요?</h1><p>시험 종류와 남은 기간이 달라지면 합격각 판단도 달라집니다. 지금 필요한 기준을 먼저 고릅니다.</p></div></section>
+      <section class="section">
+        <form onsubmit="event.preventDefault(); location.href='../04-step-4-report/index.html#step-4-report';">
+          <div class="field"><label for="exam">시험 이름</label><input id="exam" placeholder="예: 공무원 9급, 토익, 자격증, 편입, 면접" /></div>
+          <div class="field"><label for="date">시험 예정일</label><input id="date" type="date" /></div>
+          <div class="field"><label for="type">시험 유형</label><select id="type"><option>객관식형</option><option>서술형</option><option>자격·전문직형</option><option>어학·인증형</option><option>실기·기술형</option><option>면접·구술형</option></select></div>
+          <div class="field"><label>지금 가장 필요한 것</label><div class="chips"><div class="option">GO/HOLD 판정</div><div class="option">공부법 교정</div><div class="option">멘탈 관리</div><div class="option">시험일 루틴</div></div></div>
+          <div class="field"><label for="worry">현재 고민</label><textarea id="worry" placeholder="예: 집중이 자주 끊기고, 올해 밀어붙여도 될지 모르겠어요."></textarea></div>
+          <button class="button" type="submit">무료 티저 확인하기</button>
+        </form>
+      </section>
+      <footer class="footer">시험명과 목표는 리포트 문장 톤과 액션 플랜을 맞추기 위한 예시 입력입니다.</footer>
+    </main>
+    <script src="/js/umsh-chrome.js" defer></script>
+    <script src="/js/pass-angle-service.js" defer></script>
+  </body>
+</html>

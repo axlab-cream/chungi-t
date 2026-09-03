@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-love-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260903-place-clarity" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260903-coming-soon" />
   </head>
   <body>
     <div class="stage">
@@ -21,40 +21,7 @@
           <a class="app-brand" href="/" aria-label="운명상회 홈">
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
           </a>
-          <div class="app-actions">
-            <button class="circle-button" type="button" data-action="focus-services" aria-label="대표 상품으로 이동">✎</button>
-            <button class="circle-button" type="button" data-action="toggle-menu" aria-label="빠른 메뉴 열기" aria-expanded="false">☰</button>
-          </div>
         </header>
-
-        <div class="action-panel" id="actionPanel" aria-hidden="true">
-          <div class="action-sheet" role="dialog" aria-label="운명상회 빠른 메뉴">
-            <button type="button" data-menu-filter="종합">
-              <strong>종합사주</strong>
-              <span>천명사주 바로 보기</span>
-            </button>
-            <button type="button" data-menu-shortcut="destiny">
-              <strong>운명록</strong>
-              <span>로그인·사주등록 후 열람</span>
-            </button>
-            <button type="button" data-menu-shortcut="search">
-              <strong>검색</strong>
-              <span>주제별 상품 빠르게 찾기</span>
-            </button>
-            <button type="button" data-menu-shortcut="vault">
-              <strong>보관함</strong>
-              <span>등록 후 저장한 풀이 열기</span>
-            </button>
-            <button type="button" data-menu-shortcut="account">
-              <strong>MY</strong>
-              <span>내 계정과 사주 프로필</span>
-            </button>
-            <button type="button" data-action="close-menu">
-              <strong>닫기</strong>
-              <span>상회로 돌아가기</span>
-            </button>
-          </div>
-        </div>
 
         <nav class="category-rail" aria-label="상품 분류">
           <button class="chip is-active" type="button" data-filter="all">전체</button>
@@ -112,6 +79,26 @@
             </div>
             <span class="today-cta">보기</span>
           </a>
+
+          <section class="section-block">
+            <div class="section-title">
+              <span>COMING SOON</span>
+              <strong>기대해! 신규 운명</strong>
+            </div>
+
+            <div class="coming-rail">
+              <a
+                class="coming-card service-card is-live"
+                href="/me/pass-angle"
+                data-category="직업"
+                aria-label="EXAM · 합격운 나, 붙을 각이야? 새로 열린 서비스"
+              >
+                <img class="coming-card-img" src="/assets/umsh-exam-card-bg.png" alt="" loading="lazy" />
+                <span class="coming-tag">NEW</span>
+                <strong class="coming-card-name">나, 붙을 각이야?</strong>
+              </a>
+            </div>
+          </section>
 
           <section class="section-block">
             <div class="section-title">

@@ -10,6 +10,7 @@ export type PaymentProductKey =
   | 'love_mind'
   | 'love_again'
   | 'love_spouse'
+  | 'pass_angle'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -108,6 +109,14 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     amount: 14900,
     returnPath: '/love/spouse',
     summary: '배우자궁과 자미두수로 만남의 결을 봅니다.',
+  },
+  pass_angle: {
+    key: 'pass_angle',
+    title: '나, 붙을 각이야?',
+    eyebrow: 'EXAM · 합격운',
+    amount: 9900,
+    returnPath: '/me/pass-angle',
+    summary: '인성, 관성, 세운으로 시험 흐름과 공부 전략을 봅니다.',
   },
 }
 
