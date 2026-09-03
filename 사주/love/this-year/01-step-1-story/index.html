@@ -136,7 +136,7 @@
         display: grid;
         align-content: end;
         overflow: hidden;
-        border-bottom: 1px solid rgba(255, 220, 232, 0.12);
+        background: var(--bg);
         isolation: isolate;
       }
 
@@ -154,6 +154,8 @@
         object-position: center;
         background: #12131f;
         transform: scale(1.01);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
       }
 
       .scene::before,
@@ -592,9 +594,6 @@
               생년월일시와 현재 관계 상태를 넣으면 다음 화면으로 이어집니다.
             </p>
             <div class="cta-stack">
-              <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story#step-2-saju-input">
-                내 올해 연애 흐름 확인하기
-              </a>
               <a class="ghost-cta" href="#step-1-story">처음부터 다시 보기</a>
             </div>
           </div>
