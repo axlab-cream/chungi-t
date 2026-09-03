@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "vercel-build": "node scripts/prepare-vercel-public.mjs && npm run typecheck",
     "check:integrations": "node scripts/check-integrations.mjs",
-    "check:pass-angle": "node scripts/check-pass-angle.mjs"
+    "check:pass-angle": "node scripts/check-pass-angle.mjs",
+    "check:marry": "node scripts/check-marry.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
