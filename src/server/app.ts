@@ -69,6 +69,12 @@ import {
   parseWorkJobRequest,
 } from '../work/job-service.js'
 import {
+  buildWorkQuitContext,
+  buildWorkQuitReport,
+  createWorkQuitReportId,
+  parseWorkQuitRequest,
+} from '../work/quit-service.js'
+import {
   buildLoveMindContext,
   buildLoveMindReport,
   createLoveMindReportId,
@@ -217,6 +223,34 @@ app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) =
 })
 app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
+})
+// 퇴사운 runs as the 01 → 02 → 03 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/work/quit', '/work/quit/', '/work/quit/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/work/quit/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/work/quit/input', '/work/quit/input.html'], (_req, res) => {
+  res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
+})
+app.get(['/work/quit/situation', '/work/quit/situation.html'], (_req, res) => {
+  res.redirect(302, '/work/quit/03-step-3-service-input/index.html')
+})
+app.get(['/work/quit/report', '/work/quit/report.html'], (_req, res) => {
+  res.redirect(302, '/work/quit/04-step-4-report/index.html')
+})
+app.get(['/work/quit/chat', '/work/quit/chat.html'], (_req, res) => {
+  res.redirect(302, '/work/quit/05-step-5-chat/chat.html')
+})
+app.get(['/work/quit/detail', '/work/quit/detail.html'], (_req, res) => {
+  res.redirect(302, '/work/quit/06-step-6_1-report-detail/index.html')
 })
 // 결혼궁합 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
 app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (req, res) => {
@@ -907,6 +941,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   money_save: 'money_save',
   match_couple: 'match_couple',
   work_job: 'work_job',
+  quit_fortune: 'quit_fortune',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
   love_again: 'love_again',
@@ -1442,6 +1477,37 @@ app.post('/api/work/job/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '직업운 생성 실패' })
+  }
+})
+
+app.post('/api/work/quit/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '퇴사운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseWorkQuitRequest(req.body)
+    const context = buildWorkQuitContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createWorkQuitReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId)) return
+    const templateReport = buildWorkQuitReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '퇴사운 생성 실패' })
   }
 })
 

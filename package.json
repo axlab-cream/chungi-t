@@ -13,7 +13,8 @@
     "check:integrations": "node scripts/check-integrations.mjs",
     "check:pass-angle": "node scripts/check-pass-angle.mjs",
     "check:marry": "node scripts/check-marry.mjs",
-    "check:save": "node scripts/check-save.mjs"
+    "check:save": "node scripts/check-save.mjs",
+    "check:quit": "node scripts/check-quit.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

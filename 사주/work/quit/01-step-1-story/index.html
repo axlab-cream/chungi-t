@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>나 지금 그만둬도 될까? | 운명상회</title>
+    <meta name="description" content="퇴사 고민의 흐름, 번아웃, 돈과 다음 진로, 나가는 타이밍과 방식을 함께 보는 퇴사운 리포트" />
+    <style>
+      :root{color-scheme:dark;--bg:#030405;--surface:#08100f;--panel:rgba(12,17,18,.9);--ink:#fff8ee;--muted:rgba(255,248,238,.72);--dim:rgba(255,248,238,.52);--red:#ff365c;--teal:#30f0df;--gold:#e6b95f;--line:rgba(255,54,92,.25);font-family:Pretendard,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}html{background:#000;scroll-behavior:smooth}body{margin:0;background:#000;color:var(--ink)}a{color:inherit}.app{width:min(100%,440px);margin:0 auto;min-height:100svh;background:var(--bg);overflow:hidden}.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;min-height:64px;padding:12px 18px;background:rgba(3,4,5,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}.brand{text-decoration:none}.brand strong{display:block;font-size:15px;font-weight:950}.brand span{display:block;margin-top:2px;color:var(--dim);font-size:10px;font-weight:900;letter-spacing:.12em}.price{border:1px solid rgba(230,185,95,.46);border-radius:999px;padding:9px 12px;color:var(--gold);font-size:12px;font-weight:950}
+      .hero,.visual,.story{position:relative;overflow:hidden;background:#020303}.hero{display:block}.visual{min-height:520px;display:flex;align-items:flex-end;margin-top:-52px}.story{min-height:330px;margin-top:-1px}.hero img{position:relative;display:block;width:100%;height:auto}.visual img,.story img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(to bottom,rgba(3,4,5,0),var(--surface) 92%);pointer-events:none}.visual:after,.story:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(3,4,5,.08),rgba(3,4,5,.18) 42%,var(--surface) 96%),linear-gradient(to right,rgba(0,0,0,.48),transparent 64%)}.copy{position:relative;z-index:1;width:100%;padding:28px 20px 36px}.hero .copy{background:var(--surface);padding-top:18px}.eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--teal);font-size:11px;font-weight:950;letter-spacing:.12em}.eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 18px var(--teal)}h1,h2,h3,p{margin-top:0;word-break:keep-all}h1{max-width:9ch;font-size:54px;line-height:.98;margin-bottom:14px;font-weight:950}h2{font-size:32px;line-height:1.08;margin-bottom:12px;font-weight:950}h3{font-size:17px;margin-bottom:6px}p{margin-bottom:0;color:var(--muted);font-size:15px;line-height:1.68}.red{color:var(--red)}.gold{color:var(--gold)}.teal{color:var(--teal)}
+      .section{position:relative;padding:30px 20px;background:var(--surface)}.section:before{content:"";position:absolute;left:0;right:0;top:-78px;height:78px;background:linear-gradient(to bottom,rgba(8,16,15,0),var(--surface))}.cards,.grid{display:grid;gap:10px;margin-top:18px}.card{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:15px}.card b{display:block;margin-bottom:5px;color:var(--ink)}.card span{display:block;color:var(--muted);font-size:12px;line-height:1.55}.grid{grid-template-columns:1fr 1fr}.tile{min-height:112px;border:1px solid rgba(230,185,95,.22);border-radius:8px;background:rgba(255,255,255,.045);padding:14px}.tile b{display:block;color:var(--gold);font-size:14px;margin-bottom:7px}.tile small{display:block;color:var(--muted);font-size:11px;line-height:1.5;word-break:keep-all}.cta{display:grid;gap:10px;margin-top:22px}.button,.ghost{min-height:54px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-weight:950}.button{border:1px solid rgba(48,240,223,.7);background:linear-gradient(135deg,var(--teal),var(--red));color:#050707}.ghost{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05)}.sticky{position:sticky;bottom:0;z-index:20;padding:12px 16px;background:rgba(3,4,5,.86);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1)}.footer{padding:22px 20px 34px;color:var(--dim);font-size:11px;line-height:1.7}@media(min-width:720px){body{padding:24px 0}.app{border:1px solid rgba(255,255,255,.12)}}
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA dock.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      /* overflow:hidden on .app makes it a scroll container, which silently stops the
+         sticky CTA from pinning - it only appeared once you reached the very bottom.
+         overflow:clip keeps the same edge clipping without creating that container. */
+      body.umsh-has-chrome .app { overflow: clip; padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .footer { padding-bottom: 18px; }
+      .quit-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(226, 183, 106, 0.45); border-radius: 10px; background: rgba(226, 183, 106, 0.08); padding: 14px; margin-bottom: 14px; }
+      .quit-saved-profile b { color: #e2b76a; font-size: 14px; }
+      .quit-saved-profile span { color: rgba(255, 247, 232, 0.74); font-size: 13px; line-height: 1.55; }
+      .quit-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" data-umsh-chrome data-service="퇴사운" data-price="14,900원" data-active="home" id="step-1-story">
+      <header class="appbar topbar"><a class="brand" href="/"><strong>운명상회</strong><span>QUIT OR HOLD</span></a><span class="price">14,900원</span></header>
+      <section class="hero"><img src="../assets/quit/01-hero.png" alt="퇴사 고민을 읽는 40대 여성 사주 전략가" /><div class="copy"><span class="eyebrow">QUIT OR HOLD</span><h1>나 지금 그만둬도 될까?</h1><p>나가고 싶은 마음이 충동인지 결단인지, 버티면 남는 게 있는지, 언제 어떤 방식으로 정리해야 하는지 봅니다.</p><div class="cta"><a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">내 퇴사 흐름 확인하기</a><a class="ghost" href="#preview">뭘 보는지 먼저 보기</a></div></div></section>
+      <section class="section"><span class="eyebrow">FIRST CHECK</span><h2>퇴사는 마음보다 <span class="red">흐름</span>을 먼저 봐야 합니다</h2><p>같은 퇴사 고민이어도 어떤 사람은 나갈 준비가 된 상태이고, 어떤 사람은 먼저 회복과 협상이 필요한 상태입니다.</p><div class="cards"><div class="card"><b>지금 나와도 되는 흐름?</b><span>GO/HOLD/타이밍 조정, 충동인지 결단인지 구분합니다.</span></div><div class="card"><b>왜 이렇게 힘든가</b><span>사람 문제인지, 일 문제인지, 내 기질이 눌리는 지점을 봅니다.</span></div><div class="card"><b>번아웃과 멘탈</b><span>몸이 먼저 보내는 신호와 죄책감·불안을 다루는 기준을 잡습니다.</span></div></div></section>
+      <section class="story"><img loading="lazy" src="../assets/quit/04-teaser.png" alt="나갈 길과 버틸 길이 갈라지는 퇴사운 장면" /></section>
+      <section class="section"><span class="eyebrow">NOT ONLY QUIT</span><h2>나가는 것만큼 <span class="gold">어떻게 정리할지</span>가 중요합니다</h2><p>통보 시점, 인수인계, 평판, 다시 만날 인연까지 같이 봅니다. 단, 법률·행정 판단이나 금액 산정은 하지 않습니다.</p></section>
+      <section class="visual"><img loading="lazy" src="../assets/quit/05-index.png" alt="퇴사운 리포트 목차가 상징 카드로 열리는 장면" /><div class="copy"><span class="eyebrow">REPORT SCOPE</span><h2>결제 후엔 이런 항목이 열립니다</h2><div class="grid"><div class="tile"><b>돈과 다음 진로</b><small>지출 방어선, 다음 계획, 이직형·전직형·프리형</small></div><div class="tile"><b>퇴사 타이밍</b><small>유리한 흐름, 피해야 할 시기, 통보 시점</small></div><div class="tile"><b>남는다면</b><small>버티는 조건, 요구할 것, 기한 정하기</small></div><div class="tile"><b>다섯 스승</b><small>목·화·토·금·수 스승의 서로 다른 조언</small></div></div></div></section>
+      <section class="visual"><img loading="lazy" src="../assets/quit/06-five-mentors.png" alt="다섯 오행 스승이 퇴사 고민에 서로 다른 조언을 주는 장면" /><div class="copy"><span class="eyebrow">FIVE MENTORS</span><h2>같은 퇴사 고민에도 답은 하나가 아닙니다</h2><p>다섯 스승은 같은 고민을 다른 기준으로 봅니다. 밀어붙일지, 멈출지, 정리할지, 협상할지, 회복할지를 나눠 읽습니다.</p><div class="cta"><a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">내 퇴사 흐름 확인하기</a></div></div></section>
+      <div class="sticky"><a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">내 퇴사 흐름 확인하기</a></div>
+      <footer class="footer">본 서비스는 사주 기반 경향 분석과 현실 액션 플랜 콘텐츠입니다. 계약 해석, 행정 판단, 금액 산정은 제공하지 않습니다.</footer>
+    </main>
+    <script>const serviceContext={service_key:"quit_fortune",service_slug:"quit",service_title:"나 지금 그만둬도 될까?",category:"직업",price_krw:14900,next_route:"../02-step-2-saju-input/index.html#step-2-saju-input"};document.querySelectorAll('a[href*="02-step-2-saju-input"]').forEach(a=>a.addEventListener("click",()=>sessionStorage.setItem("umsh.pending_service",JSON.stringify({service_key:serviceContext.service_key,service_slug:serviceContext.service_slug,entry_step:"01-step-1-story",interpretation_index_source:"user_seed"}))));</script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/quit-service.js" defer></script>
+  </body>
+</html>

@@ -11,6 +11,7 @@ export type PaymentProductKey =
   | 'love_again'
   | 'love_spouse'
   | 'pass_angle'
+  | 'quit_fortune'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -61,6 +62,15 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     amount: 14900,
     returnPath: '/work/job',
     summary: '관성, 식상, 적성으로 지금 일과 맞는 방식을 봅니다.',
+  },
+  quit_fortune: {
+    key: 'quit_fortune',
+    title: '퇴사운',
+    eyebrow: 'WORK · 커리어',
+    amount: 14900,
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/work/quit/04-step-4-report/index.html',
+    summary: '관성, 식상, 대운으로 나갈 흐름과 정리 순서를 봅니다.',
   },
   money_save: {
     key: 'money_save',

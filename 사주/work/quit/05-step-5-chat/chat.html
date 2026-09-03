@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>리딩 선택 | 나 지금 그만둬도 될까?</title>
+    <style>
+      :root{color-scheme:dark;--bg:#030405;--surface:#08100f;--panel:rgba(13,18,18,.9);--ink:#fff8ee;--muted:rgba(255,248,238,.72);--dim:rgba(255,248,238,.52);--red:#ff365c;--teal:#30f0df;--gold:#e6b95f;--line:rgba(255,54,92,.25);font-family:Pretendard,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;background:#000;color:var(--ink)}.app{width:min(100%,440px);min-height:100svh;margin:0 auto;background:var(--bg);overflow:hidden}.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;min-height:64px;padding:12px 18px;background:rgba(3,4,5,.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}.brand{text-decoration:none;color:inherit}.brand strong{display:block;font-size:15px;font-weight:950}.brand span{display:block;margin-top:2px;color:var(--dim);font-size:10px;font-weight:900;letter-spacing:.12em}.chip{border:1px solid rgba(230,185,95,.46);border-radius:999px;padding:9px 12px;color:var(--gold);font-size:12px;font-weight:950}.hero{position:relative;min-height:500px;display:flex;align-items:flex-end;overflow:hidden}.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(3,4,5,.08),rgba(3,4,5,.2) 45%,var(--surface) 96%),linear-gradient(to right,rgba(0,0,0,.58),transparent)}.copy{position:relative;z-index:1;width:100%;padding:28px 20px 34px}.eyebrow{display:inline-flex;gap:8px;align-items:center;margin-bottom:12px;color:var(--teal);font-size:11px;font-weight:950;letter-spacing:.12em}.eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 18px var(--teal)}h1,h2,p{margin-top:0;word-break:keep-all}h1{font-size:44px;line-height:1;margin-bottom:12px;font-weight:950}h2{font-size:30px;line-height:1.1;margin-bottom:12px;font-weight:950}p{margin-bottom:0;color:var(--muted);font-size:15px;line-height:1.65}.section{position:relative;padding:30px 20px;background:var(--surface)}.section:before{content:"";position:absolute;left:0;right:0;top:-78px;height:78px;background:linear-gradient(to bottom,rgba(8,16,15,0),var(--surface))}.list{display:grid;gap:10px;margin-top:18px}.item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;min-height:84px;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:14px;text-decoration:none}.item b{display:block;margin-bottom:5px;font-size:15px}.item span{display:block;color:var(--muted);font-size:12px;line-height:1.45;word-break:keep-all}.item i{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--red));color:#050707;font-style:normal;font-weight:950}.footer{padding:22px 20px 34px;color:var(--dim);font-size:11px;line-height:1.7}
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA dock.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      /* overflow:hidden on .app makes it a scroll container, which silently stops the
+         sticky CTA from pinning - it only appeared once you reached the very bottom.
+         overflow:clip keeps the same edge clipping without creating that container. */
+      body.umsh-has-chrome .app { overflow: clip; padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .footer { padding-bottom: 18px; }
+      .quit-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(226, 183, 106, 0.45); border-radius: 10px; background: rgba(226, 183, 106, 0.08); padding: 14px; margin-bottom: 14px; }
+      .quit-saved-profile b { color: #e2b76a; font-size: 14px; }
+      .quit-saved-profile span { color: rgba(255, 247, 232, 0.74); font-size: 13px; line-height: 1.55; }
+      .quit-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" data-umsh-chrome data-service="퇴사운" data-price="14,900원" data-active="home" id="step-5-chat">
+      <header class="appbar topbar"><a class="brand" href="../04-step-4-report/index.html"><strong>운명상회</strong><span>REPORT INDEX</span></a><span class="chip">10개 리딩</span></header>
+      <section class="hero"><img src="../assets/quit/05-index.png" alt="퇴사운 리포트 목차가 영적 카드처럼 펼쳐진 장면" /><div class="copy"><span class="eyebrow">OPEN THE SIGNAL</span><h1>지금 필요한 리딩부터 열어보세요</h1><p>퇴사 결정을 한 번에 단정하지 않고, 흐름·원인·회복·돈·타이밍·방식을 나눠 봅니다.</p></div></section>
+      <section class="section"><span class="eyebrow">CATEGORY</span><h2>퇴사 고민을 10개 장면으로 나눕니다</h2><nav class="list" aria-label="퇴사운 리딩 목록">
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=flow#step-6_1-report"><span><b>지금 나와도 되는 흐름?</b>전체 판정, 충동과 결단, GO/HOLD/타이밍 조정</span><i>1</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=why-hard#step-6_1-report"><span><b>왜 이렇게 힘든가</b>사람 문제인지 일 문제인지, 눌리는 기질과 반복 패턴</span><i>2</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=burnout#step-6_1-report"><span><b>번아웃 체크</b>소진 단계, 몸의 신호, 회복을 먼저 봐야 하는 조건</span><i>3</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=money#step-6_1-report"><span><b>돈 시뮬레이션</b>받을 돈 체크 항목, 목돈 사용 원칙, 지출 방어선</span><i>4</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=next-career#step-6_1-report"><span><b>나가면 뭐 할 사람인가</b>이직형·전직형·프리형·창업형, 지금 배울 것</span><i>5</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=timing#step-6_1-report"><span><b>퇴사 타이밍</b>유리한 흐름, 피해야 할 조건, 통보 시점</span><i>6</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=exit-method#step-6_1-report"><span><b>나가는 방식</b>상사에게 말하는 법, 인수인계 함정, 평판 관리</span><i>7</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=stay#step-6_1-report"><span><b>남는다면</b>버티는 조건, 요구해야 할 것, 역할 조정 가능성</span><i>8</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=mental-people#step-6_1-report"><span><b>멘탈과 주변</b>죄책감·불안, 가족 기대, 다섯 스승의 서로 다른 조언</span><i>9</i></a>
+        <a class="item" href="../06-step-6_1-report-detail/index.html?section=action-plan#step-6_1-report"><span><b>현실 액션 플랜</b>퇴사 전 체크리스트, 나간 뒤 초반 전략, 피해야 할 행동</span><i>10</i></a>
+      </nav></section>
+      <footer class="footer">각 리딩은 사주 기반 경향과 현실 점검 질문으로 구성됩니다. 계약·노무·세무 판단은 별도 확인 영역입니다.</footer>
+    </main>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/quit-service.js" defer></script>
+  </body>
+</html>
