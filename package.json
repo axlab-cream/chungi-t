@@ -9,7 +9,9 @@
     "start": "tsx src/server/app.ts",
     "test": "tsx --test --test-concurrency=1 tests/unit/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "node scripts/prepare-vercel-public.mjs && npm run typecheck"
+    "vercel-build": "node scripts/prepare-vercel-public.mjs && npm run typecheck",
+    "check:integrations": "node scripts/check-integrations.mjs",
+    "check:pass-angle": "node scripts/check-pass-angle.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

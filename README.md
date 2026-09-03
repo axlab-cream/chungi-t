@@ -64,6 +64,34 @@ Production, Preview, Development 기준으로 등록합니다.
 | `SUPABASE_PROJECT_REF` | Supabase project ref |
 | `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
 | `SUPABASE_ANON_KEY` | 레거시 anon key 호환용 |
+| `SUPABASE_SERVICE_ROLE_KEY` | 결제 주문 저장에 필요 (RLS 우회) |
+| `PUBLIC_BASE_URL` | 결제 return/close URL 기준 도메인 |
+| `INICIS_MID` | KG이니시스 상점 ID |
+| `INICIS_SIGNKEY` | KG이니시스 SignKey (서버 전용) |
+| `UMSH_ADMIN_EMAILS` | (선택) 결제 없이 풀이를 여는 관리자 이메일 |
+
+## 결제 연동 순서
+
+결제는 **이니시스 설정과 주문 저장소가 모두 준비돼야** 열립니다
+(`src/server/app.ts`의 `paymentConfigPayload`). 저장소 없이 MID만 넣으면
+서버리스 인스턴스가 요청마다 초기화되어 승인 콜백이 주문을 찾지 못하므로,
+아래 순서를 지켜야 합니다.
+
+1. **주문 테이블 생성** — Supabase SQL Editor에서 `supabase-payment-orders.sql` 실행
+2. **저장소 키 등록** — `SUPABASE_SERVICE_ROLE_KEY`(또는 `DATABASE_URL`)를 Vercel에 추가
+3. **이니시스 키 등록** — 심사 완료 후 `INICIS_MID`, `INICIS_SIGNKEY` 추가
+4. **재배포 후 검증** — `npm run check:integrations`
+
+## 연동 검증
+
+Git·Vercel·Supabase·결제 배선을 한 번에 점검합니다.
+
+```bash
+npm run check:integrations
+```
+
+기본 대상은 `https://umsh.kr`이며 `--base`로 바꿀 수 있습니다.
+필수 항목이 하나라도 실패하면 종료 코드 1을 반환하므로 배포 게이트로 쓸 수 있습니다.
 
 ## 화면 흐름
 
