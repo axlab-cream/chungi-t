@@ -13,6 +13,7 @@ export type PaymentProductKey =
   | 'pass_angle'
   | 'quit_fortune'
   | 'couple_signal'
+  | 'job_choice'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -72,6 +73,15 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     // Step 04 is where the paid request resumes, so the PG returns straight to it.
     returnPath: '/work/quit/04-step-4-report/index.html',
     summary: '관성, 식상, 대운으로 나갈 흐름과 정리 순서를 봅니다.',
+  },
+  job_choice: {
+    key: 'job_choice',
+    title: '직장 선택',
+    eyebrow: 'CAREER · 자미두수',
+    amount: 9900,
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/work/job-choice/04-step-4-report/index.html',
+    summary: '관록·재백·노복·천이·복덕궁이 보는 자리를 내 원국에서 읽습니다.',
   },
   money_save: {
     key: 'money_save',

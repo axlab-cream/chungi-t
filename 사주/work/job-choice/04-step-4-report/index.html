@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>무료 직장 핏 맛보기 | 운명상회</title>
+    <meta
+      name="description"
+      content="입력한 사주 프로필과 회사 조건을 바탕으로 직장 선택의 첫 신호를 무료로 보여주고, 결제 후 열리는 범위를 안내합니다."
+    />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <link rel="stylesheet" href="../shared/job-choice.css" />
+    <script src="../shared/job-choice-data.js"></script>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="직장 선택" data-price="9,900원" data-active="home" id="step-4-report" aria-label="직장 선택 무료 결과">
+      <header class="appbar topbar">
+        <a class="brand" href="../01-step-1-story/index.html#step-1-story" aria-label="운명상회 인트로로 이동">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3l7 4v5c0 4.8-3 8.1-7 9-4-0.9-7-4.2-7-9V7l7-4z" stroke="currentColor" stroke-width="1.7" />
+              <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+          </span>
+          운명상회
+        </a>
+        <button class="icon-button" type="button" aria-label="입력 화면으로 이동" data-back>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </header>
+
+      <section class="stage" id="reportStage">
+        <div class="hero-panel">
+          <span class="kicker">04 · 무료 맛보기</span>
+          <h1>첫 신호만 먼저<br />짧게 봅니다.</h1>
+          <p>개인 사주 입력과 이번 회사 조건을 합쳐, 지금 가장 먼저 확인할 축을 보여드립니다.</p>
+        </div>
+      </section>
+
+      <footer class="footer">자미두수로 보는 내가 선택한 직장 괜찮을까 · 무료 결과</footer>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">{}</script>
+    <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
+    <script type="application/json" id="RAG_EVIDENCE">[]</script>
+    <script type="application/json" id="IMAGE_MANIFEST">[]</script>
+    <script type="application/json" id="QA_RESULT">{}</script>
+
+    <script src="/js/jobchoice-report-store.js"></script>
+    <script>
+      const stage = document.getElementById("reportStage");
+      const loaded = JobChoice.loadJobInput();
+      const report = JobChoice.buildReport(loaded.input);
+      const teaser = report.teaser;
+      const esc = JobChoice.escapeHtml;
+
+      JobChoice.hydrateContracts("04-step-4-report", [
+        { item: "개인 입력 기반 티저", status: "pass", detail: "사주 프로필과 회사 조건으로 우선 확인 축과 문구가 달라집니다." },
+        { item: "유료 범위 10개 대분류", status: "pass", detail: "사용자 제공 10개 대분류를 paid_scope_preview로 유지합니다." },
+        { item: "결제 실패 대비", status: "pass", detail: "정적 화면에서는 무료 결과를 유지한 채 다시 시도할 수 있는 CTA를 둡니다." },
+      ]);
+
+      function renderPaidScope() {
+        return teaser.paid_preview
+          .map(
+            (group, index) => `
+              <div class="result-card">
+                <small>${String(index + 1).padStart(2, "0")}</small>
+                <strong>${esc(group.title)}</strong>
+                <span>${esc(group.preview)}</span>
+              </div>
+            `,
+          )
+          .join("");
+      }
+
+      function renderSignals() {
+        return teaser.signals
+          .map(
+            (item) => `
+              <div class="signal-item">
+                <b>${esc(item.title)}</b>
+                <span>${esc(item.body)}</span>
+              </div>
+            `,
+          )
+          .join("");
+      }
+
+      function renderFacts() {
+        return teaser.calculated_facts
+          .map((fact) => `<div class="fact-row"><span>${esc(fact.label)}</span><strong>${esc(fact.value)}</strong></div>`)
+          .join("");
+      }
+
+      function renderFallbackNotice() {
+        if (!loaded.fallback) return "";
+        return `
+          <div class="notice-card">
+            <span class="eyebrow">입력값 없음</span>
+            <h2>지금은 예시 입력으로 보입니다</h2>
+            <p>02 입력 화면에서 회사와 생년월일시를 넣으면 이 맛보기 문구가 바로 바뀝니다.</p>
+            <a class="link-button" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력하러 가기</a>
+          </div>
+        `;
+      }
+
+      stage.insertAdjacentHTML(
+        "beforeend",
+        `
+          ${renderFallbackNotice()}
+          <section class="panel" aria-label="입력 요약">
+            <span class="eyebrow">입력 요약</span>
+            <div class="summary-grid">
+              <div class="summary-row"><span>사주 기준</span><strong>${esc(JobChoice.profileLabel(loaded.input.profile))}</strong></div>
+              <div class="summary-row"><span>회사/오퍼</span><strong>${esc(loaded.input.offer.companyName || "선택한 회사")}</strong></div>
+              <div class="summary-row"><span>직무</span><strong>${esc(loaded.input.offer.roleName || "입력한 직무")}</strong></div>
+              <div class="summary-row"><span>가장 걸리는 점</span><strong>${esc(loaded.input.offer.concernPoint || "입력 후 확인")}</strong></div>
+            </div>
+          </section>
+
+          <section class="hero-panel" aria-label="무료 맛보기 결론">
+            <span class="kicker">무료 티저</span>
+            <h1>${esc(teaser.headline)}</h1>
+            <p>${esc(teaser.summary)}</p>
+            <div class="teaser-answer">
+              <strong>${esc(teaser.signal.direction)}</strong>
+              <span>${esc(teaser.signal.directionCopy)}</span>
+            </div>
+            <div class="signal-list">${renderSignals()}</div>
+          </section>
+
+          <section class="panel" aria-label="계산 입력 확인">
+            <span class="eyebrow">입력값에서 확인한 보조 신호</span>
+            <div class="summary-grid">${renderFacts()}</div>
+            <p class="fineprint">이 단계는 전체 결론의 일부만 보여줍니다. 상세 결과에서는 관록궁, 재백궁, 교우궁, 천이궁, 복덕궁과 시기 흐름을 항목별로 나누어 풀이합니다.</p>
+          </section>
+
+          <section class="panel" aria-label="결제 후 열리는 항목">
+            <span class="eyebrow">결제 후 열리는 범위 · 9,900원</span>
+            <h2>10개 대분류 전체를 이어서 봅니다</h2>
+            <p>추상적인 더 보기 대신, 아래 항목별로 상세 풀이와 현실 액션을 연결합니다.</p>
+            <div class="result-grid" style="margin-top: 14px">${renderPaidScope()}</div>
+          </section>
+
+          <section class="panel" aria-label="결제와 다음 단계">
+            <span class="eyebrow">다음 단계</span>
+            <h2>전체 결과 목록으로 이동</h2>
+            <p>결제 후에는 대분류와 중분류 목록을 먼저 보고, 필요한 상세 항목을 눌러 해석을 확인합니다.</p>
+            <div class="button-row">
+              <button class="primary-button" type="button" id="payButton">9,900원 결제하고 전체 열기</button>
+              <button class="secondary-button" type="button" id="loginButton">로그인 후 이어보기</button>
+              <button class="text-button" type="button" id="retryButton">입력값 다시 확인</button>
+            </div>
+            <p class="fineprint">결제 확인 후 전체 결과가 열립니다. 취소나 실패가 있으면 이 무료 결과로 돌아와 다시 시도할 수 있습니다.</p>
+          </section>
+        `,
+      );
+
+      document.getElementById("payButton").addEventListener("click", () => {
+        JobChoice.markPaid();
+        window.location.href = "../05-step-5-chat/chat.html#step-5-chat";
+      });
+
+      document.getElementById("loginButton").addEventListener("click", () => {
+        JobChoice.markPaid();
+        window.location.href = "../05-step-5-chat/chat.html#step-5-chat";
+      });
+
+      document.getElementById("retryButton").addEventListener("click", () => {
+        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      });
+
+      document.querySelector("[data-back]").addEventListener("click", () => {
+        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      });
+
+      if (!window.location.hash) {
+        window.history.replaceState(null, "", "#step-4-report");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/jobchoice-service.js" defer></script>
+  </body>
+</html>

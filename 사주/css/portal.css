@@ -532,6 +532,32 @@ a:focus-visible {
     linear-gradient(90deg, rgba(5, 5, 4, 0.14), rgba(5, 5, 4, 0.02) 66%);
 }
 
+/* 자미두수 직장 카드: 세로 인물 아트워크라 연애 카드와 같은 어둡기로 맞추고,
+   시선이 상단에 있어 object-position만 조금 올려 잡는다. */
+.poster.is-work::after {
+  display: none;
+}
+
+.poster.is-work img {
+  opacity: 0.82;
+  filter: saturate(1.08) contrast(1.06) brightness(0.84);
+  object-position: center 34%;
+  transform: scale(1.02);
+}
+
+.poster.is-work .poster-shade {
+  background:
+    linear-gradient(180deg, rgba(5, 5, 4, 0.04), rgba(5, 5, 4, 0.2) 34%, rgba(5, 5, 4, 0.9) 100%),
+    linear-gradient(90deg, rgba(5, 5, 4, 0.4), rgba(5, 5, 4, 0.02) 74%);
+}
+
+.poster.is-work:hover img,
+.poster.is-work:focus-visible img,
+.poster.is-work.is-pointed img {
+  filter: saturate(1.14) contrast(1.1) brightness(0.92);
+  transform: scale(1.06);
+}
+
 .poster:hover,
 .poster:focus-visible,
 .poster.is-pointed {

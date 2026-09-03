@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>사주 프로필과 직장 선택 입력 | 운명상회</title>
+    <meta
+      name="description"
+      content="이미 저장된 사주 프로필은 다시 묻지 않고, 선택한 회사와 오퍼 조건만 추가로 받아 직장 핏 풀이를 준비합니다."
+    />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <link rel="stylesheet" href="../shared/job-choice.css" />
+    <script src="../shared/job-choice-data.js"></script>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="직장 선택" data-price="9,900원" data-active="home" id="step-2-saju-input" aria-label="직장 선택 풀이 입력">
+      <header class="appbar topbar">
+        <a class="brand" href="../01-step-1-story/index.html#step-1-story" aria-label="운명상회 인트로로 이동">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3l7 4v5c0 4.8-3 8.1-7 9-4-0.9-7-4.2-7-9V7l7-4z" stroke="currentColor" stroke-width="1.7" />
+              <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+          </span>
+          운명상회
+        </a>
+        <button class="icon-button" type="button" aria-label="이전 화면으로 이동" data-back>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </header>
+
+      <section class="stage">
+        <div class="hero-panel">
+          <span class="kicker">02 · 입력 확인</span>
+          <h1>사주는 한 번만,<br />회사는 이번 선택만.</h1>
+          <p>이미 저장된 이름, 생년월일, 태어난 시가 있으면 다시 입력하지 않습니다. 이번 화면에서는 회사와 오퍼 조건을 중심으로 받습니다.</p>
+          <div class="meta-grid" aria-label="입력 원칙">
+            <div class="meta-row"><span>개인 사주</span><strong>저장 프로필 자동 사용</strong></div>
+            <div class="meta-row"><span>이번 선택</span><strong>회사·직무·조건 입력</strong></div>
+            <div class="meta-row"><span>저장 방식</span><strong>민감 정보는 URL에 미노출</strong></div>
+          </div>
+        </div>
+
+        <form class="form-card" id="jobChoiceForm" novalidate>
+          <div class="profile-status" id="profileStatus">
+            <strong>저장된 사주 프로필을 확인하는 중입니다.</strong>
+            <span>프로필이 완전하면 이름·생년월일·태어난 시 입력칸을 접어 둡니다.</span>
+            <button class="text-button" type="button" id="toggleProfile">새 사주로 보기</button>
+          </div>
+
+          <section id="profileFields" aria-label="새 사주 프로필 입력">
+            <span class="eyebrow">새 사주로 볼 때만 입력</span>
+            <div class="field-grid two">
+              <label>
+                이름 또는 호칭
+                <input name="name" autocomplete="name" placeholder="예: 지민" />
+              </label>
+              <label>
+                성별
+                <select name="gender">
+                  <option value="unspecified">선택 안 함</option>
+                  <option value="female">여성</option>
+                  <option value="male">남성</option>
+                </select>
+              </label>
+            </div>
+            <div class="field-grid two">
+              <label>
+                생년월일
+                <input name="birthDate" type="date" />
+              </label>
+              <label>
+                태어난 시
+                <input name="birthTime" type="time" />
+              </label>
+            </div>
+            <div class="field-grid two">
+              <label>
+                양력/음력
+                <select name="calendarType">
+                  <option value="solar">양력</option>
+                  <option value="lunar">음력</option>
+                </select>
+              </label>
+              <label>
+                출생지
+                <input name="birthPlace" autocomplete="off" placeholder="예: 서울" />
+              </label>
+            </div>
+            <p class="helper">기존 회원 프로필이 있으면 이 영역은 자동으로 접히고, 새 사주로 보기일 때만 다시 열립니다.</p>
+          </section>
+
+          <section aria-label="직장 선택 입력">
+            <span class="eyebrow">이번에 판단할 회사</span>
+            <div class="field-grid">
+              <label>
+                선택한 회사 또는 오퍼명
+                <input name="companyName" autocomplete="off" placeholder="예: A회사 최종 오퍼" required />
+              </label>
+              <label>
+                직무
+                <input name="roleName" autocomplete="off" placeholder="예: 콘텐츠 기획, PM, 회계 운영" required />
+              </label>
+            </div>
+            <div class="field-grid two">
+              <label>
+                근무 형태
+                <select name="workMode" required>
+                  <option value="">선택</option>
+                  <option value="onsite">전면 출근</option>
+                  <option value="hybrid">하이브리드</option>
+                  <option value="remote">원격/비대면 중심</option>
+                  <option value="travel">출장·이동 많음</option>
+                  <option value="shift">교대·변동 근무</option>
+                </select>
+              </label>
+              <label>
+                연봉·조건 체감
+                <select name="salaryFeeling" required>
+                  <option value="">선택</option>
+                  <option value="high">좋은 편</option>
+                  <option value="acceptable">감당 가능</option>
+                  <option value="low">아쉬워서 협상 필요</option>
+                  <option value="unclear">아직 불명확</option>
+                </select>
+              </label>
+            </div>
+            <div class="field-grid">
+              <label>
+                출퇴근/근무지
+                <input name="commute" autocomplete="off" placeholder="예: 왕복 90분, 주 2회 재택 가능" required />
+              </label>
+              <label>
+                입사 또는 결정 예정일
+                <input name="decisionDate" type="date" />
+              </label>
+              <label>
+                가장 찝찝한 포인트
+                <textarea name="concernPoint" placeholder="예: 상사 스타일이 강해 보이고 역할 범위가 애매합니다." required></textarea>
+              </label>
+            </div>
+          </section>
+
+          <p class="error" id="formError" role="alert"></p>
+          <button class="primary-button" type="submit">입력한 정보로 직장 핏 보기</button>
+          <p class="fineprint">회사명, 생년월일, 출생지는 URL에 붙이지 않습니다. 입력값은 다음 단계로만 안전하게 전달합니다.</p>
+        </form>
+      </section>
+
+      <footer class="footer">자미두수로 보는 내가 선택한 직장 괜찮을까 · 입력</footer>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">{}</script>
+    <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
+    <script type="application/json" id="RAG_EVIDENCE">[]</script>
+    <script type="application/json" id="IMAGE_MANIFEST">[]</script>
+    <script type="application/json" id="QA_RESULT">{}</script>
+
+    <script src="/js/jobchoice-report-store.js"></script>
+    <script>
+      const form = document.getElementById("jobChoiceForm");
+      const profileFields = document.getElementById("profileFields");
+      const profileStatus = document.getElementById("profileStatus");
+      const toggleProfile = document.getElementById("toggleProfile");
+      const formError = document.getElementById("formError");
+      const stored = JobChoice.loadStoredProfile();
+      let useStoredProfile = stored.complete;
+
+      JobChoice.hydrateContracts("02-step-2-saju-input", [
+        { item: "저장 프로필 중복 입력 방지", status: "pass", detail: "완전한 사주 프로필이 있으면 기본 사주 입력 영역을 접습니다." },
+        { item: "개인정보 URL 미노출", status: "pass", detail: "제출 URL에는 이름, 생년월일, 회사명, 출생지를 넣지 않습니다." },
+        { item: "직장 판단 입력 분리", status: "pass", detail: "회사·직무·근무 형태·출퇴근·조건·결정일·찝찝한 포인트를 별도 섹션으로 받습니다." },
+      ]);
+
+      function fillProfile(profile) {
+        for (const [key, value] of Object.entries(profile)) {
+          const field = form.elements[key];
+          if (field && value) field.value = value;
+        }
+      }
+
+      function renderProfileState() {
+        if (stored.complete && useStoredProfile) {
+          profileFields.classList.add("is-hidden");
+          profileStatus.querySelector("strong").textContent = "저장된 사주 프로필을 사용합니다.";
+          profileStatus.querySelector("span").textContent = JobChoice.profileLabel(stored.profile);
+          toggleProfile.textContent = "새 사주로 보기";
+          return;
+        }
+        profileFields.classList.remove("is-hidden");
+        profileStatus.querySelector("strong").textContent = stored.complete ? "새 사주 입력으로 전환했습니다." : "사주 계산에 필요한 기본값을 입력해 주세요.";
+        profileStatus.querySelector("span").textContent = stored.complete
+          ? "아래 입력값이 이번 풀이의 개인 기준으로 쓰입니다."
+          : "기존 프로필이 없거나 생년월일·태어난 시가 비어 있습니다.";
+        toggleProfile.textContent = stored.complete ? "저장 프로필 사용" : "입력칸 유지";
+      }
+
+      function readProfileFromForm() {
+        return JobChoice.normalizeProfile({
+          name: form.elements.name.value.trim(),
+          gender: form.elements.gender.value,
+          birthDate: form.elements.birthDate.value,
+          birthTime: form.elements.birthTime.value,
+          calendarType: form.elements.calendarType.value,
+          birthPlace: form.elements.birthPlace.value.trim(),
+        });
+      }
+
+      function readOfferFromForm() {
+        return {
+          companyName: form.elements.companyName.value.trim(),
+          roleName: form.elements.roleName.value.trim(),
+          workMode: form.elements.workMode.value,
+          commute: form.elements.commute.value.trim(),
+          salaryFeeling: form.elements.salaryFeeling.value,
+          decisionDate: form.elements.decisionDate.value,
+          concernPoint: form.elements.concernPoint.value.trim(),
+        };
+      }
+
+      function showError(message) {
+        formError.textContent = message;
+        formError.classList.add("is-visible");
+      }
+
+      function clearError() {
+        formError.textContent = "";
+        formError.classList.remove("is-visible");
+      }
+
+      fillProfile(stored.profile);
+      renderProfileState();
+
+      toggleProfile.addEventListener("click", () => {
+        if (!stored.complete) return;
+        useStoredProfile = !useStoredProfile;
+        if (useStoredProfile) fillProfile(stored.profile);
+        renderProfileState();
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        clearError();
+
+        const profile = useStoredProfile && stored.complete ? stored.profile : readProfileFromForm();
+        if (!JobChoice.isProfileComplete(profile)) {
+          showError("사주 계산용 이름 또는 호칭, 생년월일, 태어난 시, 양력/음력을 확인해 주세요.");
+          profileFields.classList.remove("is-hidden");
+          return;
+        }
+
+        const offer = readOfferFromForm();
+        if (!offer.companyName || !offer.roleName || !offer.workMode || !offer.commute || !offer.salaryFeeling || !offer.concernPoint) {
+          showError("회사명, 직무, 근무 형태, 출퇴근/근무지, 조건 체감, 찝찝한 포인트를 입력해 주세요.");
+          return;
+        }
+
+        JobChoice.saveJobInput({
+          profileSource: useStoredProfile && stored.complete ? "stored_profile" : "new_profile",
+          profile,
+          offer,
+        });
+        window.location.href = "../04-step-4-report/index.html#step-4-report";
+      });
+
+      document.querySelector("[data-back]").addEventListener("click", () => {
+        window.location.href = "../01-step-1-story/index.html#step-1-story";
+      });
+
+      if (!window.location.hash) {
+        window.history.replaceState(null, "", "#step-2-saju-input");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/jobchoice-service.js" defer></script>
+  </body>
+</html>

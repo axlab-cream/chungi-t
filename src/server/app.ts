@@ -75,6 +75,12 @@ import {
   parseWorkQuitRequest,
 } from '../work/quit-service.js'
 import {
+  buildJobChoiceContext,
+  buildJobChoiceReport,
+  createJobChoiceReportId,
+  parseJobChoiceRequest,
+} from '../work/jobchoice-service.js'
+import {
   buildLoveMindContext,
   buildLoveMindReport,
   createLoveMindReportId,
@@ -295,6 +301,31 @@ app.get(['/work/quit', '/work/quit/', '/work/quit/index.html'], (req, res) => {
   const query = forwarded.toString()
   const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
   res.redirect(302, `/work/quit/${step}/index.html${query ? `?${query}` : ''}`)
+})
+// 자미두수 직장 선택 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/work/job-choice', '/work/job-choice/', '/work/job-choice/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/work/job-choice/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/work/job-choice/input', '/work/job-choice/input.html'], (_req, res) => {
+  res.redirect(302, '/work/job-choice/02-step-2-saju-input/index.html')
+})
+app.get(['/work/job-choice/report', '/work/job-choice/report.html'], (_req, res) => {
+  res.redirect(302, '/work/job-choice/04-step-4-report/index.html')
+})
+app.get(['/work/job-choice/chat', '/work/job-choice/chat.html'], (_req, res) => {
+  res.redirect(302, '/work/job-choice/05-step-5-chat/chat.html')
+})
+app.get(['/work/job-choice/detail', '/work/job-choice/detail.html'], (_req, res) => {
+  res.redirect(302, '/work/job-choice/06-step-6_1-report-detail/index.html')
 })
 app.get(['/work/quit/input', '/work/quit/input.html'], (_req, res) => {
   res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
@@ -1022,6 +1053,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   match_couple: 'match_couple',
   work_job: 'work_job',
   quit_fortune: 'quit_fortune',
+  job_choice: 'job_choice',
   couple_signal: 'couple_signal',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
@@ -1589,6 +1621,37 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '퇴사운 생성 실패' })
+  }
+})
+
+app.post('/api/work/job-choice/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '직장 선택 풀이를 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseJobChoiceRequest(req.body)
+    const context = buildJobChoiceContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createJobChoiceReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId)) return
+    const templateReport = buildJobChoiceReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '직장 선택 풀이 생성 실패' })
   }
 })
 

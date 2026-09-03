@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>자미두수로 보는 내가 선택한 직장 괜찮을까 | 운명상회</title>
+    <meta
+      name="description"
+      content="자미두수 관록궁, 재백궁, 교우궁, 천이궁, 복덕궁과 운한 흐름으로 선택한 회사의 직무, 돈, 사람, 성장, 워라밸을 살펴보는 직장 선택 풀이 서비스입니다."
+    />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="자미두수로 보는 내가 선택한 직장 괜찮을까" />
+    <meta
+      property="og:description"
+      content="끌리는데 찝찝한 회사, 들어가도 되는지 대분류와 중분류로 확인합니다."
+    />
+    <meta property="og:url" content="https://me.umsh.kr/job-choice" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <link rel="canonical" href="https://me.umsh.kr/job-choice" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07080d;
+        --panel: rgba(12, 13, 22, 0.78);
+        --line: rgba(255, 255, 255, 0.15);
+        --line-strong: rgba(242, 191, 107, 0.45);
+        --text: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --soft: rgba(255, 248, 239, 0.56);
+        --gold: #f3c46f;
+        --rose: #ff8f9a;
+        --teal: #54c5d6;
+        --radius: 8px;
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.48);
+        font-family:
+          "Pretendard",
+          "Apple SD Gothic Neo",
+          "Malgun Gothic",
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: var(--bg);
+      }
+
+      body {
+        min-height: 100%;
+        margin: 0;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 15% 10%, rgba(84, 197, 214, 0.14), transparent 30%),
+          radial-gradient(circle at 88% 18%, rgba(255, 143, 154, 0.11), transparent 28%),
+          linear-gradient(180deg, #05060b 0%, #111018 52%, #07080d 100%);
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 430px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: #080911;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), var(--shadow);
+      }
+
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        z-index: 30;
+        width: min(100%, 430px);
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px 10px;
+        background: linear-gradient(180deg, rgba(6, 7, 12, 0.94), rgba(6, 7, 12, 0));
+        pointer-events: none;
+      }
+
+      .brand,
+      .back {
+        pointer-events: auto;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .brand-mark,
+      .back {
+        display: inline-grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(9, 10, 17, 0.5);
+        color: var(--text);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand-mark svg,
+      .back svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .back {
+        cursor: pointer;
+      }
+
+      .story {
+        position: relative;
+      }
+
+      .scene {
+        position: relative;
+        min-height: 86svh;
+        display: flex;
+        align-items: flex-end;
+        padding: 86px 20px 40px;
+        isolation: isolate;
+      }
+
+      .scene.compact {
+        min-height: 74svh;
+      }
+
+      .scene-media {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background: #080911;
+      }
+
+      .scene-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .scene-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(6, 7, 12, 0.24) 0%, rgba(6, 7, 12, 0.3) 38%, rgba(6, 7, 12, 0.92) 82%, #07080d 100%),
+          linear-gradient(90deg, rgba(6, 7, 12, 0.55) 0%, transparent 42%, rgba(6, 7, 12, 0.24) 100%);
+      }
+
+      .scene-content {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        margin-bottom: 14px;
+        padding: 7px 10px;
+        border: 1px solid rgba(243, 196, 111, 0.36);
+        border-radius: var(--radius);
+        background: rgba(7, 8, 13, 0.62);
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 100%;
+        font-size: 41px;
+        line-height: 1.06;
+        font-weight: 950;
+        letter-spacing: 0;
+        text-wrap: balance;
+        text-shadow: 0 3px 28px rgba(0, 0, 0, 0.5);
+      }
+
+      h2 {
+        font-size: 31px;
+        line-height: 1.16;
+        font-weight: 950;
+        letter-spacing: 0;
+        text-wrap: balance;
+        text-shadow: 0 3px 28px rgba(0, 0, 0, 0.46);
+      }
+
+      .scene p {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+        font-weight: 650;
+        word-break: keep-all;
+      }
+
+      .accent {
+        color: var(--gold);
+      }
+
+      .rose {
+        color: var(--rose);
+      }
+
+      .teal {
+        color: var(--teal);
+      }
+
+      .cta-button {
+        width: 100%;
+        min-height: 70px;
+        margin-top: 24px;
+        border: 0;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, #f4d477 0%, #ff8f9a 100%);
+        color: #15100a;
+        font-size: 17px;
+        font-weight: 950;
+        cursor: pointer;
+        box-shadow: 0 18px 42px rgba(236, 156, 110, 0.3);
+      }
+
+      .cta-button:focus-visible,
+      .back:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 3px;
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 26px;
+        padding: 16px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: rgba(7, 8, 13, 0.74);
+        backdrop-filter: blur(18px);
+      }
+
+      .fact-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 34px;
+        font-size: 13px;
+        color: var(--soft);
+      }
+
+      .fact-row strong {
+        color: var(--text);
+        font-size: 14px;
+        text-align: right;
+      }
+
+      .mini-cards,
+      .fit-grid,
+      .index-list,
+      .result-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .mini-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mini-card,
+      .fit-card,
+      .index-row,
+      .result-item {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(12, 13, 22, 0.74);
+        backdrop-filter: blur(18px);
+      }
+
+      .mini-card {
+        min-height: 100px;
+        padding: 13px;
+      }
+
+      .mini-card b {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      .mini-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+        word-break: keep-all;
+      }
+
+      .index-list {
+        padding-right: 0;
+      }
+
+      .index-row {
+        padding: 12px 13px;
+      }
+
+      .index-row strong {
+        display: block;
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      .index-row span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.42;
+        word-break: keep-all;
+      }
+
+      .teaser-card {
+        margin-top: 22px;
+        padding: 18px;
+        border: 1px solid rgba(84, 197, 214, 0.38);
+        border-radius: var(--radius);
+        background: rgba(6, 19, 26, 0.74);
+      }
+
+      .signal {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        color: var(--text);
+        font-weight: 850;
+      }
+
+      .signal i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 24px rgba(84, 197, 214, 0.72);
+      }
+
+      .bar {
+        height: 9px;
+        margin-top: 16px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .bar span {
+        display: block;
+        width: 58%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--teal), var(--gold), var(--rose));
+      }
+
+      .result-list {
+        grid-template-columns: 1fr;
+      }
+
+      .result-item {
+        display: grid;
+        gap: 6px;
+        min-height: 64px;
+        padding: 13px 14px;
+      }
+
+      .result-item strong {
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      .result-item span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        word-break: keep-all;
+      }
+
+      .fineprint {
+        margin-top: 14px;
+        color: rgba(255, 248, 239, 0.56);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .footer {
+        padding: 24px 20px 42px;
+        color: rgba(255, 248, 239, 0.42);
+        font-size: 12px;
+        text-align: center;
+        background: #07080d;
+      }
+
+      @media (max-width: 360px) {
+        .scene {
+          padding-inline: 16px;
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        h2 {
+          font-size: 27px;
+        }
+
+        .mini-cards {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (min-width: 820px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .phone,
+        .topbar {
+          border-radius: 18px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+        }
+      }
+    
+/* Shared UMSH chrome: keep the fixed bottom nav clear of the page's last section.
+   The shell publishes its measured height, but that measurement can land before
+   layout settles, so the floor keeps the reserve honest either way. */
+body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+/* .phone is overflow:hidden, which makes it a scroll container the page never scrolls.
+   overflow:clip keeps the same clipping without the scrollport, so anything sticky
+   inside it binds to the viewport instead of a box that never moves. */
+body.umsh-has-chrome .phone { overflow: clip; }
+/* UMSHChrome renders the shared bar as header.umsh-chrome-appbar inside its own shell,
+   and that header still carries the page's own .topbar class. On 01 that class is
+   position:fixed + left:50% + translateX(-50%) + pointer-events:none, which dragged the
+   shared bar half a screen to the left and made it unclickable. Hand the box back. */
+body.umsh-has-chrome .umsh-chrome-appbar {
+  left: auto;
+  right: auto;
+  width: auto;
+  transform: none;
+  pointer-events: auto;
+}
+/* The saved 사주 profile the account already holds, shown instead of re-asking. */
+.jobchoice-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(150, 140, 255, 0.42); border-radius: 10px; background: rgba(150, 140, 255, 0.1); padding: 14px; margin-bottom: 14px; }
+.jobchoice-saved-profile b { color: #d8d2ff; font-size: 14px; }
+.jobchoice-saved-profile span { color: rgba(240, 238, 255, 0.78); font-size: 13px; line-height: 1.55; }
+.jobchoice-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="직장 선택" data-price="9,900원" data-active="home" id="step-1-story" aria-label="자미두수로 보는 내가 선택한 직장 괜찮을까 인트로">
+      <header class="appbar topbar">
+        <div class="brand" aria-label="운명상회">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3l7 4v5c0 4.8-3 8.1-7 9-4-0.9-7-4.2-7-9V7l7-4z" stroke="currentColor" stroke-width="1.7" />
+              <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+          </span>
+          운명상회
+        </div>
+        <button class="back" type="button" aria-label="이전 화면으로 이동" data-back>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="story">
+        <section class="scene" data-scene-id="scene-01">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-01-hook.webp" alt="회사 선택 갈림길에서 제안서와 명반을 들고 서 있는 상담자 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">직장 선택 사주 · 9,900원</span>
+            <h1>이 회사,<br />나랑 결<br />맞을까?</h1>
+            <p>오퍼는 괜찮아 보이는데 마음 한쪽이 걸린다면, 직무·사람·돈·타이밍을 한 번에 놓고 봅니다.</p>
+            <div class="facts" aria-label="서비스 기본 정보">
+              <div class="fact-row"><span>보는 기준</span><strong>자미두수 + 사주 흐름</strong></div>
+              <div class="fact-row"><span>확인하는 것</span><strong>회사 핏, 리스크, 액션</strong></div>
+              <div class="fact-row"><span>진행 단계</span><strong>생년월일 입력 후 풀이 시작</strong></div>
+            </div>
+            <button class="cta-button" type="button" data-next>내 직장 핏 확인하러 가기</button>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-02">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-02-empathy.webp" alt="늦은 밤 회사 제안서를 보며 고민하는 상담자 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">고민 공감</span>
+            <h2>조건은 나쁘지 않은데,<br /><span class="rose">찝찝한 포인트</span>가 남을 때</h2>
+            <p>연봉만 보면 괜찮고, 이름값도 있어 보이는데 막상 들어간 내 모습이 잘 그려지지 않을 수 있어요.</p>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-03">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-03-repeat-pattern.webp" alt="회의, 계약, 출퇴근 장면이 겹쳐 보이는 직장 고민 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">반복되는 상황</span>
+            <h2>직무, 사람, 돈, 출퇴근이<br />한꺼번에 걸리면<br /><span class="accent">판단이 흐려집니다</span></h2>
+            <p>그래서 한 가지 운만 보지 않고, 회사 안에서 실제로 부딪힐 장면을 나눠 봅니다.</p>
+            <div class="mini-cards" aria-label="고민 축 예시">
+              <div class="mini-card"><b>직무 핏</b><span>내가 힘을 쓰는 방식과 업무가 맞는지</span></div>
+              <div class="mini-card"><b>회사생활 케미</b><span>상사, 동료, 고객과의 호흡이 어떤지</span></div>
+              <div class="mini-card"><b>돈값</b><span>연봉과 조건이 장기적으로 남는지</span></div>
+              <div class="mini-card"><b>리스크</b><span>압박, 갈등, 역할 혼란이 어디서 오는지</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-04">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-04-evidence-bridge.webp" alt="직장, 돈, 사람, 이동, 회복, 타이밍을 별자리 명반으로 읽는 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">풀이 기준</span>
+            <h2>관록은 일,<br />재백은 돈,<br />교우는 <span class="teal">사람</span>을 봅니다</h2>
+            <p>이직·입사 질문은 관록궁을 중심으로 천이궁, 재백궁, 교우궁, 복덕궁과 시기 흐름을 함께 놓고 읽습니다.</p>
+          </div>
+        </section>
+
+        <section class="scene" data-scene-id="scene-05">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-05-index-preview.webp" alt="회사 핏, 직무, 사람, 돈, 성장, 리스크를 상징하는 카드 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">풀이 리스트 예고</span>
+            <h2>대분류부터 중분류까지,<br /><span class="accent">이런 것까지</span> 열립니다</h2>
+            <div class="index-list" aria-label="유료 리포트 대분류와 중분류 예시">
+              <div class="index-row"><strong>이 회사, 나랑 결 맞아?</strong><span>전체 핏 판정, 끌리는 이유, 찝찝한 포인트, GO/HOLD/협상/보류 시그널</span></div>
+              <div class="index-row"><strong>직무 핏</strong><span>리더형, 기획·분석형, 말·교육·콘텐츠형, 재무·운영·관리형, 상담·연구형</span></div>
+              <div class="index-row"><strong>회사생활 케미</strong><span>상사 케미, 팀원·동료 케미, 조직문화 적응도, 사내 정치/라인 리스크</span></div>
+              <div class="index-row"><strong>돈값 하는 회사인가</strong><span>연봉 만족도, 성과급 흐름, 돈이 쌓이는 구조, 계약 조건 체크</span></div>
+              <div class="index-row"><strong>성장각</strong><span>승진·평가운, 포트폴리오 성장, 자격·스킬업, 권한 확대, 네임밸류</span></div>
+              <div class="index-row"><strong>업무 환경</strong><span>출퇴근·근무지, 출장·이동·해외, 원격 업무 궁합, 회사 규모와 안정감</span></div>
+              <div class="index-row"><strong>리스크 체크</strong><span>역할 혼란, 상사 압박, 문서·계약 실수, 팀 갈등, 과로, 평판 관리</span></div>
+              <div class="index-row"><strong>입사 타이밍</strong><span>지금 들어가도 되는 흐름, 변동기, 첫 90일 테스트, 입사·계약일 택일</span></div>
+              <div class="index-row"><strong>멘탈·워라밸</strong><span>평가 스트레스, 회복 리듬, 내면 만족도, 현타 포인트, 버틸 루틴</span></div>
+              <div class="index-row"><strong>현실 액션 플랜</strong><span>오퍼 체크리스트, 면접·협상 질문, 첫 30·60·90일 전략, 보류 조건</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-06">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-06-free-teaser.webp" alt="무료 첫 신호를 보여주는 빈 명반과 회사 카드 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">무료 티저</span>
+            <h2>먼저 가볍게,<br />내 선택의 <span class="teal">첫 신호</span>부터 봅니다</h2>
+            <p>생년월일을 입력하면 이 회사가 끌리는 이유와 먼저 확인할 리스크 한 줄을 무료로 보여드립니다.</p>
+            <div class="teaser-card" aria-label="무료 티저 예시">
+              <div class="signal"><i aria-hidden="true"></i><span>끌림, 조건, 불안 중 어디가 먼저 움직이는지</span></div>
+              <div class="bar" aria-hidden="true"><span></span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-scene-id="scene-07">
+          <div class="scene-media">
+            <img src="../assets/job-choice/01-scene-07-cta.webp" alt="직장 선택 리포트를 펼쳐 다음 단계로 안내하는 이미지" loading="eager" />
+          </div>
+          <div class="scene-content">
+            <span class="eyebrow">직장 선택 리포트</span>
+            <h2>들어갈지, 협상할지,<br />조금 더 볼지<br /><span class="accent">선택 기준</span>을 정리합니다</h2>
+            <div class="result-list" aria-label="결제 후 확인할 대표 항목">
+              <div class="result-item"><strong>01 · 전체 핏</strong><span>GO/HOLD/협상/보류 시그널과 지금 마음 상태</span></div>
+              <div class="result-item"><strong>02 · 직무와 조직</strong><span>업무 스타일, 상사·팀원 케미, 조직문화 적응도</span></div>
+              <div class="result-item"><strong>03 · 돈과 성장</strong><span>연봉 만족도, 성과급 흐름, 승진·평가, 포트폴리오 성장</span></div>
+              <div class="result-item"><strong>04 · 리스크와 타이밍</strong><span>역할 혼란, 과로, 계약 체크, 첫 90일 전략</span></div>
+            </div>
+            <button class="cta-button" type="button" data-next>내 직장 핏 확인하러 가기</button>
+            <p class="fineprint">자미두수와 사주 흐름은 선택을 대신 확정하지 않습니다. 현실 조건을 함께 확인하는 참고 풀이로 제공합니다.</p>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer">자미두수로 보는 내가 선택한 직장 괜찮을까 · 직장 선택 사주</footer>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "SERVICE_TITLE": "자미두수로 보는 내가 선택한 직장 괜찮을까",
+        "SERVICE_DESCRIPTION": "선택한 회사가 내 직무 방식, 관계 호흡, 돈의 흐름, 성장 가능성, 업무 환경, 입사 타이밍과 맞는지 확인하는 직장 선택 풀이 서비스",
+        "SERVICE_CATEGORY": "직장운",
+        "SERVICE_PRICE_KRW": 9900,
+        "SERVICE_URL_HINT": "https://me.umsh.kr/job-choice",
+        "TARGET_AUDIENCE": "오퍼 수락, 이직, 입사 결정을 앞두고 조건과 마음의 찝찝함을 함께 확인하고 싶은 20-30대 사용자",
+        "INTERPRETATION_INDEX_SEED": "user_provided_job_choice_index"
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX">
+      [
+        {"id": "company-fit", "title": "이 회사, 나랑 결 맞아?", "items": ["전체 핏 판정", "끌리는 이유", "찝찝한 포인트", "GO/HOLD/협상/보류 시그널", "지금 선택해도 되는 마음 상태"]},
+        {"id": "role-fit", "title": "직무 핏", "items": ["리더형 업무", "기획·분석형 업무", "말·교육·콘텐츠형 업무", "재무·운영·관리형 업무", "상담·연구형 업무", "개척·현장·스타트업형 업무"]},
+        {"id": "office-chemistry", "title": "회사생활 케미", "items": ["상사 케미", "팀원·동료 케미", "조직문화 적응도", "사내 정치/라인 리스크", "멘토·귀인 가능성", "고객·협력사와의 호흡"]},
+        {"id": "money-value", "title": "돈값 하는 회사인가", "items": ["연봉 만족도", "성과급·인센티브 흐름", "돈이 쌓이는 구조", "지출·기회비용", "계약 조건 체크", "장기 자산화 가능성"]},
+        {"id": "growth-angle", "title": "성장각", "items": ["승진·평가운", "포트폴리오 성장", "자격·스킬업", "권한 확대", "업계 네임밸류", "커리어 레벨업 포인트"]},
+        {"id": "work-environment", "title": "업무 환경", "items": ["출퇴근·근무지 적합도", "출장·이동·해외 가능성", "원격/비대면 업무 궁합", "회사 규모와 안정감", "변화 많은 환경 적응도"]},
+        {"id": "risk-check", "title": "리스크 체크", "items": ["역할 혼란", "상사 압박", "문서·계약 실수", "팀 갈등", "과로·번아웃", "돈 문제", "평판·구설 관리"]},
+        {"id": "entry-timing", "title": "입사 타이밍", "items": ["지금 들어가도 되는 흐름", "대운·유년상 변동기", "첫 90일 테스트", "월간/오늘 컨디션", "입사·계약일 택일"]},
+        {"id": "mental-balance", "title": "멘탈·워라밸", "items": ["회사가 내 삶을 잡아먹는지", "평가 스트레스", "수면·회복 리듬", "내면 만족도", "현타 오는 포인트", "오래 버틸 수 있는 루틴"]},
+        {"id": "action-plan", "title": "현실 액션 플랜", "items": ["오퍼 수락 전 체크리스트", "면접/협상 질문", "첫 30·60·90일 전략", "보류해야 할 조건", "그만둘 각/버틸 각 구분"]}
+      ]
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      [
+        {"id": "palace-career", "source": "ITEM-49_자미두수/KMS/02-십이궁/09-관록궁.md", "summary": "관록궁은 직업, 사회적 역할, 일의 방식, 명예와 책임을 보며 이직 질문은 천이궁, 수입 질문은 재백궁을 함께 엽니다."},
+        {"id": "palace-wealth", "source": "ITEM-49_자미두수/KMS/02-십이궁/05-재백궁.md", "summary": "재백궁은 수입이 생기는 방식, 소비 습관, 돈에 대한 감각을 보며 관록궁·천이궁과 함께 흐름을 나눠 봅니다."},
+        {"id": "palace-friends", "source": "ITEM-49_자미두수/KMS/02-십이궁/08-교우궁.md", "summary": "교우궁은 친구, 부하, 고객, 협력자, 대중과의 관계를 보며 조직 내 호흡과 상호 의존의 질을 살핍니다."},
+        {"id": "palace-travel", "source": "ITEM-49_자미두수/KMS/02-십이궁/07-천이궁.md", "summary": "천이궁은 이동, 이사, 해외, 바깥에서 보이는 나, 환경 변화를 보며 이직·출장 질문은 관록궁과 함께 엽니다."},
+        {"id": "palace-fortune", "source": "ITEM-49_자미두수/KMS/02-십이궁/11-복덕궁.md", "summary": "복덕궁은 정신적 여유, 취미, 가치관, 쉬는 방식, 주관적 만족과 회복력을 살피는 칸입니다."},
+        {"id": "question-palace", "source": "ITEM-49_자미두수/KMS/07-실전/03-질문별-궁위.md", "summary": "질문별로 볼 궁위를 먼저 정하며 이직은 관록을 주 궁으로, 천이·재백을 보조 궁으로 둡니다."},
+        {"id": "limits-years", "source": "ITEM-49_자미두수/KMS/06-운한/01-대한-유년.md", "summary": "본명 구조가 확정된 뒤 대한과 유년 같은 시간 층을 겹쳐 현재 선택의 무대와 올해의 스포트라이트를 봅니다."},
+        {"id": "timing-read", "source": "ITEM-49_자미두수/KMS/06-운한/02-운한-읽는-법.md", "summary": "운한은 사건 예언이 아니라 어느 영역이 활성화되는지를 보고, 사건·감정·통제 가능한 행동을 나눠 읽습니다."},
+        {"id": "item-22-p1-0064", "source": "ITEM-22_세운·연간 흐름/세운·연간 흐름_rag_dataset.csv", "summary": "세운만으로 이직을 결정하지 않고 올해 조건과 대운의 겹침을 나누며 단정 대신 확인 가능한 다음 행동을 남깁니다."},
+        {"id": "item-23-qa-0001", "source": "lib/teacher/daily-counsel-rag.ts", "summary": "지금 바로 답해야 하는 일인지 살피고, 상대 반응과 달라진 조건, 일정의 빈틈을 확인하는 행동으로 연결합니다."}
+      ]
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {"asset_key": "job-choice-01-scene-01-hook", "filename": "assets/generated/job-choice/01-scene-01-hook.webp", "role": "hero", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["애니메이션 일러스트", "짙은 보랏빛 웨이브 헤어", "반가면 소품", "별 장식", "남보라와 금빛 조명"], "generation_policy": "same-character-new-scene", "prompt": "오피스 빌딩 사이 갈림길에서 회사 제안서와 별자리 명반을 든 직장 선택 훅 장면, 이미지 안 텍스트 금지", "alt": "회사 선택 갈림길에서 제안서와 명반을 들고 서 있는 상담자 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-01'] .scene-media img"},
+        {"asset_key": "job-choice-01-scene-02-empathy", "filename": "assets/generated/job-choice/01-scene-02-empathy.webp", "role": "scene", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["부드러운 미소", "짙은 웨이브 헤어", "금빛 별 장식", "신비로운 보라색 의상"], "generation_policy": "same-character-new-scene", "prompt": "밤의 창가에서 회사 제안서를 보며 고민하는 공감 장면, 이미지 안 텍스트 금지", "alt": "늦은 밤 회사 제안서를 보며 고민하는 상담자 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-02'] .scene-media img"},
+        {"asset_key": "job-choice-01-scene-03-repeat-pattern", "filename": "assets/generated/job-choice/01-scene-03-repeat-pattern.webp", "role": "scene", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["짙은 웨이브 헤어", "반가면", "별빛 장식", "남보라와 금빛 팔레트"], "generation_policy": "same-character-new-scene", "prompt": "회의, 계약, 출퇴근 고민이 별빛 창으로 겹쳐 보이는 반복 상황 장면, 이미지 안 텍스트 금지", "alt": "회의, 계약, 출퇴근 장면이 겹쳐 보이는 직장 고민 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-03'] .scene-media img"},
+        {"asset_key": "job-choice-01-scene-04-evidence-bridge", "filename": "assets/generated/job-choice/01-scene-04-evidence-bridge.webp", "role": "scene", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["자미두수 상담자 인상", "남보라 의상", "금빛 명반", "따뜻한 별빛"], "generation_policy": "same-character-new-scene", "prompt": "직장, 돈, 사람, 이동, 회복, 타이밍을 상징 아이콘으로 연결한 자미두수 근거 장면, 이미지 안 텍스트 금지", "alt": "직장, 돈, 사람, 이동, 회복, 타이밍을 별자리 명반으로 읽는 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-04'] .scene-media img"},
+        {"asset_key": "job-choice-01-scene-05-index-preview", "filename": "assets/generated/job-choice/01-scene-05-index-preview.webp", "role": "scene", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["밝은 상담자 표정", "반가면", "금빛 카드", "남보라 조명"], "generation_policy": "same-character-new-scene", "prompt": "열 개의 빈 카드와 직장 선택 아이콘으로 대분류 풀이 리스트를 예고하는 장면, 이미지 안 텍스트 금지", "alt": "회사 핏, 직무, 사람, 돈, 성장, 리스크를 상징하는 카드 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-05'] .scene-media img"},
+        {"asset_key": "job-choice-01-scene-06-free-teaser", "filename": "assets/generated/job-choice/01-scene-06-free-teaser.webp", "role": "scene", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["친근한 미소", "별 장식", "명반 소품", "금빛과 남보라 팔레트"], "generation_policy": "same-character-new-scene", "prompt": "무료 첫 신호를 보여주는 빈 명반, 회사 카드, 작은 달력 소품 장면, 이미지 안 텍스트 금지", "alt": "무료 첫 신호를 보여주는 빈 명반과 회사 카드 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-06'] .scene-media img"},
+        {"asset_key": "job-choice-01-scene-07-cta", "filename": "assets/generated/job-choice/01-scene-07-cta.webp", "role": "hero", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["상담자 얼굴 인상", "짙은 웨이브 헤어", "반가면", "별빛 조명"], "generation_policy": "same-character-new-scene", "prompt": "직장 선택 리포트 책과 회사 입구 앞에서 다음 단계를 안내하는 최종 CTA 장면, 이미지 안 텍스트 금지", "alt": "직장 선택 리포트를 펼쳐 다음 단계로 안내하는 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-07'] .scene-media img"}
+      ]
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "prompt_contract": "01-step-1-story/PROMPT.md + 00-SERVICE-GENERATION-CONTRACT.md",
+        "scope_mismatch": null,
+        "classification_status": "resolved",
+        "classification_source": "user_seed",
+        "classification_detail": "사용자가 제공한 10개 대분류와 중분류를 interpretation_index로 반영하고 01 후킹 카드에 노출했습니다.",
+        "image_status": "resolved",
+        "image_detail": "7개 scene 모두 고유 asset_key, 실제 webp 파일, HTML img 참조, manifest selector를 가집니다.",
+        "checks": [
+          {"item": "5~8개 장면 구성", "status": "pass", "detail": "총 7개 장면으로 질문 직격, 공감, 반복 상황, 근거, 결과 예고, 무료 티저, CTA 순서를 반영했습니다."},
+          {"item": "대분류 > 중분류 후킹", "status": "pass", "detail": "주신 10개 대분류를 scene-05에 전체 미리보기로 반영했습니다."},
+          {"item": "CTA 연결", "status": "pass", "detail": "../02-step-2-saju-input/index.html#step-2-saju-input로 service_key, service_slug, entry, report_version을 전달합니다."},
+          {"item": "RAG/계산 안전", "status": "pass", "detail": "개인 계산 전 확정형 결과를 표시하지 않고, 자미두수 궁위와 운한 기준으로 확인할 범위만 예고했습니다."},
+          {"item": "고객 화면 내부 용어 노출", "status": "pass", "detail": "보이는 화면에는 RAG, KMS, LLM, 내부 파일 경로를 표시하지 않았습니다."}
+        ]
+      }
+    </script>
+
+    <script>
+      const SERVICE_CONTEXT = {
+        service_key: "job_choice",
+        service_slug: "job-choice",
+        service_title: "자미두수로 보는 내가 선택한 직장 괜찮을까",
+        category: "직장운",
+        subcategory: "직장 선택 핏",
+        price_krw: 9900,
+        analysis_period: "current_choice",
+        target_question: "이 회사, 나랑 결 맞아?",
+        analysis_basis: [
+          "ziwei_career_palace",
+          "ziwei_wealth_palace",
+          "ziwei_friends_palace",
+          "ziwei_travel_palace",
+          "ziwei_fortune_palace",
+          "ziwei_limits_years",
+          "saju_year_month_flow"
+        ],
+        interpretation_index_source: "user_seed",
+        report_version: "job-choice-v1.0",
+        copy_version: "job-choice-step01-v1.0",
+        evidence_ids: [
+          "palace-career",
+          "palace-wealth",
+          "palace-friends",
+          "palace-travel",
+          "palace-fortune",
+          "question-palace",
+          "limits-years",
+          "timing-read",
+          "item-22-p1-0064",
+          "item-23-qa-0001"
+        ]
+      };
+
+      const NEXT_ROUTE = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      const INTERPRETATION_INDEX = JSON.parse(document.getElementById("INTERPRETATION_INDEX").textContent);
+
+      function persistContext() {
+        try {
+          sessionStorage.setItem("umsh_service_context", JSON.stringify(SERVICE_CONTEXT));
+          sessionStorage.setItem("umsh_service_key", SERVICE_CONTEXT.service_key);
+          sessionStorage.setItem("umsh_service_slug", SERVICE_CONTEXT.service_slug);
+          sessionStorage.setItem("umsh_report_version", SERVICE_CONTEXT.report_version);
+          sessionStorage.setItem("umsh_interpretation_index_source", SERVICE_CONTEXT.interpretation_index_source);
+          sessionStorage.setItem("umsh_interpretation_index", JSON.stringify(INTERPRETATION_INDEX));
+        } catch (error) {
+          // Some embedded browsers disable storage; navigation still works.
+        }
+      }
+
+      function buildNextUrl() {
+        const url = new URL(NEXT_ROUTE, window.location.href);
+        url.searchParams.set("service_key", SERVICE_CONTEXT.service_key);
+        url.searchParams.set("service_slug", SERVICE_CONTEXT.service_slug);
+        url.searchParams.set("entry", "step-1-story");
+        url.searchParams.set("report_version", SERVICE_CONTEXT.report_version);
+        url.searchParams.set("index_source", SERVICE_CONTEXT.interpretation_index_source);
+        return url.href;
+      }
+
+      document.querySelectorAll("[data-next]").forEach((button) => {
+        button.addEventListener("click", () => {
+          persistContext();
+          window.location.href = buildNextUrl();
+        });
+      });
+
+      document.querySelector("[data-back]").addEventListener("click", () => {
+        if (window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+        window.location.href = "../index.html";
+      });
+
+      if (!window.location.hash) {
+        window.history.replaceState(null, "", "#step-1-story");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/jobchoice-service.js" defer></script>
+  </body>
+</html>

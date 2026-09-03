@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>직장 핏 상세 풀이 | 운명상회</title>
+    <meta
+      name="description"
+      content="05 결과 목록에서 선택한 중분류 하나를 입력값과 근거에 맞춰 상세 풀이로 보여줍니다."
+    />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <link rel="stylesheet" href="../shared/job-choice.css" />
+    <script src="../shared/job-choice-data.js"></script>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="직장 선택" data-price="9,900원" data-active="home" id="step-6_1-report" aria-label="직장 선택 상세 풀이">
+      <header class="appbar topbar">
+        <a class="brand" href="../05-step-5-chat/chat.html#step-5-chat" aria-label="결과 목록으로 이동">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3l7 4v5c0 4.8-3 8.1-7 9-4-0.9-7-4.2-7-9V7l7-4z" stroke="currentColor" stroke-width="1.7" />
+              <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+          </span>
+          운명상회
+        </a>
+        <button class="icon-button" type="button" aria-label="결과 목록으로 이동" data-back>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </header>
+
+      <section class="stage" id="detailStage"></section>
+      <footer class="footer">자미두수로 보는 내가 선택한 직장 괜찮을까 · 상세 풀이</footer>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">{}</script>
+    <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
+    <script type="application/json" id="RAG_EVIDENCE">[]</script>
+    <script type="application/json" id="IMAGE_MANIFEST">[]</script>
+    <script type="application/json" id="QA_RESULT">{}</script>
+    <script type="application/json" id="DETAIL_RESULT">{}</script>
+
+    <script src="/js/jobchoice-report-store.js"></script>
+    <script>
+      const stage = document.getElementById("detailStage");
+      const params = new URLSearchParams(window.location.search);
+      const sectionId = params.get("section") || "company-fit-01";
+      const loaded = JobChoice.loadJobInput();
+      const detailResult = JobChoice.buildDetail(sectionId, loaded.input);
+      const detail = detailResult.detail;
+      const esc = JobChoice.escapeHtml;
+
+      JobChoice.hydrateContracts("06-step-6_1-report-detail", [
+        { item: "05 section_id만 상세화", status: "pass", detail: `${detail.section_id}는 05 report_index에 존재합니다.` },
+        { item: "근거 없는 숫자 배제", status: "pass", detail: "구조화된 숫자가 없어 장식 그래프 대신 근거와 행동 카드로 표현합니다." },
+        { item: "권한 없는 직접 URL", status: "pass", detail: "정적 미리보기에서는 세션 권한이 없으면 상세 본문을 렌더링하지 않습니다." },
+      ]);
+      document.getElementById("DETAIL_RESULT").textContent = JSON.stringify(detailResult, null, 2);
+
+      function lockedMarkup() {
+        return `
+          <div class="lock-panel">
+            <span class="eyebrow">권한 확인 필요</span>
+            <h1>상세 풀이를<br />바로 열 수 없습니다.</h1>
+            <p>무료 맛보기와 전체 열기 단계를 거친 뒤 이 항목을 확인할 수 있습니다.</p>
+            <a class="link-button" href="../04-step-4-report/index.html#step-4-report">무료 결과로 돌아가기</a>
+          </div>
+        `;
+      }
+
+      function evidenceMarkup() {
+        return detail.evidence
+          .map(
+            (item) => `
+              <div class="detail-item">
+                <b>${esc(item.label)}</b>
+                <span>${esc(item.summary)}</span>
+              </div>
+            `,
+          )
+          .join("");
+      }
+
+      function factsMarkup() {
+        return detail.calculated_facts
+          .map(
+            (fact) => `
+              <div class="detail-item">
+                <b>${esc(fact.label)}</b>
+                <span>${esc(fact.value)}</span>
+              </div>
+            `,
+          )
+          .join("");
+      }
+
+      function blocksMarkup() {
+        return detail.interpretation_blocks
+          .map(
+            (block) => `
+              <section class="detail-section">
+                <h2>${esc(block.title)}</h2>
+                <p>${esc(block.body)}</p>
+              </section>
+            `,
+          )
+          .join("");
+      }
+
+      function listMarkup(title, items) {
+        return `
+          <section class="detail-section">
+            <h2>${esc(title)}</h2>
+            <div class="detail-list">
+              ${items
+                .map(
+                  (item) => `
+                    <div class="detail-item">
+                      <span>${esc(item)}</span>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function relatedUrl(section) {
+        return `index.html?section=${encodeURIComponent(section.section_id)}#step-6_1-report`;
+      }
+
+      function renderDetail() {
+        stage.innerHTML = `
+          <section class="hero-panel detail-hero">
+            <span class="kicker">06_1 · ${esc(detail.group_title)}</span>
+            <h1>${esc(detail.title)}</h1>
+            <p>${esc(detail.conclusion)}</p>
+            <div class="meta-grid">
+              <div class="meta-row"><span>회사/오퍼</span><strong>${esc(loaded.input.offer.companyName || "선택한 회사")}</strong></div>
+              <div class="meta-row"><span>직무</span><strong>${esc(loaded.input.offer.roleName || "입력한 직무")}</strong></div>
+              <div class="meta-row"><span>상세 항목</span><strong>${esc(detail.group_title)}</strong></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <span class="eyebrow">입력값에서 확인한 보조 신호</span>
+            <div class="detail-list">${factsMarkup()}</div>
+          </section>
+
+          <section class="panel">
+            <span class="eyebrow">풀이 근거</span>
+            <h2>고전 용어는 쉬운 말로 풀어 읽습니다</h2>
+            <div class="detail-list">${evidenceMarkup()}</div>
+          </section>
+
+          ${blocksMarkup()}
+          ${listMarkup("지금 할 행동", detail.actions)}
+          ${listMarkup("주의할 선택", detail.cautions)}
+
+          <section class="panel">
+            <span class="eyebrow">연관 항목</span>
+            <div class="nav-pair">
+              <a class="link-button" href="${esc(relatedUrl(detail.related_sections[0]))}">이전 · ${esc(detail.related_sections[0].title)}</a>
+              <a class="link-button" href="${esc(relatedUrl(detail.related_sections[1]))}">다음 · ${esc(detail.related_sections[1].title)}</a>
+            </div>
+            <div class="button-row">
+              <a class="link-button" href="../05-step-5-chat/chat.html#step-5-chat">목록으로 돌아가기</a>
+            </div>
+          </section>
+        `;
+      }
+
+      if (JobChoice.hasEntitlement()) {
+        renderDetail();
+      } else {
+        stage.innerHTML = lockedMarkup();
+      }
+
+      document.querySelector("[data-back]").addEventListener("click", () => {
+        window.location.href = "../05-step-5-chat/chat.html#step-5-chat";
+      });
+
+      if (!window.location.hash) {
+        window.history.replaceState(null, "", `${window.location.search}#step-6_1-report`);
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/jobchoice-service.js" defer></script>
+  </body>
+</html>
