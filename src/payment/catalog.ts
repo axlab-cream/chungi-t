@@ -67,7 +67,8 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '소비성향',
     eyebrow: 'PREMIUM · 재물',
     amount: 19900,
-    returnPath: '/money/save',
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/money/save/04-step-4-report/index.html',
     summary: '재성과 비겁으로 돈이 새는 패턴과 남기는 방식을 봅니다.',
   },
   marry_match: {

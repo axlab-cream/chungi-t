@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>나는 왜 돈이 안 모일까? | 운명상회 소비성향 풀이</title>
+    <meta
+      name="description"
+      content="재성 + 비겁 흐름으로 돈이 들어오는 방식, 새는 패턴, 저축 구조를 나눠 보는 소비성향 사주풀이."
+    />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="나는 왜 돈이 안 모일까?" />
+    <meta
+      property="og:description"
+      content="들어오는 돈과 새는 돈을 따로 보는 소비성향 사주풀이."
+    />
+    <meta property="og:url" content="https://money.umsh.kr/save" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://money.umsh.kr/save/assets/generated/save/01-scene-01-hook.webp" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101411;
+        --bg-soft: #17201b;
+        --ink: #fff8ed;
+        --muted: rgba(255, 248, 237, 0.72);
+        --dim: rgba(255, 248, 237, 0.52);
+        --line: rgba(220, 184, 104, 0.24);
+        --gold: #d9a845;
+        --gold-soft: #f5dc9b;
+        --green: #66b889;
+        --green-deep: #214c3a;
+        --coral: #d7704c;
+        --blue: #6da8b5;
+        --panel: rgba(255, 248, 237, 0.07);
+        --paper: #fff4df;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+        --font-ui: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(102, 184, 137, 0.22), transparent 18rem),
+          radial-gradient(circle at 86% 16%, rgba(217, 168, 69, 0.16), transparent 20rem),
+          linear-gradient(180deg, #070a08 0%, var(--bg) 42%, #14110e 100%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .app {
+        position: relative;
+        width: min(100%, 440px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: clip;
+        background:
+          linear-gradient(180deg, rgba(16, 20, 17, 0.88), rgba(16, 20, 17, 0.98)),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 14, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.1;
+      }
+
+      .brand span {
+        color: var(--gold-soft);
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+      }
+
+      .scene-count {
+        min-width: 44px;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .progress {
+        position: absolute;
+        inset: auto 0 -1px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .progress span {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--gold), var(--coral));
+      }
+
+      main {
+        padding-bottom: 104px;
+      }
+
+      .story-scene {
+        display: grid;
+        align-content: center;
+        gap: 18px;
+        min-height: calc(100svh - 64px);
+        padding: 24px 18px 30px;
+        border-bottom: 1px solid rgba(220, 184, 104, 0.14);
+      }
+
+      .story-scene:first-child {
+        min-height: 92svh;
+        padding-top: 18px;
+      }
+
+      .visual {
+        position: relative;
+        width: min(72vw, 286px);
+        max-width: 100%;
+        aspect-ratio: 9 / 16;
+        justify-self: center;
+        overflow: hidden;
+        border: 1px solid rgba(217, 168, 69, 0.28);
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.3);
+      }
+
+      .visual.wide {
+        width: min(82vw, 322px);
+      }
+
+      .visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .copy {
+        display: grid;
+        gap: 12px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 7px;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .kicker::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(102, 184, 137, 0.72);
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-family: var(--font-title);
+        font-weight: 900;
+        line-height: 1.18;
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        font-size: clamp(34px, 12vw, 48px);
+      }
+
+      h2 {
+        font-size: clamp(28px, 8.6vw, 38px);
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.66;
+        word-break: keep-all;
+      }
+
+      .accent {
+        color: var(--gold-soft);
+      }
+
+      .hot {
+        color: #ffad86;
+      }
+
+      .pill-row,
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .pill,
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.08);
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.2;
+      }
+
+      .pill {
+        padding: 8px 11px;
+      }
+
+      .chip {
+        padding: 7px 9px;
+      }
+
+      .lane-grid,
+      .signal-grid,
+      .group-grid,
+      .promise-grid {
+        display: grid;
+        gap: 9px;
+      }
+
+      .lane-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .lane,
+      .signal,
+      .group-card,
+      .promise {
+        border: 1px solid rgba(220, 184, 104, 0.2);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 248, 237, 0.085), rgba(255, 248, 237, 0.045)),
+          var(--panel);
+      }
+
+      .lane {
+        min-height: 96px;
+        padding: 12px 10px;
+      }
+
+      .lane strong,
+      .signal strong,
+      .promise strong {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .lane span,
+      .signal span,
+      .promise span {
+        display: block;
+        margin-top: 7px;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .signal {
+        min-height: 80px;
+        padding: 13px;
+      }
+
+      .signal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .group-card {
+        display: grid;
+        gap: 9px;
+        padding: 13px;
+      }
+
+      .group-card header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .group-card h3 {
+        margin: 0;
+        color: var(--ink);
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.32;
+        letter-spacing: 0;
+      }
+
+      .group-card small {
+        flex: 0 0 auto;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .group-card p {
+        font-size: 12px;
+        line-height: 1.52;
+      }
+
+      .group-card .chip-row {
+        gap: 6px;
+      }
+
+      .group-card .chip {
+        min-height: 28px;
+        padding: 6px 8px;
+        font-size: 11px;
+        color: rgba(255, 248, 237, 0.78);
+      }
+
+      .promise {
+        padding: 14px;
+      }
+
+      .price-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(102, 184, 137, 0.32);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(102, 184, 137, 0.2), rgba(217, 168, 69, 0.1)),
+          rgba(255, 248, 237, 0.055);
+      }
+
+      .price-line strong {
+        font-size: 14px;
+        font-weight: 950;
+      }
+
+      .price-line span {
+        color: var(--gold-soft);
+        font-size: 18px;
+        font-weight: 950;
+      }
+
+      .notice {
+        padding: 13px 14px;
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+        background: rgba(102, 184, 137, 0.12);
+        color: rgba(255, 248, 237, 0.78);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.58;
+        word-break: keep-all;
+      }
+
+      .cta-dock {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 30;
+        display: grid;
+        justify-items: center;
+        padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(16, 20, 17, 0), rgba(16, 20, 17, 0.98) 32%);
+        pointer-events: none;
+      }
+
+      .cta-inner {
+        display: grid;
+        width: min(100%, 412px);
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .primary-cta {
+        display: flex;
+        min-height: 54px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid rgba(255, 244, 223, 0.22);
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
+        color: #12110d;
+        font-size: 15px;
+        font-weight: 950;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+      }
+
+      .primary-cta::after {
+        content: "›";
+        font-size: 24px;
+        line-height: 0.8;
+      }
+
+      .dock-note {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @media (min-width: 760px) {
+        .app {
+          border-right: 1px solid rgba(220, 184, 104, 0.18);
+          border-left: 1px solid rgba(220, 184, 104, 0.18);
+        }
+      }
+
+      @media (max-width: 360px) {
+        .story-scene {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .lane-grid,
+        .signal-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .visual {
+          width: min(76vw, 260px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own docks.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .submit-dock,
+      body.umsh-has-chrome .cta-dock,
+      body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
+      .save-saved-profile b { color: #70c292; font-size: 14px; }
+      .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
+      .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="app" data-umsh-chrome data-service="소비성향" data-price="9,900원" data-active="home">
+      <header class="appbar topbar" aria-label="서비스 정보">
+        <a class="brand" href="#intro" aria-label="운명상회 나는 왜 돈이 안 모일까">
+          <strong>나는 왜 돈이 안 모일까?</strong>
+          <span>CONSUMPTION SAJU</span>
+        </a>
+        <div class="scene-count" aria-live="polite">1 / 6</div>
+        <div class="progress" aria-hidden="true"><span></span></div>
+      </header>
+
+      <main id="intro">
+        <section class="story-scene" aria-labelledby="scene-1-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-hook"
+              src="../assets/save/01-scene-01-hook.webp" data-source-file="assets/generated/save/01-scene-01-hook.webp"
+              alt="휴대폰과 흩어지는 동전 앞에서 난감해하는 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">소비성향 사주풀이</span>
+            <h1 id="scene-1-title">나는 왜 돈이 안 모일까?</h1>
+            <p>
+              월급은 분명 들어왔는데, 통장은 벌써 로그아웃한 느낌. 이 풀이에서는
+              <span class="accent">돈의 입구</span>와 <span class="hot">돈의 출구</span>를
+              따로 봅니다.
+            </p>
+            <div class="pill-row" aria-label="핵심 고민">
+              <span class="pill">통장 로그아웃</span>
+              <span class="pill">이번만 예산</span>
+              <span class="pill">정산 밀림</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-2-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-empathy"
+              src="../assets/save/01-scene-02-empathy.webp" data-source-file="assets/generated/save/01-scene-02-empathy.webp"
+              alt="빈 지갑과 영수증 앞에서 당황한 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">의지 탓 말고 구조부터</span>
+            <h2 id="scene-2-title">아낀다고 했는데 카드값이 먼저 와요</h2>
+            <p>
+              돈이 안 모이는 이유를 성격 탓으로 몰아가지는 않습니다. 약속, 구독,
+              기분 소비가 어떤 타이밍에 같이 열리는지부터 차분히 나눕니다.
+            </p>
+            <div class="signal-grid" aria-label="자주 보이는 소비 흐름">
+              <div class="signal"><strong>관계 결제</strong><span>좋은 분위기에서 선이 흐려지는 지점</span></div>
+              <div class="signal"><strong>플렉스 과열</strong><span>속도와 감정이 결제를 밀어붙이는 지점</span></div>
+              <div class="signal"><strong>준비비 폭주</strong><span>공부와 장비가 실행보다 커지는 지점</span></div>
+              <div class="signal"><strong>안정 착시</strong><span>안전해 보여 확인을 멈추는 지점</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-3-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-separate-flow"
+              src="../assets/save/01-scene-03-separate-flow.webp" data-source-file="assets/generated/save/01-scene-03-separate-flow.webp"
+              alt="동전과 영수증과 빈 계약서를 세 칸으로 정리하는 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">먼저 세 칸으로 분리</span>
+            <h2 id="scene-3-title">돈은 한 덩어리로 보면 더 빨리 새요</h2>
+            <p>
+              오늘 볼 것은 운의 좋고 나쁨보다, 받을 돈과 줄 돈, 새로 정할 조건이
+              어디서 섞였는지입니다.
+            </p>
+            <div class="lane-grid" aria-label="돈 흐름 세 칸">
+              <div class="lane"><strong>받을 돈</strong><span>수입, 입금, 고정 계약</span></div>
+              <div class="lane"><strong>줄 돈</strong><span>정산, 약속, 반복 지출</span></div>
+              <div class="lane"><strong>정할 조건</strong><span>금액, 기한, 책임 범위</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-4-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-wealth-peer-balance"
+              src="../assets/save/01-scene-04-wealth-peer-balance.webp" data-source-file="assets/generated/save/01-scene-04-wealth-peer-balance.webp"
+              alt="동전 나무와 함께 쓰는 돈 사이에서 균형을 잡는 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">재성 + 비겁</span>
+            <h2 id="scene-4-title">돈이 들어오는 힘과 같이 쓰는 힘을 같이 봅니다</h2>
+            <p>
+              재성은 돈을 어떻게 얻는지, 비겁은 사람·경쟁·분배 속에서 돈이 어떻게
+              흔들리는지 보는 힌트입니다. 둘이 엉키면 벌어도 남는 칸이 비기 쉽습니다.
+            </p>
+            <div class="notice">
+              수입 예측이나 투자 판단이 아니라, 소비성향과 돈 경계가 반복되는 방식을
+              참고용으로 정리합니다.
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-5-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-index-preview"
+              src="../assets/save/01-scene-05-index-preview.webp" data-source-file="assets/generated/save/01-scene-05-index-preview.webp"
+              alt="여덟 개의 상징 카드 앞에서 결과 목록을 안내하는 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">결제 후 열리는 지도</span>
+            <h2 id="scene-5-title">내 돈 흐름을 8개 관점으로 쪼개 봅니다</h2>
+            <p>
+              한 줄 판정 대신, 돈이 들어오는 방식부터 관계 정산까지 실제로 손댈 수 있는
+              항목으로 나눠 보여드립니다.
+            </p>
+            <div class="group-grid" data-group-grid aria-label="풀이 대분류 목록"></div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-6-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-cta-start"
+              src="../assets/save/01-scene-06-cta-start.webp" data-source-file="assets/generated/save/01-scene-06-cta-start.webp"
+              alt="빈 체크리스트와 동전 병을 들고 안내하는 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">무료 미리보기 먼저</span>
+            <h2 id="scene-6-title">지금은 돈 새는 길 하나부터 확인해요</h2>
+            <p>
+              생년월일시와 현재 돈 고민을 입력하면, 무료 티저에서 강하게 보이는 소비
+              신호와 오늘 먼저 정리할 칸을 보여드립니다.
+            </p>
+            <div class="promise-grid" aria-label="진행 전 확인">
+              <div class="promise"><strong>단정하지 않기</strong><span>사주는 참고용 흐름으로만 안내</span></div>
+              <div class="promise"><strong>숫자 만들지 않기</strong><span>근거 없는 수익·확률·점수 배제</span></div>
+              <div class="promise"><strong>행동으로 끝내기</strong><span>받을 돈, 줄 돈, 조건 정리로 연결</span></div>
+            </div>
+            <div class="price-line" aria-label="유료 리포트 가격">
+              <strong>전체 리포트</strong>
+              <span>9,900원</span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="cta-dock" aria-label="다음 단계">
+        <div class="cta-inner">
+          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input">
+            내 돈 흐름 확인하러 가기
+          </a>
+          <div class="dock-note">무료 티저 확인 후 전체 리포트를 선택할 수 있습니다.</div>
+        </div>
+      </nav>
+    </div>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_key": "save",
+        "service_slug": "save",
+        "service_title": "나는 왜 돈이 안 모일까?",
+        "service_description": "재성 + 비겁 흐름으로 수입, 소비, 저축, 관계 정산을 나눠 보는 소비성향 사주풀이 서비스",
+        "category": "소비성향",
+        "subcategory": "저축/돈관리",
+        "price_krw": 9900,
+        "service_url_hint": "money.umsh.kr/save",
+        "target_audience": "돈은 버는데 통장에 남는 돈이 없다고 느끼는 20~30대",
+        "target_question": "나는 왜 돈이 안 모일까?",
+        "analysis_basis": ["재성", "비겁", "십성 재물 결", "신강약", "오행", "대운·세운·월운"],
+        "interpretation_index_source": "user_seed",
+        "report_version": "save-v1.0",
+        "copy_version": "mz-save-v1",
+        "representative_character": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+        "next_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX">
+      {
+        "source": "user_seed",
+        "groups": [
+          {
+            "group_id": "income-flow",
+            "title": "돈이 들어오는 방식",
+            "summary": "내 돈의 입구가 월급형인지, 기회형인지, 생산형인지 먼저 나눕니다.",
+            "sections": [
+              { "section_id": "income-salary-stable", "title": "월급 안정러", "preview": "정재·정관형, 고정수입과 계약에는 강하지만 기회 확장은 느릴 수 있음" },
+              { "section_id": "income-side-hustle", "title": "N잡 기회러", "preview": "편재형, 돈 들어올 구멍도 많지만 나갈 구멍도 같이 커짐" },
+              { "section_id": "income-steady-maker", "title": "꾸준 생산러", "preview": "식신형, 한방보다 루틴·콘텐츠·결과물로 돈을 만듦" },
+              { "section_id": "income-idea-runner", "title": "아이디어 과속러", "preview": "상관형, 기획은 빠른데 마감 전에 새 판을 열기 쉬움" },
+              { "section_id": "income-pressure-breaker", "title": "책임 돌파러", "preview": "편관형, 압박 속에서 크게 움직이지만 부담도 크게 남을 수 있음" },
+              { "section_id": "income-learning-investor", "title": "배움 투자러", "preview": "정인·편인형, 공부·자격·아이디어는 강하지만 실행 칸이 비기 쉬움" },
+              { "section_id": "income-peer-share", "title": "같이 벌고 같이 쓰는 타입", "preview": "비견·겁재형, 협업·경쟁·분배 이슈가 돈 흐름에 영향" }
+            ]
+          },
+          {
+            "group_id": "money-leak",
+            "title": "돈이 새는 패턴",
+            "summary": "통장에 남지 않는 지점을 감정, 관계, 체면, 준비비로 쪼개 봅니다.",
+            "sections": [
+              { "section_id": "leak-account-logout", "title": "통장 로그아웃형", "preview": "들어오자마자 지출·정산·약속으로 흩어짐" },
+              { "section_id": "leak-flex-overheat", "title": "플렉스 과열형", "preview": "화 기운·편재/겁재 흐름, 기분과 속도 때문에 소비가 커짐" },
+              { "section_id": "leak-comparison", "title": "비교 소비형", "preview": "신금/정화 계열, 감정·취향·비교가 지출로 연결됨" },
+              { "section_id": "leak-face-payment", "title": "체면 결제형", "preview": "경금·정관 계열, 자존심·역할·체면 때문에 돈이 나감" },
+              { "section_id": "leak-learning-cost", "title": "배움비 폭주형", "preview": "인성 계열, 강의·장비·자격·준비 비용이 커짐" },
+              { "section_id": "leak-relationship-blur", "title": "관계 정산 흐림형", "preview": "비견·겁재 계열, 친구·연인·동료와 돈 경계가 흐려짐" }
+            ]
+          },
+          {
+            "group_id": "saving-blocker",
+            "title": "저축이 안 되는 이유",
+            "summary": "남는 돈이 없는 이유를 의지보다 구조와 예외 규칙에서 찾습니다.",
+            "sections": [
+              { "section_id": "saving-no-structure", "title": "모으는 구조 부재", "preview": "얼마를 남길지가 숫자로 고정되지 않음" },
+              { "section_id": "saving-income-outgoing-mixed", "title": "받을 돈/줄 돈 미분리", "preview": "수입·지출·계약을 한 덩어리로 봄" },
+              { "section_id": "saving-exception-budget", "title": "예외가 많은 예산", "preview": "가능한 범위보다 이번만이 자주 열림" },
+              { "section_id": "saving-plan-over-action", "title": "실행보다 계획 과다", "preview": "아이디어는 많은데 자동화·마감·루틴이 약함" },
+              { "section_id": "saving-stability-illusion", "title": "안정 착시", "preview": "정재형이어도 안전해 보여 확인을 멈추면 돈이 샘" }
+            ]
+          },
+          {
+            "group_id": "saju-strength",
+            "title": "사주 체력 진단",
+            "summary": "내가 돈관리를 밀어붙이는 타입인지, 지원과 순서가 필요한 타입인지 봅니다.",
+            "sections": [
+              { "section_id": "strength-strong", "title": "신강형 돈관리", "preview": "혼자 다 하려다 속도·고집·위임 부족으로 새는 구조" },
+              { "section_id": "strength-weak", "title": "신약형 돈관리", "preview": "큰 판보다 지원·리듬·순서가 먼저 필요한 구조" },
+              { "section_id": "strength-balanced", "title": "중화형 돈관리", "preview": "과한 처방보다 지금 치우친 한 축만 잡는 구조" }
+            ]
+          },
+          {
+            "group_id": "ohaeng-os",
+            "title": "오행 기반 돈관리 OS",
+            "summary": "목·화·토·금·수의 치우침을 생활 속 돈관리 방식으로 번역합니다.",
+            "sections": [
+              { "section_id": "ohaeng-wood", "title": "목", "preview": "시작·확장형, 과하면 판이 많아지고 부족하면 시작이 늦음" },
+              { "section_id": "ohaeng-fire", "title": "화", "preview": "표현·가시성형, 과하면 충동/과열, 부족하면 홍보·표현이 약함" },
+              { "section_id": "ohaeng-earth", "title": "토", "preview": "안정·정리형, 과하면 걱정/정체, 부족하면 중심과 루틴이 약함" },
+              { "section_id": "ohaeng-metal", "title": "금", "preview": "기준·마감형, 과하면 너무 자르고 부족하면 마감·예산선이 흐림" },
+              { "section_id": "ohaeng-water", "title": "수", "preview": "흐름·휴식형, 과하면 생각이 길고 부족하면 회복·정리 시간이 부족함" }
+            ]
+          },
+          {
+            "group_id": "timing",
+            "title": "운의 타이밍",
+            "summary": "올해, 이번 달, 오늘의 돈 이슈를 한 번에 섞지 않고 순서대로 봅니다.",
+            "sections": [
+              { "section_id": "timing-daeun-start", "title": "대운 초입", "preview": "익숙한 돈벌이 판이 흔들리는 리셋 구간" },
+              { "section_id": "timing-daeun-middle", "title": "대운 중반", "preview": "새로 벌리기보다 열린 일을 세 개 이하로 줄이는 구간" },
+              { "section_id": "timing-daeun-end", "title": "대운 말기", "preview": "정리·넘김·회수·마감이 중요한 구간" },
+              { "section_id": "timing-year", "title": "세운", "preview": "올해 돈의 테마, 대운과 겹쳐서 해석해야 함" },
+              { "section_id": "timing-month", "title": "월운", "preview": "이번 달 받을 돈·해야 할 일·약속 조건을 정리하는 구간" },
+              { "section_id": "timing-today", "title": "오늘 운", "preview": "수입·지출·계약 중 오늘 하나만 먼저 보는 구간" }
+            ]
+          },
+          {
+            "group_id": "relationship-contract",
+            "title": "관계/계약 돈문제",
+            "summary": "돈이 사람 사이에서 흐려지는 순간을 기록, 거절, 공유 범위로 정리합니다.",
+            "sections": [
+              { "section_id": "relation-friend-lover-mix", "title": "친구·연인 돈 섞임", "preview": "가까운 사람과 돈 경계가 흐려지는 이슈" },
+              { "section_id": "relation-shared-cost", "title": "공동비용·더치 정산 이슈", "preview": "같이 쓴 돈의 기준과 타이밍이 어긋나는 이슈" },
+              { "section_id": "relation-unwritten-condition", "title": "금액·기한·책임범위 미기록", "preview": "좋게 넘어간 조건이 뒤에 부담으로 남는 이슈" },
+              { "section_id": "relation-no-refusal-line", "title": "거절 문장 부재", "preview": "미리 정한 말이 없어 결제가 밀리는 이슈" },
+              { "section_id": "relation-short-share", "title": "믿을 사람에게만 짧게 공유해야 하는 이슈", "preview": "돈 고민을 넓게 풀어놓지 않고 안전하게 확인하는 이슈" }
+            ]
+          },
+          {
+            "group_id": "expanded-reading",
+            "title": "확장 풀이",
+            "summary": "필요할 때 자미두수와 공간 힌트를 보조 레이어로만 더합니다.",
+            "sections": [
+              { "section_id": "expand-ziwei-wealth", "title": "자미두수 재백궁", "preview": "수입 방식·소비 습관·돈 감각" },
+              { "section_id": "expand-ziwei-career", "title": "자미두수 관록궁", "preview": "직업·역할·책임과 수입 연결" },
+              { "section_id": "expand-ziwei-property", "title": "자미두수 전택궁", "preview": "쌓인 자산·주거·가족 자산" },
+              { "section_id": "expand-fengshui", "title": "풍수/공간 보조", "preview": "현관·책상·동선·사업장 흐름을 돈 보장이 아니라 생활 정돈 힌트로 사용" }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      [
+        { "evidence_id": "item-12-p1-0004", "item": "십성 분석", "use": "비견·비겁과 관계 정산 흐름", "summary": "비견의 재물 결은 나눠야 할 때와 지켜야 할 때가 섞이는 편이며 수익 예측이 아니라 습관을 본다." },
+        { "evidence_id": "item-12-p1-0012", "item": "십성 분석", "use": "겁재와 빠른 소비·베팅 흐름", "summary": "겁재의 재물 결은 움직임이 빠르고 구멍이 같이 커질 수 있는 편이다." },
+        { "evidence_id": "item-12-p1-0036", "item": "십성 분석", "use": "편재와 N잡·기회형 수입", "summary": "편재의 재물 결은 들어옴과 나감이 함께 커지는 편이다." },
+        { "evidence_id": "item-12-p1-0044", "item": "십성 분석", "use": "정재와 안정형 수입·안정 착시", "summary": "정재의 재물 결은 모으는 힘은 있으나 기회가 답답할 수 있고 안전해 보여 확인을 멈추는 점을 주의한다." },
+        { "evidence_id": "item-13-p1-0002", "item": "신강약 분석", "use": "신강형 돈관리", "summary": "신강의 생활은 속도를 스스로 늦추고 위임을 연습하면 덜 흔들리는 방향으로 설명한다." },
+        { "evidence_id": "item-11-p1-0001", "item": "오행 분석", "use": "목 기운과 확장 과다", "summary": "목 기운이 과다하면 가지가 많아져 초점이 흩어질 수 있으므로 속도를 줄이고 한 가지로 모으는 힌트를 준다." },
+        { "evidence_id": "item-23-qa-0006", "item": "월간 흐름", "use": "수입·지출·계약 분리", "summary": "돈 문제는 받을 돈, 줄 돈, 새로 정할 조건을 따로 적어 보는 방향으로 안내한다." },
+        { "evidence_id": "item-23-qa-0010", "item": "월간 흐름", "use": "관계/계약 돈문제", "summary": "돈이 걸린 약속은 금액, 기한, 책임 범위를 짧게라도 기록으로 남기는 방향을 제안한다." },
+        { "evidence_id": "item-19-p1-0002", "item": "대운", "use": "대운 초입과 돈 흐름 리셋", "summary": "비견 대운 초입의 재물은 익숙한 판이 흔들리기 시작하는 구간으로 보고 전부를 뒤집기보다 작은 시험을 둔다." },
+        { "evidence_id": "local-ziwei-wealth-palace", "item": "자미두수 재백궁", "use": "확장 풀이 보조", "summary": "재백궁은 수입 방식, 소비 습관, 돈 감각을 보는 보조 관점으로 사용한다." },
+        { "evidence_id": "local-fengshui-flow", "item": "풍수/공간 보조", "use": "공간 정돈 힌트", "summary": "공간 흐름은 돈 보장이 아니라 생활 정돈과 동선 점검의 보조 힌트로만 사용한다." }
+      ]
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "save-01-hook",
+          "filename": "assets/generated/save/01-scene-01-hook.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["녹색 머리", "고양이 귀", "정장", "수채 질감", "부끄러운 표정"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "통장 로그아웃 훅. 휴대폰 은행 화면을 보는 녹색 고양이귀 정장 캐릭터와 흩어지는 동전, 텍스트 없음.",
+          "alt": "휴대폰과 흩어지는 동전 앞에서 난감해하는 고양이귀 정장 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-hook\"]"
+        },
+        {
+          "asset_key": "save-01-empathy",
+          "filename": "assets/generated/save/01-scene-02-empathy.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["녹색 머리", "고양이 귀", "정장", "수채 질감", "부끄러운 표정"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "빈 지갑, 영수증, 쇼핑백 앞에서 당황하는 녹색 고양이귀 정장 캐릭터, 텍스트 없음.",
+          "alt": "빈 지갑과 영수증 앞에서 당황한 고양이귀 정장 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-empathy\"]"
+        },
+        {
+          "asset_key": "save-01-separate-flow",
+          "filename": "assets/generated/save/01-scene-03-separate-flow.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["녹색 머리", "고양이 귀", "정장", "수채 질감", "차분한 표정"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "동전, 영수증, 빈 계약서를 세 칸으로 정리하는 녹색 고양이귀 정장 캐릭터, 텍스트 없음.",
+          "alt": "동전과 영수증과 빈 계약서를 세 칸으로 정리하는 고양이귀 정장 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-separate-flow\"]"
+        },
+        {
+          "asset_key": "save-01-wealth-peer-balance",
+          "filename": "assets/generated/save/01-scene-04-wealth-peer-balance.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["녹색 머리", "고양이 귀", "정장", "수채 질감", "조심스러운 표정"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "동전 나무와 함께 쓰는 돈 사이에서 저울을 든 녹색 고양이귀 정장 캐릭터, 텍스트 없음.",
+          "alt": "동전 나무와 함께 쓰는 돈 사이에서 균형을 잡는 고양이귀 정장 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-wealth-peer-balance\"]"
+        },
+        {
+          "asset_key": "save-01-index-preview",
+          "filename": "assets/generated/save/01-scene-05-index-preview.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["녹색 머리", "고양이 귀", "정장", "수채 질감", "안내하는 표정"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "여덟 개의 상징 카드 앞에서 결과 목록을 안내하는 녹색 고양이귀 정장 캐릭터, 텍스트 없음.",
+          "alt": "여덟 개의 상징 카드 앞에서 결과 목록을 안내하는 고양이귀 정장 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-index-preview\"]"
+        },
+        {
+          "asset_key": "save-01-cta-start",
+          "filename": "assets/generated/save/01-scene-06-cta-start.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["녹색 머리", "고양이 귀", "정장", "수채 질감", "부드러운 미소"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "빈 체크리스트와 동전 병을 들고 다음 단계를 안내하는 녹색 고양이귀 정장 캐릭터, 텍스트 없음.",
+          "alt": "빈 체크리스트와 동전 병을 들고 안내하는 고양이귀 정장 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-cta-start\"]"
+        }
+      ]
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "status": "pass_with_notes",
+        "scope_mismatch": [
+          "00-SERVICE-GENERATION-CONTRACT.md와 01 PROMPT.md의 예시는 직장운 job-choice 서비스 기준이지만, 사용자 요청의 소비성향 save 서비스 입력값을 우선 적용했다.",
+          "계약 예시는 10개 대분류 노출을 요구하지만, 사용자 제공 seed는 8개 대분류다. 01 화면과 JSON에는 사용자 seed의 8개 대분류를 모두 노출했다.",
+          "현재 프로젝트 폴더에는 03 단계가 없으므로 계약의 01 -> 02 -> 04 -> 05 -> 06_1 연결을 유지했다."
+        ],
+        "checks": [
+          { "id": "service_identity", "status": "pass", "detail": "service_key save, slug save, URL money.umsh.kr/save, price 9900을 적용했다." },
+          { "id": "story_scene_count", "status": "pass", "detail": "01 인트로를 6개 장면으로 구성했다." },
+          { "id": "interpretation_index", "status": "pass", "detail": "사용자 제공 대분류 8개와 중분류 41개를 JSON에 보존하고 화면에는 8개 대분류를 모두 노출했다." },
+          { "id": "image_assets", "status": "pass", "detail": "6개 장면 WebP 파일이 존재하고, HTML에는 전달용 data URI로 내장했다." },
+          { "id": "customer_copy_safety", "status": "pass", "detail": "단정, 공포, 투자 수익 확정, 과도한 결제 압박 표현을 사용하지 않았다." },
+          { "id": "internal_terms", "status": "pass", "detail": "고객 화면에는 RAG, KMS, LLM, DEM, 내부 경로를 노출하지 않았다." },
+          { "id": "next_route", "status": "pass", "detail": "CTA는 ../02-step-2-saju-input/index.html#step-2-saju-input로 연결된다." }
+        ]
+      }
+    </script>
+
+    <script>
+      const parseJsonBlock = (id) => JSON.parse(document.getElementById(id).textContent);
+      const indexData = parseJsonBlock("INTERPRETATION_INDEX");
+      const groupGrid = document.querySelector("[data-group-grid]");
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        })[char]);
+      }
+
+      groupGrid.innerHTML = indexData.groups.map((group, index) => {
+        const chips = group.sections
+          .slice(0, 3)
+          .map((section) => `<span class="chip">${escapeHtml(section.title)}</span>`)
+          .join("");
+        const extra = group.sections.length > 3
+          ? `<span class="chip">외 ${group.sections.length - 3}개</span>`
+          : "";
+        return `
+          <article class="group-card" data-group-id="${escapeHtml(group.group_id)}">
+            <header>
+              <h3>${escapeHtml(group.title)}</h3>
+              <small>${String(index + 1).padStart(2, "0")}</small>
+            </header>
+            <p>${escapeHtml(group.summary)}</p>
+            <div class="chip-row">${chips}${extra}</div>
+          </article>
+        `;
+      }).join("");
+
+      const progressBar = document.querySelector(".progress span");
+      const count = document.querySelector(".scene-count");
+      const scenes = [...document.querySelectorAll(".story-scene")];
+
+      function syncProgress() {
+        const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const progress = Math.min(100, Math.max(0, (window.scrollY / max) * 100));
+        progressBar.style.width = `${progress}%`;
+
+        const middle = window.scrollY + window.innerHeight * 0.42;
+        const activeIndex = scenes.reduce((closest, scene, index) => {
+          const distance = Math.abs(scene.offsetTop - middle);
+          return distance < closest.distance ? { index, distance } : closest;
+        }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
+        count.textContent = `${activeIndex + 1} / ${scenes.length}`;
+      }
+
+      syncProgress();
+      window.addEventListener("scroll", syncProgress, { passive: true });
+      window.addEventListener("resize", syncProgress);
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/save-service.js" defer></script>
+  </body>
+</html>

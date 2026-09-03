@@ -5,6 +5,7 @@ import {
   buildMoneySaveContext,
   buildMoneySaveReport,
   createMoneySaveReportId,
+  MONEY_SAVE_TOC,
   parseMoneySaveRequest,
 } from '../../src/money/save-service.js'
 import type { BirthInput } from '../../src/types/index.js'
@@ -35,16 +36,29 @@ test('money save service builds a dedicated spending tendency report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '소비성향 해석문')
-  assert.equal(report.sections.length, 21)
+  assert.equal(report.sections.length, 41)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
-    '돈은 들어오는데 왜 남지 않는가',
-    '재성이 말하는 돈을 다루는 방식',
-    '비겁이 만드는 비교와 관계 비용',
-    '내 명식에 맞는 저축 루틴',
-    '돈이 남는 사람으로 바꾸는 순서',
+    '돈이 들어오는 방식',
+    '돈이 새는 패턴',
+    '저축이 안 되는 이유',
+    '사주 체력 진단',
+    '오행 기반 돈관리 OS',
+    '운의 타이밍',
+    '관계/계약 돈문제',
+    '확장 풀이',
   ])
   assert.match(report.sections[0].interpretation, /재성|비겁|돈구멍|소비/)
   assert.match(report.sections[0].interpretation, /월급날/)
+  assert.equal(report.sections[0].id, 'income-salary-stable')
+  assert.equal(report.sections.at(-1)!.id, 'expand-fengshui')
+
+  // Each 대분류 opens on its own angle, so the 05 목차 never shows eight copies of one line.
+  const firstOfEachGroup = MONEY_SAVE_TOC.map((group) => report.sections.find((section) => section.category === group.title)!)
+  assert.equal(new Set(firstOfEachGroup.map((section) => section.interpretation.split('\n\n')[0])).size, 8)
+  firstOfEachGroup.forEach((section, index) => assert.ok(section.patternKeys.includes(MONEY_SAVE_TOC[index].tag)))
+
+  // Corpus scaffolding must never reach the page.
+  report.sections.forEach((section) => assert.doesNotMatch(section.interpretation, /concept:|condition:|Feature JSON|출력하지|사용자/))
 })
 
 test('money save request requires money habit', () => {

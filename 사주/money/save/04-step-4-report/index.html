@@ -1,0 +1,1675 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>무료 결과 | 나는 왜 돈이 안 모일까?</title>
+    <meta
+      name="description"
+      content="재성 + 비겁 흐름으로 돈이 들어오고 새는 패턴을 먼저 확인하는 무료 요약 화면."
+    />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="나는 왜 돈이 안 모일까? 무료 결과" />
+    <meta property="og:description" content="돈이 안 모이는 이유를 수입, 지출, 관계 정산 구조로 먼저 봅니다." />
+    <meta property="og:url" content="https://money.umsh.kr/save" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --mobile-width: 390px;
+        --bg: #0e1310;
+        --bg-deep: #070907;
+        --ink: #fff8ed;
+        --muted: rgba(255, 248, 237, 0.72);
+        --dim: rgba(255, 248, 237, 0.52);
+        --line: rgba(231, 190, 101, 0.24);
+        --gold: #d9a845;
+        --gold-soft: #f3d891;
+        --green: #70c292;
+        --green-deep: #1c4a36;
+        --coral: #dc7554;
+        --blue: #76acb8;
+        --panel: rgba(255, 248, 237, 0.075);
+        --paper: #fff3df;
+        --danger: #ffb49f;
+        --shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
+        --font-ui: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 14% 0%, rgba(112, 194, 146, 0.2), transparent 18rem),
+          radial-gradient(circle at 88% 18%, rgba(220, 117, 84, 0.13), transparent 16rem),
+          linear-gradient(180deg, #050705 0%, var(--bg) 46%, #15110d 100%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+        letter-spacing: 0;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--mobile-width));
+        min-height: 100svh;
+        margin: 0 auto;
+        border-right: 1px solid rgba(231, 190, 101, 0.18);
+        border-left: 1px solid rgba(231, 190, 101, 0.18);
+        background: rgba(14, 19, 16, 0.97);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(10, 14, 11, 0.92);
+        backdrop-filter: blur(18px);
+      }
+
+      .back-link {
+        display: inline-grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        color: var(--gold-soft);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .brand {
+        display: grid;
+        min-width: 0;
+        gap: 2px;
+        text-align: center;
+      }
+
+      .brand strong {
+        overflow: hidden;
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.14;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand span {
+        color: var(--gold-soft);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .price-pill {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        border: 1px solid rgba(112, 194, 146, 0.34);
+        border-radius: 999px;
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      main {
+        display: grid;
+        gap: 14px;
+        padding: 16px 16px 124px;
+      }
+
+      .hero {
+        overflow: hidden;
+        border: 1px solid rgba(231, 190, 101, 0.24);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .hero-figure {
+        position: relative;
+        min-height: 310px;
+        overflow: hidden;
+        background: var(--paper);
+      }
+
+      .hero-figure img,
+      .image-band img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero-figure::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.72)),
+          radial-gradient(circle at 50% 20%, transparent 0 32%, rgba(0, 0, 0, 0.18) 70%);
+      }
+
+      .hero-copy {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        left: 16px;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+      }
+
+      .kicker,
+      .chapter {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 7px;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .kicker::before,
+      .chapter::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(112, 194, 146, 0.72);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-title);
+        font-weight: 900;
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        font-size: 31px;
+        line-height: 1.13;
+      }
+
+      h2 {
+        font-size: 21px;
+        line-height: 1.2;
+      }
+
+      h3 {
+        font-size: 16px;
+        line-height: 1.28;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        line-height: 1.58;
+        word-break: keep-all;
+      }
+
+      .hero-note {
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 14px;
+        font-weight: 780;
+      }
+
+      .tag-row,
+      .chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .tag,
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 6px 9px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.07);
+        color: rgba(255, 248, 237, 0.8);
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 1.25;
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        padding: 16px;
+        border: 1px solid rgba(231, 190, 101, 0.22);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 248, 237, 0.09), rgba(255, 248, 237, 0.045)),
+          var(--panel);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+      }
+
+      .panel-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .answer {
+        padding: 13px;
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+        background: rgba(112, 194, 146, 0.12);
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 13px;
+        font-weight: 780;
+        line-height: 1.55;
+        word-break: keep-all;
+      }
+
+      .progress {
+        display: grid;
+        gap: 7px;
+      }
+
+      .progress-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .progress-track {
+        height: 9px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.12);
+      }
+
+      .progress-track span {
+        display: block;
+        width: 12%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--green), var(--gold), var(--coral));
+      }
+
+      .signal-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal {
+        display: grid;
+        gap: 6px;
+        padding: 13px;
+        border: 1px solid rgba(255, 248, 237, 0.13);
+        border-radius: 8px;
+        background: rgba(5, 7, 6, 0.32);
+      }
+
+      .signal strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .signal span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .image-band {
+        min-height: 250px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 248, 237, 0.14);
+        border-radius: 8px;
+        background: var(--paper);
+      }
+
+      .paid-preview {
+        display: grid;
+        gap: 8px;
+      }
+
+      .scope-item {
+        border: 1px solid rgba(255, 248, 237, 0.13);
+        border-radius: 8px;
+        background: rgba(5, 7, 6, 0.28);
+      }
+
+      .scope-item[open] {
+        border-color: rgba(112, 194, 146, 0.34);
+      }
+
+      .scope-item summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px;
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .scope-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .scope-title {
+        display: grid;
+        gap: 4px;
+      }
+
+      .scope-title strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .scope-title span,
+      .scope-count {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.38;
+      }
+
+      .scope-count {
+        flex: 0 0 auto;
+      }
+
+      .scope-body {
+        display: grid;
+        gap: 10px;
+        padding: 0 13px 13px;
+      }
+
+      .state-box {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(112, 194, 146, 0.28);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 80% 0%, rgba(112, 194, 146, 0.18), transparent 11rem),
+          rgba(5, 7, 6, 0.36);
+      }
+
+      .state-kicker {
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .state-title {
+        color: var(--ink);
+        font-size: 18px;
+        font-weight: 950;
+        line-height: 1.32;
+        word-break: keep-all;
+      }
+
+      .state-body {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.52;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .primary,
+      .ghost {
+        display: inline-flex;
+        min-height: 50px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.25;
+      }
+
+      .primary {
+        border: 1px solid rgba(255, 244, 223, 0.22);
+        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
+        color: #12110d;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        background: rgba(255, 248, 237, 0.06);
+        color: rgba(255, 248, 237, 0.86);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.48;
+        word-break: keep-all;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 8px;
+      }
+
+      .timeline-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 248, 237, 0.1);
+      }
+
+      .timeline-row:last-child {
+        border-bottom: 0;
+      }
+
+      .timeline-row strong {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .timeline-row span {
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 950;
+        text-align: right;
+      }
+
+      .refund-box {
+        display: none;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(118, 172, 184, 0.28);
+        border-radius: 8px;
+        background: rgba(118, 172, 184, 0.1);
+      }
+
+      .refund-box.is-open {
+        display: grid;
+      }
+
+      .refund-box strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        z-index: 40;
+        display: none;
+        width: min(calc(100vw - 36px), calc(var(--mobile-width) - 36px));
+        transform: translateX(-50%);
+        padding: 12px 13px;
+        border: 1px solid rgba(112, 194, 146, 0.36);
+        border-radius: 8px;
+        background: rgba(17, 28, 22, 0.98);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.5;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      }
+
+      .toast.is-visible {
+        display: block;
+      }
+
+      .submit-dock {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        z-index: 30;
+        display: grid;
+        width: min(100vw, var(--mobile-width));
+        transform: translateX(-50%);
+        justify-items: center;
+        padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(14, 19, 16, 0), rgba(14, 19, 16, 0.98) 32%);
+        pointer-events: none;
+      }
+
+      .dock-inner {
+        display: grid;
+        width: 100%;
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .dock-note {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 374px) {
+        main {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .hero-figure {
+          min-height: 288px;
+        }
+
+        h1 {
+          font-size: 28px;
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own docks.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .submit-dock,
+      body.umsh-has-chrome .cta-dock,
+      body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
+      .save-saved-profile b { color: #70c292; font-size: 14px; }
+      .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
+      .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="phone" data-umsh-chrome data-service="소비성향" data-price="9,900원" data-active="home">
+      <header class="appbar topbar" aria-label="서비스 단계">
+        <a class="back-link" href="../02-step-2-saju-input/index.html#step-2-saju-input" aria-label="입력 단계로 돌아가기">‹</a>
+        <a class="brand" href="#step-4-report" aria-label="나는 왜 돈이 안 모일까 무료 결과">
+          <strong>나는 왜 돈이 안 모일까?</strong>
+          <span>STEP 04 FREE REPORT</span>
+        </a>
+        <div class="price-pill">9,900원</div>
+      </header>
+
+      <main id="step-4-report">
+        <section class="hero" aria-labelledby="report-title">
+          <div class="hero-figure">
+            <img
+              data-asset-key="save-04-free-hero"
+              src="../assets/save/04-free-hero.webp"
+              data-source-file="assets/generated/save/04-free-hero.webp"
+              alt="돈이 들어오고 새는 흐름을 살피는 녹색 고양이귀 정장 캐릭터"
+            />
+            <div class="hero-copy">
+              <span class="kicker">무료 요약</span>
+              <h1 id="report-title">돈이 안 모이는 이유, 일단 여기서 갈립니다</h1>
+              <p class="hero-note">수입이 약해서만이 아니라, 들어온 돈이 관계·비교·정산 이슈와 같은 속도로 움직이는 흐름일 가능성이 큽니다.</p>
+              <div class="tag-row" aria-label="풀이 핵심 태그">
+                <span class="tag">재성 + 비겁</span>
+                <span class="tag">관계 정산</span>
+                <span class="tag">저축 구조</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" data-input-summary-card>
+          <div class="panel-head">
+            <span class="chapter">입력값 기준</span>
+            <h2>방금 입력한 돈 흐름</h2>
+            <p data-input-summary>입력값을 확인하고 있어요.</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="teaser-title">
+          <div class="panel-head">
+            <span class="chapter">먼저 열리는 12%</span>
+            <h2 id="teaser-title">무료로 보이는 핵심</h2>
+            <p>결론을 숨기는 방식이 아니라, 지금 돈이 새는 방향과 첫 행동만 먼저 보여드립니다.</p>
+          </div>
+          <div class="progress" aria-label="무료 공개 범위">
+            <div class="progress-top">
+              <span>무료 공개</span>
+              <strong>12%</strong>
+            </div>
+            <div class="progress-track" aria-hidden="true"><span></span></div>
+          </div>
+          <div class="answer" data-one-line-answer>
+            지금은 더 벌기보다, 들어온 돈이 누구와 어떤 약속에서 흩어지는지 먼저 잡는 쪽이 맞아 보입니다.
+          </div>
+          <div class="signal-list" data-signal-list></div>
+        </section>
+
+        <section class="panel" aria-labelledby="signal-title">
+          <div class="image-band">
+            <img
+              data-asset-key="save-04-signal-card"
+              src="../assets/save/04-signal-card.webp"
+              data-source-file="assets/generated/save/04-signal-card.webp"
+              alt="돈이 관계와 지출 사이에서 나뉘는 신호를 설명하는 캐릭터"
+            />
+          </div>
+          <div class="panel-head">
+            <span class="chapter">핵심 신호</span>
+            <h2 id="signal-title">같이 벌고 같이 쓰는 패턴이 강해요</h2>
+            <p>비겁 흐름은 협업·경쟁·분배가 돈에 붙는 구조입니다. 좋게 쓰면 같이 키우는 힘이고, 흐려지면 정산이 늦어지는 구간이 됩니다.</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="paid-title">
+          <div class="panel-head">
+            <span class="chapter">결제 후 열리는 항목</span>
+            <h2 id="paid-title">전체 리포트 목차</h2>
+            <p>유료 결과에서는 아래 대분류 8개를 기준으로 세부 풀이를 열어봅니다.</p>
+          </div>
+          <div class="paid-preview" data-paid-scope></div>
+        </section>
+
+        <section class="panel" aria-labelledby="payment-title">
+          <div class="image-band">
+            <img
+              data-asset-key="save-04-payment-cta"
+              src="../assets/save/04-payment-cta.webp"
+              data-source-file="assets/generated/save/04-payment-cta.webp"
+              alt="전체 돈 흐름 리포트를 여는 열쇠를 든 녹색 고양이귀 정장 캐릭터"
+            />
+          </div>
+          <div class="panel-head">
+            <span class="chapter">전체 결과</span>
+            <h2 id="payment-title">9,900원 결제 후 바로 이어서 봅니다</h2>
+            <p>결제 후 05 단계에서 전체 목록과 채팅형 풀이가 열리고, 각 항목은 06 상세 화면으로 이어집니다.</p>
+          </div>
+          <div class="timeline" aria-label="결제 후 제공 범위">
+            <div class="timeline-row"><strong>제공 범위</strong><span>8개 대분류 · 41개 중분류</span></div>
+            <div class="timeline-row"><strong>이동 경로</strong><span>전체 목록과 상세 풀이</span></div>
+            <div class="timeline-row"><strong>보호 기준</strong><span>권한 확인 후 열람</span></div>
+          </div>
+          <div class="state-box" data-state-box>
+            <span class="state-kicker" data-state-kicker>상태 확인</span>
+            <strong class="state-title" data-state-title>로그인 상태를 확인하고 있어요</strong>
+            <p class="state-body" data-state-body>잠시만 기다려주세요.</p>
+            <div class="actions">
+              <button class="primary" type="button" data-state-primary>이어가기</button>
+              <button class="ghost" type="button" data-state-secondary>다시 확인</button>
+            </div>
+          </div>
+          <button class="ghost" type="button" data-action="toggle-refund">취소·환불 안내</button>
+          <div class="refund-box" data-refund-box>
+            <strong>결제 전 확인</strong>
+            <p>결제 취소나 실패가 발생해도 무료 결과는 유지됩니다. 실제 환불 조건과 처리 창구는 운영 결제 페이지의 정책 문구로 연결해야 합니다.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="submit-dock" aria-label="전체 결과 열기">
+        <div class="dock-inner">
+          <button class="primary" type="button" data-action="dock-primary">로그인하고 전체 풀이 준비하기</button>
+          <div class="dock-note">생년월일과 돈 고민은 주소창에 붙이지 않습니다.</div>
+        </div>
+      </footer>
+
+      <div class="toast" role="status" aria-live="polite" data-toast></div>
+    </div>
+
+    <script type="application/json" id="PROMPT_INPUT">{
+      "service_key": "save",
+      "service_slug": "save",
+      "service_title": "나는 왜 돈이 안 모일까?",
+      "service_description": "재성 + 비겁 흐름으로 수입, 소비, 저축, 관계 정산을 나눠 보는 소비성향 사주풀이 서비스",
+      "category": "소비성향",
+      "subcategory": "저축/돈관리",
+      "price_krw": 9900,
+      "service_url_hint": "money.umsh.kr/save",
+      "target_question": "나는 왜 돈이 안 모일까?",
+      "analysis_basis": [
+            "재성",
+            "비겁",
+            "십성 재물 결",
+            "신강약",
+            "오행",
+            "대운·세운·월운"
+      ],
+      "interpretation_index_source": "user_seed",
+      "report_version": "save-v1.0",
+      "copy_version": "mz-save-v1",
+      "representative_character": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+      "next_route": "../05-step-5-chat/chat.html#step-5-chat",
+      "step": "04-step-4-report",
+      "previous_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+}</script>
+    <script type="application/json" id="INTERPRETATION_INDEX">{
+      "source": "user_seed",
+      "persist_keys": [
+            "umsh_save_interpretation_index",
+            "umsh_save_step2_payload_v1"
+      ],
+      "groups": [
+            {
+                  "group_id": "income-flow",
+                  "title": "돈이 들어오는 방식",
+                  "summary": "내 돈의 입구가 월급형인지, 기회형인지, 생산형인지 먼저 나눕니다.",
+                  "sections": [
+                        {
+                              "section_id": "income-salary-stable",
+                              "title": "월급 안정러",
+                              "preview": "정재·정관형, 고정수입과 계약에는 강하지만 기회 확장은 느릴 수 있음"
+                        },
+                        {
+                              "section_id": "income-side-hustle",
+                              "title": "N잡 기회러",
+                              "preview": "편재형, 돈 들어올 구멍도 많지만 나갈 구멍도 같이 커짐"
+                        },
+                        {
+                              "section_id": "income-steady-maker",
+                              "title": "꾸준 생산러",
+                              "preview": "식신형, 한방보다 루틴·콘텐츠·결과물로 돈을 만듦"
+                        },
+                        {
+                              "section_id": "income-idea-runner",
+                              "title": "아이디어 과속러",
+                              "preview": "상관형, 기획은 빠른데 마감 전에 새 판을 열기 쉬움"
+                        },
+                        {
+                              "section_id": "income-pressure-breaker",
+                              "title": "책임 돌파러",
+                              "preview": "편관형, 압박 속에서 크게 움직이지만 부담도 크게 남을 수 있음"
+                        },
+                        {
+                              "section_id": "income-learning-investor",
+                              "title": "배움 투자러",
+                              "preview": "정인·편인형, 공부·자격·아이디어는 강하지만 실행 칸이 비기 쉬움"
+                        },
+                        {
+                              "section_id": "income-peer-share",
+                              "title": "같이 벌고 같이 쓰는 타입",
+                              "preview": "비견·겁재형, 협업·경쟁·분배 이슈가 돈 흐름에 영향"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "money-leak",
+                  "title": "돈이 새는 패턴",
+                  "summary": "통장에 남지 않는 지점을 감정, 관계, 체면, 준비비로 쪼개 봅니다.",
+                  "sections": [
+                        {
+                              "section_id": "leak-account-logout",
+                              "title": "통장 로그아웃형",
+                              "preview": "들어오자마자 지출·정산·약속으로 흩어짐"
+                        },
+                        {
+                              "section_id": "leak-flex-overheat",
+                              "title": "플렉스 과열형",
+                              "preview": "화 기운·편재/겁재 흐름, 기분과 속도 때문에 소비가 커짐"
+                        },
+                        {
+                              "section_id": "leak-comparison",
+                              "title": "비교 소비형",
+                              "preview": "신금/정화 계열, 감정·취향·비교가 지출로 연결됨"
+                        },
+                        {
+                              "section_id": "leak-face-payment",
+                              "title": "체면 결제형",
+                              "preview": "경금·정관 계열, 자존심·역할·체면 때문에 돈이 나감"
+                        },
+                        {
+                              "section_id": "leak-learning-cost",
+                              "title": "배움비 폭주형",
+                              "preview": "인성 계열, 강의·장비·자격·준비 비용이 커짐"
+                        },
+                        {
+                              "section_id": "leak-relationship-blur",
+                              "title": "관계 정산 흐림형",
+                              "preview": "비견·겁재 계열, 친구·연인·동료와 돈 경계가 흐려짐"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "saving-blocker",
+                  "title": "저축이 안 되는 이유",
+                  "summary": "남는 돈이 없는 이유를 의지보다 구조와 예외 규칙에서 찾습니다.",
+                  "sections": [
+                        {
+                              "section_id": "saving-no-structure",
+                              "title": "모으는 구조 부재",
+                              "preview": "얼마를 남길지가 숫자로 고정되지 않음"
+                        },
+                        {
+                              "section_id": "saving-income-outgoing-mixed",
+                              "title": "받을 돈/줄 돈 미분리",
+                              "preview": "수입·지출·계약을 한 덩어리로 봄"
+                        },
+                        {
+                              "section_id": "saving-exception-budget",
+                              "title": "예외가 많은 예산",
+                              "preview": "가능한 범위보다 이번만이 자주 열림"
+                        },
+                        {
+                              "section_id": "saving-plan-over-action",
+                              "title": "실행보다 계획 과다",
+                              "preview": "아이디어는 많은데 자동화·마감·루틴이 약함"
+                        },
+                        {
+                              "section_id": "saving-stability-illusion",
+                              "title": "안정 착시",
+                              "preview": "정재형이어도 안전해 보여 확인을 멈추면 돈이 샘"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "saju-strength",
+                  "title": "사주 체력 진단",
+                  "summary": "내가 돈관리를 밀어붙이는 타입인지, 지원과 순서가 필요한 타입인지 봅니다.",
+                  "sections": [
+                        {
+                              "section_id": "strength-strong",
+                              "title": "신강형 돈관리",
+                              "preview": "혼자 다 하려다 속도·고집·위임 부족으로 새는 구조"
+                        },
+                        {
+                              "section_id": "strength-weak",
+                              "title": "신약형 돈관리",
+                              "preview": "큰 판보다 지원·리듬·순서가 먼저 필요한 구조"
+                        },
+                        {
+                              "section_id": "strength-balanced",
+                              "title": "중화형 돈관리",
+                              "preview": "과한 처방보다 지금 치우친 한 축만 잡는 구조"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "ohaeng-os",
+                  "title": "오행 기반 돈관리 OS",
+                  "summary": "목·화·토·금·수의 치우침을 생활 속 돈관리 방식으로 번역합니다.",
+                  "sections": [
+                        {
+                              "section_id": "ohaeng-wood",
+                              "title": "목",
+                              "preview": "시작·확장형, 과하면 판이 많아지고 부족하면 시작이 늦음"
+                        },
+                        {
+                              "section_id": "ohaeng-fire",
+                              "title": "화",
+                              "preview": "표현·가시성형, 과하면 충동/과열, 부족하면 홍보·표현이 약함"
+                        },
+                        {
+                              "section_id": "ohaeng-earth",
+                              "title": "토",
+                              "preview": "안정·정리형, 과하면 걱정/정체, 부족하면 중심과 루틴이 약함"
+                        },
+                        {
+                              "section_id": "ohaeng-metal",
+                              "title": "금",
+                              "preview": "기준·마감형, 과하면 너무 자르고 부족하면 마감·예산선이 흐림"
+                        },
+                        {
+                              "section_id": "ohaeng-water",
+                              "title": "수",
+                              "preview": "흐름·휴식형, 과하면 생각이 길고 부족하면 회복·정리 시간이 부족함"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "timing",
+                  "title": "운의 타이밍",
+                  "summary": "올해, 이번 달, 오늘의 돈 이슈를 한 번에 섞지 않고 순서대로 봅니다.",
+                  "sections": [
+                        {
+                              "section_id": "timing-daeun-start",
+                              "title": "대운 초입",
+                              "preview": "익숙한 돈벌이 판이 흔들리는 리셋 구간"
+                        },
+                        {
+                              "section_id": "timing-daeun-middle",
+                              "title": "대운 중반",
+                              "preview": "새로 벌리기보다 열린 일을 세 개 이하로 줄이는 구간"
+                        },
+                        {
+                              "section_id": "timing-daeun-end",
+                              "title": "대운 말기",
+                              "preview": "정리·넘김·회수·마감이 중요한 구간"
+                        },
+                        {
+                              "section_id": "timing-year",
+                              "title": "세운",
+                              "preview": "올해 돈의 테마, 대운과 겹쳐서 해석해야 함"
+                        },
+                        {
+                              "section_id": "timing-month",
+                              "title": "월운",
+                              "preview": "이번 달 받을 돈·해야 할 일·약속 조건을 정리하는 구간"
+                        },
+                        {
+                              "section_id": "timing-today",
+                              "title": "오늘 운",
+                              "preview": "수입·지출·계약 중 오늘 하나만 먼저 보는 구간"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "relationship-contract",
+                  "title": "관계/계약 돈문제",
+                  "summary": "돈이 사람 사이에서 흐려지는 순간을 기록, 거절, 공유 범위로 정리합니다.",
+                  "sections": [
+                        {
+                              "section_id": "relation-friend-lover-mix",
+                              "title": "친구·연인 돈 섞임",
+                              "preview": "가까운 사람과 돈 경계가 흐려지는 이슈"
+                        },
+                        {
+                              "section_id": "relation-shared-cost",
+                              "title": "공동비용·더치 정산 이슈",
+                              "preview": "같이 쓴 돈의 기준과 타이밍이 어긋나는 이슈"
+                        },
+                        {
+                              "section_id": "relation-unwritten-condition",
+                              "title": "금액·기한·책임범위 미기록",
+                              "preview": "좋게 넘어간 조건이 뒤에 부담으로 남는 이슈"
+                        },
+                        {
+                              "section_id": "relation-no-refusal-line",
+                              "title": "거절 문장 부재",
+                              "preview": "미리 정한 말이 없어 결제가 밀리는 이슈"
+                        },
+                        {
+                              "section_id": "relation-short-share",
+                              "title": "믿을 사람에게만 짧게 공유해야 하는 이슈",
+                              "preview": "돈 고민을 넓게 풀어놓지 않고 안전하게 확인하는 이슈"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "expanded-reading",
+                  "title": "확장 풀이",
+                  "summary": "필요할 때 자미두수와 공간 힌트를 보조 레이어로만 더합니다.",
+                  "sections": [
+                        {
+                              "section_id": "expand-ziwei-wealth",
+                              "title": "자미두수 재백궁",
+                              "preview": "수입 방식·소비 습관·돈 감각"
+                        },
+                        {
+                              "section_id": "expand-ziwei-career",
+                              "title": "자미두수 관록궁",
+                              "preview": "직업·역할·책임과 수입 연결"
+                        },
+                        {
+                              "section_id": "expand-ziwei-property",
+                              "title": "자미두수 전택궁",
+                              "preview": "쌓인 자산·주거·가족 자산"
+                        },
+                        {
+                              "section_id": "expand-fengshui",
+                              "title": "풍수/공간 보조",
+                              "preview": "현관·책상·동선·사업장 흐름을 돈 보장이 아니라 생활 정돈 힌트로 사용"
+                        }
+                  ]
+            }
+      ]
+}</script>
+    <script type="application/json" id="TEASER_RESULT">{
+      "headline": "돈이 안 모이는 이유, 일단 여기서 갈립니다",
+      "summary": "지금은 더 벌기보다, 들어온 돈이 누구와 어떤 약속에서 흩어지는지 먼저 잡는 쪽이 맞아 보입니다.",
+      "free_ratio": "12%",
+      "signals": [
+            {
+                  "title": "한 줄 방향",
+                  "body": "수입 자체보다 돈이 들어온 뒤 관계·취향·정산으로 퍼지는 동선을 먼저 잡아야 합니다.",
+                  "evidence_ids": [
+                        "item-12-p1-0004",
+                        "item-12-p1-0012"
+                  ]
+            },
+            {
+                  "title": "강한 신호 1개",
+                  "body": "재성은 돈의 입구를 보고, 비겁은 나와 비슷한 사람·경쟁·분배를 봅니다. 둘이 붙으면 같이 벌 기회와 같이 새는 구멍이 동시에 커질 수 있습니다.",
+                  "evidence_ids": [
+                        "item-12-p1-0004",
+                        "item-12-p1-0012",
+                        "item-12-p1-0036"
+                  ]
+            },
+            {
+                  "title": "이번 달 조건",
+                  "body": "받을 돈, 줄 돈, 새로 정할 조건을 한 칸에 섞지 말고 따로 적어야 흐름이 보입니다.",
+                  "evidence_ids": [
+                        "item-23-qa-0006"
+                  ]
+            },
+            {
+                  "title": "방해 요인 1개",
+                  "body": "좋은 사람으로 보이려는 결제, 애매한 더치, 말로만 정한 약속이 통장 로그아웃을 만들 수 있습니다.",
+                  "evidence_ids": [
+                        "item-23-qa-0010"
+                  ]
+            }
+      ],
+      "paid_preview": [
+            "돈이 들어오는 방식",
+            "돈이 새는 패턴",
+            "저축이 안 되는 이유",
+            "사주 체력 진단",
+            "오행 기반 돈관리 OS",
+            "운의 타이밍",
+            "관계/계약 돈문제",
+            "확장 풀이"
+      ],
+      "safety_note": "재무 결과를 보장하지 않고, 사주 흐름을 생활 점검 언어로 번역한다."
+}</script>
+    <script type="application/json" id="CTA_STATES">{
+      "anonymous": {
+            "kicker": "로그인 전",
+            "title": "로그인하면 이 무료 결과를 그대로 이어볼 수 있어요",
+            "body": "계정 확인 뒤 결제 단계로 이동합니다. 입력한 생년월일과 돈 고민은 주소창에 붙이지 않습니다.",
+            "primary_label": "로그인하고 이어보기",
+            "primary_action": "login",
+            "secondary_label": "무료 결과 다시 보기",
+            "secondary_action": "scroll-top",
+            "dock_label": "로그인하고 전체 풀이 준비하기"
+      },
+      "login_pending": {
+            "kicker": "로그인 이동 준비",
+            "title": "운영 환경에서는 공통 로그인 후 돌아옵니다",
+            "body": "로컬 파일 미리보기에서는 실제 로그인창을 열지 않습니다. 결과 보존 경로만 세션에 저장했습니다.",
+            "primary_label": "결제 안내 보기",
+            "primary_action": "start-payment",
+            "secondary_label": "입력 다시 하기",
+            "secondary_action": "back-input",
+            "dock_label": "결제 안내 보기"
+      },
+      "login_unpaid": {
+            "kicker": "로그인 완료 · 미결제",
+            "title": "전체 풀이를 열려면 결제 확인이 필요해요",
+            "body": "9,900원 결제 후 05 목록과 06 상세 풀이로 이어집니다. 중복 주문을 막기 위해 진행 중 결제는 세션에 보관합니다.",
+            "primary_label": "9,900원 결제하고 전체 보기",
+            "primary_action": "start-payment",
+            "secondary_label": "입력 다시 하기",
+            "secondary_action": "back-input",
+            "dock_label": "9,900원 결제하고 전체 보기"
+      },
+      "payment_processing": {
+            "kicker": "결제 진행 중",
+            "title": "결제 확인을 기다리고 있어요",
+            "body": "새 결제를 다시 만들지 않고 진행 중 요청을 복구합니다. 성공 후에는 서버 권한 확인을 거쳐 전체 결과가 열립니다.",
+            "primary_label": "진행 상태 복구",
+            "primary_action": "restore-payment",
+            "secondary_label": "권한 확인 후 열기",
+            "secondary_action": "open-paid",
+            "dock_label": "진행 상태 복구"
+      },
+      "entitled": {
+            "kicker": "권한 확인 완료",
+            "title": "전체 풀이를 바로 열 수 있어요",
+            "body": "결제창을 다시 열지 않고 05 단계의 전체 결과 목록으로 이동합니다.",
+            "primary_label": "전체 풀이 열기",
+            "primary_action": "open-paid",
+            "secondary_label": "무료 결과 다시 보기",
+            "secondary_action": "scroll-top",
+            "dock_label": "전체 풀이 열기"
+      },
+      "payment_failed": {
+            "kicker": "결제 취소·실패",
+            "title": "무료 결과는 그대로 유지했어요",
+            "body": "결제 취소나 실패가 있어도 지금 본 요약은 사라지지 않습니다. 다시 시도하거나 입력 단계로 돌아갈 수 있습니다.",
+            "primary_label": "다시 시도하기",
+            "primary_action": "retry-payment",
+            "secondary_label": "입력 다시 하기",
+            "secondary_action": "back-input",
+            "dock_label": "결제 다시 시도하기"
+      },
+      "missing_report": {
+            "kicker": "입력값 없음",
+            "title": "먼저 02 입력을 완료해야 정확히 이어집니다",
+            "body": "직접 URL로 들어온 경우 샘플 무료 요약만 보입니다. 결제 전에는 사주 기준과 돈 고민을 다시 입력해 주세요.",
+            "primary_label": "02 입력으로 돌아가기",
+            "primary_action": "back-input",
+            "secondary_label": "샘플 요약 보기",
+            "secondary_action": "scroll-top",
+            "dock_label": "02 입력으로 돌아가기"
+      },
+      "no_entitlement": {
+            "kicker": "권한 미확인",
+            "title": "아직 전체 결과를 열 수 없어요",
+            "body": "클라이언트 값만으로는 결제 성공을 처리하지 않습니다. 서버에서 권한이 확인되면 전체 풀이가 열립니다.",
+            "primary_label": "결제 상태 다시 확인",
+            "primary_action": "restore-payment",
+            "secondary_label": "무료 결과 다시 보기",
+            "secondary_action": "scroll-top",
+            "dock_label": "결제 상태 다시 확인"
+      }
+}</script>
+    <script type="application/json" id="RAG_EVIDENCE">[
+      {
+            "evidence_id": "item-12-p1-0004",
+            "item": "비견 재물",
+            "use": "같이 벌고 같이 쓰는 패턴",
+            "summary": "비견 재물 흐름은 나눠야 할 때와 지켜야 할 때가 섞이며, 협업·경쟁·분배 갈등이 돈 흐름에 영향을 줄 수 있다."
+      },
+      {
+            "evidence_id": "item-12-p1-0012",
+            "item": "겁재 재물",
+            "use": "움직임이 빠르고 지출 구멍도 커지는 신호",
+            "summary": "겁재 재물 흐름은 움직임이 빠르고 과한 베팅이나 빼앗김 느낌으로 돈이 빠질 수 있어 경계 설정이 필요하다."
+      },
+      {
+            "evidence_id": "item-12-p1-0036",
+            "item": "편재 재물",
+            "use": "수입·지출 동시 확대",
+            "summary": "편재는 들어오는 구멍과 나가는 구멍이 같이 커질 수 있어 여러 판을 동시에 여는 속도를 조절해야 한다."
+      },
+      {
+            "evidence_id": "item-12-p1-0044",
+            "item": "정재 재물",
+            "use": "안정 착시 경계",
+            "summary": "정재 흐름은 모으는 힘이 있으나 안전해 보인다는 이유로 확인을 멈추면 돈이 샐 수 있다."
+      },
+      {
+            "evidence_id": "item-23-qa-0006",
+            "item": "월간 흐름",
+            "use": "받을 돈·줄 돈·조건 분리",
+            "summary": "돈 문제는 받을 돈, 줄 돈, 새로 정할 조건을 따로 적어 보는 방향으로 안내한다."
+      },
+      {
+            "evidence_id": "item-23-qa-0010",
+            "item": "월간 흐름",
+            "use": "관계·계약 기록",
+            "summary": "돈이 걸린 약속은 금액, 기한, 책임 범위를 짧게라도 기록으로 남기는 방향을 제안한다."
+      }
+]</script>
+    <script type="application/json" id="IMAGE_MANIFEST">[
+      {
+            "asset_key": "save-04-free-hero",
+            "filename": "assets/generated/save/04-free-hero.webp",
+            "role": "hero",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+            "reference_status": "selected",
+            "character_style_lock": [
+                  "녹색 머리",
+                  "고양이 귀",
+                  "정장",
+                  "수채 질감",
+                  "사려 깊은 표정"
+            ],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "돈이 들어오고 새는 흐름을 살피는 녹색 고양이귀 정장 캐릭터. 이미지 안 텍스트 없음.",
+            "alt": "돈이 들어오고 새는 흐름을 살피는 녹색 고양이귀 정장 캐릭터",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": "[data-asset-key=\"save-04-free-hero\"]",
+            "delivery": "embedded_data_uri"
+      },
+      {
+            "asset_key": "save-04-signal-card",
+            "filename": "assets/generated/save/04-signal-card.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+            "reference_status": "selected",
+            "character_style_lock": [
+                  "녹색 머리",
+                  "고양이 귀",
+                  "정장",
+                  "수채 질감",
+                  "안내하는 표정"
+            ],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "관계와 정산 사이에서 돈이 나뉘는 신호를 설명하는 캐릭터. 이미지 안 텍스트 없음.",
+            "alt": "돈이 관계와 지출 사이에서 나뉘는 신호를 설명하는 캐릭터",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": "[data-asset-key=\"save-04-signal-card\"]",
+            "delivery": "embedded_data_uri"
+      },
+      {
+            "asset_key": "save-04-payment-cta",
+            "filename": "assets/generated/save/04-payment-cta.webp",
+            "role": "payment-cta",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+            "reference_status": "selected",
+            "character_style_lock": [
+                  "녹색 머리",
+                  "고양이 귀",
+                  "정장",
+                  "수채 질감",
+                  "전체 리포트 열쇠"
+            ],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "전체 돈 흐름 리포트를 여는 열쇠를 든 캐릭터. 이미지 안 텍스트 없음.",
+            "alt": "전체 돈 흐름 리포트를 여는 열쇠를 든 녹색 고양이귀 정장 캐릭터",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": "[data-asset-key=\"save-04-payment-cta\"]",
+            "delivery": "embedded_data_uri"
+      }
+]</script>
+    <script type="application/json" id="QA_RESULT">{
+      "status": "pass_with_notes",
+      "scope_mismatch": [
+            "00-SERVICE-GENERATION-CONTRACT.md와 04 PROMPT.md는 직장운 job-choice 예시를 기준으로 쓰였지만, 사용자 요청의 소비성향 save 서비스 값을 우선 적용했다.",
+            "프롬프트의 10개 대분류 조건은 현재 사용자 seed의 8개 대분류 전체 보존으로 치환했다.",
+            "샘플의 로그인·결제 리듬은 유지하되 실제 결제 성공은 클라이언트 플래그가 아니라 서버 권한 확인이 필요하도록 기록했다."
+      ],
+      "checks": [
+            {
+                  "id": "service_identity",
+                  "status": "pass",
+                  "detail": "save, money.umsh.kr/save, 9,900원, 소비성향을 적용했다."
+            },
+            {
+                  "id": "mobile_only_layout",
+                  "status": "pass",
+                  "detail": "390px 모바일 전용 캔버스 안에 본문, CTA, 토스트를 고정했다."
+            },
+            {
+                  "id": "free_teaser_ratio",
+                  "status": "pass",
+                  "detail": "무료 공개 범위를 12%로 표시하고 한 줄 방향, 강한 신호, 조건, 방해 요인을 제공했다."
+            },
+            {
+                  "id": "paid_scope_preview",
+                  "status": "pass",
+                  "detail": "8개 대분류와 41개 중분류를 유료 범위 예고로 보존했다."
+            },
+            {
+                  "id": "cta_states",
+                  "status": "pass",
+                  "detail": "비로그인, 로그인 미결제, 결제 진행 중, 권한 있음, 취소·실패, reportId 없음 상태를 처리한다."
+            },
+            {
+                  "id": "payment_safety",
+                  "status": "pass",
+                  "detail": "결제 성공은 verified_by=server 권한 확인이 있어야 05로 이동한다."
+            },
+            {
+                  "id": "image_assets",
+                  "status": "pass",
+                  "detail": "04 전용 이미지 3개를 생성했고 HTML에는 data URI로 내장했다."
+            },
+            {
+                  "id": "visible_internal_terms",
+                  "status": "pass",
+                  "detail": "고객 표시 영역에는 내부 용어와 이전 프로젝트 문구를 노출하지 않는다."
+            },
+            {
+                  "id": "next_route",
+                  "status": "pass",
+                  "detail": "권한 확인 후 ../05-step-5-chat/chat.html#step-5-chat로 이동한다."
+            }
+      ]
+}</script>
+
+    <script>
+      const STORAGE_KEYS = {
+        inputPayload: "umsh_save_step2_payload_v1",
+        interpretationIndex: "umsh_save_interpretation_index",
+        teaser: "umsh_save_step4_teaser_v1",
+        reportId: "umsh_save_report_id_v1",
+        entitlement: "umsh_save_entitlement_v1",
+        pendingPayment: "umsh_pending_payment_request_v1",
+        paymentStatus: "umsh_save_payment_status_v1",
+        returnTo: "umsh_common_auth_return_to_v1",
+      };
+
+      const SERVICE = readJsonBlock("PROMPT_INPUT");
+      const INTERPRETATION_INDEX = readJsonBlock("INTERPRETATION_INDEX");
+      const TEASER = readJsonBlock("TEASER_RESULT");
+      const CTA_STATES = readJsonBlock("CTA_STATES");
+      const IMAGE_MANIFEST = readJsonBlock("IMAGE_MANIFEST");
+
+      const inputSummary = document.querySelector("[data-input-summary]");
+      const oneLineAnswer = document.querySelector("[data-one-line-answer]");
+      const signalList = document.querySelector("[data-signal-list]");
+      const paidScope = document.querySelector("[data-paid-scope]");
+      const stateKicker = document.querySelector("[data-state-kicker]");
+      const stateTitle = document.querySelector("[data-state-title]");
+      const stateBody = document.querySelector("[data-state-body]");
+      const statePrimary = document.querySelector("[data-state-primary]");
+      const stateSecondary = document.querySelector("[data-state-secondary]");
+      const dockPrimary = document.querySelector("[data-action='dock-primary']");
+      const refundBox = document.querySelector("[data-refund-box]");
+      const toast = document.querySelector("[data-toast]");
+
+      let currentStateId = "anonymous";
+      let toastTimer = 0;
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        try {
+          return JSON.parse(node?.textContent || "{}");
+        } catch (_error) {
+          return {};
+        }
+      }
+
+      function readStoredJson(key) {
+        for (const storage of [sessionStorage, localStorage]) {
+          try {
+            const value = JSON.parse(storage.getItem(key) || "null");
+            if (value) return value;
+          } catch (_error) {
+            // Browser storage can be unavailable in some embedded contexts.
+          }
+        }
+        return null;
+      }
+
+      function writeSessionJson(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (_error) {
+          return false;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function ensureReportId(payload) {
+        const existing = payload?.report_id || readStoredJson(STORAGE_KEYS.reportId);
+        if (existing) return String(existing);
+        const reportId = `save-${Date.now().toString(36)}`;
+        try {
+          sessionStorage.setItem(STORAGE_KEYS.reportId, reportId);
+        } catch (_error) {
+          // The visible result still works without a stored report id.
+        }
+        return reportId;
+      }
+
+      function activePayload() {
+        return readStoredJson(STORAGE_KEYS.inputPayload);
+      }
+
+      function activeIndex() {
+        const stored = readStoredJson(STORAGE_KEYS.interpretationIndex);
+        if (stored?.groups?.length) return stored;
+        return INTERPRETATION_INDEX;
+      }
+
+      function hasAuthSession() {
+        const hints = [
+          "umsh_auth_session_v1",
+          "cheongi_auth_device_session_started_at_v1",
+          "sb-auth-token",
+        ];
+        return hints.some((key) => {
+          try {
+            return Boolean(localStorage.getItem(key) || sessionStorage.getItem(key));
+          } catch (_error) {
+            return false;
+          }
+        });
+      }
+
+      function hasVerifiedEntitlement() {
+        const entitlement = readStoredJson(STORAGE_KEYS.entitlement);
+        return Boolean(
+          entitlement
+          && entitlement.service_key === SERVICE.service_key
+          && entitlement.status === "granted"
+          && entitlement.verified_by === "server"
+        );
+      }
+
+      function resolveInitialState(payload) {
+        const params = new URLSearchParams(location.search);
+        const payment = params.get("payment") || params.get("paymentStatus") || "";
+        if (!payload) return "missing_report";
+        if (hasVerifiedEntitlement()) return "entitled";
+        if (payment === "cancel" || payment === "failed" || payment === "fail") return "payment_failed";
+        if (payment === "processing") return "payment_processing";
+        const storedStatus = readStoredJson(STORAGE_KEYS.paymentStatus);
+        if (storedStatus?.status === "processing") return "payment_processing";
+        return hasAuthSession() ? "login_unpaid" : "anonymous";
+      }
+
+      function renderInputSummary(payload) {
+        if (!payload) {
+          inputSummary.textContent = "입력값을 찾지 못했어요. 무료 요약은 샘플 기준으로 유지하고, 결제 전에는 02 입력 단계로 돌아가 다시 만들 수 있습니다.";
+          return;
+        }
+        const birth = payload.birth || payload.profile || {};
+        const money = payload.money_context || {};
+        const name = payload.nickname || birth.nickname || "나";
+        const income = money.incomeType || "수입 방식 미선택";
+        const leak = money.leakPattern || "새는 패턴 미선택";
+        const goal = money.savingGoal || "저축 목표 미선택";
+        inputSummary.textContent = `${name}님의 기준은 ${income}, 가장 걸리는 지점은 ${leak}, 이번 풀이 목표는 ${goal}입니다.`;
+      }
+
+      function renderTeaser() {
+        oneLineAnswer.textContent = TEASER.summary;
+        signalList.innerHTML = TEASER.signals
+          .map((item) => `
+            <div class="signal">
+              <strong>${escapeHtml(item.title)}</strong>
+              <span>${escapeHtml(item.body)}</span>
+            </div>
+          `)
+          .join("");
+      }
+
+      function renderPaidScope() {
+        const groups = activeIndex().groups || [];
+        paidScope.innerHTML = groups
+          .map((group, index) => {
+            const sections = group.sections || [];
+            return `
+              <details class="scope-item" ${index < 2 ? "open" : ""}>
+                <summary>
+                  <span class="scope-title">
+                    <strong>${escapeHtml(group.title)}</strong>
+                    <span>${escapeHtml(group.summary || "세부 항목을 열어 확인합니다.")}</span>
+                  </span>
+                  <span class="scope-count">${sections.length}개</span>
+                </summary>
+                <div class="scope-body">
+                  <div class="chip-list">
+                    ${sections.map((section) => `<span class="chip">${escapeHtml(section.title || section)}</span>`).join("")}
+                  </div>
+                </div>
+              </details>
+            `;
+          })
+          .join("");
+      }
+
+      function renderState(stateId) {
+        const state = CTA_STATES[stateId] || CTA_STATES.anonymous;
+        currentStateId = stateId;
+        stateKicker.textContent = state.kicker;
+        stateTitle.textContent = state.title;
+        stateBody.textContent = state.body;
+        statePrimary.textContent = state.primary_label;
+        statePrimary.dataset.action = state.primary_action;
+        stateSecondary.textContent = state.secondary_label;
+        stateSecondary.dataset.action = state.secondary_action;
+        dockPrimary.textContent = state.dock_label || state.primary_label;
+        dockPrimary.dataset.action = state.primary_action;
+      }
+
+      function rememberReturnTo() {
+        const returnTo = `${location.pathname}${location.search}#step-4-report`;
+        try {
+          sessionStorage.setItem(STORAGE_KEYS.returnTo, returnTo);
+        } catch (_error) {
+          // OAuth can still receive the return path in real service routing.
+        }
+        return returnTo;
+      }
+
+      function handleLogin() {
+        const returnTo = rememberReturnTo();
+        if (location.protocol === "file:") {
+          renderState("login_pending");
+          showToast("운영 환경에서는 공통 로그인으로 이동하고, 완료 후 이 무료 결과로 돌아옵니다.");
+          return;
+        }
+        const url = new URL("/signup", location.origin);
+        url.searchParams.set("entry", SERVICE.service_key);
+        url.searchParams.set("returnTo", returnTo);
+        url.hash = "login";
+        location.assign(url.toString());
+      }
+
+      function startPayment() {
+        const payload = activePayload();
+        const reportId = ensureReportId(payload);
+        const request = {
+          service_key: SERVICE.service_key,
+          product_slug: SERVICE.service_slug,
+          report_id: reportId,
+          amount_krw: SERVICE.price_krw,
+          return_to: `${location.pathname}${location.search}#step-4-report`,
+          requested_at: new Date().toISOString(),
+        };
+        writeSessionJson(STORAGE_KEYS.pendingPayment, request);
+        writeSessionJson(STORAGE_KEYS.paymentStatus, { status: "processing", report_id: reportId, saved_at: Date.now() });
+        renderState("payment_processing");
+        if (location.protocol === "file:") {
+          showToast("결제 요청 정보를 세션에 보관했습니다. 운영 결제창 연결 전에는 상세 결과를 열지 않습니다.");
+          return;
+        }
+        const url = new URL("/payment", location.origin);
+        url.searchParams.set("product", SERVICE.service_key);
+        url.searchParams.set("reportId", reportId);
+        location.assign(url.toString());
+      }
+
+      function openPaidReport() {
+        if (hasVerifiedEntitlement()) {
+          location.assign(SERVICE.next_route);
+          return;
+        }
+        renderState("no_entitlement");
+        showToast("전체 결과는 서버에서 권한이 확인된 뒤 열립니다.");
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
+      }
+
+      function persistTeaser(payload) {
+        const groups = activeIndex().groups || [];
+        writeSessionJson(STORAGE_KEYS.teaser, {
+          service: SERVICE,
+          teaser: TEASER,
+          paid_scope_preview: { source: "user_seed", groups },
+          report_id: ensureReportId(payload),
+          saved_at: new Date().toISOString(),
+        });
+      }
+
+      document.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        if (!action) return;
+        if (action === "login") handleLogin();
+        if (action === "start-payment") startPayment();
+        if (action === "restore-payment") renderState("payment_processing");
+        if (action === "open-paid") openPaidReport();
+        if (action === "retry-payment") renderState(hasAuthSession() ? "login_unpaid" : "anonymous");
+        if (action === "back-input") location.assign("../02-step-2-saju-input/index.html#step-2-saju-input");
+        if (action === "scroll-top") window.scrollTo({ top: 0, behavior: "smooth" });
+        if (action === "toggle-refund") refundBox.classList.toggle("is-open");
+      });
+
+      const payload = activePayload();
+      renderInputSummary(payload);
+      renderTeaser();
+      renderPaidScope();
+      persistTeaser(payload);
+      renderState(resolveInitialState(payload));
+
+      if (!IMAGE_MANIFEST.length) {
+        showToast("이미지 연결 정보를 확인하지 못했습니다.");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/save-service.js" defer></script>
+  </body>
+</html>

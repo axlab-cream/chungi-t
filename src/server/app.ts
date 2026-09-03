@@ -248,8 +248,30 @@ app.get(['/match/marry/detail', '/match/marry/detail.html'], (_req, res) => {
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
 })
-app.get(['/money/save', '/money/save/', '/money/save/index.html'], (_req, res) => {
-  res.sendFile(join(SAJU_ROOT, 'money', 'save', 'index.html'))
+// 소비성향 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/money/save', '/money/save/', '/money/save/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/money/save/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/money/save/input', '/money/save/input.html'], (_req, res) => {
+  res.redirect(302, '/money/save/02-step-2-saju-input/index.html')
+})
+app.get(['/money/save/report', '/money/save/report.html'], (_req, res) => {
+  res.redirect(302, '/money/save/04-step-4-report/index.html')
+})
+app.get(['/money/save/chat', '/money/save/chat.html'], (_req, res) => {
+  res.redirect(302, '/money/save/05-step-5-chat/chat.html')
+})
+app.get(['/money/save/detail', '/money/save/detail.html'], (_req, res) => {
+  res.redirect(302, '/money/save/06-step-6_1-report-detail/index.html')
 })
 app.get(['/match/couple', '/match/couple/', '/match/couple/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'match', 'couple', 'index.html'))
