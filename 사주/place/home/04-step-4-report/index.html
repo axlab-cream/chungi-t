@@ -1245,8 +1245,28 @@
         renderSignals(input);
       }
 
+      /**
+       * The catalog is what checkout charges, so every price printed on this step follows
+       * it. Keeps the CTA honest if the operator repricing happens in catalog.ts alone.
+       */
+      async function syncCatalogPrice() {
+        const config = await fetch("/api/payment/config").then((res) => res.json()).catch(() => null);
+        const product = config?.catalog?.find((item) => item.key === "home_pungsu");
+        if (!product) return;
+        const current = `${Number(SERVICE.price_krw).toLocaleString("ko-KR")}원`;
+        const next = `${Number(product.amount).toLocaleString("ko-KR")}원`;
+        if (next === current) return;
+        document
+          .querySelectorAll("#paid-title, .price, [data-action='open-paid']")
+          .forEach((node) => {
+            node.textContent = node.textContent.replace(current, next);
+          });
+        SERVICE.price_krw = product.amount;
+      }
+
       function init() {
         renderScope();
+        syncCatalogPrice();
         const payload = safeParse(fromSession(STORAGE_KEYS.input));
         if (!payload || payload.service?.service_key !== SERVICE.service_key) {
           document.getElementById("missing-input").classList.add("is-open");
@@ -1256,16 +1276,34 @@
         }
 
         document.querySelectorAll("[data-action='open-paid']").forEach((link) => {
-          link.addEventListener("click", () => {
+          link.addEventListener("click", (event) => {
+            const reportId = payload?.reportId || payload?.analysis?.report?.reportId || "";
             toSession(STORAGE_KEYS.paymentIntent, {
               service: SERVICE,
               requested_at: new Date().toISOString(),
               from_stage: "04-step-4-report",
               amount_krw: SERVICE.price_krw,
               next_route: SERVICE.next_route,
-              report_id: payload?.reportId || payload?.analysis?.report?.reportId || "",
+              report_id: reportId,
               input_payload_present: Boolean(payload)
             });
+            if (!window.UMSHCheckout) return;
+            // Hold the navigation while checkout answers; fall back to the plain link when
+            // the payment module is not connected yet, so this step never dead-ends.
+            const fallbackHref = link.getAttribute("href");
+            event.preventDefault();
+            window.UMSHCheckout
+              .start({
+                productKey: "home_pungsu",
+                reportId,
+                returnTo: "/place/home/05-step-5-chat/chat.html#step-5-chat"
+              })
+              .then((result) => {
+                if (!result.started) window.location.href = fallbackHref;
+              })
+              .catch(() => {
+                window.location.href = fallbackHref;
+              });
           });
         });
       }
@@ -1273,6 +1311,8 @@
       init();
     </script>
     <div data-umsh-service-bottom></div>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-checkout.js"></script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
   </body>
 </html>

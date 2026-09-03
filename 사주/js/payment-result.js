@@ -6,6 +6,7 @@
   const productKey = query.get('product') || '';
   const state = query.get('state') || 'failed';
   const orderId = query.get('orderId') || '';
+  const reportId = query.get('reportId') || '';
   const message = query.get('message') || '';
 
   fetch('/api/payment/config')
@@ -13,8 +14,11 @@
     .then((config) => {
       const product = config.catalog?.find((item) => item.key === productKey) || config.catalog?.find((item) => item.returnPath === '/');
       const success = state === 'paid';
-      const returnPath = product?.returnPath || '/';
-      const continueUrl = `${returnPath}${returnPath.includes('?') ? '&' : '?'}paid=1&orderId=${encodeURIComponent(orderId)}`;
+      const pending = global.UMSHPaymentBridge?.load(productKey);
+      const returnPath = pending?.returnTo || product?.returnPath || '/';
+      const continueParams = new URLSearchParams({ paid: '1', orderId });
+      if (reportId && !returnPath.includes('reportId=')) continueParams.set('reportId', reportId);
+      const continueUrl = `${returnPath}${returnPath.includes('?') ? '&' : '?'}${continueParams.toString()}`;
       result.classList.toggle('is-success', success);
       result.innerHTML = `
         <h2>${success ? '결제가 완료됐어요.' : state === 'cancelled' ? '결제를 취소했어요.' : '결제를 완료하지 못했어요.'}</h2>

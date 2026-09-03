@@ -517,9 +517,25 @@
         to: '../05-step-5-chat/chat.html#step-5-chat',
         requested_at: new Date().toISOString(),
       });
-      window.setTimeout(() => {
+      const openFullReport = () => {
         window.location.href = '../05-step-5-chat/chat.html#step-5-chat';
-      }, 120);
+      };
+      // Checkout first when the payment module is connected; otherwise keep the existing
+      // direct hand-off so this step never dead-ends before launch.
+      if (!window.UMSHCheckout) {
+        window.setTimeout(openFullReport, 120);
+        return;
+      }
+      window.UMSHCheckout
+        .start({
+          productKey: 'work_move',
+          reportId: report?.reportId || '',
+          returnTo: '/work/move/05-step-5-chat/chat.html#step-5-chat',
+        })
+        .then((result) => {
+          if (!result.started) window.setTimeout(openFullReport, 120);
+        })
+        .catch(openFullReport);
     });
   }
 

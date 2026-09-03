@@ -13,6 +13,8 @@ export interface PaymentOrder {
   productTitle: string
   amount: number
   status: PaymentOrderStatus
+  /** Report this order unlocks. Empty for orders created before a report existed. */
+  reportId?: string
   tid?: string
   payMethod?: string
   approvalCode?: string
@@ -21,7 +23,7 @@ export interface PaymentOrder {
   updatedAt: string
 }
 
-type PaymentStorageMode = 'postgres' | 'supabase' | 'memory'
+export type PaymentStorageMode = 'postgres' | 'supabase' | 'memory'
 
 const connectionString = process.env.DATABASE_URL
 const pool = connectionString
@@ -71,10 +73,13 @@ async function ensureDb(): Promise<void> {
         pay_method TEXT,
         approval_code TEXT,
         message TEXT,
+        report_id TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
-    `).then(() => undefined)
+    `)
+      .then(() => pool.query('ALTER TABLE cheongi_payment_orders ADD COLUMN IF NOT EXISTS report_id TEXT'))
+      .then(() => undefined)
   }
   await dbReady
 }
@@ -94,6 +99,7 @@ function toRow(order: PaymentOrder) {
     pay_method: order.payMethod ?? null,
     approval_code: order.approvalCode ?? null,
     message: order.message ?? null,
+    report_id: order.reportId ?? null,
     created_at: order.createdAt,
     updated_at: order.updatedAt,
   }
@@ -114,6 +120,7 @@ function fromRow(row: Record<string, unknown>): PaymentOrder {
     payMethod: row.pay_method ? String(row.pay_method) : undefined,
     approvalCode: row.approval_code ? String(row.approval_code) : undefined,
     message: row.message ? String(row.message) : undefined,
+    reportId: row.report_id ? String(row.report_id) : undefined,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   }
@@ -202,17 +209,18 @@ export async function savePaymentOrder(order: PaymentOrder): Promise<PaymentOrde
     `
       INSERT INTO cheongi_payment_orders (
         order_id, owner_id, owner_email, buyer_email, buyer_tel, product_key, product_title,
-        amount, status, tid, pay_method, approval_code, message, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+        amount, status, tid, pay_method, approval_code, message, report_id, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
       ON CONFLICT (order_id) DO UPDATE SET
         status = EXCLUDED.status,
         tid = EXCLUDED.tid,
         pay_method = EXCLUDED.pay_method,
         approval_code = EXCLUDED.approval_code,
         message = EXCLUDED.message,
+        report_id = COALESCE(EXCLUDED.report_id, cheongi_payment_orders.report_id),
         updated_at = NOW()
     `,
-    [row.order_id, row.owner_id, row.owner_email, row.buyer_email, row.buyer_tel, row.product_key, row.product_title, row.amount, row.status, row.tid, row.pay_method, row.approval_code, row.message, row.created_at],
+    [row.order_id, row.owner_id, row.owner_email, row.buyer_email, row.buyer_tel, row.product_key, row.product_title, row.amount, row.status, row.tid, row.pay_method, row.approval_code, row.message, row.report_id, row.created_at],
   )
   return stored
 }

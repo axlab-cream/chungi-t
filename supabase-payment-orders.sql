@@ -12,9 +12,13 @@ create table if not exists public.cheongi_payment_orders (
   pay_method text,
   approval_code text,
   message text,
+  report_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Existing installs: add the report binding that unlocks a specific paid report.
+alter table public.cheongi_payment_orders add column if not exists report_id text;
 
 alter table public.cheongi_payment_orders enable row level security;
 

@@ -3368,6 +3368,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/payment-bridge.js"></script>
     <script>
       const phone = document.querySelector(".phone");
       const stage = document.querySelector("#stage");
@@ -4329,6 +4330,82 @@
         }
       }
 
+      /** Catalog products this funnel can sell, keyed by the plan the reader picked. */
+      const PLAN_PRODUCT_KEYS = { single: "cmdg" };
+      let paymentConfigCache = null;
+
+      async function loadPaymentConfig() {
+        if (paymentConfigCache) return paymentConfigCache;
+        paymentConfigCache = await fetch("/api/payment/config").then((res) => res.json()).catch(() => null);
+        return paymentConfigCache;
+      }
+
+      function catalogProduct(productKey) {
+        return paymentConfigCache?.catalog?.find((item) => item.key === productKey) || null;
+      }
+
+      function isCheckoutLive() {
+        return Boolean(paymentConfigCache?.checkoutEnabled);
+      }
+
+      /**
+       * Product this funnel sells right now: the single love reading, or the plan the
+       * reader picked. Package plans have no catalog entry yet and return an empty key,
+       * which keeps their existing pre-launch screen.
+       */
+      function checkoutProductKey() {
+        if (isLoveThisYearService()) return LOVE_THIS_YEAR_SERVICE_KEY;
+        return PLAN_PRODUCT_KEYS[state.plan] || "";
+      }
+
+      /** Keeps a paid reading open on this device before the next server round-trip. */
+      function rememberPaidReport(reportId) {
+        const trimmed = String(reportId || "").trim();
+        if (!trimmed) return;
+        try {
+          const ids = readPaidReportIds();
+          if (!ids.includes(trimmed)) localStorage.setItem(PAID_REPORTS_KEY, JSON.stringify([...ids, trimmed]));
+        } catch (err) {
+          console.warn("결제한 풀이 표시를 저장하지 못했습니다.", err);
+        }
+      }
+
+      /** Sends the reader to the real checkout, bound to the reading they just previewed. */
+      async function startCheckout() {
+        const config = await loadPaymentConfig();
+        const productKey = checkoutProductKey();
+        if (!config?.checkoutEnabled || !productKey) {
+          if (config?.setupMessage) showNudge(config.setupMessage);
+          go("paymentReady");
+          return;
+        }
+        const reportId = state.analysis?.report?.reportId || "";
+        const basePath = servicePathForCurrentPage();
+        const returnTo = reportId ? `${basePath}?reportId=${encodeURIComponent(reportId)}` : basePath;
+        const params = new URLSearchParams({ product: productKey, returnTo });
+        if (reportId) params.set("reportId", reportId);
+        window.UMSHPaymentBridge?.save(productKey, { reportId }, returnTo);
+        location.assign(`/payment?${params.toString()}`);
+      }
+
+      /** Marks the order as read and drops the payment params from the address bar. */
+      async function finishPaidReturn(params) {
+        if (params.get("paid") !== "1") return;
+        const orderId = params.get("orderId") || "";
+        if (orderId) {
+          await fetch(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, {
+            method: "POST",
+            headers: await authHeaders(),
+          }).catch(() => undefined);
+        }
+        window.UMSHPaymentBridge?.clear();
+        const clean = new URLSearchParams(location.search);
+        clean.delete("paid");
+        clean.delete("orderId");
+        const query = clean.toString();
+        history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
+      }
+
       function isCurrentReportPaid() {
         const report = state.analysis?.report || {};
         const reportId = report.reportId || "";
@@ -4646,11 +4723,11 @@
         go("result", false);
       }
 
-      async function loadReportById(reportId) {
+      async function loadReportById(reportId, options = {}) {
         const trimmed = String(reportId || "").trim();
         if (!trimmed) throw new Error("풀이 ID가 비어 있습니다.");
 
-        const cached = readReportHistory().find((item) => item.reportId === trimmed);
+        const cached = options.refresh ? null : readReportHistory().find((item) => item.reportId === trimmed);
         if (cached?.analysis && applyReadingPayload(cached)) {
           historyStack.length = 0;
           go("result", false);
@@ -4880,7 +4957,7 @@
         }
         if (action === "pay-demo") {
           if (!state.privacyAgree || !state.paymentAgree) return showNudge("필수 동의를 먼저 체크해주세요.");
-          go("paymentReady");
+          startCheckout();
         }
         if (action === "restart") {
           clearTodayEntryPending();
@@ -6810,11 +6887,14 @@
 
       function renderLoveThisYearPurchase() {
         const service = currentService();
+        const live = isCheckoutLive();
+        const product = catalogProduct(LOVE_THIS_YEAR_SERVICE_KEY);
+        const priceLabel = product ? `${Number(product.amount).toLocaleString("ko-KR")}원` : service.price;
         stage.innerHTML = `
           <section class="panel teaser-panel">
-            <div class="status">결제 안내 데모</div>
+            <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
             <h1>${escapeHtml(service.title)}</h1>
-            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. 실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다.</p>
+            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다."}</p>
 
             <div class="teaser-block">
               <span class="chapter">상품 요약</span>
@@ -6822,7 +6902,7 @@
                 <div class="timeline-row"><strong>상품</strong><span>${escapeHtml(service.title)}</span></div>
                 <div class="timeline-row"><strong>구성</strong><span>10개 연애운 전용 목차</span></div>
                 <div class="timeline-row"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
-                <div class="timeline-row"><strong>결제금액</strong><span>${escapeHtml(service.price)}</span></div>
+                <div class="timeline-row"><strong>결제금액</strong><span>${escapeHtml(priceLabel)}</span></div>
               </div>
             </div>
 
@@ -6864,13 +6944,19 @@
           { id: "solo", title: "솔로탈출 패키지", badge: "추천", discount: "44%", origin: "108,000원", price: "60,000원" },
           { id: "deep", title: "MZ 운세 패키지", badge: "인기", discount: "30%", origin: "96,000원", price: "67,000원" },
         ];
+        // Show the amount checkout will actually charge for every plan the catalog sells.
+        plans.forEach((plan) => {
+          const product = catalogProduct(PLAN_PRODUCT_KEYS[plan.id]);
+          if (product) plan.price = `${Number(product.amount).toLocaleString("ko-KR")}원`;
+        });
         const selected = plans.find((plan) => plan.id === state.plan) || plans[0];
+        const live = isCheckoutLive() && Boolean(PLAN_PRODUCT_KEYS[selected.id]);
 
         stage.innerHTML = `
           <section class="panel teaser-panel">
-            <div class="status">결제 안내 데모</div>
+            <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
             <h1>전체 풀이를 열어볼까요?</h1>
-            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. 실제 결제는 연결하지 않은 데모입니다.</p>
+            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제는 연결하지 않은 데모입니다."}</p>
 
             <div class="result-list">
               ${plans
@@ -6965,7 +7051,13 @@
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
       const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
       const settingsEntryScenes = new Set(["vault", "settings", "history"]);
+      loadPaymentConfig().then(() => {
+        if (state.scene === "purchase") renderPurchase();
+      });
       const initialReportId = new URLSearchParams(location.search).get("reportId");
+      const paidReturnParams = new URLSearchParams(location.search);
+      const isPaidReturn = paidReturnParams.get("paid") === "1";
+      if (isPaidReturn && initialReportId) rememberPaidReport(initialReportId);
       if (isStandaloneSignupFlow() && !isAuthReturn) {
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         sessionStorage.removeItem(AUTH_FORM_KEY);
@@ -6975,9 +7067,11 @@
       }
       if (initialReportId && (!resolvedInitialScene || resolvedInitialScene === "result")) {
         go("loading", false);
-        loadReportById(initialReportId).catch((err) => {
-          renderReportLookupError(err.message);
-        });
+        loadReportById(initialReportId, { refresh: isPaidReturn })
+          .catch((err) => {
+            renderReportLookupError(err.message);
+          })
+          .then(() => finishPaidReturn(paidReturnParams));
       } else if (urlScenes.has(resolvedInitialScene)) {
         if (freshInputScenes.has(resolvedInitialScene) && !isAuthReturn && sessionStorage.getItem(AUTH_PENDING_KEY) !== "1") {
           resetReadingState();

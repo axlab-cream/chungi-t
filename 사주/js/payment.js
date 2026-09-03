@@ -3,6 +3,8 @@
 
   const query = new URLSearchParams(global.location.search);
   const productKey = query.get('product') || '';
+  const reportId = query.get('reportId') || '';
+  const returnTo = query.get('returnTo') || '';
   const form = document.querySelector('#payment-form');
   const status = document.querySelector('[data-payment-status]');
   const button = document.querySelector('[data-pay-button]');
@@ -91,7 +93,7 @@
       const response = await fetch('/api/payment/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({ productKey: product.key, buyerEmail: form.buyerEmail.value.trim(), buyerTel: form.buyerTel.value.trim() }),
+        body: JSON.stringify({ productKey: product.key, reportId, buyerEmail: form.buyerEmail.value.trim(), buyerTel: form.buyerTel.value.trim() }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw Object.assign(new Error(payload.error || '결제 주문을 만들지 못했습니다.'), { code: payload.code });
@@ -111,6 +113,9 @@
   }
 
   async function init() {
+    // Keep the caller's own return path across the PG round-trip, so a reader lands back
+    // on the exact step they left instead of the product's generic entry page.
+    if (returnTo) global.UMSHPaymentBridge?.save(productKey, { reportId }, returnTo);
     paymentConfig = await fetch('/api/payment/config').then((response) => response.json());
     product = paymentConfig.catalog?.find((item) => item.key === productKey) || null;
     if (!product) {

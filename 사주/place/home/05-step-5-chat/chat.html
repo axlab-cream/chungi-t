@@ -984,6 +984,12 @@
       init();
     </script>
     <div data-umsh-service-bottom></div>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-checkout.js"></script>
+    <script>
+      // Settle the ?paid=1 marker the payment result page sends readers back with.
+      window.UMSHCheckout?.finish();
+    </script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
   </body>
 </html>

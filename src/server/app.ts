@@ -23,7 +23,7 @@ import {
 } from '../report/report-store.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
-import { isAdminOwner } from '../auth/admin.js'
+import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import {
   buildUserBirthProfile,
   getUserBirthProfile,
@@ -37,6 +37,7 @@ import { isPaymentTestMode } from '../payment/test-mode.js'
 import {
   getPaymentOrder,
   getPaymentStorageMode,
+  type PaymentStorageMode,
   listPaymentOrders,
   savePaymentOrder,
   updatePaymentOrder,
@@ -55,6 +56,36 @@ import {
   createCoupleMatchReportId,
   parseCoupleMatchRequest,
 } from '../match/couple-service.js'
+import {
+  buildMarryMatchContext,
+  buildMarryMatchReport,
+  createMarryMatchReportId,
+  parseMarryMatchRequest,
+} from '../match/marry-service.js'
+import {
+  buildWorkJobContext,
+  buildWorkJobReport,
+  createWorkJobReportId,
+  parseWorkJobRequest,
+} from '../work/job-service.js'
+import {
+  buildLoveMindContext,
+  buildLoveMindReport,
+  createLoveMindReportId,
+  parseLoveMindRequest,
+} from '../love/mind-service.js'
+import {
+  buildLoveAgainContext,
+  buildLoveAgainReport,
+  createLoveAgainReportId,
+  parseLoveAgainRequest,
+} from '../love/again-service.js'
+import {
+  buildLoveSpouseContext,
+  buildLoveSpouseReport,
+  createLoveSpouseReportId,
+  parseLoveSpouseRequest,
+} from '../love/spouse-service.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
 const __filename = fileURLToPath(import.meta.url)
@@ -72,6 +103,11 @@ const PAYMENT_PAGE = join(SAJU_ROOT, 'payment', 'index.html')
 const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
 const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
 const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
+const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
+const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
+const MY_PAGE = join(SAJU_ROOT, 'my.html')
+const PROFILE_PAGE = join(SAJU_ROOT, 'profile.html')
+const REFUNDS_PAGE = join(SAJU_ROOT, 'refunds.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -87,6 +123,7 @@ const SUPABASE_NAVER_PROVIDER = envValue(process.env.SUPABASE_NAVER_PROVIDER, 'c
 const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
+const PASS_ANGLE_SERVICE_KEY = 'pass_angle'
 
 const app = express()
 app.use(cors())
@@ -148,8 +185,41 @@ app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res
 app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
   res.sendFile(PAYMENT_TEST_PAGE)
 })
+app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
+  res.sendFile(PAYMENT_ORDERS_PAGE)
+})
+app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
+  res.sendFile(LEAVE_PAGE)
+})
+app.get(['/my', '/my/', '/my.html'], (_req, res) => {
+  res.sendFile(MY_PAGE)
+})
+app.get(['/profile', '/profile/', '/profile.html'], (_req, res) => {
+  res.sendFile(PROFILE_PAGE)
+})
+app.get(['/refunds', '/refunds/', '/refunds.html'], (_req, res) => {
+  res.sendFile(REFUNDS_PAGE)
+})
 app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
+})
+app.get(['/love/mind', '/love/mind/', '/love/mind/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'mind', 'index.html'))
+})
+app.get(['/love/again', '/love/again/', '/love/again/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'again', 'index.html'))
+})
+app.get(['/love/spouse', '/love/spouse/', '/love/spouse/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'spouse', 'index.html'))
+})
+app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'today', 'free', 'index.html'))
+})
+app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
+})
+app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'match', 'marry', 'index.html'))
 })
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
@@ -187,6 +257,24 @@ app.get(['/work/move/chat', '/work/move/chat.html'], (_req, res) => {
 app.get(['/work/move/detail', '/work/move/detail.html'], (_req, res) => {
   res.redirect(302, '/work/move/06-step-6_1-report-detail/index.html')
 })
+app.get(['/me/pass-angle', '/me/pass-angle/', '/me/pass-angle/index.html'], (_req, res) => {
+  res.redirect(302, '/me/pass-angle/01-step-1-story/index.html')
+})
+app.get(['/me/pass-angle/input', '/me/pass-angle/input.html'], (_req, res) => {
+  res.redirect(302, '/me/pass-angle/02-step-2-saju-input/index.html')
+})
+app.get(['/me/pass-angle/exam', '/me/pass-angle/exam.html'], (_req, res) => {
+  res.redirect(302, '/me/pass-angle/03-step-3-service-input/index.html')
+})
+app.get(['/me/pass-angle/report', '/me/pass-angle/report.html'], (_req, res) => {
+  res.redirect(302, '/me/pass-angle/04-step-4-report/index.html')
+})
+app.get(['/me/pass-angle/chat', '/me/pass-angle/chat.html'], (_req, res) => {
+  res.redirect(302, '/me/pass-angle/05-step-5-chat/chat.html')
+})
+app.get(['/me/pass-angle/detail', '/me/pass-angle/detail.html'], (_req, res) => {
+  res.redirect(302, '/me/pass-angle/06-step-6_1-report-detail/index.html')
+})
 app.get(/^\/cmdg$/, redirectToCmdg)
 app.get(['/cmdg/', '/cmdg/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_UI, 'index.html'))
@@ -207,6 +295,9 @@ app.use('/js', express.static(join(SAJU_ROOT, 'js')))
 app.use('/cmdg/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/this-year/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/mind/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/again/assets', express.static(join(SAJU_UI, 'assets')))
+app.use('/love/spouse/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/place/home/assets', express.static(join(SAJU_ROOT, 'place', 'home', 'IMAGE')))
 app.use('/cmdg/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/cmdg/js', express.static(join(SAJU_ROOT, 'js')))
@@ -232,6 +323,7 @@ function normalizeServiceKey(value: unknown): string | undefined {
   if ([LOVE_THIS_YEAR_SERVICE_KEY, 'love-this-year', 'love', 'year_love'].includes(key)) return LOVE_THIS_YEAR_SERVICE_KEY
   if ([HOME_FIT_SERVICE_KEY, 'home-fit', 'home', 'place-home', 'place/home'].includes(key)) return HOME_FIT_SERVICE_KEY
   if ([WORK_MOVE_SERVICE_KEY, 'work-move', 'move', 'job-change', 'career-move', 'work/move'].includes(key)) return WORK_MOVE_SERVICE_KEY
+  if ([PASS_ANGLE_SERVICE_KEY, 'pass-angle', 'pass', 'exam', 'me/pass-angle'].includes(key)) return PASS_ANGLE_SERVICE_KEY
   return undefined
 }
 
@@ -310,6 +402,18 @@ function parseWorkMoveContext(source: unknown): SajuReportContext['workMove'] | 
     discomfortPoint: compactStringField(workMove, 'discomfortPoint', 'discomfort_point', 'concern'),
     priority: compactStringField(workMove, 'priority'),
     realityChecks: parseCompactStringList(workMove.realityChecks ?? workMove.reality_checks),
+  }
+  return Object.values(parsed).some(Boolean) ? parsed : undefined
+}
+
+function parseExamContext(source: unknown): SajuReportContext['exam'] | undefined {
+  const exam = asObject(source)
+  const parsed = {
+    examName: compactStringField(exam, 'examName', 'exam_name', 'exam'),
+    examDate: compactStringField(exam, 'examDate', 'exam_date', 'date'),
+    examType: compactStringField(exam, 'examType', 'exam_type', 'type'),
+    priority: compactStringField(exam, 'priority', 'need'),
+    worry: compactStringField(exam, 'worry', 'concern'),
   }
   return Object.values(parsed).some(Boolean) ? parsed : undefined
 }
@@ -408,6 +512,9 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
   const workMove = serviceKey === WORK_MOVE_SERVICE_KEY
     ? parseWorkMoveContext(context.workMove ?? context.work_move ?? body.workMove ?? body.work_move ?? context.input ?? body.input)
     : undefined
+  const exam = serviceKey === PASS_ANGLE_SERVICE_KEY
+    ? parseExamContext(context.exam ?? body.exam ?? context.input ?? body.input)
+    : undefined
 
   return {
     serviceKey,
@@ -420,6 +527,7 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
     ...(partner ? { partner } : {}),
     ...(home ? { home } : {}),
     ...(workMove ? { workMove } : {}),
+    ...(exam ? { exam } : {}),
     ...(birthTimeKnown === false ? { birthTimeKnown } : {}),
   }
 }
@@ -573,7 +681,12 @@ function userProfilePayload(profile: UserBirthProfile | null) {
   }
 }
 
-async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}, owner?: ReportOwner) {
+async function toUiAnalysis(
+  birth: BirthInput,
+  context: SajuReportContext = {},
+  owner?: ReportOwner,
+  access?: PaidAccess,
+) {
   const analysis = analyzeSaju(birth)
   const enrichedContext = enrichReportContext(context)
   const reportId = createReportId(birth, enrichedContext, undefined, owner?.id)
@@ -586,11 +699,15 @@ async function toUiAnalysis(birth: BirthInput, context: SajuReportContext = {}, 
     owner,
   })
 
-  if (record.status !== 'complete') {
+  // The free outline and template teaser stay identical for everyone. Only an entitled
+  // reader triggers the LLM pass that writes the paid chapters.
+  if (record.status !== 'complete' && access?.entitled !== false) {
     startReportPreGeneration({ reportId, analysis, birth, context: enrichedContext, owner })
   }
 
-  return buildUiAnalysisPayload(analysis, birth, toClientReport(record))
+  const report = toClientReport(record)
+  if (access) applyReportEntitlement(report, access, owner)
+  return buildUiAnalysisPayload(analysis, birth, report)
 }
 
 function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
@@ -679,6 +796,15 @@ function historyEntryFromRecord(record: ReportRecord) {
   }
 }
 
+/** Names the pieces still blocking checkout so operators can act without reading logs. */
+function paymentSetupMessage(inicisReady: boolean, storage: PaymentStorageMode): string {
+  const missing: string[] = []
+  if (!inicisReady) missing.push('이니시스 MID·SignKey (INICIS_MID, INICIS_SIGNKEY)')
+  if (storage === 'memory') missing.push('결제 주문 저장소 (SUPABASE_SERVICE_ROLE_KEY 또는 DATABASE_URL)')
+  if (missing.length === 0) return ''
+  return `결제 모듈 연결 전입니다. 남은 설정: ${missing.join(' / ')}.`
+}
+
 function paymentConfigPayload() {
   const inicis = publicInicisConfig()
   const storage = getPaymentStorageMode()
@@ -691,10 +817,9 @@ function paymentConfigPayload() {
     checkoutEnabled: enabled || testMode,
     testMode,
     storage,
+    storageReady: storage !== 'memory',
     catalog: listPaymentProducts().map(publicPaymentProduct),
-    setupMessage: enabled || testMode
-      ? ''
-      : '결제 모듈 연결 전입니다. 운영자는 이니시스 MID, SignKey, 결제 주문 저장소를 설정해 주세요.',
+    setupMessage: enabled || testMode ? '' : paymentSetupMessage(inicis.enabled, storage),
   }
 }
 
@@ -712,11 +837,121 @@ function clientPaymentOrder(order: PaymentOrder) {
   }
 }
 
-function paymentOrderRedirect(orderId: string, state: 'paid' | 'failed' | 'cancelled', message?: string, productKey?: string): string {
+function paymentOrderRedirect(
+  orderId: string,
+  state: 'paid' | 'failed' | 'cancelled',
+  message?: string,
+  productKey?: string,
+  reportId?: string,
+): string {
   const params = new URLSearchParams({ orderId, state })
   if (message) params.set('message', message.slice(0, 180))
   if (productKey) params.set('product', productKey)
+  if (reportId) params.set('reportId', reportId)
   return `/payment/result?${params.toString()}`
+}
+
+/** Report serviceKey -> payment catalog product that unlocks it. */
+const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
+  [LOVE_THIS_YEAR_SERVICE_KEY]: 'love_this_year',
+  [HOME_FIT_SERVICE_KEY]: 'home_pungsu',
+  home_pungsu: 'home_pungsu',
+  [WORK_MOVE_SERVICE_KEY]: 'work_move',
+  [PASS_ANGLE_SERVICE_KEY]: 'pass_angle',
+  money_save: 'money_save',
+  match_couple: 'match_couple',
+  work_job: 'work_job',
+  marry_match: 'marry_match',
+  love_mind: 'love_mind',
+  love_again: 'love_again',
+  love_spouse: 'love_spouse',
+}
+/** The full 천명사주 reading, used whenever a report carries no specialised serviceKey. */
+const DEFAULT_PRODUCT_KEY = 'cmdg'
+
+function productKeyForContext(context: SajuReportContext): string {
+  const serviceKey = trimmedString(context.serviceKey)
+  if (!serviceKey) return DEFAULT_PRODUCT_KEY
+  return PRODUCT_KEY_BY_SERVICE_KEY[serviceKey] ?? DEFAULT_PRODUCT_KEY
+}
+
+/** Checkout link carrying the report binding, so the order unlocks exactly this reading. */
+function paymentCheckoutUrl(productKey: string, reportId = ''): string {
+  const product = getPaymentProduct(productKey)
+  const params = new URLSearchParams({ product: productKey, returnTo: product?.returnPath || '/' })
+  if (reportId) params.set('reportId', reportId)
+  return `/payment?${params.toString()}`
+}
+
+/**
+ * Until the PG is actually wired every reading is free: the gate stays open and reports
+ * come back unlocked, so readers go straight from the preview into the full text. The
+ * gate engages the moment INICIS keys (or payment test mode) land.
+ */
+function isCheckoutLive(): boolean {
+  const config = paymentConfigPayload()
+  return config.configured || config.testMode
+}
+
+/**
+ * A settled order unlocks a report when it belongs to the caller, was bought for the same
+ * product, and is either bound to that report or was created before any report id existed.
+ */
+function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: string, reportId: string): boolean {
+  if (order.ownerId !== owner.id || order.productKey !== productKey) return false
+  if (order.status !== 'paid' && order.status !== 'viewed') return false
+  if (!order.reportId || !reportId) return true
+  return order.reportId === reportId
+}
+
+/** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
+async function findUnlockingOrder(
+  owner: ReportOwner,
+  productKey: string,
+  reportId: string,
+): Promise<PaymentOrder | null> {
+  const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
+  const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
+  return unlocking.find((order) => order.reportId === reportId) ?? unlocking[0] ?? null
+}
+
+interface PaidAccess {
+  entitled: boolean
+  reason: 'admin' | 'open' | 'order' | 'none'
+  order?: PaymentOrder
+}
+
+async function resolvePaidAccess(
+  req: Request,
+  owner: ReportOwner | undefined,
+  productKey: string,
+  reportId = '',
+): Promise<PaidAccess> {
+  if (isAdminOwner(owner)) return { entitled: true, reason: 'admin' }
+  if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
+  if (!owner) return { entitled: false, reason: 'none' }
+
+  const orderId = trimmedString(req.body?.orderId) || trimmedString(req.query?.orderId)
+  if (orderId) {
+    const order = await getPaymentOrder(orderId).catch(() => null)
+    if (order && orderUnlocks(order, owner, productKey, reportId)) {
+      return { entitled: true, reason: 'order', order }
+    }
+  }
+  const order = await findUnlockingOrder(owner, productKey, reportId)
+  return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
+}
+
+/** Stamps the unlock flags the report UI reads before revealing paid chapters. */
+function applyReportEntitlement(report: SajuReport, access: PaidAccess, owner?: ReportOwner): SajuReport {
+  if (!access.entitled) return report
+  if (access.reason === 'admin') return applyAdminReportUnlock(report, owner)
+  report.isPaid = true
+  report.paid = true
+  report.entitlement = 'paid'
+  report.paymentStatus = 'paid'
+  report.unlockReason = access.reason
+  return report
 }
 
 async function ensurePaidServiceAccess(
@@ -724,35 +959,25 @@ async function ensurePaidServiceAccess(
   res: Response,
   owner: ReportOwner,
   productKey: string,
+  reportId = '',
 ): Promise<boolean> {
   if (isAdminOwner(owner)) return true
+  if (!isCheckoutLive()) return true
   const config = paymentConfigPayload()
-  if (!config.configured && !config.testMode) return true
   if (!config.checkoutEnabled) {
     res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
     return false
   }
-  const orderId = trimmedString(req.body?.orderId)
-  if (!orderId) {
-    const product = getPaymentProduct(productKey)
-    res.status(402).json({
-      code: 'PAYMENT_REQUIRED',
-      error: '결제 후 풀이를 열 수 있습니다.',
-      productKey,
-      paymentUrl: `/payment?product=${encodeURIComponent(productKey)}&returnTo=${encodeURIComponent(product?.returnPath || '/')}`,
-    })
-    return false
-  }
-  const order = await getPaymentOrder(orderId)
-  if (!order || order.ownerId !== owner.id || order.productKey !== productKey) {
-    res.status(403).json({ code: 'PAYMENT_INVALID', error: '이 상품의 결제 주문을 확인하지 못했습니다.' })
-    return false
-  }
-  if (order.status !== 'paid' && order.status !== 'viewed') {
-    res.status(402).json({ code: 'PAYMENT_REQUIRED', error: '결제가 완료된 주문만 풀이를 열 수 있습니다.', productKey })
-    return false
-  }
-  return true
+  const access = await resolvePaidAccess(req, owner, productKey, reportId)
+  if (access.entitled) return true
+  res.status(402).json({
+    code: 'PAYMENT_REQUIRED',
+    error: '결제 후 풀이를 열 수 있습니다.',
+    productKey,
+    reportId: reportId || undefined,
+    paymentUrl: paymentCheckoutUrl(productKey, reportId),
+  })
+  return false
 }
 
 app.get('/api/health', (_req, res) => {
@@ -810,6 +1035,7 @@ app.post('/api/payment/orders', async (req, res) => {
       productTitle: product.title,
       amount: product.amount,
       status: 'ready',
+      reportId: trimmedString(req.body?.reportId) || undefined,
       createdAt: timestamp,
       updatedAt: timestamp,
     }
@@ -887,7 +1113,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       return
     }
     if (order.status === 'paid' || order.status === 'viewed') {
-      res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey))
+      res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
       return
     }
 
@@ -895,7 +1121,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     const resultMessage = trimmedString(body.resultMsg || body.P_RMESG1) || '결제가 취소되었거나 승인되지 않았습니다.'
     if (resultCode !== '0000') {
       await updatePaymentOrder(order.orderId, { status: 'failed', message: resultMessage })
-      res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey))
+      res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey, order.reportId))
       return
     }
 
@@ -917,12 +1143,12 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       message: approval.resultMessage,
     })
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
-    res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey))
+    res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
     const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
     await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
     const failedOrder = await getPaymentOrder(orderId).catch(() => null)
-    res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey))
+    res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey, failedOrder?.reportId))
   }
 })
 
@@ -1083,7 +1309,6 @@ app.post('/api/money/save/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '소비성향을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -1094,6 +1319,7 @@ app.post('/api/money/save/analyze', async (req, res) => {
     const context = buildMoneySaveContext(profile.name, input)
     const analysis = analyzeSaju(profile.birth)
     const reportId = createMoneySaveReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId)) return
     const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -1114,7 +1340,6 @@ app.post('/api/match/couple/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '커플궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -1126,6 +1351,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     const context = buildCoupleMatchContext(profile.name, input, partnerAnalysis)
     const analysis = analyzeSaju(profile.birth)
     const reportId = createCoupleMatchReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId)) return
     const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -1139,6 +1365,164 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '커플궁합 생성 실패' })
+  }
+})
+
+app.post('/api/work/job/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '직업운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseWorkJobRequest(req.body)
+    const context = buildWorkJobContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createWorkJobReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId)) return
+    const templateReport = buildWorkJobReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '직업운 생성 실패' })
+  }
+})
+
+app.post('/api/match/marry/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseMarryMatchRequest(req.body)
+    const partnerAnalysis = analyzeSaju(input.partnerBirth)
+    const context = buildMarryMatchContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createMarryMatchReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId)) return
+    const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결혼궁합 생성 실패' })
+  }
+})
+
+app.post('/api/love/mind/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '상대방 마음을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveMindRequest(req.body)
+    const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
+    const context = buildLoveMindContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveMindReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId)) return
+    const templateReport = buildLoveMindReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '상대방 마음 생성 실패' })
+  }
+})
+
+app.post('/api/love/again/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '재회운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveAgainRequest(req.body)
+    const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
+    const context = buildLoveAgainContext(profile.name, input, partnerAnalysis)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveAgainReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId)) return
+    const templateReport = buildLoveAgainReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '재회운 생성 실패' })
+  }
+})
+
+app.post('/api/love/spouse/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '배우자운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveSpouseRequest(req.body)
+    const context = buildLoveSpouseContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveSpouseReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId)) return
+    const templateReport = buildLoveSpouseReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '배우자운 생성 실패' })
   }
 })
 
@@ -1173,7 +1557,14 @@ app.post('/api/saju/analyze', async (req, res) => {
         owner,
       )
     }
-    res.json(await toUiAnalysis(birth, context, owner))
+    const enriched = enrichReportContext(context)
+    const access = await resolvePaidAccess(
+      req,
+      owner,
+      productKeyForContext(enriched),
+      createReportId(birth, enriched, undefined, owner?.id),
+    )
+    res.json(await toUiAnalysis(birth, context, owner, access))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
   }
@@ -1189,6 +1580,8 @@ app.get('/api/report/:reportId', async (req, res) => {
       return
     }
     const analysis = toUiAnalysisFromRecord(record)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,
       birth: record.birth,
@@ -1261,6 +1654,7 @@ app.post('/api/report/section', async (req, res) => {
       res.status(401).json({ error: '회원가입 후 리포트를 이어서 볼 수 있습니다.' })
       return
     }
+    if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(context), reportId)) return
 
     const analysis = analyzeSaju(birth)
     const templateReport = buildTemplateSajuReport(analysis, birth, context)
@@ -1315,6 +1709,7 @@ app.post('/api/report/prewarm', async (req, res) => {
       res.status(401).json({ error: '회원가입 후 리포트를 생성할 수 있습니다.' })
       return
     }
+    if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(context), reportId)) return
 
     const analysis = analyzeSaju(birth)
     const templateReport = buildTemplateSajuReport(analysis, birth, context)
