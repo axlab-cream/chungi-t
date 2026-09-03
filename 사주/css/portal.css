@@ -85,6 +85,11 @@ a:focus-visible {
   transition: opacity 280ms ease;
 }
 
+html.splash-pending .stage {
+  visibility: hidden;
+}
+
+html.splash-disabled .splash-screen,
 .splash-screen[hidden] {
   display: none;
 }

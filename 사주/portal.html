@@ -8,20 +8,35 @@
       name="description"
       content="운명을 고르는 상점 UMSH. 천명사주 종합사주와 연애, 궁합, 재물, 직업, 흐름, 풍수 서비스를 고르는 사주 포탈."
     />
+    <script>
+      (() => {
+        const splashSessionKey = 'umsh_splash_seen_v1';
+        let shouldShowSplash = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        try {
+          shouldShowSplash = shouldShowSplash && sessionStorage.getItem(splashSessionKey) !== '1';
+        } catch (_error) {
+          // Keep the splash available when storage is blocked.
+        }
+
+        document.documentElement.classList.add(shouldShowSplash ? 'splash-pending' : 'splash-disabled');
+      })();
+    </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050504'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23e8d49a'%3EU%3C/text%3E%3C/svg%3E" />
+    <link rel="preload" as="video" href="/assets/umsh-splash.mp4?v=20260903" type="video/mp4" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="preload" as="video" href="/assets/umsh-splash.mp4?v=20260903" type="video/mp4" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260903-coming-soon" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260903-splash-first-paint" />
   </head>
   <body>
-    <div class="splash-screen" id="splashScreen" aria-hidden="true" hidden>
+    <div class="splash-screen" id="splashScreen" aria-hidden="false">
       <video
         class="splash-video"
         id="splashVideo"
         src="/assets/umsh-splash.mp4?v=20260903"
+        autoplay
         muted
         playsinline
         preload="auto"
@@ -280,6 +295,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/portal.js?v=20260901-auth-gated-nav"></script>
+    <script src="/js/portal.js?v=20260903-splash-first-paint"></script>
   </body>
 </html>

@@ -59,26 +59,40 @@
     }
   }
 
+  function disableSplash() {
+    if (splashScreen) {
+      splashScreen.hidden = true;
+      splashScreen.setAttribute('aria-hidden', 'true');
+    }
+    document.documentElement.classList.remove('splash-pending');
+    document.documentElement.classList.add('splash-disabled');
+    phone.inert = false;
+  }
+
   function finishSplash() {
     if (!splashScreen || splashScreen.hidden || splashScreen.classList.contains('is-closing')) return;
     window.clearTimeout(splashFallbackTimer);
     splashVideo?.pause();
+    document.documentElement.classList.remove('splash-pending');
     splashScreen.classList.add('is-closing');
     window.setTimeout(() => {
       splashScreen.hidden = true;
       splashScreen.classList.remove('is-closing');
       splashScreen.setAttribute('aria-hidden', 'true');
+      document.documentElement.classList.add('splash-disabled');
       phone.inert = false;
     }, 280);
   }
 
   function startSplash() {
-    if (!splashScreen || !splashVideo || hasSeenSplash() || prefersReducedMotion()) return;
+    const splashPending = document.documentElement.classList.contains('splash-pending');
+    if (!splashScreen || !splashVideo || !splashPending || hasSeenSplash() || prefersReducedMotion()) {
+      disableSplash();
+      return;
+    }
     markSplashSeen();
     phone.inert = true;
-    splashScreen.hidden = false;
     splashScreen.setAttribute('aria-hidden', 'false');
-    splashVideo.currentTime = 0;
     splashVideo.addEventListener('ended', finishSplash, { once: true });
     splashVideo.addEventListener('error', finishSplash, { once: true });
     splashFallbackTimer = window.setTimeout(finishSplash, 6500);
