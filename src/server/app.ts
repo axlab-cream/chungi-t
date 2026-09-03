@@ -87,6 +87,12 @@ import {
   parseLoveSignalRequest,
 } from '../love/signal-service.js'
 import {
+  buildLoveThisYearContext,
+  buildLoveThisYearReport,
+  createLoveThisYearReportId,
+  parseLoveThisYearRequest,
+} from '../love/thisyear-service.js'
+import {
   buildLoveAgainContext,
   buildLoveAgainReport,
   createLoveAgainReportId,
@@ -212,8 +218,30 @@ app.get(['/profile', '/profile/', '/profile.html'], (_req, res) => {
 app.get(['/refunds', '/refunds/', '/refunds.html'], (_req, res) => {
   res.sendFile(REFUNDS_PAGE)
 })
-app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html'], (_req, res) => {
-  res.sendFile(join(SAJU_UI, 'index.html'))
+// 올해 연애운 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html', '/love/this-year/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/love/this-year/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/love/this-year/input', '/love/this-year/input.html'], (_req, res) => {
+  res.redirect(302, '/love/this-year/02-step-2-saju-input/index.html')
+})
+app.get(['/love/this-year/report', '/love/this-year/report.html'], (_req, res) => {
+  res.redirect(302, '/love/this-year/04-step-4-report/index.html')
+})
+app.get(['/love/this-year/chat', '/love/this-year/chat.html'], (_req, res) => {
+  res.redirect(302, '/love/this-year/05-step-5-chat/chat.html')
+})
+app.get(['/love/this-year/detail', '/love/this-year/detail.html'], (_req, res) => {
+  res.redirect(302, '/love/this-year/06-step-6_1-report-detail/index.html')
 })
 app.get(['/love/mind', '/love/mind/', '/love/mind/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'mind', 'index.html'))
@@ -427,7 +455,6 @@ app.use('/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/js', express.static(join(SAJU_ROOT, 'js')))
 app.use('/cmdg/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/love/this-year/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/mind/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/again/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/love/spouse/assets', express.static(join(SAJU_UI, 'assets')))
@@ -1658,6 +1685,37 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '관계 신호 생성 실패' })
+  }
+})
+
+app.post('/api/love/this-year/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '올해 연애운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLoveThisYearRequest(req.body)
+    const context = buildLoveThisYearContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLoveThisYearReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId)) return
+    const templateReport = buildLoveThisYearReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '올해 연애운 생성 실패' })
   }
 })
 

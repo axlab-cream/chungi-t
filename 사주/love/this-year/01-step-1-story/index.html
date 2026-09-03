@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>나, 올해 연애 가능? | 운명상회</title>
+    <meta
+      name="description"
+      content="도화, 세운, 배우자성으로 올해 연애 가능성과 내 관계 패턴을 확인하는 운명상회 연애운 서비스"
+    />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="나, 올해 연애 가능?" />
+    <meta
+      property="og:description"
+      content="올해 연애 모드, 새 인연, 썸 타이밍, 관계 운영 포인트를 내 사주 흐름으로 확인합니다."
+    />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://love.umsh.kr/thisyear" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="../assets/thisyear/01-scene-01-hook.webp" />
+    <meta name="theme-color" content="#0d1020" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080915;
+        --bg-soft: #111524;
+        --ink: #fff8f9;
+        --muted: rgba(255, 248, 249, 0.72);
+        --dim: rgba(255, 248, 249, 0.54);
+        --line: rgba(255, 220, 232, 0.22);
+        --pink: #ff96bb;
+        --peach: #ffc6b3;
+        --blue: #9bdcff;
+        --gold: #f5d38c;
+        --deep: rgba(8, 9, 21, 0.88);
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+        font-family:
+          Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at 48% 0%, rgba(255, 150, 187, 0.18), transparent 34rem),
+          radial-gradient(circle at 10% 18%, rgba(155, 220, 255, 0.18), transparent 24rem),
+          linear-gradient(180deg, #090a16 0%, #151019 50%, #080915 100%);
+        color: var(--ink);
+      }
+
+      body {
+        display: grid;
+        place-items: start center;
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, 440px);
+        min-height: 100svh;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(7, 8, 20, 0.72), rgba(7, 8, 20, 0.98)),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(9, 10, 22, 0.84);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 3px;
+      }
+
+      .brand strong {
+        font-size: 16px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .price-chip {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      .price-chip {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border: 1px solid rgba(245, 211, 140, 0.3);
+        border-radius: 999px;
+        background: rgba(245, 211, 140, 0.09);
+        color: #ffe6a8;
+      }
+
+      .story {
+        display: grid;
+        gap: 0;
+      }
+
+      .scene {
+        position: relative;
+        min-height: 100svh;
+        display: grid;
+        align-content: end;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(255, 220, 232, 0.12);
+        isolation: isolate;
+      }
+
+      .scene.compact {
+        min-height: 82svh;
+      }
+
+      .scene-image {
+        position: absolute;
+        inset: 0;
+        z-index: -3;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        background: #12131f;
+        transform: scale(1.01);
+      }
+
+      .scene::before,
+      .scene::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .scene::before {
+        z-index: -2;
+        background:
+          linear-gradient(180deg, rgba(8, 9, 21, 0.05) 0%, rgba(8, 9, 21, 0.16) 38%, rgba(8, 9, 21, 0.78) 74%, rgba(8, 9, 21, 0.98) 100%),
+          linear-gradient(90deg, rgba(8, 9, 21, 0.24), transparent 26% 74%, rgba(8, 9, 21, 0.24));
+      }
+
+      .scene::after {
+        z-index: -1;
+        background: radial-gradient(circle at 50% 84%, rgba(255, 150, 187, 0.18), transparent 16rem);
+      }
+
+      .scene.is-broken {
+        background:
+          radial-gradient(circle at 38% 24%, rgba(155, 220, 255, 0.2), transparent 16rem),
+          radial-gradient(circle at 70% 70%, rgba(255, 150, 187, 0.2), transparent 16rem),
+          #0f1120;
+      }
+
+      .content {
+        display: grid;
+        gap: 16px;
+        width: 100%;
+        padding: 92px 20px max(28px, env(safe-area-inset-bottom));
+      }
+
+      .content.center {
+        text-align: center;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 198, 179, 0.3);
+        border-radius: 999px;
+        background: rgba(8, 9, 21, 0.42);
+        color: #ffe0db;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        backdrop-filter: blur(12px);
+      }
+
+      .center .eyebrow {
+        margin-inline: auto;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        max-width: 11.2em;
+        font-size: clamp(32px, 9.3vw, 44px);
+        line-height: 1.08;
+        letter-spacing: 0;
+        text-wrap: balance;
+      }
+
+      h2 {
+        font-size: clamp(28px, 7.6vw, 36px);
+      }
+
+      p {
+        max-width: 31em;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.72;
+        word-break: keep-all;
+      }
+
+      .accent {
+        color: var(--pink);
+      }
+
+      .soft {
+        color: var(--blue);
+      }
+
+      .panel {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 220, 232, 0.18);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 90% 0%, rgba(255, 150, 187, 0.18), transparent 10rem),
+          rgba(9, 10, 22, 0.62);
+        backdrop-filter: blur(18px);
+      }
+
+      .signal-row,
+      .preview-grid,
+      .basis-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .signal,
+      .basis,
+      .preview-card {
+        min-height: 86px;
+        padding: 12px;
+        border: 1px solid rgba(255, 220, 232, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 248, 249, 0.07);
+      }
+
+      .signal strong,
+      .basis strong,
+      .preview-card strong {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+        line-height: 1.28;
+      }
+
+      .signal span,
+      .basis span,
+      .preview-card span {
+        display: block;
+        margin-top: 6px;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.38;
+        word-break: keep-all;
+      }
+
+      .basis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-stack {
+        display: grid;
+        gap: 10px;
+        margin-top: 2px;
+      }
+
+      .primary-cta,
+      .ghost-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        width: 100%;
+        padding: 0 18px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        font-size: 15px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .primary-cta {
+        background: linear-gradient(135deg, #ff8ab5, #ffd2b5 62%, #9bdcff);
+        color: #17101b;
+        box-shadow: 0 18px 34px rgba(255, 150, 187, 0.22);
+      }
+
+      .ghost-cta {
+        border-color: rgba(255, 220, 232, 0.2);
+        background: rgba(9, 10, 22, 0.4);
+        color: rgba(255, 248, 249, 0.82);
+      }
+
+      .sticky-cta {
+        position: sticky;
+        bottom: 0;
+        z-index: 30;
+        display: grid;
+        gap: 8px;
+        padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(255, 220, 232, 0.18);
+        background: linear-gradient(180deg, rgba(8, 9, 21, 0), rgba(8, 9, 21, 0.92) 24%, rgba(8, 9, 21, 0.98));
+        backdrop-filter: blur(18px);
+      }
+
+      .sticky-cta small {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      .footer-note {
+        padding: 22px 20px 96px;
+        color: rgba(255, 248, 249, 0.48);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.55;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 28px 0;
+        }
+
+        .phone {
+          min-height: calc(100svh - 56px);
+          border: 1px solid rgba(255, 220, 232, 0.18);
+          border-radius: 28px;
+        }
+
+        .scene {
+          min-height: calc(100svh - 56px);
+        }
+      }
+
+      @media (max-width: 360px) {
+        .content {
+          padding-inline: 16px;
+        }
+
+        h1,
+        h2 {
+          font-size: 30px;
+        }
+
+        .signal-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .scene-image {
+          animation: imageBreath 12s ease-in-out infinite alternate;
+        }
+
+        .primary-cta {
+          transition:
+            transform 180ms ease,
+            filter 180ms ease;
+        }
+
+        .primary-cta:hover,
+        .primary-cta:focus-visible {
+          filter: brightness(1.04);
+          transform: translateY(-1px);
+        }
+
+        @keyframes imageBreath {
+          from {
+            transform: scale(1.01);
+          }
+          to {
+            transform: scale(1.055);
+          }
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* .phone is overflow:hidden, which makes it a scroll container the page never
+         scrolls, so the design's own sticky CTA never pinned. overflow:clip keeps the
+         same clipping without the scrollport, and the CTA sticks to the viewport again. */
+      body.umsh-has-chrome .phone { overflow: clip; }
+      body.umsh-has-chrome .sticky-actions { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .toast { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px) + 12px); }
+      /* 05 목차의 검색·필터 줄은 sticky로 목록 위에 겹쳐 떠 있었다. 상단 GNB가 이미
+         고정이라 두 겹이 되고 뒤 카드가 가려져서, 목록과 같이 흐르게 둔다. */
+      body.umsh-has-chrome .toolbar { position: static; backdrop-filter: none; }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .thisyear-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 168, 200, 0.4); border-radius: 10px; background: rgba(255, 168, 200, 0.08); padding: 14px; margin-bottom: 14px; }
+      .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
+      .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
+      .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="올해 연애운" data-price="12,900원" data-active="home" id="step-1-story">
+      <header class="appbar topbar" aria-label="서비스 상단 정보">
+        <a class="brand" href="https://love.umsh.kr/thisyear" aria-label="운명상회 올해 연애운">
+          <strong>운명상회</strong>
+          <span>연애운 · 올해 흐름</span>
+        </a>
+        <span class="price-chip">12,900원</span>
+      </header>
+
+      <article class="story" aria-label="나, 올해 연애 가능? 인트로">
+        <section class="scene" data-scene-id="scene-01">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/01-scene-01-hook.webp"
+            alt="밝은 빛을 바라보는 여성 캐릭터와 연애 흐름을 암시하는 빛의 궤도"
+          />
+          <div class="content">
+            <span class="eyebrow">올해 연애운</span>
+            <h1>나, 올해 <span class="accent">연애 가능?</span></h1>
+            <p>
+              올해의 끌림이 진짜 시작인지, 잠깐 스치는 텐션인지
+              도화·세운·배우자성 흐름으로 먼저 확인합니다.
+            </p>
+            <div class="cta-stack">
+              <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story#step-2-saju-input">
+                내 올해 연애 흐름 확인하기
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-02">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/01-scene-02-empathy.webp"
+            alt="카페 창가에서 휴대폰을 내려놓고 생각에 잠긴 여성 캐릭터"
+          />
+          <div class="content">
+            <span class="eyebrow">고민 공감</span>
+            <h2>연락 하나에도 <span class="accent">텐션</span>이 흔들릴 때</h2>
+            <p>
+              먼저 연락해도 되는지, 이 사람이 나를 보는지, 올해는
+              진짜 관계가 열리는지 헷갈릴 수 있습니다.
+            </p>
+            <div class="panel">
+              <div class="signal-row" aria-label="주요 고민">
+                <div class="signal"><strong>솔로</strong><span>새 인연이 들어올 타이밍</span></div>
+                <div class="signal"><strong>썸</strong><span>고백각인지 간보기각인지</span></div>
+                <div class="signal"><strong>재회</strong><span>오래된 감정 정리와 재가동</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-03">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/01-scene-03-pattern.webp"
+            alt="비 오는 밤 도시에서 알림 빛 사이를 걷는 여성 캐릭터"
+          />
+          <div class="content">
+            <span class="eyebrow">내 패턴</span>
+            <h2>올해는 <span class="soft">내 반복 패턴</span>부터 봅니다</h2>
+            <p>
+              매번 비슷한 사람에게 끌리는지, 썸은 많은데 안정감이 약한지,
+              관계가 깊어지기 전에 멈추는 이유를 흐름으로 나눠봅니다.
+            </p>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-04">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/01-scene-04-basis.webp"
+            alt="빛으로 된 사주 흐름과 꽃잎 사이에 서 있는 여성 캐릭터"
+          />
+          <div class="content">
+            <span class="eyebrow">분석 기준</span>
+            <h2>도화, 세운, 배우자성을 <span class="accent">같이</span> 봅니다</h2>
+            <p>
+              매력의 신호만 보지 않고, 올해 흐름과 실제 관계로 이어지는
+              배우자성까지 나눠서 봐야 과한 단정을 피할 수 있습니다.
+            </p>
+            <div class="panel basis-grid" aria-label="분석 기준 설명">
+              <div class="basis"><strong>도화</strong><span>사람을 끌어당기는 매력과 노출되는 분위기</span></div>
+              <div class="basis"><strong>세운</strong><span>올해 관계가 움직이는 방향과 주의할 속도</span></div>
+              <div class="basis"><strong>배우자성</strong><span>연애가 실제 관계로 연결되는 조건</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-scene-id="scene-05">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/01-scene-05-preview.webp"
+            alt="연애 결과 카드처럼 보이는 빛의 패널을 바라보는 여성 캐릭터"
+          />
+          <div class="content">
+            <span class="eyebrow">이런 것까지 봅니다</span>
+            <h2>결과는 <span class="accent">가능성</span>에서 행동까지 이어집니다</h2>
+            <div class="panel preview-grid" aria-label="유료 리포트 대표 목차">
+              <div class="preview-card">
+                <strong>올해 연애 가능성 총평</strong>
+                <span>연애 모드 ON각, 새 인연 유입각, 쉬어가는 각</span>
+              </div>
+              <div class="preview-card">
+                <strong>세운 십성별 연애 무드</strong>
+                <span>비견부터 정인까지 올해 관계의 기본 텐션</span>
+              </div>
+              <div class="preview-card">
+                <strong>만남 타이밍</strong>
+                <span>입춘 전후, 월운, 연락하기 좋은 타이밍</span>
+              </div>
+              <div class="preview-card">
+                <strong>관계 운영 가이드</strong>
+                <span>고백각, 읽씹 텐션, 선 지키기, 과몰입 방지</span>
+              </div>
+              <div class="preview-card">
+                <strong>MZ형 결과 카드</strong>
+                <span>연애 온도, 플러팅 포인트, 이번 달 액션 한 줄</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-scene-id="scene-06">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/01-scene-06-cta.webp"
+            alt="밝은 문 앞에서 손을 내미는 여성 캐릭터와 꽃잎, 별빛"
+          />
+          <div class="content center">
+            <span class="eyebrow">확인 시작</span>
+            <h2>올해 내 연애 흐름을 <span class="accent">입력값</span>으로 열어볼게요</h2>
+            <p>
+              결과는 가능성, 주의점, 지금 할 작은 행동 순서로 보여줍니다.
+              생년월일시와 현재 관계 상태를 넣으면 다음 화면으로 이어집니다.
+            </p>
+            <div class="cta-stack">
+              <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story#step-2-saju-input">
+                내 올해 연애 흐름 확인하기
+              </a>
+              <a class="ghost-cta" href="#step-1-story">처음부터 다시 보기</a>
+            </div>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          이 서비스는 전통 명리 해석을 바탕으로 한 참고용 콘텐츠입니다.
+          개인의 미래나 관계 결과를 확정하지 않고, 확인할 조건과 선택 가능한 행동을 함께 안내합니다.
+        </p>
+      </article>
+
+      <div class="sticky-cta" aria-label="고정 진행 버튼">
+        <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=sticky#step-2-saju-input">
+          내 올해 연애 흐름 확인하기
+        </a>
+        <small>도화 + 세운 + 배우자성 기준 · 12,900원</small>
+      </div>
+    </main>
+
+    <script>
+      document.querySelectorAll(".scene").forEach((scene) => {
+        const image = scene.querySelector(".scene-image");
+        if (!image) return;
+        const markReady = () => scene.classList.add("is-ready");
+        const markBroken = () => scene.classList.add("is-broken");
+        image.complete && image.naturalWidth > 0 ? markReady() : image.addEventListener("load", markReady, { once: true });
+        image.addEventListener("error", markBroken, { once: true });
+      });
+    </script>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "SERVICE_TITLE": "나, 올해 연애 가능?",
+        "SERVICE_DESCRIPTION": "도화, 세운, 배우자성으로 올해 연애 가능성, 만남 타이밍, 내 반복 관계 패턴, 관계 운영 행동을 확인하는 연애운 서비스",
+        "SERVICE_CATEGORY": "연애운",
+        "SERVICE_PRICE_KRW": 24900,
+        "SERVICE_URL_HINT": "love.umsh.kr/thisyear",
+        "TARGET_AUDIENCE": "올해 새 인연, 썸, 재회, 진지한 관계 전환이 궁금한 MZ 사용자",
+        "ANALYSIS_BASIS": ["도화", "세운", "배우자성"],
+        "INTERPRETATION_INDEX_SOURCE": "user_seed"
+      }
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      {
+        "primary_evidence_ids": [
+          "item-22-p1-0003",
+          "item-22-p1-0027",
+          "item-22-p1-0045",
+          "item-23-qa-0003",
+          "item-23-qa-0014",
+          "zip-연예-qa-000030",
+          "zip-연예-qa-000035",
+          "zip-연예-qa-000108"
+        ],
+        "notes": [
+          "01 화면은 분석 결과를 단정하지 않고 후킹과 입력 유도만 제공한다.",
+          "세운 관계 원자는 개인 명식과 대운·월운에 따라 달라지므로 입력 전 확정 문장으로 쓰지 않는다.",
+          "배우자성 근거는 재성·관성의 전통 해석을 쉬운 말로 바꾸어 예고 수준으로만 사용한다."
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "thisyear-01-scene-01-hook",
+          "filename": "assets/generated/thisyear/01-scene-01-hook.webp",
+          "role": "hero",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-01'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-02-empathy",
+          "filename": "assets/generated/thisyear/01-scene-02-empathy.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-02'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-03-pattern",
+          "filename": "assets/generated/thisyear/01-scene-03-pattern.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-03'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-04-basis",
+          "filename": "assets/generated/thisyear/01-scene-04-basis.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-04'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-05-preview",
+          "filename": "assets/generated/thisyear/01-scene-05-preview.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-05'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-06-cta",
+          "filename": "assets/generated/thisyear/01-scene-06-cta.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-06'] .scene-image"
+        }
+      ]
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "scope_mismatch": [],
+        "checks": [
+          "고객 화면에 RAG, KMS, LLM, 내부 출처 경로를 노출하지 않음",
+          "첫 화면에서 서비스 질문과 CTA 목적이 보임",
+          "샘플 서비스 문구를 복사하지 않고 연애운 주제로 재작성함",
+          "CTA가 02 입력 단계로 이동함",
+          "이미지 6개가 실제 WebP 파일로 존재하고 HTML에서 각각 참조됨",
+          "결과를 확정 예언으로 단정하지 않고 가능성, 주의점, 작은 행동 기준으로 예고함"
+        ],
+        "manual_review_required": [
+          "02 단계에서 실제 생년월일시, 성별 또는 애인성 기준, 현재 관계 상태, 세운·대운·월운 입력 계약 확정 필요",
+          "도화 계산 로직 또는 도화 RAG 근거의 운영 승인본 여부 확인 필요"
+        ]
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/thisyear-service.js" defer></script>
+  </body>
+</html>

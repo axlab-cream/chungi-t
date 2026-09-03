@@ -1,0 +1,1236 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>나, 올해 연애 가능? 입력 | 운명상회</title>
+    <meta
+      name="description"
+      content="도화, 세운, 배우자성으로 올해 연애 가능성과 관계 패턴을 보기 위한 최소 입력 화면"
+    />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="나, 올해 연애 가능?" />
+    <meta
+      property="og:description"
+      content="생년월일시와 현재 관계 상태를 기준으로 올해 연애 흐름을 확인합니다."
+    />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://love.umsh.kr/thisyear" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="../assets/thisyear/02-form-companion.webp" />
+    <meta name="theme-color" content="#090a16" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080915;
+        --surface: rgba(14, 17, 32, 0.86);
+        --surface-strong: rgba(21, 24, 42, 0.94);
+        --ink: #fff8f9;
+        --muted: rgba(255, 248, 249, 0.72);
+        --dim: rgba(255, 248, 249, 0.54);
+        --line: rgba(255, 220, 232, 0.22);
+        --line-strong: rgba(255, 220, 232, 0.36);
+        --pink: #ff96bb;
+        --peach: #ffc6b3;
+        --blue: #9bdcff;
+        --gold: #f5d38c;
+        --danger: #ffb3ad;
+        --ok: #b5f0dc;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+        font-family:
+          Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          linear-gradient(180deg, #090a16 0%, #15111f 48%, #080915 100%);
+        color: var(--ink);
+      }
+
+      body {
+        display: grid;
+        place-items: start center;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, 440px);
+        min-height: 100svh;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(9, 10, 22, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 3px;
+      }
+
+      .brand strong {
+        font-size: 16px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .price-chip {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      .price-chip {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border: 1px solid rgba(245, 211, 140, 0.34);
+        border-radius: 8px;
+        background: rgba(245, 211, 140, 0.1);
+        color: #ffe6a8;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 470px;
+        display: grid;
+        align-content: end;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      .hero img {
+        position: absolute;
+        inset: 0;
+        z-index: -3;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        background: #101426;
+      }
+
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .hero::before {
+        z-index: -2;
+        background:
+          linear-gradient(180deg, rgba(8, 9, 21, 0) 0%, rgba(8, 9, 21, 0.18) 38%, rgba(8, 9, 21, 0.8) 76%, #080915 100%),
+          linear-gradient(90deg, rgba(8, 9, 21, 0.28), transparent 28% 72%, rgba(8, 9, 21, 0.28));
+      }
+
+      .hero::after {
+        z-index: -1;
+        background: linear-gradient(180deg, transparent 0%, rgba(255, 150, 187, 0.1) 100%);
+      }
+
+      .hero.is-broken {
+        background:
+          linear-gradient(180deg, rgba(25, 31, 53, 0.8), #080915),
+          #101426;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 14px;
+        padding: 88px 20px 24px;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 198, 179, 0.32);
+        border-radius: 8px;
+        background: rgba(8, 9, 21, 0.44);
+        color: #ffe0db;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0;
+        backdrop-filter: blur(12px);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 10ch;
+        font-size: 46px;
+        line-height: 0.98;
+        letter-spacing: 0;
+        text-wrap: balance;
+      }
+
+      .hero-copy p {
+        max-width: 31ch;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+        word-break: keep-all;
+      }
+
+      .quick-facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .fact {
+        min-height: 66px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        padding: 10px;
+        border: 1px solid rgba(255, 220, 232, 0.18);
+        border-radius: 8px;
+        background: rgba(8, 9, 21, 0.58);
+        backdrop-filter: blur(14px);
+      }
+
+      .fact span {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 850;
+      }
+
+      .fact strong {
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      main {
+        display: grid;
+        gap: 16px;
+        padding: 0 18px 112px;
+      }
+
+      .progress-panel,
+      .form-section,
+      .notice,
+      .error-summary {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+      }
+
+      .progress-panel {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .progress-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 8px;
+        background: rgba(255, 248, 249, 0.11);
+      }
+
+      .progress-track span {
+        display: block;
+        width: 34%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--pink), var(--blue), var(--gold));
+      }
+
+      form {
+        display: grid;
+        gap: 14px;
+      }
+
+      .form-section {
+        display: grid;
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .section-title {
+        display: grid;
+        gap: 6px;
+      }
+
+      .section-title h2 {
+        font-size: 18px;
+        line-height: 1.3;
+        letter-spacing: 0;
+      }
+
+      .section-title p,
+      .notice,
+      .hint,
+      .field small {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+        word-break: keep-all;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field-grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field label,
+      .field legend,
+      .field-label {
+        color: rgba(255, 248, 249, 0.9);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px;
+        border: 1px solid rgba(255, 220, 232, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 248, 249, 0.07);
+        color: var(--ink);
+        outline: 0;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: rgba(155, 220, 255, 0.82);
+        box-shadow: 0 0 0 3px rgba(155, 220, 255, 0.14);
+      }
+
+      input[aria-invalid="true"],
+      select[aria-invalid="true"],
+      .choice-group[aria-invalid="true"] {
+        border-color: rgba(255, 179, 173, 0.82);
+        box-shadow: 0 0 0 3px rgba(255, 179, 173, 0.1);
+      }
+
+      select option {
+        background: #111524;
+        color: var(--ink);
+      }
+
+      .choice-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        border-radius: 8px;
+      }
+
+      .choice-group.single {
+        grid-template-columns: 1fr;
+      }
+
+      .choice {
+        position: relative;
+        min-height: 48px;
+      }
+
+      .choice input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+
+      .choice span {
+        min-height: 48px;
+        display: grid;
+        align-content: center;
+        gap: 3px;
+        padding: 11px 12px;
+        border: 1px solid rgba(255, 220, 232, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 248, 249, 0.06);
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .choice span strong {
+        color: var(--ink);
+        font-size: 14px;
+      }
+
+      .choice input:checked + span {
+        border-color: rgba(255, 150, 187, 0.7);
+        background: rgba(255, 150, 187, 0.15);
+        color: var(--ink);
+      }
+
+      .choice input:focus-visible + span {
+        outline: 3px solid rgba(155, 220, 255, 0.35);
+        outline-offset: 2px;
+      }
+
+      .notice {
+        padding: 13px 14px;
+        background: rgba(155, 220, 255, 0.08);
+      }
+
+      .error-summary {
+        display: none;
+        padding: 13px 14px;
+        border-color: rgba(255, 179, 173, 0.58);
+        background: rgba(74, 18, 22, 0.58);
+        color: #ffe6e3;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .error-summary.is-visible {
+        display: block;
+      }
+
+      .error-summary strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .error-summary ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      details {
+        border: 1px solid rgba(255, 220, 232, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 248, 249, 0.05);
+      }
+
+      summary {
+        padding: 13px 12px;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .advanced-body {
+        display: grid;
+        gap: 12px;
+        padding: 0 12px 13px;
+      }
+
+      .sticky-actions {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: 0.46fr 1fr;
+        gap: 10px;
+        width: min(100vw, 440px);
+        padding: 12px 18px max(14px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(8, 9, 21, 0.88);
+        transform: translateX(-50%);
+        backdrop-filter: blur(18px);
+      }
+
+      .back-button,
+      .submit-button {
+        min-height: 54px;
+        border-radius: 8px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .back-button {
+        border: 1px solid rgba(255, 220, 232, 0.22);
+        background: rgba(255, 248, 249, 0.06);
+        color: var(--muted);
+      }
+
+      .submit-button {
+        color: #11131f;
+        background: linear-gradient(90deg, var(--pink), var(--peach), var(--gold));
+        box-shadow: 0 16px 40px rgba(255, 150, 187, 0.22);
+      }
+
+      .submit-button:disabled {
+        cursor: wait;
+        filter: grayscale(0.12) brightness(0.78);
+      }
+
+      .is-hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 360px) {
+        h1 {
+          font-size: 40px;
+        }
+
+        .field-grid.two,
+        .choice-group {
+          grid-template-columns: 1fr;
+        }
+
+        .quick-facts {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* .phone is overflow:hidden, which makes it a scroll container the page never
+         scrolls, so the design's own sticky CTA never pinned. overflow:clip keeps the
+         same clipping without the scrollport, and the CTA sticks to the viewport again. */
+      body.umsh-has-chrome .phone { overflow: clip; }
+      body.umsh-has-chrome .sticky-actions { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .toast { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px) + 12px); }
+      /* 05 목차의 검색·필터 줄은 sticky로 목록 위에 겹쳐 떠 있었다. 상단 GNB가 이미
+         고정이라 두 겹이 되고 뒤 카드가 가려져서, 목록과 같이 흐르게 둔다. */
+      body.umsh-has-chrome .toolbar { position: static; backdrop-filter: none; }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .thisyear-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 168, 200, 0.4); border-radius: 10px; background: rgba(255, 168, 200, 0.08); padding: 14px; margin-bottom: 14px; }
+      .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
+      .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
+      .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+  </head>
+  <body>
+    <div class="phone" data-umsh-chrome data-service="올해 연애운" data-price="12,900원" data-active="home" id="step-2-saju-input">
+      <header class="appbar topbar" aria-label="서비스 정보">
+        <a class="brand" href="../01-step-1-story/index.html#step-1-story" aria-label="운명상회 인트로로 돌아가기">
+          <strong>운명상회</strong>
+          <span>연애운 · 올해 흐름 입력</span>
+        </a>
+        <span class="price-chip">12,900원</span>
+      </header>
+
+      <section class="hero" id="heroVisual" aria-labelledby="pageTitle">
+        <img
+          src="../assets/thisyear/02-form-companion.webp"
+          alt="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"
+          data-image-role="form-companion"
+        />
+        <div class="hero-copy">
+          <span class="eyebrow">02 · 사주 입력</span>
+          <h1 id="pageTitle">나, 올해 연애 가능?</h1>
+          <p>
+            올해 연애운은 무조건 된다, 안 된다로 자르지 않습니다.
+            입력값을 기준으로 가능성, 주의점, 지금 할 작은 행동까지 이어서 봅니다.
+          </p>
+          <div class="quick-facts" aria-label="입력 요약">
+            <div class="fact">
+              <span>예상 시간</span>
+              <strong>약 1분</strong>
+            </div>
+            <div class="fact">
+              <span>필수 입력</span>
+              <strong>생년월일시</strong>
+            </div>
+            <div class="fact">
+              <span>분석 기준</span>
+              <strong>도화·세운·배우자성</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main>
+        <section class="progress-panel" aria-label="진행 단계">
+          <div class="progress-head">
+            <span>입력 단계</span>
+            <span>02 / 06</span>
+          </div>
+          <div class="progress-track" aria-hidden="true"><span></span></div>
+        </section>
+
+        <form id="loveIntakeForm" novalidate>
+          <div class="error-summary" id="formErrors" role="alert" aria-live="polite"></div>
+
+          <section class="form-section" aria-labelledby="profileTitle">
+            <div class="section-title">
+              <h2 id="profileTitle">누구의 올해 흐름을 볼까요?</h2>
+              <p>저장된 사주 프로필이 있으면 다시 묻지 않고 이어갈 수 있습니다.</p>
+            </div>
+            <fieldset class="field" data-field="profile_mode">
+              <legend>입력 방식</legend>
+              <div class="choice-group single">
+                <label class="choice">
+                  <input type="radio" name="profile_mode" value="new_profile" checked />
+                  <span>
+                    <strong>새 정보 입력</strong>
+                    지금 입력한 생년월일시로 올해 흐름을 봅니다.
+                  </span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="profile_mode" value="saved_profile" />
+                  <span>
+                    <strong>저장된 기본 프로필 사용</strong>
+                    로그인 후 완성된 사주 프로필이 있으면 재입력 없이 이어갑니다.
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="notice is-hidden" id="savedProfileNotice">
+              저장된 프로필 사용을 선택했습니다. 로그인 후 기본 사주값이 확인되면 생년월일시는 다시 묻지 않고, 이 화면에서는 애인성 기준과 현재 상태만 확인합니다.
+            </div>
+          </section>
+
+          <section class="form-section" id="newProfileFields" aria-labelledby="birthTitle">
+            <div class="section-title">
+              <h2 id="birthTitle">생년월일시를 알려주세요</h2>
+              <p>도화와 올해 세운 흐름을 계산하려면 태어난 날짜와 시간이 필요합니다.</p>
+            </div>
+            <div class="field-grid">
+              <div class="field" data-field="display_name">
+                <label for="displayName">불러드릴 이름 또는 닉네임</label>
+                <input id="displayName" name="display_name" type="text" maxlength="18" autocomplete="name" placeholder="예: 민지" />
+                <small>선택 입력입니다. 결과 문장 호칭에만 씁니다.</small>
+              </div>
+              <div class="field-grid two">
+                <div class="field" data-field="birth_date">
+                  <label for="birthDate">생년월일</label>
+                  <input id="birthDate" name="birth_date" type="date" autocomplete="bday" />
+                  <small>사주 원국과 올해 흐름 계산에 필요합니다.</small>
+                </div>
+                <div class="field" data-field="birth_time">
+                  <label for="birthTime">출생 시간</label>
+                  <input id="birthTime" name="birth_time" type="time" />
+                  <small>시간 흐름과 도화 조건을 더 정확히 보기 위해 필요합니다.</small>
+                </div>
+              </div>
+              <fieldset class="field" data-field="calendar_type">
+                <legend>양력 / 음력</legend>
+                <div class="choice-group">
+                  <label class="choice">
+                    <input type="radio" name="calendar_type" value="solar" />
+                    <span><strong>양력</strong> 주민등록 기준</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="calendar_type" value="lunar" />
+                    <span><strong>음력</strong> 음력 생일 기준</span>
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+          </section>
+
+          <section class="form-section" aria-labelledby="basisTitle">
+            <div class="section-title">
+              <h2 id="basisTitle">애인성 기준을 맞출게요</h2>
+              <p>성별로 자동 판단하거나, 관성·재성 중 원하는 애인성 기준을 직접 고를 수 있습니다.</p>
+            </div>
+            <div class="field-grid">
+              <div class="field" data-field="partner_star_basis">
+                <label for="partnerBasis">애인성 기준</label>
+                <select id="partnerBasis" name="partner_star_basis">
+                  <option value="">선택해 주세요</option>
+                  <option value="gender_auto">성별 기준으로 자동 판단</option>
+                  <option value="official_star">관성 기준으로 보기</option>
+                  <option value="wealth_star">재성 기준으로 보기</option>
+                </select>
+                <small>배우자성 해석에서 상대 코드와 관계 안정감을 보는 기준입니다.</small>
+              </div>
+              <div class="field is-hidden" id="genderField" data-field="gender">
+                <label for="gender">성별 기준</label>
+                <select id="gender" name="gender">
+                  <option value="">선택해 주세요</option>
+                  <option value="female">여성 기준</option>
+                  <option value="male">남성 기준</option>
+                  <option value="custom">직접 선택한 애인성 기준을 우선할래요</option>
+                </select>
+                <small>전통 애인성 계산에만 사용합니다. 직접 기준을 고르면 이 값은 쓰지 않습니다.</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section" aria-labelledby="relationshipTitle">
+            <div class="section-title">
+              <h2 id="relationshipTitle">현재 관계 상태는 어디쯤인가요?</h2>
+              <p>같은 운도 솔로, 썸, 연애, 재회 고민에 따라 행동 가이드가 달라집니다.</p>
+            </div>
+            <fieldset class="field" data-field="relationship_status">
+              <legend>현재 상태</legend>
+              <div class="choice-group">
+                <label class="choice">
+                  <input type="radio" name="relationship_status" value="solo" />
+                  <span><strong>솔로</strong> 새 인연이 궁금해요</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="relationship_status" value="some" />
+                  <span><strong>썸</strong> 이 관계가 열릴지 봐요</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="relationship_status" value="dating" />
+                  <span><strong>연애 중</strong> 올해 흐름을 맞춰가요</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="relationship_status" value="reunion" />
+                  <span><strong>재회</strong> 다시 이어질 타이밍을 봐요</span>
+                </label>
+              </div>
+            </fieldset>
+          </section>
+
+          <section class="form-section" aria-labelledby="rhythmTitle">
+            <div class="section-title">
+              <h2 id="rhythmTitle">올해 운 흐름 확인</h2>
+              <p>일반 고객은 자동 계산으로 두고, 운영·검수 환경에서는 계산된 십성을 직접 맞춰볼 수 있습니다.</p>
+            </div>
+            <details>
+              <summary>세운·대운·월운 십성 확인하기</summary>
+              <div class="advanced-body">
+                <div class="field" data-field="annual_ten_god">
+                  <label for="annualTenGod">올해 세운 십성</label>
+                  <select id="annualTenGod" name="annual_ten_god" data-ten-god-select>
+                    <option value="auto">자동 계산 예정</option>
+                  </select>
+                  <small>올해 전체 연애 무드를 여는 기준입니다.</small>
+                </div>
+                <div class="field" data-field="decade_ten_god">
+                  <label for="decadeTenGod">대운 십성</label>
+                  <select id="decadeTenGod" name="decade_ten_god" data-ten-god-select>
+                    <option value="auto">자동 계산 예정</option>
+                  </select>
+                  <small>몇 년 단위의 관계 패턴과 속도감을 보는 기준입니다.</small>
+                </div>
+                <div class="field" data-field="monthly_ten_god">
+                  <label for="monthlyTenGod">월운 십성</label>
+                  <select id="monthlyTenGod" name="monthly_ten_god" data-ten-god-select>
+                    <option value="auto">자동 계산 예정</option>
+                  </select>
+                  <small>연락, 만남, 고백 타이밍을 월 단위로 좁힐 때 씁니다.</small>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <div class="notice" id="privacyNotice">
+            입력값은 올해 연애운 리포트 생성에만 사용합니다. 생년월일시는 주소창에 붙이지 않고, 로그인 후에도 원래 입력 흐름으로 돌아올 수 있게 이어갑니다.
+          </div>
+
+          <div class="sticky-actions">
+            <button class="back-button" type="button" data-action="back">이전</button>
+            <button class="submit-button" id="submitButton" type="submit">입력한 정보로 이어가기</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script>
+      const SERVICE_STATE = {
+        service_key: "love_thisyear",
+        service_slug: "thisyear",
+        service_title: "나, 올해 연애 가능?",
+        report_version: "love-thisyear-v1",
+        input_schema_version: "love-thisyear-input-v1",
+        analysis_year: 2026,
+        next_route: "../04-step-4-report/index.html#step-4-report",
+      };
+
+      const ROUTE_STATE_KEY = "umsh:love_thisyear:route_state";
+      const VOLATILE_DRAFT_KEY = "umsh:love_thisyear:session_draft";
+      const tenGodOptions = [
+        ["bijian", "비견"],
+        ["geobjae", "겁재"],
+        ["siksin", "식신"],
+        ["sanggwan", "상관"],
+        ["pyeonjae", "편재"],
+        ["jeongjae", "정재"],
+        ["pyeongwan", "편관"],
+        ["jeonggwan", "정관"],
+        ["pyeonin", "편인"],
+        ["jeongin", "정인"],
+      ];
+
+      const form = document.querySelector("#loveIntakeForm");
+      const errorBox = document.querySelector("#formErrors");
+      const submitButton = document.querySelector("#submitButton");
+      const heroVisual = document.querySelector("#heroVisual");
+      const newProfileFields = document.querySelector("#newProfileFields");
+      const savedProfileNotice = document.querySelector("#savedProfileNotice");
+      const partnerBasis = document.querySelector("#partnerBasis");
+      const genderField = document.querySelector("#genderField");
+
+      document.querySelector("[data-image-role='form-companion']").addEventListener("error", () => {
+        heroVisual.classList.add("is-broken");
+      });
+
+      document.querySelector("[data-action='back']").addEventListener("click", () => {
+        window.location.href = "../01-step-1-story/index.html#step-1-story";
+      });
+
+      document.querySelectorAll("[data-ten-god-select]").forEach((select) => {
+        tenGodOptions.forEach(([value, label]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = label;
+          select.append(option);
+        });
+      });
+
+      document.querySelectorAll("input[name='profile_mode']").forEach((radio) => {
+        radio.addEventListener("change", syncProfileMode);
+      });
+
+      partnerBasis.addEventListener("change", syncBasisMode);
+      form.addEventListener("input", clearFieldErrors);
+      form.addEventListener("change", clearFieldErrors);
+      form.addEventListener("submit", handleSubmit);
+
+      restoreDraft();
+      syncProfileMode();
+      syncBasisMode();
+
+      function currentProfileMode() {
+        return form.profile_mode.value || "new_profile";
+      }
+
+      function syncProfileMode() {
+        const isSaved = currentProfileMode() === "saved_profile";
+        newProfileFields.classList.toggle("is-hidden", isSaved);
+        savedProfileNotice.classList.toggle("is-hidden", !isSaved);
+        syncBasisMode();
+      }
+
+      function syncBasisMode() {
+        const shouldShowGender =
+          partnerBasis.value === "gender_auto" && currentProfileMode() === "new_profile";
+        genderField.classList.toggle("is-hidden", !shouldShowGender);
+      }
+
+      function clearFieldErrors() {
+        errorBox.classList.remove("is-visible");
+        errorBox.innerHTML = "";
+        document.querySelectorAll("[aria-invalid='true']").forEach((node) => {
+          node.removeAttribute("aria-invalid");
+        });
+      }
+
+      function markInvalid(key) {
+        const field = document.querySelector(`[data-field="${key}"]`);
+        if (!field) return;
+        const control = field.querySelector("input, select, .choice-group");
+        if (control) control.setAttribute("aria-invalid", "true");
+      }
+
+      function getRadioValue(name) {
+        const checked = form.querySelector(`input[name="${name}"]:checked`);
+        return checked ? checked.value : "";
+      }
+
+      function validate() {
+        const errors = [];
+        const profileMode = currentProfileMode();
+        const isNewProfile = profileMode === "new_profile";
+        const basisValue = partnerBasis.value;
+
+        if (isNewProfile && !form.birth_date.value) {
+          errors.push(["birth_date", "생년월일을 입력해 주세요. 날짜가 있어야 올해 세운 흐름을 계산할 수 있어요."]);
+        }
+
+        if (isNewProfile && !form.birth_time.value) {
+          errors.push(["birth_time", "출생 시간을 입력해 주세요. 시간 흐름과 도화 조건을 함께 보려면 필요합니다."]);
+        }
+
+        if (isNewProfile && !getRadioValue("calendar_type")) {
+          errors.push(["calendar_type", "양력인지 음력인지 선택해 주세요. 날짜 변환 기준이 달라집니다."]);
+        }
+
+        if (!basisValue) {
+          errors.push(["partner_star_basis", "애인성 기준을 선택해 주세요. 성별 자동 판단 또는 관성·재성 직접 선택이 필요합니다."]);
+        }
+
+        if (isNewProfile && basisValue === "gender_auto" && !form.gender.value) {
+          errors.push(["gender", "성별 기준 자동 판단을 선택했다면 성별 기준을 함께 선택해 주세요."]);
+        }
+
+        if (!getRadioValue("relationship_status")) {
+          errors.push(["relationship_status", "현재 관계 상태를 선택해 주세요. 솔로, 썸, 연애, 재회에 따라 행동 가이드가 달라집니다."]);
+        }
+
+        return errors;
+      }
+
+      function collectDraft() {
+        return {
+          service_key: SERVICE_STATE.service_key,
+          service_slug: SERVICE_STATE.service_slug,
+          service_title: SERVICE_STATE.service_title,
+          report_version: SERVICE_STATE.report_version,
+          input_schema_version: SERVICE_STATE.input_schema_version,
+          analysis_year: SERVICE_STATE.analysis_year,
+          source_step: "02-step-2-saju-input",
+          profile_mode: currentProfileMode(),
+          display_name: form.display_name.value.trim(),
+          birth_date: form.birth_date.value,
+          birth_time: form.birth_time.value,
+          calendar_type: getRadioValue("calendar_type"),
+          gender: form.gender.value,
+          partner_star_basis: form.partner_star_basis.value,
+          relationship_status: getRadioValue("relationship_status"),
+          annual_ten_god: form.annual_ten_god.value,
+          decade_ten_god: form.decade_ten_god.value,
+          monthly_ten_god: form.monthly_ten_god.value,
+          interpretation_index_source: "user_seed",
+          submitted_at: new Date().toISOString(),
+        };
+      }
+
+      function restoreDraft() {
+        try {
+          const raw = sessionStorage.getItem(VOLATILE_DRAFT_KEY);
+          if (!raw) return;
+          const draft = JSON.parse(raw);
+          if (draft.service_key !== SERVICE_STATE.service_key) return;
+
+          setRadio("profile_mode", draft.profile_mode);
+          form.display_name.value = draft.display_name || "";
+          form.birth_date.value = draft.birth_date || "";
+          form.birth_time.value = draft.birth_time || "";
+          setRadio("calendar_type", draft.calendar_type);
+          form.gender.value = draft.gender || "";
+          form.partner_star_basis.value = draft.partner_star_basis || "";
+          setRadio("relationship_status", draft.relationship_status);
+          form.annual_ten_god.value = draft.annual_ten_god || "auto";
+          form.decade_ten_god.value = draft.decade_ten_god || "auto";
+          form.monthly_ten_god.value = draft.monthly_ten_god || "auto";
+        } catch {
+          sessionStorage.removeItem(VOLATILE_DRAFT_KEY);
+        }
+      }
+
+      function setRadio(name, value) {
+        if (!value) return;
+        const radio = form.querySelector(`input[name="${name}"][value="${value}"]`);
+        if (radio) radio.checked = true;
+      }
+
+      function handleSubmit(event) {
+        event.preventDefault();
+        clearFieldErrors();
+
+        const errors = validate();
+        if (errors.length > 0) {
+          errors.forEach(([key]) => markInvalid(key));
+          errorBox.innerHTML = `<strong>아래 항목을 확인해 주세요.</strong><ul>${errors
+            .map(([, message]) => `<li>${escapeHtml(message)}</li>`)
+            .join("")}</ul>`;
+          errorBox.classList.add("is-visible");
+          const firstField = document.querySelector(`[data-field="${errors[0][0]}"]`);
+          firstField?.scrollIntoView({ behavior: "smooth", block: "center" });
+          firstField?.querySelector("input, select")?.focus({ preventScroll: true });
+          return;
+        }
+
+        const draft = collectDraft();
+        sessionStorage.setItem(VOLATILE_DRAFT_KEY, JSON.stringify(draft));
+        sessionStorage.setItem(
+          ROUTE_STATE_KEY,
+          JSON.stringify({
+            service_key: SERVICE_STATE.service_key,
+            service_slug: SERVICE_STATE.service_slug,
+            input_schema_version: SERVICE_STATE.input_schema_version,
+            report_version: SERVICE_STATE.report_version,
+            return_step: "step-4-report",
+            draft_status: "submitted",
+            source_step: "02-step-2-saju-input",
+          }),
+        );
+
+        submitButton.disabled = true;
+        submitButton.textContent = "입력값 정리 중";
+        const next = new URL(SERVICE_STATE.next_route, window.location.href);
+        next.searchParams.set("service_key", SERVICE_STATE.service_key);
+        next.searchParams.set("service_slug", SERVICE_STATE.service_slug);
+        next.searchParams.set("schema", SERVICE_STATE.input_schema_version);
+        window.setTimeout(() => {
+          window.location.href = next.href;
+        }, 360);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+    </script>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "SERVICE_TITLE": "나, 올해 연애 가능?",
+        "SERVICE_DESCRIPTION": "도화, 세운, 배우자성으로 올해 연애 가능성, 만남 타이밍, 내 반복 관계 패턴, 관계 운영 행동을 확인하는 연애운 서비스",
+        "SERVICE_CATEGORY": "연애운",
+        "SERVICE_PRICE_KRW": 24900,
+        "SERVICE_URL_HINT": "love.umsh.kr/thisyear",
+        "TARGET_AUDIENCE": "올해 새 인연, 썸, 재회, 진지한 관계 전환이 궁금한 MZ 사용자",
+        "ANALYSIS_BASIS": ["도화", "세운", "배우자성"],
+        "INTERPRETATION_INDEX_SOURCE": "user_seed"
+      }
+    </script>
+
+    <script type="application/json" id="INPUT_SCHEMA">
+      {
+        "subject_mode": "single",
+        "schema_version": "love-thisyear-input-v1",
+        "fields": [
+          {
+            "key": "profile_mode",
+            "label": "입력 방식",
+            "type": "radio",
+            "required": true,
+            "condition": "always",
+            "why_needed": "기존 사주 프로필을 재사용할지 새 정보를 입력할지 결정합니다.",
+            "error_message": "입력 방식을 선택해 주세요."
+          },
+          {
+            "key": "display_name",
+            "label": "불러드릴 이름 또는 닉네임",
+            "type": "text",
+            "required": false,
+            "condition": "profile_mode=new_profile",
+            "why_needed": "결과 문장의 호칭에만 사용합니다.",
+            "error_message": ""
+          },
+          {
+            "key": "birth_date",
+            "label": "생년월일",
+            "type": "date",
+            "required": true,
+            "condition": "profile_mode=new_profile",
+            "why_needed": "사주 원국과 올해 세운 흐름 계산에 필요합니다.",
+            "error_message": "생년월일을 입력해 주세요."
+          },
+          {
+            "key": "birth_time",
+            "label": "출생 시간",
+            "type": "time",
+            "required": true,
+            "condition": "profile_mode=new_profile",
+            "why_needed": "시간 흐름과 도화 조건을 더 정확히 보기 위해 필요합니다.",
+            "error_message": "출생 시간을 입력해 주세요."
+          },
+          {
+            "key": "calendar_type",
+            "label": "양력 / 음력",
+            "type": "radio",
+            "required": true,
+            "condition": "profile_mode=new_profile",
+            "why_needed": "날짜 변환 기준을 확정합니다.",
+            "error_message": "양력인지 음력인지 선택해 주세요."
+          },
+          {
+            "key": "partner_star_basis",
+            "label": "애인성 기준",
+            "type": "select",
+            "required": true,
+            "condition": "always",
+            "why_needed": "배우자성 해석에서 상대 코드와 관계 안정감을 보는 기준입니다.",
+            "error_message": "애인성 기준을 선택해 주세요."
+          },
+          {
+            "key": "gender",
+            "label": "성별 기준",
+            "type": "select",
+            "required": true,
+            "condition": "profile_mode=new_profile AND partner_star_basis=gender_auto",
+            "why_needed": "성별 자동 판단을 선택했을 때 전통 애인성 기준을 정합니다.",
+            "error_message": "성별 기준을 선택해 주세요."
+          },
+          {
+            "key": "relationship_status",
+            "label": "현재 관계 상태",
+            "type": "radio",
+            "required": true,
+            "condition": "always",
+            "why_needed": "솔로, 썸, 연애, 재회에 따라 해석의 행동 가이드가 달라집니다.",
+            "error_message": "현재 관계 상태를 선택해 주세요."
+          },
+          {
+            "key": "annual_ten_god",
+            "label": "올해 세운 십성",
+            "type": "select",
+            "required": true,
+            "condition": "server_calculated_or_operator_prefill",
+            "why_needed": "올해 전체 연애 무드의 기준입니다.",
+            "error_message": "세운 십성 계산값을 확인해 주세요."
+          },
+          {
+            "key": "decade_ten_god",
+            "label": "대운 십성",
+            "type": "select",
+            "required": true,
+            "condition": "server_calculated_or_operator_prefill",
+            "why_needed": "장기 관계 패턴과 속도감의 기준입니다.",
+            "error_message": "대운 십성 계산값을 확인해 주세요."
+          },
+          {
+            "key": "monthly_ten_god",
+            "label": "월운 십성",
+            "type": "select",
+            "required": true,
+            "condition": "server_calculated_or_operator_prefill",
+            "why_needed": "연락, 만남, 고백 타이밍을 월 단위로 좁힐 때 씁니다.",
+            "error_message": "월운 십성 계산값을 확인해 주세요."
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="RAG_EVIDENCE">
+      {
+        "primary_evidence_ids": [
+          "item-22-p1-0003",
+          "item-22-p1-0027",
+          "item-22-p1-0045",
+          "item-23-qa-0003",
+          "item-23-qa-0014",
+          "zip-연예-qa-000030",
+          "zip-연예-qa-000035",
+          "zip-연예-qa-000108"
+        ],
+        "notes": [
+          "02 화면은 계산 결과를 만들지 않고, 결과 생성을 위한 최소 입력 계약만 수집한다.",
+          "세운, 대운, 월운 십성은 일반 고객에게 강제 질문하지 않고 자동 계산 또는 운영 검수값으로 처리한다.",
+          "개인정보는 URL query에 포함하지 않고, 정적 미리보기에서는 sessionStorage에만 임시 보관한다.",
+          "운영 환경에서는 개인정보 임시 보관을 서버 세션 또는 기존 인증 저장 방식으로 교체해야 한다."
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "thisyear-02-form-companion",
+          "filename": "assets/generated/thisyear/02-form-companion.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+          "reference_status": "selected",
+          "character_style_lock": ["푸른 눈", "얇은 짙은 갈색 잔머리", "밝은 역광", "파스텔 리본", "몽환적이지만 현대적인 분위기"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "입력 폼 보조 이미지. 조용한 밤 책상과 창가에서 휴대폰과 달력 빛을 바라보는 여성 캐릭터. 도화, 세운, 배우자성을 꽃잎, 궤도, 별빛으로 암시. 이미지 안 텍스트 없음.",
+          "alt": "휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-image-role='form-companion']"
+        }
+      ]
+    </script>
+
+    <script type="application/json" id="QA_RESULT">
+      {
+        "scope_mismatch": [],
+        "checks": [
+          "01의 service_key, service_slug, report_version을 유지함",
+          "1인 연애운 서비스에 필요한 입력만 필수로 배치함",
+          "저장된 프로필 재사용과 새 정보 입력을 분리함",
+          "성별 또는 애인성 기준 선택을 지원함",
+          "현재 상태를 솔로, 썸, 연애, 재회로 수집함",
+          "세운, 대운, 월운 십성은 자동 계산 또는 운영 검수용 필드로 분리함",
+          "생년월일시를 URL query에 노출하지 않음",
+          "CTA가 04 리포트 단계로 이동함",
+          "대표 캐릭터 기반 신규 02 이미지를 실제 WebP 파일로 연결함"
+        ],
+        "manual_review_required": [
+          "운영 배포 시 sessionStorage 개인 입력 임시 보관을 서버 세션 또는 인증 저장소로 교체해야 함",
+          "도화 계산 로직 또는 도화 RAG 근거의 운영 승인본 여부 확인 필요",
+          "04 단계에서 무료 티저와 유료 리포트 범위의 경계를 확정해야 함"
+        ]
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/thisyear-service.js" defer></script>
+  </body>
+</html>
