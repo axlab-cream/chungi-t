@@ -4,9 +4,10 @@
   /**
    * This file used to draw its own appbar and bottom nav, which left the consultation
    * pages (합격운, 연애, 결혼궁합, 직업운, MY ...) carrying a top bar that did not match the
-   * service-shell pages: no category rail, no quick menu. It now mounts the shared
-   * shell instead, so every page gets the identical logo + GNB + bottom menu while
-   * keeping the back button and the service/price line these pages need.
+   * service-shell pages - no category rail, and a bottom nav that jumped straight to a
+   * link instead of opening the menu sheet. It now mounts the shared shell instead, so
+   * every page gets the identical logo + GNB + bottom menu while keeping the back button
+   * and the service/price line these pages need.
    *
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
@@ -109,6 +110,27 @@
     if (bottom) root.style.setProperty('--umsh-chrome-bottom-h', Math.round(bottom.getBoundingClientRect().height) + 'px');
   }
 
+  /**
+   * Measuring once on script load reads the appbar before the web font and the
+   * category rail have settled, which came out 48px short and pushed the bottom of
+   * a `.scroll` page under the fixed menu. Watch the chrome instead of guessing when
+   * it is final.
+   */
+  function watchChromeHeights() {
+    syncChromeHeights();
+
+    // The chip rail grows by ~19px once the web font swaps in, and a ResizeObserver
+    // on its own did not always fire for that, so re-read at every point the chrome
+    // can still settle.
+    var top = document.querySelector('.umsh-service-shell');
+    if (top && typeof global.ResizeObserver === 'function') {
+      new global.ResizeObserver(syncChromeHeights).observe(top);
+    }
+    global.requestAnimationFrame(syncChromeHeights);
+    global.addEventListener('load', syncChromeHeights);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncChromeHeights);
+  }
+
   function mount(options) {
     options = options || {};
     var stage = document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
@@ -130,7 +152,7 @@
 
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
-    loadShellScript(SHELL_JS, syncChromeHeights);
+    loadShellScript(SHELL_JS, watchChromeHeights);
 
     return { appbar: topHost, bottomNav: bottomHost };
   }
