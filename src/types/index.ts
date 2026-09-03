@@ -187,6 +187,13 @@ export interface SajuReportContext {
     outsideFlow?: string
     extraNote?: string
   }
+  exam?: {
+    examName?: string
+    examDate?: string
+    examType?: string
+    priority?: string
+    worry?: string
+  }
   workMove?: {
     decisionMode?: string
     currentCompanySignal?: string
