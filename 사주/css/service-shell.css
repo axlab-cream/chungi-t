@@ -102,18 +102,27 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
   box-sizing: border-box;
 }
 
-/* Back button and service/price line, shown only on the consultation pages. */
-.umsh-service-shell .app-back {
+/* Back and menu sit together on the right, the way the /love/this-year sample does it. */
+.umsh-service-shell .app-back,
+.umsh-service-shell .topbar-vault-button {
+  display: grid;
   flex: 0 0 auto;
   width: 38px;
   height: 38px;
+  place-items: center;
   border: 1px solid rgba(232, 212, 154, 0.35);
   border-radius: 50%;
   background: rgba(216, 186, 114, 0.035);
   color: var(--shell-gold-200);
   cursor: pointer;
-  font-size: 22px;
+  font-size: 17px;
   line-height: 1;
+}
+
+.umsh-service-shell .topbar-vault-button:hover,
+.umsh-service-shell .topbar-vault-button:focus-visible {
+  border-color: rgba(232, 212, 154, 0.74);
+  background: rgba(216, 186, 114, 0.12);
 }
 
 .umsh-service-shell .app-back:hover,

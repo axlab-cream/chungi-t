@@ -118,13 +118,6 @@
       price: host?.dataset.price || '24,900원',
       active: host?.dataset.active || 'home',
     });
-    const back = $('.umsh-chrome-appbar [data-back]');
-    if (back) {
-      back.addEventListener('click', () => {
-        if (window.history.length > 1) window.history.back();
-        else window.location.assign('/match/marry/01-step-1-story/index.html');
-      });
-    }
   }
 
   // -------------------------------------------------------------------- auth

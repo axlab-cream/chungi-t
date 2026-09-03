@@ -142,42 +142,33 @@
     window.location.assign(new URL(href, window.location.href).href);
   }
 
+  /**
+   * The top bar mirrors the /love/this-year sample exactly: the logo on the left, and
+   * the back and menu buttons on the right. No category rail and no service/price line,
+   * so every service page carries the same GNB the sample established.
+   *
+   * `data-back` and the two legacy class names stay on the back button because pages
+   * still look it up through `.umsh-chrome-appbar [data-back]`; the shell owns the click
+   * itself now (see the capture listener below), which is what makes it go home.
+   */
   function topMarkup() {
-    const categoryButtons = categories.map(([value, label]) => {
-      const active = value === activeCategory ? ' is-active' : '';
-      return `<button class="chip${active}" type="button" data-shell-category="${escapeHtml(value)}">${escapeHtml(label)}</button>`;
-    }).join('');
-
-    /**
-     * `data-back` and the two legacy class names are kept on purpose: pages that
-     * already wire their own back behaviour (결혼궁합, 저장된 해석) look the button up
-     * through `.umsh-chrome-appbar [data-back]`, so the shell must not own the click.
-     */
-    const backButton = showBack
-      ? '<button class="app-back umsh-chrome-back" type="button" data-back aria-label="뒤로">‹</button>'
-      : '';
-    const meta = serviceName || servicePrice
-      ? `<div class="app-meta">
-            <span class="app-meta-service">${escapeHtml(serviceName)}</span>
-            <span class="app-meta-price">${escapeHtml(servicePrice)}</span>
-          </div>`
-      : '';
-
     return `
       <div class="umsh-service-shell" aria-label="운명상회 공통 상단">
-        <header class="appbar${showBack ? ' umsh-chrome-appbar' : ''}">
-          ${backButton}
-          <a class="app-brand" href="/" aria-label="운명상회 홈">
+        <header class="appbar topbar umsh-chrome-appbar">
+          <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="UMSH 운명상회 홈">
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
           </a>
-          <div class="app-actions">
-            ${meta}
+          <div class="app-actions topbar-actions">
+            <button class="app-back umsh-chrome-back icon-button" type="button" data-back data-shell-back aria-label="홈으로">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+            <button class="topbar-vault-button" type="button" data-shell-bottom-menu="vault" aria-controls="serviceBottomMenuPanel" aria-expanded="false" aria-label="보관함 열기">
+              <span aria-hidden="true">☰</span>
+            </button>
           </div>
         </header>
-
-        <nav class="category-rail" aria-label="상품 분류">
-          ${categoryButtons}
-        </nav>
       </div>
     `;
   }
@@ -249,6 +240,20 @@
   if (topHost) topHost.innerHTML = topMarkup();
   if (bottomHost) bottomHost.innerHTML = bottomMarkup();
   renderBottomMenu(activeTab);
+
+  /**
+   * The shell's back button goes home. It ran the capture phase on purpose: several
+   * pages still listen for `[data-back]` and call `history.back()`, which on a page
+   * opened from a link or a redirect either did nothing or bounced somewhere unrelated.
+   * Stopping here keeps the button doing one predictable thing everywhere.
+   */
+  document.addEventListener('click', (event) => {
+    const shellBack = event.target.closest?.('[data-shell-back]');
+    if (!shellBack) return;
+    event.preventDefault();
+    event.stopPropagation();
+    navigate('/');
+  }, true);
 
   document.addEventListener('click', (event) => {
     const shellAction = event.target.closest?.('[data-shell-action]');
