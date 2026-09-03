@@ -1,4 +1,4 @@
-import '../env/load.js'
+import { configuredEnv } from '../env/load.js'
 import { Pool } from 'pg'
 import type { BirthInput, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportStorageMode } from '../report/report-store.js'
@@ -35,7 +35,7 @@ type UserProfileRow = {
   updated_at: string
 }
 
-const connectionString = process.env.DATABASE_URL
+const connectionString = configuredEnv(process.env.DATABASE_URL)
 const pool = connectionString
   ? new Pool({
       connectionString,

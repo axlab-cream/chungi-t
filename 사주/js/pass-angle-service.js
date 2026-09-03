@@ -180,6 +180,8 @@
   }
 
   // ------------------------------------------------------------ report load
+  let needsLogin = false;
+
   async function loadReport() {
     const cached = sessionGet(STORAGE.report);
     if (cached?.sections?.length) return cached;
@@ -202,12 +204,53 @@
         },
       }),
     });
+    // 401 means the shared login gate, not a failure. Surfacing it matters: without
+    // this the page would keep the static sample copy on screen and a logged-out
+    // visitor would read placeholder text as if it were their own reading.
+    if (response.status === 401 || response.status === 403) {
+      needsLogin = true;
+      return null;
+    }
     if (!response.ok) return null;
     const data = await response.json();
     const report = data.report || data;
     if (!report?.sections?.length) return null;
     sessionSet(STORAGE.report, report);
     return report;
+  }
+
+  /**
+   * Replace a step's body with a login prompt.
+   * The static markup carries sample sentences written like a personal verdict, so it is
+   * cleared here as well - a logged-out visitor must never read placeholder copy as their result.
+   */
+  function renderLoginGate(root, message) {
+    const host = root.querySelector('.section') || root;
+    root.querySelectorAll('.result, .grid, .list, .table, .actions, .detail-body').forEach((node) => node.remove());
+
+    const heroCopy = root.querySelector('.hero .copy, .visual .copy');
+    if (heroCopy) {
+      const h1 = heroCopy.querySelector('h1');
+      const lead = heroCopy.querySelector('p');
+      if (h1) h1.textContent = '나, 붙을 각이야?';
+      if (lead) lead.textContent = '시험운과 공부법, 멘탈, 시험 당일 컨디션까지 사주 기준으로 봅니다.';
+    }
+
+    const cta = root.querySelector('.button');
+    const href = `/signup?entry=pass-angle&returnTo=${encodeURIComponent(location.pathname)}`;
+    if (cta) {
+      cta.textContent = '로그인하고 결과 보기';
+      cta.setAttribute('href', href);
+    }
+
+    const gate = document.createElement('div');
+    gate.className = 'login-gate';
+    gate.innerHTML = `
+      <b>로그인하면 내 사주로 풀이가 열립니다</b>
+      <span>${message}</span>
+      <a class="button" href="${href}">로그인하고 결과 보기</a>
+    `;
+    host.appendChild(gate);
   }
 
   /** Checkout is not wired yet, so every reading opens free until the PG goes live. */
@@ -231,7 +274,10 @@
     const root = document.querySelector('#step-4-report');
     if (!root) return;
     const report = await loadReport();
-    if (!report) return;
+    if (!report) {
+      if (needsLogin) renderLoginGate(root, '지금 화면의 문장은 예시입니다. 로그인 후 입력하신 사주와 시험 정보로 다시 계산합니다.');
+      return;
+    }
 
     const heroCopy = root.querySelector('.hero .copy');
     if (heroCopy) {
@@ -279,7 +325,10 @@
     const root = document.querySelector('#step-5-chat');
     if (!root) return;
     const report = await loadReport();
-    if (!report) return;
+    if (!report) {
+      if (needsLogin) renderLoginGate(root, '결과 목록은 로그인 후 내 사주 기준으로 만들어집니다.');
+      return;
+    }
     const list = root.querySelector('.list');
     if (!list) return;
 
@@ -301,7 +350,10 @@
     const root = document.querySelector('#step-6_1-report');
     if (!root) return;
     const report = await loadReport();
-    if (!report) return;
+    if (!report) {
+      if (needsLogin) renderLoginGate(root, '상세 풀이는 로그인 후 내 사주 기준으로 열립니다.');
+      return;
+    }
 
     const wanted = window.location.hash.replace('#', '') || sessionGet(STORAGE.selectedSection);
     const section = report.sections.find((item) => item.id === wanted) || report.sections[0];

@@ -1,4 +1,4 @@
-import '../env/load.js'
+import { configuredEnv } from '../env/load.js'
 import { Pool } from 'pg'
 
 export type PaymentOrderStatus = 'ready' | 'approving' | 'paid' | 'viewed' | 'cancelled' | 'failed'
@@ -25,7 +25,7 @@ export interface PaymentOrder {
 
 export type PaymentStorageMode = 'postgres' | 'supabase' | 'memory'
 
-const connectionString = process.env.DATABASE_URL
+const connectionString = configuredEnv(process.env.DATABASE_URL)
 const pool = connectionString
   ? new Pool({
       connectionString,
@@ -33,7 +33,7 @@ const pool = connectionString
     })
   : null
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
+const supabaseServiceRoleKey = configuredEnv(process.env.SUPABASE_SERVICE_ROLE_KEY) ?? ''
 const supabaseRestUrl = supabaseUrl
   ? `${supabaseUrl.replace(/\/$/, '')}/rest/v1/cheongi_payment_orders`
   : ''

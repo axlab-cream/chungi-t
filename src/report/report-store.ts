@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import '../env/load.js'
+import { configuredEnv } from '../env/load.js'
 import { Pool } from 'pg'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
 import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
@@ -28,7 +28,7 @@ export interface ReportOwner {
   accessToken?: string
 }
 
-const connectionString = process.env.DATABASE_URL
+const connectionString = configuredEnv(process.env.DATABASE_URL)
 const pool = connectionString
   ? new Pool({
       connectionString,

@@ -1,4 +1,4 @@
-import '../env/load.js'
+import { configuredEnv } from '../env/load.js'
 import { createHash } from 'node:crypto'
 import type { PaymentOrder } from './order-store.js'
 
@@ -48,8 +48,8 @@ function envValue(value: string | undefined, fallback: string): string {
 
 function config(): InicisConfig {
   const publicBaseUrl = envValue(process.env.PUBLIC_BASE_URL, 'https://umsh.kr').replace(/\/$/, '')
-  const mid = process.env.INICIS_MID?.trim() ?? ''
-  const signKey = process.env.INICIS_SIGNKEY?.trim() ?? ''
+  const mid = configuredEnv(process.env.INICIS_MID) ?? ''
+  const signKey = configuredEnv(process.env.INICIS_SIGNKEY) ?? ''
   return { mid, signKey, publicBaseUrl, enabled: Boolean(mid && signKey) }
 }
 
