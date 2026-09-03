@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>우리 둘, 진짜 잘 맞아? | 상세 풀이</title>
+  <meta name="description" content="커플궁합 상세 풀이에서 선택한 항목의 결론, 근거, 현실 모습, 지금 할 행동을 확인합니다." />
+  <meta name="application-name" content="운명상회" />
+  <meta name="apple-mobile-web-app-title" content="우리 둘, 진짜 잘 맞아?" />
+  <meta property="og:title" content="우리 둘, 진짜 잘 맞아? | 상세 풀이" />
+  <meta property="og:description" content="선택한 커플궁합 항목을 결론, 근거, 행동으로 나눠 확인합니다." />
+  <meta property="og:site_name" content="운명상회" />
+  <meta property="og:url" content="https://match.umsh.kr/couple" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #061214;
+      --surface: rgba(9, 27, 30, 0.88);
+      --surface-2: rgba(255, 255, 255, 0.065);
+      --line: rgba(214, 252, 250, 0.15);
+      --line-strong: rgba(81, 225, 223, 0.42);
+      --text: #f7fffb;
+      --muted: #a9bec0;
+      --soft: #d9fbf7;
+      --cyan: #54e2df;
+      --teal: #0d8f95;
+      --coral: #ff806e;
+      --gold: #ecc66a;
+      --violet: #a8a5f6;
+      --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font);
+      letter-spacing: 0;
+      background:
+        linear-gradient(135deg, rgba(84, 226, 223, 0.12), transparent 34%),
+        linear-gradient(160deg, #061214 0%, #11282b 52%, #181d24 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(100%, 1160px);
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 62px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(5, 17, 19, 0.86);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #061214;
+      background: linear-gradient(135deg, var(--cyan), var(--coral));
+      font-weight: 950;
+    }
+
+    .brand span:last-child {
+      min-width: 0;
+    }
+
+    .brand small,
+    .eyebrow {
+      display: block;
+      color: var(--cyan);
+      font-size: 0.78rem;
+      font-weight: 850;
+      line-height: 1.2;
+    }
+
+    .brand strong {
+      display: block;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 1rem;
+      line-height: 1.22;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .icon-button,
+    .text-button {
+      min-height: 40px;
+      border-radius: 999px;
+      color: var(--soft);
+      background: rgba(255, 255, 255, 0.075);
+      border: 1px solid rgba(214, 252, 250, 0.13);
+    }
+
+    .icon-button {
+      width: 40px;
+      display: grid;
+      place-items: center;
+    }
+
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 13px;
+      font-size: 0.9rem;
+      font-weight: 850;
+    }
+
+    .text-button.primary {
+      color: #061214;
+      background: var(--soft);
+      border-color: transparent;
+    }
+
+    .icon-button:focus-visible,
+    .text-button:focus-visible,
+    .section-nav button:focus-visible,
+    .related-card:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    .rail,
+    .content-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(6, 18, 20, 0.72);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+    }
+
+    .rail {
+      position: sticky;
+      top: 92px;
+      max-height: calc(100vh - 110px);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .rail-head {
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .rail-head h2 {
+      margin: 4px 0 7px;
+      font-size: 1.1rem;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .rail-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .section-nav {
+      overflow-y: auto;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .section-nav button {
+      width: 100%;
+      min-height: 42px;
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      text-align: left;
+      color: var(--soft);
+      background: transparent;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      line-height: 1.25;
+    }
+
+    .section-nav button span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .section-nav button.is-active {
+      color: #061214;
+      background: var(--cyan);
+      border-color: transparent;
+      font-weight: 850;
+    }
+
+    .section-nav button.is-active span {
+      color: rgba(6, 18, 20, 0.7);
+    }
+
+    .content-panel {
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: clamp(22px, 4vw, 38px);
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(84, 226, 223, 0.18), transparent 42%),
+        linear-gradient(160deg, rgba(255, 128, 110, 0.12), transparent 48%),
+        rgba(9, 27, 30, 0.82);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(210px, 300px);
+      gap: 24px;
+      align-items: end;
+    }
+
+    .hero h1 {
+      margin: 8px 0 12px;
+      font-size: clamp(2rem, 4.5vw, 4.2rem);
+      line-height: 1.03;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0;
+      color: var(--soft);
+      font-size: 1rem;
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    .hero-card {
+      border-radius: var(--radius);
+      padding: 15px;
+      border: 1px solid rgba(214, 252, 250, 0.18);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .hero-card b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--gold);
+      font-size: 0.92rem;
+    }
+
+    .hero-card ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .hero-card li {
+      display: flex;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .hero-card li::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      margin-top: 8px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+
+    .status-panel {
+      margin: 18px;
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 128, 110, 0.32);
+      background: rgba(255, 128, 110, 0.11);
+    }
+
+    .status-panel h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
+    .status-panel p {
+      margin: 0 0 14px;
+      color: var(--soft);
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    .body {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .block {
+      border-radius: var(--radius);
+      border: 1px solid rgba(214, 252, 250, 0.14);
+      background: var(--surface-2);
+      padding: 18px;
+    }
+
+    .block h2 {
+      margin: 0 0 9px;
+      font-size: 1.22rem;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    .block p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 1rem;
+      line-height: 1.75;
+      word-break: keep-all;
+    }
+
+    .basis-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+    }
+
+    .basis-table th,
+    .basis-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(214, 252, 250, 0.11);
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+
+    .basis-table th {
+      color: var(--cyan);
+      font-size: 0.84rem;
+      background: rgba(84, 226, 223, 0.08);
+    }
+
+    .basis-table td {
+      color: var(--soft);
+    }
+
+    .action-list,
+    .caution-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .action-list li,
+    .caution-list li {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 9px;
+      align-items: start;
+      color: var(--soft);
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .action-list span,
+    .caution-list span {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #061214;
+      background: var(--cyan);
+      font-size: 0.82rem;
+      font-weight: 950;
+    }
+
+    .caution-list span {
+      background: var(--gold);
+    }
+
+    .evidence-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      min-height: 31px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 0 10px;
+      color: var(--gold);
+      background: rgba(236, 198, 106, 0.1);
+      border: 1px solid rgba(236, 198, 106, 0.18);
+      font-size: 0.82rem;
+      font-weight: 850;
+    }
+
+    .related {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .related-card {
+      min-height: 84px;
+      border-radius: var(--radius);
+      padding: 13px;
+      border: 1px solid rgba(214, 252, 250, 0.14);
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--text);
+    }
+
+    .related-card small {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .related-card b {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.3;
+    }
+
+    .bottom-nav {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 20px;
+      border-top: 1px solid var(--line);
+      background: rgba(5, 17, 19, 0.86);
+      backdrop-filter: blur(16px);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(18px);
+      z-index: 30;
+      max-width: min(92vw, 440px);
+      padding: 12px 14px;
+      border-radius: 999px;
+      color: #061214;
+      background: var(--soft);
+      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.38);
+      font-weight: 850;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        display: block;
+        padding: 0;
+      }
+
+      .topbar {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+      }
+
+      .rail {
+        position: relative;
+        top: auto;
+        max-height: none;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        box-shadow: none;
+      }
+
+      .section-nav {
+        display: flex;
+        overflow-x: auto;
+        padding: 10px 14px;
+      }
+
+      .section-nav button {
+        flex: 0 0 170px;
+      }
+
+      .content-panel {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        box-shadow: none;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 24px 16px;
+      }
+
+      .body {
+        padding: 14px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .text-button.hide-mobile {
+        display: none;
+      }
+
+      .related {
+        grid-template-columns: 1fr;
+      }
+
+      .basis-table,
+      .basis-table tbody,
+      .basis-table tr,
+      .basis-table td,
+      .basis-table th {
+        display: block;
+        width: 100%;
+      }
+
+      .basis-table thead {
+        display: none;
+      }
+
+      .basis-table td {
+        padding: 9px 10px;
+      }
+
+      .basis-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 3px;
+        color: var(--cyan);
+        font-size: 0.76rem;
+        font-weight: 850;
+      }
+
+      .bottom-nav {
+        padding: 11px 14px;
+      }
+    }
+  
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .couple-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .couple-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .couple-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .couple-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+<body data-umsh-chrome data-service="커플궁합" data-price="19,900원" data-active="home">
+  <main class="shell" id="step-6_1-report" aria-label="커플궁합 상세 풀이">
+    <header class="appbar topbar">
+      <a class="brand" href="../05-step-5-chat/chat.html#step-5-chat" id="brand-back" aria-label="전체 목차로 돌아가기">
+        <span class="brand-mark" aria-hidden="true">둘</span>
+        <span>
+          <small>커플궁합 상세</small>
+          <strong id="top-title">우리 둘, 진짜 잘 맞아?</strong>
+        </span>
+      </a>
+      <div class="top-actions">
+        <button class="icon-button" type="button" id="btn-back" aria-label="전체 목차로">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="text-button hide-mobile" type="button" id="btn-copy">질문 저장</button>
+        <button class="text-button primary" type="button" id="btn-list">목차</button>
+      </div>
+    </header>
+
+    <aside class="rail" aria-label="상세 항목 이동">
+      <div class="rail-head">
+        <span class="eyebrow" id="rail-eyebrow">전체 항목</span>
+        <h2 id="rail-title">목차 안에서 이동</h2>
+        <p id="rail-desc">선택한 대분류 안의 다른 항목도 바로 열 수 있어요.</p>
+      </div>
+      <nav class="section-nav" id="section-nav"></nav>
+    </aside>
+
+    <section class="content-panel" aria-live="polite">
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow" id="detail-group">관계 총평</span>
+            <h1 id="detail-title">케미 한 줄</h1>
+            <p id="detail-conclusion">두 사람의 케미를 한 문장으로 압축해 봅니다.</p>
+          </div>
+          <aside class="hero-card" aria-label="읽는 순서">
+            <b>읽는 순서</b>
+            <ul>
+              <li>결론을 먼저 보고 근거를 나눠 확인</li>
+              <li>현실에서 보이는 장면으로 연결</li>
+              <li>오늘 할 행동과 주의할 선택 정리</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section id="status-root"></section>
+      <section class="body" id="detail-body"></section>
+
+      <nav class="bottom-nav" aria-label="이전 다음 상세 항목">
+        <button class="text-button" type="button" id="btn-prev">이전 항목</button>
+        <button class="text-button primary" type="button" id="btn-next">다음 항목</button>
+      </nav>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="application/json" id="PROMPT_INPUT">{"stage":"06-step-6_1-report-detail","service_title":"우리 둘, 진짜 잘 맞아?","category":"커플궁합","section_policy":"render_only_section_id_from_step05_report_index","domain":"match.umsh.kr/couple","price_krw":19900}</script>
+  <script type="application/json" id="RAG_EVIDENCE">{"source":"detail-data.js","path":"window.COUPLE_MATCH_DETAIL_DATA.evidence"}</script>
+  <script type="application/json" id="IMAGE_MANIFEST">[]</script>
+  <script type="application/json" id="QA_RESULT">{"stage":"06-step-6_1-report-detail","status":"ready_for_review","scope_mismatch":false}</script>
+  <script src="../06-detail-data.js"></script>
+  <script>
+    const DATA = window.COUPLE_MATCH_DETAIL_DATA;
+    const FLAT = DATA.report_index.groups.flatMap((group) => group.items.map((item) => ({ ...item, group })));
+    const SECTION_MAP = new Map(FLAT.map((entry, index) => [entry.section_id, { ...entry, index }]));
+    const DETAIL_MAP = DATA.detail_sections;
+    const ROUTES = {
+      list: "../05-step-5-chat/chat.html#step-5-chat",
+      input: "../02-step-2-saju-input/index.html#step-2-saju-input",
+      report: "../04-step-4-report/index.html#step-4-report"
+    };
+
+    const dom = {
+      topTitle: document.getElementById("top-title"),
+      nav: document.getElementById("section-nav"),
+      railEyebrow: document.getElementById("rail-eyebrow"),
+      railTitle: document.getElementById("rail-title"),
+      railDesc: document.getElementById("rail-desc"),
+      group: document.getElementById("detail-group"),
+      title: document.getElementById("detail-title"),
+      conclusion: document.getElementById("detail-conclusion"),
+      statusRoot: document.getElementById("status-root"),
+      body: document.getElementById("detail-body"),
+      toast: document.getElementById("toast"),
+      prev: document.getElementById("btn-prev"),
+      next: document.getElementById("btn-next")
+    };
+
+    let toastTimer = 0;
+
+    function readJson(key) {
+      try {
+        const value = sessionStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function getContext() {
+      return {
+        reportContext: readJson("umsh:couple-match:report-context"),
+        inputPayload: readJson("umsh:couple-match:input")
+      };
+    }
+
+    function pairLabel(inputPayload) {
+      const selfName = inputPayload?.subjects?.self?.display_name?.trim() || "나";
+      const partnerName = inputPayload?.subjects?.partner?.display_name?.trim() || "상대";
+      return `${selfName} × ${partnerName}`;
+    }
+
+    function readServerEntitlement(context) {
+      const injected = window.__UMSH_SERVER_ENTITLEMENT__;
+      const reportId = context.reportContext?.report_id || context.reportContext?.reportId || "";
+      const serviceKey = context.reportContext?.service_key || "couple_match";
+      if (!injected || typeof injected !== "object") return false;
+      return Boolean(
+        injected.verified === true &&
+        injected.signature_valid === true &&
+        injected.owner_verified === true &&
+        injected.entitled === true &&
+        injected.service_key === serviceKey &&
+        (!reportId || injected.report_id === reportId)
+      );
+    }
+
+    function isLocalReview() {
+      return window.location.protocol === "file:";
+    }
+
+    function canRender(context) {
+      return isLocalReview() || readServerEntitlement(context);
+    }
+
+    function screenState(context) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("status") === "generating") return "generating";
+      if (params.get("status") === "network-error") return "network_error";
+      if (!context.reportContext && !context.inputPayload && !isLocalReview()) return "missing";
+      const requestedReportId = params.get("reportId");
+      const currentReportId = context.reportContext?.report_id || context.reportContext?.reportId || "";
+      if (requestedReportId && currentReportId && requestedReportId !== currentReportId) return "wrong_report";
+      if (!canRender(context)) return "no_entitlement";
+      return "ready";
+    }
+
+    function requestedSectionId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("section") || sessionStorage.getItem("umsh:couple-match:last-detail-section") || DATA.render_contract.default_section;
+    }
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      dom.toast.textContent = message;
+      dom.toast.classList.add("is-visible");
+      toastTimer = window.setTimeout(() => dom.toast.classList.remove("is-visible"), 2400);
+    }
+
+    function goList(sectionId = requestedSectionId()) {
+      try {
+        sessionStorage.setItem("umsh:couple-match:return-section", sectionId);
+      } catch (error) {
+        /* session storage may be unavailable in strict browser modes */
+      }
+      window.location.href = ROUTES.list;
+    }
+
+    function goSection(sectionId, replace = false) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("section", sectionId);
+      url.hash = "step-6_1-report";
+      if (replace) {
+        history.replaceState({ sectionId }, "", url);
+      } else {
+        history.pushState({ sectionId }, "", url);
+      }
+      try {
+        sessionStorage.setItem("umsh:couple-match:last-detail-section", sectionId);
+      } catch (error) {
+        /* keep navigation working without storage */
+      }
+      render();
+      document.getElementById("step-6_1-report").scrollIntoView({ block: "start" });
+    }
+
+    function renderNav(activeEntry) {
+      const groupItems = FLAT.filter((entry) => entry.group.id === activeEntry.group.id);
+      dom.nav.innerHTML = groupItems.map((entry) => `
+        <button type="button" class="${entry.section_id === activeEntry.section_id ? "is-active" : ""}" data-section="${entry.section_id}">
+          ${entry.title}
+          <span>${entry.group.title}</span>
+        </button>
+      `).join("");
+      dom.nav.querySelectorAll("[data-section]").forEach((button) => {
+        button.addEventListener("click", () => goSection(button.dataset.section));
+      });
+      dom.railEyebrow.textContent = activeEntry.group.title;
+      dom.railTitle.textContent = "같은 대분류";
+      dom.railDesc.textContent = "이전 화면의 대분류 안에서 항목을 바꿔 볼 수 있어요.";
+    }
+
+    function statusCopy(state) {
+      return {
+        missing: {
+          title: "리포트 정보를 먼저 불러와야 해요",
+          body: "두 사람 정보를 입력하고 무료 요약을 거친 뒤 상세 풀이를 이어서 볼 수 있어요.",
+          primary: "두 사람 정보 입력",
+          primaryHref: ROUTES.input,
+          secondary: "무료 요약",
+          secondaryHref: ROUTES.report
+        },
+        generating: {
+          title: "상세 풀이를 정리하는 중이에요",
+          body: "결제가 중복되지 않도록 현재 리포트 상태를 유지합니다. 잠시 뒤 다시 확인해 주세요.",
+          primary: "목차로 돌아가기",
+          primaryHref: ROUTES.list,
+          secondary: "무료 요약",
+          secondaryHref: ROUTES.report
+        },
+        network_error: {
+          title: "연결이 잠깐 불안정해요",
+          body: "마지막으로 확인된 구조를 유지했습니다. 상세 본문은 상태 확인 뒤 이어서 열어주세요.",
+          primary: "목차로 돌아가기",
+          primaryHref: ROUTES.list,
+          secondary: "무료 요약",
+          secondaryHref: ROUTES.report
+        },
+        wrong_report: {
+          title: "이 리포트로는 열 수 없어요",
+          body: "현재 보관된 리포트와 요청한 리포트가 달라요. 목차에서 다시 들어오면 안전하게 이어집니다.",
+          primary: "목차로 돌아가기",
+          primaryHref: ROUTES.list,
+          secondary: "새 분석",
+          secondaryHref: ROUTES.input
+        },
+        no_entitlement: {
+          title: "전체 풀이 확인이 필요해요",
+          body: "무료 요약 이후의 상세 본문은 이용 상태 확인이 끝난 뒤 열 수 있어요.",
+          primary: "무료 요약으로",
+          primaryHref: ROUTES.report,
+          secondary: "목차",
+          secondaryHref: ROUTES.list
+        }
+      }[state];
+    }
+
+    function renderStatus(state) {
+      const copy = statusCopy(state);
+      if (!copy) {
+        dom.statusRoot.innerHTML = "";
+        return;
+      }
+      dom.statusRoot.innerHTML = `
+        <section class="status-panel">
+          <h2>${copy.title}</h2>
+          <p>${copy.body}</p>
+          <div class="top-actions">
+            <a class="text-button primary" href="${copy.primaryHref}">${copy.primary}</a>
+            <a class="text-button" href="${copy.secondaryHref}">${copy.secondary}</a>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderBlock(block) {
+      if (block.type === "table") {
+        const rows = block.data.rows.map((row) => `
+          <tr>
+            <td data-label="구분">${row.label}</td>
+            <td data-label="현재 상태">${row.value}</td>
+            <td data-label="해석에 쓰는 방식">${row.source_key === "evidence_ids" ? "자료 문장과 직접 연결" : "계산값과 함께 확인"}</td>
+          </tr>
+        `).join("");
+        return `
+          <article class="block">
+            <h2>${block.title}</h2>
+            <p>${block.content}</p>
+            <table class="basis-table">
+              <thead>
+                <tr>${block.data.columns.map((column) => `<th>${column}</th>`).join("")}</tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </article>
+        `;
+      }
+      if (block.type === "action") {
+        return `
+          <article class="block">
+            <h2>${block.title}</h2>
+            <p>${block.content}</p>
+            <ol class="action-list">
+              ${block.data.actions.map((action, index) => `<li><span>${index + 1}</span><b>${action}</b></li>`).join("")}
+            </ol>
+          </article>
+        `;
+      }
+      return `
+        <article class="block">
+          <h2>${block.title}</h2>
+          <p>${block.content}</p>
+          <div class="evidence-chips">
+            <span class="chip">자료 연결</span>
+            <span class="chip">입력값 확인</span>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderRelated(detail) {
+      return `
+        <article class="block">
+          <h2>연관 항목</h2>
+          <div class="related">
+            ${detail.related_sections.map((section) => `
+              <button class="related-card" type="button" data-related="${section.section_id}">
+                <small>${section.relation === "previous" ? "이전" : "다음"}</small>
+                <b>${section.title}</b>
+              </button>
+            `).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderDetail(entry, detail, state, context) {
+      dom.topTitle.textContent = `${pairLabel(context.inputPayload)} 리포트`;
+      dom.group.textContent = entry.group.title;
+      dom.title.textContent = detail.title;
+      dom.conclusion.textContent = state === "ready" ? detail.conclusion : "이 항목은 이용 상태 확인 뒤 이어서 열립니다.";
+      renderNav(entry);
+
+      const prev = detail.related_sections.find((section) => section.relation === "previous");
+      const next = detail.related_sections.find((section) => section.relation === "next");
+      dom.prev.onclick = () => goSection(prev.section_id);
+      dom.next.onclick = () => goSection(next.section_id);
+
+      if (state !== "ready") {
+        renderStatus(state);
+        dom.body.innerHTML = "";
+        return;
+      }
+
+      renderStatus("");
+      dom.body.innerHTML = detail.interpretation_blocks.map(renderBlock).join("") + renderRelated(detail);
+      dom.body.querySelectorAll("[data-related]").forEach((button) => {
+        button.addEventListener("click", () => goSection(button.dataset.related));
+      });
+    }
+
+    function renderMissingSection(sectionId, context) {
+      dom.topTitle.textContent = `${pairLabel(context.inputPayload)} 리포트`;
+      dom.group.textContent = "항목 확인";
+      dom.title.textContent = "목차에 없는 항목이에요";
+      dom.conclusion.textContent = "상세 풀이는 05 목차에 있는 항목만 열 수 있어요. 목차에서 다시 선택해 주세요.";
+      dom.nav.innerHTML = "";
+      dom.statusRoot.innerHTML = `
+        <section class="status-panel">
+          <h2>항목을 다시 선택해 주세요</h2>
+          <p>요청한 값은 현재 리포트 목차 안에서 찾을 수 없어요.</p>
+          <div class="top-actions">
+            <button class="text-button primary" type="button" id="btn-default-section">첫 항목 보기</button>
+            <button class="text-button" type="button" id="btn-missing-list">목차로 돌아가기</button>
+          </div>
+        </section>
+      `;
+      dom.body.innerHTML = "";
+      document.getElementById("btn-default-section").addEventListener("click", () => goSection(DATA.render_contract.default_section, true));
+      document.getElementById("btn-missing-list").addEventListener("click", () => goList(sectionId));
+    }
+
+    function render() {
+      const context = getContext();
+      const state = screenState(context);
+      const sectionId = requestedSectionId();
+      const entry = SECTION_MAP.get(sectionId);
+      const detail = DETAIL_MAP[sectionId];
+      if (!entry || !detail) {
+        renderMissingSection(sectionId, context);
+        return;
+      }
+      renderDetail(entry, detail, state, context);
+    }
+
+    document.getElementById("btn-back").addEventListener("click", () => goList());
+    document.getElementById("btn-list").addEventListener("click", () => goList());
+    document.getElementById("brand-back").addEventListener("click", (event) => {
+      event.preventDefault();
+      goList();
+    });
+    document.getElementById("btn-copy").addEventListener("click", () => {
+      const sectionId = requestedSectionId();
+      const detail = DETAIL_MAP[sectionId];
+      const text = detail ? `${detail.group_title} > ${detail.title}: ${detail.question}` : "커플궁합 상세 질문";
+      navigator.clipboard?.writeText(text).then(
+        () => showToast("질문을 저장했어요."),
+        () => showToast("복사 대신 화면에서 질문을 확인해 주세요.")
+      );
+    });
+
+    window.addEventListener("popstate", render);
+    render();
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/couple-service.js" defer></script>
+  </body>
+</html>

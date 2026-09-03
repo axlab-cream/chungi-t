@@ -95,7 +95,8 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '커플궁합',
     eyebrow: 'MATCH · 대표 궁합',
     amount: 19900,
-    returnPath: '/match/couple',
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/match/couple/04-step-4-report/index.html',
     summary: '명리궁합, 오행, 일지로 둘의 끌림과 갈등을 봅니다.',
   },
   love_mind: {

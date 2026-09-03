@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#051013">
+  <meta name="description" content="우리 둘의 관계 총평, 띠와 지지 궁합, 오행 케미, 소통 리듬, 갈등 패턴, 오늘의 관계 액션을 살펴보는 커플궁합 인트로입니다.">
+  <title>우리 둘, 진짜 잘 맞아? | 운명상회 커플궁합</title>
+  <style>
+    @font-face {
+      font-family: "Pretendard";
+      src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "MaruBuri";
+      src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --ink: #f8fffb;
+      --muted: #b7cbc9;
+      --soft: #d9f8f3;
+      --deep: #051013;
+      --panel: rgba(5, 16, 19, 0.72);
+      --line: rgba(191, 239, 242, 0.2);
+      --teal: #16b5bc;
+      --teal-deep: #0f7f86;
+      --coral: #ff7a66;
+      --mint: #80f1dc;
+      --gold: #f1c76b;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.34);
+      --radius: 8px;
+      --content: min(100%, 560px);
+      font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--deep);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(22, 181, 188, 0.24), transparent 34rem),
+        linear-gradient(180deg, #061013 0%, #071a1c 44%, #020607 100%);
+      color: var(--ink);
+      letter-spacing: 0;
+      padding-bottom: 92px;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: 16px;
+      z-index: 40;
+      transform: translateY(-160%);
+      background: var(--ink);
+      color: var(--deep);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 14px;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 30;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      padding: max(14px, env(safe-area-inset-top)) 14px 0;
+    }
+
+    .topbar-inner {
+      width: var(--content);
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(3, 12, 14, 0.62);
+      backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      padding: 10px 12px;
+      pointer-events: auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-size: 13px;
+      color: var(--soft);
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, var(--ink) 0 18%, transparent 19%),
+        conic-gradient(from 180deg, var(--teal), var(--coral), var(--gold), var(--teal));
+      box-shadow: 0 0 18px rgba(22, 181, 188, 0.44);
+      flex: 0 0 auto;
+    }
+
+    .stage-pill {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: #e9fffb;
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 12px;
+    }
+
+    .page {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .hero,
+    .story-scene {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      isolation: isolate;
+      background: #061113;
+    }
+
+    .scene-media {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: -3;
+      background: linear-gradient(135deg, #0c3d42, #050b0d);
+    }
+
+    .hero .scene-media {
+      object-position: 50% 42%;
+    }
+
+    .story-scene[data-scene="empathy"] .scene-media {
+      object-position: 50% 38%;
+    }
+
+    .story-scene[data-scene="loop"] .scene-media {
+      object-position: 50% 45%;
+    }
+
+    .story-scene[data-scene="basis"] .scene-media,
+    .story-scene[data-scene="preview"] .scene-media {
+      object-position: 50% 34%;
+    }
+
+    .story-scene[data-scene="cta"] .scene-media {
+      object-position: 50% 45%;
+    }
+
+    .scrim {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(180deg, rgba(1, 7, 8, 0.16) 0%, rgba(1, 7, 8, 0.12) 34%, rgba(1, 7, 8, 0.86) 100%),
+        linear-gradient(90deg, rgba(2, 9, 11, 0.82) 0%, rgba(2, 9, 11, 0.24) 46%, rgba(2, 9, 11, 0.76) 100%);
+    }
+
+    .story-scene::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 36%;
+      z-index: -1;
+      background: linear-gradient(180deg, transparent, rgba(2, 7, 8, 0.94));
+    }
+
+    .copy {
+      width: var(--content);
+      padding: 112px 20px 46px;
+    }
+
+    .hero .copy {
+      padding-top: 138px;
+      padding-bottom: 54px;
+    }
+
+    .eyebrow,
+    .scene-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      border: 1px solid rgba(191, 239, 242, 0.22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(3, 12, 14, 0.48);
+      color: var(--mint);
+      font-size: 12px;
+      line-height: 1.2;
+      box-shadow: 0 0 22px rgba(22, 181, 188, 0.14);
+    }
+
+    h1,
+    h2 {
+      margin: 14px 0 0;
+      font-family: "MaruBuri", "Pretendard", serif;
+      line-height: 1.04;
+      letter-spacing: 0;
+      text-wrap: balance;
+      word-break: keep-all;
+    }
+
+    h1 {
+      max-width: 10ch;
+      font-size: clamp(44px, 13vw, 72px);
+    }
+
+    h2 {
+      max-width: 12ch;
+      font-size: clamp(34px, 10vw, 54px);
+    }
+
+    p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: clamp(16px, 4.2vw, 19px);
+      line-height: 1.68;
+      word-break: keep-all;
+    }
+
+    .lead {
+      max-width: 31ch;
+      color: #e6faf6;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.52);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .chip {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: #e9fffb;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .price-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+
+    .price-line strong {
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .button,
+    .button-secondary,
+    .sticky-button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      padding: 0 16px;
+      font-size: 15px;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .button,
+    .sticky-button {
+      background: var(--coral);
+      color: #240806;
+      box-shadow: 0 12px 28px rgba(255, 122, 102, 0.24);
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f2fffc;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .button:hover,
+    .button-secondary:hover,
+    .sticky-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.34);
+    }
+
+    .button:focus-visible,
+    .button-secondary:focus-visible,
+    .sticky-button:focus-visible {
+      outline: 2px solid var(--mint);
+      outline-offset: 3px;
+    }
+
+    .moment-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .moment-list li {
+      border-left: 2px solid var(--coral);
+      background: rgba(5, 16, 19, 0.52);
+      padding: 10px 12px;
+      color: #edfdfa;
+      line-height: 1.52;
+      font-size: 14px;
+    }
+
+    .basis-grid,
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .basis-item,
+    .feature-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(3, 12, 14, 0.62);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .basis-item b,
+    .feature-card b {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .basis-item span,
+    .feature-card span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .feature-card {
+      min-height: 124px;
+      box-shadow: none;
+    }
+
+    .feature-card:nth-child(1) {
+      border-color: rgba(255, 122, 102, 0.36);
+    }
+
+    .feature-card:nth-child(3) {
+      border-color: rgba(128, 241, 220, 0.32);
+    }
+
+    .feature-card:nth-child(6) {
+      border-color: rgba(241, 199, 107, 0.34);
+    }
+
+    .teaser-band {
+      margin-top: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius);
+      background: rgba(248, 255, 251, 0.08);
+      padding: 14px;
+    }
+
+    .teaser-band strong {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .teaser-band span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+      word-break: keep-all;
+    }
+
+    .sticky-cta {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 35;
+      display: flex;
+      justify-content: center;
+      padding: 10px 14px max(10px, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(5, 16, 19, 0), rgba(5, 16, 19, 0.92) 20%, rgba(5, 16, 19, 0.98));
+    }
+
+    .sticky-inner {
+      width: var(--content);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: rgba(4, 14, 16, 0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.26);
+    }
+
+    .sticky-copy {
+      min-width: 0;
+      color: #e9fffb;
+      font-size: 13px;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .sticky-copy small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .sticky-button {
+      min-height: 42px;
+      padding: 0 13px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .footer-note {
+      width: var(--content);
+      margin: 0 auto;
+      padding: 28px 20px 46px;
+      color: #8aa4a1;
+      font-size: 12px;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    @media (min-width: 760px) {
+      body {
+        background:
+          radial-gradient(circle at 18% 10%, rgba(22, 181, 188, 0.22), transparent 40rem),
+          radial-gradient(circle at 80% 70%, rgba(255, 122, 102, 0.12), transparent 34rem),
+          #031012;
+      }
+
+      .hero,
+      .story-scene {
+        min-height: 760px;
+      }
+
+      .copy {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .button,
+      .button-secondary,
+      .sticky-button {
+        transition: none;
+      }
+    }
+  
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .couple-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .couple-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .couple-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .couple-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+<body data-umsh-chrome data-service="커플궁합" data-price="19,900원" data-active="home">
+  <a class="skip-link" href="#scene-preview">결과 미리보기로 이동</a>
+
+  <header class="appbar topbar" aria-label="서비스 상단">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="운명상회">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>운명상회</span>
+      </div>
+      <span class="stage-pill">01 · 커플궁합</span>
+    </div>
+  </header>
+
+  <main
+    id="step-1-story"
+    class="page"
+    data-service-key="couple_match"
+    data-service-slug="couple-match"
+    data-service-title="우리 둘, 진짜 잘 맞아?"
+    data-price-krw="19900"
+  >
+    <section class="hero" id="scene-hook" data-scene="hook" data-asset-key="couple-match-01-hook" aria-labelledby="hook-title">
+      <img class="scene-media" src="../assets/couple/01-scene-01-hook.webp" alt="청록빛 궁합 차트 앞에서 서로에게 끌리는 젊은 커플">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="eyebrow">명리궁합 · 오행 · 일지로 보는 관계 신호</span>
+        <h1 id="hook-title">우리 둘, 진짜 잘 맞아?</h1>
+        <p class="lead">좋아하는 마음만으로는 설명 안 되는 답장 온도, 충돌 버튼, 오래 가는 체력을 관계 흐름으로 먼저 살펴봅니다.</p>
+        <div class="chip-row" aria-label="분석 범위">
+          <span class="chip">관계 총평</span>
+          <span class="chip">띠/지지 궁합</span>
+          <span class="chip">오행 케미</span>
+          <span class="chip">소통 궁합</span>
+        </div>
+        <div class="price-line">
+          <span>전체 리포트</span>
+          <strong>19,900원</strong>
+        </div>
+        <div class="cta-row">
+          <a class="button js-start" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-cta="hero">내 궁합 신호 확인하기</a>
+          <a class="button-secondary" href="#scene-preview">뭐까지 보는지 보기</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-empathy" data-scene="empathy" data-asset-key="couple-match-01-empathy" aria-labelledby="empathy-title">
+      <img class="scene-media" src="../assets/couple/01-scene-02-empathy.webp" alt="휴대폰 화면을 함께 보며 답장 리듬을 신경 쓰는 젊은 커플">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">고민 공감</span>
+        <h2 id="empathy-title">좋은데, 왜 자꾸 신경 쓰이지?</h2>
+        <p>말투 하나, 답장 간격 하나에도 마음이 출렁일 때가 있습니다. 이 서비스는 감정과 확인할 사실을 나눠서 봅니다.</p>
+        <ul class="moment-list" aria-label="자주 생기는 관계 고민">
+          <li>먼저 연락하면 부담스러워 보일까 고민되는 순간</li>
+          <li>표현 속도는 다른데 마음까지 다른 건지 헷갈리는 순간</li>
+          <li>분위기는 좋은데 같은 포인트에서 반복해서 삐끗하는 순간</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-loop" data-scene="loop" data-asset-key="couple-match-01-loop" aria-labelledby="loop-title">
+      <img class="scene-media" src="../assets/couple/01-scene-03-loop.webp" alt="반복되는 관계 패턴을 상징하는 원형 궤도 속에 서 있는 커플">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">반복 상황</span>
+        <h2 id="loop-title">잘 맞는데 같은 데서 삐끗한다면</h2>
+        <p>끌림과 갈등은 따로 움직일 수 있습니다. 둘의 지지 관계, 오행의 주고받는 힘, 말투 온도를 함께 보며 반복 루프를 짚습니다.</p>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-basis" data-scene="basis" data-asset-key="couple-match-01-basis" aria-labelledby="basis-title">
+      <img class="scene-media" src="../assets/couple/01-scene-04-basis.webp" alt="추상적인 사주 차트와 오행 신호를 함께 보는 커플">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">이 서비스가 보는 기준</span>
+        <h2 id="basis-title">케미를 한쪽 감정으로만 보지 않습니다</h2>
+        <p>띠와 지지는 가까워지는 방식, 오행은 에너지를 주고받는 방향, 일지는 편안함과 부딪힘이 나오는 생활 감각으로 풀어냅니다.</p>
+        <div class="basis-grid" aria-label="해석 기준">
+          <div class="basis-item">
+            <b>띠/지지 궁합</b>
+            <span>찰떡, 무난, 거리 필요한 조합과 충돌 버튼을 구분합니다.</span>
+          </div>
+          <div class="basis-item">
+            <b>오행 케미</b>
+            <span>상생 텐션과 상극 텐션, 부족한 에너지 보완 포인트를 봅니다.</span>
+          </div>
+          <div class="basis-item">
+            <b>소통 리듬</b>
+            <span>말투 온도, 연락 속도, 싸울 때의 방어 패턴을 현실 언어로 바꿉니다.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-preview" data-scene="preview" data-asset-key="couple-match-01-preview" aria-labelledby="preview-title">
+      <img class="scene-media" src="../assets/couple/01-scene-05-preview.webp" alt="여섯 개의 궁합 결과 카드를 함께 확인하는 커플">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">이런 것까지 봅니다</span>
+        <h2 id="preview-title">처음엔 여섯 개만 선명하게</h2>
+        <p>처음 버전은 관계를 바로 이해하고 행동으로 옮기기 쉬운 항목부터 엽니다.</p>
+        <div class="feature-grid" aria-label="커플궁합 MVP 결과 항목">
+          <article class="feature-card">
+            <b>관계 총평</b>
+            <span>케미 한 줄, 그린라이트, 옐로포인트, 확인할 질문</span>
+          </article>
+          <article class="feature-card">
+            <b>띠/지지 궁합</b>
+            <span>찰떡 조합, 무난한 조합, 거리 필요한 조합, 충돌 버튼</span>
+          </article>
+          <article class="feature-card">
+            <b>오행 케미</b>
+            <span>상생 텐션, 상극 텐션, 에너지 충전과 소모 포인트</span>
+          </article>
+          <article class="feature-card">
+            <b>소통 궁합</b>
+            <span>말투 온도, 답장 리듬, 서운함 처리법, 화해 문장</span>
+          </article>
+          <article class="feature-card">
+            <b>갈등 리포트</b>
+            <span>반복 갈등 루프, 신뢰 흔들림, 선 넘는 순간</span>
+          </article>
+          <article class="feature-card">
+            <b>오늘의 관계 액션</b>
+            <span>오늘 연락 톤, 한 박자 늦추기, 나를 지키는 경계 문장</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-cta" data-scene="cta" data-asset-key="couple-match-01-cta" aria-labelledby="cta-title">
+      <img class="scene-media" src="../assets/couple/01-scene-06-cta.webp" alt="빛나는 문을 향해 함께 걸어가는 커플">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">무료 티저에서 입력 단계로</span>
+        <h2 id="cta-title">결론 대신, 지금 확인할 질문부터</h2>
+        <p>먼저 두 사람의 기본 신호를 입력하고, 결제 후 전체 리포트와 항목별 상세 풀이를 엽니다. 헤어짐이나 결혼 같은 선택은 단정하지 않습니다.</p>
+        <div class="teaser-band">
+          <strong>무료로 먼저 보는 것</strong>
+          <span>관계 질문 정리, 입력값 확인, 유료 리포트에서 열릴 핵심 항목 미리보기</span>
+        </div>
+        <div class="cta-row">
+          <a class="button js-start" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-cta="final">내 궁합 신호 확인하기</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <p class="footer-note">사주 기반 해석은 관계를 이해하기 위한 참고 도구입니다. 실제 선택은 두 사람이 나누는 대화, 안전, 존중, 현실 조건을 함께 보고 결정해야 합니다.</p>
+
+  <nav class="sticky-cta" aria-label="다음 단계 이동">
+    <div class="sticky-inner">
+      <div class="sticky-copy">
+        내 궁합 신호 확인하기
+        <small>두 사람 정보를 입력하고 무료 티저부터 확인</small>
+      </div>
+      <a class="sticky-button js-start" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-cta="sticky">입력하기</a>
+    </div>
+  </nav>
+
+  <script>
+    (function () {
+      var nextRoute = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      var serviceState = {
+        service_key: "couple_match",
+        service_slug: "couple-match",
+        service_title: "우리 둘, 진짜 잘 맞아?",
+        category: "커플궁합",
+        subcategory: "명리궁합",
+        price_krw: 19900,
+        service_url_hint: "https://match.umsh.kr/couple",
+        analysis_basis: ["명리궁합", "오행", "일지", "띠/지지 관계"],
+        report_version: "couple-match-r1",
+        copy_version: "step01-copy-v1",
+        entry_stage: "01-step-1-story"
+      };
+
+      function persistStartState(event) {
+        try {
+          var payload = Object.assign({}, serviceState, {
+            started_at: new Date().toISOString(),
+            cta: event.currentTarget.getAttribute("data-cta") || "unknown"
+          });
+          sessionStorage.setItem("umsh:pending-service", JSON.stringify(payload));
+          sessionStorage.setItem("umsh:couple-match:step1", JSON.stringify(payload));
+        } catch (error) {
+          document.documentElement.dataset.storageFallback = "true";
+        }
+      }
+
+      document.querySelectorAll(".js-start").forEach(function (link) {
+        link.setAttribute("href", nextRoute);
+        link.addEventListener("click", persistStartState);
+      });
+    })();
+  </script>
+
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "SERVICE_TITLE": "우리 둘, 진짜 잘 맞아?",
+  "SERVICE_DESCRIPTION": "두 사람의 관계 총평, 띠/지지 궁합, 오행 케미, 일지 기반 생활 감각, 소통 리듬, 갈등 루프, 오늘의 관계 액션을 살펴보는 커플궁합 서비스",
+  "SERVICE_CATEGORY": "커플궁합",
+  "SERVICE_PRICE_KRW": 19900,
+  "SERVICE_URL_HINT": "https://match.umsh.kr/couple",
+  "TARGET_AUDIENCE": "연애, 썸, 장기연애, 결혼 전 관계 흐름을 MZ 언어로 빠르게 확인하려는 사용자",
+  "INTERPRETATION_INDEX_SEED": [
+    {
+      "large": "관계 총평",
+      "middle": ["케미 한 줄", "그린라이트 포인트", "옐로포인트", "관계 유지 난이도", "지금 확인할 질문"]
+    },
+    {
+      "large": "띠/지지 궁합",
+      "middle": ["찰떡 조합", "무난한 조합", "거리 필요한 조합", "충돌 버튼", "결혼/동업 궁합"]
+    },
+    {
+      "large": "오행 케미",
+      "middle": ["상생 텐션", "상극 텐션", "에너지 충전형", "에너지 소모형", "부족한 오행 보완 포인트"]
+    },
+    {
+      "large": "일간 성향 싱크",
+      "middle": ["표현 속도", "감정 처리 방식", "애정 표현 스타일", "독립성/의존도", "관계에서 편해지는 조건"]
+    },
+    {
+      "large": "십성 관계 코드",
+      "middle": ["친구 같은 연애", "설렘/플러팅 코드", "현실 케어 코드", "책임/공식 관계 코드", "기대고 싶은 정서 코드"]
+    },
+    {
+      "large": "소통 궁합",
+      "middle": ["말투 온도", "답장/연락 리듬", "서운함 처리법", "싸울 때 방어 패턴", "화해 문장 추천"]
+    },
+    {
+      "large": "끌림/호감 포인트",
+      "middle": ["첫눈 텐션", "오래 볼수록 스며드는 매력", "도화/홍염식 매력", "편안함 포인트", "설렘 유지 버튼"]
+    },
+    {
+      "large": "갈등 리포트",
+      "middle": ["반복 갈등 루프", "경쟁심 포인트", "의사소통 장애", "신뢰 흔들림", "선 넘는 순간"]
+    },
+    {
+      "large": "연애 단계별 풀이",
+      "middle": ["썸 가능성", "고백 타이밍", "연애 초반 주의점", "장기연애 체력", "결혼 전 체크포인트"]
+    },
+    {
+      "large": "현실 궁합",
+      "middle": ["돈 쓰는 온도", "약속 지키는 방식", "일/사업 파트너십", "가족 기대치", "생활 루틴 맞춤"]
+    },
+    {
+      "large": "운 흐름 궁합",
+      "middle": ["올해 관계 온도", "이번 달 관계 리듬", "오늘 연락해도 되는 날", "충 있는 날 대화법", "관계 전환 타이밍"]
+    },
+    {
+      "large": "마음 돌봄",
+      "middle": ["확신과 불안 분리", "감정 이름 붙이기", "한 박자 늦추기", "거리두기 미션", "나를 지키는 경계 문장"]
+    },
+    {
+      "large": "결과 패키징",
+      "middle": ["우리 둘 케미 카드", "보완 퀘스트", "대화 미션", "데이트/연락 가이드", "헤어져/결혼해 단정 금지 안내"]
+    }
+  ],
+  "MVP_GROUPS": ["관계 총평", "띠/지지 궁합", "오행 케미", "소통 궁합", "갈등 리포트", "오늘의 관계 액션"]
+}
+  </script>
+
+  <script type="application/json" id="RAG_EVIDENCE">
+{
+  "retrieval_policy": "고객 화면에는 원문 출처와 내부 용어를 노출하지 않고, 화면 문구는 가능성·경향·행동 제안 수준으로만 사용합니다.",
+  "evidence": [
+    {
+      "evidence_id": "zip-궁합-qa-000228",
+      "source": "ZIP-궁합",
+      "locator": "pdf0020001 p.105",
+      "review_status": "unreviewed",
+      "takeaway": "띠 관계 해석에서 관계 안정성, 다툼, 결혼/동업, 신뢰, 의사소통을 함께 다룰 수 있음"
+    },
+    {
+      "evidence_id": "zip-궁합-qa-000230",
+      "source": "ZIP-궁합",
+      "locator": "pdf0020001 p.107",
+      "review_status": "unreviewed",
+      "takeaway": "공동 목표, 협력, 의사소통 장애, 성격 충돌, 이해와 애정을 관계 해석 축으로 사용할 수 있음"
+    },
+    {
+      "evidence_id": "zip-궁합-qa-000205",
+      "source": "ZIP-궁합",
+      "locator": "pdf0020001 p.81",
+      "review_status": "unreviewed",
+      "takeaway": "잘 맞는 조합과 지속 갈등, 의사소통 붕괴를 대비해 궁합 리스크를 설명할 수 있음"
+    },
+    {
+      "evidence_id": "zip-궁합-qa-000049",
+      "source": "ZIP-궁합",
+      "locator": "pdf0010001 p.58",
+      "review_status": "unreviewed",
+      "takeaway": "상호 이해와 사고방식의 유사성을 조합 해석의 친화 포인트로 사용할 수 있음"
+    },
+    {
+      "evidence_id": "item-10-p1-0071",
+      "source": "ITEM-10_사주 핵심 해석",
+      "locator": "일간 설명 항목",
+      "review_status": "cataloged",
+      "takeaway": "일간은 해석 기준점이며 단독으로 성격이나 결과를 단정하지 않음"
+    },
+    {
+      "evidence_id": "item-01-p1-0096",
+      "source": "ITEM-01_오늘의 기운",
+      "locator": "호감확신 액션 항목",
+      "review_status": "cataloged",
+      "takeaway": "끌림의 이유와 확인 가능한 사실을 나누고, 오늘 할 수 있는 확인 질문으로 연결함"
+    },
+    {
+      "evidence_id": "item-41-qa-0003",
+      "source": "ITEM-41_마음 돌봄 리포트",
+      "locator": "관계 대화 항목",
+      "review_status": "cataloged",
+      "takeaway": "관계 대화에서 느낀 것과 확인하고 싶은 것을 나누어 표현하는 방식을 권장함"
+    },
+    {
+      "evidence_id": "item-00-p1-g03",
+      "source": "ITEM-00_공통_RAG_플랫폼",
+      "locator": "공통 안전 샘플",
+      "review_status": "golden_sample",
+      "takeaway": "관계의 종료나 결혼 여부를 사주로 단정하지 않고, 선택은 사용자의 몫으로 둠"
+    }
+  ]
+}
+  </script>
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+[
+  {
+    "asset_key": "couple-match-01-hook",
+    "filename": "assets/generated/couple-match/01/01-scene-01-hook.webp",
+    "role": "hero",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["반실사 웹툰풍 커플", "블랙 재킷과 화이트 이너", "실버 헤어와 청록 림라이트", "차갑고 선명한 하이패션 조명"],
+    "prompt": "청록빛 궁합 차트 앞에서 서로에게 끌리는 젊은 커플, 이미지 안 텍스트 금지",
+    "alt": "청록빛 궁합 차트 앞에서 서로에게 끌리는 젊은 커플",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-hook'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-empathy",
+    "filename": "assets/generated/couple-match/01/01-scene-02-empathy.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["반실사 웹툰풍 커플", "블랙 재킷과 화이트 이너", "실버 헤어와 청록 림라이트", "차갑고 선명한 하이패션 조명"],
+    "prompt": "휴대폰 답장 리듬을 함께 보는 젊은 커플, 빈 말풍선만 사용, 이미지 안 텍스트 금지",
+    "alt": "휴대폰 화면을 함께 보며 답장 리듬을 신경 쓰는 젊은 커플",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-empathy'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-loop",
+    "filename": "assets/generated/couple-match/01/01-scene-03-loop.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["반실사 웹툰풍 커플", "블랙 재킷과 화이트 이너", "실버 헤어와 청록 림라이트", "차갑고 선명한 하이패션 조명"],
+    "prompt": "반복 갈등 루프를 원형 궤도와 연결선으로 표현한 커플, 이미지 안 텍스트 금지",
+    "alt": "반복되는 관계 패턴을 상징하는 원형 궤도 속에 서 있는 커플",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-loop'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-basis",
+    "filename": "assets/generated/couple-match/01/01-scene-04-basis.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["반실사 웹툰풍 커플", "블랙 재킷과 화이트 이너", "실버 헤어와 청록 림라이트", "차갑고 선명한 하이패션 조명"],
+    "prompt": "추상적인 사주 차트와 오행 신호를 함께 보는 커플, 이미지 안 텍스트 금지",
+    "alt": "추상적인 사주 차트와 오행 신호를 함께 보는 커플",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-basis'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-preview",
+    "filename": "assets/generated/couple-match/01/01-scene-05-preview.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["반실사 웹툰풍 커플", "블랙 재킷과 화이트 이너", "실버 헤어와 청록 림라이트", "차갑고 선명한 하이패션 조명"],
+    "prompt": "여섯 개의 추상 결과 카드를 함께 확인하는 커플, 카드 안 텍스트 금지",
+    "alt": "여섯 개의 궁합 결과 카드를 함께 확인하는 커플",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-preview'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-cta",
+    "filename": "assets/generated/couple-match/01/01-scene-06-cta.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["반실사 웹툰풍 커플", "블랙 재킷과 화이트 이너", "실버 헤어와 청록 림라이트", "차갑고 선명한 하이패션 조명"],
+    "prompt": "빛나는 입력 단계로 함께 걸어가는 커플, 이미지 안 텍스트 금지",
+    "alt": "빛나는 문을 향해 함께 걸어가는 커플",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-cta'] .scene-media"
+  }
+]
+  </script>
+
+  <script type="application/json" id="QA_RESULT">
+{
+  "stage": "01-step-1-story",
+  "status": "ready_for_review",
+  "scope_mismatch": false,
+  "checks": [
+    {
+      "item": "SERVICE_TITLE/SERVICE_CATEGORY/RAG basis alignment",
+      "status": "pass",
+      "note": "커플궁합, 명리궁합, 오행, 일지 중심으로 화면 문구와 장면을 구성했습니다."
+    },
+    {
+      "item": "INTERPRETATION_INDEX_SEED preservation",
+      "status": "pass",
+      "note": "전체 대분류/중분류는 PROMPT_INPUT에 보존했고, 01 화면은 사용자 지정 MVP 6개만 후킹 카드로 압축했습니다."
+    },
+    {
+      "item": "Customer-facing internal term exposure",
+      "status": "pass",
+      "note": "고객 화면에는 RAG, KMS, LLM, 내부 파일 경로를 노출하지 않았습니다."
+    },
+    {
+      "item": "CTA route",
+      "status": "pass",
+      "note": "모든 CTA가 ../02-step-2-saju-input/index.html#step-2-saju-input 로 연결됩니다."
+    },
+    {
+      "item": "Image generation and HTML usage",
+      "status": "pass",
+      "note": "6개 장면 이미지가 생성되어 HTML에서 각각 1:1로 참조됩니다."
+    },
+    {
+      "item": "Safety language",
+      "status": "pass",
+      "note": "결혼·이별을 단정하지 않고 가능성, 경향, 확인 질문 중심으로 표현했습니다."
+    }
+  ],
+  "notes": [
+    "현재 프로젝트에는 03 단계 폴더가 없고 공통 계약도 01 → 02 → 공통 로그인/결제 → 04 → 05 → 06_1 흐름을 기준으로 합니다.",
+    "ZIP-궁합 근거 일부는 unreviewed 상태이므로 운영 리포트의 직접 문장으로 쓰기 전 검수 대상입니다.",
+    "오늘의 관계 액션은 사용자가 지정한 MVP 범위에 맞춰 운 흐름 궁합과 마음 돌봄 항목을 01 화면용으로 통합한 명칭입니다."
+  ]
+}
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/couple-service.js" defer></script>
+  </body>
+</html>

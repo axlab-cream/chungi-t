@@ -5,6 +5,7 @@ import {
   buildCoupleMatchContext,
   buildCoupleMatchReport,
   createCoupleMatchReportId,
+  COUPLE_MATCH_TOC,
   parseCoupleMatchRequest,
 } from '../../src/match/couple-service.js'
 import type { BirthInput } from '../../src/types/index.js'
@@ -40,17 +41,40 @@ test('couple match service builds a dedicated compatibility report', () => {
   assert.equal(context.serviceKey, 'match_couple')
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '커플궁합 해석문')
-  assert.equal(report.sections.length, 21)
+  assert.equal(report.sections.length, 70)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
-    '처음엔 잘 맞는데, 왜 자꾸 엇갈리는가',
-    '사랑의 속도가 다른 데는 이유가 있습니다',
-    '일지는 숨겨 둔 연애 습관을 보여줍니다',
-    '오래 가는 커플은 싸우는 법이 다릅니다',
-    '우리 둘, 계속 가도 되는 관계인가',
+    '관계 총평',
+    '띠/지지 궁합',
+    '오행 케미',
+    '일간 성향 싱크',
+    '십성 관계 코드',
+    '소통 궁합',
+    '끌림/호감 포인트',
+    '갈등 리포트',
+    '연애 단계별 풀이',
+    '현실 궁합',
+    '운 흐름 궁합',
+    '마음 돌봄',
+    '결과 패키징',
+    '오늘의 관계 액션',
   ])
   assert.match(report.sections[0].interpretation, /오행|일지|궁합|관계/)
   assert.match(report.sections[0].interpretation, /김하나/)
   assert.match(report.sections[0].interpretation, /연락 속도와 빈도/)
+
+  // 05 목차 and 06 상세 route on the design's own section ids.
+  assert.equal(report.sections[0].id, 'relationship_overview__chemistry_one_line')
+  COUPLE_MATCH_TOC.forEach((group) => {
+    const owned = report.sections.filter((section) => group.items.some((item) => item.id === section.id))
+    assert.equal(owned.length, 5, `${group.id} 는 다섯 개의 중분류를 가져야 합니다`)
+    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    assert.equal(new Set(bodies).size, 5, `${group.id} 의 다섯 항목은 서로 다르게 읽혀야 합니다`)
+  })
+
+  // Corpus scaffolding must never reach the page.
+  report.sections.forEach((section) => {
+    assert.doesNotMatch(section.interpretation, /concept:|condition:|Feature JSON|출력하지|사용자/)
+  })
 })
 
 test('couple match request validates partner birth date', () => {
