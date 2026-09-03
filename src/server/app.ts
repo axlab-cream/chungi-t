@@ -222,7 +222,14 @@ app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
 app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result rather than the intro.
-  const query = new URLSearchParams(req.query as Record<string, string>).toString()
+  // Only the checkout round-trip params travel on; Vercel adds its own __umsh_path
+  // rewrite marker to every request and it must not surface in the address bar.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
   const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
   res.redirect(302, `/match/marry/${step}/index.html${query ? `?${query}` : ''}`)
 })
