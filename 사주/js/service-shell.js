@@ -30,7 +30,7 @@
       desc: '운명상회 첫 화면과 대표 상품으로 이동합니다.',
       items: [
         { label: '홈 맨 위', meta: '처음 화면으로 이동', href: '/', status: '이동' },
-        { label: '대표 상품 보기', meta: '천명대공과 추천 상품', href: '/#services', status: '보기' },
+        { label: '대표 상품 보기', meta: '천명사주와 추천 상품', href: '/#services', status: '보기' },
         { label: '집 풍수 이어보기', meta: '지금 사는 집 풀이 화면', href: '/place/home', status: '풍수' },
         { label: '오늘운 무료 보기', meta: '회원가입 후 오늘 흐름 확인', href: '/signup?entry=today', status: '무료' },
       ],
@@ -126,7 +126,7 @@
 
         <div class="action-panel" id="serviceActionPanel" aria-hidden="true">
           <div class="action-sheet" role="dialog" aria-label="운명상회 빠른 메뉴">
-            <button type="button" data-shell-menu-filter="종합"><strong>종합사주</strong><span>천명대공 바로 보기</span></button>
+            <button type="button" data-shell-menu-filter="종합"><strong>종합사주</strong><span>천명사주 바로 보기</span></button>
             <button type="button" data-shell-menu-shortcut="destiny"><strong>운명록</strong><span>로그인·사주등록 후 열람</span></button>
             <button type="button" data-shell-menu-shortcut="search"><strong>검색</strong><span>주제별 상품 빠르게 찾기</span></button>
             <button type="button" data-shell-menu-shortcut="vault"><strong>보관함</strong><span>등록 후 저장한 풀이 열기</span></button>

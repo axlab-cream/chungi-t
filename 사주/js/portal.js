@@ -69,7 +69,7 @@
       desc: '운명상회 첫 화면과 대표 상품으로 이동합니다.',
       items: [
         { label: '홈 맨 위', meta: '처음 화면으로 이동', action: 'scroll-top', status: '이동' },
-        { label: '대표 상품 보기', meta: '천명대공과 추천 상품', action: 'focus-services', status: '보기' },
+        { label: '대표 상품 보기', meta: '천명사주와 추천 상품', action: 'focus-services', status: '보기' },
         { label: '오늘운 무료 보기', meta: '회원가입 후 오늘 흐름 확인', href: '/signup?entry=today', status: '무료' },
         { label: '가격 사다리', meta: '무료부터 종합사주까지', action: 'focus-pricing', status: '확인' },
       ],

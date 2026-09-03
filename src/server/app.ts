@@ -1383,9 +1383,9 @@ const isDirectRun = process.argv[1] ? resolve(process.argv[1]) === resolve(__fil
 
 if (isDirectRun) {
   app.listen(PORT, () => {
-    console.log(`천명대공(天命大公) 서버: http://localhost:${PORT}`)
+    console.log(`천명사주 서버: http://localhost:${PORT}`)
     console.log(`UMSH 포탈: http://localhost:${PORT}/`)
-    console.log(`천명대공 입력: http://localhost:${PORT}/cmdg/`)
+    console.log(`천명사주 입력: http://localhost:${PORT}/cmdg/`)
     console.log(`OpenAI: ${isOpenAiConfigured() ? '연결됨' : 'API 키 필요 (.env)'}`)
   })
 }
