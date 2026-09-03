@@ -564,10 +564,22 @@
     }
   }
 
+  /**
+   * 은/는 depends on the last syllable's final consonant, and every card title ends
+   * differently - "나, 붙을 각이야?" wants 는 while "그 사람도 나를 생각할까?" wants 는 as well,
+   * but a title ending in a consonant wants 은. Punctuation at the end is ignored.
+   */
+  function topicParticle(label) {
+    const last = String(label || '').replace(/[^가-힣0-9a-zA-Z]/g, '').slice(-1);
+    const code = last.charCodeAt(0);
+    const hasFinal = last && code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : Boolean(last);
+    return `${label}${hasFinal ? '은' : '는'}`;
+  }
+
   function showPendingMessage(event) {
     const source = event.currentTarget;
     const label = getLabel(source);
-    showToast(`${label}은 다음 단계에서 연결됩니다.`);
+    showToast(`${topicParticle(label)} 다음 단계에서 연결됩니다.`);
   }
 
   function navigateToLink(link) {
