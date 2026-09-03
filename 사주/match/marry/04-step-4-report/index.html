@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>무료 결과 | 연애 말고 결혼까지 가능? | 운명상회</title>
+    <meta name="description" content="두 사람의 결혼궁합 무료 티저와 전체 리포트 결제 안내 화면입니다." />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="연애 말고 결혼까지 가능? | 운명상회" />
+    <meta property="og:description" content="결혼각, 속도 조절, 현실 합의 포인트를 먼저 확인하세요." />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://match.umsh.kr/marry" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="../assets/marry/04-free-hero.webp" />
+    <meta property="og:image:alt" content="결혼궁합 무료 결과를 상징하는 커플 일러스트" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #070303;
+        --ink: #fff7ec;
+        --muted: rgba(255, 239, 220, 0.73);
+        --dim: rgba(255, 239, 220, 0.56);
+        --gold: #f0c06f;
+        --gold-soft: #ffe5aa;
+        --rose: #e16b67;
+        --red: #8f1f1d;
+        --burgundy: #341111;
+        --green: #89d5a2;
+        --panel: rgba(19, 10, 10, 0.92);
+        --line: rgba(255, 221, 176, 0.22);
+        --font-brand: "Maru Buri", Georgia, serif;
+        --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100%;
+        background: #000;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      body {
+        display: grid;
+        place-items: start center;
+      }
+
+      a,
+      button,
+      input {
+        -webkit-tap-highlight-color: transparent;
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .phone {
+        width: min(100%, 440px);
+        min-height: 100svh;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% -5%, rgba(225, 107, 103, 0.22), transparent 19rem),
+          radial-gradient(circle at 95% 18%, rgba(240, 192, 111, 0.13), transparent 16rem),
+          linear-gradient(180deg, #130606 0%, #080303 44%, #020101 100%);
+        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(240, 192, 111, 0.16);
+        background: rgba(8, 3, 3, 0.9);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        line-height: 1;
+      }
+
+      .brand strong {
+        color: var(--gold-soft);
+        font-family: var(--font-brand);
+        font-size: 19px;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .pill,
+      .eyebrow,
+      .kicker {
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .pill {
+        padding: 8px 10px;
+        border: 1px solid rgba(240, 192, 111, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .hero {
+        position: relative;
+        min-height: 590px;
+        overflow: hidden;
+        background: #170807;
+      }
+
+      .hero img,
+      .signal-media img,
+      .unlock-visual img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero img {
+        object-position: 50% 22%;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.1) 38%, rgba(8, 3, 3, 0.78) 77%, rgba(8, 3, 3, 1) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 28% 70%, rgba(0, 0, 0, 0.26));
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-content: end;
+        min-height: 590px;
+        padding: 218px 20px 22px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-brand);
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        max-width: 11ch;
+        margin-bottom: 12px;
+        font-size: clamp(34px, 9.4vw, 44px);
+        line-height: 1.08;
+      }
+
+      h2 {
+        margin-bottom: 9px;
+        font-size: 23px;
+        line-height: 1.22;
+      }
+
+      h3 {
+        margin-bottom: 7px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.72;
+        word-break: keep-all;
+      }
+
+      .hero-lead {
+        max-width: 28ch;
+        color: rgba(255, 247, 236, 0.86);
+        font-size: 15px;
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .chip {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        border: 1px solid rgba(255, 226, 175, 0.22);
+        border-radius: 999px;
+        padding: 7px 10px;
+        color: rgba(255, 247, 236, 0.82);
+        background: rgba(255, 255, 255, 0.055);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      main {
+        display: grid;
+        gap: 16px;
+        padding: 0 16px max(24px, env(safe-area-inset-bottom));
+      }
+
+      .panel,
+      .mini-card,
+      .scope-card,
+      .state-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
+          var(--panel);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        padding: 17px 16px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .status-badge {
+        flex: 0 0 auto;
+        padding: 6px 8px;
+        border: 1px solid rgba(240, 192, 111, 0.24);
+        border-radius: 999px;
+        color: var(--gold-soft);
+        background: rgba(240, 192, 111, 0.08);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .teaser-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mini-card {
+        display: grid;
+        min-height: 122px;
+        gap: 8px;
+        padding: 12px 10px;
+      }
+
+      .mini-card b {
+        color: var(--gold-soft);
+        font-size: 13px;
+        line-height: 1.32;
+      }
+
+      .mini-card span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+        word-break: keep-all;
+      }
+
+      .signal-layout {
+        display: grid;
+        grid-template-columns: 116px 1fr;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .signal-media {
+        position: relative;
+        min-height: 128px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 226, 175, 0.2);
+        border-radius: 8px;
+        background: #180908;
+      }
+
+      .signal-media img {
+        object-position: center;
+      }
+
+      .signal-list {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .signal-list li {
+        display: grid;
+        gap: 3px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 226, 175, 0.12);
+      }
+
+      .signal-list li:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .signal-list strong {
+        color: var(--ink);
+        font-size: 13px;
+      }
+
+      .signal-list span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .scope-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .scope-card {
+        display: grid;
+        gap: 9px;
+        padding: 14px;
+      }
+
+      .scope-card strong {
+        color: var(--gold-soft);
+        font-size: 14px;
+      }
+
+      .scope-card ul {
+        display: grid;
+        gap: 5px;
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .index-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .index-strip span {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        padding: 6px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        color: rgba(255, 247, 236, 0.72);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .unlock {
+        position: relative;
+        min-height: 540px;
+        overflow: hidden;
+        margin-inline: -16px;
+        border-top: 1px solid rgba(240, 192, 111, 0.18);
+        border-bottom: 1px solid rgba(240, 192, 111, 0.18);
+        background: #110505;
+      }
+
+      .unlock-visual {
+        position: absolute;
+        inset: 0;
+      }
+
+      .unlock-visual img {
+        object-position: 50% 15%;
+      }
+
+      .unlock::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0%, rgba(0, 0, 0, 0.28) 42%, rgba(8, 3, 3, 0.88) 76%, rgba(8, 3, 3, 1) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 28% 76%, rgba(0, 0, 0, 0.28));
+      }
+
+      .unlock-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-content: end;
+        min-height: 540px;
+        gap: 13px;
+        padding: 198px 16px 16px;
+      }
+
+      .state-card {
+        display: grid;
+        gap: 12px;
+        padding: 15px;
+        background:
+          linear-gradient(180deg, rgba(143, 31, 29, 0.48), rgba(19, 10, 10, 0.92)),
+          rgba(19, 10, 10, 0.94);
+      }
+
+      .state-card h3 {
+        margin-bottom: 0;
+        color: var(--gold-soft);
+        font-size: 17px;
+      }
+
+      .price-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 226, 175, 0.14);
+        border-bottom: 1px solid rgba(255, 226, 175, 0.14);
+      }
+
+      .price-row span {
+        color: var(--dim);
+        font-size: 12px;
+      }
+
+      .price-row strong {
+        color: var(--gold-soft);
+        font-family: var(--font-brand);
+        font-size: 27px;
+        letter-spacing: 0;
+      }
+
+      .agree {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 9px;
+        align-items: start;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .agree input {
+        width: 20px;
+        height: 20px;
+        min-height: 20px;
+        margin: 0;
+        accent-color: var(--gold);
+      }
+
+      .actions {
+        display: grid;
+        gap: 9px;
+      }
+
+      .primary,
+      .secondary,
+      .text-link {
+        display: inline-flex;
+        min-height: 50px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: 950;
+        text-align: center;
+      }
+
+      .primary {
+        color: #2b0907;
+        background: linear-gradient(135deg, #fff0ba, var(--gold));
+        box-shadow: 0 14px 34px rgba(240, 192, 111, 0.24);
+      }
+
+      .primary:disabled {
+        opacity: 0.72;
+        cursor: wait;
+      }
+
+      .secondary {
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .text-link {
+        min-height: auto;
+        width: fit-content;
+        justify-self: center;
+        border-radius: 0;
+        color: var(--dim);
+        background: transparent;
+        font-size: 12px;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .message {
+        min-height: 18px;
+        color: #ffcbc4;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .message.ok {
+        color: var(--green);
+      }
+
+      .notice {
+        display: none;
+        gap: 8px;
+        padding: 13px;
+        border: 1px solid rgba(225, 107, 103, 0.28);
+        border-radius: 8px;
+        background: rgba(143, 31, 29, 0.18);
+      }
+
+      .notice.is-visible {
+        display: grid;
+      }
+
+      .notice strong {
+        color: #ffcbc4;
+        font-size: 13px;
+      }
+
+      .notice a {
+        color: var(--gold-soft);
+        font-weight: 900;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      footer {
+        display: grid;
+        gap: 7px;
+        padding: 8px 0 24px;
+        color: rgba(255, 239, 220, 0.48);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 370px) {
+        main {
+          padding-inline: 12px;
+        }
+
+        .unlock {
+          margin-inline: -12px;
+        }
+
+        .teaser-grid,
+        .signal-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .signal-media {
+          min-height: 184px;
+        }
+
+        .hero,
+        .hero-copy {
+          min-height: 560px;
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav from covering the page tail. */
+      body.umsh-has-chrome .phone { padding-bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
+      /* The story hero filled the viewport minus the design's own 64px bar; it now shares
+         the screen with the chrome app bar and the fixed bottom nav, so its CTA stays visible. */
+      body.umsh-has-chrome #step-1-story .hero { min-height: calc(100svh - var(--umsh-chrome-appbar-h, 72px) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .composer { bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .chat-log, body.umsh-has-chrome .screen { padding-bottom: calc(112px + var(--umsh-chrome-bottom-h, 74px)); }
+      body.umsh-has-chrome .footer { padding-bottom: 18px; }
+      /* The teaser cards were sized for one short sample sentence. Real readings run longer,
+         and three columns inside a 375px phone wrapped them to two or three words per line. */
+      .teaser-grid { grid-template-columns: 1fr; }
+      .teaser-grid .mini-card { min-height: 0; gap: 4px; padding: 12px 14px; }
+      .marry-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(240, 192, 111, 0.45); border-radius: 10px; background: rgba(240, 192, 111, 0.08); padding: 14px; margin-bottom: 14px; }
+      .marry-saved-profile b { color: var(--gold, #f0c06f); font-size: 14px; }
+      .marry-saved-profile span { color: var(--muted, rgba(255,239,220,.74)); font-size: 13px; line-height: 1.55; }
+      .marry-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="phone" data-umsh-chrome data-service="결혼궁합" data-price="24,900원" data-active="home">
+      <header class="appbar topbar">
+        <a class="brand" href="../02-step-2-saju-input/index.html#step-2-saju-input" aria-label="입력 화면으로 이동">
+          <strong>운명상회</strong>
+          <span>결혼궁합</span>
+        </a>
+        <span class="pill">04 / 06</span>
+      </header>
+
+      <section class="hero" aria-label="무료 결혼궁합 결과">
+        <img src="../assets/marry/04-free-hero.webp" alt="밤 창가에서 결혼궁합 차트를 바라보는 커플 만화풍 일러스트" />
+        <div class="hero-copy">
+          <span class="eyebrow">무료 결과</span>
+          <h1 id="hero-title">연애 말고 결혼까지 가능?</h1>
+          <p class="hero-lead" id="hero-summary">결혼 가능 여부를 단정하기보다, 지금은 결혼각·속도 조절·현실 합의 포인트를 같이 봐야 하는 흐름입니다.</p>
+          <div class="hero-meta" aria-label="분석 기준 요약">
+            <span class="chip" id="person-chip">기존 프로필 기준</span>
+            <span class="chip" id="partner-chip">상대 기준 확인</span>
+            <span class="chip" id="focus-chip">결혼각 우선</span>
+          </div>
+        </div>
+      </section>
+
+      <main id="step-4-report">
+        <section class="notice" id="expired-notice" aria-live="polite">
+          <strong>입력 정보가 만료됐어요.</strong>
+          <p>새로고침이나 직접 진입으로 이전 입력을 찾지 못했습니다. 입력 화면으로 돌아가면 같은 서비스로 다시 이어갈 수 있어요. <a href="../02-step-2-saju-input/index.html#step-2-saju-input">입력 다시 하기</a></p>
+        </section>
+
+        <section class="panel" aria-labelledby="teaser-title">
+          <div class="panel-head">
+            <div>
+              <span class="kicker">FIRST READ</span>
+              <h2 id="teaser-title">먼저 보이는 3가지 신호</h2>
+              <p>무료 티저에서는 전체 리포트의 입구만 열고, 상세 판단은 계산값이 확인된 뒤 단계별로 풉니다.</p>
+            </div>
+            <span class="status-badge">10~15%</span>
+          </div>
+
+          <div class="teaser-grid" aria-label="무료 티저 신호">
+            <article class="mini-card">
+              <b>강한 신호</b>
+              <span id="signal-main">두 사람 정보를 분리해 볼 수 있어, 감정형 궁합보다 생활형 궁합까지 이어볼 수 있어요.</span>
+            </article>
+            <article class="mini-card">
+              <b>시기 조건</b>
+              <span>올해 흐름은 가까워지는 속도보다 약속과 선을 어떻게 맞추는지가 먼저입니다.</span>
+            </article>
+            <article class="mini-card">
+              <b>방해 요인</b>
+              <span>돈·가족·생활 리듬 이야기를 미루면 설렘보다 피로가 먼저 커질 수 있어요.</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="basis-title">
+          <div class="signal-layout">
+            <div class="signal-media">
+              <img src="../assets/marry/04-signal-card.webp" alt="두 사람이 별자리 차트 위 신호를 함께 짚는 만화풍 이미지" />
+            </div>
+            <div>
+              <span class="kicker">WHY THIS MATTERS</span>
+              <h2 id="basis-title">사주값이 열리면 여기까지 봅니다</h2>
+              <ul class="signal-list">
+                <li>
+                  <strong>나와 상대 기준 분리</strong>
+                  <span>본인 성향을 상대에게 덮어씌우지 않고, 서로 다른 속도와 표현 방식을 따로 봅니다.</span>
+                </li>
+                <li>
+                  <strong>합이 좋은지보다 충돌을 다루는 법</strong>
+                  <span>조화와 부딪힘을 결론이 아니라 대화·역할·생활 합의 포인트로 번역합니다.</span>
+                </li>
+                <li>
+                  <strong>올해와 큰 흐름의 타이밍</strong>
+                  <span>밀어붙일 각인지, 한 번 더 확인할 각인지 시기와 조건을 나눠봅니다.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="paid-preview-title">
+          <div class="panel-head">
+            <div>
+              <span class="kicker">FULL REPORT</span>
+              <h2 id="paid-preview-title">결제 후 열리는 실제 목차</h2>
+              <p>막연히 더 자세히가 아니라, 결혼 전 확인해야 할 질문을 항목별로 엽니다.</p>
+            </div>
+            <span class="status-badge">10개 대분류</span>
+          </div>
+
+          <div class="scope-grid">
+            <article class="scope-card">
+              <strong>둘의 케미 궁합</strong>
+              <ul>
+                <li>일간 케미, 오행 밸런스 궁합</li>
+                <li>십성 관계 궁합, 띠·지지 조화와 충돌</li>
+                <li>대화 티키타카와 감정 소모도</li>
+              </ul>
+            </article>
+            <article class="scope-card">
+              <strong>연애 말고 결혼각</strong>
+              <ul>
+                <li>설렘형 인연인지, 생활형 인연인지</li>
+                <li>결혼 얘기 꺼내도 되는 타이밍</li>
+                <li>현실 조건 합의 가능성과 역할 분담</li>
+              </ul>
+            </article>
+            <article class="scope-card">
+              <strong>결혼 타이밍 운</strong>
+              <ul>
+                <li>올해 결혼운과 대운 공식화 구간</li>
+                <li>고백·관계정의·프러포즈 타이밍</li>
+                <li>상견례·혼인신고·결혼식 택일</li>
+              </ul>
+            </article>
+            <article class="scope-card">
+              <strong>레드플래그 체크</strong>
+              <ul>
+                <li>반복 싸움, 연락 온도차</li>
+                <li>회피·집착·자존심 이슈</li>
+                <li>가족·돈·결혼관 차이</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="index-strip" aria-label="전체 제공 대분류">
+            <span>내 연애 기본값</span>
+            <span>상대 연애 캐릭터</span>
+            <span>현실 동거·결혼 생활</span>
+            <span>관계 회복/마음 돌봄</span>
+            <span>오늘 바로 써먹는 액션</span>
+            <span>MZ형 결과 라벨</span>
+          </div>
+        </section>
+
+        <section class="unlock" aria-labelledby="unlock-title">
+          <div class="unlock-visual">
+            <img src="../assets/marry/04-payment-cta.webp" alt="밝은 문을 향해 함께 걸어가는 커플 만화풍 일러스트" />
+          </div>
+          <div class="unlock-copy">
+            <div class="state-card">
+              <span class="kicker">NEXT STEP</span>
+              <h2 id="unlock-title">전체 리포트로 이어보기</h2>
+              <p id="state-copy">로그인 후 이 결과를 이어서 볼 수 있어요. 로그인해도 입력한 서비스와 단계는 유지됩니다.</p>
+              <div class="price-row" aria-label="결제 금액">
+                <span>상세 리포트</span>
+                <strong>24,900원</strong>
+              </div>
+              <label class="agree" id="payment-agree-wrap">
+                <input id="payment-agree" type="checkbox" />
+                <span>결제 금액과 제공 범위를 확인했습니다. 실제 결제 권한은 주문 확인 후 열립니다.</span>
+              </label>
+              <div class="message" id="state-message" aria-live="polite"></div>
+              <div class="actions">
+                <button class="primary" id="primary-action" type="button">로그인 후 결과 이어보기</button>
+                <button class="secondary" id="secondary-action" type="button">입력 수정하기</button>
+                <a class="text-link" href="#refund-policy">취소·환불 안내</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="refund-policy" aria-labelledby="refund-title">
+          <div>
+            <span class="kicker">PAYMENT GUIDE</span>
+            <h2 id="refund-title">취소·환불 안내</h2>
+            <p>결제 진행 중 취소해도 무료 결과는 유지됩니다. 전체 리포트가 생성되기 전에는 재시도와 입력 수정이 가능하고, 생성 후 환불은 운명상회 결제 정책을 기준으로 안내됩니다.</p>
+          </div>
+        </section>
+
+        <footer>
+          <span>이 화면의 무료 결과는 입력값 기반 티저입니다. 상세 해석은 계산값과 결제 권한 확인 뒤 열립니다.</span>
+          <span>전통 해석은 참고용이며, 결혼·이별 같은 선택을 대신 결정하지 않습니다.</span>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      const serviceContext = {
+        serviceKey: "marriage_compatibility",
+        serviceSlug: "marry",
+        serviceTitle: "연애 말고 결혼까지 가능?",
+        serviceCategory: "결혼궁합",
+        priceKrw: 24900,
+        analysisPeriod: "2026 relationship flow",
+        reportVersion: "marry-report-v1",
+        nextRoute: "../05-step-5-chat/chat.html#step-5-chat",
+      };
+
+      const storageKeys = {
+        context: "umsh_service_context",
+        input: "umsh_marry_input_payload",
+        seed: "umsh_interpretation_seed_marry",
+        pendingLoginReturn: "umsh_pending_login_return",
+        accessState: "umsh_marry_access_state",
+        reportContext: "umsh_marry_report_context",
+        reportIndex: "umsh_marry_report_index",
+        paymentState: "umsh_marry_payment_state",
+      };
+
+      const interpretationGroups = [
+        { id: "marry-section-01", title: "내 연애 기본값", items: ["나는 직진형인지, 천천히 스며드는 형인지", "연락·표현·스킨십 온도", "사랑할 때 선 넘는 포인트", "혼자 있고 싶은 시간 vs 붙어 있고 싶은 시간", "연애에서 자주 반복되는 내 패턴", "결혼하면 드러나는 생활 습관"] },
+        { id: "marry-section-02", title: "상대 연애 캐릭터", items: ["상대의 애정 표현 방식", "책임감과 약속 감각", "갈등 났을 때 반응 패턴", "돈·일·가족을 대하는 태도", "오래 만날수록 편해지는 타입인지", "말보다 행동으로 봐야 하는 시그널"] },
+        { id: "marry-section-03", title: "둘의 케미 궁합", items: ["일간 케미", "오행 밸런스 궁합", "십성 관계 궁합", "띠·지지 조화와 충돌", "대화 티키타카", "감정 소모도", "같이 있으면 커지는 장점", "같이 있으면 반복되는 피로 포인트"] },
+        { id: "marry-section-04", title: "연애 말고 결혼각", items: ["설렘형 인연인지, 생활형 인연인지", "결혼 얘기 꺼내도 되는 타이밍", "장기 파트너 안정감", "현실 조건 합의 가능성", "결혼 후 역할 분담 궁합", "가족·돈·집 문제에서 부딪힐 지점", "지금 밀어붙일 각인지, 속도 조절각인지"] },
+        { id: "marry-section-05", title: "결혼 타이밍 운", items: ["올해 결혼운", "대운에서 관계가 공식화되는 구간", "월별 연애·결혼 흐름", "고백·관계정의·프러포즈 타이밍", "상견례·혼인신고·결혼식 택일", "급발진 주의 구간", "기다리면 풀리는 구간"] },
+        { id: "marry-section-06", title: "레드플래그 체크", items: ["반복 싸움 패턴", "연락 온도차", "회피·집착·자존심 이슈", "돈 문제에서 보이는 신뢰도", "가족 개입 가능성", "결혼관 차이", "말은 좋은데 행동이 안 맞는 구간", "내가 참고 넘기면 커지는 문제"] },
+        { id: "marry-section-07", title: "현실 동거·결혼 생활 시뮬레이션", items: ["같이 살 때 생활 리듬", "집안일·돈 관리 스타일", "소비 습관 궁합", "휴식 방식 궁합", "사회생활·친구 관계 온도", "공간 취향과 집 분위기", "장기 갈등 해결 방식"] },
+        { id: "marry-section-08", title: "관계 회복/마음 돌봄", items: ["지금 내가 불안한 이유", "기다려야 할지, 선을 그어야 할지", "서운함을 말하는 방식", "감정 과몰입 줄이는 루틴", "이 관계에서 나를 잃지 않는 법", "재회·거리두기·정리 선택지"] },
+        { id: "marry-section-09", title: "오늘 바로 써먹는 액션", items: ["오늘 보낼 카톡 한 줄", "결혼 얘기 꺼내는 문장", "싸운 뒤 화해 오프닝", "상대 마음 확인 질문", "이번 주 데이트 방향", "7일 관계 점검 미션", "30일 결혼각 관찰 체크리스트"] },
+        { id: "marry-section-10", title: "MZ형 결과 라벨", items: ["결혼각 온도", "썸에서 공식화 가능성", "장기연애 생존력", "현생 궁합", "티키타카 지수", "감정소모 경보", "안정감 레벨", "속도조절 알림"] },
+      ];
+
+      const relationLabels = {
+        talking: "썸 타는 중",
+        dating: "연애 중",
+        reunion: "재회 고민",
+        family_meeting: "상견례 전",
+        wedding_prep: "결혼 준비 중",
+      };
+
+      const focusLabels = {
+        marriage_signal: "결혼각 우선",
+        timing: "타이밍 우선",
+        red_flags: "레드플래그 우선",
+        daily_life: "생활궁합 우선",
+        conversation: "대화 액션 우선",
+      };
+
+      const elements = {
+        expired: document.querySelector("#expired-notice"),
+        heroSummary: document.querySelector("#hero-summary"),
+        personChip: document.querySelector("#person-chip"),
+        partnerChip: document.querySelector("#partner-chip"),
+        focusChip: document.querySelector("#focus-chip"),
+        signalMain: document.querySelector("#signal-main"),
+        stateCopy: document.querySelector("#state-copy"),
+        stateMessage: document.querySelector("#state-message"),
+        primary: document.querySelector("#primary-action"),
+        secondary: document.querySelector("#secondary-action"),
+        agreeWrap: document.querySelector("#payment-agree-wrap"),
+        agree: document.querySelector("#payment-agree"),
+      };
+
+      function readJson(key) {
+        try {
+          const value = sessionStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function writeJson(key, value) {
+        sessionStorage.setItem(key, JSON.stringify(value));
+      }
+
+      function currentInput() {
+        const payload = readJson(storageKeys.input);
+        if (!payload || payload.service_slug !== serviceContext.serviceSlug) return null;
+        return payload;
+      }
+
+      function createReportId() {
+        const existing = readJson(storageKeys.reportContext);
+        if (existing && existing.report_id) return existing.report_id;
+        return `marry-${Date.now().toString(36)}`;
+      }
+
+      function personalize() {
+        const payload = currentInput();
+        if (!payload) {
+          elements.expired.classList.add("is-visible");
+          elements.heroSummary.textContent = "입력 정보를 찾지 못해 전체 분석을 이어갈 수 없어요. 새로 입력하면 같은 결혼궁합으로 바로 돌아옵니다.";
+          elements.personChip.textContent = "입력 필요";
+          elements.partnerChip.textContent = "상대 기준 대기";
+          elements.focusChip.textContent = "새 분석";
+          elements.signalMain.textContent = "아직 두 사람 기준을 찾지 못했어요. 입력을 다시 연결하면 무료 티저부터 복구됩니다.";
+          return;
+        }
+
+        const selfLabel = payload.self && payload.self.use_saved_profile ? "기존 프로필 기준" : `${payload.self && payload.self.name ? payload.self.name : "내 정보"} 기준`;
+        const partnerLabel = payload.partner && payload.partner.known ? `${payload.partner.name || "상대"} 기준 포함` : "상대 사주 없이 관계 질문 중심";
+        const relation = relationLabels[payload.relationship_context && payload.relationship_context.relationship_status] || "관계 단계 확인";
+        const focus = focusLabels[payload.relationship_context && payload.relationship_context.question_focus] || "결혼각 우선";
+
+        elements.personChip.textContent = selfLabel;
+        elements.partnerChip.textContent = `${partnerLabel} · ${relation}`;
+        elements.focusChip.textContent = focus;
+        elements.heroSummary.textContent = payload.partner && payload.partner.known
+          ? "이 관계는 감정만 보는 궁합보다 케미, 생활 합의, 타이밍을 함께 봐야 해요. 지금은 결혼각 있음과 속도 조절각이 같이 떠 있습니다."
+          : "상대 생년월일이 없어도 지금 관계 질문으로 먼저 볼 수 있어요. 다만 결혼 타이밍과 충돌 지점은 제한된 범위로 안내됩니다.";
+        elements.signalMain.textContent = payload.partner && payload.partner.known
+          ? "본인과 상대 기준이 분리되어 일간 케미, 오행 균형, 지지 충돌까지 이어볼 수 있어요."
+          : "상대 사주값이 비어 있어 지금은 내 기준과 관계 상황을 중심으로 먼저 읽습니다.";
+      }
+
+      function buildReportContext() {
+        const payload = currentInput();
+        const reportId = createReportId();
+        const context = {
+          service_key: serviceContext.serviceKey,
+          service_slug: serviceContext.serviceSlug,
+          service_title: serviceContext.serviceTitle,
+          service_category: serviceContext.serviceCategory,
+          report_id: reportId,
+          profile_id: payload && payload.self && payload.self.use_saved_profile ? "existing-profile" : "session-profile",
+          analysis_period: serviceContext.analysisPeriod,
+          report_version: serviceContext.reportVersion,
+          price_krw: serviceContext.priceKrw,
+          entitlement_required: true,
+          entitlement_source: "server_order_required",
+          input_schema_version: payload ? payload.input_schema_version : "marry-pair-v1",
+          free_teaser_seen: true,
+        };
+        writeJson(storageKeys.context, {
+          service_key: serviceContext.serviceKey,
+          service_slug: serviceContext.serviceSlug,
+          service_title: serviceContext.serviceTitle,
+          service_category: serviceContext.serviceCategory,
+          price_krw: serviceContext.priceKrw,
+          report_version: serviceContext.reportVersion,
+          next_step: "05-step-5-chat",
+        });
+        writeJson(storageKeys.reportContext, context);
+        writeJson(storageKeys.reportIndex, {
+          source: "user_seed",
+          service_key: serviceContext.serviceKey,
+          service_slug: serviceContext.serviceSlug,
+          report_id: reportId,
+          groups: interpretationGroups,
+        });
+        writeJson(storageKeys.seed, {
+          source: "user_seed",
+          service_key: serviceContext.serviceKey,
+          service_slug: serviceContext.serviceSlug,
+          interpretation_index: interpretationGroups,
+        });
+        return context;
+      }
+
+      function state() {
+        if (!currentInput()) return "expired";
+        return sessionStorage.getItem(storageKeys.accessState) || "guest";
+      }
+
+      function setState(next) {
+        sessionStorage.setItem(storageKeys.accessState, next);
+        renderState();
+      }
+
+      function showMessage(text, ok = false) {
+        elements.stateMessage.textContent = text;
+        elements.stateMessage.classList.toggle("ok", ok);
+      }
+
+      function renderState() {
+        const current = state();
+        elements.primary.disabled = false;
+        elements.secondary.style.display = "inline-flex";
+        elements.agreeWrap.style.display = "none";
+        showMessage("");
+
+        if (current === "expired") {
+          elements.stateCopy.textContent = "이전 입력을 찾지 못했습니다. 새 분석으로 돌아가면 같은 서비스와 목차로 다시 이어갈 수 있어요.";
+          elements.primary.textContent = "입력 다시 하기";
+          elements.secondary.textContent = "처음 이야기 보기";
+          return;
+        }
+
+        if (current === "guest") {
+          elements.stateCopy.textContent = "로그인 후 이 결과를 이어서 볼 수 있어요. 로그인해도 입력한 서비스와 단계는 유지됩니다.";
+          elements.primary.textContent = "로그인 후 결과 이어보기";
+          elements.secondary.textContent = "입력 수정하기";
+          return;
+        }
+
+        if (current === "logged_out_paid") {
+          elements.stateCopy.textContent = "무료 티저는 유지됩니다. 전체 리포트는 결제 후 10개 대분류와 세부 액션까지 열립니다.";
+          elements.primary.textContent = "24,900원 결제하고 전체 목차 열기";
+          elements.secondary.textContent = "결제 취소 상태 보기";
+          elements.agreeWrap.style.display = "grid";
+          return;
+        }
+
+        if (current === "payment_pending") {
+          elements.stateCopy.textContent = "결제 확인 중입니다. 같은 주문이 중복으로 열리지 않도록 잠시 상태를 고정합니다.";
+          elements.primary.textContent = "결제 완료 확인";
+          elements.secondary.textContent = "결제 취소";
+          showMessage("결제창에서 돌아온 뒤에도 이 무료 결과는 유지됩니다.", true);
+          return;
+        }
+
+        if (current === "failed") {
+          elements.stateCopy.textContent = "결제가 완료되지 않았어요. 무료 결과는 그대로 남아 있고, 다시 시도하거나 입력을 수정할 수 있습니다.";
+          elements.primary.textContent = "다시 결제하기";
+          elements.secondary.textContent = "입력 수정하기";
+          elements.agreeWrap.style.display = "grid";
+          showMessage("취소·실패 상태에서도 결과를 잃지 않게 유지했습니다.");
+          return;
+        }
+
+        elements.stateCopy.textContent = "권한 확인이 끝났어요. 결제창 없이 전체 리포트 목록으로 이동합니다.";
+        elements.primary.textContent = "전체 리포트 목록 열기";
+        elements.secondary.textContent = "무료 결과 다시 보기";
+        showMessage("결혼각, 타이밍, 레드플래그, 액션 문장까지 이어서 볼 수 있어요.", true);
+      }
+
+      elements.primary.addEventListener("click", () => {
+        const current = state();
+        if (current === "expired") {
+          window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
+          return;
+        }
+        if (current === "guest") {
+          writeJson(storageKeys.pendingLoginReturn, {
+            service_key: serviceContext.serviceKey,
+            service_slug: serviceContext.serviceSlug,
+            return_to: "../04-step-4-report/index.html#step-4-report",
+            next_after_login: "payment",
+          });
+          setState("logged_out_paid");
+          showMessage("로그인 완료 후 이 결과 화면으로 돌아온 상태입니다.", true);
+          return;
+        }
+        if (current === "logged_out_paid" || current === "failed") {
+          if (!elements.agree.checked) {
+            showMessage("결제 금액과 제공 범위를 먼저 확인해 주세요.");
+            elements.agree.focus();
+            return;
+          }
+          sessionStorage.setItem(storageKeys.paymentState, "pending");
+          setState("payment_pending");
+          return;
+        }
+        if (current === "payment_pending") {
+          sessionStorage.setItem(storageKeys.paymentState, "paid");
+          setState("entitled");
+          return;
+        }
+        buildReportContext();
+        window.location.href = serviceContext.nextRoute;
+      });
+
+      elements.secondary.addEventListener("click", () => {
+        const current = state();
+        if (current === "expired") {
+          window.location.href = "../01-step-1-story/index.html#step-1-story";
+          return;
+        }
+        if (current === "logged_out_paid") {
+          sessionStorage.setItem(storageKeys.paymentState, "failed");
+          setState("failed");
+          return;
+        }
+        if (current === "payment_pending") {
+          sessionStorage.setItem(storageKeys.paymentState, "failed");
+          setState("failed");
+          return;
+        }
+        if (current === "entitled") {
+          setState("logged_out_paid");
+          return;
+        }
+        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      });
+
+      personalize();
+      if (currentInput()) buildReportContext();
+      renderState();
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/marry-service.js" defer></script>
+  </body>
+</html>

@@ -29,7 +29,7 @@ const CONTRACTS = [
   ['src/server/app.ts', "app.post('/api/match/marry/analyze'", '분석 API'],
   ['src/server/app.ts', "marry_match: 'marry_match'", '결제 상품 매핑'],
   ['src/payment/catalog.ts', 'marry_match: {', '결제 카탈로그 등록'],
-  ['src/payment/catalog.ts', "returnPath: '/match/marry'", '결제 복귀 경로'],
+  ['src/payment/catalog.ts', "returnPath: '/match/marry/04-step-4-report/index.html'", '결제 복귀 경로'],
   ['src/match/marry-service.ts', "export const MARRY_MATCH_SERVICE_KEY = 'marry_match'", '서비스 키 상수'],
   ['src/match/marry-service.ts', 'export const MARRY_ASSET_BASE', '아트워크 경로 상수'],
   ['src/match/marry-service.ts', 'export const MARRY_MATCH_TOC', '목차 export'],
@@ -87,6 +87,8 @@ for (const [page, needsChrome] of PAGES) {
     if (!body.includes('/js/marry-service.js')) failures.push(`${rel} :: 서비스 스크립트 미연결`)
     if (!body.includes('/js/umsh-chrome.js')) failures.push(`${rel} :: 공통 GNB 미연결`)
     if (!body.includes('data-umsh-chrome')) failures.push(`${rel} :: chrome 호스트 속성 누락`)
+    if (!body.includes('/css/umsh-chrome.css')) failures.push(`${rel} :: 공통 GNB 스타일 미연결`)
+    if (!body.includes('class="appbar topbar"')) failures.push(`${rel} :: 상단바 교체 표시 누락`)
   }
 
   // Every image the page asks for must actually exist on disk.

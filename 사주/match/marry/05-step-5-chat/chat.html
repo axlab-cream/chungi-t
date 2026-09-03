@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>연애 말고 결혼까지 가능? | 결과 목차</title>
+  <meta name="description" content="운명상회 결혼궁합 리포트의 대분류와 중분류를 확인하고 원하는 상세 풀이로 이어갑니다." />
+  <meta name="application-name" content="운명상회" />
+  <meta property="og:title" content="연애 말고 결혼까지 가능?" />
+  <meta property="og:description" content="배우자궁, 대운, 합충 흐름을 바탕으로 결혼까지 볼 관계인지 현실적으로 살펴봅니다." />
+  <meta property="og:site_name" content="운명상회" />
+  <meta property="og:url" content="https://match.umsh.kr/marry" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #100b10;
+      --panel: #191116;
+      --panel-2: #21171d;
+      --line: rgba(246, 213, 169, 0.18);
+      --line-strong: rgba(246, 213, 169, 0.34);
+      --text: #fff8ef;
+      --muted: #d3b7a1;
+      --soft: #a98f81;
+      --gold: #f0c176;
+      --rose: #f19192;
+      --wine: #742d3e;
+      --mint: #7ec7ad;
+      --ink: #090609;
+      --shadow: 0 18px 58px rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% 5%, rgba(241, 145, 146, 0.18), transparent 28%),
+        radial-gradient(circle at 86% 22%, rgba(126, 199, 173, 0.12), transparent 26%),
+        linear-gradient(180deg, #21121b 0%, #100b10 44%, #070507 100%);
+      color: var(--text);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .phone {
+      position: relative;
+      width: min(100vw, 444px);
+      min-height: 100svh;
+      background:
+        linear-gradient(180deg, rgba(36, 22, 30, 0.94), rgba(13, 9, 12, 0.98)),
+        var(--bg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(246, 213, 169, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(246, 213, 169, 0.05) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 58%);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      background: rgba(16, 11, 16, 0.86);
+      border-bottom: 1px solid rgba(246, 213, 169, 0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(246, 213, 169, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 248, 239, 0.06);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .brand {
+      min-width: 0;
+      text-align: center;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .contextbar {
+      position: sticky;
+      top: 61px;
+      z-index: 15;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      background: rgba(16, 11, 16, 0.78);
+      border-bottom: 1px solid rgba(246, 213, 169, 0.1);
+      scrollbar-width: none;
+      backdrop-filter: blur(12px);
+    }
+
+    .contextbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(246, 213, 169, 0.18);
+      border-radius: 7px;
+      background: rgba(255, 248, 239, 0.06);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .chip.is-strong {
+      color: #18100c;
+      background: linear-gradient(135deg, var(--gold), #f6e1ad);
+      border-color: rgba(255, 236, 184, 0.8);
+    }
+
+    .chat-log {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 14px;
+      padding: 16px 16px 112px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 188px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(116, 45, 62, 0.55), rgba(16, 11, 16, 0.94)),
+        var(--panel);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -42px;
+      top: -52px;
+      width: 160px;
+      height: 160px;
+      border: 1px solid rgba(240, 193, 118, 0.26);
+      border-radius: 50%;
+      background:
+        conic-gradient(from 110deg, rgba(240, 193, 118, 0.16), transparent, rgba(126, 199, 173, 0.12), transparent);
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 18px rgba(126, 199, 173, 0.82);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 320px;
+      font-size: 28px;
+      line-height: 1.14;
+      font-weight: 950;
+    }
+
+    .hero p {
+      max-width: 340px;
+      color: #ead4bd;
+      font-size: 14px;
+      line-height: 1.62;
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mini-stat {
+      min-width: 0;
+      min-height: 62px;
+      padding: 10px;
+      border: 1px solid rgba(246, 213, 169, 0.16);
+      border-radius: 8px;
+      background: rgba(9, 6, 9, 0.34);
+    }
+
+    .mini-stat span {
+      display: block;
+      color: var(--soft);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.26;
+    }
+
+    .notice {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--gold);
+      border-radius: 8px;
+      background: rgba(255, 248, 239, 0.06);
+    }
+
+    .notice[data-state="entitled"] {
+      border-left-color: var(--mint);
+    }
+
+    .notice[data-state="locked"],
+    .notice[data-state="missing"] {
+      border-left-color: var(--rose);
+    }
+
+    .notice strong {
+      font-size: 15px;
+    }
+
+    .notice p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .notice-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-button {
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid rgba(246, 213, 169, 0.22);
+      border-radius: 7px;
+      background: rgba(255, 248, 239, 0.07);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .action-button.primary {
+      background: linear-gradient(135deg, var(--gold), #f5e0ad);
+      color: #160d08;
+      border-color: transparent;
+    }
+
+    .toolbar {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid rgba(246, 213, 169, 0.14);
+      border-radius: 8px;
+      background: rgba(9, 6, 9, 0.28);
+    }
+
+    .search {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 10px;
+      border: 1px solid rgba(246, 213, 169, 0.18);
+      border-radius: 7px;
+      background: rgba(255, 248, 239, 0.06);
+      color: var(--muted);
+    }
+
+    .search input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .search input::placeholder {
+      color: #9e8274;
+    }
+
+    .filters {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filters::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter {
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 0 11px;
+      border: 1px solid rgba(246, 213, 169, 0.16);
+      border-radius: 7px;
+      background: rgba(255, 248, 239, 0.04);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .filter.is-active {
+      color: #150d08;
+      background: var(--gold);
+      border-color: transparent;
+    }
+
+    .list-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 2px 2px 0;
+    }
+
+    .list-head h2 {
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .list-head span {
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .group-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 248, 239, 0.055);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .card-cover {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: #1a1016;
+    }
+
+    .card-cover img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.01);
+    }
+
+    .card-cover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(8, 5, 7, 0) 42%, rgba(8, 5, 7, 0.88) 100%),
+        linear-gradient(90deg, rgba(8, 5, 7, 0.56), transparent 52%);
+    }
+
+    .cover-copy {
+      position: absolute;
+      z-index: 1;
+      left: 14px;
+      right: 14px;
+      bottom: 13px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .cover-copy span {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .cover-copy h3 {
+      font-size: 22px;
+      line-height: 1.18;
+      font-weight: 950;
+    }
+
+    .card-body {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .group-summary {
+      color: #dfc8b3;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .why {
+      display: grid;
+      gap: 4px;
+      padding: 10px;
+      border: 1px solid rgba(126, 199, 173, 0.22);
+      border-radius: 7px;
+      background: rgba(126, 199, 173, 0.08);
+    }
+
+    .why span {
+      color: var(--mint);
+      font-size: 10px;
+      font-weight: 950;
+    }
+
+    .why p {
+      color: #d7c9b8;
+      font-size: 12px;
+      line-height: 1.48;
+    }
+
+    .section-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .section-link {
+      display: grid;
+      grid-template-columns: 34px 1fr 20px;
+      align-items: center;
+      gap: 9px;
+      min-height: 58px;
+      padding: 9px;
+      border: 1px solid rgba(246, 213, 169, 0.13);
+      border-radius: 8px;
+      background: rgba(9, 6, 9, 0.28);
+    }
+
+    .section-link.is-active {
+      border-color: rgba(240, 193, 118, 0.62);
+      background: rgba(240, 193, 118, 0.1);
+    }
+
+    .section-link.is-locked {
+      opacity: 0.78;
+    }
+
+    .section-no {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      color: #170f0a;
+      background: linear-gradient(135deg, #f1c883, #f5e3b9);
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .section-copy {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .section-copy strong {
+      display: block;
+      color: #fff8ef;
+      font-size: 13px;
+      line-height: 1.32;
+    }
+
+    .section-copy span {
+      display: block;
+      color: var(--soft);
+      font-size: 11px;
+      line-height: 1.42;
+    }
+
+    .section-arrow {
+      color: var(--gold);
+    }
+
+    .empty {
+      padding: 18px;
+      border: 1px dashed rgba(246, 213, 169, 0.24);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .composer {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      width: min(100vw, 444px);
+      padding: 12px 14px max(12px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      background: rgba(16, 11, 16, 0.94);
+      border-top: 1px solid rgba(246, 213, 169, 0.16);
+      backdrop-filter: blur(18px);
+    }
+
+    .composer textarea {
+      width: 100%;
+      min-height: 46px;
+      max-height: 92px;
+      resize: none;
+      border: 1px solid rgba(246, 213, 169, 0.18);
+      border-radius: 8px;
+      outline: 0;
+      padding: 11px 12px;
+      color: var(--text);
+      background: rgba(255, 248, 239, 0.07);
+      line-height: 1.35;
+    }
+
+    .composer textarea::placeholder {
+      color: #9f8779;
+    }
+
+    .send-btn {
+      width: 72px;
+      border: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold), #f6e0aa);
+      color: #180f09;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 82px;
+      z-index: 40;
+      width: min(calc(100vw - 32px), 412px);
+      padding: 11px 12px;
+      border: 1px solid rgba(246, 213, 169, 0.26);
+      border-radius: 8px;
+      background: rgba(25, 17, 22, 0.96);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.is-open {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .skeleton {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .skeleton::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
+    }
+
+    @media (min-width: 720px) {
+      body {
+        padding: 24px;
+      }
+
+      .phone {
+        border: 1px solid rgba(246, 213, 169, 0.2);
+        border-radius: 22px;
+        min-height: min(920px, calc(100svh - 48px));
+        max-height: calc(100svh - 48px);
+        overflow-y: auto;
+      }
+
+      .composer {
+        position: sticky;
+        transform: none;
+        left: auto;
+        width: 100%;
+      }
+    }
+  
+      /* Shared UMSH chrome: keep the fixed bottom nav from covering the page tail. */
+      body.umsh-has-chrome .phone { padding-bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
+      /* The story hero filled the viewport minus the design's own 64px bar; it now shares
+         the screen with the chrome app bar and the fixed bottom nav, so its CTA stays visible. */
+      body.umsh-has-chrome #step-1-story .hero { min-height: calc(100svh - var(--umsh-chrome-appbar-h, 72px) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .composer { bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .chat-log, body.umsh-has-chrome .screen { padding-bottom: calc(112px + var(--umsh-chrome-bottom-h, 74px)); }
+      body.umsh-has-chrome .footer { padding-bottom: 18px; }
+      /* The teaser cards were sized for one short sample sentence. Real readings run longer,
+         and three columns inside a 375px phone wrapped them to two or three words per line. */
+      .teaser-grid { grid-template-columns: 1fr; }
+      .teaser-grid .mini-card { min-height: 0; gap: 4px; padding: 12px 14px; }
+      .marry-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(240, 192, 111, 0.45); border-radius: 10px; background: rgba(240, 192, 111, 0.08); padding: 14px; margin-bottom: 14px; }
+      .marry-saved-profile b { color: var(--gold, #f0c06f); font-size: 14px; }
+      .marry-saved-profile span { color: var(--muted, rgba(255,239,220,.74)); font-size: 13px; line-height: 1.55; }
+      .marry-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+<body>
+  <main class="phone" data-umsh-chrome data-service="결혼궁합" data-price="24,900원" data-active="home" id="step-5-chat" aria-label="결혼궁합 결과 목차">
+    <header class="appbar topbar">
+      <button class="icon-button" type="button" id="btn-back" aria-label="이전 결과로">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <div class="brand">
+        <strong>운명상회</strong>
+        <span>결혼궁합 리포트</span>
+      </div>
+      <button class="icon-button" type="button" id="btn-vault" aria-label="보관함">
+        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 5h14v14H5zM8 9h8M8 13h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="contextbar" aria-label="리포트 상태">
+      <span class="chip is-strong">결혼궁합</span>
+      <span class="chip" id="report-chip">10개 대분류</span>
+      <span class="chip" id="person-chip">두 사람 기준 확인</span>
+      <span class="chip">24,900원 리포트</span>
+    </div>
+
+    <section class="chat-log" id="chat-log" aria-live="polite">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-inner">
+          <div class="eyebrow">05 결과 목차</div>
+          <h1 id="hero-title">연애 말고 결혼까지 가능?</h1>
+          <p id="hero-copy">결혼 여부를 단정하지 않고, 지금 관계를 결혼각 있음·속도 조절각·현실 합의 필요·대화 먼저 각으로 나눠 읽습니다.</p>
+          <div class="mini-stats" aria-label="리포트 요약">
+            <div class="mini-stat">
+              <span>목차</span>
+              <strong>10개 대분류</strong>
+            </div>
+            <div class="mini-stat">
+              <span>세부</span>
+              <strong>70개 항목</strong>
+            </div>
+            <div class="mini-stat">
+              <span>기준</span>
+              <strong>배우자궁·대운·합충</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="notice" id="access-notice" data-state="missing">
+        <strong id="notice-title">리포트 상태 확인 중</strong>
+        <p id="notice-copy">이전 단계에서 만든 리포트와 결제 권한을 확인하고 있어요.</p>
+        <div class="notice-actions" id="notice-actions"></div>
+      </section>
+
+      <section class="toolbar" aria-label="목차 탐색">
+        <label class="search" for="index-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <input id="index-search" type="search" autocomplete="off" placeholder="궁금한 항목 검색" />
+        </label>
+        <div class="filters" role="list" aria-label="목차 필터">
+          <button class="filter is-active" type="button" data-filter="all">전체</button>
+          <button class="filter" type="button" data-filter="chemistry">케미</button>
+          <button class="filter" type="button" data-filter="marriage">결혼각</button>
+          <button class="filter" type="button" data-filter="timing">타이밍</button>
+          <button class="filter" type="button" data-filter="flag">레드플래그</button>
+          <button class="filter" type="button" data-filter="action">액션</button>
+        </div>
+      </section>
+
+      <div class="list-head">
+        <h2>대분류 &gt; 중분류 리스트</h2>
+        <span id="visible-count">70개 항목</span>
+      </div>
+
+      <section class="group-list" id="group-list" aria-label="리포트 목차"></section>
+    </section>
+
+    <form class="composer" id="chat-form">
+      <textarea id="chat-message" rows="2" placeholder="지금 제일 궁금한 결혼각을 적어주세요"></textarea>
+      <button class="send-btn" type="submit">상담</button>
+    </form>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const service = {
+      service_key: "marriage_compatibility",
+      service_slug: "marry",
+      title: "연애 말고 결혼까지 가능?",
+      category: "결혼궁합",
+      analysis_basis: ["배우자궁", "대운", "합충"],
+      domain: "match.umsh.kr/marry",
+      price_krw: 24900,
+      report_version: "marry-report-v1",
+      analysis_period: "2026 relationship flow",
+    };
+
+    const storageKeys = {
+      input: "umsh_marry_input_payload",
+      seed: "umsh_interpretation_seed_marry",
+      accessState: "umsh_marry_access_state",
+      paymentState: "umsh_marry_payment_state",
+      reportContext: "umsh_marry_report_context",
+      reportIndex: "umsh_marry_report_index",
+      selectedSection: "umsh_marry_selected_section",
+      chatSeed: "umsh_marry_chat_seed",
+      networkState: "umsh_marry_network_state",
+      generationState: "umsh_marry_generation_state",
+      requestedVault: "umsh_marry_requested_vault",
+    };
+
+    const evidencePool = {
+      self: ["item-10-p1-0004", "item-19-p1-0003"],
+      partner: ["item-10-p1-0004", "zip-연예-qa-000198"],
+      chemistry: ["item-10-p1-0004", "zip-궁합-qa-000369"],
+      marriage: ["zip-연예-qa-000198", "item-19-qa-0010", "item-22-qa-0014"],
+      timing: ["item-19-p1-0003", "item-22-p1-0003", "item-22-qa-0014"],
+      flag: ["item-19-qa-0010", "zip-궁합-qa-000369", "item-22-qa-0014"],
+      daily: ["item-19-qa-0010", "zip-궁합-qa-000369"],
+      care: ["item-10-p1-0004", "item-22-p1-0003"],
+      action: ["item-19-qa-0010", "item-22-qa-0014"],
+      label: ["item-10-p1-0004", "item-19-p1-0003", "zip-궁합-qa-000369"],
+    };
+
+    const baseGroups = [
+      {
+        id: "marry-section-01",
+        filter: "chemistry",
+        title: "내 연애 기본값",
+        subtitle: "내가 사랑할 때 켜지는 기본 모드",
+        preview: "직진형인지 스며드는 형인지, 연락·표현·스킨십 온도와 반복 패턴을 먼저 잡습니다.",
+        why: "내 기본값을 알아야 상대의 반응을 문제로만 보지 않고 속도와 경계를 조절할 수 있어요.",
+        asset_key: "marry-05-section-01",
+        image: "../assets/marry/05-marry-section-01.webp",
+        image_alt: "도시 야경 앞 거울과 휴대폰을 바라보는 여성 만화풍 썸네일",
+        evidence_ids: evidencePool.self,
+        items: [
+          ["marry-01-01", "나는 직진형인지, 천천히 스며드는 형인지", "내가 마음이 생길 때 속도를 어떻게 올리는지 봅니다."],
+          ["marry-01-02", "연락·표현·스킨십 온도", "카톡, 말투, 손잡는 속도에서 드러나는 애정 온도를 정리합니다."],
+          ["marry-01-03", "사랑할 때 선 넘는 포인트", "좋아서 하는 행동이 상대에게 부담이 되는 구간을 짚습니다."],
+          ["marry-01-04", "혼자 있고 싶은 시간 vs 붙어 있고 싶은 시간", "애착과 휴식 리듬이 충돌하지 않게 맞출 포인트를 봅니다."],
+          ["marry-01-05", "연애에서 자주 반복되는 내 패턴", "서운함, 확인 욕구, 거리두기가 반복되는 장면을 찾습니다."],
+          ["marry-01-06", "결혼하면 드러나는 생활 습관", "연애 때는 안 보이다가 같이 살 때 튀어나오는 루틴을 봅니다."],
+        ],
+      },
+      {
+        id: "marry-section-02",
+        filter: "chemistry",
+        title: "상대 연애 캐릭터",
+        subtitle: "말보다 행동에서 보이는 상대의 진짜 온도",
+        preview: "상대가 표현, 약속, 갈등, 가족과 돈 문제를 어떤 방식으로 다루는지 읽습니다.",
+        why: "상대가 나와 다르게 사랑한다면 서운함보다 관찰 기준이 먼저 필요해요.",
+        asset_key: "marry-05-section-02",
+        image: "../assets/marry/05-marry-section-02.webp",
+        image_alt: "야경 카페에서 휴대폰과 달력 앞에 앉은 남성 만화풍 썸네일",
+        evidence_ids: evidencePool.partner,
+        items: [
+          ["marry-02-01", "상대의 애정 표현 방식", "말, 시간, 행동 중 어디에 마음이 실리는지 봅니다."],
+          ["marry-02-02", "책임감과 약속 감각", "약속을 잡고 지키는 방식에서 장기 안정감을 확인합니다."],
+          ["marry-02-03", "갈등 났을 때 반응 패턴", "바로 풀려는지, 피하는지, 시간이 필요한지 정리합니다."],
+          ["marry-02-04", "돈·일·가족을 대하는 태도", "현실 주제를 회피하는지 함께 정리하는지 봅니다."],
+          ["marry-02-05", "오래 만날수록 편해지는 타입인지", "초반 설렘 뒤에 남는 편안함과 책임감을 확인합니다."],
+          ["marry-02-06", "말보다 행동으로 봐야 하는 시그널", "좋은 말보다 반복 행동에서 믿을 신호를 찾습니다."],
+        ],
+      },
+      {
+        id: "marry-section-03",
+        filter: "chemistry",
+        title: "둘의 케미 궁합",
+        subtitle: "끌림, 대화, 감정 소모를 같이 읽는 파트",
+        preview: "일간·오행·십성·지지 흐름을 바탕으로 설렘과 피로가 같이 생기는 지점을 봅니다.",
+        why: "궁합은 좋다 나쁘다보다 둘이 만나면 무엇이 커지고 어디서 닳는지가 중요해요.",
+        asset_key: "marry-05-section-03",
+        image: "../assets/marry/05-marry-section-03.webp",
+        image_alt: "야경 테이블을 사이에 두고 서로 바라보는 커플 만화풍 썸네일",
+        evidence_ids: evidencePool.chemistry,
+        items: [
+          ["marry-03-01", "일간 케미", "기본 성향끼리 어떤 속도로 가까워지는지 봅니다."],
+          ["marry-03-02", "오행 밸런스 궁합", "부족한 기운을 채우는지, 한쪽으로 쏠리는지 확인합니다."],
+          ["marry-03-03", "십성 관계 궁합", "서로를 연인, 동료, 보호자처럼 느끼는 결을 봅니다."],
+          ["marry-03-04", "띠·지지 조화와 충돌", "붙을 때와 부딪힐 때의 관계 리듬을 읽습니다."],
+          ["marry-03-05", "대화 티키타카", "말이 통하는 구간과 오해가 쌓이는 구간을 나눕니다."],
+          ["marry-03-06", "감정 소모도", "같이 있을수록 에너지가 차는지 줄어드는지 봅니다."],
+          ["marry-03-07", "같이 있으면 커지는 장점", "둘이 만나면 더 좋아지는 생활·정서 장점을 정리합니다."],
+          ["marry-03-08", "같이 있으면 반복되는 피로 포인트", "좋아해도 계속 부딪히는 피로 패턴을 찾습니다."],
+        ],
+      },
+      {
+        id: "marry-section-04",
+        filter: "marriage",
+        title: "연애 말고 결혼각",
+        subtitle: "설렘을 생활 합의로 바꿔도 되는지",
+        preview: "설렘형 인연인지 생활형 인연인지, 결혼 얘기 타이밍과 현실 조건 합의 가능성을 봅니다.",
+        why: "결혼각은 마음 크기만으로 열리지 않고 돈, 가족, 집, 역할 이야기를 함께 통과해야 해요.",
+        asset_key: "marry-05-section-04",
+        image: "../assets/marry/05-marry-section-04.webp",
+        image_alt: "아파트 열쇠와 빈 노트를 사이에 두고 대화하는 커플 만화풍 썸네일",
+        evidence_ids: evidencePool.marriage,
+        items: [
+          ["marry-04-01", "설렘형 인연인지, 생활형 인연인지", "두 사람이 이벤트형인지 일상형인지 결을 나눕니다."],
+          ["marry-04-02", "결혼 얘기 꺼내도 되는 타이밍", "상대가 부담보다 책임으로 받을 구간을 찾습니다."],
+          ["marry-04-03", "장기 파트너 안정감", "오래 갈 때 더 편해지는지 더 예민해지는지 봅니다."],
+          ["marry-04-04", "현실 조건 합의 가능성", "돈, 일, 거리, 가족 조건을 말로 맞출 수 있는지 봅니다."],
+          ["marry-04-05", "결혼 후 역할 분담 궁합", "집안일, 결정권, 돌봄 역할이 한쪽으로 몰리지 않는지 확인합니다."],
+          ["marry-04-06", "가족·돈·집 문제에서 부딪힐 지점", "미루면 커지는 현실 주제를 먼저 표시합니다."],
+          ["marry-04-07", "지금 밀어붙일 각인지, 속도 조절각인지", "지금은 추진할지 대화를 더 쌓을지 방향을 나눕니다."],
+        ],
+      },
+      {
+        id: "marry-section-05",
+        filter: "timing",
+        title: "결혼 타이밍 운",
+        subtitle: "공식화, 프러포즈, 상견례 흐름",
+        preview: "올해 관계 흐름과 대운의 공식화 구간, 월별 연애·결혼 타이밍을 행동 단위로 봅니다.",
+        why: "좋은 관계도 타이밍이 어긋나면 부담으로 느껴져요. 말을 꺼낼 구간과 기다릴 구간을 구분합니다.",
+        asset_key: "marry-05-section-05",
+        image: "../assets/marry/05-marry-section-05.webp",
+        image_alt: "달빛과 빈 달력 형상 앞에 선 커플 만화풍 썸네일",
+        evidence_ids: evidencePool.timing,
+        items: [
+          ["marry-05-01", "올해 결혼운", "올해 관계가 어디까지 현실화되기 쉬운지 봅니다."],
+          ["marry-05-02", "대운에서 관계가 공식화되는 구간", "연애가 약속과 책임으로 바뀌는 흐름을 확인합니다."],
+          ["marry-05-03", "월별 연애·결혼 흐름", "말 꺼내기 좋은 달과 쉬어갈 달을 나눕니다."],
+          ["marry-05-04", "고백·관계정의·프러포즈 타이밍", "관계 단계를 올릴 때 상대가 덜 부담스러운 구간을 봅니다."],
+          ["marry-05-05", "상견례·혼인신고·결혼식 택일", "가족 일정과 제도적 선택을 무리 없이 맞출 흐름을 봅니다."],
+          ["marry-05-06", "급발진 주의 구간", "마음은 앞서도 현실 합의가 따라와야 하는 구간을 표시합니다."],
+          ["marry-05-07", "기다리면 풀리는 구간", "바로 밀기보다 상황이 정리될 때까지 보는 구간을 나눕니다."],
+        ],
+      },
+      {
+        id: "marry-section-06",
+        filter: "flag",
+        title: "레드플래그 체크",
+        subtitle: "참고 넘기면 커지는 관계 신호",
+        preview: "반복 싸움, 연락 온도차, 회피·집착·자존심, 돈과 가족 개입 가능성을 점검합니다.",
+        why: "헤어짐을 단정하려는 파트가 아니라, 지금 대화해야 할 위험 신호를 놓치지 않기 위한 파트예요.",
+        asset_key: "marry-05-section-06",
+        image: "../assets/marry/05-marry-section-06.webp",
+        image_alt: "서로 조금 떨어져 앉은 커플과 두 휴대폰을 보여주는 만화풍 썸네일",
+        evidence_ids: evidencePool.flag,
+        items: [
+          ["marry-06-01", "반복 싸움 패턴", "매번 같은 이유로 싸우는 구조를 찾습니다."],
+          ["marry-06-02", "연락 온도차", "연락 빈도보다 기대치 차이가 어디서 생기는지 봅니다."],
+          ["marry-06-03", "회피·집착·자존심 이슈", "불안과 방어가 서로를 더 밀어내는 구간을 봅니다."],
+          ["marry-06-04", "돈 문제에서 보이는 신뢰도", "돈 얘기에서 약속, 기록, 책임감이 보이는지 확인합니다."],
+          ["marry-06-05", "가족 개입 가능성", "부모·형제·가족 의견이 관계 결정에 들어오는 정도를 봅니다."],
+          ["marry-06-06", "결혼관 차이", "결혼의 의미와 속도를 서로 다르게 잡고 있는지 확인합니다."],
+          ["marry-06-07", "말은 좋은데 행동이 안 맞는 구간", "표현과 실행 사이의 간격을 구체적으로 봅니다."],
+          ["marry-06-08", "내가 참고 넘기면 커지는 문제", "지금 작아 보여도 결혼 후 커질 수 있는 지점을 표시합니다."],
+        ],
+      },
+      {
+        id: "marry-section-07",
+        filter: "marriage",
+        title: "현실 동거·결혼 생활 시뮬레이션",
+        subtitle: "같이 살 때 드러나는 생활궁합",
+        preview: "생활 리듬, 집안일, 소비 습관, 휴식 방식, 공간 취향과 장기 갈등 해결법을 봅니다.",
+        why: "생활궁합은 설렘 뒤에 남는 반복입니다. 반복을 어떻게 나눌지 알면 결혼 이야기가 현실적이 됩니다.",
+        asset_key: "marry-05-section-07",
+        image: "../assets/marry/05-marry-section-07.webp",
+        image_alt: "집안일과 빈 노트를 사이에 두고 함께 정리하는 커플 만화풍 썸네일",
+        evidence_ids: evidencePool.daily,
+        items: [
+          ["marry-07-01", "같이 살 때 생활 리듬", "아침형, 밤형, 휴식 타이밍이 맞는지 봅니다."],
+          ["marry-07-02", "집안일·돈 관리 스타일", "관리 방식이 한 사람에게 몰리지 않는지 점검합니다."],
+          ["marry-07-03", "소비 습관 궁합", "아끼는 포인트와 쓰는 포인트가 충돌하는지 봅니다."],
+          ["marry-07-04", "휴식 방식 궁합", "쉬는 날 붙어 있고 싶은지 따로 충전해야 하는지 봅니다."],
+          ["marry-07-05", "사회생활·친구 관계 온도", "친구, 회식, 약속을 서로 어디까지 편하게 보는지 확인합니다."],
+          ["marry-07-06", "공간 취향과 집 분위기", "집을 꾸미고 쓰는 방식에서 생기는 차이를 봅니다."],
+          ["marry-07-07", "장기 갈등 해결 방식", "싸운 뒤 누가 어떻게 풀어야 오래 버틸 수 있는지 봅니다."],
+        ],
+      },
+      {
+        id: "marry-section-08",
+        filter: "flag",
+        title: "관계 회복/마음 돌봄",
+        subtitle: "불안에 끌려가지 않는 관계 읽기",
+        preview: "지금 불안한 이유, 기다릴지 선을 그을지, 서운함을 말하는 방식과 정리 선택지를 봅니다.",
+        why: "관계를 보면서 나를 잃으면 판단이 흐려져요. 마음을 먼저 세워야 대화도 덜 흔들립니다.",
+        asset_key: "marry-05-section-08",
+        image: "../assets/marry/05-marry-section-08.webp",
+        image_alt: "비 오는 야경 창가에서 차와 빈 노트를 둔 여성 만화풍 썸네일",
+        evidence_ids: evidencePool.care,
+        items: [
+          ["marry-08-01", "지금 내가 불안한 이유", "상대 때문인지 내 패턴 때문인지 먼저 분리합니다."],
+          ["marry-08-02", "기다려야 할지, 선을 그어야 할지", "버티는 구간과 기준을 세울 구간을 나눕니다."],
+          ["marry-08-03", "서운함을 말하는 방식", "상대를 몰아붙이지 않고 내 감정을 전하는 문장을 봅니다."],
+          ["marry-08-04", "감정 과몰입 줄이는 루틴", "답장, 확인, 상상으로 번지는 불안을 낮출 루틴을 잡습니다."],
+          ["marry-08-05", "이 관계에서 나를 잃지 않는 법", "맞춰주되 무너지지 않는 기준을 정리합니다."],
+          ["marry-08-06", "재회·거리두기·정리 선택지", "붙잡기와 멈추기 사이에서 현실적인 선택지를 봅니다."],
+        ],
+      },
+      {
+        id: "marry-section-09",
+        filter: "action",
+        title: "오늘 바로 써먹는 액션",
+        subtitle: "카톡 한 줄부터 30일 체크까지",
+        preview: "오늘 보낼 문장, 결혼 얘기 오프닝, 화해 문장, 상대 마음 확인 질문을 바로 쓰게 정리합니다.",
+        why: "풀이가 행동으로 이어져야 관계가 바뀝니다. 오늘 할 말과 이번 주 관찰 포인트로 좁혀줍니다.",
+        asset_key: "marry-05-section-09",
+        image: "../assets/marry/05-marry-section-09.webp",
+        image_alt: "두 휴대폰과 추상 말풍선 빛을 함께 보는 커플 만화풍 썸네일",
+        evidence_ids: evidencePool.action,
+        items: [
+          ["marry-09-01", "오늘 보낼 카톡 한 줄", "상황을 밀지 않으면서 마음을 확인하는 한 줄을 봅니다."],
+          ["marry-09-02", "결혼 얘기 꺼내는 문장", "부담을 줄이고 현실 대화로 여는 문장을 정리합니다."],
+          ["marry-09-03", "싸운 뒤 화해 오프닝", "자존심 싸움으로 번지지 않는 첫 문장을 봅니다."],
+          ["marry-09-04", "상대 마음 확인 질문", "떠보는 말보다 대답을 들을 수 있는 질문을 고릅니다."],
+          ["marry-09-05", "이번 주 데이트 방향", "분위기 전환, 현실 대화, 휴식 중 어디에 둘지 봅니다."],
+          ["marry-09-06", "7일 관계 점검 미션", "일주일 동안 볼 행동 기준을 작게 정합니다."],
+          ["marry-09-07", "30일 결혼각 관찰 체크리스트", "한 달 안에 확인할 약속, 돈, 가족, 생활 신호를 봅니다."],
+        ],
+      },
+      {
+        id: "marry-section-10",
+        filter: "action",
+        title: "MZ형 결과 라벨",
+        subtitle: "한눈에 보는 관계 지표",
+        preview: "결혼각 온도, 공식화 가능성, 장기연애 생존력, 현생 궁합, 감정소모 경보를 라벨로 읽습니다.",
+        why: "긴 해석을 읽기 전 현재 관계의 핵심 온도를 빠르게 잡고, 필요한 상세 파트로 이동하게 해줍니다.",
+        asset_key: "marry-05-section-10",
+        image: "../assets/marry/05-marry-section-10.webp",
+        image_alt: "추상 관계 지표 빛을 함께 바라보는 커플 만화풍 썸네일",
+        evidence_ids: evidencePool.label,
+        items: [
+          ["marry-10-01", "결혼각 온도", "지금 관계가 어느 정도 현실 대화로 갈 준비가 됐는지 봅니다."],
+          ["marry-10-02", "썸에서 공식화 가능성", "애매한 관계가 약속 있는 관계로 바뀔 여지를 봅니다."],
+          ["marry-10-03", "장기연애 생존력", "오래 만나며 버틸 수 있는 생활·감정 체력을 봅니다."],
+          ["marry-10-04", "현생 궁합", "일, 돈, 시간, 가족 현실에서 맞춰갈 수 있는지 봅니다."],
+          ["marry-10-05", "티키타카 지수", "말이 잘 통하는 순간과 엇갈리는 포인트를 나눕니다."],
+          ["marry-10-06", "감정소모 경보", "관계에서 에너지가 과하게 빠지는 구간을 표시합니다."],
+          ["marry-10-07", "안정감 레벨", "상대와 함께 있을 때 마음이 놓이는 정도를 봅니다."],
+          ["marry-10-08", "속도조절 알림", "지금 더 밀기보다 속도를 맞춰야 하는 신호를 확인합니다."],
+        ],
+      },
+    ];
+
+    const elements = {
+      reportChip: document.querySelector("#report-chip"),
+      personChip: document.querySelector("#person-chip"),
+      notice: document.querySelector("#access-notice"),
+      noticeTitle: document.querySelector("#notice-title"),
+      noticeCopy: document.querySelector("#notice-copy"),
+      noticeActions: document.querySelector("#notice-actions"),
+      list: document.querySelector("#group-list"),
+      visibleCount: document.querySelector("#visible-count"),
+      search: document.querySelector("#index-search"),
+      filters: document.querySelectorAll(".filter"),
+      form: document.querySelector("#chat-form"),
+      message: document.querySelector("#chat-message"),
+      toast: document.querySelector("#toast"),
+    };
+
+    const state = {
+      filter: "all",
+      query: "",
+      selectedSectionId: "",
+      access: "missing",
+      toastTimer: 0,
+    };
+
+    function routeFor(sectionId) {
+      return `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(sectionId)}#step-6_1-report`;
+    }
+
+    function readJson(key, fallback = null) {
+      try {
+        const value = sessionStorage.getItem(key);
+        return value ? JSON.parse(value) : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function writeJson(key, value) {
+      sessionStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[char]));
+    }
+
+    function enrichedGroups() {
+      return baseGroups.map((group, groupIndex) => ({
+        ...group,
+        order: groupIndex + 1,
+        items: group.items.map(([sectionId, title, preview], itemIndex) => ({
+          section_id: sectionId,
+          title,
+          preview,
+          why_needed: group.why,
+          evidence_ids: group.evidence_ids,
+          asset_key: group.asset_key,
+          route: routeFor(sectionId),
+          order: itemIndex + 1,
+        })),
+      }));
+    }
+
+    function buildReportIndex() {
+      const context = readJson(storageKeys.reportContext, {});
+      const stored = readJson(storageKeys.reportIndex, {});
+      return {
+        report_id: context.report_id || stored.report_id || "preview-only",
+        source: "user_seed",
+        service_key: service.service_key,
+        service_slug: service.service_slug,
+        groups: enrichedGroups(),
+      };
+    }
+
+    function resolveAccess() {
+      const input = readJson(storageKeys.input, null);
+      const context = readJson(storageKeys.reportContext, null);
+      const query = new URLSearchParams(location.search);
+      const queryReportId = query.get("reportId") || "";
+      const accessState = sessionStorage.getItem(storageKeys.accessState) || "guest";
+      const paymentState = sessionStorage.getItem(storageKeys.paymentState) || "";
+      const networkState = sessionStorage.getItem(storageKeys.networkState) || "";
+      const generationState = sessionStorage.getItem(storageKeys.generationState) || "";
+
+      if (!input && !context) return "expired";
+      if (!context || !context.report_id) return "missing";
+      if (context.service_key && context.service_key !== service.service_key) return "wrong";
+      if (queryReportId && queryReportId !== context.report_id) return "wrong";
+      if (networkState === "error") return "network_error";
+      if (generationState === "generating") return "generating";
+      if (accessState === "entitled" || paymentState === "paid") return "entitled";
+      return "locked";
+    }
+
+    function selectedPayload(section) {
+      return {
+        service_key: service.service_key,
+        service_slug: service.service_slug,
+        report_id: buildReportIndex().report_id,
+        section_id: section.section_id,
+        section_title: section.title,
+        route: section.route,
+        selected_at: new Date().toISOString(),
+      };
+    }
+
+    function showToast(message) {
+      clearTimeout(state.toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.classList.add("is-open");
+      state.toastTimer = setTimeout(() => {
+        elements.toast.classList.remove("is-open");
+      }, 2600);
+    }
+
+    function actionButton(label, action, primary = false) {
+      return `<button class="action-button${primary ? " primary" : ""}" type="button" data-notice-action="${escapeHtml(action)}">${escapeHtml(label)}</button>`;
+    }
+
+    function renderNotice() {
+      const copy = {
+        entitled: {
+          title: "전체 리포트 목차가 열렸어요",
+          text: "보고 싶은 중분류를 누르면 해당 상세 풀이로 바로 이어집니다. 상세 화면에서도 이 목차 기준을 그대로 사용합니다.",
+          actions: [actionButton("첫 항목 보기", "first", true), actionButton("04 결과로", "back")],
+        },
+        locked: {
+          title: "상세 풀이는 결제 권한 확인 후 열려요",
+          text: "목차와 예고는 볼 수 있지만, 각 항목의 개인화 상세 풀이는 24,900원 결제와 주문 확인 뒤 열립니다.",
+          actions: [actionButton("결제 화면으로", "pay", true), actionButton("입력 수정", "edit")],
+        },
+        missing: {
+          title: "연결된 리포트를 찾지 못했어요",
+          text: "이전 단계에서 만든 결과가 없거나 아직 저장되지 않았습니다. 새 분석으로 다시 연결하거나 04 결과 화면에서 이어가 주세요.",
+          actions: [actionButton("04 결과로", "back", true), actionButton("새 분석", "edit"), actionButton("재시도", "retry")],
+        },
+        expired: {
+          title: "입력 정보가 만료됐어요",
+          text: "두 사람 기준을 다시 입력하면 무료 티저와 결제 전 목차를 복구할 수 있습니다.",
+          actions: [actionButton("새 분석", "edit", true), actionButton("04 결과로", "back")],
+        },
+        generating: {
+          title: "리포트 목차를 정리하는 중이에요",
+          text: "이미 만든 목차는 유지하고, 생성이 끝나면 상세 항목을 열 수 있게 바뀝니다.",
+          actions: [actionButton("새로 확인", "retry", true), actionButton("04 결과로", "back")],
+        },
+        network_error: {
+          title: "연결이 잠시 불안정해요",
+          text: "마지막 정상 목차는 유지했습니다. 다시 확인하면 상세 접근 상태를 새로 맞춥니다.",
+          actions: [actionButton("다시 확인", "retry", true), actionButton("04 결과로", "back")],
+        },
+        wrong: {
+          title: "이 리포트는 현재 사용자 권한과 맞지 않아요",
+          text: "다른 사용자의 리포트이거나 주문 확인이 맞지 않는 경우 상세 접근을 막습니다.",
+          actions: [actionButton("04 결과로", "back", true), actionButton("새 분석", "edit")],
+        },
+      }[state.access];
+
+      elements.notice.dataset.state = state.access;
+      elements.noticeTitle.textContent = copy.title;
+      elements.noticeCopy.textContent = copy.text;
+      elements.noticeActions.innerHTML = copy.actions.join("");
+      if (state.access === "generating") elements.notice.classList.add("skeleton");
+      else elements.notice.classList.remove("skeleton");
+    }
+
+    function groupMatches(group) {
+      const filterOk = state.filter === "all" || group.filter === state.filter;
+      if (!filterOk) return false;
+      if (!state.query) return true;
+      const haystack = [
+        group.title,
+        group.subtitle,
+        group.preview,
+        ...group.items.map((item) => `${item.title} ${item.preview}`),
+      ].join(" ").toLowerCase();
+      return haystack.includes(state.query);
+    }
+
+    function itemHtml(group, item) {
+      const isActive = item.section_id === state.selectedSectionId;
+      const locked = state.access !== "entitled";
+      return `
+        <a
+          class="section-link${isActive ? " is-active" : ""}${locked ? " is-locked" : ""}"
+          href="${escapeHtml(item.route)}"
+          data-section-id="${escapeHtml(item.section_id)}"
+          data-group-id="${escapeHtml(group.id)}"
+          data-section-title="${escapeHtml(item.title)}"
+          aria-disabled="${locked ? "true" : "false"}"
+        >
+          <span class="section-no">${String(group.order).padStart(2, "0")}-${String(item.order).padStart(2, "0")}</span>
+          <span class="section-copy">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(item.preview)}</span>
+          </span>
+          <svg class="section-arrow" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      `;
+    }
+
+    function groupHtml(group) {
+      return `
+        <article class="result-card" data-group-id="${escapeHtml(group.id)}" data-asset-key="${escapeHtml(group.asset_key)}">
+          <div class="card-cover">
+            <img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.image_alt)}" loading="lazy" />
+            <div class="cover-copy">
+              <span>${String(group.order).padStart(2, "0")} · ${escapeHtml(group.subtitle)}</span>
+              <h3>${escapeHtml(group.title)}</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="group-summary">${escapeHtml(group.preview)}</p>
+            <div class="why">
+              <span>필요한 이유</span>
+              <p>${escapeHtml(group.why)}</p>
+            </div>
+            <div class="section-list">
+              ${group.items.map((item) => itemHtml(group, item)).join("")}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderGroups() {
+      const groups = buildReportIndex().groups.filter(groupMatches);
+      const count = groups.reduce((sum, group) => sum + group.items.length, 0);
+      elements.visibleCount.textContent = `${count}개 항목`;
+      elements.list.innerHTML = groups.length
+        ? groups.map(groupHtml).join("")
+        : '<div class="empty">검색 조건에 맞는 항목이 없습니다.</div>';
+      elements.list.querySelectorAll("img").forEach((img) => {
+        img.addEventListener("error", () => {
+          img.closest(".card-cover")?.classList.add("image-missing");
+          img.alt = "이미지를 불러오지 못한 목차 카드";
+        }, { once: true });
+      });
+    }
+
+    function updateContextChips() {
+      const input = readJson(storageKeys.input, null);
+      const context = readJson(storageKeys.reportContext, null);
+      const reportIndex = buildReportIndex();
+      const itemCount = reportIndex.groups.reduce((sum, group) => sum + group.items.length, 0);
+      elements.reportChip.textContent = `${reportIndex.groups.length}개 대분류 · ${itemCount}개 항목`;
+      if (input?.partner?.known) {
+        const selfName = input.self?.name || "나";
+        const partnerName = input.partner?.name || "상대";
+        elements.personChip.textContent = `${selfName} × ${partnerName}`;
+        return;
+      }
+      if (context?.profile_id) {
+        elements.personChip.textContent = "저장된 리포트 기준";
+        return;
+      }
+      elements.personChip.textContent = "두 사람 기준 확인";
+    }
+
+    function findSection(sectionId) {
+      for (const group of buildReportIndex().groups) {
+        const found = group.items.find((item) => item.section_id === sectionId);
+        if (found) return { group, section: found };
+      }
+      return null;
+    }
+
+    function firstVisibleSection() {
+      const groups = buildReportIndex().groups.filter(groupMatches);
+      return groups[0]?.items[0] || buildReportIndex().groups[0]?.items[0] || null;
+    }
+
+    function canOpenDetail() {
+      return state.access === "entitled";
+    }
+
+    function selectAndMaybeOpen(sectionId, route, openDetail) {
+      const found = findSection(sectionId);
+      if (!found) {
+        showToast("선택한 항목을 찾지 못했어요.");
+        return;
+      }
+      state.selectedSectionId = sectionId;
+      writeJson(storageKeys.reportIndex, buildReportIndex());
+      writeJson(storageKeys.selectedSection, selectedPayload(found.section));
+      renderGroups();
+
+      if (!openDetail) return;
+      if (!canOpenDetail()) {
+        const message = state.access === "generating"
+          ? "생성이 끝나면 이 항목을 열 수 있어요."
+          : "상세 풀이는 결제 권한 확인 후 열립니다.";
+        showToast(message);
+        return;
+      }
+      window.location.href = route || found.section.route;
+    }
+
+    function handleNoticeAction(action) {
+      if (action === "first") {
+        const section = firstVisibleSection();
+        if (section) selectAndMaybeOpen(section.section_id, section.route, true);
+        return;
+      }
+      if (action === "pay" || action === "back") {
+        window.location.href = "../04-step-4-report/index.html#step-4-report";
+        return;
+      }
+      if (action === "edit") {
+        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
+        return;
+      }
+      if (action === "retry") {
+        sessionStorage.removeItem(storageKeys.networkState);
+        state.access = resolveAccess();
+        renderNotice();
+        renderGroups();
+        showToast("상태를 다시 확인했습니다.");
+      }
+    }
+
+    function init() {
+      state.access = resolveAccess();
+      const storedSelection = readJson(storageKeys.selectedSection, null);
+      state.selectedSectionId = storedSelection?.section_id || "";
+      writeJson(storageKeys.reportIndex, buildReportIndex());
+      updateContextChips();
+      renderNotice();
+      renderGroups();
+    }
+
+    document.querySelector("#btn-back").addEventListener("click", () => {
+      window.location.href = "../04-step-4-report/index.html#step-4-report";
+    });
+
+    document.querySelector("#btn-vault").addEventListener("click", () => {
+      sessionStorage.setItem(storageKeys.requestedVault, "true");
+      showToast("보관함은 로그인된 리포트 기준으로 연결됩니다.");
+    });
+
+    elements.noticeActions.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-notice-action]");
+      if (!button) return;
+      handleNoticeAction(button.dataset.noticeAction);
+    });
+
+    elements.list.addEventListener("click", (event) => {
+      const link = event.target.closest("[data-section-id]");
+      if (!link) return;
+      event.preventDefault();
+      selectAndMaybeOpen(link.dataset.sectionId, link.getAttribute("href"), true);
+    });
+
+    elements.search.addEventListener("input", () => {
+      state.query = elements.search.value.trim().toLowerCase();
+      renderGroups();
+    });
+
+    elements.filters.forEach((button) => {
+      button.addEventListener("click", () => {
+        elements.filters.forEach((item) => item.classList.remove("is-active"));
+        button.classList.add("is-active");
+        state.filter = button.dataset.filter;
+        renderGroups();
+      });
+    });
+
+    elements.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const message = elements.message.value.trim();
+      const selected = state.selectedSectionId ? findSection(state.selectedSectionId)?.section : firstVisibleSection();
+      if (!selected) {
+        showToast("먼저 상담할 항목을 선택해 주세요.");
+        return;
+      }
+      writeJson(storageKeys.chatSeed, {
+        service_key: service.service_key,
+        report_id: buildReportIndex().report_id,
+        section_id: selected.section_id,
+        section_title: selected.title,
+        message,
+        created_at: new Date().toISOString(),
+      });
+      elements.message.value = "";
+      selectAndMaybeOpen(selected.section_id, selected.route, true);
+    });
+
+    init();
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/marry-service.js" defer></script>
+  </body>
+</html>

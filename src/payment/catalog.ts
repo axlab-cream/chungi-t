@@ -75,7 +75,8 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '결혼궁합',
     eyebrow: 'MATCH · 결혼궁합',
     amount: 24900,
-    returnPath: '/match/marry',
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/match/marry/04-step-4-report/index.html',
     summary: '배우자궁, 대운, 합충으로 결혼까지의 흐름을 봅니다.',
   },
   match_couple: {

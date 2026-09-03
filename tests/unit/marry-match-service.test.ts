@@ -5,6 +5,7 @@ import {
   buildMarryMatchContext,
   buildMarryMatchReport,
   createMarryMatchReportId,
+  MARRY_MATCH_TOC,
   parseMarryMatchRequest,
 } from '../../src/match/marry-service.js'
 import type { BirthInput } from '../../src/types/index.js'
@@ -39,16 +40,33 @@ test('marry match service builds a dedicated marriage compatibility report', () 
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '결혼궁합 해석문')
-  assert.equal(report.sections.length, 21)
+  assert.equal(report.sections.length, 70)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
-    '연애 말고, 결혼까지 갈 수 있는가',
-    '두 사람의 배우자궁이 만나는 자리',
-    '대운과 세운이 여는 결혼 타이밍',
-    '돈, 가족, 책임에서 갈리는 궁합',
-    '결혼을 밀어도 되는 관계인지',
+    '내 연애 기본값',
+    '상대 연애 캐릭터',
+    '둘의 케미 궁합',
+    '연애 말고 결혼각',
+    '결혼 타이밍 운',
+    '레드플래그 체크',
+    '현실 동거·결혼 생활 시뮬레이션',
+    '관계 회복과 마음 돌봄',
+    '오늘 바로 써먹는 액션',
+    '한눈에 보는 결과 라벨',
   ])
   assert.match(report.sections[0].interpretation, /배우자궁|대운|합충|결혼/)
   assert.match(report.sections[0].interpretation, /김하나/)
+  assert.equal(report.sections[0].id, 'marry-01-01')
+  assert.equal(report.sections.at(-1)!.id, 'marry-10-08')
+
+  // Each 대분류 carries its own artwork and its own reading angle, so the 05 list and
+  // the 06 detail never show ten copies of the same card or the same opening sentence.
+  const firstOfEachGroup = MARRY_MATCH_TOC.map((group) => report.sections.find((section) => section.category === group.title)!)
+  assert.equal(new Set(firstOfEachGroup.map((section) => section.imageSrc)).size, 10)
+  assert.equal(new Set(firstOfEachGroup.map((section) => section.interpretation.split('\n\n')[0])).size, 10)
+  firstOfEachGroup.forEach((section, index) => {
+    assert.equal(section.imageSrc, `/match/marry/assets/marry/05-marry-section-${String(index + 1).padStart(2, '0')}.webp`)
+    assert.ok(section.patternKeys.includes(MARRY_MATCH_TOC[index].tag))
+  })
 })
 
 test('marry match request validates partner birth date', () => {

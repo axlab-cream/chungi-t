@@ -218,8 +218,25 @@ app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) =
 app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
 })
-app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (_req, res) => {
-  res.sendFile(join(SAJU_ROOT, 'match', 'marry', 'index.html'))
+// 결혼궁합 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result rather than the intro.
+  const query = new URLSearchParams(req.query as Record<string, string>).toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/match/marry/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/match/marry/input', '/match/marry/input.html'], (_req, res) => {
+  res.redirect(302, '/match/marry/02-step-2-saju-input/index.html')
+})
+app.get(['/match/marry/report', '/match/marry/report.html'], (_req, res) => {
+  res.redirect(302, '/match/marry/04-step-4-report/index.html')
+})
+app.get(['/match/marry/chat', '/match/marry/chat.html'], (_req, res) => {
+  res.redirect(302, '/match/marry/05-step-5-chat/chat.html')
+})
+app.get(['/match/marry/detail', '/match/marry/detail.html'], (_req, res) => {
+  res.redirect(302, '/match/marry/06-step-6_1-report-detail/index.html')
 })
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')

@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>입력 | 연애 말고 결혼까지 가능? | 운명상회</title>
+    <meta name="description" content="본인과 상대 정보를 따로 입력해 결혼궁합 리포트로 이어갑니다." />
+    <meta name="application-name" content="운명상회" />
+    <meta property="og:title" content="연애 말고 결혼까지 가능? | 운명상회" />
+    <meta property="og:description" content="두 사람의 결혼각을 보기 위한 사주 입력 화면" />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:url" content="https://match.umsh.kr/marry" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="../assets/marry/02-pair-input.webp" />
+    <meta property="og:image:alt" content="두 사람이 각자의 정보를 확인하는 결혼궁합 입력 일러스트" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #070303;
+        --ink: #fff7ec;
+        --muted: rgba(255, 239, 220, 0.72);
+        --dim: rgba(255, 239, 220, 0.54);
+        --gold: #f0c06f;
+        --gold-soft: #ffe5aa;
+        --rose: #e16b67;
+        --red: #8f1f1d;
+        --burgundy: #341111;
+        --field: rgba(255, 255, 255, 0.075);
+        --panel: rgba(19, 10, 10, 0.92);
+        --line: rgba(255, 221, 176, 0.22);
+        --font-brand: "Maru Buri", Georgia, serif;
+        --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100%;
+        background: #000;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      body {
+        display: grid;
+        place-items: start center;
+      }
+
+      a,
+      button,
+      input,
+      select,
+      textarea {
+        -webkit-tap-highlight-color: transparent;
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .phone {
+        width: min(100%, 440px);
+        min-height: 100svh;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% -5%, rgba(225, 107, 103, 0.2), transparent 19rem),
+          radial-gradient(circle at 100% 20%, rgba(240, 192, 111, 0.12), transparent 16rem),
+          linear-gradient(180deg, #130606 0%, #070303 48%, #020101 100%);
+        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(240, 192, 111, 0.16);
+        background: rgba(8, 3, 3, 0.9);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        line-height: 1;
+      }
+
+      .brand strong {
+        color: var(--gold-soft);
+        font-family: var(--font-brand);
+        font-size: 19px;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .pill {
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .pill {
+        padding: 8px 10px;
+        border: 1px solid rgba(240, 192, 111, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      main {
+        padding: 18px 16px max(24px, env(safe-area-inset-bottom));
+      }
+
+      .intro {
+        display: grid;
+        gap: 14px;
+      }
+
+      .visual {
+        position: relative;
+        min-height: 192px;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(240, 192, 111, 0.2);
+        background: #160807;
+      }
+
+      .visual img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 36% 23%;
+      }
+
+      .visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.25) 57%, rgba(8, 3, 3, 0.95) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.5) 62%, rgba(0, 0, 0, 0.72));
+      }
+
+      .visual-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-content: end;
+        min-height: 192px;
+        padding: 78px 18px 18px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-brand);
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        max-width: 11ch;
+        margin-bottom: 10px;
+        font-size: clamp(30px, 8.8vw, 40px);
+        line-height: 1.08;
+      }
+
+      h2 {
+        margin-bottom: 8px;
+        font-size: 21px;
+        line-height: 1.22;
+      }
+
+      p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.72;
+        word-break: keep-all;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        margin-bottom: 8px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .meter {
+        display: grid;
+        gap: 8px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .meter-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--dim);
+        font-size: 12px;
+      }
+
+      .meter-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .meter-track span {
+        display: block;
+        width: 34%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--rose), var(--gold));
+      }
+
+      .form-shell {
+        display: grid;
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        padding: 17px 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
+          var(--panel);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .panel-kicker {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .badge {
+        flex: 0 0 auto;
+        padding: 6px 8px;
+        border: 1px solid rgba(240, 192, 111, 0.24);
+        border-radius: 999px;
+        color: var(--gold-soft);
+        background: rgba(240, 192, 111, 0.08);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      label,
+      legend {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.35;
+      }
+
+      .help {
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid rgba(255, 226, 175, 0.24);
+        border-radius: 8px;
+        outline: none;
+        background: var(--field);
+        color: var(--ink);
+        font-size: 15px;
+      }
+
+      input,
+      select {
+        padding: 0 12px;
+      }
+
+      textarea {
+        min-height: 92px;
+        resize: vertical;
+        padding: 12px;
+        line-height: 1.55;
+      }
+
+      select {
+        appearance: none;
+        background:
+          linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+          linear-gradient(135deg, var(--gold) 50%, transparent 50%),
+          var(--field);
+        background-position:
+          calc(100% - 16px) 19px,
+          calc(100% - 10px) 19px,
+          0 0;
+        background-size:
+          6px 6px,
+          6px 6px,
+          100% 100%;
+        background-repeat: no-repeat;
+      }
+
+      option {
+        background: #1c0d0d;
+        color: var(--ink);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: rgba(240, 192, 111, 0.8);
+        box-shadow: 0 0 0 3px rgba(240, 192, 111, 0.13);
+      }
+
+      [aria-invalid="true"] {
+        border-color: rgba(255, 92, 92, 0.86);
+        box-shadow: 0 0 0 3px rgba(255, 92, 92, 0.12);
+      }
+
+      .error {
+        min-height: 17px;
+        color: #ffaaa2;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .choice-group {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .choice-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .choice-row.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .choice-row.wrap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .choice {
+        position: relative;
+        display: grid;
+        min-height: 48px;
+        align-items: center;
+      }
+
+      .choice input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+
+      .choice span {
+        display: grid;
+        min-height: 48px;
+        place-items: center;
+        padding: 9px 8px;
+        border: 1px solid rgba(255, 226, 175, 0.24);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: rgba(255, 247, 236, 0.82);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.28;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      .choice input:focus-visible + span {
+        box-shadow: 0 0 0 3px rgba(240, 192, 111, 0.14);
+      }
+
+      .choice input:checked + span {
+        border-color: rgba(240, 192, 111, 0.78);
+        background: linear-gradient(135deg, rgba(143, 31, 29, 0.72), rgba(240, 192, 111, 0.16));
+        color: var(--gold-soft);
+      }
+
+      .inline-check {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 10px;
+        align-items: start;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .inline-check input {
+        width: 20px;
+        min-height: 20px;
+        margin: 1px 0 0;
+        accent-color: var(--gold);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .summary-box {
+        display: grid;
+        gap: 8px;
+        padding: 13px;
+        border: 1px solid rgba(225, 107, 103, 0.28);
+        border-radius: 8px;
+        background: rgba(143, 31, 29, 0.16);
+      }
+
+      .summary-box strong {
+        color: var(--gold-soft);
+        font-size: 13px;
+      }
+
+      .summary-box ul {
+        display: grid;
+        gap: 5px;
+        margin: 0;
+        padding-left: 18px;
+        color: #ffcbc4;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 8;
+        display: grid;
+        gap: 10px;
+        margin: 16px -16px -24px;
+        padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(240, 192, 111, 0.18);
+        background: rgba(8, 3, 3, 0.94);
+        backdrop-filter: blur(16px);
+      }
+
+      .next,
+      .back {
+        display: inline-flex;
+        min-height: 52px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: 950;
+      }
+
+      .next {
+        color: #2b0907;
+        background: linear-gradient(135deg, #fff0ba, var(--gold));
+        box-shadow: 0 14px 34px rgba(240, 192, 111, 0.24);
+      }
+
+      .next:disabled {
+        opacity: 0.72;
+        cursor: wait;
+      }
+
+      .back {
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      @media (max-width: 370px) {
+        main {
+          padding-inline: 12px;
+        }
+
+        .field-grid,
+        .choice-row,
+        .choice-row.three,
+        .choice-row.wrap {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          margin-inline: -12px;
+          padding-inline: 12px;
+        }
+      }
+    
+      /* Shared UMSH chrome: keep the fixed bottom nav from covering the page tail. */
+      body.umsh-has-chrome .phone { padding-bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
+      /* The story hero filled the viewport minus the design's own 64px bar; it now shares
+         the screen with the chrome app bar and the fixed bottom nav, so its CTA stays visible. */
+      body.umsh-has-chrome #step-1-story .hero { min-height: calc(100svh - var(--umsh-chrome-appbar-h, 72px) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .composer { bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .chat-log, body.umsh-has-chrome .screen { padding-bottom: calc(112px + var(--umsh-chrome-bottom-h, 74px)); }
+      body.umsh-has-chrome .footer { padding-bottom: 18px; }
+      /* The teaser cards were sized for one short sample sentence. Real readings run longer,
+         and three columns inside a 375px phone wrapped them to two or three words per line. */
+      .teaser-grid { grid-template-columns: 1fr; }
+      .teaser-grid .mini-card { min-height: 0; gap: 4px; padding: 12px 14px; }
+      .marry-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(240, 192, 111, 0.45); border-radius: 10px; background: rgba(240, 192, 111, 0.08); padding: 14px; margin-bottom: 14px; }
+      .marry-saved-profile b { color: var(--gold, #f0c06f); font-size: 14px; }
+      .marry-saved-profile span { color: var(--muted, rgba(255,239,220,.74)); font-size: 13px; line-height: 1.55; }
+      .marry-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="phone" data-umsh-chrome data-service="결혼궁합" data-price="24,900원" data-active="home">
+      <header class="appbar topbar">
+        <a class="brand" href="../01-step-1-story/index.html#step-1-story" aria-label="운명상회 처음 화면으로 이동">
+          <strong>운명상회</strong>
+          <span>결혼궁합</span>
+        </a>
+        <span class="pill">02 / 06</span>
+      </header>
+
+      <section class="visual" aria-label="두 사람 정보를 따로 입력하는 장면">
+        <img src="../assets/marry/02-pair-input.webp" alt="밤 카페에서 커플이 각자의 기기로 정보를 확인하는 만화풍 일러스트" />
+        <div class="visual-copy">
+          <span class="eyebrow">연애 말고 결혼까지 가능?</span>
+          <h1>두 사람 정보를 따로 볼게요</h1>
+          <p>본인 기준, 상대 기준, 지금 관계 질문을 분리해서 결혼각과 속도 조절 포인트를 이어봅니다.</p>
+        </div>
+      </section>
+
+      <main>
+        <section class="intro" aria-label="입력 안내">
+          <div class="meter">
+            <div class="meter-row">
+              <strong>예상 소요 3분</strong>
+              <span>필수 8개 + 상대 정보는 아는 만큼</span>
+            </div>
+            <div class="meter-track" aria-hidden="true"><span></span></div>
+          </div>
+        </section>
+
+        <form class="form-shell" id="marry-input-form" novalidate>
+          <section class="panel" aria-labelledby="self-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">MY BASE</span>
+                <h2 id="self-title">내 사주 기준</h2>
+                <p>로그인 프로필이 완성돼 있으면 다시 입력하지 않아도 됩니다.</p>
+              </div>
+              <span class="badge">재사용 가능</span>
+            </div>
+
+            <fieldset class="choice-group" aria-describedby="self-mode-help">
+              <legend>본인 정보 입력 방식</legend>
+              <div class="choice-row">
+                <label class="choice">
+                  <input type="radio" name="self_profile_mode" value="saved" checked />
+                  <span>기존 프로필</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="self_profile_mode" value="new" />
+                  <span>새 정보 입력</span>
+                </label>
+              </div>
+              <div class="help" id="self-mode-help">본인 대운 흐름과 배우자 자리를 보는 기준입니다.</div>
+              <div class="error" data-error-for="self_profile_mode" aria-live="polite"></div>
+            </fieldset>
+
+            <div class="field-grid hidden" id="self-fields">
+              <div class="field">
+                <label for="self-name">내 이름</label>
+                <input id="self-name" name="self_name" type="text" autocomplete="off" placeholder="분석 화면용 이름" />
+                <div class="help">결과에서 부를 이름만 사용합니다.</div>
+                <div class="error" data-error-for="self_name" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="self-gender">내 성별</label>
+                <select id="self-gender" name="self_gender">
+                  <option value="">선택</option>
+                  <option value="female">여성</option>
+                  <option value="male">남성</option>
+                </select>
+                <div class="help">배우자성 흐름을 구분할 때 필요합니다.</div>
+                <div class="error" data-error-for="self_gender" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="self-birth-date">내 생년월일</label>
+                <input id="self-birth-date" name="self_birth_date" type="date" />
+                <div class="help">일간과 배우자궁 기준을 잡습니다.</div>
+                <div class="error" data-error-for="self_birth_date" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="self-calendar">달력 기준</label>
+                <select id="self-calendar" name="self_calendar">
+                  <option value="">선택</option>
+                  <option value="solar">양력</option>
+                  <option value="lunar">음력</option>
+                </select>
+                <div class="help">날짜 변환 오류를 막기 위한 값입니다.</div>
+                <div class="error" data-error-for="self_calendar" aria-live="polite"></div>
+              </div>
+
+              <fieldset class="choice-group field full">
+                <legend>내 출생시간</legend>
+                <div class="choice-row">
+                  <label class="choice">
+                    <input type="radio" name="self_birth_time_known" value="known" />
+                    <span>알아요</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="self_birth_time_known" value="unknown" checked />
+                    <span>몰라요</span>
+                  </label>
+                </div>
+                <div class="help">알면 더 촘촘하게 보고, 몰라도 진행할 수 있습니다.</div>
+                <div class="error" data-error-for="self_birth_time_known" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field self-time-row hidden">
+                <label for="self-birth-time">내 출생시간</label>
+                <input id="self-birth-time" name="self_birth_time" type="time" />
+                <div class="help">예: 13:30</div>
+                <div class="error" data-error-for="self_birth_time" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="self-birth-place">출생지</label>
+                <input id="self-birth-place" name="self_birth_place" type="text" autocomplete="off" placeholder="선택 입력" />
+                <div class="help">시간 보정이 필요한 운영 환경에서 참고합니다.</div>
+                <div class="error" data-error-for="self_birth_place" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="partner-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">PARTNER BASE</span>
+                <h2 id="partner-title">상대 사주 기준</h2>
+                <p>상대 정보를 모르면 모르는 대로 관계 질문 중심으로 이어갑니다.</p>
+              </div>
+              <span class="badge">분리 입력</span>
+            </div>
+
+            <fieldset class="choice-group">
+              <legend>상대 생년월일을 알고 있나요?</legend>
+              <div class="choice-row">
+                <label class="choice">
+                  <input type="radio" name="partner_known" value="known" checked />
+                  <span>알아요</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="partner_known" value="unknown" />
+                  <span>몰라요</span>
+                </label>
+              </div>
+              <div class="help">알고 있으면 두 사람의 조화와 충돌을 더 구체적으로 봅니다.</div>
+              <div class="error" data-error-for="partner_known" aria-live="polite"></div>
+            </fieldset>
+
+            <div class="field-grid" id="partner-fields">
+              <div class="field">
+                <label for="partner-name">상대 이름</label>
+                <input id="partner-name" name="partner_name" type="text" autocomplete="off" placeholder="선택 입력" />
+                <div class="help">결과 화면에서 구분용으로만 씁니다.</div>
+                <div class="error" data-error-for="partner_name" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="partner-gender">상대 성별</label>
+                <select id="partner-gender" name="partner_gender">
+                  <option value="">선택</option>
+                  <option value="female">여성</option>
+                  <option value="male">남성</option>
+                </select>
+                <div class="help">상대의 관계 흐름을 따로 보기 위한 값입니다.</div>
+                <div class="error" data-error-for="partner_gender" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="partner-birth-date">상대 생년월일</label>
+                <input id="partner-birth-date" name="partner_birth_date" type="date" />
+                <div class="help">일간 케미와 지지 조화를 볼 때 필요합니다.</div>
+                <div class="error" data-error-for="partner_birth_date" aria-live="polite"></div>
+              </div>
+
+              <div class="field">
+                <label for="partner-calendar">달력 기준</label>
+                <select id="partner-calendar" name="partner_calendar">
+                  <option value="">선택</option>
+                  <option value="solar">양력</option>
+                  <option value="lunar">음력</option>
+                </select>
+                <div class="help">상대 날짜 기준을 본인과 섞지 않습니다.</div>
+                <div class="error" data-error-for="partner_calendar" aria-live="polite"></div>
+              </div>
+
+              <fieldset class="choice-group field full">
+                <legend>상대 출생시간</legend>
+                <div class="choice-row">
+                  <label class="choice">
+                    <input type="radio" name="partner_birth_time_known" value="known" />
+                    <span>알아요</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="partner_birth_time_known" value="unknown" checked />
+                    <span>몰라요</span>
+                  </label>
+                </div>
+                <div class="help">모르면 생년월일 기준으로만 해석합니다.</div>
+                <div class="error" data-error-for="partner_birth_time_known" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field partner-time-row hidden">
+                <label for="partner-birth-time">상대 출생시간</label>
+                <input id="partner-birth-time" name="partner_birth_time" type="time" />
+                <div class="help">예: 21:10</div>
+                <div class="error" data-error-for="partner_birth_time" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="context-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">RELATION CHECK</span>
+                <h2 id="context-title">지금 관계 상황</h2>
+                <p>같은 궁합도 현재 단계에 따라 액션이 달라집니다.</p>
+              </div>
+              <span class="badge">액션 연결</span>
+            </div>
+
+            <div class="field">
+              <label for="relationship-status">현재 관계</label>
+              <select id="relationship-status" name="relationship_status">
+                <option value="">선택</option>
+                <option value="talking">썸 타는 중</option>
+                <option value="dating">연애 중</option>
+                <option value="reunion">재회 고민</option>
+                <option value="family_meeting">상견례 전</option>
+                <option value="wedding_prep">결혼 준비 중</option>
+              </select>
+              <div class="help">결혼 얘기를 꺼낼 타이밍과 속도 조절 기준이 달라집니다.</div>
+              <div class="error" data-error-for="relationship_status" aria-live="polite"></div>
+            </div>
+
+            <fieldset class="choice-group">
+              <legend>제일 먼저 보고 싶은 것</legend>
+              <div class="choice-row wrap">
+                <label class="choice">
+                  <input type="radio" name="question_focus" value="marriage_signal" />
+                  <span>결혼각</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="question_focus" value="timing" />
+                  <span>타이밍</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="question_focus" value="red_flags" />
+                  <span>레드플래그</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="question_focus" value="daily_life" />
+                  <span>생활궁합</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="question_focus" value="conversation" />
+                  <span>대화 액션</span>
+                </label>
+              </div>
+              <div class="help">무료 결과에서 우선순위를 잡고, 상세 리포트 목차로 이어집니다.</div>
+              <div class="error" data-error-for="question_focus" aria-live="polite"></div>
+            </fieldset>
+
+            <div class="field">
+              <label for="main-concern">지금 제일 궁금한 한 가지</label>
+              <textarea id="main-concern" name="main_concern" maxlength="180" placeholder="예: 결혼 얘기를 꺼내도 되는지, 계속 싸우는 포인트가 뭔지 알고 싶어요."></textarea>
+              <div class="help"><span id="concern-count">0</span>/180 · 단정 대신 가능성과 행동 중심으로 풀어갑니다.</div>
+              <div class="error" data-error-for="main_concern" aria-live="polite"></div>
+            </div>
+
+            <label class="inline-check">
+              <input id="privacy-ack" name="privacy_ack" type="checkbox" />
+              <span>입력한 이름과 생년월일은 이 브라우저의 현재 분석 세션에서만 이어가고, 주소창에는 남기지 않는 방식으로 진행할게요.</span>
+            </label>
+            <div class="error" data-error-for="privacy_ack" aria-live="polite"></div>
+          </section>
+
+          <div class="summary-box hidden" id="error-summary" tabindex="-1" aria-live="polite">
+            <strong>조금만 더 채우면 바로 볼 수 있어요</strong>
+            <ul id="error-list"></ul>
+          </div>
+
+          <div class="actions">
+            <button class="next" id="submit-button" type="submit">입력한 정보로 결혼궁합 보기</button>
+            <a class="back" href="../01-step-1-story/index.html#step-1-story">이전 이야기 다시 보기</a>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script>
+      const SERVICE_CONTEXT = {
+        service_key: "marriage_compatibility",
+        service_slug: "marry",
+        service_title: "연애 말고 결혼까지 가능?",
+        service_category: "결혼궁합",
+        price_krw: 24900,
+        subject_mode: "pair",
+        input_schema_version: "marry-pair-v1",
+        next_route: "../04-step-4-report/index.html#step-4-report",
+      };
+
+      const STORAGE_KEYS = {
+        context: "umsh_service_context",
+        seed: "umsh_interpretation_seed_marry",
+        payload: "umsh_marry_input_payload",
+        pendingLoginReturn: "umsh_pending_login_return",
+      };
+
+      const INTERPRETATION_INDEX_SEED = [
+        ["내 연애 기본값", ["나는 직진형인지, 천천히 스며드는 형인지", "연락·표현·스킨십 온도", "사랑할 때 선 넘는 포인트", "혼자 있고 싶은 시간 vs 붙어 있고 싶은 시간", "연애에서 자주 반복되는 내 패턴", "결혼하면 드러나는 생활 습관"]],
+        ["상대 연애 캐릭터", ["상대의 애정 표현 방식", "책임감과 약속 감각", "갈등 났을 때 반응 패턴", "돈·일·가족을 대하는 태도", "오래 만날수록 편해지는 타입인지", "말보다 행동으로 봐야 하는 시그널"]],
+        ["둘의 케미 궁합", ["일간 케미", "오행 밸런스 궁합", "십성 관계 궁합", "띠·지지 조화와 충돌", "대화 티키타카", "감정 소모도", "같이 있으면 커지는 장점", "같이 있으면 반복되는 피로 포인트"]],
+        ["연애 말고 결혼각", ["설렘형 인연인지, 생활형 인연인지", "결혼 얘기 꺼내도 되는 타이밍", "장기 파트너 안정감", "현실 조건 합의 가능성", "결혼 후 역할 분담 궁합", "가족·돈·집 문제에서 부딪힐 지점", "지금 밀어붙일 각인지, 속도 조절각인지"]],
+        ["결혼 타이밍 운", ["올해 결혼운", "대운에서 관계가 공식화되는 구간", "월별 연애·결혼 흐름", "고백·관계정의·프러포즈 타이밍", "상견례·혼인신고·결혼식 택일", "급발진 주의 구간", "기다리면 풀리는 구간"]],
+        ["레드플래그 체크", ["반복 싸움 패턴", "연락 온도차", "회피·집착·자존심 이슈", "돈 문제에서 보이는 신뢰도", "가족 개입 가능성", "결혼관 차이", "말은 좋은데 행동이 안 맞는 구간", "내가 참고 넘기면 커지는 문제"]],
+        ["현실 동거·결혼 생활 시뮬레이션", ["같이 살 때 생활 리듬", "집안일·돈 관리 스타일", "소비 습관 궁합", "휴식 방식 궁합", "사회생활·친구 관계 온도", "공간 취향과 집 분위기", "장기 갈등 해결 방식"]],
+        ["관계 회복/마음 돌봄", ["지금 내가 불안한 이유", "기다려야 할지, 선을 그어야 할지", "서운함을 말하는 방식", "감정 과몰입 줄이는 루틴", "이 관계에서 나를 잃지 않는 법", "재회·거리두기·정리 선택지"]],
+        ["오늘 바로 써먹는 액션", ["오늘 보낼 카톡 한 줄", "결혼 얘기 꺼내는 문장", "싸운 뒤 화해 오프닝", "상대 마음 확인 질문", "이번 주 데이트 방향", "7일 관계 점검 미션", "30일 결혼각 관찰 체크리스트"]],
+        ["MZ형 결과 라벨", ["결혼각 온도", "썸에서 공식화 가능성", "장기연애 생존력", "현생 궁합", "티키타카 지수", "감정소모 경보", "안정감 레벨", "속도조절 알림"]],
+      ];
+
+      const form = document.querySelector("#marry-input-form");
+      const selfFields = document.querySelector("#self-fields");
+      const partnerFields = document.querySelector("#partner-fields");
+      const selfTimeRow = document.querySelector(".self-time-row");
+      const partnerTimeRow = document.querySelector(".partner-time-row");
+      const concern = document.querySelector("#main-concern");
+      const concernCount = document.querySelector("#concern-count");
+      const errorSummary = document.querySelector("#error-summary");
+      const errorList = document.querySelector("#error-list");
+      const submitButton = document.querySelector("#submit-button");
+
+      function selected(name) {
+        return form.querySelector(`input[name="${name}"]:checked`)?.value || "";
+      }
+
+      function field(name) {
+        return form.elements[name];
+      }
+
+      function value(name) {
+        const target = field(name);
+        return target ? String(target.value || "").trim() : "";
+      }
+
+      function setVisible() {
+        const useSavedProfile = selected("self_profile_mode") === "saved";
+        const partnerKnown = selected("partner_known") === "known";
+        const selfTimeKnown = selected("self_birth_time_known") === "known";
+        const partnerTimeKnown = selected("partner_birth_time_known") === "known";
+        selfFields.classList.toggle("hidden", useSavedProfile);
+        partnerFields.classList.toggle("hidden", !partnerKnown);
+        selfTimeRow.classList.toggle("hidden", !selfTimeKnown || useSavedProfile);
+        partnerTimeRow.classList.toggle("hidden", !partnerTimeKnown || !partnerKnown);
+      }
+
+      function clearErrors() {
+        errorList.innerHTML = "";
+        errorSummary.classList.add("hidden");
+        form.querySelectorAll("[aria-invalid='true']").forEach((el) => el.removeAttribute("aria-invalid"));
+        form.querySelectorAll(".error").forEach((el) => {
+          el.textContent = "";
+        });
+      }
+
+      function setError(errors, key, message) {
+        errors.push({ key, message });
+        const error = form.querySelector(`[data-error-for="${key}"]`);
+        if (error) error.textContent = message;
+        const target = field(key) || form.querySelector(`[name="${key}"]`);
+        if (target && "setAttribute" in target) target.setAttribute("aria-invalid", "true");
+      }
+
+      function validate() {
+        clearErrors();
+        const errors = [];
+        const useSavedProfile = selected("self_profile_mode") === "saved";
+        const partnerKnown = selected("partner_known") === "known";
+
+        if (!selected("self_profile_mode")) {
+          setError(errors, "self_profile_mode", "기존 프로필로 볼지 새 정보로 볼지 선택해 주세요.");
+        }
+
+        if (!useSavedProfile) {
+          if (!value("self_name")) setError(errors, "self_name", "결과에서 부를 내 이름을 입력해 주세요.");
+          if (!value("self_gender")) setError(errors, "self_gender", "배우자성 흐름을 보려면 내 성별 선택이 필요해요.");
+          if (!value("self_birth_date")) setError(errors, "self_birth_date", "내 생년월일을 입력해야 일간 기준을 잡을 수 있어요.");
+          if (!value("self_calendar")) setError(errors, "self_calendar", "양력인지 음력인지 선택해 주세요.");
+          if (!selected("self_birth_time_known")) setError(errors, "self_birth_time_known", "내 출생시간을 아는지 선택해 주세요.");
+          if (selected("self_birth_time_known") === "known" && !value("self_birth_time")) {
+            setError(errors, "self_birth_time", "출생 시간을 입력하면 시간 흐름까지 볼 수 있어요.");
+          }
+        }
+
+        if (!selected("partner_known")) {
+          setError(errors, "partner_known", "상대 생년월일을 알고 있는지 선택해 주세요.");
+        }
+
+        if (partnerKnown) {
+          if (!value("partner_gender")) setError(errors, "partner_gender", "상대 기준을 따로 보려면 상대 성별 선택이 필요해요.");
+          if (!value("partner_birth_date")) setError(errors, "partner_birth_date", "상대 생년월일을 입력해야 두 사람의 조화를 볼 수 있어요.");
+          if (!value("partner_calendar")) setError(errors, "partner_calendar", "상대 날짜가 양력인지 음력인지 선택해 주세요.");
+          if (!selected("partner_birth_time_known")) setError(errors, "partner_birth_time_known", "상대 출생시간을 아는지 선택해 주세요.");
+          if (selected("partner_birth_time_known") === "known" && !value("partner_birth_time")) {
+            setError(errors, "partner_birth_time", "상대 출생 시간을 입력하거나 모름으로 바꿔 주세요.");
+          }
+        }
+
+        if (!value("relationship_status")) {
+          setError(errors, "relationship_status", "현재 관계 단계를 선택해야 결혼 얘기 타이밍을 볼 수 있어요.");
+        }
+
+        if (!selected("question_focus")) {
+          setError(errors, "question_focus", "제일 먼저 보고 싶은 포인트를 하나 선택해 주세요.");
+        }
+
+        if (!value("main_concern")) {
+          setError(errors, "main_concern", "지금 가장 궁금한 질문을 한 줄로 적어 주세요.");
+        }
+
+        if (!field("privacy_ack").checked) {
+          setError(errors, "privacy_ack", "현재 분석 세션에만 이어가는 방식에 동의해 주세요.");
+        }
+
+        if (errors.length) {
+          errors.forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item.message;
+            errorList.appendChild(li);
+          });
+          errorSummary.classList.remove("hidden");
+          const first = field(errors[0].key) || form.querySelector(`[name="${errors[0].key}"]`);
+          if (first && "focus" in first) first.focus({ preventScroll: true });
+          errorSummary.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        return errors.length === 0;
+      }
+
+      function collectPayload() {
+        const useSavedProfile = selected("self_profile_mode") === "saved";
+        const partnerKnown = selected("partner_known") === "known";
+        return {
+          service_key: SERVICE_CONTEXT.service_key,
+          service_slug: SERVICE_CONTEXT.service_slug,
+          service_title: SERVICE_CONTEXT.service_title,
+          service_category: SERVICE_CONTEXT.service_category,
+          subject_mode: SERVICE_CONTEXT.subject_mode,
+          input_schema_version: SERVICE_CONTEXT.input_schema_version,
+          self: {
+            profile_mode: selected("self_profile_mode"),
+            use_saved_profile: useSavedProfile,
+            name: useSavedProfile ? "" : value("self_name"),
+            gender: useSavedProfile ? "" : value("self_gender"),
+            birth_date: useSavedProfile ? "" : value("self_birth_date"),
+            calendar: useSavedProfile ? "" : value("self_calendar"),
+            birth_time_known: useSavedProfile ? "" : selected("self_birth_time_known"),
+            birth_time: useSavedProfile || selected("self_birth_time_known") !== "known" ? "" : value("self_birth_time"),
+            birth_place: useSavedProfile ? "" : value("self_birth_place"),
+          },
+          partner: {
+            known: partnerKnown,
+            name: partnerKnown ? value("partner_name") : "",
+            gender: partnerKnown ? value("partner_gender") : "",
+            birth_date: partnerKnown ? value("partner_birth_date") : "",
+            calendar: partnerKnown ? value("partner_calendar") : "",
+            birth_time_known: partnerKnown ? selected("partner_birth_time_known") : "unknown",
+            birth_time: partnerKnown && selected("partner_birth_time_known") === "known" ? value("partner_birth_time") : "",
+          },
+          relationship_context: {
+            relationship_status: value("relationship_status"),
+            question_focus: selected("question_focus"),
+            main_concern: value("main_concern"),
+          },
+          privacy_scope: "sessionStorage_only",
+          created_at: new Date().toISOString(),
+        };
+      }
+
+      function persistForNextStep(payload) {
+        const publicContext = {
+          service_key: SERVICE_CONTEXT.service_key,
+          service_slug: SERVICE_CONTEXT.service_slug,
+          service_title: SERVICE_CONTEXT.service_title,
+          service_category: SERVICE_CONTEXT.service_category,
+          price_krw: SERVICE_CONTEXT.price_krw,
+          input_schema_version: SERVICE_CONTEXT.input_schema_version,
+          subject_mode: SERVICE_CONTEXT.subject_mode,
+          next_step: "04-step-4-report",
+        };
+        const seedPayload = {
+          source: "user_seed",
+          service_key: SERVICE_CONTEXT.service_key,
+          service_slug: SERVICE_CONTEXT.service_slug,
+          interpretation_index: INTERPRETATION_INDEX_SEED.map(([title, items], index) => ({
+            id: `marry-section-${String(index + 1).padStart(2, "0")}`,
+            title,
+            items,
+          })),
+        };
+        sessionStorage.setItem(STORAGE_KEYS.context, JSON.stringify(publicContext));
+        sessionStorage.setItem(STORAGE_KEYS.seed, JSON.stringify(seedPayload));
+        sessionStorage.setItem(STORAGE_KEYS.payload, JSON.stringify(payload));
+        sessionStorage.setItem(STORAGE_KEYS.pendingLoginReturn, JSON.stringify({
+          service_key: SERVICE_CONTEXT.service_key,
+          service_slug: SERVICE_CONTEXT.service_slug,
+          input_schema_version: SERVICE_CONTEXT.input_schema_version,
+          return_to: "../04-step-4-report/index.html#step-4-report",
+        }));
+      }
+
+      function restoreDraft() {
+        try {
+          const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.payload) || "null");
+          if (!saved || saved.service_slug !== SERVICE_CONTEXT.service_slug) return;
+          if (saved.self?.profile_mode) {
+            const radio = form.querySelector(`input[name="self_profile_mode"][value="${saved.self.profile_mode}"]`);
+            if (radio) radio.checked = true;
+          }
+          if (saved.partner?.known === false) {
+            form.querySelector('input[name="partner_known"][value="unknown"]').checked = true;
+          }
+          Object.entries({
+            self_name: saved.self?.name,
+            self_gender: saved.self?.gender,
+            self_birth_date: saved.self?.birth_date,
+            self_calendar: saved.self?.calendar,
+            self_birth_time: saved.self?.birth_time,
+            self_birth_place: saved.self?.birth_place,
+            partner_name: saved.partner?.name,
+            partner_gender: saved.partner?.gender,
+            partner_birth_date: saved.partner?.birth_date,
+            partner_calendar: saved.partner?.calendar,
+            partner_birth_time: saved.partner?.birth_time,
+            relationship_status: saved.relationship_context?.relationship_status,
+            main_concern: saved.relationship_context?.main_concern,
+          }).forEach(([name, savedValue]) => {
+            if (savedValue && field(name)) field(name).value = savedValue;
+          });
+          if (saved.self?.birth_time_known) {
+            const radio = form.querySelector(`input[name="self_birth_time_known"][value="${saved.self.birth_time_known}"]`);
+            if (radio) radio.checked = true;
+          }
+          if (saved.partner?.birth_time_known) {
+            const radio = form.querySelector(`input[name="partner_birth_time_known"][value="${saved.partner.birth_time_known}"]`);
+            if (radio) radio.checked = true;
+          }
+          if (saved.relationship_context?.question_focus) {
+            const radio = form.querySelector(`input[name="question_focus"][value="${saved.relationship_context.question_focus}"]`);
+            if (radio) radio.checked = true;
+          }
+        } catch (error) {
+          sessionStorage.removeItem(STORAGE_KEYS.payload);
+        }
+      }
+
+      form.addEventListener("change", (event) => {
+        if (event.target.matches('input[type="radio"], select')) setVisible();
+      });
+
+      concern.addEventListener("input", () => {
+        concernCount.textContent = String(concern.value.length);
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!validate()) return;
+        submitButton.disabled = true;
+        submitButton.textContent = "결혼궁합으로 이어가는 중";
+        const payload = collectPayload();
+        persistForNextStep(payload);
+        window.location.href = SERVICE_CONTEXT.next_route;
+      });
+
+      restoreDraft();
+      setVisible();
+      concernCount.textContent = String(concern.value.length);
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/marry-service.js" defer></script>
+  </body>
+</html>
