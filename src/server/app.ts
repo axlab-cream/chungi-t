@@ -87,6 +87,7 @@ import {
   parseCatCompatRequest,
 } from '../pet/cat-service.js'
 import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
+import { getCorpusSnapshot } from '../rag/corpus-registry.js'
 import {
   buildLoveMindContext,
   buildLoveMindReport,
@@ -1221,7 +1222,18 @@ async function ensurePaidServiceAccess(
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, openai: isOpenAiConfigured() })
+  // 배포 반영 여부를 URL 하나로 확인할 수 있게 코퍼스 지문을 같이 내려준다. 팩 목록과
+  // 해시뿐이고 내용은 담지 않는다.
+  const corpus = getCorpusSnapshot()
+  res.json({
+    ok: true,
+    openai: isOpenAiConfigured(),
+    corpus: {
+      registryVersion: corpus.registryVersion,
+      fingerprint: corpus.fingerprint,
+      packs: corpus.activePacks.map((pack) => ({ id: pack.id, version: pack.version, contentHash: pack.contentHash })),
+    },
+  })
 })
 
 app.get('/api/auth/config', (_req, res) => {
