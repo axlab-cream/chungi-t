@@ -49,6 +49,7 @@ test('보관함은 저장된 풀이를 원래 서비스로 되돌린다', () => 
   assert.equal(serviceHrefForKey('job_choice'), '/work/job-choice')
   // 목록에서 감춘 서비스도 보관함에서는 열 수 있어야 한다.
   assert.equal(serviceHrefForKey('love_mind'), '/love/mind')
+  assert.equal(serviceHrefForKey('home_fit'), '/place/home')
   assert.equal(serviceHrefForKey(undefined), undefined)
   assert.equal(serviceHrefForKey('nope'), undefined)
 })

@@ -154,7 +154,7 @@
       items: [
         { label: '홈 맨 위', meta: '처음 화면으로 이동', action: 'scroll-top', status: '이동' },
         { label: '대표 상품 보기', meta: '천명사주와 추천 상품', action: 'focus-services', status: '보기' },
-        { label: '오늘운 무료 보기', meta: '회원가입 후 오늘 흐름 확인', href: '/signup?entry=today', status: '무료' },
+        { label: '오늘운 무료 보기', meta: '일진과 오늘 흐름 확인', href: '/today/free', status: '무료' },
         { label: '가격 사다리', meta: '무료부터 종합사주까지', action: 'focus-pricing', status: '확인' },
       ],
     },
@@ -180,7 +180,7 @@
       title: '보관함',
       desc: '저장한 풀이와 상담 기록을 다시 여는 곳입니다.',
       items: [
-        { label: '풀이 보관함 열기', meta: '저장된 리포트 목록 보기', href: '/cmdg/#vault', status: '열기' },
+        { label: '풀이 보관함 열기', meta: '저장된 리포트 목록 보기', href: '/vault', status: '열기' },
         { label: '새 사주 저장하기', meta: '새 풀이를 만들고 보관함에 저장', href: '/cmdg/#name', status: '입력' },
         { label: '상담 이어보기', meta: '최근 풀이 상담 화면으로 이동', href: '/chat.html', status: '상담' },
         { label: '보관함 안내', meta: '로그인하면 다른 기기에서도 다시 열 수 있습니다', action: 'toast', message: '로그인 상태에서 만든 풀이는 보관함에서 다시 열 수 있습니다.', status: '안내' },
@@ -193,7 +193,7 @@
       items: [
         { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
         { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
-        { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/cmdg/#vault', status: '보기' },
+        { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/vault', status: '보기' },
         { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/cmdg/#support', status: '문의' },
       ],
     },

@@ -232,12 +232,33 @@
               return;
             }
 
+            const titles = {
+              cmdg: '천명사주',
+              love_this_year: '올해 연애운',
+              job_choice: '직장 선택',
+              cat_compatibility: '고양이 궁합',
+              lucky_color: '색과 물건',
+              match_couple: '커플궁합',
+              marry_match: '결혼궁합',
+              couple_signal: '관계 신호',
+              quit_fortune: '퇴사운',
+              pass_angle: '나, 붙을 각이야?',
+              money_save: '소비성향',
+              work_move: '이직운',
+              work_job: '직업운',
+              love_mind: '상대방 마음',
+              love_again: '재회운',
+              love_spouse: '배우자운',
+              home_fit: '집 풍수',
+              home_pungsu: '집 풍수',
+            };
             state.innerHTML = '';
             list.innerHTML = reports
               .map((report) => {
-                const service = report.context?.target || report.context?.serviceTitle || '천명사주';
-                const href = report.serviceHref || '/search';
-                const openable = Boolean(report.serviceHref);
+                const key = report.serviceKey || report.context?.serviceKey || '';
+                const service = titles[key] || report.context?.target || report.context?.serviceTitle || '천명사주';
+                const href = report.serviceHref || (key === 'cmdg' || !key ? '/cmdg/' : '/search');
+                const openable = Boolean(href && href !== '/search');
                 const body = `
                   <span class="body">
                     <b>${escapeHtml(service)}</b>

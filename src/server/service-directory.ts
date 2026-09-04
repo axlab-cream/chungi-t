@@ -74,5 +74,10 @@ export function listServiceDirectory(): ServiceDirectoryEntry[] {
 /** Where a saved reading should reopen, looked up by the report's own serviceKey. */
 export function serviceHrefForKey(serviceKey: string | undefined): string | undefined {
   if (!serviceKey) return undefined
-  return SEEDS.find((seed) => seed.key === serviceKey)?.href
+  const aliases: Record<string, PaymentProductKey> = {
+    home_fit: 'home_pungsu',
+    home: 'home_pungsu',
+  }
+  const key = aliases[serviceKey] || (serviceKey as PaymentProductKey)
+  return SEEDS.find((seed) => seed.key === key)?.href
 }

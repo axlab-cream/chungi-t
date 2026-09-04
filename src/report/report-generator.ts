@@ -1522,6 +1522,8 @@ function buildPassAngleInterpretation(
   const exam = context.exam
   const examName = cleanContextValue(exam?.examName, '준비 중인 시험')
   const examType = cleanContextValue(exam?.examType, '시험 유형 미선택')
+  const examLast = examName.charCodeAt(examName.length - 1)
+  const examAndType = `${examName}${examLast >= 0xac00 && examLast <= 0xd7a3 && (examLast - 0xac00) % 28 !== 0 ? '과' : '와'} ${examType}`
   const priority = cleanContextValue(exam?.priority, '지금 가장 필요한 것 미선택')
   const worry = cleanContextValue(exam?.worry, '아직 적지 않은 고민')
   const countdown = examCountdownLabel(context)
@@ -1603,7 +1605,7 @@ function buildPassAngleInterpretation(
     ].join('\n\n'),
 
     'action-plan': [
-      `마지막으로 남은 기간에 맞춘 실행표를 봅니다. ${countdown} 기준이며, ${examName}과 ${examType}에 맞춰 조정했습니다.`,
+      `마지막으로 남은 기간에 맞춘 실행표를 봅니다. ${countdown} 기준이며, ${examAndType}에 맞춰 조정했습니다.`,
       `[해법] D-100 구간에는 범위를 끝까지 훑고 버릴 단원을 먼저 정합니다. D-30 구간에는 기출과 오답으로 점수 변동폭을 줄입니다. D-7 구간에는 새 자료를 금지하고 수면과 동선을 고정합니다. ${phase}`,
       `주 단위로는 이렇게 씁니다. 평일 다섯 날은 진도와 문제 풀이에 쓰고, 하루는 그 주에 틀린 것만 다시 봅니다. 남은 하루는 비워두세요. 밀린 것을 메우는 날이자, 아무것도 밀리지 않았으면 쉬는 날입니다. 이 한 칸이 있어야 계획이 무너지지 않습니다.`,
       `[주의할 점] 버려야 할 것도 정해야 합니다. 출제 비중이 낮은 단원, 세 번 봐도 안 붙는 개념, 남들이 한다고 따라 산 교재는 과감히 뒤로 미루세요. 다 하려는 계획은 실제로는 아무것도 끝내지 못하는 계획입니다.`,

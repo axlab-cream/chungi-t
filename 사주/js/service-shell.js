@@ -10,7 +10,7 @@
   if (document.querySelector('body > .bottom-nav[aria-label="상세 이동과 상담"]')) {
     document.body.classList.add('has-service-fixed-bottom', 'has-detail-fixed-bottom');
   }
-  const activeCategory = topHost?.dataset.umshServiceCategory || document.body.dataset.umshServiceCategory || '풍수';
+  const activeCategory = topHost?.dataset.umshServiceCategory || document.body.dataset.umshServiceCategory || 'all';
 
   /**
    * Pages do not agree on one column width: most sit at 430px, 집풍수 at 440px and
@@ -56,7 +56,8 @@
     ['궁합', '궁합'],
     ['직업', '직업'],
     ['흐름', '흐름'],
-    ['풍수', '풍수'],
+    // 풍수 숨김: 포털 카드와 같이 접는다. 카드와 함께 다시 여세요.
+    // ['풍수', '풍수'],
   ];
 
   const menuItems = {
@@ -67,8 +68,7 @@
       items: [
         { label: '홈 맨 위', meta: '처음 화면으로 이동', href: '/', status: '이동' },
         { label: '대표 상품 보기', meta: '천명사주와 추천 상품', href: '/#services', status: '보기' },
-        { label: '집 풍수 이어보기', meta: '지금 사는 집 풀이 화면', href: '/place/home', status: '풍수' },
-        { label: '오늘운 무료 보기', meta: '회원가입 후 오늘 흐름 확인', href: '/signup?entry=today', status: '무료' },
+        { label: '오늘운 무료 보기', meta: '일진과 오늘 흐름 확인', href: '/today/free', status: '무료' },
       ],
     },
     destiny: {
@@ -88,7 +88,7 @@
         { label: '전체 상품', meta: '모든 운세 메뉴 보기', href: '/', status: '전체' },
         { label: '종합사주', meta: '내 인생 전체 흐름', href: '/cmdg/', status: '49,900원' },
         { label: '연애', meta: '도화와 관계 타이밍', href: '/love/this-year', status: '보기' },
-        { label: '풍수', meta: '집과 공간의 기운', href: '/place/home', status: '보기' },
+        { label: '직업', meta: '일과 적성의 방향', href: '/work/job-choice', status: '보기' },
       ],
     },
     vault: {
@@ -96,7 +96,7 @@
       title: '보관함',
       desc: '저장한 풀이와 상담 기록을 다시 여는 곳입니다.',
       items: [
-        { label: '풀이 보관함 열기', meta: '저장된 리포트 목록 보기', href: '/cmdg/#vault', status: '열기' },
+        { label: '풀이 보관함 열기', meta: '저장된 리포트 목록 보기', href: '/vault', status: '열기' },
         { label: '새 사주 저장하기', meta: '새 풀이를 만들고 보관함에 저장', href: '/cmdg/#name', status: '입력' },
       ],
     },

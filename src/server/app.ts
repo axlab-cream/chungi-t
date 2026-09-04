@@ -1049,7 +1049,7 @@ function historyEntryFromRecord(record: ReportRecord) {
 
   return {
     reportId: record.reportId,
-    serviceKey: record.context?.serviceKey,
+    serviceKey: record.context?.serviceKey || 'cmdg',
     serviceHref: serviceHrefForKey(record.context?.serviceKey),
     savedAt,
     title: `${birthState.name || birthState.target || '자네'} · ${birthState.calendar} ${birthState.birth}`,

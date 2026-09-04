@@ -539,7 +539,7 @@ export function buildLoveSignalReport(
   return finalizeSpecializedReport({
     reportId,
     title: '관계 신호 해석문',
-    subtitle: `${context.name ?? '본인'}님과 ${input.partnerName || '상대'}의 연락 결과 표현 방식을 함께 봅니다`,
+    subtitle: `${context.name ?? '본인'}님과 ${input.partnerName || '상대'}의 연락·결과·표현 방식을 함께 봅니다`,
     model: 'love-signal-rag-template',
     generatedBy: 'template',
     status: 'complete',

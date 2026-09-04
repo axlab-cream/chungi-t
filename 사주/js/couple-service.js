@@ -172,7 +172,7 @@
         calendar: partner.calendar === 'lunar' ? 'lunar' : 'solar',
       },
       partnerBirthTimeKnown: Boolean(partner.birth_time || partner.birthTime),
-      relationStage: context.relation || partner.relation || '',
+      relationshipStage: context.relation || partner.relation || '',
       conflictPattern: context.focus || '',
       concern: context.current_question || context.question || '',
     };
