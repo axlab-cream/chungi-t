@@ -906,15 +906,8 @@
       });
 
       document.querySelector("#btn-pdf").addEventListener("click", () => {
-        const note = document.createElement("section");
-        note.className = "state-panel";
-        note.innerHTML = `
-          <span class="state-pill">PDF</span>
-          <h2>보관함에서 받을 수 있어요</h2>
-          <p>상세 리포트가 열린 뒤 보관함에서 내려받는 흐름으로 연결됩니다.</p>
-        `;
-        els.content.appendChild(note);
-        note.scrollIntoView({ behavior: "smooth", block: "end" });
+        if (window.UMSHReportPdf && window.UMSHReportPdf.openFromStorage()) return;
+        window.print();
       });
 
       document.addEventListener("error", (event) => {

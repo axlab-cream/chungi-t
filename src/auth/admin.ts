@@ -1,6 +1,6 @@
 /** Super-admin emails that unlock paid reports without checkout. */
 
-const DEFAULT_ADMIN_EMAILS = ['good1621@gmail.com']
+const DEFAULT_ADMIN_EMAILS = ['good1621@gmail.com', 'axlabtest@gmail.com']
 
 export function adminEmails(): string[] {
   const fromEnv = String(process.env.UMSH_ADMIN_EMAILS ?? '')

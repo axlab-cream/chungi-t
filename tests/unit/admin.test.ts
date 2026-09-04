@@ -7,9 +7,12 @@ test('기본 슈퍼관리자 이메일은 good1621@gmail.com 이다', () => {
   delete process.env.UMSH_ADMIN_EMAILS
   try {
     assert.ok(adminEmails().includes('good1621@gmail.com'))
+    assert.ok(adminEmails().includes('axlabtest@gmail.com'))
     assert.equal(isAdminEmail('Good1621@gmail.com'), true)
+    assert.equal(isAdminEmail('AxLabTest@gmail.com'), true)
     assert.equal(isAdminEmail('someone@example.com'), false)
     assert.equal(isAdminOwner({ email: 'good1621@gmail.com' }), true)
+    assert.equal(isAdminOwner({ email: 'axlabtest@gmail.com' }), true)
   } finally {
     if (previous === undefined) delete process.env.UMSH_ADMIN_EMAILS
     else process.env.UMSH_ADMIN_EMAILS = previous

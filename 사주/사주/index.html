@@ -5294,6 +5294,25 @@
         })[char]);
       }
 
+      function lastHangul(word) {
+        const chars = String(word || "").replace(/[^가-힣]/g, "");
+        return chars.slice(-1);
+      }
+
+      function hasBatchim(word) {
+        const last = lastHangul(word);
+        if (!last) return false;
+        return (last.charCodeAt(0) - 0xac00) % 28 !== 0;
+      }
+
+      function objectParticle(word) {
+        return hasBatchim(word) ? "을" : "를";
+      }
+
+      function topicParticle(word) {
+        return hasBatchim(word) ? "은" : "는";
+      }
+
       function storyTopNavMarkup(_showBack = false) {
         return "";
       }
@@ -5414,7 +5433,7 @@
         palzaBg = sampleAssets.palzaBg,
         assetOne = sampleAssets.assetOne,
         showAssetOneTopCopy = true,
-        assetOneBottomCopy = `<p>${concernHead}은 지금 흐름을 다시 보게 만든 신호일세.</p>`,
+        assetOneBottomCopy = `<p>${concernHead}${topicParticle(concernHead)} 지금 흐름을 다시 보게 만든 신호일세.</p>`,
         previewTwoCopy = `<h2>과거로부터 이어온<br /><span class="red">팔자</span>의 기운을 보겠네</h2>`,
         previewTwo = sampleAssets.previewTwo,
         assetTwoTopCopy = `<p>${displayName}님의 <span class="red">사주</span><br />입력한 생년월일 기준</p>`,
@@ -6393,14 +6412,14 @@
         const title = wantsTodayEntry()
           ? "오늘의 운을 보려면<br />먼저 가입해주세요"
           : wantsProtectedProfileEntry()
-            ? `${protectedLabel}을 열려면<br />먼저 로그인해주세요`
+            ? `${protectedLabel}${objectParticle(protectedLabel)} 열려면<br />먼저 로그인해주세요`
             : isStandaloneSignupFlow()
               ? "회원가입 후<br />운을 열어보세요"
               : "먼저 가입하고<br />해석을 시작합니다";
         const description = wantsTodayEntry()
           ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
           : wantsProtectedProfileEntry()
-            ? `${protectedLabel}은 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
+            ? `${protectedLabel}${topicParticle(protectedLabel)} 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
             : isStandaloneSignupFlow()
               ? "소셜 계정으로 가입하면 오늘운, 운명록, 보관함을 같은 계정에서 이어서 볼 수 있습니다."
               : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
@@ -6774,7 +6793,7 @@
 
             <section class="story-section sub-result-text-band" data-sample-section="personality-bridge">
               <span class="chapter">허허...</span>
-              <h2><span class="red">성격</span><br />${displayName}</h2>
+              <h2><span class="red">성격</span> · ${displayName}</h2>
               <div class="sub-result-meta" aria-label="사주 기둥 요약">
                 <span>${yearLabel}</span>
                 <span>${monthLabel}</span>
@@ -6789,7 +6808,7 @@
               <h2 class="hero-line"><span class="red">${dominantElement}</span> <span class="red">기운</span>이<br />꽤 강하군요</h2>
               <div class="sub-result-summary" aria-label="서브 결과 요약">
                 <div class="sub-result-card"><strong>먼저 보이는 결</strong><span>${dominantElement}의 흐름이 강해 판단과 반응이 빠르게 움직입니다.</span></div>
-                <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>을 중심으로 현실의 흐름을 다시 봅니다.</span></div>
+                <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>${objectParticle(concernRaw)} 중심으로 현실의 흐름을 다시 봅니다.</span></div>
                 <div class="sub-result-card"><strong>해석 방향</strong><span>좋은 말보다 먼저 <span class="red">팔자</span>의 구조와 막힌 자리를 짚겠습니다.</span></div>
               </div>
               <div class="story-callout">보통 <span class="red">팔자</span>가 아닙니다. 지금의 <span class="red">고민</span>도 이 흐름과 이어져 있습니다.</div>
@@ -7027,6 +7046,11 @@
       }
 
       function renderLoveThisYearPurchase() {
+        if (!paymentConfigCache) {
+          stage.innerHTML = `<section class="panel"><div class="status">결제 안내</div><h1>결제 정보를 확인하는 중입니다</h1><p>잠시만 기다려 주세요.</p></section>`;
+          loadPaymentConfig().then(() => renderLoveThisYearPurchase());
+          return;
+        }
         const service = currentService();
         const live = isCheckoutLive();
         const product = catalogProduct(LOVE_THIS_YEAR_SERVICE_KEY);
@@ -7080,10 +7104,13 @@
           renderLoveThisYearPurchase();
           return;
         }
+        if (!paymentConfigCache) {
+          stage.innerHTML = `<section class="panel"><div class="status">결제 안내</div><h1>결제 정보를 확인하는 중입니다</h1><p>잠시만 기다려 주세요.</p></section>`;
+          loadPaymentConfig().then(() => renderPurchase());
+          return;
+        }
         const plans = [
           { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,800원" },
-          { id: "solo", title: "솔로탈출 패키지", badge: "추천", discount: "44%", origin: "108,000원", price: "60,000원" },
-          { id: "deep", title: "MZ 운세 패키지", badge: "인기", discount: "30%", origin: "96,000원", price: "67,000원" },
         ];
         // Show the amount checkout will actually charge for every plan the catalog sells.
         plans.forEach((plan) => {

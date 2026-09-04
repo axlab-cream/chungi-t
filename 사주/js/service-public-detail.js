@@ -2,9 +2,12 @@
   const details = {
     '/today/free': {
       eyebrow: 'TODAY · 무료',
-      title: '스토리 페이지 제작중',
-      summary: '오늘운 상세 스토리는 준비 중입니다.',
-      pending: true,
+      title: '오늘 나한테\n들어오는 운',
+      summary: '일진과 내 일간을 겹쳐, 오늘 쓸 힘과 피해야 할 선택을 먼저 봅니다.',
+      image: '/assets/umsh-share-banner.png',
+      problem: '막연한 운세보다, 오늘 내가 건드리면 커지는 선택이 뭔지 알아야 합니다.',
+      risk: '같은 실수를 반복하고도 기운 탓으로만 넘기는 하루',
+      chance: '일진 · 일운 · 피해야 할 선택까지, 오늘 하루의 기준을 나눕니다.',
       cta: '다음 · 오늘운 확인하기',
     },
     '/money/save': {

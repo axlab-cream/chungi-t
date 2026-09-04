@@ -109,9 +109,9 @@
     },
     lineFor: function (id, limit) {
       var parts = paragraphs(byId[id]);
-      // Inside one 대분류 the chart sentences are shared, so a row shows the paragraph
-      // that is this item's own. It opens by announcing itself, which is noise in a row.
-      var line = (parts[4] || parts[1] || parts[0] || '')
+      // Paragraph 4 is a shared RAG closer and often lands off-item.
+      // Paragraph 1 is this row's own note + chart lead.
+      var line = (parts[1] || parts[0] || '')
         .replace(/^이 대목에서 함께 볼 결은 이렇습니다\.\s*/, '');
       return firstSentences(line, 1, limit || 120);
     },

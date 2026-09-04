@@ -350,7 +350,7 @@
       const title = item.querySelector('b');
       const body = item.querySelector('p');
       if (title) title.textContent = section.classification;
-      if (body) body.textContent = clamp(readingLine(section, 4), 130);
+      if (body) body.textContent = clamp(readingLine(section, 1), 130);
     });
 
     // The paid-scope tiles mirror the real 대분류 rather than sample labels.
@@ -379,11 +379,46 @@
     if (outcome.report) location.reload();
   }
 
+  function ensurePdfHelper() {
+    if (window.UMSHReportPdf) return Promise.resolve();
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = '/js/umsh-report-pdf.js';
+      script.onload = () => resolve();
+      script.onerror = () => resolve();
+      document.head.appendChild(script);
+    });
+  }
+
+  function bindPdfButton() {
+    const host = $('#step-5-chat header') || $('#step-6_1-report header') || $('.phone header');
+    if (!host) return;
+    let button = $('#btn-pdf');
+    if (!button) {
+      button = document.createElement('button');
+      button.id = 'btn-pdf';
+      button.type = 'button';
+      button.textContent = 'PDF 다운받기';
+      button.style.cssText = 'display:block;margin:12px 0 0;width:100%;min-height:44px;border:1px solid #1f8a70;border-radius:8px;background:#1f8a70;color:#fff;font-weight:800;cursor:pointer';
+      host.appendChild(button);
+    }
+    if (button.dataset.bound === '1') return;
+    button.dataset.bound = '1';
+    button.addEventListener('click', async () => {
+      await ensurePdfHelper();
+      const report = readJson('sessionStorage', STORAGE.report);
+      if (!window.UMSHReportPdf?.open(report)) {
+        button.textContent = '해석이 준비되면 PDF를 받을 수 있습니다';
+      }
+    });
+  }
+
   function init() {
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();
     ensureReportCached();
+    bindPdfButton();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

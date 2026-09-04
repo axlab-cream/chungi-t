@@ -11406,7 +11406,8 @@
     });
 
     document.getElementById("btn-pdf").addEventListener("click", () => {
-      showToast("PDF 저장은 리포트 생성이 완료된 뒤 사용할 수 있습니다.");
+      if (window.UMSHReportPdf && window.UMSHReportPdf.openFromStorage()) return;
+      window.print();
     });
 
     document.getElementById("chat-form").addEventListener("submit", (event) => {

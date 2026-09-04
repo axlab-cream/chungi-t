@@ -374,7 +374,7 @@ function assignChunks(chunks: RagChunk[], items: ReadonlyArray<{ title: string; 
   if (!pool.length) return items.map(() => undefined)
 
   const taken = new Set<number>()
-  return items.map((item, itemIndex) => {
+  return items.map((item) => {
     const text = `${item.title} ${item.note}`
     let best = -1
     let bestScore = -1
@@ -386,13 +386,10 @@ function assignChunks(chunks: RagChunk[], items: ReadonlyArray<{ title: string; 
         best = index
       }
     })
-    // Nothing scored for this item: take the next block nobody in this 대분류 has used,
-    // so two rows never quote the same sentence while the pack still has spares.
+    // Nothing scored for this item: leave it empty so the template fallback stays
+    // on this row instead of borrowing a sleep/desk sentence into a colour item.
     if (best < 0 || bestScore <= 0) {
-      const spare = pool.findIndex((_, index) => !taken.has(index))
-      const chosen = spare >= 0 ? spare : itemIndex % pool.length
-      taken.add(chosen)
-      return pool[chosen]
+      return undefined
     }
     taken.add(best)
     return pool[best]
@@ -483,7 +480,7 @@ function buildInterpretation(params: {
     `${rest[0]} ${rest[1]}`,
     `${rest[2]} ${rest[3]} ${itemWhy}`,
     `이 대목에서 함께 볼 결은 이렇습니다. ${ragLine} 그러니 ${topic(itemTitle)} 무엇을 사야 하는 목록이 아니라, ${fill.scene}처럼 이미 가진 것 중에서 무엇을 꺼내 두고 무엇을 넣어 둘지를 고르는 자리입니다.`,
-    `${angle.close} 물건이 액운을 막거나 재물을 부르지는 않습니다. ${subject(`${ELEMENT_KO[balance.spare]}의 ${spare.colors}`)} 이미 넉넉하다는 것과, ${ELEMENT_KO[balance.fill]}을 조금 더해 보면 편하다는 것까지가 이 리포트가 말할 수 있는 범위입니다.`,
+    `${angle.close} 물건이 액운을 막거나 재물을 부르지는 않습니다. ${subject(`${ELEMENT_KO[balance.spare]}의 ${spare.colors}`)} 이미 넉넉하다는 것과, ${object(ELEMENT_KO[balance.fill])} 조금 더해 보면 편하다는 것까지가 이 리포트가 말할 수 있는 범위입니다.`,
   ].join('\n\n')
 }
 

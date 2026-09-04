@@ -30,6 +30,25 @@
   const dragThreshold = 24;
   const AUTH_DEVICE_SESSION_KEY = 'cheongi_auth_device_session_started_at_v1';
   const AUTH_DEVICE_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+
+  function lastHangul(word) {
+    const chars = String(word || '').replace(/[^가-힣]/g, '');
+    return chars.slice(-1);
+  }
+
+  function hasBatchim(word) {
+    const last = lastHangul(word);
+    if (!last) return false;
+    return (last.charCodeAt(0) - 0xac00) % 28 !== 0;
+  }
+
+  function objectParticle(word) {
+    return hasBatchim(word) ? '을' : '를';
+  }
+
+  function topicParticle(word) {
+    return hasBatchim(word) ? '은' : '는';
+  }
   let toastTimer = 0;
   let activeBottomMenu = 'home';
   let authConfigData = null;
@@ -551,7 +570,7 @@
 
     if (state === 'profile') {
       return [
-        { label: '사주 등록하기', meta: `로그인은 확인됐습니다. ${menu.title}을 열려면 기본 사주를 저장해 주세요.`, href: protectedSignupHref(menu.entry), status: '등록' },
+        { label: '사주 등록하기', meta: `로그인은 확인됐습니다. ${menu.title}${objectParticle(menu.title)} 열려면 기본 사주를 저장해 주세요.`, href: protectedSignupHref(menu.entry), status: '등록' },
         { label: '검색 먼저 보기', meta: '상품과 주제는 로그인 없이 둘러볼 수 있습니다.', action: 'filter', category: 'all', status: '검색' },
       ];
     }
@@ -564,7 +583,7 @@
     }
 
     return [
-      { label: '로그인하고 사주 등록하기', meta: `${menu.title}은 계정과 사주 프로필이 모두 필요합니다.`, href: protectedSignupHref(menu.entry), status: '시작' },
+      { label: '로그인하고 사주 등록하기', meta: `${menu.title}${topicParticle(menu.title)} 계정과 사주 프로필이 모두 필요합니다.`, href: protectedSignupHref(menu.entry), status: '시작' },
       { label: '검색 먼저 보기', meta: '상품과 주제는 로그인 없이 둘러볼 수 있습니다.', action: 'filter', category: 'all', status: '검색' },
     ];
   }
@@ -582,12 +601,12 @@
       },
       login: {
         eyebrow: menu.eyebrow,
-        title: `${menu.title}은 로그인 후 열립니다`,
+        title: `${menu.title}${topicParticle(menu.title)} 로그인 후 열립니다`,
         desc: `${menu.desc} 먼저 소셜 로그인과 사주등록을 완료해 주세요.`,
       },
       profile: {
         eyebrow: menu.eyebrow,
-        title: `${menu.title}은 사주등록 후 열립니다`,
+        title: `${menu.title}${topicParticle(menu.title)} 사주등록 후 열립니다`,
         desc: `${menu.desc} 로그인은 확인됐고, 기본 사주 프로필 저장이 필요합니다.`,
       },
       error: {
