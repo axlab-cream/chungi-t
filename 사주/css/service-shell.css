@@ -579,3 +579,13 @@ body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
     width: 122px;
   }
 }
+
+/* 스토리 장면이 위아래로 이어질 때 이미지 경계가 가로선으로 드러난다. umsh-chrome.css를
+   쓰지 않고 이 셸만 부르는 화면(집 풍수, 이직운)도 같은 규칙을 따라야 한다. */
+#step-1-story :is(.hero, .story, .scene, .scene-image, .scene-media, .story-media, .story-image, .story-scene, .scene-visual, .image-strip, .cta-visual, .visual, .final-visual, .poster, .cta-section) > img,
+#top :is(.story-block, .scene-media, .visual) > img {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+
+.umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }

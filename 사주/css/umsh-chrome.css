@@ -163,3 +163,26 @@ body.umsh-has-chrome .scroll {
     height: calc(100vh - var(--umsh-chrome-appbar-h) - var(--umsh-chrome-bottom-h)) !important;
   }
 }
+
+/* 한글은 어절 단위로 끊어야 읽힌다. keep-all이 없으면 제목과 본문이 낱말 중간에서
+   잘려 줄바꿈이 어색해진다. 두 속성 모두 상속되므로 body에 한 번만 걸면 서비스
+   페이지 전체가 같은 규칙을 따른다. break-word를 쓰는 이유는 anywhere가 flex 항목의
+   최소 너비까지 바꿔 레이아웃을 흔들기 때문이다. */
+body.umsh-has-chrome {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 스토리 장면이 위아래로 이어질 때 이미지 경계가 그대로 가로선으로 드러났다. 위아래
+   끝을 배경으로 흘려보내면 장면이 잘리지 않고 이어진다. 배경이 어두운 페이지들이라
+   투명으로 빠지는 것이 곧 배경으로 스며드는 것이다.
+   01 스토리 화면에만 건다 — 04~06의 카드 썸네일까지 흐려지면 안 된다. */
+#step-1-story :is(.hero, .story, .scene, .scene-image, .scene-media, .story-media, .story-image, .story-scene, .visual, .final-visual, .poster, .cta-section) > img,
+#intro :is(.story-scene, .visual, .scene-media) > img,
+#top :is(.story-block, .scene-media, .visual) > img {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+
+/* 공통 상단바 로고는 스토리 장면이 아니므로 위 규칙에서 제외한다. */
+.umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }
