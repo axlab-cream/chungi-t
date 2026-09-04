@@ -111,6 +111,10 @@ for (const [page, needsChrome, needsStore] of PAGES) {
     if (!body.includes('/css/umsh-chrome.css')) failures.push(`${rel} :: 공통 GNB 스타일 미연결`)
     // overflow:hidden 이 남으면 sticky CTA가 화면 밖에 그대로 붙는다.
     if (!body.includes('.phone{overflow:clip}')) failures.push(`${rel} :: sticky 해제(overflow:clip) 누락`)
+    // 공용 하단 메뉴는 <footer> 안의 <button>이라, 시안의 요소 선택자가 그대로 먹으면
+    // 탭 높이가 0이 되어 메뉴가 빈 띠로만 남는다.
+    if (!body.includes('.umsh-service-bottom button')) failures.push(`${rel} :: 공용 크롬 보호 규칙 누락`)
+    if (!body.includes('.brand{display:none}')) failures.push(`${rel} :: 중복 브랜드 바 숨김 누락`)
   }
   if (needsStore) {
     const storeAt = body.indexOf('/js/lucky-report-store.js')
