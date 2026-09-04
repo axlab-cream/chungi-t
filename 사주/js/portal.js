@@ -357,6 +357,9 @@
       section.classList.toggle('is-empty-filter', shouldHide);
     });
 
+    // The poster dots mirror the visible posters, so they rebuild on every filter.
+    document.dispatchEvent(new CustomEvent('umsh:filter-changed'));
+
     if (options.reveal === false) return;
 
     const firstVisible = serviceCards.find((card) => !card.classList.contains('is-hidden'));
@@ -1078,11 +1081,213 @@
     });
   });
 
+
+  /**
+   * The poster rail is the shop window, so it rolls on its own, loops, and says where
+   * it is.
+   *
+   * The loop is done with two clones: a copy of the last poster sits before the first
+   * and a copy of the first sits after the last, so the rail always has something to
+   * scroll into. Once a smooth scroll lands on a clone the rail jumps to the matching
+   * real poster with no animation, which the eye cannot catch because both show the
+   * same artwork in the same place.
+   *
+   * The dots double as the position indicator and the jump control - tapping one is
+   * faster than dragging past two posters. Autoplay stands down whenever the visitor
+   * is doing something (pointer down, hover, keyboard focus, another tab) and for
+   * anyone who asked for reduced motion, and it resumes once they stop.
+   */
+  function setupPosterCarousel() {
+    const rail = document.querySelector('.poster-rail');
+    const dotsHost = document.querySelector('#posterDots');
+    if (!rail || !dotsHost) return;
+
+    const AUTOPLAY_MS = 4800;
+    const SETTLE_MS = 520;
+    let reals = [];
+    let slides = [];
+    let dots = [];
+    let slide = 0;
+    let timer = 0;
+    let settle = 0;
+    let syncing = 0;
+    let paused = false;
+
+    const looping = () => slides.length > reals.length;
+    const firstReal = () => (looping() ? 1 : 0);
+    const lastReal = () => firstReal() + reals.length - 1;
+
+    function visiblePosters() {
+      return Array.from(rail.querySelectorAll('.poster'))
+        .filter((poster) => poster.dataset.clone !== '1' && !poster.classList.contains('is-hidden'));
+    }
+
+    function dropClones() {
+      rail.querySelectorAll('.poster[data-clone="1"]').forEach((clone) => clone.remove());
+    }
+
+    /** A clone is decoration: out of the a11y tree, out of tab order, out of filtering. */
+    function cloneOf(poster) {
+      const copy = poster.cloneNode(true);
+      copy.dataset.clone = '1';
+      copy.classList.remove('service-card', 'is-pointed', 'is-pressing');
+      copy.setAttribute('aria-hidden', 'true');
+      copy.setAttribute('tabindex', '-1');
+      copy.querySelectorAll('img').forEach((img) => {
+        img.draggable = false;
+      });
+      return copy;
+    }
+
+    function positionOf(index) {
+      const poster = slides[index];
+      if (!poster) return 0;
+      return poster.offsetLeft - (rail.clientWidth - poster.offsetWidth) / 2;
+    }
+
+    function goToSlide(next, behavior) {
+      if (!slides[next]) return;
+      slide = next;
+      const mode = behavior || (prefersReducedMotion() ? 'auto' : 'smooth');
+      rail.scrollTo({ left: positionOf(next), behavior: mode });
+      markActive(realIndexOf(next));
+
+      // Landing on a clone means the loop just wrapped; swap to the real poster once
+      // the animation has finished so the jump is invisible.
+      window.clearTimeout(settle);
+      if (!looping()) return;
+      if (next === slides.length - 1) {
+        settle = window.setTimeout(() => goToSlide(firstReal(), 'auto'), mode === 'auto' ? 0 : SETTLE_MS);
+      } else if (next === 0) {
+        settle = window.setTimeout(() => goToSlide(lastReal(), 'auto'), mode === 'auto' ? 0 : SETTLE_MS);
+      }
+    }
+
+    /** Clones stand in for a real poster, so the dots follow the original. */
+    function realIndexOf(index) {
+      if (!reals.length) return 0;
+      if (!looping()) return index;
+      if (index === 0) return reals.length - 1;
+      if (index === slides.length - 1) return 0;
+      return index - 1;
+    }
+
+    function markActive(next) {
+      dots.forEach((dot, position) => {
+        const active = position === next;
+        dot.classList.toggle('is-active', active);
+        dot.setAttribute('aria-current', active ? 'true' : 'false');
+      });
+    }
+
+    /** Which slide is closest to the middle of the rail right now. */
+    function nearestSlide() {
+      const centre = rail.scrollLeft + rail.clientWidth / 2;
+      let best = 0;
+      let bestGap = Infinity;
+      slides.forEach((poster, position) => {
+        const gap = Math.abs(poster.offsetLeft + poster.offsetWidth / 2 - centre);
+        if (gap < bestGap) {
+          bestGap = gap;
+          best = position;
+        }
+      });
+      return best;
+    }
+
+    function stop() {
+      window.clearInterval(timer);
+      timer = 0;
+    }
+
+    function start() {
+      stop();
+      if (paused || prefersReducedMotion() || reals.length < 2 || document.hidden) return;
+      timer = window.setInterval(() => goToSlide(slide + 1), AUTOPLAY_MS);
+    }
+
+    function pause() {
+      paused = true;
+      stop();
+    }
+
+    function resume() {
+      paused = false;
+      start();
+    }
+
+    function build() {
+      dropClones();
+      reals = visiblePosters();
+      if (reals.length > 1) {
+        rail.insertBefore(cloneOf(reals[reals.length - 1]), reals[0]);
+        rail.appendChild(cloneOf(reals[0]));
+      }
+      slides = Array.from(rail.querySelectorAll('.poster')).filter((poster) => !poster.classList.contains('is-hidden'));
+
+      dotsHost.innerHTML = '';
+      dots = reals.map((poster, position) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'poster-dot';
+        // The title is broken across lines with <br>, which textContent joins with
+        // nothing at all - innerText keeps the break as a space.
+        const title = poster.querySelector('strong');
+        const name = cleanText(title?.innerText || title?.textContent) || `배너 ${position + 1}`;
+        dot.setAttribute('aria-label', `${name} 배너로 이동`);
+        dot.addEventListener('click', () => {
+          goToSlide(firstReal() + position);
+          // A deliberate pick should stay on screen long enough to read.
+          pause();
+          window.setTimeout(resume, AUTOPLAY_MS);
+        });
+        dotsHost.appendChild(dot);
+        return dot;
+      });
+      dotsHost.hidden = reals.length < 2;
+
+      goToSlide(firstReal(), 'auto');
+      start();
+    }
+
+    rail.addEventListener('scroll', () => {
+      window.cancelAnimationFrame(syncing);
+      syncing = window.requestAnimationFrame(() => {
+        slide = nearestSlide();
+        markActive(realIndexOf(slide));
+      });
+    }, { passive: true });
+
+    ['pointerdown', 'mouseenter', 'focusin', 'touchstart'].forEach((type) => {
+      rail.addEventListener(type, pause, { passive: true });
+    });
+    ['mouseleave', 'focusout', 'touchend', 'touchcancel'].forEach((type) => {
+      rail.addEventListener(type, resume, { passive: true });
+    });
+    document.addEventListener('pointerup', () => {
+      // A drag that ends on a clone still has to wrap back to the real poster.
+      if (!paused) return;
+      resume();
+      if (looping() && (slide === 0 || slide === slides.length - 1)) {
+        goToSlide(realIndexOf(slide) + firstReal(), 'auto');
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    // Category filtering hides posters, so the dots and clones rebuild to match.
+    document.addEventListener('umsh:filter-changed', build);
+    build();
+  }
+
   dragRails.forEach(bindMouseDrag);
   hoverTargets.forEach(bindHoverReadability);
   pressTargets.forEach(bindPressFeedback);
   setFilter('all', { reveal: false });
   updateBottomMenuButtons();
+  setupPosterCarousel();
   setupReveal();
   openMenuFromHash();
   window.addEventListener('hashchange', openMenuFromHash);
