@@ -83,6 +83,66 @@
       "retrievalBoost": 22
     },
     {
+      "id": "couple-signal-service",
+      "path": "corpus/couple-signal-service.json",
+      "kind": "chunks",
+      "domain": "couple_signal_service",
+      "status": "active",
+      "role": "single_service_couple_signal_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "job-choice-service",
+      "path": "corpus/job-choice-service.json",
+      "kind": "chunks",
+      "domain": "job_choice_service",
+      "status": "active",
+      "role": "single_service_job_choice_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "quit-fortune-service",
+      "path": "corpus/quit-fortune-service.json",
+      "kind": "chunks",
+      "domain": "quit_fortune_service",
+      "status": "active",
+      "role": "single_service_quit_fortune_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "money-save-service",
+      "path": "corpus/money-save-service.json",
+      "kind": "chunks",
+      "domain": "money_save_service",
+      "status": "active",
+      "role": "single_service_money_save_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "match-couple-service",
+      "path": "corpus/match-couple-service.json",
+      "kind": "chunks",
+      "domain": "match_couple_service",
+      "status": "active",
+      "role": "single_service_match_couple_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "marry-match-service",
+      "path": "corpus/marry-match-service.json",
+      "kind": "chunks",
+      "domain": "marry_match_service",
+      "status": "active",
+      "role": "single_service_marry_match_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
       "id": "saju-95-quality-bundles",
       "path": "corpus/saju-95-quality-bundles.json",
       "kind": "chunks",

@@ -11,7 +11,7 @@ import type {
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
-import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 
 export const COUPLE_MATCH_SERVICE_KEY = 'match_couple'
 
@@ -463,9 +463,18 @@ function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
   return fallback
 }
 
+/** The pack written for this service; see data/corpus/. */
+const OWN_CORPUS_DOMAIN = 'match_couple_service'
+
+/**
+ * Read this service's own pack first. The rest of the corpus answers other questions,
+ * so a line from another pack is usually wrong here even when it reads fine.
+ */
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
   if (!chunks.length) return undefined
-  return chunks[index % chunks.length]
+  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
+  const pool = own.length ? own : chunks
+  return pool[index % pool.length]
 }
 
 /**
@@ -560,7 +569,13 @@ export function buildCoupleMatchReport(
     category.items.forEach((item, itemIndex) => {
       // The relevance scorer reads plain item titles, so hand it the titles only.
       const ragCategory = { id: category.id, title: category.title, items: category.items.map((entry) => entry.title) }
-      const categoryChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, userAnalysis, context, 8)
+      // 자기 팩에서 이 대분류에 맞는 블록을 먼저 확보한다. 랭킹만으로는 범용 팩에 밀린다.
+
+      const generalChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, userAnalysis, context, 8)
+
+      const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, userAnalysis, context, OWN_CORPUS_DOMAIN, 6)
+
+      const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.
         id: item.id,

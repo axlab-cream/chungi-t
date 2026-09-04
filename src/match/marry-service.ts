@@ -11,7 +11,7 @@ import type {
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
-import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 
 export const MARRY_MATCH_SERVICE_KEY = 'marry_match'
 
@@ -458,9 +458,18 @@ function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
   return fallback
 }
 
+/** The pack written for this service; see data/corpus/. */
+const OWN_CORPUS_DOMAIN = 'marry_match_service'
+
+/**
+ * Read this service's own pack first. The rest of the corpus answers other questions,
+ * so a line from another pack is usually wrong here even when it reads fine.
+ */
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
   if (!chunks.length) return undefined
-  return chunks[index % chunks.length]
+  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
+  const pool = own.length ? own : chunks
+  return pool[index % pool.length]
 }
 
 /**
@@ -586,7 +595,11 @@ export function buildMarryMatchReport(
 
   MARRY_MATCH_TOC.forEach((category, groupIndex) => {
     category.items.forEach((item, itemIndex) => {
-      const categoryChunks = retrieveCategoryRagChunks(categoryRagCache, query, category, userAnalysis, context, 8)
+      // 자기 팩에서 이 대분류에 맞는 블록을 먼저 확보한다. 랭킹만으로는 범용 팩에 밀려
+      // 다른 질문용 문장이 올라오기 때문이다. 모자라면 일반 검색 결과로 채운다.
+      const generalChunks = retrieveCategoryRagChunks(categoryRagCache, query, category, userAnalysis, context, 8)
+      const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, category, userAnalysis, context, OWN_CORPUS_DOMAIN, 6)
+      const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
       sections.push({
         // Ids follow the marry-<대분류>-<중분류> scheme the 05 목차 and 06 상세 pages route on.
         id: `marry-${pad2(groupIndex + 1)}-${pad2(itemIndex + 1)}`,

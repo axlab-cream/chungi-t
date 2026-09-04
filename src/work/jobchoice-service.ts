@@ -12,7 +12,7 @@ import type {
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
-import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 
 export const JOB_CHOICE_SERVICE_KEY = 'job_choice'
 
@@ -446,9 +446,18 @@ const ITEM_ANGLES = [
   '입사 전에 물어서 확인할 수 있는 것으로 바꿔 보네.',
 ]
 
+/** The pack written for this service; see data/corpus/. */
+const OWN_CORPUS_DOMAIN = 'job_choice_service'
+
+/**
+ * Read this service's own pack first. The rest of the corpus answers other questions,
+ * so a line from another pack is usually wrong here even when it reads fine.
+ */
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
   if (!chunks.length) return undefined
-  return chunks[index % chunks.length]
+  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
+  const pool = own.length ? own : chunks
+  return pool[index % pool.length]
 }
 
 function buildInterpretation(params: {
@@ -514,7 +523,10 @@ export function buildJobChoiceReport(
       title: `${group.title} ${group.keywords}`,
       items: group.items.map((item) => item.title),
     }
-    const categoryChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, analysis, context, 8)
+    // 자기 팩에서 이 대분류에 맞는 블록을 먼저 확보한다. 랭킹만으로는 범용 팩에 밀린다.
+    const generalChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, analysis, context, 8)
+    const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, analysis, context, OWN_CORPUS_DOMAIN, 6)
+    const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
     group.items.forEach((item, itemIndex) => {
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.

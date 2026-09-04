@@ -425,11 +425,44 @@
     if (goReport) goReport.setAttribute('href', '../04-step-4-report/index.html#step-4-report');
   }
 
+
+  /**
+   * 이 화면은 저장된 사주를 localStorage 캐시에서만 읽었다. 계정에는 사주가 있어도 이
+   * 기기에 캐시가 없으면 "저장된 프로필 없음"으로 떨어져 다시 입력하게 된다. 로그인 상태면
+   * 계정 값을 그 캐시에 채워 넣어, 어느 기기에서 열어도 같은 사주로 이어지게 한다.
+   */
+  async function seedProfileFromAccount() {
+    if (!storageAvailable('localStorage')) return false;
+    if (readSavedProfileState().complete) return false;
+    if (!window.supabase || !window.UMSHAuthSession) return false;
+    try {
+      const config = await fetch('/api/auth/config').then((res) => res.json());
+      if (!config || !config.enabled) return false;
+      const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+      const { data } = await client.auth.getSession();
+      const session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+      if (!session || !session.access_token) return false;
+      const payload = await fetch('/api/user/profile', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).then((res) => res.json());
+      const profile = payload && payload.profile;
+      if (!profile || !profile.birth || !profile.name) return false;
+      localStorage.setItem(STORAGE.userProfile, JSON.stringify(profile));
+      return readSavedProfileState().complete;
+    } catch (error) {
+      return false;
+    }
+  }
   function setupStep2() {
     const form = $('#moveForm');
     if (!form) return;
     const saved = readSavedProfileState();
     updateProfileModeUi(saved.complete ? 'existing' : 'new');
+    if (!saved.complete) {
+      seedProfileFromAccount().then((filled) => {
+        if (filled) updateProfileModeUi('existing');
+      });
+    }
     $$('input[name="profileMode"]', form).forEach((input) => {
       input.addEventListener('change', (event) => {
         const canUseSaved = readSavedProfileState().complete;

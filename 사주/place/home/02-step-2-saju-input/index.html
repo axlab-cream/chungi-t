@@ -1159,6 +1159,32 @@
         return String(Number(value || 0)).padStart(2, "0");
       }
 
+
+      /**
+       * 저장된 사주를 localStorage 캐시에서만 읽던 자리다. 계정에는 사주가 있어도 이 기기에
+       * 캐시가 없으면 다시 입력하게 되므로, 로그인 상태면 계정 값을 캐시에 채워 넣는다.
+       */
+      async function seedProfileFromAccount() {
+        if (getSavedProfileState().complete) return false;
+        if (!window.supabase || !window.UMSHAuthSession) return false;
+        try {
+          const config = await fetch("/api/auth/config").then((res) => res.json());
+          if (!config || !config.enabled) return false;
+          const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+          const { data } = await client.auth.getSession();
+          const session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+          if (!session || !session.access_token) return false;
+          const payload = await fetch("/api/user/profile", {
+            headers: { Authorization: "Bearer " + session.access_token }
+          }).then((res) => res.json());
+          const profile = payload && payload.profile;
+          if (!profile || !profile.birth || !profile.name) return false;
+          localStorage.setItem("cheongi_user_birth_profile_v1", JSON.stringify(profile));
+          return getSavedProfileState().complete;
+        } catch (error) {
+          return false;
+        }
+      }
       function getSavedProfileState() {
         try {
           const raw = localStorage.getItem("cheongi_user_birth_profile_v1");
@@ -1666,9 +1692,17 @@
       });
 
       setProfileMode(getSavedProfileState().complete ? "saved" : "new");
+      if (!getSavedProfileState().complete) {
+        seedProfileFromAccount().then((filled) => {
+          if (filled) setProfileMode("saved");
+        });
+      }
       setBirthTimeMode();
     </script>
     <div data-umsh-service-bottom></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
   </body>
 </html>

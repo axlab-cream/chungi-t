@@ -48,3 +48,42 @@ export function retrieveCategoryRagChunks(
   cache.set(category.id, chunks)
   return chunks
 }
+
+/**
+ * The chunks a service pack contributes to one 대분류, ranked by the same relevance the
+ * general retrieval uses.
+ *
+ * Ranking alone is not enough to surface a service pack: the general packs also score on
+ * relationship and career words, so a pack written for this exact page can lose to them
+ * and the page ends up quoting advice meant for another question. Pulling a wide slice
+ * and filtering by domain guarantees the pack is seen; the relevance sort still decides
+ * which of its blocks belongs on this 대분류.
+ */
+export function retrieveCategoryOwnChunks(
+  cache: Map<string, RagChunk[]>,
+  baseQuery: string,
+  category: SpecializedCategory,
+  analysis: SajuAnalysis,
+  context: SajuReportContext,
+  domain: string,
+  topK: number,
+): RagChunk[] {
+  const key = `own:${domain}:${category.id}`
+  const cached = cache.get(key)
+  if (cached) return cached
+
+  const candidates = retrieveRagChunks(
+    [baseQuery, category.title, ...category.items].filter(Boolean).join(' '),
+    analysis,
+    240,
+    context,
+  ).filter((chunk) => chunk.domain === domain)
+
+  const chunks = candidates
+    .map((chunk, index) => ({ chunk, index, score: categoryRelevance(chunk, category) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(({ chunk }) => chunk)
+    .slice(0, topK)
+  cache.set(key, chunks)
+  return chunks
+}

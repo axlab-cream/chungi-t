@@ -11,7 +11,7 @@ import type {
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
-import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -428,9 +428,18 @@ const DEFAULT_LENS = {
   close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가게.',
 }
 
+/** The pack written for this service; see data/corpus/. */
+const OWN_CORPUS_DOMAIN = 'couple_signal_service'
+
+/**
+ * Read this service's own pack first. The rest of the corpus answers other questions,
+ * so a line from another pack is usually wrong here even when it reads fine.
+ */
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
   if (!chunks.length) return undefined
-  return chunks[index % chunks.length]
+  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
+  const pool = own.length ? own : chunks
+  return pool[index % pool.length]
 }
 
 function buildInterpretation(params: {
@@ -489,7 +498,10 @@ export function buildLoveSignalReport(
   LOVE_SIGNAL_TOC.forEach((category) => {
     // The relevance scorer reads plain item titles, so hand it the titles only.
     const ragCategory = { id: category.id, title: category.title, items: category.items.map((entry) => entry.title) }
-    const categoryChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, userAnalysis, context, 8)
+    // 자기 팩에서 이 대분류에 맞는 블록을 먼저 확보한다. 랭킹만으로는 범용 팩에 밀린다.
+    const generalChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, userAnalysis, context, 8)
+    const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, userAnalysis, context, OWN_CORPUS_DOMAIN, 6)
+    const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
     category.items.forEach((item, itemIndex) => {
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.
