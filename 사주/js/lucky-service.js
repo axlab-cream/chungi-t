@@ -71,7 +71,9 @@
    */
   function readingLine(section, preferred = 1) {
     const parts = paragraphs(section);
-    return parts[preferred] || parts[0] || '';
+    // The grounded paragraph opens by announcing itself, which is fine mid-report and
+    // pure noise in a two-line preview row.
+    return (parts[preferred] || parts[0] || '').replace(/^이 대목에서 함께 볼 결은 이렇습니다\.\s*/, '');
   }
 
   function clamp(text, limit) {
@@ -337,7 +339,7 @@
     const groups = groupOrder(outcome.report);
     const free = groups[0];
     const lead = teaser?.querySelector('p');
-    if (lead) lead.textContent = clamp(readingLine(free.sections[0]), 190);
+    if (lead) lead.textContent = clamp(readingLine(free.sections[0], 2), 190);
 
     const headline = $('#step-4-report h1');
     if (headline && outcome.report.subtitle) headline.textContent = outcome.report.subtitle;
@@ -348,7 +350,7 @@
       const title = item.querySelector('b');
       const body = item.querySelector('p');
       if (title) title.textContent = section.classification;
-      if (body) body.textContent = clamp(readingLine(section), 130);
+      if (body) body.textContent = clamp(readingLine(section, 4), 130);
     });
 
     // The paid-scope tiles mirror the real 대분류 rather than sample labels.

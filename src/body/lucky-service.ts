@@ -344,11 +344,59 @@ function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
 }
 
 /** Prefer this service's own pack, then whatever the general corpus offers. */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
+/**
+ * How well a block answers *this* item, not just this 대분류.
+ *
+ * Rotating through a category's chunks put the sleep block under 집중 터지는 시간대 and
+ * the morning block under 잘 자는 법 - on topic for the group, wrong for the row. Score
+ * each block against the item's own words instead.
+ */
+function itemRelevance(chunk: RagChunk, itemText: string): number {
+  let score = 0
+  for (const keyword of chunk.keywords ?? []) {
+    if (keyword && itemText.includes(keyword)) score += 3
+  }
+  for (const word of (chunk.topic ?? '').split(/[\s·,]+/)) {
+    if (word.length > 1 && itemText.includes(word)) score += 2
+  }
+  return score
+}
+
+/**
+ * One block per item, best match first and no repeats until the pack runs out, so two
+ * rows in the same 대분류 do not quote the same sentence.
+ */
+function assignChunks(chunks: RagChunk[], items: ReadonlyArray<{ title: string; note: string }>): Array<RagChunk | undefined> {
   const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
+  // Retrieval can hand back the same block twice; without a dedupe two rows in one
+  // 대분류 end up quoting the identical sentence even though nothing was reused.
+  const pool = Array.from(new Map((own.length ? own : chunks).map((chunk) => [chunk.id, chunk])).values())
+  if (!pool.length) return items.map(() => undefined)
+
+  const taken = new Set<number>()
+  return items.map((item, itemIndex) => {
+    const text = `${item.title} ${item.note}`
+    let best = -1
+    let bestScore = -1
+    pool.forEach((chunk, index) => {
+      if (taken.has(index)) return
+      const score = itemRelevance(chunk, text)
+      if (score > bestScore) {
+        bestScore = score
+        best = index
+      }
+    })
+    // Nothing scored for this item: take the next block nobody in this 대분류 has used,
+    // so two rows never quote the same sentence while the pack still has spares.
+    if (best < 0 || bestScore <= 0) {
+      const spare = pool.findIndex((_, index) => !taken.has(index))
+      const chosen = spare >= 0 ? spare : itemIndex % pool.length
+      taken.add(chosen)
+      return pool[chosen]
+    }
+    taken.add(best)
+    return pool[best]
+  })
 }
 
 /**
@@ -405,10 +453,9 @@ function buildInterpretation(params: {
   analysis: SajuAnalysis
   birth: BirthInput
   balance: ElementBalance
-  chunks: RagChunk[]
-  index: number
+  chunk: RagChunk | undefined
 }): string {
-  const { groupId, groupTitle, itemTitle, itemNote, itemWhy, analysis, birth, balance, chunks, index } = params
+  const { groupId, groupTitle, itemTitle, itemNote, itemWhy, analysis, birth, balance, chunk } = params
   const angle = GROUP_ANGLE[groupId] ?? DEFAULT_ANGLE
   const day = analysis.fourPillars.day
   const fill = ELEMENT_PROFILE[balance.fill]
@@ -426,7 +473,7 @@ function buildInterpretation(params: {
   const rest = order.filter((key) => key !== angle.lead).map((key) => lines[key])
 
   const ragLine = ragLineFrom(
-    pickRag(chunks, index),
+    chunk,
     '색과 물건은 결과를 바꾸는 도구가 아니라, 이미 가진 기운의 균형을 눈에 보이게 하는 표시입니다.',
   )
 
@@ -465,6 +512,8 @@ export function buildLuckyColorReport(
     const generalChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, analysis, context, 8)
     const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, analysis, context, OWN_CORPUS_DOMAIN, 6)
     const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
+    // One block per item, matched on the item's own words rather than rotated.
+    const itemChunks = assignChunks(categoryChunks, category.items)
 
     category.items.forEach((item, itemIndex) => {
       sections.push({
@@ -489,8 +538,7 @@ export function buildLuckyColorReport(
           analysis,
           birth,
           balance,
-          chunks: categoryChunks,
-          index: order + itemIndex,
+          chunk: itemChunks[itemIndex],
         }),
         generatedBy: 'template',
         model: 'lucky-color-rag-template',

@@ -58,9 +58,25 @@
     return picked.length > limit ? picked.slice(0, limit - 1) + '…' : picked;
   }
 
-  // 06 상세: six authored blocks, six paragraphs of the reading. The order keeps each
-  // block's own heading honest - 근거 under 확인한 근거, the scene under 현실에서 보이는
-  // 모습, and the closing caution under 오해하지 않을 점.
+  function sentences(text) {
+    return String(text || '').split(/(?<=[.!?])\s+/).map(function (line) { return line.trim(); }).filter(Boolean);
+  }
+
+  /**
+   * 06 has five authored blocks and the reading has six paragraphs, so they are matched
+   * by what each block's heading promises rather than by position:
+   *
+   *   한 줄 결론      the item's own verdict            (p1)
+   *   확인한 근거      what the chart was read from      (p2)
+   *   현실에서 보이는 모습  where it shows up in a day        (p3)
+   *   오늘 해볼 것      the instructions, as bullets      (tail of p4 + head of p5)
+   *   오해하지 않을 점    the limits of this reading        (rest of p5)
+   *
+   * Paragraph 0 is bookkeeping - the 대분류, the item title and the 일간·일지 - all of
+   * which the page already prints above the text.
+   */
+  var LIMIT_MARK = '물건이 액운을 막거나';
+
   window.LuckyReport = {
     reportId: report.reportId || '',
     subtitle: report.subtitle || '',
@@ -69,15 +85,22 @@
     sections: function () {
       return report.sections.map(function (section) {
         var parts = paragraphs(section);
+        var closing = parts[5] || '';
+        var limitAt = closing.indexOf(LIMIT_MARK);
+        var advice = limitAt > 0 ? closing.slice(0, limitAt).trim() : closing;
+        var caution = limitAt > 0 ? closing.slice(limitAt).trim() : '';
+        var grounded = sentences(parts[4] || '');
+
         return {
           id: section.id,
           group: section.category,
           title: section.classification,
-          conclusion: dropOpeningLabel(parts[0] || ''),
-          evidence: parts[1] || '',
-          scene: parts[2] || '',
-          actions: [parts[3], parts[4]].filter(Boolean),
-          caution: parts[5] || '',
+          conclusion: dropOpeningLabel(parts[1] || parts[0] || ''),
+          evidence: parts[2] || '',
+          scene: parts[3] || '',
+          // The last sentence of the grounded paragraph is the instruction it builds to.
+          actions: [grounded[grounded.length - 1], advice].filter(Boolean),
+          caution: caution || parts[4] || '',
         };
       });
     },
@@ -86,7 +109,11 @@
     },
     lineFor: function (id, limit) {
       var parts = paragraphs(byId[id]);
-      return firstSentences(parts[1] || parts[0] || '', 1, limit || 120);
+      // Inside one 대분류 the chart sentences are shared, so a row shows the paragraph
+      // that is this item's own. It opens by announcing itself, which is noise in a row.
+      var line = (parts[4] || parts[1] || parts[0] || '')
+        .replace(/^이 대목에서 함께 볼 결은 이렇습니다\.\s*/, '');
+      return firstSentences(line, 1, limit || 120);
     },
   };
 
