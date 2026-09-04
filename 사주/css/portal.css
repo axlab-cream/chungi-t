@@ -558,7 +558,9 @@ html.splash-disabled .splash-screen,
   display: none;
 }
 
-.poster img {
+/* The 천명사주 card plays a short loop instead of a still, so every rule written for
+   the poster image has to cover the video sitting in the same box. */
+.poster :is(img, video) {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -575,7 +577,7 @@ html.splash-disabled .splash-screen,
     transform 260ms ease;
 }
 
-.poster.is-cmdg img {
+.poster.is-cmdg :is(img, video) {
   opacity: 0.96;
   filter: saturate(1.04) contrast(1.08) brightness(0.94);
   object-position: center 38%;
@@ -589,14 +591,14 @@ html.splash-disabled .splash-screen,
   display: none;
 }
 
-.poster.is-love img {
+.poster.is-love :is(img, video) {
   opacity: 0.78;
   filter: saturate(1.06) contrast(1.04) brightness(0.82);
   object-position: center 34%;
   transform: scale(1.02);
 }
 
-.poster.is-place img {
+.poster.is-place :is(img, video) {
   opacity: 1;
   filter: saturate(1.18) contrast(1.18) brightness(1.1);
   object-position: center 32%;
@@ -636,7 +638,7 @@ html.splash-disabled .splash-screen,
   display: none;
 }
 
-.poster.is-work img {
+.poster.is-work :is(img, video) {
   opacity: 0.82;
   filter: saturate(1.08) contrast(1.06) brightness(0.84);
   object-position: center 34%;
@@ -649,9 +651,9 @@ html.splash-disabled .splash-screen,
     linear-gradient(90deg, rgba(5, 5, 4, 0.4), rgba(5, 5, 4, 0.02) 74%);
 }
 
-.poster.is-work:hover img,
-.poster.is-work:focus-visible img,
-.poster.is-work.is-pointed img {
+.poster.is-work:hover :is(img, video),
+.poster.is-work:focus-visible :is(img, video),
+.poster.is-work.is-pointed :is(img, video) {
   filter: saturate(1.14) contrast(1.1) brightness(0.92);
   transform: scale(1.06);
 }
@@ -667,29 +669,29 @@ html.splash-disabled .splash-screen,
   transform: translateY(-4px);
 }
 
-.poster:hover img,
-.poster:focus-visible img,
-.poster.is-pointed img {
+.poster:hover :is(img, video),
+.poster:focus-visible :is(img, video),
+.poster.is-pointed :is(img, video) {
   filter: saturate(1.04) contrast(1.09) brightness(0.9);
   transform: scale(1.07);
 }
 
-.poster.is-cmdg:hover img,
-.poster.is-cmdg:focus-visible img,
-.poster.is-cmdg.is-pointed img {
+.poster.is-cmdg:hover :is(img, video),
+.poster.is-cmdg:focus-visible :is(img, video),
+.poster.is-cmdg.is-pointed :is(img, video) {
   filter: saturate(1.08) contrast(1.12) brightness(1);
 }
 
-.poster.is-love:hover img,
-.poster.is-love:focus-visible img,
-.poster.is-love.is-pointed img {
+.poster.is-love:hover :is(img, video),
+.poster.is-love:focus-visible :is(img, video),
+.poster.is-love.is-pointed :is(img, video) {
   filter: saturate(1.12) contrast(1.08) brightness(0.9);
   transform: scale(1.06);
 }
 
-.poster.is-place:hover img,
-.poster.is-place:focus-visible img,
-.poster.is-place.is-pointed img {
+.poster.is-place:hover :is(img, video),
+.poster.is-place:focus-visible :is(img, video),
+.poster.is-place.is-pointed :is(img, video) {
   filter: saturate(1.22) contrast(1.2) brightness(1.14);
   transform: scale(1.06);
 }

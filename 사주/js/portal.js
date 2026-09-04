@@ -1178,6 +1178,27 @@
         dot.classList.toggle('is-active', active);
         dot.setAttribute('aria-current', active ? 'true' : 'false');
       });
+      syncPosterVideo();
+    }
+
+    /**
+     * A poster can carry a short loop instead of a still. Only the card in the middle
+     * plays it - the others hold their poster frame, which keeps the home screen calm
+     * and stops the rail downloading video nobody is looking at.
+     */
+    function syncPosterVideo() {
+      slides.forEach((poster, position) => {
+        poster.querySelectorAll('video').forEach((video) => {
+          if (position === slide && !prefersReducedMotion() && !document.hidden) {
+            if (video.preload === 'none') video.preload = 'auto';
+            const played = video.play();
+            // Autoplay can still be refused; the poster frame is the fallback.
+            if (played && typeof played.catch === 'function') played.catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      });
     }
 
     /** Which slide is closest to the middle of the rail right now. */
@@ -1275,6 +1296,7 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stop();
       else start();
+      syncPosterVideo();
     });
 
     // Category filtering hides posters, so the dots and clones rebuild to match.
