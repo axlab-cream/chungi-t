@@ -735,13 +735,12 @@
                 <input
                   id="selfBirth"
                   name="selfBirth"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="19980315"
+                  type="date"
+                  min="1900-01-01"
                   autocomplete="bday"
                   aria-describedby="selfBirth-help selfBirth-error"
                 />
-                <p class="helper" id="selfBirth-help">숫자 8자리로 입력해주세요.</p>
+                <p class="helper" id="selfBirth-help">달력에서 생년월일을 고르면 됩니다.</p>
                 <div class="field-error" id="selfBirth-error" aria-live="polite"></div>
               </div>
 
@@ -755,7 +754,7 @@
 
               <div class="field is-hidden" data-time-field="self">
                 <label for="selfTime">내 태어난 시간</label>
-                <input id="selfTime" name="selfTime" type="text" inputmode="numeric" placeholder="13:30" aria-describedby="selfTime-error" />
+                <input id="selfTime" name="selfTime" type="time" step="60" aria-describedby="selfTime-error" />
                 <div class="field-error" id="selfTime-error" aria-live="polite"></div>
               </div>
             </div>
@@ -807,9 +806,8 @@
                 <input
                   id="partnerBirth"
                   name="partnerBirth"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="19980315"
+                  type="date"
+                  min="1900-01-01"
                   autocomplete="off"
                   aria-describedby="partnerBirth-help partnerBirth-error"
                 />
@@ -827,7 +825,7 @@
 
               <div class="field is-hidden" data-time-field="partner">
                 <label for="partnerTime">상대 태어난 시간</label>
-                <input id="partnerTime" name="partnerTime" type="text" inputmode="numeric" placeholder="13:30" aria-describedby="partnerTime-error" />
+                <input id="partnerTime" name="partnerTime" type="time" step="60" aria-describedby="partnerTime-error" />
                 <div class="field-error" id="partnerTime-error" aria-live="polite"></div>
               </div>
             </div>
@@ -1004,6 +1002,13 @@
         return String(value || "").replace(/\D/g, "").slice(0, 8);
       }
 
+      /** 날짜 컨트롤은 1998-03-15 만 받고, 저장된 값은 19980315 로 남아 있다. */
+      function toDateInput(value) {
+        const digits = normalizeBirthDigits(value);
+        if (digits.length !== 8) return "";
+        return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+      }
+
       function formatBirthLabel(value) {
         const digits = normalizeBirthDigits(value);
         if (digits.length !== 8) return value || "생년월일 미입력";
@@ -1056,10 +1061,10 @@
         };
 
         setValue("selfAlias", state.selfAlias);
-        setValue("selfBirth", state.selfBirth);
+        setValue("selfBirth", toDateInput(state.selfBirth));
         setValue("selfTime", state.selfTime);
         setValue("partnerAlias", state.partnerAlias);
-        setValue("partnerBirth", state.partnerBirth);
+        setValue("partnerBirth", toDateInput(state.partnerBirth));
         setValue("partnerTime", state.partnerTime);
         setValue("signalFocus", state.signalFocus);
         setValue("concern", state.concern);

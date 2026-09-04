@@ -12,18 +12,35 @@
     statusBox.style.color = ok ? '#e8c76f' : '';
   }
 
+  function pad2(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  /** 날짜 컨트롤은 1998-02-14 를 준다. 저장 형식은 연·월·일 숫자다. */
+  function birthParts() {
+    var parts = String(form.birth.value || '').split('-');
+    return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+  }
+
+  /** 시간 컨트롤은 13:30 을 준다. 시간 모름이면 호출되지 않는다. */
+  function timeParts() {
+    var parts = String(form.time.value || '12:00').split(':');
+    return [parts[0] || 12, parts[1] || 0];
+  }
+
   function fill(profile) {
     if (!profile || !form) return;
     form.name.value = profile.name || '';
     var birth = profile.birth || {};
     form.gender.value = birth.gender === 'male' ? 'male' : 'female';
     form.calendar.value = birth.calendar === 'lunar' ? 'lunar' : 'solar';
-    form.year.value = birth.year || '';
-    form.month.value = birth.month || '';
-    form.day.value = birth.day || '';
+    form.birth.value = birth.year && birth.month && birth.day
+      ? birth.year + '-' + pad2(birth.month) + '-' + pad2(birth.day)
+      : '';
     birthTimeKnown = profile.birthTimeKnown !== false;
-    form.hour.value = Number.isFinite(Number(birth.hour)) ? birth.hour : 12;
-    form.minute.value = Number.isFinite(Number(birth.minute)) ? birth.minute : 0;
+    var hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12;
+    var minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0;
+    form.time.value = pad2(hour) + ':' + pad2(minute);
     syncTimeUi();
   }
 
@@ -56,11 +73,11 @@
         name: form.name.value.trim(),
         birthTimeKnown: birthTimeKnown,
         birth: {
-          year: Number(form.year.value),
-          month: Number(form.month.value),
-          day: Number(form.day.value),
-          hour: birthTimeKnown ? Number(form.hour.value) : 12,
-          minute: birthTimeKnown ? Number(form.minute.value || 0) : 0,
+          year: Number(birthParts()[0]),
+          month: Number(birthParts()[1]),
+          day: Number(birthParts()[2]),
+          hour: birthTimeKnown ? Number(timeParts()[0]) : 12,
+          minute: birthTimeKnown ? Number(timeParts()[1]) : 0,
           gender: form.gender.value,
           calendar: form.calendar.value,
           isLeapMonth: false,

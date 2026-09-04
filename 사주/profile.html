@@ -35,10 +35,8 @@
               </select>
             </label>
           </div>
-          <div class="profile-row profile-row-3">
-            <label class="payment-label">년<input name="year" type="number" min="1900" max="2100" required /></label>
-            <label class="payment-label">월<input name="month" type="number" min="1" max="12" required /></label>
-            <label class="payment-label">일<input name="day" type="number" min="1" max="31" required /></label>
+          <div>
+            <label class="payment-label">생년월일<input name="birth" type="date" min="1900-01-01" autocomplete="bday" required /></label>
           </div>
           <div>
             <span class="payment-label">태어난 시간</span>
@@ -48,8 +46,7 @@
             </div>
           </div>
           <div class="profile-row" data-time-fields>
-            <label class="payment-label">시<input name="hour" type="number" min="0" max="23" value="12" /></label>
-            <label class="payment-label">분<input name="minute" type="number" min="0" max="59" value="0" /></label>
+            <label class="payment-label">태어난 시각<input name="time" type="time" step="60" value="12:00" /></label>
           </div>
           <button class="payment-submit" type="submit">프로필 저장</button>
           <p class="payment-status" data-profile-status role="status" aria-live="polite"></p>
