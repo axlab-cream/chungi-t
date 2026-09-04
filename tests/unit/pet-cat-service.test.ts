@@ -1,5 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import {
   buildCatCompatContext,
@@ -119,4 +122,55 @@ test('고양이 궁합 request validates its required answers', () => {
   const parsed = parseCatCompatRequest({ ...answers, cat_age_band: '' })
   assert.equal(parsed.ageBand, 'unknown')
   assert.deepEqual(parsed.behaviorTags, ['낯가림', '예민함', '밤 우다다'])
+})
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
+const readJson = (rel: string) => JSON.parse(readFileSync(join(ROOT, rel), 'utf-8'))
+
+test('반려묘 코퍼스 팩이 등록되어 있고 형식이 맞다', () => {
+  const registry = readJson('data/corpus/registry.json')
+  const pack = registry.packs.find((entry: { id: string }) => entry.id === 'cat-compatibility-service')
+  assert.ok(pack, '코퍼스 레지스트리에 반려묘 팩이 없습니다')
+  assert.equal(pack.status, 'active')
+  assert.equal(pack.domain, 'cat_compatibility_service')
+
+  const corpus = readJson(pack.path.startsWith('corpus/') ? `data/${pack.path}` : pack.path)
+  assert.equal(corpus.domain, 'cat_compatibility_service')
+  assert.ok(corpus.knowledgeBlocks.length >= 30, '판단 블록이 너무 적습니다')
+  assert.ok(corpus.sources?.length, '출처가 비어 있습니다')
+
+  const ids = corpus.knowledgeBlocks.map((block: { id: string }) => block.id)
+  assert.equal(new Set(ids).size, ids.length, '중복된 블록 id가 있습니다')
+
+  const required = ['id', 'topic', 'keywords', 'concept', 'condition', 'interpretation',
+    'real_world_pattern', 'risk', 'opportunity', 'advice', 'confidence', 'forbidden_generalization']
+  corpus.knowledgeBlocks.forEach((block: Record<string, unknown>) => {
+    required.forEach((field) => assert.ok(field in block, `${block.id} 에 ${field} 없음`))
+  })
+
+  // 이 서비스는 질병·수명을 다루지 않는다. 코퍼스 문장도 같은 선을 지켜야 한다.
+  corpus.knowledgeBlocks.forEach((block: { id: string; interpretation: string; advice: string }) => {
+    const prose = `${block.interpretation} ${block.advice}`
+    assert.doesNotMatch(prose, /진단|처방|투약|완치|수명/, `${block.id} 가 의료 판단에 들어갑니다`)
+  })
+})
+
+test('모든 항목이 반려묘 코퍼스를 근거로 인용한다', () => {
+  const input = parseCatCompatRequest({ ...answers })
+  const analysis = analyzeSaju(birth)
+  const context = buildCatCompatContext('지민', input)
+  const report = buildCatCompatReport(analysis, birth, context, input, 'corpus-coverage')
+
+  // 코퍼스에서 쓸 문장을 찾지 못하면 서비스 자체 문장으로 떨어진다. 반려묘 팩이 들어온
+  // 뒤로는 50항목 전부가 실제 근거를 인용해야 한다.
+  const fallback = report.sections.filter((section) =>
+    section.interpretation.includes('함께 사는 궁합은 애정의 크기보다'))
+  assert.equal(fallback.length, 0, `${fallback.length}개 항목이 근거 없이 기본 문장을 씁니다`)
+
+  // 한 블록만 반복 인용하면 리포트가 같은 말을 50번 하게 된다.
+  const cited = report.sections.map((section) =>
+    section.interpretation.split('\n\n')[4]
+      .replace(/^참고할 결은 이렇네\. /, '')
+      .replace(/ 그러니 결론을.*$/, ''))
+  assert.ok(new Set(cited).size >= 20, `인용 문장이 ${new Set(cited).size}종류뿐입니다`)
 })

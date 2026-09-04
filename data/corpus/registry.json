@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.0",
   "policy": "RAG and corpus packs are living knowledge assets. Store judgment-ready knowledge blocks, not finished user copy. Generation must follow calculation -> feature_json -> retrieval -> interpretation -> user_copy.",
   "packs": [
     {
@@ -69,6 +69,16 @@
       "domain": "pass_angle_service",
       "status": "active",
       "role": "single_service_pass_angle_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "cat-compatibility-service",
+      "path": "corpus/cat-compatibility-service.json",
+      "kind": "chunks",
+      "domain": "cat_compatibility_service",
+      "status": "active",
+      "role": "single_service_cat_compatibility_grounding",
       "version": "1.0.0",
       "retrievalBoost": 22
     },

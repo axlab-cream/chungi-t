@@ -485,29 +485,35 @@ function humanize(line: string): string {
   return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
 }
 
+/** The pack written for this service; see data/corpus/cat-compatibility-service.json. */
+const OWN_CORPUS_DOMAIN = 'cat_compatibility_service'
+
 /**
- * The corpus is mostly written about people — 연애, 결혼, 이직, 시험. A line about an
- * 오퍼 or a 배우자 lands as nonsense on a page about a cat, so anything that names
- * another domain is skipped rather than pasted.
+ * The rest of the corpus is written about people — 연애, 결혼, 이직, 시험. A line about
+ * an 오퍼 or a 배우자 lands as nonsense on a page about a cat, so a chunk from another
+ * pack is only used when it names nothing from another domain and does speak about
+ * something this page is actually about.
  */
 const OFF_DOMAIN = /(이직|퇴사|연봉|오퍼|면접|승진|직장|회사|사업|창업|결혼|연애|배우자|애인|남편|아내|이성|합격|시험|입시|수험|투자|재물운|직업)/
-
-/**
- * The corpus carries no 반려묘 material, so most chunks are only usable when they speak
- * about something this page is actually about — 거리, 리듬, 회복, 반응. A chunk that
- * passes neither gate is dropped in favour of the group's own line, which is better than
- * quoting advice written for a different question.
- */
 const ON_DOMAIN = /(거리|리듬|루틴|생활|휴식|회복|반응|돌봄|애착|불안|예민|공간|성향|기운|오행|속도|경계|관계)/
 
-/** Only a knowledge block's interpretation/advice/opportunity read as prose. */
+/**
+ * Only a knowledge block's interpretation/advice/opportunity read as prose.
+ *
+ * This service's own pack is written for this page and needs no domain gate — gating it
+ * would only reject blocks for not happening to use one of the words above. Everything
+ * else still has to pass both gates.
+ */
 function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
   if (!chunk) return fallback
+  const trusted = chunk.domain === OWN_CORPUS_DOMAIN
   const block = chunk.knowledge
   const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
   for (const candidate of candidates) {
     const line = compact(candidate ?? '', '', 160)
-    if (line && !OFF_DOMAIN.test(line) && ON_DOMAIN.test(line)) return humanize(line)
+    if (!line) continue
+    if (trusted) return humanize(line)
+    if (!OFF_DOMAIN.test(line) && ON_DOMAIN.test(line)) return humanize(line)
   }
   return fallback
 }
@@ -522,9 +528,16 @@ const ITEM_ANGLES = [
   '오늘 바꿔 볼 수 있는 한 가지로 좁혀 보네.',
 ]
 
+/**
+ * Read this service's own pack first. The rest of the corpus is written about people —
+ * 연애, 결혼, 이직, 시험 — so a line from another pack is usually the wrong answer here
+ * even when it survives the domain gate below.
+ */
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
   if (!chunks.length) return undefined
-  return chunks[index % chunks.length]
+  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
+  const pool = own.length ? own : chunks
+  return pool[index % pool.length]
 }
 
 function catLine(input: CatCompatRequest): string {
@@ -618,7 +631,8 @@ export function buildCatCompatReport(
           birth,
           input,
           chunks: categoryChunks,
-          index: order + itemIndex,
+          // 대분류 안에서 항목끼리 다른 블록을 인용하도록 항목 순번으로 고른다.
+          index: itemIndex,
         }),
         generatedBy: 'template',
         model: 'cat-compatibility-rag-template',
