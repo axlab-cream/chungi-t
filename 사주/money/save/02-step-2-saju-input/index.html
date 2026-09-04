@@ -670,7 +670,7 @@
             <div class="field-grid two">
               <div class="field">
                 <label for="birthDate">생년월일</label>
-                <input id="birthDate" name="birthDate" type="text" inputmode="numeric" autocomplete="off" placeholder="19980123" aria-describedby="birthDate-error" />
+                <input id="birthDate" name="birthDate" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birthDate-error" />
                 <div class="field-error" id="birthDate-error" aria-live="polite"></div>
               </div>
               <div class="field">
@@ -691,7 +691,7 @@
               </div>
               <div class="field time-field">
                 <label for="birthTime">시간</label>
-                <input id="birthTime" name="birthTime" type="text" inputmode="numeric" autocomplete="off" placeholder="13:30" aria-describedby="birthTime-error" />
+                <input id="birthTime" name="birthTime" type="time" step="60" aria-describedby="birthTime-error" />
                 <div class="field-error" id="birthTime-error" aria-live="polite"></div>
               </div>
             </div>
@@ -1231,7 +1231,13 @@
         if (el) el.textContent = message;
       }
 
-      function validBirthDate(value) {
+      /** 날짜 피커는 1998-03-15 를, 예전 입력은 19980315 를 준다. 숫자만 남기면 같아진다. */
+      function birthDigits(value) {
+        return String(value || "").replace(/[^0-9]/g, "");
+      }
+
+      function validBirthDate(rawValue) {
+        const value = birthDigits(rawValue);
         if (!/^\d{8}$/.test(value)) return false;
         const year = Number(value.slice(0, 4));
         const month = Number(value.slice(4, 6));
@@ -1259,7 +1265,7 @@
       }
 
       function parseBirthInput() {
-        const birthDate = form.birthDate.value.trim();
+        const birthDate = birthDigits(form.birthDate.value);
         const known = form.birthTimeKnown.value === "true";
         const time = known ? normalizeTime(form.birthTime.value.trim()) : "모름";
         const [hour, minute] = known && time ? time.split(":").map(Number) : [null, null];
@@ -1321,12 +1327,12 @@
         }
 
         if (!validBirthDate(form.birthDate.value.trim())) {
-          setError("birthDate", "생년월일은 숫자 8자리로 입력해주세요. 예: 19980123");
+          setError("birthDate", "생년월일을 선택해 주세요.");
           ok = false;
         }
 
         if (form.birthTimeKnown.value === "true" && !validTime(form.birthTime.value.trim())) {
-          setError("birthTime", "시간은 13:30 또는 1330처럼 입력해주세요. 모르면 시간 모름을 선택하면 됩니다.");
+          setError("birthTime", "태어난 시간을 선택해 주세요. 모르면 시간 모름을 고르면 됩니다.");
           ok = false;
         }
 
@@ -1397,9 +1403,12 @@
         form.nickname.value = profile.nickname || profile.name || birth.nickname || "";
         setChoice("gender", gender === "female" ? "여자" : gender === "male" ? "남자" : gender);
         setChoice("calendar", calendar === "lunar" ? "음력" : calendar === "solar" ? "양력" : calendar);
-        if (profile.birthDate || birth.birthDate) form.birthDate.value = profile.birthDate || birth.birthDate;
+        const savedDigits = birthDigits(profile.birthDate || birth.birthDate);
+        if (savedDigits.length === 8) {
+          form.birthDate.value = `${savedDigits.slice(0, 4)}-${savedDigits.slice(4, 6)}-${savedDigits.slice(6, 8)}`;
+        }
         if (birth.year && birth.month && birth.day) {
-          form.birthDate.value = `${birth.year}${String(birth.month).padStart(2, "0")}${String(birth.day).padStart(2, "0")}`;
+          form.birthDate.value = `${birth.year}-${String(birth.month).padStart(2, "0")}-${String(birth.day).padStart(2, "0")}`;
         }
         form.birthPlace.value = birth.birthplaceCity || profile.birthplaceCity || profile.birthPlace || "";
         const known = (profile.birthTimeKnown ?? birth.birthTimeKnown) !== false;
