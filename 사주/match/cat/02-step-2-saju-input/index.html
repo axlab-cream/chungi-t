@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>고양이랑 나 진짜 궁합 맞아 | 입력 | 운명상회</title>
+    <meta
+      name="description"
+      content="보호자 사주와 고양이 행동 프로필을 입력해 반려묘 생활 궁합 리포트로 이어가는 화면"
+    />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      @font-face {
+        font-family: "MaruBuri";
+        src: url("../sample/assets/fonts/MaruBuri-SemiBold.woff2") format("woff2");
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Pretendard";
+        src: url("../sample/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+        font-display: swap;
+      }
+
+      :root {
+        --bg: #050604;
+        --ink: #fffaf0;
+        --muted: #d9ceb6;
+        --dim: #9b917d;
+        --line: rgba(247, 207, 109, 0.22);
+        --line-strong: rgba(247, 207, 109, 0.42);
+        --gold: #f4ca6a;
+        --gold-soft: rgba(244, 202, 106, 0.14);
+        --green: #a8ff1f;
+        --green-soft: rgba(168, 255, 31, 0.14);
+        --teal: #6debd3;
+        --danger: #ff8f73;
+        --panel: rgba(8, 11, 7, 0.78);
+        --panel-strong: rgba(13, 17, 10, 0.92);
+        --shadow: rgba(0, 0, 0, 0.62);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 16% 0%, rgba(109, 235, 211, 0.12), transparent 24rem),
+          radial-gradient(circle at 86% 8%, rgba(168, 255, 31, 0.1), transparent 25rem),
+          linear-gradient(135deg, #030401 0%, #0d1109 54%, #020302 100%);
+        font-family:
+          "Pretendard",
+          "Apple SD Gothic Neo",
+          "Noto Sans KR",
+          sans-serif;
+      }
+
+      button,
+      input,
+      select,
+      textarea,
+      a {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      img {
+        display: block;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .page-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 430px);
+        height: min(900px, 100dvh);
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid rgba(255, 244, 210, 0.18);
+        border-radius: 28px;
+        background: #050604;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.58);
+        scroll-behavior: smooth;
+      }
+
+      .phone::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 18px 10px;
+        background:
+          linear-gradient(180deg, rgba(3, 4, 2, 0.97), rgba(3, 4, 2, 0.76) 72%, transparent),
+          rgba(3, 4, 2, 0.58);
+        backdrop-filter: blur(14px);
+      }
+
+      .back-link {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        border: 1px solid rgba(255, 250, 240, 0.17);
+        border-radius: 50%;
+        color: var(--ink);
+        text-decoration: none;
+        background: rgba(255, 250, 240, 0.06);
+      }
+
+      .back-link:focus-visible,
+      .primary-cta:focus-visible,
+      .secondary-button:focus-visible,
+      .choice:focus-within,
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid rgba(168, 255, 31, 0.72);
+        outline-offset: 2px;
+      }
+
+      .brand {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .brand span,
+      .price-chip,
+      .kicker {
+        letter-spacing: 0;
+      }
+
+      .brand span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: rgba(255, 250, 240, 0.76);
+        font-size: 11px;
+      }
+
+      .brand b {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-top: 2px;
+        color: var(--ink);
+        font-size: 14px;
+      }
+
+      .price-chip {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border: 1px solid rgba(168, 255, 31, 0.34);
+        border-radius: 999px;
+        color: #e9ffd0;
+        background: rgba(168, 255, 31, 0.1);
+        font-size: 12px;
+      }
+
+      .intro {
+        position: relative;
+        min-height: 392px;
+        display: flex;
+        align-items: flex-end;
+        padding: 64px 22px 24px;
+        isolation: isolate;
+      }
+
+      .intro-media,
+      .intro-media img,
+      .intro-shade {
+        position: absolute;
+        inset: 0;
+      }
+
+      .intro-media {
+        z-index: -2;
+        overflow: hidden;
+      }
+
+      .intro-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .intro-shade {
+        z-index: -1;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(3, 4, 2, 0.18) 34%, rgba(3, 4, 2, 0.94) 94%),
+          radial-gradient(circle at 50% 72%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.74));
+      }
+
+      .intro.image-failed {
+        background:
+          radial-gradient(circle at 48% 24%, rgba(168, 255, 31, 0.16), transparent 15rem),
+          linear-gradient(180deg, #15170d, #050604);
+      }
+
+      .intro-copy {
+        width: 100%;
+        text-shadow: 0 2px 20px var(--shadow);
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 13px;
+        padding: 7px 10px;
+        border: 1px solid rgba(244, 202, 106, 0.28);
+        border-radius: 999px;
+        color: #f6e0a4;
+        background: rgba(0, 0, 0, 0.34);
+        font-size: 12px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 340px;
+        font-family:
+          "MaruBuri",
+          "Noto Serif KR",
+          serif;
+        font-size: clamp(31px, 8vw, 42px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .intro-copy p {
+        max-width: 340px;
+        margin-top: 13px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .trust-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .trust-list li {
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        padding: 9px;
+        border: 1px solid rgba(255, 250, 240, 0.13);
+        border-radius: 8px;
+        color: rgba(255, 250, 240, 0.84);
+        background: rgba(0, 0, 0, 0.28);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .form-shell {
+        padding: 18px 18px 116px;
+      }
+
+      .step-rail {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .rail-item {
+        min-height: 46px;
+        padding: 8px;
+        border: 1px solid rgba(255, 250, 240, 0.12);
+        border-radius: 8px;
+        color: rgba(255, 250, 240, 0.68);
+        background: rgba(255, 250, 240, 0.04);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .rail-item.is-current {
+        border-color: rgba(168, 255, 31, 0.42);
+        color: #eaffc5;
+        background: rgba(168, 255, 31, 0.08);
+      }
+
+      .section-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 26px 0 11px;
+      }
+
+      .section-title:first-child {
+        margin-top: 0;
+      }
+
+      .section-no {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        color: #142003;
+        background: var(--green);
+        font-size: 12px;
+      }
+
+      .section-title h2 {
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      .section-title p {
+        margin-top: 4px;
+        color: var(--dim);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .form-card {
+        margin-bottom: 12px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 240, 0.045), transparent),
+          var(--panel);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+      }
+
+      fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      legend,
+      .field label,
+      .group-label {
+        display: block;
+        margin-bottom: 8px;
+        color: rgba(255, 250, 240, 0.9);
+        font-size: 13px;
+      }
+
+      .help {
+        margin-top: 6px;
+        color: rgba(217, 206, 182, 0.78);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .two-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid rgba(255, 250, 240, 0.16);
+        border-radius: 8px;
+        color: var(--ink);
+        background: rgba(0, 0, 0, 0.28);
+        box-shadow: inset 0 0 0 1px rgba(255, 250, 240, 0.02);
+      }
+
+      .field input,
+      .field select {
+        padding: 0 12px;
+      }
+
+      .field textarea {
+        min-height: 94px;
+        resize: vertical;
+        padding: 12px;
+        line-height: 1.55;
+      }
+
+      .field select {
+        color-scheme: dark;
+      }
+
+      .field input::placeholder,
+      .field textarea::placeholder {
+        color: rgba(255, 250, 240, 0.38);
+      }
+
+      .field input[aria-invalid="true"],
+      .field select[aria-invalid="true"],
+      .field textarea[aria-invalid="true"] {
+        border-color: rgba(255, 143, 115, 0.82);
+      }
+
+      .choice-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .choice-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .choice {
+        position: relative;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 11px;
+        border: 1px solid rgba(255, 250, 240, 0.15);
+        border-radius: 8px;
+        color: rgba(255, 250, 240, 0.84);
+        background: rgba(255, 250, 240, 0.045);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .choice input {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 auto;
+        accent-color: var(--green);
+      }
+
+      .choice:has(input:checked) {
+        border-color: rgba(168, 255, 31, 0.58);
+        color: #f4ffe4;
+        background:
+          linear-gradient(135deg, rgba(168, 255, 31, 0.14), rgba(109, 235, 211, 0.06)),
+          rgba(255, 250, 240, 0.04);
+      }
+
+      .choice input:disabled + span,
+      .choice:has(input:disabled) {
+        color: rgba(255, 250, 240, 0.42);
+      }
+
+      .profile-status,
+      .session-note,
+      .submit-note {
+        margin-top: 12px;
+        padding: 11px 12px;
+        border: 1px solid rgba(109, 235, 211, 0.24);
+        border-radius: 8px;
+        color: rgba(229, 255, 249, 0.86);
+        background: rgba(109, 235, 211, 0.07);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .session-note {
+        border-color: rgba(244, 202, 106, 0.26);
+        color: rgba(255, 239, 194, 0.88);
+        background: rgba(244, 202, 106, 0.075);
+      }
+
+      .inline-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 9px;
+        color: rgba(255, 250, 240, 0.82);
+        font-size: 13px;
+      }
+
+      .inline-check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--green);
+      }
+
+      .tag-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .review-panel {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .review-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 42px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 250, 240, 0.1);
+        font-size: 13px;
+      }
+
+      .review-row:last-child {
+        border-bottom: 0;
+      }
+
+      .review-row span {
+        flex: 0 0 auto;
+        color: var(--dim);
+      }
+
+      .review-row strong {
+        min-width: 0;
+        color: rgba(255, 250, 240, 0.9);
+        text-align: right;
+        line-height: 1.45;
+      }
+
+      .field-error,
+      .form-error {
+        min-height: 18px;
+        margin-top: 6px;
+        color: var(--danger);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .form-error {
+        min-height: 0;
+        margin: 16px 0 0;
+        padding: 0;
+      }
+
+      .form-error.is-visible {
+        padding: 11px 12px;
+        border: 1px solid rgba(255, 143, 115, 0.45);
+        border-radius: 8px;
+        background: rgba(255, 143, 115, 0.08);
+      }
+
+      .bottom-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 24;
+        display: grid;
+        grid-template-columns: 0.9fr 1.4fr;
+        gap: 10px;
+        margin: 18px -18px -116px;
+        padding: 14px 18px 18px;
+        background:
+          linear-gradient(180deg, transparent 0%, rgba(5, 6, 4, 0.82) 18%, rgba(5, 6, 4, 0.98) 100%);
+        backdrop-filter: blur(12px);
+      }
+
+      .primary-cta,
+      .secondary-button {
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .primary-cta {
+        color: #162005;
+        background: linear-gradient(135deg, #a8ff1f, #f4ca6a);
+        box-shadow: 0 14px 30px rgba(168, 255, 31, 0.16);
+      }
+
+      .primary-cta[aria-busy="true"] {
+        opacity: 0.74;
+        pointer-events: none;
+      }
+
+      .secondary-button {
+        color: rgba(255, 250, 240, 0.86);
+        background: rgba(255, 250, 240, 0.06);
+        border-color: rgba(255, 250, 240, 0.15);
+      }
+
+      .secondary-button.compact {
+        min-height: 38px;
+        width: 100%;
+        margin-top: 12px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 520px) {
+        .page-shell {
+          display: block;
+          min-height: 100dvh;
+          padding: 0;
+        }
+
+        .phone {
+          width: 100%;
+          height: 100dvh;
+          border: 0;
+          border-radius: 0;
+        }
+      }
+
+      @media (max-width: 390px) {
+        .two-col,
+        .choice-grid,
+        .choice-grid.three,
+        .tag-grid,
+        .trust-list {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 31px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+          animation-duration: 0.001ms !important;
+        }
+      }
+    
+      /* Shared UMSH chrome. The design frames the whole page as a fixed 430x900 phone
+         that scrolls inside itself; on the real site the document scrolls and the bottom
+         nav is fixed to the viewport, so the frame is unwrapped here. */
+      body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
+      body.umsh-has-chrome .phone {
+        width: 100%;
+        height: auto;
+        min-height: 100svh;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      /* Keep the fixed bottom nav clear of the page's last section. The shell publishes
+         its measured height, but that can land before layout settles, so the floor keeps
+         the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .bottom-actions {
+        bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+        margin-bottom: 0;
+      }
+      body.umsh-has-chrome .nav-footer { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* UMSHChrome renders the shared bar as header.umsh-chrome-appbar inside its own
+         shell, and that header still carries the page's .topbar class. Hand the box back
+         so the design's own positioning cannot drag the shared bar around. */
+      body.umsh-has-chrome .umsh-chrome-appbar {
+        left: auto;
+        right: auto;
+        width: auto;
+        transform: none;
+        pointer-events: auto;
+      }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .cat-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 224, 150, 0.42); border-radius: 10px; background: rgba(255, 224, 150, 0.1); padding: 14px; margin-bottom: 14px; }
+      .cat-saved-profile b { color: #ffe9b5; font-size: 14px; }
+      .cat-saved-profile span { color: rgba(255, 248, 232, 0.78); font-size: 13px; line-height: 1.55; }
+      .cat-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <main class="phone" data-umsh-chrome data-service="고양이 궁합" data-price="9,900원" data-active="home" id="step-2-saju-input" aria-label="고양이랑 나 진짜 궁합 맞아 입력">
+        <header class="appbar topbar">
+          <a class="back-link" href="../01-step-1-story/index.html#step-1-story" aria-label="이전 단계로">
+            <span aria-hidden="true">&lt;</span>
+          </a>
+          <div class="brand">
+            <span>운명상회 · 반려묘 궁합</span>
+            <b>고양이랑 나 진짜 궁합 맞아</b>
+          </div>
+          <span class="price-chip">9,900원</span>
+        </header>
+
+        <section class="intro" aria-labelledby="page-title">
+          <picture class="intro-media">
+            <img
+              src="../assets/cat-compatibility/02-input-companion.webp"
+              alt="달빛이 비치는 책상 앞에서 고양이 행동 체크와 출생 시간표를 함께 살펴보는 은색 태비 고양이"
+              loading="eager"
+              onerror="this.closest('.intro').classList.add('image-failed'); this.remove();"
+            />
+          </picture>
+          <div class="intro-shade" aria-hidden="true"></div>
+          <div class="intro-copy">
+            <span class="kicker">STEP 02 · 예상 2분</span>
+            <h1 id="page-title">냥궁합은 내 사주랑 고양이 습관을 같이 봐요</h1>
+            <p>
+              보호자 기준값은 사주로, 고양이 쪽은 생일이 애매해도 행동 태그로 잡습니다.
+              거리감·루틴·공간 케미를 생활 언어로 이어갈게요.
+            </p>
+            <ul class="trust-list" aria-label="입력 기준">
+              <li>보호자와 고양이를 섞어 계산하지 않음</li>
+              <li>생시 모르면 시간 해석은 보류</li>
+              <li>건강·질병·수명 판단 제외</li>
+            </ul>
+          </div>
+        </section>
+
+        <form class="form-shell" id="compatibility-form" novalidate>
+          <div class="step-rail" aria-label="진행 단계">
+            <span class="rail-item">01<br />스토리 완료</span>
+            <span class="rail-item is-current">02<br />입력 중</span>
+            <span class="rail-item">04<br />무료 티저</span>
+          </div>
+
+          <div class="section-title">
+            <span class="section-no">1</span>
+            <div>
+              <h2>내 집사력 기준</h2>
+              <p>기본 사주 프로필이 있으면 다시 묻지 않고 이어갑니다.</p>
+            </div>
+          </div>
+
+          <section class="form-card">
+            <fieldset>
+              <legend>보호자 사주 기준</legend>
+              <div class="choice-grid">
+                <label class="choice">
+                  <input id="profile-existing" type="radio" name="guardian_profile_mode" value="existing_profile" />
+                  <span>기존 내 프로필 사용</span>
+                </label>
+                <label class="choice">
+                  <input id="profile-new" type="radio" name="guardian_profile_mode" value="new_profile" checked />
+                  <span>새로 입력하기</span>
+                </label>
+              </div>
+              <p class="profile-status" id="profile-status" aria-live="polite">
+                저장된 기본 사주 프로필을 확인 중입니다.
+              </p>
+              <button class="secondary-button compact" type="button" data-action="clear-draft">
+                임시 입력 지우기
+              </button>
+            </fieldset>
+          </section>
+
+          <section class="form-card" data-owner-fields>
+            <div class="field-grid">
+              <div class="field">
+                <label for="guardian-nickname">보호자 닉네임</label>
+                <input
+                  id="guardian-nickname"
+                  name="guardian_nickname"
+                  type="text"
+                  maxlength="20"
+                  placeholder="예: 민지"
+                  autocomplete="name"
+                  aria-describedby="guardian_nickname-help guardian_nickname-error"
+                />
+                <p class="help" id="guardian_nickname-help">리포트에서 부를 이름입니다. 실명이 아니어도 괜찮아요.</p>
+                <div class="field-error" data-error-for="guardian_nickname" id="guardian_nickname-error" aria-live="polite"></div>
+              </div>
+
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="guardian-gender">보호자 성별</label>
+                  <select id="guardian-gender" name="guardian_gender" aria-describedby="guardian_gender-error">
+                    <option value="">선택</option>
+                    <option value="female">여성</option>
+                    <option value="male">남성</option>
+                    <option value="not_disclosed">선택 안 함</option>
+                  </select>
+                  <div class="field-error" data-error-for="guardian_gender" id="guardian_gender-error" aria-live="polite"></div>
+                </div>
+                <div class="field">
+                  <label for="guardian-birth-date">생년월일</label>
+                  <input id="guardian-birth-date" name="guardian_birth_date" type="date" aria-describedby="guardian_birth_date-error" />
+                  <div class="field-error" data-error-for="guardian_birth_date" id="guardian_birth_date-error" aria-live="polite"></div>
+                </div>
+              </div>
+
+              <fieldset>
+                <legend>달력 기준</legend>
+                <div class="choice-grid">
+                  <label class="choice">
+                    <input type="radio" name="guardian_calendar_type" value="solar" checked />
+                    <span>양력</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="guardian_calendar_type" value="lunar" />
+                    <span>음력</span>
+                  </label>
+                </div>
+                <div class="field-error" data-error-for="guardian_calendar_type" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="guardian-birth-time">태어난 시간</label>
+                  <input id="guardian-birth-time" name="guardian_birth_time" type="time" aria-describedby="guardian_birth_time-help guardian_birth_time-error" />
+                  <p class="help" id="guardian_birth_time-help">모르면 체크해도 됩니다. 시간 기준 해석만 줄어듭니다.</p>
+                  <label class="inline-check">
+                    <input id="guardian-time-unknown" name="guardian_birth_time_unknown" type="checkbox" value="true" />
+                    <span>생시 모름</span>
+                  </label>
+                  <div class="field-error" data-error-for="guardian_birth_time" id="guardian_birth_time-error" aria-live="polite"></div>
+                </div>
+                <div class="field">
+                  <label for="guardian-birth-region">출생 지역</label>
+                  <input id="guardian-birth-region" name="guardian_birth_region" type="text" maxlength="24" placeholder="선택 입력" autocomplete="address-level2" />
+                  <p class="help">정밀 보정이 필요한 운영 환경에서만 참고합니다. 주소는 받지 않아요.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="section-title">
+            <span class="section-no">2</span>
+            <div>
+              <h2>고양이 행동 프로필</h2>
+              <p>고양이 생일이 불확실하면 성격·루틴 태그로 궁합을 잡습니다.</p>
+            </div>
+          </div>
+
+          <section class="form-card">
+            <div class="field-grid">
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="cat-nickname">고양이 이름/애칭</label>
+                  <input id="cat-nickname" name="cat_nickname" type="text" maxlength="20" placeholder="예: 모찌" autocomplete="off" aria-describedby="cat_nickname-error" />
+                  <div class="field-error" data-error-for="cat_nickname" id="cat_nickname-error" aria-live="polite"></div>
+                </div>
+                <div class="field">
+                  <label for="cat-household">동거 상황</label>
+                  <select id="cat-household" name="cat_household" aria-describedby="cat_household-error">
+                    <option value="">선택</option>
+                    <option value="single_cat">1묘 가정</option>
+                    <option value="multi_cat">다묘 가정</option>
+                    <option value="planning_adoption">입양 예정</option>
+                  </select>
+                  <div class="field-error" data-error-for="cat_household" id="cat_household-error" aria-live="polite"></div>
+                </div>
+              </div>
+
+              <fieldset>
+                <legend>고양이 생일을 알고 있나요?</legend>
+                <div class="choice-grid">
+                  <label class="choice">
+                    <input type="radio" name="cat_birth_known" value="yes" />
+                    <span>알고 있어요</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="cat_birth_known" value="no" checked />
+                    <span>대략만 알아요</span>
+                  </label>
+                </div>
+                <div class="field-error" data-error-for="cat_birth_known" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field" data-cat-birth-wrap hidden>
+                <label for="cat-birth-date">고양이 생년월일</label>
+                <input id="cat-birth-date" name="cat_birth_date" type="date" aria-describedby="cat_birth_date-help cat_birth_date-error" />
+                <p class="help" id="cat_birth_date-help">알고 있는 날짜만 사용합니다. 태어난 시간은 묻지 않습니다.</p>
+                <div class="field-error" data-error-for="cat_birth_date" id="cat_birth_date-error" aria-live="polite"></div>
+              </div>
+
+              <div class="field" data-cat-age-wrap>
+                <label for="cat-age-band">대략 나이대</label>
+                <select id="cat-age-band" name="cat_age_band" aria-describedby="cat_age_band-error">
+                  <option value="">선택</option>
+                  <option value="kitten">아깽이/어린 고양이</option>
+                  <option value="adult">성묘</option>
+                  <option value="senior">노묘</option>
+                  <option value="unknown">잘 모르겠어요</option>
+                </select>
+                <div class="field-error" data-error-for="cat_age_band" id="cat_age_band-error" aria-live="polite"></div>
+              </div>
+
+              <fieldset>
+                <legend>요즘 가장 자주 보이는 성향</legend>
+                <p class="help">최소 2개를 골라야 고양이 쪽 해석을 억지로 만들지 않습니다.</p>
+                <div class="tag-grid" data-group="cat_behavior_tags">
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="shy" /><span>낯가림</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="touch_friendly" /><span>손길 좋아함</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="independent" /><span>독립적</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="active" /><span>활발함</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="sensitive" /><span>예민함</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="food_motivated" /><span>간식 반응 빠름</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="night_runner" /><span>밤 우다다</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="jealous" /><span>질투/다묘 예민</span></label>
+                </div>
+                <div class="field-error" data-error-for="cat_behavior_tags" aria-live="polite"></div>
+              </fieldset>
+            </div>
+          </section>
+
+          <div class="section-title">
+            <span class="section-no">3</span>
+            <div>
+              <h2>생활 케미 포인트</h2>
+              <p>결과에서 거리감, 루틴, 공간, 트러블 리셋으로 연결됩니다.</p>
+            </div>
+          </div>
+
+          <section class="form-card">
+            <div class="field-grid">
+              <fieldset>
+                <legend>쓰다듬 허용각</legend>
+                <div class="choice-grid">
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="loves_touch" /><span>먼저 와서 부빔</span></label>
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="short_touch" /><span>짧게만 가능</span></label>
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="mood_based" /><span>기분 따라 다름</span></label>
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="avoid_touch" /><span>거의 싫어함</span></label>
+                </div>
+                <div class="field-error" data-error-for="cat_touch_style" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field">
+                <label for="cat-play-energy">놀이 에너지</label>
+                <select id="cat-play-energy" name="cat_play_energy" aria-describedby="cat_play_energy-error">
+                  <option value="">선택</option>
+                  <option value="low">낮음 · 지켜보는 편</option>
+                  <option value="medium">보통 · 하루 한두 번</option>
+                  <option value="high">높음 · 계속 놀고 싶어함</option>
+                  <option value="night">밤에 몰아서 폭발</option>
+                </select>
+                <div class="field-error" data-error-for="cat_play_energy" id="cat_play_energy-error" aria-live="polite"></div>
+              </div>
+
+              <fieldset>
+                <legend>요즘 충돌이 생기는 지점</legend>
+                <p class="help">없으면 없음으로 골라주세요. 최소 1개가 필요합니다.</p>
+                <div class="tag-grid" data-group="routine_flags">
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="sleep_conflict" /><span>수면 패턴</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="food_rhythm" /><span>밥·간식 리듬</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="work_from_home" /><span>외출·재택 텐션</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="space_litter" /><span>화장실·공간</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="multi_cat_tension" /><span>다묘 질투각</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="clinic_grooming" /><span>병원·미용 예약</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="none" /><span>크게 없음</span></label>
+                </div>
+                <div class="field-error" data-error-for="routine_flags" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field">
+                <label for="focus-area">이번 리포트에서 제일 보고 싶은 것</label>
+                <select id="focus-area" name="focus_area" aria-describedby="focus_area-error">
+                  <option value="">선택</option>
+                  <option value="distance">거리감 궁합</option>
+                  <option value="routine">생활 루틴 싱크</option>
+                  <option value="space">공간 궁합</option>
+                  <option value="trouble">트러블 패턴</option>
+                  <option value="adoption">입양·합사 타이밍</option>
+                  <option value="burnout">집사 번아웃 방지</option>
+                  <option value="today_action">오늘의 냥생 액션</option>
+                </select>
+                <div class="field-error" data-error-for="focus_area" id="focus_area-error" aria-live="polite"></div>
+              </div>
+
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="upcoming-event">다가오는 일정</label>
+                  <select id="upcoming-event" name="upcoming_event">
+                    <option value="none">없음</option>
+                    <option value="adoption">입양</option>
+                    <option value="introduce_cat">합사</option>
+                    <option value="clinic">병원</option>
+                    <option value="grooming">미용</option>
+                    <option value="moving">이사·방 배치 변경</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="preferred-period">보고 싶은 기간</label>
+                  <input id="preferred-period" name="preferred_period" type="month" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="free-note">한 줄 메모</label>
+                <textarea
+                  id="free-note"
+                  name="free_note"
+                  maxlength="120"
+                  placeholder="예: 손만 대면 도망가는데 밤에는 제 침대에서 자요."
+                  aria-describedby="free_note-help"
+                ></textarea>
+                <p class="help" id="free_note-help">건강 상담이 필요한 증상은 이 서비스에서 판단하지 않습니다.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-card" aria-labelledby="summary-title">
+            <h2 id="summary-title">넘어가기 전 확인</h2>
+            <div class="review-panel" aria-live="polite">
+              <div class="review-row">
+                <span>보호자 기준</span>
+                <strong id="summary-guardian">새 입력 대기</strong>
+              </div>
+              <div class="review-row">
+                <span>고양이 기준</span>
+                <strong id="summary-cat">행동 태그 대기</strong>
+              </div>
+              <div class="review-row">
+                <span>결과 연결</span>
+                <strong>무료 티저 후 유료 리포트 범위 안내</strong>
+              </div>
+            </div>
+            <p class="session-note" id="session-note" aria-live="polite">
+              입력 중 새로고침에 대비해 이 브라우저 세션에만 임시 저장됩니다.
+              주소창에는 이름이나 생년월일을 넣지 않습니다.
+            </p>
+            <p class="submit-note">
+              제출 후에는 공통 로그인 확인이 필요할 수 있고, 로그인 복귀 시 같은 서비스와 입력 단계로 돌아옵니다.
+            </p>
+            <div class="form-error" id="form-error" role="alert" aria-live="assertive"></div>
+          </section>
+
+          <div class="bottom-actions">
+            <a class="secondary-button" href="../01-step-1-story/index.html#step-1-story">이전</a>
+            <button class="primary-cta" type="submit" data-action="submit">입력한 정보로 이어가기</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script src="/js/cat-report-store.js"></script>
+    <script>
+      (() => {
+        const SERVICE = {
+          service_key: "cat_compatibility",
+          service_slug: "cat-compatibility",
+          service_title: "고양이랑 나 진짜 궁합 맞아",
+          category: "반려묘 궁합",
+          subcategory: "생활 궁합",
+          domain: "pet_compatibility",
+          price_krw: 9900,
+          report_version: "cat-compatibility-v1"
+        };
+
+        const INPUT_SCHEMA_VERSION = "cat-compatibility-input-v1";
+        const PAYLOAD_KEY = "cat_compatibility_step2_payload";
+        const DRAFT_KEY = "cat_compatibility_step2_draft";
+        const RETURN_STATE_KEY = "cat_compatibility_return_state";
+        const INDEX_KEY = "cat_compatibility_interpretation_index";
+        const sessionStore = safeStorage("sessionStorage");
+        const localStore = safeStorage("localStorage");
+
+        const interpretationIndex = {
+          source: "user_seed",
+          groups: [
+            { group: "내 집사력 기본값", items: ["집사 성향 DNA", "돌봄 에너지 레벨", "애정 표현 온도", "혼자 있고 싶은 시간", "집착 vs 방치 밸런스"] },
+            { group: "나와 고양이 케미 온도", items: ["첫 만남 텐션", "쓰다듬 허용각", "같이 쉬는 궁합", "놀아주는 코드", "삐짐 회복 속도"] },
+            { group: "거리감 궁합", items: ["선 넘는 포인트", "가까워지는 타이밍", "무관심처럼 보이는 애정", "집사의 말·행동 속도", "고양이가 편해지는 거리"] },
+            { group: "생활 루틴 싱크", items: ["아침 루틴 궁합", "밥·간식 리듬", "수면 패턴 충돌", "외출·재택 궁합", "반복되는 케어 루틴"] },
+            { group: "공간 궁합", items: ["숨숨집 자리", "캣타워·창가 운", "화장실 위치 민감도", "안정존 vs 활동존", "우리집 컬러·조명 무드"] },
+            { group: "트러블 패턴 해석", items: ["물고 긁는 날의 신호", "밤 우다다와 집사 체력", "낯가림·경계심", "다묘 질투각", "반복 갈등 리셋법"] },
+            { group: "오행 밸런스 케어", items: ["목 기운: 성장·놀이", "화 기운: 표현·흥분", "토 기운: 안정·루틴", "금 기운: 규칙·정리", "수 기운: 휴식·혼자만의 시간"] },
+            { group: "입양·합사 타이밍", items: ["입양하기 좋은 흐름", "첫 합사 주의일", "병원·미용 예약 타이밍", "이사·방 배치 변경일", "적응 기간 체크"] },
+            { group: "집사 번아웃 방지", items: ["내가 과하게 챙기는 지점", "미루는 케어 포인트", "쉬어야 하는 날", "감정 소모 줄이는 법", "장기 동거 지속력"] },
+            { group: "오늘의 냥생 액션", items: ["오늘 할 한 가지", "이번 주 루틴 미션", "말투·손길 조정", "놀이 방식 추천", "조용히 지켜볼 타이밍"] }
+          ]
+        };
+
+        const form = document.querySelector("#compatibility-form");
+        const ownerFields = document.querySelector("[data-owner-fields]");
+        const profileExistingInput = document.querySelector("#profile-existing");
+        const profileNewInput = document.querySelector("#profile-new");
+        const profileStatus = document.querySelector("#profile-status");
+        const timeUnknownInput = document.querySelector("#guardian-time-unknown");
+        const birthTimeInput = document.querySelector("#guardian-birth-time");
+        const catBirthWrap = document.querySelector("[data-cat-birth-wrap]");
+        const catAgeWrap = document.querySelector("[data-cat-age-wrap]");
+        const formError = document.querySelector("#form-error");
+        const submitButton = document.querySelector("[data-action='submit']");
+        const sessionNote = document.querySelector("#session-note");
+        const summaryGuardian = document.querySelector("#summary-guardian");
+        const summaryCat = document.querySelector("#summary-cat");
+
+        const labelMap = {
+          shy: "낯가림",
+          touch_friendly: "손길 좋아함",
+          independent: "독립적",
+          active: "활발함",
+          sensitive: "예민함",
+          food_motivated: "간식 반응 빠름",
+          night_runner: "밤 우다다",
+          jealous: "질투/다묘 예민",
+          sleep_conflict: "수면 패턴",
+          food_rhythm: "밥·간식 리듬",
+          work_from_home: "외출·재택 텐션",
+          space_litter: "화장실·공간",
+          multi_cat_tension: "다묘 질투각",
+          clinic_grooming: "병원·미용 예약",
+          none: "크게 없음",
+          distance: "거리감 궁합",
+          routine: "생활 루틴 싱크",
+          space: "공간 궁합",
+          trouble: "트러블 패턴",
+          adoption: "입양·합사 타이밍",
+          burnout: "집사 번아웃 방지",
+          today_action: "오늘의 냥생 액션"
+        };
+
+        function safeStorage(name) {
+          try {
+            return window[name] || null;
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function readJsonFrom(storage, key) {
+          if (!storage) return null;
+          try {
+            return JSON.parse(storage.getItem(key) || "null");
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function writeSessionJson(key, value) {
+          if (!sessionStore) return;
+          try {
+            sessionStore.setItem(key, JSON.stringify(value));
+          } catch (_error) {
+            // Restricted browser modes can block session storage.
+          }
+        }
+
+        function pad2(value) {
+          return String(value).padStart(2, "0");
+        }
+
+        function normalizeDateFromBirth(birth = {}) {
+          if (birth.date) return String(birth.date);
+          if (birth.year && birth.month && birth.day) {
+            return `${birth.year}-${pad2(birth.month)}-${pad2(birth.day)}`;
+          }
+          return "";
+        }
+
+        function normalizeExistingProfile(raw) {
+          if (!raw || typeof raw !== "object") return null;
+          const birth = raw.birth || raw.profile?.birth || {};
+          const birthDate = raw.birth_date || normalizeDateFromBirth(birth);
+          const calendarType = raw.calendar_type || raw.calendar || birth.calendar || "";
+          const gender = raw.gender || birth.gender || "";
+          const complete = raw.profile_complete === true || raw.complete === true || Boolean(birthDate && calendarType && gender);
+          if (!complete) return null;
+          return {
+            profile_id: raw.profile_id || raw.id || raw.userId || "current-user-profile",
+            nickname: raw.nickname || raw.name || "내 기본 프로필",
+            birth_profile_complete: true,
+            has_birth_time: raw.birthTimeKnown !== false && birth.hour !== undefined,
+            calendar_type: calendarType
+          };
+        }
+
+        function detectExistingProfile() {
+          const sessionKeys = ["cat_compatibility_guardian_profile_v1", "umsh_user_birth_profile_v1", "cheongi_user_birth_profile_v1"];
+          for (const key of sessionKeys) {
+            const profile = normalizeExistingProfile(readJsonFrom(sessionStore, key));
+            if (profile) return profile;
+          }
+          try {
+            const localProfile = normalizeExistingProfile(readJsonFrom(localStore, "cheongi_user_birth_profile_v1"));
+            if (localProfile) return localProfile;
+          } catch (_error) {
+            return null;
+          }
+          return null;
+        }
+
+        const existingProfile = detectExistingProfile();
+
+        function getCheckedValues(name) {
+          return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map((item) => item.value);
+        }
+
+        function getRadioValue(name) {
+          return form.querySelector(`input[name="${name}"]:checked`)?.value || "";
+        }
+
+        function setFieldError(key, message) {
+          const target = document.querySelector(`[data-error-for="${key}"]`);
+          if (target) target.textContent = message;
+          const field = form.querySelector(`[name="${key}"]`);
+          if (field && field.type !== "radio" && field.type !== "checkbox") {
+            field.setAttribute("aria-invalid", "true");
+          }
+        }
+
+        function clearErrors() {
+          document.querySelectorAll("[data-error-for]").forEach((item) => {
+            item.textContent = "";
+          });
+          form.querySelectorAll("[aria-invalid='true']").forEach((item) => {
+            item.removeAttribute("aria-invalid");
+          });
+          formError.textContent = "";
+          formError.classList.remove("is-visible");
+        }
+
+        function focusField(key) {
+          const field = form.querySelector(`[name="${key}"]`);
+          const group = form.querySelector(`[data-group="${key}"] input`);
+          const target = field || group;
+          target?.focus();
+          target?.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+
+        function syncProfileMode() {
+          if (!existingProfile) {
+            profileExistingInput.disabled = true;
+            profileNewInput.checked = true;
+            profileStatus.textContent = "저장된 기본 사주 프로필이 없어서 새 입력으로 진행합니다.";
+          } else {
+            profileExistingInput.disabled = false;
+            profileStatus.textContent = "저장된 기본 사주 프로필을 사용할 수 있어요. 다른 기준으로 보고 싶을 때만 새로 입력하세요.";
+          }
+          ownerFields.hidden = getRadioValue("guardian_profile_mode") === "existing_profile";
+          updateSummary();
+        }
+
+        function syncTimeMode() {
+          birthTimeInput.disabled = timeUnknownInput.checked;
+          if (timeUnknownInput.checked) {
+            birthTimeInput.value = "";
+            birthTimeInput.removeAttribute("aria-invalid");
+          }
+        }
+
+        function syncCatBirthMode() {
+          const known = getRadioValue("cat_birth_known") === "yes";
+          catBirthWrap.hidden = !known;
+          catAgeWrap.hidden = known;
+        }
+
+        function formState() {
+          return {
+            guardian_profile_mode: getRadioValue("guardian_profile_mode"),
+            guardian_nickname: form.guardian_nickname.value.trim(),
+            guardian_gender: form.guardian_gender.value,
+            guardian_calendar_type: getRadioValue("guardian_calendar_type"),
+            guardian_birth_date: form.guardian_birth_date.value,
+            guardian_birth_time: form.guardian_birth_time.value,
+            guardian_birth_time_unknown: form.guardian_birth_time_unknown.checked,
+            guardian_birth_region: form.guardian_birth_region.value.trim(),
+            cat_nickname: form.cat_nickname.value.trim(),
+            cat_household: form.cat_household.value,
+            cat_birth_known: getRadioValue("cat_birth_known"),
+            cat_birth_date: form.cat_birth_date.value,
+            cat_age_band: form.cat_age_band.value,
+            cat_behavior_tags: getCheckedValues("cat_behavior_tags"),
+            cat_touch_style: getRadioValue("cat_touch_style"),
+            cat_play_energy: form.cat_play_energy.value,
+            routine_flags: getCheckedValues("routine_flags"),
+            focus_area: form.focus_area.value,
+            upcoming_event: form.upcoming_event.value,
+            preferred_period: form.preferred_period.value,
+            free_note: form.free_note.value.trim()
+          };
+        }
+
+        function setRadio(name, value) {
+          const target = form.querySelector(`input[name="${name}"][value="${value}"]`);
+          if (target && !target.disabled) target.checked = true;
+        }
+
+        function setCheckboxes(name, values = []) {
+          const valueSet = new Set(values);
+          form.querySelectorAll(`input[name="${name}"]`).forEach((item) => {
+            item.checked = valueSet.has(item.value);
+          });
+        }
+
+        function applyDraft(draft) {
+          if (!draft || typeof draft !== "object") return;
+          setRadio("guardian_profile_mode", draft.guardian_profile_mode || "new_profile");
+          form.guardian_nickname.value = draft.guardian_nickname || "";
+          form.guardian_gender.value = draft.guardian_gender || "";
+          setRadio("guardian_calendar_type", draft.guardian_calendar_type || "solar");
+          form.guardian_birth_date.value = draft.guardian_birth_date || "";
+          form.guardian_birth_time.value = draft.guardian_birth_time || "";
+          form.guardian_birth_time_unknown.checked = Boolean(draft.guardian_birth_time_unknown);
+          form.guardian_birth_region.value = draft.guardian_birth_region || "";
+          form.cat_nickname.value = draft.cat_nickname || "";
+          form.cat_household.value = draft.cat_household || "";
+          setRadio("cat_birth_known", draft.cat_birth_known || "no");
+          form.cat_birth_date.value = draft.cat_birth_date || "";
+          form.cat_age_band.value = draft.cat_age_band || "";
+          setCheckboxes("cat_behavior_tags", draft.cat_behavior_tags || []);
+          setRadio("cat_touch_style", draft.cat_touch_style || "");
+          form.cat_play_energy.value = draft.cat_play_energy || "";
+          setCheckboxes("routine_flags", draft.routine_flags || []);
+          form.focus_area.value = draft.focus_area || "";
+          form.upcoming_event.value = draft.upcoming_event || "none";
+          form.preferred_period.value = draft.preferred_period || "";
+          form.free_note.value = draft.free_note || "";
+        }
+
+        function saveDraft() {
+          writeSessionJson(DRAFT_KEY, {
+            ...formState(),
+            saved_at: new Date().toISOString(),
+            storage_policy: "session_only"
+          });
+        }
+
+        function updateSummary() {
+          const state = formState();
+          const guardianLabel =
+            state.guardian_profile_mode === "existing_profile"
+              ? "기존 사주 프로필 사용"
+              : state.guardian_nickname
+                ? `${state.guardian_nickname} · ${state.guardian_birth_date || "생년월일 대기"}`
+                : "새 입력 대기";
+          const tags = state.cat_behavior_tags.map((item) => labelMap[item] || item).slice(0, 3).join(", ");
+          const focus = labelMap[state.focus_area] || "보고 싶은 포인트 대기";
+          summaryGuardian.textContent = guardianLabel;
+          summaryCat.textContent = `${state.cat_nickname || "고양이"} · ${tags || "행동 태그 대기"} · ${focus}`;
+        }
+
+        function validate() {
+          clearErrors();
+          const state = formState();
+          const errors = [];
+          const add = (key, message) => {
+            errors.push({ key, message });
+            setFieldError(key, message);
+          };
+
+          if (state.guardian_profile_mode === "existing_profile" && !existingProfile) {
+            add("guardian_profile_mode", "사용할 수 있는 기존 프로필이 없어요. 새로 입력하기를 선택해주세요.");
+          }
+
+          if (state.guardian_profile_mode !== "existing_profile") {
+            if (!state.guardian_nickname) add("guardian_nickname", "리포트에서 부를 보호자 닉네임을 입력해주세요.");
+            if (!state.guardian_gender) add("guardian_gender", "사주 기준을 잡기 위해 보호자 성별을 선택해주세요.");
+            if (!state.guardian_birth_date) add("guardian_birth_date", "보호자 생년월일을 입력해주세요.");
+            if (!state.guardian_calendar_type) add("guardian_calendar_type", "양력 또는 음력 기준을 선택해주세요.");
+            if (!state.guardian_birth_time_unknown && !state.guardian_birth_time) {
+              add("guardian_birth_time", "태어난 시간을 입력하거나 생시 모름을 체크해주세요.");
+            }
+          }
+
+          if (!state.cat_nickname) add("cat_nickname", "고양이 이름이나 애칭을 입력해주세요.");
+          if (!state.cat_household) add("cat_household", "1묘, 다묘, 입양 예정 중 현재 상황을 골라주세요.");
+          if (!state.cat_birth_known) add("cat_birth_known", "고양이 생일을 알고 있는지 선택해주세요.");
+          if (state.cat_birth_known === "yes" && !state.cat_birth_date) {
+            add("cat_birth_date", "알고 있는 고양이 생년월일을 입력해주세요.");
+          }
+          if (state.cat_birth_known === "no" && !state.cat_age_band) {
+            add("cat_age_band", "생일이 애매하면 대략 나이대를 선택해주세요.");
+          }
+          if (state.cat_behavior_tags.length < 2) {
+            add("cat_behavior_tags", "고양이 성향 태그를 최소 2개 골라주세요.");
+          }
+          if (!state.cat_touch_style) add("cat_touch_style", "쓰다듬 허용각을 골라주세요.");
+          if (!state.cat_play_energy) add("cat_play_energy", "놀이 에너지에 가까운 항목을 선택해주세요.");
+          if (state.routine_flags.length < 1) add("routine_flags", "요즘 충돌 지점을 최소 1개 골라주세요. 없으면 크게 없음을 선택하면 됩니다.");
+          if (!state.focus_area) add("focus_area", "이번 리포트에서 가장 보고 싶은 포인트를 선택해주세요.");
+
+          if (errors.length) {
+            formError.textContent = errors[0].message;
+            formError.classList.add("is-visible");
+            focusField(errors[0].key);
+            return false;
+          }
+
+          return true;
+        }
+
+        function buildPayload() {
+          const state = formState();
+          const guardian =
+            state.guardian_profile_mode === "existing_profile"
+              ? {
+                  profile_mode: "existing_profile",
+                  profile_id: existingProfile.profile_id,
+                  profile_complete: true,
+                  birth_profile_reused: true
+                }
+              : {
+                  profile_mode: "new_profile",
+                  nickname: state.guardian_nickname,
+                  gender: state.guardian_gender,
+                  birth: {
+                    date: state.guardian_birth_date,
+                    calendar_type: state.guardian_calendar_type,
+                    time_known: !state.guardian_birth_time_unknown,
+                    time: state.guardian_birth_time_unknown ? null : state.guardian_birth_time,
+                    region: state.guardian_birth_region || null
+                  }
+                };
+
+          return {
+            service: SERVICE,
+            input_schema_version: INPUT_SCHEMA_VERSION,
+            subject_mode: "custom",
+            created_at: new Date().toISOString(),
+            guardian,
+            cat: {
+              nickname: state.cat_nickname,
+              household: state.cat_household,
+              birth_known: state.cat_birth_known === "yes",
+              birth_date: state.cat_birth_known === "yes" ? state.cat_birth_date : null,
+              age_band: state.cat_birth_known === "no" ? state.cat_age_band : null,
+              behavior_tags: state.cat_behavior_tags,
+              touch_style: state.cat_touch_style,
+              play_energy: state.cat_play_energy,
+              routine_flags: state.routine_flags,
+              focus_area: state.focus_area,
+              upcoming_event: state.upcoming_event,
+              preferred_period: state.preferred_period || null,
+              note: state.free_note || null
+            },
+            interpretation_index_source: interpretationIndex.source,
+            report_version: SERVICE.report_version,
+            safety: {
+              cat_birth_unknown_policy: "behavior_tags_only",
+              guardian_birth_time_unknown_policy: "skip_time_dependent_details",
+              health_disease_lifespan_excluded: true,
+              client_price_is_not_authority: true
+            }
+          };
+        }
+
+        function nextReportUrl() {
+          const url = new URL("../04-step-4-report/index.html", location.href);
+          url.searchParams.set("service_key", SERVICE.service_key);
+          url.searchParams.set("service_slug", SERVICE.service_slug);
+          url.searchParams.set("input_schema_version", INPUT_SCHEMA_VERSION);
+          url.searchParams.set("report_version", SERVICE.report_version);
+          url.searchParams.set("entry", "step2_submit");
+          url.hash = "step-4-report";
+          return url.toString();
+        }
+
+        function handleSubmit(event) {
+          event.preventDefault();
+          if (!validate()) return;
+
+          const payload = buildPayload();
+          writeSessionJson(PAYLOAD_KEY, payload);
+          writeSessionJson(INDEX_KEY, interpretationIndex);
+          writeSessionJson(RETURN_STATE_KEY, {
+            service_key: SERVICE.service_key,
+            service_slug: SERVICE.service_slug,
+            input_schema_version: INPUT_SCHEMA_VERSION,
+            report_version: SERVICE.report_version,
+            return_step: "step-2-saju-input",
+            next_route: "../04-step-4-report/index.html#step-4-report",
+            entry: "step2_submit",
+            personal_data_policy: "not_in_url_or_local_storage"
+          });
+
+          submitButton.setAttribute("aria-busy", "true");
+          submitButton.textContent = "리포트 기준 정리 중";
+          window.setTimeout(() => {
+            location.assign(nextReportUrl());
+          }, 360);
+        }
+
+        function handleClearDraft() {
+          try {
+            sessionStore?.removeItem(DRAFT_KEY);
+            sessionStore?.removeItem(PAYLOAD_KEY);
+          } catch (_error) {
+            // Ignore storage cleanup failures in restricted modes.
+          }
+          form.reset();
+          profileNewInput.checked = true;
+          syncProfileMode();
+          syncTimeMode();
+          syncCatBirthMode();
+          clearErrors();
+          updateSummary();
+          sessionNote.textContent = "임시 입력을 지웠습니다. 주소창이나 장기 저장소에는 입력값을 남기지 않습니다.";
+        }
+
+        const savedDraft = readJsonFrom(sessionStore, DRAFT_KEY);
+        applyDraft(savedDraft);
+        syncProfileMode();
+        syncTimeMode();
+        syncCatBirthMode();
+
+        const params = new URLSearchParams(location.search);
+        if (params.get("authReturn") === "1" || readJsonFrom(sessionStore, RETURN_STATE_KEY)) {
+          sessionNote.textContent = "로그인 복귀 상태를 확인했습니다. 이 브라우저 세션의 임시 입력으로 이어갈 수 있어요.";
+        }
+
+        form.addEventListener("input", () => {
+          saveDraft();
+          updateSummary();
+        });
+
+        form.addEventListener("change", (event) => {
+          if (event.target.name === "guardian_profile_mode") syncProfileMode();
+          if (event.target.name === "guardian_birth_time_unknown") syncTimeMode();
+          if (event.target.name === "cat_birth_known") syncCatBirthMode();
+          saveDraft();
+          updateSummary();
+        });
+
+        form.addEventListener("submit", handleSubmit);
+        form.addEventListener("click", (event) => {
+          const action = event.target.closest("[data-action]")?.dataset.action;
+          if (action === "clear-draft") handleClearDraft();
+        });
+
+        updateSummary();
+      })();
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/cat-service.js" defer></script>
+  </body>
+</html>

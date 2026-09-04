@@ -81,6 +81,13 @@ import {
   parseJobChoiceRequest,
 } from '../work/jobchoice-service.js'
 import {
+  buildCatCompatContext,
+  buildCatCompatReport,
+  createCatCompatReportId,
+  parseCatCompatRequest,
+} from '../pet/cat-service.js'
+import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
+import {
   buildLoveMindContext,
   buildLoveMindReport,
   createLoveMindReportId,
@@ -130,6 +137,8 @@ const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
 const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
 const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
 const MY_PAGE = join(SAJU_ROOT, 'my.html')
+const SEARCH_PAGE = join(SAJU_ROOT, 'search.html')
+const VAULT_PAGE = join(SAJU_ROOT, 'vault.html')
 const PROFILE_PAGE = join(SAJU_ROOT, 'profile.html')
 const REFUNDS_PAGE = join(SAJU_ROOT, 'refunds.html')
 const PORT = Number(process.env.PORT ?? 8790)
@@ -218,6 +227,13 @@ app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
 })
 app.get(['/my', '/my/', '/my.html'], (_req, res) => {
   res.sendFile(MY_PAGE)
+})
+// 하단 메뉴의 검색·보관함은 비로그인도 들어올 수 있는 화면이다.
+app.get(['/search', '/search/', '/search.html'], (_req, res) => {
+  res.sendFile(SEARCH_PAGE)
+})
+app.get(['/vault', '/vault/', '/vault.html'], (_req, res) => {
+  res.sendFile(VAULT_PAGE)
 })
 app.get(['/profile', '/profile/', '/profile.html'], (_req, res) => {
   res.sendFile(PROFILE_PAGE)
@@ -410,6 +426,31 @@ app.get(['/match/couple', '/match/couple/', '/match/couple/index.html'], (req, r
   const query = forwarded.toString()
   const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
   res.redirect(302, `/match/couple/${step}/index.html${query ? `?${query}` : ''}`)
+})
+// 고양이 궁합 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/match/cat', '/match/cat/', '/match/cat/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/match/cat/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/match/cat/input', '/match/cat/input.html'], (_req, res) => {
+  res.redirect(302, '/match/cat/02-step-2-saju-input/index.html')
+})
+app.get(['/match/cat/report', '/match/cat/report.html'], (_req, res) => {
+  res.redirect(302, '/match/cat/04-step-4-report/index.html')
+})
+app.get(['/match/cat/chat', '/match/cat/chat.html'], (_req, res) => {
+  res.redirect(302, '/match/cat/05-step-5-chat/chat.html')
+})
+app.get(['/match/cat/detail', '/match/cat/detail.html'], (_req, res) => {
+  res.redirect(302, '/match/cat/06-step-6_1-report-detail/index.html')
 })
 app.get(['/match/couple/input', '/match/couple/input.html'], (_req, res) => {
   res.redirect(302, '/match/couple/02-step-2-saju-input/index.html')
@@ -975,6 +1016,8 @@ function historyEntryFromRecord(record: ReportRecord) {
 
   return {
     reportId: record.reportId,
+    serviceKey: record.context?.serviceKey,
+    serviceHref: serviceHrefForKey(record.context?.serviceKey),
     savedAt,
     title: `${birthState.name || birthState.target || '자네'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,
@@ -1056,6 +1099,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   work_job: 'work_job',
   quit_fortune: 'quit_fortune',
   job_choice: 'job_choice',
+  cat_compatibility: 'cat_compatibility',
   couple_signal: 'couple_signal',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
@@ -1421,6 +1465,11 @@ async function saveUserProfileHandler(req: Request, res: Response) {
 app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
 
+/** The 검색 page lists every service from here, so price and title stay in one place. */
+app.get('/api/services', (_req, res) => {
+  res.json({ services: listServiceDirectory() })
+})
+
 app.get('/api/user/reports', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
@@ -1654,6 +1703,37 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '직장 선택 풀이 생성 실패' })
+  }
+})
+
+app.post('/api/match/cat/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '고양이 궁합을 보려면 집사님의 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseCatCompatRequest(req.body)
+    const context = buildCatCompatContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createCatCompatReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId)) return
+    const templateReport = buildCatCompatReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '고양이 궁합 생성 실패' })
   }
 })
 

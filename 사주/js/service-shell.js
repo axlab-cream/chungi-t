@@ -143,6 +143,53 @@
   }
 
   /**
+   * Where each bottom tab goes. 검색과 보관함은 비로그인도 들어올 수 있고, 운명록과 MY는
+   * 로그인이 필요하다 — 로그인 화면으로 보낼 때 돌아올 자리를 같이 넘겨서, 로그인 뒤에
+   * 누르려던 화면으로 이어지게 한다.
+   */
+  const navTargets = {
+    home: { href: '/', entry: '' },
+    destiny: { href: '/destiny', entry: 'destiny', requiresLogin: true },
+    search: { href: '/search', entry: '' },
+    vault: { href: '/vault', entry: '' },
+    account: { href: '/my', entry: 'my', requiresLogin: true },
+  };
+
+  function loginHref(entry, returnTo) {
+    return (window.UMSHCommonAuth && window.UMSHCommonAuth.commonLoginUrl(entry, returnTo))
+      || `/signup?entry=${encodeURIComponent(entry)}&returnTo=${encodeURIComponent(returnTo)}#login`;
+  }
+
+  /**
+   * Resolves to true only when a live session is readable here. Pages that never load
+   * supabase get `null` back and are sent to the destination itself, which carries its
+   * own gate — better than bouncing a signed-in visitor through a login screen.
+   */
+  async function hasSession() {
+    if (!window.supabase || !window.UMSHAuthSession) return null;
+    try {
+      const config = await fetch('/api/auth/config').then((response) => response.json());
+      if (!config || !config.enabled) return null;
+      const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+      const { data } = await client.auth.getSession();
+      const session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+      return Boolean(session && session.access_token);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async function goToTab(tabId) {
+    const target = navTargets[tabId] || navTargets.home;
+    if (!target.requiresLogin) {
+      navigate(target.href);
+      return;
+    }
+    const signedIn = await hasSession();
+    navigate(signedIn === false ? loginHref(target.entry, target.href) : target.href);
+  }
+
+  /**
    * The top bar mirrors the /love/this-year sample exactly: the logo on the left, and
    * the back and menu buttons on the right. No category rail and no service/price line,
    * so every service page carries the same GNB the sample established.
@@ -219,7 +266,7 @@
         <footer class="bottom-nav" aria-label="주요 메뉴">
           ${bottomTabs.map(([id, label]) => {
             const active = id === activeTab ? ' class="is-active"' : '';
-            return `<button${active} type="button" data-shell-bottom-menu="${id}" aria-controls="serviceBottomMenuPanel" aria-expanded="false"><span class="tab-label">${escapeHtml(label)}</span></button>`;
+            return `<button${active} type="button" data-shell-nav="${id}"><span class="tab-label">${escapeHtml(label)}</span></button>`;
           }).join('')}
         </footer>
       </div>
@@ -271,6 +318,12 @@
         return;
       }
       navigate(value === 'all' ? '/' : `/?category=${encodeURIComponent(value)}#services`);
+      return;
+    }
+
+    const navButton = event.target.closest?.('[data-shell-nav]');
+    if (navButton) {
+      goToTab(navButton.dataset.shellNav || 'home');
       return;
     }
 

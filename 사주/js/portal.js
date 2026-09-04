@@ -102,7 +102,7 @@
   splashSkip?.addEventListener('click', finishSplash);
   startSplash();
 
-  const protectedMenuIds = new Set(['destiny', 'vault', 'account']);
+  const protectedMenuIds = new Set(['destiny', 'account']);
   const protectedDestinations = {
     destiny: {
       eyebrow: 'LOCKED RECORD',
@@ -114,14 +114,14 @@
     vault: {
       eyebrow: 'LOCKED VAULT',
       title: '보관함',
-      href: '/cmdg/#vault',
+      href: '/vault',
       entry: 'vault',
       desc: '저장한 풀이와 상담 기록을 같은 계정에서 다시 여는 메뉴입니다.',
     },
     account: {
       eyebrow: 'LOCKED MY',
       title: 'MY',
-      href: '/signup?entry=my',
+      href: '/my',
       entry: 'my',
       desc: '내 계정과 사주 프로필을 확인하고 수정하는 메뉴입니다.',
     },
@@ -621,6 +621,14 @@
         navigateToHref(menu.href);
         return;
       }
+      if (access.state === 'login') {
+        // 로그인 뒤 누르려던 화면으로 이어지도록 돌아올 자리를 같이 넘긴다.
+        closeBottomMenu();
+        const loginHref = window.UMSHCommonAuth?.commonLoginUrl(menu.entry, menu.href)
+          || `/signup?entry=${encodeURIComponent(menu.entry)}&returnTo=${encodeURIComponent(menu.href)}#login`;
+        navigateToHref(loginHref);
+        return;
+      }
       renderProtectedGate(normalizedMenuId, access.state);
       showToast(access.state === 'profile' ? '사주등록 후 열 수 있습니다.' : '로그인과 사주등록이 필요합니다.');
     } catch (error) {
@@ -949,14 +957,29 @@
     });
   });
 
+  /**
+   * 하단 메뉴는 시트를 여는 자리가 아니라 화면으로 가는 자리다. 검색과 보관함은 비로그인도
+   * 들어올 수 있고, 운명록과 MY는 로그인이 필요해서 protected 흐름을 그대로 탄다.
+   */
+  const openTabHrefs = { home: '/', search: '/search', vault: '/vault' };
+
   bottomMenuButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      const protectedMenuId = normalizeProtectedMenuId(button.dataset.bottomMenu);
+      const menuId = button.dataset.bottomMenu;
+      const protectedMenuId = normalizeProtectedMenuId(menuId);
       if (protectedMenuId) {
         handleProtectedAccess(protectedMenuId);
         return;
       }
-      openBottomMenu(button.dataset.bottomMenu);
+      const href = openTabHrefs[menuId];
+      if (href) {
+        closeBottomMenu();
+        activeBottomMenu = menuId;
+        updateBottomMenuButtons();
+        navigateToHref(href);
+        return;
+      }
+      openBottomMenu(menuId);
     });
   });
 

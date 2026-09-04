@@ -1,0 +1,1398 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>고양이랑 나 진짜 궁합 맞아 | 결과 목록 | 운명상회</title>
+  <meta name="description" content="보호자 사주와 고양이 행동 프로필을 바탕으로 반려묘 생활 궁합 리포트의 대분류와 중분류를 고르는 화면입니다." />
+  <meta name="application-name" content="운명상회" />
+  <meta name="apple-mobile-web-app-title" content="운명상회" />
+  <meta property="og:title" content="고양이랑 나 진짜 궁합 맞아 | 결과 목록" />
+  <meta property="og:description" content="반려묘 생활 궁합 리포트의 목차를 훑고 원하는 항목을 바로 열어보세요." />
+  <meta property="og:site_name" content="운명상회" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+    @font-face {
+      font-family: "Pretendard";
+      src: url("../sample/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      font-weight: 500 900;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "MaruBuri";
+      src: url("../sample/assets/fonts/MaruBuri-SemiBold.woff2") format("woff2");
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --bg: #030402;
+      --panel: #0c0e09;
+      --panel-strong: #12150e;
+      --ink: #fff9ec;
+      --muted: rgba(245, 231, 204, 0.7);
+      --soft: rgba(245, 231, 204, 0.52);
+      --line: rgba(239, 196, 111, 0.22);
+      --gold: #efc46f;
+      --gold-strong: #ffdc8b;
+      --green: #a8ff18;
+      --green-soft: rgba(168, 255, 24, 0.16);
+      --red: #e24d35;
+      --shadow: rgba(0, 0, 0, 0.48);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(168, 255, 24, 0.16), transparent 28rem),
+        radial-gradient(circle at 0% 35%, rgba(239, 196, 111, 0.12), transparent 22rem),
+        #000;
+      font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+    }
+
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: start center;
+      overflow: hidden;
+      color: var(--ink);
+    }
+
+    button,
+    textarea,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .phone {
+      width: min(100vw, 440px);
+      height: 100svh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(168, 255, 24, 0.06), transparent 18rem),
+        var(--bg);
+      box-shadow: 0 24px 90px rgba(0, 0, 0, 0.5);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 70px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(4, 5, 3, 0.96);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .brand span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .brand strong {
+      overflow: hidden;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 950;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-actions {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 8px;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid rgba(239, 196, 111, 0.32);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--gold-strong);
+      cursor: pointer;
+    }
+
+    .contextbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 18px;
+      border-bottom: 1px solid rgba(239, 196, 111, 0.12);
+      background: rgba(3, 4, 2, 0.92);
+    }
+
+    .contextbar p {
+      min-width: 0;
+      margin: 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .small-action {
+      flex: 0 0 auto;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid rgba(239, 196, 111, 0.28);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--gold-strong);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding: 12px 14px 14px;
+      scrollbar-width: none;
+    }
+
+    .chat-log::-webkit-scrollbar {
+      display: none;
+    }
+
+    .report-basic,
+    .state-panel,
+    .group-panel,
+    .section-panel,
+    .bubble {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(239, 196, 111, 0.11), transparent 52%),
+        rgba(255, 255, 255, 0.045);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+    }
+
+    .report-basic {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      background:
+        linear-gradient(145deg, rgba(168, 255, 24, 0.12), rgba(239, 196, 111, 0.08) 52%, rgba(255, 255, 255, 0.04)),
+        var(--panel);
+    }
+
+    .report-basic h1 {
+      margin: 0;
+      font-family: MaruBuri, Pretendard, serif;
+      font-size: 25px;
+      line-height: 1.22;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    .report-basic p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 750;
+      line-height: 1.58;
+      word-break: keep-all;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .spec-grid div {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      padding: 10px;
+      border: 1px solid rgba(239, 196, 111, 0.16);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .spec-grid span {
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .spec-grid strong {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .state-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .state-panel h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .state-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 760;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .state-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .state-pill {
+      flex: 0 0 auto;
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid rgba(168, 255, 24, 0.28);
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .state-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .state-actions a,
+    .state-actions button {
+      min-height: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0 10px;
+      border: 1px solid rgba(239, 196, 111, 0.28);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .state-actions .primary-link {
+      border-color: rgba(168, 255, 24, 0.38);
+      background: linear-gradient(180deg, rgba(168, 255, 24, 0.26), rgba(42, 70, 12, 0.82));
+      color: #fbffe8;
+    }
+
+    .group-panel,
+    .section-panel {
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: grid;
+      gap: 7px;
+      padding: 16px 16px 10px;
+    }
+
+    .panel-head span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.25;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    .panel-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 760;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .group-grid {
+      display: grid;
+      gap: 10px;
+      padding: 10px 14px 16px;
+    }
+
+    .group-card {
+      position: relative;
+      min-height: 156px;
+      overflow: hidden;
+      display: grid;
+      align-content: end;
+      gap: 5px;
+      padding: 14px;
+      border: 1px solid rgba(239, 196, 111, 0.18);
+      border-radius: 8px;
+      background: #050602;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      isolation: isolate;
+    }
+
+    .group-card.is-active {
+      border-color: rgba(168, 255, 24, 0.68);
+      box-shadow: 0 0 0 1px rgba(168, 255, 24, 0.12), 0 18px 38px rgba(0, 0, 0, 0.24);
+    }
+
+    .group-card img {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: 50% 50%;
+      opacity: 0.74;
+    }
+
+    .group-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.84)),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.64), transparent 66%);
+    }
+
+    .group-card span {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 950;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+    }
+
+    .group-card strong {
+      color: var(--ink);
+      font-size: 22px;
+      font-weight: 950;
+      line-height: 1.15;
+      letter-spacing: 0;
+      word-break: keep-all;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.72);
+    }
+
+    .group-card em {
+      width: min(100%, 290px);
+      color: rgba(255, 249, 236, 0.86);
+      font-size: 13px;
+      font-style: normal;
+      font-weight: 850;
+      line-height: 1.45;
+      word-break: keep-all;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .group-card small {
+      color: rgba(239, 196, 111, 0.88);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .section-cover {
+      position: relative;
+      min-height: 222px;
+      display: grid;
+      align-content: end;
+      overflow: hidden;
+      padding: 16px;
+      background: #050602;
+    }
+
+    .section-cover img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 50%;
+      opacity: 0.74;
+    }
+
+    .section-cover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.86)),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.62), transparent 52%);
+    }
+
+    .section-cover div {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 7px;
+    }
+
+    .section-cover span {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .section-cover h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 27px;
+      line-height: 1.18;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    .section-cover p {
+      width: min(100%, 300px);
+      margin: 0;
+      color: rgba(255, 249, 236, 0.82);
+      font-size: 13px;
+      font-weight: 830;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .group-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 14px 3px;
+      scrollbar-width: none;
+    }
+
+    .group-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .group-tabs button {
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid rgba(239, 196, 111, 0.16);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 249, 236, 0.72);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .group-tabs button.is-active {
+      border-color: rgba(168, 255, 24, 0.46);
+      background: linear-gradient(180deg, rgba(168, 255, 24, 0.22), rgba(32, 56, 10, 0.78));
+      color: var(--ink);
+    }
+
+    .section-list {
+      display: grid;
+      gap: 9px;
+      padding: 12px 14px 16px;
+    }
+
+    .section-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      padding: 13px 12px;
+      border: 1px solid rgba(239, 196, 111, 0.16);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(168, 255, 24, 0.1), transparent 62%),
+        rgba(255, 255, 255, 0.045);
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .section-button.is-active {
+      border-color: rgba(168, 255, 24, 0.56);
+      background:
+        linear-gradient(90deg, rgba(168, 255, 24, 0.18), transparent 68%),
+        rgba(255, 255, 255, 0.06);
+    }
+
+    .section-button.is-locked {
+      opacity: 0.82;
+    }
+
+    .section-no {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(239, 196, 111, 0.13);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .section-body {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+    }
+
+    .section-body strong {
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 950;
+      line-height: 1.42;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .section-body em,
+    .section-body small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 780;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .section-body small {
+      color: rgba(239, 196, 111, 0.78);
+      font-weight: 900;
+    }
+
+    .section-arrow {
+      padding-top: 8px;
+      color: var(--green);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .empty-panel {
+      display: grid;
+      gap: 10px;
+      margin: 0 14px 16px;
+      padding: 14px;
+      border: 1px solid rgba(239, 196, 111, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 780;
+      line-height: 1.55;
+    }
+
+    .bubble {
+      max-width: 92%;
+      padding: 12px 13px;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 760;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .bubble.user {
+      align-self: flex-end;
+      border-color: rgba(168, 255, 24, 0.28);
+      background: rgba(168, 255, 24, 0.1);
+    }
+
+    .bubble.assistant {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .bubble.system {
+      align-self: center;
+      border: 0;
+      background: transparent;
+      color: var(--soft);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .chat-input {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 12px 14px max(16px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      background: rgba(4, 5, 3, 0.98);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 46px;
+      max-height: 130px;
+      padding: 11px 12px;
+      border: 1px solid rgba(239, 196, 111, 0.22);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.45;
+      resize: vertical;
+    }
+
+    textarea::placeholder {
+      color: rgba(245, 231, 204, 0.42);
+    }
+
+    .send-btn {
+      min-width: 64px;
+      min-height: 46px;
+      border: 1px solid rgba(168, 255, 24, 0.38);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(168, 255, 24, 0.84), rgba(78, 122, 12, 0.96));
+      color: #111806;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
+    .send-btn:disabled {
+      opacity: 0.48;
+      cursor: default;
+    }
+
+    img[data-broken="true"] {
+      opacity: 0;
+    }
+
+    @media (min-width: 720px) {
+      body {
+        padding: 0;
+      }
+
+      .phone {
+        border-left: 1px solid rgba(239, 196, 111, 0.12);
+        border-right: 1px solid rgba(239, 196, 111, 0.12);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+      }
+    }
+  
+      /* Shared UMSH chrome. The design frames the whole page as a fixed 430x900 phone
+         that scrolls inside itself; on the real site the document scrolls and the bottom
+         nav is fixed to the viewport, so the frame is unwrapped here. */
+      body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
+      body.umsh-has-chrome .phone {
+        width: 100%;
+        height: auto;
+        min-height: 100svh;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      /* Keep the fixed bottom nav clear of the page's last section. The shell publishes
+         its measured height, but that can land before layout settles, so the floor keeps
+         the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .bottom-actions {
+        bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+        margin-bottom: 0;
+      }
+      body.umsh-has-chrome .nav-footer { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* UMSHChrome renders the shared bar as header.umsh-chrome-appbar inside its own
+         shell, and that header still carries the page's .topbar class. Hand the box back
+         so the design's own positioning cannot drag the shared bar around. */
+      body.umsh-has-chrome .umsh-chrome-appbar {
+        left: auto;
+        right: auto;
+        width: auto;
+        transform: none;
+        pointer-events: auto;
+      }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .cat-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 224, 150, 0.42); border-radius: 10px; background: rgba(255, 224, 150, 0.1); padding: 14px; margin-bottom: 14px; }
+      .cat-saved-profile b { color: #ffe9b5; font-size: 14px; }
+      .cat-saved-profile span { color: rgba(255, 248, 232, 0.78); font-size: 13px; line-height: 1.55; }
+      .cat-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+</head>
+<body>
+  <main class="phone" data-umsh-chrome data-service="고양이 궁합" data-price="9,900원" data-active="home" id="step-5-chat" aria-label="고양이랑 나 진짜 궁합 맞아 결과 목록">
+    <header class="appbar topbar">
+      <a class="brand" href="../04-step-4-report/index.html#step-4-report" aria-label="무료 티저로 돌아가기">
+        <span>운명상회 · 결과 목록</span>
+        <strong>고양이랑 나 진짜 궁합 맞아</strong>
+      </a>
+      <div class="topbar-actions">
+        <button class="icon-button" type="button" id="btn-back" aria-label="무료 결과로">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="icon-button" type="button" id="btn-vault" aria-label="보관함">
+          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="contextbar">
+      <p id="context-label">반려묘 생활 궁합 · 10개 대분류</p>
+      <button class="small-action" type="button" id="btn-pdf">PDF</button>
+    </div>
+
+    <section class="chat-log" id="chat-log" aria-live="polite">
+      <section class="report-basic">
+        <div>
+          <h1>궁금한 항목부터 바로 열어보세요</h1>
+          <p>보호자 사주와 고양이 행동 프로필을 생활 언어로 묶어, 같이 살며 자주 부딪히는 거리·루틴·공간을 먼저 고르게 했습니다.</p>
+        </div>
+        <div class="spec-grid" aria-label="리포트 구성">
+          <div><span>분류</span><strong>반려묘 궁합</strong></div>
+          <div><span>범위</span><strong>현재~12개월</strong></div>
+          <div><span>목차</span><strong>50개 항목</strong></div>
+        </div>
+      </section>
+
+      <section class="state-panel" id="state-panel">
+        <div class="state-head">
+          <span class="state-pill" id="state-pill">확인 중</span>
+          <button class="small-action" type="button" id="btn-refresh">상태 확인</button>
+        </div>
+        <h2 id="state-title">결과 목록을 확인하고 있어요</h2>
+        <p id="state-copy">입력한 리포트 기준을 읽어 목차를 준비합니다.</p>
+        <div class="state-actions" id="state-actions"></div>
+      </section>
+
+      <section class="group-panel" id="group-panel">
+        <div class="panel-head">
+          <span>대분류</span>
+          <h2>먼저 볼 문을 고르세요</h2>
+          <p>긴 풀이를 한 번에 펼치지 않고, 지금 필요한 장부터 들어갑니다.</p>
+        </div>
+        <div class="group-grid" id="group-grid"></div>
+      </section>
+
+      <section class="section-panel" id="section-panel"></section>
+    </section>
+
+    <form class="chat-input" id="chat-form">
+      <textarea id="chat-message" rows="2" placeholder="고양이 행동이나 궁금한 항목을 적어주세요" required></textarea>
+      <button class="send-btn" id="btn-send" type="submit">전송</button>
+    </form>
+  </main>
+
+  <script src="/js/cat-report-store.js"></script>
+    <script>
+    (() => {
+      const SERVICE = {
+        key: "cat_compatibility",
+        slug: "cat-compatibility",
+        title: "고양이랑 나 진짜 궁합 맞아",
+        reportVersion: "cat-compatibility-v1",
+        defaultReportId: "report_pending",
+        defaultProfileId: "profile_pending",
+        analysisPeriod: "current-12m"
+      };
+
+      const GROUPS = [
+        {
+          id: "guardian-defaults",
+          title: "내 집사력 기본값",
+          gate: "01",
+          subtitle: "내가 챙기는 방식과 지치는 포인트를 먼저 봅니다.",
+          image: "../assets/cat-compatibility/05-guardian-defaults.webp",
+          alt: "금빛 발자국 차트 앞에 앉은 은색 태비 고양이",
+          items: [
+            ["guardian-dna", "집사 성향 DNA", "나는 챙겨야 마음이 놓이는 쪽인지, 지켜봐야 편한 쪽인지 먼저 가릅니다.", "내 흐름으로 읽기"],
+            ["care-energy", "돌봄 에너지 레벨", "밥·청소·놀이를 오래 유지할 힘이 어디서 차고 빠지는지 봅니다.", "리듬 보기"],
+            ["affection-temperature", "애정 표현 온도", "좋아하는 마음이 손길·말투·확인으로 어떻게 나오는지 살핍니다.", "온도 보기"],
+            ["alone-time", "혼자 있고 싶은 시간", "집사님에게도 고양이에게도 필요한 조용한 시간을 따로 둡니다.", "거리 보기"],
+            ["attachment-balance", "집착 vs 방치 밸런스", "과하게 붙는 날과 너무 늦게 보는 날의 차이를 잡습니다.", "밸런스 보기"]
+          ]
+        },
+        {
+          id: "chemistry-temperature",
+          title: "나와 고양이 케미 온도",
+          gate: "02",
+          subtitle: "좋아하는 마음이 실제 반응으로 어떻게 보이는지 봅니다.",
+          image: "../assets/cat-compatibility/05-chemistry-temperature.webp",
+          alt: "고양이 발과 보호자 손 사이에 금빛 거리 게이지가 빛나는 장면",
+          items: [
+            ["first-meeting-tension", "첫 만남 텐션", "처음 마주친 순간의 속도 차이가 이후 루틴에 남는지 봅니다.", "첫 신호 보기"],
+            ["petting-angle", "쓰다듬 허용각", "손길이 편한 구간과 멈춰야 할 타이밍을 분리합니다.", "허용각 보기"],
+            ["rest-together", "같이 쉬는 궁합", "한 공간에 있어도 서로 편해지는 휴식 방식을 봅니다.", "휴식 보기"],
+            ["play-code", "놀아주는 코드", "격한 놀이가 맞는지, 짧고 자주 보는 방식이 맞는지 고릅니다.", "놀이 보기"],
+            ["sulk-recovery", "삐짐 회복 속도", "서운해 보이는 반응 뒤에 다시 풀리는 시간을 봅니다.", "회복 보기"]
+          ]
+        },
+        {
+          id: "distance-compat",
+          title: "거리감 궁합",
+          gate: "03",
+          subtitle: "가까워지는 것보다 편해지는 거리를 먼저 잡습니다.",
+          image: "../assets/cat-compatibility/05-distance-compat.webp",
+          alt: "문과 쿠션 사이에서 고양이가 편안한 거리를 지키는 장면",
+          items: [
+            ["boundary-line", "선 넘는 포인트", "고양이가 불편해지는 손길·시선·소리의 경계를 봅니다.", "경계 보기"],
+            ["approach-timing", "가까워지는 타이밍", "다가갈 때와 기다릴 때를 생활 흐름 안에서 나눕니다.", "타이밍 보기"],
+            ["quiet-affection", "무관심처럼 보이는 애정", "멀리 앉아도 마음이 닫힌 것은 아닐 수 있는 신호를 봅니다.", "신호 보기"],
+            ["guardian-speed", "집사의 말·행동 속도", "내 반응 속도가 고양이에게 빠르게 느껴지는 구간을 살핍니다.", "속도 보기"],
+            ["comfortable-distance", "고양이가 편해지는 거리", "가장 편하게 쉬고 다가오는 생활 반경을 잡습니다.", "거리 보기"]
+          ]
+        },
+        {
+          id: "routine-sync",
+          title: "생활 루틴 싱크",
+          gate: "04",
+          subtitle: "밥, 잠, 외출, 반복 케어의 박자가 맞는지 봅니다.",
+          image: "../assets/cat-compatibility/05-routine-sync.webp",
+          alt: "밥그릇과 해와 달 리듬 앞에 앉은 은색 태비 고양이",
+          items: [
+            ["morning-routine", "아침 루틴 궁합", "하루 시작의 소리와 움직임이 고양이에게 어떤 신호가 되는지 봅니다.", "아침 보기"],
+            ["meal-snack-rhythm", "밥·간식 리듬", "기대가 커지는 시간과 안정되는 시간을 나눠 봅니다.", "식사 보기"],
+            ["sleep-pattern-clash", "수면 패턴 충돌", "밤에 깨어나는 흐름과 집사 체력의 접점을 찾습니다.", "밤 리듬 보기"],
+            ["outing-home-work", "외출·재택 궁합", "집에 있는 날과 비우는 날의 반응 차이를 봅니다.", "재택 보기"],
+            ["care-routine", "반복되는 케어 루틴", "화장실·빗질·놀이처럼 반복되는 케어의 부담을 줄입니다.", "케어 보기"]
+          ]
+        },
+        {
+          id: "space-compat",
+          title: "공간 궁합",
+          gate: "05",
+          subtitle: "집 안의 자리와 빛, 냄새, 동선을 생활 힌트로 봅니다.",
+          image: "../assets/cat-compatibility/05-space-compat.webp",
+          alt: "창가와 캣타워, 숨숨집이 있는 어두운 방에서 고양이가 쉬는 장면",
+          items: [
+            ["hideout-place", "숨숨집 자리", "숨고 싶은 자리가 불안 회피인지 충전 공간인지 봅니다.", "숨숨집 보기"],
+            ["cat-tower-window", "캣타워·창가 운", "높은 자리와 바깥 풍경이 안정감에 주는 힌트를 봅니다.", "창가 보기"],
+            ["litter-location", "화장실 위치 민감도", "동선, 소리, 시선이 예민하게 느껴지는 자리를 살핍니다.", "위치 보기"],
+            ["safe-active-zone", "안정존 vs 활동존", "쉬는 자리와 뛰는 자리를 섞지 않는 배치를 봅니다.", "구역 보기"],
+            ["color-light-mood", "우리집 컬러·조명 무드", "색과 조명은 처방이 아니라 분위기 조절 힌트로 봅니다.", "무드 보기"]
+          ]
+        },
+        {
+          id: "trouble-pattern",
+          title: "트러블 패턴 해석",
+          gate: "06",
+          subtitle: "문제 행동을 혼내기 전에 반복 신호와 회복 순서를 봅니다.",
+          image: "../assets/cat-compatibility/05-trouble-pattern.webp",
+          alt: "부드러운 발톱 자국과 초록빛 리본 앞에 앉은 은색 태비 고양이",
+          items: [
+            ["bite-scratch-signal", "물고 긁는 날의 신호", "장난, 거절, 과흥분이 섞이는 지점을 나눠 봅니다.", "신호 보기"],
+            ["night-zoomies-stamina", "밤 우다다와 집사 체력", "밤의 에너지와 집사 수면 리듬이 부딪히는 구간을 봅니다.", "밤 보기"],
+            ["shy-alertness", "낯가림·경계심", "새 사람과 새 소리에 반응하는 속도를 살핍니다.", "경계 보기"],
+            ["multi-cat-jealousy", "다묘 질투각", "관심, 공간, 밥그릇이 경쟁처럼 느껴지는 순간을 봅니다.", "다묘 보기"],
+            ["conflict-reset", "반복 갈등 리셋법", "같은 패턴을 다시 만들지 않도록 멈춤 순서를 정합니다.", "리셋 보기"]
+          ]
+        },
+        {
+          id: "five-elements-care",
+          title: "오행 밸런스 케어",
+          gate: "07",
+          subtitle: "오행은 생활을 강제하는 답이 아니라 돌봄 언어로 씁니다.",
+          image: "../assets/cat-compatibility/05-five-elements-care.webp",
+          alt: "다섯 가지 원소 구슬 사이에 앉은 은색 태비 고양이",
+          items: [
+            ["wood-play-growth", "목 기운: 성장·놀이", "새 놀이와 호기심을 어느 정도 열어줄지 봅니다.", "목 보기"],
+            ["fire-expression-excite", "화 기운: 표현·흥분", "반응이 커지는 순간과 진정이 필요한 순간을 나눕니다.", "화 보기"],
+            ["earth-stability-routine", "토 기운: 안정·루틴", "반복되는 자리와 시간표가 주는 안정감을 봅니다.", "토 보기"],
+            ["metal-rule-cleanup", "금 기운: 규칙·정리", "정리와 규칙이 편안함으로 이어지는 선을 봅니다.", "금 보기"],
+            ["water-rest-alone", "수 기운: 휴식·혼자만의 시간", "고요하게 숨어 쉬는 시간이 필요한 흐름을 봅니다.", "수 보기"]
+          ]
+        },
+        {
+          id: "adoption-intro-timing",
+          title: "입양·합사 타이밍",
+          gate: "08",
+          subtitle: "날짜를 예언하기보다 적응 순서를 무리 없이 잡습니다.",
+          image: "../assets/cat-compatibility/05-adoption-intro-timing.webp",
+          alt: "이동장과 빛나는 달력 앞에 앉은 은색 태비 고양이",
+          items: [
+            ["adoption-flow", "입양하기 좋은 흐름", "새 식구를 맞이할 준비와 생활 여백을 같이 봅니다.", "입양 보기"],
+            ["first-intro-day", "첫 합사 주의일", "첫 만남에서 급하게 붙이지 말아야 할 조건을 봅니다.", "합사 보기"],
+            ["vet-grooming-timing", "병원·미용 예약 타이밍", "외출 스트레스가 덜한 순서와 회복 시간을 잡습니다.", "예약 보기"],
+            ["moving-layout-day", "이사·방 배치 변경일", "공간 변화가 클 때 먼저 지켜야 할 안정 구역을 봅니다.", "변경 보기"],
+            ["adjustment-check", "적응 기간 체크", "며칠 만에 판단하지 않고 반응을 나누어 기록하는 기준을 봅니다.", "적응 보기"]
+          ]
+        },
+        {
+          id: "burnout-prevention",
+          title: "집사 번아웃 방지",
+          gate: "09",
+          subtitle: "잘 챙기려는 마음이 부담으로 바뀌는 지점을 봅니다.",
+          image: "../assets/cat-compatibility/05-burnout-prevention.webp",
+          alt: "담요와 작은 램프 옆에서 쉬는 은색 태비 고양이",
+          items: [
+            ["overcare-point", "내가 과하게 챙기는 지점", "좋아서 하는 케어가 압박처럼 느껴지는 순간을 봅니다.", "과함 보기"],
+            ["delayed-care-point", "미루는 케어 포인트", "귀찮아서가 아니라 에너지가 빠지는 케어를 찾아봅니다.", "미룸 보기"],
+            ["rest-needed-day", "쉬어야 하는 날", "집사님에게도 비워둘 시간이 필요한 흐름을 봅니다.", "쉼 보기"],
+            ["emotional-cost-cut", "감정 소모 줄이는 법", "반응 하나에 마음을 오래 쓰는 패턴을 줄입니다.", "감정 보기"],
+            ["long-cohabitation", "장기 동거 지속력", "몇 달이 아니라 오래 같이 살기 위한 돌봄 페이스를 봅니다.", "지속력 보기"]
+          ]
+        },
+        {
+          id: "today-cat-action",
+          title: "오늘의 냥생 액션",
+          gate: "10",
+          subtitle: "긴 리포트를 오늘 바로 할 수 있는 행동으로 내려놓습니다.",
+          image: "../assets/cat-compatibility/05-today-cat-action.webp",
+          alt: "장난감과 체크 오브젝트 옆에서 앞발을 든 은색 태비 고양이",
+          items: [
+            ["today-one-action", "오늘 할 한 가지", "오늘 바꿀 손길, 말투, 놀이 중 하나만 고릅니다.", "오늘 보기"],
+            ["weekly-routine-mission", "이번 주 루틴 미션", "한 주 동안 반복해볼 작은 루틴을 정합니다.", "이번 주 보기"],
+            ["speech-touch-adjust", "말투·손길 조정", "고양이가 편하게 받아들이는 속도와 톤을 맞춥니다.", "조정 보기"],
+            ["play-method", "놀이 방식 추천", "사냥 놀이, 짧은 놀이, 혼자 놀이의 비율을 봅니다.", "놀이 보기"],
+            ["quiet-watch-timing", "조용히 지켜볼 타이밍", "다가가지 않는 것이 더 편안한 순간을 알아둡니다.", "지켜보기"]
+          ]
+        }
+      ];
+
+      const params = new URLSearchParams(location.search);
+      const reportId = params.get("report_id") || params.get("reportId") || SERVICE.defaultReportId;
+      const profileId = params.get("profile_id") || params.get("profileId") || SERVICE.defaultProfileId;
+      const hasReportReference = reportId !== SERVICE.defaultReportId || profileId !== SERVICE.defaultProfileId;
+      const initialSection = params.get("section") || "";
+      const sectionOwner = GROUPS.find((group) => group.items.some((item) => item[0] === initialSection));
+
+      const state = {
+        access: readAccessState(),
+        activeGroupId: sectionOwner?.id || GROUPS[0].id,
+        activeSectionId: initialSection
+      };
+
+      const els = {
+        context: document.querySelector("#context-label"),
+        statePanel: document.querySelector("#state-panel"),
+        statePill: document.querySelector("#state-pill"),
+        stateTitle: document.querySelector("#state-title"),
+        stateCopy: document.querySelector("#state-copy"),
+        stateActions: document.querySelector("#state-actions"),
+        groupGrid: document.querySelector("#group-grid"),
+        sectionPanel: document.querySelector("#section-panel"),
+        chatLog: document.querySelector("#chat-log"),
+        form: document.querySelector("#chat-form"),
+        message: document.querySelector("#chat-message"),
+        send: document.querySelector("#btn-send")
+      };
+
+      const ACCESS_COPY = {
+        entitled: {
+          pill: "열람 가능",
+          title: "전체 목차를 열 수 있어요",
+          copy: "원하는 항목을 누르면 상세 풀이로 바로 이동합니다.",
+          actions: [["목록 새로 보기", "refresh", false], ["무료 티저", "step04", true]]
+        },
+        locked: {
+          pill: "확인 필요",
+          title: "목록은 보이고, 상세는 결제 확인 뒤 열립니다",
+          copy: "대분류와 항목명은 확인할 수 있고, 상세 이동은 열람 권한이 확인된 뒤 가능합니다.",
+          actions: [["9,900원 결제 확인", "payment", true], ["입력 수정", "input", false]]
+        },
+        no_report: {
+          pill: "입력 필요",
+          title: "연결된 리포트를 찾지 못했어요",
+          copy: "새 분석을 시작하거나 보관함에서 기존 결과를 다시 열어주세요.",
+          actions: [["새 분석", "input", true], ["보관함", "vault", false]]
+        },
+        generating: {
+          pill: "생성 중",
+          title: "목록을 만들고 있어요",
+          copy: "분석이 끝나면 이 화면에서 바로 대분류와 중분류가 열립니다.",
+          actions: [["상태 다시 확인", "refresh", true], ["무료 티저", "step04", false]]
+        },
+        expired: {
+          pill: "보관 만료",
+          title: "보관 기간이 지난 결과예요",
+          copy: "개인 입력을 주소창에 싣지 않고 새 분석이나 보관함으로 이동합니다.",
+          actions: [["새 분석", "input", true], ["보관함", "vault", false]]
+        },
+        failed: {
+          pill: "재시도",
+          title: "분석이 끝까지 만들어지지 않았어요",
+          copy: "멈춘 상태로 두지 않고 다시 시작할 수 있게 안내합니다.",
+          actions: [["다시 시도", "input", true], ["무료 티저", "step04", false]]
+        },
+        forbidden: {
+          pill: "권한 없음",
+          title: "이 리포트의 열람 권한을 확인할 수 없어요",
+          copy: "다른 계정의 결과일 수 있어 상세 목록을 열지 않습니다.",
+          actions: [["보관함", "vault", true], ["새 분석", "input", false]]
+        },
+        network: {
+          pill: "연결 확인",
+          title: "연결이 잠시 불안정해요",
+          copy: "마지막으로 준비된 목록은 유지하고, 상세 이동 전 상태를 다시 확인합니다.",
+          actions: [["상태 다시 확인", "refresh", true], ["무료 티저", "step04", false]]
+        }
+      };
+
+      function readAccessState() {
+        const status = (params.get("status") || "").toLowerCase();
+        if (status === "forbidden" || status === "owner_mismatch") return "forbidden";
+        if (status === "expired") return "expired";
+        if (status === "failed" || status === "analysis_failed") return "failed";
+        if (status === "generating" || status === "loading") return "generating";
+        if (status === "network_error") return "network";
+        if (!hasReportReference) return "no_report";
+        if (params.get("entitlement") === "verified") return "entitled";
+        return "locked";
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function findGroup(groupId) {
+        return GROUPS.find((group) => group.id === groupId) || GROUPS[0];
+      }
+
+      function findSection(sectionId) {
+        for (const group of GROUPS) {
+          const item = group.items.find((entry) => entry[0] === sectionId);
+          if (item) return { group, item };
+        }
+        return null;
+      }
+
+      function compactReportId(value) {
+        if (!value || value === SERVICE.defaultReportId) return "리포트 연결 전";
+        return value.length > 18 ? `${value.slice(0, 9)}...${value.slice(-5)}` : value;
+      }
+
+      function detailUrl(sectionId) {
+        const url = new URL("../06-step-6_1-report-detail/index.html", location.href);
+        url.searchParams.set("section", sectionId);
+        url.searchParams.set("service_key", SERVICE.key);
+        url.searchParams.set("report_id", reportId);
+        url.searchParams.set("profile_id", profileId);
+        if (params.get("entitlement") === "verified") url.searchParams.set("entitlement", "verified");
+        url.searchParams.set("analysis_period", params.get("analysis_period") || SERVICE.analysisPeriod);
+        url.searchParams.set("report_version", params.get("report_version") || SERVICE.reportVersion);
+        url.hash = "step-6_1-report";
+        return url.toString();
+      }
+
+      function step04Url(hash = "step-4-report") {
+        const url = new URL("../04-step-4-report/index.html", location.href);
+        url.searchParams.set("service_key", SERVICE.key);
+        if (reportId !== SERVICE.defaultReportId) url.searchParams.set("report_id", reportId);
+        if (profileId !== SERVICE.defaultProfileId) url.searchParams.set("profile_id", profileId);
+        url.searchParams.set("analysis_period", params.get("analysis_period") || SERVICE.analysisPeriod);
+        url.searchParams.set("report_version", params.get("report_version") || SERVICE.reportVersion);
+        url.hash = hash;
+        return url.toString();
+      }
+
+      function inputUrl() {
+        const url = new URL("../02-step-2-saju-input/index.html", location.href);
+        url.hash = "step-2-saju-input";
+        return url.toString();
+      }
+
+      function renderState(accessKey = state.access) {
+        const copy = ACCESS_COPY[accessKey] || ACCESS_COPY.no_report;
+        els.statePill.textContent = copy.pill;
+        els.stateTitle.textContent = copy.title;
+        els.stateCopy.textContent = copy.copy;
+        els.context.textContent = `반려묘 생활 궁합 · ${compactReportId(reportId)}`;
+        els.stateActions.innerHTML = copy.actions.map(([label, action, primary]) => {
+          const className = primary ? "primary-link" : "";
+          if (action === "input") return `<a class="${className}" href="${escapeHtml(inputUrl())}">${escapeHtml(label)}</a>`;
+          if (action === "step04" || action === "payment") return `<a class="${className}" href="${escapeHtml(step04Url())}">${escapeHtml(label)}</a>`;
+          if (action === "vault") return `<a class="${className}" href="${escapeHtml(step04Url("vault"))}">${escapeHtml(label)}</a>`;
+          return `<button class="${className}" type="button" data-action="${escapeHtml(action)}">${escapeHtml(label)}</button>`;
+        }).join("");
+      }
+
+      function renderGroups() {
+        els.groupGrid.innerHTML = GROUPS.map((group) => {
+          const active = group.id === state.activeGroupId ? " is-active" : "";
+          return `
+            <button class="group-card${active}" type="button" data-group-id="${escapeHtml(group.id)}">
+              <img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.alt)}" loading="lazy" />
+              <span>${escapeHtml(group.gate)} · ${escapeHtml(group.items.length)}개 항목</span>
+              <strong>${escapeHtml(group.title)}</strong>
+              <em>${escapeHtml(group.subtitle)}</em>
+              <small>눌러서 중분류 보기</small>
+            </button>
+          `;
+        }).join("");
+      }
+
+      function renderSections() {
+        const group = findGroup(state.activeGroupId);
+        const access = ACCESS_COPY[state.access] ? state.access : "no_report";
+        const isOpen = access === "entitled";
+        const isBlocked = access === "forbidden" || access === "expired" || access === "failed";
+        const shouldShowItems = !isBlocked;
+
+        if (!shouldShowItems) {
+          els.sectionPanel.innerHTML = `
+            <div class="panel-head">
+              <span>상세 접근 제한</span>
+              <h2>이 상태에서는 항목을 열지 않아요</h2>
+              <p>계정과 리포트 상태를 다시 확인한 뒤 목록을 이어갈 수 있습니다.</p>
+            </div>
+          `;
+          return;
+        }
+
+        els.sectionPanel.innerHTML = `
+          <div class="section-cover">
+            <img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.alt)}" loading="eager" />
+            <div>
+              <span>${escapeHtml(group.gate)} · ${escapeHtml(group.title)}</span>
+              <h2>${escapeHtml(group.title)}</h2>
+              <p>${escapeHtml(group.subtitle)}</p>
+            </div>
+          </div>
+          <div class="group-tabs" role="list" aria-label="대분류 이동">
+            ${GROUPS.map((entry) => `
+              <button type="button" class="${entry.id === group.id ? "is-active" : ""}" data-group-id="${escapeHtml(entry.id)}" role="listitem">
+                ${escapeHtml(entry.title)}
+              </button>
+            `).join("")}
+          </div>
+          <div class="section-list">
+            ${group.items.map((item, index) => {
+              const [sectionId, title, preview, label] = item;
+              const active = sectionId === state.activeSectionId ? " is-active" : "";
+              const locked = isOpen ? "" : " is-locked";
+              const description = isOpen ? preview : "상세 풀이와 상담 문장은 결제 확인 후 열립니다.";
+              const actionLabel = isOpen ? label : "열람 상태 확인";
+              return `
+                <button class="section-button${active}${locked}" type="button" data-section-id="${escapeHtml(sectionId)}">
+                  <span class="section-no">${String(index + 1).padStart(2, "0")}</span>
+                  <span class="section-body">
+                    <strong>${escapeHtml(title)}</strong>
+                    <em>${escapeHtml(description)}</em>
+                    <small>${escapeHtml(actionLabel)}</small>
+                  </span>
+                  <span class="section-arrow" aria-hidden="true">›</span>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      function renderAll() {
+        renderState();
+        renderGroups();
+        renderSections();
+      }
+
+      function setActiveGroup(groupId) {
+        state.activeGroupId = findGroup(groupId).id;
+        state.activeSectionId = "";
+        renderGroups();
+        renderSections();
+        document.querySelector("#section-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function openSection(sectionId) {
+        const found = findSection(sectionId);
+        if (!found) {
+          appendBubble("system", "선택한 항목을 찾지 못했어요. 대분류를 다시 골라주세요.");
+          return;
+        }
+        state.activeGroupId = found.group.id;
+        state.activeSectionId = sectionId;
+        renderGroups();
+        renderSections();
+
+        if (state.access !== "entitled") {
+          const message = state.access === "locked"
+            ? "상세 풀이는 결제 확인 뒤 열립니다. 지금은 목차와 항목명만 확인할 수 있어요."
+            : "현재 상태에서는 상세 항목으로 이동하지 않습니다. 위의 상태 안내를 먼저 확인해주세요.";
+          appendBubble("assistant", message);
+          document.querySelector("#state-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+
+        location.href = detailUrl(sectionId);
+      }
+
+      function appendBubble(role, text) {
+        const bubble = document.createElement("div");
+        bubble.className = `bubble ${role}`;
+        bubble.textContent = text;
+        els.chatLog.appendChild(bubble);
+        bubble.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+
+      function answerForMessage(message) {
+        const group = findGroup(state.activeGroupId);
+        const base = state.access === "entitled"
+          ? `${group.title} 안에서 먼저 볼 항목을 하나 골라보세요. 상세 화면에서는 결론보다 근거, 생활에서 보이는 모습, 오늘 조절할 행동 순서로 이어집니다.`
+          : "지금은 상세 풀이 대신 목차만 볼 수 있어요. 결제 확인 뒤 항목을 누르면 바로 상세로 이동합니다.";
+        if (/입양|합사|병원|미용|이사/.test(message)) {
+          state.activeGroupId = "adoption-intro-timing";
+          renderGroups();
+          renderSections();
+          return "입양·합사 타이밍 쪽으로 맞춰둘게요. 날짜를 맞히는 방식보다 적응 순서와 쉬어갈 시간을 먼저 봅니다.";
+        }
+        if (/우다다|물|긁|질투|낯/.test(message)) {
+          state.activeGroupId = "trouble-pattern";
+          renderGroups();
+          renderSections();
+          return "트러블 패턴 해석 쪽이 맞습니다. 혼내기 전에 반복되는 신호와 리셋 순서를 먼저 확인해보세요.";
+        }
+        if (/밥|간식|잠|수면|재택|외출/.test(message)) {
+          state.activeGroupId = "routine-sync";
+          renderGroups();
+          renderSections();
+          return "생활 루틴 싱크로 옮겨둘게요. 밥·잠·외출 리듬이 어긋나는 지점을 먼저 보면 해석이 빨라집니다.";
+        }
+        return base;
+      }
+
+      document.querySelector("#btn-back").addEventListener("click", () => {
+        location.href = step04Url();
+      });
+
+      document.querySelector("#btn-vault").addEventListener("click", () => {
+        location.href = step04Url("vault");
+      });
+
+      document.querySelector("#btn-pdf").addEventListener("click", () => {
+        appendBubble("system", state.access === "entitled"
+          ? "PDF는 상세 리포트가 열린 뒤 보관함에서 받을 수 있어요."
+          : "PDF는 결제와 리포트 상태가 확인된 뒤 준비됩니다.");
+      });
+
+      document.querySelector("#btn-refresh").addEventListener("click", () => {
+        appendBubble("system", "현재 화면 기준으로 열람 상태를 다시 표시했어요.");
+        renderState();
+      });
+
+      els.stateActions.addEventListener("click", (event) => {
+        const refresh = event.target.closest("[data-action='refresh']");
+        if (refresh) {
+          appendBubble("system", "현재 화면 기준으로 열람 상태를 다시 표시했어요.");
+          renderState();
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        const groupButton = event.target.closest("[data-group-id]");
+        if (groupButton) {
+          setActiveGroup(groupButton.dataset.groupId);
+          return;
+        }
+
+        const sectionButton = event.target.closest("[data-section-id]");
+        if (sectionButton) openSection(sectionButton.dataset.sectionId);
+      });
+
+      document.addEventListener("error", (event) => {
+        if (event.target instanceof HTMLImageElement) {
+          event.target.dataset.broken = "true";
+          event.target.alt = event.target.alt || "이미지를 불러오지 못했지만 목차는 계속 볼 수 있습니다.";
+        }
+      }, true);
+
+      els.form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const message = els.message.value.trim();
+        if (!message) return;
+        appendBubble("user", message);
+        els.message.value = "";
+        els.send.disabled = true;
+        window.setTimeout(() => {
+          appendBubble("assistant", answerForMessage(message));
+          els.send.disabled = false;
+          els.message.focus();
+        }, 280);
+      });
+
+      renderAll();
+
+      if (initialSection) {
+        window.setTimeout(() => {
+          document.querySelector(`[data-section-id="${CSS.escape(initialSection)}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 120);
+      }
+    })();
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/cat-service.js" defer></script>
+  </body>
+</html>

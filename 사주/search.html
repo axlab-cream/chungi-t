@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>운세 검색 | 운명상회</title>
+    <meta name="description" content="운명상회의 모든 운세 서비스를 한 화면에서 찾아봅니다. 로그인 없이 둘러볼 수 있습니다." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050504'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23e8d49a'%3EU%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      :root {
+        --bg: #050504;
+        --ink: #f7f2e9;
+        --muted: rgba(247, 242, 233, 0.62);
+        --line: rgba(216, 186, 114, 0.22);
+        --gold: #e8d49a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+      }
+
+      .phone {
+        width: min(100%, 430px);
+        margin: 0 auto;
+        min-height: 100svh;
+        padding: 0 18px 24px;
+      }
+
+      .page-head {
+        padding: 18px 0 12px;
+      }
+
+      .page-head h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: -0.4px;
+      }
+
+      .page-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .search-field {
+        position: relative;
+        margin: 14px 0 12px;
+      }
+
+      .search-field input {
+        width: 100%;
+        min-height: 46px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+        font: inherit;
+        font-size: 14px;
+      }
+
+      .search-field input::placeholder {
+        color: rgba(247, 242, 233, 0.4);
+      }
+
+      .chip-row {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        scrollbar-width: none;
+      }
+
+      .chip-row::-webkit-scrollbar {
+        display: none;
+      }
+
+      .chip {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .chip.is-active {
+        border-color: var(--gold);
+        background: rgba(232, 212, 154, 0.14);
+        color: var(--gold);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 6px;
+      }
+
+      .card {
+        position: relative;
+        display: grid;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #0a0a08;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .card img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        opacity: 0.82;
+      }
+
+      .card .body {
+        display: grid;
+        gap: 4px;
+        padding: 10px 12px 12px;
+      }
+
+      .card .body b {
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      .card .body span {
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.5;
+      }
+
+      .card .body em {
+        color: var(--gold);
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 800;
+      }
+
+      .empty {
+        margin-top: 20px;
+        padding: 22px 16px;
+        border: 1px dashed var(--line);
+        border-radius: 12px;
+        color: var(--muted);
+        font-size: 13px;
+        text-align: center;
+      }
+
+      body.umsh-has-chrome {
+        padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="운세 검색" data-active="search">
+      <header class="appbar topbar"></header>
+
+      <section class="page-head">
+        <h1>어떤 운을 찾으세요?</h1>
+        <p>운명상회의 모든 운세를 한 화면에 모았습니다. 로그인 없이 둘러볼 수 있어요.</p>
+      </section>
+
+      <div class="search-field">
+        <input id="q" type="search" autocomplete="off" placeholder="예: 궁합, 연애, 직장, 고양이" aria-label="운세 검색" />
+      </div>
+
+      <div class="chip-row" id="chips" role="tablist" aria-label="분류"></div>
+
+      <section class="grid" id="grid" aria-label="운세 목록"></section>
+      <p class="empty" id="empty" hidden>찾는 운세가 없어요. 다른 말로 검색해 보세요.</p>
+    </main>
+
+    <script src="/js/umsh-chrome.js"></script>
+    <script>
+      (() => {
+        const grid = document.querySelector('#grid');
+        const chips = document.querySelector('#chips');
+        const search = document.querySelector('#q');
+        const empty = document.querySelector('#empty');
+        let services = [];
+        let category = 'all';
+
+        function escapeHtml(value) {
+          return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+        }
+
+        function price(amount) {
+          return `${Number(amount || 0).toLocaleString('ko-KR')}원`;
+        }
+
+        function matches(service) {
+          const query = search.value.trim().toLowerCase();
+          if (category !== 'all' && service.category !== category) return false;
+          if (!query) return true;
+          return [service.title, service.tagline, service.category].join(' ').toLowerCase().includes(query);
+        }
+
+        function render() {
+          const visible = services.filter(matches);
+          empty.hidden = visible.length > 0;
+          grid.innerHTML = visible
+            .map(
+              (service) => `
+                <a class="card" href="${escapeHtml(service.href)}">
+                  <img src="${escapeHtml(service.image)}" alt="" loading="lazy" />
+                  <span class="body">
+                    <b>${escapeHtml(service.title)}</b>
+                    <span>${escapeHtml(service.tagline)}</span>
+                    <em>${escapeHtml(price(service.amount))}</em>
+                  </span>
+                </a>
+              `,
+            )
+            .join('');
+        }
+
+        function renderChips() {
+          const all = ['all', ...new Set(services.map((service) => service.category))];
+          chips.innerHTML = all
+            .map(
+              (value) => `
+                <button class="chip${value === category ? ' is-active' : ''}" type="button" data-category="${escapeHtml(value)}">
+                  ${escapeHtml(value === 'all' ? '전체' : value)}
+                </button>
+              `,
+            )
+            .join('');
+        }
+
+        chips.addEventListener('click', (event) => {
+          const chip = event.target.closest('[data-category]');
+          if (!chip) return;
+          category = chip.dataset.category;
+          renderChips();
+          render();
+        });
+
+        search.addEventListener('input', render);
+
+        fetch('/api/services')
+          .then((response) => response.json())
+          .then((payload) => {
+            services = Array.isArray(payload.services) ? payload.services : [];
+            renderChips();
+            render();
+          })
+          .catch(() => {
+            empty.hidden = false;
+            empty.textContent = '목록을 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
+          });
+      })();
+    </script>
+  </body>
+</html>

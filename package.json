@@ -18,7 +18,8 @@
     "check:couple": "node scripts/check-couple.mjs",
     "check:signal": "node scripts/check-signal.mjs",
     "check:thisyear": "node scripts/check-thisyear.mjs",
-    "check:jobchoice": "node scripts/check-jobchoice.mjs"
+    "check:jobchoice": "node scripts/check-jobchoice.mjs",
+    "check:cat": "node scripts/check-cat.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -14,6 +14,7 @@ export type PaymentProductKey =
   | 'quit_fortune'
   | 'couple_signal'
   | 'job_choice'
+  | 'cat_compatibility'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -82,6 +83,15 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     // Step 04 is where the paid request resumes, so the PG returns straight to it.
     returnPath: '/work/job-choice/04-step-4-report/index.html',
     summary: '관록·재백·노복·천이·복덕궁이 보는 자리를 내 원국에서 읽습니다.',
+  },
+  cat_compatibility: {
+    key: 'cat_compatibility',
+    title: '고양이 궁합',
+    eyebrow: 'MATCH · 반려묘 궁합',
+    amount: 9900,
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/match/cat/04-step-4-report/index.html',
+    summary: '집사 사주와 고양이 성향을 겹쳐 함께 사는 박자를 봅니다.',
   },
   money_save: {
     key: 'money_save',
