@@ -239,7 +239,7 @@
     const cta = root.querySelector('.button');
     const href = `/signup?entry=pass-angle&returnTo=${encodeURIComponent(location.pathname)}`;
     if (cta) {
-      cta.textContent = '로그인하고 결과 보기';
+      cta.textContent = '로그인하고 전체 보기';
       cta.setAttribute('href', href);
     }
 
@@ -248,7 +248,7 @@
     gate.innerHTML = `
       <b>로그인하면 내 사주로 풀이가 열립니다</b>
       <span>${message}</span>
-      <a class="button" href="${href}">로그인하고 결과 보기</a>
+      <a class="button" href="${href}">로그인하고 전체 보기</a>
     `;
     host.appendChild(gate);
   }

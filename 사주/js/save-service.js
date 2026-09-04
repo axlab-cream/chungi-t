@@ -304,14 +304,14 @@
       if (body) body.textContent = GATE_COPY[reason] || GATE_COPY.error;
       if (nextPrimary) {
         if (reason === 'login') {
-          nextPrimary.textContent = '로그인하고 내 풀이 보기';
+          nextPrimary.textContent = '로그인하고 전체 보기';
           nextPrimary.addEventListener('click', () => location.assign(loginUrl()));
         if (dock) {
-          dock.textContent = '로그인하고 내 풀이 보기';
+          dock.textContent = '로그인하고 전체 보기';
           dock.addEventListener('click', () => location.assign(loginUrl()));
         }
         } else if (reason === 'payment') {
-          nextPrimary.textContent = '결제하고 전체 목차 열기';
+          nextPrimary.textContent = '전체 보기';
           nextPrimary.addEventListener('click', () => {
             location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
           });
@@ -438,7 +438,7 @@
     if (title) title.textContent = reason === 'login' ? '로그인이 필요합니다' : '리포트를 먼저 만들어 주세요';
     if (body) body.textContent = GATE_COPY[reason] || GATE_COPY.error;
     if (action) {
-      action.textContent = reason === 'login' ? '로그인하고 결과 보기' : '입력 화면으로 이동';
+      action.textContent = reason === 'login' ? '로그인하고 전체 보기' : '입력 화면으로 이동';
       action.addEventListener('click', () => {
         location.assign(reason === 'login' ? loginUrl() : '../02-step-2-saju-input/index.html#step-2-saju-input');
       });

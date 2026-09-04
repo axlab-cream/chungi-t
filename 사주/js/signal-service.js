@@ -275,7 +275,7 @@
         if (node) node.textContent = '아직 계산 전입니다. 위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.';
       });
       if (primary && reason === 'login') {
-        primary.textContent = '로그인하고 내 풀이 보기';
+        primary.textContent = '로그인하고 전체 보기';
         primary.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(loginUrl());

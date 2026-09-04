@@ -201,7 +201,7 @@
     form.insertBefore(card, form.firstChild);
 
     const submit = form.querySelector('button[type="submit"]');
-    if (submit) submit.textContent = '저장된 사주로 무료 티저 보기';
+    if (submit) submit.textContent = '저장된 사주로 무료 결과 보기';
   }
 
   // ------------------------------------------------------- report retrieval
@@ -320,13 +320,13 @@
       });
 
       if (reason === 'login') {
-        takeOverCta('로그인하고 내 색과 물건 보기', () => location.assign(loginUrl()));
+        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         takeOverCta('내 사주 등록하기', () => {
           location.assign(`/profile?returnTo=${encodeURIComponent(location.pathname)}`);
         });
       } else if (reason === 'payment') {
-        takeOverCta(`내 색과 물건 열어보기 · ${SERVICE.price}`, () => {
+        takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else {

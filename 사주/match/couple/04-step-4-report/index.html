@@ -848,7 +848,7 @@
       <section class="payment-section" aria-labelledby="paymentTitle">
         <div class="pay-copy">
           <div>
-            <p class="eyebrow" id="accessState">로그인 후 이어보기</p>
+            <p class="eyebrow" id="accessState">로그인하고 전체 보기</p>
             <h2 id="paymentTitle">전체 리포트와 항목별 풀이를 열까요?</h2>
             <p class="summary-copy" id="accessDescription">로그인 후 이 결과를 이어서 볼 수 있어요. 결제 전 무료 요약은 그대로 유지됩니다.</p>
             <div class="price-row">
@@ -866,7 +866,7 @@
               </label>
             </div>
             <div class="cta-row">
-              <button class="button" type="button" id="mainCta">로그인 후 무료 요약 이어보기</button>
+              <button class="button" type="button" id="mainCta">로그인하고 전체 보기</button>
               <a class="ghost" id="entitledLink" href="../05-step-5-chat/chat.html#step-5-chat" hidden>전체 목차 열기</a>
               <a class="text-link" href="/terms/payment-refund" aria-label="결제와 취소 안내 보기">결제/취소 안내</a>
             </div>
@@ -1383,15 +1383,15 @@
       function renderAccess(state) {
         const copy = {
           guest: {
-            title: "로그인 후 이어보기",
+            title: "로그인하고 전체 보기",
             desc: "로그인 후 이 결과를 이어서 볼 수 있어요. 원래 보던 무료 요약으로 돌아오도록 준비해둘게요.",
-            cta: "로그인 후 무료 요약 이어보기",
+            cta: "로그인하고 전체 보기",
             note: ""
           },
           unpaid: {
             title: "결제 필요",
             desc: "무료 요약은 유지됩니다. 전체 리포트에서는 관계 총평부터 오늘의 관계 액션까지 항목별 풀이가 열립니다.",
-            cta: "19,900원 결제하고 전체 목차 열기",
+            cta: "1전체 보기 · 9,900원",
             note: ""
           },
           processing: {

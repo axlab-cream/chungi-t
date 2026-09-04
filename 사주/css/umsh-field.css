@@ -1,0 +1,177 @@
+/**
+ * One input geometry for every 사주 입력 폼.
+ *
+ * The services were drawn separately, so the same field came out at four heights
+ * (46/48/50/52), three type sizes (13/15/16) and four label weights. A visitor filling
+ * in the same birth date twice met two different boxes. This file settles the shape,
+ * the type, the spacing and the states.
+ *
+ * It deliberately does NOT settle colour. Each service carries its own palette by
+ * design, so border, background and text keep coming from the page; only the size and
+ * behaviour are shared. Everything is scoped to `form` inside a page that opts in with
+ * `body.umsh-fields`, so search boxes and chat composers are untouched.
+ *
+ * Load it AFTER the page's own <style> so it wins on equal specificity.
+ */
+
+body.umsh-fields {
+  /* 16px is the floor: iOS Safari zooms the page when a focused field is smaller. */
+  --umsh-field-size: 16px;
+  --umsh-field-height: 52px;
+  --umsh-field-radius: 8px;
+  --umsh-field-pad-x: 14px;
+  --umsh-label-size: 13px;
+  --umsh-hint-size: 12px;
+  --umsh-field-gap: 6px;
+}
+
+body.umsh-fields form :is(input, select, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--umsh-field-height);
+  /* A single-line control inside a stretching grid row grew to 68 and 77px on some
+     pages, so the height is fixed rather than just floored. textarea overrides this. */
+  height: var(--umsh-field-height);
+  align-self: center;
+  padding: 0 var(--umsh-field-pad-x);
+  border-radius: var(--umsh-field-radius);
+  font-family: inherit;
+  font-size: var(--umsh-field-size);
+  font-weight: 500;
+  line-height: 1.35;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+body.umsh-fields form textarea {
+  height: auto;
+  min-height: calc(var(--umsh-field-height) * 2);
+  padding: 12px var(--umsh-field-pad-x);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* Checkboxes and radios are controls, not boxes - keep them out of the sizing above. */
+body.umsh-fields form :is(input[type='checkbox'], input[type='radio']) {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: currentColor;
+  cursor: pointer;
+}
+
+body.umsh-fields form input[type='hidden'] {
+  display: none;
+}
+
+/**
+ * iOS renders date and time fields as centred grey placeholders that jump to the left
+ * once filled, so the row visibly shifts. Pin them left and give the empty state the
+ * same weight as a typed value.
+ */
+body.umsh-fields form :is(input[type='date'], input[type='time'], input[type='month']) {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  text-align: left;
+}
+
+body.umsh-fields form :is(input[type='date'], input[type='time'], input[type='month'])::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+body.umsh-fields form :is(input[type='date'], input[type='time'], input[type='month'])::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+/* A native select arrow is a different size and colour on every platform, so draw one. */
+body.umsh-fields form select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: calc(var(--umsh-field-pad-x) + 18px);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right calc(var(--umsh-field-pad-x) + 5px) center, right var(--umsh-field-pad-x) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* The focus ring is drawn from the field's own text colour, so it stays on-palette. */
+body.umsh-fields form :is(input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(127, 127, 127, 0.28);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  body.umsh-fields form :is(input, select, textarea):focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 26%, transparent);
+  }
+}
+
+body.umsh-fields form :is(input, select, textarea):disabled,
+body.umsh-fields form :is(input, textarea)[readonly] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Pages run their own validation, so the invalid state is driven by aria-invalid. */
+body.umsh-fields form :is(input, select, textarea)[aria-invalid='true'] {
+  border-color: #d2544a;
+  box-shadow: 0 0 0 3px rgba(210, 84, 74, 0.18);
+}
+
+body.umsh-fields form ::placeholder {
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------- labels & help */
+/* The pages name these blocks differently (hint / help / helper / note / field-error),
+   so the shared rules cover every spelling rather than forcing a rename. */
+body.umsh-fields form label {
+  display: block;
+  margin: 0 0 var(--umsh-field-gap);
+  font-size: var(--umsh-label-size);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.1px;
+}
+
+/* A label wrapping its own control is a choice row, not a caption above a box. */
+body.umsh-fields form label:has(> input[type='checkbox']),
+body.umsh-fields form label:has(> input[type='radio']) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+body.umsh-fields form :is(.hint, .help, .helper, .note, .field-help) {
+  margin-top: var(--umsh-field-gap);
+  font-size: var(--umsh-hint-size);
+  line-height: 1.5;
+}
+
+body.umsh-fields form :is(.error, .field-error) {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* An empty live region still reserves a line and pushes the next field down. */
+body.umsh-fields form :is(.error, .field-error):empty {
+  display: none;
+}
+
+/* Two fields on one row need a real gap and must not squeeze below a tappable width. */
+body.umsh-fields form :is(.row, .field-grid) > * {
+  min-width: 0;
+}

@@ -351,9 +351,9 @@
       // The sample verdict must not stay on screen as if it were a personal reading.
       if (lead) lead.textContent = GATE_COPY[reason] || GATE_COPY.error;
       if (reason === 'login') {
-        retargetCtas('로그인하고 내 퇴사운 보기', () => location.assign(loginUrl()));
+        retargetCtas('로그인하고 전체 보기', () => location.assign(loginUrl()));
       } else if (reason === 'payment') {
-        retargetCtas('결제하고 10개 리딩 열기', () => {
+        retargetCtas('전체 보기 · 14,900원', () => {
           location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
         });
       } else {

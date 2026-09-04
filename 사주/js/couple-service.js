@@ -270,7 +270,7 @@
       if (description) description.textContent = GATE_COPY[reason] || GATE_COPY.error;
       const cta = $('#mainCta');
       if (cta && reason === 'login') {
-        cta.textContent = '로그인하고 내 궁합 보기';
+        cta.textContent = '로그인하고 전체 보기';
         cta.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(loginUrl());

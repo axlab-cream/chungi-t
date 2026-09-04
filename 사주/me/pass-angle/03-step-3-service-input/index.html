@@ -22,10 +22,10 @@
       select{color-scheme:dark}
       select option{background:#07120e;color:#fffdf2}
       select option:checked{background:#0d1f19}
-    </style>
+    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
     <link rel="stylesheet" href="/css/umsh-chrome.css" />
   </head>
-  <body>
+  <body class="umsh-fields">
     <main class="app" id="step-3-service-input" data-umsh-chrome data-service="PASS ANGLE" data-price="9,900원" data-active="home">
       <header class="appbar topbar"><a class="brand" href="../01-step-1-story/index.html"><strong>운명상회</strong><span>PASS ANGLE</span></a><span class="chip">시험 정보</span></header>
       <section class="visual"><img src="../assets/pass-angle/timing.png" alt="시험 타이밍과 접수 시기를 보는 장면" /><div class="copy"><span class="eyebrow">EXAM SETUP</span><h1>어떤 시험을 보고 있나요?</h1><p>시험 종류와 남은 기간이 달라지면 합격각 판단도 달라집니다. 지금 필요한 기준을 먼저 고릅니다.</p></div></section>
@@ -36,7 +36,7 @@
           <div class="field"><label for="type">시험 유형</label><select id="type"><option>객관식형</option><option>서술형</option><option>자격·전문직형</option><option>어학·인증형</option><option>실기·기술형</option><option>면접·구술형</option></select></div>
           <div class="field"><label>지금 가장 필요한 것</label><div class="chips"><div class="option">GO/HOLD 판정</div><div class="option">공부법 교정</div><div class="option">멘탈 관리</div><div class="option">시험일 루틴</div></div></div>
           <div class="field"><label for="worry">현재 고민</label><textarea id="worry" placeholder="예: 집중이 자주 끊기고, 올해 밀어붙여도 될지 모르겠어요."></textarea></div>
-          <button class="button" type="submit">무료 티저 확인하기</button>
+          <button class="button" type="submit">입력한 정보로 무료 결과 보기</button>
         </form>
       </section>
       <footer class="footer">시험명과 목표는 리포트 문장 톤과 액션 플랜을 맞추기 위한 예시 입력입니다.</footer>

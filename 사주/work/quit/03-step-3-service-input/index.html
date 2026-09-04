@@ -20,10 +20,10 @@
       .quit-saved-profile b { color: #e2b76a; font-size: 14px; }
       .quit-saved-profile span { color: rgba(255, 247, 232, 0.74); font-size: 13px; line-height: 1.55; }
       .quit-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style>
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
       <link rel="stylesheet" href="/css/umsh-chrome.css" />
   </head>
-  <body>
+  <body class="umsh-fields">
     <main class="app" data-umsh-chrome data-service="퇴사운" data-price="14,900원" data-active="home" id="step-3-service-input">
       <header class="appbar topbar"><a class="brand" href="../01-step-1-story/index.html"><strong>운명상회</strong><span>QUIT OR HOLD</span></a><span class="chip">고민 입력</span></header>
       <section class="hero"><img src="../assets/quit/04-teaser.png" alt="퇴사 갈림길을 비추는 사주 의식 장면" /><div class="copy"><span class="eyebrow">SITUATION</span><h1>퇴사 고민의 결을 먼저 나눕니다</h1><p>같은 퇴사라도 사람, 업무, 보상, 건강, 비전 중 어디서 막혔는지에 따라 읽어야 할 원자가 달라집니다.</p></div></section>
@@ -33,7 +33,7 @@
         <div class="field"><label for="candidate">퇴사 예정일 또는 후보일</label><input id="candidate" placeholder="예: 아직 미정 / 다음 평가 이후 / 후보일 입력" /></div>
         <div class="field"><label for="next">다음 계획 유무</label><select id="next"><option>아직 정해지지 않음</option><option>이직 준비 중</option><option>전직/공부 준비 중</option><option>프리랜서/창업 구상 중</option><option>회복이 먼저 필요함</option></select></div>
         <div class="field"><label for="memo">지금 제일 걸리는 한 문장</label><textarea id="memo" placeholder="예: 나가면 후련할 것 같은데, 막상 말하려니 죄책감이 올라와요."></textarea></div>
-        <button class="button" type="submit">퇴사운 리포트 미리보기</button><a class="ghost" href="../02-step-2-saju-input/index.html#step-2-saju-input">이전으로</a><p class="note">이 화면은 퇴사 고민 entity를 정확히 물리기 위한 서비스 전용 입력 단계입니다.</p>
+        <button class="button" type="submit">입력한 정보로 무료 결과 보기</button><a class="ghost" href="../02-step-2-saju-input/index.html#step-2-saju-input">이전으로</a><p class="note">이 화면은 퇴사 고민 entity를 정확히 물리기 위한 서비스 전용 입력 단계입니다.</p>
       </form></section>
       <footer class="footer">계약 해석, 행정 판단, 금액 산정은 다루지 않습니다. 고민의 흐름과 현실 점검 기준만 제공합니다.</footer>
     </main>
