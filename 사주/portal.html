@@ -31,7 +31,7 @@
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260904-poster-video2" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260904-banner-video" />
   </head>
   <body>
     <div class="splash-screen" id="splashScreen" aria-hidden="false">
@@ -253,7 +253,15 @@
 
             <a class="match-banner service-card is-live" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="MATCH · 대표 궁합 우리 둘, 진짜 잘 맞아? 명리궁합 · 오행 · 일지 19,900원 · 보러 가기">
               <span class="match-banner-visual has-image" aria-hidden="true">
-                <img src="/assets/umsh-match-banner-visual.png" alt="" />
+                <video
+                  poster="/assets/umsh-match-banner-visual.png"
+                  src="/match/couple/assets/couple/01-hero.mp4"
+                  muted
+                  loop
+                  playsinline
+                  preload="none"
+                  data-lazy-play
+                ></video>
               </span>
               <span class="match-banner-copy">
                 <small>MATCH · 대표 궁합</small>
@@ -358,6 +366,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/portal.js?v=20260904-poster-video"></script>
+    <script src="/js/portal.js?v=20260904-banner-video"></script>
   </body>
 </html>

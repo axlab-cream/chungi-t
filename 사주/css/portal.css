@@ -1224,7 +1224,7 @@ html.splash-disabled .splash-screen,
   background: #070706;
 }
 
-.match-banner-visual.has-image img {
+.match-banner-visual.has-image :is(img, video) {
   width: 100%;
   height: 100%;
   object-fit: cover;

@@ -1329,6 +1329,38 @@
   setFilter('all', { reveal: false });
   updateBottomMenuButtons();
   setupPosterCarousel();
+
+  /**
+   * A loop that is not in the poster rail still should not cost anything until it is
+   * on screen. `preload="none"` keeps the file off the wire, and the first time the
+   * element is actually visible it flips to auto and plays; scrolling away pauses it.
+   * The poster frame carries the card in the meantime, so nothing moves visually.
+   */
+  function setupLazyVideos() {
+    const videos = Array.from(document.querySelectorAll('video[data-lazy-play]'));
+    if (!videos.length) return;
+    if (prefersReducedMotion() || typeof IntersectionObserver !== 'function') return;
+
+    const watcher = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target;
+        if (entry.isIntersecting && !document.hidden) {
+          if (video.preload === 'none') video.preload = 'auto';
+          const played = video.play();
+          if (played && typeof played.catch === 'function') played.catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.4 });
+
+    videos.forEach((video) => watcher.observe(video));
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) videos.forEach((video) => video.pause());
+    });
+  }
+
+  setupLazyVideos();
   setupReveal();
   openMenuFromHash();
   window.addEventListener('hashchange', openMenuFromHash);

@@ -51,8 +51,13 @@
       background: var(--deep);
     }
 
+    html {
+      background: #020607;
+    }
+
     body {
-      margin: 0;
+      margin: 0 auto;
+      width: min(100%, 430px);
       min-height: 100svh;
       background:
         radial-gradient(circle at 20% 0%, rgba(22, 181, 188, 0.24), transparent 34rem),
@@ -152,7 +157,8 @@
     }
 
     .page {
-      width: 100%;
+      width: min(100%, 430px);
+      margin-inline: auto;
       overflow: hidden;
     }
 
@@ -165,6 +171,11 @@
       align-items: flex-end;
       isolation: isolate;
       background: #061113;
+    }
+
+    /* 첫 장면만 <video> 이고 나머지는 <img> 다. 두 요소가 같은 상자를 쓰게 둔다. */
+    video.scene-media {
+      display: block;
     }
 
     .scene-media {
@@ -585,7 +596,7 @@
     data-price-krw="19900"
   >
     <section class="hero" id="scene-hook" data-scene="hook" data-asset-key="couple-match-01-hook" aria-labelledby="hook-title">
-      <img class="scene-media" src="../assets/couple/01-scene-01-hook.webp" alt="청록빛 궁합 차트 앞에서 서로에게 끌리는 젊은 커플">
+      <video class="scene-media" poster="../assets/couple/01-scene-01-hook.webp" src="../assets/couple/01-hero.mp4" autoplay muted loop playsinline preload="auto" aria-hidden="true" tabindex="-1"></video>
       <div class="scrim" aria-hidden="true"></div>
       <div class="copy">
         <span class="eyebrow">명리궁합 · 오행 · 일지로 보는 관계 신호</span>
