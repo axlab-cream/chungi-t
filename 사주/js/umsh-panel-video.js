@@ -16,20 +16,24 @@
   'use strict';
 
   /**
-   * data-sample-section → clip. Matched by pulling a frame from every clip and
-   * comparing it against every still on the page.
+   * data-sample-section → clip, with the clip's own pixel size. Matched by pulling a
+   * frame from every clip and comparing it against every still on the page.
+   *
+   * The size is written down instead of read back from the file so a panel can be laid
+   * out the moment it is drawn. The clips sit at preload="none" until they scroll into
+   * view, so waiting for loadedmetadata would resize the section under the reader.
    */
   var PANELS = [
-    ['sample-top', '01-closeup'],
-    ['hero-character', '02-ritual-object'],
-    ['worry-bg', '03-chin-closeup'],
-    ['preview-two', '06-fan-eyes'],
-    ['manseryeok', '08-compass'],
-    ['character-a', '09-talisman'],
-    ['romance-character', '13-fate-network'],
-    ['romance-closeup', '14-bell-wand'],
-    ['destiny-card', '16-relationship-fog'],
-    ['hand-reach', '19-fate-scholar'],
+    ['sample-top', '01-closeup', 1280, 720],
+    ['hero-character', '02-ritual-object', 720, 1280],
+    ['worry-bg', '03-chin-closeup', 1280, 720],
+    ['preview-two', '06-fan-eyes', 1280, 720],
+    ['manseryeok', '08-compass', 1280, 720],
+    ['character-a', '09-talisman', 720, 1280],
+    ['romance-character', '13-fate-network', 720, 1280],
+    ['romance-closeup', '14-bell-wand', 720, 1280],
+    ['destiny-card', '16-relationship-fog', 1280, 720],
+    ['hand-reach', '19-fate-scholar', 834, 1112],
   ];
 
   var BASE = 'assets/videos/';
@@ -72,7 +76,7 @@
     return watcher;
   }
 
-  function attach(img, src) {
+  function attach(img, src, clipW, clipH) {
     if (!img || img.dataset.umshPanelVideo === src) return;
     var still = img.getAttribute('src') || '';
     if (!still) return;
@@ -97,7 +101,7 @@
     if (img.nextSibling) img.parentNode.insertBefore(video, img.nextSibling);
     else img.parentNode.appendChild(video);
 
-    fitToPanel(video);
+    fitToPanel(video, clipW / clipH);
     var watch = observer();
     if (watch) watch.observe(video);
   }
@@ -106,22 +110,130 @@
    * The stills were crops made for their panel; the clips are the full frames. Covering
    * a 1.20 box with a 0.56 clip threw away three quarters of the picture - the 부적 panel
    * came out as a pair of eyes. Where cover would cut that deep the clip is shown whole
-   * instead, against the panel's own near-black ground so the letterbox reads as frame.
+   * instead, against the panel's own near-black ground.
    */
   var KEEP_AT_LEAST = 0.62;
 
-  function fitToPanel(video) {
+  /** Below this the clip is upright, and any bars it leaves are down its sides. */
+  var LANDSCAPE_AT_LEAST = 1.25;
+
+  /** Black between the picture and the caption, and below the caption. */
+  var COPY_GAP = 32;
+  var TAIL = 44;
+
+  function fitToPanel(video, clipRatio) {
+    var section = video.parentElement;
+    var retries = 4;
+
     function apply() {
+      // Start from the panel's own layout so a resize re-measures rather than stacks.
+      release(video, section);
       var box = video.getBoundingClientRect();
-      if (!video.videoWidth || !box.width || !box.height) return;
+      if (!box.width || !box.height) {
+        // A panel drawn this tick may not be laid out yet; look again next frame.
+        if (retries-- > 0 && video.isConnected) window.requestAnimationFrame(apply);
+        return;
+      }
       var boxRatio = box.width / box.height;
-      var clipRatio = video.videoWidth / video.videoHeight;
+
+      if (clipRatio >= LANDSCAPE_AT_LEAST && boxRatio < clipRatio - 0.02) {
+        trimLetterbox(video, section, clipRatio, box);
+        return;
+      }
       var kept = boxRatio > clipRatio ? clipRatio / boxRatio : boxRatio / clipRatio;
       video.style.objectFit = kept < KEEP_AT_LEAST ? 'contain' : 'cover';
     }
-    if (video.readyState >= 1) apply();
-    else video.addEventListener('loadedmetadata', apply, { once: true });
+
+    apply();
     window.addEventListener('resize', apply);
+  }
+
+  function release(video, section) {
+    video.style.objectFit = '';
+    video.style.top = '';
+    video.style.height = '';
+    if (!section) return;
+    section.style.minHeight = '';
+    section.style.height = '';
+    var fade = section.querySelector('.source-fade');
+    if (fade) {
+      fade.style.top = '';
+      fade.style.bottom = '';
+      fade.style.height = '';
+    }
+    var copy = section.querySelector('.source-copy');
+    if (copy) {
+      copy.style.top = '';
+      copy.style.bottom = '';
+      copy.style.transform = '';
+    }
+  }
+
+  /**
+   * A 16:9 clip in an upright panel.
+   *
+   * Shown whole it left flat black bars above and below, and the caption - written to
+   * sit over a full-bleed still - landed on top of the picture. So the clip's box is
+   * cut down to the picture itself: no bars, the panel's own top-and-bottom gradient
+   * moves onto the picture's edges instead of onto the bars, the caption drops clear
+   * of it, and the section gives back the height nothing was using.
+   */
+  function trimLetterbox(video, section, clipRatio, box) {
+    if (!section) return;
+    var sectionBox = section.getBoundingClientRect();
+    var height = Math.round(box.width / clipRatio);
+    var top = Math.round(box.top - sectionBox.top);
+
+    var copy = section.querySelector('.source-copy');
+    var copyHeight = copy ? Math.round(copy.getBoundingClientRect().height) : 0;
+    var above = copy && copy.classList.contains('top');
+    if (above) {
+      // Keep the picture below a caption the panel puts above it.
+      top = Math.max(top, Math.round(copy.getBoundingClientRect().bottom - sectionBox.top) + COPY_GAP);
+    }
+
+    video.style.top = top + 'px';
+    video.style.height = height + 'px';
+    video.style.objectFit = 'cover'; // The box is the clip's own shape now.
+
+    var fade = section.querySelector('.source-fade');
+    if (fade) {
+      fade.style.top = top + 'px';
+      fade.style.bottom = 'auto';
+      fade.style.height = height + 'px';
+    }
+
+    var end = top + height;
+    if (copy && !above) {
+      if (copy.classList.contains('mid')) {
+        copy.style.top = end + COPY_GAP + 'px';
+        copy.style.bottom = 'auto';
+        copy.style.transform = 'none';
+        end += COPY_GAP + copyHeight;
+        end += TAIL;
+      } else {
+        // Bottom-anchored: shrinking the section is what brings it under the picture.
+        var inset = parseFloat(window.getComputedStyle(copy).bottom);
+        end += COPY_GAP + copyHeight + (isNaN(inset) ? TAIL : inset);
+      }
+    } else {
+      end += TAIL;
+    }
+
+    // Only the four elements above are placed against the old height; anything else in
+    // the panel was positioned by hand, so leave that section's height alone.
+    if (hasPlacedExtras(section, video)) return;
+    section.style.minHeight = end + 'px';
+    section.style.height = end + 'px';
+  }
+
+  function hasPlacedExtras(section, video) {
+    return Array.prototype.some.call(section.children, function (el) {
+      if (el === video) return false;
+      var name = el.className || '';
+      if (typeof name !== 'string') return true;
+      return !/(^|\s)(source-img|source-fade|source-copy)(\s|$)/.test(name);
+    });
   }
 
   function sweep() {
@@ -129,7 +241,7 @@
       var hosts = document.querySelectorAll('[data-sample-section="' + entry[0] + '"]');
       Array.prototype.forEach.call(hosts, function (host) {
         var img = host.querySelector('img:not(.umsh-panel-still-hidden)');
-        if (img) attach(img, BASE + entry[1] + '.mp4');
+        if (img) attach(img, BASE + entry[1] + '.mp4', entry[2], entry[3]);
       });
     });
   }
