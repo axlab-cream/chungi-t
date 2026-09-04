@@ -1802,9 +1802,15 @@ html.splash-disabled .splash-screen,
   display: none;
 }
 
+/* The rail mixes links and, for services with no page yet, buttons. Reset the
+   button defaults so both render as the same card. */
 .coming-card {
   position: relative;
   flex: 0 0 46%;
+  appearance: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   padding: 0;
