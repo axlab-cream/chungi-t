@@ -100,4 +100,11 @@ test('올해 연애운 request validates its required answers', () => {
   const input = parseLoveThisYearRequest({ relationship_status: 'dating', partner_star_basis: 'wealth_star' })
   assert.equal(input.relationshipStatus, '연애 중')
   assert.equal(input.partnerStarBasis, 'wealth_star')
+  const auto = parseLoveThisYearRequest({
+    relationship_status: 'solo',
+    partner_star_basis: 'gender_auto',
+    gender: 'male',
+  })
+  assert.equal(auto.partnerStarBasis, 'gender_auto')
+  assert.equal(auto.genderBasis, 'male')
 })

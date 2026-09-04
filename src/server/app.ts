@@ -939,11 +939,12 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   })
 }
 
-function userProfilePayload(profile: UserBirthProfile | null) {
+function userProfilePayload(profile: UserBirthProfile | null, owner?: ReportOwner) {
   return {
     profile,
     complete: Boolean(profile?.name && profile.birth.year && profile.birth.month && profile.birth.day),
     storage: getUserProfileStorageMode(),
+    admin: isAdminOwner(owner),
   }
 }
 
@@ -1488,7 +1489,7 @@ app.get('/api/user/profile', async (req, res) => {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const profile = await getUserBirthProfile(owner)
-    res.json(userProfilePayload(profile))
+    res.json(userProfilePayload(profile, owner))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '사주 프로필 조회 실패' })
   }
@@ -1500,7 +1501,7 @@ async function saveUserProfileHandler(req: Request, res: Response) {
     if (!owner) return
     const profile = parseUserProfileRequest(req.body, owner)
     const saved = await saveUserBirthProfile(profile, owner)
-    res.json(userProfilePayload(saved))
+    res.json(userProfilePayload(saved, owner))
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : '사주 프로필 저장 실패' })
   }
@@ -1587,7 +1588,7 @@ app.post('/api/today/fortune', async (req, res) => {
     }
     res.json({
       todayFortune: buildTodayFortune(profile),
-      ...userProfilePayload(profile),
+      ...userProfilePayload(profile, owner),
     })
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
@@ -1918,7 +1919,11 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
       return
     }
 
-    const input = parseLoveThisYearRequest(req.body)
+    const body = { ...((req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>) }
+    if (!trimmedString(body.gender) && !trimmedString(body.genderBasis) && profile.birth.gender) {
+      body.gender = profile.birth.gender
+    }
+    const input = parseLoveThisYearRequest(body)
     const context = buildLoveThisYearContext(profile.name, input)
     const analysis = analyzeSaju(profile.birth)
     const reportId = createLoveThisYearReportId(owner.id, profile.birth, input)

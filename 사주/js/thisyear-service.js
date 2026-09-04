@@ -173,6 +173,9 @@
     // The name still travels with the report, so hand the page what the account holds
     // rather than leaving the field for the visitor to retype.
     if (!form.display_name.value && profile.name) form.display_name.value = profile.name;
+    if (form.gender && !form.gender.value && profile.birth?.gender) {
+      form.gender.value = profile.birth.gender === 'female' ? 'female' : 'male';
+    }
 
     const notice = $('#savedProfileNotice');
     if (!notice || $('.thisyear-saved-profile')) return;

@@ -61,14 +61,17 @@
 
   function open(report) {
     if (!report || !Array.isArray(report.sections) || !report.sections.length) return false;
-    const popup = global.open('', '_blank', 'noopener,noreferrer');
-    if (!popup) return false;
-    popup.document.open();
-    popup.document.write(buildHtml(report));
-    popup.document.close();
+    const html = buildHtml(report);
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+    const popup = global.open(url, '_blank');
+    if (!popup) {
+      URL.revokeObjectURL(url);
+      return false;
+    }
     setTimeout(function () {
       try { popup.focus(); popup.print(); } catch (_error) { /* print can be blocked */ }
-    }, 300);
+      URL.revokeObjectURL(url);
+    }, 400);
     return true;
   }
 

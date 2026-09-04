@@ -391,7 +391,7 @@
   }
 
   function bindPdfButton() {
-    const host = $('#step-5-chat header') || $('#step-6_1-report header') || $('.phone header');
+    const host = $('#step-5-chat header') || $('#step-6_1-report header');
     if (!host) return;
     let button = $('#btn-pdf');
     if (!button) {
