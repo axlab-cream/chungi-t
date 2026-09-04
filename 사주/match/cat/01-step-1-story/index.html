@@ -176,7 +176,7 @@
       }
 
       .story-media,
-      .story-media img,
+      .story-media :is(img, video),
       .story-shade {
         position: absolute;
         inset: 0;
@@ -187,7 +187,7 @@
         overflow: hidden;
       }
 
-      .story-media img {
+      .story-media :is(img, video) {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -549,7 +549,8 @@
          nav is fixed to the viewport, so the frame is unwrapped here. */
       body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
       body.umsh-has-chrome .phone {
-        width: 100%;
+        width: min(100%, var(--umsh-page-width, 430px));
+        margin-inline: auto;
         height: auto;
         min-height: 100svh;
         overflow: visible;
@@ -607,11 +608,19 @@
 
         <section class="story-section hero-section" data-scene-id="scene-01" style="--image-position: 50% 47%">
           <div class="story-media">
-            <img
-              src="../assets/cat-compatibility/01-scene-01-hook.webp"
-              alt="별자리 빛이 흐르는 책상 앞에서 고양이와 보호자가 마주 보는 장면"
+            <video
+              class="story-video"
+              poster="../assets/cat-compatibility/01-scene-01-hook.webp"
+              src="../assets/cat-compatibility/01-hero.mp4"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="auto"
+              aria-hidden="true"
+              tabindex="-1"
               data-asset-key="cat-compatibility-01-scene-01-hook"
-            />
+            ></video>
           </div>
           <div class="story-shade" aria-hidden="true"></div>
           <div class="copy">

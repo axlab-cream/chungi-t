@@ -31,7 +31,7 @@
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20260904-poster-video" />
+    <link rel="stylesheet" href="/css/portal.css?v=20260904-poster-video2" />
   </head>
   <body>
     <div class="splash-screen" id="splashScreen" aria-hidden="false">
@@ -106,7 +106,17 @@
             </a>
 
             <a class="poster service-card is-live is-work" href="/work/job-choice" data-category="직업" data-glyph="職">
-              <img src="/assets/umsh-jobchoice-card-bg.webp" alt="" />
+              <video
+                class="poster-video"
+                poster="/assets/umsh-jobchoice-card-bg.webp"
+                src="/work/job-choice/assets/job-choice/01-hero.mp4"
+                muted
+                loop
+                playsinline
+                preload="none"
+                aria-hidden="true"
+                tabindex="-1"
+              ></video>
               <span class="poster-shade"></span>
               <span class="badge">CAREER · 자미두수</span>
               <strong>내가 선택한<br />직장 괜찮을까?</strong>
