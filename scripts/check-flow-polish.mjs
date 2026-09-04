@@ -45,7 +45,8 @@ function pagesOf(dir) {
     for (const file of readdirSync(join(base, step)).filter((name) => name.endsWith('.html'))) {
       const html = readFileSync(join(base, step, file), 'utf-8')
       // 리다이렉트 스텁에는 읽을 글이 없다.
-      if (html.length > 400) out.push({ label: `${step}/${file}`, html })
+      const isRedirectStub = /http-equiv="refresh"/i.test(html)
+      if (!isRedirectStub && html.length > 400) out.push({ label: `${step}/${file}`, html })
     }
   }
   return out
