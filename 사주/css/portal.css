@@ -1703,6 +1703,18 @@ html.splash-disabled .splash-screen,
   pointer-events: none;
 }
 
+/* 카드 전체를 하나의 클릭 대상으로 만들려고 자식의 포인터 이벤트를 껐는데, 그 바람에
+   이미지를 우클릭해 저장할 수 없었다. 이미지와 영상만 되돌린다 - 이미지에서 시작한
+   클릭도 부모 링크로 버블링되므로 카드 동작은 그대로고, 레일 드래그는 draggable=false
+   가 계속 지킨다. */
+.poster[href] > :is(img, video),
+.product-card[href] > :is(img, video),
+.today-ticket[href] > :is(img, video),
+.coming-card > :is(img, video),
+.match-banner :is(img, video) {
+  pointer-events: auto;
+}
+
 .is-soon,
 [data-soon] {
   cursor: pointer;
