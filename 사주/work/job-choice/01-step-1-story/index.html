@@ -155,7 +155,7 @@
         background: #080911;
       }
 
-      .scene-media img {
+      .scene-media :is(img, video) {
         display: block;
         width: 100%;
         height: 100%;
@@ -517,7 +517,18 @@ body.umsh-has-chrome .umsh-chrome-appbar {
       <div class="story">
         <section class="scene" data-scene-id="scene-01">
           <div class="scene-media">
-            <img src="../assets/job-choice/01-scene-01-hook.webp" alt="회사 선택 갈림길에서 제안서와 명반을 들고 서 있는 상담자 이미지" loading="eager" />
+            <video
+              class="scene-video"
+              poster="../assets/job-choice/01-scene-01-hook.webp"
+              src="../assets/job-choice/01-hero.mp4"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="auto"
+              aria-hidden="true"
+              tabindex="-1"
+            ></video>
           </div>
           <div class="scene-content">
             <span class="eyebrow">직장 선택 사주 · 9,900원</span>
