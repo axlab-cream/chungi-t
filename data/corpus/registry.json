@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "policy": "RAG and corpus packs are living knowledge assets. Store judgment-ready knowledge blocks, not finished user copy. Generation must follow calculation -> feature_json -> retrieval -> interpretation -> user_copy.",
   "packs": [
     {
@@ -89,6 +89,16 @@
       "domain": "couple_signal_service",
       "status": "active",
       "role": "single_service_couple_signal_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "lucky-color-service",
+      "path": "corpus/lucky-color-service.json",
+      "kind": "chunks",
+      "domain": "lucky_color_service",
+      "status": "active",
+      "role": "single_service_lucky_color_service_grounding",
       "version": "1.0.0",
       "retrievalBoost": 22
     },

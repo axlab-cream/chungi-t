@@ -15,6 +15,7 @@ export type PaymentProductKey =
   | 'couple_signal'
   | 'job_choice'
   | 'cat_compatibility'
+  | 'lucky_color'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -92,6 +93,15 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     // Step 04 is where the paid request resumes, so the PG returns straight to it.
     returnPath: '/match/cat/04-step-4-report/index.html',
     summary: '집사 사주와 고양이 성향을 겹쳐 함께 사는 박자를 봅니다.',
+  },
+  lucky_color: {
+    key: 'lucky_color',
+    title: '나한테 운 붙는 색과 물건',
+    eyebrow: 'LUCKY · 오행 생활 가이드',
+    amount: 4900,
+    // Step 04 is where the paid request resumes, so the PG returns straight to it.
+    returnPath: '/me/lucky/04-step-4-report/index.html',
+    summary: '오행에서 채울 기운과 덜어낼 기운을 색·소재·자리로 옮깁니다.',
   },
   money_save: {
     key: 'money_save',

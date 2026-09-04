@@ -31,6 +31,7 @@ const SERVICES = [
   ['합격운', 'me/pass-angle', ['커플궁합', '퇴사운']],
   ['이직운', 'work/move', ['커플궁합', '결혼궁합']],
   ['집 풍수', 'place/home', ['커플궁합', '결혼궁합']],
+  ['색과 물건', 'me/lucky', ['커플궁합', '퇴사운']],
 ]
 
 const KEEP_ALL = /word-break:\s*keep-all/

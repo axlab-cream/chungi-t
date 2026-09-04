@@ -20,6 +20,7 @@
     "check:thisyear": "node scripts/check-thisyear.mjs",
     "check:jobchoice": "node scripts/check-jobchoice.mjs",
     "check:cat": "node scripts/check-cat.mjs",
+    "check:lucky": "node scripts/check-lucky.mjs",
     "check:polish": "node scripts/check-flow-polish.mjs"
   },
   "dependencies": {

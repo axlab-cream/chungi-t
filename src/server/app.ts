@@ -86,6 +86,12 @@ import {
   createCatCompatReportId,
   parseCatCompatRequest,
 } from '../pet/cat-service.js'
+import {
+  buildLuckyColorContext,
+  buildLuckyColorReport,
+  createLuckyColorReportId,
+  parseLuckyColorRequest,
+} from '../body/lucky-service.js'
 import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
 import {
@@ -452,6 +458,31 @@ app.get(['/match/cat/chat', '/match/cat/chat.html'], (_req, res) => {
 })
 app.get(['/match/cat/detail', '/match/cat/detail.html'], (_req, res) => {
   res.redirect(302, '/match/cat/06-step-6_1-report-detail/index.html')
+})
+// 나한테 운 붙는 색과 물건 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/me/lucky', '/me/lucky/', '/me/lucky/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
+  // resumes it, so keep the query and send a paid visitor to the result, not the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/me/lucky/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/me/lucky/input', '/me/lucky/input.html'], (_req, res) => {
+  res.redirect(302, '/me/lucky/02-step-2-saju-input/index.html')
+})
+app.get(['/me/lucky/report', '/me/lucky/report.html'], (_req, res) => {
+  res.redirect(302, '/me/lucky/04-step-4-report/index.html')
+})
+app.get(['/me/lucky/chat', '/me/lucky/chat.html'], (_req, res) => {
+  res.redirect(302, '/me/lucky/05-step-5-chat/chat.html')
+})
+app.get(['/me/lucky/detail', '/me/lucky/detail.html'], (_req, res) => {
+  res.redirect(302, '/me/lucky/06-step-6_1-report-detail/index.html')
 })
 app.get(['/match/couple/input', '/match/couple/input.html'], (_req, res) => {
   res.redirect(302, '/match/couple/02-step-2-saju-input/index.html')
@@ -1101,6 +1132,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   quit_fortune: 'quit_fortune',
   job_choice: 'job_choice',
   cat_compatibility: 'cat_compatibility',
+  lucky_color: 'lucky_color',
   couple_signal: 'couple_signal',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
@@ -1746,6 +1778,37 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '고양이 궁합 생성 실패' })
+  }
+})
+
+app.post('/api/me/lucky/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '색과 물건을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseLuckyColorRequest(req.body)
+    const context = buildLuckyColorContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createLuckyColorReportId(owner.id, profile.birth, input)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId)) return
+    const templateReport = buildLuckyColorReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '색과 물건 풀이 생성 실패' })
   }
 })
 

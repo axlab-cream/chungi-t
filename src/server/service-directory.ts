@@ -34,6 +34,7 @@ const SEEDS: DirectorySeed[] = [
   { key: 'love_this_year', tagline: '도화가 들어오는 달과 놓치는 타이밍', category: '연애', href: '/love/this-year', image: '/assets/umsh-thisyear-card-bg.webp' },
   { key: 'job_choice', tagline: '관록·재백궁으로 보는 이 회사와 나의 결', category: '직업', href: '/work/job-choice', image: '/assets/umsh-jobchoice-card-bg.webp' },
   { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp' },
+  { key: 'lucky_color', tagline: '채울 색과 덜어낼 색, 지니면 좋은 것까지', category: '흐름', href: '/me/lucky', image: '/assets/umsh-luckycolor-card-bg.webp' },
   { key: 'match_couple', tagline: '끌림, 갈등, 오래 가는 방식까지', category: '궁합', href: '/match/couple', image: '/match/couple/assets/couple/01-scene-01-hook.webp' },
   { key: 'marry_match', tagline: '연애 말고 결혼까지 갈 수 있는 사이인지', category: '궁합', href: '/match/marry', image: '/match/marry/assets/marry/01-scene-01-hero.webp' },
   { key: 'couple_signal', tagline: '연락, 약속, 표현의 온도 차이를 나눠서', category: '연애', href: '/love/signal', image: '/assets/umsh-affair-card-bg.png' },
