@@ -231,8 +231,11 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
   transform: translateY(-1px);
 }
 
+/* 포털과 같은 문제: hover 배경이 활성 칩의 금색을 덮어 글자가 사라졌다. */
 .umsh-service-shell .chip.is-active:hover,
 .umsh-service-shell .chip.is-active:focus-visible {
+  border-color: var(--shell-gold-400);
+  background: var(--shell-gold-400);
   color: var(--shell-black-950);
 }
 

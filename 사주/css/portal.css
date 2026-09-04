@@ -369,8 +369,13 @@ html.splash-disabled .splash-screen,
   transform: translateY(-1px);
 }
 
+/* .chip:hover 가 배경을 거의 투명한 금색으로 덮어써서, 선택된 칩에 커서가 올라가면
+   검은 글자가 검은 배경 위에 남아 글자가 사라졌다. 활성 칩은 hover에서도 자기 배경과
+   테두리를 지킨다. */
 .chip.is-active:hover,
 .chip.is-active:focus-visible {
+  border-color: var(--gold-400);
+  background: var(--gold-400);
   color: var(--black-950);
 }
 
