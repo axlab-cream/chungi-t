@@ -1713,7 +1713,7 @@
 
       .sample-upload-blend {
         aspect-ratio: 4 / 3;
-        background: #000;
+        background: #000 url("assets/chungi-preview-two.webp") center / cover no-repeat;
         isolation: isolate;
       }
 
@@ -1722,7 +1722,9 @@
         position: absolute;
         inset: 0;
         z-index: 0;
-        background: #000;
+        background: #000 url("assets/chungi-preview-two.webp") center / cover no-repeat;
+        filter: saturate(0.94) brightness(0.78);
+        transform: scale(1.035);
         pointer-events: none;
       }
 
@@ -4309,6 +4311,7 @@
 
       const landingSampleVideo = {
         mp4: "assets/chungi-landing-story.mp4",
+        poster: "assets/chungi-preview-two.webp",
       };
 
       const landingIntroAssets = {
@@ -5419,7 +5422,7 @@
       function sampleVideoMarkup(video = sampleVideo, shellClass = "") {
         return `
           <section class="sample-video-shell ${shellClass}" data-sample-section="video">
-            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천명사주 티저 영상">
+            <video class="sample-video" autoplay muted playsinline preload="auto" poster="${video.poster || ""}" aria-label="천명사주 티저 영상">
               ${video.webm ? `<source src="${video.webm}" type="video/webm" />` : ""}
               <source src="${video.mp4}" type="video/mp4" />
             </video>
