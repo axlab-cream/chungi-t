@@ -74,6 +74,13 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
   background: rgba(8, 8, 7, 0.96);
 }
 
+/* Some legacy service pages reset every header/button below the shared shell.
+ * Keep the common GNB and bottom tabs authoritative when those page-local rules
+ * have the same element scope. */
+body.umsh-has-chrome .umsh-service-shell .appbar {
+  padding: 21px 20px 12px;
+}
+
 .umsh-service-shell .app-brand {
   display: inline-grid;
   gap: 1px;
@@ -507,6 +514,10 @@ body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
   font-weight: 900;
   white-space: nowrap;
   transition: background 160ms ease, color 160ms ease;
+}
+
+body.umsh-has-chrome .umsh-service-bottom .bottom-nav button {
+  font-size: 11px;
 }
 
 .umsh-service-bottom .bottom-nav .is-active {
