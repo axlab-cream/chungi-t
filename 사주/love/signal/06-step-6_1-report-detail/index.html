@@ -223,7 +223,7 @@
       background: #0a0505;
     }
 
-    .hero-visual img {
+    .hero-visual :is(img, video) {
       display: block;
       width: 100%;
       height: 420px;
@@ -399,7 +399,7 @@
       background: #0b0505;
     }
 
-    .visual-block img {
+    .visual-block :is(img, video) {
       display: block;
       width: 100%;
       aspect-ratio: 4 / 5;
@@ -415,7 +415,7 @@
       line-height: 1.5;
     }
 
-    .visual-block.image-failed img {
+    .visual-block.image-failed :is(img, video) {
       display: none;
     }
 
@@ -425,7 +425,7 @@
       place-items: center;
     }
 
-    .hero.image-failed .hero-visual img {
+    .hero.image-failed .hero-visual :is(img, video) {
       display: none;
     }
 
@@ -626,7 +626,7 @@
         gap: 16px;
       }
 
-      .hero-visual img {
+      .hero-visual :is(img, video) {
         height: 520px;
       }
     }
@@ -687,6 +687,7 @@
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="../signal-video.js"></script>
   <script>
     (() => {
       const service = {
@@ -967,6 +968,10 @@
         relationship_temperature_true_love: {
           hero: "../assets/signal/06-relationship_temperature_true_love-hero.webp",
           evidence: "../assets/signal/06-relationship_temperature_true_love-evidence.webp",
+          hero_video: "../assets/signal/videos/22-true-love-hero.mp4",
+          hero_poster: "../assets/signal/videos/22-true-love-hero-poster.webp",
+          evidence_video: "../assets/signal/videos/21-true-love-evidence.mp4",
+          evidence_poster: "../assets/signal/videos/21-true-love-evidence-poster.webp",
           hero_alt: "레드 의상의 상담자가 두 장의 빈 카드와 붉은 실로 관계 온도를 살피는 장면",
           evidence_alt: "레드 의상의 상담자가 오행석과 두 관계 판을 정리하는 장면"
         }
@@ -1208,7 +1213,9 @@
         if (!asset.evidence) return "";
         return `
           <figure class="visual-block" data-asset-key="couple-signal-06-${escapeHtml(item.section_id)}-evidence">
-            <img src="${escapeHtml(asset.evidence)}" alt="${escapeHtml(asset.evidence_alt)}" loading="lazy" />
+            ${asset.evidence_video
+              ? `<video class="detail-video" poster="${escapeHtml(asset.evidence_poster)}" data-video-src="${escapeHtml(asset.evidence_video)}" muted loop playsinline preload="none" aria-label="${escapeHtml(asset.evidence_alt)}"></video>`
+              : `<img src="${escapeHtml(asset.evidence)}" alt="${escapeHtml(asset.evidence_alt)}" loading="lazy" />`}
             <figcaption>상세 근거 블록용 장면입니다. 해석 문구는 이미지가 아니라 본문에서만 제공합니다.</figcaption>
           </figure>
         `;
@@ -1301,7 +1308,9 @@
           <div>
             <section class="hero" data-asset-key="couple-signal-06-${escapeHtml(item.section_id)}-hero">
               <div class="hero-visual">
-                <img src="${escapeHtml(asset.hero)}" alt="${escapeHtml(asset.hero_alt)}" />
+                ${asset.hero_video
+                  ? `<video class="detail-video" poster="${escapeHtml(asset.hero_poster)}" data-video-src="${escapeHtml(asset.hero_video)}" data-video-priority="high" muted loop playsinline preload="none" aria-label="${escapeHtml(asset.hero_alt)}"></video>`
+                  : `<img src="${escapeHtml(asset.hero)}" alt="${escapeHtml(asset.hero_alt)}" />`}
               </div>
               <div class="hero-copy">
                 <span class="kicker">${escapeHtml(item.group.title)}</span>
@@ -1330,6 +1339,8 @@
             ${renderRelated(item)}
           </div>
         `;
+
+        window.umshSignalVideos?.observe(root);
 
         writeJson(sessionStorage, keys.activeSection, {
           service,

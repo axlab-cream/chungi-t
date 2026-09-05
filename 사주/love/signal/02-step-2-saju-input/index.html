@@ -196,7 +196,7 @@
         background: #140706;
       }
 
-      .hero img {
+      .hero :is(img, video) {
         position: absolute;
         inset: 0;
         width: 100%;
@@ -669,11 +669,17 @@
 
       <main id="step-2-saju-input">
         <section class="hero" aria-labelledby="input-title">
-          <img
-            src="../assets/signal/02-form-guide.webp"
-            alt="레드 의상의 상담자가 두 사람의 관계 입력을 준비하는 장면"
-            loading="eager"
-          />
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/06-form-guide-poster.webp"
+            data-video-src="../assets/signal/videos/06-form-guide.mp4"
+            data-video-priority="high"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="레드 의상의 상담자가 두 사람의 관계 입력을 준비하는 장면"
+          ></video>
           <div class="hero-copy">
             <span class="eyebrow">STEP 02 · 두 사람 정보</span>
             <h1 id="input-title">두 사람을 섞지 말고 나눠주세요</h1>
@@ -901,6 +907,7 @@
       </main>
     </div>
 
+    <script src="../signal-video.js"></script>
     <script>
       const schemaVersion = "couple-signal-input-v1";
       const serviceState = {

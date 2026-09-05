@@ -93,7 +93,16 @@ for (const [page, needsChrome] of PAGES) {
 
   // Every image the page asks for must actually exist on disk.
   for (const ref of body.matchAll(/src="\.\.\/(assets\/[^"]+)"/g)) {
+    if (ref[1].includes('${')) continue
     if (!existsSync(join(ROOT, SERVICE_DIR, ref[1]))) failures.push(`${rel} :: 이미지 없음 ${ref[1]}`)
+  }
+
+  if (page === '05-step-5-chat/chat.html') {
+    for (const [, video] of body.matchAll(/^\s+\w+:\s+"([^\"]+\.mp4)"/gm)) {
+      if (!existsSync(join(ROOT, SERVICE_DIR, 'assets/signal/videos', video))) {
+        failures.push(`${rel} :: 영상 없음 assets/signal/videos/${video}`)
+      }
+    }
   }
 }
 

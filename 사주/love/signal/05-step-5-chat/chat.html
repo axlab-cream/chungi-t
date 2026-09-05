@@ -198,7 +198,7 @@
       background: #100706;
     }
 
-    .hero img {
+    .hero :is(img, video) {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -477,7 +477,7 @@
       background: #120706;
     }
 
-    .group-media img {
+    .group-media :is(img, video) {
       width: 100%;
       height: 228px;
       object-fit: cover;
@@ -485,7 +485,7 @@
       opacity: 0.88;
     }
 
-    .group-media img.is-missing {
+    .group-media :is(img, video).is-missing {
       display: none;
     }
 
@@ -784,7 +784,17 @@
       <section class="state-panel" data-state-panel></section>
       <section class="notice" data-offline-notice>연결이 불안정해 마지막 저장된 목록을 기준으로 보여드려요.</section>
       <section class="hero" data-hero>
-        <img src="../assets/signal/05-relationship_temperature.webp" alt="레드 의상의 상담자가 두 사람의 관계 온도 카드를 살피는 장면" />
+        <video
+          class="signal-video"
+          poster="../assets/signal/videos/17-relationship-temperature-poster.webp"
+          data-video-src="../assets/signal/videos/17-relationship-temperature.mp4"
+          data-video-priority="high"
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label="레드 의상의 상담자가 두 사람의 관계 온도 카드를 살피는 장면"
+        ></video>
         <div class="hero-copy">
           <span class="eyebrow">결과 목록</span>
           <h1>내 애인 바람필까?</h1>
@@ -833,6 +843,7 @@
 
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 
+  <script src="../signal-video.js"></script>
   <script>
     (() => {
       "use strict";
@@ -854,6 +865,19 @@
         activeReport: "umsh:active-report:couple_signal",
         activeSection: "umsh:active-report-section:couple_signal",
         chatHistory: "umsh:chat-history:couple_signal"
+      };
+
+      const groupVideos = {
+        relationship_temperature: "17-relationship-temperature.mp4",
+        partner_signal_radar: "15-partner-signal-radar.mp4",
+        switch_flirt_check: "18-switch-flirt-check.mp4",
+        partner_palace_signal: "14-partner-palace-signal.mp4",
+        ten_gods_love_style: "19-ten-gods-love-style.mp4",
+        compatibility_chemistry: "12-compatibility-chemistry.mp4",
+        timing_flow: "20-timing-flow.mp4",
+        anxiety_source: "10-anxiety-source.mp4",
+        reality_check_action: "16-reality-check-action.mp4",
+        final_conclusion_type: "13-final-conclusion-type.mp4"
       };
 
       const reportIndex = {
@@ -1248,7 +1272,11 @@
           return `
             <article class="group-card" id="group-${escapeHtml(group.id)}" data-group-card="${escapeHtml(group.id)}">
               <div class="group-media">
-                <img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.image_alt)}" loading="${groupIndex < 2 ? "eager" : "lazy"}" data-image-fallback />
+                ${groupVideos[group.id] ? (() => {
+                  const video = groupVideos[group.id];
+                  const poster = video.replace(/\.mp4$/, "-poster.webp");
+                  return `<video class="group-video" poster="../assets/signal/videos/${poster}" data-video-src="../assets/signal/videos/${video}" muted loop playsinline preload="none" aria-label="${escapeHtml(group.image_alt)}" data-image-fallback></video>`;
+                })() : `<img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.image_alt)}" loading="${groupIndex < 2 ? "eager" : "lazy"}" data-image-fallback />`}
                 <div class="group-cover">
                   <span class="eyebrow">${String(groupIndex + 1).padStart(2, "0")} · ${escapeHtml(items.length)}개 항목</span>
                   <h3>${escapeHtml(group.title)}</h3>
@@ -1433,6 +1461,7 @@
         renderQuickPrompts();
         renderTabs();
         renderGroups(state);
+        window.umshSignalVideos?.observe(document.querySelector("[data-group-list]"));
         persistReportState();
         bindEvents();
         restoreChat();

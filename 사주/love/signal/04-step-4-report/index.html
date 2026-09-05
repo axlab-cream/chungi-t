@@ -190,9 +190,9 @@
         background: #160707;
       }
 
-      .hero img,
-      .image-band img,
-      .cta-visual img {
+      .hero :is(img, video),
+      .image-band :is(img, video),
+      .cta-visual :is(img, video) {
         position: absolute;
         inset: 0;
         width: 100%;
@@ -200,7 +200,7 @@
         object-fit: cover;
       }
 
-      .hero img {
+      .hero :is(img, video) {
         object-position: center 18%;
       }
 
@@ -769,11 +769,17 @@
 
       <main id="step-4-report">
         <section class="hero" aria-labelledby="hero-title">
-          <img
-            src="../assets/signal/04-free-hero.webp"
-            alt="레드 의상의 상담자가 두 사람의 관계 신호를 살피는 장면"
-            loading="eager"
-          />
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/08-free-hero-poster.webp"
+            data-video-src="../assets/signal/videos/08-free-hero.mp4"
+            data-video-priority="high"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="레드 의상의 상담자가 두 사람의 관계 신호를 살피는 장면"
+          ></video>
           <div class="hero-copy">
             <span class="eyebrow">FREE SUMMARY</span>
             <h1 id="hero-title">바람보다 먼저 볼 신호</h1>
@@ -809,11 +815,16 @@
         </section>
 
         <section class="image-band" aria-labelledby="signal-title">
-          <img
-            src="../assets/signal/04-signal-card.webp"
-            alt="두 장의 빈 사주 카드와 붉은 실로 관계 신호를 살피는 장면"
-            loading="lazy"
-          />
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/11-signal-card-poster.webp"
+            data-video-src="../assets/signal/videos/11-signal-card.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="두 장의 빈 사주 카드와 붉은 실로 관계 신호를 살피는 장면"
+          ></video>
           <div class="caption">
             <span class="section-kicker">CORE SIGNAL</span>
             <h2 id="signal-title">한 행동만으로 몰아가지 않습니다</h2>
@@ -878,11 +889,16 @@
         </section>
 
         <section class="cta-visual" aria-labelledby="cta-title">
-          <img
-            src="../assets/signal/04-payment-cta.webp"
-            alt="레드 의상의 상담자가 관계 리포트 책자와 봉투를 건네는 장면"
-            loading="lazy"
-          />
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/09-payment-cta-poster.webp"
+            data-video-src="../assets/signal/videos/09-payment-cta.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="레드 의상의 상담자가 관계 리포트 책자와 봉투를 건네는 장면"
+          ></video>
           <div class="cta-box">
             <span class="section-kicker" data-cta-kicker>전체 리포트</span>
             <h2 id="cta-title" data-cta-title>관계 온도와 흔들림 구간을 끝까지 볼까요?</h2>
@@ -923,6 +939,7 @@
       <div class="toast hidden" data-toast role="status" aria-live="polite"></div>
     </div>
 
+    <script src="../signal-video.js"></script>
     <script>
       const service = {
         service_key: "couple_signal",
