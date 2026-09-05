@@ -183,7 +183,11 @@
       }
 
       .scene-media :is(img, video) {
-        object-position: center center;
+        object-position: center 12%;
+      }
+
+      .scene-media.short :is(img, video) {
+        object-position: center top;
       }
 
       .hero::after,
