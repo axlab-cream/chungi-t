@@ -439,7 +439,7 @@
         isolation: isolate;
       }
 
-      .pay-panel img {
+      .pay-panel :is(img, video) {
         position: absolute;
         inset: 0;
         z-index: -3;
@@ -742,11 +742,18 @@
         </section>
 
         <section class="pay-panel" id="payPanel" aria-labelledby="payTitle">
-          <img
-            src="../assets/thisyear/04-paid-cta.webp"
-            alt="전체 리포트로 이어지는 빛의 문을 바라보는 여성 캐릭터"
+          <video
+            class="pay-panel-video"
+            poster="../assets/thisyear/videos/06-frontface-portal-poster.webp"
+            src="../assets/thisyear/videos/06-frontface-portal.mp4"
+            data-lazy-play
             data-image-role="paid-cta"
-          />
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="전체 리포트로 이어지는 빛의 문을 바라보는 여성 캐릭터"
+          ></video>
           <div class="pay-content">
             <span class="eyebrow">전체 풀이 열기</span>
             <div class="section-title">
@@ -782,6 +789,7 @@
       </div>
     </div>
 
+    <script src="/js/umsh-lazy-video.js"></script>
     <script>
       const SERVICE_STATE = {
         service_key: "love_thisyear",
@@ -1165,7 +1173,9 @@
         },
         {
           "asset_key": "thisyear-04-paid-cta",
-          "filename": "assets/generated/thisyear/04-paid-cta.webp",
+          "filename": "assets/thisyear/videos/06-frontface-portal.mp4",
+          "poster": "assets/thisyear/videos/06-frontface-portal-poster.webp",
+          "media_type": "video",
           "role": "chart-background",
           "aspect_ratio": "9:16",
           "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",

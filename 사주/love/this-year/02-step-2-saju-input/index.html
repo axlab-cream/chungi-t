@@ -139,7 +139,7 @@
         isolation: isolate;
       }
 
-      .hero img {
+      .hero :is(img, video) {
         position: absolute;
         inset: 0;
         z-index: -3;
@@ -589,11 +589,18 @@
       </header>
 
       <section class="hero" id="heroVisual" aria-labelledby="pageTitle">
-        <img
-          src="../assets/thisyear/02-form-companion.webp"
-          alt="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"
+        <video
+          class="hero-video"
+          poster="../assets/thisyear/videos/04-frontface-astrology-poster.webp"
+          src="../assets/thisyear/videos/04-frontface-astrology.mp4"
+          data-lazy-play
           data-image-role="form-companion"
-        />
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"
+        ></video>
         <div class="hero-copy">
           <span class="eyebrow">02 · 사주 입력</span>
           <h1 id="pageTitle">나, 올해 연애 가능?</h1>
@@ -800,6 +807,7 @@
       </main>
     </div>
 
+    <script src="/js/umsh-lazy-video.js"></script>
     <script>
       const SERVICE_STATE = {
         service_key: "love_thisyear",
@@ -1188,7 +1196,9 @@
       [
         {
           "asset_key": "thisyear-02-form-companion",
-          "filename": "assets/generated/thisyear/02-form-companion.webp",
+          "filename": "assets/thisyear/videos/04-frontface-astrology.mp4",
+          "poster": "assets/thisyear/videos/04-frontface-astrology-poster.webp",
+          "media_type": "video",
           "role": "scene",
           "aspect_ratio": "9:16",
           "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
