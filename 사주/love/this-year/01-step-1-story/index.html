@@ -160,6 +160,11 @@
         mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
       }
 
+      .scene-video {
+        display: block;
+        pointer-events: none;
+      }
+
       .scene::before,
       .scene::after {
         content: "";
@@ -470,11 +475,18 @@
 
       <article class="story" aria-label="나, 올해 연애 가능? 인트로">
         <section class="scene" data-scene-id="scene-01">
-          <img
-            class="scene-image"
-            src="../assets/thisyear/01-scene-01-hook.webp"
-            alt="밝은 빛을 바라보는 여성 캐릭터와 연애 흐름을 암시하는 빛의 궤도"
-          />
+          <video
+            class="scene-image scene-video"
+            poster="../assets/thisyear/01-scene-01-hook.webp"
+            src="../assets/thisyear/videos/01-frontface-window.mp4"
+            data-video-src="../assets/thisyear/videos/01-frontface-window.mp4"
+            data-video-priority="high"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="밝은 빛을 바라보는 여성 캐릭터와 연애 흐름을 암시하는 빛의 궤도"
+          ></video>
           <div class="content">
             <span class="eyebrow">올해 연애운</span>
             <h1>나, 올해 <span class="accent">연애 가능?</span></h1>
@@ -491,11 +503,17 @@
         </section>
 
         <section class="scene compact" data-scene-id="scene-02">
-          <img
-            class="scene-image"
-            src="../assets/thisyear/01-scene-02-empathy.webp"
-            alt="카페 창가에서 휴대폰을 내려놓고 생각에 잠긴 여성 캐릭터"
-          />
+          <video
+            class="scene-image scene-video"
+            poster="../assets/thisyear/01-scene-02-empathy.webp"
+            src="../assets/thisyear/videos/02-frontface-cafe.mp4"
+            data-video-src="../assets/thisyear/videos/02-frontface-cafe.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="카페 창가에서 휴대폰을 내려놓고 생각에 잠긴 여성 캐릭터"
+          ></video>
           <div class="content">
             <span class="eyebrow">고민 공감</span>
             <h2>연락 하나에도 <span class="accent">텐션</span>이 흔들릴 때</h2>
@@ -514,11 +532,17 @@
         </section>
 
         <section class="scene compact" data-scene-id="scene-03">
-          <img
-            class="scene-image"
-            src="../assets/thisyear/01-scene-03-pattern.webp"
-            alt="비 오는 밤 도시에서 알림 빛 사이를 걷는 여성 캐릭터"
-          />
+          <video
+            class="scene-image scene-video"
+            poster="../assets/thisyear/01-scene-03-pattern.webp"
+            src="../assets/thisyear/videos/03-frontface-rainy-city.mp4"
+            data-video-src="../assets/thisyear/videos/03-frontface-rainy-city.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="비 오는 밤 도시에서 알림 빛 사이를 걷는 여성 캐릭터"
+          ></video>
           <div class="content">
             <span class="eyebrow">내 패턴</span>
             <h2>올해는 <span class="soft">내 반복 패턴</span>부터 봅니다</h2>
@@ -530,11 +554,17 @@
         </section>
 
         <section class="scene compact" data-scene-id="scene-04">
-          <img
-            class="scene-image"
-            src="../assets/thisyear/01-scene-04-basis.webp"
-            alt="빛으로 된 사주 흐름과 꽃잎 사이에 서 있는 여성 캐릭터"
-          />
+          <video
+            class="scene-image scene-video"
+            poster="../assets/thisyear/01-scene-04-basis.webp"
+            src="../assets/thisyear/videos/04-frontface-astrology.mp4"
+            data-video-src="../assets/thisyear/videos/04-frontface-astrology.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="빛으로 된 사주 흐름과 꽃잎 사이에 서 있는 여성 캐릭터"
+          ></video>
           <div class="content">
             <span class="eyebrow">분석 기준</span>
             <h2>도화, 세운, 배우자성을 <span class="accent">같이</span> 봅니다</h2>
@@ -551,11 +581,17 @@
         </section>
 
         <section class="scene" data-scene-id="scene-05">
-          <img
-            class="scene-image"
-            src="../assets/thisyear/01-scene-05-preview.webp"
-            alt="연애 결과 카드처럼 보이는 빛의 패널을 바라보는 여성 캐릭터"
-          />
+          <video
+            class="scene-image scene-video"
+            poster="../assets/thisyear/01-scene-05-preview.webp"
+            src="../assets/thisyear/videos/05-frontface-analysis-panel.mp4"
+            data-video-src="../assets/thisyear/videos/05-frontface-analysis-panel.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="연애 결과 카드처럼 보이는 빛의 패널을 바라보는 여성 캐릭터"
+          ></video>
           <div class="content">
             <span class="eyebrow">이런 것까지 봅니다</span>
             <h2>결과는 <span class="accent">가능성</span>에서 행동까지 이어집니다</h2>
@@ -585,11 +621,17 @@
         </section>
 
         <section class="scene" data-scene-id="scene-06">
-          <img
-            class="scene-image"
-            src="../assets/thisyear/01-scene-06-cta.webp"
-            alt="밝은 문 앞에서 손을 내미는 여성 캐릭터와 꽃잎, 별빛"
-          />
+          <video
+            class="scene-image scene-video"
+            poster="../assets/thisyear/01-scene-06-cta.webp"
+            src="../assets/thisyear/videos/06-frontface-portal.mp4"
+            data-video-src="../assets/thisyear/videos/06-frontface-portal.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="밝은 문 앞에서 손을 내미는 여성 캐릭터와 꽃잎, 별빛"
+          ></video>
           <div class="content center">
             <span class="eyebrow">확인 시작</span>
             <h2>올해 내 연애 흐름을 <span class="accent">입력값</span>으로 열어볼게요</h2>
@@ -618,14 +660,55 @@
     </main>
 
     <script>
-      document.querySelectorAll(".scene").forEach((scene) => {
-        const image = scene.querySelector(".scene-image");
-        if (!image) return;
-        const markReady = () => scene.classList.add("is-ready");
-        const markBroken = () => scene.classList.add("is-broken");
-        image.complete && image.naturalWidth > 0 ? markReady() : image.addEventListener("load", markReady, { once: true });
-        image.addEventListener("error", markBroken, { once: true });
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const scenes = [...document.querySelectorAll(".scene")];
+
+      const markReady = (scene) => scene.classList.add("is-ready");
+      const markBroken = (scene) => scene.classList.add("is-broken");
+
+      const loadVideo = (video) => {
+        if (video.dataset.videoLoaded === "true" || !video.dataset.videoSrc) return;
+        video.dataset.videoLoaded = "true";
+        video.preload = video.dataset.videoPriority === "high" ? "auto" : "metadata";
+        video.src = video.dataset.videoSrc;
+        video.load();
+      };
+
+      const playVideo = (video) => {
+        if (prefersReducedMotion) return;
+        loadVideo(video);
+        video.play().catch(() => {});
+      };
+
+      scenes.forEach((scene) => {
+        const media = scene.querySelector(".scene-image");
+        if (!media) return;
+
+        if (media.matches(".scene-video")) {
+          media.addEventListener("loadeddata", () => markReady(scene), { once: true });
+          media.addEventListener("error", () => markBroken(scene), { once: true });
+          if (media.dataset.videoPriority === "high" && !prefersReducedMotion) loadVideo(media);
+          return;
+        }
+
+        const ready = () => markReady(scene);
+        media.complete && media.naturalWidth > 0 ? ready() : media.addEventListener("load", ready, { once: true });
+        media.addEventListener("error", () => markBroken(scene), { once: true });
       });
+
+      if (!prefersReducedMotion && "IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(({ target: scene, isIntersecting }) => {
+            const video = scene.querySelector(".scene-video");
+            if (!video) return;
+            if (isIntersecting) playVideo(video);
+            else video.pause();
+          });
+        }, { rootMargin: "240px 0px", threshold: 0.1 });
+        scenes.forEach((scene) => observer.observe(scene));
+      } else if (!prefersReducedMotion) {
+        scenes.forEach((scene) => playVideo(scene.querySelector(".scene-video")));
+      }
     </script>
 
     <script type="application/json" id="PROMPT_INPUT">
