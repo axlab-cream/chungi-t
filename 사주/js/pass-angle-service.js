@@ -206,6 +206,10 @@
     });
 
     form.addEventListener('submit', () => {
+      // A new exam context must never reuse the previous report cached in this tab.
+      // The report id includes this context, so clear the old client copy before
+      // navigating to the teaser page and let the authenticated API regenerate it.
+      if (storageAvailable('sessionStorage')) sessionStorage.removeItem(STORAGE.report);
       sessionSet(STORAGE.input, {
         examName: form.querySelector('#exam')?.value.trim() || '',
         examDate: form.querySelector('#date')?.value || '',
