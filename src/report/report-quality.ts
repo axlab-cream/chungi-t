@@ -85,6 +85,16 @@ const WORK_MOVE_QUALITY_RULES: QualityRule[] = [
   { id: 'work-grounding', label: 'WORK RAG 근거성', sectionIds: ['work-move-decision', 'money-terms', 'final-checklist'], expectedTerms: ['이번 장은', '대조', '사주', '조건', '기준'] },
 ]
 
+const PASS_ANGLE_QUALITY_RULES: QualityRule[] = [
+  { id: 'pass-verdict', label: '합격 판단', sectionIds: ['pass-angle-verdict'], expectedTerms: ['시험', '합격', '인성', '관성'] },
+  { id: 'study-style', label: '공부 방식', sectionIds: ['study-style'], expectedTerms: ['일간', '오행', '공부', '집중'] },
+  { id: 'exam-fit', label: '시험 유형 핏', sectionIds: ['exam-type-fit'], expectedTerms: ['시험', '유형', '십신', '적성'] },
+  { id: 'pass-timing', label: '합격 시기', sectionIds: ['pass-timing'], expectedTerms: ['대운', '세운', '시기', '타이밍'] },
+  { id: 'mental', label: '멘탈과 회복', sectionIds: ['mental-stamina'], expectedTerms: ['회복', '멘탈', '집중', '수면'], riskExpected: true },
+  { id: 'exam-day', label: '시험 당일', sectionIds: ['exam-day-routine'], expectedTerms: ['시험', '당일', '일진', '동선'] },
+  { id: 'action', label: '실전 액션', sectionIds: ['action-plan'], expectedTerms: ['기출', '오답', '계획', '전략'] },
+]
+
 const TONE_SIGNALS = ['흠', '보입니다', '그 이유', '좋은 말만', '위험', '조심', '시기적으로', '풀 방법', '경고', '흐름', '기운', '기준']
 const RISK_SIGNALS = ['좋은 말만', '위험', '방치', '조심', '돈구멍', '과속', '경고']
 
@@ -346,6 +356,8 @@ export function evaluateReportQuality(
       ? HOME_FIT_QUALITY_RULES
       : context.serviceKey === 'work_move'
         ? WORK_MOVE_QUALITY_RULES
+        : context.serviceKey === 'pass_angle'
+          ? PASS_ANGLE_QUALITY_RULES
         : QUALITY_RULES
   const categories = rules.map((rule) => scoreCategory(rule, report, analysis, context))
 
