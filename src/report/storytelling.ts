@@ -6,6 +6,7 @@ import type {
 } from '../types/index.js'
 import { BRANCH_KO, ELEMENT_KO } from '../saju/analyzer-helpers.js'
 import { pillarLabel } from '../saju/calculator.js'
+import { addressName, applyServiceTone } from './report-tone.js'
 
 export interface StoryImagePrompt {
   ko: string
@@ -93,16 +94,16 @@ export function formatStoryInterpretation(beat: StoryBeat): string {
 
   if (beat.ragTopics && beat.ragTopics.length > 0) {
     const topics = beat.ragTopics.slice(0, 3).join(', ')
-    parts.push(`이번 장은 ${topics}의 관계 온도와 시기를 함께 대조해 보겠네.`)
+    parts.push(`이번 장은 ${topics}의 관계 온도와 시기를 함께 대조해 볼게요.`)
   }
 
   if (beat.tableMd?.trim()) {
-    const caption = beat.tableCaption?.trim() || '마음에 걸리는 신호만 골라 보겠네.'
+    const caption = beat.tableCaption?.trim() || '마음에 걸리는 신호만 골라 볼게요.'
     parts.push(`${caption}\n\n${beat.tableMd.trim()}`)
   }
 
   if (beat.chartPoints && beat.chartPoints.length > 0) {
-    const caption = beat.chartCaption?.trim() || '달마다 마음이 움직이는 온도가 다르네.'
+    const caption = beat.chartCaption?.trim() || '달마다 마음이 움직이는 온도가 달라요.'
     const timeline = beat.chartPoints
       .map((point) => `- ${point.label} · ${point.note} (${Math.max(0, Math.min(100, point.value))}%)`)
       .join('\n')
@@ -121,7 +122,7 @@ export function formatStoryInterpretation(beat: StoryBeat): string {
 
   if (beat.actions.length > 0) {
     const actionLines = beat.actions.map((action) => `- ${action}`).join('\n')
-    parts.push(`[해법] 지금 붙잡아 볼 장면이네.\n${actionLines}`)
+    parts.push(`[해법] 지금 붙잡아 볼 장면이에요.\n${actionLines}`)
   }
 
   const prompt = beat.imagePrompt
@@ -129,7 +130,7 @@ export function formatStoryInterpretation(beat: StoryBeat): string {
     `장면 이미지 힌트 · ${prompt.ko}\n(en) ${prompt.en}`,
   )
 
-  return parts.filter(Boolean).join('\n\n')
+  return applyServiceTone(parts.filter(Boolean).join('\n\n'), 'love_this_year')
 }
 
 export function toStorytellingPayload(beat: StoryBeat): StorytellingPayload {
@@ -170,7 +171,7 @@ interface LoveStoryContext {
 
 function baseFacts(ctx: LoveStoryContext) {
   const { analysis, context, birth } = ctx
-  const name = clean(context.name, '자네')
+  const name = addressName(context)
   const concern = clean(context.concern, '올해 연애가 올지, 타이밍을 놓칠지')
   const relation = clean(context.relationship, '지금 관계의 결')
   const orientation = clean(context.orientation, '마음에 남는 관계')
@@ -216,34 +217,56 @@ function baseFacts(ctx: LoveStoryContext) {
 }
 
 const LOVE_HOOKS: Record<string, (f: ReturnType<typeof baseFacts>) => string> = {
-  'love-year-possibility': (_f) =>
-    `올해, 자네 마음속에 남는 사람은 이미 가까이 와 있을지도 모르네`,
-  'love-attraction-pattern': (_f) =>
-    `설레는 순간, 자네는 늘 같은 장면으로 빠져드는군`,
+  'love-year-possibility': (f) =>
+    `올해, ${f.name} 마음속에 남는 사람은 이미 가까이 와 있을지도 몰라요`,
+  'love-attraction-pattern': (f) =>
+    `설레는 순간, ${f.name}은 늘 같은 장면으로 빠져들어요`,
   'love-dohwa-months': (f) =>
-    `${f.dohwaMonth}… 그때 공기가 달라지네`,
-  'love-spouse-star': (_f) =>
-    `오래 남는 사람은, 뜨겁기보다 자네를 선명하게 하는 쪽일세`,
+    `${f.dohwaMonth}… 그때 공기가 달라져요`,
+  'love-spouse-star': (f) =>
+    `오래 남는 사람은, 뜨겁기보다 ${f.name}을 선명하게 하는 쪽이에요`,
   'love-monthly-flow': (f) =>
-    `${f.currentYear}년, 달이 바뀔 때마다 인연의 온도가 달라지네`,
+    `${f.currentYear}년, 달이 바뀔 때마다 인연의 온도가 달라져요`,
   'love-progress-timing': (_f) =>
-    `고백보다 먼저, 다음 약속이 자연스러워지는 순간을 보게`,
+    `고백보다 먼저, 다음 약속이 자연스러워지는 순간을 보세요`,
   'love-missed-signals': (_f) =>
-    `놓친 인연은 큰 사건이 아니라, 작은 침묵에서 시작되네`,
+    `놓친 인연은 큰 사건이 아니라, 작은 침묵에서 시작돼요`,
   'love-partner-compatibility': (f) =>
     f.hasPartner
-      ? `${f.partnerName}와 자네 사이, 마음이 어긋나는 속도가 보이는군`
-      : `아직 이름 없는 인연이라도, 맞는 온기는 느낌이 다르네`,
-  'love-emotion-temperature': (_f) =>
-    `같은 마음이어도, 자네와 상대의 온도는 다를 수 있네`,
+      ? `${f.partnerName}와 ${f.name} 사이, 마음이 어긋나는 속도가 보여요`
+      : `아직 이름 없는 인연이라도, 맞는 온기는 느낌이 달라요`,
+  'love-emotion-temperature': (f) =>
+    `같은 마음이어도, ${f.name}과 상대의 온도는 다를 수 있어요`,
   'love-action-strategy': (_f) =>
-    `기다리는 해보다, 알아볼 준비가 된 해가 더 무섭고 아름다운 법일세`,
+    `기다리는 해보다, 알아볼 준비가 된 해가 더 무섭고 아름다운 법이에요`,
+}
+
+
+function neutralizeBeat(beat: StoryBeat): StoryBeat {
+  const tone = (value?: string) => (value == null ? value : applyServiceTone(value, 'love_this_year'))
+  return {
+    ...beat,
+    hook: tone(beat.hook) || beat.hook,
+    feel: tone(beat.feel) || beat.feel,
+    softBridge: tone(beat.softBridge),
+    tableMd: tone(beat.tableMd),
+    tableCaption: tone(beat.tableCaption),
+    chartCaption: tone(beat.chartCaption),
+    scene: tone(beat.scene) || beat.scene,
+    actions: beat.actions.map((action) => applyServiceTone(action, 'love_this_year')),
+    imagePrompt: beat.imagePrompt,
+    ragTopics: beat.ragTopics,
+    chartPoints: beat.chartPoints?.map((point) => ({
+      ...point,
+      note: applyServiceTone(point.note, 'love_this_year'),
+    })),
+  }
 }
 
 export function loveThisYearHook(sectionId: string, analysis: SajuAnalysis, context: SajuReportContext, birth?: BirthInput): string {
   const facts = baseFacts({ analysis, context, birth, ragTopics: [] })
   const builder = LOVE_HOOKS[sectionId]
-  return builder ? builder(facts) : '올해 연애의 장면부터 천천히 펼쳐 보겠네'
+  return builder ? builder(facts) : '올해 연애의 장면부터 천천히 펼쳐 볼게요'
 }
 
 export function buildLoveThisYearStoryBeat(
@@ -256,9 +279,9 @@ export function buildLoveThisYearStoryBeat(
   const f = baseFacts({ analysis, context, birth, ragTopics })
   const hook = loveThisYearHook(sectionId, analysis, context, birth)
   const chart = loveMonthlyChart(f.currentYear, f.dohwaMonth, f.yearPillar)
-  const softYear = `그래서 ${f.currentYear}년 ${f.yearPillar} 세운 아래, 연애 가능성이 마음으로 먼저 움직이는 해일세.`
-  const softDohwa = `그래서 ${f.dohwaMonth} 도화의 공기가 유난히 다가오네. 타이밍 신호일세.`
-  const softUseful = `천천히 확인해 주는 온기가, 자네에게는 더 오래 남네.`
+  const softYear = `그래서 ${f.currentYear}년 ${f.yearPillar} 세운 아래, 연애 가능성이 마음으로 먼저 움직이는 해예요.`
+  const softDohwa = `그래서 ${f.dohwaMonth} 도화의 공기가 유난히 다가와요. 타이밍 신호예요.`
+  const softUseful = `천천히 확인해 주는 온기가, 더 오래 남아요.`
   const softGrain = `일주 ${f.dayPillar}(일간 ${f.dayMaster}) · 일지 ${f.dayBranchKo}의 결에서 ${f.dominant} 기운이 먼저 반응하고, ${f.weak} 자리가 비면 마음이 흔들리기 쉽네. ${f.tenGod ? f.tenGod + ' 흐름과 ' : ''}${f.daewoon} 대운이 올해 세운과 맞물릴 때 그 장면이 더 또렷해지네.`
 
   const beats: Record<string, StoryBeat> = {
@@ -287,7 +310,7 @@ export function buildLoveThisYearStoryBeat(
     },
     'love-attraction-pattern': {
       hook,
-      feel: `자네가 끌리는 방식은 생각보다 고집스럽네. 연애 성향이 드러나는 순간, 가볍게 스친 사람보다 마음이 한 번 열린 뒤엔 쉽게 되돌리지 못하는 결이 있어. 일지 ${f.dayBranchKo} 기운이 가까운 관계 앞에서 더 선명해지는 법이지.`,
+      feel: `${f.name}이 끌리는 방식은 생각보다 고집스럽네. 연애 성향이 드러나는 순간, 가볍게 스친 사람보다 마음이 한 번 열린 뒤엔 쉽게 되돌리지 못하는 결이 있어. 일지 ${f.dayBranchKo} 기운이 가까운 관계 앞에서 더 선명해지는 법이지.`,
       softBridge: `끌림이 빠를수록 반응을 한 박자 늦게 고르는 편이 낫네.`,
       tableMd: [
         '| 끌림의 결 | 반복되는 장면 |',
@@ -296,10 +319,10 @@ export function buildLoveThisYearStoryBeat(
         `| 숨긴 기대 | 괜찮은 척하면서 답장을 기다리는 밤 |`,
         `| 오래 남는 끌림 | 자극보다 말이 차분한 사람에게 마음이 갈 때 |`,
       ].join('\n'),
-      tableCaption: '자네의 끌림은 이런 장면으로 반복되네.',
+      tableCaption: '${f.name}의 끌림은 이런 장면으로 반복되네.',
       scene: f.hasPartner
-        ? `${f.partnerName}(${f.partnerRelation}) 앞에서도 같은 패턴이 올라올 수 있네. 좋아할수록 말이 줄거나, 반대로 확신을 너무 빨리 구하는 순간. 그 장면이 오면 관계가 흔들리는 게 아니라, 자네의 오래된 끌림 습관이 깨어난 걸세.`
-        : `아직 특정 상대가 없어도 패턴은 먼저 와. 자극이 센 사람에겐 금세 불이 붙고, 조용히 안정적인 사람 앞에서는 오히려 심장이 헷갈리네. 올해는 설렘의 크기보다, 그 설렘이 자네를 흐리게 하는지 선명하게 하는지를 보게.`,
+        ? `${f.partnerName}(${f.partnerRelation}) 앞에서도 같은 패턴이 올라올 수 있네. 좋아할수록 말이 줄거나, 반대로 확신을 너무 빨리 구하는 순간. 그 장면이 오면 관계가 흔들리는 게 아니라, ${f.name}의 오래된 끌림 습관이 깨어난 걸세.`
+        : `아직 특정 상대가 없어도 패턴은 먼저 와. 자극이 센 사람에겐 금세 불이 붙고, 조용히 안정적인 사람 앞에서는 오히려 심장이 헷갈리네. 올해는 설렘의 크기보다, 그 설렘이 ${f.name}을 흐리게 하는지 선명하게 하는지를 보게.`,
       actions: [
         '설렌 직후 24시간은 결론을 내리지 말게',
         '"이 사람이 나를 편하게 하는가"를 한 줄로 적어 보게',
@@ -339,10 +362,10 @@ export function buildLoveThisYearStoryBeat(
     },
     'love-spouse-star': {
       hook,
-      feel: `운명의 상대를 외형으로 단정할 수는 없네. 다만 ${f.name}님에게 오래 남는 인연 유형은 배우자성(${f.spouse.term}) — ${f.spouse.plain}에 가깝네. 뜨겁게 태우는 사람보다, 자네를 덜 흔들고 더 선명하게 하는 쪽이지.`,
+      feel: `운명의 상대를 외형으로 단정할 수는 없네. 다만 ${f.name}님에게 오래 남는 인연 유형은 배우자성(${f.spouse.term}) — ${f.spouse.plain}에 가깝네. 뜨겁게 태우는 사람보다, ${f.name}을 덜 흔들고 더 선명하게 하는 쪽이지.`,
       softBridge: `끌림이 커도, 약속을 흐리는 사람은 오래 가기 어렵네.`,
       tableMd: [
-        '| 인연 유형 | 자네에게 남는 느낌 |',
+        '| 인연 유형 | ${f.name}에게 남는 느낌 |',
         '| --- | --- |',
         `| 자극형 | 심장은 뛰지만 일상이 불안해짐 |`,
         `| 안정형 | 말이 짧아도 다음이 보임 |`,
@@ -351,11 +374,11 @@ export function buildLoveThisYearStoryBeat(
       tableCaption: '배우자성의 결을, 어려운 말 대신 느낌으로 보면 이렇네.',
       scene: f.hasPartner
         ? `${f.partnerName}를 볼 때도 묻게. 나를 계속 확인하게 만드는가, 아니면 있어도 숨이 트이는가. 그 차이가 올해 인연의 성격을 가른다네.`
-        : `새 인연 앞에서도 같네. 대화가 화려해도 일정이 비고, 말은 담백해도 약속이 쌓이는 사람. 후자가 자네 사주에서 더 깊게 남는 결일세.`,
+        : `새 인연 앞에서도 같네. 대화가 화려해도 일정이 비고, 말은 담백해도 약속이 쌓이는 사람. 후자가 ${f.name} 사주에서 더 깊게 남는 결일세.`,
       actions: [
         '상대를 고를 때 "설렘"과 "안심"을 나란히 적어 보게',
         '한 번이라도 약속을 흐린 패턴이 보이면 속도를 낮추게',
-        '자네를 설명하게 만들기보다, 함께 있게 만드는 사람을 남기게',
+        '${f.name}을 설명하게 만들기보다, 함께 있게 만드는 사람을 남기게',
       ],
       imagePrompt: {
         ko: '창가에서 마주 앉은 두 사람. 화려한 제스처 없이 잔을 나누며 서로를 고요히 바라보는 장면.',
@@ -448,7 +471,7 @@ export function buildLoveThisYearStoryBeat(
         ? [
             '| 비교 축 | 볼 장면 |',
             '| --- | --- |',
-            `| 표현 속도 | ${f.partnerName}와 자네 중 누가 먼저 말하고 지치는가 |`,
+            `| 표현 속도 | ${f.partnerName}와 ${f.name} 중 누가 먼저 말하고 지치는가 |`,
             '| 약속 | 날짜가 생기는가, 말만 남는가 |',
             '| 공개 | 관계를 자연스럽게 드러내는가 |',
           ].join('\n')
@@ -461,7 +484,7 @@ export function buildLoveThisYearStoryBeat(
           ].join('\n'),
       tableCaption: '궁합은 표로 재는 게 아니라, 장면으로 확인하는 걸세.',
       scene: f.hasPartner
-        ? `${f.partnerName}(${f.partnerRelation})와의 온도 차는 답장 횟수보다, 확인했을 때 피하지 않는가에서 드러나네. 피하면 마음이 없는 게 아니라, 속도가 다른 것일 수도 있네. 그 차이를 존중하되, 자네가 사라지지는 말게.`
+        ? `${f.partnerName}(${f.partnerRelation})와의 온도 차는 답장 횟수보다, 확인했을 때 피하지 않는가에서 드러나네. 피하면 마음이 없는 게 아니라, 속도가 다른 것일 수도 있네. 그 차이를 존중하되, ${f.name}이 사라지지는 말게.`
         : `새 사람을 볼 때는 첫 설렘의 크기보다 세 번째 만남 이후의 편안함을 믿게. 첫인상은 도화가 만들고, 오래감은 일상의 결이 만드네.`,
       actions: [
         f.hasPartner ? `${f.partnerName}와 최근 약속을 한 줄로 정리해 보게` : '새 인연에게 세 번째 만남까지 기준을 미뤄 두게',
@@ -475,12 +498,12 @@ export function buildLoveThisYearStoryBeat(
     },
     'love-emotion-temperature': {
       hook,
-      feel: `사랑의 크기가 같아도 감정 온도는 다를 수 있네. 자네는 마음이 정해지면 답을 보고 싶어하고, 상대는 같은 마음이라도 표현 속도를 늦추며 거리감을 고를 수 있지.`,
+      feel: `사랑의 크기가 같아도 감정 온도는 다를 수 있네. ${f.name}은 마음이 정해지면 답을 보고 싶어하고, 상대는 같은 마음이라도 표현 속도를 늦추며 거리감을 고를 수 있지.`,
       softBridge: `빠르다고 진심이 더 큰 것도, 느리다고 마음이 없는 것도 아닐세.`,
       tableMd: [
         '| 온도 차이 | 흔한 오해 |',
         '| --- | --- |',
-        '| 자네가 더 뜨거울 때 | 상대를 무심하다고 단정 |',
+        '| ${f.name}이 더 뜨거울 때 | 상대를 무심하다고 단정 |',
         '| 상대가 더 빠를 때 | 설렘을 안정으로 착각 |',
         '| 맞춰질 때 | 말보다 약속이 반복됨 |',
       ].join('\n'),
@@ -490,7 +513,7 @@ export function buildLoveThisYearStoryBeat(
         : `특정 상대가 없을 때는 처음부터 많은 확신을 요구하지 말게. 확신을 너무 일찍 구하면, 상대의 온도가 미처 올라오기도 전에 문이 닫히네.`,
       actions: [
         '불안할 때 연락 횟수 대신 "반복되는 배려"를 세어 보게',
-        '상대 속도를 존중하되, 자네의 필요를 한 문장으로 남기게',
+        '상대 속도를 존중하되, ${f.name}의 필요를 한 문장으로 남기게',
         '뜨거움이 과하면 만남 사이에 하루의 여백을 두게',
       ],
       imagePrompt: {
@@ -540,11 +563,11 @@ export function buildLoveThisYearStoryBeat(
     },
   }
 
-  return {
+  return neutralizeBeat({
     ...selected,
     softBridge: [selected.softBridge, softGrain].filter(Boolean).join(' '),
     ragTopics,
-  }
+  })
 }
 
 export function applyStorytellingToSection(section: SajuReportSection, beat: StoryBeat): SajuReportSection {

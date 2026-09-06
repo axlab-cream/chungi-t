@@ -4,6 +4,7 @@ import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const MONEY_SAVE_SERVICE_KEY = 'money_save'
 
@@ -189,27 +190,27 @@ function moneySignal(tenGods: TenGod[]): string {
   const hasOutput = tenGods.includes('식신') || tenGods.includes('상관')
 
   if (hasPeer && hasMovingWealth) {
-    return '비겁과 편재가 같이 보이면 사람, 비교, 기회라는 이름으로 돈이 먼저 움직이기 쉽네.'
+    return '비겁과 편재가 같이 보이면 사람, 비교, 기회라는 이름으로 돈이 먼저 움직이기 쉬워요.'
   }
   if (hasPeer) {
-    return '비겁이 보이면 돈 문제에서 나와 비슷한 사람, 체면, 같이 쓰는 비용을 먼저 봐야 하네.'
+    return '비겁이 보이면 돈 문제에서 나와 비슷한 사람, 체면, 같이 쓰는 비용을 먼저 봐야 해요.'
   }
   if (hasStableWealth) {
-    return '정재가 보이면 돈을 모으는 힘은 있으나, 규칙이 흐려지는 순간 새는 구멍도 또렷해지네.'
+    return '정재가 보이면 돈을 모으는 힘은 있으나, 규칙이 흐려지는 순간 새는 구멍도 또렷해져요.'
   }
   if (hasMovingWealth) {
-    return '편재가 보이면 기회 감각은 빠르지만, 들어오기 전 나가는 돈이 커지지 않게 상한선을 세워야 하네.'
+    return '편재가 보이면 기회 감각은 빠르지만, 들어오기 전 나가는 돈이 커지지 않게 상한선을 세워야 해요.'
   }
   if (hasOutput) {
-    return '식상이 보이면 보상 소비가 커질 수 있네. 만든 결과를 돈으로 바꾸는 규칙이 있어야 남는다네.'
+    return '식상이 보이면 보상 소비가 커질 수 있어요. 만든 결과를 돈으로 바꾸는 규칙이 있어야 남아요.'
   }
-  return '재물은 별 하나만으로 단정하지 않고, 수입·지출·관계 비용·반복 습관을 나란히 놓고 봐야 하네.'
+  return '재물은 별 하나만으로 단정하지 않고, 수입·지출·관계 비용·반복 습관을 나란히 놓고 봐야 해요.'
 }
 
 function fortuneLine(analysis: SajuAnalysis): string {
   const fortune = analysis.fortune
-  if (!fortune) return '대운·세운은 단정하지 않고, 원국의 돈 쓰는 흐름을 먼저 보겠네.'
-  return `현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}일세. 이 흐름은 수익 보장이 아니라 지출 기준을 다시 잡을 때를 보는 표식으로 삼게.`
+  if (!fortune) return '대운·세운은 단정하지 않고, 원국의 돈 쓰는 흐름을 먼저 볼게요.'
+  return `현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}입니다. 이 흐름은 수익 보장이 아니라 지출 기준을 다시 잡을 때를 보는 표식으로 삼으세요.`
 }
 
 /**
@@ -274,51 +275,51 @@ function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
  */
 const GROUP_LENS: Record<string, { lead: string; focus: string; close: string }> = {
   'income-flow': {
-    lead: '먼저 돈이 들어오는 입구부터 보겠네.',
-    focus: '월급처럼 고정된 입구인지, 기회마다 열리는 입구인지, 만들어 낸 결과가 돈이 되는 입구인지가 여기서 갈리네.',
-    close: '입구의 모양을 알아야 통장에 남길 방법도 그 모양에 맞출 수 있네.',
+    lead: '먼저 돈이 들어오는 입구부터 볼게요.',
+    focus: '월급처럼 고정된 입구인지, 기회마다 열리는 입구인지, 만들어 낸 결과가 돈이 되는 입구인지가 여기서 갈려요.',
+    close: '입구의 모양을 알아야 통장에 남길 방법도 그 모양에 맞출 수 있어요.',
   },
   'money-leak': {
-    lead: '이번에는 돈이 나가는 자리를 보겠네.',
-    focus: '필요해서 나가는 돈과 기분·비교·체면으로 나가는 돈은 이름이 다르네. 이름을 붙여야 막을 곳이 보이네.',
-    close: '전부 끊으라는 말이 아닐세. 가장 큰 구멍 하나만 정해 이번 달에 막아 보게.',
+    lead: '이번에는 돈이 나가는 자리를 볼게요.',
+    focus: '필요해서 나가는 돈과 기분·비교·체면으로 나가는 돈은 이름이 달라요. 이름을 붙여야 막을 곳이 보여요.',
+    close: '전부 끊으라는 말이 아니에요. 가장 큰 구멍 하나만 정해 이번 달에 막아 보세요.',
   },
   'saving-blocker': {
-    lead: '남는 돈이 없는 이유를 의지가 아니라 구조에서 찾겠네.',
-    focus: '얼마를 남길지가 숫자로 고정되어 있는지, 예외가 얼마나 자주 열리는지를 보네.',
-    close: '저축은 남은 돈으로 하는 것이 아니라 먼저 떼어 둔 돈으로 하는 것일세. 순서만 바꿔도 결과가 달라지네.',
+    lead: '남는 돈이 없는 이유를 의지가 아니라 구조에서 찾을게요.',
+    focus: '얼마를 남길지가 숫자로 고정되어 있는지, 예외가 얼마나 자주 열리는지를 봐요.',
+    close: '저축은 남은 돈으로 하는 것이 아니라 먼저 떼어 둔 돈으로 하는 거예요. 순서만 바꿔도 결과가 달라져요.',
   },
   'saju-strength': {
-    lead: '돈관리를 밀어붙일 체력이 있는지부터 보겠네.',
-    focus: '혼자 밀고 가도 되는 흐름인지, 지원과 순서가 먼저 필요한 흐름인지를 나누네.',
-    close: '체력에 맞지 않는 방식은 오래 못 가네. 지킬 수 있는 크기로 시작하게.',
+    lead: '돈관리를 밀어붙일 체력이 있는지부터 볼게요.',
+    focus: '혼자 밀고 가도 되는 흐름인지, 지원과 순서가 먼저 필요한 흐름인지를 나눠요.',
+    close: '체력에 맞지 않는 방식은 오래 못 가요. 지킬 수 있는 크기로 시작하세요.',
   },
   'ohaeng-os': {
-    lead: '오행으로 돈을 다루는 기본 방식을 보겠네.',
-    focus: '어느 기운이 앞서고 어느 기운이 비어 있느냐에 따라 잘 맞는 관리 방식이 달라지네.',
-    close: '남에게 맞는 방법이 나에게도 맞는 것은 아닐세. 내 기운에 맞는 한 가지를 골라 오래 쓰게.',
+    lead: '오행으로 돈을 다루는 기본 방식을 볼게요.',
+    focus: '어느 기운이 앞서고 어느 기운이 비어 있느냐에 따라 잘 맞는 관리 방식이 달라져요.',
+    close: '남에게 맞는 방법이 나에게도 맞는 것은 아니에요. 내 기운에 맞는 한 가지를 골라 오래 쓰세요.',
   },
   timing: {
-    lead: '시기를 보겠네.',
-    focus: '대운이 판을 바꾸는 구간인지, 올해와 이번 달이 늘릴 때인지 조일 때인지를 보네.',
-    close: '좋은 시기에도 규칙이 없으면 새고, 빡빡한 시기에도 순서를 지키면 남네. 날짜보다 순서가 먼저일세.',
+    lead: '시기를 볼게요.',
+    focus: '대운이 판을 바꾸는 구간인지, 올해와 이번 달이 늘릴 때인지 조일 때인지를 봐요.',
+    close: '좋은 시기에도 규칙이 없으면 새고, 빡빡한 시기에도 순서를 지키면 남아요. 날짜보다 순서가 먼저예요.',
   },
   'relationship-contract': {
-    lead: '사람과 얽힌 돈을 보겠네.',
-    focus: '금액과 기한과 책임 범위가 말로만 오갔는지, 기록으로 남았는지가 관계와 돈을 함께 지키는 갈림길이네.',
-    close: '거절은 관계를 끊는 일이 아니라 관계를 오래 가게 하는 일일세. 문장 하나를 미리 준비해 두게.',
+    lead: '사람과 얽힌 돈을 볼게요.',
+    focus: '금액과 기한과 책임 범위가 말로만 오갔는지, 기록으로 남았는지가 관계와 돈을 함께 지키는 갈림길이에요.',
+    close: '거절은 관계를 끊는 일이 아니라 관계를 오래 가게 하는 일이에요. 문장 하나를 미리 준비해 두세요.',
   },
   'expanded-reading': {
-    lead: '보조로 함께 볼 결을 보겠네.',
-    focus: '주된 판단은 재성과 비겁의 흐름에서 나오고, 이 결은 그 판단을 좁히는 참고로만 쓰네.',
-    close: '보조 풀이는 결론을 뒤집는 근거가 아닐세. 방향이 이미 정해졌을 때 확인용으로 읽게.',
+    lead: '보조로 함께 볼 결을 볼게요.',
+    focus: '주된 판단은 재성과 비겁의 흐름에서 나오고, 이 결은 그 판단을 좁히는 참고로만 써요.',
+    close: '보조 풀이는 결론을 뒤집는 근거가 아니에요. 방향이 이미 정해졌을 때 확인용으로 읽으세요.',
   },
 }
 
 const DEFAULT_LENS = {
-  lead: '이 항목을 보겠네.',
-  focus: '수입과 지출, 관계 비용을 같이 놓고 보네.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가게.',
+  lead: '이 항목을 볼게요.',
+  focus: '수입과 지출, 관계 비용을 같이 놓고 봐요.',
+  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
 }
 
 /** The pack written for this service; see data/corpus/. */
@@ -351,21 +352,22 @@ function buildInterpretation(params: {
   const ragLine = ragLineFrom(chunk, '재물운은 돈이 들어오는 방식과 새는 지점, 관리 기준을 분리해 봅니다.')
   const dayMaster = `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`
   const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : ELEMENT_KO[analysis.weakElement]
-  const leak = input.leakPoint ? `자네가 짚은 새는 곳은 "${input.leakPoint}"일세.` : '새는 곳은 비워 두었으니 반복 지출과 관계 비용을 먼저 나누겠네.'
-  const relation = input.relationSpending ? `관계 비용은 "${input.relationSpending}" 쪽으로 보았군.` : '관계 비용은 따로 적지 않았으나 비겁의 흐름은 반드시 확인해야 하네.'
-  const goal = input.savingGoal ? `모으고 싶은 목표는 "${input.savingGoal}"라 했네.` : '저축 목표는 비워 두었으니 막는 순서를 먼저 잡겠네.'
+  const leak = input.leakPoint ? `당신이 짚은 새는 곳은 "${input.leakPoint}"입니다.` : '새는 곳은 비워 두었으니 반복 지출과 관계 비용을 먼저 나눌게요.'
+  const relation = input.relationSpending ? `관계 비용은 "${input.relationSpending}" 쪽으로 봤어요.` : '관계 비용은 따로 적지 않았으나 비겁의 흐름은 반드시 확인해야 해요.'
+  const goal = input.savingGoal ? `모으고 싶은 목표는 "${input.savingGoal}"라고 했어요.` : '저축 목표는 비워 두었으니 막는 순서를 먼저 잡을게요.'
 
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const weak = ELEMENT_KO[analysis.weakElement]
 
-  return [
-    `${lens.lead} ${categoryTitle} 중 "${itemTitle}"일세. 자네는 ${birth.year}년생이고 일간은 ${dayMaster}라, 돈을 버는 힘보다 돈을 붙들어 두는 방식을 먼저 봐야 하네.`,
-    `${lens.focus} 자네는 ${dominant} 기운이 앞서고 ${weak} 기운이 비어 있으니, 그 쏠림이 그대로 돈 쓰는 습관으로 드러나네.`,
-    `${fortuneLine(analysis)} 보완할 기운은 ${useful} 쪽으로 잡히니, 소비를 전부 끊는 것보다 돈이 머무는 장치를 만드는 쪽이 맞겠네.`,
+  const raw = [
+    `${lens.lead} ${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${dayMaster}라, 돈을 버는 힘보다 돈을 붙들어 두는 방식을 먼저 봐야 해요.`,
+    `${lens.focus} 당신은 ${dominant} 기운이 앞서고 ${weak} 기운이 비어 있으니, 그 쏠림이 그대로 돈 쓰는 습관으로 드러나요.`,
+    `${fortuneLine(analysis)} 보완할 기운은 ${useful} 쪽으로 잡히니, 소비를 전부 끊는 것보다 돈이 머무는 장치를 만드는 쪽이 맞아요.`,
     `${moneySignal(analysis.tenGods)} ${leak} ${relation} ${goal}`,
-    `참고 결은 이렇네. ${ragLine} 그러니 이 풀이는 돈복이 있다 없다를 말하는 것이 아니라, "나는 왜 돈이 안 모일까"의 반복 구조를 찾는 풀이일세.`,
-    `${lens.close} 지금 습관 "${input.moneyHabit}"에서 즉흥, 비교, 보상, 관계 비용 중 어느 이름으로 돈이 나가는지 표시하게. 그 이름을 알면 다음 월급부터 막을 한 곳이 보일 걸세.`,
+    `참고 결은 이래요. ${ragLine} 그러니 이 풀이는 돈복이 있다 없다를 말하는 것이 아니라, "나는 왜 돈이 안 모일까"의 반복 구조를 찾는 풀이예요.`,
+    `${lens.close} 지금 습관 "${input.moneyHabit}"에서 즉흥, 비교, 보상, 관계 비용 중 어느 이름으로 돈이 나가는지 표시하세요. 그 이름을 알면 다음 월급부터 막을 한 곳이 보일 거예요.`,
   ].join('\n\n')
+  return applyServiceTone(raw, MONEY_SAVE_SERVICE_KEY)
 }
 
 export function buildMoneySaveReport(

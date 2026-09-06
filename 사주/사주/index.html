@@ -5075,7 +5075,12 @@
         }
         if (action === "open-chat") {
           if (isCurrentReportPaid()) {
-            location.href = "/chat.html";
+            {
+              const key = state.serviceKey || "";
+              location.href = key
+                ? `/chat.html?serviceKey=${encodeURIComponent(key)}`
+                : "/chat.html";
+            }
             return;
           }
           go("purchase");
