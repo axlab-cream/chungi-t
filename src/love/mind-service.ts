@@ -12,6 +12,8 @@ import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const LOVE_MIND_SERVICE_KEY = 'love_mind'
 
@@ -252,35 +254,35 @@ function hasBranchPair(map: Map<string, string>, a: EarthlyBranch, b: EarthlyBra
 
 function relationshipGrain(userBranch: EarthlyBranch, partnerBranch: EarthlyBranch): string {
   if (userBranch === partnerBranch) {
-    return `두 사람의 일지가 모두 ${BRANCH_KO[userBranch]}(${userBranch})라 익숙함이 빠르게 생기지만, 같은 방식으로 반응해 오해도 반복될 수 있네.`
+    return `두 사람의 일지가 모두 ${BRANCH_KO[userBranch]}(${userBranch})라 익숙함이 빠르게 생기지만, 같은 방식으로 반응해 오해도 반복될 수 있어요.`
   }
   if (hasBranchPair(SIX_HARMONY, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 합의 신호가 있어 마음이 붙는 속도와 다시 연락하고 싶은 마음을 살펴볼 만하네.`
+    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 합의 신호가 있어 마음이 붙는 속도와 다시 연락하고 싶은 마음을 살펴볼 만해요.`
   }
   if (hasBranchPair(CLASH, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 충의 신호가 있어 끌림과 경계심이 번갈아 올라올 수 있으니 반응의 지속성을 봐야 하네.`
+    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 충의 신호가 있어 끌림과 경계심이 번갈아 올라올 수 있으니 반응의 지속성을 봐야 해요.`
   }
-  return `두 사람의 일지 ${userBranch}·${partnerBranch}는 강한 합충으로만 단정하기보다, 실제 연락과 약속이 이어지는지를 함께 확인해야 하네.`
+  return `두 사람의 일지 ${userBranch}·${partnerBranch}는 강한 합충으로만 단정하기보다, 실제 연락과 약속이 이어지는지를 함께 확인해야 해요.`
 }
 
 function mindSignal(analysis: SajuAnalysis): string {
   const hasRelationshipStar = analysis.tenGods.some((god) => ['정재', '편재', '정관', '편관'].includes(god))
   const hasOutput = analysis.tenGods.some((god) => ['식신', '상관'].includes(god))
-  if (hasRelationshipStar && hasOutput) return '마음이 움직이면 표현으로 옮길 가능성은 있으나, 확신이 없을 때는 말보다 행동을 늦추는 결이 함께 보이네.'
-  if (hasRelationshipStar) return '관계에 대한 감지는 빠른 편이나, 안전하다는 확신이 생기기 전까지는 마음을 안으로 확인하는 시간이 필요하네.'
-  if (hasOutput) return '호감의 신호를 말이나 분위기로 먼저 느끼는 편이라, 상대의 단발성 표현보다 반복되는 행동을 기준으로 봐야 하네.'
-  return '상대의 마음을 빠르게 결론 내리기보다, 한 번의 연락보다 반복되는 반응과 약속 이행을 기준으로 읽는 편이 맞네.'
+  if (hasRelationshipStar && hasOutput) return '마음이 움직이면 표현으로 옮길 가능성은 있으나, 확신이 없을 때는 말보다 행동을 늦추는 결이 함께 보여요.'
+  if (hasRelationshipStar) return '관계에 대한 감지는 빠른 편이나, 안전하다는 확신이 생기기 전까지는 마음을 안으로 확인하는 시간이 필요해요.'
+  if (hasOutput) return '호감의 신호를 말이나 분위기로 먼저 느끼는 편이라, 상대의 단발성 표현보다 반복되는 행동을 기준으로 봐야 해요.'
+  return '상대의 마음을 빠르게 결론 내리기보다, 한 번의 연락보다 반복되는 반응과 약속 이행을 기준으로 읽는 편이 맞아요.'
 }
 
 function timingLine(analysis: SajuAnalysis): string {
-  if (!analysis.fortune) return '대운·세운은 상대의 마음을 확정하는 도구가 아니라, 자네가 관계를 확인하기 좋은 속도를 살피는 기준으로 보겠네.'
-  return `자네의 현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}일세. 이 흐름은 상대의 마음을 보증하는 표식이 아니라, 자네가 신호를 확인하고 경계를 세울 타이밍으로 읽게.`
+  if (!analysis.fortune) return '대운·세운은 상대의 마음을 확정하는 도구가 아니라, 당신이 관계를 확인하기 좋은 속도를 살피는 기준으로 볼게요.'
+  return `당신의 현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}입니다. 이 흐름은 상대의 마음을 보증하는 표식이 아니라, 당신이 신호를 확인하고 경계를 세울 타이밍으로 읽으세요.`
 }
 
 function compact(text: string, fallback: string, limit = 180): string {
   const clean = text.replace(/\s+/g, ' ').trim()
   if (!clean) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
@@ -303,18 +305,18 @@ function buildInterpretation(params: {
   const evidence = chunk
     ? compact(chunk.content, '관계의 마음은 궁합의 결, 연락의 반복, 약속이 이어지는 흐름을 함께 보아야 합니다.')
     : '관계의 마음은 궁합의 결, 연락의 반복, 약속이 이어지는 흐름을 함께 보아야 합니다.'
-  const concern = input.concern ? `자네가 적은 고민은 "${input.concern}"일세.` : '따로 적은 고민은 없으니 최근 신호와 연락의 반복을 중심으로 보겠네.'
+  const concern = input.concern ? `당신이 적은 고민은 "${input.concern}"입니다.` : '따로 적은 고민은 없으니 최근 신호와 연락의 반복을 중심으로 볼게요.'
   const partnerLine = partnerAnalysis && input.partnerBirth
     ? `${input.partnerName || '상대'}의 일지는 ${BRANCH_KO[partnerAnalysis.fourPillars.day.branch]}(${partnerAnalysis.fourPillars.day.branch})이고 일간의 오행은 ${ELEMENT_KO[partnerAnalysis.dayMasterElement]} 쪽이라, ${relationshipGrain(userDay.branch, partnerAnalysis.fourPillars.day.branch)}`
-    : '상대의 생년월일은 입력하지 않았으니 상대의 속마음을 단정하지 않고, 자네 명식과 실제 연락·반응의 흐름으로 확인할 기준을 세우겠네.'
+    : '상대의 생년월일은 입력하지 않았으니 상대의 속마음을 단정하지 않고, 당신 명식과 실제 연락·반응의 흐름으로 확인할 기준을 세울게요.'
 
-  return [
-    `${categoryTitle} 중 "${itemTitle}"를 보겠네. 자네는 ${birth.year}년생이고 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch})라, 관계에서 마음을 감지하는 방식과 상대의 반응을 어떻게 해석하는지를 먼저 살피겠네.`,
+  return applyServiceTone([
+    `${categoryTitle} 중 "${itemTitle}"를 볼게요. 당신은 ${birth.year}년생이고 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch})라, 관계에서 마음을 감지하는 방식과 상대의 반응을 어떻게 해석하는지를 먼저 살필게요.`,
     `${partnerLine} ${mindSignal(analysis)}`,
-    `${timingLine(analysis)} 현재 관계는 "${input.relationshipStage}"이고, 최근 연락은 "${input.contactPattern}", 눈에 들어온 신호는 "${input.recentSignal}"라고 했군. 이 세 가지를 한 장면으로 묶어야 단발성 반응을 마음 전체로 키우지 않게 되네.`,
-    `이 풀이의 참고 결은 이렇네. ${evidence} 그러니 "그 사람이 반드시 나를 생각한다"고 확정하기보다, 먼저 연락하는지·대화를 이어가는지·약속을 지키는지를 같은 기준으로 보게.`,
-    `${concern} 결론은 짧고 부담 없는 확인을 한 번 건넨 뒤, 답장의 내용보다 관계를 이어 가려는 실제 행동을 살피라는 것일세. 반응이 계속 모호하면 자네의 마음을 지키는 거리도 함께 결정해야 하네.`,
-  ].join('\n\n')
+    `${timingLine(analysis)} 현재 관계는 "${input.relationshipStage}"이고, 최근 연락은 "${input.contactPattern}", 눈에 들어온 신호는 "${input.recentSignal}"라고 했어요. 이 세 가지를 한 장면으로 묶어야 단발성 반응을 마음 전체로 키우지 않게 돼요.`,
+    `이 풀이의 참고 결은 이래요. ${evidence} 그러니 "그 사람이 반드시 나를 생각한다"고 확정하기보다, 먼저 연락하는지·대화를 이어가는지·약속을 지키는지를 같은 기준으로 보세요.`,
+    `${concern} 결론은 짧고 부담 없는 확인을 한 번 건넨 뒤, 답장의 내용보다 관계를 이어 가려는 실제 행동을 살피라는 것이에요. 반응이 계속 모호하면 당신의 마음을 지키는 거리도 함께 결정해야 해요.`,
+  ].join('\n\n'), LOVE_MIND_SERVICE_KEY)
 }
 
 export function buildLoveMindReport(

@@ -8,6 +8,7 @@ import {
   neutralizeDosase,
   toneClose,
 } from '../../src/report/report-tone.js'
+import { clipCompleteSentences } from '../../src/report/text-clip.js'
 import {
   buildMoneySaveContext,
   buildMoneySaveReport,
@@ -109,5 +110,25 @@ describe('specialized template tone', () => {
       text.includes('자네') || text.includes('일세') || text.includes('하네') || text.includes('보겠네'),
       'classic 하게체 cue expected for saju_master',
     )
+  })
+})
+
+describe('clipCompleteSentences', () => {
+  it('shortens on sentence boundaries without trailing …', () => {
+    const long =
+      '첫 문장은 완전히 끝납니다. 두 번째 문장도 여기서 끝납니다. 세 번째 문장은 중간에 잘리면 안 되는 긴 내용을 계속 이어 갑니다.'
+    const clipped = clipCompleteSentences(long, 36)
+    assert.equal(clipped.includes('…'), false)
+    assert.equal(clipped.includes('...'), false)
+    assert.match(clipped, /[.!?。]$/)
+    assert.ok(clipped.length <= long.length)
+    assert.ok(clipped.startsWith('첫 문장은'))
+  })
+
+  it('returns full text when there is no sentence boundary rather than mid-cutting', () => {
+    const raw = '문장부호가없는아주긴티저문장이지만중간에자르지않습니다'
+    const clipped = clipCompleteSentences(raw, 12)
+    assert.equal(clipped, raw)
+    assert.equal(clipped.includes('…'), false)
   })
 })

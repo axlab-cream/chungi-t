@@ -61,9 +61,21 @@
     return String(text || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"일세\.\s*/, '');
   }
 
-  function clamp(text, limit) {
+    function clamp(text, limit) {
+    var max = typeof limit === 'number' && limit > 0 ? Math.max(limit, 220) : 220;
+    if (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences) {
+      return window.UMSHTextClip.clipCompleteSentences(text, max);
+    }
     var value = String(text || '').trim();
-    return value.length > limit ? value.slice(0, limit - 1) + '…' : value;
+    if (value.length <= max) return value;
+    var ends = [];
+    var re = /[.!?。]/g;
+    var match;
+    while ((match = re.exec(value)) !== null) ends.push(match.index + 1);
+    var fitting = ends.filter(function (index) { return index <= max; });
+    if (fitting.length) return value.slice(0, fitting[fitting.length - 1]).trim();
+    if (ends.length) return value.slice(0, ends[0]).trim();
+    return value;
   }
 
   /** The sentence of a reading that is specific to this 중분류, not to its 대분류. */

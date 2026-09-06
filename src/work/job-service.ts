@@ -4,6 +4,8 @@ import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const WORK_JOB_SERVICE_KEY = 'work_job'
 
@@ -129,33 +131,33 @@ function careerSignal(tenGods: TenGod[]): string {
   const hasWealth = tenGods.includes('정재') || tenGods.includes('편재')
 
   if (hasOfficer && hasOutput) {
-    return '관성의 책임과 식상의 결과물이 같이 보이니, 시키는 일만 하는 자리보다 성과를 드러내 평가받는 일이 맞을 수 있네.'
+    return '관성의 책임과 식상의 결과물이 같이 보이니, 시키는 일만 하는 자리보다 성과를 드러내 평가받는 일이 맞을 수 있어요.'
   }
   if (hasOfficer) {
-    return '관성이 먼저 보이니, 자유만 큰 자리보다 기준·직함·역할이 분명한 환경에서 힘이 붙기 쉽네.'
+    return '관성이 먼저 보이니, 자유만 큰 자리보다 기준·직함·역할이 분명한 환경에서 힘이 붙기 쉬워요.'
   }
   if (hasOutput && hasWealth) {
     return '식상과 재성이 맞물리니, 만들어낸 결과가 수입과 거래로 이어지는 일에서 감각이 살아나네.'
   }
   if (hasOutput) {
-    return '식상이 살아 있으니, 반복 지시보다 말·기획·제작·표현처럼 밖으로 꺼내는 일이 맞을 수 있네.'
+    return '식상이 살아 있으니, 반복 지시보다 말·기획·제작·표현처럼 밖으로 꺼내는 일이 맞을 수 있어요.'
   }
   if (hasResource) {
-    return '인성이 보이니, 배움·분석·정리·전문성 축적이 쌓일수록 직업운이 안정되는 편일세.'
+    return '인성이 보이니, 배움·분석·정리·전문성 축적이 쌓일수록 직업운이 안정되는 편입니다.'
   }
-  return '십신 하나로 직업을 단정하지 말고, 책임과 결과물과 보상의 흐름을 함께 놓고 봐야 하네.'
+  return '십신 하나로 직업을 단정하지 말고, 책임과 결과물과 보상의 흐름을 함께 놓고 봐야 해요.'
 }
 
 function timingLine(analysis: SajuAnalysis): string {
   const fortune = analysis.fortune
-  if (!fortune) return '대운·세운은 단정하지 않고, 현재 명식에서 드러난 직업 적성 신호를 먼저 보겠네.'
-  return `현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}일세. 이 흐름은 직업명이 아니라 지금 맡아야 할 역할의 방향을 알려 주는 표식으로 보게.`
+  if (!fortune) return '대운·세운은 단정하지 않고, 현재 명식에서 드러난 직업 적성 신호를 먼저 볼게요.'
+  return `현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}입니다. 이 흐름은 직업명이 아니라 지금 맡아야 할 역할의 방향을 알려 주는 표식으로 보세요.`
 }
 
 function compact(text: string, fallback: string, limit = 180): string {
   const clean = text.replace(/\s+/g, ' ').trim()
   if (!clean) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
@@ -181,17 +183,17 @@ function buildInterpretation(params: {
   const monthPillar = `${pillar.month.stem}${pillar.month.branch}`
   const dayMaster = `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`
   const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : ELEMENT_KO[analysis.weakElement]
-  const style = input.workStyle ? `자네가 적은 업무 방식은 "${input.workStyle}"일세.` : '업무 방식은 비워 두었으니 명식의 기본 일 처리 방식을 먼저 보겠네.'
-  const stress = input.mainStress ? `지금 가장 눌리는 지점은 "${input.mainStress}"로 보았네.` : '압박 지점은 따로 적지 않았으니 책임과 결과물의 균형을 중심으로 보겠네.'
-  const direction = input.wantedDirection ? `바라는 방향은 "${input.wantedDirection}"라 했군.` : '바라는 방향은 비워 두었으니 현재 일의 맞고 안 맞음을 먼저 가르겠네.'
+  const style = input.workStyle ? `당신이 적은 업무 방식은 "${input.workStyle}"입니다.` : '업무 방식은 비워 두었으니 명식의 기본 일 처리 방식을 먼저 볼게요.'
+  const stress = input.mainStress ? `지금 가장 눌리는 지점은 "${input.mainStress}"로 보았네.` : '압박 지점은 따로 적지 않았으니 책임과 결과물의 균형을 중심으로 볼게요.'
+  const direction = input.wantedDirection ? `바라는 방향은 "${input.wantedDirection}"라 했어요.` : '바라는 방향은 비워 두었으니 현재 일의 맞고 안 맞음을 먼저 가르겠네.'
 
-  return [
-    `${categoryTitle} 중 "${itemTitle}"를 보겠네. 자네는 ${birth.year}년생이고 일간은 ${dayMaster}, 사회적 무대는 월주 ${monthPillar}에서 먼저 살펴야 하네.`,
-    `${timingLine(analysis)} 보완할 기운은 ${useful} 쪽으로 잡히니, 지금 하는 일 "${input.currentJob}"이 그 기운을 쓰게 해 주는지가 핵심일세.`,
+  return applyServiceTone([
+    `${categoryTitle} 중 "${itemTitle}"를 볼게요. 당신은 ${birth.year}년생이고 일간은 ${dayMaster}, 사회적 무대는 월주 ${monthPillar}에서 먼저 살펴야 해요.`,
+    `${timingLine(analysis)} 보완할 기운은 ${useful} 쪽으로 잡히니, 지금 하는 일 "${input.currentJob}"이 그 기운을 쓰게 해 주는지가 핵심입니다.`,
     `${careerSignal(analysis.tenGods)} ${style} ${stress} ${direction}`,
-    `참고 결은 이렇네. ${ragLine} 그러니 이 풀이는 특정 직업 하나를 찍는 방식이 아니라, 자네가 오래 버틸 수 있는 업무 구조를 찾는 방식으로 읽게.`,
-    `결론은 이렇네. 지금 일이 맞는지 보려면 재미보다 먼저 회복 속도, 평가 방식, 결과물이 남는지를 확인해야 하네. 세 가지 중 둘 이상이 계속 막힌다면 일 자체보다 자리의 구조를 바꿔야 할 때일세.`,
-  ].join('\n\n')
+    `참고 결은 이래요. ${ragLine} 그러니 이 풀이는 특정 직업 하나를 찍는 방식이 아니라, 당신이 오래 버틸 수 있는 업무 구조를 찾는 방식으로 읽으세요.`,
+    `결론은 이래요. 지금 일이 맞는지 보려면 재미보다 먼저 회복 속도, 평가 방식, 결과물이 남는지를 확인해야 해요. 세 가지 중 둘 이상이 계속 막힌다면 일 자체보다 자리의 구조를 바꿔야 할 때입니다.`,
+  ].join('\n\n'), WORK_JOB_SERVICE_KEY)
 }
 
 export function buildWorkJobReport(

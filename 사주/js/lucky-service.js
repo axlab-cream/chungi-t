@@ -76,9 +76,21 @@
     return (parts[preferred] || parts[0] || '').replace(/^이 대목에서 함께 볼 결은 이렇습니다\.\s*/, '');
   }
 
-  function clamp(text, limit) {
-    const value = String(text || '').trim();
-    return value.length > limit ? `${value.slice(0, limit - 1)}…` : value;
+    function clamp(text, limit) {
+    var max = typeof limit === 'number' && limit > 0 ? Math.max(limit, 220) : 220;
+    if (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences) {
+      return window.UMSHTextClip.clipCompleteSentences(text, max);
+    }
+    var value = String(text || '').trim();
+    if (value.length <= max) return value;
+    var ends = [];
+    var re = /[.!?。]/g;
+    var match;
+    while ((match = re.exec(value)) !== null) ends.push(match.index + 1);
+    var fitting = ends.filter(function (index) { return index <= max; });
+    if (fitting.length) return value.slice(0, fitting[fitting.length - 1]).trim();
+    if (ends.length) return value.slice(0, ends[0]).trim();
+    return value;
   }
 
   function mountChrome() {

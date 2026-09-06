@@ -13,6 +13,8 @@ import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const CAT_COMPAT_SERVICE_KEY = 'cat_compatibility'
 
@@ -356,39 +358,39 @@ type ChartSeat = 'strength' | 'output' | 'branch' | 'balance' | 'official' | 'el
 
 function strengthLine(analysis: SajuAnalysis): string {
   if (analysis.dayMasterStrength === 'strong') {
-    return '자네 일간이 단단한 편이라 챙기는 힘은 넉넉하네. 다만 그 힘이 상대의 속도를 앞질러 나갈 때가 있네.'
+    return '당신 일간이 단단한 편이라 챙기는 힘은 넉넉해요. 다만 그 힘이 상대의 속도를 앞질러 나갈 때가 있어요.'
   }
   if (analysis.dayMasterStrength === 'weak') {
-    return '자네 일간이 여린 편이라 한 번에 많이 쏟으면 뒤가 비네. 조금씩 오래 가는 방식이 맞네.'
+    return '당신 일간이 여린 편이라 한 번에 많이 쏟으면 뒤가 비네. 조금씩 오래 가는 방식이 맞아요.'
   }
-  return '자네 일간이 균형에 가까워, 챙기는 양보다 언제 챙기는지가 결과를 가르네.'
+  return '당신 일간이 균형에 가까워, 챙기는 양보다 언제 챙기는지가 결과를 가려요.'
 }
 
 function outputLine(analysis: SajuAnalysis): string {
   const stars = ownedStars(analysis, OUTPUT_STARS)
   if (!stars.length) {
-    return '원국에 식상이 얇아 마음이 있어도 표현이 늦게 나가네. 말보다 손길과 시간으로 전해지는 쪽일세.'
+    return '원국에 식상이 얇아 마음이 있어도 표현이 늦게 나가요. 말보다 손길과 시간으로 전해지는 쪽이에요.'
   }
-  return `원국의 식상은 ${subject(stars.join('·'))} 잡히니 표현이 밖으로 잘 나가네. 다만 사람에게 통하는 크기가 고양이에게는 클 수 있네.`
+  return `원국의 식상은 ${subject(stars.join('·'))} 잡히니 표현이 밖으로 잘 나가요. 다만 사람에게 통하는 크기가 고양이에게는 클 수 있어요.`
 }
 
 function branchLine(analysis: SajuAnalysis): string {
   const day = analysis.fourPillars.day
-  return `자네 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 이 자리가 자네가 편안해지는 거리와 자리를 정하네. 그 거리가 고양이의 거리와 늘 같지는 않네.`
+  return `당신 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 이 자리가 당신이 편안해지는 거리와 자리를 정해요. 그 거리가 고양이의 거리와 늘 같지는 않아요.`
 }
 
 function balanceLine(analysis: SajuAnalysis): string {
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const weak = ELEMENT_KO[analysis.weakElement]
-  return `원국은 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으니, 하루의 리듬도 ${dominant} 쪽으로 몰리기 쉽네. 몰리는 자리와 비는 자리를 먼저 알아 두게.`
+  return `원국은 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으니, 하루의 리듬도 ${dominant} 쪽으로 몰리기 쉬워요. 몰리는 자리와 비는 자리를 먼저 알아 두세요.`
 }
 
 function officialLine(analysis: SajuAnalysis): string {
   const stars = ownedStars(analysis, OFFICIAL_STARS)
   if (!stars.length) {
-    return '원국에 관성이 드러나지 않아 규칙을 스스로 만들어야 하네. 규칙이 없으면 부딪힘이 매번 처음처럼 느껴지네.'
+    return '원국에 관성이 드러나지 않아 규칙을 스스로 만들어야 해요. 규칙이 없으면 부딪힘이 매번 처음처럼 느껴지네.'
   }
-  return `원국의 관성은 ${subject(stars.join('·'))} 잡히니 규칙과 책임을 세우는 힘이 있네. 그 힘이 통제로 기울면 상대가 먼저 물러나네.`
+  return `원국의 관성은 ${subject(stars.join('·'))} 잡히니 규칙과 책임을 세우는 힘이 있어요. 그 힘이 통제로 기울면 상대가 먼저 물러나네.`
 }
 
 const ELEMENT_CARE: Array<[Element, string, string]> = [
@@ -406,24 +408,24 @@ function elementsLine(analysis: SajuAnalysis): string {
     .filter(([element]) => counts[element] === Math.min(...ELEMENT_CARE.map(([key]) => counts[key])))
     .map(([, short, gloss]) => `${short}(${gloss})`)
     .join('·')
-  return `원국의 오행은 ${tally}로 잡히네. 가장 얇은 자리는 ${thin}이니, 그 자리를 케어 루틴으로 메우는 것이 이 장의 방식일세.`
+  return `원국의 오행은 ${tally}로 잡혀요. 가장 얇은 자리는 ${thin}이니, 그 자리를 케어 루틴으로 메우는 것이 이 장의 방식입니다.`
 }
 
 function timingLine(analysis: SajuAnalysis, input: CatCompatRequest): string {
   const fortune = analysis.fortune
   const event = input.upcomingEvent === 'none'
-    ? '예정된 일정을 따로 적지 않았으니, 바꾸려는 것이 생겼을 때 이 장을 다시 보게.'
-    : `예정된 일정은 ${copula(EVENT_LABEL[input.upcomingEvent])} 하였으니 그 전후로 생활을 흔들지 않는 것이 먼저일세.`
-  if (!fortune) return `대운과 세운은 단정하지 않고 지금 원국에 드러난 조건으로 보겠네. ${event}`
-  return `자네의 현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}일세. ${event}`
+    ? '예정된 일정을 따로 적지 않았으니, 바꾸려는 것이 생겼을 때 이 장을 다시 보세요.'
+    : `예정된 일정은 ${copula(EVENT_LABEL[input.upcomingEvent])} 하였으니 그 전후로 생활을 흔들지 않는 것이 먼저입니다.`
+  if (!fortune) return `대운과 세운은 단정하지 않고 지금 원국에 드러난 조건으로 볼게요. ${event}`
+  return `당신의 현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}입니다. ${event}`
 }
 
 function resourceLine(analysis: SajuAnalysis): string {
   const stars = ownedStars(analysis, RESOURCE_STARS)
   if (!stars.length) {
-    return '원국에 인성이 얇아 스스로 채우는 통로가 좁네. 쉬는 시간을 미리 정해 두지 않으면 소모가 빨리 오네.'
+    return '원국에 인성이 얇아 스스로 채우는 통로가 좁네. 쉬는 시간을 미리 정해 두지 않으면 소모가 빨리 와요.'
   }
-  return `원국의 인성은 ${subject(stars.join('·'))} 잡히니 채우는 통로가 있네. 그 통로를 돌봄에만 쓰면 자네 쪽이 먼저 마르네.`
+  return `원국의 인성은 ${subject(stars.join('·'))} 잡히니 채우는 통로가 있어요. 그 통로를 돌봄에만 쓰면 당신 쪽이 먼저 마르네.`
 }
 
 function seatLine(seat: ChartSeat, analysis: SajuAnalysis, input: CatCompatRequest): string {
@@ -467,7 +469,7 @@ function compact(text: string, fallback: string, limit = 160): string {
     .join(' ')
   const clean = stripped.replace(/\s+/g, ' ').trim()
   if (clean.length < 12) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 /** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
@@ -523,9 +525,9 @@ function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
  * of each item. Without this the five items of a group would open the same way.
  */
 const ITEM_ANGLES = [
-  '지금 생활에서 실제로 어떻게 나타나는지부터 보네.',
-  '내가 하는 쪽과 고양이가 받는 쪽을 갈라 놓고 보네.',
-  '오늘 바꿔 볼 수 있는 한 가지로 좁혀 보네.',
+  '지금 생활에서 실제로 어떻게 나타나는지부터 보여요.',
+  '내가 하는 쪽과 고양이가 받는 쪽을 갈라 놓고 보여요.',
+  '오늘 바꿔 볼 수 있는 한 가지로 좁혀 보여요.',
 ]
 
 /**
@@ -544,8 +546,8 @@ function catLine(input: CatCompatRequest): string {
   const tags = input.behaviorTags.length ? input.behaviorTags.join('·') : '적어 둔 성향 태그 없음'
   const age = input.ageBand === 'unknown'
     ? '나이는 모른다 하였으니 생일 대신 행동으로만 읽겠네'
-    : `${AGE_LABEL[input.ageBand]} 구간이라 하였네`
-  return `${topic(input.catName)} ${HOUSEHOLD_LABEL[input.household]}에서 지내고, ${age}. 성향은 ${tags}, 손길은 ${TOUCH_LABEL[input.touchStyle]}, 놀이는 ${copula(PLAY_LABEL[input.playEnergy])} 하였네.`
+    : `${AGE_LABEL[input.ageBand]} 구간이라 했어요`
+  return `${topic(input.catName)} ${HOUSEHOLD_LABEL[input.household]}에서 지내고, ${age}. 성향은 ${tags}, 손길은 ${TOUCH_LABEL[input.touchStyle]}, 놀이는 ${copula(PLAY_LABEL[input.playEnergy])} 했어요.`
 }
 
 function buildInterpretation(params: {
@@ -566,20 +568,20 @@ function buildInterpretation(params: {
     '함께 사는 궁합은 애정의 크기보다 생활의 박자와 회복하는 방식에서 갈립니다.',
   )
   const worry = input.note
-    ? `적어 준 말은 "${input.note}"일세.`
-    : '따로 적은 말은 없으니 반복되는 장면을 중심으로 보겠네.'
+    ? `적어 준 말은 "${input.note}"입니다.`
+    : '따로 적은 말은 없으니 반복되는 장면을 중심으로 볼게요.'
   const routine = input.routineFlags.length
-    ? `루틴에서 걸리는 것은 ${copula(input.routineFlags.join('·'))} 하였네.`
-    : '루틴에서 크게 걸리는 것은 없다 하였네.'
+    ? `루틴에서 걸리는 것은 ${copula(input.routineFlags.join('·'))} 했어요.`
+    : '루틴에서 크게 걸리는 것은 없다 했어요.'
 
-  return [
-    `${group.label} ${group.title} 중 "${itemTitle}"일세. 자네는 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), ${catLine(input)}`,
+  return applyServiceTone([
+    `${group.label} ${group.title} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), ${catLine(input)}`,
     `${itemNote} ${itemTitle} 항목은 ${ITEM_ANGLES[itemIndex % ITEM_ANGLES.length]} ${seatLine(seat, analysis, input)}`,
-    `${group.subtitle} ${routine} 가장 먼저 보고 싶다 한 자리는 ${copula(FOCUS_LABEL[input.focusArea])} 하였으니, 이 장은 그 자리와 이어 붙여 읽으면 되네.`,
-    `${timingLine(analysis, input)} 이 풀이는 고양이의 병이나 수명을 말하는 자리가 아닐세. 건강이 걱정되면 수의사에게 먼저 보이는 것이 순서일세.`,
-    `참고할 결은 이렇네. ${ragLine} 그러니 결론을 서두르지 말고, 무엇을 바꿀 수 있고 무엇을 기다려야 하는지부터 가르게.`,
-    `${worry} 오늘 해 볼 것은 이것일세. ${itemNote.replace(/봅니다\.$|살핍니다\.$|잡습니다\.$|가릅니다\.$|둡니다\.$/, '한 번만 확인해 보게.')} 사람의 방식이 아니라 ${input.catName}의 반응으로 확인하게. 고양이는 설명이 아니라 거리로 대답하네.`,
-  ].join('\n\n')
+    `${group.subtitle} ${routine} 가장 먼저 보고 싶다 한 자리는 ${copula(FOCUS_LABEL[input.focusArea])} 하였으니, 이 장은 그 자리와 이어 붙여 읽으면 돼요.`,
+    `${timingLine(analysis, input)} 이 풀이는 고양이의 병이나 수명을 말하는 자리가 아니에요. 건강이 걱정되면 수의사에게 먼저 보이는 것이 순서입니다.`,
+    `참고할 결은 이래요. ${ragLine} 그러니 결론을 서두르지 말고, 무엇을 바꿀 수 있고 무엇을 기다려야 하는지부터 가르게.`,
+    `${worry} 오늘 해 볼 것은 이것이에요. ${itemNote.replace(/봅니다\.$|살핍니다\.$|잡습니다\.$|가릅니다\.$|둡니다\.$/, '한 번만 확인해 보세요.')} 사람의 방식이 아니라 ${input.catName}의 반응으로 확인하게. 고양이는 설명이 아니라 거리로 대답해요.`,
+  ].join('\n\n'), CAT_COMPAT_SERVICE_KEY)
 }
 
 export function buildCatCompatReport(

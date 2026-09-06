@@ -48,7 +48,9 @@
     var value = String(text || '').trim();
     var sentences = value.split(/(?<=[.!?])\s+/).slice(0, count).join(' ').trim();
     if (!sentences) sentences = value;
-    return sentences.length > limit ? sentences.slice(0, limit - 1) + '…' : sentences;
+    return (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences)
+      ? window.UMSHTextClip.clipCompleteSentences(sentences, Math.max(limit, 220))
+      : (sentences.length > limit ? sentences.split(/(?<=[.!?。])/).slice(0, 2).join('').trim() : sentences);
   }
 
   function patch(id, transform) {
@@ -100,7 +102,7 @@
    * both above the text, so repeating them inside 한 줄 결론 reads as filler.
    */
   function dropOpeningLabel(text) {
-    return String(text || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"일세\.\s*/, '');
+    return String(text || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"(?:일세|입니다)\.\s*/, '');
   }
 
   patch('DETAIL_DATA', function (details) {

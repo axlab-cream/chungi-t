@@ -12,6 +12,8 @@ import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const MARRY_MATCH_SERVICE_KEY = 'marry_match'
 
@@ -361,15 +363,15 @@ function hasBranchPair(map: Map<string, string>, a: EarthlyBranch, b: EarthlyBra
 
 function branchRelation(userBranch: EarthlyBranch, partnerBranch: EarthlyBranch): string {
   if (userBranch === partnerBranch) {
-    return `두 사람의 일지가 모두 ${BRANCH_KO[userBranch]}(${userBranch})라 가까워질수록 비슷한 반응이 반복될 수 있네.`
+    return `두 사람의 일지가 모두 ${BRANCH_KO[userBranch]}(${userBranch})라 가까워질수록 비슷한 반응이 반복될 수 있어요.`
   }
   if (hasBranchPair(SIX_HARMONY, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 합의 신호가 있어 마음이 붙는 속도를 살펴볼 만하네.`
+    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 합의 신호가 있어 마음이 붙는 속도를 살펴볼 만해요.`
   }
   if (hasBranchPair(CLASH, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 충의 신호가 있어 끌림과 생활 마찰을 나누어 봐야 하네.`
+    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 충의 신호가 있어 끌림과 생활 마찰을 나누어 봐야 해요.`
   }
-  return `두 사람의 일지 ${userBranch}·${partnerBranch}는 강한 합충으로만 단정하지 말고, 생활 리듬과 책임 배분까지 같이 봐야 하네.`
+  return `두 사람의 일지 ${userBranch}·${partnerBranch}는 강한 합충으로만 단정하지 말고, 생활 리듬과 책임 배분까지 같이 봐야 해요.`
 }
 
 function spouseStar(gender: BirthInput['gender']): string {
@@ -380,9 +382,9 @@ function timingLine(user: SajuAnalysis, partner: SajuAnalysis): string {
   const userFortune = user.fortune
   const partnerFortune = partner.fortune
   if (!userFortune || !partnerFortune) {
-    return '대운·세운은 한쪽만으로 결혼을 확정하지 않고, 두 사람의 현재 명식 반응을 먼저 보겠네.'
+    return '대운·세운은 한쪽만으로 결혼을 확정하지 않고, 두 사람의 현재 명식 반응을 먼저 볼게요.'
   }
-  return `자네의 현재 대운은 ${userFortune.currentDaewoon}, 올해 세운은 ${userFortune.yearPillar}이고, 상대 쪽은 현재 대운 ${partnerFortune.currentDaewoon}, 올해 세운 ${partnerFortune.yearPillar}로 보네.`
+  return `당신의 현재 대운은 ${userFortune.currentDaewoon}, 올해 세운은 ${userFortune.yearPillar}이고, 상대 쪽은 현재 대운 ${partnerFortune.currentDaewoon}, 올해 세운 ${partnerFortune.yearPillar}로 보여요.`
 }
 
 /**
@@ -402,7 +404,7 @@ function compact(text: string, fallback: string, limit = 160): string {
     .join(' ')
   const clean = stripped.replace(/\s+/g, ' ').trim()
   if (clean.length < 12) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 /** Korean particles depend on the last syllable's final consonant. */
@@ -479,61 +481,61 @@ function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
  */
 const GROUP_LENS: Record<string, { lead: string; focus: string; close: string }> = {
   'self-base': {
-    lead: '먼저 자네 쪽 기본값부터 보겠네.',
-    focus: '연애할 때 자네가 먼저 움직이는지 기다리는지, 표현이 말로 나오는지 행동으로 나오는지가 여기서 갈리네.',
-    close: '자네 기본값을 먼저 알아야 상대에게 맞추는 것과 나를 지우는 것을 구분할 수 있네.',
+    lead: '먼저 당신 쪽 기본값부터 볼게요.',
+    focus: '연애할 때 당신이 먼저 움직이는지 기다리는지, 표현이 말로 나오는지 행동으로 나오는지가 여기서 갈려요.',
+    close: '당신 기본값을 먼저 알아야 상대에게 맞추는 것과 나를 지우는 것을 구분할 수 있어요.',
   },
   'partner-base': {
-    lead: `이번에는 상대 쪽 기본값을 보겠네.`,
-    focus: '상대가 애정을 어떻게 드러내는지, 약속을 어떤 무게로 다루는지, 부딪혔을 때 어디로 물러서는지를 보네.',
-    close: '상대를 좋은 사람인지 나쁜 사람인지로 나누지 말고, 어떤 방식으로 움직이는 사람인지로 읽게.',
+    lead: `이번에는 상대 쪽 기본값을 볼게요.`,
+    focus: '상대가 애정을 어떻게 드러내는지, 약속을 어떤 무게로 다루는지, 부딪혔을 때 어디로 물러서는지를 보여요.',
+    close: '상대를 좋은 사람인지 나쁜 사람인지로 나누지 말고, 어떤 방식으로 움직이는 사람인지로 읽으세요.',
   },
   chemistry: {
-    lead: '두 사람의 기운이 만나는 자리를 보겠네.',
-    focus: '오행이 서로 채워 주는지 같은 쪽으로 몰리는지, 대화가 붙는 자리와 쉽게 지치는 자리가 어디인지를 보네.',
+    lead: '두 사람의 기운이 만나는 자리를 볼게요.',
+    focus: '오행이 서로 채워 주는지 같은 쪽으로 몰리는지, 대화가 붙는 자리와 쉽게 지치는 자리가 어디인지를 보여요.',
     close: '케미는 잘 맞고 안 맞고가 아니라, 오래 붙어 있을 때 서로가 회복되는지 소모되는지로 판단하게.',
   },
   'marriage-angle': {
-    lead: '연애의 온도와 결혼의 조건을 나누어 보겠네.',
-    focus: '설렘으로 유지되는 관계인지, 생활을 나눠도 버티는 관계인지가 여기서 드러나네.',
-    close: '결혼각은 마음의 크기가 아니라, 현실 조건을 함께 말할 수 있는지에서 갈리네.',
+    lead: '연애의 온도와 결혼의 조건을 나누어 볼게요.',
+    focus: '설렘으로 유지되는 관계인지, 생활을 나눠도 버티는 관계인지가 여기서 드러나요.',
+    close: '결혼각은 마음의 크기가 아니라, 현실 조건을 함께 말할 수 있는지에서 갈려요.',
   },
   timing: {
-    lead: '시기를 보겠네.',
-    focus: '대운이 생활 무대를 바꾸는 구간인지, 올해 흐름이 관계를 공식화하기 좋은 쪽인지를 보네.',
-    close: '좋은 시기라도 준비가 비면 흔들리고, 빡빡한 시기라도 순서를 맞추면 넘어가네. 날짜보다 순서가 먼저일세.',
+    lead: '시기를 볼게요.',
+    focus: '대운이 생활 무대를 바꾸는 구간인지, 올해 흐름이 관계를 공식화하기 좋은 쪽인지를 보여요.',
+    close: '좋은 시기라도 준비가 비면 흔들리고, 빡빡한 시기라도 순서를 맞추면 넘어가요. 날짜보다 순서가 먼저입니다.',
   },
   'red-flag': {
-    lead: '넘기지 말아야 할 신호를 보겠네.',
-    focus: '같은 이유로 반복되는 다툼인지, 한쪽만 참고 있는 구조인지를 보네.',
-    close: '헤어지라는 말이 아닐세. 지금 말하지 않으면 결혼 뒤에 더 커지는 주제가 무엇인지 짚는 자리일세.',
+    lead: '넘기지 말아야 할 신호를 볼게요.',
+    focus: '같은 이유로 반복되는 다툼인지, 한쪽만 참고 있는 구조인지를 보여요.',
+    close: '헤어지라는 말이 아니에요. 지금 말하지 않으면 결혼 뒤에 더 커지는 주제가 무엇인지 짚는 자리예요.',
   },
   'daily-life': {
-    lead: '같이 살았을 때의 하루를 그려 보겠네.',
-    focus: '돈을 쓰는 속도, 쉬는 방식, 집을 대하는 취향처럼 매일 반복되는 것에서 궁합이 드러나네.',
-    close: '생활 궁합은 취향이 같아야 좋은 것이 아니라, 다를 때 조정할 방법이 있느냐로 결정되네.',
+    lead: '같이 살았을 때의 하루를 그려 볼게요.',
+    focus: '돈을 쓰는 속도, 쉬는 방식, 집을 대하는 취향처럼 매일 반복되는 것에서 궁합이 드러나요.',
+    close: '생활 궁합은 취향이 같아야 좋은 것이 아니라, 다를 때 조정할 방법이 있느냐로 결정돼요.',
   },
   recovery: {
-    lead: '지금 자네 마음의 자리를 먼저 보겠네.',
-    focus: '불안이 관계에서 온 것인지 자네 안의 흐름에서 온 것인지를 나누어야 하네.',
-    close: '관계를 붙잡는 일보다 자네가 자네로 남는 일이 먼저일세. 그 순서가 지켜져야 회복도 가능하네.',
+    lead: '지금 당신 마음의 자리를 먼저 볼게요.',
+    focus: '불안이 관계에서 온 것인지 당신 안의 흐름에서 온 것인지를 나누어야 해요.',
+    close: '관계를 붙잡는 일보다 당신이 당신로 남는 일이 먼저입니다. 그 순서가 지켜져야 회복도 가능해요.',
   },
   action: {
-    lead: '오늘 바로 해 볼 것을 정하겠네.',
-    focus: '큰 결정을 미루더라도 작은 대화 하나는 이번 주에 열 수 있네.',
-    close: '한 번에 결론을 내려 하지 말고, 작은 확인을 여러 번 쌓게. 그것이 가장 정확한 방법일세.',
+    lead: '오늘 바로 해 볼 것을 정할게요.',
+    focus: '큰 결정을 미루더라도 작은 대화 하나는 이번 주에 열 수 있어요.',
+    close: '한 번에 결론을 내려 하지 말고, 작은 확인을 여러 번 쌓으세요. 그것이 가장 정확한 방법이에요.',
   },
   label: {
-    lead: '지금까지 본 것을 한 줄로 묶어 보겠네.',
-    focus: '라벨은 판정이 아니라 지금 상태를 부르기 쉽게 만든 이름일세.',
-    close: '라벨은 고정된 성적이 아니라 이번 구간의 온도일세. 조건이 바뀌면 라벨도 바뀌네.',
+    lead: '지금까지 본 것을 한 줄로 묶어 볼게요.',
+    focus: '라벨은 판정이 아니라 지금 상태를 부르기 쉽게 만든 이름이에요.',
+    close: '라벨은 고정된 성적이 아니라 이번 구간의 온도예요. 조건이 바뀌면 라벨도 바뀌어요.',
   },
 }
 
 const DEFAULT_LENS = {
-  lead: '이 항목을 보겠네.',
-  focus: '두 사람의 기본값과 흐름을 같이 놓고 보네.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가게.',
+  lead: '이 항목을 볼게요.',
+  focus: '두 사람의 기본값과 흐름을 같이 놓고 보여요.',
+  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
 }
 
 function buildInterpretation(params: {
@@ -555,20 +557,20 @@ function buildInterpretation(params: {
   const ragLine = ragLineFrom(chunk, '결혼 궁합은 끌림보다 생활, 책임, 돈의 배분을 함께 봐야 합니다.')
   const partnerLabel = input.partnerName || '상대'
   const stage = input.relationshipStage ? `지금은 "${input.relationshipStage}" 단계라 적었으니 그 속도에 맞춰 읽겠네.` : ''
-  const plan = input.marriagePlan ? `결혼 생각은 ${instrumental(`"${input.marriagePlan}"`)} 적었군.` : '결혼 시점은 비워 두었으니 관계의 안정성부터 보겠네.'
-  const concern = input.concern ? `지금 걸리는 말은 "${input.concern}"일세.` : '따로 적은 고민은 없으니 반복될 생활 장면을 중심으로 보겠네.'
+  const plan = input.marriagePlan ? `결혼 생각은 ${instrumental(`"${input.marriagePlan}"`)} 적었군.` : '결혼 시점은 비워 두었으니 관계의 안정성부터 볼게요.'
+  const concern = input.concern ? `지금 걸리는 말은 "${input.concern}"입니다.` : '따로 적은 고민은 없으니 반복될 생활 장면을 중심으로 볼게요.'
   const userElement = ELEMENT_KO[userAnalysis.dominantElement]
   const partnerElement = ELEMENT_KO[partnerAnalysis.dominantElement]
   const userWeak = ELEMENT_KO[userAnalysis.weakElement]
 
-  return [
-    `${lens.lead} ${categoryTitle} 중 "${itemTitle}"일세. 자네는 ${userBirth.year}년생이고, 자네 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch}), ${partnerLabel}의 일지는 ${copula(BRANCH_KO[partnerDay.branch])} 배우자궁을 먼저 대조하겠네.`,
-    `${branchRelation(userDay.branch, partnerDay.branch)} 자네에게 배우자성은 ${spouseStar(userBirth.gender)} 쪽이고, 상대에게 배우자성은 ${spouseStar(input.partnerBirth.gender)} 쪽이라 책임과 현실감이 어떻게 오가는지를 봐야 하네.`,
-    `${lens.focus} 자네는 ${userElement} 기운이 앞서고 ${userWeak} 기운이 비어 있으며, ${topic(partnerLabel)} ${partnerElement} 기운이 앞서네. 같은 쪽으로 몰리면 속도가 붙고, 다른 쪽이면 서로의 빈자리를 메우는 대신 설명이 더 필요하네.`,
-    `${timingLine(userAnalysis, partnerAnalysis)} ${stage} 이 흐름은 "반드시 결혼한다"는 말이 아니라, 결혼 이야기를 꺼낼 때 어디서 힘이 붙고 어디서 방어가 올라오는지를 보는 기준일세.`,
-    `참고 결은 이렇네. ${ragLine} 그러니 이 궁합은 점수로 맞고 틀림을 가르는 풀이가 아니라, 두 사람이 가까워질수록 편해지는지 피곤해지는지를 나누는 풀이로 읽게.`,
-    `${plan} ${concern} ${lens.close} 약속의 크기를 키우기 전에 돈, 가족, 주거, 일의 책임을 작은 단위로 맞춰 보게. 그 대화에서 피하지 않는다면 결혼으로 갈 힘이 생기고, 계속 흐리면 아직은 더 지켜봐야 하네.`,
-  ].join('\n\n')
+  return applyServiceTone([
+    `${lens.lead} ${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${userBirth.year}년생이고, 당신 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch}), ${partnerLabel}의 일지는 ${copula(BRANCH_KO[partnerDay.branch])} 배우자궁을 먼저 대조할게요.`,
+    `${branchRelation(userDay.branch, partnerDay.branch)} 당신에게 배우자성은 ${spouseStar(userBirth.gender)} 쪽이고, 상대에게 배우자성은 ${spouseStar(input.partnerBirth.gender)} 쪽이라 책임과 현실감이 어떻게 오가는지를 봐야 해요.`,
+    `${lens.focus} 당신은 ${userElement} 기운이 앞서고 ${userWeak} 기운이 비어 있으며, ${topic(partnerLabel)} ${partnerElement} 기운이 앞서요. 같은 쪽으로 몰리면 속도가 붙고, 다른 쪽이면 서로의 빈자리를 메우는 대신 설명이 더 필요해요.`,
+    `${timingLine(userAnalysis, partnerAnalysis)} ${stage} 이 흐름은 "반드시 결혼한다"는 말이 아니라, 결혼 이야기를 꺼낼 때 어디서 힘이 붙고 어디서 방어가 올라오는지를 보는 기준이에요.`,
+    `참고 결은 이래요. ${ragLine} 그러니 이 궁합은 점수로 맞고 틀림을 가르는 풀이가 아니라, 두 사람이 가까워질수록 편해지는지 피곤해지는지를 나누는 풀이로 읽으세요.`,
+    `${plan} ${concern} ${lens.close} 약속의 크기를 키우기 전에 돈, 가족, 주거, 일의 책임을 작은 단위로 맞춰 보세요. 그 대화에서 피하지 않는다면 결혼으로 갈 힘이 생기고, 계속 흐리면 아직은 더 지켜봐야 해요.`,
+  ].join('\n\n'), MARRY_MATCH_SERVICE_KEY)
 }
 
 export function buildMarryMatchReport(

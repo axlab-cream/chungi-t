@@ -11196,7 +11196,8 @@
 }
   </script>
 
-  <script src="/js/thisyear-report-store.js"></script>
+  <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/thisyear-report-store.js"></script>
   <script>
     const DETAIL_ROUTE = "index.html";
     const LIST_ROUTE = "../05-step-5-chat/chat.html";
@@ -11329,16 +11330,6 @@
         const p = document.createElement("p");
         p.textContent = block.content;
         card.append(p);
-        if (block.title === "시기·강약·조건") {
-          const tags = document.createElement("div");
-          tags.className = "tagline";
-          ["월운 연결 후", "구간별 확인", "점수 없음"].forEach((tag) => {
-            const span = document.createElement("span");
-            span.textContent = tag;
-            tags.append(span);
-          });
-          card.append(tags);
-        }
       }
       return card;
     }

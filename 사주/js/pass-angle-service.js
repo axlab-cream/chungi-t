@@ -265,7 +265,25 @@
     }
   }
 
-  function firstParagraph(text) {
+  
+  function clipTeaser(text, limit) {
+    var max = typeof limit === 'number' ? Math.max(limit, 220) : 220;
+    if (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences) {
+      return window.UMSHTextClip.clipCompleteSentences(text, max);
+    }
+    var value = String(text || '').trim();
+    if (value.length <= max) return value;
+    var ends = [];
+    var re = /[.!?。]/g;
+    var match;
+    while ((match = re.exec(value)) !== null) ends.push(match.index + 1);
+    var fitting = ends.filter(function (i) { return i <= max; });
+    if (fitting.length) return value.slice(0, fitting[fitting.length - 1]).trim();
+    if (ends.length) return value.slice(0, ends[0]).trim();
+    return value;
+  }
+
+function firstParagraph(text) {
     return String(text || '').split('\n\n')[0] || '';
   }
 
@@ -336,7 +354,7 @@
       <a class="card" href="../06-step-6_1-report-detail/index.html#${section.id}" data-section="${section.id}">
         <small>${index === 0 ? 'OPEN' : 'READ'}</small>
         <b>${section.category}</b>
-        <span>${firstParagraph(section.interpretation).slice(0, 90)}…</span>
+        <span>${clipTeaser(firstParagraph(section.interpretation), 220)}</span>
       </a>
     `).join('');
 

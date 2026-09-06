@@ -108,3 +108,21 @@ test('올해 연애운 request validates its required answers', () => {
   assert.equal(auto.partnerStarBasis, 'gender_auto')
   assert.equal(auto.genderBasis, 'male')
 })
+
+test('올해 연애운 templates emit bright 해요체 without 자네/일세', () => {
+  const input = parseLoveThisYearRequest({
+    relationship_status: 'some',
+    partner_star_basis: 'gender_auto',
+    gender: 'female',
+    display_name: '민지',
+    concern: '연락은 오는데 만나자는 말이 없어요.',
+  })
+  const analysis = analyzeSaju(birth)
+  const context = buildLoveThisYearContext('민지', input)
+  const report = buildLoveThisYearReport(analysis, birth, context, input, 'tone-check')
+  const text = report.sections.map((section) => section.interpretation).join('\n')
+  assert.equal(/자네|일세/.test(text), false)
+  assert.doesNotMatch(text, /자네|일세|보겠네|쪽일세/)
+  assert.match(text, /도화/)
+  assert.match(text, /해요|입니다|이에요|예요/)
+})

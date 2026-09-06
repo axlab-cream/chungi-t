@@ -12,6 +12,8 @@ import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const LOVE_AGAIN_SERVICE_KEY = 'love_again'
 
@@ -194,23 +196,23 @@ function hasBranchPair(map: Map<string, string>, a: EarthlyBranch, b: EarthlyBra
 }
 
 function compatibilityLine(a: EarthlyBranch, b: EarthlyBranch): string {
-  if (a === b) return `두 사람의 일지가 모두 ${BRANCH_KO[a]}(${a})라 익숙함은 빠르지만, 이별을 만든 반응도 반복되지 않는지 살펴야 하네.`
-  if (hasBranchPair(SIX_HARMONY, a, b)) return `두 사람의 일지 ${a}·${b} 사이에는 합의 신호가 있어 다시 마음이 붙는 계기와 미련의 지속성을 함께 보게.`
-  if (hasBranchPair(CLASH, a, b)) return `두 사람의 일지 ${a}·${b} 사이에는 충의 신호가 있어 재회의 끌림과 예전 갈등을 분리해서 확인해야 하네.`
-  return `두 사람의 일지 ${a}·${b}는 합충 하나로 재회를 단정하기보다, 다시 만났을 때 약속과 대화가 달라지는지를 확인해야 하네.`
+  if (a === b) return `두 사람의 일지가 모두 ${BRANCH_KO[a]}(${a})라 익숙함은 빠르지만, 이별을 만든 반응도 반복되지 않는지 살펴야 해요.`
+  if (hasBranchPair(SIX_HARMONY, a, b)) return `두 사람의 일지 ${a}·${b} 사이에는 합의 신호가 있어 다시 마음이 붙는 계기와 미련의 지속성을 함께 보세요.`
+  if (hasBranchPair(CLASH, a, b)) return `두 사람의 일지 ${a}·${b} 사이에는 충의 신호가 있어 재회의 끌림과 예전 갈등을 분리해서 확인해야 해요.`
+  return `두 사람의 일지 ${a}·${b}는 합충 하나로 재회를 단정하기보다, 다시 만났을 때 약속과 대화가 달라지는지를 확인해야 해요.`
 }
 
 function reunionSignal(analysis: SajuAnalysis, input: LoveAgainRequest): string {
   const hasRelationshipStar = analysis.tenGods.some((god) => ['정재', '편재', '정관', '편관'].includes(god))
-  if (analysis.fortune && hasRelationshipStar) return `현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}이라 과거 관계를 다시 정리하고 확인하는 흐름이 들어올 수 있네. 다만 ${input.currentSignal}이라는 장면 자체가 반복되는지 먼저 보게.`
-  if (analysis.fortune) return `현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}이라 관계의 방향을 다시 선택하는 시기로 읽히네. 재회 여부보다 실제 반응의 지속성을 기준으로 삼게.`
-  return '세운을 재회의 보증으로 쓰지 않고, 지금 관계를 다시 확인할 수 있는 행동과 경계가 생기는지부터 보겠네.'
+  if (analysis.fortune && hasRelationshipStar) return `현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}이라 과거 관계를 다시 정리하고 확인하는 흐름이 들어올 수 있어요. 다만 ${input.currentSignal}이라는 장면 자체가 반복되는지 먼저 보세요.`
+  if (analysis.fortune) return `현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}이라 관계의 방향을 다시 선택하는 시기로 읽혀요. 재회 여부보다 실제 반응의 지속성을 기준으로 삼으세요.`
+  return '세운을 재회의 보증으로 쓰지 않고, 지금 관계를 다시 확인할 수 있는 행동과 경계가 생기는지부터 볼게요.'
 }
 
 function compact(text: string, fallback: string, limit = 180): string {
   const clean = text.replace(/\s+/g, ' ').trim()
   if (!clean) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 function buildInterpretation(params: { categoryTitle: string; itemTitle: string; analysis: SajuAnalysis; partnerAnalysis?: SajuAnalysis; birth: BirthInput; input: LoveAgainRequest; chunks: RagChunk[]; index: number }): string {
@@ -220,15 +222,15 @@ function buildInterpretation(params: { categoryTitle: string; itemTitle: string;
   const evidence = compact(chunk?.content ?? '', '재회는 그리움만으로 판단하지 않고 이별 원인, 현재 반응, 다시 만났을 때의 변화 가능성을 함께 보아야 합니다.')
   const partnerLine = partnerAnalysis && input.partnerBirth
     ? `${input.partnerName || '상대'}의 일지는 ${BRANCH_KO[partnerAnalysis.fourPillars.day.branch]}(${partnerAnalysis.fourPillars.day.branch})이고 일간의 오행은 ${ELEMENT_KO[partnerAnalysis.dayMasterElement]} 쪽이라, ${compatibilityLine(userDay.branch, partnerAnalysis.fourPillars.day.branch)}`
-    : '상대의 생년월일은 입력하지 않았으니 재회 여부를 단정하지 않고, 자네 명식과 실제 연락·행동에서 확인할 기준을 세우겠네.'
-  const concern = input.concern ? `자네가 적은 고민은 "${input.concern}"일세.` : '따로 적은 고민은 없으니 이별 배경과 현재 신호를 중심으로 보겠네.'
-  return [
-    `${categoryTitle} 중 "${itemTitle}"를 보겠네. 자네는 ${birth.year}년생이고 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch})라, 이별 뒤 마음을 붙잡는 방식과 다시 확인하는 방식을 먼저 살피겠네.`,
+    : '상대의 생년월일은 입력하지 않았으니 재회 여부를 단정하지 않고, 당신 명식과 실제 연락·행동에서 확인할 기준을 세울게요.'
+  const concern = input.concern ? `당신이 적은 고민은 "${input.concern}"입니다.` : '따로 적은 고민은 없으니 이별 배경과 현재 신호를 중심으로 볼게요.'
+  return applyServiceTone([
+    `${categoryTitle} 중 "${itemTitle}"를 볼게요. 당신은 ${birth.year}년생이고 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch})라, 이별 뒤 마음을 붙잡는 방식과 다시 확인하는 방식을 먼저 살필게요.`,
     `${partnerLine} ${reunionSignal(analysis, input)}`,
-    `현재 관계는 "${input.relationshipStage}"이고 이별 배경은 "${input.breakupReason}", 이별 후 기간은 "${input.breakupPeriod}"이라고 했군. 최근 신호는 "${input.currentSignal}"이니, 그리움과 실제 관계 회복 신호를 나누어 읽어야 하네.`,
-    `이 풀이의 참고 결은 이렇네. ${evidence} 그러니 세운이나 궁합만으로 "반드시 돌아온다"고 확정하지 말고, 먼저 연락하는지·대화를 이어 가는지·예전 문제가 달라지는지를 같은 기준으로 보게.`,
-    `${concern} 결론은 재회를 서두르기보다 부담 없는 확인을 한 번 건넨 뒤 상대의 지속적인 행동을 살피라는 것일세. 반응이 모호하거나 예전 문제가 그대로라면, 돌아가는 선택보다 자네의 회복과 경계를 먼저 지켜야 하네.`,
-  ].join('\n\n')
+    `현재 관계는 "${input.relationshipStage}"이고 이별 배경은 "${input.breakupReason}", 이별 후 기간은 "${input.breakupPeriod}"이라고 했어요. 최근 신호는 "${input.currentSignal}"이니, 그리움과 실제 관계 회복 신호를 나누어 읽어야 해요.`,
+    `이 풀이의 참고 결은 이래요. ${evidence} 그러니 세운이나 궁합만으로 "반드시 돌아온다"고 확정하지 말고, 먼저 연락하는지·대화를 이어 가는지·예전 문제가 달라지는지를 같은 기준으로 보세요.`,
+    `${concern} 결론은 재회를 서두르기보다 부담 없는 확인을 한 번 건넨 뒤 상대의 지속적인 행동을 살피라는 것이에요. 반응이 모호하거나 예전 문제가 그대로라면, 돌아가는 선택보다 당신의 회복과 경계를 먼저 지켜야 해요.`,
+  ].join('\n\n'), LOVE_AGAIN_SERVICE_KEY)
 }
 
 export function buildLoveAgainReport(analysis: SajuAnalysis, birth: BirthInput, context: SajuReportContext, input: LoveAgainRequest, partnerAnalysis?: SajuAnalysis, reportId?: string): SajuReport {

@@ -5,6 +5,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { applyServiceTone } from '../report/report-tone.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
 
 export const MONEY_SAVE_SERVICE_KEY = 'money_save'
 
@@ -230,7 +231,7 @@ function compact(text: string, fallback: string, limit = 180): string {
     .join(' ')
   const clean = stripped.replace(/\s+/g, ' ').trim()
   if (clean.length < 12) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 /**
