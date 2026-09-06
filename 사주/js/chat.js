@@ -16,6 +16,36 @@ const pdfState = {
   done: 0,
 }
 const HISTORY_KEY = 'cheongi_report_history_v1'
+
+function resolveServiceKey() {
+  try {
+    const params = new URLSearchParams(location.search)
+    const fromQuery = params.get('serviceKey')
+      || params.get('service_key')
+      || params.get('service')
+    if (fromQuery && fromQuery.trim()) return fromQuery.trim()
+  } catch (err) {
+    // ignore
+  }
+  if (typeof window.UMSH_SERVICE_KEY === 'string' && window.UMSH_SERVICE_KEY.trim()) {
+    return window.UMSH_SERVICE_KEY.trim()
+  }
+  const fromDom = document.body?.dataset?.serviceKey
+    || document.getElementById('chat-log')?.dataset?.serviceKey
+    || document.querySelector('[data-service-key]')?.getAttribute('data-service-key')
+  if (fromDom && String(fromDom).trim()) return String(fromDom).trim()
+  try {
+    const stored = sessionStorage.getItem('cheongi_service_key')
+      || localStorage.getItem('cheongi_service_key')
+      || sessionStorage.getItem('umsh_service_key')
+      || localStorage.getItem('umsh_service_key')
+    if (stored && stored.trim()) return stored.trim()
+  } catch (err) {
+    // ignore
+  }
+  return ''
+}
+
 const ACTIVE_REPORT_KEY = 'cheongi_active_report_id'
 let authClient = null
 let authSession = null
@@ -385,6 +415,14 @@ function loadSession() {
     || ''
 
   saveActiveReportId(reportId)
+  const resolvedServiceKey = resolveServiceKey()
+  if (resolvedServiceKey) {
+    try {
+      sessionStorage.setItem('cheongi_service_key', resolvedServiceKey)
+    } catch (err) {
+      // ignore
+    }
+  }
   sessionStorage.setItem('cheongi_birth', JSON.stringify(birth))
   sessionStorage.setItem('cheongi_analysis', JSON.stringify(analysis))
   sessionStorage.setItem('cheongi_chat_history', JSON.stringify(history))
@@ -1708,11 +1746,15 @@ chatForm.addEventListener('submit', async (e) => {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        birth: session.birth,
-        message,
-        history: session.history.slice(0, -1),
-      }),
+      body: JSON.stringify((() => {
+        const serviceKey = resolveServiceKey()
+        return {
+          birth: session.birth,
+          message,
+          history: session.history.slice(0, -1),
+          ...(serviceKey ? { serviceKey } : {}),
+        }
+      })()),
     })
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || '상담 실패')

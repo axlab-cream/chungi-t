@@ -104,7 +104,7 @@ function relationFor(userElement: Element, todayElement: Element): TodayRelation
 }
 
 function relationText(relation: TodayRelation, userName: string, todayElementKo: string): BaseTodayReading {
-  const name = userName || '자네'
+  const name = userName || '당신'
   const table: Record<TodayRelation, BaseTodayReading> = {
     same: {
       title: '내 페이스가 강하게 올라오는 날',

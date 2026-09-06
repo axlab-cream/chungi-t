@@ -12,6 +12,8 @@ import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -312,22 +314,22 @@ function hasPair(list: string[], a: EarthlyBranch, b: EarthlyBranch): boolean {
 
 function branchRelation(userBranch: EarthlyBranch, partnerBranch: EarthlyBranch): string {
   if (userBranch === partnerBranch) {
-    return `두 사람의 일지가 같은 ${BRANCH_KO[userBranch]}이라 서로를 빨리 알아보지만, 같은 약점도 함께 커지기 쉽네.`
+    return `두 사람의 일지가 같은 ${BRANCH_KO[userBranch]}이라 서로를 빨리 알아보지만, 같은 약점도 함께 커지기 쉬워요.`
   }
   if (hasPair(SIX_HARMONY, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]} 사이에는 합의 신호가 있어 가까워지는 속도가 빠른 편일세.`
+    return `두 사람의 일지 ${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]} 사이에는 합의 신호가 있어 가까워지는 속도가 빠른 편입니다.`
   }
   if (hasPair(CLASH, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]} 사이에는 충의 신호가 있어 끌림과 마찰이 함께 커지기 쉽네.`
+    return `두 사람의 일지 ${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]} 사이에는 충의 신호가 있어 끌림과 마찰이 함께 커지기 쉬워요.`
   }
-  return `두 사람의 일지 ${topic(`${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]}`)} 합충으로 단정하지 말고, 연락 리듬과 표현 방식으로 읽어야 하네.`
+  return `두 사람의 일지 ${topic(`${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]}`)} 합충으로 단정하지 말고, 연락 리듬과 표현 방식으로 읽어야 해요.`
 }
 
 function timingLine(user: SajuAnalysis, partner: SajuAnalysis): string {
   const userFortune = user.fortune
   const partnerFortune = partner.fortune
-  if (!userFortune || !partnerFortune) return '대운·세운은 단정하지 않고, 지금 원국에 드러난 관계 신호를 먼저 보겠네.'
-  return `자네의 현재 대운은 ${userFortune.currentDaewoon}, 올해 세운은 ${userFortune.yearPillar}이고, 상대 쪽은 현재 대운 ${partnerFortune.currentDaewoon}로 보네.`
+  if (!userFortune || !partnerFortune) return '대운·세운은 단정하지 않고, 지금 원국에 드러난 관계 신호를 먼저 볼게요.'
+  return `당신의 현재 대운은 ${userFortune.currentDaewoon}, 올해 세운은 ${userFortune.yearPillar}이고, 상대 쪽은 현재 대운 ${partnerFortune.currentDaewoon}로 보여요.`
 }
 
 /**
@@ -346,7 +348,7 @@ function compact(text: string, fallback: string, limit = 160): string {
     .join(' ')
   const clean = stripped.replace(/\s+/g, ' ').trim()
   if (clean.length < 12) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 /** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
@@ -382,50 +384,50 @@ function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
  */
 const GROUP_LENS: Record<string, { focus: string; close: string }> = {
   relationship_temperature: {
-    focus: '먼저 지금 관계의 온도부터 재네. 표현이 줄어든 것과 마음이 식은 것은 다른 이야기일세.',
-    close: '온도는 판정이 아니라 지금 상태일세. 여기서 잡은 결을 아래 항목으로 확인해 가게.',
+    focus: '먼저 지금 관계의 온도부터 재요. 표현이 줄어든 것과 마음이 식은 것은 다른 이야기입니다.',
+    close: '온도는 판정이 아니라 지금 상태예요. 여기서 잡은 결을 아래 항목으로 확인해 가세요.',
   },
   partner_signal_radar: {
-    focus: '상대에게서 보이는 신호를 보네. 다만 신호는 증거가 아니고, 불안이 만든 해석일 수도 있네.',
-    close: '의심을 키우는 자리가 아닐세. 확인할 것과 넘길 것을 가르는 자리네.',
+    focus: '상대에게서 보이는 신호를 보여요. 다만 신호는 증거가 아니고, 불안이 만든 해석일 수도 있어요.',
+    close: '의심을 키우는 자리가 아니에요. 확인할 것과 넘길 것을 가르는 자리예요.',
   },
   switch_flirt_check: {
-    focus: '관계 밖으로 흐르는 결이 있는지 보네. 관심과 실행 사이에는 큰 거리가 있네.',
-    close: '단정하지 말고 관찰하게. 사람은 추궁당할 때가 아니라 안전할 때 진짜를 말하네.',
+    focus: '관계 밖으로 흐르는 결이 있는지 보여요. 관심과 실행 사이에는 큰 거리가 있어요.',
+    close: '단정하지 말고 관찰하세요. 사람은 추궁당할 때가 아니라 안전할 때 진짜를 말해요.',
   },
   partner_palace_signal: {
-    focus: '배우자궁과 연인궁의 자리를 보네. 관계의 습관이 어디에 자리 잡았는지가 드러나네.',
-    close: '자리의 모양은 성격이 아니라 조건일세. 조건이 바뀌면 관계의 결도 바뀌네.',
+    focus: '배우자궁과 연인궁의 자리를 보여요. 관계의 습관이 어디에 자리 잡았는지가 드러나요.',
+    close: '자리의 모양은 성격이 아니라 조건이에요. 조건이 바뀌면 관계의 결도 바뀌어요.',
   },
   ten_gods_love_style: {
-    focus: '십성으로 두 사람의 연애 방식을 보네. 사랑하는 방식이 다르면 같은 마음도 다르게 닿네.',
-    close: '방식의 차이를 애정의 크기로 오해하지 말게. 다르다는 것을 알면 서운함이 줄어드네.',
+    focus: '십성으로 두 사람의 연애 방식을 보여요. 사랑하는 방식이 다르면 같은 마음도 다르게 닿아요.',
+    close: '방식의 차이를 애정의 크기로 오해하지 마세요. 다르다는 것을 알면 서운함이 줄어들어요.',
   },
   compatibility_chemistry: {
-    focus: '두 사람의 기운이 만나는 자리를 보네. 오행이 채워 주는지 몰리는지가 피로도를 가르네.',
-    close: '케미는 좋고 나쁨이 아니라, 오래 붙어 있을 때 회복되는지 소모되는지로 보게.',
+    focus: '두 사람의 기운이 만나는 자리를 보여요. 오행이 채워 주는지 몰리는지가 피로도를 가려요.',
+    close: '케미는 좋고 나쁨이 아니라, 오래 붙어 있을 때 회복되는지 소모되는지로 보세요.',
   },
   timing_flow: {
-    focus: '흔들리기 쉬운 시기를 보네. 사람이 아니라 흐름이 관계를 흔드는 구간이 있네.',
-    close: '시기는 핑계가 아니라 대비일세. 알고 있으면 같은 파도에도 덜 흔들리네.',
+    focus: '흔들리기 쉬운 시기를 보여요. 사람이 아니라 흐름이 관계를 흔드는 구간이 있어요.',
+    close: '시기는 핑계가 아니라 대비예요. 알고 있으면 같은 파도에도 덜 흔들려요.',
   },
   anxiety_source: {
-    focus: '불안의 출처를 보네. 관계에서 온 것인지, 자네 안의 흐름에서 온 것인지를 나누어야 하네.',
-    close: '불안을 확인 요구로 바꾸면 관계가 먼저 지치네. 자네를 먼저 안정시키는 순서가 맞네.',
+    focus: '불안의 출처를 보여요. 관계에서 온 것인지, 당신 안의 흐름에서 온 것인지를 나누어야 해요.',
+    close: '불안을 확인 요구로 바꾸면 관계가 먼저 지쳐요. 당신을 먼저 안정시키는 순서가 맞아요.',
   },
   reality_check_action: {
-    focus: '오늘 해 볼 수 있는 확인을 정하네. 큰 결정을 미루더라도 작은 확인은 오늘 가능하네.',
-    close: '한 번에 답을 얻으려 하지 말고 작은 확인을 여러 번 쌓게. 그것이 가장 정확하네.',
+    focus: '오늘 해 볼 수 있는 확인을 정해요. 큰 결정을 미루더라도 작은 확인은 오늘 가능해요.',
+    close: '한 번에 답을 얻으려 하지 말고 작은 확인을 여러 번 쌓으세요. 그것이 가장 정확해요.',
   },
   final_conclusion_type: {
-    focus: '지금까지 본 것을 한 줄로 묶네. 라벨은 판정이 아니라 부르기 쉬운 이름일세.',
-    close: '결론은 고정된 성적이 아니라 이번 구간의 상태일세. 조건이 바뀌면 결론도 바뀌네.',
+    focus: '지금까지 본 것을 한 줄로 묶어요. 라벨은 판정이 아니라 부르기 쉬운 이름이에요.',
+    close: '결론은 고정된 성적이 아니라 이번 구간의 상태예요. 조건이 바뀌면 결론도 바뀌어요.',
   },
 }
 
 const DEFAULT_LENS = {
-  focus: '두 사람의 기본값과 흐름을 같이 놓고 보네.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가게.',
+  focus: '두 사람의 기본값과 흐름을 같이 놓고 보여요.',
+  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
 }
 
 /** The pack written for this service; see data/corpus/. */
@@ -462,16 +464,16 @@ function buildInterpretation(params: {
   const partnerLabel = input.partnerName || '상대'
   const dominant = ELEMENT_KO[userAnalysis.dominantElement]
   const partnerDominant = ELEMENT_KO[partnerAnalysis.dominantElement]
-  const worry = input.concern ? `지금 걸리는 말은 "${input.concern}"일세.` : '따로 적은 문장은 없으니 반복되는 장면을 중심으로 보겠네.'
+  const worry = input.concern ? `지금 걸리는 말은 "${input.concern}"입니다.` : '따로 적은 문장은 없으니 반복되는 장면을 중심으로 볼게요.'
 
-  return [
-    `${categoryTitle} 중 "${itemTitle}"일세. 자네는 ${userBirth.year}년생이고, 자네 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch}), ${partnerLabel}의 일지는 ${BRANCH_KO[partnerDay.branch]}(${partnerDay.branch})라 관계 습관이 만나는 자리를 먼저 대조하겠네.`,
+  return applyServiceTone([
+    `${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${userBirth.year}년생이고, 당신 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch}), ${partnerLabel}의 일지는 ${BRANCH_KO[partnerDay.branch]}(${partnerDay.branch})라 관계 습관이 만나는 자리를 먼저 대조할게요.`,
     `${itemNote} ${branchRelation(userDay.branch, partnerDay.branch)} ${lens.focus}`,
-    `자네는 ${dominant} 기운이 앞서고 ${partnerLabel} 쪽은 ${partnerDominant} 기운이 앞서네. 같은 쪽으로 몰리면 속도가 붙고, 다른 쪽이면 서로의 빈자리를 메우는 대신 설명이 더 필요하네.`,
-    `${timingLine(userAnalysis, partnerAnalysis)} 지금은 "${input.relationshipStage}" 단계이고 가장 신경 쓰이는 신호는 "${input.signalFocus}"라 하였네. 이 흐름은 사건을 예언하는 것이 아니라, 어디를 확인해야 덜 흔들리는지를 보는 기준일세.`,
-    `참고 결은 이렇네. ${ragLine} 그러니 이 풀이는 바람을 피운다 아니다를 판정하는 자리가 아니라, 지금 관계에서 무엇을 확인하고 무엇을 넘길지 고르는 자리일세.`,
-    `${worry} ${lens.close} 이 서비스는 사실 확인이나 증거 판정을 하지 않네. 사람의 마음은 추궁이 아니라 안전한 대화에서 드러나니, 확인은 반드시 직접 대화로 마무리하게.`,
-  ].join('\n\n')
+    `당신은 ${dominant} 기운이 앞서고 ${partnerLabel} 쪽은 ${partnerDominant} 기운이 앞서요. 같은 쪽으로 몰리면 속도가 붙고, 다른 쪽이면 서로의 빈자리를 메우는 대신 설명이 더 필요해요.`,
+    `${timingLine(userAnalysis, partnerAnalysis)} 지금은 "${input.relationshipStage}" 단계이고 가장 신경 쓰이는 신호는 "${input.signalFocus}"라 했어요. 이 흐름은 사건을 예언하는 것이 아니라, 어디를 확인해야 덜 흔들리는지를 보는 기준이에요.`,
+    `참고 결은 이래요. ${ragLine} 그러니 이 풀이는 바람을 피운다 아니다를 판정하는 자리가 아니라, 지금 관계에서 무엇을 확인하고 무엇을 넘길지 고르는 자리예요.`,
+    `${worry} ${lens.close} 이 서비스는 사실 확인이나 증거 판정을 하지 않아요. 사람의 마음은 추궁이 아니라 안전한 대화에서 드러나니, 확인은 반드시 직접 대화로 마무리하세요.`,
+  ].join('\n\n'), LOVE_SIGNAL_SERVICE_KEY)
 }
 
 export function buildLoveSignalReport(

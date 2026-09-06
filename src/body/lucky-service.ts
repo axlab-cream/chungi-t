@@ -12,6 +12,8 @@ import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const LUCKY_COLOR_SERVICE_KEY = 'lucky_color'
 
@@ -303,7 +305,7 @@ function compact(text: string, fallback: string, limit = 160): string {
     .join(' ')
   const clean = stripped.replace(/\s+/g, ' ').trim()
   if (clean.length < 12) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 /** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
@@ -474,14 +476,14 @@ function buildInterpretation(params: {
     '색과 물건은 결과를 바꾸는 도구가 아니라, 이미 가진 기운의 균형을 눈에 보이게 하는 표시입니다.',
   )
 
-  return [
+  return applyServiceTone([
     `${groupTitle} 중 "${itemTitle}"입니다. ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 여기서부터 기준을 잡습니다.`,
     `${itemNote} ${lead} ${angle.focus}`,
     `${rest[0]} ${rest[1]}`,
     `${rest[2]} ${rest[3]} ${itemWhy}`,
     `이 대목에서 함께 볼 결은 이렇습니다. ${ragLine} 그러니 ${topic(itemTitle)} 무엇을 사야 하는 목록이 아니라, ${fill.scene}처럼 이미 가진 것 중에서 무엇을 꺼내 두고 무엇을 넣어 둘지를 고르는 자리입니다.`,
     `${angle.close} 물건이 액운을 막거나 재물을 부르지는 않습니다. ${subject(`${ELEMENT_KO[balance.spare]}의 ${spare.colors}`)} 이미 넉넉하다는 것과, ${object(ELEMENT_KO[balance.fill])} 조금 더해 보면 편하다는 것까지가 이 리포트가 말할 수 있는 범위입니다.`,
-  ].join('\n\n')
+  ].join('\n\n'), LUCKY_COLOR_SERVICE_KEY)
 }
 
 export function buildLuckyColorReport(

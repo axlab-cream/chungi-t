@@ -55,7 +55,9 @@
   function firstSentences(text, count, limit) {
     var value = String(text || '').trim();
     var picked = value.split(/(?<=[.!?])\s+/).slice(0, count).join(' ').trim() || value;
-    return picked.length > limit ? picked.slice(0, limit - 1) + '…' : picked;
+    return (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences)
+      ? window.UMSHTextClip.clipCompleteSentences(picked, Math.max(limit, 220))
+      : picked;
   }
 
   function sentences(text) {

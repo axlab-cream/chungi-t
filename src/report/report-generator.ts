@@ -24,6 +24,11 @@ import {
   loadServiceSystemPrompt,
   normalizeServiceKey,
 } from '../prompt/service-system.js'
+import {
+  addressName,
+  applyServiceTone,
+  toneClose,
+} from './report-tone.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 
@@ -1153,18 +1158,18 @@ function homeHookFor(sectionId: string, analysis: SajuAnalysis, context: SajuRep
   const weak = ELEMENT_KO[analysis.weakElement]
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const hooks: Record<string, string> = {
-    'home-fit-overall': `${purpose} 기준으로 보면 이 집의 결이 먼저 드러나는군`,
-    'house-energy': '현관과 창밖의 흐름이 집의 첫인상을 만들고 있네',
-    'saju-house-ohaeng': `${dominant}은 이미 강하고 ${weak}을 공간에서 보완해야 하네`,
-    'sleep-recovery': '잠이 편해야 집의 기운도 내 편이 되는 법일세',
-    'entrance-flow': '들어오는 길이 복잡하면 마음도 먼저 걸리는군',
-    'remote-focus': '책상 자리 하나가 집중력의 절반을 가져가네',
-    'money-living': '돈과 살림은 주방보다 동선과 수납에서 먼저 새는군',
-    'relationship-cohabitation': '같이 사는 결은 넓이보다 거리감에서 갈리는군',
-    'spatial-fix': '큰 공사보다 먼저 손댈 작은 자리가 있네',
-    'reality-action': `${decision}은 7일 체감으로 먼저 가려보게`,
+    'home-fit-overall': `${purpose} 기준으로 보면 이 집의 결이 먼저 드러나요`,
+    'house-energy': '현관과 창밖의 흐름이 집의 첫인상을 만들고 있어요',
+    'saju-house-ohaeng': `${dominant}은 이미 강하고 ${weak}을 공간에서 보완해야 해요`,
+    'sleep-recovery': '잠이 편해야 집의 기운도 내 편이 되는 법이에요',
+    'entrance-flow': '들어오는 길이 복잡하면 마음도 먼저 걸려요',
+    'remote-focus': '책상 자리 하나가 집중력의 절반을 가져가요',
+    'money-living': '돈과 살림은 주방보다 동선과 수납에서 먼저 새요',
+    'relationship-cohabitation': '같이 사는 결은 넓이보다 거리감에서 갈려요',
+    'spatial-fix': '큰 공사보다 먼저 손댈 작은 자리가 있어요',
+    'reality-action': `${decision}은 7일 체감으로 먼저 가려보세요`,
   }
-  return hooks[sectionId] ?? '집은 운을 바꾸는 마법보다 생활 리듬을 비추는 거울일세'
+  return hooks[sectionId] ?? '집은 운을 바꾸는 마법보다 생활 리듬을 비추는 거울이에요'
 }
 
 function workMoveHookFor(sectionId: string, analysis: SajuAnalysis, context: SajuReportContext): string {
@@ -1174,13 +1179,13 @@ function workMoveHookFor(sectionId: string, analysis: SajuAnalysis, context: Saj
   const priority = workMoveValueLabel('priority', workMove?.priority) || '우선순위'
   const weak = ELEMENT_KO[analysis.weakElement]
   const hooks: Record<string, string> = {
-    'work-move-decision': `${decision}, 지금은 결론보다 조건을 먼저 봐야 하네`,
+    'work-move-decision': `${decision}, 지금은 결론보다 조건을 먼저 봐야 해요`,
     'current-company-signal': `${signal}이 단순 불만인지 반복 신호인지 가르겠습니다`,
-    'career-constitution': `${weak} 기운을 보완해야 새 판을 오래 버틸 수 있네`,
-    'role-fit': '직무가 맞으면 버티고, 역할이 흐리면 같은 피로가 반복되네',
-    'new-company-fit': '새 회사는 이름보다 일상 구조와 책임 범위가 먼저일세',
+    'career-constitution': `${weak} 기운을 보완해야 새 판을 오래 버틸 수 있어요`,
+    'role-fit': '직무가 맞으면 버티고, 역할이 흐리면 같은 피로가 반복돼요',
+    'new-company-fit': '새 회사는 이름보다 일상 구조와 책임 범위가 먼저예요',
     'money-terms': '연봉이 올라도 계약서가 흐리면 이직운은 흔들립니다',
-    'timing-daewoon-sewoon': '움직일 때는 대운과 세운의 속도를 같이 봐야 하네',
+    'timing-daewoon-sewoon': '움직일 때는 대운과 세운의 속도를 같이 봐야 해요',
     'risk-brake': '찝찝한 지점은 작을 때 잡아야 뒤탈이 적습니다',
     'ninety-day-action': '이직운은 결심보다 90일 준비표에서 현실이 됩니다',
     'final-checklist': `${priority} 기준으로 마지막 판단선을 세워보겠습니다`,
@@ -1214,7 +1219,7 @@ function hookFor(focus: ReportFocus, analysis: SajuAnalysis, context: SajuReport
     action: `${weak} 기운을 채우는 순간 흐름이 바뀌는군`,
   }
 
-  return hooks[focus]
+  return applyServiceTone(hooks[focus], context.serviceKey)
 }
 
 function tenGodSentence(analysis: SajuAnalysis): string {
@@ -1265,7 +1270,12 @@ function conditionalRiskNote(focus: ReportFocus, analysis: SajuAnalysis, context
   const work = context.work ?? ''
   const concern = context.concern?.trim()
 
-  const timedClose = `${timingRiskNote(focus, analysis)} 이건 확정 예언이 아니라, 그 신호가 보일 때 한 번 멈춰 보라는 사전 경고일세.`
+  const timedClose = applyServiceTone(
+    toneClose(context.serviceKey) === 'classic'
+      ? `${timingRiskNote(focus, analysis)} 이건 확정 예언이 아니라, 그 신호가 보일 때 한 번 멈춰 보라는 사전 경고일세.`
+      : `${timingRiskNote(focus, analysis)} 이건 확정 예언이 아니라, 그 신호가 보일 때 한 번 멈춰 보라는 사전 경고입니다.`,
+    context.serviceKey,
+  )
 
   if (focus === 'balance' && weakCount === 0) {
     return `좋은 말만 하지는 않겠네. ${weak} 기운이 완전히 비어 있으면 그 영역은 평소엔 티가 덜 나다가, 일이 몰릴 때 회피·소진·판단 지연으로 꽤 못나게 드러날 수 있네. ${dominant}을 더 키우기보다 ${useful}을 살리는 루틴을 먼저 잡아야 하네. ${timedClose}`
@@ -1325,7 +1335,7 @@ function buildHomeFitInterpretation(
   context: SajuReportContext,
   ragTopics: string[],
 ): string {
-  const name = cleanContextValue(context.name, '자네')
+  const name = addressName(context)
   const home = context.home
   const p = analysis.fourPillars
   const dayPillar = pillarLabel(p.day)
@@ -1354,19 +1364,19 @@ function buildHomeFitInterpretation(
 
   const sections: Record<string, string> = {
     'home-fit-overall': [
-      `흠... ${name}님의 집 풍수는 ${dayPillar} 일주와 ${dayMaster} 일간, 그리고 지금 집의 체감 신호를 겹쳐서 봅니다. ${houseLine} 집이 맞는지 아닌지는 한마디로 자를 일이 아닙니다. 이 집이 자네의 잠, 일, 돈, 관계 리듬을 얼마나 덜 흔들고 얼마나 잘 받쳐주는지가 먼저입니다.`,
+      `흠... ${name}님의 집 풍수는 ${dayPillar} 일주와 ${dayMaster} 일간, 그리고 지금 집의 체감 신호를 겹쳐서 봅니다. ${houseLine} 집이 맞는지 아닌지는 한마디로 자를 일이 아닙니다. 이 집이 ${name}의 잠, 일, 돈, 관계 리듬을 얼마나 덜 흔들고 얼마나 잘 받쳐주는지가 먼저입니다.`,
       `[주요 포인트] 원국에서는 ${dominant} 기운이 먼저 올라오고 ${weak} 기운이 보완 자리로 남습니다. 그래서 이 집이 ${dominant}을 더 과하게 밀어붙이는지, 아니면 ${useful} 기운을 살려 중심을 잡아주는지가 핵심입니다. ${ragLine}`,
-      `무료 맛보기로 먼저 말하자면, 이 집은 "${purpose}" 목적에 맞춰 볼 때 현관·침실·책상·창밖 중 어디가 자네의 기운을 먼저 빼앗는지 확인해야 합니다. ${daewoon}과 ${yearPillar} 흐름에서는 큰 이사 결정보다 7일 체감 테스트가 먼저입니다. ${caution}`,
+      `무료 맛보기로 먼저 말하자면, 이 집은 "${purpose}" 목적에 맞춰 볼 때 현관·침실·책상·창밖 중 어디가 ${name}의 기운을 먼저 빼앗는지 확인해야 합니다. ${daewoon}과 ${yearPillar} 흐름에서는 큰 이사 결정보다 7일 체감 테스트가 먼저입니다. ${caution}`,
     ].join('\n\n'),
     'house-energy': [
       `집의 기본 기운은 현관, 창밖, 동선에서 먼저 잡힙니다. 입력된 현관은 ${entrance}, 창밖은 ${outside}입니다. 전통 풍수의 말로는 앞이 열리고 뒤가 받치는가를 보지만, 생활 언어로 풀면 들어오는 길이 답답하지 않은지, 앉고 쉬는 자리가 과하게 노출되지 않는지를 보는 겁니다.`,
-      `[주목할 점] ${name}님 사주는 ${dominant} 기운이 빨리 반응하므로, 집 안으로 들어오자마자 시선과 동선이 한 번에 몰리면 마음도 덩달아 급해질 수 있습니다. 반대로 통로가 너무 막히면 ${weak} 기운이 더 비어 피로가 쌓일 수 있네. 이건 미신적 단정이 아니라 매일 반복되는 자극의 문제입니다.`,
+      `[주목할 점] ${name}님 사주는 ${dominant} 기운이 빨리 반응하므로, 집 안으로 들어오자마자 시선과 동선이 한 번에 몰리면 마음도 덩달아 급해질 수 있습니다. 반대로 통로가 너무 막히면 ${weak} 기운이 더 비어 피로가 쌓일 수 있어요. 이건 미신적 단정이 아니라 매일 반복되는 자극의 문제입니다.`,
       `${ragLine} 먼저 할 일은 현관 바닥을 비우고, 문을 열었을 때 바로 보이는 물건을 한 단계 줄이는 겁니다. 창밖 압박이나 소음이 있다면 커튼, 식물, 조명처럼 시선을 부드럽게 끊는 장치부터 보세요. 큰 공사보다 집의 첫 호흡을 정리하는 쪽이 먼저입니다.`,
     ].join('\n\n'),
     'saju-house-ohaeng': [
       `${name}님의 오행은 ${dominant}이 먼저 강하고 ${weak}이 보완점입니다. 집 풍수에서 오행은 색 하나를 붙인다고 끝나는 처방이 아닙니다. 목은 성장과 환기, 화는 빛과 표현, 토는 안정과 수납, 금은 정리와 기준, 수는 휴식과 흐름처럼 생활 장면으로 읽어야 합니다.`,
-      `[주요 포인트] ${dayPillar} 일주와 월주 ${monthPillar}를 같이 보면, 이 집은 자네에게 ${useful} 기운을 살리는 방식으로 써야 합니다. ${purpose}가 중요하다면 공간도 그 목적에 맞게 우선순위를 가져야 합니다. 잠이 목적이면 침실, 일이 목적이면 책상, 돈과 살림이면 주방과 수납, 관계면 공용공간과 사생활 경계가 먼저입니다.`,
-      `${ragLine} 오행 보완은 과한 색상 처방보다 반복 루틴이 정확합니다. 부족한 ${weak}을 채우려면 ${home?.extraNote ? `특히 "${home.extraNote}"라고 적은 체감까지 같이 보고, ` : ''}빛·소리·물건 밀도·앉는 방향을 한 번에 바꾸지 말고 하나씩 조정해야 합니다. 그래야 어떤 변화가 자네에게 맞는지 분명히 보입니다.`,
+      `[주요 포인트] ${dayPillar} 일주와 월주 ${monthPillar}를 같이 보면, 이 집은 ${name}에게 ${useful} 기운을 살리는 방식으로 써야 합니다. ${purpose}가 중요하다면 공간도 그 목적에 맞게 우선순위를 가져야 합니다. 잠이 목적이면 침실, 일이 목적이면 책상, 돈과 살림이면 주방과 수납, 관계면 공용공간과 사생활 경계가 먼저입니다.`,
+      `${ragLine} 오행 보완은 과한 색상 처방보다 반복 루틴이 정확합니다. 부족한 ${weak}을 채우려면 ${home?.extraNote ? `특히 "${home.extraNote}"라고 적은 체감까지 같이 보고, ` : ''}빛·소리·물건 밀도·앉는 방향을 한 번에 바꾸지 말고 하나씩 조정해야 합니다. 그래야 어떤 변화가 ${name}에게 맞는지 분명히 보입니다.`,
     ].join('\n\n'),
     'sleep-recovery': [
       `잠과 회복은 집 풍수에서 가장 먼저 봐야 할 자리입니다. 침실 입력은 ${bedroom}입니다. ${name}님 사주에서 ${dominant} 기운이 바깥으로 많이 쓰이면, 밤에는 오히려 ${weak} 기운이 받쳐줘야 회복이 됩니다. 침실이 밝거나 시끄럽거나 문·복도 자극을 받으면 머리가 쉬지 못할 수 있습니다.`,
@@ -1379,7 +1389,7 @@ function buildHomeFitInterpretation(
       `${ragLine} 신발, 택배, 우산, 거울 위치를 먼저 보세요. 문을 열었을 때 한 번에 눈에 들어오는 물건을 줄이고, 꺾이는 동선이면 어두운 코너에 약한 조명을 둡니다. 이 정도만 해도 집에 들어올 때의 마음 속도가 달라질 수 있습니다.`,
     ].join('\n\n'),
     'remote-focus': [
-      `재택·공부·일 집중력은 책상 위치에서 크게 갈립니다. 현재 책상 입력은 ${desk}입니다. ${context.work ?? '일상 흐름'} 상태에서 ${purpose}가 중요하다면, 책상은 단순한 가구가 아니라 자네의 월주 ${monthPillar}가 현실에서 작동하는 자리입니다.`,
+      `재택·공부·일 집중력은 책상 위치에서 크게 갈립니다. 현재 책상 입력은 ${desk}입니다. ${context.work ?? '일상 흐름'} 상태에서 ${purpose}가 중요하다면, 책상은 단순한 가구가 아니라 ${name}의 월주 ${monthPillar}가 현실에서 작동하는 자리입니다.`,
       `[해법] 등 뒤가 벽이면 기준이 잡히기 쉽고, 등 뒤가 창이면 마음이 뜰 수 있습니다. 문을 정면으로 보면 통제감은 생기지만 긴장이 올라갈 수 있고, 쉬는 자리와 섞이면 일과 회복이 서로 침범합니다. ${dominant}이 강한 사람일수록 책상 위 물건 수를 줄여야 판단이 맑아집니다.`,
       `${ragLine} 7일 테스트는 간단합니다. 책상 위에 지금 하는 일 하나만 남기고, 등 뒤 자극을 줄이고, 쉬는 물건과 일하는 물건을 분리하세요. 이사나 방 변경 전에도 집중 시간, 산만함, 끝낸 일의 개수가 달라지는지 먼저 확인할 수 있습니다.`,
     ].join('\n\n'),
@@ -1396,19 +1406,20 @@ function buildHomeFitInterpretation(
     'spatial-fix': [
       `공간별 손질 처방은 큰 비용을 쓰기 전에 하는 작은 조정입니다. ${name}님에게는 ${useful} 기운을 살리는 쪽이 우선입니다. 현관은 ${entrance}, 침실은 ${bedroom}, 책상은 ${desk}, 창밖은 ${outside}로 들어왔으니 네 곳을 한꺼번에 바꾸지 말고 순서를 잡아야 합니다.`,
       `[해법] 첫째 현관은 바닥을 비우고 들어오는 시선을 정리합니다. 둘째 침실은 빛과 소리를 낮추고 잠드는 쪽을 단순하게 만듭니다. 셋째 책상은 등 뒤와 물건 수를 조정합니다. 넷째 창밖 압박은 커튼, 식물, 조명으로 부드럽게 끊습니다. 이 네 가지가 집 풍수의 현실 처방입니다.`,
-      `${ragLine} 색 처방은 마지막입니다. 먼저 물건 밀도, 빛, 소리, 동선을 조절해야 자네 사주의 오행 보완이 실제 체감으로 이어집니다. 고친 뒤에는 하루 기분보다 7일 평균을 보세요. 공간은 하루 반응보다 반복 반응이 더 정확합니다.`,
+      `${ragLine} 색 처방은 마지막입니다. 먼저 물건 밀도, 빛, 소리, 동선을 조절해야 ${name} 사주의 오행 보완이 실제 체감으로 이어집니다. 고친 뒤에는 하루 기분보다 7일 평균을 보세요. 공간은 하루 반응보다 반복 반응이 더 정확합니다.`,
     ].join('\n\n'),
     'reality-action': [
       `현실 체크의 결론은 ${decision}입니다. 이사할지, 고쳐 살지, 후보와 비교할지는 운세 한 줄로 정할 일이 아닙니다. ${name}님의 명식, ${daewoon}, ${yearPillar}, 그리고 현재 집의 현관·침실·책상·창밖 신호를 7일 단위로 확인해야 합니다.`,
       `[주요 포인트] 7일 테스트 기준은 네 가지입니다. 집에 들어올 때 마음이 가라앉는가, 잠에서 깬 뒤 회복감이 있는가, 책상에서 한 가지 일을 끝내는가, 돈과 물건이 덜 새는가. 이 네 가지 중 두 가지 이상이 좋아지면 이 집은 손봐서 쓸 여지가 있습니다. 반대로 손질해도 같은 지점이 반복되면 비교 후보를 열어둘 수 있습니다.`,
-      `${ragLine} 마지막으로 다시 말하겠습니다. 이 풀이는 계약, 건강, 재산 결과를 보장하지 않습니다. 다만 지금 집이 자네의 기운을 돕는지 방해하는지, 어디부터 손보면 판단이 선명해지는지 알려주는 지도입니다. 큰 결정은 감정이 아니라 반복 관찰 뒤에 내려야 합니다.`,
+      `${ragLine} 마지막으로 다시 말하겠습니다. 이 풀이는 계약, 건강, 재산 결과를 보장하지 않습니다. 다만 지금 집이 ${name}의 기운을 돕는지 방해하는지, 어디부터 손보면 판단이 선명해지는지 알려주는 지도입니다. 큰 결정은 감정이 아니라 반복 관찰 뒤에 내려야 합니다.`,
     ].join('\n\n'),
   }
 
-  return sections[sectionId] ?? [
+  const raw = sections[sectionId] ?? [
     `${name}님의 집 풍수는 ${focus} 기준으로 봅니다. ${dayPillar} 일주와 ${dominant}/${weak} 오행, 그리고 ${homeContextSummary(context)}을 함께 놓고 해석합니다.`,
     `${ragLine} 이 풀이는 확정 예언이 아니라 집과 생활 리듬의 맞물림을 확인하는 기준입니다.`,
   ].join('\n\n')
+  return applyServiceTone(raw, context.serviceKey)
 }
 
 function buildWorkMoveInterpretation(
@@ -1418,7 +1429,7 @@ function buildWorkMoveInterpretation(
   context: SajuReportContext,
   ragTopics: string[],
 ): string {
-  const name = cleanContextValue(context.name, '자네')
+  const name = addressName(context)
   const workMove = context.workMove
   const p = analysis.fourPillars
   const dayPillar = pillarLabel(p.day)
@@ -1501,10 +1512,11 @@ function buildWorkMoveInterpretation(
     ].join('\n\n'),
   }
 
-  return sections[sectionId] ?? [
+  const raw = sections[sectionId] ?? [
     `${name}님의 이직운은 ${focus} 기준으로 봅니다. ${dayPillar} 일주와 ${dominant}/${weak} 오행, 그리고 ${workMoveContextSummary(context)}을 함께 놓고 해석합니다.`,
     `${ragLine} 이 풀이는 확정 예언이 아니라 회사 이동 판단 기준을 정리하는 데 초점을 둡니다.`,
   ].join('\n\n')
+  return applyServiceTone(raw, context.serviceKey)
 }
 
 function buildPassAngleInterpretation(
@@ -1514,7 +1526,7 @@ function buildPassAngleInterpretation(
   context: SajuReportContext,
   ragTopics: string[],
 ): string {
-  const name = cleanContextValue(context.name, '자네')
+  const name = addressName(context)
   const p = analysis.fourPillars
   const dayPillar = pillarLabel(p.day)
   const monthPillar = pillarLabel(p.month)
@@ -1638,7 +1650,7 @@ function buildInterpretation(
   sectionId = '',
   birth?: BirthInput,
 ): string {
-  const name = cleanContextValue(context.name, cleanContextValue(context.target, '자네'))
+  const name = addressName(context)
   const concern = cleanContextValue(context.concern, '말하지 못한 고민')
   const work = cleanContextValue(context.work, '지금 하고 있는 일')
   const relation = [context.relationship, context.orientation].filter(Boolean).join(' · ') || '관계의 기준'
@@ -1671,7 +1683,10 @@ function buildInterpretation(
     : advancedLine
 
   if (isLoveThisYearContext(context)) {
-    return buildLoveThisYearInterpretation(sectionId, focus, analysis, context, ragTopics, birth)
+    return applyServiceTone(
+      buildLoveThisYearInterpretation(sectionId, focus, analysis, context, ragTopics, birth),
+      context.serviceKey,
+    )
   }
 
   if (isHomeFitContext(context)) {
@@ -1683,7 +1698,10 @@ function buildInterpretation(
   }
 
   if (isPassAngleContext(context)) {
-    return buildPassAngleInterpretation(sectionId, focus, analysis, context, ragTopics)
+    return applyServiceTone(
+      buildPassAngleInterpretation(sectionId, focus, analysis, context, ragTopics),
+      context.serviceKey,
+    )
   }
 
   const sections: Partial<Record<ReportFocus, string>> = {
@@ -1789,7 +1807,8 @@ function buildInterpretation(
   ].join('\n\n')
 
   const riskNote = conditionalRiskNote(focus, analysis, context)
-  return riskNote ? `${base}\n\n${riskNote}` : base
+  const merged = riskNote ? `${base}\n\n${riskNote}` : base
+  return applyServiceTone(merged, context.serviceKey)
 }
 
 export function buildTemplateSajuReport(
@@ -1819,7 +1838,7 @@ export function buildTemplateSajuReport(
     ...(analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
     ...(analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
   ]
-  const name = cleanContextValue(context.name, cleanContextValue(context.target, '자네'))
+  const name = addressName(context)
   const sections: SajuReportSection[] = blueprintsForContext(context).map((blueprint, index) => {
     const chunks = retrieveRagChunks(
       `${blueprint.query} ${reportContextQuery(context)}`,

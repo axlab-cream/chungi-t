@@ -510,7 +510,25 @@
     return payload?.analysis?.report?.sections?.length ? payload.analysis.report : null;
   }
 
-  function firstSentence(text) {
+  
+  function clipTeaser(text, limit) {
+    var max = typeof limit === 'number' ? Math.max(limit, 220) : 220;
+    if (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences) {
+      return window.UMSHTextClip.clipCompleteSentences(text, max);
+    }
+    var value = String(text || '').trim();
+    if (value.length <= max) return value;
+    var ends = [];
+    var re = /[.!?。]/g;
+    var match;
+    while ((match = re.exec(value)) !== null) ends.push(match.index + 1);
+    var fitting = ends.filter(function (i) { return i <= max; });
+    if (fitting.length) return value.slice(0, fitting[fitting.length - 1]).trim();
+    if (ends.length) return value.slice(0, ends[0]).trim();
+    return value;
+  }
+
+function firstSentence(text) {
     return String(text || '').split(/\n\n|(?<=\.)\s+/).find(Boolean) || '';
   }
 
@@ -573,7 +591,7 @@
   }
 
   function sectionPreview(section) {
-    return firstSentence(section.interpretation || section.hook || section.classification).slice(0, 96);
+    return clipTeaser(firstSentence(section.interpretation || section.hook || section.classification), 220);
   }
 
   function setupStep5() {
@@ -603,7 +621,7 @@
               <span class="section-copy">
                 <b>${escapeHtml(section.category)}</b>
                 <small>${escapeHtml(sectionPreview(section))}</small>
-                <em>${escapeHtml(section.ragTopics?.slice(0, 3).join(' · ') || section.classification)}</em>
+                <em>${escapeHtml(section.classification || section.hook || '')}</em>
               </span>
               <span class="arrow" aria-hidden="true">›</span>
             </a>
@@ -612,7 +630,7 @@
       </details>
     `;
     if (visibleCount) visibleCount.textContent = `${report.sections.length}개`;
-    if (stateNotice) stateNotice.textContent = 'RAG 기반 개인화 리포트를 불러왔습니다. 항목을 누르면 해당 상세 풀이로 이동합니다.';
+    if (stateNotice) stateNotice.textContent = '개인화 리포트를 불러왔습니다. 항목을 누르면 해당 상세 풀이로 이동합니다.';
 
     $$('[data-dynamic-work-section]', root).forEach((card) => {
       card.addEventListener('click', () => {
@@ -661,15 +679,15 @@
 
     document.title = `${section.category} | 나, 회사 옮겨도 될까?`;
     setText('topSubtitle', '이직운 상세 풀이');
-    setText('groupLabel', '06 상세 풀이 · RAG 개인화');
+    setText('groupLabel', '06 상세 풀이');
     setText('detailTitle', section.category);
     setText('detailIntro', section.hook || section.classification);
-    setHtml('heroTags', [section.category, ...(section.ragTopics || []).slice(0, 4)].map((tag, index) => `<span class="tag ${index === 0 ? 'gold' : ''}">${escapeHtml(tag)}</span>`).join(''));
+    setHtml('heroTags', section.category ? `<span class="tag gold">${escapeHtml(section.category)}</span>` : '');
     setText('conclusionText', firstSentence(section.interpretation));
     setHtml('evidenceGrid', `
-      <article class="mini-card"><b>분류</b><p>${escapeHtml(section.classification)}</p></article>
-      <article class="mini-card"><b>RAG 근거</b><p>${escapeHtml(section.ragTopics?.slice(0, 5).join(' · ') || '코퍼스 근거')}</p></article>
-      <article class="mini-card"><b>패턴 키</b><p>${escapeHtml(section.patternKeys?.slice(0, 4).join(' · ') || '사주 계산값')}</p></article>
+      <article class="mini-card"><b>이 항목</b><p>${escapeHtml(section.classification || section.category)}</p></article>
+      <article class="mini-card"><b>한 줄 요약</b><p>${escapeHtml(section.hook || firstSentence(section.interpretation))}</p></article>
+      <article class="mini-card"><b>기준</b><p>사주 원국과 입력하신 이직 조건을 함께 본 풀이입니다.</p></article>
     `);
     setHtml('interpretationBlocks', paragraphs.map((paragraph, index) => `
       <article class="block">

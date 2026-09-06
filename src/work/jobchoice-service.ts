@@ -13,6 +13,8 @@ import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { clipCompleteSentences } from '../report/text-clip.js'
+import { applyServiceTone } from '../report/report-tone.js'
 
 export const JOB_CHOICE_SERVICE_KEY = 'job_choice'
 
@@ -334,46 +336,46 @@ function palaceLine(palace: PalaceId, analysis: SajuAnalysis): string {
   if (palace === 'career') {
     const stars = ownedStars(analysis, OFFICIAL_STARS)
     if (!stars.length) {
-      return '관록궁이 보는 자리를 원국에서 찾으면 관성이 드러나 있지 않네. 조직이 정해 준 자리보다 자네가 만든 역할에서 힘이 붙는 구조일세.'
+      return '관록궁이 보는 자리를 원국에서 찾으면 관성이 드러나 있지 않아요. 조직이 정해 준 자리보다 당신이 만든 역할에서 힘이 붙는 구조예요.'
     }
-    return `관록궁이 보는 자리를 원국에서 찾으면 ${subject(stars.join('·'))} 잡히네. 자네가 조직 안에서 책임을 지는 방식이 여기서 정해지네.`
+    return `관록궁이 보는 자리를 원국에서 찾으면 ${subject(stars.join('·'))} 잡혀요. 당신이 조직 안에서 책임을 지는 방식이 여기서 정해져요.`
   }
   if (palace === 'wealth') {
     const stars = ownedStars(analysis, WEALTH_STARS)
     if (!stars.length) {
-      return '재백궁 쪽을 원국에서 보면 재성이 얇네. 들어오는 액수보다 남는 구조를 따로 설계해야 하는 자리일세.'
+      return '재백궁 쪽을 원국에서 보면 재성이 얇네. 들어오는 액수보다 남는 구조를 따로 설계해야 하는 자리예요.'
     }
-    return `재백궁 쪽을 원국에서 보면 ${subject(stars.join('·'))} 잡히네. 돈이 들어오는 결과 쌓이는 결이 여기서 갈리네.`
+    return `재백궁 쪽을 원국에서 보면 ${subject(stars.join('·'))} 잡혀요. 돈이 들어오는 결과 쌓이는 결이 여기서 갈려요.`
   }
   if (palace === 'friends') {
     const stars = ownedStars(analysis, PEER_STARS)
     if (!stars.length) {
-      return '노복궁이 보는 사람 자리를 원국에서 보면 비겁이 얇네. 무리에 섞이기보다 한둘과 깊게 붙는 편이 덜 지치네.'
+      return '노복궁이 보는 사람 자리를 원국에서 보면 비겁이 얇네. 무리에 섞이기보다 한둘과 깊게 붙는 편이 덜 지쳐요.'
     }
-    return `노복궁이 보는 사람 자리를 원국에서 보면 ${subject(stars.join('·'))} 잡히네. 동료와 힘을 나누는 방식이자 부딪히는 방식일세.`
+    return `노복궁이 보는 사람 자리를 원국에서 보면 ${subject(stars.join('·'))} 잡혀요. 동료와 힘을 나누는 방식이자 부딪히는 방식입니다.`
   }
   if (palace === 'travel') {
     const owned = branches.filter((branch) => TRAVEL_BRANCHES.includes(branch))
     if (!owned.length) {
-      return '천이궁이 보는 이동 자리를 원국에서 보면 역마가 비어 있네. 자리를 자주 옮기는 일보다 한자리에서 깊어지는 일에 힘이 붙네.'
+      return '천이궁이 보는 이동 자리를 원국에서 보면 역마가 비어 있어요. 자리를 자주 옮기는 일보다 한자리에서 깊어지는 일에 힘이 붙어요.'
     }
     const label = Array.from(new Set(owned)).map((branch) => `${BRANCH_KO[branch]}(${branch})`).join('·')
-    return `천이궁이 보는 이동 자리를 원국에서 보면 역마 자리에 ${label}${subject('')} 들어 있네. 움직임이 있는 자리에서 오히려 리듬이 살아나는 편일세.`
+    return `천이궁이 보는 이동 자리를 원국에서 보면 역마 자리에 ${label}${subject('')} 들어 있어요. 움직임이 있는 자리에서 오히려 리듬이 살아나는 편입니다.`
   }
   const resource = ownedStars(analysis, RESOURCE_STARS)
   const output = ownedStars(analysis, OUTPUT_STARS)
   if (!resource.length && !output.length) {
-    return '복덕궁이 보는 회복 자리를 원국에서 보면 인성과 식상이 둘 다 얇네. 쉬는 방식을 미리 정해 두지 않으면 소모가 빨리 오네.'
+    return '복덕궁이 보는 회복 자리를 원국에서 보면 인성과 식상이 둘 다 얇네. 쉬는 방식을 미리 정해 두지 않으면 소모가 빨리 와요.'
   }
   const parts = [resource.length ? `인성 ${resource.join('·')}` : '', output.length ? `식상 ${output.join('·')}` : ''].filter(Boolean)
-  return `복덕궁이 보는 회복 자리를 원국에서 보면 ${subject(parts.join('과 '))} 잡히네. 자네가 힘을 채우는 통로가 여기일세.`
+  return `복덕궁이 보는 회복 자리를 원국에서 보면 ${subject(parts.join('과 '))} 잡혀요. 당신이 힘을 채우는 통로가 여기입니다.`
 }
 
 function timingLine(analysis: SajuAnalysis, input: JobChoiceRequest): string {
   const fortune = analysis.fortune
-  const decision = input.decisionDate ? `결정 예정일은 ${input.decisionDate}. 그전까지 확인할 조건을 남겨 두세.` : '결정 예정일을 따로 적지 않았으니, 확인할 조건이 끝나는 날을 자네가 정하게.'
-  if (!fortune) return `대한과 유년은 단정하지 않고 지금 원국에 드러난 조건으로 보겠네. ${decision}`
-  return `자미두수로 치면 대한에 해당하는 자네의 현재 대운은 ${fortune.currentDaewoon}, 올해 유년에 해당하는 세운은 ${fortune.yearPillar}일세. ${decision}`
+  const decision = input.decisionDate ? `결정 예정일은 ${input.decisionDate}. 그전까지 확인할 조건을 남겨 두세.` : '결정 예정일을 따로 적지 않았으니, 확인할 조건이 끝나는 날을 당신이 정하세요.'
+  if (!fortune) return `대한과 유년은 단정하지 않고 지금 원국에 드러난 조건으로 볼게요. ${decision}`
+  return `자미두수로 치면 대한에 해당하는 당신의 현재 대운은 ${fortune.currentDaewoon}, 올해 유년에 해당하는 세운은 ${fortune.yearPillar}입니다. ${decision}`
 }
 
 /**
@@ -392,7 +394,7 @@ function compact(text: string, fallback: string, limit = 160): string {
     .join(' ')
   const clean = stripped.replace(/\s+/g, ' ').trim()
   if (clean.length < 12) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
+  return clipCompleteSentences(clean, Math.max(limit, 220))
 }
 
 /** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
@@ -441,9 +443,9 @@ const GROUP_PALACE: Record<string, PalaceId> = {
  * of each item. Without this the six 직무 핏 items would open on the same sentence.
  */
 const ITEM_ANGLES = [
-  '지금 조건에서 실제로 어떻게 나타나는지부터 보네.',
-  '마음이 가는 쪽과 걸리는 쪽을 갈라 놓고 보네.',
-  '입사 전에 물어서 확인할 수 있는 것으로 바꿔 보네.',
+  '지금 조건에서 실제로 어떻게 나타나는지부터 보여요.',
+  '마음이 가는 쪽과 걸리는 쪽을 갈라 놓고 보여요.',
+  '입사 전에 물어서 확인할 수 있는 것으로 바꿔 보여요.',
 ]
 
 /** The pack written for this service; see data/corpus/. */
@@ -476,23 +478,23 @@ function buildInterpretation(params: {
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const weak = ELEMENT_KO[analysis.weakElement]
   const strength = analysis.dayMasterStrength === 'strong'
-    ? '일간이 단단한 편이라 주도권을 쥘 때 힘이 붙네'
+    ? '일간이 단단한 편이라 주도권을 쥘 때 힘이 붙어요'
     : analysis.dayMasterStrength === 'weak'
-      ? '일간이 여린 편이라 혼자 밀어붙이기보다 받쳐 주는 구조가 필요하네'
-      : '일간이 균형에 가까워 조건에 따라 힘의 방향이 달라지네'
+      ? '일간이 여린 편이라 혼자 밀어붙이기보다 받쳐 주는 구조가 필요해요'
+      : '일간이 균형에 가까워 조건에 따라 힘의 방향이 달라져요'
   const ragLine = ragLineFrom(
     pickRag(chunks, index),
-    '직장 선택은 회사의 조건만이 아니라 자네가 힘을 쓰는 방식과 회복하는 방식을 같이 놓고 봐야 합니다.',
+    '직장 선택은 회사의 조건만이 아니라 당신이 힘을 쓰는 방식과 회복하는 방식을 같이 놓고 봐야 합니다.',
   )
 
-  return [
-    `${group.label} ${group.title} 중 "${itemTitle}"일세. 자네는 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} ${object(input.companyName)} 이 자리에서 보겠네.`,
+  return applyServiceTone([
+    `${group.label} ${group.title} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} ${object(input.companyName)} 이 자리에서 볼게요.`,
     `${group.preview} ${itemTitle} 항목은 ${ITEM_ANGLES[itemIndex % ITEM_ANGLES.length]} ${palaceLine(palace, analysis)}`,
-    `자네는 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으며, ${strength}. ${input.roleName} 직무를 ${WORK_MODE_LABEL[input.workMode]}로, 출퇴근은 "${input.commute}" 조건으로 두었으니 ${group.focus} 쪽에서 무엇이 남고 무엇이 새는지 여기서 갈리네.`,
-    `${timingLine(analysis, input)} 조건 체감은 ${copula(SALARY_LABEL[input.salaryFeeling])} 하였고, 가장 걸리는 말은 "${input.concernPoint}"일세. 이 풀이는 합격이나 연봉을 맞히는 자리가 아니라 확인할 순서를 정하는 자리일세.`,
-    `참고할 결은 이렇네. ${ragLine} 다만 조심할 것이 하나 있네. ${group.caution}`,
-    `오늘 할 수 있는 것은 이것일세. ${group.action} 자미두수의 궁 이름을 빌려 보았으나 근거는 자네 사주 원국과 입력한 조건일세. 마지막 판단은 이 문장이 아니라 자네가 직접 물어서 받은 답으로 하게.`,
-  ].join('\n\n')
+    `당신은 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으며, ${strength}. ${input.roleName} 직무를 ${WORK_MODE_LABEL[input.workMode]}로, 출퇴근은 "${input.commute}" 조건으로 두었으니 ${group.focus} 쪽에서 무엇이 남고 무엇이 새는지 여기서 갈려요.`,
+    `${timingLine(analysis, input)} 조건 체감은 ${copula(SALARY_LABEL[input.salaryFeeling])} 하였고, 가장 걸리는 말은 "${input.concernPoint}"입니다. 이 풀이는 합격이나 연봉을 맞히는 자리가 아니라 확인할 순서를 정하는 자리예요.`,
+    `참고할 결은 이래요. ${ragLine} 다만 조심할 것이 하나 있어요. ${group.caution}`,
+    `오늘 할 수 있는 것은 이것이에요. ${group.action} 자미두수의 궁 이름을 빌려 보았으나 근거는 당신 사주 원국과 입력한 조건이에요. 마지막 판단은 이 문장이 아니라 당신이 직접 물어서 받은 답으로 하게.`,
+  ].join('\n\n'), JOB_CHOICE_SERVICE_KEY)
 }
 
 export function buildJobChoiceReport(
