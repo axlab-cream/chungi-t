@@ -2219,6 +2219,10 @@ app.post('/api/chat', async (req, res) => {
     const birth = parseBirth(req.body.birth ?? req.body)
     const message = String(req.body.message ?? '').trim()
     const history = (req.body.history ?? []) as ConversationTurn[]
+    const serviceKeyRaw = req.body.serviceKey ?? req.body.service_key
+    const serviceKey = typeof serviceKeyRaw === 'string' && serviceKeyRaw.trim()
+      ? serviceKeyRaw.trim()
+      : undefined
 
     if (!message) {
       res.status(400).json({ error: '메시지를 입력해 주세요.' })
@@ -2230,7 +2234,7 @@ app.post('/api/chat', async (req, res) => {
       return
     }
 
-    const prepared = prepareConversation({ birth, message, history })
+    const prepared = prepareConversation({ birth, message, history, serviceKey })
     const reply = await chatWithOpenAI(prepared.messages, {
       maxTokens: runtimeConfig.conversation?.maxTokens ?? 1800,
     })
