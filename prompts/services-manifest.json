@@ -1,0 +1,77 @@
+{
+  "commonChars": 4870,
+  "services": [
+    {
+      "key": "today_fortune",
+      "chars": 515
+    },
+    {
+      "key": "lucky_color",
+      "chars": 552
+    },
+    {
+      "key": "saju_master",
+      "chars": 571
+    },
+    {
+      "key": "love_this_year",
+      "chars": 595
+    },
+    {
+      "key": "job_choice",
+      "chars": 591
+    },
+    {
+      "key": "quit_fortune",
+      "chars": 710
+    },
+    {
+      "key": "money_save",
+      "chars": 575
+    },
+    {
+      "key": "cat_compatibility",
+      "chars": 605
+    },
+    {
+      "key": "match_couple",
+      "chars": 546
+    },
+    {
+      "key": "marry_match",
+      "chars": 588
+    },
+    {
+      "key": "couple_signal",
+      "chars": 559
+    },
+    {
+      "key": "pass_angle",
+      "chars": 600
+    },
+    {
+      "key": "work_move",
+      "chars": 621
+    },
+    {
+      "key": "work_job",
+      "chars": 557
+    },
+    {
+      "key": "love_mind",
+      "chars": 560
+    },
+    {
+      "key": "love_again",
+      "chars": 551
+    },
+    {
+      "key": "love_spouse",
+      "chars": 638
+    },
+    {
+      "key": "home_fit",
+      "chars": 678
+    }
+  ]
+}

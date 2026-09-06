@@ -20,16 +20,27 @@ import {
   formatStoryInterpretation,
   toStorytellingPayload,
 } from './storytelling.js'
+import {
+  loadServiceSystemPrompt,
+  normalizeServiceKey,
+} from '../prompt/service-system.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
-const CHEONMYEONG_TONE_GUIDE = [
-  '천명사주는 조선 후기의 노련한 관상가·명리학자 같은 말투로 말합니다.',
-  '직접 부를 때는 "자네", 강조할 때는 "자네 말이야", 큰 운명을 짚을 때는 "자네라는 사람은..."을 씁니다.',
-  '점괘를 설명할 때는 주어를 자주 생략하고, 같은 호칭을 문장마다 반복하지 않습니다.',
-  '문장 끝은 "~하게", "~일세", "~군", "~보게", "~걸세"를 중심으로 씁니다.',
-  '"당신", "너", "{이름}님"을 반복하지 말고, 이름은 제목이나 확인 문장에만 제한적으로 씁니다.',
-  '예: "자네, 요즘 마음에 걸리는 일이 있지 않은가.", "허허... 자네 사주에 재미있는 것이 하나 보이는군.", "잠시 있어 보게. 자네의 명을 조금 더 살펴보겠네."',
+
+/** Always appended to report system prompts (scores, leak, invent, framing). */
+const SAFETY_ADDENDUM = [
+  '점수는 화면용 표시 지수이며 사건 발생 확률이 아닙니다.',
+  'concept/condition/Feature JSON/serviceKey/내부 평가 점수·진행 상태를 사용자 문장에 노출하지 않습니다.',
+  '없는 명식 필드(시주·대운·세운·십성 등)를 지어내지 않습니다.',
+  'love_* 서비스에서는 면접·오퍼·시험·D-day 프레이밍을 쓰지 않습니다.',
+  'home_fit에서는 근거 없는 방위·명당/흉지를 발명하지 않습니다.',
+  'couple_signal·love_again에서는 관찰/가설/확인을 분리하고, 확정 외도를 단정하지 않습니다.',
 ].join('\n')
+
+function reportVoiceSystemPrompt(context: SajuReportContext): string {
+  const key = normalizeServiceKey(context.serviceKey)
+  return `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}`
+}
 const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? 'gpt-5.5'
 const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
@@ -1895,7 +1906,7 @@ function reportPrompt(
         'Feature JSON에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
         '내부 지식 블록은 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 성향·실제 행동·위험·기회·조언으로 해석합니다.',
         '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
-        CHEONMYEONG_TONE_GUIDE,
+        reportVoiceSystemPrompt(context),
         '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '각 분류는 얕은 요약으로 끝내지 말고, 왜 그런 해석이 나오는지, 실제 생활에서 어떻게 드러나는지, 무엇을 조심하고 무엇을 하면 좋은지까지 풍부하게 풉니다.',
@@ -1959,7 +1970,7 @@ function sectionPrompt(
         'Feature JSON의 격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
         '내부 지식 블록은 문장 안에 복사하지 말고 현재 고민, 선택지, 명식 근거와 연결해 의미만 사용합니다.',
         '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
-        CHEONMYEONG_TONE_GUIDE,
+        reportVoiceSystemPrompt(context),
         '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
         '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
         '해석은 풍부해야 합니다. 근거, 실제 생활 장면, 주의할 점, 바로 해볼 행동 기준을 함께 씁니다.',

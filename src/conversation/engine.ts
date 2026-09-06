@@ -16,14 +16,16 @@ export function prepareConversation(input: ConversationInput): ConversationResul
 
   const retrievedChunks = retrieveRagChunks(input.message, sajuAnalysis, topK)
   const history = (input.history ?? []).slice(-maxHistory)
+  const serviceKey = input.serviceKey
 
   const messages = buildConversationMessages({
-    systemPrompt: loadSystemPrompt(),
+    systemPrompt: loadSystemPrompt(serviceKey),
     sajuPrompt: formatSajuForPrompt(sajuAnalysis),
     ragPrompt: formatRagForPrompt(retrievedChunks),
     intent,
     history,
     userMessage: input.message,
+    serviceKey,
   })
 
   return {

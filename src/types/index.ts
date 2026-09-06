@@ -434,6 +434,8 @@ export interface ConversationInput {
   birth: BirthInput
   message: string
   history?: ConversationTurn[]
+  /** Optional product/service key for per-service voice prompts. */
+  serviceKey?: string | null
 }
 
 export interface LlmMessage {

@@ -1,13 +1,27 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { ConversationTurn, LlmMessage, RagChunk } from '../types/index.js'
 import { getIntentPromptHint } from '../rag/retriever.js'
+import { loadServiceSystemPrompt } from '../prompt/service-system.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-export function loadSystemPrompt(): string {
-  return readFileSync(join(__dirname, '../../prompts/system-prompt.md'), 'utf-8')
+/**
+ * Prefer per-service pack (common + service block).
+ * Falls back to legacy system-prompt.md only when common-system.md is missing
+ * (handled inside loadServiceSystemPrompt / loadCommonSystemPrompt).
+ */
+export function loadSystemPrompt(serviceKey?: string | null): string {
+  try {
+    return loadServiceSystemPrompt(serviceKey)
+  } catch {
+    const legacy = join(__dirname, '../../prompts/system-prompt.md')
+    if (existsSync(legacy)) {
+      return readFileSync(legacy, 'utf-8')
+    }
+    throw new Error('System prompt files missing under prompts/')
+  }
 }
 
 export function buildConversationMessages(params: {
@@ -17,6 +31,7 @@ export function buildConversationMessages(params: {
   intent: string
   history: ConversationTurn[]
   userMessage: string
+  serviceKey?: string | null
 }): LlmMessage[] {
   const { systemPrompt, sajuPrompt, ragPrompt, intent, history, userMessage } = params
   const intentHint = getIntentPromptHint(intent)
