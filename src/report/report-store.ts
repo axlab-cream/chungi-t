@@ -42,6 +42,7 @@ const supabasePublicKey =
   ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ?? process.env.VITE_SUPABASE_ANON_KEY
   ?? ''
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 const supabaseRestUrl = supabaseUrl
   ? `${supabaseUrl.replace(/\/$/, '')}/rest/v1/cheongi_reports`
   : ''
@@ -154,11 +155,12 @@ export function toClientReport(record: ReportRecord): SajuReport {
   return report
 }
 
-function supabaseHeaders(accessToken?: string): Record<string, string> {
+function supabaseHeaders(accessToken?: string, privileged = false): Record<string, string> {
   const headers: Record<string, string> = {
-    apikey: supabasePublicKey,
+    apikey: privileged && supabaseServiceRoleKey ? supabaseServiceRoleKey : supabasePublicKey,
   }
-  if (accessToken) headers.authorization = `Bearer ${accessToken}`
+  if (privileged && supabaseServiceRoleKey) headers.authorization = `Bearer ${supabaseServiceRoleKey}`
+  else if (accessToken) headers.authorization = `Bearer ${accessToken}`
   return headers
 }
 
@@ -208,9 +210,12 @@ export async function listReportRecords(owner: ReportOwner, limit = 50): Promise
     url.searchParams.set('order', 'updated_at.desc')
     url.searchParams.set('limit', String(safeLimit))
 
-    const response = await fetch(url, {
-      headers: supabaseHeaders(owner.accessToken),
-    })
+    let response = await fetch(url, { headers: supabaseHeaders(owner.accessToken, true) })
+    // A stale or mismatched server key must never turn the vault into a 500.
+    // Retry with the authenticated user's token, which remains RLS-scoped.
+    if (!response.ok && supabaseServiceRoleKey) {
+      response = await fetch(url, { headers: supabaseHeaders(owner.accessToken) })
+    }
     if (!response.ok) {
       const message = await response.text().catch(() => '')
       throw new Error(message || 'Supabase 리포트 목록 조회에 실패했습니다.')
@@ -284,7 +289,7 @@ export async function deleteReportRecord(reportId: string, owner: ReportOwner): 
     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
-        ...supabaseHeaders(owner.accessToken),
+        ...supabaseHeaders(owner.accessToken, true),
         prefer: 'return=representation',
       },
     })
