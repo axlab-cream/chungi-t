@@ -43,6 +43,43 @@
     if (storageAvailable('sessionStorage')) sessionStorage.setItem(key, JSON.stringify(value));
   };
 
+  // Static pass-angle pages must hydrate the shared Supabase session before calling
+  // the authenticated analyze endpoint. Otherwise signed-in readers are sent to signup.
+  const auth = { config: null, client: null, session: null };
+
+  async function initAuth() {
+    if (auth.session) return auth.session;
+    try {
+      auth.config = await fetch('/api/auth/config').then((response) => response.json());
+      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
+      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
+      const { data } = await auth.client.auth.getSession();
+      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
+      return auth.session;
+    } catch {
+      return null;
+    }
+  }
+
+  async function api(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(auth.session?.access_token ? { Authorization: `Bearer ${auth.session.access_token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload.error || '요청을 처리하지 못했습니다.');
+      error.status = response.status;
+      error.code = payload.code;
+      throw error;
+    }
+    return payload;
+  }
+
   /** The saju profile the account already saved, so step 2 never asks for it twice. */
   function readSavedProfile() {
     const profile = localGet(STORAGE.userProfile);
@@ -190,29 +227,26 @@
     if (!saved.complete) return null;
     const exam = sessionGet(STORAGE.input) || {};
 
-    const response = await fetch('/api/saju/analyze', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        ...saved.profile.birth,
-        birthTimeKnown: saved.profile.birthTimeKnown,
-        context: {
-          serviceKey: SERVICE.service_key,
-          name: saved.profile.name,
-          concern: exam.worry || '',
-          exam,
-        },
-      }),
-    });
-    // 401 means the shared login gate, not a failure. Surfacing it matters: without
-    // this the page would keep the static sample copy on screen and a logged-out
-    // visitor would read placeholder text as if it were their own reading.
-    if (response.status === 401 || response.status === 403) {
-      needsLogin = true;
+    await initAuth();
+    let data;
+    try {
+      data = await api('/api/saju/analyze', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...saved.profile.birth,
+          birthTimeKnown: saved.profile.birthTimeKnown,
+          context: {
+            serviceKey: SERVICE.service_key,
+            name: saved.profile.name,
+            concern: exam.worry || '',
+            exam,
+          },
+        }),
+      });
+    } catch (error) {
+      if (error?.status === 401 || error?.status === 403) needsLogin = true;
       return null;
     }
-    if (!response.ok) return null;
-    const data = await response.json();
     const report = data.report || data;
     if (!report?.sections?.length) return null;
     sessionSet(STORAGE.report, report);
