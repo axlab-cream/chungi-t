@@ -51,10 +51,18 @@
     if (auth.session) return auth.session;
     try {
       auth.config = await fetch('/api/auth/config').then((response) => response.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
+      if (!auth.config?.enabled || !window.supabase?.createClient) return null;
+      // Keep this flow usable even when the shared helper is delayed or cached.
+      // The Supabase client itself persists and refreshes the same browser session.
+      auth.client = window.UMSHAuthSession
+        ? window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey)
+        : window.supabase.createClient(auth.config.url, auth.config.publishableKey, {
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: window.localStorage },
+          });
       const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
+      auth.session = window.UMSHAuthSession
+        ? await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client)
+        : data.session;
       return auth.session;
     } catch {
       return null;
