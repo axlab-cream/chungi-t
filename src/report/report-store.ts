@@ -42,9 +42,6 @@ const supabasePublicKey =
   ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ?? process.env.VITE_SUPABASE_ANON_KEY
   ?? ''
-// Server-side report persistence must not depend on the browser JWT's REST/RLS
-// visibility. The key is read only in this server module and is never sent to clients.
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 const supabaseRestUrl = supabaseUrl
   ? `${supabaseUrl.replace(/\/$/, '')}/rest/v1/cheongi_reports`
   : ''
@@ -157,13 +154,11 @@ export function toClientReport(record: ReportRecord): SajuReport {
   return report
 }
 
-function supabaseHeaders(accessToken?: string, privileged = false): Record<string, string> {
-  const key = privileged && supabaseServiceRoleKey ? supabaseServiceRoleKey : supabasePublicKey
+function supabaseHeaders(accessToken?: string): Record<string, string> {
   const headers: Record<string, string> = {
-    apikey: key,
+    apikey: supabasePublicKey,
   }
-  if (privileged && supabaseServiceRoleKey) headers.authorization = `Bearer ${supabaseServiceRoleKey}`
-  else if (accessToken) headers.authorization = `Bearer ${accessToken}`
+  if (accessToken) headers.authorization = `Bearer ${accessToken}`
   return headers
 }
 
@@ -214,7 +209,7 @@ export async function listReportRecords(owner: ReportOwner, limit = 50): Promise
     url.searchParams.set('limit', String(safeLimit))
 
     const response = await fetch(url, {
-      headers: supabaseHeaders(owner.accessToken, true),
+      headers: supabaseHeaders(owner.accessToken),
     })
     if (!response.ok) {
       const message = await response.text().catch(() => '')
@@ -289,7 +284,7 @@ export async function deleteReportRecord(reportId: string, owner: ReportOwner): 
     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
-        ...supabaseHeaders(owner.accessToken, true),
+        ...supabaseHeaders(owner.accessToken),
         prefer: 'return=representation',
       },
     })
@@ -330,7 +325,7 @@ export async function saveReportRecord(record: ReportRecord): Promise<ReportReco
     const response = await fetch(supabaseRestUrl, {
       method: 'POST',
       headers: {
-        ...supabaseHeaders(accessToken, true),
+        ...supabaseHeaders(accessToken),
         'content-type': 'application/json',
         prefer: 'resolution=merge-duplicates,return=representation',
       },
