@@ -155,7 +155,13 @@
 
       async function ensureSessionAndContinue() {
         window.UMSHServiceSteps?.markAuth();
-        await initAuth().catch(() => undefined);
+        const result = await initAuth().catch(() => null);
+        if (result?.session?.access_token) {
+          // The main reading flow already handles the profile check, today-result
+          // rendering, and return state. Keep an authenticated visitor out of signup.
+          location.assign('/cmdg/?entry=today#loading');
+          return;
+        }
         openTodayLogin();
       }
 

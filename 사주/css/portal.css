@@ -638,6 +638,8 @@ html.splash-disabled .splash-screen,
   display: none;
 }
 
+.poster.is-work img,
+.poster.is-work video,
 .poster.is-work :is(img, video) {
   opacity: 0.82;
   filter: saturate(1.08) contrast(1.06) brightness(0.84);
