@@ -42,6 +42,11 @@ test('검색 목록은 카탈로그의 제목과 금액을 그대로 쓴다', ()
 
   // 고양이 궁합은 방금 연 서비스라 목록에 반드시 있어야 한다.
   assert.ok(keys.includes('cat_compatibility'))
+
+  // 내부적으로는 살아 있어도 공개 포털과 검색에서는 노출하지 않는다.
+  for (const hiddenKey of ['work_job', 'love_mind', 'love_again', 'love_spouse']) {
+    assert.ok(!keys.includes(hiddenKey as (typeof keys)[number]), `${hiddenKey}가 공개 목록에 노출됩니다`)
+  }
 })
 
 test('보관함은 저장된 풀이를 원래 서비스로 되돌린다', () => {

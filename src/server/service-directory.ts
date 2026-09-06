@@ -42,11 +42,12 @@ const SEEDS: DirectorySeed[] = [
   { key: 'pass_angle', tagline: '준비 흐름과 시험 구간을 함께', category: '직업', href: '/me/pass-angle', image: '/assets/umsh-exam-card-bg.png' },
   { key: 'money_save', tagline: '돈이 모이지 않는 자리를 먼저 찾고', category: '재물', href: '/money/save', image: '/assets/umsh-money-card-bg.png' },
   { key: 'work_move', tagline: '옮길 자리와 남을 자리를 가르고', category: '직업', href: '/work/move', image: '/work/move/assets/generated/move/01-scene-01-question.webp' },
-  // These services are live and use existing service artwork until dedicated cards are made.
-  { key: 'work_job', tagline: '관성, 식상, 적성으로 보는 지금 일', category: '직업', href: '/work/job', image: '/assets/umsh-work-card-bg.png' },
-  { key: 'love_mind', tagline: '그 사람도 나를 생각할까', category: '연애', href: '/love/mind', image: '/assets/love-ty-char-phone-v2.webp' },
-  { key: 'love_again', tagline: '그 사람, 다시 돌아올까', category: '연애', href: '/love/again', image: '/assets/love-ty-char-chart-v2.webp' },
-  { key: 'love_spouse', tagline: '내가 결혼하게 될 사람', category: '연애', href: '/love/spouse', image: '/assets/love-ty-char-cafe-v2.webp' },
+  // Keep these live routes available for existing readings, but omit them from discovery
+  // until their public catalog presentation is ready.
+  { key: 'work_job', tagline: '관성, 식상, 적성으로 보는 지금 일', category: '직업', href: '/work/job', image: '/assets/umsh-work-card-bg.png', hidden: true },
+  { key: 'love_mind', tagline: '그 사람도 나를 생각할까', category: '연애', href: '/love/mind', image: '/assets/love-ty-char-phone-v2.webp', hidden: true },
+  { key: 'love_again', tagline: '그 사람, 다시 돌아올까', category: '연애', href: '/love/again', image: '/assets/love-ty-char-chart-v2.webp', hidden: true },
+  { key: 'love_spouse', tagline: '내가 결혼하게 될 사람', category: '연애', href: '/love/spouse', image: '/assets/love-ty-char-cafe-v2.webp', hidden: true },
   { key: 'home_pungsu', tagline: '공간의 기운과 내 명리를 겹쳐서', category: '풍수', href: '/place/home', image: '/assets/umsh-place-card-bg.webp' },
 ]
 
