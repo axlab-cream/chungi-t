@@ -131,6 +131,15 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(chunks.length <= 3)
     })
 
+    it('서비스별 코퍼스가 일반 검색 결과보다 먼저 포함된다', () => {
+      const saju = analyzeSaju(sampleBirth)
+      const chunks = retrieveRagChunks('지금 관계의 흐름을 봐줘', saju, 5, { serviceKey: 'love_mind' })
+      assert.ok(chunks.length > 0)
+      const serviceChunks = chunks.filter((chunk) => chunk.domain === 'love_mind_service')
+      assert.ok(serviceChunks.length >= 1)
+      assert.ok(chunks.indexOf(serviceChunks[0]) <= 2)
+    })
+
     it('GBR 재랭킹 → 격국·조후·통관 질문에서 고급 청크를 회수', () => {
       const saju = analyzeSaju(sampleBirth)
       const chunks = retrieveRagChunks('용신을 격국 조후 통관까지 연결해서 봐줘', saju, 6)

@@ -3,11 +3,36 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { RagChunk, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../types/index.js'
 import { getChunkCorpusFiles, getCorpusDomainBoost } from './corpus-registry.js'
+import { normalizeServiceKey } from '../prompt/service-system.js'
 import { retrieveVectorRagChunks } from './embedder.js'
 import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from './knowledge-block.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
+
+/** Each product gets a small, deterministic slice of its own corpus pack before
+ * general semantic matches are considered. This prevents a high-frequency
+ * generic chunk from displacing the service's actual interpretation rules. */
+const SERVICE_DOMAINS: Record<string, string> = {
+  love_this_year: 'love_this_year_service',
+  home_fit: 'home_fit_service',
+  work_move: 'work_move_service',
+  pass_angle: 'pass_angle_service',
+  cat_compatibility: 'cat_compatibility_service',
+  couple_signal: 'couple_signal_service',
+  lucky_color: 'lucky_color_service',
+  job_choice: 'job_choice_service',
+  quit_fortune: 'quit_fortune_service',
+  money_save: 'money_save_service',
+  match_couple: 'match_couple_service',
+  marry_match: 'marry_match_service',
+  today_fortune: 'today_fortune_service',
+  saju_master: 'saju_master_service',
+  work_job: 'work_job_service',
+  love_mind: 'love_mind_service',
+  love_again: 'love_again_service',
+  love_spouse: 'love_spouse_service',
+}
 
 interface ConsultationTemplate {
   id: string
@@ -607,6 +632,9 @@ export function retrieveRagChunks(
   const gbrTokens = graphBoostTokens(queryTokens, saju, context)
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
+  const serviceDomain = context?.serviceKey
+    ? SERVICE_DOMAINS[normalizeServiceKey(context.serviceKey)]
+    : undefined
 
   const vectorResults = retrieveVectorRagChunks(
     [...queryTokens, ...personalTokens].join(' '),
@@ -627,11 +655,20 @@ export function retrieveRagChunks(
     .map((id) => corpus.find((chunk) => chunk.id === id))
     .filter((chunk): chunk is RagChunk => Boolean(chunk))
 
+  const serviceChunks = serviceDomain
+    ? corpus
+      .filter((chunk) => chunk.domain === serviceDomain)
+      .sort((a, b) => scoreChunk(b, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(b.id) ?? 0, pinnedIds)
+        - scoreChunk(a, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(a.id) ?? 0, pinnedIds))
+      .slice(0, Math.min(2, topK))
+    : []
+
   const rankedChunks = [
     ...pinnedChunks,
+    ...serviceChunks.filter((chunk) => !pinnedIds.has(chunk.id)),
     ...scored
       .map((item) => item.chunk)
-      .filter((chunk) => !pinnedIds.has(chunk.id)),
+      .filter((chunk) => !pinnedIds.has(chunk.id) && !serviceChunks.some((serviceChunk) => serviceChunk.id === chunk.id)),
   ]
 
   if (rankedChunks.length === 0) return corpus.slice(0, topK)
@@ -642,7 +679,13 @@ export function formatRagForPrompt(chunks: RagChunk[]): string {
   if (chunks.length === 0) return '<rag_knowledge mode="internal_knowledge_blocks">\n(관련 지식 없음)\n</rag_knowledge>'
 
   const body = chunks
-    .map((c, i) => `[${i + 1}] ${c.topic}\nid: ${c.id}\n${c.content}`)
+    .map((c, i) => [
+      `[${i + 1}] ${c.topic}`,
+      `id: ${c.id}`,
+      `source_domain: ${c.domain ?? 'general'}`,
+      c.knowledge?.confidence ? `confidence: ${c.knowledge.confidence}` : '',
+      c.content,
+    ].filter(Boolean).join('\n'))
     .join('\n\n')
 
   return [

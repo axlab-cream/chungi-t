@@ -36,6 +36,30 @@ export const KNOWN_SERVICE_KEYS = [
   'home_fit',
 ] as const
 
+/** Required vocabulary from prompt_guides_18.md. Keeping this in the runtime
+ * prompt makes the attached guide enforceable even when a service prompt is
+ * edited independently. */
+const SERVICE_TERM_GUIDANCE: Record<string, string> = {
+  today_fortune: '필수 용어: 일진(日辰, 오늘의 기운), 일간(日干, 나의 중심 기운), 관성(官星, 책임과 규칙).',
+  lucky_color: '필수 용어: 용신(用神, 필요한 기운), 기신(忌神, 부담이 되는 기운), 오행(五行, 다섯 상징).',
+  saju_master: '필수 용어: 사주(四柱, 네 기둥), 원국(原局, 타고난 명식), 대운(大運, 긴 흐름), 십신(十神, 관계 코드).',
+  love_this_year: '필수 용어: 세운(歲運, 올해 흐름), 도화(桃花, 주목과 매력), 배우자성(配偶者星, 관계 신호).',
+  job_choice: '필수 용어: 관성(官星, 조직과 책임), 식상(食傷, 실무 표현), 재성(財星, 보상과 성과).',
+  quit_fortune: '필수 용어: 충(沖, 부딪힘과 변화), 관성(官星, 직장 책임), 비겁(比劫, 주체성과 경쟁).',
+  money_save: '필수 용어: 재성(財星, 재물과 자산), 비겁(比劫, 분배와 경쟁), 식상(食傷, 만들어 내는 결과).',
+  cat_compatibility: '필수 용어: 일지(日支, 가까운 생활 자리), 오행(五行, 다섯 상징).',
+  match_couple: '필수 용어: 합(合, 어우러짐), 충(沖, 마찰과 변화), 일간(日干, 각자의 중심 기운).',
+  marry_match: '필수 용어: 배우자궁(配偶者宮, 동반자 생활 자리), 대운(大運, 긴 흐름).',
+  couple_signal: '필수 용어: 식상(食傷, 표현 방식), 관성(官星, 책임과 거리 조절).',
+  pass_angle: '필수 용어: 인성(印星, 학습 수용), 관성(官星, 시험 규칙과 책임).',
+  work_move: '필수 용어: 재성(財星, 보상 구조), 식상(食傷, 실행과 산출), 관성(官星, 조직 책임).',
+  work_job: '필수 용어: 월주(月柱, 사회적 무대), 적성(適性, 맞는 업무 방식).',
+  love_mind: '필수 용어: 십신(十神, 관계 반응 코드), 변곡점(變曲點, 변화가 드러나는 순간).',
+  love_again: '필수 용어: 충(沖, 관계의 마찰과 변화), 합(合, 다시 맞춰 가는 흐름).',
+  love_spouse: '필수 용어: 배우자궁(配偶者宮, 동반자 관계의 자리), 자미두수(紫微斗數, 별자리 해석 체계).',
+  home_fit: '필수 용어: 오행(五行, 다섯 상징), 현관·침실·책상·창밖의 생활 조건.',
+}
+
 export type KnownServiceKey = (typeof KNOWN_SERVICE_KEYS)[number]
 
 const DEFAULT_SERVICE_KEY = 'saju_master'
@@ -78,16 +102,22 @@ export function loadServiceBlock(serviceKey: string): string {
   if (existsSync(preferred)) {
     return readCached(`service:${key}`, preferred)
   }
-  const fallbackKey = DEFAULT_SERVICE_KEY
-  return readCached(`service:${fallbackKey}`, join(PROMPTS_ROOT, 'services', `${fallbackKey}.md`))
+  throw new Error(`서비스 프롬프트가 없습니다: ${key}. prompts/services/${key}.md를 추가하세요.`)
+}
+
+/** Startup/CI guard: every public service must have its own persona prompt. */
+export function assertServicePromptCoverage(): void {
+  const missing = KNOWN_SERVICE_KEYS.filter((key) => !existsSync(join(PROMPTS_ROOT, 'services', `${key}.md`)))
+  if (missing.length > 0) throw new Error(`서비스 프롬프트 누락: ${missing.join(', ')}`)
 }
 
 export function loadServiceSystemPrompt(serviceKey?: string | null): string {
+  assertServicePromptCoverage()
   const key = normalizeServiceKey(serviceKey)
   const cacheKey = `full:${key}`
   const hit = cache.get(cacheKey)
   if (hit !== undefined) return hit
-  const combined = `${loadCommonSystemPrompt()}\n\n${loadServiceBlock(key)}`
+  const combined = `${loadCommonSystemPrompt()}\n\n${loadServiceBlock(key)}\n\n${SERVICE_TERM_GUIDANCE[key] ?? ''}`
   cache.set(cacheKey, combined)
   return combined
 }

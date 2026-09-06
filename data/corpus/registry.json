@@ -13,6 +13,66 @@
       "retrievalBoost": 0
     },
     {
+      "id": "today-fortune-service",
+      "path": "corpus/today-fortune-service.json",
+      "kind": "chunks",
+      "domain": "today_fortune_service",
+      "status": "active",
+      "role": "single_service_today_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "saju-master-service",
+      "path": "corpus/saju-master-service.json",
+      "kind": "chunks",
+      "domain": "saju_master_service",
+      "status": "active",
+      "role": "single_service_master_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "work-job-service",
+      "path": "corpus/work-job-service.json",
+      "kind": "chunks",
+      "domain": "work_job_service",
+      "status": "active",
+      "role": "single_service_work_job_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "love-mind-service",
+      "path": "corpus/love-mind-service.json",
+      "kind": "chunks",
+      "domain": "love_mind_service",
+      "status": "active",
+      "role": "single_service_love_mind_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "love-again-service",
+      "path": "corpus/love-again-service.json",
+      "kind": "chunks",
+      "domain": "love_again_service",
+      "status": "active",
+      "role": "single_service_love_again_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "love-spouse-service",
+      "path": "corpus/love-spouse-service.json",
+      "kind": "chunks",
+      "domain": "love_spouse_service",
+      "status": "active",
+      "role": "single_service_love_spouse_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
       "id": "deep-saju-interpretation",
       "path": "corpus/deep-saju-interpretation.json",
       "kind": "chunks",

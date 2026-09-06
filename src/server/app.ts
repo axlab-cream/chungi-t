@@ -273,6 +273,9 @@ app.get(['/love/this-year/chat', '/love/this-year/chat.html'], (_req, res) => {
 app.get(['/love/this-year/detail', '/love/this-year/detail.html'], (_req, res) => {
   res.redirect(302, '/love/this-year/06-step-6_1-report-detail/index.html')
 })
+app.get('/love/this-year/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'this-year', '06-step-6_1-report-detail', 'index.html'))
+})
 app.get(['/love/mind', '/love/mind/', '/love/mind/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'mind', 'index.html'))
 })
@@ -459,6 +462,9 @@ app.get(['/match/cat/chat', '/match/cat/chat.html'], (_req, res) => {
 app.get(['/match/cat/detail', '/match/cat/detail.html'], (_req, res) => {
   res.redirect(302, '/match/cat/06-step-6_1-report-detail/index.html')
 })
+app.get('/match/cat/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'match', 'cat', '06-step-6_1-report-detail', 'index.html'))
+})
 // 나한테 운 붙는 색과 물건 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
 app.get(['/me/lucky', '/me/lucky/', '/me/lucky/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
@@ -483,6 +489,9 @@ app.get(['/me/lucky/chat', '/me/lucky/chat.html'], (_req, res) => {
 })
 app.get(['/me/lucky/detail', '/me/lucky/detail.html'], (_req, res) => {
   res.redirect(302, '/me/lucky/06-step-6_1-report-detail/index.html')
+})
+app.get('/me/lucky/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'me', 'lucky', '06-step-6_1-report-detail', 'index.html'))
 })
 app.get(['/match/couple/input', '/match/couple/input.html'], (_req, res) => {
   res.redirect(302, '/match/couple/02-step-2-saju-input/index.html')
