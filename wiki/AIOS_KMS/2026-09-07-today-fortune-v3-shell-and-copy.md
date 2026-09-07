@@ -190,3 +190,31 @@ if (columnWidth > 0) {
 - **실제 화면:** `/cmdg/?reportId=91db22a5-013d-4a6c-ae49-d97f9d4b5bdc#todayResult` 첫 화면에 공통 상단·하단과 정상적인 준비 안내를 표시했다. 이후 같은 저장 결과를 정상 표시했고 7개 풀이 블록이 보정 전과 일치했다(`sameInterpretations:true`). 해당 검증 탭의 콘솔 error 목록은 빈 배열이었다.
 - **관측 범위:** 최종 배포 16:26 KST부터 16:27:26 KST 검사 시점까지 HTTP 500 로그는 **No logs found**였다. Drains와 지속 모니터링은 확인·설정하지 않았다.
 - **보존:** 기존 키·DB 스키마 변경 없음. 이 작업에서 삭제한 고객 데이터 없음. v3 확인 결과는 재조회할 수 있도록 보존.
+
+## 후속 UI 정리 — 재조회 링크 제거 및 다른 이용자 분량 확인
+
+### Error / Fix / Improvement
+
+- 사용자 피드백: 오늘운 결과 하단의 “이 해석, 같은 내용으로 다시 보기” 안내는 불필요하다. 다른 이용자에게도 같은 분량의 풀이가 제공되는지 확인 요청.
+- 실제 `/cmdg/` 소스와 미러에서 해당 링크·전용 CSS·미사용 지역 변수를 제거했다. 저장 결과 리더의 “이 날짜의 같은 해석 다시 열기” 링크도 제거하고 “새 오늘운 확인”은 유지했다.
+- 결과 UUID, 주소 동기화, 저장 원문, 소유권 검사, 재조회 API는 변경하지 않았다. 고유 ID는 저장 결과의 식별자이며 사람마다 문장이 유일하다는 의미는 아니다.
+
+### Success Case / REG
+
+- 프런트·저장 회귀: `today-portal-view.test.ts`, `report-access-frontend.test.ts`, `daily-report.test.ts` **43/43 통과**. `npm run vercel-build` 및 `git diff --check` 통과.
+- 독립 분량 점검: `today-fortune.test.ts`와 `daily-report.test.ts` **8/8 통과**. 중복된 저장 테스트가 있으므로 위 43개와 단순 합산하지 않는다.
+- 일회성 합성 점검: 9개 출생연도 × 12개월 = **108개 프로필** 전부 일·돈·관계·주의점 각 3문장, 결론 2문장, 띠별 풀이 2문장 기준 충족. 오행 관계 5종을 모두 통과했으며 고객 데이터·외부 API·운영 DB를 사용하지 않았다.
+- 한계: 현재 무료 오늘운은 5개 관계별 규칙형 본문이다. 합성 프로필 108개에서 핵심 본문은 5종이었으며 같은 유형 이용자는 핵심 문장이 동일할 수 있다. 이름·날짜·출생연도·띠·오행 관계를 반영하지만 개인마다 AI가 새 문장을 생성하는 방식은 아니다. 신규 v3에 동일한 분량 기준을 적용하며 기존 UUID의 과거 원문은 보존한다.
+
+### Deploy Result
+
+- **URL:** [chungi-ca04owcyw-ax-lab-cream.vercel.app](https://chungi-ca04owcyw-ax-lab-cream.vercel.app)
+- **Target / Status:** Production / READY. 후보 확인 후 승격했으며 `umsh.kr`의 inspect 매핑도 확인했다.
+- **Deployment / Commit:** `dpl_98RfwBHrNBsvMxvWfgBPPEscYAEU` / `1657c89`.
+- **Framework / Build Duration:** Express·Node 24, 생성 2026-09-07 16:32:17 KST, 원격 빌드 11초·총 배포 41초.
+- **후보 확인:** `/api/health`의 `ok:true`, `/cmdg/`의 오늘운 렌더러·결론 존재 및 삭제 대상 링크·CSS 부재 확인. 이번 정적 UI 수정에서 DB readiness를 별도로 재검사한 것은 아니다.
+- **실제 브라우저:** 기존 v3 UUID의 `/cmdg/?reportId=…#todayResult`를 새로고침해 삭제 대상 링크 0개, 수정 전후 7개 해석 블록 일치, 사주 수정·전체 풀이 버튼 유지 확인. 하단 스크린샷에서 공통 GNB·하단 메뉴와 결론 레이아웃 정상 확인.
+- **저장 리더:** `/today/free?reportId=…`에서도 삭제 대상 링크 없음, 새 오늘운 확인·공통 상단·하단 유지, 동일 7개 해석 모두 보존 확인. 검증 탭의 콘솔 error 목록은 빈 배열.
+- **Error scan:** 16:33 KST부터 16:34 KST대 검사 시점까지 해당 배포의 HTTP 500 로그는 `No logs found`. 지속적인 무오류 보장으로 확대하지 않는다.
+- **Drains / Monitoring:** 구성 확인·변경 없음, 상시 모니터링 새로 설정하지 않음.
+- **보존:** 기존 키·DB 스키마·저장 데이터 변경 또는 삭제 없음. 제거 대상은 중복 UI 링크뿐이며 Git 이력에서 복구할 수 있다.
