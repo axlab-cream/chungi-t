@@ -23,3 +23,12 @@
 - 홈의 마케팅 노출 상태와 서비스 구현·기존 결과 접근 권한은 별개다. 카드 이동을 이유로 API나 고객의 저장 결과를 삭제하지 않는다.
 - 기존 커밍순 컴포넌트와 클릭 처리를 재사용하면 별도 이벤트 핸들러나 CSS 추가 없이 접근성·동작을 일치시킬 수 있다.
 - 배포 전 최신 main 포함 여부를 검사하고 Git main 자동 배포의 READY·홈 DOM 위치·준비 중 클릭 동작을 확인한다.
+
+## 운영 검증 / Deploy Result
+
+- URL: https://chungi-3o243san1-ax-lab-cream.vercel.app (`umsh.kr` 매핑 확인). Target: Production, Status: READY, 코드 커밋: `d4c4e1b72f2084372951d6c1654c055803c333d0`.
+- Framework: 기존 Express·Node 24. 2026-09-07 17:15:06 KST 생성, 메타데이터 building→ready 약 44초.
+- 실제 홈 DOM: RELEASED NOW에는 기존 4개 카드만, COMING SOON에는 신년운세·결혼택일 순서로 표시. 신년 카드는 한 개, SOON 버튼이며 썸네일 로드 정상.
+- 카드 클릭 후 홈 URL을 유지하며 기존 준비 중 안내 토스트 표시, 콘솔 오류 없음. 별도 유료 해석 생성이나 결제는 실행하지 않았다.
+- Error scan: 이 배포의 17:15 KST 이후 검증 시점까지 HTTP 500 검색 결과 `No logs found`. Drains 구성 확인·변경 및 상시 모니터링 추가는 하지 않았다.
+- 이 운영 검증 문서는 후속 문서 전용 커밋으로 원본 작업 브랜치에 보관한다. 운영 main의 코드는 위 검증된 커밋 그대로 유지한다.
