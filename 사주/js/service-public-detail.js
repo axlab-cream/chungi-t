@@ -4,7 +4,8 @@
       eyebrow: 'TODAY · 무료 · 로그인 후 바로 확인',
       title: '오늘 나한테\n들어오는 운',
       summary: '일진과 내 일간을 겹쳐, 오늘 쓸 힘과 피해야 할 선택을 먼저 봅니다.',
-      image: '/assets/umsh-share-banner.png',
+      image: '/assets/umsh-today-hero-poster.webp',
+      video: '/assets/umsh-today-hero.mp4',
       problem: '막연한 운세보다, 오늘 내가 건드리면 커지는 선택이 뭔지 알아야 합니다.',
       risk: '같은 실수를 반복하고도 기운 탓으로만 넘기는 하루',
       chance: '일진 · 일운 · 피해야 할 선택까지, 오늘 하루의 기준을 나눕니다.',
@@ -130,6 +131,7 @@
       <div class="service-story">
         <section class="service-story-card">
           <div class="service-story-visual" style="background-image:url('${escapeHtml(detail.image)}')">
+            ${detail.video ? `<video class="service-story-clip" src="${escapeHtml(detail.video)}" poster="${escapeHtml(detail.image)}" muted loop playsinline preload="none" autoplay aria-hidden="true" tabindex="-1"></video>` : ''}
             <div class="service-story-copy">
               <span class="eyebrow">${escapeHtml(detail.eyebrow)}</span>
               <h2>${renderTitle(detail.title)}</h2>
