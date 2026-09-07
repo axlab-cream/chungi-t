@@ -689,6 +689,16 @@
                   <small>시간 흐름과 도화 조건을 더 정확히 보기 위해 필요합니다.</small>
                 </div>
               </div>
+              <div class="field" data-field="gender">
+                <label for="gender">성별</label>
+                <select id="gender" name="gender">
+                  <option value="">선택해 주세요</option>
+                  <option value="female">여성</option>
+                  <option value="male">남성</option>
+                </select>
+                <small>전통 애인성(배우자성) 기준을 정하는 데 씁니다.</small>
+              </div>
+
               <fieldset class="field" data-field="calendar_type">
                 <legend>양력 / 음력</legend>
                 <div class="choice-group">
@@ -702,35 +712,6 @@
                   </label>
                 </div>
               </fieldset>
-            </div>
-          </section>
-
-          <section class="form-section" aria-labelledby="basisTitle">
-            <div class="section-title">
-              <h2 id="basisTitle">애인성 기준을 맞출게요</h2>
-              <p>성별로 자동 판단하거나, 관성·재성 중 원하는 애인성 기준을 직접 고를 수 있습니다.</p>
-            </div>
-            <div class="field-grid">
-              <div class="field" data-field="partner_star_basis">
-                <label for="partnerBasis">애인성 기준</label>
-                <select id="partnerBasis" name="partner_star_basis">
-                  <option value="">선택해 주세요</option>
-                  <option value="gender_auto">성별 기준으로 자동 판단</option>
-                  <option value="official_star">관성 기준으로 보기</option>
-                  <option value="wealth_star">재성 기준으로 보기</option>
-                </select>
-                <small>배우자성 해석에서 상대 코드와 관계 안정감을 보는 기준입니다.</small>
-              </div>
-              <div class="field is-hidden" id="genderField" data-field="gender">
-                <label for="gender">성별 기준</label>
-                <select id="gender" name="gender">
-                  <option value="">선택해 주세요</option>
-                  <option value="female">여성 기준</option>
-                  <option value="male">남성 기준</option>
-                  <option value="custom">직접 선택한 애인성 기준을 우선할래요</option>
-                </select>
-                <small>전통 애인성 계산에만 사용합니다. 직접 기준을 고르면 이 값은 쓰지 않습니다.</small>
-              </div>
             </div>
           </section>
 
@@ -762,39 +743,6 @@
             </fieldset>
           </section>
 
-          <section class="form-section" aria-labelledby="rhythmTitle">
-            <div class="section-title">
-              <h2 id="rhythmTitle">올해 운 흐름 확인</h2>
-              <p>일반 고객은 자동 계산으로 두고, 운영·검수 환경에서는 계산된 십성을 직접 맞춰볼 수 있습니다.</p>
-            </div>
-            <details>
-              <summary>세운·대운·월운 십성 확인하기</summary>
-              <div class="advanced-body">
-                <div class="field" data-field="annual_ten_god">
-                  <label for="annualTenGod">올해 세운 십성</label>
-                  <select id="annualTenGod" name="annual_ten_god" data-ten-god-select>
-                    <option value="auto">자동 계산 예정</option>
-                  </select>
-                  <small>올해 전체 연애 무드를 여는 기준입니다.</small>
-                </div>
-                <div class="field" data-field="decade_ten_god">
-                  <label for="decadeTenGod">대운 십성</label>
-                  <select id="decadeTenGod" name="decade_ten_god" data-ten-god-select>
-                    <option value="auto">자동 계산 예정</option>
-                  </select>
-                  <small>몇 년 단위의 관계 패턴과 속도감을 보는 기준입니다.</small>
-                </div>
-                <div class="field" data-field="monthly_ten_god">
-                  <label for="monthlyTenGod">월운 십성</label>
-                  <select id="monthlyTenGod" name="monthly_ten_god" data-ten-god-select>
-                    <option value="auto">자동 계산 예정</option>
-                  </select>
-                  <small>연락, 만남, 고백 타이밍을 월 단위로 좁힐 때 씁니다.</small>
-                </div>
-              </div>
-            </details>
-          </section>
-
           <div class="notice" id="privacyNotice">
             입력값은 올해 연애운 리포트 생성에만 사용합니다. 생년월일시는 주소창에 붙이지 않고, 로그인 후에도 원래 입력 흐름으로 돌아올 수 있게 이어갑니다.
           </div>
@@ -821,18 +769,6 @@
 
       const ROUTE_STATE_KEY = "umsh:love_thisyear:route_state";
       const VOLATILE_DRAFT_KEY = "umsh:love_thisyear:session_draft";
-      const tenGodOptions = [
-        ["bijian", "비견"],
-        ["geobjae", "겁재"],
-        ["siksin", "식신"],
-        ["sanggwan", "상관"],
-        ["pyeonjae", "편재"],
-        ["jeongjae", "정재"],
-        ["pyeongwan", "편관"],
-        ["jeonggwan", "정관"],
-        ["pyeonin", "편인"],
-        ["jeongin", "정인"],
-      ];
 
       const form = document.querySelector("#loveIntakeForm");
       const errorBox = document.querySelector("#formErrors");
@@ -840,8 +776,10 @@
       const heroVisual = document.querySelector("#heroVisual");
       const newProfileFields = document.querySelector("#newProfileFields");
       const savedProfileNotice = document.querySelector("#savedProfileNotice");
-      const partnerBasis = document.querySelector("#partnerBasis");
-      const genderField = document.querySelector("#genderField");
+      // 애인성 기준은 더 이상 묻지 않고 성별 자동 판단으로 고정한다.
+      const PARTNER_STAR_BASIS = "gender_auto";
+      // 세운·대운·월운 십성은 서버가 계산한다. 운영용 수동 선택은 화면에서 뺐다.
+      const TEN_GOD_AUTO = "auto";
 
       document.querySelector("[data-image-role='form-companion']").addEventListener("error", () => {
         heroVisual.classList.add("is-broken");
@@ -851,27 +789,16 @@
         window.location.href = "../01-step-1-story/index.html#step-1-story";
       });
 
-      document.querySelectorAll("[data-ten-god-select]").forEach((select) => {
-        tenGodOptions.forEach(([value, label]) => {
-          const option = document.createElement("option");
-          option.value = value;
-          option.textContent = label;
-          select.append(option);
-        });
-      });
-
       document.querySelectorAll("input[name='profile_mode']").forEach((radio) => {
         radio.addEventListener("change", syncProfileMode);
       });
 
-      partnerBasis.addEventListener("change", syncBasisMode);
       form.addEventListener("input", clearFieldErrors);
       form.addEventListener("change", clearFieldErrors);
       form.addEventListener("submit", handleSubmit);
 
       restoreDraft();
       syncProfileMode();
-      syncBasisMode();
 
       function currentProfileMode() {
         return form.profile_mode.value || "new_profile";
@@ -881,13 +808,6 @@
         const isSaved = currentProfileMode() === "saved_profile";
         newProfileFields.classList.toggle("is-hidden", isSaved);
         savedProfileNotice.classList.toggle("is-hidden", !isSaved);
-        syncBasisMode();
-      }
-
-      function syncBasisMode() {
-        const shouldShowGender =
-          partnerBasis.value === "gender_auto" && currentProfileMode() === "new_profile";
-        genderField.classList.toggle("is-hidden", !shouldShowGender);
       }
 
       function clearFieldErrors() {
@@ -914,7 +834,6 @@
         const errors = [];
         const profileMode = currentProfileMode();
         const isNewProfile = profileMode === "new_profile";
-        const basisValue = partnerBasis.value;
 
         if (isNewProfile && !form.birth_date.value) {
           errors.push(["birth_date", "생년월일을 입력해 주세요. 날짜가 있어야 올해 세운 흐름을 계산할 수 있어요."]);
@@ -928,12 +847,8 @@
           errors.push(["calendar_type", "양력인지 음력인지 선택해 주세요. 날짜 변환 기준이 달라집니다."]);
         }
 
-        if (!basisValue) {
-          errors.push(["partner_star_basis", "애인성 기준을 선택해 주세요. 성별 자동 판단 또는 관성·재성 직접 선택이 필요합니다."]);
-        }
-
-        if (isNewProfile && basisValue === "gender_auto" && !form.gender.value) {
-          errors.push(["gender", "성별 기준 자동 판단을 선택했다면 성별 기준을 함께 선택해 주세요."]);
+        if (isNewProfile && !form.gender.value) {
+          errors.push(["gender", "성별을 선택해 주세요. 전통 애인성 기준을 정하는 데 필요합니다."]);
         }
 
         if (!getRadioValue("relationship_status")) {
@@ -958,11 +873,11 @@
           birth_time: form.birth_time.value,
           calendar_type: getRadioValue("calendar_type"),
           gender: form.gender.value,
-          partner_star_basis: form.partner_star_basis.value,
+          partner_star_basis: PARTNER_STAR_BASIS,
           relationship_status: getRadioValue("relationship_status"),
-          annual_ten_god: form.annual_ten_god.value,
-          decade_ten_god: form.decade_ten_god.value,
-          monthly_ten_god: form.monthly_ten_god.value,
+          annual_ten_god: TEN_GOD_AUTO,
+          decade_ten_god: TEN_GOD_AUTO,
+          monthly_ten_god: TEN_GOD_AUTO,
           interpretation_index_source: "user_seed",
           submitted_at: new Date().toISOString(),
         };
@@ -981,11 +896,7 @@
           form.birth_time.value = draft.birth_time || "";
           setRadio("calendar_type", draft.calendar_type);
           form.gender.value = draft.gender || "";
-          form.partner_star_basis.value = draft.partner_star_basis || "";
           setRadio("relationship_status", draft.relationship_status);
-          form.annual_ten_god.value = draft.annual_ten_god || "auto";
-          form.decade_ten_god.value = draft.decade_ten_god || "auto";
-          form.monthly_ten_god.value = draft.monthly_ten_god || "auto";
         } catch {
           sessionStorage.removeItem(VOLATILE_DRAFT_KEY);
         }
