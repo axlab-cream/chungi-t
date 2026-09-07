@@ -58,4 +58,13 @@ npm run check:production-source -- --expected-head=<배포할 전체 커밋 SHA>
 - 원본 `C:\Users\user\Desktop\chungi-t`의 HEAD·예상 5개 미커밋 파일이 초기 스냅샷과 같고 추가 변경이 없음을 재확인했다. 5개 파일만 named stash로 보존한 뒤 `0778838`로 fast-forward했다.
 - 복구 stash: `74a59f6290612d2363b2d9d490392dccee7cee31`, 이름 `AIOS recovery: deployed terrain WIP before main integration 20260907`. 이미 통합된 내용이므로 재적용하지 않고 보관한다. 원래 키 파일은 변경·이동하지 않았다.
 
-최종 티저 보완 배포 URL 및 운영 재검증 결과는 아래에 추가한다.
+### 최종 티저 보완 검증
+
+- 코드 커밋 `57a6888e939b7b33ebe0da64978a36202eeebdc8`. 최종 전체 테스트 **327/327**, 29 suites, 실패·취소·스킵 0, 약 72초. 빌드·신년 연결·19개 프롬프트 검사 통과.
+- 후보 `https://chungi-jwpgirnr2-ax-lab-cream.vercel.app` / `dpl_d8arVv4qiPPqqCZQrmyzhhxX7DsM`: Production READY, 17:07:30 KST 생성, 원격 빌드 12초·CLI 46초. 메타데이터 SHA 확인, health 200, 리더 JS 소스 정규화 일치 후 승격했다.
+- 원격 main 자동 배포도 같은 `57a6888`로 READY가 됐다. 현장 재검증 시 umsh.kr은 `https://chungi-dy4dglhtj-ax-lab-cream.vercel.app` / `dpl_EjTtuuoFqoCWRe4RUt1C4FU2Gu2b` (17:08:44 KST 생성)를 가리켰다. 이는 오래된 소스로 덮은 배포가 아니라 동일 통합 커밋의 Git 배포다.
+- 실제 계정: 01 → 02 저장 프로필 표시 → 무료 버튼 → 동일 UUID `3537664d-2a3f-42b1-893f-ca1391c39468&preview=1`에서 개인별 2027년 티저 표시. 새로고침 후 전체 표시 텍스트 동일. 2027년 정미(丁未), 일간 을(乙), 식신의 쉬운 설명 및 36개 유료 범위가 표시됐다.
+- 미리보기 CTA의 결제 URL에는 `preview=1`이 섞이지 않았다. 실결제는 실행하지 않았다. 36개 유료 항목 전체의 실제 AI 생성·문장 품질을 모두 검증했다는 의미가 아니다.
+- 위 티저는 하단 CTA까지 휠 스크롤 가능, 1280×720에서 CTA bottom=470px, 가로 넘침 없음, 콘솔 오류 없음. 최종 배포에서도 기존 오늘운 표시 텍스트와 점수는 최초 기준과 동일했다.
+- Production 전체의 17:09 KST 이후 약 17:10 KST 조회 시점까지 `/api/report/section` 요청 및 HTTP 500 검색은 모두 `No logs found`. 수정된 무료 재조회가 전체 생성 경로로 들어가지 않음을 프런트 테스트와 함께 확인했다. 로그 조회 범위 밖의 무오류·무호출을 보장하지 않는다.
+- 최종 문서 변경만 후속 커밋하여 main·통합 브랜치와 원본 폴더에도 반영한다. 코드 변경과 문서 이력 커밋은 구분한다. 함수 자산 범위의 대규모 최적화, 키 교체, DB 스키마 변경 및 고객 결과 삭제는 하지 않았다.
