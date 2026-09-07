@@ -37,4 +37,16 @@
 
 ## 배포 결과
 
-후보/운영 배포와 실제 저장 결과·소개 화면 검증은 완료 후 아래에 기록한다.
+- **URL:** [chungi-9oc0vtrc7-ax-lab-cream.vercel.app](https://chungi-9oc0vtrc7-ax-lab-cream.vercel.app)
+- **Target / Status:** Production / READY. 후보 health 확인 후 승격, `umsh.kr` inspect 매핑 확인.
+- **Deployment / Commit:** `dpl_54xi6EA7icX4wKxrbb1io4NXn3FR` / `a866ed2` 및 위에 기록한 기존 운영 미커밋 파일 유지.
+- **Framework / Duration:** Express·Node 24. 생성 2026-09-07 16:44:26 KST, 원격 빌드 15초, CLI 총 배포 표시 약 1분.
+- **후보 소스 대조:** 이전 운영 대비 변경 파일은 오늘운 HTML·리더 JS/CSS·엔진 주석·관련 테스트·로컬 fixture·AIOS 문서 및 대응 public 빌드 복사본뿐이었다. 별도 풍수 연동 파일은 동일하다.
+- **후보 health:** `/api/health`에서 `ok:true`. 이번 UI 수정에서 실제 DB readiness를 별도로 재검사한 것은 아니다.
+- **실제 포털:** 저장 UUID `91db22a5-013d-4a6c-ae49-d97f9d4b5bdc` 재조회 시 종합 **64**, 일 **78**, 돈 **62**, 관계 **58**, 주의점 **54** 표시. 배포 전후 7개 해석 블록 일치, 제거했던 재조회 링크 0개 유지.
+- **실제 저장 리더:** `/today/free?reportId=동일UUID`에서도 총점·4개 영역 점수 동일, 배포 전 7개 해석 모두 존재, 콘솔 error 없음 확인. 동일 결과를 새로 생성하지 않았다.
+- **실제 소개 화면:** `/today/free#step-1-story`에서 휠로 하단 CTA 도달. 검증 탭 viewport 720px 기준 문서 높이 1,539px, scrollY 819px, 내용 높이=표시 높이 1,454px, CTA가 하단 메뉴 위에 표시, GNB top=0, 콘솔 error 없음. 문제 재현 당시의 사용자 탭 viewport 912px와 구분한다.
+- **추가 좁은 열 검사:** 375px 포털·리더 점수 배치와 가로 넘침 없음 확인. 소개 화면은 휠 완료 후 scrollY 889px, CTA가 하단 메뉴 위에 표시, GNB top=0.
+- **Error scan:** 16:45 KST부터 16:46:27 KST 검사 시점까지 해당 배포의 HTTP 500 로그는 `No logs found`였다.
+- **Drains / Monitoring:** 구성 확인·변경 없음. 상시 모니터링을 새로 설정하지 않았으며 전체 기간 무오류를 보장하지 않는다.
+- **보존:** 기존 키·DB 스키마·결과 원문 변경 없음, 고객 데이터 삭제 없음. 별도 작업의 미커밋 파일은 임의로 커밋하지 않았다.
