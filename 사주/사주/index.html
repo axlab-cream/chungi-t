@@ -1268,7 +1268,7 @@
         line-height: 1.45;
       }
 
-      .phone[data-step="todayResult"] > header.topbar { display: none; }
+      .phone[data-step="todayResult"] > [data-umsh-service-top]:not(:empty) ~ header.topbar { display: none; }
 
       .phone[data-step="todayResult"] .stage {
         top: var(--umsh-chrome-appbar-h, 85px);
@@ -3408,6 +3408,7 @@
       let googleIdentityNonce = "";
       let reportHistorySyncPromise = null;
       let todayChrome = null;
+      let todayRequestError = "";
 
       const initialAuthParams = new URLSearchParams(location.search);
       const initialAuthEntry = initialAuthParams.get("authEntry") || initialAuthParams.get("entry") || "";
@@ -3951,6 +3952,7 @@
       }
 
       async function beginTodayAfterAuth() {
+        todayRequestError = "";
         setTodayEntryPending();
         let session = null;
         try {
@@ -3966,7 +3968,7 @@
 
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         sessionStorage.removeItem(AUTH_FORM_KEY);
-        go("loading", false);
+        go("todayResult", false);
 
         try {
           const todayParams = new URLSearchParams(location.search);
@@ -3998,8 +4000,8 @@
           clearTodayEntryPending();
           go("todayResult", false);
         } catch (err) {
-          go("name", false);
-          showNudge(err.message || "오늘의 운세를 불러오지 못했습니다.");
+          todayRequestError = err.message || "오늘의 운세를 불러오지 못했습니다.";
+          go("todayResult", false);
         }
       }
 
@@ -5043,6 +5045,10 @@
           state.concern = document.querySelector("#concern")?.value.trim() || state.concern || "";
           persistAuthFormState();
           beginAnalysisAfterAuth();
+        }
+        if (action === "today-retry") {
+          beginTodayAfterAuth();
+          return;
         }
         if (action === "today-edit-profile") {
           setTodayEntryPending();
@@ -6529,17 +6535,31 @@
           todayChrome = window.UMSHChrome.mount({ root: ".phone", service: "오늘의 사주 풀이", category: "흐름" });
           todayChrome.appbar.hidden = false;
           todayChrome.bottomNav.hidden = false;
+        } else if (!window.UMSHChrome && document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", () => {
+            if (state.scene === "todayResult" && !document.getElementById("umsh-verified-layout")) renderTodayResult();
+          }, { once: true });
         }
         const fortune = state.todayFortune;
+        if (!fortune?.reading && !todayRequestError && wantsTodayEntry()) {
+          stage.innerHTML = `
+            <section class="panel today-result-card" role="status" aria-live="polite" aria-busy="true">
+              <div class="status">오늘의 사주 풀이</div>
+              <h1>오늘의 운을<br />준비하고 있어요</h1>
+              <p>로그인 상태와 저장된 사주, 오늘의 풀이를 확인하고 있습니다. 잠시만 기다려주세요.</p>
+            </section>
+          `;
+          return;
+        }
         if (!fortune?.reading) {
           stage.innerHTML = `
             <section class="panel">
               <div class="status">오늘의 사주 풀이</div>
               <h1>오늘의 운을 불러오지 못했습니다</h1>
-              <p>저장된 사주 정보를 다시 확인한 뒤 오늘운을 열어주세요.</p>
+              <p>${escapeHtml(todayRequestError || "저장된 사주 정보를 다시 확인한 뒤 오늘운을 열어주세요.")}</p>
               <div class="actions">
                 <button class="ghost" type="button" data-action="today-edit-profile">사주 수정</button>
-                <button class="next-cta" type="button" data-action="restart">처음으로</button>
+                <button class="next-cta" type="button" data-action="today-retry">다시 불러오기</button>
               </div>
             </section>
           `;
@@ -7286,7 +7306,7 @@
           beginAnalysisAfterAuth();
         }
       }).catch((err) => {
-        if (isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
+        if (wantsTodayEntry() || isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
           showAuthGate(err.message || "회원 인증을 확인하지 못했습니다.");
         }
       });

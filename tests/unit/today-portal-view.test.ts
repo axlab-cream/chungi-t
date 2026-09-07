@@ -73,6 +73,50 @@ for (const portal of portals) {
     assert.doesNotMatch(markup, /<img src=x|class="today-zodiac-card"/)
   })
 
+  test(`${portal}: first direct visit is pending until auth and reading finish, not a false failure`, () => {
+    const stage = { innerHTML: '' }
+    runInNewContext(`${render}\nrenderTodayResult()`, {
+      state: { scene: 'todayResult', todayFortune: null }, stage, escapeHtml,
+      todayRequestError: '', wantsTodayEntry: () => true,
+      document: { readyState: 'complete', getElementById: () => null }, window: {},
+    })
+    assert.match(stage.innerHTML, /role="status"[^>]*aria-busy="true"/)
+    assert.match(stage.innerHTML, /준비하고 있어요/)
+    assert.doesNotMatch(stage.innerHTML, /불러오지 못했습니다|다시 불러오기/)
+    assert.match(html, /\[data-umsh-service-top\]:not\(:empty\) ~ header\.topbar/)
+  })
+
+  test(`${portal}: real request failure stays actionable and safely displays its message`, () => {
+    const stage = { innerHTML: '' }
+    runInNewContext(`${render}\nrenderTodayResult()`, {
+      state: { todayFortune: null }, stage, escapeHtml,
+      todayRequestError: '연결 확인 <필요>', wantsTodayEntry: () => true,
+      document: { readyState: 'complete', getElementById: () => null }, window: {},
+    })
+    assert.match(stage.innerHTML, /연결 확인 &lt;필요&gt;/)
+    assert.match(stage.innerHTML, /data-action="today-retry"/)
+    assert.doesNotMatch(stage.innerHTML, /aria-busy="true"/)
+  })
+
+  test(`${portal}: deferred common chrome mounts after DOM readiness while reading remains pending`, () => {
+    const stage = { innerHTML: '' }
+    let ready: (() => void) | undefined
+    let mounts = 0
+    const win: { UMSHChrome?: { mount: () => object } } = {}
+    runInNewContext(`${render}\nrenderTodayResult()`, {
+      state: { scene: 'todayResult', todayFortune: null }, stage, escapeHtml, todayChrome: null,
+      todayRequestError: '', wantsTodayEntry: () => true,
+      document: { readyState: 'loading', getElementById: () => null, addEventListener: (name: string, callback: () => void) => { assert.equal(name, 'DOMContentLoaded'); ready = callback } },
+      window: win,
+    })
+    assert.equal(mounts, 0)
+    assert.ok(ready)
+    win.UMSHChrome = { mount: () => { mounts += 1; return { appbar: {}, bottomNav: {} } } }
+    ready()
+    assert.equal(mounts, 1)
+    assert.match(stage.innerHTML, /준비하고 있어요/)
+  })
+
   test(`${portal}: direct today result entry and its saved ID survive scene URL sync`, () => {
     assert.match(html, /todayEntryActive = initialAuthEntry === "today" \|\| location\.hash === "#todayResult"/)
     assert.match(html, /body: requestedTodayId \? JSON\.stringify\(\{ reportId: requestedTodayId \}\) : undefined/)
