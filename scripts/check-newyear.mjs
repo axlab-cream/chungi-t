@@ -112,10 +112,25 @@ need(bridge.includes('#step-4-report'), '브리지가 04 티저를 잡지 않음
 need(bridge.includes('#step-5-chat'), '브리지가 05 목차를 잡지 않음')
 need(bridge.includes('#step-6_1-report'), '브리지가 06 상세를 잡지 않음')
 
-// 7) 포탈
+// 7) 홈에서는 출시 예정 카드로 표시한다. 직접 서비스/저장 결과 경로는 유지한다.
 const portal = read('사주/portal.html')
-need(portal.includes('href="/flow/newyear"'), '포탈 카드가 링크되지 않음')
-need(!/is-soon[\s\S]{0,320}내 2027년, 풀릴 각이야\?/.test(portal), '포탈 카드가 아직 SOON 상태')
+const portalSections = [...portal.matchAll(/<section\b[^>]*class="[^"]*\bsection-block\b[^"]*"[^>]*>[\s\S]*?<\/section>/g)].map((match) => match[0])
+const releasedSections = portalSections.filter((section) => /<span>\s*RELEASED NOW\s*<\/span>/.test(section))
+const comingSections = portalSections.filter((section) => /<span>\s*COMING SOON\s*<\/span>/.test(section))
+const portalCards = (html) => [...html.matchAll(/<(a|button)\b[^>]*class="[^"]*\bservice-card\b[^"]*"[^>]*>[\s\S]*?<\/\1>/g)].map((match) => match[0])
+const isNewyearCard = (card) => card.includes('umsh-newyear-card-bg.webp') || card.includes('내 2027년, 풀릴 각이야?')
+const newyearCards = portalCards(portal).filter(isNewyearCard)
+const comingCards = portalCards(comingSections[0] ?? '')
+const newyearCard = newyearCards[0] ?? ''
+need(releasedSections.length === 1 && comingSections.length === 1, '포탈의 RELEASED NOW/COMING SOON 영역은 각각 하나여야 함')
+need(!releasedSections.some((section) => isNewyearCard(section)), '신년운세가 RELEASED NOW 영역에 남아 있음')
+need(newyearCards.length === 1, `신년운세 홈 카드 ${newyearCards.length}개 (COMING SOON에 하나만 허용)`)
+need(comingCards[0] === newyearCard && Boolean(newyearCard), '신년운세는 COMING SOON의 첫 카드여야 함')
+need(/^<button\b/.test(newyearCard) && /\btype="button"/.test(newyearCard), '신년운세 홈 카드는 이동 링크가 아닌 button이어야 함')
+need(/\bclass="[^"]*\bis-soon\b[^"]*"/.test(newyearCard) && !/\bis-live\b/.test(newyearCard), '신년운세 홈 카드의 출시 예정 상태가 올바르지 않음')
+need(/<span\b[^>]*class="coming-tag"[^>]*>\s*SOON\s*<\/span>/.test(newyearCard), '신년운세 홈 카드에 SOON 표시 없음')
+need(/\baria-label="[^"]*준비 중인 서비스[^"]*"/.test(newyearCard), '신년운세 홈 카드의 접근성 안내에 준비 중 상태 없음')
+need(!/\bhref\s*=/.test(newyearCard) && !/\bhref=["']\/flow\/newyear(?:[/?#]|["'])/.test(portal), '신년운세 홈 카드의 직접 이동 링크가 남아 있음')
 
 if (failures.length > 0) {
   console.error('newyear_flow 연동 점검 실패')
