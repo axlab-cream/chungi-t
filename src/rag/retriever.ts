@@ -32,6 +32,7 @@ const SERVICE_DOMAINS: Record<string, string> = {
   love_mind: 'love_mind_service',
   love_again: 'love_again_service',
   love_spouse: 'love_spouse_service',
+  newyear_flow: 'newyear_service',
 }
 
 interface ConsultationTemplate {

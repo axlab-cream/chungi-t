@@ -4,7 +4,7 @@
   var ROUTES = [
     ['/love/this-year', 'love_this_year'], ['/work/job-choice', 'job_choice'],
     ['/work/quit', 'quit_fortune'], ['/money/save', 'money_save'],
-    ['/match/cat', 'cat_compatibility'], ['/me/lucky', 'lucky_color'],
+    ['/match/cat', 'cat_compatibility'], ['/me/lucky', 'lucky_color'], ['/flow/newyear', 'newyear_flow'],
     ['/match/couple', 'match_couple'], ['/match/marry', 'marry_match'],
     ['/love/signal', 'couple_signal'], ['/me/pass-angle', 'pass_angle'],
     ['/work/move', 'work_move'], ['/work/job', 'work_job'],
@@ -14,7 +14,7 @@
   var route = ROUTES.find(function (item) { return location.pathname === item[0] || location.pathname.indexOf(item[0] + '/') === 0; });
   var key = route && route[1];
   if(key==='saju_master' && (new URLSearchParams(location.search).get('entry')==='today' || location.hash==='#todayResult')) key='today_fortune';
-  var LEGACY = {love_this_year:['umsh:report:love_this_year'],job_choice:['umsh:report:job_choice'],quit_fortune:['umsh_quit_report_v1'],money_save:['umsh_save_report_v1'],cat_compatibility:['umsh:report:cat_compatibility'],lucky_color:['umsh:report:lucky_color'],match_couple:['umsh:couple-match:report-v1'],marry_match:['umsh_marry_report_v1'],couple_signal:['umsh:report:couple_signal'],pass_angle:['umsh_pass_angle_report_v1'],work_move:['umsh_work_move_report_v1','umsh_work_move_analysis_v1'],home_fit:['umsh_home_fit_report_v1'],saju_master:['cheongi_analysis']};
+  var LEGACY = {newyear_flow:['umsh_newyear_report_v1'],love_this_year:['umsh:report:love_this_year'],job_choice:['umsh:report:job_choice'],quit_fortune:['umsh_quit_report_v1'],money_save:['umsh_save_report_v1'],cat_compatibility:['umsh:report:cat_compatibility'],lucky_color:['umsh:report:lucky_color'],match_couple:['umsh:couple-match:report-v1'],marry_match:['umsh_marry_report_v1'],couple_signal:['umsh:report:couple_signal'],pass_angle:['umsh_pass_angle_report_v1'],work_move:['umsh_work_move_report_v1','umsh_work_move_analysis_v1'],home_fit:['umsh_home_fit_report_v1'],saju_master:['cheongi_analysis']};
   var NESTED = {work_move:['umsh_work_move_input_payload_v1','umsh:work_move:form_v1'],home_fit:['umsh_home_fit_step2_payload_v1','umsh_home_fit_input_payload_v1']};
   var rawFetch = global.fetch.bind(global);
   var authorized = null;
@@ -46,7 +46,7 @@
       else if(/^\/today\/free(?:\/|$)/.test(url.pathname)) url.hash='';
     }
     url.searchParams.delete('paid');
-    url.searchParams.delete('orderId');
+    if(key!=='newyear_flow') url.searchParams.delete('orderId');
     history.replaceState(null, '', url.pathname + url.search + url.hash);
   }
   function setOwner(id) {
@@ -218,6 +218,10 @@
       });
       id=locationId() || rememberedId;
       if(id) await refresh(id);
+      else if(key==='newyear_flow' && /04-step/.test(location.pathname) && new URLSearchParams(location.search).get('orderId')) {
+        var response=await reportFetch('/api/flow/newyear/analyze',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},headerCache),body:JSON.stringify({orderId:new URLSearchParams(location.search).get('orderId')})});
+        if(!response.ok) {var failed=await response.json().catch(function(){return {};});gate(failed.error || '구매 내역에서 결제 상태를 확인해 주세요.');}
+      }
       else if(!authorized) gate(isDetailPage() ? '저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.' : '입력한 내용을 확인하고 있습니다. 입력이 아직 없다면 서비스로 돌아가 사주와 현재 상황을 알려 주세요.');
     } catch(error) {gate(error.message || '저장된 해석을 불러오지 못했습니다.');}
   }
@@ -246,7 +250,7 @@
       document.head.appendChild(guard);
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-    document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);link.href=url.pathname+url.search+url.hash;}},true);
+    document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var orderId=new URLSearchParams(location.search).get('orderId');if(key==='newyear_flow' && orderId)url.searchParams.set('orderId',orderId);link.href=url.pathname+url.search+url.hash;}},true);
     document.addEventListener('click',function(event){var button=event.target.closest && event.target.closest('[data-retry-section]');if(!button || !authorized)return;button.disabled=true;resumeSection(authorized.reportId || rememberedId,button.dataset.retrySection,true).then(function(){return refresh(rememberedId);}).catch(function(){button.disabled=false;});});
   }
 })(typeof window!=='undefined'?window:globalThis);

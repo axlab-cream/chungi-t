@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "vercel-build": "node scripts/prepare-vercel-public.mjs && npm run typecheck",
     "check:integrations": "node scripts/check-integrations.mjs",
+    "check:production-source": "node scripts/check-production-source.mjs",
     "check:pass-angle": "node scripts/check-pass-angle.mjs",
     "check:marry": "node scripts/check-marry.mjs",
     "check:save": "node scripts/check-save.mjs",

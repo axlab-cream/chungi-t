@@ -8,6 +8,7 @@ import {
   buildNewYearFrame,
   buildNewYearReport,
   buildNewYearTeaser,
+  createNewYearReportId,
   parseNewYearRequest,
 } from '../../src/flow/newyear-service.js'
 import type { BirthInput } from '../../src/types/index.js'
@@ -32,6 +33,39 @@ test('신년운세 목차는 10 대분류 36 중분류를 유지한다', () => {
       assert.match(item.id, new RegExp(`^${group.number}-\\d+$`))
     }
   }
+})
+
+test('saved target-year context uses KST dates and excludes unknown-time daewoon certainty', () => {
+  const analysis = analyzeSaju(BIRTH)
+  const known = buildNewYearContext('합성점검', {}, analysis, true)
+  assert.equal(known.newyear?.targetYear, 2027)
+  assert.equal(known.newyear?.ipchunDate, '2027-02-04')
+  assert.equal(known.newyear?.months.length, 12)
+  assert.match(known.newyear!.months[11].startDate, /^2028-01-/)
+  assert.ok(known.newyear?.daewoonShift)
+  const teaserText = known.newyear!.teaser.lines.join(' ')
+  assert.match(teaserText, /정미\(丁未\)/)
+  assert.match(teaserText, /중심 기운인 일간 을\(乙\)/)
+  assert.match(teaserText, /식신.*꾸준히 쌓는 해.*뜻/)
+  assert.match(teaserText, /입춘\(봄의 시작을 알리는 절기\)/)
+  assert.match(teaserText, /대운\(약 10년 단위의 긴 흐름\)/)
+  assert.doesNotMatch(teaserText, /판은 그대로/)
+  const unknown = buildNewYearContext('합성점검', {}, analysis, false)
+  assert.equal(unknown.newyear?.daewoonShift, undefined)
+  assert.match(unknown.newyear?.uncertainty ?? '', /출생 시각 미상/)
+  assert.match(unknown.newyear?.teaser.lines[3] ?? '', /보류/)
+})
+
+test('newyear dedup IDs distinguish owners and every birth input without exposing birth dates', () => {
+  const analysis = analyzeSaju(BIRTH)
+  const context = buildNewYearContext('합성점검', {}, analysis)
+  const id = createNewYearReportId(analysis, BIRTH, 'owner-a', context)
+  assert.match(id, /^[a-f0-9]{28}$/)
+  assert.equal(createNewYearReportId(analysis, { ...BIRTH }, 'owner-a', context), id)
+  assert.notEqual(createNewYearReportId(analysis, BIRTH, 'owner-b', context), id)
+  const changes: Partial<BirthInput>[] = [{ hour: 6 }, { minute: 1 }, { gender: 'female' }, { calendar: 'lunar' }, { isLeapMonth: true }]
+  for (const change of changes) assert.notEqual(createNewYearReportId(analysis, { ...BIRTH, ...change }, 'owner-a', context), id)
+  assert.notEqual(createNewYearReportId(analysis, BIRTH, 'owner-a', { ...context, birthTimeKnown: false }), id)
 })
 
 test('2027년 뼈대는 절기와 육십갑자로 계산된다', () => {

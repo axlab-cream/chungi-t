@@ -37,6 +37,73 @@ function harness(path: string, responses: unknown[], cache: Record<string, unkno
   return {api:context.UMSHReportAccess,calls,nodes,items,location,timers,listeners,context}
 }
 
+test('newyear analysis creates only an authenticated preview with an owner-scoped UUID hint', async () => {
+  const h = harness('/flow/newyear/02-step-2-saju-input/index.html', [{previewOnly:true,serviceKey:'newyear_flow',reportId:'fingerprint',resultId:'newyear-uuid',preview:{headline:'2027년의 기준',summary:'계산된 방향',signals:[]},paymentUrl:'/payment?product=newyear_flow&reportId=newyear-uuid'}])
+  h.api.setOwner('owner-a')
+  await h.api.fetch('/api/flow/newyear/analyze', {method:'POST',headers:{Authorization:'Bearer test'},body:'{"displayName":"합성 사용자"}'})
+  assert.equal(h.calls[0].path, '/api/flow/newyear/analyze')
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, true)
+  assert.equal(h.items.get('umsh:report-identity:owner-a:newyear_flow'), 'newyear-uuid')
+  assert.equal(h.location.searchParams.get('reportId'), 'newyear-uuid')
+  assert.equal(h.api.verifiedReport(), null)
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /2027년의 기준/)
+})
+
+test('all newyear reader routes re-open saved UUIDs and preserve the paid order reference', async () => {
+  for (const page of ['04-step-4-report/index.html','05-step-5-chat/index.html','05-step-5-chat/chat.html','06-step-6_1-report-detail/index.html']) {
+    const report = {reportId:'fingerprint',resultId:'newyear-uuid',serviceKey:'newyear_flow',status:'complete',title:'저장된 2027년 해석',sections:[{id:'1-1',status:'complete',category:'올해',classification:'방향',interpretation:'저장된 원문 전체입니다.'}]}
+    const h = harness('/flow/newyear/'+page+'?reportId=newyear-uuid&orderId=paid-order', [{reportId:'fingerprint',resultId:'newyear-uuid',report,context:{serviceKey:'newyear_flow'}}])
+    await h.api.fetch('/api/flow/newyear/analyze', {method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})
+    assert.equal(h.calls.length, 1)
+    assert.equal(h.calls[0].path, '/api/report/newyear-uuid?orderId=paid-order')
+    assert.equal(h.calls[0].options.method, 'GET')
+    assert.equal(h.location.searchParams.get('orderId'), 'paid-order')
+    assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /저장된 원문 전체입니다/)
+  }
+})
+
+test('newyear legacy cache is purged and cannot display another owner or service reading', async () => {
+  const h = harness('/flow/newyear/06-step-6_1-report-detail/index.html', [{status:403,payload:{error:'권한 없음'}}], {
+    umsh_newyear_report_v1:{report:{reportId:'stale-id',sections:[{interpretation:'OLD PRIVATE READING'}]}},
+  })
+  assert.equal(h.items.has('umsh_newyear_report_v1'), false)
+  assert.equal(h.api.verifiedReport(), null)
+  await h.api.fetch('/api/flow/newyear/analyze', {method:'POST',body:'{}'})
+  assert.equal(h.calls[0].path, '/api/report/stale-id')
+  assert.doesNotMatch(h.nodes.get('umsh-verified-reading').innerHTML, /OLD PRIVATE READING/)
+  const other = harness('/flow/newyear/04-step-4-report/index.html?reportId=other', [{previewOnly:true,serviceKey:'lucky_color',resultId:'other',preview:{headline:'OTHER SERVICE PRIVATE'}}])
+  await other.api.fetch('/api/flow/newyear/analyze', {method:'POST',body:'{}'})
+  assert.doesNotMatch(other.nodes.get('umsh-verified-reading').innerHTML, /OTHER SERVICE PRIVATE/)
+})
+
+test('newyear section links keep their UUID and order reference through navigation', () => {
+  const h = harness('/flow/newyear/05-step-5-chat/chat.html?reportId=newyear-uuid&orderId=paid-order', [])
+  h.api.remember({resultId:'newyear-uuid'})
+  const link = {href:'https://umsh.kr/flow/newyear/06-step-6_1-report-detail/index.html?section=6-1#step-6_1-report'}
+  const click = h.listeners.get('click')![0] as (event:any)=>void
+  click({target:{closest(){return link}}})
+  const url = new URL(link.href, 'https://umsh.kr')
+  assert.equal(url.searchParams.get('reportId'), 'newyear-uuid')
+  assert.equal(url.searchParams.get('orderId'), 'paid-order')
+  assert.equal(url.searchParams.get('section'), '6-1')
+})
+
+test('newyear boot validates a legacy paid return without an ID on the server', async () => {
+  const h = harness('/flow/newyear/04-step-4-report/index.html?paid=1&orderId=legacy-order', [
+    {enabled:true,url:'https://auth.example',publishableKey:'public-test-key'},
+    {status:402,payload:{error:'결제가 확인되지 않았습니다.'}},
+  ])
+  const session = {access_token:'test-token',user:{id:'owner-a'}}
+  h.context.supabase = {}
+  h.context.UMSHAuthSession = {createClient(){return {auth:{getSession:async()=>({data:{session}}),onAuthStateChange(){}}}},enforceDeviceAuthSession:async(value:any)=>value}
+  await h.listeners.get('DOMContentLoaded')![0]()
+  assert.equal(h.calls[1].path, '/api/flow/newyear/analyze')
+  assert.deepEqual(JSON.parse(h.calls[1].options.body), {orderId:'legacy-order'})
+  assert.equal(h.calls[1].options.headers.Authorization, 'Bearer test-token')
+  assert.equal(h.api.verifiedReport(), null)
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /결제가 확인되지 않았습니다/)
+})
+
 test('a reportId revisits the saved record using GET, never re-analyzes',async()=>{
   const h=harness('/me/lucky/06-step-6_1-report-detail/index.html?reportId=saved-123',[{status:403,payload:{error:'다른 계정의 결과'}}])
   await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})

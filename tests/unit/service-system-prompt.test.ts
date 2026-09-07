@@ -64,16 +64,28 @@ describe('service-system prompt wiring', () => {
     assert.ok(block.includes('자네') || block.includes('하게'))
   })
 
-  it('all 18 manifest service files exist', () => {
+  it('all 19 manifest service files exist, including the new year service', () => {
     const manifest = JSON.parse(readFileSync(join(PROMPTS_ROOT, 'services-manifest.json'), 'utf-8')) as {
       services: Array<{ key: string }>
     }
-    assert.equal(manifest.services.length, 18)
-    assert.equal(KNOWN_SERVICE_KEYS.length, 18)
+    assert.equal(manifest.services.length, 19)
+    assert.equal(KNOWN_SERVICE_KEYS.length, 19)
     for (const { key } of manifest.services) {
       assert.ok(KNOWN_SERVICE_KEYS.includes(key as (typeof KNOWN_SERVICE_KEYS)[number]), `known list missing ${key}`)
       const path = join(PROMPTS_ROOT, 'services', `${key}.md`)
       assert.ok(existsSync(path), `missing prompts/services/${key}.md`)
     }
+  })
+
+  it('newyear has its own grounded 2027 prompt and never falls back to the master persona', () => {
+    const block = loadServiceBlock('newyear_flow')
+    assert.match(block, /context\.newyear/)
+    assert.match(block, /2027년/)
+    assert.match(block, /2026년/)
+    assert.match(block, /출생 시각 미상/)
+    assert.match(block, /문제·위험·해결/)
+    assert.match(loadServiceSystemPrompt('newyear_flow'), /세운\(歲運, 한 해의 흐름\)/)
+    assert.doesNotMatch(block, /자네|~일세/)
+    assert.throws(() => loadServiceBlock('not_a_real_service'), /서비스 프롬프트가 없습니다/)
   })
 })

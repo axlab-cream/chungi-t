@@ -9,6 +9,7 @@
  * 육십갑자와 五虎遁, 대운 교차는 명식에서 이미 뽑아 둔 대운 목록에서 읽는다. 문장은
  * 계산된 사실을 옮기는 일만 하고, 없는 날짜나 사건을 만들지 않는다.
  */
+import { createHash } from 'node:crypto'
 import type {
   BirthInput,
   EarthlyBranch,
@@ -24,7 +25,7 @@ import type {
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { getTenGod } from '../saju/analyzer.js'
 import { buildPillar, getMonthStemIndex, getSolarTermKstDate } from '../saju/calculator.js'
-import { BRANCH_ELEMENT, ELEMENT_KO, STEM_ELEMENT, STEM_KO } from '../saju/analyzer-helpers.js'
+import { BRANCH_ELEMENT, BRANCH_KO, ELEMENT_KO, STEM_ELEMENT, STEM_KO } from '../saju/analyzer-helpers.js'
 
 export const NEWYEAR_SERVICE_KEY = 'newyear_flow'
 
@@ -236,7 +237,12 @@ function stemBranchOfYear(year: number): { stemIdx: number; branchIdx: number } 
 }
 
 function dateText(d: Date): string {
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+  return `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`
+}
+
+function kstDate(d: Date): string {
+  return new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 
 /**
@@ -269,7 +275,10 @@ export function buildNewYearFrame(analysis: SajuAnalysis, year = NEWYEAR_TARGET_
     }
   })
 
-  const crossing = (analysis.fortune?.daewoon ?? []).find((d) => d.startYear === year)
+  const cycles = analysis.fortune?.daewoon ?? []
+  const crossing = cycles.find((d) => d.startYear === year)
+  const targetCycle = cycles.filter((d) => typeof d.startYear === 'number' && d.startYear <= year)
+    .sort((a, b) => b.startYear! - a.startYear!)[0]
   return {
     year,
     ipchun,
@@ -283,7 +292,7 @@ export function buildNewYearFrame(analysis: SajuAnalysis, year = NEWYEAR_TARGET_
     months,
     daewoonShift: {
       happens: Boolean(crossing),
-      pillar: crossing?.pillar ?? analysis.fortune?.currentDaewoon ?? '',
+      pillar: crossing?.pillar ?? targetCycle?.pillar ?? '',
       startYear: crossing?.startYear ?? null,
     },
   }
@@ -330,10 +339,18 @@ function compact(text: string, fallback: string, limit = 170): string {
 
 // ------------------------------------------------------------- 리포트
 
-export function createNewYearReportId(analysis: SajuAnalysis, birth: BirthInput): string {
-  const p = analysis.fourPillars
-  const stamp = `${birth.year}${String(birth.month).padStart(2, '0')}${String(birth.day).padStart(2, '0')}`
-  return `newyear-${NEWYEAR_TARGET_YEAR}-${stamp}-${p.day.stem}${p.day.branch}`
+export function createNewYearReportId(analysis: SajuAnalysis, birth: BirthInput, ownerId = '', context: SajuReportContext = {}): string {
+  // The internal dedup ID is not the public UUID. Include ownership and every
+  // calculation input so another user or changed profile cannot reuse this record.
+  const fingerprint = {
+    version: 'newyear-reading-v2', targetYear: NEWYEAR_TARGET_YEAR, ownerId,
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour,
+      minute: birth.minute ?? 0, gender: birth.gender, calendar: birth.calendar,
+      isLeapMonth: birth.isLeapMonth ?? false, dayBoundaryRule: birth.dayBoundaryRule },
+    name: context.name ?? '', birthTimeKnown: context.birthTimeKnown !== false,
+    pillars: analysis.fourPillars,
+  }
+  return createHash('sha256').update(JSON.stringify(fingerprint)).digest('hex').slice(0, 28)
 }
 
 function readerName(context: SajuReportContext): string {
@@ -531,13 +548,29 @@ export function buildNewYearReport(
 }
 
 /** 라우트가 쓰는 리포트 문맥. 서비스 키가 프롬프트 팩과 코퍼스 선택을 가른다. */
-export function buildNewYearContext(name: string | undefined, input: NewYearRequest): SajuReportContext {
-  return {
+export function buildNewYearContext(name: string | undefined, input: NewYearRequest, analysis?: SajuAnalysis, birthTimeKnown = true): SajuReportContext {
+  const context: SajuReportContext = {
     serviceKey: NEWYEAR_SERVICE_KEY,
     name: input.displayName || name,
     target: `내 ${NEWYEAR_TARGET_YEAR}년, 풀릴 각이야?`,
     concern: `${NEWYEAR_TARGET_YEAR}년 입춘 전환과 세운, 열두 달 월운, 대운 교차로 보는 한 해 흐름`,
+    birthTimeKnown,
   }
+  if (analysis) {
+    const teaser = buildNewYearTeaser(analysis, context)
+    const frame = teaser.frame
+    context.newyear = {
+      targetYear: frame.year, calendar: 'solar-term', timezone: 'Asia/Seoul',
+      ipchunDate: kstDate(frame.ipchun), yearPillar: frame.yearPillar,
+      yearTenGod: frame.yearTenGod, previousYearTenGod: frame.prevTenGod,
+      months: frame.months.map((month) => ({ index: month.index, termName: month.termName, startDate: kstDate(month.from), pillar: month.pillar, tenGod: month.tenGod })),
+      ...(birthTimeKnown ? { daewoonShift: frame.daewoonShift } : {
+        uncertainty: '출생 시각 미상: 시주·전체 강약·용신·정밀 대운 시작 및 교차는 확정하지 않습니다. 확인된 일간과 2027년 세운·월운 관계만 사용합니다.',
+      }),
+      teaser: { headline: teaser.headline, lines: teaser.lines },
+    }
+  }
+  return context
 }
 
 /** 04 무료 티저. 유료로 열리는 범위를 감추지 않고 목차로 보여준다. */
@@ -555,14 +588,18 @@ export function buildNewYearTeaser(analysis: SajuAnalysis, context: SajuReportCo
     frame,
     headline: `${frame.year}년은 ${frame.yearTenGod}, ${name}님에게는 ${tg.word}입니다`,
     lines: [
-      `세운 ${frame.yearPillar}이 일간 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})에 ${frame.yearTenGod}으로 붙습니다. ${tg.tone}.`,
-      `새해의 시작은 ${frame.ipchunText} 입춘부터입니다. 1월은 아직 작년 기운(${frame.prevTenGod}) 구간입니다.`,
+      `${frame.year}년 세운(한 해의 흐름)은 ${STEM_KO[frame.yearStem]}${BRANCH_KO[frame.yearBranch]}(${frame.yearPillar})입니다. 태어난 날의 중심 기운인 일간 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})과는 ${frame.yearTenGod}의 관계로 읽으며, ${tg.word}라는 뜻입니다. ${tg.tone}.`,
+      `사주에서 해가 바뀌는 기준은 ${frame.ipchunText} 입춘(봄의 시작을 알리는 절기)입니다. 1월은 아직 이전 해의 ${frame.prevTenGod}, 즉 ${TEN_GOD_YEAR[frame.prevTenGod].word}에 해당하는 구간으로 읽습니다.`,
       easy.length > 0
         ? `열두 달 중 결이 먼저 열리는 구간은 ${easy[0].termName} 이후(${easy[0].fromText})입니다.`
         : '열두 달이 한쪽으로 쏠리지 않고 고르게 퍼진 해입니다.',
-      frame.daewoonShift.happens
-        ? `${frame.year}년은 대운이 ${frame.daewoonShift.pillar}으로 넘어가는 해입니다.`
-        : '올해는 대운 경계가 걸리지 않아 판은 그대로입니다.',
+      context.birthTimeKnown === false
+        ? '대운은 약 10년 단위의 긴 흐름입니다. 출생 시각을 몰라 정확한 전환은 보류하고, 확인된 일간과 세운·월운의 관계부터 읽습니다.'
+        : frame.daewoonShift.happens
+        ? `${frame.year}년은 계산상 대운(약 10년 단위의 긴 흐름)이 바뀌는 해입니다. 한 번에 모든 생활이 달라진다는 뜻은 아닙니다.`
+        : frame.daewoonShift.pillar
+          ? '올해 계산상 대운(약 10년 단위의 긴 흐름)의 전환 경계는 없습니다. 세운과 월운의 변화는 별도로 살핍니다.'
+          : '대운은 약 10년 단위의 긴 흐름입니다. 해당 연도의 대운 자료가 충분하지 않아 전환 판단은 보류합니다.',
     ],
     scope: NEWYEAR_TOC.map((g) => ({ title: g.title, items: g.items.map((it) => it.title) })),
   }

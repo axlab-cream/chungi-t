@@ -34,6 +34,7 @@ export const KNOWN_SERVICE_KEYS = [
   'love_again',
   'love_spouse',
   'home_fit',
+  'newyear_flow',
 ] as const
 
 /** Required vocabulary from prompt_guides_18.md. Keeping this in the runtime
@@ -58,6 +59,7 @@ const SERVICE_TERM_GUIDANCE: Record<string, string> = {
   love_again: '필수 용어: 충(沖, 관계의 마찰과 변화), 합(合, 다시 맞춰 가는 흐름).',
   love_spouse: '필수 용어: 배우자궁(配偶者宮, 동반자 관계의 자리), 자미두수(紫微斗數, 별자리 해석 체계).',
   home_fit: '필수 용어: 오행(五行, 다섯 상징), 현관·침실·책상·창밖의 생활 조건.',
+  newyear_flow: '필수 용어: 세운(歲運, 한 해의 흐름), 월운(月運, 한 달의 흐름), 입춘(立春, 해의 경계를 보는 절기), 교운(交運, 대운 전환). 기준 연도는 context.newyear의 2027년 계산이며 일반 currentYear와 혼동하지 않습니다.',
 }
 
 export type KnownServiceKey = (typeof KNOWN_SERVICE_KEYS)[number]
@@ -76,8 +78,8 @@ function readCached(cacheKey: string, absolutePath: string): string {
 
 /**
  * Trim, apply aliases, default to saju_master when empty.
- * Does not validate against the known list — unknown keys fall through to
- * loadServiceBlock's saju_master.md fallback when the file is missing.
+ * File coverage is checked by loadServiceBlock; missing service prompts fail
+ * explicitly instead of silently using another service's persona.
  */
 export function normalizeServiceKey(key?: string | null): string {
   if (key == null) return DEFAULT_SERVICE_KEY

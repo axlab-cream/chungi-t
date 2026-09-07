@@ -34,6 +34,14 @@ export function guardPreview(preview: ReportPreview, context: SajuReportContext 
 }
 
 export function createSavedPreview(report: SajuReport, context: SajuReportContext = {}): ReportPreview {
+  if (context.serviceKey === 'newyear_flow' && context.newyear?.teaser) {
+    const { headline, lines } = context.newyear.teaser
+    return {
+      title: report.title, headline, summary: lines[0] ?? headline,
+      insights: lines.slice(1), signals: lines.slice(1),
+      paidValue: `전체 해석에서는 ${context.newyear.targetYear}년 입춘 전환과 열두 달 월운, 일·돈·관계의 선택 기준을 10개 대분류 · ${report.sections.length}개 항목으로 자세히 확인합니다.`,
+    }
+  }
   const insights = report.sections.slice(0, 2).map((section) => excerpt(section.interpretation.split(/\n\s*\n/)[0] ?? section.hook)).filter(Boolean)
   const headline = report.sections[0]?.hook || report.title
   return guardPreview({

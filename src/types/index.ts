@@ -166,6 +166,20 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  /** Server-calculated, saved target-year facts; never supplied by the browser. */
+  newyear?: {
+    targetYear: number
+    calendar: 'solar-term'
+    timezone: 'Asia/Seoul'
+    ipchunDate: string
+    yearPillar: string
+    yearTenGod: TenGod
+    previousYearTenGod: TenGod
+    months: Array<{ index: number; termName: string; startDate: string; pillar: string; tenGod: TenGod }>
+    daewoonShift?: { happens: boolean; pillar: string; startYear: number | null }
+    uncertainty?: string
+    teaser: { headline: string; lines: string[] }
+  }
   home?: {
     addressOrBuilding?: string
     roadAddress?: string
