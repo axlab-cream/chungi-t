@@ -174,7 +174,8 @@ test('today fortune stores its result address without requesting a paid preview'
   const html=h.nodes.get('umsh-verified-reading').innerHTML
   assert.match(html,/저장한 오늘의 기준/)
   assert.match(html,/돈 문단/)
-  assert.match(html,/\/r\/daily-result/)
+  assert.doesNotMatch(html,/같은 해석 다시 열기|href="\/r\//)
+  assert.match(html,/새 오늘운 확인/)
   assert.doesNotMatch(html,/99|전체 해석 열어보기/)
 })
 

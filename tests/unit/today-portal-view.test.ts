@@ -49,7 +49,7 @@ for (const portal of portals) {
     assert.match(markup, /오늘의 결론/)
     assert.match(markup, /중요한 한 가지부터 마무리하세요/)
     assert.match(markup, /목\(木\) · 나무처럼 자라고 뻗는 기운/)
-    assert.match(markup, /href="\/r\/saved-uuid"/)
+    assert.doesNotMatch(markup, /today-saved-link|같은 내용으로 다시 보기|href="\/r\//)
     assert.match(markup, /저장된 이름님/)
     assert.doesNotMatch(markup, /임시 입력님|99점|\/100|종합 점수|예측한 결과가 아닙니다/)
     assert.match(html, /font: 400 15px\/1\.85 var\(--font-meta\)/)

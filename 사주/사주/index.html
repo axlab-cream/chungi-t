@@ -1389,15 +1389,6 @@
 
       .today-action-box strong { color: #f0e2b8; font-size: 17px; line-height: 1.5; }
 
-      .today-saved-link {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        color: #d8ba72;
-        font: 500 13px/1.65 var(--font-meta);
-        text-underline-offset: 4px;
-      }
-
       .teaser-panel {
         padding: 18px;
       }
@@ -6576,7 +6567,6 @@
           { label: "오늘 기억할 한 가지", text: reading.caution, ...(detailMap.caution || {}) },
         ];
         const zodiac = reading.zodiac;
-        const savedId = fortune.resultId || fortune.reportId;
         const elementMeanings = { 목: "목(木) · 나무처럼 자라고 뻗는 기운", 화: "화(火) · 불처럼 드러내고 표현하는 기운", 토: "토(土) · 흙처럼 중심을 잡고 쌓는 기운", 금: "금(金) · 쇠처럼 기준을 세우고 다듬는 기운", 수: "수(水) · 물처럼 흐름을 살피고 받아들이는 기운" };
         const todayElement = elementMeanings[String(fortune.today?.element || "").slice(0, 1)] || fortune.today?.element || "";
 
@@ -6621,7 +6611,6 @@
               <strong>오늘의 결론</strong>
               <div class="today-reading-copy">${formatInterpretationHtml(reading.action)}</div>
             </section>
-            ${savedId ? `<a class="today-saved-link" href="/r/${encodeURIComponent(savedId)}">이 해석, 같은 내용으로 다시 보기 <span aria-hidden="true">↗</span></a>` : ""}
 
             <div class="actions">
               <button class="ghost" type="button" data-action="today-edit-profile">사주 수정</button>
