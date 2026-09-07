@@ -12,6 +12,7 @@ import { beginSpecializedProgressiveReport } from '../report/specialized-progres
 import { generateReportSectionNow } from '../report/report-queue.js'
 import { savedDailyFortune } from '../report/daily-report.js'
 import {
+  checkReportStorageReadiness,
   createOrGetReportRecord,
   createReportId,
   deleteReportRecord,
@@ -1290,13 +1291,16 @@ async function ensurePaidServiceAccess(
   return false
 }
 
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', async (req, res) => {
   // 배포 반영 여부를 URL 하나로 확인할 수 있게 코퍼스 지문을 같이 내려준다. 팩 목록과
   // 해시뿐이고 내용은 담지 않는다.
   const corpus = getCorpusSnapshot()
-  res.json({
-    ok: true,
+  const reportStorage = req.query.storage === '1' ? await checkReportStorageReadiness() : undefined
+  res.setHeader('Cache-Control', 'no-store')
+  res.status(reportStorage && !reportStorage.ok ? 503 : 200).json({
+    ok: reportStorage ? reportStorage.ok : true,
     openai: isOpenAiConfigured(),
+    ...(reportStorage ? { reportStorage } : {}),
     corpus: {
       registryVersion: corpus.registryVersion,
       fingerprint: corpus.fingerprint,

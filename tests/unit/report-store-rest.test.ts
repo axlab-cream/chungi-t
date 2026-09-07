@@ -11,7 +11,7 @@ const testEnv = {
   NODE_ENV: 'test',
   SUPABASE_URL: 'https://report-store-test.invalid',
   SUPABASE_PUBLISHABLE_KEY: 'mock-public-key',
-  SUPABASE_SERVICE_ROLE_KEY: 'mock-server-key',
+  SUPABASE_SERVICE_ROLE_KEY: `${Buffer.from('{"alg":"HS256","typ":"JWT"}').toString('base64url')}.${Buffer.from('{"role":"service_role","ref":"report-store-test"}').toString('base64url')}.mock_signature`,
 } as const
 const oldEnv = new Map<string, string | undefined>(Object.keys(testEnv).concat('DATABASE_URL', 'REPORT_STORAGE_DIR', 'VERCEL').map((key) => [key, process.env[key]]))
 Object.assign(process.env, testEnv)
@@ -152,6 +152,19 @@ function create(reportId = 'rest-report-a', reportOwner = owner, ids?: string[])
   return store.createOrGetReportRecord({ reportId, birth, context, templateReport: template(ids), owner: reportOwner })
 }
 
+function isolatedStoreCheck(script: string, env: Record<string, string> = {}): void {
+  const child = spawnSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', `
+    import assert from 'node:assert/strict';
+    globalThis.fetch = async () => { throw new Error('Unexpected network request'); };
+    ${script}
+  `], {
+    cwd: fileURLToPath(new URL('../..', import.meta.url)),
+    env: { ...process.env, ...testEnv, DATABASE_URL: '', REPORT_STORAGE_DIR: '', VERCEL: '', NEXT_PUBLIC_SUPABASE_URL: '', VITE_SUPABASE_URL: '', ...env },
+    encoding: 'utf8', timeout: 20_000,
+  })
+  assert.equal(child.status, 0, child.stderr || child.stdout)
+}
+
 describe('Supabase REST report persistence (mock fetch, no database or network)', { concurrency: false }, () => {
   it('requires an explicit owner but no user token, using only the private server credential', async () => {
     assert.equal(store.getReportStorageMode(), 'supabase')
@@ -194,6 +207,132 @@ describe('Supabase REST report persistence (mock fetch, no database or network)'
       timeout: 20_000,
     })
     assert.equal(child.status, 0, child.stderr || child.stdout)
+  })
+
+  it('uses opaque secret keys only in apikey for every CRUD request', () => {
+    isolatedStoreCheck(`
+      const rows = new Map();
+      const methods = new Set();
+      globalThis.fetch = async (input, init = {}) => {
+        const url = new URL(input);
+        assert.equal(url.origin, ${JSON.stringify(testEnv.SUPABASE_URL)});
+        const headers = new Headers(init.headers);
+        assert.equal(headers.get('apikey'), 'sb_secret_mock_server_key');
+        assert.equal(headers.has('authorization'), false);
+        const method = init.method || 'GET'; methods.add(method);
+        const body = init.body ? JSON.parse(init.body) : undefined;
+        if (method === 'POST') { rows.set(body.report_id, body); return Response.json([body]); }
+        assert.equal(url.searchParams.get('user_id'), 'eq.owner-a');
+        const matched = [...rows.values()].filter(row => !url.searchParams.get('report_id') || url.searchParams.get('report_id') === 'eq.' + row.report_id);
+        if (method === 'PATCH') matched.forEach(row => { row.payload = body.payload; });
+        if (method === 'DELETE') matched.forEach(row => rows.delete(row.report_id));
+        return Response.json(matched);
+      };
+      const store = await import('./src/report/report-store.ts');
+      const owner = ${JSON.stringify(owner)};
+      const { record } = await store.createOrGetReportRecord({ reportId: 'opaque-key-test', owner, birth: ${JSON.stringify(birth)}, context: ${JSON.stringify(context)}, templateReport: ${JSON.stringify(template(['one']))} });
+      assert.equal((await store.getReportRecord(record.reportId, owner)).reportId, record.reportId);
+      assert.equal((await store.listReportRecords(owner)).length, 1);
+      await store.mutateReportRecord(record.reportId, owner, next => { next.error = 'synthetic'; });
+      assert.equal(await store.deleteReportRecord(record.reportId, owner), true);
+      assert.deepEqual([...methods].sort(), ['DELETE', 'GET', 'PATCH', 'POST']);
+    `, { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_mock_server_key' })
+  })
+
+  it('probes zero rows with bounded secret-free cached/coalesced diagnostics and a three-second timeout', () => {
+    isolatedStoreCheck(`
+      let calls = 0;
+      let behavior = 'ok';
+      let lastSignal;
+      globalThis.fetch = async (input, init = {}) => {
+        calls += 1;
+        const url = new URL(input);
+        assert.equal(url.origin, ${JSON.stringify(testEnv.SUPABASE_URL)});
+        assert.equal(url.pathname, '/rest/v1/cheongi_reports');
+        assert.equal(url.searchParams.toString(), 'select=report_id&limit=0');
+        const headers = new Headers(init.headers);
+        assert.equal(headers.get('apikey'), 'sb_secret_mock_server_key');
+        assert.equal(headers.has('authorization'), false);
+        lastSignal = init.signal;
+        if (behavior === 'timeout') return new Promise(() => {});
+        if (behavior === 'network') throw new Error('PRIVATE sb_secret_mock_server_key message');
+        await Promise.resolve();
+        return new Response('PRIVATE sb_secret_mock_server_key response body', { status: behavior === 'denied' ? 403 : 200 });
+      };
+      const store = await import('./src/report/report-store.ts');
+      const [first, second] = await Promise.all([store.checkReportStorageReadiness(), store.checkReportStorageReadiness()]);
+      assert.deepEqual(first, { mode: 'supabase', ok: true, durable: true, keyKind: 'secret', httpStatus: 200 });
+      assert.deepEqual(first, second); assert.equal(calls, 1);
+      first.ok = false;
+      assert.equal((await store.checkReportStorageReadiness()).ok, true); assert.equal(calls, 1);
+      let now = Date.now(); Date.now = () => now;
+      now += 30_001; behavior = 'denied';
+      const denied = await store.checkReportStorageReadiness();
+      assert.equal(denied.httpStatus, 403); assert.equal(denied.errorCode, 'REPORT_STORAGE_AUTH_REJECTED'); assert.equal(denied.ok, false);
+      assert.doesNotMatch(JSON.stringify(denied), /PRIVATE|sb_secret_mock_server_key|response body/);
+      now += 30_001; behavior = 'network';
+      const unavailable = await store.checkReportStorageReadiness();
+      assert.equal(unavailable.errorCode, 'REPORT_STORAGE_UNAVAILABLE');
+      assert.doesNotMatch(JSON.stringify(unavailable), /PRIVATE|sb_secret_mock_server_key|message/);
+      now += 30_001; behavior = 'timeout';
+      const realSetTimeout = globalThis.setTimeout;
+      globalThis.setTimeout = (callback, delay) => { assert.equal(delay, 3000); return realSetTimeout(callback, 0); };
+      const timeout = await store.checkReportStorageReadiness();
+      assert.equal(timeout.errorCode, 'REPORT_STORAGE_TIMEOUT'); assert.equal(lastSignal.aborted, true);
+      assert.equal(calls, 4);
+    `, { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_mock_server_key' })
+  })
+
+  it('reports only booleans for legacy JWT role/project checks and uses legacy Bearer headers', () => {
+    for (const matching of [true, false]) {
+      const key = `${Buffer.from('{"alg":"HS256"}').toString('base64url')}.${Buffer.from(JSON.stringify({ role: matching ? 'service_role' : 'anon', ref: matching ? 'synthetic-project' : 'different-project' })).toString('base64url')}.synthetic_signature`
+      isolatedStoreCheck(`
+        globalThis.fetch = async (input, init) => {
+          assert.equal(new URL(input).searchParams.get('limit'), '0');
+          const headers = new Headers(init.headers);
+          assert.equal(headers.get('apikey'), process.env.SUPABASE_SERVICE_ROLE_KEY);
+          assert.equal(headers.get('authorization'), 'Bearer ' + process.env.SUPABASE_SERVICE_ROLE_KEY);
+          return Response.json([]);
+        };
+        const store = await import('./src/report/report-store.ts');
+        const health = await store.checkReportStorageReadiness();
+        assert.equal(health.keyKind, 'legacy-jwt');
+        assert.equal(health.jwtRoleMatches, ${matching});
+        assert.equal(health.jwtProjectMatches, ${matching});
+        assert.equal(health.ok, ${matching});
+        assert.doesNotMatch(JSON.stringify(health), /synthetic-project|different-project|service_role|synthetic_signature/);
+      `, { SUPABASE_SERVICE_ROLE_KEY: key, SUPABASE_URL: 'https://synthetic-project.supabase.co' })
+    }
+  })
+
+  it('reports missing credentials and non-durable memory without making a request', () => {
+    isolatedStoreCheck(`
+      const store = await import('./src/report/report-store.ts');
+      assert.deepEqual(await store.checkReportStorageReadiness(), { mode: 'supabase', ok: false, durable: true, keyKind: 'missing', errorCode: 'REPORT_STORAGE_KEY_MISSING' });
+    `, { SUPABASE_SERVICE_ROLE_KEY: '' })
+    isolatedStoreCheck(`
+      const store = await import('./src/report/report-store.ts');
+      assert.deepEqual(await store.checkReportStorageReadiness(), { mode: 'memory', ok: false, durable: false, keyKind: 'none', errorCode: 'REPORT_STORAGE_NOT_DURABLE' });
+    `, { SUPABASE_SERVICE_ROLE_KEY: '', SUPABASE_URL: '' })
+  })
+
+  it('uses SELECT 1 for Postgres and reports local-file durability without inspecting or writing reports', () => {
+    isolatedStoreCheck(`
+      const { Pool } = await import('pg');
+      let queries = 0;
+      Pool.prototype.query = async text => { assert.equal(text, 'SELECT 1'); queries += 1; return { rows: [{ '?column?': 1 }] }; };
+      const store = await import('./src/report/report-store.ts');
+      assert.deepEqual(await store.checkReportStorageReadiness(), { mode: 'postgres', ok: true, durable: true, keyKind: 'none' });
+      assert.equal(queries, 1);
+    `, { DATABASE_URL: 'postgresql://synthetic:synthetic@localhost:5432/synthetic_readiness' })
+    isolatedStoreCheck(`
+      const { FileReportStorage } = await import('./src/report/file-report-storage.ts');
+      FileReportStorage.prototype.read = async () => { throw new Error('Readiness must not read a report'); };
+      FileReportStorage.prototype.list = async () => { throw new Error('Readiness must not enumerate reports'); };
+      FileReportStorage.prototype.insert = async () => { throw new Error('Readiness must not write a report'); };
+      const store = await import('./src/report/report-store.ts');
+      assert.deepEqual(await store.checkReportStorageReadiness(), { mode: 'file', ok: true, durable: true, keyKind: 'none' });
+    `, { REPORT_STORAGE_DIR: fileURLToPath(new URL('../../.cache/readiness-not-created', import.meta.url)) })
   })
 
   it('stores a frozen initial identity and preview without serializing an access token', async () => {

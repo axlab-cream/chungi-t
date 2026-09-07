@@ -10,6 +10,17 @@ import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuAnalysis, SajuRe
 
 export type ReportStatus = 'pending' | 'generating' | 'complete' | 'failed'
 export type ReportStorageMode = 'postgres' | 'supabase' | 'file' | 'memory'
+export interface ReportStorageReadiness {
+  mode: ReportStorageMode
+  ok: boolean
+  durable: boolean
+  keyKind: 'secret' | 'legacy-jwt' | 'missing' | 'unknown' | 'none'
+  httpStatus?: number
+  errorCode?: string
+  /** Local claim comparisons only; these are not JWT signature verification. */
+  jwtRoleMatches?: boolean
+  jwtProjectMatches?: boolean
+}
 export interface ReportRecord {
   reportId: string
   resultId?: string
@@ -194,10 +205,101 @@ function assertSupabaseServerKey(): void {
   if (!supabaseServiceRoleKey) throw new Error('서버 전용 리포트 저장소 키가 설정되지 않았습니다.')
 }
 
+function isLegacyJwtKey(key: string): boolean {
+  return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(key)
+}
+
 /** Full snapshots include private prompts/raw generations: never use a user JWT. */
 function supabaseHeaders(): Record<string, string> {
   assertSupabaseServerKey()
-  return { apikey: supabaseServiceRoleKey!, authorization: `Bearer ${supabaseServiceRoleKey}` }
+  const headers: Record<string, string> = { apikey: supabaseServiceRoleKey! }
+  // Hosted Supabase secret keys are opaque API keys, not JWTs. Sending one as
+  // Bearer causes JWT validation to reject an otherwise valid server credential.
+  if (!supabaseServiceRoleKey!.startsWith('sb_secret_') && isLegacyJwtKey(supabaseServiceRoleKey!)) {
+    headers.authorization = `Bearer ${supabaseServiceRoleKey}`
+  }
+  return headers
+}
+
+function safeKeyDiagnostics(): Pick<ReportStorageReadiness, 'keyKind' | 'jwtRoleMatches' | 'jwtProjectMatches'> {
+  if (!supabaseServiceRoleKey) return { keyKind: 'missing' }
+  if (supabaseServiceRoleKey.startsWith('sb_secret_')) return { keyKind: 'secret' }
+  if (!isLegacyJwtKey(supabaseServiceRoleKey)) return { keyKind: 'unknown' }
+  const diagnostics: ReturnType<typeof safeKeyDiagnostics> = { keyKind: 'legacy-jwt' }
+  try {
+    const claims = JSON.parse(Buffer.from(supabaseServiceRoleKey.split('.')[1], 'base64url').toString('utf8')) as Record<string, unknown>
+    diagnostics.jwtRoleMatches = claims.role === 'service_role'
+    const hostname = new URL(supabaseUrl).hostname
+    if (hostname.endsWith('.supabase.co')) diagnostics.jwtProjectMatches = claims.ref === hostname.split('.')[0]
+  } catch {
+    // Never surface the token, decoded claims or parser's error message.
+  }
+  return diagnostics
+}
+
+let readinessCache: { expiresAt: number; result: ReportStorageReadiness } | undefined
+let readinessInFlight: Promise<ReportStorageReadiness> | undefined
+
+/** Read-only, zero-row probe. Only fixed diagnostic codes/booleans leave here. */
+export async function checkReportStorageReadiness(): Promise<ReportStorageReadiness> {
+  if (readinessCache && Date.now() < readinessCache.expiresAt) return { ...readinessCache.result }
+  if (readinessInFlight) return { ...await readinessInFlight }
+  readinessInFlight = (async () => {
+    const mode = storageMode()
+    const base: ReportStorageReadiness = { mode, ok: false, durable: mode !== 'memory', keyKind: 'none' }
+    if (mode === 'memory') return { ...base, errorCode: 'REPORT_STORAGE_NOT_DURABLE' }
+    // File mode is local durable storage configuration, not a write-permission
+    // test. Health requests must not create/delete files or enumerate reports.
+    if (mode === 'file') return { ...base, ok: true }
+    if (mode === 'supabase') {
+      Object.assign(base, safeKeyDiagnostics())
+      if (!supabaseServiceRoleKey) return { ...base, errorCode: 'REPORT_STORAGE_KEY_MISSING' }
+    }
+    const controller = new AbortController()
+    let timedOut = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    try {
+      const probe = (async (): Promise<ReportStorageReadiness> => {
+        if (mode === 'postgres') {
+          await pool!.query('SELECT 1')
+          return { ...base, ok: true }
+        }
+        const url = new URL(supabaseRestUrl)
+        url.searchParams.set('select', 'report_id')
+        url.searchParams.set('limit', '0')
+        const response = await fetch(url, { headers: supabaseHeaders(), signal: controller.signal })
+        // Deliberately do not parse response text/JSON: neither rows nor database
+        // error messages should enter this public readiness contract.
+        await response.body?.cancel().catch(() => undefined)
+        const result = { ...base, httpStatus: response.status }
+        if (!response.ok) return { ...result, errorCode: response.status === 401 || response.status === 403 ? 'REPORT_STORAGE_AUTH_REJECTED' : response.status === 404 ? 'REPORT_STORAGE_NOT_FOUND' : 'REPORT_STORAGE_HTTP_ERROR' }
+        if (base.jwtRoleMatches === false) return { ...result, errorCode: 'REPORT_STORAGE_KEY_ROLE_MISMATCH' }
+        if (base.jwtProjectMatches === false) return { ...result, errorCode: 'REPORT_STORAGE_KEY_PROJECT_MISMATCH' }
+        return { ...result, ok: true }
+      })()
+      return await Promise.race([
+        probe,
+        new Promise<ReportStorageReadiness>((resolve) => {
+          timer = setTimeout(() => {
+            timedOut = true
+            controller.abort()
+            resolve({ ...base, errorCode: 'REPORT_STORAGE_TIMEOUT' })
+          }, 3_000)
+        }),
+      ])
+    } catch {
+      return { ...base, errorCode: timedOut ? 'REPORT_STORAGE_TIMEOUT' : 'REPORT_STORAGE_UNAVAILABLE' }
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
+  })()
+  try {
+    const result = await readinessInFlight
+    readinessCache = { expiresAt: Date.now() + 30_000, result: { ...result } }
+    return { ...result }
+  } finally {
+    readinessInFlight = undefined
+  }
 }
 
 function assertSupabaseOwner(owner?: ReportOwner): asserts owner is ReportOwner {

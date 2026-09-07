@@ -10,7 +10,7 @@ import type { BirthInput, SajuReport, SajuReportSection } from '../../src/types/
 const originalEnv = { ...process.env }
 process.env.NODE_ENV = 'test'
 for (const name of Object.keys(process.env)) {
-  if (/DATABASE|SUPABASE|OPENAI|ANTHROPIC|INICIS|PAYMENT|VERCEL/.test(name)) delete process.env[name]
+  if (/DATABASE|SUPABASE|OPENAI|ANTHROPIC|INICIS|PAYMENT|VERCEL|REPORT_STORAGE/.test(name)) delete process.env[name]
 }
 const nativeFetch = globalThis.fetch
 const forbiddenCalls: string[] = []
@@ -89,6 +89,25 @@ after(async () => {
 })
 
 describe('saved report HTTP boundaries (local fixtures only)', { concurrency: false }, () => {
+  it('makes storage readiness opt-in and returns uncached 503 for a non-durable memory store', async () => {
+    const before = await store.getReportRecord(anonymousId)
+    const health = await request('/api/health')
+    assert.equal(health.response.status, 200)
+    assert.equal(health.payload.ok, true)
+    assert.equal(Object.hasOwn(health.payload, 'reportStorage'), false)
+    assert.match(health.response.headers.get('cache-control') || '', /(?:^|,\s*)no-store(?:,|$)/)
+
+    const readiness = await request('/api/health?storage=1')
+    assert.equal(readiness.response.status, 503)
+    assert.equal(readiness.payload.ok, false)
+    assert.deepEqual(readiness.payload.reportStorage, {
+      mode: 'memory', ok: false, durable: false, keyKind: 'none', errorCode: 'REPORT_STORAGE_NOT_DURABLE',
+    })
+    assert.match(readiness.response.headers.get('cache-control') || '', /(?:^|,\s*)no-store(?:,|$)/)
+    assert.deepEqual(await store.getReportRecord(anonymousId), before)
+    assert.deepEqual(forbiddenCalls, [], 'Readiness must not contact an external service in memory mode')
+  })
+
   it('returns exactly the saved result through legacy ID, UUID and plural alias', async () => {
     const before = await store.getReportRecord(anonymousId)
     for (const path of [`/api/report/${anonymousId}`, `/api/report/${resultId}`, `/api/reports/${resultId}`]) {
