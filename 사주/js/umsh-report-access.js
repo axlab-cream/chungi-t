@@ -116,15 +116,23 @@
     var id = identity(payload);
     if (id) node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
   }
+  function validTodayScore(value) {
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100 ? value : null;
+  }
+  function todayScoreBadge(value, label, total) {
+    if (value === null) return '';
+    return '<div class="'+(total?'daily-score-total':'daily-score-badge')+'" role="img" aria-label="'+escapeHtml(label+' 점수 '+value+'점, 100점 만점')+'"><span aria-hidden="true">'+(total?'<span class="daily-score-label">오늘의 운</span>':'')+'<strong>'+value+'</strong><span class="daily-score-unit">점</span></span></div>';
+  }
   function showToday(payload) {
     authorized=null;
     var fortune=payload.todayFortune || {}, reading=fortune.reading || {};
-    var details=reading.details || {};
+    var details=reading.details || {}, scores=reading.score || {};
+    var totalScore=validTodayScore(scores.total);
     var rows=[['work','일과 활동','01'],['money','돈과 선택','02'],['relationship','관계와 대화','03'],['caution','오늘 챙길 것','04']];
     var node=panel();
     var zodiac=reading.zodiac;
     node.className='umsh-daily-reading';
-    node.innerHTML='<header class="daily-heading"><span class="daily-eyebrow">오늘 나한테 들어온 운</span><p class="daily-date">'+escapeHtml(fortune.date && fortune.date.label)+' · '+escapeHtml(fortune.profile && fortune.profile.name)+'</p><h1>'+escapeHtml(reading.title || '오늘의 운세')+'</h1><p class="daily-summary">'+escapeHtml(reading.summary)+'</p></header>'+(zodiac?'<section class="daily-zodiac" aria-label="출생연도별 오늘운"><span class="daily-eyebrow">나의 띠별 오늘운 · 출생연도 기준</span><h2>'+escapeHtml(zodiac.title || zodiac.birthYear+'년생 · '+zodiac.animal+'띠')+'</h2><p>'+escapeHtml(zodiac.text)+'</p></section>':'')+'<div class="daily-sections">'+rows.map(function(row){var detail=details[row[0]] || {};return '<section class="daily-card"><span class="daily-index" aria-hidden="true">'+row[2]+'</span><h2>'+row[1]+'</h2><p>'+escapeHtml(detail.text || reading[row[0]])+'</p>'+(detail.opportunity?'<p class="daily-tip"><strong>이렇게 활용하세요</strong> '+escapeHtml(detail.opportunity)+'</p>':'')+(detail.caution?'<p class="daily-tip"><strong>한 가지만 주의하세요</strong> '+escapeHtml(detail.caution)+'</p>':'')+'</section>';}).join('')+'</div><section class="daily-conclusion"><span class="daily-eyebrow">오늘의 결론</span><h2>오늘은 이렇게 움직이세요</h2><p>'+escapeHtml(reading.action)+'</p></section><p class="daily-note">내 사주와 오늘의 일진으로 풀어보는 하루의 방향</p><nav class="daily-links" aria-label="오늘운 다시 보기"><a class="daily-primary-link" href="/today/free?start=1">새 오늘운 확인</a></nav>';
+    node.innerHTML='<header class="daily-heading"><span class="daily-eyebrow">오늘 나한테 들어온 운</span><p class="daily-date">'+escapeHtml(fortune.date && fortune.date.label)+' · '+escapeHtml(fortune.profile && fortune.profile.name)+'</p><div class="daily-heading-row"><h1>'+escapeHtml(reading.title || '오늘의 운세')+'</h1>'+todayScoreBadge(totalScore,'오늘의 운',true)+'</div>'+(totalScore!==null?'<p class="daily-score-caption">100점 기준 · 오늘의 흐름 지표</p>':'')+'<p class="daily-summary">'+escapeHtml(reading.summary)+'</p></header>'+(zodiac?'<section class="daily-zodiac" aria-label="출생연도별 오늘운"><span class="daily-eyebrow">나의 띠별 오늘운 · 출생연도 기준</span><h2>'+escapeHtml(zodiac.title || zodiac.birthYear+'년생 · '+zodiac.animal+'띠')+'</h2><p>'+escapeHtml(zodiac.text)+'</p></section>':'')+'<div class="daily-sections">'+rows.map(function(row){var detail=details[row[0]] || {};var score=validTodayScore(detail.score);if(score===null)score=validTodayScore(scores[row[0]]);return '<section class="daily-card"><span class="daily-index" aria-hidden="true">'+row[2]+'</span><div class="daily-card-heading"><h2>'+row[1]+'</h2>'+todayScoreBadge(score,row[1],false)+'</div><p>'+escapeHtml(detail.text || reading[row[0]])+'</p>'+(detail.opportunity?'<p class="daily-tip"><strong>이렇게 활용하세요</strong> '+escapeHtml(detail.opportunity)+'</p>':'')+(detail.caution?'<p class="daily-tip"><strong>한 가지만 주의하세요</strong> '+escapeHtml(detail.caution)+'</p>':'')+'</section>';}).join('')+'</div><section class="daily-conclusion"><span class="daily-eyebrow">오늘의 결론</span><h2>오늘은 이렇게 움직이세요</h2><p>'+escapeHtml(reading.action)+'</p></section><p class="daily-note">내 사주와 오늘의 일진으로 풀어보는 하루의 방향</p><nav class="daily-links" aria-label="오늘운 다시 보기"><a class="daily-primary-link" href="/today/free?start=1">새 오늘운 확인</a></nav>';
   }
   function consume(payload, headers, request) {
     if (!payload || (!payload.report && !payload.previewOnly && !payload.todayFortune)) return payload;

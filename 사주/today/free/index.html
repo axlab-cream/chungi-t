@@ -63,7 +63,7 @@
         min-height: 100vh;
         margin: 0 auto;
         background: var(--bg);
-        overflow: hidden;
+        overflow: visible;
       }
 
       .appbar {
@@ -115,10 +115,24 @@
         min-height: calc(100vh - 72px);
         padding: 20px 20px 32px;
       }
+
+      /* This story uses document scrolling, not the shared fixed-height inner scroller. */
+      body.umsh-has-chrome main.stage[data-today-landing] > .scroll {
+        height: auto !important;
+        min-height: 0;
+        overflow: visible;
+        padding-bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px) + 32px) !important;
+      }
+
+      main.stage[data-today-landing] > [data-umsh-service-top] {
+        position: sticky;
+        top: 0;
+        z-index: 60;
+      }
     </style>
   </head>
   <body>
-    <main class="stage">
+    <main class="stage" data-today-landing>
       <header class="appbar">
         <button class="back" type="button" data-back aria-label="뒤로가기">‹</button>
         <a class="brand" href="/" aria-label="운명상회 홈">

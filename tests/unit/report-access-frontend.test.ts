@@ -176,7 +176,78 @@ test('today fortune stores its result address without requesting a paid preview'
   assert.match(html,/돈 문단/)
   assert.doesNotMatch(html,/같은 해석 다시 열기|href="\/r\//)
   assert.match(html,/새 오늘운 확인/)
-  assert.doesNotMatch(html,/99|전체 해석 열어보기/)
+  assert.match(html,/aria-label="오늘의 운 점수 99점, 100점 만점"/)
+  assert.doesNotMatch(html,/전체 해석 열어보기/)
+})
+
+test('daily scores preserve saved total and map each detail score to its own section',()=>{
+  const fixture=structuredClone(dailyFixture) as any
+  fixture.todayFortune.reading.score={total:64,work:1,money:2,relationship:3,caution:4}
+  fixture.todayFortune.reading.details={work:{score:72.5},money:{score:81},relationship:{score:63},caution:{score:58}}
+  fixture.todayFortune.reading.zodiac={birthYear:1995,animal:'돼지',title:'나의 띠별 풀이',text:'저장한 띠별 문단'}
+  const snapshot=structuredClone(fixture)
+  const h=harness('/today/free?reportId=daily-result',[])
+  h.api.setOwner('owner-a')
+  h.api.consume(fixture)
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  for(const [label,score] of [['오늘의 운',64],['일과 활동',72.5],['돈과 선택',81],['관계와 대화',63],['오늘 챙길 것',58]]) {
+    assert.ok(html.includes(`aria-label="${label} 점수 ${score}점, 100점 만점"`))
+  }
+  assert.equal((html.match(/class="daily-score-total"/g)||[]).length,1)
+  assert.equal((html.match(/class="daily-score-badge"/g)||[]).length,4)
+  assert.match(html,/100점 기준 · 오늘의 흐름 지표/)
+  assert.doesNotMatch(html,/위험 확률|성공 확률|같은 해석 다시 열기|href="\/r\//)
+  for(const text of ['이미 잘되는 일을 유지합니다.','저장한 띠별 문단','일 문단','돈 문단','관계 문단','확인할 조건','행동 기준']) assert.ok(html.includes(text))
+  assert.deepEqual(fixture,snapshot)
+  assert.equal(h.location.searchParams.get('reportId'),'daily-result')
+  assert.equal(h.items.get('umsh:report-identity:owner-a:today_fortune'),'daily-result')
+  assert.equal(h.calls.length,0)
+})
+
+test('daily score badges accept zero and 100 without replacing saved boundary values',()=>{
+  for(const total of [0,100]) {
+    const fixture=structuredClone(dailyFixture) as any
+    fixture.todayFortune.reading.score={total,work:100,money:0,relationship:100,caution:0}
+    fixture.todayFortune.reading.details={work:{score:0},money:{score:100}}
+    const h=harness('/r/daily-result',[])
+    h.api.consume(fixture)
+    const html=h.nodes.get('umsh-verified-reading').innerHTML
+    for(const [label,score] of [['오늘의 운',total],['일과 활동',0],['돈과 선택',100],['관계와 대화',100],['오늘 챙길 것',0]]) {
+      assert.ok(html.includes(`aria-label="${label} 점수 ${score}점, 100점 만점"`))
+    }
+  }
+})
+
+test('daily score badges use a valid legacy score only when a detail score is missing or invalid',()=>{
+  for(const invalid of [undefined,null,'80',true,NaN,Infinity,-Infinity,-1,101,{},[]]) {
+    const fixture=structuredClone(dailyFixture) as any
+    fixture.todayFortune.reading.score={total:64,work:71,money:82,relationship:63,caution:54}
+    fixture.todayFortune.reading.details=Object.fromEntries(['work','money','relationship','caution'].map(key=>[key,{score:invalid}]))
+    const h=harness('/r/daily-result',[])
+    h.api.consume(fixture)
+    const html=h.nodes.get('umsh-verified-reading').innerHTML
+    for(const [label,score] of [['일과 활동',71],['돈과 선택',82],['관계와 대화',63],['오늘 챙길 것',54]]) {
+      assert.ok(html.includes(`aria-label="${label} 점수 ${score}점, 100점 만점"`))
+    }
+  }
+})
+
+test('daily reader omits invalid or absent score badges instead of inventing or clamping values',()=>{
+  for(const invalid of [undefined,null,'80',true,NaN,Infinity,-Infinity,-1,101,{},[]]) {
+    const fixture=structuredClone(dailyFixture) as any
+    fixture.todayFortune.reading.score={total:invalid,work:invalid,money:invalid,relationship:invalid,caution:invalid}
+    fixture.todayFortune.reading.details={work:{score:invalid}}
+    const h=harness('/r/daily-result',[])
+    h.api.consume(fixture)
+    const html=h.nodes.get('umsh-verified-reading').innerHTML
+    assert.doesNotMatch(html,/class="daily-score-total"|class="daily-score-badge"|100점 기준/)
+    assert.match(html,/일 문단/)
+  }
+  const fixture=structuredClone(dailyFixture) as any
+  delete fixture.todayFortune.reading.score
+  const h=harness('/r/daily-result',[])
+  h.api.consume(fixture)
+  assert.doesNotMatch(h.nodes.get('umsh-verified-reading').innerHTML,/class="daily-score-total"|class="daily-score-badge"|100점 기준/)
 })
 
 test('reopening a daily result uses GET and does not call fortune generation again',async()=>{

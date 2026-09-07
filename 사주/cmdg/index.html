@@ -1282,10 +1282,40 @@
         box-shadow: none;
       }
 
-      .today-result-card > h1 {
+      .today-result-card > h1,
+      .today-title-row h1 {
         margin: 0;
         font-size: clamp(27px, 7.4vw, 32px);
         line-height: 1.35;
+      }
+
+      .today-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .today-title-row h1 { min-width: 0; flex: 1; }
+      .today-total-score {
+        flex: 0 0 94px;
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        padding: 12px 6px;
+        border: 1px solid rgba(216, 186, 114, 0.5);
+        border-radius: 18px;
+        background: linear-gradient(145deg, #2a2315, #14120d);
+        color: #e8d49a;
+        font: 600 11px/1.5 var(--font-meta);
+      }
+      .today-total-score strong { font: 700 34px/1.1 var(--font-meta); font-variant-numeric: tabular-nums; }
+      .today-total-score strong small { margin-left: 3px; font-size: 13px; }
+      .today-result-card .today-score-caption { margin: -14px 0 0; color: #a39a8c; font: 11px/1.6 var(--font-meta); }
+      .today-score-badge {
+        flex: 0 0 auto;
+        padding: 4px 9px;
+        border: 1px solid rgba(216, 186, 114, 0.3);
+        border-radius: 999px;
+        background: rgba(216, 186, 114, 0.08);
+        color: #f0dfad;
+        font: 700 14px/1.5 var(--font-meta);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
       }
 
       .today-result-card > .today-result-meta {
@@ -1354,7 +1384,8 @@
         background: #0c0b0a;
       }
 
-      .today-item-head { margin-bottom: 11px; }
+      .today-item-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
+      .today-item-head strong { min-width: 0; overflow-wrap: anywhere; }
 
       .today-item-head strong {
         margin: 0;
@@ -6312,12 +6343,15 @@
         const reading = fortune.reading;
         const profile = fortune.profile || {};
         const detailMap = reading.details || {};
+        const validScore = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+        const savedScores = reading.score || {};
+        const total = validScore(savedScores.total) ? savedScores.total : null;
         const detailRows = [
-          { label: "일 · 오늘의 방향", text: reading.work, ...(detailMap.work || {}) },
-          { label: "돈 · 지킬 기준", text: reading.money, ...(detailMap.money || {}) },
-          { label: "관계 · 마음을 전하는 법", text: reading.relationship, ...(detailMap.relationship || {}) },
-          { label: "오늘 기억할 한 가지", text: reading.caution, ...(detailMap.caution || {}) },
-        ];
+          { label: "일 · 오늘의 방향", text: reading.work, ...(detailMap.work || {}), key: "work", scoreLabel: "일" },
+          { label: "돈 · 지킬 기준", text: reading.money, ...(detailMap.money || {}), key: "money", scoreLabel: "돈" },
+          { label: "관계 · 마음을 전하는 법", text: reading.relationship, ...(detailMap.relationship || {}), key: "relationship", scoreLabel: "관계" },
+          { label: "오늘 기억할 한 가지", text: reading.caution, ...(detailMap.caution || {}), key: "caution", scoreLabel: "주의점" },
+        ].map((item) => ({ ...item, score: validScore(item.score) ? item.score : validScore(savedScores[item.key]) ? savedScores[item.key] : null }));
         const zodiac = reading.zodiac;
         const elementMeanings = { 목: "목(木) · 나무처럼 자라고 뻗는 기운", 화: "화(火) · 불처럼 드러내고 표현하는 기운", 토: "토(土) · 흙처럼 중심을 잡고 쌓는 기운", 금: "금(金) · 쇠처럼 기준을 세우고 다듬는 기운", 수: "수(水) · 물처럼 흐름을 살피고 받아들이는 기운" };
         const todayElement = elementMeanings[String(fortune.today?.element || "").slice(0, 1)] || fortune.today?.element || "";
@@ -6325,8 +6359,12 @@
         stage.innerHTML = `
           <section class="panel today-result-card">
             <div class="status">오늘의 사주 풀이</div>
-            <h1>오늘 나한테<br />들어온 운</h1>
+            <div class="today-title-row">
+              <h1>오늘 나한테<br />들어온 운</h1>
+              ${total !== null ? `<div class="today-total-score" role="group" aria-label="오늘의 운 점수 ${total}점, 100점 만점"><span>오늘의 운 점수</span><strong>${total}<small>점</small></strong></div>` : ""}
+            </div>
             <p class="today-result-meta">${escapeHtml(fortune.date?.label || "")} · ${escapeHtml(profile.name || state.name || "나")}님</p>
+            ${total !== null || detailRows.some((item) => item.score !== null) ? '<p class="today-score-caption">100점 기준 · 오늘의 흐름 지표</p>' : ""}
 
             ${todayElement ? `<div class="today-pillar-card">
               <span>오늘 기운의 키워드</span>
@@ -6351,6 +6389,7 @@
                 <section class="result-item">
                   <div class="today-item-head">
                     <strong>${escapeHtml(item.label)}</strong>
+                    ${item.score !== null ? `<span class="today-score-badge" aria-label="${escapeHtml(item.scoreLabel)} 점수 ${item.score}점, 100점 만점">${item.score}점</span>` : ""}
                   </div>
                   <div class="today-reading-copy">${formatInterpretationHtml(item.text)}</div>
                   ${item.opportunity ? `<p class="today-detail-note"><b>이렇게 활용하세요</b> ${escapeHtml(item.opportunity)}</p>` : ""}

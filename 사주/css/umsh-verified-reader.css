@@ -34,12 +34,23 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading .daily-eyebrow { color: #d8ba72; font-size: 12px; font-weight: 800; letter-spacing: .02em; }
 #umsh-verified-reading .daily-date { margin: 8px 0 0; color: #a39a8c; font-size: 12px; }
 #umsh-verified-reading .daily-heading { margin-bottom: 24px; }
+#umsh-verified-reading .daily-heading-row { display: flex; align-items: center; gap: 12px; margin: 14px 0 12px; }
+#umsh-verified-reading .daily-heading-row h1 { flex: 1; min-width: 0; margin: 0; }
+#umsh-verified-reading .daily-score-total { flex: 0 0 90px; padding: 12px 8px; border: 1px solid #715d32; border-radius: 16px; background: linear-gradient(130deg, #292114, #13110d); color: #f0d68f; text-align: center; white-space: nowrap; line-height: 1.2; }
+#umsh-verified-reading .daily-score-total strong { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
+#umsh-verified-reading .daily-score-label { display: block; margin-bottom: 7px; color: #d8ba72; font-size: 11px; font-weight: 700; }
+#umsh-verified-reading .daily-score-unit { margin-left: 3px; font-size: 12px; font-weight: 700; }
+#umsh-verified-reading .daily-score-caption { margin: 0 0 14px; color: #a39a8c; font-size: 11px; }
 #umsh-verified-reading .daily-summary { color: #d5cec1; line-height: 1.95; }
 #umsh-verified-reading .daily-zodiac { margin: 0 0 24px; padding: 22px; border: 1px solid #715d32; border-radius: 18px; background: linear-gradient(130deg, #292114, #13110d); }
 #umsh-verified-reading .daily-zodiac h2 { margin-top: 10px; }
 #umsh-verified-reading .daily-zodiac p { margin-bottom: 0; color: #e5ddcd; }
 #umsh-verified-reading .daily-sections { display: grid; gap: 14px; }
 #umsh-verified-reading .daily-card { position: relative; padding: 24px 22px; border: 1px solid rgba(216,186,114,.19); border-radius: 18px; background: #11100d; }
+#umsh-verified-reading .daily-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+#umsh-verified-reading .daily-card-heading h2 { flex: 1; min-width: 0; margin: 0; }
+#umsh-verified-reading .daily-score-badge { flex-shrink: 0; padding: 5px 9px; border: 1px solid rgba(216,186,114,.3); border-radius: 10px; background: #231d12; color: #e8d49a; white-space: nowrap; line-height: 1.3; }
+#umsh-verified-reading .daily-score-badge strong { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
 #umsh-verified-reading .daily-index { display: block; margin-bottom: 10px; color: #9e7b35; font-size: 12px; font-weight: 700; }
 #umsh-verified-reading .daily-card p { margin-bottom: 0; color: #d5cec1; line-height: 1.95; }
 #umsh-verified-reading .daily-tip { border-top: 1px solid rgba(216,186,114,.15); padding-top: 14px; font-size: 13px; }

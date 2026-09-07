@@ -172,8 +172,8 @@ function relationText(relation: TodayRelation, userName: string, todayElement: E
   return table[relation]
 }
 
-// Compatibility only for older consumers. These fixed weights are neither
-// measured outcomes nor probabilities; the v3 reader presents guidance, not scores.
+// Persisted display weights summarize the symbolic daily flow. They are neither
+// measured outcomes nor probabilities; renderers must preserve these saved values.
 const LEGACY_DISPLAY_WEIGHTS: Record<TodayRelation, Record<TodayDetailKey, number>> = {
   same: { work: 78, money: 62, relationship: 58, caution: 54 },
   support: { work: 82, money: 70, relationship: 76, caution: 68 },

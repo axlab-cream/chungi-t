@@ -25,7 +25,7 @@ for (const portal of portals) {
       title: '오늘의 방향', summary: '첫 문장입니다.\n\n두 번째 문장입니다.',
       work: '일의 기준입니다.', money: '돈의 기준입니다.', relationship: '관계의 기준입니다.', caution: '확인할 조건입니다.',
       action: '중요한 한 가지부터 마무리하세요. 마친 뒤에는 남은 시간을 편안하게 쓰세요.',
-      score: { total: 99 },
+      score: { total: 64, work: 78, money: 62, relationship: 58, caution: 54 },
       zodiac: { birthYear: 1983, animal: '돼지', title: '이어갈 기회', text: '차근차근 시작하세요. 잘되는 방법을 이어가세요.' },
       ...fortune?.reading as object,
     }
@@ -42,7 +42,7 @@ for (const portal of portals) {
     for (const script of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new Script(script[1])
   })
 
-  test(`${portal}: today's paragraphs, zodiac and conclusion are readable without invented scores`, () => {
+  test(`${portal}: today's saved scores accompany the unchanged paragraphs, zodiac and conclusion`, () => {
     const { markup } = harness()
     assert.match(markup, /1983년생 · 돼지띠/)
     assert.match(markup, /<p>첫 문장입니다\.<\/p><p>두 번째 문장입니다\.<\/p>/)
@@ -51,9 +51,44 @@ for (const portal of portals) {
     assert.match(markup, /목\(木\) · 나무처럼 자라고 뻗는 기운/)
     assert.doesNotMatch(markup, /today-saved-link|같은 내용으로 다시 보기|href="\/r\//)
     assert.match(markup, /저장된 이름님/)
-    assert.doesNotMatch(markup, /임시 입력님|99점|\/100|종합 점수|예측한 결과가 아닙니다/)
+    assert.doesNotMatch(markup, /임시 입력님|예측한 결과가 아닙니다/)
+    assert.match(markup, /aria-label="오늘의 운 점수 64점, 100점 만점"/)
+    for (const [label, value] of [['일', 78], ['돈', 62], ['관계', 58], ['주의점', 54]]) {
+      assert.match(markup, new RegExp(`aria-label="${label} 점수 ${value}점, 100점 만점"`))
+    }
+    assert.equal((markup.match(/class="today-score-badge"/g) || []).length, 4)
+    assert.match(markup, /100점 기준 · 오늘의 흐름 지표/)
     assert.match(html, /font: 400 15px\/1\.85 var\(--font-meta\)/)
     assert.match(html, /\.today-result-card\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
+  })
+
+  test(`${portal}: detail scores match their paragraphs and fall back to valid saved category scores`, () => {
+    const { markup } = harness(true, { reading: { details: { work: { score: 81, text: '저장된 상세 일 풀이' }, money: { score: null }, relationship: { score: '99' }, caution: { score: Infinity } } } })
+    assert.match(markup, /일 점수 81점, 100점 만점/)
+    assert.match(markup, /저장된 상세 일 풀이/)
+    assert.match(markup, /돈 점수 62점, 100점 만점/)
+    assert.match(markup, /관계 점수 58점, 100점 만점/)
+    assert.match(markup, /주의점 점수 54점, 100점 만점/)
+  })
+
+  test(`${portal}: zero, 100 and saved fractional scores are preserved without rounding`, () => {
+    const { markup } = harness(true, { reading: { score: { total: 0, work: 0, money: 100, relationship: 84.5, caution: 54 } } })
+    assert.match(markup, /오늘의 운 점수 0점, 100점 만점/)
+    assert.match(markup, /일 점수 0점, 100점 만점/)
+    assert.match(markup, /돈 점수 100점, 100점 만점/)
+    assert.match(markup, /관계 점수 84\.5점, 100점 만점/)
+  })
+
+  test(`${portal}: missing or invalid scores never become fabricated defaults or unsafe markup`, () => {
+    for (const value of [undefined, null, '', '64', '<img src=x>', false, NaN, Infinity, -1, 101]) {
+      const { markup } = harness(true, { reading: { score: { total: value, work: value, money: value, relationship: value, caution: value } } })
+      assert.doesNotMatch(markup, /class="today-total-score"|class="today-score-badge"|100점 기준|<img src=x>/)
+      assert.match(markup, /오늘의 결론/)
+    }
+    const { markup } = harness(true, { reading: { score: undefined, details: { work: { score: 70 } } } })
+    assert.doesNotMatch(markup, /class="today-total-score"/)
+    assert.match(markup, /일 점수 70점, 100점 만점/)
+    assert.equal((markup.match(/class="today-score-badge"/g) || []).length, 1)
   })
 
   test(`${portal}: saved reader owns shared chrome and legacy fallback reuses common mount`, () => {
