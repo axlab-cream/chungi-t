@@ -87,6 +87,12 @@ import {
   parseCatCompatRequest,
 } from '../pet/cat-service.js'
 import {
+  buildNewYearContext,
+  buildNewYearReport,
+  createNewYearReportId,
+  parseNewYearRequest,
+} from '../flow/newyear-service.js'
+import {
   buildLuckyColorContext,
   buildLuckyColorReport,
   createLuckyColorReportId,
@@ -492,6 +498,31 @@ app.get(['/me/lucky/detail', '/me/lucky/detail.html'], (_req, res) => {
 })
 app.get('/me/lucky/06-step-6_1-report-detail/index.html', (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'me', 'lucky', '06-step-6_1-report-detail', 'index.html'))
+})
+// 내 2027년, 풀릴 각이야? runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/flow/newyear', '/flow/newyear/', '/flow/newyear/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 resumes it, so keep the
+  // query and send a paid visitor to the result instead of the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/flow/newyear/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/flow/newyear/input', '/flow/newyear/input.html'], (_req, res) => {
+  res.redirect(302, '/flow/newyear/02-step-2-saju-input/index.html')
+})
+app.get(['/flow/newyear/report', '/flow/newyear/report.html'], (_req, res) => {
+  res.redirect(302, '/flow/newyear/04-step-4-report/index.html')
+})
+app.get(['/flow/newyear/chat', '/flow/newyear/chat.html'], (_req, res) => {
+  res.redirect(302, '/flow/newyear/05-step-5-chat/chat.html')
+})
+app.get(['/flow/newyear/detail', '/flow/newyear/detail.html'], (_req, res) => {
+  res.redirect(302, '/flow/newyear/06-step-6_1-report-detail/index.html')
 })
 app.get(['/match/couple/input', '/match/couple/input.html'], (_req, res) => {
   res.redirect(302, '/match/couple/02-step-2-saju-input/index.html')
@@ -1143,6 +1174,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   job_choice: 'job_choice',
   cat_compatibility: 'cat_compatibility',
   lucky_color: 'lucky_color',
+  newyear_flow: 'newyear_flow',
   couple_signal: 'couple_signal',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
@@ -1788,6 +1820,37 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '고양이 궁합 생성 실패' })
+  }
+})
+
+app.post('/api/flow/newyear/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '2027년 흐름을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseNewYearRequest(req.body)
+    const context = buildNewYearContext(profile.name, input)
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = createNewYearReportId(analysis, profile.birth)
+    if (!await ensurePaidServiceAccess(req, res, owner, 'newyear_flow', reportId)) return
+    const templateReport = buildNewYearReport(analysis, profile.birth, context, input, reportId)
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '2027년 흐름 풀이 생성 실패' })
   }
 })
 

@@ -148,7 +148,7 @@ function resolveDayCalculationDate(resolved: ResolvedBirthDate, rule: DayBoundar
 }
 
 /** 五虎遁 — 년간 기준 월간 */
-function getMonthStemIndex(yearStemIdx: number, monthBranchIdx: number): number {
+export function getMonthStemIndex(yearStemIdx: number, monthBranchIdx: number): number {
   const firstMonthStem = [2, 4, 6, 8, 0][mod(yearStemIdx, 5)]
   return mod(firstMonthStem + mod(monthBranchIdx - 2, 12), 10)
 }

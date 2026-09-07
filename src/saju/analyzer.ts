@@ -96,7 +96,7 @@ function getDominantAndWeak(count: ElementCount): { dominant: Element; weak: Ele
   return { dominant: entries[0][0], weak: entries[entries.length - 1][0] }
 }
 
-function getTenGod(dayMaster: HeavenlyStem, target: HeavenlyStem): TenGod {
+export function getTenGod(dayMaster: HeavenlyStem, target: HeavenlyStem): TenGod {
   const dmElement = STEM_ELEMENT[dayMaster]
   const targetElement = STEM_ELEMENT[target]
   const dmIdx = HEAVENLY_STEMS.indexOf(dayMaster)
