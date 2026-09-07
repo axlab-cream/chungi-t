@@ -6,7 +6,7 @@
 - 프로젝트: `C:\Users\user\Desktop\chungi-t`.
 - 사용자 승인 범위: 운영 배포, DB 연결 및 결과 저장·재조회 검증.
 - 기준 구현 커밋: `fdc80f2`. 현재 운영 런타임 커밋: **`d158089`**. 원격 `main`의 `b997040`에 있던 포털 연애 카드 영상 변경 1개 파일도 보존했다.
-- GitHub `main`에는 이번 변경을 push하지 않았다. 현재 운영은 로컬 소스의 CLI 배포 `d158089`이며, 후속 SQL·검증 스크립트·기록 문서 변경은 런타임 코드 변경과 구분한다. 문서 작성 시점에는 후속 변경의 로컬 커밋이 대기 중이었다.
+- GitHub `main`에는 이번 변경을 push하지 않았다. 현재 운영은 로컬 소스의 CLI 배포 `d158089`이며, 후속 SQL·검증 스크립트·기록 문서 변경은 로컬 커밋 `c47fbfa`에 기록했다. 후속 커밋은 런타임 코드 변경을 포함하지 않는다.
 - Vercel CLI에서 확인한 팀/프로젝트: `ax-lab-cream/chungi-t`.
 - Supabase 프로젝트: `wdyzollywccgaepjeynu`. 관리 UI에서 healthy 상태를 확인했다.
 - 첫 후보 배포: [chungi-it1dckzs0-ax-lab-cream.vercel.app](https://chungi-it1dckzs0-ax-lab-cream.vercel.app). Production 환경에서 도메인 할당 없이 준비한 뒤 운영으로 승격했으나, **로그인 후 DB 읽기에서 HTTP 500이 발생했다**.
@@ -138,7 +138,7 @@
 - 해당 `/r/{UUID}`를 실제 브라우저에서 열어 같은 전체 답변을 확인했고, GET 이후 DB의 revision 3·시도 1회·본문 해시가 모두 동일했다. 재조회로 모델 호출을 다시 실행하지 않았음을 확인했다.
 - 이 392자 응답은 단일 상담 진단 결과이지 유료 장문 해석 품질 표본이 아니다. 유료 해석 전체 생성이나 실제 결제는 실행하지 않았다. 이번 검증은 운영 Vercel → OpenAI → 결과 저장 → UUID 재조회 경로 1건의 확인이다.
 - 주문 테이블 복구 후 `--status-code 500 --since 2026-09-07T07:00:00Z` 조건의 Vercel 로그 조회는 **No logs**였다. 이 결과는 16:00 KST 이후 해당 조회 시점까지의 구간에 한정한다.
-- 일반 로그에는 `GET /api/user/reports 200`, `POST /api/chat-history 200`, `POST /api/chat 200` 및 **16:00:21.62 KST `GET /api/user/orders 200`**을 확인했다. error-level로 분류된 Node `DEP0169` deprecation 경고는 HTTP 200 요청과 마지막 스캔의 `GET /orders 304`에도 관찰됐으며, API 500과 구분한다. 마지막 16:00 KST 이후 error-level 스캔에는 이 경고만 있었고 500은 없었다. 경고가 존재하므로 모든 로그가 완전히 무경고라고 표현하지 않는다.
+- 일반 로그에는 `GET /api/user/reports 200`, `POST /api/report/chat-history 200`, `POST /api/chat 200` 및 **16:00:21.62 KST `GET /api/user/orders 200`**을 확인했다. error-level로 분류된 Node `DEP0169` deprecation 경고는 HTTP 200 요청과 마지막 스캔의 `GET /orders 304`에도 관찰됐으며, API 500과 구분한다. 마지막 16:00 KST 이후 error-level 스캔에는 이 경고만 있었고 500은 없었다. 경고가 존재하므로 모든 로그가 완전히 무경고라고 표현하지 않는다.
 
 ## 후속 검증 — 운영 완료 판정 체크리스트
 
