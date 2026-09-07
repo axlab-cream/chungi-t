@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
+import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
@@ -781,6 +782,14 @@ function enrichReportContext(context: SajuReportContext): SajuReportContext {
   }
 }
 
+async function enrichHomeTerrainContext(context: SajuReportContext): Promise<SajuReportContext> {
+  if (context.serviceKey !== HOME_FIT_SERVICE_KEY || !context.home || context.home.terrainEvidence) return context
+  const address = context.home.roadAddress || context.home.jibunAddress || context.home.addressOrBuilding
+  if (!address) return context
+  const terrainEvidence = await fetchPungsuTerrainEvidence(address)
+  return terrainEvidence ? { ...context, home: { ...context.home, terrainEvidence } } : context
+}
+
 function parseReportContext(body: Record<string, unknown>): SajuReportContext {
   const context = (body.context ?? {}) as Record<string, unknown>
   const value = (key: string): string | undefined => {
@@ -975,7 +984,7 @@ async function toUiAnalysis(
   access?: PaidAccess,
 ) {
   const analysis = analyzeSaju(birth)
-  const enrichedContext = enrichReportContext(context)
+  const enrichedContext = await enrichHomeTerrainContext(enrichReportContext(context))
   const reportId = createReportId(birth, enrichedContext, undefined, owner?.id)
   const templateReport = buildTemplateSajuReport(analysis, birth, enrichedContext)
   const { record } = await createOrGetReportRecord({
@@ -2184,7 +2193,7 @@ app.post('/api/saju/analyze', async (req, res) => {
         owner,
       )
     }
-    const enriched = enrichReportContext(context)
+    const enriched = await enrichHomeTerrainContext(enrichReportContext(context))
     if (wantsPreview(req)) {
       const analysis = analyzeSaju(birth)
       const { record } = await createOrGetReportRecord({

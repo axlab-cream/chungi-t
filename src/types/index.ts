@@ -186,6 +186,18 @@ export interface SajuReportContext {
     deskPosition?: string
     outsideFlow?: string
     extraNote?: string
+    terrainEvidence?: {
+      provider: 'pungsu-assi'
+      status: string
+      summary?: string
+      headline?: string
+      knownNow?: string[]
+      slopeDeg?: number
+      aspectDownhillDeg?: number
+      front?: string
+      back?: string
+      confidence?: string
+    }
   }
   exam?: {
     examName?: string

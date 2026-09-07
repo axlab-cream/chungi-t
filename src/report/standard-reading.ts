@@ -102,6 +102,9 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
     facts = !h.painPoints ? '주거 불편에 관한 선택은 아직 확인되지 않았습니다. 문제가 있다는 뜻도, 없다는 뜻도 아닙니다.' : h.painPoints.length === 0 ? '선택된 주거 불편 항목은 없습니다. 이것을 숨은 위기나 나쁜 집의 증거로 바꾸지 않습니다.' : '선택한 주거 불편을 실제 생활에서 확인할 대상으로 삼습니다. 집 전체가 나쁘다는 뜻은 아닙니다.'
     evidence = `공간 문진에서 확인한 배치와 사용 목적을 우선합니다. 사주의 ${ELEMENT_KO[analysis.dominantElement]} 기운은 전통적 비유로만 참고하며, 집의 실제 성능이나 건강·재산 결과를 결정하는 값이 아닙니다.`
     if (h.extraNote?.trim()) facts += ` 추가로 “${h.extraNote.trim()}”라고 적어 주셨습니다.`
+    if (h.terrainEvidence?.summary) {
+      evidence += ` 풍수아씨 지형 데이터의 현재 위치 참고값은 “${h.terrainEvidence.summary}”입니다. 이는 주소 기반 지형·코퍼스 참고이며, 채광·소음·실내 배치처럼 현장에서 확인해야 할 조건을 대신하지 않습니다.`
+    }
   } else if (key === 'work_move') {
     const m = context.workMove ?? {}
     const signals: Record<string, string> = { role_blur: '역할이 흐림', authority_blur: '결정권이 애매함', boss_pressure: '상사 압박이 큼', peer_competition: '동료·경쟁 스트레스', recognition_gap: '인정받는 느낌이 부족함', burnout: '소진을 느끼고 있음' }
