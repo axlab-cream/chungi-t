@@ -36,11 +36,12 @@ describe('[TASK] 사주 분석 테스트 하네스', () => {
       assert.ok(analysis.dayMasterAdvice.length > 0)
     })
 
-    it('간략풀이 preview는 천명사주 샘플 말투를 유지', () => {
+    it('간략풀이 preview는 계산된 기호와 해석의 한계를 구분한다', () => {
       const analysis = analyzeSaju(sampleBirth)
-      assert.ok(analysis.preview?.personality.includes('허허'))
-      assert.ok(analysis.preview?.elementBalance.includes('기운이 먼저 보이고'))
-      assert.ok(analysis.preview?.wealthFortune.includes('흐름이 보이는군'))
+      assert.ok(analysis.preview?.personality.includes('태어난 날의 천간'))
+      assert.ok(analysis.preview?.elementBalance.includes('단순 개수'))
+      assert.ok(analysis.preview?.wealthFortune.includes('판단하지 않습니다'))
+      assert.doesNotMatch(analysis.preview?.loveFortune ?? '', /혼자 버티는 시간이 길수록|6월 4일/)
     })
 
     it('검산 샘플 → 절기 기반 사주팔자 표준값을 유지', () => {

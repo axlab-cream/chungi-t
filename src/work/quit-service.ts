@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto'
-import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection, TenGod } from '../types/index.js'
-import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
+import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
+import { practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
+import { QUIT_DETAILS } from './practical-readings.js'
+const OWN_CORPUS_DOMAIN = 'quit_fortune_service'
 
 export const WORK_QUIT_SERVICE_KEY = 'quit_fortune'
 
@@ -149,174 +149,12 @@ export function createWorkQuitReportId(ownerId: string | undefined, birth: Birth
       hour: birth.hour,
       gender: birth.gender,
       calendar: birth.calendar,
+      ...(birth.minute ? { minute: birth.minute } : {}),
     },
     input,
     serviceKey: WORK_QUIT_SERVICE_KEY,
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
-}
-
-function quitSignal(tenGods: TenGod[]): string {
-  const hasOfficer = tenGods.includes('정관') || tenGods.includes('편관')
-  const hasOutput = tenGods.includes('식신') || tenGods.includes('상관')
-  const hasResource = tenGods.includes('정인') || tenGods.includes('편인')
-  const hasPeer = tenGods.includes('비견') || tenGods.includes('겁재')
-
-  if (hasOfficer && hasOutput) {
-    return '관성의 책임과 식상의 표현이 같이 걸려 있으니, 참다가 한 번에 터지는 방식으로 그만두기 쉬워요. 말할 순서를 미리 정해 두어야 해요.'
-  }
-  if (hasOfficer) {
-    return '관성이 앞서니 책임을 놓는 것 자체에 죄책감이 크게 붙어요. 나가는 결정보다 인수인계의 선을 먼저 그어야 편해지네.'
-  }
-  if (hasOutput) {
-    return '식상이 살아 있으니 눌린 표현이 퇴사 욕구로 올라오기 쉬워요. 자리를 옮기기 전에 말할 통로가 있었는지부터 보세요.'
-  }
-  if (hasPeer) {
-    return '비겁이 보이니 주변과 비교하며 결정을 앞당기기 쉬워요. 남의 속도가 아니라 당신의 회복 상태로 판단해야 해요.'
-  }
-  if (hasResource) {
-    return '인성이 보이니 더 배우면 나아질 것이라 미루기 쉬워요. 준비가 회피가 되고 있지는 않은지 기한을 정해 보세요.'
-  }
-  return '십신 하나로 퇴사를 단정하지 말고, 책임의 무게와 회복 속도와 다음 계획을 나란히 놓고 봐야 해요.'
-}
-
-function timingLine(analysis: SajuAnalysis): string {
-  const fortune = analysis.fortune
-  if (!fortune) return '대운·세운은 단정하지 않고, 지금 명식에 드러난 전환 신호를 먼저 볼게요.'
-  return `현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}입니다. 이 흐름은 퇴사 날짜를 정해 주는 것이 아니라, 어느 구간에서 말을 꺼내야 덜 다치는지를 보는 표식입니다.`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` / `interpretation:` field labels and instructions such as "원문 문장을
- * 출력하지 말고". Pasting those verbatim would put internal scaffolding on a paid page,
- * so the labels go, instruction sentences are dropped, and an empty result falls back.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 180): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/**
- * Corpus prose addresses the reader as 사용자. Swapping in 본인 changes the trailing
- * particle too - 사용자를 → 본인을 - so map the pairs rather than the noun alone.
- */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/**
- * Only a knowledge block's `interpretation`, `advice` and `opportunity` read as prose.
- * Legacy entries fill those with authoring instructions, which `compact` filters out,
- * so those fall back to the service's own line rather than showing scaffolding.
- */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const block = chunk.knowledge
-  const candidates = block
-    ? [block.interpretation, block.advice, block.opportunity]
-    : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 180)
-    if (line) return humanize(line)
-  }
-  return fallback
-}
-
-/**
- * The angle each 리딩 reads its point from. Without it all 30 items would open on the
- * same 월주 sentence, so the group id decides what leads and what the closing action is.
- */
-const GROUP_LENS: Record<string, { lead: string; focus: string; close: string }> = {
-  flow: {
-    lead: '먼저 지금이 나갈 흐름인지부터 볼게요.',
-    focus: '나가고 싶은 마음이 충동에서 온 것인지 오래 눌러 온 결단인지가 여기서 갈려요.',
-    close: '결론을 오늘 내리지 않아도 돼요. 다만 무엇이 바뀌어야 남을 수 있는지는 적어 두세요.',
-  },
-  'why-hard': {
-    lead: '힘든 이유를 하나로 뭉치지 않고 나누어 볼게요.',
-    focus: '사람에서 새는지, 일 자체에서 새는지, 아니면 당신 기질이 눌리는 자리인지를 봐야 해요.',
-    close: '장소를 바꾸면 풀릴 문제와 어디를 가도 따라올 문제를 갈라 두세요. 그것이 다음 선택을 지켜 주네.',
-  },
-  burnout: {
-    lead: '결심보다 몸의 신호를 먼저 볼게요.',
-    focus: '쉬어도 회복되지 않는 상태에서 내린 결정은 대개 다시 뒤집히네.',
-    close: '지금 필요한 것이 퇴사인지 회복인지부터 가르게. 순서가 바뀌면 둘 다 놓치네.',
-  },
-  money: {
-    lead: '돈은 계산보다 확인 순서를 먼저 볼게요.',
-    focus: '금액을 단정하는 자리가 아니에요. 무엇을 어디서 확인해야 하는지를 정리하는 자리네.',
-    close: '불안할수록 추정으로 결정하지 말고, 근거 자료를 손에 쥔 뒤에 움직이게.',
-  },
-  'next-career': {
-    lead: '나간 뒤의 자리를 그려 볼게요.',
-    focus: '조직을 바꿔야 살아나는지, 업을 바꿔야 하는지, 혼자 서는 체질인지가 다르네.',
-    close: '다음을 정하지 못했다면 그것도 정보입니다. 정하기 전에 나가지 말라는 뜻은 아니나, 모른다는 사실은 알고 있어야 해요.',
-  },
-  timing: {
-    lead: '시기를 볼게요.',
-    focus: '날짜보다 조건이 먼저 열려야 해요. 자료와 말의 순서가 준비된 구간이 곧 타이밍입니다.',
-    close: '감정이 가장 큰 날에는 통보하지 마세요. 하루만 미뤄도 남는 말이 달라져요.',
-  },
-  'exit-method': {
-    lead: '끝맺는 방식을 볼게요.',
-    focus: '나가는 이유를 밝히는 자리가 아니라, 남길 것과 끊을 것을 정하는 자리네.',
-    close: '끝맺음은 다음 평판의 시작입니다. 마지막 한 달이 지난 몇 해를 덮을 수도 있어요.',
-  },
-  stay: {
-    lead: '남는 쪽도 하나의 전략으로 볼게요.',
-    focus: '그냥 참는 것과 조건을 걸고 남는 것은 전혀 다른 선택입니다.',
-    close: '남기로 했다면 기한을 정하세요. 기한 없는 인내는 결정이 아니라 미룸입니다.',
-  },
-  'mental-people': {
-    lead: '결정을 흔드는 자리를 볼게요.',
-    focus: '내 판단인지 남의 시선인지 분리하지 않으면, 어느 쪽을 골라도 후회가 남아요.',
-    close: '설득할 사람과 통보할 사람과 말하지 않을 사람을 나누게. 그것만으로도 소음이 줄어들어요.',
-  },
-  'action-plan': {
-    lead: '결정을 행동 순서로 바꾸겠네.',
-    focus: '한 번에 다 하려 들면 아무것도 끝나지 않아요. 오늘 할 것과 아직 하지 않을 것을 갈라야 해요.',
-    close: '작게 실행하고 구체적으로 남기게. 그 기록이 다음 판단의 근거가 돼요.',
-  },
-}
-
-const DEFAULT_LENS = {
-  lead: '이 항목을 볼게요.',
-  focus: '지금의 흐름과 현실 조건을 같이 놓고 보여요.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
-}
-
-/** The pack written for this service; see data/corpus/. */
-const OWN_CORPUS_DOMAIN = 'quit_fortune_service'
-
-/**
- * Read this service's own pack first. The rest of the corpus answers other questions,
- * so a line from another pack is usually wrong here even when it reads fine.
- */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
 }
 
 function buildInterpretation(params: {
@@ -330,28 +168,25 @@ function buildInterpretation(params: {
   chunks: RagChunk[]
   index: number
 }): string {
-  const { groupId, categoryTitle, itemTitle, itemNote, analysis, birth, input, chunks, index } = params
-  const lens = GROUP_LENS[groupId] ?? DEFAULT_LENS
-  const ragLine = ragLineFrom(pickRag(chunks, index), '퇴사운은 나가고 싶은 마음과 나가도 되는 흐름을 나누어 봅니다.')
-  const pillar = analysis.fourPillars
-  const monthPillar = `${pillar.month.stem}${pillar.month.branch}`
-  const dayMaster = `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`
-  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : ELEMENT_KO[analysis.weakElement]
-  const dominant = ELEMENT_KO[analysis.dominantElement]
-  const weak = ELEMENT_KO[analysis.weakElement]
-  const tenure = input.tenure ? `재직 기간은 "${input.tenure}"라 적었군.` : '재직 기간은 비워 두었으니 지금의 압박부터 볼게요.'
-  const plan = input.nextPlan ? `다음 계획은 "${input.nextPlan}" 쪽으로 보았네.` : '다음 계획은 아직 비어 있으니 나간 뒤의 첫 달을 먼저 그려야 해요.'
-  const date = input.candidateDate ? `후보일은 "${input.candidateDate}"로 적었네.` : '후보일은 정하지 않았으니 조건이 열리는 구간부터 찾겠네.'
-  const worry = input.concern ? `지금 걸리는 말은 "${input.concern}"입니다.` : '따로 적은 문장은 없으니 반복되는 장면을 중심으로 볼게요.'
-
-  return applyServiceTone([
-    `${lens.lead} ${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${dayMaster}, 사회적 무대는 월주 ${monthPillar}에서 먼저 살펴야 해요.`,
-    `${itemNote} ${lens.focus} 당신은 ${dominant} 기운이 앞서고 ${weak} 기운이 비어 있으니, 그 쏠림이 그대로 버티는 방식과 터지는 지점으로 드러나요.`,
-    `${timingLine(analysis)} ${date} 보완할 기운은 ${useful} 쪽으로 잡히니, 무작정 버티기보다 그 기운을 쓸 수 있는 자리인지를 봐야 해요.`,
-    `${quitSignal(analysis.tenGods)} 퇴사를 고민하게 된 이유는 "${input.reason}" 쪽이라 했어요. ${tenure} ${plan}`,
-    `참고 결은 이래요. ${ragLine} 그러니 이 풀이는 나가라 남으라를 정해 주는 것이 아니라, 지금 무엇을 확인해야 후회가 적은지를 고르는 풀이예요.`,
-    `${worry} ${lens.close} 이 서비스는 계약 해석이나 금액 산정을 하지 않아요. 그 부분은 반드시 계약서와 사내 규정, 필요하면 전문가에게 따로 확인하게.`,
-  ].join('\n\n'), WORK_QUIT_SERVICE_KEY)
+  const { groupId, itemTitle, analysis, input } = params
+  const reading = QUIT_DETAILS[itemTitle]
+  if (!reading) throw new Error(`퇴사운 항목별 해석 누락: ${itemTitle}`)
+  const state = reportedState([input.reason, input.concern].filter(Boolean).join(' '))
+  const current = ['timing', 'flow', 'exit-method'].includes(groupId)
+    ? `${quotedInput('후보일', input.candidateDate)} ${quotedInput('재직 기간', input.tenure)} 날짜가 비어 있으면 길일이나 퇴사 시점을 새로 만들지 않아요.`
+    : ['money', 'next-career', 'action-plan'].includes(groupId)
+      ? `${quotedInput('다음 계획', input.nextPlan)} 생활비·보유 자금의 구체적인 금액은 제공되지 않았으므로 퇴사 후 버틸 기간을 계산하지 않아요.`
+      : `${quotedInput('퇴사를 검토하는 이유', input.reason)} ${quotedInput('추가로 적은 상황', input.concern)}`
+  return practicalReading({
+    title: itemTitle, detail: reading, current,
+    evidence: workSymbol(analysis, groupId === 'money' ? 'money' : groupId === 'mental-people' ? 'people' : groupId === 'next-career' ? 'learning' : 'role'),
+    application: state === 'settled'
+      ? '현재 만족하거나 소진·갈등이 없다는 진술을 우선해요. 숨겨진 억눌림을 있다고 해석하지 않으며, 이 항목의 어려움이 실제로 없다면 유지할 조건을 확인하는 용도로 읽으면 돼요.'
+      : state === 'concern'
+        ? '말씀한 어려움을 있는 그대로 살피되 원인이 성격이나 사주 때문이라고 고정하지 않아요. 위 장면과 맞을 때 제안한 대응을 검토하고, 맞지 않으면 적용하지 않아요.'
+        : '구체적인 경험이 없는 부분은 아직 판단을 열어 둬요. 모든 불편과 감정을 가지고 있다고 가정하지 않으며, 확인 질문 하나로 범위를 좁히면 돼요.',
+    closing: itemTitle === '피해야 할 행동' ? '이 해석은 퇴사 여부를 결정하는 명령이 아니에요. 최종 선택은 확인한 조건과 본인의 우선순위를 기준으로 정해요.' : undefined,
+  })
 }
 
 export function buildWorkQuitReport(

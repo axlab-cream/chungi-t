@@ -104,62 +104,14 @@ function relationFor(userElement: Element, todayElement: Element): TodayRelation
 }
 
 function relationText(relation: TodayRelation, userName: string, todayElementKo: string): BaseTodayReading {
-  const name = userName || '당신'
+  const name = userName || '이용자'
   const table: Record<TodayRelation, BaseTodayReading> = {
-    same: {
-      title: '내 페이스가 강하게 올라오는 날',
-      summary: `${name}님 안의 기운과 오늘의 ${todayElementKo} 기운이 같은 방향으로 겹칩니다. 자신감은 좋지만, 혼자 결론을 너무 빨리 내리면 주변과 박자가 어긋날 수 있습니다.`,
-      work: '이미 알고 있던 일을 밀어붙이기 좋습니다. 새 업무보다 보류된 결정, 정리, 확인에 힘을 쓰는 편이 낫습니다.',
-      money: '큰 지출보다 기존 결제와 고정비를 점검하세요. 익숙한 소비 패턴에서 새는 구멍이 보일 수 있습니다.',
-      relationship: '말을 아끼면 안정되고, 주도권을 세게 잡으면 부딪힙니다. 먼저 듣고 마지막에 정리하는 방식이 좋습니다.',
-      caution: '확신이 강한 만큼 고집도 강해집니다. 오늘은 단정적인 약속과 즉흥 결정을 피하세요.',
-      action: '오전에는 정리, 오후에는 실행. 할 일은 세 개 이하로 좁히세요.',
-    },
-    support: {
-      title: '도움과 정보가 들어오는 날',
-      summary: `오늘의 ${todayElementKo} 기운이 ${name}님을 받쳐주는 흐름입니다. 혼자 버티기보다 필요한 자료, 조언, 사람을 끌어오는 쪽이 유리합니다.`,
-      work: '문서 검토, 학습, 기준 세우기에 좋습니다. 어려운 일은 바로 처리하기보다 근거를 모은 뒤 움직이세요.',
-      money: '무리한 투자보다 정보 확인이 먼저입니다. 조건표, 약관, 수수료처럼 작은 글자를 보는 날입니다.',
-      relationship: '연락을 먼저 열면 반응이 부드럽습니다. 부탁은 짧고 구체적으로 말하는 편이 좋습니다.',
-      caution: '좋은 말만 듣고 판단하면 흐려집니다. 확인되지 않은 조언을 그대로 믿지 마세요.',
-      action: '오늘 들어온 정보 하나를 기록하고, 내일 결정할 항목과 분리하세요.',
-    },
-    output: {
-      title: '표현과 결과물이 드러나는 날',
-      summary: `${name}님 안의 기운이 오늘의 ${todayElementKo} 흐름으로 새어 나옵니다. 말, 글, 제안, 발표처럼 밖으로 꺼내는 일이 운을 엽니다.`,
-      work: '기획안, 메시지, 콘텐츠, 보고처럼 보이는 결과물을 만드는 데 힘이 붙습니다.',
-      money: '수입보다 지출 충동이 먼저 올라올 수 있습니다. 필요한 소비와 기분 소비를 분리하세요.',
-      relationship: '마음을 표현하기 좋지만 말이 길어지면 핵심이 흐려집니다. 짧게, 정확히 전하세요.',
-      caution: '감정적으로 반응하면 말실수가 남습니다. 보내기 전 한 번 더 읽는 습관이 필요합니다.',
-      action: '오늘 해야 할 말은 문장으로 먼저 적고, 그중 절반만 밖으로 꺼내세요.',
-    },
-    wealth: {
-      title: '현실 감각과 성과를 잡는 날',
-      summary: `${name}님이 오늘의 ${todayElementKo} 기운을 다루는 구조입니다. 돈, 조건, 결과처럼 현실적인 주제가 앞으로 나옵니다.`,
-      work: '협상, 견적, 일정 확정, 업무 범위 정리에 좋습니다. 말보다 숫자와 기준표가 힘을 냅니다.',
-      money: '수입 기회와 지출 판단이 함께 옵니다. 싸다고 사지 말고, 오래 쓸지부터 보세요.',
-      relationship: '관계에서도 기대와 역할을 정리해야 합니다. 애매한 배려보다 선명한 합의가 낫습니다.',
-      caution: '성과 욕심이 과하면 사람의 마음을 놓칠 수 있습니다. 이익만 보고 움직이지 마세요.',
-      action: '금액, 시간, 책임 범위를 숫자로 적어 확인하세요.',
-    },
-    pressure: {
-      title: '책임과 규칙이 강하게 들어오는 날',
-      summary: `오늘의 ${todayElementKo} 기운이 ${name}님을 누르며 기준을 요구합니다. 답답해도 무너지는 날이 아니라 자세를 바로잡는 날입니다.`,
-      work: '상사, 계약, 규정, 마감처럼 외부 기준을 맞추는 일이 중요합니다. 피하기보다 순서를 정해 처리하세요.',
-      money: '충동 지출은 줄이고 납부일, 연체, 자동결제를 확인하세요. 돈보다 신뢰 관리가 먼저입니다.',
-      relationship: '상대의 요구가 크게 느껴질 수 있습니다. 바로 반박하지 말고 요구의 핵심을 확인하세요.',
-      caution: '압박을 피하려고 거짓 약속을 하면 일이 커집니다. 못 하는 것은 못 한다고 말해야 합니다.',
-      action: '오늘 가장 부담되는 일 하나를 20분만 먼저 처리하세요.',
-    },
-    balance: {
-      title: '균형을 다시 맞추는 날',
-      summary: `${name}님과 오늘의 ${todayElementKo} 기운이 직접 부딪히기보다 옆에서 방향을 조정합니다. 속도보다 균형이 중요합니다.`,
-      work: '새 시작보다 일정 조율과 우선순위 정리에 유리합니다. 밀린 연락을 정리하면 흐름이 풀립니다.',
-      money: '큰 판단은 미루고 생활 지출의 균형을 맞추세요. 작은 절제가 오늘의 운을 살립니다.',
-      relationship: '상대와 나의 속도가 다를 수 있습니다. 맞추려 애쓰기보다 차이를 인정하는 말이 좋습니다.',
-      caution: '이도 저도 아닌 상태로 시간을 흘려보내기 쉽습니다. 기준 하나는 정해야 합니다.',
-      action: '해야 할 일, 미룰 일, 버릴 일을 한 줄씩 나누세요.',
-    },
+same: { title: "내 방식을 점검하는 하루", summary: `${name}님, 오늘의 ${todayElementKo} 기운과 일간의 관계는 익숙한 방식이 도움이 되는지 살펴보는 상징입니다. 실제 사건이나 상대 반응을 예측한 결과는 아닙니다.`, work: "이미 익숙한 일이 있다면 그 방법을 재사용해 보세요.", money: "지출 문제가 없다면 현재 예산을 유지해도 좋습니다.", relationship: "함께 결정할 일이 있다면 서로의 의견을 확인하세요.", caution: "실제로 의견이 다를 때만 조정이 필요합니다.", action: "이미 잘되는 일 하나의 방법을 기록해 보세요." },
+support: { title: "필요한 도움을 살피는 하루", summary: `${name}님, 오늘의 ${todayElementKo} 기운과 일간의 관계는 정보와 배움을 떠올려 보는 상징입니다. 실제 사건이나 상대 반응을 예측한 결과는 아닙니다.`, work: "막히는 일이 있다면 필요한 자료를 하나 확인하세요.", money: "금액을 결정할 일이 있을 때 조건과 비용을 확인하세요.", relationship: "연락이 허용된 관계에서 필요한 요청을 짧게 말해볼 수 있습니다.", caution: "좋게 들리는 조언도 내 상황에 맞는지는 따로 확인하세요.", action: "오늘 필요한 정보가 있다면 한 가지만 찾아보세요." },
+output: { title: "표현을 정리하는 하루", summary: `${name}님, 오늘의 ${todayElementKo} 기운과 일간의 관계는 생각을 밖으로 표현하는 방식을 살피는 상징입니다. 실제 사건이나 상대 반응을 예측한 결과는 아닙니다.`, work: "결과물을 만들어야 한다면 핵심 메시지부터 정리하세요.", money: "사고 싶은 것이 생겼을 때만 필요성과 사용 계획을 비교하세요.", relationship: "전할 말이 있다면 관찰한 사실과 내 요청을 구분해 보세요.", caution: "감정이 격해졌을 때는 전송 전에 다시 읽는 방법이 있습니다.", action: "필요한 말 하나를 짧고 분명하게 적어보세요." },
+wealth: { title: "현실 조건을 확인하는 하루", summary: `${name}님, 오늘의 ${todayElementKo} 기운과 일간의 관계는 자원과 결과의 조건을 살피는 상징입니다. 실제 사건이나 상대 반응을 예측한 결과는 아닙니다.`, work: "협의할 일이 있다면 범위와 마감을 확인하세요.", money: "수입이나 지출 일정이 있다면 확정된 조건을 구분하세요.", relationship: "역할을 나눌 일이 있다면 서로 가능한 범위를 이야기하세요.", caution: "성과 때문에 부담이 생긴 경우에만 기대를 조정하세요.", action: "지금 결정할 일이 있다면 필요한 조건을 한 줄로 적으세요." },
+pressure: { title: "책임의 범위를 살피는 하루", summary: `${name}님, 오늘의 ${todayElementKo} 기운과 일간의 관계는 규칙과 약속을 돌아보는 상징입니다. 실제 사건이나 상대 반응을 예측한 결과는 아닙니다.`, work: "실제 마감이나 규정이 있다면 필요한 순서를 정하세요.", money: "예정된 납부나 자동결제가 있다면 이미 확인했는지 살펴보세요.", relationship: "요청을 받았다면 가능한 범위와 어려운 점을 구분해 말하세요.", caution: "일이 순조롭다면 압박이나 위기가 있다고 해석할 필요는 없습니다.", action: "오늘 맡은 일이 있다면 완료 기준 한 가지를 확인하세요." },
+balance: { title: "현재 균형을 살피는 하루", summary: `${name}님, 오늘의 ${todayElementKo} 기운과 일간의 관계는 속도와 우선순위를 비교하는 상징입니다. 실제 사건이나 상대 반응을 예측한 결과는 아닙니다.`, work: "일정이 겹칠 때만 중요도에 따라 조정하세요.", money: "현재 지출 관리가 잘된다면 불필요하게 더 줄일 필요는 없습니다.", relationship: "서로의 속도가 다를 때는 맞출 수 있는 범위를 확인하세요.", caution: "별다른 불편이 없다면 현재 방식을 유지해도 괜찮습니다.", action: "바꿀 것보다 유지하고 싶은 것 하나를 골라보세요." }
   }
   return table[relation]
 }
@@ -206,10 +158,10 @@ const DETAIL_HINTS: Record<TodayRelation, Record<TodayDetailKey, Omit<TodayFortu
 function buildReadingDetails(relation: TodayRelation, reading: BaseTodayReading): Record<TodayDetailKey, TodayFortuneDetail> {
   const hints = DETAIL_HINTS[relation]
   return {
-    work: { text: reading.work, ...hints.work },
-    money: { text: reading.money, ...hints.money },
-    relationship: { text: reading.relationship, ...hints.relationship },
-    caution: { text: reading.caution, ...hints.caution },
+    work: { text: reading.work, score: hints.work.score },
+    money: { text: reading.money, score: hints.money.score },
+    relationship: { text: reading.relationship, score: hints.relationship.score },
+    caution: { text: reading.caution, score: hints.caution.score },
   }
 }
 

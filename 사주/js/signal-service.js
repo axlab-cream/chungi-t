@@ -126,7 +126,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -200,7 +200,7 @@
     if (reportPromise) return reportPromise;
     reportPromise = (async () => {
       const cached = readJson('sessionStorage', STORAGE.report);
-      if (cached?.sections?.length) return { report: cached };
+      if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
       const request = buildRequest(readJson('sessionStorage', STORAGE.input));
       if (!request?.relationshipStage || !request?.signalFocus) return { reason: 'input' };
@@ -300,7 +300,7 @@
     const groups = groupOrder(outcome.report);
     summary.textContent = clamp(readingLine(groups[0].sections[0]), 170);
     const picks = [
-      ['[data-flow-main]', groups.find((g) => g.title === '애인의 바람기 레이더') || groups[1]],
+      ['[data-flow-main]', groups.find((g) => g.title === '관계 밖 활동과 합의한 경계') || groups[1]],
       ['[data-flow-condition]', groups.find((g) => g.title === '시기별 흔들림 운') || groups[2]],
       ['[data-flow-obstacle]', groups.find((g) => g.title === '불안 원인 해석') || groups[3]],
     ];

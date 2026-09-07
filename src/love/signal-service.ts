@@ -1,19 +1,17 @@
 import { createHash } from 'node:crypto'
+import { buildRelationshipReading } from './reading-content.js'
 import type {
   BirthInput,
-  EarthlyBranch,
   RagChunk,
   SajuAnalysis,
   SajuReport,
   SajuReportContext,
   SajuReportSection,
 } from '../types/index.js'
-import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
+import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -41,9 +39,9 @@ export const LOVE_SIGNAL_TOC = [
     title: '지금 우리 관계 온도',
     items: [
       { id: 'relationship_temperature_true_love', title: '찐사랑 유지각', note: '표현은 줄어도 약속의 구체성과 생활 공유가 남아 있는지 봅니다.' },
-      { id: 'relationship_temperature_boredom', title: '권태기 살짝 온 듯', note: '새로움이 줄어든 건지 마음의 방향이 달라진 건지 분리합니다.' },
-      { id: 'relationship_temperature_attention_gap', title: '관심 식은 척인지 진짜인지', note: '반응 속도보다 먼저 봐야 할 말투와 태도 변화를 체크합니다.' },
-      { id: 'relationship_temperature_expression_left', title: '표현은 줄었는데 마음은 남은 케이스', note: '다정함의 방식이 바뀐 사람과 식은 사람의 차이를 봅니다.' },
+      { id: 'relationship_temperature_boredom', title: '익숙함과 관심 변화 구분', note: '새로움이 줄어든 건지 마음의 방향이 달라진 건지 분리합니다.' },
+      { id: 'relationship_temperature_attention_gap', title: '상대의 의향과 실제 행동 확인', note: '반응 속도보다 먼저 봐야 할 말투와 태도 변화를 체크합니다.' },
+      { id: 'relationship_temperature_expression_left', title: '표현이 줄었을 때 함께 볼 행동', note: '다정함의 방식이 바뀐 사람과 식은 사람의 차이를 봅니다.' },
       { id: 'relationship_temperature_contact_tension', title: '연락 텐션 변화', note: '답장 간격, 질문 유무, 마무리 말투가 같이 변했는지 살핍니다.' },
       { id: 'relationship_temperature_date_energy', title: '데이트 에너지 변화', note: '만남을 피하는 건지 익숙해서 덜 꾸미는 건지 생활 리듬으로 봅니다.' },
       { id: 'relationship_temperature_stable_or_cold', title: '안정기인지 식은 건지 구분', note: '편안함과 무심함의 경계를 약속, 시간, 관심 배분으로 나눕니다.' },
@@ -53,29 +51,29 @@ export const LOVE_SIGNAL_TOC = [
     id: 'partner_signal_radar',
     label: '第二門',
     image: 'partner_signal_radar',
-    title: '애인의 바람기 레이더',
+    title: '관계 밖 활동과 합의한 경계',
     items: [
-      { id: 'partner_signal_radar_dohwa_hongyeom', title: '도화살·홍염살 기반 매력 과다 신호', note: '사람이 붙는 기운이 연애에서 어떤 변수로 나타나는지 봅니다.' },
-      { id: 'partner_signal_radar_social_magnet', title: '사람 끌어당기는 타입', note: '상대가 관심을 받는 자리에서 에너지가 살아나는지 확인합니다.' },
-      { id: 'partner_signal_radar_attention_enjoy', title: '관심받는 걸 즐기는 타입', note: '칭찬과 플러팅 사이에서 선을 지키는 방식을 봅니다.' },
-      { id: 'partner_signal_radar_boundary_environment', title: '선 넘기 쉬운 환경운', note: '회식, 모임, SNS처럼 관계 밖 접점이 늘어나는 구간을 살핍니다.' },
-      { id: 'partner_signal_radar_pyeonjae_schedule', title: '약속이 흩어지는 편재형 패턴', note: '재미와 즉흥성이 약속의 밀도를 흐리는지 봅니다.' },
-      { id: 'partner_signal_radar_multi_scene', title: '여러 판 동시에 여는 흐름', note: '관심사가 여러 갈래로 벌어질 때 관계 우선순위가 내려가는지 봅니다.' },
-      { id: 'partner_signal_radar_temptation_timing', title: '외부 유혹에 약한 시기', note: '새 인연보다 현재 관계의 지킬 선이 흔들리는 타이밍을 봅니다.' },
+      { id: 'partner_signal_radar_dohwa_hongyeom', title: '매력의 상징과 실제 행동 구분', note: '도화·홍염을 외도나 성격 판정으로 쓰지 않고 전통적 개념의 범위를 설명합니다.' },
+      { id: 'partner_signal_radar_social_magnet', title: '대인 활동이 늘어난 경우', note: '활동 변화가 확인된 경우에만 일정과 약속의 변화를 비교합니다.' },
+      { id: 'partner_signal_radar_attention_enjoy', title: '칭찬과 관심을 주고받는 방식', note: '상대의 인정 욕구를 추측하지 않고 실제 표현과 합의한 경계를 봅니다.' },
+      { id: 'partner_signal_radar_boundary_environment', title: '모임에서 함께 정할 경계', note: '모임 자체를 위험으로 보지 않고 서로 편안한 범위를 확인합니다.' },
+      { id: 'partner_signal_radar_pyeonjae_schedule', title: '약속이 바뀌었을 때 볼 행동', note: '편재 하나로 무책임을 정하지 않고 변경 사유와 대안을 확인합니다.' },
+      { id: 'partner_signal_radar_multi_scene', title: '여러 일정과 관계 시간 배분', note: '일정이 많다는 사실과 관계 약속 이행을 나누어 봅니다.' },
+      { id: 'partner_signal_radar_temptation_timing', title: '생활 변화 때 재확인할 약속', note: '특정 시기의 유혹을 예언하지 않고 생활 변화에 맞춘 합의를 봅니다.' },
     ],
   },
   {
     id: 'switch_flirt_check',
     label: '第三門',
     image: 'switch_flirt_check',
-    title: '환승각·썸각 체크',
+    title: '새 접점과 관계 의향',
     items: [
-      { id: 'switch_flirt_check_new_person_timing', title: '새 사람에게 흔들릴 수 있는 타이밍', note: '새 자극이 들어올 때 현재 관계의 빈자리가 어디인지 봅니다.' },
-      { id: 'switch_flirt_check_easy_flirt_flow', title: '썸 타기 쉬운 운', note: '대화가 빠르게 가까워지는 흐름과 선 지키는 힘을 같이 봅니다.' },
+      { id: 'switch_flirt_check_new_person_timing', title: '새로운 만남과 현재 관계의 구분', note: '새 접점이 생겨도 마음의 이동으로 단정하지 않습니다.' },
+      { id: 'switch_flirt_check_easy_flirt_flow', title: '친절과 관계 의향을 구별하기', note: '한 번의 친절과 직접 표현된 관계 의향을 구분합니다.' },
       { id: 'switch_flirt_check_friend_or_flirt', title: '친구인지 플러팅인지 애매한 관계', note: '농담, 빈도, 단둘이 만나는 맥락을 나눠 봅니다.' },
-      { id: 'switch_flirt_check_ex_return', title: '전애인 재등장 가능성', note: '과거 인연이 다시 연락될 때 흔들리는 이유를 봅니다.' },
+      { id: 'switch_flirt_check_ex_return', title: '전애인 연락이 실제로 왔을 때', note: '연락이 있었다는 입력 없이 과거 인연의 등장을 예언하지 않습니다.' },
       { id: 'switch_flirt_check_work_sns_variable', title: '직장·모임·SNS 인연 변수', note: '자주 마주치는 환경이 관계 온도에 주는 영향을 봅니다.' },
-      { id: 'switch_flirt_check_attention_self_esteem', title: '외부 관심이 자존감 충전으로 작동하는 케이스', note: '상대가 사랑보다 인정 욕구를 먼저 채우는지 살핍니다.' },
+      { id: 'switch_flirt_check_attention_self_esteem', title: '외부 관심에 붙인 해석 점검', note: '상대의 심리 동기를 창작하지 않고 관찰과 추측을 구분합니다.' },
     ],
   },
   {
@@ -86,8 +84,8 @@ export const LOVE_SIGNAL_TOC = [
     items: [
       { id: 'partner_palace_signal_partner_place', title: '애인 자리에 들어온 기운', note: '상대가 내 관계 자리에서 어떤 역할로 느껴지는지 봅니다.' },
       { id: 'partner_palace_signal_branch_relation', title: '부부궁 충·합·형·파·해 체크', note: '붙는 힘과 부딪히는 힘이 생활에서 어떻게 나타나는지 봅니다.' },
-      { id: 'partner_palace_signal_wonjin_button', title: '원진살식 미움 포인트', note: '좋아하면서도 거슬리는 지점이 반복되는 이유를 봅니다.' },
-      { id: 'partner_palace_signal_distance_marker', title: '귀문·고란·고신·과숙 등 거리감 신호', note: '혼자 있고 싶은 흐름과 관계 피로를 구분합니다.' },
+      { id: 'partner_palace_signal_wonjin_button', title: '갈등 경험과 명리 상징 구분', note: '신살의 이름만으로 미움이나 갈등을 가정하지 않습니다.' },
+      { id: 'partner_palace_signal_distance_marker', title: '개인 시간과 관계 거리 구분', note: '검증되지 않은 신살로 고독한 성향을 판정하지 않습니다.' },
       { id: 'partner_palace_signal_pull_push', title: '관계가 붙는 구조 vs 밀어내는 구조', note: '화해가 빠른 조합인지, 멀어져야 정리되는 조합인지 봅니다.' },
       { id: 'partner_palace_signal_attached_but_tired', title: '애착은 있는데 피곤한 궁합', note: '정은 남아 있는데 체력이 빠지는 관계 리듬을 확인합니다.' },
     ],
@@ -98,16 +96,16 @@ export const LOVE_SIGNAL_TOC = [
     image: 'ten_gods_love_style',
     title: '십성으로 보는 연애 스타일',
     items: [
-      { id: 'ten_gods_love_style_bigyeon', title: '비견: 친구처럼 편한데 선 흐림', note: '동등함이 장점이지만 관계 규칙이 흐려질 수 있는 타입입니다.' },
-      { id: 'ten_gods_love_style_geopjae', title: '겁재: 의리 있지만 경쟁심 강함', note: '내 편 의식과 자존심 반응이 같이 올라오는 방식을 봅니다.' },
-      { id: 'ten_gods_love_style_siksin', title: '식신: 챙겨주지만 익숙함에 갇힘', note: '편안함이 애정인지 습관인지 구분합니다.' },
-      { id: 'ten_gods_love_style_sanggwan', title: '상관: 솔직한데 말이 세게 나감', note: '대화가 빨라질 때 상처로 들리는 포인트를 봅니다.' },
-      { id: 'ten_gods_love_style_pyeonjae', title: '편재: 매력 있고 재밌지만 약속이 흩어짐', note: '재미와 즉흥성이 관계 안정감을 흔드는지 봅니다.' },
-      { id: 'ten_gods_love_style_jeongjae', title: '정재: 안정적이지만 계산적으로 보임', note: '책임감과 조건 따지기가 어떻게 섞이는지 봅니다.' },
-      { id: 'ten_gods_love_style_pyeongwan', title: '편관: 든든하지만 압박감 있음', note: '보호와 통제가 헷갈리는 순간을 확인합니다.' },
-      { id: 'ten_gods_love_style_jeonggwan', title: '정관: 믿음직하지만 규칙으로 상대를 잼', note: '원칙이 관계의 안정인지 부담인지 봅니다.' },
-      { id: 'ten_gods_love_style_pyeonin', title: '편인: 깊지만 현실 대화가 늦음', note: '생각은 많은데 말이 늦어지는 패턴을 봅니다.' },
-      { id: 'ten_gods_love_style_jeongin', title: '정인: 다정하지만 의존·보호가 섞임', note: '돌봄과 기대가 관계에서 어떻게 맞물리는지 봅니다.' },
+      { id: 'ten_gods_love_style_bigyeon', title: '비견: 동등함을 읽는 참고 관점', note: '계산 목록에 해당 십성이 있는지 먼저 확인하고 실제 행동과 구별합니다.' },
+      { id: 'ten_gods_love_style_geopjae', title: '겁재: 함께함과 주도권의 참고 관점', note: '경쟁심이 강하다는 성격 판정을 하지 않습니다.' },
+      { id: 'ten_gods_love_style_siksin', title: '식신: 일상 표현의 참고 관점', note: '챙김과 생활 표현을 살피는 비교 개념입니다.' },
+      { id: 'ten_gods_love_style_sanggwan', title: '상관: 표현과 의견의 참고 관점', note: '말이 거칠다는 낙인 대신 실제 대화를 확인합니다.' },
+      { id: 'ten_gods_love_style_pyeonjae', title: '편재: 자원 활용의 참고 관점', note: '외도나 약속 불이행의 지표로 사용하지 않습니다.' },
+      { id: 'ten_gods_love_style_jeongjae', title: '정재: 생활 관리의 참고 관점', note: '계산적 성격으로 단정하지 않습니다.' },
+      { id: 'ten_gods_love_style_pyeongwan', title: '편관: 책임 대응의 참고 관점', note: '통제나 압박 행동을 사주로 설명해 정당화하지 않습니다.' },
+      { id: 'ten_gods_love_style_jeonggwan', title: '정관: 약속과 규칙의 참고 관점', note: '합의한 규칙과 일방적 요구를 나누어 봅니다.' },
+      { id: 'ten_gods_love_style_pyeonin', title: '편인: 이해와 해석의 참고 관점', note: '생각이 깊다는 말로 상대의 속마음을 창작하지 않습니다.' },
+      { id: 'ten_gods_love_style_jeongin', title: '정인: 지지와 배움의 참고 관점', note: '돌봄과 의존을 같은 것으로 취급하지 않습니다.' },
     ],
   },
   {
@@ -132,12 +130,12 @@ export const LOVE_SIGNAL_TOC = [
     title: '시기별 흔들림 운',
     items: [
       { id: 'timing_flow_daewoon', title: '대운: 장기 관계 패턴', note: '오래 반복되는 연애 방식과 큰 변화 구간을 봅니다.' },
-      { id: 'timing_flow_sewoon', title: '세운: 올해 흔들리는 포인트', note: '올해 관계에서 가까워질 일과 선을 지킬 일을 나눕니다.' },
+      { id: 'timing_flow_sewoon', title: '세운: 올해 흐름의 참고 범위', note: '올해 관계에서 가까워질 일과 선을 지킬 일을 나눕니다.' },
       { id: 'timing_flow_month', title: '월운: 이번 달 관계 이슈', note: '이번 달 연락, 약속, 감정 소모가 커지는 지점을 봅니다.' },
       { id: 'timing_flow_day', title: '일진: 오늘 연락·만남 분위기', note: '오늘 대화가 잘 풀릴지 쉬어야 할지 분위기를 봅니다.' },
       { id: 'timing_flow_entry', title: '초입: 갑자기 달라진 느낌', note: '변화가 막 시작될 때 보이는 첫 신호를 정리합니다.' },
-      { id: 'timing_flow_middle', title: '중반: 습관과 권태 누적', note: '작은 미룸과 무심함이 쌓이는 흐름을 봅니다.' },
-      { id: 'timing_flow_late', title: '말기: 정리·거리두기 신호', note: '회복보다 거리 조절이 필요한 장면을 조심스럽게 봅니다.' },
+      { id: 'timing_flow_middle', title: '반복되는 습관과 실제 변화', note: '작은 미룸과 무심함이 쌓이는 흐름을 봅니다.' },
+      { id: 'timing_flow_late', title: '거부와 거리두기를 존중할 기준', note: '회복보다 거리 조절이 필요한 장면을 조심스럽게 봅니다.' },
     ],
   },
   {
@@ -147,9 +145,9 @@ export const LOVE_SIGNAL_TOC = [
     title: '불안 원인 해석',
     items: [
       { id: 'anxiety_source_intuition_or_fear', title: '내 촉이 맞는지 불안인지', note: '반복 증거와 순간 감정을 나눠 봅니다.' },
-      { id: 'anxiety_source_attachment_button', title: '집착 버튼 눌린 이유', note: '내가 특히 예민해지는 말투와 상황을 확인합니다.' },
+      { id: 'anxiety_source_attachment_button', title: '확인하고 싶은 마음 살펴보기', note: '내가 특히 예민해지는 말투와 상황을 확인합니다.' },
       { id: 'anxiety_source_hidden_feeling', title: '상대가 숨기는 게 있는 느낌', note: '숨김처럼 보이는 행동이 실제 회피인지 피로인지 봅니다.' },
-      { id: 'anxiety_source_less_talk', title: '대화가 줄어든 진짜 이유', note: '바쁨, 권태, 회피, 갈등 피로를 분리합니다.' },
+      { id: 'anxiety_source_less_talk', title: '대화 감소에 가능한 설명들', note: '실제로 줄었다는 입력이 있을 때 여러 설명과 확인할 질문을 나눕니다.' },
       { id: 'anxiety_source_one_sided', title: '나만 진심인 것 같은 구간', note: '애정 표현의 양과 책임 행동의 차이를 봅니다.' },
       { id: 'anxiety_source_checking_urge', title: '확인 욕구가 커지는 시기', note: '질문이 추궁으로 들리지 않게 타이밍을 잡습니다.' },
       { id: 'anxiety_source_self_worth', title: '관계에서 자존감 흔들리는 포인트', note: '상대 반응에 내 가치가 매달리는 순간을 봅니다.' },
@@ -176,12 +174,12 @@ export const LOVE_SIGNAL_TOC = [
     image: 'final_conclusion_type',
     title: '최종 리포트 결론 타입',
     items: [
-      { id: 'final_conclusion_type_relief', title: '안심각: 흔들림보다 안정이 큼', note: '관계의 기본 신뢰가 더 큰지 확인합니다.' },
-      { id: 'final_conclusion_type_watch', title: '관망각: 아직 증거보다 불안이 큼', note: '조금 더 지켜볼 신호와 기록할 기준을 잡습니다.' },
-      { id: 'final_conclusion_type_talk', title: '대화각: 말 안 하면 오해가 커짐', note: '지금 꺼내야 할 질문과 피해야 할 말투를 정리합니다.' },
-      { id: 'final_conclusion_type_boundary', title: '경계각: 선 넘는 환경이 보임', note: '관계 밖 변수에 대해 지킬 선을 분명히 잡습니다.' },
-      { id: 'final_conclusion_type_distance', title: '정리각: 마음보다 피로가 커진 상태', note: '감정 소모가 관계 유지보다 커진 장면을 봅니다.' },
-      { id: 'final_conclusion_type_recheck', title: '재점검각: 궁합보다 생활 패턴 조율 필요', note: '사주 흐름보다 실제 생활 약속을 다시 맞춰야 하는 구간입니다.' },
+      { id: 'final_conclusion_type_relief', title: '안심 기준: 현재의 존중과 안정', note: '관계의 기본 신뢰가 더 큰지 확인합니다.' },
+      { id: 'final_conclusion_type_watch', title: '보류 기준: 아직 확인되지 않은 점', note: '조금 더 지켜볼 신호와 기록할 기준을 잡습니다.' },
+      { id: 'final_conclusion_type_talk', title: '대화 기준: 실제 기대 차이 확인', note: '지금 꺼내야 할 질문과 피해야 할 말투를 정리합니다.' },
+      { id: 'final_conclusion_type_boundary', title: '경계 기준: 합의한 선과 실제 행동', note: '관계 밖 변수에 대해 지킬 선을 분명히 잡습니다.' },
+      { id: 'final_conclusion_type_distance', title: '정리 기준: 나의 안전과 관계 의향', note: '감정 소모가 관계 유지보다 커진 장면을 봅니다.' },
+      { id: 'final_conclusion_type_recheck', title: '조정 기준: 생활 약속의 실행', note: '사주 흐름보다 실제 생활 약속을 다시 맞춰야 하는 구간입니다.' },
     ],
   },
 ] as const
@@ -279,7 +277,7 @@ export function buildLoveSignalContext(
 export function createLoveSignalReportId(ownerId: string | undefined, birth: BirthInput, input: LoveSignalRequest): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar },
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar },
     partnerBirth: input.partnerBirth,
     relationshipStage: input.relationshipStage,
     signalFocus: input.signalFocus,
@@ -289,191 +287,14 @@ export function createLoveSignalReportId(ownerId: string | undefined, birth: Bir
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
 }
 
-const SIX_HARMONY = ['子丑', '寅亥', '卯戌', '辰酉', '巳申', '午未']
-const CLASH = ['子午', '丑未', '寅申', '卯酉', '辰戌', '巳亥']
-
-/** Korean particles depend on the last syllable's final consonant. */
-function hasFinalConsonant(word: string): boolean {
-  const last = word.replace(/[^가-힣]/g, '').slice(-1)
-  if (!last) return false
-  const code = last.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return true
-  return (code - 0xac00) % 28 !== 0
-}
-
-const topic = (word: string): string => `${word}${hasFinalConsonant(word) ? '은' : '는'}`
-
-function branchPair(a: EarthlyBranch, b: EarthlyBranch): string {
-  return [a, b].sort().join('')
-}
-
-function hasPair(list: string[], a: EarthlyBranch, b: EarthlyBranch): boolean {
-  const pair = branchPair(a, b)
-  return list.some((entry) => branchPair(entry[0] as EarthlyBranch, entry[1] as EarthlyBranch) === pair)
-}
-
-function branchRelation(userBranch: EarthlyBranch, partnerBranch: EarthlyBranch): string {
-  if (userBranch === partnerBranch) {
-    return `두 사람의 일지가 같은 ${BRANCH_KO[userBranch]}이라 서로를 빨리 알아보지만, 같은 약점도 함께 커지기 쉬워요.`
-  }
-  if (hasPair(SIX_HARMONY, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]} 사이에는 합의 신호가 있어 가까워지는 속도가 빠른 편입니다.`
-  }
-  if (hasPair(CLASH, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]} 사이에는 충의 신호가 있어 끌림과 마찰이 함께 커지기 쉬워요.`
-  }
-  return `두 사람의 일지 ${topic(`${BRANCH_KO[userBranch]}·${BRANCH_KO[partnerBranch]}`)} 합충으로 단정하지 말고, 연락 리듬과 표현 방식으로 읽어야 해요.`
-}
-
-function timingLine(user: SajuAnalysis, partner: SajuAnalysis): string {
-  const userFortune = user.fortune
-  const partnerFortune = partner.fortune
-  if (!userFortune || !partnerFortune) return '대운·세운은 단정하지 않고, 지금 원국에 드러난 관계 신호를 먼저 볼게요.'
-  return `당신의 현재 대운은 ${userFortune.currentDaewoon}, 올해 세운은 ${userFortune.yearPillar}이고, 상대 쪽은 현재 대운 ${partnerFortune.currentDaewoon}로 보여요.`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` / `interpretation:` field labels and instructions such as "원문 문장을
- * 출력하지 말고". Pasting those verbatim would put internal scaffolding on a paid page.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 160): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/** Only a knowledge block's interpretation/advice/opportunity read as prose. */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const block = chunk.knowledge
-  const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 160)
-    if (line) return humanize(line)
-  }
-  return fallback
-}
-
-/**
- * The angle each 대분류 reads its item from. Without it all 70 items would open on the
- * same 일지 sentence, so the group id decides what leads and what the closing line is.
- */
-const GROUP_LENS: Record<string, { focus: string; close: string }> = {
-  relationship_temperature: {
-    focus: '먼저 지금 관계의 온도부터 재요. 표현이 줄어든 것과 마음이 식은 것은 다른 이야기입니다.',
-    close: '온도는 판정이 아니라 지금 상태예요. 여기서 잡은 결을 아래 항목으로 확인해 가세요.',
-  },
-  partner_signal_radar: {
-    focus: '상대에게서 보이는 신호를 보여요. 다만 신호는 증거가 아니고, 불안이 만든 해석일 수도 있어요.',
-    close: '의심을 키우는 자리가 아니에요. 확인할 것과 넘길 것을 가르는 자리예요.',
-  },
-  switch_flirt_check: {
-    focus: '관계 밖으로 흐르는 결이 있는지 보여요. 관심과 실행 사이에는 큰 거리가 있어요.',
-    close: '단정하지 말고 관찰하세요. 사람은 추궁당할 때가 아니라 안전할 때 진짜를 말해요.',
-  },
-  partner_palace_signal: {
-    focus: '배우자궁과 연인궁의 자리를 보여요. 관계의 습관이 어디에 자리 잡았는지가 드러나요.',
-    close: '자리의 모양은 성격이 아니라 조건이에요. 조건이 바뀌면 관계의 결도 바뀌어요.',
-  },
-  ten_gods_love_style: {
-    focus: '십성으로 두 사람의 연애 방식을 보여요. 사랑하는 방식이 다르면 같은 마음도 다르게 닿아요.',
-    close: '방식의 차이를 애정의 크기로 오해하지 마세요. 다르다는 것을 알면 서운함이 줄어들어요.',
-  },
-  compatibility_chemistry: {
-    focus: '두 사람의 기운이 만나는 자리를 보여요. 오행이 채워 주는지 몰리는지가 피로도를 가려요.',
-    close: '케미는 좋고 나쁨이 아니라, 오래 붙어 있을 때 회복되는지 소모되는지로 보세요.',
-  },
-  timing_flow: {
-    focus: '흔들리기 쉬운 시기를 보여요. 사람이 아니라 흐름이 관계를 흔드는 구간이 있어요.',
-    close: '시기는 핑계가 아니라 대비예요. 알고 있으면 같은 파도에도 덜 흔들려요.',
-  },
-  anxiety_source: {
-    focus: '불안의 출처를 보여요. 관계에서 온 것인지, 당신 안의 흐름에서 온 것인지를 나누어야 해요.',
-    close: '불안을 확인 요구로 바꾸면 관계가 먼저 지쳐요. 당신을 먼저 안정시키는 순서가 맞아요.',
-  },
-  reality_check_action: {
-    focus: '오늘 해 볼 수 있는 확인을 정해요. 큰 결정을 미루더라도 작은 확인은 오늘 가능해요.',
-    close: '한 번에 답을 얻으려 하지 말고 작은 확인을 여러 번 쌓으세요. 그것이 가장 정확해요.',
-  },
-  final_conclusion_type: {
-    focus: '지금까지 본 것을 한 줄로 묶어요. 라벨은 판정이 아니라 부르기 쉬운 이름이에요.',
-    close: '결론은 고정된 성적이 아니라 이번 구간의 상태예요. 조건이 바뀌면 결론도 바뀌어요.',
-  },
-}
-
-const DEFAULT_LENS = {
-  focus: '두 사람의 기본값과 흐름을 같이 놓고 보여요.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
-}
-
-/** The pack written for this service; see data/corpus/. */
 const OWN_CORPUS_DOMAIN = 'couple_signal_service'
 
-/**
- * Read this service's own pack first. The rest of the corpus answers other questions,
- * so a line from another pack is usually wrong here even when it reads fine.
- */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
-}
-
 function buildInterpretation(params: {
-  groupId: string
-  categoryTitle: string
-  itemTitle: string
-  itemNote: string
-  userAnalysis: SajuAnalysis
-  partnerAnalysis: SajuAnalysis
-  userBirth: BirthInput
-  input: LoveSignalRequest
-  chunks: RagChunk[]
-  index: number
+  groupId: string; categoryTitle: string; itemTitle: string; itemNote: string; userAnalysis: SajuAnalysis; partnerAnalysis: SajuAnalysis; userBirth: BirthInput; input: LoveSignalRequest; chunks: RagChunk[]; index: number
 }): string {
-  const { groupId, categoryTitle, itemTitle, itemNote, userAnalysis, partnerAnalysis, userBirth, input, chunks, index } = params
-  const lens = GROUP_LENS[groupId] ?? DEFAULT_LENS
-  const userDay = userAnalysis.fourPillars.day
-  const partnerDay = partnerAnalysis.fourPillars.day
-  const ragLine = ragLineFrom(pickRag(chunks, index), '관계 신호는 한 장면으로 단정하지 말고 연락의 결, 표현 방식, 회복 속도를 함께 봐야 합니다.')
-  const partnerLabel = input.partnerName || '상대'
-  const dominant = ELEMENT_KO[userAnalysis.dominantElement]
-  const partnerDominant = ELEMENT_KO[partnerAnalysis.dominantElement]
-  const worry = input.concern ? `지금 걸리는 말은 "${input.concern}"입니다.` : '따로 적은 문장은 없으니 반복되는 장면을 중심으로 볼게요.'
-
-  return applyServiceTone([
-    `${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${userBirth.year}년생이고, 당신 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch}), ${partnerLabel}의 일지는 ${BRANCH_KO[partnerDay.branch]}(${partnerDay.branch})라 관계 습관이 만나는 자리를 먼저 대조할게요.`,
-    `${itemNote} ${branchRelation(userDay.branch, partnerDay.branch)} ${lens.focus}`,
-    `당신은 ${dominant} 기운이 앞서고 ${partnerLabel} 쪽은 ${partnerDominant} 기운이 앞서요. 같은 쪽으로 몰리면 속도가 붙고, 다른 쪽이면 서로의 빈자리를 메우는 대신 설명이 더 필요해요.`,
-    `${timingLine(userAnalysis, partnerAnalysis)} 지금은 "${input.relationshipStage}" 단계이고 가장 신경 쓰이는 신호는 "${input.signalFocus}"라 했어요. 이 흐름은 사건을 예언하는 것이 아니라, 어디를 확인해야 덜 흔들리는지를 보는 기준이에요.`,
-    `참고 결은 이래요. ${ragLine} 그러니 이 풀이는 바람을 피운다 아니다를 판정하는 자리가 아니라, 지금 관계에서 무엇을 확인하고 무엇을 넘길지 고르는 자리예요.`,
-    `${worry} ${lens.close} 이 서비스는 사실 확인이나 증거 판정을 하지 않아요. 사람의 마음은 추궁이 아니라 안전한 대화에서 드러나니, 확인은 반드시 직접 대화로 마무리하세요.`,
-  ].join('\n\n'), LOVE_SIGNAL_SERVICE_KEY)
+  return buildRelationshipReading({
+    serviceKey: LOVE_SIGNAL_SERVICE_KEY, category: params.groupId, title: params.itemTitle, note: params.itemNote, analysis: params.userAnalysis, partnerAnalysis: params.partnerAnalysis, relationship: params.input.relationshipStage, concern: params.input.concern, signals: { '살펴볼 관계 변화': params.input.signalFocus },
+  })
 }
 
 export function buildLoveSignalReport(

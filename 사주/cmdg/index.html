@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ko">
   <head>
+<script src="/js/umsh-report-access.js"></script>
+<script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>천명사주 · 사주</title>
@@ -3970,7 +3972,7 @@
         go("loading", false);
 
         try {
-          const res = await fetch("/api/today/fortune", {
+          const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/today/fortune", {
             method: "POST",
             headers: await authHeaders({ "Content-Type": "application/json" }),
           });
@@ -5168,7 +5170,7 @@
         if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
         state.reportTypingTimer = null;
         const headers = await authHeaders({ "Content-Type": "application/json" });
-        const res = await fetch("/api/saju/analyze", {
+        const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers,
           body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context }),
@@ -6555,11 +6557,11 @@
         const usefulGod = escapeHtml(a?.usefulGod || "분석 중");
         const personalityRaw = preview?.personality || "흠... 입력한 기운을 보니 그냥 지나칠 사주는 아니군.";
         const personality = escapeHtml(personalityRaw);
-        const personalityShort = escapeHtml(personalityRaw.length > 54 ? `${personalityRaw.slice(0, 54)}...` : personalityRaw);
+        const personalityShort = escapeHtml(window.UMSHReportAccess.firstInsight(personalityRaw));
         const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보이는군.");
         const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
         const wealthText = escapeHtml(preview?.wealthFortune || "돈의 흐름이 보이는군. 새는 곳과 모이는 곳을 먼저 짚어야 하네.");
-        const concernRaw = state.concern || `${state.work || "요즘 흐름"} 때문에 마음이 걸린 것`;
+        const concernRaw = state.concern || "현재 생활에서 유지할 점과 궁금한 방향";
         const concernText = escapeHtml(concernRaw);
         const concernHead = state.concern ? `"${concernText}"` : concernText;
         const currentYear = Number(fortune?.currentYear) || 2026;
@@ -6594,9 +6596,9 @@
               <div class="sub-result-summary" aria-label="서브 결과 요약">
                 <div class="sub-result-card"><strong>먼저 보이는 결</strong><span>${dominantElement}의 흐름이 강해 판단과 반응이 빠르게 움직입니다.</span></div>
                 <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>을 중심으로 현실의 흐름을 다시 봅니다.</span></div>
-                <div class="sub-result-card"><strong>해석 방향</strong><span>좋은 말보다 먼저 <span class="red">팔자</span>의 구조와 막힌 자리를 짚겠습니다.</span></div>
+                <div class="sub-result-card"><strong>해석 방향</strong><span>확인된 사주 구조를 바탕으로 강점과 살펴볼 조건을 함께 설명합니다.</span></div>
               </div>
-              <div class="story-callout">보통 <span class="red">팔자</span>가 아닙니다. 지금의 <span class="red">고민</span>도 이 흐름과 이어져 있습니다.</div>
+              <div class="story-callout">현재 상황을 먼저 존중하고, 해당하는 부분만 생활의 판단 기준으로 연결합니다.</div>
             </section>
 
             <section class="story-visual statement visual-saju image-only" data-sample-section="palja-intro" aria-label="팔자 흐름 이미지"></section>
@@ -6673,10 +6675,6 @@
               <h2><span class="red">돈</span>의 흐름이 보이는군</h2>
               <p>${wealthText}</p>
               <div class="wealth-chart" aria-label="재물운 흐름">
-                <div class="chart-row"><span>${currentYear}</span><div class="chart-track"><span class="chart-fill" style="width: 48%"></span></div><strong>준비</strong></div>
-                <div class="chart-row"><span>${currentYear + 1}</span><div class="chart-track"><span class="chart-fill" style="width: 64%"></span></div><strong>확장</strong></div>
-                <div class="chart-row"><span>${turningYear}</span><div class="chart-track"><span class="chart-fill" style="width: 88%"></span></div><strong>전환</strong></div>
-                <div class="chart-row"><span>${turningYear + 1}</span><div class="chart-track"><span class="chart-fill" style="width: 73%"></span></div><strong>정리</strong></div>
               </div>
               <div class="quote"><span class="red">시기</span>와 방법을 같이 봐야 합니다. 기회가 와도 받아낼 그릇이 없으면 흐름은 지나갑니다.</div>
             </section>
@@ -6694,10 +6692,10 @@
               <p>${loveText}</p>
               <div class="destiny-card" aria-label="운명의 상대">
                 <h3>${displayName}님의 <span class="red">운명</span>의 상대</h3>
-                <div class="destiny-row"><strong>시기</strong><span>${romanceYear}.06.04 전후, 마음이 먼저 움직입니다.</span></div>
-                <div class="destiny-row"><strong>직업</strong><span>기획, 전략, 서비스처럼 사람의 흐름을 읽는 일과 맞닿아 있습니다.</span></div>
-                <div class="destiny-row"><strong>외모</strong><span>눈빛이 또렷하고 첫인상보다 오래 남는 쪽입니다.</span></div>
-                <div class="destiny-row"><strong>장소</strong><span>모임, 일터, 소개처럼 관계가 겹쳐지는 자리입니다.</span></div>
+                <div class="destiny-row"><strong>시기</strong><span>특정 만남 날짜는 확정하지 않습니다. 관계가 달라지는 실제 신호를 살펴봅니다.</span></div>
+                <div class="destiny-row"><strong>직업</strong><span>상대의 직업을 예언하지 않고, 서로 맞는 생활과 역할을 확인합니다.</span></div>
+                <div class="destiny-row"><strong>외모</strong><span>외모보다 실제 대화와 약속에서 드러나는 태도를 살펴봅니다.</span></div>
+                <div class="destiny-row"><strong>장소</strong><span>실제 만남 접점과 편안한 관계의 조건을 기준으로 봅니다.</span></div>
               </div>
             </section>
 

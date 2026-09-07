@@ -50,7 +50,7 @@ test('직장 선택 builds a dedicated job-choice report', () => {
 
     // Items inside one 대분류 must read differently, or the 05 목차 and 06 상세 would
     // show the same paragraph several times in a row.
-    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    const bodies = owned.map((section) => section.interpretation.split('\n\n').find((paragraph) => paragraph.startsWith('[확인할 장면]')))
     assert.equal(new Set(bodies).size, owned.length, `${group.id} 의 항목들이 서로 다르게 읽혀야 합니다`)
   })
 
@@ -62,15 +62,14 @@ test('직장 선택 builds a dedicated job-choice report', () => {
 
   // The reading has to reach the reader's own 원국 and this offer, not a generic template.
   const opening = report.sections[0].interpretation
-  assert.match(opening, /관록궁|재백궁|노복궁|천이궁|복덕궁/)
-  assert.match(opening, /대운|세운/)
+  assert.match(opening, /관성\(官星, 조직의 역할과 책임/)
   assert.match(opening, /A회사 최종 오퍼/)
   assert.match(opening, /콘텐츠 기획/)
   assert.match(opening, /상사 스타일이 강해 보이고 역할 범위가 애매합니다/)
 
-  // 자미두수 명반을 계산하지 않으므로, 궁 이름을 빌렸다는 사실을 매 항목이 밝혀야 한다.
+  // A verified Ziwei chart was not supplied; never substitute saju signals for palaces.
   report.sections.forEach((section) => {
-    assert.match(section.interpretation, /자미두수의 궁 이름을 빌려/, `${section.id} 근거 고지 누락`)
+    assert.doesNotMatch(section.interpretation, /궁이 보는 자리를 원국|대한에 해당하는|당신이 조직 안에서 책임을 지는 방식이 여기서 정해/)
   })
 
   // Korean particles: a label must never be followed by the wrong 조사.
@@ -84,7 +83,7 @@ test('직장 선택 builds a dedicated job-choice report', () => {
   })
 })
 
-test('직장 선택 reads each 대분류 from its own 궁', () => {
+test('직장 선택 compares actual offer conditions without inventing palaces', () => {
   const input = parseJobChoiceRequest({ ...offer })
   const analysis = analyzeSaju(birth)
   const context = buildJobChoiceContext('지민', input)
@@ -94,9 +93,9 @@ test('직장 선택 reads each 대분류 from its own 궁', () => {
   const environment = report.sections.find((section) => section.category === '업무 환경')
   const mental = report.sections.find((section) => section.category === '멘탈·워라밸')
   assert.ok(money && environment && mental)
-  assert.match(money.interpretation.split('\n\n')[1], /재백궁/)
-  assert.match(environment.interpretation.split('\n\n')[1], /천이궁/)
-  assert.match(mental.interpretation.split('\n\n')[1], /복덕궁/)
+  assert.match(money.interpretation, /성과급|고정급|보상/)
+  assert.match(environment.interpretation, /왕복 90분/)
+  assert.match(mental.interpretation, /생활|시간/)
 })
 
 test('직장 선택 request validates its required answers', () => {
@@ -111,10 +110,7 @@ test('직장 선택 request validates its required answers', () => {
     () => parseJobChoiceRequest({ companyName: 'A회사', roleName: 'PM', workMode: 'hybrid', commute: '30분' }),
     /조건 체감/,
   )
-  assert.throws(
-    () => parseJobChoiceRequest({ companyName: 'A회사', roleName: 'PM', workMode: 'hybrid', commute: '30분', salaryFeeling: 'high' }),
-    /찝찝한 포인트/,
-  )
+  assert.equal(parseJobChoiceRequest({ companyName: 'A회사', roleName: 'PM', workMode: 'hybrid', commute: '30분', salaryFeeling: 'high' }).concernPoint, '별도 우려 미입력')
 
   const parsed = parseJobChoiceRequest({ ...offer })
   assert.equal(parsed.workMode, 'hybrid')

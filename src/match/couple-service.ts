@@ -1,19 +1,17 @@
 import { createHash } from 'node:crypto'
+import { buildRelationshipReading } from '../love/reading-content.js'
 import type {
   BirthInput,
-  EarthlyBranch,
   RagChunk,
   SajuAnalysis,
   SajuReport,
   SajuReportContext,
   SajuReportSection,
 } from '../types/index.js'
-import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
+import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
 
 export const COUPLE_MATCH_SERVICE_KEY = 'match_couple'
 
@@ -233,24 +231,6 @@ export const COUPLE_MATCH_TOC = [
   },
 ] as const
 
-const SIX_HARMONY = new Map<string, string>([
-  ['子丑', '육합'],
-  ['寅亥', '육합'],
-  ['卯戌', '육합'],
-  ['辰酉', '육합'],
-  ['巳申', '육합'],
-  ['午未', '육합'],
-])
-
-const CLASH = new Map<string, string>([
-  ['子午', '충'],
-  ['丑未', '충'],
-  ['寅申', '충'],
-  ['卯酉', '충'],
-  ['辰戌', '충'],
-  ['巳亥', '충'],
-])
-
 function trimmed(value: unknown, limit: number): string {
   return typeof value === 'string' ? value.trim().slice(0, limit) : ''
 }
@@ -380,6 +360,7 @@ export function createCoupleMatchReportId(ownerId: string | undefined, birth: Bi
       month: birth.month,
       day: birth.day,
       hour: birth.hour,
+      ...(birth.minute ? { minute: birth.minute } : {}),
       gender: birth.gender,
       calendar: birth.calendar,
     },
@@ -393,156 +374,14 @@ export function createCoupleMatchReportId(ownerId: string | undefined, birth: Bi
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
 }
 
-function hasBranchPair(map: Map<string, string>, a: EarthlyBranch, b: EarthlyBranch): boolean {
-  return map.has(`${a}${b}`) || map.has(`${b}${a}`)
-}
-
-function branchRelation(userBranch: EarthlyBranch, partnerBranch: EarthlyBranch): string {
-  if (userBranch === partnerBranch) {
-    return `두 사람의 일지가 모두 ${BRANCH_KO[userBranch]}(${userBranch})라 가까워질수록 비슷한 반응이 반복될 수 있어요.`
-  }
-  if (hasBranchPair(SIX_HARMONY, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 합의 신호가 있어 마음이 붙는 속도를 살펴볼 만해요.`
-  }
-  if (hasBranchPair(CLASH, userBranch, partnerBranch)) {
-    return `두 사람의 일지 ${userBranch}·${partnerBranch} 사이에는 충의 신호가 있어 끌림과 생활 마찰을 나누어 봐야 해요.`
-  }
-  return `두 사람의 일지 ${userBranch}·${partnerBranch}는 강한 합충으로만 단정하지 말고, 생활 리듬과 책임 배분까지 같이 봐야 해요.`
-}
-
-function timingLine(user: SajuAnalysis, partner: SajuAnalysis): string {
-  const userFortune = user.fortune
-  const partnerFortune = partner.fortune
-  if (!userFortune || !partnerFortune) {
-    return '대운·세운은 한쪽만으로 관계의 미래를 확정하지 않고, 두 사람의 현재 명식 반응을 먼저 볼게요.'
-  }
-  return `당신의 현재 대운은 ${userFortune.currentDaewoon}, 올해 세운은 ${userFortune.yearPillar}이고, 상대 쪽은 현재 대운 ${partnerFortune.currentDaewoon}, 올해 세운 ${partnerFortune.yearPillar}로 보여요.`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` / `interpretation:` field labels and instructions such as "원문 문장을
- * 출력하지 말고". Pasting those verbatim would put internal scaffolding on a paid page.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 160): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/** Only a knowledge block's interpretation/advice/opportunity read as prose. */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const block = chunk.knowledge
-  const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 160)
-    if (line) return humanize(line)
-  }
-  return fallback
-}
-
-/** The pack written for this service; see data/corpus/. */
 const OWN_CORPUS_DOMAIN = 'match_couple_service'
 
-/**
- * Read this service's own pack first. The rest of the corpus answers other questions,
- * so a line from another pack is usually wrong here even when it reads fine.
- */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
-}
-
-/**
- * The angle each 묶음 reads its item from. The design groups the 14 대분류 into five
- * clusters, and without this every one of the 70 items would open on the same 일지 line.
- */
-const GROUP_LENS: Record<string, { focus: string; close: string }> = {
-  initial: {
-    focus: '먼저 지금 관계의 큰 톤부터 잡네. 잘 맞는 자리와 어긋나는 자리를 한 번에 뭉치지 않고 나누어 보여요.',
-    close: '첫인상은 판정이 아니에요. 여기서 잡은 톤을 아래 항목들로 하나씩 확인해 가세요.',
-  },
-  saju: {
-    focus: '두 사람의 명식이 만나는 자리를 보여요. 오행이 서로 채워 주는지, 같은 쪽으로 몰리는지가 관계의 피로도를 가려요.',
-    close: '기운의 차이는 문제가 아니라 설명이 더 필요하다는 신호예요. 다르다는 것을 알고 맞추면 오래 가요.',
-  },
-  relationship: {
-    focus: '말과 감정이 오가는 방식을 보여요. 같은 말도 어느 쪽이 먼저 꺼내느냐에 따라 다르게 닿아요.',
-    close: '상대를 추측하지 말고 물어보세요. 궁합은 맞히는 것이 아니라 맞춰 가는 것이에요.',
-  },
-  timing: {
-    focus: '시기와 현실 조건을 보여요. 마음의 크기보다 지금 두 사람이 놓인 자리가 관계의 속도를 정해요.',
-    close: '흐름이 좋아도 준비가 비면 흔들리고, 흐름이 빡빡해도 순서를 맞추면 넘어가요.',
-  },
-  care: {
-    focus: '관계보다 당신 마음의 자리를 먼저 보여요. 불안이 관계에서 온 것인지 당신 안에서 온 것인지 나누어야 해요.',
-    close: '관계를 붙잡는 일보다 당신이 당신로 남는 일이 먼저입니다. 그 순서가 지켜져야 회복도 가능해요.',
-  },
-}
-
-const DEFAULT_LENS = {
-  focus: '두 사람의 기본값과 흐름을 같이 놓고 보여요.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
-}
-
-
 function buildInterpretation(params: {
-  clusterId: string
-  itemNote: string
-  categoryTitle: string
-  itemTitle: string
-  userAnalysis: SajuAnalysis
-  partnerAnalysis: SajuAnalysis
-  userBirth: BirthInput
-  input: CoupleMatchRequest
-  chunks: RagChunk[]
-  index: number
+  clusterId: string; itemNote: string; categoryTitle: string; itemTitle: string; userAnalysis: SajuAnalysis; partnerAnalysis: SajuAnalysis; userBirth: BirthInput; input: CoupleMatchRequest; chunks: RagChunk[]; index: number
 }): string {
-  const { clusterId, categoryTitle, itemTitle, itemNote, userAnalysis, partnerAnalysis, userBirth, input, chunks, index } = params
-  const lens = GROUP_LENS[clusterId] ?? DEFAULT_LENS
-  const userDay = userAnalysis.fourPillars.day
-  const partnerDay = partnerAnalysis.fourPillars.day
-  const chunk = pickRag(chunks, index)
-  const ragLine = ragLineFrom(chunk, '커플 궁합은 끌림뿐 아니라 오행의 균형, 일지의 반응, 갈등 뒤 회복 방식을 함께 봐야 합니다.')
-  const partnerLabel = input.partnerName || '상대'
-  const conflict = input.conflictPattern
-    ? `반복되는 갈등은 "${input.conflictPattern}"라고 적었군.`
-    : '반복 갈등은 비워 두었으니 두 사람의 기본 반응 차이부터 볼게요.'
-  const concern = input.concern ? `지금 걸리는 말은 "${input.concern}"입니다.` : '따로 적은 고민은 없으니 반복될 생활 장면을 중심으로 볼게요.'
-
-  return applyServiceTone([
-    `${categoryTitle} 중 "${itemTitle}"를 볼게요. 당신은 ${userBirth.year}년생이고, 당신 일지는 ${BRANCH_KO[userDay.branch]}(${userDay.branch}), ${partnerLabel}의 일지는 ${BRANCH_KO[partnerDay.branch]}(${partnerDay.branch})라 관계 습관이 만나는 자리를 먼저 대조할게요.`,
-    `${itemNote} ${branchRelation(userDay.branch, partnerDay.branch)} ${lens.focus} 당신 일간의 오행은 ${ELEMENT_KO[userAnalysis.dayMasterElement]}, 상대는 ${ELEMENT_KO[partnerAnalysis.dayMasterElement]} 쪽이라 감정을 표현하고 받아들이는 방식이 어떻게 오가는지를 봐야 해요.`,
-    `${timingLine(userAnalysis, partnerAnalysis)} 이 흐름은 "무조건 잘 맞는다"는 판정이 아니라, 가까워질 때 어디서 힘이 붙고 어디서 방어가 올라오는지를 보는 기준이에요.`,
-    `참고 결은 이래요. ${ragLine} 그러니 이 궁합은 점수로 맞고 틀림을 가르는 풀이가 아니라, 두 사람이 끌림을 관계의 안정감으로 바꿀 수 있는지를 나누는 풀이로 읽으세요.`,
-    `${conflict} ${concern} ${lens.close} 감정이 커질 때 상대를 추측하지 말고, 연락 간격과 갈등 뒤 회복 방식을 작은 약속으로 맞춰 보라는 것이에요. 그 약속이 지켜지면 오래 갈 힘이 생기고, 계속 흐려지면 관계의 속도를 다시 조절해야 해요.`,
-  ].join('\n\n'), COUPLE_MATCH_SERVICE_KEY)
+  return buildRelationshipReading({
+    serviceKey: COUPLE_MATCH_SERVICE_KEY, category: params.categoryTitle, title: params.itemTitle, note: params.itemNote, analysis: params.userAnalysis, partnerAnalysis: params.partnerAnalysis, relationship: params.input.relationshipStage, concern: params.input.concern, signals: { '알려주신 갈등': params.input.conflictPattern },
+  })
 }
 
 export function buildCoupleMatchReport(

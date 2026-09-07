@@ -9,7 +9,7 @@ function getClient(): OpenAI {
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.')
     }
-    client = new OpenAI({ apiKey })
+    client = new OpenAI({ apiKey, timeout: 120_000, maxRetries: 0 })
   }
   return client
 }
@@ -18,6 +18,14 @@ export interface OpenAiChatOptions {
   model?: string
   temperature?: number
   maxTokens?: number
+  onResponse?: (response: OpenAiResult) => void | Promise<void>
+}
+
+export interface OpenAiResult {
+  text: string
+  model: string
+  finishReason: string | null
+  usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
 }
 
 function usesMaxCompletionTokens(model: string): boolean {
@@ -46,6 +54,13 @@ export async function chatWithOpenAI(
   const response = await openai.chat.completions.create(request as never)
 
   const content = response.choices[0]?.message?.content?.trim()
+  await options.onResponse?.({
+    text: content ?? '', model: response.model ?? model,
+    finishReason: response.choices[0]?.finish_reason ?? null,
+    usage: response.usage ? { promptTokens: response.usage.prompt_tokens, completionTokens: response.usage.completion_tokens, totalTokens: response.usage.total_tokens } : undefined,
+  })
+  if (response.choices[0]?.finish_reason === 'length') throw new Error('생성 응답이 길이 제한으로 중단되었습니다.')
+  if (response.choices[0]?.finish_reason === 'content_filter') throw new Error('생성 응답이 안전 검토로 중단되었습니다.')
   if (!content) {
     throw new Error('OpenAI 응답이 비어 있습니다.')
   }

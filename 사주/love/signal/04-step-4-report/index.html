@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <script src="/js/umsh-report-access.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>무료 요약 | 내 애인 바람필까?</title>
@@ -845,7 +846,7 @@
             </div>
             <div class="flow-row">
               <strong>조건</strong>
-              <span data-flow-condition>외부 일정, 모임, SNS 노출이 늘어날 때 흔들림이 커질 수 있습니다.</span>
+              <span data-flow-condition>모임이나 SNS 활동 자체가 문제는 아닙니다. 서로 합의한 약속과 실제 변화를 확인합니다.</span>
             </div>
             <div class="flow-row">
               <strong>방해 요인</strong>
@@ -903,7 +904,7 @@
             <span class="section-kicker" data-cta-kicker>전체 리포트</span>
             <h2 id="cta-title" data-cta-title>관계 온도와 흔들림 구간을 끝까지 볼까요?</h2>
             <p class="body-copy" data-cta-copy>
-              무료 요약은 입구입니다. 결제 후에는 관계 온도, 바람기 레이더, 환승각, 연인궁 시그널, 현실 확인 액션까지 이어집니다.
+              무료 요약은 입구입니다. 결제 후에는 관계 온도, 관계 밖 활동과 합의한 경계, 관계 변화, 연인궁 시그널, 현실 확인 액션까지 이어집니다.
             </p>
             <div class="price-row">
               <span>전체 리포트</span>
@@ -950,7 +951,7 @@
         price_krw: 19900,
         analysis_basis: ["명리궁합", "오행", "일지"],
         analysis_period: "현재 흐름과 가까운 시기",
-        target_question: "내 애인이 지금 다른 사람에게 흔들릴 가능성이 있는지 관계 신호를 보고 싶다.",
+        target_question: "관계에서 확인된 변화와 서로 합의한 경계를 살펴보고 싶다.",
         report_version: "couple-signal-v1",
         copy_version: "report-free-red-v1"
       };
@@ -967,8 +968,8 @@
 
       const paidScope = [
         { id: "relationship_temperature", title: "지금 우리 관계 온도", items: ["찐사랑 유지각", "권태기 살짝 온 듯", "연락 텐션 변화", "데이트 에너지 변화"] },
-        { id: "partner_signal_radar", title: "애인의 바람기 레이더", items: ["도화·홍염 기반 매력 신호", "관심받는 걸 즐기는 타입", "선 넘기 쉬운 환경운", "외부 유혹에 약한 시기"] },
-        { id: "switch_flirt_check", title: "환승각·썸각 체크", items: ["새 사람에게 흔들릴 수 있는 타이밍", "SNS·모임 변수", "전애인 재등장 가능성"] },
+        { id: "partner_signal_radar", title: "관계 밖 활동과 합의한 경계", items: ["도화·홍염 기반 매력 신호", "관심받는 걸 즐기는 타입", "불편한 상황에서 지킬 경계", "관계의 경계를 확인할 상황"] },
+        { id: "switch_flirt_check", title: "새 접점과 관계 의향", items: ["새로운 만남에 대한 합의", "SNS·모임 변수", "과거 관계에 대한 현재의 기준"] },
         { id: "partner_palace_signal", title: "부부궁·연인궁 시그널", items: ["부부궁 충·합·형·파·해 체크", "원진살식 미움 포인트", "관계가 붙는 구조 vs 밀어내는 구조"] },
         { id: "ten_gods_love_style", title: "십성으로 보는 연애 스타일", items: ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"] },
         { id: "compatibility_chemistry", title: "궁합 케미 분석", items: ["천간 궁합", "지지 궁합", "오행 상생", "오행 상극", "의사소통 잘 되는 타입"] },
@@ -987,11 +988,11 @@
         schedule_change: {
           label: "약속 변화",
           signal: "약속이 자주 흐려질수록 마음보다 생활 패턴의 분산을 먼저 봐야 합니다.",
-          condition: "외부 일정과 모임이 늘어나는 구간에는 선을 넘기 쉬운 환경운을 함께 확인합니다."
+          condition: "외부 일정과 모임이 늘어도 약속이 잘 지켜진다면 문제로 보지 않습니다. 불편한 변화가 있을 때만 합의한 경계를 확인합니다."
         },
         sns_group: {
           label: "SNS·모임",
-          signal: "새로운 사람보다 외부 관심을 자존감 충전으로 쓰는 흐름인지 먼저 봅니다.",
+          signal: "새 접점의 의미는 생년 정보로 단정하지 않습니다. 본인이 말한 관계 의향과 실제 약속을 함께 확인합니다.",
           condition: "SNS 반응, 모임 빈도, 연락의 우선순위가 바뀌는 장면을 같이 확인합니다."
         },
         ex_return: {
@@ -1006,7 +1007,7 @@
         },
         not_sure: {
           label: "전체 신호",
-          signal: "아직 애매하다면 바람기보다 불안이 커진 이유와 확인 대화 타이밍부터 봅니다.",
+          signal: "아직 애매하다면 관찰한 변화가 있는지부터 확인합니다.",
           condition: "증거보다 감각이 앞설 때는 연락, 약속, 관심 분산을 한 번에 묶어 확인합니다."
         }
       };
@@ -1128,7 +1129,7 @@
           headline: `${self}님은 지금 ${partner}의 마음을 단정하기보다, 반복되는 관계 신호를 먼저 볼 흐름입니다.`,
           summary: concern
             ? `"${concern}" 이 고민이라면 감정만 키우기보다 연락, 약속, 외부 변수의 순서를 나눠 보는 게 좋습니다.`
-            : "불안이 커진 이유를 한 번에 몰아가지 말고, 연락·약속·표현·외부 변수로 나눠 확인하는 쪽이 좋습니다.",
+            : "현재 별다른 불편이 없다면 유지할 점부터 봅니다. 변화가 있을 때는 연락·약속·표현을 실제 관찰과 나누어 확인합니다.",
           signals: [
             {
               label: "강한 신호",
@@ -1150,7 +1151,7 @@
             },
             {
               label: "유료에서 확인",
-              text: "두 사람의 일지 관계, 오행 상생·상극, 바람기 레이더, 현실 확인 액션을 이어서 봅니다.",
+              text: "두 사람의 일지 관계, 오행 상생·상극, 관계 밖 활동과 합의한 경계, 현실 확인 액션을 이어서 봅니다.",
               confidence: "medium",
               evidence_ids: ["zip-연예-qa-000035", "item-12-p1-0037"]
             }
@@ -1215,7 +1216,7 @@
           primary.textContent = "전체 보기 · 19,900원";
           kicker.textContent = "결제 안내";
           title.textContent = "전체 리포트와 상담형 풀이를 열어볼까요?";
-          copy.textContent = "관계 온도, 외부 유혹에 흔들릴 수 있는 구간, 궁합 마찰, 확인 대화 문장을 한 번에 정리합니다.";
+          copy.textContent = "관계 온도, 실제로 관찰한 관계 변화, 궁합 마찰, 확인 대화 문장을 한 번에 정리합니다.";
           return;
         }
 

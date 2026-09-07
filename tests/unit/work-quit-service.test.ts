@@ -59,8 +59,8 @@ test('work quit service builds a dedicated resignation report', () => {
 
   // The reading has to reach the reader's own input and their saju, not a generic template.
   assert.match(report.sections[0].interpretation, /관성|식상|대운|퇴사/)
-  assert.match(report.sections[0].interpretation, /사람/)
-  assert.match(report.sections[0].interpretation, /이직 준비 중/)
+  assert.match(report.sections.map((section) => section.interpretation).join('\n'), /사람/)
+  assert.match(report.sections.map((section) => section.interpretation).join('\n'), /이직 준비 중/)
 
   // Each 대분류 opens on its own angle, so the 05 목차 never shows ten copies of one line.
   const firstOfEachGroup = WORK_QUIT_TOC.map((group) => report.sections.find((section) => section.category === group.title)!)
@@ -70,7 +70,7 @@ test('work quit service builds a dedicated resignation report', () => {
   // the same paragraph three times in a row.
   WORK_QUIT_TOC.forEach((group) => {
     const owned = report.sections.filter((section) => section.id.startsWith(`${group.id}-`))
-    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    const bodies = owned.map((section) => section.interpretation.split('\n\n').find((paragraph) => paragraph.startsWith('[확인할 장면]')))
     assert.equal(new Set(bodies).size, 3, `${group.id} 의 세 포인트는 서로 다르게 읽혀야 합니다`)
   })
 

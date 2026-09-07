@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <script src="/js/umsh-report-access.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>운명상회｜직업운</title>
@@ -569,7 +570,7 @@
       }
 
       async function api(path, options = {}) {
-        const response = await fetch(path, {
+        const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
           ...options,
           headers: {
             'Content-Type': 'application/json',

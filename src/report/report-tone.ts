@@ -162,7 +162,12 @@ export function neutralizeDosase(text: string): string {
   next = next.replace(/쓰겠네/g, '쓸게요')
   next = next.replace(/하였네/g, '했어요')
   next = next.replace(/했군(?=[.。!？\s,"'\'”’]|$)/g, '했어요')
-  next = next.replace(/네\.(?=\s|$)/g, '요.')
+  // Never replace an arbitrary stem + 네/군: 읽겠네 -> 읽겠요 corrupts Korean.
+  next = next.replace(/읽겠네/g, '읽어볼게요')
+  next = next.replace(/찾겠네/g, '찾아볼게요')
+  next = next.replace(/적었네/g, '적어 주셨네요')
+  next = next.replace(/보았네/g, '봤어요')
+  next = next.replace(/잡네/g, '잡아요')
   next = next.replace(/보이는군/g, '보여요')
   next = next.replace(/올라오는군/g, '올라와요')
   next = next.replace(/움직이는군/g, '움직여요')
@@ -177,7 +182,6 @@ export function neutralizeDosase(text: string): string {
   next = next.replace(/보았군/g, '봤어요')
   next = next.replace(/라 했네/g, '라 했어요')
   next = next.replace(/이군(?=[.。!？\s,"'”’]|$)/g, '이에요')
-  next = next.replace(/군(?=[.。!？\s,"'”’]|$)/g, '요')
   next = next.replace(/보게(?=[.。!？\s,"'”’]|$)/g, '보세요')
   next = next.replace(/걸세(?=[.。!？\s,"'”’]|$)/g, '거예요')
   next = next.replace(/허허…?\s*/g, '')
@@ -206,8 +210,7 @@ export function neutralizeDosase(text: string): string {
   next = next.replace(/이군(?=[.。!？\s,"'\'”’]|$)/g, '이에요')
   next = next.replace(/하지\./g, '하지요.')
   next = next.replace(/보이에요/g, '보여요')
-  // Catch residual sentence-final 하게체 네 after specifics
-  next = next.replace(/([가-힣]{2,})네(?=[.。!？\s,"'\'”’]|$)/g, '$1요')
+  // Unrecognised endings stay intact; generation-time voice and review handle them.
 
   return next
 }

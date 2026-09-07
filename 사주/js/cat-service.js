@@ -128,7 +128,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -229,7 +229,7 @@
     if (reportPromise) return reportPromise;
     reportPromise = (async () => {
       const cached = readJson('sessionStorage', STORAGE.report);
-      if (cached?.sections?.length) return { report: cached };
+      if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
       const request = buildRequest();
       if (!request) return { reason: 'input' };
@@ -455,9 +455,9 @@
    */
   async function ensureReportCached() {
     if (!$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length) return;
+    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
     const outcome = await loadReport();
-    if (outcome.report) location.reload();
+    if (outcome.report && !window.UMSHReportAccess) location.reload();
   }
 
   function init() {

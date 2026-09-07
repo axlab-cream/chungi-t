@@ -8,12 +8,12 @@ import type {
   SajuReportContext,
   SajuReportSection,
 } from '../types/index.js'
-import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
+import { ELEMENT_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
+import { elementEvidence, practicalReading } from '../report/practical-service-copy.js'
+import { luckyDetails } from './lucky-practical-readings.js'
 
 export const LUCKY_COLOR_SERVICE_KEY = 'lucky_color'
 
@@ -171,10 +171,6 @@ const ELEMENT_PROFILE: Record<Element, ElementProfile> = {
   },
 }
 
-/** 상생 관계 — 부족한 기운을 직접 더하기 어려울 때 그 앞자리를 대신 쓴다. */
-const GENERATES: Record<Element, Element> = {
-  wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood',
-}
 
 /**
  * The 02 form collects nothing beyond the common saju, which the analyze endpoint reads
@@ -206,241 +202,16 @@ export function createLuckyColorReportId(
 ): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar },
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar, ...(birth.minute ? { minute: birth.minute } : {}) },
     displayName: input.displayName ?? '',
     serviceKey: LUCKY_COLOR_SERVICE_KEY,
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
 }
 
-/** Korean particles depend on the last syllable's final consonant. */
-function hasFinalConsonant(word: string): boolean {
-  const last = word.replace(/[^가-힣]/g, '').slice(-1)
-  if (!last) return false
-  const code = last.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return true
-  return (code - 0xac00) % 28 !== 0
-}
-
-const topic = (word: string): string => `${word}${hasFinalConsonant(word) ? '은' : '는'}`
-const subject = (word: string): string => `${word}${hasFinalConsonant(word) ? '이' : '가'}`
-const copula = (word: string): string => `${word}${hasFinalConsonant(word) ? '이라' : '라'}`
-const object = (word: string): string => `${word}${hasFinalConsonant(word) ? '을' : '를'}`
-
-/**
- * Which element this reader should add and which one they already have enough of.
- * 용신이 잡히면 그것을 채울 기운으로 쓰고, 없으면 가장 얇은 오행을 대신 쓴다.
- */
-interface ElementBalance {
-  fill: Element
-  fillBasis: string
-  spare: Element
-  counts: Array<{ element: Element; count: number }>
-  emptyElements: Element[]
-}
-
+interface ElementBalance { fill: Element; spare: Element }
 function readBalance(analysis: SajuAnalysis): ElementBalance {
-  const counts = (Object.keys(ELEMENT_PROFILE) as Element[])
-    .map((element) => ({ element, count: analysis.elementCount[element] ?? 0 }))
-    .sort((a, b) => b.count - a.count)
-  const fill = analysis.usefulGod ?? analysis.weakElement
-  return {
-    fill,
-    fillBasis: analysis.usefulGod ? '용신으로 잡힌' : '원국에서 가장 얇은',
-    spare: analysis.dominantElement,
-    counts,
-    emptyElements: counts.filter((entry) => entry.count === 0).map((entry) => entry.element),
-  }
-}
-
-function balanceLine(analysis: SajuAnalysis, balance: ElementBalance): string {
-  const spread = balance.counts.map((entry) => `${ELEMENT_KO[entry.element]} ${entry.count}`).join(' · ')
-  const empty = balance.emptyElements.length
-    ? ` 원국에 아예 비어 있는 자리는 ${balance.emptyElements.map((element) => ELEMENT_KO[element]).join('과 ')}입니다.`
-    : ' 완전히 빈 자리는 없고, 많고 적음의 차이로 갈립니다.'
-  const strength = analysis.dayMasterStrength === 'strong'
-    ? '일간이 힘을 받는 편이라 더 채우기보다 쓰는 쪽이 편합니다.'
-    : analysis.dayMasterStrength === 'weak'
-      ? '일간이 얇은 편이라 받쳐 주는 기운을 곁에 두는 쪽이 편합니다.'
-      : '일간이 크게 치우치지 않아, 그날 상황에 맞춰 조절하기 좋은 구조입니다.'
-  return `원국의 오행 분포는 ${spread}입니다.${empty} ${strength}`
-}
-
-function fillLine(balance: ElementBalance): string {
-  const profile = ELEMENT_PROFILE[balance.fill]
-  const bridge = ELEMENT_PROFILE[GENERATES[balance.fill]]
-  return `채우면 좋은 쪽은 ${balance.fillBasis} ${ELEMENT_KO[balance.fill]}입니다. 생활에서는 ${profile.colors}, ${profile.materials}, ${profile.direction} 방향으로 옮겨집니다. 이 결이 부담스러운 날에는 ${ELEMENT_KO[GENERATES[balance.fill]]}의 ${object(bridge.colors)} 대신 써도 방향은 같습니다.`
-}
-
-function spareLine(balance: ElementBalance): string {
-  const profile = ELEMENT_PROFILE[balance.spare]
-  return `이미 충분한 쪽은 ${ELEMENT_KO[balance.spare]}입니다. ${profile.colors}, ${subject(profile.materials)} 옷장과 방에 몰려 있다면, 나쁜 것이 아니라 이미 넉넉한 것이니 하나쯤 덜어내면 가벼워집니다.`
-}
-
-function placeLine(balance: ElementBalance): string {
-  const fill = ELEMENT_PROFILE[balance.fill]
-  const spare = ELEMENT_PROFILE[balance.spare]
-  return `자리로 옮기면 ${fill.direction}이 열어 주는 방향이고, ${spare.direction}${hasFinalConsonant(spare.direction) ? '은' : '는'} 이미 익숙한 쪽입니다. 방 구조를 바꾸기 어렵다면 책상 위 물건의 방향만 돌려도 됩니다.`
-}
-
-function rhythmLine(analysis: SajuAnalysis, balance: ElementBalance): string {
-  const fill = ELEMENT_PROFILE[balance.fill]
-  const day = analysis.fourPillars.day
-  return `하루로 옮기면 ${fill.hours}에 몸이 먼저 열립니다. 일지가 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 그 시간대의 리듬이 특히 또렷하게 잡힙니다.`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` field labels and instructions such as "원문 문장을 출력하지 말고".
- * Pasting those verbatim would put internal scaffolding on a paid page.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 160): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/**
- * A block from this service's own pack is already about colour, material and place, so
- * it is trusted as written. A block borrowed from the general corpus has to prove it is
- * on topic, otherwise a 이직 or 궁합 sentence lands in a 색과 물건 reading.
- */
-const ON_DOMAIN = /(오행|목|화|토|금|수|색|빛|재질|소재|나무|금속|유리|도자|방향|동쪽|서쪽|남쪽|북쪽|자리|공간|방|책상|침대|균형|용신|일간|생활|리듬|아침|저녁|수면)/
-const OFF_DOMAIN = /(이직|퇴사|합격|시험|연애|고백|결혼|궁합|배우자|상대방|고양이|반려|임신|출산|투자|주식|매출|면접|승진|소송)/
-
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const trusted = chunk.domain === OWN_CORPUS_DOMAIN
-  const block = chunk.knowledge
-  const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 160)
-    if (!line) continue
-    if (trusted) return humanize(line)
-    if (!OFF_DOMAIN.test(line) && ON_DOMAIN.test(line)) return humanize(line)
-  }
-  return fallback
-}
-
-/** Prefer this service's own pack, then whatever the general corpus offers. */
-/**
- * How well a block answers *this* item, not just this 대분류.
- *
- * Rotating through a category's chunks put the sleep block under 집중 터지는 시간대 and
- * the morning block under 잘 자는 법 - on topic for the group, wrong for the row. Score
- * each block against the item's own words instead.
- */
-function itemRelevance(chunk: RagChunk, itemText: string): number {
-  let score = 0
-  for (const keyword of chunk.keywords ?? []) {
-    if (keyword && itemText.includes(keyword)) score += 3
-  }
-  for (const word of (chunk.topic ?? '').split(/[\s·,]+/)) {
-    if (word.length > 1 && itemText.includes(word)) score += 2
-  }
-  return score
-}
-
-/**
- * One block per item, best match first and no repeats until the pack runs out, so two
- * rows in the same 대분류 do not quote the same sentence.
- */
-function assignChunks(chunks: RagChunk[], items: ReadonlyArray<{ title: string; note: string }>): Array<RagChunk | undefined> {
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  // Retrieval can hand back the same block twice; without a dedupe two rows in one
-  // 대분류 end up quoting the identical sentence even though nothing was reused.
-  const pool = Array.from(new Map((own.length ? own : chunks).map((chunk) => [chunk.id, chunk])).values())
-  if (!pool.length) return items.map(() => undefined)
-
-  const taken = new Set<number>()
-  return items.map((item) => {
-    const text = `${item.title} ${item.note}`
-    let best = -1
-    let bestScore = -1
-    pool.forEach((chunk, index) => {
-      if (taken.has(index)) return
-      const score = itemRelevance(chunk, text)
-      if (score > bestScore) {
-        bestScore = score
-        best = index
-      }
-    })
-    // Nothing scored for this item: leave it empty so the template fallback stays
-    // on this row instead of borrowing a sleep/desk sentence into a colour item.
-    if (best < 0 || bestScore <= 0) {
-      return undefined
-    }
-    taken.add(best)
-    return pool[best]
-  })
-}
-
-/**
- * The angle each 대분류 reads its item from. Without it all 24 items would open on the
- * same 오행 분포 sentence, so the group decides what leads and what the closing line is.
- */
-type ChartAngle = 'balance' | 'fill' | 'spare' | 'place' | 'rhythm'
-
-const GROUP_ANGLE: Record<string, { lead: ChartAngle; focus: string; close: string }> = {
-  balance: {
-    lead: 'balance',
-    focus: '먼저 무엇이 많고 무엇이 얇은지부터 봅니다. 좋고 나쁨이 아니라 많고 적음입니다.',
-    close: '여기서 잡은 한 줄이 아래 색과 물건의 기준이 됩니다.',
-  },
-  color: {
-    lead: 'fill',
-    focus: '기운을 색으로 옮깁니다. 색은 매일 고르는 것이라 가장 손쉬운 조절 장치입니다.',
-    close: '한 벌을 다 바꾸지 말고, 눈에 가장 먼저 들어오는 한 면부터 바꾸면 됩니다.',
-  },
-  carry: {
-    lead: 'fill',
-    focus: '기운을 손에 닿는 재질과 형태로 옮깁니다. 부적이 아니라 감각의 문제입니다.',
-    close: '무엇을 사야 하는 이야기가 아니라, 이미 가진 것 중 무엇을 꺼내 둘지의 이야기입니다.',
-  },
-  reduce: {
-    lead: 'spare',
-    focus: '덜어낼 쪽을 봅니다. 위험해서가 아니라 이미 넉넉해서 줄이는 것입니다.',
-    close: '치우지 않으면 큰일 난다는 뜻이 아닙니다. 하나만 빼도 시야가 넓어집니다.',
-  },
-  place: {
-    lead: 'place',
-    focus: '방향과 자리를 봅니다. 집을 옮기지 않아도 책상 하나로 조절됩니다.',
-    close: '오늘 바꿀 수 있는 크기로만 옮기면 충분합니다.',
-  },
-  routine: {
-    lead: 'rhythm',
-    focus: '하루의 순서를 봅니다. 같은 일도 몸이 열리는 시간에 하면 힘이 덜 듭니다.',
-    close: '한 번에 다 바꾸면 하나도 남지 않습니다. 오늘은 하나만 고르면 됩니다.',
-  },
-}
-
-const DEFAULT_ANGLE = {
-  lead: 'balance' as ChartAngle,
-  focus: '기운의 균형과 생활의 선택을 같이 놓고 봅니다.',
-  close: '결론을 서두르지 말고 오늘 바꿀 하나만 고르면 됩니다.',
+  return { fill: analysis.usefulGod ?? analysis.weakElement, spare: analysis.dominantElement }
 }
 
 function buildInterpretation(params: {
@@ -454,36 +225,23 @@ function buildInterpretation(params: {
   balance: ElementBalance
   chunk: RagChunk | undefined
 }): string {
-  const { groupId, groupTitle, itemTitle, itemNote, itemWhy, analysis, birth, balance, chunk } = params
-  const angle = GROUP_ANGLE[groupId] ?? DEFAULT_ANGLE
-  const day = analysis.fourPillars.day
-  const fill = ELEMENT_PROFILE[balance.fill]
-  const spare = ELEMENT_PROFILE[balance.spare]
-
-  const lines: Record<ChartAngle, string> = {
-    balance: balanceLine(analysis, balance),
-    fill: fillLine(balance),
-    spare: spareLine(balance),
-    place: placeLine(balance),
-    rhythm: rhythmLine(analysis, balance),
-  }
-  const order: ChartAngle[] = ['balance', 'fill', 'spare', 'place', 'rhythm']
-  const lead = lines[angle.lead]
-  const rest = order.filter((key) => key !== angle.lead).map((key) => lines[key])
-
-  const ragLine = ragLineFrom(
-    chunk,
-    '색과 물건은 결과를 바꾸는 도구가 아니라, 이미 가진 기운의 균형을 눈에 보이게 하는 표시입니다.',
-  )
-
-  return applyServiceTone([
-    `${groupTitle} 중 "${itemTitle}"입니다. ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 여기서부터 기준을 잡습니다.`,
-    `${itemNote} ${lead} ${angle.focus}`,
-    `${rest[0]} ${rest[1]}`,
-    `${rest[2]} ${rest[3]} ${itemWhy}`,
-    `이 대목에서 함께 볼 결은 이렇습니다. ${ragLine} 그러니 ${topic(itemTitle)} 무엇을 사야 하는 목록이 아니라, ${fill.scene}처럼 이미 가진 것 중에서 무엇을 꺼내 두고 무엇을 넣어 둘지를 고르는 자리입니다.`,
-    `${angle.close} 물건이 액운을 막거나 재물을 부르지는 않습니다. ${subject(`${ELEMENT_KO[balance.spare]}의 ${spare.colors}`)} 이미 넉넉하다는 것과, ${object(ELEMENT_KO[balance.fill])} 조금 더해 보면 편하다는 것까지가 이 리포트가 말할 수 있는 범위입니다.`,
-  ].join('\n\n'), LUCKY_COLOR_SERVICE_KEY)
+  const { groupId, itemTitle, analysis, balance } = params
+  const reading = luckyDetails(ELEMENT_PROFILE[balance.fill])[itemTitle]
+  if (!reading) throw new Error(`색과 물건 항목별 해석 누락: ${itemTitle}`)
+  const basis = analysis.usefulGod
+    ? `용신(用神, 명식의 균형을 살필 때 중요하게 보는 기운) 계산에서 ${ELEMENT_KO[analysis.usefulGod]}를 참고합니다. 이것은 특정 색이나 물건의 효과를 검증한 결과가 아니에요.`
+    : '용신(用神, 명식의 균형을 살필 때 중요하게 보는 기운)은 이번 결과에서 확정되지 않았어요. 개수가 적은 오행의 색은 탐색 후보로만 제안하며 꼭 필요한 색으로 바꾸어 말하지 않아요.'
+  return practicalReading({
+    title: itemTitle, detail: reading,
+    current: groupId === 'routine'
+      ? '현재 수면·식사·근무 일정에 관한 입력은 없어요. 몸에 맞는 시간이나 음식을 계산한 결과로 읽지 않으며 실제 경험을 우선해요.'
+      : groupId === 'place'
+        ? '방 구조·채광·소음·현재 불편은 입력되지 않았어요. 지금 자리를 확인한 맞춤 배치 판정은 보류하고 실제 조건을 비교하는 방법을 제안해요.'
+        : '좋아하는 색·가지고 있는 물건·현재 불편은 입력되지 않았어요. 이미 편한 선택이 있다면 그 취향을 존중하며 바꿔야 할 문제를 만들지 않아요.',
+    evidence: itemTitle === '넘치는 기운 모자란 기운' ? elementEvidence(analysis) : ['color', 'carry', 'balance'].includes(groupId) ? basis : undefined,
+    application: `이 항목은 전통 상징과 생활 선택을 구별해 읽어요. ${reading.scene.includes('실제') ? '현재 상황과 다른 예시는 적용하지 않아도 돼요.' : '작은 시도를 한 뒤 본인이 편한지를 확인하는 방식이에요.'}`,
+    closing: itemTitle === '오늘 당장 뭐 하지?' ? '물건이 액운을 막거나 재물을 부르지는 않습니다. 새 물건의 구매나 큰 공간 변경이 필요하다는 뜻도 아니에요.' : undefined,
+  })
 }
 
 export function buildLuckyColorReport(
@@ -512,7 +270,7 @@ export function buildLuckyColorReport(
     const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, analysis, context, OWN_CORPUS_DOMAIN, 6)
     const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
     // One block per item, matched on the item's own words rather than rotated.
-    const itemChunks = assignChunks(categoryChunks, category.items)
+    const itemChunks = category.items.map(() => undefined)
 
     category.items.forEach((item, itemIndex) => {
       sections.push({
@@ -550,7 +308,7 @@ export function buildLuckyColorReport(
   return finalizeSpecializedReport({
     reportId,
     title: '나한테 운 붙는 색과 물건 해석문',
-    subtitle: `${context.name ?? '본인'}님의 오행에서 ${object(ELEMENT_KO[balance.fill])} 채우고 ${object(ELEMENT_KO[balance.spare])} 덜어내는 기준으로 봅니다`,
+    subtitle: `${context.name ?? '본인'}님의 ${ELEMENT_KO[balance.fill]} 상징을 참고해 색과 물건의 취향을 살펴봅니다`,
     model: 'lucky-color-rag-template',
     generatedBy: 'template',
     status: 'complete',

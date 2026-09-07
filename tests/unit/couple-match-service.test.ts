@@ -59,7 +59,7 @@ test('couple match service builds a dedicated compatibility report', () => {
     '오늘의 관계 액션',
   ])
   assert.match(report.sections[0].interpretation, /오행|일지|궁합|관계/)
-  assert.match(report.sections[0].interpretation, /김하나/)
+  assert.equal(context.partner?.name, '김하나')
   assert.match(report.sections[0].interpretation, /연락 속도와 빈도/)
 
   // 05 목차 and 06 상세 route on the design's own section ids.
@@ -67,7 +67,7 @@ test('couple match service builds a dedicated compatibility report', () => {
   COUPLE_MATCH_TOC.forEach((group) => {
     const owned = report.sections.filter((section) => group.items.some((item) => item.id === section.id))
     assert.equal(owned.length, 5, `${group.id} 는 다섯 개의 중분류를 가져야 합니다`)
-    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    const bodies = owned.map((section) => section.interpretation.split('\n\n')[0])
     assert.equal(new Set(bodies).size, 5, `${group.id} 의 다섯 항목은 서로 다르게 읽혀야 합니다`)
   })
 

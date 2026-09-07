@@ -1,381 +1,216 @@
-import type {
-  Element,
-  SajuAnalysis,
-  SajuReport,
-  SajuReportContext,
-  SajuReportQuality,
-  SajuReportQualityCategory,
-  SajuReportSection,
-} from '../types/index.js'
-import { ELEMENT_KO } from '../saju/analyzer-helpers.js'
-import { pillarLabel } from '../saju/calculator.js'
+import type { SajuAnalysis, SajuReport, SajuReportContext, SajuReportQuality, SajuReportQualityCategory, SajuReportSection } from '../types/index.js'
 import { normalizeReportCopy } from './copy-guide.js'
 
-interface QualityRule {
-  id: string
-  label: string
-  sectionIds: string[]
-  expectedTerms: string[]
-  riskExpected?: boolean
-}
+/** Observable editorial checks, not a fact checker or prediction confidence.
+ * No risk vocabulary, technical-term count or RAG topic count earns points. */
+export const REPORT_QUALITY_LIMITATION = '자동 글 품질 점수이며 LLM의 전문적 사실 정확성이나 예측의 정확성을 보장하지 않습니다.'
 
-const QUALITY_RULES: QualityRule[] = [
-  { id: 'four-pillars', label: '사주팔자 / 명식 구조', sectionIds: ['pillars-structure', 'year-pillar', 'month-pillar', 'day-pillar', 'hour-pillar'], expectedTerms: ['사주', '년주', '월주', '일주', '시주', '명식'] },
-  { id: 'manseryeok', label: '만세력 엔진', sectionIds: ['pillars-structure', 'future-flow'], expectedTerms: ['절기', '입춘', '월절', '지장간', '대운', '세운'] },
-  { id: 'day-master', label: '일간 풀이', sectionIds: ['profile', 'day-master-strength'], expectedTerms: ['일간', '기질', '성향', '중심'] },
-  { id: 'day-strength', label: '일간 강약', sectionIds: ['day-master-strength', 'balance'], expectedTerms: ['강약', '신강', '신약', '월령', '버티는'] },
-  { id: 'elements', label: '오행 풀이', sectionIds: ['balance', 'dominant-element', 'weak-element'], expectedTerms: ['오행', '목', '화', '토', '금', '수', '기운'] },
-  { id: 'ten-gods', label: '십신 풀이', sectionIds: ['ten-gods-overview', 'ten-gods-position'], expectedTerms: ['십신', '비겁', '식상', '재성', '관성', '인성'] },
-  { id: 'useful-god', label: '용신 / 조후 / 통관', sectionIds: ['useful-god-eokbu', 'useful-god-johu'], expectedTerms: ['용신', '희신', '기신', '조후', '통관', '격국'] },
-  { id: 'personality', label: '성격 / 기질 풀이', sectionIds: ['profile', 'hidden-personality'], expectedTerms: ['성격', '기질', '숨겨진', '매력', '반응'] },
-  { id: 'concern', label: '현재 고민 풀이', sectionIds: ['trap', 'concern-loop'], expectedTerms: ['고민', '반복', '함정', '패턴', '끊어야'] },
-  { id: 'fortune-cycle', label: '대운 · 세운', sectionIds: ['future-flow', 'daewoon-detail', 'sewoon-detail'], expectedTerms: ['대운', '세운', '전환', '올해', '흐름'] },
-  { id: 'turning-point', label: '인생 전환 시기', sectionIds: ['turning-years', 'timing-place'], expectedTerms: ['전환', '시기', '신호', '장소', '흔들'] },
-  { id: 'wealth', label: '재물운', sectionIds: ['wealth-flow', 'money-leak', 'wealth-timing'], expectedTerms: ['돈', '재물', '재성', '수입', '지출', '돈구멍'] },
-  { id: 'career', label: '일 / 직업 흐름', sectionIds: ['career-money', 'work-context', 'career-transition'], expectedTerms: ['일', '직업', '직장', '사업', '계약', '전환'] },
-  { id: 'love', label: '연애운', sectionIds: ['relationship-status', 'love-loop', 'love-timing'], expectedTerms: ['연애', '관계', '일지', '인연', '끌림'] },
-  { id: 'destiny', label: '인연 / 운명의 상대', sectionIds: ['destiny-partner', 'love-timing'], expectedTerms: ['운명', '상대', '인연', '분위기', '오래'] },
-  { id: 'relationship-loop', label: '관계 반복 패턴', sectionIds: ['love-loop', 'avoid-relationship', 'trap'], expectedTerms: ['반복', '관계', '함정', '거리감', '멀리'] },
-  { id: 'same-sex-relationship', label: '동성 관계 해석', sectionIds: ['relationship-orientation', 'avoid-relationship'], expectedTerms: ['동성', '비겁', '인성', '식상', '거리감'] },
-  { id: 'timing-place', label: '시기와 장소', sectionIds: ['timing-place', 'love-timing', 'wealth-timing'], expectedTerms: ['시기', '장소', '공간', '신호', '대운', '세운'] },
-  { id: 'long-report', label: '긴 리포트 구조', sectionIds: ['long-report-depth', 'action-guide'], expectedTerms: ['리포트', '근거', '선택지', '행동', '구조'] },
-  { id: 'rag-precision', label: 'RAG 검색 정밀도', sectionIds: ['long-report-depth', 'concern-loop', 'relationship-status'], expectedTerms: ['이번 장은', '대조', '선택지', '근거', 'RAG'] },
-  { id: 'corpus-quality', label: '코퍼스 근거성', sectionIds: ['long-report-depth', 'useful-god-johu', 'ten-gods-position'], expectedTerms: ['코퍼스', '근거', '격국', '조후', '통관'] },
-  { id: 'risk-tone', label: '안 좋은 말투 / 경고', sectionIds: ['trap', 'avoid-relationship', 'money-leak', 'future-flow'], expectedTerms: ['좋은 말만', '위험', '조심', '방치', '돈구멍'], riskExpected: true },
+// These established master-report IDs only group sections; their words do not earn points.
+const MASTER_GROUPS: Array<[string, string, string[]]> = [
+  ['four-pillars', '사주팔자 / 명식 구조', ['pillars-structure', 'year-pillar', 'month-pillar', 'day-pillar', 'hour-pillar']],
+  ['manseryeok', '만세력 설명의 범위', ['pillars-structure', 'future-flow']],
+  ['day-master', '일간 풀이', ['profile', 'day-master-strength']],
+  ['day-strength', '일간 강약', ['day-master-strength', 'balance']],
+  ['elements', '오행 풀이', ['balance', 'dominant-element', 'weak-element']],
+  ['ten-gods', '십성 풀이', ['ten-gods-overview', 'ten-gods-position']],
+  ['useful-god', '용신 / 조후 설명', ['useful-god-eokbu', 'useful-god-johu']],
+  ['personality', '성격 / 기질 풀이', ['profile', 'hidden-personality']],
+  ['concern', '현재 상태와 질문', ['trap', 'concern-loop']],
+  ['fortune-cycle', '대운 · 세운', ['future-flow', 'daewoon-detail', 'sewoon-detail']],
+  ['turning-point', '전환 조건', ['turning-years', 'timing-place']],
+  ['wealth', '재물 해석', ['wealth-flow', 'money-leak', 'wealth-timing']],
+  ['career', '일 / 직업 해석', ['career-money', 'work-context', 'career-transition']],
+  ['love', '연애 해석', ['relationship-status', 'love-loop', 'love-timing']],
+  ['destiny', '동반자 판단 기준', ['destiny-partner', 'love-timing']],
+  ['relationship-loop', '관계 경험과 적용 조건', ['love-loop', 'avoid-relationship', 'trap']],
+  ['same-sex-relationship', '관계의 다양성', ['relationship-orientation', 'avoid-relationship']],
+  ['timing-place', '시기와 장소의 조건', ['timing-place', 'love-timing', 'wealth-timing']],
+  ['long-report', '해석의 깊이와 실행', ['long-report-depth', 'action-guide']],
+  ['rag-precision', '근거 설명의 투명성', ['long-report-depth', 'concern-loop', 'relationship-status']],
+  ['corpus-quality', '전통 설명과 적용 범위', ['long-report-depth', 'useful-god-johu', 'ten-gods-position']],
+  ['risk-tone', '문제의 유무와 조건부 대응', ['trap', 'avoid-relationship', 'money-leak', 'future-flow']],
 ]
 
-const LOVE_THIS_YEAR_QUALITY_RULES: QualityRule[] = [
-  { id: 'love-possibility', label: '올해 연애 가능성', sectionIds: ['love-year-possibility'], expectedTerms: ['올해', '연애', '가능성', '세운', '관계'] },
-  { id: 'love-attraction', label: '연애 성향 / 끌림 구조', sectionIds: ['love-attraction-pattern'], expectedTerms: ['일지', '끌림', '성향', '관계', '반응'] },
-  { id: 'love-dohwa', label: '도화 시기', sectionIds: ['love-dohwa-months'], expectedTerms: ['도화', '시기', '월', '타이밍', '신호'] },
-  { id: 'love-spouse-star', label: '배우자성', sectionIds: ['love-spouse-star'], expectedTerms: ['배우자성', '재성', '관성', '인연', '유형'] },
-  { id: 'love-monthly-flow', label: '월별 흐름', sectionIds: ['love-monthly-flow'], expectedTerms: ['월별', '세운', '만남', '흐름', '관계'] },
-  { id: 'love-progress', label: '진전 타이밍', sectionIds: ['love-progress-timing'], expectedTerms: ['진전', '타이밍', '약속', '고백', '확인'] },
-  { id: 'love-risk', label: '놓치는 신호 / 실수 패턴', sectionIds: ['love-missed-signals'], expectedTerms: ['놓치', '신호', '실수', '패턴', '위험'], riskExpected: true },
-  { id: 'love-partner', label: '상대 사주 / 궁합 흐름', sectionIds: ['love-partner-compatibility'], expectedTerms: ['상대', '사주', '궁합', '일간', '오행'] },
-  { id: 'love-temperature', label: '감정 온도 차이', sectionIds: ['love-emotion-temperature'], expectedTerms: ['감정', '온도', '속도', '표현', '거리'] },
-  { id: 'love-action', label: '연애 성사 전략', sectionIds: ['love-action-strategy'], expectedTerms: ['전략', '행동', '약속', '소개', '해법'] },
-  { id: 'love-rag', label: 'LOVE RAG 근거성', sectionIds: ['love-year-possibility', 'love-dohwa-months', 'love-partner-compatibility'], expectedTerms: ['이번 장은', '대조', '관계', '시기', '상대'] },
-]
+const TECHNICAL_TERMS = ['일간', '일지', '일주', '시주', '월주', '년주', '명식', '원국', '십성', '십신', '오행', '용신', '희신', '기신', '관성', '재성', '인성', '식상', '비겁', '정관', '편관', '정재', '편재', '비견', '겁재', '정인', '편인', '식신', '상관', '대운', '세운', '신강', '신약', '조후', '통관', '격국', '지장간', '도화']
+const TYPO = /편재이|당신로|읽겠요|찾겠요|잡요|적었요|보았요|결를|자시을|전면 출근로|되요|할께|됬/g
+const INTERNAL = /\b(?:concept|condition|interpretation|serviceKey|main_purpose|desk_position)\s*[:=]|Feature JSON|상담 의도:|\bhot\/dry\b/i
+const CAUTION_OR_NEGATION = /(?:단정|추정|보장|판정|확정).{0,8}(?:않|없)|아닙|아니에|해서는 안|하지 마|금지|뜻하지 않|의미하지 않/
 
-const HOME_FIT_QUALITY_RULES: QualityRule[] = [
-  { id: 'home-overall', label: '집 풍수 적합도', sectionIds: ['home-fit-overall'], expectedTerms: ['집', '풍수', '사주', '오행', '목적'] },
-  { id: 'home-energy', label: '집의 기본 기운', sectionIds: ['house-energy'], expectedTerms: ['현관', '창밖', '동선', '앞', '뒤'] },
-  { id: 'home-ohaeng', label: '사주 × 집 오행 핏', sectionIds: ['saju-house-ohaeng'], expectedTerms: ['오행', '목', '화', '토', '금', '수'] },
-  { id: 'home-sleep', label: '잠·회복·멘탈 리듬', sectionIds: ['sleep-recovery'], expectedTerms: ['잠', '회복', '침실', '멘탈', '조명'], riskExpected: true },
-  { id: 'home-entrance', label: '현관·동선 에너지', sectionIds: ['entrance-flow'], expectedTerms: ['현관', '동선', '문', '신발', '들어오는'] },
-  { id: 'home-focus', label: '재택·공부·일 집중력', sectionIds: ['remote-focus'], expectedTerms: ['책상', '재택', '공부', '일', '집중'] },
-  { id: 'home-money', label: '돈·살림·소비 흐름', sectionIds: ['money-living'], expectedTerms: ['돈', '살림', '소비', '수납', '주방'], riskExpected: true },
-  { id: 'home-relationship', label: '관계·가족·동거 케미', sectionIds: ['relationship-cohabitation'], expectedTerms: ['관계', '가족', '동거', '공간', '거리감'] },
-  { id: 'home-fix', label: '공간별 손질 처방', sectionIds: ['spatial-fix'], expectedTerms: ['손질', '처방', '현관', '침실', '책상'] },
-  { id: 'home-action', label: '현실 체크 & 액션 플랜', sectionIds: ['reality-action'], expectedTerms: ['현실', '이사', '7일', '테스트', '판단'], riskExpected: true },
-  { id: 'home-grounding', label: 'HOME RAG 근거성', sectionIds: ['home-fit-overall', 'saju-house-ohaeng', 'reality-action'], expectedTerms: ['이번 장은', '대조', '사주', '공간', '기준'] },
-]
+function percent(value: number): number { return Math.max(0, Math.min(100, Math.round(value))) }
+function average(values: number[]): number { return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0 }
+function plain(text: string): string { return text.replace(/^\[[^\]]+\]\s*/, '').replace(/\s+/g, ' ').trim() }
+function paragraphs(text: string): string[] { return text.split(/\n\s*\n/).map(plain).filter(Boolean) }
+function sentences(text: string): string[] { return text.split(/[.!?。]+(?:\s|$)|\n+/).map(plain).filter((line) => line.length >= 18) }
 
-const WORK_MOVE_QUALITY_RULES: QualityRule[] = [
-  { id: 'work-decision', label: '이직 최종 판단', sectionIds: ['work-move-decision'], expectedTerms: ['이직', '회사', '판단', '대운', '세운'] },
-  { id: 'work-current-signal', label: '현 회사 신호', sectionIds: ['current-company-signal'], expectedTerms: ['현 회사', '역할', '관성', '신호', '반복'] },
-  { id: 'work-constitution', label: '커리어 체질', sectionIds: ['career-constitution'], expectedTerms: ['일간', '오행', '신강', '신약', '용신'] },
-  { id: 'work-role-fit', label: '직무 핏', sectionIds: ['role-fit'], expectedTerms: ['직무', '십신', '비견', '식상', '관성'] },
-  { id: 'work-new-company', label: '새 회사 궁합', sectionIds: ['new-company-fit'], expectedTerms: ['새 회사', '근무', '이동', '환경', '책임'] },
-  { id: 'work-money-terms', label: '연봉·계약 조건', sectionIds: ['money-terms'], expectedTerms: ['연봉', '계약', '업무범위', '돈', '재성'], riskExpected: true },
-  { id: 'work-timing', label: '이직 타이밍', sectionIds: ['timing-daewoon-sewoon'], expectedTerms: ['대운', '세운', '타이밍', '퇴사', '입사'] },
-  { id: 'work-risk', label: '리스크 브레이크', sectionIds: ['risk-brake'], expectedTerms: ['위험', '브레이크', '번아웃', '계약', '경고'], riskExpected: true },
-  { id: 'work-action', label: '90일 액션', sectionIds: ['ninety-day-action'], expectedTerms: ['90일', '이력서', '포트폴리오', '면접', '퇴사'] },
-  { id: 'work-grounding', label: 'WORK RAG 근거성', sectionIds: ['work-move-decision', 'money-terms', 'final-checklist'], expectedTerms: ['이번 장은', '대조', '사주', '조건', '기준'] },
-]
-
-const PASS_ANGLE_QUALITY_RULES: QualityRule[] = [
-  { id: 'pass-verdict', label: '합격 판단', sectionIds: ['pass-angle-verdict'], expectedTerms: ['시험', '합격', '인성', '관성'] },
-  { id: 'study-style', label: '공부 방식', sectionIds: ['study-style'], expectedTerms: ['일간', '오행', '공부', '집중'] },
-  { id: 'exam-fit', label: '시험 유형 핏', sectionIds: ['exam-type-fit'], expectedTerms: ['시험', '유형', '십신', '적성'] },
-  { id: 'pass-timing', label: '합격 시기', sectionIds: ['pass-timing'], expectedTerms: ['대운', '세운', '시기', '타이밍'] },
-  { id: 'mental', label: '멘탈과 회복', sectionIds: ['mental-stamina'], expectedTerms: ['회복', '멘탈', '집중', '수면'], riskExpected: true },
-  { id: 'exam-day', label: '시험 당일', sectionIds: ['exam-day-routine'], expectedTerms: ['시험', '당일', '일진', '동선'] },
-  { id: 'action', label: '실전 액션', sectionIds: ['action-plan'], expectedTerms: ['기출', '오답', '계획', '전략'] },
-]
-
-const TONE_SIGNALS = ['흠', '보입니다', '그 이유', '좋은 말만', '위험', '조심', '시기적으로', '풀 방법', '경고', '흐름', '기운', '기준']
-const RISK_SIGNALS = ['좋은 말만', '위험', '방치', '조심', '돈구멍', '과속', '경고']
-
-function clampPercent(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)))
+function contextFacts(value: unknown, key = ''): string[] {
+  if (/^(?:serviceKey|name|displayName|id|email|accessToken|provider|image|address|birth)/i.test(key)) return []
+  if (typeof value === 'string') return /[가-힣]/.test(value) && value.trim().length >= 3 ? [value.trim()] : []
+  if (Array.isArray(value)) return value.flatMap((item) => contextFacts(item, key))
+  if (value && typeof value === 'object') return Object.entries(value).flatMap(([name, item]) => contextFacts(item, name))
+  return []
 }
 
-function avg(values: number[]): number {
-  if (values.length === 0) return 0
-  return values.reduce((sum, value) => sum + value, 0) / values.length
+function inputState(facts: string[]): 'settled' | 'concern' | 'unknown' {
+  const input = facts.join(' ')
+  const withoutNegatedProblems = input.replace(/(?:문제|불편|고민|소진|갈등|스트레스|연체|불안)\s*(?:가|이|은|는)?\s*(?:없\S*|크지 않\S*)/g, '')
+  if (/불만족|불안정|불안|갈등|소진|고통|연체|적자|괴롭|힘들/.test(withoutNegatedProblems)) return 'concern'
+  if (/문제\s*없|불편\s*없|만족|잘 지내|잘 유지|잘 관리|안정|예산대로/.test(input)) return 'settled'
+  return 'unknown'
 }
 
-function includesAny(text: string, terms: string[]): number {
-  return terms.filter((term) => text.includes(term)).length
+/** Check first-use explanations, not the quantity of technical words present. */
+function unexplainedTerms(text: string): string[] {
+  const missing: string[] = []
+  for (const term of TECHNICAL_TERMS) {
+    const index = text.indexOf(term)
+    if (index < 0) continue
+    const after = text.slice(index + term.length, index + term.length + 110)
+    const parenthesis = after.match(/^\s*[（(]([^）)]*)[）)]/)?.[1] ?? ''
+    const explained = /[가-힣]{2}/.test(parenthesis.replace(/[一-龥]/g, ''))
+      || /^(?:은|는|이란|이|을|를)?\s*[^.!?\n]{2,90}(?:뜻|말합|말해|가리|의미|기준|상징|관점|관계|기둥|체계|분류|천간|지지)/.test(after)
+    if (!explained) missing.push(term)
+  }
+  for (const match of text.matchAll(/[一-龥]+/g)) {
+    const index = match.index ?? 0
+    const before = text.slice(Math.max(0, index - 20), index)
+    const after = text.slice(index + match[0].length, index + match[0].length + 90)
+    const explained = /[가-힣]\s*[（(]$/.test(before) && /^[^）)]*[,，][^）)]*[가-힣]{2}/.test(after)
+      || /^[（(][^）)]*[가-힣]{2}[^）)]*[）)]/.test(after)
+    if (!explained) missing.push(match[0])
+  }
+  return [...new Set(missing)]
 }
 
-function selectedSections(report: SajuReport, ids: string[]): SajuReportSection[] {
-  return ids
-    .map((id) => report.sections.find((section) => section.id === id))
-    .filter((section): section is SajuReportSection => Boolean(section))
+interface EditorialReview {
+  evidence: number
+  scope: number
+  clarity: number
+  structure: number
+  practical: number
+  integrity: number
+  depth: number
+  overall: number
+  notes: string[]
 }
 
-const HOME_CONTEXT_TERMS: Record<string, string> = {
-  apartment: '아파트',
-  officetel: '오피스텔',
-  villa: '빌라',
-  studio: '원룸',
-  house: '단독',
-  under_3m: '3개월',
-  '3m_1y': '1년',
-  '1y_3y': '1~3년',
-  over_3y: '3년',
-  rest: '잠',
-  work: '재택',
-  money: '돈',
-  relationship: '관계',
-  move: '이사',
-  stay: '계속',
-  fix: '손',
-  compare: '비교',
-  unknown: '궁금',
-  sleep: '잠',
-  entrance: '현관',
-  focus: '집중',
-  direct: '한 줄',
-  bent: '꺾',
-  blocked: '가려',
-  quiet: '조용',
-  window_road: '소음',
-  door_line: '문',
-  too_bright: '빛',
-  back_wall: '벽',
-  back_window: '창',
-  face_door: '문',
-  mixed_rest: '쉬는 자리',
-  open: '트여',
-  pressed: '압박',
-  road_noise: '소음',
-  balanced: '안정',
+function reviewSection(section: SajuReportSection, report: SajuReport, context: SajuReportContext): EditorialReview {
+  const text = section.interpretation.trim()
+  const parts = paragraphs(text)
+  const lines = sentences(text)
+  const facts = contextFacts(context)
+  const state = inputState(facts)
+  const issues: string[] = []
+  const substantial = (pattern: RegExp) => lines.some((line) => pattern.test(line))
+  const inputReflected = facts.some((fact) => fact.length >= 8 && text.includes(fact))
+  const currentExplained = inputReflected || substantial(/입력|말씀|적어 주|문진|현재.{0,35}(?:상태|상황|확인)|정보.{0,25}(?:부족|없|확인)/)
+  const evidenceExplained = substantial(/(?:전통|상징|계산|분포|관찰|근거|확인된).{3,80}(?:뜻|구분|의미|따라|참고|기준|이유|때문|판단|다르|아닙|보류)/)
+  const limitsExplained = substantial(/(?:알 수|판단할 수|확인할 수|확정할 수).{0,12}없|(?:확인되지|입력되지|단정하지|추정하지)|(?:상징|가정|예시|비유).{0,25}(?:실제|확인|구분|참고)|조건.{0,30}(?:맞|때|다르)/)
+  const evidence = (currentExplained ? 35 : 0) + (evidenceExplained ? 35 : 0) + (limitsExplained ? 30 : 0)
+  if (!currentExplained) issues.push('입력·현재 상태·정보 한계의 연결을 더 분명히 설명하세요.')
+  if (!evidenceExplained) issues.push('결론의 근거와 현실에 적용하는 이유를 설명하세요.')
+
+  const settledRecognized = substantial(/(?:현재|이미|지금|입력|특별한).{0,45}(?:문제.{0,8}없|만족|안정|잘 유지|잘 지내)|(?:유지|바꿀 필요|고칠 필요).{0,25}(?:우선|없|좋|충분)/)
+  const uncertaintyRecognized = substantial(/(?:정보|입력|상황|경험|수준).{0,40}(?:부족|없|확인되지|충분하지|모르)|(?:판단|결론|해석).{0,15}(?:보류|열어|유보)/)
+  const fabricated = lines.some((line) => !CAUTION_OR_NEGATION.test(line) && /숨겨진.{0,15}(?:문제|상처|결핍)|(?:당신|본인)은.{0,30}(?:애정결핍|불면|번아웃)|문제.{0,8}없.{0,20}(?:실제로는|사실은)/.test(line))
+  const certainty = lines.some((line) => !CAUTION_OR_NEGATION.test(line) && /반드시.{0,15}(?:합격|이별|결혼|퇴사|망합)|무조건.{0,15}(?:성공|실패)|외도를 (?:합니다|할|확인)|합격률.{0,8}\d+\s*%/.test(line))
+  const dismissesConcern = state === 'concern' && !inputReflected && substantial(/문제.{0,8}없|잘 유지되는 상태|모두 괜찮/)
+  let scope = limitsExplained ? 85 : 55
+  if (state === 'settled' && settledRecognized || state === 'unknown' && uncertaintyRecognized || state === 'concern' && inputReflected) scope = 100
+  if (fabricated || certainty || dismissesConcern) {
+    scope = 0
+    issues.push('입력에 없는 문제·사건을 만들거나 실제 우려를 지우는 단정을 점검하세요.')
+  }
+  if (state === 'settled' && !settledRecognized) issues.push('잘 유지되는 상태를 인정하고 불필요한 교정은 요구하지 마세요.')
+  if (state === 'unknown' && !uncertaintyRecognized && !currentExplained) issues.push('정보 부족을 문제의 증거로 취급하지 말고 판단 범위를 밝혀 주세요.')
+
+  const missingTerms = unexplainedTerms(text)
+  const longSentences = lines.filter((line) => line.length > 180).length / Math.max(1, lines.length)
+  const clarity = percent(100 - Math.min(70, missingTerms.length * 14) - longSentences * 30)
+  if (missingTerms.length) issues.push(`첫 전문용어·한자의 쉬운 풀이 필요: ${missingTerms.slice(0, 6).join(', ')}`)
+  if (longSentences > 0.25) issues.push('한 문장에 조건이 겹쳐 있습니다. 문장을 나누세요.')
+
+  const oversized = parts.filter((part) => part.length > 550).length
+  const structure = percent((parts.length >= 5 ? 100 : parts.length >= 3 ? 75 : parts.length === 2 ? 45 : 0) - oversized * 15)
+  if (parts.length < 5 || oversized) issues.push('답·근거·사례·판단·실행을 읽기 쉬운 의미 단락으로 구분하세요.')
+
+  const scene = substantial(/예를 들|예를 들어|가령|상황에서|장면|경우|만약|반면/)
+  const criterion = substantial(/(?:다면|경우|때|인지).{5,100}(?:확인|비교|판단|기준|구분|유지|조정)|(?:기준|조건).{5,80}(?:확인|비교|맞|달라|다르)/)
+  const action = substantial(/.{10,}(?:기록|적어|비교|질문|확인|정리|유지|나누|합의|관찰|보류|점검).{0,30}(?:하세요|해 보|해보|좋습니다|충분|둡니다|보세요|할 수)/)
+  const feedback = substantial(/(?:변화|반복|전후|결과|여전히|이후|실제로).{4,75}(?:확인|비교|판단|유지|조정|살펴)/)
+  const practical = (scene ? 25 : 0) + (criterion ? 30 : 0) + (action ? 30 : 0) + (feedback ? 15 : 0)
+  if (!scene || !criterion || !action) issues.push('현재 질문에 맞는 생활 사례·판단 조건·실행을 구체적으로 연결하세요.')
+
+  const repeatedWithin = (parts.length - new Set(parts).size) / Math.max(1, parts.length)
+  const repeatedSentences = (lines.length - new Set(lines).size) / Math.max(1, lines.length)
+  const otherParagraphs = new Set(report.sections.filter((item) => item !== section).flatMap((item) => paragraphs(item.interpretation)).filter((part) => part.length > 80))
+  const borrowed = parts.filter((part) => part.length > 80 && otherParagraphs.has(part)).length
+  const repeatedAcross = borrowed >= 2 ? borrowed / Math.max(1, parts.length) : 0
+  const typos = [...text.matchAll(TYPO)].length
+  const internal = INTERNAL.test(text)
+  const integrity = percent(100 - repeatedWithin * 100 - repeatedSentences * 70 - repeatedAcross * 70 - Math.min(50, typos * 15) - (internal ? 50 : 0))
+  if (repeatedWithin || repeatedSentences || repeatedAcross) issues.push('같은 문장·문단의 반복으로 분량을 채우지 말고 항목별 답을 구별하세요.')
+  if (typos) issues.push(`알려진 조사·종결어미 오타 ${typos}건을 검토하세요.`)
+  if (internal) issues.push('내부 필드명·원문 지시문이 본문에 노출되었습니다.')
+
+  // Length is necessary but never sufficient: repeat/keyword padding cannot pass.
+  const depth = percent(Math.min(text.length / 800, 1) * 55 + Math.min(lines.length / 8, 1) * 45)
+  let overall = evidence * 0.2 + scope * 0.15 + clarity * 0.1 + structure * 0.1 + practical * 0.2 + integrity * 0.15 + depth * 0.1
+  if (text.length < 120) overall = Math.min(overall, 15)
+  else if (text.length < 350 || lines.length < 3) overall = Math.min(overall, 40)
+  if (fabricated || certainty || dismissesConcern) overall = Math.min(overall, 45)
+  if (integrity < 50) overall = Math.min(overall, 55)
+  if (!text) overall = 0
+  return { evidence, scope, clarity, structure, practical, integrity, depth, overall: percent(overall), notes: issues }
 }
 
-function homeContextTerms(context: SajuReportContext): string[] {
-  const home = context.home
-  if (!home) return []
-  const raw = [
-    home.addressOrBuilding,
-    home.roadAddress,
-    home.jibunAddress,
-    home.zonecode,
-    home.sido,
-    home.sigungu,
-    home.bname,
-    home.buildingName,
-    home.buildingType,
-    home.livingPeriod,
-    home.mainPurpose,
-    home.stayDecision,
-    ...(home.painPoints ?? []),
-    home.entranceFlow,
-    home.bedroomFeel,
-    home.deskPosition,
-    home.outsideFlow,
-    home.extraNote,
-  ].filter((value): value is string => Boolean(value && value.trim()))
-  return [...raw, ...raw.map((value) => HOME_CONTEXT_TERMS[value]).filter((value): value is string => Boolean(value))]
-}
-
-const WORK_MOVE_CONTEXT_TERMS: Record<string, string> = {
-  move_considering: '이직',
-  offer_review: '오퍼',
-  resignation_timing: '퇴사',
-  internal_transfer: '부서',
-  job_search_start: '이력서',
-  role_blur: '역할',
-  authority_blur: '결정권',
-  boss_pressure: '상사',
-  peer_competition: '경쟁',
-  recognition_gap: '인정',
-  burnout: '번아웃',
-  office: '사무실',
-  hybrid: '하이브리드',
-  remote: '원격',
-  shift: '교대',
-  field: '현장',
-  clear_up: '상승',
-  slight_up: '상승',
-  similar: '비슷',
-  down_for_growth: '성장',
-  unclear: '불명확',
-  money: '돈',
-  growth: '성장',
-  mental: '멘탈',
-  timing: '타이밍',
-  people: '사람',
-  stability: '안정',
-  resume_ready: '이력서',
-  offer_terms_checked: '계약',
-  buffer_ready: '버퍼',
-  exit_script_ready: '퇴사',
-}
-
-function workMoveContextTerms(context: SajuReportContext): string[] {
-  const workMove = context.workMove
-  if (!workMove) return []
-  const raw = [
-    workMove.decisionMode,
-    workMove.currentCompanySignal,
-    workMove.targetCompanyName,
-    workMove.targetRole,
-    workMove.workType,
-    workMove.commuteLocation,
-    workMove.salaryFeeling,
-    workMove.decisionDate,
-    workMove.discomfortPoint,
-    workMove.priority,
-    ...(workMove.realityChecks ?? []),
-  ].filter((value): value is string => Boolean(value && value.trim()))
-  return [...raw, ...raw.map((value) => WORK_MOVE_CONTEXT_TERMS[value]).filter((value): value is string => Boolean(value))]
-}
-
-function contextTerms(context: SajuReportContext): string[] {
-  return [
-    context.serviceKey,
-    context.target,
-    context.orientation,
-    context.relationship,
-    context.work,
-    context.concern,
-    context.partner?.name,
-    context.partner?.relationship,
-    context.partner?.dayMaster,
-    context.partner?.dayMasterElement,
-    context.partner?.dominantElement,
-    ...(context.partner?.tenGods ?? []),
-    ...homeContextTerms(context),
-    ...workMoveContextTerms(context),
-  ].filter((value): value is string => Boolean(value && value.trim()))
-}
-
-function analysisTerms(analysis: SajuAnalysis): string[] {
-  const p = analysis.fourPillars
-  const elements = [
-    analysis.dayMasterElement,
-    analysis.dominantElement,
-    analysis.weakElement,
-    analysis.usefulGod,
-  ].filter((value): value is Element => Boolean(value))
-
-  return [
-    pillarLabel(p.year),
-    pillarLabel(p.month),
-    pillarLabel(p.day),
-    pillarLabel(p.hour),
-    analysis.dayMaster,
-    ...elements.map((element) => ELEMENT_KO[element]),
-    ...analysis.tenGods,
-    analysis.fortune?.currentDaewoon ?? '',
-    analysis.fortune?.yearPillar ?? '',
-    analysis.manseryeok?.gyeokguk.name ?? '',
-    analysis.manseryeok?.climate.note ?? '',
-    ...(analysis.manseryeok?.flowBridges.map((bridge) => ELEMENT_KO[bridge.bridge]) ?? []),
-  ].filter(Boolean)
-}
-
-function scoreCategory(rule: QualityRule, report: SajuReport, analysis: SajuAnalysis, context: SajuReportContext): SajuReportQualityCategory {
-  const sections = selectedSections(report, rule.sectionIds)
-  const text = sections.map((section) => `${section.category} ${section.classification} ${section.hook} ${section.ragTopics.join(' ')} ${section.interpretation}`).join(' ')
-  const ragTopics = sections.flatMap((section) => section.ragTopics)
-  const expectedHits = includesAny(text, rule.expectedTerms)
-  const expectedDenominator = Math.max(1, Math.min(rule.expectedTerms.length, 4))
-  const expectedFullyCovered = expectedHits >= expectedDenominator
-  const toneHits = includesAny(text, TONE_SIGNALS)
-  const riskHits = includesAny(text, RISK_SIGNALS)
-  const sectionCoverage = sections.length / Math.max(1, rule.sectionIds.length)
-  const contextHit = includesAny(text, contextTerms(context))
-  const analysisHit = includesAny(text, analysisTerms(analysis))
-
-  const ragUsagePercent = clampPercent(
-    (sectionCoverage * 24) +
-    (Math.min(ragTopics.length, sections.length * 5) / Math.max(1, sections.length * 5) * 46) +
-    (text.includes('이번 장은') ? 18 : 0) +
-    (text.includes('대조') ? 12 : 0),
-  )
-  const corpusRelevancePercent = clampPercent(
-    (sectionCoverage * 25) +
-    (Math.min(expectedHits, expectedDenominator) / expectedDenominator * 50) +
-    ((expectedFullyCovered || ragTopics.some((topic) => rule.expectedTerms.some((term) => topic.includes(term)))) ? 15 : 0) +
-    (contextHit > 0 ? 10 : 0),
-  )
-  const toneGroundingPercent = clampPercent(
-    (Math.min(toneHits, 5) / 5 * 56) +
-    (rule.riskExpected ? Math.min(riskHits, 3) / 3 * 24 : 22) +
-    (rule.riskExpected
-      ? ((text.includes('시기적으로') && text.includes('풀 방법')) || (text.includes('대운') && text.includes('세운')) ? 14 : 0)
-      : 14) +
-    (sections.every((section) => section.interpretation.length >= 350) ? 8 : 0),
-  )
-  const llmGroundingPercent = clampPercent(
-    (analysisHit >= 6 ? 45 : analysisHit * 7) +
-    (Math.min(expectedHits, expectedDenominator) / expectedDenominator * 25) +
-    (contextHit > 0 ? 12 : 0) +
-    (text.includes('대운') || text.includes('세운') ? 8 : 0) +
-    (text.includes('조후') || text.includes('통관') || text.includes('격국') ? 10 : 0),
-  )
-  const completenessPercent = clampPercent(
-    ragUsagePercent * 0.28 +
-    corpusRelevancePercent * 0.28 +
-    toneGroundingPercent * 0.2 +
-    llmGroundingPercent * 0.24,
-  )
-
+function category(id: string, label: string, sections: SajuReportSection[], reviews: Map<SajuReportSection, EditorialReview>): SajuReportQualityCategory {
+  const checks = sections.map((section) => reviews.get(section)!)
+  const score = (field: keyof Omit<EditorialReview, 'notes'>) => percent(average(checks.map((check) => check[field])))
   return {
-    id: rule.id,
-    label: rule.label,
-    ragUsagePercent,
-    corpusRelevancePercent,
-    toneGroundingPercent,
-    llmGroundingPercent,
-    completenessPercent,
-    sectionIds: sections.map((section) => section.id),
+    id, label, sectionIds: sections.map((section) => section.id),
+    // Zero means UNVERIFIED, not poor RAG. Real usage requires evidence logs.
+    ragUsagePercent: 0, corpusRelevancePercent: 0,
+    toneGroundingPercent: percent((score('scope') + score('clarity') + score('integrity')) / 3),
+    llmGroundingPercent: score('evidence'), completenessPercent: score('overall'),
     evidence: [
-      `섹션 ${sections.length}/${rule.sectionIds.length}`,
-      `RAG topics ${ragTopics.length}`,
-      `분류 키워드 ${expectedHits}/${rule.expectedTerms.length}`,
-      `명식 근거 ${analysisHit}`,
-      contextHit > 0 ? `선택지/고민 반영 ${contextHit}` : '선택지/고민 직접 반영 약함',
+      REPORT_QUALITY_LIMITATION,
+      'RAG 실제 사용률·코퍼스 정확도는 미검증(호환 필드의 0은 미검증 표시이며 총점에서 제외).',
+      `본문 ${sections.length}개 항목: 근거 표현 ${score('evidence')} · 상태/적용 범위 ${score('scope')} · 쉬운말 ${score('clarity')}`,
+      `의미 단락 ${score('structure')} · 구체 사례/기준/실행 ${score('practical')} · 중복/오타 ${score('integrity')} · 설명 분량 ${score('depth')}`,
+      ...[...new Set(checks.flatMap((check) => check.notes))],
     ],
   }
 }
 
-export function evaluateReportQuality(
-  report: SajuReport,
-  analysis: SajuAnalysis,
-  context: SajuReportContext = {},
-): SajuReportQuality {
-  const rules = context.serviceKey === 'love_this_year'
-    ? LOVE_THIS_YEAR_QUALITY_RULES
-    : context.serviceKey === 'home_fit'
-      ? HOME_FIT_QUALITY_RULES
-      : context.serviceKey === 'work_move'
-        ? WORK_MOVE_QUALITY_RULES
-        : context.serviceKey === 'pass_angle'
-          ? PASS_ANGLE_QUALITY_RULES
-        : QUALITY_RULES
-  const categories = rules.map((rule) => scoreCategory(rule, report, analysis, context))
-
+export function evaluateReportQuality(report: SajuReport, _analysis: SajuAnalysis, context: SajuReportContext = {}): SajuReportQuality {
+  const reviews = new Map(report.sections.map((section) => [section, reviewSection(section, report, context)]))
+  const categories: SajuReportQualityCategory[] = []
+  const covered = new Set<SajuReportSection>()
+  if (!context.serviceKey || context.serviceKey === 'saju_master') {
+    for (const [id, label, ids] of MASTER_GROUPS) {
+      const sections = report.sections.filter((section) => ids.includes(section.id))
+      if (!sections.length) continue
+      sections.forEach((section) => covered.add(section))
+      categories.push(category(id, label, sections, reviews))
+    }
+  }
+  const remaining = new Map<string, SajuReportSection[]>()
+  for (const section of report.sections.filter((item) => !covered.has(item))) {
+    const label = section.category || section.classification || '해석'
+    remaining.set(label, [...(remaining.get(label) ?? []), section])
+  }
+  for (const [label, sections] of remaining) categories.push(category(`sections:${sections[0].id}`, label, sections, reviews))
+  const all = [...reviews.values()]
   return {
-    overallPercent: clampPercent(avg(categories.map((category) => category.completenessPercent))),
-    ragUsagePercent: clampPercent(avg(categories.map((category) => category.ragUsagePercent))),
-    corpusRelevancePercent: clampPercent(avg(categories.map((category) => category.corpusRelevancePercent))),
-    toneGroundingPercent: clampPercent(avg(categories.map((category) => category.toneGroundingPercent))),
-    llmGroundingPercent: clampPercent(avg(categories.map((category) => category.llmGroundingPercent))),
-    categories,
+    // Each actual section counts once, even when master categories overlap.
+    overallPercent: percent(average(all.map((review) => review.overall))),
+    ragUsagePercent: 0, corpusRelevancePercent: 0,
+    toneGroundingPercent: percent(average(all.map((review) => (review.scope + review.clarity + review.integrity) / 3))),
+    llmGroundingPercent: percent(average(all.map((review) => review.evidence))), categories,
   }
 }
 
-export function finalizeSpecializedReport(
-  report: SajuReport,
-  analysis: SajuAnalysis,
-  context: SajuReportContext,
-): SajuReport {
+export function finalizeSpecializedReport(report: SajuReport, analysis: SajuAnalysis, context: SajuReportContext): SajuReport {
   const normalized = normalizeReportCopy(report)
   normalized.quality = evaluateReportQuality(normalized, analysis, context)
   return normalized

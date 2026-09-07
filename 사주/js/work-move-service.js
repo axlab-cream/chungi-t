@@ -371,7 +371,7 @@
 
   async function requestAnalysis(payload) {
     const session = await getAuthSession();
-    const response = await fetch('/api/saju/analyze', {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)('/api/saju/analyze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -556,7 +556,7 @@
   }
 
 function firstSentence(text) {
-    return String(text || '').split(/\n\n|(?<=\.)\s+/).find(Boolean) || '';
+    return window.UMSHReportAccess.firstInsight(text);
   }
 
   function setupStep4() {

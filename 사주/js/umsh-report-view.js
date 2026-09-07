@@ -144,7 +144,13 @@
     state.publicId = publicId;
     setLoading(true);
     try {
-      var payload = await api('/api/r/' + encodeURIComponent(publicId));
+      var epoch = global.UMSHReportAccess && global.UMSHReportAccess.ownerEpoch();
+      var payload = await api('/api/report/' + encodeURIComponent(publicId) + (new URLSearchParams(location.search).get('preview')==='1'?'?preview=1':''));
+      if (global.UMSHReportAccess) {
+        if (epoch !== global.UMSHReportAccess.ownerEpoch()) return;
+        global.UMSHReportAccess.consume(payload, authHeaders());
+        return;
+      }
       await global.UMSHProgressiveReport.followProgress({
         payload: payload,
         replacePublicUrl: false,
@@ -173,6 +179,7 @@
 
   async function initAuth() {
     state.authConfig = await fetch('/api/auth/config').then(function (res) { return res.json(); });
+    if(state.authConfig.developmentReportAccess===true) {await loadPublicReport();return;}
     if (!state.authConfig.enabled || !global.supabase || !global.UMSHAuthSession) {
       openCommonLogin();
       return;

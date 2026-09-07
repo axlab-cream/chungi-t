@@ -1,20 +1,17 @@
 import { createHash } from 'node:crypto'
 import type {
   BirthInput,
-  EarthlyBranch,
   RagChunk,
   SajuAnalysis,
   SajuReport,
   SajuReportContext,
   SajuReportSection,
-  TenGod,
 } from '../types/index.js'
-import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
+import { practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
+import { JOB_DETAILS } from './practical-readings.js'
 
 export const JOB_CHOICE_SERVICE_KEY = 'job_choice'
 
@@ -240,14 +237,13 @@ export function parseJobChoiceRequest(body: Record<string, unknown>): JobChoiceR
   const workModeRaw = trimmed(body.workMode ?? body.work_mode, 20)
   const commute = trimmed(body.commute, 60)
   const salaryRaw = trimmed(body.salaryFeeling ?? body.salary_feeling, 20)
-  const concernPoint = trimmed(body.concernPoint ?? body.concern_point, 200)
+  const concernPoint = trimmed(body.concernPoint ?? body.concern_point, 200) || '별도 우려 미입력'
 
   if (!companyName) throw new Error('판단할 회사 또는 오퍼명을 입력해 주세요.')
   if (!roleName) throw new Error('맡게 될 직무를 입력해 주세요.')
   if (!WORK_MODE_LABEL[workModeRaw]) throw new Error('근무 형태를 선택해 주세요.')
   if (!commute) throw new Error('출퇴근 또는 근무지 조건을 입력해 주세요.')
   if (!SALARY_LABEL[salaryRaw]) throw new Error('연봉·조건 체감을 선택해 주세요.')
-  if (!concernPoint) throw new Error('가장 찝찝한 포인트를 한 줄이라도 적어 주세요.')
 
   return {
     companyName,
@@ -284,182 +280,11 @@ export function createJobChoiceReportId(
 ): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar },
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar, ...(birth.minute ? { minute: birth.minute } : {}) },
     input,
     serviceKey: JOB_CHOICE_SERVICE_KEY,
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
-}
-
-/** Korean particles depend on the last syllable's final consonant. */
-function hasFinalConsonant(word: string): boolean {
-  const last = word.replace(/[^가-힣]/g, '').slice(-1)
-  if (!last) return false
-  const code = last.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return true
-  return (code - 0xac00) % 28 !== 0
-}
-
-const topic = (word: string): string => `${word}${hasFinalConsonant(word) ? '은' : '는'}`
-const subject = (word: string): string => `${word}${hasFinalConsonant(word) ? '이' : '가'}`
-const copula = (word: string): string => `${word}${hasFinalConsonant(word) ? '이라' : '라'}`
-const object = (word: string): string => `${word}${hasFinalConsonant(word) ? '을' : '를'}`
-
-const OFFICIAL_STARS: TenGod[] = ['정관', '편관']
-const WEALTH_STARS: TenGod[] = ['정재', '편재']
-const PEER_STARS: TenGod[] = ['비견', '겁재']
-const RESOURCE_STARS: TenGod[] = ['정인', '편인']
-const OUTPUT_STARS: TenGod[] = ['식신', '상관']
-
-/** 역마 sits on the 인신사해 axis; it is what says how much moving a job will ask for. */
-const TRAVEL_BRANCHES: EarthlyBranch[] = ['寅', '申', '巳', '亥']
-
-function ownedStars(analysis: SajuAnalysis, stars: TenGod[]): TenGod[] {
-  return Array.from(new Set(analysis.tenGods.filter((god) => stars.includes(god))))
-}
-
-/**
- * 자미두수 reads a job through 관록·재백·노복·천이·복덕궁. This service does not cast a
- * 명반 — it reads the same five seats out of the 사주 원국 the account already holds, so
- * every line below says which 원국 signal it came from rather than naming a star it
- * never computed.
- */
-type PalaceId = 'career' | 'wealth' | 'friends' | 'travel' | 'fortune'
-
-function palaceLine(palace: PalaceId, analysis: SajuAnalysis): string {
-  const branches: EarthlyBranch[] = [
-    analysis.fourPillars.year.branch,
-    analysis.fourPillars.month.branch,
-    analysis.fourPillars.day.branch,
-    analysis.fourPillars.hour.branch,
-  ]
-  if (palace === 'career') {
-    const stars = ownedStars(analysis, OFFICIAL_STARS)
-    if (!stars.length) {
-      return '관록궁이 보는 자리를 원국에서 찾으면 관성이 드러나 있지 않아요. 조직이 정해 준 자리보다 당신이 만든 역할에서 힘이 붙는 구조예요.'
-    }
-    return `관록궁이 보는 자리를 원국에서 찾으면 ${subject(stars.join('·'))} 잡혀요. 당신이 조직 안에서 책임을 지는 방식이 여기서 정해져요.`
-  }
-  if (palace === 'wealth') {
-    const stars = ownedStars(analysis, WEALTH_STARS)
-    if (!stars.length) {
-      return '재백궁 쪽을 원국에서 보면 재성이 얇네. 들어오는 액수보다 남는 구조를 따로 설계해야 하는 자리예요.'
-    }
-    return `재백궁 쪽을 원국에서 보면 ${subject(stars.join('·'))} 잡혀요. 돈이 들어오는 결과 쌓이는 결이 여기서 갈려요.`
-  }
-  if (palace === 'friends') {
-    const stars = ownedStars(analysis, PEER_STARS)
-    if (!stars.length) {
-      return '노복궁이 보는 사람 자리를 원국에서 보면 비겁이 얇네. 무리에 섞이기보다 한둘과 깊게 붙는 편이 덜 지쳐요.'
-    }
-    return `노복궁이 보는 사람 자리를 원국에서 보면 ${subject(stars.join('·'))} 잡혀요. 동료와 힘을 나누는 방식이자 부딪히는 방식입니다.`
-  }
-  if (palace === 'travel') {
-    const owned = branches.filter((branch) => TRAVEL_BRANCHES.includes(branch))
-    if (!owned.length) {
-      return '천이궁이 보는 이동 자리를 원국에서 보면 역마가 비어 있어요. 자리를 자주 옮기는 일보다 한자리에서 깊어지는 일에 힘이 붙어요.'
-    }
-    const label = Array.from(new Set(owned)).map((branch) => `${BRANCH_KO[branch]}(${branch})`).join('·')
-    return `천이궁이 보는 이동 자리를 원국에서 보면 역마 자리에 ${label}${subject('')} 들어 있어요. 움직임이 있는 자리에서 오히려 리듬이 살아나는 편입니다.`
-  }
-  const resource = ownedStars(analysis, RESOURCE_STARS)
-  const output = ownedStars(analysis, OUTPUT_STARS)
-  if (!resource.length && !output.length) {
-    return '복덕궁이 보는 회복 자리를 원국에서 보면 인성과 식상이 둘 다 얇네. 쉬는 방식을 미리 정해 두지 않으면 소모가 빨리 와요.'
-  }
-  const parts = [resource.length ? `인성 ${resource.join('·')}` : '', output.length ? `식상 ${output.join('·')}` : ''].filter(Boolean)
-  return `복덕궁이 보는 회복 자리를 원국에서 보면 ${subject(parts.join('과 '))} 잡혀요. 당신이 힘을 채우는 통로가 여기입니다.`
-}
-
-function timingLine(analysis: SajuAnalysis, input: JobChoiceRequest): string {
-  const fortune = analysis.fortune
-  const decision = input.decisionDate ? `결정 예정일은 ${input.decisionDate}. 그전까지 확인할 조건을 남겨 두세.` : '결정 예정일을 따로 적지 않았으니, 확인할 조건이 끝나는 날을 당신이 정하세요.'
-  if (!fortune) return `대한과 유년은 단정하지 않고 지금 원국에 드러난 조건으로 볼게요. ${decision}`
-  return `자미두수로 치면 대한에 해당하는 당신의 현재 대운은 ${fortune.currentDaewoon}, 올해 유년에 해당하는 세운은 ${fortune.yearPillar}입니다. ${decision}`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` field labels and instructions such as "원문 문장을 출력하지 말고".
- * Pasting those verbatim would put internal scaffolding on a paid page.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 160): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/** Only a knowledge block's interpretation/advice/opportunity read as prose. */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const block = chunk.knowledge
-  const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 160)
-    if (line) return humanize(line)
-  }
-  return fallback
-}
-
-/** Which seat each 대분류 reads from, so the ten groups do not repeat one sentence. */
-const GROUP_PALACE: Record<string, PalaceId> = {
-  'company-fit': 'career',
-  'role-fit': 'career',
-  'office-chemistry': 'friends',
-  'money-value': 'wealth',
-  'growth-angle': 'career',
-  'work-environment': 'travel',
-  'risk-check': 'friends',
-  'entry-timing': 'career',
-  'mental-balance': 'fortune',
-  'action-plan': 'wealth',
-}
-
-/**
- * Items inside one 대분류 share the group's angle, so the reading rotates what it asks
- * of each item. Without this the six 직무 핏 items would open on the same sentence.
- */
-const ITEM_ANGLES = [
-  '지금 조건에서 실제로 어떻게 나타나는지부터 보여요.',
-  '마음이 가는 쪽과 걸리는 쪽을 갈라 놓고 보여요.',
-  '입사 전에 물어서 확인할 수 있는 것으로 바꿔 보여요.',
-]
-
-/** The pack written for this service; see data/corpus/. */
-const OWN_CORPUS_DOMAIN = 'job_choice_service'
-
-/**
- * Read this service's own pack first. The rest of the corpus answers other questions,
- * so a line from another pack is usually wrong here even when it reads fine.
- */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
 }
 
 function buildInterpretation(params: {
@@ -472,30 +297,34 @@ function buildInterpretation(params: {
   chunks: RagChunk[]
   index: number
 }): string {
-  const { group, itemTitle, itemIndex, analysis, birth, input, chunks, index } = params
-  const day = analysis.fourPillars.day
-  const palace = GROUP_PALACE[group.id] ?? 'career'
-  const dominant = ELEMENT_KO[analysis.dominantElement]
-  const weak = ELEMENT_KO[analysis.weakElement]
-  const strength = analysis.dayMasterStrength === 'strong'
-    ? '일간이 단단한 편이라 주도권을 쥘 때 힘이 붙어요'
-    : analysis.dayMasterStrength === 'weak'
-      ? '일간이 여린 편이라 혼자 밀어붙이기보다 받쳐 주는 구조가 필요해요'
-      : '일간이 균형에 가까워 조건에 따라 힘의 방향이 달라져요'
-  const ragLine = ragLineFrom(
-    pickRag(chunks, index),
-    '직장 선택은 회사의 조건만이 아니라 당신이 힘을 쓰는 방식과 회복하는 방식을 같이 놓고 봐야 합니다.',
-  )
-
-  return applyServiceTone([
-    `${group.label} ${group.title} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} ${object(input.companyName)} 이 자리에서 볼게요.`,
-    `${group.preview} ${itemTitle} 항목은 ${ITEM_ANGLES[itemIndex % ITEM_ANGLES.length]} ${palaceLine(palace, analysis)}`,
-    `당신은 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으며, ${strength}. ${input.roleName} 직무를 ${WORK_MODE_LABEL[input.workMode]}로, 출퇴근은 "${input.commute}" 조건으로 두었으니 ${group.focus} 쪽에서 무엇이 남고 무엇이 새는지 여기서 갈려요.`,
-    `${timingLine(analysis, input)} 조건 체감은 ${copula(SALARY_LABEL[input.salaryFeeling])} 하였고, 가장 걸리는 말은 "${input.concernPoint}"입니다. 이 풀이는 합격이나 연봉을 맞히는 자리가 아니라 확인할 순서를 정하는 자리예요.`,
-    `참고할 결은 이래요. ${ragLine} 다만 조심할 것이 하나 있어요. ${group.caution}`,
-    `오늘 할 수 있는 것은 이것이에요. ${group.action} 자미두수의 궁 이름을 빌려 보았으나 근거는 당신 사주 원국과 입력한 조건이에요. 마지막 판단은 이 문장이 아니라 당신이 직접 물어서 받은 답으로 하게.`,
-  ].join('\n\n'), JOB_CHOICE_SERVICE_KEY)
+  const { group, itemTitle, analysis, input } = params
+  const reading = JOB_DETAILS[itemTitle]
+  if (!reading) throw new Error(`직장 선택 항목별 해석 누락: ${itemTitle}`)
+  const state = reportedState(input.concernPoint)
+  const kind = group.id === 'money-value' ? 'money' : group.id === 'growth-angle' ? 'learning'
+    : group.id === 'office-chemistry' ? 'people' : group.id === 'entry-timing' ? 'timing' : 'role'
+  const current = group.id === 'money-value'
+    ? `보상에 대한 입력은 “${SALARY_LABEL[input.salaryFeeling]}”입니다. 실제 급여·성과급·추가 비용의 숫자는 제공되지 않았으므로 금액 비교를 완료한 것으로 보지 않습니다.`
+    : group.id === 'work-environment'
+      ? `근무 형태는 ${WORK_MODE_LABEL[input.workMode]}입니다. ${quotedInput('출퇴근 조건', input.commute)} 이 정보를 기준으로 생활에 맞는지 살펴봅니다.`
+      : group.id === 'entry-timing'
+        ? quotedInput('결정 예정일', input.decisionDate)
+        : `검토 중인 후보는 “${input.companyName}”, 역할은 “${input.roleName}”입니다. ${quotedInput('현재 의견', input.concernPoint)} 회사의 문화나 사람에 관한 외부 확인 자료는 별도로 제공되지 않았습니다.`
+  return practicalReading({
+    title: itemTitle, detail: reading, current,
+    evidence: workSymbol(analysis, kind),
+    application: state === 'settled'
+      ? '현재 입력은 문제보다 긍정적인 조건을 확인하려는 뜻을 포함합니다. 위 장면이 실제로 나타나지 않으면 위험으로 적용하지 말고, 이미 괜찮은 조건을 유지할 근거로 읽으십시오.'
+      : state === 'concern'
+        ? '적어 주신 어려움은 판단에 포함하되 회사 전체의 특성으로 일반화하지 않습니다. 이 항목과 직접 연결되는 경험이 있는지를 먼저 대조하십시오.'
+        : '아직 확인하지 않은 조건은 나쁜 조건과 다릅니다. 이 항목은 현재 후보를 탈락시키는 판정이 아니라 필요한 질문을 정리하는 기준입니다.',
+    closing: group.id === 'action-plan' && itemTitle === '그만둘 각/버틸 각 구분'
+      ? '자미두수 명반은 제공되지 않았습니다. 이 보고서는 실제 궁 배치를 계산한 해석이 아니라 입력한 회사 조건과 검증된 사주 정보를 구별해 살피는 참고 자료입니다.'
+      : undefined,
+  })
 }
+
+const OWN_CORPUS_DOMAIN = 'job_choice_service'
 
 export function buildJobChoiceReport(
   analysis: SajuAnalysis,

@@ -128,7 +128,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -210,7 +210,7 @@
     if (reportPromise) return reportPromise;
     reportPromise = (async () => {
       const cached = readJson('sessionStorage', STORAGE.report);
-      if (cached?.sections?.length) return { report: cached };
+      if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
       const payload = readJson('sessionStorage', STORAGE.input);
       const request = buildRequest(payload);
@@ -470,11 +470,19 @@
       if (!section || detail.dataset.saveApplied === section.id) return;
 
       const parts = paragraphs(section);
-      if (parts.length < 5) return;
+      if (!parts.length) return;
 
       // The template writes the same six roles for every section, so each block takes
       // the paragraph that belongs under its heading instead of a running text dump.
       const [conclusion, reality, condition, focus, evidence, action] = parts;
+      let fullReading = detail.querySelector('[data-full-interpretation]');
+      if (!fullReading) {
+        fullReading = document.createElement('article');
+        fullReading.dataset.fullInterpretation = '';
+        fullReading.style.whiteSpace = 'pre-wrap';
+        detail.prepend(fullReading);
+      }
+      fullReading.textContent = section.interpretation || '';
       const set = (id, text) => {
         const node = document.querySelector(id);
         if (node && text) node.textContent = text;

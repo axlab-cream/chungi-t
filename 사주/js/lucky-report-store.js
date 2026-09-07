@@ -13,6 +13,7 @@
   var REPORT_KEY = 'umsh:report:lucky_color';
 
   function readReport() {
+    if (window.UMSHReportAccess) return window.UMSHReportAccess.verifiedReport();
     try {
       var raw = window.sessionStorage.getItem(REPORT_KEY);
       if (!raw) return null;

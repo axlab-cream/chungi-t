@@ -3,8 +3,8 @@ qa-*.png
 *.mhtml
 node_modules
 tmp/
-.env
-.env.local
+.env*
+!.env.example
 .git
 .vercel/output
 *.log

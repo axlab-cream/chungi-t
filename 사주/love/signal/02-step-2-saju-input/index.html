@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <script src="/js/umsh-report-access.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>사주 입력 | 내 애인 바람필까?</title>
@@ -889,7 +890,7 @@
 
             <div class="notice">
               <strong>운영 기준</strong>
-              <p>이 서비스는 외도 여부를 단정하지 않습니다. 관계 온도, 외부 유혹에 흔들릴 수 있는 구간, 확인 대화가 필요한 타이밍을 참고 해석으로 제공합니다.</p>
+              <p>이 서비스는 외도 여부를 단정하지 않습니다. 관계 온도, 실제로 관찰한 관계 변화, 확인 대화가 필요한 타이밍을 참고 해석으로 제공합니다.</p>
             </div>
           </section>
 
@@ -919,15 +920,15 @@
         price_krw: 19900,
         analysis_basis: ["명리궁합", "오행", "일지"],
         analysis_period: "현재 흐름과 가까운 시기",
-        target_question: "내 애인이 지금 다른 사람에게 흔들릴 가능성이 있는지 관계 신호를 보고 싶다.",
+        target_question: "관계에서 확인된 변화와 서로 합의한 경계를 살펴보고 싶다.",
         report_version: "couple-signal-v1",
         copy_version: "input-red-v1"
       };
 
       const interpretationIndex = [
         { id: "relationship_temperature", title: "지금 우리 관계 온도", items: ["찐사랑 유지각", "권태기 살짝 온 듯", "연락 텐션 변화", "데이트 에너지 변화"] },
-        { id: "partner_signal_radar", title: "애인의 바람기 레이더", items: ["도화·홍염 기반 매력 신호", "관심받는 걸 즐기는 타입", "선 넘기 쉬운 환경운", "외부 유혹에 약한 시기"] },
-        { id: "switch_flirt_check", title: "환승각·썸각 체크", items: ["새 사람에게 흔들릴 수 있는 타이밍", "SNS·모임 변수", "전애인 재등장 가능성"] },
+        { id: "partner_signal_radar", title: "관계 밖 활동과 합의한 경계", items: ["도화·홍염 기반 매력 신호", "관심받는 걸 즐기는 타입", "불편한 상황에서 지킬 경계", "관계의 경계를 확인할 상황"] },
+        { id: "switch_flirt_check", title: "새 접점과 관계 의향", items: ["새로운 만남에 대한 합의", "SNS·모임 변수", "과거 관계에 대한 현재의 기준"] },
         { id: "partner_palace_signal", title: "부부궁·연인궁 시그널", items: ["부부궁 충·합·형·파·해 체크", "원진살식 미움 포인트", "관계가 붙는 구조 vs 밀어내는 구조"] },
         { id: "ten_gods_love_style", title: "십성으로 보는 연애 스타일", items: ["상관", "편재", "정재", "정관", "편인", "정인"] },
         { id: "compatibility_chemistry", title: "궁합 케미 분석", items: ["천간 궁합", "지지 궁합", "오행 상생", "오행 상극", "의사소통 잘 되는 타입"] },

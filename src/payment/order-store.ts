@@ -153,11 +153,11 @@ export async function getPaymentOrder(orderId: string): Promise<PaymentOrder | n
   return result.rows[0] ? fromRow(result.rows[0]) : null
 }
 
-export async function listPaymentOrders(ownerId: string, limit = 50): Promise<PaymentOrder[]> {
+export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string): Promise<PaymentOrder[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
   if (storageMode() === 'memory') {
     return Array.from(memoryOrders.values())
-      .filter((order) => order.ownerId === ownerId)
+      .filter((order) => order.ownerId === ownerId && (!reportId || order.reportId === reportId))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, safeLimit)
       .map(cloneOrder)
@@ -166,6 +166,7 @@ export async function listPaymentOrders(ownerId: string, limit = 50): Promise<Pa
   if (storageMode() === 'supabase') {
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('owner_id', `eq.${ownerId}`)
+    if (reportId) url.searchParams.set('report_id', `eq.${reportId}`)
     url.searchParams.set('select', '*')
     url.searchParams.set('order', 'updated_at.desc')
     url.searchParams.set('limit', String(safeLimit))
@@ -178,8 +179,8 @@ export async function listPaymentOrders(ownerId: string, limit = 50): Promise<Pa
   if (!pool) return []
   await ensureDb()
   const result = await pool.query<Record<string, unknown>>(
-    'SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT $2',
-    [ownerId, safeLimit],
+    'SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 AND ($3::text IS NULL OR report_id = $3) ORDER BY updated_at DESC LIMIT $2',
+    [ownerId, safeLimit, reportId ?? null],
   )
   return result.rows.map(fromRow)
 }

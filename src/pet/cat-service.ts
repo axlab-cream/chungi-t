@@ -1,20 +1,17 @@
 import { createHash } from 'node:crypto'
 import type {
   BirthInput,
-  Element,
   RagChunk,
   SajuAnalysis,
   SajuReport,
   SajuReportContext,
   SajuReportSection,
-  TenGod,
 } from '../types/index.js'
-import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
+import { dayMasterDefinition, elementEvidence, practicalReading, quotedInput } from '../report/practical-service-copy.js'
+import { CAT_DETAILS } from './cat-practical-readings.js'
 
 export const CAT_COMPAT_SERVICE_KEY = 'cat_compatibility'
 
@@ -321,233 +318,11 @@ export function createCatCompatReportId(
 ): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar },
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar, ...(birth.minute ? { minute: birth.minute } : {}) },
     input,
     serviceKey: CAT_COMPAT_SERVICE_KEY,
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
-}
-
-/** Korean particles depend on the last syllable's final consonant. */
-function hasFinalConsonant(word: string): boolean {
-  const last = word.replace(/[^가-힣]/g, '').slice(-1)
-  if (!last) return false
-  const code = last.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return true
-  return (code - 0xac00) % 28 !== 0
-}
-
-const topic = (word: string): string => `${word}${hasFinalConsonant(word) ? '은' : '는'}`
-const subject = (word: string): string => `${word}${hasFinalConsonant(word) ? '이' : '가'}`
-const copula = (word: string): string => `${word}${hasFinalConsonant(word) ? '이라' : '라'}`
-
-const OUTPUT_STARS: TenGod[] = ['식신', '상관']
-const RESOURCE_STARS: TenGod[] = ['정인', '편인']
-const OFFICIAL_STARS: TenGod[] = ['정관', '편관']
-
-function ownedStars(analysis: SajuAnalysis, stars: TenGod[]): TenGod[] {
-  return [...new Set(analysis.tenGods.filter((god) => stars.includes(god)))]
-}
-
-/**
- * The seat of the reading each 대분류 opens on. Every line below names the 원국 signal
- * it came from — this service reads the guardian's own chart plus what they reported
- * about the cat, and never claims to have cast the cat's chart.
- */
-type ChartSeat = 'strength' | 'output' | 'branch' | 'balance' | 'official' | 'elements' | 'timing' | 'resource'
-
-function strengthLine(analysis: SajuAnalysis): string {
-  if (analysis.dayMasterStrength === 'strong') {
-    return '당신 일간이 단단한 편이라 챙기는 힘은 넉넉해요. 다만 그 힘이 상대의 속도를 앞질러 나갈 때가 있어요.'
-  }
-  if (analysis.dayMasterStrength === 'weak') {
-    return '당신 일간이 여린 편이라 한 번에 많이 쏟으면 뒤가 비네. 조금씩 오래 가는 방식이 맞아요.'
-  }
-  return '당신 일간이 균형에 가까워, 챙기는 양보다 언제 챙기는지가 결과를 가려요.'
-}
-
-function outputLine(analysis: SajuAnalysis): string {
-  const stars = ownedStars(analysis, OUTPUT_STARS)
-  if (!stars.length) {
-    return '원국에 식상이 얇아 마음이 있어도 표현이 늦게 나가요. 말보다 손길과 시간으로 전해지는 쪽이에요.'
-  }
-  return `원국의 식상은 ${subject(stars.join('·'))} 잡히니 표현이 밖으로 잘 나가요. 다만 사람에게 통하는 크기가 고양이에게는 클 수 있어요.`
-}
-
-function branchLine(analysis: SajuAnalysis): string {
-  const day = analysis.fourPillars.day
-  return `당신 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 이 자리가 당신이 편안해지는 거리와 자리를 정해요. 그 거리가 고양이의 거리와 늘 같지는 않아요.`
-}
-
-function balanceLine(analysis: SajuAnalysis): string {
-  const dominant = ELEMENT_KO[analysis.dominantElement]
-  const weak = ELEMENT_KO[analysis.weakElement]
-  return `원국은 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으니, 하루의 리듬도 ${dominant} 쪽으로 몰리기 쉬워요. 몰리는 자리와 비는 자리를 먼저 알아 두세요.`
-}
-
-function officialLine(analysis: SajuAnalysis): string {
-  const stars = ownedStars(analysis, OFFICIAL_STARS)
-  if (!stars.length) {
-    return '원국에 관성이 드러나지 않아 규칙을 스스로 만들어야 해요. 규칙이 없으면 부딪힘이 매번 처음처럼 느껴지네.'
-  }
-  return `원국의 관성은 ${subject(stars.join('·'))} 잡히니 규칙과 책임을 세우는 힘이 있어요. 그 힘이 통제로 기울면 상대가 먼저 물러나네.`
-}
-
-const ELEMENT_CARE: Array<[Element, string, string]> = [
-  ['wood', '목', '성장과 놀이'],
-  ['fire', '화', '표현과 흥분'],
-  ['earth', '토', '안정과 루틴'],
-  ['metal', '금', '규칙과 정리'],
-  ['water', '수', '휴식과 혼자만의 시간'],
-]
-
-function elementsLine(analysis: SajuAnalysis): string {
-  const counts = analysis.elementCount
-  const tally = ELEMENT_CARE.map(([element, short]) => `${short} ${counts[element]}`).join(', ')
-  const thin = ELEMENT_CARE
-    .filter(([element]) => counts[element] === Math.min(...ELEMENT_CARE.map(([key]) => counts[key])))
-    .map(([, short, gloss]) => `${short}(${gloss})`)
-    .join('·')
-  return `원국의 오행은 ${tally}로 잡혀요. 가장 얇은 자리는 ${thin}이니, 그 자리를 케어 루틴으로 메우는 것이 이 장의 방식입니다.`
-}
-
-function timingLine(analysis: SajuAnalysis, input: CatCompatRequest): string {
-  const fortune = analysis.fortune
-  const event = input.upcomingEvent === 'none'
-    ? '예정된 일정을 따로 적지 않았으니, 바꾸려는 것이 생겼을 때 이 장을 다시 보세요.'
-    : `예정된 일정은 ${copula(EVENT_LABEL[input.upcomingEvent])} 하였으니 그 전후로 생활을 흔들지 않는 것이 먼저입니다.`
-  if (!fortune) return `대운과 세운은 단정하지 않고 지금 원국에 드러난 조건으로 볼게요. ${event}`
-  return `당신의 현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}입니다. ${event}`
-}
-
-function resourceLine(analysis: SajuAnalysis): string {
-  const stars = ownedStars(analysis, RESOURCE_STARS)
-  if (!stars.length) {
-    return '원국에 인성이 얇아 스스로 채우는 통로가 좁네. 쉬는 시간을 미리 정해 두지 않으면 소모가 빨리 와요.'
-  }
-  return `원국의 인성은 ${subject(stars.join('·'))} 잡히니 채우는 통로가 있어요. 그 통로를 돌봄에만 쓰면 당신 쪽이 먼저 마르네.`
-}
-
-function seatLine(seat: ChartSeat, analysis: SajuAnalysis, input: CatCompatRequest): string {
-  if (seat === 'strength') return strengthLine(analysis)
-  if (seat === 'output') return outputLine(analysis)
-  if (seat === 'branch') return branchLine(analysis)
-  if (seat === 'balance') return balanceLine(analysis)
-  if (seat === 'official') return officialLine(analysis)
-  if (seat === 'elements') return elementsLine(analysis)
-  if (seat === 'timing') return timingLine(analysis, input)
-  return resourceLine(analysis)
-}
-
-/** Which seat each 대분류 reads from, so the ten groups do not repeat one sentence. */
-const GROUP_SEAT: Record<string, ChartSeat> = {
-  'guardian-defaults': 'strength',
-  'chemistry-temperature': 'output',
-  'distance-compat': 'branch',
-  'routine-sync': 'balance',
-  'space-compat': 'balance',
-  'trouble-pattern': 'official',
-  'five-elements-care': 'elements',
-  'adoption-intro-timing': 'timing',
-  'burnout-prevention': 'resource',
-  'today-cat-action': 'timing',
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` field labels and instructions such as "원문 문장을 출력하지 말고".
- * Pasting those verbatim would put internal scaffolding on a paid page.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산|십신 이름|나열하는 것보다|축이 전면|전문 명칭|내부 근거|같은 말로 바꾼다|용어를 그대로|해석 밀도|밀도를 높|축만 골라)/
-
-function compact(text: string, fallback: string, limit = 160): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/** The pack written for this service; see data/corpus/cat-compatibility-service.json. */
-const OWN_CORPUS_DOMAIN = 'cat_compatibility_service'
-
-/**
- * The rest of the corpus is written about people — 연애, 결혼, 이직, 시험. A line about
- * an 오퍼 or a 배우자 lands as nonsense on a page about a cat, so a chunk from another
- * pack is only used when it names nothing from another domain and does speak about
- * something this page is actually about.
- */
-const OFF_DOMAIN = /(이직|퇴사|연봉|오퍼|면접|승진|직장|회사|사업|창업|결혼|연애|배우자|애인|남편|아내|이성|합격|시험|입시|수험|투자|재물운|직업)/
-const ON_DOMAIN = /(거리|리듬|루틴|생활|휴식|회복|반응|돌봄|애착|불안|예민|공간|성향|기운|오행|속도|경계|관계)/
-
-/**
- * Only a knowledge block's interpretation/advice/opportunity read as prose.
- *
- * This service's own pack is written for this page and needs no domain gate — gating it
- * would only reject blocks for not happening to use one of the words above. Everything
- * else still has to pass both gates.
- */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const trusted = chunk.domain === OWN_CORPUS_DOMAIN
-  const block = chunk.knowledge
-  const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 160)
-    if (!line) continue
-    if (trusted) return humanize(line)
-    if (!OFF_DOMAIN.test(line) && ON_DOMAIN.test(line)) return humanize(line)
-  }
-  return fallback
-}
-
-/**
- * Items inside one 대분류 share the group's seat, so the reading rotates what it asks
- * of each item. Without this the five items of a group would open the same way.
- */
-const ITEM_ANGLES = [
-  '지금 생활에서 실제로 어떻게 나타나는지부터 보여요.',
-  '내가 하는 쪽과 고양이가 받는 쪽을 갈라 놓고 보여요.',
-  '오늘 바꿔 볼 수 있는 한 가지로 좁혀 보여요.',
-]
-
-/**
- * Read this service's own pack first. The rest of the corpus is written about people —
- * 연애, 결혼, 이직, 시험 — so a line from another pack is usually the wrong answer here
- * even when it survives the domain gate below.
- */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
-}
-
-function catLine(input: CatCompatRequest): string {
-  const tags = input.behaviorTags.length ? input.behaviorTags.join('·') : '적어 둔 성향 태그 없음'
-  const age = input.ageBand === 'unknown'
-    ? '나이는 모른다 하였으니 생일 대신 행동으로만 읽겠네'
-    : `${AGE_LABEL[input.ageBand]} 구간이라 했어요`
-  return `${topic(input.catName)} ${HOUSEHOLD_LABEL[input.household]}에서 지내고, ${age}. 성향은 ${tags}, 손길은 ${TOUCH_LABEL[input.touchStyle]}, 놀이는 ${copula(PLAY_LABEL[input.playEnergy])} 했어요.`
 }
 
 function buildInterpretation(params: {
@@ -561,27 +336,32 @@ function buildInterpretation(params: {
   chunks: RagChunk[]
   index: number
 }): string {
-  const { group, itemTitle, itemNote, itemIndex, analysis, birth, input, chunks, index } = params
-  const seat = GROUP_SEAT[group.id] ?? 'strength'
-  const ragLine = ragLineFrom(
-    pickRag(chunks, index),
-    '함께 사는 궁합은 애정의 크기보다 생활의 박자와 회복하는 방식에서 갈립니다.',
-  )
-  const worry = input.note
-    ? `적어 준 말은 "${input.note}"입니다.`
-    : '따로 적은 말은 없으니 반복되는 장면을 중심으로 볼게요.'
-  const routine = input.routineFlags.length
-    ? `루틴에서 걸리는 것은 ${copula(input.routineFlags.join('·'))} 했어요.`
-    : '루틴에서 크게 걸리는 것은 없다 했어요.'
-
-  return applyServiceTone([
-    `${group.label} ${group.title} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), ${catLine(input)}`,
-    `${itemNote} ${itemTitle} 항목은 ${ITEM_ANGLES[itemIndex % ITEM_ANGLES.length]} ${seatLine(seat, analysis, input)}`,
-    `${group.subtitle} ${routine} 가장 먼저 보고 싶다 한 자리는 ${copula(FOCUS_LABEL[input.focusArea])} 하였으니, 이 장은 그 자리와 이어 붙여 읽으면 돼요.`,
-    `${timingLine(analysis, input)} 이 풀이는 고양이의 병이나 수명을 말하는 자리가 아니에요. 건강이 걱정되면 수의사에게 먼저 보이는 것이 순서입니다.`,
-    `참고할 결은 이래요. ${ragLine} 그러니 결론을 서두르지 말고, 무엇을 바꿀 수 있고 무엇을 기다려야 하는지부터 가르게.`,
-    `${worry} 오늘 해 볼 것은 이것이에요. ${itemNote.replace(/봅니다\.$|살핍니다\.$|잡습니다\.$|가릅니다\.$|둡니다\.$/, '한 번만 확인해 보세요.')} 사람의 방식이 아니라 ${input.catName}의 반응으로 확인하게. 고양이는 설명이 아니라 거리로 대답해요.`,
-  ].join('\n\n'), CAT_COMPAT_SERVICE_KEY)
+  const { group, itemTitle, analysis, input } = params
+  const reading = CAT_DETAILS[itemTitle]
+  if (!reading) throw new Error(`고양이 궁합 항목별 해석 누락: ${itemTitle}`)
+  const flags = input.routineFlags.filter((flag) => flag !== '크게 없음')
+  const settled = !flags.length && input.routineFlags.includes('크게 없음')
+  const current = ['chemistry-temperature', 'distance-compat'].includes(group.id)
+    ? `“${input.catName}”의 손길 반응은 “${TOUCH_LABEL[input.touchStyle]}”으로 입력됐어요. 보호자가 관찰한 진술로 다루며 고양이의 속마음을 확인한 사실로 보지 않아요.`
+    : group.id === 'adoption-intro-timing'
+      ? `현재 가정 형태는 ${HOUSEHOLD_LABEL[input.household]}, 예정된 일정은 “${EVENT_LABEL[input.upcomingEvent]}”입니다. ${input.upcomingEvent === 'none' ? '예정된 일이 없다면 준비 항목은 향후 참고로만 읽어요.' : '확정 날짜나 준비 상태가 없다면 구체적인 날짜를 만들지 않아요.'}`
+      : group.id === 'guardian-defaults'
+        ? `대상은 “${input.catName}”, ${HOUSEHOLD_LABEL[input.household]}입니다. 관찰한 특징은 ${input.behaviorTags.join('·') || '아직 별도로 적지 않은 상태'}입니다. ${quotedInput('추가 상황', input.note)}`
+        : `놀이 반응은 “${PLAY_LABEL[input.playEnergy]}”으로 입력됐어요. ${flags.length ? `루틴에서 살펴보고 싶은 항목은 “${flags.join('·')}”입니다.` : '루틴에 관한 구체적인 불편은 확인되지 않았어요.'}`
+  return practicalReading({
+    title: itemTitle, detail: reading, current,
+    evidence: group.id === 'five-elements-care'
+      ? `${elementEvidence(analysis)} 이 계산은 보호자의 사주이며 고양이의 성향이나 돌봄의 결함을 계산하지 않아요.`
+      : itemTitle === '집사 성향 DNA'
+        ? `${dayMasterDefinition(analysis)} 일간의 강약으로 돌봄 능력이나 표현 습관을 단정하지 않아요. ${input.ageBand === 'unknown' ? '고양이의 나이를 모르는 상태이므로 나이별 판단도 보류해요.' : `고양이의 나이대는 “${AGE_LABEL[input.ageBand]}”으로 입력됐어요.`} 고양이의 출생 명식이나 생체리듬은 계산하지 않아요.`
+        : undefined,
+    application: input.household !== 'multi_cat' && itemTitle === '다묘 질투각'
+      ? '현재 다묘 가정으로 입력되지 않았으므로 이 항목의 갈등은 본인의 현재 상황에 해당한다고 해석하지 않아요.'
+      : settled
+        ? '크게 걸리는 루틴 문제가 없다는 입력을 우선해요. 위 장면이 실제로 없다면 새로운 문제를 찾기보다 잘 지내는 조건을 유지하면 돼요.'
+        : '이 항목의 장면이 실제로 나타날 때만 조정을 검토해요. 아직 관찰하지 않은 행동이나 보호자의 감정을 새로 만들지 않아요.',
+    closing: itemTitle === '조용히 지켜볼 타이밍' ? '이 해석은 건강 진단이 아니에요. 갑작스러운 변화나 건강 우려가 있으면 운세와 관계없이 수의사에게 확인해요.' : undefined,
+  })
 }
 
 export function buildCatCompatReport(

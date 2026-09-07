@@ -156,7 +156,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',

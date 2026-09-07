@@ -98,7 +98,7 @@ describe('specialized template tone', () => {
     assert.equal(text.includes('일세'), false)
   })
 
-  it('saju_master path may keep 하게체 cues', () => {
+  it('saju_master draft stays readable without forced mystical interjections', () => {
     const analysis = analyzeSaju(birth)
     const report = buildTemplateSajuReport(analysis, birth, {
       name: '민수',
@@ -106,10 +106,9 @@ describe('specialized template tone', () => {
       concern: '직장 고민',
     })
     const text = report.sections.map((s) => `${s.hook}\n${s.interpretation}`).join('\n')
-    assert.ok(
-      text.includes('자네') || text.includes('일세') || text.includes('하네') || text.includes('보겠네'),
-      'classic 하게체 cue expected for saju_master',
-    )
+    assert.match(text, /민수/)
+    assert.doesNotMatch(text, /읽겠요|편재이|95점 번들|hot\/dry/)
+    assert.match(text, /전통|상징/)
   })
 })
 

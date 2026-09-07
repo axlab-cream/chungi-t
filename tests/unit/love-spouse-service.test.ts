@@ -33,7 +33,7 @@ test('love spouse service builds a 21-section marriage partner report', () => {
   const report = buildLoveSpouseReport(analysis, userBirth, context, input, reportId)
 
   assert.equal(context.serviceKey, 'love_spouse')
-  assert.equal(context.orientation, '배우자궁 + 자미두수')
+  assert.equal(context.orientation, '배우자궁과 생활 조건 · 자미두수 명반 미제공')
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '배우자운 해석문')
   assert.equal(report.sections.length, 21)
@@ -45,10 +45,10 @@ test('love spouse service builds a 21-section marriage partner report', () => {
     '결혼으로 이어지는 선택',
   ])
   assert.match(report.sections[0].interpretation, /배우자궁|배우자성|자미두수/)
-  assert.match(report.sections[0].interpretation, /특정 인물|결혼 날짜|단정하지 않/)
+  assert.match(report.sections[0].interpretation, /성격이 이미 정해져 있다는 뜻으로 읽기보다/)
 })
 
-test('love spouse service applies gender-specific spouse star wording', () => {
+test('love spouse preserves legacy star lookup without prescribing gendered partner roles', () => {
   const femaleBirth: BirthInput = { ...userBirth, gender: 'female' }
   const input = parseLoveSpouseRequest({
     relationshipStatus: '결혼을 고민 중이에요',
@@ -60,7 +60,8 @@ test('love spouse service applies gender-specific spouse star wording', () => {
 
   assert.equal(spouseStar(userBirth.gender), '재성')
   assert.equal(spouseStar(femaleBirth.gender), '관성')
-  assert.match(femaleReport.sections[0].interpretation, /관성/)
+  assert.match(femaleReport.sections[0].interpretation, /생활 조건/)
+  assert.doesNotMatch(femaleReport.sections[0].interpretation, /여성은.*관성|남성은.*재성|여자라서|남자라서/)
   assert.match(femaleReport.subtitle, /김하나/)
 })
 

@@ -52,6 +52,7 @@
   }
 
   async function enforceDeviceAuthSession(session, client) {
+    if (global.UMSHReportAccess) global.UMSHReportAccess.setOwner(session && session.user && session.user.id);
     if (!session || !session.access_token) {
       clearDeviceAuthSession();
       return null;

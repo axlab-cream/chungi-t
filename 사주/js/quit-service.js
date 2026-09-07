@@ -127,7 +127,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -273,7 +273,7 @@
     if (reportPromise) return reportPromise;
     reportPromise = (async () => {
       const cached = readJson('sessionStorage', STORAGE.report);
-      if (cached?.sections?.length) return { report: cached };
+      if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
       const request = readJson('sessionStorage', STORAGE.input);
       if (!request?.reason) return { reason: 'input' };
@@ -469,7 +469,8 @@
         const b = document.createElement('b');
         b.textContent = section.classification;
         const span = document.createElement('span');
-        span.textContent = clamp(readingLine(section, 1), 220);
+        span.textContent = section.interpretation || '';
+        span.style.whiteSpace = 'pre-wrap';
         card.append(b, span);
         points.appendChild(card);
       });

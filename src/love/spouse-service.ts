@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { buildRelationshipReading } from './reading-content.js'
 import type {
   BirthInput,
   RagChunk,
@@ -7,12 +8,9 @@ import type {
   SajuReportContext,
   SajuReportSection,
 } from '../types/index.js'
-import { BRANCH_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
 
 export const LOVE_SPOUSE_SERVICE_KEY = 'love_spouse'
 
@@ -107,7 +105,7 @@ export function buildLoveSpouseContext(name: string | undefined, input: LoveSpou
     name,
     target: '배우자운',
     relationship: input.relationshipStatus,
-    orientation: '배우자궁 + 자미두수',
+    orientation: '배우자궁과 생활 조건 · 자미두수 명반 미제공',
     concern: [
       `결혼에서 중요한 기준: ${input.marriagePriority}`,
       `인연을 만나는 경로: ${input.meetingRoute}`,
@@ -124,6 +122,7 @@ export function createLoveSpouseReportId(ownerId: string | undefined, birth: Bir
       month: birth.month,
       day: birth.day,
       hour: birth.hour,
+      ...(birth.minute ? { minute: birth.minute } : {}),
       gender: birth.gender,
       calendar: birth.calendar,
     },
@@ -137,43 +136,12 @@ export function spouseStar(gender: BirthInput['gender']): '관성' | '재성' {
   return gender === 'female' ? '관성' : '재성'
 }
 
-function compact(text: string, fallback: string, limit = 180): string {
-  const clean = text.replace(/\s+/g, ' ').trim()
-  if (!clean) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-function fortuneLine(analysis: SajuAnalysis): string {
-  if (!analysis.fortune) {
-    return '대운과 세운은 결혼 날짜를 확정하는 도구가 아니라, 인연을 확인하고 선택의 속도를 조절하는 기준으로 볼게요.'
-  }
-  return `당신의 현재 대운은 ${analysis.fortune.currentDaewoon}, 올해 세운은 ${analysis.fortune.yearPillar}입니다. 이 흐름은 특정 인물을 보증하지 않고, 관계를 현실적으로 확인하기 좋은 시기의 결을 살피는 데 쓸게요.`
-}
-
 function buildInterpretation(params: {
-  categoryTitle: string
-  itemTitle: string
-  analysis: SajuAnalysis
-  birth: BirthInput
-  input: LoveSpouseRequest
-  chunks: RagChunk[]
-  index: number
+  categoryTitle: string; itemTitle: string; analysis: SajuAnalysis; birth: BirthInput; input: LoveSpouseRequest; chunks: RagChunk[]; index: number
 }): string {
-  const { categoryTitle, itemTitle, analysis, birth, input, chunks, index } = params
-  const day = analysis.fourPillars.day
-  const star = spouseStar(birth.gender)
-  const evidence = compact(
-    chunks[index % chunks.length]?.content ?? '',
-    '배우자궁은 가까운 관계에서 반복되는 선택과 생활의 결을 살피는 자리입니다. 인연은 끌림만이 아니라 책임과 약속이 이어지는지로 확인해야 합니다.',
-  )
-  const concern = input.concern ? `당신이 적은 고민은 "${input.concern}"입니다.` : '따로 적은 고민은 없으니 배우자궁과 결혼에서 중요하게 여기는 기준을 중심으로 볼게요.'
-  return applyServiceTone([
-    `${categoryTitle} 중 "${itemTitle}"를 볼게요. 당신의 배우자궁인 일지는 ${BRANCH_KO[day.branch]}(${day.branch})이고, 배우자성은 ${star} 흐름을 중심으로 읽으세요.` ,
-    `${fortuneLine(analysis)} 당신이 결혼에서 중요하게 여기는 기준은 "${input.marriagePriority}"이니, 마음이 끌리는 속도보다 그 기준이 실제 생활에서 지켜지는지를 함께 확인해야 해요.`,
-    `자미두수 자료의 배우자·궁 해석 관점도 참고로 겹쳐 보되, 특정 인물의 외모나 결혼 날짜를 단정하지 않겠어요. 인연이 들어오는 경로는 "${input.meetingRoute}"라고 했으니, 그 장면에서 말과 행동이 일치하는지를 기준으로 삼으세요.`,
-    `이 풀이의 참고 결은 이래요. ${evidence} 그러니 배우자운을 기다리는 데서 멈추지 말고, 생활 리듬·돈과 책임·갈등을 풀어 가는 방식이 당신의 기준과 맞는지 천천히 확인해야 해요.`,
-    `${concern} 결론은 좋은 인연을 급히 이름 붙이기보다, 작은 약속을 지키는지와 불편한 이야기를 피하지 않는지를 몇 번의 장면으로 살펴보라는 것이에요. 그 반복이 쌓일 때 결혼으로 이어질 사람의 윤곽이 선명해져요.`,
-  ].join('\n\n'), LOVE_SPOUSE_SERVICE_KEY)
+  return buildRelationshipReading({
+    serviceKey: LOVE_SPOUSE_SERVICE_KEY, category: params.categoryTitle, title: params.itemTitle, analysis: params.analysis, relationship: params.input.relationshipStatus, concern: params.input.concern, signals: { '중요하게 여기는 결혼 조건': params.input.marriagePriority, '알려주신 만남 경로': params.input.meetingRoute },
+  })
 }
 
 export function buildLoveSpouseReport(
@@ -231,7 +199,7 @@ export function buildLoveSpouseReport(
   return finalizeSpecializedReport({
     reportId,
     title: '배우자운 해석문',
-    subtitle: `${context.name ?? '본인'}님의 배우자궁·배우자성·자미두수 자료 관점으로 결혼 인연의 기준을 봅니다`,
+    subtitle: `${context.name ?? '본인'}님의 관계 상태와 생활 기준으로 함께할 사람을 알아보는 조건을 살펴봐요`,
     model: 'love-spouse-rag-template',
     generatedBy: 'template',
     status: 'complete',

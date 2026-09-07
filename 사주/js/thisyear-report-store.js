@@ -13,6 +13,7 @@
   var REPORT_KEY = 'umsh:report:love_this_year';
 
   function readReport() {
+    if (window.UMSHReportAccess) return window.UMSHReportAccess.verifiedReport();
     try {
       var raw = window.sessionStorage.getItem(REPORT_KEY);
       if (!raw) return null;
@@ -110,14 +111,12 @@
       var section = byId[detail.section_id];
       if (!section) return;
       var parts = paragraphs(section);
-      if (parts.length < 6) return;
+      if (!parts.length) return;
 
       detail.report_index_source = 'kms_rag';
       detail.conclusion = dropOpeningLabel(parts[0]);
-      (detail.interpretation_blocks || []).forEach(function (block, position) {
-        var index = BLOCK_TO_PARAGRAPH[position];
-        var paragraph = parts[index];
-        if (paragraph) block.content = index === 0 ? dropOpeningLabel(paragraph) : paragraph;
+      detail.interpretation_blocks = parts.map(function (paragraph, position) {
+        return { type: 'text', title: position === 0 ? '전체 해석' : '', content: paragraph };
       });
       (detail.evidence || []).forEach(function (entry) {
         if (entry.id === 'calc.personalization_status' && report.subtitle) entry.value = report.subtitle;

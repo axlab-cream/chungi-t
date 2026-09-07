@@ -1,5 +1,4 @@
 import type { BirthInput, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
-import { startReportPreGeneration } from './report-queue.js'
 import {
   createOrGetReportRecord,
   toClientReport,
@@ -22,7 +21,7 @@ export interface SpecializedProgressiveResult {
  * TOC-first specialized report flow:
  * 1) createOrGet by stable reportId (user + service + input fingerprint)
  * 2) return outline immediately
- * 3) if incomplete, generate sections sequentially in the background and persist each one
+ * 3) the reader requests bounded sections; each HTTP request awaits durable persistence
  */
 export async function beginSpecializedProgressiveReport(params: {
   reportId: string
@@ -38,21 +37,12 @@ export async function beginSpecializedProgressiveReport(params: {
     birth: params.birth,
     context: params.context,
     templateReport: params.templateReport,
+    analysis: params.analysis,
     owner: params.owner,
   })
 
   const cached = !created && record.status === 'complete'
   const resumed = !created && record.status !== 'complete'
-
-  if (record.status !== 'complete') {
-    startReportPreGeneration({
-      reportId: params.reportId,
-      analysis: params.analysis,
-      birth: params.birth,
-      context: params.context,
-      owner: params.owner,
-    })
-  }
 
   const report = toClientReport(record)
   const publicId = report.publicId ? String(report.publicId) : undefined

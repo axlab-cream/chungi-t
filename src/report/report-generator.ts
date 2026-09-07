@@ -9,7 +9,10 @@ import type {
   SajuReportSection,
   TenGod,
 } from '../types/index.js'
-import { chatWithOpenAI } from '../llm/openai-adapter.js'
+import { chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
+import { InterpretationQualityError, reviewInterpretation } from './interpretation-validation.js'
+import { normalizeUserCopy } from './copy-guide.js'
+import { standardReading } from './standard-reading.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
 import { buildSajuFeatureJson } from '../saju/analyzer.js'
 import { pillarLabel } from '../saju/calculator.js'
@@ -156,7 +159,7 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   },
   {
     id: 'weak-element',
-    category: '비어 있는 기운의 자리',
+    category: '상대적으로 적은 기운',
     categoryEn: 'Weak Element',
     focus: 'balance',
     query: '부족한 오행 약한 기운 보완 목 화 토 금 수',
@@ -191,14 +194,14 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   },
   {
     id: 'trap',
-    category: '네가 빠지는 함정',
+    category: '반복을 점검하는 기준',
     categoryEn: 'The Trap',
     focus: 'trap',
     query: '십신 비겁 식상 관성 재성 인성 반복 고민 합충형파해',
   },
   {
     id: 'concern-loop',
-    category: '현재 고민이 반복되는 이유',
+    category: '현재 고민과 확인할 조건',
     categoryEn: 'Concern Loop',
     focus: 'trap',
     query: '현재 고민 반복 고민 패턴 마음 사주 연결',
@@ -247,7 +250,7 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   },
   {
     id: 'money-leak',
-    category: '돈이 새는 구멍',
+    category: '지출을 점검하는 기준',
     categoryEn: 'Money Leak',
     focus: 'moneyLeak',
     query: '돈구멍 돈이 새는 지출 겁재 상관 관계 비용',
@@ -1944,6 +1947,9 @@ export function buildTemplateSajuReport(
     const loveStory = isLoveThisYear
       ? toStorytellingPayload(buildLoveThisYearStoryBeat(blueprint.id, analysis, context, ragTopics, birth))
       : undefined
+    const interpretation = isLoveThisYear
+      ? normalizeUserCopy(buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth))
+      : standardReading(blueprint.id, blueprint.category, analysis, context)
 
     return {
       id: blueprint.id,
@@ -1954,10 +1960,10 @@ export function buildTemplateSajuReport(
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
       classification: classificationFor(blueprint.focus, analysis, context, blueprint.id),
-      hook: hookFor(blueprint.focus, analysis, context, blueprint.id),
+      hook: isLoveThisYear ? hookFor(blueprint.focus, analysis, context, blueprint.id) : interpretation.split(/\n\s*\n/)[0].replace(/^\[[^\]]+\]\s*/, '').split(/(?<=[.!?])\s/)[0],
       patternKeys: keys,
       ragTopics,
-      interpretation: buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth),
+      interpretation,
       ...(loveStory ? { storytelling: loveStory } : {}),
     }
   })
@@ -1989,129 +1995,48 @@ export function buildTemplateSajuReport(
   return report
 }
 
-function reportPrompt(
-  analysis: SajuAnalysis,
-  birth: BirthInput,
-  context: SajuReportContext,
-  baseReport: SajuReport,
-): LlmMessage[] {
-  const featureJson = buildSajuFeatureJson(analysis, context)
-  const ragBySection = baseReport.sections
-    .map((section) => {
-      const chunks = retrieveRagChunks(
-        `${section.category} ${section.classification} ${reportContextQuery(context)}`,
-        analysis,
-        runtimeConfig.report?.ragTopK ?? 4,
-        context,
-      )
-      return `## ${section.id}\n${formatRagForPrompt(chunks)}`
-    })
-    .join('\n\n')
+const INTERPRETATION_INSTRUCTION = [
+  '이번 항목의 질문에 첫 문단부터 답하고, 확인된 입력 → 전통적 상징의 의미 → 현실에서 확인할 조건을 구분하세요.',
+  '정상 상태이면 유지할 강점을 설명하고, 확인되지 않은 문제나 위험·과거사를 만들지 마세요. 정보 부족은 분명히 알리세요.',
+  '정상 상태의 원인도 지어내면 안 됩니다. 만족한다는 입력만으로 업무 경계·약속·휴식 습관이 좋다고 확인한 것처럼 쓰지 말고, 첫 문단과 결론까지 실제 해당할 경우라는 조건을 유지하세요.',
+  '제목·생년·명식 재소개로 분량을 채우지 말고 이 항목만의 근거, 생활 사례, 비교 기준과 적절한 다음 행동을 충분히 풀어주세요.',
+  '한국어 약 1800~2600자, 의미 단락 6~9개를 목표로 하되 각 단락은 2~4문장으로 구성하세요. 줄 수는 강제하지 않습니다.',
+  '독립 카드에서 전문용어가 처음 나오면 한글(한자, 쉬운 뜻)으로 풀고, 독음 없는 한자·내부 자료 필드를 노출하지 마세요.',
+  '경고·해법·행동 세 가지를 모든 항목에 강제하지 마세요. 위험을 말하려면 실제 입력 근거와 해당 조건이 있어야 합니다.',
+  '사용자가 연락 거부·차단을 알리면 재접촉보다 그 의사 존중을 우선하세요.',
+  '다른 항목과 같은 문단을 쓰지 마세요. 미래 날짜·점수·자미두수 명반을 새로 계산하거나 만들어내지 마세요.',
+  '특정 행동이 승패를 가른다거나 이기는 사람의 조건이라고 말하지 마세요. 실력 재현·판단에 도움이 될 수 있는 방법과 결과 보장을 구별하세요.',
+].join('\n')
 
-  return [
-    {
-      role: 'system',
-      content: [
-        '당신은 천명사주 사주 리포트 작성 엔진입니다.',
-        '작성 흐름은 명식 계산 → Feature JSON → RAG 검색 → Interpretation → User Copy입니다.',
-        '입력된 사주 기둥, 오행, 십신, 용신, 대운, 내부 지식 블록을 근거로 장문 풀이를 씁니다.',
-        'Feature JSON에 격국·조후·통관·지장간·합충형파해·자시 계산 규칙이 있으면 해당 섹션의 판단 근거로 연결합니다.',
-        '내부 지식 블록은 그대로 복붙하지 말고, 각 섹션의 선택지·고민·명식 근거와 연결해 성향·실제 행동·위험·기회·조언으로 해석합니다.',
-        '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
-        reportVoiceSystemPrompt(context),
-        '내용은 중학생도 이해할 수 있게 씁니다. 일간·십신·용신·대운 같은 말은 쓴 뒤 바로 쉬운 생활 언어로 풀어 설명합니다.',
-        '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
-        '각 분류는 얕은 요약으로 끝내지 말고, 왜 그런 해석이 나오는지, 실제 생활에서 어떻게 드러나는지, 무엇을 조심하고 무엇을 하면 좋은지까지 풍부하게 풉니다.',
-        '각 섹션에는 중요한 문단 2~4개를 골라 문단 첫머리에 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 중 하나를 붙입니다. 표식은 남발하지 말고 실제로 강조가 필요한 문단에만 씁니다.',
-        '논리 전개는 명식 근거 → 성향/상황 해석 → 좋은점 → 주의할점/위험/위기 → 구체적인 행동 기준이 보이게 씁니다.',
-        '좋은 흐름과 안 좋은 함정을 둘 다 말합니다. 안 좋은 패턴은 “이 대목은 위험하네”, “방치하면 반복될 수 있네”, “돈길보다 돈구멍이 먼저 보이는군”처럼 선명하게 말하되 공포를 팔지 않습니다.',
-        '각 섹션에 억지 경고를 넣지는 말되, 겁재·상관·편관, 합충형파해, 과다/부족 오행, 대운·세운 충돌, 사용자의 고민에서 위험 신호가 드러나면 반드시 주의할 것·피해야 할 선택·드러나는 시기·풀 행동 기준을 함께 알려줍니다.',
-        'serviceKey가 home_fit이면 집 풍수 단일 상품입니다. home.addressOrBuilding, buildingType, livingPeriod, mainPurpose, stayDecision, painPoints, entranceFlow, bedroomFeel, deskPosition, outsideFlow, extraNote를 사주 오행과 대운·세운에 겹쳐 해석합니다.',
-        'home_fit에서는 명당/흉지, 강제 이사, 건강·재산·계약 결과를 확정하지 말고, 현관·침실·책상·창밖·수납·동선에서 7일 동안 확인할 수 있는 현실 조정과 판단 기준을 씁니다.',
-        '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
-        '반드시 JSON만 출력하세요. Markdown 코드블록을 쓰지 마세요.',
-      ].join('\n'),
-    },
-    {
-      role: 'user',
-      content: JSON.stringify({
-        instruction: 'baseReport의 섹션 수와 id/order/imageKey/category/categoryEn/classification/patternKeys/ragTopics는 유지하고, hook과 interpretation만 더 밀도 있게 보강하세요. interpretation은 섹션마다 한국어 1800~2600자 정도로 풍부하게 쓰고, 문단은 6~9개로 나누되 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 최종 문장이 아니라 판단 재료입니다. 전문용어는 꼭 필요할 때만 한 번 쓰고 즉시 사용자 언어로 번역하세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. 반드시 target/orientation/relationship/work/concern/partner/home 선택지를 해당 섹션에 맞게 반영하세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. serviceKey가 home_fit이면 집 풍수 상품이므로 현관·침실·책상·창밖·수납·동선·7일 체감 테스트와 사주 오행 핏을 중심으로 씁니다. 좋은 말과 안 좋은 경고를 균형 있게 쓰고, 위험 신호는 대운·세운·전환 시기와 해법까지 연결하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
-        outputShape: {
-          title: 'string',
-          subtitle: 'string',
-          sections: [
-            {
-              id: 'string',
-              hook: 'string',
-              interpretation: 'string',
-            },
-          ],
-        },
-        birth,
-        context,
-        featureJson,
-        sajuSummary: analysis.summary,
-        baseReport,
-        ragBySection,
-      }),
-    },
-  ]
+
+export function groundedReportFeatures(analysis: SajuAnalysis, context: SajuReportContext): unknown {
+  const features = buildSajuFeatureJson(analysis, context)
+  if (context.birthTimeKnown !== false) return features
+  return {
+    calculation: { pillars: { year: features.calculation.pillars.year, month: features.calculation.pillars.month, day: features.calculation.pillars.day }, dayMaster: features.calculation.dayMaster, dayMasterElement: features.calculation.dayMasterElement },
+    timing: features.timing ? { currentYear: features.timing.currentYear, yearPillar: features.timing.yearPillar } : undefined,
+    uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신·정밀 운 시작 시점을 제외했습니다. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
+    guardrails: features.guardrails,
+  }
 }
 
-function sectionPrompt(
-  analysis: SajuAnalysis,
-  birth: BirthInput,
-  context: SajuReportContext,
-  section: SajuReportSection,
-): LlmMessage[] {
-  const featureJson = buildSajuFeatureJson(analysis, context)
+function sectionPrompt(analysis: SajuAnalysis, birth: BirthInput, context: SajuReportContext, section: SajuReportSection, siblings: SajuReportSection[] = []): LlmMessage[] {
   const chunks = retrieveRagChunks(
-    `${section.category} ${section.classification} ${reportContextQuery(context)}`,
-    analysis,
-    runtimeConfig.report?.ragTopK ?? 4,
-    context,
+    `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
+    analysis, runtimeConfig.report?.ragTopK ?? 4, context,
   )
   return [
-    {
-      role: 'system',
-      content: [
-        '당신은 천명사주 사주 리포트의 한 페이지를 작성합니다.',
-        '한 번에 전체 리포트를 쓰지 말고, 사용자가 선택한 현재 페이지 섹션만 작성합니다.',
-        '작성 흐름은 명식 계산 → Feature JSON → RAG 검색 → Interpretation → User Copy입니다.',
-        '사주 기둥, 오행, 십신, 용신, 대운, 내부 지식 블록을 근거로 하되 기계적으로 나열하지 않습니다.',
-        'Feature JSON의 격국·조후·통관·지장간·합충형파해 근거가 현재 섹션과 관련되면 반드시 해석에 녹입니다.',
-        '내부 지식 블록은 문장 안에 복사하지 말고 현재 고민, 선택지, 명식 근거와 연결해 의미만 사용합니다.',
-        '최종 interpretation에는 “RAG”, “코퍼스”, “검색된 지식”, “지식 블록” 같은 내부 처리 용어를 쓰지 않습니다.',
-        reportVoiceSystemPrompt(context),
-        '내용은 중학생도 이해할 수 있게 씁니다. 전문용어는 쉬운 말로 바로 풀고, 어려운 한자어만 나열하지 않습니다.',
-        '문단은 3~5줄 정도로 짧게 끊고, 한 문단 안에는 하나의 핵심만 담습니다. 긴 문장은 둘로 나눕니다.',
-        '해석은 풍부해야 합니다. 근거, 실제 생활 장면, 주의할 점, 바로 해볼 행동 기준을 함께 씁니다.',
-        '중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙입니다. 실제 강조가 필요한 곳에만 씁니다.',
-        '논리 전개는 명식 근거 → 성향/상황 해석 → 좋은점 → 주의할점/위험/위기 → 구체적인 행동 기준이 보이게 씁니다.',
-        '이 섹션의 근거에서 위험 신호가 드러날 때만 주의할 것·피해야 할 선택·미래에 먼저 흔들릴 지점을 선명하게 덧붙입니다. 억지로 모든 섹션에 경고를 넣지 않습니다.',
-        '안 좋은 패턴을 말할 때는 반드시 대운·세운·전환 신호처럼 드러나는 시기와, 사용자가 그 흐름을 풀 행동 기준을 함께 제시합니다.',
-        'serviceKey가 home_fit이면 집 풍수 단일 상품입니다. home 입력값을 중심으로 현관·침실·책상·창밖·수납·동선·7일 체감 테스트를 다루고, 명당/흉지나 강제 이사처럼 확정적인 표현은 쓰지 않습니다.',
-        '확정 예언, 질병 진단, 투자 수익 보장, 법률 판단은 금지합니다.',
-        '반드시 JSON만 출력하세요. Markdown 코드블록을 쓰지 마세요.',
-      ].join('\n'),
-    },
-    {
-      role: 'user',
-      content: JSON.stringify({
-        instruction: '현재 section 하나만 보강하세요. id/order/imageKey/imageSrc/category/categoryEn/classification/patternKeys/ragTopics는 유지합니다. hook은 짧게, interpretation은 한국어 1800~2600자 정도로 작성하세요. 문단은 6~9개로 나누고 각 문단은 화면에서 3~5줄 정도로 읽히게 짧게 끊으세요. 내부 지식 블록은 복사하지 말고 의미만 뽑아 Feature JSON과 연결하세요. 일간·십신·대운·용신 같은 용어는 꼭 필요할 때만 한 번 쓰고 바로 쉬운 말로 풀어주세요. 중요한 문단 2~4개는 [주요 포인트], [주목할 점], [주의할 점], [위험 신호], [위기 신호], [해법] 표식을 문단 첫머리에 붙이세요. target/orientation/relationship/work/concern/partner/home 선택지 중 이 섹션과 직접 관련된 값은 반드시 문장 속에 녹이세요. serviceKey가 love_this_year이면 올해 연애 가능성, 도화 시기, 배우자성, 상대방 사주 입력 여부, 궁합 흐름, 감정 온도 차이를 중심으로 씁니다. serviceKey가 home_fit이면 현관·침실·책상·창밖·수납·동선·7일 체감 테스트와 사주 오행 핏을 중심으로 씁니다. 위험 신호가 있으면 좋은 말로 덮지 말고, 드러나는 시기와 해법까지 말하세요. 최종 사용자 문장에는 RAG/코퍼스/검색된 지식/지식 블록이라는 말을 쓰지 마세요.',
-        outputShape: {
-          id: section.id,
-          hook: 'string',
-          interpretation: 'string',
-        },
-        birth,
-        context,
-        featureJson,
-        sajuSummary: analysis.summary,
-        section,
-        rag: formatRagForPrompt(chunks),
-      }),
-    },
+    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
+    { role: 'user', content: JSON.stringify({
+      instruction: INTERPRETATION_INSTRUCTION,
+      outputShape: { id: section.id, hook: 'string', interpretation: 'string' },
+      birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
+      context: context.partner?.birthTimeKnown === false ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false, birth: context.partner.birth ? { ...context.partner.birth, hour: undefined, minute: undefined } : undefined } } : context,
+      featureJson: groundedReportFeatures(analysis, context),
+      section: { id: section.id, category: section.category, classification: section.classification, hook: section.hook, interpretation: section.interpretation },
+      otherSections: siblings.map((item) => ({ id: item.id, question: item.classification, summary: item.hook })),
+      rag: formatRagForPrompt(chunks),
+    }) },
   ]
 }
 
@@ -2127,77 +2052,38 @@ function extractJsonObject(raw: string): unknown {
   return JSON.parse(cleaned.slice(start, end + 1)) as unknown
 }
 
-function mergeOpenAiReport(
-  baseReport: SajuReport,
-  rawReport: unknown,
-  analysis: SajuAnalysis,
-  context: SajuReportContext,
-): SajuReport {
-  const parsed = rawReport as {
-    title?: unknown
-    subtitle?: unknown
-    sections?: Array<{ id?: unknown; hook?: unknown; interpretation?: unknown }>
-  }
-  const generatedSections = Array.isArray(parsed.sections) ? parsed.sections : []
-  const sections = baseReport.sections.map((section) => {
-    const next = generatedSections.find((item) => item.id === section.id)
-    const hook = typeof next?.hook === 'string' && next.hook.trim() ? next.hook.trim() : section.hook
-    const interpretation = typeof next?.interpretation === 'string' && next.interpretation.trim()
-      ? next.interpretation.trim()
-      : section.interpretation
-
-    return {
-      ...section,
-      hook,
-      interpretation,
-    }
-  })
-
-  const report: SajuReport = {
-    ...baseReport,
-    title: typeof parsed.title === 'string' && parsed.title.trim() ? parsed.title.trim() : baseReport.title,
-    subtitle: typeof parsed.subtitle === 'string' && parsed.subtitle.trim() ? parsed.subtitle.trim() : baseReport.subtitle,
-    model: REPORT_MODEL,
-    generatedBy: 'openai',
-    sections,
-  }
-  report.quality = evaluateReportQuality(report, analysis, context)
-  return report
-}
-
-export async function buildOpenAiSajuReport(
-  analysis: SajuAnalysis,
-  birth: BirthInput,
-  context: SajuReportContext = {},
-): Promise<SajuReport> {
-  const baseReport = buildTemplateSajuReport(analysis, birth, context)
-  const raw = await chatWithOpenAI(reportPrompt(analysis, birth, context, baseReport), {
-    model: REPORT_MODEL,
-    maxTokens: runtimeConfig.report?.maxTokens ?? 9000,
-  })
-  return mergeOpenAiReport(baseReport, extractJsonObject(raw), analysis, context)
-}
 
 export async function buildOpenAiSajuReportSection(
   analysis: SajuAnalysis,
   birth: BirthInput,
   sectionId: string,
   context: SajuReportContext = {},
+  savedSection?: SajuReportSection,
+  options: { siblings?: SajuReportSection[]; onResponse?: (result: OpenAiResult) => void | Promise<void>; repairIssues?: string[] } = {},
 ): Promise<SajuReportSection> {
-  const baseReport = buildTemplateSajuReport(analysis, birth, context)
-  const section = baseReport.sections.find((item) => item.id === sectionId) ?? baseReport.sections[0]
-  const raw = await chatWithOpenAI(sectionPrompt(analysis, birth, context, section), {
+  const section = savedSection ?? buildTemplateSajuReport(analysis, birth, context).sections.find((item) => item.id === sectionId)
+  if (!section || section.id !== sectionId) throw new Error('요청한 전용 항목을 찾지 못했습니다. 다른 항목으로 대체하지 않습니다.')
+  const messages = sectionPrompt(analysis, birth, context, section, options.siblings)
+  if (options.repairIssues?.length) messages.push({ role: 'user', content: `이전 응답은 다음 검수에서 실패했습니다. 같은 항목을 새로 작성해 바로잡으세요: ${options.repairIssues.join(' ')}` })
+  let metadata: OpenAiResult | undefined
+  const raw = await chatWithOpenAI(messages, {
     model: REPORT_MODEL,
-    maxTokens: runtimeConfig.report?.sectionMaxTokens ?? 3000,
+    maxTokens: runtimeConfig.report?.sectionMaxTokens ?? 4200,
+    onResponse: async (result) => { metadata = result; await options.onResponse?.(result) },
   })
-  const parsed = extractJsonObject(raw) as { hook?: unknown; interpretation?: unknown }
+  const parsed = extractJsonObject(raw) as { id?: unknown; hook?: unknown; interpretation?: unknown }
+  if (parsed.id !== section.id) throw new Error('생성 결과의 항목 ID가 요청과 다릅니다.')
+  const interpretation = typeof parsed.interpretation === 'string' ? normalizeUserCopy(parsed.interpretation.trim()) : ''
+  const review = reviewInterpretation(interpretation, context, options.siblings)
+  if (!review.passed) throw new InterpretationQualityError(review)
 
   return {
     ...section,
     hook: typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
-    interpretation: typeof parsed.interpretation === 'string' && parsed.interpretation.trim()
-      ? parsed.interpretation.trim()
-      : section.interpretation,
+    interpretation,
+    generatedAt: new Date().toISOString(),
+    model: metadata?.model ?? REPORT_MODEL,
+    tokenUsage: metadata?.usage,
   }
 }
 

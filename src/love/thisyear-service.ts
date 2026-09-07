@@ -1,20 +1,16 @@
 import { createHash } from 'node:crypto'
+import { buildRelationshipReading } from './reading-content.js'
 import type {
   BirthInput,
-  EarthlyBranch,
   RagChunk,
   SajuAnalysis,
   SajuReport,
   SajuReportContext,
   SajuReportSection,
-  TenGod,
 } from '../types/index.js'
-import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
-import { applyServiceTone } from '../report/report-tone.js'
 
 export const LOVE_THISYEAR_SERVICE_KEY = 'love_this_year'
 
@@ -57,16 +53,16 @@ export const LOVE_THISYEAR_TOC = [
     title: '세운 십성별 연애 무드',
     subtitle: '올해 들어오는 십성으로 관계의 말투, 속도, 끌림 방식을 봅니다.',
     items: [
-      { id: 'ten-gods-bi-geon', title: '비견: 친구 같은 연애, 선 넘으면 애매해지는 바이브', note: '편한 관계가 장점이지만 관계 이름이 흐려지는 지점을 같이 봅니다.', why: '비견은 나와 같은 결의 힘이라 편안함과 경계 이슈가 같이 올라옵니다.' },
-      { id: 'ten-gods-geop-jae', title: '겁재: 직진력은 있는데 기싸움 주의', note: '끌리면 빠르게 움직이지만 자존심 싸움으로 새지 않게 봅니다.', why: '같은 기운의 경쟁성이 관계 안에서 주도권 이슈로 보일 수 있습니다.' },
-      { id: 'ten-gods-sik-sin', title: '식신: 편안함, 케어, 일상 데이트 강점', note: '잘 챙기고 편하게 만드는 매력이 어떻게 썸으로 이어지는지 봅니다.', why: '식상 흐름은 표현과 생활 감각으로 관계를 부드럽게 만드는 쪽입니다.' },
-      { id: 'ten-gods-sang-gwan', title: '상관: 말빨·플러팅 좋지만 말 세게 나갈 수 있음', note: '매력적인 표현력이 오히려 상대를 방어하게 만드는 순간을 체크합니다.', why: '표현이 강한 흐름은 말의 온도 조절이 관계 운영의 핵심이 됩니다.' },
-      { id: 'ten-gods-pyeon-jae', title: '편재: 썸 기회 많지만 약속이 흩어질 수 있음', note: '기회가 여러 갈래로 열릴 때 진짜 이어지는 인연을 가려봅니다.', why: '재성은 애인성 판단에 쓰이지만, 편재 흐름은 선택지가 많아질 수 있습니다.' },
-      { id: 'ten-gods-jeong-jae', title: '정재: 안정형 연애, 신뢰 쌓기 좋음', note: '호감이 천천히 쌓이는 흐름인지, 약속과 루틴으로 확인합니다.', why: '정재는 안정적 관계 코드로 읽되, 개인 사주 전체와 함께 봐야 합니다.' },
-      { id: 'ten-gods-pyeon-gwan', title: '편관: 강한 끌림, 압박감·속도 조절 필요', note: '끌림이 강할수록 부담과 속도 문제를 같이 체크합니다.', why: '관성 흐름은 관계의 무게와 책임감으로도 드러날 수 있습니다.' },
-      { id: 'ten-gods-jeong-gwan', title: '정관: 공식 연애·진지한 만남 가능성', note: '관계 이름을 정하고 싶어지는 흐름이 있는지 현실 조건과 함께 봅니다.', why: '정관은 공식성과 책임의 코드로 읽히지만 단정 대신 조건을 확인합니다.' },
-      { id: 'ten-gods-pyeon-in', title: '편인: 딥토크는 좋은데 현실 대화가 늦을 수 있음', note: '깊은 대화와 상상은 열리지만 실제 약속으로 옮기는 힘을 봅니다.', why: '인성 흐름은 생각과 해석이 많아지는 장점과 지연을 함께 봐야 합니다.' },
-      { id: 'ten-gods-jeong-in', title: '정인: 다정함은 좋지만 의존·기대 과다 주의', note: '받고 싶은 마음과 기대치가 커지는 순간을 부드럽게 조절합니다.', why: '다정함이 장점이 되려면 상대에게 맡기는 감정 몫을 줄여야 합니다.' },
+      { id: 'ten-gods-bi-geon', title: '비견: 동등함을 읽는 참고 관점', note: '편한 관계가 장점이지만 관계 이름이 흐려지는 지점을 같이 봅니다.', why: '비견은 나와 같은 결의 힘이라 편안함과 경계 이슈가 같이 올라옵니다.' },
+      { id: 'ten-gods-geop-jae', title: '겁재: 함께함과 주도권의 참고 관점', note: '끌리면 빠르게 움직이지만 자존심 싸움으로 새지 않게 봅니다.', why: '같은 기운의 경쟁성이 관계 안에서 주도권 이슈로 보일 수 있습니다.' },
+      { id: 'ten-gods-sik-sin', title: '식신: 일상 표현의 참고 관점', note: '잘 챙기고 편하게 만드는 매력이 어떻게 썸으로 이어지는지 봅니다.', why: '식상 흐름은 표현과 생활 감각으로 관계를 부드럽게 만드는 쪽입니다.' },
+      { id: 'ten-gods-sang-gwan', title: '상관: 표현과 의견의 참고 관점', note: '매력적인 표현력이 오히려 상대를 방어하게 만드는 순간을 체크합니다.', why: '표현이 강한 흐름은 말의 온도 조절이 관계 운영의 핵심이 됩니다.' },
+      { id: 'ten-gods-pyeon-jae', title: '편재: 자원 활용의 참고 관점', note: '기회가 여러 갈래로 열릴 때 진짜 이어지는 인연을 가려봅니다.', why: '재성은 애인성 판단에 쓰이지만, 편재 흐름은 선택지가 많아질 수 있습니다.' },
+      { id: 'ten-gods-jeong-jae', title: '정재: 생활 관리의 참고 관점', note: '호감이 천천히 쌓이는 흐름인지, 약속과 루틴으로 확인합니다.', why: '정재는 안정적 관계 코드로 읽되, 개인 사주 전체와 함께 봐야 합니다.' },
+      { id: 'ten-gods-pyeon-gwan', title: '편관: 책임 대응의 참고 관점', note: '끌림이 강할수록 부담과 속도 문제를 같이 체크합니다.', why: '관성 흐름은 관계의 무게와 책임감으로도 드러날 수 있습니다.' },
+      { id: 'ten-gods-jeong-gwan', title: '정관: 약속과 규칙의 참고 관점', note: '관계 이름을 정하고 싶어지는 흐름이 있는지 현실 조건과 함께 봅니다.', why: '정관은 공식성과 책임의 코드로 읽히지만 단정 대신 조건을 확인합니다.' },
+      { id: 'ten-gods-pyeon-in', title: '편인: 이해와 해석의 참고 관점', note: '깊은 대화와 상상은 열리지만 실제 약속으로 옮기는 힘을 봅니다.', why: '인성 흐름은 생각과 해석이 많아지는 장점과 지연을 함께 봐야 합니다.' },
+      { id: 'ten-gods-jeong-in', title: '정인: 지지와 배움의 참고 관점', note: '받고 싶은 마음과 기대치가 커지는 순간을 부드럽게 조절합니다.', why: '다정함이 장점이 되려면 상대에게 맡기는 감정 몫을 줄여야 합니다.' },
     ],
   },
   {
@@ -222,7 +218,7 @@ export function createLoveThisYearReportId(
 ): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender, calendar: birth.calendar },
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar },
     relationshipStatus: input.relationshipStatus,
     partnerStarBasis: input.partnerStarBasis,
     genderBasis: input.genderBasis ?? '',
@@ -232,247 +228,12 @@ export function createLoveThisYearReportId(
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
 }
 
-/** Korean particles depend on the last syllable's final consonant. */
-function hasFinalConsonant(word: string): boolean {
-  const last = word.replace(/[^가-힣]/g, '').slice(-1)
-  if (!last) return false
-  const code = last.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return true
-  return (code - 0xac00) % 28 !== 0
-}
-
-const topic = (word: string): string => `${word}${hasFinalConsonant(word) ? '은' : '는'}`
-const subject = (word: string): string => `${word}${hasFinalConsonant(word) ? '이' : '가'}`
-const copula = (word: string): string => `${word}${hasFinalConsonant(word) ? '이라' : '라'}`
-
-/**
- * 도화 sits on the 자오묘유 axis, and which one counts depends on the 삼합 group the
- * 일지 (or 연지) belongs to. Whether that branch actually shows up in the chart is what
- * decides how much of this year's 연애 flow arrives on its own.
- */
-const DOHWA_BY_TRIO: Array<{ trio: EarthlyBranch[]; dohwa: EarthlyBranch }> = [
-  { trio: ['寅', '午', '戌'], dohwa: '卯' },
-  { trio: ['申', '子', '辰'], dohwa: '酉' },
-  { trio: ['巳', '酉', '丑'], dohwa: '午' },
-  { trio: ['亥', '卯', '未'], dohwa: '子' },
-]
-
-function dohwaBranch(dayBranch: EarthlyBranch, yearBranch: EarthlyBranch): EarthlyBranch | undefined {
-  const match = DOHWA_BY_TRIO.find((entry) => entry.trio.includes(dayBranch))
-    ?? DOHWA_BY_TRIO.find((entry) => entry.trio.includes(yearBranch))
-  return match?.dohwa
-}
-
-function dohwaLine(analysis: SajuAnalysis): string {
-  const pillars = analysis.fourPillars
-  const branches: EarthlyBranch[] = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
-  const dohwa = dohwaBranch(pillars.day.branch, pillars.year.branch)
-  if (!dohwa) return '도화는 원국에서 한 갈래로 잡히지 않으니, 올해 흐름은 사람이 몰리는 자리보다 당신이 움직이는 자리에서 열려요.'
-  const owned = branches.filter((branch) => branch === dohwa).length
-  const label = `${BRANCH_KO[dohwa]}(${dohwa})`
-  if (owned >= 2) {
-    return `원국의 도화는 ${label}이고 그 자리가 ${owned}번 겹쳐요. 가만히 있어도 사람이 붙는 편이라, 올해는 만남의 수보다 고르는 기준이 더 중요해요.`
-  }
-  if (owned === 1) {
-    return `원국의 도화는 ${label}이고 그 자리가 하나 들어 있어요. 필요한 만큼은 눈에 띄는 결이라, 올해는 자리에 나가면 반응이 오는 쪽이에요.`
-  }
-  return `원국의 도화는 ${label}인데 원국에는 그 자리가 비어 있어요. 저절로 몰리기보다 당신이 먼저 약속을 잡을 때 흐름이 열리는 쪽이에요.`
-}
-
-const OFFICIAL_STARS: TenGod[] = ['정관', '편관']
-const WEALTH_STARS: TenGod[] = ['정재', '편재']
-const EXPRESSION_STARS: TenGod[] = ['식신', '상관']
-
-function partnerStarSet(input: LoveThisYearRequest, birth: BirthInput): { label: string; stars: TenGod[] } {
-  if (input.partnerStarBasis === 'official_star') return { label: '관성', stars: OFFICIAL_STARS }
-  if (input.partnerStarBasis === 'wealth_star') return { label: '재성', stars: WEALTH_STARS }
-  const gender = input.genderBasis ?? birth.gender
-  return gender === 'female'
-    ? { label: '관성', stars: OFFICIAL_STARS }
-    : { label: '재성', stars: WEALTH_STARS }
-}
-
-function partnerStarLine(analysis: SajuAnalysis, input: LoveThisYearRequest, birth: BirthInput): string {
-  const { label, stars } = partnerStarSet(input, birth)
-  const owned = analysis.tenGods.filter((god) => stars.includes(god))
-  const basis = input.partnerStarBasis === 'gender_auto' ? '성별 기준으로 잡은' : '선택한'
-  if (!owned.length) {
-    return `${basis} 애인성은 ${label}인데 원국에 ${subject(label)} 드러나 있지 않아요. 사람이 없다는 뜻이 아니라, 관계가 우연보다 당신의 선택으로 만들어지는 구조예요.`
-  }
-  const unique = Array.from(new Set(owned))
-  return `${basis} 애인성은 ${label}이고 원국에는 ${unique.join('·')}이 잡혀요. 애인 자리를 ${unique[0]}의 결로 읽으면 올해 끌리는 사람의 성향이 선명해져요.`
-}
-
-function expressionLine(analysis: SajuAnalysis): string {
-  const owned = analysis.tenGods.filter((god) => EXPRESSION_STARS.includes(god))
-  if (!owned.length) {
-    return '식상이 얇아 마음이 있어도 표현이 늦게 나가는 편이니, 올해는 감정보다 약속을 먼저 말하는 쪽이 편해요.'
-  }
-  return `식상은 ${Array.from(new Set(owned)).join('·')}으로 잡히니, 말과 분위기로 먼저 다가가는 힘이 있어요. 다만 말이 앞서면 상대가 속도를 못 따라올 수 있어요.`
-}
-
-function timingLine(analysis: SajuAnalysis): string {
-  const fortune = analysis.fortune
-  if (!fortune) return '세운과 대운은 단정하지 않고, 지금 원국에 드러난 연애 조건을 기준으로 볼게요.'
-  return `올해 세운은 ${fortune.yearPillar}이고 당신의 현재 대운은 ${fortune.currentDaewoon}입니다. 올해 한 해의 무드는 세운이 열고, 그 무드를 버티는 체력은 대운이 받쳐 줘요.`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` field labels and instructions such as "원문 문장을 출력하지 말고".
- * Pasting those verbatim would put internal scaffolding on a paid page.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 160): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/** Corpus prose calls the reader 사용자; swapping in 본인 changes the particle too. */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/** Only a knowledge block's interpretation/advice/opportunity read as prose. */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const block = chunk.knowledge
-  const candidates = block ? [block.interpretation, block.advice, block.opportunity] : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 160)
-    if (line) return humanize(line)
-  }
-  return fallback
-}
-
-/**
- * The angle each 대분류 reads its item from. Without it all 48 items would open on the
- * same 일지 sentence, so the group id decides what leads and what the closing line is.
- */
-const GROUP_LENS: Record<string, { focus: string; close: string }> = {
-  overall: {
-    focus: '먼저 올해 연애가 열리는 방향부터 보여요. 가능성은 사람의 수가 아니라 당신의 생활 리듬에서 갈려요.',
-    close: '총평은 판정이 아니라 출발점이에요. 여기서 잡은 방향을 아래 항목으로 좁혀 가세요.',
-  },
-  'ten-gods': {
-    focus: '올해 세운의 십성으로 연애 무드를 보여요. 같은 사람도 어떤 기운이 도느냐에 따라 다르게 움직여요.',
-    close: '무드는 성격이 아니라 이번 해의 옷이에요. 옷에 맞게 말투와 속도를 고르면 돼요.',
-  },
-  timing: {
-    focus: '언제 움직이면 덜 어긋나는지를 보여요. 타이밍은 달력보다 당신의 일정에서 먼저 정해져요.',
-    close: '좋은 달을 기다리기보다, 그 달에 쓸 약속 하나를 미리 정해 두세요.',
-  },
-  'self-pattern': {
-    focus: '당신의 연애 방식을 보여요. 상대를 보기 전에 당신이 반복하는 자리를 먼저 아는 편이 빨라요.',
-    close: '성향은 고칠 대상이 아니라 알고 쓰는 도구예요. 알면 같은 실수에서 한 걸음 빨리 나와요.',
-  },
-  compatibility: {
-    focus: '상대와 만나는 자리를 보여요. 끌림과 오래 감은 다른 조건에서 갈려요.',
-    close: '궁합은 합격과 불합격이 아니라, 어디를 맞춰야 덜 지치는지를 알려 주는 지도예요.',
-  },
-  'relationship-guide': {
-    focus: '관계를 어떻게 운영할지를 보여요. 마음보다 순서가 관계를 살리는 경우가 많아요.',
-    close: '한 번에 다 말하려 하지 말고, 오늘 할 수 있는 한 문장부터 고르세요.',
-  },
-  'warning-signals': {
-    focus: '관계가 깨지는 자리를 미리 보여요. 경고는 겁을 주려는 것이 아니라 피할 곳을 알려 주는 것이에요.',
-    close: '신호를 알아채면 사고가 사건이 되기 전에 멈출 수 있어요. 그 정도면 충분해요.',
-  },
-  'mz-cards': {
-    focus: '지금까지 본 것을 한 장의 카드로 묶어요. 라벨은 판정이 아니라 부르기 쉬운 이름이에요.',
-    close: '카드는 이번 구간의 상태예요. 조건이 바뀌면 카드도 바뀌니 가볍게 쥐세요.',
-  },
-}
-
-const DEFAULT_LENS = {
-  focus: '올해의 기본값과 흐름을 같이 놓고 보여요.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
-}
-
-/**
- * Which piece of the chart each 대분류 leads with. Without this every item would open on
- * the same 도화 sentence, and the 8 groups would read as one long repeat.
- */
-type ChartAngle = 'dohwa' | 'partnerStar' | 'expression'
-
-const GROUP_CHART_ANGLE: Record<string, ChartAngle> = {
-  overall: 'dohwa',
-  'ten-gods': 'expression',
-  timing: 'dohwa',
-  'self-pattern': 'expression',
-  compatibility: 'partnerStar',
-  'relationship-guide': 'partnerStar',
-  'warning-signals': 'expression',
-  'mz-cards': 'partnerStar',
-}
-
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  return chunks[index % chunks.length]
-}
-
 function buildInterpretation(params: {
-  groupId: string
-  categoryTitle: string
-  itemTitle: string
-  itemNote: string
-  itemWhy: string
-  analysis: SajuAnalysis
-  birth: BirthInput
-  input: LoveThisYearRequest
-  chunks: RagChunk[]
-  index: number
+  groupId: string; categoryTitle: string; itemTitle: string; itemNote: string; itemWhy: string; analysis: SajuAnalysis; birth: BirthInput; input: LoveThisYearRequest; chunks: RagChunk[]; index: number
 }): string {
-  const { groupId, categoryTitle, itemTitle, itemNote, itemWhy, analysis, birth, input, chunks, index } = params
-  const lens = GROUP_LENS[groupId] ?? DEFAULT_LENS
-  const day = analysis.fourPillars.day
-  const dominant = ELEMENT_KO[analysis.dominantElement]
-  const weak = ELEMENT_KO[analysis.weakElement]
-  const ragLine = ragLineFrom(
-    pickRag(chunks, index),
-    '올해 연애 흐름은 한 장면으로 단정하지 말고 도화의 자리, 세운의 결, 생활 리듬을 함께 봐야 합니다.',
-  )
-  const worry = input.concern
-    ? `지금 걸리는 말은 "${input.concern}"입니다.`
-    : '따로 적은 문장은 없으니 반복되는 장면을 중심으로 볼게요.'
-
-  const angle = GROUP_CHART_ANGLE[groupId] ?? 'dohwa'
-  const dohwa = dohwaLine(analysis)
-  const partnerStar = partnerStarLine(analysis, input, birth)
-  const expression = expressionLine(analysis)
-  const lead = angle === 'partnerStar' ? partnerStar : angle === 'expression' ? expression : dohwa
-  const rest = angle === 'partnerStar'
-    ? `${dohwa} ${expression}`
-    : angle === 'expression'
-      ? `${dohwa} ${partnerStar}`
-      : `${partnerStar} ${expression}`
-
-  return applyServiceTone([
-    `${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}), 일지는 ${copula(`${BRANCH_KO[day.branch]}(${day.branch})`)} 올해 연애의 기본값을 여기서부터 볼게요.`,
-    `${itemNote} ${lead} ${lens.focus}`,
-    `${rest} 당신은 ${dominant} 기운이 앞서고 ${topic(weak)} 얇으니, 관계에서 몰리는 자리와 비는 자리가 여기서 갈려요.`,
-    `${timingLine(analysis)} 지금은 "${input.relationshipStatus}" 자리에서 보고 있으니, 같은 운이라도 확인할 것이 달라져요. ${itemWhy}`,
-    `이 대목에서 함께 볼 결은 이래요. ${ragLine} 그러니 이 풀이는 올해 연애의 성사 여부를 점치는 자리가 아니라, 어디를 열고 어디를 쉬어야 덜 어긋나는지를 고르는 자리예요.`,
-    `${worry} ${lens.close} 사람의 마음은 예언이 아니라 대화에서 확인되니, 마지막 확인은 반드시 직접 말로 마무리하세요.`,
-  ].join('\n\n'), LOVE_THISYEAR_SERVICE_KEY)
+  return buildRelationshipReading({
+    serviceKey: LOVE_THISYEAR_SERVICE_KEY, category: params.groupId, title: params.itemTitle, note: params.itemNote, analysis: params.analysis, relationship: params.input.relationshipStatus, concern: params.input.concern,
+  })
 }
 
 export function buildLoveThisYearReport(
@@ -534,7 +295,7 @@ export function buildLoveThisYearReport(
   return finalizeSpecializedReport({
     reportId,
     title: '올해 연애운 해석문',
-    subtitle: `${context.name ?? '본인'}님의 올해 도화와 세운 흐름을 ${input.relationshipStatus} 자리에서 봅니다`,
+    subtitle: `${context.name ?? '본인'}님의 현재 관계 조건과 확인된 세운 흐름을 함께 살펴봐요`,
     model: 'love-thisyear-rag-template',
     generatedBy: 'template',
     status: 'complete',

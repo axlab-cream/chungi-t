@@ -135,7 +135,7 @@ const SECTION_COPY = {
   'work-context': ['요즘 일상에서 운이 움직이는 자리', '직장, 쉬는 시간, 생활 리듬의 신호'],
   'career-transition': ['버틸지 옮길지 판단 기준', '지금 멈춰야 할지 움직여야 할지'],
   'wealth-flow': ['돈이 들어오는 길', '내가 돈을 만들 때 강해지는 방식'],
-  'money-leak': ['돈이 새는 구멍', '작아 보여도 나중에 커지는 지출 신호'],
+  'money-leak': ['지출을 점검하는 기준', '작아 보여도 나중에 커지는 지출 신호'],
   'wealth-timing': ['재물 기회가 붙는 타이밍', '돈 흐름이 살아나는 때'],
   'love-loop': ['반복되는 인연 패턴', '왜 비슷한 사람에게 마음이 가는지'],
   'destiny-partner': ['나와 맞는 사람의 분위기', '끌림보다 오래 남는 사람의 결'],
@@ -1745,19 +1745,28 @@ chatForm.addEventListener('submit', async (e) => {
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify((() => {
         const serviceKey = resolveServiceKey()
         return {
           birth: session.birth,
+          parentReportId: reportIdFromAnalysis(session.analysis),
+          requestId: crypto.randomUUID(),
           message,
           history: session.history.slice(0, -1),
           ...(serviceKey ? { serviceKey } : {}),
         }
       })()),
     })
-    const json = await res.json()
+    let json = await res.json()
     if (!res.ok) throw new Error(json.error || '상담 실패')
+    for (let poll = 0; ['pending','generating'].includes(json.status) && poll < 60; poll += 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const saved = await fetch('/api/report/' + encodeURIComponent(json.resultId), { headers: await authHeaders(), cache: 'no-store' })
+      json = await saved.json()
+      if (!saved.ok) throw new Error(json.error || '저장된 상담 조회 실패')
+    }
+    if (json.status !== 'complete' || !json.reply) throw new Error('상담을 아직 준비하고 있습니다. 구매 내역에서 저장된 결과를 다시 열어 주세요.')
 
     appendBubble('assistant', json.reply)
     session.history.push({ role: 'assistant', content: json.reply })

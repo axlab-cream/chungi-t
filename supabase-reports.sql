@@ -53,8 +53,20 @@ drop policy if exists "reports owner delete" on public.cheongi_reports;
 create policy "reports owner delete" on public.cheongi_reports
   for delete to authenticated using (auth.uid() = user_id);
 
-revoke all on table public.cheongi_reports from anon;
-grant select, insert, update, delete on table public.cheongi_reports to authenticated;
+-- Full snapshots contain internal prompts and generation attempts. Only the
+-- server may access this table; the application checks owner/payment access.
+-- Deploy the service-role report-store path before revoking legacy user access.
+revoke all on table public.cheongi_reports from public, anon, authenticated;
+grant select, insert, update, delete on table public.cheongi_reports to service_role;
+
+-- Column grants are independent of table grants; remove any legacy exceptions.
+do $$
+declare columns_sql text;
+begin
+  select string_agg(quote_ident(attname), ',') into columns_sql
+  from pg_attribute where attrelid = 'public.cheongi_reports'::regclass and attnum > 0 and not attisdropped;
+  execute format('revoke all (%s) on table public.cheongi_reports from public, anon, authenticated', columns_sql);
+end $$;
 
 create index if not exists cheongi_reports_user_id_idx
   on public.cheongi_reports (user_id);
@@ -71,3 +83,10 @@ create index if not exists cheongi_reports_status_updated_idx
 
 create index if not exists cheongi_reports_user_service_idx
   on public.cheongi_reports (user_id, service_key, updated_at desc);
+
+create unique index if not exists cheongi_reports_result_uuid_uidx
+  on public.cheongi_reports ((payload->>'resultId'))
+  where payload->>'resultId' is not null;
+
+create index if not exists cheongi_reports_user_updated_idx
+  on public.cheongi_reports (user_id, updated_at desc);

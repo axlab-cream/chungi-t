@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
+    <script src="/js/umsh-report-access.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>내 애인 바람필까? | 관계 신호 리포트</title>
@@ -906,8 +907,8 @@
           },
           {
             id: "partner_signal_radar",
-            title: "애인의 바람기 레이더",
-            subtitle: "매력, 관심 욕구, 외부 유혹에 흔들릴 수 있는 환경을 봅니다.",
+            title: "관계 밖 활동과 합의한 경계",
+            subtitle: "매력, 관심 욕구, 외부 일정과 관계 약속의 균형을 봅니다.",
             one_liner: "사람을 끌어당기는 기운이 관계 밖에서 어떻게 쓰이는지 확인합니다.",
             why: "매력 자체가 문제는 아니지만 선이 흐려지는 조건은 미리 봐야 합니다.",
             evidence_ids: ["zip-만세력-qa-000575", "zip-만세력-qa-000576", "item-12-p1-0037", "item-22-p1-0028"],
@@ -918,15 +919,15 @@
               ["partner_signal_radar_dohwa_hongyeom", "도화살·홍염살 기반 매력 과다 신호", "사람이 붙는 기운이 연애에서 어떤 변수로 나타나는지 봅니다."],
               ["partner_signal_radar_social_magnet", "사람 끌어당기는 타입", "상대가 관심을 받는 자리에서 에너지가 살아나는지 확인합니다."],
               ["partner_signal_radar_attention_enjoy", "관심받는 걸 즐기는 타입", "칭찬과 플러팅 사이에서 선을 지키는 방식을 봅니다."],
-              ["partner_signal_radar_boundary_environment", "선 넘기 쉬운 환경운", "회식, 모임, SNS처럼 관계 밖 접점이 늘어나는 구간을 살핍니다."],
+              ["partner_signal_radar_boundary_environment", "불편한 상황에서 지킬 경계", "회식, 모임, SNS처럼 관계 밖 접점이 늘어나는 구간을 살핍니다."],
               ["partner_signal_radar_pyeonjae_schedule", "약속이 흩어지는 편재형 패턴", "재미와 즉흥성이 약속의 밀도를 흐리는지 봅니다."],
               ["partner_signal_radar_multi_scene", "여러 판 동시에 여는 흐름", "관심사가 여러 갈래로 벌어질 때 관계 우선순위가 내려가는지 봅니다."],
-              ["partner_signal_radar_temptation_timing", "외부 유혹에 약한 시기", "새 인연보다 현재 관계의 지킬 선이 흔들리는 타이밍을 봅니다."]
+              ["partner_signal_radar_temptation_timing", "관계의 경계를 확인할 상황", "새 인연보다 현재 관계의 지킬 선이 흔들리는 타이밍을 봅니다."]
             ]
           },
           {
             id: "switch_flirt_check",
-            title: "환승각·썸각 체크",
+            title: "새 접점과 관계 의향",
             subtitle: "새 사람, 전애인, 직장·모임·SNS 변수까지 현실 접점을 봅니다.",
             one_liner: "친구인지 플러팅인지 애매한 구간을 감정이 아니라 패턴으로 봅니다.",
             why: "애매함이 길어질수록 불안이 커지니 확인할 장면을 좁혀야 합니다.",
@@ -935,12 +936,12 @@
             image: "../assets/signal/05-switch_flirt_check.webp",
             image_alt: "레드 의상의 상담자가 두 갈래 붉은 실과 컵을 사이에 두고 관계 선택 신호를 살피는 장면",
             items: [
-              ["switch_flirt_check_new_person_timing", "새 사람에게 흔들릴 수 있는 타이밍", "새 자극이 들어올 때 현재 관계의 빈자리가 어디인지 봅니다."],
+              ["switch_flirt_check_new_person_timing", "새로운 만남에 대한 합의", "새 자극이 들어올 때 현재 관계의 빈자리가 어디인지 봅니다."],
               ["switch_flirt_check_easy_flirt_flow", "썸 타기 쉬운 운", "대화가 빠르게 가까워지는 흐름과 선 지키는 힘을 같이 봅니다."],
               ["switch_flirt_check_friend_or_flirt", "친구인지 플러팅인지 애매한 관계", "농담, 빈도, 단둘이 만나는 맥락을 나눠 봅니다."],
-              ["switch_flirt_check_ex_return", "전애인 재등장 가능성", "과거 인연이 다시 연락될 때 흔들리는 이유를 봅니다."],
+              ["switch_flirt_check_ex_return", "과거 관계에 대한 현재의 기준", "과거 인연이 다시 연락될 때 흔들리는 이유를 봅니다."],
               ["switch_flirt_check_work_sns_variable", "직장·모임·SNS 인연 변수", "자주 마주치는 환경이 관계 온도에 주는 영향을 봅니다."],
-              ["switch_flirt_check_attention_self_esteem", "외부 관심이 자존감 충전으로 작동하는 케이스", "상대가 사랑보다 인정 욕구를 먼저 채우는지 살핍니다."]
+              ["switch_flirt_check_attention_self_esteem", "외부 관심이 자존감 충전으로 작동하는 케이스", "상대의 속마음을 추정하지 않고, 실제로 합의한 약속을 지키는지 살핍니다."]
             ]
           },
           {
@@ -1079,7 +1080,7 @@
               ["final_conclusion_type_relief", "안심각: 흔들림보다 안정이 큼", "관계의 기본 신뢰가 더 큰지 확인합니다."],
               ["final_conclusion_type_watch", "관망각: 아직 증거보다 불안이 큼", "조금 더 지켜볼 신호와 기록할 기준을 잡습니다."],
               ["final_conclusion_type_talk", "대화각: 말 안 하면 오해가 커짐", "지금 꺼내야 할 질문과 피해야 할 말투를 정리합니다."],
-              ["final_conclusion_type_boundary", "경계각: 선 넘는 환경이 보임", "관계 밖 변수에 대해 지킬 선을 분명히 잡습니다."],
+              ["final_conclusion_type_boundary", "경계 확인: 합의가 필요한 상황", "관계 밖 변수에 대해 지킬 선을 분명히 잡습니다."],
               ["final_conclusion_type_distance", "정리각: 마음보다 피로가 커진 상태", "감정 소모가 관계 유지보다 커진 장면을 봅니다."],
               ["final_conclusion_type_recheck", "재점검각: 궁합보다 생활 패턴 조율 필요", "사주 흐름보다 실제 생활 약속을 다시 맞춰야 하는 구간입니다."]
             ]
@@ -1089,7 +1090,7 @@
 
       const quickPrompts = [
         ["relationship_temperature", "연락 텐션부터"],
-        ["partner_signal_radar", "외부 유혹 구간"],
+        ["partner_signal_radar", "관계 약속 확인"],
         ["switch_flirt_check", "썸각 체크"],
         ["anxiety_source", "내 불안 원인"],
         ["reality_check_action", "확인 질문"]
@@ -1102,7 +1103,7 @@
         },
         {
           keys: ["썸", "환승", "전애인", "플러팅"],
-          reply: "썸인지 아닌지는 감정 표현보다 반복 접점이 중요해요. 단둘이 보는 빈도, 숨기는 정도, 약속 변경이 같이 늘었는지 확인하세요. “환승각·썸각 체크”에서 먼저 읽으면 됩니다."
+          reply: "썸인지 아닌지는 감정 표현보다 반복 접점이 중요해요. 단둘이 보는 빈도, 숨기는 정도, 약속 변경이 같이 늘었는지 확인하세요. “새 접점과 관계 의향”에서 먼저 읽으면 됩니다."
         },
         {
           keys: ["불안", "촉", "집착", "의심"],
@@ -1110,7 +1111,7 @@
         },
         {
           keys: ["도화", "홍염", "매력", "인기"],
-          reply: "매력 자체가 문제는 아니에요. 관심을 받는 자리에서 선을 지키는 방식이 핵심입니다. “애인의 바람기 레이더”에서 외부 관심이 관계에 들어오는 조건을 먼저 보세요."
+          reply: "매력 자체가 문제는 아니에요. 관심을 받는 자리에서 선을 지키는 방식이 핵심입니다. “관계 밖 활동과 합의한 경계”에서 외부 관심이 관계에 들어오는 조건을 먼저 보세요."
         }
       ];
 

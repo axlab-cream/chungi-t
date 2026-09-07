@@ -41,7 +41,7 @@ test('money save service builds a dedicated spending tendency report', () => {
     '돈이 들어오는 방식',
     '돈이 새는 패턴',
     '저축이 안 되는 이유',
-    '사주 체력 진단',
+    '사주 균형과 관리 방식',
     '오행 기반 돈관리 OS',
     '운의 타이밍',
     '관계/계약 돈문제',

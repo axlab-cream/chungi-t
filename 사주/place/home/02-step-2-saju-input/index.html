@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <script src="/js/umsh-report-access.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>입력하기 | 지금 사는 집, 나랑 잘 맞을까?</title>
@@ -1649,7 +1650,7 @@
 
       async function requestAnalysis(payload) {
         const session = await getAuthSession();
-        const response = await fetch("/api/saju/analyze", {
+        const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

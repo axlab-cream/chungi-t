@@ -8,14 +8,14 @@
   }
 
   function sectionReady(section) {
-    return section && (section.status === 'complete' || section.status === 'failed');
+    return section && section.status === 'complete';
   }
 
   function reportDone(report) {
     if (!report) return false;
     if (report.status === 'complete' || report.status === 'failed') return true;
     var sections = report.sections || [];
-    return sections.length > 0 && sections.every(sectionReady);
+    return sections.length > 0 && sections.every(function(section) { return section.status === 'complete' || section.status === 'failed'; });
   }
 
   function progressLabel(report) {
@@ -36,7 +36,7 @@
     var payload = options.payload;
     var report = payload && payload.report;
     var reportId = (payload && payload.reportId) || (report && report.reportId);
-    var publicId = (payload && payload.publicId) || (report && report.publicId);
+    var publicId = (payload && (payload.resultId || payload.publicId)) || (report && (report.resultId || report.publicId));
     var onUpdate = typeof options.onUpdate === 'function' ? options.onUpdate : function () {};
     var fetchReport = options.fetchReport;
     var pollMs = Number(options.pollMs) > 0 ? Number(options.pollMs) : 1200;
@@ -98,6 +98,9 @@
 
   function readingPlaceholder(section) {
     var title = section && section.classification ? section.classification : '이 장';
+    if (section && section.status === 'failed') {
+      return '<div class="umsh-section-skeleton" role="status"><strong>이 항목을 완성하지 못했습니다.</strong><p>완료된 다른 항목은 읽을 수 있습니다. 미완성 문장을 최종 해석으로 표시하지 않습니다.</p></div>';
+    }
     return (
       '<div class="umsh-section-skeleton" role="status" aria-live="polite">' +
       '<strong>' + title + ' 해석을 준비하고 있어요</strong>' +

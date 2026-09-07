@@ -44,7 +44,7 @@ test('love mind service builds a relationship-flow report without partner birth'
     '마음은 추측보다 상대의 반응으로 확인합니다',
   ])
   assert.match(report.sections[0].interpretation, /상대|관계|연락|마음/)
-  assert.match(report.sections[0].interpretation, /속마음을 단정하지 않거나|확인할 기준/)
+  assert.match(report.sections[0].interpretation, /생년 정보로 알 수는 없어요/)
 })
 
 test('love mind service uses optional partner birth when provided', () => {
@@ -63,8 +63,8 @@ test('love mind service uses optional partner birth when provided', () => {
 
   assert.equal(input.partnerBirth?.year, 1994)
   assert.equal(context.partner?.mode, 'known')
-  assert.match(report.sections[0].interpretation, /김하나/)
-  assert.match(report.sections[0].interpretation, /일지/)
+  assert.equal(context.partner?.name, '김하나')
+  assert.match(report.sections.find((section) => section.classification === '서로에게 끌리는 오행의 결')!.interpretation, /상대의 일지/)
 })
 
 test('love mind request validates required relationship signals and optional date', () => {

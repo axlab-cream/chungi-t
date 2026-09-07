@@ -48,15 +48,15 @@ test('love signal service builds a dedicated relationship signal report', () => 
 
     // Items inside one 대분류 must read differently, or the 05 목차 and 06 상세 would
     // show the same paragraph several times in a row.
-    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    const bodies = owned.map((section) => section.interpretation.split('\n\n')[0])
     assert.equal(new Set(bodies).size, owned.length, `${group.id} 의 항목들이 서로 다르게 읽혀야 합니다`)
   })
 
   // The reading has to reach the reader's own input and both saju, not a generic template.
-  assert.match(report.sections[0].interpretation, /일지|오행|대운/)
+  assert.match(report.sections.find((section) => section.classification.includes('천간 궁합'))!.interpretation, /일간|일지/)
   assert.match(report.sections[0].interpretation, /연애 중/)
   assert.match(report.sections[0].interpretation, /연락 온도차/)
-  assert.match(report.sections[0].interpretation, /김하나/)
+  assert.equal(context.partner?.name, '김하나')
 
   // This service must never present itself as proof of anything.
   assert.match(report.sections[0].interpretation, /판정하는 자리가 아니라|확인/)

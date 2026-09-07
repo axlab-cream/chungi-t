@@ -5,22 +5,25 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { prepareConversation } from '../conversation/engine.js'
-import { chatWithOpenAI, isOpenAiConfigured } from '../llm/openai-adapter.js'
+import { isOpenAiConfigured } from '../llm/openai-adapter.js'
+import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
-import { generateReportSectionNow, preGenerateReport, startReportPreGeneration } from '../report/report-queue.js'
-import { buildTodayFortune } from '../saju/today-fortune.js'
+import { generateReportSectionNow } from '../report/report-queue.js'
+import { savedDailyFortune } from '../report/daily-report.js'
 import {
   createOrGetReportRecord,
   createReportId,
   deleteReportRecord,
   getReportStorageMode,
-  getReportRecord,
+  findReportRecord,
+  sectionGenerationId,
   listReportRecords,
   toClientReport,
   updateReportChatHistory,
+  withReportBirthCertainty,
 } from '../report/report-store.js'
+import { createSavedPreview, guardPreview } from '../report/report-preview.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
@@ -124,7 +127,6 @@ import {
   createLoveSpouseReportId,
   parseLoveSpouseRequest,
 } from '../love/spouse-service.js'
-import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -170,6 +172,12 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+// Interpretation/profile responses must never enter browser or shared caches.
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.vary('Authorization')
+  next()
+})
 
 function specializedAnalyzeResponse(
   progressive: Awaited<ReturnType<typeof beginSpecializedProgressiveReport>>,
@@ -181,6 +189,7 @@ function specializedAnalyzeResponse(
     report: progressive.report,
     reportId: progressive.reportId,
     publicId: progressive.publicId,
+    resultId: progressive.report.resultId,
     publicUrl: progressive.publicId ? `/r/${progressive.publicId}` : undefined,
     cached: progressive.cached,
     resumed: progressive.resumed,
@@ -811,6 +820,7 @@ function authConfig() {
 
   return {
     enabled: Boolean(SUPABASE_URL && SUPABASE_PUBLIC_KEY),
+    developmentReportAccess: !SUPABASE_URL && !SUPABASE_PUBLIC_KEY && !process.env.VERCEL && process.env.NODE_ENV !== 'production',
     url: SUPABASE_URL,
     callbackUrl,
     publishableKey: SUPABASE_PUBLIC_KEY,
@@ -972,18 +982,18 @@ async function toUiAnalysis(
     birth,
     context: enrichedContext,
     templateReport,
+    analysis,
     owner,
   })
 
-  // The free outline and template teaser stay identical for everyone. Only an entitled
-  // reader triggers the LLM pass that writes the paid chapters.
-  if (record.status !== 'complete' && access?.entitled !== false) {
-    startReportPreGeneration({ reportId, analysis, birth, context: enrichedContext, owner })
-  }
+  // Creation and GET do not generate paid text. The reader requests bounded sections
+  // and each generation request stays open until its result is safely stored.
 
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
-  return buildUiAnalysisPayload(analysis, birth, report)
+  const payload = buildUiAnalysisPayload(record.analysis ?? analysis, record.birth, report)
+  if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record) }
+  return payload
 }
 
 function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
@@ -1015,7 +1025,7 @@ function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, repor
 }
 
 function toUiAnalysisFromRecord(record: ReportRecord) {
-  const analysis = analyzeSaju(record.birth)
+  const analysis = record.analysis ?? analyzeSaju(record.birth)
   return buildUiAnalysisPayload(analysis, record.birth, toClientReport(record))
 }
 
@@ -1051,25 +1061,34 @@ function birthStateFromRecord(record: ReportRecord) {
   }
 }
 
+function clientReportContext(record: ReportRecord): SajuReportContext {
+  return Object.fromEntries(Object.entries(record.context).filter(([key]) => key !== 'savedChat'))
+}
+
 function historyEntryFromRecord(record: ReportRecord) {
   const analysis = toUiAnalysisFromRecord(record)
+  // Lists are metadata, not an alternate paid-content endpoint. Open the ID for entitlement checks.
+  analysis.report.sections = []
   const birthState = birthStateFromRecord(record)
   const savedAt = record.updatedAt || record.createdAt || new Date().toISOString()
 
   return {
     reportId: record.reportId,
+    resultId: analysis.report.resultId,
+    publicUrl: analysis.report.publicUrl,
+    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
     serviceHref: serviceHrefForKey(record.context?.serviceKey),
     savedAt,
     title: `${birthState.name || birthState.target || '당신'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,
     birthState,
-    context: record.context,
+    context: clientReportContext(record),
     analysis,
     progress: analysis.report?.progress,
     storage: analysis.report?.storage,
     corpusFingerprint: analysis.report?.corpus?.fingerprint,
-    chatHistory: record.chatHistory ?? [],
+    chatHistory: [],
     initialConcern: record.context?.concern || '',
   }
 }
@@ -1193,6 +1212,10 @@ async function findUnlockingOrder(
   productKey: string,
   reportId: string,
 ): Promise<PaymentOrder | null> {
+  const bound = await listPaymentOrders(owner.id, 100, reportId).catch(() => [] as PaymentOrder[])
+  const exact = bound.find((order) => orderUnlocks(order, owner, productKey, reportId))
+  if (exact) return exact
+  // Retain legacy unbound-order compatibility; current orders use the exact report ID lookup above.
   const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
   const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
   return unlocking.find((order) => order.reportId === reportId) ?? unlocking[0] ?? null
@@ -1227,7 +1250,11 @@ async function resolvePaidAccess(
 
 /** Stamps the unlock flags the report UI reads before revealing paid chapters. */
 function applyReportEntitlement(report: SajuReport, access: PaidAccess, owner?: ReportOwner): SajuReport {
-  if (!access.entitled) return report
+  if (!access.entitled) {
+    report.sections = []
+    report.isPaid = report.paid = false
+    return report
+  }
   if (access.reason === 'admin') return applyAdminReportUnlock(report, owner)
   report.isPaid = true
   report.paid = true
@@ -1556,12 +1583,13 @@ app.get('/api/user/destiny', async (req, res) => {
       return
     }
 
+    const daily = await savedDailyFortune(profile, owner)
     res.json({
       userId: owner.id,
       complete: true,
       profile,
       analysis: analyzeSaju(profile.birth),
-      todayFortune: buildTodayFortune(profile),
+      todayFortune: { ...daily.auxiliary?.todayFortune, reportId: daily.reportId, resultId: daily.resultId, publicUrl: toClientReport(daily).publicUrl },
       reports: records.map(historyEntryFromRecord),
       storage: getReportStorageMode(),
     })
@@ -1590,17 +1618,104 @@ app.post('/api/today/fortune', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    const requestedId = trimmedString(req.body?.reportId || req.body?.resultId)
+    if (requestedId) {
+      const existing = await findReportRecord(requestedId, owner)
+      if (!existing?.auxiliary?.todayFortune) { res.status(404).json({ error: '저장된 오늘의 운세를 찾지 못했습니다.' }); return }
+      res.json({ todayFortune: existing.auxiliary.todayFortune, reportId: existing.reportId, resultId: existing.resultId, publicUrl: toClientReport(existing).publicUrl })
+      return
+    }
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '오늘의 운세를 보려면 기본 사주 정보를 먼저 입력해 주세요.' })
       return
     }
+    const record = await savedDailyFortune(profile, owner)
     res.json({
-      todayFortune: buildTodayFortune(profile),
+      todayFortune: record.auxiliary?.todayFortune,
+      reportId: record.reportId, resultId: record.resultId, publicUrl: toClientReport(record).publicUrl,
       ...userProfilePayload(profile, owner),
     })
   } catch (err) {
+    if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 볼 수 없습니다.' }); return }
     res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
+  }
+})
+
+function wantsPreview(req: Request): boolean {
+  return req.body?.preview === true || req.query.preview === '1'
+}
+
+function savedPreviewResponse(record: ReportRecord) {
+  const report = toClientReport(record)
+  return {
+    previewOnly: true,
+    reportId: record.reportId,
+    resultId: report.resultId,
+    publicId: report.publicId,
+    publicUrl: report.publicUrl,
+    serviceKey: record.context.serviceKey ?? 'saju_master',
+    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
+    paymentUrl: paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
+  }
+}
+
+async function serveSavedChat(req: Request, res: Response, record: ReportRecord, owner: ReportOwner | undefined, generate = false): Promise<void> {
+  if (!owner) { res.status(401).json({ error: '로그인 후 저장된 상담을 볼 수 있습니다.' }); return }
+  const parentId = savedChatParentId(record)
+  if (parentId) {
+    const parent = await findReportRecord(parentId, owner)
+    if (!parent) { res.status(404).json({ error: '상담의 원본 해석을 찾지 못했습니다.' }); return }
+    if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
+  }
+  const result = generate ? await generateSavedChat({ resultId: record.reportId, owner, retry: req.body?.retry === true }) : toSavedChatResult(record)
+  const saved = generate ? await findReportRecord(record.reportId, owner) : record
+  res.status(result.status === 'failed' ? (generate ? 502 : 200) : result.status === 'complete' ? 200 : 202).json({ ...result, report: toClientReport(saved ?? record), context: clientReportContext(record), birth: record.birth })
+}
+
+async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
+  if (!wantsPreview(req)) return false
+  const { record } = await createOrGetReportRecord(params)
+  res.json(savedPreviewResponse(record))
+  return true
+}
+
+// ID is a locator, never an authorization credential. This page itself has no private data.
+app.get('/r/:resultId', (_req, res) => res.sendFile(resolve(SAJU_ROOT, 'report-view.html')))
+
+const ANALYZE_SERVICES: Record<string, string> = {
+  '/api/money/save/analyze': 'money_save', '/api/match/couple/analyze': 'match_couple',
+  '/api/match/marry/analyze': 'marry_match', '/api/work/job/analyze': 'work_job',
+  '/api/work/quit/analyze': 'quit_fortune', '/api/work/job-choice/analyze': 'job_choice',
+  '/api/match/cat/analyze': 'cat_compatibility', '/api/me/lucky/analyze': 'lucky_color',
+  '/api/love/mind/analyze': 'love_mind', '/api/love/signal/analyze': 'couple_signal',
+  '/api/love/this-year/analyze': 'love_this_year', '/api/love/again/analyze': 'love_again',
+  '/api/love/spouse/analyze': 'love_spouse',
+}
+
+app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
+  const id = trimmedString(req.body?.reportId || req.body?.resultId)
+  if (!id) { next(); return }
+  try {
+    const owner = await verifySupabaseUser(req)
+    if (!authConfig().developmentReportAccess && !owner) { res.status(401).json({ error: '로그인이 필요합니다.' }); return }
+    const record = await findReportRecord(id, owner)
+    if (!record) { res.status(404).json({ error: '저장된 결과를 찾지 못했습니다. 새 결과로 대체하지 않습니다.' }); return }
+    const expected = ANALYZE_SERVICES[req.path]
+    if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
+    if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
+    const analysis = toUiAnalysisFromRecord(record)
+    if (record.auxiliary?.todayFortune) {
+      res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: record.context, analysis })
+      return
+    }
+    applyReportEntitlement(analysis.report, access, owner)
+    res.json({ report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: record.context, analysis, cached: true })
+  } catch (error) {
+    const denied = error instanceof Error && error.message === 'REPORT_ACCESS_DENIED'
+    res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 조회할 수 있습니다.' : '저장된 해석 조회에 실패했습니다.' })
   }
 })
 
@@ -1615,11 +1730,12 @@ app.post('/api/money/save/analyze', async (req, res) => {
     }
 
     const input = parseMoneySaveRequest(req.body)
-    const context = buildMoneySaveContext(profile.name, input)
+    const context = { ...buildMoneySaveContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createMoneySaveReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId)) return
+    const reportId = withReportBirthCertainty(createMoneySaveReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1647,11 +1763,12 @@ app.post('/api/match/couple/analyze', async (req, res) => {
 
     const input = parseCoupleMatchRequest(req.body)
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
-    const context = buildCoupleMatchContext(profile.name, input, partnerAnalysis)
+    const context = { ...buildCoupleMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createCoupleMatchReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId)) return
+    const reportId = withReportBirthCertainty(createCoupleMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1678,11 +1795,12 @@ app.post('/api/work/job/analyze', async (req, res) => {
     }
 
     const input = parseWorkJobRequest(req.body)
-    const context = buildWorkJobContext(profile.name, input)
+    const context = { ...buildWorkJobContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createWorkJobReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId)) return
+    const reportId = withReportBirthCertainty(createWorkJobReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildWorkJobReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1709,11 +1827,12 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     }
 
     const input = parseWorkQuitRequest(req.body)
-    const context = buildWorkQuitContext(profile.name, input)
+    const context = { ...buildWorkQuitContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createWorkQuitReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId)) return
+    const reportId = withReportBirthCertainty(createWorkQuitReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildWorkQuitReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1740,11 +1859,12 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     }
 
     const input = parseJobChoiceRequest(req.body)
-    const context = buildJobChoiceContext(profile.name, input)
+    const context = { ...buildJobChoiceContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createJobChoiceReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId)) return
+    const reportId = withReportBirthCertainty(createJobChoiceReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildJobChoiceReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1771,11 +1891,12 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     }
 
     const input = parseCatCompatRequest(req.body)
-    const context = buildCatCompatContext(profile.name, input)
+    const context = { ...buildCatCompatContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createCatCompatReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId)) return
+    const reportId = withReportBirthCertainty(createCatCompatReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildCatCompatReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1802,11 +1923,12 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
     }
 
     const input = parseLuckyColorRequest(req.body)
-    const context = buildLuckyColorContext(profile.name, input)
+    const context = { ...buildLuckyColorContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createLuckyColorReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId)) return
+    const reportId = withReportBirthCertainty(createLuckyColorReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildLuckyColorReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1834,11 +1956,12 @@ app.post('/api/match/marry/analyze', async (req, res) => {
 
     const input = parseMarryMatchRequest(req.body)
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
-    const context = buildMarryMatchContext(profile.name, input, partnerAnalysis)
+    const context = { ...buildMarryMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createMarryMatchReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId)) return
+    const reportId = withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1866,11 +1989,12 @@ app.post('/api/love/mind/analyze', async (req, res) => {
 
     const input = parseLoveMindRequest(req.body)
     const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
-    const context = buildLoveMindContext(profile.name, input, partnerAnalysis)
+    const context = { ...buildLoveMindContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createLoveMindReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId)) return
+    const reportId = withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildLoveMindReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1898,11 +2022,12 @@ app.post('/api/love/signal/analyze', async (req, res) => {
 
     const input = parseLoveSignalRequest(req.body)
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
-    const context = buildLoveSignalContext(profile.name, input, partnerAnalysis)
+    const context = { ...buildLoveSignalContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createLoveSignalReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId)) return
+    const reportId = withReportBirthCertainty(createLoveSignalReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildLoveSignalReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1933,11 +2058,12 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
       body.gender = profile.birth.gender
     }
     const input = parseLoveThisYearRequest(body)
-    const context = buildLoveThisYearContext(profile.name, input)
+    const context = { ...buildLoveThisYearContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createLoveThisYearReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId)) return
+    const reportId = withReportBirthCertainty(createLoveThisYearReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildLoveThisYearReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1965,11 +2091,12 @@ app.post('/api/love/again/analyze', async (req, res) => {
 
     const input = parseLoveAgainRequest(req.body)
     const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
-    const context = buildLoveAgainContext(profile.name, input, partnerAnalysis)
+    const context = { ...buildLoveAgainContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createLoveAgainReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId)) return
+    const reportId = withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildLoveAgainReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -1996,11 +2123,12 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
     }
 
     const input = parseLoveSpouseRequest(req.body)
-    const context = buildLoveSpouseContext(profile.name, input)
+    const context = { ...buildLoveSpouseContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createLoveSpouseReportId(owner.id, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId)) return
+    const reportId = withReportBirthCertainty(createLoveSpouseReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
     const templateReport = buildLoveSpouseReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,
@@ -2021,12 +2149,17 @@ app.post('/api/saju/analyze', async (req, res) => {
     const birthBody = asObject(req.body.birth)
     const birth = parseBirth(Object.keys(birthBody).length ? birthBody : req.body)
     const context = parseReportContext(req.body)
+    const suppliedKey = trimmedString(req.body?.context?.serviceKey || req.body?.context?.service_key || req.body?.serviceKey || req.body?.service_key)
+    if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
+      res.status(400).json({ error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
+      return
+    }
     if (!birth.year || !birth.month || !birth.day) {
       res.status(400).json({ error: '생년월일을 입력해 주세요.' })
       return
     }
     const owner = await verifySupabaseUser(req)
-    if (authConfig().enabled && !owner) {
+    if (!authConfig().developmentReportAccess && !owner) {
       res.status(401).json({ error: '회원가입 후 해석을 시작해 주세요.' })
       return
     }
@@ -2048,6 +2181,15 @@ app.post('/api/saju/analyze', async (req, res) => {
       )
     }
     const enriched = enrichReportContext(context)
+    if (wantsPreview(req)) {
+      const analysis = analyzeSaju(birth)
+      const { record } = await createOrGetReportRecord({
+        reportId: createReportId(birth, enriched, undefined, owner?.id), birth, context: enriched,
+        analysis, templateReport: buildTemplateSajuReport(analysis, birth, enriched), owner,
+      })
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record) })
+      return
+    }
     const access = await resolvePaidAccess(
       req,
       owner,
@@ -2060,27 +2202,39 @@ app.post('/api/saju/analyze', async (req, res) => {
   }
 })
 
-app.get('/api/report/:reportId', async (req, res) => {
+app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) => {
   try {
     const reportId = String(req.params.reportId ?? '').trim()
     const owner = await verifySupabaseUser(req)
-    const record = await getReportRecord(reportId, owner?.accessToken)
+    if (!authConfig().developmentReportAccess && !owner) { res.status(401).json({ error: '로그인 후 저장된 해석을 볼 수 있습니다.' }); return }
+    const record = await findReportRecord(reportId, owner)
     if (!record) {
       res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
       return
     }
+    if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const analysis = toUiAnalysisFromRecord(record)
+    if (record.auxiliary?.todayFortune) {
+      res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: record.context, analysis })
+      return
+    }
+    if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    if (!access.entitled) { res.json(savedPreviewResponse(record)); return }
     applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,
+      reportId: record.reportId,
+      resultId: analysis.report.resultId,
+      publicUrl: analysis.report.publicUrl,
       birth: record.birth,
       context: record.context,
       analysis,
       chatHistory: record.chatHistory ?? [],
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 조회 실패' })
+    const denied = err instanceof Error && err.message === 'REPORT_ACCESS_DENIED'
+    res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 조회할 수 있습니다.' : '리포트 조회 실패' })
   }
 })
 
@@ -2108,7 +2262,11 @@ app.post('/api/report/chat-history', async (req, res) => {
       return
     }
     const owner = await verifySupabaseUser(req)
-    const record = await updateReportChatHistory(reportId, history, owner)
+    if (!authConfig().developmentReportAccess && !owner) { res.status(401).json({ error: '로그인이 필요합니다.' }); return }
+    const existing = await findReportRecord(reportId, owner)
+    if (!existing) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
+    if (isSavedChatRecord(existing)) { res.status(409).json({ error: '완료된 상담 질문과 답변은 수정할 수 없습니다.' }); return }
+    const record = await updateReportChatHistory(existing.reportId, history, owner)
     if (!record) {
       res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
       return
@@ -2120,141 +2278,99 @@ app.post('/api/report/chat-history', async (req, res) => {
       chatHistory: record.chatHistory ?? [],
     })
   } catch (err) {
+    if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 수정할 수 없습니다.' }); return }
     res.status(500).json({ error: err instanceof Error ? err.message : '상담 저장 실패' })
   }
 })
 
 app.post('/api/report/section', async (req, res) => {
   try {
-    const birth = parseBirth(req.body.birth ?? req.body)
-    const context = enrichReportContext(parseReportContext(req.body))
-    const sectionId = String(req.body.sectionId ?? '').trim()
     const owner = await verifySupabaseUser(req)
-    const reportId = String(req.body.reportId ?? createReportId(birth, context, undefined, owner?.id)).trim()
-
-    if (!birth.year || !birth.month || !birth.day) {
-      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
-      return
+    if (!authConfig().developmentReportAccess && !owner) { res.status(401).json({ error: '로그인 후 이어서 볼 수 있습니다.' }); return }
+    const id = trimmedString(req.body.reportId || req.body.resultId)
+    const sectionId = trimmedString(req.body.sectionId)
+    if (!id || !sectionId) { res.status(400).json({ error: 'reportId와 sectionId가 필요합니다.' }); return }
+    const record = await findReportRecord(id, owner)
+    if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
+    if (isSavedChatRecord(record)) {
+      const section = record.report.sections[0]
+      if (section.id !== sectionId && sectionGenerationId(record, section) !== sectionId) { res.status(404).json({ error: '저장된 항목을 찾지 못했습니다.' }); return }
+      await serveSavedChat(req, res, record, owner, true); return
     }
-    if (!sectionId) {
-      res.status(400).json({ error: 'sectionId가 필요합니다.' })
-      return
-    }
-    if (authConfig().enabled && !owner) {
-      res.status(401).json({ error: '회원가입 후 리포트를 이어서 볼 수 있습니다.' })
-      return
-    }
-    if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(context), reportId)) return
-
-    const analysis = analyzeSaju(birth)
-    const templateReport = buildTemplateSajuReport(analysis, birth, context)
-    const { record } = await createOrGetReportRecord({
-      reportId,
-      birth,
-      context,
-      templateReport,
-      owner,
-    })
-    const storedSection = record.report.sections.find((section) => section.id === sectionId)
-
-    if (storedSection?.status === 'complete') {
-      res.json({
-        section: storedSection,
-        report: toClientReport(record),
-        generatedBy: storedSection.generatedBy ?? 'template',
-        model: storedSection.model ?? 'template',
+    if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(record.context), record.reportId)) return
+    const section = record.report.sections.find((item) => item.id === sectionId || sectionGenerationId(record, item) === sectionId)
+    if (!section) { res.status(404).json({ error: '저장된 항목을 찾지 못했습니다.' }); return }
+    if (section.status !== 'complete') {
+      await generateReportSectionNow({
+        reportId: record.reportId, sectionId: section.id, owner, birth: record.birth,
+        context: record.context, analysis: record.analysis ?? analyzeSaju(record.birth), retry: req.body.retry === true,
       })
-      return
     }
-
-    if (record.status !== 'complete') {
-      startReportPreGeneration({ reportId, analysis, birth, context, owner })
-    }
-
-    const section = await generateReportSectionNow({ reportId, analysis, birth, context, sectionId, owner })
-    const latest = await getReportRecord(reportId, owner?.accessToken)
-    res.json({
-      section,
-      report: latest ? toClientReport(latest) : undefined,
-      generatedBy: section.generatedBy ?? (isOpenAiConfigured() ? 'openai' : 'template'),
-      model: section.model ?? 'template',
-    })
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 생성 실패' })
+    const latest = await findReportRecord(record.reportId, owner)
+    const report = latest ? toClientReport(latest) : toClientReport(record)
+    const saved = report.sections.find((item) => item.id === section.id)
+    res.json({ section: saved, report, reportId: record.reportId, resultId: report.resultId, generatedBy: saved?.generatedBy, model: saved?.model })
+  } catch (error) {
+    const denied = error instanceof Error && error.message === 'REPORT_ACCESS_DENIED'
+    res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 볼 수 있습니다.' : '해석 생성 또는 저장을 완료하지 못했습니다.' })
   }
 })
 
 app.post('/api/report/prewarm', async (req, res) => {
   try {
-    const birth = parseBirth(req.body.birth ?? req.body)
-    const context = enrichReportContext(parseReportContext(req.body))
     const owner = await verifySupabaseUser(req)
-    const reportId = String(req.body.reportId ?? createReportId(birth, context, undefined, owner?.id)).trim()
-
-    if (!birth.year || !birth.month || !birth.day) {
-      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
-      return
-    }
-    if (authConfig().enabled && !owner) {
-      res.status(401).json({ error: '회원가입 후 리포트를 생성할 수 있습니다.' })
-      return
-    }
-    if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(context), reportId)) return
-
-    const analysis = analyzeSaju(birth)
-    const templateReport = buildTemplateSajuReport(analysis, birth, context)
-    await createOrGetReportRecord({
-      reportId,
-      birth,
-      context,
-      templateReport,
-      owner,
-    })
-
-    const record = await preGenerateReport({ reportId, analysis, birth, context, owner })
-    if (!record) {
-      res.status(404).json({ error: '리포트 사전 생성 대상을 찾지 못했습니다.' })
-      return
-    }
-
-    res.json({ report: toClientReport(record) })
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '리포트 사전 생성 실패' })
+    if (!authConfig().developmentReportAccess && !owner) { res.status(401).json({ error: '로그인이 필요합니다.' }); return }
+    const id = trimmedString(req.body.reportId || req.body.resultId)
+    const record = id ? await findReportRecord(id, owner) : null
+    if (!record) { res.status(404).json({ error: '저장된 해석을 먼저 선택해 주세요.' }); return }
+    if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner, true); return }
+    if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(record.context), record.reportId)) return
+    const next = record.status === 'complete' ? undefined : record.report.sections.find((item) => item.status === 'pending')
+    if (next) await generateReportSectionNow({ reportId: record.reportId, sectionId: next.id, birth: record.birth, context: record.context, analysis: record.analysis ?? analyzeSaju(record.birth), owner })
+    const saved = next ? await findReportRecord(record.reportId, owner) : record
+    res.json({ report: toClientReport(saved ?? record) })
+  } catch (error) {
+    const denied = error instanceof Error && error.message === 'REPORT_ACCESS_DENIED'
+    res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 볼 수 있습니다.' : '저장된 해석을 이어서 생성하지 못했습니다.' })
   }
 })
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const birth = parseBirth(req.body.birth ?? req.body)
-    const message = String(req.body.message ?? '').trim()
-    const history = (req.body.history ?? []) as ConversationTurn[]
-    const serviceKeyRaw = req.body.serviceKey ?? req.body.service_key
-    const serviceKey = typeof serviceKeyRaw === 'string' && serviceKeyRaw.trim()
-      ? serviceKeyRaw.trim()
-      : undefined
-
-    if (!message) {
-      res.status(400).json({ error: '메시지를 입력해 주세요.' })
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const requestId = trimmedString(req.body.requestId)
+    if (requestId) {
+      const saved = await findSavedChatRequest(owner, requestId)
+      if (saved) { await serveSavedChat(req, res, saved, owner, true); return }
+    }
+    const resultId = trimmedString(req.body.resultId)
+    if (resultId) {
+      const saved = await findReportRecord(resultId, owner)
+      if (!saved || !isSavedChatRecord(saved)) { res.status(404).json({ error: '저장된 상담을 찾지 못했습니다.' }); return }
+      await serveSavedChat(req, res, saved, owner, true)
       return
     }
-
-    if (!isOpenAiConfigured()) {
-      res.status(503).json({ error: 'OPENAI_API_KEY가 설정되지 않았습니다. .env 파일에 API 키를 추가하세요.' })
-      return
+    const parentReportId = trimmedString(req.body.parentReportId || req.body.reportId)
+    if (parentReportId) {
+      const parent = await findReportRecord(parentReportId, owner)
+      if (!parent) { res.status(404).json({ error: '원본 해석을 찾지 못했습니다.' }); return }
+      if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
     }
-
-    const prepared = prepareConversation({ birth, message, history, serviceKey })
-    const reply = await chatWithOpenAI(prepared.messages, {
-      maxTokens: runtimeConfig.conversation?.maxTokens ?? 1800,
+    const result = await generateSavedChat({
+      owner, parentReportId: parentReportId || undefined,
+      requestId: trimmedString(req.body.requestId) || undefined,
+      birth: parentReportId ? undefined : parseBirth(req.body.birth ?? req.body),
+      birthTimeKnown: req.body.birthTimeKnown !== false,
+      message: String(req.body.message ?? '').trim(),
+      history: parseConversationHistory(req.body.history),
+      serviceKey: trimmedString(req.body.serviceKey || req.body.service_key) || undefined,
+      retry: req.body.retry === true,
     })
-
-    res.json({
-      reply,
-      intent: prepared.intent,
-      sajuSummary: prepared.sajuAnalysis.summary,
-    })
+    res.status(result.status === 'failed' ? 502 : result.status === 'complete' ? 200 : 202).json(result)
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '상담 실패' })
+    const code = err instanceof Error ? err.message : ''
+    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
   }
 })
 

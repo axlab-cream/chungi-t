@@ -96,7 +96,7 @@ function getDominantAndWeak(count: ElementCount): { dominant: Element; weak: Ele
   return { dominant: entries[0][0], weak: entries[entries.length - 1][0] }
 }
 
-function getTenGod(dayMaster: HeavenlyStem, target: HeavenlyStem): TenGod {
+export function getTenGod(dayMaster: HeavenlyStem, target: HeavenlyStem): TenGod {
   const dmElement = STEM_ELEMENT[dayMaster]
   const targetElement = STEM_ELEMENT[target]
   const dmIdx = HEAVENLY_STEMS.indexOf(dayMaster)
@@ -306,29 +306,13 @@ function buildInteractions(pillars: FourPillars): SajuInteraction[] {
   return interactions
 }
 
-function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>, gender: Gender): SajuPreview {
-  const hasWealth = analysis.tenGods.some((g) => g.includes('재'))
-  const hasLove = gender === 'male'
-    ? analysis.tenGods.some((g) => g.includes('재'))
-    : analysis.tenGods.some((g) => g.includes('관'))
-  const strengthText = analysis.dayMasterStrength === 'strong'
-    ? '기운이 강한'
-    : analysis.dayMasterStrength === 'weak'
-      ? '섬세한'
-      : '균형 잡힌'
-  const incomeFlow = analysis.dominantElement === 'earth' || analysis.dominantElement === 'metal'
-    ? '안정적으로 쌓아 올리는'
-    : '움직임 속에서 열리는'
-
+function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>, _gender: Gender): SajuPreview {
+  const weakCount = analysis.elementCount[analysis.weakElement]
   return {
-    personality: `${STEM_KO[analysis.dayMaster]}${ELEMENT_KO[analysis.dayMasterElement].charAt(0)} 일간으로 ${strengthText} 성향일세. 허허... 겉으로 보이는 모습보다 안쪽의 결이 더 선명하군. ${analysis.dayMasterAdvice}`,
-    elementBalance: `오행을 펼쳐보니 목${analysis.elementCount.wood}·화${analysis.elementCount.fire}·토${analysis.elementCount.earth}·금${analysis.elementCount.metal}·수${analysis.elementCount.water}일세. ${ELEMENT_KO[analysis.dominantElement]} 기운이 먼저 보이고, ${ELEMENT_KO[analysis.weakElement]} 기운이 빈자리로 남아 있군. 이 빈자리를 어떻게 채우느냐가 흐름을 바꾸는 법일세.`,
-    loveFortune: hasLove
-      ? `일지 ${BRANCH_KO[analysis.fourPillars.day.branch]}(${analysis.fourPillars.day.branch}) 자리에 인연의 기운이 보이는군. 스쳐 지나가는 만남보다, ${analysis.usefulGod ? `${ELEMENT_KO[analysis.usefulGod]} 기운을 살리는 사람` : '마음을 천천히 열게 하는 사람'}에게 흐름이 붙네. 관계는 급히 잡지 말고 결을 보게.`
-      : `관계운은 지금 바깥보다 안쪽을 먼저 보라고 말하는군. 혼자 버티는 시간이 길수록 마음의 문이 늦게 열릴 수 있네. 자신을 돌본 뒤에야 인연의 흐름도 선명해지는 법일세.`,
-    wealthFortune: hasWealth
-      ? `재성(財星) 기운이 사주 안에 들어 있네. 돈의 감각이 없는 팔자는 아닐세. 다만 ${incomeFlow} 흐름이 보이는군. 크게 움직이기 전에는 타이밍과 기준을 먼저 보게.`
-      : `재물운은 한 번에 터지는 쪽보다 실력과 표현에서 열리는 흐름이 보이는군. 꾸준히 쌓은 전문성이 돈길을 붙드는 열쇠일세. 조급하게 잡으려 하면 오히려 새는 돈이 생기네.`,
+    personality: `일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}, 태어난 날의 천간)입니다. 전통 명리에서 다른 기운과의 관계를 읽는 기준점이며, 실제 성격은 경험과 현재 상황을 함께 살펴야 합니다.`,
+    elementBalance: `오행(五行, 목·화·토·금·수의 다섯 상징)의 단순 개수는 목 ${analysis.elementCount.wood}, 화 ${analysis.elementCount.fire}, 토 ${analysis.elementCount.earth}, 금 ${analysis.elementCount.metal}, 수 ${analysis.elementCount.water}입니다. ${ELEMENT_KO[analysis.weakElement]} 기운은 ${weakCount}개로, ${weakCount === 0 ? '이 개수표에는 없지만 능력이나 인격의 결핍을 뜻하지 않습니다' : '상대적으로 적다는 뜻이지 없는 기운은 아닙니다'}.`,
+    loveFortune: `일지(日支, 태어난 날의 지지)는 ${BRANCH_KO[analysis.fourPillars.day.branch]}(${analysis.fourPillars.day.branch})입니다. 가까운 관계를 살피는 전통적 자리로 참고하되, 실제 관계 상태와 상대의 행동을 확인한 뒤 해석합니다. 특정한 인연 날짜나 상대의 외모는 이 정보만으로 알 수 없습니다.`,
+    wealthFortune: '재성(財星, 일간이 다루는 기운과의 관계)은 전통적으로 자원과 현실 활동을 살피는 상징입니다. 실제 수입·지출 자료가 없으면 돈이 새거나 큰 수입이 생긴다고 판단하지 않습니다. 상세에서는 확인된 생활 조건과 구분해 읽습니다.',
   }
 }
 

@@ -15,6 +15,7 @@
   if (!window.JobChoice) return;
 
   function readReport() {
+    if (window.UMSHReportAccess) return window.UMSHReportAccess.verifiedReport();
     try {
       var raw = window.sessionStorage.getItem(REPORT_KEY);
       if (!raw) return null;
@@ -150,18 +151,17 @@
     var section = byId[built.detail.section_id];
     if (!section) return built;
     var parts = paragraphs(section);
-    if (parts.length < 6) return built;
+    if (!parts.length) return built;
 
     built.detail.report_index_source = 'kms_rag';
     built.detail.conclusion = dropOpeningLabel(parts[0]);
     // Three authored blocks: the grounding, what it looks like day to day, and timing.
-    var bodies = [parts[1], parts[2], parts[3]];
-    (built.detail.interpretation_blocks || []).forEach(function (block, position) {
-      if (bodies[position]) block.body = bodies[position];
+    built.detail.interpretation_blocks = parts.map(function (paragraph, position) {
+      return {type: 'text', title: position === 0 ? '전체 해석' : '', body: paragraph};
     });
     // The closing paragraph is the action; the one before it carries the caution.
-    if (built.detail.actions && built.detail.actions.length) built.detail.actions[0] = parts[5];
-    if (built.detail.cautions && built.detail.cautions.length) built.detail.cautions[0] = parts[4];
+    built.detail.actions = [];
+    built.detail.cautions = [];
     return built;
   };
 

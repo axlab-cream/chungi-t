@@ -46,7 +46,7 @@ test('올해 연애운 builds a dedicated this-year report', () => {
 
     // Items inside one 대분류 must read differently, or the 05 목차 and 06 상세 would
     // show the same paragraph several times in a row.
-    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    const bodies = owned.map((section) => section.interpretation.split('\n\n')[0])
     assert.equal(new Set(bodies).size, owned.length, `${group.id} 의 항목들이 서로 다르게 읽혀야 합니다`)
   })
 
@@ -58,9 +58,11 @@ test('올해 연애운 builds a dedicated this-year report', () => {
 
   // The reading has to reach the reader's own saju and input, not a generic template.
   const opening = report.sections[0].interpretation
-  assert.match(opening, /도화/)
-  assert.match(opening, /세운|대운/)
-  assert.match(opening, /애인성|관성|재성/)
+  assert.match(opening, /관계 의욕|현재 관계/)
+  const annual = report.sections.find((section) => section.id === 'ten-gods-bi-geon')!
+  assert.match(annual.interpretation, /세운.*천간과 일간.*비교한 십성/)
+  const symbolic = report.sections.find((section) => section.id === 'match-zodiac-branches')!
+  assert.match(symbolic.interpretation, /상대 명식은 제공되지 않았으므로/)
   assert.match(opening, /썸/)
   assert.match(opening, /연락은 오는데 만나자는 말이 없어요/)
 
@@ -81,13 +83,14 @@ test('올해 연애운 reads a different 대분류 from a different angle', () =
   const context = buildLoveThisYearContext('민지', input)
   const report = buildLoveThisYearReport(analysis, birth, context, input, 'angle-check')
 
-  // 총평 opens on 도화, 궁합 opens on 배우자성; if both opened the same way the whole
-  // report would read as one repeated paragraph.
+  // An overview answers the current relationship question; compatibility must
+  // disclose missing partner evidence instead of pretending to compare two charts.
   const overall = report.sections.find((section) => section.category === '올해 연애 가능성 총평')
   const compatibility = report.sections.find((section) => section.category === '상대/궁합 풀이')
   assert.ok(overall && compatibility)
-  assert.match(overall.interpretation.split('\n\n')[1], /도화/)
-  assert.match(compatibility.interpretation.split('\n\n')[1], /애인성/)
+  assert.match(overall.interpretation.split('\n\n')[0], /현재 관계|관계 의욕/)
+  assert.match(compatibility.interpretation, /상대 명식은 제공되지 않았으므로/)
+  assert.notEqual(overall.interpretation, compatibility.interpretation)
 })
 
 test('올해 연애운 request validates its required answers', () => {
@@ -123,6 +126,6 @@ test('올해 연애운 templates emit bright 해요체 without 자네/일세', (
   const text = report.sections.map((section) => section.interpretation).join('\n')
   assert.equal(/자네|일세/.test(text), false)
   assert.doesNotMatch(text, /자네|일세|보겠네|쪽일세/)
-  assert.match(text, /도화/)
+  assert.match(text, /세운.*천간과 일간.*비교한 십성/)
   assert.match(text, /해요|입니다|이에요|예요/)
 })

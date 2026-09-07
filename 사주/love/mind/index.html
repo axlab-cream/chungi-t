@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <script src="/js/umsh-report-access.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>운명상회｜상대방 마음</title>
@@ -291,7 +292,7 @@
         location.replace(url);
       }
       async function api(path, options = {}) {
-        const response = await fetch(path, { ...options, headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) } });
+        const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, { ...options, headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) } });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) { const error = new Error(payload.error || '요청을 처리하지 못했습니다.'); error.code = payload.code; error.paymentUrl = payload.paymentUrl; throw error; }
         return payload;

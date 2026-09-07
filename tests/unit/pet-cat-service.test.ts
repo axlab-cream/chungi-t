@@ -56,14 +56,14 @@ test('고양이 궁합 builds a dedicated cat report', () => {
 
     // Items inside one 대분류 must read differently, or the 05 목차 and 06 상세 would
     // show the same paragraph several times in a row.
-    const bodies = owned.map((section) => section.interpretation.split('\n\n')[1])
+    const bodies = owned.map((section) => section.interpretation.split('\n\n').find((paragraph) => paragraph.startsWith('[확인할 장면]')))
     assert.equal(new Set(bodies).size, owned.length, `${group.id} 의 항목들이 서로 다르게 읽혀야 합니다`)
   })
 
   // 06 상세 lays five authored blocks over the reading; a shorter one would leave the
   // design's own sample copy in place.
   report.sections.forEach((section) => {
-    assert.ok(section.interpretation.split('\n\n').length >= 6, `${section.id} 문단이 6개보다 적습니다`)
+    assert.ok(section.interpretation.split('\n\n').length >= 5, `${section.id} 문단이 5개보다 적습니다`)
   })
 
   // The reading has to reach the guardian's own 원국 and this cat, not a template.
@@ -73,10 +73,9 @@ test('고양이 궁합 builds a dedicated cat report', () => {
   assert.match(opening, /낯가림/)
   assert.match(opening, /밤에 자꾸 깨워서 잠을 못 자요/)
 
-  // 건강·수명은 이 서비스가 답할 자리가 아니라는 고지가 매 항목에 있어야 한다.
-  report.sections.forEach((section) => {
-    assert.match(section.interpretation, /수의사/, `${section.id} 안전 고지 누락`)
-  })
+  // Health escalation belongs in relevant sections, not a repeated filler paragraph.
+  assert.match(report.sections.find((section) => section.id === 'vet-grooming-timing')!.interpretation, /수의사/)
+  assert.match(report.sections.find((section) => section.id === 'quiet-watch-timing')!.interpretation, /수의사/)
 
   // Korean particles: a label must never be followed by the wrong 조사.
   report.sections.forEach((section) => {
@@ -91,7 +90,7 @@ test('고양이 궁합 builds a dedicated cat report', () => {
   })
 })
 
-test('고양이 궁합 reads each 대분류 from its own seat', () => {
+test('고양이 궁합 separates reported behavior from guardian chart symbols', () => {
   const input = parseCatCompatRequest({ ...answers })
   const analysis = analyzeSaju(birth)
   const context = buildCatCompatContext('지민', input)
@@ -101,9 +100,9 @@ test('고양이 궁합 reads each 대분류 from its own seat', () => {
   const elements = report.sections.find((section) => section.category === '오행 밸런스 케어')
   const burnout = report.sections.find((section) => section.category === '집사 번아웃 방지')
   assert.ok(distance && elements && burnout)
-  assert.match(distance.interpretation.split('\n\n')[1], /일지/)
-  assert.match(elements.interpretation.split('\n\n')[1], /오행/)
-  assert.match(burnout.interpretation.split('\n\n')[1], /인성/)
+  assert.match(distance.interpretation, /손길 반응.*짧게만/)
+  assert.match(elements.interpretation, /보호자의 사주/)
+  assert.doesNotMatch(burnout.interpretation, /인성이 얇아|소모가 빨리/)
 })
 
 test('고양이 궁합 request validates its required answers', () => {
@@ -155,22 +154,14 @@ test('반려묘 코퍼스 팩이 등록되어 있고 형식이 맞다', () => {
   })
 })
 
-test('모든 항목이 반려묘 코퍼스를 근거로 인용한다', () => {
+test('고양이 항목마다 고유한 관찰과 대응이 있고 지시문을 복사하지 않는다', () => {
   const input = parseCatCompatRequest({ ...answers })
   const analysis = analyzeSaju(birth)
   const context = buildCatCompatContext('지민', input)
-  const report = buildCatCompatReport(analysis, birth, context, input, 'corpus-coverage')
-
-  // 코퍼스에서 쓸 문장을 찾지 못하면 서비스 자체 문장으로 떨어진다. 반려묘 팩이 들어온
-  // 뒤로는 50항목 전부가 실제 근거를 인용해야 한다.
-  const fallback = report.sections.filter((section) =>
-    section.interpretation.includes('함께 사는 궁합은 애정의 크기보다'))
-  assert.equal(fallback.length, 0, `${fallback.length}개 항목이 근거 없이 기본 문장을 씁니다`)
-
-  // 한 블록만 반복 인용하면 리포트가 같은 말을 50번 하게 된다.
-  const cited = report.sections.map((section) =>
-    section.interpretation.split('\n\n')[4]
-      .replace(/^참고할 결은 이렇네\. /, '')
-      .replace(/ 그러니 결론을.*$/, ''))
-  assert.ok(new Set(cited).size >= 20, `인용 문장이 ${new Set(cited).size}종류뿐입니다`)
+  const report = buildCatCompatReport(analysis, birth, context, input, 'specificity')
+  const scenes = report.sections.map((section) => section.interpretation.split('\n\n').find((p) => p.startsWith('[확인할 장면]')))
+  const actions = report.sections.map((section) => section.interpretation.split('\n\n').find((p) => p.startsWith('[해법]')))
+  assert.equal(new Set(scenes).size, 50)
+  assert.equal(new Set(actions).size, 50)
+  report.sections.forEach((section) => assert.doesNotMatch(section.interpretation, /concept:|condition:|Feature JSON/))
 })

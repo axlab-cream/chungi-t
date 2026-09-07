@@ -45,7 +45,7 @@ test('love again service builds a reunion report without partner birth', () => {
     '재회 뒤의 선택이 관계의 결말을 만듭니다',
   ])
   assert.match(report.sections[0].interpretation, /재회|이별|관계|연락/)
-  assert.match(report.sections[0].interpretation, /단정하지 않거나|확인할 기준/)
+  assert.match(report.sections[0].interpretation, /상대의 미련까지 같은 크기라고 볼 수는 없어요/)
 })
 
 test('love again service uses optional partner birth for compatibility context', () => {
@@ -65,8 +65,9 @@ test('love again service uses optional partner birth for compatibility context',
 
   assert.equal(input.partnerBirth?.year, 1994)
   assert.equal(context.partner?.mode, 'known')
-  assert.match(report.sections[0].interpretation, /김하나/)
-  assert.match(report.sections[0].interpretation, /일지/)
+  assert.equal(context.partner?.name, '김하나')
+  assert.equal(context.partner?.birth?.year, 1994)
+  assert.match(report.sections.find((section) => section.classification === '다시 만나면 먼저 부딪힐 문제')!.interpretation, /이전 이별 이유가 실제로 달라졌는지/)
 })
 
 test('love again request validates required reunion signals and optional date', () => {

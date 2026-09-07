@@ -70,7 +70,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -233,7 +233,7 @@
 
   async function loadReport() {
     const cached = sessionGet(STORAGE.report);
-    if (cached?.sections?.length) return cached;
+    if (cached?.sections?.length && !window.UMSHReportAccess) return cached;
 
     const saved = readSavedProfile();
     if (!saved.complete) return null;

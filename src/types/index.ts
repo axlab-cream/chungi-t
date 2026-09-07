@@ -311,6 +311,13 @@ export interface SectionStorytelling {
 
 export interface SajuReportSection {
   id: string
+  /** Immutable identifier of this section's saved interpretation, not its TOC slug. */
+  generationId?: string
+  generatedAt?: string
+  tokenUsage?: { promptTokens: number; completionTokens: number; totalTokens: number }
+  /** Internal generation attempts; removed from customer responses. */
+  attempts?: Array<{ id: string; startedAt: string; finishedAt?: string; model: string; status: 'generating' | 'complete' | 'failed'; raw?: string; finishReason?: string | null; error?: string; tokenUsage?: { promptTokens: number; completionTokens: number; totalTokens: number } }>
+  generationLease?: { id: string; expiresAt: string }
   order: number
   imageKey: string
   imageSrc: string
@@ -372,6 +379,9 @@ export interface CorpusSnapshot {
 
 export interface SajuReport {
   reportId?: string
+  resultId?: string
+  publicUrl?: string
+  serviceKey?: string
   /** Stable public discriminator for unique /r/{publicId} URLs and admin analytics. */
   publicId?: string
   title: string
@@ -380,7 +390,7 @@ export interface SajuReport {
   generatedBy: 'template' | 'openai'
   status?: 'pending' | 'generating' | 'complete' | 'failed'
   progress?: { complete: number; total: number }
-  storage?: 'postgres' | 'supabase' | 'memory'
+  storage?: 'postgres' | 'supabase' | 'file' | 'memory'
   corpus?: CorpusSnapshot
   quality?: SajuReportQuality
   sections: SajuReportSection[]

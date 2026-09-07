@@ -1,11 +1,10 @@
 import { createHash } from 'node:crypto'
-import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection, TenGod } from '../types/index.js'
-import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
+import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { applyServiceTone } from '../report/report-tone.js'
-import { clipCompleteSentences } from '../report/text-clip.js'
+import { elementEvidence, practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
+import { MONEY_DETAILS } from './practical-readings.js'
 
 export const MONEY_SAVE_SERVICE_KEY = 'money_save'
 
@@ -73,7 +72,7 @@ export const MONEY_SAVE_TOC = [
     id: 'saju-strength',
     label: '第四門',
     tag: '체력',
-    title: '사주 체력 진단',
+    title: '사주 균형과 관리 방식',
     items: [
       { id: 'strength-strong', title: '신강형 돈관리' },
       { id: 'strength-weak', title: '신약형 돈관리' },
@@ -177,6 +176,7 @@ export function createMoneySaveReportId(ownerId: string | undefined, birth: Birt
       hour: birth.hour,
       gender: birth.gender,
       calendar: birth.calendar,
+      ...(birth.minute ? { minute: birth.minute } : {}),
     },
     input,
     serviceKey: MONEY_SAVE_SERVICE_KEY,
@@ -184,158 +184,7 @@ export function createMoneySaveReportId(ownerId: string | undefined, birth: Birt
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
 }
 
-function moneySignal(tenGods: TenGod[]): string {
-  const hasStableWealth = tenGods.includes('정재')
-  const hasMovingWealth = tenGods.includes('편재')
-  const hasPeer = tenGods.includes('비견') || tenGods.includes('겁재')
-  const hasOutput = tenGods.includes('식신') || tenGods.includes('상관')
-
-  if (hasPeer && hasMovingWealth) {
-    return '비겁과 편재가 같이 보이면 사람, 비교, 기회라는 이름으로 돈이 먼저 움직이기 쉬워요.'
-  }
-  if (hasPeer) {
-    return '비겁이 보이면 돈 문제에서 나와 비슷한 사람, 체면, 같이 쓰는 비용을 먼저 봐야 해요.'
-  }
-  if (hasStableWealth) {
-    return '정재가 보이면 돈을 모으는 힘은 있으나, 규칙이 흐려지는 순간 새는 구멍도 또렷해져요.'
-  }
-  if (hasMovingWealth) {
-    return '편재가 보이면 기회 감각은 빠르지만, 들어오기 전 나가는 돈이 커지지 않게 상한선을 세워야 해요.'
-  }
-  if (hasOutput) {
-    return '식상이 보이면 보상 소비가 커질 수 있어요. 만든 결과를 돈으로 바꾸는 규칙이 있어야 남아요.'
-  }
-  return '재물은 별 하나만으로 단정하지 않고, 수입·지출·관계 비용·반복 습관을 나란히 놓고 봐야 해요.'
-}
-
-function fortuneLine(analysis: SajuAnalysis): string {
-  const fortune = analysis.fortune
-  if (!fortune) return '대운·세운은 단정하지 않고, 원국의 돈 쓰는 흐름을 먼저 볼게요.'
-  return `현재 대운은 ${fortune.currentDaewoon}, 올해 세운은 ${fortune.yearPillar}입니다. 이 흐름은 수익 보장이 아니라 지출 기준을 다시 잡을 때를 보는 표식으로 삼으세요.`
-}
-
-/**
- * Corpus entries are written for the model, not the reader: many carry `concept:` /
- * `condition:` / `interpretation:` field labels and instructions such as "원문 문장을
- * 출력하지 말고". Pasting those verbatim would put internal scaffolding on a paid page,
- * so the labels go, instruction sentences are dropped, and an empty result falls back.
- */
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence)\s*:\s*/gi
-const RAG_INSTRUCTION = /(Feature\s*JSON|청크|프롬프트|출력하지|출력한다|적용한다|키워드가 현재 질문|답변에 필요한|문장으로 작성|보조 근거|단정하는 것|명식 계산)/
-
-function compact(text: string, fallback: string, limit = 180): string {
-  const stripped = text
-    .replace(RAG_FIELD_LABEL, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() && !RAG_INSTRUCTION.test(sentence))
-    .join(' ')
-  const clean = stripped.replace(/\s+/g, ' ').trim()
-  if (clean.length < 12) return fallback
-  return clipCompleteSentences(clean, Math.max(limit, 220))
-}
-
-/**
- * Corpus prose addresses the reader as 사용자. Swapping in 본인 changes the trailing
- * particle too - 사용자를 → 본인을 - so map the pairs rather than the noun alone.
- */
-const READER_PARTICLES: Array<[RegExp, string]> = [
-  [/사용자를/g, '본인을'],
-  [/사용자가/g, '본인이'],
-  [/사용자는/g, '본인은'],
-  [/사용자와/g, '본인과'],
-  [/사용자의/g, '본인의'],
-  [/사용자에게/g, '본인에게'],
-  [/사용자/g, '본인'],
-]
-
-function humanize(line: string): string {
-  return READER_PARTICLES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), line)
-}
-
-/**
- * Only a knowledge block's `interpretation`, `advice` and `opportunity` read as prose.
- * Legacy entries fill those with authoring instructions, which `compact` filters out,
- * so those fall back to the service's own line rather than showing scaffolding.
- */
-function ragLineFrom(chunk: RagChunk | undefined, fallback: string): string {
-  if (!chunk) return fallback
-  const block = chunk.knowledge
-  const candidates = block
-    ? [block.interpretation, block.advice, block.opportunity]
-    : [chunk.content]
-  for (const candidate of candidates) {
-    const line = compact(candidate ?? '', '', 180)
-    if (line) return humanize(line)
-  }
-  return fallback
-}
-
-/**
- * The angle each 대분류 reads its item from. Without it all 41 items would open on the
- * same 일간 sentence, so the group id decides what leads and what the closing action is.
- */
-const GROUP_LENS: Record<string, { lead: string; focus: string; close: string }> = {
-  'income-flow': {
-    lead: '먼저 돈이 들어오는 입구부터 볼게요.',
-    focus: '월급처럼 고정된 입구인지, 기회마다 열리는 입구인지, 만들어 낸 결과가 돈이 되는 입구인지가 여기서 갈려요.',
-    close: '입구의 모양을 알아야 통장에 남길 방법도 그 모양에 맞출 수 있어요.',
-  },
-  'money-leak': {
-    lead: '이번에는 돈이 나가는 자리를 볼게요.',
-    focus: '필요해서 나가는 돈과 기분·비교·체면으로 나가는 돈은 이름이 달라요. 이름을 붙여야 막을 곳이 보여요.',
-    close: '전부 끊으라는 말이 아니에요. 가장 큰 구멍 하나만 정해 이번 달에 막아 보세요.',
-  },
-  'saving-blocker': {
-    lead: '남는 돈이 없는 이유를 의지가 아니라 구조에서 찾을게요.',
-    focus: '얼마를 남길지가 숫자로 고정되어 있는지, 예외가 얼마나 자주 열리는지를 봐요.',
-    close: '저축은 남은 돈으로 하는 것이 아니라 먼저 떼어 둔 돈으로 하는 거예요. 순서만 바꿔도 결과가 달라져요.',
-  },
-  'saju-strength': {
-    lead: '돈관리를 밀어붙일 체력이 있는지부터 볼게요.',
-    focus: '혼자 밀고 가도 되는 흐름인지, 지원과 순서가 먼저 필요한 흐름인지를 나눠요.',
-    close: '체력에 맞지 않는 방식은 오래 못 가요. 지킬 수 있는 크기로 시작하세요.',
-  },
-  'ohaeng-os': {
-    lead: '오행으로 돈을 다루는 기본 방식을 볼게요.',
-    focus: '어느 기운이 앞서고 어느 기운이 비어 있느냐에 따라 잘 맞는 관리 방식이 달라져요.',
-    close: '남에게 맞는 방법이 나에게도 맞는 것은 아니에요. 내 기운에 맞는 한 가지를 골라 오래 쓰세요.',
-  },
-  timing: {
-    lead: '시기를 볼게요.',
-    focus: '대운이 판을 바꾸는 구간인지, 올해와 이번 달이 늘릴 때인지 조일 때인지를 봐요.',
-    close: '좋은 시기에도 규칙이 없으면 새고, 빡빡한 시기에도 순서를 지키면 남아요. 날짜보다 순서가 먼저예요.',
-  },
-  'relationship-contract': {
-    lead: '사람과 얽힌 돈을 볼게요.',
-    focus: '금액과 기한과 책임 범위가 말로만 오갔는지, 기록으로 남았는지가 관계와 돈을 함께 지키는 갈림길이에요.',
-    close: '거절은 관계를 끊는 일이 아니라 관계를 오래 가게 하는 일이에요. 문장 하나를 미리 준비해 두세요.',
-  },
-  'expanded-reading': {
-    lead: '보조로 함께 볼 결을 볼게요.',
-    focus: '주된 판단은 재성과 비겁의 흐름에서 나오고, 이 결은 그 판단을 좁히는 참고로만 써요.',
-    close: '보조 풀이는 결론을 뒤집는 근거가 아니에요. 방향이 이미 정해졌을 때 확인용으로 읽으세요.',
-  },
-}
-
-const DEFAULT_LENS = {
-  lead: '이 항목을 볼게요.',
-  focus: '수입과 지출, 관계 비용을 같이 놓고 봐요.',
-  close: '결론을 서두르지 말고 확인할 것을 하나씩 줄여 가세요.',
-}
-
-/** The pack written for this service; see data/corpus/. */
 const OWN_CORPUS_DOMAIN = 'money_save_service'
-
-/**
- * Read this service's own pack first. The rest of the corpus answers other questions,
- * so a line from another pack is usually wrong here even when it reads fine.
- */
-function pickRag(chunks: RagChunk[], index: number): RagChunk | undefined {
-  if (!chunks.length) return undefined
-  const own = chunks.filter((chunk) => chunk.domain === OWN_CORPUS_DOMAIN)
-  const pool = own.length ? own : chunks
-  return pool[index % pool.length]
-}
 
 function buildInterpretation(params: {
   groupId: string
@@ -347,28 +196,32 @@ function buildInterpretation(params: {
   chunks: RagChunk[]
   index: number
 }): string {
-  const { groupId, categoryTitle, itemTitle, analysis, birth, input, chunks, index } = params
-  const lens = GROUP_LENS[groupId] ?? DEFAULT_LENS
-  const chunk = pickRag(chunks, index)
-  const ragLine = ragLineFrom(chunk, '재물운은 돈이 들어오는 방식과 새는 지점, 관리 기준을 분리해 봅니다.')
-  const dayMaster = `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`
-  const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : ELEMENT_KO[analysis.weakElement]
-  const leak = input.leakPoint ? `당신이 짚은 새는 곳은 "${input.leakPoint}"입니다.` : '새는 곳은 비워 두었으니 반복 지출과 관계 비용을 먼저 나눌게요.'
-  const relation = input.relationSpending ? `관계 비용은 "${input.relationSpending}" 쪽으로 봤어요.` : '관계 비용은 따로 적지 않았으나 비겁의 흐름은 반드시 확인해야 해요.'
-  const goal = input.savingGoal ? `모으고 싶은 목표는 "${input.savingGoal}"라고 했어요.` : '저축 목표는 비워 두었으니 막는 순서를 먼저 잡을게요.'
-
-  const dominant = ELEMENT_KO[analysis.dominantElement]
-  const weak = ELEMENT_KO[analysis.weakElement]
-
-  const raw = [
-    `${lens.lead} ${categoryTitle} 중 "${itemTitle}"입니다. 당신은 ${birth.year}년생이고 일간은 ${dayMaster}라, 돈을 버는 힘보다 돈을 붙들어 두는 방식을 먼저 봐야 해요.`,
-    `${lens.focus} 당신은 ${dominant} 기운이 앞서고 ${weak} 기운이 비어 있으니, 그 쏠림이 그대로 돈 쓰는 습관으로 드러나요.`,
-    `${fortuneLine(analysis)} 보완할 기운은 ${useful} 쪽으로 잡히니, 소비를 전부 끊는 것보다 돈이 머무는 장치를 만드는 쪽이 맞아요.`,
-    `${moneySignal(analysis.tenGods)} ${leak} ${relation} ${goal}`,
-    `참고 결은 이래요. ${ragLine} 그러니 이 풀이는 돈복이 있다 없다를 말하는 것이 아니라, "나는 왜 돈이 안 모일까"의 반복 구조를 찾는 풀이예요.`,
-    `${lens.close} 지금 습관 "${input.moneyHabit}"에서 즉흥, 비교, 보상, 관계 비용 중 어느 이름으로 돈이 나가는지 표시하세요. 그 이름을 알면 다음 월급부터 막을 한 곳이 보일 거예요.`,
-  ].join('\n\n')
-  return applyServiceTone(raw, MONEY_SAVE_SERVICE_KEY)
+  const { groupId, itemTitle, analysis, input } = params
+  const reading = MONEY_DETAILS[itemTitle]
+  if (!reading) throw new Error(`소비성향 항목별 해석 누락: ${itemTitle}`)
+  const state = reportedState([input.moneyHabit, input.leakPoint, input.relationSpending, input.concern].filter(Boolean).join(' '))
+  const current = groupId === 'income-flow'
+    ? `${quotedInput('수입 형태', input.incomePattern)} ${quotedInput('현재 습관', input.moneyHabit)}`
+    : groupId === 'relationship-contract'
+      ? quotedInput('관계 비용', input.relationSpending)
+      : groupId === 'saving-blocker'
+        ? `${quotedInput('저축 목표', input.savingGoal)} ${quotedInput('현재 습관', input.moneyHabit)}`
+        : `${quotedInput('직접 짚은 지출 상황', input.leakPoint)} ${quotedInput('추가로 적은 상황', input.concern)}`
+  const evidence = ['ohaeng-os', 'saju-strength'].includes(groupId)
+    ? `${elementEvidence(analysis)} 신강·신약·중화는 사주 안의 힘 관계를 나타내며 체력·인격·경제 능력의 등급이 아니에요.`
+    : groupId === 'expanded-reading' ? undefined
+      : workSymbol(analysis, groupId === 'relationship-contract' ? 'people' : 'money')
+  return practicalReading({
+    title: itemTitle, detail: reading, current, evidence,
+    application: state === 'settled'
+      ? '입력에는 정상적인 저축이나 문제가 없다는 진술이 포함돼 있어요. 해당하지 않는 소비 유형을 본인의 결함으로 적용하지 않아요. 위 장면이 확인되지 않으면 이미 잘 유지하는 조건을 살피면 됩니다.'
+      : state === 'concern'
+        ? '말씀한 어려움과 이 항목의 장면이 실제로 겹치는지 확인해요. 지출액과 빈도는 기록이 없으므로 추정하지 않으며, 명리 상징을 원인으로 단정하지 않아요.'
+        : '현재 정보만으로 이 유형의 소비가 반복된다고 판단할 수 없어요. 해당 경험이 있을 때만 점검하고, 없다면 비교 설명으로 읽어요.',
+    closing: itemTitle === '풍수/공간 보조'
+      ? '이 보고서는 소비 습관을 돌아보는 참고 자료예요. 투자 상품이나 수익률을 추천하지 않으며 현재의 실제 기록이 판단보다 우선해요.'
+      : undefined,
+  })
 }
 
 export function buildMoneySaveReport(

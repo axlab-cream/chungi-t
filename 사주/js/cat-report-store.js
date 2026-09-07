@@ -14,6 +14,7 @@
   var ASSET_BASE = '../assets/cat-compatibility';
 
   function readReport() {
+    if (window.UMSHReportAccess) return window.UMSHReportAccess.verifiedReport();
     try {
       var raw = window.sessionStorage.getItem(REPORT_KEY);
       if (!raw) return null;
@@ -72,13 +73,9 @@
         image: coverFor(section),
         basis_summary: { basis: (section.ragTopics || []).filter(Boolean).slice(0, 4) },
         // Six paragraphs of the reading onto the block types this page can render.
-        interpretation_blocks: [
-          { type: 'text', title: '지금 보이는 모습', content: parts[1] || '' },
-          { type: 'text', title: '무엇을 근거로 보나', content: parts[2] || '' },
-          { type: 'flow', title: '시기와 조건', content: parts[3] || '', steps: [] },
-          { type: 'text', title: '함께 볼 결', content: parts[4] || '' },
-          { type: 'action', title: '오늘 할 일', content: parts[5] || '', actions: [] },
-        ].filter(function (block) { return block.content; }),
+        interpretation_blocks: parts.map(function (paragraph, position) {
+          return {type: 'text', title: position === 0 ? '전체 해석' : '', content: paragraph};
+        }),
         related_sections: related,
       };
     });

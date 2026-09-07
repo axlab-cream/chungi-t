@@ -54,7 +54,7 @@ test('marry match service builds a dedicated marriage compatibility report', () 
     '한눈에 보는 결과 라벨',
   ])
   assert.match(report.sections[0].interpretation, /배우자궁|대운|합충|결혼/)
-  assert.match(report.sections[0].interpretation, /김하나/)
+  assert.equal(context.partner?.name, '김하나')
   assert.equal(report.sections[0].id, 'marry-01-01')
   assert.equal(report.sections.at(-1)!.id, 'marry-10-08')
 
