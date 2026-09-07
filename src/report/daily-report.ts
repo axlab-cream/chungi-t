@@ -11,15 +11,16 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
     serviceKey: 'today', name: profile.name, birthTimeKnown: profile.birthTimeKnown,
     concern: fortune.date.iso,
   }
-  const reportId = createReportId(profile.birth, context, 'daily-reading-v2', owner.id)
+  // Content changes get a new identity; a saved v2 UUID must never be rewritten.
+  const reportId = createReportId(profile.birth, context, 'daily-reading-v3', owner.id)
   const reading = fortune.reading
   const templateReport: SajuReport = {
-    title: '오늘의 운세', subtitle: '전통 상징을 활용한 하루 점검. 점수는 예측 확률이 아닙니다.',
-    model: 'daily-rules-v2', generatedBy: 'template',
+    title: '오늘 나한테 들어온 운', subtitle: '내 사주와 오늘의 흐름으로 정하는 하루의 방향',
+    model: 'daily-rules-v3', generatedBy: 'template',
     sections: [{ id: 'daily-reading', order: 1, imageKey: '', imageSrc: '', imageAlt: '',
       category: '하루의 흐름', categoryEn: 'daily', classification: fortune.date.label,
       hook: reading.title, patternKeys: [], ragTopics: [],
-      interpretation: [reading.summary, `[일과 활동] ${reading.work}`, `[돈과 선택] ${reading.money}`, `[관계] ${reading.relationship}`, `[확인할 조건] ${reading.caution}`, `[오늘의 행동] ${reading.action}`].join('\n\n'),
+      interpretation: [reading.summary, ...(reading.zodiac ? [`[${reading.zodiac.title}] ${reading.zodiac.text}`] : []), `[일과 활동] ${reading.work}`, `[돈과 선택] ${reading.money}`, `[관계] ${reading.relationship}`, `[오늘 조심할 점] ${reading.caution}`, `[오늘의 결론] ${reading.action}`].join('\n\n'),
     }],
   }
   const { record } = await createOrGetReportRecord({ reportId, birth: profile.birth, context, templateReport, analysis: analyzeSaju(profile.birth), owner })
@@ -28,8 +29,8 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
     if (draft.auxiliary?.todayFortune) return false
     draft.auxiliary = { ...draft.auxiliary, todayFortune: fortune }
     draft.status = draft.report.status = 'complete'
-    draft.report.model = 'daily-rules-v2'
-    draft.report.sections.forEach((section) => { section.status = 'complete'; section.model = 'daily-rules-v2'; section.generatedAt = new Date().toISOString() })
+    draft.report.model = 'daily-rules-v3'
+    draft.report.sections.forEach((section) => { section.status = 'complete'; section.model = 'daily-rules-v3'; section.generatedAt = new Date().toISOString() })
   })
   if (!saved) throw new Error('오늘의 운세를 저장하지 못했습니다.')
   return saved

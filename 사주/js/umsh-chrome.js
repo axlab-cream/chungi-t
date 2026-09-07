@@ -60,9 +60,12 @@
 
   /** The shell reads its mount points once at load, so they must exist first. */
   function loadShellScript(src, onReady) {
-    var existing = document.querySelector('script[data-umsh-shell-js]');
+    var existing = Array.from(document.querySelectorAll('script[src]')).find(function (script) {
+      return new URL(script.src, global.location.href).pathname === src;
+    });
     if (existing) {
       onReady();
+      existing.addEventListener('load', onReady, { once: true });
       return;
     }
     var script = document.createElement('script');
@@ -133,9 +136,9 @@
 
   function mount(options) {
     options = options || {};
-    var stage = document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
-    var legacy = stage.querySelector('header.appbar, header.umsh-chrome-appbar')
-      || document.querySelector('header.appbar, header.umsh-chrome-appbar');
+    var stage = document.getElementById('umsh-verified-layout') || document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
+    var legacy = stage.querySelector('header.appbar, header.umsh-chrome-appbar');
+    if (legacy && legacy.closest('.umsh-service-shell')) legacy = null;
     var inferred = readFromLegacyAppbar(legacy);
 
     var topHost = buildTopHost({
@@ -146,9 +149,15 @@
     });
 
     if (legacy && legacy.parentNode) legacy.replaceWith(topHost);
-    else if (!topHost.parentNode) stage.insertBefore(topHost, stage.firstChild);
+    else if (topHost.parentNode !== stage) stage.insertBefore(topHost, stage.firstChild);
+    topHost.hidden = false;
+    topHost.style.removeProperty('display');
+    var columnWidth = Math.round(stage.getBoundingClientRect().width);
+    if (columnWidth > 0) document.documentElement.style.setProperty('--umsh-page-width', columnWidth + 'px');
 
     var bottomHost = buildBottomHost();
+    bottomHost.hidden = false;
+    bottomHost.style.removeProperty('display');
 
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
@@ -158,6 +167,7 @@
   }
 
   function autoMount() {
+    if (document.getElementById('umsh-verified-layout')) return mount({ root: '#umsh-verified-layout', service: '저장된 해석' });
     var host = document.querySelector('[data-umsh-chrome], main.stage[data-service], main.stage');
     if (!host || document.body.dataset.umshChrome === 'off') return null;
     if (!document.querySelector('header.appbar, header.umsh-chrome-appbar') && !host.hasAttribute('data-umsh-chrome')) {

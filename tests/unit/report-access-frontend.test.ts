@@ -11,11 +11,18 @@ function harness(path: string, responses: unknown[], cache: Record<string, unkno
   const items = new Map(Object.entries(cache).map(([key,value])=>[key,JSON.stringify(value)]))
   const location = new URL(path, 'https://umsh.kr')
   const listeners = new Map<string, Array<() => unknown>>()
+  function element(tag = 'div'): any {
+    const attrs = new Map<string,string>()
+    return {id:'',tagName:tag.toUpperCase(),innerHTML:'',children:[],style:{cssText:'',setProperty(){},removeProperty(){}},
+      setAttribute(name:string,value:string){attrs.set(name,value)},hasAttribute(name:string){return attrs.has(name)},getAttribute(name:string){return attrs.get(name)},
+      addEventListener(){},querySelectorAll(){return []},
+      appendChild(node:any){this.children.push(node);node.parentNode=this;if(node.id)nodes.set(node.id,node)},
+      insertAdjacentHTML(_where:string,text:string){this.innerHTML+=text}}
+  }
   const document = {
-    readyState:'loading', addEventListener(name:string,callback:()=>unknown) {listeners.set(name,[...(listeners.get(name)||[]),callback])}, querySelectorAll(){return []},
+    readyState:'loading', addEventListener(name:string,callback:()=>unknown) {listeners.set(name,[...(listeners.get(name)||[]),callback])}, querySelectorAll(){return []},querySelector(){return null},
     getElementById(id: string){return nodes.get(id)},
-    createElement(){return {id:'',innerHTML:'',style:{cssText:''},querySelectorAll(){return []},insertAdjacentHTML(_where:string,text:string){this.innerHTML+=text}}},
-    body:{appendChild(node:any){nodes.set(node.id,node)}},
+    createElement:element,documentElement:element('html'),head:element('head'),body:element('body'),
   }
   const timers: Array<()=>void> = []
   const context: any = {
@@ -181,6 +188,22 @@ test('reopening a daily result uses GET and does not call fortune generation aga
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/합성 날짜/)
 })
 
+test('a direct portal todayResult link restores its explicit daily ID without generating',async()=>{
+  const h=harness('/cmdg/?reportId=daily-result#todayResult',[dailyFixture])
+  await h.api.fetch('/api/today/fortune',{method:'POST',body:'{}'})
+  assert.equal(h.calls[0].path,'/api/report/daily-result')
+  assert.equal(h.calls[0].options.method,'GET')
+  assert.equal(h.location.searchParams.get('entry'),'today')
+  assert.equal(h.location.hash,'#todayResult')
+})
+
+test('a saved daily page clears stale signup/input step fragments',()=>{
+  const h=harness('/today/free?start=1#step-2-saju-input',[])
+  h.api.consume(dailyFixture)
+  assert.equal(h.location.hash,'')
+  assert.equal(h.location.searchParams.has('start'),false)
+})
+
 test('daily permalink payloads render without paid-section generation',()=>{
   const h=harness('/r/daily-result',[])
   h.api.setOwner('owner-a')
@@ -242,4 +265,37 @@ test('preview and full reader keep branded navigation available',()=>{
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/운명상회 홈/)
   h.api.consume({reportId:'report',report:{title:'풀이',sections:[]}})
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/내 구매 내역/)
+})
+
+test('saved daily uses the shared shell layout and keeps legacy body private',()=>{
+  const h=harness('/today/free?reportId=daily-result',[])
+  const legacy=h.context.document.createElement('div');legacy.id='legacy-private-app'
+  h.context.document.body.appendChild(legacy)
+  const mounts:any[]=[]
+  h.context.UMSHChrome={mount:(options:any)=>mounts.push(options)}
+  h.api.consume(dailyFixture)
+  assert.equal(h.nodes.get('umsh-verified-reading').parentNode.id,'umsh-verified-layout')
+  assert.equal(legacy.hidden,true)
+  assert.equal(mounts[0].root,'#umsh-verified-layout')
+  const guard=h.context.document.head.children.find((node:any)=>node.tagName==='STYLE')
+  assert.match(guard.textContent,/:not\(\[data-umsh-service-bottom\]\)/)
+  assert.match(guard.textContent,/:not\(#umsh-verified-layout\)/)
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/오늘의 결론/)
+  assert.doesNotMatch(html,/실제 사건·성과|점수로 측정/)
+  assert.match(html,/href="\/today\/free\?start=1"/)
+})
+
+test('year-based daily copy is escaped and does not mutate a saved snapshot',()=>{
+  const fixture=structuredClone(dailyFixture) as any
+  fixture.todayFortune.reading.zodiac={birthYear:1995,animal:'돼지',title:'1995년생 · 돼지띠',text:'<img src=x onerror=alert(1)> 함께할 시간을 정하세요.'}
+  const before=JSON.stringify(fixture)
+  const h=harness('/r/daily-result',[])
+  h.api.consume(fixture)
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/1995년생 · 돼지띠/)
+  assert.match(html,/출생연도 기준/)
+  assert.match(html,/&lt;img/)
+  assert.doesNotMatch(html,/<img src=x/)
+  assert.equal(JSON.stringify(fixture),before)
 })

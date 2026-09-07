@@ -1,0 +1,52 @@
+/* Verified content uses the real service shell; old application content stays gated. */
+html[data-umsh-verified-reader],
+html[data-umsh-verified-reader] body {
+  margin: 0;
+  height: auto !important;
+  min-height: 100%;
+  background: #000;
+}
+html[data-umsh-verified-reader] { overflow-x: hidden !important; overflow-y: auto !important; }
+html[data-umsh-verified-reader] body { overflow: visible !important; }
+#umsh-verified-layout {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #080807;
+  color: #f7f2e9;
+  font: 15px/1.85 Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+#umsh-verified-layout, #umsh-verified-layout * { box-sizing: border-box; }
+#umsh-verified-layout > [data-umsh-service-top] { position: sticky; top: 0; z-index: 60; }
+#umsh-verified-reading {
+  width: 100%;
+  margin: 0;
+  padding: 28px 20px calc(108px + env(safe-area-inset-bottom, 0px));
+  border: 0;
+  border-radius: 0;
+}
+#umsh-verified-reading p { margin: 12px 0; white-space: pre-wrap; }
+#umsh-verified-reading h1 { margin: 14px 0 18px; font-size: 28px; line-height: 1.45; letter-spacing: -.04em; }
+#umsh-verified-reading h2 { margin: 0 0 14px; font-size: 19px; line-height: 1.5; letter-spacing: -.025em; }
+#umsh-verified-reading a { color: #e8d49a; text-underline-offset: 4px; }
+#umsh-verified-reading a:focus-visible { outline: 2px solid #e8d49a; outline-offset: 4px; }
+#umsh-verified-reading.umsh-daily-reading { background: #080807 !important; }
+#umsh-verified-reading .daily-eyebrow { color: #d8ba72; font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+#umsh-verified-reading .daily-date { margin: 8px 0 0; color: #a39a8c; font-size: 12px; }
+#umsh-verified-reading .daily-heading { margin-bottom: 24px; }
+#umsh-verified-reading .daily-summary { color: #d5cec1; line-height: 1.95; }
+#umsh-verified-reading .daily-zodiac { margin: 0 0 24px; padding: 22px; border: 1px solid #715d32; border-radius: 18px; background: linear-gradient(130deg, #292114, #13110d); }
+#umsh-verified-reading .daily-zodiac h2 { margin-top: 10px; }
+#umsh-verified-reading .daily-zodiac p { margin-bottom: 0; color: #e5ddcd; }
+#umsh-verified-reading .daily-sections { display: grid; gap: 14px; }
+#umsh-verified-reading .daily-card { position: relative; padding: 24px 22px; border: 1px solid rgba(216,186,114,.19); border-radius: 18px; background: #11100d; }
+#umsh-verified-reading .daily-index { display: block; margin-bottom: 10px; color: #9e7b35; font-size: 12px; font-weight: 700; }
+#umsh-verified-reading .daily-card p { margin-bottom: 0; color: #d5cec1; line-height: 1.95; }
+#umsh-verified-reading .daily-tip { border-top: 1px solid rgba(216,186,114,.15); padding-top: 14px; font-size: 13px; }
+#umsh-verified-reading .daily-tip strong { color: #e8d49a; }
+#umsh-verified-reading .daily-conclusion { margin-top: 24px; padding: 24px 22px; border-left: 3px solid #d8ba72; border-radius: 0 16px 16px 0; background: #231d12; }
+#umsh-verified-reading .daily-conclusion h2 { margin: 12px 0; }
+#umsh-verified-reading .daily-conclusion p { margin-bottom: 0; color: #f0e2b8; font-weight: 600; }
+#umsh-verified-reading .daily-note { margin: 24px 0 16px; font-size: 11px; color: #a39a8c; text-align: center; }
+#umsh-verified-reading .daily-links { display: grid; gap: 12px; text-align: center; font-size: 13px; }
+#umsh-verified-reading .daily-primary-link { display: block; padding: 13px 18px; border: 1px solid #715d32; border-radius: 12px; text-decoration: none; }

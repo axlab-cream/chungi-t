@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+<script src="/js/umsh-chrome.js" defer></script>
 <script src="/js/umsh-report-access.js"></script>
 <script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
@@ -1258,155 +1259,134 @@
         line-height: 1.45;
       }
 
+      .phone[data-step="todayResult"] > header.topbar { display: none; }
+
+      .phone[data-step="todayResult"] .stage {
+        top: var(--umsh-chrome-appbar-h, 85px);
+        bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom));
+        padding: 18px 16px 28px;
+        background: #080807;
+      }
+
       .today-result-card {
         display: grid;
-        gap: 14px;
+        gap: 22px;
+        width: 100%;
+        min-width: 0;
+        max-height: none;
+        overflow: visible;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
       }
 
-      .today-result-card > p {
-        margin-bottom: 0;
+      .today-result-card > h1 {
+        margin: 0;
+        font-size: clamp(27px, 7.4vw, 32px);
+        line-height: 1.35;
       }
 
-      .today-score-card {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 6px 14px;
-        align-items: center;
-        padding: 15px;
-        border: 1px solid rgba(242, 191, 107, 0.28);
-        border-radius: 8px;
-        background:
-          linear-gradient(135deg, rgba(242, 191, 107, 0.16), rgba(146, 31, 23, 0.18)),
-          rgba(255, 255, 255, 0.045);
-      }
-
-      .today-score-card span,
-      .today-score-card small {
-        color: rgba(255, 238, 210, 0.74);
-        font-size: 12px;
-        font-weight: 750;
-        line-height: 1.45;
-      }
-
-      .today-score-card strong {
-        grid-row: span 2;
-        color: #fff2c5;
-        font-family: var(--font-brand);
-        font-size: 34px;
-        line-height: 1;
-      }
-
-      .today-score-card em {
-        color: rgba(255, 238, 210, 0.58);
-        font-family: var(--font-reading-body);
-        font-size: 14px;
-        font-style: normal;
+      .today-result-card > .today-result-meta {
+        margin: -10px 0 0;
+        color: #a39a8c;
+        font: 12px/1.6 var(--font-meta);
       }
 
       .today-pillar-card,
+      .today-zodiac-card,
       .today-action-box {
         display: grid;
-        gap: 7px;
-        padding: 15px;
-        border: 1px solid rgba(242, 191, 107, 0.24);
-        border-radius: 8px;
-        background:
-          linear-gradient(135deg, rgba(242, 191, 107, 0.14), rgba(184, 50, 36, 0.12)),
-          rgba(255, 255, 255, 0.04);
+        gap: 10px;
+        padding: 18px;
+        border: 1px solid rgba(216, 186, 114, 0.24);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(216, 186, 114, 0.1), rgba(216, 186, 114, 0.025)), #0c0b0a;
       }
 
       .today-pillar-card span,
-      .today-reading-head span {
-        color: var(--gold);
-        font-size: 11px;
-        font-weight: 950;
-        letter-spacing: 0;
+      .today-reading-head > span,
+      .today-zodiac-label {
+        color: #d8ba72;
+        font: 700 12px/1.5 var(--font-meta);
       }
 
       .today-pillar-card strong {
-        color: #fff2c5;
-        font-size: 25px;
-        line-height: 1.15;
+        color: #f0e2b8;
+        font-size: 23px;
+        line-height: 1.35;
       }
 
       .today-pillar-card small {
-        color: rgba(255, 247, 236, 0.7);
-        font-size: 12px;
-        font-weight: 750;
-        line-height: 1.45;
+        color: #bdb4a6;
+        font: 13px/1.65 var(--font-meta);
       }
 
-      .today-reading-head {
-        display: grid;
-        gap: 7px;
-      }
+      .today-reading-head { display: grid; gap: 10px; }
 
-      .today-reading-head h2 {
+      .today-reading-head h2,
+      .today-zodiac-card h2 {
         margin: 0;
-        color: #fff8ec;
+        color: #f7f2e9;
         font-size: 21px;
-        line-height: 1.28;
-        letter-spacing: 0;
+        line-height: 1.45;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
       }
 
-      .today-reading-head p {
+      .today-result-card .today-reading-copy p {
         margin: 0;
-        color: rgba(255, 247, 236, 0.76);
+        color: #d8d0c3;
+        font: 400 15px/1.85 var(--font-meta);
+        word-break: keep-all;
+        overflow-wrap: anywhere;
       }
 
-      .today-reading-list {
-        margin: 0;
+      .today-result-card .today-reading-copy p + p { margin-top: 12px; }
+      .today-reading-list { gap: 14px; margin: 0; }
+
+      .today-reading-list .result-item {
+        min-width: 0;
+        padding: 18px;
+        border-color: rgba(247, 242, 233, 0.1);
+        border-radius: 14px;
+        background: #0c0b0a;
       }
 
-      .today-item-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 7px;
-      }
+      .today-item-head { margin-bottom: 11px; }
 
       .today-item-head strong {
         margin: 0;
-      }
-
-      .today-item-score {
-        flex: 0 0 auto;
-        min-width: 48px;
-        padding: 5px 8px;
-        border: 1px solid rgba(242, 191, 107, 0.28);
-        border-radius: 999px;
-        color: #ffe0a8;
-        background: rgba(242, 191, 107, 0.08);
-        font-size: 12px;
-        font-weight: 950;
-        text-align: center;
-      }
-
-      .today-detail-note {
-        display: block;
-        margin-top: 8px;
-        color: rgba(255, 238, 210, 0.68);
-        font-size: 12px;
-        font-weight: 750;
+        color: #e8d49a;
+        font-size: 16px;
         line-height: 1.5;
       }
 
+      .today-result-card .today-detail-note {
+        margin: 12px 0 0;
+        color: #bdb4a6;
+        font: 400 13px/1.75 var(--font-meta);
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
       .today-detail-note b {
-        color: var(--gold);
-        font-weight: 950;
-      }
-
-      .today-action-box strong {
-        color: #ffe0a8;
-        font-size: 14px;
-      }
-
-      .today-action-box span {
-        color: rgba(255, 247, 236, 0.78);
-        font-size: 13px;
+        display: block;
+        margin-bottom: 3px;
+        color: #d8ba72;
         font-weight: 700;
-        line-height: 1.55;
+      }
+
+      .today-action-box strong { color: #f0e2b8; font-size: 17px; line-height: 1.5; }
+
+      .today-saved-link {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: #d8ba72;
+        font: 500 13px/1.65 var(--font-meta);
+        text-underline-offset: 4px;
       }
 
       .teaser-panel {
@@ -3412,6 +3392,7 @@
       let authGateMessage = "";
       let authSignInProvider = "";
       let reportHistorySyncPromise = null;
+      let todayChrome = null;
 
       const initialAuthParams = new URLSearchParams(location.search);
       const initialAuthEntry = initialAuthParams.get("authEntry") || initialAuthParams.get("entry") || "";
@@ -3448,7 +3429,7 @@
         protectedAuthEntries.has(initialAuthEntry);
       const isSignupReturn = initialAuthParams.get("signupReturn") === "1";
       const isAuthReturn = initialAuthParams.get("authReturn") === "1";
-      let todayEntryActive = initialAuthEntry === "today";
+      let todayEntryActive = initialAuthEntry === "today" || location.hash === "#todayResult";
       if (todayEntryActive) {
         sessionStorage.setItem(TODAY_ENTRY_KEY, "1");
       }
@@ -3972,9 +3953,12 @@
         go("loading", false);
 
         try {
+          const todayParams = new URLSearchParams(location.search);
+          const requestedTodayId = todayParams.get("reportId") || todayParams.get("resultId");
           const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/today/fortune", {
             method: "POST",
             headers: await authHeaders({ "Content-Type": "application/json" }),
+            body: requestedTodayId ? JSON.stringify({ reportId: requestedTodayId }) : undefined,
           });
           const json = await res.json();
           if (res.status === 409 || json.code === "PROFILE_REQUIRED") {
@@ -3988,7 +3972,12 @@
           if (!res.ok) throw new Error(json.error || "오늘의 운세를 불러오지 못했습니다.");
           if (json.profile) applyUserProfile(json.profile, { preserveConcern: true });
           state.concern = TODAY_CONCERN;
-          state.todayFortune = json.todayFortune;
+          state.todayFortune = {
+            ...json.todayFortune,
+            reportId: json.reportId || json.todayFortune?.reportId,
+            resultId: json.resultId || json.todayFortune?.resultId,
+            publicUrl: json.publicUrl || json.todayFortune?.publicUrl,
+          };
           syncBirthSessionFromState();
           clearTodayEntryPending();
           go("todayResult", false);
@@ -5459,7 +5448,8 @@
           url.searchParams.delete("authEntry");
           url.searchParams.delete("entry");
           url.searchParams.delete("signupReturn");
-          url.searchParams.delete("reportId");
+          const todayId = state.todayFortune?.resultId || state.todayFortune?.reportId;
+          if (todayId) url.searchParams.set("reportId", todayId);
         }
         const hash = scene === "landing" ? "" : `#${scene}`;
         const nextUrl = `${url.pathname}${url.search}${hash}`;
@@ -5776,6 +5766,10 @@
                     : "input";
         phone.dataset.scene = phoneScene;
         phone.dataset.step = scene;
+        if (todayChrome && !document.getElementById("umsh-verified-layout")) {
+          todayChrome.appbar.hidden = scene !== "todayResult";
+          todayChrome.bottomNav.hidden = scene !== "todayResult";
+        }
         soundButton.style.display = "none";
         steps[scene]();
         phone.scrollTop = 0;
@@ -6281,28 +6275,18 @@
         `;
       }
 
-      function todayScoreSummary(score) {
-        const value = Number(score || 0);
-        if (value >= 80) return "밀어붙일 힘이 충분한 날";
-        if (value >= 70) return "기회와 주의가 함께 있는 날";
-        if (value >= 60) return "확인하고 움직이면 무난한 날";
-        return "속도를 낮추고 기준을 지킬 날";
-      }
-
-      function todayDetailFallback(label, text, score) {
-        return {
-          label,
-          text,
-          score: Number.isFinite(Number(score)) ? Number(score) : 60,
-        };
-      }
-
       function renderTodayResult() {
+        // Authorized saved readings own their shell; mount only the legacy fallback here.
+        if (window.UMSHChrome && !document.getElementById("umsh-verified-layout")) {
+          todayChrome = window.UMSHChrome.mount({ root: ".phone", service: "오늘의 사주 풀이", category: "흐름" });
+          todayChrome.appbar.hidden = false;
+          todayChrome.bottomNav.hidden = false;
+        }
         const fortune = state.todayFortune;
         if (!fortune?.reading) {
           stage.innerHTML = `
             <section class="panel">
-              <div class="status">TODAY · 무료</div>
+              <div class="status">오늘의 사주 풀이</div>
               <h1>오늘의 운을 불러오지 못했습니다</h1>
               <p>저장된 사주 정보를 다시 확인한 뒤 오늘운을 열어주세요.</p>
               <div class="actions">
@@ -6315,64 +6299,61 @@
         }
 
         const reading = fortune.reading;
-        const timeNote = fortune.profile.birthTimeKnown ? `${state.time} 출생 기준` : "태어난 시간 모름 기준";
+        const profile = fortune.profile || {};
         const detailMap = reading.details || {};
-        const score = reading.score || {};
-        const totalScore = Number.isFinite(Number(score.total)) ? Number(score.total) : Math.round([
-          score.work,
-          score.money,
-          score.relationship,
-          score.caution,
-        ].map((value) => Number(value) || 60).reduce((sum, value) => sum + value, 0) / 4);
         const detailRows = [
-          { ...todayDetailFallback("일", reading.work, score.work), ...(detailMap.work || {}) },
-          { ...todayDetailFallback("돈", reading.money, score.money), ...(detailMap.money || {}) },
-          { ...todayDetailFallback("관계", reading.relationship, score.relationship), ...(detailMap.relationship || {}) },
-          { ...todayDetailFallback("피해야 할 선택", reading.caution, score.caution), ...(detailMap.caution || {}) },
+          { label: "일 · 오늘의 방향", text: reading.work, ...(detailMap.work || {}) },
+          { label: "돈 · 지킬 기준", text: reading.money, ...(detailMap.money || {}) },
+          { label: "관계 · 마음을 전하는 법", text: reading.relationship, ...(detailMap.relationship || {}) },
+          { label: "오늘 기억할 한 가지", text: reading.caution, ...(detailMap.caution || {}) },
         ];
+        const zodiac = reading.zodiac;
+        const savedId = fortune.resultId || fortune.reportId;
+        const elementMeanings = { 목: "목(木) · 나무처럼 자라고 뻗는 기운", 화: "화(火) · 불처럼 드러내고 표현하는 기운", 토: "토(土) · 흙처럼 중심을 잡고 쌓는 기운", 금: "금(金) · 쇠처럼 기준을 세우고 다듬는 기운", 수: "수(水) · 물처럼 흐름을 살피고 받아들이는 기운" };
+        const todayElement = elementMeanings[String(fortune.today?.element || "").slice(0, 1)] || fortune.today?.element || "";
 
         stage.innerHTML = `
           <section class="panel today-result-card">
-            <div class="status">TODAY · 무료</div>
-            <h1>오늘 나한테<br />들어오는 운</h1>
-            <p>${escapeHtml(fortune.date.label)} · ${escapeHtml(state.name || fortune.profile.name)}님 ${escapeHtml(timeNote)}</p>
+            <div class="status">오늘의 사주 풀이</div>
+            <h1>오늘 나한테<br />들어온 운</h1>
+            <p class="today-result-meta">${escapeHtml(fortune.date?.label || "")} · ${escapeHtml(profile.name || state.name || "나")}님</p>
 
-            <div class="today-score-card" aria-label="오늘 일진 종합 점수">
-              <span>오늘 일진 종합 점수</span>
-              <strong>${escapeHtml(totalScore)}<em>/100</em></strong>
-              <small>${escapeHtml(todayScoreSummary(totalScore))}</small>
-            </div>
-
-            <div class="today-pillar-card">
-              <span>오늘 일진</span>
-              <strong>${escapeHtml(fortune.today.pillar)} · ${escapeHtml(fortune.today.pillarKo)}</strong>
-              <small>나의 일간 ${escapeHtml(fortune.user.dayMaster)}(${escapeHtml(fortune.user.dayMasterKo)}), 오늘의 ${escapeHtml(fortune.today.element)} 기운</small>
-            </div>
+            ${todayElement ? `<div class="today-pillar-card">
+              <span>오늘 기운의 키워드</span>
+              <strong>${escapeHtml(fortune.today?.pillarKo || "")}</strong>
+              <small>${escapeHtml(todayElement)}</small>
+            </div>` : ""}
 
             <div class="today-reading-head">
-              <span>오늘의 결론</span>
+              <span>오늘의 흐름</span>
               <h2>${escapeHtml(reading.title)}</h2>
-              <p>${escapeHtml(reading.summary)}</p>
+              <div class="today-reading-copy">${formatInterpretationHtml(reading.summary)}</div>
             </div>
+
+            ${zodiac?.text ? `<section class="today-zodiac-card" aria-label="나의 출생연도와 띠로 보는 오늘운">
+              <span class="today-zodiac-label">${escapeHtml(zodiac.birthYear)}년생 · ${escapeHtml(zodiac.animal)}띠</span>
+              <h2>${escapeHtml(zodiac.title || "내 띠로 읽는 오늘의 한 장")}</h2>
+              <div class="today-reading-copy">${formatInterpretationHtml(zodiac.text)}</div>
+            </section>` : ""}
 
             <div class="result-list today-reading-list">
               ${detailRows.map((item) => `
-                <div class="result-item">
+                <section class="result-item">
                   <div class="today-item-head">
                     <strong>${escapeHtml(item.label)}</strong>
-                    <span class="today-item-score">${escapeHtml(item.score)}점</span>
                   </div>
-                  <span>${escapeHtml(item.text)}</span>
-                  ${item.opportunity ? `<small class="today-detail-note"><b>기회</b> ${escapeHtml(item.opportunity)}</small>` : ""}
-                  ${item.caution ? `<small class="today-detail-note"><b>주의</b> ${escapeHtml(item.caution)}</small>` : ""}
-                </div>
+                  <div class="today-reading-copy">${formatInterpretationHtml(item.text)}</div>
+                  ${item.opportunity ? `<p class="today-detail-note"><b>이렇게 활용하세요</b> ${escapeHtml(item.opportunity)}</p>` : ""}
+                  ${item.caution ? `<p class="today-detail-note"><b>이럴 때만 한 번 더</b> ${escapeHtml(item.caution)}</p>` : ""}
+                </section>
               `).join("")}
             </div>
 
-            <div class="today-action-box">
-              <strong>오늘 행동 기준</strong>
-              <span>${escapeHtml(reading.action)}</span>
-            </div>
+            <section class="today-action-box" aria-label="오늘의 결론">
+              <strong>오늘의 결론</strong>
+              <div class="today-reading-copy">${formatInterpretationHtml(reading.action)}</div>
+            </section>
+            ${savedId ? `<a class="today-saved-link" href="/r/${encodeURIComponent(savedId)}">이 해석, 같은 내용으로 다시 보기 <span aria-hidden="true">↗</span></a>` : ""}
 
             <div class="actions">
               <button class="ghost" type="button" data-action="today-edit-profile">사주 수정</button>
@@ -7021,7 +7002,7 @@
           beginProtectedEntryAfterAuth();
           return;
         }
-        if (wantsTodayEntry() && authSession?.access_token) {
+        if (wantsTodayEntry()) {
           beginTodayAfterAuth();
           return;
         }

@@ -13,7 +13,7 @@
   ];
   var route = ROUTES.find(function (item) { return location.pathname === item[0] || location.pathname.indexOf(item[0] + '/') === 0; });
   var key = route && route[1];
-  if(key==='saju_master' && new URLSearchParams(location.search).get('entry')==='today') key='today_fortune';
+  if(key==='saju_master' && (new URLSearchParams(location.search).get('entry')==='today' || location.hash==='#todayResult')) key='today_fortune';
   var LEGACY = {love_this_year:['umsh:report:love_this_year'],job_choice:['umsh:report:job_choice'],quit_fortune:['umsh_quit_report_v1'],money_save:['umsh_save_report_v1'],cat_compatibility:['umsh:report:cat_compatibility'],lucky_color:['umsh:report:lucky_color'],match_couple:['umsh:couple-match:report-v1'],marry_match:['umsh_marry_report_v1'],couple_signal:['umsh:report:couple_signal'],pass_angle:['umsh_pass_angle_report_v1'],work_move:['umsh_work_move_report_v1','umsh_work_move_analysis_v1'],home_fit:['umsh_home_fit_report_v1'],saju_master:['cheongi_analysis']};
   var NESTED = {work_move:['umsh_work_move_input_payload_v1','umsh:work_move:form_v1'],home_fit:['umsh_home_fit_step2_payload_v1','umsh_home_fit_input_payload_v1']};
   var rawFetch = global.fetch.bind(global);
@@ -40,7 +40,11 @@
     if(ownerId && key) { try {sessionStorage.setItem('umsh:report-identity:'+ownerId+':'+key,id);} catch(_) {} }
     var url = new URL(location.href);
     url.searchParams.set('reportId', id);
-    if(payload.todayFortune && /^\/cmdg(?:\/|$)/.test(url.pathname)) url.searchParams.set('entry','today');
+    if(payload.todayFortune) {
+      url.searchParams.delete('start');
+      if(/^\/cmdg(?:\/|$)/.test(url.pathname)) {url.searchParams.set('entry','today');url.hash='todayResult';}
+      else if(/^\/today\/free(?:\/|$)/.test(url.pathname)) url.hash='';
+    }
     url.searchParams.delete('paid');
     url.searchParams.delete('orderId');
     history.replaceState(null, '', url.pathname + url.search + url.hash);
@@ -64,10 +68,19 @@
   function panel() {
     var node = document.getElementById('umsh-verified-reading');
     if (node) return node;
+    var layout = document.createElement('div'); layout.id = 'umsh-verified-layout';
+    layout.setAttribute('data-umsh-chrome','');
+    layout.setAttribute('data-service','저장된 해석');
     node = document.createElement('main'); node.id = 'umsh-verified-reading';
-    node.style.cssText = 'max-width:620px;margin:24px auto 100px;padding:24px;background:#110e0a;color:#f5ead7;border:1px solid #6b522c;border-radius:16px;font:16px/1.85 system-ui,sans-serif;word-break:keep-all;overflow-wrap:anywhere';
-    Array.from(document.body.children || []).forEach(function (item) { if (item.id !== node.id && !['SCRIPT','STYLE','LINK'].includes(item.tagName) && !String(item.className || '').includes('umsh-service-bottom')) { item.hidden = true; item.style.setProperty('display','none','important'); } });
-    document.body.appendChild(node);
+    node.style.cssText = 'background:#110e0a;color:#f5ead7;word-break:keep-all;overflow-wrap:anywhere';
+    Array.from(document.body.children || []).forEach(function (item) { if (!['SCRIPT','STYLE','LINK'].includes(item.tagName) && !item.hasAttribute('data-umsh-service-bottom')) { item.hidden = true; item.style.setProperty('display','none','important'); } });
+    layout.appendChild(node);
+    document.body.appendChild(layout);
+    document.documentElement.setAttribute('data-umsh-verified-reader','');
+    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css';css.addEventListener('load',mountChrome);document.head.appendChild(css);
+    function mountChrome() { if(global.UMSHChrome)global.UMSHChrome.mount({root:'#umsh-verified-layout',service:key==='today_fortune'?'오늘운':'저장된 해석',category:'흐름'}); }
+    if(global.UMSHChrome) mountChrome();
+    else if(!document.querySelector('script[src="/js/umsh-chrome.js"]')) {var script=document.createElement('script');script.src='/js/umsh-chrome.js';script.addEventListener('load',mountChrome);document.head.appendChild(script);}
     return node;
   }
   function navigation() { return '<nav aria-label="결과 화면 이동" style="display:flex;gap:18px;margin-bottom:22px"><a style="color:#e5bd69" href="/">운명상회 홈</a><a style="color:#e5bd69" href="/orders">내 구매 내역</a></nav>'; }
@@ -107,9 +120,11 @@
     authorized=null;
     var fortune=payload.todayFortune || {}, reading=fortune.reading || {};
     var details=reading.details || {};
-    var rows=[['work','일'],['money','돈'],['relationship','관계'],['caution','확인할 조건']];
+    var rows=[['work','일과 활동','01'],['money','돈과 선택','02'],['relationship','관계와 대화','03'],['caution','오늘 챙길 것','04']];
     var node=panel();
-    node.innerHTML=navigation()+'<span>운명상회 · 저장된 오늘운</span><h1 style="font-size:26px">'+escapeHtml(reading.title || '오늘의 운세')+'</h1><p>'+escapeHtml(fortune.date && fortune.date.label)+' · '+escapeHtml(fortune.profile && fortune.profile.name)+'</p><p style="white-space:pre-wrap">'+escapeHtml(reading.summary)+'</p>'+rows.map(function(row){var detail=details[row[0]] || {};return '<section style="border-top:1px solid #6b522c;padding:16px 0"><h2 style="font-size:20px">'+row[1]+'</h2><p style="white-space:pre-wrap">'+escapeHtml(detail.text || reading[row[0]])+'</p>'+(detail.opportunity?'<p>활용할 조건: '+escapeHtml(detail.opportunity)+'</p>':'')+(detail.caution?'<p>확인할 점: '+escapeHtml(detail.caution)+'</p>':'')+'</section>';}).join('')+'<h2 style="font-size:20px">오늘 행동 기준</h2><p style="white-space:pre-wrap">'+escapeHtml(reading.action)+'</p><p style="font-size:13px">전통적 상징을 생활 점검에 활용한 참고 해석입니다. 실제 사건·성과·상대의 반응을 예측하거나 점수로 측정한 결과가 아닙니다.</p><a style="color:#e5bd69" href="/r/'+encodeURIComponent(identity(payload))+'">이 날짜의 같은 해석 다시 열기</a> · <a style="color:#e5bd69" href="/today/free">새 오늘운 확인</a>';
+    var zodiac=reading.zodiac;
+    node.className='umsh-daily-reading';
+    node.innerHTML='<header class="daily-heading"><span class="daily-eyebrow">오늘 나한테 들어온 운</span><p class="daily-date">'+escapeHtml(fortune.date && fortune.date.label)+' · '+escapeHtml(fortune.profile && fortune.profile.name)+'</p><h1>'+escapeHtml(reading.title || '오늘의 운세')+'</h1><p class="daily-summary">'+escapeHtml(reading.summary)+'</p></header>'+(zodiac?'<section class="daily-zodiac" aria-label="출생연도별 오늘운"><span class="daily-eyebrow">나의 띠별 오늘운 · 출생연도 기준</span><h2>'+escapeHtml(zodiac.title || zodiac.birthYear+'년생 · '+zodiac.animal+'띠')+'</h2><p>'+escapeHtml(zodiac.text)+'</p></section>':'')+'<div class="daily-sections">'+rows.map(function(row){var detail=details[row[0]] || {};return '<section class="daily-card"><span class="daily-index" aria-hidden="true">'+row[2]+'</span><h2>'+row[1]+'</h2><p>'+escapeHtml(detail.text || reading[row[0]])+'</p>'+(detail.opportunity?'<p class="daily-tip"><strong>이렇게 활용하세요</strong> '+escapeHtml(detail.opportunity)+'</p>':'')+(detail.caution?'<p class="daily-tip"><strong>한 가지만 주의하세요</strong> '+escapeHtml(detail.caution)+'</p>':'')+'</section>';}).join('')+'</div><section class="daily-conclusion"><span class="daily-eyebrow">오늘의 결론</span><h2>오늘은 이렇게 움직이세요</h2><p>'+escapeHtml(reading.action)+'</p></section><p class="daily-note">내 사주와 오늘의 일진으로 풀어보는 하루의 방향</p><nav class="daily-links" aria-label="오늘운 다시 보기"><a href="/r/'+encodeURIComponent(identity(payload))+'">이 날짜의 같은 해석 다시 열기</a><a class="daily-primary-link" href="/today/free?start=1">새 오늘운 확인</a></nav>';
   }
   function consume(payload, headers, request) {
     if (!payload || (!payload.report && !payload.previewOnly && !payload.todayFortune)) return payload;
@@ -219,7 +234,7 @@
     if(key && isOutputPage() && document.documentElement && document.head) {
       document.documentElement.setAttribute('data-umsh-report-check','');
       var guard=document.createElement('style');
-      guard.textContent='html[data-umsh-report-check] body > :not(#umsh-verified-reading):not(script):not(style):not(link){display:none!important}';
+      guard.textContent='html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
       document.head.appendChild(guard);
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
