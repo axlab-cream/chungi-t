@@ -1160,7 +1160,7 @@ function homeHookFor(sectionId: string, analysis: SajuAnalysis, context: SajuRep
   const hooks: Record<string, string> = {
     'home-fit-overall': `${purpose} 기준으로 보면 이 집의 결이 먼저 드러나요`,
     'house-energy': '현관과 창밖의 흐름이 집의 첫인상을 만들고 있어요',
-    'saju-house-ohaeng': `${dominant}은 이미 강하고 ${weak}을 공간에서 보완해야 해요`,
+    'saju-house-ohaeng': `${dominant}${koreanParticle(dominant, '은', '는')} 이미 두꺼워요, 집에서 채울 건 ${weak}${koreanParticle(weak, '이에요', '예요')}`,
     'sleep-recovery': '잠이 편해야 집의 기운도 내 편이 되는 법이에요',
     'entrance-flow': '들어오는 길이 복잡하면 마음도 먼저 걸려요',
     'remote-focus': '책상 자리 하나가 집중력의 절반을 가져가요',
@@ -1328,6 +1328,86 @@ function buildLoveThisYearInterpretation(
 [주의할 점] ${softRisk}`
 }
 
+/**
+ * 오행을 집 안의 장면으로 옮긴 표.
+ *
+ * "목(木)이 강하고 화(火)를 보완해야 합니다" 는 명리를 이미 아는 사람에게만 문장이 된다.
+ * 처음 보는 사람에게는 무엇이 두껍다는 것인지, 무엇을 어디서 어떻게 채우라는 것인지가
+ * 남지 않는다. 그래서 기운마다 집에서 실제로 보이는 장면, 과할 때 나오는 신호, 오늘 할
+ * 수 있는 행동을 같이 들고 다닌다. 내용은 home_fit 코퍼스의 real_world_pattern 과
+ * advice 안에서만 쓴다.
+ */
+type HomeElementScene = {
+  word: string
+  strong: string
+  overflow: string
+  lack: string
+  fill: string
+}
+
+const HOME_ELEMENT_SCENE: Record<Element, HomeElementScene> = {
+  wood: {
+    word: '뻗어 나가는 기운',
+    strong: '새로 벌이고 넓히는 쪽으로 먼저 움직입니다. 집에서도 물건과 계획이 같이 늘어납니다',
+    overflow: '벌여 놓은 것을 정리하는 속도가 못 따라가서, 집에 있어도 쉬는 게 아니라 할 일이 먼저 눈에 들어옵니다',
+    lack: '새로 시작할 힘이 안 올라와서 집이 정체된 느낌으로 남습니다',
+    fill: '아침에 창을 한 번 열어 공기를 돌리고, 앉는 자리에서 보이는 곳에 초록 화분을 하나 둡니다',
+  },
+  fire: {
+    word: '밝히고 드러내는 기운',
+    strong: '반응이 빠르고 표현이 앞섭니다. 집에서도 밝은 자리와 사람이 오는 자리가 중심이 됩니다',
+    overflow: '밤에도 머리가 꺼지지 않아 잠이 얕아지고, 아침보다 저녁에 집 피로가 더 커집니다',
+    lack: '집이 어둡고 가라앉아 기분이 잘 올라오지 않습니다',
+    fill: '저녁에는 천장등을 끄고 낮은 조명 하나만 켜고, 벽 한 면에 눈이 쉴 색이나 그림을 둡니다',
+  },
+  earth: {
+    word: '쌓고 버티는 기운',
+    strong: '한번 자리를 잡으면 오래 갑니다. 집에서도 늘 앉는 자리와 쌓아 두는 자리가 정해져 있습니다',
+    overflow: '물건이 들어오기만 하고 나가지 않아서, 바꾸는 일 자체가 점점 귀찮아집니다',
+    lack: '기댈 자리가 없어 집에 있어도 붕 뜬 느낌이 남습니다',
+    fill: '낮은 수납 한 칸을 비워 두고, 주 1회 그 칸에 모인 것만 내보냅니다',
+  },
+  metal: {
+    word: '자르고 정리하는 기운',
+    strong: '기준이 분명하고 정리가 빠릅니다. 집에서도 비어 있는 면과 각이 잡힌 자리를 편하게 느낍니다',
+    overflow: '규칙이 빡빡해져서 쉬는 자리까지 점검하게 되고, 쉬어도 쉰 것 같지가 않습니다',
+    lack: '물건과 일의 경계가 흐려져 무엇부터 손볼지 정하기 어려워집니다',
+    fill: '책상 위에 지금 하는 일 하나만 남기고, 나머지는 들어갈 자리를 정해 물건 수를 줄입니다',
+  },
+  water: {
+    word: '가라앉히고 흐르는 기운',
+    strong: '속으로 한 번 정리한 뒤에 움직입니다. 집에서도 조용하고 어둑한 자리에서 판단이 정리됩니다',
+    overflow: '가라앉는 쪽으로만 기울어 시작이 늦어지고, 쉬는 시간과 미루는 시간이 섞입니다',
+    lack: '멈춰서 정리할 자리가 없어 하루가 그대로 다음 날로 넘어갑니다',
+    fill: '소리와 빛을 낮춘 구석 한 곳을 만들고, 자기 전 오늘 있었던 일을 적는 자리를 둡니다',
+  },
+}
+
+/** 목적별로 가장 먼저 손볼 자리. 코퍼스는 목적에 맞는 칸부터 좁히라고 말한다. */
+const HOME_PURPOSE_ROOM: Record<string, string> = {
+  rest: '침실',
+  work: '책상',
+  money: '주방과 수납',
+  relationship: '거실처럼 같이 쓰는 자리',
+  move: '현관과 창밖',
+}
+
+/**
+ * 한국어 조사. 받침은 마지막 한글 음절로 따진다.
+ *
+ * 이 리포트가 문장에 끼워 넣는 값에는 `목(木)`, `돈·살림 안정`, `이사·계약 판단`처럼
+ * 한자 괄호나 가운뎃점이 섞여 있다. 문자열 끝 글자를 그대로 보면 "화(火)을", "안정가",
+ * "판단로"가 나가므로, 뒤에서부터 한글 음절을 찾아 그 받침으로 고른다.
+ */
+function koreanParticle(label: string, withFinal: string, withoutFinal: string): string {
+  for (let i = label.length - 1; i >= 0; i -= 1) {
+    const code = label.charCodeAt(i) - 0xac00
+    if (code < 0 || code > 11171) continue
+    return code % 28 === 0 ? withoutFinal : withFinal
+  }
+  return withoutFinal
+}
+
 function buildHomeFitInterpretation(
   sectionId: string,
   focus: ReportFocus,
@@ -1344,6 +1424,11 @@ function buildHomeFitInterpretation(
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const weak = ELEMENT_KO[analysis.weakElement]
   const useful = analysis.usefulGod ? ELEMENT_KO[analysis.usefulGod] : weak
+  const dominantScene = HOME_ELEMENT_SCENE[analysis.dominantElement]
+  const weakScene = HOME_ELEMENT_SCENE[analysis.weakElement]
+  const usefulScene = HOME_ELEMENT_SCENE[analysis.usefulGod ?? analysis.weakElement]
+  const weakObject = `${weak}${koreanParticle(weak, '을', '를')}`
+  const purposeRoom = HOME_PURPOSE_ROOM[home?.mainPurpose ?? ''] ?? '가장 오래 머무는 자리'
   const building = homeValueLabel('buildingType', home?.buildingType) || '주거 형태 미입력'
   const living = homeValueLabel('livingPeriod', home?.livingPeriod) || '거주 기간 미입력'
   const purpose = homeValueLabel('mainPurpose', home?.mainPurpose) || '집에서 제일 중요한 목적 미입력'
@@ -1356,16 +1441,21 @@ function buildHomeFitInterpretation(
   const address = home?.addressOrBuilding ? `${home.addressOrBuilding} 기준` : '현재 집 기준'
   const daewoon = analysis.fortune?.currentDaewoon ?? '현재 대운'
   const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
+  // 여기서 ragTopics 를 그대로 이어 붙이던 자리다. "대상 선택: 본인 사주, 고민 입력:
+  // 한 문장 고민의 활용, …" 처럼 내부 목차가 사용자 문장에 그대로 나갔다. 읽는 사람에게
+  // 필요한 건 목차가 아니라 자기가 고른 값이 어디에 쓰였는지다.
   const ragLine = ragTopics.length > 0
-    ? `이번 장은 ${ragTopics.join(', ')}의 공간 기준을 함께 대조했습니다.`
-    : '이번 장은 집의 체감 신호와 사주 오행 기준을 함께 대조했습니다.'
+    ? `${entrance} · ${bedroom} · ${desk} · ${outside}. 고르신 이 네 가지를 ${name}님 사주와 나란히 놓고 봤습니다.`
+    : `${name}님이 고른 집 체감 신호를 사주와 나란히 놓고 봤습니다.`
   const caution = '이 풀이는 이사를 강요하거나 명당·흉지를 확정하는 말이 아닙니다. 몸 상태, 재산, 계약 결과를 단정하지 않고 생활에서 확인할 수 있는 신호와 손질 순서를 잡는 데 둡니다.'
-  const houseLine = `${address}, ${building}, ${living}, 핵심 목적은 ${purpose}, 지금 고민은 ${decision}입니다. 신경 쓰이는 지점은 ${painText}로 들어왔습니다.`
+  const houseLine = `${address}, ${building}, ${living}, 핵심 목적은 ${purpose}, 지금 고민은 ${decision}입니다. 신경 쓰이는 지점은 ${painText}${koreanParticle(painText, '으로', '로')} 들어왔습니다.`
 
   const sections: Record<string, string> = {
     'home-fit-overall': [
       `흠... ${name}님의 집 풍수는 ${dayPillar} 일주와 ${dayMaster} 일간, 그리고 지금 집의 체감 신호를 겹쳐서 봅니다. ${houseLine} 집이 맞는지 아닌지는 한마디로 자를 일이 아닙니다. 이 집이 ${name}의 잠, 일, 돈, 관계 리듬을 얼마나 덜 흔들고 얼마나 잘 받쳐주는지가 먼저입니다.`,
-      `[주요 포인트] 원국에서는 ${dominant} 기운이 먼저 올라오고 ${weak} 기운이 보완 자리로 남습니다. 그래서 이 집이 ${dominant}을 더 과하게 밀어붙이는지, 아니면 ${useful} 기운을 살려 중심을 잡아주는지가 핵심입니다. ${ragLine}`,
+      `[해석] ${name}님 사주에서 가장 두꺼운 기운은 ${dominant}, 쉽게 말해 ${dominantScene.word}입니다. ${dominantScene.strong}. 얇은 쪽은 ${weak}, ${weakScene.word}이고요. 집 풍수는 이 사주를 바꾸는 일이 아닙니다. 이미 두꺼운 쪽을 집이 더 밀어 주는지, 아니면 얇은 쪽을 대신 채워 주는지를 보는 일입니다.`,
+      `[위기 신호] 집이 두꺼운 쪽만 계속 밀어 주면 이렇게 됩니다. ${dominantScene.overflow}. ${name}님이 신경 쓰인다고 고른 지점이 ${painText}인데, 그 자리가 이미 눌리고 있다는 뜻일 수 있습니다. ${ragLine}`,
+      `[보완] 오늘 바꿀 수 있는 건 하나면 충분합니다. ${weakScene.fill}. 그리고 ${purpose}${koreanParticle(purpose, '이', '가')} 목적이라면 네 곳을 한꺼번에 건드리지 말고 ${purposeRoom}부터 보는 게 순서입니다.`,
       `무료 맛보기로 먼저 말하자면, 이 집은 "${purpose}" 목적에 맞춰 볼 때 현관·침실·책상·창밖 중 어디가 ${name}의 기운을 먼저 빼앗는지 확인해야 합니다. ${daewoon}과 ${yearPillar} 흐름에서는 큰 이사 결정보다 7일 체감 테스트가 먼저입니다. ${caution}`,
     ].join('\n\n'),
     'house-energy': [
@@ -1374,9 +1464,12 @@ function buildHomeFitInterpretation(
       `${ragLine} 먼저 할 일은 현관 바닥을 비우고, 문을 열었을 때 바로 보이는 물건을 한 단계 줄이는 겁니다. 창밖 압박이나 소음이 있다면 커튼, 식물, 조명처럼 시선을 부드럽게 끊는 장치부터 보세요. 큰 공사보다 집의 첫 호흡을 정리하는 쪽이 먼저입니다.`,
     ].join('\n\n'),
     'saju-house-ohaeng': [
-      `${name}님의 오행은 ${dominant}이 먼저 강하고 ${weak}이 보완점입니다. 집 풍수에서 오행은 색 하나를 붙인다고 끝나는 처방이 아닙니다. 목은 성장과 환기, 화는 빛과 표현, 토는 안정과 수납, 금은 정리와 기준, 수는 휴식과 흐름처럼 생활 장면으로 읽어야 합니다.`,
-      `[주요 포인트] ${dayPillar} 일주와 월주 ${monthPillar}를 같이 보면, 이 집은 ${name}에게 ${useful} 기운을 살리는 방식으로 써야 합니다. ${purpose}가 중요하다면 공간도 그 목적에 맞게 우선순위를 가져야 합니다. 잠이 목적이면 침실, 일이 목적이면 책상, 돈과 살림이면 주방과 수납, 관계면 공용공간과 사생활 경계가 먼저입니다.`,
-      `${ragLine} 오행 보완은 과한 색상 처방보다 반복 루틴이 정확합니다. 부족한 ${weak}을 채우려면 ${home?.extraNote ? `특히 "${home.extraNote}"라고 적은 체감까지 같이 보고, ` : ''}빛·소리·물건 밀도·앉는 방향을 한 번에 바꾸지 말고 하나씩 조정해야 합니다. 그래야 어떤 변화가 ${name}에게 맞는지 분명히 보입니다.`,
+      `오행이라는 말부터 풀고 가겠습니다. 사람마다 자주 쓰는 반응이 다른데, 그걸 다섯 가지로 나눈 것이 목·화·토·금·수입니다. 두꺼운 기운은 이미 자주 쓰는 쪽이라 따로 채울 필요가 없고, 얇은 기운은 집이 대신 채워 주면 체감이 달라지는 쪽입니다. 집이 사주를 바꾸지는 못하지만, 매일 반복되는 자극은 집이 정합니다.`,
+      `[해석] ${name}님 사주에서는 ${dominant}${koreanParticle(dominant, '이', '가')} 가장 두껍습니다. ${dominantScene.strong}. ${dayPillar} 일주와 ${monthPillar} 월주가 같이 그 방향으로 서 있어서, 밖에서 이미 이 기운을 많이 쓰고 들어옵니다. 그래서 집에서까지 같은 기운을 더 받으면 쉬는 시간이 쉬는 것처럼 느껴지지 않습니다.`,
+      `[위기 신호] 두꺼운 쪽이 과하게 돌면 이런 장면이 나옵니다. ${dominantScene.overflow}. 반대로 얇은 ${weak}${koreanParticle(weak, '이', '가')} 계속 비어 있으면 ${weakScene.lack}. 지금 집에서 ${painText} 쪽이 걸린다면, 이 둘 중 어느 쪽인지부터 갈라야 합니다.`,
+      `[보완] 채우는 방법은 색을 칠하는 게 아니라 반복되는 행동을 하나 바꾸는 겁니다. ${weakObject} 채우려면 이렇게 하세요. ${weakScene.fill}.${useful !== weak ? ` 여기에 ${useful} 쪽 ${usefulScene.word}까지 살리면 중심이 더 잡힙니다. ${usefulScene.fill}.` : ''}`,
+      `${purpose}${koreanParticle(purpose, '이', '가')} 목적이라면 ${purposeRoom}부터입니다. 잠이 목적이면 침실, 일이면 책상, 돈과 살림이면 주방과 수납, 관계면 같이 쓰는 자리와 혼자 쉬는 자리의 경계가 먼저입니다. 네 곳을 한꺼번에 바꾸면 무엇이 효과가 있었는지 알 수 없습니다.`,
+      `${ragLine} ${home?.extraNote ? `적어 주신 "${home.extraNote}"도 같이 놓고 봤습니다. ` : ''}빛, 소리, 물건 밀도, 앉는 방향 중 하나만 일주일 바꿔 보고 아침과 저녁 몸 상태를 적어 두세요. 하루 기분이 아니라 7일 평균이 답을 줍니다.`,
     ].join('\n\n'),
     'sleep-recovery': [
       `잠과 회복은 집 풍수에서 가장 먼저 봐야 할 자리입니다. 침실 입력은 ${bedroom}입니다. ${name}님 사주에서 ${dominant} 기운이 바깥으로 많이 쓰이면, 밤에는 오히려 ${weak} 기운이 받쳐줘야 회복이 됩니다. 침실이 밝거나 시끄럽거나 문·복도 자극을 받으면 머리가 쉬지 못할 수 있습니다.`,
@@ -1389,18 +1482,18 @@ function buildHomeFitInterpretation(
       `${ragLine} 신발, 택배, 우산, 거울 위치를 먼저 보세요. 문을 열었을 때 한 번에 눈에 들어오는 물건을 줄이고, 꺾이는 동선이면 어두운 코너에 약한 조명을 둡니다. 이 정도만 해도 집에 들어올 때의 마음 속도가 달라질 수 있습니다.`,
     ].join('\n\n'),
     'remote-focus': [
-      `재택·공부·일 집중력은 책상 위치에서 크게 갈립니다. 현재 책상 입력은 ${desk}입니다. ${context.work ?? '일상 흐름'} 상태에서 ${purpose}가 중요하다면, 책상은 단순한 가구가 아니라 ${name}의 월주 ${monthPillar}가 현실에서 작동하는 자리입니다.`,
-      `[해법] 등 뒤가 벽이면 기준이 잡히기 쉽고, 등 뒤가 창이면 마음이 뜰 수 있습니다. 문을 정면으로 보면 통제감은 생기지만 긴장이 올라갈 수 있고, 쉬는 자리와 섞이면 일과 회복이 서로 침범합니다. ${dominant}이 강한 사람일수록 책상 위 물건 수를 줄여야 판단이 맑아집니다.`,
+      `재택·공부·일 집중력은 책상 위치에서 크게 갈립니다. 현재 책상 입력은 ${desk}입니다. ${context.work ?? '일상 흐름'} 상태에서 ${purpose}${koreanParticle(purpose, '이', '가')} 중요하다면, 책상은 단순한 가구가 아니라 ${name}의 월주 ${monthPillar}가 현실에서 작동하는 자리입니다.`,
+      `[해법] 등 뒤가 벽이면 기준이 잡히기 쉽고, 등 뒤가 창이면 마음이 뜰 수 있습니다. 문을 정면으로 보면 통제감은 생기지만 긴장이 올라갈 수 있고, 쉬는 자리와 섞이면 일과 회복이 서로 침범합니다. ${dominant}${koreanParticle(dominant, '이', '가')} 강한 사람일수록 책상 위 물건 수를 줄여야 판단이 맑아집니다.`,
       `${ragLine} 7일 테스트는 간단합니다. 책상 위에 지금 하는 일 하나만 남기고, 등 뒤 자극을 줄이고, 쉬는 물건과 일하는 물건을 분리하세요. 이사나 방 변경 전에도 집중 시간, 산만함, 끝낸 일의 개수가 달라지는지 먼저 확인할 수 있습니다.`,
     ].join('\n\n'),
     'money-living': [
       `돈·살림·소비 흐름은 재물운을 집 안에서 보는 장입니다. ${purpose} 목적과 ${painText} 신호를 같이 놓으면, 돈은 단순히 들어오고 나가는 숫자가 아니라 물건이 쌓이는 방식, 주방과 수납의 흐름, 결제 습관으로 먼저 드러납니다.`,
-      `[주의할 점] ${name}님 사주에 ${analysis.tenGods.join(' · ') || '십신'} 흐름이 있으니 돈을 읽을 때도 재성만 보지 않습니다. ${dominant}이 과하게 움직이면 충동 구매나 사람 비용이 빨라질 수 있고, ${weak}이 비면 정리·기록·반복 관리가 밀릴 수 있습니다. 이건 수익 보장이 아니라 새는 지점을 먼저 찾는 풀이입니다.`,
+      `[주의할 점] ${name}님 사주에 ${analysis.tenGods.join(' · ') || '십신'} 흐름이 있으니 돈을 읽을 때도 재성만 보지 않습니다. ${dominant}${koreanParticle(dominant, '이', '가')} 과하게 움직이면 충동 구매나 사람 비용이 빨라질 수 있고, ${weak}${koreanParticle(weak, '이', '가')} 비면 정리·기록·반복 관리가 밀릴 수 있습니다. 이건 수익 보장이 아니라 새는 지점을 먼저 찾는 풀이입니다.`,
       `${ragLine} 먼저 냉장고, 현관 옆 수납, 결제 알림, 자주 두는 영수증 자리를 보세요. 돈길보다 돈구멍이 먼저 보이는 법입니다. 작은 바구니 하나, 주 1회 비우기, 자동결제 목록 점검처럼 토대가 잡히면 살림의 기운도 안정됩니다.`,
     ].join('\n\n'),
     'relationship-cohabitation': [
       `관계·가족·동거 케미는 집의 넓이보다 거리감에서 갈립니다. 현재 관계 문맥은 ${context.relationship ?? '관계 상태 미입력'}, 핵심 목적은 ${purpose}, 체감 신호는 ${painText}입니다. 같이 사는 사람이 있든 없든 공용공간과 혼자 숨 쉬는 자리의 균형이 필요합니다.`,
-      `[주목할 점] ${dayPillar} 일주는 가까운 사람 앞에서 더 선명하게 반응합니다. ${dominant}이 강하면 내 방식이 맞다고 느끼기 쉽고, ${weak}이 비면 상대의 리듬을 기다리는 힘이 부족해질 수 있습니다. 그래서 이 집에서는 말로 푸는 것보다 각자의 자리와 동선을 분리하는 것이 먼저일 수 있습니다.`,
+      `[주목할 점] ${dayPillar} 일주는 가까운 사람 앞에서 더 선명하게 반응합니다. ${dominant}${koreanParticle(dominant, '이', '가')} 강하면 내 방식이 맞다고 느끼기 쉽고, ${weak}${koreanParticle(weak, '이', '가')} 비면 상대의 리듬을 기다리는 힘이 부족해질 수 있습니다. 그래서 이 집에서는 말로 푸는 것보다 각자의 자리와 동선을 분리하는 것이 먼저일 수 있습니다.`,
       `${ragLine} 가족이나 동거인이 있다면 식탁, 소파, 침실 문 앞에 물건이 쌓이는지 보세요. 혼자 산다면 사람을 들인 뒤 피곤해지는 자리, 오래 통화하는 자리, 쉬는 공간과 일하는 공간이 섞이는 지점을 봐야 합니다. 관계운은 공간의 경계에서 현실이 됩니다.`,
     ].join('\n\n'),
     'spatial-fix': [
