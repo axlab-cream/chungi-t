@@ -127,10 +127,13 @@ function fromRow(row: Record<string, unknown>): PaymentOrder {
 }
 
 function supabaseHeaders(): Record<string, string> {
-  return {
-    apikey: supabaseServiceRoleKey,
-    authorization: `Bearer ${supabaseServiceRoleKey}`,
+  const headers: Record<string, string> = { apikey: supabaseServiceRoleKey }
+  // Hosted secret keys are opaque API keys, not JWTs. Only legacy JWT service
+  // keys belong in Authorization; never substitute a customer's session token.
+  if (!supabaseServiceRoleKey.startsWith('sb_secret_') && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(supabaseServiceRoleKey)) {
+    headers.authorization = `Bearer ${supabaseServiceRoleKey}`
   }
+  return headers
 }
 
 export async function getPaymentOrder(orderId: string): Promise<PaymentOrder | null> {
