@@ -45,8 +45,53 @@ test('newyear analysis creates only an authenticated preview with an owner-scope
   assert.equal(JSON.parse(h.calls[0].options.body).preview, true)
   assert.equal(h.items.get('umsh:report-identity:owner-a:newyear_flow'), 'newyear-uuid')
   assert.equal(h.location.searchParams.get('reportId'), 'newyear-uuid')
+  assert.equal(h.location.searchParams.get('preview'), '1')
   assert.equal(h.api.verifiedReport(), null)
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /2027년의 기준/)
+})
+
+test('newyear saved preview stays a preview on every reader route without starting paid sections', async () => {
+  for (const page of ['04-step-4-report/index.html','05-step-5-chat/index.html','05-step-5-chat/chat.html','06-step-6_1-report-detail/index.html']) {
+    const h = harness('/flow/newyear/'+page+'?reportId=newyear-uuid&preview=1', [{previewOnly:true,serviceKey:'newyear_flow',reportId:'fingerprint',resultId:'newyear-uuid',preview:{headline:'내 2027년 미리보기',signals:[]},paymentUrl:'/payment?product=newyear_flow&reportId=newyear-uuid'}])
+    await h.api.fetch('/api/flow/newyear/analyze', {method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})
+    assert.equal(h.calls.length, 1)
+    assert.equal(h.calls[0].path, '/api/report/newyear-uuid?preview=1')
+    assert.equal(h.location.searchParams.get('preview'), '1')
+    assert.equal(h.api.verifiedReport(), null)
+    assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /내 2027년 미리보기/)
+  }
+})
+
+test('newyear preview intent propagates to adjacent result links but never to checkout', () => {
+  const h = harness('/flow/newyear/04-step-4-report/index.html?reportId=newyear-uuid&preview=1', [])
+  h.api.remember({resultId:'newyear-uuid',previewOnly:true})
+  const click=h.listeners.get('click')![0] as (event:any)=>void
+  const detail={href:'https://umsh.kr/flow/newyear/06-step-6_1-report-detail/index.html?section=6-1'}
+  click({target:{closest(){return detail}}})
+  const detailUrl=new URL(detail.href,'https://umsh.kr')
+  assert.equal(detailUrl.searchParams.get('preview'),'1')
+  assert.equal(detailUrl.searchParams.get('reportId'),'newyear-uuid')
+  const payment={href:'https://umsh.kr/payment?product=newyear_flow&reportId=newyear-uuid'}
+  const original=payment.href
+  click({target:{closest(){return payment}}})
+  assert.equal(payment.href,original)
+  assert.equal(new URL(payment.href).searchParams.has('preview'),false)
+})
+
+test('newyear paid returns ignore stale preview flags and full responses clear preview intent', async () => {
+  for(const suffix of ['orderId=confirmed-order','paid=1']) {
+    const h=harness('/flow/newyear/04-step-4-report/index.html?reportId=newyear-uuid&preview=1&'+suffix,[{reportId:'fingerprint',resultId:'newyear-uuid',report:{reportId:'fingerprint',serviceKey:'newyear_flow',title:'전체 풀이',status:'complete',sections:[]}}])
+    await h.api.fetch('/api/flow/newyear/analyze',{method:'POST',body:'{}'})
+    assert.equal(h.calls[0].path,'/api/report/newyear-uuid'+(suffix.startsWith('orderId')?'?orderId=confirmed-order':''))
+    assert.equal(h.location.searchParams.has('preview'),false)
+    assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/전체 풀이/)
+  }
+})
+
+test('newyear preview URL behavior does not alter another service saved GET', async () => {
+  const h=harness('/me/lucky/04-step-4-report/index.html?reportId=lucky-uuid&preview=1',[{previewOnly:true,serviceKey:'lucky_color',reportId:'lucky-uuid',preview:{headline:'기존 서비스'}}])
+  await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}'})
+  assert.equal(h.calls[0].path,'/api/report/lucky-uuid')
 })
 
 test('all newyear reader routes re-open saved UUIDs and preserve the paid order reference', async () => {

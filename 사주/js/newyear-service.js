@@ -56,6 +56,7 @@
     var url = new URL(SERVICE.base + '/04-step-4-report/index.html', location.origin);
     url.searchParams.set('reportId', id);
     if (orderId) url.searchParams.set('orderId', orderId);
+    else if (payload.previewOnly === true) url.searchParams.set('preview', '1');
     url.hash = 'step-4-report';
     return url.pathname + url.search + url.hash;
   }

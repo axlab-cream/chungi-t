@@ -19,7 +19,7 @@
 
 ## Success Case / 배포 전 검증
 
-- 전체 테스트 320/320 통과, 실패·취소·스킵 0, 약 74초. TypeScript 및 `npm run vercel-build` 통과.
+- 별칭 주소의 쿼리 보존 검사 추가 후 전체 테스트 321/321 통과, 실패·취소·스킵 0, 약 72초. TypeScript 및 `npm run vercel-build` 통과.
 - `check:newyear`: 6개 페이지, 10개 대분류·36개 중분류, 코퍼스 10블록 연결 통과. `check:prompt-guide`: 공통 규칙 6개·서비스 19개 통과.
 - 신년 API 검증은 합성 인증·메모리 저장소로 수행했다. 무료 티저, UUID 재사용, 다른 소유자 거절, 다른 서비스 ID 거절, 결제 복귀 및 이미 완성된 섹션 불변성을 검사했다. 실제 결제·외부 AI·고객 DB 쓰기는 하지 않았다.
 - 로컬 브라우저 1280×720에서 신년 01의 이미지 13개 모두 로드, 휠 스크롤 가능, 가로 넘침 없음. 02는 하단 CTA까지 스크롤 가능하고 비로그인 제출 시 로그인 복귀 주소가 보존된다. 실제 터치 장치 검증은 아니다.
@@ -43,4 +43,19 @@ npm run check:production-source -- --expected-head=<배포할 전체 커밋 SHA>
 
 ## 배포 결과
 
-후보 검증·승격 후 실제 URL, 커밋, 상태, 운영 확인 범위를 추가한다.
+### 첫 통합 배포 및 현장 보완
+
+- `077883816731f56d0ac9d5149521e6532b72410f`를 원격 main에 fast-forward push. 후보 `https://chungi-fzsexwo1u-ax-lab-cream.vercel.app` / `dpl_TA8NFKYR1WRA2JaP4Wbbt1NduvLR`는 Production READY, 2026-09-07 17:01:45 KST 생성, 원격 빌드 12초·CLI 전체 49초. Node/Express 함수이며 inspect 크기 284.26MB로 빌드는 성공했다.
+- 후보 메타데이터의 gitCommitSha가 로컬 HEAD와 일치했다. portal, newyear-service.js, umsh-report-access.js 응답은 로컬 소스와 줄끝 정규화 비교 일치. 신년 페이지·JS HTTP 200, health `ok:true`, 기존 OpenAI 키 구성 및 신년 코퍼스 등록 확인. 후보 검증 후 umsh.kr로 승격했다.
+- 기존 오늘운 UUID `91db22a5-013d-4a6c-ae49-d97f9d4b5bdc`의 전체 표시 텍스트가 배포 전후 동일했다. 총점 64·일 78·돈 62·관계 58·주의점 54가 보존됐다.
+- 실제 운영 계정의 무료 버튼에서 새 UUID `3537664d-2a3f-42b1-893f-ca1391c39468`가 생성됐다. 첫 이동에서 미리보기 의도가 사라져 열람 권한 있는 계정이 전체 대기 화면으로 들어가는 결함을 발견했다. 이 검증 중 `/api/report/section` 요청 2개가 17:04:10 KST에 HTTP 200으로 기록됐다. 따라서 운영 검증에서 AI 생성 경로를 전혀 호출하지 않았다고 주장하지 않는다. 추가 폴링을 중단하기 위해 소개 화면으로 이동했다. 실제 결제는 하지 않았다.
+- 후속 수정: 신년의 `preview=1`을 결과 URL·인증된 GET·인접 링크에 보존한다. 주문 참조/결제 복귀는 미리보기 플래그를 제외하며, 기존 GET의 명시적 preview 응답을 사용한다. 관리자·구매자·전체 공개 상태에서도 무료 선택을 존중하고 저장 원문을 바꾸지 않는 테스트를 추가했다.
+- 후속 집중 회귀 82/82 및 빌드 통과. 기존 무관한 관리자 메타데이터/legacy 결과 로직은 변경하지 않았다.
+- 첫 통합 배포의 17:03 KST 이후 검사 구간에서 HTTP 500 로그는 없었다. 이는 제한된 로그 조회이며 전체 기간 무오류 보장은 아니다. Drains 구성 확인·변경 및 상시 모니터링 설정은 하지 않았다.
+
+### 원본 폴더 동기화 및 복구
+
+- 원본 `C:\Users\user\Desktop\chungi-t`의 HEAD·예상 5개 미커밋 파일이 초기 스냅샷과 같고 추가 변경이 없음을 재확인했다. 5개 파일만 named stash로 보존한 뒤 `0778838`로 fast-forward했다.
+- 복구 stash: `74a59f6290612d2363b2d9d490392dccee7cee31`, 이름 `AIOS recovery: deployed terrain WIP before main integration 20260907`. 이미 통합된 내용이므로 재적용하지 않고 보관한다. 원래 키 파일은 변경·이동하지 않았다.
+
+최종 티저 보완 배포 URL 및 운영 재검증 결과는 아래에 추가한다.

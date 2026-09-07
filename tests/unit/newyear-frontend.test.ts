@@ -118,8 +118,19 @@ test('newyear submit creates a preview through shared access and navigates only 
   assert.equal(url.pathname, '/flow/newyear/04-step-4-report/index.html')
   assert.equal(url.searchParams.get('reportId'), 'saved-newyear-uuid')
   assert.equal(url.searchParams.get('orderId'), 'existing-order')
+  assert.equal(url.searchParams.has('preview'), false)
   assert.equal(url.searchParams.has('displayName'), false)
   assert.equal(h.button.disabled, false)
+})
+
+test('newyear preview submission keeps preview intent when navigating to its saved result', async () => {
+  const h=harness()
+  await settle()
+  await h.submit()
+  const url=new URL(h.assigned[0], 'https://umsh.kr')
+  assert.equal(url.searchParams.get('reportId'), 'saved-newyear-uuid')
+  assert.equal(url.searchParams.get('preview'), '1')
+  assert.equal(url.searchParams.has('orderId'), false)
 })
 
 test('newyear signed-out submission redirects to login without an analysis request', async () => {

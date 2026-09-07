@@ -518,6 +518,7 @@ function newYearFlowUrl(req: Request, page: string): string {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
+  if (req.query.preview === '1') forwarded.set('preview', '1')
   const query = forwarded.toString()
   return `/flow/newyear/${page}${query ? `?${query}` : ''}`
 }

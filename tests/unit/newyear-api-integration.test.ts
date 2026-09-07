@@ -95,6 +95,12 @@ describe('newyear preview, ownership and saved-result integration', { concurrenc
     }
     const savedOnly = await fetch(`${origin}/flow/newyear?reportId=${savedId}`, { redirect: 'manual' })
     assert.equal(savedOnly.headers.get('location'), `/flow/newyear/04-step-4-report/index.html?reportId=${savedId}`)
+    for (const [alias, page] of targets) {
+      const preview = await fetch(`${origin}/flow/newyear${alias}?reportId=${savedId}&preview=1&returnTo=https://external.invalid/`, { redirect: 'manual' })
+      assert.equal(preview.headers.get('location'), `/flow/newyear/${page}?reportId=${savedId}&preview=1`)
+    }
+    const invalidPreview = await fetch(`${origin}/flow/newyear/report?reportId=${savedId}&preview=all`, { redirect: 'manual' })
+    assert.equal(invalidPreview.headers.get('location'), `/flow/newyear/04-step-4-report/index.html?reportId=${savedId}`)
     const intro = await fetch(`${origin}/flow/newyear?returnTo=https://external.invalid/`, { redirect: 'manual' })
     assert.equal(intro.headers.get('location'), '/flow/newyear/01-step-1-story/index.html')
   })
@@ -163,5 +169,37 @@ describe('newyear preview, ownership and saved-result integration', { concurrenc
     assert.equal(repeated.payload.section.interpretation, 'SYNTHETIC_COMPLETED_YEAR_READING')
     assert.equal(repeated.payload.section.generationId, section.generationId)
     assert.deepEqual(await store.findReportRecord(preview.payload.resultId, { id: profile.userId }), before)
+  })
+
+  it('keeps an explicit preview GET limited and immutable for paid, admin and open access', async () => {
+    const created = await request('/api/flow/newyear/analyze', { preview: true })
+    const id = created.payload.resultId
+    const before = await store.findReportRecord(id, { id: profile.userId })
+    const adminBefore = process.env.UMSH_ADMIN_EMAILS
+    const modeBefore = process.env.PAYMENT_TEST_MODE
+    try {
+      for (const access of ['paid', 'admin', 'open']) {
+        if (access === 'admin') process.env.UMSH_ADMIN_EMAILS = 'newyear-owner-a@synthetic.invalid'
+        if (access === 'open') { delete process.env.UMSH_ADMIN_EMAILS; delete process.env.PAYMENT_TEST_MODE }
+        const preview = await request(`/api/report/${id}?preview=1`)
+        assert.equal(preview.response.status, 200, access)
+        assert.equal(preview.payload.previewOnly, true, access)
+        assert.equal(preview.payload.resultId, id, access)
+        assert.equal(preview.payload.report, undefined, access)
+        assert.deepEqual(preview.payload.preview, created.payload.preview, access)
+        const full = await request(`/api/report/${id}`)
+        assert.equal(full.response.status, 200, access)
+        assert.equal(full.payload.report.sections.length, 36, access)
+        if (access !== 'admin') assert.equal(full.payload.report.isPaid, true, access)
+        if (access === 'admin') assert.equal((await request('/api/user/profile')).payload.admin, true)
+        if (access === 'open') assert.equal(full.payload.report.unlockReason, 'open')
+        assert.deepEqual(await store.findReportRecord(id, { id: profile.userId }), before, access)
+      }
+    } finally {
+      if (adminBefore === undefined) delete process.env.UMSH_ADMIN_EMAILS
+      else process.env.UMSH_ADMIN_EMAILS = adminBefore
+      if (modeBefore === undefined) delete process.env.PAYMENT_TEST_MODE
+      else process.env.PAYMENT_TEST_MODE = modeBefore
+    }
   })
 })

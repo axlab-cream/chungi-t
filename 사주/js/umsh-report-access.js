@@ -29,7 +29,12 @@
   function canonical(value) { return ALIASES[value] || value; }
   function identity(payload) { return payload && (payload.resultId || payload.publicId || payload.reportId || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))) || ''; }
   function locationId() { var query = new URLSearchParams(location.search); return query.get('reportId') || query.get('resultId') || ''; }
-  function reportUrl(id, orderId) { return '/api/report/' + encodeURIComponent(id) + (orderId ? '?orderId=' + encodeURIComponent(orderId) : ''); }
+  function reportUrl(id, orderId) {
+    var query=new URLSearchParams();
+    if(orderId) query.set('orderId',orderId);
+    else if(key==='newyear_flow' && new URLSearchParams(location.search).get('preview')==='1' && new URLSearchParams(location.search).get('paid')!=='1') query.set('preview','1');
+    return '/api/report/'+encodeURIComponent(id)+(query.toString()?'?'+query.toString():'');
+  }
   function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || /^\/r\//.test(location.pathname) || Boolean(locationId()); }
   function isDetailPage() { return /(?:05-step|06-step)/.test(location.pathname); }
   function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
@@ -40,6 +45,10 @@
     if(ownerId && key) { try {sessionStorage.setItem('umsh:report-identity:'+ownerId+':'+key,id);} catch(_) {} }
     var url = new URL(location.href);
     url.searchParams.set('reportId', id);
+    if(key==='newyear_flow') {
+      if(payload.previewOnly===true && !url.searchParams.get('orderId') && url.searchParams.get('paid')!=='1') url.searchParams.set('preview','1');
+      else if(payload.report || url.searchParams.get('orderId') || url.searchParams.get('paid')==='1') url.searchParams.delete('preview');
+    }
     if(payload.todayFortune) {
       url.searchParams.delete('start');
       if(/^\/cmdg(?:\/|$)/.test(url.pathname)) {url.searchParams.set('entry','today');url.hash='todayResult';}
@@ -250,7 +259,7 @@
       document.head.appendChild(guard);
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-    document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var orderId=new URLSearchParams(location.search).get('orderId');if(key==='newyear_flow' && orderId)url.searchParams.set('orderId',orderId);link.href=url.pathname+url.search+url.hash;}},true);
+    document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var query=new URLSearchParams(location.search);var orderId=query.get('orderId');if(key==='newyear_flow') {if(orderId) {url.searchParams.set('orderId',orderId);url.searchParams.delete('preview');}else if(query.get('preview')==='1' && query.get('paid')!=='1')url.searchParams.set('preview','1');}link.href=url.pathname+url.search+url.hash;}},true);
     document.addEventListener('click',function(event){var button=event.target.closest && event.target.closest('[data-retry-section]');if(!button || !authorized)return;button.disabled=true;resumeSection(authorized.reportId || rememberedId,button.dataset.retrySection,true).then(function(){return refresh(rememberedId);}).catch(function(){button.disabled=false;});});
   }
 })(typeof window!=='undefined'?window:globalThis);
