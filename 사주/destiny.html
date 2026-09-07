@@ -32,20 +32,12 @@
     <link rel="preload" as="image" href="/assets/chungi-manseryeok-bg.webp" />
     <link rel="preload" as="image" href="/assets/chungi-destiny-card-bg.webp" />
     <link rel="stylesheet" href="/css/destiny.css?v=20260901-destiny-record" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260907-destiny-chrome" />
   </head>
   <body>
     <div class="stage">
-      <main class="phone" aria-label="UMSH 운명록">
-        <header class="destiny-appbar">
-          <a class="app-brand" href="/" aria-label="운명상회 홈">
-            <span>UMSH</span>
-            <b>운명록</b>
-          </a>
-          <div class="app-actions">
-            <a class="mini-action" href="/signup?entry=destiny">편집</a>
-            <button class="mini-action" type="button" data-action="share-record">공유</button>
-          </div>
-        </header>
+      <main class="phone" aria-label="UMSH 운명록" data-umsh-chrome data-service="운명록" data-active="destiny">
+        <header class="appbar topbar"></header>
 
         <div class="destiny-scroll" data-destiny-root>
           <section class="destiny-loading" role="status" aria-live="polite">
@@ -60,18 +52,12 @@
           <a href="/signup?entry=destiny" data-primary-record-cta>로그인하고 사주 등록하기</a>
         </div>
 
-        <footer class="bottom-nav" aria-label="주요 메뉴">
-          <a href="/"><span class="tab-label">홈</span></a>
-          <a class="is-active" href="/destiny" aria-current="page"><span class="tab-label">운명록</span></a>
-          <a href="/search"><span class="tab-label">검색</span></a>
-          <a href="/vault"><span class="tab-label">보관함</span></a>
-          <a href="/my"><span class="tab-label">MY</span></a>
-        </footer>
       </main>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite">운명록을 준비하고 있습니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
     <script src="/js/destiny.js?v=20260901-auth-gated-record"></script>
   </body>
 </html>
