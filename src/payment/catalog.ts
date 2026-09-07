@@ -16,6 +16,7 @@ export type PaymentProductKey =
   | 'job_choice'
   | 'cat_compatibility'
   | 'lucky_color'
+  | 'newyear_flow'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -42,6 +43,14 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     amount: 12900,
     returnPath: '/love/this-year',
     summary: '도화가 들어오는 시기와 놓치기 쉬운 타이밍을 봅니다.',
+  },
+  newyear_flow: {
+    key: 'newyear_flow',
+    title: '내 2027년, 풀릴 각이야?',
+    eyebrow: '2027 · 신년운세',
+    amount: 19900,
+    returnPath: '/flow/newyear',
+    summary: '입춘 전환과 세운, 열두 달 월운으로 2027년 한 해의 결을 봅니다.',
   },
   home_pungsu: {
     key: 'home_pungsu',

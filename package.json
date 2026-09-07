@@ -21,6 +21,7 @@
     "check:jobchoice": "node scripts/check-jobchoice.mjs",
     "check:cat": "node scripts/check-cat.mjs",
     "check:lucky": "node scripts/check-lucky.mjs",
+    "check:newyear": "node scripts/check-newyear.mjs",
     "check:polish": "node scripts/check-flow-polish.mjs",
     "check:prompt-guide": "node scripts/check-prompt-guide.mjs"
   },
