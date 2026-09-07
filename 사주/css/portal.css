@@ -601,7 +601,7 @@ html.splash-disabled .splash-screen,
 .poster.is-place :is(img, video) {
   opacity: 1;
   filter: saturate(1.18) contrast(1.18) brightness(1.1);
-  object-position: center 32%;
+  object-position: center top;
   transform: scale(1.02);
 }
 

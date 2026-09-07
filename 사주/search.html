@@ -150,6 +150,12 @@
         opacity: 0.82;
       }
 
+      /* 집 풍수 아트워크는 인물이 프레임 위쪽(세로 5.5% 지점)에 서 있어, 1:1 center
+         크롭이 y 366 부터 잡으면서 머리가 통째로 잘려 나갔다. 위를 기준으로 잡는다. */
+      .card img[src*="umsh-place-card-bg"] {
+        object-position: center top;
+      }
+
       .card .body {
         display: grid;
         gap: 4px;
