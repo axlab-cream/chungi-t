@@ -370,9 +370,13 @@
   }
 
   async function requestAnalysis(payload) {
+    const session = await getAuthSession();
     const response = await fetch('/api/saju/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
       body: JSON.stringify({
         ...payload.birth,
         birth: payload.birth,
@@ -431,16 +435,39 @@
    * 기기에 캐시가 없으면 "저장된 프로필 없음"으로 떨어져 다시 입력하게 된다. 로그인 상태면
    * 계정 값을 그 캐시에 채워 넣어, 어느 기기에서 열어도 같은 사주로 이어지게 한다.
    */
+  /**
+   * 로그인 세션. /api/saju/analyze 는 회원만 받으므로 분석 요청과 프로필 조회가 같은
+   * 토큰을 쓴다. 한 번 읽어 캐시한다.
+   */
+  let authSessionPromise = null;
+  function getAuthSession() {
+    if (authSessionPromise) return authSessionPromise;
+    authSessionPromise = (async () => {
+      if (!window.supabase || !window.UMSHAuthSession) return null;
+      try {
+        const config = await fetch('/api/auth/config').then((res) => res.json());
+        if (!config || !config.enabled) return null;
+        const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+        const { data } = await client.auth.getSession();
+        return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+      } catch (error) {
+        return null;
+      }
+    })();
+    return authSessionPromise;
+  }
+
+  function loginUrl() {
+    const returnTo = `${location.pathname}${location.search}${location.hash}`;
+    return window.UMSHCommonAuth?.commonLoginUrl('work-move', returnTo)
+      || `/signup?entry=work-move&returnTo=${encodeURIComponent(returnTo)}#login`;
+  }
+
   async function seedProfileFromAccount() {
     if (!storageAvailable('localStorage')) return false;
     if (readSavedProfileState().complete) return false;
-    if (!window.supabase || !window.UMSHAuthSession) return false;
     try {
-      const config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!config || !config.enabled) return false;
-      const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
-      const { data } = await client.auth.getSession();
-      const session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+      const session = await getAuthSession();
       if (!session || !session.access_token) return false;
       const payload = await fetch('/api/user/profile', {
         headers: { Authorization: `Bearer ${session.access_token}` },

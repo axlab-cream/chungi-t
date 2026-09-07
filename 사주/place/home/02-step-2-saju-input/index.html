@@ -1164,15 +1164,38 @@
        * 저장된 사주를 localStorage 캐시에서만 읽던 자리다. 계정에는 사주가 있어도 이 기기에
        * 캐시가 없으면 다시 입력하게 되므로, 로그인 상태면 계정 값을 캐시에 채워 넣는다.
        */
+      /**
+       * 로그인 세션. /api/saju/analyze 는 회원만 받으므로 분석 요청과 프로필 조회가
+       * 같은 토큰을 쓴다. 한 번 읽어 캐시한다.
+       */
+      let authSessionPromise = null;
+      function getAuthSession() {
+        if (authSessionPromise) return authSessionPromise;
+        authSessionPromise = (async () => {
+          if (!window.supabase || !window.UMSHAuthSession) return null;
+          try {
+            const config = await fetch("/api/auth/config").then((res) => res.json());
+            if (!config || !config.enabled) return null;
+            const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+            const { data } = await client.auth.getSession();
+            return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+          } catch (error) {
+            return null;
+          }
+        })();
+        return authSessionPromise;
+      }
+
+      function loginUrl() {
+        const returnTo = `${location.pathname}${location.search}${location.hash}`;
+        return window.UMSHCommonAuth?.commonLoginUrl("home-pungsu", returnTo)
+          || `/signup?entry=home-pungsu&returnTo=${encodeURIComponent(returnTo)}#login`;
+      }
+
       async function seedProfileFromAccount() {
         if (getSavedProfileState().complete) return false;
-        if (!window.supabase || !window.UMSHAuthSession) return false;
         try {
-          const config = await fetch("/api/auth/config").then((res) => res.json());
-          if (!config || !config.enabled) return false;
-          const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
-          const { data } = await client.auth.getSession();
-          const session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+          const session = await getAuthSession();
           if (!session || !session.access_token) return false;
           const payload = await fetch("/api/user/profile", {
             headers: { Authorization: "Bearer " + session.access_token }
@@ -1625,9 +1648,13 @@
       }
 
       async function requestAnalysis(payload) {
+        const session = await getAuthSession();
         const response = await fetch("/api/saju/analyze", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
+          },
           body: JSON.stringify({
             ...payload.birth,
             birth: payload.birth,
@@ -1640,7 +1667,11 @@
           })
         });
         const json = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(json.error || "분석 리포트를 생성하지 못했습니다.");
+        if (!response.ok) {
+          const error = new Error(json.error || "분석 리포트를 생성하지 못했습니다.");
+          error.status = response.status;
+          throw error;
+        }
         return json;
       }
 
@@ -1691,6 +1722,12 @@
           statusEl.textContent = "개인화 풀이를 저장했습니다. 04 무료 방향으로 이동합니다.";
           window.location.href = SERVICE.next_route;
         } catch (error) {
+          // 로그인이 없어서 막힌 경우에는 문장만 띄우지 말고 로그인 화면을 연다.
+          if (error && (error.status === 401 || error.status === 403)) {
+            statusEl.textContent = "로그인 후 이어서 볼 수 있습니다. 로그인 화면으로 이동합니다.";
+            location.assign(loginUrl());
+            return;
+          }
           statusEl.textContent = error instanceof Error ? error.message : "분석 리포트를 생성하지 못했습니다.";
           if (submitButton) submitButton.disabled = false;
         }
