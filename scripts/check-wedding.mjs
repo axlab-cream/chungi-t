@@ -77,6 +77,17 @@ for (const alias of ['input', 'report', 'chat', 'detail']) {
   need(app.includes(`'/day/wedding/${alias}'`), `단축 경로 /${alias} 없음`)
 }
 need(app.includes("wedding_day: 'wedding_day'"), '서비스 키 → 결제 상품 매핑 없음')
+// 결제 전에 계산된 미리보기를 먼저 주고, 저장 결과를 열 때 서비스 키를 대조한다.
+const weddingRoute = app.slice(app.indexOf("app.post('/api/day/wedding/analyze'")).split('app.post(')[1] || ''
+need(weddingRoute.includes('sendSpecializedPreview'), '무료 미리보기 단계 없음')
+need(
+  weddingRoute.indexOf('sendSpecializedPreview') < weddingRoute.indexOf('ensurePaidServiceAccess'),
+  '미리보기가 결제 확인보다 뒤에 있음',
+)
+need(app.includes("'/api/day/wedding/analyze': 'wedding_day'"), '저장 결과 서비스 키 대조 없음')
+// 같은 생년월일이라도 계정이 다르면 다른 결과여야 한다.
+need(service.includes('ownerId'), '리포트 ID 지문에 소유자가 없음')
+need(service.includes('birthTimeKnown'), '리포트 ID 지문에 출생시간 확실성이 없음')
 
 // 4) 카탈로그와 검색 디렉토리
 const catalog = read('src/payment/catalog.ts')

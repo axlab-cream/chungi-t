@@ -1773,6 +1773,7 @@ const ANALYZE_SERVICES: Record<string, string> = {
   '/api/love/this-year/analyze': 'love_this_year', '/api/love/again/analyze': 'love_again',
   '/api/love/spouse/analyze': 'love_spouse',
   '/api/flow/newyear/analyze': 'newyear_flow',
+  '/api/day/wedding/analyze': 'wedding_day',
 }
 
 app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
@@ -2009,11 +2010,12 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
       res.status(400).json({ error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
       return
     }
-    const context = buildWeddingContext(profile.name, input)
+    const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = createWeddingReportId(analysis, profile.birth, input)
-    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
+    const reportId = createWeddingReportId(analysis, profile.birth, input, owner.id, context)
     const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       birth: profile.birth,

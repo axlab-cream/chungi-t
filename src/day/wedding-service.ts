@@ -9,6 +9,7 @@
  * 일지와 맺는 충·합·파·해는 명식이 이미 쓰는 짝 표, 일간의 십신은 `getTenGod`, 그 날이
  * 어느 절기 달에 드는지는 절기표에서 읽는다. 표에 없는 규칙은 만들지 않는다.
  */
+import { createHash } from 'node:crypto'
 import type {
   BirthInput,
   EarthlyBranch,
@@ -509,11 +510,29 @@ function sectionHook(groupId: string, frame: WeddingFrame): string {
   return hooks[groupId] ?? '후보일을 한 칸씩 봅니다'
 }
 
-export function createWeddingReportId(analysis: SajuAnalysis, birth: BirthInput, input: WeddingRequest): string {
-  const p = analysis.fourPillars
-  const stamp = `${birth.year}${String(birth.month).padStart(2, '0')}${String(birth.day).padStart(2, '0')}`
-  const dates = input.candidateDates.map((d) => d.replace(/-/g, '')).join('-') || 'nodate'
-  return `wedding-${stamp}-${p.day.stem}${p.day.branch}-${dates}`
+export function createWeddingReportId(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  input: WeddingRequest,
+  ownerId = '',
+  context: SajuReportContext = {},
+): string {
+  // The internal dedup ID is not the public UUID. Include ownership and every
+  // calculation input so another user or changed profile cannot reuse this record.
+  const fingerprint = {
+    version: 'wedding-day-reading-v1', ownerId,
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour,
+      minute: birth.minute ?? 0, gender: birth.gender, calendar: birth.calendar,
+      isLeapMonth: birth.isLeapMonth ?? false, dayBoundaryRule: birth.dayBoundaryRule },
+    name: context.name ?? '', birthTimeKnown: context.birthTimeKnown !== false,
+    pillars: analysis.fourPillars,
+    // 후보일과 상대 사주, 예식 조건이 바뀌면 다른 판정이므로 다른 결과다.
+    candidateDates: input.candidateDates,
+    partner: input.partnerBirth ?? null,
+    format: input.format ?? '',
+    familyLimit: input.familyLimit ?? '',
+  }
+  return createHash('sha256').update(JSON.stringify(fingerprint)).digest('hex').slice(0, 28)
 }
 
 /** 라우트가 쓰는 리포트 문맥. 서비스 키가 프롬프트 팩과 코퍼스 선택을 가른다. */
