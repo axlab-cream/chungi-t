@@ -38,12 +38,14 @@ for (const page of PAGES) {
   if (/http-equiv="refresh"/i.test(html)) {
     need(html.includes('우리 결혼, 이날 해도 될까?'), `${page} 서비스 이름 없음`)
     need(html.includes('chat.html'), `${page} 리다이렉트 목적지 없음`)
+    need(html.includes('/js/umsh-report-access.js'), `${page} 공용 리포트 접근 모듈 없음`)
     continue
   }
   need(html.includes('umsh-chrome.css'), `${page} 공용 크롬 CSS 없음`)
   need(html.includes('/js/umsh-chrome.js'), `${page} 공용 크롬 JS 없음`)
   need(html.includes('data-umsh-chrome'), `${page} 크롬 호스트 표시 없음`)
   need(html.includes('/js/wedding-service.js'), `${page} 브리지 JS 없음`)
+  need(html.includes('/js/umsh-report-access.js'), `${page} 공용 리포트 접근 모듈 없음`)
   need(html.includes('우리 결혼, 이날 해도 될까?'), `${page} 서비스 이름 없음`)
   need(html.includes('body.umsh-has-chrome .phone{overflow:clip}'), `${page} .phone overflow 완화 없음`)
   need(html.includes('body.umsh-has-chrome header.top{display:none}'), `${page} 중복 브랜드바 숨김 없음`)
@@ -108,14 +110,21 @@ const bridge = read('사주/js/wedding-service.js')
 need(bridge.includes('/api/day/wedding/analyze'), '브리지가 분석 API 를 부르지 않음')
 need(bridge.includes('Authorization'), '브리지가 로그인 토큰을 붙이지 않음')
 need(bridge.includes('#step-2-saju-input'), '브리지가 02 입력을 잡지 않음')
-need(bridge.includes('#step-4-report'), '브리지가 04 티저를 잡지 않음')
-need(bridge.includes('#step-5-chat'), '브리지가 05 목차를 잡지 않음')
-need(bridge.includes('#step-6_1-report'), '브리지가 06 상세를 잡지 않음')
+need(bridge.includes('UMSHReportAccess'), '브리지가 공용 리포트 접근 모듈을 쓰지 않음')
+// 04/05/06 은 공용 리더가 권한을 확인하고 직접 그린다. 브리지가 브라우저에 해석
+// 사본을 남기면 그 구조를 우회하게 되므로, 리포트 캐시를 두지 않았는지 확인한다.
+need(!/sessionStorage\.setItem\([^)]*report/i.test(bridge), '브리지가 해석 사본을 sessionStorage 에 남김')
+need(!bridge.includes('umsh_wedding_report_v1'), '브리지에 레거시 리포트 캐시 키가 남아 있음')
 
-// 7) 포탈
+// 공용 리더가 이 라우트를 알아야 04/05/06 이 권한 확인 없이 열리지 않는다.
+const access = read('사주/js/umsh-report-access.js')
+need(access.includes("['/day/wedding', 'wedding_day']"), '공용 리더 ROUTES 에 /day/wedding 이 없음')
+
+// 7) 포탈 — 공개 시점은 운영에서 정한다. 카드가 있는지만 확인하고
+//    라이브/SOON 여부는 강제하지 않는다.
 const portal = read('사주/portal.html')
-need(portal.includes('href="/day/wedding"'), '포탈 카드가 링크되지 않음')
-need(!/is-soon[\s\S]{0,320}우리 결혼, 이날 해도 될까\?/.test(portal), '포탈 카드가 아직 SOON 상태')
+need(portal.includes('우리 결혼, 이날 해도 될까?'), '포탈에 서비스 카드가 없음')
+need(portal.includes('umsh-wedding-card-bg.webp'), '포탈 카드 이미지가 없음')
 
 if (failures.length > 0) {
   console.error('wedding_day 연동 점검 실패')
