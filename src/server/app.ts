@@ -1,3 +1,4 @@
+import { respondRequestFailure } from './input-error.js'
 import '../env/load.js'
 import express from 'express'
 import cors from 'cors'
@@ -1464,7 +1465,7 @@ app.post('/api/payment/orders', async (req, res) => {
       fields,
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 생성 실패' })
+    respondRequestFailure(res, err, '결제 주문 생성 실패')
   }
 })
 
@@ -1503,7 +1504,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
     }
     res.json({ order: clientPaymentOrder(paid), testMode: true })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '테스트 결제 승인 실패' })
+    respondRequestFailure(res, err, '테스트 결제 승인 실패')
   }
 })
 
@@ -1572,7 +1573,7 @@ app.get('/api/payment/orders/:orderId', async (req, res) => {
     }
     res.json({ order: clientPaymentOrder(order) })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 조회 실패' })
+    respondRequestFailure(res, err, '결제 주문 조회 실패')
   }
 })
 
@@ -1592,7 +1593,7 @@ app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
     const updated = await updatePaymentOrder(order.orderId, { status: 'viewed' })
     res.json({ order: updated ? clientPaymentOrder(updated) : null })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '열람 상태 저장 실패' })
+    respondRequestFailure(res, err, '열람 상태 저장 실패')
   }
 })
 
@@ -1603,7 +1604,7 @@ app.get('/api/user/orders', async (req, res) => {
     const orders = await listPaymentOrders(owner.id, parseListLimit(req.query.limit))
     res.json({ orders: orders.map(clientPaymentOrder), storage: getPaymentStorageMode() })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결제 내역 조회 실패' })
+    respondRequestFailure(res, err, '결제 내역 조회 실패')
   }
 })
 
@@ -1615,7 +1616,7 @@ app.get('/api/user/profile', async (req, res) => {
     const profile = await getUserBirthProfile(owner)
     res.json(userProfilePayload(profile, owner))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '사주 프로필 조회 실패' })
+    respondRequestFailure(res, err, '사주 프로필 조회 실패')
   }
 })
 
@@ -1650,7 +1651,7 @@ app.get('/api/user/reports', async (req, res) => {
       reports: records.map(historyEntryFromRecord),
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '풀이 보관함 조회 실패' })
+    respondRequestFailure(res, err, '풀이 보관함 조회 실패')
   }
 })
 
@@ -1682,7 +1683,7 @@ app.get('/api/user/destiny', async (req, res) => {
       storage: getReportStorageMode(),
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '운명록 조회 실패' })
+    respondRequestFailure(res, err, '운명록 조회 실패')
   }
 })
 
@@ -1698,7 +1699,7 @@ app.delete('/api/user/reports/:reportId', async (req, res) => {
     const deleted = await deleteReportRecord(reportId, owner)
     res.json({ ok: true, reportId, deleted })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '풀이 삭제 실패' })
+    respondRequestFailure(res, err, '풀이 삭제 실패')
   }
 })
 
@@ -1726,7 +1727,7 @@ app.post('/api/today/fortune', async (req, res) => {
     })
   } catch (err) {
     if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 볼 수 없습니다.' }); return }
-    res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
+    respondRequestFailure(res, err, '오늘의 운세 생성 실패')
   }
 })
 
@@ -1837,7 +1838,7 @@ app.post('/api/money/save/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '소비성향 생성 실패' })
+    respondRequestFailure(res, err, '소비성향 생성 실패')
   }
 })
 
@@ -1870,7 +1871,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '커플궁합 생성 실패' })
+    respondRequestFailure(res, err, '커플궁합 생성 실패')
   }
 })
 
@@ -1902,7 +1903,7 @@ app.post('/api/work/job/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '직업운 생성 실패' })
+    respondRequestFailure(res, err, '직업운 생성 실패')
   }
 })
 
@@ -1934,7 +1935,7 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '퇴사운 생성 실패' })
+    respondRequestFailure(res, err, '퇴사운 생성 실패')
   }
 })
 
@@ -1966,7 +1967,7 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '직장 선택 풀이 생성 실패' })
+    respondRequestFailure(res, err, '직장 선택 풀이 생성 실패')
   }
 })
 
@@ -1998,7 +1999,7 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '고양이 궁합 생성 실패' })
+    respondRequestFailure(res, err, '고양이 궁합 생성 실패')
   }
 })
 
@@ -2014,7 +2015,7 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
 
     const input = parseWeddingRequest(req.body)
     if (input.candidateDates.length === 0) {
-      res.status(400).json({ error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
       return
     }
     const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
@@ -2034,7 +2035,7 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결혼 택일 풀이 생성 실패' })
+    respondRequestFailure(res, err, '결혼 택일 풀이 생성 실패')
   }
 })
 
@@ -2066,7 +2067,7 @@ app.post('/api/flow/newyear/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '2027년 흐름 풀이 생성 실패' })
+    respondRequestFailure(res, err, '2027년 흐름 풀이 생성 실패')
   }
 })
 
@@ -2098,7 +2099,7 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '색과 물건 풀이 생성 실패' })
+    respondRequestFailure(res, err, '색과 물건 풀이 생성 실패')
   }
 })
 
@@ -2131,7 +2132,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결혼궁합 생성 실패' })
+    respondRequestFailure(res, err, '결혼궁합 생성 실패')
   }
 })
 
@@ -2164,7 +2165,7 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '상대방 마음 생성 실패' })
+    respondRequestFailure(res, err, '상대방 마음 생성 실패')
   }
 })
 
@@ -2197,7 +2198,7 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '관계 신호 생성 실패' })
+    respondRequestFailure(res, err, '관계 신호 생성 실패')
   }
 })
 
@@ -2233,7 +2234,7 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '올해 연애운 생성 실패' })
+    respondRequestFailure(res, err, '올해 연애운 생성 실패')
   }
 })
 
@@ -2266,7 +2267,7 @@ app.post('/api/love/again/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '재회운 생성 실패' })
+    respondRequestFailure(res, err, '재회운 생성 실패')
   }
 })
 
@@ -2298,7 +2299,7 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '배우자운 생성 실패' })
+    respondRequestFailure(res, err, '배우자운 생성 실패')
   }
 })
 
@@ -2309,11 +2310,11 @@ app.post('/api/saju/analyze', async (req, res) => {
     const context = parseReportContext(req.body)
     const suppliedKey = trimmedString(req.body?.context?.serviceKey || req.body?.context?.service_key || req.body?.serviceKey || req.body?.service_key)
     if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
-      res.status(400).json({ error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
       return
     }
     if (!birth.year || !birth.month || !birth.day) {
-      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '생년월일을 입력해 주세요.' })
       return
     }
     const owner = await verifySupabaseUser(req)
@@ -2356,7 +2357,7 @@ app.post('/api/saju/analyze', async (req, res) => {
     )
     res.json(await toUiAnalysis(birth, context, owner, access))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
+    respondRequestFailure(res, err, '분석 실패')
   }
 })
 
@@ -2437,7 +2438,7 @@ app.post('/api/report/chat-history', async (req, res) => {
     })
   } catch (err) {
     if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 수정할 수 없습니다.' }); return }
-    res.status(500).json({ error: err instanceof Error ? err.message : '상담 저장 실패' })
+    respondRequestFailure(res, err, '상담 저장 실패')
   }
 })
 

@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type {
   BirthInput,
@@ -278,12 +279,12 @@ export function parseCatCompatRequest(body: Record<string, unknown>): CatCompatR
   const focusRaw = trimmed(body.focusArea ?? body.focus_area, 30)
   const eventRaw = trimmed(body.upcomingEvent ?? body.upcoming_event, 30) || 'none'
 
-  if (!catName) throw new Error('고양이 이름 또는 애칭을 입력해 주세요.')
-  if (!HOUSEHOLD_LABEL[householdRaw]) throw new Error('1묘·다묘·입양 예정 중에서 가정 형태를 골라 주세요.')
-  if (!TOUCH_LABEL[touchRaw]) throw new Error('손길에 대한 반응을 골라 주세요.')
-  if (!PLAY_LABEL[playRaw]) throw new Error('놀이 에너지를 골라 주세요.')
-  if (!FOCUS_LABEL[focusRaw]) throw new Error('가장 먼저 보고 싶은 영역을 골라 주세요.')
-  if (!EVENT_LABEL[eventRaw]) throw new Error('예정된 일정을 골라 주세요.')
+  if (!catName) throw new InputError('고양이 이름 또는 애칭을 입력해 주세요.')
+  if (!HOUSEHOLD_LABEL[householdRaw]) throw new InputError('1묘·다묘·입양 예정 중에서 가정 형태를 골라 주세요.')
+  if (!TOUCH_LABEL[touchRaw]) throw new InputError('손길에 대한 반응을 골라 주세요.')
+  if (!PLAY_LABEL[playRaw]) throw new InputError('놀이 에너지를 골라 주세요.')
+  if (!FOCUS_LABEL[focusRaw]) throw new InputError('가장 먼저 보고 싶은 영역을 골라 주세요.')
+  if (!EVENT_LABEL[eventRaw]) throw new InputError('예정된 일정을 골라 주세요.')
 
   return {
     catName,

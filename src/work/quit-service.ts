@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
@@ -119,8 +120,8 @@ export function parseWorkQuitRequest(body: Record<string, unknown>): WorkQuitReq
   const nextPlan = trimmed(body.nextPlan, 60)
   const concern = trimmed(body.concern, 160)
 
-  if (!reason) throw new Error('퇴사를 고민하게 된 이유를 선택해 주세요.')
-  if (reason.length < 2) throw new Error('퇴사 고민 이유를 2자 이상으로 입력해 주세요.')
+  if (!reason) throw new InputError('퇴사를 고민하게 된 이유를 선택해 주세요.')
+  if (reason.length < 2) throw new InputError('퇴사 고민 이유를 2자 이상으로 입력해 주세요.')
   return { reason, tenure, candidateDate, nextPlan, concern }
 }
 

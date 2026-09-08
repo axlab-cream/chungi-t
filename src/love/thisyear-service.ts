@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
 import type {
@@ -172,18 +173,18 @@ function trimmed(value: unknown, limit: number): string {
 
 export function parseLoveThisYearRequest(body: Record<string, unknown>): LoveThisYearRequest {
   const statusRaw = trimmed(body.relationshipStatus ?? body.relationship_status, 20)
-  if (!statusRaw) throw new Error('현재 관계 상태를 선택해 주세요.')
+  if (!statusRaw) throw new InputError('현재 관계 상태를 선택해 주세요.')
   const relationshipStatus = RELATIONSHIP_LABEL[statusRaw] ?? statusRaw
 
   const basisRaw = trimmed(body.partnerStarBasis ?? body.partner_star_basis, 20)
-  if (!basisRaw) throw new Error('애인성 기준을 선택해 주세요.')
+  if (!basisRaw) throw new InputError('애인성 기준을 선택해 주세요.')
   if (basisRaw !== 'gender_auto' && basisRaw !== 'official_star' && basisRaw !== 'wealth_star') {
-    throw new Error('애인성 기준은 성별 자동, 관성, 재성 중에서 골라 주세요.')
+    throw new InputError('애인성 기준은 성별 자동, 관성, 재성 중에서 골라 주세요.')
   }
 
   const genderRaw = trimmed(body.genderBasis ?? body.gender, 10)
   if (basisRaw === 'gender_auto' && genderRaw !== 'female' && genderRaw !== 'male') {
-    throw new Error('성별 기준으로 자동 판단하려면 성별을 선택해 주세요.')
+    throw new InputError('성별 기준으로 자동 판단하려면 성별을 선택해 주세요.')
   }
 
   return {

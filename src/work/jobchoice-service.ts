@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type {
   BirthInput,
@@ -239,11 +240,11 @@ export function parseJobChoiceRequest(body: Record<string, unknown>): JobChoiceR
   const salaryRaw = trimmed(body.salaryFeeling ?? body.salary_feeling, 20)
   const concernPoint = trimmed(body.concernPoint ?? body.concern_point, 200) || '별도 우려 미입력'
 
-  if (!companyName) throw new Error('판단할 회사 또는 오퍼명을 입력해 주세요.')
-  if (!roleName) throw new Error('맡게 될 직무를 입력해 주세요.')
-  if (!WORK_MODE_LABEL[workModeRaw]) throw new Error('근무 형태를 선택해 주세요.')
-  if (!commute) throw new Error('출퇴근 또는 근무지 조건을 입력해 주세요.')
-  if (!SALARY_LABEL[salaryRaw]) throw new Error('연봉·조건 체감을 선택해 주세요.')
+  if (!companyName) throw new InputError('판단할 회사 또는 오퍼명을 입력해 주세요.')
+  if (!roleName) throw new InputError('맡게 될 직무를 입력해 주세요.')
+  if (!WORK_MODE_LABEL[workModeRaw]) throw new InputError('근무 형태를 선택해 주세요.')
+  if (!commute) throw new InputError('출퇴근 또는 근무지 조건을 입력해 주세요.')
+  if (!SALARY_LABEL[salaryRaw]) throw new InputError('연봉·조건 체감을 선택해 주세요.')
 
   return {
     companyName,

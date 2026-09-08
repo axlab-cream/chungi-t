@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
 import type {
@@ -224,8 +225,8 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
 export function parseLoveSignalRequest(body: Record<string, unknown>): LoveSignalRequest {
   const relationshipStage = trimmed(body.relationshipStage, 50)
   const signalFocus = trimmed(body.signalFocus, 50)
-  if (!relationshipStage) throw new Error('현재 관계를 선택해 주세요.')
-  if (!signalFocus) throw new Error('가장 신경 쓰이는 신호를 선택해 주세요.')
+  if (!relationshipStage) throw new InputError('현재 관계를 선택해 주세요.')
+  if (!signalFocus) throw new InputError('가장 신경 쓰이는 신호를 선택해 주세요.')
 
   return {
     relationshipStage,

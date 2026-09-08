@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
 import type {
@@ -88,9 +89,9 @@ export function parseLoveSpouseRequest(body: Record<string, unknown>): LoveSpous
   const relationshipStatus = trimmed(body.relationshipStatus, 60)
   const marriagePriority = trimmed(body.marriagePriority, 80)
   const meetingRoute = trimmed(body.meetingRoute, 80)
-  if (!relationshipStatus) throw new Error('현재 관계 상태를 선택해 주세요.')
-  if (!marriagePriority) throw new Error('결혼에서 중요한 기준을 선택해 주세요.')
-  if (!meetingRoute) throw new Error('인연을 만나는 경로를 선택해 주세요.')
+  if (!relationshipStatus) throw new InputError('현재 관계 상태를 선택해 주세요.')
+  if (!marriagePriority) throw new InputError('결혼에서 중요한 기준을 선택해 주세요.')
+  if (!meetingRoute) throw new InputError('인연을 만나는 경로를 선택해 주세요.')
   return {
     relationshipStatus,
     marriagePriority,

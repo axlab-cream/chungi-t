@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
@@ -86,8 +87,8 @@ export function parseWorkJobRequest(body: Record<string, unknown>): WorkJobReque
   const wantedDirection = trimmed(body.wantedDirection, 80)
   const concern = trimmed(body.concern, 160)
 
-  if (!currentJob) throw new Error('현재 하는 일이나 직무를 입력해 주세요.')
-  if (currentJob.length < 2) throw new Error('현재 하는 일을 2자 이상으로 입력해 주세요.')
+  if (!currentJob) throw new InputError('현재 하는 일이나 직무를 입력해 주세요.')
+  if (currentJob.length < 2) throw new InputError('현재 하는 일을 2자 이상으로 입력해 주세요.')
   return { currentJob, workStyle, mainStress, wantedDirection, concern }
 }
 

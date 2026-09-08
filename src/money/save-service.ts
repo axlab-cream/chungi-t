@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
@@ -145,8 +146,8 @@ export function parseMoneySaveRequest(body: Record<string, unknown>): MoneySaveR
   const savingGoal = trimmed(body.savingGoal, 80)
   const concern = trimmed(body.concern, 160)
 
-  if (!moneyHabit) throw new Error('요즘 돈 쓰는 습관을 입력해 주세요.')
-  if (moneyHabit.length < 2) throw new Error('돈 쓰는 습관을 2자 이상으로 입력해 주세요.')
+  if (!moneyHabit) throw new InputError('요즘 돈 쓰는 습관을 입력해 주세요.')
+  if (moneyHabit.length < 2) throw new InputError('돈 쓰는 습관을 2자 이상으로 입력해 주세요.')
   return { moneyHabit, incomePattern, leakPoint, relationSpending, savingGoal, concern }
 }
 
