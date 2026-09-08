@@ -58,6 +58,42 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     assert.equal(reviewInterpretation('변수를 크게 만들지 않는 사람이 이기는 시험이네.', { serviceKey: 'pass_angle' }).passed, false)
     assert.ok(reviewInterpretation('내일의 승부는 규칙을 지키는 장면에서 갈리네.', { serviceKey: 'pass_angle' }).issues.some((item) => item.includes('승패')))
   })
+  it('blocks the certainty words the guide forbids outright', () => {
+    for (const line of ['이 흐름이면 무조건 정리됩니다.', '올해 안에 100% 결정이 납니다.', '지금 나가면 망한다.', '이대로면 이혼한다.', '그 달에 사고가 난다.']) {
+      const review = reviewInterpretation(line, { serviceKey: 'work_quit' })
+      assert.ok(
+        review.issues.some(issue => issue.includes('확정 예언')),
+        `${line} — 확정 예언으로 걸리지 않았습니다`,
+      )
+    }
+    // 조건과 가능성으로 쓴 문장은 통과해야 한다.
+    const safe = reviewInterpretation('조건이 그대로면 정리가 늦어질 수 있습니다.', { serviceKey: 'work_quit' })
+    assert.equal(safe.issues.some(issue => issue.includes('확정 예언')), false)
+  })
+
+  it('catches the same long sentence written twice, not just duplicate paragraphs', () => {
+    // 문단 중복 검사만으로는 문단 안에서 반복된 문장을 놓친다. 가이드는 45자 기준이다.
+    const sentence = '일이 커질 때 사람과 도구를 먼저 늘리는 습관이 있으면 수입이 들어오기 전에 나갈 돈부터 늘어날 수 있습니다.'
+    assert.ok(sentence.replace(/\s+/g, '').length >= 45)
+    const repeated = reviewInterpretation(`${sentence} 먼저 확인할 것을 정리합니다.
+
+${sentence}`, { serviceKey: 'money_save' })
+    assert.ok(repeated.issues.some(issue => issue.includes('같은 문장을 두 번')), '문장 반복이 걸리지 않았습니다')
+    const once = reviewInterpretation(`${sentence} 먼저 확인할 것을 정리합니다.`, { serviceKey: 'money_save' })
+    assert.equal(once.issues.some(issue => issue.includes('같은 문장을 두 번')), false)
+  })
+
+  it('does not let a missing birth time become a 시주 conclusion', () => {
+    const asserted = reviewInterpretation('시주(時柱)가 강해서 밤 시간대의 결정이 유리합니다.', { serviceKey: 'saju_master', birthTimeKnown: false })
+    assert.ok(asserted.issues.some(issue => issue.includes('시주를 근거로 단정')), '시주 단정이 걸리지 않았습니다')
+    // 시간을 모른다고 밝히는 문장은 정상이다.
+    const disclosed = reviewInterpretation('출생 시각이 없어 시주까지는 좁히기 어렵습니다. 대신 확인할 조건은 분명합니다.', { serviceKey: 'saju_master', birthTimeKnown: false })
+    assert.equal(disclosed.issues.some(issue => issue.includes('시주를 근거로 단정')), false)
+    // 시간을 받은 경우에는 같은 문장이 문제가 아니다.
+    const known = reviewInterpretation('시주(時柱)가 강해서 밤 시간대의 결정이 유리합니다.', { serviceKey: 'saju_master', birthTimeKnown: true })
+    assert.equal(known.issues.some(issue => issue.includes('시주를 근거로 단정')), false)
+  })
+
   it('saves a daily result with IDs and recalls the old day rather than replacing it', async () => {
     const owner = { id: 'daily-snapshot-owner' }
     const profile: UserBirthProfile = { userId: owner.id, name: '합성 점검', birth, birthTimeKnown: true, context: {}, createdAt: '', updatedAt: '' }

@@ -13,6 +13,22 @@ export function reviewInterpretation(text: string, context: SajuReportContext, s
   if (/바람기 레이더|반드시 (?:합격|이별|결혼)|외도를 (?:합니다|할|확인)/.test(text)) issues.push('확인되지 않은 사건을 단정하거나 외도 탐지처럼 표현하지 마세요.')
   if (/(?:이기는|합격하는) (?:사람|시험)|승부는[^.\n]{0,130}갈리/.test(text)) issues.push('행동이나 운이 승패를 결정한다고 단정하지 말고 실력 재현에 도움이 될 수 있는 조건으로 설명하세요.')
   if (new Set(paragraphs).size < paragraphs.length) issues.push('같은 문단이 중복되었습니다.')
+  // 가이드가 확정 예언으로 금지한 표현. '반드시 합격' 류는 위에서 이미 걸리므로 남은 것만 본다.
+  if (/무조건|100\s*%|망한다|이혼한다|사고가 난다|파산한다/.test(text)) issues.push('확정 예언 표현을 조건과 가능성의 말로 바꾸세요.')
+  // 같은 문장을 두 번 말하면 분량이 아니라 반복이다. 문단 중복만 보면 놓친다.
+  const said = new Set<string>()
+  for (const sentence of text.match(/[^.!?。]+(?:[.!?。]+|$)/g) ?? []) {
+    const key = sentence.replace(/^\[[^\]]+\]\s*/, '').replace(/\s+/g, '')
+    if (key.length < 45) continue
+    if (said.has(key)) { issues.push('같은 문장을 두 번 쓰지 말고 항목마다 다른 답을 쓰세요.'); break }
+    said.add(key)
+  }
+  // 출생 시각을 받지 못했으면 시주에서 나온 결론을 확정으로 말할 수 없다. 시간을 모른다고
+  // 밝히는 문장은 정상이므로, 시주를 근거로 단정하는 형태만 본다.
+  if (context.birthTimeKnown === false
+      && /시주\((?:時柱)?[^)]*\)?[는이가]\s*[^.\n]{0,40}(?:이므로|이니|여서|라서|해서|아서|어서|입니다|합니다|유리|불리)|시주를? 기준으로|태어난 시간이 [^.\n]{0,20}(?:이므로|이니)/.test(text)) {
+    issues.push('출생 시각을 받지 못했으므로 시주를 근거로 단정하지 말고 확인이 필요하다고 밝히세요.')
+  }
   const prior = new Set(siblings.flatMap((item) => item.interpretation.split(/\n\s*\n/)).map((part) => part.replace(/^\[[^\]]+\]\s*/, '').trim()).filter((part) => part.length > 100))
   if (paragraphs.filter((part) => prior.has(part.replace(/^\[[^\]]+\]\s*/, '').trim())).length >= 2) issues.push('다른 항목의 문단을 반복하지 말고 현재 질문에 고유한 답을 쓰세요.')
   const input = JSON.stringify(context)
