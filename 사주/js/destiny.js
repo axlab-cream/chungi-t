@@ -481,7 +481,7 @@
         <div class="story-grid insight-stories">
           <article class="story-card is-image">
             <img src="/assets/chungi-destiny-card-bg.webp" alt="" />
-            <span>UMSH INTERPRETATION</span>
+            <span>INTERPRETATION</span>
             <strong>${escapeHtml(analysis.dayMasterAdvice || analysis.preview?.personality || '나를 움직이는 기준')}</strong>
             <p>${escapeHtml(analysis.preview?.elementBalance || analysis.summary || '내 명식의 중심 기운과 부족한 자리를 확인합니다.')}</p>
           </article>
@@ -733,7 +733,7 @@
       return;
     }
     const shareData = {
-      title: `UMSH 운명록 · ${currentRecordName}`,
+      title: `운명상회 운명록 · ${currentRecordName}`,
       text: `${currentRecordName}님의 운명록을 확인해보세요.`,
       url: location.href,
     };
