@@ -30,9 +30,10 @@ const CONTRACTS = [
   ['src/report/report-generator.ts', 'PASS_ANGLE_BLUEPRINTS', '섹션 블루프린트'],
   ['src/report/report-generator.ts', 'function buildPassAngleInterpretation', '해석 생성기'],
   ['src/report/report-generator.ts', 'if (isPassAngleContext(context)) return PASS_ANGLE_BLUEPRINTS', '블루프린트 디스패치'],
-  ['src/report/report-generator.ts', 'return buildPassAngleInterpretation(', '해석 디스패치'],
+  ['src/report/report-generator.ts', 'buildPassAngleInterpretation(sectionId', '해석 디스패치'],
+  ['src/report/report-generator.ts', 'isPassAngleContext(context)', '서비스 문맥 분기'],
   ['사주/js/pass-angle-service.js', "serviceKey: SERVICE.service_key", '프론트 리포트 호출'],
-  ['사주/portal.html', '기대해! 신규 운명', '포털 신규 섹션'],
+  ['사주/portal.html', '지금 열린 운명', '포털 신규 섹션'],
 ]
 
 const PAGES = [
