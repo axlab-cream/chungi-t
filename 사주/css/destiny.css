@@ -193,6 +193,15 @@ input:focus-visible {
   letter-spacing: 0.12em;
 }
 
+/* 로딩 박스는 브랜드를 먼저 보여주는 자리라 글자 대신 로고를 놓는다. .destiny-loading
+   이 grid 라서 기본값(stretch)으로는 로고가 늘어난다. 가운데로 붙여 원래 비율을 지킨다. */
+.destiny-loading-logo {
+  width: 132px;
+  height: 50px;
+  justify-self: center;
+  object-fit: contain;
+}
+
 .destiny-loading strong {
   margin-top: 8px;
   font-family: var(--font-display);
