@@ -27,25 +27,49 @@ a { color: inherit; text-decoration: none; }
 .chip { border: 1px solid rgba(216,81,47,.32); border-radius: 999px; padding: 7px 10px; background: #fff8ef; color: var(--seal-dark); font-size: 12px; font-weight: 950; white-space: nowrap; }
 .visual { position: relative; display: block; overflow: visible; background: var(--paper); border-bottom: 0; z-index: 1; }
 .section + .visual, .visual + .visual { margin-top: -34px; }
-.visual + .section { margin-top: -58px; padding-top: 78px; }
+/* 사진과 다음 섹션 사이에는 이미 카피가 종이 바닥으로 들어와 있다. 겹쳐 놓으면
+   다음 섹션의 페이드가 앞 섹션 카피를 덮어 지운다. */
+.visual + .section { margin-top: 0; }
 .visual:has(+ .visual) { z-index: 2; }
-.visual img { display: block; width: 100%; height: auto; object-fit: contain; object-position: center center; }
-.visual::before { content: ""; position: absolute; inset: 0 0 -64px; z-index: 1; pointer-events: none; background: linear-gradient(180deg, var(--paper), rgba(246,240,232,.72), rgba(246,240,232,0)) top / 100% 110px no-repeat, linear-gradient(180deg, rgba(246,240,232,0), rgba(246,240,232,.78), var(--paper)) bottom / 100% 100px no-repeat; }
-.visual:has(+ .visual)::before { background: linear-gradient(180deg, var(--paper), rgba(246,240,232,.72), rgba(246,240,232,0)) top / 100% 110px no-repeat, linear-gradient(180deg, rgba(246,240,232,0), rgba(246,240,232,.64) 42%, rgba(246,240,232,.28) 68%, rgba(246,240,232,0)) bottom / 100% 124px no-repeat; }
-.visual + .visual::before { background: linear-gradient(180deg, var(--paper) 0%, rgba(246,240,232,.72) 12%, rgba(246,240,232,.24) 34%, rgba(246,240,232,0) 62%), linear-gradient(180deg, rgba(246,240,232,0) 82%, rgba(246,240,232,.72) 95%, var(--paper) 100%); }
-.visual::after { content: ""; position: absolute; inset: auto 0 0; z-index: 1; height: 44%; pointer-events: none; background: linear-gradient(180deg, rgba(70,43,31,0) 0%, rgba(70,43,31,.04) 24%, rgba(70,43,31,.16) 72%, rgba(70,43,31,.28) 100%); }
-.visual:has(+ .visual)::after { background: linear-gradient(180deg, rgba(70,43,31,0) 0%, rgba(70,43,31,.06) 20%, rgba(70,43,31,.22) 62%, rgba(70,43,31,.32) 82%, rgba(70,43,31,.12) 94%, rgba(70,43,31,0) 100%); }
+/* 원본은 941x1672 세로 사진이다. 그대로 깔면 한 컷이 화면의 82%를 먹고, 열두 컷인
+   01/06 페이지는 13화면을 넘겼다. 종류별로 프레임을 정해 잘라 넣는다. 다만 1:1.78을
+   1:1 이나 16:10 으로 자르면 원본의 56%, 35%만 남으므로 컷마다 세로 기준점을 따로
+   준다. 값은 컷별 행 디테일 분포에서 구한 피사체 중심을 잘린 창 가운데에 두는 위치다. */
+/* 마스크로 사진의 위아래 끝만 종이 바닥에 녹인다. 이미지 박스 기준이라 프레임
+   높이가 달라져도 같은 비율로 걸리고, 피사체가 있는 가운데는 건드리지 않는다. */
+.visual img { display: block; width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center 38%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 88%, transparent 100%); }
+.visual.bridge img { aspect-ratio: 16 / 10; }
+/* 히어로는 정사각(375px)이면 첫 화면에서 본문 마지막 줄이 하단 고정 CTA 밑으로
+   들어간다. 10:9(337px)로 낮춰 눈머리부터 본문까지 한 화면에 다 들어오게 한다. */
+.visual.tall img { aspect-ratio: 10 / 9; }
+.visual img[src*="scene-01"] { object-position: center 11%; }
+.visual img[src*="scene-02"] { object-position: center 56%; }
+.visual img[src*="scene-03"] { object-position: center 41%; }
+.visual img[src*="scene-04"] { object-position: center 33%; }
+.visual img[src*="scene-05"] { object-position: center 25%; }
+.visual img[src*="scene-06"] { object-position: center 38%; }
+.visual.bridge img[src*="bridge-01"] { object-position: center 7%; }
+.visual.bridge img[src*="bridge-02"] { object-position: center 57%; }
+.visual.bridge img[src*="bridge-03"] { object-position: center 31%; }
+.visual.bridge img[src*="bridge-04"] { object-position: center 83%; }
+.visual.bridge img[src*="bridge-05"] { object-position: center 33%; }
+.visual.bridge img[src*="bridge-06"] { object-position: center 24%; }
 .copy { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 34px 20px 28px; background: transparent; }
 .section { position: relative; z-index: 3; padding: 34px 20px; border-top: 0; background: linear-gradient(180deg, rgba(246,240,232,.96), var(--paper-2) 48%, rgba(246,240,232,.96)); }
-.section:not(.copy)::before { content: ""; position: absolute; left: 0; right: 0; top: -74px; z-index: 4; height: 74px; pointer-events: none; background: linear-gradient(180deg, rgba(246,240,232,0), rgba(246,240,232,.62) 42%, rgba(246,240,232,.98)); }
-.section:not(.copy)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -74px; z-index: 4; height: 74px; pointer-events: none; background: linear-gradient(180deg, rgba(246,240,232,.98), rgba(246,240,232,.58) 48%, rgba(246,240,232,0)); }
-.copy.section { border-top: 0; }
-.copy .eyebrow, .copy h1, .copy h2, .copy h3, .copy p { color: #fffaf2; text-shadow: 0 2px 5px rgba(0,0,0,.62), 0 10px 24px rgba(0,0,0,.45); }
+/* .copy 는 .section 도 함께 달고 있어서, 나중에 선언된 .section 의 밝은 종이 배경과
+   position: relative 가 이긴다. 그래서 카피는 사진 위 오버레이가 아니라 사진 아래
+   종이 바닥에 놓인 블록으로 뜬다. 배경만 걷어내 종이 바닥을 그대로 쓴다. */
+.copy.section { border-top: 0; background: transparent; }
 .eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--seal-dark); font-size: 11px; font-weight: 950; letter-spacing: .08em; text-transform: uppercase; }
 .dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: linear-gradient(135deg, var(--seal), var(--brass)); box-shadow: 0 0 18px rgba(216,81,47,.36); }
 h1,h2,h3,p { margin-top: 0; }
-h1 { margin-bottom: 14px; font-size: 37px; line-height: 1.04; letter-spacing: 0; font-weight: 1000; }
-h2 { margin-bottom: 12px; font-size: 27px; line-height: 1.1; letter-spacing: 0; font-weight: 1000; }
+/* 37px 에서는 "우리 날은 어디 있을까요."(약 11.2em)가 375px 화면의 본문 폭 335px 를
+   넘겨 한 절이 두 줄로 쪼개지고 "많은데," 같은 한 낱말 줄이 남았다. 절이 한 줄에
+   들어가는 크기로 맞추고, 그래도 넘치는 절은 균형 있게 끊는다. */
+h1 { margin-bottom: 14px; font-size: 29px; line-height: 1.16; letter-spacing: 0; font-weight: 1000; text-wrap: balance; }
+h2 { margin-bottom: 12px; font-size: 25px; line-height: 1.18; letter-spacing: 0; font-weight: 1000; text-wrap: balance; }
 h3 { margin-bottom: 8px; font-size: 17px; color: var(--seal-dark); }
 p { margin-bottom: 0; font-size: 15px; line-height: 1.7; color: #493d36; }
 .grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -58,7 +82,9 @@ p { margin-bottom: 0; font-size: 15px; line-height: 1.7; color: #493d36; }
 .item span { display: block; color: var(--muted); font-size: 13px; line-height: 1.55; }
 .cta, button.cta { display: block; width: 100%; margin-top: 18px; padding: 16px 18px; border: 0; border-radius: 8px; background: linear-gradient(135deg, var(--seal), var(--brass)); color: #fff; text-align: center; font: inherit; font-weight: 1000; cursor: pointer; }
 .ghost { background: transparent; color: var(--seal-dark); border: 1px solid rgba(216,81,47,.28); }
-.sticky-cta { position: sticky; bottom: 0; z-index: 15; padding: 12px 18px 18px; background: linear-gradient(180deg, rgba(246,240,232,0), rgba(246,240,232,.96) 36%, var(--paper)); }
+/* 반투명 그라디언트라 히어로 안의 CTA 가 고정 바 뒤로 반쯤 비쳐 버튼이 둘로 보였다.
+   종이색으로 덮고 위쪽만 부드럽게 띄워, 뒤 내용이 유령처럼 남지 않게 한다. */
+.sticky-cta { position: sticky; bottom: 0; z-index: 15; padding: 12px 18px 18px; background: var(--paper); box-shadow: 0 -12px 26px rgba(96,55,37,.12); }
 .form { display: grid; gap: 13px; }
 .field { display: grid; gap: 7px; }
 .field label { color: var(--seal-dark); font-size: 13px; font-weight: 900; }
@@ -78,5 +104,5 @@ input,select { width: 100%; border: 1px solid rgba(47,37,32,.18); border-radius:
 .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .footer { padding: 24px 20px 36px; color: var(--muted); font-size: 11px; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
-@media (max-width: 360px) { h1 { font-size: 33px; } h2 { font-size: 24px; } .two { grid-template-columns: 1fr; } }
+@media (max-width: 360px) { h1 { font-size: 26px; } h2 { font-size: 23px; } .two { grid-template-columns: 1fr; } }
 
