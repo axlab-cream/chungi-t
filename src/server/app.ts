@@ -2018,8 +2018,8 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
       res.status(400).json({ code: 'INPUT_REQUIRED', error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
       return
     }
-    const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
+    const context = { ...buildWeddingContext(profile.name, input, analysis), birthTimeKnown: profile.birthTimeKnown }
     const reportId = createWeddingReportId(analysis, profile.birth, input, owner.id, context)
     const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return

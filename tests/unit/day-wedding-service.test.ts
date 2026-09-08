@@ -161,3 +161,42 @@ test('무료 티저는 후보일 판정을 앞세우고 유료 범위를 숨기�
   assert.equal(teaser.scope.length, 6)
   assert.equal(teaser.scope.reduce((n, group) => n + group.items.length, 0), 21)
 })
+
+test('문맥이 후보일 판정과 상대 명식을 프롬프트로 넘긴다', () => {
+  // 섹션 프롬프트는 birth·context·featureJson 만 본다. 여기 없는 값은 본문에서 지어진다.
+  const context = buildWeddingContext('정재용', INPUT, analyzeSaju(BIRTH))
+  const concern = String(context.concern)
+  for (const iso of INPUT.candidateDates) {
+    assert.ok(concern.includes(iso), `${iso} 판정이 문맥에 없다`)
+  }
+  assert.match(concern, /입하달|망종달|한로달/)
+  // 요일은 예식장 예약과 직결되는 사실이다. 넘기지 않으면 본문이 스스로 지어 쓴다.
+  assert.ok(concern.includes('2027년 5월 15일(토)[2027-05-15]'), `날짜·요일 표기가 문맥에 없다: ${concern}`)
+  // 독음 없는 한자는 검수기가 막는다. 문맥이 한자만 넘기면 본문이 그대로 옮겨 적어 생성이 떨어진다.
+  for (const run of concern.match(/[一-龥]{2,}/g) ?? []) {
+    assert.ok(concern.includes(`(${run})`), `독음 없는 한자: ${run}`)
+  }
+  assert.match(concern, /유리 \d+ · 주의 \d+/)
+  assert.match(concern, /조건이 가장 덜 걸리는 후보/)
+  assert.match(concern, /예식 형식: 예식장/)
+  assert.match(concern, /가족 일정 제약: 특정 주말만 가능/)
+
+  assert.equal(context.partner?.mode, 'known')
+  assert.equal(context.partner?.birthTimeKnown, true)
+  assert.match(String(context.partner?.dayMaster), /\(.\)$/)
+  assert.equal(Object.keys(context.partner?.pillars ?? {}).length, 4)
+})
+
+test('상대 사주가 없으면 두 사람을 비교했다고 쓰지 못하게 밝힌다', () => {
+  const soloInput = parseWeddingRequest({ candidateDate1: '2027-05-15' })
+  const context = buildWeddingContext('정재용', soloInput, analyzeSaju(BIRTH))
+  assert.equal(context.partner, undefined)
+  assert.match(String(context.concern), /상대 사주 미입력/)
+})
+
+test('상대 태어난 시각을 받지 못하면 채운 정오를 사실로 넘기지 않는다', () => {
+  const noTime = parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11' })
+  assert.equal(noTime.partnerBirthTimeKnown, false)
+  const context = buildWeddingContext('정재용', noTime, analyzeSaju(BIRTH))
+  assert.equal(context.partner?.birthTimeKnown, false)
+})

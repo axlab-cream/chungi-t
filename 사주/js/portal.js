@@ -171,7 +171,7 @@
         { label: '궁합', meta: '둘의 끌림과 갈등', action: 'filter', category: '궁합', status: '검색' },
         { label: '재물', meta: '돈이 남는 흐름', action: 'filter', category: '재물', status: '검색' },
         { label: '직업', meta: '일과 적성의 방향', action: 'filter', category: '직업', status: '검색' },
-        { label: '풍수', meta: '집과 공간의 기운', action: 'filter', category: '풍수', status: '검색' },
+        // 집 풍수를 잠시 내린 동안 이 제안도 빈 결과로 이어진다. // { label: '풍수', meta: '집과 공간의 기운', action: 'filter', category: '풍수', status: '검색' },
       ],
     },
     vault: {

@@ -50,6 +50,8 @@ export interface WeddingRequest {
   /** 후보일. 하나는 있어야 하고 최대 세 개까지 나란히 본다. */
   candidateDates: string[]
   partnerBirth?: BirthInput
+  /** 상대의 태어난 시각을 실제로 받았는지. 정오로 채운 값과 구분한다. */
+  partnerBirthTimeKnown?: boolean
   format?: WeddingFormat
   familyLimit?: FamilyLimit
   displayName?: string
@@ -170,17 +172,18 @@ function parseIsoDate(raw: unknown): { year: number; month: number; day: number 
   return { year, month, day }
 }
 
-function parseTime(raw: unknown): { hour: number; minute: number } {
+function parseTime(raw: unknown): { hour: number; minute: number; known: boolean } {
   if (typeof raw === 'string') {
     const m = /^(\d{1,2}):(\d{2})$/.exec(raw.trim())
     if (m) {
       const hour = Number(m[1])
       const minute = Number(m[2])
-      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) return { hour, minute }
+      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) return { hour, minute, known: true }
     }
   }
-  // 시간을 모르면 정오로 둔다. 시주는 이 서비스의 판정에 쓰지 않는다.
-  return { hour: 12, minute: 0 }
+  // 시간을 모르면 정오로 둔다. 시주는 이 서비스의 판정에 쓰지 않는다. 다만 채운 값이
+  // 프롬프트에서 사실로 읽히면 안 되므로 몰랐다는 사실을 함께 넘긴다.
+  return { hour: 12, minute: 0, known: false }
 }
 
 export function parseWeddingRequest(body: Record<string, unknown>): WeddingRequest {
@@ -215,7 +218,7 @@ export function parseWeddingRequest(body: Record<string, unknown>): WeddingReque
 
   return {
     candidateDates: dates,
-    ...(partnerBirth ? { partnerBirth } : {}),
+    ...(partnerBirth ? { partnerBirth, partnerBirthTimeKnown: partnerTime.known } : {}),
     ...(FORMATS.includes(rawFormat as WeddingFormat) ? { format: rawFormat as WeddingFormat } : {}),
     ...(FAMILY_LIMITS.includes(rawLimit as FamilyLimit) ? { familyLimit: rawLimit as FamilyLimit } : {}),
     ...(displayName ? { displayName } : {}),
@@ -535,13 +538,84 @@ export function createWeddingReportId(
   return createHash('sha256').update(JSON.stringify(fingerprint)).digest('hex').slice(0, 28)
 }
 
-/** 라우트가 쓰는 리포트 문맥. 서비스 키가 프롬프트 팩과 코퍼스 선택을 가른다. */
-export function buildWeddingContext(name: string | undefined, input: WeddingRequest): SajuReportContext {
+/** 관계 이름의 한자. 짝 표의 설명이 한자로 시작하므로 독음을 붙일 때 함께 쓴다. */
+const RELATION_HANJA_KO: Record<string, string> = { 合: '합', 沖: '충', 破: '파', 害: '해' }
+
+/**
+ * 문맥에 넣는 한자에 한글 독음을 붙인다.
+ *
+ * 검수기는 독음 없는 한자 단독 표기를 막는다. 문맥이 `甲午일`, `丑午害` 처럼 한자만
+ * 넘기면 본문이 그대로 옮겨 적어 생성이 두 번 다 검수에서 떨어진다.
+ */
+function withReading(hanja: string): string {
+  const reading = [...hanja]
+    .map((char) => BRANCH_KO[char as EarthlyBranch] ?? STEM_KO[char as HeavenlyStem] ?? RELATION_HANJA_KO[char] ?? '')
+    .join('')
+  return reading.length === hanja.length ? `${reading}(${hanja})` : hanja
+}
+
+/**
+ * 라우트가 쓰는 리포트 문맥. 서비스 키가 프롬프트 팩과 코퍼스 선택을 가른다.
+ *
+ * 섹션 프롬프트는 `birth`·`context`·`featureJson` 만 본다. 그래서 후보일과 상대 명식,
+ * 예식 조건이 문맥에 없으면 본문이 근거 없이 쓰인다. 실제로 없던 동안, 생성된 본문은
+ * 두 명식을 비교했다고 말하면서 상대 사주를 받지 못했고, 절기를 모르니 "지금이 봄철이
+ * 라면"·"일간이 토인 분들에게는" 같은 일반론으로 흘렀다. 계산된 판정을 그대로 넘긴다.
+ */
+export function buildWeddingContext(
+  name: string | undefined,
+  input: WeddingRequest,
+  analysis?: SajuAnalysis,
+): SajuReportContext {
+  const frame = analysis ? buildWeddingFrame(analysis, input) : null
+  const candidateLines = frame
+    ? frame.candidates.map((view) => [
+        // label 이 이미 요일까지 담고 있어 요일을 따로 세지 않는다. iso 는 표기 흔들림을 막는다.
+        `${view.label}[${view.iso}]`,
+        `${withReading(view.pillar)}일`,
+        `${view.termName}달`,
+        view.verdict,
+        `유리 ${view.favourable} · 주의 ${view.cautions}`,
+        view.sides.map((side) => `${side.label} ${side.relation}${side.relationNote ? `(${side.relationNote.replace(/[一-龥]{2,}/g, (run) => withReading(run))})` : ''}`).join(' / '),
+      ].join(' · '))
+    : input.candidateDates.map((iso) => `${iso}(판정 없음)`)
+
+  const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : null
+  const partnerPillars = partnerAnalysis?.fourPillars
+
   return {
     serviceKey: WEDDING_SERVICE_KEY,
     name: input.displayName || name,
     target: '우리 결혼, 이날 해도 될까?',
-    concern: '후보일마다 두 사람의 명식과 맞물리는 조건을 비교해 결혼 날짜를 고르는 기준',
+    concern: [
+      '후보일마다 두 사람의 명식과 맞물리는 조건을 비교해 결혼 날짜를 고르는 기준',
+      candidateLines.length > 0 ? `후보일 판정: ${candidateLines.join(' | ')}` : '후보일 없음',
+      frame?.best ? `조건이 가장 덜 걸리는 후보: ${frame.best.label}(${frame.best.iso})` : '',
+      input.format ? `예식 형식: ${input.format}` : '',
+      input.familyLimit ? `가족 일정 제약: ${input.familyLimit}` : '',
+      input.partnerBirth ? '' : '상대 사주 미입력: 본인 명식만으로 본 판정이므로 두 사람을 비교했다고 쓰지 마세요.',
+    ].filter(Boolean).join(' · '),
+    ...(input.partnerBirth && partnerAnalysis && partnerPillars
+      ? {
+          partner: {
+            mode: 'known' as const,
+            relationship: '결혼 상대',
+            birth: input.partnerBirth,
+            birthTimeKnown: input.partnerBirthTimeKnown !== false,
+            pillars: {
+              year: `${partnerPillars.year.stem}${partnerPillars.year.branch}`,
+              month: `${partnerPillars.month.stem}${partnerPillars.month.branch}`,
+              day: `${partnerPillars.day.stem}${partnerPillars.day.branch}`,
+              hour: `${partnerPillars.hour.stem}${partnerPillars.hour.branch}`,
+            },
+            dayMaster: `${STEM_KO[partnerAnalysis.dayMaster]}(${partnerAnalysis.dayMaster})`,
+            dayMasterElement: ELEMENT_KO[partnerAnalysis.dayMasterElement],
+            dominantElement: ELEMENT_KO[partnerAnalysis.dominantElement],
+            weakElement: ELEMENT_KO[partnerAnalysis.weakElement],
+            tenGods: partnerAnalysis.tenGods,
+          },
+        }
+      : {}),
   }
 }
 
