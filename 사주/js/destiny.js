@@ -545,28 +545,33 @@
     setRecordLocked(true);
     currentRecordName = '운명록';
 
+    // 안내마다 무엇이 필요하고 버튼이 어디로 가는지 이름과 목적지를 맞춘다. 이전에는
+    // 확인 실패 상태의 버튼이 "다시 확인하기"라고 적혀 있으면서 실제로는 로그인으로
+    // 보냈다. 사용자가 해야 할 일은 로그인이므로 그렇게 적는다.
+    // 안내는 쉬운 말로 쓴다. 세션, 흐름, 원국 같은 말은 여기서 처음 보는 사람에게
+    // 설명이 되지 않는다. 무엇이 필요한지, 무엇을 하면 되는지, 얼마나 걸리는지만 적는다.
     const copy = {
       login: {
-        eyebrow: 'LOCKED RECORD',
-        title: '운명록은 로그인 후 열립니다',
-        desc: '개인 사주의 원국, 신살·길성, 합충, 대운 흐름은 계정에 연결된 사주 프로필 기준으로만 보여드립니다.',
-        primary: '로그인하고 사주 등록하기',
+        eyebrow: 'LOGIN REQUIRED',
+        title: '로그인이 필요합니다',
+        desc: '운명록은 내 사주로 만드는 화면이에요. 로그인하고 생년월일만 한 번 남겨주시면, 타고난 기운과 앞으로의 큰 흐름을 여기서 바로 볼 수 있어요.',
+        primary: { label: '로그인하기', href: '/signup?entry=destiny#login' },
       },
       profile: {
         eyebrow: 'PROFILE REQUIRED',
-        title: '사주등록이 필요합니다',
-        desc: '로그인은 확인됐습니다. 생년월일시와 성별을 저장하면 내 운명록이 실제 원국으로 채워집니다.',
-        primary: '사주 등록하기',
+        title: '사주 등록만 남았어요',
+        desc: '로그인은 끝났어요. 생년월일과 태어난 시간, 성별만 남겨주시면 내 운명록이 바로 채워집니다. 한 번만 등록하면 다음부터는 그냥 열려요.',
+        primary: { label: '사주 등록하기', href: '/profile?returnTo=%2Fdestiny' },
       },
       error: {
-        eyebrow: 'CHECK FAILED',
-        title: '운명록 상태를 확인하지 못했습니다',
-        desc: '로그인 세션 또는 사주 프로필을 확인하지 못했습니다. 다시 로그인하면 등록 흐름으로 이어집니다.',
-        primary: '다시 확인하기',
+        eyebrow: 'LOGIN REQUIRED',
+        title: '로그인이 필요합니다',
+        desc: '로그인 정보를 확인하지 못했어요. 한동안 안 들어오면 자동으로 풀리기 때문에, 다시 로그인하시면 바로 이어집니다. 방금 로그인하셨다면 아래 다시 확인하기를 눌러주세요.',
+        primary: { label: '로그인하기', href: '/signup?entry=destiny#login' },
+        secondary: { label: '다시 확인하기', href: '/destiny' },
       },
     }[reason] || {};
 
-    setPrimaryRecordCta(copy.primary, '/signup?entry=destiny');
     root.innerHTML = `
       <section class="destiny-gate" aria-label="운명록 접근 안내">
         <div class="gate-mark" aria-hidden="true">命</div>
@@ -579,8 +584,8 @@
           <span>3 운명록 열기</span>
         </div>
         <div class="gate-actions">
-          <a class="gate-primary" href="/signup?entry=destiny">${escapeHtml(copy.primary)}</a>
-          <a class="gate-secondary" href="/">홈으로</a>
+          <a class="gate-primary" href="${escapeHtml(copy.primary.href)}">${escapeHtml(copy.primary.label)}</a>
+          ${copy.secondary ? `<a class="gate-secondary" href="${escapeHtml(copy.secondary.href)}">${escapeHtml(copy.secondary.label)}</a>` : ''}
         </div>
       </section>
     `;

@@ -938,8 +938,10 @@ input:focus-visible {
   opacity: 0.42;
 }
 
+/* 잠긴 상태에서는 안내(.destiny-gate)가 로그인·사주등록 버튼을 이미 들고 있다.
+   떠 있는 바까지 두면 같은 버튼이 위아래로 두 번 보인다. */
 .is-record-locked .record-cta-bar {
-  grid-template-columns: 1fr;
+  display: none;
 }
 
 .is-record-locked .record-cta-bar button {
