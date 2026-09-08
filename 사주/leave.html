@@ -27,6 +27,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260904" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <style>
+      /* 공용 하단 메뉴는 화면에 고정된다. 본문 아래에 그만큼 자리를 비워 두지 않으면
+         마지막 버튼이 메뉴 뒤로 들어간다. 서비스 페이지들과 같은 규칙이다. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
   </head>

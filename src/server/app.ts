@@ -1169,7 +1169,11 @@ function historyEntryFromRecord(record: ReportRecord) {
   }
 }
 
-/** Names the pieces still blocking checkout so operators can act without reading logs. */
+/**
+ * Names the pieces still blocking checkout so operators can act without reading logs.
+ * This goes to the server log only. It used to be handed to the browser as-is, which
+ * printed our environment variable names on the customer's payment screen.
+ */
 function paymentSetupMessage(inicisReady: boolean, storage: PaymentStorageMode): string {
   const missing: string[] = []
   if (!inicisReady) missing.push('이니시스 MID·SignKey (INICIS_MID, INICIS_SIGNKEY)')
@@ -1177,6 +1181,9 @@ function paymentSetupMessage(inicisReady: boolean, storage: PaymentStorageMode):
   if (missing.length === 0) return ''
   return `결제 모듈 연결 전입니다. 남은 설정: ${missing.join(' / ')}.`
 }
+
+/** What the customer sees instead: why they cannot pay and what to do, nothing more. */
+const PAYMENT_UNAVAILABLE_NOTICE = '지금은 결제를 열 수 없습니다. 잠시 후 다시 시도하거나 고객센터로 문의해 주세요.'
 
 function paymentConfigPayload() {
   const inicis = publicInicisConfig()
@@ -1192,7 +1199,7 @@ function paymentConfigPayload() {
     storage,
     storageReady: storage !== 'memory',
     catalog: listPaymentProducts().map(publicPaymentProduct),
-    setupMessage: enabled || testMode ? '' : paymentSetupMessage(inicis.enabled, storage),
+    setupMessage: enabled || testMode ? '' : PAYMENT_UNAVAILABLE_NOTICE,
   }
 }
 
@@ -2543,5 +2550,9 @@ if (isDirectRun) {
     console.log(`UMSH 포탈: http://localhost:${PORT}/`)
     console.log(`천명사주 입력: http://localhost:${PORT}/cmdg/`)
     console.log(`OpenAI: ${isOpenAiConfigured() ? '연결됨' : 'API 키 필요 (.env)'}`)
+    // 결제가 열리지 않는 이유는 운영자만 보면 된다. 고객 화면에는 환경변수 이름 대신
+    // PAYMENT_UNAVAILABLE_NOTICE 가 나간다.
+    const paymentBlockers = paymentSetupMessage(publicInicisConfig().enabled, getPaymentStorageMode())
+    if (paymentBlockers) console.log(`결제: ${paymentBlockers}`)
   })
 }

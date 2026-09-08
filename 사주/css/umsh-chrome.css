@@ -186,3 +186,13 @@ body.umsh-has-chrome {
 
 /* 공통 상단바 로고는 스토리 장면이 아니므로 위 규칙에서 제외한다. */
 .umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }
+
+/* 결제·계정 계열(.payment-page)은 body 가 스크롤한다. 공용 상단바는 sticky 인데
+   부모인 [data-umsh-service-top] 박스가 85px 뿐이라 그 안에서만 붙을 수 있었고,
+   페이지가 한 화면을 넘으면 스크롤과 함께 사라졌다(MY, 주문, 결제 화면). 호스트를
+   붙여 상단바가 화면에 남게 한다. 서비스 페이지는 .phone 안에서 이미 붙어 있다. */
+body.umsh-has-chrome .payment-page > [data-umsh-service-top] {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
