@@ -500,7 +500,7 @@ function sectionBody(
 function sectionHook(groupId: string, frame: WeddingFrame): string {
   const best = frame.best
   const hooks: Record<string, string> = {
-    verdict: best ? `${best.label}, ${best.verdict}예요` : '후보일을 넣으면 조건부터 세어 드려요',
+    verdict: best ? `${best.label}, ${best.verdict}이에요` : '후보일을 넣으면 조건부터 세어 드려요',
     ours: frame.hasPartner ? '같은 날이 두 사람에게 다르게 읽힐 수 있어요' : '상대 사주까지 넣으면 두 기준으로 봅니다',
     better: '달을 못 바꿀 때와 바꿀 수 있을 때가 다릅니다',
     before: frame.format ? `${topic(frame.format)} 챙길 순서가 다릅니다` : '날짜가 정해지면 남는 건 순서입니다',

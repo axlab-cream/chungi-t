@@ -221,6 +221,37 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     assert.deepEqual(leaks, [])
   })
 
+  it('4단계 티저: 같은 문장을 두 번 말하지 않고 금지 표현이 없다', async () => {
+    // summary 가 곧 insights[0] 이고 첫 섹션의 hook 이 그 문단의 첫 문장과 같아서, 티저가
+    // 같은 45자 넘는 문장을 두세 번 말하고 있었다(천명사주·이직운·붙을 각·운 붙는 색).
+    const banned = ['반드시', '무조건', '100%', '망한다', '이혼한다', '사고가 난다',
+      '분석 결과', '해석 근거', '신뢰도', 'RAG', '주요 포인트', '종합 해석', '안녕하세요',
+      '운이 좋다', '변화가 있다', '조심하라']
+    const failures: string[] = []
+    let reached = 0
+    for (const [key, route] of Object.entries(ROUTES)) {
+      const { response, payload } = await call(route.analyze, { ...(route.body ?? {}), preview: true })
+      if (response.status !== 200) continue
+      reached += 1
+      const preview = (payload.preview ?? {}) as Record<string, unknown>
+      const lines = [preview.headline, preview.summary, ...((preview.insights as string[]) ?? []), preview.paidValue]
+        .filter((line): line is string => typeof line === 'string' && line.length > 0)
+      const sentences = lines
+        .flatMap(line => line.split(/(?<=[.!?])\s+/))
+        .map(part => part.replace(/\s+/g, '').replace(/[.,!?·。]/g, ''))
+        .filter(part => part.length >= 20)
+      const seen = new Set<string>()
+      for (const part of sentences) {
+        if (seen.has(part)) failures.push(`${key}: 같은 문장을 두 번 말합니다`)
+        seen.add(part)
+      }
+      const hit = banned.filter(word => lines.join(' ').includes(word))
+      if (hit.length) failures.push(`${key}: 금지 표현 ${hit.join(', ')}`)
+    }
+    assert.ok(reached >= 5, `티저까지 닿은 서비스가 ${reached}개뿐입니다`)
+    assert.deepEqual([...new Set(failures)], [])
+  })
+
   it('5단계 목록: 같은 입력은 같은 저장 식별자로 모인다', async () => {
     const drifting: string[] = []
     for (const [key, route] of Object.entries(ROUTES)) {
