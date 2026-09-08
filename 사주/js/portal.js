@@ -17,7 +17,7 @@
   const serviceCards = Array.from(document.querySelectorAll('.service-card'));
   const pendingCards = Array.from(document.querySelectorAll('[data-soon], .is-soon'));
   const sectionBlocks = Array.from(document.querySelectorAll('.section-block'));
-  const dragRails = Array.from(document.querySelectorAll('.poster-rail, .category-rail, .price-rail'));
+  const dragRails = Array.from(document.querySelectorAll('.poster-rail, .category-rail, .price-rail, .coming-rail'));
   const liveLinks = Array.from(document.querySelectorAll('a.is-live, a.is-cmdg'));
   const actionButtons = Array.from(document.querySelectorAll('[data-action]'));
   const menuFilterButtons = Array.from(document.querySelectorAll('[data-menu-filter]'));

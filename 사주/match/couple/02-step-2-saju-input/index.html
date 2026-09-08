@@ -195,17 +195,20 @@
       flex: 0 0 auto;
     }
 
-    .app {
-      width: 100%;
-      display: flex;
-      justify-content: center;
+    /* 공용 크롬은 mount 가 잰 스테이지 폭(--umsh-page-width)을 따른다. 스테이지가 main.app
+   이므로 폭 제한을 여기 두지 않으면 내용만 430px 이고 상단바·하단 메뉴는 화면 전체로
+   늘어난다. 프레임을 .app 에 두어 스테이지 폭이 곧 프레임 폭이 되게 한다. */
+.app {
+      width: min(100%, var(--content));
+      margin: 0 auto;
+      display: block;
       padding: 18px 16px 42px;
     }
 
     /* 다른 서비스와 이 서비스의 01 화면은 모두 430px 모바일 프레임 한 단이다. 이 화면만
    1120px 2단으로 짜여 넓은 화면에서 전혀 다른 제품처럼 펼쳐졌다. 프레임에 맞춘다. */
 .shell {
-      width: var(--content);
+      width: 100%;
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 18px;
@@ -823,10 +826,24 @@
 </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
     <link rel="stylesheet" href="/css/umsh-chrome.css" />
   </head>
-<body data-umsh-chrome data-service="커플궁합" data-price="19,900원" data-active="home" class="umsh-fields">
+<body class="umsh-fields">
   <a class="skip-link" href="#coupleForm">입력 폼으로 이동</a>
 
-  <header class="appbar topbar" aria-label="서비스 상단">
+  
+
+  <main
+    id="step-2-saju-input"
+    class="app stage"
+    data-umsh-chrome
+    data-service="커플궁합"
+    data-price="19,900원"
+    data-active="home"
+    data-service-key="couple_match"
+    data-service-slug="couple-match"
+    data-service-title="우리 둘, 진짜 잘 맞아?"
+    data-next-route="../04-step-4-report/index.html#step-4-report"
+  >
+    <header class="appbar topbar" aria-label="서비스 상단">
     <div class="topbar-inner">
       <div class="brand" aria-label="운명상회">
         <span class="brand-mark" aria-hidden="true"></span>
@@ -844,14 +861,6 @@
     </div>
   </header>
 
-  <main
-    id="step-2-saju-input"
-    class="app"
-    data-service-key="couple_match"
-    data-service-slug="couple-match"
-    data-service-title="우리 둘, 진짜 잘 맞아?"
-    data-next-route="../04-step-4-report/index.html#step-4-report"
-  >
     <div class="shell">
       <aside class="visual-card" data-asset-key="couple-match-02-form-guide" aria-labelledby="visual-title">
         <img src="../assets/couple/02-form-guide.webp" alt="두 사람의 관계 신호를 추상 차트로 입력하는 커플">

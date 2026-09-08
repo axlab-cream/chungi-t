@@ -460,13 +460,16 @@ html.splash-disabled .splash-screen,
 .category-rail.is-drag-ready,
 .category-rail.is-dragging,
 .price-rail.is-drag-ready,
-.price-rail.is-dragging {
+.price-rail.is-dragging,
+.coming-rail.is-drag-ready,
+.coming-rail.is-dragging {
   user-select: none;
 }
 
 .poster-rail.is-dragging,
 .category-rail.is-dragging,
-.price-rail.is-dragging {
+.price-rail.is-dragging,
+.coming-rail.is-dragging {
   cursor: grabbing;
   scroll-behavior: auto;
   scroll-snap-type: none;
@@ -1852,6 +1855,8 @@ html.splash-disabled .splash-screen,
   display: flex;
   gap: 10px;
   overflow-x: auto;
+  cursor: grab;
+  overscroll-behavior-inline: contain;
   padding-bottom: 4px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;

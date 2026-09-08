@@ -91,14 +91,20 @@
     return value;
   }
 
+  /**
+   * 공용 크롬은 mount 가 잰 스테이지 폭을 --umsh-page-width 로 발행하고, 상단바와 하단
+   * 메뉴가 그 폭을 따른다. 이 서비스만 root 를 'body' 로 넘겨서 내용은 430px 프레임인데
+   * 크롬만 문서 폭(1265px)으로 늘어났다. 형제 서비스들처럼 프레임에 마운트한다.
+   */
   function mountChrome() {
     if (!window.UMSHChrome) return;
+    const host = document.querySelector('.app');
     document.body.dataset.umshChrome = 'off';
     window.UMSHChrome.mount({
-      root: 'body',
-      service: document.body.dataset.service || '커플궁합',
-      price: document.body.dataset.price || '19,900원',
-      active: document.body.dataset.active || 'home',
+      root: '.app',
+      service: host?.dataset.service || '커플궁합',
+      price: host?.dataset.price || '19,900원',
+      active: host?.dataset.active || 'home',
     });
   }
 
