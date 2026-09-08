@@ -1,5 +1,5 @@
 {
-  "version": "1.8.0",
+  "version": "1.9.0",
   "policy": "RAG and corpus packs are living knowledge assets. Store judgment-ready knowledge blocks, not finished user copy. Generation must follow calculation -> feature_json -> retrieval -> interpretation -> user_copy.",
   "packs": [
     {
@@ -169,6 +169,16 @@
       "domain": "newyear_service",
       "status": "active",
       "role": "single_service_newyear_service_grounding",
+      "version": "1.0.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "wedding-day-service",
+      "path": "corpus/wedding-day-service.json",
+      "kind": "chunks",
+      "domain": "wedding_day_service",
+      "status": "active",
+      "role": "single_service_wedding_day_service_grounding",
       "version": "1.0.0",
       "retrievalBoost": 22
     },

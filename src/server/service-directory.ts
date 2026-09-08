@@ -36,6 +36,7 @@ const SEEDS: DirectorySeed[] = [
   { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp' },
   { key: 'lucky_color', tagline: '채울 색과 덜어낼 색, 지니면 좋은 것까지', category: '흐름', href: '/me/lucky', image: '/assets/umsh-luckycolor-card-bg.webp' },
   { key: 'newyear_flow', tagline: '입춘 전환과 열두 달 월운으로 2027년을 미리', category: '흐름', href: '/flow/newyear', image: '/assets/umsh-newyear-card-bg.webp' },
+  { key: 'wedding_day', tagline: '후보일마다 두 사람 조건을 세어 비교하고', category: '택일', href: '/day/wedding', image: '/assets/umsh-wedding-card-bg.webp' },
   { key: 'match_couple', tagline: '끌림, 갈등, 오래 가는 방식까지', category: '궁합', href: '/match/couple', image: '/match/couple/assets/couple/01-scene-01-hook.webp' },
   { key: 'marry_match', tagline: '연애 말고 결혼까지 갈 수 있는 사이인지', category: '궁합', href: '/match/marry', image: '/match/marry/assets/marry/01-scene-01-hero.webp' },
   { key: 'couple_signal', tagline: '연락, 약속, 표현의 온도 차이를 나눠서', category: '연애', href: '/love/signal', image: '/assets/umsh-affair-card-bg.png' },

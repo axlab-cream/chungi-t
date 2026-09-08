@@ -17,6 +17,7 @@ export type PaymentProductKey =
   | 'cat_compatibility'
   | 'lucky_color'
   | 'newyear_flow'
+  | 'wedding_day'
 
 export interface PaymentProduct {
   key: PaymentProductKey
@@ -43,6 +44,14 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     amount: 12900,
     returnPath: '/love/this-year',
     summary: '도화가 들어오는 시기와 놓치기 쉬운 타이밍을 봅니다.',
+  },
+  wedding_day: {
+    key: 'wedding_day',
+    title: '우리 결혼, 이날 해도 될까?',
+    eyebrow: 'WEDDING DAY · 결혼택일',
+    amount: 24900,
+    returnPath: '/day/wedding',
+    summary: '후보일마다 두 사람의 명식과 맞물리는 조건을 세어 비교합니다.',
   },
   newyear_flow: {
     key: 'newyear_flow',
