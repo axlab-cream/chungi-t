@@ -25,28 +25,28 @@ test('the home newyear card appears only once and only first in COMING SOON', ()
   assert.equal((portal.match(/src="\/assets\/umsh-newyear-card-bg\.webp"/g) || []).length, 1)
 })
 
-test('the upcoming newyear card is a SOON button without a homepage service link', () => {
+test('the newyear card keeps its placement and links to its service', () => {
   const card=cards(portal).filter(isNewyear)[0] || ''
-  assert.match(card, /^<button\b/)
-  assert.match(card, /\btype="button"/)
-  assert.match(card, /\bclass="[^"]*\bcoming-card\b[^\"]*\bservice-card\b[^\"]*\bis-soon\b[^\"]*"/)
+  assert.match(card, /^<a\b/)
+  assert.match(card, /href="\/flow\/newyear\/01-step-1-story\/index.html"/)
+  assert.match(card, /\bclass="[^"]*\bcoming-card\b[^\"]*\bservice-card\b[^\"]*\bis-live\b[^\"]*"/)
   assert.match(card, /\bdata-category="흐름"/)
-  assert.match(card, /aria-label="[^"]*2027[^"]*준비 중인 서비스[^"]*"/)
+  assert.match(card, /aria-label="[^"]*2027[^"]*열기[^"]*"/)
   assert.match(card, /<span class="coming-tag">SOON<\/span>/)
   assert.match(card, /<strong class="coming-card-name">내 2027년, 풀릴 각이야\?<\/strong>/)
-  assert.doesNotMatch(card, /\bhref\s*=|\bis-live\b/)
-  assert.doesNotMatch(portal, /\bhref=["']\/flow\/newyear(?:[/?#]|["'])/)
+  assert.doesNotMatch(card, /\bis-soon\b/)
 })
 
-test('other released cards and the wedding upcoming card retain their placement', () => {
+test('other released cards and the wedding service card retain their placement', () => {
   const hrefs=cards(released[0] || '').map(card=>card.match(/\bhref="([^"]+)"/)?.[1])
   assert.deepEqual(hrefs, ['/me/lucky','/me/pass-angle','/work/quit','/match/cat'])
   const upcoming=cards(coming[0] || '')
   assert.equal(upcoming.length, 2)
-  assert.match(upcoming[1], /^<button\b/)
+  assert.match(upcoming[1], /^<a\b/)
+  assert.match(upcoming[1], /href="\/day\/wedding"/)
   assert.match(upcoming[1], /umsh-wedding-card-bg\.webp/)
   assert.match(upcoming[1], /우리 결혼, 이날 해도 될까\?/)
-  assert.match(upcoming[1], /is-soon/)
+  assert.match(upcoming[1], /is-live/)
   assert.match(upcoming[1], /<span class="coming-tag">SOON<\/span>/)
   for(const href of ['/cmdg/','/today/free','/love/this-year','/work/job-choice','/place/home','/work/move','/money/save','/match/marry','/love/signal','/match/couple']) {
     assert.ok(portal.includes('href="'+href+'"'), 'unrelated home link missing: '+href)

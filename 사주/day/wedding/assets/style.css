@@ -1,0 +1,70 @@
+@font-face{font-family:WeddingSans;src:url('/assets/fonts/Pretendard-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:WeddingSerif;src:url('/assets/fonts/MaruBuri-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{--paper:#f6f0e8;--paper-2:#fff9f0;--ink:#2f2520;--muted:#66594f;--seal:#a73b26;--seal-dark:#98351f;--brass:#b79058;--line:#dfd2c3}
+*{box-sizing:border-box}
+html{background:#e9ded2;scroll-padding-top:100px}
+body{margin:0;background:#e9ded2;font-family:WeddingSans,"Malgun Gothic",sans-serif;color:var(--ink);font-size:16px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit;text-decoration:none}
+.phone{width:min(100%,430px);min-height:100vh;margin:0 auto;background:var(--paper);overflow:clip}
+.wedding-content [hidden]{display:none!important}
+.wedding-content :is(h1,h2,h3,p,ul,ol){margin:0}
+.wedding-content :is(h1,h2,h3){color:var(--ink);word-break:keep-all;overflow-wrap:break-word;text-wrap:balance}
+.wedding-content h1{font-family:WeddingSerif,serif;font-size:32px;font-weight:700;line-height:1.4;letter-spacing:-.035em}
+.wedding-content h2{font-size:24px;font-weight:700;line-height:1.5;letter-spacing:-.025em}
+.wedding-content h3{font-size:18px;font-weight:700;line-height:1.6}
+.wedding-content p{font-size:16px;line-height:1.85;color:var(--ink);text-wrap:pretty}
+.wedding-content p+p{margin-top:16px}
+.wedding-content :is(h1,h2,h3)+p{margin-top:14px}
+.visual{display:flex;flex-direction:column;background:var(--paper);isolation:isolate}
+.visual img{display:block;width:100%;height:280px;object-fit:cover;object-position:center 35%}
+.visual.hero .copy{order:-1}
+.visual.hero img{height:300px}
+.visual.bridge img{height:180px}
+.section,.copy{position:relative;padding:32px 24px;background:var(--paper);min-width:0}
+.section+.section{border-top:1px solid var(--line)}
+.eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:14px;color:var(--seal-dark);font-size:13px;line-height:1.5;font-weight:700;letter-spacing:.04em}
+.dot{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:var(--seal)}
+.grid,.list,.form{display:grid;gap:16px}
+.grid{margin-top:20px}
+.card,.panel,.item{display:block;border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--paper-2);min-width:0}
+.item strong{display:block;font-size:17px;line-height:1.65;color:var(--ink)}
+.item span{display:block;font-size:15px;line-height:1.75;color:var(--muted);margin-top:8px}
+.item:hover{border-color:var(--seal)}
+.wedding-content .cta{display:block;width:100%;min-height:52px;margin-top:24px;padding:15px 18px;border:1px solid var(--seal);border-radius:10px;background:var(--seal);color:#fff;text-align:center;font-family:inherit;font-size:17px;line-height:1.6;font-weight:700;cursor:pointer}
+.wedding-content .cta.ghost{background:var(--paper-2);color:var(--seal-dark)}
+.wedding-content .cta:disabled{opacity:.6;cursor:wait}
+.wedding-content :is(a,button,input,select):focus-visible{outline:3px solid #755128;outline-offset:4px}
+.form{gap:24px}
+.field{display:grid;gap:8px;min-width:0}
+.field label{color:var(--ink);font-size:16px;font-weight:700}
+.field small,.wedding-content .notice{color:var(--muted);font-size:14px;line-height:1.75}
+.wedding-content .notice{margin-top:16px}
+.two{display:grid;grid-template-columns:1fr;gap:24px}
+.wedding-content :is(input,select){width:100%;min-width:0;min-height:52px;border:1px solid #aa9784;border-radius:8px;padding:12px;background:#fffdf8;color:var(--ink);font-family:inherit;font-size:16px;line-height:1.5}
+.wedding-content fieldset{padding:0;margin:0;border:0;display:grid;gap:20px;min-width:0}
+.wedding-content legend{font-size:20px;font-weight:700;padding:0;margin-bottom:16px}
+.owned-profile{padding:16px;border-left:3px solid var(--brass);background:var(--paper-2);margin-bottom:24px}
+.pager{display:grid;grid-template-columns:1fr;gap:12px}
+.pager .cta{margin-top:0;text-align:left}
+.footer{padding:24px 24px 36px;color:var(--muted);font-size:14px;line-height:1.8;border-top:1px solid var(--line)}
+.top{display:none}
+.reading-body{display:grid;gap:22px}
+.reading-body h3{color:var(--seal-dark);margin-bottom:8px}
+.reading-body p{white-space:pre-line}
+.reading-progress{margin-top:16px;font-size:14px;color:var(--muted)}
+.reading-nav{padding:24px;background:var(--paper-2)}
+.wedding-content .reading-nav label{display:block;margin-bottom:8px;font-size:15px}
+.wedding-content .group-heading{font-size:21px;margin:20px 0 0;scroll-margin-top:100px}
+.wedding-content .group-heading:first-child{margin-top:0}
+.wedding-content .summary{border-left:3px solid var(--brass);padding:16px 18px;background:var(--paper-2)}
+.wedding-content .summary p{font-size:17px}
+.wedding-content .step-label{color:var(--seal-dark);font-size:14px;margin-bottom:12px}
+.wedding-content .evidence-list{padding-left:20px;display:grid;gap:16px}
+body.umsh-has-chrome .phone{overflow:clip}
+body.umsh-has-chrome header.top{display:none}
+body.umsh-has-chrome{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#umsh-verified-reading p{color:inherit;line-height:1.8}
+@media(max-width:360px){.wedding-content h1{font-size:28px}.wedding-content h2{font-size:22px}.section,.copy,.reading-nav{padding:28px 20px}.visual.hero img{height:260px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.preview-line{display:block;white-space:pre-line}.preview-line+.preview-line{margin-top:18px}
+.reading-body{margin-top:22px}

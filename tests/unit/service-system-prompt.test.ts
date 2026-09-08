@@ -11,11 +11,17 @@ import {
   loadServiceSystemPrompt,
   normalizeServiceKey,
 } from '../../src/prompt/service-system.js'
+import { SERVICE_VOICE_CONTRACTS, formatServiceVoiceContract } from '../../src/prompt/service-voice-contracts.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROMPTS_ROOT = join(__dirname, '../../prompts')
 
 describe('service-system prompt wiring', () => {
+  it('home prompt does not force a room tour in every section', () => {
+    const prompt = loadServiceSystemPrompt('home_fit')
+    assert.doesNotMatch(prompt, /필수 용어: 오행.*현관·침실·책상·창밖/)
+    assert.match(prompt, /모든 공간이나 같은 명리 소개를 매 항목에 필수로 넣지 않습니다/)
+  })
   it('normalizeServiceKey applies aliases and defaults', () => {
     assert.equal(normalizeServiceKey(undefined), 'saju_master')
     assert.equal(normalizeServiceKey(null), 'saju_master')
@@ -64,17 +70,46 @@ describe('service-system prompt wiring', () => {
     assert.ok(block.includes('자네') || block.includes('하게'))
   })
 
-  it('all 19 manifest service files exist, including the new year service', () => {
+  it('all 20 manifest service files exist, including new year and wedding', () => {
     const manifest = JSON.parse(readFileSync(join(PROMPTS_ROOT, 'services-manifest.json'), 'utf-8')) as {
       services: Array<{ key: string }>
     }
-    assert.equal(manifest.services.length, 19)
-    assert.equal(KNOWN_SERVICE_KEYS.length, 19)
+    assert.equal(manifest.services.length, 20)
+    assert.equal(KNOWN_SERVICE_KEYS.length, 20)
     for (const { key } of manifest.services) {
       assert.ok(KNOWN_SERVICE_KEYS.includes(key as (typeof KNOWN_SERVICE_KEYS)[number]), `known list missing ${key}`)
       const path = join(PROMPTS_ROOT, 'services', `${key}.md`)
       assert.ok(existsSync(path), `missing prompts/services/${key}.md`)
     }
+  })
+
+  it('all 20 services have enforceable voice contracts in the runtime prompt', () => {
+    assert.equal(Object.keys(SERVICE_VOICE_CONTRACTS).length, 20)
+    for (const key of KNOWN_SERVICE_KEYS) {
+      const contract = SERVICE_VOICE_CONTRACTS[key]
+      assert.equal(contract.serviceKey, key)
+      assert.ok(contract.userQuestion.length >= 12, `${key}: userQuestion too short`)
+      assert.ok(/먼저|보여|준다|잡아/.test(contract.teaserJob), `${key}: teaser job must guide preview`)
+      assert.ok(contract.reportJob.length >= 25, `${key}: report job too short`)
+      assert.ok(contract.requiredScenes.length >= 3, `${key}: needs concrete scenes`)
+      assert.ok(contract.decisionCriteria.length >= 3, `${key}: needs decision criteria`)
+      assert.ok(contract.holdConditions.length >= 3, `${key}: needs hold conditions`)
+      assert.ok(contract.forbiddenCustomerCopy.length >= 3, `${key}: needs forbidden copy`)
+      const full = loadServiceSystemPrompt(key)
+      assert.ok(full.includes(formatServiceVoiceContract(key)), `${key}: runtime prompt missing contract`)
+    }
+  })
+
+  it('service contracts do not expose internal customer-hostile wording', () => {
+    const joined = Object.values(SERVICE_VOICE_CONTRACTS).map((contract) => [
+      contract.promise,
+      contract.userQuestion,
+      contract.teaserJob,
+      contract.reportJob,
+      contract.requiredScenes.join(' '),
+      contract.decisionCriteria.join(' '),
+    ].join(' ')).join('\n')
+    assert.doesNotMatch(joined, /측정 전|자료가 아직 없어요|DEM|서버 권한|로그인과 결제 상태|풀이\s*\d+/)
   })
 
   it('newyear has its own grounded 2027 prompt and never falls back to the master persona', () => {

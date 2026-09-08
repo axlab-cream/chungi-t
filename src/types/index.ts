@@ -166,6 +166,8 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  /** Server-calculated wedding candidate evidence, persisted with the report. */
+  wedding?: { facts: unknown; teaser: { headline: string; lines: string[] } }
   /** Server-calculated, saved target-year facts; never supplied by the browser. */
   newyear?: {
     targetYear: number
@@ -211,6 +213,10 @@ export interface SajuReportContext {
       front?: string
       back?: string
       confidence?: string
+      siteSimilarityScore?: number
+      siteSimilarityLabel?: string
+      siteArchetype?: string
+      similarCases?: string[]
     }
   }
   exam?: {

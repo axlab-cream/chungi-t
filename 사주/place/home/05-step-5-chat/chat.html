@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
-<script src="/js/umsh-report-access.js"></script>
+<script src="/js/umsh-report-access.js?v=home-layout-20260907"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
@@ -9,7 +9,7 @@
     <title>결과 목록 | 지금 사는 집, 나랑 잘 맞을까?</title>
     <meta
       name="description"
-      content="결제 후 열리는 집 풍수 리포트의 10개 결과 목록과 상담 진입 화면입니다."
+      content="결제 후 열리는 집 풍수 리포트의 12장 결과 목록과 상담 진입 화면입니다."
     />
     <meta property="og:title" content="운명상회 - 운명을 팝니다." />
     <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
@@ -493,6 +493,7 @@
       }
     </style>
     <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907" />
   </head>
   <body>
     <main class="app" id="step-5-chat" aria-label="집 풍수 결과 목록">
@@ -501,12 +502,12 @@
       <section class="hero" aria-labelledby="page-title">
         <div class="hero-copy">
           <span class="eyebrow">결제 후 리포트 허브</span>
-          <h1 id="page-title">10개 흐름 중 지금 보고 싶은 것부터 열어보세요</h1>
+          <h1 id="page-title">12장 흐름 중 지금 보고 싶은 것부터 열어보세요</h1>
           <p id="hero-summary">
             이 집이 나에게 맞는지, 전체 핏부터 침실·현관·돈·관계·액션 플랜까지 항목별로 나눠 봅니다.
           </p>
           <div class="chips" aria-label="리포트 기준">
-            <span class="chip">10개 대분류</span>
+            <span class="chip">12장 리포트</span>
             <span class="chip">공간별 처방</span>
             <span class="chip">상담 이어가기</span>
           </div>
@@ -517,16 +518,8 @@
       </section>
 
       <section class="band">
-        <div class="section-head">
-          <span class="eyebrow">상태 확인</span>
-          <h2>상세는 서버 권한 확인 후 열립니다</h2>
-          <p>이 화면은 결과 목록과 상담 진입을 보여주며, 상세 본문 전체는 06 단계에서 항목별로 확인합니다.</p>
-        </div>
-        <div class="status-box" id="status-box" aria-live="polite">
-          <strong>권한 확인 대기</strong>
-          <span>운영 환경에서는 로그인과 결제 권한을 확인한 뒤 상세 리포트를 엽니다.</span>
-        </div>
-        <button class="pdf-button" type="button" id="pdf-button">PDF 저장 요청</button>
+        <div class="status-box" id="status-box" aria-live="polite" hidden></div>
+        <button class="pdf-button" type="button" id="pdf-button">PDF로 저장하기</button>
         <div class="empty-state" id="missing-input">
           <strong>입력값을 찾지 못했습니다</strong>
           <span>직접 URL로 들어온 경우에도 목록은 볼 수 있지만, 개인화된 상세는 입력과 권한 확인이 필요합니다.</span>
@@ -544,7 +537,7 @@
       <section class="band" aria-labelledby="report-title">
         <div class="section-head">
           <span class="eyebrow">전체 결과 목록</span>
-          <h2 id="report-title">대분류 10개가 모두 열려 있습니다</h2>
+          <h2 id="report-title">12장 해석이 모두 열려 있습니다</h2>
           <p>목록에는 결론 전체를 풀지 않고, 각 상세에서 확인할 방향만 짧게 보여줍니다.</p>
         </div>
         <div class="report-list" id="report-list"></div>
@@ -570,7 +563,7 @@
         <textarea id="chat-message" rows="2" placeholder="지금 마음에 걸린 집 포인트를 적어주세요..." required></textarea>
         <button class="send-btn" type="submit">전송</button>
       </div>
-      <p class="fine-print">상담과 상세 본문 제공은 운영 환경의 로그인·결제 권한 확인을 기준으로 처리합니다.</p>
+      
     </form>
 
     <script type="application/json" id="PROMPT_INPUT">
@@ -603,12 +596,12 @@
           {
             "group_id": "house-energy",
             "section_id": "house-energy",
-            "title": "집의 기본 기운",
-            "preview": "집이 안정형인지 활동형인지, 앞열림과 뒤받침의 균형을 봅니다.",
+            "title": "터가 나를 받치나, 밀어내나",
+            "preview": "터 유사도와 비슷한 생활 패턴을 기준으로 쉽게 풀이합니다.",
             "visual_key": "house-energy",
             "evidence_ids": ["fengshui.home", "guide.front-back", "guide.road-window"],
             "route": "../06-step-6_1-report-detail/index.html?section=house-energy#step-6_1-report",
-            "items": ["안정형/활동형/휴식형", "앞이 열린 집", "뒤가 받치는 집", "좌우 균형", "도로·골목·물길 흐름", "건물 압박·창밖 시야"]
+            "items": ["터 유사도", "받침감", "이동 부담", "비슷한 터의 생활 패턴"]
           },
           {
             "group_id": "saju-house-ohaeng",
@@ -733,7 +726,7 @@
         "guardrails": [
           "목록 화면은 상세 결론 전체를 노출하지 않음",
           "명당·흉지 절대 판정 대신 생활 리듬과 공간 핏으로 표현",
-          "상세 본문 접근은 운영 환경의 서버 권한 확인 기준",
+          "목록 화면은 상세 결론 전체를 노출하지 않고, 항목별 상세에서 이어서 확인",
           "근거가 약한 항목은 추가 확인 필요 상태로 남김"
         ]
       }
@@ -745,7 +738,7 @@
         "status": "ready_for_review",
         "checks": [
           { "name": "latest_user_service_values_applied", "pass": true },
-          { "name": "all_10_interpretation_groups_visible_and_clickable", "pass": true },
+          { "name": "all_12_interpretation_groups_visible_and_clickable", "pass": true },
           { "name": "report_index_uses_user_seed_groups", "pass": true },
           { "name": "each_group_routes_to_step_06_with_section_id", "pass": true },
           { "name": "list_does_not_expose_full_detail_body", "pass": true },
@@ -779,6 +772,30 @@
         selectedSection: "umsh_home_fit_selected_section_v1",
         chatDraft: "umsh_home_fit_chat_prompt_v1"
       };
+
+      const SECTION_ALIASES = {
+        "house-energy": "terrain-support",
+        "spatial-fix": "reality-action"
+      };
+
+      const HOME_GUIDE_GROUPS = [
+        { group_id: "home-fit-overall", section_id: "home-fit-overall", title: "이 집, 나랑 찐으로 결 맞아?", preview: "전체 판정과 8축 점수판으로 지금 집의 강점과 먼저 볼 리스크를 봅니다.", items: ["전체 판정", "8축 점수판", "핵심 강점", "우선 리스크"] },
+        { group_id: "terrain-support", section_id: "terrain-support", title: "터가 나를 받치나, 밀어내나", preview: "터 유사도와 비슷한 생활 패턴을 기준으로 쉽게 풀이합니다.", items: ["터 유사도", "받침감", "이동 부담", "비슷한 터의 생활 패턴"] },
+        { group_id: "external-flow", section_id: "external-flow", title: "물길·도로·바람, 뭐가 치고 들어오나", preview: "수계·도로·바람·소음처럼 바깥 흐름의 영향을 분리합니다.", items: ["수계", "도로", "바람", "외부 소음"] },
+        { group_id: "light-air-noise", section_id: "light-air-noise", title: "빛은 약인가, 알람 폭탄인가", preview: "빛·공기·소음을 시간대별 자극과 회복 기준으로 비교합니다.", items: ["향·일조", "환기", "소음", "시간대 자극"] },
+        { group_id: "building-unit", section_id: "building-unit", title: "건물과 세대의 기본 체력", preview: "층·준공·공용시설·평면처럼 건물 조건을 별도 장으로 봅니다.", items: ["층·준공", "공용시설", "평면", "세대 조건"] },
+        { group_id: "entrance-flow", section_id: "entrance-flow", title: "현관에서 이미 기 빨리나", preview: "문 앞 정체, 신발·택배, 첫 동선에서 생기는 마찰을 봅니다.", items: ["첫 동선", "문 앞 정체", "신발·택배", "출입 리듬"] },
+        { group_id: "sleep-recovery", section_id: "sleep-recovery", title: "침실은 쉬는 방인가, 야근 2차전인가", preview: "수면·회복만 따로 떼어 빛·소리·온도와 7일 실험 기준을 잡습니다.", items: ["수면 자극", "회복감", "야간 빛·소리", "7일 실험"] },
+        { group_id: "remote-focus", section_id: "remote-focus", title: "책상은 집중석인가, 알림 콜로세움인가", preview: "책상의 뒤받침, 시야, 알림, 시작·마감 루틴을 집중 기준으로 해석합니다.", items: ["뒤받침", "시야", "알림·소리", "시작·마감"] },
+        { group_id: "money-living", section_id: "money-living", title: "돈이 새나, 동선이 새나", preview: "살림 동선과 반복 지출, 중복 구매가 생기는 지점을 현실적으로 봅니다.", items: ["중복 구매", "수납", "반품·구독", "살림 동선"] },
+        { group_id: "relationship-cohabitation", section_id: "relationship-cohabitation", title: "같이 살면 케미, 아니면 소음 협약", preview: "공용 공간, 사생활, 시간표가 관계 피로를 만드는지 봅니다.", items: ["공용 공간", "사생활", "사용 시간", "관계 거리"] },
+        { group_id: "saju-house-ohaeng", section_id: "saju-house-ohaeng", title: "내 사주 × 집 오행 핏", preview: "사주 오행과 집의 상징, 올해 흐름을 한 장에서만 깊게 풀이합니다.", items: ["개인 오행", "집 상징", "목적 오행", "연간 흐름"] },
+        { group_id: "reality-action", section_id: "reality-action", title: "그래서 뭘 하면 되는데?", preview: "오늘·7일·30일 액션과 이사 비교 기준을 우선순위로 정리합니다.", items: ["오늘", "7일", "30일", "이사 비교 기준"] }
+      ];
+
+      function canonicalSectionId(sectionId) {
+        return SECTION_ALIASES[sectionId] || sectionId || "";
+      }
 
       function readJsonBlock(id) {
         const node = document.getElementById(id);
@@ -845,19 +862,22 @@
 
       function mergeReportGroups(staticGroups, report) {
         const sections = Array.isArray(report?.sections) ? report.sections : [];
-        if (sections.length === 0) return staticGroups;
-        return sections.map((section, index) => {
-          const staticGroup = staticGroups.find((group) => group.section_id === section.id) || {};
+        const reportById = new Map(sections.map((section) => [canonicalSectionId(section.id), section]));
+        const baseGroups = HOME_GUIDE_GROUPS.length ? HOME_GUIDE_GROUPS : staticGroups;
+        return baseGroups.map((baseGroup, index) => {
+          const section = reportById.get(baseGroup.section_id);
+          const staticGroup = staticGroups.find((group) => canonicalSectionId(group.section_id) === baseGroup.section_id) || {};
           const reportId = report?.reportId ? `&reportId=${encodeURIComponent(report.reportId)}` : "";
           return {
+            ...baseGroup,
             ...staticGroup,
-            group_id: staticGroup.group_id || section.id,
-            section_id: section.id,
+            group_id: baseGroup.group_id,
+            section_id: baseGroup.section_id,
             report_id: report?.reportId || "",
-            title: section.category || staticGroup.title || `섹션 ${index + 1}`,
-            preview: previewFromSection(section) || staticGroup.preview || "입력값과 사주 계산을 겹쳐 본 상세 풀이입니다.",
-            route: `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(section.id)}${reportId}#step-6_1-report`,
-            items: staticGroup.items || section.ragTopics || []
+            title: section?.category || baseGroup.title || staticGroup.title || `섹션 ${index + 1}`,
+            preview: previewFromSection(section) || baseGroup.preview || staticGroup.preview || "해당 주제의 근거와 행동을 따로 봅니다.",
+            route: `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(baseGroup.section_id)}${reportId}#step-6_1-report`,
+            items: baseGroup.items || staticGroup.items || section?.ragTopics || []
           };
         });
       }
@@ -915,17 +935,12 @@
 
         if (inputPayload?.service?.service_key === SERVICE.service_key) {
           document.getElementById("page-title").textContent = `${name} 집 리포트, 보고 싶은 항목부터 열어보세요`;
-          document.getElementById("hero-summary").textContent = report?.subtitle || "전체 핏부터 침실·현관·돈·관계·액션 플랜까지, 지금 집에서 체감되는 흐름을 항목별로 나눠 봅니다.";
+          document.getElementById("hero-summary").textContent = report?.subtitle || "전체 핏부터 터·외부 흐름·빛·건물·침실·현관·돈·관계·액션 플랜까지, 지금 집에서 체감되는 흐름을 12장으로 나눠 봅니다.";
         } else {
           missingInput.classList.add("is-open");
         }
 
-        if (paymentIntent?.service?.service_key === SERVICE.service_key) {
-          statusBox.innerHTML = `
-            <strong>결제 흐름에서 이어졌습니다</strong>
-            <span>운영 환경에서는 서버 권한 확인 후 상세 본문을 열고, 이 화면은 결과 목록과 상담 진입을 담당합니다.</span>
-          `;
-        }
+
       }
 
       function initChat() {
@@ -952,7 +967,7 @@
               </article>
               <article class="chat-bubble">
                 <strong>운명상회</strong>
-                <span>질문을 저장했습니다. 운영 상담에서는 같은 리포트 기준으로 이어서 답변합니다.</span>
+                <span>질문을 저장했습니다. 같은 리포트 기준으로 이어서 답변합니다.</span>
               </article>
             `
           );
@@ -961,15 +976,30 @@
         });
 
         pdfButton?.addEventListener("click", () => {
+          const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+          const report = window.UMSHReportAccess?.verifiedReport();
+          if (!report?.sections?.length || !report.sections.every((section) => section.status === 'complete')) {
+            window.UMSHHomeReading?.renderProgress(report || { sections: [] });
+            return;
+          }
+          const opened = window.UMSHReportPdf?.open(report);
           setSession(STORAGE_KEYS.selectedSection, {
             service_key: SERVICE.service_key,
-            action: "pdf_requested",
+            action: opened ? "pdf_opened" : "pdf_unavailable",
             selected_at: new Date().toISOString()
           });
           const statusBox = document.getElementById("status-box");
+          statusBox.hidden = false;
+          if (!opened) {
+            statusBox.innerHTML = `
+              <strong>저장할 완성 리포트를 찾지 못했습니다</strong>
+              <span>04 단계에서 분석을 완료한 뒤 다시 시도해 주세요. 팝업 차단이 켜져 있으면 이 사이트의 팝업도 허용해야 합니다.</span>
+            `;
+            return;
+          }
           statusBox.innerHTML = `
-            <strong>PDF 요청이 저장됐습니다</strong>
-            <span>운영 환경에서는 권한 확인 후 전체 리포트 파일을 생성합니다.</span>
+            <strong>PDF 저장 창을 열었습니다</strong>
+            <span>새 창의 인쇄 대화상자에서 대상 프린터를 ‘PDF로 저장’으로 선택하면 전체 리포트를 내려받을 수 있습니다.</span>
           `;
         });
       }
@@ -989,10 +1019,13 @@
     <div data-umsh-service-bottom></div>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-checkout.js"></script>
+    <script src="/js/umsh-report-pdf.js"></script>
     <script>
       // Settle the ?paid=1 marker the payment result page sends readers back with.
       window.UMSHCheckout?.finish();
     </script>
+    <script src="/js/home-dashboard.js?v=20260907-overall-only"></script>
+    <script src="/js/umsh-home-reading.js?v=20260907-gnb"></script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
   </body>
 </html>

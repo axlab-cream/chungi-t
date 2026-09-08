@@ -98,22 +98,24 @@
       },
       {
         "relation": "next",
-        "section_id": "house-energy",
-        "title": "집의 기본 기운",
-        "route": "../06-step-6_1-report-detail/index.html?section=house-energy#step-6_1-report"
+        "section_id": "terrain-support",
+        "title": "터가 나를 받치나, 밀어내나",
+        "route": "../06-step-6_1-report-detail/index.html?section=terrain-support#step-6_1-report"
       }
     ]
   },
   "available_sections": [
     "home-fit-overall",
-    "house-energy",
+    "terrain-support",
+    "external-flow",
+    "light-air-noise",
+    "building-unit",
     "saju-house-ohaeng",
     "sleep-recovery",
     "entrance-flow",
     "remote-focus",
     "money-living",
     "relationship-cohabitation",
-    "spatial-fix",
     "reality-action"
   ],
   "image_manifest": [
@@ -181,7 +183,7 @@
     "back_route": "../05-step-5-chat/chat.html#step-5-chat",
     "section_query_key": "section",
     "default_section": "home-fit-overall",
-    "next_section": "house-energy",
+    "next_section": "terrain-support",
     "previous_section": "reality-action",
     "invalid_section_behavior": "fallback_to_default_without_creating_new_section",
     "selected_section_storage": "sessionStorage.umsh_home_fit_selected_section_v1",

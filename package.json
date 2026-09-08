@@ -22,9 +22,12 @@
     "check:jobchoice": "node scripts/check-jobchoice.mjs",
     "check:cat": "node scripts/check-cat.mjs",
     "check:lucky": "node scripts/check-lucky.mjs",
+    "check:wedding": "node scripts/check-wedding.mjs",
     "check:newyear": "node scripts/check-newyear.mjs",
     "check:polish": "node scripts/check-flow-polish.mjs",
-    "check:prompt-guide": "node scripts/check-prompt-guide.mjs"
+    "check:prompt-guide": "node scripts/check-prompt-guide.mjs",
+    "check:service-contracts": "tsx scripts/check-service-contracts.ts",
+    "qa:all-services": "tsx scripts/qa-all-services.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

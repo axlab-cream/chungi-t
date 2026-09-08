@@ -48,8 +48,8 @@
       {
         "group_id": "house-energy",
         "section_id": "house-energy",
-        "title": "집의 기본 기운",
-        "preview": "집이 안정형인지 활동형인지, 앞열림과 뒤받침의 균형을 봅니다.",
+        "title": "터가 나를 받치나, 밀어내나",
+        "preview": "터 유사도와 비슷한 생활 패턴을 기준으로 쉽게 풀이합니다.",
         "visual_key": "house-energy",
         "evidence_ids": [
           "fengshui.home",
@@ -58,12 +58,10 @@
         ],
         "route": "../06-step-6_1-report-detail/index.html?section=house-energy#step-6_1-report",
         "items": [
-          "안정형/활동형/휴식형",
-          "앞이 열린 집",
-          "뒤가 받치는 집",
-          "좌우 균형",
-          "도로·골목·물길 흐름",
-          "건물 압박·창밖 시야"
+          "터 유사도",
+          "받침감",
+          "이동 부담",
+          "비슷한 터의 생활 패턴"
         ]
       },
       {

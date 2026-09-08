@@ -92,6 +92,13 @@ import {
   parseCatCompatRequest,
 } from '../pet/cat-service.js'
 import {
+  buildWeddingContext,
+  buildWeddingReport,
+  buildWeddingTeaser,
+  createWeddingReportId,
+  parseWeddingRequest,
+} from '../day/wedding-service.js'
+import {
   buildNewYearContext,
   buildNewYearReport,
   createNewYearReportId,
@@ -538,6 +545,31 @@ app.get(['/flow/newyear/chat', '/flow/newyear/chat.html'], (req, res) => {
 })
 app.get(['/flow/newyear/detail', '/flow/newyear/detail.html'], (req, res) => {
   res.redirect(302, newYearFlowUrl(req, '06-step-6_1-report-detail/index.html'))
+})
+// 우리, 언제 결혼하면 좋을까? runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
+app.get(['/day/wedding', '/day/wedding/', '/day/wedding/index.html'], (req, res) => {
+  // A return from the PG carries ?paid=1&orderId=..., and step 04 resumes it, so keep the
+  // query and send a paid visitor to the result instead of the intro.
+  const forwarded = new URLSearchParams()
+  for (const key of ['paid', 'orderId', 'reportId']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  const step = req.query.paid === '1' ? '04-step-4-report' : '01-step-1-story'
+  res.redirect(302, `/day/wedding/${step}/index.html${query ? `?${query}` : ''}`)
+})
+app.get(['/day/wedding/input', '/day/wedding/input.html'], (_req, res) => {
+  res.redirect(302, '/day/wedding/02-step-2-saju-input/index.html')
+})
+app.get(['/day/wedding/report', '/day/wedding/report.html'], (_req, res) => {
+  res.redirect(302, '/day/wedding/04-step-4-report/index.html')
+})
+app.get(['/day/wedding/chat', '/day/wedding/chat.html'], (_req, res) => {
+  res.redirect(302, '/day/wedding/05-step-5-chat/chat.html')
+})
+app.get(['/day/wedding/detail', '/day/wedding/detail.html'], (_req, res) => {
+  res.redirect(302, '/day/wedding/06-step-6_1-report-detail/index.html')
 })
 app.get(['/match/couple/input', '/match/couple/input.html'], (_req, res) => {
   res.redirect(302, '/match/couple/02-step-2-saju-input/index.html')
@@ -1208,6 +1240,7 @@ const PRODUCT_KEY_BY_SERVICE_KEY: Record<string, string> = {
   cat_compatibility: 'cat_compatibility',
   lucky_color: 'lucky_color',
   newyear_flow: 'newyear_flow',
+  wedding_day: 'wedding_day',
   couple_signal: 'couple_signal',
   marry_match: 'marry_match',
   love_mind: 'love_mind',
@@ -1741,6 +1774,7 @@ const ANALYZE_SERVICES: Record<string, string> = {
   '/api/love/this-year/analyze': 'love_this_year', '/api/love/again/analyze': 'love_again',
   '/api/love/spouse/analyze': 'love_spouse',
   '/api/flow/newyear/analyze': 'newyear_flow',
+  '/api/day/wedding/analyze': 'wedding_day',
 }
 
 app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
@@ -1959,6 +1993,45 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : '고양이 궁합 생성 실패' })
+  }
+})
+
+app.post('/api/day/wedding/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼 택일을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseWeddingRequest(req.body)
+    input.birthTimeKnown = profile.birthTimeKnown
+    if (input.candidateDates.length === 0) {
+      res.status(400).json({ error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
+      return
+    }
+    const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
+    const analysis = analyzeSaju(profile.birth)
+    const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
+    const teaser = buildWeddingTeaser(analysis, input, context)
+    Object.assign(context, { wedding: { facts: teaser.frame, teaser: { headline: teaser.headline, lines: teaser.lines } } })
+    const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '결혼 택일 풀이 생성 실패' })
   }
 })
 

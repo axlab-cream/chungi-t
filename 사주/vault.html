@@ -274,7 +274,13 @@
               .map((report) => {
                 const key = report.serviceKey || report.context?.serviceKey || '';
                 const service = titles[key] || report.context?.target || report.context?.serviceTitle || '천명사주';
-                const href = report.serviceHref || (key === 'cmdg' || !key ? '/cmdg/' : '/search');
+                const savedId = report.resultId || report.reportId;
+                const isHome = ['home_fit', 'home_pungsu', 'home'].includes(key);
+                const href = savedId
+                  ? (isHome
+                    ? `/place/home/06-step-6_1-report-detail/index.html?reportId=${encodeURIComponent(savedId)}&section=home-fit-overall#step-6_1-report`
+                    : `/r/${encodeURIComponent(savedId)}`)
+                  : '/search';
                 const openable = Boolean(href && href !== '/search');
                 const body = `
                   <span class="body">

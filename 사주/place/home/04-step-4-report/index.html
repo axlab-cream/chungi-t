@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
-<script src="/js/umsh-report-access.js"></script>
+<script src="/js/umsh-report-access.js?v=home-layout-20260907"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
@@ -567,6 +567,7 @@
       }
     </style>
     <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907" />
   </head>
   <body>
     <main class="app" id="step-4-report">
@@ -666,7 +667,7 @@
       <section class="band paid-band" aria-labelledby="paid-title">
         <div class="section-head">
           <span class="eyebrow">결제 후 열리는 전체 범위</span>
-          <h2 id="paid-title">9,900원 리포트에서는 10개 흐름을 이어서 봅니다</h2>
+          <h2 id="paid-title">9,900원 리포트에서는 12장 흐름을 이어서 봅니다</h2>
           <p>무료 방향에서 멈추지 않고, 사주와 집의 오행 핏, 공간별 손질, 7일 액션까지 연결합니다.</p>
         </div>
 
@@ -678,7 +679,7 @@
             </div>
             <div class="receipt-row">
               <strong>제공 범위</strong>
-              <span>10개 대분류, 공간별 처방, 현실 액션</span>
+              <span>12장 해석, 8축 점수판, 현실 액션</span>
             </div>
             <div class="receipt-row">
               <strong>결제 금액</strong>
@@ -688,33 +689,13 @@
           <figure class="visual-frame" data-asset-key="home-04-paid-preview">
             <img src="assets/generated/home/04-paid-preview.webp" alt="집 모형과 빈 리포트 카드를 정리하는 운명상회 가이드" />
           </figure>
-        </div>
-
-        <div class="state-grid" aria-label="로그인과 결제 상태">
-          <div class="state-card">
-            <strong>로그인 전</strong>
-            <span>로그인 후 방금 결과로 돌아옵니다.</span>
-          </div>
-          <div class="state-card">
-            <strong>결제 전</strong>
-            <span>무료 방향은 유지하고 전체 리포트만 잠겨 있습니다.</span>
-          </div>
-          <div class="state-card">
-            <strong>진행 중</strong>
-            <span>중복 결제를 막고 이어서 복구합니다.</span>
-          </div>
-          <div class="state-card">
-            <strong>취소 또는 실패</strong>
-            <span>무료 결과를 잃지 않고 다시 시도합니다.</span>
-          </div>
-        </div>
-      </section>
+        </div></section>
 
       <section class="band" aria-labelledby="scope-title">
         <div class="section-head">
           <span class="eyebrow">전체 리포트 목차</span>
           <h2 id="scope-title">이런 것까지 봅니다</h2>
-          <p>목차는 사용자가 지정한 대분류와 중분류를 그대로 이어받았습니다.</p>
+          
         </div>
         <div class="scope-list" id="scope-list"></div>
       </section>
@@ -748,9 +729,7 @@
         <a class="cta-secondary" href="../02-step-2-saju-input/index.html#step-2-saju-input">
           입력 다시 확인하기
         </a>
-        <p class="fine-print">
-          결제와 권한 확인은 서버 기준으로 처리되어야 합니다. 취소와 환불 안내는 결제 단계에서 함께 확인합니다.
-        </p>
+        
       </nav>
     </main>
 
@@ -786,8 +765,8 @@
           },
           {
             "group_id": "house-energy",
-            "title": "집의 기본 기운",
-            "items": ["안정형/활동형/휴식형", "앞이 열린 집", "뒤가 받치는 집", "좌우 균형", "도로·골목·물길 흐름", "건물 압박·창밖 시야"]
+            "title": "터가 나를 받치나, 밀어내나",
+            "items": ["터 유사도", "받침감", "이동 부담", "비슷한 터의 생활 패턴"]
           },
           {
             "group_id": "saju-house-ohaeng",
@@ -917,8 +896,8 @@
         "checks": [
           { "name": "latest_user_service_values_applied", "pass": true },
           { "name": "free_teaser_shows_direction_without_full_paid_detail", "pass": true },
-          { "name": "all_10_interpretation_groups_visible", "pass": true },
-          { "name": "all_10_interpretation_groups_preserved_in_json", "pass": true },
+          { "name": "all_12_interpretation_groups_visible", "pass": true },
+          { "name": "all_12_interpretation_groups_preserved_in_ui", "pass": true },
           { "name": "client_does_not_assert_paid_authority", "pass": true },
           { "name": "payment_failure_and_missing_input_states_have_recovery_copy", "pass": true },
           { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
@@ -950,6 +929,21 @@
         input: "umsh_home_fit_input_payload_v1",
         paymentIntent: "umsh_home_fit_payment_intent_v1"
       };
+
+      const HOME_GUIDE_GROUPS = [
+        { group_id: "home-fit-overall", title: "이 집, 나랑 찐으로 결 맞아?", items: ["전체 판정", "8축 점수판", "핵심 강점", "우선 리스크"] },
+        { group_id: "terrain-support", title: "터가 나를 받치나, 밀어내나", items: ["터 유사도", "받침감", "이동 부담", "비슷한 터의 생활 패턴"] },
+        { group_id: "external-flow", title: "물길·도로·바람, 뭐가 치고 들어오나", items: ["수계", "도로", "바람", "외부 소음"] },
+        { group_id: "light-air-noise", title: "빛은 약인가, 알람 폭탄인가", items: ["향·일조", "환기", "소음", "시간대 자극"] },
+        { group_id: "building-unit", title: "건물과 세대의 기본 체력", items: ["층·준공", "공용시설", "평면", "세대 조건"] },
+        { group_id: "entrance-flow", title: "현관에서 이미 기 빨리나", items: ["첫 동선", "문 앞 정체", "신발·택배", "출입 리듬"] },
+        { group_id: "sleep-recovery", title: "침실은 쉬는 방인가, 야근 2차전인가", items: ["수면 자극", "회복감", "야간 빛·소리", "7일 실험"] },
+        { group_id: "remote-focus", title: "책상은 집중석인가, 알림 콜로세움인가", items: ["뒤받침", "시야", "알림·소리", "시작·마감"] },
+        { group_id: "money-living", title: "돈이 새나, 동선이 새나", items: ["중복 구매", "수납", "반품·구독", "살림 동선"] },
+        { group_id: "relationship-cohabitation", title: "같이 살면 케미, 아니면 소음 협약", items: ["공용 공간", "사생활", "사용 시간", "관계 거리"] },
+        { group_id: "saju-house-ohaeng", title: "내 사주 × 집 오행 핏", items: ["개인 오행", "집 상징", "목적 오행", "연간 흐름"] },
+        { group_id: "reality-action", title: "그래서 뭘 하면 되는데?", items: ["오늘", "7일", "30일", "이사 비교 기준"] }
+      ];
 
       const LABELS = {
         building_type: {
@@ -1256,7 +1250,7 @@
 
       function renderScope() {
         const payload = readJsonBlock("INTERPRETATION_INDEX_PAYLOAD");
-        const groups = payload?.groups || [];
+        const groups = HOME_GUIDE_GROUPS.length ? HOME_GUIDE_GROUPS : (payload?.groups || []);
         document.getElementById("scope-list").innerHTML = groups
           .map(
             (group, index) => `
@@ -1357,6 +1351,7 @@
     <div data-umsh-service-bottom></div>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-checkout.js"></script>
+    <script src="/js/umsh-home-reading.js?v=20260907-gnb"></script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
   </body>
 </html>

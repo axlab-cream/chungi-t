@@ -5,6 +5,56 @@ import { test } from 'node:test'
 
 const source = readFileSync(new URL('../../사주/js/umsh-report-access.js', import.meta.url), 'utf8')
 
+test('home verified responses use the original page renderer and revoke on owner change', () => {
+  const h = harness('/place/home/04-step-4-report/index.html?reportId=home-uuid', [])
+  const rendered: any[] = []
+  h.context.UMSHHomeReading = { render(payload: any) { rendered.push(payload); return true } }
+  h.api.setOwner('owner-a')
+  const report = { serviceKey: 'home_fit', sections: [{ id: 'home-fit-overall', status: 'complete', interpretation: '원문' }] }
+  h.api.consume({ reportId: 'home-uuid', report }, {})
+  assert.equal(rendered.length, 1)
+  assert.equal(h.nodes.has('umsh-verified-reading'), false)
+  assert.equal(h.api.verifiedReport(), report)
+  h.api.setOwner('owner-b')
+  assert.equal(h.api.verifiedReport(), null)
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /계정이 변경/)
+})
+
+test('home preview uses original teaser without authorizing a full report', () => {
+  const h = harness('/place/home/04-step-4-report/index.html?reportId=home-uuid', [])
+  let called = false
+  h.context.UMSHHomeReading = { render() { called = true; return true } }
+  h.api.consume({ previewOnly: true, serviceKey: 'home_fit', reportId: 'home-uuid', preview: { summary: '미리보기' } })
+  assert.equal(called, true)
+  assert.equal(h.api.verifiedReport(), null)
+  assert.equal(h.nodes.has('umsh-verified-reading'), false)
+})
+
+test('wedding verified responses use the original page renderer and revoke on owner change', () => {
+  const h = harness('/day/wedding/04-step-4-report/index.html?reportId=wedding-uuid', [])
+  const rendered: any[] = []
+  h.context.UMSHWeddingReading = { render(payload: any) { rendered.push(payload); return true } }
+  h.api.setOwner('owner-a')
+  const report = { serviceKey: 'wedding_day', sections: [{ id: '1-1', status: 'complete', interpretation: '원문' }] }
+  h.api.consume({ reportId: 'wedding-uuid', report }, {})
+  assert.equal(rendered.length, 1)
+  assert.equal(h.nodes.has('umsh-verified-reading'), false)
+  assert.equal(h.api.verifiedReport(), report)
+  h.api.setOwner('owner-b')
+  assert.equal(h.api.verifiedReport(), null)
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /계정이 변경/)
+})
+
+test('wedding preview uses original teaser without authorizing a full report', () => {
+  const h = harness('/day/wedding/04-step-4-report/index.html?reportId=wedding-uuid', [])
+  let called = false
+  h.context.UMSHWeddingReading = { render() { called = true; return true } }
+  h.api.consume({ previewOnly: true, serviceKey: 'wedding_day', reportId: 'wedding-uuid', preview: { summary: '미리보기' } })
+  assert.equal(called, true)
+  assert.equal(h.api.verifiedReport(), null)
+  assert.equal(h.nodes.has('umsh-verified-reading'), false)
+})
+
 function harness(path: string, responses: unknown[], cache: Record<string, unknown> = {}) {
   const calls: Array<{path: string; options: any}> = []
   const nodes = new Map<string, any>()

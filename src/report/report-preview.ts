@@ -34,6 +34,10 @@ export function guardPreview(preview: ReportPreview, context: SajuReportContext 
 }
 
 export function createSavedPreview(report: SajuReport, context: SajuReportContext = {}): ReportPreview {
+  if (context.serviceKey === 'wedding_day' && context.wedding?.teaser) {
+    const { headline, lines } = context.wedding.teaser
+    return { title: report.title, headline, summary: lines[0] ?? headline, insights: lines.slice(1), signals: lines.slice(1), paidValue: `전체 해석에서는 6개 대분류 · ${report.sections.length}개 중분류로 후보일 조건을 비교합니다.` }
+  }
   if (context.serviceKey === 'newyear_flow' && context.newyear?.teaser) {
     const { headline, lines } = context.newyear.teaser
     return {

@@ -563,6 +563,8 @@ function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
     ids.add('hfit-001')
     ids.add('hfit-002')
     ids.add('hfit-003')
+    ids.add('hfit-004')
+    ids.add('hfit-005')
     const joinedHome = [
       home?.mainPurpose,
       home?.stayDecision,
@@ -574,13 +576,14 @@ function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
       home?.extraNote,
     ].filter(Boolean).join(' ')
 
-    if (/sleep|rest|bedroom|window_road|door_line|too_bright|잠|수면|회복|소음/.test(joinedHome)) ids.add('hfit-004')
-    if (/entrance|direct|bent|blocked|현관|동선/.test(joinedHome)) ids.add('hfit-005')
-    if (/work|focus|desk|back_window|face_door|mixed_rest|재택|공부|집중/.test(joinedHome)) ids.add('hfit-006')
-    if (/money|살림|소비|수납|주방/.test(joinedHome)) ids.add('hfit-007')
-    if (/relationship|가족|동거|관계/.test(joinedHome)) ids.add('hfit-008')
-    if (/fix|손질|처방|커튼|조명/.test(joinedHome)) ids.add('hfit-009')
-    if (/stay|move|compare|unknown|이사|계약|비교/.test(joinedHome)) ids.add('hfit-010')
+    if (/building|apartment|officetel|villa|층|준공|건물|세대|아파트|오피스텔|빌라/.test(joinedHome)) ids.add('hfit-005')
+    if (/entrance|direct|bent|blocked|현관|동선/.test(joinedHome)) ids.add('hfit-006')
+    if (/sleep|rest|bedroom|window_road|door_line|too_bright|잠|수면|회복|소음/.test(joinedHome)) ids.add('hfit-007')
+    if (/work|focus|desk|back_window|face_door|mixed_rest|재택|공부|집중/.test(joinedHome)) ids.add('hfit-008')
+    if (/money|살림|소비|수납|주방/.test(joinedHome)) ids.add('hfit-009')
+    if (/relationship|가족|동거|관계/.test(joinedHome)) ids.add('hfit-010')
+    ids.add('hfit-011')
+    if (/stay|move|compare|unknown|이사|계약|비교|액션|현실/.test(joinedHome)) ids.add('hfit-012')
   }
 
   if (context?.serviceKey === 'work_move') {

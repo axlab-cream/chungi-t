@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { formatServiceVoiceContract } from './service-voice-contracts.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROMPTS_ROOT = join(__dirname, '../../prompts')
@@ -35,12 +36,14 @@ export const KNOWN_SERVICE_KEYS = [
   'love_spouse',
   'home_fit',
   'newyear_flow',
+  'wedding_day',
 ] as const
 
 /** Required vocabulary from prompt_guides_18.md. Keeping this in the runtime
  * prompt makes the attached guide enforceable even when a service prompt is
  * edited independently. */
 const SERVICE_TERM_GUIDANCE: Record<string, string> = {
+  wedding_day: '전문 용어는 첫 등장에 쉬운 뜻을 붙입니다. 일주(하루의 간지), 일지(태어난 날의 지지), 십신(일간과 다른 기운의 관계), 절기(계절 구간). 사용하지 않는 용어를 분량 채우기로 나열하지 않습니다.',
   today_fortune: '필수 용어: 일진(日辰, 오늘의 기운), 일간(日干, 나의 중심 기운), 관성(官星, 책임과 규칙).',
   lucky_color: '필수 용어: 용신(用神, 필요한 기운), 기신(忌神, 부담이 되는 기운), 오행(五行, 다섯 상징).',
   saju_master: '필수 용어: 사주(四柱, 네 기둥), 원국(原局, 타고난 명식), 대운(大運, 긴 흐름), 십신(十神, 관계 코드).',
@@ -58,7 +61,7 @@ const SERVICE_TERM_GUIDANCE: Record<string, string> = {
   love_mind: '필수 용어: 십신(十神, 관계 반응 코드), 변곡점(變曲點, 변화가 드러나는 순간).',
   love_again: '필수 용어: 충(沖, 관계의 마찰과 변화), 합(合, 다시 맞춰 가는 흐름).',
   love_spouse: '필수 용어: 배우자궁(配偶者宮, 동반자 관계의 자리), 자미두수(紫微斗數, 별자리 해석 체계).',
-  home_fit: '필수 용어: 오행(五行, 다섯 상징), 현관·침실·책상·창밖의 생활 조건.',
+  home_fit: '현재 항목과 관련된 생활 조건만 설명합니다. 오행은 관련될 때만 쉬운 뜻을 붙입니다. 모든 공간이나 같은 명리 소개를 매 항목에 필수로 넣지 않습니다.',
   newyear_flow: '필수 용어: 세운(歲運, 한 해의 흐름), 월운(月運, 한 달의 흐름), 입춘(立春, 해의 경계를 보는 절기), 교운(交運, 대운 전환). 기준 연도는 context.newyear의 2027년 계산이며 일반 currentYear와 혼동하지 않습니다.',
 }
 
@@ -115,11 +118,11 @@ export function assertServicePromptCoverage(): void {
 
 export function loadServiceSystemPrompt(serviceKey?: string | null): string {
   assertServicePromptCoverage()
-  const key = normalizeServiceKey(serviceKey)
+  const key = normalizeServiceKey(serviceKey) as KnownServiceKey
   const cacheKey = `full:${key}`
   const hit = cache.get(cacheKey)
   if (hit !== undefined) return hit
-  const combined = `${loadCommonSystemPrompt()}\n\n${loadServiceBlock(key)}\n\n${SERVICE_TERM_GUIDANCE[key] ?? ''}`
+  const combined = `${loadCommonSystemPrompt()}\n\n${loadServiceBlock(key)}\n\n${formatServiceVoiceContract(key)}\n\n${SERVICE_TERM_GUIDANCE[key] ?? ''}`
   cache.set(cacheKey, combined)
   return combined
 }

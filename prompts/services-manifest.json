@@ -71,11 +71,15 @@
     },
     {
       "key": "home_fit",
-      "chars": 678
+      "chars": 3798
     },
     {
       "key": "newyear_flow",
       "chars": 2348
+    },
+    {
+      "key": "wedding_day",
+      "chars": 1435
     }
   ]
 }

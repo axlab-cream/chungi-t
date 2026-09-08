@@ -2,6 +2,7 @@
   'use strict';
   if (global.UMSHReportAccess) return;
   var ROUTES = [
+    ['/day/wedding', 'wedding_day'],
     ['/love/this-year', 'love_this_year'], ['/work/job-choice', 'job_choice'],
     ['/work/quit', 'quit_fortune'], ['/money/save', 'money_save'],
     ['/match/cat', 'cat_compatibility'], ['/me/lucky', 'lucky_color'], ['/flow/newyear', 'newyear_flow'],
@@ -64,7 +65,7 @@
       ownerEpoch+=1;
       if(ownerId) {
         authorized=null;rememberedId='';headerCache=null;
-        if(document.getElementById('umsh-verified-reading')) gate('계정이 변경되었습니다. 새 계정의 구매 내역에서 결과를 열어 주세요.');
+        if(document.getElementById('umsh-verified-reading') || ((key === 'home_fit' || key === 'wedding_day') && isOutputPage())) gate('계정이 변경되었습니다. 새 계정의 구매 내역에서 결과를 열어 주세요.');
       }
     }
     ownerId=next;
@@ -82,7 +83,7 @@
     layout.setAttribute('data-service','저장된 해석');
     node = document.createElement('main'); node.id = 'umsh-verified-reading';
     node.style.cssText = 'background:#110e0a;color:#f5ead7;word-break:keep-all;overflow-wrap:anywhere';
-    Array.from(document.body.children || []).forEach(function (item) { if (!['SCRIPT','STYLE','LINK'].includes(item.tagName) && !item.hasAttribute('data-umsh-service-bottom')) { item.hidden = true; item.style.setProperty('display','none','important'); } });
+    Array.from(document.body.children || []).forEach(function (item) { if (!['SCRIPT','STYLE','LINK'].includes(item.tagName) && !item.hasAttribute('data-umsh-service-bottom')) { item.setAttribute('data-report-concealed',''); item.hidden = true; item.style.setProperty('display','none','important'); } });
     layout.appendChild(node);
     document.body.appendChild(layout);
     document.documentElement.setAttribute('data-umsh-verified-reader','');
@@ -101,6 +102,8 @@
   }
   function showPreview(payload, request) {
     authorized = null;
+    if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
+    if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
     var preview = payload.preview || {};
     var insights = (preview.signals || preview.insights || []).filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
     var node = panel();
@@ -113,6 +116,8 @@
     var serverKey = canonical((payload.context && payload.context.serviceKey) || report.serviceKey || key);
     if (key && serverKey !== key) { gate('이 서비스의 해석이 아닙니다. 구매 내역에서 해당 결과를 열어 주세요.'); return; }
     authorized = report;
+    if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
+    if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});
@@ -123,7 +128,7 @@
       return '<details data-section="' + escapeHtml(section.id) + '" style="border-top:1px solid #6b522c;padding:18px 0"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary style="cursor:pointer;font-weight:700">' + escapeHtml(section.category + ' · ' + section.classification) + '</summary>' + (ready && section.hook && !duplicateHook?'<p><strong>'+escapeHtml(section.hook)+'</strong></p>':'') + body + '</details>';
     }).join('');
     var id = identity(payload);
-    if (id) node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+    if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
   }
   function validTodayScore(value) {
     return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100 ? value : null;

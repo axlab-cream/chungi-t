@@ -11,6 +11,7 @@ import type {
 } from '../types/index.js'
 import { chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
 import { InterpretationQualityError, reviewInterpretation } from './interpretation-validation.js'
+import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
 import { standardReading } from './standard-reading.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
@@ -423,64 +424,78 @@ const HOME_FIT_BLUEPRINTS: ReportBlueprint[] = [
     query: '집 풍수 현재 사는 집 나와 맞는지 생활 목적 사주 오행 핏',
   },
   {
-    id: 'house-energy',
-    category: '집의 기본 기운',
-    categoryEn: 'House Energy',
+    id: 'terrain-support',
+    category: '터가 나를 받치나, 밀어내나',
+    categoryEn: 'Terrain Support',
     focus: 'timingPlace',
-    query: '집 기본 기운 현관 채광 통풍 동선 앞열림 뒤받침 풍수',
+    query: '집 풍수 터 유사도 지형 타입 받침감 이동 부담 안정성',
   },
   {
-    id: 'saju-house-ohaeng',
-    category: '내 사주 × 집 오행 핏',
-    categoryEn: 'Saju House Elements',
-    focus: 'balance',
-    query: '사주 오행 집 공간 목 화 토 금 수 침실 책상 현관 보완',
+    id: 'external-flow',
+    category: '물길·도로·바람, 뭐가 치고 들어오나',
+    categoryEn: 'External Flow',
+    focus: 'timingPlace',
+    query: '집 풍수 물길 도로 바람 수계 교차로 골목 소음 외부 흐름',
   },
   {
-    id: 'sleep-recovery',
-    category: '잠·회복·멘탈 리듬',
-    categoryEn: 'Sleep Recovery',
-    focus: 'action',
-    query: '침실 수면 회복 멘탈 소음 빛 압박감 안정 집 풍수',
+    id: 'light-air-noise',
+    category: '빛은 약인가, 알람 폭탄인가',
+    categoryEn: 'Light Air Noise',
+    focus: 'timingPlace',
+    query: '집 풍수 향 일조 채광 환기 통풍 소음 빛 바람',
+  },
+  {
+    id: 'building-unit',
+    category: '건물과 세대의 기본 체력',
+    categoryEn: 'Building Unit',
+    focus: 'timingPlace',
+    query: '집 풍수 건물 준공 층수 세대 구조 평면 공용시설 주차장 엘리베이터',
   },
   {
     id: 'entrance-flow',
-    category: '현관·동선 에너지',
+    category: '현관에서 이미 기 빨리나',
     categoryEn: 'Entrance Flow',
     focus: 'timingPlace',
     query: '현관 동선 문 앞 신발장 통로 에너지 흐름 집 풍수',
   },
   {
+    id: 'sleep-recovery',
+    category: '침실은 쉬는 방인가, 야근 2차전인가',
+    categoryEn: 'Sleep Recovery',
+    focus: 'action',
+    query: '침실 수면 회복 멘탈 소음 빛 압박감 안정 집 풍수',
+  },
+  {
     id: 'remote-focus',
-    category: '재택·공부·일 집중력',
+    category: '책상은 집중석인가, 알림 콜로세움인가',
     categoryEn: 'Remote Focus',
     focus: 'workContext',
     query: '재택 공부 책상 등 뒤 문 창 집중력 업무 공간 배치',
   },
   {
     id: 'money-living',
-    category: '돈·살림·소비 흐름',
+    category: '돈이 새나, 동선이 새나',
     categoryEn: 'Money Living',
     focus: 'careerMoney',
     query: '돈 살림 소비 수납 주방 결제 충동 지출 집 풍수',
   },
   {
     id: 'relationship-cohabitation',
-    category: '관계·가족·동거 케미',
+    category: '같이 살면 케미, 아니면 소음 협약',
     categoryEn: 'Relationship Cohabitation',
     focus: 'relationshipContext',
     query: '관계 가족 동거 사생활 공용공간 거리감 집 풍수',
   },
   {
-    id: 'spatial-fix',
-    category: '공간별 손질 처방',
-    categoryEn: 'Spatial Fix',
-    focus: 'action',
-    query: '공간별 처방 커튼 조명 수납 배치 환기 침구 풍수 개선',
+    id: 'saju-house-ohaeng',
+    category: '내 사주 × 집 오행 핏',
+    categoryEn: 'Saju House Elements',
+    focus: 'balance',
+    query: '사주 오행 집 공간 목 화 토 금 수 목적 상징 궁합',
   },
   {
     id: 'reality-action',
-    category: '현실 체크 & 액션 플랜',
+    category: '그래서 뭘 하면 되는데?',
     categoryEn: 'Reality Action',
     focus: 'reportDepth',
     query: '이사 여부 현실 체크 7일 테스트 집 적합도 액션 플랜',
@@ -1073,15 +1088,17 @@ function homeClassificationFor(sectionId: string, analysis: SajuAnalysis, contex
 
   const labels: Record<string, string> = {
     'home-fit-overall': `${dayPillar} 일주 · ${building} · ${purpose} · ${decision}`,
-    'house-energy': `${entrance} · ${outside} · 집의 앞열림/뒤받침 점검`,
-    'saju-house-ohaeng': `${dominant} 과다 · ${weak} 보완 · ${useful} 기운으로 공간 조율`,
-    'sleep-recovery': `${bedroom} · ${pains} · 회복 리듬 점검`,
+    'terrain-support': `${home?.terrainEvidence?.siteSimilarityScore ? `${home.terrainEvidence.siteSimilarityScore}점` : home?.terrainEvidence?.siteSimilarityLabel ?? home?.terrainEvidence?.siteArchetype ?? '터 유사도'} · 터 안정성 점검`,
+    'external-flow': `${outside} · 도로·물길·바람 흐름 점검`,
+    'light-air-noise': `${outside} · 빛·바람·소음 시간대 점검`,
+    'building-unit': `${building} · 세대 구조·생활 체력 점검`,
     'entrance-flow': `${entrance} · 들어오는 기운과 빠져나가는 동선`,
+    'sleep-recovery': `${bedroom} · ${pains} · 회복 리듬 점검`,
     'remote-focus': `${desk} · ${context.work ?? '재택·공부·일상'} 집중 기준`,
     'money-living': `${purpose} · ${pains} · 돈·살림 동선`,
     'relationship-cohabitation': `${context.relationship ?? '관계 상태 미입력'} · ${pains} · 공용/사적 공간 거리감`,
-    'spatial-fix': `${useful} 보완 · 현관/침실/책상/창가 손질 우선순위`,
-    'reality-action': `${decision} · 7일 체감 테스트 · 이사보다 먼저 볼 현실 기준`,
+    'saju-house-ohaeng': `${dominant} 과다 · ${weak} 보완 · ${useful} 기운으로 공간 조율`,
+    'reality-action': `${decision} · 비용/난이도/관찰 지표 기준`,
   }
 
   return labels[sectionId] ?? `${homeContextSummary(context)} · ${dominant}/${weak} 오행 핏`
@@ -1162,15 +1179,17 @@ function homeHookFor(sectionId: string, analysis: SajuAnalysis, context: SajuRep
   const dominant = ELEMENT_KO[analysis.dominantElement]
   const hooks: Record<string, string> = {
     'home-fit-overall': `${purpose} 기준으로 보면 이 집의 결이 먼저 드러나요`,
-    'house-energy': '현관과 창밖의 흐름이 집의 첫인상을 만들고 있어요',
+    'terrain-support': '터는 분위기 말고 경사와 받침으로 먼저 봅니다',
+    'external-flow': '도로와 물길은 집 밖에서 들어오는 속도예요',
+    'light-air-noise': '빛은 약도 되고 알람 폭탄도 됩니다',
+    'building-unit': '집의 체력은 예쁜 사진보다 구조에서 갈립니다',
+    'entrance-flow': '현관이 복잡하면 하루의 첫 장면부터 걸립니다',
+    'sleep-recovery': '침실은 조용한데 내 뇌만 야근 중일 수 있어요',
+    'remote-focus': '책상 뒤는 든든한데 알림이 정면에서 포위할 수 있어요',
+    'money-living': '재물운보다 먼저 잡을 건 중복 결제입니다',
+    'relationship-cohabitation': '넓은 집보다 덜 부딪히는 규칙이 먼저예요',
     'saju-house-ohaeng': `${dominant}${koreanParticle(dominant, '은', '는')} 이미 두꺼워요, 집에서 채울 건 ${weak}${koreanParticle(weak, '이에요', '예요')}`,
-    'sleep-recovery': '잠이 편해야 집의 기운도 내 편이 되는 법이에요',
-    'entrance-flow': '들어오는 길이 복잡하면 마음도 먼저 걸려요',
-    'remote-focus': '책상 자리 하나가 집중력의 절반을 가져가요',
-    'money-living': '돈과 살림은 주방보다 동선과 수납에서 먼저 새요',
-    'relationship-cohabitation': '같이 사는 결은 넓이보다 거리감에서 갈려요',
-    'spatial-fix': '큰 공사보다 먼저 손댈 작은 자리가 있어요',
-    'reality-action': `${decision}은 7일 체감으로 먼저 가려보세요`,
+    'reality-action': `${decision}은 비용·난이도·관찰 지표로 정리하세요`,
   }
   return hooks[sectionId] ?? '집은 운을 바꾸는 마법보다 생활 리듬을 비추는 거울이에요'
 }
@@ -1441,6 +1460,12 @@ function buildHomeFitInterpretation(
   const bedroom = homeValueLabel('bedroomFeel', home?.bedroomFeel) || '침실 체감 미확인'
   const desk = homeValueLabel('deskPosition', home?.deskPosition) || '책상 위치 미확인'
   const outside = homeValueLabel('outsideFlow', home?.outsideFlow) || '창밖 흐름 미확인'
+  const terrain = home?.terrainEvidence
+  const terrainScore = typeof terrain?.siteSimilarityScore === 'number' ? Math.round(terrain.siteSimilarityScore) : null
+  const terrainType = terrain?.siteSimilarityLabel || terrain?.siteArchetype || terrain?.summary || '비슷한 생활 패턴 기준'
+  const terrainCases = Array.isArray(terrain?.similarCases) && terrain.similarCases.length > 0
+    ? terrain.similarCases.slice(0, 2).join(' · ')
+    : `${purpose} 목적과 ${painText} 신호가 반복되는 집`
   const address = home?.addressOrBuilding ? `${home.addressOrBuilding} 기준` : '현재 집 기준'
   const daewoon = analysis.fortune?.currentDaewoon ?? '현재 대운'
   const yearPillar = analysis.fortune?.yearPillar ?? '올해 세운'
@@ -1461,10 +1486,10 @@ function buildHomeFitInterpretation(
       `[보완] 오늘 바꿀 수 있는 건 하나면 충분합니다. ${weakScene.fill}. 그리고 ${purpose}${koreanParticle(purpose, '이', '가')} 목적이라면 네 곳을 한꺼번에 건드리지 말고 ${purposeRoom}부터 보는 게 순서입니다.`,
       `무료 맛보기로 먼저 말하자면, 이 집은 "${purpose}" 목적에 맞춰 볼 때 현관·침실·책상·창밖 중 어디가 ${name}의 기운을 먼저 빼앗는지 확인해야 합니다. ${daewoon}과 ${yearPillar} 흐름에서는 큰 이사 결정보다 7일 체감 테스트가 먼저입니다. ${caution}`,
     ].join('\n\n'),
-    'house-energy': [
-      `집의 기본 기운은 현관, 창밖, 동선에서 먼저 잡힙니다. 입력된 현관은 ${entrance}, 창밖은 ${outside}입니다. 전통 풍수의 말로는 앞이 열리고 뒤가 받치는가를 보지만, 생활 언어로 풀면 들어오는 길이 답답하지 않은지, 앉고 쉬는 자리가 과하게 노출되지 않는지를 보는 겁니다.`,
-      `[주목할 점] ${name}님 사주는 ${dominant} 기운이 빨리 반응하므로, 집 안으로 들어오자마자 시선과 동선이 한 번에 몰리면 마음도 덩달아 급해질 수 있습니다. 반대로 통로가 너무 막히면 ${weak} 기운이 더 비어 피로가 쌓일 수 있어요. 이건 미신적 단정이 아니라 매일 반복되는 자극의 문제입니다.`,
-      `${ragLine} 먼저 할 일은 현관 바닥을 비우고, 문을 열었을 때 바로 보이는 물건을 한 단계 줄이는 겁니다. 창밖 압박이나 소음이 있다면 커튼, 식물, 조명처럼 시선을 부드럽게 끊는 장치부터 보세요. 큰 공사보다 집의 첫 호흡을 정리하는 쪽이 먼저입니다.`,
+    'terrain-support': [
+      `터가 나를 받치는지는 기술 항목을 나열하는 문제가 아니라, 이 주소가 어떤 생활 패턴의 터와 닮았는지를 보는 문제입니다. 현재 터 유사도는 ${terrainScore !== null ? `${terrainScore}점` : terrainType}${terrainScore !== null ? `, 기준 유형은 ${terrainType}` : ''}으로 잡고 봅니다. 이 값은 ${name}님이 실제로 느낀 ${painText} 신호와 함께 읽어야 합니다.`,
+      `[주목할 점] 비슷한 터에서는 ${terrainCases} 같은 장면이 먼저 반복됩니다. 그래서 이 장은 침실·책상 같은 실내 배치보다, 집에 들어오기 전부터 몸이 받는 속도와 부담을 봅니다. ${name}님 사주에서 ${dominant} 기운이 빠르게 반응하는 만큼, 터가 너무 몰아치면 마음이 먼저 바빠지고, 반대로 받침이 있으면 회복 판단이 훨씬 차분해집니다.`,
+      `해법은 간단합니다. 이 터가 맞는지 보려면 “집에 도착하기 전부터 피곤한가”, “엘리베이터·골목·입구를 지나며 긴장이 풀리는가”, “아침에 나갈 때 몸이 밀려 나가는 느낌인가”를 7일만 기록하세요. 터는 공포 판정이 아니라, 내 생활 리듬과 비슷한 집들의 반복 패턴을 읽는 기준입니다.`,
     ].join('\n\n'),
     'saju-house-ohaeng': [
       `오행이라는 말부터 풀고 가겠습니다. 사람마다 자주 쓰는 반응이 다른데, 그걸 다섯 가지로 나눈 것이 목·화·토·금·수입니다. 두꺼운 기운은 이미 자주 쓰는 쪽이라 따로 채울 필요가 없고, 얇은 기운은 집이 대신 채워 주면 체감이 달라지는 쪽입니다. 집이 사주를 바꾸지는 못하지만, 매일 반복되는 자극은 집이 정합니다.`,
@@ -1472,48 +1497,48 @@ function buildHomeFitInterpretation(
       `[위기 신호] 두꺼운 쪽이 과하게 돌면 이런 장면이 나옵니다. ${dominantScene.overflow}. 반대로 얇은 ${weak}${koreanParticle(weak, '이', '가')} 계속 비어 있으면 ${weakScene.lack}. 지금 집에서 ${painText} 쪽이 걸린다면, 이 둘 중 어느 쪽인지부터 갈라야 합니다.`,
       `[보완] 채우는 방법은 색을 칠하는 게 아니라 반복되는 행동을 하나 바꾸는 겁니다. ${weakObject} 채우려면 이렇게 하세요. ${weakScene.fill}.${useful !== weak ? ` 여기에 ${useful} 쪽 ${usefulScene.word}까지 살리면 중심이 더 잡힙니다. ${usefulScene.fill}.` : ''}`,
       `${purpose}${koreanParticle(purpose, '이', '가')} 목적이라면 ${purposeRoom}부터입니다. 잠이 목적이면 침실, 일이면 책상, 돈과 살림이면 주방과 수납, 관계면 같이 쓰는 자리와 혼자 쉬는 자리의 경계가 먼저입니다. 네 곳을 한꺼번에 바꾸면 무엇이 효과가 있었는지 알 수 없습니다.`,
-      `${ragLine} ${home?.extraNote ? `적어 주신 "${home.extraNote}"도 같이 놓고 봤습니다. ` : ''}빛, 소리, 물건 밀도, 앉는 방향 중 하나만 일주일 바꿔 보고 아침과 저녁 몸 상태를 적어 두세요. 하루 기분이 아니라 7일 평균이 답을 줍니다.`,
+      `${home?.extraNote ? `적어 주신 "${home.extraNote}"도 같이 놓고 봤습니다. ` : ''}빛, 소리, 물건 밀도, 앉는 방향 중 하나만 일주일 바꿔 보고 아침과 저녁 몸 상태를 적어 두세요. 하루 기분이 아니라 7일 평균이 답을 줍니다.`,
     ].join('\n\n'),
     'sleep-recovery': [
       `잠과 회복은 집 풍수에서 가장 먼저 봐야 할 자리입니다. 침실 입력은 ${bedroom}입니다. ${name}님 사주에서 ${dominant} 기운이 바깥으로 많이 쓰이면, 밤에는 오히려 ${weak} 기운이 받쳐줘야 회복이 됩니다. 침실이 밝거나 시끄럽거나 문·복도 자극을 받으면 머리가 쉬지 못할 수 있습니다.`,
       `[주의할 점] 이 대목은 건강 진단이 아닙니다. 다만 잠들기 전 눈에 걸리는 물건, 창밖 소음, 침대에서 바로 보이는 문, 침구 색과 조명의 강도는 멘탈 리듬에 영향을 줍니다. ${daewoon}과 ${yearPillar} 흐름에서 일이 많아질수록 침실은 더 단순해야 합니다.`,
-      `${ragLine} 7일 동안 먼저 해볼 처방은 세 가지입니다. 침대 주변 바닥을 비우고, 자기 전 강한 빛을 줄이고, 문이나 창이 바로 압박하는 느낌이면 시선을 끊는 얇은 가림을 둡니다. 잠자리가 안정되면 집 전체 판단도 덜 감정적으로 보입니다.`,
+      `잠자리가 불편하다면 아래 방법 중 해당하는 것 하나를 골라 보세요. 침대 주변 바닥을 비우고, 자기 전 강한 빛을 줄이고, 문이나 창이 바로 압박하는 느낌이면 시선을 끊는 얇은 가림을 둡니다. 잠자리가 안정되면 집 전체 판단도 덜 감정적으로 보입니다.`,
     ].join('\n\n'),
     'entrance-flow': [
       `현관·동선 에너지는 집으로 들어오는 첫 문장입니다. 현재 입력은 ${entrance}입니다. 현관에서 안쪽이 너무 곧게 보이면 기운이 빨리 들어와 빨리 빠지는 느낌을 만들 수 있고, 지나치게 막히면 들어올 일도 답답하게 느껴질 수 있습니다.`,
       `[주요 포인트] ${name}님은 ${dayPillar} 일주의 반응 속도와 ${dominant} 기운이 함께 움직입니다. 그래서 현관이 복잡하면 작은 일도 먼저 거슬리고, 현관이 너무 노출되면 쉬기 전에 방어가 올라올 수 있습니다. 풍수의 핵심은 복을 부르는 물건보다 막힘과 과속을 줄이는 데 있습니다.`,
-      `${ragLine} 신발, 택배, 우산, 거울 위치를 먼저 보세요. 문을 열었을 때 한 번에 눈에 들어오는 물건을 줄이고, 꺾이는 동선이면 어두운 코너에 약한 조명을 둡니다. 이 정도만 해도 집에 들어올 때의 마음 속도가 달라질 수 있습니다.`,
+      `신발, 택배, 우산, 거울 위치를 먼저 보세요. 문을 열었을 때 한 번에 눈에 들어오는 물건을 줄이고, 꺾이는 동선이면 어두운 코너에 약한 조명을 둡니다. 이 정도만 해도 집에 들어올 때의 마음 속도가 달라질 수 있습니다.`,
     ].join('\n\n'),
     'remote-focus': [
       `재택·공부·일 집중력은 책상 위치에서 크게 갈립니다. 현재 책상 입력은 ${desk}입니다. ${context.work ?? '일상 흐름'} 상태에서 ${purpose}${koreanParticle(purpose, '이', '가')} 중요하다면, 책상은 단순한 가구가 아니라 ${name}의 월주 ${monthPillar}가 현실에서 작동하는 자리입니다.`,
       `[해법] 등 뒤가 벽이면 기준이 잡히기 쉽고, 등 뒤가 창이면 마음이 뜰 수 있습니다. 문을 정면으로 보면 통제감은 생기지만 긴장이 올라갈 수 있고, 쉬는 자리와 섞이면 일과 회복이 서로 침범합니다. ${dominant}${koreanParticle(dominant, '이', '가')} 강한 사람일수록 책상 위 물건 수를 줄여야 판단이 맑아집니다.`,
-      `${ragLine} 7일 테스트는 간단합니다. 책상 위에 지금 하는 일 하나만 남기고, 등 뒤 자극을 줄이고, 쉬는 물건과 일하는 물건을 분리하세요. 이사나 방 변경 전에도 집중 시간, 산만함, 끝낸 일의 개수가 달라지는지 먼저 확인할 수 있습니다.`,
+      `업무를 시작하고 마칠 때 이렇게 해볼 수 있어요. 책상 위에 지금 하는 일 하나만 남기고, 등 뒤 자극을 줄이고, 쉬는 물건과 일하는 물건을 분리하세요. 이사나 방 변경 전에도 집중 시간, 산만함, 끝낸 일의 개수가 달라지는지 먼저 확인할 수 있습니다.`,
     ].join('\n\n'),
     'money-living': [
       `돈·살림·소비 흐름은 재물운을 집 안에서 보는 장입니다. ${purpose} 목적과 ${painText} 신호를 같이 놓으면, 돈은 단순히 들어오고 나가는 숫자가 아니라 물건이 쌓이는 방식, 주방과 수납의 흐름, 결제 습관으로 먼저 드러납니다.`,
       `[주의할 점] ${name}님 사주에 ${analysis.tenGods.join(' · ') || '십신'} 흐름이 있으니 돈을 읽을 때도 재성만 보지 않습니다. ${dominant}${koreanParticle(dominant, '이', '가')} 과하게 움직이면 충동 구매나 사람 비용이 빨라질 수 있고, ${weak}${koreanParticle(weak, '이', '가')} 비면 정리·기록·반복 관리가 밀릴 수 있습니다. 이건 수익 보장이 아니라 새는 지점을 먼저 찾는 풀이입니다.`,
-      `${ragLine} 먼저 냉장고, 현관 옆 수납, 결제 알림, 자주 두는 영수증 자리를 보세요. 돈길보다 돈구멍이 먼저 보이는 법입니다. 작은 바구니 하나, 주 1회 비우기, 자동결제 목록 점검처럼 토대가 잡히면 살림의 기운도 안정됩니다.`,
+      `먼저 냉장고, 현관 옆 수납, 결제 알림, 자주 두는 영수증 자리를 보세요. 돈길보다 돈구멍이 먼저 보이는 법입니다. 작은 바구니 하나, 주 1회 비우기, 자동결제 목록 점검처럼 토대가 잡히면 살림의 기운도 안정됩니다.`,
     ].join('\n\n'),
     'relationship-cohabitation': [
       `관계·가족·동거 케미는 집의 넓이보다 거리감에서 갈립니다. 현재 관계 문맥은 ${context.relationship ?? '관계 상태 미입력'}, 핵심 목적은 ${purpose}, 체감 신호는 ${painText}입니다. 같이 사는 사람이 있든 없든 공용공간과 혼자 숨 쉬는 자리의 균형이 필요합니다.`,
       `[주목할 점] ${dayPillar} 일주는 가까운 사람 앞에서 더 선명하게 반응합니다. ${dominant}${koreanParticle(dominant, '이', '가')} 강하면 내 방식이 맞다고 느끼기 쉽고, ${weak}${koreanParticle(weak, '이', '가')} 비면 상대의 리듬을 기다리는 힘이 부족해질 수 있습니다. 그래서 이 집에서는 말로 푸는 것보다 각자의 자리와 동선을 분리하는 것이 먼저일 수 있습니다.`,
-      `${ragLine} 가족이나 동거인이 있다면 식탁, 소파, 침실 문 앞에 물건이 쌓이는지 보세요. 혼자 산다면 사람을 들인 뒤 피곤해지는 자리, 오래 통화하는 자리, 쉬는 공간과 일하는 공간이 섞이는 지점을 봐야 합니다. 관계운은 공간의 경계에서 현실이 됩니다.`,
+      `가족이나 동거인이 있다면 식탁, 소파, 침실 문 앞에 물건이 쌓이는지 보세요. 혼자 산다면 사람을 들인 뒤 피곤해지는 자리, 오래 통화하는 자리, 쉬는 공간과 일하는 공간이 섞이는 지점을 봐야 합니다. 관계운은 공간의 경계에서 현실이 됩니다.`,
     ].join('\n\n'),
-    'spatial-fix': [
+    'building-unit': [
       `공간별 손질 처방은 큰 비용을 쓰기 전에 하는 작은 조정입니다. ${name}님에게는 ${useful} 기운을 살리는 쪽이 우선입니다. 현관은 ${entrance}, 침실은 ${bedroom}, 책상은 ${desk}, 창밖은 ${outside}로 들어왔으니 네 곳을 한꺼번에 바꾸지 말고 순서를 잡아야 합니다.`,
       `[해법] 첫째 현관은 바닥을 비우고 들어오는 시선을 정리합니다. 둘째 침실은 빛과 소리를 낮추고 잠드는 쪽을 단순하게 만듭니다. 셋째 책상은 등 뒤와 물건 수를 조정합니다. 넷째 창밖 압박은 커튼, 식물, 조명으로 부드럽게 끊습니다. 이 네 가지가 집 풍수의 현실 처방입니다.`,
-      `${ragLine} 색 처방은 마지막입니다. 먼저 물건 밀도, 빛, 소리, 동선을 조절해야 ${name} 사주의 오행 보완이 실제 체감으로 이어집니다. 고친 뒤에는 하루 기분보다 7일 평균을 보세요. 공간은 하루 반응보다 반복 반응이 더 정확합니다.`,
+      `색 처방은 마지막입니다. 먼저 물건 밀도, 빛, 소리, 동선을 조절해야 ${name} 사주의 오행 보완이 실제 체감으로 이어집니다. 바꾼 뒤 실제로 편해졌는지 살펴보고, 변화가 없다면 다른 원인도 함께 확인해 보세요.`,
     ].join('\n\n'),
     'reality-action': [
       `현실 체크의 결론은 ${decision}입니다. 이사할지, 고쳐 살지, 후보와 비교할지는 운세 한 줄로 정할 일이 아닙니다. ${name}님의 명식, ${daewoon}, ${yearPillar}, 그리고 현재 집의 현관·침실·책상·창밖 신호를 7일 단위로 확인해야 합니다.`,
-      `[주요 포인트] 7일 테스트 기준은 네 가지입니다. 집에 들어올 때 마음이 가라앉는가, 잠에서 깬 뒤 회복감이 있는가, 책상에서 한 가지 일을 끝내는가, 돈과 물건이 덜 새는가. 이 네 가지 중 두 가지 이상이 좋아지면 이 집은 손봐서 쓸 여지가 있습니다. 반대로 손질해도 같은 지점이 반복되면 비교 후보를 열어둘 수 있습니다.`,
-      `${ragLine} 마지막으로 다시 말하겠습니다. 이 풀이는 계약, 건강, 재산 결과를 보장하지 않습니다. 다만 지금 집이 ${name}의 기운을 돕는지 방해하는지, 어디부터 손보면 판단이 선명해지는지 알려주는 지도입니다. 큰 결정은 감정이 아니라 반복 관찰 뒤에 내려야 합니다.`,
+      `[주요 포인트] 7일 테스트 기준은 네 가지입니다. 집에 들어올 때 마음이 가라앉는가, 잠에서 깬 뒤 회복감이 있는가, 책상에서 한 가지 일을 끝내는가, 돈과 물건이 덜 새는가. 좋아진 항목 개수로 이사 여부를 판단하지는 않아요. 실제로 편해진 점은 유지하고, 불편이 남는다면 비용·통근·계약 조건을 따로 확인해 보세요.`,
+      `마지막으로 다시 말하겠습니다. 이 풀이는 계약, 건강, 재산 결과를 보장하지 않습니다. 다만 지금 집이 ${name}의 기운을 돕는지 방해하는지, 어디부터 손보면 판단이 선명해지는지 알려주는 지도입니다. 큰 결정은 감정이 아니라 반복 관찰 뒤에 내려야 합니다.`,
     ].join('\n\n'),
   }
 
   const raw = sections[sectionId] ?? [
     `${name}님의 집 풍수는 ${focus} 기준으로 봅니다. ${dayPillar} 일주와 ${dominant}/${weak} 오행, 그리고 ${homeContextSummary(context)}을 함께 놓고 해석합니다.`,
-    `${ragLine} 이 풀이는 확정 예언이 아니라 집과 생활 리듬의 맞물림을 확인하는 기준입니다.`,
+    `이 풀이는 확정 예언이 아니라 집과 생활 리듬의 맞물림을 확인하는 기준입니다.`,
   ].join('\n\n')
   return applyServiceTone(raw, context.serviceKey)
 }
@@ -2021,19 +2046,19 @@ export function groundedReportFeatures(analysis: SajuAnalysis, context: SajuRepo
 }
 
 function sectionPrompt(analysis: SajuAnalysis, birth: BirthInput, context: SajuReportContext, section: SajuReportSection, siblings: SajuReportSection[] = []): LlmMessage[] {
-  const chunks = retrieveRagChunks(
+  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
     analysis, runtimeConfig.report?.ragTopK ?? 4, context,
   )
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
     { role: 'user', content: JSON.stringify({
-      instruction: INTERPRETATION_INSTRUCTION,
+      instruction: context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingInstruction(section.id) : INTERPRETATION_INSTRUCTION,
       outputShape: { id: section.id, hook: 'string', interpretation: 'string' },
       birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
       context: context.partner?.birthTimeKnown === false ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false, birth: context.partner.birth ? { ...context.partner.birth, hour: undefined, minute: undefined } : undefined } } : context,
       featureJson: groundedReportFeatures(analysis, context),
-      section: { id: section.id, category: section.category, classification: section.classification, hook: section.hook, interpretation: section.interpretation },
+      section: { id: section.id, category: section.category, classification: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.classification, hook: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.hook, interpretation: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.interpretation },
       otherSections: siblings.map((item) => ({ id: item.id, question: item.classification, summary: item.hook })),
       rag: formatRagForPrompt(chunks),
     }) },
@@ -2075,6 +2100,10 @@ export async function buildOpenAiSajuReportSection(
   if (parsed.id !== section.id) throw new Error('생성 결과의 항목 ID가 요청과 다릅니다.')
   const interpretation = typeof parsed.interpretation === 'string' ? normalizeUserCopy(parsed.interpretation.trim()) : ''
   const review = reviewInterpretation(interpretation, context, options.siblings)
+  if (context.serviceKey === HOME_FIT_SERVICE_KEY) {
+    review.issues.push(...reviewHomeNarrative(interpretation, section.id))
+    review.passed = review.issues.length === 0
+  }
   if (!review.passed) throw new InterpretationQualityError(review)
 
   return {

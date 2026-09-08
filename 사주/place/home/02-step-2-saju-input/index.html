@@ -556,6 +556,7 @@
       }
     </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
     <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907" />
   </head>
   <body class="umsh-fields">
     <main class="app" id="step-2-saju-input">
@@ -1036,18 +1037,20 @@
       {
         "source": "user_seed",
         "persist_keys": ["service_key", "service_slug", "schema_version", "report_version", "copy_version", "interpretation_index_version"],
-        "interpretation_index_version": "home-fit-index-v1",
+        "interpretation_index_version": "home-fit-index-v3-12",
         "groups": [
-          { "group_id": "home-fit-overall", "title": "이 집, 나랑 찐으로 결 맞아?", "items": ["전체 핏 판정", "계속 살 각/손볼 각/비교 각", "끌리는 이유", "묘하게 피곤한 포인트", "지금 내 시기와의 궁합", "한 줄 결론"] },
-          { "group_id": "house-energy", "title": "집의 기본 기운", "items": ["안정형/활동형/휴식형", "앞이 열린 집", "뒤가 받치는 집", "좌우 균형", "도로·골목·물길 흐름", "건물 압박·창밖 시야"] },
-          { "group_id": "saju-house-ohaeng", "title": "내 사주 × 집 오행 핏", "items": ["일간 생활 리듬", "오행 과다/부족 보완", "용신과 공간 결", "신강약별 집 속도", "나한테 과한 집", "나를 살려주는 집"] },
-          { "group_id": "sleep-recovery", "title": "잠·회복·멘탈 리듬", "items": ["침실 안정감", "수면 깊이", "집콕 회복력", "소음·시선 피로", "쉬는 칸 확보", "퇴근 후 충전감", "번아웃 방지 포인트"] },
-          { "group_id": "entrance-flow", "title": "현관·동선 에너지", "items": ["첫 느낌", "현관 정리 상태", "현관-거실-침실 직선 흐름", "엘베·복도 자극", "들어온 기운이 머무는지", "택배·신발 혼잡도"] },
-          { "group_id": "remote-focus", "title": "재택·공부·일 집중력", "items": ["책상 자리", "등 뒤 받침", "문·창 위치", "몰입 잘 되는 구석", "화상회의/통화 핏", "일 공간과 쉬는 공간 분리", "생산성 루틴"] },
-          { "group_id": "money-living", "title": "돈·살림·소비 흐름", "items": ["돈이 모이는 구조", "돈 새는 포인트", "월세·관리비 체감", "재택 수익 리듬", "중요 문서·금고 자리", "충동소비 트리거"] },
-          { "group_id": "relationship-cohabitation", "title": "관계·가족·동거 케미", "items": ["혼자 있을 때 편안함", "가족과 부딪히는 동선", "연인·친구 초대 핏", "룸메/동거 궁합", "이웃·소음 스트레스", "사생활 보호감"] },
-          { "group_id": "spatial-fix", "title": "공간별 손질 처방", "items": ["침대 위치", "책상 위치", "소파·식탁 자리", "화분·거울·TV 활용", "커튼·조명·수납 보완", "컬러·소재 힌트", "못 옮길 때 대안"] },
-          { "group_id": "reality-action", "title": "현실 체크 & 액션 플랜", "items": ["아침·저녁 체감 테스트", "계약 유지/이사 비교", "지금 바로 손볼 3가지", "피해야 할 배치", "7일 살아보기 체크", "다음 행동 추천"] }
+          { "group_id": "home-fit-overall", "title": "이 집, 나랑 찐으로 결 맞아?", "items": ["전체 판정", "8축 점수판", "핵심 강점", "우선 리스크"] },
+          { "group_id": "terrain-support", "title": "터가 나를 받치나, 밀어내나", "items": ["터 유사도", "받침감", "이동 부담", "비슷한 터의 생활 패턴"] },
+          { "group_id": "external-flow", "title": "물길·도로·바람, 뭐가 치고 들어오나", "items": ["수계", "도로", "바람", "외부 소음"] },
+          { "group_id": "light-air-noise", "title": "빛은 약인가, 알람 폭탄인가", "items": ["향·일조", "환기", "소음", "시간대 자극"] },
+          { "group_id": "building-unit", "title": "건물과 세대의 기본 체력", "items": ["층·준공", "공용시설", "평면", "세대 조건"] },
+          { "group_id": "entrance-flow", "title": "현관에서 이미 기 빨리나", "items": ["첫 동선", "문 앞 정체", "신발·택배", "출입 리듬"] },
+          { "group_id": "sleep-recovery", "title": "침실은 쉬는 방인가, 야근 2차전인가", "items": ["수면 자극", "회복감", "야간 빛·소리", "7일 실험"] },
+          { "group_id": "remote-focus", "title": "책상은 집중석인가, 알림 콜로세움인가", "items": ["뒤받침", "시야", "알림·소리", "시작·마감"] },
+          { "group_id": "money-living", "title": "돈이 새나, 동선이 새나", "items": ["중복 구매", "수납", "반품·구독", "살림 동선"] },
+          { "group_id": "relationship-cohabitation", "title": "같이 살면 케미, 아니면 소음 협약", "items": ["공용 공간", "사생활", "사용 시간", "관계 거리"] },
+          { "group_id": "saju-house-ohaeng", "title": "내 사주 × 집 오행 핏", "items": ["개인 오행", "집 상징", "목적 오행", "연간 흐름"] },
+          { "group_id": "reality-action", "title": "그래서 뭘 하면 되는데?", "items": ["오늘", "7일", "30일", "이사 비교 기준"] }
         ]
       }
     </script>
