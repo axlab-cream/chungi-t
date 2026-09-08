@@ -1,5 +1,5 @@
 {
-  "commonChars": 4870,
+  "commonChars": 5326,
   "services": [
     {
       "key": "today_fortune",
@@ -40,6 +40,10 @@
     {
       "key": "marry_match",
       "chars": 588
+    },
+    {
+      "key": "wedding_day",
+      "chars": 2151
     },
     {
       "key": "couple_signal",

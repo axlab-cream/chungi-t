@@ -7,6 +7,7 @@ const PROMPTS_ROOT = join(__dirname, '../../prompts')
 
 /** Legacy / alternate URL keys → canonical prompt filenames (without .md). */
 export const SERVICE_KEY_ALIASES: Record<string, string> = {
+  cmdg: 'saju_master',
   love_thisyear: 'love_this_year',
   home_pungsu: 'home_fit',
   home: 'home_fit',
@@ -26,6 +27,7 @@ export const KNOWN_SERVICE_KEYS = [
   'cat_compatibility',
   'match_couple',
   'marry_match',
+  'wedding_day',
   'couple_signal',
   'pass_angle',
   'work_move',
@@ -51,6 +53,7 @@ const SERVICE_TERM_GUIDANCE: Record<string, string> = {
   cat_compatibility: '필수 용어: 일지(日支, 가까운 생활 자리), 오행(五行, 다섯 상징).',
   match_couple: '필수 용어: 합(合, 어우러짐), 충(沖, 마찰과 변화), 일간(日干, 각자의 중심 기운).',
   marry_match: '필수 용어: 배우자궁(配偶者宮, 동반자 생활 자리), 대운(大運, 긴 흐름).',
+  wedding_day: '필수 용어: 일주(日柱, 그 날의 기둥), 합(合, 어우러짐), 충(沖, 부딪힘), 파(破, 어긋남), 해(害, 서로 깎임), 용신(用神, 필요한 기운), 절기(節氣, 계절의 경계). 후보일 판정은 서버가 전달한 계산값만 쓰고 손 없는 날 같은 통념은 상징으로 구분합니다.',
   couple_signal: '필수 용어: 식상(食傷, 표현 방식), 관성(官星, 책임과 거리 조절).',
   pass_angle: '필수 용어: 인성(印星, 학습 수용), 관성(官星, 시험 규칙과 책임).',
   work_move: '필수 용어: 재성(財星, 보상 구조), 식상(食傷, 실행과 산출), 관성(官星, 조직 책임).',

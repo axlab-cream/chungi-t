@@ -27,7 +27,7 @@ const expectedDomains = new Set([
   'job_choice_service', 'quit_fortune_service', 'money_save_service', 'cat_compatibility_service',
   'match_couple_service', 'marry_match_service', 'couple_signal_service', 'pass_angle_service',
   'work_move_service', 'work_job_service', 'love_mind_service', 'love_again_service',
-  'love_spouse_service', 'home_fit_service', 'newyear_service',
+  'love_spouse_service', 'home_fit_service', 'newyear_service', 'wedding_day_service',
 ])
 for (const domain of expectedDomains) if (!serviceDomains.has(domain)) failures.push(`코퍼스 전용 도메인 누락: ${domain}`)
 
