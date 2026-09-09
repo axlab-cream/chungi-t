@@ -1,3 +1,4 @@
+import './build-public-faq.mjs'
 import { copyFileSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'

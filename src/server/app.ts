@@ -249,7 +249,7 @@ app.get(['/about', '/about/', '/about.html'], (_req, res) => {
 
 app.get(['/faq/:group', '/faq/:group/'], (req, res, next) => {
   const group = req.params.group
-  if (typeof group !== 'string' || !['use', 'payment', 'report', 'reading'].includes(group)) return next()
+  if (typeof group !== 'string' || !['use', 'payment', 'report', 'reading', 'workflow', 'fortune', 'love', 'match', 'career', 'money', 'life'].includes(group)) return next()
   res.sendFile(join(SAJU_ROOT, 'faq', group + '.html'))
 })
 

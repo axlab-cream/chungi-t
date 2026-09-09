@@ -6,11 +6,6 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://umsh.kr/faq</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://umsh.kr/support</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -32,8 +27,16 @@
   </url>
   <url><loc>https://umsh.kr/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://umsh.kr/my</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://umsh.kr/faq/use</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://umsh.kr/faq/payment</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://umsh.kr/faq/report</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://umsh.kr/faq/reading</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://umsh.kr/faq</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/use</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/payment</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/report</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/reading</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/workflow</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/fortune</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/love</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/match</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/career</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/money</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://umsh.kr/faq/life</loc><lastmod>2026-09-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>
