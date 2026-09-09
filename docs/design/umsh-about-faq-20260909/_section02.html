@@ -1,0 +1,56 @@
+  <!-- 포털과 같은 포스터 레일. 카드를 누르면 아래 목차 판이 그 상담으로 바뀐다. -->
+  <div class="rail-wrap">
+    <div class="poster-rail">
+      <sc-for list="{{services}}" as="svc" hint-placeholder-count="4">
+        <button type="button" class="poster {{svc.family}} {{svc.pick}}" onClick="{{svc.select}}">
+          <img src="{{svc.art}}" alt="">
+          <span class="poster-shade"></span>
+          <span class="badge">{{svc.badge}}</span>
+          <strong>{{svc.title}}</strong>
+          <em>{{svc.tagline}}</em>
+          <span class="scope-line">{{svc.volume}}</span>
+          <span class="price-line">
+            <b>{{svc.price}}</b>
+            <span>이 풀이 보기</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+    <div class="poster-dots">
+      <sc-for list="{{services}}" as="svc" hint-placeholder-count="4">
+        <button type="button" class="poster-dot {{svc.dot}}" onClick="{{svc.select}}" aria-label="{{svc.title}}"></button>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- 고른 상담의 상세 풀이 목차 -->
+  <div class="detail">
+    <p class="detail-eyebrow">{{current.badge}}</p>
+    <h3 class="detail-title">{{current.title}}</h3>
+    <p class="detail-body">{{current.detail}}</p>
+    <p class="detail-meta">상세 풀이 목차 · {{current.volume}}</p>
+    <div class="toc-wrap">
+      <sc-for list="{{current.toc}}" as="t" hint-placeholder-count="6">
+        <span class="toc-chip">{{t.name}}</span>
+      </sc-for>
+    </div>
+    <div style="display: grid; gap: 8px; padding-top: 4px">
+      <div class="cta">{{current.title}} 무료로 미리 보기</div>
+      <div class="cta-row">
+        <span>상담 페이지 열기 · {{current.href}}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7" /></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="align-items: center; gap: 12px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span class="free-tag">무료</span>
+      <div style="display: grid; gap: 3px">
+        <h3 style="font-family: var(--font-brand); font-size: 16px; color: #ffe4b8">오늘 나한테 들어오는 운</h3>
+        <p style="font-size: 13px">결제 없이 매일 확인하실 수 있습니다.</p>
+      </div>
+    </div>
+    <div class="cta">오늘 운 보기</div>
+  </div>
+

@@ -7,7 +7,6 @@ Disallow: /r/
 Disallow: /report-view
 Disallow: /vault
 Disallow: /profile
-Disallow: /my
 Disallow: /orders
 Disallow: /payment/
 Disallow: /refunds

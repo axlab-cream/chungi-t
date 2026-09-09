@@ -1,0 +1,71 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "운명상회란? · 모바일",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 5000,
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    {
+      "file": "Faq.dc.html",
+      "title": "자주 묻는 질문 · 모바일",
+      "x": 520,
+      "y": 0,
+      "w": 390,
+      "h": 2200,
+      "is_interactive": true,
+      "expand": "fill"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "build-notes",
+      "x": 1040,
+      "y": 0,
+      "w": 380,
+      "text": "구현 메모 (고객 화면에는 넣지 않음)\n\n두 페이지 모두 기존 policy.css 컴포넌트를 그대로 씁니다.\n- 색: --gold #f2bf6b, --bg #080302, --panel/--line/--dim 동일\n- 서체: Maru Buri(브랜드·제목) + Pretendard(본문)\n- 카드: .policy-section 규격 (border 1px --line, radius 8px, bg --panel, padding 20px 16px)\n- 알약 버튼: min-height 36~52px, radius 999px\n- 로고: /assets/umsh-brand-logo.png\n- 폭: width min(100%, 820px) — 모바일 전폭, PC 가운데 정렬"
+    },
+    {
+      "id": "route-notes",
+      "x": 1040,
+      "y": 420,
+      "w": 380,
+      "text": "서버 라우팅 (app.ts 기존 패턴 그대로)\n\nTERMS_PAGE / PRIVACY_PAGE 처럼 상수를 만들고\napp.get(['/about', '/about/', '/about.html'])\napp.get(['/faq', '/faq/', '/faq.html'])\n를 추가하면 됩니다.\n\nFAQ 네 묶음은 각각 고유 주소로:\n/faq/use, /faq/payment, /faq/report, /faq/reading\n\n그리고 기존 정책 4종의 .policy-nav 에\n운명상회란? / 자주 묻는 질문 두 칸을 같은 순서로 넣어\n모든 공개 페이지의 하단 이동 줄을 통일합니다."
+    },
+    {
+      "id": "aeo-notes",
+      "x": 1040,
+      "y": 900,
+      "w": 380,
+      "text": "AEO — 답변 엔진에 인용되게\n\n1. H1 다음의 정의문 한 단락이 인용 블록입니다. 60~90자 안에서 무엇을·누구에게·어떻게가 끝나야 하고, 그 앞에 마케팅 수사를 넣지 않습니다.\n\n2. 질문은 H3, 답변 첫 문장은 즉답(40~80자)으로 끝내고 그다음에 조건을 붙입니다. 첫 문장만 인용되는 경우가 많습니다.\n\n3. 접는 UI 는 details/summary 로 만들고 답변 텍스트를 처음부터 DOM 에 둡니다. 클릭할 때 JS 로 답을 가져오면 크롤러가 답을 못 봅니다. 첫 항목은 open 으로 시작합니다.\n\n4. 이용 방법 6단계 제목·설명을 마크업에 텍스트로 남깁니다. 번호를 CSS 가상요소로만 그리면 읽히지 않습니다."
+    },
+    {
+      "id": "seo-notes",
+      "x": 1040,
+      "y": 1560,
+      "w": 380,
+      "text": "SEO — 색인과 구조화 데이터\n\n- /about: Organization(상호·대표·사업자등록번호·주소·전화·이메일) + WebSite + HowTo(6단계)\n- /faq/*: FAQPage. 각 URL 이 자기 묶음 질문만 담습니다. 24개를 한 스키마에 몰거나, /faq 와 /about 발췌에 같은 스키마를 중복으로 넣지 않습니다.\n- 이동 경로에 BreadcrumbList\n- 질문마다 id 를 주고 #id 로 열리게 합니다\n- canonical, meta description, 기존 og:* 블록 그대로 승계\n- sitemap.xml 에 /about 과 /faq 네 묶음 추가"
+    },
+    {
+      "id": "geo-notes",
+      "x": 1040,
+      "y": 2140,
+      "w": 380,
+      "text": "GEO — 생성형 검색이 조립할 수 있게\n\n상담 14개 카드가 운명상회의 서비스 범위를 정의합니다. 카드마다 상세 풀이 목차와 실제 상담 페이지 링크를 두고, 항목별 Service 또는 Product 구조화 데이터(name · description · offers.price · url)를 붙입니다. 가격을 이미지로 넣으면 읽히지 않습니다.\n\nFAQ 답변에서 상담 이름이 나오면 그 상담 페이지로 링크합니다. 질문 → 답 → 상담이 이어져야 \"운명상회에서 무엇을 할 수 있는지\"가 조립됩니다.\n\n분류 칩은 담을 카드가 있는 분류만 노출합니다. 지금 풍수 분류가 빈 상태라 메인에서 내려 두었습니다."
+    },
+    {
+      "id": "content-notes",
+      "x": 1040,
+      "y": 2820,
+      "w": 380,
+      "text": "본문에 쓴 값의 출처\n\n상담 14개의 이름·태그라인·가격은 service-directory.ts 와 catalog.ts 에서, 상세 풀이 목차와 항목 수는 각 서비스의 *_TOC (천명사주 37 / 커플궁합·결혼궁합·관계신호 70 / 직장선택 57 / 올해연애운 48 / 고양이궁합 50 / 소비성향 41 / 신년운세 36 / 퇴사운 30 / 운붙는색 24 / 결혼택일 21 / 이직운 10 / 붙을각 7) 에서 그대로 가져왔습니다.\n\n회사 정보와 고객센터 번호는 support.html 푸터와 같습니다.\n\n확인이 필요한 값: 결제 수단을 카드만으로 적었습니다. 계좌이체나 간편결제를 함께 여실 계획이면 알려 주세요.\n\n카드 아트는 service-directory.ts 가 가리키는 실제 자산을 3:4 로 잘라 담았고, portal.css 의 아트 처리(기본 opacity 0.34 · 필터, cmdg 0.96, 연애 0.78, 직업 0.82)와 poster-shade 를 그대로 옮겼습니다. 구현 시에는 원본 경로를 그대로 쓰시면 됩니다."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

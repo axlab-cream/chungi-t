@@ -3,7 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>마이페이지 · 운명상회</title>
+    <title>MY · 운명상회 소개와 이용 안내</title>
+    <link rel="canonical" href="https://umsh.kr/my" />
+    <meta name="robots" content="index,follow" />
+    <style>[hidden] { display: none !important; } .myhub-public { margin-top: 24px; } .myhub-public a { min-height: 76px; } [data-my-login] { display:flex; align-items:center; justify-content:center; padding:12px 18px; margin-bottom:24px; text-decoration:none; }</style>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
     <meta property="og:type" content="website" />
@@ -36,8 +39,16 @@
       <section class="payment-shell" aria-labelledby="my-title">
         <p class="payment-eyebrow">MY</p>
         <h1 id="my-title">마이페이지</h1>
-        <p class="payment-intro">계정 정보, 보관함, 결제·환불, 고객센터를 한곳에서 확인합니다.</p>
-        <div class="myhub-user" data-my-user role="status" aria-live="polite">로그인 상태를 확인하는 중입니다.</div>
+        <p class="payment-intro">운명상회 소개와 이용 안내는 로그인 없이, 내 정보와 상담 기록은 로그인 후 확인하세요.</p>
+        <section class="myhub-section myhub-public" aria-label="운명상회 알아보기">
+          <h2>운명상회 알아보기</h2>
+          <ul class="myhub-menu">
+            <li><a href="/about"><strong>운명상회란?</strong><small>상담 소개 · 이용 방법 · 운영 원칙</small><span class="chip">소개</span></a></li>
+            <li><a href="/faq"><strong>자주 묻는 질문</strong><small>이용·결제·환불 안내를 확인하세요</small><span class="chip">FAQ</span></a></li>
+          </ul>
+        </section>
+        <div class="myhub-user" data-my-user role="status" aria-live="polite"><strong>운명상회에 오신 것을 환영합니다</strong><span>개인 프로필과 구매 내역은 로그인 후 이용할 수 있습니다.</span></div>
+        <a class="payment-submit" data-my-login href="/signup?entry=my&amp;returnTo=%2Fmy#login">로그인 / 회원가입 →</a>
         <section class="myhub-section" aria-label="내 정보">
           <h2>내 정보</h2>
           <ul class="myhub-menu">
@@ -58,8 +69,8 @@
           <ul class="myhub-menu">
             <li><a href="/faq"><strong>자주 묻는 질문</strong><small>이용·결제·환불 전 확인할 안내</small><span class="chip">FAQ</span></a></li>
             <li><a href="/support"><strong>고객센터</strong><small>FAQ와 문의 접수</small><span class="chip">문의</span></a></li>
-            <li><a href="/leave" class="is-danger"><strong>회원 탈퇴</strong><small>사주 프로필과 풀이 기록 삭제</small><span class="chip">탈퇴</span></a></li>
-            <li><button type="button" data-my-logout><strong>로그아웃</strong><small>이 기기에서 로그인 세션 종료</small><span class="chip">나가기</span></button></li>
+            <li data-my-member hidden><a href="/leave" class="is-danger"><strong>회원 탈퇴</strong><small>사주 프로필과 풀이 기록 삭제</small><span class="chip">탈퇴</span></a></li>
+            <li data-my-member hidden><button type="button" data-my-logout><strong>로그아웃</strong><small>이 기기에서 로그인 세션 종료</small><span class="chip">나가기</span></button></li>
           </ul>
         </section>
         <nav class="myhub-links" aria-label="약관 및 정책">
@@ -74,7 +85,7 @@
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/umsh-account-pages.js?v=20260901-myhub"></script>
-    <script src="/js/my.js?v=20260901-myhub"></script>
+    <script src="/js/umsh-account-pages.js?v=20260909-public-my"></script>
+    <script src="/js/my.js?v=20260909-public-my"></script>
   </body>
 </html>

@@ -13,12 +13,13 @@
     global.location.replace(url);
   }
 
-  async function requireSession(entry) {
+  async function requireSession(entry, options) {
+    const optional = Boolean(options && options.optional);
     const authConfig = await fetch('/api/auth/config').then(function (response) {
       return response.json();
     });
     if (!authConfig.enabled || !global.supabase || !global.supabase.createClient) {
-      loginRedirect(entry);
+      if (!optional) loginRedirect(entry);
       return null;
     }
 
@@ -40,7 +41,7 @@
       session = await global.UMSHAuthSession.enforceDeviceAuthSession(session, client);
     }
     if (!session || !session.access_token) {
-      loginRedirect(entry);
+      if (!optional) loginRedirect(entry);
       return null;
     }
 

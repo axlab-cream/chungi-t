@@ -30,4 +30,10 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <url><loc>https://umsh.kr/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://umsh.kr/my</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://umsh.kr/faq/use</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://umsh.kr/faq/payment</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://umsh.kr/faq/report</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://umsh.kr/faq/reading</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>

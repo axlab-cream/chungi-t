@@ -121,7 +121,7 @@
   splashSkip?.addEventListener('click', finishSplash);
   startSplash();
 
-  const protectedMenuIds = new Set(['destiny', 'account']);
+  const protectedMenuIds = new Set(['destiny']);
   const protectedDestinations = {
     destiny: {
       eyebrow: 'LOCKED RECORD',
@@ -188,8 +188,11 @@
     account: {
       eyebrow: 'MY',
       title: 'MY',
-      desc: '로그인과 사주등록을 마친 뒤 내 사주 프로필을 관리합니다.',
+      desc: '서비스 소개와 FAQ는 로그인 없이 확인할 수 있습니다.',
       items: [
+        { label: 'MY 열기', meta: '공개 안내와 내 계정', href: '/my', status: '열기' },
+        { label: '운명상회란?', meta: '서비스 소개와 이용 방법', href: '/about', status: '소개' },
+        { label: '자주 묻는 질문', meta: '이용·결제·환불 안내', href: '/faq', status: 'FAQ' },
         { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
         { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
         { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/vault', status: '보기' },
@@ -980,9 +983,9 @@
 
   /**
    * 하단 메뉴는 시트를 여는 자리가 아니라 화면으로 가는 자리다. 검색과 보관함은 비로그인도
-   * 들어올 수 있고, 운명록과 MY는 로그인이 필요해서 protected 흐름을 그대로 탄다.
+   * MY도 공개 안내 허브로 들어올 수 있고, 운명록은 기존 로그인 보호 흐름을 탄다.
    */
-  const openTabHrefs = { home: '/', search: '/search', vault: '/vault' };
+  const openTabHrefs = { home: '/', search: '/search', vault: '/vault', account: '/my', my: '/my' };
 
   bottomMenuButtons.forEach((button) => {
     button.addEventListener('click', () => {

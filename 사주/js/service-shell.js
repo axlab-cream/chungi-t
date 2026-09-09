@@ -152,7 +152,7 @@
     destiny: { href: '/destiny', entry: 'destiny', requiresLogin: true },
     search: { href: '/search', entry: '' },
     vault: { href: '/vault', entry: '' },
-    account: { href: '/my', entry: 'my', requiresLogin: true },
+    account: { href: '/my', entry: 'my', requiresLogin: false },
   };
 
   function loginHref(entry, returnTo) {

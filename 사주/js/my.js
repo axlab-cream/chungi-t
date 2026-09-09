@@ -44,8 +44,18 @@
 
   async function init() {
     if (helper && helper.mountAccountChrome) helper.mountAccountChrome('account');
-    var auth = await helper.requireSession('my');
+    if (!helper) return;
+    var auth;
+    try {
+      auth = await helper.requireSession('my', { optional: true });
+    } catch (_error) {
+      setStatus('로그인 상태를 확인하지 못했습니다. 공개 안내는 계속 이용하실 수 있습니다.');
+      return;
+    }
     if (!auth) return;
+    document.querySelectorAll('[data-my-member]').forEach(function (element) { element.hidden = false; });
+    var loginLink = document.querySelector('[data-my-login]');
+    if (loginLink) loginLink.hidden = true;
 
     var profile = null;
     try {

@@ -232,3 +232,193 @@ h1 {
     padding: 20px 16px;
   }
 }
+
+/* Shared public-page poster components, scoped to protect policy pages. */
+    .brand-public /* ── 포털의 포스터 카드를 그대로 옮겨 왔다. 값은 css/portal.css 원본과 같다. ── */
+    .rail-wrap{ margin: 0 -16px; }
+    .brand-public .poster-rail{
+      --poster-w: 300px;
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 0 max(16px, calc((100% - var(--poster-w)) / 2)) 20px;
+      overscroll-behavior-inline: contain;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+    .brand-public .poster-rail::-webkit-scrollbar{ display: none; }
+
+    .brand-public .poster{
+      position: relative;
+      display: flex;
+      flex: 0 0 var(--poster-w);
+      height: 400px;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      padding: 20px;
+      border: 1px solid var(--line-poster);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 80% 5%, rgba(216, 186, 114, 0.14), transparent 16rem),
+        linear-gradient(160deg, #1b1812, var(--black-950));
+      color: var(--cream-100);
+      scroll-snap-align: center;
+      text-align: left;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: border-color 210ms ease, box-shadow 210ms ease;
+    }
+    .brand-public .poster::before{
+      content: "";
+      position: absolute;
+      inset: 10px;
+      z-index: 2;
+      border: 1px solid rgba(216, 186, 114, 0.1);
+      border-radius: 17px;
+      pointer-events: none;
+    }
+    .brand-public .poster.is-pick{ border-color: rgba(216, 186, 114, 0.6); box-shadow: 0 0 0 1px rgba(216, 186, 114, 0.28); }
+
+    .brand-public /* 아트는 분위기로 깔리고, .brand-public 제목은 카드가 직접 쓴다. 원본과 같은 처리다. */
+    .poster img{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.34;
+      pointer-events: none;
+      filter: saturate(0.46) contrast(1.08) brightness(0.7);
+      transform: scale(1.03);
+    }
+    .brand-public .poster.is-cmdg img{ opacity: 0.96; filter: saturate(1.04) contrast(1.08) brightness(0.94); }
+    .brand-public .poster.is-love img{ opacity: 0.78; filter: saturate(1.06) contrast(1.04) brightness(0.82); transform: scale(1.02); }
+    .brand-public .poster.is-work img{ opacity: 0.82; filter: saturate(1.08) contrast(1.06) brightness(0.84); transform: scale(1.02); }
+
+    .brand-public .poster-shade{
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(5, 5, 4, 0.04), rgba(5, 5, 4, 0.36) 34%, rgba(5, 5, 4, 0.92) 100%),
+        linear-gradient(90deg, rgba(5, 5, 4, 0.62), transparent 74%);
+    }
+    .brand-public .poster.is-cmdg .poster-shade{
+      background:
+        linear-gradient(180deg, rgba(5, 5, 4, 0), rgba(5, 5, 4, 0.03) 30%, rgba(5, 5, 4, 0.34) 58%, rgba(5, 5, 4, 0.9) 100%),
+        linear-gradient(90deg, rgba(5, 5, 4, 0.36), rgba(5, 5, 4, 0.02) 76%);
+    }
+    .brand-public .poster.is-love .poster-shade, .brand-public .poster.is-work .poster-shade{
+      background:
+        linear-gradient(180deg, rgba(5, 5, 4, 0.06), rgba(5, 5, 4, 0.2) 34%, rgba(5, 5, 4, 0.9) 100%),
+        linear-gradient(90deg, rgba(5, 5, 4, 0.4), rgba(5, 5, 4, 0.02) 74%);
+    }
+
+    .brand-public .poster .badge, .brand-public .poster strong, .brand-public .poster em, .brand-public .poster .scope-line, .brand-public .poster .price-line{ position: relative; z-index: 3; }
+
+    .brand-public .poster .badge{
+      display: inline-flex;
+      align-self: flex-start;
+      padding: 5px 9px;
+      border: 1px solid var(--gold-600);
+      border-radius: 999px;
+      color: var(--gold-300);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+    }
+    .brand-public .poster strong{
+      display: block;
+      margin-top: 62px;
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.2;
+      word-break: keep-all;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
+    }
+    .brand-public .poster em{
+      display: block;
+      margin-top: 10px;
+      color: #afa698;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 750;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+    .brand-public .poster .scope-line{
+      display: block;
+      margin-top: 6px;
+      color: #786f63;
+      font-size: 11px;
+      font-weight: 750;
+    }
+    .brand-public .poster .price-line{
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line-poster);
+    }
+    .brand-public .poster .price-line b{
+      color: var(--gold-200);
+      font-family: var(--font-brand);
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .brand-public .poster .price-line > span{ color: #8d8478; font-size: 11px; font-weight: 800; }
+
+    .brand-public .poster-dots{ display: flex; justify-content: center; align-items: center; gap: 7px; padding: 0 16px; }
+    .brand-public .poster-dot{
+      width: 7px;
+      height: 7px;
+      padding: 0;
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(216, 186, 114, 0.28);
+      cursor: pointer;
+      transition: background 200ms ease, width 200ms ease;
+    }
+    .brand-public .poster-dot.is-active{ width: 20px; background: var(--gold-400); }
+
+    .brand-public /* 고른 상담의 목차 판 */
+    .detail{
+      display: grid;
+      gap: 10px;
+      padding: 20px 16px;
+      border: 1px solid rgba(242, 191, 107, 0.42);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .brand-public .detail-eyebrow{ color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: 0.1em; }
+    .brand-public .detail-title{ color: #ffe4b8; font-family: var(--font-brand); font-size: 19px; line-height: 1.35; }
+    .brand-public .detail-body{ color: var(--muted); font-size: 14px; line-height: 1.78; word-break: keep-all; }
+    .brand-public .detail-meta{ color: var(--dim); font-size: 12px; font-weight: 700; }
+    .brand-public .toc-wrap{ display: flex; flex-wrap: wrap; gap: 6px; }
+    .brand-public .toc-chip{
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .brand-public .free-tag{
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 11px;
+      border: 1px solid rgba(242, 191, 107, 0.42);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+    }
