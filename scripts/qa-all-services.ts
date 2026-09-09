@@ -29,7 +29,7 @@ const ROUTES: Partial<Record<KnownServiceKey, { dir?: string; visibility: 'publi
   love_mind: { visibility: 'hidden' },
   love_again: { visibility: 'hidden' },
   love_spouse: { visibility: 'hidden' },
-  home_fit: { dir: 'place/home', visibility: 'public' },
+  home_fit: { visibility: 'hidden' },
   newyear_flow: { dir: 'flow/newyear', visibility: 'public' },
   wedding_day: { dir: 'day/wedding', visibility: 'public' },
 }

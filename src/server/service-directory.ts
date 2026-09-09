@@ -50,7 +50,8 @@ const SEEDS: DirectorySeed[] = [
   { key: 'love_mind', tagline: '그 사람도 나를 생각할까', category: '연애', href: '/love/mind', image: '/assets/love-ty-char-phone-v2.webp', hidden: true },
   { key: 'love_again', tagline: '그 사람, 다시 돌아올까', category: '연애', href: '/love/again', image: '/assets/love-ty-char-chart-v2.webp', hidden: true },
   { key: 'love_spouse', tagline: '내가 결혼하게 될 사람', category: '연애', href: '/love/spouse', image: '/assets/love-ty-char-cafe-v2.webp', hidden: true },
-  { key: 'home_pungsu', tagline: '공간의 기운과 내 명리를 겹쳐서', category: '풍수', href: '/place/home', image: '/assets/umsh-place-card-bg.webp' },
+  // 집 풍수는 구현과 기존 결과 연결은 보존하되 공개 검색/카탈로그에서는 내린다.
+  { key: 'home_pungsu', tagline: '공간의 기운과 내 명리를 겹쳐서', category: '풍수', href: '/place/home', image: '/assets/umsh-place-card-bg.webp', hidden: true },
 ]
 
 export function listServiceDirectory(): ServiceDirectoryEntry[] {

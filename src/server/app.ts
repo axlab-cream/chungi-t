@@ -182,6 +182,9 @@ const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
 const PASS_ANGLE_SERVICE_KEY = 'pass_angle'
+// 집 풍수는 재공개 전까지 코드와 기존 결과만 보존하고 신규 진입/생성을 막는다.
+const HOME_FIT_PUBLICLY_ENABLED = false
+const PUBLICLY_DISABLED_PRODUCT_KEYS = new Set(['home_pungsu'])
 
 const app = express()
 app.use(cors())
@@ -420,6 +423,15 @@ app.get(['/match/marry/chat', '/match/marry/chat.html'], (_req, res) => {
 app.get(['/match/marry/detail', '/match/marry/detail.html'], (_req, res) => {
   res.redirect(302, '/match/marry/06-step-6_1-report-detail/index.html')
 })
+app.use('/place/home', (_req, res, next) => {
+  if (HOME_FIT_PUBLICLY_ENABLED) {
+    next()
+    return
+  }
+  res.setHeader('Cache-Control', 'no-store')
+  res.redirect(302, '/')
+})
+// 집 풍수 공개 재개 시 위 게이트만 열면 아래 01~06 경로를 그대로 다시 쓸 수 있다.
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
 })
@@ -1192,7 +1204,9 @@ function paymentConfigPayload() {
     testMode,
     storage,
     storageReady: storage !== 'memory',
-    catalog: listPaymentProducts().map(publicPaymentProduct),
+    catalog: listPaymentProducts()
+      .filter((product) => !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key))
+      .map(publicPaymentProduct),
     setupMessage: enabled || testMode ? '' : paymentSetupMessage(inicis.enabled, storage),
   }
 }
@@ -1408,6 +1422,10 @@ app.post('/api/payment/orders', async (req, res) => {
     const product = getPaymentProduct(req.body?.productKey)
     if (!product) {
       res.status(400).json({ error: '결제 상품을 확인해 주세요.' })
+      return
+    }
+    if (PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key)) {
+      res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
       return
     }
     const profile = await getUserBirthProfile(owner)
@@ -2301,10 +2319,15 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
 
 app.post('/api/saju/analyze', async (req, res) => {
   try {
+    const requestedServiceKey = trimmedString(req.body?.context?.serviceKey || req.body?.context?.service_key || req.body?.serviceKey || req.body?.service_key)
+    if (!HOME_FIT_PUBLICLY_ENABLED && [HOME_FIT_SERVICE_KEY, 'home_pungsu', 'home', 'home-fit', 'place-home', 'place/home'].includes(requestedServiceKey)) {
+      res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
+      return
+    }
     const birthBody = asObject(req.body.birth)
     const birth = parseBirth(Object.keys(birthBody).length ? birthBody : req.body)
     const context = parseReportContext(req.body)
-    const suppliedKey = trimmedString(req.body?.context?.serviceKey || req.body?.context?.service_key || req.body?.serviceKey || req.body?.service_key)
+    const suppliedKey = requestedServiceKey
     if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
       res.status(400).json({ error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
       return

@@ -6,6 +6,7 @@ import { serviceHrefForKey } from '../../src/server/service-directory.js'
 
 const read = (path:string) => readFileSync(new URL('../../'+path, import.meta.url), 'utf8')
 const portal = read('사주/portal.html')
+const visiblePortal = portal.replace(/<!--\s*[\s\S]*?-->/g, '')
 const title = '내 2027년, 풀릴 각이야?'
 const sections = [...portal.matchAll(/<section\b[^>]*class="[^"]*\bsection-block\b[^"]*"[^>]*>[\s\S]*?<\/section>/g)].map(match=>match[0])
 const cards = (html:string) => [...html.matchAll(/<(a|button)\b[^>]*class="[^"]*\bservice-card\b[^"]*"[^>]*>[\s\S]*?<\/\1>/g)].map(match=>match[0])
@@ -48,9 +49,11 @@ test('other released cards and the wedding service card retain their placement',
   assert.match(upcoming[1], /우리 결혼, 이날 해도 될까\?/)
   assert.match(upcoming[1], /is-live/)
   assert.match(upcoming[1], /<span class="coming-tag">SOON<\/span>/)
-  for(const href of ['/cmdg/','/today/free','/love/this-year','/work/job-choice','/place/home','/work/move','/money/save','/match/marry','/love/signal','/match/couple']) {
-    assert.ok(portal.includes('href="'+href+'"'), 'unrelated home link missing: '+href)
+  for(const href of ['/cmdg/','/today/free','/love/this-year','/work/job-choice','/work/move','/money/save','/match/marry','/love/signal','/match/couple']) {
+    assert.ok(visiblePortal.includes('href="'+href+'"'), 'unrelated home link missing: '+href)
   }
+  assert.ok(!visiblePortal.includes('href="/place/home"'), '집 풍수 대표 카드가 공개되어 있습니다')
+  assert.ok(!visiblePortal.includes('data-filter="풍수"'), '집 풍수 필터가 공개되어 있습니다')
 })
 
 test('homepage placement does not remove direct service, saved-result or payment routes', () => {

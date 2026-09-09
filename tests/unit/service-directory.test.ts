@@ -44,7 +44,7 @@ test('검색 목록은 카탈로그의 제목과 금액을 그대로 쓴다', ()
   assert.ok(keys.includes('cat_compatibility'))
 
   // 내부적으로는 살아 있어도 공개 포털과 검색에서는 노출하지 않는다.
-  for (const hiddenKey of ['work_job', 'love_mind', 'love_again', 'love_spouse']) {
+  for (const hiddenKey of ['work_job', 'love_mind', 'love_again', 'love_spouse', 'home_pungsu']) {
     assert.ok(!keys.includes(hiddenKey as (typeof keys)[number]), `${hiddenKey}가 공개 목록에 노출됩니다`)
   }
 })
