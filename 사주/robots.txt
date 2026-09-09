@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# 개인 기록·결제·인증 흐름은 검색 결과에 노출하지 않습니다.
+Disallow: /api/
+Disallow: /r/
+Disallow: /report-view
+Disallow: /vault
+Disallow: /profile
+Disallow: /my
+Disallow: /orders
+Disallow: /payment/
+Disallow: /refunds
+Disallow: /leave
+
+Sitemap: https://umsh.kr/sitemap.xml

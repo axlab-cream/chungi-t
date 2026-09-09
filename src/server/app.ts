@@ -154,6 +154,7 @@ const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
 const PRIVACY_PAGE = join(SAJU_ROOT, 'privacy.html')
 const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
 const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
+const FAQ_PAGE = join(SAJU_ROOT, 'faq.html')
 const PAYMENT_PAGE = join(SAJU_ROOT, 'payment', 'index.html')
 const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
 const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
@@ -240,6 +241,9 @@ app.get(['/refund', '/refund/', '/refund.html'], (_req, res) => {
 })
 app.get(['/support', '/support/', '/support.html'], (_req, res) => {
   res.sendFile(SUPPORT_PAGE)
+})
+app.get(['/faq', '/faq/', '/faq.html'], (_req, res) => {
+  res.sendFile(FAQ_PAGE)
 })
 app.get(['/payment', '/payment/', '/payment/index.html'], (_req, res) => {
   res.sendFile(PAYMENT_PAGE)
