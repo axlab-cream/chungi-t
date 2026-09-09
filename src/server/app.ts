@@ -182,9 +182,9 @@ const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
 const PASS_ANGLE_SERVICE_KEY = 'pass_angle'
-// 집 풍수는 재공개 전까지 코드와 기존 결과만 보존하고 신규 진입/생성을 막는다.
-const HOME_FIT_PUBLICLY_ENABLED = false
-const PUBLICLY_DISABLED_PRODUCT_KEYS = new Set(['home_pungsu'])
+// 공개 상태를 한 곳에서 전환해 페이지·분석 경로가 서로 다른 상태가 되지 않게 한다.
+const HOME_FIT_PUBLICLY_ENABLED = true
+const PUBLICLY_DISABLED_PRODUCT_KEYS = new Set<string>()
 
 const app = express()
 app.use(cors())

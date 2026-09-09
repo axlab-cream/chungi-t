@@ -49,11 +49,10 @@ test('other released cards and the wedding service card retain their placement',
   assert.match(upcoming[1], /우리 결혼, 이날 해도 될까\?/)
   assert.match(upcoming[1], /is-live/)
   assert.match(upcoming[1], /<span class="coming-tag">SOON<\/span>/)
-  for(const href of ['/cmdg/','/today/free','/love/this-year','/work/job-choice','/work/move','/money/save','/match/marry','/love/signal','/match/couple']) {
+  for(const href of ['/cmdg/','/today/free','/love/this-year','/work/job-choice','/place/home','/work/move','/money/save','/match/marry','/love/signal','/match/couple']) {
     assert.ok(visiblePortal.includes('href="'+href+'"'), 'unrelated home link missing: '+href)
   }
-  assert.ok(!visiblePortal.includes('href="/place/home"'), '집 풍수 대표 카드가 공개되어 있습니다')
-  assert.ok(!visiblePortal.includes('data-filter="풍수"'), '집 풍수 필터가 공개되어 있습니다')
+  assert.ok(visiblePortal.includes('data-filter="풍수"'), '집 풍수 필터가 공개되지 않았습니다')
 })
 
 test('homepage placement does not remove direct service, saved-result or payment routes', () => {

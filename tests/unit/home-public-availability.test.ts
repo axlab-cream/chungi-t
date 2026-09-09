@@ -20,26 +20,18 @@ after(async () => {
   await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()))
 })
 
-test('집 풍수는 포털·검색·결제에서 숨기고 직접 진입과 신규 생성을 막는다', async () => {
+test('집 풍수는 포털·검색·결제와 직접 서비스 경로에서 공개된다', async () => {
   const direct = await fetch(`${origin}/place/home/01-step-1-story/index.html`, { redirect: 'manual' })
-  assert.equal(direct.status, 302)
-  assert.equal(direct.headers.get('location'), '/')
+  assert.equal(direct.status, 200)
 
   const portal = await (await fetch(`${origin}/`)).text()
   const visiblePortal = portal.replace(/<!--\s*[\s\S]*?-->/g, '')
-  assert.ok(!visiblePortal.includes('href="/place/home"'))
-  assert.ok(!visiblePortal.includes('data-filter="풍수"'))
+  assert.ok(visiblePortal.includes('href="/place/home"'))
+  assert.ok(visiblePortal.includes('data-filter="풍수"'))
 
   const directory = await (await fetch(`${origin}/api/services`)).json() as { services: Array<{ key: string }> }
-  assert.ok(!directory.services.some((service) => service.key === 'home_pungsu'))
+  assert.ok(directory.services.some((service) => service.key === 'home_pungsu'))
 
   const payment = await (await fetch(`${origin}/api/payment/config`)).json() as { catalog: Array<{ key: string }> }
-  assert.ok(!payment.catalog.some((product) => product.key === 'home_pungsu'))
-
-  const analyze = await fetch(`${origin}/api/saju/analyze`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ serviceKey: 'home_fit' }),
-  })
-  assert.equal(analyze.status, 404)
+  assert.ok(payment.catalog.some((product) => product.key === 'home_pungsu'))
 })
