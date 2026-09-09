@@ -1,7 +1,8 @@
 User-agent: *
 Allow: /
 
-# 개인 기록·결제·인증 흐름은 검색 결과에 노출하지 않습니다.
+# 개인 기록·결제·인증 경로의 크롤링을 제한합니다.
+# robots.txt는 접근 통제나 색인 삭제 수단이 아닙니다. 개인정보는 서버 인증으로 보호합니다.
 Disallow: /api/
 Disallow: /r/
 Disallow: /report-view
