@@ -422,3 +422,6 @@ h1 {
       font-size: 12px;
       font-weight: 800;
     }
+
+/* Shared image logo for About, FAQ and policy headers. */
+.brand img { display: block; width: 118px; height: auto; object-fit: contain; }
