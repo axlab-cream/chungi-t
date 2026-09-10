@@ -64,6 +64,14 @@
 | V-082 | task-013 | 출생시각 불확실 | 상대 시각 미상 시 `partner.birthTimeKnown` | `false` | **PASS** — 채운 정오를 사실로 넘기지 않는다 | 2026-09-10 |
 | V-083 | task-013 | 절단 규칙 | 코퍼스 전수: 말줄임표·한도·문장 끝 | 위반 0 | **PASS** — 363청크, 출력 최대 170자, 초과 0건. `mr-001`(원문에 마침표 없음)이 최초 불변식을 반증해 단정을 "잘린 경우"로 좁혔다 | 2026-09-10 |
 | V-084 | task-013 | 공용 헬퍼 | `compactChunkText` 정상/경계/에러/보안 | 6건 통과 | **PASS** — 신년·결혼 공용 | 2026-09-10 |
+| V-085 | task-019 | 상대 개인정보 | 6개 서비스 문맥에 상대 생년월일시 흔적 | 0건 | **PASS** — 다시만날까·그사람마음·연애신호·궁합·결혼궁합·결혼택일 | 2026-09-10 |
+| V-086 | task-019 | 계산 결과 보존 | 원본 제거 후에도 명식 4주·일간 표기 | 유지 | **PASS** — 6개 서비스 전부 | 2026-09-10 |
+| V-087 | task-019 | 과거 기록 응답 | `/api/report/:id`(결제 완료) 응답에 상대 생년월일시 | 0건 | **PASS** — 저장소에는 남아 있고 응답에서만 가림 | 2026-09-10 |
+| V-088 | task-019 | 유입구 차단 | `/api/saju/analyze` + `serviceKey=love_this_year` + partner | 400 INPUT_REQUIRED | **PASS** — dead path 고정 | 2026-09-10 |
+| V-089 | task-019 | 모델 프롬프트 | `groundedReportFeatures` 직렬화에 상대 생년월일시 | 0건 | **PASS** — Codex Critical 1. `featureJson.userContext` 로 새고 있었다 | 2026-09-10 |
+| V-090 | task-019 | 저장된 상담 | 과거 부모로 `/api/chat` → 자녀 레코드 문맥·저장된 프롬프트 | 0건 | **PASS** — Codex Critical 2. 저장·전송 양쪽 확인 | 2026-09-10 |
+| V-091 | task-019 | sanitize 무해성 | `publicReportContext`가 입력 객체를 변형하는가 | 변형 없음 | **PASS** — 얕은 복사 후 delete | 2026-09-10 |
+| V-092 | task-019 | 음성 대조 | 3개 경로의 sanitize 를 각각 되돌림 | 해당 테스트만 실패 | **PASS** — 궁합 서비스 / `/api/report/:id` / 저장된 상담 | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

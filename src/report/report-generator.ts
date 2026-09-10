@@ -11,6 +11,7 @@ import type {
 } from '../types/index.js'
 import { chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
 import { InterpretationQualityError, reviewInterpretation } from './interpretation-validation.js'
+import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
 import { standardReading } from './standard-reading.js'
@@ -2034,7 +2035,11 @@ const INTERPRETATION_INSTRUCTION = [
 ].join('\n')
 
 
-export function groundedReportFeatures(analysis: SajuAnalysis, context: SajuReportContext): unknown {
+export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuReportContext): unknown {
+  // `buildSajuFeatureJson` 은 문맥을 `userContext` 로 통째로 실어 모델에 보낸다.
+  // 그래서 호출자가 가려 주기를 기대하지 않고 이 함수가 직접 걷어낸다 — 호출자만 고치면
+  // 다음 호출자가 다시 새게 된다(2026-09-10 Codex 리뷰 Critical).
+  const context = publicReportContext(rawContext)
   const features = buildSajuFeatureJson(analysis, context)
   if (context.birthTimeKnown !== false) return features
   return {
@@ -2045,7 +2050,12 @@ export function groundedReportFeatures(analysis: SajuAnalysis, context: SajuRepo
   }
 }
 
-function sectionPrompt(analysis: SajuAnalysis, birth: BirthInput, context: SajuReportContext, section: SajuReportSection, siblings: SajuReportSection[] = []): LlmMessage[] {
+function sectionPrompt(analysis: SajuAnalysis, birth: BirthInput, rawContext: SajuReportContext, section: SajuReportSection, siblings: SajuReportSection[] = []): LlmMessage[] {
+  // 이 프롬프트는 외부 모델 제공자로 나간다. 상대의 생년월일시 원본은 어느 필드로도
+  // 넘기지 않는다 — `featureJson` 이 문맥을 `userContext` 로 통째로 싣기 때문에
+  // `context` 필드만 가려도 부족하다(2026-09-10 Codex 리뷰). 과거에 저장된 레코드에는
+  // 원본이 남아 있으므로(소급 삭제하지 않는다) 입구에서 한 번에 걷어낸다.
+  const context = publicReportContext(rawContext)
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
     analysis, runtimeConfig.report?.ragTopK ?? 4, context,
@@ -2056,7 +2066,11 @@ function sectionPrompt(analysis: SajuAnalysis, birth: BirthInput, context: SajuR
       instruction: context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingInstruction(section.id) : INTERPRETATION_INSTRUCTION,
       outputShape: { id: section.id, hook: 'string', interpretation: 'string' },
       birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
-      context: context.partner?.birthTimeKnown === false ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false, birth: context.partner.birth ? { ...context.partner.birth, hour: undefined, minute: undefined } : undefined } } : context,
+      // 상대의 출생시각을 모르면 시주가 추정값이다. 계산된 명식을 넘기면 모델이 그것을
+      // 사실로 쓰므로 이때는 명식을 빼고 관계만 남긴다.
+      context: context.partner?.birthTimeKnown === false
+        ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false } }
+        : context,
       featureJson: groundedReportFeatures(analysis, context),
       section: { id: section.id, category: section.category, classification: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.classification, hook: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.hook, interpretation: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.interpretation },
       otherSections: siblings.map((item) => ({ id: item.id, question: item.classification, summary: item.hook })),

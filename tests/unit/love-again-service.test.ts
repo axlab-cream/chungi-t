@@ -66,7 +66,11 @@ test('love again service uses optional partner birth for compatibility context',
   assert.equal(input.partnerBirth?.year, 1994)
   assert.equal(context.partner?.mode, 'known')
   assert.equal(context.partner?.name, '김하나')
-  assert.equal(context.partner?.birth?.year, 1994)
+  // 상대의 생년월일시 원본은 문맥에 실리지 않는다. 계산 결과만 남는다.
+  assert.equal(context.partner?.birth, undefined)
+  assert.equal(context.partner?.pillars?.year, '甲戌')
+  assert.match(String(context.partner?.dayMaster), /\(.\)$/)
+  assert.ok(!JSON.stringify(context).includes('1994'), '상대 생년 흔적이 문맥에 남았다')
   assert.match(report.sections.find((section) => section.classification === '다시 만나면 먼저 부딪힐 문제')!.interpretation, /이전 이별 이유가 실제로 달라졌는지/)
 })
 

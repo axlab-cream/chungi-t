@@ -4,6 +4,7 @@ import { chatWithOpenAI, isOpenAiConfigured, type OpenAiResult } from '../llm/op
 import type { BirthInput, ConversationTurn, LlmMessage, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 import { normalizeUserCopy } from './copy-guide.js'
+import { publicReportContext } from './public-context.js'
 import { assertReportOwner, createOrGetReportRecord, findReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord, type ReportStatus } from './report-store.js'
 
 const SECTION_ID = 'chat-reply'
@@ -138,8 +139,11 @@ async function resolveRecord(params: SavedChatParams): Promise<ReportRecord> {
   }
   const birth = parent?.birth ?? params.birth
   if (!birth) throw new Error('CHAT_BIRTH_REQUIRED')
+  // 부모 문맥은 시스템 메시지로 직렬화되고 새 상담 레코드로도 저장된다. 과거에 저장된
+  // 부모에는 상대의 생년월일시 원본이 남아 있어(소급 삭제하지 않는다) 그대로 복사하면
+  // 원본이 새 레코드와 외부 모델로 다시 퍼진다(2026-09-10 Codex 리뷰).
   const baseContext: SajuReportContext = parent
-    ? Object.fromEntries(Object.entries(parent.context).filter(([key]) => key !== 'savedChat'))
+    ? publicReportContext(parent.context)
     : { serviceKey: params.serviceKey, birthTimeKnown: params.birthTimeKnown, concern: message }
   const serviceKey = baseContext.serviceKey ?? params.serviceKey ?? 'saju_master'
   const history = boundedHistory(params.history)

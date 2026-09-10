@@ -148,6 +148,7 @@
 | TASK-011 | 브랜드 표기 통일 판정 | 고객 노출 문구에서 `UMSH`를 뗄지 결정하고 SEO 기반 재검증 | TODO (TASK-009와 분리 권고) |
 | TASK-012 | 결제 설정 문구 정보 노출 제거 | `/api/payment/config`의 `setupMessage`가 내부 환경변수 이름을 노출 | **DONE** (TASK-009 병합으로 해소). 단 **운영 배포 전까지 노출은 계속된다** |
 | TASK-013 | 결혼택일 RAG 렌더링·문맥 이식 | RAG 근거를 본문에 실음(`_chunk` 소멸), 청크 중복 배정 제거, 후보일 판정·상대 명식 문맥 이식, 한자 독음, 삭제된 테스트 3건 복구 + 신규 7건 | **DONE** — 430 pass. Codex Critical 2건(상대 개인정보) 반영 |
+| TASK-019 | 상대 개인정보 전 서비스 정리 (U26) | 6개 서비스 문맥에서 상대 생년월일시 제거, 응답·프롬프트·저장된 상담 경로 sanitize | **DONE** — 446 pass. Codex Critical 2건(featureJson·저장된 상담) 반영 |
 | TASK-014 | Android 앱 셸 인수 | 병합으로 유입된 `android/`(Capacitor) + Play 결제 + App Links 상태 파악 | **BLOCKED — 출시 게이트 G6~G9** |
 | TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | **DONE** — `chungi-387wmilw8`, `umsh.kr` 별칭 이동. SEO·FAQ·about·집풍수 복구 확인 |
 | TASK-017 | `git push` | 커밋 스택이 로컬에만 있다. 원격 미보존이 이번 사고의 근본 원인 | **BLOCKED** (push 권한 차단) — 사용자 조치 필요 |

@@ -10,6 +10,7 @@ import { analyzeSaju } from '../saju/analyzer.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
+import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow } from '../report/report-queue.js'
@@ -227,7 +228,7 @@ function specializedAnalyzeResponse(
     cached: progressive.cached,
     resumed: progressive.resumed,
     birth,
-    context,
+    context: publicReportContext(context),
     profile,
   }
 }
@@ -877,10 +878,13 @@ function enrichReportContext(context: SajuReportContext): SajuReportContext {
   const partnerAnalysis = analyzeSaju(context.partner.birth)
   const p = partnerAnalysis.fourPillars
 
+  // 원본은 여기서 명식을 계산하는 데만 쓰고 버린다. 이 문맥은 리포트 payload 로
+  // 저장되고 응답으로도 나가므로, 남겨 두면 상대의 생년월일시가 그 범위까지 따라간다.
+  // 저장된 해석을 다시 열 때 상대 입력 폼이 비어 있게 되는 것은 감수한 대가다.
   return {
     ...context,
     partner: {
-      ...context.partner,
+      ...publicPartnerContext(context.partner),
       pillars: {
         year: `${p.year.stem}${p.year.branch}`,
         month: `${p.month.stem}${p.month.branch}`,
@@ -1176,7 +1180,7 @@ function birthStateFromRecord(record: ReportRecord) {
     birthTimeKnown,
     name: context.name || '',
     serviceKey: context.serviceKey || '',
-    ...(context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY ? { partner: context.partner || { mode: 'none' } } : {}),
+    ...(context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY ? { partner: publicPartnerContext(context.partner) || { mode: 'none' } } : {}),
     ...(context.serviceKey === HOME_FIT_SERVICE_KEY ? { home: context.home || {} } : {}),
     orientation: context.orientation || '',
     relationship: context.relationship || '',
@@ -1186,7 +1190,7 @@ function birthStateFromRecord(record: ReportRecord) {
 }
 
 function clientReportContext(record: ReportRecord): SajuReportContext {
-  return Object.fromEntries(Object.entries(record.context).filter(([key]) => key !== 'savedChat'))
+  return publicReportContext(record.context)
 }
 
 function historyEntryFromRecord(record: ReportRecord) {
@@ -1984,11 +1988,11 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
-      res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: record.context, analysis })
+      res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis })
       return
     }
     applyReportEntitlement(analysis.report, access, owner)
-    res.json({ report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: record.context, analysis, cached: true })
+    res.json({ report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis, cached: true })
   } catch (error) {
     const denied = error instanceof Error && error.message === 'REPORT_ACCESS_DENIED'
     res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 조회할 수 있습니다.' : '저장된 해석 조회에 실패했습니다.' })
@@ -2570,7 +2574,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
-      res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: record.context, analysis })
+      res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis })
       return
     }
     if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
@@ -2583,7 +2587,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       resultId: analysis.report.resultId,
       publicUrl: analysis.report.publicUrl,
       birth: record.birth,
-      context: record.context,
+      context: publicReportContext(record.context),
       analysis,
       chatHistory: record.chatHistory ?? [],
     })

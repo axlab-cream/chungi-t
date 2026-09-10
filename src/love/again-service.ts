@@ -153,7 +153,9 @@ function buildPartnerContext(input: LoveAgainRequest, analysis?: SajuAnalysis): 
     mode: 'known',
     ...(input.partnerName ? { name: input.partnerName } : {}),
     relationship: input.relationshipStage,
-    birth: input.partnerBirth,
+    // 상대의 생년월일시 원본은 문맥에 싣지 않는다. 이 문맥은 리포트 payload 로 저장되고
+    // 응답으로도 나가는데, 상대는 이 서비스의 사용자가 아니어서 동의·삭제 창구가 없다.
+    // 본문 생성에 필요한 것은 아래 계산 결과뿐이고 원본은 `input.partnerBirth` 에 있다.
     birthTimeKnown: input.partnerBirthTimeKnown,
     pillars: { year: `${p.year.stem}${p.year.branch}`, month: `${p.month.stem}${p.month.branch}`, day: `${p.day.stem}${p.day.branch}`, hour: `${p.hour.stem}${p.hour.branch}` },
     dayMaster: `${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})`,
