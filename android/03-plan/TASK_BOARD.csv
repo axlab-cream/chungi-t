@@ -12,9 +12,9 @@ B05,프롬프트7.3,파일,저장·공유·링크,P1,B02,,인쇄→PDF 저장 �
 B06,프롬프트5.3,오프라인,로드 실패 시 로컬 화면,P0,B02,android/app-shell/capacitor.config.ts,네트워크 없이 안내 화면,실기기,app-shell/www/index.html,IN_PROGRESS,,server.errorPath 연결·렌더 확인 완료. 실기기 오류 유발 미확인
 B07,"프롬프트6.3,6.4",정책기능,탈퇴·개인정보·AI 신고,P0,"A04,B03",,앱 내 신고 경로 존재,실기기,04-qa/evidence/,TODO,,AI 신고 기능 신규 구현 필요
 B08,프롬프트7.2,보안,WebView·브리지 점검,P0,"B03,B07",,허용 도메인 외 차단,실기기,04-qa/evidence/,NOT_TESTED,SDK 없음,환경 구축
-C01,프롬프트11.3,선언,정책·Data safety 자료,P0,A04,05-store/,항목별 근거,문서,05-store/,TODO,대상 연령 미확인,소유자 확인
-C02,프롬프트10,등록정보,문구·이미지·URL,P1,"B02,C01",05-store/,실제 빌드와 일치,문서,05-store/,TODO,스크린샷은 실기기 필요,문구 먼저 작성 가능
-C03,프롬프트10.4,심사접근,테스트 계정·영문 안내,P0,"B03,B04",05-store/,새 설치에서 재현,실기기,05-store/APP_ACCESS_EN.md,TODO,,계정 준비 후
+C01,프롬프트11.3,선언,정책·Data safety 자료,P0,A04,05-store/PLAY_CONSOLE_DECLARATIONS.md,항목별 근거,문서,05-store/,IN_PROGRESS,,대상 18세+ 결정·데이터 10항목 대응표 작성. 보관 기간·결제사 전송 항목 미확인
+C02,프롬프트10,등록정보,문구·이미지·URL,P1,"B02,C01",05-store/STORE_LISTING_KO.md,실제 빌드와 일치,길이 검사,05-store/,IN_PROGRESS,,문구 4종 작성·길이 통과. 스크린샷·그래픽 이미지 미제작
+C03,프롬프트10.4,심사접근,테스트 계정·영문 안내,P0,"B03,B04",05-store/APP_ACCESS_EN.md,새 설치에서 재현,실기기,05-store/APP_ACCESS_EN.md,BLOCKED,심사용 계정·라이선스 테스터 등록 필요,안내문은 작성됨
 D01,프롬프트7.1,릴리스,서명 빌드,P0,B08,,AAB 해시·서명 확인,gradlew,06-release/,BLOCKED,JDK·SDK·키스토어 없음,환경 구축
 D02,프롬프트9,QA,실기기 전수 QA,P0,D01,04-qa/,Q01~Q36 판정,실기기,04-qa/TEST_RESULTS.csv,BLOCKED,기기 없음,기기 확보
 D03,프롬프트9.3,QA,결함 수정·회귀,P0,D02,,수정 전후 증거,실기기,04-qa/DEFECTS_AND_RETEST.md,TODO,,D02 이후
@@ -23,6 +23,6 @@ D05,프롬프트11.8,배포,비공개 테스트,P0,D04,,콘솔이 요구하는 �
 D06,프롬프트11.9,배포,프로덕션 접근 신청,P0,D05,,승인 상태,Play Console,06-release/,BLOCKED,D05 선행,대기
 E01,프롬프트11.10,출시,최종 교차 대조,P0,"C01,C02,C03,D04",,체크리스트 완료,문서,FINAL_REPORT.md,TODO,,선행 대기
 E02,프롬프트11.11,출시,심사 제출,P0,E01,,제출 시각·버전,Play Console,06-release/,BLOCKED,승인 범위 밖,소유자 승인
-W01,조사,웹,프로덕션 16커밋 배포,P0,,,프로덕션이 origin/main 과 일치,배포 후 확인,01-audit/SERVICE_AUDIT.md,TODO,,앱이 이 웹을 띄우므로 선행
-W02,조사,웹,INICIS_SIGNKEY 설정,P1,,,웹 결제 활성,vercel env,01-audit/SERVICE_AUDIT.md,BLOCKED,값 미보유,소유자 확인
-W03,조사,웹,AI 결과 신고 경로 구현,P0,,"사주/js/ai-report-flag.js, umsh-chrome.js, src/server/app.ts",결과에서 신고 접수까지,로컬+실기기,tests/unit/google-play-payment.test.ts,IN_PROGRESS,,서버 4개 통과·브라우저 확인 완료. 로그인 실계정 확인 미실시
+W01,조사,웹,프로덕션 배포,P0,,,프로덕션이 origin/main 과 일치,배포 후 확인,01-audit/SERVICE_AUDIT.md,PASS,,2026-09-10 fb686b6 배포. 브랜드·SOON·환경변수 노출 해소 확인
+W02,조사,웹,INICIS 웹 결제 설정,P1,,,웹 결제 활성,vercel env,01-audit/SERVICE_AUDIT.md,BLOCKED,MID 미수령,소유자 대기. 앱 결제는 이것과 무관하게 동작
+W03,조사,웹,AI 결과 신고 경로 구현,P0,,"사주/js/ai-report-flag.js, umsh-chrome.js, src/server/app.ts",결과에서 신고 접수까지,로컬+실기기,tests/unit/google-play-payment.test.ts,IN_PROGRESS,,서버 4개 통과·브라우저 확인·배포 완료. 로그인 실계정 확인 미실시
