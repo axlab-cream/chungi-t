@@ -1,0 +1,63 @@
+name: CI
+
+# 검사 전용 워크플로다. **배포 단계를 넣지 않는다.**
+#
+# 배포는 Vercel Git 연동이 담당한다(`main` push → Production, 그 외 브랜치 → Preview).
+# 여기에 `vercel deploy` 를 넣으면 push 한 번에 배포가 두 번 돌아 빌드 시간이 중복되고
+# PR 체크가 두 벌이 되며 Preview URL 이 경쟁한다(T02 리서치 F9, `docs/admin-ops/TASK-018-deploy-path.md`).
+# 이 제약은 `tests/unit/ci-workflow.test.ts` 가 고정한다.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck · test · 검수
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # 락파일과 어긋난 의존성으로 통과하지 않게 `npm ci` 를 쓴다.
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      # 테스트는 `.env` 를 읽지 않는다(`src/env/load.ts` 가 `--test` 를 감지해 dotenv 를
+      # 건너뛴다). 그래서 비밀값 없이 그대로 돈다.
+      - run: npm test
+
+      - name: 서비스 검수 스크립트
+        run: |
+          for name in pass-angle marry save quit couple signal thisyear jobchoice \
+                      cat lucky wedding newyear polish prompt-guide service-contracts; do
+            echo "::group::check:$name"
+            npm run --silent "check:$name"
+            echo "::endgroup::"
+          done
+
+      - name: 검색 기반 검증
+        run: node scripts/verify-seo-foundation.mjs
+
+      - name: 20개 서비스 QA
+        run: npm run qa:all-services
+
+      # `check:integrations` 와 `check:production-source` 는 여기서 돌리지 않는다.
+      #  - `check:integrations` 는 Supabase·이니시스 실계정을 호출한다(비밀값 필요)
+      #  - `check:production-source` 는 배포 직전 preflight 다. 작업 트리 청결과
+      #    "HEAD 가 방금 fetch 한 origin/main 을 포함하는가"를 요구하므로, main 보다
+      #    뒤처진 기능 브랜치에서는 정상적으로 실패한다
