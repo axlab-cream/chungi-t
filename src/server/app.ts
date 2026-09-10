@@ -705,7 +705,27 @@ const PUBLIC_STATIC_EXCEPTIONS = new Set([
   '/sitemap.xml',
   '/.well-known/assetlinks.json',
 ])
-const NON_WEB_STATIC_FILE = /\.(md|py|json|txt|mhtml|ps1|sh|bak|log|ya?ml|ini|cfg)$/i
+/**
+ * 웹으로 내보낼 형식. **허용 목록이다** — 여기 없는 확장자는 거부한다.
+ *
+ * 처음에는 거부 목록(`md|py|json|…`)이었다. 그 방식은 형식을 세는 방식이라 새 형식에
+ * 진다. 실제로 외부 사이트 스크래핑 결과가 `.html` 로 저장돼 있어서 목록을 지나갔다
+ * (2026-09-10 Codex 리뷰 Major). 다음 생성 도구가 `.csv`·`.yaml` 을 만들면 그 순간
+ * 공개된다. 그래서 기본값을 거부로 뒤집었다.
+ *
+ * 목록의 근거는 트리의 실제 분포다 — webp 446 · html 127 · js 61 · mp4 56 · png 52 ·
+ * css 21 · woff2 9 · ttf 3 · xml 1 · jpg 1 · ico 1. 소스맵(`.map`)은 넣지 않는다.
+ */
+const PUBLIC_STATIC_FILE = /\.(html?|css|m?js|webp|png|jpe?g|gif|svg|avif|ico|mp4|webm|mp3|woff2?|ttf|otf|xml)$/i
+
+/**
+ * 파일 요청처럼 보이는지. 확장자가 없으면 정적 파일이 아니라 라우트가 처리하는
+ * 예쁜 URL(`/privacy`, `/api/...`)이므로 통과시킨다.
+ *
+ * 이 전제는 "트리에 확장자 없는 파일이 없다"에 기댄다(2026-09-10 기준 0개).
+ * 그 전제가 깨지면 `tests/unit/static-exposure.test.ts` 가 실패한다.
+ */
+const LOOKS_LIKE_FILE = /\.[A-Za-z0-9]{1,8}$/
 
 /**
  * 중첩 폴더 `사주/사주` 는 필요한 경로에 이미 마운트돼 있다 — `/assets` 계열과
@@ -722,24 +742,35 @@ const NESTED_UI_URL_PREFIX = '/사주/'
 /**
  * 정적 파일 서버가 실제로 열어 볼 후보 경로들. 확장자 검사를 이 전부에 적용한다.
  *
- * 두 가지를 놓치면 가드가 뚫린다. 둘 다 테스트가 잡아냈다.
+ * 세 가지를 놓치면 가드가 뚫린다. 전부 실제로 파일이 나갔다.
  *  - `req.path` 는 디코딩되지 않는데 `express.static` 은 디코딩한 경로로 파일을 찾는다
  *    → `PROMPT%2Emd`
  *  - `send` 는 경로 끝의 슬래시·점을 무시하고 파일을 찾는다
  *    → `PROMPT.md/` 가 원문 전체를 반환했다
+ *  - Windows 는 백슬래시를 경로 구분자로 쓴다. URL 경로에는 쓸 이유가 없는 문자인데
+ *    디코딩하면 경로가 한 단계 더 들어간 것처럼 해석된다
+ *    → `PROMPT.md%5C` 가 원문 전체를 반환했다 (2026-09-10 Codex 리뷰 Critical)
  */
 function staticPathCandidates(rawPath: string): string[] {
   let decoded = rawPath
   try { decoded = decodeURIComponent(rawPath) } catch { /* 잘못된 인코딩은 원본으로 본다 */ }
-  const trimmed = [rawPath, decoded].map((value) => value.replace(/[/\.\s]+$/, ''))
-  return [...new Set([rawPath, decoded, ...trimmed])]
+  // 백슬래시를 슬래시로 맞춰 두면 뒤의 끝문자 제거가 같은 경로를 만든다.
+  const unified = [rawPath, decoded].map((value) => value.replace(/\\/g, '/'))
+  const trimmed = unified.map((value) => value.replace(/[/.\s]+$/, ''))
+  return [...new Set([rawPath, decoded, ...unified, ...trimmed])]
 }
 
 app.use((req, res, next) => {
   const candidates = staticPathCandidates(req.path)
   if (candidates.some((path) => PUBLIC_STATIC_EXCEPTIONS.has(path))) { next(); return }
-  const blocked = candidates.some((path) => path.startsWith(NESTED_UI_URL_PREFIX) || NON_WEB_STATIC_FILE.test(path))
-  if (!blocked) { next(); return }
+  if (!candidates.some((path) => path.startsWith(NESTED_UI_URL_PREFIX))) {
+    // 확장자가 없으면 라우트가 처리하는 URL 이다.
+    if (!candidates.some((path) => LOOKS_LIKE_FILE.test(path))) { next(); return }
+    // 파일로 보이는 후보 전부가 허용 형식이어야 통과한다. `PROMPT.md/` 처럼 끝문자를
+    // 붙여 온 요청은 끝문자를 떼어낸 후보에서 걸린다.
+    const allowed = candidates.every((path) => !LOOKS_LIKE_FILE.test(path) || PUBLIC_STATIC_FILE.test(path))
+    if (allowed) { next(); return }
+  }
   // 존재 여부를 알려 주지 않는다. 같은 응답으로 없는 경로와 구분되지 않게 한다.
   res.status(404).type('text/plain; charset=utf-8').send('찾을 수 없는 경로입니다.')
 })
@@ -755,7 +786,12 @@ app.use('/love/spouse/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/place/home/assets', express.static(join(SAJU_ROOT, 'place', 'home', 'IMAGE')))
 app.use('/cmdg/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/cmdg/js', express.static(join(SAJU_ROOT, 'js')))
-app.use(express.static(SAJU_UI, { index: false }))
+// `SAJU_UI`(중첩 `사주/사주` 폴더)를 통째로 마운트하지 않는다. 그 폴더 최상위에서
+// 웹 확장자를 가진 파일은 `index.html`(위 라우트가 `sendFile` 로 직접 보낸다)과
+// `extracted_decoded.html`(외부 사이트 스크래핑 결과)뿐이고, `assets/` 는 위에서
+// 경로별로 명시 마운트했다. 즉 이 마운트는 스크랩 산출물만 추가로 공개했다 —
+// 확장자 허용 목록은 `.html` 을 통과시키므로 `GET /extracted_decoded.html` 이
+// 116KB 를 그대로 반환하고 있었다 (2026-09-10 Codex 리뷰 Major 확인 중 발견).
 app.use(express.static(SAJU_ROOT, { index: false }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {

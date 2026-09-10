@@ -87,10 +87,22 @@ describe('정적 루트가 내부 산출물을 내보내지 않는다', { concur
       '/me/pass-angle/01-step-1-story/PROMPT.md.',
       '/me/pass-angle/01-step-1-story/PROMPT%2520md',
       '/me/pass-angle/../me/pass-angle/01-step-1-story/PROMPT.md',
+      // Windows 는 백슬래시를 경로 구분자로 쓴다. 이 변형은 실제로 원문 전체를
+      // 반환하고 있었다 (2026-09-10 Codex 리뷰 Critical).
+      '/me/pass-angle/01-step-1-story/PROMPT.md%5C',
+      '/me/pass-angle/01-step-1-story/PROMPT.md%5c',
+      '/me/pass-angle/01-step-1-story/PROMPT.md%5C/',
+      '/me/pass-angle/01-step-1-story/PROMPT.md%5C.',
+      '/me/pass-angle/01-step-1-story/PROMPT%2Emd%5C',
+      '/me/pass-angle/01-step-1-story/PROMPT.md%2F%5C',
+      '/me/pass-angle/01-step-1-story/PROMPT.md%255C',
     ]
     for (const path of bypassAttempts) {
       it(`${path} 로 우회되지 않는다`, async () => {
         const response = await fetch(origin + path)
+        // 상태 코드만 보면 200 이 아닌 응답에 원문이 실려도 통과한다.
+        const body = await response.text()
+        assert.ok(!/당신은|SERVICE-GENERATION-CONTRACT/.test(body), `${path} 응답에 프롬프트 원문이 실렸다`)
         assert.notEqual(response.status, 200, `${path} 로 우회됐다`)
       })
     }
@@ -184,6 +196,105 @@ describe('배포 라우팅이 정적 레이어를 거치지 않는다', () => {
     it('함수 번들에는 여전히 필요한 파일이 들어간다', () => {
       // 노출을 막는 것과 함수가 파일을 읽는 것은 다른 문제다.
       assert.equal(config.functions['api/index.ts'].includeFiles, '{data,prompts,사주}/**')
+    })
+  })
+})
+describe('정적 제공은 허용 목록이다 (기본 거부)', { concurrency: false }, () => {
+  // 거부 목록은 형식을 세는 방식이라 새 형식에 진다. 실제로 스크래핑 결과가 .html 로
+  // 저장돼 있어서 목록을 지나갔다(Codex Major). 기본값을 거부로 뒤집었다.
+  describe('보안', () => {
+    // 트리에 없는 형식들. 파일이 없어도 404 여야 하고, 가드가 먼저 잡아야 한다.
+    const unlisted = ['/assets/report.csv', '/assets/config.yaml', '/assets/.env', '/js/app.js.map', '/assets/notes.rtf', '/assets/data.sqlite']
+    for (const path of unlisted) {
+      it(`허용 목록에 없는 ${path} 는 404`, async () => {
+        const response = await fetch(origin + path)
+        assert.equal(response.status, 404, `${path} 가 ${response.status} 로 응답했다`)
+        assert.equal(await response.text(), '찾을 수 없는 경로입니다.', `${path} 가 가드가 아닌 다른 곳에서 처리됐다`)
+      })
+    }
+
+    it('확장자 없는 파일이 트리에 없다', () => {
+      // 확장자 없는 요청은 라우트가 처리하는 URL 로 보고 통과시킨다.
+      // 트리에 확장자 없는 파일이 생기면 그 전제가 깨지고 그 파일이 공개된다.
+      const walk = (dir: string): string[] => readdirSync(new URL('../../' + dir + '/', import.meta.url), { withFileTypes: true })
+        .flatMap((entry) => entry.isDirectory() ? walk(`${dir}/${entry.name}`) : [`${dir}/${entry.name}`])
+      const extensionless = walk('사주').filter((name) => !/\.[A-Za-z0-9]{1,8}$/.test(name))
+      assert.deepEqual(extensionless, [], '확장자 없는 파일이 생겼다. 공개 여부를 명시적으로 결정해야 한다')
+    })
+  })
+
+  describe('정상 동작', () => {
+    // 허용 목록 누락이 자산을 막지 않는지 형식별로 확인한다.
+    const assets: Array<[string, string]> = [
+      ['/assets/umsh-brand-logo.png', 'png'],
+      ['/assets/chungi-asset-one.webp', 'webp'],
+      ['/assets/umsh-kakao-share.jpg', 'jpg'],
+      ['/assets/fonts/MaruBuri-Bold.woff2', 'woff2'],
+      ['/assets/fonts/NotoSerifKR-Regular.ttf', 'ttf'],
+      ['/css/policy.css', 'css'],
+      ['/js/faq-knowledge.js', 'js'],
+      ['/favicon.ico', 'ico'],
+    ]
+    for (const [path, label] of assets) {
+      it(`${label} 자산은 200`, async () => {
+        const response = await fetch(origin + path)
+        assert.equal(response.status, 200, `${path} 가 ${response.status} 로 막혔다`)
+      })
+    }
+  })
+})
+describe('내부 산출물은 웹 확장자로 저장돼 있어도 나가지 않는다', { concurrency: false }, () => {
+  // 확장자 허용 목록은 형식만 본다. 내부 산출물이 `.html` 로 저장돼 있으면 통과한다.
+  // 실제로 `GET /extracted_decoded.html` 이 외부 사이트 스크래핑 결과 116KB 를
+  // 반환하고 있었다 — 중첩 폴더를 통째로 마운트한 탓이다 (Codex 리뷰 Major 확인 중 발견).
+  const walk = (dir: string): string[] => readdirSync(new URL('../../' + dir + '/', import.meta.url), { withFileTypes: true })
+    .flatMap((entry) => entry.isDirectory() ? walk(`${dir}/${entry.name}`) : [`${dir}/${entry.name}`])
+
+  /** 생성 도구와 조사 스크립트가 남기는 이름들. 대문자 패턴은 생성 계약이 쓰는 형태다. */
+  const INTERNAL_NAME = /(^|\/)(PROMPT\.[^/]+|[^/]*-(RESULT|CONTRACT)\.[^/]+|extract[^/]*|extracted[^/]*|teaser_[^/]*|check_[^/]*)$/
+  const SERVABLE = /\.(html?|css|m?js|webp|png|jpe?g|gif|svg|avif|ico|mp4|webm|mp3|woff2?|ttf|otf|xml)$/i
+
+  describe('보안', () => {
+    it('웹 확장자를 가진 내부 산출물이 어느 URL 로도 열리지 않는다', async () => {
+      const artifacts = walk('사주').filter((name) => INTERNAL_NAME.test(name) && SERVABLE.test(name))
+      // 이 검사가 무엇도 확인하지 않는 상태로 통과하지 않게 한다.
+      assert.ok(artifacts.length > 0, '검사 대상 산출물이 없다. 패턴이 맞는지 확인해야 한다')
+      for (const file of artifacts) {
+        // `사주/x` → `/x`, `사주/사주/x` → `/x` 와 `/사주/x` 두 URL 공간 모두 시도한다.
+        const relative = file.replace(/^사주\//, '')
+        const urls = new Set([`/${relative}`, `/${relative.replace(/^사주\//, '')}`, `/${encodeURI(relative)}`])
+        for (const url of urls) {
+          const response = await fetch(origin + url)
+          assert.equal(response.status, 404, `${url} 가 ${response.status} 로 열렸다 (${file})`)
+        }
+      }
+    })
+  })
+})
+
+describe('참조된 자산이 전부 응답한다', { concurrency: false }, () => {
+  // 허용 목록에서 형식 하나를 빠뜨리면 그 자산만 조용히 404 가 된다.
+  // 페이지가 실제로 참조하는 URL 을 뽑아 전수로 확인한다 (Codex 제안).
+  const walk = (dir: string): string[] => readdirSync(new URL('../../' + dir + '/', import.meta.url), { withFileTypes: true })
+    .flatMap((entry) => entry.isDirectory() ? walk(`${dir}/${entry.name}`) : [`${dir}/${entry.name}`])
+  const read = (p: string) => readFileSync(new URL('../../' + p, import.meta.url), 'utf8')
+
+  describe('정상 동작', () => {
+    it('HTML·CSS 가 참조하는 로컬 자산 URL 이 모두 200', async () => {
+      const sources = walk('사주').filter((name) => /\.(html|css)$/i.test(name) && !name.startsWith('사주/사주/'))
+      const urls = new Set<string>()
+      for (const file of sources) {
+        const text = read(file)
+        for (const match of text.matchAll(/(?:href|src)="(\/[^"?#]+\.[a-z0-9]{2,8})/gi)) urls.add(match[1])
+        for (const match of text.matchAll(/url\((["']?)(\/[^)"']+\.[a-z0-9]{2,8})/gi)) urls.add(match[2])
+      }
+      assert.ok(urls.size > 30, `참조 URL 이 ${urls.size}개뿐이다`)
+      const broken: string[] = []
+      for (const url of urls) {
+        const response = await fetch(origin + url)
+        if (response.status !== 200) broken.push(`${url} → ${response.status}`)
+      }
+      assert.deepEqual(broken, [], '참조된 자산이 막혔다')
     })
   })
 })
