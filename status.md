@@ -102,6 +102,7 @@
 - **신규 U13**: `origin/main`의 20 커밋(결혼택일·공용 GNB·브랜드 통일·모바일 프레임 정합)이
   운영·로컬 모두에 미반영. 병합 dry-run 충돌 **24개**, `wedding_day`는 양쪽 독립 구현(add/add)
 - **신규 U14**: 운영 배포가 Git 연동이 아니라 CLI 로컬 배포로 보임. `README.md` 서술과 불일치
+  (→ 2026-09-10 16:25 **정정·해소**: 연동은 있었고 CLI 배포가 그것을 우회한 것이다. 아래 참조)
 - 권고: 병합은 별도 Task로 분리(선택지 C). admin-ops는 운영 소스 위에서 계속 진행
 - 수행한 git 작업: `git fetch origin`, `merge-tree` dry-run만. merge/rebase/checkout 없음
 - 산출물: `docs/admin-ops/production-source-of-truth.md`
@@ -302,8 +303,10 @@ f9bcd17  chore(projectops): AIOps 워크스페이스·admin-ops 산출물 커밋
   `/robots.txt` `/sitemap.xml` `/about` `/faq` 전부 **404**, `/api/services` **15종 → 14종**
   (집 풍수가 목록에서 사라짐)
 - 반대로 그 배포는 **결제 문구의 환경변수 노출을 해소**하고 Android App Links를 가져왔다
-- **U14 확정**: `vercel project inspect`에 Git 연동 섹션이 아예 없다. 배포는 CLI 전용이며
-  `README.md`의 "main push가 Production을 트리거한다"는 사실이 아니다
+- ~~**U14 확정**: `vercel project inspect`에 Git 연동 섹션이 아예 없다. 배포는 CLI 전용이며
+  `README.md`의 "main push가 Production을 트리거한다"는 사실이 아니다~~
+  → **이 판단은 틀렸다(16:25 정정).** 연동은 있었고 `README.md` 서술은 사실이었다.
+  실제 원인은 CLI 배포가 연동 배포를 우회한 것이다
 - 기록: `docs/admin-ops/production-state-20260910-1511.md`
 
 ### 사용자 결정
@@ -348,10 +351,10 @@ f9bcd17  chore(projectops): AIOps 워크스페이스·admin-ops 산출물 커밋
 
 ## 2026-09-10 — task-018 배포 경로 정상화 (제안 완료, 적용 승인 대기)
 
-- **U14 해소.** Git 연동 부재를 도구 출력으로 확정:
-  `vercel project inspect`에 Git 섹션 부재(출력 533자), `vercel git ls`에 조회 서브커맨드 없음,
-  Production 배포 3건 모두 git 메타데이터 없음
-  → **배포는 `vercel deploy --prod` CLI 전용. `git push`는 배포를 트리거하지 않는다**
+- ~~**U14 해소.** Git 연동 부재를 도구 출력으로 확정: `vercel project inspect`에 Git 섹션
+  부재, `vercel git ls`에 조회 서브커맨드 없음, Production 배포 3건 모두 git 메타데이터 없음
+  → 배포는 CLI 전용. `git push`는 배포를 트리거하지 않는다~~
+  → **이 결론은 틀렸다.** 아래 "2026-09-10 16:25 — task-018 완료 및 U14 정정" 절 참조
 - `README.md` 배포 섹션 정정: 거짓 서술 제거, 실제 절차, 게이트 선행 이유,
   브랜치 기준(로컬 `main`을 쓰지 말 것) 명시
 - 제안서: `docs/admin-ops/TASK-018-deploy-path.md`
@@ -386,3 +389,75 @@ f9bcd17  chore(projectops): AIOps 워크스페이스·admin-ops 산출물 커밋
 2. `vercel git connect` — Vercel 설정 변경
 3. Production Branch를 `main`으로 둘지 확정
 **1 → 2 순서 필수**
+
+
+## 2026-09-10 16:25 — task-018 완료 및 U14 정정
+
+### U14 판단이 틀렸다 — 16:25 시점에 Git 연동이 존재한다
+
+`vercel git connect` 실행 결과:
+```
+> axlab-cream/chungi-t is already connected to your project.
+```
+그리고 `git push origin fix/umsh-qa-ux`와 `git push origin HEAD:main` 직후
+Preview·Production 배포가 각각 자동으로 시작됐다.
+
+**내가 왜 틀렸나.** 근거로 삼은 두 관측이 모두 연동 여부를 판정할 수 없는 신호였다.
+
+| 관측 | 내 결론 | 실제 |
+| --- | --- | --- |
+| `vercel project inspect`에 Git 섹션 없음 | 연동 없음 | CLI 출력이 Git 섹션을 표시하지 않을 뿐 |
+| Production 배포 3건에 git 메타데이터 없음 | CLI 배포뿐 → 연동 없음 | 메타데이터 부재는 CLI 배포와 **양립**하지만 배포 경로를 식별하지 못한다 |
+
+관측은 맞았고 **해석이 틀렸다.** Codex가 T02 리뷰에서 "메타데이터 부재는 CLI 배포의
+증거가 아니다"라고 지적해 한 번 가설로 낮췄는데, 이번에 다시 단정으로 올렸다. **같은 실수 반복.**
+
+**그리고 정정 초안에서 같은 실수를 반대 방향으로 또 했다** (Codex task-018 리뷰 Major 1).
+"Git 연동은 처음부터 있었다"·"그 3건은 실제로 CLI 배포였다"고 적었는데, 증거는
+**관측 시점의** 연결 상태와 라우팅만 증명한다. 이전 배포 당시의 상태는 확정할 수 없다.
+→ 전 문서에서 "16:25 시점에 연동이 존재한다"로 하향했다.
+
+### 그래서 오늘 사고의 진짜 원인
+연동 부재가 아니라 **CLI 배포가 연동 배포를 우회한다는 것**이다.
+`vercel deploy --prod`는 Git 상태와 무관하게 로컬 작업 트리를 올리므로,
+연동이 있어도 `main`에 없는 소스가 운영이 된다.
+**규칙: `--prod` CLI 배포를 기본 경로로 쓰지 않는다. `main` push로만 배포한다.**
+
+### 수행 결과 (D1~D6 전부 완료)
+| 단계 | 결과 |
+| --- | --- |
+| D1 `git push origin fix/umsh-qa-ux` | `dac3835..0556e49` (exit 0) |
+| D2 `git push origin HEAD:main` | `f825d26..0556e49` fast-forward (exit 0) |
+| D3 분기 확인 | `origin/main...HEAD` = `0  0`, `merge-base --is-ancestor` 성공 |
+| D4 `vercel git connect` | **이미 연결됨** — U14 정정의 근거 |
+| D5 라우팅 관측 | 관측한 `main` push→**Production**, 브랜치 push→**Preview**. **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다** |
+| D6 연동 배포 검증 | `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` Ready(46s), alias `chungi-t-git-main-ax-lab-cream.vercel.app`, `umsh.kr` 이동. **관측 1건이므로 alias 형식을 배포 경로의 단독 판정자로 쓰지 않는다** |
+
+### 운영 회귀 복구 확인 (배포 후 실측)
+| 검증 | 결과 |
+| --- | --- |
+| `/robots.txt` `/sitemap.xml` `/about` `/faq` `/my` | **전부 200** (404에서 복구) |
+| `/.well-known/assetlinks.json` | **200** (origin/main 개선 유지) |
+| `GET /api/services` | **15종, `home_pungsu` 포함** (14종에서 복구) |
+| `GET /api/payment/config` | 환경변수 이름 노출 **0건**, catalog 19종, 문구 정상 |
+| `/privacy` 마커 | `UMSH 운명상회` / `v=20260909-logo` |
+
+→ **회귀 복구와 개선 유지를 동시에 달성.** 사용자 지시("기존에 제작한 SEO는 복구해야 한다") 이행 완료.
+
+### 문서 정정 범위
+`README.md`(배포 경로 2개 명시), `docs/admin-ops/TASK-018-deploy-path.md`(§0 신설),
+`production-source-of-truth.md`, `production-state-20260910-1511.md`(§7 복구 결과 추가),
+`T04-regression-baseline.md`, `plan.md`, `tests.md`(V-069 무효화, V-072~V-075 추가)
+
+### 다른 저장소의 push
+사용자 확인: 다른 곳에서 push되던 것은 **네이티브앱 폴더(별도 저장소)**이며 이 저장소와 무관하다.
+→ 이 저장소의 `main`은 우리 브랜치와 동일하므로 제3자 push로 인한 회귀 위험은 현재 없다.
+
+### 남은 제약
+- GitHub Actions에 `vercel deploy`를 넣지 않는다 (push 1회에 배포 2회 — TASK-005 범위 제약)
+- `check:production-source`는 유지한다. 연동이 있어도 **push 전 게이트**로 필요하다
+- **CLI 배포 금지에는 자동 강제 수단이 없다.** 게이트 스크립트가 스스로
+  "Manual preflight only … does not intercept other deploys"라고 밝힌다
+  (`scripts/check-production-source.mjs:5`). 이것은 기술적 통제가 아니라 **운영 절차 규칙**이다
+- 15:11 배포에서 preflight 실행 여부는 **기록으로 확인되지 않았다.** "게이트를 건너뛴
+  결과"라고 단정하지 않는다

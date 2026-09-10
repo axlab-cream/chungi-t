@@ -65,27 +65,38 @@ pull로 받을 수 있는 값과 대시보드에서만 얻는 값:
 
 ## 배포 (Vercel)
 
-> **Vercel 프로젝트에 Git 연동이 없습니다.** `vercel project inspect`에 Git 섹션이
-> 존재하지 않고, 배포 정보에도 git 메타데이터가 없습니다.
-> **`git push`는 배포를 트리거하지 않습니다.** 배포는 아래 CLI 명령으로만 일어납니다.
+> **기본 배포 경로는 `main` push입니다. CLI Production 배포는 예외입니다.**
 >
-> 이전 문서는 "`main` 브랜치 push가 Production 배포를 트리거한다"고 적었으나
-> 사실이 아닙니다. 2026-09-10에 이 서술을 근거로 판단했다가 배포 상태를 잘못 읽은
-> 사례가 있었습니다.
+> 1. **`main` push → 자동 배포** (기본 경로). 2026-09-10 확인 기준으로 GitHub
+>    `axlab-cream/chungi-t`가 Vercel 프로젝트에 연결되어 있고, 관측한 `main` push는
+>    Production 배포를, 관측한 브랜치 push는 Preview 배포를 만들었습니다.
+> 2. **`vercel deploy --prod` CLI** — 로컬 작업 트리를 **Git 상태와 무관하게** 그대로
+>    올립니다. `main`에 없는 소스가 운영이 될 수 있습니다.
+>
+> 2026-09-10에 서로 다른 두 로컬 소스가 각각 운영에 올라가, 나중 배포가 앞선 배포의
+> 공개 SEO·FAQ·about 페이지를 404로 만든 일이 있었습니다.
+> 기록: `docs/admin-ops/production-state-20260910-1511.md`
+>
+> **규칙: CLI Production 배포는 승인된 긴급 복구 예외로만 씁니다.**
+> 쓴 경우 직후에 같은 커밋을 `main`에 push해 원격과 운영을 일치시키고, 그 사실을
+> `status.md`에 남깁니다.
+>
+> **주의: 이 규칙을 자동으로 강제하는 장치는 없습니다.** 아래 게이트는 수동 preflight일
+> 뿐이며 `vercel deploy --prod`를 차단하지도, 원격 배포 산출물을 검증하지도 않습니다.
 
-### 배포 절차
+### 배포 절차 (권장 경로)
 
 ```bash
 # 1) 배포 전 게이트. 작업 트리가 깨끗하고 HEAD가 방금 fetch한 origin/main을
-#    포함하는지 검사한다. 실패하면 배포하지 않는다.
+#    포함하는지 검사한다. 실패하면 push하지 않는다.
 npm run check:production-source
 
 # 2) 회귀 기준
 npm run typecheck
 npm test
 
-# 3) 배포 (이것만이 실제 배포다)
-vercel deploy --prod --yes --scope ax-lab-cream
+# 3) push — 이것이 배포를 만든다
+git push origin HEAD:main
 
 # 4) 배포 후 검증
 npm run check:integrations
@@ -93,23 +104,39 @@ npm run check:integrations
 
 ### 왜 게이트를 먼저 돌려야 하는가
 
-Git 연동이 없으므로 **각자의 로컬에서 배포하면 나중에 올린 쪽이 앞선 쪽의 작업을 덮습니다.**
-`check:production-source`가 "HEAD가 방금 fetch한 origin/main을 포함하는가"를 요구하는 이유가
-이것입니다. 이 검사를 건너뛰면 다른 사람의 작업이 빠진 소스를 운영에 올릴 수 있습니다.
+Git 연동이 있어도 **CLI 배포가 그것을 우회할 수 있습니다.** 또 여러 사람이 각자
+브랜치에서 작업하면 `main`에 먼저 올린 쪽이 기준이 됩니다.
+`check:production-source`가 "HEAD가 방금 fetch한 `origin/main`을 포함하는가"를 요구하는
+이유가 이것입니다. 이 검사를 건너뛰면 다른 사람의 작업이 빠진 소스를 올릴 수 있습니다.
 
-실제로 2026-09-10에 두 브랜치가 각자 배포되어, 나중 배포가 앞선 배포의 공개 SEO·FAQ·about
-페이지를 404로 만든 일이 있었습니다. 자세한 기록은
-`docs/admin-ops/production-state-20260910-1511.md`에 있습니다.
+**이 게이트의 한계를 스크립트 자신이 밝힙니다** (`scripts/check-production-source.mjs`):
+
+> Manual preflight only: this command does not intercept other deploys or verify a
+> remote deployment artifact.
+
+즉 **다른 경로의 배포를 막지 못하고 배포된 산출물도 검사하지 않습니다.**
+push 전에 사람이 실행해야만 효력이 있습니다.
+
+### 배포 소스를 확인하는 방법
+
+```bash
+vercel inspect <배포 URL> --scope ax-lab-cream
+```
+
+**단일 신호로 판정하지 마세요.** target, git 관련 메타데이터, Aliases, 생성 시각을
+저장소의 push 기록과 **함께** 대조합니다.
+
+- 이 프로젝트에서 관측한 연동 배포(`dpl_42Ckhx…`)는 Aliases에
+  `chungi-t-git-main-ax-lab-cream.vercel.app`를 가졌습니다.
+- git 메타데이터 부재는 CLI 배포와 양립하지만 **그것만으로 배포 경로를 확정하지 못합니다.**
+- 경로가 불확실하면 정적 파일 마커나 API 응답을 커밋과 비교해 소스를 추정합니다.
 
 ### 브랜치 기준
 
-- `origin/main`이 통합 기준입니다. 배포 전에 반드시 `git fetch` 후 HEAD가 이를 포함하는지
-  확인합니다.
-- 로컬 `main` 브랜치는 2026-09-02에 갈라진 낡은 라인입니다(그 시점 이후 `origin/main`에
-  150커밋이 더 쌓였습니다). **배포 기준으로 쓰지 마세요.** 그 브랜치의 `data/pungsu/**`와
-  `src/pungsu/home-service.ts`는 현재 외부 풍수 API(`PUNGSU_DATASET_API_BASE`) 연동으로
-  대체되어 코드에서 참조되지 않습니다.
-
+- `origin/main`이 배포 기준이자 통합 기준입니다.
+- 로컬 `main` 브랜치는 2026-09-02에 갈라진 낡은 라인입니다. **쓰지 마세요.**
+  그 브랜치의 `data/pungsu/**`와 `src/pungsu/home-service.ts`는 현재 외부 풍수
+  API(`PUNGSU_DATASET_API_BASE`) 연동으로 대체되어 코드에서 참조되지 않습니다.
 ## 환경 변수
 
 Vercel Dashboard -> `ax-lab-cream/chungi-t` -> Settings -> Environment Variables에

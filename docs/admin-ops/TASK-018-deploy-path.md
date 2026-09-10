@@ -1,11 +1,64 @@
 ﻿# TASK-018 — 배포 경로 정상화 제안
 
 - 작성일: 2026-09-10
-- 해소 대상: **U14** (Vercel Git 연동 부재 · `README.md` 서술 불일치)
-- 상태: **제안. Vercel 설정 변경은 승인 후 적용한다.**
+- 해소 대상: **U14** (초판 서술: "Vercel Git 연동 부재" — §0에서 정정됨. 실제 대상은 **CLI 배포가 연동 배포를 우회하는 문제**)
+- 상태: **완료 (D1~D6 전부 수행·검증).** 단 아래 §0의 중대한 정정이 있다.
 - 근거 사건: `docs/admin-ops/production-state-20260910-1511.md`
 
-## 1. 현재 상태 (확정된 사실)
+## 0. [중대 정정] U14 판단이 틀렸다 — Git 연동은 이미 있었다
+
+`vercel git connect` 실행 결과:
+
+```
+> Connecting GitHub repository: https://github.com/axlab-cream/chungi-t
+> axlab-cream/chungi-t is already connected to your project.
+```
+
+그리고 `git push origin fix/umsh-qa-ux`와 `git push origin HEAD:main` 직후
+**Preview 배포와 Production 배포가 각각 자동으로 시작됐다.**
+
+```
+28s  chungi-21q32w1y1  ● Building  Production   ← main push 로 트리거됨
+57s  chungi-nzsuwzkaw  ● Building  Preview      ← 브랜치 push 로 트리거됨
+```
+
+→ **2026-09-10 16:25 시점에 Git 연동이 연결되어 있고 자동 배포가 동작한다.**
+
+> **이 정정에도 경계가 있다** (Codex 리뷰 Major 1).
+> `vercel git connect`의 응답은 **그 명령을 실행한 시점의 연결 상태**를 증명하고,
+> push 후 배포 발생은 **그 시점의 라우팅**을 증명한다.
+> **이전 배포 당시의 연동 상태는 현재 증거로 확정할 수 없다.** 그 3건이 CLI 배포였다는 것도
+> 확정이 아니다 — git 메타데이터 부재는 CLI 배포와 양립하지만 단독 증거가 아니다.
+> 여기서 확정된 것은 **"Git 연동이 없다"는 초판의 결론이 틀렸다**는 것뿐이다.
+
+### 내가 왜 틀렸나
+
+근거로 삼은 두 가지가 모두 연동 여부를 판정하지 못하는 신호였다.
+
+| 내가 본 것 | 내가 내린 결론 | 실제 |
+| --- | --- | --- |
+| `vercel project inspect`에 Git 섹션 없음 | 연동 없음 | **CLI 출력이 Git 섹션을 표시하지 않을 뿐** |
+| Production 배포 3건에 git 메타데이터 없음 | CLI 배포뿐 → 연동 없음 | 메타데이터 부재는 CLI 배포와 **양립**하지만 배포 경로를 **식별하지 못한다.** 그 3건의 경로는 여전히 미확정 |
+
+즉 관측은 맞았고 **해석이 틀렸다.** "git 메타데이터가 없다"는 "그 배포가 CLI로 만들어졌다"는
+뜻이지 "연동이 없다"는 뜻이 아니다.
+Codex가 T02 리뷰에서 같은 종류의 지적을 이미 했는데(메타데이터 부재는 CLI 배포의 증거가
+아니다) 그때는 가설로 낮췄다가, 이번에 다시 단정으로 올렸다. 같은 실수를 반복했다.
+
+### 그래서 오늘 사고의 원인은 무엇이었나
+
+연동 부재가 아니다. **CLI 배포가 연동 배포를 우회할 수 있다는 것**이다.
+`vercel deploy --prod`는 Git 상태와 무관하게 로컬 작업 트리를 그대로 올린다.
+따라서 연동이 있어도 누군가 로컬에서 `--prod`로 올리면 `main`에 없는 소스가 운영이 된다.
+
+09-09 17:06 배포와 09-10 15:11 배포가 **그 경우와 부합한다** — 둘의 콘텐츠가 서로 다른
+두 로컬 소스와 일치하고 `main`과는 일치하지 않았다. 단 배포 경로 자체는 미확정이다.
+
+**진짜 규칙은 이것이다: `--prod` CLI 배포를 쓰지 않는다. `main` push로만 배포한다.**
+`check:production-source`가 여전히 필요한 이유도 같다 — push 전에 HEAD가 최신
+`origin/main`을 포함하는지 확인해야 한다.
+
+## 1. 초판의 현재 상태 서술 (오판 포함 — 기록 목적)
 
 | 확인 | 결과 |
 | --- | --- |
@@ -14,7 +67,9 @@
 | `vercel inspect <배포>` | 세 개의 Production 배포 모두 **git 메타데이터 없음** |
 | `README.md` (수정 전) | "`main` 브랜치 push가 Production 배포를 트리거합니다" — **사실과 다름** |
 
-→ **배포는 `vercel deploy --prod` CLI로만 일어난다.** `git push`는 아무것도 배포하지 않는다.
+→ ~~배포는 `vercel deploy --prod` CLI로만 일어난다. `git push`는 아무것도 배포하지 않는다.~~
+**이 결론은 틀렸다. §0 참조.** `git push`는 배포를 트리거하며, CLI 배포는 그것을 우회하는
+별개의 경로다.
 
 ## 2. 이 구조가 만든 실제 피해
 
@@ -27,9 +82,9 @@
 | 09-10 15:10, 15:11 | `dpl_GvzMisx…` | `origin/main` | **SEO·FAQ·about이 404로. 집 풍수 목록에서 사라짐** |
 | 09-10 16:1x | `chungi-387wmilw8` | 병합본 | 양쪽 복구 |
 
-**Git 연동이 없으므로 "누가 무엇을 올렸는지" 저장소에서 추적할 수 없다.**
-배포된 소스의 커밋 SHA를 확인하는 수단이 없어서, 운영 소스를 알아내려고
-정적 파일 마커와 API 응답을 비교해야 했다(T01·T02).
+**그 배포들에는 git 메타데이터가 없어 "누가 무엇을 올렸는지" 저장소에서 추적할 수 없었다.**
+커밋 SHA를 확인할 수단이 없어서, 운영 소스를 알아내려고 정적 파일 마커와 API 응답을
+비교해야 했다(T01·T02).
 
 ## 3. 전환 제안 — 순서가 중요하다
 
@@ -101,11 +156,13 @@ Preview URL 경쟁). 따라서 Actions는 **CI 전용**(typecheck + test + `chec
 연결을 원하지 않는다면 최소한 아래를 규칙으로 둔다.
 
 1. 배포 전 **반드시** `npm run check:production-source`를 돌리고 PASS만 배포한다.
-   (이 검사가 "HEAD가 방금 fetch한 origin/main을 포함하는가"를 강제한다)
+   (이 검사가 "HEAD가 방금 fetch한 origin/main을 포함하는가"를 요구한다)
 2. 배포한 사람이 배포 직후 `origin/main`에 push해 원격을 배포 상태와 일치시킨다.
 3. 배포 기록을 `status.md`에 남긴다 (배포 URL + HEAD SHA).
 
-이 규칙은 사람이 지켜야 하므로 연동보다 약하다. 오늘 사고는 1번을 건너뛴 결과다.
+이 규칙은 사람이 지켜야 하므로 연동보다 약하다.
+오늘 사고에서 preflight 실행 여부는 **기록으로 확인되지 않았다.** 다만 이 검사는
+CLI 배포를 자동 차단하지 않으므로, 실행했더라도 사고를 막지 못했을 수 있다.
 
 ## 6. 부수 정리 항목
 
@@ -113,13 +170,49 @@ Preview URL 경쟁). 따라서 Actions는 **CI 전용**(typecheck + test + `chec
 | --- | --- |
 | 로컬 `main` 브랜치 (`5269272`, 09-02) | **낡은 라인.** `origin/main` 대비 150 behind / 28 ahead. 그 28커밋의 기능(love_spouse, match_couple, love_mind, 결제 테스트모드)은 모두 현재 코드에 존재한다. `data/pungsu/**`와 `src/pungsu/home-service.ts`(607줄)는 외부 풍수 API(`PUNGSU_DATASET_API_BASE`) 연동으로 대체되어 **현재 코드에서 참조되지 않는다**. 삭제하지 말고 보관하되 배포 기준으로 쓰지 않는다 |
 | `upstream` 원격 | `jaeyong-planner/chungi-t` (fetch only, push DISABLED). 현 상태 유지 |
-| `README.md` | **수정 완료** — Git 연동 부재, 실제 배포 절차, 게이트 선행 이유, 브랜치 기준을 명시 |
+| `README.md` | **재수정 완료** — §0 정정 반영. 배포 경로 2개(연동 push / CLI)와 CLI 경로가 연동을 우회하는 위험, 실제 절차, 게이트 선행 이유, 연동 배포 식별법(`vercel inspect`의 git 메타데이터), 브랜치 기준을 명시 |
 
-## 7. 승인이 필요한 항목
+## 7. 수행 결과 (2026-09-10 16:19~16:25)
 
-1. **`git push origin HEAD:main`** — `origin/main`을 우리 HEAD로 fast-forward.
-   현재 push 권한이 이 세션에서 차단되어 있어 사용자가 직접 실행해야 한다.
-2. **`vercel git connect`** — Vercel 프로젝트 설정 변경. 연결 후 `main` push가 곧 배포가 된다.
-3. Production Branch를 `main`으로 둘 것인지, 아니면 다른 브랜치로 할 것인지.
+| 단계 | 명령 | 결과 |
+| --- | --- | --- |
+| D1 | `git push origin fix/umsh-qa-ux` | `dac3835..0556e49` (exit 0) |
+| D2 | `git push origin HEAD:main` | `f825d26..0556e49` **fast-forward** (exit 0) |
+| D3 | `git rev-list --left-right --count origin/main...HEAD` | `0  0` |
+| D4 | `vercel git connect … --yes` | **이미 연결됨** → §0 정정의 근거 |
+| D5 | 라우팅 관측 | 관측한 `main` push는 **Production** 배포를, 관측한 브랜치 push는 **Preview** 배포를 만들었다. **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다** |
+| D6 | 연동 배포 검증 | `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` Ready(46s), alias **`chungi-t-git-main-ax-lab-cream.vercel.app`**, `umsh.kr` 이동 |
 
-1번 없이 2번을 하면 사고가 재발한다. **1 → 2 순서를 반드시 지킨다.**
+**배포 경로를 대조할 단서를 얻었다 — 단 단독 판정자로 쓰지 않는다.**
+이 프로젝트에서 관측한 연동 배포(`dpl_42Ckhx…`)는 Aliases에
+`chungi-t-git-main-ax-lab-cream.vercel.app`를 가졌다. 관측 1건이므로
+**alias 형식이나 메타데이터 유무만으로 모든 배포의 경로를 판정하지 않는다.**
+배포 target, git 관련 메타데이터, alias, 생성 시각을 저장소의 push 기록과 함께 대조한다.
+(Codex 리뷰 Major 2 — 같은 단일 신호 오류를 반복하지 않기 위한 제약)
+
+### 운영 회귀 복구 실측
+
+| 검증 | 결과 |
+| --- | --- |
+| `/robots.txt` `/sitemap.xml` `/about` `/faq` `/my` | **전부 200** (404에서 복구) |
+| `/.well-known/assetlinks.json` | **200** (origin/main 개선 유지) |
+| `GET /api/services` | **15종, `home_pungsu` 포함** (14종에서 복구) |
+| `GET /api/payment/config` | 환경변수 이름 노출 **0건**, catalog 19종, 문구 정상 |
+| `/privacy` 마커 | `UMSH 운명상회` / `v=20260909-logo` |
+
+되돌리기(필요 시): `git push origin f825d269:main --force-with-lease`
+
+## 8. 남은 규칙
+
+1. **기본 배포 경로는 `main` push다.** CLI Production 배포는 **승인된 긴급 복구 예외**로만
+   허용한다. 쓴 경우 직후에 같은 커밋을 `main`에 push해 원격과 운영을 일치시키고
+   `status.md`에 남긴다.
+2. **이 규칙에는 자동 강제 수단이 없다.** `check:production-source`는 스스로
+   "Manual preflight only: this command does not intercept other deploys or verify a
+   remote deployment artifact"라고 밝힌다(`scripts/check-production-source.mjs:5`).
+   즉 `vercel deploy --prod`를 차단하지 못하고 원격 산출물도 검증하지 않는다.
+   **CLI 금지는 기술적 통제가 아니라 운영 절차 규칙이다.**
+3. GitHub Actions에 `vercel deploy`를 넣지 않는다 (push 1회에 배포 2회 — TASK-005 범위 제약).
+4. push 전에 `npm run check:production-source`를 돌린다. 연동이 있어도 필요하다 —
+   HEAD가 방금 fetch한 `origin/main`을 포함하는지 확인하는 용도다.
+4. 다른 저장소(네이티브앱 폴더)의 push는 이 프로젝트 배포에 영향을 주지 않는다 (사용자 확인).

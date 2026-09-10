@@ -48,10 +48,13 @@
 | V-066 | TASK-015 | 배포 복구 | 운영 `/api/services` 건수 | 15종·집풍수 포함 | **PASS** (14종 → 15종, `home_pungsu` 포함) | 2026-09-10 |
 | V-067 | TASK-015 | 개선 유지 | 운영 `setupMessage` + `assetlinks.json` | 환경변수 미노출 + 200 | **PASS** (15:11 배포의 개선이 유지됨) | 2026-09-10 |
 | V-068 | TASK-015 | 배포 후 통합 | `node scripts/check-integrations.mjs` | 결제 외 전 항목 PASS | **PARTIAL** (8 PASS / 2 FAIL — Inicis 계열, 기존 항목) | 2026-09-10 |
-| V-069 | task-018 | 배포 경로 | `vercel project inspect` Git 섹션 존재 여부 | 연동 상태 확정 | **PASS (부재 확정)** — U14 해소. 배포는 CLI 전용 | 2026-09-10 |
+| V-069 | task-018 | 배포 경로 | `vercel project inspect` Git 섹션 존재 여부 | 연동 상태 확정 | **무효 — 이 검사로는 판정할 수 없다.** CLI 출력에 Git 섹션이 없어도 연동은 존재한다. 유효한 검사는 V-072 | 2026-09-10 |
 | V-070 | task-018 | 브랜치 관계 | `git merge-base --is-ancestor origin/main HEAD` | fast-forward 가능 여부 | **PASS** (조상 확인, 0 behind / 16 ahead) | 2026-09-10 |
 | V-071 | task-018 | README 정정 | `verify-seo-foundation.mjs` | PASS 유지 | **PASS** (robots, 19 sitemap URLs, 126 FAQ) | 2026-09-10 |
-| V-072 | D4 | Git 연동 | `vercel git connect` 후 자동 배포 + git 메타데이터 | 배포에 SHA 표시 | NOT_RUN (승인 대기) | - |
+| V-072 | D4 | Git 연동 | `main` push 후 Production 배포 자동 생성 여부 | 자동 생성 | **PASS (관측 시점 한정)** — `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` Ready, alias `chungi-t-git-main-…`. 과거 배포의 연동 상태·경로는 판정 대상 아님 | 2026-09-10 |
+| V-073 | D6 | 운영 회귀 복구 | `umsh.kr` SEO·FAQ·about·assetlinks HTTP 코드 | 전부 200 | **PASS** — `/robots.txt` `/sitemap.xml` `/about` `/faq` `/my` `/.well-known/assetlinks.json` 모두 200 | 2026-09-10 |
+| V-074 | D6 | 운영 서비스 목록 | `GET /api/services` 개수·`home_pungsu` 포함 | 15종, 포함 | **PASS** — 15종, `home_pungsu` 포함 (14종 회귀 복구) | 2026-09-10 |
+| V-075 | D6 | 결제 문구 노출 | `GET /api/payment/config` 응답에 환경변수 이름 | 노출 없음 | **PASS** — `INICIS_MID`/`INICIS_SIGNKEY`/`SUPABASE_SERVICE`/`GOOGLE_PLAY` 0건, catalog 19종 | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

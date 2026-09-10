@@ -90,11 +90,12 @@
 **운영 = 로컬 HEAD `dac3835` (`fix/umsh-qa-ux`).** 실측 근거:
 `docs/admin-ops/production-source-of-truth.md`.
 운영 배포 `dpl_8GJ6WMBmoaBZeQy4YFQtcwZ8JeKZ`의 라이브 콘텐츠가 이 HEAD와 일치하며,
-`vercel inspect`에 git 메타데이터가 없다(CLI 로컬 배포 추정).
+`vercel inspect`에 git 메타데이터가 없다(CLI 로컬 배포 — 2026-09-10 16:25 확정).
 
 따라서 admin-ops는 **이 브랜치를 기준으로 진행한다.** T02·T03의 "운영 대조 미완료"
 라벨 조건은 해제되었다. `README.md`의 "main push가 Production을 트리거한다"는 서술은
-현재 사실과 달라 정정이 필요하다(U14).
+**사실이다**(16:25 시점 확인). 다만 CLI 배포가 그 경로를 우회할 수 있다는 점이
+빠져 있었고, 그것을 보강했다(U14 정정 — TASK-018 §0).
 
 `origin/main`의 20 커밋은 운영·로컬 모두에 없다. 병합은 **별도 Task**로 분리한다
 (dry-run 충돌 24개, `wedding_day` add/add — U13/U15).
@@ -125,7 +126,7 @@
 | U11 | 관리자 단일 서비스 식별자를 `canonicalKey`로 할지 | T22, 09-API `/services/:key` | ADR |
 | U12 | `serviceHrefForKey('saju_master')`=undefined의 실제 영향 | T10, T11 | **U4로 이관** — 저장된 `context.serviceKey` 분포는 운영 DB 조회 필요 |
 | U13 | `origin/main` 20커밋(결혼택일·공용 GNB·브랜드 통일·모바일 정합) 운영 미반영 | 저장소 정합성, 고객 화면 | 병합 Task (충돌 24개) |
-| U14 | 운영 배포가 CLI 로컬 배포로 보임. `README.md` 서술과 불일치 | 배포 재현성·감사 | 배포 경로 정상화 결정 |
+| ~~U14~~ | **해소(정정)**. 16:25 시점에 Git 연동 존재. 실제 위험은 `vercel deploy --prod`가 연동을 우회하는 것 | 배포 재현성·감사 | 규칙: 기본 경로는 `main` push, CLI Production 배포는 승인된 긴급 예외. **자동 강제 수단 없음** |
 | U15 | 결혼택일이 양쪽 브랜치에 독립 구현 (add/add) | U13 병합 | 구현 비교 후 판정 |
 
 ### 구현 규칙 (pack 01-LLM-EXECUTION 준수)
@@ -150,7 +151,7 @@
 | TASK-014 | Android 앱 셸 인수 | 병합으로 유입된 `android/`(Capacitor) + Play 결제 + App Links 상태 파악 | **BLOCKED — 출시 게이트 G6~G9** |
 | TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | **DONE** — `chungi-387wmilw8`, `umsh.kr` 별칭 이동. SEO·FAQ·about·집풍수 복구 확인 |
 | TASK-017 | `git push` | 커밋 스택이 로컬에만 있다. 원격 미보존이 이번 사고의 근본 원인 | **BLOCKED** (push 권한 차단) — 사용자 조치 필요 |
-| TASK-018 | 배포 경로 정상화 | Git 연동 부재 확정(U14), `README.md` 정정, 전환 제안서 | **제안 완료** — 적용 승인 대기. `docs/admin-ops/TASK-018-deploy-path.md` |
+| TASK-018 | 배포 경로 정상화 | U14 정정(Git 연동 존재), `README.md` 재정정, `main` fast-forward, 연동 배포 검증 | **완료** — `docs/admin-ops/TASK-018-deploy-path.md` §0 |
 | TASK-016 | Google Play 결제 활성화 | Play 영수증 검증 경로를 실제로 켜기 | **BLOCKED — 출시 게이트 G6~G8** |
 | TASK-010 | 배포 경로 정상화 | CLI 로컬 배포 → Git 연동 전환 여부 결정. `README.md` 정정 | TODO |
 
@@ -163,12 +164,15 @@ TASK-009는 admin-ops와 **병행하지 않는다.** 회귀 원인을 분리할 
 그러나 **`origin/main`에는 아직 우리 16커밋이 없다.** 연동을 먼저 켜면
 불완전한 main이 자동 배포되어 2026-09-10 15:11 회귀가 재발한다.
 
-- [ ] D1. `git push origin fix/umsh-qa-ux` — 브랜치 원격 보존 (**push 권한 차단 상태**)
-- [ ] D2. `git push origin HEAD:main` — main fast-forward (강제 불필요)
-- [ ] D3. `git rev-list --left-right --count origin/main...HEAD` → `0  0` 확인
-- [ ] D4. `vercel git connect https://github.com/axlab-cream/chungi-t.git --scope ax-lab-cream`
-- [ ] D5. Production Branch = `main` 확인
-- [ ] D6. `main`에 커밋 push → 자동 배포 + 배포 정보의 git 메타데이터 확인
+- [x] D1. `git push origin fix/umsh-qa-ux` — `dac3835..0556e49`
+- [x] D2. `git push origin HEAD:main` — `f825d26..0556e49` fast-forward
+- [x] D3. `git rev-list --left-right --count origin/main...HEAD` → `0  0`
+- [x] D4. `vercel git connect …` → **이미 연결되어 있었다** (U14 정정의 근거)
+- [x] D5. 라우팅 관측 — 관측한 `main` push는 Production을, 관측한 브랜치 push는 Preview를
+      만들었다. **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다**
+- [x] D6. `main` push → 자동 배포 확인. `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` (Ready, 46s),
+      alias `chungi-t-git-main-ax-lab-cream.vercel.app`, `umsh.kr` 이동.
+      **관측 1건이므로 alias 형식을 배포 경로의 단독 판정자로 쓰지 않는다**
 
 되돌리기: `git push origin f825d269:main --force-with-lease`
 

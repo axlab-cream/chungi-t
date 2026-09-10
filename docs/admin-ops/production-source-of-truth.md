@@ -36,11 +36,21 @@ aliases  https://umsh.kr, https://www.umsh.kr, https://chungi-t.vercel.app
    `vercel-source-dpl_8GJ6WMBmoaBZeQy4YFQtcwZ8JeKZ`와 **동일하다.**
    즉 admin-ops 패키지는 **현재 운영 중인 배포의 소스**를 보고 작성됐다.
 2. `vercel inspect` 출력에 **git 커밋·브랜치 메타데이터가 없다.**
-   Git 연동 배포라면 표시되는 정보가 비어 있다.
    → **가설: CLI 로컬 배포(`vercel --prod` 계열).**
-   단 메타데이터 부재는 CLI 배포와 양립하지만 그것을 **증명하지는 않는다**
-   (프로젝트 설정 등 다른 원인도 가능). 배포 방식은 **미확인**으로 남기고 U14를 유지한다.
+   단 메타데이터 부재는 CLI 배포와 양립하지만 그것을 **증명하지는 않는다**.
+   배포 방식은 **미확인**으로 남긴다.
    (Codex 리뷰 Major 2 반영 — 초판은 이를 근거로 단정했다.)
+
+   **[2026-09-10 16:25 확정]** 이 가설은 맞았고, 여기서 파생된 U14의 결론은 틀렸다.
+   `vercel git connect` 결과 `axlab-cream/chungi-t is already connected to your project`이며
+   `main` push가 실제로 Production 배포를 트리거했다(`dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1`,
+   alias `chungi-t-git-main-ax-lab-cream.vercel.app`).
+   → **16:25 시점에 Git 연동이 존재한다.** 따라서 "연동이 없다"는 결론은 틀렸다.
+   git 메타데이터 부재는 "연동이 없다"는 뜻이 아니다.
+   **단 그것이 "그 3건이 CLI 배포였다"를 증명하는 것도 아니다** — 양립할 뿐이다.
+   위 3건 당시의 연동 상태와 배포 경로는 여전히 미확정이다.
+   Codex가 그은 경계를 다시 넘었고, 정정 초안에서도 반대 방향으로 또 넘었다.
+   정정: `docs/admin-ops/TASK-018-deploy-path.md` §0
 
 ### 1.2 운영 콘텐츠가 어느 브랜치와 일치하는가
 
@@ -118,9 +128,12 @@ T01은 "HEAD가 `origin/main`보다 20 커밋 뒤이므로 HEAD는 운영 소스
 > 현재 Vercel 프로젝트는 `ax-lab-cream/chungi-t`에 링크되어 있고, GitHub
 > `axlab-cream/chungi-t`의 `main` 브랜치 push가 Production 배포를 트리거합니다.
 
-이 서술은 **현재 사실과 다르다.** 최신 운영 배포에는 git 메타데이터가 없고
-콘텐츠는 `main`이 아니라 이 로컬 브랜치와 일치한다.
-→ `README.md` 정정이 필요하다 (T04 이후 별건, 이 Task에서 수정하지 않음).
+이 서술 자체는 **맞다**(2026-09-10 16:25 확정 — Git 연동이 존재하고 `main` push가
+Production을 트리거한다). 틀린 것은 **"그러므로 운영 소스는 `main`이다"라는 추론**이다.
+CLI 배포(`vercel deploy --prod`)는 Git 상태와 무관하게 로컬 작업 트리를 올리므로,
+연동이 있어도 운영이 `main`이 아닐 수 있다. 실제로 그랬다.
+→ `README.md`는 "배포 경로가 두 개 있고 CLI 경로가 연동을 우회한다"는 점을
+명시하도록 정정했다(TASK-018).
 
 ## 3. 실제 상태 — 3-way 분기
 
@@ -224,7 +237,7 @@ git merge-tree --write-tree --name-only HEAD origin/main   →  exit 1 (충돌)
 | ID | 내용 | 영향 | 해제 조건 |
 | --- | --- | --- | --- |
 | U13 | `origin/main`의 20 커밋(결혼택일·공용 GNB·브랜드 통일·모바일 정합)이 운영 미반영 | 저장소 정합성, 고객 화면 | 병합 Task 수행 (선택지 A 또는 D) |
-| U14 | 운영 배포가 Git 연동이 아니라 CLI 로컬 배포로 이뤄지고 있다 | 배포 재현성·감사 추적. `README.md` 서술이 사실과 다름 | 배포 경로를 Git 연동으로 정상화할지 결정 |
+| U14 | ~~운영 배포가 Git 연동이 아니라 CLI 로컬 배포로 이뤄지고 있다~~ → **정정·해소.** 16:25 시점에 Git 연동 존재. 문제는 **CLI 배포가 연동을 우회할 수 있다**는 것 | 배포 재현성·감사 추적 | **해소** — 기본 경로는 `main` push, CLI Production 배포는 승인된 긴급 예외. **자동 강제 수단 없음** (TASK-018 §0·§8) |
 | U15 | 결혼택일(wedding_day)이 양쪽 브랜치에 **병렬 추가**되어 있다 (add/add). 기능적 독립성은 미확인 | U13 병합 시 어느 구현을 살릴지 | 두 구현의 동작·테스트 비교 후 판정 |
 | U16 | 운영 트리 전체가 로컬 HEAD와 비트 단위로 같은지 미확인 | 이후 Task에서 "운영 == 로컬"을 전제로 삼을 경우 | 운영이 서빙하는 빌드 SHA/버전 마커 도입, 또는 배포 산출물 해시 확보 |
 
