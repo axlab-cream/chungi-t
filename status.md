@@ -741,3 +741,56 @@ checkout@v5 → setup-node@v5(`.nvmrc`=24) → `npm ci` → typecheck → test �
 ### 신규 미해결
 - **U34**: 액션을 커밋 SHA 로 pin + Dependabot (지금은 공식 액션 mutable 태그)
 - 브랜치 보호 규칙 도입 여부 (CI 를 배포 차단 게이트로 쓸지)
+## 2026-09-10 20:40 — task-021 자산 엣지 캐시 + T07 관리자 셸
+
+### task-021 — 자산이 매 요청 함수를 거치고 있었다
+운영 실측: `Cache-Control: public, max-age=0` · `X-Vercel-Cache: MISS` ·
+1.6MB PNG · 341KB webp. `express.static` 기본값으로는 Vercel CDN 이 응답을 보관하지 않는다.
+
+`immutable` 은 쓸 수 없다 — `/css`·`/js` 참조 **789건 중 버전 쿼리가 붙은 것은 164건(21%)**
+뿐이라 나머지는 배포 후 낡은 파일을 계속 쓴다.
+→ **브라우저는 짧게(300s), 엣지는 길게(1년)**. Vercel 캐시는 배포 단위로 무효화되므로
+자산이 바뀌는 유일한 계기에 자동 갱신된다. HTML 은 `max-age=0` 유지.
+
+**배포 후 실측: `X-Vercel-Cache: HIT`.** `s-maxage` 는 클라이언트 응답에서 사라지는데,
+Vercel CDN 이 그 지시자를 소비하고 제거하는 정상 동작이며 `HIT` 으로 캐시를 확인했다.
+
+### T07 — 관리자 셸·라우터 (사용자 지시 1번)
+ADR-0002 **Accepted (사용자 승인)**. U3 해소. 초안 전제 두 가지를 갱신했다 —
+`routes` 캐치올로 모든 요청이 함수를 지난다는 점, 그리고 D1 의 경고가 **실측으로
+확인됐다는 점**(TASK-011·020 에서 프롬프트 원문·스크랩이 인증 없이 서비스됐다).
+
+| 항목 | 내용 |
+| --- | --- |
+| 셸 | `admin-ui/index.html` — 정적 루트 **밖**(D1), 인라인 CSS/JS, 새 CDN 없음 |
+| 라우트 | `/admin` + 딥링크. **정적 마운트 위**(D2-2). `noindex` + `no-store` |
+| API | `GET /api/admin/v1/me` (`/api` 안이라 no-store + Vary 자동) |
+| 디자인 | 의미 기반 토큰 독립 정의(D3), 색 + 텍스트 라벨(D4), `tabular-nums` |
+
+### Codex Critical — 내가 스스로 기록한 규칙을 위반했다
+초판은 `/api/admin/v1/me` 에서 **`isAdminOwner` 로 관리자 권한을 부여했다.**
+`plan.md` 와 `T01-baseline.md` 에 이미 이렇게 적어 두었다:
+> 관리자 권한 판정에 `isAdminEmail`·`isAdminOwner`(레거시 unlock)를 **절대 사용하지 않는다.**
+
+그 목록은 **결제 없이 유료 리포트를 여는 레거시 unlock** 이다. 운영 권한으로 재사용하면
+직원 membership 없이 관리자 API 가 열리고 회수·감사 경로가 없는 "코드에 박힌 권한"이 된다.
+
+→ **지금은 누구에게도 권한을 주지 않는다.** 인증된 회원에게도 403
+`STAFF_MEMBERSHIP_REQUIRED`. A02 테스트로 고정했다(unlock 이메일 → 403).
+T05 가 회수 가능한 membership 원본을 만들면 그때 판정을 교체한다.
+
+**교훈: 내가 문서에 적어 둔 금지 규칙을 구현 단계에서 다시 읽지 않았다.**
+Task 착수 시 `plan.md` 의 해당 영역 제약을 먼저 읽는 절차가 필요하다.
+
+### 배포 후 운영 실측
+| 경로 | 결과 |
+| --- | --- |
+| `/admin` `/admin/` `/admin/orders` `/ADMIN` | 200 + noindex + no-store |
+| `/admin-ui/index.html` | **404** (정적 경로로 열리지 않는다) |
+| `/api/admin/v1/me` 미인증 | **401** `AUTH_REQUIRED` |
+| 자산 | `X-Vercel-Cache: HIT` |
+
+### 신규 미해결
+- **U36**: 관리자 HTML 진입점을 인증 뒤로 옮기려면 서버 세션 쿠키가 필요하다.
+  지금은 데이터 없는 셸을 익명에게도 준다 → 관리자 경로·메뉴 구조가 노출된다
+- **(2) 최소 관리자**를 붙이려면 T05 없이 무엇을 권한 근거로 쓸지 먼저 정해야 한다
