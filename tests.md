@@ -72,6 +72,16 @@
 | V-090 | task-019 | 저장된 상담 | 과거 부모로 `/api/chat` → 자녀 레코드 문맥·저장된 프롬프트 | 0건 | **PASS** — Codex Critical 2. 저장·전송 양쪽 확인 | 2026-09-10 |
 | V-091 | task-019 | sanitize 무해성 | `publicReportContext`가 입력 객체를 변형하는가 | 변형 없음 | **PASS** — 얕은 복사 후 delete | 2026-09-10 |
 | V-092 | task-019 | 음성 대조 | 3개 경로의 sanitize 를 각각 되돌림 | 해당 테스트만 실패 | **PASS** — 궁합 서비스 / `/api/report/:id` / 저장된 상담 | 2026-09-10 |
+| V-093 | task-011 | 브랜드 표기 | 재귀 수집한 HTML 의 노출 텍스트에 `UMSH` | 0건 | **PASS** — 92개 페이지. `script`·`style`·주석 제외 | 2026-09-10 |
+| V-094 | task-011 | 구조화 데이터 | Organization `name`/`alternateName` | 운명상회 / UMSH | **PASS** — about·portal | 2026-09-10 |
+| V-095 | task-011 | 프롬프트 노출 | `PROMPT.md` 15개 요청 | 404 | **PASS** — 운영에서 200 이었다 | 2026-09-10 |
+| V-096 | task-011 | 스크립트 노출 | `*.py` 요청 | 404 | **PASS** — 스크래핑·검증 스크립트 7개 | 2026-09-10 |
+| V-097 | task-011 | 생성 산출물 | `*-RESULT.json` 요청 | 404 | **PASS** | 2026-09-10 |
+| V-098 | task-011 | 스크랩 HTML | `사주/사주/extracted_decoded.html`(121KB) | 404 | **PASS** — Codex Critical. 확장자 목록이 놓쳤다 | 2026-09-10 |
+| V-099 | task-011 | 중복 URL | `/사주/index.html` | 404 | **PASS** — 두 번째 URL 공간을 닫음 | 2026-09-10 |
+| V-100 | task-011 | 우회 차단 | 9변형(`%2Emd`·`.md/`·`//`·`.`·`%20`·`%2F`·대문자·이중인코딩·경로순회) | 전부 비200 | **PASS** — `PROMPT.md/` 는 원문 4017B 를 반환하고 있었다 | 2026-09-10 |
+| V-101 | task-011 | 과잉 차단 방지 | `robots.txt`·`sitemap.xml`·`assetlinks.json`·`/privacy`·`/css/policy.css` | 200 | **PASS** | 2026-09-10 |
+| V-102 | task-011 | 음성 대조 | 가드 무력화 | 8건 실패 | **PASS** — 복원 확인 | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

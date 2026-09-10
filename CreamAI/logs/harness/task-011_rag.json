@@ -1,0 +1,15 @@
+{
+  "task_id": "task-011",
+  "mode": "rag",
+  "timestamp": "2026-09-10T18:35:34.6935642+09:00",
+  "checks": [
+    {
+      "name": "memory candidate exists",
+      "status": "PASS",
+      "detail": "C:\\Users\\user\\Desktop\\chungi-t\\CreamAI\\memory\\candidates\\task-011_memory.md"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

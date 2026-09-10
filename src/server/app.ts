@@ -690,6 +690,60 @@ app.get(['/cmdg/result.html', '/cmdg/result'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'result.html'))
 })
 
+/**
+ * 정적 루트에는 웹 자산이 아닌 내부 산출물이 섞여 있다 — 서비스 생성 프롬프트
+ * (`PROMPT.md` 15개), 생성 결과(`*-RESULT.json`), 스크래핑·검증 스크립트(`*.py`).
+ * `express.static` 은 트리를 통째로 내보내므로 2026-09-10 기준 운영에서
+ * `GET /me/pass-angle/01-step-1-story/PROMPT.md` 가 200 이었다.
+ *
+ * 파일을 옮기는 대신 확장자로 막는다 — 이 파일들은 서비스 폴더 구조의 일부라
+ * 옮기면 생성 계약(`00-SERVICE-GENERATION-CONTRACT.md`)의 경로 규칙이 깨진다.
+ * 예외는 경로로 명시한다. 확장자만 보고 판단하면 `robots.txt` 까지 막힌다.
+ */
+const PUBLIC_STATIC_EXCEPTIONS = new Set([
+  '/robots.txt',
+  '/sitemap.xml',
+  '/.well-known/assetlinks.json',
+])
+const NON_WEB_STATIC_FILE = /\.(md|py|json|txt|mhtml|ps1|sh|bak|log|ya?ml|ini|cfg)$/i
+
+/**
+ * 중첩 폴더 `사주/사주` 는 필요한 경로에 이미 마운트돼 있다 — `/assets` 계열과
+ * `index.html` 을 보내는 라우트(`SAJU_UI`). 그런데 두 번째 정적 마운트가 그 폴더를
+ * `/사주/...` 라는 **두 번째 URL 공간**으로도 내보낸다.
+ *
+ * 그 안에는 외부 사이트 스크래핑 산출물(`extracted_decoded.html`, 121KB)과 수집·검증
+ * 스크립트가 섞여 있고, 앱 페이지도 중복 URL 로 열린다. 확장자 목록으로 막는 방식은
+ * `.html` 로 저장된 산출물을 놓쳤다(2026-09-10 Codex 리뷰). 그래서 URL 공간을 닫는다.
+ * 저장소의 파일은 그대로 둔다 — `check_ganji.py` 등이 로컬에서 상대 경로로 읽는다.
+ */
+const NESTED_UI_URL_PREFIX = '/사주/'
+
+/**
+ * 정적 파일 서버가 실제로 열어 볼 후보 경로들. 확장자 검사를 이 전부에 적용한다.
+ *
+ * 두 가지를 놓치면 가드가 뚫린다. 둘 다 테스트가 잡아냈다.
+ *  - `req.path` 는 디코딩되지 않는데 `express.static` 은 디코딩한 경로로 파일을 찾는다
+ *    → `PROMPT%2Emd`
+ *  - `send` 는 경로 끝의 슬래시·점을 무시하고 파일을 찾는다
+ *    → `PROMPT.md/` 가 원문 전체를 반환했다
+ */
+function staticPathCandidates(rawPath: string): string[] {
+  let decoded = rawPath
+  try { decoded = decodeURIComponent(rawPath) } catch { /* 잘못된 인코딩은 원본으로 본다 */ }
+  const trimmed = [rawPath, decoded].map((value) => value.replace(/[/\.\s]+$/, ''))
+  return [...new Set([rawPath, decoded, ...trimmed])]
+}
+
+app.use((req, res, next) => {
+  const candidates = staticPathCandidates(req.path)
+  if (candidates.some((path) => PUBLIC_STATIC_EXCEPTIONS.has(path))) { next(); return }
+  const blocked = candidates.some((path) => path.startsWith(NESTED_UI_URL_PREFIX) || NON_WEB_STATIC_FILE.test(path))
+  if (!blocked) { next(); return }
+  // 존재 여부를 알려 주지 않는다. 같은 응답으로 없는 경로와 구분되지 않게 한다.
+  res.status(404).type('text/plain; charset=utf-8').send('찾을 수 없는 경로입니다.')
+})
+
 app.use('/assets', express.static(join(SAJU_UI, 'assets')))
 app.use('/css', express.static(join(SAJU_ROOT, 'css')))
 app.use('/js', express.static(join(SAJU_ROOT, 'js')))
