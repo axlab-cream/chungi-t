@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  capacitor-android 라이브러리가 기본으로 넣는 머티리얼 인디고를 브랜드 색으로 덮는다.
+  값은 사주/css/policy.css 의 토큰과 같다.
+-->
+<resources>
+    <color name="colorPrimary">#1A0705</color>
+    <color name="colorPrimaryDark">#080302</color>
+    <color name="colorAccent">#F2BF6B</color>
+    <color name="umshBackground">#080302</color>
+</resources>

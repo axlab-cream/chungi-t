@@ -37,6 +37,19 @@ export interface ReportRecord {
   createdAt: string
   updatedAt: string
   chatHistory?: ConversationTurn[]
+  /**
+   * 사용자가 이 해석을 신고한 기록.
+   *
+   * 생성형 AI 결과에는 앱을 나가지 않고 신고할 수 있는 경로가 있어야 한다.
+   * 신고 내용을 리포트에 함께 두면 어떤 문장을 두고 한 신고인지 대조할 수 있다.
+   */
+  flags?: Array<{
+    id: string
+    sectionId?: string
+    reason: string
+    detail?: string
+    createdAt: string
+  }>
   error?: string
 }
 

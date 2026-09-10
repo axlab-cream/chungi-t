@@ -1,0 +1,28 @@
+﻿task_id,원본요구,기능_화면,목표,우선순위,의존,변경파일,합격기준,검증방법,증거위치,상태,차단이유,다음행동
+A01,프롬프트4,환경,저장소·브랜치·도구 상태 확인,P0,,,환경 기록 존재,명령 실행,01-audit/SERVICE_AUDIT.md,PASS,,완료
+A02,프롬프트4,전체,코드·라우트·기능 조사,P0,A01,,라우트 수와 기능 목록 대조,코드 집계,01-audit/FEATURE_INVENTORY.csv,PASS,,완료
+A03,프롬프트4,전체,기존 웹 기준 QA,P0,A02,,주요 경로 실행 결과,로컬 서버 요청,01-audit/BASELINE_QA.md,IN_PROGRESS,,핵심 경로 확대
+A04,프롬프트6,정책,결제·인증·데이터 정책 판단,P0,A02,,정책별 근거와 미확인 목록,문서 대조,02-design/,IN_PROGRESS,계정 유형 미확인,소유자 확인 필요
+A05,프롬프트5,아키텍처,래핑 방식 결정,P0,"A03,A04",,ADR 승인,소유자 판단,02-design/ADR-001.md,PASS,,2026-09-10 원격 래핑(B) 채택
+B01,프롬프트7.1,빌드,안드로이드 프로젝트 구성,P0,A05,android/app-shell/**,cap doctor 통과,명령 실행,app-shell/,PASS,,완료
+B02,프롬프트7.3,탐색,화면 컨테이너·뒤로 가기,P0,B01,,뒤로 가기 순서 일치,실기기,04-qa/evidence/,NOT_TESTED,SDK 없음,환경 구축
+B03,프롬프트6.2,인증,제공자별 로그인·복귀,P0,B02,,3개 제공자 성공·취소·만료,실기기,04-qa/evidence/,BLOCKED,각 SDK 콘솔에 패키지·키해시 미등록,키스토어 생성 후 등록
+B04,프롬프트6.1,결제,Play 결제·서버 검증,P0,"A04,B03",src/payment/google-play.ts 외,영수증 검증·멱등성,단위+실기기,tests/unit/google-play-payment.test.ts,IN_PROGRESS,Play 상품 미등록,"서버측 17개 통과, 실기기 미검증"
+B05,프롬프트7.3,파일,저장·공유·링크,P1,B02,,인쇄→PDF 저장 동작,실기기,04-qa/evidence/,NOT_TESTED,SDK 없음,범위 판단 후 진행
+B06,프롬프트5.3,오프라인,로드 실패 시 로컬 화면,P0,B02,android/app-shell/capacitor.config.ts,네트워크 없이 안내 화면,실기기,app-shell/www/index.html,IN_PROGRESS,,server.errorPath 연결·렌더 확인 완료. 실기기 오류 유발 미확인
+B07,"프롬프트6.3,6.4",정책기능,탈퇴·개인정보·AI 신고,P0,"A04,B03",,앱 내 신고 경로 존재,실기기,04-qa/evidence/,TODO,,AI 신고 기능 신규 구현 필요
+B08,프롬프트7.2,보안,WebView·브리지 점검,P0,"B03,B07",,허용 도메인 외 차단,실기기,04-qa/evidence/,NOT_TESTED,SDK 없음,환경 구축
+C01,프롬프트11.3,선언,정책·Data safety 자료,P0,A04,05-store/,항목별 근거,문서,05-store/,TODO,대상 연령 미확인,소유자 확인
+C02,프롬프트10,등록정보,문구·이미지·URL,P1,"B02,C01",05-store/,실제 빌드와 일치,문서,05-store/,TODO,스크린샷은 실기기 필요,문구 먼저 작성 가능
+C03,프롬프트10.4,심사접근,테스트 계정·영문 안내,P0,"B03,B04",05-store/,새 설치에서 재현,실기기,05-store/APP_ACCESS_EN.md,TODO,,계정 준비 후
+D01,프롬프트7.1,릴리스,서명 빌드,P0,B08,,AAB 해시·서명 확인,gradlew,06-release/,BLOCKED,JDK·SDK·키스토어 없음,환경 구축
+D02,프롬프트9,QA,실기기 전수 QA,P0,D01,04-qa/,Q01~Q36 판정,실기기,04-qa/TEST_RESULTS.csv,BLOCKED,기기 없음,기기 확보
+D03,프롬프트9.3,QA,결함 수정·회귀,P0,D02,,수정 전후 증거,실기기,04-qa/DEFECTS_AND_RETEST.md,TODO,,D02 이후
+D04,프롬프트11.7,배포,내부 테스트 업로드,P0,D03,,Play 설치본 동작,Play Console,06-release/,BLOCKED,콘솔 접근·승인 없음,소유자 승인
+D05,프롬프트11.8,배포,비공개 테스트,P0,D04,,콘솔이 요구하는 테스트 절차 충족,Play Console,06-release/,BLOCKED,콘솔 접근 없음,조직 계정이라 개인 12명·14일 의무는 미적용. 콘솔 실제 요건 확인 필요
+D06,프롬프트11.9,배포,프로덕션 접근 신청,P0,D05,,승인 상태,Play Console,06-release/,BLOCKED,D05 선행,대기
+E01,프롬프트11.10,출시,최종 교차 대조,P0,"C01,C02,C03,D04",,체크리스트 완료,문서,FINAL_REPORT.md,TODO,,선행 대기
+E02,프롬프트11.11,출시,심사 제출,P0,E01,,제출 시각·버전,Play Console,06-release/,BLOCKED,승인 범위 밖,소유자 승인
+W01,조사,웹,프로덕션 16커밋 배포,P0,,,프로덕션이 origin/main 과 일치,배포 후 확인,01-audit/SERVICE_AUDIT.md,TODO,,앱이 이 웹을 띄우므로 선행
+W02,조사,웹,INICIS_SIGNKEY 설정,P1,,,웹 결제 활성,vercel env,01-audit/SERVICE_AUDIT.md,BLOCKED,값 미보유,소유자 확인
+W03,조사,웹,AI 결과 신고 경로 구현,P0,,"사주/js/ai-report-flag.js, umsh-chrome.js, src/server/app.ts",결과에서 신고 접수까지,로컬+실기기,tests/unit/google-play-payment.test.ts,IN_PROGRESS,,서버 4개 통과·브라우저 확인 완료. 로그인 실계정 확인 미실시

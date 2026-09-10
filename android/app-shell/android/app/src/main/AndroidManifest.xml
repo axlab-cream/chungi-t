@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="false"
+        android:theme="@style/AppTheme">
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- 로그인과 결제는 시스템 브라우저에서 처리한다. 구글이 임베디드 WebView
+                 안의 OAuth 를 막기 때문이다. 끝나고 umsh.kr 로 돌아오는 주소를 이
+                 필터가 받아 앱으로 다시 들여보낸다. autoVerify 가 동작하려면
+                 https://umsh.kr/.well-known/assetlinks.json 이 서명 인증서
+                 지문과 함께 올라가 있어야 한다. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="umsh.kr" />
+                <data android:scheme="https" android:host="www.umsh.kr" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 구글플레이 인앱 결제. billing 라이브러리도 같은 권한을 선언하므로 병합되지만,
+         이 앱이 결제를 쓴다는 사실을 매니페스트에 남겨 둔다. -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+</manifest>

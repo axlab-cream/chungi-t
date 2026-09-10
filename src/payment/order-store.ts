@@ -156,6 +156,40 @@ export async function getPaymentOrder(orderId: string): Promise<PaymentOrder | n
   return result.rows[0] ? fromRow(result.rows[0]) : null
 }
 
+/**
+ * 결제사 거래번호로 주문을 찾는다.
+ *
+ * 구글플레이 결제 토큰은 한 주문만 열어야 한다. 같은 토큰을 다른 주문에 다시 들고
+ * 오는 경로를 막으려면 토큰이 이미 쓰였는지 저장소에 물어봐야 한다.
+ */
+export async function findPaymentOrderByTid(tid: string): Promise<PaymentOrder | null> {
+  const key = tid.trim()
+  if (!key) return null
+
+  if (storageMode() === 'memory') {
+    for (const order of memoryOrders.values()) {
+      if (order.tid === key) return cloneOrder(order)
+    }
+    return null
+  }
+
+  if (storageMode() === 'supabase') {
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('tid', `eq.${key}`)
+    url.searchParams.set('select', '*')
+    url.searchParams.set('limit', '1')
+    const response = await fetch(url, { headers: supabaseHeaders() })
+    if (!response.ok) throw new Error('결제 주문 조회에 실패했습니다.')
+    const rows = await response.json() as Array<Record<string, unknown>>
+    return rows[0] ? fromRow(rows[0]) : null
+  }
+
+  if (!pool) return null
+  await ensureDb()
+  const result = await pool.query<Record<string, unknown>>('SELECT * FROM cheongi_payment_orders WHERE tid = $1 LIMIT 1', [key])
+  return result.rows[0] ? fromRow(result.rows[0]) : null
+}
+
 export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string): Promise<PaymentOrder[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
   if (storageMode() === 'memory') {

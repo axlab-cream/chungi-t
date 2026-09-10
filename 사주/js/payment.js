@@ -102,6 +102,19 @@
         setStatus('테스트 결제창을 열었습니다. 팝업에서 승인해 주세요.');
         return;
       }
+      // 앱 안에서는 구글플레이 결제를 쓴다. 안드로이드 앱에서 디지털 콘텐츠를 팔 때
+      // Play 결제를 쓰는 것은 정책 요구사항이다. 웹은 그대로 이니시스로 간다.
+      if (global.UMSHAppBilling?.isAvailable()) {
+        await global.UMSHAppBilling.payOrder({
+          orderId: payload.order.orderId,
+          productKey: product.key,
+          authHeaders,
+          onStatus: setStatus,
+        });
+        // 이니시스와 같은 착지점으로 보낸다. 이후 복귀 흐름을 한 갈래로 유지한다.
+        global.location.replace(`/payment/result?orderId=${encodeURIComponent(payload.order.orderId)}`);
+        return;
+      }
       fillInicisForm(payload.fields);
       await loadScript(paymentConfig.scriptUrl);
       setStatus('이니시스 결제창을 여는 중입니다.');
