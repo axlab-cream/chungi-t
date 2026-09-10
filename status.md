@@ -269,3 +269,26 @@
 `check:production-source` 차단 요인이 **2건 → 1건**으로 줄었다.
 - ~~HEAD가 `origin/main`을 포함하지 않음~~ → **해소** (병합)
 - 작업 트리 비청결 → **TASK-008(커밋 전략)** 이 유일한 남은 차단 요인
+
+## 2026-09-10 — task-008 미커밋 산출물 정리 (DONE) — 배포 게이트 녹색
+
+- 사용자 승인: "이 분류로 커밋"
+- 커밋 `f9bcd17`, **219파일**. **push 미수행** (`ahead 24`)
+- 커밋 전 안전 검사: 후보 261파일에서 JWT / `sb_secret_`·`sk-` / 비밀번호 포함 Postgres
+  접속문자열 / `Bearer 토큰` / 이메일 / 전화번호 **전부 0건**.
+  패턴은 양성 대조(`src/auth/admin.ts`, `.env.example`에서 이메일 검출)로 유효성 확인
+- gitignore 추가 (커밋 안 함): `CLAUDE.local.md`(파일이 커밋 금지 명시),
+  `output/`(39, QA 산출물), `CreamAI/logs/**/_prompt_*.txt`(8, ProjectOps §8.4 원문 프롬프트 미저장).
+  `*.codex-stdout.log` 6건은 기존 `*.log` 규칙으로 이미 무시
+- **배포 게이트가 처음으로 PASS로 바뀌었다:**
+  `[production-source] PASS: clean source includes the current remote main.`
+  차단 요인 2건(T04) → 1건(TASK-009 병합 후) → **0건**
+- 작업 트리 dirty **0건**. 커밋 후 재검증: MANIFEST SHA-256 ALL OK(21), typecheck 0 오류
+
+### 현재 커밋 스택 (전부 미푸시, ahead 24)
+```
+f9bcd17  chore(projectops): AIOps 워크스페이스·admin-ops 산출물 커밋
+67b4d7b  fix(wedding): 병합이 남긴 중복 analyze 라우트 수정
+659ba7f  merge: origin/main 21커밋 통합
+```
+복구 지점 `backup/pre-merge-20260910` = `dac3835`

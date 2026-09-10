@@ -1,7 +1,7 @@
 ﻿---
 task_id: task-008
-status: active
-active: true
+status: done
+active: false
 owner: claude-pm
 created: 2026-09-10
 priority: P2
@@ -67,9 +67,9 @@ unblocks: [TASK-015]
 ## Success Criteria
 - [x] 비밀값·개인정보 스캔 0건
 - [x] `.gitignore` 갱신
-- [ ] 커밋 완료 (사용자 승인 후)
-- [ ] `check:production-source`가 작업 트리 청결 조건을 통과
-- [ ] push 미수행
+- [x] 커밋 완료 — `f9bcd17`, 219파일 (사용자 승인: "이 분류로 커밋")
+- [x] `check:production-source` **PASS (exit 0)** — "clean source includes the current remote main"
+- [x] push 미수행 (`ahead 24`)
 
 ## Risks
 - `CreamAI/logs/`를 커밋하면 조사·리뷰 이력이 저장소에 남는다. ProjectOps 설계상
@@ -82,3 +82,18 @@ unblocks: [TASK-015]
 - `git check-ignore`로 분류 확인
 - 커밋 후 `node scripts/check-production-source.mjs`
 - 커밋 후 `admin-ops-execution-pack` MANIFEST 재검증
+
+## 결과 (2026-09-10)
+- 커밋 `f9bcd17`, **219파일**. push 미수행.
+- **배포 게이트가 처음으로 녹색이 되었다:**
+  ```
+  [production-source] PASS: clean source includes the current remote main.
+  ```
+  차단 요인이 2건(T04 시점) → 1건(TASK-009 후) → **0건**이 되었다.
+- 작업 트리 dirty **0건**.
+- 커밋 후 재검증: `admin-ops-execution-pack` MANIFEST SHA-256 **ALL OK (21 files)**,
+  `npm run typecheck` 오류 0.
+- gitignore 추가분이 실제로 지켜졌음을 staged 목록에서 확인 (4개 패턴 전부 0건 매치).
+
+## 이 Task가 푼 것
+TASK-015(배포)의 유일한 선행 조건이었다. 이제 배포는 **사용자 승인만** 남았다.

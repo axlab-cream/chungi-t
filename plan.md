@@ -17,7 +17,7 @@
 | TASK-005 | GitHub Actions CI | push/PR에서 typecheck + test 자동 실행 | P1 | `.github/workflows/ci.yml` | TASK-002 | PR에서 CI 통과/실패 보고 | Actions run | TODO |
 | TASK-006 | Vercel 환경별 변수 공백 보완 | Preview/Development 서버 키 정책 확정 | P2 | Vercel 설정, `docs/WORKFLOW.md` | TASK-003 | Preview에서 서비스 롤 경로 동작 | Preview `/api/health` | TODO |
 | TASK-007 | 결제(Inicis) SignKey 설정 | `check-integrations` 결제 2건 FAIL 해소 | P2 | Vercel env(Production) | 사용자 자격 **+ U22 선행 해소** | `checkout enabled` PASS | check-integrations | BLOCKED |
-| TASK-008 | 미커밋 산출물 정리 | 작업 트리 미추적 28건 분류 | P2 | `.gitignore`, 커밋 | TASK-002 | 미추적 파일 의도적 분류 | `git status --short` | TODO |
+| TASK-008 | 미커밋 산출물 정리 | 미추적 26항목 분류·커밋 | P2 | `.gitignore`, 커밋 `f9bcd17` | TASK-009 | 분류 완료·배포 게이트 통과 | `check:production-source` PASS | **DONE** |
 
 ### TASK-003 PAUSED 사유
 `.env` 직접 쓰기가 글로벌 규칙(`.env*` 수정 금지 영역)으로 자동 차단되었고,
@@ -148,7 +148,7 @@
 | TASK-012 | 결제 설정 문구 정보 노출 제거 | `/api/payment/config`의 `setupMessage`가 내부 환경변수 이름을 노출 | **DONE** (TASK-009 병합으로 해소). 단 **운영 배포 전까지 노출은 계속된다** |
 | TASK-013 | 결혼택일 저쪽 개선분 이식 | `origin/main`의 `chunkMeaning`/`compact`/`RAG_FIELD_LABEL`, 상세 후보일 문맥, 한자→한글 관계 표기를 이식. **Codex 지적: 현재 `sectionBody`가 `_chunk`를 받고도 쓰지 않아 RAG 근거가 본문에 렌더되지 않는다.** 삭제한 저쪽 테스트 3건(상세 문맥·상대 부재 고지·상대 출생시각 불확실)을 이식 또는 대체 작성해야 한다 | TODO (P1) |
 | TASK-014 | Android 앱 셸 인수 | 병합으로 유입된 `android/`(Capacitor) + Play 결제 + App Links 상태 파악 | **BLOCKED — 출시 게이트 G6~G9** |
-| TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | TODO — **차단 요인 1건만 남음: 작업 트리 청결(TASK-008)**. Codex의 Critical(중복 라우트)은 `67b4d7b`로 해소 |
+| TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | **READY** — `check:production-source` **PASS**. 차단 요인 0건. **사용자 승인만 남음** |
 | TASK-016 | Google Play 결제 활성화 | Play 영수증 검증 경로를 실제로 켜기 | **BLOCKED — 출시 게이트 G6~G8** |
 | TASK-010 | 배포 경로 정상화 | CLI 로컬 배포 → Git 연동 전환 여부 결정. `README.md` 정정 | TODO |
 
