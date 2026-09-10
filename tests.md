@@ -51,7 +51,7 @@
 | V-069 | task-018 | 배포 경로 | `vercel project inspect` Git 섹션 존재 여부 | 연동 상태 확정 | **무효 — 이 검사로는 판정할 수 없다.** CLI 출력에 Git 섹션이 없어도 연동은 존재한다. 유효한 검사는 V-072 | 2026-09-10 |
 | V-070 | task-018 | 브랜치 관계 | `git merge-base --is-ancestor origin/main HEAD` | fast-forward 가능 여부 | **PASS** (조상 확인, 0 behind / 16 ahead) | 2026-09-10 |
 | V-071 | task-018 | README 정정 | `verify-seo-foundation.mjs` | PASS 유지 | **PASS** (robots, 19 sitemap URLs, 126 FAQ) | 2026-09-10 |
-| V-072 | D4 | Git 연동 | `main` push 후 Production 배포 자동 생성 여부 | 자동 생성 | **PASS (관측 시점 한정)** — `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` Ready, alias `chungi-t-git-main-…`. 과거 배포의 연동 상태·경로는 판정 대상 아님 | 2026-09-10 |
+| V-072 | D4 | Git 연동 | `main` push 후 Production 배포 자동 생성 여부 | 자동 생성 | **PASS (관측 시점 한정, 2회 재현)** — `dpl_42Ckhx…`(16:19), `dpl_Ekm6XB…`(16:39) 둘 다 Ready + alias `chungi-t-git-main-…`. 과거 배포의 연동 상태·경로는 판정 대상 아님 | 2026-09-10 |
 | V-073 | D6 | 운영 회귀 복구 | `umsh.kr` SEO·FAQ·about·assetlinks HTTP 코드 | 전부 200 | **PASS** — `/robots.txt` `/sitemap.xml` `/about` `/faq` `/my` `/.well-known/assetlinks.json` 모두 200 | 2026-09-10 |
 | V-074 | D6 | 운영 서비스 목록 | `GET /api/services` 개수·`home_pungsu` 포함 | 15종, 포함 | **PASS** — 15종, `home_pungsu` 포함 (14종 회귀 복구) | 2026-09-10 |
 | V-075 | D6 | 결제 문구 노출 | `GET /api/payment/config` 응답에 환경변수 이름 | 노출 없음 | **PASS** — `INICIS_MID`/`INICIS_SIGNKEY`/`SUPABASE_SERVICE`/`GOOGLE_PLAY` 0건, catalog 19종 | 2026-09-10 |

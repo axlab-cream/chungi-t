@@ -430,7 +430,7 @@ Preview·Production 배포가 각각 자동으로 시작됐다.
 | D2 `git push origin HEAD:main` | `f825d26..0556e49` fast-forward (exit 0) |
 | D3 분기 확인 | `origin/main...HEAD` = `0  0`, `merge-base --is-ancestor` 성공 |
 | D4 `vercel git connect` | **이미 연결됨** — U14 정정의 근거 |
-| D5 라우팅 관측 | 관측한 `main` push→**Production**, 브랜치 push→**Preview**. **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다** |
+| D5 라우팅 관측 | 관측한 `main` push→**Production**, 브랜치 push→**Preview**. **2회 재현**(16:19, 16:39). 단 **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다** |
 | D6 연동 배포 검증 | `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` Ready(46s), alias `chungi-t-git-main-ax-lab-cream.vercel.app`, `umsh.kr` 이동. **관측 1건이므로 alias 형식을 배포 경로의 단독 판정자로 쓰지 않는다** |
 
 ### 운영 회귀 복구 확인 (배포 후 실측)

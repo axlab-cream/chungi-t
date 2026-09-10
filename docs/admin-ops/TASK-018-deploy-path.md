@@ -180,12 +180,21 @@ CLI 배포를 자동 차단하지 않으므로, 실행했더라도 사고를 막
 | D2 | `git push origin HEAD:main` | `f825d26..0556e49` **fast-forward** (exit 0) |
 | D3 | `git rev-list --left-right --count origin/main...HEAD` | `0  0` |
 | D4 | `vercel git connect … --yes` | **이미 연결됨** → §0 정정의 근거 |
-| D5 | 라우팅 관측 | 관측한 `main` push는 **Production** 배포를, 관측한 브랜치 push는 **Preview** 배포를 만들었다. **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다** |
+| D5 | 라우팅 관측 | 관측한 `main` push는 **Production** 배포를, 관측한 브랜치 push는 **Preview** 배포를 만들었다. **2회 재현.** 단 **Production Branch 설정값 자체는 대시보드/API로 확인하지 않았다** |
 | D6 | 연동 배포 검증 | `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` Ready(46s), alias **`chungi-t-git-main-ax-lab-cream.vercel.app`**, `umsh.kr` 이동 |
 
 **배포 경로를 대조할 단서를 얻었다 — 단 단독 판정자로 쓰지 않는다.**
-이 프로젝트에서 관측한 연동 배포(`dpl_42Ckhx…`)는 Aliases에
-`chungi-t-git-main-ax-lab-cream.vercel.app`를 가졌다. 관측 1건이므로
+
+`main` push로 만들어진 Production 배포 **2건**이 모두 Aliases에
+`chungi-t-git-main-ax-lab-cream.vercel.app`를 가졌다.
+
+| 배포 | 트리거 | 이 alias |
+| --- | --- | --- |
+| `dpl_42CkhxK2KC4CAKbPEwMQVQDAVXs1` (16:19) | `main` push `f825d26..0556e49` | 있음 |
+| `dpl_Ekm6XBuS8JFTCUxvny4xaRGREj2q` (16:39) | `main` push `0556e49..dfb3e37` | 있음 |
+
+같은 두 push가 브랜치 push로 Preview 배포도 각각 만들었다.
+→ **관측한 라우팅은 2회 재현됐다.** 그래도 이것은 이 프로젝트에서의 관측이며,
 **alias 형식이나 메타데이터 유무만으로 모든 배포의 경로를 판정하지 않는다.**
 배포 target, git 관련 메타데이터, alias, 생성 시각을 저장소의 push 기록과 함께 대조한다.
 (Codex 리뷰 Major 2 — 같은 단일 신호 오류를 반복하지 않기 위한 제약)
