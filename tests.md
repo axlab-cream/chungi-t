@@ -85,6 +85,14 @@
 | V-103 | task-011 | 배포 라우팅 | `vercel.json` 이 캐치올 `routes` 인가 | `rewrites` 부재 | **PASS** — `rewrites` 는 파일시스템 우선이라 정적 노출이 열린다 | 2026-09-10 |
 | V-104 | task-011 | 운영 노출 | 저장소 경로 7종(`/사주/**/PROMPT.md`·`*.py`·스크랩 html·`/data/runtime-config.json`·`/prompts/README.md`·중복 URL) | 전부 404 | **PASS** — Express 가드 배포 후에도 200 이었다 | 2026-09-10 |
 | V-105 | task-011 | 운영 정상성 | 페이지·API·정적 자산 13종 | 전부 200 | **PASS** — `/` `/faq` `/about` `/privacy` `/robots.txt` `/sitemap.xml` `assetlinks.json` `policy.css` `faq-knowledge.js` `brand-logo.png` `favicon.ico` `wedding 01` | 2026-09-10 |
+| V-106 | task-020 | 기본 거부 | 허용 목록 밖 6형식(`.csv`·`.yaml`·`.env`·`.js.map`·`.rtf`·`.sqlite`) | 404 + 가드 본문 | **PASS** — 다른 곳에서 404 된 것과 구분 | 2026-09-10 |
+| V-107 | task-020 | 허용 형식 | png·webp·jpg·woff2·ttf·css·js·ico | 전부 200 | **PASS** — 허용 목록 누락 감지 | 2026-09-10 |
+| V-108 | task-020 | 전제 고정 | 트리에 확장자 없는 파일 | 0개 | **PASS** — 확장자 없는 요청을 통과시키는 근거 | 2026-09-10 |
+| V-109 | task-020 | 백슬래시 우회 | `%5C` 계열 9변형 | 비200 + 원문 미포함 | **PASS** — Codex 가 200/원문 반환을 검증했던 경로 | 2026-09-10 |
+| V-110 | task-020 | 산출물 도달성 | 내부 산출물 이름 + 웹 확장자 조합 | 모든 URL 공간에서 404 | **PASS** — `/extracted_decoded.html` 이 116KB 반환하고 있었다 | 2026-09-10 |
+| V-111 | task-020 | 참조 자산 크롤 | HTML·CSS 가 참조하는 로컬 자산 URL 전수 | 전부 200 | **PASS** — 형식 누락이 조용히 깨지지 않게 | 2026-09-10 |
+| V-112 | task-020 | 음성 대조 | 허용목록→거부목록 / 백슬래시 정규화 제거 / 중첩 마운트 복원 | 각각 6·6·1건 실패 | **PASS** — 전부 복원 확인 | 2026-09-10 |
+| V-113 | task-020 | 운영 실측 | 차단 7종 / 정상 15종 | 404 / 200 | **PASS** — 배포 후 확인 | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

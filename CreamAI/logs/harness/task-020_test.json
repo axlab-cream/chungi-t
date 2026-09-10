@@ -1,0 +1,63 @@
+{
+  "task_id": "task-020",
+  "mode": "test",
+  "timestamp": "2026-09-10T19:38:21.5375907+09:00",
+  "checks": [
+    {
+      "name": "npm test",
+      "status": "PASS",
+      "detail": "exit_code=0"
+    }
+  ],
+  "commands": [
+    {
+      "name": "npm test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_tail": [
+        "✔ 사주: escaped legacy reading renders without inventing a zodiac (0.3841ms)",
+        "✔ 사주: first direct visit is pending until auth and reading finish, not a false failure (0.3819ms)",
+        "✔ 사주: real request failure stays actionable and safely displays its message (0.3389ms)",
+        "✔ 사주: deferred common chrome mounts after DOM readiness while reading remains pending (0.3508ms)",
+        "✔ 사주: direct today result entry and its saved ID survive scene URL sync (0.463ms)",
+        "✔ a verified daily reader moves the existing loaded top shell out of the hidden application (13.1516ms)",
+        "✔ repeat reader mounts reuse one loaded shell script and the same two hosts (1.2907ms)",
+        "✔ versioned existing service-shell scripts are reused instead of loading duplicate document handlers (0.9061ms)",
+        "✔ moving a loaded service shell into the reader immediately updates its fixed bottom column width (0.7504ms)",
+        "✔ an owner change clears saved content without unhiding the legacy app or removing common navigation (0.9331ms)",
+        "(node:37008) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.",
+        "(Use `node --trace-deprecation ...` to show where the warning was created)",
+        "▶ 결혼 택일 로그인 흐름과 저장 결과",
+        "  ✔ 로그인과 사주 등록을 먼저 요구한다 (37.727ms)",
+        "  ✔ 후보일이 없거나 달력에 없는 날짜면 400 으로 되돌린다 (3.7026ms)",
+        "  ✔ 결제 전에는 계산된 무료 미리보기만 주고 같은 입력은 같은 UUID 로 모인다 (591.6708ms)",
+        "  ✔ 출생시각 미상 프로필은 용신 일치를 확정으로 선고하지 않고 티저 사실을 함께 준다 (544.239ms)",
+        "  ✔ 후보일이 달라지면 다른 결과로 저장된다 (543.0765ms)",
+        "  ✔ 사주가 같아도 계정이 다르면 남의 결과를 물려받지 않는다 (545.6679ms)",
+        "  ✔ 다른 서비스 ID 로는 결혼 택일 결과를 열 수 없다 (273.4806ms)",
+        "  ✔ 결제하고 돌아오면 저장된 UUID 로 후보일 판정이 담긴 본문이 열린다 (275.113ms)",
+        "✔ 결혼 택일 로그인 흐름과 저장 결과 (2819.5413ms)",
+        "✔ wedding layout separates text from images and uses local readable fonts (1.3497ms)",
+        "✔ all 21 wedding questions have distinct multi-paragraph answers and no cut-off corpus excerpts (247.7166ms)",
+        "✔ unknown birth time never becomes a confirmed useful-element match (19.3704ms)",
+        "✔ work job service builds a dedicated job fit report (248.4625ms)",
+        "✔ work job request requires current job (0.2864ms)",
+        "✔ 직장 선택 builds a dedicated job-choice report (877.9796ms)",
+        "✔ 직장 선택 compares actual offer conditions without inventing palaces (853.2203ms)",
+        "✔ 직장 선택 request validates its required answers (0.3926ms)",
+        "✔ work quit service builds a dedicated resignation report (719.5971ms)",
+        "✔ work quit request requires a reason (0.2815ms)",
+        "ℹ tests 498",
+        "ℹ suites 62",
+        "ℹ pass 498",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 96557.5583"
+      ]
+    }
+  ],
+  "warnings": [],
+  "failed": false
+}
