@@ -82,6 +82,9 @@
 | V-100 | task-011 | 우회 차단 | 9변형(`%2Emd`·`.md/`·`//`·`.`·`%20`·`%2F`·대문자·이중인코딩·경로순회) | 전부 비200 | **PASS** — `PROMPT.md/` 는 원문 4017B 를 반환하고 있었다 | 2026-09-10 |
 | V-101 | task-011 | 과잉 차단 방지 | `robots.txt`·`sitemap.xml`·`assetlinks.json`·`/privacy`·`/css/policy.css` | 200 | **PASS** | 2026-09-10 |
 | V-102 | task-011 | 음성 대조 | 가드 무력화 | 8건 실패 | **PASS** — 복원 확인 | 2026-09-10 |
+| V-103 | task-011 | 배포 라우팅 | `vercel.json` 이 캐치올 `routes` 인가 | `rewrites` 부재 | **PASS** — `rewrites` 는 파일시스템 우선이라 정적 노출이 열린다 | 2026-09-10 |
+| V-104 | task-011 | 운영 노출 | 저장소 경로 7종(`/사주/**/PROMPT.md`·`*.py`·스크랩 html·`/data/runtime-config.json`·`/prompts/README.md`·중복 URL) | 전부 404 | **PASS** — Express 가드 배포 후에도 200 이었다 | 2026-09-10 |
+| V-105 | task-011 | 운영 정상성 | 페이지·API·정적 자산 13종 | 전부 200 | **PASS** — `/` `/faq` `/about` `/privacy` `/robots.txt` `/sitemap.xml` `assetlinks.json` `policy.css` `faq-knowledge.js` `brand-logo.png` `favicon.ico` `wedding 01` | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

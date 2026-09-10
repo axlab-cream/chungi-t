@@ -625,3 +625,38 @@ Major(allow-list 구조 전환)는 **U31** 로 승격 — 정적 구조 재편�
 ### 신규 미해결
 - **U31**: 정적 제공을 allow-list(공개 전용 디렉터리)로 전환. 확장자 deny-list 는
   새 산출물 형식에 진다. 파일을 배포 산출물에서 제외하는 것도 함께 판단
+### [2단계] Express 가드만으로는 부족했다 — Vercel 정적 레이어가 우회했다
+
+가드를 배포한 뒤 운영을 재확인하니 **저장소 경로와 겹치는 URL 이 여전히 200**이었다.
+
+| 경로 | 가드 배포 후 |
+| --- | --- |
+| `/사주/me/pass-angle/01-step-1-story/PROMPT.md` | **200** (프롬프트 원문) |
+| `/사주/사주/extract_mhtml.py` | **200** |
+| `/사주/사주/extracted_decoded.html` | **200** |
+| `/data/runtime-config.json` | **200** (런타임 설정) |
+| `/prompts/README.md` | **200** |
+
+원인: `vercel.json` 의 `rewrites` 는 **파일시스템을 먼저 확인**한다. 저장소 경로와 겹치는
+URL 은 함수를 거치지 않고 배포 산출물에서 그대로 나갔다. Express 가드는 볼 기회가 없었다.
+
+조치: 레거시 `routes` 로 바꿨다. `handle: filesystem` 단계를 두지 않으면 파일시스템보다
+먼저 적용되므로 **모든 요청이 함수로 간다.** 실질 변화는 작다 — 예쁜 URL 은 이미 함수를
+거치고 있었고, 저장소 경로와 겹치는 URL 만 정적으로 나가고 있었다.
+
+`vercel.json` 형태를 테스트로 고정했다 — 캐치올 route 존재, `rewrites` 부재
+(되돌리면 구멍이 다시 열린다), `routes` 와 공존 불가한 키 부재, `includeFiles` 유지.
+
+### 배포 후 운영 실측 (2026-09-10 19:0x)
+| 검사 | 결과 |
+| --- | --- |
+| 노출 7경로 (프롬프트·스크립트·스크랩·runtime-config·README·중복 URL) | **전부 404** |
+| `/` `/faq` `/about` `/privacy` `/robots.txt` `/sitemap.xml` `/.well-known/assetlinks.json` | **200** |
+| `/css/policy.css` `/js/faq-knowledge.js` `/assets/umsh-brand-logo.png` `/favicon.ico` | **200** |
+| `/day/wedding/01-step-1-story/index.html` | **200** |
+| `/privacy` `/terms` 제목 | **· 운명상회** (브랜드 통일 반영) |
+| `about` 구조화 데이터 | `"alternateName":"UMSH"` |
+| `GET /api/services` / `/api/payment/config` | 15종 / catalog 19 |
+
+**교훈: 가드는 "요청이 그 가드를 지나가는가"부터 확인해야 한다.**
+Express 안에서 막았다고 끝이 아니었다. 배포 플랫폼의 라우팅 순서가 먼저다.
