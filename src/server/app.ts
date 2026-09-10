@@ -2207,7 +2207,8 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
       return
     }
     const analysis = analyzeSaju(profile.birth)
-    const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
+    // 명식을 함께 넘겨야 문맥에 후보일 판정·조건 수·상대 명식이 실린다.
+    const context = { ...buildWeddingContext(profile.name, input, analysis), birthTimeKnown: profile.birthTimeKnown }
     const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
     const teaser = buildWeddingTeaser(analysis, input, context)
     Object.assign(context, { wedding: { facts: teaser.frame, teaser: { headline: teaser.headline, lines: teaser.lines } } })

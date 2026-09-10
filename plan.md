@@ -147,13 +147,13 @@
 | TASK-009 | `origin/main` 통합 | 실제 21커밋 통합. 충돌 24건 해소. 결혼택일은 우리 구현 정본 | **DONE** — 커밋 `659ba7f`, 미푸시. 415/415 테스트, 가드 15/15 |
 | TASK-011 | 브랜드 표기 통일 판정 | 고객 노출 문구에서 `UMSH`를 뗄지 결정하고 SEO 기반 재검증 | TODO (TASK-009와 분리 권고) |
 | TASK-012 | 결제 설정 문구 정보 노출 제거 | `/api/payment/config`의 `setupMessage`가 내부 환경변수 이름을 노출 | **DONE** (TASK-009 병합으로 해소). 단 **운영 배포 전까지 노출은 계속된다** |
-| TASK-013 | 결혼택일 저쪽 개선분 이식 | `origin/main`의 `chunkMeaning`/`compact`/`RAG_FIELD_LABEL`, 상세 후보일 문맥, 한자→한글 관계 표기를 이식. **Codex 지적: 현재 `sectionBody`가 `_chunk`를 받고도 쓰지 않아 RAG 근거가 본문에 렌더되지 않는다.** 삭제한 저쪽 테스트 3건(상세 문맥·상대 부재 고지·상대 출생시각 불확실)을 이식 또는 대체 작성해야 한다 | TODO (P1) |
+| TASK-013 | 결혼택일 RAG 렌더링·문맥 이식 | RAG 근거를 본문에 실음(`_chunk` 소멸), 청크 중복 배정 제거, 후보일 판정·상대 명식 문맥 이식, 한자 독음, 삭제된 테스트 3건 복구 + 신규 7건 | **DONE** — 430 pass. Codex Critical 2건(상대 개인정보) 반영 |
 | TASK-014 | Android 앱 셸 인수 | 병합으로 유입된 `android/`(Capacitor) + Play 결제 + App Links 상태 파악 | **BLOCKED — 출시 게이트 G6~G9** |
 | TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | **DONE** — `chungi-387wmilw8`, `umsh.kr` 별칭 이동. SEO·FAQ·about·집풍수 복구 확인 |
 | TASK-017 | `git push` | 커밋 스택이 로컬에만 있다. 원격 미보존이 이번 사고의 근본 원인 | **BLOCKED** (push 권한 차단) — 사용자 조치 필요 |
 | TASK-018 | 배포 경로 정상화 | U14 정정(Git 연동 존재), `README.md` 재정정, `main` fast-forward, 연동 배포 검증 | **완료** — `docs/admin-ops/TASK-018-deploy-path.md` §0 |
 | TASK-016 | Google Play 결제 활성화 | Play 영수증 검증 경로를 실제로 켜기 | **BLOCKED — 출시 게이트 G6~G8** |
-| TASK-010 | 배포 경로 정상화 | CLI 로컬 배포 → Git 연동 전환 여부 결정. `README.md` 정정 | TODO |
+| TASK-010 | 배포 경로 정상화 | TASK-018과 동일 사안 | **TASK-018로 통합 종료** |
 
 TASK-009는 admin-ops와 **병행하지 않는다.** 회귀 원인을 분리할 수 없기 때문이다.
 수행 시 병합 직후 `npm run typecheck` + `npm test` 373건 전수 + `check:*` 스크립트 재검증이 필수다.

@@ -11,6 +11,8 @@ import {
   judgeCandidate,
   parseWeddingRequest,
 } from '../../src/day/wedding-service.js'
+import { buildCorpusIndex } from '../../src/rag/retriever.js'
+import { chunkMeaning, compactChunkText } from '../../src/rag/knowledge-block.js'
 import type { BirthInput } from '../../src/types/index.js'
 
 /** as const 목차의 중분류를 한 줄로 펼친다. 대분류마다 튜플 타입이 달라 여기서 넓힌다. */
@@ -178,4 +180,82 @@ test('한 자리 시각도 상대 출생시각을 받은 것으로 센다', () =
   assert.equal(parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11', partnerTime: '24:00' }).partnerBirthTimeKnown, false)
   assert.equal(parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11' }).partnerBirthTimeKnown, false)
 })
+test('문맥이 후보일 판정과 상대 명식을 프롬프트로 넘긴다', () => {
+  // 섹션 프롬프트는 birth·context·featureJson 만 본다. 여기 없는 값은 본문에서 지어진다.
+  const context = buildWeddingContext('정재용', INPUT, analyzeSaju(BIRTH))
+  const concern = String(context.concern)
+  for (const iso of INPUT.candidateDates) {
+    assert.ok(concern.includes(iso), `${iso} 판정이 문맥에 없다`)
+  }
+  assert.match(concern, /입하달|망종달|한로달/)
+  // 요일은 예식장 예약과 직결되는 사실이다. 넘기지 않으면 본문이 스스로 지어 쓴다.
+  assert.ok(concern.includes('2027년 5월 15일(토)[2027-05-15]'), `날짜·요일 표기가 문맥에 없다: ${concern}`)
+  // 독음 없는 한자는 검수기가 막는다. 문맥이 한자만 넘기면 본문이 그대로 옮겨 적어 생성이 떨어진다.
+  for (const run of concern.match(/[一-龥]{2,}/g) ?? []) {
+    assert.ok(concern.includes(`(${run})`), `독음 없는 한자: ${run}`)
+  }
+  assert.match(concern, /유리 \d+ · 주의 \d+/)
+  assert.match(concern, /조건이 가장 덜 걸리는 후보/)
+  assert.match(concern, /예식 형식: 예식장/)
+  assert.match(concern, /가족 일정 제약: 특정 주말만 가능/)
 
+  assert.equal(context.partner?.mode, 'known')
+  assert.equal(context.partner?.birthTimeKnown, true)
+  assert.match(String(context.partner?.dayMaster), /\(.\)$/)
+  assert.equal(Object.keys(context.partner?.pillars ?? {}).length, 4)
+})
+
+test('상대 사주가 없으면 두 사람을 비교했다고 쓰지 못하게 밝힌다', () => {
+  const soloInput = parseWeddingRequest({ candidateDate1: '2027-05-15' })
+  const context = buildWeddingContext('정재용', soloInput, analyzeSaju(BIRTH))
+  assert.equal(context.partner, undefined)
+  assert.match(String(context.concern), /상대 사주 미입력/)
+})
+
+test('상대 태어난 시각을 받지 못하면 채운 정오를 사실로 넘기지 않는다', () => {
+  const noTime = parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11' })
+  assert.equal(noTime.partnerBirthTimeKnown, false)
+  const context = buildWeddingContext('정재용', noTime, analyzeSaju(BIRTH))
+  assert.equal(context.partner?.birthTimeKnown, false)
+})
+
+test('검색한 근거가 본문에 실린다', () => {
+  // 대분류마다 자기 코퍼스 청크를 하나 배정받는다. 그것을 본문에 쓰지 않으면
+  // 검색 비용만 쓰고 결과를 버리는 것이다.
+  const analysis = analyzeSaju(BIRTH)
+  const report = buildWeddingReport(analysis, BIRTH, buildWeddingContext('정재용', INPUT, analysis), INPUT)
+  const withBasis = report.sections.filter((section) => section.interpretation.includes('[참고 기준]'))
+  assert.ok(withBasis.length >= 3, `근거가 실린 섹션이 ${withBasis.length}개뿐이다`)
+  // 같은 청크를 여러 대분류에 배정하면 같은 문단이 리포트에 반복된다.
+  const references = withBasis.map((section) => section.interpretation.split('[참고 기준]')[1].trim())
+  assert.equal(new Set(references).size, references.length, '같은 근거가 여러 섹션에 반복됐다')
+  // 고정 문구를 박아 두고 통과시키지 못하게, 근거가 실제 코퍼스에서 왔는지 확인한다.
+  const corpus = buildCorpusIndex().map((chunk) => compactChunkText(chunkMeaning(chunk)))
+  for (const reference of references) {
+    assert.ok(corpus.includes(reference), `코퍼스에 없는 근거가 실렸다: ${reference.slice(0, 60)}`)
+  }
+  for (const section of withBasis) {
+    const tail = section.interpretation.split('[참고 기준]')[1]?.trim() ?? ''
+    assert.ok(tail.length > 20, `${section.id} 의 근거가 비어 있다`)
+    // 코퍼스 필드 이름이 고객 문장에 새어 나가면 안 된다.
+    assert.ok(
+      !/(concept|condition|interpretation|guide|output|tone|caution|source|evidence|risk|opportunity|advice)\s*:/i.test(tail),
+      `${section.id} 에 코퍼스 필드 이름이 남았다: ${tail.slice(0, 80)}`,
+    )
+  }
+})
+test('상대의 생년월일시 원본은 문맥에 실리지 않는다', () => {
+  // 이 문맥은 리포트 payload 로 저장되고 분석·조회 응답으로도 나간다.
+  // 상대의 생년월일시를 실으면 상대 개인정보가 그 보관·전송 범위까지 따라간다.
+  const context = buildWeddingContext('정재용', INPUT, analyzeSaju(BIRTH))
+  assert.equal(context.partner?.mode, 'known')
+  assert.equal(context.partner?.birth, undefined)
+  const serialized = JSON.stringify(context)
+  for (const trace of ['1988', '"month":3', '"day":11', '14:30']) {
+    assert.ok(!serialized.includes(trace), `상대 생년월일시 흔적이 남았다: ${trace}`)
+  }
+  // 그래도 본문 생성에 필요한 계산 결과는 남아 있어야 한다.
+  assert.equal(Object.keys(context.partner?.pillars ?? {}).length, 4)
+  assert.match(String(context.partner?.dayMaster), /\(.\)$/)
+  assert.equal(context.partner?.birthTimeKnown, true)
+})

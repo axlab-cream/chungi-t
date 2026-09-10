@@ -461,3 +461,67 @@ Preview·Production 배포가 각각 자동으로 시작됐다.
   (`scripts/check-production-source.mjs:5`). 이것은 기술적 통제가 아니라 **운영 절차 규칙**이다
 - 15:11 배포에서 preflight 실행 여부는 **기록으로 확인되지 않았다.** "게이트를 건너뛴
   결과"라고 단정하지 않는다
+## 2026-09-10 17:05 — task-013 결혼택일 RAG 렌더링·문맥 이식 (완료)
+
+### 고친 것 두 개
+1. **RAG 검색 결과가 본문에 도달하지 않았다.** `sectionBody`가 배정된 청크를
+   `_chunk`(미사용 매개변수)로 받았다. **검색 비용은 쓰고 결과는 버렸다.**
+   → 각 대분류 마지막 문단에 `[참고 기준]`으로 근거를 싣는다.
+2. **계산한 사실이 LLM 문맥에 없었다.** `buildWeddingContext`가 고정 문구뿐이라
+   후보일 판정·요일·조건 수·절기 달·상대 명식이 전달되지 않았다.
+   → 전부 문맥에 싣고, 병합 때 삭제됐던 테스트 3건을 복구했다.
+
+### 부수 발견 — 배선을 살리자 숨은 품질 문제가 드러났다
+같은 청크가 3개 대분류에 배정되어 **같은 근거 문단이 반복**됐다.
+검색을 상위 2건 받아 `[0]`만 썼기 때문이다. 상위 4건 중 **미사용 청크를 먼저 고르도록**
+바꾸자 6개 대분류가 서로 다른 근거를 받고, 각 근거가 그 주제에 맞아떨어졌다.
+
+### 내가 만든 개인정보 노출을 Codex가 잡았다 (Critical 2건)
+반대편 구현을 그대로 이식하면서 `context.partner.birth`에 **상대의 연·월·일·시·분·
+성별·달력**을 실었다. 이 문맥은 리포트 payload 로 파일/DB/Supabase 에 저장되고
+분석·조회 응답으로도 나간다. → **문맥에서 원본을 제거**했다(계산 결과만 남김).
+sanitize 로 막는 대신 **애초에 담지 않는 쪽**을 골랐다.
+회귀 테스트로 직렬화 문자열에 상대 생년월일시 흔적이 없음을 확인한다.
+
+**이식은 복사가 아니다.** 같은 코드가 다른 저장·전송 경로에 놓이면 개인정보 등급이 달라진다.
+
+### 리뷰 지적 하나는 근거를 갖춰 반박했다 (Major 1)
+`partner.pillars`의 한자에 독음을 붙이라는 지적. 반영하지 않았다.
+- 검수기(`interpretation-validation.ts:47`)의 한자 검사 대상은 **생성된 본문**이고 문맥이 아니다
+- `partner.pillars`를 한자 그대로 두는 것은 6개 서비스 공통 규약이다
+→ 위험은 인정하되 **U27**(전역 사안)으로 올렸다.
+
+### 검증
+| 항목 | 결과 |
+| --- | --- |
+| `npm test` | **430 pass / 0 fail** (417 → 430) |
+| `npm run typecheck` | 0 오류 |
+| 음성 대조 | 배선 제거 시 해당 테스트만 실패 → 복원 확인 |
+| 코퍼스 전수 실측 | 363청크, 출력 최대 170자, 한도 초과 0건, `。` 0건 |
+| `check:wedding` `check:newyear` `check:polish` `check:service-contracts` `check:prompt-guide` | PASS |
+| `qa:all-services` | 20/20 |
+| `check:integrations` | Inicis MID/SignKey 미설정 2건 FAIL — TASK-007/U22 소관, 이번 변경 무관 |
+
+### 코퍼스가 내 규칙을 반증했다
+처음 쓴 전수 불변식("모든 근거는 문장 끝에서 끝난다")이 `mr-001`에서 실패했다.
+그 청크는 **원문 자체에 마침표가 없다** — 절단 문제가 아니다.
+→ 단정을 "실제로 잘린 경우"로 좁혔다. **개별 케이스 테스트만 썼다면 이 사실을 못 보고
+잘못된 규칙을 굳혔을 것이다.**
+
+### 신규 미해결
+- **U26**: `love_this_year`·`love_again` 등은 여전히 `context.partner.birth`에 상대
+  생년월일시를 담아 저장·반환한다(`src/server/app.ts:873-877`,
+  `src/report/report-generator.ts:2059`). 결혼택일만 고쳤다. 전 서비스 정리는 별건이다
+- **U27**: `partner.pillars`를 한자 그대로 문맥에 넣는 규약 (6개 서비스 공통)
+### 검증 도구 자신의 결함 — ProjectOps 테스트 하네스가 테스트를 돌리지 않았다
+`run-projectops-harness.ps1`의 `$ProjectRoot`는 `CreamAI/`다. 그런데 `Get-PackageScripts`가
+`$ProjectRoot/package.json`을 찾아서 **항상 없다고 판정**하고
+`WARN: package.json has no test script`만 남긴 뒤 `failed: false`로 기록했다.
+→ **`npm test`가 한 번도 실행되지 않았다.** 과거 `task-002_test.json`도 같은 상태다.
+
+수정: `$RepoRoot`를 분리(`package.json`이 `$ProjectRoot`에 없으면 상위 폴더)하고
+`Invoke-TrackedCommand`에 `-WorkingDirectory`를 추가해 npm 명령을 저장소 루트에서 돌린다.
+재실행 결과: `PASS npm test exit_code=0`, tail 에 `fail 0` 기록됨.
+
+**교훈: 하네스의 `failed: false`는 "검사가 통과했다"가 아니라 "검사가 실패를 보고하지
+않았다"는 뜻일 수 있다. WARN 을 통과로 읽지 않는다.**

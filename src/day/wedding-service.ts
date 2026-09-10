@@ -23,6 +23,7 @@ import type {
   TenGod,
 } from '../types/index.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { chunkMeaning, compactChunkText } from '../rag/knowledge-block.js'
 import { analyzeSaju, getTenGod } from '../saju/analyzer.js'
 import { buildPillar, getDayIndices, getSolarTermKstDate } from '../saju/calculator.js'
 import {
@@ -31,7 +32,9 @@ import {
   BRANCH_HARM_PAIRS,
   BRANCH_BREAK_PAIRS,
   BRANCH_KO,
+  ELEMENT_KO,
   STEM_ELEMENT,
+  STEM_KO,
 } from '../saju/analyzer-helpers.js'
 
 export const WEDDING_SERVICE_KEY = 'wedding_day'
@@ -396,6 +399,26 @@ export function buildWeddingFrame(
 
 // ------------------------------------------------------------------ 문장
 
+/** 문맥에 실을 한자에 붙일 한글 독음. 관계 이름과 오행 글자까지 덮어야 한다. */
+const HANJA_READING: Record<string, string> = {
+  合: '합', 沖: '충', 破: '파', 害: '해',
+  木: '목', 火: '화', 土: '토', 金: '금', 水: '수',
+}
+
+/**
+ * 문맥에 넣는 한자에 한글 독음을 붙인다.
+ *
+ * 검수기는 독음 없는 한자 단독 표기를 막는다. 문맥이 `甲午일`, `丑午害` 처럼 한자만
+ * 넘기면 본문이 그대로 옮겨 적어 생성이 검수에서 떨어진다. 한 글자라도 독음을 모르면
+ * 반쪽 표기를 만들지 않고 원문을 그대로 둔다.
+ */
+function withReading(hanja: string): string {
+  const reading = [...hanja]
+    .map((char) => BRANCH_KO[char as EarthlyBranch] ?? STEM_KO[char as HeavenlyStem] ?? HANJA_READING[char] ?? '')
+    .join('')
+  return reading.length === hanja.length ? `${reading}(${hanja})` : hanja
+}
+
 function readerName(context: SajuReportContext): string {
   const raw = typeof context.name === 'string' ? context.name.trim() : ''
   return raw || '고객'
@@ -413,7 +436,7 @@ function candidateLines(frame: WeddingFrame): string[] {
 }
 
 function sectionBody(
-  groupId: string, frame: WeddingFrame, _analysis: SajuAnalysis, name: string, _chunk: RagChunk | undefined,
+  groupId: string, frame: WeddingFrame, name: string, chunk: RagChunk | undefined,
 ): string[] {
   const best = frame.best
   const candidates = candidateLines(frame)
@@ -456,7 +479,13 @@ function sectionBody(
       '[남은 일 정리] 준비하면서 남은 물품·연락·정산 항목을 한 목록으로 모아 보세요.\n\n[확인 방법] 완료 여부와 확인할 사람을 표시하고, 두 사람에게 무리 없는 시점에 점검해 주세요.\n\n[참고 범위] 비용 규모나 계약에 대한 전문 판단을 제공하는 항목은 아닙니다.',
     ],
   }
-  return blocks[groupId] || [bestLine]
+  const paragraphs = blocks[groupId] || [bestLine]
+  // 대분류마다 검색해 둔 근거를 마지막 문단 끝에 붙인다. 근거로 문단 하나를 채우면
+  // 계산한 사실이 밀려나므로, 본문은 그대로 두고 참고 기준만 덧붙인다.
+  const reference = chunk ? compactChunkText(chunkMeaning(chunk)) : ''
+  if (!reference) return paragraphs
+  const last = paragraphs.length - 1
+  return paragraphs.map((text, index) => (index === last ? `${text}\n\n[참고 기준] ${reference}` : text))
 }
 
 function sectionHook(groupId: string, frame: WeddingFrame): string {
@@ -480,13 +509,73 @@ export function createWeddingReportId(analysis: SajuAnalysis, birth: BirthInput,
   return `wedding-${stamp}-${p.day.stem}${p.day.branch}-${dates}-${fingerprint}`
 }
 
-/** 라우트가 쓰는 리포트 문맥. 서비스 키가 프롬프트 팩과 코퍼스 선택을 가른다. */
-export function buildWeddingContext(name: string | undefined, input: WeddingRequest): SajuReportContext {
+/**
+ * 라우트가 쓰는 리포트 문맥. 서비스 키가 프롬프트 팩과 코퍼스 선택을 가른다.
+ *
+ * 섹션 프롬프트는 birth·context·featureJson 만 본다. 그래서 계산해 둔 후보일 판정을
+ * 여기 실어야 한다. 넣지 않으면 본문이 날짜·요일·조건 수를 스스로 지어 쓴다.
+ * `analysis` 는 선택값이다 — 명식 없이 문맥만 필요한 호출(예: 입력 검증)도 있다.
+ */
+export function buildWeddingContext(
+  name: string | undefined,
+  input: WeddingRequest,
+  analysis?: SajuAnalysis,
+): SajuReportContext {
+  const frame = analysis ? buildWeddingFrame(analysis, input) : null
+  const candidateLines = frame
+    ? frame.candidates.map((view) => [
+        // label 이 이미 요일까지 담고 있어 요일을 따로 세지 않는다. iso 는 표기 흔들림을 막는다.
+        `${view.label}[${view.iso}]`,
+        `${withReading(view.pillar)}일`,
+        `${view.termName}달`,
+        view.verdict,
+        `유리 ${view.favourable} · 주의 ${view.cautions}`,
+        view.sides
+          .map((side) => `${side.label} ${side.relation}${side.relationNote ? `(${side.relationNote.replace(/[一-龥]{2,}/g, (run) => withReading(run))})` : ''}`)
+          .join(' / '),
+      ].join(' · '))
+    : input.candidateDates.map((iso) => `${iso}(판정 없음)`)
+
+  const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : null
+  const partnerPillars = partnerAnalysis?.fourPillars
+
   return {
     serviceKey: WEDDING_SERVICE_KEY,
     name: input.displayName || name,
     target: '우리 결혼, 이날 해도 될까?',
-    concern: '후보일마다 두 사람의 명식과 맞물리는 조건을 비교해 결혼 날짜를 고르는 기준',
+    concern: [
+      '후보일마다 두 사람의 명식과 맞물리는 조건을 비교해 결혼 날짜를 고르는 기준',
+      candidateLines.length > 0 ? `후보일 판정: ${candidateLines.join(' | ')}` : '후보일 없음',
+      frame?.best ? `조건이 가장 덜 걸리는 후보: ${frame.best.label}(${frame.best.iso})` : '',
+      input.format ? `예식 형식: ${input.format}` : '',
+      input.familyLimit ? `가족 일정 제약: ${input.familyLimit}` : '',
+      // 상대 명식이 없으면 본문이 "두 사람을 비교했다"고 쓸 근거가 없다. 문맥에서 막는다.
+      input.partnerBirth ? '' : '상대 사주 미입력: 본인 명식만으로 본 판정이므로 두 사람을 비교했다고 쓰지 마세요.',
+    ].filter(Boolean).join(' · '),
+    ...(partnerAnalysis && partnerPillars
+      ? {
+          partner: {
+            mode: 'known' as const,
+            relationship: '결혼 상대',
+            // 상대의 생년월일시 원본은 싣지 않는다. 이 문맥은 리포트 payload 로 저장되고
+            // 응답으로도 나가므로, 원본을 넣으면 상대의 개인정보가 그 범위까지 따라간다.
+            // 본문 생성에 필요한 것은 계산 결과(명식·일간·오행·십신)뿐이다.
+            // 시각을 받지 못해 채운 정오를 사실로 넘기면 본문이 시주를 근거로 쓴다.
+            birthTimeKnown: input.partnerBirthTimeKnown !== false,
+            pillars: {
+              year: `${partnerPillars.year.stem}${partnerPillars.year.branch}`,
+              month: `${partnerPillars.month.stem}${partnerPillars.month.branch}`,
+              day: `${partnerPillars.day.stem}${partnerPillars.day.branch}`,
+              hour: `${partnerPillars.hour.stem}${partnerPillars.hour.branch}`,
+            },
+            dayMaster: `${STEM_KO[partnerAnalysis.dayMaster]}(${partnerAnalysis.dayMaster})`,
+            dayMasterElement: ELEMENT_KO[partnerAnalysis.dayMasterElement],
+            dominantElement: ELEMENT_KO[partnerAnalysis.dominantElement],
+            weakElement: ELEMENT_KO[partnerAnalysis.weakElement],
+            tenGods: partnerAnalysis.tenGods,
+          },
+        }
+      : {}),
   }
 }
 
@@ -516,18 +605,23 @@ export function buildWeddingReport(
   const name = readerName(context)
   const query = weddingRagQuery(frame, analysis)
   const ragCache = new Map<string, RagChunk[]>()
+  // 같은 청크가 여러 대분류에 배정되면 같은 참고 기준 문단이 리포트에 반복된다.
+  // 검색은 대분류마다 상위 몇 건을 받아 두고, 아직 쓰지 않은 것을 먼저 고른다.
+  const usedChunkIds = new Set<string>()
   const assigned = WEDDING_TOC.map((group) => {
     const category = { id: group.id, title: group.title, items: group.items.map((it) => it.title) }
-    const own = retrieveCategoryOwnChunks(ragCache, query, category, analysis, context, OWN_CORPUS_DOMAIN, 2)
-    if (own.length > 0) return own[0]
-    return retrieveCategoryRagChunks(ragCache, query, category, analysis, context, 2)[0]
+    const own = retrieveCategoryOwnChunks(ragCache, query, category, analysis, context, OWN_CORPUS_DOMAIN, 4)
+    const found = own.length > 0 ? own : retrieveCategoryRagChunks(ragCache, query, category, analysis, context, 4)
+    const picked = found.find((chunk) => !usedChunkIds.has(chunk.id)) ?? found[0]
+    if (picked) usedChunkIds.add(picked.id)
+    return picked
   })
 
   const sections: SajuReportSection[] = []
   let order = 1
 
   WEDDING_TOC.forEach((group, groupIndex) => {
-    const paragraphs = sectionBody(group.id, frame, analysis, name, assigned[groupIndex])
+    const paragraphs = sectionBody(group.id, frame, name, assigned[groupIndex])
     const groupHook = sectionHook(group.id, frame)
 
     group.items.forEach((item, itemIndex) => {

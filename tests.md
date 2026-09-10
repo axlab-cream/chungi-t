@@ -55,6 +55,15 @@
 | V-073 | D6 | 운영 회귀 복구 | `umsh.kr` SEO·FAQ·about·assetlinks HTTP 코드 | 전부 200 | **PASS** — `/robots.txt` `/sitemap.xml` `/about` `/faq` `/my` `/.well-known/assetlinks.json` 모두 200 | 2026-09-10 |
 | V-074 | D6 | 운영 서비스 목록 | `GET /api/services` 개수·`home_pungsu` 포함 | 15종, 포함 | **PASS** — 15종, `home_pungsu` 포함 (14종 회귀 복구) | 2026-09-10 |
 | V-075 | D6 | 결제 문구 노출 | `GET /api/payment/config` 응답에 환경변수 이름 | 노출 없음 | **PASS** — `INICIS_MID`/`INICIS_SIGNKEY`/`SUPABASE_SERVICE`/`GOOGLE_PLAY` 0건, catalog 19종 | 2026-09-10 |
+| V-076 | task-013 | RAG 배선 | `buildWeddingReport` 본문에 `[참고 기준]` 존재 | 3개 이상 섹션 | **PASS** — 6/21 섹션. 배선 제거 시 이 테스트만 실패함을 확인 | 2026-09-10 |
+| V-077 | task-013 | 근거 중복 | 대분류별 배정 청크가 서로 다른가 | 6건 모두 다름 | **PASS** — 이전에는 3개 대분류가 같은 청크를 받았다 | 2026-09-10 |
+| V-078 | task-013 | 근거 출처 | 본문의 근거가 `buildCorpusIndex()`에 있는가 | 전건 일치 | **PASS** — 고정 문구를 박아 두는 방식으로는 통과 못 한다 | 2026-09-10 |
+| V-079 | task-013 | 개인정보 | 문맥에 상대 생년월일시가 실리는가 | 없어야 함 | **PASS** — `partner.birth` 제거. 직렬화에 `1988`·`"day":11`·`14:30` 흔적 0건 | 2026-09-10 |
+| V-080 | task-013 | 문맥 사실 | `concern`에 후보일 판정·요일·조건 수·절기 달 | 전부 포함 | **PASS** — 병합 때 삭제됐던 테스트 복구 | 2026-09-10 |
+| V-081 | task-013 | 상대 미입력 | 상대 사주 없을 때 비교 금지 고지 | 문맥에 존재 | **PASS** | 2026-09-10 |
+| V-082 | task-013 | 출생시각 불확실 | 상대 시각 미상 시 `partner.birthTimeKnown` | `false` | **PASS** — 채운 정오를 사실로 넘기지 않는다 | 2026-09-10 |
+| V-083 | task-013 | 절단 규칙 | 코퍼스 전수: 말줄임표·한도·문장 끝 | 위반 0 | **PASS** — 363청크, 출력 최대 170자, 초과 0건. `mr-001`(원문에 마침표 없음)이 최초 불변식을 반증해 단정을 "잘린 경우"로 좁혔다 | 2026-09-10 |
+| V-084 | task-013 | 공용 헬퍼 | `compactChunkText` 정상/경계/에러/보안 | 6건 통과 | **PASS** — 신년·결혼 공용 | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

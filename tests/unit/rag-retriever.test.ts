@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildCorpusIndex, detectIntent, formatRagForPrompt, retrieveRagChunks } from '../../src/rag/retriever.js'
 import { getActiveCorpusPacks, getChunkCorpusFiles, getCorpusDomainBoost } from '../../src/rag/corpus-registry.js'
+import { chunkMeaning, compactChunkText } from '../../src/rag/knowledge-block.js'
 import type { BirthInput } from '../../src/types/index.js'
 
 const sampleBirth: BirthInput = {
@@ -224,5 +225,87 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
     it('연애 키워드 → love intent', () => {
       assert.equal(detectIntent('연애가 잘 안 돼요'), 'love')
     })
+  })
+})
+describe('[TASK] 근거 청크를 고객 문장으로 옮기기', () => {
+  const block = {
+    id: 'test-block', domain: 'test', topic: '시험',
+    keywords: [], concept: '개념', condition: '조건',
+    interpretation: '첫 문장입니다.', real_world_pattern: [],
+    risk: '위험', opportunity: '기회 문장입니다.', advice: '조언 문장입니다.',
+    confidence: 'high', forbidden_generalization: '금지',
+  }
+
+  describe('정상 동작', () => {
+    it('승인된 지식 블록이 있으면 해석·조언·기회를 쓴다', () => {
+      const text = chunkMeaning({ id: 'c1', topic: '시험', keywords: [], content: '원문', knowledge: block } as never)
+      assert.equal(text, '첫 문장입니다. 조언 문장입니다. 기회 문장입니다.')
+    })
+
+    it('지식 블록이 없으면 원문을 쓴다', () => {
+      assert.equal(chunkMeaning({ id: 'c2', topic: '시험', keywords: [], content: '원문만 있습니다.' } as never), '원문만 있습니다.')
+    })
+  })
+
+  describe('경계값', () => {
+    it('한도를 넘으면 문장 끝에서 자르고 말줄임표를 남기지 않는다', () => {
+      // 잘린 발췌는 고객 문장에서 금지다. wedding-readability 테스트가 이것을 막는다.
+      const long = '첫 문장입니다. 두 번째 문장입니다. 세 번째 문장은 조금 더 길게 써서 한도를 넘기도록 만든 문장입니다. 네 번째 문장입니다.'
+      const out = compactChunkText(long, '', 40)
+      assert.ok(!out.includes('…'), `말줄임표가 남았다: ${out}`)
+      assert.match(out, /[.!?]$/, `문장 끝에서 자르지 않았다: ${out}`)
+      assert.ok(out.length <= 40, `한도를 넘었다: ${out.length}`)
+    })
+
+    it('첫 문장 하나가 한도를 넘으면 그 문장을 쪼개지 않는다', () => {
+      const out = compactChunkText('한 문장이 한도보다 훨씬 길어도 중간에서 끊지 않습니다.', '', 10)
+      assert.equal(out, '한 문장이 한도보다 훨씬 길어도 중간에서 끊지 않습니다.')
+    })
+
+    it('한도 안이면 그대로 둔다', () => {
+      assert.equal(compactChunkText('짧은 문장입니다.', '', 100), '짧은 문장입니다.')
+    })
+  })
+
+  describe('에러 처리', () => {
+    it('빈 값이면 대체 문구를 쓴다', () => {
+      assert.equal(compactChunkText('', '없음'), '없음')
+      assert.equal(compactChunkText('   ', '없음'), '없음')
+      assert.equal(compactChunkText(undefined as never, ''), '')
+    })
+  })
+
+  describe('보안', () => {
+    it('코퍼스 필드 이름을 고객 문장에서 지운다', () => {
+      const out = compactChunkText('interpretation: 해석입니다. advice: 조언입니다. forbidden: 남는다')
+      assert.ok(!/(interpretation|advice)\s*:/i.test(out), `필드 이름이 남았다: ${out}`)
+      assert.ok(out.includes('해석입니다.'), out)
+    })
+  })
+})
+describe('[TASK] 코퍼스 전수 절단 불변식', () => {
+  // 이 규칙은 결혼 택일과 신년운세 본문에 함께 적용된다. 한쪽 서비스 테스트만으로는
+  // 코퍼스가 바뀔 때 열리는 경로를 막지 못하므로 전 청크를 대상으로 검사한다.
+  const LIMIT = 170
+
+  it('모든 청크의 근거 문장이 문장 끝에서 끊기고 말줄임표를 남기지 않는다', () => {
+    const chunks = buildCorpusIndex()
+    assert.ok(chunks.length > 100, `청크가 ${chunks.length}개뿐이다`)
+    let truncated = 0
+    for (const chunk of chunks) {
+      const meaning = chunkMeaning(chunk)
+      if (!meaning.trim()) continue
+      const out = compactChunkText(meaning)
+      assert.ok(!out.includes('…'), `${chunk.id}: 말줄임표가 남았다`)
+      // 첫 문장이 한도를 넘으면 통째로 두는 정책이다. 그 경우가 실제로 생기면
+      // 여기서 드러나야 한다 (2026-09-10 코퍼스 363건 기준 0건).
+      assert.ok(out.length <= LIMIT, `${chunk.id}: 한도를 넘었다 (${out.length}자). 정책 재확인이 필요하다`)
+      // 원문에 마침표를 안 쓴 청크도 있다(예: mr-001). 그것은 절단 문제가 아니므로
+      // 문장 끝 단정은 **실제로 잘린 경우**에만 적용한다.
+      if (meaning.replace(/\s+/g, ' ').trim().length <= LIMIT) continue
+      truncated += 1
+      assert.match(out, /[.!?。]$/, `${chunk.id}: 잘렸는데 문장 끝이 아니다 — ${out.slice(-40)}`)
+    }
+    assert.ok(truncated > 0, '절단이 일어나는 청크가 없어 이 불변식이 아무것도 검사하지 못했다')
   })
 })

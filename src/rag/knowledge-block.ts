@@ -105,6 +105,45 @@ export function corpusFileToChunks(data: CorpusFile): RagChunk[] {
   return [...knowledgeChunks, ...legacyChunks]
 }
 
+/**
+ * 근거 블록에서 문장 재료만 뽑는다. 승인된 지식 블록이 있으면 해석·조언·기회를 쓰고,
+ * 없으면 원문을 쓴다.
+ */
+export function chunkMeaning(chunk: RagChunk): string {
+  const block = chunk.knowledge
+  if (block) {
+    return [block.interpretation, block.advice, block.opportunity].filter(Boolean).join(' ')
+  }
+  return chunk.content ?? ''
+}
+
+const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence|risk|opportunity|advice)\s*:\s*/gi
+
+/**
+ * 근거 문장을 한 문단 분량으로 줄인다. 코퍼스 필드 이름이 고객 화면에 새어 나가지
+ * 않도록 라벨을 지운다.
+ *
+ * 자르는 자리는 반드시 문장 끝이다. 글자 수로 자르면 잘린 발췌와 말줄임표가 고객
+ * 문장에 남는다(`tests/unit/wedding-readability.test.ts` 가 이것을 막는다).
+ * 첫 문장 하나가 이미 한도를 넘으면 그 문장은 통째로 둔다 — 문장을 쪼개는 것보다 낫다.
+ */
+export function compactChunkText(text: string, fallback = '', limit = 170): string {
+  const clean = String(text ?? '')
+    .replace(RAG_FIELD_LABEL, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!clean) return fallback
+  if (clean.length <= limit) return clean
+  let kept = ''
+  for (const sentence of clean.split(/(?<=[.!?。])\s+/)) {
+    const next = kept ? `${kept} ${sentence}` : sentence
+    if (kept && next.length > limit) break
+    kept = next
+    if (kept.length >= limit) break
+  }
+  return kept || clean
+}
+
 export function chunkSearchText(chunk: RagChunk): string {
   return chunk.searchText ?? [
     chunk.topic,

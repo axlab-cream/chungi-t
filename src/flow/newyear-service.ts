@@ -23,6 +23,7 @@ import type {
   TenGod,
 } from '../types/index.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { chunkMeaning, compactChunkText } from '../rag/knowledge-block.js'
 import { getTenGod } from '../saju/analyzer.js'
 import { buildPillar, getMonthStemIndex, getSolarTermKstDate } from '../saju/calculator.js'
 import { BRANCH_ELEMENT, BRANCH_KO, ELEMENT_KO, STEM_ELEMENT, STEM_KO } from '../saju/analyzer-helpers.js'
@@ -314,28 +315,8 @@ function monthText(list: NewYearFrame['months']): string {
 
 // ------------------------------------------------------------------ RAG
 
-const RAG_FIELD_LABEL = /(^|\s)(concept|condition|interpretation|guide|output|tone|caution|source|evidence|risk|opportunity|advice)\s*:\s*/gi
-
-/**
- * 근거 블록에서 문장 재료만 뽑는다. 승인된 지식 블록이 있으면 해석과 조언을 쓰고,
- * 없으면 원문을 쓴다. 사용자 화면에 필드 이름이 새어 나가지 않게 라벨은 지운다.
- */
-function chunkMeaning(chunk: RagChunk): string {
-  const block = chunk.knowledge
-  if (block) {
-    return [block.interpretation, block.advice, block.opportunity].filter(Boolean).join(' ')
-  }
-  return chunk.content ?? ''
-}
-
-function compact(text: string, fallback: string, limit = 170): string {
-  const clean = String(text ?? '')
-    .replace(RAG_FIELD_LABEL, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-  if (!clean) return fallback
-  return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean
-}
+// 근거 청크를 문장으로 옮기는 일은 결혼 택일도 같은 방식으로 한다.
+// 표현이 갈리면 한쪽에서만 필드 이름이 새므로 `rag/knowledge-block` 하나만 쓴다.
 
 // ------------------------------------------------------------- 리포트
 
@@ -376,7 +357,7 @@ function sectionBody(
   const yearElement = ELEMENT_KO[frame.yearElement]
   const easy = pickMonths(frame, EASY_TEN_GODS)
   const hard = pickMonths(frame, HARD_TEN_GODS)
-  const basis = chunk ? compact(chunkMeaning(chunk), '') : ''
+  const basis = chunk ? compactChunkText(chunkMeaning(chunk)) : ''
   const basisLine = basis ? `참고로 두는 기준은 이렇습니다. ${basis}` : ''
 
   const blocks: Record<string, string[]> = {
