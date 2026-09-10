@@ -14,6 +14,7 @@
    */
   var SHELL_CSS = '/css/service-shell.css';
   var SHELL_JS = '/js/service-shell.js';
+  var FLAG_JS = '/js/ai-report-flag.js';
 
   /** Which category chip the shell highlights, chosen from the page path. */
   var CATEGORY_BY_PATH = [
@@ -72,6 +73,20 @@
     script.src = src;
     script.setAttribute('data-umsh-shell-js', '');
     script.addEventListener('load', onReady);
+    document.head.appendChild(script);
+  }
+
+  /**
+   * 생성형 AI 결과 신고 경로. 리포트가 있는 화면에서만 버튼이 생기고, 없는 화면에서는
+   * 스크립트가 스스로 아무것도 하지 않는다. 서비스별 렌더러를 건드리지 않으려고
+   * 공용 크롬에서 한 번만 올린다.
+   */
+  function loadReportFlag() {
+    if (document.querySelector('script[data-umsh-flag-js]')) return;
+    var script = document.createElement('script');
+    script.src = FLAG_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-flag-js', '');
     document.head.appendChild(script);
   }
 
@@ -162,6 +177,7 @@
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
     loadShellScript(SHELL_JS, watchChromeHeights);
+    loadReportFlag();
 
     return { appbar: topHost, bottomNav: bottomHost };
   }

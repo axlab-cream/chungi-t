@@ -58,7 +58,7 @@
       --gold: #f1c76b;
       --danger: #ff6b5a;
       --radius: 8px;
-      --content: min(100%, 1120px);
+      --content: min(100%, 430px);
       font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -195,17 +195,22 @@
       flex: 0 0 auto;
     }
 
-    .app {
-      width: 100%;
-      display: flex;
-      justify-content: center;
+    /* 공용 크롬은 mount 가 잰 스테이지 폭(--umsh-page-width)을 따른다. 스테이지가 main.app
+   이므로 폭 제한을 여기 두지 않으면 내용만 430px 이고 상단바·하단 메뉴는 화면 전체로
+   늘어난다. 프레임을 .app 에 두어 스테이지 폭이 곧 프레임 폭이 되게 한다. */
+.app {
+      width: min(100%, var(--content));
+      margin: 0 auto;
+      display: block;
       padding: 18px 16px 42px;
     }
 
-    .shell {
-      width: var(--content);
+    /* 다른 서비스와 이 서비스의 01 화면은 모두 430px 모바일 프레임 한 단이다. 이 화면만
+   1120px 2단으로 짜여 넓은 화면에서 전혀 다른 제품처럼 펼쳐졌다. 프레임에 맞춘다. */
+.shell {
+      width: 100%;
       display: grid;
-      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 18px;
       align-items: start;
     }
@@ -220,9 +225,9 @@
     }
 
     .visual-card {
-      position: sticky;
-      top: 82px;
-      min-height: calc(100svh - 120px);
+      position: relative;
+      min-height: 0;
+      aspect-ratio: 4 / 5;
       display: grid;
       align-content: end;
       isolation: isolate;
@@ -342,7 +347,23 @@
       font-size: 15px;
     }
 
-    .progress-note {
+    /* 02 공통 패턴: 입력량을 먼저 알려주는 meter, 그리고 묶음마다 영문 눈머리 + 제목 +
+   한 줄 설명 + 상태 배지를 단 패널. 구조는 결혼 궁합 02 와 같고 색은 이 서비스 것이다. */
+.meter { display: grid; gap: 8px; margin-top: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255, 255, 255, 0.045); }
+.meter-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.meter-row strong { color: var(--mint); font-size: 13px; }
+.meter-track { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.1); }
+.meter-track span { display: block; width: 34%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--teal-2), var(--mint)); }
+
+.panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.panel-kicker { display: block; color: var(--mint); font-size: 11px; font-weight: 900; letter-spacing: 0.08em; }
+.panel-head h2 { margin: 4px 0 0; font-size: 21px; line-height: 1.2; }
+.panel-head p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.badge { flex: 0 0 auto; padding: 6px 9px; border: 1px solid rgba(191, 239, 242, 0.24); border-radius: 999px; background: rgba(22, 181, 188, 0.12); color: var(--mint); font-size: 11px; font-weight: 850; white-space: nowrap; }
+/* 내 사주 입력칸은 위 MY BASE 패널에 속하므로 테두리를 겹치지 않는다. */
+.panel-fields { padding: 0; border: 0; background: none; }
+
+.progress-note {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -805,10 +826,24 @@
 </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
     <link rel="stylesheet" href="/css/umsh-chrome.css" />
   </head>
-<body data-umsh-chrome data-service="커플궁합" data-price="19,900원" data-active="home" class="umsh-fields">
+<body class="umsh-fields">
   <a class="skip-link" href="#coupleForm">입력 폼으로 이동</a>
 
-  <header class="appbar topbar" aria-label="서비스 상단">
+  
+
+  <main
+    id="step-2-saju-input"
+    class="app stage"
+    data-umsh-chrome
+    data-service="커플궁합"
+    data-price="19,900원"
+    data-active="home"
+    data-service-key="couple_match"
+    data-service-slug="couple-match"
+    data-service-title="우리 둘, 진짜 잘 맞아?"
+    data-next-route="../04-step-4-report/index.html#step-4-report"
+  >
+    <header class="appbar topbar" aria-label="서비스 상단">
     <div class="topbar-inner">
       <div class="brand" aria-label="운명상회">
         <span class="brand-mark" aria-hidden="true"></span>
@@ -826,14 +861,6 @@
     </div>
   </header>
 
-  <main
-    id="step-2-saju-input"
-    class="app"
-    data-service-key="couple_match"
-    data-service-slug="couple-match"
-    data-service-title="우리 둘, 진짜 잘 맞아?"
-    data-next-route="../04-step-4-report/index.html#step-4-report"
-  >
     <div class="shell">
       <aside class="visual-card" data-asset-key="couple-match-02-form-guide" aria-labelledby="visual-title">
         <img src="../assets/couple/02-form-guide.webp" alt="두 사람의 관계 신호를 추상 차트로 입력하는 커플">
@@ -854,16 +881,25 @@
           <span class="eyebrow">커플궁합 · 19,900원</span>
           <h2 id="form-title">두 사람 정보를 입력해주세요</h2>
           <p>저장된 내 사주 프로필이 있으면 본인 정보는 다시 묻지 않습니다. 상대방 정보는 꼭 따로 입력해야 합니다.</p>
-          <div class="progress-note" aria-label="예상 입력량">
-            <span class="mini-pill">직접 입력 약 2분</span>
-            <span class="mini-pill">저장 프로필 사용 시 5개 줄어듦</span>
+          <div class="meter" aria-label="예상 입력량">
+            <div class="meter-row">
+              <strong>예상 소요 2분</strong>
+              <span>저장 프로필 사용 시 필수 6개 · 직접 입력 시 10개</span>
+            </div>
+            <div class="meter-track" aria-hidden="true"><span></span></div>
           </div>
         </div>
 
         <form id="coupleForm" novalidate>
-          <fieldset id="savedProfileFieldset">
-            <legend>본인 정보 방식</legend>
-            <p class="section-helper">기존 사주 프로필이 있으면 불러와서 사용하고, 없으면 바로 직접 입력합니다.</p>
+          <section class="panel" id="savedProfileFieldset" aria-labelledby="self-base-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">MY BASE</span>
+                <h2 id="self-base-title">내 사주 기준</h2>
+                <p>기존 사주 프로필이 있으면 불러와서 사용하고, 없으면 바로 직접 입력합니다.</p>
+              </div>
+              <span class="badge">재사용 가능</span>
+            </div>
             <div class="radio-row" role="radiogroup" aria-label="본인 정보 입력 방식">
               <label class="radio-panel">
                 <input type="radio" name="selfInputMode" value="saved" id="modeSaved">
@@ -877,10 +913,9 @@
               </label>
             </div>
             <div class="profile-summary" id="savedProfileSummary" aria-live="polite"></div>
-          </fieldset>
+          </section>
 
-          <fieldset id="selfFields">
-            <legend>내 사주 정보</legend>
+          <fieldset id="selfFields" class="panel-fields" aria-label="내 사주 정보">
             <p class="section-helper">일지와 오행을 계산하기 위한 기본값입니다. 태어난 시간은 모르면 건너뛸 수 있습니다.</p>
             <div class="field-grid">
               <div class="field">
@@ -928,9 +963,15 @@
             </div>
           </fieldset>
 
-          <fieldset>
-            <legend>상대방 사주 정보</legend>
-            <p class="section-helper">상대 생년월일이 없으면 궁합 계산이 흐려집니다. 본인 정보로 대신 채우지 않습니다.</p>
+          <fieldset class="panel" aria-labelledby="partner-base-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">PARTNER BASE</span>
+                <h2 id="partner-base-title">상대 사주 기준</h2>
+                <p>상대 생년월일이 없으면 궁합 계산이 흐려집니다. 본인 정보로 대신 채우지 않습니다.</p>
+              </div>
+              <span class="badge">분리 입력</span>
+            </div>
             <div class="field-grid">
               <div class="field">
                 <label for="partnerName">상대 이름 또는 호칭</label>
@@ -991,9 +1032,14 @@
             </div>
           </fieldset>
 
-          <fieldset>
-            <legend>지금 보고 싶은 관계 질문</legend>
-            <p class="section-helper">결과 첫 화면에서 어떤 관점부터 볼지 정하는 값입니다.</p>
+          <fieldset class="panel" aria-labelledby="relation-check-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">RELATION CHECK</span>
+                <h2 id="relation-check-title">지금 관계 상황</h2>
+                <p>결과 첫 화면에서 어떤 관점부터 볼지 정하는 값입니다.</p>
+              </div>
+            </div>
             <div class="field-grid">
               <div class="field">
                 <label for="focus">먼저 확인할 포인트</label>
@@ -1027,13 +1073,17 @@
             </div>
           </fieldset>
 
-          <fieldset class="privacy-box">
-            <legend>안내 확인</legend>
+          <fieldset class="privacy-box panel" aria-labelledby="privacy-title">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">PRIVACY</span>
+                <h2 id="privacy-title">안내 확인</h2>
+              </div>
+            </div>
             <p class="privacy-copy">입력값은 이 브라우저의 현재 진행 상태와 다음 결과 화면 연결에만 사용합니다. 주소창에는 이름이나 생년월일을 넣지 않습니다.</p>
             <label class="check-panel full">
               <input type="checkbox" id="privacyAgree" name="privacyAgree" aria-describedby="privacyAgree-error">
               <span class="label">두 사람 정보를 구분해서 분석에 사용하는 것에 동의합니다.</span>
-              <small>결과 화면에서는 두 사람의 리듬을 섞지 않고 따로 비교합니다.</small>
             </label>
             <div class="field-error" id="privacyAgree-error" aria-live="polite"></div>
           </fieldset>

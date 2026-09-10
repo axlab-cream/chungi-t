@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">운명상회</string>
+    <string name="title_activity_main">운명상회</string>
+    <string name="package_name">kr.umsh.app</string>
+    <string name="custom_url_scheme">kr.umsh.app</string>
+</resources>

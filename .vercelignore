@@ -12,3 +12,5 @@ tmp/
 *.bak
 .cache
 사주/assets/consultation-targets/
+# 안드로이드 작업 공간은 서버 번들에 들어갈 이유가 없다. 함수 크기가 이미 한계에 가깝다.
+android/

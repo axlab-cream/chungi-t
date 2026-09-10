@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>운명상회</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080302;
+        --deep: #1a0705;
+        --ink: #fff8ef;
+        --muted: rgba(255, 238, 210, 0.72);
+        --dim: rgba(255, 238, 210, 0.52);
+        --gold: #f2bf6b;
+        --line: rgba(242, 191, 107, 0.18);
+        --font-body: "Pretendard", -apple-system, "Noto Sans KR", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
+        background:
+          radial-gradient(circle at 50% 0, rgba(242, 191, 107, 0.12), transparent 24rem),
+          linear-gradient(180deg, var(--deep), var(--bg) 34%, #000 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+        text-align: center;
+      }
+      .wrap { display: grid; gap: 18px; max-width: 22rem; }
+      .mark {
+        justify-self: center;
+        display: grid;
+        place-items: center;
+        width: 64px;
+        height: 64px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+      }
+      h1 { margin: 0; font-size: 20px; line-height: 1.4; font-weight: 800; }
+      p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; word-break: keep-all; }
+      .hint { color: var(--dim); font-size: 12px; line-height: 1.7; }
+      button {
+        min-height: 52px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--deep);
+        font-family: var(--font-body);
+        font-size: 15px;
+        font-weight: 800;
+      }
+      button[disabled] { opacity: 0.55; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <span class="mark" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f2bf6b" stroke-width="1.4" stroke-linecap="round">
+          <circle cx="12" cy="12" r="8.4" />
+          <path d="M12 3.6c3 3.2 3 13.6 0 16.8M3.6 12h16.8" />
+        </svg>
+      </span>
+      <h1>지금 연결이 닿지 않습니다</h1>
+      <p>운명상회를 불러오지 못했습니다. 네트워크 상태를 확인하고 다시 시도해 주세요.</p>
+      <button id="retry" type="button">다시 시도</button>
+      <p class="hint" id="hint">문제가 계속되면 고객센터 02-6953-6685 로 알려 주세요.</p>
+    </div>
+
+    <script>
+      // 연결 확인은 favicon 을 이미지로 불러 본다. 이미지 요청은 CORS 를 타지 않아
+      // 서버 설정과 무관하게 도달 여부만 확인할 수 있다.
+      var TARGET = 'https://umsh.kr/';
+      var button = document.getElementById('retry');
+      var hint = document.getElementById('hint');
+
+      function reachable() {
+        return new Promise(function (resolve) {
+          var probe = new Image();
+          var settled = false;
+          var done = function (ok) {
+            if (settled) return;
+            settled = true;
+            resolve(ok);
+          };
+          probe.onload = function () { done(true); };
+          probe.onerror = function () { done(false); };
+          setTimeout(function () { done(false); }, 6000);
+          probe.src = 'https://umsh.kr/favicon.ico?probe=' + Date.now();
+        });
+      }
+
+      button.addEventListener('click', async function () {
+        button.disabled = true;
+        button.textContent = '확인 중…';
+        hint.textContent = '';
+        var ok = await reachable();
+        if (ok) {
+          location.replace(TARGET);
+          return;
+        }
+        button.disabled = false;
+        button.textContent = '다시 시도';
+        hint.textContent = '아직 닿지 않습니다. 잠시 후 다시 시도해 주세요.';
+      });
+    </script>
+  </body>
+</html>

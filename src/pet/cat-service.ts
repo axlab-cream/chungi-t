@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type {
   BirthInput,
@@ -9,13 +10,22 @@ import type {
 } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
-import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { dayMasterDefinition, elementEvidence, practicalReading, quotedInput } from '../report/practical-service-copy.js'
 import { CAT_DETAILS } from './cat-practical-readings.js'
 
 export const CAT_COMPAT_SERVICE_KEY = 'cat_compatibility'
 
 /** Where the 고양이 궁합 artwork lives, beside the service pages. */
+/**
+ * 이 서비스만의 코퍼스 도메인.
+ *
+ * 일반 색인 상위는 다른 서비스 팩이 차지한다. 도메인을 지정해 자기 팩을 먼저 뽑지
+ * 않으면 cat_compatibility_service 24블록이 활성 상태로 등록돼 있어도 대분류 절반이
+ * 일반 문장으로 떨어진다.
+ */
+const OWN_CORPUS_DOMAIN = 'cat_compatibility_service'
+
 export const CAT_COMPAT_ASSET_BASE = '/match/cat/assets/cat-compatibility'
 
 export interface CatCompatRequest {
@@ -269,12 +279,12 @@ export function parseCatCompatRequest(body: Record<string, unknown>): CatCompatR
   const focusRaw = trimmed(body.focusArea ?? body.focus_area, 30)
   const eventRaw = trimmed(body.upcomingEvent ?? body.upcoming_event, 30) || 'none'
 
-  if (!catName) throw new Error('고양이 이름 또는 애칭을 입력해 주세요.')
-  if (!HOUSEHOLD_LABEL[householdRaw]) throw new Error('1묘·다묘·입양 예정 중에서 가정 형태를 골라 주세요.')
-  if (!TOUCH_LABEL[touchRaw]) throw new Error('손길에 대한 반응을 골라 주세요.')
-  if (!PLAY_LABEL[playRaw]) throw new Error('놀이 에너지를 골라 주세요.')
-  if (!FOCUS_LABEL[focusRaw]) throw new Error('가장 먼저 보고 싶은 영역을 골라 주세요.')
-  if (!EVENT_LABEL[eventRaw]) throw new Error('예정된 일정을 골라 주세요.')
+  if (!catName) throw new InputError('고양이 이름 또는 애칭을 입력해 주세요.')
+  if (!HOUSEHOLD_LABEL[householdRaw]) throw new InputError('1묘·다묘·입양 예정 중에서 가정 형태를 골라 주세요.')
+  if (!TOUCH_LABEL[touchRaw]) throw new InputError('손길에 대한 반응을 골라 주세요.')
+  if (!PLAY_LABEL[playRaw]) throw new InputError('놀이 에너지를 골라 주세요.')
+  if (!FOCUS_LABEL[focusRaw]) throw new InputError('가장 먼저 보고 싶은 영역을 골라 주세요.')
+  if (!EVENT_LABEL[eventRaw]) throw new InputError('예정된 일정을 골라 주세요.')
 
   return {
     catName,
@@ -389,7 +399,9 @@ export function buildCatCompatReport(
   CAT_COMPAT_TOC.forEach((group) => {
     // The relevance scorer reads plain titles, so hand it the item titles.
     const ragCategory = { id: group.id, title: group.title, items: group.items.map((item) => item.title) }
-    const categoryChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, analysis, context, 8)
+    const generalChunks = retrieveCategoryRagChunks(categoryRagCache, query, ragCategory, analysis, context, 8)
+    const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, analysis, context, OWN_CORPUS_DOMAIN, 6)
+    const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
     group.items.forEach((item, itemIndex) => {
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.

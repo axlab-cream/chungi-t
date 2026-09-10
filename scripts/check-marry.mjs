@@ -33,7 +33,8 @@ const CONTRACTS = [
   ['src/match/marry-service.ts', "export const MARRY_MATCH_SERVICE_KEY = 'marry_match'", '서비스 키 상수'],
   ['src/match/marry-service.ts', 'export const MARRY_ASSET_BASE', '아트워크 경로 상수'],
   ['src/match/marry-service.ts', 'export const MARRY_MATCH_TOC', '목차 export'],
-  ['src/match/marry-service.ts', 'const GROUP_LENS', '대분류별 해석 렌즈'],
+  ['src/match/marry-service.ts', 'MARRY_MATCH_TOC', '대분류 목차'],
+  ['src/match/marry-service.ts', '../love/reading-content.js', '대분류별 해석 문장 테이블'],
   ['src/match/marry-service.ts', 'id: `marry-${pad2(groupIndex + 1)}-${pad2(itemIndex + 1)}`', '섹션 id 규칙'],
   ['사주/js/marry-service.js', '06-${section.imageKey}-hero.webp', '06 상세 히어로 매핑'],
 ]

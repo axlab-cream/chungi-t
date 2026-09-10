@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
 import type {
@@ -146,9 +147,9 @@ export function parseLoveMindRequest(body: Record<string, unknown>): LoveMindReq
   const relationshipStage = trimmed(body.relationshipStage, 50)
   const contactPattern = trimmed(body.contactPattern, 80)
   const recentSignal = trimmed(body.recentSignal, 80)
-  if (!relationshipStage) throw new Error('현재 관계를 선택해 주세요.')
-  if (!contactPattern) throw new Error('최근 연락 흐름을 선택해 주세요.')
-  if (!recentSignal) throw new Error('최근 상대 신호를 선택해 주세요.')
+  if (!relationshipStage) throw new InputError('현재 관계를 선택해 주세요.')
+  if (!contactPattern) throw new InputError('최근 연락 흐름을 선택해 주세요.')
+  if (!recentSignal) throw new InputError('최근 상대 신호를 선택해 주세요.')
 
   return {
     partnerName: trimmed(body.partnerName, 20),

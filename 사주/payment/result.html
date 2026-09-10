@@ -26,15 +26,22 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260904" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260904" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <style>
+      /* 공용 하단 메뉴는 화면에 고정된다. 본문 아래에 그만큼 자리를 비워 두지 않으면
+         마지막 버튼이 메뉴 뒤로 들어간다. 서비스 페이지들과 같은 규칙이다. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+    </style>
   </head>
   <body>
-    <main class="payment-page">
-      <header class="payment-header"><a class="payment-brand" href="/" aria-label="운명상회 홈"><img src="/assets/umsh-brand-logo.png" alt="운명상회" /></a><a class="payment-back" href="/orders">결제 내역</a></header>
+    <main class="payment-page" data-umsh-chrome data-service="결제 결과" data-active="account">
+      <header class="appbar topbar"></header>
       <section class="payment-shell" aria-labelledby="result-title">
         <p class="payment-eyebrow">PAYMENT RESULT</p>
         <div class="payment-result" data-result></div>
       </section>
     </main>
+    <script src="/js/umsh-chrome.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/payment-result.js?v=20260903-report-bound"></script>
   </body>

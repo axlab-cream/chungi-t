@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
 import type {
@@ -129,10 +130,10 @@ export function parseLoveAgainRequest(body: Record<string, unknown>): LoveAgainR
   const breakupReason = trimmed(body.breakupReason, 80)
   const currentSignal = trimmed(body.currentSignal, 80)
   const breakupPeriod = trimmed(body.breakupPeriod, 40)
-  if (!relationshipStage) throw new Error('현재 관계 상태를 선택해 주세요.')
-  if (!breakupReason) throw new Error('이별의 배경을 선택해 주세요.')
-  if (!currentSignal) throw new Error('현재 상대 신호를 선택해 주세요.')
-  if (!breakupPeriod) throw new Error('이별 후 기간을 선택해 주세요.')
+  if (!relationshipStage) throw new InputError('현재 관계 상태를 선택해 주세요.')
+  if (!breakupReason) throw new InputError('이별의 배경을 선택해 주세요.')
+  if (!currentSignal) throw new InputError('현재 상대 신호를 선택해 주세요.')
+  if (!breakupPeriod) throw new InputError('이별 후 기간을 선택해 주세요.')
   return {
     partnerName: trimmed(body.partnerName, 20),
     partnerBirth: parsePartnerBirth(body),

@@ -694,7 +694,10 @@
          nav is fixed to the viewport, so the frame is unwrapped here. */
       body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
       body.umsh-has-chrome .phone {
-        width: 100%;
+        /* 세로로 갇힌 카드만 풀면 된다. 가로 폭까지 풀면 넓은 화면에서 화면 전체로
+           퍼져 다른 서비스의 모바일 프레임과 어긋난다. */
+        width: min(100%, 430px);
+        margin-inline: auto;
         height: auto;
         min-height: 100svh;
         overflow: visible;
@@ -868,7 +871,7 @@
                 <div class="field">
                   <label for="guardian-birth-region">출생 지역</label>
                   <input id="guardian-birth-region" name="guardian_birth_region" type="text" maxlength="24" placeholder="선택 입력" autocomplete="address-level2" />
-                  <p class="help">정밀 보정이 필요한 운영 환경에서만 참고합니다. 주소는 받지 않아요.</p>
+                  <p class="help">출생 시간 보정에만 참고합니다. 상세 주소는 받지 않아요.</p>
                 </div>
               </div>
             </div>

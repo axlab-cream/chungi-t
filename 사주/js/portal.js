@@ -17,7 +17,7 @@
   const serviceCards = Array.from(document.querySelectorAll('.service-card'));
   const pendingCards = Array.from(document.querySelectorAll('[data-soon], .is-soon'));
   const sectionBlocks = Array.from(document.querySelectorAll('.section-block'));
-  const dragRails = Array.from(document.querySelectorAll('.poster-rail, .category-rail, .price-rail'));
+  const dragRails = Array.from(document.querySelectorAll('.poster-rail, .category-rail, .price-rail, .coming-rail'));
   const liveLinks = Array.from(document.querySelectorAll('a.is-live, a.is-cmdg'));
   const actionButtons = Array.from(document.querySelectorAll('[data-action]'));
   const menuFilterButtons = Array.from(document.querySelectorAll('[data-menu-filter]'));
@@ -614,7 +614,7 @@
       error: {
         eyebrow: 'CHECK FAILED',
         title: `${menu.title} 상태를 확인하지 못했습니다`,
-        desc: '네트워크나 로그인 세션을 다시 확인해야 합니다.',
+        desc: '로그인 세션이 만료되었거나 연결이 끊겼습니다. 로그인하면 이어서 볼 수 있습니다.',
       },
     }[state] || {};
 

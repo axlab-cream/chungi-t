@@ -109,7 +109,7 @@
       "domain": "home_fit_service",
       "status": "active",
       "role": "single_service_home_pungsu_grounding",
-      "version": "3.0.0",
+      "version": "1.0.0",
       "retrievalBoost": 22
     },
     {

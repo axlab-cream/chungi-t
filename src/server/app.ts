@@ -1,8 +1,10 @@
+import { respondRequestFailure } from './input-error.js'
 import '../env/load.js'
 import express from 'express'
 import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { randomUUID } from 'node:crypto'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
@@ -21,6 +23,7 @@ import {
   findReportRecord,
   sectionGenerationId,
   listReportRecords,
+  mutateReportRecord,
   toClientReport,
   updateReportChatHistory,
   withReportBirthCertainty,
@@ -40,6 +43,15 @@ import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '..
 import { createInicisPaymentFields, createPaymentOrderId, approveInicisPayment, publicInicisConfig } from '../payment/inicis.js'
 import { isPaymentTestMode } from '../payment/test-mode.js'
 import {
+  PURCHASE_STATE_PENDING,
+  PURCHASE_STATE_PURCHASED,
+  acknowledgeGooglePlayPurchase,
+  fetchGooglePlayPurchase,
+  isGooglePlayConfigured,
+  obfuscatedAccountId,
+} from '../payment/google-play.js'
+import {
+  findPaymentOrderByTid,
   getPaymentOrder,
   getPaymentStorageMode,
   type PaymentStorageMode,
@@ -156,6 +168,7 @@ const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
 const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
 const ABOUT_PAGE = join(SAJU_ROOT, 'about.html')
 const FAQ_PAGE = join(SAJU_ROOT, 'faq.html')
+const ASSETLINKS_FILE = join(SAJU_ROOT, '.well-known', 'assetlinks.json')
 const PAYMENT_PAGE = join(SAJU_ROOT, 'payment', 'index.html')
 const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
 const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
@@ -255,6 +268,13 @@ app.get(['/faq/:group', '/faq/:group/'], (req, res, next) => {
 
 app.get(['/faq', '/faq/', '/faq.html'], (_req, res) => {
   res.sendFile(FAQ_PAGE)
+})
+
+// 안드로이드 App Links 검증. express.static 은 dotfiles 를 기본으로 무시해서
+// .well-known 이 404 가 되므로 이 주소만 따로 내보낸다. 로그인·결제를 시스템
+// 브라우저에서 처리한 뒤 umsh.kr 로 돌아올 때 앱이 그 주소를 받으려면 필요하다.
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  res.type('application/json').sendFile(ASSETLINKS_FILE)
 })
 app.get(['/payment', '/payment/', '/payment/index.html'], (_req, res) => {
   res.sendFile(PAYMENT_PAGE)
@@ -1197,7 +1217,11 @@ function historyEntryFromRecord(record: ReportRecord) {
   }
 }
 
-/** Names the pieces still blocking checkout so operators can act without reading logs. */
+/**
+ * Names the pieces still blocking checkout so operators can act without reading logs.
+ * This goes to the server log only. It used to be handed to the browser as-is, which
+ * printed our environment variable names on the customer's payment screen.
+ */
 function paymentSetupMessage(inicisReady: boolean, storage: PaymentStorageMode): string {
   const missing: string[] = []
   if (!inicisReady) missing.push('이니시스 MID·SignKey (INICIS_MID, INICIS_SIGNKEY)')
@@ -1205,6 +1229,9 @@ function paymentSetupMessage(inicisReady: boolean, storage: PaymentStorageMode):
   if (missing.length === 0) return ''
   return `결제 모듈 연결 전입니다. 남은 설정: ${missing.join(' / ')}.`
 }
+
+/** What the customer sees instead: why they cannot pay and what to do, nothing more. */
+const PAYMENT_UNAVAILABLE_NOTICE = '지금은 결제를 열 수 없습니다. 잠시 후 다시 시도하거나 고객센터로 문의해 주세요.'
 
 function paymentConfigPayload() {
   const inicis = publicInicisConfig()
@@ -1219,10 +1246,13 @@ function paymentConfigPayload() {
     testMode,
     storage,
     storageReady: storage !== 'memory',
+    // 판매 중단 게이트는 우리 쪽을 유지하고(T02 U10), 고객에게 보내는 문구는
+    // origin/main 의 것을 쓴다. 이전 문구는 INICIS_MID 같은 내부 환경변수 이름을
+    // 무인증 응답에 그대로 담아 고객에게 노출했다(aca0bf3).
     catalog: listPaymentProducts()
       .filter((product) => !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key))
       .map(publicPaymentProduct),
-    setupMessage: enabled || testMode ? '' : paymentSetupMessage(inicis.enabled, storage),
+    setupMessage: enabled || testMode ? '' : PAYMENT_UNAVAILABLE_NOTICE,
   }
 }
 
@@ -1491,7 +1521,7 @@ app.post('/api/payment/orders', async (req, res) => {
       fields,
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 생성 실패' })
+    respondRequestFailure(res, err, '결제 주문 생성 실패')
   }
 })
 
@@ -1530,7 +1560,136 @@ app.post('/api/payment/test/approve', async (req, res) => {
     }
     res.json({ order: clientPaymentOrder(paid), testMode: true })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '테스트 결제 승인 실패' })
+    respondRequestFailure(res, err, '테스트 결제 승인 실패')
+  }
+})
+
+/**
+ * 구글플레이 인앱 결제 확인.
+ *
+ * 앱에서 결제가 끝나면 purchaseToken 을 들고 이 주소로 온다. 클라이언트가 보내는 상품명과
+ * 금액은 근거로 쓰지 않고, 토큰을 구글에 직접 물어 확인한 값만 믿는다.
+ *
+ * 순서가 중요하다. 확인 통보(acknowledge)를 먼저 하고 그다음에 주문을 paid 로 바꾼다.
+ * 반대로 하면 저장은 됐는데 통보가 실패한 경우 구글이 3일 뒤 자동 환불해, 돈은 돌아가고
+ * 열람 권한은 남는 상태가 된다. 이 순서면 실패해도 다시 부르면 되고, 통보는 여러 번
+ * 불러도 문제가 없다.
+ */
+app.post('/api/payment/google/verify', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!isGooglePlayConfigured()) {
+      res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
+      return
+    }
+
+    const orderId = trimmedString(req.body?.orderId)
+    const purchaseToken = trimmedString(req.body?.purchaseToken)
+    if (!orderId || !purchaseToken) {
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '주문 번호와 결제 정보가 필요합니다.' })
+      return
+    }
+
+    const order = await getPaymentOrder(orderId)
+    if (!order || order.ownerId !== owner.id) {
+      res.status(404).json({ error: '주문을 찾지 못했습니다.' })
+      return
+    }
+    // 이미 열린 주문이면 그대로 돌려준다. 앱이 재시도해도 같은 결과가 나와야 한다.
+    if (order.status === 'paid' || order.status === 'viewed') {
+      res.json({ order: clientPaymentOrder(order), alreadyPaid: true })
+      return
+    }
+    if (order.status !== 'ready' && order.status !== 'approving') {
+      res.status(409).json({ error: '확인을 진행할 수 없는 주문 상태입니다.' })
+      return
+    }
+
+    // Play 상품 ID 는 카탈로그 키를 그대로 쓴다. 주문이 가리키는 상품과 달라선 안 된다.
+    const product = getPaymentProduct(order.productKey)
+    if (!product) {
+      res.status(409).json({ error: '주문의 상품 정보를 확인할 수 없습니다.' })
+      return
+    }
+    const claimedProductId = trimmedString(req.body?.productId)
+    if (claimedProductId && claimedProductId !== product.key) {
+      res.status(400).json({ error: '주문과 결제 상품이 다릅니다.' })
+      return
+    }
+
+    // 같은 결제 토큰으로 다른 주문을 열지 못하게 한다.
+    const reused = await findPaymentOrderByTid(purchaseToken)
+    if (reused && reused.orderId !== order.orderId) {
+      res.status(409).json({ code: 'PURCHASE_ALREADY_USED', error: '이미 사용된 결제입니다.' })
+      return
+    }
+
+    const purchase = await fetchGooglePlayPurchase({ productId: product.key, purchaseToken })
+
+    if (purchase.purchaseState === PURCHASE_STATE_PENDING) {
+      res.status(202).json({
+        code: 'PAYMENT_PENDING',
+        error: '결제가 아직 완료되지 않았습니다. 완료되면 다시 확인해 주세요.',
+      })
+      return
+    }
+    if (purchase.purchaseState !== PURCHASE_STATE_PURCHASED) {
+      res.status(402).json({ code: 'PAYMENT_REQUIRED', error: '완료된 결제가 아닙니다.' })
+      return
+    }
+    // 앱이 결제할 때 넘긴 계정 식별자. 값이 있으면 이 계정 것이어야 한다.
+    if (purchase.obfuscatedExternalAccountId
+        && purchase.obfuscatedExternalAccountId !== obfuscatedAccountId(owner.id)) {
+      res.status(409).json({ code: 'PURCHASE_ACCOUNT_MISMATCH', error: '다른 계정의 결제입니다.' })
+      return
+    }
+
+    if (purchase.acknowledgementState !== 1) {
+      await acknowledgeGooglePlayPurchase({ productId: product.key, purchaseToken })
+    }
+
+    const paid = await updatePaymentOrder(order.orderId, {
+      status: 'paid',
+      tid: purchaseToken,
+      payMethod: 'GOOGLE_PLAY',
+      approvalCode: purchase.orderId,
+      message: '구글플레이 인앱 결제로 확인되었습니다.',
+    })
+    if (!paid) {
+      res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
+      return
+    }
+    res.json({ order: clientPaymentOrder(paid) })
+  } catch (err) {
+    respondRequestFailure(res, err, '구글플레이 결제 확인 실패')
+  }
+})
+
+/**
+ * 앱이 결제를 시작할 때 필요한 값.
+ *
+ * Play 상품 ID 와 계정 식별자를 서버가 알려 준다. 앱이 직접 만들지 않게 하는 이유는
+ * 검증 단계에서 서버가 같은 규칙으로 다시 계산해 대조하기 때문이다.
+ */
+app.get('/api/payment/google/product/:productKey', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const product = getPaymentProduct(req.params.productKey)
+    if (!product) {
+      res.status(404).json({ error: '결제 상품을 확인해 주세요.' })
+      return
+    }
+    res.json({
+      productId: product.key,
+      title: product.title,
+      amount: product.amount,
+      obfuscatedAccountId: obfuscatedAccountId(owner.id),
+      configured: isGooglePlayConfigured(),
+    })
+  } catch (err) {
+    respondRequestFailure(res, err, '구글플레이 상품 조회 실패')
   }
 })
 
@@ -1599,7 +1758,7 @@ app.get('/api/payment/orders/:orderId', async (req, res) => {
     }
     res.json({ order: clientPaymentOrder(order) })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결제 주문 조회 실패' })
+    respondRequestFailure(res, err, '결제 주문 조회 실패')
   }
 })
 
@@ -1619,7 +1778,7 @@ app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
     const updated = await updatePaymentOrder(order.orderId, { status: 'viewed' })
     res.json({ order: updated ? clientPaymentOrder(updated) : null })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '열람 상태 저장 실패' })
+    respondRequestFailure(res, err, '열람 상태 저장 실패')
   }
 })
 
@@ -1630,7 +1789,7 @@ app.get('/api/user/orders', async (req, res) => {
     const orders = await listPaymentOrders(owner.id, parseListLimit(req.query.limit))
     res.json({ orders: orders.map(clientPaymentOrder), storage: getPaymentStorageMode() })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결제 내역 조회 실패' })
+    respondRequestFailure(res, err, '결제 내역 조회 실패')
   }
 })
 
@@ -1642,7 +1801,7 @@ app.get('/api/user/profile', async (req, res) => {
     const profile = await getUserBirthProfile(owner)
     res.json(userProfilePayload(profile, owner))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '사주 프로필 조회 실패' })
+    respondRequestFailure(res, err, '사주 프로필 조회 실패')
   }
 })
 
@@ -1677,7 +1836,7 @@ app.get('/api/user/reports', async (req, res) => {
       reports: records.map(historyEntryFromRecord),
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '풀이 보관함 조회 실패' })
+    respondRequestFailure(res, err, '풀이 보관함 조회 실패')
   }
 })
 
@@ -1709,7 +1868,7 @@ app.get('/api/user/destiny', async (req, res) => {
       storage: getReportStorageMode(),
     })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '운명록 조회 실패' })
+    respondRequestFailure(res, err, '운명록 조회 실패')
   }
 })
 
@@ -1725,7 +1884,7 @@ app.delete('/api/user/reports/:reportId', async (req, res) => {
     const deleted = await deleteReportRecord(reportId, owner)
     res.json({ ok: true, reportId, deleted })
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '풀이 삭제 실패' })
+    respondRequestFailure(res, err, '풀이 삭제 실패')
   }
 })
 
@@ -1753,7 +1912,7 @@ app.post('/api/today/fortune', async (req, res) => {
     })
   } catch (err) {
     if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 볼 수 없습니다.' }); return }
-    res.status(500).json({ error: err instanceof Error ? err.message : '오늘의 운세 생성 실패' })
+    respondRequestFailure(res, err, '오늘의 운세 생성 실패')
   }
 })
 
@@ -1864,7 +2023,7 @@ app.post('/api/money/save/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '소비성향 생성 실패' })
+    respondRequestFailure(res, err, '소비성향 생성 실패')
   }
 })
 
@@ -1897,7 +2056,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '커플궁합 생성 실패' })
+    respondRequestFailure(res, err, '커플궁합 생성 실패')
   }
 })
 
@@ -1929,7 +2088,7 @@ app.post('/api/work/job/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '직업운 생성 실패' })
+    respondRequestFailure(res, err, '직업운 생성 실패')
   }
 })
 
@@ -1961,7 +2120,7 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '퇴사운 생성 실패' })
+    respondRequestFailure(res, err, '퇴사운 생성 실패')
   }
 })
 
@@ -1993,7 +2152,7 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '직장 선택 풀이 생성 실패' })
+    respondRequestFailure(res, err, '직장 선택 풀이 생성 실패')
   }
 })
 
@@ -2025,7 +2184,43 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '고양이 궁합 생성 실패' })
+    respondRequestFailure(res, err, '고양이 궁합 생성 실패')
+  }
+})
+
+app.post('/api/day/wedding/analyze', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const profile = await getUserBirthProfile(owner)
+    if (!profile) {
+      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼 택일을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
+      return
+    }
+
+    const input = parseWeddingRequest(req.body)
+    if (input.candidateDates.length === 0) {
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
+      return
+    }
+    const analysis = analyzeSaju(profile.birth)
+    const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
+    const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
+    const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
+    const progressive = await beginSpecializedProgressiveReport({
+      reportId,
+      birth: profile.birth,
+      context,
+      templateReport,
+      analysis,
+      owner,
+      orderId: trimmedString(req.body?.orderId) || undefined,
+    })
+    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+  } catch (err) {
+    respondRequestFailure(res, err, '결혼 택일 풀이 생성 실패')
   }
 })
 
@@ -2096,7 +2291,7 @@ app.post('/api/flow/newyear/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '2027년 흐름 풀이 생성 실패' })
+    respondRequestFailure(res, err, '2027년 흐름 풀이 생성 실패')
   }
 })
 
@@ -2128,7 +2323,7 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '색과 물건 풀이 생성 실패' })
+    respondRequestFailure(res, err, '색과 물건 풀이 생성 실패')
   }
 })
 
@@ -2161,7 +2356,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결혼궁합 생성 실패' })
+    respondRequestFailure(res, err, '결혼궁합 생성 실패')
   }
 })
 
@@ -2194,7 +2389,7 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '상대방 마음 생성 실패' })
+    respondRequestFailure(res, err, '상대방 마음 생성 실패')
   }
 })
 
@@ -2227,7 +2422,7 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '관계 신호 생성 실패' })
+    respondRequestFailure(res, err, '관계 신호 생성 실패')
   }
 })
 
@@ -2263,7 +2458,7 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '올해 연애운 생성 실패' })
+    respondRequestFailure(res, err, '올해 연애운 생성 실패')
   }
 })
 
@@ -2296,7 +2491,7 @@ app.post('/api/love/again/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '재회운 생성 실패' })
+    respondRequestFailure(res, err, '재회운 생성 실패')
   }
 })
 
@@ -2328,7 +2523,7 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '배우자운 생성 실패' })
+    respondRequestFailure(res, err, '배우자운 생성 실패')
   }
 })
 
@@ -2344,11 +2539,11 @@ app.post('/api/saju/analyze', async (req, res) => {
     const context = parseReportContext(req.body)
     const suppliedKey = requestedServiceKey
     if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
-      res.status(400).json({ error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
       return
     }
     if (!birth.year || !birth.month || !birth.day) {
-      res.status(400).json({ error: '생년월일을 입력해 주세요.' })
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '생년월일을 입력해 주세요.' })
       return
     }
     const owner = await verifySupabaseUser(req)
@@ -2391,7 +2586,7 @@ app.post('/api/saju/analyze', async (req, res) => {
     )
     res.json(await toUiAnalysis(birth, context, owner, access))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '분석 실패' })
+    respondRequestFailure(res, err, '분석 실패')
   }
 })
 
@@ -2472,7 +2667,7 @@ app.post('/api/report/chat-history', async (req, res) => {
     })
   } catch (err) {
     if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 수정할 수 없습니다.' }); return }
-    res.status(500).json({ error: err instanceof Error ? err.message : '상담 저장 실패' })
+    respondRequestFailure(res, err, '상담 저장 실패')
   }
 })
 
@@ -2506,6 +2701,75 @@ app.post('/api/report/section', async (req, res) => {
   } catch (error) {
     const denied = error instanceof Error && error.message === 'REPORT_ACCESS_DENIED'
     res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 볼 수 있습니다.' : '해석 생성 또는 저장을 완료하지 못했습니다.' })
+  }
+})
+
+/** 신고 사유. 화면이 고정 목록에서 고르게 하고 서버가 다시 확인한다. */
+const REPORT_FLAG_REASONS = new Set([
+  'inaccurate',
+  'harmful',
+  'offensive',
+  'privacy',
+  'other',
+])
+
+/**
+ * 생성형 AI 결과 신고.
+ *
+ * 정책은 앱을 나가지 않고 결과를 신고할 수 있는 경로를 요구한다. 신고는 본인이 연
+ * 리포트에 대해서만 받고, 어떤 항목을 두고 한 신고인지 함께 남겨 나중에 그 문장을
+ * 다시 볼 수 있게 한다.
+ */
+app.post('/api/report/flag', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+
+    const id = trimmedString(req.body?.reportId || req.body?.resultId)
+    const reason = trimmedString(req.body?.reason)
+    const sectionId = trimmedString(req.body?.sectionId)
+    const detail = trimmedString(req.body?.detail).slice(0, 1000)
+    if (!id || !reason) {
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '신고할 해석과 사유를 골라 주세요.' })
+      return
+    }
+    if (!REPORT_FLAG_REASONS.has(reason)) {
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '신고 사유를 목록에서 골라 주세요.' })
+      return
+    }
+
+    const record = await findReportRecord(id, owner)
+    if (!record) {
+      res.status(404).json({ error: '신고할 해석을 찾지 못했습니다.' })
+      return
+    }
+
+    const flag = {
+      id: randomUUID(),
+      ...(sectionId ? { sectionId } : {}),
+      reason,
+      ...(detail ? { detail } : {}),
+      createdAt: new Date().toISOString(),
+    }
+    const saved = await mutateReportRecord(record.reportId, owner, (current: ReportRecord) => {
+      current.flags = [...(current.flags ?? []), flag]
+    })
+    if (!saved) {
+      res.status(500).json({ error: '신고를 저장하지 못했습니다. 잠시 뒤 다시 시도해 주세요.' })
+      return
+    }
+
+    // 운영이 알아차릴 수 있도록 한 줄 남긴다. 신고 본문은 개인 입력이 섞일 수 있어
+    // 사유와 위치만 적고 내용은 리포트에서 확인한다.
+    console.warn(`[report-flag] reportId=${record.reportId} section=${sectionId || '-'} reason=${reason}`)
+
+    res.json({
+      accepted: true,
+      flagId: flag.id,
+      message: '신고를 접수했습니다. 확인 후 개선에 반영합니다.',
+    })
+  } catch (err) {
+    respondRequestFailure(res, err, '신고 접수 실패')
   }
 })
 
@@ -2585,5 +2849,9 @@ if (isDirectRun) {
     console.log(`UMSH 포탈: http://localhost:${PORT}/`)
     console.log(`천명사주 입력: http://localhost:${PORT}/cmdg/`)
     console.log(`OpenAI: ${isOpenAiConfigured() ? '연결됨' : 'API 키 필요 (.env)'}`)
+    // 결제가 열리지 않는 이유는 운영자만 보면 된다. 고객 화면에는 환경변수 이름 대신
+    // PAYMENT_UNAVAILABLE_NOTICE 가 나간다.
+    const paymentBlockers = paymentSetupMessage(publicInicisConfig().enabled, getPaymentStorageMode())
+    if (paymentBlockers) console.log(`결제: ${paymentBlockers}`)
   })
 }

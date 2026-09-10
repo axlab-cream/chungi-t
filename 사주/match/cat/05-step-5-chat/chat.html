@@ -766,7 +766,10 @@
          nav is fixed to the viewport, so the frame is unwrapped here. */
       body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
       body.umsh-has-chrome .phone {
-        width: 100%;
+        /* 세로로 갇힌 카드만 풀면 된다. 가로 폭까지 풀면 넓은 화면에서 화면 전체로
+           퍼져 다른 서비스의 모바일 프레임과 어긋난다. */
+        width: min(100%, 430px);
+        margin-inline: auto;
         height: auto;
         min-height: 100svh;
         overflow: visible;

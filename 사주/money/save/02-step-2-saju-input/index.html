@@ -177,6 +177,13 @@
         padding: 18px 18px 112px;
       }
 
+      /* 공용 크롬이 body 에 word-break: keep-all 을 걸면 grid 항목의 min-width: auto 가
+         내용의 최소 너비를 그대로 받는다. 그래서 이 화면의 단이 838px 까지 커져 모바일
+         프레임(390px) 밖으로 삐져나가고, .app 이 clip 이라 오른쪽이 잘려 닿지 않았다. */
+      main :where(div, section, fieldset, form, p, h1, h2, h3, ul, ol, li) {
+        min-width: 0;
+      }
+
       .hero-panel,
       .panel {
         border: 1px solid rgba(220, 184, 104, 0.22);

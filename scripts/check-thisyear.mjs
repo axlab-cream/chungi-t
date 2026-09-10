@@ -30,10 +30,15 @@ const CONTRACTS = [
   ['src/love/thisyear-service.ts', "export const LOVE_THISYEAR_SERVICE_KEY = 'love_this_year'", '서비스 키 상수'],
   ['src/love/thisyear-service.ts', 'export const THISYEAR_ASSET_BASE', '아트워크 경로 상수'],
   ['src/love/thisyear-service.ts', 'export const LOVE_THISYEAR_TOC', '목차 export'],
-  ['src/love/thisyear-service.ts', 'const GROUP_LENS', '대분류별 해석 렌즈'],
-  ['src/love/thisyear-service.ts', 'function ragLineFrom', 'RAG 근거 추출'],
-  ['src/love/thisyear-service.ts', 'function dohwaLine', '도화 계산'],
-  ['src/love/thisyear-service.ts', 'function partnerStarLine', '배우자성 계산'],
+  // 대분류별 문장이 love/reading-content.ts 로 옮겨졌다.
+  ['src/love/thisyear-service.ts', 'LOVE_THISYEAR_TOC', '대분류 목차'],
+  ['src/love/thisyear-service.ts', './reading-content.js', '대분류별 해석 문장 테이블'],
+  ['src/love/thisyear-service.ts', 'retrieveCategoryRagChunks', 'RAG 근거 추출'],
+  // fdc80f2 는 도화·홍염을 계산 결과로 제시하지 않기로 바꿨다. 그래서 계산 함수가
+  // 있는지 대신, 상징일 뿐이라고 밝히는 문장이 있는지를 확인한다.
+  ['src/love/reading-content.ts', '도화와 홍염은', '도화를 상징으로만 다루는 문장'],
+  ['src/love/thisyear-service.ts', 'PARTNER_STAR_LABEL', '애인성 기준 입력 반영'],
+  ['src/love/reading-content.ts', '검증되지 않은 신살을 계산 결과처럼 제시하지도 않아요', '미검증 신살 제시 금지 문장'],
   ['사주/js/thisyear-service.js', "'/api/love/this-year/analyze'", '프론트 리포트 호출'],
   ['사주/js/thisyear-service.js', 'function enhanceSajuInput', '저장된 사주 재사용'],
   ['사주/js/thisyear-service.js', 'function mountChrome', '공통 GNB 마운트'],

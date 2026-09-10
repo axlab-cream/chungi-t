@@ -169,3 +169,6 @@ test('동일 후보일도 상대나 준비 조건이 달라지면 별도 해석�
   assert.notEqual(id, createWeddingReportId(analysis, BIRTH, { ...INPUT, familyLimit: undefined }))
   assert.notEqual(id, createWeddingReportId(analysis, { ...BIRTH, hour: 8 }, INPUT))
 })
+
+
+

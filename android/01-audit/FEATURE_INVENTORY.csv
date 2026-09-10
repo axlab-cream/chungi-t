@@ -1,0 +1,37 @@
+﻿feature_id,area,screen_or_route,description,monetization,web_status,app_impact,notes
+SVC-cmdg,상담,/cmdg/,천명사주,유료 49900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-love_this_year,상담,/love/this-year,올해 연애운,유료 12900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-wedding_day,상담,/day/wedding,"우리 결혼, 이날 해도 될까?",유료 24900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-newyear_flow,상담,/flow/newyear,"내 2027년, 풀릴 각이야?",유료 19900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-home_pungsu,상담,/place/home,집 풍수,유료 19900원,웹에서 정상,앱에서 재검증 필요,목록 비노출(직접 경로만)
+SVC-work_move,상담,/work/move,이직운,유료 14900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-work_job,상담,/work/job,직업운,유료 14900원,웹에서 정상,앱에서 재검증 필요,목록 비노출(직접 경로만)
+SVC-quit_fortune,상담,/work/quit/04-step-4-report/index.html,퇴사운,유료 14900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-job_choice,상담,/work/job-choice/04-step-4-report/index.html,직장 선택,유료 9900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-cat_compatibility,상담,/match/cat/04-step-4-report/index.html,고양이 궁합,유료 9900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-lucky_color,상담,/me/lucky/04-step-4-report/index.html,나한테 운 붙는 색과 물건,유료 4900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-money_save,상담,/money/save/04-step-4-report/index.html,소비성향,유료 9900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-marry_match,상담,/match/marry/04-step-4-report/index.html,결혼궁합,유료 24900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-match_couple,상담,/match/couple/04-step-4-report/index.html,커플궁합,유료 19900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-couple_signal,상담,/love/signal/04-step-4-report/index.html,관계 신호,유료 19900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+SVC-love_mind,상담,/love/mind,상대방 마음,유료 9900원,웹에서 정상,앱에서 재검증 필요,목록 비노출(직접 경로만)
+SVC-love_again,상담,/love/again,재회운,유료 12900원,웹에서 정상,앱에서 재검증 필요,목록 비노출(직접 경로만)
+SVC-love_spouse,상담,/love/spouse,배우자운,유료 14900원,웹에서 정상,앱에서 재검증 필요,목록 비노출(직접 경로만)
+SVC-pass_angle,상담,/me/pass-angle,"나, 붙을 각이야?",유료 9900원,웹에서 정상,앱에서 재검증 필요,검색 목록 노출
+FREE-today,무료,/today/free,오늘 나한테 들어오는 운,무료,웹에서 정상,앱에서 재검증 필요,결제 없이 매일
+ACC-signup,계정,/signup,가입·로그인 진입,무료,웹에서 정상,앱 변경 필요,OAuth 를 임베디드 WebView 에서 실행 불가
+ACC-my,계정,/my,내 정보,무료,웹에서 정상,앱에서 재검증 필요,
+ACC-profile,계정,/profile,사주 프로필 등록·수정,무료,웹에서 정상,앱에서 재검증 필요,생년월일시 수집
+ACC-orders,계정,/orders,결제 내역,무료,웹에서 정상,앱 변경 필요,Play 결제 건 표기 필요
+ACC-vault,계정,/vault,운명록(보관함),무료,웹에서 정상,앱에서 재검증 필요,
+ACC-leave,계정,/leave,회원 탈퇴,무료,웹에서 정상,앱 변경 필요,Play 계정 삭제 요건 대응
+PAY-checkout,결제,/payment,결제 화면,해당,웹에서 정상,앱 변경 필요,앱은 Play 결제로 분기
+PAY-result,결제,/payment/result,결제 결과·복귀,해당,웹에서 정상,앱에서 재검증 필요,이니시스·Play 공용 착지점
+POL-terms,정책,/terms,이용약관,무료,웹에서 정상,앱에서 재검증 필요,
+POL-privacy,정책,/privacy,개인정보처리방침,무료,웹에서 정상,앱에서 재검증 필요,Play 필수 URL
+POL-refund,정책,/refund,환불·취소 정책,무료,웹에서 정상,앱 변경 필요,Play 결제는 구글 환불 절차 병기 필요
+POL-support,정책,/support,고객센터,무료,웹에서 정상,앱에서 재검증 필요,
+NAV-portal,탐색,/,메인 포털,무료,웹에서 정상,앱에서 재검증 필요,가로 배너 레일
+NAV-search,탐색,/search,서비스 검색,무료,웹에서 정상,앱에서 재검증 필요,
+AI-chat,AI,/api/chat,결과 화면 이어서 질문,유료 범위,웹에서 정상,앱 변경 필요,생성형 AI 신고 경로 필요
+AI-report,AI,/api/report/section,항목별 해석 생성,유료 범위,웹에서 정상,앱 변경 필요,긴 작업 복구·신고 경로

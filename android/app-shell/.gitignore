@@ -1,0 +1,20 @@
+# 앱 셸에서 저장소에 담지 않는 것들.
+node_modules/
+
+# 릴리스 서명. 이 두 줄이 있어야 키와 비밀번호가 커밋되지 않는다.
+android/keystore.properties
+*.jks
+*.keystore
+
+# Android Studio 가 각 PC 에 맞게 쓰는 값
+android/local.properties
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+
+# cap sync 가 www 에서 복사해 넣는 사본
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json

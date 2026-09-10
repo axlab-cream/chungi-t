@@ -1,0 +1,27 @@
+{
+  "name": "umsh-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "운명상회 하이브리드 앱 셸. 서버가 내려 주는 umsh.kr 을 네이티브 셸에서 띄운다.",
+  "scripts": {
+    "sync": "cap sync",
+    "sync:android": "cap sync android",
+    "open:android": "cap open android",
+    "run:android": "cap run android",
+    "doctor": "cap doctor",
+    "assets": "capacitor-assets generate --android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.1",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/browser": "8.0.4",
+    "@capacitor/core": "8.5.1",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.3",
+    "@capgo/native-purchases": "^8.7.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.1"
+  }
+}

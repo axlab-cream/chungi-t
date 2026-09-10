@@ -5,7 +5,7 @@
     ['/day/wedding', 'wedding_day'],
     ['/love/this-year', 'love_this_year'], ['/work/job-choice', 'job_choice'],
     ['/work/quit', 'quit_fortune'], ['/money/save', 'money_save'],
-    ['/match/cat', 'cat_compatibility'], ['/me/lucky', 'lucky_color'], ['/flow/newyear', 'newyear_flow'],
+    ['/match/cat', 'cat_compatibility'], ['/me/lucky', 'lucky_color'], ['/flow/newyear', 'newyear_flow'], ['/day/wedding', 'wedding_day'],
     ['/match/couple', 'match_couple'], ['/match/marry', 'marry_match'],
     ['/love/signal', 'couple_signal'], ['/me/pass-angle', 'pass_angle'],
     ['/work/move', 'work_move'], ['/work/job', 'work_job'],

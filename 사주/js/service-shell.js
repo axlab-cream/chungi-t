@@ -202,7 +202,7 @@
     return `
       <div class="umsh-service-shell" aria-label="운명상회 공통 상단">
         <header class="appbar topbar umsh-chrome-appbar">
-          <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="UMSH 운명상회 홈">
+          <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
           </a>
           <div class="app-actions topbar-actions">

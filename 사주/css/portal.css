@@ -460,13 +460,16 @@ html.splash-disabled .splash-screen,
 .category-rail.is-drag-ready,
 .category-rail.is-dragging,
 .price-rail.is-drag-ready,
-.price-rail.is-dragging {
+.price-rail.is-dragging,
+.coming-rail.is-drag-ready,
+.coming-rail.is-dragging {
   user-select: none;
 }
 
 .poster-rail.is-dragging,
 .category-rail.is-dragging,
-.price-rail.is-dragging {
+.price-rail.is-dragging,
+.coming-rail.is-dragging {
   cursor: grabbing;
   scroll-behavior: auto;
   scroll-snap-type: none;
@@ -1852,6 +1855,8 @@ html.splash-disabled .splash-screen,
   display: flex;
   gap: 10px;
   overflow-x: auto;
+  cursor: grab;
+  overscroll-behavior-inline: contain;
   padding-bottom: 4px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
@@ -1903,6 +1908,21 @@ html.splash-disabled .splash-screen,
 .coming-card:focus-visible .coming-card-img,
 .coming-card.is-pointed .coming-card-img {
   transform: scale(1.04);
+}
+
+/* 결혼택일 아트워크는 제목이 이미지 높이의 27%로 조판돼 있어, 이웃 카드(39%)보다
+   작다. 172px 카드로 줄면 제목이 46px 대 67px이 되어 눈에 띄게 읽기 어려워진다.
+   대비는 19:1로 충분했으니 문제는 크기다. 얼굴이 잘리지 않는 선까지만(1.2배) 아래를
+   기준으로 당겨 제목을 55px로 올린다. */
+.coming-card-img[src*="umsh-wedding-card-bg"] {
+  transform: scale(1.2);
+  transform-origin: center bottom;
+}
+
+.coming-card:hover .coming-card-img[src*="umsh-wedding-card-bg"],
+.coming-card:focus-visible .coming-card-img[src*="umsh-wedding-card-bg"],
+.coming-card.is-pointed .coming-card-img[src*="umsh-wedding-card-bg"] {
+  transform: scale(1.25);
 }
 
 .coming-tag {

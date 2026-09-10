@@ -12,6 +12,8 @@ import {
   normalizeServiceKey,
 } from '../../src/prompt/service-system.js'
 import { SERVICE_VOICE_CONTRACTS, formatServiceVoiceContract } from '../../src/prompt/service-voice-contracts.js'
+import { loadSystemPrompt } from '../../src/conversation/prompt-builder.js'
+import { listPaymentProducts } from '../../src/payment/catalog.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROMPTS_ROOT = join(__dirname, '../../prompts')
@@ -110,6 +112,47 @@ describe('service-system prompt wiring', () => {
       contract.decisionCriteria.join(' '),
     ].join(' ')).join('\n')
     assert.doesNotMatch(joined, /측정 전|자료가 아직 없어요|DEM|서버 권한|로그인과 결제 상태|풀이\s*\d+/)
+  })
+
+  /**
+   * wedding_day 는 카탈로그에 올라간 뒤에도 prompts/services 에 없어서, 결제된 서비스가
+   * 공통팩이 아니라 레거시 system-prompt.md 로 생성되고 있었다(3,540자, 서비스 목소리 없음).
+   * loadServiceBlock 은 없으면 던지지만 loadSystemPrompt 가 그 예외를 삼켜 조용히 떨어진다.
+   * 그래서 파일 존재가 아니라 '결제되는 상품 전부가 자기 목소리를 갖는지'를 검사한다.
+   */
+  it('every paid catalog product has its own voice prompt, not the legacy fallback', () => {
+    const legacy = readFileSync(join(PROMPTS_ROOT, 'system-prompt.md'), 'utf-8')
+    const common = loadCommonSystemPrompt()
+    for (const product of listPaymentProducts()) {
+      const key = normalizeServiceKey(product.key)
+      const assembled = loadSystemPrompt(key)
+      assert.ok(
+        assembled.includes(common.slice(0, 120)),
+        `${product.key}: 공통 시스템팩이 빠졌습니다. prompts/services/${key}.md 를 추가하세요.`,
+      )
+      assert.equal(
+        assembled.startsWith(legacy.slice(0, 40)),
+        false,
+        `${product.key}: 레거시 system-prompt.md 로 떨어졌습니다.`,
+      )
+      const block = loadServiceBlock(key)
+      assert.ok(assembled.includes(block.split('\n')[0].slice(0, 50)), `${product.key}: 서비스 블록이 조립되지 않았습니다.`)
+    }
+  })
+
+  it('wedding_day speaks as a date-selection adviser and never pronounces a day lucky', () => {
+    const block = loadServiceBlock('wedding_day')
+    assert.match(block, /택일/)
+    assert.match(block, /후보일/)
+    // 계산값과 통념을 가르는 규칙, 그리고 날짜 선고 금지가 프롬프트에 남아 있어야 한다.
+    assert.match(block, /손 없는 날/)
+    assert.match(block, /길일·흉일로 단정/)
+    assert.match(block, /합·충·파·해/)
+    assert.match(block, /해요체/)
+    assert.match(loadServiceSystemPrompt('wedding_day'), /일주\(日柱, 그 날의 기둥\)/)
+    // 다른 서비스의 목소리가 섞이면 안 된다.
+    assert.doesNotMatch(block, /자네|~일세/)
+    assert.doesNotMatch(block, /context\.newyear/)
   })
 
   it('newyear has its own grounded 2027 prompt and never falls back to the master persona', () => {

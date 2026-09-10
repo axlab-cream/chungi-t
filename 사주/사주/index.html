@@ -1270,6 +1270,19 @@
 
       .phone[data-step="todayResult"] > [data-umsh-service-top]:not(:empty) ~ header.topbar { display: none; }
 
+      /* 공용 하단 메뉴는 화면에 고정되고 .phone 은 스크롤하지 않는다. 그래서 stage 를
+         메뉴 높이만큼 줄이지 않으면 마지막 줄이 메뉴 밑으로 들어가 닿을 수 없게 된다.
+         오늘운 화면은 위아래를 따로 잡고 있어 건드리지 않는다. */
+      body.umsh-has-chrome .phone:not([data-step="todayResult"]) .stage {
+        height: calc(100% - var(--topbar-height) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px));
+      }
+
+      /* 보관함 패널은 stage 밖에서 inset: 0 으로 깔리는 오버레이라 위 규칙이 닿지
+         않는다. 아래 여백을 메뉴 높이만큼 늘려 마지막 항목을 가리지 않게 한다. */
+      body.umsh-has-chrome .settings-panel {
+        padding-bottom: calc(18px + var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px));
+      }
+
       .phone[data-step="todayResult"] .stage {
         top: var(--umsh-chrome-appbar-h, 85px);
         bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom));
@@ -3372,7 +3385,7 @@
       <div class="concern-video-shade" aria-hidden="true"></div>
 
       <header class="topbar">
-        <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="UMSH 운명상회 홈">
+        <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
           <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
         </a>
         <div class="topbar-actions">
@@ -7282,6 +7295,15 @@
       loadPaymentConfig().then(() => {
         if (state.scene === "purchase") renderPurchase();
       });
+      function mountCommonBottomNav() {
+        if (!window.UMSHChrome || document.getElementById("umsh-verified-layout")) return;
+        const chrome = window.UMSHChrome.mount({ root: ".phone", service: "천명사주", category: "종합" });
+        if (!chrome) return;
+        chrome.appbar.hidden = true;
+        chrome.bottomNav.hidden = false;
+      }
+      if (window.UMSHChrome) mountCommonBottomNav();
+      else document.addEventListener("DOMContentLoaded", mountCommonBottomNav, { once: true });
       const initialReportId = new URLSearchParams(location.search).get("reportId");
       const paidReturnParams = new URLSearchParams(location.search);
       const isPaidReturn = paidReturnParams.get("paid") === "1";

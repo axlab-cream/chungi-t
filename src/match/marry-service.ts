@@ -1,3 +1,4 @@
+import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from '../love/reading-content.js'
 import type {
@@ -234,22 +235,22 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
       }
 
   if (!Number.isInteger(date.year) || !Number.isInteger(date.month) || !Number.isInteger(date.day) || !validDateParts(date.year, date.month, date.day)) {
-    throw new Error('상대 생년월일을 다시 확인해 주세요.')
+    throw new InputError('상대 생년월일을 다시 확인해 주세요.')
   }
   if (date.year < 1900 || date.year > new Date().getFullYear()) {
-    throw new Error('상대 생년월일의 연도를 다시 확인해 주세요.')
+    throw new InputError('상대 생년월일의 연도를 다시 확인해 주세요.')
   }
 
   const gender = source.gender
   const calendar = source.calendar
-  if (gender !== 'male' && gender !== 'female') throw new Error('상대 성별을 선택해 주세요.')
-  if (calendar !== 'solar' && calendar !== 'lunar') throw new Error('상대 생년월일의 양력 또는 음력을 선택해 주세요.')
+  if (gender !== 'male' && gender !== 'female') throw new InputError('상대 성별을 선택해 주세요.')
+  if (calendar !== 'solar' && calendar !== 'lunar') throw new InputError('상대 생년월일의 양력 또는 음력을 선택해 주세요.')
 
   const birthTimeKnown = body.partnerBirthTimeKnown === true || source.birthTimeKnown === true
   const hour = Number(source.hour ?? (birthTimeKnown ? Number.NaN : 12))
   const minute = Number(source.minute ?? 0)
   if (birthTimeKnown && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) {
-    throw new Error('상대 태어난 시간은 00:00부터 23:59 사이로 입력해 주세요.')
+    throw new InputError('상대 태어난 시간은 00:00부터 23:59 사이로 입력해 주세요.')
   }
 
   return {

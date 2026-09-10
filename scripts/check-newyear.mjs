@@ -126,11 +126,12 @@ need(releasedSections.length === 1 && comingSections.length === 1, '포탈의 RE
 need(!releasedSections.some((section) => isNewyearCard(section)), '신년운세가 RELEASED NOW 영역에 남아 있음')
 need(newyearCards.length === 1, `신년운세 홈 카드 ${newyearCards.length}개 (COMING SOON에 하나만 허용)`)
 need(comingCards[0] === newyearCard && Boolean(newyearCard), '신년운세는 COMING SOON의 첫 카드여야 함')
-need(/^<button\b/.test(newyearCard) && /\btype="button"/.test(newyearCard), '신년운세 홈 카드는 이동 링크가 아닌 button이어야 함')
-need(/\bclass="[^"]*\bis-soon\b[^"]*"/.test(newyearCard) && !/\bis-live\b/.test(newyearCard), '신년운세 홈 카드의 출시 예정 상태가 올바르지 않음')
-need(/<span\b[^>]*class="coming-tag"[^>]*>\s*SOON\s*<\/span>/.test(newyearCard), '신년운세 홈 카드에 SOON 표시 없음')
-need(/\baria-label="[^"]*준비 중인 서비스[^"]*"/.test(newyearCard), '신년운세 홈 카드의 접근성 안내에 준비 중 상태 없음')
-need(!/\bhref\s*=/.test(newyearCard) && !/\bhref=["']\/flow\/newyear(?:[/?#]|["'])/.test(portal), '신년운세 홈 카드의 직접 이동 링크가 남아 있음')
+// 카드를 판매 중으로 열었다. 자리와 썸네일은 그대로 두고 SOON 표시만 걷어낸 상태를 고정한다.
+need(/^<a\b/.test(newyearCard), '신년운세 홈 카드가 상세 페이지로 가는 링크가 아님')
+need(/\bclass="[^"]*\bis-live\b[^"]*"/.test(newyearCard) && !/\bis-soon\b/.test(newyearCard), '신년운세 홈 카드가 판매 중 상태가 아님')
+need(!/coming-tag/.test(portal), '홈에 준비 중 SOON 표시가 남아 있음')
+need(/\baria-label="[^"]*이 풀이 보기[^"]*"/.test(newyearCard), '신년운세 홈 카드의 접근성 안내가 판매 중 문구가 아님')
+need(/\bhref="\/flow\/newyear"/.test(newyearCard), '신년운세 홈 카드에 상세 페이지 링크가 없음')
 
 if (failures.length > 0) {
   console.error('newyear_flow 연동 점검 실패')
