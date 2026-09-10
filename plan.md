@@ -73,7 +73,7 @@
 | T04 | task-t04 | M0 | P0 | T01 | 기존 회귀 기준 수집 | **DONE** |
 | T05 | task-t05 | M1 | P0 | T03,T04 | 직원 membership 및 RBAC | BLOCKED (U2 영속 저장소, U4 운영 스키마) |
 | T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | BLOCKED (U17 — 주문 직렬화 설계) |
-| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | BLOCKED (U3 = ADR-0002 승인 대기) |
+| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **셸·라우터 완료** (ADR-0002 승인, U3 해소). **인증된 관리자 기능은 T05 대기** — 직원 membership 원본이 없어 `/api/admin/v1/me` 는 누구에게도 권한을 주지 않는다 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |
 | T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | BLOCKED (U4, U18 분석열, U19 profiles SQL) |
@@ -106,7 +106,7 @@
 | --- | --- | --- | --- |
 | ~~U1~~ | ~~관리자 구현 기준 브랜치~~ | — | **해소** — 운영 = 로컬 HEAD 실측 확인 |
 | U2 | 개발·Preview용 영속 주문 저장소 부재 (로컬 memory 실측, Dev/Preview 미검증) | T05, T08, T14 (A17) | 운영과 **격리된** 영속 저장소 + 접근 정책 검증 |
-| U3 | 관리자 UI 위치·정적 자산 인증 순서 | T07 | ADR-0002 승인 |
+| ~~U3~~ | 관리자 UI 위치·정적 자산 인증 순서 | T07 | **해소** — ADR-0002 Accepted (2026-09-10). 소스는 정적 루트 밖(`admin-ui/`) |
 | U4 | 운영 DB 실제 스키마·grant·RLS | T03, T05, T06 | T03 + TASK-004 안전 게이트 |
 | U5 | 직원 인증 provider MFA/재인증 지원 | T05 | Supabase Auth 설정 확인 |
 | U6 | PG 취소 API 지원·서명 규격 | T16~T19 | 이니시스 콘솔 확인 |

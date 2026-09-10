@@ -777,6 +777,34 @@ app.use((req, res, next) => {
 })
 
 /**
+ * 관리자 셸. 소스는 정적 루트 **밖**(`admin-ui/`)에 있다 — ADR-0002 D1.
+ *
+ * `사주/` 아래에 두면 `express.static(SAJU_ROOT)` 가 인증 검사 없이 파일을 내보낸다.
+ * 그 위험은 가정이 아니다: 2026-09-10 에 서비스 생성 프롬프트 원문과 외부 사이트
+ * 스크랩이 실제로 그렇게 공개되고 있었다(TASK-011·020).
+ *
+ * 라우트는 정적 마운트 **위에** 둔다(D2-2). 같은 경로의 정적 파일이 먼저 매칭되는
+ * 경우를 원천 차단하기 위한 것이다.
+ */
+const ADMIN_SHELL = join(ROOT, 'admin-ui', 'index.html')
+
+/** 관리자 응답은 색인하지 않는다(ADR-0002 D2 실패 모드 표). */
+function sendAdminShell(res: Response): void {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive')
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.sendFile(ADMIN_SHELL)
+}
+
+// 셸에는 데이터가 없다(D2-5). 그래서 미로그인에게도 같은 HTML 을 준다 —
+// 목록·설정값·키가 하나도 들어 있지 않고 모든 데이터는 인증된 `/api/admin/v1/*` 로만 온다.
+// **셸 HTML 자체를 미로그인에 감추려면 서버 세션 쿠키가 필요하다(U36).**
+// 이 프로젝트의 인증은 `Authorization: Bearer` 하나이고 주소창 이동에는 그 헤더가 없다.
+app.get(['/admin', '/admin/', '/admin/index.html'], (_req, res) => { sendAdminShell(res) })
+
+// 딥링크는 정적 탐색으로 흘리지 않는다(D2-4). `/admin/orders` 같은 경로도 셸이 받는다.
+app.get(/^\/admin\/.+/, (_req, res) => { sendAdminShell(res) })
+
+/**
  * 자산 캐시 정책. **브라우저는 짧게, 엣지는 길게.**
  *
  * `express.static` 은 기본이 `max-age=0` 이고 그 헤더로는 Vercel CDN 이 응답을 보관하지
@@ -1566,6 +1594,48 @@ app.get('/api/health', async (req, res) => {
 
 app.get('/api/auth/config', (_req, res) => {
   res.json(authConfig())
+})
+
+/**
+ * 관리자 셸이 자기 권한을 확인하는 유일한 경로. ADR-0002 D2-1 대로 `/api` 접두어 안에
+ * 있어 `Cache-Control: private, no-store` + `Vary: Authorization` 이 자동 적용된다.
+ *
+ * **지금은 누구에게도 권한을 주지 않는다.** 직원 membership 원본이 아직 없다(T05).
+ *
+ * 초판은 `isAdminOwner` 로 권한을 부여했는데 그것은 규칙 위반이었다
+ * (`plan.md`, `docs/admin-ops/T01-baseline.md`, 13-SECURITY):
+ * `isAdminOwner` 는 **결제 없이 유료 리포트를 여는 레거시 unlock 이메일 목록**이다.
+ * 그것을 운영 권한으로 재사용하면 직원 membership 없이 관리자 API 가 열리고,
+ * 회수·감사 경로가 없는 "코드에 박힌 권한"이 된다(2026-09-10 Codex 리뷰 Critical).
+ *
+ * 그래서 인증된 회원에게도 403 을 준다. 셸은 그 이유를 화면에 표시한다.
+ * T05 가 회수 가능한 membership 원본을 만들면 그때 이 판정을 그것으로 교체한다.
+ */
+const STAFF_MEMBERSHIP_SOURCE_READY = false
+
+app.get('/api/admin/v1/me', async (req, res) => {
+  let owner: ReportOwner | undefined
+  try {
+    owner = await verifySupabaseUser(req)
+  } catch {
+    // 토큰이 있으나 검증에 실패한 경우다. 만료·회수 모두 재로그인으로 안내한다.
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인 후 다시 시도해 주세요.' })
+    return
+  }
+  if (!owner) {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인이 필요합니다.' })
+    return
+  }
+  if (!STAFF_MEMBERSHIP_SOURCE_READY) {
+    // 권한 없음과 미로그인을 구분해 응답한다(A35 — 서로 다른 UI 상태여야 한다).
+    // 회원 정보를 함께 내려보내지 않는다. 판정 근거가 없는 상태에서 알려 줄 것이 없다.
+    res.status(403).json({
+      code: 'STAFF_MEMBERSHIP_REQUIRED',
+      error: '직원 권한 원본이 아직 준비되지 않았습니다. 운영 관리자 기능은 T05(직원 membership·RBAC) 이후에 열립니다.',
+    })
+    return
+  }
+  res.status(500).json({ code: 'NOT_IMPLEMENTED', error: '직원 권한 판정이 연결되지 않았습니다.' })
 })
 
 app.get('/api/payment/config', (_req, res) => {

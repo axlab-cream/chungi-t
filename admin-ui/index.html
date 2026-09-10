@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>운영 관리자 · 운명상회</title>
+  <!--
+    이 파일은 정적 루트(`사주/`) 밖에 있다. ADR-0002 D1 의 결정이며, 정적 미들웨어가
+    인증 검사 없이 파일을 내보내는 것을 구조적으로 막는다. 서빙은 `/admin` 라우트만 한다.
+
+    설정값·키·엔드포인트 비밀을 인라인하지 않는다(ADR-0002 D2-5).
+    화면에 들어가는 모든 데이터는 인증된 `/api/admin/v1/*` 응답으로만 온다.
+  -->
+  <style>
+    /*
+      관리자 팔레트는 의미 기반 이름으로 독립 정의한다(ADR-0002 D3).
+      레퍼런스의 색상값·토큰 이름을 가져오지 않는다. 대비비는 흰 배경 기준
+      WCAG AA(4.5:1) 이상을 먼저 만족시키는 값으로 골랐다.
+    */
+    :root {
+      --admin-bg: #f6f6f8;
+      --admin-surface: #ffffff;
+      --admin-line: #dfdfe4;
+      --admin-text: #1b1b1f;         /* 16.1:1 */
+      --admin-text-muted: #5b5b63;   /*  6.9:1 */
+      --admin-text-disabled: #8a8a93;
+      --admin-state-ok: #1f6f3f;     /*  5.3:1 */
+      --admin-state-warn: #8a5a00;   /*  5.4:1 */
+      --admin-state-error: #a3231f;  /*  5.9:1 */
+      --admin-action-danger: #b3261e;
+      --admin-focus: #1f4fd8;
+      --admin-space-1: 4px;
+      --admin-space-2: 8px;
+      --admin-space-3: 12px;
+      --admin-space-4: 16px;
+      --admin-space-6: 24px;
+      --admin-space-8: 32px;
+      --admin-radius: 4px;           /* 관리자는 작은 반경 한 단계만 쓴다 */
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--admin-bg);
+      color: var(--admin-text);
+      font-family: 'Pretendard', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    a { color: var(--admin-focus); }
+    :focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 2px; }
+
+    .admin-header {
+      display: flex; align-items: baseline; gap: var(--admin-space-3);
+      padding: var(--admin-space-4) var(--admin-space-6);
+      background: var(--admin-surface);
+      border-bottom: 1px solid var(--admin-line);
+    }
+    .admin-header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    .admin-header .admin-env { color: var(--admin-text-muted); font-size: 12px; }
+    .admin-header .admin-who { margin-left: auto; color: var(--admin-text-muted); font-size: 12px; }
+
+    .admin-nav {
+      display: flex; gap: var(--admin-space-1);
+      padding: 0 var(--admin-space-6);
+      background: var(--admin-surface);
+      border-bottom: 1px solid var(--admin-line);
+    }
+    .admin-nav a {
+      padding: var(--admin-space-3) var(--admin-space-4);
+      color: var(--admin-text-muted); text-decoration: none;
+      border-bottom: 2px solid transparent;
+    }
+    .admin-nav a[aria-current='page'] { color: var(--admin-text); border-bottom-color: var(--admin-text); }
+
+    /* 표 중심 화면은 넓게, 폼·상세는 좁게 — 두 단계만 쓴다. */
+    main { max-width: 1280px; margin: 0 auto; padding: var(--admin-space-6); }
+    main[data-width='narrow'] { max-width: 720px; }
+
+    .admin-panel {
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-line);
+      border-radius: var(--admin-radius);
+      padding: var(--admin-space-6);
+    }
+    .admin-panel h2 { margin: 0 0 var(--admin-space-2); font-size: 15px; }
+    .admin-panel p { margin: 0 0 var(--admin-space-2); color: var(--admin-text-muted); }
+    .admin-note { color: var(--admin-text-disabled); font-size: 12px; }
+
+    /* 상태는 색만으로 표현하지 않는다. 색 + 텍스트 라벨을 함께 쓴다(ADR-0002 D4). */
+    .admin-status { display: inline-flex; align-items: center; gap: var(--admin-space-2); font-weight: 600; }
+    .admin-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .admin-status[data-tone='ok'] { color: var(--admin-state-ok); }
+    .admin-status[data-tone='warn'] { color: var(--admin-state-warn); }
+    .admin-status[data-tone='error'] { color: var(--admin-state-error); }
+
+    /* 금액은 같은 정렬축에 둔다. */
+    .admin-amount { text-align: right; font-variant-numeric: tabular-nums; }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="admin-header">
+    <h1>운영 관리자</h1>
+    <span class="admin-env" data-admin-env>환경 확인 중</span>
+    <span class="admin-who" data-admin-who></span>
+  </header>
+
+  <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
+    <a href="/admin" aria-current="page">개요</a>
+    <a href="/admin/orders">주문</a>
+    <a href="/admin/members">회원·리포트</a>
+    <a href="/admin/settings">설정</a>
+  </nav>
+
+  <main data-width="narrow">
+    <!--
+      빈 목록 / 필터 결과 없음 / 조회 실패 / 권한 없음을 서로 다른 상태로 구분한다
+      (ADR-0002 D4, 06-SCREENS A35). 셸 단계에서는 뒤 두 가지가 쓰인다.
+    -->
+    <section class="admin-panel" data-admin-state="loading">
+      <h2>확인 중</h2>
+      <p>로그인 상태와 권한을 확인하고 있습니다.</p>
+    </section>
+
+    <section class="admin-panel" data-admin-state="anonymous" hidden>
+      <h2>로그인이 필요합니다</h2>
+      <p>운영 관리자는 직원 계정으로만 들어올 수 있습니다.</p>
+      <p><a href="/login">로그인 페이지로 이동</a></p>
+    </section>
+
+    <section class="admin-panel" data-admin-state="forbidden" hidden>
+      <h2><span class="admin-status" data-tone="error">권한 없음</span></h2>
+      <p data-admin-forbidden-detail>이 계정에는 운영 관리자 권한이 없습니다.</p>
+      <p class="admin-note" data-admin-forbidden-note hidden></p>
+    </section>
+
+    <section class="admin-panel" data-admin-state="error" hidden>
+      <h2><span class="admin-status" data-tone="warn">조회 실패</span></h2>
+      <p data-admin-error-detail>권한을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+    </section>
+
+    <section class="admin-panel" data-admin-state="ready" hidden>
+      <h2><span class="admin-status" data-tone="ok">접속됨</span></h2>
+      <p>관리자 셸이 열렸습니다. 주문·회원 화면은 다음 단계(T08~T10)에서 붙습니다.</p>
+      <p data-admin-scope></p>
+    </section>
+  </main>
+
+  <!-- 공용 인증 스크립트를 그대로 쓴다. 새 CDN 을 추가하지 않는다. -->
+  <script src="/js/umsh-auth-session.js"></script>
+  <script src="/js/umsh-account-pages.js"></script>
+  <script>
+    (function () {
+      var states = {};
+      document.querySelectorAll('[data-admin-state]').forEach(function (node) {
+        states[node.getAttribute('data-admin-state')] = node;
+      });
+
+      function show(name) {
+        Object.keys(states).forEach(function (key) { states[key].hidden = key !== name; });
+      }
+
+      function setText(selector, value) {
+        var node = document.querySelector(selector);
+        if (node) node.textContent = value;
+      }
+
+      async function start() {
+        var helper = window.UMSHAccountPages;
+        if (!helper) { show('error'); return; }
+
+        var auth = null;
+        try {
+          auth = await helper.requireSession('admin', { optional: true });
+        } catch (_error) {
+          show('error');
+          return;
+        }
+        if (!auth) { show('anonymous'); return; }
+
+        var response;
+        try {
+          response = await fetch('/api/admin/v1/me', { headers: helper.authHeaders(auth.session) });
+        } catch (_error) {
+          show('error');
+          return;
+        }
+
+        if (response.status === 401) { show('anonymous'); return; }
+        if (response.status === 403) {
+          // 왜 막혔는지 서버가 알려 준 이유를 그대로 보여 준다. "권한 없음" 한 줄로는
+          // 직원 권한 원본이 아직 없는 상태와 권한이 회수된 상태를 구분할 수 없다.
+          try {
+            var denied = await response.json();
+            if (denied && denied.error) {
+              setText('[data-admin-forbidden-detail]', denied.error);
+            }
+            if (denied && denied.code) {
+              setText('[data-admin-forbidden-note]', '코드: ' + denied.code);
+              var note = document.querySelector('[data-admin-forbidden-note]');
+              if (note) note.hidden = false;
+            }
+          } catch (_error) {
+            // 본문이 없으면 기본 문구를 남긴다.
+          }
+          show('forbidden');
+          return;
+        }
+        if (!response.ok) {
+          setText('[data-admin-error-detail]', '권한 확인 응답이 ' + response.status + ' 입니다. 잠시 후 다시 시도해 주세요.');
+          show('error');
+          return;
+        }
+
+        var me = await response.json();
+        setText('[data-admin-env]', me.environment ? '환경 ' + me.environment : '');
+        setText('[data-admin-who]', me.email || '');
+        setText('[data-admin-scope]', '권한: ' + (me.scopes || []).join(', '));
+        var nav = document.querySelector('[data-admin-nav]');
+        if (nav) nav.hidden = false;
+        show('ready');
+      }
+
+      start();
+    })();
+  </script>
+</body>
+</html>

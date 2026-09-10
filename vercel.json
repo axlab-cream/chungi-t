@@ -3,10 +3,13 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 300,
-      "includeFiles": "{data,prompts,사주}/**"
+      "includeFiles": "{admin-ui,data,prompts,사주}/**"
     }
   },
   "routes": [
-    { "src": "/(.*)", "dest": "/api/index?__umsh_path=$1" }
+    {
+      "src": "/(.*)",
+      "dest": "/api/index?__umsh_path=$1"
+    }
   ]
 }
