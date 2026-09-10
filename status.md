@@ -292,3 +292,97 @@ f9bcd17  chore(projectops): AIOps 워크스페이스·admin-ops 산출물 커밋
 659ba7f  merge: origin/main 21커밋 통합
 ```
 복구 지점 `backup/pre-merge-20260910` = `dac3835`
+
+## 2026-09-10 — TASK-015 운영 배포 (DONE) — SEO·FAQ·about 복구
+
+### 배포 전 발견: 세션 중에 운영이 바뀌어 있었다
+- 15:11 KST에 `origin/main` 계열이 Production에 배포되어(`dpl_GvzMisxCbojK93hZVYJ8f5W6LiMq`)
+  `umsh.kr` 별칭을 가지고 있었다. **나는 그 배포를 실행하지 않았다.**
+- 그 배포로 **우리 브랜치 10커밋의 공개 SEO·FAQ·about 작업이 서비스되지 않게 됐다**:
+  `/robots.txt` `/sitemap.xml` `/about` `/faq` 전부 **404**, `/api/services` **15종 → 14종**
+  (집 풍수가 목록에서 사라짐)
+- 반대로 그 배포는 **결제 문구의 환경변수 노출을 해소**하고 Android App Links를 가져왔다
+- **U14 확정**: `vercel project inspect`에 Git 연동 섹션이 아예 없다. 배포는 CLI 전용이며
+  `README.md`의 "main push가 Production을 트리거한다"는 사실이 아니다
+- 기록: `docs/admin-ops/production-state-20260910-1511.md`
+
+### 사용자 결정
+"기존에 제작한 SEO 그건 복구해야해" + **병합본을 지금 배포**
+
+### 배포 전 처리
+- 게이트가 다시 BLOCKED로 바뀜 → 원인 2개 해소:
+  (1) 문서 커밋 `569aef3`, (2) **`origin/main`이 또 갱신됨**(`fb686b6` → `f825d26`,
+  Android Play 스토어 문서 4파일) → 병합 `006defe`
+- 재검증: typecheck 0 오류, 로컬 서비스 15종, `check:production-source` **PASS**
+
+### 배포
+- `vercel deploy --prod` → `https://chungi-387wmilw8-ax-lab-cream.vercel.app`
+- 빌드 로그: `Generated 126 FAQs in 11 categories`,
+  `PASS SEO: robots, 19 sitemap URLs, consistent Organization/WebSite, 126 FAQ answers`
+- **Aliased: https://umsh.kr**
+
+### 복구 검증 (배포 전 → 후)
+| 항목 | 전 | 후 |
+| --- | --- | --- |
+| `/robots.txt` | 404 | **200** |
+| `/sitemap.xml` | 404 | **200** |
+| `/about` | 404 | **200** |
+| `/faq` | 404 | **200** |
+| `/api/services` | 14종 (집 풍수 없음) | **15종 (집 풍수 포함)** |
+
+### 15:11 배포의 개선도 유지됨
+| 항목 | 현재 |
+| --- | --- |
+| `setupMessage` | `"지금은 결제를 열 수 없습니다…"` — 환경변수 미노출 유지 |
+| `assetlinks.json` | HTTP 200 |
+| 결제 catalog / storage | 19종 / supabase |
+
+### 운영 통합 점검
+8 PASS / 2 FAIL. 실패 2건은 **기존 항목**이며 이번 배포와 무관하다
+(`INICIS_MID`·`INICIS_SIGNKEY` 미설정 → checkout 비활성. TASK-007 범위, U22 선행 필요).
+`/api/health` ok:true, openai:true, corpus 28팩 / registry 1.9.0.
+
+### 미수행
+- **`git push` 차단됨** (권한). 커밋 스택이 로컬에만 있어 이번 사고의 근본 원인(원격 미보존)이
+  아직 남아 있다. 사용자 조치 필요
+
+## 2026-09-10 — task-018 배포 경로 정상화 (제안 완료, 적용 승인 대기)
+
+- **U14 해소.** Git 연동 부재를 도구 출력으로 확정:
+  `vercel project inspect`에 Git 섹션 부재(출력 533자), `vercel git ls`에 조회 서브커맨드 없음,
+  Production 배포 3건 모두 git 메타데이터 없음
+  → **배포는 `vercel deploy --prod` CLI 전용. `git push`는 배포를 트리거하지 않는다**
+- `README.md` 배포 섹션 정정: 거짓 서술 제거, 실제 절차, 게이트 선행 이유,
+  브랜치 기준(로컬 `main`을 쓰지 말 것) 명시
+- 제안서: `docs/admin-ops/TASK-018-deploy-path.md`
+
+### 전환 순서 — 바꾸면 사고 재발
+`origin/main`은 우리 HEAD의 **조상**이다 (0 behind / 16 ahead, fast-forward 가능).
+그러나 **`origin/main`에는 아직 우리 16커밋이 없다.**
+연동을 먼저 켜고 누군가 `main`에 push하면 **불완전한 main이 자동 배포**되어
+15:11 회귀가 재발한다.
+
+```
+1) git push origin fix/umsh-qa-ux      # 브랜치 보존
+2) git push origin HEAD:main           # main fast-forward (강제 불필요)
+3) 0 behind / 0 ahead 확인
+4) vercel git connect …                # 그 다음에 연동
+5) main 에 커밋 push 해 자동배포·git 메타데이터 확인
+```
+되돌리기: `git push origin f825d269:main --force-with-lease`
+
+### 로컬 `main` 판정
+`5269272`(09-02), `origin/main` 대비 150 behind / 28 ahead. 낡은 라인이다.
+28커밋의 기능은 모두 현재 코드에 있고, `data/pungsu/**`·`src/pungsu/home-service.ts`(607줄)는
+외부 풍수 API(`PUNGSU_DATASET_API_BASE`) 연동으로 대체되어 현재 코드에서 참조되지 않는다
+(현재는 `src/pungsu/dataset-client.ts` 하나). 보관하되 배포 기준으로 쓰지 않는다.
+
+### 중복 배포 주의 (TASK-005 범위 제약)
+연동 후 GitHub Actions에 `vercel deploy`를 넣으면 push 한 번에 배포가 2회 돈다
+(T02 리서치 F9). Actions는 **CI 전용**(typecheck + test + `check:*`)으로 제한한다.
+
+### 승인 필요
+1. `git push origin HEAD:main` — 현재 세션에서 push 권한이 차단되어 사용자 직접 실행
+2. `vercel git connect` — Vercel 설정 변경
+3. Production Branch를 `main`으로 둘지 확정
+**1 → 2 순서 필수**

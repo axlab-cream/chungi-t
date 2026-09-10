@@ -148,12 +148,32 @@
 | TASK-012 | 결제 설정 문구 정보 노출 제거 | `/api/payment/config`의 `setupMessage`가 내부 환경변수 이름을 노출 | **DONE** (TASK-009 병합으로 해소). 단 **운영 배포 전까지 노출은 계속된다** |
 | TASK-013 | 결혼택일 저쪽 개선분 이식 | `origin/main`의 `chunkMeaning`/`compact`/`RAG_FIELD_LABEL`, 상세 후보일 문맥, 한자→한글 관계 표기를 이식. **Codex 지적: 현재 `sectionBody`가 `_chunk`를 받고도 쓰지 않아 RAG 근거가 본문에 렌더되지 않는다.** 삭제한 저쪽 테스트 3건(상세 문맥·상대 부재 고지·상대 출생시각 불확실)을 이식 또는 대체 작성해야 한다 | TODO (P1) |
 | TASK-014 | Android 앱 셸 인수 | 병합으로 유입된 `android/`(Capacitor) + Play 결제 + App Links 상태 파악 | **BLOCKED — 출시 게이트 G6~G9** |
-| TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | **READY** — `check:production-source` **PASS**. 차단 요인 0건. **사용자 승인만 남음** |
+| TASK-015 | 병합 결과 배포 | 운영에 병합분 반영 | **DONE** — `chungi-387wmilw8`, `umsh.kr` 별칭 이동. SEO·FAQ·about·집풍수 복구 확인 |
+| TASK-017 | `git push` | 커밋 스택이 로컬에만 있다. 원격 미보존이 이번 사고의 근본 원인 | **BLOCKED** (push 권한 차단) — 사용자 조치 필요 |
+| TASK-018 | 배포 경로 정상화 | Git 연동 부재 확정(U14), `README.md` 정정, 전환 제안서 | **제안 완료** — 적용 승인 대기. `docs/admin-ops/TASK-018-deploy-path.md` |
 | TASK-016 | Google Play 결제 활성화 | Play 영수증 검증 경로를 실제로 켜기 | **BLOCKED — 출시 게이트 G6~G8** |
 | TASK-010 | 배포 경로 정상화 | CLI 로컬 배포 → Git 연동 전환 여부 결정. `README.md` 정정 | TODO |
 
 TASK-009는 admin-ops와 **병행하지 않는다.** 회귀 원인을 분리할 수 없기 때문이다.
 수행 시 병합 직후 `npm run typecheck` + `npm test` 373건 전수 + `check:*` 스크립트 재검증이 필수다.
+
+## D. 배포 경로 전환 순서 (TASK-018 — 순서 위반 시 사고 재발)
+
+`origin/main`은 우리 HEAD의 조상이므로 fast-forward가 가능하다.
+그러나 **`origin/main`에는 아직 우리 16커밋이 없다.** 연동을 먼저 켜면
+불완전한 main이 자동 배포되어 2026-09-10 15:11 회귀가 재발한다.
+
+- [ ] D1. `git push origin fix/umsh-qa-ux` — 브랜치 원격 보존 (**push 권한 차단 상태**)
+- [ ] D2. `git push origin HEAD:main` — main fast-forward (강제 불필요)
+- [ ] D3. `git rev-list --left-right --count origin/main...HEAD` → `0  0` 확인
+- [ ] D4. `vercel git connect https://github.com/axlab-cream/chungi-t.git --scope ax-lab-cream`
+- [ ] D5. Production Branch = `main` 확인
+- [ ] D6. `main`에 커밋 push → 자동 배포 + 배포 정보의 git 메타데이터 확인
+
+되돌리기: `git push origin f825d269:main --force-with-lease`
+
+**연동 후 제약:** GitHub Actions에 `vercel deploy`를 넣지 않는다.
+push 한 번에 배포가 2회 돈다(T02 리서치 F9). Actions는 CI 전용.
 
 ## Next Actions
 

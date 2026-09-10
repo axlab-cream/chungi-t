@@ -65,21 +65,50 @@ pull로 받을 수 있는 값과 대시보드에서만 얻는 값:
 
 ## 배포 (Vercel)
 
-현재 Vercel 프로젝트는 `ax-lab-cream/chungi-t`에 링크되어 있고, GitHub
-`axlab-cream/chungi-t`의 `main` 브랜치 push가 Production 배포를 트리거합니다.
+> **Vercel 프로젝트에 Git 연동이 없습니다.** `vercel project inspect`에 Git 섹션이
+> 존재하지 않고, 배포 정보에도 git 메타데이터가 없습니다.
+> **`git push`는 배포를 트리거하지 않습니다.** 배포는 아래 CLI 명령으로만 일어납니다.
+>
+> 이전 문서는 "`main` 브랜치 push가 Production 배포를 트리거한다"고 적었으나
+> 사실이 아닙니다. 2026-09-10에 이 서술을 근거로 판단했다가 배포 상태를 잘못 읽은
+> 사례가 있었습니다.
+
+### 배포 절차
 
 ```bash
-git status --short --branch
+# 1) 배포 전 게이트. 작업 트리가 깨끗하고 HEAD가 방금 fetch한 origin/main을
+#    포함하는지 검사한다. 실패하면 배포하지 않는다.
+npm run check:production-source
+
+# 2) 회귀 기준
 npm run typecheck
 npm test
-git push origin main
+
+# 3) 배포 (이것만이 실제 배포다)
+vercel deploy --prod --yes --scope ax-lab-cream
+
+# 4) 배포 후 검증
+npm run check:integrations
 ```
 
-수동 배포가 필요할 때만 다음 명령을 사용합니다.
+### 왜 게이트를 먼저 돌려야 하는가
 
-```bash
-vercel --prod --scope ax-lab-cream
-```
+Git 연동이 없으므로 **각자의 로컬에서 배포하면 나중에 올린 쪽이 앞선 쪽의 작업을 덮습니다.**
+`check:production-source`가 "HEAD가 방금 fetch한 origin/main을 포함하는가"를 요구하는 이유가
+이것입니다. 이 검사를 건너뛰면 다른 사람의 작업이 빠진 소스를 운영에 올릴 수 있습니다.
+
+실제로 2026-09-10에 두 브랜치가 각자 배포되어, 나중 배포가 앞선 배포의 공개 SEO·FAQ·about
+페이지를 404로 만든 일이 있었습니다. 자세한 기록은
+`docs/admin-ops/production-state-20260910-1511.md`에 있습니다.
+
+### 브랜치 기준
+
+- `origin/main`이 통합 기준입니다. 배포 전에 반드시 `git fetch` 후 HEAD가 이를 포함하는지
+  확인합니다.
+- 로컬 `main` 브랜치는 2026-09-02에 갈라진 낡은 라인입니다(그 시점 이후 `origin/main`에
+  150커밋이 더 쌓였습니다). **배포 기준으로 쓰지 마세요.** 그 브랜치의 `data/pungsu/**`와
+  `src/pungsu/home-service.ts`는 현재 외부 풍수 API(`PUNGSU_DATASET_API_BASE`) 연동으로
+  대체되어 코드에서 참조되지 않습니다.
 
 ## 환경 변수
 
