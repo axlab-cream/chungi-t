@@ -1,0 +1,116 @@
+{
+  "package": "umsh-admin-ops-execution-pack",
+  "version": "1.0",
+  "date": "2026-09-10",
+  "encoding": "UTF-8",
+  "documentCount": 21,
+  "taskCount": 38,
+  "acceptanceScenarioCount": 40,
+  "files": [
+    {
+      "name": "00-START-HERE.md",
+      "bytes": 2533,
+      "sha256": "956c5582367289b63d6a78ae05984aaf391944ab4bc0b510ec0fcdf4d7590cdc"
+    },
+    {
+      "name": "01-LLM-EXECUTION.md",
+      "bytes": 3912,
+      "sha256": "c481e9cc1328b127f964f5bdccda5b2535557eb2becbf2369b7010c7be0d2025"
+    },
+    {
+      "name": "02-EVIDENCE.md",
+      "bytes": 4154,
+      "sha256": "b5fef31ed612a7ef416ce7bf55954cf66e284ee860db7aa368b9941634944dfb"
+    },
+    {
+      "name": "03-GOALS.md",
+      "bytes": 2288,
+      "sha256": "fb5e6605fafff2d0eda4fcea73150c46a6f367a15f248f1d19ab3af886b04b81"
+    },
+    {
+      "name": "04-PRD.md",
+      "bytes": 4298,
+      "sha256": "c33d12ac816b895bda013038e0618165758437f958d2ac9059ea2c5e0c5d0c81"
+    },
+    {
+      "name": "05-IA.md",
+      "bytes": 3498,
+      "sha256": "0969dbcb31aed1c76028914f54a7a87148fff7c5fa8d78001c4104e8f33eb42c"
+    },
+    {
+      "name": "06-SCREENS.md",
+      "bytes": 6673,
+      "sha256": "e4796c9bbcc186f30c65acb02eb8b476f3fc0b19bf8456345edcab6c3fc92894"
+    },
+    {
+      "name": "07-ARCHITECTURE.md",
+      "bytes": 3339,
+      "sha256": "2f8ee07e039ff1269637fd1078279a6c10ba697d0683e4f5ff08e5ebc4ef7c8b"
+    },
+    {
+      "name": "08-DATA.md",
+      "bytes": 4865,
+      "sha256": "0131d883504cdfd0b4e6d9a19706b5a28e2bbda9d9e6725d2cb3a22c61a97051"
+    },
+    {
+      "name": "09-API.md",
+      "bytes": 4481,
+      "sha256": "c8d7a6cc2115890001799bdb7dd9ac011d82d858e3ab608bd3369edf75d93ce8"
+    },
+    {
+      "name": "10-WORKFLOWS.md",
+      "bytes": 4129,
+      "sha256": "d589c26e9def92e35cd4fa13e02d34bd0b0f00ca6b9bb9b02981a94311c6a797"
+    },
+    {
+      "name": "11-CORPUS.md",
+      "bytes": 4022,
+      "sha256": "60856aba838e3e8a079fee0c340c4642e8e51fef48e4a42605c6a4ada3c5022f"
+    },
+    {
+      "name": "12-ANALYTICS.md",
+      "bytes": 4249,
+      "sha256": "8d96b11412753fc92e523e4cf3aeda07edf56b160f1101b7a6496bf5199908dc"
+    },
+    {
+      "name": "13-SECURITY.md",
+      "bytes": 3093,
+      "sha256": "7dd0854795cee7088a96f867753b453737994d640d781588bf20286982ea7c9c"
+    },
+    {
+      "name": "14-ROADMAP.md",
+      "bytes": 2251,
+      "sha256": "5e477516237547054290dfe2f8482b5a150417e3cdd03b7138116199be5773eb"
+    },
+    {
+      "name": "15-TASKS.md",
+      "bytes": 28787,
+      "sha256": "fe20d3f9dd3cea522f9fa99c5beee965904a0dcc02cac54a41b3e0857e9b8c2d"
+    },
+    {
+      "name": "16-ACCEPTANCE.md",
+      "bytes": 4460,
+      "sha256": "0f16a5cfd25eb271d43e93d1fb456edeb15d2b0ad46e3fbedec6413aad60c188"
+    },
+    {
+      "name": "17-RUNBOOK.md",
+      "bytes": 2985,
+      "sha256": "f4a4e5451460a75976672b556c902898f96f9b8f9d4c3d85e65bbfa927143fd2"
+    },
+    {
+      "name": "18-SERVICES.md",
+      "bytes": 2471,
+      "sha256": "de2b5f8748e39e49277ad9711ab8de01a681b16c393d34b870f18a0b722598a2"
+    },
+    {
+      "name": "19-DECISIONS.md",
+      "bytes": 1873,
+      "sha256": "ea976b3905c1112f48faaddbda1ada596d682c38e44ac7a3a10e957079d1a273"
+    },
+    {
+      "name": "20-HANDOFF.md",
+      "bytes": 1080,
+      "sha256": "59cc1b84cd4f86bf00ce083b851ae00c1bd376281a272360031f132c8bf80bdd"
+    }
+  ]
+}

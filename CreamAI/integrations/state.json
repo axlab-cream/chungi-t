@@ -1,0 +1,45 @@
+{
+  "services": {
+    "github": {
+      "service": "github",
+      "display": "GitHub",
+      "status": "configured",
+      "configuredAt": "2026-09-10T02:29:46.8114139Z",
+      "lastCheckedAt": "2026-09-10T02:29:46.8038214Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "gh auth status",
+      "setupHint": "gh auth login",
+      "notes": "auth check passed",
+      "evidenceTail": "github.com\n  ✓ Logged in to github.com account jaeyong-planner (keyring)\n  - Active account: true\n  - Git operations protocol: https\n  - Token=[REDACTED]\n  - Token scopes: 'gist', 'read:org', 'repo'",
+      "updatedAt": "2026-09-10T02:29:46.8114139Z"
+    },
+    "vercel": {
+      "service": "vercel",
+      "display": "Vercel",
+      "status": "configured",
+      "configuredAt": "2026-09-10T02:29:47.7720431Z",
+      "lastCheckedAt": "2026-09-10T02:29:47.7717998Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "vercel whoami",
+      "setupHint": "vercel login",
+      "notes": "auth check passed",
+      "evidenceTail": "Vercel CLI 50.19.1\njaeyong-planner",
+      "updatedAt": "2026-09-10T02:29:47.7720431Z"
+    },
+    "supabase": {
+      "service": "supabase",
+      "display": "Supabase",
+      "status": "missing_cli",
+      "configuredAt": null,
+      "lastCheckedAt": "2026-09-10T02:29:48.1092671Z",
+      "lastCheckExitCode": 3,
+      "authCheck": "supabase projects list",
+      "setupHint": "supabase login",
+      "notes": "auth check did not pass",
+      "evidenceTail": "CLI command not found: supabase",
+      "updatedAt": "2026-09-10T02:29:48.1094220Z"
+    }
+  },
+  "updatedAt": "2026-09-10T02:29:48.1097135Z",
+  "version": 1
+}

@@ -29,9 +29,39 @@ npm start
 
 브라우저에서 **http://localhost:8790** 접속
 
-`vercel env pull .env --environment=production --scope ax-lab-cream`로 환경변수를
-내려받을 수 있지만, Vercel sensitive 값은 로컬에서 빈 값으로 내려올 수 있습니다.
-그 경우 `.env`의 `OPENAI_API_KEY`만 직접 채우면 됩니다.
+## 환경변수 동기화 (검증된 절차)
+
+`src/env/load.ts`는 `.env`를 먼저 읽고 `.env.local`을 `override: true`로 덮어씁니다.
+
+> **`vercel env pull .env` / `vercel env pull .env.local`을 쓰지 마세요.**
+> 이 프로젝트의 모든 비밀값은 Vercel에서 Sensitive로 설정되어 있어 pull 시
+> `KEY=""` 빈 값으로 내려옵니다. `.env.local`이 override로 이기기 때문에
+> 정상 동작하던 `OPENAI_API_KEY`가 조용히 비워집니다.
+> 게다가 `vercel env pull`은 병합이 아니라 **파일 전체를 다시 씁니다** —
+> 손으로 추가한 줄은 다음 pull에서 사라집니다.
+
+권장 절차: 저장소 밖으로 받아 이름만 비교한 뒤 필요한 값만 손으로 옮깁니다.
+
+```bash
+# 1) 저장소 밖 임시 파일로 받는다 (.env는 건드리지 않는다)
+vercel env pull "$TEMP/vercel-dev.env" --environment=development --yes
+
+# 2) 값이 아니라 이름과 빈 값 여부만 비교한다
+#    (값을 터미널에 출력하지 않는다)
+
+# 3) 비어 있지 않은 값만 .env에 손으로 옮긴다
+```
+
+pull로 받을 수 있는 값과 대시보드에서만 얻는 값:
+
+| 구분 | 변수 |
+| --- | --- |
+| `vercel env pull`로 획득 가능 | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_*_PROVIDER`, `SUPABASE_GOOGLE_CLIENT_ID`, `PUBLIC_BASE_URL`, `UMSH_ADMIN_EMAILS` |
+| Sensitive — 항상 빈 값, 손으로 입력 | `OPENAI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `INICIS_MID`, `PUNGSU_DATASET_API_BASE`, `PUNGSU_API_KEY` |
+| Vercel에 아예 없음 | `INICIS_SIGNKEY`, `DATABASE_URL`, `PAYMENT_TEST_MODE`, `REPORT_OPENAI_MODEL`, `REPORT_STORAGE_DIR` |
+
+로컬에서 결제·유료 리포트 흐름까지 확인하려면 실제 이니시스 키 없이
+`PAYMENT_TEST_MODE=1`을 `.env`에 넣습니다 (`NODE_ENV=production`에서는 무시됨).
 
 ## 배포 (Vercel)
 

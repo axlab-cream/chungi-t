@@ -1,0 +1,72 @@
+{
+  "task_id": "task-t02",
+  "mode": "preflight",
+  "timestamp": "2026-09-10T14:16:32.2076249+09:00",
+  "checks": [
+    {
+      "name": "backlog exists",
+      "status": "PASS",
+      "detail": "C:\\Users\\user\\Desktop\\chungi-t\\CreamAI\\backlog\\task-t02.md"
+    },
+    {
+      "name": "dir logs\\events",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir logs\\harness",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir logs\\integrations",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir logs\\test",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir integrations",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir memory\\candidates",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir memory\\approved",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir evals\\rag",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "dir reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "memory search",
+      "status": "PASS",
+      "detail": "completed"
+    }
+  ],
+  "commands": [
+    {
+      "name": "memory search",
+      "command": "search-project-memory",
+      "exit_code": 0,
+      "output_tail": []
+    }
+  ],
+  "warnings": [],
+  "failed": false
+}

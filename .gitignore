@@ -19,3 +19,12 @@ scripts/check-env.ps1
 .env*.local
 public/
 .claude/
+# 개인 로컬 컨텍스트. 파일 자체가 커밋 금지를 명시한다.
+CLAUDE.local.md
+
+# QA·디자인 검수 산출물. npm run qa:all-services 등이 생성한다.
+output/
+
+# ProjectOps 프롬프트 원문. 재현에 필요한 것은 리포트 본문이므로 프롬프트는 남기지 않는다.
+CreamAI/logs/**/_prompt_*.txt
+
