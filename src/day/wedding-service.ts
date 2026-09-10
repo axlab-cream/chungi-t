@@ -170,17 +170,18 @@ function parseIsoDate(raw: unknown): { year: number; month: number; day: number 
   return { year, month, day }
 }
 
-function parseTime(raw: unknown): { hour: number; minute: number } {
+function parseTime(raw: unknown): { hour: number; minute: number; known: boolean } {
   if (typeof raw === 'string') {
     const m = /^(\d{1,2}):(\d{2})$/.exec(raw.trim())
     if (m) {
       const hour = Number(m[1])
       const minute = Number(m[2])
-      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) return { hour, minute }
+      // 한 자리 시각('9:30')도 유효하다. 확인 여부는 이 파싱 결과 하나만 근거로 쓴다.
+      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) return { hour, minute, known: true }
     }
   }
   // 시간을 모르면 정오로 둔다. 시주는 이 서비스의 판정에 쓰지 않는다.
-  return { hour: 12, minute: 0 }
+  return { hour: 12, minute: 0, known: false }
 }
 
 export function parseWeddingRequest(body: Record<string, unknown>): WeddingRequest {
@@ -215,7 +216,7 @@ export function parseWeddingRequest(body: Record<string, unknown>): WeddingReque
 
   return {
     candidateDates: dates,
-    ...(partnerBirth ? { partnerBirth, partnerBirthTimeKnown: typeof body.partnerTime === 'string' && /^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(body.partnerTime.trim()) } : {}),
+    ...(partnerBirth ? { partnerBirth, partnerBirthTimeKnown: parseTime(body.partnerTime).known } : {}),
     ...(FORMATS.includes(rawFormat as WeddingFormat) ? { format: rawFormat as WeddingFormat } : {}),
     ...(FAMILY_LIMITS.includes(rawLimit as FamilyLimit) ? { familyLimit: rawLimit as FamilyLimit } : {}),
     ...(displayName ? { displayName } : {}),

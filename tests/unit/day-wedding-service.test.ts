@@ -170,5 +170,12 @@ test('동일 후보일도 상대나 준비 조건이 달라지면 별도 해석�
   assert.notEqual(id, createWeddingReportId(analysis, { ...BIRTH, hour: 8 }, INPUT))
 })
 
-
+test('한 자리 시각도 상대 출생시각을 받은 것으로 센다', () => {
+  // parseTime 은 '9:30' 을 받아 09:30 으로 읽는다. 확인 여부가 두 자리만 인정하면
+  // 유효한 시각을 미상으로 처리해 용신 판단을 불필요하게 끈다.
+  assert.equal(parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11', partnerTime: '9:30' }).partnerBirthTimeKnown, true)
+  assert.equal(parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11', partnerTime: '09:30' }).partnerBirthTimeKnown, true)
+  assert.equal(parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11', partnerTime: '24:00' }).partnerBirthTimeKnown, false)
+  assert.equal(parseWeddingRequest({ candidateDate1: '2027-05-15', partnerBirth: '1988-03-11' }).partnerBirthTimeKnown, false)
+})
 

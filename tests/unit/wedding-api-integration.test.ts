@@ -113,6 +113,24 @@ describe('결혼 택일 로그인 흐름과 저장 결과', { concurrency: false
     assert.deepEqual(second.payload.preview, first.payload.preview)
   })
 
+  it('출생시각 미상 프로필은 용신 일치를 확정으로 선고하지 않고 티저 사실을 함께 준다', async () => {
+    // 이 라우트가 두 번 등록되어 앞쪽 핸들러가 input.birthTimeKnown 과 티저를 빼먹은 채
+    // 응답한 적이 있다(659ba7f 병합). 그때 프로필의 출생시각 미상이 판정에 반영되지 않았다.
+    const UNKNOWN = 'wedding-owner-no-time'
+    await profiles.saveUserBirthProfile({ ...profile, userId: UNKNOWN, birthTimeKnown: false }, { id: UNKNOWN })
+    const unknown = await request('/api/day/wedding/analyze', INPUT, UNKNOWN)
+    assert.equal(unknown.response.status, 200, `본문: ${JSON.stringify(unknown.payload).slice(0, 200)}`)
+    const unknownText = JSON.stringify(unknown.payload)
+    assert.match(unknownText, /출생시간 미상/, '출생시각 미상이 판정 설명에 반영되지 않았다')
+
+    // 출생시각을 받은 프로필은 같은 문구가 나오지 않아야 한다.
+    const known = await request('/api/day/wedding/analyze', INPUT)
+    assert.doesNotMatch(JSON.stringify(known.payload), /출생시간 미상/)
+
+    // 티저가 조립되지 않으면 04 가 보여줄 후보일 사실이 비어 나간다.
+    assert.match(JSON.stringify(known.payload), /2027-05-15|2027년 5월 15일/, '티저에 후보일 사실이 없다')
+  })
+
   it('후보일이 달라지면 다른 결과로 저장된다', async () => {
     const a = await request('/api/day/wedding/analyze', INPUT)
     const b = await request('/api/day/wedding/analyze', { ...INPUT, candidateDate1: '2027-06-05' })

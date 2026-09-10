@@ -2199,49 +2199,15 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
     }
 
     const input = parseWeddingRequest(req.body)
+    // 프로필의 출생시각 확인 여부를 입력에 실어야 judgeCandidate 가 용신 일치를
+    // 확정으로 선고하지 않는다. 넘기지 않으면 기본값 true 로 취급된다.
+    input.birthTimeKnown = profile.birthTimeKnown
     if (input.candidateDates.length === 0) {
       res.status(400).json({ code: 'INPUT_REQUIRED', error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
       return
     }
     const analysis = analyzeSaju(profile.birth)
     const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
-    const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
-    const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
-    const progressive = await beginSpecializedProgressiveReport({
-      reportId,
-      birth: profile.birth,
-      context,
-      templateReport,
-      analysis,
-      owner,
-      orderId: trimmedString(req.body?.orderId) || undefined,
-    })
-    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
-  } catch (err) {
-    respondRequestFailure(res, err, '결혼 택일 풀이 생성 실패')
-  }
-})
-
-app.post('/api/day/wedding/analyze', async (req, res) => {
-  try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
-    const profile = await getUserBirthProfile(owner)
-    if (!profile) {
-      res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼 택일을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
-      return
-    }
-
-    const input = parseWeddingRequest(req.body)
-    input.birthTimeKnown = profile.birthTimeKnown
-    if (input.candidateDates.length === 0) {
-      res.status(400).json({ error: '후보일을 하나 이상 골라 주세요. 날짜가 있어야 조건을 비교할 수 있습니다.' })
-      return
-    }
-    const context = { ...buildWeddingContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
-    const analysis = analyzeSaju(profile.birth)
     const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
     const teaser = buildWeddingTeaser(analysis, input, context)
     Object.assign(context, { wedding: { facts: teaser.frame, teaser: { headline: teaser.headline, lines: teaser.lines } } })
@@ -2259,7 +2225,7 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
     })
     res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
   } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : '결혼 택일 풀이 생성 실패' })
+    respondRequestFailure(res, err, '결혼 택일 풀이 생성 실패')
   }
 })
 
