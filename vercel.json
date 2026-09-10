@@ -6,7 +6,7 @@
       "includeFiles": "{data,prompts,사주}/**"
     }
   },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index?__umsh_path=$1" }
+  "routes": [
+    { "src": "/(.*)", "dest": "/api/index?__umsh_path=$1" }
   ]
 }

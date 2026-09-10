@@ -158,3 +158,32 @@ describe('브랜드 표기가 하나다', () => {
     })
   })
 })
+
+describe('배포 라우팅이 정적 레이어를 거치지 않는다', () => {
+  // Express 가드만으로는 부족했다. Vercel 은 `rewrites` 를 쓰면 **파일시스템을 먼저**
+  // 확인하므로 저장소 경로와 겹치는 URL 이 함수를 거치지 않고 그대로 나갔다.
+  // 2026-09-10 운영 실측: `/사주/me/pass-angle/01-step-1-story/PROMPT.md` → 200,
+  // `/data/runtime-config.json` → 200, `/prompts/README.md` → 200.
+  // 레거시 `routes` 는 파일시스템 단계보다 먼저 적용되므로 모든 요청이 함수로 간다.
+  const config = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'))
+
+  describe('보안', () => {
+    it('모든 요청을 함수로 보낸다', () => {
+      assert.deepEqual(config.routes, [{ src: '/(.*)', dest: '/api/index?__umsh_path=$1' }])
+    })
+
+    it('`rewrites` 로 되돌리지 않는다', () => {
+      // `rewrites` 는 파일시스템 우선이라 정적 노출이 다시 열린다.
+      assert.equal('rewrites' in config, false, 'rewrites 가 다시 들어왔다')
+      // `routes` 와 함께 쓸 수 없는 키들도 함께 막는다.
+      for (const key of ['redirects', 'headers', 'cleanUrls', 'trailingSlash']) {
+        assert.equal(key in config, false, `${key} 는 routes 와 함께 쓸 수 없다`)
+      }
+    })
+
+    it('함수 번들에는 여전히 필요한 파일이 들어간다', () => {
+      // 노출을 막는 것과 함수가 파일을 읽는 것은 다른 문제다.
+      assert.equal(config.functions['api/index.ts'].includeFiles, '{data,prompts,사주}/**')
+    })
+  })
+})
