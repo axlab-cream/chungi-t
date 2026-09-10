@@ -298,3 +298,60 @@ describe('참조된 자산이 전부 응답한다', { concurrency: false }, () =
     })
   })
 })
+describe('정적 자산이 엣지에 캐시된다', { concurrency: false }, () => {
+  // `express.static` 기본값은 `max-age=0` 이고 그 헤더로는 Vercel CDN 이 응답을 보관하지
+  // 않는다. 2026-09-10 운영 실측에서 1.6MB PNG 까지 매 요청 함수를 거쳤다
+  // (`X-Vercel-Cache: MISS`). 브라우저에는 짧게, 엣지에는 길게 준다 —
+  // `/css`·`/js` 참조 789건 중 버전 쿼리가 붙은 것은 164건(21%)뿐이라 `immutable` 은 못 쓴다.
+  const assets = [
+    '/assets/umsh-brand-logo.png',
+    '/assets/chungi-asset-one.webp',
+    '/assets/fonts/MaruBuri-Bold.woff2',
+    '/css/policy.css',
+    '/js/faq-knowledge.js',
+    '/cmdg/assets/chungi-asset-one.webp',
+  ]
+
+  describe('정상 동작', () => {
+    for (const path of assets) {
+      it(`${path} 에 엣지 캐시 헤더가 붙는다`, async () => {
+        const response = await fetch(origin + path)
+        assert.equal(response.status, 200)
+        const cacheControl = response.headers.get('cache-control') ?? ''
+        assert.match(cacheControl, /s-maxage=\d{5,}/, `엣지 캐시가 없다: ${cacheControl}`)
+        // 브라우저 캐시는 짧아야 한다. 배포 후 낡은 자산을 오래 붙들면 안 된다.
+        const browserMaxAge = Number(/(?:^|[ ,])max-age=(\d+)/.exec(cacheControl)?.[1] ?? -1)
+        assert.ok(browserMaxAge >= 0 && browserMaxAge <= 3600, `브라우저 캐시가 너무 길다: ${cacheControl}`)
+        assert.ok(!cacheControl.includes('immutable'), `버전 없는 참조가 79% 인데 immutable 을 붙였다: ${cacheControl}`)
+      })
+    }
+
+    it('HTML 은 즉시 갱신되도록 남긴다', async () => {
+      for (const path of ['/day/wedding/01-step-1-story/index.html', '/faq', '/privacy']) {
+        const response = await fetch(origin + path)
+        assert.equal(response.status, 200, path)
+        const cacheControl = response.headers.get('cache-control') ?? ''
+        assert.ok(!/s-maxage=\d{5,}/.test(cacheControl), `${path} 에 긴 엣지 캐시가 붙었다: ${cacheControl}`)
+      }
+    })
+  })
+
+  describe('보안', () => {
+    it('자산 마운트를 통한 경로 순회로 내부 파일이 나가지 않는다', async () => {
+      // 캐시 헤더를 붙이면서 마운트 구성을 바꿨다. 순회 경로가 다시 열리지 않았는지 본다.
+      const attempts = [
+        '/assets/../extracted_decoded.html',
+        '/css/../../사주/extracted_decoded.html',
+        '/assets/..%2F..%2Fextracted_decoded.html',
+        '/js/../me/pass-angle/01-step-1-story/PROMPT.md',
+        '/assets/%2e%2e/extracted_decoded.html',
+      ]
+      for (const path of attempts) {
+        const response = await fetch(origin + path)
+        const body = await response.text()
+        assert.ok(!/타이트사주|당신은|SERVICE-GENERATION-CONTRACT/.test(body), `${path} 로 내부 파일이 나갔다`)
+        assert.notEqual(response.status, 200, `${path} 가 200 으로 열렸다`)
+      }
+    })
+  })
+})

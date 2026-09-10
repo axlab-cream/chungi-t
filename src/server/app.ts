@@ -1,5 +1,6 @@
 import { respondRequestFailure } from './input-error.js'
 import '../env/load.js'
+import type { ServerResponse } from 'node:http'
 import express from 'express'
 import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
@@ -775,24 +776,47 @@ app.use((req, res, next) => {
   res.status(404).type('text/plain; charset=utf-8').send('찾을 수 없는 경로입니다.')
 })
 
-app.use('/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/css', express.static(join(SAJU_ROOT, 'css')))
-app.use('/js', express.static(join(SAJU_ROOT, 'js')))
-app.use('/cmdg/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/love/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/love/mind/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/love/again/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/love/spouse/assets', express.static(join(SAJU_UI, 'assets')))
-app.use('/place/home/assets', express.static(join(SAJU_ROOT, 'place', 'home', 'IMAGE')))
-app.use('/cmdg/css', express.static(join(SAJU_ROOT, 'css')))
-app.use('/cmdg/js', express.static(join(SAJU_ROOT, 'js')))
+/**
+ * 자산 캐시 정책. **브라우저는 짧게, 엣지는 길게.**
+ *
+ * `express.static` 은 기본이 `max-age=0` 이고 그 헤더로는 Vercel CDN 이 응답을 보관하지
+ * 않는다. 그래서 2026-09-10 기준 1.6MB PNG 까지 매 요청 서버리스 함수를 거쳤다
+ * (`X-Vercel-Cache: MISS`, `X-Vercel-Id: icn1::iad1::…` — 서울 엣지에서 버지니아 함수 왕복).
+ *
+ * 브라우저에 긴 `max-age` 를 줄 수는 없다. `/css/**`·`/js/**` 참조 789건 중 `?v=` 버전
+ * 쿼리가 붙은 것은 **164건(21%)** 뿐이라, 나머지는 배포 후에도 낡은 파일을 계속 쓴다.
+ * 대신 엣지에 길게 준다 — Vercel 캐시는 **배포 단위로 무효화**되므로 자산 내용이 바뀌는
+ * 유일한 계기에 자동으로 갱신된다.
+ */
+const ASSET_CACHE_CONTROL = 'public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400'
+
+/** HTML 은 기본값(`max-age=0`)을 유지한다. 배포 즉시 반영돼야 하는 쪽이다. */
+function setStaticCacheHeaders(res: ServerResponse, filePath: string): void {
+  if (/\.html?$/i.test(filePath)) return
+  res.setHeader('Cache-Control', ASSET_CACHE_CONTROL)
+}
+
+const cachedStatic = (root: string, options: Parameters<typeof express.static>[1] = {}) =>
+  express.static(root, { ...options, setHeaders: setStaticCacheHeaders })
+
+app.use('/assets', cachedStatic(join(SAJU_UI, 'assets')))
+app.use('/css', cachedStatic(join(SAJU_ROOT, 'css')))
+app.use('/js', cachedStatic(join(SAJU_ROOT, 'js')))
+app.use('/cmdg/assets', cachedStatic(join(SAJU_UI, 'assets')))
+app.use('/love/assets', cachedStatic(join(SAJU_UI, 'assets')))
+app.use('/love/mind/assets', cachedStatic(join(SAJU_UI, 'assets')))
+app.use('/love/again/assets', cachedStatic(join(SAJU_UI, 'assets')))
+app.use('/love/spouse/assets', cachedStatic(join(SAJU_UI, 'assets')))
+app.use('/place/home/assets', cachedStatic(join(SAJU_ROOT, 'place', 'home', 'IMAGE')))
+app.use('/cmdg/css', cachedStatic(join(SAJU_ROOT, 'css')))
+app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 // `SAJU_UI`(중첩 `사주/사주` 폴더)를 통째로 마운트하지 않는다. 그 폴더 최상위에서
 // 웹 확장자를 가진 파일은 `index.html`(위 라우트가 `sendFile` 로 직접 보낸다)과
 // `extracted_decoded.html`(외부 사이트 스크래핑 결과)뿐이고, `assets/` 는 위에서
 // 경로별로 명시 마운트했다. 즉 이 마운트는 스크랩 산출물만 추가로 공개했다 —
 // 확장자 허용 목록은 `.html` 을 통과시키므로 `GET /extracted_decoded.html` 이
 // 116KB 를 그대로 반환하고 있었다 (2026-09-10 Codex 리뷰 Major 확인 중 발견).
-app.use(express.static(SAJU_ROOT, { index: false }))
+app.use(cachedStatic(SAJU_ROOT, { index: false }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {
   return {
