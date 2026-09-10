@@ -93,6 +93,15 @@
 | V-111 | task-020 | 참조 자산 크롤 | HTML·CSS 가 참조하는 로컬 자산 URL 전수 | 전부 200 | **PASS** — 형식 누락이 조용히 깨지지 않게 | 2026-09-10 |
 | V-112 | task-020 | 음성 대조 | 허용목록→거부목록 / 백슬래시 정규화 제거 / 중첩 마운트 복원 | 각각 6·6·1건 실패 | **PASS** — 전부 복원 확인 | 2026-09-10 |
 | V-113 | task-020 | 운영 실측 | 차단 7종 / 정상 15종 | 404 / 200 | **PASS** — 배포 후 확인 | 2026-09-10 |
+| V-114 | task-005 | CI 배포 금지 | 워크플로에 배포 단계·배포 액션 | 0건 | **PASS** — 정규식. `npx vercel@latest --prod` 주입 시 실패 확인 | 2026-09-10 |
+| V-115 | task-005 | CI 권한 최소 | 최상위 `permissions` 1개 · 내용 정확히 `contents: read` | 일치 | **PASS** — 권한 승격·job 수준 승격 주입 시 실패 확인 | 2026-09-10 |
+| V-116 | task-005 | CI 게이트 존재 | `npm ci`·typecheck·test·SEO·QA·`vercel-build`·`git diff` | 전부 존재 | **PASS** — QA 게이트 삭제 시 실패 확인 | 2026-09-10 |
+| V-117 | task-005 | 제외 이유 | 모든 `check:*` 가 CI 에 있거나 제외 이유가 적혀 있음 | 충족 | **PASS** — `integrations`·`production-source` 2건 제외 + 이유 | 2026-09-10 |
+| V-118 | task-005 | Node 단일 출처 | `.nvmrc` = Vercel `nodeVersion` | 24 = 24.x | **PASS** — 드리프트 없음 | 2026-09-10 |
+| V-119 | task-005 | 자격증명 없이 실행 | 모든 credential unset 후 `npm test` | 통과 | **PASS** — 테스트는 `.env` 를 읽지 않는다 | 2026-09-10 |
+| V-120 | task-005 | GitHub 실제 실행 | 워크플로 실행 결과 | success | **PASS** — 4회 (브랜치 3 + main 1), 10단계 녹색 | 2026-09-10 |
+| V-121 | task-005 | 중복 배포 없음 | `main` push 후 배포 건수 | 1건 | **PASS** — CI 1회 + Production 1회 실측 | 2026-09-10 |
+| V-122 | task-005 | 배포 빌드 검증 | `vercel-build` 후 `git diff --exit-code` | 변경 0건 | **PASS** — 생성물이 커밋과 일치 | 2026-09-10 |
 | V-049 | task-009 | merge 안전성 | 미추적 파일 vs incoming 충돌 검사 | 충돌 0건 | PASS (미추적 29 / incoming 216 / 충돌 0. 수정 tracked 2건도 incoming에 없음) | 2026-09-10 |
 | V-050 | task-009 | merge 복원 | `git merge --abort` 후 상태 대조 | HEAD·dirty 불변 | PASS (HEAD `dac3835` 불변, 충돌 0, dirty 31 = 시도 전과 동일, 작업물 전부 보존) | 2026-09-10 |
 | V-051 | task-009 | 충돌 분석 | 24건 파일별 해소 방침 확정 | 전건 방침 결정 | PASS (그룹 A~D 분류. 결정 필요 1건만 남김) | 2026-09-10 |

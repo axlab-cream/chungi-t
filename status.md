@@ -698,3 +698,46 @@ ttf 3 · xml 1 · jpg 1 · ico 1). 소스맵은 넣지 않았다. 확장자 없�
 ### 신규 미해결
 - **U32**: 공개 자산 전용 디렉터리로 옮기는 경로 기반 모델. `SAJU_ROOT` 전체 마운트가
   남아 있어, 웹 확장자로 내부 산출물이 새로 생기면 **테스트는 잡지만 런타임은 막지 못한다**
+## 2026-09-10 20:10 — task-005 GitHub Actions CI (검사 전용)
+
+### 문제
+지난 여러 Task 의 게이트가 **내 로컬에서만** 돌고 있었다 — 정적 노출 매트릭스,
+상대 개인정보, RAG 배선, 브랜드·검색 기반, 20개 서비스 QA.
+`.github/workflows/` 는 **빈 폴더**였다. 다른 사람 push 는 게이트를 거치지 않는다.
+
+### 구성 (배포 단계 없음)
+checkout@v5 → setup-node@v5(`.nvmrc`=24) → `npm ci` → typecheck → test →
+검수 15개 → 검색 기반(커밋 상태) → 20개 서비스 QA → **`vercel-build`(배포 빌드 검증)**
+→ **`git diff --exit-code`(생성물 최신)**. 권한은 `contents: read` 하나.
+
+제외 2개와 이유를 워크플로에 적었다 — `check:integrations`(실계정 필요),
+`check:production-source`(배포 직전 preflight, main 보다 뒤처진 브랜치에서 정상 실패).
+
+### 실측
+| 항목 | 결과 |
+| --- | --- |
+| GitHub 실행 | **4회 모두 success** (1m53s · 2m15s · 2m20s · main), 10단계 녹색 |
+| `main` push | CI 1회 + Vercel Production **1회** — 중복 배포 없음 |
+| `npm test` | **503 pass / 0 fail** (498 → 503) |
+| Node 정합 | `.nvmrc` 24 = Vercel `nodeVersion` **24.x** (드리프트 없음) |
+| 음성 대조 5건 | 배포 주입 / 게이트 삭제 / 권한 승격 / job 권한 / `npx vercel@latest --prod` |
+
+### Codex 가 잡은 것
+1. **CI 가 Vercel 실제 빌드를 돌리지 않았다.** `vercel-build` 가 FAQ 126건·사이트맵 생성과
+   `public/` 복사를 한다 → 복사 원본 누락은 **배포에서만** 깨진다. 게이트로 추가하고
+   `git diff --exit-code` 로 생성물 최신성까지 확인
+2. **권한 계약이 정책보다 약했다.** `contents: read` 가 **있는지만** 봐서 추가 권한이나
+   job 수준 승격을 놓쳤다 → 블록 1개 · 내용 정확히 1줄로 강화
+3. 배포 금지가 문자열 목록이라 `npx vercel@latest --prod` 를 놓쳤다 → 정규식으로
+
+**교훈: "CI 가 로컬과 같은 것을 돌리는가"가 아니라 "CI 가 배포와 같은 것을 돌리는가".**
+그리고 보안 계약은 "있는지"가 아니라 **"그것만인지"** 를 검사해야 한다.
+
+### 알아 둘 것
+- **CI 는 배포를 차단하지 못한다.** Vercel 연동 배포는 CI 와 병렬로 시작한다.
+  차단이 필요하면 GitHub 브랜치 보호(required status check) 설정이 필요하다 — 사용자 판단
+- `gh` 는 remote 가 여러 개면 `upstream` 을 골라 404 를 낸다. `--repo` 를 명시해야 한다
+
+### 신규 미해결
+- **U34**: 액션을 커밋 SHA 로 pin + Dependabot (지금은 공식 액션 mutable 태그)
+- 브랜치 보호 규칙 도입 여부 (CI 를 배포 차단 게이트로 쓸지)

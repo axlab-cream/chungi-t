@@ -147,6 +147,7 @@
 | TASK-009 | `origin/main` 통합 | 실제 21커밋 통합. 충돌 24건 해소. 결혼택일은 우리 구현 정본 | **DONE** — 커밋 `659ba7f`, 미푸시. 415/415 테스트, 가드 15/15 |
 | TASK-011 | 브랜드 표기 통일 + 정적 노출 차단 | 정책 페이지 4개를 `운명상회`로 통일 + `alternateName: UMSH`. **그리고 정적 루트에서 서비스되던 프롬프트 원문·스크래핑 산출물·생성 JSON 차단** | **DONE** — 474 pass. Codex Critical 1 반영 |
 | TASK-020 | 정적 제공을 허용 목록으로 (U31) | 기본 거부 전환, `%5C` 우회 차단, 중첩 폴더 전체 마운트 제거(스크랩 116KB 노출), 산출물 도달성·참조 자산 크롤 게이트 | **DONE** — 498 pass. Codex Critical 1 · Major 1 반영 |
+| TASK-005 | GitHub Actions CI (검사 전용) | 게이트를 push·PR 마다 실행. 배포 단계 없음(계약 테스트로 고정), `vercel-build` 빌드 검증 + 생성물 최신 확인 | **DONE** — 503 pass. GitHub 실행 4회 success, 중복 배포 없음 실측 |
 | TASK-012 | 결제 설정 문구 정보 노출 제거 | `/api/payment/config`의 `setupMessage`가 내부 환경변수 이름을 노출 | **DONE** (TASK-009 병합으로 해소). 단 **운영 배포 전까지 노출은 계속된다** |
 | TASK-013 | 결혼택일 RAG 렌더링·문맥 이식 | RAG 근거를 본문에 실음(`_chunk` 소멸), 청크 중복 배정 제거, 후보일 판정·상대 명식 문맥 이식, 한자 독음, 삭제된 테스트 3건 복구 + 신규 7건 | **DONE** — 430 pass. Codex Critical 2건(상대 개인정보) 반영 |
 | TASK-019 | 상대 개인정보 전 서비스 정리 (U26) | 6개 서비스 문맥에서 상대 생년월일시 제거, 응답·프롬프트·저장된 상담 경로 sanitize | **DONE** — 446 pass. Codex Critical 2건(featureJson·저장된 상담) 반영 |
