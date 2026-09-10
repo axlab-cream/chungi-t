@@ -18,16 +18,42 @@ describe('[TASK] CI 워크플로 계약', () => {
           .split('\n')
           .filter((line) => !line.trim().startsWith('#'))
           .join('\n')
-        for (const banned of ['vercel deploy', 'vercel --prod', 'amondnet/vercel-action', 'vercel/action']) {
-          assert.ok(!steps.includes(banned), `${name} 에 배포 단계가 들어왔다: ${banned}`)
+        // 문자열 목록으로 보면 `npx vercel@latest --prod` 같은 형태를 놓친다
+        // (2026-09-10 Codex 리뷰 Minor). 실수 방지용 계약이며, 권한 있는 사람의
+        // 의도적 우회를 막는 통제는 아니다.
+        const bannedPatterns: Array<[RegExp, string]> = [
+          [/\bvercel(@[^\s]+)?\s+(deploy|--prod|build\s+--prod)/i, 'Vercel CLI 배포'],
+          [/\bvercel(@[^\s]+)?\b[^\n]*--prod/i, 'Vercel CLI production 배포'],
+          [/uses:\s*[^\s]*vercel/i, 'Vercel 배포 액션'],
+          [/uses:\s*[^\s]*(netlify|cloudflare\/wrangler)/i, '다른 호스팅 배포 액션'],
+        ]
+        for (const [pattern, label] of bannedPatterns) {
+          assert.ok(!pattern.test(steps), `${name} 에 배포 단계가 들어왔다: ${label}`)
         }
       }
     })
 
-    it('워크플로 권한이 읽기로 제한된다', () => {
+    it('워크플로 권한이 읽기 하나로 제한된다', () => {
+      // 존재만 확인하면 `pull-requests: write` 나 job 수준 권한 승격을 놓친다
+      // (2026-09-10 Codex 리뷰 Major). 블록 내용과 위치를 함께 본다.
       for (const name of workflows) {
-        const yaml = readFileSync(new URL(name, workflowDir), 'utf8')
-        assert.match(yaml, /permissions:\s*\n\s*contents: read/, `${name} 에 권한 제한이 없다`)
+        const lines = readFileSync(new URL(name, workflowDir), 'utf8').split('\n')
+        const declarations = lines
+          .map((line, index) => ({ line, index }))
+          .filter(({ line }) => /^\s*permissions:/.test(line))
+        assert.equal(declarations.length, 1, `${name} 의 permissions 선언이 ${declarations.length}개다`)
+
+        const [{ line, index }] = declarations
+        // 들여쓰기가 있으면 job 수준 선언이다. 최상위 하나만 허용한다.
+        assert.match(line, /^permissions:/, `${name} 에 job 수준 permissions 가 있다: ${line.trim()}`)
+
+        const entries: string[] = []
+        for (const next of lines.slice(index + 1)) {
+          if (!next.trim() || next.trim().startsWith('#')) continue
+          if (!/^\s+/.test(next)) break
+          entries.push(next.trim())
+        }
+        assert.deepEqual(entries, ['contents: read'], `${name} 의 권한이 읽기 하나가 아니다`)
       }
     })
   })
@@ -37,7 +63,7 @@ describe('[TASK] CI 워크플로 계약', () => {
 
     it('회귀 게이트를 전부 실행한다', () => {
       // 게이트를 조용히 빼면 그 회귀가 배포 전에 잡히지 않는다.
-      for (const step of ['npm ci', 'npm run typecheck', 'npm test', 'verify-seo-foundation.mjs', 'npm run qa:all-services']) {
+      for (const step of ['npm ci', 'npm run typecheck', 'npm test', 'verify-seo-foundation.mjs', 'npm run qa:all-services', 'npm run vercel-build', 'git diff --exit-code']) {
         assert.ok(ci.includes(step), `CI 에 ${step} 가 없다`)
       }
     })

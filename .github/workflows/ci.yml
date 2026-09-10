@@ -50,11 +50,25 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: 검색 기반 검증
+      # 커밋된 상태 그대로의 검색 기반을 검증한다. 아래 `vercel-build` 안에서도 같은
+      # 검사가 돌지만 그쪽은 FAQ·사이트맵을 **재생성한 뒤**의 상태를 본다. 두 시점이 다르다.
+      - name: 검색 기반 검증 (커밋된 상태)
         run: node scripts/verify-seo-foundation.mjs
 
       - name: 20개 서비스 QA
         run: npm run qa:all-services
+
+      # Vercel 이 실제로 실행하는 빌드다. FAQ 126건·사이트맵 생성, 검색 기반 재검증,
+      # `public/` 자산 복사가 여기 들어 있다. CI 에서 돌리지 않으면 복사 원본 누락이나
+      # 경로 변경처럼 **배포에서만 깨지는 회귀**가 통과한다(2026-09-10 Codex 리뷰 Major).
+      # 이것은 빌드 검증이며 배포 명령이 아니다.
+      - name: 배포 빌드 검증 (배포하지 않는다)
+        run: npm run vercel-build
+
+      # 생성물이 커밋된 것과 다르면 누군가 원본(`data/public-faq.json` 등)만 바꾸고
+      # 재생성하지 않은 것이다. 그대로 배포되면 운영과 저장소가 어긋난다.
+      - name: 생성물이 최신인지
+        run: git diff --exit-code
 
       # `check:integrations` 와 `check:production-source` 는 여기서 돌리지 않는다.
       #  - `check:integrations` 는 Supabase·이니시스 실계정을 호출한다(비밀값 필요)
