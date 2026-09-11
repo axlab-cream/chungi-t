@@ -77,3 +77,38 @@
   - [ ] publish audit and idempotency evidence exists;
   - [ ] 1440/768/390 administrator layouts remain usable.
 - Definition of Done: targeted tests turn red then green; migration/RPC privileges and rollback transition pass; full test/type/build pass; production browser publish and public API are verified; status/tests/KMS are updated.
+
+## T22 Slice 4 — Support Notice Versioning
+
+### Page Brief
+
+- Pages: administrator `/admin/content`; customer `/support`.
+- Purpose: let an authorized operator save one structured support notice as a private draft, publish it explicitly, and show only the published revision to customers.
+- Fixed placement: `support_top`. The placement is code-owned in this slice so arbitrary routes or page injection cannot be introduced from content data.
+- Editable fields: plain-text `title` (1–100), plain-text `body` (1–1000), and internal `reviewNote` (0–500). HTML, scripts, images, links, service keys, scheduling, and customer data are not accepted.
+- Primary CTA: `이 공지를 발행`; secondary CTA: `초안 저장`.
+- Data source: private `content_versions` rows through server-only service-role calls. Browser roles never query the table directly.
+- Customer fallback: when no valid published notice exists, the notice region stays absent and the existing support document remains unchanged. Storage failure also fails closed without synthetic content.
+- Required states: loading, empty, draft saved, published, validation error, stale revision, permission denial, and unavailable source.
+- Accessibility/responsiveness: reuse the existing LNB and compact form; use semantic heading/body text, `role=status`, native confirmation, disabled in-flight actions, and layouts usable at 1440/768/390.
+- SEO/legal/privacy: existing metadata and policy copy remain unchanged; rendering uses `textContent`, not `innerHTML`; no personal data or customer identifiers are stored.
+- Analytics: `content.notice.draft.create`, `.update`, and `.publish` audit commands only; no new customer tracking event.
+
+### TASK Brief
+
+- TASK ID: T22 Slice 4.
+- User outcome: support notices have an auditable revision history and only a reviewed explicit publication changes the customer page.
+- Scope: exact payload parser, content store, atomic create/publish RPCs, revision-CAS update, admin read/write/publish APIs, `/admin/content` editor, public allowlisted notice API, and `/support` renderer.
+- Out of scope: FAQ/banner/legal/service-card editing, media, scheduling, multi-review approval, rollback UI, email/push delivery, and payment behavior.
+- Publish transition: lock `notice/support_top`; require matching draft id/state/revision; archive the prior published row; promote the draft; increment revision; keep all history.
+- Public DTO: `{ title, body, publishedAt }` only. It never exposes author email, review note, checksum, raw payload, draft id, or revision.
+- Acceptance criteria:
+  - [ ] anonymous users cannot read or mutate administrator notice endpoints;
+  - [ ] only `content:read`, `content:write`, and `content:publish` scopes reach their matching operations;
+  - [ ] unknown payload fields and HTML-shaped input are rejected before persistence;
+  - [ ] create/update/publish use idempotency and write audit evidence;
+  - [ ] stale revisions and wrong draft states conflict without partial transition;
+  - [ ] the previous published row is archived and exactly one published `support_top` notice remains;
+  - [ ] the customer API exposes only the allowlist and returns `notice: null` for no valid publication or unavailable storage;
+  - [ ] `/support` escapes and renders the published notice without disturbing existing support content;
+  - [ ] tests, typecheck, build, production migration, deployment, browser states, operational docs, and CreamWIKI evidence are complete.

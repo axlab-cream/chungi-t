@@ -41,6 +41,12 @@
           <nav class="policy-nav" aria-label="서비스와 정책"><a href="/about">운명상회란?</a><a href="/faq">자주 묻는 질문</a><a href="/terms">이용약관</a><a href="/privacy">개인정보처리방침</a><a href="/refund">환불·취소 정책</a><a href="/support" aria-current="page">고객센터</a></nav>
         </div>
 
+        <section class="policy-section" data-support-notice hidden aria-live="polite">
+          <p class="eyebrow">NOTICE</p>
+          <h2 data-support-notice-title></h2>
+          <p data-support-notice-body></p>
+        </section>
+
         <section class="policy-section">
           <h2>연락처</h2>
           <ul>
@@ -74,5 +80,25 @@
         </footer>
       </article>
     </main>
+    <script>
+      (async function loadPublishedSupportNotice() {
+        try {
+          var response = await fetch('/api/content/notices/support', { credentials: 'same-origin' });
+          if (!response.ok) return;
+          var payload = await response.json();
+          var notice = payload && payload.notice;
+          if (!notice || typeof notice.title !== 'string' || typeof notice.body !== 'string') return;
+          var section = document.querySelector('[data-support-notice]');
+          var title = document.querySelector('[data-support-notice-title]');
+          var body = document.querySelector('[data-support-notice-body]');
+          if (!section || !title || !body) return;
+          title.textContent = notice.title;
+          body.textContent = notice.body;
+          section.hidden = false;
+        } catch (_error) {
+          // 저장소 장애 시 기존 고객센터 문서를 유지하고 가짜 공지를 만들지 않는다.
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -166,7 +166,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
       // 환불은 요청·승인·조회로 분리된 별도 scope 이며, 삭제 권한은 주지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish'])
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish'])
       assert.ok(!me.scopes.some((scope: string) => /delete/.test(scope)), '허용되지 않은 삭제 권한이 생겼다')
       assert.ok(me.scopes.includes('settings:write'), '감사 기반 설정 변경 권한이 없다')
       assert.ok(me.scopes.includes('support:read') && me.scopes.includes('support:write'), '고객 지원 권한이 없다')
@@ -245,6 +245,9 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /expectedRevision/, '서비스 초안 revision 충돌 방지가 없다')
       assert.match(text, /이 초안을 발행/, '서비스 초안 발행 CTA가 없다')
       assert.match(text, /service\.draft\.publish|\/publish/, '서비스 발행 명령 호출이 없다')
+      assert.match(text, /loadSupportNotice/, '실제 공지 데이터 로더가 없다')
+      assert.match(text, /이 공지를 발행/, '공지 발행 CTA가 없다')
+      assert.match(text, /content\.notice\.draft|\/api\/admin\/v1\/content\/notices\/support/, '공지 명령 호출이 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
@@ -269,6 +272,28 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(JSON.parse(invalid.text).code, /^SERVICE_/)
       const publishAnonymous = await request('/api/admin/v1/services/cmdg/drafts/draft-id/publish', undefined, { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': 'service-publish-test' }, body: JSON.stringify({ expectedRevision: 0 }) })
       assert.equal(publishAnonymous.response.status, 401)
+    })
+
+    it('공지 관리자 API는 권한과 구조화 입력을 요구하고 공개 API는 안전하게 비어 있다', async () => {
+      const anonymous = await request('/api/admin/v1/content/notices/support')
+      assert.equal(anonymous.response.status, 401)
+      const allowed = await request('/api/admin/v1/content/notices/support', 'super')
+      assert.equal(allowed.response.status, 200)
+      assert.equal(JSON.parse(allowed.text).store, 'unavailable')
+      const invalid = await request('/api/admin/v1/content/notices/support/drafts', 'super', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': 'notice-draft-test' }, body: JSON.stringify({ fields: { title: '공지', body: '<b>본문</b>' }, reviewNote: '' }) })
+      assert.equal(invalid.response.status, 422)
+      const publicResult = await request('/api/content/notices/support')
+      assert.equal(publicResult.response.status, 200)
+      assert.deepEqual(JSON.parse(publicResult.text), { notice: null })
+    })
+
+    it('고객센터는 발행된 공지만 textContent로 렌더한다', async () => {
+      const { text } = await request('/support')
+      assert.match(text, /data-support-notice/)
+      assert.match(text, /\/api\/content\/notices\/support/)
+      assert.match(text, /title\.textContent = notice\.title/)
+      assert.match(text, /body\.textContent = notice\.body/)
+      assert.ok(!text.includes('notice.body</'), '공지 본문을 HTML로 직접 삽입한다')
     })
 
     it('환불 목록 API는 읽기 scope가 있는 관리자만 실제 원천을 조회한다', async () => {

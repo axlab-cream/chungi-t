@@ -45,6 +45,8 @@ import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { createAdminServiceDraft, getAdminServiceVersionSnapshot, publishAdminServiceDraft, updateAdminServiceDraft } from '../admin/service-version-store.js'
 import { parseServiceDraftFields } from '../admin/service-draft.js'
+import { createAdminSupportNoticeDraft, getAdminSupportNoticeSnapshot, getPublishedSupportNotice, publishAdminSupportNoticeDraft, updateAdminSupportNoticeDraft } from '../admin/notice-version-store.js'
+import { parseNoticeDraftFields, parseNoticeReviewNote } from '../admin/notice-content.js'
 import { getPublicServiceDirectorySnapshot } from './published-service-directory.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
@@ -1131,7 +1133,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1915,6 +1917,70 @@ app.post('/api/admin/v1/services/:key/drafts/:id/publish', async (req, res) => {
     const conflict = error instanceof AdminCommandConflict || code === 'SERVICE_DRAFT_REVISION_CONFLICT'
     res.status(conflict ? 409 : 503).json({ code, error: conflict ? '초안이 변경되었거나 이미 발행되었습니다. 목록을 새로고침해 주세요.' : '서비스 초안을 발행하지 못했습니다.' })
   }
+})
+
+app.get('/api/admin/v1/content/notices/support', async (req, res) => {
+  if (!await requireStaff(req, res, 'content:read')) return
+  try { res.json(await getAdminSupportNoticeSnapshot()) }
+  catch { res.status(503).json({ code: 'NOTICE_VERSION_LOOKUP_FAILED', error: '공지 버전 저장소를 불러오지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const body = asObject(req.body); const idempotencyKey = adminCommandKey(req)
+  let fields; let reviewNote
+  try { fields = parseNoticeDraftFields(body.fields); reviewNote = parseNoticeReviewNote(body.reviewNote) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'NOTICE_FIELDS_INVALID', error: '공지 제목, 본문, 검수 의견을 확인해 주세요.' }); return }
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.draft.create', idempotencyKey, body: { fields, reviewNote }, target: { type: 'content_notice', id: 'support_top' } }, async () => createAdminSupportNoticeDraft({ fields, reviewNote, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_DRAFT_CREATE_FAILED'
+    const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_EXISTS'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '이미 공지 초안이 있습니다. 화면을 새로고침해 수정해 주세요.' : '공지 초안을 저장하지 못했습니다.' })
+  }
+})
+
+app.patch('/api/admin/v1/content/notices/support/drafts/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const id = trimmedString(req.params.id); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  let fields; let reviewNote
+  try { fields = parseNoticeDraftFields(body.fields); reviewNote = parseNoticeReviewNote(body.reviewNote) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'NOTICE_FIELDS_INVALID', error: '공지 제목, 본문, 검수 의견을 확인해 주세요.' }); return }
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_DRAFT_UPDATE_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.draft.update', idempotencyKey, body: { id, expectedRevision, fields, reviewNote }, target: { type: 'content_notice', id: 'support_top' } }, async () => {
+      const draft = await updateAdminSupportNoticeDraft({ id, expectedRevision, fields, reviewNote })
+      if (!draft) throw new AdminCommandConflict('SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT')
+      return draft
+    })
+    res.json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const conflict = error instanceof AdminCommandConflict
+    res.status(conflict ? 409 : 503).json({ code: conflict ? error.message : 'SUPPORT_NOTICE_DRAFT_UPDATE_FAILED', error: conflict ? '다른 관리자가 먼저 수정했습니다. 화면을 새로고침해 주세요.' : '공지 초안을 변경하지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts/:id/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id); const expectedRevision = Number(asObject(req.body).expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_DRAFT_PUBLISH_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const snapshot = await getAdminSupportNoticeSnapshot()
+    if (!snapshot.draft || snapshot.draft.id !== id || snapshot.draft.revision !== expectedRevision) throw new AdminCommandConflict('SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT')
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.draft.publish', idempotencyKey, body: { id, expectedRevision }, target: { type: 'content_notice', id: 'support_top' } }, async () => publishAdminSupportNoticeDraft({ id, expectedRevision, actorEmail: membership.email }))
+    res.json({ published: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_DRAFT_PUBLISH_FAILED'
+    const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '초안이 변경되었거나 이미 발행되었습니다. 화면을 새로고침해 주세요.' : '공지 초안을 발행하지 못했습니다.' })
+  }
+})
+
+app.get('/api/content/notices/support', async (_req, res) => {
+  try { res.json({ notice: await getPublishedSupportNotice() }) }
+  catch { res.json({ notice: null }) }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
