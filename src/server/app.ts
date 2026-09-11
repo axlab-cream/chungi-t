@@ -35,6 +35,8 @@ import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReport
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
+import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts } from '../auth/admin-account-store.js'
+import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
@@ -1152,7 +1154,7 @@ function signedLocalAdminSession(email: string): string {
   return `${payload}.${signature}`
 }
 
-function localAdminMembership(req: Request): StaffMembership | undefined {
+function signedLocalAdminEmail(req: Request): string | undefined {
   if (!localAdminConfigured()) return undefined
   const [payload, signature, ...extra] = readCookie(req, LOCAL_ADMIN_COOKIE).split('.')
   if (!payload || !signature || extra.length) return undefined
@@ -1162,11 +1164,26 @@ function localAdminMembership(req: Request): StaffMembership | undefined {
   if (suppliedBytes.length !== expectedBytes.length || !timingSafeEqual(suppliedBytes, expectedBytes)) return undefined
   try {
     const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { email?: unknown, exp?: unknown }
-    if (typeof parsed.email !== 'string' || parsed.email !== localAdminEmail() || typeof parsed.exp !== 'number' || !Number.isInteger(parsed.exp) || parsed.exp <= Math.floor(Date.now() / 1000)) return undefined
-    return { email: parsed.email, role: 'super_admin', scopes: [...LOCAL_ADMIN_SCOPES] }
+    if (typeof parsed.email !== 'string' || typeof parsed.exp !== 'number' || !Number.isInteger(parsed.exp) || parsed.exp <= Math.floor(Date.now() / 1000)) return undefined
+    return parsed.email.trim().toLowerCase()
   } catch {
     return undefined
   }
+}
+
+function localAdminMembership(req: Request): StaffMembership | undefined {
+  const email = signedLocalAdminEmail(req)
+  if (!email || email !== localAdminEmail()) return undefined
+  return { email, role: 'super_admin', scopes: [...LOCAL_ADMIN_SCOPES] }
+}
+
+async function persistedAdminMembership(req: Request): Promise<StaffMembership | undefined> {
+  if (!adminAccountStoreEnabled()) return undefined
+  const email = signedLocalAdminEmail(req)
+  if (!email || !adminAccountStoreAvailable()) return undefined
+  const account = await findAdminAccountByEmail(email)
+  if (!account?.isActive) return undefined
+  return { email: account.email, role: account.role, scopes: [...LOCAL_ADMIN_SCOPES] }
 }
 
 function localAdminCookie(value: string, maxAge: number): string {
@@ -1698,7 +1715,13 @@ function adminEnvironmentLabel(): string {
  * 필요한 권한을 명시하게 한다 — 지금은 조회 scope 뿐이다(T06 전까지 조치 없음).
  */
 async function requireStaff(req: Request, res: Response, scope: string): Promise<StaffMembership | undefined> {
-  const localMembership = localAdminMembership(req)
+  let localMembership: StaffMembership | undefined
+  try {
+    localMembership = await persistedAdminMembership(req) ?? localAdminMembership(req)
+  } catch {
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정 저장소를 확인할 수 없습니다.' })
+    return undefined
+  }
   if (localMembership) {
     if (localMembership.scopes.includes(scope)) return localMembership
     res.status(403).json({ code: 'SCOPE_REQUIRED', error: '이 기능에 필요한 권한이 없습니다.' })
@@ -1737,7 +1760,7 @@ async function requireStaff(req: Request, res: Response, scope: string): Promise
   return membership
 }
 
-app.post('/api/admin/v1/login', (req, res) => {
+app.post('/api/admin/v1/login', async (req, res) => {
   if (!localAdminConfigured()) {
     res.status(503).json({ code: 'LOCAL_LOGIN_NOT_CONFIGURED', error: '관리자 로그인 설정을 확인해 주세요.' })
     return
@@ -1745,7 +1768,26 @@ app.post('/api/admin/v1/login', (req, res) => {
   const body = asObject(req.body)
   const email = trimmedString(body.email).toLowerCase()
   const password = typeof body.password === 'string' ? body.password : ''
-  if (!secureStringEqual(email, localAdminEmail()) || !secureStringEqual(password, localAdminPassword())) {
+  let authenticated = false
+  try {
+    if (adminAccountStoreEnabled()) {
+      if (!adminAccountStoreAvailable()) throw new Error('ADMIN_ACCOUNT_STORE_UNAVAILABLE')
+      const account = await findAdminAccountByEmail(email)
+      if (account) authenticated = account.isActive && await verifyAdminPassword(password, account.passwordHash)
+      // The encrypted deployment credentials bootstrap exactly one first record.
+      // Once it exists, all subsequent logins use the stored scrypt hash.
+      else if (secureStringEqual(email, localAdminEmail()) && secureStringEqual(password, localAdminPassword())) {
+        await createAdminAccount({ email, passwordHash: await hashAdminPassword(password) })
+        authenticated = true
+      }
+    } else {
+      authenticated = secureStringEqual(email, localAdminEmail()) && secureStringEqual(password, localAdminPassword())
+    }
+  } catch {
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정 저장소를 확인할 수 없습니다.' })
+    return
+  }
+  if (!authenticated) {
     res.status(401).json({ code: 'LOCAL_LOGIN_FAILED', error: '이메일 또는 비밀번호가 올바르지 않습니다.' })
     return
   }
@@ -1835,7 +1877,13 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
 })
 
 app.get('/api/admin/v1/me', async (req, res) => {
-  const localMembership = localAdminMembership(req)
+  let localMembership: StaffMembership | undefined
+  try {
+    localMembership = await persistedAdminMembership(req) ?? localAdminMembership(req)
+  } catch {
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정 저장소를 확인할 수 없습니다.' })
+    return
+  }
   if (localMembership) {
     res.json({
       email: localMembership.email,
@@ -1881,6 +1929,39 @@ app.get('/api/admin/v1/me', async (req, res) => {
     scopes: membership.scopes,
     environment: adminEnvironmentLabel(),
   })
+})
+
+/** Actual account roster for the settings screen. Password hashes never leave the server. */
+app.get('/api/admin/v1/admin-accounts', async (req, res) => {
+  if (!await requireStaff(req, res, 'settings:read')) return
+  try {
+    res.json({ accounts: await listAdminAccounts() })
+  } catch {
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정 목록을 불러오지 못했습니다.' })
+  }
+})
+
+/** The first persistent administrator is created only by the already-signed-in bootstrap admin. */
+app.post('/api/admin/v1/admin-accounts/bootstrap', async (req, res) => {
+  if (!await requireStaff(req, res, 'settings:read')) return
+  if (!adminAccountStoreAvailable() || !localAdminConfigured() || !localAdminMembership(req)) {
+    res.status(403).json({ code: 'BOOTSTRAP_NOT_ALLOWED', error: '현재 bootstrap 관리자만 계정을 초기 등록할 수 있습니다.' })
+    return
+  }
+  try {
+    if (await adminAccountCount() > 0) {
+      res.status(409).json({ code: 'ADMIN_ACCOUNT_EXISTS', error: '관리자 계정이 이미 등록되어 있습니다.' })
+      return
+    }
+    const account = await createAdminAccount({
+      email: localAdminEmail(),
+      passwordHash: await hashAdminPassword(localAdminPassword()),
+    })
+    const { passwordHash: _passwordHash, ...summary } = account
+    res.status(201).json({ account: summary })
+  } catch {
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정을 등록하지 못했습니다.' })
+  }
 })
 
 app.get('/api/payment/config', (_req, res) => {

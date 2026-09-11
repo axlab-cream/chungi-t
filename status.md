@@ -10,6 +10,15 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T05 관리자 membership 영속화 준비 점검
+
+- Status: `BLOCKED` (원격 스키마 이력 승인 대기)
+- 확인: Production에 `SUPABASE_SERVICE_ROLE_KEY`가 설정되어 있고, Supabase 프로젝트 ref는 `wdyzollywccgaepjeynu`로 연결되어 있다. 그러나 이 PC에는 Supabase CLI가 없으며, `public.umsh_admin_accounts`의 현재 원격 스키마·RLS·grant는 독립적으로 검증하지 못했다.
+- 결정: 현재 환경변수 기반 로컬 관리자 로그인은 유지한다. 검증되지 않은 테이블을 권한의 유일한 근거로 전환하지 않으며, 브라우저·클라이언트에는 관리자 계정 테이블을 노출하지 않는다.
+- 산출물: `docs/superpowers/plans/2026-09-11-admin-membership-storage.md`에 migration → server-only repository → password verification → audited UI → rollout 순서를 고정했다.
+- 근거: Supabase RLS 공식 문서에 따라 exposed `public` 테이블은 RLS와 `anon`/`authenticated` grant 회수를 함께 검증해야 한다. 서버 `service_role`만 접근하는 구조를 계획에 명시했다.
+- 다음 조건: 원격 migration history 쓰기와 Supabase CLI 설치 또는 인증된 DB 조회 경로에 대한 사용자 승인 후 T05 Task 1을 진행한다.
+
 ## 2026-09-11 — admin LNB 화면 셸 확장
 
 - Status: `DONE` (화면 구조·탐색 범위)

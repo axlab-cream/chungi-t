@@ -519,6 +519,75 @@
         setText('[data-admin-workspace-detail]', route.detail || '운영 화면을 확인합니다.');
         var body = document.querySelector('[data-admin-workspace-body]');
         if (body) body.innerHTML = workspaceSection(blueprint, blueprint.columns, blueprint.empty, blueprint.action);
+        if (route.key === 'settings') loadAdminAccounts(body);
+      }
+      async function loadAdminAccounts(body) {
+        if (!body) return;
+        var section = document.createElement('section');
+        section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>관리자 계정</h3><span class="admin-chip">실제 운영 계정</span></header><p class="admin-empty">관리자 계정 목록을 불러오는 중입니다.</p>';
+        body.appendChild(section);
+        try {
+          var response = await fetch('/api/admin/v1/admin-accounts', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('ACCOUNT_LOOKUP_FAILED');
+          var payload = await response.json();
+          var accounts = Array.isArray(payload.accounts) ? payload.accounts : [];
+          var table = document.createElement('table');
+          table.className = 'admin-table';
+          var header = document.createElement('thead');
+          header.innerHTML = '<tr><th scope="col">이메일</th><th scope="col">역할</th><th scope="col">상태</th><th scope="col">등록일</th></tr>';
+          var rows = document.createElement('tbody');
+          if (!accounts.length) {
+            var empty = document.createElement('tr');
+            var cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.className = 'admin-empty';
+            cell.textContent = '등록된 관리자 계정이 없습니다. 첫 로그인 시 bootstrap 계정이 실제 계정으로 등록됩니다.';
+            empty.appendChild(cell);
+            rows.appendChild(empty);
+          } else {
+            accounts.forEach(function (account) {
+              var row = document.createElement('tr');
+              [account.email, account.role, account.isActive ? '활성' : '비활성', account.createdAt].forEach(function (value) {
+                var cell = document.createElement('td');
+                cell.textContent = String(value || '—');
+                row.appendChild(cell);
+              });
+              rows.appendChild(row);
+            });
+          }
+          table.appendChild(header);
+          table.appendChild(rows);
+          var scroll = document.createElement('div');
+          scroll.className = 'admin-table-scroll';
+          scroll.appendChild(table);
+          section.replaceChildren(section.firstElementChild, scroll);
+          if (!accounts.length) {
+            var actions = document.createElement('div');
+            actions.className = 'admin-actions';
+            var bootstrap = document.createElement('button');
+            bootstrap.className = 'admin-button';
+            bootstrap.type = 'button';
+            bootstrap.textContent = '현재 관리자 계정 등록';
+            bootstrap.addEventListener('click', async function () {
+              bootstrap.disabled = true;
+              try {
+                var created = await fetch('/api/admin/v1/admin-accounts/bootstrap', { method: 'POST', credentials: 'same-origin' });
+                if (!created.ok) throw new Error('BOOTSTRAP_FAILED');
+                section.remove();
+                loadAdminAccounts(body);
+              } catch (_error) {
+                bootstrap.disabled = false;
+                bootstrap.textContent = '등록 실패 — 다시 시도';
+              }
+            });
+            actions.appendChild(bootstrap);
+            section.appendChild(actions);
+          }
+        } catch (_error) {
+          var notice = section.querySelector('.admin-empty');
+          if (notice) notice.textContent = '관리자 계정 저장소에 연결하지 못했습니다. 서버 설정을 확인해 주세요.';
+        }
       }
       function authClient() {
         if (clientPromise) return clientPromise;
