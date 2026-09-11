@@ -37,11 +37,11 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, listLiveMembers, listLiveReports } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports } from '../admin/live-data.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
@@ -1824,6 +1824,19 @@ function parseAdminWindow(req: Request): { from?: string; to?: string } | 'inval
  * 구형 주문은 `reportId` 가 없다(리포트가 생기기 전에 만들어진 주문). 그것을 오류로
  * 다루지 않고 그대로 내보낸다 — 목록에서 사라지면 대사가 불가능해진다.
  */
+app.get('/api/admin/v1/search', async (req, res) => {
+  const kind = trimmedString(req.query?.kind); const exactId = trimmedString(req.query?.exactId)
+  if (!['order', 'member', 'report', 'support'].includes(kind) || exactId.length < 3 || exactId.length > 160) { res.status(422).json({ code: 'INVALID_SEARCH_INPUT', error: '검색 종류와 정확한 식별자를 확인해 주세요.' }); return }
+  const scope = kind === 'order' ? 'orders:read' : kind === 'member' ? 'members:read' : kind === 'report' ? 'reports:read' : 'support:read'
+  if (!await requireStaff(req, res, scope)) return
+  try {
+    if (kind === 'order') { const order = await getPaymentOrder(exactId); if (!order) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: toAdminPaymentOrderDto(order) }, asOf: new Date().toISOString() }); return }
+    if (kind === 'member') { const member = await findLiveMember(exactId); if (!member) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: member }, asOf: new Date().toISOString() }); return }
+    if (kind === 'report') { const report = await findLiveReport(exactId); if (!report) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: report }, asOf: new Date().toISOString() }); return }
+    const supportCase = await getSupportCase(exactId); if (!supportCase) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: supportCase }, asOf: new Date().toISOString() })
+  } catch { res.status(503).json({ code: 'ADMIN_SEARCH_UNAVAILABLE', error: '실제 운영 검색 저장소를 불러오지 못했습니다.' }) }
+})
+
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
   // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.

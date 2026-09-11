@@ -551,6 +551,12 @@
           addLiveTable(body, '실제 관리자 감사 기록', ['시각', '관리자', '작업', '대상', '결과'], events, function (item) { return [item.createdAt, item.actor, item.action, item.targetType + ' · ' + item.targetId, item.result]; }, '아직 실행된 관리자 변경이 없습니다.');
         } catch (_error) { addLiveError(body, '실제 감사 기록 저장소를 불러오지 못했습니다.'); }
       }
+      function loadAdminSearch(body) {
+        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
+        var form = document.createElement('form'); form.className = 'admin-actions'; form.innerHTML = '<select name="kind" aria-label="검색 대상"><option value="order">주문</option><option value="member">회원</option><option value="report">리포트</option><option value="support">고객 지원 케이스</option></select><input required name="exactId" maxlength="160" placeholder="정확한 식별자 입력" autocomplete="off"><button class="admin-button" type="submit">검색</button>'; section.appendChild(form);
+        var result = document.createElement('div'); result.className = 'admin-section'; result.hidden = true; section.appendChild(result);
+        form.addEventListener('submit', async function (event) { event.preventDefault(); result.hidden = false; result.replaceChildren(); var query = new URLSearchParams({ kind: form.elements.kind.value, exactId: form.elements.exactId.value.trim() }); try { var response = await fetch('/api/admin/v1/search?' + query.toString(), { credentials: 'same-origin' }); if (response.status === 404) { result.textContent = '실제 운영 데이터에서 일치하는 결과가 없습니다.'; return; } if (!response.ok) throw new Error('ADMIN_SEARCH_FAILED'); var payload = await response.json(); var heading = document.createElement('h3'); heading.textContent = '실제 검색 결과'; var table = document.createElement('table'); table.className = 'admin-table'; var rows = document.createElement('tbody'); Object.entries(payload.result.value || {}).forEach(function (entry) { var row = document.createElement('tr'); var key = document.createElement('th'); key.scope = 'row'; key.textContent = entry[0]; var value = document.createElement('td'); value.textContent = entry[1] == null ? '—' : String(entry[1]); row.appendChild(key); row.appendChild(value); rows.appendChild(row); }); table.appendChild(rows); result.appendChild(heading); result.appendChild(table); } catch (_error) { result.textContent = '실제 운영 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'; } });
+      }
       async function loadSupportCases(body) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>고객 지원 케이스</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">케이스를 불러오는 중입니다.</p>'; body.appendChild(section);
         try {
@@ -575,6 +581,7 @@
         if (!body) return;
         body.replaceChildren();
         if (route.key === 'overview') { loadLiveOverview(body); return; }
+        if (route.key === 'search') { loadAdminSearch(body); return; }
         if (route.key === 'members') { loadLiveMembers(body); return; }
         if (route.key === 'reports') { loadLiveReports(body); return; }
         if (route.key === 'services') { loadLiveServices(body); return; }
