@@ -52,6 +52,19 @@ describe('payment order REST key-format compatibility (mock network only)', () =
             const row = JSON.parse(init.body); rows.set(row.order_id, row);
             return Response.json([row]);
           }
+          if (method === 'PATCH') {
+            // 갱신은 CAS 다. PostgREST 는 필터에 맞는 행에만 적용하고, 맞는 행이 없으면
+            // 빈 배열을 준다 — 그것이 "내가 읽은 판이 낡았다"는 신호다 (U17).
+            assert.equal(headers.get('prefer'), 'return=representation');
+            const orderFilter = url.searchParams.get('order_id');
+            const revisionFilter = url.searchParams.get('revision');
+            assert.ok(orderFilter && orderFilter.startsWith('eq.'), '주문 필터가 없다');
+            assert.ok(revisionFilter && revisionFilter.startsWith('eq.'), 'revision 필터가 없다');
+            const current = rows.get(orderFilter.slice(3));
+            if (!current || String(current.revision ?? 0) !== revisionFilter.slice(3)) return Response.json([]);
+            const row = JSON.parse(init.body); rows.set(row.order_id, row);
+            return Response.json([row]);
+          }
           assert.equal(method, 'GET'); assert.equal(url.searchParams.get('select'), '*');
           let found = [...rows.values()];
           for (const field of ['order_id', 'owner_id', 'report_id']) {
@@ -86,7 +99,11 @@ describe('payment order REST key-format compatibility (mock network only)', () =
         const count = calls.length;
         assert.equal(await store.updatePaymentOrder('missing-synthetic-order', { status: 'failed' }), null);
         assert.equal(calls.length, count + 1);
-        assert.deepEqual([...new Set(calls.map(call => call.method))].sort(), ['GET', 'POST']);
+        assert.deepEqual([...new Set(calls.map(call => call.method))].sort(), ['GET', 'PATCH', 'POST']);
+        // 갱신은 자기가 읽은 판에만 적용된다. revision 이 올라갔는지 확인한다.
+        assert.equal(updated.revision, 1);
+        const patchCall = calls.filter(call => call.method === 'PATCH').at(-1);
+        assert.equal(patchCall.url.searchParams.get('revision'), 'eq.0');
       `)
     })
 

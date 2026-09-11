@@ -26,6 +26,13 @@ create table if not exists public.cheongi_payment_orders (
 
 -- Existing installs: add the report binding that unlocks a specific paid report.
 alter table public.cheongi_payment_orders add column if not exists report_id text;
+-- 낙관적 동시성 제어. 쓰기는 자기가 읽은 판에만 적용된다.
+--
+-- 없으면 읽고-고쳐-쓰기가 서로를 덮는다. 결제에서 그것은 돈 기록이 사라지는 문제다 —
+-- 승인 콜백과 조회 폴링이 겹치면 나중 쓰기가 앞선 상태를 통째로 지운다(U17).
+-- 기존 행은 0 에서 시작한다. 애플리케이션은 열이 없어도 0 으로 읽으므로,
+-- 이 열을 추가하기 전 배포에서도 깨지지 않는다.
+alter table public.cheongi_payment_orders add column if not exists revision integer not null default 0;
 
 alter table public.cheongi_payment_orders enable row level security;
 

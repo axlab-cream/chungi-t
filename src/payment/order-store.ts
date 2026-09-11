@@ -21,9 +21,58 @@ export interface PaymentOrder {
   message?: string
   createdAt: string
   updatedAt: string
+  /**
+   * 낙관적 동시성 제어용 수정 횟수. 쓰기는 자기가 읽은 판(revision)에만 적용된다.
+   *
+   * 없으면 읽고-고쳐-쓰기가 서로를 덮는다. 결제에서 그것은 돈 문제가 된다 —
+   * 승인 콜백과 조회 폴링이 겹치면 나중 쓰기가 앞선 상태를 지운다.
+   */
+  revision?: number
 }
 
 export type PaymentStorageMode = 'postgres' | 'supabase' | 'memory'
+
+/**
+ * 허용된 상태 전이. **뒤로 가는 전이를 막는 것이 핵심이다.**
+ *
+ * 특히 `paid`·`viewed` 에서 `failed` 로 가지 못하게 한다. 이니시스 승인 흐름
+ * (`src/server/app.ts` 결제 콜백)은 승인 **뒤에** 오류가 나면 catch 에서 주문을
+ * `failed` 로 적는다. 가드가 없으면 **실제로 돈이 빠져나간 주문이 실패로 기록된다.**
+ *
+ * 같은 상태를 다시 적는 것은 허용한다. 콜백은 재전송되며 그때 오류를 낼 이유가 없다.
+ */
+const ALLOWED_NEXT_STATUS: Record<PaymentOrderStatus, readonly PaymentOrderStatus[]> = {
+  ready: ['ready', 'approving', 'paid', 'cancelled', 'failed'],
+  // 승인 시도 중 응답을 잃으면 실제 과금 여부를 알 수 없다. 그 판정은 U22 소관이며
+  // 여기서는 `failed` 로 적는 경로 자체는 막지 않는다.
+  approving: ['approving', 'paid', 'cancelled', 'failed'],
+  // 환불·취소는 결제 **뒤에** 일어나는 정상 전이다. 막아야 하는 것은 `failed` 로
+  // 가는 경로다 — 그것은 "승인되지 않았다"는 뜻이고, 이미 승인된 주문에는 거짓이다.
+  paid: ['paid', 'viewed', 'cancelled'],
+  viewed: ['viewed', 'cancelled'],
+  cancelled: ['cancelled'],
+  failed: ['failed'],
+}
+
+/** 허용되지 않은 전이. 호출부가 구분해 처리할 수 있도록 별도 타입으로 던진다. */
+export class PaymentOrderTransitionError extends Error {
+  constructor(readonly orderId: string, readonly from: PaymentOrderStatus, readonly to: PaymentOrderStatus) {
+    super(`주문 상태를 ${from} 에서 ${to} 로 바꿀 수 없습니다.`)
+    this.name = 'PaymentOrderTransitionError'
+  }
+}
+
+/** 다른 쓰기가 먼저 반영돼 내가 읽은 판이 낡았다. 다시 읽고 시도한다. */
+export class PaymentOrderConflictError extends Error {
+  constructor(readonly orderId: string) {
+    super('주문이 다른 요청으로 먼저 바뀌었습니다.')
+    this.name = 'PaymentOrderConflictError'
+  }
+}
+
+export function canTransitionPaymentOrder(from: PaymentOrderStatus, to: PaymentOrderStatus): boolean {
+  return ALLOWED_NEXT_STATUS[from].includes(to)
+}
 
 const connectionString = configuredEnv(process.env.DATABASE_URL)
 const pool = connectionString
@@ -79,6 +128,7 @@ async function ensureDb(): Promise<void> {
       )
     `)
       .then(() => pool.query('ALTER TABLE cheongi_payment_orders ADD COLUMN IF NOT EXISTS report_id TEXT'))
+      .then(() => pool.query('ALTER TABLE cheongi_payment_orders ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 0'))
       .then(() => undefined)
   }
   await dbReady
@@ -102,6 +152,7 @@ function toRow(order: PaymentOrder) {
     report_id: order.reportId ?? null,
     created_at: order.createdAt,
     updated_at: order.updatedAt,
+    revision: order.revision ?? 0,
   }
 }
 
@@ -123,6 +174,8 @@ function fromRow(row: Record<string, unknown>): PaymentOrder {
     reportId: row.report_id ? String(row.report_id) : undefined,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
+    // 열이 아직 없는 저장소(마이그레이션 전)는 0 으로 읽는다.
+    revision: Number.isFinite(Number(row.revision)) ? Number(row.revision) : 0,
   }
 }
 
@@ -222,14 +275,48 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
   return result.rows.map(fromRow)
 }
 
+/**
+ * 주문을 새로 만들거나 통째로 덮는다. **동시성 보호가 없다.**
+ *
+ * 생성과 픽스처 적재에만 쓴다. 상태를 바꾸는 갱신은 `updatePaymentOrder` 나
+ * `mutatePaymentOrder` 를 써야 한다 — 그쪽이 전이 가드와 CAS 를 건다.
+ */
 export async function savePaymentOrder(order: PaymentOrder): Promise<PaymentOrder> {
+  return writePaymentOrder(order)
+}
+
+/**
+ * 실제 쓰기. `expectedRevision` 이 주어지면 그 판일 때만 반영한다(CAS).
+ *
+ * 주어지지 않으면 최초 생성이다. 생성 경로까지 CAS 로 묶으면 정상적인 재시도가 막힌다.
+ */
+async function writePaymentOrder(order: PaymentOrder, expectedRevision?: number): Promise<PaymentOrder> {
   const stored = cloneOrder({ ...order, updatedAt: nowIso() })
+
   if (storageMode() === 'memory') {
+    if (expectedRevision !== undefined) {
+      const current = memoryOrders.get(stored.orderId)
+      if ((current?.revision ?? 0) !== expectedRevision) throw new PaymentOrderConflictError(stored.orderId)
+    }
     memoryOrders.set(stored.orderId, stored)
     return cloneOrder(stored)
   }
 
   if (storageMode() === 'supabase') {
+    if (expectedRevision !== undefined) {
+      // PostgREST 는 필터가 맞는 행에만 PATCH 를 적용한다. 맞는 행이 없으면 빈 배열이
+      // 돌아오고, 그것이 곧 "내가 읽은 판이 낡았다"는 뜻이다.
+      const url = `${supabaseRestUrl}?order_id=eq.${encodeURIComponent(stored.orderId)}&revision=eq.${expectedRevision}`
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'return=representation' },
+        body: JSON.stringify(toRow(stored)),
+      })
+      if (!response.ok) throw new Error('결제 주문 저장에 실패했습니다.')
+      const rows = await response.json() as Array<Record<string, unknown>>
+      if (rows.length === 0) throw new PaymentOrderConflictError(stored.orderId)
+      return fromRow(rows[0])
+    }
     const response = await fetch(supabaseRestUrl, {
       method: 'POST',
       headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'resolution=merge-duplicates,return=representation' },
@@ -238,6 +325,29 @@ export async function savePaymentOrder(order: PaymentOrder): Promise<PaymentOrde
     if (!response.ok) throw new Error('결제 주문 저장에 실패했습니다.')
     const rows = await response.json() as Array<Record<string, unknown>>
     return rows[0] ? fromRow(rows[0]) : stored
+  }
+
+  if (expectedRevision !== undefined) {
+    if (!pool) throw new Error('결제 주문 저장소가 설정되지 않았습니다.')
+    await ensureDb()
+    const row = toRow(stored)
+    const result = await pool.query(
+      `
+        UPDATE cheongi_payment_orders SET
+          status = $2, tid = $3, pay_method = $4, approval_code = $5, message = $6,
+          report_id = COALESCE($7, report_id), owner_email = $8, buyer_email = $9, buyer_tel = $10,
+          product_key = $11, product_title = $12, amount = $13,
+          revision = $14, updated_at = NOW()
+        WHERE order_id = $1 AND revision = $15
+      `,
+      [
+        row.order_id, row.status, row.tid, row.pay_method, row.approval_code, row.message,
+        row.report_id, row.owner_email, row.buyer_email, row.buyer_tel,
+        row.product_key, row.product_title, row.amount, row.revision, expectedRevision,
+      ],
+    )
+    if (result.rowCount === 0) throw new PaymentOrderConflictError(stored.orderId)
+    return stored
   }
 
   if (!pool) throw new Error('결제 주문 저장소가 설정되지 않았습니다.')
@@ -263,10 +373,59 @@ export async function savePaymentOrder(order: PaymentOrder): Promise<PaymentOrde
   return stored
 }
 
+/**
+ * 읽은 판에만 쓰기를 적용한다. 다른 요청이 먼저 바꿨으면 다시 읽고 다시 시도한다.
+ *
+ * 이전 구현은 읽고-고쳐-쓰기였다. 승인 콜백과 조회가 겹치면 나중 쓰기가 앞선 상태를
+ * 통째로 덮었다(U17). 결제에서 그것은 돈 기록이 사라지는 문제다.
+ *
+ * 재시도는 **상태 전이 거부에는 적용하지 않는다.** 거부는 경합이 아니라 규칙 위반이므로
+ * 다시 읽어도 결과가 같다.
+ */
+/**
+ * 동시에 N 개가 쓰면 마지막 하나는 최대 N 번 시도한다. 이 주문 하나에 겹칠 수 있는
+ * 쓰기는 결제사 콜백·클라이언트 폴링·재전송 정도이므로 8 이면 충분하다.
+ * 그보다 많이 겹치면 경합이 아니라 다른 문제이므로 호출부에 알린다.
+ */
+const PAYMENT_WRITE_ATTEMPTS = 8
+
+export async function mutatePaymentOrder(
+  orderId: string,
+  mutate: (current: PaymentOrder) => Partial<Omit<PaymentOrder, 'orderId' | 'ownerId' | 'createdAt' | 'revision'>>,
+): Promise<PaymentOrder | null> {
+  for (let attempt = 0; attempt < PAYMENT_WRITE_ATTEMPTS; attempt += 1) {
+    const current = await getPaymentOrder(orderId)
+    if (!current) return null
+
+    const patch = mutate(current)
+    const nextStatus = patch.status ?? current.status
+    if (!canTransitionPaymentOrder(current.status, nextStatus)) {
+      throw new PaymentOrderTransitionError(orderId, current.status, nextStatus)
+    }
+
+    const expectedRevision = current.revision ?? 0
+    const next: PaymentOrder = {
+      ...current,
+      ...patch,
+      orderId,
+      ownerId: current.ownerId,
+      createdAt: current.createdAt,
+      updatedAt: nowIso(),
+      revision: expectedRevision + 1,
+    }
+
+    try {
+      return await writePaymentOrder(next, expectedRevision)
+    } catch (error) {
+      if (!(error instanceof PaymentOrderConflictError)) throw error
+      // 다른 쓰기가 먼저 반영됐다. 그 결과 위에서 다시 판단한다.
+    }
+  }
+  throw new PaymentOrderConflictError(orderId)
+}
+
 export async function updatePaymentOrder(orderId: string, patch: Partial<Omit<PaymentOrder, 'orderId' | 'ownerId' | 'createdAt'>>): Promise<PaymentOrder | null> {
-  const current = await getPaymentOrder(orderId)
-  if (!current) return null
-  return savePaymentOrder({ ...current, ...patch, orderId, ownerId: current.ownerId, createdAt: current.createdAt, updatedAt: nowIso() })
+  return mutatePaymentOrder(orderId, () => patch)
 }
 
 export function getPaymentStorageMode(): PaymentStorageMode {
