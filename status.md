@@ -10,9 +10,16 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T13 통합 검색·읽기 홈 완료
+
+- Status: `DONE`
+- API: `/api/admin/v1/search`가 주문·회원·리포트·지원 케이스의 정확 식별자만 권한별 read scope로 검색한다. 개인정보 원문·리포트 본문·결제 거래번호는 반환하지 않는다.
+- UI: `/admin/search`에 대상 선택과 정확 식별자 폼을 연결했다. 부분 이름·이메일 검색은 개인정보 보호를 위해 제공하지 않는다.
+- 배포·검증: Production `dpl_3SGaRp1LXYKCpPycHhJhJujXn4nu` Ready, 로그인된 관리자 화면에서 실제 검색 폼을 확인했다. typecheck PASS, focused admin tests 49/49 PASS.
+
 ## 2026-09-11 — T13 통합 검색·읽기 홈 시작
 
-- Status: `IN_PROGRESS`
+- Status: `IN_PROGRESS` → `DONE`
 - 범위: 권한별 정확 ID 검색(주문·회원·리포트·지원 케이스)과 실제 운영 요약. 부분 이름·이메일 검색, 개인정보 원문, 브라우저 DB 직접 조회는 제외한다.
 
 ## 2026-09-11 — T12 CS 케이스 관리 완료

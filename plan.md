@@ -80,7 +80,7 @@
 | T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | **DONE** — 원본 Supabase 테이블의 최소 DTO 조회·마스킹·실운영 화면 연결. U18/U19은 분석 관리·정본 스키마 문서화 후속으로 유지 |
 | T11 | task-t11 | M1 | P0 | T07,T10 | 회원·리포트 상세 UI | TODO |
 | T12 | task-t12 | M1 | P0 | T06,T07,T10 | CS 케이스 관리 | **DONE** — 실제 support case·note 저장소, 감사 명령, 운영 UI |
-| T13 | task-t13 | M1 | P0 | T06,T08,T10 | 통합 검색·읽기 홈 | **IN_PROGRESS** — 권한별 정확 ID 검색과 실제 운영 요약 |
+| T13 | task-t13 | M1 | P0 | T06,T08,T10 | 통합 검색·읽기 홈 | **DONE** — 권한별 정확 ID 검색과 실제 운영 요약 |
 | T14~T21 | - | M2 | P0 | (pack) | 거래·복구 (outbox, 환불, 대사, 재시도, incident) | BLOCKED (U20, U21, U22) |
 | T22~T30 | - | M3 | P1 | (pack) | 편집·지식 (CMS, 미디어, 코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
