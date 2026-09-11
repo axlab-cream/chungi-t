@@ -44,6 +44,7 @@ import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
+import { projectApprovedPayment } from '../payment/payment-projection.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -2245,12 +2246,9 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(409).json({ error: '테스트 승인을 진행할 수 없는 주문 상태입니다.' })
       return
     }
-    const paid = await updatePaymentOrder(order.orderId, {
-      status: 'paid',
-      tid: `TEST-${order.orderId}`,
-      payMethod: 'TEST',
-      approvalCode: 'TEST-0000',
-      message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
+    const paid = await projectApprovedPayment(order, {
+      provider: 'test', sourceRef: `TEST-${order.orderId}`, tid: `TEST-${order.orderId}`,
+      payMethod: 'TEST', approvalCode: 'TEST-0000', message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
     })
     if (!paid) {
       res.status(500).json({ error: '테스트 주문 상태를 저장하지 못했습니다.' })
@@ -2347,12 +2345,9 @@ app.post('/api/payment/google/verify', async (req, res) => {
       await acknowledgeGooglePlayPurchase({ productId: product.key, purchaseToken })
     }
 
-    const paid = await updatePaymentOrder(order.orderId, {
-      status: 'paid',
-      tid: purchaseToken,
-      payMethod: 'GOOGLE_PLAY',
-      approvalCode: purchase.orderId,
-      message: '구글플레이 인앱 결제로 확인되었습니다.',
+    const paid = await projectApprovedPayment(order, {
+      provider: 'google_play', sourceRef: purchaseToken, tid: purchaseToken, payMethod: 'GOOGLE_PLAY',
+      approvalCode: purchase.orderId, message: '구글플레이 인앱 결제로 확인되었습니다.',
     })
     if (!paid) {
       res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
@@ -2392,6 +2387,7 @@ app.get('/api/payment/google/product/:productKey', async (req, res) => {
 })
 
 app.post('/api/payment/inicis/return', async (req, res) => {
+  let approvalEvidenceRecorded = false
   const body = req.body as Record<string, unknown>
   const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid)
   if (!orderId) {
@@ -2429,26 +2425,19 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     await updatePaymentOrder(order.orderId, { status: 'approving' })
     const approval = await approveInicisPayment({ order, authToken, authUrl })
 
-    // 승인 증거를 최종 상태보다 **먼저** 저장한다(U22).
-    //
-    // `approveInicisPayment` 가 돌아온 시점에 이미 돈이 움직였다. 그런데 그 사실을
-    // `paid` 와 함께 한 번에 쓰면, 그 쓰기가 실패할 때 승인 기록이 통째로 사라진다.
-    // 그러면 catch 가 주문을 `failed` 로 적고 **과금된 주문이 실패로 남는다.**
-    //
-    // 증거를 먼저 남기면 주문은 `approving` + `tid` 가 되고, 저장소가 그 조합을
-    // "승인됐으나 정산 기록이 끝나지 않음"으로 보아 `failed` 로 내려가지 못하게 막는다.
-    await updatePaymentOrder(order.orderId, {
-      tid: approval.tid,
-      payMethod: approval.payMethod,
-      approvalCode: approval.approvalCode,
-      message: approval.resultMessage,
-    })
-    const paid = await updatePaymentOrder(order.orderId, { status: 'paid' })
+    const sourceRef = approval.tid?.trim() || approval.approvalCode?.trim()
+    if (!sourceRef) throw new Error('승인 거래 식별자를 받지 못했습니다.')
+    // PG 승인 뒤에는 append-only 금융 증거를 먼저 남긴다. 주문 상태 투영이 실패해도
+    // event가 남아 T19 대사에서 회수할 수 있고, catch가 과금 주문을 failed로 내리지 않는다.
+    const paid = await projectApprovedPayment(order, {
+      provider: 'inicis', sourceRef, tid: approval.tid, payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode, message: approval.resultMessage,
+    }, undefined, () => { approvalEvidenceRecorded = true })
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
     const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
-    await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    if (!approvalEvidenceRecorded) await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
     const failedOrder = await getPaymentOrder(orderId).catch(() => null)
     res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey, failedOrder?.reportId))
   }
