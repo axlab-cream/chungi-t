@@ -154,6 +154,11 @@
 | V-148 | task-t22 slice 2 | 서비스 초안 DB | rollback SQL + routine/grant/index 조회 | v1/revision 0, 영구 쓰기 0, 최소권한 | **PASS** — security invoker, service_role만 EXECUTE, active draft unique index | 2026-09-12 |
 | V-149 | task-t22 slice 2 | 운영 브라우저 | 지정 관리자 로그인 → `/admin/services` → 저장 2회 | 실제 초안 생성·CAS 수정 | **PASS** — `cmdg` v1/revision 1, create/update 감사 각 2단계 | 2026-09-12 |
 | V-150 | task-t22 slice 2 | Production 배포 | Vercel inspect + `umsh.kr` 화면 + error logs | Ready, 별칭 연결, 오류 0 | **PASS** — `dpl_L2tQHcEPX6dimtgabSc8vxbXpTC5` | 2026-09-12 |
+| V-151 | task-t22 slice 3 | 서비스 발행 회귀 | `npm test` + `npm run vercel-build` | 실패 0, 빌드 성공 | **PASS** — 632/632, typecheck·SEO PASS | 2026-09-12 |
+| V-152 | task-t22 slice 3 | DB 함수 권한 | routine 속성·EXECUTE 조회 | invoker, 빈 search path, service_role 전용 | **PASS** — anon/authenticated EXECUTE false | 2026-09-12 |
+| V-153 | task-t22 slice 3 | 운영 발행 | `/admin/services`에서 cmdg 초안 발행 | published v1/revision 2, draft 0, 감사 성공 | **PASS** — started/succeeded 감사와 published_at 확인 | 2026-09-12 |
+| V-154 | task-t22 slice 3 | 공개 read | 운영 `GET /api/services` | published source, 15건, 결제 정본 유지, 내부 필드 없음 | **PASS** — cmdg 49,900원·`/cmdg/`·이미지 유지 | 2026-09-12 |
+| V-155 | task-t22 slice 3 | 이전 발행본 archive | 기존 published가 있는 상태에서 후속 draft 발행 | 기존 1건 archived, 신규 1건 published | **NOT_RUN** — 최초 발행이라 이전 published 행이 없었음. 다음 실제 개정 발행에서 실측 | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 

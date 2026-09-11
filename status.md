@@ -1099,3 +1099,16 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 지정 관리자 계정으로 직접 로그인해 production LNB와 19개 실서비스를 확인했다. `cmdg`의 현재 정본 값으로 실제 draft v1을 생성하고 다시 저장해 revision 1 CAS와 create/update 감사 기록을 확인했다. 비밀번호·쿠키·토큰은 저장하지 않았다.
 - CreamWIKI: `personal/carrotcap/notes/umsh-t22-service-draft-20260912.md` 저장/get/개인 검색 확인 PASS. 서버 전용 재색인 명령은 로컬에서 실행할 수 없어 NOT_RUN이며 검색 즉시 반영은 확인했다.
 - T22는 계속 IN_PROGRESS다. 다음 slice는 명시적 publish 승인과 이전 발행본 보존, 신규 고객 세션에만 적용되는 공개 read 경계다.
+
+## 2026-09-12 — T22 Slice 3 서비스 초안 명시적 발행·공개 read
+
+- `/admin/services`에 별도 `services:publish` 권한을 쓰는 명시적 발행 CTA를 추가했다. 발행은 멱등 키·감사 기록·revision CAS를 통과하고 Supabase 단일 함수에서 기존 published 보관과 draft 승격을 처리한다.
+- 공개 `/api/services`는 published의 제목·한줄 설명·요약·분류·검색 노출만 allowlist로 합성한다. canonicalKey, 가격, 이미지, 고객 경로는 코드 정본을 유지하고 내부 payload/revision/작성자는 반환하지 않는다.
+- U10 결정 전 코드상 숨김 4종은 published payload만으로 신규 공개되지 않는다. 버전 저장소가 2.5초 안에 응답하지 않거나 실패하면 예시 데이터 없이 기존 코드 카탈로그로 복귀한다.
+- DB 함수는 security invoker·빈 search path·service_role 전용 EXECUTE로 운영 적용했다. Supabase advisor에서 이 변경으로 새 경고는 없었으며 기존 RLS 무정책 INFO와 Auth 유출 비밀번호 보호 WARN은 별도 운영 항목으로 남는다.
+- 검증: targeted 31/31, 전체 632/632, typecheck, Vercel build PASS. Production `dpl_6aU1oVX8QKxwNY6vq3BxSTPE2Ykz` Ready, `umsh.kr` 연결, 최근 error log 0건.
+- 운영 브라우저에서 실제 `cmdg` 초안 v1/revision 1을 발행했다. DB는 published v1/revision 2·published_at 존재, 감사 started/succeeded를 확인했다. 공개 API는 source=published, 15건, cmdg 49,900원·기존 이미지·`/cmdg/` 유지, 내부 필드 미노출이다.
+- 최초 발행이라 이전 published → archived 전환의 운영 실측은 NOT_RUN이다. 함수 내 동일 트랜잭션 로직은 구현됐으며 다음 실제 개정 발행에서 확인한다.
+- KMS 후보: `CreamAI/memory/candidates/task-t22-service-publish-20260912.md`. 비밀번호·쿠키·토큰은 저장하지 않았다.
+- T22는 계속 IN_PROGRESS다. 다음 slice는 `content_versions` 기반 공지·FAQ·배너 등 범용 콘텐츠 초안/발행 흐름이다.
+- CreamWIKI `personal/carrotcap/notes/umsh-t22-service-publish-20260912.md` 저장/get/개인 검색 즉시 반영 PASS. 로컬 재색인 스크립트 5개는 모두 없어 NOT_RUN이며, 원격 문서 저장·검색 성공과 구분했다.
