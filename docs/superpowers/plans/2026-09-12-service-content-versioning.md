@@ -19,3 +19,22 @@
 2. [ ] Add restricted Supabase schema/RPC/store tests for draft and publish state without changing current public reads. Schema/grants and read-store tests are complete; draft/publish commands remain.
 3. Add server read adapter with a safe fallback to the existing deployed catalog only when version storage is unavailable; never substitute fake content.
 4. Verify migration RLS/grants, unit/type/build, then deploy and validate the current customer service list remains unchanged.
+
+## T22 Slice 2 — Structured Service Draft
+
+- User outcome: an authorized operator selects one real catalog service, saves a structured draft, and immediately sees its persisted version and revision.
+- Route and source: `/admin/services`, `service_config_versions`, T22 / R02 / S02.
+- Editable fields: `title`, `tagline`, `summary`, `category`, `discoveryVisible`, and `landingPath`.
+- Immutable or deferred fields: `canonicalKey` is immutable; `amount` and `saleAvailable` remain owned by the payment track and cannot be changed here.
+- Command contract: authenticated `services:write` scope, `Idempotency-Key`, server validation, audit events, and compare-and-swap `expectedRevision` for updates.
+- Persistence contract: one active draft per service; creation allocates the next version under a database advisory lock; updates increment revision only when the expected revision matches.
+- UI states: loading, ready, saving, validation error, permission denial, stale revision conflict, unavailable store, and saved success.
+- Customer impact: none in this slice. Draft rows are not read by public pages and publishing remains disabled.
+- Acceptance criteria:
+  - [ ] a valid service draft is created in Supabase with revision `0` and a SHA-256 checksum;
+  - [ ] saving an existing draft requires the current revision and increments it once;
+  - [ ] duplicate idempotency keys replay the stored result and changed bodies conflict;
+  - [ ] invalid keys, paths, lengths, and payload types are rejected before persistence;
+  - [ ] every successful mutation has started/succeeded audit evidence;
+  - [ ] the services screen renders only real catalog/draft data and never sample rows;
+  - [ ] public catalog and paid prices remain unchanged.

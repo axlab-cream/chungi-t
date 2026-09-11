@@ -17,8 +17,8 @@
 export type StaffRole = 'super_admin'
 
 /**
- * Read scopes are all this stage grants. No write scope exists yet because no
- * command surface is audited (T06). A super admin can look, not act.
+ * Write scopes are granted only for command surfaces that already pass through
+ * T06 audit and idempotency controls. There is no implicit wildcard scope.
  */
 const SUPER_ADMIN_SCOPES = Object.freeze([
   'orders:read',
@@ -33,6 +33,7 @@ const SUPER_ADMIN_SCOPES = Object.freeze([
   'refunds:request',
   'refunds:approve',
   'services:read',
+  'services:write',
 ])
 
 export type StaffMembership = {

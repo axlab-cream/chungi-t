@@ -38,9 +38,12 @@ const { default: app } = await import('../../src/server/app.js')
 
 let server: Server
 
-async function request(path: string, token?: string) {
+async function request(path: string, token?: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers)
+  if (token) headers.set('Authorization', `Bearer ${token}`)
   const response = await fetch(origin + path, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    ...init,
+    headers,
     redirect: 'manual',
   })
   return { response, text: await response.text() }
@@ -163,7 +166,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
       // 환불은 요청·승인·조회로 분리된 별도 scope 이며, 삭제 권한은 주지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read'])
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write'])
       assert.ok(!me.scopes.some((scope: string) => /delete/.test(scope)), '허용되지 않은 삭제 권한이 생겼다')
       assert.ok(me.scopes.includes('settings:write'), '감사 기반 설정 변경 권한이 없다')
       assert.ok(me.scopes.includes('support:read') && me.scopes.includes('support:write'), '고객 지원 권한이 없다')
@@ -237,6 +240,9 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /loadLiveAudit/, '실제 감사 기록 로더가 없다')
       assert.match(text, /loadRefunds/, '실제 환불 요청 로더가 없다')
       assert.match(text, /\/api\/admin\/v1\/services/, '관리자 서비스 API 로더가 없다')
+      assert.match(text, /renderServiceDraftEditor/, '서비스 초안 편집기가 없다')
+      assert.match(text, /초안 저장/, '서비스 초안 저장 CTA가 없다')
+      assert.match(text, /expectedRevision/, '서비스 초안 revision 충돌 방지가 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
@@ -251,6 +257,14 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(payload.services.length, 19)
       assert.ok(payload.services.some((service: { canonicalKey: string, discoveryVisible: boolean }) => service.canonicalKey === 'love_mind' && service.discoveryVisible === false))
       assert.ok(payload.services.every((service: Record<string, unknown>) => !('payload' in service) && !('authorEmail' in service)))
+    })
+
+    it('서비스 초안 API는 관리자 권한과 구조화 입력을 모두 요구한다', async () => {
+      const anonymous = await request('/api/admin/v1/services/cmdg/drafts', undefined, { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': 'service-draft-test' }, body: JSON.stringify({ fields: {} }) })
+      assert.equal(anonymous.response.status, 401)
+      const invalid = await request('/api/admin/v1/services/cmdg/drafts', 'super', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': 'service-draft-test' }, body: JSON.stringify({ fields: { title: '가격 변경', amount: 1 } }) })
+      assert.equal(invalid.response.status, 422)
+      assert.match(JSON.parse(invalid.text).code, /^SERVICE_/)
     })
 
     it('환불 목록 API는 읽기 scope가 있는 관리자만 실제 원천을 조회한다', async () => {

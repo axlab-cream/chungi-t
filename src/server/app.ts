@@ -43,7 +43,8 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
-import { getAdminServiceVersionSnapshot } from '../admin/service-version-store.js'
+import { createAdminServiceDraft, getAdminServiceVersionSnapshot, updateAdminServiceDraft } from '../admin/service-version-store.js'
+import { parseServiceDraftFields } from '../admin/service-draft.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
@@ -1129,7 +1130,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1857,6 +1858,41 @@ app.get('/api/admin/v1/services', async (req, res) => {
     res.json(await getAdminServiceVersionSnapshot())
   } catch {
     res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/services/:key/drafts', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:write'); if (!membership) return
+  const canonicalKey = trimmedString(req.params.key); const idempotencyKey = adminCommandKey(req)
+  let fields
+  try { fields = parseServiceDraftFields(canonicalKey, asObject(req.body).fields) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'SERVICE_DRAFT_FIELDS_INVALID', error: '서비스 초안 입력값을 확인해 주세요.' }); return }
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'service.draft.create', idempotencyKey, body: { canonicalKey, fields }, target: { type: 'service_config', id: canonicalKey } }, async () => createAdminServiceDraft({ canonicalKey, fields, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SERVICE_DRAFT_CREATE_FAILED'
+    res.status(error instanceof AdminCommandConflict || code === 'SERVICE_DRAFT_EXISTS' ? 409 : 503).json({ code, error: code === 'SERVICE_DRAFT_EXISTS' ? '이미 초안이 있습니다. 목록을 새로고침해 수정해 주세요.' : '서비스 초안을 저장하지 못했습니다.' })
+  }
+})
+app.patch('/api/admin/v1/services/:key/drafts/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:write'); if (!membership) return
+  const canonicalKey = trimmedString(req.params.key); const id = trimmedString(req.params.id); const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  let fields
+  try { fields = parseServiceDraftFields(canonicalKey, body.fields) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'SERVICE_DRAFT_FIELDS_INVALID', error: '서비스 초안 입력값을 확인해 주세요.' }); return }
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'SERVICE_DRAFT_UPDATE_INVALID', error: '초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'service.draft.update', idempotencyKey, body: { id, canonicalKey, expectedRevision, fields }, target: { type: 'service_config', id: canonicalKey } }, async () => {
+      const draft = await updateAdminServiceDraft({ id, canonicalKey, expectedRevision, fields })
+      if (!draft) throw new AdminCommandConflict('SERVICE_DRAFT_REVISION_CONFLICT')
+      return draft
+    })
+    res.json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SERVICE_DRAFT_UPDATE_FAILED'
+    res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code, error: error instanceof AdminCommandConflict ? '다른 관리자가 먼저 수정했습니다. 목록을 새로고침해 주세요.' : '서비스 초안을 변경하지 못했습니다.' })
   }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
