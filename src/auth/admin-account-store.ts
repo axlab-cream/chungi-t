@@ -44,7 +44,7 @@ function fromRow(row: Record<string, unknown>): AdminAccount {
 }
 
 export function adminAccountStoreEnabled(): boolean {
-  return String(process.env.UMSH_ADMIN_ACCOUNT_STORE ?? '').toLowerCase() === 'enabled'
+  return String(process.env.UMSH_ADMIN_ACCOUNT_STORE ?? '').trim().toLowerCase() === 'enabled'
 }
 
 export function adminAccountStoreAvailable(): boolean {
