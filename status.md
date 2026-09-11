@@ -1036,3 +1036,4 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 검증: worker 단위 테스트 2/2 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. 전체 `npm test`는 기존 대형 테스트 실행으로 단일 30초 실행 창을 넘겨 이 Task에서는 완료 확인하지 못했다.
 - LNB 감사: 회원·리포트·서비스·지원·감사 기록은 실제 원천 연결, 미디어를 포함한 나머지 준비 화면은 후속 Task의 실제 테이블/API가 필요하다. 목업 데이터를 추가하지 않는다.
 - 남은 검증: Vercel이 첫 예약 cron을 실행한 뒤의 worker 로그·응답 확인.
+- KMS 기록: `personal/carrotcap/notes/umsh-ops-worker-20260911.md`.
