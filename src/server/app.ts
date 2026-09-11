@@ -41,6 +41,7 @@ import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, lis
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
+import { enqueueOpsJob, listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
@@ -1835,6 +1836,23 @@ app.get('/api/admin/v1/search', async (req, res) => {
     if (kind === 'report') { const report = await findLiveReport(exactId); if (!report) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: report }, asOf: new Date().toISOString() }); return }
     const supportCase = await getSupportCase(exactId); if (!supportCase) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: supportCase }, asOf: new Date().toISOString() })
   } catch { res.status(503).json({ code: 'ADMIN_SEARCH_UNAVAILABLE', error: '실제 운영 검색 저장소를 불러오지 못했습니다.' }) }
+})
+
+app.get('/api/cron/ops', async (req, res) => {
+  const secret = String(process.env.CRON_SECRET ?? '')
+  if (!secret || req.header('authorization') !== `Bearer ${secret}`) { res.status(401).json({ error: 'Unauthorized' }); return }
+  try { res.json(await runOpsWorker()) }
+  catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
+})
+app.get('/api/admin/v1/jobs', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
+})
+app.post('/api/admin/v1/jobs', async (req, res) => {
+  const member = await requireStaff(req, res, 'reports:read'); if (!member) return
+  const body = asObject(req.body); const kind = trimmedString(body.kind); const targetId = trimmedString(body.targetId); const key = trimmedString(req.header('idempotency-key'))
+  if (!kind || !targetId || key.length < 8) { res.status(422).json({ code: 'INVALID_JOB_INPUT', error: '작업 종류, 대상, 멱등 키를 확인해 주세요.' }); return }
+  try { res.status(201).json({ job: await enqueueOpsJob({ kind, targetId, idempotencyKey: key }) }) } catch { res.status(503).json({ code: 'OPS_ENQUEUE_FAILED', error: '작업을 만들지 못했습니다.' }) }
 })
 
 app.get('/api/admin/v1/orders', async (req, res) => {

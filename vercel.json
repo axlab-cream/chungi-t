@@ -6,6 +6,9 @@
       "includeFiles": "{admin-ui,data,prompts,사주}/**"
     }
   },
+  "crons": [
+    { "path": "/api/cron/ops", "schedule": "0 3 * * *" }
+  ],
   "routes": [
     {
       "src": "/(.*)",

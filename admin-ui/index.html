@@ -551,6 +551,9 @@
           addLiveTable(body, '실제 관리자 감사 기록', ['시각', '관리자', '작업', '대상', '결과'], events, function (item) { return [item.createdAt, item.actor, item.action, item.targetType + ' · ' + item.targetId, item.result]; }, '아직 실행된 관리자 변경이 없습니다.');
         } catch (_error) { addLiveError(body, '실제 감사 기록 저장소를 불러오지 못했습니다.'); }
       }
+      async function loadOpsJobs(body) {
+        try { var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED'); var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : []; addLiveTable(body, '실제 영속 작업 큐', ['작업', '대상', '상태', '시도', '다음 실행', '오류'], jobs, function (item) { return [item.kind, item.target_id, item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—']; }, '실행 대기 중인 실제 작업이 없습니다.'); } catch (_error) { addLiveError(body, '실제 작업 큐를 불러오지 못했습니다.'); }
+      }
       function loadAdminSearch(body) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
         var form = document.createElement('form'); form.className = 'admin-actions'; form.innerHTML = '<select name="kind" aria-label="검색 대상"><option value="order">주문</option><option value="member">회원</option><option value="report">리포트</option><option value="support">고객 지원 케이스</option></select><input required name="exactId" maxlength="160" placeholder="정확한 식별자 입력" autocomplete="off"><button class="admin-button" type="submit">검색</button>'; section.appendChild(form);
@@ -584,6 +587,7 @@
         if (route.key === 'search') { loadAdminSearch(body); return; }
         if (route.key === 'members') { loadLiveMembers(body); return; }
         if (route.key === 'reports') { loadLiveReports(body); return; }
+        if (route.key === 'jobs') { loadOpsJobs(body); return; }
         if (route.key === 'services') { loadLiveServices(body); return; }
         if (route.key === 'audit') { loadLiveAudit(body); return; }
         if (route.key === 'support') { loadSupportCases(body); return; }
