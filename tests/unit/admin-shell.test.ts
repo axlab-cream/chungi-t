@@ -262,6 +262,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /\/api\/admin\/v1\/media/, '관리자 미디어 API 호출이 없다')
       assert.match(text, /현재 배포된 실제 미디어 자산이 없습니다/, '미디어 실제 빈 상태가 없다')
       assert.match(text, /\.admin-workspace\s*\{[^}]*min-width:\s*0/s, '넓은 미디어 표가 페이지 전체를 밀어낼 수 있다')
+      assert.match(text, /\[data-admin-workspace-body\]\s*\{[^}]*min-width:\s*0/s, '동적 화면 body가 표의 최소 폭만큼 늘어날 수 있다')
       assert.match(text, /admin-table admin-media-table/, '미디어 표 전용 스크롤 폭이 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
