@@ -10,6 +10,15 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T06 감사·멱등 명령 기반 완료
+
+- Status: `DONE`
+- 원격 DB: `admin_audit_events`, `admin_command_receipts`를 additive migration으로 생성하고 RLS=true, `anon`·`authenticated` grant=0을 링크된 Production DB에서 검증했다.
+- 서버: `executeAdminCommand`가 동일 요청 replay, 다른 본문 충돌, 감사 시작 실패 시 mutation 미실행을 보장한다. 감사 원장은 server-only service role로만 조회한다.
+- UI: `/admin/audit`는 실제 감사 테이블의 행만 보여주며, 현재 원본 행이 0건이라 실제 빈 상태를 표시한다.
+- 배포: `dpl_7Si8jCgfaDvAsGNMYW91uiLM4C3S` Ready 및 `umsh.kr` 별칭 확인. 브라우저 실검증에서 권한 있는 세션이 실제 빈 감사 원장을 렌더링했다.
+- 검증: typecheck PASS, focused admin test 27/27 PASS. 초기 scope 누락은 커밋 `9277e28`에서 수정하고 재검증했다.
+
 ## 2026-09-11 — T06 감사·멱등 명령 기반 시작
 
 - Status: `IN_PROGRESS`
