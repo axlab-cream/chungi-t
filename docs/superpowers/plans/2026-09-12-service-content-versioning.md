@@ -38,3 +38,42 @@
   - [x] every successful mutation has started/succeeded audit evidence;
   - [x] the services screen renders only real catalog/draft data and never sample rows;
   - [x] public catalog and paid prices remain unchanged.
+
+## T22 Slice 3 — Publish and Public Directory Read
+
+### Page Brief
+
+- Page: `/admin/services` and customer `/api/services` consumers.
+- Purpose: explicitly promote one reviewed service draft to the current published configuration and expose only that published configuration to new service-list requests.
+- Primary user: authenticated operations super admin; customer search visitors are read-only consumers.
+- Primary CTA: `이 초안을 발행` → confirmation → atomic publish → refreshed version state.
+- Secondary CTA: `초안 저장`; it remains non-public.
+- Data source: private `service_config_versions` rows through server-only service-role calls.
+- Admin-controlled fields: title, tagline, summary, category, discovery visibility. `landingPath` remains equal to the immutable code route.
+- Required states: no draft, ready to publish, publishing, success, validation error, stale revision, permission denial, unavailable store, and hidden-service policy blocked.
+- Alerts: publishing changes new public list responses; existing orders, prices, report ownership, saved report text, and service routes do not change.
+- SEO/AEO/GEO: published copy can change search-card wording only; static metadata, canonical URLs, FAQ schema, and landing HTML remain unchanged in this slice.
+- Analytics: `service.draft.publish` started/succeeded audit events with service key; no new customer tracking event.
+- Legal/privacy: no personal customer data is read or written; admin email remains audit-only and is not returned publicly.
+- Responsive/accessibility: reuse the existing compact form, visible focus, native confirmation, disabled in-flight CTA, and status text announced through `role=status`.
+
+### TASK Brief
+
+- TASK ID: T22 Slice 3.
+- User outcome: a reviewed draft becomes the one published service configuration without deleting history, and the next customer service-list request receives the published non-payment fields.
+- Scope: atomic publish RPC, server store, publish API, admin CTA, public directory adapter, audit/idempotency/revision tests, production verification.
+- Out of scope: price or sale-state changes, media, scheduling, multi-review workflow, static landing-page rewriting, content_versions, and payment/refund work.
+- Safe assumption: publishing a code-hidden service as discovery-visible is blocked until U10 explicitly allows new discovery/sales exposure.
+- Publish transition: lock service key; require draft id/state/revision; archive the prior published row; promote the draft; increment revision; preserve every row.
+- Public precedence: valid published fields override code title/tagline/summary/category/discovery only. Key, amount, image, and route remain code-owned. Missing/unavailable/invalid version storage falls back to the current code directory without sample data.
+- Acceptance criteria:
+  - [ ] only `services:publish` may call the publish endpoint;
+  - [ ] stale revision or wrong draft state returns conflict with no partial transition;
+  - [ ] the old published row becomes archived and the promoted row is the sole published row;
+  - [ ] hidden-to-visible publication is blocked pending U10;
+  - [ ] public output never includes revision, author, checksum, raw payload, or draft data;
+  - [ ] amount, image, key, and route cannot be overridden by a published payload;
+  - [ ] existing saved reports and orders remain unchanged;
+  - [ ] publish audit and idempotency evidence exists;
+  - [ ] 1440/768/390 administrator layouts remain usable.
+- Definition of Done: targeted tests turn red then green; migration/RPC privileges and rollback transition pass; full test/type/build pass; production browser publish and public API are verified; status/tests/KMS are updated.

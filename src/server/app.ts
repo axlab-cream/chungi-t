@@ -43,8 +43,9 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
-import { createAdminServiceDraft, getAdminServiceVersionSnapshot, updateAdminServiceDraft } from '../admin/service-version-store.js'
+import { createAdminServiceDraft, getAdminServiceVersionSnapshot, publishAdminServiceDraft, updateAdminServiceDraft } from '../admin/service-version-store.js'
 import { parseServiceDraftFields } from '../admin/service-draft.js'
+import { getPublicServiceDirectorySnapshot } from './published-service-directory.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
@@ -1130,7 +1131,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1895,6 +1896,26 @@ app.patch('/api/admin/v1/services/:key/drafts/:id', async (req, res) => {
     res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code, error: error instanceof AdminCommandConflict ? '다른 관리자가 먼저 수정했습니다. 목록을 새로고침해 주세요.' : '서비스 초안을 변경하지 못했습니다.' })
   }
 })
+app.post('/api/admin/v1/services/:key/drafts/:id/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:publish'); if (!membership) return
+  const canonicalKey = trimmedString(req.params.key); const id = trimmedString(req.params.id); const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'SERVICE_DRAFT_PUBLISH_INVALID', error: '초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const snapshot = await getAdminServiceVersionSnapshot()
+    const service = snapshot.services.find((item) => item.canonicalKey === canonicalKey)
+    if (!service?.draft || service.draft.id !== id || service.draft.revision !== expectedRevision) throw new AdminCommandConflict('SERVICE_DRAFT_REVISION_CONFLICT')
+    if (!service.catalogDiscoveryVisible && service.draft.fields.discoveryVisible) {
+      res.status(409).json({ code: 'SERVICE_DISCOVERY_RELEASE_REQUIRED', error: '현재 비공개 서비스는 별도 공개 승인 전 검색 노출로 발행할 수 없습니다.' }); return
+    }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'service.draft.publish', idempotencyKey, body: { id, canonicalKey, expectedRevision }, target: { type: 'service_config', id: canonicalKey } }, async () => publishAdminServiceDraft({ id, canonicalKey, expectedRevision, actorEmail: membership.email }))
+    res.json({ published: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SERVICE_DRAFT_PUBLISH_FAILED'
+    const conflict = error instanceof AdminCommandConflict || code === 'SERVICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '초안이 변경되었거나 이미 발행되었습니다. 목록을 새로고침해 주세요.' : '서비스 초안을 발행하지 못했습니다.' })
+  }
+})
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
   // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.
@@ -2608,8 +2629,9 @@ app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
 
 /** The 검색 page lists every service from here, so price and title stay in one place. */
-app.get('/api/services', (_req, res) => {
-  res.json({ services: listServiceDirectory() })
+app.get('/api/services', async (_req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=30, stale-while-revalidate=60')
+  res.json(await getPublicServiceDirectorySnapshot())
 })
 
 app.get('/api/user/reports', async (req, res) => {

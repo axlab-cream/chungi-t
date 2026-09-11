@@ -20,6 +20,8 @@ export type AdminServiceVersionSummary = {
   revision: number | null
   updatedAt: string | null
   draft: AdminServiceDraft | null
+  published: AdminServiceDraft | null
+  catalogDiscoveryVisible: boolean
 }
 
 export type AdminServiceDraft = {
@@ -84,7 +86,7 @@ async function loadVersionRows(): Promise<Row[]> {
   request.searchParams.set('state', 'in.(draft,published)')
   request.searchParams.set('order', 'service_key.asc,version.desc')
   request.searchParams.set('limit', '1000')
-  const response = await fetch(request, { headers: headers() })
+  const response = await fetch(request, { headers: headers(), signal: AbortSignal.timeout(2500) })
   if (!response.ok) throw new Error('SERVICE_VERSION_LOOKUP_FAILED')
   return await response.json() as Row[]
 }
@@ -142,6 +144,30 @@ export async function updateAdminServiceDraft(input: { id: string, canonicalKey:
   return row ? draftFromRow(row) : null
 }
 
+export async function publishAdminServiceDraft(input: { id: string, canonicalKey: string, expectedRevision: number, actorEmail: string }): Promise<AdminServiceDraft> {
+  const response = await fetch(rpcUrl('publish_service_config_draft'), {
+    method: 'POST',
+    headers: { ...headers(), 'content-type': 'application/json' },
+    body: JSON.stringify({
+      p_draft_id: input.id,
+      p_service_key: input.canonicalKey,
+      p_expected_revision: input.expectedRevision,
+      p_actor_email: input.actorEmail.toLowerCase(),
+    }),
+  })
+  return parseDraftResponse(response, response.status === 409 ? 'SERVICE_DRAFT_REVISION_CONFLICT' : 'SERVICE_DRAFT_PUBLISH_FAILED')
+}
+
+export async function getPublishedServiceFields(): Promise<Map<string, ServiceDraftFields>> {
+  if (!serviceVersionStoreAvailable()) throw new Error('SERVICE_VERSION_STORE_UNAVAILABLE')
+  const result = new Map<string, ServiceDraftFields>()
+  for (const [key, row] of latestByState(await loadVersionRows(), 'published')) {
+    const fields = safeServiceDraftFields(key, row.payload)
+    if (fields) result.set(key, fields)
+  }
+  return result
+}
+
 export async function getAdminServiceVersionSnapshot(): Promise<AdminServiceVersionSnapshot> {
   let versionStore: AdminServiceVersionSnapshot['versionStore'] = 'unavailable'
   let rows: Row[] = []
@@ -154,22 +180,25 @@ export async function getAdminServiceVersionSnapshot(): Promise<AdminServiceVers
   const services = listAdminServiceDirectory().map((service) => {
     const draft = drafts.get(service.key)
     const live = published.get(service.key)
+    const liveFields = safeServiceDraftFields(service.key, live?.payload)
     const current = draft ?? live
     return {
       canonicalKey: service.key,
-      title: service.title,
-      category: service.category,
+      title: liveFields?.title ?? service.title,
+      category: liveFields?.category ?? service.category,
       amount: service.amount,
-      discoveryVisible: service.discoveryVisible,
+      discoveryVisible: service.discoveryVisible && liveFields?.discoveryVisible !== false,
       saleAvailable: true,
       landingPath: service.href,
-      tagline: service.tagline,
-      summary: service.summary,
+      tagline: liveFields?.tagline ?? service.tagline,
+      summary: liveFields?.summary ?? service.summary,
       publishedVersion: validVersion(live?.version),
       draftVersion: validVersion(draft?.version),
       revision: current && Number.isSafeInteger(Number(current.revision)) ? Number(current.revision) : null,
       updatedAt: typeof current?.updated_at === 'string' ? current.updated_at : null,
       draft: draftFromRow(draft),
+      published: draftFromRow(live),
+      catalogDiscoveryVisible: service.discoveryVisible,
     }
   })
   return { services, versionStore, asOf: new Date().toISOString() }

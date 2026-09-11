@@ -14,6 +14,9 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url.pathname.endsWith('/rpc/create_service_config_draft')) {
     return new Response(JSON.stringify([{ id: 'draft-new', service_key: 'cmdg', version: 4, state: 'draft', revision: 0, payload: body?.p_payload, checksum: body?.p_checksum, updated_at: '2026-09-12T00:00:00Z' }]), { headers: { 'content-type': 'application/json' } })
   }
+  if (url.pathname.endsWith('/rpc/publish_service_config_draft')) {
+    return new Response(JSON.stringify([{ id: 'draft-3', service_key: 'cmdg', version: 3, state: 'published', revision: 2, payload: { title: '발행된 천명사주', tagline: '발행 한줄', summary: '발행 요약', category: '종합', discoveryVisible: true, landingPath: '/cmdg/' }, updated_at: '2026-09-12T02:00:00Z' }]), { headers: { 'content-type': 'application/json' } })
+  }
   if (method === 'PATCH') {
     return new Response(JSON.stringify([{ id: 'draft-3', service_key: 'cmdg', version: 3, state: 'draft', revision: 2, payload: body?.payload, checksum: body?.checksum, updated_at: '2026-09-12T01:00:00Z' }]), { headers: { 'content-type': 'application/json' } })
   }
@@ -71,5 +74,13 @@ describe('서비스 버전 관리자 조회', { concurrency: false }, () => {
     assert.equal(call?.url.searchParams.get('service_key'), 'eq.cmdg')
     assert.equal(call?.url.searchParams.get('revision'), 'eq.1')
     assert.equal((call?.body as Record<string, unknown>).revision, 2)
+  })
+
+  it('초안 발행은 id, key, expected revision과 실행자를 RPC에 보낸다', async () => {
+    const published = await store.publishAdminServiceDraft({ id: 'draft-3', canonicalKey: 'cmdg', expectedRevision: 1, actorEmail: 'publisher@example.com' })
+    assert.equal(published.revision, 2)
+    const call = calls.find((item) => item.url.pathname.endsWith('/rpc/publish_service_config_draft'))
+    assert.equal(call?.method, 'POST')
+    assert.deepEqual(call?.body, { p_draft_id: 'draft-3', p_service_key: 'cmdg', p_expected_revision: 1, p_actor_email: 'publisher@example.com' })
   })
 })
