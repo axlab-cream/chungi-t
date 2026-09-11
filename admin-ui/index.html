@@ -151,7 +151,7 @@
     .admin-media-references { max-width: 320px; white-space: normal !important; overflow-wrap: anywhere; }
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
-    .admin-workspace { display: grid; gap: var(--admin-space-6); }
+    .admin-workspace { display: grid; min-width: 0; gap: var(--admin-space-6); }
     .admin-page-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--admin-space-4); padding-bottom: var(--admin-space-4); border-bottom: 1px solid var(--admin-line); }
     .admin-page-head h2 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
     .admin-page-head p { margin: var(--admin-space-1) 0 0; max-width: 760px; }
@@ -160,12 +160,13 @@
     .admin-kpi small { display: block; color: var(--admin-text-muted); font-size: 12px; }
     .admin-kpi strong { display: block; margin-top: var(--admin-space-2); font-size: 20px; font-variant-numeric: tabular-nums; }
     .admin-kpi span { display: block; margin-top: var(--admin-space-1); color: var(--admin-text-disabled); font-size: 12px; }
-    .admin-section { border: 1px solid var(--admin-line); background: var(--admin-surface); }
+    .admin-section { min-width: 0; border: 1px solid var(--admin-line); background: var(--admin-surface); }
     .admin-section-head { display: flex; justify-content: space-between; align-items: center; gap: var(--admin-space-3); padding: var(--admin-space-3) var(--admin-space-4); border-bottom: 1px solid var(--admin-line); }
     .admin-section-head h3 { margin: 0; font-size: 14px; }
     .admin-section-body { padding: var(--admin-space-4); }
     .admin-empty { margin: 0; padding: var(--admin-space-4); color: var(--admin-text-muted); background: var(--admin-bg); border-left: 2px solid var(--admin-line); }
     .admin-chip { display: inline-flex; align-items: center; padding: 2px 7px; color: var(--admin-text-muted); background: var(--admin-bg); border: 1px solid var(--admin-line); border-radius: 999px; font-size: 12px; white-space: nowrap; }
+    .admin-media-table { min-width: 1120px; }
     .admin-button[aria-disabled='true'] { color: var(--admin-text-muted); background: var(--admin-bg); border-color: var(--admin-line); cursor: not-allowed; }
     .admin-refund-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--admin-space-3); padding: var(--admin-space-4); }
     .admin-refund-form .admin-field { min-width: 0; }
@@ -675,7 +676,7 @@
           body.insertBefore(metrics, section);
           if (!assets.length) { var empty = section.querySelector('.admin-empty'); empty.textContent = '현재 배포된 실제 미디어 자산이 없습니다.'; return; }
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll';
-          var table = document.createElement('table'); table.className = 'admin-table';
+          var table = document.createElement('table'); table.className = 'admin-table admin-media-table';
           table.innerHTML = '<thead><tr><th scope="col">미리보기</th><th scope="col">파일</th><th scope="col">유형</th><th scope="col">크기</th><th scope="col">규격</th><th scope="col">사용 위치</th><th scope="col">검사</th><th scope="col">권리</th></tr></thead>';
           var rows = document.createElement('tbody');
           assets.forEach(function (asset) {
