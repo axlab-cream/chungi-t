@@ -1089,3 +1089,13 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. Vercel 배포 `dpl_E7vPCwMc7WoVSKfMfUG8SeTz9i4t` Ready 및 운영 승격 완료. 보호 배포에서 LNB와 새 서비스 로더를 확인했다.
 - 운영 로그인 E2E는 기존 지정 관리자 자격증명이 현재 계정 저장소에서 거부되어 NEEDS_REVIEW다. 인증된 서비스 API의 운영 `versionStore=ready` 확인은 아직 NOT_RUN이며, Vercel 환경변수 이름 존재와 로컬 값 로드 여부를 혼동하지 않는다.
 - T22는 계속 IN_PROGRESS다. 다음 slice는 구조화 draft 생성·revision 충돌·감사 기록 연결이다.
+
+## 2026-09-12 — T22 Slice 2 실제 서비스 초안 생성·수정
+
+- `/admin/services`에 실제 19개 카탈로그를 원본으로 채우는 구조화 초안 편집기를 추가했다. 제목·한줄 설명·요약·분류·검색 노출·고객 경로만 저장하며 canonicalKey, 가격, 판매 상태는 변경하지 않는다.
+- 운영 DB에 서비스별 활성 초안 1개를 보장하는 partial unique index와 advisory lock 기반 `create_service_config_draft` RPC를 반영했다. 함수는 security invoker이고 실행 권한은 postgres/service_role만 가진다.
+- 생성·수정 API는 `services:write`, 멱등 키, allowlist 입력 검증, SHA-256 checksum, revision CAS, started/succeeded 감사 기록을 통과한다. 초안은 공개 read에 연결하지 않아 고객 화면·기존 주문·완료 리포트는 변경되지 않는다.
+- 검증: 관련 32개 및 전체 629개 테스트 PASS, typecheck/build PASS. Production 배포 `dpl_L2tQHcEPX6dimtgabSc8vxbXpTC5` Ready 및 `umsh.kr` 별칭 연결, 최근 error log 0건.
+- 지정 관리자 계정으로 직접 로그인해 production LNB와 19개 실서비스를 확인했다. `cmdg`의 현재 정본 값으로 실제 draft v1을 생성하고 다시 저장해 revision 1 CAS와 create/update 감사 기록을 확인했다. 비밀번호·쿠키·토큰은 저장하지 않았다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-t22-service-draft-20260912.md` 저장/get/개인 검색 확인 PASS. 서버 전용 재색인 명령은 로컬에서 실행할 수 없어 NOT_RUN이며 검색 즉시 반영은 확인했다.
+- T22는 계속 IN_PROGRESS다. 다음 slice는 명시적 publish 승인과 이전 발행본 보존, 신규 고객 세션에만 적용되는 공개 read 경계다.

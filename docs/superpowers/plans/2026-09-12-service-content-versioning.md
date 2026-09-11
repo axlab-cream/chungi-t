@@ -16,7 +16,7 @@
 ## Implementation Order
 
 1. [x] Map each current service-directory field to the immutable base catalog or an operator-controlled versioned field; expose the real catalog plus version metadata to authorized operations.
-2. [ ] Add restricted Supabase schema/RPC/store tests for draft and publish state without changing current public reads. Schema/grants and read-store tests are complete; draft/publish commands remain.
+2. [ ] Add restricted Supabase schema/RPC/store tests for draft and publish state without changing current public reads. Draft commands are complete; publish commands remain.
 3. Add server read adapter with a safe fallback to the existing deployed catalog only when version storage is unavailable; never substitute fake content.
 4. Verify migration RLS/grants, unit/type/build, then deploy and validate the current customer service list remains unchanged.
 
@@ -31,10 +31,10 @@
 - UI states: loading, ready, saving, validation error, permission denial, stale revision conflict, unavailable store, and saved success.
 - Customer impact: none in this slice. Draft rows are not read by public pages and publishing remains disabled.
 - Acceptance criteria:
-  - [ ] a valid service draft is created in Supabase with revision `0` and a SHA-256 checksum;
-  - [ ] saving an existing draft requires the current revision and increments it once;
-  - [ ] duplicate idempotency keys replay the stored result and changed bodies conflict;
-  - [ ] invalid keys, paths, lengths, and payload types are rejected before persistence;
-  - [ ] every successful mutation has started/succeeded audit evidence;
-  - [ ] the services screen renders only real catalog/draft data and never sample rows;
-  - [ ] public catalog and paid prices remain unchanged.
+  - [x] a valid service draft is created in Supabase with revision `0` and a SHA-256 checksum;
+  - [x] saving an existing draft requires the current revision and increments it once;
+  - [x] duplicate idempotency keys replay the stored result and changed bodies conflict;
+  - [x] invalid keys, paths, lengths, and payload types are rejected before persistence;
+  - [x] every successful mutation has started/succeeded audit evidence;
+  - [x] the services screen renders only real catalog/draft data and never sample rows;
+  - [x] public catalog and paid prices remain unchanged.

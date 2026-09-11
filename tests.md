@@ -150,6 +150,10 @@
 | V-144 | staff | 관리자 권한 | `UMSH_ADMIN_SUPER_EMAILS` 설정 계정만 200 | 충족 | **PASS** — 빈 설정이면 아무도 없음, 대소문자 무시 | 2026-09-11 |
 | V-145 | staff | 자격증명 | 셸이 비밀번호를 보관·전송하는가 | 안 함 | **PASS** — Supabase Auth 직접 호출, 폼 즉시 비움 | 2026-09-11 |
 | V-146 | task-t18 | 환불 조회·UI | refund store/list API/운영 셸 | 26 tests, typecheck, vercel build | **PARTIAL** — 단위/API/셸 검증은 PASS. Production `/api/admin/v1/refunds`는 503으로 원인 확인 필요 | 2026-09-11 |
+| V-147 | task-t22 slice 2 | 서비스 초안 회귀 | `npm test` | 실패 0건 | **PASS** (629/629) | 2026-09-12 |
+| V-148 | task-t22 slice 2 | 서비스 초안 DB | rollback SQL + routine/grant/index 조회 | v1/revision 0, 영구 쓰기 0, 최소권한 | **PASS** — security invoker, service_role만 EXECUTE, active draft unique index | 2026-09-12 |
+| V-149 | task-t22 slice 2 | 운영 브라우저 | 지정 관리자 로그인 → `/admin/services` → 저장 2회 | 실제 초안 생성·CAS 수정 | **PASS** — `cmdg` v1/revision 1, create/update 감사 각 2단계 | 2026-09-12 |
+| V-150 | task-t22 slice 2 | Production 배포 | Vercel inspect + `umsh.kr` 화면 + error logs | Ready, 별칭 연결, 오류 0 | **PASS** — `dpl_L2tQHcEPX6dimtgabSc8vxbXpTC5` | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 
