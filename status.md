@@ -1055,3 +1055,9 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 검증: sandbox 계약 테스트와 기존 결제 테스트 9/9 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. 실 TID·INIAPI Key·실거래는 사용하지 않았다.
 - 남은 조건: T17에서 INIAPI Key 계약·운영 egress, 환불 intent 영속화, 요청/승인자 분리, 금액 예약, unknown 대사 경로를 구현하기 전에는 live 취소를 연결하지 않는다.
 - KMS 기록: `personal/carrotcap/notes/umsh-inicis-sandbox-adapter-20260911.md`.
+
+## 2026-09-11 — T17 환불 요청·독립 승인·예약
+
+- `refund_requests`와 service-role 전용 RPC를 운영 DB에 반영했다. 요청 RPC는 주문 행을 잠그고 활성 요청의 예약액을 합산하므로 동시에 요청해도 원 결제금액을 초과 예약할 수 없다.
+- 요청자와 승인자가 같으면 DB에서 거부하며, 승인 전/후 어느 경로도 PG를 호출하지 않는다. 주문 상태, 고객 구매권한, 완료 리포트 본문도 변경하지 않는다.
+- 검증: refund·INIAPI 테스트 9/9 PASS, typecheck/build PASS. 운영 DB에서 RLS=true, anon/authenticated SELECT=false, service_role RPC execute=true 확인.

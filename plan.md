@@ -84,7 +84,8 @@
 | T14 | task-t14 | M2 | P0 | T03,T06 | 영속 작업·outbox | NEEDS_REVIEW — Production 배포 완료, 첫 예약 실행 확인 대기 |
 | T15 | task-t15 | M2 | P0 | T08,T14 | 금융 이벤트·상태 투영 | DONE — append-only 승인 원장, 중복 방지, 승인 후 상태 투영 |
 | T16 | task-t16 | M2 | P0 | T15 | PG 조회·취소 adapter 조사·구현 | **DONE** — 공식 INIAPI v2 계약 기반, transport 주입형 sandbox 조회·취소 증거 adapter. production 실행·상태 변경 없음 |
-| T17~T21 | - | M2 | P0 | (pack) | 금융·복구 (환불, 대사, 재시도, incident) | TODO — T17은 T16 sandbox 계약 위에서 독립 승인·intent·대사 경로를 먼저 구성 |
+| T17 | task-t17 | M2 | P0 | T06,T14,T15,T16 | 환불 요청·승인·실행 | DONE — 실제 영속 intent, 독립 승인, DB 잠금 기반 금액 예약. PG 호출·권한 철회는 후속 대사/실행 게이트까지 차단 |
+| T18~T21 | - | M2 | P0 | (pack) | 금융·복구 (환불 UI, 대사, 재시도, incident) | TODO |
 | T22~T30 | - | M3 | P1 | (pack) | 편집·지식 (CMS, 미디어, 코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
 | T36~T38 | - | M5 | P0 | (pack) | 통합 안정화·인수·인계 | TODO |

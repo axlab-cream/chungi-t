@@ -45,6 +45,7 @@ import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
+import { approveRefundRequest, createRefundRequest } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -1904,6 +1905,30 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
   } catch {
     res.status(502).json({ code: 'ORDER_LOOKUP_FAILED', error: '주문 조회에 실패했습니다.' })
   }
+})
+
+/** Refund requests persist an intent only. T17 deliberately does not call a PG. */
+app.post('/api/admin/v1/orders/:orderId/refund-requests', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:request'); if (!membership) return
+  const orderId = trimmedString(req.params.orderId); const body = asObject(req.body)
+  const amount = Number(body.amount); const reason = trimmedString(body.reason); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!orderId || !Number.isSafeInteger(amount) || amount <= 0 || !reason || reason.length > 240 || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_REQUEST', error: '금액, 사유, 주문 revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const order = await getPaymentOrder(orderId)
+    if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.request', idempotencyKey, body: { orderId, amount, reason, expectedRevision }, target: { type: 'refund_request', id: orderId } }, async () => createRefundRequest({ orderId, amount, reason, actorEmail: membership.email, idempotencyKey, orderAmount: order.amount, orderRevision: expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
+  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_REQUEST_CREATE_FAILED'; res.status(code.includes('CONFLICT') || code.includes('EXCEEDS') ? 409 : 503).json({ code, error: '환불 요청을 저장하지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:approve'); if (!membership) return
+  const refundId = trimmedString(req.params.refundId); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const reason = trimmedString(body.reason); const idempotencyKey = adminCommandKey(req)
+  if (!refundId || !reason || reason.length > 240 || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_APPROVAL', error: '승인 사유, refund revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
+  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_APPROVE_FAILED'; res.status(code.includes('SELF') || code.includes('CONFLICT') || code.includes('NOT_REQUESTED') ? 409 : 503).json({ code, error: '환불 요청을 승인하지 못했습니다.' }) }
 })
 
 /** Live, privacy-minimized member data. The service key never reaches the browser. */
