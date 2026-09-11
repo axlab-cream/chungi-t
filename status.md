@@ -1025,3 +1025,14 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - Production `dpl_JBgNjVEbaU1Hk6k4cacpWSzfTtTf`에서 첫 요청은 새 인스턴스 초기화로 2.52초였고,
   반복 요청은 0.27초, `X-Vercel-Cache: HIT`, `Age: 5`로 확인됐다. 관리자 함수 자체는
   여전히 295.74MB 단일 함수이므로 콜드 스타트 개선은 별도 구조 작업으로 남긴다.
+
+## 2026-09-11 — T14 영속 작업·outbox 배포 검증
+
+- `ops_jobs`·`ops_outbox` 및 lease 기반 `claim_ops_jobs` RPC는 운영 DB에 반영되어 있으며,
+  RLS 활성화와 `anon`/`authenticated` 권한 제거를 유지한다.
+- Vercel Production의 `CRON_SECRET`은 안전한 표준 입력으로 교체 등록했다. 값은 저장소·문서·로그에 기록하지 않았다.
+- 처리기가 아직 없는 작업을 성공으로 표시하던 결함을 수정했다. 이제 `NO_OPS_HANDLER`로 지수 backoff 재시도 후 최대 시도에서 dead-letter로 이동한다.
+- Production에서 `/admin/jobs`가 실제 작업 큐와 연결되어 빈 큐 상태를 표시하는 것을 브라우저로 확인했다.
+- 검증: worker 단위 테스트 2/2 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. 전체 `npm test`는 기존 대형 테스트 실행으로 단일 30초 실행 창을 넘겨 이 Task에서는 완료 확인하지 못했다.
+- LNB 감사: 회원·리포트·서비스·지원·감사 기록은 실제 원천 연결, 미디어를 포함한 나머지 준비 화면은 후속 Task의 실제 테이블/API가 필요하다. 목업 데이터를 추가하지 않는다.
+- 남은 검증: Vercel이 첫 예약 cron을 실행한 뒤의 worker 로그·응답 확인.

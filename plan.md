@@ -81,7 +81,7 @@
 | T11 | task-t11 | M1 | P0 | T07,T10 | 회원·리포트 상세 UI | TODO |
 | T12 | task-t12 | M1 | P0 | T06,T07,T10 | CS 케이스 관리 | **DONE** — 실제 support case·note 저장소, 감사 명령, 운영 UI |
 | T13 | task-t13 | M1 | P0 | T06,T08,T10 | 통합 검색·읽기 홈 | **DONE** — 권한별 정확 ID 검색과 실제 운영 요약 |
-| T14 | task-t14 | M2 | P0 | T03,T06 | 영속 작업·outbox | IN_PROGRESS — lease/retry/dead-letter·worker 배포 검증 중 |
+| T14 | task-t14 | M2 | P0 | T03,T06 | 영속 작업·outbox | NEEDS_REVIEW — Production 배포 완료, 첫 예약 실행 확인 대기 |
 | T15~T21 | - | M2 | P0 | (pack) | 금융·복구 (금융 이벤트, 환불, 대사, 재시도, incident) | TODO — T14 완료 후 순서대로 진행 |
 | T22~T30 | - | M3 | P1 | (pack) | 편집·지식 (CMS, 미디어, 코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
