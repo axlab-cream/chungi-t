@@ -230,11 +230,12 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
         assert.ok(text.includes(`href="${path}"`), `${path} 메뉴가 없다`)
       }
       assert.match(text, /markCurrentRoute/, '현재 메뉴 강조 처리가 없다')
-      assert.match(text, /workspaceBlueprints/, '메뉴별 운영 화면 구성이 없다')
+      assert.match(text, /loadLiveMembers/, '실제 회원 데이터 로더가 없다')
+      assert.match(text, /loadLiveReports/, '실제 리포트 데이터 로더가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
 
-    it('모든 운영 화면 딥링크가 전용 제목·표·연동 대기 상태를 갖는다', async () => {
+    it('모든 운영 화면 딥링크가 실제 데이터 컨테이너를 갖고 목업 상태를 노출하지 않는다', async () => {
       for (const path of [
         '/admin/search', '/admin/services', '/admin/content', '/admin/media', '/admin/refunds',
         '/admin/reconciliation', '/admin/support', '/admin/reports', '/admin/jobs', '/admin/corpus', '/admin/prompts',
@@ -245,7 +246,8 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
         assert.match(text, /data-admin-workspace-body/, `${path} 에 운영 화면 컨테이너가 없다`)
       }
       const { text } = await request('/admin')
-      assert.match(text, /데이터 연동 대기/, '미연동 영역을 임의 숫자가 아닌 명시적 상태로 보여주지 않는다')
+      assert.ok(!text.includes('데이터 연동 대기'), '목업 연동 대기 상태가 셸에 남아 있다')
+      assert.match(text, /실제 운영 원천 테이블은 아직 생성되지 않았습니다/, '원천 미생성 상태를 명시하지 않는다')
     })
 
     it('비밀번호 복구 링크는 관리자 설정 화면으로 이어진다', async () => {

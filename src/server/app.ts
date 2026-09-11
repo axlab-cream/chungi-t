@@ -37,6 +37,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
+import { countLiveMembers, countLiveReports, listLiveMembers, listLiveReports } from '../admin/live-data.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
@@ -1873,6 +1874,45 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
     res.json({ order: toAdminPaymentOrderDto(order) })
   } catch {
     res.status(502).json({ code: 'ORDER_LOOKUP_FAILED', error: '주문 조회에 실패했습니다.' })
+  }
+})
+
+/** Live, privacy-minimized member data. The service key never reaches the browser. */
+app.get('/api/admin/v1/members', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  try {
+    res.json({ members: await listLiveMembers(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
+  }
+})
+
+/** Live report index. Report text and birth data deliberately stay on the server. */
+app.get('/api/admin/v1/reports', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json({ reports: await listLiveReports(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'LIVE_REPORT_LOOKUP_FAILED', error: '실제 리포트 저장소를 불러오지 못했습니다.' })
+  }
+})
+
+/** Real deploy-time service and corpus configuration, not an editable mock catalog. */
+app.get('/api/admin/v1/operations-snapshot', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    const [members, reports] = await Promise.all([countLiveMembers(), countLiveReports()])
+    const corpus = getCorpusSnapshot()
+    res.json({
+      members,
+      reports,
+      services: listServiceDirectory().length,
+      corpusPacks: corpus.activePacks.length,
+      corpusFingerprint: corpus.fingerprint,
+      asOf: new Date().toISOString(),
+    })
+  } catch {
+    res.status(503).json({ code: 'LIVE_OPERATIONS_LOOKUP_FAILED', error: '실제 운영 요약을 불러오지 못했습니다.' })
   }
 })
 
