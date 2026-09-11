@@ -290,6 +290,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
     it('고객센터는 발행된 공지만 textContent로 렌더한다', async () => {
       const { text } = await request('/support')
       assert.match(text, /data-support-notice/)
+      assert.match(text, /\[data-support-notice\]\[hidden\]\s*\{\s*display:\s*none\s*!important/, '기존 policy-section CSS가 빈 공지의 hidden 상태를 덮을 수 있다')
       assert.match(text, /\/api\/content\/notices\/support/)
       assert.match(text, /title\.textContent = notice\.title/)
       assert.match(text, /body\.textContent = notice\.body/)
