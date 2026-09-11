@@ -1132,3 +1132,14 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - Production `dpl_FQ9cixJawa4AHuXEpd8QtXhJzcpn` Ready 및 `umsh.kr` 연결. 브라우저에서 블릿·들여쓰기, 4개 업무군, 접기, 새로고침 후 세션 유지, 활성 업무군 자동 펼침과 콘솔 0건을 확인했다.
 - Vercel error 레벨에는 앱 실패가 아니라 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 LNB 변경과 무관하며 별도 런타임 정리 항목으로 남긴다.
 - CreamWIKI `personal/carrotcap/notes/umsh-admin-lnb-groups-20260912.md` 저장/get/개인 검색 즉시 반영 PASS. 비밀번호·쿠키·토큰은 기록하지 않았다.
+
+## 2026-09-12 — T23 Slice 1 실제 배포 미디어 인벤토리
+
+- 빌드가 `사주/사주/assets` 허용 루트의 실제 파일만 스캔해 `data/admin-media-inventory.json`을 결정적으로 생성한다. 현재 83개이며 이미지·폰트·영상 MIME 시그니처, 바이트, SHA-256, 이미지/영상 해상도, MP4 재생시간, 코드 직접 참조를 기록한다.
+- `/api/admin/v1/media`는 `media:read` 권한 뒤에서 내부 절대 경로 없이 `/assets` 공개 URL과 검증 DTO만 반환한다. 자체 관리자 쿠키와 Supabase 직원 membership 모두 같은 읽기 권한을 갖고, 미로그인은 401이다.
+- `/admin/media`는 실제 요약 83개/직접 참조 54개/권리 근거 미확인 83개/영상 poster 미연결 13개와 83행 미리보기 표를 표시한다. 권리 상태를 승인으로 추정하지 않고 업로드·삭제 목업 CTA도 만들지 않았다.
+- 첫 Production 확인에서 자체 관리자 scope에 `media:read`가 빠져 목록이 거부되는 결함을 찾고 쿠키 E2E 회귀 테스트와 함께 수정했다. 이어 넓은 표가 페이지 전체를 미는 문제를 브라우저 DOM 수치로 검출해 동적 작업영역 최소 폭과 표 전용 내부 스크롤을 보정했다.
+- 검증: 최초 RED `ERR_MODULE_NOT_FOUND` 확인, targeted 33/33, 전체 `npm test` 645/645, typecheck, Vercel build PASS. 최종 Production `dpl_3wPvd9B83gK9eV9qi27wASFhN6jt` Ready 및 `umsh.kr` 연결. 브라우저 83행, visible broken image 0, console 0, page/client 994/994, table scroll 670→1120 확인.
+- Vercel error 레벨에는 앱 실패가 아니라 기존 Node `[DEP0169] url.parse()` deprecation warning만 남아 있다. 이번 기능의 브라우저 콘솔과 API 흐름에는 오류가 없다.
+- T23 전체는 **IN_PROGRESS**다. Slice 2는 Supabase Storage의 private staging/public release 경계, 권리 증빙, posterAssetId, 참조 잠금 삭제 정책을 먼저 고정한 뒤 실제 업로드·교체·삭제를 구현한다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-t23-live-media-inventory-20260912.md` 저장, 전체 경로 get, 개인 검색 즉시 반영 PASS. 짧은 `notes/...` get은 404라 전체 경로로 재검증했다. 로컬 재색인 스크립트 4개는 없어 NOT_RUN이며 원격 저장·검색 성공과 구분한다. 비밀번호·쿠키·토큰은 기록하지 않았다.

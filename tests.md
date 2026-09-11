@@ -166,6 +166,10 @@
 | V-160 | task-t22 slice 4 | Production 고객 화면 | `/api/content/notices/support` + `/support` | `notice:null`, 빈 박스 미노출 | **PASS** — 초기 빈 NOTICE 노출을 브라우저가 검출해 수정 후 연락처가 첫 섹션임을 재확인 | 2026-09-12 |
 | V-161 | task-t07 LNB UX | 구조·회귀 | 관리자 셸 targeted + 전체 `npm test` + typecheck/build | 4개 업무군, 블릿·들여쓰기, 접근 가능한 토글, 기존 기능 무회귀 | **PASS** — targeted 26/26, 전체 641/641, typecheck·Vercel build PASS | 2026-09-12 |
 | V-162 | task-t07 LNB UX | Production 브라우저 | `/admin/content`에서 업무군 접기 → 새로고침 | 접힘 세션 유지, 현재 메뉴 업무군 자동 펼침, 콘솔 오류 없음 | **PASS** — 운영 현황 collapsed 유지, 고객 · 콘텐츠 expanded, active 콘텐츠 노출, console 0건 | 2026-09-12 |
+| V-163 | task-t23 slice 1 | 자산 인벤토리 | 실제 `사주/사주/assets` 빌드 스캔 + 단위 테스트 | 파일 83개, SHA-256/MIME/크기/규격/참조 검증 | **PASS** — 83개, 시그니처 실패 0, 코드 직접 참조 54, MP4 메타데이터 13/13 | 2026-09-12 |
+| V-164 | task-t23 slice 1 | 권한·API·회귀 | local admin cookie + staff bearer + 전체 `npm test` | 미로그인 401, 두 관리자 경로 200, 기존 회귀 실패 0 | **PASS** — targeted 33/33, 전체 645/645, typecheck·Vercel build PASS | 2026-09-12 |
+| V-165 | task-t23 slice 1 | Production 브라우저 | `/admin/media` 실제 계정 세션 | 83행, 요약 83/54/83/13, 이미지·영상 규격, 콘솔 오류 없음 | **PASS** — visible broken image 0, console 0 | 2026-09-12 |
+| V-166 | task-t23 slice 1 | 좁은 화면 표 | 994px viewport에서 DOM 실측 | 페이지 overflow 없음, 표만 내부 스크롤 | **PASS** — page/client 994/994, table scroller 670→1120 | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 

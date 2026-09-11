@@ -68,10 +68,10 @@
 - Produces: `{ schemaVersion: 1, assets: AdminMediaAsset[] }`
 - Each asset: `id`, `name`, `kind`, `mime`, `bytes`, `width`, `height`, `checksum`, `publicUrl`, `references`, `rightsStatus`, `validation`
 
-- [ ] Write a failing test that requires real assets, validated checksums/public URLs, MIME signatures, and non-placeholder references.
-- [ ] Run the targeted test and confirm failure because the manifest and adapter do not exist.
-- [ ] Implement the allowlisted scanner and generate the deterministic manifest.
-- [ ] Re-run the targeted test and confirm manifest tests pass.
+- [x] Write a failing test that requires real assets, validated checksums/public URLs, MIME signatures, and non-placeholder references.
+- [x] Run the targeted test and confirm failure because the manifest and adapter do not exist.
+- [x] Implement the allowlisted scanner and generate the deterministic manifest.
+- [x] Re-run the targeted test and confirm manifest tests pass.
 
 ### Task 2: Authenticated API and admin screen
 
@@ -86,11 +86,11 @@
 - Produces: `GET /api/admin/v1/media` guarded by `media:read`
 - Consumes: `listAdminMediaAssets()` validated DTOs
 
-- [ ] Add failing API and shell tests tests for 401/200, real list rendering, empty/error states, and safe previews.
-- [ ] Implement the validated adapter and authenticated route.
-- [ ] Implement `loadLiveMedia()` with summary metrics, escaped DOM construction, lazy image thumbnail, and external preview link.
-- [ ] Run targeted tests, full `npm test`, typecheck, and Vercel build.
-- [ ] Verify Preview then Production at `/admin/media`; record browser/console/log evidence.
+- [x] Add failing API and shell tests tests for 401/200, real list rendering, empty/error states, and safe previews.
+- [x] Implement the validated adapter and authenticated route.
+- [x] Implement `loadLiveMedia()` with summary metrics, escaped DOM construction, lazy image thumbnail, and external preview link.
+- [x] Run targeted tests, full `npm test`, typecheck, and Vercel build.
+- [x] Verify Preview then Production at `/admin/media`; record browser/console/log evidence.
 
 ### Task 3: ProjectOps and knowledge writeback
 
@@ -100,5 +100,5 @@
 - Modify: `status.md`
 - Create: `CreamAI/memory/candidates/task-t23-live-media-inventory-20260912.md`
 
-- [ ] Record T23 as IN_PROGRESS with Slice 1 evidence and explicit Slice 2 boundaries.
-- [ ] Save the sanitized verified pattern to CreamWIKI and confirm get/search.
+- [x] Record T23 as IN_PROGRESS with Slice 1 evidence and explicit Slice 2 boundaries.
+- [x] Save the sanitized verified pattern to CreamWIKI and confirm get/search.
