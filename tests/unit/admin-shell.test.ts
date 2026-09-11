@@ -196,7 +196,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
 
     it('셸이 진입점과 딥링크 모두에서 열린다', async () => {
       // D2-4: `/admin/*` 미매칭 경로를 정적 탐색으로 흘리지 않는다.
-      for (const path of ['/admin', '/admin/', '/admin/index.html', '/admin/orders', '/admin/members/deep/link']) {
+      for (const path of ['/admin', '/admin/', '/admin/index.html', '/admin/orders', '/admin/members/deep/link', '/admin/settings']) {
         const { response, text } = await request(path)
         assert.equal(response.status, 200, `${path} 가 ${response.status} 로 응답했다`)
         assert.match(text, /운영 관리자/, `${path} 가 셸을 주지 않았다`)
@@ -209,8 +209,38 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       const { text } = await request('/admin')
       assert.match(text, /data-admin-login\b/, '로그인 폼이 없다')
       assert.match(text, /autocomplete="current-password"/, '비밀번호 입력이 없다')
-      assert.match(text, /signInWithPassword/, '비밀번호 로그인 호출이 없다')
+      assert.match(text, /\/api\/admin\/v1\/login/, '자체 비밀번호 로그인 호출이 없다')
+      assert.ok(!text.includes('signInWithPassword'), '관리자 로그인에서 Supabase 비밀번호 인증을 호출한다')
+      assert.match(text, /data-admin-recovery/, '비밀번호 재설정 폼이 없다')
+      assert.match(text, /autocomplete="new-password"/, '새 비밀번호 입력이 없다')
+      assert.match(text, /auth\.updateUser\(\{ password: password \}\)/, '재설정 비밀번호를 Supabase에 저장하지 않는다')
+      assert.match(text, /hash\.get\('type'\) === 'recovery'/, '복구 링크의 recovery 상태를 처리하지 않는다')
       assert.ok(!text.includes('href="/login"'), '존재하지 않는 로그인 경로로 보낸다')
+    })
+
+    it('관리자 메뉴는 좌측 LNB와 메뉴별 경로를 제공한다', async () => {
+      const { text } = await request('/admin')
+      assert.match(text, /position: fixed; inset: 0 auto 0 0/, '좌측 LNB 레이아웃이 없다')
+      for (const path of ['/admin/content', '/admin/cs', '/admin/refunds', '/admin/analytics', '/admin/settings']) {
+        assert.ok(text.includes(`href="${path}"`), `${path} 메뉴가 없다`)
+      }
+      assert.match(text, /markCurrentRoute/, '현재 메뉴 강조 처리가 없다')
+      assert.match(text, /route-placeholder/, '미구현 메뉴가 주문 화면을 재사용한다')
+    })
+
+    it('비밀번호 복구 링크는 관리자 설정 화면으로 이어진다', async () => {
+      // Supabase Dashboard에서 보낸 메일은 Site URL(루트)로 돌아올 수 있다.
+      // access token fragment를 보존한 채 관리자 복구 화면으로 넘겨야 한다.
+      const { text } = await request('/')
+      assert.match(text, /hash\.get\('type'\) === 'recovery'/, '루트가 복구 링크를 감지하지 않는다')
+      assert.match(text, /window\.location\.replace\('\/admin' \+ window\.location\.search \+ window\.location\.hash\)/, '복구 토큰을 관리자 화면으로 넘기지 않는다')
+    })
+
+    it('주문 목록 경로는 로그인 없이 목록을 불러온다', async () => {
+      const { text } = await request('/admin/orders')
+      assert.match(text, /isPublicOrdersPath/, '공개 주문 목록 경로를 구분하지 않는다')
+      assert.match(text, /startOrders\(null\)/, '공개 목록을 시작하지 않는다')
+      assert.match(text, /if \(await checkAuthority\(null\)\) return;/, '로그인된 관리자에게 전체 LNB를 먼저 열지 않는다')
     })
 
     it('셸이 자격증명을 보관하지 않는다', async () => {

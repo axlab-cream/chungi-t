@@ -89,21 +89,18 @@ after(async () => {
 
 describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
   describe('보안', () => {
-    it('미로그인은 주문을 볼 수 없다', async () => {
-      for (const path of ['/api/admin/v1/orders', '/api/admin/v1/orders/admin-order-0']) {
-        const { response, payload } = await request(path)
-        assert.equal(response.status, 401, path)
-        assert.equal(payload.code, 'AUTH_REQUIRED')
-        assert.equal(payload.orders, undefined)
-        assert.equal(payload.order, undefined)
-      }
+    it('공개 주문 목록은 로그인 없이 마스킹된 정보만 연다', async () => {
+      const { response, payload } = await request('/api/admin/v1/orders')
+      assert.equal(response.status, 200)
+      assert.ok(Array.isArray(payload.orders))
+      assert.ok(!JSON.stringify(payload).includes('hong.gildong@synthetic.invalid'))
     })
 
-    it('직원이 아닌 회원은 주문을 볼 수 없다', async () => {
-      const { response, payload } = await request('/api/admin/v1/orders', 'customer')
-      assert.equal(response.status, 403)
-      assert.equal(payload.code, 'STAFF_MEMBERSHIP_REQUIRED')
-      assert.equal(payload.orders, undefined)
+    it('주문 상세는 로그인 없이는 열리지 않는다', async () => {
+      const { response, payload } = await request('/api/admin/v1/orders/admin-order-0')
+      assert.equal(response.status, 401)
+      assert.equal(payload.code, 'AUTH_REQUIRED')
+      assert.equal(payload.order, undefined)
     })
 
     it('고객 연락처를 원문으로 내보내지 않는다', async () => {
@@ -126,10 +123,10 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       assert.equal(payload.order.buyerTelMasked, '***-****-5678')
     })
 
-    it('응답이 캐시되지 않는다', async () => {
-      const { response } = await request('/api/admin/v1/orders', 'staff')
-      assert.match(response.headers.get('cache-control') ?? '', /no-store/)
-      assert.match(response.headers.get('vary') ?? '', /Authorization/i)
+    it('공개 목록은 짧은 edge cache로 반복 저장소 조회를 줄인다', async () => {
+      const { response } = await request('/api/admin/v1/orders')
+      assert.match(response.headers.get('cache-control') ?? '', /s-maxage=10/)
+      assert.doesNotMatch(response.headers.get('vary') ?? '', /Authorization/i)
     })
   })
 
@@ -290,9 +287,12 @@ describe('관리자 주문 화면 (T09)', () => {
       assert.ok(shell.includes('class="admin-amount"'))
     })
 
-    it('권한이 확인된 뒤에만 주문을 요청한다', () => {
-      // 셸은 데이터를 갖고 있지 않다. scope 가 있을 때만 조회한다.
+    it('공개 경로와 인증된 관리자 경로가 각각 주문을 요청한다', () => {
+      // 셸은 데이터를 갖고 있지 않다. 공개 `/admin/orders`는 무인증으로,
+      // 나머지 관리자 경로는 orders:read scope가 있을 때만 조회한다.
       assert.match(shell, /indexOf\('orders:read'\) >= 0\) startOrders/)
+      assert.match(shell, /isPublicOrdersPath\(\)/)
+      assert.match(shell, /startOrders\(null\)/)
     })
 
     it('셸에 고객 데이터가 인라인되지 않는다', () => {

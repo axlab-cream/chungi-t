@@ -849,3 +849,82 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
   (세션은 생기므로 `/admin` 재방문 시 로그인 상태) — 허용목록 확인 필요
 - **U36 그대로**: 셸 HTML 은 여전히 익명에게 응답한다(서버 세션 쿠키 없음)
 - T05 는 이 응답 형태를 유지한 채 판정 근거만 영속 저장소로 교체
+
+## 2026-09-11 — 관리자 OAuth 복구 점검
+
+- Supabase Authentication URL Configuration의 Site URL을 `https://umsh.kr`로 변경하고,
+  Redirect URLs에 `https://umsh.kr/**`, `https://www.umsh.kr/**`를 추가했다.
+- Production Vercel 프로젝트에 `UMSH_ADMIN_SUPER_EMAILS` 키가 존재하고, 현재
+  `umsh.kr` 별칭은 Ready인 Production 배포를 가리키는 것을 확인했다. 값은 로그에
+  기록하지 않았다.
+- Google 조직 계정으로 새 OAuth 흐름을 재현했으나, Google 동의 뒤 Supabase callback에서
+  `Unable to exchange external code`가 다시 발생했다. Redirect URL 문제가 아니라
+  Supabase Google provider의 OAuth client secret과 Google Cloud OAuth client 설정의
+  불일치 또는 무효화가 남은 차단점이다.
+- Google Cloud Console은 선택된 조직 계정의 재인증 비밀번호를 요구했다. 비밀번호·OAuth
+  client secret은 수집하거나 기록하지 않았으며, 해당 비밀값을 갱신하기 전에는 관리자
+  세션과 화면을 검증할 수 없다.
+
+## 2026-09-11 — Supabase 이메일 관리자 전환
+
+- Supabase의 `axlab@crea-m.com` 사용자가 Email provider 계정임을 확인했다.
+- Production `UMSH_ADMIN_SUPER_EMAILS`를 해당 이메일로 설정하고, 기존 운영 배포를
+  재배포했다. `umsh.kr` 별칭이 새 Ready 배포를 가리키는 것을 확인했다.
+- `/admin`의 이메일 로그인은 정상 노출된다. 다만 Supabase 사용자 상세의 `Confirmed at`이
+  비어 있고 기존 비밀번호도 인증에 실패하므로, 사용자 본인이 확인 메일과 비밀번호 복구
+  메일을 통해 계정을 활성화해야 한다.
+
+## 2026-09-11 — 관리자 비밀번호 복구 화면
+
+- 원인: Supabase Dashboard에서 보낸 복구 메일은 기본 Site URL(루트)로 돌아오지만,
+  루트 화면에는 `type=recovery` 일회성 세션을 처리하는 비밀번호 설정 UI가 없었다.
+- `admin-ui/index.html`에 recovery 세션 전용 새 비밀번호·확인 폼을 추가했다. 비밀번호는
+  일치·최소 길이를 확인한 뒤 `auth.updateUser`로만 전송하고, 성공·실패 뒤 DOM에서 지운다.
+- `사주/portal.html` 루트는 recovery fragment를 보존한 채 `/admin`으로 즉시 넘긴다.
+  따라서 Dashboard 기본 링크도 관리자 설정 화면으로 도착한다.
+- `npx tsx --test --test-concurrency=1 tests/unit/admin-shell.test.ts --test-name-pattern
+  "(셸이 직원 로그인 폼을 갖고 있다|비밀번호 복구 링크는 관리자 설정 화면으로 이어진다)"`
+  결과: 18 passed. Production 배포 `dpl_G3r1o2WZgkcGuvkaAV1PqfdaUu14` Ready 및
+  `#type=recovery` → `/admin#type=recovery` 이동을 브라우저에서 확인했다.
+
+## 2026-09-11 — 공개 주문 목록
+
+- 사용자 요청에 따라 `/admin/orders` 목록 경로만 무인증으로 열었다. 목록 DTO의 이메일,
+  전화번호, 거래 식별자 원문은 기존 마스킹 규칙을 계속 적용하며, 주문 상세와 나머지
+  관리자 API는 `requireStaff` 인증을 유지한다.
+- `npm run typecheck`와 관리자 셸·주문 테스트(42 passed)를 통과했고, Production 배포
+  `dpl_7fUDBo1GiYyHc5sBnwFn43vRWwST`에서 로그인 없이 목록 화면이 열리는 것을 확인했다.
+
+## 2026-09-11 — 관리자 자체 비밀번호 로그인
+
+- `/admin` 로그인 폼을 Supabase `signInWithPassword` 호출에서 자체 관리자 로그인 API로 교체했다.
+  운영에서는 `UMSH_LOCAL_ADMIN_EMAIL`, `UMSH_LOCAL_ADMIN_PASSWORD`,
+  `UMSH_LOCAL_ADMIN_SESSION_SECRET`의 암호화 환경 변수만으로 인증한다. 비밀번호와 세션
+  서명값은 소스·응답·이력에 기록하지 않는다.
+- 성공 시 서버가 서명한 `HttpOnly`, `Secure`, `SameSite=Strict` 세션 쿠키를 발급한다.
+  이후 `/api/admin/v1/me`와 인증된 관리자 상세 API는 이 쿠키만 검증하며, 자체 로그인이
+  켜진 운영에서는 Supabase로 폴백하지 않는다. 로그아웃은 해당 쿠키를 즉시 만료한다.
+- 회귀 검증: `npm run typecheck`, 관리자 자체 로그인·셸·주문 테스트 **45 passed**.
+  Production 배포 `dpl_8jdgm1MCv96qiwBa45SdESfwVbJ1`(umsh.kr 별칭)에서 실제 계정으로
+  로그인해 `super_admin` 권한, 관리자 메뉴, 주문 화면이 열리는 것을 브라우저로 확인했다.
+
+## 2026-09-11 — 관리자 좌측 LNB 및 실행 명세 기준 확정
+
+- 관리자 상단 메뉴를 좌측 LNB로 교체했다. 운영·관리·시스템 업무군에 개요, 주문,
+  회원·리포트, 콘텐츠·서비스, 고객 지원, 환불·정산, 통계·로그, 설정 경로를 배치하고
+  현재 경로를 강조한다. 768px 이하에서는 가로 스크롤 메뉴로 전환한다.
+- 아직 데이터 기능이 없는 경로가 주문 화면을 잘못 재사용하지 않도록 독립 준비 상태로
+  분리했다. Production `dpl_9gKrNpU2ZtQ4TH2XeBsEHshrjS2w`에서 `/admin/settings`의
+  좌측 LNB와 설정 준비 화면을 브라우저로 확인했다.
+- 이후 구현 기준은 `admin-ops-execution-pack/15-TASKS.md`로 확정했다. 현재 로그인·셸·주문의
+  선행 구현은 해당 Task의 부분 산출물로 취급하고, 다음은 T06 감사·멱등 기반부터 수용 조건
+  순서대로 진행한다.
+
+## 2026-09-11 — 관리자 주문 목록 지연 완화
+
+- 운영 실측에서 공개 주문 목록은 캐시 금지 상태로 첫·반복 요청 모두 약 0.98초였다.
+  목록은 마스킹 DTO만 반환하므로 `s-maxage=10`, `stale-while-revalidate=30`의 짧은 edge
+  cache를 허용했다. 주문 상세와 나머지 관리자 API의 no-store 정책은 변경하지 않았다.
+- Production `dpl_JBgNjVEbaU1Hk6k4cacpWSzfTtTf`에서 첫 요청은 새 인스턴스 초기화로 2.52초였고,
+  반복 요청은 0.27초, `X-Vercel-Cache: HIT`, `Age: 5`로 확인됐다. 관리자 함수 자체는
+  여전히 295.74MB 단일 함수이므로 콜드 스타트 개선은 별도 구조 작업으로 남긴다.

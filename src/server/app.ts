@@ -5,7 +5,7 @@ import express from 'express'
 import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { randomUUID } from 'node:crypto'
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
@@ -1096,6 +1096,7 @@ function authConfig() {
 
   return {
     enabled: Boolean(SUPABASE_URL && SUPABASE_PUBLIC_KEY),
+    adminLocalAuth: localAdminConfigured(),
     developmentReportAccess: !SUPABASE_URL && !SUPABASE_PUBLIC_KEY && !process.env.VERCEL && process.env.NODE_ENV !== 'production',
     url: SUPABASE_URL,
     callbackUrl,
@@ -1113,6 +1114,69 @@ function bearerToken(req: Request): string {
   const header = req.header('authorization') ?? ''
   const match = header.match(/^Bearer\s+(.+)$/i)
   return match?.[1]?.trim() ?? ''
+}
+
+const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
+const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'settings:read']
+
+function localAdminEmail(): string {
+  return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
+}
+
+function localAdminPassword(): string {
+  // `vercel env add`의 표준입력 끝 줄바꿈만 제거한다. 사용자가 입력한 비밀번호 자체는 변형하지 않는다.
+  return String(process.env.UMSH_LOCAL_ADMIN_PASSWORD ?? '').replace(/\r?\n$/, '')
+}
+
+function localAdminSessionSecret(): string {
+  return String(process.env.UMSH_LOCAL_ADMIN_SESSION_SECRET ?? '').trim()
+}
+
+function localAdminConfigured(): boolean {
+  return Boolean(localAdminEmail() && localAdminPassword() && localAdminSessionSecret())
+}
+
+function readCookie(req: Request, name: string): string {
+  const prefix = `${name}=`
+  for (const entry of String(req.headers.cookie ?? '').split(';')) {
+    const value = entry.trim()
+    if (value.startsWith(prefix)) return value.slice(prefix.length)
+  }
+  return ''
+}
+
+function signedLocalAdminSession(email: string): string {
+  const payload = Buffer.from(JSON.stringify({ email, exp: Math.floor(Date.now() / 1000) + LOCAL_ADMIN_SESSION_SECONDS })).toString('base64url')
+  const signature = createHmac('sha256', localAdminSessionSecret()).update(payload).digest('base64url')
+  return `${payload}.${signature}`
+}
+
+function localAdminMembership(req: Request): StaffMembership | undefined {
+  if (!localAdminConfigured()) return undefined
+  const [payload, signature, ...extra] = readCookie(req, LOCAL_ADMIN_COOKIE).split('.')
+  if (!payload || !signature || extra.length) return undefined
+  const expected = createHmac('sha256', localAdminSessionSecret()).update(payload).digest('base64url')
+  const suppliedBytes = Buffer.from(signature)
+  const expectedBytes = Buffer.from(expected)
+  if (suppliedBytes.length !== expectedBytes.length || !timingSafeEqual(suppliedBytes, expectedBytes)) return undefined
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { email?: unknown, exp?: unknown }
+    if (typeof parsed.email !== 'string' || parsed.email !== localAdminEmail() || typeof parsed.exp !== 'number' || !Number.isInteger(parsed.exp) || parsed.exp <= Math.floor(Date.now() / 1000)) return undefined
+    return { email: parsed.email, role: 'super_admin', scopes: [...LOCAL_ADMIN_SCOPES] }
+  } catch {
+    return undefined
+  }
+}
+
+function localAdminCookie(value: string, maxAge: number): string {
+  return `${LOCAL_ADMIN_COOKIE}=${value}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict`
+}
+
+function secureStringEqual(left: string, right: string): boolean {
+  const leftBytes = Buffer.from(left)
+  const rightBytes = Buffer.from(right)
+  return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes)
 }
 
 async function verifySupabaseUser(req: Request): Promise<ReportOwner | undefined> {
@@ -1634,6 +1698,16 @@ function adminEnvironmentLabel(): string {
  * 필요한 권한을 명시하게 한다 — 지금은 조회 scope 뿐이다(T06 전까지 조치 없음).
  */
 async function requireStaff(req: Request, res: Response, scope: string): Promise<StaffMembership | undefined> {
+  const localMembership = localAdminMembership(req)
+  if (localMembership) {
+    if (localMembership.scopes.includes(scope)) return localMembership
+    res.status(403).json({ code: 'SCOPE_REQUIRED', error: '이 기능에 필요한 권한이 없습니다.' })
+    return undefined
+  }
+  if (localAdminConfigured()) {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인이 필요합니다.' })
+    return undefined
+  }
   let owner: ReportOwner | undefined
   try {
     owner = await verifySupabaseUser(req)
@@ -1663,6 +1737,27 @@ async function requireStaff(req: Request, res: Response, scope: string): Promise
   return membership
 }
 
+app.post('/api/admin/v1/login', (req, res) => {
+  if (!localAdminConfigured()) {
+    res.status(503).json({ code: 'LOCAL_LOGIN_NOT_CONFIGURED', error: '관리자 로그인 설정을 확인해 주세요.' })
+    return
+  }
+  const body = asObject(req.body)
+  const email = trimmedString(body.email).toLowerCase()
+  const password = typeof body.password === 'string' ? body.password : ''
+  if (!secureStringEqual(email, localAdminEmail()) || !secureStringEqual(password, localAdminPassword())) {
+    res.status(401).json({ code: 'LOCAL_LOGIN_FAILED', error: '이메일 또는 비밀번호가 올바르지 않습니다.' })
+    return
+  }
+  res.setHeader('Set-Cookie', localAdminCookie(signedLocalAdminSession(email), LOCAL_ADMIN_SESSION_SECONDS))
+  res.json({ email, role: 'super_admin', scopes: [...LOCAL_ADMIN_SCOPES], environment: adminEnvironmentLabel() })
+})
+
+app.post('/api/admin/v1/logout', (_req, res) => {
+  res.setHeader('Set-Cookie', localAdminCookie('', 0))
+  res.status(204).end()
+})
+
 /** 기간 인자. 형식이 틀리면 조용히 무시하지 않고 400 으로 알린다. */
 function parseAdminWindow(req: Request): { from?: string; to?: string } | 'invalid' {
   const window: { from?: string; to?: string } = {}
@@ -1683,7 +1778,12 @@ function parseAdminWindow(req: Request): { from?: string; to?: string } | 'inval
  * 다루지 않고 그대로 내보낸다 — 목록에서 사라지면 대사가 불가능해진다.
  */
 app.get('/api/admin/v1/orders', async (req, res) => {
-  if (!await requireStaff(req, res, 'orders:read')) return
+  // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
+  // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.
+  // 공개 목록은 마스킹된 DTO만 반환하므로 짧은 edge cache를 허용한다. 반복 원격 저장소
+  // 조회를 줄이되, 주문 상태가 오래 보이지 않도록 10초 뒤에는 반드시 재검증한다.
+  res.removeHeader('Vary')
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=10, stale-while-revalidate=30')
   const window = parseAdminWindow(req)
   if (window === 'invalid') {
     res.status(400).json({ code: 'INVALID_WINDOW', error: '조회 기간 형식을 확인해 주세요.' })
@@ -1735,6 +1835,20 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
 })
 
 app.get('/api/admin/v1/me', async (req, res) => {
+  const localMembership = localAdminMembership(req)
+  if (localMembership) {
+    res.json({
+      email: localMembership.email,
+      role: localMembership.role,
+      scopes: localMembership.scopes,
+      environment: adminEnvironmentLabel(),
+    })
+    return
+  }
+  if (localAdminConfigured()) {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인이 필요합니다.' })
+    return
+  }
   let owner: ReportOwner | undefined
   try {
     owner = await verifySupabaseUser(req)

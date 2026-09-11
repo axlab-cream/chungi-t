@@ -52,7 +52,7 @@
 
     .admin-header {
       display: flex; align-items: baseline; gap: var(--admin-space-3);
-      padding: var(--admin-space-4) var(--admin-space-6);
+      padding: var(--admin-space-4) var(--admin-space-6); margin-left: 232px;
       background: var(--admin-surface);
       border-bottom: 1px solid var(--admin-line);
     }
@@ -61,20 +61,22 @@
     .admin-header .admin-who { margin-left: auto; color: var(--admin-text-muted); font-size: 12px; }
 
     .admin-nav {
-      display: flex; gap: var(--admin-space-1);
-      padding: 0 var(--admin-space-6);
-      background: var(--admin-surface);
-      border-bottom: 1px solid var(--admin-line);
+      position: fixed; inset: 0 auto 0 0; z-index: 2; width: 232px;
+      display: flex; flex-direction: column; gap: var(--admin-space-1);
+      padding: var(--admin-space-6) var(--admin-space-3);
+      background: var(--admin-surface); border-right: 1px solid var(--admin-line);
     }
+    .admin-nav-title { margin: 0 0 var(--admin-space-4); padding: 0 var(--admin-space-3); color: var(--admin-text); font-size: 16px; font-weight: 700; }
+    .admin-nav-label { margin: var(--admin-space-4) var(--admin-space-3) var(--admin-space-1); color: var(--admin-text-disabled); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
     .admin-nav a {
-      padding: var(--admin-space-3) var(--admin-space-4);
-      color: var(--admin-text-muted); text-decoration: none;
-      border-bottom: 2px solid transparent;
+      padding: 10px var(--admin-space-3); border-left: 2px solid transparent;
+      color: var(--admin-text-muted); text-decoration: none; border-radius: 2px;
     }
-    .admin-nav a[aria-current='page'] { color: var(--admin-text); border-bottom-color: var(--admin-text); }
+    .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
+    .admin-nav a[aria-current='page'] { color: var(--admin-text); border-left-color: var(--admin-focus); background: var(--admin-bg); font-weight: 700; }
 
     /* 표 중심 화면은 넓게, 폼·상세는 좁게 — 두 단계만 쓴다. */
-    main { max-width: 1280px; margin: 0 auto; padding: var(--admin-space-6); }
+    main { max-width: 1512px; margin: 0 0 0 232px; padding: var(--admin-space-6); }
     main[data-width='narrow'] { max-width: 720px; }
 
     .admin-panel {
@@ -156,6 +158,14 @@
     }
 
     [hidden] { display: none !important; }
+    @media (max-width: 768px) {
+      .admin-header { margin-left: 0; padding: var(--admin-space-3) var(--admin-space-4); }
+      .admin-nav { position: sticky; top: 0; width: auto; height: auto; flex-direction: row; overflow-x: auto; padding: var(--admin-space-2) var(--admin-space-4); border-right: 0; border-bottom: 1px solid var(--admin-line); }
+      .admin-nav-title, .admin-nav-label { display: none; }
+      .admin-nav a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
+      .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
+      main { margin-left: 0; padding: var(--admin-space-4); }
+    }
   </style>
 </head>
 <body>
@@ -166,10 +176,18 @@
   </header>
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
-    <a href="/admin" aria-current="page">개요</a>
-    <a href="/admin/orders">주문</a>
-    <a href="/admin/members">회원·리포트</a>
-    <a href="/admin/settings">설정</a>
+    <p class="admin-nav-title">운명상회<br />운영 관리자</p>
+    <p class="admin-nav-label">운영</p>
+    <a href="/admin" data-admin-route="overview">개요</a>
+    <a href="/admin/orders" data-admin-route="orders">주문</a>
+    <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
+    <p class="admin-nav-label">관리</p>
+    <a href="/admin/content" data-admin-route="content">콘텐츠 · 서비스</a>
+    <a href="/admin/cs" data-admin-route="cs">고객 지원</a>
+    <a href="/admin/refunds" data-admin-route="refunds">환불 · 정산</a>
+    <p class="admin-nav-label">시스템</p>
+    <a href="/admin/analytics" data-admin-route="analytics">통계 · 로그</a>
+    <a href="/admin/settings" data-admin-route="settings">설정</a>
   </nav>
 
   <main data-width="narrow">
@@ -224,6 +242,35 @@
       </div>
     </section>
 
+    <!--
+      Supabase recovery 링크는 인증된 일회성 세션을 이 페이지로 전달한다.
+      토큰을 화면·로그·URL 이외의 저장소에 복사하지 않고, 새 비밀번호만 바로 Auth에 보낸다.
+    -->
+    <section class="admin-panel" data-admin-state="recovery" hidden>
+      <h2>새 비밀번호 설정</h2>
+      <p>관리자 계정에 사용할 새 비밀번호를 설정해 주세요.</p>
+      <form class="admin-form" data-admin-recovery novalidate>
+        <div class="admin-field">
+          <label for="admin-recovery-password">새 비밀번호</label>
+          <input id="admin-recovery-password" name="password" type="password"
+                 autocomplete="new-password" minlength="8" required />
+        </div>
+        <div class="admin-field">
+          <label for="admin-recovery-password-confirm">새 비밀번호 확인</label>
+          <input id="admin-recovery-password-confirm" name="passwordConfirm" type="password"
+                 autocomplete="new-password" minlength="8" required />
+        </div>
+        <div class="admin-form-error" data-admin-recovery-error hidden role="alert">
+          <span class="admin-status" data-tone="error">설정 실패</span>
+          <span data-admin-recovery-error-detail></span>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button" type="submit" data-admin-recovery-submit>비밀번호 설정</button>
+          <span class="admin-note" data-admin-recovery-note hidden>설정 중입니다…</span>
+        </div>
+      </form>
+    </section>
+
     <section class="admin-panel" data-admin-state="forbidden" hidden>
       <h2><span class="admin-status" data-tone="error">권한 없음</span></h2>
       <p data-admin-forbidden-detail>이 계정에는 운영 관리자 권한이 없습니다.</p>
@@ -241,6 +288,14 @@
     <section class="admin-panel" data-admin-state="ready" hidden>
       <h2><span class="admin-status" data-tone="ok">접속됨</span></h2>
       <p data-admin-scope></p>
+      <div class="admin-actions">
+        <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>로그아웃</button>
+      </div>
+    </section>
+
+    <section class="admin-panel" data-admin-state="route-placeholder" hidden>
+      <h2 data-admin-route-title></h2>
+      <p data-admin-route-detail>이 기능은 다음 관리자 작업에서 실제 데이터와 함께 연결됩니다.</p>
       <div class="admin-actions">
         <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>로그아웃</button>
       </div>
@@ -334,11 +389,41 @@
       // 인증 클라이언트는 한 번만 만든다. 설정값은 런타임에 서버에서 받아오며
       // 이 파일에 인라인하지 않는다.
       var clientPromise = null;
+      var authConfigPromise = null;
+      function adminAuthConfig() {
+        if (!authConfigPromise) {
+          authConfigPromise = fetch('/api/auth/config', { credentials: 'same-origin' })
+            .then(function (response) { return response.json(); });
+        }
+        return authConfigPromise;
+      }
+
+      var adminRoutes = {
+        '/admin': { key: 'overview', title: '개요' },
+        '/admin/orders': { key: 'orders', title: '주문' },
+        '/admin/members': { key: 'members', title: '회원 · 리포트' },
+        '/admin/content': { key: 'content', title: '콘텐츠 · 서비스' },
+        '/admin/cs': { key: 'cs', title: '고객 지원' },
+        '/admin/refunds': { key: 'refunds', title: '환불 · 정산' },
+        '/admin/analytics': { key: 'analytics', title: '통계 · 로그' },
+        '/admin/settings': { key: 'settings', title: '설정' }
+      };
+      function currentAdminRoute() {
+        return adminRoutes[window.location.pathname.replace(/\/$/, '') || '/admin'] || adminRoutes['/admin'];
+      }
+      function markCurrentRoute() {
+        var route = currentAdminRoute();
+        document.querySelectorAll('[data-admin-route]').forEach(function (link) {
+          if (link.getAttribute('data-admin-route') === route.key) link.setAttribute('aria-current', 'page');
+          else link.removeAttribute('aria-current');
+        });
+        return route;
+      }
       function authClient() {
         if (clientPromise) return clientPromise;
         clientPromise = (async function () {
-          var config = await fetch('/api/auth/config').then(function (response) { return response.json(); });
-          if (!config.enabled || !window.supabase || !window.supabase.createClient) return null;
+          var config = await adminAuthConfig();
+          if (config.adminLocalAuth || !config.enabled || !window.supabase || !window.supabase.createClient) return null;
           var helper = window.UMSHAuthSession;
           return (helper && helper.createClient(window.supabase, config.url, config.publishableKey)) ||
             window.supabase.createClient(config.url, config.publishableKey, {
@@ -370,13 +455,13 @@
         var helper = window.UMSHAccountPages;
         var response;
         try {
-          response = await fetch('/api/admin/v1/me', { headers: helper.authHeaders(session) });
+          response = await fetch('/api/admin/v1/me', { headers: helper.authHeaders(session), credentials: 'same-origin' });
         } catch (_error) {
           show('error');
-          return;
+          return false;
         }
 
-        if (response.status === 401) { show('anonymous'); return; }
+        if (response.status === 401) { show('anonymous'); return false; }
         if (response.status === 403) {
           // 왜 막혔는지 서버가 알려 준 이유를 그대로 보여 준다. "권한 없음" 한 줄로는
           // 직원 권한 원본이 없는 상태와 권한이 회수된 상태를 구분할 수 없다.
@@ -393,12 +478,12 @@
             // 본문이 없으면 기본 문구를 남긴다.
           }
           show('forbidden');
-          return;
+          return false;
         }
         if (!response.ok) {
           setText('[data-admin-error-detail]', '권한 확인 응답이 ' + response.status + ' 입니다. 잠시 후 다시 시도해 주세요.');
           show('error');
-          return;
+          return false;
         }
 
         var me = await response.json();
@@ -407,9 +492,17 @@
         setText('[data-admin-scope]', '권한: ' + (me.role || '') + ' · ' + (me.scopes || []).join(', '));
         var nav = document.querySelector('[data-admin-nav]');
         if (nav) nav.hidden = false;
-        show('ready');
+        var route = markCurrentRoute();
+        var isOrdersRoute = route.key === 'orders' || route.key === 'overview';
+        show(isOrdersRoute ? 'ready' : 'route-placeholder');
+        if (!isOrdersRoute) {
+          setText('[data-admin-route-title]', route.title);
+          setText('[data-admin-route-detail]', route.title + ' 기능은 실제 운영 데이터와 권한 검증을 연결한 뒤 사용할 수 있습니다.');
+          return true;
+        }
         // 권한이 확인된 뒤에만 데이터를 요청한다. 셸은 데이터를 갖고 있지 않다.
         if ((me.scopes || []).indexOf('orders:read') >= 0) startOrders(session);
+        return true;
       }
 
       // ─────────────────────────────────────────────── 주문 조회 (T08·T09)
@@ -491,7 +584,7 @@
 
       async function loadOrders(reset) {
         var helper = window.UMSHAccountPages;
-        if (!helper || !orderState.session) return;
+        if (!helper) return;
         if (reset) {
           orderState.cursor = null;
           orderState.count = 0;
@@ -570,8 +663,7 @@
       function loginFailureMessage(error) {
         var raw = String((error && error.message) || '');
         // 어떤 계정이 존재하는지 알려 주지 않는다. 실패 사유는 한 문장으로 합친다.
-        if (/Invalid login credentials/i.test(raw)) return '이메일 또는 비밀번호가 올바르지 않습니다.';
-        if (/Email not confirmed/i.test(raw)) return '계정 이메일 인증이 끝나지 않았습니다. 운영 담당자에게 문의해 주세요.';
+        if (/Invalid login credentials|LOCAL_LOGIN_FAILED/i.test(raw)) return '이메일 또는 비밀번호가 올바르지 않습니다.';
         if (/rate|too many/i.test(raw)) return '시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.';
         return '로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       }
@@ -595,18 +687,18 @@
           if (submit) submit.disabled = true;
           setHidden('[data-admin-login-note]', false);
           try {
-            var client = await authClient();
-            if (!client) throw new Error('auth unavailable');
-            var result = await client.auth.signInWithPassword({ email: email, password: password });
-            if (result.error) throw result.error;
+            var result = await fetch('/api/admin/v1/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'same-origin',
+              body: JSON.stringify({ email: email, password: password }),
+            });
+            if (!result.ok) throw new Error(result.status === 401 ? 'LOCAL_LOGIN_FAILED' : 'LOCAL_LOGIN_UNAVAILABLE');
 
             // 비밀번호를 폼에 남겨 두지 않는다.
             form.elements.password.value = '';
-            var helper = window.UMSHAuthSession;
-            if (helper && helper.rememberDeviceAuthSession) helper.rememberDeviceAuthSession(result.data.session);
-
             show('loading');
-            await checkAuthority(result.data.session);
+            if (!await checkAuthority(null)) throw new Error('LOCAL_LOGIN_UNAVAILABLE');
           } catch (error) {
             setText('[data-admin-login-error-detail]', loginFailureMessage(error));
             setHidden('[data-admin-login-error]', false);
@@ -617,11 +709,73 @@
         });
       }
 
+      function isRecoveryLink() {
+        var hash = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+        var query = new URLSearchParams(window.location.search || '');
+        return hash.get('type') === 'recovery' || query.get('type') === 'recovery';
+      }
+
+      function recoveryFailureMessage(error) {
+        var raw = String((error && error.message) || '');
+        if (/same password|different password/i.test(raw)) return '이전과 다른 비밀번호를 입력해 주세요.';
+        if (/weak|password/i.test(raw)) return '비밀번호 조건을 확인해 주세요.';
+        return '비밀번호를 설정하지 못했습니다. 재설정 링크를 다시 요청해 주세요.';
+      }
+
+      function bindPasswordRecovery() {
+        var form = document.querySelector('[data-admin-recovery]');
+        if (!form) return;
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+          var submit = form.querySelector('[data-admin-recovery-submit]');
+          var password = String(form.elements.password.value || '');
+          var confirmation = String(form.elements.passwordConfirm.value || '');
+
+          setHidden('[data-admin-recovery-error]', true);
+          if (password.length < 8) {
+            setText('[data-admin-recovery-error-detail]', '비밀번호는 8자 이상으로 입력해 주세요.');
+            setHidden('[data-admin-recovery-error]', false);
+            return;
+          }
+          if (password !== confirmation) {
+            setText('[data-admin-recovery-error-detail]', '새 비밀번호와 확인 값이 일치하지 않습니다.');
+            setHidden('[data-admin-recovery-error]', false);
+            return;
+          }
+
+          if (submit) submit.disabled = true;
+          setHidden('[data-admin-recovery-note]', false);
+          try {
+            var client = await authClient();
+            if (!client) throw new Error('auth unavailable');
+            var result = await client.auth.updateUser({ password: password });
+            if (result.error) throw result.error;
+
+            // 성공·실패 어느 경우에도 비밀번호를 DOM에 남겨 두지 않는다.
+            form.elements.password.value = '';
+            form.elements.passwordConfirm.value = '';
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            var session = await currentSession();
+            if (!session) throw new Error('recovery session unavailable');
+            var helper = window.UMSHAuthSession;
+            if (helper && helper.rememberDeviceAuthSession) helper.rememberDeviceAuthSession(session);
+            show('loading');
+            await checkAuthority(session);
+          } catch (error) {
+            setText('[data-admin-recovery-error-detail]', recoveryFailureMessage(error));
+            setHidden('[data-admin-recovery-error]', false);
+          } finally {
+            if (submit) submit.disabled = false;
+            setHidden('[data-admin-recovery-note]', true);
+          }
+        });
+      }
+
       // 조직 계정 경로는 그 provider 가 실제로 켜져 있을 때만 노출한다.
       // 눌러도 안 되는 버튼을 주지 않는다.
       async function bindSingleSignOn() {
-        var config = await fetch('/api/auth/config').then(function (response) { return response.json(); });
-        if (!config.enabled || !config.providers || !config.providers.google) return;
+        var config = await adminAuthConfig();
+        if (config.adminLocalAuth || !config.enabled || !config.providers || !config.providers.google) return;
         setHidden('[data-admin-sso]', false);
 
         var button = document.querySelector('[data-admin-sso-google]');
@@ -645,6 +799,7 @@
       function bindSignOut() {
         document.querySelectorAll('[data-admin-signout]').forEach(function (button) {
           button.addEventListener('click', async function () {
+            await fetch('/api/admin/v1/logout', { method: 'POST', credentials: 'same-origin' }).catch(function () { return undefined; });
             var client = await authClient();
             if (client && client.auth && client.auth.signOut) {
               await client.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
@@ -660,10 +815,38 @@
         });
       }
 
+      function isPublicOrdersPath() {
+        return /^\/admin\/orders\/?$/.test(window.location.pathname);
+      }
+
+      function openPublicOrders() {
+        setText('[data-admin-env]', '공개 주문 목록');
+        setText('[data-admin-who]', '');
+        setText('[data-admin-scope]', '마스킹된 주문 목록을 공개로 표시합니다.');
+        setHidden('[data-admin-state="ready"] [data-admin-signout]', true);
+        show('ready');
+        startOrders(null);
+      }
+
       async function start() {
         if (!window.UMSHAccountPages || !window.UMSHAuthSession) { show('error'); return; }
         bindLogin();
+        bindPasswordRecovery();
         bindSignOut();
+        var config;
+        try {
+          config = await adminAuthConfig();
+        } catch (_error) {
+          show('error');
+          return;
+        }
+        if (config.adminLocalAuth) {
+          // 로그인된 관리자는 공개 예외보다 먼저 전체 LNB와 권한별 화면을 연다.
+          if (await checkAuthority(null)) return;
+          if (isPublicOrdersPath()) openPublicOrders();
+          else show('anonymous');
+          return;
+        }
         bindSingleSignOn().catch(function () { return undefined; });
 
         var session = null;
@@ -673,7 +856,20 @@
           show('error');
           return;
         }
-        if (!session) { show('anonymous'); return; }
+        if (isRecoveryLink()) {
+          if (!session) {
+            setText('[data-admin-error-detail]', '재설정 링크가 만료되었거나 이미 사용되었습니다. 새 링크를 요청해 주세요.');
+            show('error');
+            return;
+          }
+          show('recovery');
+          return;
+        }
+        if (!session) {
+          if (isPublicOrdersPath()) openPublicOrders();
+          else show('anonymous');
+          return;
+        }
         await checkAuthority(session);
       }
 

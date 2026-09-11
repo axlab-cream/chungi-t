@@ -102,6 +102,16 @@
     <link rel="stylesheet" href="/css/portal.css?v=20260904-savable" />
   </head>
   <body>
+    <script>
+      // Supabase Dashboard의 복구 메일은 Site URL(루트)로 돌아올 수 있다.
+      // fragment의 일회성 세션을 그대로 보존해 관리자 전용 비밀번호 설정 화면으로 보낸다.
+      (() => {
+        const hash = new URLSearchParams(window.location.hash.slice(1));
+        if (hash.get('type') === 'recovery') {
+          window.location.replace('/admin' + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
     <div class="splash-screen" id="splashScreen" aria-hidden="false">
       <video
         class="splash-video"
