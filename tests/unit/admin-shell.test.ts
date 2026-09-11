@@ -226,6 +226,16 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
     it('관리자 메뉴는 좌측 LNB와 모든 운영 화면 경로를 제공한다', async () => {
       const { text } = await request('/admin')
       assert.match(text, /position: fixed; inset: 0 auto 0 0/, '좌측 LNB 레이아웃이 없다')
+      assert.equal((text.match(/<div class="admin-nav-group" data-admin-nav-group=/g) || []).length, 4, 'LNB 업무군이 네 개로 구분되지 않는다')
+      assert.equal((text.match(/<button class="admin-nav-group-toggle"[^>]*data-admin-nav-toggle/g) || []).length, 4, 'LNB 업무군 토글이 네 개가 아니다')
+      assert.equal((text.match(/<div class="admin-nav-items"[^>]*data-admin-nav-items/g) || []).length, 4, 'LNB 하위 메뉴 패널이 네 개가 아니다')
+      assert.match(text, /aria-expanded="true"/, '업무군 토글의 초기 펼침 상태가 없다')
+      assert.match(text, /aria-controls="admin-nav-operations"/, '업무군 토글과 하위 메뉴가 연결되지 않는다')
+      assert.match(text, /\.admin-nav-items a::before\s*\{[^}]*border-radius:\s*50%/s, '하위 메뉴 블릿이 없다')
+      assert.match(text, /\.admin-nav-items a\s*\{[^}]*padding-left:/s, '하위 메뉴 들여쓰기가 없다')
+      assert.match(text, /setupAdminNavGroups/, 'LNB 접기·펼치기 초기화가 없다')
+      assert.match(text, /sessionStorage\.setItem/, 'LNB 접힘 상태가 세션에 유지되지 않는다')
+      assert.match(text, /activeGroup/, '현재 메뉴의 업무군 자동 펼침 처리가 없다')
       for (const path of [
         '/admin/search', '/admin/orders', '/admin/refunds', '/admin/reconciliation',
         '/admin/members', '/admin/support', '/admin/content', '/admin/services', '/admin/media',

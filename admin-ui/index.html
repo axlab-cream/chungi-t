@@ -64,16 +64,39 @@
       position: fixed; inset: 0 auto 0 0; z-index: 2; width: 232px;
       display: flex; flex-direction: column; gap: var(--admin-space-1);
       padding: var(--admin-space-6) var(--admin-space-3);
+      overflow-y: auto;
       background: var(--admin-surface); border-right: 1px solid var(--admin-line);
     }
     .admin-nav-title { margin: 0 0 var(--admin-space-4); padding: 0 var(--admin-space-3); color: var(--admin-text); font-size: 16px; font-weight: 700; }
-    .admin-nav-label { margin: var(--admin-space-4) var(--admin-space-3) var(--admin-space-1); color: var(--admin-text-disabled); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
-    .admin-nav a {
-      padding: 10px var(--admin-space-3); border-left: 2px solid transparent;
+    .admin-nav-group { border-top: 1px solid var(--admin-line); }
+    .admin-nav-group:first-of-type { border-top: 0; }
+    .admin-nav-group-toggle {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--admin-space-2);
+      padding: var(--admin-space-3); border: 0; background: transparent; color: var(--admin-text);
+      font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-align: left; cursor: pointer;
+    }
+    .admin-nav-group-toggle:hover { background: var(--admin-bg); }
+    .admin-nav-chevron {
+      width: 7px; height: 7px; flex: 0 0 auto;
+      border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+      transform: rotate(45deg); transition: transform 180ms ease;
+    }
+    .admin-nav-group-toggle[aria-expanded='false'] .admin-nav-chevron { transform: rotate(-45deg); }
+    .admin-nav-items { display: flex; flex-direction: column; gap: 2px; padding: 0 0 var(--admin-space-2); }
+    .admin-nav-items a {
+      position: relative; padding: 9px var(--admin-space-3); padding-left: 32px; border-left: 2px solid transparent;
       color: var(--admin-text-muted); text-decoration: none; border-radius: 2px;
     }
-    .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
-    .admin-nav a[aria-current='page'] { color: var(--admin-text); border-left-color: var(--admin-focus); background: var(--admin-bg); font-weight: 700; }
+    .admin-nav-items a::before {
+      content: ''; position: absolute; left: 19px; top: 50%; width: 4px; height: 4px;
+      border-radius: 50%; background: var(--admin-text-disabled); transform: translateY(-50%);
+    }
+    .admin-nav-items a:hover { background: var(--admin-bg); color: var(--admin-text); }
+    .admin-nav-items a[aria-current='page'] { color: var(--admin-text); border-left-color: var(--admin-focus); background: var(--admin-bg); font-weight: 700; }
+    .admin-nav-items a[aria-current='page']::before { background: var(--admin-focus); }
+    @media (prefers-reduced-motion: reduce) {
+      .admin-nav-chevron { transition: none; }
+    }
 
     /* 표 중심 화면은 넓게, 폼·상세는 좁게 — 두 단계만 쓴다. */
     main { max-width: 1512px; margin: 0 0 0 232px; padding: var(--admin-space-6); }
@@ -190,9 +213,12 @@
     @media (max-width: 768px) {
       .admin-header { margin-left: 0; padding: var(--admin-space-3) var(--admin-space-4); }
       .admin-nav { position: sticky; top: 0; width: auto; height: auto; flex-direction: row; overflow-x: auto; padding: var(--admin-space-2) var(--admin-space-4); border-right: 0; border-bottom: 1px solid var(--admin-line); }
-      .admin-nav-title, .admin-nav-label { display: none; }
-      .admin-nav a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
-      .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
+      .admin-nav-title, .admin-nav-group-toggle { display: none; }
+      .admin-nav-group, .admin-nav-items { display: contents; }
+      .admin-nav-items[hidden] { display: contents !important; }
+      .admin-nav-items a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
+      .admin-nav-items a::before { display: none; }
+      .admin-nav-items a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
       main { margin-left: 0; padding: var(--admin-space-4); }
       .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .admin-refund-form { grid-template-columns: 1fr; }
@@ -212,31 +238,55 @@
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
     <p class="admin-nav-title">운명상회<br />운영 관리자</p>
-    <p class="admin-nav-label">운영 현황</p>
-    <a href="/admin" data-admin-route="overview">개요</a>
-    <a href="/admin/search" data-admin-route="search">통합 검색</a>
-    <a href="/admin/orders" data-admin-route="orders">주문</a>
-    <a href="/admin/refunds" data-admin-route="refunds">환불</a>
-    <a href="/admin/reconciliation" data-admin-route="reconciliation">정산</a>
-    <p class="admin-nav-label">고객 · 콘텐츠</p>
-    <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
-    <a href="/admin/support" data-admin-route="support">고객 지원</a>
-    <a href="/admin/content" data-admin-route="content">콘텐츠</a>
-    <a href="/admin/services" data-admin-route="services">서비스</a>
-    <a href="/admin/media" data-admin-route="media">미디어</a>
-    <p class="admin-nav-label">AI 운영</p>
-    <a href="/admin/reports" data-admin-route="reports">리포트</a>
-    <a href="/admin/jobs" data-admin-route="jobs">작업 큐</a>
-    <a href="/admin/corpus" data-admin-route="corpus">코퍼스</a>
-    <a href="/admin/prompts" data-admin-route="prompts">프롬프트</a>
-    <a href="/admin/evaluations" data-admin-route="evaluations">평가</a>
-    <a href="/admin/releases" data-admin-route="releases">릴리스</a>
-    <p class="admin-nav-label">시스템</p>
-    <a href="/admin/analytics" data-admin-route="analytics">통계</a>
-    <a href="/admin/logs" data-admin-route="logs">로그</a>
-    <a href="/admin/incidents" data-admin-route="incidents">장애</a>
-    <a href="/admin/audit" data-admin-route="audit">감사 기록</a>
-    <a href="/admin/settings" data-admin-route="settings">설정</a>
+    <div class="admin-nav-group" data-admin-nav-group="operations">
+      <button class="admin-nav-group-toggle" type="button" data-admin-nav-toggle aria-expanded="true" aria-controls="admin-nav-operations">
+        <span>운영 현황</span><span class="admin-nav-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="admin-nav-items" id="admin-nav-operations" data-admin-nav-items>
+        <a href="/admin" data-admin-route="overview">개요</a>
+        <a href="/admin/search" data-admin-route="search">통합 검색</a>
+        <a href="/admin/orders" data-admin-route="orders">주문</a>
+        <a href="/admin/refunds" data-admin-route="refunds">환불</a>
+        <a href="/admin/reconciliation" data-admin-route="reconciliation">정산</a>
+      </div>
+    </div>
+    <div class="admin-nav-group" data-admin-nav-group="customers">
+      <button class="admin-nav-group-toggle" type="button" data-admin-nav-toggle aria-expanded="true" aria-controls="admin-nav-customers">
+        <span>고객 · 콘텐츠</span><span class="admin-nav-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="admin-nav-items" id="admin-nav-customers" data-admin-nav-items>
+        <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
+        <a href="/admin/support" data-admin-route="support">고객 지원</a>
+        <a href="/admin/content" data-admin-route="content">콘텐츠</a>
+        <a href="/admin/services" data-admin-route="services">서비스</a>
+        <a href="/admin/media" data-admin-route="media">미디어</a>
+      </div>
+    </div>
+    <div class="admin-nav-group" data-admin-nav-group="ai">
+      <button class="admin-nav-group-toggle" type="button" data-admin-nav-toggle aria-expanded="true" aria-controls="admin-nav-ai">
+        <span>AI 운영</span><span class="admin-nav-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="admin-nav-items" id="admin-nav-ai" data-admin-nav-items>
+        <a href="/admin/reports" data-admin-route="reports">리포트</a>
+        <a href="/admin/jobs" data-admin-route="jobs">작업 큐</a>
+        <a href="/admin/corpus" data-admin-route="corpus">코퍼스</a>
+        <a href="/admin/prompts" data-admin-route="prompts">프롬프트</a>
+        <a href="/admin/evaluations" data-admin-route="evaluations">평가</a>
+        <a href="/admin/releases" data-admin-route="releases">릴리스</a>
+      </div>
+    </div>
+    <div class="admin-nav-group" data-admin-nav-group="system">
+      <button class="admin-nav-group-toggle" type="button" data-admin-nav-toggle aria-expanded="true" aria-controls="admin-nav-system">
+        <span>시스템</span><span class="admin-nav-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="admin-nav-items" id="admin-nav-system" data-admin-nav-items>
+        <a href="/admin/analytics" data-admin-route="analytics">통계</a>
+        <a href="/admin/logs" data-admin-route="logs">로그</a>
+        <a href="/admin/incidents" data-admin-route="incidents">장애</a>
+        <a href="/admin/audit" data-admin-route="audit">감사 기록</a>
+        <a href="/admin/settings" data-admin-route="settings">설정</a>
+      </div>
+    </div>
   </nav>
 
   <main data-width="narrow">
@@ -482,12 +532,42 @@
         var parent = path.split('/').slice(0, 3).join('/');
         return adminRoutes[parent] || adminRoutes['/admin'];
       }
+      function setAdminNavGroup(group, expanded, persist) {
+        if (!group) return;
+        var toggle = group.querySelector('[data-admin-nav-toggle]');
+        var items = group.querySelector('[data-admin-nav-items]');
+        if (!toggle || !items) return;
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        items.hidden = !expanded;
+        if (!persist) return;
+        try {
+          sessionStorage.setItem('umsh.admin.nav.' + group.getAttribute('data-admin-nav-group'), expanded ? 'expanded' : 'collapsed');
+        } catch (_error) { /* storage 차단 환경에서는 현재 화면 상태만 유지한다. */ }
+      }
+      function setupAdminNavGroups() {
+        document.querySelectorAll('[data-admin-nav-group]').forEach(function (group) {
+          var key = group.getAttribute('data-admin-nav-group');
+          try {
+            if (sessionStorage.getItem('umsh.admin.nav.' + key) === 'collapsed') setAdminNavGroup(group, false, false);
+          } catch (_error) { /* storage 차단 환경에서도 토글은 동작한다. */ }
+          var toggle = group.querySelector('[data-admin-nav-toggle]');
+          if (!toggle) return;
+          toggle.addEventListener('click', function () {
+            setAdminNavGroup(group, toggle.getAttribute('aria-expanded') !== 'true', true);
+          });
+        });
+      }
       function markCurrentRoute() {
         var route = currentAdminRoute();
+        var activeGroup = null;
         document.querySelectorAll('[data-admin-route]').forEach(function (link) {
-          if (link.getAttribute('data-admin-route') === route.key) link.setAttribute('aria-current', 'page');
+          if (link.getAttribute('data-admin-route') === route.key) {
+            link.setAttribute('aria-current', 'page');
+            activeGroup = link.closest('[data-admin-nav-group]');
+          }
           else link.removeAttribute('aria-current');
         });
+        setAdminNavGroup(activeGroup, true, false);
         return route;
       }
 
@@ -1218,6 +1298,7 @@
 
       async function start() {
         if (!window.UMSHAccountPages || !window.UMSHAuthSession) { show('error'); return; }
+        setupAdminNavGroups();
         bindLogin();
         bindPasswordRecovery();
         bindSignOut();
