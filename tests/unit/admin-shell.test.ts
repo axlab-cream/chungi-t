@@ -163,9 +163,10 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
       // 이 단계는 조회 권한만 준다. 감사 경로(T06)가 없는 동안 쓰기 scope 를 만들지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write'])
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write'])
       assert.ok(!me.scopes.some((scope: string) => /delete|refund/.test(scope)), '허용되지 않은 파괴·금융 권한이 생겼다')
       assert.ok(me.scopes.includes('settings:write'), '감사 기반 설정 변경 권한이 없다')
+      assert.ok(me.scopes.includes('support:read') && me.scopes.includes('support:write'), '고객 지원 권한이 없다')
     })
 
     it('직원 목록이 비면 아무에게도 권한이 없다', async () => {

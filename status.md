@@ -10,6 +10,12 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T12 CS 케이스 관리 시작
+
+- Status: `IN_PROGRESS`
+- 원격 DB 점검: `public.support_cases`, `public.support_notes`는 아직 존재하지 않는다. 새 테이블을 additive migration으로 만들고, RLS와 브라우저 역할 권한 차단을 적용한다.
+- 범위: 실제 케이스 접수·배정·내부 메모·고객 답변 초안·종료. 고객 연락 발송 채널은 구현하지 않는다.
+
 ## 2026-09-11 — T06A 관리자 계정 실제 변경 완료
 
 - Status: `DONE`

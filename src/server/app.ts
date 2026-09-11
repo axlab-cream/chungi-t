@@ -41,6 +41,7 @@ import { countLiveMembers, countLiveReports, listLiveMembers, listLiveReports } 
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
+import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
@@ -1124,7 +1125,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1984,6 +1985,53 @@ app.get('/api/admin/v1/me', async (req, res) => {
 })
 
 /** Actual account roster for the settings screen. Password hashes never leave the server. */
+app.get('/api/admin/v1/support', async (req, res) => {
+  if (!await requireStaff(req, res, 'support:read')) return
+  try { res.json({ cases: await listSupportCases() }) }
+  catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '고객 지원 저장소를 불러오지 못했습니다.' }) }
+})
+
+app.get('/api/admin/v1/support/:id/notes', async (req, res) => {
+  if (!await requireStaff(req, res, 'support:read')) return
+  const id = trimmedString(req.params.id)
+  if (!id) { res.status(422).json({ code: 'INVALID_SUPPORT_CASE_ID', error: '케이스 식별자를 확인해 주세요.' }); return }
+  try { res.json({ notes: await listSupportNotes(id) }) }
+  catch { res.status(503).json({ code: 'SUPPORT_NOTE_LOOKUP_FAILED', error: '케이스 메모를 불러오지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/support', async (req, res) => {
+  const membership = await requireStaff(req, res, 'support:write'); if (!membership) return
+  const body = asObject(req.body); const category = trimmedString(body.category); const priority = trimmedString(body.priority); const idempotencyKey = trimmedString(req.header('idempotency-key'))
+  if (!(SUPPORT_CATEGORIES as readonly string[]).includes(category) || !(SUPPORT_PRIORITIES as readonly string[]).includes(priority) || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_CASE_INPUT', error: '문의 종류, 우선순위, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.case.create', idempotencyKey, body: { category, priority, memberId: trimmedString(body.memberId) || null, orderId: trimmedString(body.orderId) || null, reportId: trimmedString(body.reportId) || null }, target: { type: 'support_case', id: 'new' } }, async () => createSupportCase({ category: category as typeof SUPPORT_CATEGORIES[number], priority: priority as typeof SUPPORT_PRIORITIES[number], memberId: trimmedString(body.memberId) || undefined, orderId: trimmedString(body.orderId) || undefined, reportId: trimmedString(body.reportId) || undefined, actorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ supportCase: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'SUPPORT_CASE_CREATE_FAILED', error: '고객 지원 케이스를 만들지 못했습니다.' }) }
+})
+
+app.patch('/api/admin/v1/support/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'support:write'); if (!membership) return
+  const body = asObject(req.body); const id = trimmedString(req.params.id); const status = trimmedString(body.status); const priority = trimmedString(body.priority); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = trimmedString(req.header('idempotency-key'))
+  const assigneeEmail = trimmedString(body.assigneeEmail) || null; const resolutionCode = trimmedString(body.resolutionCode) || null
+  if (!id || !(SUPPORT_STATUSES as readonly string[]).includes(status) || !(SUPPORT_PRIORITIES as readonly string[]).includes(priority) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_CASE_INPUT', error: '상태, 우선순위, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.case.update', idempotencyKey, body: { id, status, priority, assigneeEmail, resolutionCode, expectedRevision }, target: { type: 'support_case', id } }, async () => {
+      const supportCase = await updateSupportCase({ id, expectedRevision, status: status as typeof SUPPORT_STATUSES[number], priority: priority as typeof SUPPORT_PRIORITIES[number], assigneeEmail, resolutionCode }); if (!supportCase) throw new AdminCommandConflict('SUPPORT_CASE_REVISION_CONFLICT'); return supportCase
+    })
+    res.json({ supportCase: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'SUPPORT_CASE_UPDATE_FAILED', error: '고객 지원 케이스를 변경하지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/support/:id/notes', async (req, res) => {
+  const membership = await requireStaff(req, res, 'support:write'); if (!membership) return
+  const body = asObject(req.body); const id = trimmedString(req.params.id); const kind = trimmedString(body.kind); const text = typeof body.text === 'string' ? body.text.trim() : ''; const idempotencyKey = trimmedString(req.header('idempotency-key'))
+  if (!id || !(SUPPORT_NOTE_KINDS as readonly string[]).includes(kind) || text.length < 1 || text.length > 4000 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_NOTE_INPUT', error: '메모 종류, 내용, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.note.create', idempotencyKey, body: { id, kind, textLength: text.length }, target: { type: 'support_case', id } }, async () => createSupportNote({ caseId: id, kind: kind as typeof SUPPORT_NOTE_KINDS[number], text, actorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'SUPPORT_NOTE_CREATE_FAILED', error: '케이스 메모를 저장하지 못했습니다.' }) }
+})
+
 app.get('/api/admin/v1/admin-accounts', async (req, res) => {
   if (!await requireStaff(req, res, 'settings:read')) return
   try {
