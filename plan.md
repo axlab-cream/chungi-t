@@ -72,7 +72,7 @@
 | T03 | task-t03 | M0 | P0 | T01 | 저장소 스키마·권한 조사 | **DONE** |
 | T04 | task-t04 | M0 | P0 | T01 | 기존 회귀 기준 수집 | **DONE** |
 | T05 | task-t05 | M1 | P0 | T03,T04 | 직원 membership 및 RBAC | BLOCKED (U2 영속 저장소, U4 운영 스키마) |
-| T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | BLOCKED (U17 — 주문 직렬화 설계) |
+| T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | BLOCKED (**T05**) — U17 은 해소됨 |
 | T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. 영속 membership 저장소는 T05 에서 교체 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |
@@ -112,12 +112,12 @@
 | U6 | PG 취소 API 지원·서명 규격 | T16~T19 | 이니시스 콘솔 확인 |
 | ~~U7~~ | ~~운영 배포 현재 커밋 SHA~~ | — | **해소** — `dpl_8GJ6…`, 콘텐츠가 HEAD와 일치 |
 | ~~U8~~ | ~~20종 canonical/payment/prompt/route 정합성~~ | — | **해소** — T02 완료. 누락 0건, alias 충돌 2건 검출 |
-| **U17** | 주문 저장소에 직렬화·멱등키 없음 (상태 가드만 존재) | **T06**, T15, T17 (A09/A10) | `revision` 열 또는 `payment_operations` unique 설계 |
+| ~~U17~~ | 주문 저장소에 직렬화·멱등키 없음 | T06, T15, T17 | **해소** — revision 기반 CAS + 전이 가드(`src/payment/order-store.ts`). 운영 `revision` 열은 승인 대기 |
 | **U18** | `cheongi_reports` 관리자 분석 열 8개를 앱이 기록하지 않음 | **T10**, T11 (S07) | 운영 null 집계 측정 + 쓰기 경로 연결/backfill 또는 별도 read model 결정 |
 | **U19** | `cheongi_user_profiles` 정본 SQL 부재 | T10, TASK-004 | 스키마 파일 작성 또는 운영에서 추출 |
 | **U20** | 주문·프로필 저장소에 운영 memory 차단 장치 없음 (reports만 있음) | **T14** (A17) | readiness 게이트 구현 |
 | **U21** | REST upsert가 `amount`를 전체 row로 덮어씀 (관례 의존) | T15, T17 | upsert 본문에서 금액 제외 또는 전용 PATCH |
-| **U22** | PG 승인 성공 후 저장 실패를 담을 불확정 상태가 enum에 없음 | **T15, T17, T19 (A12/A13)** 그리고 **TASK-007보다 선행** | enum 확장 또는 `payment_operations`/`financial_events` 분리 |
+| ~~U22~~ | PG 승인 성공 후 저장 실패를 담을 불확정 상태가 enum 에 없음 | T15, T17, T19, TASK-007 | **해소(순서 변경)** — 승인 증거를 최종 상태보다 먼저 저장하고, 증거 있는 주문은 `failed` 로 못 간다. `docs/admin-ops/U22-indeterminate-payment.md`. **남은 구멍: 증거 쓰기 자체 실패 → outbox(T14)** |
 | **U23** | `src/pet/cat-service.ts`에 `retrieveCategoryOwnChunks` 없음. 형제 5개·`origin/main`에는 있음 | **병합/출시 차단**. 판매 중인 고양이 궁합의 동작 차이 | `origin/main` 병합 또는 단계 이식 + `check:cat` 통과 + 결정적 assertion |
 | **U24** | unit 결과가 실행 형태에 따라 갈린다 (373/0 vs 365/8). 원인 미특정 | R06 baseline 신뢰성, T10 | 8개 테스트 격리 후 원인 특정 |
 | **U25** | `check:*` 11개 가드가 stale. 수정본이 `origin/main`에만 있음 | 회귀 판별, CI 도입(TASK-005) | `origin/main` 병합 (U13) |

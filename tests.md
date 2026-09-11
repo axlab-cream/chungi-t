@@ -138,6 +138,17 @@
 | V-046 | task-t04 | deploy preflight | `npm run check:production-source` | exit 0 | **FAIL** (exit 1 — 작업트리 비청결 + HEAD가 origin/main 미포함) | 2026-09-10 |
 | V-047 | task-t04 | review | Codex 리뷰 | Critical 0, Major 반영 | PASS (Critical 0 / Major 4 / Minor 3 — 전부 수용·반영) | 2026-09-10 |
 | V-048 | U23 | cat retrieval | 고양이 궁합 검색 결과를 형제 서비스와 대조하는 결정적 assertion | 동일 단계 수행 확인 | NOT_RUN (테스트 미작성 — U23 해소 시 추가) | - |
+| V-135 | U17 | 승인 보호 | `paid` → `failed` 전이 | 거부 | **PASS** — 승인 뒤 오류 시 catch 가 덮던 경로 | 2026-09-11 |
+| V-136 | U17 | 동시 갱신 | 서로 다른 필드 동시 쓰기 2건 | 둘 다 반영(revision 2) | **PASS** | 2026-09-11 |
+| V-137 | U17 | 직렬화 | 동시 승인 5건 | 모두 직렬화(revision 5) | **PASS** | 2026-09-11 |
+| V-138 | U17 | REST CAS | PATCH 가 `revision=eq.N` 으로 필터 | 계약 고정 | **PASS** — 빈 결과 = 낡은 판 | 2026-09-11 |
+| V-139 | U17 | 환불 경로 | `paid`·`viewed` → `cancelled` | 허용 | **PASS** — 처음 과하게 막았고 기존 테스트가 잡았다 | 2026-09-11 |
+| V-140 | U22 | 불확정 보호 | `approving` + `tid` → `failed` | 거부 | **PASS** — 과금된 주문이 실패로 기록되던 경로 | 2026-09-11 |
+| V-141 | U22 | 증거 범위 | 같은 쓰기가 `tid` + `failed` 를 함께 넣는 경우 | 거부 | **PASS** — 현재분만 보면 우회된다 | 2026-09-11 |
+| V-142 | U22 | 정상 실패 | 증거 없는 `approving` → `failed` | 허용 | **PASS** — 승인 거부는 사실이다 | 2026-09-11 |
+| V-143 | U22 | 음성 대조 | 증거 가드 제거 / 증거 범위 축소 | 3건·1건 실패 | **PASS** — 복원 확인 | 2026-09-11 |
+| V-144 | staff | 관리자 권한 | `UMSH_ADMIN_SUPER_EMAILS` 설정 계정만 200 | 충족 | **PASS** — 빈 설정이면 아무도 없음, 대소문자 무시 | 2026-09-11 |
+| V-145 | staff | 자격증명 | 셸이 비밀번호를 보관·전송하는가 | 안 함 | **PASS** — Supabase Auth 직접 호출, 폼 즉시 비움 | 2026-09-11 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 
