@@ -7,7 +7,7 @@ import type { Server } from 'node:http'
 const previousEnv = { ...process.env }
 process.env.NODE_ENV = 'test'
 for (const name of Object.keys(process.env)) {
-  if (/DATABASE|SUPABASE|OPENAI|ANTHROPIC|INICIS|PAYMENT|VERCEL|REPORT_STORAGE|ADMIN_EMAIL/.test(name)) delete process.env[name]
+  if (/DATABASE|SUPABASE|OPENAI|ANTHROPIC|INICIS|PAYMENT|VERCEL|REPORT_STORAGE|ADMIN_EMAIL|ADMIN_SUPER/.test(name)) delete process.env[name]
 }
 const nativeFetch = globalThis.fetch
 let origin = ''
@@ -29,8 +29,11 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
 
 process.env.SUPABASE_URL = 'https://synthetic-auth.invalid'
 process.env.SUPABASE_PUBLISHABLE_KEY = 'synthetic-public-fixture-only'
-// 관리자 판정 근거는 이메일 허용 목록 하나다(T05 의 RBAC 이전 단계).
+// `UMSH_ADMIN_EMAILS` 는 **결제 없이 유료 리포트를 여는 레거시 unlock** 목록이다.
+// 운영 권한과 무관해야 하므로 이 픽스처에서 두 목록을 서로 다른 계정으로 갈라 둔다.
 process.env.UMSH_ADMIN_EMAILS = 'staff@synthetic.invalid'
+// 운영 관리자 권한의 유일한 근거(`src/auth/staff.ts`). 배포 설정으로만 주고 회수한다.
+process.env.UMSH_ADMIN_SUPER_EMAILS = 'super@synthetic.invalid'
 const { default: app } = await import('../../src/server/app.js')
 
 let server: Server
@@ -118,7 +121,10 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       // API 가 열리고 회수·감사 경로가 없는 "코드에 박힌 권한"이 된다.
       // 초판 구현이 실제로 그렇게 열려 있었다(2026-09-10 Codex 리뷰 Critical).
       const { isAdminEmail } = await import('../../src/auth/admin.js')
+      const { staffMembership } = await import('../../src/auth/staff.js')
       assert.equal(isAdminEmail('staff@synthetic.invalid'), true, '픽스처가 unlock 목록에 있어야 이 검사가 성립한다')
+      // 두 목록은 서로를 참조하지 않는다. unlock 목록에 있다는 사실이 권한 근거가 되면 안 된다.
+      assert.equal(staffMembership({ email: 'staff@synthetic.invalid' }), undefined, 'unlock 목록이 직원 권한으로 새어 들어갔다')
 
       const { response, text } = await request('/api/admin/v1/me', 'staff')
       assert.equal(response.status, 403, 'unlock 이메일에 관리자 권한이 열렸다')
@@ -143,13 +149,48 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
   })
 
   describe('정상 동작', () => {
-    it('직원 권한 원본이 없는 동안 아무에게도 권한을 주지 않는다', async () => {
-      // T05 가 회수 가능한 membership 원본을 만들 때까지 이 상태가 정답이다.
-      // 그때 이 테스트는 membership fixture 기반 200 검사로 교체한다.
+    it('직원 membership 이 있는 계정에만 권한이 열린다', async () => {
+      // 권한 근거는 배포 설정 하나다. 목록에 없는 회원은 인증되어 있어도 403 이다.
       for (const token of ['staff', 'customer', 'another-member']) {
         const { response, text } = await request('/api/admin/v1/me', token)
         assert.equal(response.status, 403, `${token} 에 권한이 열렸다`)
         assert.equal(JSON.parse(text).code, 'STAFF_MEMBERSHIP_REQUIRED')
+      }
+
+      const { response, text } = await request('/api/admin/v1/me', 'super')
+      assert.equal(response.status, 200, '직원 계정에 권한이 열리지 않았다')
+      const me = JSON.parse(text)
+      assert.equal(me.email, 'super@synthetic.invalid')
+      assert.equal(me.role, 'super_admin')
+      // 이 단계는 조회 권한만 준다. 감사 경로(T06)가 없는 동안 쓰기 scope 를 만들지 않는다.
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'settings:read'])
+      assert.ok(!me.scopes.some((scope: string) => /write|delete|refund/.test(scope)), '쓰기 권한이 생겼다')
+    })
+
+    it('직원 목록이 비면 아무에게도 권한이 없다', async () => {
+      // 회수 경로의 실측. 설정을 비우면 코드 변경 없이 권한이 사라져야 한다.
+      const previous = process.env.UMSH_ADMIN_SUPER_EMAILS
+      delete process.env.UMSH_ADMIN_SUPER_EMAILS
+      try {
+        const { response, text } = await request('/api/admin/v1/me', 'super')
+        assert.equal(response.status, 403, '설정을 비웠는데 권한이 남아 있다')
+        assert.equal(JSON.parse(text).code, 'STAFF_MEMBERSHIP_REQUIRED')
+      } finally {
+        if (previous === undefined) delete process.env.UMSH_ADMIN_SUPER_EMAILS
+        else process.env.UMSH_ADMIN_SUPER_EMAILS = previous
+      }
+    })
+
+    it('대소문자가 달라도 같은 직원으로 본다', async () => {
+      // 이메일은 대소문자를 구분하지 않는다. 목록과 토큰 이메일 양쪽을 정규화한다.
+      const previous = process.env.UMSH_ADMIN_SUPER_EMAILS
+      process.env.UMSH_ADMIN_SUPER_EMAILS = ' SUPER@Synthetic.Invalid , '
+      try {
+        const { response } = await request('/api/admin/v1/me', 'super')
+        assert.equal(response.status, 200, '대소문자·공백 때문에 직원을 못 알아봤다')
+      } finally {
+        if (previous === undefined) delete process.env.UMSH_ADMIN_SUPER_EMAILS
+        else process.env.UMSH_ADMIN_SUPER_EMAILS = previous
       }
     })
 
@@ -160,6 +201,27 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
         assert.equal(response.status, 200, `${path} 가 ${response.status} 로 응답했다`)
         assert.match(text, /운영 관리자/, `${path} 가 셸을 주지 않았다`)
       }
+    })
+
+    it('셸이 직원 로그인 폼을 갖고 있다', async () => {
+      // 일반 회원 로그인은 소셜 로그인만 지원한다. 직원 계정으로 들어올 입력 지점이
+      // 셸 안에 있어야 하며, 예전처럼 없는 경로(`/login`)로 보내면 안 된다.
+      const { text } = await request('/admin')
+      assert.match(text, /data-admin-login\b/, '로그인 폼이 없다')
+      assert.match(text, /autocomplete="current-password"/, '비밀번호 입력이 없다')
+      assert.match(text, /signInWithPassword/, '비밀번호 로그인 호출이 없다')
+      assert.ok(!text.includes('href="/login"'), '존재하지 않는 로그인 경로로 보낸다')
+    })
+
+    it('셸이 자격증명을 보관하지 않는다', async () => {
+      const { text } = await request('/admin')
+      // 비밀번호를 저장·전송·로깅하는 코드가 없어야 한다.
+      assert.ok(!/localStorage\.setItem\([^)]*password/i.test(text), '비밀번호를 브라우저에 저장한다')
+      assert.ok(!/console\.(log|info|warn|error)\([^)]*password/i.test(text), '비밀번호를 로그로 남긴다')
+      assert.match(text, /elements\.password\.value = ''/, '로그인 후 비밀번호를 폼에서 지우지 않는다')
+      // 어떤 계정의 자격증명도 셸에 하드코딩하지 않는다.
+      assert.ok(!/@crea-m\.com/.test(text), '실제 계정 이메일이 셸에 박혀 있다')
+      assert.ok(!/admin1234/i.test(text), '비밀번호가 셸에 박혀 있다')
     })
 
     it('셸이 네 가지 상태를 구분해 갖고 있다', async () => {

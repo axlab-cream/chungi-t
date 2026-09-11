@@ -794,3 +794,58 @@ Task 착수 시 `plan.md` 의 해당 영역 제약을 먼저 읽는 절차가 �
 - **U36**: 관리자 HTML 진입점을 인증 뒤로 옮기려면 서버 세션 쿠키가 필요하다.
   지금은 데이터 없는 셸을 익명에게도 준다 → 관리자 경로·메뉴 구조가 노출된다
 - **(2) 최소 관리자**를 붙이려면 T05 없이 무엇을 권한 근거로 쓸지 먼저 정해야 한다
+
+## 2026-09-11 — 관리자 직원 로그인 + 권한 근거 (사용자 지시)
+
+### 사용자가 본 것: "로그인 ID PW 넣는 곳이 나와야 하잖아"
+맞는 지적이었다. 셸에 **입력 지점이 아예 없었다.** `data-admin-state="anonymous"` 패널이
+`<a href="/login">` 로 보내는데 **`/login` 라우트는 존재하지 않는다**(app.ts 에 0건).
+그리고 이 사이트의 회원 로그인은 `signInWithOAuth` 뿐 — 비밀번호 로그인 경로가 없었다.
+즉 관리자는 "권한이 없어서" 못 들어간 게 아니라 **로그인할 방법 자체가 없었다.**
+
+### 한 것
+| 항목 | 내용 |
+| --- | --- |
+| 권한 근거 | `src/auth/staff.ts` 신규. `UMSH_ADMIN_SUPER_EMAILS` 하나만 본다 |
+| `/api/admin/v1/me` | 403 고정 해제 → membership 있으면 200 `{email, role, scopes[], environment}` |
+| 셸 | 이메일/비밀번호 폼 + 조직 계정(SSO) 경로. 끊어진 `/login` 링크 제거 |
+| scope | 조회만 (`orders/members/reports/settings:read`). 감사 기반(T06) 없이 쓰기 안 만든다 |
+| 문서 | `docs/API.md` 에 401/403/200 계약과 하위 호환 규칙 명시 |
+
+**Codex Critical 재발 방지**: 권한 근거를 `isAdminEmail`/`isAdminOwner`(레거시 unlock)와
+**완전히 분리된 모듈**에 두었다. 테스트가 두 목록의 분리를 코드로 고정한다 —
+unlock 목록 계정에 `staffMembership()` 이 `undefined` 인지 직접 확인한다.
+권한은 코드에 박히지 않고 배포 설정에서만 오므로 **설정을 비우면 코드 변경 없이 회수**된다.
+그 회수 경로도 테스트로 고정했다(설정 삭제 → 403).
+
+### 막힌 것 — 지시한 계정에 비밀번호가 없다
+`axlab@crea-m.com` / 지시받은 비밀번호 2종 모두 `invalid_credentials`.
+비밀번호가 틀린 게 아니라 **그 계정에 비밀번호 자격증명이 없다.** 근거:
+
+| 확인 | 결과 |
+| --- | --- |
+| `/auth/v1/token?grant_type=password` × 2회 | 400 `invalid_credentials` |
+| `/auth/v1/signup` (같은 이메일) | 200 + **빈 user 객체** = 중복 보호 응답 → **계정은 이미 있다** |
+| `/auth/v1/settings` | `mailer_autoconfirm: false`, google·kakao 활성 |
+
+계정이 Google 로그인으로 먼저 만들어져 password identity 가 없는 상태다.
+로컬에 service role key 가 없어 관리자 API 로 비밀번호를 설정할 수 없다.
+→ 비밀번호 설정은 Supabase 콘솔(사용자 작업)이 필요하다. 그 사이에도 들어올 수 있도록
+**조직 계정(Google) 경로를 같은 화면에 붙였다.** 권한 판정은 경로와 무관하게 동일하다.
+
+### 스스로 만든 사고 — 줄바꿈/BOM 전면 변경
+Python 패치를 `newline=''` + `utf-8-sig` 로 쓰면서 대상 파일 **전체를 LF 로 바꾸고
+BOM 을 새로 붙였다.** `.env.example` diff 가 8줄이어야 하는데 136줄로 부풀었다.
+`.env` 계열에 BOM 이 붙으면 첫 키 파싱이 깨질 수 있어 위험하기도 했다.
+HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
+
+**교훈: 파일을 문자열로 통째로 다시 쓰는 패치는 내용뿐 아니라 바이트 규약을 바꾼다.
+쓰기 전에 원본의 줄바꿈·BOM 을 읽어 그대로 복원해야 한다.**
+
+### 남은 것
+- **운영 반영 전 필수**: Vercel 에 `UMSH_ADMIN_SUPER_EMAILS` 설정. 없으면 운영은 계속 403
+- `axlab@crea-m.com` 비밀번호 설정(Supabase 콘솔) 또는 조직 계정 경로 사용
+- SSO `redirectTo` (`/admin`) 가 Supabase redirect 허용목록에 없으면 홈으로 떨어진다
+  (세션은 생기므로 `/admin` 재방문 시 로그인 상태) — 허용목록 확인 필요
+- **U36 그대로**: 셸 HTML 은 여전히 익명에게 응답한다(서버 세션 쿠키 없음)
+- T05 는 이 응답 형태를 유지한 채 판정 근거만 영속 저장소로 교체

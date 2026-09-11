@@ -73,7 +73,7 @@
 | T04 | task-t04 | M0 | P0 | T01 | 기존 회귀 기준 수집 | **DONE** |
 | T05 | task-t05 | M1 | P0 | T03,T04 | 직원 membership 및 RBAC | BLOCKED (U2 영속 저장소, U4 운영 스키마) |
 | T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | BLOCKED (U17 — 주문 직렬화 설계) |
-| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **셸·라우터 완료** (ADR-0002 승인, U3 해소). **인증된 관리자 기능은 T05 대기** — 직원 membership 원본이 없어 `/api/admin/v1/me` 는 누구에게도 권한을 주지 않는다 |
+| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. 영속 membership 저장소는 T05 에서 교체 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |
 | T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | BLOCKED (U4, U18 분석열, U19 profiles SQL) |
@@ -139,6 +139,13 @@
   `express.static`(683~684행)은 경로에 실제 파일이 있으면 인증 없이 서빙하므로,
   관리자 자산을 정적 루트에 두면 권한 검사를 우회한다 (ADR-0002 D1/D2).
 - 관리자 권한 판정에 `isAdminEmail`·`isAdminOwner`(레거시 unlock)를 절대 사용하지 않는다.
+- 운영 관리자 권한의 유일한 근거는 `src/auth/staff.ts` 다. 권한은 배포 설정
+  (`UMSH_ADMIN_SUPER_EMAILS`)에서만 오고, 코드에 박지 않으며, 설정이 비면 아무에게도
+  권한이 없다. T05 는 이 응답 형태를 유지한 채 판정 근거만 영속 저장소로 교체한다.
+- 직원 계정은 조직이 발급·회수하는 이메일/비밀번호 계정을 쓴다. 일반 회원 로그인
+  (소셜)과 같은 경로를 쓰지 않는다. 비밀번호는 인증 서비스에만 두고 저장소·로그·문서
+  어디에도 남기지 않는다.
+- 감사·멱등 명령 기반(T06)이 붙기 전까지 관리자 scope 는 조회(`*:read`)만 만든다.
 
 ## C. origin/main 병합 Task (신규, U13)
 

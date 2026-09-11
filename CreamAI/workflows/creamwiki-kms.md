@@ -34,6 +34,39 @@ Follow this workflow when the user asks for any of these:
 5. Never store API keys, OAuth tokens, cookies, passwords, private keys,
    authorization headers, or raw secret-bearing logs.
 
+## Remote Access (verified 2026-09-11)
+
+No local `CREAMWIKI_ROOT` exists on this PC, so the local `scripts/*.py`
+commands below are unavailable. The working path is the remote API over an SSH
+tunnel.
+
+```bash
+# 1. ensure the tunnel (SessionStart hook also runs this)
+pwsh -NoProfile -File "C:/Users/user/bin/creamwiki-tunnel.ps1"
+
+# 2. confirm the API answers with JSON, not a 302
+curl -s -m 5 http://127.0.0.1:18765/api/v1/kms/me
+
+# 3. query
+export PYTHONIOENCODING=utf-8
+python ~/creamwiki/kms_cli.py search "<query>" --limit 5   # --scope all|core|personal
+python ~/creamwiki/kms_cli.py get "<relativePath>"
+python ~/creamwiki/kms_cli.py put "notes/<file>.md" --file ./note.md
+```
+
+Constraints that change how this workflow runs:
+
+- The public HTTPS API (`https://wiki.crea-m.com/api/v1/...`) returns `302`.
+  Never use it as the base URL.
+- Core documents are read-only, and `get` returns a summary truncated near 650
+  characters. For full text read the server original:
+  `ssh nexus "cat /home/www/webapps/creamwiki/memory/wiki/<relativePath>"`.
+- Writes land under `personal/carrotcap/` only. There is no delete API, so reuse
+  a fixed path such as `notes/_scratch.md` for throwaway checks instead of
+  date-stamped paths.
+- The reindex commands in the Reindex section are server-side and unavailable
+  from here. Record them as `NOT_RUN` rather than `PASS`.
+
 ## Search First
 
 Before implementation, create 3-7 focused search queries from:

@@ -97,6 +97,41 @@
     /* 금액은 같은 정렬축에 둔다. */
     .admin-amount { text-align: right; font-variant-numeric: tabular-nums; }
 
+    /* 로그인 폼. 관리자에서 사용자 입력을 받는 유일한 지점이다. */
+    .admin-form { display: grid; gap: var(--admin-space-4); margin-top: var(--admin-space-4); }
+    .admin-field { display: grid; gap: var(--admin-space-1); }
+    .admin-field label { font-size: 13px; font-weight: 600; color: var(--admin-text); }
+    .admin-field input {
+      padding: var(--admin-space-3);
+      font: inherit;
+      color: var(--admin-text);
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-line);
+      border-radius: var(--admin-radius);
+    }
+    .admin-field input:focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 1px; }
+    .admin-actions { display: flex; align-items: center; gap: var(--admin-space-3); }
+    .admin-button {
+      padding: var(--admin-space-3) var(--admin-space-6);
+      font: inherit; font-weight: 600;
+      color: var(--admin-surface);
+      background: var(--admin-text);
+      border: 1px solid var(--admin-text);
+      border-radius: var(--admin-radius);
+      cursor: pointer;
+    }
+    .admin-button[disabled] { background: var(--admin-text-disabled); border-color: var(--admin-text-disabled); cursor: progress; }
+    .admin-button[data-variant='quiet'] {
+      color: var(--admin-text); background: var(--admin-surface); border-color: var(--admin-line); font-weight: 500;
+    }
+    /* 실패 이유는 색만으로 알리지 않는다(D4) — 상태 라벨과 문장을 같이 준다. */
+    .admin-form-error { display: grid; gap: var(--admin-space-1); }
+    .admin-alt {
+      margin-top: var(--admin-space-6);
+      padding-top: var(--admin-space-4);
+      border-top: 1px solid var(--admin-line);
+    }
+
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -124,16 +159,55 @@
       <p>로그인 상태와 권한을 확인하고 있습니다.</p>
     </section>
 
+    <!--
+      직원 로그인. 일반 회원 로그인은 소셜 로그인만 지원하므로 여기서는 쓰지 않는다 —
+      직원 계정은 조직이 발급·회수하는 이메일/비밀번호 계정이어야 한다.
+      비밀번호는 인증 서비스로 바로 전송하고, 이 화면과 서버 어디에도 보관하지 않는다.
+    -->
     <section class="admin-panel" data-admin-state="anonymous" hidden>
-      <h2>로그인이 필요합니다</h2>
+      <h2>직원 로그인</h2>
       <p>운영 관리자는 직원 계정으로만 들어올 수 있습니다.</p>
-      <p><a href="/login">로그인 페이지로 이동</a></p>
+
+      <form class="admin-form" data-admin-login novalidate>
+        <div class="admin-field">
+          <label for="admin-email">이메일</label>
+          <input id="admin-email" name="email" type="email" autocomplete="username"
+                 inputmode="email" required autocapitalize="off" spellcheck="false" />
+        </div>
+        <div class="admin-field">
+          <label for="admin-password">비밀번호</label>
+          <input id="admin-password" name="password" type="password"
+                 autocomplete="current-password" required />
+        </div>
+        <div class="admin-form-error" data-admin-login-error hidden role="alert">
+          <span class="admin-status" data-tone="error">로그인 실패</span>
+          <span data-admin-login-error-detail></span>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button" type="submit" data-admin-login-submit>로그인</button>
+          <span class="admin-note" data-admin-login-note hidden>확인 중입니다…</span>
+        </div>
+      </form>
+
+      <!--
+        비밀번호가 없는 직원 계정(조직 계정으로 처음 만들어진 경우)을 위한 경로다.
+        권한 판정은 어느 경로로 들어와도 같다 — 서버의 직원 membership 하나만 본다.
+      -->
+      <div class="admin-alt" data-admin-sso hidden>
+        <p class="admin-note">비밀번호가 없는 직원 계정은 조직 계정으로 들어올 수 있습니다.</p>
+        <div class="admin-actions">
+          <button class="admin-button" type="button" data-variant="quiet" data-admin-sso-google>조직 계정으로 로그인</button>
+        </div>
+      </div>
     </section>
 
     <section class="admin-panel" data-admin-state="forbidden" hidden>
       <h2><span class="admin-status" data-tone="error">권한 없음</span></h2>
       <p data-admin-forbidden-detail>이 계정에는 운영 관리자 권한이 없습니다.</p>
       <p class="admin-note" data-admin-forbidden-note hidden></p>
+      <div class="admin-actions">
+        <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>다른 계정으로 로그인</button>
+      </div>
     </section>
 
     <section class="admin-panel" data-admin-state="error" hidden>
@@ -145,10 +219,17 @@
       <h2><span class="admin-status" data-tone="ok">접속됨</span></h2>
       <p>관리자 셸이 열렸습니다. 주문·회원 화면은 다음 단계(T08~T10)에서 붙습니다.</p>
       <p data-admin-scope></p>
+      <div class="admin-actions">
+        <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>로그아웃</button>
+      </div>
     </section>
   </main>
 
-  <!-- 공용 인증 스크립트를 그대로 쓴다. 새 CDN 을 추가하지 않는다. -->
+  <!--
+    공용 인증 스크립트와, 사이트가 이미 쓰고 있는 인증 SDK 를 그대로 쓴다.
+    새 CDN 출처를 추가하지 않는다(ADR-0002 D2-5).
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/umsh-auth-session.js"></script>
   <script src="/js/umsh-account-pages.js"></script>
   <script>
@@ -167,22 +248,51 @@
         if (node) node.textContent = value;
       }
 
-      async function start() {
-        var helper = window.UMSHAccountPages;
-        if (!helper) { show('error'); return; }
+      function setHidden(selector, hidden) {
+        var node = document.querySelector(selector);
+        if (node) node.hidden = hidden;
+      }
 
-        var auth = null;
-        try {
-          auth = await helper.requireSession('admin', { optional: true });
-        } catch (_error) {
-          show('error');
-          return;
+      // 인증 클라이언트는 한 번만 만든다. 설정값은 런타임에 서버에서 받아오며
+      // 이 파일에 인라인하지 않는다.
+      var clientPromise = null;
+      function authClient() {
+        if (clientPromise) return clientPromise;
+        clientPromise = (async function () {
+          var config = await fetch('/api/auth/config').then(function (response) { return response.json(); });
+          if (!config.enabled || !window.supabase || !window.supabase.createClient) return null;
+          var helper = window.UMSHAuthSession;
+          return (helper && helper.createClient(window.supabase, config.url, config.publishableKey)) ||
+            window.supabase.createClient(config.url, config.publishableKey, {
+              auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                flowType: 'pkce',
+                storage: window.localStorage,
+              },
+            });
+        })();
+        return clientPromise;
+      }
+
+      async function currentSession() {
+        var client = await authClient();
+        if (!client) return null;
+        var session = (await client.auth.getSession()).data.session || null;
+        var helper = window.UMSHAuthSession;
+        if (helper && helper.enforceDeviceAuthSession) {
+          session = await helper.enforceDeviceAuthSession(session, client);
         }
-        if (!auth) { show('anonymous'); return; }
+        return session && session.access_token ? session : null;
+      }
 
+      // 권한 판정은 서버만 한다. 화면에서 권한을 추정하지 않는다.
+      async function checkAuthority(session) {
+        var helper = window.UMSHAccountPages;
         var response;
         try {
-          response = await fetch('/api/admin/v1/me', { headers: helper.authHeaders(auth.session) });
+          response = await fetch('/api/admin/v1/me', { headers: helper.authHeaders(session) });
         } catch (_error) {
           show('error');
           return;
@@ -191,16 +301,15 @@
         if (response.status === 401) { show('anonymous'); return; }
         if (response.status === 403) {
           // 왜 막혔는지 서버가 알려 준 이유를 그대로 보여 준다. "권한 없음" 한 줄로는
-          // 직원 권한 원본이 아직 없는 상태와 권한이 회수된 상태를 구분할 수 없다.
+          // 직원 권한 원본이 없는 상태와 권한이 회수된 상태를 구분할 수 없다.
+          setText('[data-admin-forbidden-detail]', '이 계정에는 운영 관리자 권한이 없습니다.');
+          setHidden('[data-admin-forbidden-note]', true);
           try {
             var denied = await response.json();
-            if (denied && denied.error) {
-              setText('[data-admin-forbidden-detail]', denied.error);
-            }
+            if (denied && denied.error) setText('[data-admin-forbidden-detail]', denied.error);
             if (denied && denied.code) {
               setText('[data-admin-forbidden-note]', '코드: ' + denied.code);
-              var note = document.querySelector('[data-admin-forbidden-note]');
-              if (note) note.hidden = false;
+              setHidden('[data-admin-forbidden-note]', false);
             }
           } catch (_error) {
             // 본문이 없으면 기본 문구를 남긴다.
@@ -217,10 +326,120 @@
         var me = await response.json();
         setText('[data-admin-env]', me.environment ? '환경 ' + me.environment : '');
         setText('[data-admin-who]', me.email || '');
-        setText('[data-admin-scope]', '권한: ' + (me.scopes || []).join(', '));
+        setText('[data-admin-scope]', '권한: ' + (me.role || '') + ' · ' + (me.scopes || []).join(', '));
         var nav = document.querySelector('[data-admin-nav]');
         if (nav) nav.hidden = false;
         show('ready');
+      }
+
+      function loginFailureMessage(error) {
+        var raw = String((error && error.message) || '');
+        // 어떤 계정이 존재하는지 알려 주지 않는다. 실패 사유는 한 문장으로 합친다.
+        if (/Invalid login credentials/i.test(raw)) return '이메일 또는 비밀번호가 올바르지 않습니다.';
+        if (/Email not confirmed/i.test(raw)) return '계정 이메일 인증이 끝나지 않았습니다. 운영 담당자에게 문의해 주세요.';
+        if (/rate|too many/i.test(raw)) return '시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+        return '로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      }
+
+      function bindLogin() {
+        var form = document.querySelector('[data-admin-login]');
+        if (!form) return;
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+          var submit = form.querySelector('[data-admin-login-submit]');
+          var email = String(form.elements.email.value || '').trim();
+          var password = String(form.elements.password.value || '');
+
+          setHidden('[data-admin-login-error]', true);
+          if (!email || !password) {
+            setText('[data-admin-login-error-detail]', '이메일과 비밀번호를 모두 입력해 주세요.');
+            setHidden('[data-admin-login-error]', false);
+            return;
+          }
+
+          if (submit) submit.disabled = true;
+          setHidden('[data-admin-login-note]', false);
+          try {
+            var client = await authClient();
+            if (!client) throw new Error('auth unavailable');
+            var result = await client.auth.signInWithPassword({ email: email, password: password });
+            if (result.error) throw result.error;
+
+            // 비밀번호를 폼에 남겨 두지 않는다.
+            form.elements.password.value = '';
+            var helper = window.UMSHAuthSession;
+            if (helper && helper.rememberDeviceAuthSession) helper.rememberDeviceAuthSession(result.data.session);
+
+            show('loading');
+            await checkAuthority(result.data.session);
+          } catch (error) {
+            setText('[data-admin-login-error-detail]', loginFailureMessage(error));
+            setHidden('[data-admin-login-error]', false);
+          } finally {
+            if (submit) submit.disabled = false;
+            setHidden('[data-admin-login-note]', true);
+          }
+        });
+      }
+
+      // 조직 계정 경로는 그 provider 가 실제로 켜져 있을 때만 노출한다.
+      // 눌러도 안 되는 버튼을 주지 않는다.
+      async function bindSingleSignOn() {
+        var config = await fetch('/api/auth/config').then(function (response) { return response.json(); });
+        if (!config.enabled || !config.providers || !config.providers.google) return;
+        setHidden('[data-admin-sso]', false);
+
+        var button = document.querySelector('[data-admin-sso-google]');
+        if (!button) return;
+        button.addEventListener('click', async function () {
+          var client = await authClient();
+          if (!client) { show('error'); return; }
+          button.disabled = true;
+          var result = await client.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + '/admin' },
+          });
+          if (result && result.error) {
+            button.disabled = false;
+            setText('[data-admin-login-error-detail]', '조직 계정 로그인을 시작하지 못했습니다.');
+            setHidden('[data-admin-login-error]', false);
+          }
+        });
+      }
+
+      function bindSignOut() {
+        document.querySelectorAll('[data-admin-signout]').forEach(function (button) {
+          button.addEventListener('click', async function () {
+            var client = await authClient();
+            if (client && client.auth && client.auth.signOut) {
+              await client.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
+            }
+            var helper = window.UMSHAuthSession;
+            if (helper && helper.clearDeviceAuthSession) helper.clearDeviceAuthSession();
+            setText('[data-admin-who]', '');
+            setText('[data-admin-env]', '');
+            var nav = document.querySelector('[data-admin-nav]');
+            if (nav) nav.hidden = true;
+            show('anonymous');
+          });
+        });
+      }
+
+      async function start() {
+        if (!window.UMSHAccountPages || !window.UMSHAuthSession) { show('error'); return; }
+        bindLogin();
+        bindSignOut();
+        bindSingleSignOn().catch(function () { return undefined; });
+
+        var session = null;
+        try {
+          session = await currentSession();
+        } catch (_error) {
+          show('error');
+          return;
+        }
+        if (!session) { show('anonymous'); return; }
+        await checkAuthority(session);
       }
 
       start();

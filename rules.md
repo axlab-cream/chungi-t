@@ -80,3 +80,9 @@ If a file is missing, create it. If it exists, preserve it and update only the r
 - Save verified reusable knowledge as a sanitized Markdown work-log.
 - If CreamWIKI scripts are unavailable, use ProjectOps memory and repository search as a degraded fallback and record the limitation.
 - Never mark missing CreamWIKI indexing as `PASS`; use `NOT_RUN` or `BLOCKED`.
+- Remote access is the working path on this PC: the SSH tunnel
+  `C:/Users/user/bin/creamwiki-tunnel.ps1` exposes the wiki API at
+  `http://127.0.0.1:18765`, and `~/creamwiki/kms_cli.py` queries it. The public
+  HTTPS API returns `302` and must not be used as the base URL.
+- The wiki token belongs to the groupware account `carrotcap`; the SSH account
+  `creamax` is transport only. Write only under `personal/carrotcap/`.

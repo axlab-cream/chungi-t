@@ -34,6 +34,7 @@ import { createSavedPreview, guardPreview } from '../report/report-preview.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
+import { staffMembership, staffMembershipConfigured } from '../auth/staff.js'
 import {
   buildUserBirthProfile,
   getUserBirthProfile,
@@ -1600,18 +1601,18 @@ app.get('/api/auth/config', (_req, res) => {
  * 관리자 셸이 자기 권한을 확인하는 유일한 경로. ADR-0002 D2-1 대로 `/api` 접두어 안에
  * 있어 `Cache-Control: private, no-store` + `Vary: Authorization` 이 자동 적용된다.
  *
- * **지금은 누구에게도 권한을 주지 않는다.** 직원 membership 원본이 아직 없다(T05).
+ * 판정 근거는 `src/auth/staff.ts` 하나다. `isAdminEmail`·`isAdminOwner` 는 **결제 없이
+ * 유료 리포트를 여는 레거시 unlock 목록**이므로 운영 권한으로 절대 쓰지 않는다
+ * (`plan.md`, `docs/admin-ops/T01-baseline.md`, 13-SECURITY. 초판이 실제로 그렇게
+ * 열려 있었다 — 2026-09-10 Codex 리뷰 Critical).
  *
- * 초판은 `isAdminOwner` 로 권한을 부여했는데 그것은 규칙 위반이었다
- * (`plan.md`, `docs/admin-ops/T01-baseline.md`, 13-SECURITY):
- * `isAdminOwner` 는 **결제 없이 유료 리포트를 여는 레거시 unlock 이메일 목록**이다.
- * 그것을 운영 권한으로 재사용하면 직원 membership 없이 관리자 API 가 열리고,
- * 회수·감사 경로가 없는 "코드에 박힌 권한"이 된다(2026-09-10 Codex 리뷰 Critical).
- *
- * 그래서 인증된 회원에게도 403 을 준다. 셸은 그 이유를 화면에 표시한다.
- * T05 가 회수 가능한 membership 원본을 만들면 그때 이 판정을 그것으로 교체한다.
+ * 권한은 배포 설정(`UMSH_ADMIN_SUPER_EMAILS`)에서만 온다. 코드 변경 없이 회수할 수
+ * 있고, 설정이 비어 있으면 아무에게도 권한이 없다. T05 가 영속 membership 저장소를
+ * 만들면 이 응답 형태를 유지한 채 판정만 교체한다.
  */
-const STAFF_MEMBERSHIP_SOURCE_READY = false
+function adminEnvironmentLabel(): string {
+  return String(process.env.VERCEL_ENV ?? '') || (process.env.NODE_ENV === 'production' ? 'production' : 'development')
+}
 
 app.get('/api/admin/v1/me', async (req, res) => {
   let owner: ReportOwner | undefined
@@ -1626,16 +1627,26 @@ app.get('/api/admin/v1/me', async (req, res) => {
     res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인이 필요합니다.' })
     return
   }
-  if (!STAFF_MEMBERSHIP_SOURCE_READY) {
+
+  const membership = staffMembership(owner)
+  if (!membership) {
     // 권한 없음과 미로그인을 구분해 응답한다(A35 — 서로 다른 UI 상태여야 한다).
-    // 회원 정보를 함께 내려보내지 않는다. 판정 근거가 없는 상태에서 알려 줄 것이 없다.
+    // 권한이 없는 회원에게는 scope·이메일을 내려보내지 않는다.
     res.status(403).json({
       code: 'STAFF_MEMBERSHIP_REQUIRED',
-      error: '직원 권한 원본이 아직 준비되지 않았습니다. 운영 관리자 기능은 T05(직원 membership·RBAC) 이후에 열립니다.',
+      error: staffMembershipConfigured()
+        ? '이 계정에는 운영 관리자 권한이 없습니다.'
+        : '직원 권한 원본이 설정되지 않았습니다. 운영 담당자에게 문의해 주세요.',
     })
     return
   }
-  res.status(500).json({ code: 'NOT_IMPLEMENTED', error: '직원 권한 판정이 연결되지 않았습니다.' })
+
+  res.json({
+    email: membership.email,
+    role: membership.role,
+    scopes: membership.scopes,
+    environment: adminEnvironmentLabel(),
+  })
 })
 
 app.get('/api/payment/config', (_req, res) => {

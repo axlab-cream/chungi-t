@@ -25,14 +25,6 @@ try {
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $ProjectRoot
 
-# CreamAI is a folder inside the repository, so package.json is one level up.
-# Looking for it in $ProjectRoot made the test harness skip `npm test` silently.
-$RepoRoot = if (Test-Path -LiteralPath (Join-Path $ProjectRoot 'package.json')) {
-    $ProjectRoot
-} else {
-    Split-Path -Parent $ProjectRoot
-}
-
 $HarnessDir = Join-Path $ProjectRoot 'logs\harness'
 $TestDir = Join-Path $ProjectRoot 'logs\test'
 $CandidateDir = Join-Path $ProjectRoot 'memory\candidates'
@@ -89,17 +81,12 @@ function Add-Check {
 }
 
 function Invoke-TrackedCommand {
-    param([string]$Name, [string]$File, [string[]]$Arguments, [string]$WorkingDirectory)
+    param([string]$Name, [string]$File, [string[]]$Arguments)
     $commandText = ($File + ' ' + ($Arguments -join ' ')).Trim()
     Write-Host "[projectops] $commandText" -ForegroundColor Cyan
     $lines = @()
     $exitCode = 0
-    $pushed = $false
     try {
-        if ($WorkingDirectory -and (Test-Path -LiteralPath $WorkingDirectory)) {
-            Push-Location -LiteralPath $WorkingDirectory
-            $pushed = $true
-        }
         $oldErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         try {
@@ -109,7 +96,6 @@ function Invoke-TrackedCommand {
             $lines = @($output | ForEach-Object { Mask-SecretText "$_" })
         } finally {
             $ErrorActionPreference = $oldErrorActionPreference
-            if ($pushed) { Pop-Location }
         }
     } catch {
         $exitCode = 1
@@ -131,7 +117,7 @@ function Invoke-TrackedCommand {
 }
 
 function Get-PackageScripts {
-    $packagePath = Join-Path $RepoRoot 'package.json'
+    $packagePath = Join-Path $ProjectRoot 'package.json'
     if (-not (Test-Path -LiteralPath $packagePath)) { return @{} }
     try {
         $pkg = Get-Content -Raw -Encoding UTF8 -LiteralPath $packagePath | ConvertFrom-Json
@@ -208,10 +194,10 @@ switch ($Mode) {
         }
         $scripts = @(Get-PackageScripts)
         if ($scripts -contains 'prebuild-check') {
-            Invoke-TrackedCommand -Name 'npm run prebuild-check' -File 'npm' -Arguments @('run', 'prebuild-check') -WorkingDirectory $RepoRoot
+            Invoke-TrackedCommand -Name 'npm run prebuild-check' -File 'npm' -Arguments @('run', 'prebuild-check')
         }
         if ($scripts -contains 'test') {
-            Invoke-TrackedCommand -Name 'npm test' -File 'npm' -Arguments @('test') -WorkingDirectory $RepoRoot
+            Invoke-TrackedCommand -Name 'npm test' -File 'npm' -Arguments @('test')
         } else {
             Add-Check 'npm test script' 'WARN' 'package.json has no test script'
         }
