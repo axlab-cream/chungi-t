@@ -15,7 +15,7 @@
 
 ## Implementation Order
 
-1. Map each current service-directory field to the immutable base catalog or an operator-controlled versioned field.
-2. Add restricted Supabase schema/RPC/store tests for draft and publish state without changing current public reads.
+1. [x] Map each current service-directory field to the immutable base catalog or an operator-controlled versioned field; expose the real catalog plus version metadata to authorized operations.
+2. [ ] Add restricted Supabase schema/RPC/store tests for draft and publish state without changing current public reads. Schema/grants and read-store tests are complete; draft/publish commands remain.
 3. Add server read adapter with a safe fallback to the existing deployed catalog only when version storage is unavailable; never substitute fake content.
 4. Verify migration RLS/grants, unit/type/build, then deploy and validate the current customer service list remains unchanged.

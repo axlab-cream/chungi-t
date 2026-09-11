@@ -32,6 +32,7 @@ const SUPER_ADMIN_SCOPES = Object.freeze([
   'refunds:read',
   'refunds:request',
   'refunds:approve',
+  'services:read',
 ])
 
 export type StaffMembership = {

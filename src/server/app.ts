@@ -43,6 +43,7 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { getAdminServiceVersionSnapshot } from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
@@ -1128,7 +1129,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1849,6 +1850,14 @@ app.get('/api/cron/ops', async (req, res) => {
 app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
+})
+app.get('/api/admin/v1/services', async (req, res) => {
+  if (!await requireStaff(req, res, 'services:read')) return
+  try {
+    res.json(await getAdminServiceVersionSnapshot())
+  } catch {
+    res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
+  }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,

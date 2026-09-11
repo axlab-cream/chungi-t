@@ -546,11 +546,12 @@
       }
       async function loadLiveServices(body) {
         try {
-          var response = await fetch('/api/services', { credentials: 'same-origin' });
+          var response = await fetch('/api/admin/v1/services', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('LIVE_SERVICE_LOOKUP_FAILED');
           var payload = await response.json();
-          var services = Array.isArray(payload.services) ? payload.services : (Array.isArray(payload) ? payload : []);
-          addLiveTable(body, '현재 공개 서비스', ['서비스', '분류', '판매가', '고객 경로'], services, function (item) { return [item.title, item.category, item.amount, item.href]; }, '현재 공개 중인 서비스가 없습니다.');
+          var services = Array.isArray(payload.services) ? payload.services : [];
+          if (payload.versionStore !== 'ready') addLiveError(body, '서비스 버전 저장소 연결을 확인하지 못했습니다. 아래 목록은 현재 배포 코드의 실제 카탈로그이며 버전 정보는 미확인입니다.');
+          addLiveTable(body, '실제 운영 서비스', ['서비스', 'canonicalKey', '분류', '검색 노출', '판매', '기준 가격', '발행 버전', '초안 버전', '고객 경로'], services, function (item) { return [item.title, item.canonicalKey, item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 가능' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion || '없음', item.draftVersion || '없음', item.landingPath]; }, '실제 서비스 카탈로그가 비어 있습니다.');
         } catch (_error) { addLiveError(body, '실제 서비스 카탈로그를 불러오지 못했습니다.'); }
       }
       async function loadLiveAudit(body) {

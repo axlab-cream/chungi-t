@@ -1073,3 +1073,18 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 
 - 사용자 지시에 따라 결제·환불(T18~T21) 보완은 보류하고 비결제 운영 작업인 T22 서비스·콘텐츠 버전 저장을 착수했다.
 - 현재 고객 서비스의 정본은 `src/server/service-directory.ts`와 `src/payment/catalog.ts`에 있으며, T22는 이 목록을 바꾸거나 예시 콘텐츠를 추가하지 않고 버전 저장·검증·서버 읽기 경계를 먼저 만든다.
+
+## 2026-09-12 — AIOS 공통 소규모 기능 실행 워크플로우
+
+- 사용자 제공 가이드를 `C:/Users/user/.codex/workflows/aios-small-slice-workflow.md`로 상세화하고 전역 및 프로젝트 AGENTS.md에서 참조하도록 등록했다. 경로 범위는 이 PC의 Codex 프로젝트이며 다른 도구/PC의 자동 적용을 의미하지 않는다.
+- 요구사항 확인 → PRD → 사용자 결과별 vertical slice → 구현/검증/리뷰 → KMS 기록을 적용한다. 연속 승인된 작업은 형식적인 재승인 없이 순차 진행한다. 실제 데이터 원칙과 결제 보류는 유지한다.
+- CreamWIKI 사전 검색에서 직접 적용할 기존 근거는 확보하지 못해 사용자 가이드를 정본으로 사용했다. `personal/carrotcap/notes/aios-small-slice-workflow-20260912.md` 저장, get 재조회, 검색 결과 1건 확인 PASS. 서버 전용 재인덱싱 명령은 로컬에 없어 NOT_RUN이며 검색 성공과 구분한다.
+- 문서 작업만 수행했다. 앱 변경/배포/동작 테스트는 해당 없음. T22는 스키마 중간 산출물 상태로 계속 미완료이며 다음 기능 작업에서 서버/API/실제 사용자 흐름 검증을 이어간다.
+
+## 2026-09-12 — T22 Slice 1 실제 서비스·버전 조회
+
+- `/api/admin/v1/services`를 `services:read` 권한 뒤에 추가하고, 현재 운영 코드의 19개 결제 카탈로그(검색 노출 15, 숨김 4)에 `service_config_versions`의 최신 발행/초안 메타데이터를 결합했다.
+- `/admin/services`는 공개 목록 API 대신 관리자 API를 사용하며 canonicalKey, 분류, 검색 노출, 판매 상태, 기준 가격, 발행/초안 버전, 고객 경로를 표시한다. 저장소가 불가하면 목록을 0건으로 속이지 않고 코드 정본과 버전 미확인을 구분한다.
+- Supabase 기본 권한으로 남을 수 있는 `service_role` DELETE를 후속 migration에서 제거했다. 운영 조회 결과 두 버전 테이블 모두 service_role SELECT/INSERT/UPDATE만 있고 anon/authenticated 권한은 없다.
+- 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. 운영 배포와 로그인 세션 E2E는 커밋 후 이어서 확인한다.
+- T22는 계속 IN_PROGRESS다. 다음 slice는 구조화 draft 생성·revision 충돌·감사 기록 연결이다.
