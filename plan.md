@@ -73,6 +73,7 @@
 | T04 | task-t04 | M0 | P0 | T01 | 기존 회귀 기준 수집 | **DONE** |
 | T05 | task-t05 | M1 | P0 | T03,T04 | 직원 membership 및 RBAC | BLOCKED (U2 영속 저장소, U4 운영 스키마) |
 | T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | **DONE** — 실제 audit ledger·idempotency command foundation, `/admin/audit` 실데이터 연결 |
+| T06A | admin-account-management | M1 | P0 | T05,T06 | 관리자 계정 실제 변경 | **DONE** — 생성·비활성화·비밀번호 변경, 감사·멱등 명령 연결 |
 | T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. 영속 membership 저장소는 T05 에서 교체 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |

@@ -47,4 +47,24 @@ describe('관리자 계정 저장소', { concurrency: false }, () => {
     assert.deepEqual(payload, { email: 'admin@synthetic.invalid', password_hash: 'scrypt$fixture$hash', role: 'super_admin' })
     assert.equal(Object.prototype.hasOwnProperty.call(payload, 'password'), false)
   })
+
+  it('비밀번호 변경은 revision 조건과 새 해시만 전송한다', async () => {
+    await store.updateAdminAccountPassword({ id: '11111111-1111-1111-1111-111111111111', expectedRevision: 3, passwordHash: 'scrypt$new$hash' })
+    const call = calls.at(-1)
+    const payload = JSON.parse(String(call?.init?.body)) as Record<string, unknown>
+    assert.equal(call?.init?.method, 'PATCH')
+    assert.equal(call?.url.searchParams.get('revision'), 'eq.3')
+    assert.deepEqual(payload, { password_hash: 'scrypt$new$hash', revision: 4, updated_at: payload.updated_at })
+    assert.equal(Object.prototype.hasOwnProperty.call(payload, 'password'), false)
+  })
+
+  it('활성 상태 변경은 revision 조건과 활성값만 전송한다', async () => {
+    await store.updateAdminAccountActive({ id: '11111111-1111-1111-1111-111111111111', isActive: false, expectedRevision: 7 })
+    const call = calls.at(-1)
+    const payload = JSON.parse(String(call?.init?.body)) as Record<string, unknown>
+    assert.equal(call?.init?.method, 'PATCH')
+    assert.equal(call?.url.searchParams.get('revision'), 'eq.7')
+    assert.deepEqual(payload, { is_active: false, revision: 8, updated_at: payload.updated_at })
+    assert.equal(Object.prototype.hasOwnProperty.call(payload, 'password_hash'), false)
+  })
 })

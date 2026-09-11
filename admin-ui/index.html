@@ -579,12 +579,12 @@
           var table = document.createElement('table');
           table.className = 'admin-table';
           var header = document.createElement('thead');
-          header.innerHTML = '<tr><th scope="col">이메일</th><th scope="col">역할</th><th scope="col">상태</th><th scope="col">등록일</th></tr>';
+          header.innerHTML = '<tr><th scope="col">이메일</th><th scope="col">역할</th><th scope="col">상태</th><th scope="col">등록일</th><th scope="col">관리</th></tr>';
           var rows = document.createElement('tbody');
           if (!accounts.length) {
             var empty = document.createElement('tr');
             var cell = document.createElement('td');
-            cell.colSpan = 4;
+            cell.colSpan = 5;
             cell.className = 'admin-empty';
             cell.textContent = '등록된 관리자 계정이 없습니다. 첫 로그인 시 bootstrap 계정이 실제 계정으로 등록됩니다.';
             empty.appendChild(cell);
@@ -597,6 +597,12 @@
                 cell.textContent = String(value || '—');
                 row.appendChild(cell);
               });
+              var actions = document.createElement('td');
+              var password = document.createElement('button'); password.className = 'admin-button'; password.type = 'button'; password.textContent = '비밀번호 변경';
+              password.addEventListener('click', async function () { var next = window.prompt('새 비밀번호를 입력하세요. (12자 이상)'); if (!next) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/password', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ password: next, expectedRevision: account.revision }) }); if (!response.ok) { window.alert('비밀번호 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
+              var status = document.createElement('button'); status.className = 'admin-button'; status.type = 'button'; status.textContent = account.isActive ? '비활성화' : '활성화';
+              status.addEventListener('click', async function () { if (!window.confirm('관리자 계정 상태를 변경하시겠습니까?')) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/status', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ isActive: !account.isActive, expectedRevision: account.revision }) }); if (!response.ok) { window.alert('계정 상태 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
+              actions.appendChild(password); actions.appendChild(status); row.appendChild(actions);
               rows.appendChild(row);
             });
           }
@@ -606,6 +612,9 @@
           scroll.className = 'admin-table-scroll';
           scroll.appendChild(table);
           section.replaceChildren(section.firstElementChild, scroll);
+          var create = document.createElement('form'); create.className = 'admin-actions'; create.innerHTML = '<input required type="email" name="email" placeholder="새 관리자 이메일" autocomplete="email"><input required type="password" name="password" minlength="12" placeholder="초기 비밀번호 (12자 이상)" autocomplete="new-password"><button class="admin-button" type="submit">관리자 추가</button>';
+          create.addEventListener('submit', async function (event) { event.preventDefault(); var form = event.currentTarget; var response = await fetch('/api/admin/v1/admin-accounts', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ email: form.elements.email.value, password: form.elements.password.value }) }); if (!response.ok) { window.alert('관리자 추가에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
+          section.appendChild(create);
           if (!accounts.length) {
             var actions = document.createElement('div');
             actions.className = 'admin-actions';

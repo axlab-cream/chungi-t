@@ -10,6 +10,19 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T06A 관리자 계정 실제 변경 완료
+
+- Status: `DONE`
+- 실제 API: `POST /api/admin/v1/admin-accounts`, `PATCH /api/admin/v1/admin-accounts/:id/password`, `PATCH /api/admin/v1/admin-accounts/:id/status`를 `umsh_admin_accounts`에 연결했다. 비밀번호 평문은 저장·감사 기록·응답에 포함하지 않는다.
+- 보호: `settings:write` 범위, 12자 이상 비밀번호, revision 비교 갱신, Idempotency-Key, 자기 계정 비활성화 차단을 적용했다. 모든 변경은 T06 감사 원장과 command receipt를 재사용한다.
+- UI: `/admin/settings`에서 실제 관리자 목록, 관리자 추가, 비밀번호 변경, 활성/비활성 전환을 제공한다. 검증용 신규 운영 계정은 만들지 않았다.
+- 검증: typecheck PASS, focused 관리자 단위 테스트 33/33 PASS. Production 배포 및 로그인된 관리자 브라우저 UI 확인은 같은 Task 배포 단계에서 기록한다.
+
+## 2026-09-11 — T06A 관리자 계정 실제 변경 시작
+
+- Status: `IN_PROGRESS`
+- 범위: 실제 `umsh_admin_accounts` 계정 생성, 비활성화, 비밀번호 변경을 기존 audit/idempotency command 기반에 연결한다. 고객 데이터와 다른 도메인 테이블은 변경하지 않는다.
+
 ## 2026-09-11 — T06 감사·멱등 명령 기반 완료
 
 - Status: `DONE`

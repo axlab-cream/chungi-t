@@ -35,10 +35,12 @@ import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReport
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
-import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts } from '../auth/admin-account-store.js'
+import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { countLiveMembers, countLiveReports, listLiveMembers, listLiveReports } from '../admin/live-data.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
+import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
+import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
@@ -1122,7 +1124,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1989,6 +1991,66 @@ app.get('/api/admin/v1/admin-accounts', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정 목록을 불러오지 못했습니다.' })
   }
+})
+
+function adminCommandKey(req: Request): string {
+  return trimmedString(req.header('idempotency-key'))
+}
+
+function adminAccountSummary(account: Awaited<ReturnType<typeof createAdminAccount>>) {
+  const { passwordHash: _passwordHash, ...summary } = account
+  return summary
+}
+
+app.post('/api/admin/v1/admin-accounts', async (req, res) => {
+  const membership = await requireStaff(req, res, 'settings:write')
+  if (!membership) return
+  const body = asObject(req.body)
+  const email = trimmedString(body.email).toLowerCase()
+  const password = typeof body.password === 'string' ? body.password : ''
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 12 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_ADMIN_ACCOUNT_INPUT', error: '이메일, 12자 이상 비밀번호, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'admin.account.create', idempotencyKey, body: { email }, target: { type: 'admin_account', id: email },
+    }, async () => adminAccountSummary(await createAdminAccount({ email, passwordHash: await hashAdminPassword(password) })))
+    res.status(command.replayed ? 200 : 201).json({ account: command.result, replayed: command.replayed })
+  } catch (error) {
+    if (error instanceof AdminCommandConflict) { res.status(409).json({ code: error.message, error: '같은 멱등 키로 다른 변경을 요청할 수 없습니다.' }); return }
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_CREATE_FAILED', error: '관리자 계정을 만들지 못했습니다.' })
+  }
+})
+
+app.patch('/api/admin/v1/admin-accounts/:id/password', async (req, res) => {
+  const membership = await requireStaff(req, res, 'settings:write')
+  if (!membership) return
+  const body = asObject(req.body); const password = typeof body.password === 'string' ? body.password : ''
+  const expectedRevision = Number(body.expectedRevision); const id = trimmedString(req.params.id); const idempotencyKey = adminCommandKey(req)
+  if (!id || password.length < 12 || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_ADMIN_ACCOUNT_INPUT', error: '비밀번호, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'admin.account.password.reset', idempotencyKey, body: { id, expectedRevision }, target: { type: 'admin_account', id } }, async () => {
+      const account = await updateAdminAccountPassword({ id, expectedRevision, passwordHash: await hashAdminPassword(password) }); if (!account) throw new AdminCommandConflict('ADMIN_ACCOUNT_REVISION_CONFLICT'); return adminAccountSummary(account)
+    })
+    res.json({ account: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'ADMIN_ACCOUNT_PASSWORD_FAILED', error: '관리자 비밀번호를 변경하지 못했습니다.' }) }
+})
+
+app.patch('/api/admin/v1/admin-accounts/:id/status', async (req, res) => {
+  const membership = await requireStaff(req, res, 'settings:write')
+  if (!membership) return
+  const body = asObject(req.body); const isActive = body.isActive; const expectedRevision = Number(body.expectedRevision); const id = trimmedString(req.params.id); const idempotencyKey = adminCommandKey(req)
+  if (!id || typeof isActive !== 'boolean' || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_ADMIN_ACCOUNT_INPUT', error: '상태, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'admin.account.status.change', idempotencyKey, body: { id, isActive, expectedRevision }, target: { type: 'admin_account', id } }, async () => {
+      const accounts = await listAdminAccounts(); const target = accounts.find((account) => account.id === id)
+      if (!target) throw new AdminCommandConflict('ADMIN_ACCOUNT_NOT_FOUND')
+      if (!isActive && target.email === membership.email) throw new AdminCommandConflict('ADMIN_SELF_DEACTIVATION_FORBIDDEN')
+      const account = await updateAdminAccountActive({ id, isActive, expectedRevision }); if (!account) throw new AdminCommandConflict('ADMIN_ACCOUNT_REVISION_CONFLICT'); return adminAccountSummary(account)
+    })
+    res.json({ account: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'ADMIN_ACCOUNT_STATUS_FAILED', error: '관리자 상태를 변경하지 못했습니다.' }) }
 })
 
 /** The first persistent administrator is created only by the already-signed-in bootstrap admin. */

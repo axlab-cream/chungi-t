@@ -98,3 +98,31 @@ export async function createAdminAccount(input: { email: string; passwordHash: s
   if (!rows[0]) throw new Error('ADMIN_ACCOUNT_CREATE_FAILED')
   return fromRow(rows[0])
 }
+
+export async function updateAdminAccountPassword(input: { id: string; passwordHash: string; expectedRevision: number }): Promise<AdminAccount | null> {
+  if (!tableUrl) throw new Error('ADMIN_ACCOUNT_STORE_UNAVAILABLE')
+  const url = new URL(tableUrl)
+  url.searchParams.set('id', `eq.${input.id}`)
+  url.searchParams.set('revision', `eq.${input.expectedRevision}`)
+  const response = await fetch(url, {
+    method: 'PATCH', headers: { ...headers(), 'content-type': 'application/json', prefer: 'return=representation' },
+    body: JSON.stringify({ password_hash: input.passwordHash, revision: input.expectedRevision + 1, updated_at: new Date().toISOString() }),
+  })
+  if (!response.ok) throw new Error('ADMIN_ACCOUNT_UPDATE_FAILED')
+  const rows = await response.json() as Array<Record<string, unknown>>
+  return rows[0] ? fromRow(rows[0]) : null
+}
+
+export async function updateAdminAccountActive(input: { id: string; isActive: boolean; expectedRevision: number }): Promise<AdminAccount | null> {
+  if (!tableUrl) throw new Error('ADMIN_ACCOUNT_STORE_UNAVAILABLE')
+  const url = new URL(tableUrl)
+  url.searchParams.set('id', `eq.${input.id}`)
+  url.searchParams.set('revision', `eq.${input.expectedRevision}`)
+  const response = await fetch(url, {
+    method: 'PATCH', headers: { ...headers(), 'content-type': 'application/json', prefer: 'return=representation' },
+    body: JSON.stringify({ is_active: input.isActive, revision: input.expectedRevision + 1, updated_at: new Date().toISOString() }),
+  })
+  if (!response.ok) throw new Error('ADMIN_ACCOUNT_UPDATE_FAILED')
+  const rows = await response.json() as Array<Record<string, unknown>>
+  return rows[0] ? fromRow(rows[0]) : null
+}
