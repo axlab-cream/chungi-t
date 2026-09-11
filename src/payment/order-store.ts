@@ -85,6 +85,34 @@ export function hasApprovalEvidence(order: Pick<PaymentOrder, 'tid' | 'approvalC
   return Boolean(order.tid?.trim() || order.approvalCode?.trim())
 }
 
+/**
+ * 생성 뒤 바뀌면 안 되는 값들. **특히 `amount` 다.**
+ *
+ * 이전 구현은 갱신에도 행 전체를 보냈고, REST 는 `resolution=merge-duplicates` 로
+ * upsert 했다. 그래서 금액이 갱신 본문에 실려 매번 덮어써졌다 — 값이 같았던 것은
+ * 관례였을 뿐 규칙이 아니었다(U21). 결제 금액이 승인 뒤에 바뀌면 대사가 불가능해진다.
+ */
+/**
+ * 갱신에서 **거부**하는 값. 조용히 무시하면 호출부는 바꿨다고 믿는다.
+ *
+ * `orderId`·`ownerId`·`createdAt` 은 여기 없다. 그 셋은 `mutatePaymentOrder` 가 현재
+ * 값으로 **강제 덮어쓰기**해서 구조적으로 고정되고, REST 계약 테스트가 그 동작을
+ * 문서화하고 있다. 여기서 다루는 것은 그런 보호가 없던 값들이다.
+ */
+export const IMMUTABLE_ORDER_FIELDS = ['productKey', 'amount'] as const
+
+export class PaymentOrderImmutableFieldError extends Error {
+  constructor(readonly orderId: string, readonly field: string) {
+    super(`주문의 ${field} 는 생성 뒤 바꿀 수 없습니다.`)
+    this.name = 'PaymentOrderImmutableFieldError'
+  }
+}
+
+/** 바뀐 불변 필드가 있으면 그 이름을 준다. */
+function changedImmutableField(current: PaymentOrder, next: Partial<PaymentOrder>): string | undefined {
+  return IMMUTABLE_ORDER_FIELDS.find((field) => next[field] !== undefined && next[field] !== current[field])
+}
+
 export function canTransitionPaymentOrder(
   from: PaymentOrderStatus,
   to: PaymentOrderStatus,
@@ -174,6 +202,27 @@ function toRow(order: PaymentOrder) {
     message: order.message ?? null,
     report_id: order.reportId ?? null,
     created_at: order.createdAt,
+    updated_at: order.updatedAt,
+    revision: order.revision ?? 0,
+  }
+}
+
+/**
+ * 갱신에 보낼 컬럼만. `owner_id`·`product_key`·`amount`·`created_at` 은 아예 보내지
+ * 않는다(U21). **보내지 않으면 덮어쓸 수 없다** — 값이 같기를 기대하는 것보다 확실하다.
+ */
+function toUpdateRow(order: PaymentOrder) {
+  return {
+    status: order.status,
+    tid: order.tid ?? null,
+    pay_method: order.payMethod ?? null,
+    approval_code: order.approvalCode ?? null,
+    message: order.message ?? null,
+    report_id: order.reportId ?? null,
+    owner_email: order.ownerEmail ?? null,
+    buyer_email: order.buyerEmail,
+    buyer_tel: order.buyerTel,
+    product_title: order.productTitle,
     updated_at: order.updatedAt,
     revision: order.revision ?? 0,
   }
@@ -336,12 +385,14 @@ async function writePaymentOrder(order: PaymentOrder, expectedRevision?: number)
       const response = await fetch(url, {
         method: 'PATCH',
         headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'return=representation' },
-        body: JSON.stringify(toRow(stored)),
+        body: JSON.stringify(toUpdateRow(stored)),
       })
       if (!response.ok) throw new Error('결제 주문 저장에 실패했습니다.')
       const rows = await response.json() as Array<Record<string, unknown>>
       if (rows.length === 0) throw new PaymentOrderConflictError(stored.orderId)
-      return fromRow(rows[0])
+      // 응답은 **부분 행**이다. 갱신에 보내지 않은 불변 컬럼(`owner_id`·`product_key`·
+      // `amount`·`created_at`)이 빠져 있으므로, 보낸 행 위에 응답을 덮어 읽는다.
+      return fromRow({ ...toRow(stored), ...rows[0] })
     }
     const response = await fetch(supabaseRestUrl, {
       method: 'POST',
@@ -357,19 +408,19 @@ async function writePaymentOrder(order: PaymentOrder, expectedRevision?: number)
     if (!pool) throw new Error('결제 주문 저장소가 설정되지 않았습니다.')
     await ensureDb()
     const row = toRow(stored)
+    // `amount`·`owner_id`·`product_key`·`created_at` 은 SET 에 넣지 않는다(U21).
     const result = await pool.query(
       `
         UPDATE cheongi_payment_orders SET
           status = $2, tid = $3, pay_method = $4, approval_code = $5, message = $6,
           report_id = COALESCE($7, report_id), owner_email = $8, buyer_email = $9, buyer_tel = $10,
-          product_key = $11, product_title = $12, amount = $13,
-          revision = $14, updated_at = NOW()
-        WHERE order_id = $1 AND revision = $15
+          product_title = $11, revision = $12, updated_at = NOW()
+        WHERE order_id = $1 AND revision = $13
       `,
       [
         row.order_id, row.status, row.tid, row.pay_method, row.approval_code, row.message,
         row.report_id, row.owner_email, row.buyer_email, row.buyer_tel,
-        row.product_key, row.product_title, row.amount, row.revision, expectedRevision,
+        row.product_title, row.revision, expectedRevision,
       ],
     )
     if (result.rowCount === 0) throw new PaymentOrderConflictError(stored.orderId)
@@ -434,6 +485,9 @@ export async function mutatePaymentOrder(
     if (!canTransitionPaymentOrder(current.status, nextStatus, evidence)) {
       throw new PaymentOrderTransitionError(orderId, current.status, nextStatus)
     }
+    // 불변 필드 변경을 조용히 무시하지 않고 거부한다. 무시하면 호출부는 바꿨다고 믿는다.
+    const immutable = changedImmutableField(current, patch as Partial<PaymentOrder>)
+    if (immutable) throw new PaymentOrderImmutableFieldError(orderId, immutable)
 
     const expectedRevision = current.revision ?? 0
     const next: PaymentOrder = {

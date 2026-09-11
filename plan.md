@@ -116,7 +116,7 @@
 | **U18** | `cheongi_reports` 관리자 분석 열 8개를 앱이 기록하지 않음 | **T10**, T11 (S07) | 운영 null 집계 측정 + 쓰기 경로 연결/backfill 또는 별도 read model 결정 |
 | **U19** | `cheongi_user_profiles` 정본 SQL 부재 | T10, TASK-004 | 스키마 파일 작성 또는 운영에서 추출 |
 | ~~U20~~ | 주문·프로필 저장소에 운영 memory 차단 장치 없음 | T14 (A17) | **해소** — `src/payment/storage-readiness.ts`. 운영에서 비영속 모드면 쓰기 거부 + `/api/health?storage=1` 에 두 저장소 상태 보고 |
-| **U21** | REST upsert가 `amount`를 전체 row로 덮어씀 (관례 의존) | T15, T17 | upsert 본문에서 금액 제외 또는 전용 PATCH |
+| ~~U21~~ | REST upsert 가 `amount` 를 전체 row 로 덮어씀 | T15, T17 | **해소** — 갱신은 불변 컬럼을 아예 보내지 않는다(`toUpdateRow`). 금액·상품 변경 시도는 거부. REST 계약 테스트가 본문을 검사 |
 | ~~U22~~ | PG 승인 성공 후 저장 실패를 담을 불확정 상태가 enum 에 없음 | T15, T17, T19, TASK-007 | **해소(순서 변경)** — 승인 증거를 최종 상태보다 먼저 저장하고, 증거 있는 주문은 `failed` 로 못 간다. `docs/admin-ops/U22-indeterminate-payment.md`. **남은 구멍: 증거 쓰기 자체 실패 → outbox(T14)** |
 | **U23** | `src/pet/cat-service.ts`에 `retrieveCategoryOwnChunks` 없음. 형제 5개·`origin/main`에는 있음 | **병합/출시 차단**. 판매 중인 고양이 궁합의 동작 차이 | `origin/main` 병합 또는 단계 이식 + `check:cat` 통과 + 결정적 assertion |
 | **U24** | unit 결과가 실행 형태에 따라 갈린다 (373/0 vs 365/8). 원인 미특정 | R06 baseline 신뢰성, T10 | 8개 테스트 격리 후 원인 특정 |

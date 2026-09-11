@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { beforeEach, describe, it } from 'node:test'
 import {
   PaymentOrderConflictError,
+  PaymentOrderImmutableFieldError,
   PaymentOrderTransitionError,
   canTransitionPaymentOrder,
   hasApprovalEvidence,
@@ -198,6 +199,50 @@ describe('[TASK] 주문 상태 직렬화 (U17)', () => {
       assert.equal(hasApprovalEvidence({ tid: '   ' }), false, '공백만 있는 값은 증거가 아니다')
       assert.equal(canTransitionPaymentOrder('approving', 'failed'), true)
       assert.equal(canTransitionPaymentOrder('approving', 'failed', { tid: 'TID-1' }), false)
+    })
+  })
+
+  describe('금액 불변 (U21)', () => {
+    it('금액을 바꾸려는 갱신을 거부한다', async () => {
+      // 이전 구현은 갱신에도 행 전체를 보냈고 REST 는 merge-duplicates 로 upsert 했다.
+      // 금액이 매번 갱신 본문에 실렸고, 값이 같았던 것은 관례였을 뿐 규칙이 아니었다.
+      const order = await seed('ready')
+      await assert.rejects(
+        () => updatePaymentOrder(order.orderId, { amount: 9900 }),
+        (error: unknown) => {
+          assert.ok(error instanceof PaymentOrderImmutableFieldError)
+          assert.equal(error.field, 'amount')
+          return true
+        },
+      )
+      assert.equal((await getPaymentOrder(order.orderId))?.amount, 24900, '금액이 바뀌었다')
+    })
+
+    it('상품 키도 바꾸지 못한다', async () => {
+      const order = await seed('ready')
+      await assert.rejects(
+        () => updatePaymentOrder(order.orderId, { productKey: 'love_mind' }),
+        PaymentOrderImmutableFieldError,
+      )
+    })
+
+    it('같은 금액을 다시 적는 것은 통과한다', async () => {
+      // 콜백 재전송이 같은 값을 실어 오는 경우를 오류로 만들면 그쪽이 계속 재시도한다.
+      const order = await seed('ready')
+      const updated = await updatePaymentOrder(order.orderId, { amount: 24900, status: 'approving' })
+      assert.equal(updated?.status, 'approving')
+      assert.equal(updated?.amount, 24900)
+    })
+
+    it('상태 전이와 금액 변경이 함께 오면 둘 다 적용되지 않는다', async () => {
+      const order = await seed('ready')
+      await assert.rejects(
+        () => updatePaymentOrder(order.orderId, { status: 'paid', amount: 1 }),
+        PaymentOrderImmutableFieldError,
+      )
+      const after = await getPaymentOrder(order.orderId)
+      assert.equal(after?.status, 'ready', '거부된 갱신의 상태가 반영됐다')
+      assert.equal(after?.amount, 24900)
     })
   })
 

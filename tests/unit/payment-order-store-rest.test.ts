@@ -62,7 +62,14 @@ describe('payment order REST key-format compatibility (mock network only)', () =
             assert.ok(revisionFilter && revisionFilter.startsWith('eq.'), 'revision 필터가 없다');
             const current = rows.get(orderFilter.slice(3));
             if (!current || String(current.revision ?? 0) !== revisionFilter.slice(3)) return Response.json([]);
-            const row = JSON.parse(init.body); rows.set(row.order_id, row);
+            const row = JSON.parse(init.body);
+            // 갱신 본문에 불변 컬럼이 실려서는 안 된다 (U21). 실리면 upsert 가
+            // 금액을 덮어쓴다 — 값이 같았던 것은 관례였을 뿐 규칙이 아니었다.
+            for (const immutable of ['amount', 'owner_id', 'product_key', 'created_at', 'order_id']) {
+              assert.equal(immutable in row, false, '갱신 본문에 ' + immutable + ' 가 실렸다');
+            }
+            const merged = { ...current, ...row };
+            rows.set(current.order_id, merged);
             return Response.json([row]);
           }
           assert.equal(method, 'GET'); assert.equal(url.searchParams.get('select'), '*');
