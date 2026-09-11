@@ -405,3 +405,36 @@ git: `backup/pre-merge-20260910` 브랜치 생성. **커밋·푸시·배포 없�
 
 ### 결과 보고 구분
 - 코드작성: 없음 / 로컬검증: 병합 안전성·충돌 분석만 / 운영검증: `/api/payment/config` 조회(GET) / 운영반영: 없음
+
+---
+
+## T16 — PG 조회·취소 sandbox adapter 조사·구현
+
+- 작업일: 2026-09-11
+- 작업자: Codex
+- 실행한 task ID: T16
+
+### 확인된 계약과 근거
+
+| 기능 | INIAPI v2 sandbox URL | 요청 핵심 | 정상/중복 결과 |
+| --- | --- | --- | --- |
+| 거래 조회 | `https://stginiapi.inicis.com/v2/pg/inquiry` | `type=inquiry`, `data.tid` 또는 `data.oid`, `SHA-512(INIAPIKey + mid + type + timestamp + data)` | 조회 성공은 `SUCCESS`; 거래 상태는 `0/1/9` 등으로 전달 |
+| 전액 취소 | `https://stginiapi.inicis.com/v2/pg/refund` | `type=refund`, `data={tid,msg}`, 같은 v2 SHA-512 형식 | 성공 `00`; 기취소는 `500626`으로 terminal duplicate |
+
+근거는 KG 이니시스 공식 [거래조회 매뉴얼](https://manual.inicis.com/pay/etc-inquiry.html), [취소 매뉴얼](https://manual.inicis.com/inipaypro/cancel.html), [TLS 1.2 테스트 매뉴얼](https://manual.inicis.com/download/TLS12_test_manual.pdf)이다. INIAPI Key 값, 실제 TID, 고객 정보는 기록하지 않았다.
+
+### 변경과 검증
+
+- `src/payment/inicis.ts`에 `createInicisSandboxAdapter`를 추가했다. 이 adapter는 전역 `fetch`를 사용하지 않고 호출자가 주입한 transport만 쓴다. 따라서 이 Task에서 production PG 호출, 취소, 주문 상태 변경, 금융 원장/환불 저장은 발생하지 않는다.
+- `tests/unit/inicis-adapter.test.ts`는 공식 v2 JSON body 및 SHA-512, KST timestamp, timeout, 기취소 중복, PG 성공 뒤 외부 저장 실패, 동시 `tid`/`oid` 입력 거부를 고정한다.
+- `npx tsx --test --test-concurrency=1 tests/unit/inicis-adapter.test.ts tests/unit/payment.test.ts`: 9/9 PASS.
+- `npm run typecheck`: PASS.
+
+### 미완료와 해제 조건
+
+- T17 전에는 실제 INIAPI Key 계약/운영 egress 허용 여부, 환불 intent 영속화, 요청·승인자 분리, 금액 예약, 결과 대사 경로가 없다. 이 상태에서 live cancel을 연결하거나 실행하면 안 된다.
+- timeout은 `INICIS_SANDBOX_TIMEOUT`으로만 분리하며, 성공/실패 상태나 환불 완료로 임의 투영하지 않는다.
+
+### 다음 ready task
+
+**T17 — 환불 요청·승인·실행.** 이 Task의 sandbox evidence adapter를 사용하되, 실제 실행은 독립 승인·영속 intent·대사 설계가 먼저 완성된 뒤에만 검토한다.

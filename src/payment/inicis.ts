@@ -42,6 +42,41 @@ export interface InicisApprovalResult {
   raw: Record<string, string>
 }
 
+export type InicisSandboxTransport = (request: {
+  url: string
+  init: RequestInit
+}) => Promise<Response>
+
+export interface InicisInquiryResult {
+  success: boolean
+  status: 'approved' | 'cancelled' | 'not_found' | 'pending' | 'unknown'
+  resultCode: string
+  resultMessage: string
+  tid?: string
+  orderId?: string
+  amount?: number
+  raw: Record<string, string>
+}
+
+export interface InicisCancelResult {
+  success: boolean
+  duplicate: boolean
+  terminal: boolean
+  resultCode: string
+  resultMessage: string
+  cancelledAt?: string
+  raw: Record<string, string>
+}
+
+export interface InicisSandboxAdapter {
+  inquire(params: { tid?: string, oid?: string, timeoutMs?: number }): Promise<InicisInquiryResult>
+  cancel(params: { tid: string, reason: string, timeoutMs?: number }): Promise<InicisCancelResult>
+}
+
+const INICIS_SANDBOX_API_BASE_URL = 'https://stginiapi.inicis.com'
+const INICIS_SANDBOX_INQUIRY_URL = `${INICIS_SANDBOX_API_BASE_URL}/v2/pg/inquiry`
+const INICIS_SANDBOX_REFUND_URL = `${INICIS_SANDBOX_API_BASE_URL}/v2/pg/refund`
+
 function envValue(value: string | undefined, fallback: string): string {
   return value?.trim() || fallback
 }
@@ -55,6 +90,10 @@ function config(): InicisConfig {
 
 function sha256(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex')
+}
+
+function sha512(value: string): string {
+  return createHash('sha512').update(value, 'utf8').digest('hex')
 }
 
 function truncate(value: string, length: number): string {
@@ -136,6 +175,180 @@ async function readInicisResponse(response: Response): Promise<Record<string, st
     return Object.fromEntries(Object.entries(parsed).map(([key, item]) => [key, String(item ?? '')]))
   } catch (_error) {
     return parseNvp(text)
+  }
+}
+
+function requiredInicisApiField(value: string | undefined, label: string, limit: number): string {
+  const normalized = value?.trim() ?? ''
+  if (!normalized) throw new Error(`${label}이 필요합니다.`)
+  if (normalized.length > limit) throw new Error(`${label} 길이가 허용 범위를 초과했습니다.`)
+  return normalized
+}
+
+function boundedTimeout(value: number | undefined): number {
+  if (value === undefined) return 8000
+  if (!Number.isInteger(value) || value < 100 || value > 30000) {
+    throw new Error('sandbox 요청 timeout은 100ms 이상 30000ms 이하여야 합니다.')
+  }
+  return value
+}
+
+export function formatInicisApiTimestamp(value: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(value)
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${byType.year}${byType.month}${byType.day}${byType.hour}${byType.minute}${byType.second}`
+}
+
+function queryStatus(value: string | undefined): InicisInquiryResult['status'] {
+  switch (value) {
+    case '0':
+    case 'Y':
+      return 'approved'
+    case '1':
+    case 'C':
+      return 'cancelled'
+    case '9':
+      return 'not_found'
+    case 'N':
+      return 'pending'
+    default:
+      return 'unknown'
+  }
+}
+
+function resultIsSuccess(value: string): boolean {
+  return value === 'SUCCESS' || value === '00'
+}
+
+function cancelledAt(raw: Record<string, string>): string | undefined {
+  const date = raw.cancelDate
+  const time = raw.cancelTime
+  if (!/^\d{8}$/.test(date ?? '') || !/^\d{6}$/.test(time ?? '')) return undefined
+  return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${time.slice(0, 2)}:${time.slice(2, 4)}:${time.slice(4, 6)}+09:00`
+}
+
+async function sendSandboxRequest(params: {
+  url: string
+  body: Record<string, unknown>
+  timeoutMs: number
+  transport: InicisSandboxTransport
+}): Promise<Record<string, string>> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error('INICIS_SANDBOX_TIMEOUT')), params.timeoutMs)
+  })
+  try {
+    const response = await Promise.race([
+      params.transport({
+        url: params.url,
+        init: {
+          method: 'POST',
+          headers: { 'content-type': 'application/json; charset=UTF-8' },
+          body: JSON.stringify(params.body),
+        },
+      }),
+      timeout,
+    ])
+    const raw = await readInicisResponse(response)
+    if (!response.ok && !raw.resultCode) {
+      raw.resultCode = `HTTP_${response.status}`
+      raw.resultMsg = raw.resultMsg || 'INIAPI sandbox 응답이 성공 상태가 아닙니다.'
+    }
+    return raw
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+
+/**
+ * INIAPI v2 contract adapter used only with a caller-injected sandbox transport.
+ * This boundary neither uses global fetch nor persists/refunds an order. T17 owns
+ * live execution after durable refund intent and independent approval exist.
+ */
+export function createInicisSandboxAdapter(params: {
+  mid: string
+  iniApiKey: string
+  clientIp: string
+  transport: InicisSandboxTransport
+  now?: () => Date
+}): InicisSandboxAdapter {
+  const mid = requiredInicisApiField(params.mid, '이니시스 MID', 10)
+  const iniApiKey = requiredInicisApiField(params.iniApiKey, 'INIAPI Key', 256)
+  const clientIp = requiredInicisApiField(params.clientIp, '가맹점 서버 IP', 45)
+  const now = params.now ?? (() => new Date())
+
+  function createRequest(type: 'inquiry' | 'refund', data: Record<string, string>) {
+    const timestamp = formatInicisApiTimestamp(now())
+    const serializedData = JSON.stringify(data)
+    return {
+      mid,
+      type,
+      timestamp,
+      clientIp,
+      hashData: sha512(`${iniApiKey}${mid}${type}${timestamp}${serializedData}`),
+      data,
+    }
+  }
+
+  return {
+    async inquire(input): Promise<InicisInquiryResult> {
+      const tid = input.tid?.trim()
+      const oid = input.oid?.trim()
+      if (Boolean(tid) === Boolean(oid)) throw new Error('거래 조회에는 TID 또는 주문번호를 정확히 하나 입력해야 합니다.')
+      const data: Record<string, string> = tid
+        ? { tid: requiredInicisApiField(tid, 'TID', 40) }
+        : { oid: requiredInicisApiField(oid, '주문번호', 80) }
+      const raw = await sendSandboxRequest({
+        url: INICIS_SANDBOX_INQUIRY_URL,
+        body: createRequest('inquiry', data),
+        timeoutMs: boundedTimeout(input.timeoutMs),
+        transport: params.transport,
+      })
+      const amount = Number(raw.price)
+      return {
+        success: resultIsSuccess(raw.resultCode ?? ''),
+        status: queryStatus(raw.status),
+        resultCode: raw.resultCode ?? '',
+        resultMessage: raw.resultMsg ?? '거래 조회 결과를 확인하지 못했습니다.',
+        tid: raw.tid || undefined,
+        orderId: raw.oid || undefined,
+        amount: Number.isFinite(amount) && amount >= 0 ? amount : undefined,
+        raw,
+      }
+    },
+
+    async cancel(input): Promise<InicisCancelResult> {
+      const data = {
+        tid: requiredInicisApiField(input.tid, 'TID', 40),
+        msg: requiredInicisApiField(input.reason, '취소 사유', 80),
+      }
+      const raw = await sendSandboxRequest({
+        url: INICIS_SANDBOX_REFUND_URL,
+        body: createRequest('refund', data),
+        timeoutMs: boundedTimeout(input.timeoutMs),
+        transport: params.transport,
+      })
+      const duplicate = raw.resultCode === '500626' || raw.detailResultCode === '500626'
+      const success = resultIsSuccess(raw.resultCode ?? '')
+      return {
+        success,
+        duplicate,
+        terminal: success || duplicate,
+        resultCode: raw.resultCode ?? '',
+        resultMessage: raw.resultMsg ?? '취소 결과를 확인하지 못했습니다.',
+        cancelledAt: cancelledAt(raw),
+        raw,
+      }
+    },
   }
 }
 

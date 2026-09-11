@@ -1046,3 +1046,11 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - `viewed`는 금융 이벤트를 추가하지 않는다. 따라서 열람 재시도나 상태 갱신이 매출 이벤트를 중복 생성하지 않는다.
 - 검증: 금융·결제 관련 50개 테스트 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS, 운영 DB RLS/고유키/권한 확인, Production `/admin/orders` LNB·주문 화면 확인.
 - KMS 기록: `personal/carrotcap/notes/umsh-financial-events-20260911.md`.
+
+## 2026-09-11 — T16 PG 조회·취소 sandbox adapter
+
+- KG 이니시스의 공식 INIAPI v2 계약을 확인했다. 거래 조회는 sandbox `/v2/pg/inquiry`와 `type=inquiry`, 전액 취소는 `/v2/pg/refund`와 `type=refund`를 사용하며, 두 요청의 서명은 `INIAPIKey + mid + type + timestamp + data`의 SHA-512이다.
+- `createInicisSandboxAdapter`는 호출자가 주입한 transport로만 통신하고 전역 `fetch`를 쓰지 않는다. 따라서 production PG 호출·취소, 주문 상태 변경, 금융 이벤트·환불 저장이 이 Task에서 발생하지 않는다.
+- timeout은 `INICIS_SANDBOX_TIMEOUT`으로 구분하고, 공식 기취소 코드 `500626`은 재요청하지 않는 terminal duplicate로 반환한다. PG 성공 뒤 저장 실패는 adapter 레이어에서 성공을 실패로 바꾸지 않아 T17/T19의 영속 intent·대사 경계가 유지된다.
+- 검증: sandbox 계약 테스트와 기존 결제 테스트 9/9 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. 실 TID·INIAPI Key·실거래는 사용하지 않았다.
+- 남은 조건: T17에서 INIAPI Key 계약·운영 egress, 환불 intent 영속화, 요청/승인자 분리, 금액 예약, unknown 대사 경로를 구현하기 전에는 live 취소를 연결하지 않는다.
