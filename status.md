@@ -10,6 +10,16 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T05 관리자 계정 저장소 실제 연결
+
+- Status: `IN_PROGRESS` (초기 관리자 등록 대기)
+- 실제 DB: `public.umsh_admin_accounts`의 RLS 활성화, `anon`·`authenticated` grant 0건, `service_role` grant는 `SELECT`·`INSERT`·`UPDATE`만 남긴 것을 원격 쿼리로 재검증했다. `role='super_admin'` 제약을 추가했다.
+- 이력: migration `20260911102420_umsh_admin_accounts_hardening`을 운영 DB에 적용하고 remote migration history에 `applied`로 기록했다.
+- 코드: 서버 전용 PostgREST 관리자 계정 저장소, scrypt 비밀번호 해시 검증, 활성 계정 세션 판정, 실제 계정 목록 API, bootstrap 관리자 등록 API를 추가했다. 브라우저에는 해시·서비스 키·비밀번호가 전달되지 않는다.
+- 배포: `UMSH_ADMIN_ACCOUNT_STORE=enabled` Production 설정 후 `dpl_FxHbcZicCR2aKwG7VEFR1Vhkncva` 배포 Ready 확인.
+- UI 검증: `/admin/settings`에서 실제 `GET /api/admin/v1/admin-accounts` 결과(0개)와 초기 등록 CTA가 표시됨을 확인했다.
+- 남은 단계: 로그인된 bootstrap 관리자가 설정 화면의 `현재 관리자 계정 등록`을 실행해 첫 실제 계정 레코드를 생성해야 한다. 이후 계정 추가·비활성화·비밀번호 변경은 감사 명령(T06)과 함께 활성화한다.
+
 ## 2026-09-11 — T05 관리자 membership 영속화 준비 점검
 
 - Status: `BLOCKED` (원격 스키마 이력 승인 대기)
