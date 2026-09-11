@@ -10,6 +10,16 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — admin LNB 화면 셸 확장
+
+- Status: `DONE` (화면 구조·탐색 범위)
+- 범위: `/admin` 좌측 LNB의 운영 현황, 고객·콘텐츠, AI 운영, 시스템 경로를 화면별로 분리했다.
+- 반영: 공용 `route-placeholder`를 제거하고, 각 경로에 업무별 제목·KPI 구조·목록 열·명시적 빈 상태·비활성 CTA를 제공했다. 데이터가 연결되지 않은 곳은 임의 수치 대신 `— / 데이터 연동 대기`로 표시한다.
+- 경로: 검색, 주문, 환불, 정산, 회원, 고객 지원, 콘텐츠, 서비스, 미디어, 리포트, 작업 큐, 코퍼스, 프롬프트, 평가, 릴리스, 통계, 로그, 장애, 감사 기록, 설정.
+- 디자인: `design-system/MASTER.md`에 운영 화면 토큰, LNB/표 규칙, 미연동 상태와 반응형 기준을 기록했다.
+- 검증: `npm run typecheck` PASS; `npx tsx --test tests/unit/admin-shell.test.ts tests/unit/admin-orders.test.ts tests/unit/admin-local-auth.test.ts` PASS (47/47).
+- 제한: 이번 반영은 페이지 구조와 안전한 빈 상태까지다. 콘텐츠·회원·AI 운영의 조회/저장 API 및 실제 변경 CTA는 별도 작업에서 권한·감사 로그와 함께 연결해야 한다.
+
 ## 2026-09-10 — task-002 프로젝트 분석 및 3서비스 연동 진단
 
 - Status: `IN_PROGRESS` → `DONE` (분석/문서화 범위)

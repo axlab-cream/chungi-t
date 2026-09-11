@@ -218,14 +218,34 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.ok(!text.includes('href="/login"'), '존재하지 않는 로그인 경로로 보낸다')
     })
 
-    it('관리자 메뉴는 좌측 LNB와 메뉴별 경로를 제공한다', async () => {
+    it('관리자 메뉴는 좌측 LNB와 모든 운영 화면 경로를 제공한다', async () => {
       const { text } = await request('/admin')
       assert.match(text, /position: fixed; inset: 0 auto 0 0/, '좌측 LNB 레이아웃이 없다')
-      for (const path of ['/admin/content', '/admin/cs', '/admin/refunds', '/admin/analytics', '/admin/settings']) {
+      for (const path of [
+        '/admin/search', '/admin/orders', '/admin/refunds', '/admin/reconciliation',
+        '/admin/members', '/admin/support', '/admin/content', '/admin/services', '/admin/media',
+        '/admin/reports', '/admin/jobs', '/admin/corpus', '/admin/prompts', '/admin/evaluations', '/admin/releases',
+        '/admin/analytics', '/admin/logs', '/admin/incidents', '/admin/audit', '/admin/settings',
+      ]) {
         assert.ok(text.includes(`href="${path}"`), `${path} 메뉴가 없다`)
       }
       assert.match(text, /markCurrentRoute/, '현재 메뉴 강조 처리가 없다')
-      assert.match(text, /route-placeholder/, '미구현 메뉴가 주문 화면을 재사용한다')
+      assert.match(text, /workspaceBlueprints/, '메뉴별 운영 화면 구성이 없다')
+      assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
+    })
+
+    it('모든 운영 화면 딥링크가 전용 제목·표·연동 대기 상태를 갖는다', async () => {
+      for (const path of [
+        '/admin/search', '/admin/services', '/admin/content', '/admin/media', '/admin/refunds',
+        '/admin/reconciliation', '/admin/support', '/admin/reports', '/admin/jobs', '/admin/corpus', '/admin/prompts',
+        '/admin/evaluations', '/admin/releases', '/admin/logs', '/admin/incidents', '/admin/audit',
+      ]) {
+        const { response, text } = await request(path)
+        assert.equal(response.status, 200, `${path} 딥링크가 열리지 않는다`)
+        assert.match(text, /data-admin-workspace-body/, `${path} 에 운영 화면 컨테이너가 없다`)
+      }
+      const { text } = await request('/admin')
+      assert.match(text, /데이터 연동 대기/, '미연동 영역을 임의 숫자가 아닌 명시적 상태로 보여주지 않는다')
     })
 
     it('비밀번호 복구 링크는 관리자 설정 화면으로 이어진다', async () => {

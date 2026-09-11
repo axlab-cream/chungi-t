@@ -122,6 +122,24 @@
     .admin-table tbody tr:hover { background: var(--admin-bg); }
     .admin-table code { font-size: 12px; color: var(--admin-text-muted); }
 
+    /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
+    .admin-workspace { display: grid; gap: var(--admin-space-6); }
+    .admin-page-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--admin-space-4); padding-bottom: var(--admin-space-4); border-bottom: 1px solid var(--admin-line); }
+    .admin-page-head h2 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
+    .admin-page-head p { margin: var(--admin-space-1) 0 0; max-width: 760px; }
+    .admin-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--admin-space-3); }
+    .admin-kpi { min-height: 104px; padding: var(--admin-space-4); border: 1px solid var(--admin-line); background: var(--admin-surface); }
+    .admin-kpi small { display: block; color: var(--admin-text-muted); font-size: 12px; }
+    .admin-kpi strong { display: block; margin-top: var(--admin-space-2); font-size: 20px; font-variant-numeric: tabular-nums; }
+    .admin-kpi span { display: block; margin-top: var(--admin-space-1); color: var(--admin-text-disabled); font-size: 12px; }
+    .admin-section { border: 1px solid var(--admin-line); background: var(--admin-surface); }
+    .admin-section-head { display: flex; justify-content: space-between; align-items: center; gap: var(--admin-space-3); padding: var(--admin-space-3) var(--admin-space-4); border-bottom: 1px solid var(--admin-line); }
+    .admin-section-head h3 { margin: 0; font-size: 14px; }
+    .admin-section-body { padding: var(--admin-space-4); }
+    .admin-empty { margin: 0; padding: var(--admin-space-4); color: var(--admin-text-muted); background: var(--admin-bg); border-left: 2px solid var(--admin-line); }
+    .admin-chip { display: inline-flex; align-items: center; padding: 2px 7px; color: var(--admin-text-muted); background: var(--admin-bg); border: 1px solid var(--admin-line); border-radius: 999px; font-size: 12px; white-space: nowrap; }
+    .admin-button[aria-disabled='true'] { color: var(--admin-text-muted); background: var(--admin-bg); border-color: var(--admin-line); cursor: not-allowed; }
+
     /* 로그인 폼. 관리자에서 사용자 입력을 받는 유일한 지점이다. */
     .admin-form { display: grid; gap: var(--admin-space-4); margin-top: var(--admin-space-4); }
     .admin-field { display: grid; gap: var(--admin-space-1); }
@@ -165,6 +183,7 @@
       .admin-nav a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
       .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
       main { margin-left: 0; padding: var(--admin-space-4); }
+      .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -177,16 +196,30 @@
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
     <p class="admin-nav-title">운명상회<br />운영 관리자</p>
-    <p class="admin-nav-label">운영</p>
+    <p class="admin-nav-label">운영 현황</p>
     <a href="/admin" data-admin-route="overview">개요</a>
+    <a href="/admin/search" data-admin-route="search">통합 검색</a>
     <a href="/admin/orders" data-admin-route="orders">주문</a>
+    <a href="/admin/refunds" data-admin-route="refunds">환불</a>
+    <a href="/admin/reconciliation" data-admin-route="reconciliation">정산</a>
+    <p class="admin-nav-label">고객 · 콘텐츠</p>
     <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
-    <p class="admin-nav-label">관리</p>
-    <a href="/admin/content" data-admin-route="content">콘텐츠 · 서비스</a>
-    <a href="/admin/cs" data-admin-route="cs">고객 지원</a>
-    <a href="/admin/refunds" data-admin-route="refunds">환불 · 정산</a>
+    <a href="/admin/support" data-admin-route="support">고객 지원</a>
+    <a href="/admin/content" data-admin-route="content">콘텐츠</a>
+    <a href="/admin/services" data-admin-route="services">서비스</a>
+    <a href="/admin/media" data-admin-route="media">미디어</a>
+    <p class="admin-nav-label">AI 운영</p>
+    <a href="/admin/reports" data-admin-route="reports">리포트</a>
+    <a href="/admin/jobs" data-admin-route="jobs">작업 큐</a>
+    <a href="/admin/corpus" data-admin-route="corpus">코퍼스</a>
+    <a href="/admin/prompts" data-admin-route="prompts">프롬프트</a>
+    <a href="/admin/evaluations" data-admin-route="evaluations">평가</a>
+    <a href="/admin/releases" data-admin-route="releases">릴리스</a>
     <p class="admin-nav-label">시스템</p>
-    <a href="/admin/analytics" data-admin-route="analytics">통계 · 로그</a>
+    <a href="/admin/analytics" data-admin-route="analytics">통계</a>
+    <a href="/admin/logs" data-admin-route="logs">로그</a>
+    <a href="/admin/incidents" data-admin-route="incidents">장애</a>
+    <a href="/admin/audit" data-admin-route="audit">감사 기록</a>
     <a href="/admin/settings" data-admin-route="settings">설정</a>
   </nav>
 
@@ -293,12 +326,17 @@
       </div>
     </section>
 
-    <section class="admin-panel" data-admin-state="route-placeholder" hidden>
-      <h2 data-admin-route-title></h2>
-      <p data-admin-route-detail>이 기능은 다음 관리자 작업에서 실제 데이터와 함께 연결됩니다.</p>
-      <div class="admin-actions">
-        <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>로그아웃</button>
-      </div>
+    <section class="admin-workspace" data-admin-state="workspace" hidden aria-live="polite">
+      <header class="admin-page-head">
+        <div>
+          <h2 data-admin-workspace-title></h2>
+          <p data-admin-workspace-detail></p>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>로그아웃</button>
+        </div>
+      </header>
+      <div data-admin-workspace-body></div>
     </section>
 
     <!--
@@ -399,17 +437,34 @@
       }
 
       var adminRoutes = {
-        '/admin': { key: 'overview', title: '개요' },
+        '/admin': { key: 'overview', title: '개요', detail: '오늘의 운영 상황과 우선 처리 항목을 한 화면에서 확인합니다.' },
+        '/admin/search': { key: 'search', title: '통합 검색', detail: '주문번호·회원·리포트 식별자를 기준으로 운영 대상을 찾습니다.' },
         '/admin/orders': { key: 'orders', title: '주문' },
-        '/admin/members': { key: 'members', title: '회원 · 리포트' },
-        '/admin/content': { key: 'content', title: '콘텐츠 · 서비스' },
-        '/admin/cs': { key: 'cs', title: '고객 지원' },
-        '/admin/refunds': { key: 'refunds', title: '환불 · 정산' },
-        '/admin/analytics': { key: 'analytics', title: '통계 · 로그' },
-        '/admin/settings': { key: 'settings', title: '설정' }
+        '/admin/refunds': { key: 'refunds', title: '환불', detail: '환불 요청과 처리 상태를 주문 단위로 관리합니다.' },
+        '/admin/reconciliation': { key: 'reconciliation', title: '정산', detail: '승인·취소·환불 금액을 정산 기준으로 대조합니다.' },
+        '/admin/members': { key: 'members', title: '회원 · 리포트', detail: '회원의 구매·리포트 이력을 조회하고 지원 요청을 연결합니다.' },
+        '/admin/support': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
+        '/admin/cs': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
+        '/admin/content': { key: 'content', title: '콘텐츠', detail: '고객 화면에 노출되는 안내·배너·FAQ 콘텐츠를 관리합니다.' },
+        '/admin/services': { key: 'services', title: '서비스', detail: '서비스별 노출·판매·가격 정책과 고객 화면 연결을 관리합니다.' },
+        '/admin/media': { key: 'media', title: '미디어', detail: '이미지와 첨부 자산의 사용 위치 및 공개 상태를 관리합니다.' },
+        '/admin/jobs': { key: 'jobs', title: '작업 큐', detail: '리포트 생성과 후처리 작업의 진행·재시도 상태를 확인합니다.' },
+        '/admin/corpus': { key: 'corpus', title: '코퍼스', detail: '검색 지식 소스의 버전, 출처, 색인 상태를 관리합니다.' },
+        '/admin/prompts': { key: 'prompts', title: '프롬프트', detail: '서비스별 프롬프트 버전과 적용 범위를 검토합니다.' },
+        '/admin/evaluations': { key: 'evaluations', title: '평가', detail: '생성 결과의 품질 평가와 검토 이력을 기록합니다.' },
+        '/admin/reports': { key: 'reports', title: '리포트', detail: '리포트 생성·완료·실패 상태와 제공 이력을 확인합니다.' },
+        '/admin/releases': { key: 'releases', title: '릴리스', detail: '콘텐츠·프롬프트·서비스 변경의 배포 이력을 관리합니다.' },
+        '/admin/analytics': { key: 'analytics', title: '통계', detail: '유입·전환·구매 흐름을 운영 지표로 확인합니다.' },
+        '/admin/logs': { key: 'logs', title: '로그', detail: '시스템 이벤트와 실패 신호를 시간순으로 추적합니다.' },
+        '/admin/incidents': { key: 'incidents', title: '장애', detail: '운영 이슈의 영향 범위·담당자·복구 진행을 관리합니다.' },
+        '/admin/audit': { key: 'audit', title: '감사 기록', detail: '관리자 변경 작업의 주체·대상·시점을 확인합니다.' },
+        '/admin/settings': { key: 'settings', title: '설정', detail: '운영 환경, 권한, 알림 정책을 확인하고 관리합니다.' }
       };
       function currentAdminRoute() {
-        return adminRoutes[window.location.pathname.replace(/\/$/, '') || '/admin'] || adminRoutes['/admin'];
+        var path = window.location.pathname.replace(/\/$/, '') || '/admin';
+        if (adminRoutes[path]) return adminRoutes[path];
+        var parent = path.split('/').slice(0, 3).join('/');
+        return adminRoutes[parent] || adminRoutes['/admin'];
       }
       function markCurrentRoute() {
         var route = currentAdminRoute();
@@ -418,6 +473,52 @@
           else link.removeAttribute('aria-current');
         });
         return route;
+      }
+
+      function tableMarkup(columns, emptyCopy) {
+        return '<div class="admin-table-scroll"><table class="admin-table"><thead><tr>' +
+          columns.map(function (column) { return '<th scope="col">' + column + '</th>'; }).join('') +
+          '</tr></thead><tbody><tr><td colspan="' + columns.length + '"><p class="admin-empty">' + emptyCopy + '</p></td></tr></tbody></table></div>';
+      }
+      function metricMarkup(labels) {
+        return '<div class="admin-kpi-grid">' + labels.map(function (label) {
+          return '<article class="admin-kpi"><small>' + label + '</small><strong>—</strong><span>데이터 연동 대기</span></article>';
+        }).join('') + '</div>';
+      }
+      function workspaceSection(title, columns, emptyCopy, action) {
+        return metricMarkup(title.metrics) +
+          '<section class="admin-section"><header class="admin-section-head"><h3>' + title.tableTitle + '</h3>' +
+          '<button class="admin-button" type="button" data-variant="quiet" aria-disabled="true" title="운영 데이터 연결 후 사용할 수 있습니다">' + action + '</button></header>' +
+          tableMarkup(columns, emptyCopy) + '</section>';
+      }
+      var workspaceBlueprints = {
+        overview: { metrics: ['오늘 주문', '처리 대기', '생성 대기', '미해결 문의'], tableTitle: '오늘의 우선 처리', columns: ['구분', '상태', '담당', '다음 조치'], empty: '연결된 운영 데이터가 없습니다. 주문·문의·작업 데이터를 연결하면 우선 처리 항목이 표시됩니다.', action: '새로 고침' },
+        search: { metrics: ['주문 검색', '회원 검색', '리포트 검색', '결과 선택'], tableTitle: '운영 대상 검색', columns: ['유형', '식별자', '제목', '상태'], empty: '검색어를 입력하면 권한 범위 안의 주문·회원·리포트를 찾을 수 있습니다.', action: '검색 열기' },
+        refunds: { metrics: ['요청 접수', '검토 대기', '처리 완료', '반려'], tableTitle: '환불 요청', columns: ['요청일', '주문', '사유', '상태', '담당'], empty: '표시할 환불 요청이 없습니다. 환불 워크플로를 연결하면 이력이 표시됩니다.', action: '환불 요청 보기' },
+        reconciliation: { metrics: ['승인 금액', '취소 금액', '환불 금액', '대사 차이'], tableTitle: '정산 대사', columns: ['정산일', 'PG 승인', '취소·환불', '차이', '상태'], empty: '아직 대사할 정산 데이터가 없습니다. PG 정산 파일 연결 후 차이가 표시됩니다.', action: '대사 실행' },
+        members: { metrics: ['전체 회원', '신규 가입', '구매 회원', '열람 대기'], tableTitle: '회원 · 리포트 목록', columns: ['회원', '가입일', '최근 주문', '리포트', '상태'], empty: '회원 데이터 연결 전입니다. 고객 정보는 권한이 있는 담당자만 조회합니다.', action: '회원 검색' },
+        support: { metrics: ['신규 문의', '답변 대기', '처리 중', '완료'], tableTitle: '고객 문의', columns: ['접수일', '유형', '제목', '상태', '담당'], empty: '표시할 문의가 없습니다. 고객 지원 채널을 연결하면 담당·처리 상태를 관리할 수 있습니다.', action: '문의 등록' },
+        content: { metrics: ['발행됨', '검토 중', '예약됨', '임시 저장'], tableTitle: '콘텐츠 목록', columns: ['구분', '제목', '노출 위치', '상태', '수정일'], empty: '아직 등록된 운영 콘텐츠가 없습니다. 콘텐츠 저장소를 연결하면 발행 상태를 관리할 수 있습니다.', action: '콘텐츠 작성' },
+        services: { metrics: ['노출 서비스', '판매 가능', '비공개', '검토 필요'], tableTitle: '서비스 카탈로그', columns: ['서비스 키', '고객 노출명', '판매 상태', '가격 정책', '수정일'], empty: '서비스 카탈로그 연결 전입니다. 연결 후 고객 화면의 노출·판매 상태를 여기서 확인합니다.', action: '서비스 추가' },
+        media: { metrics: ['사용 중 자산', '미사용 자산', '검토 필요', '저장소 용량'], tableTitle: '미디어 자산', columns: ['파일', '유형', '사용 위치', '공개 상태', '수정일'], empty: '표시할 미디어 자산이 없습니다. 업로드 저장소를 연결하면 사용 위치를 추적합니다.', action: '자산 업로드' },
+        jobs: { metrics: ['대기', '진행 중', '실패', '재시도'], tableTitle: '작업 큐', columns: ['작업', '대상', '시작 시각', '상태', '재시도'], empty: '현재 실행·대기 중인 작업이 없습니다. 리포트 작업 큐를 연결하면 진행 상태가 표시됩니다.', action: '작업 새로 고침' },
+        corpus: { metrics: ['활성 문서', '색인 대기', '검토 필요', '현재 버전'], tableTitle: '코퍼스 소스', columns: ['소스', '문서 수', '버전', '색인 상태', '수정일'], empty: '코퍼스 인덱스 상태를 아직 불러오지 못했습니다. 지식 저장소 연결 후 목록이 표시됩니다.', action: '소스 등록' },
+        prompts: { metrics: ['적용 중', '검토 중', '초안', '보관됨'], tableTitle: '프롬프트 버전', columns: ['서비스', '버전', '적용 범위', '상태', '수정일'], empty: '등록된 프롬프트 버전이 없습니다. 서비스별 버전 관리 연결 후 적용 이력이 표시됩니다.', action: '프롬프트 작성' },
+        reports: { metrics: ['생성 대기', '진행 중', '완료', '실패'], tableTitle: '리포트 목록', columns: ['리포트', '서비스', '생성 상태', '제공 상태', '완료 시각'], empty: '표시할 리포트가 없습니다. 리포트 저장소 연결 후 생성·제공 상태가 표시됩니다.', action: '리포트 검색' },
+        evaluations: { metrics: ['평가 대기', '검토 완료', '개선 필요', '평균 점수'], tableTitle: '품질 평가', columns: ['평가일', '서비스', '표본', '결과', '검토자'], empty: '아직 품질 평가 결과가 없습니다. 평가 기준과 표본을 연결하면 이력이 표시됩니다.', action: '평가 만들기' },
+        releases: { metrics: ['배포됨', '검토 중', '롤백됨', '예약됨'], tableTitle: '릴리스 이력', columns: ['버전', '변경 유형', '적용 범위', '상태', '배포일'], empty: '릴리스 이력이 없습니다. 콘텐츠·프롬프트 배포 연결 후 변경 이력이 표시됩니다.', action: '릴리스 생성' },
+        analytics: { metrics: ['방문', '전환', '주문', '매출'], tableTitle: '운영 지표', columns: ['기간', '유입', '전환', '주문', '매출'], empty: '분석 데이터 연결 전입니다. 집계가 시작되면 기간별 핵심 지표가 표시됩니다.', action: '기간 선택' },
+        logs: { metrics: ['오류', '경고', '정보', '보존 기간'], tableTitle: '시스템 로그', columns: ['시각', '수준', '영역', '메시지', '추적 ID'], empty: '표시할 로그가 없습니다. 로그 수집 연결 후 최근 이벤트가 시간순으로 표시됩니다.', action: '로그 새로 고침' },
+        incidents: { metrics: ['진행 중', '관찰 중', '해결됨', '사후 분석'], tableTitle: '운영 이슈', columns: ['발생일', '영향 범위', '등급', '상태', '담당'], empty: '기록된 운영 이슈가 없습니다. 이슈를 등록하면 영향 범위와 복구 흐름을 관리할 수 있습니다.', action: '이슈 등록' },
+        audit: { metrics: ['오늘 변경', '권한 변경', '중요 작업', '보존 기간'], tableTitle: '관리자 변경 이력', columns: ['시각', '관리자', '작업', '대상', '결과'], empty: '감사 로그 수집 연결 전입니다. 권한·설정 변경은 연결 후 이 화면에 기록됩니다.', action: '감사 로그 새로 고침' },
+        settings: { metrics: ['운영 환경', '관리자 권한', '알림 채널', '정책 검토'], tableTitle: '운영 설정', columns: ['설정 영역', '현재 값', '적용 범위', '마지막 변경'], empty: '설정 저장소 연결 전입니다. 민감한 설정 변경은 감사 기록과 함께 처리됩니다.', action: '설정 변경' }
+      };
+      function renderWorkspace(route) {
+        var blueprint = workspaceBlueprints[route.key] || workspaceBlueprints.overview;
+        setText('[data-admin-workspace-title]', route.title);
+        setText('[data-admin-workspace-detail]', route.detail || '운영 화면을 확인합니다.');
+        var body = document.querySelector('[data-admin-workspace-body]');
+        if (body) body.innerHTML = workspaceSection(blueprint, blueprint.columns, blueprint.empty, blueprint.action);
       }
       function authClient() {
         if (clientPromise) return clientPromise;
@@ -493,13 +594,12 @@
         var nav = document.querySelector('[data-admin-nav]');
         if (nav) nav.hidden = false;
         var route = markCurrentRoute();
-        var isOrdersRoute = route.key === 'orders' || route.key === 'overview';
-        show(isOrdersRoute ? 'ready' : 'route-placeholder');
-        if (!isOrdersRoute) {
-          setText('[data-admin-route-title]', route.title);
-          setText('[data-admin-route-detail]', route.title + ' 기능은 실제 운영 데이터와 권한 검증을 연결한 뒤 사용할 수 있습니다.');
+        if (route.key !== 'orders') {
+          renderWorkspace(route);
+          show('workspace');
           return true;
         }
+        show('ready');
         // 권한이 확인된 뒤에만 데이터를 요청한다. 셸은 데이터를 갖고 있지 않다.
         if ((me.scopes || []).indexOf('orders:read') >= 0) startOrders(session);
         return true;
