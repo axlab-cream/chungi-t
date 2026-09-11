@@ -13,6 +13,7 @@
 - `npm run typecheck` PASS
 - focused admin tests: 33/33 PASS
 - 저장소 테스트에서 POST와 PATCH 요청이 평문 비밀번호를 전송하지 않고 revision 조건을 갖는지 확인
+- Production `dpl_AK8reynWaCWvDv5783spHDAwaZzh` Ready, 로그인된 `/admin/settings`에서 실제 계정 행과 관리 제어를 확인
 
 ## Reuse
 
