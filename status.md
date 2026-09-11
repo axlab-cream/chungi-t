@@ -1061,3 +1061,10 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - `refund_requests`와 service-role 전용 RPC를 운영 DB에 반영했다. 요청 RPC는 주문 행을 잠그고 활성 요청의 예약액을 합산하므로 동시에 요청해도 원 결제금액을 초과 예약할 수 없다.
 - 요청자와 승인자가 같으면 DB에서 거부하며, 승인 전/후 어느 경로도 PG를 호출하지 않는다. 주문 상태, 고객 구매권한, 완료 리포트 본문도 변경하지 않는다.
 - 검증: refund·INIAPI 테스트 9/9 PASS, typecheck/build PASS. 운영 DB에서 RLS=true, anon/authenticated SELECT=false, service_role RPC execute=true 확인.
+
+## 2026-09-11 — T18 환불 운영 화면
+
+- `/admin/refunds`를 실제 `refund_requests` 원천에 연결하는 화면·서버 경로를 구현했다. 빈 데이터베이스는 "아직 실제 환불 요청이 없습니다"로만 보이며 예시 행·임의 금액·목업 CTA는 표시하지 않는다.
+- 관리자는 실제 주문을 먼저 조회한 뒤 요청 금액·사유·revision으로 환불 intent를 등록할 수 있다. 요청 후에도 PG 환불은 실행되지 않으며 별도 관리자의 승인만 가능하다.
+- 승인 검토에는 요청/승인자·금액·사유·시각·PG 상태를 표시한다. `failed`와 `unknown`은 성공으로 표현하지 않고 PG 상태 확인·재조회를 우선하도록 안내한다. 요청자는 자기 요청을 승인할 수 없으며 API도 403으로 거부한다.
+- 검증: 환불 store/API/관리자 셸 26개 테스트 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. Production 배포(`dpl_3DvQf8yWZrTtHAtcxCsjZi4LxtXB`) 후 브라우저에서 목록 API가 503으로 실패하는 것을 확인했다. 테이블·service_role SELECT·PostgREST schema reload까지 확인했으나 원인은 아직 미확정이므로 T18은 NEEDS_REVIEW다.

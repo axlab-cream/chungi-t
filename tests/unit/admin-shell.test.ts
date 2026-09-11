@@ -162,9 +162,9 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       const me = JSON.parse(text)
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
-      // 이 단계는 조회 권한만 준다. 감사 경로(T06)가 없는 동안 쓰기 scope 를 만들지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write'])
-      assert.ok(!me.scopes.some((scope: string) => /delete|refund/.test(scope)), '허용되지 않은 파괴·금융 권한이 생겼다')
+      // 환불은 요청·승인·조회로 분리된 별도 scope 이며, 삭제 권한은 주지 않는다.
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve'])
+      assert.ok(!me.scopes.some((scope: string) => /delete/.test(scope)), '허용되지 않은 삭제 권한이 생겼다')
       assert.ok(me.scopes.includes('settings:write'), '감사 기반 설정 변경 권한이 없다')
       assert.ok(me.scopes.includes('support:read') && me.scopes.includes('support:write'), '고객 지원 권한이 없다')
     })
@@ -235,7 +235,19 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /loadLiveMembers/, '실제 회원 데이터 로더가 없다')
       assert.match(text, /loadLiveReports/, '실제 리포트 데이터 로더가 없다')
       assert.match(text, /loadLiveAudit/, '실제 감사 기록 로더가 없다')
+      assert.match(text, /loadRefunds/, '실제 환불 요청 로더가 없다')
+      assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
+    })
+
+    it('환불 목록 API는 읽기 scope가 있는 관리자만 실제 원천을 조회한다', async () => {
+      const { resetRefundStoreForTests } = await import('../../src/payment/refund-store.js')
+      resetRefundStoreForTests()
+      const anonymous = await request('/api/admin/v1/refunds')
+      assert.equal(anonymous.response.status, 401)
+      const allowed = await request('/api/admin/v1/refunds', 'super')
+      assert.equal(allowed.response.status, 200)
+      assert.deepEqual(JSON.parse(allowed.text).refunds, [])
     })
 
     it('모든 운영 화면 딥링크가 실제 데이터 컨테이너를 갖고 목업 상태를 노출하지 않는다', async () => {

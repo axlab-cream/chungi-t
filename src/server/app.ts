@@ -45,7 +45,7 @@ import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
-import { approveRefundRequest, createRefundRequest } from '../payment/refund-store.js'
+import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -1908,6 +1908,27 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
 })
 
 /** Refund requests persist an intent only. T17 deliberately does not call a PG. */
+app.get('/api/admin/v1/refunds', async (req, res) => {
+  if (!await requireStaff(req, res, 'refunds:read')) return
+  try {
+    res.json({ refunds: await listRefundRequests(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+  } catch (error) {
+    console.error('REFUND_LIST_FAILED', error instanceof Error ? error.message : 'unknown')
+    res.status(503).json({ code: 'REFUND_LIST_FAILED', error: '환불 요청 원천을 불러오지 못했습니다.' })
+  }
+})
+
+app.get('/api/admin/v1/refunds/:refundId', async (req, res) => {
+  if (!await requireStaff(req, res, 'refunds:read')) return
+  try {
+    const refund = await getRefundRequest(trimmedString(req.params.refundId))
+    if (!refund) { res.status(404).json({ code: 'REFUND_NOT_FOUND', error: '환불 요청을 찾지 못했습니다.' }); return }
+    res.json({ refund })
+  } catch {
+    res.status(503).json({ code: 'REFUND_LOOKUP_FAILED', error: '환불 요청 원천을 불러오지 못했습니다.' })
+  }
+})
+
 app.post('/api/admin/v1/orders/:orderId/refund-requests', async (req, res) => {
   const membership = await requireStaff(req, res, 'refunds:request'); if (!membership) return
   const orderId = trimmedString(req.params.orderId); const body = asObject(req.body)
@@ -1928,7 +1949,7 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
-  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_APPROVE_FAILED'; res.status(code.includes('SELF') || code.includes('CONFLICT') || code.includes('NOT_REQUESTED') ? 409 : 503).json({ code, error: '환불 요청을 승인하지 못했습니다.' }) }
+  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_APPROVE_FAILED'; res.status(code.includes('SELF') ? 403 : code.includes('CONFLICT') || code.includes('NOT_REQUESTED') ? 409 : 503).json({ code, error: '환불 요청을 승인하지 못했습니다.' }) }
 })
 
 /** Live, privacy-minimized member data. The service key never reaches the browser. */

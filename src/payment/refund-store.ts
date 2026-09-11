@@ -20,6 +20,7 @@ function headers(): Record<string, string> {
 function fromRow(row: Record<string, unknown>): RefundRequest {
   return { id: String(row.id), orderId: String(row.order_id), amount: Number(row.amount), reason: String(row.reason), state: String(row.state) as RefundState, requestedByEmail: String(row.requested_by_email), approvedByEmail: row.approved_by_email ? String(row.approved_by_email) : undefined, idempotencyKey: String(row.idempotency_key), revision: Number(row.revision), createdAt: String(row.created_at), updatedAt: String(row.updated_at), approvedAt: row.approved_at ? String(row.approved_at) : undefined }
 }
+const refundColumns = 'id,order_id,amount,reason,state,requested_by_email,approved_by_email,idempotency_key,revision,created_at,updated_at,approved_at'
 function valid(input: { orderId: string, amount: number, reason: string, actorEmail: string, idempotencyKey: string, orderAmount: number, orderRevision: number }) {
   if (!input.orderId.trim() || !Number.isSafeInteger(input.amount) || input.amount <= 0 || !Number.isSafeInteger(input.orderAmount) || input.orderAmount <= 0 || !Number.isInteger(input.orderRevision) || input.orderRevision < 0 || !input.reason.trim() || input.reason.trim().length > 240 || !/^\S+@\S+\.\S+$/.test(input.actorEmail) || input.idempotencyKey.trim().length < 8) throw new Error('REFUND_INPUT_INVALID')
 }
@@ -57,6 +58,33 @@ export async function approveRefundRequest(input: { refundId: string, actorEmail
   if (current.state !== 'requested') throw new Error('REFUND_NOT_REQUESTED')
   const next = { ...current, state: 'approved' as const, approvedByEmail: actorEmail, approvedAt: new Date().toISOString(), updatedAt: new Date().toISOString(), revision: current.revision + 1 }
   testRequests.set(mapKey, next); return { ...next }
+}
+
+export async function listRefundRequests(limit = 100): Promise<RefundRequest[]> {
+  const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 200) : 100
+  if (base && key) {
+    const params = new URLSearchParams({ select: refundColumns, order: 'updated_at.desc', limit: String(safeLimit) })
+    const response = await fetch(`${base}/rest/v1/refund_requests?${params.toString()}`, { headers: headers() })
+    if (!response.ok) throw new Error(await response.text() || 'REFUND_LIST_FAILED')
+    const rows = await response.json() as Record<string, unknown>[]
+    return rows.map(fromRow)
+  }
+  if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
+  return Array.from(testRequests.values()).reverse().slice(0, safeLimit).map((item) => ({ ...item }))
+}
+
+export async function getRefundRequest(refundId: string): Promise<RefundRequest | null> {
+  if (!refundId.trim()) return null
+  if (base && key) {
+    const params = new URLSearchParams({ select: refundColumns, id: `eq.${refundId}`, limit: '1' })
+    const response = await fetch(`${base}/rest/v1/refund_requests?${params.toString()}`, { headers: headers() })
+    if (!response.ok) throw new Error(await response.text() || 'REFUND_LOOKUP_FAILED')
+    const rows = await response.json() as Record<string, unknown>[]
+    return rows.length ? fromRow(rows[0]) : null
+  }
+  if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
+  const found = Array.from(testRequests.values()).find((item) => item.id === refundId)
+  return found ? { ...found } : null
 }
 
 export function resetRefundStoreForTests(): void { testMode = true; testRequests.clear() }

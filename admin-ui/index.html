@@ -139,6 +139,14 @@
     .admin-empty { margin: 0; padding: var(--admin-space-4); color: var(--admin-text-muted); background: var(--admin-bg); border-left: 2px solid var(--admin-line); }
     .admin-chip { display: inline-flex; align-items: center; padding: 2px 7px; color: var(--admin-text-muted); background: var(--admin-bg); border: 1px solid var(--admin-line); border-radius: 999px; font-size: 12px; white-space: nowrap; }
     .admin-button[aria-disabled='true'] { color: var(--admin-text-muted); background: var(--admin-bg); border-color: var(--admin-line); cursor: not-allowed; }
+    .admin-refund-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--admin-space-3); padding: var(--admin-space-4); }
+    .admin-refund-form .admin-field { min-width: 0; }
+    .admin-refund-form .admin-field[data-span='2'] { grid-column: span 2; }
+    .admin-refund-form .admin-actions { align-self: end; }
+    .admin-refund-evidence { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0; margin: 0; border-top: 1px solid var(--admin-line); }
+    .admin-refund-evidence dt, .admin-refund-evidence dd { margin: 0; padding: var(--admin-space-2) var(--admin-space-3); border-bottom: 1px solid var(--admin-line); }
+    .admin-refund-evidence dt { color: var(--admin-text-muted); background: var(--admin-bg); font-weight: 600; }
+    .admin-refund-alert { margin: var(--admin-space-4); padding: var(--admin-space-3); border-left: 2px solid var(--admin-state-warn); background: #fff8ea; color: var(--admin-text); }
 
     /* 로그인 폼. 관리자에서 사용자 입력을 받는 유일한 지점이다. */
     .admin-form { display: grid; gap: var(--admin-space-4); margin-top: var(--admin-space-4); }
@@ -184,6 +192,9 @@
       .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
       main { margin-left: 0; padding: var(--admin-space-4); }
       .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .admin-refund-form { grid-template-columns: 1fr; }
+      .admin-refund-form .admin-field[data-span='2'] { grid-column: auto; }
+      .admin-refund-evidence { grid-template-columns: 112px minmax(0, 1fr); }
     }
   </style>
 </head>
@@ -554,6 +565,56 @@
       async function loadOpsJobs(body) {
         try { var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED'); var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : []; addLiveTable(body, '실제 영속 작업 큐', ['작업', '대상', '상태', '시도', '다음 실행', '오류'], jobs, function (item) { return [item.kind, item.target_id, item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—']; }, '실행 대기 중인 실제 작업이 없습니다.'); } catch (_error) { addLiveError(body, '실제 작업 큐를 불러오지 못했습니다.'); }
       }
+      function refundStatus(state) {
+        var labels = {
+          requested: { tone: 'warn', text: '승인 대기' },
+          approved: { tone: 'warn', text: '승인됨 · PG 실행 대기' },
+          processing: { tone: 'warn', text: 'PG 처리 확인 중' },
+          succeeded: { tone: 'ok', text: '환불 완료 · PG 확인됨' },
+          failed: { tone: 'error', text: '처리 실패 · PG 상태 확인 필요' },
+          unknown: { tone: 'warn', text: '확인 대기 · PG 재조회 필요' },
+          rejected: { tone: 'error', text: '승인 거절' }
+        };
+        return labels[state] || { tone: 'warn', text: '상태 확인 필요' };
+      }
+      function refundText(value) { return value == null || value === '' ? '—' : String(value); }
+      function formatRefundDate(value) { return refundText(value).replace('T', ' ').slice(0, 16); }
+      function appendRefundEvidence(section, refund) {
+        var evidence = document.createElement('dl'); evidence.className = 'admin-refund-evidence';
+        [['요청 ID', refund.id], ['주문 ID', refund.orderId], ['요청 금액', Number(refund.amount).toLocaleString('ko-KR') + '원'], ['요청 사유', refund.reason], ['요청자', refund.requestedByEmail], ['승인자', refund.approvedByEmail || '미승인'], ['요청 시각', formatRefundDate(refund.createdAt)], ['최근 변경', formatRefundDate(refund.updatedAt)], ['PG 결과', refundStatus(refund.state).text]].forEach(function (entry) {
+          var term = document.createElement('dt'); term.textContent = entry[0]; var description = document.createElement('dd'); description.textContent = refundText(entry[1]); evidence.appendChild(term); evidence.appendChild(description);
+        });
+        section.appendChild(evidence);
+      }
+      function renderRefundApproval(body, refund) {
+        var section = document.createElement('section'); section.className = 'admin-section';
+        var head = document.createElement('header'); head.className = 'admin-section-head'; var heading = document.createElement('h3'); heading.textContent = '독립 승인 검토'; var status = refundStatus(refund.state); var chip = document.createElement('span'); chip.className = 'admin-status'; chip.dataset.tone = status.tone; chip.textContent = status.text; head.appendChild(heading); head.appendChild(chip); section.appendChild(head);
+        appendRefundEvidence(section, refund);
+        var notice = document.createElement('p'); notice.className = 'admin-refund-alert'; notice.textContent = '승인은 요청자와 다른 관리자만 할 수 있으며, 이 단계에서는 PG 환불을 실행하지 않습니다.'; section.appendChild(notice);
+        var currentEmail = String((window.__adminMembership || {}).email || '').toLowerCase();
+        var form = document.createElement('form'); form.className = 'admin-actions'; form.style.padding = '0 16px 16px';
+        var reason = document.createElement('input'); reason.name = 'reason'; reason.required = true; reason.maxLength = 240; reason.placeholder = '승인 판단 근거'; reason.setAttribute('aria-label', '승인 판단 근거');
+        var submit = document.createElement('button'); submit.className = 'admin-button'; submit.type = 'submit'; submit.textContent = '승인 intent 저장';
+        var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status');
+        if (currentEmail && currentEmail === String(refund.requestedByEmail).toLowerCase()) { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '요청자는 자신의 환불 요청을 승인할 수 없습니다.'; }
+        if (refund.state !== 'requested') { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '현재 상태에서는 승인할 수 없습니다. PG 처리 결과는 먼저 조회·대사해야 합니다.'; }
+        form.appendChild(reason); form.appendChild(submit); form.appendChild(result);
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인 intent를 저장하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인 intent가 저장되었습니다. PG 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
+        section.appendChild(form); body.appendChild(section);
+      }
+      async function loadRefunds(body) {
+        body.replaceChildren();
+        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청 등록</h3><span class="admin-chip">실제 주문 기준</span></header>';
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>주문 ID</label><input required name="orderId" autocomplete="off" placeholder="실제 주문 ID"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="주문 조회 후 입력"></div><div class="admin-field"><label>사유 코드</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">주문 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>주문을 확인하면 현재 결제금액과 revision을 사용합니다.</p>';
+        var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
+        async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '주문 ID를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '실제 주문을 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '주문을 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '주문 확인됨: ' + Number(order.amount).toLocaleString('ko-KR') + '원 · revision ' + String(order.revision) + '. 서버가 환불 가능 금액을 다시 검증합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '주문을 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
+        lookup.addEventListener('click', lookupOrder);
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청 intent를 저장하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청 intent가 저장되었습니다. 별도 관리자의 승인이 필요하며 PG 환불은 실행되지 않았습니다.'; form.reset(); order = null; await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
+        requestSection.appendChild(form); body.appendChild(requestSection);
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 환불 요청</h3><span class="admin-chip">PG 실행 결과와 구분</span></header><p class="admin-empty">환불 요청 원천을 불러오는 중입니다.</p>'; body.appendChild(listSection);
+        try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 실제 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 원천을 불러오지 못했습니다. 임의 데이터는 표시하지 않습니다.'; }
+      }
       function loadAdminSearch(body) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
         var form = document.createElement('form'); form.className = 'admin-actions'; form.innerHTML = '<select name="kind" aria-label="검색 대상"><option value="order">주문</option><option value="member">회원</option><option value="report">리포트</option><option value="support">고객 지원 케이스</option></select><input required name="exactId" maxlength="160" placeholder="정확한 식별자 입력" autocomplete="off"><button class="admin-button" type="submit">검색</button>'; section.appendChild(form);
@@ -588,6 +649,7 @@
         if (route.key === 'members') { loadLiveMembers(body); return; }
         if (route.key === 'reports') { loadLiveReports(body); return; }
         if (route.key === 'jobs') { loadOpsJobs(body); return; }
+        if (route.key === 'refunds') { loadRefunds(body); return; }
         if (route.key === 'services') { loadLiveServices(body); return; }
         if (route.key === 'audit') { loadLiveAudit(body); return; }
         if (route.key === 'support') { loadSupportCases(body); return; }
@@ -739,6 +801,7 @@
         }
 
         var me = await response.json();
+        window.__adminMembership = me;
         setText('[data-admin-env]', me.environment ? '환경 ' + me.environment : '');
         setText('[data-admin-who]', me.email || '');
         setText('[data-admin-scope]', '권한: ' + (me.role || '') + ' · ' + (me.scopes || []).join(', '));

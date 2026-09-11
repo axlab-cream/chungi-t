@@ -149,6 +149,7 @@
 | V-143 | U22 | 음성 대조 | 증거 가드 제거 / 증거 범위 축소 | 3건·1건 실패 | **PASS** — 복원 확인 | 2026-09-11 |
 | V-144 | staff | 관리자 권한 | `UMSH_ADMIN_SUPER_EMAILS` 설정 계정만 200 | 충족 | **PASS** — 빈 설정이면 아무도 없음, 대소문자 무시 | 2026-09-11 |
 | V-145 | staff | 자격증명 | 셸이 비밀번호를 보관·전송하는가 | 안 함 | **PASS** — Supabase Auth 직접 호출, 폼 즉시 비움 | 2026-09-11 |
+| V-146 | task-t18 | 환불 조회·UI | refund store/list API/운영 셸 | 26 tests, typecheck, vercel build | **PARTIAL** — 단위/API/셸 검증은 PASS. Production `/api/admin/v1/refunds`는 503으로 원인 확인 필요 | 2026-09-11 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 
