@@ -1131,3 +1131,4 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - TDD 근거: 신규 계약 테스트가 0/4 그룹으로 실패하는 것을 먼저 확인한 뒤 구현했다. targeted 26/26, 전체 고정 오라클 `npm test` 641/641, typecheck, Vercel build가 통과했다.
 - Production `dpl_FQ9cixJawa4AHuXEpd8QtXhJzcpn` Ready 및 `umsh.kr` 연결. 브라우저에서 블릿·들여쓰기, 4개 업무군, 접기, 새로고침 후 세션 유지, 활성 업무군 자동 펼침과 콘솔 0건을 확인했다.
 - Vercel error 레벨에는 앱 실패가 아니라 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 LNB 변경과 무관하며 별도 런타임 정리 항목으로 남긴다.
+- CreamWIKI `personal/carrotcap/notes/umsh-admin-lnb-groups-20260912.md` 저장/get/개인 검색 즉시 반영 PASS. 비밀번호·쿠키·토큰은 기록하지 않았다.
