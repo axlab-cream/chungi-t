@@ -10,6 +10,17 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T10 실제 회원·리포트 운영 데이터 연결
+
+- Status: `DONE` (읽기 전용 실제 데이터 범위)
+- 원본: Production `cheongi_user_profiles`와 `cheongi_reports`를 서버 전용 서비스 키로 조회한다. 브라우저는 서버 API(`/api/admin/v1/members`, `/api/admin/v1/reports`, `/api/admin/v1/operations-snapshot`)를 통해서만 접근한다.
+- 개인정보: 회원의 생년월일·성별·프로필 원문과 리포트의 본문·입력 데이터는 반환하지 않는다. 회원 식별자·이름·이메일은 마스킹하고, 운영 상태·서비스 키·시각만 내려준다.
+- UI: 개요·회원·리포트·서비스 화면은 실제 데이터만 렌더링한다. 레거시 KPI/예시 행/`데이터 연동 대기` 템플릿을 삭제했다. 아직 원천 테이블이 없는 메뉴는 임의 데이터 대신 원천 미생성 상태만 표시한다.
+- 배포: Production `dpl_AKmuNf3pjBfS6ATQkXWojYPSazqV` Ready, `umsh.kr` 별칭 반영 확인.
+- 실브라우저 검증: 로그인된 관리자 세션에서 회원 6건, 리포트 68건, 공개 서비스 15개, 활성 코퍼스 팩 28개가 실제 값으로 렌더링됨을 확인했다.
+- 검증: `npm run typecheck`, 관리자 관련 테스트 54/54 PASS, 목업 템플릿 문자열 스캔 PASS.
+- 후속: 환불·정산·지원·콘텐츠·미디어·작업·감사 등은 해당 실제 원천 테이블/외부 시스템이 아직 없으므로, 테이블 설계·migration·감사 명령을 한 Task씩 추가해야 한다.
+
 ## 2026-09-11 — T05 관리자 계정 저장소 실제 연결
 
 - Status: `IN_PROGRESS` (초기 관리자 등록 대기)

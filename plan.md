@@ -76,7 +76,7 @@
 | T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. 영속 membership 저장소는 T05 에서 교체 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |
-| T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | BLOCKED (U4, U18 분석열, U19 profiles SQL) |
+| T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | **DONE** — 원본 Supabase 테이블의 최소 DTO 조회·마스킹·실운영 화면 연결. U18/U19은 분석 관리·정본 스키마 문서화 후속으로 유지 |
 | T11 | task-t11 | M1 | P0 | T07,T10 | 회원·리포트 상세 UI | TODO |
 | T12 | task-t12 | M1 | P0 | T06,T07,T10 | CS 케이스 관리 | TODO |
 | T13 | task-t13 | M1 | P0 | T06,T08,T10 | 통합 검색·읽기 홈 | TODO |
