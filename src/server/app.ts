@@ -41,7 +41,7 @@ import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, lis
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { enqueueOpsJob, listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
+import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
@@ -1848,13 +1848,6 @@ app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
 })
-app.post('/api/admin/v1/jobs', async (req, res) => {
-  const member = await requireStaff(req, res, 'reports:read'); if (!member) return
-  const body = asObject(req.body); const kind = trimmedString(body.kind); const targetId = trimmedString(body.targetId); const key = trimmedString(req.header('idempotency-key'))
-  if (!kind || !targetId || key.length < 8) { res.status(422).json({ code: 'INVALID_JOB_INPUT', error: '작업 종류, 대상, 멱등 키를 확인해 주세요.' }); return }
-  try { res.status(201).json({ job: await enqueueOpsJob({ kind, targetId, idempotencyKey: key }) }) } catch { res.status(503).json({ code: 'OPS_ENQUEUE_FAILED', error: '작업을 만들지 못했습니다.' }) }
-})
-
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
   // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.
