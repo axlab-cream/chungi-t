@@ -1068,3 +1068,8 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 관리자는 실제 주문을 먼저 조회한 뒤 요청 금액·사유·revision으로 환불 intent를 등록할 수 있다. 요청 후에도 PG 환불은 실행되지 않으며 별도 관리자의 승인만 가능하다.
 - 승인 검토에는 요청/승인자·금액·사유·시각·PG 상태를 표시한다. `failed`와 `unknown`은 성공으로 표현하지 않고 PG 상태 확인·재조회를 우선하도록 안내한다. 요청자는 자기 요청을 승인할 수 없으며 API도 403으로 거부한다.
 - 검증: 환불 store/API/관리자 셸 26개 테스트 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. Production 배포(`dpl_3DvQf8yWZrTtHAtcxCsjZi4LxtXB`) 후 브라우저에서 목록 API가 503으로 실패하는 것을 확인했다. 테이블·service_role SELECT·PostgREST schema reload까지 확인했으나 원인은 아직 미확정이므로 T18은 NEEDS_REVIEW다.
+
+## 2026-09-12 — 결제 트랙 보류·T22 착수
+
+- 사용자 지시에 따라 결제·환불(T18~T21) 보완은 보류하고 비결제 운영 작업인 T22 서비스·콘텐츠 버전 저장을 착수했다.
+- 현재 고객 서비스의 정본은 `src/server/service-directory.ts`와 `src/payment/catalog.ts`에 있으며, T22는 이 목록을 바꾸거나 예시 콘텐츠를 추가하지 않고 버전 저장·검증·서버 읽기 경계를 먼저 만든다.

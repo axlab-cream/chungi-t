@@ -87,7 +87,8 @@
 | T17 | task-t17 | M2 | P0 | T06,T14,T15,T16 | 환불 요청·승인·실행 | DONE — 실제 영속 intent, 독립 승인, DB 잠금 기반 금액 예약. PG 호출·권한 철회는 후속 대사/실행 게이트까지 차단 |
 | T18 | task-t18 | M2 | P0 | T09,T17 | 환불 UI | NEEDS_REVIEW — 실제 refund_requests 조회·등록·독립 승인 검토 화면 구현; Production REST 조회 503 원인 확인 필요 |
 | T19~T21 | - | M2 | P0 | (pack) | 금융·복구 (대사, 재시도, incident) | TODO |
-| T22~T30 | - | M3 | P1 | (pack) | 편집·지식 (CMS, 미디어, 코퍼스, 평가, release, 롤백) | TODO |
+| T22 | task-t22 | M3 | P1 | T02,T06,T14 | 서비스·콘텐츠 버전 저장 | IN_PROGRESS — 결제 트랙 보류 후 비결제 운영 우선 진행 |
+| T23~T30 | - | M3 | P1 | (pack) | 편집·지식 (미디어, 코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
 | T36~T38 | - | M5 | P0 | (pack) | 통합 안정화·인수·인계 | TODO |
 
