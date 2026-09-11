@@ -1112,3 +1112,14 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - KMS 후보: `CreamAI/memory/candidates/task-t22-service-publish-20260912.md`. 비밀번호·쿠키·토큰은 저장하지 않았다.
 - T22는 계속 IN_PROGRESS다. 다음 slice는 `content_versions` 기반 공지·FAQ·배너 등 범용 콘텐츠 초안/발행 흐름이다.
 - CreamWIKI `personal/carrotcap/notes/umsh-t22-service-publish-20260912.md` 저장/get/개인 검색 즉시 반영 PASS. 로컬 재색인 스크립트 5개는 모두 없어 NOT_RUN이며, 원격 문서 저장·검색 성공과 구분했다.
+
+## 2026-09-12 — T22 Slice 4 지원 공지 버전 저장·고객 노출
+
+- `/admin/content`를 실제 `content_versions`의 고정 위치 `support_top`에 연결했다. 관리자는 제목·본문·내부 검수 의견을 구조화 초안으로 저장하고 별도 CTA로 발행할 수 있다. HTML·알 수 없는 필드·임의 링크·예약·미디어는 받지 않는다.
+- 운영 DB에 활성 초안 1개 partial unique index와 advisory lock 기반 생성·원자적 발행 RPC를 추가했다. 테이블은 브라우저에 공개하지 않고 `content:read/write/publish`, 멱등 키, 감사 명령, revision CAS를 거친다.
+- 고객 `/api/content/notices/support`는 발행본의 제목·본문·발행시각만 반환한다. 발행본이 없거나 저장소가 실패하면 `notice:null`이며 `/support`의 기존 문서는 그대로 유지된다. 렌더링은 `textContent`만 사용한다.
+- Production 첫 화면 검증에서 기존 `.policy-section` CSS가 HTML `hidden`을 덮어 빈 NOTICE 박스를 보이게 하는 결함을 발견했다. 명시적 hidden 규칙을 추가하고 재배포해 연락처가 첫 섹션으로 보이는 것을 확인했다.
+- 검증: targeted 33/33, 고정 오라클 `npm test` 641/641, typecheck·Vercel build PASS. 직접 glob 실행은 기존 U24 실행형태 차이로 제외했다. Supabase migration `20260911224332` 적용·이력 일치. Production `dpl_BnUzYbqfWzdKsNARioyqHsiuQQXF` Ready, `umsh.kr` 연결, 최근 error log 0건.
+- 실제 공지 문구는 만들거나 발행하지 않았다. 따라서 공개 API는 실제 빈 상태이며, 첫 실공지 개정 시 이전 published archive 운영 실측을 추가한다. 비밀번호·쿠키·토큰은 기록하지 않았다.
+- T22는 DONE. FAQ·배너·미디어·예약·릴리스·롤백 UI는 T23/T24/T29/T30에서 각각 진행한다.
+- CreamWIKI `personal/carrotcap/notes/umsh-t22-support-notice-20260912.md` 저장/get/개인 검색 즉시 반영 PASS.

@@ -159,6 +159,11 @@
 | V-153 | task-t22 slice 3 | 운영 발행 | `/admin/services`에서 cmdg 초안 발행 | published v1/revision 2, draft 0, 감사 성공 | **PASS** — started/succeeded 감사와 published_at 확인 | 2026-09-12 |
 | V-154 | task-t22 slice 3 | 공개 read | 운영 `GET /api/services` | published source, 15건, 결제 정본 유지, 내부 필드 없음 | **PASS** — cmdg 49,900원·`/cmdg/`·이미지 유지 | 2026-09-12 |
 | V-155 | task-t22 slice 3 | 이전 발행본 archive | 기존 published가 있는 상태에서 후속 draft 발행 | 기존 1건 archived, 신규 1건 published | **NOT_RUN** — 최초 발행이라 이전 published 행이 없었음. 다음 실제 개정 발행에서 실측 | 2026-09-12 |
+| V-156 | task-t22 slice 4 | 공지 입력·권한·API 회귀 | targeted + 전체 `npm test` | 구조화 입력·scope·공개 null·권한 통과 | **PASS** — targeted 33/33, 고정 오라클 `npm test` 641/641. 직접 glob 실행은 기존 U24 실행형태 차이로 제외 | 2026-09-12 |
+| V-157 | task-t22 slice 4 | 빌드 | `npm run vercel-build` | FAQ/SEO/typecheck 성공 | **PASS** — 126 FAQ, 19 sitemap URL, typecheck PASS | 2026-09-12 |
+| V-158 | task-t22 slice 4 | 운영 DB | 신규 index/RPC SQL 실행 + migration list | additive 적용, service_role 전용, 이력 일치 | **PASS** — `20260911224332` local/remote 일치. 원격에만 있던 과거 6개 이력은 변경하지 않음 | 2026-09-12 |
+| V-159 | task-t22 slice 4 | Production 관리자 | `/admin/content` 로그인 세션 | LNB·실데이터 편집기·발행 없음 상태 | **PASS** — `support_top`, 초안 저장, disabled 발행 CTA, 현재 발행 없음 확인 | 2026-09-12 |
+| V-160 | task-t22 slice 4 | Production 고객 화면 | `/api/content/notices/support` + `/support` | `notice:null`, 빈 박스 미노출 | **PASS** — 초기 빈 NOTICE 노출을 브라우저가 검출해 수정 후 연락처가 첫 섹션임을 재확인 | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 

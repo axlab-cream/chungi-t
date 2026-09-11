@@ -103,12 +103,12 @@
 - Publish transition: lock `notice/support_top`; require matching draft id/state/revision; archive the prior published row; promote the draft; increment revision; keep all history.
 - Public DTO: `{ title, body, publishedAt }` only. It never exposes author email, review note, checksum, raw payload, draft id, or revision.
 - Acceptance criteria:
-  - [ ] anonymous users cannot read or mutate administrator notice endpoints;
-  - [ ] only `content:read`, `content:write`, and `content:publish` scopes reach their matching operations;
-  - [ ] unknown payload fields and HTML-shaped input are rejected before persistence;
-  - [ ] create/update/publish use idempotency and write audit evidence;
-  - [ ] stale revisions and wrong draft states conflict without partial transition;
-  - [ ] the previous published row is archived and exactly one published `support_top` notice remains;
-  - [ ] the customer API exposes only the allowlist and returns `notice: null` for no valid publication or unavailable storage;
-  - [ ] `/support` escapes and renders the published notice without disturbing existing support content;
-  - [ ] tests, typecheck, build, production migration, deployment, browser states, operational docs, and CreamWIKI evidence are complete.
+  - [x] anonymous users cannot read or mutate administrator notice endpoints;
+  - [x] only `content:read`, `content:write`, and `content:publish` scopes reach their matching operations;
+  - [x] unknown payload fields and HTML-shaped input are rejected before persistence;
+  - [x] create/update/publish use idempotency and write audit evidence;
+  - [x] stale revisions and wrong draft states conflict without partial transition;
+  - [x] the publish transaction archives the previous published row and the partial unique index permits exactly one published `support_top` notice; production republish evidence waits for the first real content revision rather than creating a sample row;
+  - [x] the customer API exposes only the allowlist and returns `notice: null` for no valid publication or unavailable storage;
+  - [x] `/support` escapes and renders the published notice without disturbing existing support content;
+  - [x] tests, typecheck, build, production migration, deployment, browser states, operational docs, and CreamWIKI evidence are complete.
