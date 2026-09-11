@@ -429,6 +429,7 @@ git: `backup/pre-merge-20260910` 브랜치 생성. **커밋·푸시·배포 없�
 - `tests/unit/inicis-adapter.test.ts`는 공식 v2 JSON body 및 SHA-512, KST timestamp, timeout, 기취소 중복, PG 성공 뒤 외부 저장 실패, 동시 `tid`/`oid` 입력 거부를 고정한다.
 - `npx tsx --test --test-concurrency=1 tests/unit/inicis-adapter.test.ts tests/unit/payment.test.ts`: 9/9 PASS.
 - `npm run typecheck`: PASS.
+- KMS 기록: `personal/carrotcap/notes/umsh-inicis-sandbox-adapter-20260911.md`.
 
 ### 미완료와 해제 조건
 

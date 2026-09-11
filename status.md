@@ -1054,3 +1054,4 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - timeout은 `INICIS_SANDBOX_TIMEOUT`으로 구분하고, 공식 기취소 코드 `500626`은 재요청하지 않는 terminal duplicate로 반환한다. PG 성공 뒤 저장 실패는 adapter 레이어에서 성공을 실패로 바꾸지 않아 T17/T19의 영속 intent·대사 경계가 유지된다.
 - 검증: sandbox 계약 테스트와 기존 결제 테스트 9/9 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS. 실 TID·INIAPI Key·실거래는 사용하지 않았다.
 - 남은 조건: T17에서 INIAPI Key 계약·운영 egress, 환불 intent 영속화, 요청/승인자 분리, 금액 예약, unknown 대사 경로를 구현하기 전에는 live 취소를 연결하지 않는다.
+- KMS 기록: `personal/carrotcap/notes/umsh-inicis-sandbox-adapter-20260911.md`.
