@@ -2,7 +2,10 @@ import { configuredEnv } from '../env/load.js'
 import { assertDurableStorage, storageReadiness, type StorageReadiness } from './storage-readiness.js'
 import { Pool } from 'pg'
 
-export type PaymentOrderStatus = 'ready' | 'approving' | 'paid' | 'viewed' | 'cancelled' | 'failed'
+/** 열거 가능한 형태로도 둔다. API 가 조회 인자를 검증할 때 쓴다. */
+export const PAYMENT_ORDER_STATUSES = ['ready', 'approving', 'paid', 'viewed', 'cancelled', 'failed'] as const
+
+export type PaymentOrderStatus = typeof PAYMENT_ORDER_STATUSES[number]
 
 export interface PaymentOrder {
   orderId: string
@@ -313,6 +316,126 @@ export async function findPaymentOrderByTid(tid: string): Promise<PaymentOrder |
   await ensureDb()
   const result = await pool.query<Record<string, unknown>>('SELECT * FROM cheongi_payment_orders WHERE tid = $1 LIMIT 1', [key])
   return result.rows[0] ? fromRow(result.rows[0]) : null
+}
+
+export interface PaymentOrderPage {
+  orders: PaymentOrder[]
+  /** 다음 페이지 요청에 그대로 실어 보낸다. 없으면 마지막 페이지다. */
+  nextCursor?: string
+}
+
+export interface PaymentOrderQuery {
+  limit?: number
+  cursor?: string
+  status?: PaymentOrderStatus
+  /** ISO 문자열. 경계는 `from` 포함, `to` 제외다. */
+  from?: string
+  to?: string
+}
+
+/**
+ * cursor 는 `updated_at|order_id` 다.
+ *
+ * `updated_at` 하나로 페이지를 넘기면 같은 시각에 만들어진 주문이 건너뛰거나 중복된다.
+ * 결제는 초 단위로 몰리므로 실제로 일어난다. 주문번호를 2차 키로 붙여 순서를 고정한다.
+ */
+function encodeOrderCursor(order: PaymentOrder): string {
+  return Buffer.from(`${order.updatedAt}|${order.orderId}`, 'utf8').toString('base64url')
+}
+
+function decodeOrderCursor(cursor: string): { updatedAt: string; orderId: string } | undefined {
+  try {
+    const [updatedAt, orderId] = Buffer.from(cursor, 'base64url').toString('utf8').split('|')
+    if (!updatedAt || !orderId) return undefined
+    return { updatedAt, orderId }
+  } catch {
+    return undefined
+  }
+}
+
+/** 정렬 기준: 최신 먼저, 같은 시각이면 주문번호 내림차순. 모든 저장소가 이 순서를 쓴다. */
+function compareOrdersDesc(a: PaymentOrder, b: PaymentOrder): number {
+  return b.updatedAt.localeCompare(a.updatedAt) || b.orderId.localeCompare(a.orderId)
+}
+
+/**
+ * 관리자 주문 목록. **소유자 전체**를 본다 — `listPaymentOrders` 는 한 회원의 것만 본다.
+ *
+ * 이 함수는 서버(`service_role`)에서만 불린다. 라우트가 직원 권한을 확인한 뒤 호출한다.
+ */
+export async function listAllPaymentOrders(query: PaymentOrderQuery = {}): Promise<PaymentOrderPage> {
+  const limit = Math.min(Math.max(Number.isInteger(query.limit) ? Number(query.limit) : 20, 1), 100)
+  const after = query.cursor ? decodeOrderCursor(query.cursor) : undefined
+  if (query.cursor && !after) throw new Error('조회 위치를 읽지 못했습니다.')
+
+  const withinWindow = (order: PaymentOrder): boolean => {
+    if (query.status && order.status !== query.status) return false
+    // 경계: `from` 포함, `to` 제외. 하루 단위 조회가 자정에 겹치지 않게 한다.
+    if (query.from && order.updatedAt < query.from) return false
+    if (query.to && order.updatedAt >= query.to) return false
+    return true
+  }
+
+  const afterCursor = (order: PaymentOrder): boolean => {
+    if (!after) return true
+    if (order.updatedAt !== after.updatedAt) return order.updatedAt < after.updatedAt
+    return order.orderId < after.orderId
+  }
+
+  const pageOf = (rows: PaymentOrder[]): PaymentOrderPage => {
+    const orders = rows.slice(0, limit)
+    return {
+      orders,
+      // 가져온 것이 limit 를 넘었을 때만 다음 페이지가 있다.
+      ...(rows.length > limit && orders.length > 0 ? { nextCursor: encodeOrderCursor(orders[orders.length - 1]) } : {}),
+    }
+  }
+
+  if (storageMode() === 'memory') {
+    const rows = Array.from(memoryOrders.values())
+      .filter((order) => withinWindow(order) && afterCursor(order))
+      .sort(compareOrdersDesc)
+      .slice(0, limit + 1)
+      .map(cloneOrder)
+    return pageOf(rows)
+  }
+
+  if (storageMode() === 'supabase') {
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('select', '*')
+    url.searchParams.set('order', 'updated_at.desc,order_id.desc')
+    url.searchParams.set('limit', String(limit + 1))
+    if (query.status) url.searchParams.set('status', `eq.${query.status}`)
+    if (query.from) url.searchParams.append('updated_at', `gte.${query.from}`)
+    if (query.to) url.searchParams.append('updated_at', `lt.${query.to}`)
+    if (after) {
+      // `(updated_at, order_id)` 튜플 비교. PostgREST 의 or 문법으로 표현한다.
+      url.searchParams.set(
+        'or',
+        `(updated_at.lt.${after.updatedAt},and(updated_at.eq.${after.updatedAt},order_id.lt.${after.orderId}))`,
+      )
+    }
+    const response = await fetch(url, { headers: supabaseHeaders() })
+    if (!response.ok) throw new Error('결제 내역 조회에 실패했습니다.')
+    const rows = (await response.json() as Array<Record<string, unknown>>).map(fromRow)
+    return pageOf(rows)
+  }
+
+  if (!pool) return { orders: [] }
+  await ensureDb()
+  const result = await pool.query<Record<string, unknown>>(
+    `
+      SELECT * FROM cheongi_payment_orders
+      WHERE ($2::text IS NULL OR status = $2)
+        AND ($3::timestamptz IS NULL OR updated_at >= $3)
+        AND ($4::timestamptz IS NULL OR updated_at < $4)
+        AND ($5::text IS NULL OR (updated_at, order_id) < ($5::timestamptz, $6))
+      ORDER BY updated_at DESC, order_id DESC
+      LIMIT $1
+    `,
+    [limit + 1, query.status ?? null, query.from ?? null, query.to ?? null, after?.updatedAt ?? null, after?.orderId ?? null],
+  )
+  return pageOf(result.rows.map(fromRow))
 }
 
 export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string): Promise<PaymentOrder[]> {

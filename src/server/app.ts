@@ -34,7 +34,8 @@ import { createSavedPreview, guardPreview } from '../report/report-preview.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
-import { staffMembership, staffMembershipConfigured } from '../auth/staff.js'
+import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
+import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -59,7 +60,9 @@ import {
   getPaymentOrder,
   getPaymentStorageMode,
   type PaymentStorageMode,
+  listAllPaymentOrders,
   listPaymentOrders,
+  PAYMENT_ORDER_STATUSES,
   checkPaymentStorageReadiness,
   savePaymentOrder,
   updatePaymentOrder,
@@ -1622,6 +1625,114 @@ app.get('/api/auth/config', (_req, res) => {
 function adminEnvironmentLabel(): string {
   return String(process.env.VERCEL_ENV ?? '') || (process.env.NODE_ENV === 'production' ? 'production' : 'development')
 }
+
+/**
+ * 관리자 API 공통 관문. 매 요청 권한을 다시 확인한다(A03).
+ *
+ * 셸이 열렸다는 것과 권한이 있다는 것은 다른 문제다. 셸은 데이터가 없는 HTML 이고,
+ * 데이터는 이 관문을 통과한 요청에만 나간다. scope 를 인자로 받아 라우트마다
+ * 필요한 권한을 명시하게 한다 — 지금은 조회 scope 뿐이다(T06 전까지 조치 없음).
+ */
+async function requireStaff(req: Request, res: Response, scope: string): Promise<StaffMembership | undefined> {
+  let owner: ReportOwner | undefined
+  try {
+    owner = await verifySupabaseUser(req)
+  } catch {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인 후 다시 시도해 주세요.' })
+    return undefined
+  }
+  if (!owner) {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인이 필요합니다.' })
+    return undefined
+  }
+  const membership = staffMembership(owner)
+  if (!membership) {
+    res.status(403).json({
+      code: 'STAFF_MEMBERSHIP_REQUIRED',
+      error: staffMembershipConfigured()
+        ? '이 계정에는 운영 관리자 권한이 없습니다.'
+        : '직원 권한 원본이 설정되지 않았습니다. 운영 담당자에게 문의해 주세요.',
+    })
+    return undefined
+  }
+  if (!membership.scopes.includes(scope)) {
+    // 권한은 있지만 이 조회에 필요한 scope 가 없다. 권한 없음과 구분해 응답한다.
+    res.status(403).json({ code: 'SCOPE_REQUIRED', error: '이 기능에 필요한 권한이 없습니다.' })
+    return undefined
+  }
+  return membership
+}
+
+/** 기간 인자. 형식이 틀리면 조용히 무시하지 않고 400 으로 알린다. */
+function parseAdminWindow(req: Request): { from?: string; to?: string } | 'invalid' {
+  const window: { from?: string; to?: string } = {}
+  for (const key of ['from', 'to'] as const) {
+    const raw = trimmedString(req.query?.[key])
+    if (!raw) continue
+    const parsed = new Date(raw)
+    if (Number.isNaN(parsed.getTime())) return 'invalid'
+    window[key] = parsed.toISOString()
+  }
+  return window
+}
+
+/**
+ * 주문 목록 (T08). 마스킹된 제한 DTO + 안정 cursor.
+ *
+ * 구형 주문은 `reportId` 가 없다(리포트가 생기기 전에 만들어진 주문). 그것을 오류로
+ * 다루지 않고 그대로 내보낸다 — 목록에서 사라지면 대사가 불가능해진다.
+ */
+app.get('/api/admin/v1/orders', async (req, res) => {
+  if (!await requireStaff(req, res, 'orders:read')) return
+  const window = parseAdminWindow(req)
+  if (window === 'invalid') {
+    res.status(400).json({ code: 'INVALID_WINDOW', error: '조회 기간 형식을 확인해 주세요.' })
+    return
+  }
+  const status = trimmedString(req.query?.status)
+  if (status && !PAYMENT_ORDER_STATUSES.includes(status as PaymentOrder['status'])) {
+    res.status(400).json({ code: 'INVALID_STATUS', error: '조회할 주문 상태를 확인해 주세요.' })
+    return
+  }
+  try {
+    const page = await listAllPaymentOrders({
+      limit: Number(req.query?.limit ?? 20),
+      cursor: trimmedString(req.query?.cursor) || undefined,
+      status: (status || undefined) as PaymentOrder['status'] | undefined,
+      ...window,
+    })
+    res.json({
+      orders: page.orders.map(toAdminPaymentOrderDto),
+      ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
+      storage: getPaymentStorageMode(),
+    })
+  } catch (error) {
+    // 조회 위치가 깨진 cursor 는 사용자 입력 문제이므로 400 으로 돌려준다.
+    const message = error instanceof Error ? error.message : ''
+    if (message.includes('조회 위치')) {
+      res.status(400).json({ code: 'INVALID_CURSOR', error: '조회 위치를 확인해 주세요.' })
+      return
+    }
+    res.status(502).json({ code: 'ORDER_LOOKUP_FAILED', error: '주문 조회에 실패했습니다.' })
+  }
+})
+
+/** 주문 상세. 목록과 같은 마스킹을 쓴다 — 상세라고 원문을 더 주지 않는다. */
+app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
+  if (!await requireStaff(req, res, 'orders:read')) return
+  const orderId = trimmedString(req.params.orderId)
+  try {
+    const order = orderId ? await getPaymentOrder(orderId) : null
+    if (!order) {
+      // 없는 주문과 권한 없음을 구분한다(A35).
+      res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' })
+      return
+    }
+    res.json({ order: toAdminPaymentOrderDto(order) })
+  } catch {
+    res.status(502).json({ code: 'ORDER_LOOKUP_FAILED', error: '주문 조회에 실패했습니다.' })
+  }
+})
 
 app.get('/api/admin/v1/me', async (req, res) => {
   let owner: ReportOwner | undefined
