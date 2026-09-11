@@ -1,0 +1,1861 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "static:0014aa1b38b1838fb0bd",
+      "name": "chungi-asset-one.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 341622,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "5b248c99e11b016c8aede38fc26b04ebc6c0e326a5554b2701f29fe3727da476",
+      "publicUrl": "/assets/chungi-asset-one.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:fdf09ac368afc4ce5f92",
+      "name": "chungi-asset-two.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 495504,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "a3393d5a21609547fec2417c68a466edfd7625fe30b7393454aac49c6d6a054a",
+      "publicUrl": "/assets/chungi-asset-two.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:f041a4d6d4d494e787f2",
+      "name": "chungi-character-a.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 180444,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "edb28f9b7a3f2b7132a65debc71a4a3f92f6d97223378e657ef64ea7e7b8d4c9",
+      "publicUrl": "/assets/chungi-character-a.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:bef59396beaf4136987a",
+      "name": "chungi-character-d.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 398400,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "8cbbd6ad8befb6f144ec7f5809c7d0357dcefd5a64b0898b7153ab52007ebdd7",
+      "publicUrl": "/assets/chungi-character-d.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:45032361808926ec878a",
+      "name": "chungi-character-outro.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 267626,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "3763bfe761a9e910aa9c769fe65559dc17561b2f0000478937784eba453959fe",
+      "publicUrl": "/assets/chungi-character-outro.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:bf1eeff7153e7674ecfd",
+      "name": "chungi-chat-logo.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 13624,
+      "width": 1080,
+      "height": 240,
+      "durationSeconds": null,
+      "checksum": "64ef1bffc3559e31dd774762baf3bc09718ba39d24a139152c6044f3e4f4e121",
+      "publicUrl": "/assets/chungi-chat-logo.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:6369a08ba1c9d8017d2a",
+      "name": "chungi-comparison-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 276296,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "3ea2e2ea98873d56b8640762716783a23173474c095a1e40c36f1710ea1e93d4",
+      "publicUrl": "/assets/chungi-comparison-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:78dc58364fd1384d327c",
+      "name": "chungi-concern-loop.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 4590015,
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 4.042,
+      "checksum": "d2db921dc164c3a03ff56376bbbbb4df3102817853e1089c0e3b1e3bdab2e1fc",
+      "publicUrl": "/assets/chungi-concern-loop.mp4",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:52d8e2559ba97f8a633d",
+      "name": "chungi-date-preview-one.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 511322,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "6d82224f4fc2e986bcaff802c89d152a745497030f92cb73c6eee8c29a89e2cd",
+      "publicUrl": "/assets/chungi-date-preview-one.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:63f76eb20e5733bc85d5",
+      "name": "chungi-date-preview-three.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 229920,
+      "width": 1080,
+      "height": 3754,
+      "durationSeconds": null,
+      "checksum": "f1c18492dbce28bd4625a9db28ea06ff2fd0772b7f6b1f5bb8e54a1b02712eed",
+      "publicUrl": "/assets/chungi-date-preview-three.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:34a42a201b3afb31e293",
+      "name": "chungi-destiny-card-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 89860,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "baa262fc737a655f66da12efed90e2b922a5daff9f255ea89f3cd1c0499d516c",
+      "publicUrl": "/assets/chungi-destiny-card-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/destiny.html",
+        "사주/js/destiny.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:245566967fa5c0874634",
+      "name": "chungi-grand-oracle.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 141440,
+      "width": 900,
+      "height": 1599,
+      "durationSeconds": null,
+      "checksum": "3d70a3c7f7bc4ad277478e391b5343e7bb5a901c2e57bb5cdee32ea41df96cc7",
+      "publicUrl": "/assets/chungi-grand-oracle.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:faef5ca97ac28dd1bb26",
+      "name": "chungi-grand-relationship.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 109876,
+      "width": 900,
+      "height": 1599,
+      "durationSeconds": null,
+      "checksum": "5cb0cdc3c5c47c28bf27635135afdecc37e1bdf0d4b4e920dbea76f1103e3421",
+      "publicUrl": "/assets/chungi-grand-relationship.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:91d9a1b544fac2e9488d",
+      "name": "chungi-grand-report.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 115916,
+      "width": 900,
+      "height": 1599,
+      "durationSeconds": null,
+      "checksum": "7b69204c24b2663780a865fff82199d28206f96920affb6bd82eea1be6748b9b",
+      "publicUrl": "/assets/chungi-grand-report.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:5c547dcce8a1d44dfdc1",
+      "name": "chungi-grand-thread.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 143840,
+      "width": 900,
+      "height": 1599,
+      "durationSeconds": null,
+      "checksum": "c4005ada0c185a4a518524df057e2950a6a9695edd55484a1d75d434a2f3a19b",
+      "publicUrl": "/assets/chungi-grand-thread.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:fc77a1af440cd58682eb",
+      "name": "chungi-hand-bells.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 228226,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "d29548c2bbc6a687a9f4dffadf73b4c7a340726b4b83ac5dc74cfb50a48f1fe0",
+      "publicUrl": "/assets/chungi-hand-bells.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:167eb67e0dc5f189ab65",
+      "name": "chungi-hand-reach.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 166866,
+      "width": 1024,
+      "height": 1536,
+      "durationSeconds": null,
+      "checksum": "f7605fb6debb7a944783d6abfede5b20a2e97196d4ff10d6676fdcc034e7d5f2",
+      "publicUrl": "/assets/chungi-hand-reach.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:ac020421036b32d78e97",
+      "name": "chungi-intro-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 134056,
+      "width": 1672,
+      "height": 941,
+      "durationSeconds": null,
+      "checksum": "af0effe5e7d3dbbd8f4175845422a501831fee381ec5065e3571efc9de3fcdb3",
+      "publicUrl": "/assets/chungi-intro-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:44d0466b3347b4807392",
+      "name": "chungi-landing-story.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 1558336,
+      "width": 1664,
+      "height": 1248,
+      "durationSeconds": 5.042,
+      "checksum": "53f78a8968fce26c0dcc6db2242346c8868e1bb9a062690c825462f706b71d36",
+      "publicUrl": "/assets/chungi-landing-story.mp4",
+      "references": [
+        "사주/about.html",
+        "사주/cmdg/index.html",
+        "사주/portal.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1bbacdb80198b9569bf9",
+      "name": "chungi-last-saju-book.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 307304,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "f362c6cefdf2a4f908a31f7b4958d20b15a95fc1795606bf9232dcad8713d76c",
+      "publicUrl": "/assets/chungi-last-saju-book.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:92f7c82033ca1bd72de4",
+      "name": "chungi-manseryeok-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 243564,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "16ab48bb9095bd372e8fcd8e6cb0cabb87bcbddf7706bc98b37c75b8db8982a4",
+      "publicUrl": "/assets/chungi-manseryeok-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/css/destiny.css",
+        "사주/destiny.html",
+        "사주/js/chat.js",
+        "사주/js/destiny.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:f04d85752d0ca56a6913",
+      "name": "chungi-mask-hand.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 280914,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "15121b7f284e15b39455c3d55b231cf2d1ad0b90a3544e69ab5d138ad6b0bc5a",
+      "publicUrl": "/assets/chungi-mask-hand.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:ec1ccd694151c9f50d40",
+      "name": "chungi-nav-logo.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 24122,
+      "width": 1080,
+      "height": 240,
+      "durationSeconds": null,
+      "checksum": "adf3d5a12e219bb1c458a54b5784da68c2e63948d94748f8d991833dbf8932a9",
+      "publicUrl": "/assets/chungi-nav-logo.webp",
+      "references": [
+        "사주/js/chat.js"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:82bf008519b932a64bb9",
+      "name": "chungi-palza-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 284808,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "0f2da8184583e50e367267020ef8177d8cac57eb90cae603f0e5192b3f1e9c7a",
+      "publicUrl": "/assets/chungi-palza-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1517dd780b4d20a7e9e4",
+      "name": "chungi-preview-two.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 217432,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "127be578dd41cd8a3b5e2bcbeb4731928588e3c39624dc836a389bcfb67e9202",
+      "publicUrl": "/assets/chungi-preview-two.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:ddcd5925972016bf2222",
+      "name": "chungi-price-character.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 110128,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "48b8b56a8a2bd96856a4a88dca97440bb64a2b50feaa22176908a50f6ac9a150",
+      "publicUrl": "/assets/chungi-price-character.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:8ee503d2a765d5eed1ce",
+      "name": "chungi-romance-closeup.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 183248,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "923f2477d17a1f617405a9f4497a4eb8b26aa2c4bb12c58e99cd8e3c44626ec0",
+      "publicUrl": "/assets/chungi-romance-closeup.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:381b85b25fa18ae23288",
+      "name": "chungi-source-hero.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 230250,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "844c819422095c5e943c491102e2b8364cba0779d33056fb24644c2fe21634d7",
+      "publicUrl": "/assets/chungi-source-hero.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:d9adbd7e5503c83096eb",
+      "name": "chungi-wealth-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 223808,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "8be4a737dcbd0841b328656aa789100f9e9f3127c094821a36e9c9b5e5e9f126",
+      "publicUrl": "/assets/chungi-wealth-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:75584e9e4c49f4b56673",
+      "name": "chungi-wealth-transition.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 202542,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "e4130d4cfb4fc4077833dc787ac6ac6cc3009965a4e551b5bef9ad44aa5f616e",
+      "publicUrl": "/assets/chungi-wealth-transition.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:4b5197c198bfad829179",
+      "name": "chungi-worry-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 169580,
+      "width": 1448,
+      "height": 1086,
+      "durationSeconds": null,
+      "checksum": "6227e381fdc57094b89ff341b4a7abb6a0c4fc0eec1fb58de1b3a425746795fa",
+      "publicUrl": "/assets/chungi-worry-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:a33796c1376eea744d87",
+      "name": "cut-01-intro.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 107636,
+      "width": 926,
+      "height": 1698,
+      "durationSeconds": null,
+      "checksum": "90ccd2e7a3e8953c770ea14d6e4356237bf8b8f4c10b8b064a1846db80414d94",
+      "publicUrl": "/assets/cut-01-intro.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:e499b21998be2d98e6c5",
+      "name": "cut-02-fan.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 271456,
+      "width": 928,
+      "height": 1694,
+      "durationSeconds": null,
+      "checksum": "5dba64fe65a96eb61d325329cd25579f98b4d054eaec900261653d6b37b2d7d6",
+      "publicUrl": "/assets/cut-02-fan.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:7aa31a8012c91dc77033",
+      "name": "cut-03-saju.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 215432,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "69d86bb983211c78c9a111856b21053f23826d35dce115c73bf7dad6d675fa6d",
+      "publicUrl": "/assets/cut-03-saju.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:b0e27612db43017575a2",
+      "name": "cut-04-wealth.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 221870,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "81e08b69826175ebf69746ed9d31ac7c9c3269f9eb3096e046da8e3da9600dd4",
+      "publicUrl": "/assets/cut-04-wealth.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1df3a0d93aed6e062cd2",
+      "name": "cut-05-romance.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 132594,
+      "width": 889,
+      "height": 1770,
+      "durationSeconds": null,
+      "checksum": "abb4fbd75d7e71f4bd5474551d61d90b9caf2b1507dabbb221b37ffc074439c3",
+      "publicUrl": "/assets/cut-05-romance.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:59c1a1e9e16ef98985c1",
+      "name": "cut-06-outro.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 191762,
+      "width": 887,
+      "height": 1774,
+      "durationSeconds": null,
+      "checksum": "7754150c42562d8f53592c3834a3963c91a3d1a3be86d3da43b24efa7aa314bc",
+      "publicUrl": "/assets/cut-06-outro.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:4e24c687fca1df318ef1",
+      "name": "faq-study-v2.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2157632,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "90013e0a0e02e344c166a27ea50bf6a5eb10570f169f3054b5b13a702dd2ce4f",
+      "publicUrl": "/assets/faq-study-v2.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:66fbb188a8641752b2a7",
+      "name": "MaruBuri-Bold.woff2",
+      "kind": "font",
+      "mime": "font/woff2",
+      "bytes": 298652,
+      "width": null,
+      "height": null,
+      "durationSeconds": null,
+      "checksum": "11c4641d3fe9b33efcf7c0687de91a5b6db724605ab75323557da138da543d12",
+      "publicUrl": "/assets/fonts/MaruBuri-Bold.woff2",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/css/about.css",
+        "사주/css/destiny.css",
+        "사주/css/faq-v2.css",
+        "사주/css/policy.css",
+        "사주/day/wedding/assets/style.css",
+        "사주/match/couple/01-step-1-story/index.html",
+        "사주/match/couple/02-step-2-saju-input/index.html",
+        "사주/match/marry/01-step-1-story/index.html",
+        "사주/match/marry/02-step-2-saju-input/index.html",
+        "사주/match/marry/04-step-4-report/index.html",
+        "사주/place/home/01-step-1-story/index.external-assets.html",
+        "사주/place/home/01-step-1-story/index.html",
+        "사주/place/home/02-step-2-saju-input/index.html",
+        "사주/place/home/04-step-4-report/index.html",
+        "사주/place/home/05-step-5-chat/chat.html",
+        "사주/place/home/06-step-6_1-report-detail/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:76261ce49904b4659d31",
+      "name": "MaruBuri-SemiBold.woff2",
+      "kind": "font",
+      "mime": "font/woff2",
+      "bytes": 315464,
+      "width": null,
+      "height": null,
+      "durationSeconds": null,
+      "checksum": "340e4dcbf466028565d194cab86159dc40cedaf8e38db5429472a2468d8036f8",
+      "publicUrl": "/assets/fonts/MaruBuri-SemiBold.woff2",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/css/destiny.css",
+        "사주/match/cat/01-step-1-story/index.html",
+        "사주/match/cat/02-step-2-saju-input/index.html",
+        "사주/match/cat/04-step-4-report/index.html",
+        "사주/match/cat/05-step-5-chat/chat.html",
+        "사주/match/cat/06-step-6_1-report-detail/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1fdb205e7b64e451c798",
+      "name": "NotoSerifKR-Regular.ttf",
+      "kind": "font",
+      "mime": "font/ttf",
+      "bytes": 14045780,
+      "width": null,
+      "height": null,
+      "durationSeconds": null,
+      "checksum": "b19654a4161c3623ba30ca64d3eadf5bb6a92b1dc13d332c60cbb18231bf117a",
+      "publicUrl": "/assets/fonts/NotoSerifKR-Regular.ttf",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:3faa89316f68640c6cd5",
+      "name": "Pretendard-Medium.woff2",
+      "kind": "font",
+      "mime": "font/woff2",
+      "bytes": 778432,
+      "width": null,
+      "height": null,
+      "durationSeconds": null,
+      "checksum": "d03481330eeba0659ab5b87f25ceb504a35de377dd90a0d0aba2982eb2d05e2c",
+      "publicUrl": "/assets/fonts/Pretendard-Medium.woff2",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/css/destiny.css",
+        "사주/css/faq-v2.css",
+        "사주/css/policy.css",
+        "사주/day/wedding/assets/style.css",
+        "사주/match/cat/01-step-1-story/index.html",
+        "사주/match/cat/02-step-2-saju-input/index.html",
+        "사주/match/cat/04-step-4-report/index.html",
+        "사주/match/cat/05-step-5-chat/chat.html",
+        "사주/match/cat/06-step-6_1-report-detail/index.html",
+        "사주/match/couple/01-step-1-story/index.html",
+        "사주/match/couple/02-step-2-saju-input/index.html",
+        "사주/match/couple/04-step-4-report/index.html",
+        "사주/match/marry/01-step-1-story/index.html",
+        "사주/match/marry/02-step-2-saju-input/index.html",
+        "사주/match/marry/04-step-4-report/index.html",
+        "사주/place/home/01-step-1-story/index.external-assets.html",
+        "사주/place/home/01-step-1-story/index.html",
+        "사주/place/home/02-step-2-saju-input/index.html",
+        "사주/place/home/04-step-4-report/index.html",
+        "사주/place/home/05-step-5-chat/chat.html",
+        "사주/place/home/06-step-6_1-report-detail/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:dbd86de5c6c78ff2732b",
+      "name": "hero-mystic.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 108580,
+      "width": 864,
+      "height": 1821,
+      "durationSeconds": null,
+      "checksum": "968472905678e52e31e2efa7f8dfb2002167dee3d110464774f2fce2fcf438b1",
+      "publicUrl": "/assets/hero-mystic.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html",
+        "src/report/report-generator.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:a0b0784ff23af7ecf6b4",
+      "name": "honggildong-saju-report-list.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 229920,
+      "width": 1080,
+      "height": 3754,
+      "durationSeconds": null,
+      "checksum": "f1c18492dbce28bd4625a9db28ea06ff2fd0772b7f6b1f5bb8e54a1b02712eed",
+      "publicUrl": "/assets/honggildong-saju-report-list.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/chat.js",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:48503778ba0f863b7261",
+      "name": "love-ty-char-cafe-v2.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 228940,
+      "width": 1024,
+      "height": 1536,
+      "durationSeconds": null,
+      "checksum": "96c3c21a68ecec31a3193d5c0a3bbb0c0c560cc37782cc1bd1371c6b3a03dbb1",
+      "publicUrl": "/assets/love-ty-char-cafe-v2.webp",
+      "references": [
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:249eb3f66e91980ec5f1",
+      "name": "love-ty-char-cafe.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 97526,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "5032ebaee78da98ee41890c9c743519c937397cf43bc8ff84e5b626aa0eb8f0b",
+      "publicUrl": "/assets/love-ty-char-cafe.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:d64b9d157c6355573847",
+      "name": "love-ty-char-chart-v2.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 308118,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "9f04fd75d8561c80dfe3d4c299eb4071faf89880d0bd72d0d966c8d915e63c31",
+      "publicUrl": "/assets/love-ty-char-chart-v2.webp",
+      "references": [
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:f18885edfa5494f489cb",
+      "name": "love-ty-char-chart.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 279788,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "66739d4b08f7c81580da47c670153ecafe7af2cc88fe25f48b368e3309baeaa9",
+      "publicUrl": "/assets/love-ty-char-chart.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:69d0ef66da7c39133294",
+      "name": "love-ty-char-hook-v2.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 226704,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "45cc565a33966f7ebf0927d79538187a74dd4238448498e8a91bb3f26f2e940b",
+      "publicUrl": "/assets/love-ty-char-hook-v2.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:eb2b06c3bbcfaf83916d",
+      "name": "love-ty-char-hook.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 87630,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "d08c93cea10c5353e9846c2b5db7511908696216d71bf6723bee6af034bb651f",
+      "publicUrl": "/assets/love-ty-char-hook.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:33be69a446e18c363275",
+      "name": "love-ty-char-phone-v2.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 156602,
+      "width": 1024,
+      "height": 1536,
+      "durationSeconds": null,
+      "checksum": "ba7c912b2bfc2a5b37ba603ccee1f7eaac38bc8cb815b5cfd2adab58f71f4b78",
+      "publicUrl": "/assets/love-ty-char-phone-v2.webp",
+      "references": [
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:b19624db28ae9026db1b",
+      "name": "love-ty-char-phone.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 47862,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "f74c34d59d6d0dc448ec7dbb79f9d85377857fc819f96c8794615326b822d531",
+      "publicUrl": "/assets/love-ty-char-phone.webp",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1bc8a69855467b1e5ed3",
+      "name": "love-ty-chart-flow.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2603714,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "ad5f2d53367cd655cc610a9fa5db8dec0494b8861610ac210a2b2c43ade094fe",
+      "publicUrl": "/assets/love-ty-chart-flow.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:5e812585776aacfeaeb6",
+      "name": "love-ty-feel-phone.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 1782956,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "e04e086e982b58cbc3e363f4f4ec45e2a2721633a135110faa3a91ef0210b08b",
+      "publicUrl": "/assets/love-ty-feel-phone.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:6185126f68d3520f8ffd",
+      "name": "love-ty-hook-silhouettes.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2074017,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "f4d36d6806521f867bc9f95d4f79249cfd8198dc09a62d0a9aa90aabac5ee43f",
+      "publicUrl": "/assets/love-ty-hook-silhouettes.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:40b621d25d954ba3c1fa",
+      "name": "love-ty-scene-cafe.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2099983,
+      "width": 1536,
+      "height": 1024,
+      "durationSeconds": null,
+      "checksum": "88be6a0a1920e75c30c83021abea61ba71f7b4b97f1a1e00d4aa90cc99c047ea",
+      "publicUrl": "/assets/love-ty-scene-cafe.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:21be62ff1bd4f53fcee4",
+      "name": "mz-01-intro-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 361834,
+      "width": 3068,
+      "height": 1408,
+      "durationSeconds": null,
+      "checksum": "52a24868ddadc04091f3a9bd98fb709f1a725e515f103c583fd729fdae395b84",
+      "publicUrl": "/assets/mz-01-intro-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:b77d07c8fb5f20c76f48",
+      "name": "umsh-affair-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 1959834,
+      "width": 1024,
+      "height": 1536,
+      "durationSeconds": null,
+      "checksum": "4fa0beddf3cefa186eccb0b528c501977c53afe0884a085b5d77e386d6f0a86e",
+      "publicUrl": "/assets/umsh-affair-card-bg.png",
+      "references": [
+        "사주/about.html",
+        "사주/portal.html",
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:78001d07ad4adaa52795",
+      "name": "umsh-brand-logo.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 1607763,
+      "width": 2048,
+      "height": 768,
+      "durationSeconds": null,
+      "checksum": "477917f45d56267e346d467a890deb3c2010547ae1d1f56c7e402c3c616627e3",
+      "publicUrl": "/assets/umsh-brand-logo.png",
+      "references": [
+        "사주/about.html",
+        "사주/cmdg/index.html",
+        "사주/destiny.html",
+        "사주/faq/career.html",
+        "사주/faq/fortune.html",
+        "사주/faq/life.html",
+        "사주/faq/love.html",
+        "사주/faq/match.html",
+        "사주/faq/money.html",
+        "사주/faq/payment.html",
+        "사주/faq/reading.html",
+        "사주/faq/report.html",
+        "사주/faq/use.html",
+        "사주/faq/workflow.html",
+        "사주/faq.html",
+        "사주/js/service-shell.js",
+        "사주/portal.html",
+        "사주/privacy.html",
+        "사주/refund.html",
+        "사주/support.html",
+        "사주/terms.html",
+        "사주/사주/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:3dc017c7a74e874646e5",
+      "name": "umsh-cmdg-card-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 68492,
+      "width": 720,
+      "height": 1279,
+      "durationSeconds": null,
+      "checksum": "80663f19d4c7a3b86a98880e87852d69e22473ec9792676e27a252d638634836",
+      "publicUrl": "/assets/umsh-cmdg-card-bg.webp",
+      "references": [
+        "사주/about.html",
+        "사주/portal.html",
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:08d14f733be122f428de",
+      "name": "umsh-exam-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 3994946,
+      "width": 1254,
+      "height": 1254,
+      "durationSeconds": null,
+      "checksum": "e4dd2e2353fdf503633fe05152d8109b6da1b9aba9125678dbd137faccd6ec8d",
+      "publicUrl": "/assets/umsh-exam-card-bg.png",
+      "references": [
+        "사주/about.html",
+        "사주/portal.html",
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:712a444b5e5b3126b30e",
+      "name": "umsh-love-card-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 94554,
+      "width": 750,
+      "height": 1000,
+      "durationSeconds": null,
+      "checksum": "cd350b56f1231ca8f443757f9a0bd164b888945e9ba45c581683cab1ecf1dc2b",
+      "publicUrl": "/assets/umsh-love-card-bg.webp",
+      "references": [
+        "사주/cmdg/index.html",
+        "사주/js/service-public-detail.js",
+        "사주/love/again/index.html",
+        "사주/love/mind/index.html",
+        "사주/love/spouse/index.html",
+        "사주/report-view.html",
+        "사주/사주/index.html",
+        "src/love/again-service.ts",
+        "src/love/mind-service.ts",
+        "src/love/spouse-service.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:bd4a5592069452ce0f92",
+      "name": "umsh-match-banner-visual.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2442124,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "97f2b0f0f80496b6a2a68d65f3e429e13631fc8149a1e8bfbab03fa3d029ec4f",
+      "publicUrl": "/assets/umsh-match-banner-visual.png",
+      "references": [
+        "사주/js/service-public-detail.js",
+        "사주/portal.html",
+        "src/match/couple-service.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:4f53312c3bcbae08e74a",
+      "name": "umsh-match-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2207016,
+      "width": 1024,
+      "height": 1536,
+      "durationSeconds": null,
+      "checksum": "9b6b313f9e6da012db1cb92eeefc11aafc1a0a9321910c1b20cfa5f1fe1a462e",
+      "publicUrl": "/assets/umsh-match-card-bg.png",
+      "references": [
+        "사주/js/service-public-detail.js",
+        "사주/portal.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:57bfffe30d9064c38fe0",
+      "name": "umsh-money-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2476102,
+      "width": 1086,
+      "height": 1448,
+      "durationSeconds": null,
+      "checksum": "f6636004b71b515785dda98d131b7f94b84f3ec641737d51ab91f5e031440e2f",
+      "publicUrl": "/assets/umsh-money-card-bg.png",
+      "references": [
+        "사주/about.html",
+        "사주/js/service-public-detail.js",
+        "사주/portal.html",
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:d67b66cc97ab762f70fc",
+      "name": "umsh-place-card-bg.webp",
+      "kind": "image",
+      "mime": "image/webp",
+      "bytes": 145322,
+      "width": 941,
+      "height": 1672,
+      "durationSeconds": null,
+      "checksum": "a3cdabd32f0ceb54b50e22d3182798b0c6a1bfe6195c3441405b55f63082b3d1",
+      "publicUrl": "/assets/umsh-place-card-bg.webp",
+      "references": [
+        "사주/place/home/01-step-1-story/index.external-assets.html",
+        "사주/place/home/01-step-1-story/index.html",
+        "사주/place/home/02-step-2-saju-input/index.html",
+        "사주/place/home/04-step-4-report/index.html",
+        "사주/place/home/05-step-5-chat/chat.html",
+        "사주/place/home/06-step-6_1-report-detail/index.html",
+        "사주/portal.html",
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:79150b9dacb84790f53d",
+      "name": "umsh-quit-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2438780,
+      "width": 1254,
+      "height": 1254,
+      "durationSeconds": null,
+      "checksum": "a6947ed170993af6bd01242ceaf3bf6db63e2c9965bef9f54601ee95adee6972",
+      "publicUrl": "/assets/umsh-quit-card-bg.png",
+      "references": [
+        "사주/about.html",
+        "사주/portal.html",
+        "src/server/service-directory.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:751703075ed4b84a48a4",
+      "name": "umsh-share-banner.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 1138262,
+      "width": 1200,
+      "height": 630,
+      "durationSeconds": null,
+      "checksum": "f8e5727e24576279bd78382ffb2a962b46ad807b3ec7117f2cc05ff0a55c1f97",
+      "publicUrl": "/assets/umsh-share-banner.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:30b4d1e8d8f90b7211ed",
+      "name": "umsh-share-icon.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 280095,
+      "width": 512,
+      "height": 512,
+      "durationSeconds": null,
+      "checksum": "fc0151384468e0c14ad180f7660cd2d2605fb9fcdc5ccf1e93265c894036f6db",
+      "publicUrl": "/assets/umsh-share-icon.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:963f1b3b552f65c30aee",
+      "name": "umsh-share-scene-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 1999353,
+      "width": 1731,
+      "height": 909,
+      "durationSeconds": null,
+      "checksum": "bb4539c8046280211f2dc899583e2b719676fc0ceee89542155a5a92475dd081",
+      "publicUrl": "/assets/umsh-share-scene-bg.png",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:a7d4d15fb9ccbefd1e8b",
+      "name": "umsh-signature-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2374729,
+      "width": 1086,
+      "height": 1448,
+      "durationSeconds": null,
+      "checksum": "6759362519494e1ba995381da8152291ff0d4cd7192fc4778bec46c409bcc28d",
+      "publicUrl": "/assets/umsh-signature-card-bg.png",
+      "references": [
+        "사주/portal.html",
+        "사주/work/move/01-step-1-story/index.html",
+        "사주/work/move/02-step-2-saju-input/index.html",
+        "사주/work/move/04-step-4-report/index.html",
+        "사주/work/move/05-step-5-chat/chat.html",
+        "사주/work/move/06-step-6_1-report-detail/index.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:c911731a02364a9f654d",
+      "name": "umsh-splash.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 1212961,
+      "width": 720,
+      "height": 1280,
+      "durationSeconds": 5,
+      "checksum": "8316dc29e9b766c3da0d5c23db05340e3d631fd5674c46e0323065c9bf41286f",
+      "publicUrl": "/assets/umsh-splash.mp4",
+      "references": [
+        "사주/portal.html"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:a09bb7c44017cae9ff9c",
+      "name": "umsh-work-card-bg.png",
+      "kind": "image",
+      "mime": "image/png",
+      "bytes": 2137277,
+      "width": 1086,
+      "height": 1448,
+      "durationSeconds": null,
+      "checksum": "28042ba07e5c2a938ca090407a9a0b2b6b105918e77a9fc8cdb6ee5ec8f2fa84",
+      "publicUrl": "/assets/umsh-work-card-bg.png",
+      "references": [
+        "사주/js/service-public-detail.js",
+        "사주/work/job/index.html",
+        "src/server/service-directory.ts",
+        "src/work/job-service.ts"
+      ],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:88e24440df31477d75fb",
+      "name": "01-closeup.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 276300,
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 7.042,
+      "checksum": "59fb40bb292f757361d3e23d83459b5b504b9b8c3ce3196033fda3271f6f0019",
+      "publicUrl": "/assets/videos/01-closeup.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:947c9a443a393b596486",
+      "name": "02-ritual-object.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 298042,
+      "width": 720,
+      "height": 1280,
+      "durationSeconds": 7.042,
+      "checksum": "2cc82800ee4393a8ae74f8fc9523760cd37489af355a20d7dcc9792b45facd7f",
+      "publicUrl": "/assets/videos/02-ritual-object.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:75b8731a44cf32f62e03",
+      "name": "03-chin-closeup.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 247594,
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 7.042,
+      "checksum": "5a0fbb017bd8129cb54b4a8ce22dcb8e77e538142e4eb699c422703a393cde1b",
+      "publicUrl": "/assets/videos/03-chin-closeup.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:b2add030e02458940ac1",
+      "name": "06-fan-eyes.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 533565,
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 7.042,
+      "checksum": "116a6e944d19af9c1a1a0256cf186ac9440580e5b3276ade93977f2a942bff2d",
+      "publicUrl": "/assets/videos/06-fan-eyes.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1ca7dc73e8779d24edd8",
+      "name": "08-compass.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 271653,
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 7.042,
+      "checksum": "b3f3e68b5dc3ff1c45cc1bb9b3f7a4bde5769b1c80f88a5e43ffe848cebe5c50",
+      "publicUrl": "/assets/videos/08-compass.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:79b6d86710db277c30c7",
+      "name": "09-talisman.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 479668,
+      "width": 720,
+      "height": 1280,
+      "durationSeconds": 7.042,
+      "checksum": "a2af29ebc7bc60af4c0d2dec6953635b6a07d0ab34c77f1c11be2c0a6a5f8dcb",
+      "publicUrl": "/assets/videos/09-talisman.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:31057fe06c04d82121cb",
+      "name": "13-fate-network.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 920360,
+      "width": 720,
+      "height": 1280,
+      "durationSeconds": 7.042,
+      "checksum": "4ba90bb8268a7c62d7fc84d8bb65638e99c501677f415fd5524e5379aa5dac54",
+      "publicUrl": "/assets/videos/13-fate-network.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:1e2101bd7d5f68a9f92c",
+      "name": "14-bell-wand.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 555141,
+      "width": 720,
+      "height": 1280,
+      "durationSeconds": 7.042,
+      "checksum": "431fed1e0365e19ef8ae47937395aee76d3dd00a839754f250eed3de3549a301",
+      "publicUrl": "/assets/videos/14-bell-wand.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:7b941644935f99b2a976",
+      "name": "16-relationship-fog.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 280346,
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 7.042,
+      "checksum": "2e6fbda3c58516bc4bed55559a514a2f42581c147c9ff112b3775110685c1110",
+      "publicUrl": "/assets/videos/16-relationship-fog.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    },
+    {
+      "id": "static:7aaea47af62c8962be9a",
+      "name": "19-fate-scholar.mp4",
+      "kind": "video",
+      "mime": "video/mp4",
+      "bytes": 434164,
+      "width": 834,
+      "height": 1112,
+      "durationSeconds": 7.042,
+      "checksum": "f946845205aeb61df264396bb367723b8e787dde1aed8b8013ba66fe3da72910",
+      "publicUrl": "/assets/videos/19-fate-scholar.mp4",
+      "references": [],
+      "posterUrl": null,
+      "rightsStatus": "unverified",
+      "validation": {
+        "status": "valid",
+        "issues": []
+      }
+    }
+  ]
+}

@@ -38,6 +38,7 @@ import { staffMembership, staffMembershipConfigured, type StaffMembership } from
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports } from '../admin/live-data.js'
+import { listAdminMediaAssets, mediaInventorySummary } from '../admin/media-inventory.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
@@ -1861,6 +1862,15 @@ app.get('/api/admin/v1/services', async (req, res) => {
     res.json(await getAdminServiceVersionSnapshot())
   } catch {
     res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
+  }
+})
+app.get('/api/admin/v1/media', async (req, res) => {
+  if (!await requireStaff(req, res, 'media:read')) return
+  try {
+    const assets = listAdminMediaAssets()
+    res.json({ assets, summary: mediaInventorySummary(assets), source: 'deployed-static' })
+  } catch {
+    res.status(503).json({ code: 'MEDIA_INVENTORY_LOOKUP_FAILED', error: '배포 미디어 인벤토리를 불러오지 못했습니다.' })
   }
 })
 app.post('/api/admin/v1/services/:key/drafts', async (req, res) => {

@@ -166,7 +166,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
       // 환불은 요청·승인·조회로 분리된 별도 scope 이며, 삭제 권한은 주지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish'])
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish', 'media:read'])
       assert.ok(!me.scopes.some((scope: string) => /delete/.test(scope)), '허용되지 않은 삭제 권한이 생겼다')
       assert.ok(me.scopes.includes('settings:write'), '감사 기반 설정 변경 권한이 없다')
       assert.ok(me.scopes.includes('support:read') && me.scopes.includes('support:write'), '고객 지원 권한이 없다')
@@ -258,8 +258,23 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /loadSupportNotice/, '실제 공지 데이터 로더가 없다')
       assert.match(text, /이 공지를 발행/, '공지 발행 CTA가 없다')
       assert.match(text, /content\.notice\.draft|\/api\/admin\/v1\/content\/notices\/support/, '공지 명령 호출이 없다')
+      assert.match(text, /loadLiveMedia/, '실제 배포 미디어 로더가 없다')
+      assert.match(text, /\/api\/admin\/v1\/media/, '관리자 미디어 API 호출이 없다')
+      assert.match(text, /현재 배포된 실제 미디어 자산이 없습니다/, '미디어 실제 빈 상태가 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
+    })
+
+    it('미디어 목록 API는 관리자만 실제 배포 자산을 조회한다', async () => {
+      const anonymous = await request('/api/admin/v1/media')
+      assert.equal(anonymous.response.status, 401)
+      const allowed = await request('/api/admin/v1/media', 'super')
+      assert.equal(allowed.response.status, 200)
+      const payload = JSON.parse(allowed.text)
+      assert.equal(payload.source, 'deployed-static')
+      assert.ok(payload.assets.length >= 80)
+      assert.equal(payload.summary.total, payload.assets.length)
+      assert.ok(payload.assets.every((asset: Record<string, unknown>) => !('filePath' in asset)))
     })
 
     it('서비스 목록 API는 관리자만 실제 카탈로그를 조회한다', async () => {

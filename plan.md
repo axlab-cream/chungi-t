@@ -88,7 +88,8 @@
 | T18 | task-t18 | M2 | P0 | T09,T17 | 환불 UI | NEEDS_REVIEW — 실제 refund_requests 조회·등록·독립 승인 검토 화면 구현; Production REST 조회 503 원인 확인 필요 |
 | T19~T21 | - | M2 | P0 | (pack) | 금융·복구 (대사, 재시도, incident) | TODO |
 | T22 | task-t22 | M3 | P1 | T02,T06,T14 | 서비스·콘텐츠 버전 저장 | **DONE** — 서비스와 `support_top` 공지의 구조화 초안·revision CAS·명시적 발행·공개 allowlist read 완료. FAQ·배너·미디어·예약·롤백 UI는 T23/T24/T29/T30 범위 |
-| T23~T30 | - | M3 | P1 | (pack) | 편집·지식 (미디어, 코퍼스, 평가, release, 롤백) | TODO |
+| T23 | task-t23 | M3 | P1 | T22 | 미디어 관리 | **IN_PROGRESS** — Slice 1: 현재 배포 자산의 실제 검사·참조·미리보기 목록. Storage 업로드·poster 연결·참조 잠금 삭제는 후속 Slice |
+| T24~T30 | - | M3 | P1 | (pack) | 편집·지식 (콘텐츠 예약, 코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
 | T36~T38 | - | M5 | P0 | (pack) | 통합 안정화·인수·인계 | TODO |
 

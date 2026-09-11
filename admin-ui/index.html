@@ -144,6 +144,11 @@
     .admin-table th { color: var(--admin-text-muted); font-weight: 600; }
     .admin-table tbody tr:hover { background: var(--admin-bg); }
     .admin-table code { font-size: 12px; color: var(--admin-text-muted); }
+    .admin-media-preview { display: inline-flex; width: 72px; height: 52px; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--admin-line); background: var(--admin-bg); color: var(--admin-text-muted); font-size: 11px; text-decoration: none; }
+    .admin-media-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .admin-media-name { display: grid; gap: 2px; min-width: 210px; white-space: normal; }
+    .admin-media-name code { overflow-wrap: anywhere; }
+    .admin-media-references { max-width: 320px; white-space: normal !important; overflow-wrap: anywhere; }
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
     .admin-workspace { display: grid; gap: var(--admin-space-6); }
@@ -640,6 +645,54 @@
           addLiveTable(body, '실제 운영 서비스', ['서비스', 'canonicalKey', '분류', '검색 노출', '판매', '기준 가격', '발행 버전', '초안 버전', '고객 경로'], services, function (item) { return [item.title, item.canonicalKey, item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 가능' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion || '없음', item.draftVersion || '없음', item.landingPath]; }, '실제 서비스 카탈로그가 비어 있습니다.');
         } catch (_error) { addLiveError(body, '실제 서비스 카탈로그를 불러오지 못했습니다.'); }
       }
+      function formatMediaBytes(value) {
+        var bytes = Number(value);
+        if (!Number.isFinite(bytes) || bytes < 0) return '—';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      }
+      function addMediaMetric(grid, label, value, detail) {
+        var card = document.createElement('article'); card.className = 'admin-kpi';
+        var small = document.createElement('small'); small.textContent = label;
+        var strong = document.createElement('strong'); strong.textContent = String(value);
+        var span = document.createElement('span'); span.textContent = detail;
+        card.appendChild(small); card.appendChild(strong); card.appendChild(span); grid.appendChild(card);
+      }
+      async function loadLiveMedia(body) {
+        var section = document.createElement('section'); section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>배포 미디어 자산</h3><span class="admin-chip">실제 배포 파일</span></header><p class="admin-empty">배포 자산을 검사하는 중입니다.</p>';
+        body.appendChild(section);
+        try {
+          var response = await fetch('/api/admin/v1/media', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('LIVE_MEDIA_LOOKUP_FAILED');
+          var payload = await response.json(); var assets = Array.isArray(payload.assets) ? payload.assets : []; var summary = payload.summary || {};
+          var metrics = document.createElement('div'); metrics.className = 'admin-kpi-grid';
+          addMediaMetric(metrics, '전체 자산', summary.total || 0, '현재 배포 번들 기준');
+          addMediaMetric(metrics, '코드 참조 확인', summary.referenced || 0, '파일명 직접 참조');
+          addMediaMetric(metrics, '권리 근거 미확인', summary.rightsUnverified || 0, '근거 등록 전 승인 아님');
+          addMediaMetric(metrics, '영상 poster 미연결', summary.videoPosterMissing || 0, '게시 전 보완 대상');
+          body.insertBefore(metrics, section);
+          if (!assets.length) { var empty = section.querySelector('.admin-empty'); empty.textContent = '현재 배포된 실제 미디어 자산이 없습니다.'; return; }
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll';
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">미리보기</th><th scope="col">파일</th><th scope="col">유형</th><th scope="col">크기</th><th scope="col">규격</th><th scope="col">사용 위치</th><th scope="col">검사</th><th scope="col">권리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          assets.forEach(function (asset) {
+            var row = document.createElement('tr'); var previewCell = document.createElement('td'); var preview = document.createElement('a');
+            preview.className = 'admin-media-preview'; preview.href = asset.publicUrl; preview.target = '_blank'; preview.rel = 'noopener'; preview.setAttribute('aria-label', asset.name + ' 새 탭에서 확인');
+            if (asset.kind === 'image') { var image = document.createElement('img'); image.src = asset.publicUrl; image.alt = ''; image.loading = 'lazy'; image.width = 72; image.height = 52; preview.appendChild(image); } else { preview.textContent = asset.kind === 'video' ? '영상 확인' : '폰트 확인'; }
+            previewCell.appendChild(preview); row.appendChild(previewCell);
+            var nameCell = document.createElement('td'); nameCell.className = 'admin-media-name'; var name = document.createElement('strong'); name.textContent = asset.name; var checksum = document.createElement('code'); checksum.textContent = String(asset.checksum || '').slice(0, 12) + '…'; nameCell.appendChild(name); nameCell.appendChild(checksum); row.appendChild(nameCell);
+            var specification = asset.width && asset.height ? asset.width + '×' + asset.height : '해당 없음'; if (asset.kind === 'video' && asset.durationSeconds) specification += ' · ' + Number(asset.durationSeconds).toFixed(1) + '초';
+            [asset.mime, formatMediaBytes(asset.bytes), specification].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell); });
+            var references = document.createElement('td'); references.className = 'admin-media-references'; references.textContent = Array.isArray(asset.references) && asset.references.length ? asset.references.join(', ') : '확인된 직접 참조 없음'; row.appendChild(references);
+            var validation = document.createElement('td'); var state = document.createElement('span'); state.className = 'admin-status'; state.dataset.tone = asset.validation && asset.validation.status === 'valid' ? 'ok' : 'error'; state.textContent = asset.validation && asset.validation.status === 'valid' ? '통과' : '실패: ' + ((asset.validation && asset.validation.issues) || []).join(', '); validation.appendChild(state); row.appendChild(validation);
+            var rights = document.createElement('td'); var rightsState = document.createElement('span'); rightsState.className = 'admin-status'; rightsState.dataset.tone = 'warn'; rightsState.textContent = '미확인'; rights.appendChild(rightsState); row.appendChild(rights); rows.appendChild(row);
+          });
+          table.appendChild(rows); scroll.appendChild(table); section.replaceChildren(section.firstElementChild, scroll);
+        } catch (_error) { var error = section.querySelector('.admin-empty'); if (error) error.textContent = '실제 미디어 인벤토리를 불러오지 못했습니다.'; }
+      }
       function renderServiceDraftEditor(body, services) {
         var section = document.createElement('section'); section.className = 'admin-section';
         var head = document.createElement('header'); head.className = 'admin-section-head'; head.innerHTML = '<h3>서비스 초안 편집</h3><span class="admin-chip">고객 화면 미반영</span>'; section.appendChild(head);
@@ -805,6 +858,7 @@
         if (route.key === 'refunds') { loadRefunds(body); return; }
         if (route.key === 'services') { loadLiveServices(body); return; }
         if (route.key === 'content') { loadSupportNotice(body); return; }
+        if (route.key === 'media') { loadLiveMedia(body); return; }
         if (route.key === 'audit') { loadLiveAudit(body); return; }
         if (route.key === 'support') { loadSupportCases(body); return; }
         if (route.key === 'settings') { loadAdminAccounts(body); return; }
