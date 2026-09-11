@@ -10,9 +10,18 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T12 CS 케이스 관리 완료
+
+- Status: `DONE`
+- DB: `support_cases`, `support_notes` additive migration을 Production에 적용했다. 두 테이블은 RLS=true이며 `anon`·`authenticated` 권한은 0건이다.
+- API/UI: `support:read/write` 범위로 실제 케이스 접수·상태/담당자 변경·내부 메모·고객 답변 초안을 제공한다. 답변 초안은 어떤 고객 채널에도 자동 발송하지 않는다.
+- 보호: 모든 쓰기는 T06 감사·멱등 명령, Idempotency-Key, revision 비교 갱신을 사용한다. 고객 원문·리포트 본문은 반환하지 않는다.
+- 배포·UI 확인: Production `dpl_7ndiRAtb48aAaUyY4QdcCmFZdkhm` Ready 및 `/admin/support` 로그인 세션에서 실제 빈 상태와 접수 폼을 확인했다. 검증용 임의 케이스는 만들지 않았다.
+- 검증: typecheck PASS, focused admin/support test 29/29 PASS.
+
 ## 2026-09-11 — T12 CS 케이스 관리 시작
 
-- Status: `IN_PROGRESS`
+- Status: `IN_PROGRESS` → `DONE`
 - 원격 DB 점검: `public.support_cases`, `public.support_notes`는 아직 존재하지 않는다. 새 테이블을 additive migration으로 만들고, RLS와 브라우저 역할 권한 차단을 적용한다.
 - 범위: 실제 케이스 접수·배정·내부 메모·고객 답변 초안·종료. 고객 연락 발송 채널은 구현하지 않는다.
 
