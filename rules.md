@@ -86,3 +86,24 @@ If a file is missing, create it. If it exists, preserve it and update only the r
   HTTPS API returns `302` and must not be used as the base URL.
 - The wiki token belongs to the groupware account `carrotcap`; the SSH account
   `creamax` is transport only. Write only under `personal/carrotcap/`.
+## 지식 기록 위치 (2026-09-11 사용자 결정: 위키 우선)
+
+결정·오류·수정·검증·재발 방지 지식은 **CreamWIKI Personal KMS 에 먼저 쓴다.**
+저장소에는 코드와 최소 링크만 둔다.
+
+- 기록 경로: `notes/<주제>-<날짜>.md` → 서버의 `personal/carrotcap/notes/...`
+- 문서 계약: `operations/aios-standards/14-memory-kms/AIOS-MEM-ROOT-memory-kms.md`
+  (observation · decision · artifact · QA result · lesson · relation · next_patch)
+- 작업 전 조회: `python ~/creamwiki/kms_cli.py search "<검색어>" --limit 5`
+- API 는 SSH 터널 `http://127.0.0.1:18765` 만 쓴다. 공개 HTTPS 는 302 를 돌려준다
+- **인증 명령(`login`)은 실행하지 않는다.** 토큰이 만료되면 사용자에게 일반 터미널에서
+  인증을 요청한다. 비밀번호·토큰은 문서·코드·Git·로그 어디에도 남기지 않는다
+
+저장소에 계속 남기는 것은 **검증 증거**다 — 테스트, CI 결과, 커밋 메시지.
+그것들은 코드와 같은 커밋에 묶여 있어야 "언제 무엇으로 확인했는가"가 유지된다.
+
+### 기록한 문서
+| 경로 | 주제 |
+| --- | --- |
+| `notes/umsh-payment-storage-integrity-20260911.md` | 주문 상태 직렬화(U17)·불확정 승인(U22)·영속성 게이트(U20) |
+| `notes/static-exposure-guard-20260911.md` | 정적 서버 내부 산출물 노출, 가드가 여섯 번 뚫린 기록 |
