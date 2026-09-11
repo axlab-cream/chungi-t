@@ -63,6 +63,7 @@ describe('관리자 자체 비밀번호 로그인', { concurrency: false }, () =
     const me = await request('/api/admin/v1/me', { headers: { Cookie: cookie.split(';')[0] } })
     assert.equal(me.response.status, 200)
     assert.equal(JSON.parse(me.text).email, 'operator@synthetic.invalid')
+    assert.ok(JSON.parse(me.text).scopes.includes('audit:read'))
   })
 
   it('유효한 쿠키가 없으면 Supabase로 폴백하지 않는다', async () => {
