@@ -164,6 +164,8 @@
 | V-158 | task-t22 slice 4 | 운영 DB | 신규 index/RPC SQL 실행 + migration list | additive 적용, service_role 전용, 이력 일치 | **PASS** — `20260911224332` local/remote 일치. 원격에만 있던 과거 6개 이력은 변경하지 않음 | 2026-09-12 |
 | V-159 | task-t22 slice 4 | Production 관리자 | `/admin/content` 로그인 세션 | LNB·실데이터 편집기·발행 없음 상태 | **PASS** — `support_top`, 초안 저장, disabled 발행 CTA, 현재 발행 없음 확인 | 2026-09-12 |
 | V-160 | task-t22 slice 4 | Production 고객 화면 | `/api/content/notices/support` + `/support` | `notice:null`, 빈 박스 미노출 | **PASS** — 초기 빈 NOTICE 노출을 브라우저가 검출해 수정 후 연락처가 첫 섹션임을 재확인 | 2026-09-12 |
+| V-161 | task-t07 LNB UX | 구조·회귀 | 관리자 셸 targeted + 전체 `npm test` + typecheck/build | 4개 업무군, 블릿·들여쓰기, 접근 가능한 토글, 기존 기능 무회귀 | **PASS** — targeted 26/26, 전체 641/641, typecheck·Vercel build PASS | 2026-09-12 |
+| V-162 | task-t07 LNB UX | Production 브라우저 | `/admin/content`에서 업무군 접기 → 새로고침 | 접힘 세션 유지, 현재 메뉴 업무군 자동 펼침, 콘솔 오류 없음 | **PASS** — 운영 현황 collapsed 유지, 고객 · 콘텐츠 expanded, active 콘텐츠 노출, console 0건 | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 

@@ -1123,3 +1123,11 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 실제 공지 문구는 만들거나 발행하지 않았다. 따라서 공개 API는 실제 빈 상태이며, 첫 실공지 개정 시 이전 published archive 운영 실측을 추가한다. 비밀번호·쿠키·토큰은 기록하지 않았다.
 - T22는 DONE. FAQ·배너·미디어·예약·릴리스·롤백 UI는 T23/T24/T29/T30에서 각각 진행한다.
 - CreamWIKI `personal/carrotcap/notes/umsh-t22-support-notice-20260912.md` 저장/get/개인 검색 즉시 반영 PASS.
+
+## 2026-09-12 — T07 관리자 LNB 카테고리 계층·접기
+
+- 관리자 LNB를 운영 현황, 고객 · 콘텐츠, AI 운영, 시스템의 4개 업무군으로 묶고 각 업무군을 네이티브 버튼으로 접고 펼칠 수 있게 했다. 하위 메뉴는 한 단계 들여쓰기와 원형 블릿으로 카테고리 헤더와 구분하며 현재 메뉴의 블릿·좌측선을 파란색으로 강조한다.
+- 토글은 `aria-expanded`와 `aria-controls`를 제공한다. 접힘 상태는 브라우저 세션에만 저장하고 현재 경로가 속한 업무군은 항상 자동으로 펼쳐 현재 위치가 숨지 않게 했다. 768px 이하에서는 기존 수평 LNB를 유지하며 카테고리 헤더와 블릿을 숨긴다.
+- TDD 근거: 신규 계약 테스트가 0/4 그룹으로 실패하는 것을 먼저 확인한 뒤 구현했다. targeted 26/26, 전체 고정 오라클 `npm test` 641/641, typecheck, Vercel build가 통과했다.
+- Production `dpl_FQ9cixJawa4AHuXEpd8QtXhJzcpn` Ready 및 `umsh.kr` 연결. 브라우저에서 블릿·들여쓰기, 4개 업무군, 접기, 새로고침 후 세션 유지, 활성 업무군 자동 펼침과 콘솔 0건을 확인했다.
+- Vercel error 레벨에는 앱 실패가 아니라 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 LNB 변경과 무관하며 별도 런타임 정리 항목으로 남긴다.

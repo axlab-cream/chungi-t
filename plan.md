@@ -74,7 +74,7 @@
 | T05 | task-t05 | M1 | P0 | T03,T04 | 직원 membership 및 RBAC | BLOCKED (U2 영속 저장소, U4 운영 스키마) |
 | T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | **DONE** — 실제 audit ledger·idempotency command foundation, `/admin/audit` 실데이터 연결 |
 | T06A | admin-account-management | M1 | P0 | T05,T06 | 관리자 계정 실제 변경 | **DONE** — 생성·비활성화·비밀번호 변경, 감사·멱등 명령 연결 |
-| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. 영속 membership 저장소는 T05 에서 교체 |
+| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. LNB는 4개 업무군, 들여쓴 블릿 메뉴, 세션 유지 접기·펼치기와 활성 업무군 자동 펼침을 제공한다. 영속 membership 저장소는 T05 에서 교체 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |
 | T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | **DONE** — 원본 Supabase 테이블의 최소 DTO 조회·마스킹·실운영 화면 연결. U18/U19은 분석 관리·정본 스키마 문서화 후속으로 유지 |

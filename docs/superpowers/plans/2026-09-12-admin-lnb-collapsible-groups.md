@@ -27,21 +27,21 @@
 - Consumes: `data-admin-route`와 `markCurrentRoute()`의 현재 경로 판정
 - Produces: `data-admin-nav-group`, `data-admin-nav-toggle`, `data-admin-nav-items`, `setupAdminNavGroups()`
 
-- [ ] **Step 1: 회귀 테스트 작성**
+- [x] **Step 1: 회귀 테스트 작성**
 
   네 개 그룹의 버튼·패널 연결, 블릿/들여쓰기 CSS, 세션 상태 저장, 현재 메뉴 그룹 자동 펼침을 HTML 응답에서 검증한다.
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
   Run: `npx tsx --test --test-concurrency=1 tests/unit/admin-shell.test.ts`
 
   Expected: 새 LNB 그룹 계약이 없어 실패한다.
 
-- [ ] **Step 3: 최소 구현**
+- [x] **Step 3: 최소 구현**
 
   기존 링크를 네 개 그룹으로 감싸고 CSS 의사 요소 블릿과 들여쓰기를 적용한다. 토글 클릭 시 `hidden`과 `aria-expanded`를 동기화하고 세션에 저장한다.
 
-- [ ] **Step 4: 검증**
+- [x] **Step 4: 검증**
 
   Run: `npx tsx --test --test-concurrency=1 tests/unit/admin-shell.test.ts`
 
@@ -55,6 +55,6 @@
 
   Expected: 관리자 정적 자산 복사 및 타입 검사가 성공한다.
 
-- [ ] **Step 5: 운영 문서와 KMS 기록**
+- [x] **Step 5: 운영 문서와 KMS 기록**
 
   `plan.md`, `tests.md`, `status.md`에 구현·검증 근거를 추가하고 검증된 LNB 패턴을 CreamWIKI 후보로 저장한다.
