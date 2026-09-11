@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>운명상회 영상 제작기</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="appHeader">
+      <div class="brandBlock">
+        <span class="eyebrow">운명상회 내부 제작 도구</span>
+        <h1>영상 제작기</h1>
+      </div>
+      <div class="headerActions">
+        <button id="loadSample" title="예제 작업 불러오기">예제 불러오기</button>
+        <button id="compile" title="프롬프트와 비용 다시 계산">다시 계산</button>
+        <button id="checkComfy" title="넥서스 생성 엔진 상태 확인">엔진 확인</button>
+        <button id="dryRun" class="primary" title="크레딧 없이 프롬프트 압축파일 생성">준비 압축파일</button>
+        <button id="renderMotion" title="내 컴퓨터에서 7초 영상 초안 생성">무료 영상 초안</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="summaryBand" aria-label="작업 요약">
+        <div class="runStatus">
+          <span id="validState" class="statusPill neutral">계산 전</span>
+          <strong id="projectTitle">작업 이름 없음</strong>
+          <span id="projectMeta">0컷</span>
+        </div>
+        <dl class="summaryMetrics">
+          <div><dt>전체 컷</dt><dd id="metricTotal">0</dd></div>
+          <div><dt>무료 컷</dt><dd id="metricLocal">0</dd></div>
+          <div><dt>유료 컷</dt><dd id="metricPaid">0</dd></div>
+          <div><dt>예상 크레딧</dt><dd id="metricCredits">0</dd></div>
+          <div><dt>평균 품질</dt><dd id="metricQuality">0</dd></div>
+        </dl>
+      </section>
+
+      <section class="workflowRail" aria-label="작업 순서">
+        <div class="step active"><span>1</span>작업표</div>
+        <div class="step" id="stepCompile"><span>2</span>계산</div>
+        <div class="step" id="stepReview"><span>3</span>검토</div>
+        <div class="step" id="stepPackage"><span>4</span>묶기</div>
+      </section>
+
+      <section class="mainGrid">
+        <aside class="panel controlsPanel">
+          <div class="panelHead">
+            <div>
+              <h2>제작 설정</h2>
+              <p>돈이 드는 컷과 무료 컷을 먼저 나눕니다.</p>
+            </div>
+          </div>
+
+          <label class="field">
+            제작 방식
+            <select id="strategy">
+              <option value="free_local">무료 초안만</option>
+              <option value="hybrid">무료 초안 + 중요 컷만 유료</option>
+              <option value="paid_quality">전체 유료 고품질</option>
+            </select>
+          </label>
+
+          <div id="strategyNote" class="strategyNote"></div>
+
+          <label class="field">
+            한 번에 만들 컷 수
+            <select id="batchSize">
+              <option value="4">4컷씩</option>
+              <option value="6">6컷씩</option>
+            </select>
+          </label>
+
+          <label class="field">
+            ComfyUI 생성 설정
+            <select id="wanProfile">
+              <option value="balanced_7s">균형 7초</option>
+              <option value="fast_check">빠른 확인</option>
+              <option value="final_7s">최종 7초</option>
+            </select>
+          </label>
+
+          <div id="wanNote" class="strategyNote"></div>
+
+          <div class="healthGroup">
+            <h3>생성 엔진</h3>
+            <div id="engineStatus" class="engineStatus">확인 전</div>
+          </div>
+
+          <div class="healthGroup">
+            <h3>구성 확인</h3>
+            <div id="coverage" class="coverageList"></div>
+          </div>
+
+          <div class="healthGroup">
+            <h3>주의할 점</h3>
+            <ul id="warnings" class="warningList"></ul>
+          </div>
+        </aside>
+
+        <section class="panel scenePanel">
+          <div class="panelHead">
+            <div>
+              <h2>컷 목록</h2>
+              <p id="sceneCount">0컷</p>
+            </div>
+            <span id="batchCount" class="statusPill neutral">0묶음</span>
+          </div>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>컷</th>
+                  <th>인물</th>
+                  <th>구도</th>
+                  <th>품질</th>
+                  <th>방식</th>
+                  <th>크레딧</th>
+                  <th>검수</th>
+                </tr>
+              </thead>
+              <tbody id="sceneRows"></tbody>
+            </table>
+          </div>
+
+          <div class="batchStrip" id="batches"></div>
+        </section>
+
+        <aside class="panel inspector">
+          <div class="panelHead">
+            <div>
+              <h2>선택한 컷</h2>
+              <p id="promptTitle">컷을 선택하세요</p>
+            </div>
+            <button id="copyPrompt">프롬프트 복사</button>
+          </div>
+
+          <dl class="sceneMeta" id="sceneMeta"></dl>
+          <pre id="promptPreview" class="prompt"></pre>
+
+          <h2>결과</h2>
+          <pre id="output" class="output"></pre>
+        </aside>
+      </section>
+
+      <details class="panel manifestPanel">
+        <summary>
+          <span>
+            <strong>고급 작업표 편집</strong>
+            <em>컷 정보를 직접 고칠 때만 열어 사용합니다.</em>
+          </span>
+        </summary>
+        <textarea id="manifest" spellcheck="false"></textarea>
+        <pre id="error" class="error"></pre>
+      </details>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
