@@ -1037,3 +1037,12 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - LNB 감사: 회원·리포트·서비스·지원·감사 기록은 실제 원천 연결, 미디어를 포함한 나머지 준비 화면은 후속 Task의 실제 테이블/API가 필요하다. 목업 데이터를 추가하지 않는다.
 - 남은 검증: Vercel이 첫 예약 cron을 실행한 뒤의 worker 로그·응답 확인.
 - KMS 기록: `personal/carrotcap/notes/umsh-ops-worker-20260911.md`.
+
+## 2026-09-11 — T15 금융 이벤트·상태 투영
+
+- 운영 DB에 `financial_events` append-only 원장을 생성했다. 승인 이벤트는 `provider + source_ref` 고유키로 중복을 차단하고, 주문 ID·승인 금액·발생 시각만 저장한다. 원시 PG 응답이나 고객 개인정보는 저장하지 않는다.
+- RLS를 활성화했고 `anon`·`authenticated` 권한을 제거했다. 기존 기본 권한에서 `service_role` UPDATE/DELETE가 남는 것을 발견해, 별도 migration으로 INSERT/SELECT만 남겨 append-only 계약을 확인했다.
+- 이니시스·Google Play·테스트 승인 경로는 금융 이벤트를 먼저 기록한 후에만 주문을 `paid`로 투영한다. 이니시스에서 증거 기록 뒤 상태 투영이 실패하면 `failed`로 덮지 않아 T19 대사로 회수할 수 있다.
+- `viewed`는 금융 이벤트를 추가하지 않는다. 따라서 열람 재시도나 상태 갱신이 매출 이벤트를 중복 생성하지 않는다.
+- 검증: 금융·결제 관련 50개 테스트 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS, 운영 DB RLS/고유키/권한 확인, Production `/admin/orders` LNB·주문 화면 확인.
+- KMS 기록: `personal/carrotcap/notes/umsh-financial-events-20260911.md`.
