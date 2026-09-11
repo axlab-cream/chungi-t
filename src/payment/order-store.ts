@@ -70,8 +70,30 @@ export class PaymentOrderConflictError extends Error {
   }
 }
 
-export function canTransitionPaymentOrder(from: PaymentOrderStatus, to: PaymentOrderStatus): boolean {
-  return ALLOWED_NEXT_STATUS[from].includes(to)
+/**
+ * 결제사가 승인을 돌려준 증거. `tid` 나 승인번호가 있으면 **돈이 움직였다**는 뜻이다.
+ *
+ * 승인은 성공했는데 그 결과를 저장하는 쓰기가 실패할 수 있다. 그 순간 주문은
+ * `approving` 에 남고, 예전 코드는 catch 에서 그것을 `failed` 로 적었다 —
+ * **과금된 주문이 실패로 기록된다.** enum 에 불확정 상태가 없어서 생긴 구멍이다(U22).
+ *
+ * 그래서 승인 증거를 최종 상태보다 **먼저** 저장한다(`src/server/app.ts` 승인 흐름).
+ * 그러면 `approving` + 증거 = "승인됐으나 정산 기록이 끝나지 않음"으로 식별된다.
+ */
+export function hasApprovalEvidence(order: Pick<PaymentOrder, 'tid' | 'approvalCode'>): boolean {
+  return Boolean(order.tid?.trim() || order.approvalCode?.trim())
+}
+
+export function canTransitionPaymentOrder(
+  from: PaymentOrderStatus,
+  to: PaymentOrderStatus,
+  evidence?: Pick<PaymentOrder, 'tid' | 'approvalCode'>,
+): boolean {
+  if (!ALLOWED_NEXT_STATUS[from].includes(to)) return false
+  // 승인 증거가 있는 주문을 실패로 적지 않는다. 그 기록은 사실이 아니고,
+  // 한번 적히면 대사에서 "결제되지 않은 주문"으로 분류돼 고객이 돈만 잃는다.
+  if (to === 'failed' && evidence && hasApprovalEvidence(evidence)) return false
+  return true
 }
 
 const connectionString = configuredEnv(process.env.DATABASE_URL)
@@ -399,7 +421,13 @@ export async function mutatePaymentOrder(
 
     const patch = mutate(current)
     const nextStatus = patch.status ?? current.status
-    if (!canTransitionPaymentOrder(current.status, nextStatus)) {
+    // 증거는 **현재 저장된 것과 이번에 쓰려는 것**을 함께 본다. 같은 쓰기가 증거와
+    // 상태를 동시에 넣는 경우가 있기 때문이다.
+    const evidence = {
+      tid: patch.tid ?? current.tid,
+      approvalCode: patch.approvalCode ?? current.approvalCode,
+    }
+    if (!canTransitionPaymentOrder(current.status, nextStatus, evidence)) {
       throw new PaymentOrderTransitionError(orderId, current.status, nextStatus)
     }
 

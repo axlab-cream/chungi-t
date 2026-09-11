@@ -1929,13 +1929,22 @@ app.post('/api/payment/inicis/return', async (req, res) => {
 
     await updatePaymentOrder(order.orderId, { status: 'approving' })
     const approval = await approveInicisPayment({ order, authToken, authUrl })
-    const paid = await updatePaymentOrder(order.orderId, {
-      status: 'paid',
+
+    // 승인 증거를 최종 상태보다 **먼저** 저장한다(U22).
+    //
+    // `approveInicisPayment` 가 돌아온 시점에 이미 돈이 움직였다. 그런데 그 사실을
+    // `paid` 와 함께 한 번에 쓰면, 그 쓰기가 실패할 때 승인 기록이 통째로 사라진다.
+    // 그러면 catch 가 주문을 `failed` 로 적고 **과금된 주문이 실패로 남는다.**
+    //
+    // 증거를 먼저 남기면 주문은 `approving` + `tid` 가 되고, 저장소가 그 조합을
+    // "승인됐으나 정산 기록이 끝나지 않음"으로 보아 `failed` 로 내려가지 못하게 막는다.
+    await updatePaymentOrder(order.orderId, {
       tid: approval.tid,
       payMethod: approval.payMethod,
       approvalCode: approval.approvalCode,
       message: approval.resultMessage,
     })
+    const paid = await updatePaymentOrder(order.orderId, { status: 'paid' })
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {

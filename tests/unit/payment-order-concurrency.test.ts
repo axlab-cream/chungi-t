@@ -4,6 +4,7 @@ import {
   PaymentOrderConflictError,
   PaymentOrderTransitionError,
   canTransitionPaymentOrder,
+  hasApprovalEvidence,
   getPaymentOrder,
   getPaymentStorageMode,
   mutatePaymentOrder,
@@ -146,6 +147,57 @@ describe('[TASK] 주문 상태 직렬화 (U17)', () => {
         PaymentOrderTransitionError,
       )
       assert.deepEqual(seen, ['paid'], 'mutate 가 낡은 상태를 봤다')
+    })
+  })
+
+  describe('승인 증거가 있는 주문 (U22)', () => {
+    it('승인 증거가 있으면 실패로 적지 못한다', async () => {
+      // `approveInicisPayment` 가 돌아온 시점에 이미 돈이 움직였다. 그 사실을 먼저
+      // 저장하면 주문은 `approving` + `tid` 가 되고, 그 조합은 실패가 아니다.
+      const order = await seed('approving')
+      await updatePaymentOrder(order.orderId, { tid: 'TID-APPROVED' })
+
+      await assert.rejects(
+        () => updatePaymentOrder(order.orderId, { status: 'failed', message: '저장 실패 후 catch' }),
+        PaymentOrderTransitionError,
+      )
+      const after = await getPaymentOrder(order.orderId)
+      assert.equal(after?.status, 'approving', '불확정 상태가 실패로 덮였다')
+      assert.equal(after?.tid, 'TID-APPROVED', '승인 증거가 지워졌다')
+    })
+
+    it('증거 없는 승인 시도는 실패로 적을 수 있다', async () => {
+      // 승인 요청 자체가 거부된 경우다. 이때 `failed` 는 사실이다.
+      const order = await seed('approving')
+      const failed = await updatePaymentOrder(order.orderId, { status: 'failed', message: '승인 거부' })
+      assert.equal(failed?.status, 'failed')
+    })
+
+    it('같은 쓰기가 증거와 실패를 함께 넣어도 막는다', async () => {
+      // 증거를 현재 저장분만 보면, 한 번에 tid + failed 를 쓰는 경로로 우회된다.
+      const order = await seed('approving')
+      await assert.rejects(
+        () => updatePaymentOrder(order.orderId, { status: 'failed', tid: 'TID-LATE' }),
+        PaymentOrderTransitionError,
+      )
+      assert.equal((await getPaymentOrder(order.orderId))?.status, 'approving')
+    })
+
+    it('불확정 주문은 정산으로 수렴한다', async () => {
+      const order = await seed('approving')
+      await updatePaymentOrder(order.orderId, { tid: 'TID-APPROVED', approvalCode: 'A-1' })
+      const settled = await updatePaymentOrder(order.orderId, { status: 'paid' })
+      assert.equal(settled?.status, 'paid')
+      assert.equal(settled?.tid, 'TID-APPROVED')
+    })
+
+    it('승인 증거 판정은 tid 와 승인번호 둘 다 본다', () => {
+      assert.equal(hasApprovalEvidence({ tid: 'TID-1' }), true)
+      assert.equal(hasApprovalEvidence({ approvalCode: 'A-1' }), true)
+      assert.equal(hasApprovalEvidence({}), false)
+      assert.equal(hasApprovalEvidence({ tid: '   ' }), false, '공백만 있는 값은 증거가 아니다')
+      assert.equal(canTransitionPaymentOrder('approving', 'failed'), true)
+      assert.equal(canTransitionPaymentOrder('approving', 'failed', { tid: 'TID-1' }), false)
     })
   })
 
