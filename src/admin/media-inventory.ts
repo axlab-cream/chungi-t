@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import generatedManifest from '../../data/admin-media-inventory.json' with { type: 'json' }
 
 export type AdminMediaAsset = {
   id: string
@@ -60,8 +60,7 @@ function safeAsset(value: unknown): AdminMediaAsset | undefined {
 
 export function listAdminMediaAssets(): AdminMediaAsset[] {
   if (!cache) {
-    const path = new URL('../../data/admin-media-inventory.json', import.meta.url)
-    const manifest = JSON.parse(readFileSync(path, 'utf8')) as Manifest
+    const manifest = generatedManifest as Manifest
     if (manifest.schemaVersion !== 1 || !Array.isArray(manifest.assets)) throw new Error('MEDIA_INVENTORY_INVALID')
     const parsed = manifest.assets.map(safeAsset).filter((asset): asset is AdminMediaAsset => Boolean(asset))
     if (parsed.length !== manifest.assets.length) throw new Error('MEDIA_INVENTORY_INVALID')
