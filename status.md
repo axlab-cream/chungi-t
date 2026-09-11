@@ -1086,5 +1086,6 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - `/api/admin/v1/services`를 `services:read` 권한 뒤에 추가하고, 현재 운영 코드의 19개 결제 카탈로그(검색 노출 15, 숨김 4)에 `service_config_versions`의 최신 발행/초안 메타데이터를 결합했다.
 - `/admin/services`는 공개 목록 API 대신 관리자 API를 사용하며 canonicalKey, 분류, 검색 노출, 판매 상태, 기준 가격, 발행/초안 버전, 고객 경로를 표시한다. 저장소가 불가하면 목록을 0건으로 속이지 않고 코드 정본과 버전 미확인을 구분한다.
 - Supabase 기본 권한으로 남을 수 있는 `service_role` DELETE를 후속 migration에서 제거했다. 운영 조회 결과 두 버전 테이블 모두 service_role SELECT/INSERT/UPDATE만 있고 anon/authenticated 권한은 없다.
-- 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. 운영 배포와 로그인 세션 E2E는 커밋 후 이어서 확인한다.
+- 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. Vercel 배포 `dpl_E7vPCwMc7WoVSKfMfUG8SeTz9i4t` Ready 및 운영 승격 완료. 보호 배포에서 LNB와 새 서비스 로더를 확인했다.
+- 운영 로그인 E2E는 기존 지정 관리자 자격증명이 현재 계정 저장소에서 거부되어 NEEDS_REVIEW다. 인증된 서비스 API의 운영 `versionStore=ready` 확인은 아직 NOT_RUN이며, Vercel 환경변수 이름 존재와 로컬 값 로드 여부를 혼동하지 않는다.
 - T22는 계속 IN_PROGRESS다. 다음 slice는 구조화 draft 생성·revision 충돌·감사 기록 연결이다.
