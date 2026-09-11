@@ -37,6 +37,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured } from '../auth/staff.js'
 import {
   buildUserBirthProfile,
+  checkUserProfileStorageReadiness,
   getUserBirthProfile,
   getUserProfileStorageMode,
   saveUserBirthProfile,
@@ -59,6 +60,7 @@ import {
   getPaymentStorageMode,
   type PaymentStorageMode,
   listPaymentOrders,
+  checkPaymentStorageReadiness,
   savePaymentOrder,
   updatePaymentOrder,
 } from '../payment/order-store.js'
@@ -1580,11 +1582,18 @@ app.get('/api/health', async (req, res) => {
   // 해시뿐이고 내용은 담지 않는다.
   const corpus = getCorpusSnapshot()
   const reportStorage = req.query.storage === '1' ? await checkReportStorageReadiness() : undefined
+  // 주문·프로필 저장소도 함께 보고한다. 이 둘에는 판정 자체가 없었고, 설정이 빠지면
+  // 조용히 메모리로 떨어져 결제·회원 정보가 다음 요청에서 사라진다(U20).
+  const paymentStorage = req.query.storage === '1' ? checkPaymentStorageReadiness() : undefined
+  const profileStorage = req.query.storage === '1' ? checkUserProfileStorageReadiness() : undefined
+  const storages = [reportStorage, paymentStorage, profileStorage]
   res.setHeader('Cache-Control', 'no-store')
-  res.status(reportStorage && !reportStorage.ok ? 503 : 200).json({
-    ok: reportStorage ? reportStorage.ok : true,
+  res.status(storages.some((storage) => storage && !storage.ok) ? 503 : 200).json({
+    ok: storages.every((storage) => !storage || storage.ok),
     openai: isOpenAiConfigured(),
     ...(reportStorage ? { reportStorage } : {}),
+    ...(paymentStorage ? { paymentStorage } : {}),
+    ...(profileStorage ? { profileStorage } : {}),
     corpus: {
       registryVersion: corpus.registryVersion,
       fingerprint: corpus.fingerprint,

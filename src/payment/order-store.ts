@@ -1,4 +1,5 @@
 import { configuredEnv } from '../env/load.js'
+import { assertDurableStorage, storageReadiness, type StorageReadiness } from './storage-readiness.js'
 import { Pool } from 'pg'
 
 export type PaymentOrderStatus = 'ready' | 'approving' | 'paid' | 'viewed' | 'cancelled' | 'failed'
@@ -313,6 +314,9 @@ export async function savePaymentOrder(order: PaymentOrder): Promise<PaymentOrde
  * 주어지지 않으면 최초 생성이다. 생성 경로까지 CAS 로 묶으면 정상적인 재시도가 막힌다.
  */
 async function writePaymentOrder(order: PaymentOrder, expectedRevision?: number): Promise<PaymentOrder> {
+  // 운영에서 비영속 모드면 여기서 멈춘다. 메모리에 쓰면 다음 요청에서 사라지고,
+  // 결제는 받았는데 주문 기록이 없는 상태가 된다(U20).
+  assertDurableStorage('결제 주문', checkPaymentStorageReadiness())
   const stored = cloneOrder({ ...order, updatedAt: nowIso() })
 
   if (storageMode() === 'memory') {
@@ -458,4 +462,15 @@ export async function updatePaymentOrder(orderId: string, patch: Partial<Omit<Pa
 
 export function getPaymentStorageMode(): PaymentStorageMode {
   return storageMode()
+}
+
+/**
+ * 주문 저장소가 운영에 쓸 수 있는 상태인지. `report-store` 에만 있던 판정을 여기에도 둔다(U20).
+ *
+ * 네트워크 프로브는 하지 않는다. 여기서 막아야 하는 것은 "설정이 빠져 메모리로 떨어진
+ * 상태"이고, 그것은 설정만 보고 판정된다. 연결 실패는 쓰기 시점에 그대로 드러난다.
+ */
+export function checkPaymentStorageReadiness(): StorageReadiness {
+  const mode = storageMode()
+  return storageReadiness(mode, mode === 'supabase' && !supabaseServiceRoleKey)
 }

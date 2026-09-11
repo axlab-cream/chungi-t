@@ -1,4 +1,5 @@
-import { configuredEnv } from '../env/load.js'
+import { configuredEnv } from '../env/load.js'
+import { assertDurableStorage, storageReadiness, type StorageReadiness } from '../payment/storage-readiness.js'
 import { Pool } from 'pg'
 import type { BirthInput, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportStorageMode } from '../report/report-store.js'
@@ -215,6 +216,8 @@ export async function getUserBirthProfile(owner: ReportOwner): Promise<UserBirth
 }
 
 export async function saveUserBirthProfile(profile: UserBirthProfile, owner: ReportOwner): Promise<UserBirthProfile> {
+  // 운영에서 비영속 모드면 저장한 셈이 되지 않는다. 조용히 잃지 않고 막는다(U20).
+  assertDurableStorage('회원 정보', checkUserProfileStorageReadiness())
   const previous = await getUserBirthProfile(owner)
   const next: UserBirthProfile = {
     ...profile,
@@ -304,6 +307,17 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
     ],
   )
   return rowToProfile(result.rows[0])
+}
+
+/**
+ * 프로필 저장소가 운영에 쓸 수 있는 상태인지(U20).
+ *
+ * 프로필이 메모리로 떨어지면 회원이 저장한 생년월일이 다음 요청에서 사라진다.
+ * 리포트를 다시 만들 수 없고, 고객은 같은 정보를 매번 다시 입력하게 된다.
+ */
+export function checkUserProfileStorageReadiness(): StorageReadiness {
+  const mode = storageMode()
+  return storageReadiness(mode, mode === 'supabase' && !supabasePublicKey)
 }
 
 export function getUserProfileStorageMode(): ReportStorageMode {
