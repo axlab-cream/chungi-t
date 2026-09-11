@@ -10,6 +10,13 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-11 — T06 감사·멱등 명령 기반 시작
+
+- Status: `IN_PROGRESS`
+- 범위: `admin_audit_events`와 command receipt 저장소를 실제 Supabase에 추가하고, 서버 전용 audit 조회 화면까지 연결한다. 이후 관리자 계정·CS·콘텐츠·정산 쓰기 작업은 이 기반을 재사용한다.
+- 계획: `docs/superpowers/plans/2026-09-11-admin-audit-command-foundation.md`.
+- 보안 결정: RLS 활성화, `anon`·`authenticated` 권한 회수, service role만 접근. 감사 기록에는 비밀번호·토큰·원문 개인정보를 넣지 않는다.
+
 ## 2026-09-11 — T10 실제 회원·리포트 운영 데이터 연결
 
 - Status: `DONE` (읽기 전용 실제 데이터 범위)

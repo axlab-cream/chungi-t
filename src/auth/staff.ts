@@ -24,6 +24,7 @@ const SUPER_ADMIN_SCOPES = Object.freeze([
   'orders:read',
   'members:read',
   'reports:read',
+  'audit:read',
   'settings:read',
 ])
 

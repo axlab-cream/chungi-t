@@ -38,6 +38,7 @@ import { staffMembership, staffMembershipConfigured, type StaffMembership } from
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { countLiveMembers, countLiveReports, listLiveMembers, listLiveReports } from '../admin/live-data.js'
+import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import {
   buildUserBirthProfile,
@@ -1913,6 +1914,15 @@ app.get('/api/admin/v1/operations-snapshot', async (req, res) => {
     })
   } catch {
     res.status(503).json({ code: 'LIVE_OPERATIONS_LOOKUP_FAILED', error: '실제 운영 요약을 불러오지 못했습니다.' })
+  }
+})
+
+app.get('/api/admin/v1/audit', async (req, res) => {
+  if (!await requireStaff(req, res, 'audit:read')) return
+  try {
+    res.json({ events: await listAdminAuditEvents(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'ADMIN_AUDIT_LOOKUP_FAILED', error: '감사 기록 저장소를 불러오지 못했습니다.' })
   }
 })
 

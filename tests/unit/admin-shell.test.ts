@@ -163,7 +163,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
       // 이 단계는 조회 권한만 준다. 감사 경로(T06)가 없는 동안 쓰기 scope 를 만들지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'settings:read'])
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read'])
       assert.ok(!me.scopes.some((scope: string) => /write|delete|refund/.test(scope)), '쓰기 권한이 생겼다')
     })
 
@@ -232,6 +232,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /markCurrentRoute/, '현재 메뉴 강조 처리가 없다')
       assert.match(text, /loadLiveMembers/, '실제 회원 데이터 로더가 없다')
       assert.match(text, /loadLiveReports/, '실제 리포트 데이터 로더가 없다')
+      assert.match(text, /loadLiveAudit/, '실제 감사 기록 로더가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
 
