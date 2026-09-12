@@ -1852,8 +1852,10 @@ app.get('/api/cron/ops', async (req, res) => {
   const secret = String(process.env.CRON_SECRET ?? '')
   if (!secret || req.header('authorization') !== `Bearer ${secret}`) { res.status(401).json({ error: 'Unauthorized' }); return }
   try {
-    const jobs = await runOpsWorker()
-    const publishedNotices = await publishDueSupportNotices()
+    const [jobs, publishedNotices] = await Promise.all([
+      runOpsWorker(),
+      publishDueSupportNotices(),
+    ])
     res.json({ ...jobs, publishedNotices })
   }
   catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
