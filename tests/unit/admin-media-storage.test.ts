@@ -54,6 +54,7 @@ describe('T23 Storage 원본 미디어 검사', () => {
     assert.equal(errorCode(() => validateMediaUploadInput({ fileName: 'hero.png', mime: 'image/png', bytes: 32, alt: '', rightsBasis: 'owned', rightsEvidence: '촬영 원본 계약 2026-09' })), 'MEDIA_ALT_REQUIRED')
     assert.equal(errorCode(() => validateMediaUploadInput({ fileName: 'hero.png', mime: 'image/png', bytes: 32, alt: '운명상회 소개', rightsBasis: 'owned', rightsEvidence: '' })), 'MEDIA_RIGHTS_EVIDENCE_REQUIRED')
     assert.equal(errorCode(() => validateMediaUploadInput({ fileName: 'intro.mp4', mime: 'video/mp4', bytes: 32, alt: '서비스 소개 영상', rightsBasis: 'licensed', rightsEvidence: 'license-2026-09' })), 'MEDIA_POSTER_REQUIRED')
+    assert.equal(errorCode(() => validateMediaUploadInput({ fileName: 'intro.mp4', mime: 'video/mp4', bytes: 50 * 1024 * 1024 + 1, alt: '서비스 소개 영상', rightsBasis: 'licensed', rightsEvidence: 'license-2026-09', posterAssetId: '11111111-1111-4111-8111-111111111111' })), 'MEDIA_FILE_TOO_LARGE')
 
     assert.deepEqual(validateMediaUploadInput({
       fileName: '../hero.png', mime: 'image/png', bytes: 32, alt: '운명상회 소개',

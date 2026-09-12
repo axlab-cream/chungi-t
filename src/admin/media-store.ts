@@ -96,7 +96,7 @@ export function createMediaStore(config: MediaStoreConfig) {
     if (found.status !== 404) throw new MediaStoreError('MEDIA_BUCKET_LOOKUP_FAILED')
     const created = await fetcher(`${supabaseUrl}/storage/v1/bucket`, {
       method: 'POST', headers: serviceHeaders({ 'content-type': 'application/json' }),
-      body: JSON.stringify({ id: MEDIA_BUCKET, name: MEDIA_BUCKET, public: false, file_size_limit: 100 * 1024 * 1024, allowed_mime_types: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4'] }),
+      body: JSON.stringify({ id: MEDIA_BUCKET, name: MEDIA_BUCKET, public: false, file_size_limit: 50 * 1024 * 1024, allowed_mime_types: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4'] }),
       signal: AbortSignal.timeout(5000),
     })
     if (!created.ok && created.status !== 409) throw new MediaStoreError('MEDIA_BUCKET_CREATE_FAILED')

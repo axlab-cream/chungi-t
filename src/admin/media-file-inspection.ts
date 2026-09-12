@@ -3,7 +3,7 @@ import { basename } from 'node:path'
 import { inflateSync } from 'node:zlib'
 
 export const MEDIA_IMAGE_MAX_BYTES = 10 * 1024 * 1024
-export const MEDIA_VIDEO_MAX_BYTES = 100 * 1024 * 1024
+export const MEDIA_VIDEO_MAX_BYTES = 50 * 1024 * 1024
 export const MEDIA_ALLOWED_MIMES = Object.freeze(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4'] as const)
 export const MEDIA_RIGHTS_BASES = Object.freeze(['owned', 'licensed', 'public_domain', 'user_provided'] as const)
 

@@ -12,7 +12,7 @@
 
 - 샘플·목업 자산을 만들지 않고 운영자가 실제 선택한 파일만 저장한다.
 - `SUPABASE_SERVICE_ROLE_KEY`와 signed upload token은 브라우저 저장소·DB·로그·감사 결과에 보존하지 않는다.
-- 허용 MIME은 PNG/JPEG/WebP/GIF/MP4이며 이미지 10MB, 영상 100MB를 넘으면 업로드 시작과 서버 최종 검사에서 모두 거절한다.
+- 허용 MIME은 PNG/JPEG/WebP/GIF/MP4이며 이미지 10MB, 영상 50MB를 넘으면 업로드 시작과 서버 최종 검사에서 모두 거절한다. 운영 Supabase 프로젝트의 전역 50MB 상한과 일치시킨다.
 - alt와 권리 근거 유형·증빙은 필수다. 영상 승인은 이미 승인된 이미지 poster가 연결돼야 한다.
 - public bucket을 만들지 않는다. 미리보기는 짧은 signed read URL만 사용한다.
 - 참조 테이블 또는 poster 연결이 있는 자산은 DB 원자 검사에서 삭제를 거절한다.
@@ -27,7 +27,7 @@
 | 권리 승인 담당자/법무 형식 미정 | 법적 승인으로 오인 가능 | 운영자가 근거 유형과 증빙 문구를 등록한 `recorded` 상태만 표시 | 별도 법무 승인 단계는 T24 이후 정책 결정 |
 | 고객 화면 공개 URL 계약 미정 | private URL을 콘텐츠에 잘못 저장할 수 있음 | 관리자 signed preview만 제공, 공개 발행 금지 | T29 release adapter에서 공개 copy/version 계약 확정 |
 | 기존 정적 83개 자산의 권리 이관 자료 없음 | 정적 자산 자동 승인 위험 | 기존 자산은 계속 `unverified` 읽기 전용 | 근거 확보 후 별도 import Task |
-| 대용량 영상 검사 실행 한도 | 100MB 전체 다운로드 비용 | 100MB 상한과 30초 timeout을 명시하고 실패 상태 유지 | 운영 실측 후 resumable/background 검사 분리 |
+| 대용량 영상 검사 실행 한도 | 50MB 전체 다운로드 비용 | 50MB 상한과 30초 timeout을 명시하고 실패 상태 유지 | 운영 실측 후 resumable/background 검사 분리 |
 
 ## Page Brief
 
