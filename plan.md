@@ -89,7 +89,7 @@
 | T19~T21 | - | M2 | P0 | (pack) | 금융·복구 (대사, 재시도, incident) | TODO |
 | T22 | task-t22 | M3 | P1 | T02,T06,T14 | 서비스·콘텐츠 버전 저장 | **DONE** — 서비스와 `support_top` 공지의 구조화 초안·revision CAS·명시적 발행·공개 allowlist read 완료. FAQ·배너·미디어·예약·롤백 UI는 T23/T24/T29/T30 범위 |
 | T23 | task-t23 | M3 | P1 | T22 | 미디어 관리 | **NEEDS_REVIEW** — 실제 private `umsh-media`, metadata/RLS, signed upload·서버 재검사·권리 증빙·poster·참조 잠금 삭제와 운영 UI 배포 완료. 운영자 실파일 1건의 upload→preview→delete smoke만 NOT_RUN |
-| T24 | task-t24 | M3 | P1 | T22,T23 | 콘텐츠 편집·예약 UI | **IN_PROGRESS** — `support_top` 실제 공지의 diff·승인·예약 vertical slice 구현 중 |
+| T24 | task-t24 | M3 | P1 | T22,T23 | 콘텐츠 편집·예약 UI | **NEEDS_REVIEW** — `support_top` 실제 공지의 diff·승인·예약·취소·분 단위 worker를 운영 배포. 실제 공지 문안이 없어 운영 발행 lifecycle smoke만 남음 |
 | T25~T30 | - | M3 | P1 | (pack) | 지식 (코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
 | T36~T38 | - | M5 | P0 | (pack) | 통합 안정화·인수·인계 | TODO |

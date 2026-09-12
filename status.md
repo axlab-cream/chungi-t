@@ -1155,3 +1155,13 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 운영 실파일 1건의 upload→preview→delete smoke는 NOT_RUN이다. 브라우저 자동화가 native file chooser에 파일 경로를 주입할 수 없고 Vercel은 Production secret pull을 `[SENSITIVE]`로 차단했다. 테스트 자산·고객 노출·임시 DB 행은 남기지 않았다.
 - T23은 **NEEDS_REVIEW**다. 구현과 운영 자원은 완료됐고, 운영자가 실제 권리 근거가 있는 이미지 1건을 선택해 등록·미리보기·삭제하면 V-170을 닫을 수 있다. T24 착수 의존성은 충족한다.
 - CreamWIKI 원격 API/CLI는 인증 토큰 부재로 쓰기·검색이 NOT_RUN이다. sanitized 후보 `CreamAI/memory/candidates/task-t23-storage-media-lifecycle-20260912.md`를 남겼으며 비밀번호·쿠키·signed URL은 기록하지 않았다.
+
+## 2026-09-12 — T24 실제 콘텐츠 승인·예약 workflow
+
+- 실제 `content_versions`의 `notice/support_top`에 발행본 대비 diff, 고객 노출 미리보기, 승인 요청, 승인, 즉시 발행, 미래 예약, 예약 취소를 연결했다. 예시 공지나 브라우저 로컬 데이터는 만들지 않았다.
+- 저장 시 기존 승인·예약을 무효화하고, 승인 checksum과 현재 checksum이 다르면 예약·발행을 DB에서 거부한다. 모든 상태 전환은 revision CAS, 멱등 키, 관리자 권한, started/succeeded 감사 기록을 거친다.
+- 운영 Supabase migration `20260912093000`을 적용했다. RPC는 `SECURITY DEFINER`, 빈 `search_path`, fully-qualified relation, service_role 전용 실행을 사용한다. 기존 원격 migration 6개는 `migration fetch`로 로컬 이력에 정렬했고, fetch가 덮어쓴 기존 추적 파일은 diff 확인 후 원상 복구했다.
+- 기존 `/api/cron/ops`가 작업 큐와 due 공지를 분 단위로 함께 처리한다. 두 처리는 동시에 시작되므로 작업 큐 오류가 예약 공지 실행 자체를 시작하지 못하게 막지 않는다. 인증 헤더가 없으면 Production에서 401을 반환한다.
+- 검증: focused 38/38, 전체 `npm test` 657/657, typecheck, Vercel build PASS. 최종 Production `dpl_5GSwim9Pn812gsuPCf7iwC3BhW2b` Ready, `umsh.kr` 별칭 연결. 로그인된 브라우저에서 LNB, 실제 버전 편집기, diff/미리보기, workflow CTA, 실제 빈 상태를 확인했다.
+- 운영에 현재 draft/published 공지가 없어 실제 문구의 승인→예약→취소 또는 due 발행 smoke는 NOT_RUN이다. 임의 공지를 고객에게 노출하지 않았으며 T24는 **NEEDS_REVIEW**다.
+- CreamWIKI 원격 저장·재색인은 현재 인증된 공유 저장소가 없어 NOT_RUN이다. sanitized 후보 `CreamAI/memory/candidates/task-t24-content-approval-scheduling-20260912.md`를 남겼고 `search-project-memory.ps1 -IncludeCandidates`의 exact phrase 검색 1건을 확인했다. 비밀번호·쿠키·토큰·Authorization 값은 기록하지 않았다.
