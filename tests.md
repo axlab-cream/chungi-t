@@ -170,6 +170,11 @@
 | V-164 | task-t23 slice 1 | 권한·API·회귀 | local admin cookie + staff bearer + 전체 `npm test` | 미로그인 401, 두 관리자 경로 200, 기존 회귀 실패 0 | **PASS** — targeted 33/33, 전체 645/645, typecheck·Vercel build PASS | 2026-09-12 |
 | V-165 | task-t23 slice 1 | Production 브라우저 | `/admin/media` 실제 계정 세션 | 83행, 요약 83/54/83/13, 이미지·영상 규격, 콘솔 오류 없음 | **PASS** — visible broken image 0, console 0 | 2026-09-12 |
 | V-166 | task-t23 slice 1 | 좁은 화면 표 | 994px viewport에서 DOM 실측 | 페이지 overflow 없음, 표만 내부 스크롤 | **PASS** — page/client 994/994, table scroller 670→1120 | 2026-09-12 |
+| V-167 | task-t23 slice 2 | 파일 검사·Storage 계약 | targeted + 전체 `npm test` | MIME/크기/규격/checksum, 권리·poster, signed upload/finalize/delete | **PASS** — targeted 36/36, 전체 고정 오라클 654/654, typecheck·Vercel build PASS | 2026-09-12 |
+| V-168 | task-t23 slice 2 | 운영 DB·Storage | migration/table/RLS/grant/RPC + bucket 조회 | service_role 전용, private, 제한 MIME·크기 | **PASS** — migration `20260912002420`, 두 테이블 RLS, delete RPC invoker, `umsh-media` private 50MB·MIME 5종 | 2026-09-12 |
+| V-169 | task-t23 slice 2 | Production 관리자 | `/admin/media` 지정 관리자 세션 | LNB·실제 83개·업로드 폼·권리 UI·콘솔 오류 0 | **PASS** — `dpl_2pVJ7NvA4ejomUDWdSLGeCVjMiNY`, 50MB 문구, Storage+배포 파일, console 0 | 2026-09-12 |
+| V-170 | task-t23 slice 2 | 운영 실파일 lifecycle | image upload→server inspect→signed preview→delete | 전체 단계 성공·잔존 0 | **NOT_RUN** — 브라우저 자동화가 native file chooser에 경로를 넣지 못하고 Vercel은 Production secret pull을 `[SENSITIVE]`로 차단. 임시 자산을 남기지 않음 | 2026-09-12 |
+| V-171 | task-t23 slice 2 | 운영 저장소 상한 대조 | Supabase 전역 상한 vs 서버/UI | 동일 값 | **PASS** — 운영 전역 50MB를 확인해 초기 100MB 가정을 50MB로 보정 | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 

@@ -1143,3 +1143,15 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - Vercel error 레벨에는 앱 실패가 아니라 기존 Node `[DEP0169] url.parse()` deprecation warning만 남아 있다. 이번 기능의 브라우저 콘솔과 API 흐름에는 오류가 없다.
 - T23 전체는 **IN_PROGRESS**다. Slice 2는 Supabase Storage의 private staging/public release 경계, 권리 증빙, posterAssetId, 참조 잠금 삭제 정책을 먼저 고정한 뒤 실제 업로드·교체·삭제를 구현한다.
 - CreamWIKI: `personal/carrotcap/notes/umsh-t23-live-media-inventory-20260912.md` 저장, 전체 경로 get, 개인 검색 즉시 반영 PASS. 짧은 `notes/...` get은 404라 전체 경로로 재검증했다. 로컬 재색인 스크립트 4개는 없어 NOT_RUN이며 원격 저장·검색 성공과 구분한다. 비밀번호·쿠키·토큰은 기록하지 않았다.
+
+## 2026-09-12 — T23 Slice 2 실제 private Storage 미디어 lifecycle
+
+- `media_assets`와 `media_asset_references`를 운영 Supabase에 추가하고 RLS·service_role 최소 권한·security invoker 참조 잠금 삭제 RPC를 적용했다. 브라우저에는 service key를 보내지 않으며 signed upload token도 DB·감사 기록에 저장하지 않는다.
+- `/admin/media`는 실제 파일·alt·권리 유형·권리 증빙·영상 poster를 받아 private signed upload를 수행하고, 서버가 Storage 원본을 다시 받아 MIME 시그니처·크기·규격·재생시간·SHA-256을 검사한 뒤 승인한다. 목록은 15분 signed preview를 사용하고 권리 증빙을 실제 문구로 표시한다.
+- 운영 Supabase 전역 파일 상한이 50MB임을 확인해 초기 계획의 영상 100MB를 50MB로 보정했다. 실제 `umsh-media` 버킷을 public=false, 50MB, PNG/JPEG/WebP/GIF/MP4 제한으로 생성하고 SQL로 재확인했다.
+- 손상·MIME 불일치·이미지 10MB·영상 50MB 초과·poster 누락과 참조 중 삭제 차단을 테스트했다. targeted 36/36, 전체 `npm test` 654/654, typecheck, Vercel build가 통과했다.
+- migration `20260912002420`은 운영 적용·history 일치·RLS/grant/RPC 확인을 마쳤다. 전체 `db push --dry-run`은 원격에만 있는 기존 migration 6건 때문에 실행할 수 없어 현재 additive SQL만 적용했다. `db lint`의 `create_refund_request` 오류와 Auth leaked-password 경고는 기존 T17/Auth 항목이다.
+- 최종 Production `dpl_2pVJ7NvA4ejomUDWdSLGeCVjMiNY` Ready·`umsh.kr` 별칭을 확인했다. 지정 관리자 세션에서 LNB, Storage 등록 폼, 83개 실제 자산, 50MB 안내, 콘솔 오류 0을 확인했다. Vercel error 로그의 `[DEP0169] url.parse()`는 기존 런타임 경고다.
+- 운영 실파일 1건의 upload→preview→delete smoke는 NOT_RUN이다. 브라우저 자동화가 native file chooser에 파일 경로를 주입할 수 없고 Vercel은 Production secret pull을 `[SENSITIVE]`로 차단했다. 테스트 자산·고객 노출·임시 DB 행은 남기지 않았다.
+- T23은 **NEEDS_REVIEW**다. 구현과 운영 자원은 완료됐고, 운영자가 실제 권리 근거가 있는 이미지 1건을 선택해 등록·미리보기·삭제하면 V-170을 닫을 수 있다. T24 착수 의존성은 충족한다.
+- CreamWIKI 원격 API/CLI는 인증 토큰 부재로 쓰기·검색이 NOT_RUN이다. sanitized 후보 `CreamAI/memory/candidates/task-t23-storage-media-lifecycle-20260912.md`를 남겼으며 비밀번호·쿠키·signed URL은 기록하지 않았다.

@@ -66,10 +66,10 @@
 - Produces: `inspectMediaFile(buffer, declaredMime)` with signature, size, dimensions/duration and checksum validation.
 - Produces: RLS-enabled `media_assets`, `media_asset_references`, and atomic `begin_media_asset_delete` RPC.
 
-- [ ] Write failing unit tests for valid PNG, MIME mismatch, damaged file, oversize image, and missing MP4 metadata.
-- [ ] Run the targeted test and confirm RED.
-- [ ] Implement the minimal parser and migration generated through the Supabase CLI.
-- [ ] Run the targeted test and confirm GREEN.
+- [x] Write failing unit tests for valid PNG, MIME mismatch, damaged file, oversize image, and missing MP4 metadata.
+- [x] Run the targeted test and confirm RED.
+- [x] Implement the minimal parser and migration generated through the Supabase CLI.
+- [x] Run the targeted test and confirm GREEN.
 
 ### Task 2: Real signed upload, finalize, list and delete API
 
@@ -84,10 +84,10 @@
 - Produces: `POST /api/admin/v1/media/uploads`, `POST /api/admin/v1/media/:id/finalize`, `DELETE /api/admin/v1/media/:id`.
 - Extends: `GET /api/admin/v1/media` with `managed` assets and short signed preview URLs.
 
-- [ ] Add failing route/store contract tests for scope, validation, no secret leakage, finalize inspection and delete conflict.
-- [ ] Implement private bucket bootstrap, signed upload creation, server-side download inspection, metadata persistence and atomic delete preparation.
-- [ ] Add explicit `media:write` and `media:delete` scopes; keep unauthenticated requests at 401.
-- [ ] Run targeted tests and confirm GREEN.
+- [x] Add failing route/store contract tests for scope, validation, no secret leakage, finalize inspection and delete conflict.
+- [x] Implement private bucket bootstrap, signed upload creation, server-side download inspection, metadata persistence and atomic delete preparation.
+- [x] Add explicit `media:write` and `media:delete` scopes; keep unauthenticated requests at 401.
+- [x] Run targeted tests and confirm GREEN.
 
 ### Task 3: Operator upload form and managed asset actions
 
@@ -100,9 +100,9 @@
 - Consumes: signed upload URL and managed asset DTOs.
 - Produces: accessible actual-file form, poster select, progress/error states, preview and safe delete controls.
 
-- [ ] Add failing shell contract tests for required fields, direct signed upload, finalize, poster selection and delete conflict copy.
-- [ ] Implement compact form and managed rows without changing the existing LNB or static inventory behavior.
-- [ ] Verify responsive/focus/loading/error/empty states.
+- [x] Add failing shell contract tests for required fields, direct signed upload, finalize, poster selection and delete conflict copy.
+- [x] Implement compact form and managed rows without changing the existing LNB or static inventory behavior.
+- [x] Verify responsive/focus/loading/error/empty states. Slice 1의 994px 실측과 이번 운영 데스크톱·접근성 트리 검증을 재사용했다.
 
 ### Task 4: Production apply and evidence
 
@@ -112,7 +112,7 @@
 - Modify: `status.md`
 - Create: `CreamAI/memory/candidates/task-t23-storage-media-lifecycle-20260912.md`
 
-- [ ] Run targeted tests, full `npm test`, typecheck and Vercel build.
-- [ ] Run Supabase lint/advisors, dry-run then apply the migration, and verify table/RLS/grants/RPC.
-- [ ] Deploy Preview then Production and perform a reversible real image upload/preview/delete smoke test.
-- [ ] Save sanitized reusable knowledge to CreamWIKI; never store credentials or signed URLs.
+- [x] Run targeted tests, full `npm test`, typecheck and Vercel build.
+- [x] Run Supabase lint/advisors, apply the additive migration, and verify table/RLS/grants/RPC. 원격에만 있는 과거 migration 6건 때문에 전체 dry-run은 실패해 현재 파일만 적용했다.
+- [ ] Deploy Preview then Production and perform a reversible real image upload/preview/delete smoke test. Preview·Production 배포와 운영 UI는 PASS. 브라우저 파일 chooser 자동화 제한과 Production secret pull 차단으로 실파일 lifecycle smoke는 NOT_RUN이다.
+- [x] Save sanitized reusable knowledge candidate; never store credentials or signed URLs. CreamWIKI 원격 쓰기는 인증 토큰 부재로 NOT_RUN이다.
