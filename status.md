@@ -1173,3 +1173,13 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 검증: focused 38/38, 전체 `npm test` 657/657, typecheck, Vercel build PASS. 최종 Production `dpl_5GSwim9Pn812gsuPCf7iwC3BhW2b` Ready, `umsh.kr` 별칭 연결. 로그인된 브라우저에서 LNB, 실제 버전 편집기, diff/미리보기, workflow CTA, 실제 빈 상태를 확인했다.
 - 운영에 현재 draft/published 공지가 없어 실제 문구의 승인→예약→취소 또는 due 발행 smoke는 NOT_RUN이다. 임의 공지를 고객에게 노출하지 않았으며 T24는 **NEEDS_REVIEW**다.
 - CreamWIKI 원격 저장·재색인은 현재 인증된 공유 저장소가 없어 NOT_RUN이다. sanitized 후보 `CreamAI/memory/candidates/task-t24-content-approval-scheduling-20260912.md`를 남겼고 `search-project-memory.ps1 -IncludeCandidates`의 exact phrase 검색 1건을 확인했다. 비밀번호·쿠키·토큰·Authorization 값은 기록하지 않았다.
+
+## 2026-09-12 — T25/T27 선행 운영 코퍼스·프롬프트 목록 배포
+
+- `/admin/corpus`에 현재 런타임 레지스트리 1.9.0의 28개 활성 팩을 도메인·종류·역할·버전·상대 경로·내용 해시와 함께 표시한다.
+- `/admin/prompts`에 현재 배포된 공통·가이드 파일 4개와 서비스 프롬프트 20개를 역할·상태·상대 경로·문자 수·크기·내용 해시와 함께 표시한다. 원문 프롬프트 본문과 서버 절대 경로는 반환하지 않는다.
+- API는 `reports:read` 권한을 요구하며 미로그인은 401이다. 표시 값은 브라우저 목업이 아니라 서버가 현재 배포 원천 파일을 읽어 생성한다.
+- 검증: focused 29/29, 전체 `npm test` 658/658, `npm run vercel-build` 및 typecheck PASS. 커밋 `72c2b78`.
+- Production `dpl_2dHGtPDevWMk832AL45drXBCzHXY` Ready 및 `umsh.kr` 별칭 연결. 로그인된 운영 브라우저에서 코퍼스 28개, 프롬프트 가이드 4개, 서비스 프롬프트 20개가 목록으로 표시되는 것을 확인했다. `/api/health`도 registry 1.9.0과 28개 팩을 반환했다.
+- Vercel error 레벨에는 HTTP 실패가 아니라 기존 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 목록 요청은 모두 200이며 별도 런타임 정리 항목으로 남긴다.
+- 준비 미완료 상태인 Tone V2 후보 런타임은 이번 배포에 포함하지 않았다. 이 Task는 현재 Production 원천의 읽기 전용 가시화만 완료했으며 T25 전체 코퍼스 전환과 T27 프롬프트 버전 편집·발행은 후속 Task다.

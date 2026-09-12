@@ -204,4 +204,7 @@
 - full regression: `npm test` 658 tests / 109 suites / 658 PASS / 0 FAIL.
 - build: `npm run vercel-build` PASS, typecheck 오류 0.
 - 보안: 미로그인 API 401, 원문 프롬프트 본문 미반환, 파일 경로·크기·해시만 반환.
-- 배포·Production 브라우저 확인: 이 기록 시점에는 NOT_RUN.
+- 배포: `dpl_2dHGtPDevWMk832AL45drXBCzHXY` Ready, `umsh.kr` 별칭 연결 PASS.
+- Production 브라우저: 로그인된 `/admin/corpus`에서 레지스트리 1.9.0·활성 팩 28개 목록, `/admin/prompts`에서 가이드 4개·서비스 파일 20개 목록 표시 PASS.
+- Production health: `/api/health`가 `ok:true`, registry 1.9.0, packs 28개를 반환해 PASS.
+- Production error log: 애플리케이션 HTTP 실패 0건. 기존 Node `[DEP0169] url.parse()` deprecation warning 2건은 별도 런타임 정리 대상.
