@@ -6,6 +6,8 @@
 현재 주 작업 흐름은 `admin-ops-execution-pack`(운명상회 운영 관리자 구축)이다.
 코드 리뷰는 Codex가 담당한다.
 
+2026-09-12 T25/T27 선행 읽기 슬라이스: `/admin/corpus`와 `/admin/prompts`에서 현재 배포가 실제로 읽는 코퍼스·프롬프트 파일 목록, 버전·지문·해시를 조회한다. 편집·import·비교·릴리스는 포함하지 않으며 T25/T27 완료로 간주하지 않는다.
+
 ## A. 환경/기반 Task
 
 | ID | Task | Purpose | Priority | Expected Files | Dependencies | Done Criteria | Verification | Status |

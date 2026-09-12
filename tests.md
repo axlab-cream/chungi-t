@@ -196,3 +196,12 @@
 - 실행하지 않은 검증은 `NOT_RUN` 또는 `BLOCKED`으로 표기하고 절대 PASS로 기록하지 않는다.
 - 테스트가 실패하면 테스트를 수정하지 않고 구현 코드를 고친다.
 - 비밀값은 명령/결과 기록에 포함하지 않고 변수 이름만 남긴다.
+
+## T25/T27 선행 — 운영 원천 파일 목록 (2026-09-12)
+
+- RED: 관리자 셸에서 코퍼스·프롬프트 로더 부재, 두 API 404를 재현했다.
+- focused: `tests/unit/admin-shell.test.ts` 29/29 PASS.
+- full regression: `npm test` 658 tests / 109 suites / 658 PASS / 0 FAIL.
+- build: `npm run vercel-build` PASS, typecheck 오류 0.
+- 보안: 미로그인 API 401, 원문 프롬프트 본문 미반환, 파일 경로·크기·해시만 반환.
+- 배포·Production 브라우저 확인: 이 기록 시점에는 NOT_RUN.

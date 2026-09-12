@@ -150,6 +150,7 @@ import {
 } from '../body/lucky-service.js'
 import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
+import { getPromptFilesSnapshot } from '../prompt/admin-snapshot.js'
 import {
   buildLoveMindContext,
   buildLoveMindReport,
@@ -1870,6 +1871,23 @@ app.get('/api/admin/v1/services', async (req, res) => {
     res.json(await getAdminServiceVersionSnapshot())
   } catch {
     res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
+  }
+})
+app.get('/api/admin/v1/corpus', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    const corpus = getCorpusSnapshot()
+    res.json({ registryVersion: corpus.registryVersion, fingerprint: corpus.fingerprint, policy: corpus.policy, packs: corpus.activePacks, asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'CORPUS_SNAPSHOT_FAILED', error: '현재 배포의 코퍼스 파일 목록을 불러오지 못했습니다.' })
+  }
+})
+app.get('/api/admin/v1/prompts', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json(getPromptFilesSnapshot())
+  } catch {
+    res.status(503).json({ code: 'PROMPT_SNAPSHOT_FAILED', error: '현재 배포의 프롬프트 파일 목록을 불러오지 못했습니다.' })
   }
 })
 app.get('/api/admin/v1/media', async (req, res) => {

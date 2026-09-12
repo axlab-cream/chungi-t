@@ -267,6 +267,10 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       for (const action of ['request-approval', 'approve', 'schedule', 'cancel-schedule']) assert.match(text, new RegExp(`runWorkflow\\('${action}'`), `공지 ${action} 호출이 없다`)
       assert.match(text, /white-space:\s*pre-wrap/, '한국어 개행 보존 스타일이 없다')
       assert.match(text, /loadLiveMedia/, '실제 배포 미디어 로더가 없다')
+      assert.match(text, /loadLiveCorpus/, '실제 코퍼스 파일 목록 로더가 없다')
+      assert.match(text, /loadLivePrompts/, '실제 프롬프트 파일 목록 로더가 없다')
+      assert.match(text, /\/api\/admin\/v1\/corpus/, '관리자 코퍼스 API 로더가 없다')
+      assert.match(text, /\/api\/admin\/v1\/prompts/, '관리자 프롬프트 API 로더가 없다')
       assert.match(text, /asset\.rightsEvidence/, '미디어 권리 증빙 표시가 없다')
       assert.match(text, /\/api\/admin\/v1\/media/, '관리자 미디어 API 호출이 없다')
       assert.match(text, /현재 배포된 실제 미디어 자산이 없습니다/, '미디어 실제 빈 상태가 없다')
@@ -319,6 +323,28 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(payload.services.length, 19)
       assert.ok(payload.services.some((service: { canonicalKey: string, discoveryVisible: boolean }) => service.canonicalKey === 'love_mind' && service.discoveryVisible === false))
       assert.ok(payload.services.every((service: Record<string, unknown>) => !('payload' in service) && !('authorEmail' in service)))
+    })
+
+    it('코퍼스와 프롬프트 API는 현재 배포 파일 목록을 관리자에게만 반환한다', async () => {
+      assert.equal((await request('/api/admin/v1/corpus')).response.status, 401)
+      assert.equal((await request('/api/admin/v1/prompts')).response.status, 401)
+
+      const corpusResult = await request('/api/admin/v1/corpus', 'super')
+      assert.equal(corpusResult.response.status, 200)
+      const corpus = JSON.parse(corpusResult.text)
+      assert.ok(corpus.registryVersion)
+      assert.match(corpus.fingerprint, /^[a-f0-9]{28}$/)
+      assert.ok(corpus.packs.length > 0)
+      assert.ok(corpus.packs.every((pack: Record<string, unknown>) => pack.path && pack.contentHash))
+
+      const promptResult = await request('/api/admin/v1/prompts', 'super')
+      assert.equal(promptResult.response.status, 200)
+      const prompts = JSON.parse(promptResult.text)
+      assert.match(prompts.fingerprint, /^[a-f0-9]{28}$/)
+      assert.equal(prompts.services.length, 20)
+      assert.ok(prompts.guides.some((guide: { path: string }) => guide.path === 'prompts/README.md'))
+      assert.ok(prompts.services.every((service: Record<string, unknown>) => service.path && service.contentHash && service.status === 'active'))
+      assert.ok(prompts.services.every((service: Record<string, unknown>) => !('content' in service) && !('prompt' in service)))
     })
 
     it('서비스 초안 API는 관리자 권한과 구조화 입력을 모두 요구한다', async () => {

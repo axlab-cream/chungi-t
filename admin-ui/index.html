@@ -666,6 +666,28 @@
           addLiveTable(body, '실제 운영 서비스', ['서비스', 'canonicalKey', '분류', '검색 노출', '판매', '기준 가격', '발행 버전', '초안 버전', '고객 경로'], services, function (item) { return [item.title, item.canonicalKey, item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 가능' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion || '없음', item.draftVersion || '없음', item.landingPath]; }, '실제 서비스 카탈로그가 비어 있습니다.');
         } catch (_error) { addLiveError(body, '실제 서비스 카탈로그를 불러오지 못했습니다.'); }
       }
+      async function loadLiveCorpus(body) {
+        try {
+          var response = await fetch('/api/admin/v1/corpus', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('CORPUS_SNAPSHOT_FAILED');
+          var payload = await response.json();
+          var packs = Array.isArray(payload.packs) ? payload.packs : [];
+          addLiveTable(body, '현재 배포 코퍼스', ['레지스트리', '배포 지문', '활성 팩', '정책'], [[payload.registryVersion, payload.fingerprint, packs.length, payload.policy]], function (item) { return item; }, '활성 코퍼스가 없습니다.');
+          addLiveTable(body, '코퍼스 파일 목록', ['팩', '도메인', '종류', '역할', '버전', '파일', '내용 해시'], packs, function (item) { return [item.id, item.domain, item.kind, item.role, item.version, item.path, item.contentHash]; }, '현재 배포에서 코퍼스 파일을 찾지 못했습니다.');
+        } catch (_error) { addLiveError(body, '현재 배포의 코퍼스 파일 목록을 불러오지 못했습니다.'); }
+      }
+      async function loadLivePrompts(body) {
+        try {
+          var response = await fetch('/api/admin/v1/prompts', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('PROMPT_SNAPSHOT_FAILED');
+          var payload = await response.json();
+          var guides = Array.isArray(payload.guides) ? payload.guides : [];
+          var services = Array.isArray(payload.services) ? payload.services : [];
+          addLiveTable(body, '현재 배포 프롬프트', ['배포 지문', '공통·가이드 파일', '서비스 파일', '기준 시각'], [[payload.fingerprint, guides.length, services.length, payload.asOf]], function (item) { return item; }, '프롬프트 배포 정보를 찾지 못했습니다.');
+          addLiveTable(body, '프롬프트 가이드', ['역할', '파일', '문자 수', '크기', '내용 해시'], guides, function (item) { return [item.role, item.path, item.chars || '—', Number(item.bytes).toLocaleString('ko-KR') + ' B', item.contentHash]; }, '연결된 프롬프트 가이드가 없습니다.');
+          addLiveTable(body, '서비스 프롬프트 파일 목록', ['서비스', '상태', '파일', '문자 수', '크기', '내용 해시'], services, function (item) { return [item.key, item.status === 'active' ? '사용 중' : item.status, item.path, item.chars, Number(item.bytes).toLocaleString('ko-KR') + ' B', item.contentHash]; }, '연결된 서비스 프롬프트가 없습니다.');
+        } catch (_error) { addLiveError(body, '현재 배포의 프롬프트 파일 목록을 불러오지 못했습니다.'); }
+      }
       function formatMediaBytes(value) {
         var bytes = Number(value);
         if (!Number.isFinite(bytes) || bytes < 0) return '—';
@@ -933,6 +955,8 @@
         if (route.key === 'services') { loadLiveServices(body); return; }
         if (route.key === 'content') { loadSupportNotice(body); return; }
         if (route.key === 'media') { loadLiveMedia(body); return; }
+        if (route.key === 'corpus') { loadLiveCorpus(body); return; }
+        if (route.key === 'prompts') { loadLivePrompts(body); return; }
         if (route.key === 'audit') { loadLiveAudit(body); return; }
         if (route.key === 'support') { loadSupportCases(body); return; }
         if (route.key === 'settings') { loadAdminAccounts(body); return; }

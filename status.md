@@ -10,6 +10,14 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-12 — T25/T27 선행 원천 파일 목록 구현
+
+- Status: `NEEDS_REVIEW`
+- 원인: `/admin/corpus`와 `/admin/prompts`가 실제 런타임 원천을 읽는 로더 없이 공통 미구현 안내로 끝났다.
+- 구현: 인증 전용 `/api/admin/v1/corpus`, `/api/admin/v1/prompts`와 두 목록 화면을 추가했다. 현재 배포의 `data/corpus/registry.json`, `prompts/services-manifest.json`, 공통·가이드 및 20개 서비스 프롬프트 파일을 직접 읽는다.
+- 보호: 프롬프트 본문은 반환하지 않고 경로·역할·문자 수·크기·내용 해시만 표시한다. 미완료 Tone V2 포크는 Production 변경에 포함하지 않는다.
+- 검증: RED 2건 재현, focused 29/29, 전체 658/658, Vercel build/typecheck PASS. 배포 전 상태.
+
 ## 2026-09-11 — T13 통합 검색·읽기 홈 완료
 
 - Status: `DONE`
