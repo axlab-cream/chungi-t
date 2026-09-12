@@ -65,6 +65,8 @@ describe('관리자 자체 비밀번호 로그인', { concurrency: false }, () =
     assert.equal(JSON.parse(me.text).email, 'operator@synthetic.invalid')
     assert.ok(JSON.parse(me.text).scopes.includes('audit:read'))
     assert.ok(JSON.parse(me.text).scopes.includes('media:read'))
+    assert.ok(JSON.parse(me.text).scopes.includes('media:write'))
+    assert.ok(JSON.parse(me.text).scopes.includes('media:delete'))
 
     const media = await request('/api/admin/v1/media', { headers: { Cookie: cookie.split(';')[0] } })
     assert.equal(media.response.status, 200)

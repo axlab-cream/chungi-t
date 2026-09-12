@@ -39,6 +39,8 @@ import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports } from '../admin/live-data.js'
 import { listAdminMediaAssets, mediaInventorySummary } from '../admin/media-inventory.js'
+import { MediaInspectionError, validateMediaUploadInput } from '../admin/media-file-inspection.js'
+import { MediaStoreError, mediaStore, mediaStoreAvailable } from '../admin/media-store.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
@@ -1134,7 +1136,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish', 'media:read']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish', 'media:read', 'media:write', 'media:delete']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1867,10 +1869,84 @@ app.get('/api/admin/v1/services', async (req, res) => {
 app.get('/api/admin/v1/media', async (req, res) => {
   if (!await requireStaff(req, res, 'media:read')) return
   try {
-    const assets = listAdminMediaAssets()
-    res.json({ assets, summary: mediaInventorySummary(assets), source: 'deployed-static' })
+    const deployed = listAdminMediaAssets()
+    const managed = mediaStoreAvailable() ? await mediaStore().listAssets() : []
+    const staticSummary = mediaInventorySummary(deployed)
+    res.json({
+      assets: [...managed, ...deployed],
+      summary: {
+        total: managed.length + staticSummary.total,
+        managed: managed.length,
+        referenced: managed.filter((asset) => asset.references.length > 0).length + staticSummary.referenced,
+        rightsUnverified: staticSummary.rightsUnverified,
+        videoPosterMissing: staticSummary.videoPosterMissing,
+        invalid: managed.filter((asset) => asset.validation.status === 'invalid').length + staticSummary.invalid,
+      },
+      source: managed.length ? 'deployed-static+storage' : 'deployed-static',
+    })
   } catch {
     res.status(503).json({ code: 'MEDIA_INVENTORY_LOOKUP_FAILED', error: '배포 미디어 인벤토리를 불러오지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/media/uploads', async (req, res) => {
+  const membership = await requireStaff(req, res, 'media:write'); if (!membership) return
+  if (!mediaStoreAvailable()) { res.status(503).json({ code: 'MEDIA_STORE_UNAVAILABLE', error: '미디어 저장소가 설정되지 않았습니다.' }); return }
+  const idempotencyKey = adminCommandKey(req)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  let input
+  try {
+    const body = asObject(req.body)
+    input = validateMediaUploadInput({
+      fileName: trimmedString(body.fileName), mime: trimmedString(body.mime), bytes: Number(body.bytes),
+      alt: trimmedString(body.alt), rightsBasis: trimmedString(body.rightsBasis), rightsEvidence: trimmedString(body.rightsEvidence),
+      posterAssetId: trimmedString(body.posterAssetId) || null,
+    })
+  } catch (error) {
+    const code = error instanceof MediaInspectionError ? error.code : 'MEDIA_UPLOAD_INPUT_INVALID'
+    res.status(422).json({ code, error: '파일, 대체 텍스트, 권리 근거와 poster를 확인해 주세요.' }); return
+  }
+  try {
+    const id = randomUUID(); const store = mediaStore()
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'media.upload.begin', idempotencyKey, body: input, target: { type: 'media_asset', id },
+    }, async () => store.beginUploadRecord({ id, actorEmail: membership.email, input }))
+    const uploadUrl = await store.createUploadUrl(command.result.id)
+    res.status(command.replayed ? 200 : 201).json({ asset: command.result, uploadUrl, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof MediaStoreError || error instanceof AdminCommandConflict ? error.message : 'MEDIA_UPLOAD_BEGIN_FAILED'
+    res.status(code === 'IDEMPOTENCY_CONFLICT' ? 409 : 503).json({ code, error: '미디어 업로드를 시작하지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/media/:id/finalize', async (req, res) => {
+  const membership = await requireStaff(req, res, 'media:write'); if (!membership) return
+  if (!mediaStoreAvailable()) { res.status(503).json({ code: 'MEDIA_STORE_UNAVAILABLE', error: '미디어 저장소가 설정되지 않았습니다.' }); return }
+  const idempotencyKey = adminCommandKey(req); const id = trimmedString(req.params.id)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'media.upload.finalize', idempotencyKey, body: { id }, target: { type: 'media_asset', id },
+    }, async () => mediaStore().finalizeUpload({ id, actorEmail: membership.email }))
+    res.json({ asset: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof MediaStoreError || error instanceof AdminCommandConflict ? error.message : 'MEDIA_UPLOAD_FINALIZE_FAILED'
+    const status = code === 'IDEMPOTENCY_CONFLICT' ? 409 : code.startsWith('MEDIA_') && !code.endsWith('_FAILED') ? 422 : 503
+    res.status(status).json({ code, error: 'Storage 원본 검사에 실패했습니다.' })
+  }
+})
+app.delete('/api/admin/v1/media/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'media:delete'); if (!membership) return
+  if (!mediaStoreAvailable()) { res.status(503).json({ code: 'MEDIA_STORE_UNAVAILABLE', error: '미디어 저장소가 설정되지 않았습니다.' }); return }
+  const idempotencyKey = adminCommandKey(req); const id = trimmedString(req.params.id)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'media.delete', idempotencyKey, body: { id }, target: { type: 'media_asset', id },
+    }, async () => mediaStore().deleteAsset(id))
+    res.json({ ...command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof MediaStoreError || error instanceof AdminCommandConflict ? error.message : 'MEDIA_ASSET_DELETE_FAILED'
+    const status = code === 'MEDIA_ASSET_REFERENCED' ? 409 : code === 'IDEMPOTENCY_CONFLICT' ? 409 : 503
+    res.status(status).json({ code, error: code === 'MEDIA_ASSET_REFERENCED' ? '다른 콘텐츠에서 사용 중인 자산은 삭제할 수 없습니다.' : '미디어를 삭제하지 못했습니다.' })
   }
 })
 app.post('/api/admin/v1/services/:key/drafts', async (req, res) => {

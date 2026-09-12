@@ -165,9 +165,9 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       const me = JSON.parse(text)
       assert.equal(me.email, 'super@synthetic.invalid')
       assert.equal(me.role, 'super_admin')
-      // 환불은 요청·승인·조회로 분리된 별도 scope 이며, 삭제 권한은 주지 않는다.
-      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish', 'media:read'])
-      assert.ok(!me.scopes.some((scope: string) => /delete/.test(scope)), '허용되지 않은 삭제 권한이 생겼다')
+      // 쓰기와 삭제는 실제 감사 명령이 있는 미디어 경계에만 명시적으로 연다.
+      assert.deepEqual(me.scopes, ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish', 'media:read', 'media:write', 'media:delete'])
+      assert.deepEqual(me.scopes.filter((scope: string) => /delete/.test(scope)), ['media:delete'])
       assert.ok(me.scopes.includes('settings:write'), '감사 기반 설정 변경 권한이 없다')
       assert.ok(me.scopes.includes('support:read') && me.scopes.includes('support:write'), '고객 지원 권한이 없다')
     })
@@ -264,6 +264,11 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /\.admin-workspace\s*\{[^}]*min-width:\s*0/s, '넓은 미디어 표가 페이지 전체를 밀어낼 수 있다')
       assert.match(text, /\[data-admin-workspace-body\]\s*\{[^}]*min-width:\s*0/s, '동적 화면 body가 표의 최소 폭만큼 늘어날 수 있다')
       assert.match(text, /admin-table admin-media-table/, '미디어 표 전용 스크롤 폭이 없다')
+      assert.match(text, /data-admin-media-upload/, '실제 파일 업로드 폼이 없다')
+      assert.match(text, /권리 근거/, '권리 근거 입력이 없다')
+      assert.match(text, /uploadUrl/, 'signed upload URL로 직접 전송하지 않는다')
+      assert.match(text, /\/finalize/, 'Storage 원본 최종 검사 요청이 없다')
+      assert.match(text, /MEDIA_ASSET_REFERENCED|다른 콘텐츠에서 사용 중/, '참조 중 삭제 차단 안내가 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
@@ -278,6 +283,21 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.ok(payload.assets.length >= 80)
       assert.equal(payload.summary.total, payload.assets.length)
       assert.ok(payload.assets.every((asset: Record<string, unknown>) => !('filePath' in asset)))
+    })
+
+    it('미디어 쓰기 API는 전용 scope를 요구하고 저장소 미설정을 성공처럼 처리하지 않는다', async () => {
+      const anonymous = await request('/api/admin/v1/media/uploads', undefined, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'fixture-media-upload' },
+        body: JSON.stringify({ fileName: 'hero.png', mime: 'image/png', bytes: 33, alt: '소개', rightsBasis: 'owned', rightsEvidence: 'fixture' }),
+      })
+      assert.equal(anonymous.response.status, 401)
+
+      const allowed = await request('/api/admin/v1/media/uploads', 'super', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'fixture-media-upload' },
+        body: JSON.stringify({ fileName: 'hero.png', mime: 'image/png', bytes: 33, alt: '소개', rightsBasis: 'owned', rightsEvidence: 'fixture' }),
+      })
+      assert.equal(allowed.response.status, 503)
+      assert.equal(JSON.parse(allowed.text).code, 'MEDIA_STORE_UNAVAILABLE')
     })
 
     it('서비스 목록 API는 관리자만 실제 카탈로그를 조회한다', async () => {

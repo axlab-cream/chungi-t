@@ -39,6 +39,8 @@ const SUPER_ADMIN_SCOPES = Object.freeze([
   'content:write',
   'content:publish',
   'media:read',
+  'media:write',
+  'media:delete',
 ])
 
 export type StaffMembership = {
