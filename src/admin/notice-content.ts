@@ -36,3 +36,12 @@ export function parseNoticeReviewNote(value: unknown): string {
   if (text.length > 500 || /[<>]/.test(text)) throw new Error('NOTICE_REVIEW_NOTE_INVALID')
   return text
 }
+
+export function parseNoticeScheduleAt(value: unknown, now = new Date()): string {
+  if (typeof value !== 'string') throw new Error('NOTICE_SCHEDULE_AT_INVALID')
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime()) || parsed.getTime() < now.getTime() + 60_000) {
+    throw new Error('NOTICE_SCHEDULE_AT_INVALID')
+  }
+  return parsed.toISOString()
+}
