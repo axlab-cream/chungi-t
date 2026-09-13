@@ -1601,3 +1601,8 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Minimal fix: preserve every required runtime path in one brace-expanded string and freeze that exact contract in the static-exposure test.
 - Verification GREEN: full serial suite 936/936 across 122 suites; focused static-exposure 60/60; typecheck PASS; `vercel build --prod --scope ax-lab-cream` PASS.
 - Credential boundary: staged real OpenAI/Supabase/GitHub/private-key formats 0; previously submitted password literals 0.
+- Commit: `e75104c` (`feat: integrate tone v2 corpus and release evidence`), pushed to GitHub branch `codex/tone-v2`.
+- Production deployment: `dpl_DzR7DobFjVRzgvWUQNNm8GrHp6Yg`, status Ready, alias `https://umsh.kr`, immutable URL `https://chungi-pfex4hhnc-ax-lab-cream.vercel.app`.
+- Production smoke: `/`, `/admin`, `/admin/corpus`, `/admin/prompts`, `/admin/media` all 200; `/api/health` 200 with `ok: true` and registry `tone-v2.2.0.20`; unauthenticated admin data APIs correctly return 401.
+- Post-deploy error scan: no error logs found for the deployment in the first ten minutes.
+- Task status: DONE.

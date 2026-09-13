@@ -429,6 +429,6 @@ Step XX
 - [x] Verify Git worktree, canonical remote, Vercel owner/project and `umsh.kr` domain mapping.
 - [x] Stage and inspect the exact accumulated release set; block secrets and malformed patches.
 - [x] Re-run release verification.
-- [ ] Commit and push `codex/tone-v2`.
-- [ ] Deploy to Vercel Production and verify the live domain.
-- [ ] Record the immutable deployment result and close ProjectOps.
+- [x] Commit and push `codex/tone-v2`.
+- [x] Deploy to Vercel Production and verify the live domain.
+- [x] Record the immutable deployment result and close ProjectOps.

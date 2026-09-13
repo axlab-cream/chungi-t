@@ -591,7 +591,7 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [x] Full serial unit suite — 936/936, 122 suites
 - [x] TypeScript typecheck — PASS
 - [x] Vercel production build — PASS
-- [ ] Vercel deployment readiness inspection
-- [ ] `umsh.kr` production route smoke verification
+- [x] Vercel deployment readiness inspection — `dpl_DzR7DobFjVRzgvWUQNNm8GrHp6Yg` Ready
+- [x] `umsh.kr` production route smoke verification — root/admin/corpus/prompts/media 200; health 200/ok; protected admin APIs 401
 - [x] RED: `vercel build --prod` rejects array-valued `functions.api/index.ts.includeFiles`
 - [x] GREEN: string-glob contract passes focused test 60/60 and production build

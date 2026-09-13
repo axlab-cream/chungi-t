@@ -16,3 +16,12 @@ The Vercel CLI used by this project validates `functions.api/index.ts.includeFil
 - Run the full serial suite, typecheck and `vercel build --prod` before committing.
 - Confirm the `.vercel/project.json` project ID and the domain-to-project mapping under the intended team scope before deploying.
 
+## Verified outcome
+
+- Source commit: `e75104c`
+- GitHub branch: `codex/tone-v2`
+- Vercel deployment: `dpl_DzR7DobFjVRzgvWUQNNm8GrHp6Yg`
+- Production alias: `https://umsh.kr`
+- Health: HTTP 200, `ok: true`, corpus registry `tone-v2.2.0.20`
+- Route smoke: public and administrator shell entry routes returned 200; protected administrator data endpoints returned 401 without a session.
+- Initial error-log scan: clean.
