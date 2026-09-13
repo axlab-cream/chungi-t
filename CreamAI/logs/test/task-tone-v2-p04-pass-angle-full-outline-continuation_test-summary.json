@@ -1,0 +1,16 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-full-outline-continuation",
+  "timestamp": "2026-09-12T21:24:00+09:00",
+  "status": "PASS_WITH_BUSINESS_ACCEPTANCE_FAIL",
+  "checks": [
+    { "name": "saved-record-replay", "status": "PASS", "detail": "2/52 persisted; completed items replay PASS; first failure order 3; later calls 0" },
+    { "name": "focused", "status": "PASS", "passed": 48, "failed": 0 },
+    { "name": "compiler-task", "status": "PASS", "passed": 7, "failed": 0 },
+    { "name": "full", "status": "PASS", "passed": 682, "failed": 0, "suites": 101, "duration_ms": 117317.5782 },
+    { "name": "typecheck", "status": "PASS" },
+    { "name": "vercel-build", "status": "PASS" },
+    { "name": "git-diff-check", "status": "PASS_WITH_LINE_ENDING_WARNINGS" },
+    { "name": "boundary-secret-scan", "status": "PASS", "hits": 0 },
+    { "name": "projectops-test", "status": "WARN", "detail": "nested CreamAI package has no test script; repository-root full test is authoritative" }
+  ]
+}

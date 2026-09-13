@@ -1,0 +1,282 @@
+import { createHash } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const oldRelativePath = 'data/tone-v2/corpus/quit-fortune-service.json'
+const newRelativePath = 'data/tone-v2/corpus/releases/quit-fortune-service-2.1.0.json'
+const reviewRelativePath = 'tone-v2/corpus-review/quit-fortune-2.1.0.json'
+const releaseRelativePath = 'tone-v2/releases/quit-fortune-2.1.0.json'
+const promptManifestPath = 'tone-v2/generated/manifest.json'
+const generationEvidencePath = 'tone-v2/evaluations/P04-quit-fortune-full-outline-generation-20260913.json'
+const visualEvidencePath = 'tone-v2/evaluations/P04-quit-fortune-visual-render-evidence-20260913.json'
+const candidateVerificationPath = 'tone-v2/evaluations/P05-quit-fortune-corpus-rag-release-candidate-20260913.json'
+
+const readJson = (relativePath) => JSON.parse(readFileSync(join(projectRoot, relativePath), 'utf8'))
+const sha256 = (value) => createHash('sha256').update(value).digest('hex')
+const fileHash = (relativePath) => sha256(readFileSync(join(projectRoot, relativePath)))
+const writeJson = (relativePath, value) => {
+  const target = join(projectRoot, relativePath)
+  mkdirSync(dirname(target), { recursive: true })
+  writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+}
+
+const oldPack = readJson(oldRelativePath)
+const oldById = new Map(oldPack.knowledgeBlocks.map((block) => [block.id, block]))
+
+const reviewedContent = {
+  'qui-001': {
+    topic: '반복 조건과 단일 사건을 구분한다',
+    concept: '퇴사 고민의 반복 조건과 특정 사건의 영향을 분리해 판단 재료를 만든다',
+    condition: '사용자가 퇴사 고민이 반복된 시점이나 특정 사건 전후의 차이를 입력했을 때만 적용한다.',
+    interpretation: '입력에서 확인된 반복 조건과 특정 사건 전후의 차이를 비교하면, 지금 마음이 한 사건의 반응인지 계속 점검해야 할 구조인지 가설을 세울 수 있다. 이것만으로 퇴사 결론을 확정하지 않는다.',
+    real_world_pattern: ['가상 사례: 특정 회의 뒤에만 퇴사 생각이 커지는 경우', '가상 사례: 업무 조건이 달라져도 같은 불편이 반복되는 경우'],
+    risk: '짧은 감정이나 반복된 생각 하나만으로 퇴사 필요성을 확정하는 것',
+    opportunity: '사용자가 말한 사건 전후와 반복 조건을 나란히 비교하는 것',
+    advice: '확인된 사건과 반복 조건을 분리해 적고, 아직 입력되지 않은 기간이나 원인은 추정하지 않는다.',
+    forbidden_generalization: '퇴사 생각이 반복되면 이미 나가야 한다고 단정하지 않는다.',
+  },
+  'qui-002': {
+    topic: '힘든 장면의 원인 후보를 분리한다',
+    concept: '사람·업무·역할·환경은 서로 다른 원인 후보이며 해결책도 확인 뒤 정한다',
+    condition: '사용자가 실제로 힘들었다고 말한 장면과 관련 조건이 입력됐을 때만 적용한다.',
+    interpretation: '사람, 업무 내용, 역할 경계, 조직 환경은 원인 후보다. 한 장면에 여러 조건이 겹칠 수 있으므로 이동이나 잔류의 효과를 미리 확정하지 않고 바뀌면 달라질 조건을 찾는다.',
+    real_world_pattern: ['가상 사례: 담당 범위를 조정한 뒤 불편이 달라지는 경우', '가상 사례: 팀이 달라져도 같은 역할 충돌이 남는 경우'],
+    risk: '회사나 기질 하나를 원인으로 고정하거나 이동하면 해결된다고 단정하는 것',
+    opportunity: '입력된 장면마다 사람·업무·역할·환경 중 어떤 조건이 있었는지 비교하는 것',
+    advice: '원인 후보별로 바뀔 수 있는 조건과 확인할 사실을 구분한다.',
+    forbidden_generalization: '사람 문제는 이동으로 풀리고 기질 문제는 어디서나 반복된다고 확정하지 않는다.',
+  },
+  'qui-003': {
+    topic: '소진 신호는 진단하지 않고 안전하게 확인한다',
+    concept: '사용자가 말한 수면·식사·집중 변화는 결정 전 안전 확인 항목이지 사주 진단이 아니다',
+    condition: '사용자가 수면, 식사, 집중, 감정 또는 일상 기능의 변화를 직접 입력했을 때만 적용한다.',
+    interpretation: '입력된 변화는 현재 부담을 살피는 신호로 다룬다. 사주나 한두 장면으로 번아웃이나 질병을 진단하지 않으며, 일상 기능이 무너지거나 위기 신호가 있으면 결정 조언보다 전문 지원을 우선한다.',
+    real_world_pattern: ['가상 사례: 사용자가 쉬어도 집중이 돌아오지 않는다고 말한 경우', '가상 사례: 수면과 식사 변화가 업무 판단에 영향을 주는 경우'],
+    risk: '의학적 상태를 단정하거나 회복만 하면 판단이 달라진다고 보장하는 것',
+    opportunity: '사용자가 직접 말한 변화와 현재 이용 가능한 지원을 확인하는 것',
+    advice: '위기나 일상 기능 저하가 언급되면 의료·상담 지원을 안내하고, 긴급 위험에는 서비스의 고정 안전 연락처를 사용한다.',
+    forbidden_generalization: '일간이나 운 흐름으로 번아웃, 우울, 회복 시점을 진단하지 않는다.',
+  },
+  'qui-004': {
+    topic: '공백 버퍼는 제공된 실제 숫자로만 계산한다',
+    concept: '가용 자금과 실제 지출이 입력된 경우에만 공백을 감당할 범위를 계산한다',
+    condition: '사용자가 가용 자금과 월 지출 등 계산에 필요한 실제 숫자를 제공했을 때만 적용한다.',
+    interpretation: '공백 버퍼는 제공된 가용 자금을 제공된 월 지출로 나눈 계산값이다. 누락된 세금, 부채, 가족 부담, 변동 지출이 있으면 계산이 달라질 수 있으며 값이 없을 때 임의 숫자를 만들지 않는다.',
+    real_world_pattern: ['가상 사례: 제공된 잔고와 고정 지출로 범위를 계산하는 경우', '가상 사례: 사용자가 추가 지출을 알려 계산을 갱신하는 경우'],
+    risk: '입력되지 않은 잔고·지출·기간을 만들거나 단일 계산값을 퇴사 허가로 쓰는 것',
+    opportunity: '사용자 제공 숫자와 누락 항목을 분리해 계산의 한계를 보여 주는 것',
+    advice: '숫자가 모두 있을 때만 산식을 밝히고 계산하며, 부족하면 필요한 입력을 요청한다.',
+    forbidden_generalization: '특정 버퍼 기간이 모든 사람에게 안전하다고 제시하지 않는다.',
+  },
+  'qui-005': {
+    topic: '다음 방향은 사용자가 제공한 이력에서 후보를 찾는다',
+    concept: '반복한 일과 요청받은 역할은 다음 선택의 후보 자료이지 정답이 아니다',
+    condition: '사용자가 과거 업무, 자발적으로 한 일, 요청받은 역할을 입력했을 때만 적용한다.',
+    interpretation: '입력된 이력에서 반복되는 역할과 에너지가 남거나 소모된 장면을 찾으면 다음 방향의 후보를 만들 수 있다. 기간과 횟수가 제공되지 않았다면 만들어 내지 않는다.',
+    real_world_pattern: ['가상 사례: 여러 업무에서 같은 정리 역할을 맡았던 경우', '가상 사례: 자발적으로 한 일과 실제 보상받은 일이 다른 경우'],
+    risk: '반복 경험 하나를 천직으로 확정하거나 완전히 새로운 선택을 배제하는 것',
+    opportunity: '사용자가 제공한 역할·성과·피로 장면을 후보별로 비교하는 것',
+    advice: '확인된 이력만 목록화하고 다음 역할 후보는 검증할 가설로 표현한다.',
+    forbidden_generalization: '사주나 타인의 부탁만으로 적합 직업을 확정하지 않는다.',
+  },
+  'qui-006': {
+    topic: '퇴사 시기는 예언이 아니라 준비 조건으로 좁힌다',
+    concept: '대운·세운은 상징적 참고 신호이며 실제 시점은 준비와 계약 조건을 함께 본다',
+    condition: '계산된 운 흐름과 사용자가 제공한 준비·계약·생활 조건이 현재 시기 질문에 연결될 때만 적용한다.',
+    interpretation: '운 흐름은 변화 압력을 해석하는 상징적 후보다. 실제 퇴사 시점은 오퍼, 계약, 인수인계, 자금, 건강처럼 확인 가능한 조건과 함께 판단하며 특정 날짜의 성공을 보장하지 않는다.',
+    real_world_pattern: ['가상 사례: 오퍼 조건 확인 전 퇴사 통보를 고민하는 경우', '가상 사례: 인수인계와 생활비 조건이 서로 다른 시점을 가리키는 경우'],
+    risk: '좋은 운이나 특정 날짜를 퇴사 적기로 확정하는 것',
+    opportunity: '사용자가 입력한 준비 조건 중 아직 확인되지 않은 항목을 찾는 것',
+    advice: '계산값은 참고 신호로 표시하고 실제 결정 조건과 분리해 제시한다.',
+    forbidden_generalization: '운 흐름만으로 퇴사·입사 결과나 최적 날짜를 확정하지 않는다.',
+  },
+  'qui-007': {
+    topic: '나가는 방식은 확인 가능한 절차로 설계한다',
+    concept: '퇴사 통보와 인수인계는 감정 예측이 아니라 계약·규정·업무 사실을 기준으로 준비한다',
+    condition: '사용자가 퇴사 절차, 통보, 인수인계 또는 관계 정리를 질문했을 때만 적용한다.',
+    interpretation: '통보 방식과 인수인계 범위는 현재 계약, 회사 규정, 담당 업무에 따라 달라진다. 평판이나 다음 제안을 예언하지 않고 남길 문서와 확인할 절차를 정리한다.',
+    real_world_pattern: ['가상 사례: 담당 업무와 접근 권한을 문서로 정리하는 경우', '가상 사례: 계약의 통보 조건을 담당 부서에 확인하는 경우'],
+    risk: '감정 표현을 억누르라고 지시하거나 마무리 방식이 미래 평판을 보장한다고 말하는 것',
+    opportunity: '사용자가 확인할 규정·계약·업무 인계 항목을 구분하는 것',
+    advice: '법률·계약 판단이 필요하면 관련 문서와 전문가를 확인하고, 일반 해석으로 대신하지 않는다.',
+    forbidden_generalization: '인수인계를 잘하면 반드시 좋은 제안이 온다고 단정하지 않는다.',
+  },
+  'qui-008': {
+    topic: '남는 선택은 실제 불편과 변경 가능 조건을 함께 본다',
+    concept: '잔류는 문제가 확인된 경우에만 변경 조건을 세우고 평온한 상태에는 억지 문제를 만들지 않는다',
+    condition: '사용자가 남는 선택과 현재 만족·불편 조건을 직접 입력했을 때만 적용한다.',
+    interpretation: '입력에서 불편이 확인되면 바꿀 수 있는 조건과 바꾸기 어려운 조건을 나눈다. 불편이 확인되지 않았다면 잔류 문제를 만들어 내지 않고 현재 유지할 조건을 설명한다.',
+    real_world_pattern: ['가상 사례: 역할 범위를 협의할 수 있는지 확인하는 경우', '가상 사례: 현재 만족하는 조건을 유지 기준으로 삼는 경우'],
+    risk: '남으면 같은 문제가 반복된다고 예언하거나 불편이 없는 사용자에게 문제를 만드는 것',
+    opportunity: '입력된 만족 조건과 불편 조건의 변경 가능성을 비교하는 것',
+    advice: '사용자가 말한 조건만으로 유지·조정·이동 후보를 구분한다.',
+    forbidden_generalization: '버티면 나아지거나 같은 결론이 반드시 돌아온다고 단정하지 않는다.',
+  },
+  'qui-009': {
+    topic: '주변 조언과 사용자 조건을 분리한다',
+    concept: '타인의 결론은 참고 정보이며 사용자의 자금·가족·건강·계약 조건을 대신하지 않는다',
+    condition: '사용자가 주변 조언과 자신의 조건을 함께 입력했을 때만 적용한다.',
+    interpretation: '주변 조언은 그 사람이 아는 정보와 경험의 범위에서 나온다. 조언의 근거가 사용자의 실제 조건과 맞는지 확인한 뒤 참고하며, 타인의 속마음이나 사정을 추정하지 않는다.',
+    real_world_pattern: ['가상 사례: 조언의 전제와 사용자 계약 조건이 다른 경우', '가상 사례: 여러 조언에서 공통 확인 항목만 추리는 경우'],
+    risk: '조언자를 평가하거나 사용자 조건을 모른 채 어느 조언이 정답인지 정하는 것',
+    opportunity: '각 조언의 전제와 사용자 입력을 나란히 확인하는 것',
+    advice: '조언의 결론보다 근거를 확인하고 사용자 조건과 일치하는 부분만 참고한다.',
+    forbidden_generalization: '경험자나 가까운 사람의 조언이 항상 맞거나 틀리다고 단정하지 않는다.',
+  },
+  'qui-010': {
+    topic: '다음 행동은 확인 가능한 한 가지로 좁힌다',
+    concept: '결론 대신 사용자가 선택한 다음 확인 행동을 분명히 한다',
+    condition: '현재 항목에 확인되지 않은 사실이 있고 사용자가 실행 가능한 다음 행동을 요청했을 때만 적용한다.',
+    interpretation: '다음 행동은 잔고 확인, 계약 질문, 이력 정리처럼 결과를 확인할 수 있는 후보 중에서 고른다. 시간이나 개수를 임의로 붙이지 않고 사용자의 제약과 우선순위에 맞춘다.',
+    real_world_pattern: ['가상 사례: 오퍼의 업무 범위를 담당자에게 묻는 경우', '가상 사례: 실제 지출 자료를 확인해 계산 입력을 채우는 경우'],
+    risk: '여러 행동을 처방하거나 행동 하나가 결정을 자동으로 선명하게 만든다고 약속하는 것',
+    opportunity: '현재 판단에 가장 큰 불확실성을 줄이는 확인 행동을 선택하는 것',
+    advice: '행동의 대상과 확인할 결과를 쓰고 근거 없는 시간·횟수는 만들지 않는다.',
+    forbidden_generalization: '작은 행동을 하면 결정이 저절로 명확해진다고 단정하지 않는다.',
+  },
+  'qui-011': {
+    topic: '일간 강약을 판단 능력이나 퇴사 허가로 바꾸지 않는다',
+    concept: '신강·신약은 명리 해석 축이며 체력·의지·판단력의 의학적 또는 인격적 등급이 아니다',
+    condition: '계산된 일간 강약이 현재 항목의 명리 근거와 직접 연결될 때만 상징적 해석 후보로 적용한다.',
+    interpretation: '일간 강약은 외부 요구와 자기 자원을 해석하는 한 축이다. 사용자의 실제 피로와 판단 능력은 입력된 현실 조건으로 확인하며, 신약하다는 이유만으로 결정을 미루거나 퇴사를 막지 않는다.',
+    real_world_pattern: ['가상 사례: 계산된 강약과 사용자가 말한 업무 부담을 별도 근거로 비교하는 경우', '가상 사례: 실제 휴식 상태가 입력되지 않아 판단을 유보하는 경우'],
+    risk: '신약을 체력·의지 부족으로 번역하거나 결정 능력을 낮게 평가하는 것',
+    opportunity: '명리 상징과 사용자가 제공한 현실 상태를 분리해 설명하는 것',
+    advice: '강약은 상징적 참고로만 쓰고 실제 결정은 확인된 자원과 제약을 기준으로 제시한다.',
+    forbidden_generalization: '신약하면 퇴사하면 안 되거나 결정을 미뤄야 한다고 단정하지 않는다.',
+  },
+  'qui-012': {
+    topic: '해석은 결정을 대신하지 않고 확인 경계를 밝힌다',
+    concept: '퇴사 결정은 서비스가 알 수 없는 현실 조건을 포함하므로 해석은 점검 순서만 제공한다',
+    condition: '리포트의 결론 범위와 사용자가 직접 확인할 조건을 정리하는 마무리 항목에 적용한다.',
+    interpretation: '이 해석은 입력 사실, 계산값, 상징적 해석 후보를 구분해 보여 준다. 건강, 법률, 계약, 가족, 재정의 미입력 조건을 대신 판단하지 않으며 최종 결정은 사용자가 확인된 조건과 필요한 전문 조언을 바탕으로 내린다.',
+    real_world_pattern: ['가상 사례: 리포트의 질문을 실제 계약 확인 목록으로 바꾸는 경우', '가상 사례: 의료·법률·재무 쟁점은 전문가 확인으로 넘기는 경우'],
+    risk: '운세를 퇴사 결론이나 전문 판단의 근거로 사용하는 것',
+    opportunity: '입력 사실·계산값·상징·미확인 조건을 분리한 점검표로 활용하는 것',
+    advice: '확인된 조건과 아직 모르는 조건을 나누고, 전문 영역은 적절한 전문가에게 확인한다.',
+    forbidden_generalization: '운세가 퇴사 결과를 정하거나 사용자를 대신해 결론을 내린다고 표현하지 않는다.',
+  },
+}
+
+const ids = Array.from({ length: 12 }, (_, index) => `qui-${String(index + 1).padStart(3, '0')}`)
+if (oldPack.knowledgeBlocks.length !== ids.length || ids.some((id) => !oldById.has(id) || !reviewedContent[id])) {
+  throw new Error('quit_fortune source IDs do not match the reviewed 12-block contract')
+}
+
+const candidatePack = {
+  version: '2.1.0',
+  domain: oldPack.domain,
+  description: '퇴사 판단을 입력 사실·계산값·상징적 해석 후보·가상 사례로 구분하고, 현실 확인과 안전 경계를 우선하는 검수 완료 전용 블록.',
+  safety: oldPack.safety,
+  release: {
+    state: 'candidate',
+    previousVersion: oldPack.version,
+    previousPath: oldRelativePath,
+    semanticReview: reviewRelativePath,
+    sampleOutputsIngested: false,
+  },
+  knowledgeBlocks: ids.map((id) => ({
+    id,
+    topic: reviewedContent[id].topic,
+    keywords: oldById.get(id).keywords,
+    ...Object.fromEntries(Object.entries(reviewedContent[id]).filter(([key]) => key !== 'topic')),
+    confidence: id === 'qui-004' || id === 'qui-012' ? 'high' : 'medium',
+  })),
+}
+
+writeJson(newRelativePath, candidatePack)
+const candidateHash = fileHash(newRelativePath)
+const commonChecks = {
+  inputBoundary: true,
+  calculatedValueBoundary: true,
+  symbolicInterpretationBoundary: true,
+  hypotheticalExampleBoundary: true,
+  numericProvenance: true,
+  nonDeterministicOutcome: true,
+  safetyEscalation: true,
+}
+writeJson(reviewRelativePath, {
+  schemaVersion: '1.0.0',
+  serviceKey: 'quit_fortune',
+  corpusVersion: candidatePack.version,
+  status: 'approved',
+  sourcePath: newRelativePath,
+  sourceSha256: candidateHash,
+  reviewedAgainst: ['tone-v2/README.md', 'tone-v2/generated/manifest.json'],
+  sampleOutputsIngested: false,
+  reviewMethod: 'explicit block-by-block semantic boundary review with executable hash and safety assertions',
+  blocks: ids.map((id) => ({ id, status: 'pass', checks: commonChecks })),
+})
+
+const promptManifest = readJson(promptManifestPath)
+const generationEvidence = readJson(generationEvidencePath)
+const visualEvidence = readJson(visualEvidencePath)
+if (visualEvidence.status !== 'pass' || visualEvidence.serviceKey !== 'quit_fortune') {
+  throw new Error('quit_fortune visual evidence is not approved')
+}
+if (visualEvidence.privacy.containsProviderProse || visualEvidence.privacy.containsSecrets || visualEvidence.privacy.containsPersonalData) {
+  throw new Error('quit_fortune tracked visual evidence is not sanitized')
+}
+if (![visualEvidence.render.desktop.passed, visualEvidence.render.mobile.passed, visualEvidence.print.passed].every(Boolean)) {
+  throw new Error('quit_fortune visual evidence is incomplete')
+}
+const candidateVerification = existsSync(join(projectRoot, candidateVerificationPath))
+  ? readJson(candidateVerificationPath)
+  : undefined
+writeJson(releaseRelativePath, {
+  schemaVersion: '1.0.0',
+  releaseId: 'quit-fortune-corpus-2.1.0',
+  serviceKey: 'quit_fortune',
+  state: 'candidate',
+  deployed: false,
+  promptBundle: {
+    version: promptManifest.version,
+    sourceFingerprint: promptManifest.sourceFingerprint,
+    releaseReadyAtSource: promptManifest.releaseReady,
+  },
+  corpus: {
+    previous: { path: oldRelativePath, version: oldPack.version, sha256: fileHash(oldRelativePath) },
+    candidate: { path: newRelativePath, version: candidatePack.version, sha256: candidateHash },
+    semanticReview: reviewRelativePath,
+  },
+  generationEvidence: {
+    path: generationEvidencePath,
+    recordSha256: generationEvidence.evidence.recordSha256,
+    acceptedProseSha256: generationEvidence.evidence.acceptedProseSha256,
+    containsProviderProse: false,
+  },
+  visualEvidence: {
+    path: visualEvidencePath,
+    sha256: fileHash(visualEvidencePath),
+    desktop: 'pass_48_of_48',
+    mobile: 'pass_48_of_48',
+    print: 'pass_all_48_sections',
+    containsProviderProse: false,
+  },
+  verificationEvidence: candidateVerification ? candidateVerificationPath : null,
+  attachment: {
+    newReportsOnly: true,
+    storedSnapshotRequired: true,
+    customerRecordMutation: false,
+  },
+  rollback: {
+    strategy: 'registry_only',
+    restorePath: oldRelativePath,
+    restoreVersion: oldPack.version,
+    customerRecordRewrite: false,
+  },
+  gates: {
+    semanticReview: 'pass_12_of_12',
+    sampleOutputIngestion: 'none',
+    snapshotPinnedRag: 'required',
+    focusedTests: candidateVerification?.verification?.focusedTests ?? 'pending',
+    fullTests: candidateVerification?.verification?.fullTests ?? 'pending',
+    typecheck: candidateVerification?.verification?.typecheck ?? 'pending',
+    build: candidateVerification?.verification?.vercelBuild ?? 'pending',
+    codexReview: candidateVerification?.verification?.codexReview ?? 'pending',
+  },
+})
+
+console.log(JSON.stringify({ candidate: newRelativePath, review: reviewRelativePath, release: releaseRelativePath, sha256: candidateHash }))

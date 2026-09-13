@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "newyear-flow-corpus-2.1.0",
+  "serviceKey": "newyear_flow",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/newyear-service.json",
+      "version": "2.0.0",
+      "sha256": "24cb54fe10bfd5722558327435ad9a84ff432eb251d1838c4e6f374df19fc5e2"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/newyear-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "af2de895d527ba666c0fea5508ad7cf69f298a4f13647e425b77e348e83a3419"
+    },
+    "semanticReview": "tone-v2/corpus-review/newyear-flow-2.1.0.json"
+  },
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-newyear-flow-full-outline-generation-20260913.json",
+    "recordSha256": "3c5cac0937482f03fcbc07a9237bece015f4ffba662e8973206edf40976575c8",
+    "acceptedProseSha256": "ceaf531bb36caa7cbaa25e3c2346252eaa98283ae5316574e0fc39646df51796",
+    "containsProviderProse": false
+  },
+  "visualEvidence": {
+    "path": "tone-v2/evaluations/P04-newyear-flow-visual-render-evidence-20260913.json",
+    "sha256": "459c4445e82e13d457303f5a62e6f84ef290cc0f427c691727f6f5c660eb92ba",
+    "desktop": "pass_36_of_36",
+    "mobile": "pass_36_of_36",
+    "print": "pass_all_36_sections",
+    "containsProviderProse": false
+  },
+  "verificationEvidence": "tone-v2/evaluations/P05-newyear-flow-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/newyear-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_10_of_10",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "pass_36_of_36",
+    "focusedTests": "8/8 pass",
+    "fullTests": "855/855 pass across 118 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

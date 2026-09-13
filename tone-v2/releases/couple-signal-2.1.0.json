@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "couple-signal-corpus-2.1.0",
+  "serviceKey": "couple_signal",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/couple-signal-service.json",
+      "version": "2.0.0",
+      "sha256": "ff76c9538b37de9dc23254ef64706671453f653f935007a7d9e3587355000816"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/couple-signal-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "204f201ef4872af6b8b9165e286ec39059bfffcb145873093038419cf40a893a"
+    },
+    "semanticReview": "tone-v2/corpus-review/couple-signal-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No provider evaluation was run for couple_signal corpus 2.1.0; deterministic tests are verification evidence, not provider-output evidence.",
+  "verificationEvidence": "tone-v2/evaluations/P05-couple-signal-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/couple-signal-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_12_of_12",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run_for_2.1.0",
+    "focusedTests": "8/8 pass",
+    "fullTests": "839/839 pass across 116 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass: 126 FAQs, 19 sitemap URLs, SEO checks",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

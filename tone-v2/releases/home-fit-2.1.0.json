@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "home-fit-corpus-2.1.0",
+  "serviceKey": "home_fit",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/home-fit-service.json",
+      "version": "2.0.0",
+      "sha256": "57b4a5855099df1081259910312a479fba67fad8852fc766d8c2e6f44ef74438"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/home-fit-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "0b382fa9e321305e5836c4d62b6a7ec2a3ade3d1fa0419c88c1d1d9082e46921"
+    },
+    "semanticReview": "tone-v2/corpus-review/home-fit-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No home_fit provider output evaluation was run; local corpus and snapshot verification only.",
+  "verificationEvidence": "tone-v2/evaluations/P05-home-fit-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/home-fit-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_12_of_12",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_807_of_807_112_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

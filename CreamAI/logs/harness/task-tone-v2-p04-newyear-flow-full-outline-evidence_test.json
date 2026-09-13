@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p04-newyear-flow-full-outline-evidence",
+  "mode": "test",
+  "timestamp": "2026-09-13T10:55:28.7584947+09:00",
+  "checks": [
+    {
+      "name": "npm test script",
+      "status": "WARN",
+      "detail": "package.json has no test script"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

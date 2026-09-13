@@ -1,0 +1,82 @@
+{
+  "task_id": "task-tone-v2-p04-repair-next-criterion-retention",
+  "date": "2026-09-12",
+  "result": {
+    "deterministic_contract": "PASS",
+    "provider_first_item": "PASS",
+    "provider_repair_path": "NOT_RUN"
+  },
+  "change": "The repair instruction reserves the final meaning paragraph for 2-4 complete sentences, assigns the concrete target and record/compare/check action to explicit sentence roles, rejects vague or targetless substitutes, and requires a silent pre-return self-check.",
+  "invariants": {
+    "failure_label_deduplication": "PRESERVED",
+    "rejected_prose_non_copy": "PRESERVED",
+    "all_prior_quality_guidance": "PRESERVED",
+    "review_gates": "UNCHANGED",
+    "model": "UNCHANGED",
+    "retry_limit": "UNCHANGED_TWO_ATTEMPTS",
+    "next_criterion_recognizer": "UNCHANGED"
+  },
+  "verification": {
+    "red": "9/10 passed; the new output-contract assertion failed as expected",
+    "green": "10/10 passed",
+    "focused_related": "48/48 passed",
+    "full_regression": "682/682 passed across 101 suites",
+    "compiler_task": "7/7 passed",
+    "typecheck": "PASS",
+    "vercel_build": "PASS"
+  },
+  "provider": {
+    "version": "p04-repair-next-criterion-retention-20260912-1",
+    "synthetic_only": true,
+    "requested_limit": 1,
+    "report_id": "e82e82d0def03bd2055495c751a3",
+    "result_id": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+    "record_status": "generating",
+    "progress": "1/52",
+    "attempted_after_failure": 0,
+    "attempted_outside_limit": 0,
+    "record_sha256": "3396b9ea1060ba6a75b178d5b1928fd0de10a33b36020804d2940615bc88081b",
+    "first_section": {
+      "id": "pass-angle-verdict",
+      "status": "complete",
+      "model": "gpt-5.5-2026-04-23",
+      "hook_length": 23,
+      "interpretation_length": 161,
+      "prose_sha256": "79ce08128894ba6191db900fd6252b7110e0d4abd34da992287b1086af9a0e51",
+      "replay": {
+        "passed": true,
+        "issues": [],
+        "characters": 161,
+        "paragraphs": 1,
+        "density": "PASS"
+      },
+      "attempts": [
+        {
+          "id": "eb34151d-8dd2-4085-9bb3-35ae0ae2c2a7",
+          "status": "complete",
+          "model": "gpt-5.5-2026-04-23",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 19259,
+            "completion_tokens": 1690,
+            "total_tokens": 20949
+          },
+          "raw_sha256": "c2490378d9e1a0ed4907538b728619c7e476227a8ae909713ce902bdb96f0e08"
+        }
+      ]
+    }
+  },
+  "interpretation": "The fresh first item completed on attempt 1. This proves the unchanged first-item generation and full deterministic review path passes for this sample, but it does not exercise or prove the live provider repair path. No second provider call was forced.",
+  "review": {
+    "verdict": "APPROVED_WITH_COMMENTS",
+    "critical": 0,
+    "major": 0,
+    "initial_evidence_majors_resolved": 3,
+    "minor_stale_log_placement_resolved": true
+  },
+  "privacy": {
+    "raw_provider_prose_stored": false,
+    "credentials_stored": false,
+    "customer_data_used": false
+  }
+}

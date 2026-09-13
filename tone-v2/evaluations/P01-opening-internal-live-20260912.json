@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0",
+  "evaluatedAt": "2026-09-12T04:40:00Z",
+  "scope": ["ZIP-003-008", "ZIP-003-009", "ZIP-003-032"],
+  "inputClass": "synthetic-only",
+  "provider": "OpenAI",
+  "model": "gpt-5.5-2026-04-23",
+  "execution": {
+    "command": "npx tsx scripts/check-reading-live.ts --generate --version=p01-opening-20260912",
+    "exitCode": 0,
+    "storage": ".cache/reading-live-20260907",
+    "productionDataUsed": false
+  },
+  "deterministicScan": {
+    "implementation": "src/report/tone-v2-review.ts: reviewToneCopy",
+    "scope": "parsed hook plus interpretation prose; JSON envelope keys are excluded",
+    "authoringOpeningDetected": 0,
+    "internalFieldDetected": 0
+  },
+  "summary": {
+    "attemptsReviewed": 6,
+    "directAnswerWithinFirstThreeSentences": { "passed": 6, "failed": 0 },
+    "authoringOpening": { "passed": 6, "failed": 0 },
+    "internalFieldExposure": { "passed": 6, "failed": 0 },
+    "overallGenerationCompleted": { "passed": 0, "failed": 6 }
+  },
+  "samples": [
+    {
+      "service": "saju_master",
+      "voice": "formal",
+      "record": ".cache/reading-live-20260907/records/27ecc79bb2d2574df14661e3b63c.json",
+      "attempts": [
+        { "id": "919f4198-698f-416d-acbf-38f9c797a7d3", "rawSha256": "8007f713afe5a6f26501144dd31e49eeac0dd8ece5eb8c57096bcbc044c387b4", "proseSha256": "25999334fd73be35baee8affdf5a0b16b487a11dfbd6c3fe6b1186329e723e56", "finishReason": "stop", "totalTokens": 21664, "firstThreeVisibleSentences": ["가까운 관계는 감정의 크기보다 함께 떠안는 일의 모양이 맞을 때 오래 유지됩니다.", "유지의 핵심은 다정한 말보다 책임을 나누는 방식입니다.", "일지(日支, 가까운 관계가 놓이는 자리)가 미(未)이고 시지 午와 午未合土를 이루어, 열정이 생활의 의무와 일정으로 굳어지는 구조가 확인됩니다."], "scan": { "authoringOpeningDetected": false, "internalFieldDetected": false }, "rules": { "ZIP-003-008": "PASS", "ZIP-003-009": "PASS", "ZIP-003-032": "PASS" } },
+        { "id": "0ab6b0fe-461b-4c18-8a4e-2f2c3c6e4911", "rawSha256": "4d3aaf0ebd8dc52c9012ae2b96c2f70bd6cbd7774507395bc9f05fb0eeb03ced", "proseSha256": "832caca161a4d6ba14e401401774d5a396a7f94c6ff920be2327354f81da5160", "finishReason": "stop", "totalTokens": 21099, "firstThreeVisibleSentences": ["가까운 관계는 감정보다 책임이 생활로 굳을 때 오래 유지됩니다.", "유지의 핵심은 친밀감의 크기가 아니라 함께 맡은 일을 생활 안에 고정하는 방식입니다.", "일지(日支, 태어난 날의 아래 자리이자 가까운 관계를 보는 자리)에 미(未, 늦여름의 흙 기운)가 놓여 있어, 편한 관계일수록 말보다 책임의 배치가 먼저 보입니다."], "scan": { "authoringOpeningDetected": false, "internalFieldDetected": false }, "rules": { "ZIP-003-008": "PASS", "ZIP-003-009": "PASS", "ZIP-003-032": "PASS" } }
+      ],
+      "overallGenerationStatus": "failed",
+      "outsideScopeFailures": ["technical-term formatting", "paragraph quality gate"]
+    },
+    {
+      "service": "love_mind",
+      "voice": "haeyoche",
+      "record": ".cache/reading-live-20260907/records/c957d5c1d216687d45c3a1d82f15.json",
+      "attempts": [
+        { "id": "f3a4eab3-0a52-4cf5-94f1-52d3c12edfbc", "rawSha256": "945bee00e32d741a66a8a63780ff85beb113e114460f01eebbe064fd5fe09134", "proseSha256": "a686cc025f1fe9c317af3caa33cb99289fcb957c962996f4e63bd9d557f45555", "finishReason": "stop", "totalTokens": 20368, "firstThreeVisibleSentences": ["지금은 보내지 않는 게 기준예요.", "지금은 보내지 않는 게 기준예요.", "상대가 차단과 연락 거부를 표현한 상태라면, 확인된 반응은 마음이 아니라 경계 설정으로 읽혀요."], "scan": { "authoringOpeningDetected": false, "internalFieldDetected": false }, "rules": { "ZIP-003-008": "PASS", "ZIP-003-009": "PASS", "ZIP-003-032": "PASS" } },
+        { "id": "e37a89e7-bb83-4813-a178-35baa90a5f8a", "rawSha256": "dc1c5bd85555a2f19d5faa4a72049a5be5939ee54d064536f4bbf1cb33c6fa94", "proseSha256": "9098934355a7069188a73c6d31cb946227f15a1db4445d709f3b517e6da8eae0", "finishReason": "stop", "totalTokens": 21990, "firstThreeVisibleSentences": ["필요한 건 보낼 문장이 아니라 보내지 않는 기준이에요.", "먼저 보낼 문장은 없어요.", "상대가 차단했고 연락을 원하지 않는다고 말한 상태라면, 확인된 행동은 거절이에요."], "scan": { "authoringOpeningDetected": false, "internalFieldDetected": false }, "rules": { "ZIP-003-008": "PASS", "ZIP-003-009": "PASS", "ZIP-003-032": "PASS" } }
+      ],
+      "overallGenerationStatus": "failed",
+      "outsideScopeFailures": ["technical-term formatting", "contact-boundary wording gate"]
+    },
+    {
+      "service": "pass_angle",
+      "voice": "informal",
+      "record": ".cache/reading-live-20260907/records/ec5f9ebac9453195bad3c8481c7d.json",
+      "attempts": [
+        { "id": "9e22da4a-c375-42f5-b58f-ae9220a46e72", "rawSha256": "44cb51f9593600ee6cbcb0bcbbb0cb47fda8466d692acf27efb9e07382164453", "proseSha256": "d20332d0e9c825b3bee6228b5d088117e707ba1dcd0c56539e71e442c6af9841", "finishReason": "stop", "totalTokens": 21118, "firstThreeVisibleSentences": ["새 자료는 버리고, 평소 점수 만든 루틴만 남겨.", "유지각이야, 목표선 점수와 낮은 불안이 확인됐으니 시험장 앞 새 요약본만 변수야.", "금(金, 자르고 고르는 힘) 일간(日干, 나를 보는 기준)은 객관식에서 버릴 문제를 빠르게 가르는 신호로 봐."], "scan": { "authoringOpeningDetected": false, "internalFieldDetected": false }, "rules": { "ZIP-003-008": "PASS", "ZIP-003-009": "PASS", "ZIP-003-032": "PASS" } },
+        { "id": "88d1f728-2525-424c-9dfd-1d82c84c785a", "rawSha256": "cca7e3272e5ebcba3ffb9a5ff62f632854825aa8a8a154c18272ef8923523a16", "proseSha256": "6e184466077ac51fd8965603d3cf7d057e09ef5b11f6172eb722943df6b5949a", "finishReason": "stop", "totalTokens": 21310, "firstThreeVisibleSentences": ["다음에도 새 공부 말고 재현 루틴 유지각이야.", "시험일은 지났으니, 기준은 다음 객관식 시험에 남길 루틴이야.", "연습 점수가 목표선이고 큰 불안이 없다면, 새 범위보다 표시와 시간 배분을 고정해."], "scan": { "authoringOpeningDetected": false, "internalFieldDetected": false }, "rules": { "ZIP-003-008": "PASS", "ZIP-003-009": "PASS", "ZIP-003-032": "PASS" } }
+      ],
+      "overallGenerationStatus": "failed",
+      "outsideScopeFailures": ["grounding/scene/action density gate", "technical-term formatting"]
+    }
+  ],
+  "limitations": [
+    "This is a representative three-service, six-attempt semantic review, not all-20-service acceptance.",
+    "The six attempts were rejected by other Tone V2 gates, so this artifact does not claim complete report generation quality.",
+    "Raw provider output remains only in ignored isolated cache records and is not copied into this artifact."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "taskId": "task-tone-v2-p04-comparative-next-criterion-recognition",
+  "date": "2026-09-13",
+  "service": "pass_angle",
+  "providerCalls": 0,
+  "scope": {
+    "productFilesChanged": [
+      "src/report/tone-v2-review.ts",
+      "tests/unit/tone-v2-generation.test.ts"
+    ],
+    "promptChanged": false,
+    "modelChanged": false,
+    "retryChanged": false,
+    "productionChanged": false
+  },
+  "tdd": {
+    "red": { "passed": 35, "failed": 3 },
+    "green": { "passed": 38, "failed": 0 },
+    "reviewRed": { "passed": 38, "failed": 2 },
+    "reviewGreen": { "passed": 40, "failed": 0 },
+    "independentGapFixtureSha256": {
+      "actionMorphology": "2d966f32681855758e6488eb28b602d11bdf4902916b0e8fc6d3030d5de66841",
+      "subjectObservableTarget": "405a7d2487fe09d7a43fabb96865565f577172c06db3d6bd8e4f33a63b82ae59"
+    },
+    "combinedPositiveFixtureSha256": [
+      "f97b2da3b0fd3ae1615c2cf17ad36f3a56c5e51f087d752b47ffb608bb736d06",
+      "ce549b0bd4a0b0230207b2a1c5f0cb46ffbe4140a8b2fd686e29dc256fdaf034"
+    ],
+    "negativeFixtureSha256": [
+      "815931ceb2de8787bae7b2890ce5b20c3c5559d2dddb2a74c4a966e433531069",
+      "632f6ca07ad3c3499f3a5d44717cf6b8caae17814ebac930738cbceaf2b454fd",
+      "7fd815d2e16dc0b0f4690fc2ba9544b8d9065d9f20b4e0c845f6460251bf11c8",
+      "7dd71fe4b1a7ae5ff5bf76045b86349c92fafe13ab7295c8046c45466f59eb3f",
+      "b16d14b01e17e212499aacb54e9cdf47f15222c74563e973522832127598ebb8"
+    ]
+  },
+  "implementation": {
+    "actionMorphology": "allow try-form only for comparison and checking actions",
+    "targetGrammar": "allow a subject-marked clause only when it contains a bounded observable outcome predicate",
+    "reviewCorrections": [
+      "do not treat 앞으로 or time-origin 부터 phrases as concrete comparison targets",
+      "reject spaced past and perfect auxiliaries 본, 봤, and 보았"
+    ]
+  },
+  "savedReplay": {
+    "reportId": "e82e82d0def03bd2055495c751a3",
+    "resultId": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+    "sectionId": "pass-angle-support-vs-drag",
+    "attemptId": "d10d7ba3-821e-4bfc-b588-f9ee3a1b2171",
+    "densityPassed": true,
+    "elements": {
+      "directAnswer": true,
+      "grounding": true,
+      "scene": true,
+      "nextCriterion": true
+    },
+    "historicalRecordStatus": "failed",
+    "historicalSectionStatus": "failed",
+    "historicalAttempts": 2,
+    "rawFileSha256Before": "90bbc4551d935a5c0b258039347f4b5bba099762f6915534c73008c6da836101",
+    "rawFileSha256After": "90bbc4551d935a5c0b258039347f4b5bba099762f6915534c73008c6da836101",
+    "rawProseCopied": false
+  },
+  "verification": {
+    "focused": { "passed": 40, "failed": 0 },
+    "related": { "passed": 45, "failed": 0 },
+    "compilerAndTask": { "passed": 7, "failed": 0 },
+    "full": { "passed": 687, "failed": 0, "suites": 101 },
+    "typecheck": "PASS",
+    "vercelBuild": "PASS"
+  }
+}

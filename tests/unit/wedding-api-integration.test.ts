@@ -152,7 +152,7 @@ describe('결혼 택일 로그인 흐름과 저장 결과', { concurrency: false
     assert.equal((await request('/api/day/wedding/analyze', { reportId: 'missing-saved-id' })).response.status, 404)
   })
 
-  it('결제하고 돌아오면 저장된 UUID 로 후보일 판정이 담긴 본문이 열린다', async () => {
+  it('결제 후 같은 UUID의 목차가 열리되 미생성 본문을 완성 원고로 노출하지 않는다', async () => {
     const preview = await request('/api/day/wedding/analyze', INPUT)
     await payments.savePaymentOrder({
       orderId: 'synthetic-wedding-paid', ownerId: OWNER, buyerEmail: 'fixture@synthetic.invalid', buyerTel: '00000000000',
@@ -163,12 +163,17 @@ describe('결혼 택일 로그인 흐름과 저장 결과', { concurrency: false
     assert.equal(paid.response.status, 200, `본문: ${JSON.stringify(paid.payload).slice(0, 200)}`)
     assert.equal(paid.payload.report.isPaid, true)
     assert.equal(paid.payload.resultId, preview.payload.resultId, '결제 후 새 결과로 갈아치우면 안 된다')
-    assert.equal(paid.payload.report.sections.length, 21)
+    assert.equal(paid.payload.report.sections.length, 20)
 
     // 계정에 저장된 사주를 썼으므로 본인 생년월일을 다시 받지 않아도 판정이 선다.
     const text = JSON.stringify(paid.payload.report)
     assert.match(text, /2027년 5월 22일/, '후보일 라벨이 없다')
     assert.match(text, /甲午|辛丑|辛酉/, '후보일 일주가 문장에 없다')
-    assert.match(text, /선고하지 않습니다/, '길흉을 선고하지 않는다는 문장이 없다')
+    assert.match(JSON.stringify(preview.payload), /선고하지 않습니다/, '계산 티저에 길흉 비확정 경계가 없다')
+    for (const section of paid.payload.report.sections) {
+      assert.equal(section.interpretation, '', '검수 전 옛 템플릿 본문을 노출하면 안 된다')
+      assert.equal(section.hook, '')
+      assert.notEqual(section.status, 'complete')
+    }
   })
 })

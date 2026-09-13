@@ -6,11 +6,21 @@ export interface InterpretationReview { passed: boolean; issues: string[]; chara
 export function reviewInterpretation(text: string, context: SajuReportContext, siblings: SajuReportSection[] = []): InterpretationReview {
   const issues: string[] = []
   const paragraphs = text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean)
-  if (text.trim().length < 1000) issues.push('해석이 너무 짧습니다. 질문의 답·근거·생활 사례·판단 기준을 충분히 설명하세요.')
-  if (paragraphs.length < 5) issues.push('의미 단락을 최소 5개로 나누고 근거와 사례를 구분하세요.')
+  const proseParagraphs = paragraphs.filter((paragraph) => {
+    const lines = paragraph.split('\n').map((line) => line.trim()).filter(Boolean)
+    return !lines.every((line) => /^#{1,6}\s+\S/.test(line) || /^\|.*\|$/.test(line) || /^[-:|\s]+$/.test(line))
+  })
+  // Sanity floor only; the service contract, not a global long-form template, sets density.
+  if (text.trim().length < 80) issues.push('질문의 답·근거·생활 장면·다음 기준을 갖춘 해석을 작성하세요.')
+  if ((text.match(/[.!?。](?:\s|$)/g) ?? []).length < 3) issues.push('판단과 근거, 다음 기준을 구분해 완성된 문장으로 작성하세요.')
+  if (proseParagraphs.some((paragraph) => {
+    const sentences = paragraph.match(/[^.!?。]+[.!?。]+(?=\s|$)/g) ?? []
+    return sentences.length < 2 || sentences.length > 4
+  })) issues.push('각 의미 단락은 2~4개의 완성 문장으로 묶고 의미가 바뀌면 빈 줄을 두세요.')
+  if (/[\p{L}\p{N}]+(?:\s*\/\s*[\p{L}\p{N}]+){3,}/u.test(text)) issues.push('긴 목록을 슬래시로 압축하지 말고 문장이나 항목으로 나누세요.')
   if (/\b(?:concept|condition|interpretation|serviceKey|main_purpose|desk_position|Feature JSON)\s*[:=]|상담 의도:|\d+점 번들|\bhot\/dry\b/i.test(text)) issues.push('내부 필드나 타 서비스 원문이 노출되었습니다.')
   if (/풀이\s*\d+|에서 보는 핵심|확인한 기준|이 풀이에 반영한 정보|상세는 서버 권한|서버 권한 확인|해석을 준비|로그인과 결제 상태|결제 전|진행 중|취소 또는 실패/.test(text)) issues.push('제작용 제목·운영 상태·권한/결제 안내를 고객 해석 본문에 노출하지 마세요.')
-  if (/측정\s*전|자료\s*(?:없|미확인|부족)|DEM|고도|사면|능선|골짜기/.test(text)) issues.push('데이터 결손이나 내부 지형 항목을 고객에게 직접 말하지 말고 유사도·생활 패턴으로 번역하세요.')
+  if (/측정\s*전|자료\s*(?:없|미확인|부족)|(?<![\p{L}\p{N}])(?:DEM(?![A-Za-z0-9_])|(?:고도|사면|능선|골짜기)(?=$|[\s,.:;!?"'“”‘’()]|은|는|이|가|을|를|의|에|와|과|로|값|항목|자료))/u.test(text)) issues.push('데이터 결손이나 내부 지형 항목을 고객에게 직접 말하지 말고 유사도·생활 패턴으로 번역하세요.')
   if (/편재이|당신로|읽겠요|찾겠요|잡요|적었요|보았요|결를|년["”']?라\s|자시을/.test(text)) issues.push('조사 또는 종결어미를 바로잡으세요.')
   if (/바람기 레이더|반드시 (?:합격|이별|결혼)|외도를 (?:합니다|할|확인)/.test(text)) issues.push('확인되지 않은 사건을 단정하거나 외도 탐지처럼 표현하지 마세요.')
   if (/(?:이기는|합격하는) (?:사람|시험)|승부는[^.\n]{0,130}갈리/.test(text)) issues.push('행동이나 운이 승패를 결정한다고 단정하지 말고 실력 재현에 도움이 될 수 있는 조건으로 설명하세요.')

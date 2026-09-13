@@ -1,0 +1,55 @@
+{
+  "taskId": "task-tone-v2-p05-all-service-corpus-release-evaluation",
+  "date": "2026-09-13",
+  "status": "pass",
+  "decision": "NO_GO",
+  "corpusLayerReady": true,
+  "releaseReady": false,
+  "coverage": {
+    "serviceCandidates": { "passed": 20, "required": 20 },
+    "semanticReviews": { "passed": 20, "required": 20 },
+    "promptPersonas": { "passed": 20, "required": 20 },
+    "rollbackSources": { "passed": 20, "required": 20 },
+    "providerProse": { "passed": 0, "required": 20 },
+    "fullOutlineIndependentReview": { "passed": 2, "required": 20 },
+    "visualRenderMobilePrint": { "passed": 0, "required": 20 }
+  },
+  "verification": {
+    "red": { "passed": 0, "failed": 7, "reason": "aggregate artifacts absent" },
+    "focused": { "passed": 7, "failed": 0 },
+    "related": { "passed": 279, "failed": 0, "reportedSuites": 33 },
+    "full": { "passed": 894, "failed": 0, "suites": 122 },
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "deterministicReplay": {
+      "status": "pass",
+      "manifestSha256": "9e75e6bfa9fe1832fd456b6b7c97db44d72812706311cb42a333163efee55c9f",
+      "assessmentSha256": "9caaf5c64fedaa17b552dab20115532bfabc76f54290c8351ebb374f393b2bd4"
+    },
+    "manualReview": {
+      "status": "approved_with_comments",
+      "critical": 0,
+      "major": 0,
+      "minor": 0,
+      "resolved": [
+        "Counted the attached quit_fortune independent full-outline review as 1/20 instead of 0/20.",
+        "Revalidated the aggregate after lucky_color added its provider-backed full-outline review, increasing coverage to 2/20 without changing the NO_GO decision."
+      ]
+    }
+  },
+  "artifacts": {
+    "manifest": "tone-v2/releases/all-service-corpus-2.1.0.json",
+    "assessment": "tone-v2/releases/all-service-corpus-2.1.0-evaluation.md",
+    "builder": "tone-v2/build-all-service-corpus-release-evaluation.mjs",
+    "contractTest": "tests/unit/all-service-corpus-release-evaluation.test.ts"
+  },
+  "notRun": [
+    "new provider calls",
+    "browser or visual QA",
+    "Production attachment",
+    "deployment",
+    "customer record mutation",
+    "commit",
+    "push"
+  ]
+}

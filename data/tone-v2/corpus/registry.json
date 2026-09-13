@@ -1,0 +1,306 @@
+{
+  "version": "tone-v2.2.0.20",
+  "policy": "현재 항목과 계산값이 직접 연결될 때만 사용한다. 생활 패턴은 사용자 사실이 아니며 가상 사례로 명시한다. 근거 없는 처방 숫자, 사건 확정, 타인의 마음 단정을 금지한다. 문장은 서비스 페르소나에 맞춰 새로 작성한다.",
+  "packs": [
+    {
+      "id": "myeongri-basics",
+      "path": "tone-v2/corpus/myeongri-basics.json",
+      "kind": "chunks",
+      "domain": "myeongri_basics",
+      "status": "active",
+      "role": "stable_foundation",
+      "version": "2.0.0",
+      "retrievalBoost": 0
+    },
+    {
+      "id": "today-fortune-service",
+      "path": "tone-v2/corpus/releases/today-fortune-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "today_fortune_service",
+      "serviceKey": "today_fortune",
+      "status": "active",
+      "role": "single_service_today_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "saju-master-service",
+      "path": "tone-v2/corpus/releases/saju-master-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "saju_master_service",
+      "serviceKey": "saju_master",
+      "status": "active",
+      "role": "single_service_master_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "work-job-service",
+      "path": "tone-v2/corpus/releases/work-job-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "work_job_service",
+      "serviceKey": "work_job",
+      "status": "active",
+      "role": "single_service_work_job_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "love-mind-service",
+      "path": "tone-v2/corpus/releases/love-mind-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "love_mind_service",
+      "serviceKey": "love_mind",
+      "status": "active",
+      "role": "single_service_love_mind_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "love-again-service",
+      "path": "tone-v2/corpus/releases/love-again-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "love_again_service",
+      "serviceKey": "love_again",
+      "status": "active",
+      "role": "single_service_love_again_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "love-spouse-service",
+      "path": "tone-v2/corpus/releases/love-spouse-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "love_spouse_service",
+      "serviceKey": "love_spouse",
+      "status": "active",
+      "role": "single_service_love_spouse_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "deep-saju-interpretation",
+      "path": "tone-v2/corpus/deep-saju-interpretation.json",
+      "kind": "chunks",
+      "domain": "deep_saju_interpretation",
+      "status": "active",
+      "role": "longform_depth",
+      "version": "2.0.0",
+      "retrievalBoost": 1
+    },
+    {
+      "id": "input-context-interpretation",
+      "path": "tone-v2/corpus/input-context-interpretation.json",
+      "kind": "chunks",
+      "domain": "input_context_interpretation",
+      "status": "active",
+      "role": "user_choice_grounding",
+      "version": "2.0.0",
+      "retrievalBoost": 1.5
+    },
+    {
+      "id": "love-this-year-service",
+      "path": "tone-v2/corpus/releases/love-this-year-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "love_this_year_service",
+      "serviceKey": "love_this_year",
+      "status": "active",
+      "role": "single_service_love_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 18
+    },
+    {
+      "id": "home-fit-service",
+      "path": "tone-v2/corpus/releases/home-fit-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "home_fit_service",
+      "serviceKey": "home_fit",
+      "status": "active",
+      "role": "single_service_home_pungsu_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "work-move-service",
+      "path": "tone-v2/corpus/releases/work-move-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "work_move_service",
+      "serviceKey": "work_move",
+      "status": "active",
+      "role": "single_service_work_move_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "pass-angle-service",
+      "path": "tone-v2/corpus/releases/pass-angle-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "pass_angle_service",
+      "serviceKey": "pass_angle",
+      "status": "active",
+      "role": "single_service_pass_angle_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "cat-compatibility-service",
+      "path": "tone-v2/corpus/releases/cat-compatibility-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "cat_compatibility_service",
+      "serviceKey": "cat_compatibility",
+      "status": "active",
+      "role": "single_service_cat_compatibility_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "couple-signal-service",
+      "path": "tone-v2/corpus/releases/couple-signal-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "couple_signal_service",
+      "serviceKey": "couple_signal",
+      "status": "active",
+      "role": "single_service_couple_signal_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "lucky-color-service",
+      "path": "tone-v2/corpus/releases/lucky-color-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "lucky_color_service",
+      "serviceKey": "lucky_color",
+      "status": "active",
+      "role": "single_service_lucky_color_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "newyear-service",
+      "path": "tone-v2/corpus/releases/newyear-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "newyear_service",
+      "serviceKey": "newyear_flow",
+      "status": "active",
+      "role": "single_service_newyear_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "wedding-day-service",
+      "path": "tone-v2/corpus/releases/wedding-day-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "wedding_day_service",
+      "serviceKey": "wedding_day",
+      "status": "active",
+      "role": "single_service_wedding_day_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "job-choice-service",
+      "path": "tone-v2/corpus/releases/job-choice-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "job_choice_service",
+      "serviceKey": "job_choice",
+      "status": "active",
+      "role": "single_service_job_choice_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "quit-fortune-service",
+      "path": "tone-v2/corpus/releases/quit-fortune-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "quit_fortune_service",
+      "serviceKey": "quit_fortune",
+      "status": "active",
+      "role": "single_service_quit_fortune_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "money-save-service",
+      "path": "tone-v2/corpus/releases/money-save-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "money_save_service",
+      "serviceKey": "money_save",
+      "status": "active",
+      "role": "single_service_money_save_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "match-couple-service",
+      "path": "tone-v2/corpus/releases/match-couple-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "match_couple_service",
+      "serviceKey": "match_couple",
+      "status": "active",
+      "role": "single_service_match_couple_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "marry-match-service",
+      "path": "tone-v2/corpus/releases/marry-match-service-2.1.0.json",
+      "kind": "chunks",
+      "domain": "marry_match_service",
+      "serviceKey": "marry_match",
+      "status": "active",
+      "role": "single_service_marry_match_service_grounding",
+      "version": "2.1.0",
+      "retrievalBoost": 22
+    },
+    {
+      "id": "saju-95-quality-bundles",
+      "path": "tone-v2/corpus/saju-95-quality-bundles.json",
+      "kind": "chunks",
+      "domain": "saju_95_quality_bundles",
+      "status": "active",
+      "role": "quality_gap_patch",
+      "version": "2.0.0",
+      "retrievalBoost": 14
+    },
+    {
+      "id": "paid-report-scene-corpus",
+      "path": "tone-v2/corpus/paid-report-scene-corpus.json",
+      "kind": "chunks",
+      "domain": "paid_report_scene_corpus",
+      "status": "active",
+      "role": "paid_narrative_density_patch",
+      "version": "2.0.0",
+      "retrievalBoost": 18
+    },
+    {
+      "id": "saju-advanced-manseryeok-gbr",
+      "path": "tone-v2/corpus/saju-advanced-manseryeok-gbr.json",
+      "kind": "chunks",
+      "domain": "saju_advanced_manseryeok_gbr",
+      "status": "active",
+      "role": "advanced_quality_gap_patch",
+      "version": "2.0.0",
+      "retrievalBoost": 12
+    },
+    {
+      "id": "saju-elements",
+      "path": "tone-v2/corpus/saju-elements.json",
+      "kind": "structured",
+      "domain": "saju_elements",
+      "status": "active",
+      "role": "structured_saju_atoms",
+      "version": "2.0.0",
+      "retrievalBoost": 0
+    },
+    {
+      "id": "consultation-templates",
+      "path": "tone-v2/corpus/consultation-templates.json",
+      "kind": "templates",
+      "domain": "consultation_templates",
+      "status": "active",
+      "role": "intent_and_prompt_frames",
+      "version": "2.0.0",
+      "retrievalBoost": 0
+    }
+  ]
+}

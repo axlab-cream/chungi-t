@@ -1,0 +1,63 @@
+{
+  "task_id": "task-tone-v2-p01-review-session-scene",
+  "date": "2026-09-12",
+  "criterion": "ZIP-003-040",
+  "source": {
+    "record_path": ".cache/reading-live-20260907/records/77c9c0208239e49c16721d60d6ce.json",
+    "report_id": "77c9c0208239e49c16721d60d6ce",
+    "attempt_id": "3e76d3a7-fd64-4649-9e3e-6179977f0a72",
+    "raw_sha256": "5b5a9bbe23bba734f897b2218b4d04ad25bc281b0b14d1477749ac238708e2c6",
+    "prose_sha256": "c7782768e6b66370448ee00b74b00d9e676234bdefc0b2c177e89839ae237b8e"
+  },
+  "before": {
+    "directAnswer": true,
+    "grounding": true,
+    "scene": false,
+    "nextCriterion": true,
+    "passed": false
+  },
+  "after": {
+    "directAnswer": true,
+    "grounding": true,
+    "scene": true,
+    "nextCriterion": true,
+    "passed": true
+  },
+  "accepted_examples": [
+    "다음 복기에서 기억나는 문제를 맞힌 것과 찍은 것으로 나눠봐.",
+    "오답노트를 열고 찍은 문제의 원인을 기록해.",
+    "오답노트에 지식 부족을 기록해.",
+    "오답 노트에 지식 부족을 기록해.",
+    "오답노트에서 지식 부족을 기록해.",
+    "오답노트에선 지식 부족을 기록해.",
+    "복기 때 찍은 이유를 기록해.",
+    "복기하면서 찍은 이유를 기록해.",
+    "마킹 검토를 하면서 표시 실수를 확인해.",
+    "마킹 검토에서 표시 실수를 확인해.",
+    "마킹 검토할 때 표시 실수를 확인해.",
+    "다음 복기에서 기록하지 말고, 찍은 이유만 나눠봐.",
+    "다음 복기에서 찍은 이유를 기록하자.",
+    "오답을 오답노트에 기록해.",
+    "표시 실수는 마킹 검토에서 확인해.",
+    "찍은 이유는 복기 때 기록해."
+  ],
+  "rejected_counterexamples": [
+    "오답노트가 중요해. 다음에는 복기해.",
+    "다음 복기에서 잘해봐.",
+    "찍은 문제의 원인을 분류하고 기록해.",
+    "찍은 문제를 분류하면 다음 기준이 보여.",
+    "틀린 문제에서 지식 부족만 확인해.",
+    "다음 복기에서 기록하지 말고 쉬어.",
+    "다음 복기에서 기록은 하지 말고 쉬어.",
+    "다음 복기에서 나누지 말고 쉬어.",
+    "복기 때 기록 기준이 중요해.",
+    "다음 복기에서 기록하기가 중요해.",
+    "다음 복기에서 잘해봐, 시험장 위치를 확인해.",
+    "다음 복기에서 기록해, 문제는 잊어.",
+    "다음 복기에서 확인해, 찍은 문제는 넘어가.",
+    "다음 복기에서 찍은 문제를 분류하고 싶지 않아."
+  ],
+  "historical_record_status": "failed",
+  "historical_record_mutated": false,
+  "note": "The immutable historical attempt now passes the current deterministic density review. Its persisted historical status remains failed; a new provider run is required for fresh E2E acceptance."
+}

@@ -1,0 +1,92 @@
+{
+  "taskId": "task-tone-v2-p04-quit-fortune-full-outline-generate",
+  "evaluatedAt": "2026-09-13T05:12:36+09:00",
+  "status": "pass",
+  "serviceKey": "quit_fortune",
+  "provider": {
+    "model": "gpt-5.5-2026-04-23",
+    "actualCalls": true,
+    "syntheticOnly": true,
+    "isolatedStorage": true
+  },
+  "identity": {
+    "version": "p04-quit-fortune-full-outline-20260913-1",
+    "reportId": "42e1185b6d6fb84dc4a98f830e2d",
+    "resultId": "a3915c22-00c5-4711-8867-ab700050cc09"
+  },
+  "completion": {
+    "completedSections": 48,
+    "expectedSections": 48,
+    "recordStatus": "complete",
+    "firstFailure": null,
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0
+  },
+  "evidence": {
+    "recordSha256": "cbed3a0089ddaa042ab38e7b42b5334c351c7063618767a01469245a15538639",
+    "acceptedProseSha256": "15cc9c4e955561057eea12e5f20e3231c212f93c271efa9f7983a0e861b6e284",
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false
+  },
+  "generation": {
+    "providerAttempts": 109,
+    "averageAttemptsPerSection": 2.27,
+    "acceptedSections": 48,
+    "acceptedOnCompleteStatusAttempt": 38,
+    "recoveredAfterFailedAttempt": 10,
+    "failedAttempts": 71,
+    "promptTokens": 2489972,
+    "completionTokens": 268602,
+    "totalTokens": 2758574
+  },
+  "replay": {
+    "passed": 48,
+    "failed": 0,
+    "characterCount": {
+      "minimum": 667,
+      "maximum": 1179,
+      "average": 881.42
+    },
+    "paragraphCount": {
+      "minimum": 4,
+      "maximum": 6
+    }
+  },
+  "failedAttemptSignals": {
+    "nextCriterion": 38,
+    "future": 32,
+    "length": 7,
+    "hanjaCrowding": 7,
+    "scene": 8,
+    "internalTerrain": 5,
+    "archaicTone": 3,
+    "termExplanation": 2,
+    "note": "Signals can overlap within one rejected attempt. All 48 accepted outputs passed replay."
+  },
+  "verification": {
+    "focusedTests": {
+      "passed": 103,
+      "failed": 0
+    },
+    "fullTests": {
+      "suites": 101,
+      "passed": 719,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "independentReview": "approved_with_comments",
+    "reviewFindings": {
+      "critical": 0,
+      "major": 0,
+      "minor": 0,
+      "resolvedFromFirstReview": 2
+    },
+    "reviewReport": "CreamAI/logs/review/task-tone-v2-p04-quit-fortune-full-outline-generate_quit-fortune-full-outline-generation-r2.md"
+  },
+  "notRun": [
+    "production deployment",
+    "production customer report mutation"
+  ]
+}

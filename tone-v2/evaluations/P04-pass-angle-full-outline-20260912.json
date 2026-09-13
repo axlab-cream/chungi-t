@@ -1,0 +1,53 @@
+{
+  "taskId": "task-tone-v2-p04-pass-angle-full-outline",
+  "version": "p04-pass-angle-full-outline-20260912-1",
+  "serviceKey": "pass_angle",
+  "environment": "isolated synthetic local file storage",
+  "providerBacked": true,
+  "model": "gpt-5.5-2026-04-23",
+  "sourceContract": {
+    "totalItems": 52,
+    "partCounts": [10, 11, 10, 10, 11],
+    "sha256": [
+      "5F556CF8A0A1C235E75E14D5B8B8F4F8A323D51CFCD596CD9EA6971BF1AF86A8",
+      "B70D3C021C48FF7AB016F6101C8468E33D8CADF4C4CDDB4FABB501EB379DAD41",
+      "40011C37B52A2754E196C49DDFB9A7F8496FBA5A4834F63D7893A35006E69AFC",
+      "F899BB1B3ABF45E199ADF368359614836ABFF6ADC29E85F6F72ED85AA13F3ED7",
+      "A95B70CD2D2A12A90BBB70ABC1F47B0E9AB91833EDD214CD50402B8B950494EE"
+    ]
+  },
+  "result": {
+    "status": "failed",
+    "businessAcceptance": "FAIL",
+    "reportId": "ebd26636c5d6209fbd341e891cd5",
+    "resultId": "22e19d77-ce1a-45ed-ad95-cee3883361be",
+    "recordSha256": "9d73fdbcdff98f5c35749c8c19dc3737d1252a538690c35c354442649f664d28",
+    "progress": { "complete": 0, "total": 52 },
+    "firstFailure": { "order": 1, "id": "pass-angle-verdict", "classification": "전체 흐름 판정" },
+    "attemptedAfterFailure": 0,
+    "remainingPending": 51
+  },
+  "attempts": [
+    {
+      "status": "failed",
+      "finishReason": "stop",
+      "usage": { "promptTokens": 19063, "completionTokens": 1689, "totalTokens": 20752 },
+      "failedRules": ["paragraph sentence count", "next criterion", "Hanja explanation separation"],
+      "rawSha256": "bdaf1a9f0da8436203da95103aad9452e70cf163b62974f45bb3643e1468d671"
+    },
+    {
+      "status": "failed",
+      "finishReason": "stop",
+      "usage": { "promptTokens": 19275, "completionTokens": 692, "totalTokens": 19967 },
+      "failedRules": ["symbolic interpretation boundary", "recognizable scene", "next criterion", "Hanja explanation separation"],
+      "rawSha256": "00f243c703ac595280e7c5e606d7d8109536cdeb1ea684b6c599796a3b4ed4c6"
+    }
+  ],
+  "privacy": {
+    "syntheticInputOnly": true,
+    "rawProseStoredHere": false,
+    "credentialsStoredHere": false,
+    "productionDatabaseUsed": false
+  },
+  "conclusion": "The exact 52-item outline and fail-closed sequence are implemented. Full provider acceptance is not achieved; the first section exhausted both allowed attempts and no later section was called."
+}

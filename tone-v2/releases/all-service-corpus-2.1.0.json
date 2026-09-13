@@ -1,0 +1,1365 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "all-service-corpus-2.1.0",
+  "state": "evaluated_candidate",
+  "decision": "NO_GO",
+  "corpusLayerReady": true,
+  "releaseReady": false,
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpusRegistry": {
+    "path": "data/tone-v2/corpus/registry.json",
+    "version": "tone-v2.2.0.20",
+    "sha256": "72ba1d3ca00085773f36d75149d6443f79dfd35c2beea03461acb667e8c4b693"
+  },
+  "evidenceCoverage": {
+    "corpusReview": {
+      "passed": 20,
+      "required": 20
+    },
+    "promptPersona": {
+      "passed": 20,
+      "required": 20
+    },
+    "providerOutput": {
+      "passed": 5,
+      "required": 19
+    },
+    "fullOutlineHumanReview": {
+      "passed": 6,
+      "required": 20
+    },
+    "visualRenderMobilePrint": {
+      "passed": 5,
+      "required": 20
+    }
+  },
+  "blockers": [
+    {
+      "id": "provider_output_coverage",
+      "status": "blocked",
+      "evidence": "5/19 generative service candidates have verified provider-output provenance and full-outline review. The deterministic today_fortune service is not provider-backed.",
+      "requiredAction": "Generate fresh provider output for every remaining generative service and retain immutable hashed provenance without ingesting prose into corpus."
+    },
+    {
+      "id": "full_outline_human_review",
+      "status": "blocked",
+      "evidence": "6/20 service candidates have an attached full-outline independent human interpretation review.",
+      "requiredAction": "Evaluate every complete service outline for grounding, persona, tone, duplication, safety, and cross-section continuity."
+    },
+    {
+      "id": "visual_render_mobile_print",
+      "status": "blocked",
+      "evidence": "5/20 service candidates have aggregate HTML/image/render/mobile/print evidence.",
+      "requiredAction": "Render actual reports and record desktop, mobile, image, and print QA evidence."
+    },
+    {
+      "id": "production_attachment",
+      "status": "blocked",
+      "evidence": "Production attachment was not attempted and remains outside this Task.",
+      "requiredAction": "After every prior gate passes, obtain explicit approval for a new-report-only Production attachment and rollback drill."
+    }
+  ],
+  "productionAttachment": {
+    "attempted": false,
+    "newReportsOnly": true,
+    "customerRecordMutation": false
+  },
+  "assessment": {
+    "path": "tone-v2/releases/all-service-corpus-2.1.0-evaluation.md",
+    "sha256": "d70fdab33d9847f1715b3683e93633c1d72bbd2210684eaf8f11010fac4cf8e2"
+  },
+  "services": [
+    {
+      "serviceKey": "cat_compatibility",
+      "releaseManifest": {
+        "path": "tone-v2/releases/cat-compatibility-2.1.0.json",
+        "sha256": "e35a6f7e62c4c903eeb82b5200ce1461f38e772abfd7322729c0cbcbd882517e"
+      },
+      "prompt": {
+        "serviceKey": "cat_compatibility",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/cat_compatibility.md",
+        "sha256": "6062c375bebfc8776094775520bbb420c76cd95a11cc8b7c586eae846ac5c1d2"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/cat-compatibility-service.json",
+          "version": "2.0.0",
+          "sha256": "a6d289094473fbe2fd3a523b9e2b9621fcdf19a18ae065361e1c96e1274a9d89"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/cat-compatibility-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "7e61f6de79fd4256a6159182f3fe41a449de3620ab2d96bf05a9bee2fef07455"
+        },
+        "semanticReview": "tone-v2/corpus-review/cat-compatibility-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/cat-compatibility-2.1.0.json",
+        "sha256": "6482667ae2afe00133737b1a4ac096bc1cc365648234c29a3c56b68663bb03ca",
+        "sourceSha256": "7e61f6de79fd4256a6159182f3fe41a449de3620ab2d96bf05a9bee2fef07455",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 38,
+        "passedBlockCount": 38,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No provider evaluation was run for cat_compatibility corpus 2.1.0; deterministic template tests are verification evidence, not provider-output evidence."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/cat-compatibility-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "couple_signal",
+      "releaseManifest": {
+        "path": "tone-v2/releases/couple-signal-2.1.0.json",
+        "sha256": "89dd0272d1ce387350277410a265e572d5022adebcbff2123cb747fbbdef1196"
+      },
+      "prompt": {
+        "serviceKey": "couple_signal",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/couple_signal.md",
+        "sha256": "fcf29323186c848c4d1ffc4a70522a27aa2ced9ba57db2703952a9b32a36ac4c"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/couple-signal-service.json",
+          "version": "2.0.0",
+          "sha256": "ff76c9538b37de9dc23254ef64706671453f653f935007a7d9e3587355000816"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/couple-signal-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "204f201ef4872af6b8b9165e286ec39059bfffcb145873093038419cf40a893a"
+        },
+        "semanticReview": "tone-v2/corpus-review/couple-signal-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/couple-signal-2.1.0.json",
+        "sha256": "b8554579304af99c546361f824ea6d60837b9e2ac4cf7a67096436bfd732c82c",
+        "sourceSha256": "204f201ef4872af6b8b9165e286ec39059bfffcb145873093038419cf40a893a",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 12,
+        "passedBlockCount": 12,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No provider evaluation was run for couple_signal corpus 2.1.0; deterministic tests are verification evidence, not provider-output evidence."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/couple-signal-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "home_fit",
+      "releaseManifest": {
+        "path": "tone-v2/releases/home-fit-2.1.0.json",
+        "sha256": "fb6e680e1f7f42a668ad5fc30a6f3de9c2f277cc1e54f7ab70c3bc4f53fb6be2"
+      },
+      "prompt": {
+        "serviceKey": "home_fit",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/home_fit.md",
+        "sha256": "b83746410e890b798646fcb44ad1001a0934f77c2111d357e2a23b1b3449fda3"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/home-fit-service.json",
+          "version": "2.0.0",
+          "sha256": "57b4a5855099df1081259910312a479fba67fad8852fc766d8c2e6f44ef74438"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/home-fit-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "0b382fa9e321305e5836c4d62b6a7ec2a3ade3d1fa0419c88c1d1d9082e46921"
+        },
+        "semanticReview": "tone-v2/corpus-review/home-fit-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/home-fit-2.1.0.json",
+        "sha256": "fac206468978dfe9c864a4127523ea2f587f8f8f89efa0379062ef2530f80524",
+        "sourceSha256": "0b382fa9e321305e5836c4d62b6a7ec2a3ade3d1fa0419c88c1d1d9082e46921",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 12,
+        "passedBlockCount": 12,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No home_fit provider output evaluation was run; local corpus and snapshot verification only."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/home-fit-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "job_choice",
+      "releaseManifest": {
+        "path": "tone-v2/releases/job-choice-2.1.0.json",
+        "sha256": "ccb3be1e0ff5febf68ef7b63485fab7b99924832813a7231878ca8aa54dbfec9"
+      },
+      "prompt": {
+        "serviceKey": "job_choice",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/job_choice.md",
+        "sha256": "21b50b71097ed9de1d2f50a81c44ed63253723e0fdc72076be00e8c1b32a25e8"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/job-choice-service.json",
+          "version": "2.0.0",
+          "sha256": "60185759fccc11bf391864f74a41d84a718d072be8bd965a42d6403660f40720"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/job-choice-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "e96e35e7d96ec14741ed0282316193d5fd5c49dcb735a88198df6095e0227c09"
+        },
+        "semanticReview": "tone-v2/corpus-review/job-choice-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/job-choice-2.1.0.json",
+        "sha256": "8d9fb3cbc798a5758ad35ab32b585472847c7f5ded08f2bf938420342281ee90",
+        "sourceSha256": "e96e35e7d96ec14741ed0282316193d5fd5c49dcb735a88198df6095e0227c09",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 12,
+        "passedBlockCount": 12,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No provider evaluation was run for job_choice corpus 2.1.0; deterministic tests are verification evidence, not provider-output evidence."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/job-choice-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "love_again",
+      "releaseManifest": {
+        "path": "tone-v2/releases/love-again-2.1.0.json",
+        "sha256": "3db1e7d052a1d8f55ecfe138ee37010d0c8484b5cd62c272c9acbff3eaac6487"
+      },
+      "prompt": {
+        "serviceKey": "love_again",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/love_again.md",
+        "sha256": "3f6a58c6243e69f3e0bcd375497643aa2da93ef7f6eabd58b1ee66917d50bb4d"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/love-again-service.json",
+          "version": "2.0.0",
+          "sha256": "4f0ca7ab0fa92719f412e572ec5dd4bf0bd1d327934fb67fb30c8dca684752e1"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/love-again-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "8760c79d3f5e313c8d450927fa4d39c3d574601753aa6f5f38785020977562ca"
+        },
+        "semanticReview": "tone-v2/corpus-review/love-again-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/love-again-2.1.0.json",
+        "sha256": "a2e3d5860f8d5b716114a3c914562ad1c902917ebb7efdaffc381a8a5a172215",
+        "sourceSha256": "8760c79d3f5e313c8d450927fa4d39c3d574601753aa6f5f38785020977562ca",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 1,
+        "passedBlockCount": 1,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No love_again provider output evaluation was run; local corpus and snapshot verification only."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/love-again-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "love_mind",
+      "releaseManifest": {
+        "path": "tone-v2/releases/love-mind-2.1.0.json",
+        "sha256": "ba12a21fd9b208fd7dae467c472a3eb050f4eec54f79b41d14a77e7154e7bd8d"
+      },
+      "prompt": {
+        "serviceKey": "love_mind",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/love_mind.md",
+        "sha256": "b01b7f08d545cc2b34ff51887fe8cfb6505f1e46b1b10d0bb134eadd5c1dc8f3"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/love-mind-service.json",
+          "version": "2.0.0",
+          "sha256": "7c7591bd88a4687b5b0cb22808fcc3a9b65e5c12979280ffb5406edc4b0ed588"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/love-mind-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "b502e28b61f7305d5c77ef2263f75dee6f2360bcc310547e5fbab243060f3edd"
+        },
+        "semanticReview": "tone-v2/corpus-review/love-mind-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/love-mind-2.1.0.json",
+        "sha256": "e31ea711c354721e9ae6d6b8a3132ff117fe59201592388961355927e863b2c0",
+        "sourceSha256": "b502e28b61f7305d5c77ef2263f75dee6f2360bcc310547e5fbab243060f3edd",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 1,
+        "passedBlockCount": 1,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No love_mind provider output evaluation was run or found; this candidate covers corpus semantics and snapshot-pinned RAG only."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/love-mind-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "love_spouse",
+      "releaseManifest": {
+        "path": "tone-v2/releases/love-spouse-2.1.0.json",
+        "sha256": "f60bcb613f3d063f3acb4d39674f5fe60d4db20a8437c586608f7aac3a2a3a46"
+      },
+      "prompt": {
+        "serviceKey": "love_spouse",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/love_spouse.md",
+        "sha256": "f4a1d7504f57816ba202705627104f90eb887d46b55e2353e54f9b0e95700d7b"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/love-spouse-service.json",
+          "version": "2.0.0",
+          "sha256": "eb2571fa2d7f5908b20d1dd9918d3c7e8cfe94bc996e7269839384cf16a80d93"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/love-spouse-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "4184031e0d22badd49fe17e0825bd74077be90e982424053f77ff0d481db802a"
+        },
+        "semanticReview": "tone-v2/corpus-review/love-spouse-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/love-spouse-2.1.0.json",
+        "sha256": "9ded767053f8c8b6e0c66dfcd11430d1023b3303fc06a58304498d06a34de9c4",
+        "sourceSha256": "4184031e0d22badd49fe17e0825bd74077be90e982424053f77ff0d481db802a",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 1,
+        "passedBlockCount": 1,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No love_spouse provider output evaluation was run; local corpus and snapshot verification only."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/love-spouse-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "love_this_year",
+      "releaseManifest": {
+        "path": "tone-v2/releases/love-this-year-2.1.0.json",
+        "sha256": "9895f15fac35a10a2978e89ca50f95d0086a7d34c036005e6de113fbfddeae21"
+      },
+      "prompt": {
+        "serviceKey": "love_this_year",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/love_this_year.md",
+        "sha256": "1fd7927ea97e88c6b4284eb9b36b6a344d7edefa65fddedf701b041506bccea3"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/love-this-year-service.json",
+          "version": "2.0.0",
+          "sha256": "73010d687a98c201e547ffaadcb7451f35909207978f2a53cb682bc87fb92598"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/love-this-year-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "bc26deedce4069b6031d7941601975ffb4dfc8e26619ff012b9214c37dd79733"
+        },
+        "semanticReview": "tone-v2/corpus-review/love-this-year-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/love-this-year-2.1.0.json",
+        "sha256": "bb90cf17fa6ff2e80f698fd31b141f65360a39fd49284a43435e30025cedbca6",
+        "sourceSha256": "bc26deedce4069b6031d7941601975ffb4dfc8e26619ff012b9214c37dd79733",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 10,
+        "passedBlockCount": 10,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No provider evaluation was run for love_this_year corpus 2.1.0; deterministic tests are verification evidence, not provider-output evidence."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/love-this-year-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "lucky_color",
+      "releaseManifest": {
+        "path": "tone-v2/releases/lucky-color-2.1.0.json",
+        "sha256": "b2531c5028a632ebe594d9b4fff67c31778f5010c4923e889f1d2698c34b371c"
+      },
+      "prompt": {
+        "serviceKey": "lucky_color",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/lucky_color.md",
+        "sha256": "193da75b88e795d54b73bd38eb03da6b1fe484b224e5c5a742c6dfb6cfe37b0f"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/lucky-color-service.json",
+          "version": "2.0.0",
+          "sha256": "22cdde23b6c084e39a8a302860ec3c5db493b662cb18a4ddf44a9c3dc181c9bb"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/lucky-color-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "ad21c843643ed77301d15fe1e48c544fa0e86f89a40cc8de5ab0774d245b51f6"
+        },
+        "semanticReview": "tone-v2/corpus-review/lucky-color-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/lucky-color-2.1.0.json",
+        "sha256": "30bf08f29b144923151c1379084bae30be76e4ccb3343300b0b05e97cad196c7",
+        "sourceSha256": "ad21c843643ed77301d15fe1e48c544fa0e86f89a40cc8de5ab0774d245b51f6",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 24,
+        "passedBlockCount": 24,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": "tone-v2/evaluations/P04-lucky-color-full-outline-generation-20260913.json",
+        "evidenceSha256": "66510815d89d97426adbc6f5c1d57477403d71e0f55e475de4eba267e4ce3610",
+        "providerRequired": true,
+        "actualProviderCalls": true,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "9fe3d22bc7c18cd1019b4fd6688975e7f89051249f719790cb9ee605e3463194"
+      },
+      "visual": {
+        "evidencePath": "tone-v2/evaluations/P04-lucky-color-visual-render-evidence-20260913.json",
+        "evidenceSha256": "8fc0172a8afa68099018d11a95e5a505aad2ec98be4f82b69a0f9f4c5729b686",
+        "desktop": true,
+        "mobile": true,
+        "print": true,
+        "passed": true
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/lucky-color-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "marry_match",
+      "releaseManifest": {
+        "path": "tone-v2/releases/marry-match-2.1.0.json",
+        "sha256": "0e1bbf4f4ca67564b34ac35b210575a7dafd2ca2c7eebbd5ae912558c957338f"
+      },
+      "prompt": {
+        "serviceKey": "marry_match",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/marry_match.md",
+        "sha256": "8c90ffa8c40eb13e09d6b3485550914b049f466d32da17a49f63d4c9b8657f85"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/marry-match-service.json",
+          "version": "2.0.0",
+          "sha256": "a98c7c14c6a0cab000240efd6e26bafeee90905604f524096532d3a2d83f66ff"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/marry-match-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "e8dc60b9d97755025055b773b76c93f17b8caa813011c83b6d3afd4e4c849b0b"
+        },
+        "semanticReview": "tone-v2/corpus-review/marry-match-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/marry-match-2.1.0.json",
+        "sha256": "f17dd1ea75363c93ea38da5bb2a543b32acb067ef226de1c49da38e0a7ed6807",
+        "sourceSha256": "e8dc60b9d97755025055b773b76c93f17b8caa813011c83b6d3afd4e4c849b0b",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 20,
+        "passedBlockCount": 20,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No marry_match provider output evaluation was run or found for this corpus-only Task."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/marry-match-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "match_couple",
+      "releaseManifest": {
+        "path": "tone-v2/releases/match-couple-2.1.0.json",
+        "sha256": "74779b692fc960fc966a15ca9f40e3d8c2900846802e933a14ba380cb613be67"
+      },
+      "prompt": {
+        "serviceKey": "match_couple",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/match_couple.md",
+        "sha256": "4a0d4d709bb602d4945fbc7f0387b138760cb2a9783c7b7a3a4784dbae7b20e3"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/match-couple-service.json",
+          "version": "2.0.0",
+          "sha256": "94e180020871fefd9f2c47e3136342a3999cc16f3325e92ff4abc04213a9949b"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/match-couple-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "84e7fb76d2072fa3c44a92e1f8438d4a603357b40ddf361a80a543e5725f899c"
+        },
+        "semanticReview": "tone-v2/corpus-review/match-couple-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/match-couple-2.1.0.json",
+        "sha256": "1bf6e00d90be9ddbfe16fc3a51f1caa1399a523a26831d6209ff718f7de01ad7",
+        "sourceSha256": "84e7fb76d2072fa3c44a92e1f8438d4a603357b40ddf361a80a543e5725f899c",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 18,
+        "passedBlockCount": 18,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No match_couple provider output evaluation was run or found for this corpus-only Task."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/match-couple-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "money_save",
+      "releaseManifest": {
+        "path": "tone-v2/releases/money-save-2.1.0.json",
+        "sha256": "45f3e9c8d322be172fd5378c13a7091af2021fcb6c13e3d865140c92f35fc966"
+      },
+      "prompt": {
+        "serviceKey": "money_save",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/money_save.md",
+        "sha256": "2763f73d99b6c22d22af4e2b679ceee0558fe7d3e4ff9b0f244141a028e13327"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/money-save-service.json",
+          "version": "2.0.0",
+          "sha256": "b83146315967e2a53c5a70dfe61c21da3a7bbdca1b41bf54bdca542b22c6b8a7"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/money-save-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "a0c0545b0073ee760f281d5f57c270a543b85f169c715cbbcfd9eb93c24446cc"
+        },
+        "semanticReview": "tone-v2/corpus-review/money-save-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/money-save-2.1.0.json",
+        "sha256": "e9cc8eef6c766d10afaea43157164c9c850b960fd5690f1aad88eaa8da77f01d",
+        "sourceSha256": "a0c0545b0073ee760f281d5f57c270a543b85f169c715cbbcfd9eb93c24446cc",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 12,
+        "passedBlockCount": 12,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No money_save provider output evaluation was run or found for this corpus-only Task."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/money-save-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "newyear_flow",
+      "releaseManifest": {
+        "path": "tone-v2/releases/newyear-flow-2.1.0.json",
+        "sha256": "3161f5b8291f6927a16b3ccc099691ccf757acea8d199ab84cc89a561c09aaa7"
+      },
+      "prompt": {
+        "serviceKey": "newyear_flow",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/newyear_flow.md",
+        "sha256": "dc892c51262eb09a0d360136580945d21eaad9d5eec03a3e88a249948b4cabbe"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/newyear-service.json",
+          "version": "2.0.0",
+          "sha256": "24cb54fe10bfd5722558327435ad9a84ff432eb251d1838c4e6f374df19fc5e2"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/newyear-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "af2de895d527ba666c0fea5508ad7cf69f298a4f13647e425b77e348e83a3419"
+        },
+        "semanticReview": "tone-v2/corpus-review/newyear-flow-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/newyear-flow-2.1.0.json",
+        "sha256": "5f432364ff9bbe60780b3df23786d9e71a0021cb8c05ec1ff54c09bf362e4c26",
+        "sourceSha256": "af2de895d527ba666c0fea5508ad7cf69f298a4f13647e425b77e348e83a3419",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 10,
+        "passedBlockCount": 10,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": "tone-v2/evaluations/P04-newyear-flow-full-outline-generation-20260913.json",
+        "evidenceSha256": "42a2921795b0d39a6a5ac0d855f0338e69648e55357e9777584cebd83dea54f5",
+        "providerRequired": true,
+        "actualProviderCalls": true,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "ceaf531bb36caa7cbaa25e3c2346252eaa98283ae5316574e0fc39646df51796"
+      },
+      "visual": {
+        "evidencePath": "tone-v2/evaluations/P04-newyear-flow-visual-render-evidence-20260913.json",
+        "evidenceSha256": "459c4445e82e13d457303f5a62e6f84ef290cc0f427c691727f6f5c660eb92ba",
+        "desktop": true,
+        "mobile": true,
+        "print": true,
+        "passed": true
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/newyear-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "pass_angle",
+      "releaseManifest": {
+        "path": "tone-v2/releases/pass-angle-2.1.0.json",
+        "sha256": "f2970d6a30a71fe98edb9024d951774af0ba1fd24daa62a0f827c88befb1eba8"
+      },
+      "prompt": {
+        "serviceKey": "pass_angle",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/pass_angle.md",
+        "sha256": "29c92a5b8809c2d7b6a6f87eee3f12c77f8103ad66dfd98ca1082432836e3fe1"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/pass-angle-service.json",
+          "version": "2.0.0",
+          "sha256": "78cacec3763736f0699bf0a082d4d7002046885843309e78edb622cc78bdc460"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/pass-angle-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "44ab5c364540b7a943ca7739bd7f176fd45758973e3804b39ac481c8c2c0d96f"
+        },
+        "semanticReview": "tone-v2/corpus-review/pass-angle-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/pass-angle-2.1.0.json",
+        "sha256": "011759a847b81a79bca31c5f9cc9c474b599b0ab12a4de2d59e14401845f5ba0",
+        "sourceSha256": "44ab5c364540b7a943ca7739bd7f176fd45758973e3804b39ac481c8c2c0d96f",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 8,
+        "passedBlockCount": 8,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": "tone-v2/evaluations/P04-pass-angle-2-1-full-outline-generation-20260913.json",
+        "evidenceSha256": "72cd3306a3c339757fedcebd1eadae248927fb0f8fb0c091b2d6b3f5312042a7",
+        "providerRequired": true,
+        "actualProviderCalls": true,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "a25f7afd69e0417350600cbced7d60c1ee015bd276a3dc8f758e12488e9c007e"
+      },
+      "visual": {
+        "evidencePath": "tone-v2/evaluations/P04-pass-angle-visual-render-evidence-20260913.json",
+        "evidenceSha256": "beb65d96554b7352ad660c0cfad378eb8ee2ea0b22f554ae591e5851eaba67b3",
+        "desktop": true,
+        "mobile": true,
+        "print": true,
+        "passed": true
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/pass-angle-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "quit_fortune",
+      "releaseManifest": {
+        "path": "tone-v2/releases/quit-fortune-2.1.0.json",
+        "sha256": "0df8937f16543b7ac14367d5a6c3ef317afa9b683ea4c5d356b859332bd2fb0e"
+      },
+      "prompt": {
+        "serviceKey": "quit_fortune",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/quit_fortune.md",
+        "sha256": "500360c78f62cbc5274a01467cd40fd9312836761d0c02c8ba75d74e623e2474"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/quit-fortune-service.json",
+          "version": "2.0.0",
+          "sha256": "8646661ffa08a3cc881a843a8290259b8501a5bdb990e1a7ab6ca7d1207e1578"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/quit-fortune-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "3caf9303913b5eddaf73fbeee60d473a716b720130128092cb59ed8ad6ea6e47"
+        },
+        "semanticReview": "tone-v2/corpus-review/quit-fortune-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/quit-fortune-2.1.0.json",
+        "sha256": "e530f4e36af7d5a98d6ed3ddfc2d95879fc81993b8c719451d46ef700656c8fc",
+        "sourceSha256": "3caf9303913b5eddaf73fbeee60d473a716b720130128092cb59ed8ad6ea6e47",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 12,
+        "passedBlockCount": 12,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": "tone-v2/evaluations/P04-quit-fortune-full-outline-generation-20260913.json",
+        "evidenceSha256": "757a1f94abcaefc1d655f116949405f781d3be2c64e6464a3c3fc782594fc48f",
+        "providerRequired": true,
+        "actualProviderCalls": true,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "15cc9c4e955561057eea12e5f20e3231c212f93c271efa9f7983a0e861b6e284"
+      },
+      "visual": {
+        "evidencePath": "tone-v2/evaluations/P04-quit-fortune-visual-render-evidence-20260913.json",
+        "evidenceSha256": "9740bc0222bc7083c5fbf61a107ca7dd5e1e16682a78361ece05776f111e2925",
+        "desktop": true,
+        "mobile": true,
+        "print": true,
+        "passed": true
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/quit-fortune-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "saju_master",
+      "releaseManifest": {
+        "path": "tone-v2/releases/saju-master-2.1.0.json",
+        "sha256": "5bf554e86642d91b56b10f5ce3e570a8f24af5a0964916cff7bc14721fbcfb4f"
+      },
+      "prompt": {
+        "serviceKey": "saju_master",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/saju_master.md",
+        "sha256": "0bfb2a28f6e0664bde6267de5802499407c606d14aa81fa9f8961f511941f743"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/saju-master-service.json",
+          "version": "2.0.0",
+          "sha256": "ac1d8891124138b94b91708dcd975d4c4962732dcb02029a22d49420463c0699"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/saju-master-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "6c7753669476fd0ebb3d9e9267ae578aaa5085745c19bba0843c4bb24c73cb04"
+        },
+        "semanticReview": "tone-v2/corpus-review/saju-master-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/saju-master-2.1.0.json",
+        "sha256": "6b49c1e6438d9b008c8c6ea3f52ef300aab269722e86677ad75085bbfaf8c646",
+        "sourceSha256": "6c7753669476fd0ebb3d9e9267ae578aaa5085745c19bba0843c4bb24c73cb04",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 1,
+        "passedBlockCount": 1,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No saju_master provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/saju-master-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "today_fortune",
+      "releaseManifest": {
+        "path": "tone-v2/releases/today-fortune-2.1.0.json",
+        "sha256": "f9f7311479ced405ae3b111688f700cd4f9b2b9e63c4d27447b6c4b1c475bd89"
+      },
+      "prompt": {
+        "serviceKey": "today_fortune",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/today_fortune.md",
+        "sha256": "f6f04de71a363df0f80824cb00c4666d8513a1bb71b4ddf69938899d0dff13ca"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/today-fortune-service.json",
+          "version": "2.0.0",
+          "sha256": "2857afe866fe7ab1ed0feb7015b08ac144564e753cfec9eda3a70e2f1b3317fa"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/today-fortune-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "5558bd7c98a2fd2867b97a9615de544743a1179b59f0fc5178dde80be7693c03"
+        },
+        "semanticReview": "tone-v2/corpus-review/today-fortune-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/today-fortune-2.1.0.json",
+        "sha256": "003767e11efeac90bd356ca28f673343823c3a739eea0e606b71a8ae85fca3e7",
+        "sourceSha256": "5558bd7c98a2fd2867b97a9615de544743a1179b59f0fc5178dde80be7693c03",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 1,
+        "passedBlockCount": 1,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": "tone-v2/evaluations/P04-today-fortune-full-outline-evidence-20260913.json",
+        "evidenceSha256": "b56524708253d3afdcf29c1eb226dec0a2cc5e409ec33e32d7bc949b385b4038",
+        "providerRequired": false,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "c7526a3ee1054cbdec18c00c762664c26d10adbfc09145d17109431ab121e1e4"
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "deterministicDailyRendererChanged": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/today-fortune-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "wedding_day",
+      "releaseManifest": {
+        "path": "tone-v2/releases/wedding-day-2.1.0.json",
+        "sha256": "eaba51c8f7e05eef92e00bae6353a5136bf8db85dcb06b170f2fc70a8eb14fa4"
+      },
+      "prompt": {
+        "serviceKey": "wedding_day",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/wedding_day.md",
+        "sha256": "544c7e0b18978c6e57fd5cddff72ea4d93956988447ce947dd783b71b9c7b4bf"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/wedding-day-service.json",
+          "version": "2.0.0",
+          "sha256": "11347cc046ea3f3ed0aece374e6dec8bcb12c1a1984b4eb0c32d2dd4197f4161"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/wedding-day-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "bf49f10f68abf3aef33040de73ebc8297339dcd47e2f80a054747ef4d82044f4"
+        },
+        "semanticReview": "tone-v2/corpus-review/wedding-day-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/wedding-day-2.1.0.json",
+        "sha256": "8d0a86f2619e78110fe425be7a47dca5c6554b9f55d41187a86b33e24a11808f",
+        "sourceSha256": "bf49f10f68abf3aef33040de73ebc8297339dcd47e2f80a054747ef4d82044f4",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 6,
+        "passedBlockCount": 6,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": "tone-v2/evaluations/P04-wedding-day-full-outline-generation-20260913.json",
+        "evidenceSha256": "9fe90c0b17e4dcca128371c7eca1c0cf91587a5f2b2740f5c8ec3904e16a9771",
+        "providerRequired": true,
+        "actualProviderCalls": true,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "cfd2fbefed41c7aa4aff687785ce4e4cc520c0096cb2ba0b95caee58c0fea88c"
+      },
+      "visual": {
+        "evidencePath": "tone-v2/evaluations/P04-wedding-day-visual-render-evidence-20260913.json",
+        "evidenceSha256": "490f8212ed8971b7f167306c9ec091560932ad23a4f90eea7f77441b1a9ebd57",
+        "desktop": true,
+        "mobile": true,
+        "print": true,
+        "passed": true
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/wedding-day-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "work_job",
+      "releaseManifest": {
+        "path": "tone-v2/releases/work-job-2.1.0.json",
+        "sha256": "bcdb28ab99e269bb7f33f875d735b3e089b2854c34269c85bc5c8d883db32094"
+      },
+      "prompt": {
+        "serviceKey": "work_job",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/work_job.md",
+        "sha256": "406e02edd42a0f3b68241706f373d36948fa821883f4cc15ded4f3020fc6ccae"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/work-job-service.json",
+          "version": "2.0.0",
+          "sha256": "d7e1256cd39082723a550b682c70ac7be27b872cdda870c1797bbc29a4bec4d2"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/work-job-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "c64b68caeb1cf241fead41fca0054f012cf85cc14ab1c220b79ca5811cd4a84c"
+        },
+        "semanticReview": "tone-v2/corpus-review/work-job-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/work-job-2.1.0.json",
+        "sha256": "6cda484e64f9b5271df95d034e5412ddb446d852818415e5a066a461dd4c866f",
+        "sourceSha256": "c64b68caeb1cf241fead41fca0054f012cf85cc14ab1c220b79ca5811cd4a84c",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 1,
+        "passedBlockCount": 1,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No work_job provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/work-job-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    },
+    {
+      "serviceKey": "work_move",
+      "releaseManifest": {
+        "path": "tone-v2/releases/work-move-2.1.0.json",
+        "sha256": "839015980d384ca88506a334579eaf668f22a5374c87fbaff15b07159cca5193"
+      },
+      "prompt": {
+        "serviceKey": "work_move",
+        "bundleVersion": "tone-v2.20260910.1",
+        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourcePath": "tone-v2/generated/services/work_move.md",
+        "sha256": "72c6c77c6713b205e6be793ecbaea84fe6fc3ecf1cb7f73b76dd766818dd32fd"
+      },
+      "corpus": {
+        "previous": {
+          "path": "data/tone-v2/corpus/work-move-service.json",
+          "version": "2.0.0",
+          "sha256": "03f7d88687fc4b53c5c032d864eb472d71a15c814ffbd6f2f2fa23fbb7f56206"
+        },
+        "candidate": {
+          "path": "data/tone-v2/corpus/releases/work-move-service-2.1.0.json",
+          "version": "2.1.0",
+          "sha256": "9bcc0792ef03a5f97c31b935e127b17978f9d4a6c2298effe0bad6e32da93c66"
+        },
+        "semanticReview": "tone-v2/corpus-review/work-move-2.1.0.json"
+      },
+      "review": {
+        "path": "tone-v2/corpus-review/work-move-2.1.0.json",
+        "sha256": "93b6726d0e6c010988c84140554881b78cdbec2462914c649aae5d92f39fb4f1",
+        "sourceSha256": "9bcc0792ef03a5f97c31b935e127b17978f9d4a6c2298effe0bad6e32da93c66",
+        "status": "approved",
+        "sampleOutputsIngested": false,
+        "blockCount": 10,
+        "passedBlockCount": 10,
+        "allChecksPassed": true
+      },
+      "generation": {
+        "evidencePath": null,
+        "providerRequired": true,
+        "actualProviderCalls": false,
+        "containsProviderProse": false,
+        "fullOutlineHumanReview": false,
+        "reason": "No work_move provider output evaluation was run; local corpus and snapshot verification only."
+      },
+      "visual": {
+        "evidencePath": null,
+        "evidenceSha256": null,
+        "desktop": false,
+        "mobile": false,
+        "print": false,
+        "passed": false
+      },
+      "attachment": {
+        "newReportsOnly": true,
+        "storedSnapshotRequired": true,
+        "customerRecordMutation": false
+      },
+      "rollback": {
+        "strategy": "registry_only",
+        "restorePath": "data/tone-v2/corpus/work-move-service.json",
+        "restoreVersion": "2.0.0",
+        "customerRecordRewrite": false
+      }
+    }
+  ]
+}

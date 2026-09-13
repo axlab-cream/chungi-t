@@ -1,0 +1,16 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-first-section-quality",
+  "date": "2026-09-12",
+  "results": [
+    { "command": "focused generation, harness and persistence tests", "status": "PASS", "tests": 48 },
+    { "command": "npm test", "status": "PASS", "tests": 682, "suites": 101, "durationMs": 125481.9448 },
+    { "command": "node --test tone-v2/compile.test.mjs tone-v2/task-index.test.mjs", "status": "PASS", "tests": 7 },
+    { "command": "npm run typecheck", "status": "PASS" },
+    { "command": "npm run vercel-build", "status": "PASS" },
+    { "command": "git diff --check", "status": "PASS", "note": "line-ending warnings only" },
+    { "command": "ProjectOps preflight/implementation/test/rag/release", "status": "PASS" },
+    { "command": "provider-backed fresh first-item harness", "status": "FAIL", "note": "first section failed after two attempts; no later or outside-limit calls" }
+  ],
+  "business_acceptance": "FAIL",
+  "credentials_recorded": false
+}

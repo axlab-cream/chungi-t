@@ -1,0 +1,21 @@
+{
+  "task_id": "task-tone-v2-p04-comparative-next-criterion-recognition",
+  "status": "PASS",
+  "provider_calls": 0,
+  "checks": [
+    { "name": "TDD RED", "status": "PASS", "observed_pass": 35, "observed_fail": 3 },
+    { "name": "focused GREEN", "status": "PASS", "passed": 38, "failed": 0 },
+    { "name": "review RED: temporal targets and spaced past auxiliaries", "status": "PASS", "observed_pass": 38, "observed_fail": 2 },
+    { "name": "focused review GREEN", "status": "PASS", "passed": 40, "failed": 0 },
+    { "name": "related Tone V2", "status": "PASS", "passed": 45, "failed": 0 },
+    { "name": "compiler/task", "status": "PASS", "passed": 7, "failed": 0 },
+    { "name": "saved attempt immutable replay", "status": "PASS", "density_elements": 4, "record_sha_unchanged": true },
+    { "name": "full repository regression", "status": "PASS", "passed": 687, "failed": 0, "suites": 101 },
+    { "name": "Vercel build and typecheck", "status": "PASS" },
+    { "name": "task-boundary credential scan", "status": "PASS", "findings": 0 }
+  ],
+  "projectops_test_harness": {
+    "status": "WARN",
+    "detail": "Nested CreamAI/package.json has no test script; repository-root commands above are authoritative."
+  }
+}

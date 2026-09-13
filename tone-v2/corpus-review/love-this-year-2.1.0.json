@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "love_this_year",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/love-this-year-service-2.1.0.json",
+  "sourceSha256": "bc26deedce4069b6031d7941601975ffb4dfc8e26619ff012b9214c37dd79733",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/love_this_year.md",
+    "CreamAI/backlog/task-019.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit relationship fact, calculation, symbolic, unknown partner, future, partner privacy, consent, refusal, safety, numeric and route-invariant review",
+  "blocks": [
+    {
+      "id": "lty-001",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-002",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-003",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-004",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-005",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-006",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-007",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-008",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-009",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    },
+    {
+      "id": "lty-010",
+      "status": "pass",
+      "checks": {
+        "relationshipFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true,
+        "routeInvariantBoundary": true
+      }
+    }
+  ]
+}

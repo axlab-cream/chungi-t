@@ -1,0 +1,440 @@
+{
+  "phases": {
+    "P00": { "status": "PASS", "evidence": ["source-verification.json", "task-index.test.mjs: 3/3 PASS"] },
+    "P01": { "status": "IN_PROGRESS", "evidence": ["decisions.md", "reviews/P01-common-1-3.md"] },
+    "P04": { "status": "IN_PROGRESS", "evidence": ["evaluations/P04-pass-angle-completion-e2e-20260912.json: one fresh synthetic section persisted complete", "evaluations/P04-pass-angle-full-outline-20260912.json: exact 52-item structure PASS; fresh provider run stopped at item 1 after two failed reviews with 0 post-failure calls", "evaluations/P04-pass-angle-first-section-quality-20260912.json: first-only instruction and limit harness PASS; provider acceptance 0/52 because retry regressed prior-passing invariants", "evaluations/P04-repair-invariant-preservation-20260912.json: full repair checklist PASS; provider second attempt still regressed nextCriterion", "evaluations/P04-repair-next-criterion-retention-20260912.json: deterministic repair contract PASS; fresh first item PASS on attempt 1; provider repair path NOT_RUN", "evaluations/P04-pass-angle-full-outline-continuation-20260912.json: existing record continued to 2/52; item 3 nextCriterion unresolved after two attempts; items 4-52 untouched", "evaluations/P04-newyear-flow-full-outline-generation-20260913.json: exact 36-item source contract, fresh isolated provider 36/36 and stored-snapshot replay 36/36 PASS"] }
+  },
+  "tasks": {
+    "ZIP-001": { "status": "IN_PROGRESS", "evidence": ["decisions.md"] },
+    "ZIP-002": { "status": "IN_PROGRESS", "evidence": ["decisions.md"] },
+    "ZIP-003": { "status": "IN_PROGRESS", "evidence": ["reviews/P01-common-1-3.md"] },
+    "ZIP-006": { "status": "IN_PROGRESS", "evidence": ["compile.test.mjs: 4/4 PASS; actual-output acceptance pending"] },
+    "ZIP-003-008": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: toneWritingInstruction", "src/report/report-generator.ts: sectionPrompt hook-first output contract"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: hook-first/direct-answer prompt contract PASS", "tone-v2/evaluations/P01-opening-internal-live-20260912.json: representative formal/haeyoche/informal outputs 6/6 direct-answer PASS"]
+    },
+    "ZIP-003-009": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: reviewToneCopy"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: current input/report/based-on/provided-info opening rejection and quote exception PASS", "tone-v2/evaluations/P01-opening-internal-live-20260912.json: authoring opening 0/6"]
+    },
+    "ZIP-003-010": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: certaintyIssues"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: ungrounded future/mind certainty rejection PASS", "npm test: 636/636 PASS; live output review pending"]
+    },
+    "ZIP-003-011": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: toneWritingInstruction", "src/report/report-generator.ts: sectionPrompt section.order and completed-sibling context"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: repeated birth/address/concern/choice prohibition PASS; whole-report live review pending"]
+    },
+    "ZIP-003-012": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 2 heading only"]
+    },
+    "ZIP-003-013": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-generator.ts: sectionPrompt evidenceLayers", "src/report/tone-v2-review.ts: four-layer writing contract"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: four explicit provenance layers PASS; sentence-level live output attribution pending"]
+    },
+    "ZIP-003-014": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-generator.ts: evidenceLayers.userFacts"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: sanitized user facts isolated from calculations/RAG PASS; live output review pending"]
+    },
+    "ZIP-003-015": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-generator.ts: evidenceLayers.verifiedCalculations"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: groundedReportFeatures isolated as verified calculations PASS; service calculation audit pending"]
+    },
+    "ZIP-003-016": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-generator.ts: evidenceLayers.traditionalInterpretationCandidates", "src/report/tone-v2-review.ts: symbolic interpretation boundary"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: RAG candidates isolated from facts/calculations PASS; live output review pending"]
+    },
+    "ZIP-003-017": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-generator.ts: evidenceLayers.fictionalExamplePolicy", "src/report/tone-v2-review.ts: example prefix contract"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: fictional example must begin with 예를 들어/만약 PASS; semantic live output review pending"]
+    },
+    "ZIP-003-018": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: certaintyIssues"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: ungrounded company/cat/private-fact rejection PASS", "npm test: 636/636 PASS; live output review pending"]
+    },
+    "ZIP-003-032": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: reviewToneCopy"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: schema plus reportFeatures/scoring/debug/metadata/payload/outputShape/tokenUsage/ragTopK rejection PASS", "tone-v2/evaluations/P01-opening-internal-live-20260912.json: internal field exposure 0/6"]
+    },
+    "ZIP-003-022": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: numericEvidenceFrom", "src/report/report-generator.ts: buildOpenAiSajuReportSection numericEvidence"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: input-number evidence reuse PASS", "npm test: 635/635 PASS; live output review pending"]
+    },
+    "ZIP-003-023": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: arithmeticReview"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: grounded add/subtract arithmetic PASS", "npm test: 635/635 PASS; live output review pending"]
+    },
+    "ZIP-003-024": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: unsupportedPrescriptionNumbers"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: 30cm/15분 unsupported prescription rejection PASS", "npm test: 635/635 PASS; live output review pending"]
+    },
+    "ZIP-003-025": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: unsupportedPrescriptionNumbers"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: unsupported concrete prescription number rejection PASS; semantic output review pending"]
+    },
+    "ZIP-003-026": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: actionTargetIssues", "src/report/tone-v2-review.ts: toneWritingInstruction target-specific action contract"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: bare action rejection and concrete target acceptance PASS; live service output review pending"]
+    },
+    "ZIP-003-028": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: numericEvidenceFrom"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: entered 58점 and 30cm can be reused when present in evidence PASS"]
+    },
+    "ZIP-003-031": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: corpusCopyIssues", "src/report/report-generator.ts: post-generation corpusEvidence review"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: exact corpus sentence rejection and rewritten sentence acceptance PASS; live output semantic review pending"]
+    },
+    "ZIP-003-033": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["data/tone-v2/corpus/registry.json: explicit serviceKey mapping", "src/rag/corpus-registry.ts: getServiceCorpusDomain", "src/rag/retriever.ts: registry-owned service routing"],
+      "evidence": ["tests/unit/rag-retriever.test.ts: all 20 service domains present in top two chunks PASS; item-level live relevance review pending"]
+    },
+    "ZIP-003-034": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: normalized sentence copy gate", "src/report/report-generator.ts: retrieved-chunk review wiring"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: long source sentence copy fails while semantic rewrite passes; live-output similarity review pending"]
+    },
+    "ZIP-003-035": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: missing-data reality-condition instruction", "src/report/tone-v2-review.ts: certaintyIssues"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: missing-data instruction contract PASS; live insufficient-input output review pending"]
+    },
+    "ZIP-003-036": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 4 heading only"]
+    },
+    "ZIP-003-037": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: reviewPaidSectionDensity", "src/report/report-generator.ts: post-generation density review"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: four-element minimum-density contract PASS; semantic live-output review pending", "tone-v2/evaluations/P01-pass-angle-e2e-20260912.json: fresh provider-backed representative section remained failed after two attempts; no acceptance promotion", "tone-v2/evaluations/P01-pass-angle-e2e-rerun-20260912.json: post-scene-repair fresh section remained failed; both attempts scene PASS, attempt 2 nextCriterion-only FAIL"]
+    },
+    "ZIP-003-038": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: directAnswer density element"],
+      "evidence": ["question-repeating hook fails and standalone answer hook passes; live semantic answer review pending", "tone-v2/evaluations/P01-pass-angle-e2e-20260912.json: both fresh pass_angle attempts directAnswer PASS", "tone-v2/evaluations/P01-pass-angle-e2e-rerun-20260912.json: both post-repair attempts directAnswer PASS"]
+    },
+    "ZIP-003-039": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: grounding density element"],
+      "evidence": ["personal evidence or decision-condition signal is required; factual correctness still requires live review", "tests/unit/tone-v2-generation.test.ts: multiple same-fact context tokens pass while generic, cross-field, no-context, name and savedChat cases fail", "tone-v2/evaluations/P01-context-grounding-20260912.json: unchanged captured synthetic attempt re-evaluates grounding PASS; all-service live review pending", "tone-v2/evaluations/P01-pass-angle-e2e-rerun-20260912.json: both post-repair attempts grounding PASS"]
+    },
+    "ZIP-003-040": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: scene density element"],
+      "evidence": ["recognizable concrete or explicitly fictional scene signal is required; all-service live recognizability review pending", "tests/unit/tone-v2-generation.test.ts: an explicit review setting plus an affirmative observable action passes while generic, noun-only, action-only, and negated variants fail", "tone-v2/evaluations/P01-review-session-scene-20260912.json: immutable provider attempt re-evaluates scene and density 4/4 PASS; historical stored status remains failed", "tone-v2/evaluations/P01-pass-angle-e2e-rerun-20260912.json: both fresh post-repair provider attempts scene PASS"]
+    },
+    "ZIP-003-041": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: nextCriterion density element"],
+      "evidence": ["maintain/compare/talk/act decision target is required", "tests/unit/tone-v2-generation.test.ts: same-sentence and immediately adjacent plan/action candidates require a concrete target and reject vague, past, negated, unsafe abandonment, and non-adjacent wording", "tone-v2/evaluations/P01-adjacent-next-criterion-20260912.json: immutable fresh attempt 2 now re-evaluates density 4/4 PASS while persisted status remains failed", "CreamAI/logs/review/task-tone-v2-p01-adjacent-next-criterion_approval-review.md: Approved, Critical/Major/Minor 0", "full regression 675/675; all-service live usefulness review pending", "tone-v2/evaluations/P01-pass-angle-next-criterion-20260912.json: captured and new actual second attempt nextCriterion PASS; all-service live usefulness review pending", "tone-v2/evaluations/P01-pass-angle-e2e-20260912.json: both fresh attempts supply complementary evidence; final attempt nextCriterion PASS", "tone-v2/evaluations/P01-pass-angle-e2e-rerun-20260912.json: two new outputs failed nextCriterion; attempt 2 is the clean next diagnosis fixture"]
+    },
+    "ZIP-003-042": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: editorialFrame and calmContextHasInventedCrisis"],
+      "evidence": ["repeated explicit editorial frames and invented crisis for calm input fail; whole-report diversity review pending"]
+    },
+    "ZIP-003-043": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: 2026-09-09 revision memo heading only"]
+    },
+    "ZIP-003-044": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: editorialFrame sibling comparison"],
+      "evidence": ["conclusion/evidence/missed/recommendation frame repetition fails against completed sibling; unlabeled semantic frame review pending"]
+    },
+    "ZIP-003-045": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: sibling-aware frame comparison"],
+      "evidence": ["runtime gate applies to all services; 70-section live report evaluation pending"]
+    },
+    "ZIP-003-046": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["source points to the later section 13-8 upper-bound rule; no standalone behavior to implement in this slice"]
+    },
+    "ZIP-003-047": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 5 heading only"]
+    },
+    "ZIP-003-048": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: reviewSectionUniqueness generic-copy gate"],
+      "evidence": ["question-anchor-free generic copy fixture fails; semantic title-swap review pending"]
+    },
+    "ZIP-003-049": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: duplicate hook and near-paragraph review"],
+      "evidence": ["same answer across completed sibling fails; whole-report meaning review pending"]
+    },
+    "ZIP-003-050": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: production heading rejection"],
+      "evidence": ["all five named authoring headings fail deterministic review"]
+    },
+    "ZIP-003-051": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: scene-heading instruction and production-heading boundary"],
+      "evidence": ["scene-specific heading fixture passes and production headings fail; live heading quality review pending"]
+    },
+    "ZIP-003-052": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: character-shingle near-duplicate paragraph gate"],
+      "evidence": ["two near-duplicate long paragraphs fail while one shared long paragraph remains allowed; semantic similarity review pending"]
+    },
+    "ZIP-003-053": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 6 heading only"]
+    },
+    "ZIP-003-054": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: persona-owned voice system review"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: final formal/informal/haeyoche service assignments PASS; all-service live voice review pending"]
+    },
+    "ZIP-003-055": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: voiceRhythmIssues", "src/report/tone-v2-review.ts: toneWritingInstruction"],
+      "evidence": ["three identical spoken endings fail and varied endings pass; semantic naturalness review pending"]
+    },
+    "ZIP-003-056": {
+      "status": "PASS", "classification": "SUPERSEDED",
+      "evidence": ["tone-v2/decisions.md: 하게체 abolished for every service", "data/tone-v2/generated/personas.json: final persona voice assignments"]
+    },
+    "ZIP-003-057": {
+      "status": "PASS", "classification": "SUPERSEDED",
+      "evidence": ["tone-v2/decisions.md: formal voice applies to saju_master and job_choice", "tests/unit/tone-v2-generation.test.ts: final formal assignment PASS"]
+    },
+    "ZIP-003-058": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: voiceRhythmIssues"],
+      "evidence": ["three-or-more spoken sentences with one repeated ending fail; short two-sentence copy remains allowed; live rhythm review pending"]
+    },
+    "ZIP-003-059": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: personaPerformanceIssues"],
+      "evidence": ["invented narrator age/origin/career/qualification/superpower/past fixtures fail; semantic live-output review pending"]
+    },
+    "ZIP-003-060": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: personaPerformanceIssues", "src/report/tone-v2-review.ts: toneWritingInstruction"],
+      "evidence": ["degradation, baby talk, shaman staging, and mind-reading fixtures fail while an observable small metaphor passes; live quality review pending"]
+    },
+    "ZIP-003-061": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: spokenEnding nominal-verdict exception"],
+      "evidence": ["nominal verdict plus valid service voice passes; nominal verdict plus wrong spoken voice fails; live review pending"]
+    },
+    "ZIP-003-062": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: revision memo heading only"]
+    },
+    "ZIP-003-063": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["source rationale is represented by the nominal-verdict exception test"]
+    },
+    "ZIP-003-064": {
+      "status": "PASS", "classification": "SUPERSEDED",
+      "evidence": ["discarded proposal depends on the old formal-only-job rule; tone-v2/decisions.md is the later approved assignment"]
+    },
+    "ZIP-003-065": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 7 heading only"]
+    },
+    "ZIP-003-066": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: reviewTechnicalTerms first-use explanation gate", "src/report/report-generator.ts: report-ordered terminology review"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: named term first use requires 한글(한자, 쉬운 뜻)", "tone-v2/evaluations/P01-live-repair-guidance-20260912.json: representative final retry 3/3 PASS; live all-service output review pending"]
+    },
+    "ZIP-003-067": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: completed-sibling terminology history"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: later Korean-only term use PASS; legacy/whole-report semantic review pending"]
+    },
+    "ZIP-003-068": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: per-sentence Hanja and nested-parentheses gate"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: two Hanja groups and nested parentheses fail", "tone-v2/evaluations/P01-live-repair-guidance-20260912.json: representative final retry 3/3 PASS; all-service live readability review pending"]
+    },
+    "ZIP-003-069": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: element/useful-god and strength human-grade boundaries"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: count-only useful-god and human-grade strength claims fail; full semantic evaluation pending"]
+    },
+    "ZIP-003-070": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: combination/clash event-equivalence gate"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: certain reunion/separation equivalence fails and explicit non-equivalence passes; live semantic evaluation pending"]
+    },
+    "ZIP-003-071": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 8 heading only"]
+    },
+    "ZIP-003-072": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: reviewScoreVisuals evidence gate", "src/report/report-generator.ts: server-derived numericEvidence wiring"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: unsupported score/date and invented graph-shape fixtures fail; live output review pending"]
+    },
+    "ZIP-003-073": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: interpretation score label boundary"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: event-probability label fails and attention label passes; semantic review pending"]
+    },
+    "ZIP-003-074": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: score axis and high-low meaning gate"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: unexplained score fails and axis/high-low fixture passes; live clarity review pending"]
+    },
+    "ZIP-003-075": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: explicit comparison target requirement"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: comparison score without target fails; complete service-context audit pending"]
+    },
+    "ZIP-003-076": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: chart-purpose and table/chart duplicate-value gate"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: decorative chart and shared table/chart values fail; live editorial usefulness review pending"]
+    },
+    "ZIP-003-077": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 9 heading only"]
+    },
+    "ZIP-003-078": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: saved teaser trust review and deterministic template assembly"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: sourced interpretation structure passes; old-record semantic audit pending"]
+    },
+    "ZIP-003-079": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: one-line sourced headline review", "src/report/report-store.ts: teaser assembled before paid-section redaction"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: unsourced headline fails; live calculation-to-copy semantic evaluation pending"]
+    },
+    "ZIP-003-080": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: one-to-two representative-ground limit"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: missing/excess grounds fail and dedicated teasers retain at most two; quality review pending"]
+    },
+    "ZIP-003-081": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: recognizable-scene lower-bound gate", "src/flow/newyear-service.ts: calculated period expressed as an everyday scheduling scene"],
+      "evidence": ["tests/unit/report-content-guards.test.ts and newyear/wedding integration: scene fixtures and dedicated preview flows pass; semantic naturalness pending"]
+    },
+    "ZIP-003-082": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: concrete paid-scope review"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: vague paid scope fails; full catalog conversion-copy review pending"]
+    },
+    "ZIP-003-083": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: operations-copy rejection in new and stored preview guard paths"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: login/payment/server state fixture fails and guardPreview throws; existing-record corpus audit pending"]
+    },
+    "ZIP-003-084": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/report-preview.ts: fake quote, fear/loss pressure, and certain-event rejection"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: all three coercive/predictive fixtures fail; live semantic red-team pending"]
+    },
+    "ZIP-003-085": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 10 heading only"]
+    },
+    "ZIP-003-086": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: certain human outcome review in the common safety gate"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: mind, affair, lifespan and conditional outcome counterexamples PASS; live semantic red-team pending"]
+    },
+    "ZIP-003-087": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: symbolic-authority claim rejection and prompt boundary"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: symbolic proof claim fails and explicit non-proof passes; live semantic evaluation pending"]
+    },
+    "ZIP-003-088": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: relationshipState-backed context safety review"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts and love-reading-quality.test.ts: contact/reconciliation advice fails for boundary and unsafe inputs; live semantic evaluation pending"]
+    },
+    "ZIP-003-089": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: medical, legal, investment and contract authority review"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: authoritative claims fail and professional referral copy passes; legal review pending"]
+    },
+    "ZIP-003-090": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: guardian-chart pet-causation rejection"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: guardian energy causation fails and observation/veterinary boundary passes; live output evaluation pending"]
+    },
+    "ZIP-003-091": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: missing terrain-evidence harm/value rejection"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: unmeasured direction-to-harm claim fails and explicit unknown passes; measured-output semantic audit pending"]
+    },
+    "ZIP-003-092": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: section 11 heading only"]
+    },
+    "ZIP-003-093": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: one-central-thought writing instruction"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: prompt contract PASS; live Korean semantic grading pending"]
+    },
+    "ZIP-003-094": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/interpretation-validation.ts: 2-4 complete sentences per prose paragraph", "src/report/tone-v2-review.ts: generation contract"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: readable, crowded and Markdown-label fixtures PASS", "tone-v2/evaluations/P01-live-repair-guidance-20260912.json: representative final retry 3/3 PASS; all-service live output review pending"]
+    },
+    "ZIP-003-095": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["사주/js/umsh-report-access.js: semantic answer/evidence/action blocks and legacy fallback", "사주/css/umsh-verified-reader.css: mobile hierarchy"],
+      "evidence": ["tests/unit/report-access-frontend.test.ts: semantic structure and non-duplication PASS; styled browser inspection and specialized renderers pending"]
+    },
+    "ZIP-003-096": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/interpretation-validation.ts: four-or-more slash-list rejection"],
+      "evidence": ["tests/unit/report-content-guards.test.ts: packed slash list fails; live Korean copy audit pending"]
+    },
+    "ZIP-003-097": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["사주/js/umsh-report-access.js: result-specific preview CTA", "사주/js/umsh-report-view.js: result-specific pager labels"],
+      "evidence": ["tests/unit/report-access-frontend.test.ts: preview CTA PASS; all-service CTA inventory pending"]
+    },
+    "ZIP-003-098": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/interpretation-validation.ts: named grammar regression gate", "src/report/tone-v2-review.ts: final proofreading instruction"],
+      "evidence": ["existing grammar fixtures plus §11 prompt contract PASS; full Korean proofreading pending"]
+    },
+    "ZIP-003-099": {
+      "status": "IN_PROGRESS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: hook punctuation role", "사주/js/umsh-report-access.js: punctuation-free middot labels"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts and report-access-frontend.test.ts: verdict/label fixtures PASS; all rendered labels pending"]
+    },
+    "ZIP-003-100": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: 2026-09-09 revision-note marker"]
+    },
+    "ZIP-003-101": {
+      "status": "PASS", "classification": "REFERENCE",
+      "evidence": ["tone-v2/source/규격/01-공통-프롬프트-규칙.md: nominal-verdict versus label ambiguity rationale", "tone-v2/reviews/P01-common-11.md: precedence interpretation"]
+    },
+    "ZIP-003-102": {
+      "status": "PASS", "classification": "ACTIVE",
+      "implementation": ["src/report/tone-v2-review.ts: contentRole hook punctuation gate", "사주/js/umsh-report-access.js: labelText terminal-period removal and middot summary"],
+      "evidence": ["tests/unit/tone-v2-generation.test.ts: unpunctuated verdict fails and punctuated nominal verdict passes", "tests/unit/report-access-frontend.test.ts: classification period is removed from system label"]
+    }
+  }
+}

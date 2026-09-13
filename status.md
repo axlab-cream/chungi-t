@@ -1,5 +1,32 @@
 ﻿# Status
 
+## Current Task
+
+- 2026-09-13 `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate` DONE: reviewed 38/38 blocks, activated 2.1.0 for new snapshots, preserved 2.0.0 snapshots and rollback, and passed focused 8/8, related 139/139, full 831/831, typecheck/build/determinism/review. Next inactive Task is `task-tone-v2-p05-couple-signal-corpus-rag-release-candidate`.
+- 2026-09-13 `task-tone-v2-p05-pass-angle-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 8 blocks separate confirmed exam facts, official instructions, actual study records and calculated symbols; unsupported fixed periods were removed. Focused 8/8, related 143/143, full 823/823 across 114 suites, typecheck/build/determinism/review PASS. Existing 52-item record unchanged; 2.1.0 provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-corpus-snapshot-20260913.md` put/get/search PASS and ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-work-move-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 10 blocks separate confirmed facts, documents, reported promises, unknown company conditions and calculated symbols. Focused 8/8, related 153/153, full 815/815 across 113 suites, typecheck/build/determinism/review PASS. Provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-pass-angle-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-work-move-corpus-snapshot-20260913.md` put/get/search PASS and ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-home-fit-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 12 blocks separate observations, measurements, unknowns and symbols; the dedicated home reader now honors stored snapshots. Focused 8/8, related 107/107, full 807/807 across 112 suites, typecheck/build/determinism/review PASS. Provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-work-move-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-home-fit-corpus-snapshot-20260913.md` put/get/search PASS and ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-love-spouse-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. User-stated preferences and observed behavior are separated from future-spouse identity, attributes, timing, feelings and outcomes; autonomy and safety signals are authoritative. Focused 8/8, related 88/88, full 799/799 across 111 suites, typecheck/build/determinism/review PASS. Provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-home-fit-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-love-spouse-corpus-snapshot-20260913.md` put/get/exact-title search PASS and ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-love-again-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. Confirmed breakup/contact facts are separated from longing, consent and future reunion; refusal/contact-stop and danger signals are authoritative. Focused 8/8, related 88/88, full 791/791 across 110 suites, typecheck/build/determinism/review PASS. Provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-love-spouse-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-love-again-corpus-snapshot-20260913.md` put/get/exact-title search PASS and ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-love-mind-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. Observed behavior is separated from private feelings; explicit refusal and safety risks cannot be overridden. Focused 8/8, related 88/88, full 783/783 across 109 suites, typecheck/build/determinism/review PASS. Provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-love-again-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-love-mind-corpus-snapshot-20260913.md` put/get/exact-title search PASS and ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-work-job-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. The block separates confirmed work facts, calculated symbols, symbolic questions and labeled hypothetical examples and avoids deterministic career or workplace claims. Focused 8/8, related 100/100, full 775/775 across 108 suites, typecheck/build/determinism/review PASS. Provider and Production remain NOT_RUN. Next inactive Task is `task-tone-v2-p05-love-mind-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-work-job-corpus-snapshot-20260913.md` put/get/exact-title search PASS and local ProjectOps memory promotion PASS.
+
+- 2026-09-13 `task-tone-v2-p05-saju-master-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. The block separates user facts, server-calculated original-chart/daewoon values, symbolic hypotheses and labeled hypothetical examples, and excludes deterministic personal, future and professional-domain claims. Focused 8/8, related 98/98, full 767/767 across 107 suites, typecheck/build/determinism/review/KMS PASS. Provider, Production, customer data, commit, push and deploy remain NOT_RUN. Next inactive Task is `task-tone-v2-p05-work-job-corpus-rag-release-candidate`.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-saju-master-corpus-snapshot-20260913.md` put/get/exact-title search PASS and the local ProjectOps memory was promoted. Server-only manual reindex remains NOT_RUN; remote search returned the saved note immediately.
+
 ## Initial Entry
 
 - Status: `TODO`
@@ -1088,3 +1115,489 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - Supabase 기본 권한으로 남을 수 있는 `service_role` DELETE를 후속 migration에서 제거했다. 운영 조회 결과 두 버전 테이블 모두 service_role SELECT/INSERT/UPDATE만 있고 anon/authenticated 권한은 없다.
 - 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. 운영 배포와 로그인 세션 E2E는 커밋 후 이어서 확인한다.
 - T22는 계속 IN_PROGRESS다. 다음 slice는 구조화 draft 생성·revision 충돌·감사 기록 연결이다.
+
+## 2026-09-12 — Tone V2 independent fork
+
+- User authorized full handoff migration sequentially using the registered AIOS workflow. Work is isolated in `C:/Users/user/Desktop/chungi-t-tone-v2`, branch `codex/tone-v2`; original project is not modified by this task.
+- Source compiler and conversation/report system-prompt wiring are implemented. Source inventory: 82 members, 158 heading references; 20 personas with 13 fields, 18 character identities.
+- Corpus audit: 28 packs, 234 knowledge blocks, 28 static review candidates. This does not constitute semantic corpus approval or a finished replacement.
+- Batch primitive preserves supplied IDs/titles, carries previous full text and stops on validation failure. Actual provider/persistence/UI integration remains incomplete.
+- Verification: focused compiler/runtime/batch/wedding tests PASS, typecheck and vercel-build PASS. Full regression is being rerun; see `tone-v2/STATUS.md`.
+- KMS stored, retrieved and found by search: `personal/carrotcap/notes/umsh-tone-v2-20260912.md`.
+- Full migration and production attachment remain incomplete. Missing source outlines and QA dependencies plus old template pathways are explicitly tracked in `tone-v2/PRD.md` and `tone-v2/STATUS.md`.
+
+## 2026-09-12 — Tone V2 P01 유료 해석 밀도 게이트
+
+- 공통 규칙 §4의 직접 답·개인 근거 또는 판단 조건·생활 장면·다음 기준 네 요소를 생성 후 저장 전 필수 검사로 연결했다. 한 요소라도 없으면 완료 처리하지 않고 기존 재시도 경로로 보낸다.
+- 완료된 형제 항목과 명시적 편집 레이블 순서가 같으면 반복 틀로 차단하고, 만족·안정·문제없음 입력에 숨은 위기를 지어내는 문장도 차단한다.
+- ZIP-003-036/043/046은 REFERENCE/PASS, ZIP-003-037~042/044~045는 ACTIVE/IN_PROGRESS다. 정적 신호 검사는 의미 정확성이나 전체 70개 항목의 체감 다양성을 보장하지 않는다.
+- 검증: 신규 생성 검수 11/11 PASS, persistence 통합 PASS, compiler/task 7/7 PASS, task-index 재생성 후 3/3 PASS, 전체 642/642 PASS, typecheck/build/diff PASS.
+- 실제 OpenAI 출력 평가, 코퍼스/RAG 교체, 릴리스 부착, 배포, Production 변경은 실행하지 않았다.
+
+## 2026-09-12 — Tone V2 P01 항목별 고유성 게이트
+
+- 완료된 형제 항목과 같은 hook을 재사용하거나, 정규화 문자 3-그램 Dice 유사도 0.86 이상의 긴 문단이 두 개 이상 겹치면 생성 완료를 거부한다. 한 개의 공통 긴 문단은 공통 근거의 과잉 차단을 피하려고 허용한다.
+- 질문 핵심어가 전혀 없고 범용 문구 신호가 누적된 원고를 제목 교체 가능성이 높은 문장으로 차단한다. 원문에 명시된 제작용 소제목 5종도 차단하고 생활 장면형 소제목을 생성 계약에 추가했다.
+- ZIP-003-047은 REFERENCE/PASS, ZIP-003-048~052는 ACTIVE/IN_PROGRESS다. 문자열 하한선만으로 의미 고유성을 확정하지 않는다.
+- 검증: generation 13/13, persistence 8/8, compiler/task 7/7, task-index 3/3, 전체 644/644 PASS. typecheck/build/diff PASS.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-section-uniqueness-gate-20260912.md` put/get/search PASS. 서버 전용 재인덱싱 명령은 이 클라이언트에서 실행할 수 없어 NOT_RUN이다.
+- 실제 OpenAI 전체 리포트 평가, 코퍼스/RAG 교체, 릴리스 부착, 배포, Production 변경은 실행하지 않았다.
+
+## 2026-09-12 — ZIP-first task inventory and first review fixes
+
+- User authorized missing-material supplementation using ZIP patterns. Verified all 82 extracted members against the archive by SHA-256; no missing or extra files.
+- Created 82 source-file TASKs and 1,500 source review units with exact original text/line coverage, including reference/history/examples. This is review coverage, not implementation completion.
+- Active plan: `tone-v2/EXECUTION-PLAN.md`; evidence-preserving progress: `tone-v2/task-progress.json`; initial common 1~3 review: `tone-v2/reviews/P01-common-1-3.md`.
+- Fixed multiline persona truncation, cross-service lexical appendix contamination, loss of non-conflicting common section 6 rules, pending legacy copy exposure and out-of-order section generation. Daily calculated snapshots explicitly save their complete body before completion.
+- Verification: compiler/task coverage 7/7 PASS, full regression 633/633 PASS (100 suites), typecheck/build/diff checks PASS. Live generation, full clause acceptance, UI/print and production attachment remain incomplete.
+- CreamWIKI: `personal/carrotcap/notes/umsh-zip-task-audit-20260912.md`, stored/retrieved/searchable. Original workspace preserved.
+
+## 2026-09-12 — Tone V2 P01 numeric prescription and arithmetic gate
+
+- Scope: ZIP common §2-1 review units ZIP-003-022, ZIP-003-023, ZIP-003-024, ZIP-003-025, ZIP-003-028. This slice covers exact number+unit grounding and add/subtract formula checks; live semantic output review remains pending.
+- Code: added numeric evidence extraction, add/subtract arithmetic verification, and unsupported prescription-number detection to `src/report/tone-v2-review.ts`. `src/report/report-generator.ts` now passes birth input, public context, server calculation features, and the current section title/question as numeric evidence into generated hook/body review.
+- Result: generated prose now rejects unsupported action numbers such as `침대를 30cm 떼세요` and `통화 15분 잡아보세요`, while allowing the same number+unit when it is present in the actual evidence, such as an entered `58점` or measured `30cm`.
+- Arithmetic result: `320만원 - 210만원 = 110만원` passes when both operands are grounded; wrong results, missing operands, and mixed-unit equations fail.
+- Task tracking: `tone-v2/task-progress.json`, `tone-v2/TASKS.md`, `tone-v2/task-index.json`, and the per-task files were regenerated after the progress update. Status remains `IN_PROGRESS`, not release-ready.
+- Verification: focused generation 5/5 PASS; focused generation+persistence 13/13 PASS; compiler/task 7/7 PASS; task-index regeneration check 3/3 PASS; `npm run typecheck` PASS; `npm run vercel-build` PASS; `git diff --check` PASS with CRLF warnings only; full regression `npm test` 635/635 PASS in `tone-v2/latest-regression.log`.
+- Not performed: live OpenAI output quality grading, full 1,500 review-unit acceptance, UI/print/browser QA, commit, push, deployment, or production attachment.
+
+## 2026-09-12 — Tone V2 P01 future/mind/private fact gate
+
+- Scope: ZIP common §1 and §2 review units ZIP-003-010 and ZIP-003-018. This slice covers deterministic rejection for generated prose that states future events, another person's mind, or private facts about company, family, home, region, disease, or cat behavior as confirmed facts.
+- Code: added `certaintyIssues` to `src/report/tone-v2-review.ts` and wired it into `reviewToneCopy()`. The generation instruction now also states that future events, other people's minds, company/family/home/cat state must not be written as confirmed facts.
+- Result: unsupported assertions such as `상대는 이미 마음이 떠났어요.`, `올해 결혼해요.`, `회사는 곧 구조조정해요.`, and `고양이가 외로워서 문제 행동을 해요.` fail review. Conditional or observation-based alternatives pass.
+- Task tracking: `tone-v2/task-progress.json`, `tone-v2/TASKS.md`, `tone-v2/task-index.json`, and per-task files were regenerated after the progress update. Status remains `IN_PROGRESS`, not release-ready.
+- Verification: focused generation 6/6 PASS; focused generation+persistence 14/14 PASS; compiler/task 7/7 PASS; task-index regeneration check 3/3 PASS; `npm run typecheck` PASS; `npm run vercel-build` PASS; `git diff --check` PASS with CRLF warnings only; full regression `npm test` 636/636 PASS in `tone-v2/latest-regression.log`.
+- Not performed: live OpenAI output quality grading, full 1,500 review-unit acceptance, UI/print/browser QA, commit, push, deployment, or production attachment.
+
+## 2026-09-12 — Tone V2 P01 persona contract and answer-opening gate
+
+- Persona root cause: the V2 source already specifies 20 service personas after documenting the old empty-field problem, but the runtime contract did not expose a standalone name or definition status. Names existed only inside `이름(초안)`, generated assets were uncommitted, and the fork remained `releaseReady:false`; therefore Production/admin could not treat these as an attached released persona set.
+- Compiler/runtime now emits and validates `displayName`, `definitionStatus=specified`, `displayNameStatus=draft`, exactly 20 personas, all 13 fields, lexicon contracts, and explicit rhythm/null. It fails rather than silently using an incomplete persona.
+- ZIP-003-008/009/032 were strengthened: direct-answer hook contract, additional authoring-opening rejection, and internal report/schema/debug vocabulary rejection. Semantic live-output review remains pending, so the tasks stay IN_PROGRESS.
+- Verification: initial RED 6/8 with two expected failures; final focused 8/8 and persistence-inclusive 16/16; compiler/task 7/7; regenerated task index 3/3; full `npm test` 636/636; typecheck and Vercel build PASS.
+- CreamWIKI source evidence used: `personal/carrotcap/notes/umsh-tone-v2-20260912.md`. New work log: `personal/carrotcap/notes/umsh-tone-v2-persona-contract-20260912.md` (put/get/search result recorded after upload). Server-side reindex remains NOT_RUN.
+- No commit, push, deployment, DB write, Production attachment, existing completed-report rewrite, or live customer data mutation was performed.
+
+## 2026-09-12 — Tone V2 P01 input/evidence boundary
+
+- Scope: ZIP-003-011 and ZIP-003-013~017. ZIP-003-012 is a heading-only REFERENCE and is recorded PASS; ACTIVE rules remain IN_PROGRESS pending live semantic evaluation.
+- Prompt input now separates `userFacts`, `verifiedCalculations`, `traditionalInterpretationCandidates`, and `fictionalExamplePolicy` under `evidenceLayers`. Legacy ambiguous root `birth/context/featureJson/rag` fields are no longer sent by the report section prompt.
+- The contract prevents repeating birth/address/concern/choices in every section, keeps only completed prior sections as context, distinguishes traditional symbols from facts/calculations, and labels fictional scenes with `예를 들어` or `만약`. Partner privacy and unknown-time behavior remain covered.
+- Verification: TDD RED 6/7 before implementation; focused 58/58 PASS; compiler/task 7/7 PASS; regenerated task index 3/3 PASS; full `npm test` 637/637 PASS; typecheck, Vercel build, and diff check PASS.
+- Not performed: live provider call, actual-output grading, corpus or RAG production replacement, UI/print QA, commit, push, deployment, database write, or Production attachment.
+
+## 2026-09-12 — Tone V2 P01 service RAG and corpus-copy boundary
+
+- Scope: ZIP-003-026, ZIP-003-031, ZIP-003-033~035. ACTIVE tasks remain IN_PROGRESS pending live output evaluation.
+- Found and fixed `wedding_day` dedicated-corpus routing drift. The registry now owns explicit `serviceKey` mappings for all 20 service packs; the retriever no longer maintains a second hard-coded map.
+- Generated output review now compares hook/body with the actual retrieved corpus and rejects normalized verbatim source sentences of at least 18 characters. It also rejects targetless bare actions and instructs missing-data responses to present observable real-world conditions instead of invented facts.
+- Verification: RED 39/42 with three expected failures; focused GREEN 93/93; compiler/task 7/7; full `npm test` 640/640; typecheck, Vercel build, and diff check PASS.
+- Local skill note: the fork lacks the routed `.claude/skills` files and `test-driven-development` was also absent from the original project. The original project's available read-only skill instructions were applied; TDD was executed directly and the missing local skill remains recorded rather than claimed.
+- Not performed: live provider call, actual-output semantic evaluation, corpus content replacement, commit, push, deployment, database write, or Production attachment.
+
+## 2026-09-12 — Tone V2 P01 말투와 캐릭터 게이트
+
+- 범위: ZIP-003-053~064. 제목/개정 설명은 REFERENCE/PASS, 옛 하게체 및 격식체 범위는 최신 결정에 따라 SUPERSEDED/PASS, 실행 규칙은 실제 출력 평가 전까지 IN_PROGRESS다.
+- 최신 persona registry를 말투의 실행 기준으로 고정하고, 하게체 전면 거부, 격식체 2개 서비스, 반말 2개 서비스, 해요체 16개 서비스를 검증했다.
+- 3문장 이상 동일 종결어미 반복, 임의 화자 설정, 비하·유아어·과장된 무속 연출·독심 표현을 생성 후 차단한다. 명사형 판정문은 말투 위반으로 오탐하지 않으며 관찰 가능한 작은 비유는 허용한다.
+- 검증: focused RED에서 누락 게이트 2건 실패 확인; GREEN generation 16/16, persistence/persona 10/10; compiler/task 7/7; task index 재생성 후 3/3; 전체 `npm test` 647/647; typecheck, Vercel build, diff check PASS.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-voice-character-gate-20260912.md` put/get/search PASS. 클라이언트에서 서버 reindex 명령을 제공하지 않아 NOT_RUN이다.
+- 수행하지 않음: live provider 호출/실제 출력 의미 평가, 코퍼스·RAG 교체, 릴리스 부착, 커밋, push, 배포, DB 쓰기, Production 변경.
+
+## 2026-09-12 — Tone V2 P01 전문용어 경계 게이트
+
+- 범위: ZIP-003-065~070. 제목은 REFERENCE/PASS이며 실행 규칙은 실제 출력 의미 평가 전까지 IN_PROGRESS다.
+- 리포트 읽기 순서로 오행·용신·신강·신약·합·충의 첫 사용을 확인해 `한글(한자, 쉬운 뜻)`을 요구하고, 이전 항목에서 소개된 뒤에는 한글만 사용해도 허용한다.
+- 복수 한자/중첩 괄호, 오행 개수와 용신의 등치, 신강·신약의 인간 능력 등급화, 합·충의 재결합·이별 확정을 차단한다.
+- 코드리뷰 중 `합격·충분` 오탐을 발견해 두 번째 RED로 재현하고 단음절 용어 경계를 수정했다.
+- 검증: focused §7 3/3, generation/persistence/persona 29/29, compiler/task 7/7, 재생성 task index 3/3, 전체 `npm test` 650/650, typecheck, Vercel build, diff check PASS.
+- CreamWIKI search-first는 일반 언어 QA 근거만 반환했고 동일 구현은 없었다. `personal/carrotcap/notes/umsh-tone-v2-technical-terms-gate-20260912.md` put/get/search PASS; 서버 reindex는 NOT_RUN이다.
+- 수행하지 않음: live provider 호출/실제 출력 의미 평가, 20개 서비스 쉬운 뜻 정확성 평가, 코퍼스·RAG 교체, 릴리스 부착, 커밋, push, 배포, DB 쓰기, Production 변경.
+## 2026-09-12 — Tone V2 P01 점수·그래프·표 근거 게이트
+
+- 범위: 공통 프롬프트 §8, ZIP-003-071~076. 제목 ZIP-003-071은 REFERENCE/PASS이고 실행 규칙 ZIP-003-072~076은 실제 출력 의미 평가 전까지 IN_PROGRESS다.
+- 생성문 점수·날짜·그래프 수치를 기존 서버 유래 `numericEvidence`로 검증한다. 사건 확률형 점수, 산정 축과 높고 낮음의 의미가 없는 해석 점수, 실제 비교 대상 없는 비교 점수, 장식 차트, 근거 없는 스파크라인, 표·차트 수치 중복을 차단한다.
+- 새 계산기나 UI 차트 렌더러는 추가하지 않았다. 생성 원고 하한선 검수만 구현했으며 구조화 시각화의 의미 중복과 편집 유용성은 실제 출력 평가가 필요하다.
+- 검증: RED export 부재 실패 확인; 첫 GREEN에서 테스트 fixture 전달 오류를 찾아 수정; 최종 §8 3/3, generation/persistence/persona 32/32, compiler/task 7/7, task-index 3/3, 전체 `npm test` 653/653, typecheck, Vercel build, diff check PASS.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-score-visual-evidence-gate-20260912.md` put/get/search PASS. 서버 reindex는 클라이언트 명령 부재로 NOT_RUN이다.
+- 수행하지 않음: live provider/20개 서비스 구조화 시각화 평가, 코퍼스·RAG 교체, 릴리스 부착, 커밋, push, 배포, DB 쓰기, Production 변경.
+## 2026-09-12 — Tone V2 P01 티저 신뢰 게이트
+
+- 범위: 공통 프롬프트 §9, ZIP-003-077~084. 제목은 REFERENCE/PASS이며 실행 규칙은 실제 티저 의미 평가와 기존 레코드 구조 마이그레이션 전까지 IN_PROGRESS다.
+- `reviewTeaser`가 저장 원천에 있는 한 줄 판정, 대표 근거 1~2개, 생활 장면, 구체적인 전체 해석 범위를 확인한다. 운영 상태, 가짜 잠금 인용, 공포·손실 압박, 확정 예언은 신규 저장과 기존 저장 티저 읽기 경로에서 차단한다.
+- 실제 결함 수정: pending 저장 리포트가 본문을 비운 뒤 티저까지 만들던 순서를 바꿔, 무료 티저만 입력별 결정론적 template에서 먼저 조립한다. 저장되는 유료 섹션의 hook/interpretation/storytelling redaction은 그대로 유지한다.
+- 새해 티저에는 계산된 시기를 일정·약속 장면으로 표현했고, 결혼 택일은 대표 근거를 두 개로 제한하면서 길일·흉일 비확정 경계를 paid scope에 보존했다.
+- 검증: §9 prompt 1/1, teaser review 3/3, 관련 integration 69/69, compiler/task 7/7, task-index 3/3, 전체 `npm test` 657/657 PASS. typecheck, Vercel build, diff check PASS.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md` put/get/search PASS. 서버 reindex는 클라이언트 명령 부재로 NOT_RUN이다.
+- 수행하지 않음: 20개 서비스 live/의미 평가, 기존 레코드 구조 마이그레이션, 코퍼스·RAG 교체, 릴리스 부착, 커밋, push, 배포, DB 쓰기, Production 변경.
+
+## 2026-09-12 — Tone V2 P01 안전·확정 표현 게이트
+
+- 범위: 공통 프롬프트 §10, ZIP-003-085~091. 제목은 REFERENCE/PASS이며 실행 규칙은 실제 출력 의미·전문 검토 전까지 IN_PROGRESS다.
+- `reviewSafetyClaims`를 공통 생성 후 검수에 연결하고 hook·본문 모두 실제 `SajuReportContext`를 받게 했다. 실제 사람의 마음·외도·질병·수명·합격·채용·수익·결혼·이별 확정과 상징을 현실 정답으로 바꾸는 표현을 차단한다.
+- 기존 `relationshipState`를 재사용해 차단·접촉 거부·협박·강요 문맥에서 연락·재회 추진을 거부한다. 의료·법률·투자·계약 권위 대체, 보호자 사주 탓의 고양이 행동 원인화, 서버 지형 근거 없는 흉지·사고·재산 가치 연결도 차단한다.
+- 검증: RED export 부재 실패 확인; §10 focused 5/5, 관련 tone/love/report/home 58/58, compiler/task 7/7, task-index 3/3, 전체 `npm test` 662/662 PASS. typecheck, Vercel build, diff check PASS.
+- CreamWIKI search-first는 동일 프로젝트 구현 없이 일반 안전·승인 원칙만 반환했다. `personal/carrotcap/notes/umsh-tone-v2-safety-claims-gate-20260912.md` put/get/search PASS; 서버 reindex는 NOT_RUN이다.
+- 수행하지 않음: live provider/20개 서비스 의미 red-team, 법률·의료 전문 검토, 측정값과 문장 간 의미 함의 평가, 코퍼스·RAG 교체, 릴리스 부착, 커밋, push, 배포, DB 쓰기, Production 변경.
+2026-09-12 — Tone V2 §11 vertical slice: added 2–4 sentence paragraph, slash-list and judgment punctuation gates; shared saved-reader answer/evidence/action hierarchy with truthful legacy fallback; result-specific CTA/pager labels. Focused frontend 44/44, persistence 8/8, compiler/task 7/7, and full regression 667/667 PASS; typecheck/vercel-build/diff PASS. CreamWIKI put/get/search PASS at `personal/carrotcap/notes/umsh-tone-v2-readable-report-cards-20260912.md`; server reindex NOT_RUN. Styled synthetic reader inspection is NOT_RUN because browser URL policy blocked injection; no deployment or Production mutation.
+2026-09-12 — Tone V2 ZIP-003-100~102 audit: classified the §11 revision marker and ambiguity note as REFERENCE/PASS and the punctuation discriminator as ACTIVE/PASS. Existing hook-role review preserves `지금은 보류.` while shared-reader labels remove terminal periods and join category/classification with `·`; no runtime code change required. Focused tests 73/73 and task-index 3/3 PASS; diff check PASS. CreamWIKI put/get/exact-title search PASS. Server reindex NOT_RUN.
+
+2026-09-12 — Tone V2 P01 첫머리·내부 필드 실제 출력 평가: 운영 데이터와 분리된 합성 입력으로 격식체·해요체·반말체 대표 서비스 3종의 실제 `gpt-5.5-2026-04-23` 응답 6건을 판독했다. ZIP-003-008 직접 답변 6/6, ZIP-003-009 제작 안내형 시작 없음 6/6, ZIP-003-032 내부 필드 미노출 6/6으로 대표 체크포인트는 PASS다. 20개 서비스 전량 출력 승인과 다른 품질 게이트가 남아 있어 세 review unit·P01·릴리스는 IN_PROGRESS를 유지한다. 근거는 `tone-v2/evaluations/P01-opening-internal-live-20260912.json`; 원문은 ignored 격리 캐시에만 유지하고 추적 파일에는 SHA-256·첫 3문장·결정적 판정을 보존했다. 전체 회귀 668/668, typecheck/build/diff PASS. 독립 리뷰 Critical 0/Major 1은 지속 가능한 증거 추가로 반영했다. Antigravity와 Claude fallback 조사는 결과를 만들지 못해 NOT_RUN(degraded)이다. 운영 DB·고객 데이터·Production 변경 없음.
+CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-opening-live-evaluation-20260912.md` put/get/search PASS. 서버 reindex는 클라이언트 명령 부재로 NOT_RUN이다.
+
+2026-09-12 — Tone V2 P01 실제 재시도 교정 안내: 거부 사유를 중복 제거 번호 목록으로 전달하고 매 재시도에 문장당 한자 설명 하나·문단당 2~4문장 불변식을 재고지한다. 거부 원문은 복사하지 않으며 사용자 수동 재시도의 첫 호출도 최신 실패 사유를 이어받는다. 합성 실제 모델 최종 재시도에서 목표 규칙 3종은 각각 3/3 PASS, 전체 완료는 별도 다음 판단 기준 실패로 2/3이다. focused 55/55, compiler/task 7/7, 전체 670/670, raw+prose 해시 12/12, typecheck/build/diff PASS. 운영 데이터·DB·Production·배포 변경 없음.
+CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-live-repair-guidance-20260912.md` put/get/search PASS. ProjectOps implementation secret scan은 `task-tone...` 파일명 오탐으로 FAIL, test mode는 CreamAI 하위 package script 부재로 WARN이며 저장소 루트 검증 결과를 기준으로 삼는다. 서버 reindex와 수정 후 독립 재리뷰는 NOT_RUN이다.
+
+2026-09-12 — Tone V2 P01 `pass_angle` 다음 판단 기준 판별: 짧은 반말 행동인 `루틴으로 세워봐`를 놓치던 nextCriterion 어휘 경계를 수정했다. 독립 리뷰의 안전 오탐 지적을 수용해 폐기·중단 동사는 제외하고 `시험을 버려`·`공부를 끊어`를 반례로 고정했으며, 원본 표현 `버릴 공부를 정해`·`남길 공부 순서를 매겨`를 정상 사례로 추가했다. 이전 저장 원문은 density 4요소 전체 PASS, 신규 실제 출력 두 번째 시도는 nextCriterion PASS/grounding FAIL이다. focused 56/56, compiler/task 7/7, 전체 671/671, 해시 6/6, typecheck/build/diff PASS. 운영 고객 데이터·DB·Production·배포 변경 없음.
+CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-next-criterion-20260912.md` put/get/search PASS. 서버 reindex와 수정 후 독립 재리뷰는 NOT_RUN이다.
+ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으로 FAIL, test mode는 CreamAI 하위 package script 부재로 WARN이다. 별도 경계 인식 credential scan은 0건이며 저장소 루트 검증을 기준으로 삼는다.
+
+2026-09-12 — 관리자 코퍼스·프롬프트 원천 가시성 결함 수정: 운영 셸의 두 메뉴가 공통 미구현 안내로 끝나고 operations snapshot에는 개수·지문만 있던 것이 원인이었다. 실제 `data/tone-v2/corpus/registry.json`, `tone-v2/generated/manifest.json`, 생성 common/service/persona 파일과 기준 가이드 메타데이터를 읽는 인증 전용 API 및 표 화면을 추가했다. 프롬프트 본문은 응답하지 않으며 Vercel 함수 번들 포함 경로를 명시했다. RED 2건을 확인한 뒤 focused 84/84, 전체 668/668, typecheck/Vercel build/diff check PASS. 로컬 포트 8791 셸은 열렸으나 로컬 관리자 계정 저장소에 제공 계정이 없어 로그인 후 시각 검수는 NOT_RUN. CreamWIKI `personal/carrotcap/notes/umsh-admin-tone-v2-source-visibility-20260912.md` put/get/search PASS; 서버 reindex는 NOT_RUN. 커밋·push·배포·Production 변경 없음.
+- 2026-09-12 `task-tone-v2-p01-context-grounding` IN_PROGRESS: 실제 합성 출력이 입력의 `연습 점수`와 `목표 수준`을 재사용했지만 편집용 표지어가 없어 grounding FAIL이 된 원인을 별도 작은 Task로 분리했다. 범위는 컨텍스트 기반 결정적 판별과 일반론 반례이며 새 모델 호출, 프롬프트·재시도·운영 데이터·Production 변경은 하지 않는다.
+- 2026-09-12 `task-tone-v2-p01-context-grounding` DONE: 명시한 사용자 입력 필드의 같은 사실 안에서 복수 구체 토큰이 재사용될 때만 lexical 표지어 없는 grounding을 인정한다. 단일 일반론, 필드 간 합산, context 없음, name/savedChat 일치는 거부한다. 기존 합성 provider 원문 재평가 density 4/4 PASS, 역사적 `failed` 상태 유지. 독립 리뷰 Critical 0/Major 3 전부 반영. focused 57/57, compiler/task 7/7, full 672/672, typecheck/Vercel build/diff PASS. 새 provider 호출·커밋·배포·Production 변경 없음.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-context-grounding-20260912.md` put/get/search PASS. ProjectOps implementation의 `task-tone...` secret 오탐과 test 하위 package 경고를 기록했으며 Task 파일 경계 인식 credential scan은 0건, rag/release는 PASS다. 서버 reindex와 독립 재리뷰는 NOT_RUN이다.
+- 2026-09-12 `task-tone-v2-p01-pass-angle-e2e` IN_PROGRESS: 새 version key의 합성 `pass_angle` 한 항목을 실제 provider·기존 2회 재시도·격리 저장 경로로 생성한다. 성공은 저장 상태 complete와 전 결정적 검수 PASS이며 실패는 그대로 보존해 다음 결함 하나로 분리한다. 운영 고객 데이터·DB·인증·결제·배포·Production은 범위 밖이다.
+- 2026-09-12 `task-tone-v2-p01-pass-angle-e2e` DONE / acceptance FAIL: 기존 AIOS 환경을 값 노출 없이 프로세스에 로드해 새 합성 `pass_angle` 레코드로 실제 provider 응답 2건을 받았다. 저장 상태는 `failed`; 첫 시도는 nextCriterion만, 두 번째는 scene만 실패했다. 독립 검토에서 모델 버전·문장 필드 불일치와 무관한 자격증명이 프로세스에 남는 격리 결함을 찾아 교정했다. 하네스는 이제 승인한 OpenAI 키·모델 선택자만 남기며 재생 결과가 attempt model을 자동 기록한다. environment RED→1/1, focused 58/58, compiler/task 7/7, 전체 673/673, typecheck/Vercel build/diff check PASS. 제품 런타임·운영 고객 데이터·DB·Production·배포는 변경하지 않았다. 다음 승인 Task는 `다음 복기에서`와 관찰 행동을 좁게 인식하되 일반 행동문을 장면으로 허용하지 않는 scene 경계다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-e2e-20260912.md` put/get/search PASS. ProjectOps implementation은 `task-tone...`를 토큰으로 보는 광범위 패턴 때문에 FAIL했지만 Task 파일 경계 인식 scan은 0건이며 별도 JSON 증거로 남겼다. Test mode는 CreamAI 하위 package 경고이며 저장소 루트의 실제 673/673를 기준으로 삼는다. RAG/release PASS.
+- 2026-09-12 `task-tone-v2-p01-review-session-scene` IN_PROGRESS: 새 provider 호출 없이 저장된 합성 `pass_angle` 두 번째 응답의 `다음 복기에서 ... 나눠봐`를 재평가한다. 복기·오답노트·마킹 검토의 명시적 세션 연결어와 관찰 가능한 분류·기록·확인 행동이 함께 있을 때만 scene으로 인정하며, 일반 격려와 bare noun은 계속 거부한다.
+- 2026-09-12 `task-tone-v2-p01-review-session-scene` DONE: 복기·오답 노트·마킹 검토의 명시적 세션과 긍정형 관찰 행동이 같은 문장에 있을 때만 scene으로 인정한다. 일반 격려, 명사형 행동 라벨, 복기 맥락 없는 행동, `문제...하면/에서` 행동문, 부정된 행동은 거부한다. 저장된 합성 provider 원문은 density 4/4 PASS로 재평가됐지만 역사적 `failed` 상태는 유지했다. 독립 리뷰의 Major 경계 지적을 반영했으며 focused related 59/59, compiler/task 7/7, full 674/674, typecheck/Vercel build/diff PASS. 새 provider 호출·커밋·배포·Production 변경 없음.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-review-session-scene-20260912.md` put/get/search PASS. ProjectOps implementation은 `task-tone...` 문자열의 광범위 secret 오탐으로 FAIL했지만 Task 파일 boundary-aware credential scan은 0건이며, test 하네스의 CreamAI 하위 package 경고 대신 저장소 루트 674/674를 권위 증거로 사용했다. RAG/release PASS.
+- 독립 closure 재리뷰는 Approved, Critical 0 / Major 0 / Minor 0이다. 대상이 세션 표현 앞뒤에 있는 경우를 모두 지원하되 대상→긍정형 행동 순서를 제한 구간에서 강제했고, 명사형·희망/부정형·동작 뒤에 우연히 나온 대상은 거부한다.
+- 2026-09-12 `task-tone-v2-p01-pass-angle-e2e-rerun` IN_PROGRESS: 기존 OpenAI 키 재사용을 사용자에게 승인받았다. 새 version의 합성 `pass_angle` 한 항목만 실제 provider·기존 재시도·격리 저장으로 실행하며, 런타임·모델·프롬프트·검수 gate·운영 데이터·DB·Production은 변경하지 않는다.
+- 2026-09-12 `task-tone-v2-p01-pass-angle-e2e-rerun` DONE / business acceptance FAIL: 사전 조회 `not-generated`인 새 version에서 실제 provider 2회 응답을 받고 격리 레코드에 저장했다. 두 시도 모두 scene은 PASS. attempt 2는 nextCriterion만 실패했고, attempt 1은 2~4문장 문단 규칙과 nextCriterion을 함께 실패했다. 독립 리뷰 Major 2건(실패 원인 과축소, 최신 테스트 상태 미기록)을 증거 문서에 반영했다. focused 59/59, compiler/task 7/7, full 674/674, typecheck/Vercel build/saved replay/diff PASS. 런타임·모델·재시도·운영 데이터·DB·Production·배포 변경 없음.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-e2e-rerun-20260912.md` put/get/search PASS. Task 경계 인식 credential scan은 0건이다. 다음 승인 Task는 attempt 2의 대상·행동 종결문이 nextCriterion으로 인식되지 않은 좁은 경계를 진단한다.
+- ProjectOps implementation harness는 광범위 `sk-...` 패턴이 `task-tone...` 식별자를 오탐해 FAIL했다. 별도 경계 인식 scan 0건을 기준으로 비밀값 미저장을 확인했다. test mode는 `CreamAI` 하위 package를 조회해 WARN이고 저장소 루트 674/674가 권위 결과다. rag/release harness PASS는 실제 배포를 뜻하지 않으며 커밋·push·배포는 NOT_RUN이다.
+- 독립 closure re-review는 Approved, Critical 0 / Major 0 / Minor 0이다. 다음 단계는 이미 분리한 nextCriterion 경계 Task이며 이번 증거 종료에서 런타임을 변경하지 않았다.
+- 2026-09-12 `task-tone-v2-p01-adjacent-next-criterion` IN_PROGRESS: 기존 nextCriterion이 시간/순서 표지와 행동을 같은 문장에서만 찾기 때문에 fresh attempt 2의 인접 문장 구조를 놓친다는 root cause를 확정했다. RED→인접 2문장 최소 수정→반례 검증으로 진행하며 새 provider 호출·문단 규칙·Production은 범위 밖이다. 지정 TDD 스킬 파일은 이 포크와 원본 프로젝트 모두 없어 수동 TDD 절차로 대체한다.
+- 2026-09-12 `task-tone-v2-p01-adjacent-next-criterion` DONE: 현재/미래 계획 문장과 바로 다음의 조사 표시 구체 행동을 nextCriterion으로 연결한다. 같은 문장 경로도 동일한 대상·부정·과거완료·시험/공부 포기 경계를 적용하고, 버스·접수·버티기·끊김 및 포기 금지 표현은 오탐하지 않는다. 불변 fresh attempt 2는 density 4/4 PASS로 재평가됐고 과거 저장 상태 `failed`와 SHA-256은 유지했다. focused 33/33, related 60/60, compiler/task 7/7, full 675/675, typecheck/Vercel build/diff PASS. 독립 승인 리뷰 Critical/Major/Minor 0. 새 provider 호출·커밋·배포·Production 변경 없음.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-adjacent-next-criterion-20260912.md` put/get/search PASS. ProjectOps implementation은 `task-tone...` 식별자를 비밀 토큰으로 보는 광범위 패턴 때문에 FAIL했지만 경계 인식 credential scan은 0건이다. test mode는 CreamAI 하위 package script 부재로 WARN이며 저장소 루트 675/675를 권위 증거로 삼는다. rag/release PASS; server reindex는 클라이언트 명령 부재로 NOT_RUN이다.
+- 2026-09-12 `task-tone-v2-p04-pass-angle-completion-e2e` IN_PROGRESS: nextCriterion 수정 뒤 새 합성 `pass_angle` 한 항목이 실제 provider와 기존 재시도·격리 저장 경로에서 `complete`로 저장되는지 확인한다. 고유 version 사전 조회, 신규 complete 레코드, 공개 hook/body, 전 결정적 검수 PASS가 완료 기준이다. 프롬프트·모델·재시도·운영 데이터·DB·인증·결제·배포·Production 변경은 범위 밖이다.
+- 2026-09-12 `task-tone-v2-p04-pass-angle-completion-e2e` DONE / acceptance PASS: 고유 version을 사전 `not-generated`로 확인한 뒤 합성 `pass_angle` 한 항목을 실제 provider와 기존 2회 재시도·격리 파일 저장으로 실행했다. 첫 시도는 nextCriterion 실패, 두 번째는 전 결정적 검수와 density 4/4를 통과해 report/section `complete`, 공개 hook 23자·본문 304자로 저장됐다. 증거 하네스는 `--fresh`로 기존 version 재사용을 fail-closed 처리하고 production 생성과 동일한 공용 전수 검수 함수를 재생한다. 독립 재리뷰에서 기존 Major 2건 해결, Critical/Major/Minor 0. focused 35/35, related 61/61, compiler/task 7/7, full 676/676(101 suites), typecheck/Vercel build/saved replay/fresh guard/diff PASS. P04 전체 목차와 20개 서비스, 커밋·배포·Production은 미완료다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-completion-e2e-20260912.md` put/get/search PASS. ProjectOps implementation은 `task-tone...` 식별자를 비밀 토큰으로 보는 광범위 패턴 때문에 FAIL했지만 경계 인식 credential scan은 0건이다. test mode는 CreamAI 하위 package script 부재로 WARN이며 저장소 루트 676/676을 권위 결과로 삼는다. rag/release PASS; server reindex는 클라이언트 명령 부재로 NOT_RUN이다.
+- 2026-09-12 `task-tone-v2-p04-pass-angle-full-outline` IN_PROGRESS: 사용자가 기존 OpenAI 키 재사용과 ignored `.env.local` 설정을 승인했다. 다섯 실전 파일의 명시적 10/11/10/10/11 소제목 블록만 52항목 목차 원천으로 사용하고 예시 본문은 재사용하지 않는다. 정확한 ID·제목·그룹·순서, progress 52, 순차 stop-on-failure, 전체 결정적 replay를 먼저 테스트한 뒤 고유 합성 version을 실제 provider로 실행한다. 운영 고객 데이터·기존 완료 결과·DB·인증·결제·배포·Production은 범위 밖이다.
+- 2026-09-12 `task-tone-v2-p04-pass-angle-full-outline` DONE / business acceptance FAIL: 다섯 명시적 목차 블록을 10개 그룹·52항목으로 연결하고 파일 SHA-256·제목·순서를 기계적으로 검증했다. 독립 리뷰의 Major 1건인 전체 형제 본문 O(n²) 누적을 전 항목 160자 요약 + 최근 4개 본문 각 1,200자 상한으로 수정했다. 고유 합성 version 실제 provider 실행은 첫 항목이 2회 모두 품질 검수에 실패했고, 이후 호출은 0건이었다. focused 53/53, full 681/681(101 suites), compiler/task 7/7, typecheck/Vercel build/diff PASS. 전체 52항목 실제 출력·릴리스·Production·커밋·배포는 미완료이며 다음 승인 Task는 `task-tone-v2-p04-pass-angle-first-section-quality`다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-full-outline-20260912.md` put/get/search PASS. 서버 reindex는 클라이언트 명령 부재로 NOT_RUN. ProjectOps preflight/rag/release PASS, test는 CreamAI 하위 package 경로로 WARN, implementation은 `task-tone...` 식별자 오탐으로 FAIL이다. 실제 키·원문은 추적 증거에 저장하지 않았다. Closure re-review는 Approved, Critical/Major/Minor 0이다.
+- 2026-09-12 `task-tone-v2-p04-pass-angle-first-section-quality` IN_PROGRESS: 사용자의 `다음` 승인에 따라 첫 `pass-angle-verdict` 결함만 시작했다. 기존 ignored `.env.local` 키 존재·ignore 상태를 값 노출 없이 확인했다. CreamWIKI의 paid-density, live repair, next-criterion, 단일 completion 사례를 검색했고, 생성 안내와 실제 결정적 검수의 불일치만 RED→최소 수정→새 첫 항목 provider 실행으로 검증한다.
+- 2026-09-12 `task-tone-v2-p04-pass-angle-first-section-quality` DONE / business acceptance FAIL: 첫 항목에만 상징/현실 경계, 실제 장면, 구체 다음 기준, 한자 설명 분리 계약을 연결하고 `--limit=1` 하네스로 범위 밖 호출을 차단했다. 실제 provider 첫 시도는 문단 구조·상징 경계, 두 번째는 다음 기준·복수 한자 설명에서 실패했다. 즉 재시도가 기존 통과 조건을 회귀한 별도 결함이다. focused 48/48, full 682/682(101 suites), compiler/task 7/7, typecheck/Vercel build/diff PASS. 2~52항목·운영 데이터·DB·Production·배포·커밋은 실행하지 않았다.
+- 다음 승인 대기 Task는 `task-tone-v2-p04-repair-invariant-preservation`이다. 현재 실패 규칙을 고치면서 이미 통과한 품질 규칙을 보존하는 repair 계약만 다루며, 이번 Task에서는 추가 provider 호출을 하지 않는다.
+- 독립 closure review는 Approved with comments, Critical 0 / Major 0 / Minor 1이다. ProjectOps release가 덮어쓴 최종 보고서와 test summary의 증적 공백을 즉시 복구했으며 코드 변경이나 추가 provider 호출은 없었다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-first-section-quality-20260912.md` put/get/search PASS(정확한 제목 첫 결과). 서버 reindex는 클라이언트 명령 부재로 NOT_RUN이다.
+- 2026-09-12 `task-tone-v2-p04-repair-invariant-preservation` IN_PROGRESS: 사용자 `다음` 승인에 따라 직전 실제 두 시도의 상호 보완적 실패만 진단한다. CreamWIKI의 live repair와 first-section 품질 기록을 검색했고, 현재 실패만 고치다가 통과 규칙을 회귀하지 않도록 공용 repair 계약을 RED→최소 수정으로 보강한다. 지정 local 디버깅/TDD 스킬 파일은 없어 수동 절차로 대체한다.
+- 2026-09-12 `task-tone-v2-p04-repair-invariant-preservation` DONE / business acceptance FAIL: repair 메시지에 직접 답, 근거 층, 가상 장면, 구체 다음 기준, 한자·문단, 서비스 말투, 안전, 수치·내부 필드·코퍼스·형제 중복 불변식을 재고지했다. 거부 원문 비복사와 실패 목록 중복 제거를 유지했다. RED 9/10→GREEN 10/10, focused 48/48, full 682/682(101 suites), compiler/task 7/7, typecheck/Vercel build/diff PASS. 실제 provider는 첫 시도 문단 구조, 두 번째 nextCriterion에서 실패했고 2~52항목과 제한 밖 호출은 0건이다. 다음 승인 대기는 `task-tone-v2-p04-repair-next-criterion-retention`이다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-repair-invariant-preservation-20260912.md` put/get/exact-title search PASS. 독립 closure review는 Approved with comments, Critical/Major 0이며 증거 보고서 공백을 보강했다. ProjectOps review PASS; 서버 reindex는 NOT_RUN이다.
+- 2026-09-12 `task-tone-v2-p04-repair-next-criterion-retention` IN_PROGRESS: 사용자 `다음` 승인으로 P04 attempt 2의 nextCriterion 단일 회귀를 시작한다. 마지막 의미 단락의 구체 대상 + 기록·비교·확인 행동과 반환 전 자기검사를 repair 계약으로 고정하며 recognizer/gate/model/retry는 바꾸지 않는다. CreamWIKI search-first PASS; 지정 local 코딩/TDD/검증 스킬 파일은 없어 수동 RED→GREEN으로 대체한다.
+- 2026-09-12 `task-tone-v2-p04-repair-next-criterion-retention` DONE: 마지막 의미 단락 2~4문장, 구체 대상, 기록·비교·확인 행동, 모호한 반례, 반환 전 비출력 자기검사를 공용 repair 계약에 추가했다. RED 9/10→GREEN 10/10, focused 48/48, full 682/682(101 suites), compiler/task 7/7, typecheck/Vercel build/diff PASS. 실제 합성 첫 항목은 attempt 1에서 complete되어 1/52이며 live repair 경로는 NOT_RUN이다. 후속·제한 밖 호출은 0건이다.
+- 독립 closure re-review는 Approved with comments, Critical/Major 0이다. 최초 Major 3건은 task-specific scope, boundary scan 0건, 저장소 루트 테스트 증거로 해소했고 `tests.md` stale-line Minor도 원래 섹션으로 이동했다. CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-repair-next-criterion-retention-20260912.md` put/get/exact-title search PASS; 서버 reindex는 NOT_RUN이다. 다음 비활성 Task는 `task-tone-v2-p04-pass-angle-full-outline-continuation`이다.
+# 2026-09-12 — Tone V2 P04 pass-angle full-outline continuation
+
+- IN_PROGRESS: 사용자 `다음` 승인으로 기존 version `p04-repair-next-criterion-retention-20260912-1`의 1/52 레코드를 이어 쓴다. OpenAI 기존 키의 존재·gitignore·재사용 승인을 값 노출 없이 재확인했다. CreamWIKI search-first 근거에 따라 정확한 순서, 첫 미해결 실패 즉시 중단, gate 불변, 원문·비밀 미기록을 적용한다.
+- DONE / business acceptance FAIL at 2/52: 기존 item 1은 해시·complete 상태를 보존했다. item 2는 첫 시도의 scene·nextCriterion 실패를 자연 repair가 고쳐 complete/replay PASS가 됐다. item 3은 첫 시도 4개 규칙, 두 번째 시도 `nextCriterion` 1개를 실패해 중단했다. item 4~52 호출은 0건이며 provider 호출 4회·82,249 tokens를 사용했다.
+- 검증: saved replay PASS, focused 48/48, compiler/task 7/7, full 682/682(101 suites), typecheck/Vercel build/diff PASS. ProjectOps implementation 광범위 scan은 `task-tone...` 오탐으로 FAIL했으나 경계 인식 scan 0건이다. ProjectOps test의 하위 package 경고 대신 저장소 루트 테스트가 권위 결과다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-full-outline-continuation-20260912.md` put/get/exact-title search PASS. 첫 독립 리뷰는 운영 문서 미종료를 Major로 지적했고 모두 보완했다. 다음 비활성 Task는 `task-tone-v2-p04-comparative-next-criterion-diagnosis`이며 새 사용자 `다음` 전에는 시작하지 않는다.
+- 독립 closure re-review는 Approved with comments, Critical/Major/Minor 0이며 ProjectOps review PASS다. 이 Task는 DONE / business acceptance FAIL at 2/52로 종료하고 추가 provider 호출 없이 사용자 `다음`을 기다린다.
+- 2026-09-13 `task-tone-v2-p04-comparative-next-criterion-diagnosis` IN_PROGRESS: 사용자 `다음` 승인으로 저장된 item 3 attempt 2의 nextCriterion 단일 실패를 새 provider 호출 없이 진단한다. CreamWIKI search-first는 기존 같은 문장/인접 문장의 구체 대상·안전 행동·부정/포기 방지 규칙을 반환했다. 라우터가 지정한 `.claude/skills` 원본 4개는 이 포크에 없어 CreamAI 래퍼와 수동 증거 우선 절차로 대체한다.
+- DONE: 저장 문장은 시간 표지·관찰 가능한 비교 대상·비교 행동·결과별 후속 판단을 모두 포함해 출력 결함이 아니다. 현재 recognizer가 안전한 `해봐` 활용형과 주격 관찰절 대상을 각각 놓치며, 한 조건만 표준화하면 false, 둘 다 표준화하면 true가 되는 이중 false negative를 확인했다. targetless/vague/negated 통제군은 false다.
+- 검증: attempt/raw hash 일치, record raw-file SHA-256 전후 일치, focused 35/35, compiler/task 7/7 PASS. provider 호출 0, 제품 코드 변경 0. 다음 비활성 Task는 `task-tone-v2-p04-comparative-next-criterion-recognition`이다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-comparative-next-criterion-diagnosis-20260913.md` put/get/exact-title search PASS. Task 파일 경계 인식 credential scan은 0건이다. ProjectOps implementation의 광범위 `task-tone...` 오탐과 nested `CreamAI/package.json` test 경고 대신 경계 scan 및 저장소 루트 테스트를 권위 증거로 삼는다. RAG/release harness PASS는 실제 배포를 뜻하지 않으며 커밋·push·배포·Production 변경은 NOT_RUN이다.
+- 독립 closure review는 Approved with comments, Critical/Major/Minor 0이다. 유일한 재현성 의견인 통제 변형의 안전한 fixture 문자열 또는 해시 보존을 후속 recognition Task acceptance에 반영했다.
+- ProjectOps review PASS. 최종 JSON 4개 parse, immutable record SHA-256 재확인, core/task diff check PASS로 진단 Task를 닫았다.
+- 2026-09-13 `task-tone-v2-p04-comparative-next-criterion-recognition` IN_PROGRESS: 사용자 `다음` 승인으로 이중 false negative 최소 수정을 시작했다. CreamWIKI search-first에서 한국어 행동 동사 확장은 시간·구체 대상·안전 동사·포기 반례를 함께 묶어야 한다는 기존 규칙과 직전 진단을 재사용한다. 지정 local 디버깅/TDD/검증 Skill 원본 5개는 이 포크에 없어 수동 RED→GREEN 및 증거 우선 절차로 대체한다.
+- 구현/검증 완료, closure 진행 중: `비교/확인해봐`만 안전 활용으로 추가하고, 주격 대상은 관찰 가능한 결과 술어가 있는 절로 제한했다. 첫 독립 리뷰의 시간·기점 대상화와 띄어 쓴 과거 보조용언 오탐을 추가 RED 38/2로 재현해 수정했다. 최종 focused 40/40, related 45/45, compiler/task 7/7, full 687/687(101 suites), typecheck/Vercel build PASS. 저장 attempt density 4/4 PASS, 역사적 failed 상태·2회 시도·raw-file SHA-256 유지. provider 호출과 Production 변경 0.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-comparative-next-criterion-recognition-20260913.md` put/get/exact-title search PASS. ProjectOps implementation은 `task-tone...` 광범위 오탐으로 FAIL, nested package test는 WARN이며 task-boundary credential scan 0건과 저장소 루트 687/687을 권위 증거로 삼는다. RAG/release PASS는 실제 배포를 뜻하지 않는다.
+- DONE: 첫 독립 리뷰의 Major 2건을 수정한 뒤 closure re-review Approved, Critical/Major/Minor 0. 최종 focused 40/40, related 45/45, compiler/task 7/7, full 687/687(101 suites), typecheck/Vercel build PASS. CreamWIKI 업데이트 put/get/exact-title search와 ProjectOps review PASS. 다음 비활성 Task는 `task-tone-v2-p04-pass-angle-item3-recovery`이며 새 사용자 `다음` 전에는 시작하지 않는다.
+- 2026-09-13 `task-tone-v2-p04-pass-angle-item3-recovery` IN_PROGRESS: 사용자 `다음` 승인으로 item 3 저장 실패 상태 복구를 시작했다. 원문·attempt 이력과 item 1~2/4~52를 보존하며 동일 production review PASS일 때만 CAS로 섹션을 승격한다. 지정 local 구현/TDD/검증 skill 원본은 없어 수동 RED→GREEN 절차로 대체한다. CreamWIKI search-first와 ProjectOps preflight를 실행했다.
+- 독립 조사 dispatch는 Antigravity의 empty-prompt 오류 뒤 Claude fallback이 출력 없이 지연되어 중단했다. 조사 보고서는 `NOT_RUN (degraded)`이며, CreamWIKI의 기존 저장·재생 사례와 현재 코드의 CAS/전체 검수 근거로만 구현 결정을 진행한다.
+- DONE: 저장된 item 3 attempt 2를 공용 parser와 production review로 재검증해 section projection만 complete로 승격했다. 동시 2회+반복 1회에서 revision 18→19 한 번만 변경됐고 record는 3/52 generating이다. identities, item 1~2, attempts/raw SHA-256, item 4~52는 불변이며 provider 호출·후속 attempt는 0건이다.
+- 리뷰 의견으로 malformed lease 거부와 expired lease 허용 테스트를 명시적으로 보강했다. 최종 focused 13/13, related 53/53, compiler/task 7/7, full 690/690(101 suites), typecheck/Vercel build/3항목 replay PASS. 독립 리뷰 Approved with comments, Critical/Major 0; ProjectOps rag/release/review PASS. implementation은 광범위 `sk-...` 패턴이 `task-tone...` 식별자를 잡는 알려진 오탐으로 FAIL이며 task-scoped boundary-aware scan 0건을 권위 증거로 삼는다. nested-package test WARN은 저장소 루트 결과로 대체한다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-item3-recovery-20260913.md` put/get/exact-title search PASS. 서버 reindex는 CLI 명령 부재로 NOT_RUN이다. 커밋·push·배포·Production은 실행하지 않았다. 다음 비활성 Task는 `task-tone-v2-p04-pass-angle-full-outline-resume-from-item4`이며 새 사용자 `다음` 전에는 시작하지 않는다.
+- 2026-09-13 `task-tone-v2-p04-pass-angle-full-outline-resume-from-item4` IN_PROGRESS: 사용자 `다음` 승인으로 기존 3/52 격리 레코드에서 item 4 이후 순차 생성을 시작한다. ignored `.env.local`의 usable OpenAI 키 존재와 이전 명시적 재사용 승인을 값 노출 없이 확인했다. 첫 미해결 실패 즉시 중단하고 item 1~3·식별자·운영 데이터·Production은 불변으로 둔다.
+- ProjectOps preflight와 CreamWIKI search-first PASS. 기존 전체 목차 이어쓰기·단일 E2E·저장 복구 기록의 순차 실행, 첫 실패 중단, 원문 비저장, 불변 해시 원칙을 재사용한다. Antigravity는 empty-prompt 오류, Claude 대체 조사는 두 차례 제한 대기에도 무응답이라 중단했으며 조사 보고서는 `NOT_RUN (degraded)`로 기록한다.
+- Live continuation 결과: 정확히 item 4부터 시작해 4~6번이 각 2회 시도 안에 complete/replay PASS가 됐다. 7번 `study-style-sprint-vs-steady`는 두 시도 모두 nextCriterion 단일 사유로 실패해 즉시 중단했다. 현재 6/52 failed, item 8~52 attempt 0, item 1~3 prose SHA-256과 report/result ID 불변이다. 이번 실행은 provider 8회, 167,007 tokens이며 추적 증거에는 원문·비밀을 저장하지 않았다.
+- 사용자 보강 지시를 반영해 첫 실패를 Task 종료가 아닌 안전 체크포인트로 전환했다. item 7 attempt 2는 `다음 풀이`의 관찰 대상·조건 결과·구체 유지 결정을 포함하지만 현재 판별기는 명령형 행동만 인정해 `줄면 ... 유지야` 조건형 결정을 놓친다. 좁은 RED→최소 판별 보강→저장 attempt 복구 후 item 8부터 계속한다.
+- DONE / acceptance PASS: 실패별 stop/진단/RED→최소 수정/저장 복구 또는 기존 retry 루프를 order 52까지 반복해 동일 격리 레코드를 52/52 `complete`로 마쳤다. item 1~3 prose SHA-256과 report/result identity는 불변이며 최종 production-equivalent replay 52/52 PASS다. items 4~52는 provider 103회, 2,307,658 tokens를 사용했다.
+- 독립 closure 리뷰를 9차까지 반복하며 모든 지적을 RED→GREEN으로 수정했다. 마지막 r8의 `아침부터 확인해` 같은 시간 기점 대상화도 generic `부터` 분기를 제거해 차단했고, r9는 Approved(Critical/Major/Minor 0)다. 최종 focused 68/68, serial full 705/705(101 suites), typecheck/Vercel build/live replay 52/52 PASS. 병렬 full run의 Windows temp cleanup EPERM 1건은 해당 파일 단독 10/10과 serial full 705/705로 환경 경합임을 확인했다.
+- 추적 증거에는 provider 원문·비밀을 저장하지 않았다. 운영 고객 데이터·DB/auth/payment/admin·corpus/release·commit/push/deploy/Production은 NOT_RUN이다. 독립 조사는 Antigravity empty-prompt와 Claude fallback 지연으로 NOT_RUN(degraded)이며 기존 CreamWIKI와 현재 production contract로 대체했다.
+- 최종 문서와 CreamWIKI 정식 경로 `personal/carrotcap/notes/umsh-tone-v2-pass-angle-52-completion-20260913.md`를 최신 안전 규칙으로 갱신했고 put/get/exact-title search PASS다. CLI 상대 경로를 한 차례 중복 지정해 생긴 보조 문서는 삭제 API 미지원으로 증거 없는 superseded 안내문으로 덮어썼다. ProjectOps review PASS의 기계 생성 상세 경로는 최종 r9 승인 보고서로 교정했다.
+- 2026-09-13 `task-tone-v2-p04-quit-fortune-full-outline` IN_PROGRESS: 사용자 `다음` 승인. 인계 순서의 두 번째 파일럿 `quit_fortune`은 제공 실전 목차가 48항목이지만 현재 런타임은 30항목이라, 실제 provider 실행 전 원천 해시·제목·순서와 48-pending 저장 불변성을 먼저 고정한다. 로컬 skill 원본은 포크에 없어 수동 RED→GREEN과 기존 독립 리뷰 절차로 대체했고 CreamWIKI search-first PASS다.
+- 2026-09-13 `task-tone-v2-p04-quit-fortune-full-outline` DONE: source contract RED에서 기존 30항목을 재현한 뒤 정확한 10개 그룹/48개 제목·순서로 전환했다. 임시 legacy alias가 30개 장면만 만들던 전체 회귀 실패를 테스트 약화 없이 제거하고, 48개 제목마다 독립적인 직접 해석·고유 장면·행동을 부착했다. 새 유료 저장 결과는 48개 immutable identity를 유지하면서 전부 pending/빈 본문으로 저장된다.
+- 최종 검증: focused 9/9, full 708/708(101 suites), Vercel build/typecheck PASS. 독립 closure review는 Approved with comments, Critical/Major 0; 지적된 마지막 안전 고지의 옛 제목 조건을 새 제목으로 수정하고 동일 검증을 재실행했다. ProjectOps test/rag/review PASS. implementation 광범위 scan은 `task-tone...` 식별자를 secret로 잡는 알려진 오탐이며 실제 비밀 값은 문서·평가에 저장하지 않았다.
+- provider 생성, 고객/운영 데이터, DB/auth/payment/admin, corpus/release, commit/push/deploy/Production은 NOT_RUN이다. 다음 비활성 Task는 `task-tone-v2-p04-quit-fortune-full-outline-generate`이며 새 사용자 `다음` 전에는 시작하지 않는다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-quit-fortune-48-outline-20260913.md` put/get/exact task-id search PASS. 평가 JSON parse와 task-boundary credential scan 0건, task-scoped diff check PASS(CRLF 경고만 있음).
+- 2026-09-13 `task-tone-v2-p04-quit-fortune-full-outline-generate` IN_PROGRESS: 사용자 `다음` 승인. OpenAI credential gate에 따라 ignored `.env.local`의 usable key 존재를 값 노출 없이 재확인했고 이전 명시적 기존 키 재사용 승인을 적용한다. 전용 합성 격리 하네스 RED/GREEN 후 item 1 실제 검수 게이트부터 시작한다.
+- 2026-09-13 `task-tone-v2-p04-quit-fortune-full-outline-generate` DONE: 고유 합성 격리 레코드 `p04-quit-fortune-full-outline-20260913-1`에서 실제 configured provider로 정확한 48개를 순차 생성했고 최종 48/48 complete, production-equivalent replay 48/48 PASS다. provider attempt 109회 중 거부 71회를 그대로 보존하고 legitimate gate RED/GREEN 뒤 10개 항목을 안전 복구했다. 첫 미해결 실패 뒤 및 요청 범위 밖 attempt는 0건이다.
+- 독립 1차 리뷰가 retry/recovery 모드의 전체-prefix 완료조건 우회(Major)와 `고도화` 지형어 오탐(Minor)을 찾았다. 공통 실행형 완료 불변식과 양·음성 지형 경계 fixture로 수정했고 focused 103/103, 저장 48/48 replay, full 719/719(101 suites), typecheck, Vercel build를 재실행해 모두 PASS했다. 재리뷰는 Approved with comments, Critical/Major/Minor 0이다.
+- 평가 파일은 해시·상태·통계만 포함하며 provider 원문·시크릿·개인정보를 포함하지 않는다. ProjectOps preflight/implementation/test/review/rag/release PASS. 고객/운영 데이터, Supabase/DB/auth/payment/admin/corpus/release, commit/push/deploy/Production은 NOT_RUN이다.
+- CreamWIKI search-first에서 기존 52항목 checkpoint 완료 패턴과 한국어 nextCriterion 보강 사례를 재사용했다. `personal/carrotcap/notes/umsh-tone-v2-quit-fortune-48-provider-completion-20260913.md` put/get/exact task-id search PASS이며 로컬 ProjectOps 후보도 approved knowledge로 승격했다. 서버 전용 수동 reindex 4개 명령은 이 PC에 스크립트가 없어 NOT_RUN이지만 remote search에는 저장 문서가 즉시 1건 반환됐다.
+- 2026-09-13 `task-tone-v2-p05-quit-fortune-corpus-rag-release-candidate` IN_PROGRESS: 사용자 `다음` 승인. 조사 결과 런타임은 Tone V2 corpus registry를 읽지만 `quit_fortune` 2.0.0의 12개 블록은 여전히 semantic review 미완료이며, report에 저장된 corpus snapshot이 후속 생성 retrieval에 전달되지 않아 registry 교체 시 한 report 안에서 버전이 섞일 수 있다. 이번 Task는 이 결함의 RED/GREEN, 별도 2.1.0 pack, 신규 report 전용 attachment와 rollback 증거까지 포함한다. CreamWIKI search-first PASS; 로컬 `.claude/skills` 부재로 사용자 공통 workflow의 수동 TDD/검증 절차를 적용한다.
+- 2026-09-13 `task-tone-v2-p05-quit-fortune-corpus-rag-release-candidate` DONE: 기존 2.0.0은 덮어쓰지 않고 `releases/quit-fortune-service-2.1.0.json` 12개 블록을 입력 사실·계산값·상징 해석·가상 사례·수치 출처·안전 경계로 전수 검수해 신규 snapshot용으로 활성화했다. report 저장 snapshot을 registry/file loading/RAG/section generation/saved-attempt review 전 경로에 전달했고, 과거 snapshot에는 current vector rank를 섞지 않으며 파일 해시 불일치 시 fail-closed한다.
+- 최종 task-specific 8/8, related RAG 41/41, full 727/727(102 suites), typecheck/Vercel build/deterministic builder/diff check PASS. Codex closure review Approved with comments, Critical/Major/Minor 0. 평가와 release manifest에는 해시·상태만 있고 provider 원문·시크릿·개인정보가 없다. ProjectOps preflight/review/rag/release PASS; nested test WARN은 root suite로 대체했고 implementation의 `task-tone-*` secret 오탐은 알려진 하네스 한계로 기록했다.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-quit-fortune-corpus-snapshot-20260913.md` put/get/title search PASS. 로컬 ProjectOps memory도 approved로 승격했다. 서버 전용 수동 reindex 명령은 이 PC에 없어 NOT_RUN이다. Production·고객 데이터·DB/auth/payment/admin·commit/push/deploy는 NOT_RUN이다.
+- Task 산출물 경계 인식 credential scan은 0건이며, 최종 candidate corpus/review/manifest builder 재실행 해시는 동일해 재현성 PASS다.
+- 2026-09-13 `task-tone-v2-p05-money-save-corpus-rag-release-candidate` IN_PROGRESS: user approved the next Task. The active 2.0.0 pack has 12 blocks and remains `needs_semantic_review`; unsupported prescription periods/counts and unverified habit claims will be removed. CreamWIKI search-first found the prior snapshot-isolation and evidence-layer patterns, which this Task reuses. Production and provider calls remain 0.
+- 2026-09-13 `task-tone-v2-p05-money-save-corpus-rag-release-candidate` DONE: preserved the original 2.0.0 pack and activated a separate reviewed 2.1.0 pack for new snapshots. All 12 blocks now separate input facts, calculated values, symbolic hypotheses and hypothetical examples, with arbitrary amount/percentage/period/count prescriptions and deterministic financial outcomes removed. Old snapshots remain pinned in retrieval, prompt construction and saved-attempt review; content-hash mismatch fails closed.
+- Verification: task 8/8, related 74/74, serial full 735/735 across 103 suites, typecheck/Vercel build/deterministic builder/credential boundary PASS. Manual Codex closure review Approved with comments, Critical/Major/Minor 0. ProjectOps preflight/implementation/rag/release/review PASS; its nested `CreamAI/package.json` test check WARN is superseded by the repository-root suite. CreamWIKI put/title search PASS; direct get initially used an incomplete relative path and returned 404, then was rechecked with the returned canonical path. Provider output, Production, customer data, DB/auth/payment/admin, commit, push and deploy remain NOT_RUN.
+- 2026-09-13 `task-tone-v2-p05-match-couple-corpus-rag-release-candidate` IN_PROGRESS: user approved the next Task. The active pack has 18 blocks and remains `needs_semantic_review`; unverified partner emotions, relationship scenes, future outcomes and arbitrary periods/counts will be removed. CreamWIKI search-first returned the established evidence-layer, safety-claims and snapshot-isolation rules. Production and provider calls remain 0.
+- 2026-09-13 `task-tone-v2-p05-match-couple-corpus-rag-release-candidate` DONE: preserved the original 2.0.0 and activated separately reviewed 2.1.0 for new snapshots. All 18 blocks now separate two-person input, calculated values, symbolic hypotheses and hypothetical examples. Partner mind, affection, intent, future and abuse status are not inferred; threat, control and violence are separated from ordinary conflict and route to safety and appropriate professional support.
+- Verification: task 8/8, related 74/74, serial full 743/743 across 104 suites, typecheck/Vercel build/deterministic builder/credential boundary PASS. Manual Codex closure review Approved with comments, Critical/Major/Minor 0. ProjectOps preflight/implementation/rag/release/review PASS; nested `CreamAI/package.json` test WARN is superseded by the repository-root suite. CreamWIKI put/get/exact-title search PASS and approved ProjectOps memory promoted. Provider output, Production, customer data, DB/auth/payment/admin, commit, push and deploy remain NOT_RUN.
+- 2026-09-13 `task-tone-v2-p05-marry-match-corpus-rag-release-candidate` IN_PROGRESS: user approved the next Task. The active pack has 20 blocks and remains `needs_semantic_review`, including a contextual-claim finding on mar-020. Marriage dates/outcomes, partner/family reactions and unsupported periods/counts will be removed. CreamWIKI search-first returned relationship safety, evidence-layer and snapshot patterns. Production and provider calls remain 0.
+- 2026-09-13 `task-tone-v2-p05-marry-match-corpus-rag-release-candidate` DONE: preserved the original 2.0.0 and activated separately reviewed 2.1.0 for new snapshots. All 20 blocks now separate user input, calculated values, symbolic hypotheses and labeled hypothetical examples. Partner/family intent, marriage timing/outcome and reproductive decisions are not inferred; threat, control, violence and contact refusal route to safety and appropriate support.
+- Verification: task 8/8, related 74/74, serial full 751/751 across 105 suites, typecheck/Vercel build/deterministic builder/credential boundary PASS. Manual Codex closure review Approved with comments, Critical/Major/Minor 0. ProjectOps preflight/implementation/rag/release/review PASS; nested `CreamAI/package.json` test WARN is superseded by the repository-root suite. Provider output, Production, customer data, DB/auth/payment/admin, commit, push and deploy remain NOT_RUN.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-marry-match-corpus-snapshot-20260913.md` put/get/exact-title search PASS and the local ProjectOps memory was promoted. The next inactive Task resumes remaining corpus review at `today_fortune`; it requires a new user `다음`.
+- 2026-09-13 `task-tone-v2-p05-today-fortune-corpus-rag-release-candidate` IN_PROGRESS: user approved the next Task. The active pack has one block and remains `needs_semantic_review`; its scenarios are unlabeled and its condition/forbidden fields repeat migration boilerplate. CreamWIKI search-first returned the evidence-layer and snapshot-isolation patterns. The deterministic daily renderer, provider, Production and customer data remain unchanged.
+- 2026-09-13 `task-tone-v2-p05-today-fortune-corpus-rag-release-candidate` DONE: preserved the original 2.0.0 and activated separately reviewed 2.1.0 for new RAG snapshots. The block now separates the service key, server-calculated date pillar, user-confirmed schedule facts, symbolic interpretation and labeled hypothetical examples; it does not predict dates, events, outcomes or another person's reaction.
+- Verification: task 8/8, related 82/82 including deterministic daily tests, serial full 759/759 across 106 suites, typecheck/Vercel build/deterministic builder/credential boundary PASS. Manual Codex closure review Approved with comments, Critical/Major/Minor 0. ProjectOps preflight/implementation/rag/release/review PASS; nested `CreamAI/package.json` test WARN is superseded by the repository-root suite. Daily renderer, provider output, Production, customer data, DB/auth/payment/admin, commit, push and deploy remain unchanged or NOT_RUN.
+- CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-today-fortune-corpus-snapshot-20260913.md` put/get/exact-title search PASS and the local ProjectOps memory was promoted. Server-only manual reindex commands are unavailable on this PC and remain NOT_RUN; remote search returned the saved note immediately. The next inactive Task is `saju_master` corpus review.
+- 2026-09-13 `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 38 blocks separate user observations, guardian chart calculations, symbolic questions and unknown cat state; animal welfare, veterinary escalation, household applicability and numeric provenance are explicit. Focused 8/8, related 139/139, full 831/831 across 115 suites, typecheck/build/determinism/review PASS. Provider/Production/customer data/commit/push/deploy NOT_RUN. CreamWIKI remote put/get/search BLOCKED by unauthenticated CLI; sanitized local candidate saved for later upload. Next inactive Task is `task-tone-v2-p05-couple-signal-corpus-rag-release-candidate`.
+- 2026-09-13 `task-tone-v2-p05-couple-signal-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 12 blocks separate confirmed actions/direct words, server calculations, symbolic questions, unknown partner state and labeled hypothetical examples. Mind/fidelity verdicts, monitoring and unsupported numeric prescriptions are excluded; contact refusal, threat, coercion, violence and stalking route to boundaries and safety support. Focused 8/8, related 147/147, full 839/839 across 116 suites, typecheck/build/determinism/review PASS. Provider/Production/customer data/commit/push/deploy NOT_RUN; remote CreamWIKI remains BLOCKED pending CLI authentication. Next inactive Task is `task-tone-v2-p05-lucky-color-corpus-rag-release-candidate`.
+- ProjectOps release/review/RAG records PASS. The implementation scan's historical `task-tone-*` matches are known false positives and the nested CreamAI package test is WARN; the scoped credential scan (0 hits) and repository-root 839/839 suite are authoritative. Local ProjectOps memory was promoted; remote CreamWIKI upload remains BLOCKED by the unauthenticated CLI.
+- 2026-09-13 `task-tone-v2-p05-lucky-color-corpus-rag-release-candidate` IN_PROGRESS: user approved the next registry-ordered corpus Task. The 24-block 2.0.0 pack mixes symbolic color/material/direction mappings with invented room, clothing, food, sleep and routine scenes plus unsupported duration/count claims. The Task will preserve 2.0.0, create an explicit reviewed 2.1.0 candidate, prove stored-snapshot isolation and keep provider/Production/customer mutations at zero. Local skill originals are missing, so the documented manual RED→GREEN fallback applies.
+- 2026-09-13 `task-tone-v2-p05-lucky-color-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. All 24 blocks now separate calculated chart values, symbolic color/material/direction questions, confirmed user facts, unknown reality and labeled hypothetical examples. Efficacy, health, sleep, concentration, mood, financial and outcome claims plus unsupported numeric prescriptions are excluded. Focused 8/8, related 147/147, full 847/847 across 117 suites, typecheck/build/determinism/review PASS. Provider/Production/customer data/commit/push/deploy NOT_RUN; remote CreamWIKI remains BLOCKED pending CLI authentication. Next inactive Task is `task-tone-v2-p05-newyear-flow-corpus-rag-release-candidate`.
+- ProjectOps release/review/RAG records PASS and local memory was promoted. The generic implementation scan's historical `task-tone-*` matches and nested CreamAI package test WARN are known harness limitations; the task-scoped credential scan has 0 hits and the repository-root 847/847 suite is authoritative.
+- 2026-09-13 `task-tone-v2-p05-newyear-flow-corpus-rag-release-candidate` IN_PROGRESS: user approved the next registry-ordered corpus Task. The 10-block 2.0.0 pack mixes calculated annual/seasonal values with invented work, money, relationship, body and routine scenes plus unsupported 2–3 week, 1–2 year and 3-month prescriptions. This Task preserves 2.0.0, creates a reviewed 2.1.0 candidate, proves stored-snapshot isolation and keeps provider/Production/customer mutations at zero. Project memory search returned no direct hit, so prior verified corpus-snapshot patterns are reused from repository evidence. Local skill originals are missing; the documented manual RED→GREEN fallback applies.
+- 2026-09-13 `task-tone-v2-p05-newyear-flow-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. All ten blocks and retrieval topics separate server calculations, symbolic questions, confirmed facts, unknown future and labeled hypothetical examples; invented work, money, relationship, health, legal and routine claims plus unsupported periods/counts are excluded.
+- Verification: focused 8/8, related 218/218, full 855/855 across 118 suites, typecheck/build/determinism/review PASS. Provider/Production/customer data/commit/push/deploy NOT_RUN. Remote CreamWIKI remains BLOCKED pending CLI authentication; sanitized local memory is ready.
+- 2026-09-13 `task-tone-v2-p05-wedding-day-corpus-rag-release-candidate` IN_PROGRESS: user approved the next registry-ordered corpus Task. The six-block 2.0.0 pack retains generic migration boilerplate and mixes calculated candidate-day relations with invented partner/family feelings, venue and contract conditions, wedding-day condition, post-wedding rhythm and unsupported counts or periods. This Task preserves 2.0.0, creates a reviewed 2.1.0 candidate, proves stored-snapshot isolation and keeps provider/Production/customer mutations at zero. Prior local knowledge reinforces unknown-birth-time and partner-privacy boundaries; remote CreamWIKI remains unauthenticated.
+- 2026-09-13 `task-tone-v2-p05-wedding-day-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. All six blocks separate submitted candidate dates, server calculations, confirmed constraints, missing partner/time data, unknown future and labeled hypothetical examples; invented family, venue, contract, condition and post-wedding facts plus unsupported periods/counts are excluded.
+- Verification: focused 8/8, related 232/232, full 863/863 across 119 suites, typecheck/build/determinism/review PASS. The first related run caught a negated internal term leaking to customer prose; it was replaced and fully rerun. Provider/Production/customer data/commit/push/deploy NOT_RUN. Remote CreamWIKI remains BLOCKED pending CLI authentication.
+- 2026-09-13 `task-tone-v2-p05-job-choice-corpus-rag-release-candidate` IN_PROGRESS: user approved the next registry-ordered corpus Task. The 12-block 2.0.0 pack mixes user offer questions and symbolic palace viewpoints with invented role, organization, compensation, commute, contact, health and negotiation facts plus unsupported counts and periods. This Task preserves 2.0.0, creates a reviewed 2.1.0 candidate, proves stored-snapshot isolation and keeps provider/Production/customer mutations at zero. Local memory search returned the related verified-offer pattern from work_move; remote CreamWIKI remains unauthenticated.
+- 2026-09-13 `task-tone-v2-p05-job-choice-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. All 12 blocks separate offer documents, calculations, confirmed user reality, unknown company conditions, employer intent and symbolic viewpoints; invented role, organization, compensation, commute, contact, health, negotiation, outcome and unsupported numeric prescriptions are excluded. Focused 8/8, related 217/217, full 871/871 across 120 suites, typecheck/build/determinism/review PASS. Provider/Production/customer data/commit/push/deploy NOT_RUN; remote CreamWIKI remains BLOCKED pending CLI authentication. Next inactive Task is `task-tone-v2-p05-love-this-year-corpus-rag-release-candidate`.
+- ProjectOps preflight/RAG/release/review PASS. The generic implementation scan's unbounded `sk-` pattern matched historical `task-*` filenames and remains a known harness false positive; the Task-scoped left-boundary credential scan is authoritative at 0 findings. The nested CreamAI test check is WARN because it has no test script; repository-root 871/871 is authoritative. Local memory was promoted.
+- 2026-09-13 `task-tone-v2-p05-love-this-year-corpus-rag-release-candidate` IN_PROGRESS: user approved the final registry service pack still on 2.0.0. The 10-block source mixes calculated year/month relationship symbols with invented introductions, contact, schedules, feelings and outcomes plus unsupported numeric prescriptions. This Task preserves 2.0.0, creates a reviewed 2.1.0 candidate, proves stored-snapshot isolation, keeps partner privacy/safety boundaries and preserves the dedicated route while the generic legacy fallback remains blocked. Provider/Production/customer mutations remain zero.
+- 2026-09-13 `task-tone-v2-p05-love-this-year-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 only for new snapshots. All 10 blocks separate confirmed relationship facts, calculations, symbolic questions, unknown partner/future reality, consent, privacy and safety; invented introductions, contact, schedules, feelings, outcomes and unsupported numeric prescriptions are excluded. Dedicated route remains intact and generic fallback remains blocked. Focused 9/9, related 238/238, full 880/880 across 121 suites, typecheck/build/determinism/review PASS. All 20 service registry packs now resolve to 2.1.0. Provider/Production/customer/routing/commit/push/deploy mutations remain 0 or NOT_RUN; remote CreamWIKI remains BLOCKED pending CLI authentication. Next inactive Task is aggregate release evaluation.
+- ProjectOps preflight/RAG/release/review PASS. The generic implementation scan's unbounded `sk-` pattern matched historical `task-*` filenames and remains a known harness false positive; the Task-scoped left-boundary credential scan is authoritative at 0 findings. The nested CreamAI test check is WARN because it has no test script; repository-root 880/880 is authoritative.
+- 2026-09-13 `task-tone-v2-p05-all-service-corpus-release-evaluation` IN_PROGRESS: user approved a deterministic 20-service aggregate audit. The Task will prove registry/review/release/rollback and persona/retrieval coverage, then report missing provider-output, full-outline, visual/mobile/print and Production evidence as blockers rather than inferring release readiness. No provider, Production, customer data, deploy, commit or push action is authorized.
+- 2026-09-13 `task-tone-v2-p05-all-service-corpus-release-evaluation` DONE: built a deterministic aggregate from the actual 20 service 2.1.0 candidates, approved semantic reviews, runtime prompt/persona sources, registry mappings and 2.0.0 rollback files. Corpus integrity is 20/20 with zero sample-output ingestion, but the complete release is `NO_GO`: retained verified provider prose 0/20, attached full-outline independent review 1/20, aggregate visual/render/mobile/print evidence 0/20 and Production attachment not attempted.
+- Verification: RED 0/7 → GREEN 7/7, related 279/279, full 887/887 across 122 suites, typecheck/Vercel build and deterministic SHA-256 replay PASS. Manual closure review Approved with comments, Critical/Major/Minor 0 after correcting the full-outline evidence count from 0/20 to 1/20. No provider, customer data, Production, deploy, commit or push action ran. Next inactive Task is `task-tone-v2-p04-lucky-color-full-outline-evidence` and requires a new user `다음`.
+- ProjectOps preflight/implementation/review/RAG/release PASS; nested test WARN is only the known missing test script in `CreamAI/package.json` and repository-root 887/887 is authoritative. Task-scoped credential scan found 0 findings. Sanitized local memory was promoted; remote CreamWIKI sync remains BLOCKED because authenticated remote access is unavailable.
+- 2026-09-13 `task-tone-v2-p04-lucky-color-full-outline-evidence` IN_PROGRESS: user approved the next supplied pilot and reuse of the existing ignored local OpenAI key. This Task freezes the three-part `lucky_color` outline, uses only a unique synthetic isolated result, stops at the first unresolved item, and records actual provider/replay evidence. Production, customer data, deployment, commit and push remain outside scope.
+- 2026-09-13 `task-tone-v2-p04-lucky-color-full-outline-evidence` DONE: exact hashes and order for the three supplied files became an executable 24-item contract. One fresh synthetic result in ignored isolated storage completed 24/24 using `gpt-5.5-2026-04-23`; all accepted sections replayed through the production-equivalent grounding/persona/tone/duplication/safety/continuity gate at 24/24. The tracked evidence contains only provenance, metrics and immutable hashes, never raw provider prose, credentials or personal data.
+- Verification: RED 3/4 with the live harness absent, then focused/related 97/97 and full 894/894 across 122 suites PASS; typecheck and Vercel build PASS. During generation, narrow false positives in scene/grounding/technical-term/next-action/future recognition received regression tests, and recovery now uses the latest failed attempt that actually retained raw output. The all-service aggregate records full-outline independent review 2/20 and remains `NO_GO` with provider prose 0/20 and visual/render/mobile/print 0/20. Production, customer data, deploy, commit and push were NOT_RUN.
+- ProjectOps preflight/RAG/release PASS; review initially WARN pending this Task's direct Codex review artifact. Generic implementation scan retains the known `task-*` identifier false positive and nested test WARN; task-scoped credential scan is authoritative at 0 findings and repository-root 894/894 is authoritative. Remote CreamWIKI remains BLOCKED because authenticated CLI access is unavailable. Next inactive Task is `task-tone-v2-p04-newyear-flow-full-outline-evidence` and requires a new user `다음`.
+- Closure correction: direct Codex review artifact was added and the ProjectOps review harness reran PASS with Critical/Major/Minor 0. Deterministic lucky-color and aggregate builders reproduced identical hashes; sanitized ProjectOps memory was promoted locally and a KMS note was stored. Remote CreamWIKI sync remains BLOCKED, not PASS.
+
+## 2026-09-13 — task-tone-v2-p04-newyear-flow-full-outline-evidence ACTIVE
+
+- User gate received: `다음`; existing configured provider credential reused without printing or rewriting it.
+- Source contract frozen at five SHA-256 hashes, 10 groups, and 36 ordered items.
+- Added isolated fresh/fail-closed/replay harness; focused contract tests pass 8/8.
+- Production deployment, customer records, and live database connections remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-newyear-flow-full-outline-evidence DONE
+
+- Fresh isolated synthetic report `6d8f803aa124d4b1e74338d767d2` completed 36/36 using the configured provider; all 36 accepted sections passed stored-snapshot replay.
+- 82 provider attempts were retained in the isolated record: 36 accepted and 46 rejected; tracked evidence stores hashes/metrics only and no provider prose, secret or personal data.
+- Added low-reasoning evaluation override support without changing the Production default, plus resume/retry invariants for the full-outline harness.
+- Candidate release evidence attached; aggregate full-outline review coverage is now 3/20 and complete-service release remains NO_GO.
+- Verification: focused 23/23 after expectation update; full 897/897 across 122 suites; typecheck PASS; Vercel build PASS (126 FAQs, 19 sitemap URLs, SEO PASS).
+- No Production deployment, customer report mutation, commit or push was performed.
+
+## 2026-09-13 — task-tone-v2-p04-wedding-day-full-outline-evidence DONE
+
+- The immutable source contract is three SHA-256 hashes, six groups and 20 ordered items. Runtime drift from 21 renamed items was corrected without importing supplied example prose.
+- Fresh isolated synthetic report `aa873d319ba79520285271cac79e` completed 20/20 with `gpt-5.5-2026-04-23`; every accepted section passed stored-snapshot production-equivalent replay.
+- The record preserves 48 stored attempts: 47 provider responses, 28 rejected responses, 19 directly accepted responses, one recovered accepted section and one interrupted no-response attempt.
+- Wedding-specific scene and polite-action recognizer gaps were fixed with narrow positive/negative regression tests; no quality boundary was disabled.
+- Tracked evidence stores only hashes, aggregate metrics and review outcomes. Provider prose, credentials and personal data remain outside tracked files.
+- Focused/related 132/132, full 903/903 across 122 suites, typecheck and Vercel build PASS. Direct Codex review Approved with comments; Critical/Major/Minor 0.
+- Aggregate full-outline independent review coverage is 4/20. Complete release remains NO_GO because provider prose is intentionally 0/20 and visual/render/mobile/print evidence is 0/20.
+- Production, customer data, Supabase, deployment, commit and push were NOT_RUN.
+
+## 2026-09-13 — task-tone-v2-p04-wedding-day-full-outline-evidence ACTIVE
+
+- User gate received: `다음`; existing configured provider credential reused without printing or rewriting it.
+- Source inspection found a real contract drift: supplied source has 20 ordered items while runtime has 21 and renamed classifications.
+- RED test freezes three SHA-256 hashes and the exact source-derived category/title order before implementation.
+- Production deployment, customer records, Supabase and live database connections remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-wedding-day-full-outline-evidence closure correction
+
+- The trailing ACTIVE entry above is an append-order artifact and is superseded by the earlier DONE result; no work was reopened.
+- Deterministic rebuild reproduced identical hashes for the sanitized evidence, Wedding release, 20-service aggregate and aggregate assessment.
+- Missing local KMS and test-summary artifacts were restored. The next Task remains inactive and requires a new user gate.
+- ProjectOps preflight/review/RAG/release PASS; the nested `CreamAI` test check is WARN because that package has no test script, while repository-root 903/903 is authoritative.
+- The generic implementation scan remains FAIL only because its unbounded `sk-` pattern matches historical `task-*` identifiers. The Task-scoped left-boundary credential scan covered 23 files with 0 findings.
+- Sanitized memory was promoted locally. Remote CreamWIKI synchronization remains BLOCKED because authenticated remote access is unavailable.
+
+## 2026-09-13 — task-tone-v2-p04-wedding-day-visual-render-evidence ACTIVE
+
+- User gate received: `다음`. The existing completed isolated synthetic record will be reused read-only; no provider call is required.
+- Initial audit found customer-visible count drift: three Wedding pages and the client renderer still say 21 although the reviewed runtime contract is 20.
+- Visual direction remains the existing warm paper/brass editorial reader. This Task repairs correctness and responsive/print defects without redesigning adjacent flows.
+- Required local `.claude/skills` design registries are missing in this fork; the installed Product Design audit and Vercel browser-verification workflows are used as the documented fallback.
+- Production, customer data, Supabase, deploy, commit and push remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-wedding-day-visual-render-evidence DONE
+
+- The real saved-result reader loaded the immutable isolated Wedding record and exposed six groups and exactly 20 complete detail items.
+- Desktop 20/20 and exact 390px mobile 20/20 checks passed with 5–6 paragraphs, 20 selector options and zero content, navigation or horizontal-overflow failures.
+- Contents → first → next → final selector → contents navigation passed. Thirty-two visible controls met the 24px minimum; item links exposed a 3px keyboard focus outline.
+- Twenty print documents passed structural inspection (2–3 pages each, zero blank pages, no missing progress labels or interactive flag controls); six representative rendered pages passed visual inspection.
+- Visual review found and fixed two defects before acceptance: stale 21-item customer copy and a fixed report control overlapping printed prose. Final Critical/Major/Minor findings: 0/0/0.
+- Sanitized evidence was attached to the Wedding 2.1.0 candidate and the aggregate visual gate advanced from 0/20 to 1/20. The complete service release remains `NO_GO`.
+- Related verification 71/71, full repository 906/906 across 122 suites, typecheck and Vercel build PASS. Deterministic evidence/release/aggregate/assessment hashes reproduced exactly.
+- No new provider call, Production, customer data, Supabase, deploy, commit or push action ran. Remote CreamWIKI remains unavailable; sanitized reusable knowledge is stored locally.
+- Next inactive Task: `task-tone-v2-p04-newyear-flow-visual-render-evidence`; a new user `다음` is required.
+
+## 2026-09-13 — task-tone-v2-p04-wedding-day-visual-render-evidence closure
+
+- ProjectOps preflight, review, RAG and release harnesses PASS. The nested CreamAI test harness is WARN only because that package has no test script; repository-root full tests are authoritative.
+- The generic implementation scan is FAIL because it scans the large inherited dirty worktree and its broad `sk-` pattern matches historical `task-*` identifiers. The Task-scoped left-boundary credential scan covered 23 files and found 0 credentials.
+- Sanitized memory was promoted to local ProjectOps knowledge and a KMS note was saved. Remote CreamWIKI synchronization remains blocked because authenticated remote access is unavailable.
+- The local read-only QA server was stopped after verification. No Production or customer connection remains open.
+
+## 2026-09-13 — task-tone-v2-p04-lucky-color-visual-render-evidence closure
+
+- The immutable isolated `lucky_color` result rendered through the real saved-result reader as 6 categories and 24/24 complete sections.
+- Desktop and exact 390px mobile inspection found zero empty content, external element or horizontal overflow failures; disclosure clicks, direct final-section entry, unique-address replay and keyboard toggle passed.
+- Complete print produced 21 nonblank Letter pages with all 24 section titles and one-line answers, no missing content and no fixed app/report controls; first, middle and final representative pages passed visual review.
+- Sanitized visual evidence is attached to the Lucky Color 2.1.0 candidate. Aggregate visual coverage is now 3/20 and the truthful overall release decision remains `NO_GO`.
+- Focused 18/18, related 78/78, full repository 913/913 across 122 suites, typecheck, Vercel build and five byte-identical release rebuilds passed.
+- ProjectOps preflight, implementation, review, RAG and release harnesses passed. The nested CreamAI test harness is WARN only because that package has no test script; repository-root tests are authoritative.
+- Credential scan findings were only `task-...` identifier/test-pattern false positives; no credential values were present. `git diff --check` passed with line-ending warnings only.
+- Sanitized memory was promoted locally and a KMS note was saved. Remote CreamWIKI sync/reindex remains BLOCKED because authenticated remote access is unavailable.
+- No provider call, Production, customer data, Supabase, deployment, commit or push action ran. The local QA server was stopped after verification.
+- Next inactive Task: `task-tone-v2-p04-quit-fortune-visual-render-evidence`; a new user `다음` is required.
+
+2026-09-13 ACTIVE — `task-tone-v2-p04-lucky-color-visual-render-evidence`: user gate received. Reuse the immutable isolated 24-section `lucky_color` result read-only; verify the real reader on desktop, exact 390px mobile and complete print. No provider, Production, customer, Supabase, deployment, commit or push work is authorized.
+
+## 2026-09-13 — task-tone-v2-p04-newyear-flow-visual-render-evidence ACTIVE
+
+- User gate received: `다음`; the immutable complete 36-section isolated result will be reused read-only with no new provider call.
+- Product Design context preflight found no saved references. Required project-local design registries are absent in this fork, so the installed Product Design audit, browser verification workflow, existing verified-reader design and approved local visual-QA memory are the documented fallback.
+- Scope is the real New Year saved-result reader: 10 categories, 36 disclosure sections, direct selection, exact 390px reflow and complete print output.
+- Production, customer data, Supabase, deployment, commit and push remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-newyear-flow-visual-render-evidence DONE
+
+- The immutable isolated New Year result rendered through the real saved-result HTML/CSS/JavaScript with 10 categories and 36/36 complete sections.
+- Desktop 36/36 and exact 390px mobile 36/36 passed with 6–9 rendered paragraphs per section and zero content or horizontal-overflow failures.
+- Direct-section, immutable-link, click, keyboard and focus behavior passed; all 52 visible controls met the 24px minimum after the unique-address target fix.
+- The first print exposed a real defect: closed disclosures were omitted and the fixed report flag printed over content. `beforeprint`/`afterprint` now expand and restore disclosures, and print CSS hides interactive chrome.
+- The accepted print is 36 nonblank pages with all 36 section titles, answers and actions; representative pages 1, 18 and 36 passed visual inspection.
+- The local QA server now restricts source loading to the approved isolated record directory, remains loopback-only and exposes no mutation routes.
+- Sanitized evidence is attached to the New Year 2.1.0 release; aggregate visual coverage advanced from 1/20 to 2/20 while the truthful overall decision remains `NO_GO`.
+- Related verification 75/75, full repository 910/910 across 122 suites, typecheck, Vercel build and five deterministic release outputs PASS.
+- No new provider call, Production, customer data, Supabase, deploy, commit or push action ran. Remote CreamWIKI remains unavailable; sanitized reusable knowledge is stored locally.
+- Next inactive Task: `task-tone-v2-p04-lucky-color-visual-render-evidence`; a new user `다음` is required.
+
+## 2026-09-13 — task-tone-v2-p04-newyear-flow-visual-render-evidence closure
+
+- ProjectOps preflight, review, RAG and release harnesses PASS. The nested CreamAI test harness is WARN only because that package has no test script; repository-root full tests are authoritative.
+- Task-scoped credential scanning covered 16 implementation, evidence and ProjectOps files with zero findings; `git diff --check` passed with line-ending warnings only.
+- Sanitized memory was promoted to local ProjectOps knowledge and a KMS note was saved. Remote CreamWIKI synchronization and reindex remain BLOCKED because authenticated remote access is unavailable.
+- The local read-only QA server was stopped after verification. No Production or customer connection remains open.
+
+## 2026-09-13 — lucky-color visual Task final pointer
+
+- `task-tone-v2-p04-lucky-color-visual-render-evidence` is DONE with 24/24 desktop/mobile/print evidence, 913/913 full tests and aggregate visual coverage 3/20. The next Task remains inactive until a new user `다음`.
+
+## 2026-09-13 — task-tone-v2-p04-quit-fortune-visual-render-evidence ACTIVE
+
+- User gate received: `다음`. Reuse the immutable isolated 48-section `quit_fortune` result read-only; verify the real reader on desktop, exact 390px mobile and complete print.
+- Product Design user-context preflight found no saved context. Required project-local design registries are absent, so the installed Product Design audit, Vercel browser verification workflow, existing verified-reader design and approved local KMS pattern are the documented fallback.
+- No provider call, Production, customer data, Supabase, deployment, commit or push is authorized.
+
+## 2026-09-13 — task-tone-v2-p04-quit-fortune-visual-render-evidence DONE
+
+- The immutable isolated Quit Fortune result rendered through the real saved-result reader as 10 categories and 48/48 complete sections.
+- Desktop and exact 390px mobile passed with 5–7 paragraphs per section, zero empty content and zero horizontal-overflow failures. Disclosure clicks, direct-section entry, immutable-link replay and keyboard Enter toggle passed.
+- The accepted print is 48 nonblank Letter pages with all 48 section titles and one-line answers, no fixed app/report chrome; representative pages 1, 24 and 48 passed visual inspection.
+- Sanitized visual evidence is attached to the Quit Fortune 2.1.0 candidate. Aggregate visual coverage advanced from 3/20 to 4/20 while the truthful overall release decision remains `NO_GO`.
+- Focused 18/18, related 72/72, full repository 916/916 across 122 suites, typecheck, Vercel build and five byte-identical release rebuilds passed.
+- Task-scoped credential scanning covered 11 implementation/evidence files with zero findings; `git diff --check` reported line-ending warnings only.
+- No new provider call, Production, customer data, Supabase, deployment, commit or push ran. Remote CreamWIKI remains unavailable; sanitized reusable knowledge is stored locally.
+- No later Task is active. A new user `다음` is required before continuing.
+
+## 2026-09-13 — task-tone-v2-p04-quit-fortune-visual-render-evidence closure
+
+- ProjectOps preflight, review, RAG and release harnesses PASS. The nested CreamAI test harness is WARN only because that package has no test script; repository-root full tests are authoritative.
+- The generic implementation scan is a known false positive because its broad `sk-` pattern matches historical `task-*` identifiers across the inherited dirty worktree. The Task-scoped left-boundary credential scan covered 11 files with 0 findings.
+- Sanitized memory was promoted to local ProjectOps knowledge and a KMS note was saved. Remote CreamWIKI synchronization and reindex remain BLOCKED because authenticated remote access is unavailable.
+- The local read-only QA server was stopped after verification. No Production or customer connection remains open.
+
+## 2026-09-13 — task-tone-v2-p04-pass-angle-2-1-full-outline-generation ACTIVE
+
+- User gate received: `다음`. The existing completed 52-section record is preserved as historical evidence because it predates corpus 2.1.0 and cannot prove the current candidate.
+- This Task creates one fresh unique synthetic result in isolated local storage and asserts the active `pass-angle-service` 2.1.0 snapshot before the first provider call.
+- The existing configured provider credential may be reused without printing or rewriting it. Generation remains ordered and fail-closed at the first unresolved review failure.
+- Required project-local coding, planning, TDD and completion skill files are absent in this fork; the documented contracts, existing fail-closed live harness and ProjectOps verification workflow are the fallback.
+- Production, customer data, Supabase, deployment, commit and push remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-pass-angle-2-1-full-outline-generation DONE
+
+- A fresh unique synthetic record pinned `pass-angle-service` 2.1.0 before provider use and completed all 52 sections in exact source order.
+- Production-equivalent replay against the stored corpus snapshot passed 52/52. Direct reading of all accepted hooks and bodies found no Critical, Major or Minor issue; two editorial comments preserve the intentionally repetitive measurable error-log axis.
+- Final record SHA-256 is `5fc40af448836d7084919d3fc9afba7199cbe47a3d88f656115370845633e7fa`; ordered accepted prose SHA-256 is `a25f7afd69e0417350600cbced7d60c1ee015bd276a3dc8f758e12488e9c007e`.
+- Sanitized evidence is attached to the Pass Angle 2.1.0 local reversible candidate. Aggregate full-outline human review advanced from 4/20 to 5/20; visual evidence remains 4/20 and complete release remains `NO_GO`.
+- Focused 92/92, full repository 930/930 across 122 suites, typecheck, Vercel build and deterministic release rebuild passed.
+- No Production, customer data, Supabase, deployment, commit or push action ran. Remote CreamWIKI synchronization remains unavailable; reusable sanitized knowledge is stored locally.
+- No next Task is active. Pass Angle visual render/mobile/print evidence requires a new user gate.
+
+## 2026-09-13 — task-tone-v2-p04-pass-angle-2-1-full-outline-generation closure
+
+- ProjectOps preflight, review, RAG and release harnesses passed. The nested CreamAI test harness is WARN only because that package has no test script; repository-root 930/930 is authoritative.
+- The generic implementation scan failed on its known broad `sk-` pattern matching historical `task-*` identifiers across the inherited dirty worktree. The Task-scoped left-boundary credential scan covered nine implementation/evidence/ProjectOps files with zero findings.
+- `git diff --check` passed for the Task implementation and evidence files. Local approved memory and the KMS note contain no credentials, provider prose or personal data.
+- No Production, customer, Supabase, deployment, commit or push action ran.
+
+## 2026-09-13 — task-tone-v2-p04-pass-angle-visual-render-evidence ACTIVE
+
+- User gate received: `다음`. Reuse the immutable complete 52-section Pass Angle corpus-2.1.0 result read-only; no provider call is required.
+- Audit scope is the real saved-result reader on desktop, exact 390px mobile and complete print, including content, overflow, navigation, focus, target size and fixed-chrome behavior.
+- Product Design user-context preflight returned no saved references, so the existing verified-reader design and current actual-result screenshots are the grounding source.
+- Production, customer data, Supabase, deployment, commit and push remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-pass-angle-visual-render-evidence DONE
+
+- The immutable corpus-2.1.0 Pass Angle record rendered through the real saved-result reader as 10 groups and 52/52 complete sections.
+- Desktop and exact 390px mobile passed content, direct selection, immutable replay, click, keyboard, focus, target-size and horizontal-overflow checks.
+- Current audit fixed two real reader defects: shared navigation/control targets below 44px and low-contrast introductory text on white print pages.
+- The accepted print is 28 nonblank Letter pages with all 52 section titles and one-line answers and no fixed interactive chrome; every page was visually reviewed.
+- Sanitized evidence is attached to the Pass Angle 2.1.0 candidate. Aggregate visual coverage advanced from 4/20 to 5/20; complete release remains `NO_GO`.
+- Focused 19/19 and full repository 934/934 across 122 suites passed, as did typecheck, Vercel build and deterministic rebuild.
+- No provider call, Production, customer data, Supabase, deployment, commit or push ran. Remote CreamWIKI remains unavailable; reusable knowledge is stored locally.
+- No next Task is active. A new user `다음` is required.
+
+## 2026-09-13 — task-tone-v2-p04-pass-angle-visual-render-evidence closure
+
+## 2026-09-13 — task-tone-v2-p04-today-fortune-full-outline-evidence ACTIVE
+
+- User gate received: `다음`. The next service follows the explicit P05 order after Wedding Day.
+- Today Fortune is a deterministic `daily-rules-v3` service, so this Task verifies one real isolated saved result plus all five relation and twelve zodiac branches without adding or claiming an LLM call.
+- Scope is seven-field completeness, immutable same-day replay, direct output review, sanitized release attachment and truthful aggregate accounting.
+- Production, customer data, Supabase, deployment, commit and push remain out of scope.
+
+## 2026-09-13 — task-tone-v2-p04-today-fortune-full-outline-evidence DONE
+
+- One synthetic file-backed `daily-rules-v3` result completed all seven customer fields; same-KST-day replay preserved report/result identities and saved prose.
+- All five element relations and twelve birth-year zodiac variants passed direct runtime tone/safety review.
+- Direct review found and fixed three real deterministic-template defects: forbidden name honorifics, polite speech instead of the approved informal persona, and one unsupported fixed condition count.
+- The aggregate provider gate now counts actual provider calls plus independent review instead of requiring provider prose to be stored; it excludes deterministic Today Fortune from the denominator. Coverage is truthfully 5/19 provider-output and 6/20 full-outline review.
+- Focused 22/22, related 176/176 and full repository 936/936 across 122 suites passed; typecheck, Vercel build and deterministic release rebuild passed.
+- Sanitized evidence is attached to the Today Fortune 2.1.0 candidate. Complete release remains `NO_GO`; visual evidence remains 5/20.
+- No LLM/provider call, Production, customer data, Supabase, deployment, commit or push ran. Next inactive Task is `task-tone-v2-p04-saju-master-full-outline-evidence`.
+
+## 2026-09-13 — task-tone-v2-p04-today-fortune-full-outline-evidence closure
+
+- ProjectOps preflight, direct review, RAG/memory and release harnesses passed. The nested CreamAI test harness is WARN-only because that package has no test script; repository-root 936/936 is authoritative.
+- The generic implementation scan retains its known inherited false positive because broad `sk-` matching treats `task-*` identifiers as credentials. The Task-scoped credential scan covered implementation, evidence, release and ProjectOps outputs with 0 findings.
+- `git diff --check` passed for tracked Task files with line-ending warnings only. Sanitized memory was promoted to local approved knowledge and a KMS note was saved.
+- Remote CreamWIKI synchronization and reindex are BLOCKED because `CREAMWIKI_ROOT` is not configured. The local work log remains available.
+
+- ProjectOps review, RAG and release harnesses passed. The nested CreamAI test harness is WARN-only because that package has no test script; repository-root 934/934 is authoritative.
+- The generic implementation scan retains its known false positive because broad `sk-` matching treats inherited `task-*` identifiers as credentials. A Task-scoped credential scan across implementation, evidence and ProjectOps outputs found 0 credentials.
+- `git diff --check` passed for Task files with line-ending warnings only. Approved local memory and a KMS note contain no provider prose, secrets or personal data.
+- The local QA browser/session and loopback server were stopped after verification. No Production or customer connection remains open.
+# 2026-09-13 — Production commit/deploy
+
+- `task-tone-v2-production-commit-deploy-20260913` ACTIVE after explicit user approval.
+- Git source: `codex/tone-v2`, canonical GitHub remote `axlab-cream/chungi-t`.
+- Vercel target verified: owner `AX-Lab-cream`, project `chungi-t`, project ID `prj_83OG8hBV8JxhI10zAlbUVUXRpYV3`.
+- Domain mapping verified: `umsh.kr` and `www.umsh.kr` belong to this project.
+- Next: stage/scan, release verification, commit/push, Production deploy, live smoke verification.
+- Vercel production-build RED: CLI 50.19.1 rejected the accumulated array-valued `includeFiles` because this project schema requires one string glob.
+- Minimal fix: preserve every required runtime path in one brace-expanded string and freeze that exact contract in the static-exposure test.
+- Verification GREEN: full serial suite 936/936 across 122 suites; focused static-exposure 60/60; typecheck PASS; `vercel build --prod --scope ax-lab-cream` PASS.
+- Credential boundary: staged real OpenAI/Supabase/GitHub/private-key formats 0; previously submitted password literals 0.

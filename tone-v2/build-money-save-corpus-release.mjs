@@ -1,0 +1,209 @@
+import { createHash } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const oldPath = 'data/tone-v2/corpus/money-save-service.json'
+const newPath = 'data/tone-v2/corpus/releases/money-save-service-2.1.0.json'
+const reviewPath = 'tone-v2/corpus-review/money-save-2.1.0.json'
+const releasePath = 'tone-v2/releases/money-save-2.1.0.json'
+const verificationPath = 'tone-v2/evaluations/P05-money-save-corpus-rag-release-candidate-20260913.json'
+const promptManifestPath = 'tone-v2/generated/manifest.json'
+
+const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'))
+const sha256 = (value) => createHash('sha256').update(value).digest('hex')
+const fileHash = (path) => sha256(readFileSync(join(root, path)))
+const writeJson = (path, value) => {
+  const target = join(root, path)
+  mkdirSync(dirname(target), { recursive: true })
+  writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+}
+
+const source = readJson(oldPath)
+const sourceById = new Map(source.knowledgeBlocks.map((block) => [block.id, block]))
+const content = {
+  'sav-001': {
+    topic: '수입 주기는 실제 입금 내역으로 확인한다',
+    concept: '수입의 크기와 주기는 별도 사실이며 관리 기준은 실제 내역에서 정한다',
+    condition: '사용자가 수입 날짜와 금액 또는 고정·변동 여부를 입력했을 때만 적용한다.',
+    interpretation: '입력된 수입의 날짜와 금액을 나란히 놓으면 변동 범위를 확인할 수 있다. 명리의 정재·편재는 상징적 해석 후보일 뿐 실제 수입 형태나 미래 금액을 확정하지 않는다.',
+    real_world_pattern: ['가상 사례: 입금 날짜가 일정하지만 지출 날짜와 어긋나는 경우', '가상 사례: 사용자가 제공한 내역에서 달마다 수입 차이가 확인되는 경우'],
+    risk: '입력되지 않은 수입 주기나 최저 금액을 만들고 생활 규모를 처방하는 것',
+    opportunity: '사용자가 제공한 입금 내역과 필수 지출 내역을 같은 기준으로 비교하는 것',
+    advice: '확인된 입금 날짜와 금액만 정리하고, 기준을 정하려면 누락된 기간과 지출 정보를 먼저 확인한다.',
+    forbidden_generalization: '정재·편재나 수입 규모만으로 돈이 모이는 방식을 단정하지 않는다.',
+  },
+  'sav-002': {
+    topic: '지출 누수는 실제 내역의 반복에서 찾는다',
+    concept: '큰 금액과 반복 빈도는 다른 점검 축이며 어느 쪽이 문제인지는 내역으로 확인한다',
+    condition: '사용자가 거래 내역이나 반복 결제 정보를 입력했을 때만 적용한다.',
+    interpretation: '입력된 내역을 항목과 날짜로 묶으면 반복되는 지출 후보를 찾을 수 있다. 작은 결제가 항상 더 큰 문제라고 가정하지 않고 총액과 빈도를 함께 본다.',
+    real_world_pattern: ['가상 사례: 같은 서비스의 반복 결제가 내역에서 확인되는 경우', '가상 사례: 단일 큰 지출이 전체 변동의 대부분을 차지하는 경우'],
+    risk: '거래 내역 없이 구독·배달·택시 같은 습관이 있다고 단정하는 것',
+    opportunity: '실제 내역에서 반복 여부와 총액을 각각 확인하는 것',
+    advice: '사용자가 제공한 내역을 기준으로 반복 항목과 단일 항목을 분리하고 우선순위는 확인 뒤 정한다.',
+    forbidden_generalization: '작은 지출이 많거나 아껴 쓰기만 하면 결과가 정해진다고 단정하지 않는다.',
+  },
+  'sav-003': {
+    topic: '저축 순서는 사용자의 현금 흐름에 맞춘다',
+    concept: '선저축은 가능한 선택지이며 모든 사용자에게 맞는 정답은 아니다',
+    condition: '사용자가 수입일, 필수 지출, 부채 상환, 저축 현황을 입력했을 때만 적용한다.',
+    interpretation: '저축이 계획과 다르면 의지보다 수입과 지출의 순서를 먼저 점검할 수 있다. 자동이체나 선저축은 잔액 부족과 상환 일정까지 확인한 뒤 선택할 후보이지 보편 처방이 아니다.',
+    real_world_pattern: ['가상 사례: 필수 지출 뒤 남는 범위를 확인해 이체 순서를 조정하는 경우', '가상 사례: 변동 수입 때문에 고정 이체가 맞지 않는 경우'],
+    risk: '사용자의 필수 지출과 부채를 모른 채 먼저 떼어 놓으라고 지시하는 것',
+    opportunity: '수입과 필수 지출의 실제 순서를 보고 유지 가능한 저축 방식을 고르는 것',
+    advice: '자동화 여부와 시점은 입력된 현금 흐름으로 판단하고, 부족한 정보가 있으면 결론을 유보한다.',
+    forbidden_generalization: '선저축이나 자동이체를 하면 누구나 돈이 모인다고 단정하지 않는다.',
+  },
+  'sav-004': {
+    topic: '버는 힘과 지키는 구조를 별도 근거로 본다',
+    concept: '명리 상징과 실제 수입·잔액 변화는 서로 다른 근거 층이다',
+    condition: '계산된 일간·재성·비겁과 사용자가 제공한 수입·지출 사실이 현재 질문에 직접 연결될 때만 적용한다.',
+    interpretation: '재성·비겁과 일간 강약은 자원과 경쟁을 읽는 상징적 축이다. 실제로 돈을 벌거나 지키는 능력은 입력된 수입, 지출, 잔액 변화로 확인하며 명리값을 재무 능력의 등급으로 바꾸지 않는다.',
+    real_world_pattern: ['가상 사례: 수입 변화와 잔액 변화가 서로 다르게 나타나는 경우', '가상 사례: 관리 규칙 변경 전후의 실제 내역을 비교하는 경우'],
+    risk: '재성이나 일간 강약으로 재무 능력과 미래 잔액을 확정하는 것',
+    opportunity: '상징적 해석과 실제 현금 흐름을 분리해 확인하는 것',
+    advice: '명리값은 질문 후보를 좁히는 데만 쓰고 결론은 사용자가 제공한 재무 사실로 제한한다.',
+    forbidden_generalization: '재물운이나 일간 강약 때문에 돈을 못 모은다고 단정하지 않는다.',
+  },
+  'sav-005': {
+    topic: '오행은 재무 습관의 사실이 아니라 질문 후보다',
+    concept: '오행 분포는 점검 질문을 만드는 상징적 도구이며 소비 행동의 증거가 아니다',
+    condition: '계산된 오행 분포가 있고 사용자가 실제 관리 습관을 함께 입력했을 때만 상징적 후보로 적용한다.',
+    interpretation: '오행의 강약은 계획, 표현, 축적, 정리, 휴식 같은 질문을 떠올리는 데 사용할 수 있다. 특정 오행만으로 충동 소비나 저축 실패를 사용자 사실로 만들지 않는다.',
+    real_world_pattern: ['가상 사례: 계산된 오행에서 나온 질문을 실제 거래 내역으로 확인하는 경우', '가상 사례: 상징적 후보와 실제 습관이 맞지 않아 후보를 버리는 경우'],
+    risk: '오행을 소비 성향이나 부의 수준과 직접 등치하는 것',
+    opportunity: '상징에서 나온 질문을 실제 내역과 사용자 설명으로 검증하는 것',
+    advice: '오행 해석에는 상징이라는 표시를 붙이고, 확인되지 않은 습관은 서술하지 않는다.',
+    forbidden_generalization: '특정 오행이 강하거나 약하면 부자 또는 낭비형이라고 단정하지 않는다.',
+  },
+  'sav-006': {
+    topic: '큰 지출 시점은 감당 조건으로 판단한다',
+    concept: '운 흐름은 상징적 참고이며 실제 결정은 자금·계약·필요 조건으로 검토한다',
+    condition: '계산된 운 흐름과 사용자가 제공한 예정 지출·가용 자금·계약 조건이 함께 있을 때만 적용한다.',
+    interpretation: '대운·세운은 변화 압력을 보는 상징적 후보다. 실제 지출 시점은 사용자가 제공한 가용 자금, 필수 지출, 계약 조건과 필요성을 기준으로 검토하며 손실이나 회복 속도를 예언하지 않는다.',
+    real_world_pattern: ['가상 사례: 예정 지출과 필수 지출의 날짜가 겹치는지 확인하는 경우', '가상 사례: 계약 조건을 확인한 뒤 시점 후보를 다시 비교하는 경우'],
+    risk: '좋은 운이나 거친 운을 이유로 구매를 앞당기거나 미루라고 지시하는 것',
+    opportunity: '실제 감당 조건과 아직 확인되지 않은 계약 정보를 구분하는 것',
+    advice: '운 흐름은 참고로 표시하고 지출 결정에는 확인된 자금과 계약 조건만 사용한다.',
+    forbidden_generalization: '재물운으로 구매 결과, 손실 여부 또는 최적 시점을 확정하지 않는다.',
+  },
+  'sav-007': {
+    topic: '관계 지출은 입력된 요청과 경계에서 확인한다',
+    concept: '관계 비용의 기준은 사용자의 형편과 합의에 따라 달라진다',
+    condition: '사용자가 경조사·모임·대여 등 실제 관계 지출과 자신의 경계를 입력했을 때만 적용한다.',
+    interpretation: '관계 지출에는 금액뿐 아니라 반환 조건, 거절 가능성, 관계 안전이 함께 걸릴 수 있다. 타인의 의도나 사용자의 상한을 추정하지 않고 입력된 요청과 합의 조건을 본다.',
+    real_world_pattern: ['가상 사례: 대여 요청의 반환 조건을 문서로 확인하는 경우', '가상 사례: 사용자가 자신의 가용 범위를 먼저 확인하는 경우'],
+    risk: '임의 상한을 처방하거나 상대가 관계를 이용한다고 단정하는 것',
+    opportunity: '금액·반환·거절 조건 중 확인되지 않은 부분을 찾는 것',
+    advice: '사용자가 정한 범위와 실제 합의 내용을 기준으로 판단하고 법률 쟁점은 전문가에게 확인한다.',
+    forbidden_generalization: '관계 지출에는 항상 숫자 상한이 필요하거나 거절하면 관계가 안전해진다고 단정하지 않는다.',
+  },
+  'sav-008': {
+    topic: '감정과 지출의 연결은 기록으로 확인한다',
+    concept: '기분 소비는 가능한 가설이며 실제 패턴은 사용자의 기록과 설명이 필요하다',
+    condition: '사용자가 특정 감정이나 상황과 지출의 연결을 직접 입력했을 때만 적용한다.',
+    interpretation: '감정과 결제가 함께 나타났다는 입력이 있으면 어떤 상황에서 반복됐는지 살필 수 있다. 모든 충동 지출을 회복 문제로 진단하지 않고 정신건강 상태나 원인을 추정하지 않는다.',
+    real_world_pattern: ['가상 사례: 사용자가 기록에서 특정 상황 뒤 결제가 반복됐다고 확인한 경우', '가상 사례: 감정과 무관한 필수 지출이 늘어난 경우'],
+    risk: '거래 내역만 보고 감정 상태, 스트레스 원인 또는 의지 부족을 판단하는 것',
+    opportunity: '사용자가 확인한 상황과 지출의 연결을 다른 원인 후보와 비교하는 것',
+    advice: '확인된 패턴이 있으면 비용이 드는 선택과 들지 않는 선택을 사용자가 비교하도록 돕고 치료처럼 표현하지 않는다.',
+    forbidden_generalization: '충동 지출은 모두 감정 회복 문제이며 대체 행동으로 해결된다고 단정하지 않는다.',
+  },
+  'sav-009': {
+    topic: '비상 자금은 실제 위험과 현금 흐름으로 정한다',
+    concept: '비상 자금의 필요성과 규모는 사용자별 필수 지출·지원망·위험 조건에 따라 달라진다',
+    condition: '사용자가 필수 지출, 가용 자금, 부양 책임, 보험 또는 지원망 정보를 입력했을 때만 적용한다.',
+    interpretation: '비상 자금은 예기치 않은 지출에 대응하는 선택지다. 필요한 규모는 입력된 필수 지출과 위험 조건으로 계산해야 하며 보편 금액이나 기간을 제시하지 않는다.',
+    real_world_pattern: ['가상 사례: 사용자가 제공한 필수 지출과 지원 가능 범위를 함께 보는 경우', '가상 사례: 현금화 조건 때문에 가용 자금에서 제외할 항목이 있는 경우'],
+    risk: '모든 사람에게 같은 기간의 생활비를 먼저 모으라고 처방하는 것',
+    opportunity: '실제 필수 지출과 바로 사용할 수 있는 자금을 구분하는 것',
+    advice: '필요 규모는 제공된 값과 산식을 밝혀 계산하고, 값이 없으면 필요한 입력을 요청한다.',
+    forbidden_generalization: '정해진 기간의 비상 자금이 누구에게나 충분하거나 우선이라고 단정하지 않는다.',
+  },
+  'sav-010': {
+    topic: '수입 확장은 현재 구조와 위험을 확인한 뒤 비교한다',
+    concept: '부수입·투자는 관리 상태와 별개의 위험·비용·시간 판단이 필요하다',
+    condition: '사용자가 부수입·사업·투자 후보와 현재 현금 흐름, 비용, 위험을 입력했을 때만 적용한다.',
+    interpretation: '수입 확장은 현재 지출 구조가 안정됐다는 이유만으로 성공하지 않는다. 후보별 비용, 시간, 손실 가능성, 계약을 확인해야 하며 운세로 수익이나 유지 기간을 정하지 않는다.',
+    real_world_pattern: ['가상 사례: 부수입 후보의 선행 비용과 예상 시간을 확인하는 경우', '가상 사례: 투자 손실 가능성을 감당 범위와 비교하는 경우'],
+    risk: '관리 규칙이 생기면 확장 결과가 좋아진다고 약속하거나 투자 행동을 권하는 것',
+    opportunity: '각 후보의 비용·시간·위험·계약 조건을 같은 표에서 비교하는 것',
+    advice: '확장 여부는 확인된 조건과 필요하면 자격 있는 재무 전문가의 조언으로 판단한다.',
+    forbidden_generalization: '특정 관리 기간 뒤 확장하면 돈이 남거나 투자 성과가 좋아진다고 단정하지 않는다.',
+  },
+  'sav-011': {
+    topic: '예산 도구는 사용자가 유지할 수 있는 방식으로 고른다',
+    concept: '예산 분류의 개수와 정교함에는 보편 정답이 없다',
+    condition: '사용자가 현재 예산 도구, 기록 부담, 필요한 구분을 입력했을 때만 적용한다.',
+    interpretation: '예산 항목이 많아 기록이 멈출 수도 있고, 세부 구분이 있어야 문제를 찾을 수도 있다. 사용자의 목적과 유지 가능성을 확인하지 않고 항목 수를 처방하지 않는다.',
+    real_world_pattern: ['가상 사례: 세부 기록이 부담이라 핵심 구분만 남기는 경우', '가상 사례: 특정 지출을 찾기 위해 세부 구분이 필요한 경우'],
+    risk: '단순한 도구가 항상 더 오래가거나 자동화가 결과를 보장한다고 말하는 것',
+    opportunity: '현재 도구에서 실제로 쓰는 구분과 버린 구분을 확인하는 것',
+    advice: '사용 목적을 충족하는 최소 구분부터 시험하고 유지 여부는 실제 기록으로 확인한다.',
+    forbidden_generalization: '정해진 항목 수나 가계부 방식이면 누구나 돈을 모은다고 단정하지 않는다.',
+  },
+  'sav-012': {
+    topic: '해석은 재무·투자 판단을 대신하지 않는다',
+    concept: '명리 해석은 질문 후보를 제공할 뿐 금융상품·대출·투자 결정을 내리지 않는다',
+    condition: '리포트의 한계와 사용자가 추가로 확인할 재무 조건을 정리하는 마무리에 적용한다.',
+    interpretation: '이 해석은 입력 사실, 계산값, 상징적 해석 후보, 가상 사례를 구분한다. 상품 선택, 수익, 손실, 세금, 대출, 보험, 채무 조정은 여기서 확정하지 않는다.',
+    real_world_pattern: ['가상 사례: 리포트 질문을 실제 거래 내역 점검으로 바꾸는 경우', '가상 사례: 투자·세금·채무 쟁점을 자격 있는 전문가나 공적 상담 창구에 확인하는 경우'],
+    risk: '운세를 투자 권유, 수익 예측, 대출 또는 보험 판단으로 사용하는 것',
+    opportunity: '확인된 사실과 아직 전문가 확인이 필요한 쟁점을 분리하는 것',
+    advice: '감당하기 어려운 채무는 신용회복위원회 등 공적 상담 창구에 확인하고, 투자·세금·법률 판단은 적절한 전문가에게 묻는다.',
+    forbidden_generalization: '운이 좋으면 투자에 성공하거나 관리 규칙만으로 채무가 해결된다고 단정하지 않는다.',
+  },
+}
+
+const ids = Array.from({ length: 12 }, (_, i) => `sav-${String(i + 1).padStart(3, '0')}`)
+if (source.knowledgeBlocks.length !== ids.length || ids.some((id) => !sourceById.has(id) || !content[id])) {
+  throw new Error('money_save source IDs do not match the reviewed 12-block contract')
+}
+
+const candidate = {
+  version: '2.1.0',
+  domain: source.domain,
+  description: '돈관리 질문을 입력 사실·계산값·상징적 해석 후보·가상 사례로 구분하고 임의 금액·기간·수익 처방을 금지한 검수 완료 전용 블록.',
+  safety: source.safety,
+  release: { state: 'candidate', previousVersion: source.version, previousPath: oldPath, semanticReview: reviewPath, sampleOutputsIngested: false },
+  knowledgeBlocks: ids.map((id) => ({ id, topic: content[id].topic, keywords: sourceById.get(id).keywords, ...Object.fromEntries(Object.entries(content[id]).filter(([key]) => key !== 'topic')), confidence: id === 'sav-012' ? 'high' : 'medium' })),
+}
+writeJson(newPath, candidate)
+
+const candidateHash = fileHash(newPath)
+const checks = { inputBoundary: true, calculatedValueBoundary: true, symbolicInterpretationBoundary: true, hypotheticalExampleBoundary: true, numericProvenance: true, financialSafety: true, nonDeterministicOutcome: true, noShaming: true }
+writeJson(reviewPath, {
+  schemaVersion: '1.0.0', serviceKey: 'money_save', corpusVersion: candidate.version, status: 'approved',
+  sourcePath: newPath, sourceSha256: candidateHash,
+  reviewedAgainst: ['tone-v2/README.md', 'tone-v2/generated/manifest.json'],
+  sampleOutputsIngested: false,
+  reviewMethod: 'explicit block-by-block financial evidence and semantic boundary review with executable hash assertions',
+  blocks: ids.map((id) => ({ id, status: 'pass', checks })),
+})
+
+const prompt = readJson(promptManifestPath)
+const verification = existsSync(join(root, verificationPath)) ? readJson(verificationPath) : undefined
+writeJson(releasePath, {
+  schemaVersion: '1.0.0', releaseId: 'money-save-corpus-2.1.0', serviceKey: 'money_save', state: 'candidate', deployed: false,
+  promptBundle: { version: prompt.version, sourceFingerprint: prompt.sourceFingerprint, releaseReadyAtSource: prompt.releaseReady },
+  corpus: {
+    previous: { path: oldPath, version: source.version, sha256: fileHash(oldPath) },
+    candidate: { path: newPath, version: candidate.version, sha256: candidateHash },
+    semanticReview: reviewPath,
+  },
+  generationEvidence: null,
+  generationEvidenceReason: 'No money_save provider output evaluation was run or found for this corpus-only Task.',
+  verificationEvidence: verification ? verificationPath : null,
+  attachment: { newReportsOnly: true, storedSnapshotRequired: true, customerRecordMutation: false },
+  rollback: { strategy: 'registry_only', restorePath: oldPath, restoreVersion: source.version, customerRecordRewrite: false },
+  gates: {
+    semanticReview: 'pass_12_of_12', sampleOutputIngestion: 'none', snapshotPinnedRag: 'required', providerOutputEvaluation: 'not_run',
+    focusedTests: verification?.verification?.focusedTests ?? 'pending', fullTests: verification?.verification?.fullTests ?? 'pending',
+    typecheck: verification?.verification?.typecheck ?? 'pending', build: verification?.verification?.vercelBuild ?? 'pending',
+    codexReview: verification?.verification?.codexReview ?? 'pending',
+  },
+})
+
+console.log(JSON.stringify({ candidate: newPath, review: reviewPath, release: releasePath, sha256: candidateHash }))

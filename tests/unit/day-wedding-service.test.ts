@@ -34,11 +34,11 @@ const INPUT = parseWeddingRequest({
   familyLimit: '특정 주말만 가능',
 })
 
-test('택일 목차는 6 대분류 21 중분류를 유지한다', () => {
+test('택일 목차는 6 대분류 20 중분류를 유지한다', () => {
   assert.equal(WEDDING_TOC.length, 6)
-  assert.equal(allItems.length, 21)
+  assert.equal(allItems.length, 20)
   // 05 목차와 06 상세가 이 id 로 라우팅하므로 중복이 있으면 상세가 엉뚱한 항목을 연다.
-  assert.equal(new Set(allItems.map((item) => item.id)).size, 21)
+  assert.equal(new Set(allItems.map((item) => item.id)).size, 20)
   for (const group of WEDDING_TOC) {
     for (const item of group.items as readonly TocItem[]) {
       assert.match(item.id, new RegExp(`^${group.number}-\\d+$`))
@@ -121,7 +121,7 @@ test('후보일이 없으면 판정 없이도 리포트가 선다', () => {
   assert.equal(frame.candidates.length, 0)
   assert.equal(frame.best, null)
   const report = buildWeddingReport(analyzeSaju(BIRTH), BIRTH, buildWeddingContext('정재용', empty), empty)
-  assert.equal(report.sections.length, 21)
+  assert.equal(report.sections.length, 20)
   for (const section of report.sections) {
     assert.ok(section.interpretation.length > 40, `${section.id} 해석이 비었다`)
   }
@@ -129,7 +129,7 @@ test('후보일이 없으면 판정 없이도 리포트가 선다', () => {
 
 test('리포트는 중분류마다 섹션 하나를 채운다', () => {
   const report = buildWeddingReport(analyzeSaju(BIRTH), BIRTH, buildWeddingContext('정재용', INPUT), INPUT)
-  assert.equal(report.sections.length, 21)
+  assert.equal(report.sections.length, 20)
   assert.equal(report.generatedBy, 'template')
   assert.deepEqual(report.sections.map((s) => s.id), allItems.map((i) => i.id))
   for (const section of report.sections) {
@@ -162,7 +162,7 @@ test('무료 티저는 후보일 판정을 앞세우고 유료 범위를 숨기�
   assert.ok(teaser.lines.some((line) => line.includes('甲午')))
   assert.ok(teaser.lines.some((line) => line.includes('선고하지 않습니다')))
   assert.equal(teaser.scope.length, 6)
-  assert.equal(teaser.scope.reduce((n, group) => n + group.items.length, 0), 21)
+  assert.equal(teaser.scope.reduce((n, group) => n + group.items.length, 0), 20)
 })
 test('동일 후보일도 상대나 준비 조건이 달라지면 별도 해석으로 저장한다', () => {
   const analysis = analyzeSaju(BIRTH)

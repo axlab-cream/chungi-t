@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-love-this-year-corpus-rag-release-candidate",
+  "status": "pass",
+  "date": "2026-09-13",
+  "serviceKey": "love_this_year",
+  "corpusVersion": "2.1.0",
+  "scope": { "blocksReviewed": 10, "providerCalls": 0, "productionChanges": 0, "customerRecordMutations": 0, "routingChanges": 0 },
+  "tdd": { "red": "2/9 pass, 7/9 fail before candidate artifacts and registry activation", "green": "9/9 pass after semantic review, versioned candidate and registry activation" },
+  "verification": {
+    "focusedTests": "9/9 pass",
+    "relatedTests": "238/238 pass across 28 suites",
+    "fullTests": "880/880 pass across 121 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQ entries, 19 sitemap URLs and SEO checks",
+    "deterministicBuilder": "pass; consecutive SHA-256 bc26deedce4069b6031d7941601975ffb4dfc8e26619ff012b9214c37dd79733",
+    "credentialBoundary": "pass; zero credential findings in Task artifacts",
+    "codexReview": "approved_with_comments; critical 0, major 0, minor 0"
+  },
+  "limitations": [
+    "No provider output was generated or evaluated for corpus 2.1.0.",
+    "No Production deployment, customer-record mutation or routing change was performed.",
+    "CreamWIKI remote operations require an authenticated CLI session."
+  ]
+}

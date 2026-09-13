@@ -1,0 +1,61 @@
+{
+  "task_id": "task-tone-v2-p01-adjacent-next-criterion",
+  "evaluated_at": "2026-09-12",
+  "service": "pass_angle",
+  "version_key": "p01-pass-angle-scene-rerun-20260912-1",
+  "root_cause": "The previous nextCriterion matcher required the plan/time marker and concrete action in the same sentence, so it missed an immediately adjacent plan-setting sentence followed by a targeted action.",
+  "method": {
+    "red_1": "The exact clean attempt-2 structure failed only the new positive nextCriterion assertion.",
+    "green_1": "An adjacency-bounded helper recognized a plan-setting sentence followed immediately by a particle-marked concrete action.",
+    "red_2": "A new counterexample showed that the action prefix in '기록해 보지 마' was incorrectly accepted.",
+    "green_2": "The helper now rejects negated action suffixes while retaining the real attempt-2 positive.",
+    "provider_called": false,
+    "review_hardening": "Independent review added concrete-target enforcement to same-sentence candidates, prefix/topic negation, past/perfect auxiliaries, morphologically bounded abandonment, safe anti-abandonment, and logistics counterexamples."
+  },
+  "historical_record": {
+    "report_id": "d1d5fefcbf022006aec2aecf28f9",
+    "result_id": "a1fce3c0-40a4-44d0-b1d1-38354c0960dc",
+    "record_sha256": "1423900f1e5e74739e3dec8ba8cac58c3c1f826e7560ef12c3e949bfd1687a24",
+    "persisted_status": "failed",
+    "rewritten": false
+  },
+  "replayed_attempt": {
+    "id": "5f438f74-beb8-4bb1-9089-b7e656145a1d",
+    "raw_sha256": "4c6c42c0aa18c0d0dd9e8ed80b21dc293089db03f12630dea1aa97f1aa0323e0",
+    "prose_sha256": "127e800f58a3d39db093ebe4cdc611d7201255c4d1dd73ea47486ce1a823ab16",
+    "before": {
+      "passed": false,
+      "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": false }
+    },
+    "after": {
+      "passed": true,
+      "issues": [],
+      "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": true }
+    }
+  },
+  "negative_boundaries": {
+    "vague_encouragement": "PASS",
+    "targetless_action": "PASS",
+    "past_report": "PASS",
+    "negated_action": "PASS",
+    "abandonment": "PASS",
+    "non_adjacent_action": "PASS"
+  },
+  "verification": {
+    "focused": "33/33 PASS",
+    "related": "60/60 PASS",
+    "compiler_task": "7/7 PASS",
+    "full_regression": "675/675 PASS; 101 suites",
+    "typecheck": "PASS",
+    "vercel_build": "PASS",
+    "diff_check": "PASS; line-ending warnings only",
+    "independent_review": "Approved; Critical 0 / Major 0 / Minor 0"
+  },
+  "scope": {
+    "prompt_provider_model_retry_changed": false,
+    "new_provider_call": false,
+    "historical_record_mutated": false,
+    "ui_database_auth_payment_changed": false,
+    "commit_push_deploy_production": false
+  }
+}

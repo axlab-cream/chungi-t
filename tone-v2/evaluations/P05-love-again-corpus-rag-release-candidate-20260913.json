@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-love-again-corpus-rag-release-candidate",
+  "status": "pass",
+  "scope": "local release candidate only",
+  "verification": {
+    "focusedTests": "pass_8_of_8",
+    "relatedTests": "pass_88_of_88",
+    "fullTests": "pass_791_of_791_110_suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  },
+  "providerOutputEvaluation": "not_run",
+  "production": "not_run",
+  "customerDataMutation": false
+}

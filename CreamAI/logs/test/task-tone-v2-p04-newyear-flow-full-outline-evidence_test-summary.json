@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-newyear-flow-full-outline-evidence",
+  "status": "pass",
+  "date": "2026-09-13",
+  "provider": { "syntheticOnly": true, "isolated": true, "completedSections": 36, "expectedSections": 36, "replayPassed": 36, "replayFailed": 0 },
+  "verification": {
+    "focusedAndRelated": { "passed": 23, "failed": 0 },
+    "full": { "passed": 897, "failed": 0, "suites": 122 },
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "credentialFindings": 0,
+    "review": "approved_codex_review",
+    "projectOpsImplementation": "known broad-scan false positive; see credential-boundary evidence"
+  },
+  "notRun": ["production deployment", "production customer mutation", "commit", "push"]
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "money-save-corpus-2.1.0",
+  "serviceKey": "money_save",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/money-save-service.json",
+      "version": "2.0.0",
+      "sha256": "b83146315967e2a53c5a70dfe61c21da3a7bbdca1b41bf54bdca542b22c6b8a7"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/money-save-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "a0c0545b0073ee760f281d5f57c270a543b85f169c715cbbcfd9eb93c24446cc"
+    },
+    "semanticReview": "tone-v2/corpus-review/money-save-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No money_save provider output evaluation was run or found for this corpus-only Task.",
+  "verificationEvidence": "tone-v2/evaluations/P05-money-save-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/money-save-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_12_of_12",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_735_of_735_across_103_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  }
+}

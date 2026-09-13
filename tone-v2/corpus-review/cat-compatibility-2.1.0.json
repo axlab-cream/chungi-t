@@ -1,0 +1,625 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "cat_compatibility",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/cat-compatibility-service-2.1.0.json",
+  "sourceSha256": "7e61f6de79fd4256a6159182f3fe41a449de3620ab2d96bf05a9bee2fef07455",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/cat_compatibility.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit user observation, guardian calculation, symbol, unknown animal state, welfare, veterinary, household applicability, numeric and outcome review",
+  "blocks": [
+    {
+      "id": "cat-001",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-002",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-003",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-004",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-005",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-006",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-007",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-008",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-009",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-010",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-011",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-012",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-013",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-014",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-015",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-016",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-017",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-018",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-019",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-020",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-021",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-022",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-023",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-024",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-025",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-026",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-027",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-028",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-029",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-030",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-031",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-032",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-033",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-034",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-035",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-036",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-037",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "cat-038",
+      "status": "pass",
+      "checks": {
+        "userObservationBoundary": true,
+        "guardianCalculationBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownCatStateBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "animalWelfareBoundary": true,
+        "veterinaryBoundary": true,
+        "householdApplicabilityBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    }
+  ]
+}

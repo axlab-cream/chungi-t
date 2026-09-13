@@ -30,7 +30,15 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
     draft.auxiliary = { ...draft.auxiliary, todayFortune: fortune }
     draft.status = draft.report.status = 'complete'
     draft.report.model = 'daily-rules-v3'
-    draft.report.sections.forEach((section) => { section.status = 'complete'; section.model = 'daily-rules-v3'; section.generatedAt = new Date().toISOString() })
+    draft.report.sections.forEach((section) => {
+      const calculated = templateReport.sections.find(item => item.id === section.id)
+      if (!calculated) throw new Error('DAILY_READING_SECTION_MISSING')
+      section.hook = calculated.hook
+      section.interpretation = calculated.interpretation
+      section.status = 'complete'
+      section.model = 'daily-rules-v3'
+      section.generatedAt = new Date().toISOString()
+    })
   })
   if (!saved) throw new Error('오늘의 운세를 저장하지 못했습니다.')
   return saved

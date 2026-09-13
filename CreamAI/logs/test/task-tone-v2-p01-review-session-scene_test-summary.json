@@ -1,0 +1,27 @@
+{
+  "task_id": "task-tone-v2-p01-review-session-scene",
+  "date": "2026-09-12",
+  "checks": [
+    {
+      "name": "focused review", "status": "PASS", "detail": "tone-v2-generation 32/32"
+    },
+    { "name": "related regression", "status": "PASS", "detail": "59/59" },
+    { "name": "compiler and task coverage", "status": "PASS", "detail": "7/7" },
+    { "name": "full regression", "status": "PASS", "detail": "674/674, 101 suites; tone-v2/latest-regression.log" },
+    { "name": "typecheck", "status": "PASS" },
+    { "name": "vercel build", "status": "PASS" },
+    { "name": "tracked diff check", "status": "PASS", "detail": "line-ending warnings only" },
+    { "name": "explicit slice whitespace and conflict check", "status": "PASS", "detail": "includes untracked Task files" },
+    { "name": "immutable provider replay", "status": "PASS", "detail": "density 4/4; historical persisted status remains failed" }
+  ],
+  "commands": [
+    "npx tsx --test --test-concurrency=1 tests/unit/tone-v2-generation.test.ts tests/unit/report-persistence.test.ts tests/unit/report-content-guards.test.ts tests/unit/reading-live-harness.test.ts",
+    "node --test tone-v2/compile.test.mjs tone-v2/task-index.test.mjs",
+    "npx tsx --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=tone-v2/latest-regression.log tests/unit/*.test.ts",
+    "npm run typecheck",
+    "npm run vercel-build",
+    "git diff --check",
+    "boundary-aware credential and explicit slice whitespace/conflict checks"
+  ],
+  "production_mutation": false
+}

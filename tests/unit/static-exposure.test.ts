@@ -196,7 +196,10 @@ describe('배포 라우팅이 정적 레이어를 거치지 않는다', () => {
     it('함수 번들에는 여전히 필요한 파일이 들어간다', () => {
       // 노출을 막는 것과 함수가 파일을 읽는 것은 다른 문제다.
       // `admin-ui` 는 정적 루트 밖에 있지만 함수는 그 파일을 읽어야 한다(ADR-0002 D1).
-      assert.equal(config.functions['api/index.ts'].includeFiles, '{admin-ui,data,prompts,사주}/**')
+      assert.equal(
+        config.functions['api/index.ts'].includeFiles,
+        '{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md}',
+      )
     })
   })
 })

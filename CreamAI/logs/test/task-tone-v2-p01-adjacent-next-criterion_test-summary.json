@@ -1,0 +1,20 @@
+{
+  "task_id": "task-tone-v2-p01-adjacent-next-criterion",
+  "status": "PASS",
+  "focused": "33/33 PASS",
+  "related": "60/60 PASS",
+  "compiler_task": "7/7 PASS",
+  "full_regression": "675/675 PASS; 101 suites",
+  "typecheck": "PASS",
+  "vercel_build": "PASS",
+  "saved_replay": "density 4/4 PASS; historical failed record and SHA-256 unchanged",
+  "diff_check": "PASS; line-ending warnings only",
+  "independent_review": "Approved; Critical 0 / Major 0 / Minor 0",
+  "projectops": {
+    "implementation": "FAIL: known broad secret-pattern false positive on task-tone identifier",
+    "boundary_aware_credential_scan": "PASS; 0 hits",
+    "test": "WARN: CreamAI child package has no test script; root results above are authoritative",
+    "rag": "PASS",
+    "release": "PASS"
+  }
+}

@@ -26,6 +26,7 @@
   var pollTimer = null;
   var resuming = new Set();
   var booting = false;
+  var printOpenedSections = [];
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   function canonical(value) { return ALIASES[value] || value; }
   function identity(payload) { return payload && (payload.resultId || payload.publicId || payload.reportId || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))) || ''; }
@@ -100,6 +101,22 @@
     var node = panel();
     node.innerHTML = navigation() + '<h1 style="font-size:24px">저장된 해석 확인</h1><p>' + escapeHtml(message) + '</p><a style="color:#e5bd69" href="/signup?entry=saved-report&returnTo='+encodeURIComponent(location.pathname+location.search)+'#login">로그인</a> · <a href="' + escapeHtml(route ? route[0] : '/') + '">서비스로 돌아가기</a>';
   }
+  function labelText(value) { return String(value == null ? '' : value).trim().replace(/[.。]+$/, ''); }
+  function readingBlock(kind, label, paragraphs) {
+    if (!paragraphs.length) return '';
+    return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + paragraphs.map(function(paragraph){return '<p>' + escapeHtml(paragraph) + '</p>';}).join('') + '</section>';
+  }
+  function readySectionBody(section) {
+    var interpretation = String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim();
+    var hook = String(section.hook || '').trim();
+    if (hook && interpretation.indexOf(hook) === 0) interpretation = interpretation.slice(hook.length).trim();
+    var paragraphs = interpretation.split(/\n\s*\n/).map(function(paragraph){return paragraph.trim();}).filter(Boolean);
+    var answer = hook ? readingBlock('answer', '한 줄 답', [hook]) : '';
+    if (paragraphs.length >= 2) {
+      return answer + readingBlock('evidence', '근거', paragraphs.slice(0, -1)) + readingBlock('action', '행동', paragraphs.slice(-1));
+    }
+    return answer + readingBlock('evidence', '근거와 행동', paragraphs);
+  }
   function showPreview(payload, request) {
     authorized = null;
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
@@ -107,7 +124,7 @@
     var preview = payload.preview || {};
     var insights = (preview.signals || preview.insights || []).filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
     var node = panel();
-    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 내 입력으로 먼저 보는 해석</span><h1 style="font-size:26px">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p>' + escapeHtml(preview.summary || '') + '</p>' + insights.map(function(line){return '<p>' + escapeHtml(line) + '</p>';}).join('') + '<hr><h2 style="font-size:20px">전체 풀이에서 더 확인할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p><a id="umsh-preview-checkout" style="display:block;margin-top:20px;padding:12px;text-align:center;background:#e5bd69;color:#171109;border-radius:10px" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 열어보기</a><p style="font-size:13px">현재 미리보기는 결제 전 확인할 수 있는 범위입니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
+    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 내 입력으로 먼저 보는 해석</span><h1 style="font-size:26px">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p>' + escapeHtml(preview.summary || '') + '</p>' + insights.map(function(line){return '<p>' + escapeHtml(line) + '</p>';}).join('') + '<hr><h2 style="font-size:20px">전체 풀이에서 더 확인할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p><a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p style="font-size:13px">현재 미리보기는 결제 전 확인할 수 있는 범위입니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
     if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search);
   }
   function showReport(payload) {
@@ -123,12 +140,19 @@
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});
     node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 저장된 전체 해석</span><h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p><p style="font-size:13px">이 주소로 다시 열면 같은 해석을 확인합니다.</p>' + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
-      var body = ready ? String(section.interpretation).split(/\n\s*\n/).filter(Boolean).map(function(paragraph){return '<p style="white-space:pre-wrap">' + escapeHtml(paragraph) + '</p>';}).join('') : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" style="padding:10px 14px;border:1px solid #6b522c;background:#211a11;color:#f5ead7;border-radius:8px;cursor:pointer" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
-      var duplicateHook=section.hook && String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim().startsWith(section.hook);
-      return '<details data-section="' + escapeHtml(section.id) + '" style="border-top:1px solid #6b522c;padding:18px 0"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary style="cursor:pointer;font-weight:700">' + escapeHtml(section.category + ' · ' + section.classification) + '</summary>' + (ready && section.hook && !duplicateHook?'<p><strong>'+escapeHtml(section.hook)+'</strong></p>':'') + body + '</details>';
+      var body = ready ? readySectionBody(section) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
+      return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' + body + '</details>';
     }).join('');
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+  }
+  function expandReportForPrint() {
+    printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));
+    printOpenedSections.forEach(function (item) { item.setAttribute('open', ''); });
+  }
+  function restoreReportAfterPrint() {
+    printOpenedSections.forEach(function (item) { item.removeAttribute('open'); });
+    printOpenedSections = [];
   }
   function validTodayScore(value) {
     return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100 ? value : null;
@@ -257,6 +281,10 @@
   }
   global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,verifiedReport:function(){return authorized;},identity:identity};
   if (typeof document !== 'undefined') {
+    if (global.addEventListener) {
+      global.addEventListener('beforeprint', expandReportForPrint);
+      global.addEventListener('afterprint', restoreReportAfterPrint);
+    }
     if(key && isOutputPage() && document.documentElement && document.head) {
       document.documentElement.setAttribute('data-umsh-report-check','');
       var guard=document.createElement('style');

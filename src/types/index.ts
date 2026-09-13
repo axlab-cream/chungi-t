@@ -395,6 +395,7 @@ export interface CorpusPackSnapshot {
   path: string
   kind: 'chunks' | 'structured' | 'templates'
   domain: string
+  serviceKey?: string
   status: 'active' | 'paused' | 'deprecated'
   role: string
   version: string

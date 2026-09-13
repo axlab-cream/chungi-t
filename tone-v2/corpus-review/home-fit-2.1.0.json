@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "home_fit",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/home-fit-service-2.1.0.json",
+  "sourceSha256": "0b382fa9e321305e5836c4d62b6a7ec2a3ade3d1fa0419c88c1d1d9082e46921",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit observation, measurement, missing-value, symbolic, physical, health, financial, property and contract review",
+  "blocks": [
+    {
+      "id": "hfit-001",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-002",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-003",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-004",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-005",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-006",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-007",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-008",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-009",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-010",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-011",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    },
+    {
+      "id": "hfit-012",
+      "status": "pass",
+      "checks": {
+        "inputObservationBoundary": true,
+        "serverMeasurementBoundary": true,
+        "missingValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "physicalHealthBoundary": true,
+        "financialRelationshipPropertyBoundary": true,
+        "professionalDecisionBoundary": true
+      }
+    }
+  ]
+}

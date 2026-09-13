@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p01-review-session-scene",
+  "mode": "test",
+  "timestamp": "2026-09-12T15:43:50.1308829+09:00",
+  "checks": [
+    {
+      "name": "npm test script",
+      "status": "WARN",
+      "detail": "package.json has no test script"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

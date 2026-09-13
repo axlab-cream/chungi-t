@@ -1,0 +1,19 @@
+﻿{
+    "task_id":  "task-tone-v2-p05-match-couple-corpus-rag-release-candidate",
+    "mode":  "test",
+    "timestamp":  "2026-09-13T06:08:56.7112682+09:00",
+    "checks":  [
+                   {
+                       "name":  "npm test script",
+                       "status":  "WARN",
+                       "detail":  "package.json has no test script"
+                   }
+               ],
+    "commands":  [
+
+                 ],
+    "warnings":  [
+
+                 ],
+    "failed":  false
+}

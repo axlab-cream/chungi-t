@@ -1,0 +1,39 @@
+{
+  "task_id": "task-tone-v2-p04-repair-invariant-preservation",
+  "result": "implementation_pass_business_acceptance_fail",
+  "failed": false,
+  "checks": [
+    { "name": "tdd_red", "status": "EXPECTED_FAIL", "detail": "report-persistence repair invariant assertions: 9/10 passed before implementation" },
+    { "name": "tdd_green", "status": "PASS", "detail": "report-persistence repair invariant assertions: 10/10 passed after implementation" },
+    { "name": "focused_related", "status": "PASS", "detail": "48/48 tests passed across tone-v2-generation, reading-live-harness, and report-persistence" },
+    { "name": "full_regression", "status": "PASS", "detail": "682/682 tests passed across 101 suites; duration 125255.0748 ms" },
+    { "name": "compiler_task", "status": "PASS", "detail": "7/7 tests passed" },
+    { "name": "typecheck", "status": "PASS" },
+    { "name": "vercel_build", "status": "PASS" },
+    { "name": "git_diff_check", "status": "PASS", "detail": "CRLF warnings only" },
+    { "name": "provider_first_item", "status": "BUSINESS_ACCEPTANCE_FAIL", "detail": "0/52 complete; attempt 1 failed paragraph structure only; attempt 2 failed nextCriterion only; attemptedAfterFailure=0; attemptedOutsideLimit=0" },
+    { "name": "projectops", "status": "PASS_WITH_WARNING", "detail": "preflight, implementation, test, rag, and release modes exited 0; test mode inspected the nested CreamAI package and reported no npm test script, so repository-root evidence above is authoritative" },
+    { "name": "external_review", "status": "APPROVED_WITH_COMMENTS", "detail": "Critical=0, Major=0; requested only durable report and machine-readable evidence backfill" }
+  ],
+  "provider_evidence": {
+    "version": "p04-repair-invariant-preservation-20260912-1",
+    "report_id": "b374b69b51883801812d010c43cb",
+    "result_id": "310c253b-5cc1-491b-922e-ab90a65f3907",
+    "record_sha256": "1533c721bd4e1058e5e37e47b6ce99180b7f09312d270d247e7a281dfe165aac",
+    "model": "gpt-5.5-2026-04-23",
+    "progress": "0/52",
+    "attempted_after_failure": 0,
+    "attempted_outside_limit": 0
+  },
+  "commands": [
+    "npx tsx --test tests/unit/report-persistence.test.ts",
+    "npx tsx --test tests/unit/tone-v2-generation.test.ts tests/unit/reading-live-harness.test.ts tests/unit/report-persistence.test.ts",
+    "npm test",
+    "npm run typecheck",
+    "npm run vercel-build",
+    "git diff --check",
+    "npx tsx scripts/check-pass-angle-outline-live.ts --version=p04-repair-invariant-preservation-20260912-1 --limit=1",
+    "npx tsx scripts/check-pass-angle-outline-live.ts --version=p04-repair-invariant-preservation-20260912-1 --limit=1 --generate --fresh"
+  ],
+  "sensitive_data_stored": false
+}

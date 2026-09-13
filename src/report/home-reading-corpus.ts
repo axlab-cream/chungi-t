@@ -1,5 +1,5 @@
 import { buildCorpusIndex } from '../rag/retriever.js'
-import type { RagChunk } from '../types/index.js'
+import type { CorpusSnapshot, RagChunk } from '../types/index.js'
 
 export const HOME_READING_SECTIONS = [
   'home-fit-overall', 'terrain-support', 'external-flow', 'light-air-noise',
@@ -23,11 +23,11 @@ const HOME_SECTION_CONTRACTS: Record<string, string> = {
 }
 
 /** Dedicated section knowledge must not be displaced by shared room keywords. */
-export function homeReadingCorpus(sectionId: string): RagChunk[] {
+export function homeReadingCorpus(sectionId: string, corpusSnapshot?: CorpusSnapshot): RagChunk[] {
   const index = HOME_READING_SECTIONS.findIndex(id => id === sectionId)
   if (index < 0) throw new Error('UNKNOWN_HOME_READING_SECTION')
   const id = `hfit-${String(index + 1).padStart(3, '0')}`
-  const chunks = buildCorpusIndex().filter(chunk => chunk.id === id && chunk.domain === 'home_fit_service')
+  const chunks = buildCorpusIndex(corpusSnapshot).filter(chunk => chunk.id === id && chunk.domain === 'home_fit_service')
   if (chunks.length !== 1) throw new Error('HOME_READING_CORPUS_MISSING')
   return chunks
 }
@@ -36,19 +36,19 @@ export function homeReadingCorpus(sectionId: string): RagChunk[] {
 export function homeReadingInstruction(sectionId: string): string {
   if (!HOME_READING_SECTIONS.some(id => id === sectionId)) throw new Error('UNKNOWN_HOME_READING_SECTION')
   return [
-    '현재 제목에 대한 결론이나 우선순위부터 답하세요. 한국어 1200~2200자, 5~8개 의미 단락. 근거가 적으면 반복으로 분량을 늘리지 마세요.',
+    '현재 제목에 대한 결론이나 우선순위부터 답하세요. 항목에 맞는 의미 단락으로 나누고 근거가 적으면 반복으로 분량을 늘리지 마세요.',
     '모든 단락에 25자 안팎의 구체적인 [소제목]을 붙이세요. hook은 본문 요약 한 문장으로 쓰고 제목 표식을 넣지 마세요.',
     '현재 주제의 생활 장면과 판단 이유, 유지할 강점 또는 우선 행동을 설명하세요. 위기·문제·해법을 모든 항목에 강제하지 마세요.',
-    '한 장의 리듬은 훅성 소제목 → 결론 2문장 → 근거 라벨 2~4개 → 비교 해설 → 공간/행동 팩폭 1개 → 오늘/7일/필요시 30일 행동입니다.',
+    '판단과 관찰 근거, 관련 공간의 생활 장면, 다음 선택 기준을 담되 모든 항목에 같은 문장 순서를 반복하지 마세요.',
     '근거 라벨은 고객용 한국어로 쓰세요: 터 유사도, 측정값, 사용자 체감, 계산값, 전통 상징. 원문 라벨과 내부 지형 필드명, 결손 안내 표현은 노출하지 마세요.',
-    '행동 처방에는 비용, 난이도, 관찰 지표를 붙이세요. 예: 오늘: 비용 0원 · 난이도 1 · 관찰 지표 아침 몸무게감.',
+    '행동에는 확인할 대상을 붙이세요. 비용·기간·난이도 점수는 실제 입력이나 검증된 근거 없이 만들지 마세요.',
     `section_contract: ${HOME_SECTION_CONTRACTS[sectionId]}`,
     '입력→명리 소개의 공통 구조보다 이 집 풍수 전용 규칙을 우선합니다. 근거는 이유 속에 짧게 쓰고, 등록값을 다시 읽어주지 마세요.',
     sectionId === 'home-fit-overall' ? '전체 입력과 배치 요약은 이 항목에서만 한 문단 이내로 합니다.' : '주소·집 종류·거주 기간·고민을 도입에서 요약하지 마세요. 확인된 입력/입력하셨죠/현재 항목이라는 제작 문구를 쓰지 마세요.',
     sectionId === 'saju-house-ohaeng' ? '일간·명식·연간 흐름을 설명하는 전용 항목입니다. 한자는 쓰지 말고 한글 용어와 쉬운 뜻으로만 설명하세요. 지형 데이터 상태나 결손은 언급하지 말고, 확인된 사주 계산과 집의 생활 목적만 연결하세요. 전체 용신이 미확인일 때 개인 보완 오행을 정하지 마세요.' : '일간의 정의나 정화는 작은 불 같은 원국 소개를 다시 하지 마세요. 전통적 근거는 현재 판단에 필요한 경우만 이유 한 문장으로 연결하세요.',
     '모든 공간 비교는 1번 전용. 2번은 터, 3번은 물길·도로·바람, 4번은 빛·공기·소음, 5번은 건물/세대, 6번은 현관, 7번은 침실, 8번은 책상, 9번은 살림/돈, 10번은 관계, 11번은 사주 오행, 12번은 실행 순서를 다룹니다.',
     '다른 항목과 같은 장면·비유·결론을 되풀이하지 마세요. 사례는 예를 들어 …라면 형태로 실제 고객 경험과 구분하세요.',
-    sectionId === 'terrain-support' ? '터 항목은 “터 유사도”를 기준으로 말하세요. API 유사도 점수나 터 타입이 있으면 그대로 쓰고, 없으면 숫자를 만들지 말고 “비슷한 터의 생활 패턴”처럼 결손 노출 없이 설명하세요.' : '없는 점수·방위·사건·지역 사례를 만들지 마세요. 확인된 사실에는 분명히 답하고, 모르는 조건은 필요한 확인과 그에 따른 선택으로 연결하세요.',
+    sectionId === 'terrain-support' ? '터 항목은 “터 유사도”를 기준으로 말하세요. API 유사도 점수나 터 타입이 있으면 그대로 쓰고, 없으면 숫자나 비슷한 터의 생활 패턴으로 채우지 말고 사용자가 직접 확인할 이동 장면과 관찰 기준만 안내하세요.' : '없는 점수·방위·사건·지역 사례를 만들지 마세요. 확인된 사실에는 분명히 답하고, 모르는 조건은 필요한 확인과 그에 따른 선택으로 연결하세요.',
     '몇 분 안에 몸이 풀리면 집이 맞다, 며칠 좋아지면 궁합이 좋다처럼 임의 시간·횟수를 적합성 판정 기준으로 만들지 마세요. 관찰은 원인 후보를 좁히는 용도로만 쓰세요.',
   ].join('\n')
 }
@@ -64,7 +64,11 @@ export function reviewHomeNarrative(text: string, sectionId: string): string[] {
   if (/\b(?:MEASURED|USER_REPORTED|DERIVED|TRADITIONAL|UNKNOWN)\b/.test(text)) issues.push('내부 근거 라벨 대신 터 유사도·측정값·사용자 체감·계산값·전통 상징처럼 고객용 라벨을 쓰세요.')
   if (/측정\s*전|자료\s*(?:없|미확인|부족)|DEM|고도|사면|능선|골짜기/.test(text)) issues.push('고객 본문에는 데이터 결손이나 DEM·사면 같은 내부 지형 항목을 직접 노출하지 마세요. 터 유사도와 생활 패턴으로 번역하세요.')
   if (!/(터 유사도|측정값|사용자 체감|계산값|전통 상징)/.test(text)) issues.push('근거의 성격을 고객용 라벨로 최소 1회 밝혀 주세요.')
-  if (!/(오늘|7일)[^.\n]{0,60}(비용|난이도|관찰 지표)/.test(text)) issues.push('행동 처방에는 오늘 또는 7일 기준과 비용·난이도·관찰 지표 중 하나 이상을 붙이세요.')
+  // Headings and bare imperatives are not evidence of an observable action.
+  const prose = text.replace(/^\s*\[[^\]\n]+\]/gm, '')
+  const hasTarget = /관찰\s*(?:지표|대상)(?:은|는|:)[^.!?\n]{4,}/.test(prose)
+    || /(?:[가-힣]{2,}[을를]|[가-힣]+는지|[가-힣]+인지)\s*(?:직접\s*|먼저\s*|다시\s*)?(?:확인|관찰|비교|기록|살펴)/.test(prose)
+  if (!hasTarget) issues.push('행동에서 실제 확인하거나 관찰할 대상을 밝혀 주세요.')
   const rooms = ['현관','침실','책상','창밖'].filter(word => text.includes(word))
   if (sectionId !== 'home-fit-overall' && rooms.length >= 3) issues.push('전체 공간 순회는 1번 전용입니다. 현재 제목과 관련 없는 공간 설명을 빼세요.')
   if (/(?:풀리면|풀린다면|좋아지면|나아지면|가벼워지면)[^.\n]{0,40}(?:집[^.\n]{0,12}(?:맞|적합)|궁합|기본 결은 맞)/.test(text)) issues.push('짧은 체감 변화로 집 적합성이나 궁합을 판정하지 마세요. 관찰은 원인 후보를 좁히는 용도로만 쓰세요.')

@@ -1,0 +1,46 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-item3-recovery",
+  "status": "PASS",
+  "date": "2026-09-13",
+  "red": {
+    "command": "npx tsx --test tests/unit/report-persistence.test.ts",
+    "passed": 0,
+    "failed": 1,
+    "expected_reason": "explicit recovery export was absent"
+  },
+  "focused": {
+    "command": "npx tsx --test tests/unit/report-persistence.test.ts",
+    "passed": 13,
+    "failed": 0
+  },
+  "related": {
+    "command": "npx tsx --test tests/unit/report-persistence.test.ts tests/unit/tone-v2-generation.test.ts",
+    "passed": 53,
+    "failed": 0
+  },
+  "compiler_and_task": {
+    "command": "node --test tone-v2/compile.test.mjs tone-v2/task-index.test.mjs",
+    "passed": 7,
+    "failed": 0
+  },
+  "full": {
+    "command": "npm test",
+    "passed": 690,
+    "failed": 0,
+    "suites": 101,
+    "duration_ms": 125586.1152
+  },
+  "typecheck": "PASS",
+  "vercel_build": "PASS",
+  "stored_replay": {
+    "status": "PASS",
+    "progress": "3/52",
+    "record_status": "generating",
+    "completed_items_reviewed": 3,
+    "later_attempts": 0,
+    "provider_calls": 0
+  },
+  "review": "Approved with comments; Critical 0, Major 0",
+  "projectops_implementation": "FAIL false positive: broad sk- pattern matched task-tone identifiers; boundary-aware task scan has 0 hits",
+  "projectops_test_mode": "WARN: nested CreamAI package has no test script; superseded by repository-root full regression"
+}

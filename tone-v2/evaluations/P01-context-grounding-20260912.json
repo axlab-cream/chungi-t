@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0",
+  "evaluatedAt": "2026-09-12T14:46:40+09:00",
+  "scope": ["ZIP-003-039"],
+  "inputClass": "synthetic-only",
+  "rootCause": "The density gate recognized editorial grounding labels but did not compare generated prose with the supplied user facts.",
+  "implementation": {
+    "file": "src/report/tone-v2-review.ts",
+    "behavior": "Existing lexical evidence remains valid. The additive path accepts only multiple meaningful tokens reused within one explicitly approved user-entered context field.",
+    "minimumBoundary": "At least three shared meaningful tokens, or at least two with one token of three or more characters.",
+    "excludedSources": ["name", "savedChat", "wedding", "newyear", "home.terrainEvidence", "partner computed pillars"],
+    "modelOrRetryChanged": false,
+    "otherDensityElementsChanged": false,
+    "gateRemoved": false
+  },
+  "capturedOutputReevaluation": {
+    "record": ".cache/reading-live-20260907/records/fb6f5742683487eaf6275c1c5982.json",
+    "attemptId": "79107849-ec6c-420a-a98e-fdb04dde628b",
+    "rawSha256": "3e1246c99ab87553547443477ff92aef5869f1ad275e26fd741db03b26c077dc",
+    "proseSha256": "81cd32cbcacf2e77ef2a31c13c625b98965f7c6d0644390416f757d708bc5393",
+    "syntheticConcern": "평소 연습 점수는 목표 수준이고 큰 불안은 없어요.",
+    "matchedSentence": "연습 점수가 목표 수준이고 객관식이라, 전날 책상 기준은 새 프린트보다 반복 실수 차단이야.",
+    "before": {
+      "passed": false,
+      "elements": { "directAnswer": true, "grounding": false, "scene": true, "nextCriterion": true },
+      "remainingIssues": ["grounding"]
+    },
+    "after": {
+      "passed": true,
+      "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": true },
+      "remainingIssues": []
+    },
+    "historicalRecordMutated": false
+  },
+  "negativeBoundaries": [
+    "A single generic statement does not pass.",
+    "Tokens split across unrelated context fields do not accumulate.",
+    "The same prose without context does not pass.",
+    "name and savedChat cannot supply grounding tokens."
+  ],
+  "reviewDisposition": {
+    "verdict": "changes requested",
+    "critical": 0,
+    "major": 3,
+    "applied": [
+      "Restricted extraction to explicit user-entered fields and preserved per-fact boundaries.",
+      "Added Korean endings including 이라, 이라는, 이라면, 라는 and safe standalone 로 stripping.",
+      "Added captured-sentence, cross-field, no-context, name and savedChat boundary tests."
+    ],
+    "minorApplied": ["The implementation plan is updated with completed evidence at closure."],
+    "independentRereview": "NOT_RUN"
+  },
+  "limitations": [
+    "This is a deterministic lower-bound signal, not a semantic factual-correctness verdict.",
+    "The stored provider section remains historically failed; only unchanged raw output was re-evaluated.",
+    "All-service live semantic acceptance remains incomplete."
+  ]
+}

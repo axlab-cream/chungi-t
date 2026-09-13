@@ -27,7 +27,7 @@ describe('[TASK] 대화 엔진 테스트 하네스', () => {
       assert.ok(result.messages[0].content.includes('<rag_knowledge mode="internal_knowledge_blocks">'))
       assert.ok(result.messages[0].content.includes('천명사주'))
       assert.ok(result.messages[0].content.includes('운명상회'))
-      assert.ok(result.messages[0].content.includes('~하네/~군/~일세/~보게'))
+      assert.ok(result.messages[0].content.includes('최종 말투: 격식체'))
       assert.equal(result.intent, 'love')
       assert.ok(result.sajuAnalysis.dayMaster)
     })

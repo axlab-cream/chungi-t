@@ -1,0 +1,583 @@
+{
+  "archive": "C:/Users/user/Desktop/UMSH_톤앤보이스_인계_20260910.zip",
+  "archiveSha256": "00ae01128e1d9fa0a4f4375e5edb26f09d62d27548359531bc876badd26090fc",
+  "total": 82,
+  "passed": 82,
+  "unexpectedFiles": [],
+  "files": [
+    {
+      "path": "규격/00-인계-README.md",
+      "bytes": 11797,
+      "archiveSha256": "2eb55db9ce36b776cc6e5627d68b8e6f64c29484deb48a6fab1e97a5d53104b9",
+      "extractedSha256": "2eb55db9ce36b776cc6e5627d68b8e6f64c29484deb48a6fab1e97a5d53104b9",
+      "passed": true
+    },
+    {
+      "path": "규격/01-공통-프롬프트-규칙.md",
+      "bytes": 64274,
+      "archiveSha256": "3acb590bb5806a49b3ec82b446ab881493ea11fc70f0a9ec50e7ad4342a72449",
+      "extractedSha256": "3acb590bb5806a49b3ec82b446ab881493ea11fc70f0a9ec50e7ad4342a72449",
+      "passed": true
+    },
+    {
+      "path": "규격/02-핵심약속-개사안.md",
+      "bytes": 7810,
+      "archiveSha256": "e7fe4209640078fb3da8bc7344cfeb24d3e9996767362d50ffb7b40bdc8c69b3",
+      "extractedSha256": "e7fe4209640078fb3da8bc7344cfeb24d3e9996767362d50ffb7b40bdc8c69b3",
+      "passed": true
+    },
+    {
+      "path": "규격/03-말투-배정안.md",
+      "bytes": 8129,
+      "archiveSha256": "34d5bba91a6f13be240dc877f93b6ab66aa6ec2a2f68a6733def7a447a06bc08",
+      "extractedSha256": "34d5bba91a6f13be240dc877f93b6ab66aa6ec2a2f68a6733def7a447a06bc08",
+      "passed": true
+    },
+    {
+      "path": "규격/04-페르소나-상세규정.md",
+      "bytes": 42867,
+      "archiveSha256": "926c0c7e54ed3e6847fa3a41e8ae6866bade0f0b1e22f089e528746939038bab",
+      "extractedSha256": "926c0c7e54ed3e6847fa3a41e8ae6866bade0f0b1e22f089e528746939038bab",
+      "passed": true
+    },
+    {
+      "path": "규격/05-서비스-편집-결정표.md",
+      "bytes": 7511,
+      "archiveSha256": "5d0f203742d0353f0e924be982ff3923e1dd024752abd1aef029810b66924f67",
+      "extractedSha256": "5d0f203742d0353f0e924be982ff3923e1dd024752abd1aef029810b66924f67",
+      "passed": true
+    },
+    {
+      "path": "규격/07-캐릭터-말투-대조표.md",
+      "bytes": 7851,
+      "archiveSha256": "22f44e8d56f8d843678f6ddd32dfaddda5d7f349810c617218905d920467617a",
+      "extractedSha256": "22f44e8d56f8d843678f6ddd32dfaddda5d7f349810c617218905d920467617a",
+      "passed": true
+    },
+    {
+      "path": "도구/build20.py",
+      "bytes": 19795,
+      "archiveSha256": "40052dbc3908cdb68589f67e5b884479a7110a9696a78675e9279be074086089",
+      "extractedSha256": "40052dbc3908cdb68589f67e5b884479a7110a9696a78675e9279be074086089",
+      "passed": true
+    },
+    {
+      "path": "도구/check20.py",
+      "bytes": 4323,
+      "archiveSha256": "e617b748819101d6eb2c33b106171121cc3052ce21fe18a3e0af43ec0699f85c",
+      "extractedSha256": "e617b748819101d6eb2c33b106171121cc3052ce21fe18a3e0af43ec0699f85c",
+      "passed": true
+    },
+    {
+      "path": "도구/checkall.py",
+      "bytes": 6063,
+      "archiveSha256": "ac10b6d402a9a1b16b2e061b521b8870a973bb9fc6d821c0c3c0d2f9cca85a7e",
+      "extractedSha256": "ac10b6d402a9a1b16b2e061b521b8870a973bb9fc6d821c0c3c0d2f9cca85a7e",
+      "passed": true
+    },
+    {
+      "path": "도구/index20.json",
+      "bytes": 2667,
+      "archiveSha256": "2f3722638266d31fd8a4644de1f2693cbc3eafe72aa57d3550d6577ce42ec286",
+      "extractedSha256": "2f3722638266d31fd8a4644de1f2693cbc3eafe72aa57d3550d6577ce42ec286",
+      "passed": true
+    },
+    {
+      "path": "도구/inputs20.py",
+      "bytes": 7200,
+      "archiveSha256": "72f6ad242e1f2024315d054ef4994d36f06c2dc4c1e7c6f4459844f4b100505b",
+      "extractedSha256": "72f6ad242e1f2024315d054ef4994d36f06c2dc4c1e7c6f4459844f4b100505b",
+      "passed": true
+    },
+    {
+      "path": "도구/lexicon.py",
+      "bytes": 3458,
+      "archiveSha256": "56543360c7cc5478ffda300947cb63f017d04c1d252869d2d698d28056608797",
+      "extractedSha256": "56543360c7cc5478ffda300947cb63f017d04c1d252869d2d698d28056608797",
+      "passed": true
+    },
+    {
+      "path": "도구/mklong.py",
+      "bytes": 5314,
+      "archiveSha256": "311d9fd2501baa7fb707e6a7a6b7ea1ca486e99f853dd42357eead04bc536744",
+      "extractedSha256": "311d9fd2501baa7fb707e6a7a6b7ea1ca486e99f853dd42357eead04bc536744",
+      "passed": true
+    },
+    {
+      "path": "도구/qa20.py",
+      "bytes": 8783,
+      "archiveSha256": "2aab2f8378e75fd09ef4fedda96e93aed94b1af9c98fd1fde9f518eda8566771",
+      "extractedSha256": "2aab2f8378e75fd09ef4fedda96e93aed94b1af9c98fd1fde9f518eda8566771",
+      "passed": true
+    },
+    {
+      "path": "도구/runpar.sh",
+      "bytes": 1939,
+      "archiveSha256": "5f86aa8f1f2b06eb8ce5cee45e5c5835b40109409ffeb2f5ec00305b55ec9c0b",
+      "extractedSha256": "5f86aa8f1f2b06eb8ce5cee45e5c5835b40109409ffeb2f5ec00305b55ec9c0b",
+      "passed": true
+    },
+    {
+      "path": "도구/skeleton.py",
+      "bytes": 2026,
+      "archiveSha256": "2dcdc741f1506c006aefc90583aa2589ff7179e4baab81c6aec003e00614a76d",
+      "extractedSha256": "2dcdc741f1506c006aefc90583aa2589ff7179e4baab81c6aec003e00614a76d",
+      "passed": true
+    },
+    {
+      "path": "도구/spice.py",
+      "bytes": 6468,
+      "archiveSha256": "a9aed4fb8e564c064c6724c4dc5a6e2f873b8953b3966869ea0768d6ec080f4d",
+      "extractedSha256": "a9aed4fb8e564c064c6724c4dc5a6e2f873b8953b3966869ea0768d6ec080f4d",
+      "passed": true
+    },
+    {
+      "path": "도구/vague.py",
+      "bytes": 3260,
+      "archiveSha256": "5e69ad74085dc6d9a17657b45abd3399226cb80d2c2757e8a0ab99698e80f473",
+      "extractedSha256": "5e69ad74085dc6d9a17657b45abd3399226cb80d2c2757e8a0ab99698e80f473",
+      "passed": true
+    },
+    {
+      "path": "도구/voicecheck.py",
+      "bytes": 6688,
+      "archiveSha256": "7819f67ed301293c2472acc692701ce6ace30231f8d42f571a7822f73f02122e",
+      "extractedSha256": "7819f67ed301293c2472acc692701ce6ace30231f8d42f571a7822f73f02122e",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/cat_compatibility.md",
+      "bytes": 11794,
+      "archiveSha256": "1d8482bd3c23f80da787c54700700f3a650cbd852a46f5b54341a3cf425a90a8",
+      "extractedSha256": "1d8482bd3c23f80da787c54700700f3a650cbd852a46f5b54341a3cf425a90a8",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/couple_signal.md",
+      "bytes": 13436,
+      "archiveSha256": "79a9d0c85234dee421179719951e569cdfa4ce780731af102461235b83ddae32",
+      "extractedSha256": "79a9d0c85234dee421179719951e569cdfa4ce780731af102461235b83ddae32",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/home_fit.md",
+      "bytes": 11901,
+      "archiveSha256": "30fc50b2940b591f0249c7a760d4a56534084ed3cf57129c9000533e0a05aee9",
+      "extractedSha256": "30fc50b2940b591f0249c7a760d4a56534084ed3cf57129c9000533e0a05aee9",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/job_choice.md",
+      "bytes": 12051,
+      "archiveSha256": "64ee20ce6f5159026c9c87e73d2c2b343e2edf29d19b7aaad84ba9bf14184228",
+      "extractedSha256": "64ee20ce6f5159026c9c87e73d2c2b343e2edf29d19b7aaad84ba9bf14184228",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/love_again.md",
+      "bytes": 12061,
+      "archiveSha256": "f368779317331ab28770678f2b4f1f7e617ce1cbbfb89611d1910394fabfdb30",
+      "extractedSha256": "f368779317331ab28770678f2b4f1f7e617ce1cbbfb89611d1910394fabfdb30",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/love_mind.md",
+      "bytes": 12041,
+      "archiveSha256": "475521a071db841216d024bae7b98d55a8aed48e35699d7004ad38659e0d3f90",
+      "extractedSha256": "475521a071db841216d024bae7b98d55a8aed48e35699d7004ad38659e0d3f90",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/love_spouse.md",
+      "bytes": 13319,
+      "archiveSha256": "edeb4952768fea3d1a57775773c707591ee6e5a850f5ad4bd2bb235cbd29d27b",
+      "extractedSha256": "edeb4952768fea3d1a57775773c707591ee6e5a850f5ad4bd2bb235cbd29d27b",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/love_this_year.md",
+      "bytes": 11684,
+      "archiveSha256": "9c30ae252c2bdefff8e631be09d68d4b4f943cea9ac7f04ffbe0664a1ec73e5e",
+      "extractedSha256": "9c30ae252c2bdefff8e631be09d68d4b4f943cea9ac7f04ffbe0664a1ec73e5e",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/lucky_color.md",
+      "bytes": 10928,
+      "archiveSha256": "f94e079c38e2839761df0082af8207985a0e9aac8b9df466ef389a5b539c464f",
+      "extractedSha256": "f94e079c38e2839761df0082af8207985a0e9aac8b9df466ef389a5b539c464f",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/marry_match.md",
+      "bytes": 11767,
+      "archiveSha256": "6a598ee4a4012756a485c05ed9ff639eedc97eba61358a714a5670354598a6c2",
+      "extractedSha256": "6a598ee4a4012756a485c05ed9ff639eedc97eba61358a714a5670354598a6c2",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/match_couple.md",
+      "bytes": 11881,
+      "archiveSha256": "036bb06df96638ca14bffd3ec648f80ebaefa331b1094bd4d3a7ce1ab572e788",
+      "extractedSha256": "036bb06df96638ca14bffd3ec648f80ebaefa331b1094bd4d3a7ce1ab572e788",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/money_save.md",
+      "bytes": 14092,
+      "archiveSha256": "5a2867d02ff4e5182a3abb663194bcd48f7db70f75640ecf9b97c2438d453c95",
+      "extractedSha256": "5a2867d02ff4e5182a3abb663194bcd48f7db70f75640ecf9b97c2438d453c95",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/newyear_flow.md",
+      "bytes": 11972,
+      "archiveSha256": "45add42ba17b7a77c45b25de775ce75faf9a3ea1c3d0bf7ae4b599b9e2287910",
+      "extractedSha256": "45add42ba17b7a77c45b25de775ce75faf9a3ea1c3d0bf7ae4b599b9e2287910",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/pass_angle.md",
+      "bytes": 11777,
+      "archiveSha256": "0eb6eccd411bf5e46b3baaa97c01c4ed1f34a26d09688b0b7a18b0feba4356a9",
+      "extractedSha256": "0eb6eccd411bf5e46b3baaa97c01c4ed1f34a26d09688b0b7a18b0feba4356a9",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/quit_fortune.md",
+      "bytes": 13401,
+      "archiveSha256": "72281c7bfb7e642ea86777490292e809bd0c153cf4c3f9a5563bce5c59ec2f6e",
+      "extractedSha256": "72281c7bfb7e642ea86777490292e809bd0c153cf4c3f9a5563bce5c59ec2f6e",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/saju_master.md",
+      "bytes": 14380,
+      "archiveSha256": "ff75b1348c8426f433486479665956513d692b830805854808e90c25a0939d2e",
+      "extractedSha256": "ff75b1348c8426f433486479665956513d692b830805854808e90c25a0939d2e",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/today_fortune.md",
+      "bytes": 10967,
+      "archiveSha256": "6fdf7a3262e7259f94120088ccddd55c47627863f3691b8cc7058be5c43c78b0",
+      "extractedSha256": "6fdf7a3262e7259f94120088ccddd55c47627863f3691b8cc7058be5c43c78b0",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/wedding_day.md",
+      "bytes": 12184,
+      "archiveSha256": "d2558ad7ac3f48cebf592a3c44478c032ba233a5ecf70b98c6bb3de1020465b4",
+      "extractedSha256": "d2558ad7ac3f48cebf592a3c44478c032ba233a5ecf70b98c6bb3de1020465b4",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/work_job.md",
+      "bytes": 12021,
+      "archiveSha256": "600174e5b18b10c4c145d358f029b6149a5282d7260f61994a7a5d1046b107cf",
+      "extractedSha256": "600174e5b18b10c4c145d358f029b6149a5282d7260f61994a7a5d1046b107cf",
+      "passed": true
+    },
+    {
+      "path": "산출물-샘플/work_move.md",
+      "bytes": 11988,
+      "archiveSha256": "e838152cb3b1dccc41b6dc8de1bd0189e6fd9ad245f45d94ac96d778d0e355ba",
+      "extractedSha256": "e838152cb3b1dccc41b6dc8de1bd0189e6fd9ad245f45d94ac96d778d0e355ba",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/lucky_color/part01.md",
+      "bytes": 13957,
+      "archiveSha256": "840bdddffe05be2d8d2cf4cf71e4d3c1e5607217afdc63e59ac3193c263b4e22",
+      "extractedSha256": "840bdddffe05be2d8d2cf4cf71e4d3c1e5607217afdc63e59ac3193c263b4e22",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/lucky_color/part02.md",
+      "bytes": 14229,
+      "archiveSha256": "e7c3ae3584ec1a7a63aa4a003e9ed3bf34ab9c38f441d21465612fdd1945b36c",
+      "extractedSha256": "e7c3ae3584ec1a7a63aa4a003e9ed3bf34ab9c38f441d21465612fdd1945b36c",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/lucky_color/part03.md",
+      "bytes": 15809,
+      "archiveSha256": "ee290203809d2749ab4a171ee68c35a679edf0842a8aa96ac355a34ecda3614d",
+      "extractedSha256": "ee290203809d2749ab4a171ee68c35a679edf0842a8aa96ac355a34ecda3614d",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/newyear_flow/part01.md",
+      "bytes": 15842,
+      "archiveSha256": "29951470f6f3f77b6439b066b69499aa1a0806ab7650f3694d4a46d20787ee2d",
+      "extractedSha256": "29951470f6f3f77b6439b066b69499aa1a0806ab7650f3694d4a46d20787ee2d",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/newyear_flow/part02.md",
+      "bytes": 17198,
+      "archiveSha256": "d4e4da591faf40fab6fe52d5263d68bd7c64a7672c1fb1ef831732458cd5571a",
+      "extractedSha256": "d4e4da591faf40fab6fe52d5263d68bd7c64a7672c1fb1ef831732458cd5571a",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/newyear_flow/part03.md",
+      "bytes": 17422,
+      "archiveSha256": "e913940ba5746e0e83322ace3d8800e2dfd448b5d62ec0447999e8c6179a1888",
+      "extractedSha256": "e913940ba5746e0e83322ace3d8800e2dfd448b5d62ec0447999e8c6179a1888",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/newyear_flow/part04.md",
+      "bytes": 16470,
+      "archiveSha256": "2e7568c7347a1cb4bb6ec97724989e69d8d8a0de775d1d0e1eb854747cc6540e",
+      "extractedSha256": "2e7568c7347a1cb4bb6ec97724989e69d8d8a0de775d1d0e1eb854747cc6540e",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/newyear_flow/part05.md",
+      "bytes": 16124,
+      "archiveSha256": "3cc82b7a3dd9553ec91f3b97c35c56e470a6b9d4b29f53973f0f5c5c3716b575",
+      "extractedSha256": "3cc82b7a3dd9553ec91f3b97c35c56e470a6b9d4b29f53973f0f5c5c3716b575",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/pass_angle/part01.md",
+      "bytes": 15338,
+      "archiveSha256": "5f556cf8a0a1c235e75e14d5b8b8f4f8a323d51cfcd596cd9ea6971bf1af86a8",
+      "extractedSha256": "5f556cf8a0a1c235e75e14d5b8b8f4f8a323d51cfcd596cd9ea6971bf1af86a8",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/pass_angle/part02.md",
+      "bytes": 16930,
+      "archiveSha256": "b70d3c021c48ff7ab016f6101c8468e33d8cadf4c4cddb4fabb501eb379dad41",
+      "extractedSha256": "b70d3c021c48ff7ab016f6101c8468e33d8cadf4c4cddb4fabb501eb379dad41",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/pass_angle/part03.md",
+      "bytes": 16922,
+      "archiveSha256": "40011c37b52a2754e196c49ddfb9a7f8496fba5a4834f63d7893a35006e69afc",
+      "extractedSha256": "40011c37b52a2754e196c49ddfb9a7f8496fba5a4834f63d7893a35006e69afc",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/pass_angle/part04.md",
+      "bytes": 16704,
+      "archiveSha256": "f899bb1b3abf45e199adf368359614836abff6adc29e85f6f72ed85aa13f3ed7",
+      "extractedSha256": "f899bb1b3abf45e199adf368359614836abff6adc29e85f6f72ed85aa13f3ed7",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/pass_angle/part05.md",
+      "bytes": 16585,
+      "archiveSha256": "a95b70cd2d2a12a90bbb70abc1f47b0e9ab91833edd214cd50402b8b950494ee",
+      "extractedSha256": "a95b70cd2d2a12a90bbb70abc1f47b0e9ab91833edd214cd50402b8b950494ee",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/quit_fortune/part01.md",
+      "bytes": 21863,
+      "archiveSha256": "bd452fb5e9884ef36b8bbaea076ae83736a4575fc49e2d56f72cfd1ee9310e4a",
+      "extractedSha256": "bd452fb5e9884ef36b8bbaea076ae83736a4575fc49e2d56f72cfd1ee9310e4a",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/quit_fortune/part02.md",
+      "bytes": 22081,
+      "archiveSha256": "efa7f9e12f63dc489b2994f9c917954dbc3a3b9f835d62964fe19aecc630e661",
+      "extractedSha256": "efa7f9e12f63dc489b2994f9c917954dbc3a3b9f835d62964fe19aecc630e661",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/quit_fortune/part03.md",
+      "bytes": 20841,
+      "archiveSha256": "d4226cfe833d5d2418b9c536c644ebf041171b7a680c13b556cbcb4f3707d6f4",
+      "extractedSha256": "d4226cfe833d5d2418b9c536c644ebf041171b7a680c13b556cbcb4f3707d6f4",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/quit_fortune/part04.md",
+      "bytes": 20542,
+      "archiveSha256": "814365122cf46e9d1c83ad285677b711baa86dd8ba93574e8c92adf2b7e75d00",
+      "extractedSha256": "814365122cf46e9d1c83ad285677b711baa86dd8ba93574e8c92adf2b7e75d00",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/quit_fortune/part05.md",
+      "bytes": 21270,
+      "archiveSha256": "b73758a672f8b93473038a92c10a7b15f3ac4b3b290d9c3d403c22ca1163415b",
+      "extractedSha256": "b73758a672f8b93473038a92c10a7b15f3ac4b3b290d9c3d403c22ca1163415b",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/wedding_day/part01.md",
+      "bytes": 16471,
+      "archiveSha256": "02e01e2b223d0ad8c2fe690944fd3e457d024cece005621c50806a0717dbcbca",
+      "extractedSha256": "02e01e2b223d0ad8c2fe690944fd3e457d024cece005621c50806a0717dbcbca",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/wedding_day/part02.md",
+      "bytes": 16949,
+      "archiveSha256": "950b4cd63e2b088403a91762ceaa28e9eaa0a886aad6a1a478e92eedd509d761",
+      "extractedSha256": "950b4cd63e2b088403a91762ceaa28e9eaa0a886aad6a1a478e92eedd509d761",
+      "passed": true
+    },
+    {
+      "path": "산출물-실전/wedding_day/part03.md",
+      "bytes": 17264,
+      "archiveSha256": "a9386c71e0bf70ef738e29e79ec2ff8d9e67573220af91f722d17876de9d0631",
+      "extractedSha256": "a9386c71e0bf70ef738e29e79ec2ff8d9e67573220af91f722d17876de9d0631",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/cat_compatibility.md",
+      "bytes": 10598,
+      "archiveSha256": "5539a44abab5eed1d87c6f6e593dff575560d12845f9f5da6fe2605215944558",
+      "extractedSha256": "5539a44abab5eed1d87c6f6e593dff575560d12845f9f5da6fe2605215944558",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/couple_signal.md",
+      "bytes": 12006,
+      "archiveSha256": "7ac5d35d75f30baec026863da7535a0ee91dcfbfb17a36ae3a128b239944407b",
+      "extractedSha256": "7ac5d35d75f30baec026863da7535a0ee91dcfbfb17a36ae3a128b239944407b",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/home_fit.md",
+      "bytes": 10834,
+      "archiveSha256": "2c0f086d865936101ac7350f19bd78967f3d6b2e7fa3901a8ffdfc6fd27ea7a4",
+      "extractedSha256": "2c0f086d865936101ac7350f19bd78967f3d6b2e7fa3901a8ffdfc6fd27ea7a4",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/job_choice.md",
+      "bytes": 10779,
+      "archiveSha256": "557716a2129ccd69209fe84a5a90095527f84c9ee88a55748392e924bcb47adf",
+      "extractedSha256": "557716a2129ccd69209fe84a5a90095527f84c9ee88a55748392e924bcb47adf",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/love_again.md",
+      "bytes": 10671,
+      "archiveSha256": "fbf12bdf5725fa397a687bf74d1801af4f92d65811325310e7f9ff075f3b39df",
+      "extractedSha256": "fbf12bdf5725fa397a687bf74d1801af4f92d65811325310e7f9ff075f3b39df",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/love_mind.md",
+      "bytes": 10745,
+      "archiveSha256": "eef905a12a3e597401fd7a553f9fec284e4ac899041a6569d05a59d0345fcaf3",
+      "extractedSha256": "eef905a12a3e597401fd7a553f9fec284e4ac899041a6569d05a59d0345fcaf3",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/love_spouse.md",
+      "bytes": 11625,
+      "archiveSha256": "86e0ce91b0d9ce27a33ac83c8f8ca5b4a1712630d120857dba3229296e04632c",
+      "extractedSha256": "86e0ce91b0d9ce27a33ac83c8f8ca5b4a1712630d120857dba3229296e04632c",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/love_this_year.md",
+      "bytes": 10398,
+      "archiveSha256": "c834cbe67652d2a70cdffd4be1dc3128a0a16837e3b048d3a2c12da6b951c0f1",
+      "extractedSha256": "c834cbe67652d2a70cdffd4be1dc3128a0a16837e3b048d3a2c12da6b951c0f1",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/lucky_color.md",
+      "bytes": 9534,
+      "archiveSha256": "bdeb420ef6b65b80cc24852d221fcbd3a94b35fbc24adfaf627ef0ef8a634f51",
+      "extractedSha256": "bdeb420ef6b65b80cc24852d221fcbd3a94b35fbc24adfaf627ef0ef8a634f51",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/marry_match.md",
+      "bytes": 10289,
+      "archiveSha256": "a050ba9c749ff8c9f071b5104405a45592d41a7d82bc75427d7ebc8f67277bce",
+      "extractedSha256": "a050ba9c749ff8c9f071b5104405a45592d41a7d82bc75427d7ebc8f67277bce",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/match_couple.md",
+      "bytes": 10357,
+      "archiveSha256": "40fac1ef85e67f5e8447db0dac66519bd385bee6ea305f6e7513eb30013f28e5",
+      "extractedSha256": "40fac1ef85e67f5e8447db0dac66519bd385bee6ea305f6e7513eb30013f28e5",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/money_save.md",
+      "bytes": 11580,
+      "archiveSha256": "858d2b4e0ea7b446d4e944cd3658bfc1f1f0830419e28977a3331ba13c6fe5b4",
+      "extractedSha256": "858d2b4e0ea7b446d4e944cd3658bfc1f1f0830419e28977a3331ba13c6fe5b4",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/newyear_flow.md",
+      "bytes": 10638,
+      "archiveSha256": "218ce24fe23b35278a16ad594609b8b03eb0d1da4e5483adf981e554f2946b4a",
+      "extractedSha256": "218ce24fe23b35278a16ad594609b8b03eb0d1da4e5483adf981e554f2946b4a",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/pass_angle.md",
+      "bytes": 10523,
+      "archiveSha256": "f24cce9c9ef84de26331c61fe1127e928a3e6828e4e686fce3381d06abca58a2",
+      "extractedSha256": "f24cce9c9ef84de26331c61fe1127e928a3e6828e4e686fce3381d06abca58a2",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/quit_fortune.md",
+      "bytes": 11650,
+      "archiveSha256": "79e4c5f72f8fa4c73a17779aabc8a1425cbfb2a546c8cf3dafa44cf0462eebd0",
+      "extractedSha256": "79e4c5f72f8fa4c73a17779aabc8a1425cbfb2a546c8cf3dafa44cf0462eebd0",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/saju_master.md",
+      "bytes": 11663,
+      "archiveSha256": "b59bfa885b66a32fe21e241eff56751169270e95d2887286b1f12d548aaa2cac",
+      "extractedSha256": "b59bfa885b66a32fe21e241eff56751169270e95d2887286b1f12d548aaa2cac",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/today_fortune.md",
+      "bytes": 9518,
+      "archiveSha256": "951f1a3abad50b651fe912fb06ff4974e2f498bd85b6ca3eeda5c756ddeadcb9",
+      "extractedSha256": "951f1a3abad50b651fe912fb06ff4974e2f498bd85b6ca3eeda5c756ddeadcb9",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/wedding_day.md",
+      "bytes": 10780,
+      "archiveSha256": "5b919eb9c9eeec70626f491baf7f24d39a7cb5ad8d03449573b252902dce78c9",
+      "extractedSha256": "5b919eb9c9eeec70626f491baf7f24d39a7cb5ad8d03449573b252902dce78c9",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/work_job.md",
+      "bytes": 10695,
+      "archiveSha256": "88901ea182cd364534ca206250c63d196e79c7632d08682f1cb2e0e2058b1ee9",
+      "extractedSha256": "88901ea182cd364534ca206250c63d196e79c7632d08682f1cb2e0e2058b1ee9",
+      "passed": true
+    },
+    {
+      "path": "프롬프트/work_move.md",
+      "bytes": 10402,
+      "archiveSha256": "b33c309c24d005f512c8e3857f765dc02157be962a68c47a1aec5cb92957d4b6",
+      "extractedSha256": "b33c309c24d005f512c8e3857f765dc02157be962a68c47a1aec5cb92957d4b6",
+      "passed": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 11797,
+      "archiveSha256": "2eb55db9ce36b776cc6e5627d68b8e6f64c29484deb48a6fab1e97a5d53104b9",
+      "extractedSha256": "2eb55db9ce36b776cc6e5627d68b8e6f64c29484deb48a6fab1e97a5d53104b9",
+      "passed": true
+    }
+  ]
+}

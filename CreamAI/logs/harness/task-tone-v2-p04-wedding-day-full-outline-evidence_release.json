@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p04-wedding-day-full-outline-evidence",
+  "mode": "release",
+  "timestamp": "2026-09-13T11:32:13.2519134+09:00",
+  "checks": [
+    {
+      "name": "release report created",
+      "status": "PASS",
+      "detail": "C:\\Users\\user\\Desktop\\chungi-t-tone-v2\\CreamAI\\reports\\task-tone-v2-p04-wedding-day-full-outline-evidence_final.md"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

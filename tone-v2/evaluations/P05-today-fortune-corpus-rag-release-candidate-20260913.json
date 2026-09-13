@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-today-fortune-corpus-rag-release-candidate",
+  "serviceKey": "today_fortune",
+  "evaluatedAt": "2026-09-13",
+  "scope": "local_release_candidate",
+  "providerOutputEvaluation": {
+    "status": "not_run",
+    "reason": "No today_fortune provider output evaluation was run or found. The deterministic daily renderer was not changed."
+  },
+  "semanticReview": {
+    "status": "pass",
+    "blocks": 1,
+    "passed": 1,
+    "sampleOutputsIngested": false,
+    "deterministicEventsOrOutcomes": 0,
+    "otherPersonMindInferences": 0,
+    "unsupportedPrescriptionNumbers": 0
+  },
+  "snapshotVerification": {
+    "activeNewCorpus": "pass",
+    "storedOldCorpus": "pass",
+    "promptIsolation": "pass",
+    "savedAttemptReviewIsolation": "pass",
+    "hashMismatchFailsClosed": "pass",
+    "deterministicDailyRenderer": "unchanged_and_related_tests_passed"
+  },
+  "verification": {
+    "focusedTests": "pass_8_of_8",
+    "relatedTests": "pass_82_of_82",
+    "fullTests": "pass_759_of_759_across_106_suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "deterministicBuilder": "pass",
+    "credentialBoundary": "pass_0_findings",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  },
+  "mutations": {
+    "providerCalls": 0,
+    "customerRecords": 0,
+    "deterministicDailyRenderer": false,
+    "production": false,
+    "deployed": false,
+    "committed": false,
+    "pushed": false
+  }
+}

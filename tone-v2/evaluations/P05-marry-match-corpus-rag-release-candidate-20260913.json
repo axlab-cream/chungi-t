@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-marry-match-corpus-rag-release-candidate",
+  "serviceKey": "marry_match",
+  "evaluatedAt": "2026-09-13",
+  "scope": "local_release_candidate",
+  "providerOutputEvaluation": {
+    "status": "not_run",
+    "reason": "No marry_match provider output evaluation was run or found. This Task changes and verifies corpus semantics and snapshot attachment only."
+  },
+  "semanticReview": {
+    "status": "pass",
+    "blocks": 20,
+    "passed": 20,
+    "sampleOutputsIngested": false,
+    "partnerMindInferences": 0,
+    "deterministicMarriageOutcomes": 0,
+    "unsupportedPrescriptionNumbers": 0
+  },
+  "snapshotVerification": {
+    "activeNewCorpus": "pass",
+    "storedOldCorpus": "pass",
+    "promptIsolation": "pass",
+    "savedAttemptReviewIsolation": "pass",
+    "hashMismatchFailsClosed": "pass",
+    "currentVectorRanksExcludedForOldSnapshot": "inherited_and_covered_by_existing_snapshot_tests"
+  },
+  "verification": {
+    "focusedTests": "pass_8_of_8",
+    "relatedTests": "pass_74_of_74",
+    "fullTests": "pass_751_of_751_across_105_suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "deterministicBuilder": "pass",
+    "credentialBoundary": "pass_0_findings",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  },
+  "mutations": {
+    "providerCalls": 0,
+    "customerRecords": 0,
+    "production": false,
+    "deployed": false,
+    "committed": false,
+    "pushed": false
+  }
+}

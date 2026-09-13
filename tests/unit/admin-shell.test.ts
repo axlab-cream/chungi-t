@@ -237,6 +237,10 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /loadLiveAudit/, '실제 감사 기록 로더가 없다')
       assert.match(text, /loadRefunds/, '실제 환불 요청 로더가 없다')
       assert.match(text, /\/api\/admin\/v1\/services/, '관리자 서비스 API 로더가 없다')
+      assert.match(text, /loadLiveCorpus/, '실제 코퍼스 원천 로더가 없다')
+      assert.match(text, /loadLivePrompts/, '실제 프롬프트 원천 로더가 없다')
+      assert.match(text, /\/api\/admin\/v1\/corpus/, '관리자 코퍼스 API 로더가 없다')
+      assert.match(text, /\/api\/admin\/v1\/prompts/, '관리자 프롬프트 API 로더가 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
@@ -251,6 +255,29 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(payload.services.length, 19)
       assert.ok(payload.services.some((service: { canonicalKey: string, discoveryVisible: boolean }) => service.canonicalKey === 'love_mind' && service.discoveryVisible === false))
       assert.ok(payload.services.every((service: Record<string, unknown>) => !('payload' in service) && !('authorEmail' in service)))
+    })
+
+    it('코퍼스와 프롬프트 API는 현재 배포 파일의 Tone V2 원천 메타데이터를 조회한다', async () => {
+      assert.equal((await request('/api/admin/v1/corpus')).response.status, 401)
+      assert.equal((await request('/api/admin/v1/prompts')).response.status, 401)
+
+      const corpusResult = await request('/api/admin/v1/corpus', 'super')
+      assert.equal(corpusResult.response.status, 200)
+      const corpus = JSON.parse(corpusResult.text)
+      assert.match(corpus.registryVersion, /^tone-v2/)
+      assert.match(corpus.fingerprint, /^[a-f0-9]{28}$/)
+      assert.ok(corpus.packs.length >= 20)
+      assert.ok(corpus.packs.every((pack: Record<string, unknown>) => pack.status === 'active' && pack.path && pack.contentHash))
+
+      const promptResult = await request('/api/admin/v1/prompts', 'super')
+      assert.equal(promptResult.response.status, 200)
+      const prompts = JSON.parse(promptResult.text)
+      assert.match(prompts.bundle.version, /^tone-v2/)
+      assert.equal(prompts.bundle.releaseReady, false)
+      assert.equal(prompts.personas.length, 20)
+      assert.ok(prompts.sources.some((source: { path: string }) => source.path === 'tone-v2/source/규격/01-공통-프롬프트-규칙.md'))
+      assert.ok(prompts.personas.every((persona: Record<string, unknown>) => persona.definitionStatus === 'specified' && persona.sourcePath))
+      assert.ok(prompts.personas.every((persona: Record<string, unknown>) => !('prompt' in persona) && !('content' in persona)))
     })
 
     it('환불 목록 API는 읽기 scope가 있는 관리자만 실제 원천을 조회한다', async () => {

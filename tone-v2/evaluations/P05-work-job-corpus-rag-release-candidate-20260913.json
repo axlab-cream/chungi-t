@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-work-job-corpus-rag-release-candidate",
+  "status": "pass",
+  "scope": "local release candidate only",
+  "verification": { "focusedTests": "pass_8_of_8", "relatedTests": "pass_100_of_100", "fullTests": "pass_775_of_775_108_suites", "typecheck": "pass", "vercelBuild": "pass", "codexReview": "approved_with_comments_no_findings" },
+  "providerOutputEvaluation": "not_run",
+  "production": "not_run",
+  "customerDataMutation": false
+}

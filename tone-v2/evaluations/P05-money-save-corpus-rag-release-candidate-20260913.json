@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-money-save-corpus-rag-release-candidate",
+  "serviceKey": "money_save",
+  "evaluatedAt": "2026-09-13",
+  "scope": "local_release_candidate",
+  "providerOutputEvaluation": {
+    "status": "not_run",
+    "reason": "No money_save provider output evaluation was run or found. This Task changes and verifies corpus semantics and snapshot attachment only."
+  },
+  "semanticReview": {
+    "status": "pass",
+    "blocks": 12,
+    "passed": 12,
+    "sampleOutputsIngested": false,
+    "unsupportedPrescriptionNumbers": 0,
+    "deterministicFinancialOutcomes": 0
+  },
+  "snapshotVerification": {
+    "activeNewCorpus": "pass",
+    "storedOldCorpus": "pass",
+    "promptIsolation": "pass",
+    "savedAttemptReviewIsolation": "pass",
+    "hashMismatchFailsClosed": "pass",
+    "currentVectorRanksExcludedForOldSnapshot": "inherited_and_covered_by_existing_snapshot_tests"
+  },
+  "verification": {
+    "focusedTests": "pass_8_of_8",
+    "relatedTests": "pass_74_of_74",
+    "fullTests": "pass_735_of_735_across_103_suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "deterministicBuilder": "pass",
+    "credentialBoundary": "pass_0_findings",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  },
+  "mutations": {
+    "providerCalls": 0,
+    "customerRecords": 0,
+    "production": false,
+    "deployed": false,
+    "committed": false,
+    "pushed": false
+  }
+}

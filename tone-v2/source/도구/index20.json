@@ -1,0 +1,142 @@
+[
+ {
+  "n": 1,
+  "key": "today_fortune",
+  "title": "오늘운",
+  "gyeol": "짓궂음 + 담백함",
+  "style": "반말체"
+ },
+ {
+  "n": 2,
+  "key": "lucky_color",
+  "title": "나한테 운 붙는 색과 물건",
+  "gyeol": "짓궂음 + 담백함",
+  "style": "반말체 · 카탈로그형"
+ },
+ {
+  "n": 3,
+  "key": "saju_master",
+  "title": "천명사주",
+  "gyeol": "서늘함 + 단호함",
+  "style": "하게체·하네체"
+ },
+ {
+  "n": 4,
+  "key": "love_this_year",
+  "title": "올해 연애운",
+  "gyeol": "담백함 + 짓궂음",
+  "style": "해요체"
+ },
+ {
+  "n": 5,
+  "key": "job_choice",
+  "title": "직장 선택",
+  "gyeol": "차가움 + 담백함",
+  "style": "격식체"
+ },
+ {
+  "n": 6,
+  "key": "quit_fortune",
+  "title": "퇴사운",
+  "gyeol": "단호함 + 차가움",
+  "style": "해요체"
+ },
+ {
+  "n": 7,
+  "key": "money_save",
+  "title": "소비성향",
+  "gyeol": "시니컬 + 짓궂음",
+  "style": "해요체"
+ },
+ {
+  "n": 8,
+  "key": "cat_compatibility",
+  "title": "고양이 궁합",
+  "gyeol": "담백함 + 짓궂음",
+  "style": "해요체"
+ },
+ {
+  "n": 9,
+  "key": "match_couple",
+  "title": "커플궁합",
+  "gyeol": "짓궂음 + 담백함",
+  "style": "해요체"
+ },
+ {
+  "n": 10,
+  "key": "marry_match",
+  "title": "결혼궁합",
+  "gyeol": "담백함 + 단호함",
+  "style": "해요체"
+ },
+ {
+  "n": 11,
+  "key": "couple_signal",
+  "title": "관계 신호",
+  "gyeol": "앙칼짐 + 시니컬",
+  "style": "해요체"
+ },
+ {
+  "n": 12,
+  "key": "pass_angle",
+  "title": "나, 붙을 각이야?",
+  "gyeol": "단호함 + 담백함",
+  "style": "하게체·하네체"
+ },
+ {
+  "n": 13,
+  "key": "work_move",
+  "title": "이직운",
+  "gyeol": "차가움 + 단호함",
+  "style": "해요체"
+ },
+ {
+  "n": 14,
+  "key": "work_job",
+  "title": "직업운",
+  "gyeol": "담백함 + 차가움",
+  "style": "해요체"
+ },
+ {
+  "n": 15,
+  "key": "love_mind",
+  "title": "상대방 마음",
+  "gyeol": "차가움 + 담백함",
+  "style": "해요체"
+ },
+ {
+  "n": 16,
+  "key": "love_again",
+  "title": "재회운",
+  "gyeol": "앙칼짐 + 단호함",
+  "style": "해요체"
+ },
+ {
+  "n": 17,
+  "key": "love_spouse",
+  "title": "배우자운",
+  "gyeol": "서늘함 + 담백함",
+  "style": "해요체"
+ },
+ {
+  "n": 18,
+  "key": "home_fit",
+  "title": "집 풍수",
+  "gyeol": "차가움 + 담백함",
+  "style": "해요체"
+ },
+ {
+  "n": 19,
+  "key": "newyear_flow",
+  "title": "내 2027년, 풀릴 각이야?",
+  "gyeol": "담백함 + 차가움",
+  "style": "해요체"
+ },
+ {
+  "n": 20,
+  "key": "wedding_day",
+  "title": "우리 결혼, 이날 해도 될까?",
+  "gyeol": "차가움 + 담백함",
+  "style": "해요체"
+ }
+]

@@ -1,0 +1,43 @@
+{
+  "taskId": "task-tone-v2-p04-repair-invariant-preservation",
+  "version": "p04-repair-invariant-preservation-20260912-1",
+  "serviceKey": "pass_angle",
+  "environment": "isolated synthetic local file storage",
+  "providerBacked": true,
+  "model": "gpt-5.5-2026-04-23",
+  "requestedLimit": 1,
+  "result": {
+    "status": "failed",
+    "businessAcceptance": "FAIL",
+    "reportId": "b374b69b51883801812d010c43cb",
+    "resultId": "310c253b-5cc1-491b-922e-ab90a65f3907",
+    "recordSha256": "1533c721bd4e1058e5e37e47b6ce99180b7f09312d270d247e7a281dfe165aac",
+    "progress": { "complete": 0, "total": 52 },
+    "firstFailure": { "order": 1, "id": "pass-angle-verdict", "classification": "전체 흐름 판정" },
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0
+  },
+  "attempts": [
+    {
+      "status": "failed",
+      "finishReason": "stop",
+      "usage": { "promptTokens": 19259, "completionTokens": 1774, "totalTokens": 21033 },
+      "failedRules": ["paragraph 2-4 sentence structure"],
+      "rawSha256": "b65fee23b41c14f1cab38353e97ddc1bedd1a324e7f6fc604c74763b576d950a"
+    },
+    {
+      "status": "failed",
+      "finishReason": "stop",
+      "usage": { "promptTokens": 19636, "completionTokens": 1378, "totalTokens": 21014 },
+      "failedRules": ["next criterion"],
+      "rawSha256": "75168b76ea97479382477ee017c57fda5c08b0fed2fc661a9ac124498a79e5f7"
+    }
+  ],
+  "diagnosis": "The retry prompt now restates the full invariant checklist, but the second output still regressed the next-criterion rule that attempt one had passed. A narrower output-retention contract is required; no gate relaxation is justified.",
+  "privacy": {
+    "syntheticInputOnly": true,
+    "rawProseStoredHere": false,
+    "credentialsStoredHere": false,
+    "productionDatabaseUsed": false
+  }
+}

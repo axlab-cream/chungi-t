@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-lucky-color-full-outline-evidence",
+  "status": "pass",
+  "date": "2026-09-13",
+  "tdd": {
+    "red": "3/4 pass, 1/4 fail before the lucky_color live harness existed",
+    "green": "4/4 outline contract tests pass after the isolated harness was added"
+  },
+  "provider": {
+    "syntheticOnly": true,
+    "isolated": true,
+    "completedSections": 24,
+    "expectedSections": 24,
+    "replayPassed": 24,
+    "replayFailed": 0
+  },
+  "verification": {
+    "focusedAndRelated": { "passed": 97, "failed": 0 },
+    "full": { "passed": 894, "failed": 0, "suites": 122 },
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "credentialFindings": 0,
+    "review": "approved_with_comments"
+  },
+  "notRun": [
+    "production deployment",
+    "production customer mutation",
+    "commit",
+    "push"
+  ]
+}

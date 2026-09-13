@@ -1,0 +1,120 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-completion-e2e",
+  "evaluated_at": "2026-09-12",
+  "service": "pass_angle",
+  "synthetic_only": true,
+  "version_key": "p04-pass-angle-completion-20260912-1",
+  "pre_existing_record": false,
+  "preflight_evidence": {
+    "command": "npx tsx scripts/check-reading-live.ts --service=pass_angle --version=p04-pass-angle-completion-20260912-1",
+    "observed_status": "not-generated",
+    "observed_before_provider_call": true,
+    "future_fail_closed_flag": "--generate --fresh"
+  },
+  "report_id": "2b991c5337b7c4e1fd135e62a841",
+  "result_id": "2e822d84-a89b-4825-8d40-0be43f658664",
+  "record_sha256": "6b201412ab1a3d9e75016c5e280fe240206137ff3ce29ccb04114422d29dabb0",
+  "provider": "OpenAI through the existing application adapter",
+  "persisted_status": "complete",
+  "persisted_section_status": "complete",
+  "persisted_public_copy": {
+    "hook_length": 23,
+    "interpretation_length": 304,
+    "nonempty": true,
+    "review_passed": true,
+    "characters": 304,
+    "paragraphs": 4
+  },
+  "saved_replay": {
+    "full_review": {
+      "passed": true,
+      "issues": [],
+      "characters": 304,
+      "paragraphs": 4,
+      "gate_families": [
+        "interpretation",
+        "tone_copy_body",
+        "tone_copy_hook",
+        "paid_section_density",
+        "section_uniqueness",
+        "technical_terms",
+        "score_visuals",
+        "hook_required"
+      ]
+    },
+    "density": {
+      "passed": true,
+      "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": true }
+    }
+  },
+  "attempts": [
+    {
+      "id": "2e4879df-81c8-4e08-93c0-173ea2b3d00f",
+      "status": "failed",
+      "resolved_model": "gpt-5.5-2026-04-23",
+      "finish_reason": "stop",
+      "usage": { "promptTokens": 18909, "completionTokens": 703, "totalTokens": 19612 },
+      "error_summary": ["nextCriterion failed"],
+      "raw_sha256": "be0eec9da3fc7e7606d2b1ca39f8cc6aa8f075d64addf68774719abab94f2903",
+      "prose_sha256": "4b4b83defe5bad2187c48664c108cd7a08419b2f8ebc8d86870251be673b9b7a",
+      "density": {
+        "passed": false,
+        "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": false }
+      },
+      "first_three_visible_sentences": [
+        "새 자료는 버리고, 평소 맞히던 순서만 남겨.",
+        "유지할 건 루틴이야.",
+        "연습 점수가 목표선에 있고 큰 불안이 없으니, 남은 하루는 실력 추가보다 재현이 먼저야."
+      ]
+    },
+    {
+      "id": "8b6f5c0c-7c93-41b5-a167-4f21a3373dc4",
+      "status": "complete",
+      "resolved_model": "gpt-5.5-2026-04-23",
+      "finish_reason": "stop",
+      "usage": { "promptTokens": 19063, "completionTokens": 1783, "totalTokens": 20846 },
+      "error_summary": [],
+      "raw_sha256": "a6944511e38e075f6a3589ae068ef9b4d22591497f1aa117b1bb7a3f62ca4373",
+      "prose_sha256": "086918a16935349dec7985fdaec4d179a49874d24cc8ea9f074b2e7abc0e9e64",
+      "density": {
+        "passed": true,
+        "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": true }
+      },
+      "full_review": { "passed": true, "issues": [], "characters": 304, "paragraphs": 4 },
+      "first_three_visible_sentences": [
+        "새 자료는 버리고, 평소 루틴 유지각이야.",
+        "유지할 건 실모 양이 아니라 푸는 순서야.",
+        "연습 점수가 목표 수준이고 불안이 크지 않으니, 시험장 책상에서는 낯선 자료보다 익숙한 순서가 더 안전해."
+      ]
+    }
+  ],
+  "acceptance": {
+    "unique_version_preflight": "PASS",
+    "real_provider_called": "PASS",
+    "persisted_complete": "PASS",
+    "nonempty_public_hook_and_body": "PASS",
+    "all_deterministic_gates": "PASS",
+    "saved_replay": "PASS",
+    "overall": "PASS"
+  },
+  "verification": {
+    "focused": "35/35 PASS",
+    "related": "61/61 PASS",
+    "compiler_task": "7/7 PASS",
+    "full_regression": "676/676 PASS; 101 suites",
+    "typecheck": "PASS",
+    "vercel_build": "PASS",
+    "diff_check": "PASS; line-ending warnings only",
+    "independent_rereview": "Approved with comments; both prior Major findings resolved; Critical 0 / Major 0 / Minor 0",
+    "projectops": "implementation known false-positive documented; boundary-aware credential scan 0 hits; test WARN; RAG/release PASS",
+    "creamwiki": "put/get/search PASS; server reindex NOT_RUN"
+  },
+  "interpretation": "The first attempt was rejected and the existing repair feedback/retry path produced a second attempt that passed every deterministic gate and persisted as complete. This proves one representative synthetic section only; it does not approve the full pass_angle outline or the 20-service release.",
+  "scope": {
+    "runtime_changed": false,
+    "prompt_provider_model_retry_changed": false,
+    "production_customer_data_used": false,
+    "database_auth_payment_admin_mutated": false,
+    "commit_push_deploy_production": false
+  }
+}

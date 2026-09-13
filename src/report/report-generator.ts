@@ -1,6 +1,7 @@
 import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 import type {
   BirthInput,
+  CorpusSnapshot,
   Element,
   LlmMessage,
   SajuAnalysis,
@@ -10,11 +11,13 @@ import type {
   TenGod,
 } from '../types/index.js'
 import { chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
-import { InterpretationQualityError, reviewInterpretation } from './interpretation-validation.js'
+import { InterpretationQualityError, reviewInterpretation, type InterpretationReview } from './interpretation-validation.js'
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
+import { numericEvidenceFrom, reviewPaidSectionDensity, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import { standardReading } from './standard-reading.js'
+import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
 import { buildSajuFeatureJson } from '../saju/analyzer.js'
 import { pillarLabel } from '../saju/calculator.js'
@@ -56,6 +59,7 @@ const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
 const PASS_ANGLE_SERVICE_KEY = 'pass_angle'
+const QUIT_FORTUNE_SERVICE_KEY = 'quit_fortune'
 
 type ReportFocus =
   | 'profile'
@@ -77,6 +81,7 @@ interface ReportBlueprint {
   id: string
   category: string
   categoryEn: string
+  classification?: string
   focus: ReportFocus
   query: string
 }
@@ -911,57 +916,14 @@ function isWorkMoveContext(context: SajuReportContext): boolean {
   return context.serviceKey === WORK_MOVE_SERVICE_KEY
 }
 
-const PASS_ANGLE_BLUEPRINTS: ReportBlueprint[] = [
-  {
-    id: 'pass-angle-verdict',
-    category: '나, 붙을 각이야?',
-    categoryEn: 'Pass Verdict',
-    focus: 'target',
-    query: '시험운 합격운 인성 정인 편인 관성 세운 대운 문서운 학업 판정',
-  },
-  {
-    id: 'study-style',
-    category: '내 머리 쓰는 법',
-    categoryEn: 'Study Style',
-    focus: 'balance',
-    query: '일간 오행 신강 신약 용신 암기 이해 집중력 공부 방식 식신 상관 인성',
-  },
-  {
-    id: 'exam-type-fit',
-    category: '나랑 맞는 시험',
-    categoryEn: 'Exam Type Fit',
-    focus: 'careerMoney',
-    query: '객관식 서술형 전문직 어학 실기 면접 구술 십신 관성 식상 적성 시험 유형',
-  },
-  {
-    id: 'pass-timing',
-    category: '붙는 타이밍',
-    categoryEn: 'Pass Timing',
-    focus: 'future',
-    query: '대운 세운 월운 시험 접수 시기 재도전 택일 문서운 합격 타이밍',
-  },
-  {
-    id: 'mental-stamina',
-    category: '버티는 몸과 멘탈',
-    categoryEn: 'Mental Stamina',
-    focus: 'trap',
-    query: '번아웃 수면 회복 리듬 불안 비교 자기 의심 집중 누수 편인 상관 과부하',
-  },
-  {
-    id: 'exam-day-routine',
-    category: '시험 날 택일과 컨디션',
-    categoryEn: 'Exam Day Routine',
-    focus: 'timingPlace',
-    query: '시험 당일 컨디션 일진 택일 이동 동선 긴장 루틴 준비물 시간대',
-  },
-  {
-    id: 'action-plan',
-    category: '현실 액션 플랜',
-    categoryEn: 'Action Plan',
-    focus: 'action',
-    query: 'D-100 D-30 D-7 기출 오답 회독 계획 포기할 것 실전 전략 체크리스트',
-  },
-]
+const PASS_ANGLE_BLUEPRINTS: ReportBlueprint[] = PASS_ANGLE_OUTLINE.map((item) => ({
+  id: item.id,
+  category: item.category,
+  categoryEn: item.categoryEn,
+  classification: item.classification,
+  focus: item.focus,
+  query: item.query,
+}))
 
 const EXAM_TYPE_AFFINITY: Record<string, string> = {
   목: '이해형 정리와 장문 서술에 강하고, 범위를 넓게 잡을수록 살아납니다',
@@ -1985,7 +1947,7 @@ export function buildTemplateSajuReport(
       imageAlt: `${blueprint.category} 공통 이미지`,
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
-      classification: classificationFor(blueprint.focus, analysis, context, blueprint.id),
+      classification: blueprint.classification ?? classificationFor(blueprint.focus, analysis, context, blueprint.id),
       hook: isLoveThisYear ? hookFor(blueprint.focus, analysis, context, blueprint.id) : interpretation.split(/\n\s*\n/)[0].replace(/^\[[^\]]+\]\s*/, '').split(/(?<=[.!?])\s/)[0],
       patternKeys: keys,
       ragTopics,
@@ -2026,13 +1988,53 @@ const INTERPRETATION_INSTRUCTION = [
   '정상 상태이면 유지할 강점을 설명하고, 확인되지 않은 문제나 위험·과거사를 만들지 마세요. 정보 부족은 분명히 알리세요.',
   '정상 상태의 원인도 지어내면 안 됩니다. 만족한다는 입력만으로 업무 경계·약속·휴식 습관이 좋다고 확인한 것처럼 쓰지 말고, 첫 문단과 결론까지 실제 해당할 경우라는 조건을 유지하세요.',
   '제목·생년·명식 재소개로 분량을 채우지 말고 이 항목만의 근거, 생활 사례, 비교 기준과 적절한 다음 행동을 충분히 풀어주세요.',
-  '한국어 약 1800~2600자, 의미 단락 6~9개를 목표로 하되 각 단락은 2~4문장으로 구성하세요. 줄 수는 강제하지 않습니다.',
+  '항목의 질문과 서비스 페르소나에 맞는 길이로 씁니다. 근거·장면·다음 기준을 갖추되 같은 설명으로 분량을 늘리지 않습니다.',
   '독립 카드에서 전문용어가 처음 나오면 한글(한자, 쉬운 뜻)으로 풀고, 독음 없는 한자·내부 자료 필드를 노출하지 마세요.',
   '경고·해법·행동 세 가지를 모든 항목에 강제하지 마세요. 위험을 말하려면 실제 입력 근거와 해당 조건이 있어야 합니다.',
   '사용자가 연락 거부·차단을 알리면 재접촉보다 그 의사 존중을 우선하세요.',
   '다른 항목과 같은 문단을 쓰지 마세요. 미래 날짜·점수·자미두수 명반을 새로 계산하거나 만들어내지 마세요.',
   '특정 행동이 승패를 가른다거나 이기는 사람의 조건이라고 말하지 마세요. 실력 재현·판단에 도움이 될 수 있는 방법과 결과 보장을 구별하세요.',
 ].join('\n')
+
+const PASS_ANGLE_OPENING_VERDICT_INSTRUCTION = [
+  '첫 전체 흐름 판정 전용:',
+  '전통적 상징은 해석 후보로만 설명하세요. 상징을 현실의 정답·결정·명령·증명·보장·확정으로 쓰지 마세요.',
+  '입력에 실제 경험 장면이 없으면 “예를 들어”로 시작하세요. 모의고사 복기처럼 장소 또는 도구와 분류·기록·비교 같은 관찰 행동이 함께 있는 장면을 한 문단에 넣으세요.',
+  '마지막 의미 단락에는 오늘 또는 다음 복기에서 확인할 구체 대상을 밝히고 기록·비교·확인 중 하나를 실행 기준으로 쓰세요.',
+  '전문용어는 꼭 필요한 경우 하나씩만 소개하세요. 한자 묶음은 문장당 하나만 쓰고 같은 문장에 두 용어의 한자 설명을 겹치지 마세요.',
+].join('\n')
+
+const QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION = [
+  '퇴사운 전체 판정 전용:',
+  '퇴사·이직을 언급하는 미래 문장은 확정 결과로 끝내지 말고, “라면”, “다면”, “경우”, “수 있어요”, “가능성” 가운데 맞는 조건 표현을 문장 안에 명시하세요.',
+  '전문용어 충이 꼭 필요하면 첫 사용을 “충(沖, 서로 부딪혀 변화를 만드는 전통 관계)”처럼 한글(한자, 쉬운 뜻)로 설명하세요. 필요하지 않으면 전문용어를 새로 쓰지 마세요.',
+  '마지막 의미 단락에는 남을 조건과 옮길 조건 중 구체적인 확인 대상을 먼저 밝히고, 그 대상을 기록·비교·확인하는 행동과 결과별 다음 판단을 2~4문장으로 쓰세요.',
+  '현재 입력은 차분한 비교 요청입니다. 갈등·질병·해고·경제 위기를 실제 사실처럼 만들지 마세요.',
+].join('\n')
+
+const QUIT_FORTUNE_COMMON_INSTRUCTION = [
+  '퇴사운 전 항목 공통:',
+  '퇴사·이직·잔류 뒤의 미래 결과는 확인된 사실처럼 단정하지 말고, 실제 조건이 충족될 때의 가능성이라는 조건부 표현으로 쓰세요.',
+  '빈 줄로 나눈 각 의미 단락을 2~4개의 완성 문장으로 구성하고, 한 문장짜리 단락이나 문장 조각을 만들지 마세요.',
+  '전문용어가 꼭 필요할 때만 하나씩 소개하고, 괄호 속 한자 설명은 문장당 하나만 쓰세요.',
+].join('\n')
+
+const QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION = [
+  '다섯 관점 전용:',
+  '다섯 조언을 직접 인용하지 말고 역할극도 쓰지 마세요. 서로 다른 판단 관점을 현대 해요체로 짧게 요약하세요.',
+  '자네·하게·하세 같은 하게체와 권위적인 예언자 말투를 쓰지 마세요.',
+  '마지막 의미 단락에는 사용자가 확인할 대상을 먼저 밝히고, 기록·비교·확인할 행동과 결과별 다음 판단을 2~4문장으로 쓰세요.',
+].join('\n')
+
+function sectionSpecificInstruction(context: SajuReportContext, section: SajuReportSection): string {
+  if (context.serviceKey === PASS_ANGLE_SERVICE_KEY && section.id === 'pass-angle-verdict') return PASS_ANGLE_OPENING_VERDICT_INSTRUCTION
+  if (context.serviceKey === QUIT_FORTUNE_SERVICE_KEY) {
+    if (section.id === 'flow-1') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION}`
+    if (section.id === 'mental-people-5') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION}`
+    return QUIT_FORTUNE_COMMON_INSTRUCTION
+  }
+  return ''
+}
 
 
 export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuReportContext): unknown {
@@ -2050,31 +2052,72 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
   }
 }
 
-function sectionPrompt(analysis: SajuAnalysis, birth: BirthInput, rawContext: SajuReportContext, section: SajuReportSection, siblings: SajuReportSection[] = []): LlmMessage[] {
+const PROMPT_FULL_SIBLING_WINDOW = 4
+const PROMPT_SIBLING_SUMMARY_LIMIT = 160
+const PROMPT_SIBLING_INTERPRETATION_LIMIT = 1_200
+
+function compactPromptSiblings(siblings: SajuReportSection[]): Array<{
+  id: string
+  question?: string
+  summary: string
+  interpretation?: string
+}> {
+  const completed = siblings.filter(item => item.status === 'complete')
+  const fullTextStartsAt = Math.max(0, completed.length - PROMPT_FULL_SIBLING_WINDOW)
+  return completed.map((item, index) => ({
+    id: item.id,
+    question: item.classification,
+    summary: item.hook.slice(0, PROMPT_SIBLING_SUMMARY_LIMIT),
+    // 모든 항목의 짧은 이력은 유지하되 원문은 최근 항목만 전달한다. 52항목에서
+    // 전체 본문을 매번 누적하면 프롬프트가 O(n²)로 커져 비용·지연·실패가 증가한다.
+    interpretation: index >= fullTextStartsAt
+      ? item.interpretation.slice(0, PROMPT_SIBLING_INTERPRETATION_LIMIT)
+      : undefined,
+  }))
+}
+
+export function sectionPrompt(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  rawContext: SajuReportContext,
+  section: SajuReportSection,
+  siblings: SajuReportSection[] = [],
+  corpusSnapshot?: CorpusSnapshot,
+): LlmMessage[] {
   // 이 프롬프트는 외부 모델 제공자로 나간다. 상대의 생년월일시 원본은 어느 필드로도
   // 넘기지 않는다 — `featureJson` 이 문맥을 `userContext` 로 통째로 싣기 때문에
   // `context` 필드만 가려도 부족하다(2026-09-10 Codex 리뷰). 과거에 저장된 레코드에는
   // 원본이 남아 있으므로(소급 삭제하지 않는다) 입구에서 한 번에 걷어낸다.
   const context = publicReportContext(rawContext)
-  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id) : retrieveRagChunks(
+  const userContext = context.partner?.birthTimeKnown === false
+    ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false } }
+    : context
+  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
-    analysis, runtimeConfig.report?.ragTopK ?? 4, context,
+    analysis, runtimeConfig.report?.ragTopK ?? 4, context, corpusSnapshot,
   )
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
     { role: 'user', content: JSON.stringify({
-      instruction: context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingInstruction(section.id) : INTERPRETATION_INSTRUCTION,
+      instruction: [
+        toneWritingInstruction(context.serviceKey),
+        context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingInstruction(section.id) : INTERPRETATION_INSTRUCTION,
+        sectionSpecificInstruction(context, section),
+      ].filter(Boolean).join('\n'),
       outputShape: { id: section.id, hook: 'string', interpretation: 'string' },
-      birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
-      // 상대의 출생시각을 모르면 시주가 추정값이다. 계산된 명식을 넘기면 모델이 그것을
-      // 사실로 쓰므로 이때는 명식을 빼고 관계만 남긴다.
-      context: context.partner?.birthTimeKnown === false
-        ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false } }
-        : context,
-      featureJson: groundedReportFeatures(analysis, context),
-      section: { id: section.id, category: section.category, classification: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.classification, hook: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.hook, interpretation: context.serviceKey === HOME_FIT_SERVICE_KEY ? undefined : section.interpretation },
-      otherSections: siblings.map((item) => ({ id: item.id, question: item.classification, summary: item.hook })),
-      rag: formatRagForPrompt(chunks),
+      evidenceLayers: {
+        userFacts: {
+          birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
+          // 상대의 출생시각을 모르면 시주가 추정값이다. 계산된 명식을 넘기면 모델이 그것을
+          // 사실로 쓰므로 이때는 명식을 빼고 관계만 남긴다.
+          context: userContext,
+        },
+        verifiedCalculations: groundedReportFeatures(analysis, context),
+        traditionalInterpretationCandidates: formatRagForPrompt(chunks),
+        fictionalExamplePolicy: '실제 경험으로 쓰지 않습니다. 예를 들어 또는 만약으로 시작해 가상 사례임을 표시합니다.',
+      },
+      section: { id: section.id, order: section.order, category: section.category, classification: section.classification },
+      otherSections: compactPromptSiblings(siblings),
     }) },
   ]
 }
@@ -2091,6 +2134,94 @@ function extractJsonObject(raw: string): unknown {
   return JSON.parse(cleaned.slice(start, end + 1)) as unknown
 }
 
+/** Parse the same bounded section payload for live generation and saved-attempt recovery. */
+export function parseGeneratedSajuReportSection(raw: string, sectionId: string): { hook: string; interpretation: string } {
+  const parsed = extractJsonObject(raw) as { id?: unknown; hook?: unknown; interpretation?: unknown }
+  if (parsed.id !== sectionId) throw new Error('생성 결과의 항목 ID가 요청과 다릅니다.')
+  return {
+    interpretation: typeof parsed.interpretation === 'string' ? parsed.interpretation.trim() : '',
+    hook: typeof parsed.hook === 'string' ? parsed.hook.trim() : '',
+  }
+}
+
+function sectionRepairInstruction(issues: string[]): string {
+  const uniqueIssues = [...new Set(issues.map((issue) => issue.trim()).filter(Boolean))]
+  const guidance = [
+    '현재 실패만 고치고 끝내지 말고 원래 요청의 모든 품질 불변식을 함께 보존하세요.',
+    '첫 문장부터 질문에 직접 답하고, 사용자 사실과 검증된 계산은 근거로만 쓰며 전통적 상징은 해석 후보로 구분하세요.',
+    '실제 경험이 아니면 “예를 들어”라고 밝히고, 장소 또는 도구와 관찰 행동이 함께 있는 알아볼 수 있는 장면을 쓰세요.',
+    '마지막 의미 단락을 반드시 2~4개의 완성 문장으로 예약하고, 구체적인 다음 판단 기준으로 끝내되 확인할 대상과 기록·비교·확인 행동을 함께 밝히세요.',
+    '그 단락의 첫 문장에는 구체적인 확인 대상을 밝히고, 이어지는 문장에는 그 대상을 기록·비교·확인하는 행동을 쓰세요.',
+    '“다음에는 잘해봐” 같은 격려나 “확인해”처럼 대상 없는 행동은 다음 판단 기준으로 세지 마세요.',
+    'JSON 반환 전 내부 자기검사에서 마지막 의미 단락의 다음 판단 기준을 확인하되, 자기검사 체크리스트는 출력하지 마세요.',
+    '한자 설명은 문장당 하나만 씁니다. 다른 전문용어의 첫 설명은 새 문장으로 분리하고, 필요하지 않은 전문용어를 새로 추가하지 마세요.',
+    '빈 줄로 나눈 각 의미 단락은 2~4개의 완성 문장으로 다시 구성하세요. 한 문장짜리 단락은 만들지 마세요.',
+    '지정된 서비스 말투를 유지하고 확정 예언을 하지 말며 상징을 현실의 정답·결정·명령·증명·보장으로 바꾸지 마세요.',
+    '근거 없는 수치, 내부 필드, 코퍼스 문장 복사, 형제 항목과 같은 답이나 긴 문단 반복을 만들지 마세요.',
+  ]
+  return [
+    '이전 응답은 아래 검수에서 실패했습니다. 같은 항목 전체를 새로 작성해 바로잡으세요.',
+    ...uniqueIssues.map((issue, index) => `${index + 1}. ${issue}`),
+    '재작성 형식:',
+    ...guidance.map((item) => `- ${item}`),
+    '요청한 JSON의 id, hook, interpretation만 반환하세요.',
+  ].join('\n')
+}
+
+
+export function reviewGeneratedSajuReportSection(input: {
+  analysis: SajuAnalysis
+  birth: BirthInput
+  context: SajuReportContext
+  section: SajuReportSection
+  hook: string
+  interpretation: string
+  siblings?: SajuReportSection[]
+  corpusSnapshot?: CorpusSnapshot
+}): InterpretationReview {
+  const { analysis, birth, context, section, hook, interpretation, siblings = [], corpusSnapshot } = input
+  const review = reviewInterpretation(interpretation, context, siblings)
+ const numericEvidence = numericEvidenceFrom(
+    context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
+    publicReportContext(context),
+    groundedReportFeatures(analysis, context),
+    { category: section.category, classification: section.classification },
+  )
+  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
+    `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(publicReportContext(context))}`,
+    analysis, runtimeConfig.report?.ragTopK ?? 4, publicReportContext(context), corpusSnapshot,
+  )
+  review.issues.push(...reviewToneCopy(interpretation, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'body' }).issues)
+  review.issues.push(...reviewToneCopy(hook, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'hook' }).issues)
+  review.issues.push(...reviewPaidSectionDensity({
+    hook,
+    question: section.classification,
+    interpretation,
+    context,
+    siblings,
+  }).issues)
+  review.issues.push(...reviewSectionUniqueness({
+    hook,
+    question: section.classification,
+    interpretation,
+    siblings,
+  }).issues)
+  review.issues.push(...reviewTechnicalTerms({ hook, interpretation, siblings }).issues)
+  review.issues.push(...reviewScoreVisuals({
+    hook,
+    interpretation,
+    numericEvidence,
+    hasComparisonTarget: context.partner?.mode === 'known'
+      || Boolean(context.workMove?.targetCompanyName || context.workMove?.targetRole),
+  }).issues)
+  if (!hook) review.issues.push('현재 항목의 답을 담은 한 줄 요약을 새로 작성하세요.')
+  review.passed = review.issues.length === 0
+  if (context.serviceKey === HOME_FIT_SERVICE_KEY) {
+    review.issues.push(...reviewHomeNarrative(interpretation, section.id))
+    review.passed = review.issues.length === 0
+  }
+  return review
+}
 
 export async function buildOpenAiSajuReportSection(
   analysis: SajuAnalysis,
@@ -2098,31 +2229,39 @@ export async function buildOpenAiSajuReportSection(
   sectionId: string,
   context: SajuReportContext = {},
   savedSection?: SajuReportSection,
-  options: { siblings?: SajuReportSection[]; onResponse?: (result: OpenAiResult) => void | Promise<void>; repairIssues?: string[] } = {},
+  options: {
+    siblings?: SajuReportSection[]
+    onResponse?: (result: OpenAiResult) => void | Promise<void>
+    repairIssues?: string[]
+    corpusSnapshot?: CorpusSnapshot
+  } = {},
 ): Promise<SajuReportSection> {
   const section = savedSection ?? buildTemplateSajuReport(analysis, birth, context).sections.find((item) => item.id === sectionId)
   if (!section || section.id !== sectionId) throw new Error('요청한 전용 항목을 찾지 못했습니다. 다른 항목으로 대체하지 않습니다.')
-  const messages = sectionPrompt(analysis, birth, context, section, options.siblings)
-  if (options.repairIssues?.length) messages.push({ role: 'user', content: `이전 응답은 다음 검수에서 실패했습니다. 같은 항목을 새로 작성해 바로잡으세요: ${options.repairIssues.join(' ')}` })
+  const messages = sectionPrompt(analysis, birth, context, section, options.siblings, options.corpusSnapshot)
+  if (options.repairIssues?.length) messages.push({ role: 'user', content: sectionRepairInstruction(options.repairIssues) })
   let metadata: OpenAiResult | undefined
   const raw = await chatWithOpenAI(messages, {
     model: REPORT_MODEL,
-    maxTokens: runtimeConfig.report?.sectionMaxTokens ?? 4200,
+    maxTokens: Number(process.env.REPORT_SECTION_MAX_TOKENS) || runtimeConfig.report?.sectionMaxTokens || 4200,
     onResponse: async (result) => { metadata = result; await options.onResponse?.(result) },
   })
-  const parsed = extractJsonObject(raw) as { id?: unknown; hook?: unknown; interpretation?: unknown }
-  if (parsed.id !== section.id) throw new Error('생성 결과의 항목 ID가 요청과 다릅니다.')
-  const interpretation = typeof parsed.interpretation === 'string' ? normalizeUserCopy(parsed.interpretation.trim()) : ''
-  const review = reviewInterpretation(interpretation, context, options.siblings)
-  if (context.serviceKey === HOME_FIT_SERVICE_KEY) {
-    review.issues.push(...reviewHomeNarrative(interpretation, section.id))
-    review.passed = review.issues.length === 0
-  }
+  const { hook, interpretation } = parseGeneratedSajuReportSection(raw, section.id)
+  const review = reviewGeneratedSajuReportSection({
+    analysis,
+    birth,
+    context,
+    section,
+    hook,
+    interpretation,
+    siblings: options.siblings,
+    corpusSnapshot: options.corpusSnapshot,
+  })
   if (!review.passed) throw new InterpretationQualityError(review)
 
   return {
     ...section,
-    hook: typeof parsed.hook === 'string' && parsed.hook.trim() ? parsed.hook.trim() : section.hook,
+    hook,
     interpretation,
     generatedAt: new Date().toISOString(),
     model: metadata?.model ?? REPORT_MODEL,

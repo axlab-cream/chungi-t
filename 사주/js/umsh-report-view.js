@@ -124,8 +124,8 @@
       '<span class="eyebrow">' + escapeHtml(section.categoryEn) + ' · ' + (index + 1) + '/' + state.report.sections.length + '</span>' +
       '<h3>' + escapeHtml(section.classification) + '</h3>' + body +
       '<div class="pager">' +
-      '<button class="btn" type="button" data-prev ' + (index <= 0 ? 'disabled' : '') + '>이전</button>' +
-      '<button class="btn primary" type="button" data-next ' + (index >= state.report.sections.length - 1 ? 'disabled' : '') + '>다음</button>' +
+      '<button class="btn" type="button" data-prev ' + (index <= 0 ? 'disabled' : '') + '>이전 해석 보기</button>' +
+      '<button class="btn primary" type="button" data-next ' + (index >= state.report.sections.length - 1 ? 'disabled' : '') + '>다음 해석 보기</button>' +
       '</div>';
   }
 

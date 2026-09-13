@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-completion-e2e",
+  "mode": "test",
+  "timestamp": "2026-09-12T19:12:25.3879702+09:00",
+  "checks": [
+    {
+      "name": "npm test script",
+      "status": "WARN",
+      "detail": "package.json has no test script"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

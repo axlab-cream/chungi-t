@@ -1,0 +1,19 @@
+{
+  "task_id": "task-tone-v2-p01-pass-angle-e2e",
+  "date": "2026-09-12",
+  "acceptance_result": "FAIL",
+  "checks": [
+    { "name": "saved record replay", "status": "PASS", "detail": "record SHA-256, attempt IDs, resolved models, raw hashes and replayed density output match" },
+    { "name": "environment isolation", "status": "PASS", "detail": "RED missing module and prefixed Supabase URL leak, then GREEN 1/1" },
+    { "name": "focused regression", "status": "PASS", "detail": "58/58" },
+    { "name": "compiler and task coverage", "status": "PASS", "detail": "7/7" },
+    { "name": "full regression", "status": "PASS", "detail": "673/673, 101 suites; transcript in tone-v2/latest-regression.log" },
+    { "name": "typecheck", "status": "PASS" },
+    { "name": "vercel build", "status": "PASS" },
+    { "name": "git diff check", "status": "PASS", "detail": "line-ending warnings only" },
+    { "name": "ProjectOps test harness", "status": "WARN", "detail": "harness executes under CreamAI and cannot see the repository-root package.json test script; root test is the authoritative 673/673 result" },
+    { "name": "ProjectOps implementation harness", "status": "FAIL_FALSE_POSITIVE", "detail": "broad sk- pattern matched task-tone identifiers; boundary-aware scan of this Task's files found 0 hits" },
+    { "name": "representative provider E2E acceptance", "status": "FAIL", "detail": "persisted failed after 2 attempts; final remaining gate is scene" }
+  ],
+  "production_mutation": false
+}

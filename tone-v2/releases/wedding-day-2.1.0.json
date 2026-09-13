@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "wedding-day-corpus-2.1.0",
+  "serviceKey": "wedding_day",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/wedding-day-service.json",
+      "version": "2.0.0",
+      "sha256": "11347cc046ea3f3ed0aece374e6dec8bcb12c1a1984b4eb0c32d2dd4197f4161"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/wedding-day-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "bf49f10f68abf3aef33040de73ebc8297339dcd47e2f80a054747ef4d82044f4"
+    },
+    "semanticReview": "tone-v2/corpus-review/wedding-day-2.1.0.json"
+  },
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-wedding-day-full-outline-generation-20260913.json",
+    "recordSha256": "fa72149206392ed189898b4f48991c01129fa89868ac0c01dd359c456f63bcc5",
+    "acceptedProseSha256": "cfd2fbefed41c7aa4aff687785ce4e4cc520c0096cb2ba0b95caee58c0fea88c",
+    "containsProviderProse": false
+  },
+  "visualEvidence": {
+    "path": "tone-v2/evaluations/P04-wedding-day-visual-render-evidence-20260913.json",
+    "sha256": "490f8212ed8971b7f167306c9ec091560932ad23a4f90eea7f77441b1a9ebd57",
+    "desktop": "pass_20_of_20",
+    "mobile": "pass_20_of_20",
+    "print": "pass_20_of_20",
+    "containsProviderProse": false
+  },
+  "verificationEvidence": "tone-v2/evaluations/P05-wedding-day-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/wedding-day-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_6_of_6",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "pass_20_of_20",
+    "focusedTests": "8/8 pass",
+    "fullTests": "863/863 pass across 119 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

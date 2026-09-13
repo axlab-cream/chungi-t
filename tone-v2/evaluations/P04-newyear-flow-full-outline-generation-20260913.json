@@ -1,0 +1,41 @@
+{
+  "taskId": "task-tone-v2-p04-newyear-flow-full-outline-evidence",
+  "evaluatedAt": "2026-09-13T12:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "newyear_flow",
+  "provider": { "model": "gpt-5.5-2026-04-23", "actualCalls": true, "syntheticOnly": true, "isolatedStorage": true, "reasoningEffort": "low" },
+  "identity": { "version": "p04-newyear-flow-full-outline-20260913-1", "reportId": "6d8f803aa124d4b1e74338d767d2", "resultId": "55fd9e16-7dc6-49e7-a7f6-515ac8cca3f8" },
+  "completion": { "completedSections": 36, "expectedSections": 36, "recordStatus": "complete", "firstFailure": null, "attemptedAfterFailure": 0, "attemptedOutsideLimit": 0 },
+  "sourceContract": {
+    "partItemCounts": [8, 8, 9, 6, 5],
+    "totalItems": 36,
+    "sha256": [
+      "29951470f6f3f77b6439b066b69499aa1a0806ab7650f3694d4a46d20787ee2d",
+      "d4e4da591faf40fab6fe52d5263d68bd7c64a7672c1fb1ef831732458cd5571a",
+      "e913940ba5746e0e83322ace3d8800e2dfd448b5d62ec0447999e8c6179a1888",
+      "2e7568c7347a1cb4bb6ec97724989e69d8d8a0de775d1d0e1eb854747cc6540e",
+      "3cc82b7a3dd9553ec91f3b97c35c56e470a6b9d4b29f53973f0f5c5c3716b575"
+    ],
+    "sampleOutputsIngested": false
+  },
+  "evidence": {
+    "recordSha256": "3c5cac0937482f03fcbc07a9237bece015f4ffba662e8973206edf40976575c8",
+    "acceptedProseSha256": "ceaf531bb36caa7cbaa25e3c2346252eaa98283ae5316574e0fc39646df51796",
+    "acceptedProseCanonicalForm": "JSON array of ordered {id,order,hook,interpretation} objects",
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false,
+    "sourceRecord": ".cache/reading-live-20260907/records/6d8f803aa124d4b1e74338d767d2.json"
+  },
+  "generation": { "providerAttempts": 82, "acceptedSections": 36, "acceptedAttempts": 36, "failedAttempts": 46, "promptTokens": 1956186, "completionTokens": 66279, "totalTokens": 2022465 },
+  "replay": { "passed": 36, "failed": 0, "interpretationCharacterCount": { "minimum": 694, "maximum": 1118, "average": 906.47 }, "paragraphCount": { "minimum": 5, "maximum": 8, "average": 5.86 } },
+  "verification": {
+    "focusedTests": { "passed": 8, "failed": 0 },
+    "fullTests": { "suites": 122, "passed": 897, "failed": 0 },
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "independentReview": "approved_codex_review",
+    "reviewFindings": { "critical": 0, "major": 0, "minor": 0, "comments": 2, "commentsSummary": ["The customer title omits the source-only authoring parenthetical while its exact source hash remains frozen.", "Annual, monthly, relationship, health and financial language stays separate from unverified future outcomes and professional advice."] }
+  },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

@@ -1,0 +1,43 @@
+{
+  "taskId": "task-tone-v2-p04-pass-angle-first-section-quality",
+  "version": "p04-pass-angle-first-section-quality-20260912-1",
+  "serviceKey": "pass_angle",
+  "environment": "isolated synthetic local file storage",
+  "providerBacked": true,
+  "model": "gpt-5.5-2026-04-23",
+  "requestedLimit": 1,
+  "result": {
+    "status": "failed",
+    "businessAcceptance": "FAIL",
+    "reportId": "71eb90602170b72b57aeaa2e4eb9",
+    "resultId": "7be61ffa-1e0c-4645-a41f-e28f17845be5",
+    "recordSha256": "8bf05198890cbc096712e39193ec87b0530d5e133d82e02e03ba7f2bc7219a5e",
+    "progress": { "complete": 0, "total": 52 },
+    "firstFailure": { "order": 1, "id": "pass-angle-verdict", "classification": "전체 흐름 판정" },
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0
+  },
+  "attempts": [
+    {
+      "status": "failed",
+      "finishReason": "stop",
+      "usage": { "promptTokens": 19259, "completionTokens": 1698, "totalTokens": 20957 },
+      "failedRules": ["paragraph 2-4 sentence structure", "symbolic interpretation boundary"],
+      "rawSha256": "0d6351dda9d6dc2dcf4606ff20c0be81f2c5f92f74d54e8a1271d858e740f42d"
+    },
+    {
+      "status": "failed",
+      "finishReason": "stop",
+      "usage": { "promptTokens": 19461, "completionTokens": 2572, "totalTokens": 22033 },
+      "failedRules": ["next criterion", "multiple Hanja explanations per sentence"],
+      "rawSha256": "b80cdacfa0a0a99397d3eca1ad3b50d9bfff0a632c0400c7b77761cbd5b9d668"
+    }
+  ],
+  "diagnosis": "The section-specific contract made each target rule attainable, but the retry repaired current failures while regressing rules that had already passed. Repair invariant preservation is a separate next task.",
+  "privacy": {
+    "syntheticInputOnly": true,
+    "rawProseStoredHere": false,
+    "credentialsStoredHere": false,
+    "productionDatabaseUsed": false
+  }
+}

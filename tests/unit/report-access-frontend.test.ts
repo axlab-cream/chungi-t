@@ -473,6 +473,42 @@ test('a permalink selects the same item by section slug or immutable generation 
   }
 })
 
+test('saved report cards distinguish answer, evidence, and action without repeating the hook',()=>{
+  const h=harness('/r/readable-report',[])
+  h.api.consume({reportId:'readable-report',report:{title:'저장된 풀이',sections:[{
+    id:'first',status:'complete',category:'돈',classification:'지금의 선택.',hook:'지금은 보류가 맞습니다.',
+    interpretation:'지금은 보류가 맞습니다. 자동이체 뒤에 남는 금액이 판단 기준입니다.\n\n실제 결제 내역을 주 단위로 묶으면 반복 지출이 보입니다. 아직 쓰지 않은 돈은 수입처럼 세지 않습니다.\n\n이번 주에는 선택 지출 합계를 적습니다. 다음 결제 전에 남은 한도와 비교합니다.'
+  }]}})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/class="reading-block reading-answer"/)
+  assert.match(html,/>한 줄 답</)
+  assert.match(html,/class="reading-block reading-evidence"/)
+  assert.match(html,/>근거</)
+  assert.match(html,/class="reading-block reading-action"/)
+  assert.match(html,/>행동</)
+  assert.equal((html.match(/지금은 보류가 맞습니다\./g)||[]).length,1)
+  assert.match(html,/>돈 · 지금의 선택</)
+})
+
+test('legacy one-paragraph reports use a truthful combined role instead of inventing an action split',()=>{
+  const h=harness('/r/legacy-report',[])
+  h.api.consume({reportId:'legacy-report',report:{title:'예전 풀이',sections:[{
+    id:'legacy',status:'complete',category:'관계',classification:'현재 흐름',hook:'약속을 먼저 봅니다.',
+    interpretation:'답장의 속도만으로 마음을 정할 수 없습니다. 실제로 지켜진 약속을 확인합니다. 다음 대화에서 일정이 바뀐 이유를 묻습니다.'
+  }]}})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/>근거와 행동</)
+  assert.doesNotMatch(html,/class="reading-block reading-action"/)
+})
+
+test('preview CTA names the result the reader will open',()=>{
+  const h=harness('/work/move/04-step-4-report/index.html',[])
+  h.api.showPreview({preview:{headline:'먼저 본 방향',summary:'조건을 비교합니다.',signals:[]},paymentUrl:'/payment'}, {})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/>전체 해석 목차 보기</)
+  assert.doesNotMatch(html,/전체 해석 열어보기/)
+})
+
 test('reader auth events replace refreshed credentials and clear content immediately on logout',async()=>{
   const report={reportId:'report',report:{title:'OWNER_READING',sections:[{id:'a',status:'complete',category:'장',classification:'항목',interpretation:'PRIVATE_READING'}]}}
   const h=harness('/me/lucky/04-step-4-report/index.html?reportId=report',[{enabled:true,url:'https://unused.invalid',publishableKey:'synthetic'},report,{}])

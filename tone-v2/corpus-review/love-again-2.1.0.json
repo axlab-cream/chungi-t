@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "love_again",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/love-again-service-2.1.0.json",
+  "sourceSha256": "8760c79d3f5e313c8d450927fa4d39c3d574601753aa6f5f38785020977562ca",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit history, reunion, consent, refusal, safety and hypothetical-example review",
+  "blocks": [
+    {
+      "id": "again-001",
+      "status": "pass",
+      "checks": {
+        "historyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "reunionOutcomeBoundary": true,
+        "consentAndRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "taskId": "task-tone-v2-p04-pass-angle-full-outline-continuation",
+  "date": "2026-09-12",
+  "service": "pass_angle",
+  "version": "p04-repair-next-criterion-retention-20260912-1",
+  "syntheticOnly": true,
+  "acceptance": "FAIL",
+  "reportId": "e82e82d0def03bd2055495c751a3",
+  "resultId": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+  "recordStatus": "failed",
+  "recordSha256": "25c4eb50171e27ef186afed09c60ca1da2e68a3b3c03c5e98836be0124048174",
+  "progress": { "complete": 2, "total": 52 },
+  "continuation": {
+    "startedAtOrder": 2,
+    "firstFailure": { "order": 3, "id": "pass-angle-support-vs-drag" },
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0,
+    "providerCallsThisRun": 4,
+    "promptTokensThisRun": 78395,
+    "completionTokensThisRun": 3854,
+    "totalTokensThisRun": 82249
+  },
+  "preservedItem": {
+    "order": 1,
+    "id": "pass-angle-verdict",
+    "status": "complete",
+    "attempts": 1,
+    "hookLength": 23,
+    "interpretationLength": 161,
+    "proseSha256": "79ce08128894ba6191db900fd6252b7110e0d4abd34da992287b1086af9a0e51",
+    "replayPassed": true
+  },
+  "completedItem": {
+    "order": 2,
+    "id": "pass-angle-current-window",
+    "status": "complete",
+    "attempts": 2,
+    "hookLength": 17,
+    "interpretationLength": 298,
+    "proseSha256": "822496f7cd797880458c8dc7dbc653bfd5574450102608bed10236fce15a98ce",
+    "replayPassed": true,
+    "firstAttemptIssues": ["scene", "nextCriterion"],
+    "repairOutcome": "PASS"
+  },
+  "failedItem": {
+    "order": 3,
+    "id": "pass-angle-support-vs-drag",
+    "status": "failed",
+    "attempts": 2,
+    "firstAttemptIssues": ["paragraphs", "missingDataTranslation", "scene", "nextCriterion"],
+    "secondAttemptIssues": ["nextCriterion"],
+    "repairOutcome": "FAIL_NEXT_CRITERION"
+  },
+  "pendingRange": { "fromOrder": 4, "toOrder": 52, "count": 49 },
+  "rawProseStoredInEvidence": false,
+  "secretStoredInEvidence": false,
+  "modelOrGateChanged": false
+}

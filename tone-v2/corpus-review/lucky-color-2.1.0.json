@@ -1,0 +1,425 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "lucky_color",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/lucky-color-service-2.1.0.json",
+  "sourceSha256": "ad21c843643ed77301d15fe1e48c544fa0e86f89a40cc8de5ab0774d245b51f6",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/lucky_color.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit calculation, symbolic correspondence, user environment, efficacy, purchase, health, food, sleep, numeric and outcome review",
+  "blocks": [
+    {
+      "id": "lucky-001",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-002",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-003",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-004",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-005",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-006",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-007",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-008",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-009",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-010",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-011",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-012",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-013",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-014",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-015",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-016",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-017",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-018",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-019",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-020",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-021",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-022",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-023",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "lucky-024",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "traditionalCorrespondenceBoundary": true,
+        "userRealityBoundary": true,
+        "unknownEnvironmentBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "efficacyBoundary": true,
+        "purchaseBoundary": true,
+        "healthBoundary": true,
+        "foodAndSleepBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-job-choice-corpus-rag-release-candidate",
+  "status": "pass",
+  "date": "2026-09-13",
+  "serviceKey": "job_choice",
+  "corpusVersion": "2.1.0",
+  "scope": { "blocksReviewed": 12, "providerCalls": 0, "productionChanges": 0, "customerRecordMutations": 0 },
+  "tdd": { "red": "1/8 pass, 7/8 fail before candidate artifacts and registry activation", "green": "8/8 pass after semantic review, versioned candidate and registry activation" },
+  "verification": {
+    "focusedTests": "8/8 pass",
+    "relatedTests": "217/217 pass across 16 suites",
+    "fullTests": "871/871 pass across 120 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQ entries, 19 sitemap URLs and SEO checks",
+    "deterministicBuilder": "pass; consecutive SHA-256 e96e35e7d96ec14741ed0282316193d5fd5c49dcb735a88198df6095e0227c09",
+    "credentialBoundary": "pass; zero credential findings in Task artifacts",
+    "codexReview": "approved_with_comments; critical 0, major 0, minor 0"
+  },
+  "limitations": [
+    "No provider output was generated or evaluated for corpus 2.1.0.",
+    "No Production deployment or customer-record mutation was performed.",
+    "CreamWIKI remote operations require an authenticated CLI session."
+  ]
+}

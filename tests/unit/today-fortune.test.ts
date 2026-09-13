@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { buildTodayFortune } from '../../src/saju/today-fortune.js'
+import { reviewToneCopy } from '../../src/report/tone-v2-review.js'
 import type { UserBirthProfile } from '../../src/user/profile-store.js'
 
 const profile: UserBirthProfile = {
@@ -16,7 +17,7 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
     assert.equal(fortune.profile.name, '홍길동')
     assert.equal(fortune.user.dayMaster, '庚')
     assert.ok(fortune.today.pillar.length >= 2)
-    assert.ok(fortune.reading.summary.includes('홍길동'))
+    assert.doesNotMatch(fortune.reading.summary, /홍길동|님/)
     assert.ok(fortune.reading.score.total >= 0 && fortune.reading.score.total <= 100)
     for (const key of ['work', 'money', 'relationship', 'caution'] as const) {
       assert.equal(fortune.reading.details[key].score, fortune.reading.score[key])
@@ -49,7 +50,7 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
       seenElements.add(fortune.today.element)
       summaries.add(reading.summary)
       guidance.set(fortune.today.relation, reading.work)
-      assert.match(reading.summary, /[목화토금수]\([木火土金水]\)[은는] .+힘을 뜻하며/)
+      assert.match(reading.summary, /[목화토금수]\([木火土金水]\)[은는] .+힘을 뜻하고/)
       assert.match(reading.summary, /태어난 날의 중심 기운/)
       for (const key of ['work', 'money', 'relationship', 'caution'] as const) {
         assert.ok(reading[key].length >= 100, `${fortune.today.relation}.${key} should have useful depth`)
@@ -57,11 +58,14 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
         assert.doesNotMatch(reading[key], /[\u3400-\u9fff]/, 'plain Korean guidance needs no unexplained Hanja')
       }
       assert.equal(reading.action.split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 2)
-      assert.match(reading.action, /^오늘의 결론은 .+것입니다\./)
-      assert.match(reading.money, /안정적이라면|없다면|필요는 없습니다|없는 날이라면/)
+      assert.match(reading.action, /^오늘의 결론은 .+거야\./)
+      assert.match(reading.money, /안정적이라면|없다면|필요는 없어|없는 날이라면/)
       assert.match(reading.relationship, /평온하게|특별한 부탁이 없다면|좋은 관계라면|잘되어 있다면|특별한 부담 없이/)
       assert.doesNotMatch(JSON.stringify(reading), /실제 사건이나|예측한 결과|운을 깎|반드시 성공|금전의 이익도 크|반응이 부드럽습니다|위기가 찾아/)
       assert.equal(reading.zodiac?.text.split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 2)
+      for (const text of [reading.title, reading.summary, reading.work, reading.money, reading.relationship, reading.caution, reading.action, reading.zodiac!.text]) {
+        assert.deepEqual(reviewToneCopy(text, 'today_fortune').issues, [], text)
+      }
     }
     assert.deepEqual([...seenRelations].sort(), ['output', 'pressure', 'same', 'support', 'wealth'])
     assert.equal(seenElements.size, 5)

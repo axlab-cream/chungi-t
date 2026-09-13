@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-lucky-color-visual-render-evidence",
+  "evaluatedAt": "2026-09-13T15:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "lucky_color",
+  "source": {
+    "generationEvidencePath": "tone-v2/evaluations/P04-lucky-color-full-outline-generation-20260913.json",
+    "reportId": "f0966141-9f1f-4243-b3fb-6dd6d3c3e3f7",
+    "reportRecordSha256": "3c85e8becfca7a8db7d07b379d79b2b4092c39725d78621a5b56c6722d4e91a3",
+    "acceptedProseSha256": "9fe3d22bc7c18cd1019b4fd6688975e7f89051249f719790cb9ee605e3463194",
+    "recordStatus": "complete",
+    "expectedSections": 24,
+    "completedSections": 24
+  },
+  "render": {
+    "contents": { "groups": 6, "items": 24, "passed": true },
+    "desktop": { "sectionsChecked": 24, "readerWidthPx": 430, "paragraphCountRange": [5, 6], "overflowFailures": 0, "contentFailures": 0, "passed": true },
+    "mobile": { "sectionsChecked": 24, "viewportWidthPx": 390, "contentWidthPx": 375, "paragraphCountRange": [5, 6], "overflowFailures": 0, "contentFailures": 0, "passed": true }
+  },
+  "navigation": {
+    "steps": [
+      "all 24 disclosure summaries open by click",
+      "direct section 6-5 opens only the requested final section",
+      "unique report link restores the immutable 24-section result",
+      "keyboard Enter toggles the focused summary"
+    ],
+    "passedSteps": 4,
+    "failedSteps": 0,
+    "passed": true
+  },
+  "accessibility": { "visibleControls": 31, "minimumControlWidthPx": 27.484, "minimumControlHeightPx": 27.75, "controlsBelow24Px": 0, "summaryMinimumHeightPx": 63.25, "focusOutlinePx": 2, "passed": true },
+  "print": { "documentsChecked": 1, "sectionsChecked": 24, "pages": 21, "blankPages": 0, "extractedCharacters": 17441, "missingSectionTitles": 0, "oneLineAnswerCount": 24, "actionCount": 24, "interactiveFlagControlsPresent": 0, "homeNavigationPresent": 0, "pageSizePoints": [612, 792], "representativePagesReviewed": 3, "passed": true },
+  "visualReview": {
+    "acceptedScreenshots": 2,
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "fixedFindings": [],
+    "passed": true
+  },
+  "localArtifacts": {
+    "ignoredLocalOnly": true,
+    "directory": ".cache/lucky-color-visual-evidence",
+    "acceptedScreenshotSha256": {
+      "readerDesktop": "4f318714dad5ac5acb439111510cfdd14f720b2d62358481b5bc21ec30b1beb5",
+      "mobileFrame390": "c2730e692834c40270ad642aa8ad04cbdfaf81a7a83831687cb0557e7ce6eb59"
+    },
+    "printPdfSha256": "4137fcb29acc971ffd21d08d01e4d0410a11d3d71b676a823e58403e1537412a"
+  },
+  "privacy": { "containsProviderProse": false, "containsSecrets": false, "containsPersonalData": false },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

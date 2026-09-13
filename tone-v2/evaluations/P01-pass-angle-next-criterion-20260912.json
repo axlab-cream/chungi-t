@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0",
+  "evaluatedAt": "2026-09-12T14:40:00+09:00",
+  "scope": ["ZIP-003-041"],
+  "inputClass": "synthetic-only",
+  "rootCause": "The deterministic next-criterion matcher recognized maintain/compare/check verbs but omitted the short targeted imperatives assigned to pass_angle, including 세워봐 and 고정해.",
+  "implementation": {
+    "file": "src/report/tone-v2-review.ts",
+    "behavior": "A future or ordering cue followed by an explicit particle-marked target and a narrow safe set of concrete planning verbs is accepted. Generic 하다/잘하다 and discard/quit verbs are not accepted by the new branch.",
+    "otherDensityElementsChanged": false,
+    "modelOrRetryChanged": false,
+    "gateRemoved": false
+  },
+  "capturedOutputReevaluation": {
+    "record": ".cache/reading-live-20260907/records/3a0c1bb100f142e3b9f5636cf9fe.json",
+    "attemptId": "3486830a-401e-4078-9469-fb6088534577",
+    "rawSha256": "71b133c073cc9c3b4dad2bc165fa07c8a858a5577644f5c0907ecb8a9d7fb28c",
+    "proseSha256": "3027e7cc6d10056e16131fff9818052d8f8648ed38be3f1c7d3c31829fb07bfe",
+    "before": { "nextCriterion": "FAIL" },
+    "after": {
+      "passed": true,
+      "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": true }
+    }
+  },
+  "actualProviderRun": {
+    "command": "npx tsx scripts/check-reading-live.ts --generate --service=pass_angle --version=p01-pass-angle-next-criterion-20260912",
+    "provider": "OpenAI",
+    "model": "gpt-5.5-2026-04-23",
+    "record": ".cache/reading-live-20260907/records/fb6f5742683487eaf6275c1c5982.json",
+    "productionDataUsed": false,
+    "sectionStatus": "failed",
+    "attempts": [
+      {
+        "id": "07eec91b-d71d-4ca0-bec9-cdb5087e0d00",
+        "status": "failed",
+        "rawSha256": "539e8f1d7d32f93f947e7ffddefde3c1b7e06adff9965d9e1571069fd88c80a9",
+        "proseSha256": "e5c8de81ce4d64fe7165f850f0e997c9a38467261e8e92742bfe5cb1d0f249c3",
+        "elements": { "directAnswer": true, "grounding": false, "scene": false, "nextCriterion": false }
+      },
+      {
+        "id": "79107849-ec6c-420a-a98e-fdb04dde628b",
+        "status": "failed",
+        "rawSha256": "3e1246c99ab87553547443477ff92aef5869f1ad275e26fd741db03b26c077dc",
+        "proseSha256": "81cd32cbcacf2e77ef2a31c13c625b98965f7c6d0644390416f757d708bc5393",
+        "elements": { "directAnswer": true, "grounding": false, "scene": true, "nextCriterion": true },
+        "matchedCriterionSentence": "오늘 비교할 건 새 문제 양과 틀린 유형 반복이야.",
+        "firstThreeVisibleSentences": [
+          "새 자료 말고 루틴 유지각이야.",
+          "연습 점수가 목표 수준이고 객관식이라, 전날 책상 기준은 새 프린트보다 반복 실수 차단이야.",
+          "계산값의 신금(辛金, 잘라내고 고르는 금속의 상징)은 넓히기보다 버리는 기준으로 읽어봐."
+        ],
+        "remainingIssues": ["grounding"]
+      }
+    ]
+  },
+  "decision": "The next-criterion slice passes its representative captured and new actual-output checks. ZIP-003-041 remains IN_PROGRESS because all-service semantic acceptance is not complete.",
+  "reviewDisposition": {
+    "critical": 0,
+    "major": 2,
+    "applied": [
+      "Removed discard/quit verbs from the new matcher branch and added unsafe 시험을 버려/공부를 끊어 counterexamples.",
+      "Added source-native 버릴 공부를 정해/남길 공부 순서를 매겨 positive fixtures."
+    ],
+    "minorApplied": [
+      "Unknown --service values now fail closed.",
+      "Attempt evidence parsing accepts fenced or surrounded JSON and reports invalid input instead of crashing."
+    ],
+    "independentRereview": "NOT_RUN"
+  },
+  "limitations": [
+    "The new provider section is not overall complete; its second attempt still failed the separate grounding recognizer.",
+    "Only pass_angle representative output was evaluated in this slice.",
+    "Raw provider output stays in ignored isolated cache; tracked hashes and three visible synthetic sentences preserve audit evidence."
+  ]
+}
