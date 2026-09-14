@@ -57,6 +57,6 @@ test('aggregate counts the deterministic human review but not provider output', 
   assert.equal(service.generation.actualProviderCalls, false)
   assert.equal(service.generation.containsProviderProse, false)
   assert.equal(service.generation.fullOutlineHumanReview, true)
-  assert.deepEqual(aggregate.evidenceCoverage.providerOutput, { passed: 5, required: 19 })
-  assert.deepEqual(aggregate.evidenceCoverage.fullOutlineHumanReview, { passed: 6, required: 20 })
+  assert.deepEqual(aggregate.evidenceCoverage.providerOutput, { passed: 6, required: 19 })
+  assert.deepEqual(aggregate.evidenceCoverage.fullOutlineHumanReview, { passed: 7, required: 20 })
 })

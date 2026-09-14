@@ -22,8 +22,12 @@
     },
     "semanticReview": "tone-v2/corpus-review/saju-master-2.1.0.json"
   },
-  "generationEvidence": null,
-  "generationEvidenceReason": "No saju_master provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification.",
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-saju-master-full-outline-generation-20260914.json",
+    "recordSha256": "d9287326fd9c0b786cf3849a6e1aa267569dd0a7def45fcf93699884fdd8916b",
+    "acceptedProseSha256": "225910a7a4abdd93517d171c4165ebbf61cba8306ee50f1e98292817bff2a58a",
+    "containsProviderProse": false
+  },
   "verificationEvidence": "tone-v2/evaluations/P05-saju-master-corpus-rag-release-candidate-20260913.json",
   "attachment": {
     "newReportsOnly": true,
@@ -40,7 +44,7 @@
     "semanticReview": "pass_1_of_1",
     "sampleOutputIngestion": "none",
     "snapshotPinnedRag": "required",
-    "providerOutputEvaluation": "not_run",
+    "providerOutputEvaluation": "pass_37_of_37",
     "focusedTests": "pass_8_of_8",
     "fullTests": "pass_767_of_767_107_suites",
     "typecheck": "pass",

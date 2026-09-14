@@ -26,11 +26,11 @@
       "required": 20
     },
     "providerOutput": {
-      "passed": 5,
+      "passed": 6,
       "required": 19
     },
     "fullOutlineHumanReview": {
-      "passed": 6,
+      "passed": 7,
       "required": 20
     },
     "visualRenderMobilePrint": {
@@ -42,13 +42,13 @@
     {
       "id": "provider_output_coverage",
       "status": "blocked",
-      "evidence": "5/19 generative service candidates have verified provider-output provenance and full-outline review. The deterministic today_fortune service is not provider-backed.",
+      "evidence": "6/19 generative service candidates have verified provider-output provenance and full-outline review. The deterministic today_fortune service is not provider-backed.",
       "requiredAction": "Generate fresh provider output for every remaining generative service and retain immutable hashed provenance without ingesting prose into corpus."
     },
     {
       "id": "full_outline_human_review",
       "status": "blocked",
-      "evidence": "6/20 service candidates have an attached full-outline independent human interpretation review.",
+      "evidence": "7/20 service candidates have an attached full-outline independent human interpretation review.",
       "requiredAction": "Evaluate every complete service outline for grounding, persona, tone, duplication, safety, and cross-section continuity."
     },
     {
@@ -71,7 +71,7 @@
   },
   "assessment": {
     "path": "tone-v2/releases/all-service-corpus-2.1.0-evaluation.md",
-    "sha256": "d70fdab33d9847f1715b3683e93633c1d72bbd2210684eaf8f11010fac4cf8e2"
+    "sha256": "18be61269a76d35bf12aecf9807144529fc8e5760e523af96a78265363b84f23"
   },
   "services": [
     {
@@ -1042,7 +1042,7 @@
       "serviceKey": "saju_master",
       "releaseManifest": {
         "path": "tone-v2/releases/saju-master-2.1.0.json",
-        "sha256": "5bf554e86642d91b56b10f5ce3e570a8f24af5a0964916cff7bc14721fbcfb4f"
+        "sha256": "539a58c94cda193421e47a901d9568b75730810d6232d9380980158a0b6e4be4"
       },
       "prompt": {
         "serviceKey": "saju_master",
@@ -1075,12 +1075,13 @@
         "allChecksPassed": true
       },
       "generation": {
-        "evidencePath": null,
+        "evidencePath": "tone-v2/evaluations/P04-saju-master-full-outline-generation-20260914.json",
+        "evidenceSha256": "bb557dcabafc31b3abb879336241fe06f6f09fb96dc845a573ee85e698705abf",
         "providerRequired": true,
-        "actualProviderCalls": false,
+        "actualProviderCalls": true,
         "containsProviderProse": false,
-        "fullOutlineHumanReview": false,
-        "reason": "No saju_master provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification."
+        "fullOutlineHumanReview": true,
+        "acceptedProseSha256": "225910a7a4abdd93517d171c4165ebbf61cba8306ee50f1e98292817bff2a58a"
       },
       "visual": {
         "evidencePath": null,

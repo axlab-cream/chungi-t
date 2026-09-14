@@ -85,7 +85,13 @@ describe('[TASK P05] saju_master corpus/RAG release candidate', () => {
 
   it('binds a truthful local candidate and registry-only rollback', () => {
     const manifest = JSON.parse(readFileSync(join(root, 'tone-v2/releases/saju-master-2.1.0.json'), 'utf8'))
-    assert.equal(manifest.state, 'candidate'); assert.equal(manifest.deployed, false); assert.equal(manifest.serviceKey, 'saju_master'); assert.equal(manifest.generationEvidence, null)
+    assert.equal(manifest.state, 'candidate'); assert.equal(manifest.deployed, false); assert.equal(manifest.serviceKey, 'saju_master')
+    assert.equal(manifest.generationEvidence.path, 'tone-v2/evaluations/P04-saju-master-full-outline-generation-20260914.json')
+    assert.match(manifest.generationEvidence.recordSha256, /^[a-f0-9]{64}$/)
+    assert.match(manifest.generationEvidence.acceptedProseSha256, /^[a-f0-9]{64}$/)
+    assert.equal(manifest.generationEvidence.containsProviderProse, false)
+    assert.equal(manifest.gates.providerOutputEvaluation, 'pass_37_of_37')
+    assert.equal('generationEvidenceReason' in manifest, false)
     assert.deepEqual(manifest.corpus.candidate, { path: `data/${newPath}`, version: '2.1.0', sha256: hashFile(newPath) })
     assert.deepEqual(manifest.corpus.previous, { path: `data/${oldPath}`, version: '2.0.0', sha256: hashFile(oldPath) })
     assert.equal(manifest.attachment.newReportsOnly, true); assert.equal(manifest.attachment.storedSnapshotRequired, true); assert.equal(manifest.attachment.customerRecordMutation, false)

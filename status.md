@@ -1634,3 +1634,20 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Root cause: the catch-all Vercel route bypassed the deliberately curated `public/` static output. Commit `9bf66ae` now recreates that allowlisted directory from scratch per build, serves only those filesystem assets first, and keeps every other path behind the Express security guard.
 - Production deployment `dpl_7HBHG3e9cS63vCnk7qAbWWP9dE6o` is Ready at `https://umsh.kr`. Health, job-choice teaser route, new JS and CSS are 200; both internal prompt probes are 404; the ten-minute error scan returned no logs.
 - Task status: DONE. Overall Tone V2 release status remains `NO_GO` because this slice does not complete the remaining provider/full-outline/visual aggregate gates.
+# 2026-09-14 — saju_master full-outline provider evidence
+
+- `task-tone-v2-p04-saju-master-full-outline-evidence-20260914` ACTIVE under the user's continuous GO authorization.
+- CreamWIKI search-first PASS. Prior evidence covered only representative `saju_master` output and explicitly did not approve a complete report.
+- The canonical runtime outline contains 37 sections. This slice uses a fresh synthetic identity and isolated file storage, preserves the 2.1.0 corpus snapshot, and stops at the first unresolved review failure.
+- Existing provider credential reuse was previously approved and presence was confirmed without exposing its value. Production, Supabase, customer records, auth and payment remain disconnected during generation.
+
+## 2026-09-14 — saju_master full-outline provider evidence DONE
+
+- Fresh isolated provider result `20260914-saju-master-full-v3` completed the canonical 37/37 sections in order; production-equivalent stored-corpus replay passed 37/37.
+- A rejected v2 draft exposed a repeated relationship opening. A service-specific current-relationship instruction and cross-section opening-similarity gate produced a distinct v3 result without weakening the general duplicate guard.
+- Direct review approved all 37 hooks and bodies with Critical 0 and Major 0. Three non-blocking editorial comments document repeated connective/editing phrases and the intentionally shared responsibility-boundary observation axis.
+- The saved teaser now requires a real setting or routine plus an observable action. The accepted teaser includes a server-grounded verdict, two grounds, a meeting-room scene and exact 37-item full-report scope; generic work/relationship/schedule copy is rejected.
+- Sanitized evidence contains hashes, counts and provider metadata only—no accepted prose, credential or customer data. Aggregate coverage is provider 6/19, full-outline review 7/20 and visual 5/20; overall release remains `NO_GO`.
+- Focused verification passed. Final repository suite passed 947/947 across 123 suites; TypeScript and Vercel build passed.
+- Production deployment is authorized for these runtime/evidence changes. Customer records, Supabase, authentication and payment remain untouched.
+- CreamWIKI write and re-read passed at `personal/carrotcap/notes/umsh-saju-master-full-outline-teaser-20260914.md`; the note contains no provider prose, credential or personal data.

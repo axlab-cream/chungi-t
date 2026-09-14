@@ -40,7 +40,8 @@ function normalizeForCompare(value: string): string {
   return value.replace(/\s+/g, '').replace(/[.,!?·。]/g, '')
 }
 
-const TEASER_SCENE_PATTERN = /(?:예를\s*들(?:어|면)|가령|만약|출근|퇴근|회의|답장|연락|약속|일정|업무|시험|문제|오답|공부|책상|침대|현관|식사|산책|결제|지출|면접|계약|통근|후보|결혼식|하루|주말|밥|청소|놀이|쓰다듬|잠자리|밤에|사료|화장실|숨숨집|장난감)/
+const TEASER_CONCRETE_SETTING_PATTERN = /(?:출근길|퇴근길|회의(?:실|에서|중|시간)|대화창|메신저|캘린더|일정표|업무\s*도구|시험장|오답\s*노트|책상|침대|현관|식탁|산책로|결제창|계약서|면접장|예식장|휴대폰|가계부|영수증|밥[·ㆍ,\s]*(?:청소|급여)|청소[·ㆍ,\s]*(?:놀이|급여)|놀이\s*(?:시간|중))/
+const TEASER_OBSERVATION_PATTERN = /(?:기록|비교|확인|표시|나누|질문|적(?:어|고|으)|열(?:어|고)|보았|보면|살펴|고르|정하|누가|횟수|시간|금액|담당자|마감)/
 const TEASER_OPERATIONS_PATTERN = /(?:로그인[·\s]*(?:상태|여부)|결제[·\s]*상태|서버\s*권한|해석\s*준비\s*중|내부\s*생성\s*상태|측정\s*전|자료\s*없음|previewOnly|generationId|entitlement)/i
 const TEASER_FAKE_QUOTE_PATTERN = /(?:잠긴|유료|전체)\s*(?:본문|해석)[^.!?。\n]{0,30}[“「"][^”」"\n]+[”」"]/
 const TEASER_PRESSURE_PATTERN = /(?:결제|구매|지금\s*열|전체\s*해석)[^.!?。\n]{0,35}(?:안\s*하면|않으면|놓치|손해|후회|망하|위험)|(?:놓치|손해|후회|망하|위험)[^.!?。\n]{0,35}(?:결제|구매|열어)/
@@ -49,10 +50,16 @@ const TEASER_CERTAIN_EVENT_PATTERN = /(?:반드시|무조건|확실히|100%)[^.!
 function sceneExcerpt(report: SajuReport): string {
   for (const section of report.sections.slice(0, 6)) {
     const paragraphs = String(section.interpretation ?? '').split(/\n\s*\n/).map(line => line.trim()).filter(Boolean)
-    const scene = paragraphs.find(paragraph => TEASER_SCENE_PATTERN.test(paragraph))
+    const scene = paragraphs.find(paragraph => hasConcreteTeaserScene(paragraph))
     if (scene) return excerpt(scene, 280)
   }
   return ''
+}
+
+function hasConcreteTeaserScene(text: string): boolean {
+  return splitSentences(text).some((sentence) =>
+    TEASER_CONCRETE_SETTING_PATTERN.test(sentence) && TEASER_OBSERVATION_PATTERN.test(sentence),
+  )
 }
 
 /** Deterministic §9 lower-bound review for a newly assembled saved teaser. */
@@ -73,7 +80,7 @@ export function reviewTeaser(input: TeaserReviewInput): ToneReview {
   if (grounds.length < 1 || grounds.length > 2) {
     issues.push('티저에는 판정의 대표 근거를 한두 개만 보여주세요.')
   }
-  if (!TEASER_SCENE_PATTERN.test([preview.summary, ...grounds].join(' '))) {
+  if (!hasConcreteTeaserScene([preview.summary, ...grounds].join(' '))) {
     issues.push('티저에는 독자가 일상에서 알아볼 수 있는 대표 장면을 하나 넣으세요.')
   }
   if (!/전체\s*해석/.test(preview.paidValue)
@@ -172,7 +179,7 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
   // 대표 장면이 뒤 문단에 있는 서비스가 많다. 첫 문단만 읽으면 돈·직장·반려묘처럼
   // 실제 입력을 잘 반영한 리포트도 추상적인 티저가 된다. 앞 여섯 항목 안에서 이미
   // 작성된 장면 한 문단을 찾아 최대 두 통찰 안에 넣되, 유료 본문 전체는 열지 않는다.
-  if (!TEASER_SCENE_PATTERN.test([summary, ...insights].join(' '))) {
+  if (!hasConcreteTeaserScene([summary, ...insights].join(' '))) {
     const scene = sceneExcerpt(report)
     if (scene) {
       const normalized = normalizeForCompare(scene)

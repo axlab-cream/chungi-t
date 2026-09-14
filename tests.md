@@ -613,3 +613,12 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [x] Desktop and exact 390px mobile screenshots show no clipping, overlap or horizontal overflow; CTA is 53.75px tall.
 - [x] Focused 75/75, regression 34/34 and full serial 941/941 pass; typecheck, service contracts and `vercel build --prod` pass.
 - [x] Staged diff and credential scans pass before commit; Production deployment is Ready and live health, reader assets, teaser route and private-path smoke checks pass.
+# Active verification — task-tone-v2-p04-saju-master-full-outline-evidence-20260914
+
+- [x] RED contract rejects missing 37-section provider evidence and release attachment.
+- [x] Fresh isolated provider generation completes exactly 37/37 in source order.
+- [x] Production-equivalent stored-snapshot replay passes 37/37.
+- [x] Sanitized evidence contains no provider prose, secrets or personal data.
+- [x] Independent content review approves all 37 sections; Critical 0, Major 0, accepted editorial comments 3.
+- [x] Saved teaser passes grounded verdict, one-or-two grounds, concrete scene, exact 37-item scope and paid-body redaction.
+- [x] Focused tests pass; full serial 947/947 across 123 suites, typecheck and Vercel build pass.

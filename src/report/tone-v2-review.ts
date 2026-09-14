@@ -31,6 +31,7 @@ export interface SectionUniquenessInput {
   question: string
   interpretation: string
   siblings?: SajuReportSection[]
+  serviceKey?: string
 }
 export interface TechnicalTermsInput {
   hook: string
@@ -54,7 +55,7 @@ const ISO_DATE_PATTERN = /(?<!\d)(\d{4})([-./])(\d{1,2})\2(\d{1,2})(?!\d)/g
 const KOREAN_DATE_PATTERN = /(?<!\d)(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일(?!\d)/g
 const ARITHMETIC_PATTERN = /([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(cm|mm|m|만원|원|개월|시간|분|년|월|일|시|주|%|점|회|번|건|장|개|명|단계|칸|걸음|도|세)?\s*([+\-−])\s*([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(cm|mm|m|만원|원|개월|시간|분|년|월|일|시|주|%|점|회|번|건|장|개|명|단계|칸|걸음|도|세)?\s*=\s*([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(cm|mm|m|만원|원|개월|시간|분|년|월|일|시|주|%|점|회|번|건|장|개|명|단계|칸|걸음|도|세)?/giu
 const PRESCRIPTION_ACTION_PATTERN = /(?:하세요|하십시오|해요|해보|해 보|보세요|봐요|잡으세요|잡아보|떼세요|떼어|옮기세요|옮겨|놓으세요|놓아|정리하세요|정리해|끊으세요|끊어|줄이세요|줄여|늘리세요|늘려|확인하세요|확인해|기록하세요|기록해|비교하세요|비교해|관찰하세요|관찰해|테스트하세요|테스트해|만나세요|연락하세요|연락해|통화하세요|통화해|걸으세요|걸어|기다리세요|기다려|미루세요|미뤄|준비하세요|준비해|저축하세요|저축해|결제하세요|공부하세요|공부해|오답노트|쓰세요|지원하세요|지원해|계약하세요|계약해|퇴사하세요|퇴사해|이사하세요|이사해)/
-const NEGATED_CERTAINTY_PATTERN = /(?:(?:확정|단정|보장|예언|알 수|알아낼 수|확인된 사실).{0,12}(?:하지|아니|못하|없)|(?:결과가\s*)?(?:정해지|확정되)[^.!?。\n]{0,16}(?:아니|않)|(?:판정|분석|검토)(?:에서|은|을)?\s*제외)/
+const NEGATED_CERTAINTY_PATTERN = /(?:(?:확정|단정|보장|예언|알 수|알아낼 수|확인된 사실).{0,12}(?:하지|아니|못하|없)|(?:결과가\s*)?(?:정해지|확정되)[^.!?。\n]{0,16}(?:아니|않)|뜻(?:은|이)?\s*아닙|뜻으로\s*쓰면\s*안|(?:합격|불합격|이별|결혼|채용|수익|외도|질병|수명|사고|파산|이혼|재회|퇴사|이직|구조조정)[^.!?。\n]{0,24}(?:예언으로\s*)?읽지\s*말|(?:결혼|이별|재회)(?:\s*,\s*(?:결혼|이별|재회))*\s*같은\s*사건으로\s*바꾸면[^.!?。\n]{0,24}해석[^.!?。\n]{0,12}넘어|(?:판정|분석|검토)(?:에서|은|을)?\s*제외)/
 const CONDITIONAL_PATTERN = /(?:라면|다면|경우|때에는|때는|수 있어|일 수|일 수도|듯해|처럼 보|가능성|가설|(?:맞|충족되|확인되|준비되|갖춰지|잡|막히|무너지|돌아오)(?:으)?면)/
 const THIRD_PARTY_MIND_PATTERN = /(?:상대|그 사람|애인|전 애인|배우자|동료|상사|가족)\s*(?:은|는|이|가)?[^.!?。\n]{0,24}(?:마음|속마음|진심|감정|후회|미련)[^.!?。\n]{0,24}(?:없|떠났|식었|돌아섰|숨기|좋아하|사랑하|후회하|기다리|그리워|정리했|끝났|남아 있)/
 const CERTAIN_FUTURE_EVENT_PATTERN = /(?:(?:올해|내년|다음\s*달|곧|결국|반드시|무조건|확실히|조만간)?[^.!?。\n]{0,16}(?:합격|불합격|이별|결혼|채용|수익|외도|질병|수명|사고|파산|이혼|재회|퇴사|이직|구조조정|돌아올|돌아오)[^.!?。\n]{0,20}(?:짧습니다|깁니다|있습니다|있어요|합니다|해요|해|돼요|됩니다|납니다|나요|옵니다|입니다|이에요|이야|(?:할|될|날|올|을|ㄹ)?\s*거(?:야|예요)|확정(?:입니다|이에요|돼요|됩니다)?|예정입니다|예정이에요))|(?:(?:올해|내년|이번|다음|곧|결국|반드시|무조건|확실히|조만간|(?<![가-힣])운(?:이|은|도)?|(?<![가-힣])시험(?:에|은|이)?)[^.!?。\n]{0,12}(?:붙(?:어|어요|는다|습니다|을\s*거(?:야|예요))|떨어(?:져|져요|진다|집니다|질\s*거(?:야|예요))))/
@@ -435,7 +436,7 @@ function certaintyIssues(text: string): string[] {
 }
 
 function safetyNegated(sentence: string): boolean {
-  return /(?:아니(?!어도|라도|지만|고)|않(?!아도|더라도|지만|고)|못하|할 수 없|판단할 수 없|확정할 수 없|보장하지|대신하지|증명하지|뜻하지|의미하지|근거가 아니)/.test(sentence)
+  return /(?:아니(?!어도|라도|지만|고)|않(?!아도|더라도|지만|고)|못하|할 수 없|판단할 수 없|확정할 수 없|보장하지|대신하지|증명하지|뜻하지|의미하지|근거가 아니|버릴 것은)/.test(sentence)
 }
 
 function relationshipSafetyIssues(text: string, context: SajuReportContext | undefined): string[] {
@@ -454,7 +455,7 @@ function relationshipSafetyIssues(text: string, context: SajuReportContext | und
 function professionalAuthorityIssues(text: string): string[] {
   for (const sentence of sentences(text)) {
     if (safetyNegated(sentence)) continue
-    if (/(?:증상|통증|질환|질병|병)[^.!?。\n]{0,24}(?:질병|질환|병|진단)(?:입니다|이에요|이다)|(?:약|복용)[^.!?。\n]{0,18}(?:끊으|중단하|바꾸)/.test(sentence)) {
+    if (/(?:증상|통증|질환|질병|병)[^.!?。\n]{0,24}(?:질병|질환|병|진단)(?:입니다|이에요|이다)|(?:(?<![가-힣])약(?=$|[\s,.:;!?。]|을|를|은|는|이|가|과|와|도|만)|복용)[^.!?。\n]{0,18}(?:끊으|중단하|바꾸)/.test(sentence)) {
       return ['건강·질병·복약 판단을 서술자의 권위로 대신하지 말고 의료진 확인을 안내하세요.']
     }
     if (/(?:계약|조항|합의)[^.!?。\n]{0,26}(?:법적으로|법적)[^.!?。\n]{0,18}(?:유효|무효|문제없|확정)/.test(sentence)) {
@@ -703,6 +704,27 @@ export function reviewSectionUniqueness(input: SectionUniquenessInput): ToneRevi
     issues.push('다른 항목과 동일하거나 거의 같은 긴 문단이 두 개 이상입니다. 현재 질문의 의미와 장면으로 다시 쓰세요.')
   }
 
+  if (input.serviceKey === 'saju_master') {
+    const openingParagraph = longParagraphs(input.interpretation)[0] ?? ''
+    const repeatedOpening = openingParagraph.length > 0 && completed.some((item) => {
+      const priorOpening = longParagraphs(item.interpretation)[0] ?? ''
+      return priorOpening.length > 0 && shingleSimilarity(openingParagraph, priorOpening) >= 0.82
+    })
+    if (repeatedOpening) {
+      issues.push('다른 천명사주 항목과 첫 의미 단락이 거의 같습니다. 현재 제목만의 결론과 근거로 시작하세요.')
+    }
+
+    const finalSentence = sentences(input.interpretation).at(-1) ?? ''
+    const finalKey = normalizedCopy(finalSentence)
+    const repeatedFinalCriterion = finalKey.length >= 15 && completed.some((item) => {
+      const priorFinal = sentences(item.interpretation).at(-1) ?? ''
+      return normalizedCopy(priorFinal) === finalKey
+    })
+    if (repeatedFinalCriterion) {
+      issues.push('다른 천명사주 항목의 마지막 판단 기준을 재사용하지 말고 현재 제목에 고유한 확인 대상을 쓰세요.')
+    }
+  }
+
   if (PRODUCTION_HEADING_PATTERN.test(input.interpretation)) {
     issues.push('제작용 소제목 대신 내용을 바로 알 수 있는 생활 장면형 소제목을 쓰세요.')
   }
@@ -723,7 +745,7 @@ export function reviewSectionUniqueness(input: SectionUniquenessInput): ToneRevi
 function hasRecognizableScene(text: string): boolean {
   // An example marker is framing, not a scene by itself. Require a concrete
   // everyday setting/object to be paired with an observable situation.
-  const ordinaryScene = /(?:(?:출근|퇴근|회의|답장|연락|약속|대화|업무|시험|책상|침대|현관|옷장|거울|가방|서랍|신발장|식사|밥상|식탁|점심|메뉴판|냉장고|산책|결제|지출|면접|공부|하루|주말|도서관|예식장|웨딩홀|상담\s*테이블|대관표|보증\s*인원표|양가\s*이동|계약서|스드메)[^.!?。\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|앉으면|이면|여야|없다면|있다면|않다면|보이면|갈리면|펼쳐|놓으면|적으면|비교하면|확인하면))|(?:(?:독서실|자습실|학원|서점|장바구니|강의|문제집|실모|채점표|오답\s*노트|노트북|접수\s*화면|주문창)[^.!?。\n]{0,55}(?:앞(?:에서는)?|옆에|순간|채점\s*직후|열\s*때|보면|켜면|펴봐|펴고|펴지면|열면|여는|닫아봐|반복될\s*때|밀려))|(?:문제[^.!?。\n]{0,45}(?:때|장면|상황|경우|했을))/.test(text)
+  const ordinaryScene = /(?:(?:출근|퇴근|회의|답장|연락|약속|대화|업무|시험|책상|침대|현관|옷장|거울|가방|서랍|신발장|식사|밥상|식탁|점심|메뉴판|냉장고|산책|결제|지출|면접|공부|하루|주말|도서관|예식장|웨딩홀|상담\s*테이블|대관표|보증\s*인원표|양가\s*이동|계약서|스드메|협업\s*도구|메신저|캘린더)[^.!?。\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|앉으면|이면|여야|없다면|있다면|않다면|보이면|갈리면|펼쳐|놓으면|적으면|비교하면|확인하면))|(?:(?:독서실|자습실|학원|서점|장바구니|강의|문제집|실모|채점표|오답\s*노트|노트북|접수\s*화면|주문창)[^.!?。\n]{0,55}(?:앞(?:에서는)?|옆에|순간|채점\s*직후|열\s*때|보면|켜면|펴봐|펴고|펴지면|열면|여는|닫아봐|반복될\s*때|밀려))|(?:문제[^.!?。\n]{0,45}(?:때|장면|상황|경우|했을))/.test(text)
   const reviewSession = sentences(text).some((sentence) => {
     const setting = /(?:복기\s*(?:에서|할\s*때|때|하면서)|오답\s*노트(?:를\s*(?:열고|펼치고)|에(?:서|선|서는|도|는)?)|마킹\s*검토(?:(?:를\s*)?(?:할\s*때|하면서)|에서))/.exec(sentence)
     if (!setting) return false
@@ -738,7 +760,7 @@ function hasRecognizableScene(text: string): boolean {
   return ordinaryScene || reviewSession || deskPlacementScene
 }
 
-const nextCriterionAction = /(?:(?:비교|확인)해봐(?:요)?|골라(?:요|보세요)|골라둬(?:요|보세요)?|고르세요|남겨봐(?:요)?|남기세요|적(?:고|어(?:요|봐(?:요)?)?|으세요|으시겠어요)|(?:유지|비교|대화|이야기|질문|확인|기록|관찰|점검|선택|합의|보류|조정|복기)(?:해(?:봐(?:요)?|요|세요)?|하시겠어요)|표시(?:해(?:요)?|하세요|하시겠어요)|살펴봐(?:요)?|살펴보세요|세워봐(?:요)?|세우세요|정해(?:요)?|정하세요|매겨(?:요)?|매기세요)(?=[,.!?。\s]|$)/
+const nextCriterionAction = /(?:(?:비교|확인)해봐(?:요)?|골라(?:요|보세요)|골라둬(?:요|보세요)?|고르세요|남겨봐(?:요)?|남기세요|적(?:고|어(?:요|봐(?:요)?)?|으세요|으시겠어요|으십시오)|(?:유지|비교|대화|이야기|질문|확인|기록|관찰|점검|선택|합의|보류|조정|복기)(?:해(?:봐(?:요)?|요|세요)?|하십시오|하시겠어요)|표시(?:해(?:요)?|하세요|하십시오|하시겠어요)|살펴봐(?:요)?|살펴보세요|살펴보십시오|세워봐(?:요)?|세우세요|세우십시오|정해(?:요)?|정하세요|정하십시오|매겨(?:요)?|매기세요|매기십시오)(?=[,.!?。\s]|$)/
 // `부터` marks an origin, not an object. Treating it as a generic target lets
 // targetless temporal advice such as "아침부터 확인해" pass this guard.
 const objectMarkedNextTarget = `[\\p{L}\\p{N}](?:[\\p{L}\\p{N} ]{0,30}[\\p{L}\\p{N}])?(?:을|를|만|보다|(?<!앞)으로)[^.!?。\\n]{0,50}`

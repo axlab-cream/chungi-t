@@ -14,6 +14,64 @@ test('review enforces assigned speech while allowing quoted customer words and n
   assert.equal(reviewToneCopy('먼저 확인합니다.', 'quit_fortune').passed, false)
   assert.equal(reviewToneCopy('RAG 근거입니다.', 'saju_master').passed, false)
 })
+
+test('saju_master safety accepts explicit non-prediction and recognizes a collaboration-tool scene', () => {
+  const text = '예를 들어 회사 협업 도구에서 새 요청을 받았을 때 책임자를 기록합니다. 큰 수익을 예언으로 읽지 말고 실제 보상 조건을 확인하십시오. 다음에는 업무 요청별 책임 범위를 기록하십시오.'
+  assert.equal(reviewSafetyClaims({ text, context: { serviceKey: 'saju_master' } }).passed, true)
+  assert.equal(reviewPaidSectionDensity({
+    hook: '긴 리포트는 선택 기준을 대조해 읽는 글입니다.',
+    question: '긴 리포트의 읽는 법',
+    interpretation: text,
+    context: { serviceKey: 'saju_master', concern: '현재 일과 관계에 큰 문제는 없습니다.' },
+  }).elements.scene, true)
+  assert.equal(reviewSafetyClaims({
+    text: '전통 해석에서 토가 강한 구조는 오래 맡는 쪽으로 읽지만, 반드시 좋은 책임만 붙는다는 뜻은 아닙니다.',
+    context: { serviceKey: 'saju_master' },
+  }).passed, true)
+  assert.equal(reviewSafetyClaims({
+    text: '나무가 약하면 방향을 바꾸는 장면에서 현실 기록이 더 필요하다고 봅니다. 본인 기준으로 읽을 때 먼저 버릴 것은 타인의 반응을 사주의 정답처럼 쓰는 방식입니다.',
+    context: { serviceKey: 'saju_master' },
+  }).passed, true)
+  assert.equal(reviewSafetyClaims({
+    text: '전통 해석 후보를 결혼, 이별, 재회 같은 사건으로 바꾸면 해석이 넘어갑니다.',
+    context: { serviceKey: 'saju_master' },
+  }).passed, true)
+  assert.equal(reviewSafetyClaims({
+    text: '이 상징을 특정 계약이나 수익이 성사된다는 뜻으로 쓰면 안 됩니다.',
+    context: { serviceKey: 'saju_master' },
+  }).passed, true)
+})
+
+test('saju_master rejects a repeated final criterion and passes prior criteria into the next prompt', () => {
+  const prior: SajuReportSection = {
+    id: 'prior', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '이전', categoryEn: '',
+    classification: '이전 질문', hook: '이전 답', patternKeys: [], ragTopics: [], status: 'complete',
+    interpretation: '실제 기록을 먼저 봅니다. 다음에는 업무 요청별 책임 범위를 기록하십시오.',
+  }
+  const duplicate = reviewSectionUniqueness({
+    hook: '다른 답', question: '관계 흐름', serviceKey: 'saju_master', siblings: [prior],
+    interpretation: '관계 기록을 따로 봅니다. 다음에는 업무 요청별 책임 범위를 기록하십시오.',
+  })
+  assert.equal(duplicate.passed, false)
+  assert.match(duplicate.issues.join(' '), /마지막 판단 기준을 재사용/)
+  const birth: BirthInput = { year: 1994, month: 3, day: 11, hour: 9, gender: 'female', calendar: 'solar' }
+  const next: SajuReportSection = { ...prior, id: 'next', order: 2, classification: '관계 흐름', status: 'pending', interpretation: '' }
+  const payload = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, { serviceKey: 'saju_master' }, next, [prior])[1].content)
+  assert.equal(payload.otherSections[0].nextCriterion, '다음에는 업무 요청별 책임 범위를 기록하십시오.')
+})
+
+test('saju_master relationship status prompt separates current state from the general relationship rule', () => {
+  const birth: BirthInput = { year: 1994, month: 3, day: 11, hour: 9, gender: 'female', calendar: 'solar' }
+  const section: SajuReportSection = {
+    id: 'relationship-status', order: 20, imageKey: '', imageSrc: '', imageAlt: '', category: '지금 관계 상태', categoryEn: '',
+    classification: 'single · 현재 관계 상태', hook: '', interpretation: '', patternKeys: [], ragTopics: [], status: 'pending',
+  }
+  const payload = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, { serviceKey: 'saju_master', relationship: 'single' }, section)[1].content)
+  assert.match(payload.instruction, /현재 입력된 관계 상태/)
+  assert.match(payload.instruction, /관계 일반론을 반복하지/)
+  const unknownPayload = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, {}, section)[1].content)
+  assert.doesNotMatch(unknownPayload.instruction, /현재 입력된 관계 상태/)
+})
 test('generation never ingests old template copy and carries only completed siblings', () => {
   const birth: BirthInput = { year: 1994, month: 3, day: 11, hour: 9, gender: 'female', calendar: 'solar' }
   const section: SajuReportSection = { id: 'item', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '공부 순서', categoryEn: '', classification: '무엇부터 공부할까?', hook: 'OLD_HOOK', interpretation: 'OLD_BODY', patternKeys: [], ragTopics: [] }
@@ -409,6 +467,8 @@ test('ZIP common 4 recognizes a targeted pass_angle next action but rejects vagu
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 수험 준비를 포기할 이유를 확인해.') }).elements.nextCriterion, false)
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 수험 준비를 포기하지 말고 준비물만 기록해.') }).elements.nextCriterion, true)
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 시험장 버스 시간을 확인해.') }).elements.nextCriterion, true)
+  assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 시험장 버스 시간을 확인하십시오.') }).elements.nextCriterion, true)
+  assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 시험장 버스 시간을 확인하지 마십시오.') }).elements.nextCriterion, false)
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 응시 접수 번호를 확인해.') }).elements.nextCriterion, true)
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 공부를 버티는 시간을 확인해.') }).elements.nextCriterion, true)
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '오늘 공부를 끊김 없이 이어갈 순서를 기록해.') }).elements.nextCriterion, true)
@@ -920,6 +980,24 @@ test('ZIP common 5 rejects a reused answer and two near-duplicate long paragraph
     siblings: [sibling],
   })
   assert.equal(oneSharedParagraph.passed, true, JSON.stringify(oneSharedParagraph))
+})
+
+test('saju master rejects one near-duplicate opening paragraph across adjacent chapters', () => {
+  const shared = '관계의 기준은 강한 끌림보다, 책임과 조율이 한쪽으로 굳지 않는지 보는 쪽입니다. 현재 입력에는 일과 관계에 큰 문제가 없다는 사실이 있으므로, 이 항목의 답은 문제를 찾는 해석이 아니라 잘 유지되는 조건을 선별하는 해석입니다. 검증된 명식에서는 무토 일간에 토 기운이 두껍고, 관계 신호로 상관과 편재가 함께 잡히므로 말, 약속, 현실 조건이 한자리에서 엮일 때 기준을 세우는 쪽이 맞습니다.'
+  const sibling: SajuReportSection = {
+    id: 'relationship-orientation', order: 19, imageKey: '', imageSrc: '', imageAlt: '', category: '관계 해석 기준', categoryEn: '',
+    classification: '관계 기준', hook: '관계의 기준은 강한 끌림보다 책임 배분입니다.',
+    interpretation: `${shared}\n\n약속 조율자를 기록하십시오.`, patternKeys: [], ragTopics: [], status: 'complete',
+  }
+  const duplicate = reviewSectionUniqueness({
+    serviceKey: 'saju_master',
+    hook: '지금 관계의 상태는 책임 배분으로 확인합니다.',
+    question: '지금 관계 상태',
+    interpretation: `${shared.replace('문제를 찾는', '결핍을 메우는')}\n\n비용 확인자를 기록하십시오.`,
+    siblings: [sibling],
+  })
+  assert.equal(duplicate.passed, false)
+  assert.match(duplicate.issues.join(' '), /첫 의미 단락/)
 })
 
 test('ZIP common 5 rejects generic interchangeable copy and production headings', () => {

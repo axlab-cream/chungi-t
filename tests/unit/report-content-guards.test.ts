@@ -52,6 +52,10 @@ describe('readability, uncertainty and daily snapshot regression', () => {
       sourceEvidence: preview.headline,
     }).passed, false)
     assert.equal(reviewTeaser({
+      preview: { ...preview, summary: '일과 관계의 약속 기준을 확인합니다.', insights: ['생활 선택과 일정 책임을 비교합니다.'], signals: [] },
+      sourceEvidence: preview.headline,
+    }).passed, false)
+    assert.equal(reviewTeaser({
       preview: { ...preview, paidValue: '전체 해석을 확인할 수 있습니다.' },
       sourceEvidence: preview.headline,
     }).passed, false)
@@ -215,6 +219,8 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     // 조건과 가능성으로 쓴 문장은 통과해야 한다.
     const safe = reviewInterpretation('조건이 그대로면 정리가 늦어질 수 있습니다.', { serviceKey: 'work_quit' })
     assert.equal(safe.issues.some(issue => issue.includes('확정 예언')), false)
+    const negated = reviewInterpretation('이 조합은 조직 안에서 무조건 튀는 사람이라는 뜻이 아닙니다.', { serviceKey: 'saju_master' })
+    assert.equal(negated.issues.some(issue => issue.includes('확정 예언')), false)
   })
 
   it('catches the same long sentence written twice, not just duplicate paragraphs', () => {

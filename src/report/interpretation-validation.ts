@@ -26,7 +26,11 @@ export function reviewInterpretation(text: string, context: SajuReportContext, s
   if (/(?:이기는|합격하는) (?:사람|시험)|승부는[^.\n]{0,130}갈리/.test(text)) issues.push('행동이나 운이 승패를 결정한다고 단정하지 말고 실력 재현에 도움이 될 수 있는 조건으로 설명하세요.')
   if (new Set(paragraphs).size < paragraphs.length) issues.push('같은 문단이 중복되었습니다.')
   // 가이드가 확정 예언으로 금지한 표현. '반드시 합격' 류는 위에서 이미 걸리므로 남은 것만 본다.
-  if (/무조건|100\s*%|망한다|이혼한다|사고가 난다|파산한다/.test(text)) issues.push('확정 예언 표현을 조건과 가능성의 말로 바꾸세요.')
+  const certaintySentences = text.split(/(?<=[.!?。])\s+|\n+/).map((sentence) => sentence.trim()).filter(Boolean)
+  if (certaintySentences.some((sentence) =>
+    /무조건|100\s*%|망한다|이혼한다|사고가 난다|파산한다/.test(sentence)
+      && !/(?:아니|아닙|않|못하|뜻하지|의미하지|확정하지|보장하지)/.test(sentence),
+  )) issues.push('확정 예언 표현을 조건과 가능성의 말로 바꾸세요.')
   // 같은 문장을 두 번 말하면 분량이 아니라 반복이다. 문단 중복만 보면 놓친다.
   const said = new Set<string>()
   for (const sentence of text.match(/[^.!?。]+(?:[.!?。]+|$)/g) ?? []) {

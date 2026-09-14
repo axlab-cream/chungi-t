@@ -526,3 +526,13 @@ push 한 번에 배포가 2회 돈다(T02 리서치 F9). Actions는 CI 전용.
 6. Run the full verification and review gates, write/re-read CreamWIKI, then commit, push and deploy the exact verified tree.
 
 Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/full tests, typecheck, service-contract check, Vercel Production build, staged scan, commit/push and live deployment verification PASS.
+# Active slice — saju_master full-outline provider evidence (2026-09-14)
+
+- Task: `task-tone-v2-p04-saju-master-full-outline-evidence-20260914`
+- Generate a fresh, isolated synthetic `saju_master` record through the production report queue.
+- Require all 37 canonical sections in source order, stop at the first unresolved failure, and replay every accepted section against its stored corpus snapshot.
+- Store only sanitized hashes, counts, model/usage metadata and review outcomes in tracked evidence; never store provider prose, credentials or customer data.
+- Attach the approved evidence to the reversible 2.1.0 release, then run reader desktop/mobile/print QA as the next continuous slice.
+- Status: DONE. Fresh provider generation and stored-snapshot replay passed 37/37; the strengthened saved teaser contains a grounded verdict, two representative grounds, a concrete meeting-room scene and exact 37-item paid scope.
+- Aggregate: provider provenance 6/19, full-outline independent review 7/20, visual evidence 5/20; complete Tone V2 release remains `NO_GO`.
+- Next continuous slice: `task-tone-v2-p04-saju-master-visual-render-evidence-20260914` after committing and deploying this verified runtime change.

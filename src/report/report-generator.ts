@@ -1989,10 +1989,12 @@ const INTERPRETATION_INSTRUCTION = [
   '정상 상태의 원인도 지어내면 안 됩니다. 만족한다는 입력만으로 업무 경계·약속·휴식 습관이 좋다고 확인한 것처럼 쓰지 말고, 첫 문단과 결론까지 실제 해당할 경우라는 조건을 유지하세요.',
   '제목·생년·명식 재소개로 분량을 채우지 말고 이 항목만의 근거, 생활 사례, 비교 기준과 적절한 다음 행동을 충분히 풀어주세요.',
   '항목의 질문과 서비스 페르소나에 맞는 길이로 씁니다. 근거·장면·다음 기준을 갖추되 같은 설명으로 분량을 늘리지 않습니다.',
-  '독립 카드에서 전문용어가 처음 나오면 한글(한자, 쉬운 뜻)으로 풀고, 독음 없는 한자·내부 자료 필드를 노출하지 마세요.',
+  '독립 카드에서 전문용어가 처음 나오면 한글(한자, 쉬운 뜻)으로 풀고, 독음 없는 한자·내부 자료 필드를 노출하지 마세요. 특히 합·충의 첫 설명은 “합(合, 서로 붙는 전통 관계)”, “충(沖, 서로 부딪히는 전통 관계)”처럼 단독 용어로 먼저 쓰고 오미 합(午未合) 같은 복합 표기로 대신하지 마세요.',
+  '계산값의 한자는 설명 괄호 밖에 그대로 복사하지 마세요. 午는 오화, 丙午는 병오, 乙未는 을미처럼 한글 독음으로 쓰세요.',
   '경고·해법·행동 세 가지를 모든 항목에 강제하지 마세요. 위험을 말하려면 실제 입력 근거와 해당 조건이 있어야 합니다.',
   '사용자가 연락 거부·차단을 알리면 재접촉보다 그 의사 존중을 우선하세요.',
   '다른 항목과 같은 문단을 쓰지 마세요. 미래 날짜·점수·자미두수 명반을 새로 계산하거나 만들어내지 마세요.',
+  '천명사주는 otherSections의 nextCriterion을 확인하고, 현재 제목에 맞는 다른 확인 대상과 행동으로 끝내세요. 다른 항목의 마지막 판단 문장을 재사용하지 마세요.',
   '특정 행동이 승패를 가른다거나 이기는 사람의 조건이라고 말하지 마세요. 실력 재현·판단에 도움이 될 수 있는 방법과 결과 보장을 구별하세요.',
 ].join('\n')
 
@@ -2026,7 +2028,17 @@ const QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION = [
   '마지막 의미 단락에는 사용자가 확인할 대상을 먼저 밝히고, 기록·비교·확인할 행동과 결과별 다음 판단을 2~4문장으로 쓰세요.',
 ].join('\n')
 
+const SAJU_MASTER_RELATIONSHIP_STATUS_INSTRUCTION = [
+  '천명사주 현재 관계 상태 전용:',
+  '현재 입력된 관계 상태를 출발점으로, 지금 유지되는 상태와 새 관계를 검토할 조건을 구분하세요.',
+  '앞 항목의 관계 일반론을 반복하지 말고 현재 상태에서 바로 확인할 연락 빈도·만남 지속성·약속 이행 가운데 해당하는 관찰값을 중심으로 쓰세요.',
+  '약속 조율자·비용 확인자·마지막 확인자 목록을 결론으로 재사용하지 말고, 현재 상태가 달라졌다고 판단할 구체적인 변화 신호로 끝내세요.',
+].join('\n')
+
 function sectionSpecificInstruction(context: SajuReportContext, section: SajuReportSection): string {
+  if (context.serviceKey === 'saju_master' && section.id === 'relationship-status') {
+    return SAJU_MASTER_RELATIONSHIP_STATUS_INSTRUCTION
+  }
   if (context.serviceKey === PASS_ANGLE_SERVICE_KEY && section.id === 'pass-angle-verdict') return PASS_ANGLE_OPENING_VERDICT_INSTRUCTION
   if (context.serviceKey === QUIT_FORTUNE_SERVICE_KEY) {
     if (section.id === 'flow-1') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION}`
@@ -2060,6 +2072,7 @@ function compactPromptSiblings(siblings: SajuReportSection[]): Array<{
   id: string
   question?: string
   summary: string
+  nextCriterion?: string
   interpretation?: string
 }> {
   const completed = siblings.filter(item => item.status === 'complete')
@@ -2068,6 +2081,7 @@ function compactPromptSiblings(siblings: SajuReportSection[]): Array<{
     id: item.id,
     question: item.classification,
     summary: item.hook.slice(0, PROMPT_SIBLING_SUMMARY_LIMIT),
+    nextCriterion: (item.interpretation.match(/[^.!?。\n]+[.!?。](?=\s*$)/)?.[0] ?? '').trim().slice(0, PROMPT_SIBLING_SUMMARY_LIMIT),
     // 모든 항목의 짧은 이력은 유지하되 원문은 최근 항목만 전달한다. 52항목에서
     // 전체 본문을 매번 누적하면 프롬프트가 O(n²)로 커져 비용·지연·실패가 증가한다.
     interpretation: index >= fullTextStartsAt
@@ -2152,9 +2166,12 @@ function sectionRepairInstruction(issues: string[]): string {
     '실제 경험이 아니면 “예를 들어”라고 밝히고, 장소 또는 도구와 관찰 행동이 함께 있는 알아볼 수 있는 장면을 쓰세요.',
     '마지막 의미 단락을 반드시 2~4개의 완성 문장으로 예약하고, 구체적인 다음 판단 기준으로 끝내되 확인할 대상과 기록·비교·확인 행동을 함께 밝히세요.',
     '그 단락의 첫 문장에는 구체적인 확인 대상을 밝히고, 이어지는 문장에는 그 대상을 기록·비교·확인하는 행동을 쓰세요.',
+    '격식체 서비스의 마지막 문장은 “다음에는 업무 요청별 책임 범위를 기록하십시오.”처럼 시간 표지, 구체 대상, 기록하십시오·비교하십시오·확인하십시오 중 하나를 한 문장 안에 모두 넣으세요. “기록해보십시오”, 과거형, 대상 없는 확인은 사용하지 마세요.',
     '“다음에는 잘해봐” 같은 격려나 “확인해”처럼 대상 없는 행동은 다음 판단 기준으로 세지 마세요.',
     'JSON 반환 전 내부 자기검사에서 마지막 의미 단락의 다음 판단 기준을 확인하되, 자기검사 체크리스트는 출력하지 마세요.',
     '한자 설명은 문장당 하나만 씁니다. 다른 전문용어의 첫 설명은 새 문장으로 분리하고, 필요하지 않은 전문용어를 새로 추가하지 마세요.',
+    '설명 괄호 밖의 한자는 모두 한글 독음으로 바꾸세요. 午는 오화, 丙午는 병오, 乙未는 을미로 쓰며 계산값의 한자를 그대로 복사하지 마세요.',
+    '합·충의 첫 설명은 “합(合, 서로 붙는 전통 관계)”, “충(沖, 서로 부딪히는 전통 관계)”처럼 단독 용어로 먼저 쓰고 오미 합(午未合) 같은 복합 표기로 대신하지 마세요.',
     '빈 줄로 나눈 각 의미 단락은 2~4개의 완성 문장으로 다시 구성하세요. 한 문장짜리 단락은 만들지 마세요.',
     '지정된 서비스 말투를 유지하고 확정 예언을 하지 말며 상징을 현실의 정답·결정·명령·증명·보장으로 바꾸지 마세요.',
     '근거 없는 수치, 내부 필드, 코퍼스 문장 복사, 형제 항목과 같은 답이나 긴 문단 반복을 만들지 마세요.',
@@ -2205,6 +2222,7 @@ export function reviewGeneratedSajuReportSection(input: {
     question: section.classification,
     interpretation,
     siblings,
+    serviceKey: context.serviceKey,
   }).issues)
   review.issues.push(...reviewTechnicalTerms({ hook, interpretation, siblings }).issues)
   review.issues.push(...reviewScoreVisuals({

@@ -9,6 +9,7 @@ const newPath = 'data/tone-v2/corpus/releases/saju-master-service-2.1.0.json'
 const reviewPath = 'tone-v2/corpus-review/saju-master-2.1.0.json'
 const releasePath = 'tone-v2/releases/saju-master-2.1.0.json'
 const verificationPath = 'tone-v2/evaluations/P05-saju-master-corpus-rag-release-candidate-20260913.json'
+const generationEvidencePath = 'tone-v2/evaluations/P04-saju-master-full-outline-generation-20260914.json'
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'))
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
 const fileHash = (path) => sha256(readFileSync(join(root, path)))
@@ -51,17 +52,23 @@ writeJson(reviewPath, {
 })
 const prompt = readJson('tone-v2/generated/manifest.json')
 const verification = existsSync(join(root, verificationPath)) ? readJson(verificationPath) : undefined
+const generationEvidence = existsSync(join(root, generationEvidencePath)) ? readJson(generationEvidencePath) : undefined
 writeJson(releasePath, {
   schemaVersion: '1.0.0', releaseId: 'saju-master-corpus-2.1.0', serviceKey: 'saju_master', state: 'candidate', deployed: false,
   promptBundle: { version: prompt.version, sourceFingerprint: prompt.sourceFingerprint, releaseReadyAtSource: prompt.releaseReady },
   corpus: { previous: { path: oldPath, version: source.version, sha256: fileHash(oldPath) }, candidate: { path: newPath, version: candidate.version, sha256: candidateHash }, semanticReview: reviewPath },
-  generationEvidence: null,
-  generationEvidenceReason: 'No saju_master provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification.',
+  generationEvidence: generationEvidence ? {
+    path: generationEvidencePath,
+    recordSha256: generationEvidence.evidence.recordSha256,
+    acceptedProseSha256: generationEvidence.evidence.acceptedProseSha256,
+    containsProviderProse: false,
+  } : null,
+  ...(generationEvidence ? {} : { generationEvidenceReason: 'No saju_master provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification.' }),
   verificationEvidence: verification ? verificationPath : null,
   attachment: { newReportsOnly: true, storedSnapshotRequired: true, customerRecordMutation: false },
   rollback: { strategy: 'registry_only', restorePath: oldPath, restoreVersion: source.version, customerRecordRewrite: false },
   gates: {
-    semanticReview: 'pass_1_of_1', sampleOutputIngestion: 'none', snapshotPinnedRag: 'required', providerOutputEvaluation: 'not_run',
+    semanticReview: 'pass_1_of_1', sampleOutputIngestion: 'none', snapshotPinnedRag: 'required', providerOutputEvaluation: generationEvidence ? 'pass_37_of_37' : 'not_run',
     focusedTests: verification?.verification?.focusedTests ?? 'not_run', fullTests: verification?.verification?.fullTests ?? 'not_run',
     typecheck: verification?.verification?.typecheck ?? 'not_run', build: verification?.verification?.vercelBuild ?? 'not_run', codexReview: verification?.verification?.codexReview ?? 'not_run'
   }
