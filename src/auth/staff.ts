@@ -17,8 +17,8 @@
 export type StaffRole = 'super_admin'
 
 /**
- * Read scopes are all this stage grants. No write scope exists yet because no
- * command surface is audited (T06). A super admin can look, not act.
+ * 감사 명령(T06)을 거치는 쓰기만 여기에 들어온다. 감사 경로가 없는 동작에는
+ * 스코프를 만들지 않는다 — 기록 없는 권한이 생기기 때문이다.
  */
 const SUPER_ADMIN_SCOPES = Object.freeze([
   'orders:read',
@@ -33,6 +33,8 @@ const SUPER_ADMIN_SCOPES = Object.freeze([
   'refunds:request',
   'refunds:approve',
   'services:read',
+  'services:write',
+  'services:publish',
 ])
 
 export type StaffMembership = {

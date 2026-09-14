@@ -44,7 +44,12 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
-import { getAdminServiceVersionSnapshot } from '../admin/service-version-store.js'
+import {
+  NEW_SERVICE_DRAFT_REVISION,
+  getAdminServiceVersionSnapshot,
+  publishServiceConfigVersion,
+  saveServiceConfigDraft,
+} from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
@@ -1906,6 +1911,81 @@ app.get('/api/admin/v1/services', async (req, res) => {
     res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
   }
 })
+/**
+ * 서비스 버전 실패 사유별 응답.
+ *
+ * 환불 경로(T18)에서 배운 것을 그대로 적용한다 — 사유마다 다른 문장을 주고,
+ * 알 수 없는 실패의 원문은 서버 로그에만 남긴다.
+ */
+const SERVICE_VERSION_FAILURES: Record<string, { status: number; error: string }> = {
+  SERVICE_VERSION_UNKNOWN_SERVICE: { status: 404, error: '카탈로그에 없는 서비스입니다. 정식 키는 만들거나 바꿀 수 없습니다.' },
+  SERVICE_VERSION_PAYLOAD_INVALID: { status: 422, error: '제목·한 줄 소개·설명·분류·노출 여부를 모두 확인해 주세요.' },
+  SERVICE_VERSION_PRICE_INVALID: { status: 422, error: '가격은 1원 이상의 정수여야 합니다.' },
+  SERVICE_VERSION_DRAFT_EXISTS: { status: 409, error: '이미 작성 중인 초안이 있습니다. 그 초안을 불러와 이어서 고쳐 주세요.' },
+  SERVICE_VERSION_NOT_FOUND: { status: 404, error: '해당 개정을 찾지 못했습니다.' },
+  SERVICE_VERSION_NOT_DRAFT: { status: 409, error: '초안 상태의 개정만 게시할 수 있습니다.' },
+  SERVICE_VERSION_REVISION_CONFLICT: { status: 409, error: '이 개정이 그사이 변경되었습니다. 다시 불러온 뒤 확인해 주세요.' },
+  SERVICE_VERSION_CHECKSUM_MISMATCH: { status: 409, error: '검토한 내용과 저장된 초안이 다릅니다. 초안을 다시 확인해 주세요.' },
+  SERVICE_VERSION_STORE_UNAVAILABLE: { status: 503, error: '서비스 버전 저장소에 연결하지 못했습니다. 임의로 저장하지 않았습니다.' },
+}
+
+function respondServiceVersionFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = SERVICE_VERSION_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  console.error(fallback, raw || 'unknown')
+  res.status(503).json({ code: fallback, error: '서비스 개정을 처리하지 못했습니다. 저장된 상태를 먼저 확인해 주세요.' })
+}
+
+/**
+ * 초안 저장. 게시 전까지 고객 화면은 전혀 바뀌지 않는다.
+ * `expectedRevision` 이 -1 이면 새 초안, 그 외에는 기존 초안을 그 판(revision)에만 적용한다.
+ */
+app.post('/api/admin/v1/services/:serviceKey/draft', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:write'); if (!membership) return
+  const serviceKey = trimmedString(req.params.serviceKey)
+  const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!serviceKey || !Number.isInteger(expectedRevision) || expectedRevision < NEW_SERVICE_DRAFT_REVISION || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_SERVICE_DRAFT', error: '서비스 키, 개정 번호, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'service.draft.save', idempotencyKey,
+      body: { serviceKey, expectedRevision, payload: body.payload },
+      target: { type: 'service_config_version', id: serviceKey },
+    }, async () => saveServiceConfigDraft({ serviceKey, payload: body.payload, authorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ version: command.result, replayed: command.replayed, customerVisible: false })
+  } catch (error) { respondServiceVersionFailure(res, error, 'SERVICE_VERSION_DRAFT_FAILED') }
+})
+
+/**
+ * 게시. 여기서부터 새 고객 세션이 이 개정을 본다.
+ * 가격은 반영되지 않는다 — 유료 가격 변경은 결제 게이트를 거치는 별도 경로이고,
+ * 이미 만들어진 주문은 어떤 경우에도 바뀌지 않는다.
+ */
+app.post('/api/admin/v1/services/:serviceKey/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:publish'); if (!membership) return
+  const serviceKey = trimmedString(req.params.serviceKey)
+  const body = asObject(req.body)
+  const version = Number(body.version)
+  const checksum = trimmedString(body.checksum)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!serviceKey || !Number.isSafeInteger(version) || version <= 0 || !/^[a-f0-9]{64}$/.test(checksum) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_SERVICE_PUBLISH', error: '개정 번호, 검토 체크섬, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'service.version.publish', idempotencyKey,
+      body: { serviceKey, version, checksum, expectedRevision },
+      target: { type: 'service_config_version', id: `${serviceKey}:${version}` },
+    }, async () => publishServiceConfigVersion({ serviceKey, version, checksum, authorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ version: command.result, replayed: command.replayed, priceApplied: false })
+  } catch (error) { respondServiceVersionFailure(res, error, 'SERVICE_VERSION_PUBLISH_FAILED') }
+})
+
 app.get('/api/admin/v1/corpus', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
