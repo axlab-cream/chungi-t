@@ -158,7 +158,7 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
+import { listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
 import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
@@ -1466,6 +1466,9 @@ function historyEntryFromRecord(record: ReportRecord) {
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
     serviceHref: serviceHrefForKey(record.context?.serviceKey),
+    // 보관함이 열 주소. 서비스가 자기 06-1 화면을 가지고 있으면 그 화면에서, 없으면
+    // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.
+    openPath: savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
     savedAt,
     title: `${birthState.name || birthState.target || '당신'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,

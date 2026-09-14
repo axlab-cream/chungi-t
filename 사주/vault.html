@@ -275,12 +275,11 @@
                 const key = report.serviceKey || report.context?.serviceKey || '';
                 const service = titles[key] || report.context?.target || report.context?.serviceTitle || '천명사주';
                 const savedId = report.resultId || report.reportId;
-                const isHome = ['home_fit', 'home_pungsu', 'home'].includes(key);
-                const href = savedId
-                  ? (isHome
-                    ? `/place/home/06-step-6_1-report-detail/index.html?reportId=${encodeURIComponent(savedId)}&section=home-fit-overall#step-6_1-report`
-                    : `/r/${encodeURIComponent(savedId)}`)
-                  : '/search';
+                // 어느 화면에서 열지는 서버가 정한다(`openPath`). 여기에 서비스별 경로를
+                // 다시 적어 두면 서비스가 늘 때마다 두 곳이 갈라지고, 화면에만 적힌 경로는
+                // 잘못돼도 배포 전까지 아무도 모른다. 등록된 화면이 없을 때만 공용 리더로 간다.
+                const href = report.openPath
+                  || (savedId ? `/r/${encodeURIComponent(savedId)}` : '/search');
                 const openable = Boolean(href && href !== '/search');
                 const body = `
                   <span class="body">
