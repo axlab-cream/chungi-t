@@ -1,0 +1,31 @@
+{
+  "projectId": "local-motion-test",
+  "title": "무료 영상 초안 1컷 테스트",
+  "batchSize": 4,
+  "strategy": "free_local",
+  "identityReference": "C:/Users/user/AppData/Local/Temp/codex-clipboard-8e438031-1d38-4f43-80d8-bca4c780a76b.png",
+  "defaults": {
+    "durationSeconds": 7,
+    "aspectRatio": "9:16",
+    "quality": "720p",
+    "sound": true,
+    "ageRange": "late 20s",
+    "style": "실사 영상"
+  },
+  "scenes": [
+    {
+      "sceneId": "01-cafe-test",
+      "title": "카페 영상 초안",
+      "sourceImage": "C:/Users/user/AppData/Local/Temp/codex-clipboard-8e438031-1d38-4f43-80d8-bca4c780a76b.png",
+      "subject": "woman",
+      "view": "front",
+      "setting": "비 오는 서울 카페 창가",
+      "action": "여성이 컵을 들고 카메라를 차분히 바라봄",
+      "camera": "천천히 가까워지는 카메라",
+      "motion": "창문 빗방울과 아주 작은 인물 사진 움직임",
+      "audio": "무음 초안",
+      "phoneAllowed": false
+    }
+  ]
+}
+
