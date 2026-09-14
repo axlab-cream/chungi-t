@@ -1651,3 +1651,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Focused verification passed. Final repository suite passed 947/947 across 123 suites; TypeScript and Vercel build passed.
 - Production deployment is authorized for these runtime/evidence changes. Customer records, Supabase, authentication and payment remain untouched.
 - CreamWIKI write and re-read passed at `personal/carrotcap/notes/umsh-saju-master-full-outline-teaser-20260914.md`; the note contains no provider prose, credential or personal data.
+- Commit `b228086` (`feat: verify saju master outline and teaser`) was pushed to GitHub branch `codex/tone-v2`.
+- Vercel Production deployment `dpl_6kLaAzyA4M96C8E4WMzWnfPkBYvq` is Ready and aliased to `https://umsh.kr`; immutable URL is `https://chungi-2i6pzhinz-ax-lab-cream.vercel.app`.
+- Live smoke passed: root, health, saved-result reader, shared reader JS/CSS and admin shell return 200; internal Tone V2 source remains 404; unauthenticated admin corpus API remains 401. The first smoke used three nonexistent legacy filenames and correctly returned 404; exact current allowlisted paths then passed.
+- Ten-minute deployment error scan returned no logs. This deploy ships the runtime review/teaser safeguards and sanitized release evidence but does not declare the aggregate Tone V2 release GO.
