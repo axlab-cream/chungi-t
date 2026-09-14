@@ -1637,19 +1637,30 @@ async function findUnlockingOrder(
   const exact = bound.find((order) => orderUnlocks(order, owner, productKey, reportId))
   if (exact) return exact
 
+  // 아래 판정은 전부 이 한 번의 조회로 끝낸다. 지난 ID 마다 따로 물으면
+  // 열람 한 번에 왕복이 그 수만큼 늘어난다.
+  const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
+  const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
+  const sameReport = unlocking.find((order) => order.reportId === reportId)
+  if (sameReport) return sameReport
+
   // 캐시 세대를 올리면 리포트 ID 가 바뀐다. 지난 ID 에 묶인 주문도 같은 사람의 같은 구매다.
-  // 이 되짚기가 없으면 코퍼스 개정 한 번에 결제 사용자가 결제 화면으로 되돌아간다.
-  for (const pastId of await reportIdsInLineage(owner, lineageId)) {
-    if (pastId === reportId) continue
-    const past = await listPaymentOrders(owner.id, 100, pastId).catch(() => [] as PaymentOrder[])
-    const match = past.find((order) => orderUnlocks(order, owner, productKey, pastId))
-    if (match) return match
+  // 이 되짚기가 없으면 개정 한 번에 결제 사용자가 결제 화면으로 되돌아간다.
+  //
+  // 리포트 목록 조회는 **그럴 만한 주문이 실제로 있을 때만** 한다. 결제한 적 없는
+  // 사용자에게도 매번 물으면 무료 티저 경로에 왕복이 하나씩 더 붙는다.
+  const otherReports = orders.filter((order) => (
+    order.reportId && order.reportId !== reportId
+    && orderUnlocks(order, owner, productKey, order.reportId)
+  ))
+  if (otherReports.length > 0) {
+    const lineage = new Set(await reportIdsInLineage(owner, lineageId))
+    const past = otherReports.find((order) => lineage.has(String(order.reportId)))
+    if (past) return past
   }
 
   // Retain legacy unbound-order compatibility; current orders use the exact report ID lookup above.
-  const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
-  const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
-  return unlocking.find((order) => order.reportId === reportId) ?? unlocking[0] ?? null
+  return unlocking[0] ?? null
 }
 
 interface PaidAccess {

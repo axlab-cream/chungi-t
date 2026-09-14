@@ -255,43 +255,104 @@ couple_signal·marry_match·match_couple(각 70). 상세는 위 문서.
 
 ---
 
-## 미커밋 일괄 정리 — **지금 해야 할 것**
+## 줄끝(CRLF) 정리 ✅ — 2026-09-14 완료
 
-이번 세션의 변경이 PC 저장소에 쌓여 있다. 배포 전에 한 번에 검증한다.
+Windows 체크아웃이 작업 트리를 CRLF 로 바꿔 놓아 전체 테스트가 947 pass / **54 fail** 이었다.
+내용은 한 글자도 다르지 않았다 — `tone-v2` 의 릴리스·증거 검사가 **원본 바이트의 sha256** 을
+고정하는데 줄끝만 달라져 해시가 어긋난 것이다.
+
+- [x] 원인 확정 — 매니페스트는 LF 해시, 작업 트리는 CRLF, 검사는 원본 바이트
+- [x] `.gitattributes` (`* text=auto eol=lf`) — 어느 OS 에서 받아도 LF 유지
+- [x] `core.autocrlf=false` + 재체크아웃 (2,894개 파일)
+- [x] `tests/unit/line-endings.test.ts` — 같은 상황을 해시 diff 54건이 아니라
+      **읽을 수 있는 실패 한 줄**로 바꾼다. 몇 개가 CRLF 인지·어떤 파일인지·무엇을 실행할지까지
+- [x] 커밋·푸시 완료 (`1307014`), `git push` → up-to-date
+
+정리 후 실측:
+
+```
+data/tone-v2/corpus/releases/lucky-color-service-2.1.0.json   CRLF 0줄
+  원본바이트 sha256  ad21c843643ed77301d15fe1e48c544fa0e86f89a40cc8de5ab0774d245b51f6
+  매니페스트 기대값  ad21c843643ed77301d15fe1e48c544fa0e86f89a40cc8de5ab0774d245b51f6   ← 일치
+```
+
+`src/server/app.ts` 도 내 사본과 바이트 단위로 일치한다 — 고객 읽기 어댑터가 커밋에 온전히 들어갔다.
+
+**전체 테스트 확인 완료 (2026-09-14):**
+
+```
+직전   947 pass /  54 fail   (1,001 tests)
+현재  1003 pass /   0 fail   (1,003 tests)
+```
+
+54건 전부 사라졌고, 늘어난 2건은 새로 넣은 `line-endings.test.ts` 다.
+947 + 54 + 2 = 1,003 — 숫자가 맞아떨어진다.
+
+---
+
+## 마지막 커밋 하나 남았다
+
+`git reset --hard` 이후에 만든 두 파일이 아직 커밋되지 않았다.
+
+- `tests/unit/line-endings.test.ts` (추적되지 않음 — 그래서 reset 에서 살아남았다)
+- `ops/STATUS.md` (수정됨)
 
 ```powershell
 cd C:\Users\USER\.aios\projects\umsh\repo
-npm run typecheck
-npx tsx --test --test-concurrency=1 tests/unit/*.test.ts
-supabase db push          # 마이그레이션 2건
 git add -A
-git status                # 아래 목록과 맞는지 눈으로 확인
-git commit -m "feat: 캐시 세대·해석 계보, 환불 실패 구분, 서비스 콘텐츠 버전, 결과 CTA 스티키"
-vercel --prod
+git status
+git commit -m "test: 줄끝 가드 추가 + 트래커 갱신"
+git push
 ```
 
-바뀐 파일 (이번 세션 전체):
+---
 
-| 영역 | 파일 |
+## 진행 상황
+
+### 1. 마이그레이션 2건 ✅ — 2026-09-14 적용 완료
+
+`supabase link` 가 `Unauthorized` 로 막혀 CLI 대신 **대시보드 SQL Editor 에서 직접 적용**했다.
+두 파일 모두 `create or replace function` 이라 이 경로가 안전하다.
+
+| 마이그레이션 | 적용 결과 |
 |---|---|
-| 결과 화면 CTA | `사주/사주/index.html` |
-| 로딩 통일 | `사주/js/umsh-loading.js` |
-| 캐시 세대 | `data/tone-v2/corpus/registry.json` · `src/types/index.ts` · `src/rag/corpus-registry.ts` · `src/report/report-store.ts` · `src/report/specialized-progressive.ts` |
-| 릴리스 장부 | `tone-v2/releases/lucky-color-2.1.0.json` · `tone-v2/releases/quit-fortune-2.1.0.json` |
-| 환불 | `src/payment/refund-store.ts` |
-| 콘텐츠 버전 | `src/admin/service-version-store.ts` · `src/auth/staff.ts` |
-| 공통 | `src/server/app.ts` |
-| 마이그레이션 | `supabase/migrations/20260914150000_refund_self_approval_precedence.sql` · `20260914160000_service_config_version_commands.sql` |
-| 테스트 | `corpus-cache-epoch` · `tone-v2-release-evidence-binding` · `refund-approval-precedence` · `service-content-versioning` · `admin-shell`(scope 목록 갱신) |
-| 문서 | `docs/admin-ops/corpus-cache-policy.md` · `tone-v2-evidence-gap.md` · `payment-smoke-runbook.md` · `ops/STATUS.md` |
+| `20260914150000_refund_self_approval_precedence.sql` | Success · `self_check_first = true` |
+| `20260914160000_service_config_version_commands.sql` | Success · 함수 2개 확인 |
 
-배포 후 확인: `/cmdg/` 결과 화면 스크롤 중 CTA 고정 · `/api/services` 가 `source: "catalog"` 로 응답(게시본이 아직 없으므로) · 기존 해석이 재생성되지 않음.
+사전 확인: `refund_requests` · `service_config_versions` · `content_versions` 세 표 모두 존재.
+
+**남은 정리 하나** — 마이그레이션 이력 표에는 기록되지 않았다. 나중에 `supabase db push` 가
+동작하면 두 건을 다시 적용하려 하는데, `create or replace` 라 결과는 같다. 다만 CLI 를
+복구할 때 이 사실을 기억할 것.
+
+```powershell
+# CLI 복구 시 — 세션 초반의 함정: 환경변수가 CLI 로그인을 가린다
+$env:SUPABASE_ACCESS_TOKEN
+Remove-Item Env:SUPABASE_ACCESS_TOKEN -ErrorAction SilentlyContinue
+[Environment]::SetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', $null, 'User')
+supabase login
+supabase link --project-ref wdyzollywccgaepjeynu
+```
+
+> 채팅으로 주셨던 PAT 는 노출된 값이다. 새로 발급하고 옛 토큰은 폐기할 것.
+
+### 2. 실결제 스모크 1건 — 운영자 실행
+
+런북: `docs/admin-ops/payment-smoke-runbook.md` · lucky_color 4,900원 ·
+**정상 결제분은 시스템에서 환불되지 않는다**(이니시스 콘솔에서 직접 취소)
+
+### 3. T-5b — 남은 13개 서비스 실호출 증거
+
+512섹션 / 약 2,570만 토큰. `OPENAI_API_KEY` 와 비용 필요.
+상세는 `docs/admin-ops/tone-v2-evidence-gap.md`.
 
 ---
 
 ## 참고 · 되풀이되는 함정
 
-- **이 저장소 HTML은 CRLF다.** 스크립트로 재작성하면 LF로 바뀌어 git diff 가 파일 전체 변경으로 뜬다.
+- **저장소는 LF 로 저장한다.** `.gitattributes` 로 고정했다. Windows 기본값이 CRLF 로 바꾸면
+  tone-v2 의 해시 고정 검사가 54건 깨진다 — 내용이 같아도 원본 바이트가 달라지기 때문이다.
+  (`core.autocrlf=false` 로 받은 뒤에는 작업 트리도 LF 다. 예전의 "CRLF 유지" 규칙은 무효.)
 - **06 상세의 본문 컨테이너 id가 서비스마다 다르다.** this-year `#detail-stack`, signal `#detail-root`,
   couple `#detail-body`, job-choice `#detailStage`. 일괄 치환 금지.
 - **`wedding-section` 은 `<select>` 다.** 본문 타깃으로 잡으면 아무것도 렌더되지 않는다.
@@ -299,7 +360,7 @@ vercel --prod
 - **코퍼스를 고쳐도 재생성은 일어나지 않는다.** 다시 뽑아야 하면 `registry.json` 의 `cacheEpoch` 를 올린다.
   판단 기준은 `docs/admin-ops/corpus-cache-policy.md`.
 - **특화 서비스 ID 생성기는 코퍼스를 보지 않는다.** 세대를 거치는 `epochScopedIds()` 를 반드시 통과시킬 것.
-- **tone-v2 증거 해시는 LF 기준이다.** 파일은 CRLF 라 원본 바이트로 재면 전부 불일치로 나온다.
+- **tone-v2 증거·릴리스 해시는 LF 기준이다.** 작업 트리가 CRLF 면 원본 바이트로 재는 검사가 전부 어긋난다.
 - **릴리스 게이트를 눈으로 믿지 말 것.** 2건이 실제 증거와 어긋나 있었다. 결합 테스트가 이제 막는다.
 - **신원 검사는 동시성 검사보다 먼저.** 순서가 뒤집히면 권한 차단이 재시도 실패처럼 보인다.
 - **PostgREST 오류 본문을 그대로 Error 로 던지지 말 것.** 함수 이름·hint 가 브라우저까지 간다.

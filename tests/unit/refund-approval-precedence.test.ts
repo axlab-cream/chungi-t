@@ -128,3 +128,26 @@ test('6. PostgREST 오류 본문이 그대로 새어 나가지 않는다', () =>
   assert.match(store, /function refundFailure\(/, '오류 본문에서 우리가 정의한 코드만 꺼내는 경로가 있어야 한다')
   assert.match(store, /\/\^REFUND_\[A-Z_\]\+\$\//, '허용하는 코드 형태를 고정해야 한다')
 })
+
+test('7. 결제 권한 조회가 지난 ID 마다 따로 묻지 않는다', () => {
+  const source = readFileSync(join(ROOT, 'src/server/app.ts'), 'utf8')
+  const fn = source.slice(source.indexOf('async function findUnlockingOrder'), source.indexOf('interface PaidAccess'))
+  assert.ok(fn.length > 0, 'findUnlockingOrder 를 찾지 못했다')
+
+  // 주문 조회는 두 번(정확히 묶인 것 + 전체)이면 충분하다. 지난 ID 수만큼 늘면
+  // 열람 한 번에 왕복이 그만큼 붙는다.
+  const orderQueries = fn.match(/listPaymentOrders\(/g) ?? []
+  assert.equal(orderQueries.length, 2, `주문 조회가 ${orderQueries.length}회다. 목록을 한 번 받아 메모리에서 골라야 한다.`)
+  assert.ok(!/for\s*\([^)]*\)\s*\{[^}]*listPaymentOrders\(/.test(fn), '반복문 안에서 주문을 조회하면 안 된다')
+
+  // 리포트 목록 조회는 후보 주문이 실제로 있을 때만. 결제한 적 없는 사용자의
+  // 무료 티저 경로에 왕복을 더하면 안 된다.
+  const lineageAt = fn.indexOf('reportIdsInLineage(')
+  const guardAt = fn.indexOf('otherReports.length > 0')
+  assert.ok(guardAt !== -1, '리포트 목록 조회 앞에 후보 주문 가드가 있어야 한다')
+  assert.ok(guardAt < lineageAt, '가드가 조회보다 먼저여야 한다')
+
+  // 느슨한 폴백(주문에 리포트 ID 가 없던 시절)은 계보 판정보다 뒤에 있어야
+  // 계보로 정확히 짚은 주문이 가려지지 않는다.
+  assert.ok(fn.indexOf('unlocking[0]') > lineageAt, '느슨한 폴백이 계보 판정보다 앞에 있다')
+})
