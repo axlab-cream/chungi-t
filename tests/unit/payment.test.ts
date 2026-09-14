@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import {
   approveInicisMobilePayment,
+  approveInicisPayment,
   cancelInicisApproval,
   createInicisMobilePaymentFields,
   createInicisPaymentFields,
@@ -42,12 +43,13 @@ test('이니시스 표준결제 필드와 서명은 서버에서 생성한다', 
   }
 
   try {
-    const fields = createInicisPaymentFields({ order, buyerName: '홍길동' })
+    const fields = createInicisPaymentFields({ order, buyerName: '홍길동', timestamp: '1726280000000' })
     assert.equal(fields.mid, 'testmid')
     assert.equal(fields.oid, order.orderId)
     assert.equal(fields.price, '19900')
-    assert.match(fields.signature, /^[a-f0-9]{64}$/)
-    assert.match(fields.verification, /^[a-f0-9]{64}$/)
+    assert.equal(fields.signature, createHash('sha256').update('oid=UMSH1234567890abc&price=19900&timestamp=1726280000000').digest('hex'))
+    assert.equal(fields.verification, createHash('sha256').update('oid=UMSH1234567890abc&price=19900&signKey=test-sign-key&timestamp=1726280000000').digest('hex'))
+    assert.equal(fields.mKey, createHash('sha256').update('test-sign-key').digest('hex'))
     assert.equal(fields.acceptmethod, 'centerCd(Y)')
     assert.equal(fields.returnUrl, 'https://umsh.kr/api/payment/inicis/return')
     assert.equal(publicInicisConfig().closeUrl, 'https://umsh.kr/payment/close')
@@ -58,6 +60,25 @@ test('이니시스 표준결제 필드와 서명은 서버에서 생성한다', 
     else process.env.INICIS_SIGNKEY = previousSignKey
     if (previousBaseUrl === undefined) delete process.env.PUBLIC_BASE_URL
     else process.env.PUBLIC_BASE_URL = previousBaseUrl
+  }
+})
+
+test('PC 승인 서명은 이니시스 NVP key=value 순서를 사용한다', async () => {
+  const previous = { mid: process.env.INICIS_MID, signKey: process.env.INICIS_SIGNKEY }
+  process.env.INICIS_MID = 'testmid'
+  process.env.INICIS_SIGNKEY = 'test-sign-key'
+  const order = { orderId: 'UMSHpc-signature', ownerId: 'owner-1', buyerEmail: 'buyer@example.com', buyerTel: '01012345678', productKey: 'home_pungsu', productTitle: '집 풍수', amount: 19900, status: 'approving', createdAt: '', updatedAt: '' } as PaymentOrder
+  try {
+    await approveInicisPayment({ order, authToken: 'pc-auth-token', authUrl: 'https://fcstdpay.inicis.com/stdpay/payAuth', idcName: 'fc' }, async (_url, init) => {
+      const body = init.body as URLSearchParams
+      const timestamp = body.get('timestamp') ?? ''
+      assert.equal(body.get('signature'), createHash('sha256').update(`authToken=pc-auth-token&timestamp=${timestamp}`).digest('hex'))
+      assert.equal(body.get('verification'), createHash('sha256').update(`authToken=pc-auth-token&signKey=test-sign-key&timestamp=${timestamp}`).digest('hex'))
+      return Response.json({ resultCode: '0000', resultMsg: 'success', tid: 'pc-approved-tid', MOID: order.orderId, TotPrice: '19900' })
+    })
+  } finally {
+    if (previous.mid === undefined) delete process.env.INICIS_MID; else process.env.INICIS_MID = previous.mid
+    if (previous.signKey === undefined) delete process.env.INICIS_SIGNKEY; else process.env.INICIS_SIGNKEY = previous.signKey
   }
 })
 

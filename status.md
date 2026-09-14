@@ -1692,3 +1692,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Vercel Production deployment `dpl_NhbZnDVJWyyLHLFp8n2aMj5FnqSm` is Ready and aliased to `https://umsh.kr`; health, payment config, payment page and cache-busted payment script smoke checks return 200. The config confirms PC checkout and mobile checkout are enabled without exposing secret names or values.
 - CreamWIKI write/re-read/search PASS at `personal/carrotcap/notes/umsh-inicis-pc-mobile-20260914.md`. The sanitized note reuses the existing PC and mobile integration guides and contains no credential, customer or payment payload.
 - Task status: DONE for implementation and non-charge Production verification. One operator-supervised low-value PC payment and one mobile payment remain NOT_RUN to verify the merchant contract and enabled live payment methods.
+
+## 2026-09-14 — KG이니시스 결제창 실행 복구 ACTIVE
+
+- 운영 재현에서 `/api/payment/orders`가 실패했다. Vercel의 Node `url.parse()` deprecation 경고는 동시 발생한 비원인 로그였고, 실제 첫 원인은 런타임 insert 계약에 있는 `revision` 컬럼이 운영 `cheongi_payment_orders`에 없었던 스키마 드리프트였다.
+- Supabase migration `payment_order_revision`을 적용해 `revision integer not null default 0`과 비음수 제약을 운영 DB에 추가했다. 새 advisor 경고는 없으며 기존 RLS 정책 INFO와 Auth leaked-password WARN만 유지된다.
+- 주문 저장 복구 뒤 KG이니시스가 `Verification 값이 잘못되었습니다.`를 반환했다. 공식 PC 표준결제 규격과 대조해 요청·승인 signature/verification 입력이 값 단순 연결이 아니라 순서가 고정된 NVP `key=value&...` 문자열이어야 함을 확인했다.
+- 요청과 승인(망취소 보조 포함) 해시 직렬화를 교정하고 exact-hash 회귀 테스트를 추가했다. 집중 15/15, 전체 962/962(124 suites), typecheck, Vercel build PASS.
+- 다음 단계는 검증된 트리를 Production에 배포하고 실제 결제 UI가 열리는 지점까지만 확인하는 것이다. 카드 인증·승인·과금은 실행하지 않는다.

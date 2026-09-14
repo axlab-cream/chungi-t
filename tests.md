@@ -648,3 +648,16 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | PAY-009 | 운영 비결제 스모크 | config enabled, 페이지/스크립트 200, 실결제 0건 | PASS |
 | PAY-010 | CreamWIKI 지식 루프 | 기존 PC·모바일 가이드 검색 후 검증 노트 저장·재조회·검색 | PASS |
 | PAY-011 | 운영 소액 실결제 | PC·모바일 각각 계약/결제수단 활성화 확인 | NOT_RUN (실과금 보호) |
+
+## 2026-09-14 — 결제창 실행 복구 검증
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| PAY-R01 | 운영 `cheongi_payment_orders.revision` migration 적용 및 제약 확인 | PASS |
+| PAY-R02 | PC 요청 signature/verification NVP 직렬화 exact hash | PASS |
+| PAY-R03 | PC 승인 signature/verification NVP 직렬화 exact hash | PASS |
+| PAY-R04 | 결제 관련 집중 회귀 | PASS (15/15) |
+| PAY-R05 | 전체 저장소 회귀 | PASS (962/962, 124 suites) |
+| PAY-R06 | TypeScript typecheck | PASS |
+| PAY-R07 | Vercel production build | PASS |
+| PAY-R08 | Production 이니시스 결제 UI 진입, 실제 승인 없음 | PENDING DEPLOY |

@@ -177,10 +177,11 @@ export function publicInicisConfig() {
 export function createInicisPaymentFields(params: {
   order: PaymentOrder
   buyerName: string
+  timestamp?: string
 }): InicisPaymentFields {
   const current = config()
   if (!current.enabled) throw new Error('이니시스 MID와 SignKey 설정이 필요합니다.')
-  const timestamp = String(Date.now())
+  const timestamp = params.timestamp ?? String(Date.now())
   const oid = safeOrderId(params.order.orderId)
   const price = String(params.order.amount)
   return {
@@ -191,8 +192,8 @@ export function createInicisPaymentFields(params: {
     price,
     timestamp,
     use_chkfake: 'Y',
-    signature: sha256(`${oid}${price}${timestamp}`),
-    verification: sha256(`${oid}${price}${current.signKey}${timestamp}`),
+    signature: sha256(`oid=${oid}&price=${price}&timestamp=${timestamp}`),
+    verification: sha256(`oid=${oid}&price=${price}&signKey=${current.signKey}&timestamp=${timestamp}`),
     mKey: sha256(current.signKey),
     currency: 'WON',
     goodname: truncate(params.order.productTitle, 40),
@@ -454,8 +455,8 @@ export async function approveInicisPayment(params: {
     mid: current.mid,
     authToken: params.authToken,
     timestamp,
-    signature: sha256(`${params.authToken}${timestamp}`),
-    verification: sha256(`${params.authToken}${current.signKey}${timestamp}`),
+    signature: sha256(`authToken=${params.authToken}&timestamp=${timestamp}`),
+    verification: sha256(`authToken=${params.authToken}&signKey=${current.signKey}&timestamp=${timestamp}`),
     charset: 'UTF-8',
     format: 'JSON',
     price: String(params.order.amount),
@@ -519,8 +520,8 @@ function pcApprovalBody(authToken: string, amount: number, signKey: string): URL
     mid: config().mid,
     authToken,
     timestamp,
-    signature: sha256(`${authToken}${timestamp}`),
-    verification: sha256(`${authToken}${signKey}${timestamp}`),
+    signature: sha256(`authToken=${authToken}&timestamp=${timestamp}`),
+    verification: sha256(`authToken=${authToken}&signKey=${signKey}&timestamp=${timestamp}`),
     charset: 'UTF-8',
     format: 'JSON',
     price: String(amount),
