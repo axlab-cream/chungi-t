@@ -1711,4 +1711,8 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 
 - 실제 닫기 재현에서 KG이니시스 iframe이 `/payment/close` 문서로 바뀌었지만 부모 결제 화면은 그대로 남았다. 원인은 닫기 문서가 iframe 자신에게만 `window.close()`를 호출하고 부모에게 상태를 전달하지 않은 것이다.
 - 닫기 문서는 동일 출처 부모 또는 opener에 `umsh:payment-closed` 메시지를 전달한다. 결제 페이지는 동일 출처 메시지만 수신하고, 외부 URL을 거부한 뒤 원래 `returnTo` 또는 상품 기본 경로로 복귀한다.
-- 집중 16/16, 전체 963/963(124 suites), typecheck, Vercel build PASS. Production 배포와 실제 닫기 복귀 확인이 남았다.
+- 집중 16/16, 전체 963/963(124 suites), typecheck, Vercel build PASS.
+- Commit `ec4ef3f`를 push하고 Vercel Production `dpl_A9Ex6qKja6ZZWGZVqYCsia99KdLn`에 배포했다. 배포는 Ready이며 `https://umsh.kr` alias가 연결됐다.
+- 운영에서 결제창을 새로 열고 KG이니시스 닫기 → 취소 확인을 실행했다. `/payment/close` 이벤트 뒤 `/place/home/01-step-1-story/index.html`로 정상 복귀했으며 실제 결제 승인·과금은 없었다.
+- 운영 로그는 주문 생성, 닫기 URL, 상품 기본 경로와 최종 시작 페이지의 순차 200 요청을 보여준다. Node `url.parse()` deprecation 경고는 남아 있지만 이번 사용자 흐름을 막지 않는 별도 기술부채다.
+- Task status: DONE.

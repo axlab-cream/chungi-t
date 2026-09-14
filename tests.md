@@ -665,4 +665,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | PAY-R10 | 닫기 수정 후 결제 집중 회귀 | PASS (16/16) |
 | PAY-R11 | 닫기 수정 후 전체 저장소 회귀 | PASS (963/963, 124 suites) |
 | PAY-R12 | 닫기 수정 후 TypeScript 및 Vercel build | PASS |
-| PAY-R13 | Production 실제 닫기 버튼으로 해당 서비스 복귀 | PENDING DEPLOY |
+| PAY-R13 | Production 실제 닫기 버튼으로 해당 서비스 복귀 | PASS |
