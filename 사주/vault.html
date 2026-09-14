@@ -147,11 +147,21 @@
       }
 
       .row em {
+        display: grid;
+        justify-items: end;
+        gap: 2px;
         color: var(--gold);
         font-size: 12px;
         font-style: normal;
         font-weight: 800;
         white-space: nowrap;
+      }
+
+      /* 같은 날 여러 건을 구분하려면 시각이 필요하다. 날짜보다 약하게 둔다. */
+      .row em small {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
       }
 
       body.umsh-has-chrome {
@@ -165,7 +175,7 @@
 
       <section class="page-head">
         <h1>보관함</h1>
-        <p>구매해서 열어 본 풀이가 여기에 남습니다. 눌러서 다시 볼 수 있어요.</p>
+        <p>구매한 풀이가 최근 구매 순으로 남습니다. 눌러서 다시 볼 수 있어요.</p>
       </section>
 
       <section id="state"></section>
@@ -205,10 +215,15 @@
             || `/signup?entry=vault&returnTo=${encodeURIComponent(returnTo)}#login`;
         }
 
-        function savedAt(value) {
+        // 날짜와 시각을 따로 돌려준다. 같은 날 산 것이 여러 건이면 날짜만으로는 구분되지 않는다.
+        function stamp(value) {
           const date = value ? new Date(value) : null;
-          if (!date || Number.isNaN(date.getTime())) return '';
-          return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+          if (!date || Number.isNaN(date.getTime())) return null;
+          const pad = (n) => String(n).padStart(2, '0');
+          return {
+            day: `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`,
+            time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+          };
         }
 
         async function session() {
@@ -242,8 +257,8 @@
             const reports = Array.isArray(payload.reports) ? payload.reports : [];
             if (!reports.length) {
               panel(
-                '아직 보관된 풀이가 없어요',
-                '운세를 하나 열어 보면 여기에 쌓입니다. 검색에서 원하는 운을 골라 보세요.',
+                '아직 구매한 풀이가 없어요',
+                '무료로 본 티저는 여기에 남지 않습니다. 하나 열어 보면 구매한 순서대로 쌓여요.',
                 { href: '/search', label: '운세 둘러보기' },
               );
               return;
@@ -281,12 +296,16 @@
                 const href = report.openPath
                   || (savedId ? `/r/${encodeURIComponent(savedId)}` : '/search');
                 const openable = Boolean(href && href !== '/search');
+                // 같은 서비스를 여러 번 보면 제목(이름 · 생년월일)이 전부 같다. 레코드마다
+                // 다른 것은 그때 적어 낸 고민이므로 그것을 먼저 보여준다.
+                const subtitle = report.initialConcern || report.context?.concern || report.title || '';
+                const at = stamp(report.purchasedAt || report.savedAt);
                 const body = `
                   <span class="body">
                     <b>${escapeHtml(service)}</b>
-                    <span>${escapeHtml(report.title || '')}</span>
+                    <span>${escapeHtml(subtitle)}</span>
                   </span>
-                  <em>${escapeHtml(savedAt(report.savedAt))}</em>
+                  <em>${at ? `${escapeHtml(at.day)}<small>${escapeHtml(at.time)}</small>` : ''}</em>
                 `;
                 return openable
                   ? `<a class="row" href="${escapeHtml(href)}">${body}</a>`

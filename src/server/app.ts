@@ -32,6 +32,7 @@ import {
   withReportBirthCertainty,
 } from '../report/report-store.js'
 import { createSavedPreview, guardPreview } from '../report/report-preview.js'
+import { selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
@@ -2834,11 +2835,27 @@ app.get('/api/user/reports', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
-    const records = await listReportRecords(owner, parseListLimit(req.query.limit))
+    const limit = parseListLimit(req.query.limit)
+    // 결제 여부로 거른 뒤 자른다. 요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다.
+    const records = await listReportRecords(owner, 100)
+    const orders = await listPaymentOrders(owner.id, 100).catch(() => null)
+    if (!orders) {
+      // 주문 조회가 죽었다고 보관함을 비우지는 않는다. 빈 보관함은 잘못된 정렬보다 나쁘다.
+      res.json({
+        userId: owner.id,
+        storage: getReportStorageMode(),
+        purchasedOnly: false,
+        reports: records.map(historyEntryFromRecord).slice(0, limit),
+      })
+      return
+    }
     res.json({
       userId: owner.id,
       storage: getReportStorageMode(),
-      reports: records.map(historyEntryFromRecord),
+      purchasedOnly: true,
+      reports: selectPurchasedReadings(records, orders)
+        .slice(0, limit)
+        .map((item) => ({ ...historyEntryFromRecord(item.record), purchasedAt: item.purchasedAt })),
     })
   } catch (err) {
     respondRequestFailure(res, err, '풀이 보관함 조회 실패')
