@@ -33,6 +33,10 @@ function copyDirectoryContents(from, to) {
   }
 }
 
+// `handle: filesystem` exposes only this generated directory. Recreate it from an
+// allowlisted source set on every build so a stale or newly added public file can
+// never survive into Production by accident.
+rmSync(publicRoot, { recursive: true, force: true })
 mkdirSync(publicRoot, { recursive: true })
 
 copyFile(join(sajuRoot, 'portal.html'), join(publicRoot, 'portal.html'))

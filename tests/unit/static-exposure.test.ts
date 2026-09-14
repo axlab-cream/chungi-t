@@ -171,17 +171,23 @@ describe('브랜드 표기가 하나다', () => {
   })
 })
 
-describe('배포 라우팅이 정적 레이어를 거치지 않는다', () => {
-  // Express 가드만으로는 부족했다. Vercel 은 `rewrites` 를 쓰면 **파일시스템을 먼저**
-  // 확인하므로 저장소 경로와 겹치는 URL 이 함수를 거치지 않고 그대로 나갔다.
+describe('배포 라우팅은 선별한 public 자산만 정적으로 제공한다', () => {
+  // Express 가드만으로는 부족했다. Vercel 은 저장소 전체가 아니라 `public/`의 빌드
+  // 산출물만 파일시스템 단계에 둔다. `prepare-vercel-public.mjs`가 선별한 CSS/JS/이미지를
+  // 먼저 제공하고, 나머지는 함수 가드로 보내야 공통 리더 자산이 404가 되지 않는다.
   // 2026-09-10 운영 실측: `/사주/me/pass-angle/01-step-1-story/PROMPT.md` → 200,
   // `/data/runtime-config.json` → 200, `/prompts/README.md` → 200.
-  // 레거시 `routes` 는 파일시스템 단계보다 먼저 적용되므로 모든 요청이 함수로 간다.
   const config = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'))
+  const prepareSource = readFileSync(new URL('../../scripts/prepare-vercel-public.mjs', import.meta.url), 'utf8')
 
   describe('보안', () => {
-    it('모든 요청을 함수로 보낸다', () => {
-      assert.deepEqual(config.routes, [{ src: '/(.*)', dest: '/api/index?__umsh_path=$1' }])
+    it('선별된 public 파일만 먼저 보내고 나머지는 함수로 보낸다', () => {
+      assert.deepEqual(config.routes, [
+        { handle: 'filesystem' },
+        { src: '/(.*)', dest: '/api/index?__umsh_path=$1' },
+      ])
+      assert.match(prepareSource, /rmSync\(publicRoot, \{ recursive: true, force: true \}\)[\s\S]*mkdirSync\(publicRoot/)
+      assert.doesNotMatch(prepareSource, /copyDirectory\(root,\s*publicRoot\)|copyDirectoryContents\(root,\s*publicRoot\)/)
     })
 
     it('`rewrites` 로 되돌리지 않는다', () => {
