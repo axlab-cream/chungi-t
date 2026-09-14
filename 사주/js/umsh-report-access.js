@@ -145,7 +145,132 @@
   function inPlaceEnabled() {
     return Boolean(document.documentElement && document.documentElement.hasAttribute('data-umsh-verified-inplace'));
   }
-  function slotNode(name) { return document.querySelector('[data-umsh-slot="' + name + '"]'); }
+  /**
+   * 슬롯 해석 순서
+   *   1) 명시적 `data-umsh-slot` — 서비스별로 손으로 맞춘 것이 항상 이긴다
+   *   2) 알려진 컨테이너 id — 서비스마다 이름이 다르지만(detail-stack · detail-root ·
+   *      detailStage · section-items …) 역할은 같다. 26개 HTML을 일일이 고치는 대신
+   *      여기서 흡수한다
+   *   3) 진행률처럼 디자인에 자리가 아예 없는 것은 만들어 넣는다
+   */
+  var SLOT_FALLBACK_IDS = {
+    // 06 상세 본문 → 04 티저 본문 → 05 결과 목록 순. 05 는 목록형이라 id 가 또 다르다.
+    // 채팅 로그(`chat-log`·`chatLog`·`chatScroll`)는 넣지 않는다. 대화 기록 자리에
+    // 섹션 목록을 밀어 넣으면 그 화면이 망가진다.
+    sections: ['detail-stack', 'detail-root', 'detail-body', 'detailStage', 'detailContent',
+               'section-items', 'interpretationBlocks', 'reportStage', 'teaserStack', 'detail-group',
+               'groupList', 'group-list', 'group-grid', 'item-list', 'reportGroups', 'report-list',
+               'reportIndex', 'section-panel', 'content'],
+    title: ['detail-title', 'detailTitle', 'page-title', 'pageTitle', 'report-title', 'resultTitle',
+            'hero-title', 'sectionTitle', 'title'],
+    subtitle: ['detail-conclusion', 'detailIntro', 'page-summary', 'hero-summary', 'summaryCopy',
+               'resultAnswer', 'conclusion', 'subtitle', 'summary'],
+    state: ['state-panel', 'statePanel', 'status-root', 'state-message', 'stateNotice', 'stateCopy',
+            'state-copy', 'loading-panel', 'lockedState', 'accessState', 'state-card',
+            'permission-note', 'emptyPanel', 'missing-input', 'status-box', 'access-notice',
+            'emptyState', 'offline'],
+    insights: ['signal-list', 'signalList', 'signal-tags', 'heroTags', 'evidencePills', 'flowList'],
+    'paid-value': ['scope-list', 'scopeGrid', 'scope-grid', 'unlockList'],
+    headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle', 'teaser-title'],
+    summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview'],
+  };
+
+  /** 껍데기 안에서 본문을 넣기 적당한 컨테이너. 스크롤 영역이 있으면 그 안. */
+  function contentHost() {
+    var shell = document.querySelector('#step-6_1-report, #step-5-chat, #step-4-report, .phone');
+    if (!shell) return null;
+    return shell.querySelector('#scroll-area, .scroll-area, .scroll, main') || shell;
+  }
+
+  /**
+   * 본문 자리가 아예 없는 디자인(wedding·newyear·lucky·pass-angle·quit 상세)에는
+   * 컨테이너를 만들어 넣는다. 기존 블록(evidence·scene·actions 같은 서비스 전용 자리)에
+   * 섹션 목록을 밀어 넣으면 그 서비스의 렌더가 깨지므로 건드리지 않는다.
+   */
+  function ensureSectionsHost() {
+    var existing = document.getElementById('umsh-sections-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-sections-host';
+    node.setAttribute('data-umsh-slot', 'sections');
+    node.setAttribute('aria-label', '해석 본문');
+    var progress = document.getElementById('umsh-progress-host');
+    if (progress && progress.parentElement === host) host.insertBefore(node, progress.nextSibling);
+    else host.appendChild(node);
+    return node;
+  }
+
+  /** 진행률 자리가 없는 디자인에는 껍데기 맨 위에 하나 만들어 넣는다. */
+  function ensureProgressHost() {
+    var existing = document.getElementById('umsh-progress-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-progress-host';
+    node.className = 'umsh-progress-panel';
+    node.setAttribute('data-umsh-slot', 'progress');
+    node.setAttribute('aria-label', '해석 준비 진행률');
+    node.hidden = true;
+    host.insertBefore(node, host.firstChild);
+    return node;
+  }
+
+  /**
+   * id 대신 data 속성으로 자리를 표시한 디자인도 있다(wedding 상세: data-title·data-body …).
+   */
+  var SLOT_FALLBACK_ATTRS = {
+    sections: ['[data-body]', '[data-sections]', '[data-reading-body]'],
+    title: ['[data-title]'],
+    subtitle: ['[data-subtitle]', '[data-conclusion]'],
+    state: ['[data-state]', '[data-status]'],
+  };
+
+  /**
+   * 내용을 넣을 수 없는 요소를 슬롯으로 잡으면 안 된다.
+   * `wedding-section` 은 `<select>` 였고, 거기에 본문을 넣으면 아무것도 렌더되지 않는다.
+   */
+  var UNFILLABLE = { SELECT: 1, INPUT: 1, TEXTAREA: 1, IMG: 1, BR: 1, HR: 1, OPTION: 1, VIDEO: 1, AUDIO: 1, IFRAME: 1 };
+  function usableSlotTarget(node) {
+    return Boolean(node) && !UNFILLABLE[node.tagName];
+  }
+
+  /** 상태 안내 자리가 없는 디자인에는 만들어 넣는다. 없으면 panel() 로 떨어져 디자인이 사라진다. */
+  function ensureStateHost() {
+    var existing = document.getElementById('umsh-state-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-state-host';
+    node.className = 'umsh-state-panel';
+    node.setAttribute('data-umsh-slot', 'state');
+    node.setAttribute('aria-live', 'polite');
+    host.insertBefore(node, host.firstChild);
+    return node;
+  }
+
+  function slotNode(name) {
+    var explicit = document.querySelector('[data-umsh-slot="' + name + '"]');
+    if (usableSlotTarget(explicit)) return explicit;
+
+    var ids = SLOT_FALLBACK_IDS[name] || [];
+    for (var i = 0; i < ids.length; i++) {
+      var byId = document.getElementById(ids[i]);
+      if (usableSlotTarget(byId)) { byId.setAttribute('data-umsh-slot', name); return byId; }
+    }
+    var attrs = SLOT_FALLBACK_ATTRS[name] || [];
+    for (var j = 0; j < attrs.length; j++) {
+      var byAttr = document.querySelector(attrs[j]);
+      if (usableSlotTarget(byAttr)) { byAttr.setAttribute('data-umsh-slot', name); return byAttr; }
+    }
+    if (name === 'progress') return ensureProgressHost();
+    if (name === 'sections') return ensureSectionsHost();
+    if (name === 'state') return ensureStateHost();
+    return null;
+  }
   function markFilled(node) { if (node) node.setAttribute('data-umsh-filled', ''); }
   /**
    * 슬롯의 조상이 `hidden` 으로 접혀 있으면 채워도 보이지 않는다. 디자인 페이지는
