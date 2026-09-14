@@ -31,12 +31,41 @@
     });
   }
 
-  /** 페이지가 이미 들고 있는 서비스 이름. 호출부가 따로 넘길 필요가 없다. */
+  /**
+   * 페이지가 이미 들고 있는 서비스 이름. 호출부가 따로 넘길 필요가 없다.
+   *
+   * 주의: `umsh-report-access.js` 가 만드는 `#umsh-verified-layout` 도
+   * `data-service="저장된 해석"` 을 달고 있다. 그걸 집으면 "저장된 해석 해석 중" 처럼
+   * 겹친 문구가 나온다(2026-09-14 /place/home 확인). 등록 디자인 껍데기를 먼저 본다.
+   */
+  var GENERIC_SERVICE_NAMES = ['저장된 해석', '오늘운'];
+
   function detectService() {
-    var node = document.querySelector('[data-umsh-chrome][data-service]')
-      || document.querySelector('[data-service]');
-    var name = node && node.getAttribute('data-service');
-    return name ? String(name).trim() : '';
+    var selectors = [
+      '#step-6_1-report[data-service]',
+      '#step-5-chat[data-service]',
+      '#step-4-report[data-service]',
+      '.phone[data-service]',
+      '[data-umsh-chrome][data-service]',
+      '[data-service]',
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var nodes = document.querySelectorAll(selectors[i]);
+      for (var j = 0; j < nodes.length; j++) {
+        var node = nodes[j];
+        if (node.id === 'umsh-verified-layout') continue;
+        if (node.closest && node.closest('#umsh-verified-layout')) continue;
+        var name = String(node.getAttribute('data-service') || '').trim();
+        if (name && GENERIC_SERVICE_NAMES.indexOf(name) === -1) return name;
+      }
+    }
+    return '';
+  }
+
+  /** "…해석" 으로 끝나는 이름에 " 해석 중"을 붙이면 말이 겹친다. */
+  function pillFor(service) {
+    if (!service) return DEFAULT_TITLE;
+    return /해석$/.test(service) ? service + ' 준비 중' : service + ' 해석 중';
   }
 
   function ensureStyle() {
@@ -80,7 +109,7 @@
 
     var service = copy.service || detectService();
     // 제목을 직접 준 쪽이 우선. 아니면 서비스 이름으로 만든다.
-    var pill = copy.title || (service ? service + ' 해석 중' : DEFAULT_TITLE);
+    var pill = copy.title || pillFor(service);
     pillEl.textContent = pill;
 
     // 부제는 줄바꿈만 허용한다. 나머지는 그대로 이스케이프한다.
