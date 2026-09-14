@@ -14,6 +14,11 @@
   let session = null;
   let product = null;
 
+  function isMobileWeb() {
+    return Boolean(global.navigator?.userAgentData?.mobile)
+      || /Android|iPhone|iPad|iPod|Mobile/i.test(global.navigator?.userAgent || '');
+  }
+
   function setStatus(message) {
     if (status) status.textContent = message || '';
   }
@@ -93,7 +98,13 @@
       const response = await fetch('/api/payment/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({ productKey: product.key, reportId, buyerEmail: form.buyerEmail.value.trim(), buyerTel: form.buyerTel.value.trim() }),
+        body: JSON.stringify({
+          productKey: product.key,
+          reportId,
+          buyerEmail: form.buyerEmail.value.trim(),
+          buyerTel: form.buyerTel.value.trim(),
+          paymentMode: isMobileWeb() ? 'mobile' : 'pc',
+        }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw Object.assign(new Error(payload.error || '결제 주문을 만들지 못했습니다.'), { code: payload.code });
@@ -116,6 +127,16 @@
         return;
       }
       fillInicisForm(payload.fields);
+      if (payload.paymentMode === 'mobile') {
+        if (!payload.actionUrl) throw new Error('모바일 결제 주소를 확인하지 못했습니다.');
+        sendForm.action = payload.actionUrl;
+        sendForm.method = 'post';
+        sendForm.acceptCharset = 'EUC-KR';
+        sendForm.target = '_self';
+        setStatus('이니시스 모바일 결제창으로 이동합니다.');
+        sendForm.submit();
+        return;
+      }
       await loadScript(paymentConfig.scriptUrl);
       setStatus('이니시스 결제창을 여는 중입니다.');
       global.INIStdPay.pay(sendForm);

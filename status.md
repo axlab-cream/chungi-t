@@ -1675,3 +1675,16 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Aggregate coverage is provider 6/19, full-outline review 7/20 and visual 6/20. Overall Tone V2 release remains `NO_GO`; no production corpus attachment or customer-record rewrite occurred.
 - Reusable memory was promoted locally at `CreamAI/memory/approved/task-tone-v2-p04-saju-master-visual-render-evidence_memory.md`; sanitized upload source is `tone-v2/kms-notes/umsh-saju-master-visual-reader-permalink-20260914.md`.
 - Remote CreamWIKI write/re-read is BLOCKED: the tunnel answers `authentication_required`, the remote CLI has no token, and direct personal-path upload is permission denied. Server-side reindex is NOT_RUN. No credential was requested or exposed.
+# 2026-09-14 — KG이니시스 운영 결제 연동 ACTIVE
+
+- 사용자가 결제 보류를 명시적으로 해제하고 merchant bundle, SignKey, 모바일 HashKey를 제공해 운영 결제 연동을 승인했다.
+- ZIP은 읽기 전용으로 구조와 해시만 확인했다. 개인키·인증서·암호 파일은 저장소에 추출하거나 커밋하지 않는다.
+- CreamWIKI 검색-first PASS: 기존 PC INIStdPay 이식 가이드를 찾았고 현재 코드와 대조했다.
+- 관측된 결함: 모바일 환경이 PC 결제 모듈로 호출됨, callback이 모바일 성공코드를 실패로 처리함, IDC-URL 상호검증이 없음, 승인 후 금융 증거 저장 전 실패 시 망취소가 없음.
+- 결정: PC와 모바일을 한 사용자 결제 수직 슬라이스로 연결하고, 승인 후 저장 실패는 망취소 또는 `approving` 대사 대상으로 보존한다. HashKey는 모바일 위변조 방지에만 사용하며 INIAPI 환불키로 오용하지 않는다.
+- 실결제와 실환불은 검증 중 실행하지 않는다.
+- PC 요청은 INIStdPay와 `centerCd(Y)`, 모바일 요청은 전용 결제 URL과 SHA-512 Base64 위변조 검증으로 분리했다. 두 승인 콜백은 주문번호·금액·IDC 호스트를 서버에서 다시 검증한다.
+- 승인 뒤 내부 저장 실패는 공식 망취소를 시도한다. 망취소 성공은 `payment_net_cancelled` append-only 원장과 cancelled 주문으로 남기며, 결과 불확실 시 주문을 `approving`으로 보존한다.
+- Supabase migration `payment_net_cancelled_event` 적용 및 제약 재조회 PASS. 새 advisor 경고 없음; 기존 서버 전용 RLS INFO와 Auth leaked-password WARN은 이 Task 밖의 기존 항목이다.
+- Vercel Production의 MID·SignKey·HashKey 이름 등록 PASS, 값 출력·저장 없음. 인증서 ZIP은 저장소에 추출하지 않았다.
+- focused 36/36, full repository 961/961 across 124 suites, typecheck, Vercel build PASS. 로컬 결제 화면은 desktop 및 390px에서 내용·48px CTA·무가로오버플로·오버레이 없음 PASS.

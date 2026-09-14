@@ -56,7 +56,17 @@ import {
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
 import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
-import { createInicisPaymentFields, createPaymentOrderId, approveInicisPayment, publicInicisConfig } from '../payment/inicis.js'
+import {
+  approveInicisMobilePayment,
+  approveInicisPayment,
+  createInicisMobilePaymentFields,
+  createInicisPaymentFields,
+  createPaymentOrderId,
+  inicisResultIsSuccess,
+  publicInicisConfig,
+  type InicisCancellationContext,
+} from '../payment/inicis.js'
+import { recoverInicisPostApprovalFailure } from '../payment/inicis-recovery.js'
 import { isPaymentTestMode } from '../payment/test-mode.js'
 import {
   PURCHASE_STATE_PENDING,
@@ -2268,6 +2278,12 @@ app.post('/api/payment/orders', async (req, res) => {
       return
     }
 
+    const paymentMode = req.body?.paymentMode === 'mobile' ? 'mobile' : 'pc'
+    if (paymentMode === 'mobile' && !config.mobileEnabled) {
+      res.status(503).json({ code: 'MOBILE_PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
+      return
+    }
+
     const timestamp = new Date().toISOString()
     const order: PaymentOrder = {
       orderId: createPaymentOrderId(),
@@ -2292,10 +2308,14 @@ app.post('/api/payment/orders', async (req, res) => {
       })
       return
     }
-    const fields = createInicisPaymentFields({ order: saved, buyerName: profile.name })
+    const fields = paymentMode === 'mobile'
+      ? createInicisMobilePaymentFields({ order: saved, buyerName: profile.name })
+      : createInicisPaymentFields({ order: saved, buyerName: profile.name })
     res.json({
       order: clientPaymentOrder(saved),
       product: publicPaymentProduct(product),
+      paymentMode,
+      actionUrl: paymentMode === 'mobile' ? config.mobilePaymentUrl : undefined,
       fields,
     })
   } catch (err) {
@@ -2467,8 +2487,11 @@ app.get('/api/payment/google/product/:productKey', async (req, res) => {
 
 app.post('/api/payment/inicis/return', async (req, res) => {
   let approvalEvidenceRecorded = false
+  let providerApproved = false
+  let approvalSourceRef = ''
+  let cancellation: InicisCancellationContext | undefined
   const body = req.body as Record<string, unknown>
-  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid)
+  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid || body.P_NOTI || body.P_OID)
   if (!orderId) {
     res.redirect(303, paymentOrderRedirect('', 'failed', '결제 주문번호를 확인하지 못했습니다.'))
     return
@@ -2485,9 +2508,10 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       return
     }
 
+    const mobile = Boolean(body.P_STATUS || body.P_REQ_URL || body.P_TID)
     const resultCode = trimmedString(body.resultCode || body.P_STATUS)
     const resultMessage = trimmedString(body.resultMsg || body.P_RMESG1) || '결제가 취소되었거나 승인되지 않았습니다.'
-    if (resultCode !== '0000') {
+    if (!inicisResultIsSuccess(resultCode)) {
       await updatePaymentOrder(order.orderId, { status: 'failed', message: resultMessage })
       res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey, order.reportId))
       return
@@ -2497,15 +2521,37 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (callbackMid && callbackMid !== (process.env.INICIS_MID?.trim() ?? '')) {
       throw new Error('결제 상점 정보를 확인하지 못했습니다.')
     }
-    const authToken = trimmedString(body.authToken)
-    const authUrl = trimmedString(body.authUrl)
-    if (!authToken || !authUrl) throw new Error('결제 승인 정보를 받지 못했습니다.')
+    const idcName = trimmedString(body.idc_name)
+    if (!idcName) throw new Error('결제 승인 IDC 정보를 받지 못했습니다.')
 
     await updatePaymentOrder(order.orderId, { status: 'approving' })
-    const approval = await approveInicisPayment({ order, authToken, authUrl })
+    let approval
+    if (mobile) {
+      const tid = trimmedString(body.P_TID)
+      const requestUrl = trimmedString(body.P_REQ_URL)
+      const returnedAmount = Number(trimmedString(body.P_AMT))
+      if (!tid || !requestUrl) throw new Error('모바일 결제 승인 정보를 받지 못했습니다.')
+      if (!Number.isFinite(returnedAmount) || returnedAmount !== order.amount) throw new Error('인증 결과의 결제금액이 일치하지 않습니다.')
+      cancellation = { mode: 'mobile', order, idcName, tid, requestUrl }
+      approval = await approveInicisMobilePayment({ order, tid, requestUrl, idcName })
+    } else {
+      const authToken = trimmedString(body.authToken)
+      const authUrl = trimmedString(body.authUrl)
+      const cancelUrl = trimmedString(body.netCancelUrl)
+      if (!authToken || !authUrl || !cancelUrl) throw new Error('결제 승인 또는 망취소 정보를 받지 못했습니다.')
+      cancellation = { mode: 'pc', order, idcName, authToken, cancelUrl }
+      approval = await approveInicisPayment({ order, authToken, authUrl, idcName })
+    }
+    providerApproved = true
 
     const sourceRef = approval.tid?.trim() || approval.approvalCode?.trim()
     if (!sourceRef) throw new Error('승인 거래 식별자를 받지 못했습니다.')
+    approvalSourceRef = sourceRef
+    const approvalSaved = await updatePaymentOrder(order.orderId, {
+      status: 'approving', tid: approval.tid, payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode, message: approval.resultMessage,
+    })
+    if (!approvalSaved) throw new Error('승인 거래 증거를 주문에 저장하지 못했습니다.')
     // PG 승인 뒤에는 append-only 금융 증거를 먼저 남긴다. 주문 상태 투영이 실패해도
     // event가 남아 T19 대사에서 회수할 수 있고, catch가 과금 주문을 failed로 내리지 않는다.
     const paid = await projectApprovedPayment(order, {
@@ -2515,8 +2561,17 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
-    const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
-    if (!approvalEvidenceRecorded) await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    let message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
+    if (providerApproved && cancellation) {
+      const recovery = await recoverInicisPostApprovalFailure({
+        order: cancellation.order,
+        sourceRef: approvalSourceRef || (cancellation.mode === 'mobile' ? cancellation.tid : cancellation.authToken),
+        cancellation,
+      })
+      message = recovery.message
+    } else if (!approvalEvidenceRecorded) {
+      await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    }
     const failedOrder = await getPaymentOrder(orderId).catch(() => null)
     res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey, failedOrder?.reportId))
   }

@@ -3,12 +3,17 @@ import { createHash } from 'node:crypto'
 import type { PaymentOrder } from './order-store.js'
 
 export const INICIS_SCRIPT_URL = 'https://stdpay.inicis.com/stdjs/INIStdPay.js'
+export const INICIS_MOBILE_PAYMENT_URL = 'https://mobile.inicis.com/smart/payment/'
+
+export type InicisTransport = (url: string, init: RequestInit) => Promise<Response>
 
 interface InicisConfig {
   mid: string
   signKey: string
+  hashKey: string
   publicBaseUrl: string
   enabled: boolean
+  mobileEnabled: boolean
 }
 
 export interface InicisPaymentFields {
@@ -31,6 +36,24 @@ export interface InicisPaymentFields {
   closeUrl: string
   charset: 'UTF-8'
   merchantData: string
+  acceptmethod: 'centerCd(Y)'
+}
+
+export interface InicisMobilePaymentFields {
+  P_INI_PAYMENT: 'CARD'
+  P_MID: string
+  P_OID: string
+  P_AMT: string
+  P_GOODS: string
+  P_UNAME: string
+  P_NEXT_URL: string
+  P_NOTI: string
+  P_TIMESTAMP: string
+  P_CHKFAKE: string
+  P_RESERVED: 'centerCd=Y&amt_hash=Y'
+  P_CHARSET: 'utf8'
+  P_MOBILE: string
+  P_EMAIL: string
 }
 
 export interface InicisApprovalResult {
@@ -68,6 +91,27 @@ export interface InicisCancelResult {
   raw: Record<string, string>
 }
 
+export interface InicisNetworkCancelResult {
+  success: boolean
+  resultCode: string
+  resultMessage: string
+  raw: Record<string, string>
+}
+
+export type InicisCancellationContext = {
+  mode: 'pc'
+  order: PaymentOrder
+  idcName: string
+  authToken: string
+  cancelUrl: string
+} | {
+  mode: 'mobile'
+  order: PaymentOrder
+  idcName: string
+  tid: string
+  requestUrl: string
+}
+
 export interface InicisSandboxAdapter {
   inquire(params: { tid?: string, oid?: string, timeoutMs?: number }): Promise<InicisInquiryResult>
   cancel(params: { tid: string, reason: string, timeoutMs?: number }): Promise<InicisCancelResult>
@@ -85,7 +129,8 @@ function config(): InicisConfig {
   const publicBaseUrl = envValue(process.env.PUBLIC_BASE_URL, 'https://umsh.kr').replace(/\/$/, '')
   const mid = configuredEnv(process.env.INICIS_MID) ?? ''
   const signKey = configuredEnv(process.env.INICIS_SIGNKEY) ?? ''
-  return { mid, signKey, publicBaseUrl, enabled: Boolean(mid && signKey) }
+  const hashKey = configuredEnv(process.env.INICIS_HASHKEY) ?? ''
+  return { mid, signKey, hashKey, publicBaseUrl, enabled: Boolean(mid && signKey), mobileEnabled: Boolean(mid && hashKey) }
 }
 
 function sha256(value: string): string {
@@ -94,6 +139,10 @@ function sha256(value: string): string {
 
 function sha512(value: string): string {
   return createHash('sha512').update(value, 'utf8').digest('hex')
+}
+
+function sha512Base64(value: string): string {
+  return createHash('sha512').update(value, 'utf8').digest('base64')
 }
 
 function truncate(value: string, length: number): string {
@@ -120,6 +169,8 @@ export function publicInicisConfig() {
     scriptUrl: INICIS_SCRIPT_URL,
     returnUrl: `${current.publicBaseUrl}/api/payment/inicis/return`,
     closeUrl: `${current.publicBaseUrl}/payment/close`,
+    mobileEnabled: current.mobileEnabled,
+    mobilePaymentUrl: INICIS_MOBILE_PAYMENT_URL,
   }
 }
 
@@ -152,13 +203,50 @@ export function createInicisPaymentFields(params: {
     closeUrl: `${current.publicBaseUrl}/payment/close`,
     charset: 'UTF-8',
     merchantData: params.order.orderId,
+    acceptmethod: 'centerCd(Y)',
   }
 }
 
-function isAllowedInicisUrl(value: string): boolean {
+export function createInicisMobilePaymentFields(params: {
+  order: PaymentOrder
+  buyerName: string
+  timestamp?: string
+}): InicisMobilePaymentFields {
+  const current = config()
+  if (!current.mobileEnabled) throw new Error('이니시스 MID와 모바일 HashKey 설정이 필요합니다.')
+  const timestamp = params.timestamp ?? String(Date.now())
+  const oid = safeOrderId(params.order.orderId)
+  const amount = String(params.order.amount)
+  return {
+    P_INI_PAYMENT: 'CARD',
+    P_MID: current.mid,
+    P_OID: oid,
+    P_AMT: amount,
+    P_GOODS: truncate(params.order.productTitle, 80),
+    P_UNAME: truncate(params.buyerName, 30),
+    P_NEXT_URL: `${current.publicBaseUrl}/api/payment/inicis/return`,
+    P_NOTI: params.order.orderId,
+    P_TIMESTAMP: timestamp,
+    P_CHKFAKE: sha512Base64(`${amount}${oid}${timestamp}${current.hashKey}`),
+    P_RESERVED: 'centerCd=Y&amt_hash=Y',
+    P_CHARSET: 'utf8',
+    P_MOBILE: truncate(params.order.buyerTel, 15),
+    P_EMAIL: truncate(params.order.buyerEmail, 30),
+  }
+}
+
+type InicisEndpointMode = 'pc' | 'mobile'
+
+function expectedInicisHost(mode: InicisEndpointMode, idcName: string): string | undefined {
+  const idc = idcName.trim().toLowerCase()
+  if (!['fc', 'ks', 'stg'].includes(idc)) return undefined
+  return mode === 'pc' ? `${idc}stdpay.inicis.com` : `${idc}mobile.inicis.com`
+}
+
+export function isAllowedInicisUrl(value: string, idcName: string, mode: InicisEndpointMode): boolean {
   try {
     const url = new URL(value)
-    return url.protocol === 'https:' && /^(?:stg|fc|ks)stdpay\.inicis\.com$/i.test(url.hostname)
+    return url.protocol === 'https:' && url.hostname.toLowerCase() === expectedInicisHost(mode, idcName)
   } catch (_error) {
     return false
   }
@@ -356,10 +444,11 @@ export async function approveInicisPayment(params: {
   order: PaymentOrder
   authToken: string
   authUrl: string
-}): Promise<InicisApprovalResult> {
+  idcName: string
+}, transport: InicisTransport = fetch): Promise<InicisApprovalResult> {
   const current = config()
   if (!current.enabled) throw new Error('이니시스 결제 설정이 없습니다.')
-  if (!isAllowedInicisUrl(params.authUrl)) throw new Error('허용되지 않은 이니시스 승인 URL입니다.')
+  if (!isAllowedInicisUrl(params.authUrl, params.idcName, 'pc')) throw new Error('이니시스 IDC와 승인 URL이 일치하지 않습니다.')
   const timestamp = String(Date.now())
   const body = new URLSearchParams({
     mid: current.mid,
@@ -371,7 +460,7 @@ export async function approveInicisPayment(params: {
     format: 'JSON',
     price: String(params.order.amount),
   })
-  const response = await fetch(params.authUrl, {
+  const response = await transport(params.authUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     body,
@@ -381,9 +470,9 @@ export async function approveInicisPayment(params: {
   const resultMessage = raw.resultMsg || raw.P_RMESG1 || '승인 결과를 확인하지 못했습니다.'
   const returnedOrder = raw.MOID || raw.orderNumber || raw.P_OID || ''
   const returnedAmount = raw.TotPrice || raw.P_AMT || raw.price || ''
-  if (!response.ok || resultCode !== '0000' || (returnedOrder && returnedOrder !== params.order.orderId) || (returnedAmount && Number(returnedAmount) !== params.order.amount)) {
-    throw new Error(resultMessage)
-  }
+  if (!response.ok || resultCode !== '0000') throw new Error(resultMessage)
+  if (!returnedOrder || returnedOrder !== params.order.orderId) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
+  if (!returnedAmount || Number(returnedAmount) !== params.order.amount) throw new Error('승인 결과의 결제금액이 일치하지 않습니다.')
   return {
     resultCode,
     resultMessage,
@@ -394,6 +483,85 @@ export async function approveInicisPayment(params: {
   }
 }
 
+export async function approveInicisMobilePayment(params: {
+  order: PaymentOrder
+  tid: string
+  requestUrl: string
+  idcName: string
+}, transport: InicisTransport = fetch): Promise<InicisApprovalResult> {
+  const current = config()
+  if (!current.mobileEnabled) throw new Error('이니시스 모바일 결제 설정이 없습니다.')
+  if (!isAllowedInicisUrl(params.requestUrl, params.idcName, 'mobile')) throw new Error('이니시스 IDC와 모바일 승인 URL이 일치하지 않습니다.')
+  const response = await transport(params.requestUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    body: new URLSearchParams({ P_MID: current.mid, P_TID: params.tid }),
+  })
+  const raw = await readInicisResponse(response)
+  const resultCode = raw.P_STATUS || raw.resultCode || ''
+  const resultMessage = raw.P_RMESG1 || raw.resultMsg || '모바일 승인 결과를 확인하지 못했습니다.'
+  if (!response.ok || resultCode !== '00') throw new Error(resultMessage)
+  if (!raw.P_OID || raw.P_OID !== params.order.orderId) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
+  if (!raw.P_AMT || Number(raw.P_AMT) !== params.order.amount) throw new Error('승인 결과의 결제금액이 일치하지 않습니다.')
+  return {
+    resultCode,
+    resultMessage,
+    tid: raw.P_TID,
+    payMethod: raw.P_TYPE,
+    approvalCode: raw.P_AUTH_NO,
+    raw,
+  }
+}
+
+function pcApprovalBody(authToken: string, amount: number, signKey: string): URLSearchParams {
+  const timestamp = String(Date.now())
+  return new URLSearchParams({
+    mid: config().mid,
+    authToken,
+    timestamp,
+    signature: sha256(`${authToken}${timestamp}`),
+    verification: sha256(`${authToken}${signKey}${timestamp}`),
+    charset: 'UTF-8',
+    format: 'JSON',
+    price: String(amount),
+  })
+}
+
+export async function cancelInicisApproval(params: InicisCancellationContext, transport: InicisTransport = fetch): Promise<InicisNetworkCancelResult> {
+  const current = config()
+  let url: string
+  let body: URLSearchParams
+  if (params.mode === 'pc') {
+    if (!current.enabled) throw new Error('이니시스 결제 설정이 없습니다.')
+    if (!isAllowedInicisUrl(params.cancelUrl, params.idcName, 'pc')) throw new Error('이니시스 IDC와 망취소 URL이 일치하지 않습니다.')
+    url = params.cancelUrl
+    body = pcApprovalBody(params.authToken, params.order.amount, current.signKey)
+  } else {
+    if (!current.mobileEnabled) throw new Error('이니시스 모바일 결제 설정이 없습니다.')
+    if (!isAllowedInicisUrl(params.requestUrl, params.idcName, 'mobile')) throw new Error('이니시스 IDC와 모바일 승인 URL이 일치하지 않습니다.')
+    const requestUrl = new URL(params.requestUrl)
+    url = new URL('/smart/payNetCancel.ini', requestUrl.origin).toString()
+    const timestamp = String(Date.now())
+    body = new URLSearchParams({
+      P_TID: params.tid,
+      P_MID: current.mid,
+      P_AMT: String(params.order.amount),
+      P_OID: params.order.orderId,
+      P_TIMESTAMP: timestamp,
+      P_CHKFAKE: sha512Base64(`${params.order.amount}${params.order.orderId}${timestamp}${current.hashKey}`),
+    })
+  }
+  const response = await transport(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    body,
+  })
+  const raw = await readInicisResponse(response)
+  const resultCode = raw.resultCode || raw.P_STATUS || ''
+  const resultMessage = raw.resultMsg || raw.P_RMESG1 || '망취소 결과를 확인하지 못했습니다.'
+  return { success: response.ok && (resultCode === '0000' || resultCode === '00'), resultCode, resultMessage, raw }
+}
+
 export function inicisResultIsSuccess(value: unknown): boolean {
-  return String(value ?? '') === '0000'
+  return ['0000', '00'].includes(String(value ?? ''))
 }

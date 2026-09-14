@@ -43,4 +43,12 @@ describe('금융 이벤트 원장', { concurrency: false }, () => {
     await assert.rejects(() => events.recordApprovedFinancialEvent({ orderId: 'order-b', provider: 'google_play', sourceRef: 'token-a', amount: 9900 }), /FINANCIAL_EVENT_SOURCE_CONFLICT/)
     await assert.rejects(() => events.recordApprovedFinancialEvent({ orderId: 'order-a', provider: 'google_play', sourceRef: 'token-a', amount: 4900 }), /FINANCIAL_EVENT_SOURCE_CONFLICT/)
   })
+
+  it('망취소는 승인과 분리된 append-only 금융 이벤트로 기록한다', async () => {
+    rows.clear()
+    const cancelled = await events.recordNetworkCancelledFinancialEvent({ orderId: 'order-net-cancel', provider: 'inicis', sourceRef: 'tid-net-cancel', amount: 19900 })
+    assert.equal(cancelled.kind, 'payment_net_cancelled')
+    assert.equal(cancelled.orderId, 'order-net-cancel')
+    assert.equal(cancelled.amount, 19900)
+  })
 })

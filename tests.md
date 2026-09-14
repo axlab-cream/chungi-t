@@ -633,3 +633,16 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [x] Current-run desktop/mobile screenshots and first/middle/last print pages receive direct visual review.
 - [x] Sanitized evidence attaches to the candidate and aggregate visual coverage becomes 6/20.
 - [x] Focused 64/64 and permalink-focused 50/50 PASS; final full serial 952/952 across 123 suites; typecheck and Vercel build PASS.
+## 2026-09-14 — KG이니시스 운영 결제 연동 검증표
+
+| ID | 검증 | 기대 결과 | 상태 |
+| --- | --- | --- | --- |
+| PAY-001 | PC 요청 서명·`centerCd(Y)` | 서버 서명과 IDC 수신 옵션 포함 | PASS |
+| PAY-002 | 모바일 요청 필드·SHA512 Base64 | 실제 HashKey 값은 노출하지 않고 위변조 필드 일치 | PASS |
+| PAY-003 | 승인/망취소 URL과 `idc_name` | 일치하는 KG이니시스 HTTPS 호스트만 허용 | PASS |
+| PAY-004 | PC·모바일 승인 결과 검증 | 주문번호·금액 불일치 및 비정상 응답 거부 | PASS |
+| PAY-005 | 승인 후 저장 실패 | 망취소 실행, 불확실한 주문은 `failed` 금지 | PASS |
+| PAY-006 | 브라우저 분기 | PC는 INIStdPay, 모바일은 모바일 결제 URL로 POST | PASS |
+| PAY-007 | 전체 회귀·타입·Vercel build | 실패 0 | PASS (961/961, 124 suites) |
+| PAY-008 | Vercel Production env | MID·SignKey·HashKey 이름 존재, 값 비노출 | PASS |
+| PAY-009 | 운영 비결제 스모크 | config enabled, 페이지/스크립트 200, 실결제 0건 | NOT_RUN |

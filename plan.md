@@ -546,3 +546,14 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 - Attach sanitized visual evidence to the reversible 2.1.0 candidate and advance the aggregate visual gate from 5/20 to 6/20 only after review passes.
 - Status: DONE. The actual shared reader renders 37/37 on desktop and exact 390px mobile, the generic permalink boots from its path identity, keyboard/direct-section navigation passes, and print expands all 37 answers across 38 non-empty pages.
 - Aggregate: provider provenance 6/19, full-outline independent review 7/20, visual evidence 6/20; complete Tone V2 release remains `NO_GO`.
+## 2026-09-14 — task-payment-inicis-production-integration
+
+사용자 결과: 로그인한 고객이 운명상회 웹 결제 화면에서 PC·모바일 환경에 맞는 KG이니시스 결제창을 열고, 승인 성공 뒤 주문·금융 증거가 안전하게 저장된다.
+
+- PAI-01: 기존 PC 웹표준 요청에 `centerCd(Y)`를 적용하고 반환 IDC와 승인/망취소 URL을 함께 검증한다.
+- PAI-02: 모바일에서는 전달받은 모바일 HashKey로 위변조 방지 필드를 서버에서 생성하고 모바일 전용 승인 흐름을 사용한다.
+- PAI-03: PG 승인 뒤 내부 저장이 실패하면 공식 망취소를 시도하며, 취소 결과가 불확실한 과금 주문을 `failed`로 거짓 기록하지 않는다.
+- PAI-04: MID·SignKey·HashKey는 Vercel Production 민감 환경 변수로만 설정하고 ZIP의 인증서/개인키는 저장소에 추출하지 않는다.
+- PAI-05: 실제 과금 없이 단위·통합·빌드·운영 설정 스모크를 통과한 뒤 커밋, 배포한다.
+
+제외 범위: 실제 카드 과금, 실환불 실행, 별도 INIAPI Key가 필요한 운영 환불, 인증서/개인키의 저장소 커밋. 실거래 1건을 통한 가맹점 계약·지불수단 활성 확인은 운영자 결제 승인 후 별도 검증한다.
