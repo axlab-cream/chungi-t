@@ -170,3 +170,19 @@ test('6. 고민 화면은 캐시에서 프로필을 복구한다', () => {
     'renderConcern 이 캐시에서 상태를 복구해야 한다. 복구하지 않으면 새로고침 뒤 빈 상태로 분석을 시도해 실패한다.',
   )
 })
+
+test('7. 결과 화면 CTA 는 스크롤 중에도 붙어 있다', () => {
+  // 결과 article 은 15,324px — 912px 뷰포트로 16.8화면이다. 그런데 구매로 가는 CTA 는
+  // 15,084px, 사실상 맨 끝에 하나뿐이다. 이 규칙이 그 버튼을 화면에 붙들어 둔다.
+  //
+  // 2026-09-14 에 이 수정이 한 번 조용히 사라졌고, `position: relative` 인 채로 배포돼
+  // 있었다. 클래스 이름이 sticky 라서 눈으로는 걸러지지 않는다. 그래서 고정한다.
+  const source = stripComments(read(CMDG))
+  const rule = source.match(/\.sticky-story-cta\s*\{[^}]*\}/)
+  assert.ok(rule, '.sticky-story-cta 규칙을 찾지 못했다')
+  assert.match(
+    rule[0], /position:\s*sticky/,
+    '결과 화면 CTA 가 고정되지 않는다. 구매 동선이 16.8화면 아래로 내려간다.',
+  )
+  assert.match(rule[0], /bottom:\s*0/, 'sticky 는 기준 변(bottom)이 있어야 붙는다')
+})

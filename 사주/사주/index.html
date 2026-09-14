@@ -3255,11 +3255,19 @@
         line-height: 1;
       }
 
+      /*
+       * 결과 화면 본문이 15,000px를 넘는다(36개 섹션). 이 CTA 가 유일한 결제 진입점인데
+       * 맨 끝에만 있으면 16.8 화면을 스크롤해야 닿는다(2026-09-14 실측).
+       * 스크롤 컨테이너는 `.phone[data-scene="result"] .stage` 이고, 하단 고정 내비
+       * 높이만큼 이미 줄여 놨으므로 bottom:0 으로 붙여도 내비와 겹치지 않는다.
+       * 위쪽은 페이드로 처리해 본문이 바 밑으로 스며들 때 글자가 잘려 보이지 않게 한다.
+       */
       .sticky-story-cta {
-        position: relative;
+        position: sticky;
+        bottom: 0;
         z-index: 4;
         padding: 28px 20px max(34px, env(safe-area-inset-bottom));
-        background: #000;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 26%, #000 100%);
       }
 
       .sample-enter .primary-cta,

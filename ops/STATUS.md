@@ -290,18 +290,47 @@ data/tone-v2/corpus/releases/lucky-color-service-2.1.0.json   CRLF 0줄
 
 ---
 
+## T-8. 결제 권한 조회 N+1 제거 ✅
+
+실결제 스모크 전에 결제 경로를 다시 읽다가 **내가 T-4 에서 넣은 계보 되짚기에 왕복 폭증**이
+있는 걸 찾았다. 지난 리포트 ID 마다 주문 조회를 따로 걸고 있었다.
+
+```ts
+for (const pastId of await reportIdsInLineage(owner, lineageId)) {
+  const past = await listPaymentOrders(owner.id, 100, pastId)   // ← ID 수만큼 왕복
+  ...
+}
+```
+
+같은 계보에 리포트가 5개면 열람 판정 한 번에 Supabase 왕복이 5회 더 붙는다.
+
+- [x] 주문 목록을 **한 번만** 받아 메모리에서 고른다 (조회 2회 고정)
+- [x] 리포트 목록 조회는 **후보 주문이 실제로 있을 때만** — 결제한 적 없는 사용자의
+      무료 티저 경로에는 왕복이 하나도 늘지 않는다
+- [x] 판정 순서 보존: 정확히 묶인 주문 → 같은 리포트 → 계보 → 느슨한 폴백
+      (느슨한 폴백이 앞서면 계보로 정확히 짚은 주문이 가려진다)
+
+검증: 7/7 · 뮤테이션 3/3 감지 (N+1 복귀 · 가드 제거 · 폴백 순서 뒤집기)
+
+> 결제 경로의 나머지는 튼튼하다. 상태 전이가 앞으로만 가고(`paid`→`failed` 차단),
+> 승인 증거를 정산 투영보다 **먼저** 기록하며, 금액은 생성 뒤 불변이고, 망취소가
+> 실패하면 거짓말 대신 `approving`(불확정)으로 남긴다. 스모크를 돌려도 될 상태다.
+
+---
+
 ## 마지막 커밋 하나 남았다
 
 `git reset --hard` 이후에 만든 두 파일이 아직 커밋되지 않았다.
 
 - `tests/unit/line-endings.test.ts` (추적되지 않음 — 그래서 reset 에서 살아남았다)
+- `src/server/app.ts` · `tests/unit/refund-approval-precedence.test.ts` (T-8)
 - `ops/STATUS.md` (수정됨)
 
 ```powershell
 cd C:\Users\USER\.aios\projects\umsh\repo
 git add -A
 git status
-git commit -m "test: 줄끝 가드 추가 + 트래커 갱신"
+git commit -m "perf: 결제 권한 조회 N+1 제거 + 줄끝 가드 추가"
 git push
 ```
 
