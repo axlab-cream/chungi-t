@@ -645,4 +645,6 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | PAY-006 | 브라우저 분기 | PC는 INIStdPay, 모바일은 모바일 결제 URL로 POST | PASS |
 | PAY-007 | 전체 회귀·타입·Vercel build | 실패 0 | PASS (961/961, 124 suites) |
 | PAY-008 | Vercel Production env | MID·SignKey·HashKey 이름 존재, 값 비노출 | PASS |
-| PAY-009 | 운영 비결제 스모크 | config enabled, 페이지/스크립트 200, 실결제 0건 | NOT_RUN |
+| PAY-009 | 운영 비결제 스모크 | config enabled, 페이지/스크립트 200, 실결제 0건 | PASS |
+| PAY-010 | CreamWIKI 지식 루프 | 기존 PC·모바일 가이드 검색 후 검증 노트 저장·재조회·검색 | PASS |
+| PAY-011 | 운영 소액 실결제 | PC·모바일 각각 계약/결제수단 활성화 확인 | NOT_RUN (실과금 보호) |

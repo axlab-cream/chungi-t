@@ -1688,3 +1688,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Supabase migration `payment_net_cancelled_event` 적용 및 제약 재조회 PASS. 새 advisor 경고 없음; 기존 서버 전용 RLS INFO와 Auth leaked-password WARN은 이 Task 밖의 기존 항목이다.
 - Vercel Production의 MID·SignKey·HashKey 이름 등록 PASS, 값 출력·저장 없음. 인증서 ZIP은 저장소에 추출하지 않았다.
 - focused 36/36, full repository 961/961 across 124 suites, typecheck, Vercel build PASS. 로컬 결제 화면은 desktop 및 390px에서 내용·48px CTA·무가로오버플로·오버레이 없음 PASS.
+- Commit `53d776d` (`feat: integrate Inicis PC and mobile payments`) pushed to GitHub branch `codex/tone-v2`.
+- Vercel Production deployment `dpl_NhbZnDVJWyyLHLFp8n2aMj5FnqSm` is Ready and aliased to `https://umsh.kr`; health, payment config, payment page and cache-busted payment script smoke checks return 200. The config confirms PC checkout and mobile checkout are enabled without exposing secret names or values.
+- CreamWIKI write/re-read/search PASS at `personal/carrotcap/notes/umsh-inicis-pc-mobile-20260914.md`. The sanitized note reuses the existing PC and mobile integration guides and contains no credential, customer or payment payload.
+- Task status: DONE for implementation and non-charge Production verification. One operator-supervised low-value PC payment and one mobile payment remain NOT_RUN to verify the merchant contract and enabled live payment methods.
