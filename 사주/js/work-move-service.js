@@ -3,6 +3,25 @@
 
   document.body.classList.add('work-move-page');
 
+  /**
+   * `umsh-report-access.js` 는 이 페이지에 없을 수 있다. 없을 때 멤버를 그대로 부르면
+   * TypeError 로 죽고, 호출부의 catch 가 그걸 다른 실패로 둔갑시킨다
+   * (2026-09-14 /cmdg/ 장애와 같은 유형). 접근을 한 곳으로 모아 막는다.
+   */
+  function reportAccess() {
+    return (typeof window !== 'undefined' && window.UMSHReportAccess) || null;
+  }
+  /** 뷰어가 없으면 같은 규칙으로 직접 뽑는다. */
+  function reportIdentity(payload) {
+    var ra = reportAccess();
+    if (ra && ra.identity) return ra.identity(payload);
+    if (!payload) return '';
+    return payload.resultId || payload.publicId || payload.reportId
+      || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))
+      || '';
+  }
+
+
   const STORAGE = {
     service: 'umsh:work_move:service',
     legacyForm: 'umsh:work_move:form_v1',
@@ -371,7 +390,7 @@
 
   async function requestAnalysis(payload) {
     const session = await getAuthSession();
-    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)('/api/saju/analyze', {
+    const response = await ((reportAccess() && reportAccess().fetch) || fetch)('/api/saju/analyze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -556,7 +575,13 @@
   }
 
 function firstSentence(text) {
-    return window.UMSHReportAccess.firstInsight(text);
+    var ra = reportAccess();
+    if (ra && ra.firstInsight) return ra.firstInsight(text);
+    var clean = String(text == null ? '' : text)
+      .replace(/^\s*\[[^\]]+\]\s*/, '')
+      .replace(/^\s*(?:흠|허허|잠깐)[.…\s]+/, '')
+      .trim();
+    return clean.split(/\n\s*\n|(?<=[.!?。])\s+/).find(function (line) { return line.trim().length > 5; }) || clean;
   }
 
   function setupStep4() {

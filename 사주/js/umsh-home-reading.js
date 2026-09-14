@@ -2,6 +2,25 @@
 (function (global) {
   'use strict';
   var chatBound = false;
+
+  /**
+   * `umsh-report-access.js` 는 이 페이지에 없을 수 있다. 없을 때 멤버를 그대로 부르면
+   * TypeError 로 죽고, 호출부의 catch 가 그걸 다른 실패로 둔갑시킨다
+   * (2026-09-14 /cmdg/ 장애와 같은 유형). 접근을 한 곳으로 모아 막는다.
+   */
+  function reportAccess() {
+    return (typeof window !== 'undefined' && window.UMSHReportAccess) || null;
+  }
+  /** 뷰어가 없으면 같은 규칙으로 직접 뽑는다. */
+  function reportIdentity(payload) {
+    var ra = reportAccess();
+    if (ra && ra.identity) return ra.identity(payload);
+    if (!payload) return '';
+    return payload.resultId || payload.publicId || payload.reportId
+      || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))
+      || '';
+  }
+
   function reveal() {
     var root = document.getElementById('step-4-report') || document.getElementById('step-5-chat') || document.getElementById('step-6_1-report');
     var guardLayout = document.getElementById('umsh-verified-layout');
@@ -41,7 +60,7 @@
       document.getElementById('missing-input').classList.remove('is-open');
       document.querySelectorAll('[data-action="open-paid"]').forEach(function (link) {
         var next = link.cloneNode(true);
-        var id = global.UMSHReportAccess.identity(payload);
+        var id = reportIdentity(payload);
         next.href = payload.previewOnly ? payload.paymentUrl || '/payment?service=home_pungsu' : '../05-step-5-chat/chat.html?reportId=' + encodeURIComponent(id) + '#step-5-chat';
         if (!payload.previewOnly) next.textContent = '전체 해석 목차 보기';
         link.replaceWith(next);

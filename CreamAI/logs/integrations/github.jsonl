@@ -1,1 +1,2 @@
 {"ts":"2026-09-10T02:29:46.8310497Z","service":"github","event":"ensure","status":"configured","command":"gh auth status","setupHint":"gh auth login","notes":"auth check passed","exitCode":0}
+{"ts":"2026-09-14T12:49:13.2648686Z","service":"github","event":"ensure","status":"missing_cli","command":"gh auth status","setupHint":"gh auth login","notes":"auth check did not pass","exitCode":3}

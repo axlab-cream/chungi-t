@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-umsh-verified-inplace>
 <head>
     <script src="/js/umsh-report-access.js"></script>
   <meta charset="utf-8" />
@@ -689,14 +689,15 @@
     </div>
 
     <section class="scroll-area" id="scroll-area" aria-live="polite">
-      <section class="state-panel" id="state-panel" aria-live="polite"></section>
+      <section class="umsh-progress-panel" data-umsh-slot="progress" aria-label="해석 준비 진행률" hidden></section>
+      <section class="state-panel" id="state-panel" data-umsh-slot="state" aria-live="polite"></section>
       <section id="detail-content" hidden>
         <article class="hero">
           <img src="../assets/thisyear/06-overall-love-mode-on-hero.webp" alt="올해 연애 신호를 상징하는 카드와 휴대폰을 보는 여성 캐릭터" data-image-role="thisyear-06-overall-love-mode-on-hero" id="hero-image" />
           <div class="hero-copy">
             <span class="eyebrow" id="group-title">올해 연애 가능성 총평</span>
-            <h1 id="detail-title">연애 모드 ON각</h1>
-            <p class="lead" id="detail-conclusion">상세 풀이를 불러오는 중입니다.</p>
+            <h1 id="detail-title" data-umsh-slot="title">연애 모드 ON각</h1>
+            <p class="lead" id="detail-conclusion" data-umsh-slot="subtitle">상세 풀이를 불러오는 중입니다.</p>
             <div class="flow-strip" aria-label="풀이 흐름">
               <div class="flow-item"><span>01</span><strong>가능성</strong></div>
               <div class="flow-item"><span>02</span><strong>주의점</strong></div>
@@ -715,7 +716,7 @@
           <div class="source-grid" id="source-grid"></div>
         </section>
 
-        <section class="detail-stack" id="detail-stack" aria-label="상세 해석"></section>
+        <section class="detail-stack" id="detail-stack" data-umsh-slot="sections" aria-label="상세 해석"></section>
 
         <section class="detail-card" id="talk-card" aria-label="지금 할 말과 하지 않을 말">
           <h2>지금 할 말 / 하지 않을 말</h2>

@@ -1,1 +1,2 @@
 {"ts":"2026-09-10T02:29:47.7790360Z","service":"vercel","event":"ensure","status":"configured","command":"vercel whoami","setupHint":"vercel login","notes":"auth check passed","exitCode":0}
+{"ts":"2026-09-14T12:49:12.5812618Z","service":"vercel","event":"ensure","status":"needs_setup","command":"vercel whoami","setupHint":"vercel login","notes":"auth check did not pass","exitCode":2}
