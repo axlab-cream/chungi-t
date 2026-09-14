@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { FileReportStorage } from './file-report-storage.js'
 import { configuredEnv } from '../env/load.js'
 import { Pool } from 'pg'
-import { getCorpusSnapshot } from '../rag/corpus-registry.js'
+import { corpusCacheSalt, getCorpusSnapshot } from '../rag/corpus-registry.js'
 import { createSavedPreview, type ReportPreview } from './report-preview.js'
 import type { TodayFortune } from '../saju/today-fortune.js'
 import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
@@ -32,6 +32,13 @@ export interface ReportRecord {
   context: SajuReportContext
   owner?: ReportOwner
   corpus?: CorpusSnapshot
+  /**
+   * 코퍼스 내용과 무관한 해석 계보 키. 같은 사람·같은 입력이면 코퍼스가 바뀌어도 같다.
+   * 캐시 승계와 결제 권한 판정이 이 키를 따른다. 도입 이전 레코드에는 없다.
+   */
+  lineageId?: string
+  /** 이 레코드를 만든 캐시 세대. 비어 있으면 도입 이전이거나 기준 세대다. */
+  cacheEpoch?: string
   report: SajuReport
   status: ReportStatus
   createdAt: string
@@ -116,28 +123,58 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value)
 }
 
+function birthKey(birth: BirthInput): Record<string, unknown> {
+  return {
+    year: birth.year,
+    month: birth.month,
+    day: birth.day,
+    hour: birth.hour,
+    minute: birth.minute ?? 0,
+    gender: birth.gender,
+    calendar: birth.calendar,
+    isLeapMonth: birth.isLeapMonth ?? false,
+  }
+}
+
 export function createReportId(
   birth: BirthInput,
   context: SajuReportContext,
   corpusFingerprint = getCorpusSnapshot().fingerprint,
   ownerId?: string,
 ): string {
+  // stableJson 은 빈 문자열 항목을 버린다. 기준 세대(cacheEpoch = "")에서는
+  // 아래 객체가 도입 전과 완전히 같아지므로 기존 리포트 ID가 그대로 유지된다.
   const fingerprint = stableJson({
-    birth: {
-      year: birth.year,
-      month: birth.month,
-      day: birth.day,
-      hour: birth.hour,
-      minute: birth.minute ?? 0,
-      gender: birth.gender,
-      calendar: birth.calendar,
-      isLeapMonth: birth.isLeapMonth ?? false,
-    },
+    birth: birthKey(birth),
+    cacheEpoch: corpusCacheSalt(),
     corpusFingerprint,
     context,
     ownerId: ownerId ?? '',
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
+}
+
+/**
+ * 코퍼스 내용에 의존하지 않는 계보 키.
+ *
+ * `createReportId` 는 코퍼스 지문을 포함한다 — 코퍼스를 한 글자만 고쳐도 ID가 바뀌고,
+ * 그러면 (1) LLM 이 처음부터 다시 돌고 (2) 그 ID에 묶인 결제 주문이 열쇠를 잃는다.
+ * 계보 키는 생년월일·맥락·소유자만 보므로 코퍼스 개정을 건너뛴다.
+ * 세대를 올렸을 때만 함께 바뀌어, 의도한 무효화는 그대로 동작한다.
+ */
+export function createReportLineageId(
+  birth: BirthInput,
+  context: SajuReportContext,
+  ownerId?: string,
+): string {
+  const seed = stableJson({
+    birth: birthKey(birth),
+    cacheEpoch: corpusCacheSalt(),
+    context,
+    lineage: '1',
+    ownerId: ownerId ?? '',
+  })
+  return createHash('sha256').update(seed).digest('hex').slice(0, 28)
 }
 
 /** Preserve existing known-time IDs while separating an explicitly unknown birth time. */
@@ -570,6 +607,31 @@ export async function saveReportRecord(record: ReportRecord, insertOnly = true):
   return cloneRecord(stored)
 }
 
+/** 저장된 레코드의 계보 키. 도입 이전 레코드는 기록이 없으므로 그때만 역산한다. */
+export function reportLineageId(record: ReportRecord): string {
+  return record.lineageId ?? createReportLineageId(record.birth, record.context, record.owner?.id)
+}
+
+/**
+ * 같은 계보의 기존 해석을 찾는다. **LLM 재호출을 막는 지점이 여기다.**
+ *
+ * 코퍼스를 고치면 리포트 ID가 바뀌어 캐시가 통째로 비켜간다. 세대(cacheEpoch)가 그대로라면
+ * 그건 다시 뽑을 이유가 없는 개정이므로, 이미 있는 해석을 그대로 이어 쓴다.
+ * 세대를 올린 경우에는 계보 키도 함께 바뀌므로 여기서 걸리지 않고 새로 생성된다.
+ *
+ * 로그인 사용자에 한한다 — 익명 레코드는 목록 조회 대상이 아니다.
+ */
+export async function findReportInLineage(lineageId: string, owner?: ReportOwner): Promise<ReportRecord | null> {
+  if (!lineageId || !owner?.id) return null
+  const records = await listReportRecords(owner, 100).catch(() => [] as ReportRecord[])
+  const matches = records.filter((record) => (
+    // 저장된 상담 기록은 같은 표를 쓰지만 해석 레코드가 아니다. 승계 대상에서 뺀다.
+    !(record.context as { savedChat?: unknown }).savedChat
+    && reportLineageId(record) === lineageId
+  ))
+  return matches.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null
+}
+
 export async function createOrGetReportRecord(params: {
   reportId: string
   birth: BirthInput
@@ -577,11 +639,21 @@ export async function createOrGetReportRecord(params: {
   templateReport: SajuReport
   analysis?: SajuAnalysis
   owner?: ReportOwner
+  /** 주면 계보 승계가 켜진다. 없으면 리포트 ID 정확 일치만 본다(기존 동작). */
+  lineageId?: string
 }): Promise<{ record: ReportRecord; created: boolean }> {
   const existing = await getReportRecord(params.reportId, params.owner)
   if (existing) {
     assertReportOwner(existing, params.owner)
     return { record: existing, created: false }
+  }
+
+  if (params.lineageId) {
+    const inherited = await findReportInLineage(params.lineageId, params.owner)
+    if (inherited) {
+      assertReportOwner(inherited, params.owner)
+      return { record: inherited, created: false }
+    }
   }
 
   const timestamp = nowIso()
@@ -612,6 +684,8 @@ export async function createOrGetReportRecord(params: {
     reportId: params.reportId,
     resultId,
     revision: 0,
+    lineageId: params.lineageId,
+    cacheEpoch: corpus.cacheEpoch,
     analysis: params.analysis,
     // The paid report keeps its sections empty until generation, but the free teaser is
     // assembled from the deterministic, input-specific template before that redaction.

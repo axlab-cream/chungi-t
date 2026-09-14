@@ -1,6 +1,6 @@
 # 운명상회 작업 트래커
 
-최종 갱신: 2026-09-14 · 갱신 주체: Cowork 세션
+최종 갱신: 2026-09-14 · 갱신 주체: Cowork 세션 · 현재 트랙: **T-5**
 규칙: **한 번에 한 트랙.** 완료분은 체크만 하고 다음 트랙으로 넘어간다.
 
 ---
@@ -85,41 +85,55 @@
 
 ---
 
+## 완료 (이어서)
+
+### T-1. 로딩 통일 배포 ✅
+
+- [x] 공용 로더 배포 (`umsh-loading.js` / `umsh-loading.css`)
+- [x] 서비스명 중복 문구 수정 — `pillFor()` 가 "…해석" 으로 끝나는 이름에 "준비 중" 을 붙인다
+- [x] `#umsh-verified-layout` 의 `data-service="저장된 해석"` 오검출 제외
+
+### T-2. 05 챗/목록 페이지 슬롯 ✅
+
+- [x] `slotNode()` id 폴백 맵에 05 컨테이너 추가 (HTML 일괄 치환 없이)
+- [x] 05 페이지 14개에 `data-umsh-verified-inplace` 옵트인
+- [x] `#chatLog` 오탐 보정 — this-year 의 `#chatLog` 는 대화 기록이 아니라 페이지 스크롤 영역
+
+### T-3. 결과 화면 CTA ✅
+
+라이브 측정: 결과 article 15,324px / 뷰포트 912px = **16.8화면**. 유일한 CTA 가
+15,084px(맨 끝)에 있었고 `.sticky-story-cta` 는 이름과 달리 `position: relative` 였다.
+(앞선 "CTA 0개" 보고는 내 오검색이었다 — 실제 클래스는 `next-cta` 가 아니라 `primary-cta`.)
+
+- [x] `.sticky-story-cta` → `position: sticky; bottom: 0`
+- [x] 상단 페이드 그라디언트 + `env(safe-area-inset-bottom)` 여백
+- [x] 하단 고정 내비와 겹치지 않음 — `.stage` 가 이미 `--umsh-chrome-bottom-h: 74px` 를 뺀다
+
+검증: 실제 규칙을 추출한 최소 재현 페이지로 헤드리스 **14/14**
+(sticky 적용 · 15,596px 문서 · 0/25/50/75% 지점 전부 뷰포트 안 · 내비 비겹침 · 최하단에서 푸터가 밀어올림)
+
+---
+
+### T-4. 코퍼스 개정 시 캐시 무효화 정책 ✅
+
+진단 결과 경로마다 정반대였다. 종합 해석은 **코퍼스 1글자 수정에 전량 재생성 + 결제 권한 상실**,
+특화 서비스 15개는 코퍼스를 아예 참조하지 않아 **영원히 갱신 안 됨**.
+
+- [x] `registry.json` 에 `cacheEpoch` 도입 — 무효화는 이 값 하나로만 일어난다
+- [x] 기준 세대(`""`)에서 **기존 리포트 ID 가 한 건도 바뀌지 않음** (배포 무영향)
+- [x] 계보 키 `lineageId` — 코퍼스 비의존. 캐시 승계 + 결제 권한 승계
+- [x] `withCorpusEpoch()` 로 특화 서비스 15개도 세대 상향 시 갱신되게
+- [x] `findUnlockingOrder` 가 지난 세대의 주문을 계보로 되짚음
+- [x] 운영 문서 `docs/admin-ops/corpus-cache-policy.md` — 올릴 때 / 두는 때 기준
+
+검증: 타입체크 통과 · 신규 8/8 · 뮤테이션 9/9 감지 · 기존 6개 스위트 기준선과 동일
+
+---
+
 ## 다음 트랙 (하나씩)
 
-### ▶ T-1. 로딩 통일 배포 검증 — **지금 할 것**
+### ▶ T-5. Tone V2 남은 서비스 — 풀 아웃라인 / 시각 증거 — **지금 할 것**
 
-커밋·배포 후 다른 서비스에서 같은 로딩이 뜨는지 확인한다.
-
-```powershell
-cd C:\Users\USER\.aios\projects\umsh\repo
-npm run typecheck
-npx tsx --test tests/unit/cmdg-render-guards.test.ts
-git add -A
-git commit -m "feat: 공용 로딩 통일 + 톤 v2 렌더러 + 04/06 슬롯 14개 서비스"
-vercel --prod
-```
-
-확인 경로: `/love/this-year`, `/place/home`, `/work/move` — 로딩 화면이 같은 모양이고
-서비스명만 바뀌는지.
-
-### T-2. 05 챗/목록 페이지 슬롯
-
-04·06 은 끝났고 05 가 남았다. 서비스마다 DOM이 다르므로 일괄 치환 금지.
-`slotNode()` 의 id 폴백 맵에 05 컨테이너를 추가하는 방식이 HTML 수정보다 안전하다.
-
-### T-3. 결과 화면 CTA 부재 확인
-
-라이브 `#result` 에서 `button.next-cta`/`a.next-cta` 가 **0개**였다.
-결제·전체 해석 동선이 이 화면에 없는 것인지, 스크롤 아래에 있는 것인지 확인 필요.
-
-### T-4. 코퍼스 개정 시 캐시 무효화 정책
-
-`createReportId()` = `sha256(birth + context + corpusFingerprint + ownerId)`.
-**톤 v2 코퍼스나 프롬프트를 고치면 기존 사용자 해석이 전부 재생성(LLM 재호출)된다.**
-의도된 무효화이나 운영 정책이 필요하다.
-
-### T-5. Tone V2 남은 서비스 — 풀 아웃라인 / 시각 증거
 
 ### T-6. 관리자 T18/T22 — 환불 UI 원인, 콘텐츠 버전 저장
 
@@ -131,13 +145,13 @@ vercel --prod
 
 | Claude Code 후보 | 실제 상태 |
 |---|---|
-| 1. Cowork 미커밋 마무리 (티저 in-place + cmdg 가드) | **cmdg 는 배포·검증 완료.** 로딩 통일분만 미커밋 → T-1 |
-| 2. 나머지 19개 서비스 슬롯 부착 | **04·06 은 14개 서비스 완료.** 남은 건 05 → T-2 |
+| 1. Cowork 미커밋 마무리 (티저 in-place + cmdg 가드) | ✅ 완료 (T-1) |
+| 2. 나머지 서비스 슬롯 부착 | ✅ 04·06·05 완료 (T-2) |
 | 3. Tone V2 다음 서비스 | 렌더러는 완료, 콘텐츠 생성이 남음 → T-5 |
 | 4. 관리자 T18/T22 | 미착수 → T-6 |
 | 5. 실결제 스모크 | 미착수 → T-7 |
 
-> 1·2번을 그대로 착수하면 중복 작업이 된다. T-1 → T-2 순서로 진행할 것.
+> 1·2·3(렌더러)·T-4 는 끝났다. 남은 것은 T-5 → T-6 → T-7.
 
 ---
 
@@ -148,4 +162,6 @@ vercel --prod
   couple `#detail-body`, job-choice `#detailStage`. 일괄 치환 금지.
 - **`wedding-section` 은 `<select>` 다.** 본문 타깃으로 잡으면 아무것도 렌더되지 않는다.
 - **DB 캐싱은 이미 구현되어 있다.** `cheongi_reports` + `createOrGetReportRecord()`.
-  LLM 재호출 방지는 신규 개발 불필요.
+- **코퍼스를 고쳐도 재생성은 일어나지 않는다.** 다시 뽑아야 하면 `registry.json` 의 `cacheEpoch` 를 올린다.
+  판단 기준은 `docs/admin-ops/corpus-cache-policy.md`.
+- **특화 서비스 ID 생성기는 코퍼스를 보지 않는다.** 세대를 거치는 `epochScopedIds()` 를 반드시 통과시킬 것.

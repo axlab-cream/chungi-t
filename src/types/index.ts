@@ -406,6 +406,12 @@ export interface CorpusPackSnapshot {
 export interface CorpusSnapshot {
   registryVersion: string
   fingerprint: string
+  /**
+   * 해석 캐시 세대. 이 값이 바뀔 때만 저장된 해석이 무효가 된다.
+   * 코퍼스 파일 내용 해시(fingerprint)는 감사를 위해 계속 기록하되 캐시 키로는 쓰지 않는다.
+   * 도입 이전 레코드에는 없다.
+   */
+  cacheEpoch?: string
   policy: string
   activePacks: CorpusPackSnapshot[]
 }

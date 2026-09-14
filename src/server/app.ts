@@ -20,6 +20,7 @@ import {
   checkReportStorageReadiness,
   createOrGetReportRecord,
   createReportId,
+  createReportLineageId,
   deleteReportRecord,
   getReportStorageMode,
   findReportRecord,
@@ -152,7 +153,7 @@ import {
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
 import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
-import { getCorpusSnapshot } from '../rag/corpus-registry.js'
+import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
   buildLoveMindContext,
@@ -1361,6 +1362,9 @@ async function toUiAnalysis(
     templateReport,
     analysis,
     owner,
+    // 종합 해석 ID 에는 코퍼스 지문이 들어 있다. 코퍼스를 고치면 ID 가 바뀌어 캐시를 비켜간다.
+    // 계보 키를 주면 같은 세대 안에서는 이미 만든 해석을 이어 쓴다 — LLM 재호출이 없다.
+    lineageId: createReportLineageId(birth, enrichedContext, owner?.id),
   })
 
   // Creation and GET do not generate paid text. The reader requests bounded sections
@@ -1590,6 +1594,25 @@ function isCheckoutLive(): boolean {
  * A settled order unlocks a report when it belongs to the caller, was bought for the same
  * product, and is either bound to that report or was created before any report id existed.
  */
+/**
+ * 특화 서비스의 리포트 ID 는 코퍼스를 전혀 참조하지 않는다. 그래서 코퍼스를 고쳐도
+ * 그 해석들은 영원히 갱신되지 않았다. 캐시 세대를 올렸을 때만 ID 가 바뀌도록 한 겹 씌우고,
+ * 이전 세대의 해석과 결제를 찾아갈 계보 키를 함께 돌려준다.
+ *
+ * 기준 세대(cacheEpoch = "")에서 `withCorpusEpoch` 는 아무것도 하지 않는다.
+ * 즉 이 변경을 배포해도 기존 리포트 ID 는 한 건도 바뀌지 않는다.
+ */
+function epochScopedIds(baseId: string): { reportId: string; lineageId: string } {
+  return { reportId: withCorpusEpoch(baseId), lineageId: baseId }
+}
+
+/** 같은 계보로 저장된 지난 리포트 ID들. 세대를 올리기 전 결제가 여기 묶여 있다. */
+async function reportIdsInLineage(owner: ReportOwner, lineageId: string): Promise<string[]> {
+  if (!lineageId) return []
+  const records = await listReportRecords(owner, 100).catch(() => [] as ReportRecord[])
+  return records.filter((record) => record.lineageId === lineageId).map((record) => record.reportId)
+}
+
 function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: string, reportId: string): boolean {
   if (order.ownerId !== owner.id || order.productKey !== productKey) return false
   if (order.status !== 'paid' && order.status !== 'viewed') return false
@@ -1602,10 +1625,21 @@ async function findUnlockingOrder(
   owner: ReportOwner,
   productKey: string,
   reportId: string,
+  lineageId = '',
 ): Promise<PaymentOrder | null> {
   const bound = await listPaymentOrders(owner.id, 100, reportId).catch(() => [] as PaymentOrder[])
   const exact = bound.find((order) => orderUnlocks(order, owner, productKey, reportId))
   if (exact) return exact
+
+  // 캐시 세대를 올리면 리포트 ID 가 바뀐다. 지난 ID 에 묶인 주문도 같은 사람의 같은 구매다.
+  // 이 되짚기가 없으면 코퍼스 개정 한 번에 결제 사용자가 결제 화면으로 되돌아간다.
+  for (const pastId of await reportIdsInLineage(owner, lineageId)) {
+    if (pastId === reportId) continue
+    const past = await listPaymentOrders(owner.id, 100, pastId).catch(() => [] as PaymentOrder[])
+    const match = past.find((order) => orderUnlocks(order, owner, productKey, pastId))
+    if (match) return match
+  }
+
   // Retain legacy unbound-order compatibility; current orders use the exact report ID lookup above.
   const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
   const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
@@ -1623,6 +1657,7 @@ async function resolvePaidAccess(
   owner: ReportOwner | undefined,
   productKey: string,
   reportId = '',
+  lineageId = '',
 ): Promise<PaidAccess> {
   if (isAdminOwner(owner)) return { entitled: true, reason: 'admin' }
   if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
@@ -1635,7 +1670,7 @@ async function resolvePaidAccess(
       return { entitled: true, reason: 'order', order }
     }
   }
-  const order = await findUnlockingOrder(owner, productKey, reportId)
+  const order = await findUnlockingOrder(owner, productKey, reportId, lineageId)
   return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
 }
 
@@ -1661,6 +1696,7 @@ async function ensurePaidServiceAccess(
   owner: ReportOwner,
   productKey: string,
   reportId = '',
+  lineageId = '',
 ): Promise<boolean> {
   if (isAdminOwner(owner)) return true
   if (!isCheckoutLive()) return true
@@ -1669,7 +1705,7 @@ async function ensurePaidServiceAccess(
     res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
     return false
   }
-  const access = await resolvePaidAccess(req, owner, productKey, reportId)
+  const access = await resolvePaidAccess(req, owner, productKey, reportId, lineageId)
   if (access.entitled) return true
   res.status(402).json({
     code: 'PAYMENT_REQUIRED',
@@ -2838,12 +2874,13 @@ app.post('/api/money/save/analyze', async (req, res) => {
     const input = parseMoneySaveRequest(req.body)
     const context = { ...buildMoneySaveContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createMoneySaveReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMoneySaveReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -2871,12 +2908,13 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildCoupleMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createCoupleMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -2903,12 +2941,13 @@ app.post('/api/work/job/analyze', async (req, res) => {
     const input = parseWorkJobRequest(req.body)
     const context = { ...buildWorkJobContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createWorkJobReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWorkJobReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildWorkJobReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -2935,12 +2974,13 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     const input = parseWorkQuitRequest(req.body)
     const context = { ...buildWorkQuitContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createWorkQuitReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWorkQuitReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildWorkQuitReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -2967,12 +3007,13 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     const input = parseJobChoiceRequest(req.body)
     const context = { ...buildJobChoiceContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createJobChoiceReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createJobChoiceReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildJobChoiceReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -2999,12 +3040,13 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     const input = parseCatCompatRequest(req.body)
     const context = { ...buildCatCompatContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createCatCompatReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCatCompatReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildCatCompatReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3039,14 +3081,15 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     // 명식을 함께 넘겨야 문맥에 후보일 판정·조건 수·상대 명식이 실린다.
     const context = { ...buildWeddingContext(profile.name, input, analysis), birthTimeKnown: profile.birthTimeKnown }
-    const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown))
     const teaser = buildWeddingTeaser(analysis, input, context)
     Object.assign(context, { wedding: { facts: teaser.frame, teaser: { headline: teaser.headline, lines: teaser.lines } } })
     const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3073,12 +3116,13 @@ app.post('/api/flow/newyear/analyze', async (req, res) => {
     const input = parseNewYearRequest(req.body)
     const analysis = analyzeSaju(profile.birth)
     const context = buildNewYearContext(profile.name, input, analysis, profile.birthTimeKnown)
-    const reportId = createNewYearReportId(analysis, profile.birth, owner.id, context)
+    const { reportId, lineageId } = epochScopedIds(createNewYearReportId(analysis, profile.birth, owner.id, context))
     const templateReport = buildNewYearReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'newyear_flow', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'newyear_flow', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3105,12 +3149,13 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
     const input = parseLuckyColorRequest(req.body)
     const context = { ...buildLuckyColorContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLuckyColorReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLuckyColorReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLuckyColorReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3138,12 +3183,13 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildMarryMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3171,12 +3217,13 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
     const context = { ...buildLoveMindContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveMindReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3204,12 +3251,13 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildLoveSignalContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveSignalReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveSignalReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3240,12 +3288,13 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
     const input = parseLoveThisYearRequest(body)
     const context = { ...buildLoveThisYearContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveThisYearReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveThisYearReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveThisYearReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3273,12 +3322,13 @@ app.post('/api/love/again/analyze', async (req, res) => {
     const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
     const context = { ...buildLoveAgainContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveAgainReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3305,12 +3355,13 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
     const input = parseLoveSpouseRequest(req.body)
     const context = { ...buildLoveSpouseContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveSpouseReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSpouseReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveSpouseReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3371,6 +3422,7 @@ app.post('/api/saju/analyze', async (req, res) => {
       const { record } = await createOrGetReportRecord({
         reportId: createReportId(birth, enriched, undefined, owner?.id), birth, context: enriched,
         analysis, templateReport: buildTemplateSajuReport(analysis, birth, enriched), owner,
+        lineageId: createReportLineageId(birth, enriched, owner?.id),
       })
       res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record) })
       return
@@ -3380,6 +3432,7 @@ app.post('/api/saju/analyze', async (req, res) => {
       owner,
       productKeyForContext(enriched),
       createReportId(birth, enriched, undefined, owner?.id),
+      createReportLineageId(birth, enriched, owner?.id),
     )
     res.json(await toUiAnalysis(birth, context, owner, access))
   } catch (err) {
