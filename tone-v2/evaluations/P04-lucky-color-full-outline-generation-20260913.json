@@ -1,0 +1,112 @@
+{
+  "taskId": "task-tone-v2-p04-lucky-color-full-outline-evidence",
+  "evaluatedAt": "2026-09-13T09:59:07+09:00",
+  "status": "pass",
+  "serviceKey": "lucky_color",
+  "provider": {
+    "model": "gpt-5.5-2026-04-23",
+    "actualCalls": true,
+    "syntheticOnly": true,
+    "isolatedStorage": true
+  },
+  "identity": {
+    "version": "p04-lucky-color-full-outline-20260913-1",
+    "reportId": "5a2c98670ab4d5a26c2cff6a834b",
+    "resultId": "f0966141-9f1f-4243-b3fb-6dd6d3c3e3f7"
+  },
+  "completion": {
+    "completedSections": 24,
+    "expectedSections": 24,
+    "recordStatus": "complete",
+    "firstFailure": null,
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0
+  },
+  "evidence": {
+    "recordSha256": "3c85e8becfca7a8db7d07b379d79b2b4092c39725d78621a5b56c6722d4e91a3",
+    "acceptedProseSha256": "9fe3d22bc7c18cd1019b4fd6688975e7f89051249f719790cb9ee605e3463194",
+    "acceptedProseCanonicalForm": "JSON array of ordered {id,order,hook,interpretation} objects",
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false,
+    "sourceRecord": ".cache/reading-live-20260907/records/5a2c98670ab4d5a26c2cff6a834b.json"
+  },
+  "generation": {
+    "providerAttempts": 42,
+    "acceptedSections": 24,
+    "acceptedOnCompleteStatusAttempt": 19,
+    "recoveredAfterFailedAttempt": 5,
+    "failedAttempts": 23,
+    "promptTokens": 756266,
+    "completionTokens": 49113,
+    "totalTokens": 805379
+  },
+  "replay": {
+    "passed": 24,
+    "failed": 0,
+    "interpretationCharacterCount": {
+      "minimum": 532,
+      "maximum": 768,
+      "average": 656.92
+    },
+    "paragraphCount": {
+      "minimum": 4,
+      "maximum": 5,
+      "average": 4.63
+    }
+  },
+  "sectionProseSha256": [
+    "44925c350186d91e6b3ed353c6907d9f2c052771518e2a83c4844970cc2db5dd",
+    "7bcc9a1e5e5b7363265df2acd8b017df681af4a6acbaa06f87ce582d8e0331d6",
+    "5bf68479c10ebdcbf8f6649a6f6c82481514c10ecb78eedf65d08238769098bc",
+    "4e2c32f5fd1d60a576fb98e17fd4b0bf6bf8e1f1233fbdc9938d209fe870ecdb",
+    "f3523fe916bbcb65e932f03654d6bb10c62ba51f95f0d9752a802a3884ba528a",
+    "9b66a8244d3880661bd02faf5fa6433527fe04f5afbce9e34100a8b539e1ee0d",
+    "86b64611ade1f52164e2297aeedb85a2097b5f55044d9e22c31494a720ceff2e",
+    "1439e3a6eb37f0e66bd195b7497eab568f8aa3ff6cbfdf1f9e964f185cbfbbbd",
+    "7f8c21d18c625528de7f16d7fac022d6c87045b552c0a64c8bec05030281eb3e",
+    "557db2f81acee2b36b0ccc57b5be827678a04516f61356d1cd1922ffb07a58f1",
+    "5f3a211493585b8a330507c09e83c2bfde11430ba413d4dbf3bc44b797a91ff4",
+    "f4af0593079ad3917f3db6da59d3524146257ab1c42a7e1973290857f1854080",
+    "7b718cb9ff39d78c39abb56385830ee851585b57890d4c4f08afc6cb273a3a53",
+    "d1d2e0a9fb7f18b74191ca91d8e9b6e1af60ff62fb56fffd511fefa8bce7ec1b",
+    "dffb652c21cecbcacaeb2dfe3d7ecdf3cf195c4b0125f62e90ac3501004a5313",
+    "c2b82ad32ac604f1fa3eb9bcdcbf2a733c3a9968241665ae0675fa0b672852fc",
+    "97ecf47d5e661fab116c1dc49fe64af66194cbb2c42fb1441f0c67b646b1a3f0",
+    "356d565f99c336b29842074bbee725e32ae0659284663f22db192bf0f066c119",
+    "095ec8c255b19fe92b7275a158af0322eeb570752a57f41c677170d5378e0477",
+    "62a1dce7789407b31f5b5301e89c893b3ada771c6838d67e278f115c4b9ea907",
+    "a4ca0723cc69220b8c7417eb89988560c919fef0da400cd37b6e7fa69f477ba3",
+    "574ef564779dd684f57b948e6fb95af8896524738aa4180a44aa85ddddb1eb97",
+    "c358404662fd1bab376dd95c1606cc44b9a5a5a0d3ad453a439fd5bb57a49df0",
+    "9d8fbc9dfc07d2e942601c41f5781cb571479f36ce5972b9b7a7394617749cbb"
+  ],
+  "verification": {
+    "focusedTests": {
+      "passed": 97,
+      "failed": 0
+    },
+    "fullTests": {
+      "suites": 122,
+      "passed": 894,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "independentReview": "approved_with_comments",
+    "reviewFindings": {
+      "critical": 0,
+      "major": 0,
+      "minor": 0,
+      "comments": 2,
+      "commentsSummary": [
+        "The 24 sections intentionally repeat the same calculation boundary while answering distinct outline questions.",
+        "Color, food, sleep and direction language remains symbolic and explicitly avoids outcome or efficacy guarantees."
+      ]
+    }
+  },
+  "notRun": [
+    "production deployment",
+    "production customer report mutation"
+  ]
+}

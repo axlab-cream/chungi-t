@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "job-choice-corpus-2.1.0",
+  "serviceKey": "job_choice",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/job-choice-service.json",
+      "version": "2.0.0",
+      "sha256": "60185759fccc11bf391864f74a41d84a718d072be8bd965a42d6403660f40720"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/job-choice-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "e96e35e7d96ec14741ed0282316193d5fd5c49dcb735a88198df6095e0227c09"
+    },
+    "semanticReview": "tone-v2/corpus-review/job-choice-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No provider evaluation was run for job_choice corpus 2.1.0; deterministic tests are verification evidence, not provider-output evidence.",
+  "verificationEvidence": "tone-v2/evaluations/P05-job-choice-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/job-choice-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_12_of_12",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run_for_2.1.0",
+    "focusedTests": "8/8 pass",
+    "fullTests": "871/871 pass across 120 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQ entries, 19 sitemap URLs and SEO checks",
+    "codexReview": "approved_with_comments; critical 0, major 0, minor 0"
+  }
+}

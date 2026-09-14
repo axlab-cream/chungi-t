@@ -1,0 +1,44 @@
+{
+  "task_id": "task-tone-v2-p04-repair-next-criterion-retention",
+  "result": "implementation_pass_first_item_pass_live_repair_not_run",
+  "failed": false,
+  "checks": [
+    { "name": "tdd_red", "status": "EXPECTED_FAIL", "detail": "report-persistence: 9/10 passed before implementation; new final-paragraph contract assertion failed" },
+    { "name": "tdd_green", "status": "PASS", "detail": "report-persistence: 10/10 passed after implementation" },
+    { "name": "focused_related", "status": "PASS", "detail": "48/48 tests passed across tone-v2-generation, reading-live-harness, and report-persistence" },
+    { "name": "full_regression", "status": "PASS", "detail": "682/682 tests passed across 101 suites; duration 125249.7948 ms" },
+    { "name": "compiler_task", "status": "PASS", "detail": "7/7 tests passed" },
+    { "name": "typecheck", "status": "PASS" },
+    { "name": "vercel_build", "status": "PASS" },
+    { "name": "git_diff_check", "status": "PASS", "detail": "CRLF warnings only" },
+    { "name": "provider_first_item", "status": "PASS", "detail": "fresh synthetic item 1 completed on attempt 1; deterministic replay PASS; progress 1/52; later/outside-limit calls 0" },
+    { "name": "provider_repair_path", "status": "NOT_RUN", "detail": "attempt 1 passed, so no second provider call was forced" },
+    { "name": "projectops_preflight_rag_release", "status": "PASS" },
+    { "name": "projectops_test_mode", "status": "WARN", "detail": "nested CreamAI package has no npm test script; repository-root command evidence above is authoritative" },
+    { "name": "projectops_implementation_mode", "status": "FAIL_FALSE_POSITIVE", "detail": "broad scanner matched task-tone identifiers across the dirty tree; task-scoped boundary-aware scan has 0 matches" },
+    { "name": "closure_rereview", "status": "APPROVED_WITH_COMMENTS", "detail": "Critical=0, Major=0; all three initial evidence Majors resolved; stale human-log placement Minor corrected" },
+    { "name": "projectops_review", "status": "PASS" }
+  ],
+  "commands": [
+    "npx tsx --test tests/unit/report-persistence.test.ts",
+    "npx tsx --test tests/unit/tone-v2-generation.test.ts tests/unit/reading-live-harness.test.ts tests/unit/report-persistence.test.ts",
+    "npm test",
+    "node --test tone-v2/compile.test.mjs tone-v2/task-index.test.mjs",
+    "npm run typecheck",
+    "npm run vercel-build",
+    "git diff --check",
+    "npx tsx scripts/check-pass-angle-outline-live.ts --version=p04-repair-next-criterion-retention-20260912-1 --limit=1",
+    "npx tsx scripts/check-pass-angle-outline-live.ts --version=p04-repair-next-criterion-retention-20260912-1 --limit=1 --generate --fresh"
+  ],
+  "provider_evidence": {
+    "report_id": "e82e82d0def03bd2055495c751a3",
+    "result_id": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+    "record_sha256": "3396b9ea1060ba6a75b178d5b1928fd0de10a33b36020804d2940615bc88081b",
+    "model": "gpt-5.5-2026-04-23",
+    "progress": "1/52",
+    "attempts": 1,
+    "attempted_after_failure": 0,
+    "attempted_outside_limit": 0
+  },
+  "sensitive_data_stored": false
+}

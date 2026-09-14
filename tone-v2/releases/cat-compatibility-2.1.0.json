@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "cat-compatibility-corpus-2.1.0",
+  "serviceKey": "cat_compatibility",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/cat-compatibility-service.json",
+      "version": "2.0.0",
+      "sha256": "a6d289094473fbe2fd3a523b9e2b9621fcdf19a18ae065361e1c96e1274a9d89"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/cat-compatibility-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "7e61f6de79fd4256a6159182f3fe41a449de3620ab2d96bf05a9bee2fef07455"
+    },
+    "semanticReview": "tone-v2/corpus-review/cat-compatibility-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No provider evaluation was run for cat_compatibility corpus 2.1.0; deterministic template tests are verification evidence, not provider-output evidence.",
+  "verificationEvidence": "tone-v2/evaluations/P05-cat-compatibility-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/cat-compatibility-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_38_of_38",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run_for_2.1.0",
+    "focusedTests": "8/8 pass",
+    "fullTests": "831/831 pass across 115 suites",
+    "typecheck": "pass",
+    "build": "pass: 126 FAQs, 19 sitemap URLs, SEO checks",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

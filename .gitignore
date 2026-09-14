@@ -15,6 +15,7 @@ qa-*.json
 _check_env.txt
 scripts/check-env.ps1
 .vercel
+supabase/.temp/
 사주/assets/consultation-targets/
 .env*.local
 public/

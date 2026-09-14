@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "love-this-year-corpus-2.1.0",
+  "serviceKey": "love_this_year",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/love-this-year-service.json",
+      "version": "2.0.0",
+      "sha256": "73010d687a98c201e547ffaadcb7451f35909207978f2a53cb682bc87fb92598"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/love-this-year-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "bc26deedce4069b6031d7941601975ffb4dfc8e26619ff012b9214c37dd79733"
+    },
+    "semanticReview": "tone-v2/corpus-review/love-this-year-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No provider evaluation was run for love_this_year corpus 2.1.0; deterministic tests are verification evidence, not provider-output evidence.",
+  "verificationEvidence": "tone-v2/evaluations/P05-love-this-year-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "routing": {
+    "dedicatedAnalyzeRoute": "/api/love/this-year/analyze",
+    "dedicatedRouteChanged": false,
+    "genericAnalyzeFallback": "blocked",
+    "genericRouteChanged": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/love-this-year-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_10_of_10",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run_for_2.1.0",
+    "focusedTests": "9/9 pass",
+    "fullTests": "880/880 pass across 121 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQ entries, 19 sitemap URLs and SEO checks",
+    "codexReview": "approved_with_comments; critical 0, major 0, minor 0"
+  }
+}

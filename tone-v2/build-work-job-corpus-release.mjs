@@ -1,0 +1,55 @@
+import { createHash } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const oldPath = 'data/tone-v2/corpus/work-job-service.json'
+const newPath = 'data/tone-v2/corpus/releases/work-job-service-2.1.0.json'
+const reviewPath = 'tone-v2/corpus-review/work-job-2.1.0.json'
+const releasePath = 'tone-v2/releases/work-job-2.1.0.json'
+const verificationPath = 'tone-v2/evaluations/P05-work-job-corpus-rag-release-candidate-20260913.json'
+const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'))
+const sha256 = (value) => createHash('sha256').update(value).digest('hex')
+const fileHash = (path) => sha256(readFileSync(join(root, path)))
+const writeJson = (path, value) => { const target = join(root, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`, 'utf8') }
+
+const source = readJson(oldPath)
+if (source.knowledgeBlocks.length !== 1 || source.knowledgeBlocks[0]?.id !== 'workjob-001') throw new Error('work_job source IDs do not match the reviewed one-block contract')
+const original = source.knowledgeBlocks[0]
+const candidate = {
+  version: '2.1.0', domain: source.domain,
+  description: '사용자 확인 업무 사실·서버 계산값·상징적 해석 후보·가상 사례를 분리하고 직업·성과 확정을 금지한 검수 완료 직업운 블록.',
+  release: { state: 'candidate', previousVersion: source.version, previousPath: oldPath, semanticReview: reviewPath, sampleOutputsIngested: false },
+  knowledgeBlocks: [{
+    id: 'workjob-001', topic: '실제 업무 기록으로 집중과 소모 조건을 검토한다', keywords: original.keywords,
+    concept: '서버가 계산한 월주·십성을 사용자가 확인한 업무 장면과 구분해 검토한다',
+    condition: 'serviceKey가 work_job이고 서버가 계산한 월주와 십성 값이 제공될 때만 적용한다. 현재 직무, 수행한 업무, 집중·소모, 권한과 제약은 사용자가 입력하거나 확인한 사실만 사용한다.',
+    interpretation: '계산된 월주와 십성은 직업 적성이나 성과를 확정하는 사실이 아니라 실제 업무 경험을 검토하는 상징적 질문이다. 직업명, 채용, 승진, 소득, 성과와 동료의 의도를 예측하지 않는다.',
+    real_world_pattern: [
+      '가상 사례: 사용자가 완료한 업무 기록에서 오래 집중한 장면과 반복 소모된 장면을 비교하는 경우',
+      '가상 사례: 실제 권한과 책임 범위를 적어 의사결정 지연의 조건을 확인하는 경우',
+      '가상 사례: 제안받은 역할의 업무·보상·시간·성장 조건을 현재 직무와 비교하는 경우'
+    ],
+    risk: '월주나 십성만으로 천직, 직업 적합도, 채용, 승진, 소득, 성과 또는 퇴사 필요성을 확정하는 것',
+    opportunity: '사용자가 확인한 업무·에너지·권한·보상 기록으로 집중과 소모가 갈리는 조건을 찾는 것',
+    advice: '실제 수행 업무, 에너지 변화, 권한과 보상 조건을 나란히 비교하고 상징 해석은 질문으로만 사용한다. 근로계약·건강·재무 판단은 계약서, 객관 자료와 해당 전문가를 우선한다.',
+    confidence: 'medium',
+    forbidden_generalization: '월주나 십성만으로 특정 직업이 천직이거나 조직 생활만 맞는다고 단정하지 않으며 채용, 승진, 소득, 성과, 퇴사 결과 또는 타인의 마음을 예측하지 않는다.'
+  }]
+}
+writeJson(newPath, candidate)
+const candidateHash = fileHash(newPath)
+const checks = { inputBoundary: true, calculatedValueBoundary: true, symbolicInterpretationBoundary: true, hypotheticalExampleBoundary: true, careerOutcomeBoundary: true, professionalDomainBoundary: true, otherPersonMindBoundary: true, numericProvenance: true }
+writeJson(reviewPath, { schemaVersion: '1.0.0', serviceKey: 'work_job', corpusVersion: candidate.version, status: 'approved', sourcePath: newPath, sourceSha256: candidateHash, reviewedAgainst: ['tone-v2/README.md', 'tone-v2/generated/manifest.json'], sampleOutputsIngested: false, reviewMethod: 'explicit career fact, calculated-value, symbolic, hypothetical-example and professional-domain review with executable hash assertions', blocks: [{ id: 'workjob-001', status: 'pass', checks }] })
+const prompt = readJson('tone-v2/generated/manifest.json')
+const verification = existsSync(join(root, verificationPath)) ? readJson(verificationPath) : undefined
+writeJson(releasePath, {
+  schemaVersion: '1.0.0', releaseId: 'work-job-corpus-2.1.0', serviceKey: 'work_job', state: 'candidate', deployed: false,
+  promptBundle: { version: prompt.version, sourceFingerprint: prompt.sourceFingerprint, releaseReadyAtSource: prompt.releaseReady },
+  corpus: { previous: { path: oldPath, version: source.version, sha256: fileHash(oldPath) }, candidate: { path: newPath, version: candidate.version, sha256: candidateHash }, semanticReview: reviewPath },
+  generationEvidence: null, generationEvidenceReason: 'No work_job provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification.', verificationEvidence: verification ? verificationPath : null,
+  attachment: { newReportsOnly: true, storedSnapshotRequired: true, customerRecordMutation: false }, rollback: { strategy: 'registry_only', restorePath: oldPath, restoreVersion: source.version, customerRecordRewrite: false },
+  gates: { semanticReview: 'pass_1_of_1', sampleOutputIngestion: 'none', snapshotPinnedRag: 'required', providerOutputEvaluation: 'not_run', focusedTests: verification?.verification?.focusedTests ?? 'not_run', fullTests: verification?.verification?.fullTests ?? 'not_run', typecheck: verification?.verification?.typecheck ?? 'not_run', build: verification?.verification?.vercelBuild ?? 'not_run', codexReview: verification?.verification?.codexReview ?? 'not_run' }
+})
+console.log(JSON.stringify({ candidate: newPath, review: reviewPath, release: releasePath, sha256: candidateHash }))

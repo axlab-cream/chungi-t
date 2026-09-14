@@ -37,12 +37,16 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, listLiveMembers, listLiveReports } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports } from '../admin/live-data.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
+import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { getAdminServiceVersionSnapshot } from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
+import { projectApprovedPayment } from '../payment/payment-projection.js'
+import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -52,7 +56,17 @@ import {
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
 import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
-import { createInicisPaymentFields, createPaymentOrderId, approveInicisPayment, publicInicisConfig } from '../payment/inicis.js'
+import {
+  approveInicisMobilePayment,
+  approveInicisPayment,
+  createInicisMobilePaymentFields,
+  createInicisPaymentFields,
+  createPaymentOrderId,
+  inicisResultIsSuccess,
+  publicInicisConfig,
+  type InicisCancellationContext,
+} from '../payment/inicis.js'
+import { recoverInicisPostApprovalFailure } from '../payment/inicis-recovery.js'
 import { isPaymentTestMode } from '../payment/test-mode.js'
 import {
   PURCHASE_STATE_PENDING,
@@ -139,6 +153,7 @@ import {
 } from '../body/lucky-service.js'
 import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
 import { getCorpusSnapshot } from '../rag/corpus-registry.js'
+import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
   buildLoveMindContext,
   buildLoveMindReport,
@@ -1125,7 +1140,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1824,6 +1839,60 @@ function parseAdminWindow(req: Request): { from?: string; to?: string } | 'inval
  * 구형 주문은 `reportId` 가 없다(리포트가 생기기 전에 만들어진 주문). 그것을 오류로
  * 다루지 않고 그대로 내보낸다 — 목록에서 사라지면 대사가 불가능해진다.
  */
+app.get('/api/admin/v1/search', async (req, res) => {
+  const kind = trimmedString(req.query?.kind); const exactId = trimmedString(req.query?.exactId)
+  if (!['order', 'member', 'report', 'support'].includes(kind) || exactId.length < 3 || exactId.length > 160) { res.status(422).json({ code: 'INVALID_SEARCH_INPUT', error: '검색 종류와 정확한 식별자를 확인해 주세요.' }); return }
+  const scope = kind === 'order' ? 'orders:read' : kind === 'member' ? 'members:read' : kind === 'report' ? 'reports:read' : 'support:read'
+  if (!await requireStaff(req, res, scope)) return
+  try {
+    if (kind === 'order') { const order = await getPaymentOrder(exactId); if (!order) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: toAdminPaymentOrderDto(order) }, asOf: new Date().toISOString() }); return }
+    if (kind === 'member') { const member = await findLiveMember(exactId); if (!member) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: member }, asOf: new Date().toISOString() }); return }
+    if (kind === 'report') { const report = await findLiveReport(exactId); if (!report) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: report }, asOf: new Date().toISOString() }); return }
+    const supportCase = await getSupportCase(exactId); if (!supportCase) { res.status(404).json({ code: 'SEARCH_RESULT_NOT_FOUND', error: '검색 결과가 없습니다.' }); return }; res.json({ result: { kind, value: supportCase }, asOf: new Date().toISOString() })
+  } catch { res.status(503).json({ code: 'ADMIN_SEARCH_UNAVAILABLE', error: '실제 운영 검색 저장소를 불러오지 못했습니다.' }) }
+})
+
+app.get('/api/cron/ops', async (req, res) => {
+  const secret = String(process.env.CRON_SECRET ?? '')
+  if (!secret || req.header('authorization') !== `Bearer ${secret}`) { res.status(401).json({ error: 'Unauthorized' }); return }
+  try { res.json(await runOpsWorker()) }
+  catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
+})
+app.get('/api/admin/v1/jobs', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
+})
+app.get('/api/admin/v1/services', async (req, res) => {
+  if (!await requireStaff(req, res, 'services:read')) return
+  try {
+    res.json(await getAdminServiceVersionSnapshot())
+  } catch {
+    res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
+  }
+})
+app.get('/api/admin/v1/corpus', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    const corpus = getCorpusSnapshot()
+    res.json({
+      registryVersion: corpus.registryVersion,
+      fingerprint: corpus.fingerprint,
+      policy: corpus.policy,
+      packs: corpus.activePacks,
+      asOf: new Date().toISOString(),
+    })
+  } catch {
+    res.status(503).json({ code: 'CORPUS_SNAPSHOT_FAILED', error: '현재 배포의 코퍼스 레지스트리를 불러오지 못했습니다.' })
+  }
+})
+app.get('/api/admin/v1/prompts', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json(getToneV2AdminSnapshot())
+  } catch {
+    res.status(503).json({ code: 'PROMPT_SNAPSHOT_FAILED', error: '현재 배포의 Tone V2 프롬프트 원천을 불러오지 못했습니다.' })
+  }
+})
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
   // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.
@@ -1879,6 +1948,51 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
   } catch {
     res.status(502).json({ code: 'ORDER_LOOKUP_FAILED', error: '주문 조회에 실패했습니다.' })
   }
+})
+
+/** Refund requests persist an intent only. T17 deliberately does not call a PG. */
+app.get('/api/admin/v1/refunds', async (req, res) => {
+  if (!await requireStaff(req, res, 'refunds:read')) return
+  try {
+    res.json({ refunds: await listRefundRequests(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+  } catch (error) {
+    console.error('REFUND_LIST_FAILED', error instanceof Error ? error.message : 'unknown')
+    res.status(503).json({ code: 'REFUND_LIST_FAILED', error: '환불 요청 원천을 불러오지 못했습니다.' })
+  }
+})
+
+app.get('/api/admin/v1/refunds/:refundId', async (req, res) => {
+  if (!await requireStaff(req, res, 'refunds:read')) return
+  try {
+    const refund = await getRefundRequest(trimmedString(req.params.refundId))
+    if (!refund) { res.status(404).json({ code: 'REFUND_NOT_FOUND', error: '환불 요청을 찾지 못했습니다.' }); return }
+    res.json({ refund })
+  } catch {
+    res.status(503).json({ code: 'REFUND_LOOKUP_FAILED', error: '환불 요청 원천을 불러오지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/orders/:orderId/refund-requests', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:request'); if (!membership) return
+  const orderId = trimmedString(req.params.orderId); const body = asObject(req.body)
+  const amount = Number(body.amount); const reason = trimmedString(body.reason); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!orderId || !Number.isSafeInteger(amount) || amount <= 0 || !reason || reason.length > 240 || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_REQUEST', error: '금액, 사유, 주문 revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const order = await getPaymentOrder(orderId)
+    if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.request', idempotencyKey, body: { orderId, amount, reason, expectedRevision }, target: { type: 'refund_request', id: orderId } }, async () => createRefundRequest({ orderId, amount, reason, actorEmail: membership.email, idempotencyKey, orderAmount: order.amount, orderRevision: expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
+  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_REQUEST_CREATE_FAILED'; res.status(code.includes('CONFLICT') || code.includes('EXCEEDS') ? 409 : 503).json({ code, error: '환불 요청을 저장하지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:approve'); if (!membership) return
+  const refundId = trimmedString(req.params.refundId); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const reason = trimmedString(body.reason); const idempotencyKey = adminCommandKey(req)
+  if (!refundId || !reason || reason.length > 240 || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_APPROVAL', error: '승인 사유, refund revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
+  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_APPROVE_FAILED'; res.status(code.includes('SELF') ? 403 : code.includes('CONFLICT') || code.includes('NOT_REQUESTED') ? 409 : 503).json({ code, error: '환불 요청을 승인하지 못했습니다.' }) }
 })
 
 /** Live, privacy-minimized member data. The service key never reaches the browser. */
@@ -2164,6 +2278,12 @@ app.post('/api/payment/orders', async (req, res) => {
       return
     }
 
+    const paymentMode = req.body?.paymentMode === 'mobile' ? 'mobile' : 'pc'
+    if (paymentMode === 'mobile' && !config.mobileEnabled) {
+      res.status(503).json({ code: 'MOBILE_PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
+      return
+    }
+
     const timestamp = new Date().toISOString()
     const order: PaymentOrder = {
       orderId: createPaymentOrderId(),
@@ -2188,10 +2308,14 @@ app.post('/api/payment/orders', async (req, res) => {
       })
       return
     }
-    const fields = createInicisPaymentFields({ order: saved, buyerName: profile.name })
+    const fields = paymentMode === 'mobile'
+      ? createInicisMobilePaymentFields({ order: saved, buyerName: profile.name })
+      : createInicisPaymentFields({ order: saved, buyerName: profile.name })
     res.json({
       order: clientPaymentOrder(saved),
       product: publicPaymentProduct(product),
+      paymentMode,
+      actionUrl: paymentMode === 'mobile' ? config.mobilePaymentUrl : undefined,
       fields,
     })
   } catch (err) {
@@ -2221,12 +2345,9 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(409).json({ error: '테스트 승인을 진행할 수 없는 주문 상태입니다.' })
       return
     }
-    const paid = await updatePaymentOrder(order.orderId, {
-      status: 'paid',
-      tid: `TEST-${order.orderId}`,
-      payMethod: 'TEST',
-      approvalCode: 'TEST-0000',
-      message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
+    const paid = await projectApprovedPayment(order, {
+      provider: 'test', sourceRef: `TEST-${order.orderId}`, tid: `TEST-${order.orderId}`,
+      payMethod: 'TEST', approvalCode: 'TEST-0000', message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
     })
     if (!paid) {
       res.status(500).json({ error: '테스트 주문 상태를 저장하지 못했습니다.' })
@@ -2323,12 +2444,9 @@ app.post('/api/payment/google/verify', async (req, res) => {
       await acknowledgeGooglePlayPurchase({ productId: product.key, purchaseToken })
     }
 
-    const paid = await updatePaymentOrder(order.orderId, {
-      status: 'paid',
-      tid: purchaseToken,
-      payMethod: 'GOOGLE_PLAY',
-      approvalCode: purchase.orderId,
-      message: '구글플레이 인앱 결제로 확인되었습니다.',
+    const paid = await projectApprovedPayment(order, {
+      provider: 'google_play', sourceRef: purchaseToken, tid: purchaseToken, payMethod: 'GOOGLE_PLAY',
+      approvalCode: purchase.orderId, message: '구글플레이 인앱 결제로 확인되었습니다.',
     })
     if (!paid) {
       res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
@@ -2368,8 +2486,12 @@ app.get('/api/payment/google/product/:productKey', async (req, res) => {
 })
 
 app.post('/api/payment/inicis/return', async (req, res) => {
+  let approvalEvidenceRecorded = false
+  let providerApproved = false
+  let approvalSourceRef = ''
+  let cancellation: InicisCancellationContext | undefined
   const body = req.body as Record<string, unknown>
-  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid)
+  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid || body.P_NOTI || body.P_OID)
   if (!orderId) {
     res.redirect(303, paymentOrderRedirect('', 'failed', '결제 주문번호를 확인하지 못했습니다.'))
     return
@@ -2386,9 +2508,10 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       return
     }
 
+    const mobile = Boolean(body.P_STATUS || body.P_REQ_URL || body.P_TID)
     const resultCode = trimmedString(body.resultCode || body.P_STATUS)
     const resultMessage = trimmedString(body.resultMsg || body.P_RMESG1) || '결제가 취소되었거나 승인되지 않았습니다.'
-    if (resultCode !== '0000') {
+    if (!inicisResultIsSuccess(resultCode)) {
       await updatePaymentOrder(order.orderId, { status: 'failed', message: resultMessage })
       res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey, order.reportId))
       return
@@ -2398,33 +2521,57 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (callbackMid && callbackMid !== (process.env.INICIS_MID?.trim() ?? '')) {
       throw new Error('결제 상점 정보를 확인하지 못했습니다.')
     }
-    const authToken = trimmedString(body.authToken)
-    const authUrl = trimmedString(body.authUrl)
-    if (!authToken || !authUrl) throw new Error('결제 승인 정보를 받지 못했습니다.')
+    const idcName = trimmedString(body.idc_name)
+    if (!idcName) throw new Error('결제 승인 IDC 정보를 받지 못했습니다.')
 
     await updatePaymentOrder(order.orderId, { status: 'approving' })
-    const approval = await approveInicisPayment({ order, authToken, authUrl })
+    let approval
+    if (mobile) {
+      const tid = trimmedString(body.P_TID)
+      const requestUrl = trimmedString(body.P_REQ_URL)
+      const returnedAmount = Number(trimmedString(body.P_AMT))
+      if (!tid || !requestUrl) throw new Error('모바일 결제 승인 정보를 받지 못했습니다.')
+      if (!Number.isFinite(returnedAmount) || returnedAmount !== order.amount) throw new Error('인증 결과의 결제금액이 일치하지 않습니다.')
+      cancellation = { mode: 'mobile', order, idcName, tid, requestUrl }
+      approval = await approveInicisMobilePayment({ order, tid, requestUrl, idcName })
+    } else {
+      const authToken = trimmedString(body.authToken)
+      const authUrl = trimmedString(body.authUrl)
+      const cancelUrl = trimmedString(body.netCancelUrl)
+      if (!authToken || !authUrl || !cancelUrl) throw new Error('결제 승인 또는 망취소 정보를 받지 못했습니다.')
+      cancellation = { mode: 'pc', order, idcName, authToken, cancelUrl }
+      approval = await approveInicisPayment({ order, authToken, authUrl, idcName })
+    }
+    providerApproved = true
 
-    // 승인 증거를 최종 상태보다 **먼저** 저장한다(U22).
-    //
-    // `approveInicisPayment` 가 돌아온 시점에 이미 돈이 움직였다. 그런데 그 사실을
-    // `paid` 와 함께 한 번에 쓰면, 그 쓰기가 실패할 때 승인 기록이 통째로 사라진다.
-    // 그러면 catch 가 주문을 `failed` 로 적고 **과금된 주문이 실패로 남는다.**
-    //
-    // 증거를 먼저 남기면 주문은 `approving` + `tid` 가 되고, 저장소가 그 조합을
-    // "승인됐으나 정산 기록이 끝나지 않음"으로 보아 `failed` 로 내려가지 못하게 막는다.
-    await updatePaymentOrder(order.orderId, {
-      tid: approval.tid,
-      payMethod: approval.payMethod,
-      approvalCode: approval.approvalCode,
-      message: approval.resultMessage,
+    const sourceRef = approval.tid?.trim() || approval.approvalCode?.trim()
+    if (!sourceRef) throw new Error('승인 거래 식별자를 받지 못했습니다.')
+    approvalSourceRef = sourceRef
+    const approvalSaved = await updatePaymentOrder(order.orderId, {
+      status: 'approving', tid: approval.tid, payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode, message: approval.resultMessage,
     })
-    const paid = await updatePaymentOrder(order.orderId, { status: 'paid' })
+    if (!approvalSaved) throw new Error('승인 거래 증거를 주문에 저장하지 못했습니다.')
+    // PG 승인 뒤에는 append-only 금융 증거를 먼저 남긴다. 주문 상태 투영이 실패해도
+    // event가 남아 T19 대사에서 회수할 수 있고, catch가 과금 주문을 failed로 내리지 않는다.
+    const paid = await projectApprovedPayment(order, {
+      provider: 'inicis', sourceRef, tid: approval.tid, payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode, message: approval.resultMessage,
+    }, undefined, () => { approvalEvidenceRecorded = true })
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
-    const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
-    await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    let message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
+    if (providerApproved && cancellation) {
+      const recovery = await recoverInicisPostApprovalFailure({
+        order: cancellation.order,
+        sourceRef: approvalSourceRef || (cancellation.mode === 'mobile' ? cancellation.tid : cancellation.authToken),
+        cancellation,
+      })
+      message = recovery.message
+    } else if (!approvalEvidenceRecorded) {
+      await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    }
     const failedOrder = await getPaymentOrder(orderId).catch(() => null)
     res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey, failedOrder?.reportId))
   }

@@ -1,0 +1,3 @@
+# Wedding full-outline runtime drift and evaluation note
+
+The supplied `wedding_day` source defines 20 headings across three hashed files, while the runtime had 21 renamed items. The source headings are now the executable contract and sample output remains excluded. One isolated synthetic report completed 20/20 and replayed 20/20. Observable wedding planning scenes and the valid polite action `적으세요` required narrow recognizer coverage with negative fixtures. Interrupted no-response attempts remain disclosed separately. Remote CreamWIKI sync is blocked because authenticated remote access is unavailable; this sanitized local note is ready for later sync.

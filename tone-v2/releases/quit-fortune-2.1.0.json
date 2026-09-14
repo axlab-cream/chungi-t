@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "quit-fortune-corpus-2.1.0",
+  "serviceKey": "quit_fortune",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/quit-fortune-service.json",
+      "version": "2.0.0",
+      "sha256": "8646661ffa08a3cc881a843a8290259b8501a5bdb990e1a7ab6ca7d1207e1578"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/quit-fortune-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "3caf9303913b5eddaf73fbeee60d473a716b720130128092cb59ed8ad6ea6e47"
+    },
+    "semanticReview": "tone-v2/corpus-review/quit-fortune-2.1.0.json"
+  },
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-quit-fortune-full-outline-generation-20260913.json",
+    "recordSha256": "cbed3a0089ddaa042ab38e7b42b5334c351c7063618767a01469245a15538639",
+    "acceptedProseSha256": "15cc9c4e955561057eea12e5f20e3231c212f93c271efa9f7983a0e861b6e284",
+    "containsProviderProse": false
+  },
+  "visualEvidence": {
+    "path": "tone-v2/evaluations/P04-quit-fortune-visual-render-evidence-20260913.json",
+    "sha256": "9740bc0222bc7083c5fbf61a107ca7dd5e1e16682a78361ece05776f111e2925",
+    "desktop": "pass_48_of_48",
+    "mobile": "pass_48_of_48",
+    "print": "pass_all_48_sections",
+    "containsProviderProse": false
+  },
+  "verificationEvidence": "tone-v2/evaluations/P05-quit-fortune-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/quit-fortune-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_12_of_12",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_727_of_727_102_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_critical_0_major_0_minor_0"
+  }
+}

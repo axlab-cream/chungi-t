@@ -97,6 +97,14 @@ export function countLiveMembers(): Promise<number> {
   return countRows('cheongi_user_profiles', 'user_id')
 }
 
+export async function findLiveMember(memberId: string): Promise<AdminMemberSummary | null> {
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('user_id', `eq.${memberId}`); url.searchParams.set('select', 'user_id,name,created_at,updated_at'); url.searchParams.set('limit', '1')
+  const response = await fetch(url, { headers: serviceHeaders() }); if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
+  const row = (await response.json() as RestRow[])[0]
+  return row ? { memberId: maskIdentifier(row.user_id), name: maskName(row.name), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
+}
+
 export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]> {
   const url = new URL(tableUrl('cheongi_reports'))
   url.searchParams.set('select', 'report_id,user_email,admin_status,payload,created_at,updated_at')
@@ -116,4 +124,12 @@ export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]
 
 export function countLiveReports(): Promise<number> {
   return countRows('cheongi_reports', 'report_id')
+}
+
+export async function findLiveReport(reportId: string): Promise<AdminReportSummary | null> {
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('report_id', `eq.${reportId}`); url.searchParams.set('select', 'report_id,user_email,admin_status,payload,created_at,updated_at'); url.searchParams.set('limit', '1')
+  const response = await fetch(url, { headers: serviceHeaders() }); if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
+  const row = (await response.json() as RestRow[])[0]
+  return row ? { reportId: maskIdentifier(row.report_id), member: maskEmail(row.user_email), serviceKey: reportServiceKey(row.payload), status: clipped(row.admin_status, 'new'), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
 }

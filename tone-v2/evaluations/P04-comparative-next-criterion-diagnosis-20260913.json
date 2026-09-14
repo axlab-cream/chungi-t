@@ -1,0 +1,43 @@
+{
+  "taskId": "task-tone-v2-p04-comparative-next-criterion-diagnosis",
+  "date": "2026-09-13",
+  "service": "pass_angle",
+  "providerCalls": 0,
+  "productCodeChanged": false,
+  "record": {
+    "reportId": "e82e82d0def03bd2055495c751a3",
+    "resultId": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+    "rawFileSha256BeforeAndAfter": "90bbc4551d935a5c0b258039347f4b5bba099762f6915534c73008c6da836101",
+    "sectionId": "pass-angle-support-vs-drag",
+    "attemptId": "d10d7ba3-821e-4bfc-b588-f9ee3a1b2171",
+    "attemptRawSha256": "e6b80e10c7ff70856ccece467d4d7f64db1743ca73be307a9fcc35b4f884d7e4",
+    "status": "failed",
+    "attempts": 2
+  },
+  "storedAttemptReview": {
+    "nextCriterion": false,
+    "otherDensityElementsPassed": true,
+    "semanticTemporalMarker": true,
+    "semanticComparisonTarget": true,
+    "semanticObservableOutcome": true,
+    "semanticComparisonAction": true,
+    "semanticDecisionBranches": true,
+    "rawProseCopiedToEvidence": false
+  },
+  "controlledVariants": [
+    { "name": "stored-exact", "recognized": false },
+    { "name": "standard-action-only", "recognized": false },
+    { "name": "object-particle-only", "recognized": false },
+    { "name": "standard-action-and-object-particle", "recognized": true },
+    { "name": "targetless", "recognized": false },
+    { "name": "vague", "recognized": false },
+    { "name": "negated", "recognized": false }
+  ],
+  "rootCause": {
+    "classification": "RECOGNIZER_FALSE_NEGATIVE",
+    "actionMorphologyGap": "comparison action with try/imperative suffix is not recognized",
+    "targetClauseGap": "subject-marked observable outcome clause is not recognized as a concrete comparison target",
+    "proof": "changing either condition alone remains false; changing both makes the same criterion true"
+  },
+  "followUpTask": "task-tone-v2-p04-comparative-next-criterion-recognition"
+}

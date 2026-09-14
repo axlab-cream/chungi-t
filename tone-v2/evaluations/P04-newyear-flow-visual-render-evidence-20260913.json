@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-newyear-flow-visual-render-evidence",
+  "evaluatedAt": "2026-09-13T12:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "newyear_flow",
+  "source": {
+    "generationEvidencePath": "tone-v2/evaluations/P04-newyear-flow-full-outline-generation-20260913.json",
+    "reportId": "55fd9e16-7dc6-49e7-a7f6-515ac8cca3f8",
+    "reportRecordSha256": "3c5cac0937482f03fcbc07a9237bece015f4ffba662e8973206edf40976575c8",
+    "acceptedProseSha256": "ceaf531bb36caa7cbaa25e3c2346252eaa98283ae5316574e0fc39646df51796",
+    "recordStatus": "complete",
+    "expectedSections": 36,
+    "completedSections": 36
+  },
+  "render": {
+    "contents": { "groups": 10, "items": 36, "passed": true },
+    "desktop": { "sectionsChecked": 36, "readerWidthPx": 430, "paragraphCountRange": [6, 9], "overflowFailures": 0, "contentFailures": 0, "passed": true },
+    "mobile": { "sectionsChecked": 36, "viewportWidthPx": 390, "contentWidthPx": 375, "paragraphCountRange": [6, 9], "overflowFailures": 0, "contentFailures": 0, "passed": true }
+  },
+  "navigation": {
+    "steps": [
+      "all 36 disclosure summaries open by click",
+      "direct section 10-2 opens only the requested final section",
+      "unique report link retains the immutable report identifier",
+      "keyboard Enter toggles the focused summary"
+    ],
+    "passedSteps": 4,
+    "failedSteps": 0,
+    "passed": true
+  },
+  "accessibility": { "visibleControls": 52, "minimumControlWidthPx": 27.484, "minimumControlHeightPx": 27.75, "controlsBelow24Px": 0, "summaryMinimumHeightPx": 63.25, "focusOutlinePx": 2, "passed": true },
+  "print": { "documentsChecked": 1, "sectionsChecked": 36, "pages": 36, "blankPages": 0, "extractedCharacters": 34579, "missingSectionTitles": 0, "oneLineAnswerCount": 36, "actionCount": 36, "interactiveFlagControlsPresent": 0, "homeNavigationPresent": 0, "pageSizePoints": [612, 792], "representativePagesReviewed": 3, "passed": true },
+  "visualReview": {
+    "acceptedScreenshots": 2,
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "fixedFindings": [
+      "Expanded all closed disclosure bodies during beforeprint and restored their prior state after printing.",
+      "Removed the fixed report flag and shared navigation from print output.",
+      "Raised the unique report address link to the minimum interactive target height."
+    ],
+    "passed": true
+  },
+  "localArtifacts": {
+    "ignoredLocalOnly": true,
+    "directory": ".cache/newyear-visual-evidence",
+    "acceptedScreenshotSha256": {
+      "readerDesktop": "fea3a02515492fb0a2557ccb101900b7578f17de1334bb84a90114a19a9d5a35",
+      "mobileFrame390": "add41fd3462791162c25063b682f2f197194689ae7bde8bf11c097dde934a4fd"
+    },
+    "printPdfSha256": "84c6d084dcc121a644243907bf92e513ce49bbe1994591536e3fe1c71ab90bdb"
+  },
+  "privacy": { "containsProviderProse": false, "containsSecrets": false, "containsPersonalData": false },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "wedding_day",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/wedding-day-service-2.1.0.json",
+  "sourceSha256": "bf49f10f68abf3aef33040de73ebc8297339dcd47e2f80a054747ef4d82044f4",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/wedding_day.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit candidate date, calculation, partner privacy, unknown birth time, future event, family, contract, financial, health, numeric and outcome review",
+  "blocks": [
+    {
+      "id": "wedding-001",
+      "status": "pass",
+      "checks": {
+        "candidateDateBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "unknownPartnerBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipAndFamilyBoundary": true,
+        "contractAndFinancialBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "wedding-002",
+      "status": "pass",
+      "checks": {
+        "candidateDateBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "unknownPartnerBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipAndFamilyBoundary": true,
+        "contractAndFinancialBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "wedding-003",
+      "status": "pass",
+      "checks": {
+        "candidateDateBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "unknownPartnerBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipAndFamilyBoundary": true,
+        "contractAndFinancialBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "wedding-004",
+      "status": "pass",
+      "checks": {
+        "candidateDateBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "unknownPartnerBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipAndFamilyBoundary": true,
+        "contractAndFinancialBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "wedding-005",
+      "status": "pass",
+      "checks": {
+        "candidateDateBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "unknownPartnerBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipAndFamilyBoundary": true,
+        "contractAndFinancialBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "wedding-006",
+      "status": "pass",
+      "checks": {
+        "candidateDateBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "partnerPrivacyBoundary": true,
+        "unknownPartnerBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipAndFamilyBoundary": true,
+        "contractAndFinancialBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    }
+  ]
+}

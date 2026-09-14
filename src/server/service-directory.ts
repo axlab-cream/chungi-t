@@ -19,6 +19,10 @@ export interface ServiceDirectoryEntry {
   amount: number
 }
 
+export interface AdminServiceDirectoryEntry extends ServiceDirectoryEntry {
+  discoveryVisible: boolean
+}
+
 interface DirectorySeed {
   key: PaymentProductKey
   tagline: string
@@ -71,6 +75,27 @@ export function listServiceDirectory(): ServiceDirectoryEntry[] {
     })
   }
   return entries
+}
+
+/**
+ * The complete live catalog for operations. Hidden entries are deliberately included so an
+ * operator can distinguish "not in discovery" from a missing or deleted service.
+ */
+export function listAdminServiceDirectory(): AdminServiceDirectoryEntry[] {
+  return SEEDS.flatMap((seed) => {
+    const product = getPaymentProduct(seed.key)
+    if (!product) return []
+    return [{
+      key: seed.key,
+      title: product.title,
+      tagline: seed.tagline,
+      category: seed.category,
+      href: seed.href,
+      image: seed.image,
+      amount: product.amount,
+      discoveryVisible: seed.hidden !== true,
+    }]
+  })
 }
 
 /** Where a saved reading should reopen, looked up by the report's own serviceKey. */

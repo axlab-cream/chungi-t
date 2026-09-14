@@ -1,0 +1,43 @@
+{
+  "taskId": "task-tone-v2-p04-pass-angle-full-outline-resume-from-item4",
+  "date": "2026-09-13",
+  "service": "pass_angle",
+  "version": "p04-repair-next-criterion-retention-20260912-1",
+  "syntheticOnly": true,
+  "acceptance": "PASS_52_OF_52_WITH_FIX_RECOVER_RESUME",
+  "reportId": "e82e82d0def03bd2055495c751a3",
+  "resultId": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+  "before": { "status": "generating", "progress": { "complete": 3, "total": 52 }, "recordSha256": "11c26d3cf1ef31eaf895efbdd8c289418405ad7a5a27b75e24e6e194c0211d13" },
+  "after": { "status": "complete", "progress": { "complete": 52, "total": 52 }, "recordSha256": "b2d69a3f3fe50df283a0ccc891386691698228718b04cd4607e754129f25d13b", "productionReplay": { "passed": 52, "failed": 0 } },
+  "immutablePredecessors": {
+    "passed": true,
+    "sections": [
+      { "order": 1, "id": "pass-angle-verdict", "proseSha256": "79ce08128894ba6191db900fd6252b7110e0d4abd34da992287b1086af9a0e51" },
+      { "order": 2, "id": "pass-angle-current-window", "proseSha256": "822496f7cd797880458c8dc7dbc653bfd5574450102608bed10236fce15a98ce" },
+      { "order": 3, "id": "pass-angle-support-vs-drag", "proseSha256": "2eb28b91cf23e7567efab674f95d0cd030530bf01bc7391646872397ed1ea" }
+    ]
+  },
+  "run": {
+    "firstAttemptedOrder": 4,
+    "lastCompletedOrder": 52,
+    "providerCalls": 103,
+    "attempts": { "complete": 34, "failed": 69 },
+    "usage": { "promptTokens": 2188211, "completionTokens": 119447, "totalTokens": 2307658 },
+    "attemptedAfterUnresolvedFailure": 0,
+    "recoveredRecognizerFalseNegatives": [7, 8, 15, 18, 19, 21, 26, 28, 30, 31, 40, 41, 43, 44, 51],
+    "regeneratedOutputDefects": [25, 27, 33, 34]
+  },
+  "verification": {
+    "focused": { "passed": 68, "failed": 0 },
+    "fullRepository": { "passed": 705, "failed": 0, "suites": 101 },
+    "typecheck": "PASS",
+    "vercelBuild": "PASS",
+    "liveReplay": "PASS_52_OF_52",
+    "finalIndependentReview": { "round": 9, "verdict": "Approved", "critical": 0, "major": 0, "minor": 0 },
+    "temporalOriginRegression": "PASS_RED_GREEN"
+  },
+  "rawProseStoredInEvidence": false,
+  "secretStoredInEvidence": false,
+  "productionChanged": false,
+  "commitPushDeploy": "NOT_RUN"
+}

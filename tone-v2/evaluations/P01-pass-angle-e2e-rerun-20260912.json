@@ -1,0 +1,92 @@
+{
+  "task_id": "task-tone-v2-p01-pass-angle-e2e-rerun",
+  "evaluated_at": "2026-09-12",
+  "service": "pass_angle",
+  "synthetic_only": true,
+  "version_key": "p01-pass-angle-scene-rerun-20260912-1",
+  "pre_existing_record": false,
+  "report_id": "d1d5fefcbf022006aec2aecf28f9",
+  "result_id": "a1fce3c0-40a4-44d0-b1d1-38354c0960dc",
+  "record_path": ".cache/reading-live-20260907/records/d1d5fefcbf022006aec2aecf28f9.json",
+  "record_sha256": "1423900f1e5e74739e3dec8ba8cac58c3c1f826e7560ef12c3e949bfd1687a24",
+  "provider": "OpenAI through the existing application adapter",
+  "persisted_status": "failed",
+  "persisted_section_status": "failed",
+  "persisted_public_copy": {
+    "hook_length": 0,
+    "interpretation_length": 0,
+    "reason": "Rejected provider prose is retained in attempts but is not exposed as completed report copy."
+  },
+  "attempts": [
+    {
+      "id": "f6a8708d-dfb2-4af5-8e74-c4b04ee11096",
+      "status": "failed",
+      "resolved_model": "gpt-5.5-2026-04-23",
+      "finish_reason": "stop",
+      "usage": { "promptTokens": 18909, "completionTokens": 2764, "totalTokens": 21673 },
+      "error_summary": [
+        "각 의미 단락을 2~4개 완성 문장으로 묶는 문단 규칙 실패",
+        "nextCriterion 실패"
+      ],
+      "raw_sha256": "2658bd312ac4972212181d84b4e816e8a557dc37068bce6c84715908643ff3d6",
+      "prose_sha256": "967404cbbd8b8373be22647503244c585e4e46a5aa2fa0df1a9a97cb51333f4b",
+      "density": {
+        "passed": false,
+        "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": false },
+        "issues": ["유지·비교·대화·행동 중 하나를 다음 판단 기준으로 제시하세요."]
+      },
+      "first_three_visible_sentences": [
+        "새 공부는 빼고 평소 풀이 순서 유지각이야.",
+        "연습 점수가 목표 수준이고 큰 불안이 없으니, 객관식 당일 변수는 실력 추가가 아니라 루틴 흔들림이야.",
+        "신금(辛金, 다듬는 쇠의 상징)은 벌리는 공부보다 틀린 결을 깎는 쪽으로 읽어."
+      ],
+      "tail_evidence": [
+        "시험장 동선, 준비물, 모르는 문제 넘길 기준만 적고 그대로 해봐."
+      ]
+    },
+    {
+      "id": "5f438f74-beb8-4bb1-9089-b7e656145a1d",
+      "status": "failed",
+      "resolved_model": "gpt-5.5-2026-04-23",
+      "finish_reason": "stop",
+      "usage": { "promptTokens": 19095, "completionTokens": 696, "totalTokens": 19791 },
+      "error_summary": ["nextCriterion 실패"],
+      "raw_sha256": "4c6c42c0aa18c0d0dd9e8ed80b21dc293089db03f12630dea1aa97f1aa0323e0",
+      "prose_sha256": "127e800f58a3d39db093ebe4cdc611d7201255c4d1dd73ea47486ce1a823ab16",
+      "density": {
+        "passed": false,
+        "elements": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": false },
+        "issues": ["유지·비교·대화·행동 중 하나를 다음 판단 기준으로 제시하세요."]
+      },
+      "first_three_visible_sentences": [
+        "새 자료보다 평소 루틴 유지가 먼저야.",
+        "입력된 시험일은 이미 지난 날짜야.",
+        "그래서 다음 실전의 당일 루틴으로 다시 볼게."
+      ],
+      "tail_evidence": [
+        "준비물, 이동 경로, 첫 과목 시작 전 볼 표시 문제만 기록해.",
+        "새 실모는 버려봐."
+      ]
+    }
+  ],
+  "acceptance": {
+    "new_record": "PASS",
+    "real_provider_called": "PASS",
+    "persisted_complete": "FAIL",
+    "nonempty_public_hook_and_body": "FAIL",
+    "all_deterministic_gates": "FAIL",
+    "overall": "FAIL"
+  },
+  "interpretation": "The scene repair held on both fresh responses. Attempt 2 failed only nextCriterion; attempt 1 also failed the 2-4-sentence paragraph rule. Both responses contain target/action-like closing instructions. This record is immutable evidence for a separate narrow nextCriterion task, while the attempt-1 paragraph issue remains recorded; it is not evidence to relax either gate in this run.",
+  "scope": {
+    "runtime_changed": false,
+    "model_or_retry_changed": false,
+    "production_customer_data_used": false,
+    "database_auth_payment_admin_mutated": false,
+    "commit_push_deploy_production": false
+  },
+  "limitations": [
+    "One synthetic pass_angle section does not approve all 20 services or release readiness.",
+    "Full provider prose remains only in the ignored isolated record; this tracked artifact stores hashes and short diagnostic excerpts."
+  ]
+}

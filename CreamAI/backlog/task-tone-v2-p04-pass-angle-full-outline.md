@@ -1,0 +1,22 @@
+# task-tone-v2-p04-pass-angle-full-outline
+
+- status: DONE
+- active: false
+- user outcome: `pass_angle`의 제공된 52개 항목이 정확한 ID·제목·그룹·순서로 실제 리포트 생성 경로에 연결되고, 합성 입력의 실제 provider 실행이 앞 항목부터 순차 진행된다.
+- source: `tone-v2/EXECUTION-PLAN.md` P04; `tone-v2/source/산출물-실전/pass_angle/part01.md`~`part05.md`의 명시적 `긴 목차 규칙 — 이 서비스는 52항목입니다` 블록.
+- source boundary: 예시로 생성된 본문은 목차나 코퍼스로 사용하지 않는다. 52개 소제목 블록만 사용자 제공 목차 계약으로 구조화한다.
+- acceptance:
+  - `buildTemplateSajuReport(..., { serviceKey: 'pass_angle' })`가 52개 고유 항목을 제공된 제목·그룹·순서 그대로 반환한다.
+  - 모든 항목에 전용 검색 질의와 명시적 현실 조건 lens가 있으며 다른 항목/템플릿으로 대체하지 않는다.
+  - 저장 progress total은 52이고 기존 순차 lease/stop-on-failure 계약을 유지한다.
+  - 고유 version의 격리 합성 레코드에서 실제 provider를 순서대로 실행한다. 전 항목 완료 시 `complete`; 실패 시 해당 항목과 시도 증거를 보존하고 이후 항목은 `pending`이며 호출하지 않는다.
+  - saved replay가 production과 동일한 전체 결정적 review를 통과한 완료 항목만 성공으로 센다.
+- out of scope: 예시 본문 재사용, 운영 고객 데이터, 기존 완료 레코드 변경, DB/auth/payment/admin, commit, push, deploy, Production, 나머지 19개 서비스.
+- credential: 사용자가 기존 키 재사용과 ignored `.env.local` 영구 설정을 승인했다. 값은 로그·문서·추적 파일에 남기지 않는다.
+- KMS routes: 00 Context, 04 Workflows, 11 Ops, 12 QA/Eval, 14 Memory/KMS.
+- plan: `docs/superpowers/plans/2026-09-12-tone-v2-pass-angle-full-outline.md`.
+- skill status: OpenAI credential gate PASS. 프로젝트가 참조한 `.claude/skills/*` 파일은 이 포크에 없어 로컬 PRD/TDD/검증 절차로 대체하고 `NOT_RUN(degraded)`로 기록한다.
+- result: implementation PASS / business acceptance FAIL. 정확한 52항목 구조·순서·progress와 최초 실패 중단은 검증됐다. 실제 provider는 첫 항목에서 두 시도 모두 결정적 품질 검수에 실패했고 이후 호출은 0건이다.
+- verification: focused 53/53, full 681/681 across 101 suites, compiler/task 7/7, typecheck, Vercel build, diff check PASS. provider run은 0/52 complete로 FAIL.
+- review: closure re-review Approved, Critical/Major/Minor 0. 최초 Major 1건(52항목 전체 본문 누적)을 최근 4개 원문 + 전 항목 축약 요약 상한으로 수정하고 회귀 테스트를 추가했다. 고객 노출 7항목 정적 자료는 P06 전 수정할 추적 항목이다.
+- next task: `task-tone-v2-p04-pass-angle-first-section-quality` (승인 전 PLANNED).

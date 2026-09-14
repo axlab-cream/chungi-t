@@ -1,0 +1,41 @@
+{
+  "taskId": "task-tone-v2-p04-quit-fortune-full-outline",
+  "date": "2026-09-13",
+  "status": "pass",
+  "serviceKey": "quit_fortune",
+  "source": {
+    "parts": 5,
+    "groupItemCounts": [10, 10, 9, 9, 10],
+    "totalItems": 48,
+    "hashesVerified": true,
+    "titleOrderVerified": true,
+    "sampleProseUsed": false
+  },
+  "runtime": {
+    "groups": 10,
+    "items": 48,
+    "uniqueIds": 48,
+    "directReadings": 48,
+    "uniqueScenes": 48
+  },
+  "persistence": {
+    "freshSections": 48,
+    "pendingSections": 48,
+    "emptyCustomerBodies": 48,
+    "immutableGenerationIds": 48
+  },
+  "verification": {
+    "focused": { "passed": 9, "failed": 0 },
+    "full": { "passed": 708, "failed": 0, "suites": 101 },
+    "vercelBuild": "pass",
+    "typecheck": "pass",
+    "review": "approved_with_comments",
+    "critical": 0,
+    "major": 0,
+    "minorAddressed": 1
+  },
+  "notRun": ["provider_generation", "production", "deployment", "customer_data", "commit", "push"],
+  "containsProviderProse": false,
+  "containsSecrets": false,
+  "containsPersonalData": false
+}

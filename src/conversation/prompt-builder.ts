@@ -1,27 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { ConversationTurn, LlmMessage, RagChunk } from '../types/index.js'
 import { getIntentPromptHint } from '../rag/retriever.js'
 import { loadServiceSystemPrompt } from '../prompt/service-system.js'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
-/**
- * Prefer per-service pack (common + service block).
- * Falls back to legacy system-prompt.md only when common-system.md is missing
- * (handled inside loadServiceSystemPrompt / loadCommonSystemPrompt).
- */
+/** Missing tone bundles fail explicitly instead of selecting a legacy persona. */
 export function loadSystemPrompt(serviceKey?: string | null): string {
-  try {
-    return loadServiceSystemPrompt(serviceKey)
-  } catch {
-    const legacy = join(__dirname, '../../prompts/system-prompt.md')
-    if (existsSync(legacy)) {
-      return readFileSync(legacy, 'utf-8')
-    }
-    throw new Error('System prompt files missing under prompts/')
-  }
+  return loadServiceSystemPrompt(serviceKey)
 }
 
 export function buildConversationMessages(params: {

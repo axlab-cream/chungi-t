@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-quit-fortune-visual-render-evidence",
+  "evaluatedAt": "2026-09-13T21:45:00+09:00",
+  "status": "pass",
+  "serviceKey": "quit_fortune",
+  "source": {
+    "generationEvidencePath": "tone-v2/evaluations/P04-quit-fortune-full-outline-generation-20260913.json",
+    "reportId": "42e1185b6d6fb84dc4a98f830e2d",
+    "resultId": "a3915c22-00c5-4711-8867-ab700050cc09",
+    "reportRecordSha256": "cbed3a0089ddaa042ab38e7b42b5334c351c7063618767a01469245a15538639",
+    "acceptedProseSha256": "15cc9c4e955561057eea12e5f20e3231c212f93c271efa9f7983a0e861b6e284",
+    "recordStatus": "complete",
+    "expectedSections": 48,
+    "completedSections": 48
+  },
+  "render": {
+    "contents": { "groups": 10, "items": 48, "passed": true },
+    "desktop": { "sectionsChecked": 48, "readerWidthPx": 430, "paragraphCountRange": [5, 7], "overflowFailures": 0, "contentFailures": 0, "fixedFlagOutsideReader": 1, "passed": true },
+    "mobile": { "sectionsChecked": 48, "viewportWidthPx": 390, "contentWidthPx": 375, "paragraphCountRange": [5, 7], "overflowFailures": 0, "contentFailures": 0, "passed": true }
+  },
+  "navigation": {
+    "steps": [
+      "all 48 disclosure summaries open by click",
+      "direct section action-plan-5 opens the requested section in the 390px frame",
+      "unique report link restores the immutable 48-section result",
+      "keyboard Enter toggles the focused summary"
+    ],
+    "passedSteps": 4,
+    "failedSteps": 0,
+    "passed": true
+  },
+  "accessibility": { "visibleControls": 64, "minimumControlWidthPx": 38, "minimumControlHeightPx": 27.75, "controlsBelow24Px": 0, "summaryMinimumHeightPx": 63.25, "focusOutlinePx": 2, "passed": true },
+  "print": { "documentsChecked": 1, "sectionsChecked": 48, "pages": 48, "blankPages": 0, "extractedCharacters": 45835, "missingSectionTitles": 0, "oneLineAnswerCount": 48, "interactiveFlagControlsPresent": 0, "homeNavigationPresent": 0, "pageSizePoints": [612, 792], "representativePagesReviewed": 3, "passed": true },
+  "visualReview": {
+    "acceptedScreenshots": 2,
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "fixedFindings": [],
+    "passed": true
+  },
+  "localArtifacts": {
+    "ignoredLocalOnly": true,
+    "directory": ".cache/quit-fortune-visual-evidence",
+    "acceptedScreenshotSha256": {
+      "readerDesktop": "367aa06239204ab353ecb3ea77688d5077110c7dbda783428a7e2c4efb3a3c54",
+      "mobileFrame390": "1341c56bd280fe384fc69fa30e554831be3b57e5a6dfc300c64220a8a4ac6a43"
+    },
+    "printPdfSha256": "babd0406881a53b75ec22cd8c8096eee4837d2d483e486561c7f8f9b9b2b56b4"
+  },
+  "privacy": { "containsProviderProse": false, "containsSecrets": false, "containsPersonalData": false },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

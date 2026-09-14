@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { CorpusSnapshot } from '../types/index.js'
+import type { CorpusPackSnapshot, CorpusSnapshot } from '../types/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
@@ -15,6 +15,7 @@ export interface CorpusPack {
   path: string
   kind: CorpusPackKind
   domain: string
+  serviceKey?: string
   status: CorpusPackStatus
   role: string
   version: string
@@ -32,25 +33,35 @@ let cachedSnapshot: CorpusSnapshot | null = null
 
 export function getCorpusRegistry(): CorpusRegistry {
   if (cachedRegistry) return cachedRegistry
-  const raw = readFileSync(join(DATA_ROOT, 'corpus/registry.json'), 'utf-8')
+  const raw = readFileSync(join(DATA_ROOT, 'tone-v2/corpus/registry.json'), 'utf-8')
   cachedRegistry = JSON.parse(raw) as CorpusRegistry
   return cachedRegistry
 }
 
-export function getActiveCorpusPacks(kind?: CorpusPackKind): CorpusPack[] {
-  return getCorpusRegistry().packs.filter((pack) => (
+type CorpusPackReference = CorpusPack | CorpusPackSnapshot
+
+export function getActiveCorpusPacks(kind?: CorpusPackKind, snapshot?: CorpusSnapshot): CorpusPackReference[] {
+  const packs = snapshot?.activePacks ?? getCorpusRegistry().packs
+  return packs.filter((pack) => (
     pack.status === 'active' && (!kind || pack.kind === kind)
   ))
 }
 
-export function getChunkCorpusFiles(): string[] {
-  return getActiveCorpusPacks('chunks').map((pack) => pack.path)
+export function getChunkCorpusFiles(snapshot?: CorpusSnapshot): string[] {
+  return getActiveCorpusPacks('chunks', snapshot).map((pack) => pack.path)
 }
 
-export function getCorpusDomainBoost(domain: string | undefined): number {
+export function getCorpusDomainBoost(domain: string | undefined, snapshot?: CorpusSnapshot): number {
   if (!domain) return 0
-  const pack = getActiveCorpusPacks().find((item) => item.domain === domain)
+  const pack = getActiveCorpusPacks(undefined, snapshot).find((item) => item.domain === domain)
   return pack?.retrievalBoost ?? 0
+}
+
+export function getServiceCorpusDomain(serviceKey: string | undefined, snapshot?: CorpusSnapshot): string | undefined {
+  if (!serviceKey) return undefined
+  const matches = getActiveCorpusPacks('chunks', snapshot).filter((pack) => pack.serviceKey === serviceKey)
+  if (matches.length > 1) throw new Error(`Duplicate corpus packs for service: ${serviceKey}`)
+  return matches[0]?.domain
 }
 
 function hashText(value: string): string {
@@ -72,6 +83,7 @@ export function getCorpusSnapshot(): CorpusSnapshot {
     registryVersion: registry.version,
     activePacks: activePacks.map((pack) => ({
       id: pack.id,
+      serviceKey: pack.serviceKey,
       version: pack.version,
       contentHash: pack.contentHash,
       retrievalBoost: pack.retrievalBoost ?? 0,

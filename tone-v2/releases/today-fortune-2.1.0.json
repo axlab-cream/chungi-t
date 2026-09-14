@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "today-fortune-corpus-2.1.0",
+  "serviceKey": "today_fortune",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/today-fortune-service.json",
+      "version": "2.0.0",
+      "sha256": "2857afe866fe7ab1ed0feb7015b08ac144564e753cfec9eda3a70e2f1b3317fa"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/today-fortune-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "5558bd7c98a2fd2867b97a9615de544743a1179b59f0fc5178dde80be7693c03"
+    },
+    "semanticReview": "tone-v2/corpus-review/today-fortune-2.1.0.json"
+  },
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-today-fortune-full-outline-evidence-20260913.json",
+    "recordSha256": "e66fe11784b3f159c215a14e19028fed484f6ba3f9f2529865ed53d18e8b759b",
+    "acceptedProseSha256": "c7526a3ee1054cbdec18c00c762664c26d10adbfc09145d17109431ab121e1e4",
+    "containsProviderProse": false
+  },
+  "verificationEvidence": "tone-v2/evaluations/P05-today-fortune-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "deterministicDailyRendererChanged": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/today-fortune-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_1_of_1",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_applicable_deterministic_service",
+    "deterministicDailyRenderer": "reviewed_and_updated",
+    "fullOutlineOutputReview": "pass_7_of_7",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_759_of_759_across_106_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  }
+}

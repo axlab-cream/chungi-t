@@ -47,3 +47,11 @@ before implementation. The required local registries are:
 ## Knowledge Loop
 
 If CreamWIKI/KMS is configured, search prior success and failure notes before implementation. Save verified reusable knowledge after verification.
+
+## 사용자 공통 워크플로우 (2026-09-12)
+
+`C:/Users/user/.codex/workflows/aios-small-slice-workflow.md`를 적용한다.
+사용자가 연속 실행을 승인한 현재 작업은 단일 이슈를 검증·리뷰·기록한 뒤 다음 승인된 이슈로 이어간다.
+위의 Task별 승인 대기는 새로운 제품 결정이나 승인 범위 밖 작업이 필요할 때 적용한다.
+현재 결제 트랙은 보류한다. 운영 화면에는 실제 데이터만 표시한다.
+T22의 스키마 생성은 중간 산출물이며 서버/API/사용자 흐름 검증 전 완료로 표시하지 않는다.

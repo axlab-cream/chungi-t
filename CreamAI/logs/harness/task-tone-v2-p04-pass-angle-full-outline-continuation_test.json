@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-full-outline-continuation",
+  "mode": "test",
+  "timestamp": "2026-09-12T21:24:11.3904161+09:00",
+  "checks": [
+    {
+      "name": "npm test script",
+      "status": "WARN",
+      "detail": "package.json has no test script"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

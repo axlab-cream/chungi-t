@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "love-spouse-corpus-2.1.0",
+  "serviceKey": "love_spouse",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/love-spouse-service.json",
+      "version": "2.0.0",
+      "sha256": "eb2571fa2d7f5908b20d1dd9918d3c7e8cfe94bc996e7269839384cf16a80d93"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/love-spouse-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "4184031e0d22badd49fe17e0825bd74077be90e982424053f77ff0d481db802a"
+    },
+    "semanticReview": "tone-v2/corpus-review/love-spouse-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No love_spouse provider output evaluation was run; local corpus and snapshot verification only.",
+  "verificationEvidence": "tone-v2/evaluations/P05-love-spouse-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/love-spouse-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_1_of_1",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_799_of_799_111_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

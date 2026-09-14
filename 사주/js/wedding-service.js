@@ -251,7 +251,7 @@
         var lines = preview.signals || preview.insights || [];
         panels[1].replaceChildren();
         lines.forEach(function(line) { var p = document.createElement('span'); p.className = 'preview-line'; p.textContent = line; panels[1].appendChild(p); });
-        if (!lines.length) panels[1].textContent = preview.paidValue || '6개 주제 · 21개 항목을 전체 풀이에서 확인합니다.';
+        if (!lines.length) panels[1].textContent = preview.paidValue || '6개 주제 · 20개 항목을 전체 풀이에서 확인합니다.';
       }
       root.querySelectorAll('a.item, a.cta').forEach(function (link) {
         link.href = payload.previewOnly ? payload.paymentUrl || '/payment?product=wedding_day&reportId=' + encodeURIComponent(id) : indexUrl;
@@ -290,7 +290,7 @@
           var p = document.createElement('p'); p.textContent = block; section.appendChild(p); body.appendChild(section);
         });
       }
-      put(root, '[data-reading-progress]', '21개 항목 중 ' + (sections.indexOf(current) + 1) + '번째 · ' + (current.status === 'complete' ? '해석 완료' : current.status === 'failed' ? '다시 불러오기 필요' : '해석 작성 중'));
+      put(root, '[data-reading-progress]', sections.length + '개 항목 중 ' + (sections.indexOf(current) + 1) + '번째 · ' + (current.status === 'complete' ? '해석 완료' : current.status === 'failed' ? '다시 불러오기 필요' : '해석 작성 중'));
       var chooser = root.querySelector('[data-section-select]');
       if (chooser) {
         chooser.replaceChildren();

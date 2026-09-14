@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "love_mind",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/love-mind-service-2.1.0.json",
+  "sourceSha256": "b502e28b61f7305d5c77ef2263f75dee6f2360bcc310547e5fbab243060f3edd",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit observed-behavior, mind-inference, refusal, safety and hypothetical-example review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "mind-001",
+      "status": "pass",
+      "checks": {
+        "observedBehaviorBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "otherPersonMindBoundary": true,
+        "explicitRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

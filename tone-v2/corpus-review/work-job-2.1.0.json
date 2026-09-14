@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "work_job",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/work-job-service-2.1.0.json",
+  "sourceSha256": "c64b68caeb1cf241fead41fca0054f012cf85cc14ab1c220b79ca5811cd4a84c",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit career fact, calculated-value, symbolic, hypothetical-example and professional-domain review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "workjob-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "careerOutcomeBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

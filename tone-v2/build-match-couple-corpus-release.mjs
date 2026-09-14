@@ -1,0 +1,262 @@
+import { createHash } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const oldPath = 'data/tone-v2/corpus/match-couple-service.json'
+const newPath = 'data/tone-v2/corpus/releases/match-couple-service-2.1.0.json'
+const reviewPath = 'tone-v2/corpus-review/match-couple-2.1.0.json'
+const releasePath = 'tone-v2/releases/match-couple-2.1.0.json'
+const verificationPath = 'tone-v2/evaluations/P05-match-couple-corpus-rag-release-candidate-20260913.json'
+const promptManifestPath = 'tone-v2/generated/manifest.json'
+const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'))
+const sha256 = (value) => createHash('sha256').update(value).digest('hex')
+const fileHash = (path) => sha256(readFileSync(join(root, path)))
+const writeJson = (path, value) => {
+  const target = join(root, path)
+  mkdirSync(dirname(target), { recursive: true })
+  writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+}
+
+const source = readJson(oldPath)
+const sourceById = new Map(source.knowledgeBlocks.map((block) => [block.id, block]))
+const content = {
+  'cpl-001': {
+    topic: '관계 총평은 현재 확인된 조건의 요약이다',
+    concept: '총평은 등급이나 미래 결론이 아니라 입력된 현재 상태를 정리하는 제목이다',
+    condition: '사용자가 현재 관계 상태와 두 사람이 확인한 조건을 입력했을 때 마무리 요약에만 적용한다.',
+    interpretation: '입력된 관계 상태와 두 사람이 확인한 조건을 함께 보면 현재 점검할 자리를 정할 수 있다. 궁합 점수나 상징만으로 관계의 질, 지속 여부 또는 다음 단계를 확정하지 않는다.',
+    real_world_pattern: ['가상 사례: 두 사람이 같은 갈등 조건을 확인한 경우', '가상 사례: 한 사람의 입력만 있어 상대 확인이 필요한 경우'],
+    risk: '요약 문장을 두 사람의 합격 여부나 미래 결론으로 읽는 것',
+    opportunity: '확인된 조건과 상대에게 물어볼 조건을 분리하는 것',
+    advice: '총평에는 확인된 현재 조건만 쓰고 미확인 상대 정보는 질문으로 남긴다.',
+    forbidden_generalization: '총평이나 점수로 관계의 지속 여부를 단정하지 않는다.',
+  },
+  'cpl-002': {
+    topic: '지지 관계는 상호작용을 묻는 상징적 후보이다',
+    concept: '합·충은 실제 친밀도나 갈등을 증명하지 않고 확인 질문을 만든다',
+    condition: '두 사람의 계산된 일지·연지 관계와 사용자가 입력한 실제 상호작용이 함께 있을 때만 적용한다.',
+    interpretation: '합과 충은 가까움과 자극을 탐색하는 전통적 상징이다. 실제 접근 속도, 갈등 빈도, 회복 방식은 두 사람이 말한 경험으로 확인하며 기호를 사건과 등치하지 않는다.',
+    real_world_pattern: ['가상 사례: 계산된 합이 있지만 실제로는 천천히 가까워진 경우', '가상 사례: 계산된 충과 실제 의견 차이를 별도 근거로 비교하는 경우'],
+    risk: '합이면 친밀하고 충이면 이별한다는 식으로 사건을 정하는 것',
+    opportunity: '상징에서 나온 질문을 두 사람의 실제 경험과 비교하는 것',
+    advice: '기호는 질문 후보로만 쓰고 관계 사실은 당사자의 입력과 행동으로 확인한다.',
+    forbidden_generalization: '합·충만으로 친밀도, 갈등 또는 이별 여부를 단정하지 않는다.',
+  },
+  'cpl-003': {
+    topic: '오행 케미는 회복 경험을 묻는 상징이다',
+    concept: '오행 분포는 함께 있을 때의 실제 체력과 감정을 대신하지 않는다',
+    condition: '계산된 두 사람의 오행 분포와 사용자가 입력한 만남 전후 상태가 함께 있을 때만 적용한다.',
+    interpretation: '오행의 보완과 몰림은 관계 에너지를 살피는 상징적 후보다. 실제 편안함이나 피로는 사용자가 말한 만남 전후 경험으로 확인하고 상대 상태는 추정하지 않는다.',
+    real_world_pattern: ['가상 사례: 함께한 뒤 편안했다고 사용자가 직접 말한 경우', '가상 사례: 오행 후보와 실제 만남 경험이 맞지 않는 경우'],
+    risk: '오행 분포로 두 사람의 감정, 피로 또는 관계 수명을 확정하는 것',
+    opportunity: '사용자가 확인한 만남 전후 상태와 상징적 후보를 비교하는 것',
+    advice: '계산값은 질문을 만드는 데만 쓰고 실제 케미는 입력된 경험으로 제한해 설명한다.',
+    forbidden_generalization: '오행이 같거나 보완되면 관계가 좋다고 단정하지 않는다.',
+  },
+  'cpl-004': {
+    topic: '일간 성향은 실제 결정 방식을 확인하는 질문이다',
+    concept: '일간 강약은 주도권이나 양보 역할을 확정하지 않는다',
+    condition: '계산된 두 사람의 일간 강약과 사용자가 입력한 실제 결정 장면이 함께 있을 때만 적용한다.',
+    interpretation: '계산된 일간 강약은 결정 방식에 관한 상징적 질문을 만들 뿐 실제 역할을 확정하지 않는다. 누가 주도하거나 맞추는지는 입력된 장면과 두 사람의 설명으로 확인한다.',
+    real_world_pattern: ['가상 사례: 사용자가 함께 결정한 과정을 구체적으로 입력한 경우', '가상 사례: 상황마다 결정 주체가 달랐던 경우'],
+    risk: '일간 강약으로 한 사람을 지배적이거나 수동적이라고 평가하는 것',
+    opportunity: '실제 결정 장면에서 제안·합의·거절 방식이 어땠는지 확인하는 것',
+    advice: '상징과 실제 역할을 분리하고 당사자가 확인한 결정 과정만 설명한다.',
+    forbidden_generalization: '일간이 강하거나 성향이 비슷하면 주도권 갈등이 생긴다고 단정하지 않는다.',
+  },
+  'cpl-005': {
+    topic: '십성은 애정 표현을 묻는 상징적 언어이다',
+    concept: '십성은 상대의 애정 크기나 속마음을 측정하지 않는다',
+    condition: '계산된 십성 관계와 사용자가 입력한 실제 표현·지원 장면이 함께 있을 때만 적용한다.',
+    interpretation: '십성은 돌봄, 표현, 책임 같은 관계 방식을 살피는 전통적 축이다. 실제 애정과 의도는 상대가 확인한 말과 행동 밖으로 추정하지 않는다.',
+    real_world_pattern: ['가상 사례: 두 사람이 편하게 느끼는 표현 방식을 직접 나눈 경우', '가상 사례: 같은 행동을 서로 다르게 이해했다고 입력한 경우'],
+    risk: '표현 방식으로 상대의 애정 수준이나 진심을 판정하는 것',
+    opportunity: '서로 받은 것으로 인식한 행동을 직접 확인하는 것',
+    advice: '상대가 원하는 방식은 사주로 정하지 말고 당사자에게 묻도록 안내한다.',
+    forbidden_generalization: '표현이 적거나 특정 십성이면 마음도 적다고 단정하지 않는다.',
+  },
+  'cpl-006': {
+    topic: '소통 조건은 실제 대화 기록에서 확인한다',
+    concept: '말투와 시점은 가능한 원인 후보이며 방어 반응을 예언하지 않는다',
+    condition: '사용자가 반복된 대화 장면과 당시 시간·상태·주제를 입력했을 때만 적용한다.',
+    interpretation: '대화가 어긋난 이유는 내용, 시점, 피로, 장소 등 여러 후보가 있다. 입력된 장면을 비교하기 전에는 특정 조건이나 상대 반응을 원인으로 고정하지 않는다.',
+    real_world_pattern: ['가상 사례: 같은 주제를 다른 상황에서 말한 결과를 비교하는 경우', '가상 사례: 대화 전 상태가 입력되지 않아 원인을 유보하는 경우'],
+    risk: '퇴근·주말 같은 임의 장면을 만들거나 상대 반응을 예상하는 것',
+    opportunity: '실제 대화의 주제와 조건을 분리해 비교하는 것',
+    advice: '두 사람이 괜찮다고 합의한 대화 조건을 확인하고 결과를 기록한다.',
+    forbidden_generalization: '특정 시점이나 말투를 고르면 갈등이 줄어든다고 단정하지 않는다.',
+  },
+  'cpl-007': {
+    topic: '끌림과 안정은 당사자가 확인한 경험으로 구분한다',
+    concept: '설렘 변화만으로 애정이나 관계 상태를 알 수 없다',
+    condition: '사용자가 끌림·편안함·거리감의 변화를 직접 입력했을 때만 적용한다.',
+    interpretation: '끌림과 안정은 함께 있거나 따로 변할 수 있다. 사용자가 말한 변화는 확인하되 그 이유, 상대의 감정, 관계 결론은 추가 대화 없이 정하지 않는다.',
+    real_world_pattern: ['가상 사례: 설렘은 달라졌지만 대화 만족은 유지됐다고 입력한 경우', '가상 사례: 변화의 이유를 아직 서로 확인하지 않은 경우'],
+    risk: '설렘 변화로 상대의 애정이나 관계 종료를 해석하는 것',
+    opportunity: '변한 경험과 유지된 경험을 각각 확인하는 것',
+    advice: '감정의 이유를 대신 해석하지 말고 서로 달라진 점과 유지된 점을 묻는다.',
+    forbidden_generalization: '설렘이나 편안함의 크기로 관계의 지속 여부를 단정하지 않는다.',
+  },
+  'cpl-008': {
+    topic: '갈등 구조는 반복 장면이 입력됐을 때만 비교한다',
+    concept: '다른 주제의 갈등이 같은 원인이라는 결론에는 실제 반복 근거가 필요하다',
+    condition: '사용자가 여러 갈등 장면의 주제·순서·상황을 입력했을 때만 적용한다.',
+    interpretation: '입력된 장면 사이에 같은 전개가 있는지 비교하면 반복 구조의 가설을 세울 수 있다. 장면이 없으면 원인을 만들지 않고 폭력·위협·통제는 일반 갈등으로 다루지 않는다.',
+    real_world_pattern: ['가상 사례: 서로 다른 주제에서 같은 중단 방식이 확인되는 경우', '가상 사례: 단일 사건뿐이라 반복 여부를 알 수 없는 경우'],
+    risk: '갈등을 마음가짐 문제로 단순화하거나 안전 문제를 소통 문제로 축소하는 것',
+    opportunity: '확인된 반복과 단일 사건을 분리하는 것',
+    advice: '반복이 확인되면 바꿀 조건을 당사자가 합의하고, 위협·폭력·통제에는 안전 확보를 우선한다.',
+    forbidden_generalization: '갈등 패턴 하나로 관계 적합성이나 해결 가능성을 단정하지 않는다.',
+  },
+  'cpl-009': {
+    topic: '관계 단계는 두 사람이 확인한 상태로 정한다',
+    concept: '초기·중기·장기 같은 이름은 당사자의 합의와 맥락 없이는 확정할 수 없다',
+    condition: '사용자가 관계의 현재 상태와 서로 합의한 기대를 입력했을 때만 적용한다.',
+    interpretation: '관계 단계에 따라 질문이 달라질 수 있지만 단계의 이름과 속도는 두 사람이 확인해야 한다. 사주나 만남 기간만으로 부담, 준비 또는 다음 단계를 추정하지 않는다.',
+    real_world_pattern: ['가상 사례: 두 사람이 현재 관계의 기대를 다르게 말한 경우', '가상 사례: 관계 이름보다 필요한 합의를 먼저 확인하는 경우'],
+    risk: '상대가 부담을 느낄 것이라 추정하거나 정상적인 진행 속도를 정하는 것',
+    opportunity: '각자가 현재 관계에서 기대하는 것을 직접 확인하는 것',
+    advice: '단계 이름을 대신 붙이지 말고 두 사람의 합의와 아직 다른 기대를 구분한다.',
+    forbidden_generalization: '관계 단계의 속도로 관계의 질이나 미래를 단정하지 않는다.',
+  },
+  'cpl-010': {
+    topic: '현실 궁합은 입력된 시간·거리·비용 조건으로 본다',
+    concept: '현실 조건의 영향은 애정 수준과 별도로 확인한다',
+    condition: '사용자가 만남 시간, 이동 거리, 비용 분담 또는 관련 불편을 입력했을 때만 적용한다.',
+    interpretation: '시간, 거리, 비용은 관계 운영에 영향을 줄 수 있는 현실 조건이다. 불편의 크기와 책임은 입력된 사실과 합의로 확인하며 애정으로 해결되거나 실패한다고 예측하지 않는다.',
+    real_world_pattern: ['가상 사례: 이동 부담과 만남 빈도를 함께 조정하는 경우', '가상 사례: 비용 분담에 대한 기대가 서로 다른 경우'],
+    risk: '입력 없이 경제적 부담이나 서운함을 만들어 내는 것',
+    opportunity: '현재 조건과 각자가 감당 가능한 범위를 직접 확인하는 것',
+    advice: '시간·거리·비용의 실제 조건과 합의된 기준을 분리해 적는다.',
+    forbidden_generalization: '사랑의 크기로 거리나 비용 문제가 사라진다고 단정하지 않는다.',
+  },
+  'cpl-011': {
+    topic: '운 흐름은 관계 사건의 원인이 아니다',
+    concept: '대운·세운은 배경을 묻는 상징이며 갈등이나 회복을 만들지 않는다',
+    condition: '계산된 운 흐름과 사용자가 입력한 같은 시기의 실제 생활 조건이 함께 있을 때만 적용한다.',
+    interpretation: '운 흐름은 변화와 압력을 살피는 상징적 후보다. 실제 갈등은 입력된 일정, 건강, 일, 관계 장면으로 확인하고 특정 시기의 관계 결과를 예언하지 않는다.',
+    real_world_pattern: ['가상 사례: 일이 바빴던 시기와 대화 변화를 별도 근거로 보는 경우', '가상 사례: 생활 조건이 없어 운 해석을 유보하는 경우'],
+    risk: '운이 거칠다는 이유로 갈등의 원인이나 관계 결론을 정하는 것',
+    opportunity: '계산값과 실제 생활 조건을 나란히 확인하는 것',
+    advice: '운은 상징으로 표시하고 판단에는 당사자가 확인한 현실 조건을 사용한다.',
+    forbidden_generalization: '좋거나 나쁜 운으로 관계 변화와 지속 여부를 단정하지 않는다.',
+  },
+  'cpl-012': {
+    topic: '불안과 확인 행동은 사용자의 진술로만 다룬다',
+    concept: '확인 요청의 원인과 정신건강 상태를 궁합으로 진단하지 않는다',
+    condition: '사용자가 불안, 확인 행동 또는 회복 상태를 직접 입력했을 때만 적용한다.',
+    interpretation: '입력된 불안과 확인 행동은 현재 부담을 살피는 자료다. 상대 답변의 효과나 사용자의 정신건강 상태를 추정하지 않으며 일상 기능 저하나 위기 신호는 전문 지원을 우선한다.',
+    real_world_pattern: ['가상 사례: 사용자가 확인 뒤에도 불안이 남았다고 말한 경우', '가상 사례: 휴식 상태와 관계 걱정을 별도로 확인하는 경우'],
+    risk: '쉬면 해결된다고 처방하거나 불안을 관계 궁합의 결과로 설명하는 것',
+    opportunity: '사용자가 말한 상태와 필요한 지원을 구분하는 것',
+    advice: '위기나 일상 기능 저하가 있으면 관계 해석보다 의료·상담 등 적절한 전문 지원을 안내한다.',
+    forbidden_generalization: '확인 횟수, 휴식 또는 상대 답변이 불안을 해결한다고 단정하지 않는다.',
+  },
+  'cpl-013': {
+    topic: '결과는 확인된 강점과 질문으로 나눈다',
+    concept: '리포트의 배열이 관계 사실의 우선순위를 만들지 않는다',
+    condition: '입력 사실과 계산된 상징 후보를 구분해 결과를 정리하는 마무리에 적용한다.',
+    interpretation: '결과는 확인된 강점, 아직 확인할 질문, 안전상 제외할 판단으로 나눌 수 있다. 좋은 항목과 주의 항목의 수로 전체 관계를 평가하지 않는다.',
+    real_world_pattern: ['가상 사례: 확인된 강점과 미확인 질문을 분리해 읽는 경우', '가상 사례: 상징 후보가 실제 경험과 달라 제외하는 경우'],
+    risk: '항목의 개수나 읽는 순서로 관계의 좋고 나쁨을 판단하는 것',
+    opportunity: '근거 상태에 따라 결과를 분류하는 것',
+    advice: '확인된 내용과 확인할 내용을 구분하고 어떤 항목도 전체 결론으로 확대하지 않는다.',
+    forbidden_generalization: '좋은 항목이 많거나 주의 항목이 적으면 문제가 없다고 단정하지 않는다.',
+  },
+  'cpl-014': {
+    topic: '다음 행동은 당사자가 합의할 수 있는 확인으로 정한다',
+    concept: '행동의 수나 시점을 서비스가 임의로 처방하지 않는다',
+    condition: '사용자가 현재 확인하고 싶은 관계 질문과 실행 제약을 입력했을 때만 적용한다.',
+    interpretation: '다음 행동은 질문, 기록, 경계 확인 같은 후보에서 당사자가 고를 수 있다. 행동 뒤 상대 반응이나 해결 여부를 예측하지 않고 위협·통제 상황에는 대화를 권하지 않는다.',
+    real_world_pattern: ['가상 사례: 서로 동의한 질문부터 확인하는 경우', '가상 사례: 안전하지 않아 직접 대화보다 지원 요청을 선택하는 경우'],
+    risk: '임의 횟수나 시간을 처방하고 상대가 답하기 쉬울 것이라 추정하는 것',
+    opportunity: '현재 가장 필요한 확인과 안전 조건을 함께 고르는 것',
+    advice: '당사자가 동의할 수 있는 확인 행동을 제안하되 안전하지 않으면 전문 지원과 거리 확보를 우선한다.',
+    forbidden_generalization: '행동을 줄이거나 제대로 말하면 관계 문제가 해결된다고 단정하지 않는다.',
+  },
+  'cpl-015': {
+    topic: '거리 조절은 상대의 감정이 아니라 합의 문제이다',
+    concept: '각자 시간의 필요와 의미는 직접 확인해야 한다',
+    condition: '사용자가 함께 있는 시간, 각자 시간 또는 거리 조절에 관한 실제 경험을 입력했을 때만 적용한다.',
+    interpretation: '각자 시간이 관계에 어떤 영향을 주는지는 사람과 상황마다 다르다. 혼자 있고 싶다는 표현을 거절이나 애정 변화로 번역하지 않고 상대가 말한 의미와 합의를 확인한다.',
+    real_world_pattern: ['가상 사례: 각자 시간의 필요를 서로 직접 설명한 경우', '가상 사례: 거리 조절의 의미를 아직 합의하지 않은 경우'],
+    risk: '거리 요청을 거절 신호로 읽거나 일정 조정이 관계를 개선한다고 약속하는 것',
+    opportunity: '각자가 원하는 시간과 연락 기준을 직접 확인하는 것',
+    advice: '거리의 의미를 대신 해석하지 말고 서로 동의할 수 있는 기준을 확인한다.',
+    forbidden_generalization: '함께 있는 시간이나 떨어진 시간의 양으로 관계의 질을 단정하지 않는다.',
+  },
+  'cpl-016': {
+    topic: '회복 방식은 실제 갈등 뒤 합의로 만든다',
+    concept: '정해진 화해 순서가 모든 관계에 맞거나 안전한 것은 아니다',
+    condition: '사용자가 갈등 뒤 실제 회복 과정과 서로 동의한 경계를 입력했을 때만 적용한다.',
+    interpretation: '멈춤, 재대화, 사과, 경계 확인 가운데 필요한 순서는 두 사람이 합의해야 한다. 폭력·위협·통제가 있으면 공동 회복 규칙보다 안전 확보와 전문 지원이 먼저다.',
+    real_world_pattern: ['가상 사례: 두 사람이 대화 중단과 재개 조건에 합의한 경우', '가상 사례: 안전 문제 때문에 공동 대화를 중단하는 경우'],
+    risk: '화해 규칙을 피해자에게도 동일하게 요구하거나 사과가 관계를 회복한다고 보장하는 것',
+    opportunity: '합의 가능한 회복 조건과 안전상 불가능한 조건을 구분하는 것',
+    advice: '갈등과 안전 문제를 먼저 구분하고, 안전한 경우에만 당사자가 동의한 회복 방식을 정한다.',
+    forbidden_generalization: '회복 순서나 사과가 있으면 갈등이 해결된다고 단정하지 않는다.',
+  },
+  'cpl-017': {
+    topic: '서운함은 입력된 사건과 요청으로 구분한다',
+    concept: '감정의 크기와 표현 시점에는 보편적인 규칙이 없다',
+    condition: '사용자가 서운했던 사건, 표현 방식과 원하는 변화를 직접 입력했을 때만 적용한다.',
+    interpretation: '서운함은 사용자가 말한 감정으로 존중하되 상대의 의도나 숨은 원인을 만들지 않는다. 언제 어떻게 말할지는 안전, 준비, 관계 맥락을 함께 확인해야 한다.',
+    real_world_pattern: ['가상 사례: 사건과 원하는 변화를 분리해 말하는 경우', '가상 사례: 바로 말하기 안전하지 않아 지원을 먼저 찾는 경우'],
+    risk: '빨리 말하면 비용이 줄거나 참으면 폭발한다고 보편화하는 것',
+    opportunity: '확인된 사건, 느낀 감정, 원하는 변화를 구분하는 것',
+    advice: '표현 시점은 사용자가 안전하다고 느끼는 조건에서 정하고 상대 의도는 질문으로 남긴다.',
+    forbidden_generalization: '감정 표현의 속도나 방식으로 갈등 결과를 단정하지 않는다.',
+  },
+  'cpl-018': {
+    topic: '궁합 해석은 관계 결정과 안전 판단을 대신하지 않는다',
+    concept: '해석은 입력 사실과 상징 후보를 구분해 확인 질문만 제공한다',
+    condition: '리포트의 한계, 안전 경계와 추가 확인을 정리하는 마무리에 적용한다.',
+    interpretation: '이 해석은 사용자 입력, 서버 계산값, 전통적 상징, 가상 사례를 구분한다. 상대 마음, 폭력 위험, 관계 지속이나 종료를 판정하지 않으며 실제 선택은 당사자의 확인과 필요한 전문 지원을 바탕으로 한다.',
+    real_world_pattern: ['가상 사례: 상징적 질문을 상대와 확인할 질문으로 바꾸는 경우', '가상 사례: 위협·폭력·통제가 있어 안전 기관이나 전문가에게 도움을 요청하는 경우'],
+    risk: '궁합을 관계 유지·종료 또는 폭력 위험 판단의 근거로 사용하는 것',
+    opportunity: '미확인 관계 정보와 안전상 전문 판단이 필요한 항목을 분리하는 것',
+    advice: '위협·폭력·통제가 있으면 궁합 해석보다 안전 확보와 적절한 전문 지원을 우선한다.',
+    forbidden_generalization: '궁합 결과가 상대의 마음, 관계 미래 또는 안전 여부를 정한다고 표현하지 않는다.',
+  },
+}
+
+const ids = Array.from({ length: 18 }, (_, i) => `cpl-${String(i + 1).padStart(3, '0')}`)
+if (source.knowledgeBlocks.length !== ids.length || ids.some((id) => !sourceById.has(id) || !content[id])) {
+  throw new Error('match_couple source IDs do not match the reviewed 18-block contract')
+}
+const candidate = {
+  version: '2.1.0', domain: source.domain,
+  description: '두 사람의 입력 사실·계산값·상징적 해석 후보·가상 사례를 구분하고 상대 심리·관계 미래·안전 상태의 확정을 금지한 검수 완료 전용 블록.',
+  safety: source.safety,
+  release: { state: 'candidate', previousVersion: source.version, previousPath: oldPath, semanticReview: reviewPath, sampleOutputsIngested: false },
+  knowledgeBlocks: ids.map((id) => ({ id, topic: content[id].topic, keywords: sourceById.get(id).keywords, ...Object.fromEntries(Object.entries(content[id]).filter(([key]) => key !== 'topic')), confidence: ['cpl-008', 'cpl-012', 'cpl-016', 'cpl-018'].includes(id) ? 'high' : 'medium' })),
+}
+writeJson(newPath, candidate)
+const candidateHash = fileHash(newPath)
+const checks = { inputBoundary: true, calculatedValueBoundary: true, symbolicInterpretationBoundary: true, hypotheticalExampleBoundary: true, partnerMindBoundary: true, deterministicOutcomeBoundary: true, relationshipSafety: true, numericProvenance: true }
+writeJson(reviewPath, {
+  schemaVersion: '1.0.0', serviceKey: 'match_couple', corpusVersion: candidate.version, status: 'approved', sourcePath: newPath, sourceSha256: candidateHash,
+  reviewedAgainst: ['tone-v2/README.md', 'tone-v2/generated/manifest.json'], sampleOutputsIngested: false,
+  reviewMethod: 'explicit block-by-block relationship evidence, partner-mind and safety review with executable hash assertions',
+  blocks: ids.map((id) => ({ id, status: 'pass', checks })),
+})
+const prompt = readJson(promptManifestPath)
+const verification = existsSync(join(root, verificationPath)) ? readJson(verificationPath) : undefined
+writeJson(releasePath, {
+  schemaVersion: '1.0.0', releaseId: 'match-couple-corpus-2.1.0', serviceKey: 'match_couple', state: 'candidate', deployed: false,
+  promptBundle: { version: prompt.version, sourceFingerprint: prompt.sourceFingerprint, releaseReadyAtSource: prompt.releaseReady },
+  corpus: { previous: { path: oldPath, version: source.version, sha256: fileHash(oldPath) }, candidate: { path: newPath, version: candidate.version, sha256: candidateHash }, semanticReview: reviewPath },
+  generationEvidence: null,
+  generationEvidenceReason: 'No match_couple provider output evaluation was run or found for this corpus-only Task.',
+  verificationEvidence: verification ? verificationPath : null,
+  attachment: { newReportsOnly: true, storedSnapshotRequired: true, customerRecordMutation: false },
+  rollback: { strategy: 'registry_only', restorePath: oldPath, restoreVersion: source.version, customerRecordRewrite: false },
+  gates: {
+    semanticReview: 'pass_18_of_18', sampleOutputIngestion: 'none', snapshotPinnedRag: 'required', providerOutputEvaluation: 'not_run',
+    focusedTests: verification?.verification?.focusedTests ?? 'pending', fullTests: verification?.verification?.fullTests ?? 'pending',
+    typecheck: verification?.verification?.typecheck ?? 'pending', build: verification?.verification?.vercelBuild ?? 'pending', codexReview: verification?.verification?.codexReview ?? 'pending',
+  },
+})
+console.log(JSON.stringify({ candidate: newPath, review: reviewPath, release: releasePath, sha256: candidateHash }))

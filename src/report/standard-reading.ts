@@ -1,4 +1,5 @@
 import type { SajuAnalysis, SajuReportContext } from '../types/index.js'
+import { passAngleOutlineItem, type PassAngleLensKey } from './pass-angle-outline.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { normalizeUserCopy } from './copy-guide.js'
 
@@ -82,6 +83,19 @@ const EXAM: Record<string, Lens> = {
   'action-plan': ['실행 계획은 남은 기간·평가 방식·확인된 준비 수준으로 우선순위를 정합니다.', '오답이 특정 유형에 모이면 그 유형을, 시간 부족이 반복되면 실전 배분을 점검할 수 있습니다.', '어려움이 확인되지 않으면 새 약점을 찾기보다 현재 방식의 재현성을 높입니다.', '가장 필요한 연습 하나와 결과를 확인할 기준 하나를 함께 정하세요.'],
 }
 
+const EXAM_OUTLINE_LENSES: Record<PassAngleLensKey, Lens> = {
+  verdict: EXAM['pass-angle-verdict'],
+  'study-style': EXAM['study-style'],
+  'exam-fit': EXAM['exam-type-fit'],
+  timing: EXAM['pass-timing'],
+  obstacle: ['공부 방해 요인은 실제 집중이 깨진 장면과 반복 빈도로 확인합니다.', '사람·SNS·생활 걱정은 모두에게 같은 문제가 아니므로 입력에서 확인된 방해만 다룹니다.', '사주 상징만으로 의지 부족이나 심리 문제를 만들지 않습니다.', '다음 복기에서 집중이 끊긴 시점과 바로 전 행동을 하나 기록하세요.'],
+  stamina: EXAM['mental-stamina'],
+  environment: ['공부 환경은 방향의 길흉보다 집중을 유지하는 실제 조건을 먼저 봅니다.', '책상·소음·빛·동선을 바꿀 때는 한 번에 하나만 조정해야 효과를 구분할 수 있습니다.', '색이나 방향이 점수와 합격을 보장한다고 단정하지 않습니다.', '최근 집중이 잘된 자리와 방해가 생긴 자리를 비교해 유지할 조건 하나를 고르세요.'],
+  support: ['도움을 주는 사람은 실제 피드백의 구체성과 현재 준비 단계의 적합성으로 판단합니다.', '스터디·학원·가족·멘토는 역할이 다르므로 필요한 도움과 이미 받은 도움을 구분합니다.', '귀인 상징만으로 특정 사람의 선의나 만남 시기를 확정하지 않습니다.', '다음 상담이나 모임 뒤에 바뀐 행동이 있었는지 확인해 남길 관계를 정하세요.'],
+  'exam-day': EXAM['exam-day-routine'],
+  action: EXAM['action-plan'],
+}
+
 function stateLine(context: SajuReportContext): string {
   const concern = context.concern?.trim()
   if (!concern) return '현재 고민에 대한 구체적인 설명은 아직 없어, 문제의 존재나 심각도를 판단하지 않습니다.'
@@ -93,7 +107,8 @@ function stateLine(context: SajuReportContext): string {
 export function standardReading(id: string, category: string, analysis: SajuAnalysis, context: SajuReportContext): string {
   const key = context.serviceKey ?? 'saju_master'
   const lenses = key === 'home_fit' ? HOME : key === 'work_move' ? MOVE : key === 'pass_angle' ? EXAM : MASTER
-  const lens = lenses[id]
+  const outlineItem = key === 'pass_angle' ? passAngleOutlineItem(id) : undefined
+  const lens = outlineItem ? EXAM_OUTLINE_LENSES[outlineItem.lensKey] : lenses[id]
   if (!lens) throw new Error(`항목별 해석 기준이 없습니다: ${id}`)
   const [meaning, scene, criterion, action] = lens
   let facts = stateLine(context)

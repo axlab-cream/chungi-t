@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-pass-angle-visual-render-evidence",
+  "evaluatedAt": "2026-09-13T14:47:39+09:00",
+  "status": "pass",
+  "serviceKey": "pass_angle",
+  "source": {
+    "generationEvidencePath": "tone-v2/evaluations/P04-pass-angle-2-1-full-outline-generation-20260913.json",
+    "reportId": "d69bb13bcb4041d87c1b45027be5",
+    "resultId": "5265b42e-b39e-4d48-999c-78c80066d082",
+    "reportRecordSha256": "5fc40af448836d7084919d3fc9afba7199cbe47a3d88f656115370845633e7fa",
+    "acceptedProseSha256": "a25f7afd69e0417350600cbced7d60c1ee015bd276a3dc8f758e12488e9c007e",
+    "recordStatus": "complete",
+    "expectedSections": 52,
+    "completedSections": 52
+  },
+  "render": {
+    "contents": { "groups": 10, "items": 52, "passed": true },
+    "desktop": { "sectionsChecked": 52, "readerWidthPx": 430, "paragraphCountRange": [2, 5], "overflowFailures": 0, "contentFailures": 0, "passed": true },
+    "mobile": { "sectionsChecked": 52, "viewportWidthPx": 390, "contentWidthPx": 375, "paragraphCountRange": [2, 5], "overflowFailures": 0, "contentFailures": 0, "passed": true }
+  },
+  "navigation": {
+    "steps": [
+      "all 52 disclosure summaries are present and operable",
+      "direct section action-plan-first-90-days opens the requested section in the exact 390px frame",
+      "unique report link restores the immutable 52-section result",
+      "keyboard Enter toggles the focused final summary"
+    ],
+    "passedSteps": 4,
+    "failedSteps": 0,
+    "passed": true
+  },
+  "accessibility": { "visibleControls": 64, "controlsBelow44Px": 0, "summaryMinimumHeightPx": 63.25, "focusOutlinePx": 2, "passed": true },
+  "print": { "documentsChecked": 1, "sectionsChecked": 52, "pages": 28, "blankPages": 0, "missingSectionTitles": 0, "oneLineAnswerCount": 52, "bodyTextChunkCoverageMinimum": 0.8, "bodyTextChunkCoverageAverage": 0.9194, "interactiveFlagControlsPresent": 0, "fixedChromePresent": 0, "pageSizePoints": [612, 792], "pagesVisuallyReviewed": 28, "passed": true },
+  "visualReview": {
+    "acceptedScreenshots": 3,
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "fixedFindings": [
+      "expanded shared reader chrome and navigation targets to a rendered minimum of 44px",
+      "overrode direct report intro colors for legible white-background print output"
+    ],
+    "passed": true
+  },
+  "localArtifacts": {
+    "ignoredLocalOnly": true,
+    "directory": ".cache/pass-angle-visual-evidence",
+    "acceptedScreenshotSha256": {
+      "readerDesktop": "a9ef78e511d763826db4d71cfaec4298359c962832fdafbf6bc85815e811b091",
+      "mobile390": "c93221ed3ff2045a9f1d75e3a4417da59e14e5108227130d312b812529a91d9c",
+      "mobileFinalSection": "04535abc2d0fd1f8e7c234d2395424371428f4bebcf724a602ca53258a177afa"
+    },
+    "printPdfSha256": "f7ac53c28669e8f0cd9df66923e3ac3dea0e2e90ac9f24a02fdae54fa3cc015b"
+  },
+  "privacy": { "containsProviderProse": false, "containsSecrets": false, "containsPersonalData": false },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

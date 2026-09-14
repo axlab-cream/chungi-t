@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "lucky-color-corpus-2.1.0",
+  "serviceKey": "lucky_color",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/lucky-color-service.json",
+      "version": "2.0.0",
+      "sha256": "22cdde23b6c084e39a8a302860ec3c5db493b662cb18a4ddf44a9c3dc181c9bb"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/lucky-color-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "ad21c843643ed77301d15fe1e48c544fa0e86f89a40cc8de5ab0774d245b51f6"
+    },
+    "semanticReview": "tone-v2/corpus-review/lucky-color-2.1.0.json"
+  },
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-lucky-color-full-outline-generation-20260913.json",
+    "recordSha256": "3c85e8becfca7a8db7d07b379d79b2b4092c39725d78621a5b56c6722d4e91a3",
+    "acceptedProseSha256": "9fe3d22bc7c18cd1019b4fd6688975e7f89051249f719790cb9ee605e3463194",
+    "containsProviderProse": false
+  },
+  "visualEvidence": {
+    "path": "tone-v2/evaluations/P04-lucky-color-visual-render-evidence-20260913.json",
+    "sha256": "8fc0172a8afa68099018d11a95e5a505aad2ec98be4f82b69a0f9f4c5729b686",
+    "desktop": "pass_24_of_24",
+    "mobile": "pass_24_of_24",
+    "print": "pass_all_24_sections",
+    "containsProviderProse": false
+  },
+  "verificationEvidence": "tone-v2/evaluations/P05-lucky-color-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/lucky-color-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_24_of_24",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run_for_2.1.0",
+    "focusedTests": "8/8 pass",
+    "fullTests": "847/847 pass across 117 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

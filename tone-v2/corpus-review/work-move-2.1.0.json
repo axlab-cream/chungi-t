@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "work_move",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/work-move-service-2.1.0.json",
+  "sourceSha256": "9bcc0792ef03a5f97c31b935e127b17978f9d4a6c2298effe0bad6e32da93c66",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit work-fact, document, unknown-company, calculated-symbol, hiring, salary, timing, health and contract review",
+  "blocks": [
+    {
+      "id": "wmov-001",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-002",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-003",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-004",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-005",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-006",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-007",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-008",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-009",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "wmov-010",
+      "status": "pass",
+      "checks": {
+        "userFactBoundary": true,
+        "documentBoundary": true,
+        "unknownCompanyBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "hiringSalaryTimingBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

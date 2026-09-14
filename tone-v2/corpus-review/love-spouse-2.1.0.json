@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "love_spouse",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/love-spouse-service-2.1.0.json",
+  "sourceSha256": "4184031e0d22badd49fe17e0825bd74077be90e982424053f77ff0d481db802a",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit input, spouse identity, attribute, timing, autonomy, safety and hypothetical-example review",
+  "blocks": [
+    {
+      "id": "spouse-001",
+      "status": "pass",
+      "checks": {
+        "inputFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "identityAndAttributeBoundary": true,
+        "timingAndOutcomeBoundary": true,
+        "autonomyAndSafetyBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

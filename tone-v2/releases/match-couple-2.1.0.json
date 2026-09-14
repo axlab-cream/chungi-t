@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "match-couple-corpus-2.1.0",
+  "serviceKey": "match_couple",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/match-couple-service.json",
+      "version": "2.0.0",
+      "sha256": "94e180020871fefd9f2c47e3136342a3999cc16f3325e92ff4abc04213a9949b"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/match-couple-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "84e7fb76d2072fa3c44a92e1f8438d4a603357b40ddf361a80a543e5725f899c"
+    },
+    "semanticReview": "tone-v2/corpus-review/match-couple-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No match_couple provider output evaluation was run or found for this corpus-only Task.",
+  "verificationEvidence": "tone-v2/evaluations/P05-match-couple-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/match-couple-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_18_of_18",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_743_of_743_across_104_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  }
+}

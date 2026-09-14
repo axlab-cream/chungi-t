@@ -595,9 +595,13 @@ export async function createOrGetReportRecord(params: {
     status: 'pending',
     storage: storageMode(),
     corpus,
+    quality: undefined,
     progress: { complete: 0, total: params.templateReport.sections.length },
     sections: params.templateReport.sections.map((section) => ({
       ...section,
+      hook: '',
+      interpretation: '',
+      storytelling: undefined,
       generationId: randomUUID(),
       generatedBy: 'template',
       model: 'template',
@@ -609,7 +613,9 @@ export async function createOrGetReportRecord(params: {
     resultId,
     revision: 0,
     analysis: params.analysis,
-    preview: createSavedPreview(report, params.context),
+    // The paid report keeps its sections empty until generation, but the free teaser is
+    // assembled from the deterministic, input-specific template before that redaction.
+    preview: createSavedPreview(params.templateReport, params.context),
     birth: params.birth,
     context: params.context,
     owner: params.owner,

@@ -572,8 +572,8 @@ export function buildNewYearTeaser(analysis: SajuAnalysis, context: SajuReportCo
       `${frame.year}년 세운(한 해의 흐름)은 ${STEM_KO[frame.yearStem]}${BRANCH_KO[frame.yearBranch]}(${frame.yearPillar})입니다. 태어난 날의 중심 기운인 일간 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster})과는 ${frame.yearTenGod}의 관계로 읽으며, ${tg.word}라는 뜻입니다. ${tg.tone}.`,
       `사주에서 해가 바뀌는 기준은 ${frame.ipchunText} 입춘(봄의 시작을 알리는 절기)입니다. 1월은 아직 이전 해의 ${frame.prevTenGod}, 즉 ${TEN_GOD_YEAR[frame.prevTenGod].word}에 해당하는 구간으로 읽습니다.`,
       easy.length > 0
-        ? `열두 달 중 결이 먼저 열리는 구간은 ${easy[0].termName} 이후(${easy[0].fromText})입니다.`
-        : '열두 달이 한쪽으로 쏠리지 않고 고르게 퍼진 해입니다.',
+        ? `일정이나 약속을 새로 잡는 장면에서는 ${easy[0].termName} 이후(${easy[0].fromText})가 먼저 열리는 구간입니다.`
+        : '일정이나 약속을 새로 잡을 때에도 열두 달이 한쪽으로 쏠리지 않고 고르게 퍼진 해입니다.',
       context.birthTimeKnown === false
         ? '대운은 약 10년 단위의 긴 흐름입니다. 출생 시각을 몰라 정확한 전환은 보류하고, 확인된 일간과 세운·월운의 관계부터 읽습니다.'
         : frame.daewoonShift.happens

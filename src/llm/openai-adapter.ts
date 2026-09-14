@@ -46,6 +46,7 @@ export async function chatWithOpenAI(
 
   if (usesMaxCompletionTokens(model)) {
     request.max_completion_tokens = options.maxTokens ?? 4000
+    if (process.env.OPENAI_REASONING_EFFORT) request.reasoning_effort = process.env.OPENAI_REASONING_EFFORT
   } else {
     request.temperature = options.temperature ?? 0.7
     request.max_tokens = options.maxTokens ?? 800

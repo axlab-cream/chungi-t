@@ -1,0 +1,316 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "marry_match",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/marry-match-service-2.1.0.json",
+  "sourceSha256": "e8dc60b9d97755025055b773b76c93f17b8caa813011c83b6d3afd4e4c849b0b",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit block-by-block marriage evidence, autonomy and safety review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "mar-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-002",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-003",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-004",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-005",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-006",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-007",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-008",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-009",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-010",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-011",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-012",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-013",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-014",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-015",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-016",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-017",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-018",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-019",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "mar-020",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerAndFamilyMindBoundary": true,
+        "marriageOutcomeBoundary": true,
+        "reproductiveAutonomy": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

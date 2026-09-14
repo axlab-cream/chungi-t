@@ -1,39 +1,15 @@
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { RagChunk, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../types/index.js'
-import { getChunkCorpusFiles, getCorpusDomainBoost } from './corpus-registry.js'
+import type { CorpusSnapshot, RagChunk, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../types/index.js'
+import { getChunkCorpusFiles, getCorpusDomainBoost, getCorpusSnapshot, getServiceCorpusDomain } from './corpus-registry.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
 import { retrieveVectorRagChunks } from './embedder.js'
 import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from './knowledge-block.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
-
-/** Each product gets a small, deterministic slice of its own corpus pack before
- * general semantic matches are considered. This prevents a high-frequency
- * generic chunk from displacing the service's actual interpretation rules. */
-const SERVICE_DOMAINS: Record<string, string> = {
-  love_this_year: 'love_this_year_service',
-  home_fit: 'home_fit_service',
-  work_move: 'work_move_service',
-  pass_angle: 'pass_angle_service',
-  cat_compatibility: 'cat_compatibility_service',
-  couple_signal: 'couple_signal_service',
-  lucky_color: 'lucky_color_service',
-  job_choice: 'job_choice_service',
-  quit_fortune: 'quit_fortune_service',
-  money_save: 'money_save_service',
-  match_couple: 'match_couple_service',
-  marry_match: 'marry_match_service',
-  today_fortune: 'today_fortune_service',
-  saju_master: 'saju_master_service',
-  work_job: 'work_job_service',
-  love_mind: 'love_mind_service',
-  love_again: 'love_again_service',
-  love_spouse: 'love_spouse_service',
-  newyear_flow: 'newyear_service',
-}
 
 interface ConsultationTemplate {
   id: string
@@ -59,8 +35,14 @@ interface SajuElementsFile {
   dayMasterAdvice?: Record<string, string>
 }
 
-function loadJson<T>(relativePath: string): T {
+function loadJson<T>(relativePath: string, snapshot?: CorpusSnapshot): T {
   const raw = readFileSync(join(DATA_ROOT, relativePath), 'utf-8')
+  if (snapshot) {
+    const pack = snapshot.activePacks.find((item) => item.status === 'active' && item.path === relativePath)
+    if (!pack) throw new Error(`Corpus snapshot does not include active file: ${relativePath}`)
+    const actualHash = createHash('sha256').update(raw).digest('hex').slice(0, 16)
+    if (actualHash !== pack.contentHash) throw new Error(`Corpus snapshot hash mismatch: ${pack.id}`)
+  }
   return JSON.parse(raw) as T
 }
 
@@ -135,12 +117,20 @@ function expandTokens(tokens: string[]): string[] {
   return [...expanded]
 }
 
-function loadTemplates(): ConsultationTemplate[] {
-  return loadJson<CorpusFile>('corpus/consultation-templates.json').templates ?? []
+function packPath(snapshot: CorpusSnapshot | undefined, kind: 'structured' | 'templates', domain: string, fallback: string): string {
+  return snapshot?.activePacks.find((pack) => (
+    pack.status === 'active' && pack.kind === kind && pack.domain === domain
+  ))?.path ?? fallback
 }
 
-function buildElementChunks(): RagChunk[] {
-  const elements = loadJson<SajuElementsFile>('corpus/saju-elements.json')
+function loadTemplates(snapshot?: CorpusSnapshot): ConsultationTemplate[] {
+  const path = packPath(snapshot, 'templates', 'consultation_templates', 'tone-v2/corpus/consultation-templates.json')
+  return loadJson<CorpusFile>(path, snapshot).templates ?? []
+}
+
+function buildElementChunks(snapshot?: CorpusSnapshot): RagChunk[] {
+  const path = packPath(snapshot, 'structured', 'saju_elements', 'tone-v2/corpus/saju-elements.json')
+  const elements = loadJson<SajuElementsFile>(path, snapshot)
   const profileChunks = Object.entries(elements.elementProfiles ?? {}).map(([element, profile]) => knowledgeBlockToRagChunk({
     id: `el-${element}`,
     topic: `오행 프로필: ${element}`,
@@ -181,13 +171,13 @@ function buildElementChunks(): RagChunk[] {
 }
 
 /** O(n) — 코퍼스 인덱스 로드 */
-export function buildCorpusIndex(): RagChunk[] {
-  const corpusChunks = getChunkCorpusFiles().flatMap((file) => {
-    const data = loadJson<CorpusFile>(file)
+export function buildCorpusIndex(snapshot?: CorpusSnapshot): RagChunk[] {
+  const corpusChunks = getChunkCorpusFiles(snapshot).flatMap((file) => {
+    const data = loadJson<CorpusFile>(file, snapshot)
     return corpusFileToChunks(data)
   })
 
-  const templateChunks = loadTemplates().map((template) => ({
+  const templateChunks = loadTemplates(snapshot).map((template) => ({
     id: `tpl-${template.id}`,
     topic: `상담 의도: ${template.intent}`,
     keywords: [template.intent, ...template.keywords],
@@ -195,7 +185,7 @@ export function buildCorpusIndex(): RagChunk[] {
     domain: 'consultation_templates',
   }))
 
-  return [...corpusChunks, ...buildElementChunks(), ...templateChunks]
+  return [...corpusChunks, ...buildElementChunks(snapshot), ...templateChunks]
 }
 
 function keywordScore(keyword: string, queryRaw: string, queryTokens: string[]): number {
@@ -211,8 +201,8 @@ function keywordScore(keyword: string, queryRaw: string, queryTokens: string[]):
   return 0
 }
 
-export function detectIntent(message: string): string {
-  const templates = loadTemplates()
+export function detectIntent(message: string, corpusSnapshot?: CorpusSnapshot): string {
+  const templates = loadTemplates(corpusSnapshot)
   const queryRaw = normalizeText(message)
   const queryTokens = expandTokens(tokenize(message))
   let best = { intent: 'general', score: 0 }
@@ -403,6 +393,7 @@ function scoreChunk(
   graphTokens: string[],
   vectorBoost: number,
   pinnedContextIds: Set<string>,
+  corpusSnapshot?: CorpusSnapshot,
 ): number {
   const topic = normalizeText(chunk.topic)
   const content = normalizeText(chunkSearchText(chunk))
@@ -460,7 +451,7 @@ function scoreChunk(
     }
   }
 
-  score += getCorpusDomainBoost(chunk.domain)
+  score += getCorpusDomainBoost(chunk.domain, corpusSnapshot)
   if (pinnedContextIds.has(chunk.id)) score += 40
 
   const binarySignals = [
@@ -621,12 +612,13 @@ export function retrieveRagChunks(
   saju: SajuAnalysis,
   topK = 5,
   context?: SajuReportContext,
+  corpusSnapshot?: CorpusSnapshot,
 ): RagChunk[] {
-  const corpus = buildCorpusIndex()
+  const corpus = buildCorpusIndex(corpusSnapshot)
   const contextQuery = contextText(context)
   const queryText = [message, contextQuery].filter(Boolean).join(' ')
-  const intent = detectIntent(queryText)
-  const intentKeywords = loadTemplates().find((template) => template.intent === intent)?.keywords ?? []
+  const intent = detectIntent(queryText, corpusSnapshot)
+  const intentKeywords = loadTemplates(corpusSnapshot).find((template) => template.intent === intent)?.keywords ?? []
   const queryTokens = expandTokens([
     ...tokenize(queryText),
     ...intentKeywords.flatMap(tokenize),
@@ -637,20 +629,23 @@ export function retrieveRagChunks(
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
   const serviceDomain = context?.serviceKey
-    ? SERVICE_DOMAINS[normalizeServiceKey(context.serviceKey)]
+    ? getServiceCorpusDomain(normalizeServiceKey(context.serviceKey), corpusSnapshot)
     : undefined
 
-  const vectorResults = retrieveVectorRagChunks(
-    [...queryTokens, ...personalTokens].join(' '),
-    saju,
-    Math.max(topK * 3, topK),
-  )
+  // The vector index represents the currently active registry. Keep its boost
+  // for a newly stored current snapshot, but never let it rank an older pack.
+  const usesCurrentVectorIndex = !corpusSnapshot || corpusSnapshot.fingerprint === getCorpusSnapshot().fingerprint
+  const vectorResults = usesCurrentVectorIndex ? retrieveVectorRagChunks(
+      [...queryTokens, ...personalTokens].join(' '),
+      saju,
+      Math.max(topK * 3, topK),
+    ) : []
   const vectorRank = new Map(vectorResults.map((chunk, index) => [chunk.id, Math.max(0, 8 - index)]))
 
   const scored = corpus
     .map((chunk) => ({
       chunk,
-      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds),
+      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds, corpusSnapshot),
     }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))
@@ -662,8 +657,8 @@ export function retrieveRagChunks(
   const serviceChunks = serviceDomain
     ? corpus
       .filter((chunk) => chunk.domain === serviceDomain)
-      .sort((a, b) => scoreChunk(b, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(b.id) ?? 0, pinnedIds)
-        - scoreChunk(a, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(a.id) ?? 0, pinnedIds))
+      .sort((a, b) => scoreChunk(b, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(b.id) ?? 0, pinnedIds, corpusSnapshot)
+        - scoreChunk(a, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(a.id) ?? 0, pinnedIds, corpusSnapshot))
       .slice(0, Math.min(2, topK))
     : []
 
