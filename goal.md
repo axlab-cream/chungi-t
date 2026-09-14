@@ -361,3 +361,4 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 - Audit every paid-service teaser against the saved teaser trust gate and the full report outline.
 - Ensure the middle teaser page contains a grounded verdict, representative evidence, an everyday scene and an exact full-report scope without exposing paid body copy.
 - Verify the shared teaser UI on desktop and mobile, then commit, push and deploy the verified change to `umsh.kr`.
+- Status: DONE for this teaser slice. Complete Tone V2 release remains `NO_GO` until the independent provider/full-outline/visual aggregate gates are complete.

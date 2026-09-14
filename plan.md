@@ -525,4 +525,4 @@ push 한 번에 배포가 2회 돈다(T02 리서치 F9). Actions는 CI 전용.
 5. Serve a synthetic preview through the real reader, capture current-run desktop/mobile screenshots and inspect layout, focus, copy fit and CTA clarity.
 6. Run the full verification and review gates, write/re-read CreamWIKI, then commit, push and deploy the exact verified tree.
 
-Progress: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused tests, typecheck, service-contract check and Vercel Production build PASS. Final full/staged/deploy checks remain in progress.
+Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/full tests, typecheck, service-contract check, Vercel Production build, staged scan, commit/push and live deployment verification PASS.

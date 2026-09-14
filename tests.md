@@ -612,4 +612,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [x] Shared preview renders semantic labeled blocks and a clear non-pressuring CTA without exposing report sections.
 - [x] Desktop and exact 390px mobile screenshots show no clipping, overlap or horizontal overflow; CTA is 53.75px tall.
 - [x] Focused 75/75, regression 34/34 and full serial 941/941 pass; typecheck, service contracts and `vercel build --prod` pass.
-- [ ] Staged diff and credential scans pass before commit; Production deployment becomes Ready and live smoke checks pass.
+- [x] Staged diff and credential scans pass before commit; Production deployment is Ready and live health, reader assets, teaser route and private-path smoke checks pass.

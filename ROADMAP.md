@@ -446,5 +446,5 @@ Step XX
 - [x] RED: export and score every paid-service teaser against source grounding, copy sufficiency, exact scope and safety.
 - [x] GREEN: fix shared/runtime teaser construction and presentation only where evidence fails.
 - [x] Capture and inspect the actual shared teaser surface on desktop and exact 390px mobile.
-- [x] Run focused, full, typecheck, Vercel build and direct code review; staged credential/diff guard remains before commit.
-- [x] Save/re-read CreamWIKI evidence. Commit/push, Production deploy and live verification remain in progress.
+- [x] Run focused, full, typecheck, Vercel build, direct code review and staged credential/diff guards.
+- [x] Save/re-read CreamWIKI evidence, commit/push, deploy Production and verify the live teaser route plus runtime health.
