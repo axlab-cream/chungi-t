@@ -125,6 +125,17 @@ test('브라우저는 PC와 모바일 결제 모듈을 각기 다른 방식으�
   assert.match(source, /global\.INIStdPay\.pay\(sendForm\)/)
 })
 
+test('PC 결제창 닫기는 외부 경로를 거부하고 호출한 서비스 화면으로 복귀한다', () => {
+  const paymentSource = readFileSync(new URL('../../사주/js/payment.js', import.meta.url), 'utf8')
+  const closeSource = readFileSync(new URL('../../사주/payment/close.html', import.meta.url), 'utf8')
+  assert.match(paymentSource, /target\.origin !== global\.location\.origin/)
+  assert.match(paymentSource, /safeLocalReturnPath\(returnTo\)/)
+  assert.match(paymentSource, /safeLocalReturnPath\(product\?\.returnPath\)/)
+  assert.match(paymentSource, /event\.data\?\.type !== 'umsh:payment-closed'/)
+  assert.match(closeSource, /window\.parent\.postMessage\(message, window\.location\.origin\)/)
+  assert.doesNotMatch(closeSource, /setTimeout\(\(\) => window\.close/)
+})
+
 test('PC 승인은 idc_name과 승인 URL 호스트가 일치할 때만 요청한다', async () => {
   const previous = { mid: process.env.INICIS_MID, signKey: process.env.INICIS_SIGNKEY }
   process.env.INICIS_MID = 'testmid'

@@ -1700,3 +1700,15 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 주문 저장 복구 뒤 KG이니시스가 `Verification 값이 잘못되었습니다.`를 반환했다. 공식 PC 표준결제 규격과 대조해 요청·승인 signature/verification 입력이 값 단순 연결이 아니라 순서가 고정된 NVP `key=value&...` 문자열이어야 함을 확인했다.
 - 요청과 승인(망취소 보조 포함) 해시 직렬화를 교정하고 exact-hash 회귀 테스트를 추가했다. 집중 15/15, 전체 962/962(124 suites), typecheck, Vercel build PASS.
 - 다음 단계는 검증된 트리를 Production에 배포하고 실제 결제 UI가 열리는 지점까지만 확인하는 것이다. 카드 인증·승인·과금은 실행하지 않는다.
+
+### 결제창 실행 복구 운영 확인
+
+- Commit `5d3ad22`를 GitHub `codex/tone-v2`에 push하고 Vercel Production `dpl_AtnZvZU29aaamcHB2wnoFzPMSJT3`에 배포했다. 배포는 Ready이며 `https://umsh.kr` alias가 연결됐다.
+- 운영 신규 주문은 승인 전 `ready`, `revision=0`으로 저장됐다. KG이니시스 실제 결제 UI에서 신용카드·계좌이체·무통장입금, 카드사 목록, 상품명과 금액을 확인했다.
+- 카드 인증·승인·과금은 실행하지 않았다. 새 주문 요청에는 애플리케이션 오류가 없고, 별도의 Node `url.parse()` deprecation 경고는 기존 비원인 항목이다.
+
+### 결제창 닫기 복귀 ACTIVE
+
+- 실제 닫기 재현에서 KG이니시스 iframe이 `/payment/close` 문서로 바뀌었지만 부모 결제 화면은 그대로 남았다. 원인은 닫기 문서가 iframe 자신에게만 `window.close()`를 호출하고 부모에게 상태를 전달하지 않은 것이다.
+- 닫기 문서는 동일 출처 부모 또는 opener에 `umsh:payment-closed` 메시지를 전달한다. 결제 페이지는 동일 출처 메시지만 수신하고, 외부 URL을 거부한 뒤 원래 `returnTo` 또는 상품 기본 경로로 복귀한다.
+- 집중 16/16, 전체 963/963(124 suites), typecheck, Vercel build PASS. Production 배포와 실제 닫기 복귀 확인이 남았다.

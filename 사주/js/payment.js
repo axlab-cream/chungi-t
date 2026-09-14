@@ -23,6 +23,30 @@
     if (status) status.textContent = message || '';
   }
 
+  function safeLocalReturnPath(value) {
+    if (!value) return '';
+    try {
+      const target = new URL(value, global.location.origin);
+      if (target.origin !== global.location.origin) return '';
+      return `${target.pathname}${target.search}${target.hash}`;
+    } catch {
+      return '';
+    }
+  }
+
+  function returnAfterPaymentClose() {
+    const target = safeLocalReturnPath(returnTo)
+      || safeLocalReturnPath(product?.returnPath)
+      || '/';
+    global.location.replace(target);
+  }
+
+  global.addEventListener('message', (event) => {
+    if (event.origin !== global.location.origin) return;
+    if (event.data?.type !== 'umsh:payment-closed') return;
+    returnAfterPaymentClose();
+  });
+
   function setProduct(next) {
     product = next;
     document.querySelector('[data-product-eyebrow]').textContent = next.eyebrow;
