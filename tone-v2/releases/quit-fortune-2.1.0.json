@@ -52,6 +52,7 @@
     "semanticReview": "pass_12_of_12",
     "sampleOutputIngestion": "none",
     "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "pass_48_of_48",
     "focusedTests": "pass_8_of_8",
     "fullTests": "pass_727_of_727_102_suites",
     "typecheck": "pass",

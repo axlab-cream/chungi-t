@@ -52,7 +52,7 @@
     "semanticReview": "pass_24_of_24",
     "sampleOutputIngestion": "none",
     "snapshotPinnedRag": "required",
-    "providerOutputEvaluation": "not_run_for_2.1.0",
+    "providerOutputEvaluation": "pass_24_of_24",
     "focusedTests": "8/8 pass",
     "fullTests": "847/847 pass across 117 suites",
     "typecheck": "pass",
