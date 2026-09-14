@@ -6839,6 +6839,20 @@
         if (paidReportMarkup) setupReportReader();
       }
 
+      // /cmdg/ 로 배포되는 사주/사주/index.html 은 /js/umsh-report-access.js 를 붙이지
+      // 않는다. 그래서 window.UMSHReportAccess.firstInsight 를 그대로 부르면 결과 화면
+      // 렌더가 TypeError 로 죽고, 호출부의 catch 가 고민 화면으로 되돌려 보낸다.
+      // 분석은 성공했는데 티저로 못 넘어가던 원인이 이것이다. 뷰어가 있으면 그대로 쓰고,
+      // 없으면 같은 규칙으로 첫 문장만 뽑는다.
+      function firstInsightText(text) {
+        if (window.UMSHReportAccess) return window.UMSHReportAccess.firstInsight(text);
+        const clean = String(text || "")
+          .replace(/^\s*\[[^\]]+\]\s*/, "")
+          .replace(/^\s*(?:흠|허허|잠깐)[.…\s]+/, "")
+          .trim();
+        return clean.split(/\n\s*\n|(?<=[.!?。])\s+/).find((line) => line.trim().length > 5) || clean;
+      }
+
       function renderResult() {
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
@@ -6868,7 +6882,7 @@
         const usefulGod = escapeHtml(a?.usefulGod || "분석 중");
         const personalityRaw = preview?.personality || "흠... 입력한 기운을 보니 그냥 지나칠 사주는 아니군.";
         const personality = escapeHtml(personalityRaw);
-        const personalityShort = escapeHtml(window.UMSHReportAccess.firstInsight(personalityRaw));
+        const personalityShort = escapeHtml(firstInsightText(personalityRaw));
         const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보이는군.");
         const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
         const wealthText = escapeHtml(preview?.wealthFortune || "돈의 흐름이 보이는군. 새는 곳과 모이는 곳을 먼저 짚어야 하네.");
