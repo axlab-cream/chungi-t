@@ -30,7 +30,7 @@
 
   /**
    * After analyze returns TOC, poll GET /api/report/:id until sections complete.
-   * Keeps shared UmshLoading chrome while generation continues in the background.
+   * Keeps shared UMSHLoading chrome while generation continues in the background.
    */
   async function followProgress(options) {
     var payload = options.payload;
@@ -57,8 +57,8 @@
       return payload;
     }
 
-    if (global.UmshLoading && typeof global.UmshLoading.show === 'function') {
-      global.UmshLoading.show({
+    if (global.UMSHLoading && typeof global.UMSHLoading.show === 'function') {
+      global.UMSHLoading.show({
         title: '목차는 준비됐어요',
         subtitle: progressLabel(report) + ' · 장마다 이어서 채워질 거예요',
       });
@@ -77,8 +77,8 @@
             publicUrl: next.publicUrl || (publicId ? '/r/' + publicId : undefined),
           });
           onUpdate(latest);
-          if (global.UmshLoading && typeof global.UmshLoading.show === 'function' && !reportDone(next.report)) {
-            global.UmshLoading.show({
+          if (global.UMSHLoading && typeof global.UMSHLoading.show === 'function' && !reportDone(next.report)) {
+            global.UMSHLoading.show({
               title: '해석을 이어서 준비하고 있어요',
               subtitle: progressLabel(next.report),
             });
@@ -90,8 +90,8 @@
       }
     }
 
-    if (global.UmshLoading && typeof global.UmshLoading.hide === 'function') {
-      global.UmshLoading.hide();
+    if (global.UMSHLoading && typeof global.UMSHLoading.hide === 'function') {
+      global.UMSHLoading.hide();
     }
     return latest;
   }
