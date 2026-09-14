@@ -1986,6 +1986,39 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
   }
 })
 
+/**
+ * 환불 실패 사유별 응답.
+ *
+ * 이전에는 모든 실패가 같은 문장("환불 요청을 승인하지 못했습니다.")으로 나갔고, 구분은
+ * `code` 에만 담겼는데 관리자 화면은 `error` 만 읽는다. 운영자 입장에서 자기승인 차단,
+ * 동시 수정, 이미 처리된 요청, 저장소 장애가 전부 같은 한 문장으로 보였다.
+ * 그리고 `code` 에는 PostgREST 오류 본문이 통째로 들어가 DB 내부가 브라우저까지 흘렀다.
+ */
+const REFUND_FAILURES: Record<string, { status: number; error: string }> = {
+  REFUND_SELF_APPROVAL_FORBIDDEN: { status: 403, error: '요청자는 자신의 환불 요청을 승인할 수 없습니다. 다른 관리자가 승인해야 합니다.' },
+  REFUND_REVISION_CONFLICT: { status: 409, error: '이 환불 요청이 그사이 변경되었습니다. 목록을 다시 불러온 뒤 확인해 주세요.' },
+  REFUND_ORDER_REVISION_CONFLICT: { status: 409, error: '주문이 그사이 변경되었습니다. 주문을 다시 확인한 뒤 요청해 주세요.' },
+  REFUND_NOT_REQUESTED: { status: 409, error: '이미 처리된 요청입니다. PG 결과를 먼저 조회·대사해 주세요.' },
+  REFUND_NOT_FOUND: { status: 404, error: '환불 요청을 찾지 못했습니다.' },
+  REFUND_ORDER_NOT_FOUND: { status: 404, error: '주문을 찾지 못했습니다.' },
+  REFUND_ORDER_NOT_REFUNDABLE: { status: 409, error: '결제 완료 상태의 주문만 환불을 요청할 수 있습니다.' },
+  REFUND_AMOUNT_EXCEEDS_REMAINING: { status: 409, error: '이미 잡혀 있는 환불 요청까지 더하면 주문 금액을 넘습니다.' },
+  REFUND_IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
+  IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
+  IDEMPOTENCY_IN_PROGRESS: { status: 409, error: '같은 요청이 아직 처리 중입니다. 결과를 확인한 뒤 다시 시도해 주세요.' },
+  REFUND_INPUT_INVALID: { status: 422, error: '요청 값을 확인해 주세요.' },
+  REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 저장소에 연결하지 못했습니다. 임의로 처리하지 않았습니다.' },
+}
+
+function respondRefundFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = REFUND_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  // 알 수 없는 실패는 원문을 내보내지 않는다. 서버 로그에만 남긴다.
+  console.error(fallback, raw || 'unknown')
+  res.status(503).json({ code: fallback, error: '환불 처리를 완료하지 못했습니다. 저장된 상태를 먼저 확인해 주세요.' })
+}
+
 /** Refund requests persist an intent only. T17 deliberately does not call a PG. */
 app.get('/api/admin/v1/refunds', async (req, res) => {
   if (!await requireStaff(req, res, 'refunds:read')) return
@@ -2018,7 +2051,7 @@ app.post('/api/admin/v1/orders/:orderId/refund-requests', async (req, res) => {
     if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.request', idempotencyKey, body: { orderId, amount, reason, expectedRevision }, target: { type: 'refund_request', id: orderId } }, async () => createRefundRequest({ orderId, amount, reason, actorEmail: membership.email, idempotencyKey, orderAmount: order.amount, orderRevision: expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
-  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_REQUEST_CREATE_FAILED'; res.status(code.includes('CONFLICT') || code.includes('EXCEEDS') ? 409 : 503).json({ code, error: '환불 요청을 저장하지 못했습니다.' }) }
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_REQUEST_CREATE_FAILED') }
 })
 
 app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
@@ -2028,7 +2061,7 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
-  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_APPROVE_FAILED'; res.status(code.includes('SELF') ? 403 : code.includes('CONFLICT') || code.includes('NOT_REQUESTED') ? 409 : 503).json({ code, error: '환불 요청을 승인하지 못했습니다.' }) }
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_APPROVE_FAILED') }
 })
 
 /** Live, privacy-minimized member data. The service key never reaches the browser. */
