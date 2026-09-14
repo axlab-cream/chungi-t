@@ -74,7 +74,7 @@ describe('[TASK P05] all-service corpus release evaluation', () => {
     assert.deepEqual(aggregate.evidenceCoverage.promptPersona, { passed: 20, required: 20 })
     assert.deepEqual(aggregate.evidenceCoverage.providerOutput, { passed: 6, required: 19 })
     assert.deepEqual(aggregate.evidenceCoverage.fullOutlineHumanReview, { passed: 7, required: 20 })
-    assert.deepEqual(aggregate.evidenceCoverage.visualRenderMobilePrint, { passed: 5, required: 20 })
+    assert.deepEqual(aggregate.evidenceCoverage.visualRenderMobilePrint, { passed: 6, required: 20 })
     const passAngle = aggregate.services.find((service: any) => service.serviceKey === 'pass_angle')
     assert.equal(passAngle.generation.evidencePath, 'tone-v2/evaluations/P04-pass-angle-2-1-full-outline-generation-20260913.json')
     assert.equal(passAngle.generation.evidenceSha256, hash(passAngle.generation.evidencePath))

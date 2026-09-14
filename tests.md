@@ -622,3 +622,14 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [x] Independent content review approves all 37 sections; Critical 0, Major 0, accepted editorial comments 3.
 - [x] Saved teaser passes grounded verdict, one-or-two grounds, concrete scene, exact 37-item scope and paid-body redaction.
 - [x] Focused tests pass; full serial 947/947 across 123 suites, typecheck and Vercel build pass.
+
+# Active verification — task-tone-v2-p04-saju-master-visual-render-evidence-20260914
+
+- [x] RED contract rejects a missing local actual-record server and missing visual evidence attachment.
+- [x] The QA server accepts only the immutable 37/37 isolated `saju_master` result and exposes no write route.
+- [x] Desktop and exact 390px mobile render all 37 sections without content loss or horizontal overflow.
+- [x] Direct section, unique result link, click and keyboard disclosure navigation pass.
+- [x] Complete print includes all 37 answers across 38 non-empty pages without clipping or fixed interactive chrome.
+- [x] Current-run desktop/mobile screenshots and first/middle/last print pages receive direct visual review.
+- [x] Sanitized evidence attaches to the candidate and aggregate visual coverage becomes 6/20.
+- [x] Focused 64/64 and permalink-focused 50/50 PASS; final full serial 952/952 across 123 suites; typecheck and Vercel build PASS.

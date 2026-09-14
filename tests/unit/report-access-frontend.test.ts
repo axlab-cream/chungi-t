@@ -309,6 +309,19 @@ test('an account switch removes an already displayed private result on its perma
   assert.doesNotMatch(h.nodes.get('umsh-verified-reading').innerHTML,/PRIVATE OWNER A/)
 })
 
+test('a generic permalink boots from its path identity and trusts only the server service key',async()=>{
+  const report={reportId:'fingerprint',resultId:'shared-uuid',serviceKey:'saju_master',status:'complete',title:'저장된 공용 리더',sections:[{id:'profile',status:'complete',category:'기본',classification:'현재 기준',interpretation:'서버가 반환한 저장 결과입니다.'}]}
+  const h=harness('/r/shared-uuid',[
+    {enabled:false,developmentReportAccess:true},
+    {reportId:'fingerprint',resultId:'shared-uuid',serviceKey:'saju_master',report,context:{serviceKey:'saju_master'}},
+  ])
+  await h.listeners.get('DOMContentLoaded')![0]()
+  assert.equal(h.calls[0].path,'/api/auth/config')
+  assert.equal(h.calls[1].path,'/api/report/shared-uuid')
+  assert.equal(h.location.searchParams.get('reportId'),'shared-uuid')
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/서버가 반환한 저장 결과입니다/)
+})
+
 test('an old account response arriving after logout cannot repopulate private content',async()=>{
   let release!:(value:unknown)=>void
   const waiting=new Promise(resolve=>{release=resolve})

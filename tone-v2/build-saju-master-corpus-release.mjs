@@ -10,6 +10,7 @@ const reviewPath = 'tone-v2/corpus-review/saju-master-2.1.0.json'
 const releasePath = 'tone-v2/releases/saju-master-2.1.0.json'
 const verificationPath = 'tone-v2/evaluations/P05-saju-master-corpus-rag-release-candidate-20260913.json'
 const generationEvidencePath = 'tone-v2/evaluations/P04-saju-master-full-outline-generation-20260914.json'
+const visualEvidencePath = 'tone-v2/evaluations/P04-saju-master-visual-render-evidence-20260914.json'
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'))
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
 const fileHash = (path) => sha256(readFileSync(join(root, path)))
@@ -53,6 +54,10 @@ writeJson(reviewPath, {
 const prompt = readJson('tone-v2/generated/manifest.json')
 const verification = existsSync(join(root, verificationPath)) ? readJson(verificationPath) : undefined
 const generationEvidence = existsSync(join(root, generationEvidencePath)) ? readJson(generationEvidencePath) : undefined
+const visualEvidence = readJson(visualEvidencePath)
+if (visualEvidence.status !== 'pass' || visualEvidence.serviceKey !== 'saju_master') throw new Error('saju_master visual evidence is not approved')
+if (visualEvidence.privacy.containsProviderProse || visualEvidence.privacy.containsSecrets || visualEvidence.privacy.containsPersonalData) throw new Error('saju_master tracked visual evidence is not sanitized')
+if (![visualEvidence.render.desktop.passed, visualEvidence.render.mobile.passed, visualEvidence.print.passed].every(Boolean)) throw new Error('saju_master visual evidence is incomplete')
 writeJson(releasePath, {
   schemaVersion: '1.0.0', releaseId: 'saju-master-corpus-2.1.0', serviceKey: 'saju_master', state: 'candidate', deployed: false,
   promptBundle: { version: prompt.version, sourceFingerprint: prompt.sourceFingerprint, releaseReadyAtSource: prompt.releaseReady },
@@ -64,6 +69,7 @@ writeJson(releasePath, {
     containsProviderProse: false,
   } : null,
   ...(generationEvidence ? {} : { generationEvidenceReason: 'No saju_master provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification.' }),
+  visualEvidence: { path: visualEvidencePath, sha256: fileHash(visualEvidencePath), desktop: 'pass_37_of_37', mobile: 'pass_37_of_37', print: 'pass_all_37_sections', containsProviderProse: false },
   verificationEvidence: verification ? verificationPath : null,
   attachment: { newReportsOnly: true, storedSnapshotRequired: true, customerRecordMutation: false },
   rollback: { strategy: 'registry_only', restorePath: oldPath, restoreVersion: source.version, customerRecordRewrite: false },

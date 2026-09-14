@@ -30,14 +30,22 @@
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   function canonical(value) { return ALIASES[value] || value; }
   function identity(payload) { return payload && (payload.resultId || payload.publicId || payload.reportId || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))) || ''; }
-  function locationId() { var query = new URLSearchParams(location.search); return query.get('reportId') || query.get('resultId') || ''; }
+  function isPermalink() { return /^\/r\/[^/]+\/?$/.test(location.pathname); }
+  function locationId() {
+    var query = new URLSearchParams(location.search);
+    var queryId = query.get('reportId') || query.get('resultId');
+    if (queryId) return queryId;
+    if (!isPermalink()) return '';
+    try { return decodeURIComponent(location.pathname.replace(/^\/r\//, '').replace(/\/$/, '')); }
+    catch (_) { return ''; }
+  }
   function reportUrl(id, orderId) {
     var query=new URLSearchParams();
     if(orderId) query.set('orderId',orderId);
     else if(key==='newyear_flow' && new URLSearchParams(location.search).get('preview')==='1' && new URLSearchParams(location.search).get('paid')!=='1') query.set('preview','1');
     return '/api/report/'+encodeURIComponent(id)+(query.toString()?'?'+query.toString():'');
   }
-  function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || /^\/r\//.test(location.pathname) || Boolean(locationId()); }
+  function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || isPermalink() || Boolean(locationId()); }
   function isDetailPage() { return /(?:05-step|06-step)/.test(location.pathname); }
   function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function remember(payload) {
@@ -240,7 +248,7 @@
     return response;
   }
   async function boot() {
-    if (booting || !key || !isOutputPage()) return;
+    if (booting || (!key && !isPermalink()) || !isOutputPage()) return;
     var id=locationId() || rememberedId;
     booting=true;
     panel().innerHTML='<p role="status">저장된 해석과 열람 권한을 확인하고 있습니다.</p>';
@@ -290,7 +298,7 @@
       global.addEventListener('beforeprint', expandReportForPrint);
       global.addEventListener('afterprint', restoreReportAfterPrint);
     }
-    if(key && isOutputPage() && document.documentElement && document.head) {
+    if((key || isPermalink()) && isOutputPage() && document.documentElement && document.head) {
       document.documentElement.setAttribute('data-umsh-report-check','');
       var guard=document.createElement('style');
       guard.textContent='html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';

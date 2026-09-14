@@ -28,6 +28,14 @@
     "acceptedProseSha256": "225910a7a4abdd93517d171c4165ebbf61cba8306ee50f1e98292817bff2a58a",
     "containsProviderProse": false
   },
+  "visualEvidence": {
+    "path": "tone-v2/evaluations/P04-saju-master-visual-render-evidence-20260914.json",
+    "sha256": "4338a264ec49084e710662a686c7b95c6c6d1ae5f466955806f0cce2b50b8cf5",
+    "desktop": "pass_37_of_37",
+    "mobile": "pass_37_of_37",
+    "print": "pass_all_37_sections",
+    "containsProviderProse": false
+  },
   "verificationEvidence": "tone-v2/evaluations/P05-saju-master-corpus-rag-release-candidate-20260913.json",
   "attachment": {
     "newReportsOnly": true,

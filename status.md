@@ -1655,3 +1655,23 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Vercel Production deployment `dpl_6kLaAzyA4M96C8E4WMzWnfPkBYvq` is Ready and aliased to `https://umsh.kr`; immutable URL is `https://chungi-2i6pzhinz-ax-lab-cream.vercel.app`.
 - Live smoke passed: root, health, saved-result reader, shared reader JS/CSS and admin shell return 200; internal Tone V2 source remains 404; unauthenticated admin corpus API remains 401. The first smoke used three nonexistent legacy filenames and correctly returned 404; exact current allowlisted paths then passed.
 - Ten-minute deployment error scan returned no logs. This deploy ships the runtime review/teaser safeguards and sanitized release evidence but does not declare the aggregate Tone V2 release GO.
+
+## 2026-09-14 — saju_master visual/render evidence ACTIVE
+
+- Continuous GO proceeds to the next vertical slice using the immutable complete 37-section synthetic record read-only.
+- CreamWIKI search-first completed. The reusable standard requires responsive, keyboard and visual QA evidence tied to current-run captures.
+- Product Design audit preflight found no saved plugin context; the existing verified reader, current code and immutable record are the grounding sources.
+- Scope is desktop, exact 390px mobile, disclosure/navigation/focus and complete print. Production/customer/Supabase/auth/payment/provider mutation is excluded.
+
+## 2026-09-14 — saju_master visual/render evidence DONE
+
+- The fail-closed loopback QA server accepted only the immutable synthetic 37/37 record and exposed no write route or production credential.
+- Desktop rendered 37 disclosures in a 430px reader with no horizontal overflow. Exact 390px mobile rendered all 37, one selected disclosure, zero outside content elements and no horizontal overflow.
+- Direct `section=long-report-depth` opened only that item. Enter closed and reopened it with a visible 2px focus outline.
+- Real generic `/r/{resultId}` testing found and fixed a shared-reader defect: the permalink had no service route key, so boot never ran. It now derives the immutable ID from the path and loads the server-returned service safely.
+- Print expanded 37/37 answers into 38 non-empty pages. First, middle and last rendered pages passed direct inspection with no clipping, overlap or blank output.
+- Tracked evidence contains only counts, hashes and outcomes; screenshots, PDF and provider prose stay in ignored local QA storage.
+- Focused verification passed 64/64 and permalink-focused verification passed 50/50. Final serial repository suite passed 952/952 across 123 suites; TypeScript and Vercel build passed.
+- Aggregate coverage is provider 6/19, full-outline review 7/20 and visual 6/20. Overall Tone V2 release remains `NO_GO`; no production corpus attachment or customer-record rewrite occurred.
+- Reusable memory was promoted locally at `CreamAI/memory/approved/task-tone-v2-p04-saju-master-visual-render-evidence_memory.md`; sanitized upload source is `tone-v2/kms-notes/umsh-saju-master-visual-reader-permalink-20260914.md`.
+- Remote CreamWIKI write/re-read is BLOCKED: the tunnel answers `authentication_required`, the remote CLI has no token, and direct personal-path upload is permission denied. Server-side reindex is NOT_RUN. No credential was requested or exposed.

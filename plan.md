@@ -536,3 +536,13 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 - Status: DONE. Fresh provider generation and stored-snapshot replay passed 37/37; the strengthened saved teaser contains a grounded verdict, two representative grounds, a concrete meeting-room scene and exact 37-item paid scope.
 - Aggregate: provider provenance 6/19, full-outline independent review 7/20, visual evidence 5/20; complete Tone V2 release remains `NO_GO`.
 - Next continuous slice: `task-tone-v2-p04-saju-master-visual-render-evidence-20260914` after committing and deploying this verified runtime change.
+
+# Active slice — saju_master visual/render evidence (2026-09-14)
+
+- Reuse the immutable complete 37-section isolated result read-only; make no provider, customer, Supabase, authentication or payment call.
+- Freeze a fail-closed local QA server and render the actual shared saved-result reader through the `saju_master` service route.
+- Verify all 37 disclosures, direct-section and immutable-link navigation, keyboard focus, desktop, exact 390px reflow and complete print.
+- Save screenshots/PDF only in ignored local storage; track hashes, counts and outcomes without provider prose or personal data.
+- Attach sanitized visual evidence to the reversible 2.1.0 candidate and advance the aggregate visual gate from 5/20 to 6/20 only after review passes.
+- Status: DONE. The actual shared reader renders 37/37 on desktop and exact 390px mobile, the generic permalink boots from its path identity, keyboard/direct-section navigation passes, and print expands all 37 answers across 38 non-empty pages.
+- Aggregate: provider provenance 6/19, full-outline independent review 7/20, visual evidence 6/20; complete Tone V2 release remains `NO_GO`.

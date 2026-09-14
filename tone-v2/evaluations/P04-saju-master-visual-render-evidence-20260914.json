@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-saju-master-visual-render-evidence-20260914",
+  "serviceKey": "saju_master",
+  "status": "pass",
+  "verifiedAt": "2026-09-14T02:23:13.461Z",
+  "source": {
+    "generationEvidence": "tone-v2/evaluations/P04-saju-master-full-outline-generation-20260914.json",
+    "expectedSections": 37,
+    "completedSections": 37,
+    "replayedSections": 37,
+    "isolatedSyntheticRecord": true
+  },
+  "render": {
+    "desktop": {
+      "passed": true,
+      "viewportWidth": 1329,
+      "readerWidth": 430,
+      "renderedCards": 37,
+      "openCards": 1,
+      "horizontalOverflow": false,
+      "fixedUtilityOutsideReader": 1,
+      "screenshotSha256": "90b0e61817f876d94b6fcb8dc2d015b0f94a5b29fd8991d4c8d6b9f03e2f28d4"
+    },
+    "mobile": {
+      "passed": true,
+      "viewportWidth": 390,
+      "readerWidth": 390,
+      "renderedCards": 37,
+      "openCards": 1,
+      "outsideElements": 0,
+      "horizontalOverflow": false,
+      "screenshotSha256": "43485413b613089d31cc2283156b48c3b536c9a726bd674d3d83b51f34fdab69"
+    },
+    "directSection": {
+      "passed": true,
+      "selectedSectionId": "long-report-depth",
+      "onlySelectedSectionOpen": true
+    },
+    "keyboard": {
+      "passed": true,
+      "enterCloses": true,
+      "enterReopens": true,
+      "focusVisible": true,
+      "outlineWidthPx": 2
+    },
+    "permalink": {
+      "passed": true,
+      "genericReaderBooted": true,
+      "renderedCards": 37
+    }
+  },
+  "print": {
+    "passed": true,
+    "pages": 38,
+    "nonemptyPages": 38,
+    "answerBlocks": 37,
+    "expectedSections": 37,
+    "firstMiddleLastVisualReview": "pass",
+    "pdfSha256": "8a5bbe62d26c4ea8a447b841d8a5133cd505ace41404be736236394f266ff845"
+  },
+  "privacy": {
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false
+  }
+}
