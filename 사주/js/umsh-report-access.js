@@ -252,6 +252,31 @@
     return node;
   }
 
+  /**
+   * 미리보기(무료 티저) 자리가 없는 디자인에는 만들어 넣는다.
+   *
+   * 이게 없으면 renderPreviewInPlace 의 filled 가 false 가 되고, showPreview 가
+   * panel() 로 떨어져 **등록 디자인이 통째로 사라진다**. 04 티저는 대부분
+   * headline·summary·insights·paid-value·checkout 자리에 id 가 없어서 그렇게 됐다.
+   * sections·state·progress 가 이미 같은 방식으로 자리를 만든다.
+   */
+  function ensurePreviewHost() {
+    var existing = document.getElementById('umsh-preview-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-preview-host';
+    node.className = 'umsh-preview-panel';
+    node.setAttribute('data-umsh-slot', 'preview');
+    node.setAttribute('aria-label', '내 입력으로 먼저 보는 해석');
+    // 상태 안내 바로 아래, 본문 자리보다 위. 진행률·상태는 이미 맨 위에 붙는다.
+    var after = document.getElementById('umsh-state-host') || document.getElementById('umsh-progress-host');
+    if (after && after.parentElement === host) host.insertBefore(node, after.nextSibling);
+    else host.insertBefore(node, host.firstChild);
+    return node;
+  }
+
   function slotNode(name) {
     var explicit = document.querySelector('[data-umsh-slot="' + name + '"]');
     if (usableSlotTarget(explicit)) return explicit;
@@ -269,6 +294,7 @@
     if (name === 'progress') return ensureProgressHost();
     if (name === 'sections') return ensureSectionsHost();
     if (name === 'state') return ensureStateHost();
+    if (name === 'preview') return ensurePreviewHost();
     return null;
   }
   function markFilled(node) { if (node) node.setAttribute('data-umsh-filled', ''); }
@@ -380,8 +406,27 @@
       markFilled(checkout);
       filled = true;
     }
+    // 디자인에 맞는 자리가 하나도 없으면 만들어 넣는다. 여기서 false 를 돌려주면
+    // showPreview 가 panel() 로 떨어져 등록 디자인이 사라진다 — 그 경로를 없앤다.
+    if (!filled) filled = fillSlot('preview', previewBlock(payload, insights));
     renderProgress(payload.report);
     return filled;
+  }
+  /** 자리를 만들어 넣을 때 쓰는 미리보기 본문. 디자인 슬롯을 찾은 경우에는 쓰지 않는다. */
+  function previewBlock(payload, insights) {
+    var preview = payload.preview || {};
+    var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
+    return '<h2 class="umsh-preview-headline">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h2>'
+      + (preview.summary ? '<p class="umsh-preview-summary">' + escapeHtml(preview.summary) + '</p>' : '')
+      + (insights.length
+        ? '<div class="umsh-preview-insights">' + insights.map(function (line, index) {
+            return '<article class="umsh-insight">'
+              + '<span class="umsh-insight-index" aria-hidden="true">' + ('0' + (index + 1)).slice(-2) + '</span>'
+              + '<p>' + escapeHtml(line) + '</p></article>';
+          }).join('') + '</div>'
+        : '')
+      + '<p class="umsh-preview-paid">' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(href) + '">전체 해석 목차 보기</a>';
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
   function renderReportInPlace(payload) {
@@ -578,6 +623,9 @@
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
     // 등록 디자인에 슬롯이 있으면 화면을 갈아끼우지 않고 슬롯만 채운다.
     if (renderPreviewInPlace(payload)) { if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search); return; }
+    // 옵트인한 페이지에서 여기까지 왔다면 자리조차 만들 수 없었다는 뜻이다. 그래도
+    // 디자인을 지우지는 않는다 — 사용자가 본 것은 등록 화면이고, 갈아끼우면 남의 화면이 된다.
+    if (inPlaceEnabled()) { if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search); return; }
     var preview = payload.preview || {};
     var sourceInsights = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = sourceInsights.filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
@@ -598,6 +646,7 @@
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
     if (renderReportInPlace(payload)) return;
+    if (inPlaceEnabled()) return;
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});

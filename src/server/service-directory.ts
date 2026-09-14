@@ -41,7 +41,7 @@ interface DirectorySeed {
 
 const SEEDS: DirectorySeed[] = [
   { key: 'cmdg', tagline: '내 인생, 원래 이런 팔자야?', category: '종합', href: '/cmdg/', image: '/assets/umsh-cmdg-card-bg.webp' },
-  { key: 'love_this_year', tagline: '도화가 들어오는 달과 놓치는 타이밍', category: '연애', href: '/love/this-year', image: '/assets/umsh-thisyear-card-bg.webp', reportPath: '/love/this-year/06-step-6_1-report-detail/index.html#step-6_1-report' },
+  { key: 'love_this_year', tagline: '도화가 들어오는 달과 놓치는 타이밍', category: '연애', href: '/love/this-year', image: '/love/this-year/assets/thisyear/videos/01-frontface-window-poster.webp', reportPath: '/love/this-year/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'job_choice', tagline: '관록·재백궁으로 보는 이 회사와 나의 결', category: '직업', href: '/work/job-choice', image: '/assets/umsh-jobchoice-card-bg.webp', reportPath: '/work/job-choice/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp', reportPath: '/match/cat/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'lucky_color', tagline: '채울 색과 덜어낼 색, 지니면 좋은 것까지', category: '흐름', href: '/me/lucky', image: '/assets/umsh-luckycolor-card-bg.webp', reportPath: '/me/lucky/06-step-6_1-report-detail/index.html#step-6_1-report' },
