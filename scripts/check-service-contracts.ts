@@ -7,6 +7,7 @@ import {
   type KnownServiceKey,
 } from '../src/prompt/service-system.js'
 import { SERVICE_VOICE_CONTRACTS } from '../src/prompt/service-voice-contracts.js'
+import { loadTonePersona } from '../src/prompt/tone-v2.js'
 
 const root = process.cwd()
 const manifest = JSON.parse(readFileSync(join(root, 'prompts', 'services-manifest.json'), 'utf8')) as {
@@ -55,7 +56,11 @@ for (const key of KNOWN_SERVICE_KEYS) {
   if (contract.forbiddenCustomerCopy.length < 3) failures.push(`${key}: forbiddenCustomerCopy must have at least 3 items`)
   if (bannedVisible.test(visibleText(contract))) failures.push(`${key}: contract visible guidance contains internal/customer-hostile wording`)
   const prompt = loadServiceSystemPrompt(key)
-  if (!prompt.includes(`서비스별 해석 계약 · ${contract.serviceTitle}`)) failures.push(`${key}: runtime prompt does not include voice contract`)
+  const persona = loadTonePersona(key)
+  if (!prompt.includes(persona.promise)) failures.push(`${key}: runtime prompt does not include current persona promise`)
+  for (const [name, value] of Object.entries(persona.fields)) {
+    if (name !== '대표 문장' && !prompt.includes(value)) failures.push(`${key}: runtime prompt does not include current persona field (${name})`)
+  }
 }
 
 const domains = new Set(registry.packs.filter((pack) => pack.role?.startsWith('single_service_')).map((pack) => pack.domain))

@@ -1606,3 +1606,27 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Production smoke: `/`, `/admin`, `/admin/corpus`, `/admin/prompts`, `/admin/media` all 200; `/api/health` 200 with `ok: true` and registry `tone-v2.2.0.20`; unauthenticated admin data APIs correctly return 401.
 - Post-deploy error scan: no error logs found for the deployment in the first ten minutes.
 - Task status: DONE.
+
+# 2026-09-13 — All-service final PDF
+
+- `task-tone-v2-all-service-final-pdf-20260913` DONE after the user requested a Desktop folder containing the workflow-derived final artifact.
+- Exported 20 services and 730 customer-facing interpretation sections: five actual provider-verified records, one actual deterministic saved result and fourteen production-equivalent synthetic QA builds.
+- Generated `C:\Users\user\Desktop\운명상회-최종\운명상회-전체서비스-최종산출물.pdf`: 328 A4 pages, 20 service bookmarks, 1,584,133 bytes, no blank pages.
+- Visual inspection passed for cover, TOC, service overview, deterministic opening, mid-document synthetic QA, provider-verified final service and closure page.
+- Privacy scan found no submitted account email/password, provider attempts, raw provider prose, token usage or generated-by metadata.
+- Release truthfulness remains `NO_GO`: fourteen services are explicitly labeled production-template QA until provider/full-outline/visual evidence is attached.
+- Artifact SHA-256: `D86D07585BB6061CBB34AF6183B3BB91624A09159071B6940CA0DB00456C679E`.
+- CreamWIKI tunnel was available, but `/api/v1/kms/me` returned `authentication_required`; remote search, write and reindex are BLOCKED for this Task. Sanitized local KMS and memory-candidate files were saved instead.
+
+# 2026-09-14 — All-service teaser release
+
+- `task-tone-v2-all-service-teaser-release-20260914` ACTIVE after explicit user authorization to resolve the remaining release work, evaluate the middle teaser page, apply fixes, commit and deploy.
+- Scope is the 19 paid-service teaser path; Today Fortune is a free complete-result service and is tracked as not applicable rather than given a fake paid teaser.
+- CreamWIKI search-first PASS. Reused `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`: freeze a grounded teaser before paid-body redaction, require one verdict, one or two grounds, a scene and concrete full-report scope, and block operations copy, pressure and certain-event claims.
+- Product Design audit uses the existing production reader and current-run synthetic screenshots. Project-local design skill registries are absent, so the installed audit framework plus the existing verified-reader design is the documented fallback.
+- RED audit found 8/19 passing and 11/19 missing a grounded everyday scene or being blocked by an over-broad permission word match. GREEN audit now passes 19/19 using current production-equivalent report builders.
+- The shared teaser now renders one verdict, one or two representative grounds, an exact full-report scope and a non-pressuring CTA. Empty `signals` correctly falls back to `insights`.
+- Current-run visual QA passed on desktop and exact 390px mobile: zero horizontal overflow, two evidence rows and a 53.75px CTA target. The fixture was loopback-only synthetic data; payment and customer records were not touched.
+- Focused 75/75, post-fix regression 34/34 and final full serial 941/941 pass. TypeScript, Vercel Production build and the active 20-service persona/prompt/corpus contract pass. The first full run exposed one over-broad purchase-word false positive; it was fixed, covered and cleared by the full rerun.
+- Review: `tone-v2/reviews/P04-all-service-teaser-release-20260914.md`. Evidence: `tone-v2/evaluations/P04-all-service-teaser-evidence-20260914.json`.
+- Sanitized CreamWIKI writeback and re-read PASS at `personal/carrotcap/notes/umsh-all-service-teaser-release-20260914.md`; no credential, customer or provider prose was stored.

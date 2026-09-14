@@ -122,9 +122,14 @@
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
     var preview = payload.preview || {};
-    var insights = (preview.signals || preview.insights || []).filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
+    var sourceInsights = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
+    var insights = sourceInsights.filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
     var node = panel();
-    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 내 입력으로 먼저 보는 해석</span><h1 style="font-size:26px">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p>' + escapeHtml(preview.summary || '') + '</p>' + insights.map(function(line){return '<p>' + escapeHtml(line) + '</p>';}).join('') + '<hr><h2 style="font-size:20px">전체 풀이에서 더 확인할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p><a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p style="font-size:13px">현재 미리보기는 결제 전 확인할 수 있는 범위입니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
+    node.innerHTML = navigation()
+      + '<header class="preview-heading"><span class="preview-eyebrow">운명상회 · 내 입력으로 먼저 보는 해석</span><h1>' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p class="preview-summary">' + escapeHtml(preview.summary || '') + '</p></header>'
+      + '<section class="preview-evidence" aria-labelledby="preview-evidence-title"><span class="reading-role">대표 근거</span><h2 id="preview-evidence-title">지금 먼저 확인할 장면</h2><div class="preview-evidence-list">' + insights.map(function(line,index){return '<article><span aria-hidden="true">0'+(index+1)+'</span><p>' + escapeHtml(line) + '</p></article>';}).join('') + '</div></section>'
+      + '<section class="preview-scope" aria-labelledby="preview-scope-title"><span class="reading-role">전체 해석 범위</span><h2 id="preview-scope-title">이어서 비교할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p></section>'
+      + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
     if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search);
   }
   function showReport(payload) {

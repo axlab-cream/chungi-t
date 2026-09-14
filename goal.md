@@ -349,3 +349,15 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 - Commit the accumulated verified Tone V2 implementation and ProjectOps evidence.
 - Push the `codex/tone-v2` branch to the canonical GitHub repository.
 - Deploy the linked `ax-lab-cream/chungi-t` Vercel project to Production and verify `umsh.kr`.
+
+# Active Task — task-tone-v2-all-service-final-pdf-20260913
+
+- Export one privacy-safe final PDF containing the current interpreted output for all 20 services.
+- Keep provider-verified, deterministic-verified and production-template QA evidence visibly distinct.
+- Save the rendered and verified artifact under `C:\Users\user\Desktop\운명상회-최종`.
+
+# Active Task — task-tone-v2-all-service-teaser-release-20260914
+
+- Audit every paid-service teaser against the saved teaser trust gate and the full report outline.
+- Ensure the middle teaser page contains a grounded verdict, representative evidence, an everyday scene and an exact full-report scope without exposing paid body copy.
+- Verify the shared teaser UI on desktop and mobile, then commit, push and deploy the verified change to `umsh.kr`.

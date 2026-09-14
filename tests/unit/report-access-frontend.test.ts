@@ -509,6 +509,18 @@ test('preview CTA names the result the reader will open',()=>{
   assert.doesNotMatch(html,/전체 해석 열어보기/)
 })
 
+test('preview separates verdict, representative evidence and exact full-report scope',()=>{
+  const h=harness('/work/move/04-step-4-report/index.html',[])
+  h.api.showPreview({preview:{headline:'지금은 제안 조건을 비교할 때입니다.',summary:'역할 범위와 통근 조건이 함께 확인됐습니다.',insights:['예를 들어 출근길 이동 시간을 기록해 보세요.'],signals:[],paidValue:'전체 해석에서는 10개 항목의 조건을 비교합니다.'},paymentUrl:'/payment'}, {})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/class="preview-heading"/)
+  assert.match(html,/id="preview-evidence-title">지금 먼저 확인할 장면/)
+  assert.match(html,/예를 들어 출근길 이동 시간을 기록/)
+  assert.match(html,/id="preview-scope-title">이어서 비교할 내용/)
+  assert.match(html,/10개 항목/)
+  assert.doesNotMatch(html,/전체 본문.*10개 항목.*예를 들어 출근길/s)
+})
+
 test('reader auth events replace refreshed credentials and clear content immediately on logout',async()=>{
   const report={reportId:'report',report:{title:'OWNER_READING',sections:[{id:'a',status:'complete',category:'장',classification:'항목',interpretation:'PRIVATE_READING'}]}}
   const h=harness('/me/lucky/04-step-4-report/index.html?reportId=report',[{enabled:true,url:'https://unused.invalid',publishableKey:'synthetic'},report,{}])

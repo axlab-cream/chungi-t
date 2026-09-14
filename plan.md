@@ -506,3 +506,23 @@ push 한 번에 배포가 2회 돈다(T02 리서치 F9). Actions는 CI 전용.
 3. Commit and push the feature branch to `https://github.com/axlab-cream/chungi-t.git`.
 4. Deploy the already-linked `ax-lab-cream/chungi-t` project to Production.
 5. Verify deployment readiness and the `umsh.kr` production routes, then record the result.
+
+# Active Task — task-tone-v2-all-service-final-pdf-20260913
+
+1. Freeze the 20-service export order and source provenance.
+2. Reuse five provider-verified full-outline records and one deterministic saved record.
+3. Generate the remaining fourteen outputs through current production-equivalent builders with synthetic inputs only.
+4. Sanitize to customer-facing hook and interpretation fields; exclude attempts, rejected raw prose, secrets and personal data.
+5. Build one navigable Korean PDF with release caveats, exact evidence labels and all service sections.
+6. Render representative pages, inspect them visually, parse the whole PDF and verify all 20 services.
+
+# Active Task — task-tone-v2-all-service-teaser-release-20260914
+
+1. Reuse the CreamWIKI teaser trust gate and inspect the shared preview renderer, report builders and 20-service route inventory.
+2. Build a deterministic audit over all 19 paid-service teasers; treat Today Fortune as a free full-result service, not a paid teaser.
+3. Require an input-specific verdict, one or two representative grounds, a recognizable scene, exact section-count scope, no duplicate copy and no safety/operations leakage.
+4. Improve the shared teaser renderer and preview composition with the smallest compatible change; preserve paid-section redaction and ownership checks.
+5. Serve a synthetic preview through the real reader, capture current-run desktop/mobile screenshots and inspect layout, focus, copy fit and CTA clarity.
+6. Run the full verification and review gates, write/re-read CreamWIKI, then commit, push and deploy the exact verified tree.
+
+Progress: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused tests, typecheck, service-contract check and Vercel Production build PASS. Final full/staged/deploy checks remain in progress.

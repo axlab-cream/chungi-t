@@ -99,6 +99,68 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     assert.equal(reviewTeaser({ preview, sourceEvidence: sections.flatMap(section => [section.hook, section.interpretation]).join('\n') }).passed, true)
   })
 
+  it('pulls a grounded everyday scene from later report paragraphs without exposing the full paid body', () => {
+    const sections = [
+      {
+        id: 'role-fit', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '직장 선택', categoryEn: '',
+        classification: '전체 핏', hook: '지금은 제안 조건을 비교할 때입니다.', patternKeys: [], ragTopics: [],
+        interpretation: '[주요 포인트] 맡을 일과 결정 권한, 생활 조건을 함께 비교합니다.\n\n[확인할 장면] 예를 들어 출근길에 이동 시간을 기록하고 회의에서 맡을 결정 범위를 질문해 보세요.\n\n[다음 행동] 계약서의 역할과 보상 조건을 같은 표에 적어 비교하세요.',
+        generatedBy: 'template' as const, status: 'complete' as const,
+      },
+      {
+        id: 'commute', order: 2, imageKey: '', imageSrc: '', imageAlt: '', category: '생활 조건', categoryEn: '',
+        classification: '통근', hook: '통근 시간을 생활비처럼 계산해 봅니다.', patternKeys: [], ragTopics: [],
+        interpretation: '[주요 포인트] 이동 시간은 제안의 실제 비용입니다.\n\n[다음 행동] 일주일 이동 시간을 합쳐 비교하세요.',
+        generatedBy: 'template' as const, status: 'complete' as const,
+      },
+    ]
+    const report: SajuReport = { title: '직장 선택', subtitle: '', model: 'template', generatedBy: 'template', sections }
+    const preview = createSavedPreview(report, { serviceKey: 'job_choice' })
+    assert.match([preview.summary, ...preview.insights].join(' '), /출근길|회의/)
+    assert.ok(preview.insights.length >= 1 && preview.insights.length <= 2)
+    assert.equal(reviewTeaser({ preview, sourceEvidence: sections.flatMap(section => [section.hook, section.interpretation]).join('\n') }).passed, true)
+  })
+
+  it('does not confuse a job decision authority with an access-control permission', () => {
+    const preview = {
+      title: '직장 선택',
+      headline: '지금은 제안 조건을 비교할 때입니다.',
+      summary: '맡을 일과 결정 권한, 감당할 생활 조건이 함께 맞는지 봅니다.',
+      insights: ['예를 들어 회의에서 내가 맡을 결정 범위를 질문해 보세요.'],
+      signals: ['예를 들어 회의에서 내가 맡을 결정 범위를 질문해 보세요.'],
+      paidValue: '전체 해석에서는 역할과 보상 조건을 2개 항목으로 비교합니다.',
+    }
+    assert.equal(reviewTeaser({ preview, sourceEvidence: preview.headline }).passed, true)
+    const access = { ...preview, summary: '로그인 뒤 열람 권한 상태를 확인하면 본문을 볼 수 있습니다.' }
+    assert.ok(reviewTeaser({ preview: access, sourceEvidence: access.headline }).issues.some(issue => issue.includes('결제·권한 안내')))
+  })
+
+  it('allows ordinary purchase planning while still blocking payment-state copy', () => {
+    const preview = {
+      title: '오늘의 운세',
+      headline: '오늘은 쓰임과 예산을 함께 봅니다.',
+      summary: '구매할 일이 있다면 실제로 쓸 횟수와 가격을 함께 확인해 보세요.',
+      insights: ['결제일이 가까우면 금액을 확인하고 남은 예산 안에서 결정해 보세요.'],
+      signals: ['결제일이 가까우면 금액을 확인하고 남은 예산 안에서 결정해 보세요.'],
+      paidValue: '전체 해석에서는 돈과 생활 리듬을 2개 항목으로 비교합니다.',
+    }
+    assert.equal(reviewTeaser({ preview, sourceEvidence: preview.headline }).issues.includes('티저 해석을 결제·권한 안내로 대신하지 마세요.'), false)
+    const operations = { ...preview, summary: '결제 상태 완료 뒤에만 전체 본문을 확인할 수 있습니다.' }
+    assert.ok(reviewTeaser({ preview: operations, sourceEvidence: operations.headline }).issues.some(issue => issue.includes('결제·권한 안내')))
+  })
+
+  it('recognizes a cat-care routine as an everyday teaser scene', () => {
+    const preview = {
+      title: '반려묘 생활 궁합',
+      headline: '돌봄 부담을 실제 루틴으로 확인해 봅니다.',
+      summary: '보호자의 성향만으로 돌봄 능력을 단정하지 않습니다.',
+      insights: ['밥·청소·놀이 중 실제로 부담인 일이 있는지 살펴보세요.'],
+      signals: ['밥·청소·놀이 중 실제로 부담인 일이 있는지 살펴보세요.'],
+      paidValue: '전체 해석에서는 돌봄과 생활 리듬을 50개 항목으로 확인합니다.',
+    }
+    assert.equal(reviewTeaser({ preview, sourceEvidence: preview.headline }).passed, true)
+  })
+
   it('explains original terms once without nested definitions or ordinary 인성 expansion', () => {
     const text = explainFirstTerms('원국은 명식의 기본입니다. 십성은 관계를 봅니다. 일간(태어난 날의 첫 글자)은 기준입니다. 인성검사와 상사의 인성이 나쁘다는 판단은 다릅니다.')
     assert.doesNotMatch(text, /\([^)]*\(/)

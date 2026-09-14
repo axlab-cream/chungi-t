@@ -595,3 +595,21 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [x] `umsh.kr` production route smoke verification — root/admin/corpus/prompts/media 200; health 200/ok; protected admin APIs 401
 - [x] RED: `vercel build --prod` rejects array-valued `functions.api/index.ts.includeFiles`
 - [x] GREEN: string-glob contract passes focused test 60/60 and production build
+
+# Active verification — task-tone-v2-all-service-final-pdf-20260913
+
+- [x] Export has exactly 20 unique service keys and 730 interpreted sections.
+- [x] Every service has one or more unique, non-empty interpreted sections.
+- [x] Export omits provider attempts, rejected raw prose, credentials and customer PII.
+- [x] PDF text contains all 20 service titles; 328 pages contain no blank page.
+- [x] PDF has 20 bookmarks, valid metadata and SHA-256 `D86D07585BB6061CBB34AF6183B3BB91624A09159071B6940CA0DB00456C679E`.
+- [x] Cover, index, first result, representative middle/provider chapters and final page passed visual inspection.
+
+# Active verification — task-tone-v2-all-service-teaser-release-20260914
+
+- [x] 19/19 paid-service teasers pass source grounding, verdict, evidence, scene, exact paid scope and safety checks.
+- [x] Today Fortune is explicitly excluded because its free result is complete and has no paid teaser gate.
+- [x] Shared preview renders semantic labeled blocks and a clear non-pressuring CTA without exposing report sections.
+- [x] Desktop and exact 390px mobile screenshots show no clipping, overlap or horizontal overflow; CTA is 53.75px tall.
+- [x] Focused 75/75, regression 34/34 and full serial 941/941 pass; typecheck, service contracts and `vercel build --prod` pass.
+- [ ] Staged diff and credential scans pass before commit; Production deployment becomes Ready and live smoke checks pass.

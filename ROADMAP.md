@@ -432,3 +432,19 @@ Step XX
 - [x] Commit and push `codex/tone-v2`.
 - [x] Deploy to Vercel Production and verify the live domain.
 - [x] Record the immutable deployment result and close ProjectOps.
+
+## task-tone-v2-all-service-final-pdf-20260913
+
+- [x] Export all 20 service results from actual verified records or production-equivalent synthetic QA builders.
+- [x] Generate one Korean master PDF with evidence labels, service index and every interpretation section.
+- [x] Verify page rendering, text coverage, privacy boundary and file integrity.
+- [x] Save the reusable export workflow and close ProjectOps/KMS history.
+
+## task-tone-v2-all-service-teaser-release-20260914
+
+- [x] Confirm the user-authorized continuous scope: all-service teaser audit, implementation, commit and Production deploy; payment remains paused.
+- [x] RED: export and score every paid-service teaser against source grounding, copy sufficiency, exact scope and safety.
+- [x] GREEN: fix shared/runtime teaser construction and presentation only where evidence fails.
+- [x] Capture and inspect the actual shared teaser surface on desktop and exact 390px mobile.
+- [x] Run focused, full, typecheck, Vercel build and direct code review; staged credential/diff guard remains before commit.
+- [x] Save/re-read CreamWIKI evidence. Commit/push, Production deploy and live verification remain in progress.
