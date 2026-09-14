@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { configuredEnv } from '../env/load.js'
-import { listAdminServiceDirectory } from '../server/service-directory.js'
+import { listAdminServiceDirectory, listServiceDirectory, type ServiceDirectoryEntry } from '../server/service-directory.js'
 
 type Row = Record<string, unknown>
 
@@ -336,4 +336,112 @@ export async function getPublishedServiceConfig(serviceKey: string): Promise<Ser
   if (!canUseVersionTestStore()) throw new Error('SERVICE_VERSION_STORE_UNAVAILABLE')
   const found = Array.from(testVersions.values()).find((item) => item.serviceKey === serviceKey && item.state === 'published')
   return found ? { ...found } : null
+}
+
+/* ── 고객 읽기 어댑터 ────────────────────────────────────────────────────────
+ *
+ * 검색 목록이 게시된 개정을 반영한다. 지키는 것:
+ *
+ *   1. **가격은 절대 개정에서 오지 않는다.** 언제나 배포된 카탈로그가 권한이다.
+ *      유료 가격 변경은 결제 게이트를 거치는 별도 경로이고, 이미 만들어진 주문은
+ *      어떤 경우에도 바뀌지 않는다.
+ *   2. 저장소를 못 읽거나 게시본이 없으면 **배포된 카탈로그를 그대로** 내보낸다.
+ *      임의의 대체 내용을 만들지 않는다 — 없는 서비스도, 빈 목록도 아니다.
+ *   3. 노출 여부만 목록에 영향을 준다. 목록에서 빠져도 이미 만들어진 해석의
+ *      열람과 재진입 경로(`serviceHrefForKey`)는 그대로다.
+ */
+
+export interface CustomerServiceEntry extends ServiceDirectoryEntry {
+  /** 게시본이 준 설명. 없으면 생략한다. */
+  summary?: string
+  /** 이 항목이 게시된 개정에서 왔는지. 운영 확인용이며 고객 화면 판단에는 쓰지 않는다. */
+  publishedVersion?: number
+}
+
+export interface CustomerServiceDirectory {
+  services: CustomerServiceEntry[]
+  /** 'published' = 개정이 적용됨, 'catalog' = 배포된 카탈로그 그대로. */
+  source: 'published' | 'catalog'
+}
+
+async function loadPublishedRows(): Promise<Row[]> {
+  const request = new URL(storeUrl())
+  request.searchParams.set('select', 'service_key,version,payload,state')
+  request.searchParams.set('state', 'eq.published')
+  request.searchParams.set('limit', '200')
+  const response = await fetch(request, { headers: headers() })
+  if (!response.ok) throw new Error('SERVICE_VERSION_LOOKUP_FAILED')
+  return await response.json() as Row[]
+}
+
+/**
+ * 게시본 payload 중 고객 목록에 반영해도 되는 항목만 꺼낸다.
+ *
+ * 저장된 행을 그대로 믿지 않는다 — 스키마가 조여지기 전에 들어간 행이나 손으로 고친 행이
+ * 있으면 고객 목록에 `undefined` 가 제목으로 뜬다. 형태가 맞지 않으면 그 서비스는
+ * 개정이 없는 것으로 보고 배포된 카탈로그 값을 쓴다.
+ */
+export function publishedServiceOverride(row: Row): { version: number; payload: ServiceConfigPayload } | null {
+  const version = validVersion(row.version)
+  const payload = row.payload
+  if (version === null || !payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+  const value = payload as Partial<ServiceConfigPayload>
+  if (typeof value.title !== 'string' || typeof value.tagline !== 'string'
+    || typeof value.summary !== 'string' || typeof value.category !== 'string'
+    || typeof value.discoveryVisible !== 'boolean') return null
+  return { version, payload: value as ServiceConfigPayload }
+}
+
+export async function listCustomerServiceDirectory(): Promise<CustomerServiceDirectory> {
+  const base = listServiceDirectory()
+  const overrides = new Map<string, { version: number; payload: ServiceConfigPayload }>()
+
+  if (serviceVersionStoreAvailable()) {
+    let rows: Row[]
+    try {
+      rows = await loadPublishedRows()
+    } catch {
+      // 저장소 장애가 고객 목록을 비우면 안 된다. 배포된 카탈로그로 떨어진다.
+      return { services: base, source: 'catalog' }
+    }
+    for (const row of rows) {
+      if (typeof row.service_key !== 'string') continue
+      const override = publishedServiceOverride(row)
+      if (override) overrides.set(row.service_key, override)
+    }
+  } else if (canUseVersionTestStore()) {
+    for (const item of testVersions.values()) {
+      if (item.state !== 'published') continue
+      const override = publishedServiceOverride({ service_key: item.serviceKey, version: item.version, payload: item.payload })
+      if (override) overrides.set(item.serviceKey, override)
+    }
+  } else {
+    return { services: base, source: 'catalog' }
+  }
+  if (overrides.size === 0) return { services: base, source: 'catalog' }
+
+  // 카탈로그에 실재하는 서비스만 대상이다. 게시본이 없는 서비스는 배포된 값 그대로 남는다.
+  const services: CustomerServiceEntry[] = []
+  for (const service of listAdminServiceDirectory()) {
+    const override = overrides.get(service.key)
+    const listed = base.find((item) => item.key === service.key)
+    if (!override) {
+      if (listed) services.push(listed)
+      continue
+    }
+    if (!override.payload.discoveryVisible) continue
+    services.push({
+      key: service.key,
+      title: override.payload.title,
+      tagline: override.payload.tagline,
+      category: override.payload.category,
+      href: service.href,
+      image: service.image,
+      // 가격은 언제나 배포된 카탈로그에서 온다. 개정의 amount 는 여기 오지 않는다.
+      amount: service.amount,
+      summary: override.payload.summary,
+      publishedVersion: override.version,
+    })
+  }
+  return { services, source: 'published' }
 }

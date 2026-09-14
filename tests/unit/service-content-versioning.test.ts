@@ -7,6 +7,8 @@ import test from 'node:test'
 import {
   NEW_SERVICE_DRAFT_REVISION,
   getPublishedServiceConfig,
+  listCustomerServiceDirectory,
+  publishedServiceOverride,
   normalizeServiceConfigPayload,
   publishServiceConfigVersion,
   resetServiceVersionStoreForTests,
@@ -14,7 +16,7 @@ import {
   serviceConfigChecksum,
 } from '../../src/admin/service-version-store.js'
 import { getPaymentProduct } from '../../src/payment/catalog.js'
-import { listServiceDirectory } from '../../src/server/service-directory.js'
+import { listServiceDirectory, serviceHrefForKey } from '../../src/server/service-directory.js'
 
 /**
  * T22 — 운영자가 고친 서비스 문안이 고객에게 닿는 경로.
@@ -190,4 +192,89 @@ test('9. 라우트는 감사 명령을 거치고 실패 사유를 구분한다',
   const staff = readFileSync(join(ROOT, 'src/auth/staff.ts'), 'utf8')
   assert.match(staff, /'services:write'/)
   assert.match(staff, /'services:publish'/)
+})
+
+test('10. 고객 목록은 게시본을 반영하되 가격은 카탈로그에서만 온다', async () => {
+  const catalogAmount = getPaymentProduct(SERVICE)?.amount
+  assert.ok(catalogAmount && catalogAmount > 0)
+
+  // 게시본이 하나도 없으면 배포된 카탈로그 그대로다.
+  const before = await listCustomerServiceDirectory()
+  assert.equal(before.source, 'catalog')
+  assert.deepEqual(before.services.map((item) => item.key), listServiceDirectory().map((item) => item.key))
+
+  const draft = await saveServiceConfigDraft({
+    serviceKey: SERVICE,
+    payload: { ...DRAFT, title: '게시된 제목', tagline: '게시된 한 줄', amount: catalogAmount + 10000 },
+    authorEmail: 'a@example.com', expectedRevision: NEW_SERVICE_DRAFT_REVISION,
+  })
+  await publishServiceConfigVersion({ serviceKey: SERVICE, version: draft.version, checksum: draft.checksum, authorEmail: 'b@example.com', expectedRevision: draft.revision })
+
+  const after = await listCustomerServiceDirectory()
+  assert.equal(after.source, 'published')
+  const entry = after.services.find((item) => item.key === SERVICE)
+  assert.ok(entry, '게시된 서비스가 목록에서 사라졌다')
+  assert.equal(entry.title, '게시된 제목')
+  assert.equal(entry.tagline, '게시된 한 줄')
+  assert.equal(entry.summary, DRAFT.summary)
+  assert.equal(
+    entry.amount, catalogAmount,
+    '게시본의 가격이 고객 목록에 반영됐다. 가격 권한은 배포된 카탈로그에 있어야 한다.',
+  )
+
+  // 게시본이 없는 서비스는 배포된 값 그대로 남는다.
+  const untouched = listServiceDirectory().filter((item) => item.key !== SERVICE)
+  for (const item of untouched) {
+    const found = after.services.find((entryItem) => entryItem.key === item.key)
+    assert.ok(found, `${item.key} 가 목록에서 사라졌다`)
+    assert.equal(found.title, item.title)
+    assert.equal(found.amount, item.amount)
+  }
+})
+
+test('11. 노출을 끄면 목록에서만 빠지고 재진입 경로는 남는다', async () => {
+  const draft = await saveServiceConfigDraft({
+    serviceKey: SERVICE, payload: { ...DRAFT, discoveryVisible: false },
+    authorEmail: 'a@example.com', expectedRevision: NEW_SERVICE_DRAFT_REVISION,
+  })
+  await publishServiceConfigVersion({ serviceKey: SERVICE, version: draft.version, checksum: draft.checksum, authorEmail: 'b@example.com', expectedRevision: draft.revision })
+
+  const directory = await listCustomerServiceDirectory()
+  assert.equal(directory.services.find((item) => item.key === SERVICE), undefined, '노출을 껐는데 목록에 남아 있다')
+  assert.ok(directory.services.length > 0, '한 서비스를 감췄다고 목록이 비면 안 된다')
+  assert.ok(
+    serviceHrefForKey(SERVICE),
+    '목록에서 빠져도 이미 만들어진 해석의 재진입 경로는 남아야 한다.',
+  )
+})
+
+test('12. 저장소를 못 읽어도 목록이 비지 않는다', () => {
+  const store = readFileSync(join(ROOT, 'src/admin/service-version-store.ts'), 'utf8')
+  const adapter = store.slice(store.indexOf('export async function listCustomerServiceDirectory'))
+  assert.match(adapter, /catch\s*\{[\s\S]{0,200}?source: 'catalog'/, '조회 실패 시 배포된 카탈로그로 떨어져야 한다')
+  assert.match(adapter, /\} else \{\s*return \{ services: base, source: 'catalog' \}/, '저장소도 테스트 저장소도 없으면 카탈로그를 준다')
+  assert.ok(!/services: \[\]/.test(adapter), '빈 목록을 반환하는 경로가 있으면 안 된다')
+
+  const app = readFileSync(join(ROOT, 'src/server/app.ts'), 'utf8')
+  const route = app.slice(app.indexOf("app.get('/api/services'"), app.indexOf("app.get('/api/user/reports'"))
+  assert.match(route, /catch[\s\S]{0,240}listServiceDirectory\(\)/, '라우트에도 카탈로그 폴백이 있어야 한다')
+})
+
+test('13. 형태가 깨진 게시 행은 고객 목록에 반영하지 않는다', () => {
+  const good = { service_key: SERVICE, version: 3, payload: DRAFT }
+  assert.equal(publishedServiceOverride(good)?.version, 3)
+
+  // 스키마가 조여지기 전에 들어갔거나 손으로 고친 행. 그대로 믿으면 제목이 undefined 로 뜬다.
+  for (const broken of [
+    { ...good, payload: { ...DRAFT, title: undefined } },
+    { ...good, payload: { ...DRAFT, discoveryVisible: 'true' } },
+    { ...good, payload: { ...DRAFT, summary: 42 } },
+    { ...good, payload: null },
+    { ...good, payload: [] },
+    { ...good, payload: 'text' },
+    { ...good, version: 0 },
+    { ...good, version: 'three' },
+  ]) {
+    assert.equal(publishedServiceOverride(broken), null, `형태가 깨진 행을 통과시켰다: ${JSON.stringify(broken).slice(0, 80)}`)
+  }
 })

@@ -47,6 +47,7 @@ import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STA
 import {
   NEW_SERVICE_DRAFT_REVISION,
   getAdminServiceVersionSnapshot,
+  listCustomerServiceDirectory,
   publishServiceConfigVersion,
   saveServiceConfigDraft,
 } from '../admin/service-version-store.js'
@@ -2799,9 +2800,20 @@ async function saveUserProfileHandler(req: Request, res: Response) {
 app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
 
-/** The 검색 page lists every service from here, so price and title stay in one place. */
-app.get('/api/services', (_req, res) => {
-  res.json({ services: listServiceDirectory() })
+/**
+ * The 검색 page lists every service from here, so price and title stay in one place.
+ *
+ * 게시된 개정이 있으면 제목·한 줄 소개·설명·노출 여부가 반영된다. 가격은 반영되지 않는다 —
+ * 언제나 배포된 카탈로그가 권한이다. 버전 저장소를 못 읽으면 배포된 카탈로그를 그대로 준다.
+ */
+app.get('/api/services', async (_req, res) => {
+  try {
+    const directory = await listCustomerServiceDirectory()
+    res.json({ services: directory.services, source: directory.source })
+  } catch {
+    // 이 목록이 비면 검색 화면이 통째로 빈다. 어떤 실패에서도 배포된 카탈로그로 떨어진다.
+    res.json({ services: listServiceDirectory(), source: 'catalog' })
+  }
 })
 
 app.get('/api/user/reports', async (req, res) => {

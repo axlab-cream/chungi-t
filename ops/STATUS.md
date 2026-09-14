@@ -1,6 +1,6 @@
 # 운명상회 작업 트래커
 
-최종 갱신: 2026-09-14 · 갱신 주체: Cowork 세션 · 현재 트랙: **T-6b**
+최종 갱신: 2026-09-14 · 갱신 주체: Cowork 세션 · 현재 트랙: **T-7 (운영자 실행 대기)**
 규칙: **한 번에 한 트랙.** 완료분은 체크만 하고 다음 트랙으로 넘어간다.
 
 ---
@@ -174,15 +174,63 @@ admin-shell 기준선과 동일
 
 ---
 
+### T-6b. 관리자 T22 — 콘텐츠 버전 쓰기 경로 ✅
+
+스키마·권한·읽기 스토어는 이미 있었고 **쓰기 경로가 전혀 없었다.** draft 저장과 publish 를
+붙이면서 세 가지를 막았다.
+
+- [x] **없는 서비스를 만들거나 키를 바꾸는 것** — 정식 키는 경로에서만 오고 payload 의
+      `serviceKey`·`key` 는 정규화에서 버린다. 카탈로그에 없는 키는 404
+- [x] **나중 저장이 앞선 저장을 덮는 것** — draft·publish 모두 revision CAS
+- [x] **검토한 것과 다른 게 게시되는 것** — publish 는 호출자가 보낸 checksum 이 저장된
+      draft 와 같을 때만 통과
+- [x] 게시는 **가격을 건드리지 않는다** — `getPaymentProduct`·서비스 목록 불변을 테스트로 고정
+- [x] 행을 지우지 않는다 — 이전 게시본은 `archived` 로 남고, 서비스당 published 는 하나
+- [x] RPC 2개 (`security definer` + 고정 `search_path`, service_role 전용)
+- [x] 라우트 2개 — `services:write` / `services:publish`, 감사 명령·멱등 키 경유
+- [x] 사유별 실패 문장 9종 (T18 에서 만든 방식 그대로)
+
+검증: 타입체크 통과 · 신규 9/9 · 뮤테이션 12/12 감지 · admin-shell 기준선 동일
+(scope 목록을 고정한 기존 테스트는 새 scope 2개를 반영해 갱신)
+
+### T-6c. 관리자 T22 — 고객 읽기 어댑터 ✅
+
+`GET /api/services`(검색 목록)가 게시된 개정을 반영한다.
+
+- [x] 제목·한 줄 소개·설명·노출 여부만 반영. **가격은 언제나 배포된 카탈로그**
+- [x] 저장소 없음·조회 실패·게시본 없음 → 배포된 카탈로그 그대로. 빈 목록이 되는 경로 없음
+- [x] 라우트에도 폴백 한 겹 더 (목록이 비면 검색 화면이 통째로 빈다)
+- [x] 노출을 꺼도 `serviceHrefForKey` 는 남는다 — 이미 만든 해석의 재진입 경로 보존
+- [x] 형태가 깨진 게시 행은 무시하고 카탈로그 값을 쓴다 (`publishedServiceOverride`)
+
+검증: 타입체크 통과 · 13/13 · 뮤테이션 8/8 감지
+
+편집 UI 는 T24 로 범위 밖.
+
+---
+
 ## 다음 트랙 (하나씩)
 
-### ▶ T-6b. 관리자 T22 — 콘텐츠 버전 저장 (draft/publish) — **지금 할 것**
+### ▶ T-7. 실결제 스모크 — **사전 점검 완료 · 실행은 운영자**
 
-현재 상태를 실측했다. 스키마(`service_config_versions`)·권한·읽기 스토어는 완료.
-`getAdminServiceVersionSnapshot()` 과 조회 라우트 1개만 있고 **쓰기 경로가 전혀 없다.**
-남은 것: draft 생성/수정, CAS 기반 publish RPC, 감사 명령 연결, 고객 읽기 어댑터(폴백 포함).
+런북: `docs/admin-ops/payment-smoke-runbook.md`
 
-### T-7. 실결제 스모크 — 운영자 승인 후 이니시스 1건
+실측 (`GET /api/payment/config`, 2026-09-14):
+`configured: true · checkoutEnabled: true · testMode: false · storage: supabase`
+→ **결제는 이미 열려 있고, 승인하면 실제로 청구된다.**
+
+대상: **lucky_color 4,900원** (카탈로그 19개 중 최저가)
+
+- [x] 운영 결제 설정 실측
+- [x] 승인·망취소·금융 증거 경로 코드 확인
+- [x] 확인 항목·대사 질의·실패 분기표 작성
+- [ ] **결제 1건 실행** — 카드와 이니시스 콘솔 접근이 필요해 Cowork 에서 대신 할 수 없다
+
+> ⚠ **이 결제는 시스템에서 환불되지 않는다.** 관리자 환불은 의도만 저장하고(`pgCalled: false`),
+> 실제 취소 API 를 가진 `createInicisSandboxAdapter` 는 어디에서도 호출되지 않는다.
+> 자동 취소는 망취소 하나뿐이고 "승인은 됐는데 우리 저장이 실패한" 경우에만 돈다.
+> 정상 결제된 4,900원은 **이니시스 가맹점 콘솔에서 직접 취소**하거나 실매출로 남는다.
+> 시작 전에 콘솔 접근 권한부터 확인할 것.
 
 ### T-5b. 남은 13개 서비스 실호출 증거 (운영자 실행 필요)
 
@@ -200,10 +248,44 @@ couple_signal·marry_match·match_couple(각 70). 상세는 위 문서.
 | 1. Cowork 미커밋 마무리 (티저 in-place + cmdg 가드) | ✅ 완료 (T-1) |
 | 2. 나머지 서비스 슬롯 부착 | ✅ 04·06·05 완료 (T-2) |
 | 3. Tone V2 다음 서비스 | 렌더러·장부 정리 완료. 실호출 13개가 남음 → T-5b |
-| 4. 관리자 T18/T22 | T18 완료. T22 는 쓰기 경로 미착수 → T-6b |
+| 4. 관리자 T18/T22 | ✅ 완료 (T-6 · T-6b). T22 고객 읽기 어댑터만 남음 |
 | 5. 실결제 스모크 | 미착수 → T-7 |
 
-> 1·2·3(렌더러)·T-4·T-5·T-6(T18) 은 끝났다. 남은 것은 T-6b(T22) → T-7, 그리고 운영자 실행이 필요한 T-5b.
+> 1~4 는 끝났다. 남은 것은 T-7, 그리고 운영자 실행이 필요한 T-5b.
+
+---
+
+## 미커밋 일괄 정리 — **지금 해야 할 것**
+
+이번 세션의 변경이 PC 저장소에 쌓여 있다. 배포 전에 한 번에 검증한다.
+
+```powershell
+cd C:\Users\USER\.aios\projects\umsh\repo
+npm run typecheck
+npx tsx --test --test-concurrency=1 tests/unit/*.test.ts
+supabase db push          # 마이그레이션 2건
+git add -A
+git status                # 아래 목록과 맞는지 눈으로 확인
+git commit -m "feat: 캐시 세대·해석 계보, 환불 실패 구분, 서비스 콘텐츠 버전, 결과 CTA 스티키"
+vercel --prod
+```
+
+바뀐 파일 (이번 세션 전체):
+
+| 영역 | 파일 |
+|---|---|
+| 결과 화면 CTA | `사주/사주/index.html` |
+| 로딩 통일 | `사주/js/umsh-loading.js` |
+| 캐시 세대 | `data/tone-v2/corpus/registry.json` · `src/types/index.ts` · `src/rag/corpus-registry.ts` · `src/report/report-store.ts` · `src/report/specialized-progressive.ts` |
+| 릴리스 장부 | `tone-v2/releases/lucky-color-2.1.0.json` · `tone-v2/releases/quit-fortune-2.1.0.json` |
+| 환불 | `src/payment/refund-store.ts` |
+| 콘텐츠 버전 | `src/admin/service-version-store.ts` · `src/auth/staff.ts` |
+| 공통 | `src/server/app.ts` |
+| 마이그레이션 | `supabase/migrations/20260914150000_refund_self_approval_precedence.sql` · `20260914160000_service_config_version_commands.sql` |
+| 테스트 | `corpus-cache-epoch` · `tone-v2-release-evidence-binding` · `refund-approval-precedence` · `service-content-versioning` · `admin-shell`(scope 목록 갱신) |
+| 문서 | `docs/admin-ops/corpus-cache-policy.md` · `tone-v2-evidence-gap.md` · `payment-smoke-runbook.md` · `ops/STATUS.md` |
+
+배포 후 확인: `/cmdg/` 결과 화면 스크롤 중 CTA 고정 · `/api/services` 가 `source: "catalog"` 로 응답(게시본이 아직 없으므로) · 기존 해석이 재생성되지 않음.
 
 ---
 
