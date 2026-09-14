@@ -4172,11 +4172,32 @@
           return;
         }
 
+        // 로그인에서 돌아온 뒤 폼 상태가 비어 있을 수 있다. 새로고침, 다른 탭 진입,
+        // reportId 를 달고 온 복귀, 그리고 직전 시도가 실패해 저장된 폼이 이미 지워진
+        // 경우가 모두 여기에 해당한다. 빈 상태로 분석에 들어가면 프로필 저장이
+        // 400(이름 미입력)으로 막혀서 티저로 넘어가지 못하고 고민 화면으로 되돌아온다.
+        if (!state.name || !state.birth) {
+          try {
+            await fetchUserProfile({ preserveConcern: true });
+          } catch (err) {
+            // 저장된 프로필이 없으면 아래에서 입력 화면으로 보낸다.
+          }
+        }
+        if (!state.name || !state.birth) {
+          showNudge("사주 정보를 먼저 입력해주세요.");
+          go("name");
+          return;
+        }
+
         sessionStorage.removeItem(AUTH_PENDING_KEY);
-        sessionStorage.removeItem(AUTH_FORM_KEY);
         go("loading");
         analyzeBirth()
-          .then(() => go("result"))
+          .then(() => {
+            // 분석이 성공한 뒤에 지운다. 미리 지우면 실패했을 때 입력값이 사라져
+            // 재시도할수록 같은 실패를 반복하게 된다.
+            sessionStorage.removeItem(AUTH_FORM_KEY);
+            go("result");
+          })
           .catch((err) => {
             showNudge(err.message || "사주 분석에 실패했습니다.");
             go("concern");
