@@ -23,10 +23,15 @@
     <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
     <meta name="description" content="운명상회 서비스 이용약관" />
     <link rel="stylesheet" href="/css/policy.css?v=20260909-logo" />
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
   </head>
   <body>
-    <main class="policy-page">
-      <header class="policy-header">
+    <main class="policy-page" data-umsh-chrome data-service="이용약관">
+      <header class="policy-header appbar">
         <a class="brand" href="/" aria-label="운명상회 홈">
           <img src="/assets/umsh-brand-logo.png" width="118" height="57" alt="운명상회" />
         </a>

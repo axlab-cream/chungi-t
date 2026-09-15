@@ -652,3 +652,14 @@ body.umsh-has-chrome .umsh-service-bottom .bottom-nav button {
 }
 
 .umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }
+
+/* ──────────────────────────────────────────────────────────────
+ * 공용 하단 메뉴가 붙은 페이지의 바닥 여백.
+ *
+ * 서비스 화면들은 이 규칙을 각자 HTML 안에 한 줄씩 들고 있었다. 정책·FAQ 처럼
+ * 나중에 크롬을 붙이는 화면까지 매번 복사해 넣을 이유가 없어 여기로 올린다.
+ * 값이 같아 이미 규칙을 가진 화면과 충돌하지 않는다.
+ * ────────────────────────────────────────────────────────────── */
+body.umsh-has-chrome {
+  padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+}
