@@ -49,8 +49,8 @@ function render(group) {
   const content = group ? `<section class="knowledge-answers" aria-label="${escape(group.name)} 답변">${items.map(answer).join('\n')}</section>` : groups.map(g=>`<section class="knowledge-group" data-faq-group><header><h2><a href="/faq/${g.id}">${escape(g.name)} <span>${g.items.length}</span></a></h2><p>${escape(g.intro)}</p></header><div class="knowledge-results">${g.items.map(item=>hubEntry(item,g)).join('\n')}</div><a class="knowledge-group-link" href="/faq/${g.id}">${escape(g.name)} 상세 답변 보기 →</a></section>`).join('\n');
   return `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)} · 운명상회</title>
-<meta name="description" content="${escape(description)}"><link rel="canonical" href="${base+path}"><meta name="robots" content="index,follow"><meta property="og:type" content="website"><meta property="og:site_name" content="운명상회"><meta property="og:title" content="${escape(title)} · 운명상회"><meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${base+path}"><meta property="og:image" content="${base}/assets/umsh-kakao-share.jpg?v=20260904-wide"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/policy.css?v=20260909-logo"><link rel="stylesheet" href="/css/faq-knowledge.css?v=20260909-126"><script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script><script src="/js/faq-knowledge.js?v=20260909-126" defer></script></head>
-<body><main class="policy-page knowledge-page"><header class="policy-header"><a class="brand" href="/" aria-label="운명상회 홈"><img src="/assets/umsh-brand-logo.png" width="118" height="57" alt="운명상회"></a><a class="home-link" href="/my">MY로 돌아가기</a></header>
+<meta name="description" content="${escape(description)}"><link rel="canonical" href="${base+path}"><meta name="robots" content="index,follow"><meta property="og:type" content="website"><meta property="og:site_name" content="운명상회"><meta property="og:title" content="${escape(title)} · 운명상회"><meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${base+path}"><meta property="og:image" content="${base}/assets/umsh-kakao-share.jpg?v=20260904-wide"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/policy.css?v=20260909-logo"><link rel="stylesheet" href="/css/faq-knowledge.css?v=20260909-126"><script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script><script src="/js/faq-knowledge.js?v=20260909-126" defer></script><link rel="stylesheet" href="/css/umsh-chrome.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="/js/common-auth-return.js"></script><script src="/js/umsh-auth-session.js"></script><script src="/js/umsh-chrome.js"></script></head>
+<body><main class="policy-page knowledge-page" data-umsh-chrome data-service="${escape(title)}"><header class="policy-header appbar"><a class="brand" href="/" aria-label="운명상회 홈"><img src="/assets/umsh-brand-logo.png" width="118" height="57" alt="운명상회"></a><a class="home-link" href="/my">MY로 돌아가기</a></header>
 <section class="knowledge-intro"><h1>${escape(group?group.name:title)}</h1><p>${escape(group?group.intro:'어떤 상담이 맞을지, 이용 중 막힌 문제는 어떻게 확인할지 찾아보세요.')}</p><div class="knowledge-meta"><span>${group?`${items.length}개 질문 · 전체 ${all.length}개 안내`:`${all.length}개 질문 · ${groups.length}개 분류`}</span><span>내용 확인 ${data.updated.replaceAll('-','.')}</span></div></section>
 ${search(group)}${group?'':`<div class="knowledge-suggestions" aria-label="빠른 검색" data-suggestions hidden>${['이직','결혼 날짜','상대 생년월일','돈이 모이지','결제 오류','고양이'].map(q=>`<button type="button" data-query="${q}">${q}</button>`).join('')}</div>`}
 ${nav(group)}<p class="knowledge-count" data-search-status role="status" aria-live="polite">${items.length}개 질문을 확인할 수 있습니다.</p><noscript><p>검색은 JavaScript를 켜면 사용할 수 있습니다. 아래 분류와 질문 링크로도 모든 답변을 읽을 수 있습니다.</p></noscript>
@@ -58,6 +58,14 @@ ${nav(group)}<p class="knowledge-count" data-search-status role="status" aria-li
 ${content}<aside class="knowledge-support"><h2>서비스 선택과 운영 문의는 구분해 주세요</h2><p>어떤 상담을 볼지 고민이라면 <a href="/about#services">서비스 소개</a>를, 결제·환불·오류라면 <a href="/support">고객센터</a>를 이용하세요. 운세는 참고용 콘텐츠이며 실제 문제의 해결이나 미래 결과를 보장하지 않습니다.</p><a class="knowledge-support-link" href="/support">고객센터 문의하기 →</a></aside>${policyNav}${footer}</main></body></html>\n`;
 }
 
+/*
+ * 공용 상단 GNB·하단 메뉴는 **여기 템플릿에서만** 붙일 수 있다.
+ *
+ * 2026-09-15: 생성된 faq.html 과 faq/*.html 을 손으로 고쳐 크롬을 달았는데, 배포 빌드가
+ * 이 생성기를 먼저 돌려 12개 파일을 통째로 다시 써서 그 수정이 사라졌다. 손으로 쓴
+ * about·terms·privacy·refund·support 만 살아남아 FAQ 만 빠진 것처럼 보였다.
+ * 생성물은 고치지 말고 이 템플릿을 고칠 것.
+ */
 function output(path, content) {
   const target=join(root,path);
   if(check) assert.equal(readFileSync(target,'utf8').replace(/\r\n/g,'\n'),content, 'Stale generated page: '+path);

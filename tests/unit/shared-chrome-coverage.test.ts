@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert'
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -89,4 +90,39 @@ test('5. 페이지 자체 헤더는 지우지 않고 appbar 로 바꿔 끼운다
   assert.ok(policy.length >= 15, `policy-header 를 쓰는 화면이 ${policy.length}개뿐이다`)
   const untagged = policy.filter((rel) => !read(rel).includes('policy-header appbar'))
   assert.deepEqual(untagged, [], `appbar 가 붙지 않은 자체 헤더: ${untagged.join(', ')}`)
+})
+
+
+/**
+ * 2026-09-15: FAQ 12개만 크롬이 빠진 채 배포됐다.
+ *
+ * faq.html 과 faq/*.html 은 `scripts/build-public-faq.mjs` 가 만든다. 그 파일들을 손으로
+ * 고쳐 크롬을 달았는데, 배포 빌드(`prepare-vercel-public.mjs`)가 생성기를 먼저 돌려
+ * 12개를 통째로 다시 쓰면서 수정이 사라졌다. 손으로 쓴 about·terms·privacy·refund·
+ * support 만 살아남아 FAQ 만 빠진 것처럼 보였다.
+ *
+ * 생성기에는 --check 모드가 있었지만 **아무 데서도 돌지 않았다.** 그래서 생성물이
+ * 템플릿과 어긋나도 배포 때 조용히 덮일 뿐 알 길이 없었다. 여기서 돌린다.
+ */
+
+const FAQ_GENERATOR = join(root, 'scripts', 'build-public-faq.mjs')
+
+test('6. FAQ 생성기 템플릿이 공용 크롬을 달고 있다', () => {
+  // 생성물이 아니라 템플릿을 고정한다. 생성물만 보면 손으로 고친 직후엔 통과하고
+  // 다음 빌드에서 되돌아간다 — 실제로 그렇게 한 번 놓쳤다.
+  const generator = readFileSync(FAQ_GENERATOR, 'utf8')
+  for (const piece of ['/js/umsh-chrome.js', 'data-umsh-chrome', 'policy-header appbar', '/css/umsh-chrome.css']) {
+    assert.ok(generator.includes(piece), `FAQ 생성기 템플릿에 ${piece} 가 없다`)
+  }
+})
+
+test('7. 생성된 FAQ 가 템플릿과 어긋나지 않는다', () => {
+  // --check 는 생성기가 원래 갖고 있던 기능인데 아무 데서도 돌지 않았다.
+  // 여기서 돌려야 "생성물을 손으로 고쳤다"가 배포가 아니라 테스트에서 드러난다.
+  try {
+    execFileSync('node', [FAQ_GENERATOR, '--check'], { cwd: root, stdio: 'pipe' })
+  } catch (err) {
+    const detail = String((err as { stderr?: Buffer }).stderr ?? err).slice(0, 400)
+    assert.fail(`생성된 FAQ 가 템플릿과 다르다 — 생성물을 손으로 고치면 배포 때 덮인다.\n${detail}`)
+  }
 })
