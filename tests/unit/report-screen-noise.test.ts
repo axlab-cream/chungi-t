@@ -60,6 +60,14 @@ test('1. 해석 신고 버튼은 어느 화면에서도 올라오지 않는다',
   assert.ok(!/^\s*loadReportFlag\(\);/m.test(chrome), 'loadReportFlag() 호출이 되살아났다')
   // 스크립트 자체는 남겨 둔다 — 다시 켤 때 한 줄이면 되게.
   assert.ok(read(CHROME).includes('loadReportFlag'), '되살릴 코드까지 지워졌다')
+
+  // 공용 크롬을 거치지 않고 **자기 HTML 에서 직접** 싣는 화면이 있었다(이 집·이직운).
+  // 공용 호출만 껐더니 그 네 화면에서만 살아남았다. 주석 안이 아니라 실제로 로드되는
+  // 태그가 남아 있는지를 본다.
+  const offenders = stepPages()
+    .filter((page) => /<script[^>]*ai-report-flag/.test(read(page).replace(/<!--[\s\S]*?-->/g, '')))
+    .map((page) => relative(root, page))
+  assert.deepEqual(offenders, [], `해석 신고를 직접 싣는 화면: ${offenders.join(', ')}`)
 })
 
 test('2. 만들어 넣는 자리는 모두 공용 GNB 아래에서 시작한다', () => {
