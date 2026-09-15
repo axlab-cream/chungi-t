@@ -190,6 +190,10 @@
   function ensureSectionsHost() {
     var existing = document.getElementById('umsh-sections-host');
     if (existing) return existing;
+    // 04 는 무료 티저다. 자리를 만들어서까지 전체 목차를 쏟으면 티저가 목록 화면이 되고,
+    // 05 목록·06 상세와 같은 내용이 세 번 나온다. 티저 디자인에 명시적인 sections 슬롯이
+    // 있는 서비스는 그 슬롯이 1순위로 잡히므로 여기까지 오지 않는다.
+    if (/\/04-step-4-report\//.test(location.pathname)) return null;
     var host = contentHost();
     if (!host) return null;
     var node = document.createElement('section');
@@ -202,7 +206,21 @@
     return node;
   }
 
-  /** 진행률 자리가 없는 디자인에는 껍데기 맨 위에 하나 만들어 넣는다. */
+  /**
+   * 만들어 넣는 자리는 **공용 GNB 바로 아래**에서 시작한다.
+   *
+   * 예전에는 host.firstChild 앞에 넣었는데, 공용 크롬의 상단 호스트도 같은 자리에
+   * 들어간다. 먼저 들어간 쪽이 밀려서 진행률과 상태 안내가 GNB 위에 떠 버렸다.
+   * GNB 는 어느 화면에서나 맨 위에 고정되어야 한다.
+   */
+  function insertBelowChrome(host, node) {
+    var top = host.querySelector(':scope > [data-umsh-service-top]') || document.querySelector('[data-umsh-service-top]');
+    var anchor = top && top.parentElement === host ? top.nextSibling : host.firstChild;
+    host.insertBefore(node, anchor);
+    return node;
+  }
+
+  /** 진행률 자리가 없는 디자인에는 GNB 아래에 하나 만들어 넣는다. */
   function ensureProgressHost() {
     var existing = document.getElementById('umsh-progress-host');
     if (existing) return existing;
@@ -214,8 +232,7 @@
     node.setAttribute('data-umsh-slot', 'progress');
     node.setAttribute('aria-label', '해석 준비 진행률');
     node.hidden = true;
-    host.insertBefore(node, host.firstChild);
-    return node;
+    return insertBelowChrome(host, node);
   }
 
   /**
@@ -248,8 +265,7 @@
     node.className = 'umsh-state-panel';
     node.setAttribute('data-umsh-slot', 'state');
     node.setAttribute('aria-live', 'polite');
-    host.insertBefore(node, host.firstChild);
-    return node;
+    return insertBelowChrome(host, node);
   }
 
   /**
@@ -272,9 +288,8 @@
     node.setAttribute('aria-label', '내 입력으로 먼저 보는 해석');
     // 상태 안내 바로 아래, 본문 자리보다 위. 진행률·상태는 이미 맨 위에 붙는다.
     var after = document.getElementById('umsh-state-host') || document.getElementById('umsh-progress-host');
-    if (after && after.parentElement === host) host.insertBefore(node, after.nextSibling);
-    else host.insertBefore(node, host.firstChild);
-    return node;
+    if (after && after.parentElement === host) { host.insertBefore(node, after.nextSibling); return node; }
+    return insertBelowChrome(host, node);
   }
 
   function slotNode(name) {
@@ -356,7 +371,6 @@
     var done = progress && typeof progress.complete === 'number'
       ? progress.complete
       : sections.filter(function (item) { return item.status === 'complete'; }).length;
-    var failed = sections.filter(function (item) { return item.status === 'failed'; }).length;
     done = Math.max(0, Math.min(total, done));
     var percent = Math.round((done / total) * 100);
     var complete = done >= total;
@@ -373,11 +387,10 @@
         '<span class="umsh-progress-label">' + (complete ? '해석 준비 완료' : '해석 준비 중') + '</span>' +
         '<span class="umsh-progress-count"><strong>' + done + '</strong> / ' + total + '</span>' +
       '</div>' +
-      '<div class="umsh-progress-track"><div class="umsh-progress-fill" style="width:' + percent + '%"></div></div>' +
-      '<p class="umsh-progress-note">' + (complete
-        ? '모든 항목이 준비됐습니다.'
-        : '목차는 지금 보실 수 있고, 장마다 끝나는 대로 채워집니다.' + (failed ? ' 완성하지 못한 ' + failed + '개 항목은 다시 시도할 수 있습니다.' : '')) +
-      '</p>';
+      '<div class="umsh-progress-track"><div class="umsh-progress-fill" style="width:' + percent + '%"></div></div>';
+    // 안내 문구는 걷어냈다. "목차는 지금 보실 수 있고…" 같은 설명은 우리 사정이지
+    // 읽는 사람이 알아야 할 내용이 아니다. 숫자와 막대, 항목별 배지로 충분하다.
+    // (failed 개수는 항목 카드의 '미완성' 배지가 이미 말한다.)
     markFilled(node);
   }
   /** 무료 티저 — 정적 샘플 문구를 내 입력에서 검증된 값으로 교체한다. */
@@ -750,10 +763,11 @@
     if (booting || (!key && !isPermalink()) || !isOutputPage()) return;
     var id=locationId() || rememberedId;
     booting=true;
-    // in-place 페이지는 디자인을 유지한 채 상태 슬롯에만 진행 안내를 쓴다.
-    // 여기서 panel() 을 부르면 그 순간 등록 디자인이 통째로 감춰진다.
-    if (!statusInPlace('저장된 해석과 열람 권한을 확인하고 있습니다.')) {
-      panel().innerHTML='<p role="status">저장된 해석과 열람 권한을 확인하고 있습니다.</p>';
+    // 확인 중이라는 문구는 화면에 쓰지 않는다. 등록 디자인이 이미 떠 있고, 곧
+    // 진행률이나 본문이 그 자리를 채운다. 옵트인하지 않은 화면에서만 예전처럼 알린다.
+    // (panel() 은 등록 디자인을 통째로 감추므로 in-place 화면에서는 절대 부르지 않는다.)
+    if (!inPlaceEnabled()) {
+      panel().innerHTML='<p role="status">저장된 해석을 확인하고 있습니다.</p>';
     }
     try {
       var config=await rawFetch('/api/auth/config').then(function(r){return r.json();});

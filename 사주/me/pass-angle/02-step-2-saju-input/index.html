@@ -1,28 +1,26 @@
-<!doctype html>
-<html lang="ko">
-<head>
+<!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-funnel-auth-gate.js"></script>
 <script src="/js/umsh-report-access.js"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>사주 입력 | 나, 붙을 각이야?</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="운명상회" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
-    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
-    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="600" />
-    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="운명상회 - 운명을 팝니다." />
-    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
-    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="운명상회">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="운명상회 - 운명을 팝니다.">
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요.">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="운명상회 - 운명을 팝니다.">
+    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요.">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
     <style>
       :root { color-scheme: dark; --bg:#030604; --surface:#07120e; --ink:#fffdf2; --muted:rgba(255,253,242,.72); --mint:#4effca; --yellow:#efff4a; --line:rgba(214,255,120,.22); font-family:Pretendard,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
       *{box-sizing:border-box} body{margin:0;background:#000;color:var(--ink)} .app{width:min(100%,440px);min-height:100svh;margin:0 auto;background:var(--bg);overflow:hidden}
@@ -47,26 +45,26 @@
       select{color-scheme:dark}
       select option{background:#07120e;color:#fffdf2}
       select option:checked{background:#0d1f19}
-    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
-    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
   <body class="umsh-fields">
-    <main class="app" id="step-2-saju-input" data-umsh-chrome data-service="PASS ANGLE" data-price="9,900원" data-active="home">
-      <header class="appbar topbar"><a class="brand" href="../01-step-1-story/index.html"><strong>운명상회</strong><span>PASS ANGLE</span></a><span class="chip">9,900원</span></header>
+    <main class="app" id="step-2-saju-input" data-umsh-chrome="" data-service="PASS ANGLE" data-price="9,900원" data-active="home">
+      <header class="appbar topbar"><a class="brand" href="/"><strong>운명상회</strong><span>PASS ANGLE</span></a><span class="chip">9,900원</span></header>
       <section class="hero">
-        <img src="../assets/pass-angle/study.png" alt="사주와 공부 성향을 분석하는 시험운 전략가" />
+        <img src="../assets/pass-angle/study.png" alt="사주와 공부 성향을 분석하는 시험운 전략가">
         <div class="copy"><span class="eyebrow">SAJU INPUT</span><h1>먼저 내 흐름을 열어봅니다</h1><p>생년월일과 태어난 시간을 기준으로 시험운, 공부 성향, 멘탈 리듬을 읽기 위한 기본값을 설정합니다.</p></div>
       </section>
       <section class="section">
         <form onsubmit="event.preventDefault(); location.href='../03-step-3-service-input/index.html#step-3-service-input';">
-          <div class="field"><label for="name">이름 또는 닉네임</label><input id="name" autocomplete="name" placeholder="예: 민지" /></div>
+          <div class="field"><label for="name">이름 또는 닉네임</label><input id="name" autocomplete="name" placeholder="예: 민지"></div>
           <div class="grid">
-            <div class="field"><label for="birth">생년월일</label><input id="birth" type="date" /></div>
-            <div class="field"><label for="time">태어난 시간</label><input id="time" type="time" /></div>
+            <div class="field"><label for="birth">생년월일</label><input id="birth" type="date"></div>
+            <div class="field"><label for="time">태어난 시간</label><input id="time" type="time"></div>
           </div>
           <div class="field"><label for="gender">성별</label><select id="gender"><option>선택 안 함</option><option>여성</option><option>남성</option><option>기타/비공개</option></select></div>
           <button class="button" type="submit">시험 정보 입력하기</button>
-          <a class="ghost" href="../01-step-1-story/index.html">처음으로 돌아가기</a>
+          
           <p class="note">입력값은 리포트 생성을 위한 화면 예시입니다. 이름·생년월일은 이미지나 URL에 노출하지 않습니다.</p>
         </form>
       </section>
@@ -74,8 +72,9 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
-    <script src="/js/umsh-chrome.js" defer></script>
+    <script src="/js/umsh-chrome.js" defer=""></script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/pass-angle-service.js?v=20260907-3" defer></script>
-  </body>
-</html>
+<script src="/js/pass-angle-service.js?v=20260907-3" defer=""></script>
+  
+
+</body></html>

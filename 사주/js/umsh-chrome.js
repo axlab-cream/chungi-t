@@ -2,23 +2,6 @@
   'use strict';
 
   /**
-   * 공용 로딩 오버레이를 페이지마다 따로 붙이지 않는다.
-   * 단계 페이지는 전부 이 모듈(또는 service-shell.js)을 이미 로드하므로,
-   * 여기서 한 번만 불러오면 전 서비스가 같은 로딩 화면을 쓴다.
-   * (2026-09-14 통일: 이전에는 report-view.html 한 곳에서만 로드됐다.)
-   */
-  (function ensureLoadingModule() {
-    if (typeof document === 'undefined') return;
-    if (global.UMSHLoading) return;
-    if (document.querySelector('script[src*="umsh-loading.js"]')) return;
-    var script = document.createElement('script');
-    script.src = '/js/umsh-loading.js';
-    script.async = false;
-    (document.head || document.documentElement).appendChild(script);
-  })();
-
-
-  /**
    * This file used to draw its own appbar and bottom nav, which left the consultation
    * pages (합격운, 연애, 결혼궁합, 직업운, MY ...) carrying a top bar that did not match the
    * service-shell pages - no category rail, and a bottom nav that jumped straight to a
@@ -194,7 +177,10 @@
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
     loadShellScript(SHELL_JS, watchChromeHeights);
-    loadReportFlag();
+    // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
+    // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
+    // 다시 켤 때 이 한 줄만 되살리면 된다.
+    // loadReportFlag();
 
     return { appbar: topHost, bottomNav: bottomHost };
   }

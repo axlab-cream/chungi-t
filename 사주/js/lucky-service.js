@@ -375,7 +375,11 @@
       if (body) body.textContent = group.sections.map((section) => section.classification).slice(0, 3).join(', ');
     });
 
-    takeOverCta('전체 리포트 목록 보기', goReportIndex);
+    // 2026-09-15: '전체 리포트 목록 보기' 버튼 제거.
+    // 이 화면에는 이미 목록이 펼쳐져 있는데 버튼이 같은 내용을 별도 페이지로 다시
+    // 열었다. 같은 것을 두 번 이동하게 만드는 길이라 끊는다. 결제 전 사용자는
+    // 위쪽 분기에서 결제 CTA 를 그대로 받는다.
+    // takeOverCta('전체 리포트 목록 보기', goReportIndex);
   }
 
   // ------------------------------------------------------- steps 05 / 06_1

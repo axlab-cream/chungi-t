@@ -1,21 +1,19 @@
-<!doctype html>
-<html lang="ko">
-  <head>
+<!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-funnel-auth-gate.js"></script>
     <script src="/js/umsh-report-access.js"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>입력 | 연애 말고 결혼까지 가능? | 운명상회</title>
-    <meta name="description" content="본인과 상대 정보를 따로 입력해 결혼궁합 리포트로 이어갑니다." />
-    <meta name="application-name" content="운명상회" />
-    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
-    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
-    <meta property="og:site_name" content="운명상회" />
-    <meta property="og:url" content="https://match.umsh.kr/marry" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta property="og:image:alt" content="두 사람이 각자의 정보를 확인하는 결혼궁합 입력 일러스트" />
+    <meta name="description" content="본인과 상대 정보를 따로 입력해 결혼궁합 리포트로 이어갑니다.">
+    <meta name="application-name" content="운명상회">
+    <meta property="og:title" content="운명상회 - 운명을 팝니다.">
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요.">
+    <meta property="og:site_name" content="운명상회">
+    <meta property="og:url" content="https://match.umsh.kr/marry">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:alt" content="두 사람이 각자의 정보를 확인하는 결혼궁합 입력 일러스트">
     <style>
       @font-face {
         font-family: "Pretendard";
@@ -585,13 +583,13 @@
       .marry-saved-profile b { color: var(--gold, #f0c06f); font-size: 14px; }
       .marry-saved-profile span { color: var(--muted, rgba(255,239,220,.74)); font-size: 13px; line-height: 1.55; }
       .marry-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
-      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+      <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
   <body class="umsh-fields">
-    <div class="phone" data-umsh-chrome data-service="결혼궁합" data-price="24,900원" data-active="home">
+    <div class="phone" data-umsh-chrome="" data-service="결혼궁합" data-price="24,900원" data-active="home">
       <header class="appbar topbar">
-        <a class="brand" href="../01-step-1-story/index.html#step-1-story" aria-label="운명상회 처음 화면으로 이동">
+        <a class="brand" href="/" aria-label="운명상회 처음 화면으로 이동">
           <strong>운명상회</strong>
           <span>결혼궁합</span>
         </a>
@@ -599,7 +597,7 @@
       </header>
 
       <section class="visual" aria-label="두 사람 정보를 따로 입력하는 장면">
-        <img src="../assets/marry/02-pair-input.webp" alt="밤 카페에서 커플이 각자의 기기로 정보를 확인하는 만화풍 일러스트" />
+        <img src="../assets/marry/02-pair-input.webp" alt="밤 카페에서 커플이 각자의 기기로 정보를 확인하는 만화풍 일러스트">
         <div class="visual-copy">
           <span class="eyebrow">연애 말고 결혼까지 가능?</span>
           <h1>두 사람 정보를 따로 볼게요</h1>
@@ -618,7 +616,7 @@
           </div>
         </section>
 
-        <form class="form-shell" id="marry-input-form" novalidate>
+        <form class="form-shell" id="marry-input-form" novalidate="">
           <section class="panel" aria-labelledby="self-title">
             <div class="panel-head">
               <div>
@@ -633,11 +631,11 @@
               <legend>본인 정보 입력 방식</legend>
               <div class="choice-row">
                 <label class="choice">
-                  <input type="radio" name="self_profile_mode" value="saved" checked />
+                  <input type="radio" name="self_profile_mode" value="saved" checked="">
                   <span>기존 프로필</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="self_profile_mode" value="new" />
+                  <input type="radio" name="self_profile_mode" value="new">
                   <span>새 정보 입력</span>
                 </label>
               </div>
@@ -648,7 +646,7 @@
             <div class="field-grid hidden" id="self-fields">
               <div class="field">
                 <label for="self-name">내 이름</label>
-                <input id="self-name" name="self_name" type="text" autocomplete="off" placeholder="분석 화면용 이름" />
+                <input id="self-name" name="self_name" type="text" autocomplete="off" placeholder="분석 화면용 이름">
                 <div class="help">결과에서 부를 이름만 사용합니다.</div>
                 <div class="error" data-error-for="self_name" aria-live="polite"></div>
               </div>
@@ -666,7 +664,7 @@
 
               <div class="field">
                 <label for="self-birth-date">내 생년월일</label>
-                <input id="self-birth-date" name="self_birth_date" type="date" />
+                <input id="self-birth-date" name="self_birth_date" type="date">
                 <div class="help">일간과 배우자궁 기준을 잡습니다.</div>
                 <div class="error" data-error-for="self_birth_date" aria-live="polite"></div>
               </div>
@@ -686,11 +684,11 @@
                 <legend>내 출생시간</legend>
                 <div class="choice-row">
                   <label class="choice">
-                    <input type="radio" name="self_birth_time_known" value="known" />
+                    <input type="radio" name="self_birth_time_known" value="known">
                     <span>알아요</span>
                   </label>
                   <label class="choice">
-                    <input type="radio" name="self_birth_time_known" value="unknown" checked />
+                    <input type="radio" name="self_birth_time_known" value="unknown" checked="">
                     <span>몰라요</span>
                   </label>
                 </div>
@@ -700,14 +698,14 @@
 
               <div class="field self-time-row hidden">
                 <label for="self-birth-time">내 출생시간</label>
-                <input id="self-birth-time" name="self_birth_time" type="time" />
+                <input id="self-birth-time" name="self_birth_time" type="time">
                 <div class="help">예: 13:30</div>
                 <div class="error" data-error-for="self_birth_time" aria-live="polite"></div>
               </div>
 
               <div class="field">
                 <label for="self-birth-place">출생지</label>
-                <input id="self-birth-place" name="self_birth_place" type="text" autocomplete="off" placeholder="선택 입력" />
+                <input id="self-birth-place" name="self_birth_place" type="text" autocomplete="off" placeholder="선택 입력">
                 <div class="help">출생 시간 보정이 필요할 때만 참고합니다.</div>
                 <div class="error" data-error-for="self_birth_place" aria-live="polite"></div>
               </div>
@@ -728,11 +726,11 @@
               <legend>상대 생년월일을 알고 있나요?</legend>
               <div class="choice-row">
                 <label class="choice">
-                  <input type="radio" name="partner_known" value="known" checked />
+                  <input type="radio" name="partner_known" value="known" checked="">
                   <span>알아요</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="partner_known" value="unknown" />
+                  <input type="radio" name="partner_known" value="unknown">
                   <span>몰라요</span>
                 </label>
               </div>
@@ -743,7 +741,7 @@
             <div class="field-grid" id="partner-fields">
               <div class="field">
                 <label for="partner-name">상대 이름</label>
-                <input id="partner-name" name="partner_name" type="text" autocomplete="off" placeholder="선택 입력" />
+                <input id="partner-name" name="partner_name" type="text" autocomplete="off" placeholder="선택 입력">
                 <div class="help">결과 화면에서 구분용으로만 씁니다.</div>
                 <div class="error" data-error-for="partner_name" aria-live="polite"></div>
               </div>
@@ -761,7 +759,7 @@
 
               <div class="field">
                 <label for="partner-birth-date">상대 생년월일</label>
-                <input id="partner-birth-date" name="partner_birth_date" type="date" />
+                <input id="partner-birth-date" name="partner_birth_date" type="date">
                 <div class="help">일간 케미와 지지 조화를 볼 때 필요합니다.</div>
                 <div class="error" data-error-for="partner_birth_date" aria-live="polite"></div>
               </div>
@@ -781,11 +779,11 @@
                 <legend>상대 출생시간</legend>
                 <div class="choice-row">
                   <label class="choice">
-                    <input type="radio" name="partner_birth_time_known" value="known" />
+                    <input type="radio" name="partner_birth_time_known" value="known">
                     <span>알아요</span>
                   </label>
                   <label class="choice">
-                    <input type="radio" name="partner_birth_time_known" value="unknown" checked />
+                    <input type="radio" name="partner_birth_time_known" value="unknown" checked="">
                     <span>몰라요</span>
                   </label>
                 </div>
@@ -795,7 +793,7 @@
 
               <div class="field partner-time-row hidden">
                 <label for="partner-birth-time">상대 출생시간</label>
-                <input id="partner-birth-time" name="partner_birth_time" type="time" />
+                <input id="partner-birth-time" name="partner_birth_time" type="time">
                 <div class="help">예: 21:10</div>
                 <div class="error" data-error-for="partner_birth_time" aria-live="polite"></div>
               </div>
@@ -830,23 +828,23 @@
               <legend>제일 먼저 보고 싶은 것</legend>
               <div class="choice-row wrap">
                 <label class="choice">
-                  <input type="radio" name="question_focus" value="marriage_signal" />
+                  <input type="radio" name="question_focus" value="marriage_signal">
                   <span>결혼각</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="question_focus" value="timing" />
+                  <input type="radio" name="question_focus" value="timing">
                   <span>타이밍</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="question_focus" value="red_flags" />
+                  <input type="radio" name="question_focus" value="red_flags">
                   <span>레드플래그</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="question_focus" value="daily_life" />
+                  <input type="radio" name="question_focus" value="daily_life">
                   <span>생활궁합</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="question_focus" value="conversation" />
+                  <input type="radio" name="question_focus" value="conversation">
                   <span>대화 액션</span>
                 </label>
               </div>
@@ -862,7 +860,7 @@
             </div>
 
             <label class="inline-check">
-              <input id="privacy-ack" name="privacy_ack" type="checkbox" />
+              <input id="privacy-ack" name="privacy_ack" type="checkbox">
               <span>입력한 이름과 생년월일은 이 브라우저의 현재 분석 세션에서만 이어가고, 주소창에는 남기지 않는 방식으로 진행할게요.</span>
             </label>
             <div class="error" data-error-for="privacy_ack" aria-live="polite"></div>
@@ -875,7 +873,7 @@
 
           <div class="actions">
             <button class="next" id="submit-button" type="submit">입력한 정보로 무료 결과 보기</button>
-            <a class="back" href="../01-step-1-story/index.html#step-1-story">이전 이야기 다시 보기</a>
+            
           </div>
         </form>
       </main>
@@ -1175,6 +1173,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/marry-service.js" defer></script>
-  </body>
-</html>
+    <script src="/js/marry-service.js" defer=""></script>
+  
+
+</body></html>

@@ -1,21 +1,16 @@
-<!doctype html>
-<html lang="ko">
-  <head>
+<!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-funnel-auth-gate.js"></script>
     <script src="/js/umsh-report-access.js"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>입력하기 | 지금 사는 집, 나랑 잘 맞을까?</title>
-    <meta
-      name="description"
-      content="풍수지리와 개인 명리로 지금 사는 집과 내 생활 리듬의 핏을 보기 위한 최소 입력 화면"
-    />
-    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
-    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://place.umsh.kr/home" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta name="description" content="풍수지리와 개인 명리로 지금 사는 집과 내 생활 리듬의 핏을 보기 위한 최소 입력 화면">
+    <meta property="og:title" content="운명상회 - 운명을 팝니다.">
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://place.umsh.kr/home">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
     <style>
       @font-face {
         font-family: "Pretendard";
@@ -555,13 +550,13 @@
           border: 1px solid rgba(214, 234, 213, 0.12);
         }
       }
-    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
-    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
-    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907" />
+    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell">
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907">
   </head>
   <body class="umsh-fields">
     <main class="app" id="step-2-saju-input">
-      <div data-umsh-service-top></div>
+      <div data-umsh-service-top=""></div>
 
       <section class="intro" aria-labelledby="page-title">
         <div class="intro-copy">
@@ -575,7 +570,7 @@
           </div>
         </div>
         <figure class="visual-card" data-asset-key="home-02-form-guide">
-          <img src="assets/generated/home/02-form-guide.webp" alt="집 모형과 빈 입력 화면 옆에서 안내하는 운명상회 가이드" />
+          <img src="assets/generated/home/02-form-guide.webp" alt="집 모형과 빈 입력 화면 옆에서 안내하는 운명상회 가이드">
         </figure>
       </section>
 
@@ -583,7 +578,7 @@
         <p>이름, 생년월일, 주소는 URL에 붙이지 않습니다. 이 검토 화면은 입력값을 현재 브라우저 세션에만 임시 보관합니다.</p>
       </div>
 
-      <form id="home-fit-form" novalidate>
+      <form id="home-fit-form" novalidate="">
         <fieldset class="form-section">
           <div class="section-head">
             <legend>누구의 집 핏을 볼까요?</legend>
@@ -592,11 +587,11 @@
 
           <div class="choice-grid" role="radiogroup" aria-label="사주 프로필 선택">
             <label class="choice">
-              <input type="radio" name="profile_mode" value="saved" checked />
+              <input type="radio" name="profile_mode" value="saved" checked="">
               <span>저장된 프로필로 보기</span>
             </label>
             <label class="choice">
-              <input type="radio" name="profile_mode" value="new" />
+              <input type="radio" name="profile_mode" value="new">
               <span>새 사주로 보기</span>
             </label>
           </div>
@@ -606,10 +601,10 @@
             <p>완전한 기본 사주 정보가 있으면 이 단계는 건너뜁니다.</p>
           </div>
 
-          <div class="conditional field-grid" id="new-profile-fields" hidden>
+          <div class="conditional field-grid" id="new-profile-fields" hidden="">
             <div class="field">
               <label for="nickname">호칭</label>
-              <input id="nickname" name="nickname" autocomplete="off" placeholder="예: 민지" aria-describedby="nickname-help nickname-error" />
+              <input id="nickname" name="nickname" autocomplete="off" placeholder="예: 민지" aria-describedby="nickname-help nickname-error">
               <p class="help" id="nickname-help">리포트에서 부를 이름입니다. 실명 아니어도 됩니다.</p>
               <div class="error" id="nickname-error" aria-live="polite"></div>
             </div>
@@ -639,26 +634,26 @@
             <div class="two-col">
               <div class="field">
                 <label for="birth_date">생년월일</label>
-                <input id="birth_date" name="birth_date" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birth-date-help birth_date-error" />
+                <input id="birth_date" name="birth_date" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birth-date-help birth_date-error">
                 <p class="help" id="birth-date-help">달력에서 생년월일을 고르면 됩니다.</p>
                 <div class="error" id="birth_date-error" aria-live="polite"></div>
               </div>
               <div class="field">
                 <label for="birth_time">태어난 시간</label>
-                <input id="birth_time" name="birth_time" type="time" step="60" aria-describedby="birth-time-help birth_time-error" />
+                <input id="birth_time" name="birth_time" type="time" step="60" aria-describedby="birth-time-help birth_time-error">
                 <p class="help" id="birth-time-help">모르면 아래 체크를 켜면 됩니다.</p>
                 <div class="error" id="birth_time-error" aria-live="polite"></div>
               </div>
             </div>
 
             <label class="check">
-              <input type="checkbox" id="birth_time_unknown" name="birth_time_unknown" />
+              <input type="checkbox" id="birth_time_unknown" name="birth_time_unknown">
               <span>태어난 시간은 정확히 몰라요</span>
             </label>
 
             <div class="field">
               <label for="birth_place">태어난 지역</label>
-              <input id="birth_place" name="birth_place" autocomplete="off" placeholder="예: 서울, 부산, 대전" aria-describedby="birth-place-help" />
+              <input id="birth_place" name="birth_place" autocomplete="off" placeholder="예: 서울, 부산, 대전" aria-describedby="birth-place-help">
               <p class="help" id="birth-place-help">시간 보정이 필요한 경우 참고합니다. 모르면 비워도 됩니다.</p>
             </div>
           </div>
@@ -674,18 +669,18 @@
             <div class="field">
               <label for="home_address">주소 또는 건물명</label>
               <div class="address-control">
-                <input id="home_address" name="home_address" autocomplete="street-address" placeholder="주소 찾기에서 도로명·지번 주소 선택" aria-describedby="home-address-help home_address-error" readonly />
+                <input id="home_address" name="home_address" autocomplete="street-address" placeholder="주소 찾기에서 도로명·지번 주소 선택" aria-describedby="home-address-help home_address-error" readonly="">
                 <button class="address-search-button" type="button" id="address-search-button">주소 찾기</button>
               </div>
-              <input type="hidden" id="home_road_address" name="home_road_address" />
-              <input type="hidden" id="home_jibun_address" name="home_jibun_address" />
-              <input type="hidden" id="home_zonecode" name="home_zonecode" />
-              <input type="hidden" id="home_sido" name="home_sido" />
-              <input type="hidden" id="home_sigungu" name="home_sigungu" />
-              <input type="hidden" id="home_bname" name="home_bname" />
-              <input type="hidden" id="home_building_name" name="home_building_name" />
-              <input type="hidden" id="home_address_type" name="home_address_type" />
-              <div class="postcode-layer" id="postcode-layer" hidden>
+              <input type="hidden" id="home_road_address" name="home_road_address">
+              <input type="hidden" id="home_jibun_address" name="home_jibun_address">
+              <input type="hidden" id="home_zonecode" name="home_zonecode">
+              <input type="hidden" id="home_sido" name="home_sido">
+              <input type="hidden" id="home_sigungu" name="home_sigungu">
+              <input type="hidden" id="home_bname" name="home_bname">
+              <input type="hidden" id="home_building_name" name="home_building_name">
+              <input type="hidden" id="home_address_type" name="home_address_type">
+              <div class="postcode-layer" id="postcode-layer" hidden="">
                 <div class="postcode-toolbar">
                   <strong>도로명·지번 주소 검색</strong>
                   <button class="postcode-close" type="button" id="postcode-close">닫기</button>
@@ -758,27 +753,27 @@
 
           <div class="check-list" aria-describedby="pain_points-error">
             <label class="check">
-              <input type="checkbox" name="pain_points" value="sleep" />
+              <input type="checkbox" name="pain_points" value="sleep">
               <span>잠이 얕거나 집에서 회복이 느려요</span>
             </label>
             <label class="check">
-              <input type="checkbox" name="pain_points" value="entrance" />
+              <input type="checkbox" name="pain_points" value="entrance">
               <span>현관·복도·택배 쪽이 늘 복잡해요</span>
             </label>
             <label class="check">
-              <input type="checkbox" name="pain_points" value="focus" />
+              <input type="checkbox" name="pain_points" value="focus">
               <span>재택이나 공부 집중이 잘 안 잡혀요</span>
             </label>
             <label class="check">
-              <input type="checkbox" name="pain_points" value="money" />
+              <input type="checkbox" name="pain_points" value="money">
               <span>돈이나 살림 루틴이 이상하게 새요</span>
             </label>
             <label class="check">
-              <input type="checkbox" name="pain_points" value="relationship" />
+              <input type="checkbox" name="pain_points" value="relationship">
               <span>가족·동거·이웃 스트레스가 있어요</span>
             </label>
             <label class="check">
-              <input type="checkbox" name="pain_points" value="move" />
+              <input type="checkbox" name="pain_points" value="move">
               <span>계약 유지와 이사 사이에서 고민 중이에요</span>
             </label>
           </div>
@@ -844,7 +839,7 @@
 
         <section class="submit-area" aria-label="입력 완료">
           <button class="primary-cta" type="submit">입력한 정보로 무료 결과 보기</button>
-          <a class="secondary-link" href="../01-step-1-story/index.html#preview-title">열리는 풀이 다시 보기</a>
+          
           <p class="fineprint">
             이 단계에서는 무료 방향을 만들기 위한 입력만 정리합니다. 결제 권한과 최종 리포트는 다음 단계에서 별도 확인합니다.
           </p>
@@ -1746,10 +1741,11 @@
       }
       setBirthTimeMode();
     </script>
-    <div data-umsh-service-bottom></div>
+    <div data-umsh-service-bottom=""></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
-  </body>
-</html>
+  
+
+</body></html>
