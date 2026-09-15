@@ -95,6 +95,29 @@ body.umsh-has-chrome .umsh-service-bottom .bottom-nav {
   background: rgba(8, 8, 7, 0.96);
 }
 
+/*
+ * 페이지가 원래 그리던 브랜드 바는, 공용 GNB 가 올라오면 **두 번째 상단바**가 된다.
+ *
+ * 2026-09-15 실측: 이직운 04 에서 공용 GNB(85px) 바로 아래 `nav.topbar > div.brand`(62px)
+ * 가 또 있어 로고가 두 번 나왔다. 서비스마다 자기 HTML 에 한 줄씩 숨김을 넣어 왔는데
+ * (`body.umsh-has-chrome header.top{display:none}`), 새 페이지가 생길 때마다 잊는다.
+ *
+ * 브랜드를 직접 품은 상단바만 골라 숨긴다. 공용 셸의 로고는 클래스가 .app-brand 라
+ * 여기 걸리지 않고, 단계 표시나 목차 이동 같은 다른 nav 도 .brand 가 없어 남는다.
+ */
+/* 셸을 직접 쓰는 화면(이직운·이 집)은 umsh-has-chrome 이 붙지 않는다. 셸이 스스로 다는
+   has-umsh-service-shell 로 잡아야 두 경로가 모두 걸린다 — 실제로 이 차이 때문에
+   페이지마다 넣어 둔 `body.umsh-has-chrome .brand{display:none}` 이 이직운에선 안 들었다. */
+body.has-umsh-service-shell nav.topbar:has(> .brand),
+body.has-umsh-service-shell header.topbar:has(> .brand),
+body.has-umsh-service-shell .nav:has(> .brand) {
+  display: none;
+}
+.umsh-service-shell nav.topbar:has(> .brand),
+.umsh-service-shell header.topbar:has(> .brand) {
+  display: flex;
+}
+
 /* 공용 상단바는 sticky 인데 부모인 [data-umsh-service-top] 박스가 85px 뿐이라 그
    안에서만 붙을 수 있었다. 그래서 한 화면을 넘는 페이지에서는 스크롤과 함께 사라졌다.
    .phone 은 overflow: clip 이라 스크롤 컨테이너가 아니고 .payment-page 계열은 body
@@ -151,14 +174,43 @@ body.has-umsh-service-shell .cta-dock {
  * old stylesheet is still linked on those pages, so its 72px grid appbar has to be
  * turned off here or the 50px logo gets clipped.
  */
+/*
+ * 공용 상단바는 페이지의 클래스(.appbar .topbar)를 그대로 물려받는다. 그래야 페이지가
+ * 원래 두던 자리에 그대로 끼워지기 때문인데, 대신 **페이지 CSS 가 이 바를 건드린다.**
+ *
+ * 2026-09-15 실측: 커플궁합 04 의 상단바가 165px 로 기준(85px)의 두 배였다. 그 페이지의
+ * 좁은 화면 미디어쿼리에 `.topbar { flex-direction: column }` 이 있어서 로고와 버튼이
+ * 세로로 쌓였다(50 + 48 + gap 14 + 여백 33 = 146). display 만 고정해 두어서는 막지 못한다.
+ *
+ * 그래서 배치에 관여하는 값을 여기서 전부 못박는다. 한 서비스를 고치는 게 아니라,
+ * 어느 페이지가 bare 선택자로 무엇을 하든 상단바 모양이 같게 만드는 것이 목적이다.
+ */
 .umsh-service-shell .appbar.umsh-chrome-appbar {
   position: static;
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
   height: auto;
   min-height: 0;
   grid-template-columns: none;
   backdrop-filter: none;
   box-sizing: border-box;
+}
+
+/*
+ * 같은 이유로 버튼 크기도 못박는다. 커플궁합 04 는 `button { min-height: 48px }` 를
+ * bare 선택자로 걸어 두어 공용 상단바의 동그란 버튼까지 48px 로 키웠다. 셸은 height 만
+ * 주고 min-height 를 주지 않아 페이지 쪽이 이겼다.
+ */
+.umsh-service-shell .app-back,
+.umsh-service-shell .topbar-vault-button,
+.umsh-service-shell .circle-button {
+  min-height: 0;
+  margin: 0;
 }
 
 /* Back and menu sit together on the right, the way the /love/this-year sample does it. */
