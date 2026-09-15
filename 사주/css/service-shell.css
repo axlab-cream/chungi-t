@@ -118,6 +118,36 @@ body.has-umsh-service-shell .nav:has(> .brand) {
   display: flex;
 }
 
+/*
+ * PDF 받기 같은 화면 전용 동작은 공용 GNB 가 아니라 **본문 맨 아래** 같은 자리에 둔다.
+ * 상단바는 어느 화면에서나 같아야 하고, 거기에 서비스마다 다른 버튼이 하나씩 붙기
+ * 시작하면 통일이 무너진다. 대화 화면은 입력창이 아래에 고정돼 있으므로 이 자리는
+ * 고정이 아니라 본문 흐름의 끝에 둔다 — 겹치지 않는다.
+ */
+.umsh-pdf-dock {
+  display: flex;
+  justify-content: center;
+  padding: 18px 20px 8px;
+}
+
+.umsh-pdf-dock .pdf-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(232, 212, 154, 0.35);
+  border-radius: 12px;
+  background: rgba(216, 186, 114, 0.06);
+  color: var(--shell-gold-200, #e8d49a);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 대화 화면의 자체 상단바. 공용 GNB 가 로고와 뒤로가기를 대신하므로 감춘다.
+   지우지 않고 감추는 이유: chat.js 가 #btn-back 을 가드 없이 찾아 쓴다. */
+body.has-umsh-service-shell .chat-phone > header.topbar {
+  display: none;
+}
+
 /* 공용 상단바는 sticky 인데 부모인 [data-umsh-service-top] 박스가 85px 뿐이라 그
    안에서만 붙을 수 있었다. 그래서 한 화면을 넘는 페이지에서는 스크롤과 함께 사라졌다.
    .phone 은 overflow: clip 이라 스크롤 컨테이너가 아니고 .payment-page 계열은 body

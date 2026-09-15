@@ -22,15 +22,18 @@
   <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
   <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
   <link rel="stylesheet" href="/css/immersive-chat.css" />
-</head>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+  </head>
 <body>
-  <main class="phone chat-phone" aria-label="천명사주 텍스트 상담">
+  <main class="phone chat-phone" data-umsh-chrome data-service="사주 상담" data-active="destiny" aria-label="천명사주 텍스트 상담">
     <header class="topbar">
       <div class="chat-brand-logo" aria-label="운명상회">
         <span>운명상회</span>
       </div>
       <button class="icon-button" type="button" id="btn-back" aria-label="사주 결과로">←</button>
-      <button class="pdf-button topbar-pdf-button" type="button" id="btn-pdf" aria-label="PDF 다운받기">PDF</button>
     </header>
     <p class="saju-chip" id="chat-saju-label">개인 사주 기반 상담</p>
     <section id="chat-log" class="chat-log" aria-live="polite"></section>
@@ -38,6 +41,12 @@
       <textarea id="chat-message" rows="2" placeholder="지금 마음에 걸린 걸 그대로 적어주세요..." required></textarea>
       <button type="submit" class="send-btn" id="btn-send">전송</button>
     </form>
+    <!-- PDF 받기는 상단바가 아니라 본문 맨 아래에 둔다. 공용 GNB 에는 서비스마다 다른
+         동작을 넣지 않고, 어느 화면에서든 같은 자리에서 찾게 하려는 것이다.
+         id 는 그대로 유지한다 — chat.js 가 가드 없이 getElementById 로 찾는다. -->
+    <div class="umsh-pdf-dock">
+      <button class="pdf-button" type="button" id="btn-pdf" aria-label="PDF 다운받기">PDF 다운받기</button>
+    </div>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/chat.js"></script>

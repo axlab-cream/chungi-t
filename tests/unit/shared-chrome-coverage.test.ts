@@ -32,6 +32,7 @@ const MUST_HAVE_CHROME = [
   'faq/workflow.html',
   'terms.html', 'privacy.html', 'refund.html', 'support.html',
   'orders.html', 'profile.html', 'refunds.html', 'leave.html', 'vault.html',
+  'chat.html',
 ]
 
 /**
@@ -125,4 +126,37 @@ test('7. 생성된 FAQ 가 템플릿과 어긋나지 않는다', () => {
     const detail = String((err as { stderr?: Buffer }).stderr ?? err).slice(0, 400)
     assert.fail(`생성된 FAQ 가 템플릿과 다르다 — 생성물을 손으로 고치면 배포 때 덮인다.\n${detail}`)
   }
+})
+
+
+/**
+ * 대화 화면의 PDF 받기.
+ *
+ * 공용 GNB 에는 서비스마다 다른 버튼을 넣지 않는다 — 하나씩 붙기 시작하면 통일이
+ * 무너진다. 그래서 상단바에 있던 PDF 를 **본문 맨 아래 공통 자리**(.umsh-pdf-dock)로
+ * 내렸다. 대화 화면은 입력창이 아래에 고정돼 있어 이 자리는 고정이 아니라 본문 흐름의
+ * 끝에 둔다 — 겹치지 않는다.
+ *
+ * 버튼의 id 는 그대로 둔다. chat.js 가 `getElementById('btn-pdf')`·`('btn-back')` 을
+ * **가드 없이** 부르기 때문에, 없애면 그 한 줄에서 스크립트가 통째로 죽는다.
+ * 같은 이유로 자체 상단바도 지우지 않고 CSS 로 감춘다.
+ */
+test('8. 대화 화면의 PDF 는 본문 하단 공통 자리에 있다', () => {
+  const chat = read('chat.html')
+  assert.ok(chat.includes('class="umsh-pdf-dock"'), 'PDF 공통 자리가 없다')
+  assert.ok(/<div class="umsh-pdf-dock">[\s\S]{0,200}id="btn-pdf"/.test(chat), 'PDF 버튼이 공통 자리 밖에 있다')
+  assert.ok(!/<header[\s\S]{0,400}id="btn-pdf"/.test(chat), 'PDF 버튼이 아직 상단바에 있다')
+
+  // chat.js 가 가드 없이 찾는 두 id 는 DOM 에 남아 있어야 한다.
+  for (const id of ['btn-pdf', 'btn-back']) {
+    assert.ok(chat.includes(`id="${id}"`), `#${id} 가 사라졌다 — chat.js 가 그 줄에서 죽는다`)
+  }
+  assert.ok(chat.includes('<header class="topbar">'), '자체 상단바를 지웠다 — 감추기만 해야 한다')
+
+  const css = read(join('css', 'service-shell.css'))
+  assert.ok(css.includes('.umsh-pdf-dock'), 'PDF 공통 자리 스타일이 없다')
+  assert.ok(
+    /body\.has-umsh-service-shell \.chat-phone > header\.topbar\s*\{[^}]*display:\s*none/.test(css),
+    '대화 화면 자체 상단바가 감춰지지 않는다 — 상단바가 두 개가 된다',
+  )
 })

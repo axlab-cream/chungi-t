@@ -21,20 +21,17 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const SITE = join(root, '사주')
 
 /**
- * 입력이 없거나 만료됐을 때만 뜨는 복구 패널. 여기 링크까지 지우면 막다른 길이 되므로
- * 지금은 남겨 두고, 대신 **여기에 적힌 것만** 남을 수 있게 고정한다.
- * 새로 생기면 이 목록에 없어서 실패한다 — 조용히 늘어나지 않게 하는 것이 목적이다.
+ * 예외 없음.
+ *
+ * 2026-09-15 이전에는 "입력이 없을 때" 복구 패널의 링크 6건을 예외로 뒀다. 지우면
+ * 막다른 길이 된다고 봤기 때문이다. 그 뒤 티저 진입 조건이 정해졌다 —
+ * **로그인과 사주 입력이 있어야만 04 에 들어온다**(umsh-funnel-auth-gate.js). 입력 없이
+ * 티저에 서는 상태 자체가 없어졌으므로 복구 링크도 함께 걷어냈다. 안내 문구는 남겼고,
+ * 가드가 드물게 열어 준 경우에도 공용 하단 메뉴가 나갈 길을 준다.
+ *
+ * 새 예외를 넣을 때는 이유를 반드시 함께 적을 것. 이유 없는 예외는 다음 사람이 되돌린다.
  */
-const RECOVERY_EXCEPTIONS = [
-  'love/this-year/04-step-4-report/index.html',
-  'match/cat/04-step-4-report/index.html',
-  'match/couple/04-step-4-report/index.html',
-  'match/marry/04-step-4-report/index.html',
-  'place/home/04-step-4-report/index.html',
-  // 이 한 건은 정적 마크업이 아니라 페이지 인라인 스크립트의 템플릿 문자열 안에 있다
-  // (`renderFallbackNotice`). DOM 으로 훑는 도구는 못 보고 이 검사만 잡는다.
-  'work/job-choice/04-step-4-report/index.html',
-]
+const RECOVERY_EXCEPTIONS: string[] = []
 
 function stepRank(path: string): number | null {
   const match = path.match(/\/0(\d)-step-/)
