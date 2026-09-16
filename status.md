@@ -2,6 +2,8 @@
 
 ## Current Task
 
+- 2026-09-16 체크아웃 상품 로드: HTML 시드(`save`,`couple_match`,`love_thisyear`,`marriage_compatibility`)가 카탈로그 키와 달라 `/payment`가 "상품 정보를 확인하지 못했습니다"에서 멈췄다. 서버 `canonicalPaymentProductKey` + 설정 `aliases`/`pathPrefixes` + `payment.js` 정규화로 공개 서비스 전수 조회. 결제 처리(PG 과금)는 추가하지 않음. 근거: CreamWIKI `personal/carrotcap/notes/umsh-inicis-checkout-recovery-20260914.md`, `operations/aios-standards/04-workflows/AIOS-WF-07-e-commerce-flow.md`.
+
 - 2026-09-16 STEP4 핵심 티저: `reportId` 재진입 때 toc 골격을 report로 받아 빈 섹션 제목만 12% 칸에 그렸다. 04는 동결 `preview`만 쓰고, 유료 본문이 있을 때만 renderTeaser. JS `?v=live-20260916t`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
 
 - 2026-09-16 STEP4~6 오픈 10개: 로그인 레이스로 티저/목차/상세가 비던 경로를 `resolveLiveSession`(900ms) + 05/06 preview analyze + `toc` 바인드로 고친다. JS `?v=live-20260916`. PR #32 merge `bd51e1e`, Vercel production `dpl_B2RcW8fuTiMMn82SMnxF8kPNQuT8` READY (`https://umsh.kr`). 운영 확인: 저축 04 HTML cache-bust, `umsh-auth-session.js`에 `resolveLiveSession`/`bindServiceSession`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.

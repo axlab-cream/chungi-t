@@ -29,6 +29,8 @@ test('결제 화면은 product 와 service 두 이름을 같은 상품 키로 �
   // 그 경로로 들어온 고객이 "상품 정보를 확인하지 못했습니다" 에서 멈춘다.
   const source = readFileSync(join(SAJU_ROOT, 'js', 'payment.js'), 'utf8')
   assert.match(source, /query\.get\('product'\)\s*\|\|\s*query\.get\('service'\)/)
+  assert.match(source, /canonicalProductKey/)
+  assert.match(source, /pausedKeys/)
 })
 
 test('결제 복귀 기본 주소는 umsh.kr 이고 umsh.app 이 아니다', () => {

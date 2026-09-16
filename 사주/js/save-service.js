@@ -304,7 +304,9 @@
 
     // The sticky dock carries its own CTA; it must say the same thing as the state card,
     // or a reader with the report already open is still told to log in.
-    const dock = replace($('.submit-dock [data-action="login"]'));
+    const dock = replace($('.submit-dock [data-action="login"]')
+      || $('.submit-dock [data-action="dock-primary"]')
+      || $('.submit-dock [data-action="start-payment"]'));
     const dockNote = $('.submit-dock .dock-note');
 
     if (nextSecondary) {
@@ -321,10 +323,12 @@
       if (body) body.textContent = outcome.preview.summary || GATE_COPY.payment;
       const pay = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
       if (nextPrimary) {
+        nextPrimary.dataset.action = 'open-checkout';
         nextPrimary.textContent = '전체 보기';
         nextPrimary.addEventListener('click', pay);
       }
       if (dock) {
+        dock.dataset.action = 'open-checkout';
         dock.textContent = '전체 보기';
         dock.addEventListener('click', pay);
       }
@@ -352,13 +356,16 @@
       if (body) body.textContent = GATE_COPY[reason] || GATE_COPY.error;
       if (nextPrimary) {
         if (reason === 'login') {
+          nextPrimary.dataset.action = 'open-login';
           nextPrimary.textContent = '로그인하고 전체 보기';
           nextPrimary.addEventListener('click', () => location.assign(loginUrl()));
         if (dock) {
+          dock.dataset.action = 'open-login';
           dock.textContent = '로그인하고 전체 보기';
           dock.addEventListener('click', () => location.assign(loginUrl()));
         }
         } else if (reason === 'payment') {
+          nextPrimary.dataset.action = 'open-checkout';
           nextPrimary.textContent = '전체 보기';
           nextPrimary.addEventListener('click', () => {
             location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);

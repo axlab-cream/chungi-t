@@ -192,8 +192,8 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
 }
 
 export function getPaymentProduct(value: unknown): PaymentProduct | undefined {
-  if (typeof value !== 'string') return undefined
-  return products[value.trim() as PaymentProductKey]
+  const key = canonicalPaymentProductKey(value)
+  return key ? products[key] : undefined
 }
 
 export function listPaymentProducts(): PaymentProduct[] {
@@ -202,4 +202,71 @@ export function listPaymentProducts(): PaymentProduct[] {
 
 export function publicPaymentProduct(product: PaymentProduct): Omit<PaymentProduct, 'key'> & { key: PaymentProductKey } {
   return { ...product }
+}
+
+/**
+ * HTML 시드·구 주소가 카탈로그 키와 다른 이름으로 결제창에 들어온다.
+ * 조회는 여기서만 정규화한다. 페이지마다 키를 고치면 세션 저장 이름과 어긋난다.
+ */
+export const PAYMENT_PRODUCT_ALIASES: Record<string, PaymentProductKey> = {
+  save: 'money_save',
+  money: 'money_save',
+  couple_match: 'match_couple',
+  couple: 'match_couple',
+  love_thisyear: 'love_this_year',
+  thisyear: 'love_this_year',
+  marriage_compatibility: 'marry_match',
+  marry: 'marry_match',
+  home_fit: 'home_pungsu',
+  home: 'home_pungsu',
+  pass_angle_exam: 'pass_angle',
+  saju_master: 'cmdg',
+  cheongi: 'cmdg',
+  quit: 'quit_fortune',
+  cat: 'cat_compatibility',
+  signal: 'couple_signal',
+  love_signal: 'couple_signal',
+  jobchoice: 'job_choice',
+  'job-choice': 'job_choice',
+}
+
+export const PAYMENT_PATH_PREFIXES: Array<[string, PaymentProductKey]> = [
+  ['/money/save', 'money_save'],
+  ['/match/couple', 'match_couple'],
+  ['/match/marry', 'marry_match'],
+  ['/match/cat', 'cat_compatibility'],
+  ['/love/this-year', 'love_this_year'],
+  ['/love/signal', 'couple_signal'],
+  ['/love/mind', 'love_mind'],
+  ['/love/again', 'love_again'],
+  ['/love/spouse', 'love_spouse'],
+  ['/work/job-choice', 'job_choice'],
+  ['/work/quit', 'quit_fortune'],
+  ['/work/move', 'work_move'],
+  ['/work/job', 'work_job'],
+  ['/place/home', 'home_pungsu'],
+  ['/me/lucky', 'lucky_color'],
+  ['/me/pass-angle', 'pass_angle'],
+  ['/flow/newyear', 'newyear_flow'],
+  ['/day/wedding', 'wedding_day'],
+  ['/cmdg', 'cmdg'],
+]
+
+export function canonicalPaymentProductKey(value: unknown): PaymentProductKey | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  if (trimmed in products) return trimmed as PaymentProductKey
+  return PAYMENT_PRODUCT_ALIASES[trimmed]
+}
+
+export function paymentProductKeyFromPath(path: unknown): PaymentProductKey | undefined {
+  if (typeof path !== 'string' || !path) return undefined
+  let pathname = path
+  try {
+    pathname = path.startsWith('http') ? new URL(path).pathname : path.split('?')[0]
+  } catch {
+    pathname = path.split('?')[0]
+  }
+  return PAYMENT_PATH_PREFIXES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1]
 }
