@@ -2,7 +2,10 @@
   'use strict';
 
   const query = new URLSearchParams(global.location.search);
-  const productKey = query.get('product') || '';
+  // 서버가 만드는 결제 주소는 `product=` 를 쓰지만, 각 서비스의 CTA 폴백은
+  // `/payment?service=<키>` 로 보낸다(umsh-report-access.js 등). 한쪽만 읽으면
+  // 폴백으로 들어온 고객이 "상품 정보를 확인하지 못했습니다" 에서 막힌다.
+  const productKey = query.get('product') || query.get('service') || '';
   const reportId = query.get('reportId') || '';
   const returnTo = query.get('returnTo') || '';
   const form = document.querySelector('#payment-form');

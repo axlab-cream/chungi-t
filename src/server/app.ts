@@ -323,7 +323,14 @@ app.get(['/payment/result', '/payment/result/', '/payment/result.html'], (_req, 
 app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res) => {
   res.sendFile(PAYMENT_CLOSE_PAGE)
 })
+// 테스트 결제 화면은 `/api/payment/test/approve` 와 같은 조건에서만 열린다.
+// 승인 API 는 이미 막혀 있었는데 화면만 운영에서 200 이라, 고객이 주소로
+// 들어오면 결제되지 않는 폼을 보게 됐다.
 app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
+  if (!isPaymentTestMode()) {
+    res.status(404).type('text/plain').send('Not Found')
+    return
+  }
   res.sendFile(PAYMENT_TEST_PAGE)
 })
 app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
@@ -880,7 +887,11 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 // 경로별로 명시 마운트했다. 즉 이 마운트는 스크랩 산출물만 추가로 공개했다 —
 // 확장자 허용 목록은 `.html` 을 통과시키므로 `GET /extracted_decoded.html` 이
 // 116KB 를 그대로 반환하고 있었다 (2026-09-10 Codex 리뷰 Major 확인 중 발견).
-app.use(cachedStatic(SAJU_ROOT, { index: false }))
+// 서비스 단계 주소는 `01-step-1-story/index.html` 처럼 디렉터리 + index.html 계약이라,
+// 끝의 파일명을 뗀 `/love/this-year/01-step-1-story/` 를 공유하면 404 였다. 같은
+// index.html 이 이미 파일명으로 공개돼 있으므로 새로 열리는 파일은 없다.
+// `/`·`/payment` 등은 위 명시 라우트가 먼저 처리한다.
+app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {
   return {
