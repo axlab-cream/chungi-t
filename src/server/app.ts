@@ -86,6 +86,7 @@ import {
   updatePaymentOrder,
 } from '../payment/order-store.js'
 import type { PaymentOrder } from '../payment/order-store.js'
+import { checkoutQaRequested, isSettledOrder, settleOrderAccess } from '../payment/entitlement.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import {
   buildMoneySaveContext,
@@ -1520,6 +1521,9 @@ function clientPaymentOrder(order: PaymentOrder) {
     productTitle: order.productTitle,
     amount: order.amount,
     status: order.status,
+    // The reading this order unlocks. The client marks a reading paid from this, never from
+    // the address bar.
+    reportId: order.reportId,
     tid: order.tid,
     payMethod: order.payMethod,
     createdAt: order.createdAt,
@@ -1590,30 +1594,48 @@ function isCheckoutLive(): boolean {
   return config.configured || config.testMode
 }
 
-/**
- * A settled order unlocks a report when it belongs to the caller, was bought for the same
- * product, and is either bound to that report or was created before any report id existed.
- */
-function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: string, reportId: string): boolean {
-  if (order.ownerId !== owner.id || order.productKey !== productKey) return false
-  if (order.status !== 'paid' && order.status !== 'viewed') return false
-  if (!order.reportId || !reportId) return true
-  return order.reportId === reportId
-}
+// Entitlement rules decide money, so they live in `src/payment/entitlement.ts` under test.
 
 /** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
 async function findUnlockingOrder(
   owner: ReportOwner,
   productKey: string,
   reportId: string,
+  reportCreatedAt?: string,
 ): Promise<PaymentOrder | null> {
   const bound = await listPaymentOrders(owner.id, 100, reportId).catch(() => [] as PaymentOrder[])
-  const exact = bound.find((order) => orderUnlocks(order, owner, productKey, reportId))
+  const exact = await firstEntitlingOrder(bound, owner, productKey, reportId, reportCreatedAt)
   if (exact) return exact
-  // Retain legacy unbound-order compatibility; current orders use the exact report ID lookup above.
   const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
-  const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
-  return unlocking.find((order) => order.reportId === reportId) ?? unlocking[0] ?? null
+  // Already-bound orders are tried first so an order that covers this reading never triggers a
+  // claim write on an unbound one.
+  const ordered = [...orders.filter((order) => order.reportId), ...orders.filter((order) => !order.reportId)]
+  // A legacy order needs the reading's age. That lookup is paid only by accounts holding one.
+  const holdsUnbound = orders.some((order) => isSettledOrder(order, owner, productKey) && !order.reportId)
+  const createdAt = reportCreatedAt ?? (holdsUnbound ? await reportCreatedAtFor(reportId, owner) : undefined)
+  return await firstEntitlingOrder(ordered, owner, productKey, reportId, createdAt)
+}
+
+/** Every order entitlement goes through `settleOrderAccess`, so the binding cannot be skipped. */
+async function firstEntitlingOrder(
+  orders: PaymentOrder[],
+  owner: ReportOwner,
+  productKey: string,
+  reportId: string,
+  reportCreatedAt?: string,
+): Promise<PaymentOrder | null> {
+  for (const order of orders) {
+    const settled = await settleOrderAccess(order, owner, productKey, reportId, reportCreatedAt)
+    if (settled) return settled
+  }
+  return null
+}
+
+/** Creation time of a saved reading, used to decide what a legacy unbound order covers. */
+async function reportCreatedAtFor(reportId: string, owner: ReportOwner): Promise<string | undefined> {
+  if (!reportId) return undefined
+  const record = await findReportRecord(reportId, owner).catch(() => null)
+  return record?.createdAt
 }
 
 interface PaidAccess {
@@ -1627,19 +1649,21 @@ async function resolvePaidAccess(
   owner: ReportOwner | undefined,
   productKey: string,
   reportId = '',
+  reportCreatedAt?: string,
 ): Promise<PaidAccess> {
-  if (isAdminOwner(owner)) return { entitled: true, reason: 'admin' }
+  if (isAdminOwner(owner) && !checkoutQaRequested(req)) return { entitled: true, reason: 'admin' }
   if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
   if (!owner) return { entitled: false, reason: 'none' }
 
   const orderId = trimmedString(req.body?.orderId) || trimmedString(req.query?.orderId)
   if (orderId) {
     const order = await getPaymentOrder(orderId).catch(() => null)
-    if (order && orderUnlocks(order, owner, productKey, reportId)) {
-      return { entitled: true, reason: 'order', order }
-    }
+    // Goes through settleOrderAccess so naming an order id cannot skip the binding and replay
+    // one unbound order across readings.
+    const settled = order ? await settleOrderAccess(order, owner, productKey, reportId, reportCreatedAt) : null
+    if (settled) return { entitled: true, reason: 'order', order: settled }
   }
-  const order = await findUnlockingOrder(owner, productKey, reportId)
+  const order = await findUnlockingOrder(owner, productKey, reportId, reportCreatedAt)
   return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
 }
 
@@ -1666,7 +1690,7 @@ async function ensurePaidServiceAccess(
   productKey: string,
   reportId = '',
 ): Promise<boolean> {
-  if (isAdminOwner(owner)) return true
+  if (isAdminOwner(owner) && !checkoutQaRequested(req)) return true
   if (!isCheckoutLive()) return true
   const config = paymentConfigPayload()
   if (!config.checkoutEnabled) {
@@ -3027,7 +3051,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     const expected = ANALYZE_SERVICES[req.path]
     if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
-    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, record.createdAt)
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
@@ -3621,7 +3645,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       return
     }
     if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
-    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, record.createdAt)
     if (!access.entitled) { res.json(savedPreviewResponse(record)); return }
     applyReportEntitlement(analysis.report, access, owner)
     res.json({

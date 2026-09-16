@@ -4561,7 +4561,11 @@
         }
         const reportId = state.analysis?.report?.reportId || "";
         const basePath = servicePathForCurrentPage();
-        const returnTo = reportId ? `${basePath}?reportId=${encodeURIComponent(reportId)}` : basePath;
+        const qaSuffix = isCheckoutQaMode() ? "qa=pay" : "";
+        // Keep the QA flag on the return trip so the reopened reading proves entitlement
+        // through the new order instead of falling back to staff comp access.
+        const returnQuery = [reportId ? `reportId=${encodeURIComponent(reportId)}` : "", qaSuffix].filter(Boolean).join("&");
+        const returnTo = returnQuery ? `${basePath}?${returnQuery}` : basePath;
         const params = new URLSearchParams({ product: productKey, returnTo });
         if (reportId) params.set("reportId", reportId);
         window.UMSHPaymentBridge?.save(productKey, { reportId }, returnTo);
@@ -4573,10 +4577,16 @@
         if (params.get("paid") !== "1") return;
         const orderId = params.get("orderId") || "";
         if (orderId) {
-          await fetch(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, {
+          // The server checks the order belongs to this account and is actually paid, so a
+          // 200 here is what authorizes the local paid marker — the URL alone never does.
+          const confirmed = await fetch(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, {
             method: "POST",
             headers: await authHeaders(),
-          }).catch(() => undefined);
+          }).catch(() => null);
+          if (confirmed?.ok) {
+            const settled = await confirmed.json().catch(() => ({}));
+            rememberPaidReport(settled.order?.reportId || params.get("reportId") || "");
+          }
         }
         window.UMSHPaymentBridge?.clear();
         const clean = new URLSearchParams(location.search);
@@ -4586,11 +4596,28 @@
         history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
       }
 
+      /**
+       * Staff accounts read every report for free, which hides the checkout from QA. `?qa=pay`
+       * drops that comp access for the visit so the CTA walks the real payment flow. It only
+       * ever removes access, so it is safe in the address bar.
+       */
+      function isCheckoutQaMode() {
+        try {
+          return new URLSearchParams(location.search).get("qa") === "pay";
+        } catch (err) {
+          return false;
+        }
+      }
+
       function isCurrentReportPaid() {
-        if (isAdminAccount) return true;
+        const qaMode = isCheckoutQaMode();
+        if (isAdminAccount && !qaMode) return true;
         const report = state.analysis?.report || {};
         const reportId = report.reportId || "";
-        const paidIds = readPaidReportIds();
+        // QA mode must prove access through an order, so a report the server unlocked as
+        // staff comp — or a local marker seeded from the address bar — does not count.
+        if (qaMode && report.unlockReason === "admin") return false;
+        const paidIds = qaMode ? [] : readPaidReportIds();
         return Boolean(
           report.isPaid
           || report.paid
@@ -4629,6 +4656,7 @@
         const url = new URL("/cmdg/", location.origin);
         url.searchParams.set("authReturn", "1");
         url.searchParams.set("reportId", reportId);
+        if (isCheckoutQaMode()) url.searchParams.set("qa", "pay");
         url.hash = "result";
         history.replaceState(null, "", url.toString());
       }
@@ -4908,14 +4936,17 @@
         const trimmed = String(reportId || "").trim();
         if (!trimmed) throw new Error("풀이 ID가 비어 있습니다.");
 
-        const cached = options.refresh ? null : readReportHistory().find((item) => item.reportId === trimmed);
+        // QA mode always re-asks the server: a cached reading can carry staff-comp paid flags.
+        const cached = options.refresh || isCheckoutQaMode()
+          ? null
+          : readReportHistory().find((item) => item.reportId === trimmed);
         if (cached?.analysis && applyReadingPayload(cached)) {
           historyStack.length = 0;
           go("result", false);
           return;
         }
 
-        const res = await fetch(`/api/report/${encodeURIComponent(trimmed)}`, {
+        const res = await fetch(`/api/report/${encodeURIComponent(trimmed)}${isCheckoutQaMode() ? "?qa=pay" : ""}`, {
           headers: await authHeaders(),
         });
         const json = await res.json();
@@ -5106,10 +5137,11 @@
         if (action === "open-chat") {
           if (isCurrentReportPaid()) {
             {
-              const key = state.serviceKey || "";
-              location.href = key
-                ? `/chat.html?serviceKey=${encodeURIComponent(key)}`
-                : "/chat.html";
+              const chatParams = new URLSearchParams();
+              if (state.serviceKey) chatParams.set("serviceKey", state.serviceKey);
+              if (isCheckoutQaMode()) chatParams.set("qa", "pay");
+              const query = chatParams.toString();
+              location.href = query ? `/chat.html?${query}` : "/chat.html";
             }
             return;
           }
@@ -5435,7 +5467,7 @@
         const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers,
-          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context }),
+          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context, ...(isCheckoutQaMode() ? { qa: "pay" } : {}) }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");
@@ -5922,6 +5954,7 @@
             reportId: state.analysis?.report?.reportId,
             sectionId: section.id,
             context: getReportContext(),
+            ...(isCheckoutQaMode() ? { qa: "pay" } : {}),
           }),
         });
         const json = await res.json();
@@ -5946,6 +5979,7 @@
               birth,
               reportId,
               context: getReportContext(),
+              ...(isCheckoutQaMode() ? { qa: "pay" } : {}),
             }),
           });
           const json = await res.json();
@@ -7307,7 +7341,11 @@
       const initialReportId = new URLSearchParams(location.search).get("reportId");
       const paidReturnParams = new URLSearchParams(location.search);
       const isPaidReturn = paidReturnParams.get("paid") === "1";
-      if (isPaidReturn && initialReportId) rememberPaidReport(initialReportId);
+      // `paid=1` in the address bar is not proof of payment. The marker is written only after
+      // `finishPaidReturn()` confirms the order with the server.
+      if (isPaidReturn && initialReportId && !paidReturnParams.get("orderId")) {
+        console.warn("결제 복귀 주소에 주문 번호가 없어 결제 표시를 저장하지 않습니다.");
+      }
       if (isStandaloneSignupFlow() && !isAuthReturn) {
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         sessionStorage.removeItem(AUTH_FORM_KEY);

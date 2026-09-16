@@ -1220,3 +1220,26 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - 부가: `report-view.html`에도 PDF 버튼·`umsh-report-pdf.js` 연결
 - 잔여 리스크: 일부 저장 리포트 섹션이 `pending/failed`로 남고 본문 생성이 느림. PDF는 본문 있는 항목부터 열고 나머지는 백그라운드 resume
 - 산출: `output/all-services-qa/health-pdf-qa.json`
+
+## 2026-09-16 — 천명사주 결과 CTA 결제 진입 복구 (task-022)
+
+- 제보: `/cmdg/?authReturn=1&reportId=...#result` 에서 `천명사주 상담` 이 결제창 대신
+  `/chat.html` 해석 목차로 이동. "결제 부착 회귀"로 보였다.
+- 실측: 운영 HTML 에 `startCheckout` 존재, `/api/payment/config` checkoutEnabled=true.
+  회귀가 아니었다. 테스트 계정 `good1621@gmail.com` 이 `src/auth/admin.ts` 관리자 목록에 있어
+  서버가 리포트를 결제 상태로 해제하고, 클라이언트 `isCurrentReportPaid()` 의 관리자 지름길이
+  결제 단계를 건너뛰었다.
+- 부수 발견: `orderUnlocks()` 가 reportId 없는 주문을 무조건 인정하고 `findUnlockingOrder()` 가
+  `?? unlocking[0]` 로 아무 주문이나 집어와, cmdg 주문 1건이 이후 모든 천명사주를 무한 개방했다.
+- 조치: (1) `?qa=pay` 로 관리자 면제만 제거하는 QA 모드 (권한 부여 불가). (2) 주문-리포트 결속
+  강화 + 레거시 보호(컷오프 이전 주문은 컷오프 이전 리포트만) + 컷오프 이후 미결속 주문은
+  claim-on-first-use (CAS, 실패 시 fail-closed). (3) 모든 주문 자격을 `settleOrderAccess` 한 곳으로.
+- 리뷰: Codex 3회. 1차 Major 3 → 2차 Major 3(제 수정의 결제 누수 2건 포함) → 3차 Approved
+  (Critical 0 / Major 0, Minor 2 반영).
+- 감사: Grok `CreamAI/logs/audit/task-022_cmdg-entitlement-audit.md` — Partially substantiated.
+  근본원인은 계정 확인 + 코드 추적이며 운영 브라우저 재현은 NOT_RUN 임을 명시.
+- 검증: npm test 693/693, tsc 0, check-integrations 10/10 PASS.
+- 부수 수정: ProjectOps 하네스 `$ProjectRoot` 가 CreamAI 폴더를 가리켜 `package.json` 을 찾지
+  못하고 모든 test/release 하네스가 명령 기록 없이 WARN 만 남기고 있었다. `$RepoRoot` 분리.
+- 배포: 미실시. 브랜치 `fix/umsh-qa-ux` 작업 트리 상태.
+

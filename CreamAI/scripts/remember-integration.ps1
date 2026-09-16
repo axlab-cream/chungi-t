@@ -53,9 +53,9 @@ New-Item -ItemType Directory -Force -Path $IntegrationsDir, $LogsDir | Out-Null
 $Known = @{
     supabase = @{
         display = 'Supabase'
-        command = 'npx'
-        args = @('--yes', 'supabase', 'projects', 'list')
-        setup = 'npx --yes supabase login'
+        command = 'supabase'
+        args = @('projects', 'list')
+        setup = 'supabase login'
     }
     vercel = @{
         display = 'Vercel'
@@ -202,12 +202,9 @@ function Invoke-IntegrationCheck {
     }
     $global:LASTEXITCODE = 0
     $output = @()
-    $previousErrorAction = $ErrorActionPreference
     try {
-        $ErrorActionPreference = 'Continue'
-        $raw = & $command @args 2>&1
+        $output = & $command @args 2>&1 | ForEach-Object { Mask-SecretText "$_" }
         $exit = if ($null -ne $global:LASTEXITCODE) { [int]$global:LASTEXITCODE } else { 0 }
-        $output = @($raw | ForEach-Object { Mask-SecretText "$_" })
         return [ordered]@{
             ok = ($exit -eq 0)
             status = $(if ($exit -eq 0) { 'configured' } else { 'needs_setup' })
@@ -223,8 +220,6 @@ function Invoke-IntegrationCheck {
             command = Join-CommandParts -Command $command -CommandArgs $args
             output = Mask-SecretText $_.Exception.Message
         }
-    } finally {
-        $ErrorActionPreference = $previousErrorAction
     }
 }
 

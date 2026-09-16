@@ -208,3 +208,23 @@
 - Production 브라우저: 로그인된 `/admin/corpus`에서 레지스트리 1.9.0·활성 팩 28개 목록, `/admin/prompts`에서 가이드 4개·서비스 파일 20개 목록 표시 PASS.
 - Production health: `/api/health`가 `ok:true`, registry 1.9.0, packs 28개를 반환해 PASS.
 - Production error log: 애플리케이션 HTTP 실패 0건. 기존 Node `[DEP0169] url.parse()` deprecation warning 2건은 별도 런타임 정리 대상.
+
+## task-022 — 천명사주 결과 CTA 결제 진입 / 주문-리포트 결속 (2026-09-16)
+
+- RED: `tests/unit/paid-entitlement.test.ts` 의 누수 테스트 3건과 서버 QA 배선 가드 1건이
+  수정 전(관리자 무조건 면제, 미결속 주문이 상품 단위로 해제) 상태에서 FAIL 하는 것을 확인했다.
+  `tests/unit/paid-entitlement-claim.test.ts` 동시성 테스트는 CAS 검사를 제거하면 FAIL 한다.
+- focused: `paid-entitlement.test.ts` 24 PASS, `paid-entitlement-claim.test.ts` 6 PASS.
+- full regression: `npm test` 693 tests / 115 suites / 693 PASS / 0 FAIL.
+- typecheck: `npx tsc --noEmit` 오류 0.
+- 통합: `node scripts/check-integrations.mjs` 10/10 PASS (checkout enabled, Inicis ready,
+  payment order storage supabase).
+- 커버리지: 정상(결속 주문 = 그 풀이), 경계(컷오프 전/후, reportId 없음, 생성시각 불명),
+  에러(미결제 상태, 타 계정, 타 상품), 보안(orderId 재사용, 동시 claim, qa 플래그가 권한을
+  부여하지 못함).
+- 하네스: `CreamAI/logs/harness/task-022_{preflight,test,rag,release}.json` 전부 failed=false,
+  test 모드가 `npm test exit_code=0` 을 실제로 기록.
+- 명령 출력: `CreamAI/logs/test/task-022_commands.log`
+- NOT_RUN: 운영 브라우저 end-to-end (관리자 + `?qa=pay` → 결제창), 이니시스 실승인.
+- BLOCKED: 레거시 미결속 주문 실제 건수 조회 (로컬에 service role key 없음).
+

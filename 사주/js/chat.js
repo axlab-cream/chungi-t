@@ -17,6 +17,15 @@ const pdfState = {
 }
 const HISTORY_KEY = 'cheongi_report_history_v1'
 
+/** Staff comp access hides the checkout, so `?qa=pay` drops it for the whole QA visit. */
+function checkoutQaMode() {
+  try {
+    return new URLSearchParams(location.search).get('qa') === 'pay'
+  } catch (err) {
+    return false
+  }
+}
+
 function resolveServiceKey() {
   try {
     const params = new URLSearchParams(location.search)
@@ -1076,6 +1085,7 @@ async function ensureAllReportSectionsForPdf() {
         reportId: getReport()?.reportId,
         sectionId: section.id,
         context: getContextPayload(),
+        ...(checkoutQaMode() ? { qa: 'pay' } : {}),
       }),
     })
     const json = await res.json()
@@ -1616,6 +1626,7 @@ async function loadReportSection(sectionId) {
         reportId: getReport()?.reportId,
         sectionId,
         context: getContextPayload(),
+        ...(checkoutQaMode() ? { qa: 'pay' } : {}),
       }),
     })
     const json = await res.json()
@@ -1755,6 +1766,9 @@ chatForm.addEventListener('submit', async (e) => {
           message,
           history: session.history.slice(0, -1),
           ...(serviceKey ? { serviceKey } : {}),
+          // Checkout QA drops staff comp access, so the flag has to reach this call too or
+          // the chat would be authorized by comp access while the order path is untested.
+          ...(checkoutQaMode() ? { qa: 'pay' } : {}),
         }
       })()),
     })

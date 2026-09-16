@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Run a ProjectOps verification harness for a task.
 #>
@@ -23,7 +23,11 @@ try {
 } catch {}
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-Set-Location -LiteralPath $ProjectRoot
+# ProjectRoot is the CreamAI workspace (backlog, logs, memory, reports live there). The repo
+# itself is one level up, and that is where package.json, git and the project files are — probing
+# them under CreamAI made every test/release run report "no test script" and record no commands.
+$RepoRoot = Split-Path -Parent $ProjectRoot
+Set-Location -LiteralPath $RepoRoot
 
 $HarnessDir = Join-Path $ProjectRoot 'logs\harness'
 $TestDir = Join-Path $ProjectRoot 'logs\test'
@@ -117,7 +121,7 @@ function Invoke-TrackedCommand {
 }
 
 function Get-PackageScripts {
-    $packagePath = Join-Path $ProjectRoot 'package.json'
+    $packagePath = Join-Path $RepoRoot 'package.json'
     if (-not (Test-Path -LiteralPath $packagePath)) { return @{} }
     try {
         $pkg = Get-Content -Raw -Encoding UTF8 -LiteralPath $packagePath | ConvertFrom-Json
@@ -137,11 +141,11 @@ function Test-SecretPatternsInTrackedFiles {
     $files = @($files | Where-Object {
         $_ -and
         $_ -notmatch '(^|/)(node_modules|release|dist|out|\.git|logs|memory/rejected)(/|$)' -and
-        (Test-Path -LiteralPath (Join-Path $ProjectRoot $_))
+        (Test-Path -LiteralPath (Join-Path $RepoRoot $_))
     } | Select-Object -First 200)
     $hits = @()
     foreach ($rel in $files) {
-        $abs = Join-Path $ProjectRoot $rel
+        $abs = Join-Path $RepoRoot $rel
         try {
             $m = Select-String -LiteralPath $abs -Pattern '-----BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----|authorization\s*[:=]\s*bearer\s+|api[_-]?key\s*[:=]|access[_-]?token\s*[:=]|refresh[_-]?token\s*[:=]|client[_-]?secret\s*[:=]|sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9_]{16,}|github_pat_[A-Za-z0-9_]{16,}' -Encoding UTF8 -ErrorAction SilentlyContinue |
                 Select-Object -First 5
@@ -188,7 +192,7 @@ switch ($Mode) {
     }
     'test' {
         foreach ($file in @('main.js', 'preload.js', 'renderer.js')) {
-            if (Test-Path -LiteralPath (Join-Path $ProjectRoot $file)) {
+            if (Test-Path -LiteralPath (Join-Path $RepoRoot $file)) {
                 Invoke-TrackedCommand -Name "node --check $file" -File 'node' -Arguments @('--check', $file)
             }
         }
