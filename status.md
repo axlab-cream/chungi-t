@@ -2,6 +2,8 @@
 
 ## Current Task
 
+- 2026-09-16 퍼널 순서: 공개 9개는 `1 스토리 → 2 입력 → 4 티저 → 5 목차 → 6 상세`. 퇴사운만 `2 → 3 추가입력 → 4`. 결혼궁합 01 미리보기 링크가 05로 건너뛰던 경로를 막는다. 천명사주는 한 화면. 근거: `design-system/customer-kit.md`.
+
 - 2026-09-16 퍼널 CTA: STEP1~6 한 화면 한 제출, 결과 동사, STEP4 미결제는 `전체 보기 (금액)`. 커플 오표기 `1전체 보기 · 9,900원`을 `전체 보기 (19,900원)`으로 고친다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
 
 - 2026-09-16 동의 모두 선택: 티저 결제 동의는 개별 버튼 탭 대신 체크박스 + `모두 선택` 한 칸. 필수 2개와 선택 마케팅을 한 번에 켠다. 근거: CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-09-form.md`.
