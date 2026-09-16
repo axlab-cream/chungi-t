@@ -213,8 +213,10 @@
 
       try {
         const response = await api('/api/match/couple/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
@@ -279,6 +281,21 @@
 
     await resumeAfterPayment();
     const outcome = await loadReport();
+
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const description = $('#accessDescription');
+      if (description) description.textContent = outcome.preview.summary || GATE_COPY.payment;
+      const cta = $('#mainCta');
+      if (cta) {
+        cta.textContent = '전체 보기';
+        cta.addEventListener('click', (event) => {
+          event.preventDefault();
+          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+        });
+      }
+      return;
+    }
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';

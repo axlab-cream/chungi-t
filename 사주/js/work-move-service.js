@@ -418,7 +418,7 @@
     sessionSet(STORAGE.input, payload);
     if (payload.analysis) {
       sessionSet(STORAGE.analysis, payload.analysis);
-      sessionSet(STORAGE.report, payload.analysis.report || null);
+      sessionSet(STORAGE.report, payload.analysis.report?.sections?.length ? payload.analysis.report : null);
       sessionSet(STORAGE.cheongiAnalysis, payload.analysis);
     }
   }
@@ -532,8 +532,12 @@
       const payload = buildStep2Payload(form);
       try {
         payload.analysis = await requestAnalysis(payload);
-        payload.reportId = payload.analysis.report?.reportId || '';
-        if (note) note.textContent = '개인화 이직운 리포트를 저장했습니다. 04 무료 티저로 이어가세요.';
+        payload.reportId = payload.analysis.resultId || payload.analysis.reportId || payload.analysis.report?.reportId || '';
+        if (note) {
+          note.textContent = payload.analysis.preview && !payload.analysis.report?.sections?.length
+            ? '무료 티저를 저장했습니다. 04에서 먼저 확인하세요.'
+            : '개인화 이직운 리포트를 저장했습니다. 04 무료 티저로 이어가세요.';
+        }
       } catch (error) {
         payload.analysis_error = error instanceof Error ? error.message : '분석 리포트를 생성하지 못했습니다.';
         if (note) note.textContent = `${payload.analysis_error} 입력값은 저장했고 04 무료 티저에서 계속 확인할 수 있습니다.`;
@@ -584,19 +588,27 @@ function firstSentence(text) {
     return clean.split(/\n\s*\n|(?<=[.!?。])\s+/).find(function (line) { return line.trim().length > 5; }) || clean;
   }
 
+  function readPreview() {
+    const analysis = safeParse(sessionGet(STORAGE.analysis));
+    const accepted = reportAccess()?.acceptAnalyze?.(analysis);
+    if (accepted?.preview) return accepted.preview;
+    const payload = readPayload();
+    return reportAccess()?.acceptAnalyze?.(payload?.analysis)?.preview || payload?.analysis?.preview || null;
+  }
+
   function setupStep4() {
     if (!$('#step-4-report')) return;
     const report = readReport();
+    const setText = (id, text) => {
+      const node = document.getElementById(id);
+      if (node && text) node.textContent = text;
+    };
     if (report?.sections?.length) {
       const byId = new Map(report.sections.map((section) => [section.id, section]));
       const decision = byId.get('work-move-decision') || report.sections[0];
       const signal = byId.get('current-company-signal') || report.sections[1] || decision;
       const money = byId.get('money-terms') || report.sections[5] || decision;
       const risk = byId.get('risk-brake') || report.sections[7] || decision;
-      const setText = (id, text) => {
-        const node = document.getElementById(id);
-        if (node && text) node.textContent = text;
-      };
       setText('resultTitle', decision.hook || decision.category);
       setText('resultAnswer', firstSentence(decision.interpretation));
       setText('resultTypeChip', decision.category);
@@ -609,6 +621,19 @@ function firstSentence(text) {
       setText('brakeText', risk.category);
       setText('brakeBody', firstSentence(risk.interpretation));
       setText('signalNarrative', `${decision.category}. 전체 결과에서는 ${report.sections.length}개 섹션으로 대운·세운·관성·식상·재성 근거를 이어서 엽니다.`);
+    } else {
+      const preview = readPreview();
+      if (preview) {
+        reportAccess()?.paintTeaserPreview?.(preview);
+        setText('resultTitle', preview.headline || preview.title || '');
+        setText('resultAnswer', preview.headline || preview.summary || '');
+        setText('directionBody', preview.summary || preview.headline || '');
+        const insights = preview.signals || preview.insights || [];
+        const line = (item) => (item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item || ''));
+        if (insights[0]) setText('signalBody', line(insights[0]));
+        if (insights[1]) setText('conditionBody', line(insights[1]));
+        if (insights[2]) setText('brakeBody', line(insights[2]));
+      }
     }
 
     const purchase = $('[data-action="purchase"]');

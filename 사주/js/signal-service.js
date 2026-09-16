@@ -210,8 +210,10 @@
 
       try {
         const response = await api('/api/love/signal/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
@@ -278,6 +280,26 @@
     const outcome = await loadReport();
 
     const primary = $('[data-state-primary]');
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
+      if (line) summary.textContent = line;
+      const insights = outcome.preview.signals || outcome.preview.insights || [];
+      ['[data-flow-main]', '[data-flow-condition]', '[data-flow-obstacle]'].forEach((selector, index) => {
+        const node = $(selector);
+        const item = insights[index];
+        if (node && item) node.textContent = item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item);
+      });
+      if (primary) {
+        primary.textContent = '전체 보기';
+        primary.addEventListener('click', (event) => {
+          event.preventDefault();
+          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+        });
+      }
+      return;
+    }
+
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
       // The sample verdict must not stay on screen as if it were a personal reading.

@@ -2,6 +2,10 @@
 
 ## Current Task
 
+- 2026-09-16 STEP4 무료 티저: `previewOnly` 응답을 `report.sections` 없음으로 실패 처리하던 경로를 전수 보강. `UMSHReportAccess.acceptAnalyze`가 미리보기를 성공으로 받고, 공개 서비스 스크립트는 결론 칸에 `GATE_COPY.error`를 쓰지 않는다. 04는 reportId 없이 boot gate를 건너뛴다. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
+
+- 2026-09-16 STEP2 제출 CTA는 화면당 1개. 저축 입력은 폼 `next-cta`만 남기고 같은 문구의 고정 `submit-dock`을 제거. 근거: `design-system/customer-kit.md` #4, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
+
 - 2026-09-16 생년월일 키트: 칸 안의 년·월·일만 쓰고 옆 접미사·중복 도움말 제거. 이직운 STEP1 히어로 `topline` 삭제. umsh.kr 배포.
 
 - 2026-09-16 버튼 가이드: STEP2/일부 STEP4 CTA를 가로 100% · 높이 52px · 1열 독으로 맞춤. `.primary-cta` 등 별칭을 `umsh-kit.css`에 포함. 냥궁합 150px 독 해소. 제출 문구를 결과 동사로 교체. 근거: `design-system/customer-kit.md` #4, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.

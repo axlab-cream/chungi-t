@@ -522,38 +522,6 @@
         box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
       }
 
-      .submit-dock {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        z-index: 30;
-        display: grid;
-        width: var(--mobile-width);
-        min-width: var(--mobile-width);
-        transform: translateX(-50%);
-        justify-items: center;
-        padding: 14px 14px max(14px, env(safe-area-inset-bottom));
-        background: linear-gradient(180deg, rgba(16, 20, 17, 0), rgba(16, 20, 17, 0.98) 32%);
-        pointer-events: none;
-      }
-
-      .submit-inner {
-        display: grid;
-        width: 100%;
-        gap: 8px;
-        pointer-events: auto;
-      }
-
-      .submit-main {
-        min-height: 54px;
-        border: 1px solid rgba(255, 244, 223, 0.22);
-        border-radius: 8px;
-        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
-        color: #12110d;
-        font-size: 15px;
-        font-weight: 950;
-      }
-
       .dock-note {
         color: var(--dim);
         font-size: 11px;
@@ -601,7 +569,6 @@
          layout settles, so the floor keeps the reserve honest either way. */
       body.umsh-has-chrome .app,
       body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
-      body.umsh-has-chrome .submit-dock,
       body.umsh-has-chrome .cta-dock,
       body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
       .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
@@ -793,18 +760,11 @@
           </section>
 
           <div class="actions">
-            
             <button class="next-cta" type="submit">새는 자리 확인하기</button>
+            <p class="dock-note">무료 티저 화면으로 이동합니다. 개인정보는 URL에 붙지 않습니다.</p>
           </div>
         </form>
       </main>
-
-      <div class="submit-dock" aria-hidden="false">
-        <div class="submit-inner">
-          <button class="submit-main" type="button" data-action="submit-dock">새는 자리 확인하기</button>
-          <div class="dock-note">무료 티저 화면으로 이동합니다. 개인정보는 URL에 붙지 않습니다.</div>
-        </div>
-      </div>
 
       <div class="toast" data-toast="" role="status" aria-live="polite"></div>
     </div>
@@ -1466,7 +1426,6 @@
           profileCard.classList.remove("is-visible");
           setToast("새 사주 정보로 입력합니다.");
         }
-        if (action === "submit-dock") saveAndContinue();
       });
 
       form.addEventListener("submit", (event) => {

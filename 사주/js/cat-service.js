@@ -239,8 +239,10 @@
 
       try {
         const response = await api('/api/match/cat/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
@@ -337,6 +339,24 @@
 
     await resumeAfterPayment();
     const outcome = await loadReport();
+
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
+      setText('#signal-main-title', outcome.preview.headline || '우리 둘의 생활 박자');
+      if (line) setText('#signal-main-copy', line);
+      const insights = outcome.preview.signals || outcome.preview.insights || [];
+      const insightLine = (item) => (item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item || ''));
+      if (insights[0]) setText('#condition-signal', insightLine(insights[0]));
+      if (insights[1]) setText('#blocker-signal', insightLine(insights[1]));
+      setText('#state-pill', '무료 공개');
+      setText('#state-title', '핵심 결론을 먼저 열었습니다');
+      setText('#state-copy', GATE_COPY.payment);
+      takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
+        location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+      });
+      return;
+    }
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';

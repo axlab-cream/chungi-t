@@ -232,8 +232,10 @@
       try {
         // The whole request is the account's saju, so there is nothing to collect.
         const response = await api('/api/me/lucky/analyze', { method: 'POST', body: JSON.stringify({}) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
@@ -320,6 +322,22 @@
     const teaser = $('.teaser');
     const teaserItems = $$('.teaser .item');
     const scopeItems = $$('.scope .item');
+
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const lead = teaser?.querySelector('p');
+      if (lead) lead.textContent = outcome.preview.summary || outcome.preview.headline || lead.textContent;
+      const insights = outcome.preview.signals || outcome.preview.insights || [];
+      teaserItems.forEach((item, index) => {
+        const body = item.querySelector('p');
+        const insight = insights[index];
+        if (body && insight) body.textContent = insight && typeof insight === 'object' ? String(insight.body || insight.text || insight.title || '') : String(insight);
+      });
+      takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
+        location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+      });
+      return;
+    }
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';

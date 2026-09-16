@@ -172,7 +172,7 @@
     insights: ['signal-list', 'signalList', 'signal-tags', 'heroTags', 'evidencePills', 'flowList'],
     'paid-value': ['scope-list', 'scopeGrid', 'scope-grid', 'unlockList'],
     headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle', 'teaser-title'],
-    summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview'],
+    summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview', 'answerLine', 'signal-main-copy'],
   };
 
   /** 껍데기 안에서 본문을 넣기 적당한 컨테이너. 스크롤 영역이 있으면 그 안. */
@@ -243,6 +243,9 @@
     title: ['[data-title]'],
     subtitle: ['[data-subtitle]', '[data-conclusion]'],
     state: ['[data-state]', '[data-status]'],
+    summary: ['[data-one-line-answer]', '[data-teaser-summary]', '#answerLine', '#signal-main-copy', '#freeSummary', '#resultAnswer'],
+    headline: ['#teaser-title', '[data-teaser-headline]'],
+    insights: ['[data-signal-list]', '#signal-tags'],
   };
 
   /**
@@ -790,8 +793,22 @@
         var response=await reportFetch('/api/flow/newyear/analyze',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},headerCache),body:JSON.stringify({orderId:new URLSearchParams(location.search).get('orderId')})});
         if(!response.ok) {var failed=await response.json().catch(function(){return {};});gate(failed.error || '구매 내역에서 결제 상태를 확인해 주세요.');}
       }
-      else if(!authorized) gate(isDetailPage() ? '저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.' : '입력한 내용을 확인하고 있습니다. 입력이 아직 없다면 서비스로 돌아가 사주와 현재 상황을 알려 주세요.');
-    } catch(error) {gate(error.message || '저장된 해석을 불러오지 못했습니다.');}
+      else if(!authorized) {
+        // 04 무료 티저는 reportId 없이 analyze(preview)로 채운다. 여기서 막으면
+        // 정상 미리보기도 "확인 중/계산 실패"로 덮인다.
+        if (/\/04-step-4-report\//.test(location.pathname) && !id) {
+          document.documentElement.removeAttribute('data-umsh-report-check');
+          return;
+        }
+        gate(isDetailPage() ? '저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.' : '입력한 내용을 확인하고 있습니다. 입력이 아직 없다면 서비스로 돌아가 사주와 현재 상황을 알려 주세요.');
+      }
+    } catch(error) {
+      if (/\/04-step-4-report\//.test(location.pathname) && !id) {
+        document.documentElement.removeAttribute('data-umsh-report-check');
+        return;
+      }
+      gate(error.message || '저장된 해석을 불러오지 못했습니다.');
+    }
   }
   // Browser caches are lookup hints, never proof of ownership or purchase. Only a
   // fresh authenticated GET may supply displayable report content on a new page.
@@ -809,7 +826,74 @@
       }
     } catch(_) {}
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,verifiedReport:function(){return authorized;},identity:identity};
+  function acceptAnalyze(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    var preview = payload.preview;
+    var hasPreview = Boolean(preview && String(preview.headline || preview.summary || preview.title || '').trim());
+    var report = payload.report && Array.isArray(payload.report.sections) && payload.report.sections.length
+      ? payload.report
+      : (Array.isArray(payload.sections) && payload.sections.length ? payload : null);
+    if (hasPreview) {
+      return {
+        preview: preview,
+        previewOnly: payload.previewOnly !== false,
+        payload: payload,
+        paymentUrl: payload.paymentUrl,
+        report: report || undefined,
+      };
+    }
+    if (report) return { report: report, payload: payload };
+    return null;
+  }
+  function paintTeaserPreview(preview) {
+    if (!preview) return false;
+    var line = String(preview.headline || preview.summary || preview.title || '').trim();
+    if (!line) return false;
+    var painted = false;
+    document.querySelectorAll('[data-one-line-answer], #answerLine, #signal-main-copy, #freeSummary, #resultAnswer, #personal-teaser, #hero-summary, [data-hero-summary]').forEach(function (node) {
+      node.textContent = line;
+      painted = true;
+    });
+    var insights = (preview.signals && preview.signals.length ? preview.signals : preview.insights) || [];
+    var list = document.querySelector('[data-signal-list]');
+    if (list && insights.length) {
+      list.innerHTML = insights.slice(0, 3).map(function (item, index) {
+        var title = item && typeof item === 'object' ? String(item.title || ('신호 ' + (index + 1))) : ('신호 ' + (index + 1));
+        var body = item && typeof item === 'object' ? String(item.body || item.text || '') : String(item || '');
+        return '<div class="signal-item"><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(body) + '</span></div>';
+      }).join('');
+      painted = true;
+    }
+    var insightText = function (item) {
+      if (item && typeof item === 'object') return String(item.body || item.text || item.title || '').trim();
+      return String(item || '').trim();
+    };
+    ['#condition-signal', '#blocker-signal', '[data-flow-main]', '[data-flow-condition]', '[data-flow-obstacle]'].forEach(function (selector, index) {
+      var node = document.querySelector(selector);
+      if (node && insights[index]) {
+        node.textContent = insightText(insights[index]);
+        painted = true;
+      }
+    });
+    document.querySelectorAll('#step-4-report .teaser .item p, #step-4-report .teaser-grid .mini-card span').forEach(function (node, index) {
+      if (insights[index]) {
+        node.textContent = insightText(insights[index]);
+        painted = true;
+      }
+    });
+    if (!painted) {
+      var lead = document.querySelector('#step-4-report .teaser > p, #step-4-report .hero .copy > p');
+      if (lead) {
+        lead.textContent = line;
+        painted = true;
+      }
+    } else if (!document.querySelector('[data-one-line-answer], #answerLine, #signal-main-copy, #freeSummary, #resultAnswer, #hero-summary, [data-hero-summary]')) {
+      var luckyLead = document.querySelector('#step-4-report .teaser > p');
+      if (luckyLead) luckyLead.textContent = String(preview.summary || line);
+    }
+    return painted;
+  }
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity};
   if (typeof document !== 'undefined') {
     if (global.addEventListener) {
       global.addEventListener('beforeprint', expandReportForPrint);

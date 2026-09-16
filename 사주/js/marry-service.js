@@ -340,8 +340,10 @@
       try {
         await syncSelfProfile(payload);
         const response = await api('/api/match/marry/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         writeJson('sessionStorage', STORAGE.reportContext, {
           service_key: SERVICE.designKey,
@@ -443,6 +445,22 @@
       nextSecondary.addEventListener('click', () => {
         location.assign('../02-step-2-saju-input/index.html#step-2-saju-input');
       });
+    }
+
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
+      const summary = $('#hero-summary');
+      if (summary && line) summary.textContent = line;
+      if (stateCopy) stateCopy.textContent = STEP_04_MESSAGES.payment;
+      if (message) message.textContent = outcome.preview.summary || '';
+      if (nextPrimary) {
+        nextPrimary.textContent = '전체 보기 · 24,900원';
+        nextPrimary.addEventListener('click', () => {
+          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+        });
+      }
+      return;
     }
 
     if (!outcome.report) {

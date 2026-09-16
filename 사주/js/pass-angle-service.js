@@ -230,8 +230,10 @@
 
   // ------------------------------------------------------------ report load
   let needsLogin = false;
+  let lastPreview = null;
 
   async function loadReport() {
+    lastPreview = null;
     const cached = sessionGet(STORAGE.report);
     if (cached?.sections?.length && !window.UMSHReportAccess) return cached;
 
@@ -259,8 +261,16 @@
       if (error?.status === 401 || error?.status === 403) needsLogin = true;
       return null;
     }
-    const report = data.report || data;
-    if (!report?.sections?.length) return null;
+    const accepted = window.UMSHReportAccess?.acceptAnalyze?.(data);
+    if (accepted?.preview && !accepted.report) {
+      lastPreview = accepted;
+      return null;
+    }
+    const report = accepted?.report || data.report || data;
+    if (!report?.sections?.length) {
+      if (accepted?.preview) lastPreview = accepted;
+      return null;
+    }
     sessionSet(STORAGE.report, report);
     return report;
   }
@@ -339,6 +349,22 @@ function firstParagraph(text) {
     if (!root) return;
     const report = await loadReport();
     if (!report) {
+      if (lastPreview?.preview) {
+        window.UMSHReportAccess?.paintTeaserPreview?.(lastPreview.preview);
+        const heroCopy = root.querySelector('.hero .copy');
+        if (heroCopy) {
+          const h1 = heroCopy.querySelector('h1');
+          const lead = heroCopy.querySelector('p');
+          if (h1 && lastPreview.preview.headline) h1.textContent = lastPreview.preview.headline;
+          if (lead) lead.textContent = lastPreview.preview.summary || lastPreview.preview.headline || lead.textContent;
+        }
+        const results = root.querySelectorAll('.result');
+        if (results[0]) {
+          const span = results[0].querySelector('span');
+          if (span) span.textContent = lastPreview.preview.summary || lastPreview.preview.headline || span.textContent;
+        }
+        return;
+      }
       if (needsLogin) renderLoginGate(root, '지금 화면의 문장은 예시입니다. 로그인 후 입력하신 사주와 시험 정보로 다시 계산합니다.');
       return;
     }
