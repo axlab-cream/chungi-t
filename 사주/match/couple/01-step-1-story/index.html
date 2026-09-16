@@ -855,69 +855,7 @@
 }
   </script>
 
-  <script type="application/json" id="RAG_EVIDENCE">
-{
-  "retrieval_policy": "고객 화면에는 원문 출처와 내부 용어를 노출하지 않고, 화면 문구는 가능성·경향·행동 제안 수준으로만 사용합니다.",
-  "evidence": [
-    {
-      "evidence_id": "zip-궁합-qa-000228",
-      "source": "ZIP-궁합",
-      "locator": "pdf0020001 p.105",
-      "review_status": "unreviewed",
-      "takeaway": "띠 관계 해석에서 관계 안정성, 다툼, 결혼/동업, 신뢰, 의사소통을 함께 다룰 수 있음"
-    },
-    {
-      "evidence_id": "zip-궁합-qa-000230",
-      "source": "ZIP-궁합",
-      "locator": "pdf0020001 p.107",
-      "review_status": "unreviewed",
-      "takeaway": "공동 목표, 협력, 의사소통 장애, 성격 충돌, 이해와 애정을 관계 해석 축으로 사용할 수 있음"
-    },
-    {
-      "evidence_id": "zip-궁합-qa-000205",
-      "source": "ZIP-궁합",
-      "locator": "pdf0020001 p.81",
-      "review_status": "unreviewed",
-      "takeaway": "잘 맞는 조합과 지속 갈등, 의사소통 붕괴를 대비해 궁합 리스크를 설명할 수 있음"
-    },
-    {
-      "evidence_id": "zip-궁합-qa-000049",
-      "source": "ZIP-궁합",
-      "locator": "pdf0010001 p.58",
-      "review_status": "unreviewed",
-      "takeaway": "상호 이해와 사고방식의 유사성을 조합 해석의 친화 포인트로 사용할 수 있음"
-    },
-    {
-      "evidence_id": "item-10-p1-0071",
-      "source": "ITEM-10_사주 핵심 해석",
-      "locator": "일간 설명 항목",
-      "review_status": "cataloged",
-      "takeaway": "일간은 해석 기준점이며 단독으로 성격이나 결과를 단정하지 않음"
-    },
-    {
-      "evidence_id": "item-01-p1-0096",
-      "source": "ITEM-01_오늘의 기운",
-      "locator": "호감확신 액션 항목",
-      "review_status": "cataloged",
-      "takeaway": "끌림의 이유와 확인 가능한 사실을 나누고, 오늘 할 수 있는 확인 질문으로 연결함"
-    },
-    {
-      "evidence_id": "item-41-qa-0003",
-      "source": "ITEM-41_마음 돌봄 리포트",
-      "locator": "관계 대화 항목",
-      "review_status": "cataloged",
-      "takeaway": "관계 대화에서 느낀 것과 확인하고 싶은 것을 나누어 표현하는 방식을 권장함"
-    },
-    {
-      "evidence_id": "item-00-p1-g03",
-      "source": "ITEM-00_공통_RAG_플랫폼",
-      "locator": "공통 안전 샘플",
-      "review_status": "golden_sample",
-      "takeaway": "관계의 종료나 결혼 여부를 사주로 단정하지 않고, 선택은 사용자의 몫으로 둠"
-    }
-  ]
-}
-  </script>
+  
 
   <script type="application/json" id="IMAGE_MANIFEST">
 [
@@ -1014,51 +952,7 @@
 ]
   </script>
 
-  <script type="application/json" id="QA_RESULT">
-{
-  "stage": "01-step-1-story",
-  "status": "ready_for_review",
-  "scope_mismatch": false,
-  "checks": [
-    {
-      "item": "SERVICE_TITLE/SERVICE_CATEGORY/RAG basis alignment",
-      "status": "pass",
-      "note": "커플궁합, 명리궁합, 오행, 일지 중심으로 화면 문구와 장면을 구성했습니다."
-    },
-    {
-      "item": "INTERPRETATION_INDEX_SEED preservation",
-      "status": "pass",
-      "note": "전체 대분류/중분류는 PROMPT_INPUT에 보존했고, 01 화면은 사용자 지정 MVP 6개만 후킹 카드로 압축했습니다."
-    },
-    {
-      "item": "Customer-facing internal term exposure",
-      "status": "pass",
-      "note": "고객 화면에는 RAG, KMS, LLM, 내부 파일 경로를 노출하지 않았습니다."
-    },
-    {
-      "item": "CTA route",
-      "status": "pass",
-      "note": "모든 CTA가 ../02-step-2-saju-input/index.html#step-2-saju-input 로 연결됩니다."
-    },
-    {
-      "item": "Image generation and HTML usage",
-      "status": "pass",
-      "note": "6개 장면 이미지가 생성되어 HTML에서 각각 1:1로 참조됩니다."
-    },
-    {
-      "item": "Safety language",
-      "status": "pass",
-      "note": "결혼·이별을 단정하지 않고 가능성, 경향, 확인 질문 중심으로 표현했습니다."
-    }
-  ],
-  "notes": [
-    "현재 프로젝트에는 03 단계 폴더가 없고 공통 계약도 01 → 02 → 공통 로그인/결제 → 04 → 05 → 06_1 흐름을 기준으로 합니다.",
-    "ZIP-궁합 근거 일부는 unreviewed 상태이므로 운영 리포트의 직접 문장으로 쓰기 전 검수 대상입니다.",
-    "오늘의 관계 액션은 사용자가 지정한 MVP 범위에 맞춰 운 흐름 궁합과 마음 돌봄 항목을 01 화면용으로 통합한 명칭입니다."
-  ]
-}
-  </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/payment-bridge.js"></script>

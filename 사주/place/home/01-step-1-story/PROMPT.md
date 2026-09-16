@@ -10,7 +10,7 @@
 SERVICE_TITLE: 자미두수로 보는 내가 선택한 직장 괜찮을까
 SERVICE_CATEGORY: 직장운
 SERVICE_SUBCATEGORY: 직장 선택 핏
-SERVICE_PRICE_KRW: 9900
+SERVICE_PRICE_KRW: 19900
 SERVICE_URL_HINT: me.umsh.kr/job-choice
 SERVICE_KEY: job_choice
 SERVICE_SLUG: job-choice

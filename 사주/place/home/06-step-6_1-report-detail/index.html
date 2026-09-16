@@ -574,7 +574,7 @@
         "service_category": "집 풍수",
         "rag": ["풍수지리", "개인 명리"],
         "domain": "place.umsh.kr/home",
-        "price_krw": 9900,
+        "price_krw": 19900,
         "stage": "06-step-6_1-report-detail"
       }
     </script>
@@ -751,49 +751,7 @@
       }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      {
-        "basis": [
-          "ITEM-50_풍수지리/prompts/menu-home.txt",
-          "ITEM-50_풍수지리/prompts/menu-move.txt",
-          "ITEM-50_풍수지리/prompts/menu-compat.txt",
-          "ITEM-50_풍수지리/prompts/menu-place.txt",
-          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
-          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
-          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
-          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
-          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
-        ],
-        "guardrails": [
-          "05 목록에 없는 section은 상세에서 새로 만들지 않음",
-          "숫자·기간 데이터가 없으면 그래프를 만들지 않음",
-          "명당·흉지 절대 판정 대신 생활 리듬과 공간 핏으로 표현",
-          "상세 항목은 저장된 리포트 흐름 안에서 자연스럽게 이어서 확인"
-        ]
-      }
-    </script>
-
-    <script type="application/json" id="QA_RESULT">
-      {
-        "stage": "06-step-6_1-report-detail",
-        "status": "ready_for_review",
-        "checks": [
-          { "name": "latest_user_service_values_applied", "pass": true },
-          { "name": "all_detail_sections_match_step_05_section_ids", "pass": true },
-          { "name": "invalid_section_falls_back_without_creating_new_section", "pass": true },
-          { "name": "detail_order_has_conclusion_evidence_interpretation_actions_cautions_related", "pass": true },
-          { "name": "no_fake_graph_without_numeric_data", "pass": true },
-          { "name": "server_entitlement_required_in_render_contract", "pass": true },
-          { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
-          { "name": "images_are_full_width_single_blocks_without_side_layout", "pass": true },
-          { "name": "customer_copy_hides_internal_rag_kms_terms", "pass": true },
-          { "name": "no_deterministic_moving_or_money_claims", "pass": true }
-        ],
-        "scope_mismatch": [
-          "현재 프로젝트의 06_1 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 06_1 산출물은 사용자의 최신 집 풍수 서비스와 첨부 템플릿 공통 계약을 우선 적용했다."
-        ]
-      }
-    </script>
+    
 
     <script>
       const SERVICE = {

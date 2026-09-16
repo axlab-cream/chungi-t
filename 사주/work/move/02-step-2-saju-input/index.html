@@ -944,35 +944,7 @@
 }
   </script>
 
-  <script type="application/json" id="RAG_EVIDENCE">
-{
-  "retrieval_policy": "approved_first_and_contract_aligned",
-  "evidence_ids_carried_from_01": [
-    "rag-daewoon-001",
-    "rag-daewoon-002",
-    "rag-sewoon-001",
-    "rag-sewoon-002",
-    "rag-gwanseong-001",
-    "rag-gwanseong-002",
-    "rag-gwanseong-003",
-    "ziweidoushu-palace-001",
-    "ziweidoushu-palace-002",
-    "rag-contract-001"
-  ],
-  "input_stage_claims": [
-    {
-      "evidence_id": "input-policy-001",
-      "claim": "기존 프로필이 완성되어 있으면 생년월일시를 다시 묻지 않고, 새 사주로 보기일 때만 최소 사주 정보를 받는다.",
-      "applied_to": ["profileMode", "newProfileFields"]
-    },
-    {
-      "evidence_id": "input-policy-002",
-      "claim": "회사명, 생년월일, 주소성 정보는 URL query와 장기 localStorage에 저장하지 않는다.",
-      "applied_to": ["client_storage", "submit_handler"]
-    }
-  ]
-}
-  </script>
+  
 
   <script type="application/json" id="IMAGE_MANIFEST">
 {
@@ -1012,91 +984,6 @@
     }
   ],
   "html_delivery_mode": "single_file_embedded_data_uri"
-}
-  </script>
-
-  <script type="application/json" id="QA_RESULT">
-{
-  "status": "ready_for_review",
-  "stage": "02-step-2-saju-input",
-  "service_key": "work_move",
-  "checked_at": "2026-09-02",
-  "scope_mismatch": [
-    {
-      "type": "legacy_prompt_values_detected",
-      "detail": "02-step-2-saju-input/PROMPT.md에는 기존 job-choice, 직장운, 9,900원 값이 남아 있었으나 이번 사용자 입력값을 우선 적용했다."
-    },
-    {
-      "type": "interpretation_group_count",
-      "detail": "사용자 검토 기준의 11개 대분류를 01에서 확정한 payload 그대로 보존했다."
-    }
-  ],
-  "checks": [
-    {
-      "name": "service_identity",
-      "status": "pass",
-      "value": "work_move / move / 나, 회사 옮겨도 될까?"
-    },
-    {
-      "name": "required_birth_profile_when_new",
-      "status": "pass",
-      "value": [
-        "nickname",
-        "genderContext",
-        "birthDate",
-        "birthTime or unknown",
-        "calendarType"
-      ]
-    },
-    {
-      "name": "existing_profile_skip",
-      "status": "pass",
-      "value": "profile completion flag can hide birth fields"
-    },
-    {
-      "name": "career_input_fields",
-      "status": "pass",
-      "value": [
-        "decisionMode",
-        "currentCompanySignal",
-        "targetCompanyName",
-        "targetRole",
-        "workType",
-        "commuteLocation",
-        "salaryFeeling",
-        "decisionDate",
-        "discomfortPoint",
-        "priority"
-      ]
-    },
-    {
-      "name": "no_private_query_storage",
-      "status": "pass",
-      "value": "form submit uses sessionStorage only and does not build query params"
-    },
-    {
-      "name": "interpretation_index_payload_preserved",
-      "status": "pass",
-      "value": 11
-    },
-    {
-      "name": "image_manifest_present",
-      "status": "pass",
-      "value": "assets/generated/move/02-input-form.webp"
-    },
-    {
-      "name": "single_html_image_delivery",
-      "status": "pass",
-      "value": "visible image is embedded as a data:image/webp URI"
-    },
-    {
-      "name": "customer_visible_internal_terms_removed",
-      "status": "pass",
-      "value": "internal source terms are not visible copy"
-    }
-  ],
-  "blocked": [],
-  "next_step": "사용자 검토 후 '다음' 입력 시 04-step-4-report 진행"
 }
   </script>
 
