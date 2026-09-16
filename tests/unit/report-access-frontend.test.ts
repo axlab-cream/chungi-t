@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 import { test } from 'node:test'
 
@@ -621,4 +621,56 @@ test('in-place 06 hides unfilled interpretation hosts on https', () => {
   const node = h.context.document.createElement('div')
   h.api.markFilled(node)
   assert.equal(node.getAttribute('data-umsh-filled'), '')
+})
+
+/**
+ * PDF 는 인쇄 대화상자의 "PDF로 저장"으로 받는다. 14개 상세 화면 가운데 버튼이 붙어 있던
+ * 것은 저축·퇴사 두 곳뿐이었고, 냥궁합·올해연애는 로드되지 않는 `UMSHReportPdf` 를 부르고
+ * 나머지 10곳에는 버튼이 아예 없었다. 본문을 그린 뒤 공용 지점에서 한 번 넣는다.
+ */
+test('detail pages get a print stylesheet and a PDF button once the saved report is rendered', () => {
+  const h = harness('/work/move/06-step-6_1-report-detail/index.html?reportId=live-id', [])
+  h.api.consume({
+    reportId: 'live-id',
+    serviceKey: 'work_move',
+    report: { serviceKey: 'work_move', title: '이직운', subtitle: '', sections: [{ id: 'work-move-decision', status: 'complete', interpretation: '본문입니다.' }] },
+  }, {})
+
+  const printCss = h.context.document.head.children.find((node: any) => node.id === 'umsh-report-print-css')
+  assert.ok(printCss, 'PDF 인쇄 규칙이 없으면 상단바·버튼까지 종이에 찍힌다')
+  // 캐시된 옛 규칙이 남으면 PDF 가 화면 배색으로 찍힌다. 버전 없는 주소로 되돌아가지 않게 고정한다.
+  assert.match(printCss.href, /^\/css\/umsh-report-print\.css\?v=/)
+
+  const dock = h.context.document.body.children.find((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === '')
+  assert.ok(dock, '상세 화면에는 PDF 버튼이 있어야 한다')
+  assert.equal(dock.children[0].getAttribute('data-umsh-pdf'), '')
+  assert.equal(dock.children[0].textContent, 'PDF 저장')
+})
+
+/** 06-1 화면이 없는 서비스는 보관함에서 이 주소로 열린다. 여기에도 PDF 가 있어야 한다. */
+test('the shared permalink reader also gets a PDF button', () => {
+  const h = harness('/r/967d0551', [])
+  h.api.consume({
+    reportId: '967d0551',
+    serviceKey: 'love_mind',
+    report: { serviceKey: 'love_mind', title: '속마음', subtitle: '', sections: [{ id: 'love-mind-1', status: 'complete', interpretation: '본문입니다.' }] },
+  }, {})
+  const dock = h.context.document.body.children.find((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === '')
+  assert.ok(dock, '고유 주소 리더에도 PDF 버튼이 있어야 한다')
+})
+
+test('the teaser step never offers a PDF of a report the reader has not unlocked', () => {
+  const h = harness('/work/move/04-step-4-report/index.html?reportId=live-id', [])
+  h.api.consume({ previewOnly: true, serviceKey: 'work_move', reportId: 'live-id', preview: { summary: '미리보기' } })
+  assert.equal(h.context.document.body.children.some((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === ''), false)
+})
+
+test('every 06 detail page loads the shared report access script that installs the PDF path', () => {
+  const pages = readdirSync(new URL('../../사주', import.meta.url), { recursive: true, encoding: 'utf8' })
+    .filter((entry) => /06-step-6_1-report-detail[\\/]index\.html$/.test(entry))
+  assert.ok(pages.length >= 14, `상세 화면을 ${pages.length}개만 찾았습니다`)
+  for (const page of pages) {
+    const html = readFileSync(new URL(`../../사주/${page}`, import.meta.url), 'utf8')
+    assert.match(html, /<script src="\/js\/umsh-report-access\.js/, `${page} 에 공용 리포트 스크립트가 없어 PDF 경로가 생기지 않습니다`)
+  }
 })
