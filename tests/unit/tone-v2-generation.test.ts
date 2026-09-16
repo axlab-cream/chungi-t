@@ -1261,3 +1261,35 @@ test('ZIP common 11 keeps verdict punctuation and readable paragraph rules expli
   assert.match(instruction, /판정 문장.*마침표/)
   assert.match(instruction, /카드 라벨.*가운뎃점/)
 })
+
+/**
+ * 2026-09-17 실측 결함: 저축 리포트가 “깔끔해지는 타입예요.” 를 내보냈다. `이에요`/`예요` 는
+ * 앞 명사의 받침으로 갈리고, 옳은 형태는 둘 다 `에요` 앞 음절에 받침이 없다(`이에요` 의 `이`,
+ * `아니에요` 의 `니`). 기계로 판정되는 오류이므로 게이트가 잡아야 한다. 다만 페르소나가
+ * 강제하는 `~거예요`, `아니에요`, 받침 뒤의 `이에요` 는 계속 통과해야 한다.
+ */
+test('the copula spelling gate catches 받침 뒤 예요 without rejecting the persona forms', () => {
+  const say = (text: string) => reviewToneCopy(text, 'money_save')
+
+  // 실제로 나온 문장. `타입` 은 받침이 있으므로 `타입이에요` 가 맞다.
+  const bad = say('이번 돈 습관은 결제 명분을 먼저 자를 때 깔끔해지는 타입예요.')
+  assert.equal(bad.passed, false)
+  assert.match(bad.issues.join(' '), /“이에요\/예요”를 앞말의 받침에 맞춰/)
+  assert.match(bad.issues.join(' '), /타입예요/, '고칠 자리를 낱말째로 알려 줘야 합니다.')
+
+  // `에요` 로 써도 같은 오류다.
+  assert.equal(say('결제 명분을 먼저 자르는 타입에요.').passed, false)
+  // 낱말 없이 홀로 선 `이예요` 와 `아니예요` 도 오기다.
+  assert.equal(say('결제 명분을 먼저 자르는 습관. 이예요.').passed, false)
+  assert.equal(say('지금 텅장 판정은 아니예요.').passed, false)
+
+  // 받침이 있으면 `이에요` 가 맞다 — 통과해야 한다.
+  assert.equal(say('결제 명분을 먼저 자르는 타입이에요.').passed, true)
+  // 페르소나가 강제하는 `~거예요` 는 `거` 에 받침이 없어 옳다.
+  assert.equal(say('다음에는 카드 명세서에서 구독료를 비교하는 거예요.').passed, true)
+  // `아니에요` 의 `니` 도 받침이 없어 옳다.
+  assert.equal(say('지금 텅장 판정은 아니에요.').passed, true)
+  // 받침 없는 명사 뒤의 `예요` 도 옳다. `풀이예요` 는 `풀이` 에 받침이 없어 오탐이면 안 된다.
+  assert.equal(say('오늘 확인할 자리는 장바구니예요.').passed, true)
+  assert.equal(say('이번 달 지출을 다시 본 풀이예요.').passed, true)
+})

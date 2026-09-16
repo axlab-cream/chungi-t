@@ -614,6 +614,38 @@ function actionTargetIssues(text: string): string[] {
     : []
 }
 
+/** 한글 음절에 받침이 있는지. `(코드 - 0xAC00) % 28` 이 0 이면 받침이 없다. */
+function hasFinalConsonant(syllable: string): boolean {
+  const code = syllable.codePointAt(0)
+  if (code === undefined || code < 0xac00 || code > 0xd7a3) return false
+  return (code - 0xac00) % 28 !== 0
+}
+
+/**
+ * `이에요`/`예요` 는 앞 명사의 받침으로 갈린다. 받침이 있으면 `이에요`, 없으면 `예요` 다.
+ * 옳은 형태는 둘 다 `에요` 앞 음절에 받침이 없다 — `이에요` 의 `이`, `아니에요` 의 `니`.
+ * 그래서 `에요`·`예요` 바로 앞 음절에 받침이 있으면 틀린 것이다.
+ *
+ * 저축 리포트가 실제로 “깔끔해지는 타입예요.” 를 내보냈다(2026-09-17). 규칙이 기계적으로
+ * 판정되는 오류이므로 사람이 읽고 잡을 일이 아니다.
+ */
+function copulaSpellingIssues(text: string): string[] {
+  const wrong = new Set<string>()
+  // 앞 낱말을 함께 담는다. “입예요” 보다 “타입예요” 가 고칠 자리를 바로 가리킨다.
+  for (const match of text.matchAll(/([가-힣]+)(예요|에요)/g)) {
+    const stem = match[1]
+    if (hasFinalConsonant(stem.slice(-1))) wrong.add(`${stem}${match[2]}`)
+  }
+  // 낱말 없이 홀로 선 `이예요` 는 `이에요` 의 오기다. 앞에 명사가 붙은 `풀이예요` 는
+  // `풀이` 에 받침이 없어 옳은 형태이므로 건드리지 않는다.
+  for (const match of text.matchAll(/(?<![가-힣])이예요/g)) wrong.add(match[0])
+  // `아니다` 는 형용사라 `예요` 로 줄지 않는다. `니` 에 받침이 없어 위 검사에 걸리지 않는다.
+  for (const match of text.matchAll(/아니예요/g)) wrong.add(match[0])
+  return wrong.size > 0
+    ? [`“이에요/예요”를 앞말의 받침에 맞춰 고치세요. 고칠 곳: ${[...wrong].join(', ')}.`]
+    : []
+}
+
 function spokenEnding(sentence: string): string | undefined {
   const clean = sentence.replace(/[.!?。]+$/g, '').trim()
   return clean.match(/(확인하십시오|보십시오|하십시오|아닙니다|입니다|합니다|습니까|않으실\s*거죠|하시겠어요|아니에요|거예요|이에요|예요|네요|드러나요|나요|죠|주세요|보세요|하세요|세요|해요|아요|어요|각이야|거야|이야|야|봐|해|하네|일세|보게|군)$/)?.[1]
@@ -883,6 +915,7 @@ export function reviewToneCopy(text: string, serviceKey?: string | null, options
     issues.push('이 서비스의 서술 문장은 지정된 격식체로 유지하세요.')
   }
   issues.push(...voiceRhythmIssues(prose))
+  issues.push(...copulaSpellingIssues(prose))
   issues.push(...personaPerformanceIssues(prose))
   issues.push(...reviewSafetyClaims({ text: prose, context: options.context }).issues)
   issues.push(...actionTargetIssues(prose))
