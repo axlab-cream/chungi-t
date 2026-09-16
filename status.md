@@ -2,6 +2,14 @@
 
 ## Current Task
 
+- 2026-09-16 고객 키트: 생년월일 년·월·일, STEP2 CTA 가로 100%/52px/1열, 제출 문구를 결과 동사로 맞춤. 공개 서비스 히어로도 가치 카피. umsh.kr 배포.
+
+- 2026-09-16 버튼 가이드: STEP2/일부 STEP4 CTA를 가로 100% · 높이 52px · 1열 독으로 맞춤. `.primary-cta` 등 별칭을 `umsh-kit.css`에 포함. 냥궁합 150px 독 해소. 제출 문구를 결과 동사로 교체. 근거: `design-system/customer-kit.md` #4, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
+
+- 2026-09-16 UX 라이팅: 커플 STEP2 히어로를 금지문(`상대 정보는 내 정보로 채우지 않아요`)에서 가치문(`두 사람이 맞는 방식부터 확인합니다`)으로 교체. 공개 10개 STEP2 제목도 같은 규칙(무엇을 얻는지 / 왜 이 입력인지). 결제·배포 미실행. 근거: CreamWIKI `personal/carrotcap/notes/umsh-all-service-teaser-release-20260914.md`.
+
+- 2026-09-16 공유 GNB: 커플 스토리 로고 클릭 홈 이동 + `/cmdg/` 상단 바 표시. PR #28 merge `c2613cac`, Vercel production `dpl_AacHfPv2MZ86hbtXZywx7mXutM1a` READY (`https://umsh.kr`). 운영 확인: couple logo → `/`, `/cmdg/` appbar 84px visible.
+
 - 2026-09-16 고객 화면 보류: `home_pungsu`(지금 사는 집), `lucky_color`(운 붙는 색과 물건), `pass_angle`(붙을 각), `newyear_flow`·`wedding_day`(곧 다가올 운명). 검색·보관함·결제·직접 진입을 막고 관리자 카탈로그는 유지. 코드는 삭제하지 않고 `hidden` + HTML 주석 + 경로 302.
 
 - 2026-09-13 `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate` DONE: reviewed 38/38 blocks, activated 2.1.0 for new snapshots, preserved 2.0.0 snapshots and rollback, and passed focused 8/8, related 139/139, full 831/831, typecheck/build/determinism/review. Next inactive Task is `task-tone-v2-p05-couple-signal-corpus-rag-release-candidate`.

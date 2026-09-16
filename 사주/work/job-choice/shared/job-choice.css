@@ -149,6 +149,15 @@ a {
     rgba(12, 13, 22, 0.88);
 }
 
+.hero-visual {
+  display: block;
+  width: calc(100% + 36px);
+  max-height: 168px;
+  margin: -24px -18px 16px;
+  object-fit: cover;
+  object-position: center 28%;
+}
+
 .hero-panel::after {
   display: none;
 }

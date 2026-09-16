@@ -15,6 +15,7 @@
   var SHELL_CSS = '/css/service-shell.css?v=20260916-gnb-click';
   var SHELL_JS = '/js/service-shell.js';
   var FLAG_JS = '/js/ai-report-flag.js';
+  var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd2';
 
   /** Which category chip the shell highlights, chosen from the page path. */
   var CATEGORY_BY_PATH = [
@@ -87,6 +88,15 @@
     script.src = FLAG_JS;
     script.defer = true;
     script.setAttribute('data-umsh-flag-js', '');
+    document.head.appendChild(script);
+  }
+
+  function loadYmdFields() {
+    if (document.querySelector('script[data-umsh-ymd-js]')) return;
+    var script = document.createElement('script');
+    script.src = YMD_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-ymd-js', '');
     document.head.appendChild(script);
   }
 
@@ -177,6 +187,7 @@
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
     loadShellScript(SHELL_JS, watchChromeHeights);
+    loadYmdFields();
     // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
     // 다시 켤 때 이 한 줄만 되살리면 된다.
@@ -213,4 +224,5 @@
   } else {
     autoMount();
   }
+  loadYmdFields();
 })(window);

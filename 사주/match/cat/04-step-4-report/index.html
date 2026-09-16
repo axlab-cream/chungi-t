@@ -632,7 +632,7 @@
         bottom: 0;
         z-index: 24;
         display: grid;
-        grid-template-columns: 0.9fr 1.4fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 10px;
         margin: 20px -18px -116px;
         padding: 14px 18px 18px;
@@ -644,7 +644,8 @@
       .primary-cta,
       .secondary-button,
       .state-button {
-        min-height: 50px;
+        width: 100%;
+        min-height: 52px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -652,7 +653,8 @@
         border-radius: 8px;
         border: 1px solid transparent;
         text-decoration: none;
-        font-size: 14px;
+        font-size: 16px;
+        font-weight: 700;
       }
 
       .primary-cta {

@@ -488,7 +488,7 @@
         bottom: 0;
         z-index: 30;
         display: grid;
-        grid-template-columns: 0.46fr 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 10px;
         width: min(100vw, 440px);
         padding: 12px 18px max(14px, env(safe-area-inset-bottom));
@@ -570,7 +570,7 @@
       .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
       .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
       .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-cta2">
   </head>
   <body class="umsh-fields">
     <div class="phone" data-umsh-chrome="" data-service="올해 연애운" data-price="12,900원" data-active="home" id="step-2-saju-input">
@@ -585,11 +585,10 @@
       <section class="hero" id="heroVisual" aria-labelledby="pageTitle">
         <video class="hero-video" poster="../assets/thisyear/videos/04-frontface-astrology-poster.webp" src="../assets/thisyear/videos/04-frontface-astrology.mp4" data-lazy-play="" data-image-role="form-companion" muted="" loop="" playsinline="" preload="none" aria-label="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"></video>
         <div class="hero-copy">
-          <span class="eyebrow">02 · 사주 입력</span>
-          <h1 id="pageTitle">나, 올해 연애 가능?</h1>
+          <span class="eyebrow">올해 연애 흐름</span>
+          <h1 id="pageTitle">열리는 달과 조심할 때를 봅니다</h1>
           <p>
-            올해 연애운은 무조건 된다, 안 된다로 자르지 않습니다.
-            입력값을 기준으로 가능성, 주의점, 지금 할 작은 행동까지 이어서 봅니다.
+            생년월일을 넣으면, 된다/안 된다가 아니라 타이밍과 오늘 할 작은 행동까지 이어집니다.
           </p>
           <div class="quick-facts" aria-label="입력 요약">
             <div class="fact">
@@ -732,7 +731,7 @@
 
           <div class="sticky-actions">
             <button class="back-button" type="button" data-action="back">이전</button>
-            <button class="submit-button" id="submitButton" type="submit">입력한 정보로 무료 결과 보기</button>
+            <button class="submit-button" id="submitButton" type="submit">올해 연애 흐름 보기</button>
           </div>
         </form>
       </main>
