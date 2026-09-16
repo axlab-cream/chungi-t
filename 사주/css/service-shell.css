@@ -229,6 +229,17 @@ body.has-umsh-service-shell .cta-dock {
   grid-template-columns: none;
   backdrop-filter: none;
   box-sizing: border-box;
+  /* 스토리 01 류는 옛 캡슐 바에 pointer-events:none 을 걸어 두고 안쪽 .topbar-inner 만
+     클릭을 받았다. 공용 GNB 는 그 inner 없이 .topbar 클래스를 물려받아, 로고가
+     href="/" 인데도 클릭이 통과했다. 직장 선택은 페이지 CSS 로 되돌려 뒀고, 여기서
+     한 번에 고정한다. */
+  pointer-events: auto;
+}
+
+.umsh-service-shell .umsh-service-logo,
+.umsh-service-shell .app-brand {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 /*
@@ -250,6 +261,7 @@ body.has-umsh-service-shell .cta-dock {
   flex: 0 0 auto;
   width: 38px;
   height: 38px;
+  pointer-events: auto;
   place-items: center;
   border: 1px solid rgba(232, 212, 154, 0.35);
   border-radius: 50%;

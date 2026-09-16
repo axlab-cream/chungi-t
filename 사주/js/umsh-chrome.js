@@ -12,7 +12,7 @@
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
    */
-  var SHELL_CSS = '/css/service-shell.css';
+  var SHELL_CSS = '/css/service-shell.css?v=20260916-gnb-click';
   var SHELL_JS = '/js/service-shell.js';
   var FLAG_JS = '/js/ai-report-flag.js';
 

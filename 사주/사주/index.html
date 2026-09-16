@@ -3392,7 +3392,7 @@
       </video>
       <div class="concern-video-shade" aria-hidden="true"></div>
 
-      <header class="topbar">
+      <header class="appbar topbar">
         <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
           <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
         </a>
@@ -6139,8 +6139,8 @@
         phone.dataset.scene = phoneScene;
         phone.dataset.step = scene;
         if (todayChrome && !document.getElementById("umsh-verified-layout")) {
-          todayChrome.appbar.hidden = scene !== "todayResult";
-          todayChrome.bottomNav.hidden = scene !== "todayResult";
+          todayChrome.appbar.hidden = false;
+          todayChrome.bottomNav.hidden = false;
         }
         soundButton.style.display = "none";
         // 렌더 실패가 호출부의 catch 로 흘러가면 "분석 실패"로 둔갑해 사용자를 조용히
@@ -7423,7 +7423,7 @@
         if (!window.UMSHChrome || document.getElementById("umsh-verified-layout")) return;
         const chrome = window.UMSHChrome.mount({ root: ".phone", service: "천명사주", category: "종합" });
         if (!chrome) return;
-        chrome.appbar.hidden = true;
+        chrome.appbar.hidden = false;
         chrome.bottomNav.hidden = false;
       }
       if (window.UMSHChrome) mountCommonBottomNav();
