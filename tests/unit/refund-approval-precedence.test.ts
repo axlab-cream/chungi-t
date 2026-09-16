@@ -143,13 +143,12 @@ test('7. 결제 권한 조회가 지난 ID 마다 따로 묻지 않는다', () =
   // 리포트 목록 조회는 후보 주문이 실제로 있을 때만. 결제한 적 없는 사용자의
   // 무료 티저 경로에 왕복을 더하면 안 된다.
   const lineageAt = fn.indexOf('reportIdsInLineage(')
-  const guardAt = fn.indexOf('otherReports.length > 0')
+  const guardAt = fn.indexOf('boundElsewhere')
   assert.ok(guardAt !== -1, '리포트 목록 조회 앞에 후보 주문 가드가 있어야 한다')
   assert.ok(guardAt < lineageAt, '가드가 조회보다 먼저여야 한다')
 
-  // 느슨한 폴백(주문에 리포트 ID 가 없던 시절)은 계보 판정보다 뒤에 있어야
-  // 계보로 정확히 짚은 주문이 가려지지 않는다.
-  // T22 이후 느슨한 폴백은 `unlocking[0]` 이 아니라 전체 주문을 훑는 firstEntitlingOrder 다.
-  // 이름만 바뀌었고, 계보 판정보다 뒤여야 한다는 보장은 그대로다.
-  assert.ok(fn.indexOf('firstEntitlingOrder(ordered') > lineageAt, '느슨한 폴백이 계보 판정보다 앞에 있다')
+  // 느슨한 폴백(주문에 리포트 ID 가 없던 시절 아무 주문이나 집어오던 경로)은 task-022 에서
+  // 제거했다. 그 폴백은 cmdg 주문 1건으로 이후 모든 풀이를 무한 개방했다. 순서를 확인하는
+  // 대신 폴백 자체가 돌아오지 않는지 본다.
+  assert.ok(!fn.includes('unlocking[0]'), '느슨한 미결속 주문 폴백이 돌아왔다 (task-022 회귀)')
 })

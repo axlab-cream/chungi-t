@@ -2,9 +2,13 @@
  * Who may open a paid reading.
  *
  * These rules decide money, so they live apart from the server routes and are covered by
- * `tests/unit/paid-entitlement.test.ts`. Two of them exist because of real incidents:
- * an unbound legacy order used to open every later reading of the same product, and staff
- * comp access made the live checkout impossible to exercise in production QA.
+ * `tests/unit/paid-entitlement.test.ts` and `tests/unit/paid-entitlement-claim.test.ts`.
+ * Three of them exist because of real incidents:
+ *
+ * - An unbound order used to open every later reading of the same product, so one purchase
+ *   became unlimited readings.
+ * - Naming an order id skipped the binding, which replayed the same order across readings.
+ * - Staff comp access made the live checkout impossible to exercise in production QA.
  */
 
 import { mutatePaymentOrder, type PaymentOrder } from './order-store.js'
@@ -12,6 +16,16 @@ import { mutatePaymentOrder, type PaymentOrder } from './order-store.js'
 export interface EntitlementOwner {
   id: string
   email?: string | null
+}
+
+/** The reading being opened, as the entitlement rules need to see it. */
+export interface ReadingKey {
+  /** Id of this reading. A claim binds an unbound order to this id. */
+  reportId: string
+  /** Earlier ids of the same reading (corpus epochs). An order bound to one still opens it. */
+  lineage?: readonly string[]
+  /** When the reading was first saved. Decides what a legacy unbound order covers. */
+  createdAt?: string
 }
 
 /** Orders settled before checkout bound an order to one reading (binding deploy 2026-09-03). */
@@ -27,37 +41,43 @@ export function isSettledOrder(order: PaymentOrder, owner: EntitlementOwner, pro
   return order.status === 'paid' || order.status === 'viewed'
 }
 
-/** A settled order bound to a reading opens that reading and nothing else. */
+/**
+ * A settled order bound to a reading opens that reading and nothing else — with one exception:
+ * bumping the corpus epoch gives the same reading a new id, and an order bound to an earlier id
+ * in the same lineage is the same person's same purchase.
+ */
 export function orderBinds(
   order: PaymentOrder,
   owner: EntitlementOwner,
   productKey: string,
-  reportId: string,
+  reading: ReadingKey,
 ): boolean {
   if (!isSettledOrder(order, owner, productKey)) return false
   if (!order.reportId) return false
-  return !reportId || order.reportId === reportId
+  if (!reading.reportId) return true
+  if (order.reportId === reading.reportId) return true
+  return (reading.lineage ?? []).includes(order.reportId)
 }
 
 /**
- * Legacy orders carry no report id. Honouring them for every later reading turned one
- * purchase into unlimited readings of the same product, so they now only open readings that
- * already existed when binding landed — past buyers keep exactly what they bought.
+ * Legacy orders carry no report id. Honouring them for every later reading turned one purchase
+ * into unlimited readings of the same product, so they now only open readings that already
+ * existed when binding landed — past buyers keep exactly what they bought.
  */
-export function legacyOrderCovers(order: PaymentOrder, reportCreatedAt?: string): boolean {
+export function legacyOrderCovers(order: PaymentOrder, readingCreatedAt?: string): boolean {
   const cutoff = legacyOrderCutoffMs()
   const orderedAt = Date.parse(order.createdAt ?? '')
   if (Number.isNaN(orderedAt) || orderedAt >= cutoff) return false
-  const createdAt = Date.parse(reportCreatedAt ?? '')
+  const createdAt = Date.parse(readingCreatedAt ?? '')
   if (Number.isNaN(createdAt)) return false
   return createdAt < cutoff
 }
 
 /**
- * An order settled after the cutoff but never bound to a reading — checkout entered from a
- * page that had no reading yet. It opens the first reading it is used for and is bound to it
- * from then on (see `claimUnboundOrder`), so it can never open a second one. Denying these
- * outright would lock out someone who just paid.
+ * An order settled after the cutoff but never bound to a reading — checkout entered from a page
+ * that had no reading yet. It opens the first reading it is used for and is bound to it from then
+ * on (see `claimUnboundOrder`), so it can never open a second one. Denying these outright would
+ * lock out someone who just paid.
  */
 export function unboundOrderIsClaimable(order: PaymentOrder, reportId: string): boolean {
   if (order.reportId || !reportId) return false
@@ -66,20 +86,18 @@ export function unboundOrderIsClaimable(order: PaymentOrder, reportId: string): 
 }
 
 /**
- * A settled order unlocks a report when it belongs to the caller, was bought for the same
- * product, and is bound to that report — or is an unbound order that either predates the
- * binding cutoff (legacy) or is claimable by this reading.
+ * Whether this order entitles this owner to this reading, ignoring the binding side effect.
+ * `settleOrderAccess` is what routes actually call.
  */
 export function orderUnlocks(
   order: PaymentOrder,
   owner: EntitlementOwner,
   productKey: string,
-  reportId: string,
-  reportCreatedAt?: string,
+  reading: ReadingKey,
 ): boolean {
   if (!isSettledOrder(order, owner, productKey)) return false
-  if (order.reportId) return !reportId || order.reportId === reportId
-  return legacyOrderCovers(order, reportCreatedAt) || unboundOrderIsClaimable(order, reportId)
+  if (order.reportId) return orderBinds(order, owner, productKey, reading)
+  return legacyOrderCovers(order, reading.createdAt) || unboundOrderIsClaimable(order, reading.reportId)
 }
 
 class OrderBoundElsewhereError extends Error {
@@ -121,11 +139,12 @@ export async function settleOrderAccess(
   order: PaymentOrder,
   owner: EntitlementOwner,
   productKey: string,
-  reportId: string,
-  reportCreatedAt?: string,
+  reading: ReadingKey,
 ): Promise<PaymentOrder | null> {
-  if (!orderUnlocks(order, owner, productKey, reportId, reportCreatedAt)) return null
-  if (!order.reportId && unboundOrderIsClaimable(order, reportId)) return await claimUnboundOrder(order, reportId)
+  if (!orderUnlocks(order, owner, productKey, reading)) return null
+  if (!order.reportId && unboundOrderIsClaimable(order, reading.reportId)) {
+    return await claimUnboundOrder(order, reading.reportId)
+  }
   return order
 }
 

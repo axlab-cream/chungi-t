@@ -104,7 +104,7 @@ import {
   updatePaymentOrder,
 } from '../payment/order-store.js'
 import type { PaymentOrder } from '../payment/order-store.js'
-import { checkoutQaRequested, isSettledOrder, settleOrderAccess } from '../payment/entitlement.js'
+import { checkoutQaRequested, isSettledOrder, settleOrderAccess, type ReadingKey } from '../payment/entitlement.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import {
   buildMoneySaveContext,
@@ -1643,36 +1643,36 @@ async function reportIdsInLineage(owner: ReportOwner, lineageId: string): Promis
 async function findUnlockingOrder(
   owner: ReportOwner,
   productKey: string,
-  reportId: string,
-  reportCreatedAt?: string,
+  reading: ReadingKey,
   lineageId = '',
 ): Promise<PaymentOrder | null> {
-  const bound = await listPaymentOrders(owner.id, 100, reportId).catch(() => [] as PaymentOrder[])
-  const exact = await firstEntitlingOrder(bound, owner, productKey, reportId, reportCreatedAt)
+  const bound = await listPaymentOrders(owner.id, 100, reading.reportId).catch(() => [] as PaymentOrder[])
+  const exact = await firstEntitlingOrder(bound, owner, productKey, reading)
   if (exact) return exact
+
+  // 아래 판정은 전부 이 한 번의 조회로 끝낸다. 지난 ID 마다 따로 물으면
+  // 열람 한 번에 왕복이 그 수만큼 늘어난다.
   const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
 
-  // 코퍼스 세대를 올리면 리포트 ID 가 바뀐다. 지난 ID 에 묶인 주문도 같은 사람의 같은 구매다.
-  // 계보 조회는 그럴 만한 주문이 실제로 있을 때만 한다 — 결제한 적 없는 사용자의 무료 경로에
-  // 왕복을 더하지 않기 위해서다.
-  const otherReports = orders.filter((order) => (
-    order.reportId && order.reportId !== reportId && isSettledOrder(order, owner, productKey)
+  // 캐시 세대를 올리면 리포트 ID 가 바뀐다. 지난 ID 에 묶인 주문도 같은 사람의 같은 구매다.
+  // 이 되짚기가 없으면 개정 한 번에 결제 사용자가 결제 화면으로 되돌아간다.
+  //
+  // 리포트 목록 조회는 **그럴 만한 주문이 실제로 있을 때만** 한다. 결제한 적 없는
+  // 사용자에게도 매번 물으면 무료 티저 경로에 왕복이 하나씩 더 붙는다.
+  const boundElsewhere = orders.some((order) => (
+    order.reportId && order.reportId !== reading.reportId && isSettledOrder(order, owner, productKey)
   ))
-  if (otherReports.length > 0) {
-    const lineage = new Set(await reportIdsInLineage(owner, lineageId))
-    const past = otherReports.find((order) => lineage.has(String(order.reportId)))
-    if (past) return past
-  }
+  const lineage = boundElsewhere ? await reportIdsInLineage(owner, lineageId) : []
 
-  // 느슨한 폴백은 계보 판정 뒤에 둔다. 앞에 두면 미결속 주문을 이 열람에 묶어버려,
-  // 계보로 정확히 짚었어야 할 지난 주문이 가려진다.
-  // Already-bound orders are tried first so an order that covers this reading never triggers a
-  // claim write on an unbound one.
-  const ordered = [...orders.filter((order) => order.reportId), ...orders.filter((order) => !order.reportId)]
-  // A legacy order needs the reading's age. That lookup is paid only by accounts holding one.
+  // 레거시 미결속 주문 판정에는 리포트 생성 시각이 필요하다. 그 조회는 그런 주문을 실제로
+  // 가진 계정만 부담한다.
   const holdsUnbound = orders.some((order) => isSettledOrder(order, owner, productKey) && !order.reportId)
-  const createdAt = reportCreatedAt ?? (holdsUnbound ? await reportCreatedAtFor(reportId, owner) : undefined)
-  return await firstEntitlingOrder(ordered, owner, productKey, reportId, createdAt)
+  const createdAt = reading.createdAt ?? (holdsUnbound ? await reportCreatedAtFor(reading.reportId, owner) : undefined)
+
+  // 이미 결속된 주문을 먼저 본다. 이 풀이를 이미 여는 주문이 있으면 미결속 주문에 claim
+  // 쓰기를 발생시키지 않는다.
+  const ordered = [...orders.filter((order) => order.reportId), ...orders.filter((order) => !order.reportId)]
+  return await firstEntitlingOrder(ordered, owner, productKey, { ...reading, lineage, createdAt })
 }
 
 /** Every order entitlement goes through `settleOrderAccess`, so the binding cannot be skipped. */
@@ -1680,11 +1680,10 @@ async function firstEntitlingOrder(
   orders: PaymentOrder[],
   owner: ReportOwner,
   productKey: string,
-  reportId: string,
-  reportCreatedAt?: string,
+  reading: ReadingKey,
 ): Promise<PaymentOrder | null> {
   for (const order of orders) {
-    const settled = await settleOrderAccess(order, owner, productKey, reportId, reportCreatedAt)
+    const settled = await settleOrderAccess(order, owner, productKey, reading)
     if (settled) return settled
   }
   return null
@@ -1708,22 +1707,22 @@ async function resolvePaidAccess(
   owner: ReportOwner | undefined,
   productKey: string,
   reportId = '',
-  reportCreatedAt?: string,
   lineageId = '',
+  reportCreatedAt?: string,
 ): Promise<PaidAccess> {
   if (isAdminOwner(owner) && !checkoutQaRequested(req)) return { entitled: true, reason: 'admin' }
   if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
   if (!owner) return { entitled: false, reason: 'none' }
 
+  const reading: ReadingKey = { reportId, createdAt: reportCreatedAt }
   const orderId = trimmedString(req.body?.orderId) || trimmedString(req.query?.orderId)
   if (orderId) {
     const order = await getPaymentOrder(orderId).catch(() => null)
-    // Goes through settleOrderAccess so naming an order id cannot skip the binding and replay
-    // one unbound order across readings.
-    const settled = order ? await settleOrderAccess(order, owner, productKey, reportId, reportCreatedAt) : null
+    // settleOrderAccess 를 거치므로 주문 ID 를 직접 대도 결속을 건너뛸 수 없다.
+    const settled = order ? await settleOrderAccess(order, owner, productKey, reading) : null
     if (settled) return { entitled: true, reason: 'order', order: settled }
   }
-  const order = await findUnlockingOrder(owner, productKey, reportId, reportCreatedAt, lineageId)
+  const order = await findUnlockingOrder(owner, productKey, reading, lineageId)
   return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
 }
 
@@ -1758,7 +1757,7 @@ async function ensurePaidServiceAccess(
     res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
     return false
   }
-  const access = await resolvePaidAccess(req, owner, productKey, reportId, undefined, lineageId)
+  const access = await resolvePaidAccess(req, owner, productKey, reportId, lineageId)
   if (access.entitled) return true
   res.status(402).json({
     code: 'PAYMENT_REQUIRED',
@@ -3297,7 +3296,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     const expected = ANALYZE_SERVICES[req.path]
     if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
-    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, record.createdAt)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, '', record.createdAt)
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
@@ -3883,7 +3882,6 @@ app.post('/api/saju/analyze', async (req, res) => {
       owner,
       productKeyForContext(enriched),
       createReportId(birth, enriched, undefined, owner?.id),
-      undefined,
       createReportLineageId(birth, enriched, owner?.id),
     )
     res.json(await toUiAnalysis(birth, context, owner, access))
@@ -3909,7 +3907,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       return
     }
     if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
-    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, record.createdAt)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, '', record.createdAt)
     if (!access.entitled) { res.json(savedPreviewResponse(record)); return }
     applyReportEntitlement(analysis.report, access, owner)
     res.json({

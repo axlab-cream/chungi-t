@@ -37,26 +37,26 @@ const AFTER_CUTOFF = '2026-09-16T00:00:00Z'
 describe('결제 자격 판정 — 주문과 리포트 결속', { concurrency: false }, () => {
   it('리포트에 결속된 주문은 그 리포트를 연다', () => {
     const bound = order({ reportId: 'report-a' })
-    assert.equal(orderBinds(bound, OWNER, PRODUCT, 'report-a'), true)
-    assert.equal(orderUnlocks(bound, OWNER, PRODUCT, 'report-a'), true)
+    assert.equal(orderBinds(bound, OWNER, PRODUCT, { reportId: 'report-a' }), true)
+    assert.equal(orderUnlocks(bound, OWNER, PRODUCT, { reportId: 'report-a' }), true)
   })
 
   it('결속된 주문은 다른 리포트를 열지 못한다', () => {
     const bound = order({ reportId: 'report-a' })
-    assert.equal(orderBinds(bound, OWNER, PRODUCT, 'report-b'), false)
-    assert.equal(orderUnlocks(bound, OWNER, PRODUCT, 'report-b'), false)
+    assert.equal(orderBinds(bound, OWNER, PRODUCT, { reportId: 'report-b' }), false)
+    assert.equal(orderUnlocks(bound, OWNER, PRODUCT, { reportId: 'report-b' }), false)
   })
 
   it('컷오프 이전 레거시 주문은 컷오프 이전 리포트를 계속 연다 (기존 유료 고객 보호)', () => {
     const legacy = order({ reportId: undefined, createdAt: BEFORE_CUTOFF })
     assert.equal(legacyOrderCovers(legacy, BEFORE_CUTOFF), true)
-    assert.equal(orderUnlocks(legacy, OWNER, PRODUCT, 'report-old', BEFORE_CUTOFF), true)
+    assert.equal(orderUnlocks(legacy, OWNER, PRODUCT, { reportId: 'report-old', createdAt: BEFORE_CUTOFF }), true)
   })
 
   it('레거시 주문 1건이 이후 새 리포트를 열지 못한다 (무한 무료 누수 차단)', () => {
     const legacy = order({ reportId: undefined, createdAt: BEFORE_CUTOFF })
     assert.equal(legacyOrderCovers(legacy, AFTER_CUTOFF), false)
-    assert.equal(orderUnlocks(legacy, OWNER, PRODUCT, 'report-new', AFTER_CUTOFF), false)
+    assert.equal(orderUnlocks(legacy, OWNER, PRODUCT, { reportId: 'report-new', createdAt: AFTER_CUTOFF }), false)
   })
 
   it('리포트 생성 시각을 모르면 레거시 규칙으로는 열지 않는다', () => {
@@ -69,7 +69,7 @@ describe('결제 자격 판정 — 주문과 리포트 결속', { concurrency: f
     const late = order({ reportId: undefined, createdAt: AFTER_CUTOFF })
     assert.equal(legacyOrderCovers(late, BEFORE_CUTOFF), false)
     assert.equal(unboundOrderIsClaimable(late, 'report-new'), true)
-    assert.equal(orderUnlocks(late, OWNER, PRODUCT, 'report-new'), true)
+    assert.equal(orderUnlocks(late, OWNER, PRODUCT, { reportId: 'report-new' }), true)
   })
 
   it('claim 은 결속할 리포트가 있어야 하고, 이미 결속된 주문은 다시 claim 하지 않는다', () => {
@@ -81,22 +81,30 @@ describe('결제 자격 판정 — 주문과 리포트 결속', { concurrency: f
   it('컷오프 이전 미결속 주문은 claim 대상이 아니다 (레거시 규칙만 적용)', () => {
     const legacy = order({ reportId: undefined, createdAt: BEFORE_CUTOFF })
     assert.equal(unboundOrderIsClaimable(legacy, 'report-new'), false)
-    assert.equal(orderUnlocks(legacy, OWNER, PRODUCT, 'report-new', AFTER_CUTOFF), false)
+    assert.equal(orderUnlocks(legacy, OWNER, PRODUCT, { reportId: 'report-new', createdAt: AFTER_CUTOFF }), false)
   })
 
   it('결제가 끝나지 않은 주문은 어떤 리포트도 열지 못한다', () => {
     for (const status of ['ready', 'pending', 'failed', 'cancelled'] as PaymentOrderStatus[]) {
       const pending = order({ reportId: 'report-a', status })
-      assert.equal(orderUnlocks(pending, OWNER, PRODUCT, 'report-a'), false, `status=${status}`)
+      assert.equal(orderUnlocks(pending, OWNER, PRODUCT, { reportId: 'report-a' }), false, `status=${status}`)
     }
     const viewed = order({ reportId: 'report-a', status: 'viewed' as PaymentOrderStatus })
-    assert.equal(orderUnlocks(viewed, OWNER, PRODUCT, 'report-a'), true)
+    assert.equal(orderUnlocks(viewed, OWNER, PRODUCT, { reportId: 'report-a' }), true)
+  })
+
+  it('코퍼스 세대가 바뀌어 ID 가 달라져도 같은 계보의 결속 주문은 계속 연다', () => {
+    const bound = order({ reportId: 'report-epoch1' })
+    const reading = { reportId: 'report-epoch2', lineage: ['report-epoch1'] }
+    assert.equal(orderBinds(bound, OWNER, PRODUCT, reading), true)
+    assert.equal(orderUnlocks(bound, OWNER, PRODUCT, reading), true)
+    assert.equal(orderBinds(bound, OWNER, PRODUCT, { reportId: 'report-epoch2', lineage: [] }), false)
   })
 
   it('다른 계정이나 다른 상품의 주문은 열지 못한다', () => {
     const bound = order({ reportId: 'report-a' })
-    assert.equal(orderUnlocks(bound, OTHER_OWNER, PRODUCT, 'report-a'), false)
-    assert.equal(orderUnlocks(bound, OWNER, 'love_this_year', 'report-a'), false)
+    assert.equal(orderUnlocks(bound, OTHER_OWNER, PRODUCT, { reportId: 'report-a' }), false)
+    assert.equal(orderUnlocks(bound, OWNER, 'love_this_year', { reportId: 'report-a' }), false)
   })
 })
 
@@ -135,7 +143,7 @@ describe('결제 자격 판정 — 서버 QA 배선 가드', { concurrency: fals
 
   it('주문 자격은 settleOrderAccess 한 곳만 통과한다', () => {
     // 직접 orderBinds/legacyOrderCovers 로 주문을 통과시키면 결속(claim)을 건너뛸 수 있다.
-    assert.doesNotMatch(server, /return (exact|boundElsewhere|claimable)/)
+    assert.doesNotMatch(server, /return unlocking\[0\]/)
     const grants = server.match(/reason: 'order'/g) ?? []
     assert.ok(grants.length >= 1, 'order 자격 경로가 있어야 한다')
     assert.match(server, /const settled = await settleOrderAccess\(/)
