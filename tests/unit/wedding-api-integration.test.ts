@@ -33,14 +33,12 @@ const { default: app } = await import('../../src/server/app.js')
 let server: Server
 
 const OWNER = 'wedding-owner-a'
-const OTHER = 'wedding-owner-b'
 const profile: UserBirthProfile = {
   userId: OWNER, name: '합성점검',
   birth: { year: 1975, month: 9, day: 26, hour: 5, minute: 0, gender: 'male', calendar: 'solar' },
   birthTimeKnown: true, context: {}, createdAt: '2026-09-07T00:00:00Z', updatedAt: '2026-09-07T00:00:00Z',
 }
 
-/** 02 화면이 보내는 형태. 본인 사주는 계정에서 읽으므로 후보일과 상대·예식 조건만 담는다. */
 const INPUT = {
   preview: true,
   candidateDate1: '2027-05-15',
@@ -87,93 +85,16 @@ after(async () => {
 })
 
 describe('결혼 택일 로그인 흐름과 저장 결과', { concurrency: false }, () => {
-  it('로그인과 사주 등록을 먼저 요구한다', async () => {
+  it('고객 진행을 막아 비로그인은 401, 로그인도 생성을 거절한다', async () => {
     assert.equal((await request('/api/day/wedding/analyze', INPUT, null)).response.status, 401)
-    const missing = await request('/api/day/wedding/analyze', INPUT, OTHER)
-    assert.equal(missing.response.status, 409)
-    assert.equal(missing.payload.code, 'PROFILE_REQUIRED')
+    const paused = await request('/api/day/wedding/analyze', INPUT)
+    assert.equal(paused.response.status, 404)
+    assert.match(String(paused.payload.error ?? ''), /공개하지 않는/)
   })
 
-  it('후보일이 없거나 달력에 없는 날짜면 400 으로 되돌린다', async () => {
-    const empty = await request('/api/day/wedding/analyze', { ...INPUT, candidateDate1: '', candidateDate2: '', candidateDate3: '' })
-    assert.equal(empty.response.status, 400)
-    assert.match(empty.payload.error, /후보일/)
-    assert.equal((await request('/api/day/wedding/analyze', { preview: true, candidateDate1: '2027-02-30', candidateDate2: '2027/05/22' })).response.status, 400)
-  })
-
-  it('결제 전에는 계산된 무료 미리보기만 주고 같은 입력은 같은 UUID 로 모인다', async () => {
-    const first = await request('/api/day/wedding/analyze', INPUT)
-    assert.equal(first.response.status, 200, `본문: ${JSON.stringify(first.payload).slice(0, 200)}`)
-    assert.equal(first.payload.previewOnly, true)
-    assert.equal(first.payload.report, undefined, '미리보기에 본문이 실려 나가면 안 된다')
-    assert.ok(first.payload.reportId && first.payload.resultId, '저장 식별자가 없으면 04 가 열리지 않는다')
-
-    const second = await request('/api/day/wedding/analyze', INPUT)
-    assert.equal(second.payload.resultId, first.payload.resultId)
-    assert.deepEqual(second.payload.preview, first.payload.preview)
-  })
-
-  it('출생시각 미상 프로필은 용신 일치를 확정으로 선고하지 않고 티저 사실을 함께 준다', async () => {
-    // 이 라우트가 두 번 등록되어 앞쪽 핸들러가 input.birthTimeKnown 과 티저를 빼먹은 채
-    // 응답한 적이 있다(659ba7f 병합). 그때 프로필의 출생시각 미상이 판정에 반영되지 않았다.
-    const UNKNOWN = 'wedding-owner-no-time'
-    await profiles.saveUserBirthProfile({ ...profile, userId: UNKNOWN, birthTimeKnown: false }, { id: UNKNOWN })
-    const unknown = await request('/api/day/wedding/analyze', INPUT, UNKNOWN)
-    assert.equal(unknown.response.status, 200, `본문: ${JSON.stringify(unknown.payload).slice(0, 200)}`)
-    const unknownText = JSON.stringify(unknown.payload)
-    assert.match(unknownText, /출생시간 미상/, '출생시각 미상이 판정 설명에 반영되지 않았다')
-
-    // 출생시각을 받은 프로필은 같은 문구가 나오지 않아야 한다.
-    const known = await request('/api/day/wedding/analyze', INPUT)
-    assert.doesNotMatch(JSON.stringify(known.payload), /출생시간 미상/)
-
-    // 티저가 조립되지 않으면 04 가 보여줄 후보일 사실이 비어 나간다.
-    assert.match(JSON.stringify(known.payload), /2027-05-15|2027년 5월 15일/, '티저에 후보일 사실이 없다')
-  })
-
-  it('후보일이 달라지면 다른 결과로 저장된다', async () => {
-    const a = await request('/api/day/wedding/analyze', INPUT)
-    const b = await request('/api/day/wedding/analyze', { ...INPUT, candidateDate1: '2027-06-05' })
-    assert.notEqual(a.payload.resultId, b.payload.resultId)
-  })
-
-  it('사주가 같아도 계정이 다르면 남의 결과를 물려받지 않는다', async () => {
-    await profiles.saveUserBirthProfile({ ...profile, userId: OTHER }, { id: OTHER })
-    const mine = await request('/api/day/wedding/analyze', INPUT)
-    const theirs = await request('/api/day/wedding/analyze', INPUT, OTHER)
-    assert.equal(theirs.response.status, 200)
-    assert.notEqual(theirs.payload.reportId, mine.payload.reportId, '소유자가 리포트 ID 에 반영되지 않았다')
-    assert.equal((await request('/api/day/wedding/analyze', { reportId: mine.payload.resultId }, OTHER)).response.status, 403)
-  })
-
-  it('다른 서비스 ID 로는 결혼 택일 결과를 열 수 없다', async () => {
-    const mine = await request('/api/day/wedding/analyze', INPUT)
-    assert.equal((await request('/api/flow/newyear/analyze', { reportId: mine.payload.resultId })).response.status, 409)
-    assert.equal((await request('/api/day/wedding/analyze', { reportId: 'missing-saved-id' })).response.status, 404)
-  })
-
-  it('결제 후 같은 UUID의 목차가 열리되 미생성 본문을 완성 원고로 노출하지 않는다', async () => {
-    const preview = await request('/api/day/wedding/analyze', INPUT)
-    await payments.savePaymentOrder({
-      orderId: 'synthetic-wedding-paid', ownerId: OWNER, buyerEmail: 'fixture@synthetic.invalid', buyerTel: '00000000000',
-      productKey: 'wedding_day', productTitle: 'Synthetic fixture', amount: 19900, status: 'paid', reportId: preview.payload.reportId,
-      createdAt: '2026-09-07T00:00:00Z', updatedAt: '2026-09-07T00:00:00Z',
-    })
-    const paid = await request('/api/day/wedding/analyze', { reportId: preview.payload.resultId, orderId: 'synthetic-wedding-paid' })
-    assert.equal(paid.response.status, 200, `본문: ${JSON.stringify(paid.payload).slice(0, 200)}`)
-    assert.equal(paid.payload.report.isPaid, true)
-    assert.equal(paid.payload.resultId, preview.payload.resultId, '결제 후 새 결과로 갈아치우면 안 된다')
-    assert.equal(paid.payload.report.sections.length, 20)
-
-    // 계정에 저장된 사주를 썼으므로 본인 생년월일을 다시 받지 않아도 판정이 선다.
-    const text = JSON.stringify(paid.payload.report)
-    assert.match(text, /2027년 5월 22일/, '후보일 라벨이 없다')
-    assert.match(text, /甲午|辛丑|辛酉/, '후보일 일주가 문장에 없다')
-    assert.match(JSON.stringify(preview.payload), /선고하지 않습니다/, '계산 티저에 길흉 비확정 경계가 없다')
-    for (const section of paid.payload.report.sections) {
-      assert.equal(section.interpretation, '', '검수 전 옛 템플릿 본문을 노출하면 안 된다')
-      assert.equal(section.hook, '')
-      assert.notEqual(section.status, 'complete')
-    }
+  it('직접 진입 경로는 홈으로 돌려보낸다', async () => {
+    const response = await fetch(`${origin}/day/wedding/01-step-1-story/index.html`, { redirect: 'manual' })
+    assert.equal(response.status, 302)
+    assert.equal(response.headers.get('location'), '/')
   })
 })

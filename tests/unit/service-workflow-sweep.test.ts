@@ -43,6 +43,7 @@ const { default: app } = await import('../../src/server/app.js')
 let server: Server
 
 const OWNER = 'sweep-owner'
+const PAUSED_CUSTOMER_KEYS = new Set(['home_pungsu', 'lucky_color', 'pass_angle', 'newyear_flow', 'wedding_day'])
 const profile: UserBirthProfile = {
   userId: OWNER,
   name: '합성점검',
@@ -147,14 +148,19 @@ describe('19개 상품의 소비자 6단계', { concurrency: false }, () => {
     }
   })
 
-  it('1단계 선택: 모든 상품의 진입 경로가 자기 서비스의 첫 화면으로 도착한다', async () => {
+  it('1단계 선택: 공개 상품의 진입 경로는 자기 서비스로, 보류 상품은 홈으로 보낸다', async () => {
     const broken: string[] = []
     for (const [key, route] of Object.entries(ROUTES)) {
       const { response } = await call(route.entry)
       const location = response.headers.get('location') ?? ''
+      if (PAUSED_CUSTOMER_KEYS.has(key)) {
+        if (response.status !== 302 || location !== '/') {
+          broken.push(`${key}: ${route.entry} → ${response.status} ${location}`)
+        }
+        continue
+      }
       const landed = response.status === 200 || (response.status >= 300 && response.status < 400)
       if (!landed) broken.push(`${key}: ${route.entry} → ${response.status}`)
-      // 리다이렉트면 같은 서비스 안으로 가야 한다. 다른 서비스로 새면 안 된다.
       if (location && !location.startsWith(route.entry) && !location.startsWith('/cmdg')) {
         broken.push(`${key}: ${route.entry} → ${location} (서비스 밖으로 이동)`)
       }
@@ -166,6 +172,10 @@ describe('19개 상품의 소비자 6단계', { concurrency: false }, () => {
     const leaks: string[] = []
     for (const [key, route] of Object.entries(ROUTES)) {
       const { response } = await call(route.analyze, route.body ?? { preview: true }, null)
+      if (PAUSED_CUSTOMER_KEYS.has(key)) {
+        if (![401, 404].includes(response.status)) leaks.push(`${key}: ${route.analyze} → ${response.status}`)
+        continue
+      }
       if (response.status !== 401) leaks.push(`${key}: ${route.analyze} → ${response.status}`)
     }
     assert.deepEqual(leaks, [])
@@ -177,7 +187,7 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     const singlePage = new Set(['cmdg', 'love_mind', 'love_again', 'love_spouse', 'work_job'])
     const broken: string[] = []
     for (const [key, route] of Object.entries(ROUTES)) {
-      if (singlePage.has(key)) continue
+      if (singlePage.has(key) || PAUSED_CUSTOMER_KEYS.has(key)) continue
       const { response } = await call(`${route.entry}/input`)
       const ok = response.status === 200 || (response.status >= 300 && response.status < 400)
       if (!ok) broken.push(`${key}: ${route.entry}/input → ${response.status}`)
@@ -191,6 +201,7 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     // 고쳐야 하는지 알 수 없었다. 부족한 입력은 400 INPUT_REQUIRED 여야 한다.
     const wrong: string[] = []
     for (const [key, route] of Object.entries(ROUTES)) {
+      if (PAUSED_CUSTOMER_KEYS.has(key)) continue
       const { response, payload } = await call(route.analyze, { preview: true })
       if (response.status === 200) continue
       if (response.status === 400 && payload.code === 'INPUT_REQUIRED') {
@@ -207,6 +218,7 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     const leaks: string[] = []
     let reached = 0
     for (const [key, route] of Object.entries(ROUTES)) {
+      if (PAUSED_CUSTOMER_KEYS.has(key)) continue
       const { response, payload } = await call(route.analyze, { ...(route.body ?? {}), preview: true })
       if (response.status !== 200) continue
       reached += 1
@@ -217,7 +229,7 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
       if (withBody.length) leaks.push(`${key}: 티저에 본문 ${withBody.length}개 섹션이 실려 나감`)
       if (!(payload.reportId ?? payload.resultId)) leaks.push(`${key}: 저장 식별자 없음`)
     }
-    assert.ok(reached >= 5, `티저까지 닿은 서비스가 ${reached}개뿐입니다`)
+    assert.ok(reached >= 2, `티저까지 닿은 서비스가 ${reached}개뿐입니다`)
     assert.deepEqual(leaks, [])
   })
 
@@ -230,6 +242,7 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     const failures: string[] = []
     let reached = 0
     for (const [key, route] of Object.entries(ROUTES)) {
+      if (PAUSED_CUSTOMER_KEYS.has(key)) continue
       const { response, payload } = await call(route.analyze, { ...(route.body ?? {}), preview: true })
       if (response.status !== 200) continue
       reached += 1
@@ -248,13 +261,14 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
       const hit = banned.filter(word => lines.join(' ').includes(word))
       if (hit.length) failures.push(`${key}: 금지 표현 ${hit.join(', ')}`)
     }
-    assert.ok(reached >= 5, `티저까지 닿은 서비스가 ${reached}개뿐입니다`)
+    assert.ok(reached >= 2, `티저까지 닿은 서비스가 ${reached}개뿐입니다`)
     assert.deepEqual([...new Set(failures)], [])
   })
 
   it('5단계 목록: 같은 입력은 같은 저장 식별자로 모인다', async () => {
     const drifting: string[] = []
     for (const [key, route] of Object.entries(ROUTES)) {
+      if (PAUSED_CUSTOMER_KEYS.has(key)) continue
       const body = { ...(route.body ?? {}), preview: true }
       const first = await call(route.analyze, body)
       const second = await call(route.analyze, body)
@@ -271,6 +285,10 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     const missing: string[] = []
     for (const [key, route] of dedicated) {
       const { response } = await call(route.analyze, { reportId: 'missing-saved-id' })
+      if (PAUSED_CUSTOMER_KEYS.has(key)) {
+        if (response.status !== 404) missing.push(`${key}: ${route.analyze} 보류 생성 → ${response.status}`)
+        continue
+      }
       // 등록된 엔드포인트는 없는 ID 에 404 를, 미등록이면 다른 이유로 실패한다.
       if (response.status !== 404) missing.push(`${key}: ${route.analyze} 저장결과 조회 → ${response.status}`)
     }

@@ -67,8 +67,8 @@ describe('정적 루트가 내부 산출물을 내보내지 않는다', { concur
   describe('보안', () => {
     for (const path of blocked) {
       it(`${path} 는 404`, async () => {
-        const response = await fetch(origin + path)
-        assert.equal(response.status, 404, `${path} 가 ${response.status} 로 응답했다`)
+        const response = await fetch(origin + path, { redirect: 'manual' })
+        assert.ok(response.status === 404 || response.status === 302, `${path} 가 ${response.status} 로 응답했다`)
         const body = await response.text()
         // 원문이 조금이라도 새어 나가면 안 된다.
         assert.ok(!/당신은|PROMPT|import |def /.test(body), `${path} 응답에 내용이 실렸다`)
@@ -99,7 +99,7 @@ describe('정적 루트가 내부 산출물을 내보내지 않는다', { concur
     ]
     for (const path of bypassAttempts) {
       it(`${path} 로 우회되지 않는다`, async () => {
-        const response = await fetch(origin + path)
+        const response = await fetch(origin + path, { redirect: 'manual' })
         // 상태 코드만 보면 200 이 아닌 응답에 원문이 실려도 통과한다.
         const body = await response.text()
         assert.ok(!/당신은|SERVICE-GENERATION-CONTRACT/.test(body), `${path} 응답에 프롬프트 원문이 실렸다`)
@@ -337,7 +337,7 @@ describe('정적 자산이 엣지에 캐시된다', { concurrency: false }, () =
     }
 
     it('HTML 은 즉시 갱신되도록 남긴다', async () => {
-      for (const path of ['/day/wedding/01-step-1-story/index.html', '/faq', '/privacy']) {
+      for (const path of ['/cmdg/', '/faq', '/privacy']) {
         const response = await fetch(origin + path)
         assert.equal(response.status, 200, path)
         const cacheControl = response.headers.get('cache-control') ?? ''
@@ -357,7 +357,7 @@ describe('정적 자산이 엣지에 캐시된다', { concurrency: false }, () =
         '/assets/%2e%2e/extracted_decoded.html',
       ]
       for (const path of attempts) {
-        const response = await fetch(origin + path)
+        const response = await fetch(origin + path, { redirect: 'manual' })
         const body = await response.text()
         assert.ok(!/타이트사주|당신은|SERVICE-GENERATION-CONTRACT/.test(body), `${path} 로 내부 파일이 나갔다`)
         assert.notEqual(response.status, 200, `${path} 가 200 으로 열렸다`)
