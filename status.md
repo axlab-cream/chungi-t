@@ -2,6 +2,8 @@
 
 ## Current Task
 
+- 2026-09-17 06 상세 시안 해석 차단(PR #41, `3a13368`): 실측 중 드러난 결함 다섯 건을 함께 고쳤다. (1) 해석 칸 가드 CSS 를 `A{...},B,C{...}` 로 이어 붙여 뒤쪽 규칙이 통째로 무시되고 있었다 — 선택자를 먼저 합친 뒤 선언을 한 번만 붙인다. (2) `umsh-chrome.loadShellScript` 가 `?v=` 붙은 주소를 경로와 직접 비교해 마운트마다 `service-shell.js` 를 중복 로드했다 — 양쪽 `pathname` 비교. (3) 이직·저축 06 은 라이브 리포트가 없으면 히어로 소개문까지 비우고 의도한 안내문만 `data-umsh-filled` 로 남긴다. (4) 올해연애·직장선택 스토어의 무가드 `UMSHReportAccess` 접근. (5) 이직운 티저 금지 표현, ui-kit 의 `UMSH` 표기. 추가로 `check:quit` 이 리다이렉트 스텁이 된 03 을 정식 단계로 요구해 main 의 CI 가 빨간불이었던 것을 바로잡았다(`f33ef87`).
+
 - 2026-09-17 이직운 STEP1 히어로 카피를 하단으로 내려 상단 이미지가 보이게 한다. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-01-image-prompt.md`.
 
 - 2026-09-17 Chrome 즐겨찾기/트레이 아이콘: 장식형 3D 운 16px를 심플 금 원+궤도+받침 마크로 교체. SVG 우선, ICO 16/32/48/256, 192/512, `manifest.json` `start_url: /`. 북마크·PWA·빈 referrer는 스플래시 후 메인, 사이트 안 홈 이동은 세션당 1회. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-06-logo-rule.md`.
