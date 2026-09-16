@@ -685,7 +685,6 @@
 
     <div class="contextbar">
       <p class="context-chip" id="context-chip">상세 풀이 준비 중</p>
-      <button class="pdf-button" type="button" id="btn-pdf">PDF</button>
     </div>
 
     <section class="scroll-area" id="scroll-area" aria-live="polite">
@@ -11413,11 +11412,6 @@
 
     document.getElementById("btn-vault").addEventListener("click", () => {
       showToast("보관함 연결은 운영 환경에서 열립니다.");
-    });
-
-    document.getElementById("btn-pdf").addEventListener("click", () => {
-      if (window.UMSHReportPdf && window.UMSHReportPdf.openFromStorage()) return;
-      window.print();
     });
 
     document.getElementById("chat-form").addEventListener("submit", (event) => {

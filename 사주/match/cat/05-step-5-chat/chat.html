@@ -824,7 +824,6 @@
 
     <div class="contextbar">
       <p id="context-label">반려묘 생활 궁합 · 10개 대분류</p>
-      <button class="small-action" type="button" id="btn-pdf">PDF</button>
     </div>
 
     <section class="chat-log" id="chat-log" aria-live="polite">
@@ -1346,12 +1345,6 @@
 
       document.querySelector("#btn-vault").addEventListener("click", () => {
         location.href = step04Url("vault");
-      });
-
-      document.querySelector("#btn-pdf").addEventListener("click", () => {
-        appendBubble("system", state.access === "entitled"
-          ? "PDF는 상세 리포트가 열린 뒤 보관함에서 받을 수 있어요."
-          : "PDF는 결제와 리포트 상태가 확인된 뒤 준비됩니다.");
       });
 
       document.querySelector("#btn-refresh").addEventListener("click", () => {

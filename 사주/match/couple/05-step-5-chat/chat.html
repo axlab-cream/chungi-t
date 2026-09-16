@@ -828,7 +828,6 @@
           <strong id="context-title">두 사람 관계 리포트</strong>
           <span id="context-subtitle">전체 70개 항목 중 오늘 열어볼 포인트를 고르세요</span>
         </p>
-        <button class="pdf-button" type="button" id="btn-pdf">PDF 저장</button>
       </div>
 
       <section class="chat-log" id="chat-log" aria-live="polite"></section>
@@ -2283,10 +2282,6 @@
 
     document.getElementById("btn-vault").addEventListener("click", () => {
       showToast("보관함 연결은 운영 계정 확인 뒤 이어집니다.");
-    });
-
-    document.getElementById("btn-pdf").addEventListener("click", () => {
-      showToast("상세 리포트가 열린 뒤 저장할 수 있어요.");
     });
 
     dom.form.addEventListener("submit", (event) => {
