@@ -261,7 +261,7 @@
       return null;
     }
     const accepted = window.UMSHReportAccess?.acceptAnalyze?.(data);
-    if (accepted?.preview && !accepted.report) {
+    if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) {
       lastPreview = accepted;
       return null;
     }

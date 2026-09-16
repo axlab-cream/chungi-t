@@ -239,7 +239,7 @@
       try {
         const response = await api('/api/match/cat/analyze', { method: 'POST', body: JSON.stringify(request) });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
-        if (accepted?.preview && !accepted.report) return accepted;
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
         if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
@@ -342,7 +342,7 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
-    if (outcome.preview && !outcome.report) {
+    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       setText('#signal-main-title', outcome.preview.headline || '우리 둘의 생활 박자');
