@@ -84,6 +84,9 @@ test('공개 서비스는 다음 단계로만 보낸다', () => {
     if (service.key === 'job_choice' && /<footer class="footer">/.test(story)) {
       broken.push(`${service.key}: 01에 페이지 제목 푸터가 남아 있다`)
     }
+    if (service.key === 'job_choice' && /<footer class="footer">/.test(htmlOf(service.dir, '02-step-2-saju-input'))) {
+      broken.push(`${service.key}: 02에 페이지 제목 푸터가 남아 있다`)
+    }
     if (/href=["'][^"']*05-step-5/.test(story) || /href=["'][^"']*06-step-6/.test(story) || /href=["'][^"']*04-step-4/.test(story)) {
       broken.push(`${service.key}: 01이 입력 앞 단계로 건너뛴다`)
     }
