@@ -52,7 +52,7 @@ const CONTRACTS = [
 const PAGES = [
   ['01-step-1-story/index.html', true],
   ['02-step-2-saju-input/index.html', true],
-  ['03-step-3-service-input/index.html', true],
+  ['03-step-3-service-input/index.html', false], // 상황 입력이 02로 합쳐진 뒤 남은 리다이렉트 스텁
   ['04-step-4-report/index.html', true],
   ['05-step-5-chat/chat.html', true],
   ['05-step-5-chat/index.html', false], // chat.html로 보내는 리다이렉트 스텁
