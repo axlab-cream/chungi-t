@@ -477,6 +477,47 @@ test('ZIP common 4 recognizes a targeted pass_angle next action but rejects vagu
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '다음 시험 전날 공부를 끊어.') }).elements.nextCriterion, false)
 })
 
+/**
+ * 2026-09-17 회귀 방지: `money_save`·`couple_signal` 페르소나는 `~거예요`, `today_fortune`
+ * 은 `~거야`를 종결어미로 강제한다. 그런데 다음 판단 기준 인식기가 `해요`·`하십시오` 계열만
+ * 받아서, 페르소나를 지킨 문장이 전부 탈락했다. 네 번을 다시 써도 같은 항목에서 떨어져
+ * money_save 리포트 41개 항목이 통째로 실패로 굳었다. 대상과 행동이 있는 문장은 종결형이
+ * 달라도 인식해야 하고, 대상 없는 문장은 그 종결형이어도 여전히 걸러야 한다.
+ */
+test('ZIP common 4 recognizes the persona-mandated 거예요 closing without accepting targetless advice', () => {
+  const base = {
+    hook: '돈을 못 모으는 팔자가 아니라, 기회가 보이면 지출 명분도 같이 커지는 구조예요.',
+    question: '기본 스펙',
+    interpretation: [
+      '기회를 빠르게 잡는 감각을 적어 냈으니 그 감각을 근거로 봐요.',
+      '예를 들어 카드 명세서를 열었을 때 자동결제와 장바구니 결제가 같이 보이는 경우가 있어요.',
+      '다음에는 카드 명세서에서 구독료와 일 관련 결제를 비교하는 거예요.',
+    ].join('\n\n'),
+    context: { serviceKey: 'money_save', concern: '돈이 모이지 않는 자리를 찾고 싶어요.' },
+  }
+
+  const polite = reviewPaidSectionDensity(base)
+  assert.equal(polite.elements.nextCriterion, true, JSON.stringify(polite))
+
+  // 반말 페르소나(today_fortune)의 같은 형태도 같은 문장 구조면 통과한다.
+  assert.equal(reviewPaidSectionDensity({
+    ...base,
+    interpretation: base.interpretation.replace('비교하는 거예요.', '비교하는 거야.'),
+  }).elements.nextCriterion, true)
+
+  // 대상이 없으면 종결형이 맞아도 다음 판단 기준이 아니다.
+  assert.equal(reviewPaidSectionDensity({
+    ...base,
+    interpretation: base.interpretation.replace('카드 명세서에서 구독료와 일 관련 결제를 비교하는 거예요.', '비교하는 거예요.'),
+  }).elements.nextCriterion, false)
+
+  // 하지 말라는 문장을 행동으로 세면 안 된다.
+  assert.equal(reviewPaidSectionDensity({
+    ...base,
+    interpretation: base.interpretation.replace('비교하는 거예요.', '비교하지 않는 거예요.'),
+  }).elements.nextCriterion, false)
+})
+
 test('ZIP common 4 recognizes a polite targeted marking proposal but rejects a targetless proposal', () => {
   const base = {
     hook: '지금은 두 선택의 조건을 나란히 보는 단계예요.',

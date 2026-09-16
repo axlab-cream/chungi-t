@@ -2,6 +2,8 @@
 
 ## Current Task
 
+- 2026-09-17 유료 해석 생성 실패 복구: 보관함의 `해석을 준비하고 있어요` 잔존은 데이터 상태가 아니라 결함 세 건이었다. (1) **검수 게이트 결함** — 다음 판단 기준 인식기가 `해요`·`하십시오` 계열만 받아서, 페르소나가 `~거예요`를 강제하는 `money_save`·`couple_signal`과 `~거야`인 `today_fortune`은 시간 표지·확인 대상·행동이 다 있는 문장을 써도 통과가 **구조적으로 불가능**했다. `~하는 거예요/거야`를 인식하되 대상 없는 문장과 부정형은 계속 거른다. (2) **토큰 예산 부족** — gpt-5 계열은 추론 토큰도 `max_completion_tokens`에서 깎는다. `money_save` 첫 항목은 4200을 전부 추론에 쓰고 본문을 한 글자도 못 냈고(`finish_reason: length`), 실측 성공에 5292 토큰이 필요했다. `sectionMaxTokens` 4200 → 9000. (3) **잘림이 재시도 대상이 아니었다** — `length` 가 일반 `Error` 로 올라와 한 번의 잘림이 항목을 영구 실패로 굳혔다. `OpenAiTruncatedError` 를 분리해 재시도하되, 프롬프트를 더 늘리지 않도록 재작성 지시문은 붙이지 않는다. 함께 1차 지시문과 재작성 지시문이 서로 다른 문장을 요구해 모든 서비스가 1차에서 같은 항목으로 떨어지던 것을 공유 상수 `SECTION_CLOSING_RULES` 로 묶고, 왕복을 2 → 4회로 늘렸다. 실측: 5개 서비스(`money_save` 2회·`work_move` 1회·`quit_fortune` 2회·`cat_compatibility` 2회·`couple_signal` 3회) 전부 complete. 검증: `npm test` 1139/1139, typecheck, 검수 15종, 20개 서비스 QA 통과. 회귀 테스트 2건 추가(페르소나 종결형 인식, 잘림 재시도).
+
 - 2026-09-17 06 상세 시안 해석 차단(PR #41, `3a13368`): 실측 중 드러난 결함 다섯 건을 함께 고쳤다. (1) 해석 칸 가드 CSS 를 `A{...},B,C{...}` 로 이어 붙여 뒤쪽 규칙이 통째로 무시되고 있었다 — 선택자를 먼저 합친 뒤 선언을 한 번만 붙인다. (2) `umsh-chrome.loadShellScript` 가 `?v=` 붙은 주소를 경로와 직접 비교해 마운트마다 `service-shell.js` 를 중복 로드했다 — 양쪽 `pathname` 비교. (3) 이직·저축 06 은 라이브 리포트가 없으면 히어로 소개문까지 비우고 의도한 안내문만 `data-umsh-filled` 로 남긴다. (4) 올해연애·직장선택 스토어의 무가드 `UMSHReportAccess` 접근. (5) 이직운 티저 금지 표현, ui-kit 의 `UMSH` 표기. 추가로 `check:quit` 이 리다이렉트 스텁이 된 03 을 정식 단계로 요구해 main 의 CI 가 빨간불이었던 것을 바로잡았다(`f33ef87`).
 
 - 2026-09-17 이직운 STEP1 히어로 카피를 하단으로 내려 상단 이미지가 보이게 한다. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-01-image-prompt.md`.

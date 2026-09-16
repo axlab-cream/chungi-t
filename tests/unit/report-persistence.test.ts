@@ -4,7 +4,7 @@ import OpenAI from 'openai'
 import { randomUUID } from 'node:crypto'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildOpenAiSajuReportSection } from '../../src/report/report-generator.js'
-import { generateReportSectionNow, preGenerateReport, recoverReportSectionFromLatestAttempt } from '../../src/report/report-queue.js'
+import { SECTION_ATTEMPT_LIMIT, generateReportSectionNow, preGenerateReport, recoverReportSectionFromLatestAttempt } from '../../src/report/report-queue.js'
 import { createOrGetReportRecord, findReportRecord, getReportRecord, mutateReportRecord, saveReportRecord, toClientReport, updateReportSection, type ReportRecord } from '../../src/report/report-store.js'
 import { reviewInterpretation } from '../../src/report/interpretation-validation.js'
 import type { BirthInput, SajuReport, SajuReportSection } from '../../src/types/index.js'
@@ -116,15 +116,49 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(), owner })
     const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'specialized-only-id', owner })
     assert.equal(result.status, 'failed')
-    assert.equal(result.attempts?.length, 2)
+    // 왕복 횟수는 상수로 조정한다. 숫자를 박아 두면 횟수를 조정할 때마다 이 검증이
+    // 실패해서, 정작 확인해야 할 "실패를 완료로 표시하지 않는다"가 가려진다.
+    assert.equal(result.attempts?.length, SECTION_ATTEMPT_LIMIT)
     assert.ok(result.attempts?.every((item) => item.raw?.includes('짧습니다.')))
-    assert.match(repairMessage, /한자 설명은 문장당 하나/)
+    assert.match(repairMessage, /한자 설명은 한 문장에 하나만/)
     assert.match(repairMessage, /빈 줄로 나눈 각 의미 단락은 2~4개/)
     assert.equal((await getReportRecord(reportId))?.status, 'failed')
     const retried = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'specialized-only-id', owner, retry: true })
     assert.equal(retried.status, 'failed')
-    assert.equal(messageCounts[2], 3, '사용자가 다시 시도한 첫 요청부터 수정 안내가 있어야 합니다.')
+    assert.equal(messageCounts[SECTION_ATTEMPT_LIMIT], 3, '사용자가 다시 시도한 첫 요청부터 수정 안내가 있어야 합니다.')
     await assert.rejects(mutateReportRecord(reportId, { id: 'other' }, () => {}), /REPORT_ACCESS_DENIED/)
+  })
+
+  /**
+   * 2026-09-17 회귀 방지: gpt-5 계열은 추론 토큰도 출력 예산에서 깎아서, 예산이 빠듯하면 본문을
+   * 한 글자도 못 내고 `finish_reason: length` 로 끝난다. 이 잘림이 재시도 대상이 아니어서
+   * money_save 첫 항목이 한 번의 잘림으로 영구 실패로 굳었다. 잘림은 내용 결함이 아니므로
+   * 다시 부르면 넘어갈 수 있고, 재작성 지시문을 붙여 프롬프트를 더 늘리면 안 된다.
+   */
+  it('retries a truncated response with the same prompt instead of failing the section', async () => {
+    process.env.OPENAI_API_KEY = 'test-key-no-network'
+    let calls = 0
+    const messageCounts: number[] = []
+    OpenAI.Chat.Completions.prototype.create = (async (request: { messages: Array<{ content: string }> }) => {
+      calls += 1
+      messageCounts.push(request.messages.length)
+      const payload = JSON.parse(request.messages[1].content)
+      if (calls === 1) {
+        return { model: 'mock-model', choices: [{ message: { content: '' }, finish_reason: 'length' }], usage: { prompt_tokens: 19650, completion_tokens: 4200, total_tokens: 23850 } }
+      }
+      return { model: 'mock-model', choices: [{ message: { content: JSON.stringify({ id: payload.section.id, hook: '현재 방식에서 편한 점을 확인해요.', interpretation: newToneReading }) }, finish_reason: 'stop' }] }
+    }) as unknown as typeof sdkCreate
+
+    const reportId = randomUUID()
+    await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(), owner })
+    const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'specialized-only-id', owner })
+
+    assert.equal(result.status, 'complete')
+    assert.equal(calls, 2)
+    // 잘림에는 재작성 지시문을 붙이지 않는다. 프롬프트가 길어지면 예산을 더 깎는다.
+    assert.deepEqual(messageCounts, [2, 2])
+    assert.equal(result.attempts?.[0].finishReason, 'length')
+    assert.match(result.attempts?.[0].error ?? '', /길이 제한/)
   })
 
   it('gives the second attempt structured Hanja and paragraph repair guidance without rejected prose', async () => {
@@ -154,13 +188,16 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     assert.equal(calls, 2)
     assert.match(repairMessage, /1\. .*각 의미 단락은 2~4개/)
     assert.match(repairMessage, /2\. .*한 문장에는 여러 한자 설명/)
-    assert.match(repairMessage, /한자 설명은 문장당 하나/)
+    assert.match(repairMessage, /한자 설명은 한 문장에 하나만/)
     assert.match(repairMessage, /빈 줄로 나눈 각 의미 단락은 2~4개/)
     assert.match(repairMessage, /현재 실패만 고치고 끝내지 말고.*원래 요청의 모든 품질 불변식/)
+    // 재작성 지시문이 1차 지시문과 갈라져 있어서 모든 서비스가 1차에서 같은 항목으로 떨어졌다.
+    // 이제 두 지시문이 `SECTION_CLOSING_RULES` 를 공유하므로, 마지막 단락 규칙은 그 문구로 본다.
+    assert.match(repairMessage, /마지막 의미 단락은 2~4개의 완성 문장으로 쓰고.*시간 표지와 확인 대상과 행동 서술어를 함께/)
+    assert.match(repairMessage, /다음에는·앞으로·이후·먼저·오늘 가운데 하나와.*목적어와.*기록·비교·확인·유지 가운데 하나의 서술어/)
+    assert.match(repairMessage, /아래 네 가지는 한 응답 안에 모두 있어야.*하나를 고치면서 나머지를 빼지/)
     assert.match(repairMessage, /직접 답.*사용자 사실과 검증된 계산.*전통적 상징/)
     assert.match(repairMessage, /실제 경험이 아니면.*예를 들어.*장소 또는 도구.*관찰 행동/)
-    assert.match(repairMessage, /구체적인 다음 판단 기준.*대상.*기록·비교·확인/)
-    assert.match(repairMessage, /마지막 의미 단락을 반드시 2~4개의 완성 문장으로 예약/)
     assert.match(repairMessage, /첫 문장.*구체적인 확인 대상.*이어지는 문장.*기록·비교·확인/)
     assert.match(repairMessage, /JSON 반환 전.*내부 자기검사.*다음 판단 기준.*체크리스트는 출력하지/)
     assert.match(repairMessage, /“다음에는 잘해봐”.*“확인해”.*대상 없는 행동.*다음 판단 기준으로 세지/)
