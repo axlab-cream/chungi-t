@@ -63,7 +63,14 @@ import {
   saveUserBirthProfile,
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
-import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
+import {
+  canonicalPaymentProductKey,
+  getPaymentProduct,
+  listPaymentProducts,
+  PAYMENT_PATH_PREFIXES,
+  PAYMENT_PRODUCT_ALIASES,
+  publicPaymentProduct,
+} from '../payment/catalog.js'
 import {
   approveInicisMobilePayment,
   approveInicisPayment,
@@ -1550,6 +1557,9 @@ function paymentConfigPayload() {
     catalog: listPaymentProducts()
       .filter((product) => !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key))
       .map(publicPaymentProduct),
+    aliases: PAYMENT_PRODUCT_ALIASES,
+    pathPrefixes: PAYMENT_PATH_PREFIXES,
+    pausedKeys: [...PUBLICLY_DISABLED_PRODUCT_KEYS],
     setupMessage: enabled || testMode ? '' : PAYMENT_UNAVAILABLE_NOTICE,
   }
 }
@@ -1610,13 +1620,18 @@ const DEFAULT_PRODUCT_KEY = 'cmdg'
 function productKeyForContext(context: SajuReportContext): string {
   const serviceKey = trimmedString(context.serviceKey)
   if (!serviceKey) return DEFAULT_PRODUCT_KEY
-  return PRODUCT_KEY_BY_SERVICE_KEY[serviceKey] ?? DEFAULT_PRODUCT_KEY
+  return canonicalPaymentProductKey(serviceKey)
+    || PRODUCT_KEY_BY_SERVICE_KEY[serviceKey]
+    || DEFAULT_PRODUCT_KEY
 }
 
 /** Checkout link carrying the report binding, so the order unlocks exactly this reading. */
 function paymentCheckoutUrl(productKey: string, reportId = ''): string {
   const product = getPaymentProduct(productKey)
-  const params = new URLSearchParams({ product: productKey, returnTo: product?.returnPath || '/' })
+  const params = new URLSearchParams({
+    product: product?.key || productKey,
+    returnTo: product?.returnPath || '/',
+  })
   if (reportId) params.set('reportId', reportId)
   return `/payment?${params.toString()}`
 }

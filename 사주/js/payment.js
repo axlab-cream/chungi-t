@@ -3,9 +3,9 @@
 
   const query = new URLSearchParams(global.location.search);
   // 서버가 만드는 결제 주소는 `product=` 를 쓰지만, 각 서비스의 CTA 폴백은
-  // `/payment?service=<키>` 로 보낸다(umsh-report-access.js 등). 한쪽만 읽으면
-  // 폴백으로 들어온 고객이 "상품 정보를 확인하지 못했습니다" 에서 막힌다.
-  const productKey = query.get('product') || query.get('service') || '';
+  // `/payment?service=<키>` 로 보낸다. HTML 시드는 `save`처럼 카탈로그와 다른
+  // 이름을 쓴다. 한쪽만 읽거나 별칭을 무시하면 상품 확인에서 막힌다.
+  const rawProductKey = query.get('product') || query.get('service') || query.get('service_key') || query.get('productKey') || '';
   const reportId = query.get('reportId') || '';
   const returnTo = query.get('returnTo') || '';
   const form = document.querySelector('#payment-form');
@@ -20,6 +20,37 @@
   function isMobileWeb() {
     return Boolean(global.navigator?.userAgentData?.mobile)
       || /Android|iPhone|iPad|iPod|Mobile/i.test(global.navigator?.userAgent || '');
+  }
+
+  function canonicalProductKey(raw, config) {
+    const value = String(raw || '').trim();
+    const aliases = config?.aliases || {};
+    if (value && (config?.catalog || []).some((item) => item.key === value)) return value;
+    if (value && aliases[value]) return aliases[value];
+    const prefixes = Array.isArray(config?.pathPrefixes) ? config.pathPrefixes : [];
+    let pathname = '';
+    try {
+      pathname = returnTo ? new URL(returnTo, global.location.origin).pathname : '';
+    } catch {
+      pathname = String(returnTo || '').split('?')[0];
+    }
+    if (!pathname) {
+      try {
+        const referrer = global.document?.referrer || '';
+        if (referrer) pathname = new URL(referrer, global.location.origin).pathname;
+      } catch {
+        pathname = '';
+      }
+    }
+    const byPath = prefixes.find((entry) => {
+      const prefix = entry && entry[0];
+      return prefix && (pathname === prefix || pathname.indexOf(prefix + '/') === 0);
+    });
+    return (byPath && byPath[1]) || aliases[value] || value;
+  }
+
+  function findCatalogProduct(key, config) {
+    return (config?.catalog || []).find((item) => item.key === key) || null;
   }
 
   function setStatus(message) {
@@ -176,10 +207,15 @@
   async function init() {
     // Keep the caller's own return path across the PG round-trip, so a reader lands back
     // on the exact step they left instead of the product's generic entry page.
-    if (returnTo) global.UMSHPaymentBridge?.save(productKey, { reportId }, returnTo);
     paymentConfig = await fetch('/api/payment/config').then((response) => response.json());
-    product = paymentConfig.catalog?.find((item) => item.key === productKey) || null;
+    const productKey = canonicalProductKey(rawProductKey, paymentConfig);
+    if (returnTo) global.UMSHPaymentBridge?.save(productKey || rawProductKey, { reportId }, returnTo);
+    product = findCatalogProduct(productKey, paymentConfig);
     if (!product) {
+      if ((paymentConfig.pausedKeys || []).includes(productKey)) {
+        setStatus('현재 공개하지 않는 서비스입니다.');
+        return;
+      }
       setStatus('상품 정보를 확인하지 못했습니다. 홈에서 다시 선택해 주세요.');
       return;
     }

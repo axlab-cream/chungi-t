@@ -59,6 +59,23 @@ describe('웹 결제·서비스 진입 경로', { concurrency: false }, () => {
     assert.equal(response.status, 200)
   })
 
+  it('결제 설정은 HTML 시드 별칭을 카탈로그 키로 연결한다', async () => {
+    // 저축 HTML은 product=save, 커플은 couple_match. 카탈로그 정식 키와 다르면
+    // 결제창이 "상품 정보를 확인하지 못했습니다"에서 멈춘다.
+    const config = await (await fetch(`${origin}/api/payment/config`)).json() as {
+      aliases?: Record<string, string>
+      pathPrefixes?: Array<[string, string]>
+    }
+    assert.equal(config.aliases?.save, 'money_save')
+    assert.equal(config.aliases?.couple_match, 'match_couple')
+    assert.equal(config.aliases?.love_thisyear, 'love_this_year')
+    assert.equal(config.aliases?.marriage_compatibility, 'marry_match')
+    assert.ok(config.pathPrefixes?.some((entry) => entry[0] === '/money/save' && entry[1] === 'money_save'))
+    const source = await (await fetch(`${origin}/js/payment.js`)).text()
+    assert.match(source, /canonicalProductKey/)
+    assert.match(source, /pausedKeys/)
+  })
+
   it('서비스 단계 주소는 파일명을 떼도 같은 화면을 연다', async () => {
     const withFile = await fetch(`${origin}/love/this-year/01-step-1-story/index.html`)
     const withoutFile = await fetch(`${origin}/love/this-year/01-step-1-story/`)
