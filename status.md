@@ -2,7 +2,7 @@
 
 ## Current Task
 
-- 2026-09-16 고객 키트: 생년월일 년·월·일, STEP2 CTA 가로 100%/52px/1열, 제출 문구를 결과 동사로 맞춤. 공개 서비스 히어로도 가치 카피. umsh.kr 배포.
+- 2026-09-16 생년월일 키트: 칸 안의 년·월·일만 쓰고 옆 접미사·중복 도움말 제거. 이직운 STEP1 히어로 `topline` 삭제. umsh.kr 배포.
 
 - 2026-09-16 버튼 가이드: STEP2/일부 STEP4 CTA를 가로 100% · 높이 52px · 1열 독으로 맞춤. `.primary-cta` 등 별칭을 `umsh-kit.css`에 포함. 냥궁합 150px 독 해소. 제출 문구를 결과 동사로 교체. 근거: `design-system/customer-kit.md` #4, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
 

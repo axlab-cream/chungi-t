@@ -15,7 +15,7 @@
   var SHELL_CSS = '/css/service-shell.css?v=20260916-gnb-click';
   var SHELL_JS = '/js/service-shell.js';
   var FLAG_JS = '/js/ai-report-flag.js';
-  var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd2';
+  var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd3';
 
   /** Which category chip the shell highlights, chosen from the page path. */
   var CATEGORY_BY_PATH = [

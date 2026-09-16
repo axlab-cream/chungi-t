@@ -400,7 +400,7 @@ body.umsh-kit form :is(.radio-panel, .check-panel):focus-within {
   outline-offset: 3px;
 }
 
-/* 생년월일은 OS 로케일 달력 대신 년·월·일 세 칸. 한 날짜의 구성이라 1열 예외. */
+/* 생년월일은 OS 로케일 달력 대신 세 칸. 년·월·일은 칸 안의 빈 값만 쓰고 옆에 글자를 두지 않는다. */
 body.umsh-fields form .umsh-ymd,
 body.umsh-kit form .umsh-ymd {
   display: grid;
@@ -411,19 +411,14 @@ body.umsh-kit form .umsh-ymd {
 
 body.umsh-fields form .umsh-ymd-part,
 body.umsh-kit form .umsh-ymd-part {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 6px;
+  display: block;
   min-width: 0;
   margin: 0;
 }
 
 body.umsh-fields form .umsh-ymd-part > span,
 body.umsh-kit form .umsh-ymd-part > span {
-  font-size: var(--umsh-label-size);
-  font-weight: 800;
-  white-space: nowrap;
+  display: none;
 }
 
 body.umsh-fields form .umsh-ymd-source,
