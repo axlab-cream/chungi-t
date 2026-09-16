@@ -458,18 +458,19 @@
    * 로그인 세션. /api/saju/analyze 는 회원만 받으므로 분석 요청과 프로필 조회가 같은
    * 토큰을 쓴다. 한 번 읽어 캐시한다.
    */
+  const auth = { config: null, client: null, session: null };
   let authSessionPromise = null;
   function getAuthSession() {
+    if (auth.session) return Promise.resolve(auth.session);
     if (authSessionPromise) return authSessionPromise;
     authSessionPromise = (async () => {
-      if (!window.supabase || !window.UMSHAuthSession) return null;
       try {
-        const config = await fetch('/api/auth/config').then((res) => res.json());
-        if (!config || !config.enabled) return null;
-        const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
-        const { data } = await client.auth.getSession();
-        return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
-      } catch (error) {
+        if (!window.UMSHAuthSession?.bindServiceSession) return null;
+        const session = await window.UMSHAuthSession.bindServiceSession(auth, 900);
+        if (!session) authSessionPromise = null;
+        return session;
+      } catch {
+        authSessionPromise = null;
         return null;
       }
     })();

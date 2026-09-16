@@ -2974,6 +2974,15 @@ function wantsPreview(req: Request): boolean {
   return req.body?.preview === true || req.query.preview === '1'
 }
 
+function reportToc(record: ReportRecord) {
+  return record.report.sections.map((section) => ({
+    id: section.id,
+    category: section.category,
+    classification: section.classification,
+    status: section.status || 'pending',
+  }))
+}
+
 function savedPreviewResponse(record: ReportRecord) {
   const report = toClientReport(record)
   return {
@@ -2984,6 +2993,7 @@ function savedPreviewResponse(record: ReportRecord) {
     publicUrl: report.publicUrl,
     serviceKey: record.context.serviceKey ?? 'saju_master',
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
+    toc: reportToc(record),
     paymentUrl: paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }

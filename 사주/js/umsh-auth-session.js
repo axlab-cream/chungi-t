@@ -38,9 +38,14 @@
     return startedAt;
   }
 
+  var sharedClient = null;
+  var sharedClientKey = '';
+
   function createClient(supabaseGlobal, url, publishableKey) {
     if (!supabaseGlobal || !supabaseGlobal.createClient) return null;
-    return supabaseGlobal.createClient(url, publishableKey, {
+    var key = String(url || '') + '\n' + String(publishableKey || '');
+    if (sharedClient && sharedClientKey === key) return sharedClient;
+    var client = supabaseGlobal.createClient(url, publishableKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -49,6 +54,9 @@
         storage: global.localStorage,
       },
     });
+    sharedClient = client;
+    sharedClientKey = key;
+    return client;
   }
 
   async function enforceDeviceAuthSession(session, client) {
@@ -64,6 +72,82 @@
       await client.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
     }
     return null;
+  }
+
+  function waitForRuntime(timeoutMs) {
+    return new Promise(function (resolve) {
+      var deadline = Date.now() + (typeof timeoutMs === 'number' ? timeoutMs : 1500);
+      (function poll() {
+        if (global.supabase && global.supabase.createClient) return resolve(true);
+        if (Date.now() >= deadline) return resolve(false);
+        setTimeout(poll, 60);
+      })();
+    });
+  }
+
+  /**
+   * getSession() 직후엔 로그인 복귀 토큰이 아직 없을 수 있다.
+   * INITIAL_SESSION/SIGNED_IN 을 잠깐 기다려, 있는 세션을 놓치지 않는다.
+   */
+  async function resolveLiveSession(config, timeoutMs) {
+    var wait = typeof timeoutMs === 'number' ? timeoutMs : 900;
+    var deadline = Date.now() + wait;
+    if (!(await waitForRuntime(Math.max(0, deadline - Date.now())))) return null;
+    if (!config || !config.url || !config.publishableKey) return null;
+    var client = createClient(global.supabase, config.url, config.publishableKey);
+    if (!client) return null;
+    var result = await client.auth.getSession();
+    var session = await enforceDeviceAuthSession(result.data && result.data.session, client);
+    if (session && session.access_token) return { client: client, session: session };
+    var remaining = deadline - Date.now();
+    if (remaining <= 0) return { client: client, session: null };
+    return await new Promise(function (resolve) {
+      var finished = false;
+      var subscription = null;
+      function finish(next) {
+        if (finished) return;
+        finished = true;
+        if (subscription && subscription.unsubscribe) subscription.unsubscribe();
+        clearTimeout(timer);
+        if (!next) {
+          resolve({ client: client, session: null });
+          return;
+        }
+        enforceDeviceAuthSession(next, client).then(function (live) {
+          resolve({ client: client, session: live });
+        });
+      }
+      var listen = client.auth.onAuthStateChange(function (_event, next) {
+        if (next && next.access_token) finish(next);
+      });
+      subscription = listen && listen.data && listen.data.subscription;
+      var timer = setTimeout(function () { finish(null); }, remaining);
+    });
+  }
+
+  async function bindServiceSession(auth, timeoutMs) {
+    if (!auth) return null;
+    if (auth.session && auth.session.access_token) return auth.session;
+    if (!auth.config) {
+      var response = await fetch('/api/auth/config');
+      auth.config = await response.json();
+    }
+    if (!auth.config || !auth.config.enabled) return null;
+    var resolved = await resolveLiveSession(auth.config, timeoutMs);
+    if (!resolved) return null;
+    auth.client = resolved.client;
+    auth.session = resolved.session;
+    return auth.session;
+  }
+
+  function watchSignedIn(auth, onSession) {
+    if (!auth || auth.watching || !auth.client || !auth.client.auth || !auth.client.auth.onAuthStateChange) return;
+    auth.watching = true;
+    auth.client.auth.onAuthStateChange(function (_event, session) {
+      if (!session || !session.access_token) return;
+      auth.session = session;
+      if (typeof onSession === 'function') onSession(session);
+    });
   }
 
   function isSharedProfileComplete(profile) {
@@ -85,5 +169,9 @@
     enforceDeviceAuthSession: enforceDeviceAuthSession,
     clearDeviceAuthSession: clearDeviceAuthSession,
     isSharedProfileComplete: isSharedProfileComplete,
+    waitForRuntime: waitForRuntime,
+    resolveLiveSession: resolveLiveSession,
+    bindServiceSession: bindServiceSession,
+    watchSignedIn: watchSignedIn,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

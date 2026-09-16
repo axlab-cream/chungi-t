@@ -31,7 +31,7 @@
 
   var doc = global.document;
   /** 검사가 늦어도 빈 화면으로 두지 않는다. 이 시각이 지나면 판정을 포기하고 연다. */
-  var GIVE_UP_MS = 4000;
+  var GIVE_UP_MS = 2500;
   /** supabase·umsh-auth-session 은 body 끝에서 실려 head 시점에는 없다. 그래서 기다린다. */
   var WAIT_STEP_MS = 60;
   /** 로그인에 실패해 되돌아온 사람을 다시 로그인으로 보내면 무한 왕복이 된다. */
@@ -130,10 +130,18 @@
       if (!config || !config.enabled) return reveal();
       if (!(await waitForAuthScripts(deadline))) return reveal();
 
-      var client = global.UMSHAuthSession.createClient(global.supabase, config.url, config.publishableKey);
-      if (!client) return reveal();
-      var result = await client.auth.getSession();
-      var session = await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session, client);
+      var waitMs = Math.min(900, Math.max(200, deadline - Date.now()));
+      var resolved = global.UMSHAuthSession.resolveLiveSession
+        ? await global.UMSHAuthSession.resolveLiveSession(config, waitMs)
+        : null;
+      var client = resolved && resolved.client;
+      var session = resolved && resolved.session;
+      if (!client) {
+        client = global.UMSHAuthSession.createClient(global.supabase, config.url, config.publishableKey);
+        if (!client) return reveal();
+        var result = await client.auth.getSession();
+        session = await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session, client);
+      }
 
       if (!session) {
         // 판정을 포기한 뒤라면 사용자는 이미 화면을 보고 있다. 그때 튕기면 타이핑을 뺏는다.

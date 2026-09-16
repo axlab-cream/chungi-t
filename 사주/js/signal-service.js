@@ -108,12 +108,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -206,7 +202,10 @@
       if (!request?.relationshipStage || !request?.signalFocus) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/love/signal/analyze', { method: 'POST', body: JSON.stringify(request) });
@@ -217,7 +216,10 @@
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl };
@@ -302,8 +304,15 @@
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample verdict must not stay on screen as if it were a personal reading.
-      summary.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      if (reason === 'login') {
+        summary.textContent = '입력한 사주로 계산하고 있습니다.';
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        summary.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      }
       ['[data-flow-main]', '[data-flow-condition]', '[data-flow-obstacle]'].forEach((selector) => {
         const node = $(selector);
         if (node) node.textContent = '아직 계산 전입니다. 위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.';

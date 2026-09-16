@@ -110,12 +110,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -217,7 +213,10 @@
       if (!request) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/money/save/analyze', { method: 'POST', body: JSON.stringify(request) });
@@ -230,7 +229,10 @@
         writeJson('sessionStorage', STORAGE.entitlement, { status: 'granted', verified_by: 'server' });
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl, request };
@@ -280,6 +282,10 @@
     const answer = $('[data-one-line-answer]');
     if (!answer) return;
 
+    if (!answer.dataset.boundPreview) {
+      answer.textContent = '입력한 사주로 계산하고 있습니다.';
+    }
+
     await resumeAfterPayment();
     const outcome = await loadReport();
 
@@ -310,6 +316,7 @@
 
     if (outcome.preview && !outcome.report) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      answer.dataset.boundPreview = '1';
       if (title) title.textContent = '먼저 열리는 12%';
       if (body) body.textContent = outcome.preview.summary || GATE_COPY.payment;
       const pay = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
@@ -327,8 +334,18 @@
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample sentences read like a personal verdict, so they must not stay on screen.
-      answer.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      // 로그인·결제 상태는 결론 칸에 쓰지 않는다. 티저 판정과 섞이면 예시/안내가 해석처럼 읽힌다.
+      if (reason === 'login') {
+        if (!answer.dataset.boundPreview) {
+          answer.textContent = '입력한 사주로 계산하고 있습니다.';
+        }
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        answer.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      }
       const signals = $('[data-signal-list]');
       if (signals) signals.innerHTML = '';
       if (title) title.textContent = reason === 'login' ? '로그인이 필요합니다' : '입력을 먼저 마쳐 주세요';
@@ -357,6 +374,7 @@
     }
 
     renderTeaser(outcome.report, answer);
+    answer.dataset.boundPreview = '1';
     if (title) title.textContent = '전체 리포트가 열렸습니다';
     if (body) body.textContent = '8개 대분류 41개 항목을 목록에서 하나씩 열어볼 수 있습니다.';
     if (nextPrimary) {
@@ -431,7 +449,7 @@
         const section = byId.get(card.dataset.sectionId);
         if (!section) return;
         const lock = card.querySelector('.lock-label');
-        if (lock) lock.textContent = '열람 가능';
+        if (lock && !outcome.previewOnly) lock.textContent = '열람 가능';
       });
       list.querySelectorAll('details.group-card').forEach((group) => {
         const title = group.querySelector('.group-title strong')?.textContent?.trim();
