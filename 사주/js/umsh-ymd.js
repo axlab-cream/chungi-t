@@ -56,10 +56,7 @@
     var select = global.document.createElement('select');
     select.setAttribute('aria-label', caption);
     select.dataset.umshYmdPart = kind;
-    var text = global.document.createElement('span');
-    text.textContent = caption;
     wrap.appendChild(select);
-    wrap.appendChild(text);
     return { wrap: wrap, select: select };
   }
 
@@ -85,7 +82,7 @@
     var group = global.document.createElement('div');
     group.className = 'umsh-ymd';
     group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', '생년월일, 년 월 일');
+    group.setAttribute('aria-label', '생년월일');
 
     var year = makePart('year', '년');
     var month = makePart('month', '월');

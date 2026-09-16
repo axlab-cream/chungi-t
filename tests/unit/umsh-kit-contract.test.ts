@@ -74,6 +74,8 @@ test('생년월일은 년·월·일 세 칸이고 네이티브 미국식 달력�
   assert.match(ymd, /makePart\('year', '년'\)/)
   assert.match(ymd, /makePart\('month', '월'\)/)
   assert.match(ymd, /makePart\('day', '일'\)/)
+  assert.doesNotMatch(ymd, /wrap\.appendChild\(text\)/)
+  has(kit, /\.umsh-ymd-part > span[\s\S]*?display:\s*none/, '칸 옆 년월일 글자를 숨기지 않는다')
   assert.match(chrome, /umsh-ymd\.js/)
   assert.match(catalog, /umsh-ymd\.js/)
 })
