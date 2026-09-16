@@ -395,46 +395,15 @@
     if (outcome.report && !window.UMSHReportAccess) location.reload();
   }
 
-  function ensurePdfHelper() {
-    if (window.UMSHReportPdf) return Promise.resolve();
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = '/js/umsh-report-pdf.js';
-      script.onload = () => resolve();
-      script.onerror = () => resolve();
-      document.head.appendChild(script);
-    });
-  }
-
-  function bindPdfButton() {
-    const host = $('#step-5-chat header') || $('#step-6_1-report header');
-    if (!host) return;
-    let button = $('#btn-pdf');
-    if (!button) {
-      button = document.createElement('button');
-      button.id = 'btn-pdf';
-      button.type = 'button';
-      button.textContent = 'PDF 다운받기';
-      button.style.cssText = 'display:block;margin:12px 0 0;width:100%;min-height:44px;border:1px solid #1f8a70;border-radius:8px;background:#1f8a70;color:#fff;font-weight:800;cursor:pointer';
-      host.appendChild(button);
-    }
-    if (button.dataset.bound === '1') return;
-    button.dataset.bound = '1';
-    button.addEventListener('click', async () => {
-      await ensurePdfHelper();
-      const report = readJson('sessionStorage', STORAGE.report);
-      if (!window.UMSHReportPdf?.open(report)) {
-        button.textContent = '해석이 준비되면 PDF를 받을 수 있습니다';
-      }
-    });
-  }
+  // PDF 받기는 umsh-report-access.js 가 전 서비스 공통으로 본문 맨 아래에 붙인다.
+  // 여기서 상단 header 에 따로 만들면 자리가 서비스마다 달라지고, sessionStorage
+  // 사본은 접근 검증 단계에서 지워지므로 빈 리포트를 인쇄하게 된다.
 
   function init() {
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();
     ensureReportCached();
-    bindPdfButton();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -593,7 +593,6 @@
 
     <div class="contextbar">
       <p id="context-label">반려묘 생활 궁합 · 상세 풀이</p>
-      <button class="small-action" type="button" id="btn-pdf">PDF</button>
     </div>
 
     <section class="content" id="content" aria-live="polite">
@@ -922,11 +921,6 @@
 
       document.querySelector("#btn-vault").addEventListener("click", () => {
         location.href = step04Url("vault");
-      });
-
-      document.querySelector("#btn-pdf").addEventListener("click", () => {
-        if (window.UMSHReportPdf && window.UMSHReportPdf.openFromStorage()) return;
-        window.print();
       });
 
       document.addEventListener("error", (event) => {

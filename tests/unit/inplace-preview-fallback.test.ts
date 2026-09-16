@@ -76,7 +76,9 @@ test('2. 디자인 슬롯을 하나도 못 찾으면 만든 자리에 통째로 
 })
 
 test('3. 옵트인한 페이지는 어떤 경로로도 panel() 에 닿지 않는다', () => {
-  for (const name of ['showPreview', 'showReport']) {
+  // 전체 해석 렌더는 renderReportBody 로 옮겼다 — showReport 는 그 결과를 받아
+  // PDF 자리를 붙이는 껍데기다. 가드는 본문을 그리는 쪽에 있어야 한다.
+  for (const name of ['showPreview', 'renderReportBody']) {
     const body = functionBody(access, name)
     const inPlaceGuard = body.indexOf('inPlaceEnabled()')
     const panelCall = body.indexOf('panel()')
@@ -86,6 +88,10 @@ test('3. 옵트인한 페이지는 어떤 경로로도 panel() 에 닿지 않는
       `${name} 에서 panel() 이 옵트인 가드보다 먼저 온다 — 등록 디자인이 사라진다`,
     )
   }
+  // 껍데기가 렌더를 직접 다시 구현하면 가드를 우회한다.
+  const wrapper = functionBody(access, 'showReport')
+  assert.ok(wrapper.includes('renderReportBody(payload)'), 'showReport 가 본문 렌더에 위임하지 않는다')
+  assert.equal(wrapper.indexOf('panel()'), -1, 'showReport 가 panel() 을 직접 부른다')
 })
 
 test('4. panel() 로 떨어지는 경로는 옵트인하지 않은 페이지 전용이다', () => {

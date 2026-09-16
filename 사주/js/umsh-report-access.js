@@ -650,16 +650,22 @@
       + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
     if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search);
   }
+  /** 본문을 그렸으면 true. PDF 자리는 그린 뒤에 붙여야 본문 끝에 놓인다. */
   function showReport(payload) {
+    var rendered = renderReportBody(payload);
+    if (rendered) bindPdfDock();
+    return rendered;
+  }
+  function renderReportBody(payload) {
     var report = payload.report;
-    if (!report || !Array.isArray(report.sections)) return;
+    if (!report || !Array.isArray(report.sections)) return false;
     var serverKey = canonical((payload.context && payload.context.serviceKey) || report.serviceKey || key);
-    if (key && serverKey !== key) { gate('이 서비스의 해석이 아닙니다. 구매 내역에서 해당 결과를 열어 주세요.'); return; }
+    if (key && serverKey !== key) { gate('이 서비스의 해석이 아닙니다. 구매 내역에서 해당 결과를 열어 주세요.'); return false; }
     authorized = report;
-    if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
-    if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
-    if (renderReportInPlace(payload)) return;
-    if (inPlaceEnabled()) return;
+    if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return true;
+    if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return true;
+    if (renderReportInPlace(payload)) return true;
+    if (inPlaceEnabled()) return false;
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});
@@ -670,7 +676,102 @@
     }).join('');
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+    return true;
   }
+  /* ==================================================================
+   * PDF 받기 — 전 서비스 같은 자리
+   *
+   * 자리는 service-shell.css 에 적어 둔 규약을 따른다: 상단바가 아니라 **본문 맨 아래**.
+   * 42개 출력 화면 중 그 CSS 를 부르는 것은 9개뿐이라, 자리를 만들 때 필요한 규칙만
+   * 여기서 같이 넣는다.
+   *
+   * 본문은 sessionStorage 가 아니라 인증된 응답(authorized)에서만 가져온다. 위쪽
+   * 캐시 정리 루틴이 sessionStorage 사본을 지우므로 openFromStorage 는 빈손으로
+   * 돌아온다 — 그 경로에 기대면 window.print() 로 화면을 그대로 뽑게 된다.
+   * ================================================================== */
+  function ensurePdfDockStyles() {
+    if (document.getElementById('umsh-pdf-dock-css')) return;
+    var style = document.createElement('style');
+    style.id = 'umsh-pdf-dock-css';
+    style.textContent = '.umsh-pdf-dock{display:flex;justify-content:center;padding:18px 20px 8px}'
+      + '.umsh-pdf-dock .pdf-button{min-height:44px;padding:0 18px;border:1px solid rgba(232,212,154,.35);'
+      + 'border-radius:12px;background:rgba(216,186,114,.06);color:var(--shell-gold-200,#e8d49a);'
+      + 'font-size:14px;font-weight:800;cursor:pointer}'
+      + '.umsh-pdf-dock .pdf-button[disabled]{opacity:.55;cursor:progress}';
+    document.head.appendChild(style);
+  }
+
+  function pdfHelper() {
+    if (global.UMSHReportPdf) return Promise.resolve();
+    return new Promise(function (resolve) {
+      var existing = document.querySelector('script[src="/js/umsh-report-pdf.js"]');
+      if (existing) { existing.addEventListener('load', function () { resolve(); }); return; }
+      var script = document.createElement('script');
+      script.src = '/js/umsh-report-pdf.js';
+      script.addEventListener('load', function () { resolve(); });
+      script.addEventListener('error', function () { resolve(); });
+      document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * 글이 들어온 항목만 싣는다. status 가 pending·failed 여도 본문이 있으면 읽을 수 있고,
+   * 반대로 complete 인데 빈 항목을 실으면 빈 장이 그대로 인쇄된다.
+   */
+  function printableReport() {
+    if (!authorized || !Array.isArray(authorized.sections)) return null;
+    var ready = authorized.sections.filter(function (section) {
+      return section && typeof section.interpretation === 'string' && section.interpretation.trim();
+    });
+    if (!ready.length) return null;
+    var report = {};
+    Object.keys(authorized).forEach(function (name) { report[name] = authorized[name]; });
+    report.sections = ready;
+    return report;
+  }
+
+  /** panel() 로 갈아끼운 화면과 등록 디자인을 살린 화면 모두에서 본문의 끝을 찾는다. */
+  function pdfDockHost() {
+    return document.getElementById('umsh-verified-reading') || contentHost();
+  }
+
+  function bindPdfDock() {
+    var host = pdfDockHost();
+    if (!host) return;
+    ensurePdfDockStyles();
+    var dock = document.getElementById('umsh-pdf-dock');
+    if (!dock) {
+      dock = document.createElement('div');
+      dock.id = 'umsh-pdf-dock';
+      dock.className = 'umsh-pdf-dock';
+    }
+    var button = document.getElementById('umsh-pdf-button');
+    if (!button) {
+      button = document.createElement('button');
+      button.id = 'umsh-pdf-button';
+      button.className = 'pdf-button';
+      button.type = 'button';
+      button.setAttribute('data-report-pdf', '');
+      button.textContent = 'PDF 다운받기';
+      dock.appendChild(button);
+    }
+    // 본문을 다시 그리면 자리가 앞쪽으로 밀린다. 매번 끝으로 옮겨 붙인다.
+    if (dock.parentNode !== host) host.appendChild(dock);
+    if (button.hasAttribute('data-bound')) return;
+    button.setAttribute('data-bound', '');
+    button.addEventListener('click', function () {
+      var report = printableReport();
+      if (!report) { button.textContent = '해석이 준비되면 PDF를 받을 수 있습니다'; return; }
+      button.disabled = true;
+      button.textContent = 'PDF 준비 중';
+      pdfHelper().then(function () {
+        var opened = global.UMSHReportPdf && global.UMSHReportPdf.open(report);
+        button.disabled = false;
+        button.textContent = opened ? 'PDF 다운받기' : '팝업을 허용하면 PDF 창이 열립니다';
+      });
+    });
+  }
+
   function expandReportForPrint() {
     printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));
     printOpenedSections.forEach(function (item) { item.setAttribute('open', ''); });
