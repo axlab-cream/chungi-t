@@ -719,7 +719,7 @@
     return payload;
   }
   async function resumeSection(reportId,sectionId,retry) {
-    if(resuming.has(sectionId) || resuming.size>=2)return;
+    if(resuming.has(sectionId) || resuming.size>=4)return;
     resuming.add(sectionId);
     try {
       await rawFetch('/api/report/section',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},headerCache || {}),body:JSON.stringify({reportId:reportId,sectionId:sectionId,...(retry ? {retry:true}:{})})});
@@ -728,7 +728,7 @@
   function resumePending(payload) {
     if(!headerCache || !payload.report)return;
     var id=payload.reportId || payload.report.reportId || identity(payload);
-    payload.report.sections.filter(function(section){return !resuming.has(section.id) && (section.status==='pending' || section.status==='generating');}).slice(0,Math.max(0,2-resuming.size)).forEach(function(section){resumeSection(id,section.id).catch(function(){});});
+    payload.report.sections.filter(function(section){return !resuming.has(section.id) && (section.status==='pending' || section.status==='generating');}).slice(0,Math.max(0,4-resuming.size)).forEach(function(section){resumeSection(id,section.id).catch(function(){});});
   }
   async function refresh(id) {
     if (!id) return;
@@ -751,7 +751,8 @@
     var next = Object.assign({},options);
     if (id) { target=reportUrl(id,body.orderId || new URLSearchParams(location.search).get('orderId')); delete next.body;next.method='GET';next.cache='no-store'; }
     else if (!explicitPaid && !daily) {
-      if (isDetailPage()) return new Response(JSON.stringify({error:'저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.',code:'REPORT_REQUIRED'}),{status:404,headers:{'Content-Type':'application/json'}});
+      // 05 목차·06 상세도 04와 같이 preview analyze로 레코드/목차를 받는다.
+      // 주소가 없어도 404로 막으면 로그인 직후 목차·본문이 빈 화면이 된다.
       next.body=JSON.stringify(Object.assign({},body,{preview:true}));
     }
     var epoch=ownerEpoch;
@@ -775,11 +776,29 @@
     try {
       var config=await rawFetch('/api/auth/config').then(function(r){return r.json();});
       if(config.developmentReportAccess===true) {headerCache={};if(id)await refresh(id);return;}
-      if (!config.enabled || !global.supabase || !global.UMSHAuthSession) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
-      var client=global.UMSHAuthSession.createClient(global.supabase,config.url,config.publishableKey);
-      var result=await client.auth.getSession();
-      var session=await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session,client);
-      if (!session || !session.access_token) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      if (!config.enabled) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      var runtimeOk = global.UMSHAuthSession && global.UMSHAuthSession.waitForRuntime
+        ? await global.UMSHAuthSession.waitForRuntime(1500)
+        : Boolean(global.supabase && global.UMSHAuthSession);
+      if (!runtimeOk || !global.UMSHAuthSession) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      var resolved = global.UMSHAuthSession.resolveLiveSession
+        ? await global.UMSHAuthSession.resolveLiveSession(config, 900)
+        : null;
+      var client = resolved && resolved.client || global.UMSHAuthSession.createClient(global.supabase,config.url,config.publishableKey);
+      var session = resolved && resolved.session;
+      if (!session || !session.access_token) {
+        if (!session && client) {
+          var result=await client.auth.getSession();
+          session=await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session,client);
+        }
+      }
+      if (!session || !session.access_token) {
+        if (/\/04-step-4-report\//.test(location.pathname) && !id) {
+          document.documentElement.removeAttribute('data-umsh-report-check');
+          return;
+        }
+        throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      }
       setOwner(session.user && session.user.id);
       headerCache={Authorization:'Bearer '+session.access_token};
       client.auth.onAuthStateChange(function(event,nextSession){
@@ -833,16 +852,20 @@
     var report = payload.report && Array.isArray(payload.report.sections) && payload.report.sections.length
       ? payload.report
       : (Array.isArray(payload.sections) && payload.sections.length ? payload : null);
+    var toc = Array.isArray(payload.toc) ? payload.toc.filter(function (item) { return item && item.id; }) : [];
+    var skeleton = !report && toc.length ? { sections: toc } : null;
     if (hasPreview) {
       return {
         preview: preview,
         previewOnly: payload.previewOnly !== false,
         payload: payload,
         paymentUrl: payload.paymentUrl,
-        report: report || undefined,
+        toc: toc,
+        report: report || skeleton || undefined,
       };
     }
-    if (report) return { report: report, payload: payload };
+    if (report) return { report: report, payload: payload, toc: toc };
+    if (skeleton) return { report: skeleton, previewOnly: true, payload: payload, toc: toc, paymentUrl: payload.paymentUrl };
     return null;
   }
   function paintTeaserPreview(preview) {

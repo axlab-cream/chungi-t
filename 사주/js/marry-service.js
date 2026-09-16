@@ -138,12 +138,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -335,7 +331,10 @@
       if (!request) return { reason: 'partner' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         await syncSelfProfile(payload);
@@ -359,7 +358,10 @@
         }
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl, request };
@@ -465,7 +467,15 @@
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      clearSampleTeaser(STEP_04_MESSAGES[reason] || STEP_04_MESSAGES.error);
+      if (reason === 'login') {
+        clearSampleTeaser('입력한 사주로 계산하고 있습니다.');
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        clearSampleTeaser(STEP_04_MESSAGES[reason] || STEP_04_MESSAGES.error);
+      }
       if (stateCopy) stateCopy.textContent = STEP_04_MESSAGES[reason] || STEP_04_MESSAGES.error;
       if (message) message.textContent = outcome.message || '';
       const notice = $('#expired-notice');

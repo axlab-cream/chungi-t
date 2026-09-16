@@ -264,11 +264,29 @@ test('an introductory pause is not selected as the first insight',()=>{
   assert.equal(h.api.firstInsight('흠... 지금은 조건을 먼저 비교합니다. 다음 문장입니다.'),'지금은 조건을 먼저 비교합니다.')
 })
 
-test('detail pages without an identity cannot create a fresh interpretation',async()=>{
-  const h=harness('/me/lucky/06-step-6_1-report-detail/index.html',[])
-  const response=await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}'})
-  assert.equal(response.status,404)
-  assert.equal(h.calls.length,0)
+test('05·06은 주소가 없어도 preview analyze로 목차를 받는다', async () => {
+  const h = harness('/money/save/05-step-5-chat/chat.html', [{
+    previewOnly: true,
+    reportId: 'save-1',
+    preview: { headline: '새는 자리' },
+    toc: [{ id: 'a', category: '장', classification: '항목' }],
+  }])
+  const response = await h.api.fetch('/api/money/save/analyze', { method: 'POST', body: '{}' })
+  assert.equal(response.status, 200)
+  assert.equal(h.calls[0].path, '/api/money/save/analyze')
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, true)
+})
+
+test('detail pages without an identity still request a preview instead of inventing a paid report', async () => {
+  const h = harness('/me/lucky/06-step-6_1-report-detail/index.html', [{
+    previewOnly: true,
+    reportId: 'lucky-1',
+    preview: { headline: '방향' },
+    toc: [{ id: 'a', category: '장', classification: '항목' }],
+  }])
+  const response = await h.api.fetch('/api/me/lucky/analyze', { method: 'POST', body: '{}' })
+  assert.equal(response.status, 200)
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, true)
 })
 
 test('identity hints are stored separately for each owner and service',async()=>{
@@ -288,14 +306,14 @@ test('a mismatched service cannot expose even its preview on the current page',a
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/이 서비스의 해석이 아닙니다/)
 })
 
-test('only pending sections resume automatically and no more than two at once',async()=>{
-  const sections=['a','b','c'].map(id=>({id,status:'pending',category:'장',classification:id}))
+test('only pending sections resume automatically and no more than four at once',async()=>{
+  const sections=['a','b','c','d','e'].map(id=>({id,status:'pending',category:'장',classification:id}))
   sections.push({id:'failed',status:'failed',category:'장',classification:'실패'})
-  const h=harness('/me/lucky/06-step-6_1-report-detail/index.html?reportId=r1',[{reportId:'r1',report:{reportId:'r1',status:'pending',title:'풀이',sections}}, {}, {}])
+  const h=harness('/me/lucky/06-step-6_1-report-detail/index.html?reportId=r1',[{reportId:'r1',report:{reportId:'r1',status:'pending',title:'풀이',sections}}, {}, {}, {}, {}])
   await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})
   const resumes=h.calls.filter(call=>call.path==='/api/report/section')
-  assert.equal(resumes.length,2)
-  assert.deepEqual(resumes.map(call=>JSON.parse(call.options.body).sectionId),['a','b'])
+  assert.equal(resumes.length,4)
+  assert.deepEqual(resumes.map(call=>JSON.parse(call.options.body).sectionId),['a','b','c','d'])
   assert.ok(resumes.every(call=>JSON.parse(call.options.body).retry!==true))
 })
 
