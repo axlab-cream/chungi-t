@@ -1,45 +1,45 @@
 {
+  "version": 1,
   "services": {
     "github": {
       "service": "github",
       "display": "GitHub",
       "status": "configured",
       "configuredAt": "2026-09-10T02:29:46.8114139Z",
-      "lastCheckedAt": "2026-09-10T02:29:46.8038214Z",
+      "lastCheckedAt": "2026-09-16T02:46:24.6322222Z",
       "lastCheckExitCode": 0,
       "authCheck": "gh auth status",
       "setupHint": "gh auth login",
       "notes": "auth check passed",
-      "evidenceTail": "github.com\n  ✓ Logged in to github.com account jaeyong-planner (keyring)\n  - Active account: true\n  - Git operations protocol: https\n  - Token=[REDACTED]\n  - Token scopes: 'gist', 'read:org', 'repo'",
-      "updatedAt": "2026-09-10T02:29:46.8114139Z"
+      "evidenceTail": "github.com\n  ??Logged in to github.com account jaeyong-planner (keyring)\n  - Active account: true\n  - Git operations protocol: https\n  - Token=[REDACTED]\n  - Token scopes: 'gist', 'read:org', 'repo'",
+      "updatedAt": "2026-09-16T02:46:24.6391288Z"
     },
     "vercel": {
       "service": "vercel",
       "display": "Vercel",
       "status": "configured",
       "configuredAt": "2026-09-10T02:29:47.7720431Z",
-      "lastCheckedAt": "2026-09-10T02:29:47.7717998Z",
+      "lastCheckedAt": "2026-09-16T02:46:26.2111031Z",
       "lastCheckExitCode": 0,
       "authCheck": "vercel whoami",
       "setupHint": "vercel login",
       "notes": "auth check passed",
       "evidenceTail": "Vercel CLI 50.19.1\njaeyong-planner",
-      "updatedAt": "2026-09-10T02:29:47.7720431Z"
+      "updatedAt": "2026-09-16T02:46:26.2182259Z"
     },
     "supabase": {
       "service": "supabase",
       "display": "Supabase",
-      "status": "missing_cli",
-      "configuredAt": null,
-      "lastCheckedAt": "2026-09-10T02:29:48.1092671Z",
-      "lastCheckExitCode": 3,
-      "authCheck": "supabase projects list",
+      "status": "configured",
+      "configuredAt": "2026-09-14T10:51:23.5911485Z",
+      "lastCheckedAt": "2026-09-16T02:46:27.2428355Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "npx --yes supabase projects list",
       "setupHint": "supabase login",
-      "notes": "auth check did not pass",
-      "evidenceTail": "CLI command not found: supabase",
-      "updatedAt": "2026-09-10T02:29:48.1094220Z"
+      "notes": "auth check passed",
+      "evidenceTail": "Microsoft Windows [Version 10.0.26200.9457]\n(c) Microsoft Corporation. All rights reserved.\n\nC:\\Users\\user\\Desktop\\chungi-t>",
+      "updatedAt": "2026-09-16T02:46:27.2500491Z"
     }
   },
-  "updatedAt": "2026-09-10T02:29:48.1097135Z",
-  "version": 1
+  "updatedAt": "2026-09-16T02:46:27.2572818Z"
 }

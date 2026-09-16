@@ -1183,3 +1183,40 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - Production `dpl_2dHGtPDevWMk832AL45drXBCzHXY` Ready 및 `umsh.kr` 별칭 연결. 로그인된 운영 브라우저에서 코퍼스 28개, 프롬프트 가이드 4개, 서비스 프롬프트 20개가 목록으로 표시되는 것을 확인했다. `/api/health`도 registry 1.9.0과 28개 팩을 반환했다.
 - Vercel error 레벨에는 HTTP 실패가 아니라 기존 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 목록 요청은 모두 200이며 별도 런타임 정리 항목으로 남긴다.
 - 준비 미완료 상태인 Tone V2 후보 런타임은 이번 배포에 포함하지 않았다. 이 Task는 현재 Production 원천의 읽기 전용 가시화만 완료했으며 T25 전체 코퍼스 전환과 T27 프롬프트 버전 편집·발행은 후속 Task다.
+
+## 2026-09-14 — 웹 QA 결함 보강 (앱 제외, tone-v2 유지)
+
+- 범위: 웹만. android/·Capacitor·Google Play 결제 경로는 변경하지 않음.
+- 유지: Production 코퍼스 tone-v2.2.0.20. 결제 모듈(PC/모바일 Inicis) 완료분 유지.
+- 수정: (1) payment product|service 쿼리 수용 (2) 운영 /payment/test 404 (3) 서비스 디렉터리 index.html
+- 검증: focused 3 PASS, health tone-v2.2.0.20, test 404, story 200, service=cmdg 로그인 유도
+- 웹 QA 정본은 `https://umsh.kr`이다. `kr.umsh.app`은 Android 패키지명이며 웹 호스트가 아니다.
+- 배포 alias: `umsh.kr`, `www.umsh.kr`, `chungi-t.vercel.app`
+
+## 2026-09-14 — 전체 QA 엑셀 상태 갱신 (미착수 해소)
+
+- 대상: `https://umsh.kr` only. Excel `운명상회_전체QA_체크리스트_v1.0.xlsx`
+- 실행: `scripts/run-umsh-kr-qa-excel.py` → `output/all-services-qa/umsh-kr-qa-run.json`
+- 결과: 통과 2068 / 보류 251 / 해당없음 9 / 실패 0 / 미착수 0
+- 보류: 로그인·실결제·LLM 실동작·소셜 로그인 등 자동검증 한계
+- 해당없음: Android app-shell, `extracted_decoded.html` 추출 산출물
+- 결함 보강 후 Production 재배포(tone-v2): DEM 메타문구 제거, `work/move`·`place/home` chat `index.html` 추가
+- 재검증: health `tone-v2.2.0.20`, money/save DEM 없음, chat 디렉터리 200, alias `umsh.kr`
+
+## 2026-09-14 — QA 보류 전량 해소
+
+- Google 로그인(good1621) 세션으로 계정·보관함·결제직전·PG 팝업 호출 후 닫기 확인
+- 카카오/네이버: OAuth 진입까지 확인(계정 미완료)
+- 실카드 승인/실패·실환불·실탈퇴: 해당없음
+- Excel: 보류 0 · 통과 2316 · 해당없음 12 · 미착수 0 · 실패 0
+
+## 2026-09-14 — 헬스체크 + 서비스 PDF 경로 보강
+
+- 헬스: `/api/health?storage=1` ok, openai true, corpus `tone-v2.2.0.20`, report/payment/profile storage durable
+- 결제: enabled/checkout/mobile true, catalog 19, `/payment/test` 404(운영 차단)
+- 정적 라우트: 공개 서비스 01/02/04/05 + 코어 경로 62/62 PASS (`04-step-4-teaser`는 실제 경로가 `04-step-4-report`)
+- `npm run qa:all-services` 20/20 PASS
+- P0 수정: 저장 해석(`/r/:id`)에 PDF 버튼 없음 → `umsh-report-access.js`에 PDF CTA+즉시 출력(본문 있는 항목) 추가
+- 부가: `report-view.html`에도 PDF 버튼·`umsh-report-pdf.js` 연결
+- 잔여 리스크: 일부 저장 리포트 섹션이 `pending/failed`로 남고 본문 생성이 느림. PDF는 본문 있는 항목부터 열고 나머지는 백그라운드 resume
+- 산출: `output/all-services-qa/health-pdf-qa.json`

@@ -37,15 +37,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-function Get-CarrotcapRoot {
+function Get-CosRoot {
     $root = Split-Path -Parent $PSScriptRoot
     if ((Split-Path -Leaf $root) -ieq 'CreamAI') { return $root }
     return (Join-Path $root 'CreamAI')
 }
 
-$CarrotcapRoot = Get-CarrotcapRoot
-$IntegrationsDir = Join-Path $CarrotcapRoot 'integrations'
-$LogsDir = Join-Path $CarrotcapRoot 'logs\integrations'
+$CosRoot = Get-CosRoot
+$IntegrationsDir = Join-Path $CosRoot 'integrations'
+$LogsDir = Join-Path $CosRoot 'logs\integrations'
 $StatePath = Join-Path $IntegrationsDir 'state.json'
 
 New-Item -ItemType Directory -Force -Path $IntegrationsDir, $LogsDir | Out-Null
@@ -53,9 +53,9 @@ New-Item -ItemType Directory -Force -Path $IntegrationsDir, $LogsDir | Out-Null
 $Known = @{
     supabase = @{
         display = 'Supabase'
-        command = 'supabase'
-        args = @('projects', 'list')
-        setup = 'supabase login'
+        command = 'npx'
+        args = @('--yes', 'supabase', 'projects', 'list')
+        setup = 'npx --yes supabase login'
     }
     vercel = @{
         display = 'Vercel'
@@ -202,9 +202,12 @@ function Invoke-IntegrationCheck {
     }
     $global:LASTEXITCODE = 0
     $output = @()
+    $previousErrorAction = $ErrorActionPreference
     try {
-        $output = & $command @args 2>&1 | ForEach-Object { Mask-SecretText "$_" }
+        $ErrorActionPreference = 'Continue'
+        $raw = & $command @args 2>&1
         $exit = if ($null -ne $global:LASTEXITCODE) { [int]$global:LASTEXITCODE } else { 0 }
+        $output = @($raw | ForEach-Object { Mask-SecretText "$_" })
         return [ordered]@{
             ok = ($exit -eq 0)
             status = $(if ($exit -eq 0) { 'configured' } else { 'needs_setup' })
@@ -220,6 +223,8 @@ function Invoke-IntegrationCheck {
             command = Join-CommandParts -Command $command -CommandArgs $args
             output = Mask-SecretText $_.Exception.Message
         }
+    } finally {
+        $ErrorActionPreference = $previousErrorAction
     }
 }
 

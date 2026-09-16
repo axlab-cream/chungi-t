@@ -313,6 +313,11 @@ app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res
   res.sendFile(PAYMENT_CLOSE_PAGE)
 })
 app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
+  // 웹 운영에서는 테스트 결제 UI를 숨긴다. 앱 Google Play 검증 경로와 별개다.
+  if (!isPaymentTestMode()) {
+    res.status(404).type('text/plain').send('Not Found')
+    return
+  }
   res.sendFile(PAYMENT_TEST_PAGE)
 })
 app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
@@ -869,7 +874,9 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 // 경로별로 명시 마운트했다. 즉 이 마운트는 스크랩 산출물만 추가로 공개했다 —
 // 확장자 허용 목록은 `.html` 을 통과시키므로 `GET /extracted_decoded.html` 이
 // 116KB 를 그대로 반환하고 있었다 (2026-09-10 Codex 리뷰 Major 확인 중 발견).
-app.use(cachedStatic(SAJU_ROOT, { index: false }))
+// 서비스 단계 URL(`/love/this-year/01-step-1-story/` 등)은 디렉터리 + index.html 계약이다.
+// `/`·`/payment` 등은 위 명시 라우트가 먼저 처리하므로 하위 경로만 index를 연다.
+app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {
   return {

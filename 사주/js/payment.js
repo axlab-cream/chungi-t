@@ -2,7 +2,9 @@
   'use strict';
 
   const query = new URLSearchParams(global.location.search);
-  const productKey = query.get('product') || '';
+  // 서버·checkout는 product=, 일부 서비스 CTA는 service=를 쓴다. 둘 다 같은 카탈로그 키로 읽는다.
+  // 앱(Google Play) 결제 진입은 app-billing 경로이며 이 웹 페이지와 분리한다.
+  const productKey = query.get('product') || query.get('service') || '';
   const reportId = query.get('reportId') || '';
   const returnTo = query.get('returnTo') || '';
   const form = document.querySelector('#payment-form');

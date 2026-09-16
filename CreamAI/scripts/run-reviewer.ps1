@@ -8,13 +8,11 @@
       1. agents/reviewer.md is always prepended to the prompt (auto-load contract).
       2. A real ISO-8601 UTC timestamp and task-id are injected by the PM, not by the LLM.
       3. Codex runs with --skip-git-repo-check --sandbox read-only and -C set to the
-         project root, so it can read source files but cannot mutate them.
+         CODE root (the parent of the CreamAI scaffold, when there is one), so it can
+         read the source it is reviewing but cannot mutate it.
       4. The structured "last message" is written via -o to logs/review/<task-id>_<slug>.md.
          Codex's verbose stdout (model header, token counts) is captured separately to
          logs/review/<task-id>_<slug>.codex-stdout.log for debugging.
-      5. Role fallback: if codex is not connected (missing or failing), Claude CLI
-         substitutes as the Reviewer on the Opus model (best-reasoning check) and
-         the report is marked accordingly.
 
 .PARAMETER TaskId
     Backlog task identifier, e.g. "task-003".
@@ -49,6 +47,15 @@ param(
 $ErrorActionPreference = "Stop"
 
 $projectRoot   = Split-Path -Parent $PSScriptRoot
+# The contract and the logs live under the AIOps root; the code being reviewed
+# does not. In a scaffolded project that root is <repo>/CreamAI, so -C $projectRoot
+# gave codex a read-only sandbox containing the paperwork and none of the source.
+# Every review run that way was blind to the change it was reviewing.
+$codeRoot      = if ((Split-Path -Leaf $projectRoot) -eq 'CreamAI') {
+    Split-Path -Parent $projectRoot
+} else {
+    $projectRoot
+}
 $contractPath  = Join-Path $projectRoot "agents\reviewer.md"
 $reviewDir     = Join-Path $projectRoot "logs\review"
 $outputPath    = Join-Path $reviewDir ("{0}_{1}.md" -f $TaskId, $Slug)
@@ -91,7 +98,7 @@ $codexArgs = @(
     "exec",
     "--skip-git-repo-check",
     "--sandbox", "read-only",
-    "-C", $projectRoot,
+    "-C", $codeRoot,
     "-o", $outputPath
 )
 if ($Model) {
@@ -124,24 +131,6 @@ $codexArgs += "-"
 ##     the console for the native call and restore in `finally`.
 ## ----------------------------------------------------------------------------
 
-# Role-fallback policy (task-023): if Codex is not connected, Claude substitutes
-# as the Reviewer and the review runs on the Opus model (best-reasoning check).
-# The saved report is marked with a role-fallback comment so the PM can tell who ran.
-function Find-CodexCommand {
-    foreach ($name in @('codex', 'codex.cmd', 'codex.exe')) {
-        $cmd = Get-Command $name -ErrorAction SilentlyContinue
-        if ($cmd) { return $cmd }
-    }
-    return $null
-}
-function Find-ClaudeCommand {
-    foreach ($name in @('claude', 'claude.cmd', 'claude.exe', 'dsclaude')) {
-        $cmd = Get-Command $name -ErrorAction SilentlyContinue
-        if ($cmd) { return $cmd }
-    }
-    return $null
-}
-
 # G4: snapshot + force UTF-8 console encodings.
 $origConsoleIn  = [Console]::InputEncoding
 $origConsoleOut = [Console]::OutputEncoding
@@ -150,36 +139,12 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [Console]::InputEncoding  = $utf8NoBom
 [Console]::OutputEncoding = $utf8NoBom
 $OutputEncoding           = $utf8NoBom
-$usedClaudeFallback = $false
 try {
-    $codexCommand = Find-CodexCommand
-    if ($codexCommand) {
-        # G1+G2: trailing `-` for stdin, no `2>&1`.
-        $fullPrompt | & $codexCommand.Source @codexArgs | Tee-Object -FilePath $stdoutLogPath | Out-Null
-        # G3: explicit exit-code check. Non-zero exit (not installed properly,
-        # not logged in, network down) demotes codex and triggers the fallback.
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "[reviewer] codex exited with code $LASTEXITCODE — falling back to Claude (Opus) as Reviewer. See $stdoutLogPath."
-            $codexCommand = $null
-        }
-    }
-    if (-not $codexCommand) {
-        $claudeCommand = Find-ClaudeCommand
-        if (-not $claudeCommand) {
-            throw "Neither Codex nor Claude CLI is available for the Reviewer role. Install one of them and re-run."
-        }
-        # 코드리뷰 폴백은 항상 최고 추론 모델(Opus)로 체크한다. -Model이 명시되면 그 값을 따른다.
-        $fallbackModel = if ($Model) { $Model } else { 'opus' }
-        Write-Host "[reviewer] Codex not connected — Claude ($fallbackModel) is substituting as Reviewer." -ForegroundColor Yellow
-        $usedClaudeFallback = $true
-        $rawLines = $fullPrompt | & $claudeCommand.Source -p --model $fallbackModel | ForEach-Object { "$_" }
-        if ($LASTEXITCODE -ne 0) {
-            throw "claude (Reviewer fallback) exited with code $LASTEXITCODE. Raw stdout (for diagnosis):`n$($rawLines -join "`n")"
-        }
-        $reportText = "<!-- role-fallback: claude ($fallbackModel) substituted for codex at $timestampUtc -->`r`n" + ($rawLines -join "`r`n")
-        $utf8BomFallback = New-Object System.Text.UTF8Encoding($true)
-        [System.IO.File]::WriteAllText($outputPath, $reportText, $utf8BomFallback)
-        [System.IO.File]::WriteAllText($stdoutLogPath, ($rawLines -join "`r`n"), $utf8NoBom)
+    # G1+G2: trailing `-` for stdin, no `2>&1`.
+    $fullPrompt | & codex @codexArgs | Tee-Object -FilePath $stdoutLogPath | Out-Null
+    # G3: explicit exit-code check before downstream output validation.
+    if ($LASTEXITCODE -ne 0) {
+        throw "codex exited with code $LASTEXITCODE. See $stdoutLogPath for full output."
     }
 } finally {
     # G4: always restore console encodings even on throw.
@@ -189,7 +154,7 @@ try {
 }
 
 if (-not (Test-Path $outputPath)) {
-    throw "Reviewer did not produce output file: $outputPath. See $stdoutLogPath."
+    throw "Codex did not produce output file: $outputPath. See $stdoutLogPath."
 }
 
 # Re-write output as UTF-8 with BOM (per global encoding rule for .md files).
@@ -198,8 +163,5 @@ $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 [System.IO.File]::WriteAllText($outputPath, $content, $utf8Bom)
 
 Write-Host "[reviewer] saved: $outputPath" -ForegroundColor Green
-if ($usedClaudeFallback) {
-    Write-Host "[reviewer] role-fallback: Claude (Opus) ran the Reviewer role (codex unavailable)." -ForegroundColor Yellow
-}
 Write-Host "[reviewer] stdout log: $stdoutLogPath" -ForegroundColor DarkGray
 Write-Host "[reviewer] task-id: $TaskId  dispatched-at: $timestampUtc"
