@@ -32,7 +32,7 @@ import {
   withReportBirthCertainty,
 } from '../report/report-store.js'
 import { createSavedPreview, guardPreview } from '../report/report-preview.js'
-import { selectPurchasedReadings } from '../report/vault-list.js'
+import { selectAdminVaultReadings, selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
@@ -2909,11 +2909,14 @@ app.get('/api/user/reports', async (req, res) => {
       })
       return
     }
+    const listings = isAdminOwner(owner)
+      ? selectAdminVaultReadings(records, orders)
+      : selectPurchasedReadings(records, orders)
     res.json({
       userId: owner.id,
       storage: getReportStorageMode(),
-      purchasedOnly: true,
-      reports: selectPurchasedReadings(records, orders)
+      purchasedOnly: !isAdminOwner(owner),
+      reports: listings
         .filter((item) => isCustomerFacingReport(item.record))
         .slice(0, limit)
         .map((item) => ({ ...historyEntryFromRecord(item.record), purchasedAt: item.purchasedAt })),

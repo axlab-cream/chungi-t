@@ -1762,3 +1762,9 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 단위 테스트 통과. 로컬 8790에서 직장선택 STEP2 도달·퇴사 06 PDF 확인. PG 보류. 배포 전 `umsh.kr` 점수는 그대로다.
 - CreamWIKI: `personal/carrotcap/notes/umsh-quality-90-loop-20260917.md`
 
+## 2026-09-17 — 관리자 보관함 우회
+
+- 보관함은 `paid` 주문만 남긴다. 슈퍼관리자(`good1621`)는 결제 없이 본문만 열려 QA 서비스가 목록에 안 쌓였다.
+- 우회: 가짜 결제 주문은 만들지 않고, 관리자 `/api/user/reports`만 서비스당 최신 해석 1건을 보탠다. 일반 계정은 구매 목록 그대로다.
+- 단위 테스트 `vault-purchase-order` 14건 통과.
+
