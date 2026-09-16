@@ -2,6 +2,10 @@
 
 ## Current Task
 
+- 2026-09-17 이직운 STEP1 히어로 카피를 하단으로 내려 상단 이미지가 보이게 한다. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-01-image-prompt.md`.
+
+- 2026-09-17 Chrome 즐겨찾기/트레이 아이콘: 장식형 3D 운 16px를 심플 금 원+궤도+받침 마크로 교체. SVG 우선, ICO 16/32/48/256, 192/512, `manifest.json` `start_url: /`. 북마크·PWA·빈 referrer는 스플래시 후 메인, 사이트 안 홈 이동은 세션당 1회. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-06-logo-rule.md`.
+
 - 2026-09-17 퇴사운 STEP2: 제출 아래 안내(`재직 기간·퇴사 후보일…`)와 하단 면책 푸터를 제거. 입력 칸과 CTA만 남긴다.
 
 - 2026-09-17 퇴사운 퍼널: STEP3 상황 입력을 STEP2에 합쳐 공개 9개와 같이 `1→2→4→5→6`. 저장 사주가 있으면 이유 라디오만, 없으면 이름·년월일·시(모름)·성별. 재직기간·후보일·다음계획·메모는 받지 않는다. `/situation`·03 주소는 02로 보낸다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-09-form.md`.

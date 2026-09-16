@@ -114,6 +114,7 @@ describe('정적 루트가 내부 산출물을 내보내지 않는다', { concur
       ['/robots.txt', /User-agent/],
       ['/sitemap.xml', /<urlset/],
       ['/.well-known/assetlinks.json', /delegate_permission/],
+      ['/manifest.json', /"start_url": "\/"/],
     ]
     for (const [path, marker] of allowed) {
       it(`${path} 는 그대로 200`, async () => {
@@ -244,6 +245,8 @@ describe('정적 제공은 허용 목록이다 (기본 거부)', { concurrency: 
       ['/css/policy.css', 'css'],
       ['/js/faq-knowledge.js', 'js'],
       ['/favicon.ico', 'ico'],
+      ['/favicon.svg', 'svg'],
+      ['/icon-192.png', 'png-192'],
     ]
     for (const [path, label] of assets) {
       it(`${label} 자산은 200`, async () => {
