@@ -546,7 +546,7 @@
         bottom: 0;
         z-index: 8;
         display: grid;
-        grid-template-columns: 104px 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 10px;
         margin: 0 -16px;
         padding: 12px 16px max(14px, env(safe-area-inset-bottom));
@@ -615,7 +615,7 @@
         }
 
         .actions {
-          grid-template-columns: 88px 1fr;
+          grid-template-columns: minmax(0, 1fr);
         }
       }
 
@@ -650,7 +650,7 @@
       .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
       .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
       .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-cta2">
       <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
   <body class="umsh-fields">
@@ -668,9 +668,9 @@
         <section class="hero" aria-labelledby="input-title">
           <video class="signal-video" poster="../assets/signal/videos/06-form-guide-poster.webp" data-video-src="../assets/signal/videos/06-form-guide.mp4" data-video-priority="high" muted="" loop="" playsinline="" preload="none" aria-label="레드 의상의 상담자가 두 사람의 관계 입력을 준비하는 장면"></video>
           <div class="hero-copy">
-            <span class="eyebrow">STEP 02 · 두 사람 정보</span>
-            <h1 id="input-title">두 사람을 섞지 말고 나눠주세요</h1>
-            <p>바람을 단정하지 않고, 내 일지와 상대 일지, 오행의 붙는 지점과 밀리는 지점을 함께 봅니다.</p>
+            <span class="eyebrow">연락·약속의 온도</span>
+            <h1 id="input-title">불안이 바람인지, 리듬 차이인지 가릅니다</h1>
+            <p>나와 상대의 생일을 나눠 넣으면, 연락·약속·표현의 온도를 한 사람 기분으로 몰아가지 않습니다.</p>
           </div>
         </section>
 
@@ -743,7 +743,7 @@
               <div class="field">
                 <label for="selfBirth">내 생년월일</label>
                 <input id="selfBirth" name="selfBirth" type="date" min="1900-01-01" autocomplete="bday" aria-describedby="selfBirth-help selfBirth-error">
-                <p class="helper" id="selfBirth-help">달력에서 생년월일을 고르면 됩니다.</p>
+                <p class="helper" id="selfBirth-help">년, 월, 일을 각각 고르면 됩니다.</p>
                 <div class="field-error" id="selfBirth-error" aria-live="polite"></div>
               </div>
 
@@ -864,7 +864,7 @@
 
           <div class="actions">
             <button class="ghost" type="button" data-back="">이전</button>
-            <button class="primary" type="submit">입력한 정보로 무료 결과 보기</button>
+            <button class="primary" type="submit">온도 차이 확인하기</button>
           </div>
         </form>
 
