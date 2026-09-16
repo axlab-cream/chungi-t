@@ -913,66 +913,7 @@
 }
   </script>
 
-  <script type="application/json" id="RAG_EVIDENCE">
-[
-  {
-    "evidence_id": "zip-궁합-qa-000228",
-    "source": "ZIP-궁합",
-    "locator": "pdf0020001 p.105",
-    "review_status": "unreviewed",
-    "takeaway": "띠 관계 해석에서 다툼, 결혼/동업, 신뢰, 의사소통을 함께 다루는 궁합 구조를 확인함"
-  },
-  {
-    "evidence_id": "zip-궁합-qa-000230",
-    "source": "ZIP-궁합",
-    "locator": "pdf0020001 p.107",
-    "review_status": "unreviewed",
-    "takeaway": "공동 목표, 협력, 의사소통 장애, 성격 충돌, 이해와 애정을 관계 해석 축으로 사용할 수 있음"
-  },
-  {
-    "evidence_id": "zip-궁합-qa-000153",
-    "source": "ZIP-궁합",
-    "locator": "pdf0020001 p.27",
-    "review_status": "unreviewed",
-    "takeaway": "상호 협조, 주도권 투쟁, 소통 장애, 공통 이해 기반을 관계 상태로 나누어 설명하는 근거"
-  },
-  {
-    "evidence_id": "zip-색체명리학-qa-000147",
-    "source": "ZIP-색체명리학",
-    "locator": "일간·일지 설명 항목",
-    "review_status": "unreviewed",
-    "takeaway": "사주는 생년, 생월, 생일, 생시의 천간과 지지를 보고 일주의 천간은 일간, 지지는 일지로 구분함"
-  },
-  {
-    "evidence_id": "item-10-p1-0071",
-    "source": "ITEM-10_사주 핵심 해석",
-    "locator": "일간 설명 항목",
-    "review_status": "cataloged",
-    "takeaway": "일간은 해석 기준점이며 단독으로 성격이나 결과를 단정하지 않음"
-  },
-  {
-    "evidence_id": "item-01-p1-0096",
-    "source": "ITEM-01_오늘의 기운",
-    "locator": "호감확신 액션 항목",
-    "review_status": "cataloged",
-    "takeaway": "끌림의 이유와 확인 가능한 사실을 나누고 오늘 할 수 있는 확인 질문으로 연결함"
-  },
-  {
-    "evidence_id": "item-41-qa-0003",
-    "source": "ITEM-41_마음 돌봄 리포트",
-    "locator": "관계 대화 항목",
-    "review_status": "cataloged",
-    "takeaway": "관계 대화에서 느낀 것과 확인하고 싶은 것을 나누어 표현하는 방식을 권장함"
-  },
-  {
-    "evidence_id": "item-00-p1-g03",
-    "source": "ITEM-00_공통_RAG_플랫폼",
-    "locator": "공통 안전 샘플",
-    "review_status": "golden_sample",
-    "takeaway": "관계의 종료나 결혼 여부를 사주로 단정하지 않고 선택은 사용자의 몫으로 둠"
-  }
-]
-  </script>
+  
 
   <script type="application/json" id="IMAGE_MANIFEST">
 [
@@ -1022,51 +963,6 @@
     "html_usage_selector": "[data-asset-key='couple-match-04-paid-cta'] img"
   }
 ]
-  </script>
-
-  <script type="application/json" id="QA_RESULT">
-{
-  "stage": "04-step-4-report",
-  "status": "ready_for_review",
-  "scope_mismatch": false,
-  "checks": [
-    {
-      "item": "free teaser boundary",
-      "status": "pass",
-      "note": "무료 요약은 첫 답변, 강한 신호, 조건, 방해 요인, 오늘 행동만 제공하고 전체 풀이 목차는 결제 전 예고로 분리했습니다."
-    },
-    {
-      "item": "interpretation index preservation",
-      "status": "pass",
-      "note": "사용자 제공 대분류와 중분류 전체를 유료 제공 범위에 보존했고, 오늘의 관계 액션은 초기 제공 항목으로 별도 표시했습니다."
-    },
-    {
-      "item": "entitlement handling",
-      "status": "pass",
-      "note": "클라이언트의 query 또는 storage 값만으로 전체 목차를 열지 않고 서버가 주입한 권한 객체가 맞을 때만 05로 이동하도록 설계했습니다."
-    },
-    {
-      "item": "failure states",
-      "status": "pass",
-      "note": "입력 누락, 결제 진행 중, 취소, 실패 상태에서 무한 대기 없이 안내와 재시도 동선을 제공합니다."
-    },
-    {
-      "item": "image usage",
-      "status": "pass",
-      "note": "04 전용 이미지 3개가 생성되어 각각 다른 위치에서 참조됩니다."
-    },
-    {
-      "item": "customer-facing internal term exposure",
-      "status": "pass",
-      "note": "고객 화면에는 내부 검색·생성 용어를 노출하지 않았습니다."
-    }
-  ],
-  "notes": [
-    "ZIP-궁합 근거 일부는 unreviewed 상태이므로 운영 직접 문장 반영 전 검수 대상입니다.",
-    "정밀 계산은 운영 서버에서 일지, 오행, 띠/지지 값을 만든 뒤 본문에 주입하는 전제로 구성했습니다.",
-    "직접 URL 진입 시 입력 누락 화면으로 이동하고 새 분석 CTA를 제공합니다."
-  ]
-}
   </script>
 
   <script>

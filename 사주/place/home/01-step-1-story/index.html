@@ -473,7 +473,7 @@
           <p class="lead">
             명당인지부터 따지지 않습니다. 이 집이 내 잠, 일, 돈, 관계 리듬을 살려주는지 먼저 봅니다.
           </p>
-          <div class="price-line">전체 풀이 9,900원</div>
+          <div class="price-line">전체 풀이 19,900원</div>
         </div>
       </section>
 
@@ -655,7 +655,7 @@
         "service_title": "지금 사는 집, 나랑 잘 맞을까?",
         "service_category": "집 풍수",
         "service_subcategory": "집과 나의 생활 핏",
-        "service_price_krw": 9900,
+        "service_price_krw": 19900,
         "service_url_hint": "place.umsh.kr/home",
         "service_key": "home_fit",
         "service_slug": "home",
@@ -725,26 +725,7 @@
       }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      {
-        "evidence_ids": [
-          "ITEM-50_풍수지리/prompts/menu-home.txt",
-          "ITEM-50_풍수지리/prompts/menu-move.txt",
-          "ITEM-50_풍수지리/prompts/menu-compat.txt",
-          "ITEM-50_풍수지리/prompts/menu-place.txt",
-          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
-          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
-          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
-          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
-          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
-        ],
-        "evidence_summary": [
-          "집 풍수는 현관, 침실, 책상, 뒤받침·앞열림, 휴식, 가족, 목적을 우선한다.",
-          "장소 궁합은 좋은 장소 여부보다 개인의 목적과 생활 결에 맞는지를 본다.",
-          "개인 명리는 일간, 오행분포, 신강약, 용신 값을 확인한 뒤 가능성·경향·작은 행동으로 풀어야 한다."
-        ]
-      }
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       {
@@ -849,31 +830,6 @@
       }
     </script>
 
-    <script type="application/json" id="QA_RESULT">
-      {
-        "stage": "01-step-1-story",
-        "image_delivery": "single_html_data_uri",
-        "status": "ready_for_review",
-        "checks": [
-          { "name": "latest_user_service_values_applied", "pass": true },
-          { "name": "all_12_interpretation_groups_visible", "pass": true },
-          { "name": "all_12_interpretation_groups_preserved_in_json", "pass": true },
-          { "name": "cta_routes_to_step_02", "pass": true },
-          { "name": "scene_count_matches_image_manifest_count", "pass": true },
-          { "name": "all_scene_asset_keys_match_manifest", "pass": true },
-          { "name": "all_images_generated_and_project_local", "pass": true },
-          { "name": "all_manifest_selectors_exist_in_html", "pass": true },
-          { "name": "display_images_embedded_as_data_uri_for_single_file_delivery", "pass": true },
-          { "name": "customer_copy_hides_internal_rag_kms_terms", "pass": true },
-          { "name": "no_deterministic_health_wealth_moving_claims", "pass": true },
-          { "name": "realme_or_job_choice_copy_removed", "pass": true }
-        ],
-        "scope_mismatch": [
-          "기존 00-SERVICE-GENERATION-CONTRACT.md와 단계 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 산출물은 사용자가 최신으로 제공한 집 풍수 서비스 입력값을 우선 적용했다."
-        ],
-        "review_note": "사용자 검토 후 '다음' 입력 시 02 입력 폼 제작으로 진행한다."
-      }
-    </script>
     <div data-umsh-service-bottom></div>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
   </body>
