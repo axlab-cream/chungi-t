@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "work-job-corpus-2.1.0",
+  "serviceKey": "work_job",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/work-job-service.json",
+      "version": "2.0.0",
+      "sha256": "d7e1256cd39082723a550b682c70ac7be27b872cdda870c1797bbc29a4bec4d2"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/work-job-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "c64b68caeb1cf241fead41fca0054f012cf85cc14ab1c220b79ca5811cd4a84c"
+    },
+    "semanticReview": "tone-v2/corpus-review/work-job-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No work_job provider output evaluation was run or found; this candidate is limited to corpus semantics and snapshot-pinned RAG verification.",
+  "verificationEvidence": "tone-v2/evaluations/P05-work-job-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/work-job-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_1_of_1",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_775_of_775_108_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

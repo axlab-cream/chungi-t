@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p05-newyear-flow-corpus-rag-release-candidate",
+  "status": "pass",
+  "date": "2026-09-13",
+  "serviceKey": "newyear_flow",
+  "corpusVersion": "2.1.0",
+  "scope": { "blocksReviewed": 10, "providerCalls": 0, "productionChanges": 0, "customerRecordMutations": 0 },
+  "tdd": { "red": "1/8 pass, 7/8 fail before candidate artifacts and registry activation", "green": "8/8 pass after candidate generation, registry activation and evaluation evidence binding" },
+  "verification": {
+    "focusedTests": "8/8 pass",
+    "relatedTests": "218/218 pass across 15 suites",
+    "fullTests": "855/855 pass across 118 suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "deterministicBuilder": "pass; candidate and review hashes identical across two runs",
+    "credentialBoundary": "pass; 0 task-boundary hits",
+    "codexReview": "approved_with_comments_no_findings"
+  },
+  "limitations": [
+    "No provider output was generated or evaluated for corpus 2.1.0.",
+    "No Production deployment or customer-record mutation was performed.",
+    "CreamWIKI remote operations require an authenticated CLI session."
+  ]
+}

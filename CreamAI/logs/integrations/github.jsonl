@@ -2,4 +2,5 @@
 {"ts":"2026-09-14T10:48:14.8887252Z","service":"github","event":"ensure","status":"configured","command":"gh auth status","setupHint":"gh auth login","notes":"auth check passed","exitCode":0}
 {"ts":"2026-09-14T11:28:12.8266632Z","service":"github","event":"ensure","status":"configured","command":"gh auth status","setupHint":"gh auth login","notes":"auth check passed","exitCode":0}
 {"ts":"2026-09-14T11:31:28.1262215Z","service":"github","event":"ensure","status":"configured","command":"gh auth status","setupHint":"gh auth login","notes":"auth check passed","exitCode":0}
+{"ts":"2026-09-14T12:49:13.2648686Z","service":"github","event":"ensure","status":"missing_cli","command":"gh auth status","setupHint":"gh auth login","notes":"auth check did not pass","exitCode":3}
 {"ts":"2026-09-16T02:46:24.6612350Z","service":"github","event":"ensure","status":"configured","command":"gh auth status","setupHint":"gh auth login","notes":"auth check passed","exitCode":0}

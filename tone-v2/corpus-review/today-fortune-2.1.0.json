@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "today_fortune",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/today-fortune-service-2.1.0.json",
+  "sourceSha256": "5558bd7c98a2fd2867b97a9615de544743a1179b59f0fc5178dde80be7693c03",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit daily evidence, symbolic and hypothetical-example review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "today-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "eventAndOutcomeBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "taskId": "task-tone-v2-p04-today-fortune-full-outline-evidence",
+  "evaluatedAt": "2026-09-13T18:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "today_fortune",
+  "provider": {
+    "actualCalls": false,
+    "reason": "deterministic_daily_rules_service"
+  },
+  "identity": {
+    "reportId": "d3e09ce02c76e9fd7cbffd8572f8",
+    "resultId": "6ddb037a-4b64-40e9-bc97-722cf6310e2b",
+    "model": "daily-rules-v3"
+  },
+  "corpus": {
+    "id": "today-fortune-service",
+    "version": "2.1.0",
+    "path": "data/tone-v2/corpus/releases/today-fortune-service-2.1.0.json",
+    "contentHash": "5558bd7c98a2fd28"
+  },
+  "completion": {
+    "completedFields": 7,
+    "expectedFields": 7,
+    "recordStatus": "complete",
+    "missingFields": []
+  },
+  "coverage": {
+    "relations": {
+      "passed": 5,
+      "required": 5,
+      "values": [
+        "output",
+        "pressure",
+        "same",
+        "support",
+        "wealth"
+      ]
+    },
+    "zodiac": {
+      "passed": 12,
+      "required": 12,
+      "values": [
+        "개",
+        "닭",
+        "돼지",
+        "말",
+        "뱀",
+        "소",
+        "양",
+        "용",
+        "원숭이",
+        "쥐",
+        "토끼",
+        "호랑이"
+      ]
+    }
+  },
+  "replay": {
+    "savedRecordPassed": true,
+    "sameKstDayIdentityStable": true,
+    "savedBodyImmutable": true
+  },
+  "evidence": {
+    "recordSha256": "e66fe11784b3f159c215a14e19028fed484f6ba3f9f2529865ed53d18e8b759b",
+    "acceptedProseSha256": "c7526a3ee1054cbdec18c00c762664c26d10adbfc09145d17109431ab121e1e4",
+    "acceptedProseCanonicalForm": "JSON object of seven field hashes and one zodiac hash",
+    "sourceRecord": ".cache/today-fortune-full-outline-20260913/records/d3e09ce02c76e9fd7cbffd8572f8.json",
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false
+  },
+  "verification": {
+    "focusedTests": {
+      "passed": 22,
+      "failed": 0
+    },
+    "relatedTests": {
+      "passed": 176,
+      "failed": 0
+    },
+    "fullTests": {
+      "suites": 122,
+      "passed": 936,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "deterministicRebuild": "pass",
+    "independentReview": "approved_codex_review",
+    "reviewFindings": {
+      "critical": 0,
+      "major": 0,
+      "minor": 0,
+      "fixedBeforeApproval": [
+        "Removed forbidden name honorific from summaries.",
+        "Converted all narrative and zodiac copy from polite endings to the approved informal persona.",
+        "Removed an unsupported fixed condition count."
+      ]
+    }
+  },
+  "notRun": [
+    "LLM/provider call",
+    "Production deployment",
+    "Production customer report mutation"
+  ]
+}

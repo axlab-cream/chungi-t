@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "saju_master",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/saju-master-service-2.1.0.json",
+  "sourceSha256": "6c7753669476fd0ebb3d9e9267ae578aaa5085745c19bba0843c4bb24c73cb04",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit input, calculated-value, symbolic, hypothetical-example and professional-domain boundary review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "master-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "lifeOutcomeBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

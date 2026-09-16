@@ -1,4 +1,17 @@
 (() => {
+  /**
+   * 공용 로딩 오버레이 주입. 이 모듈은 아래에서 서비스 셸 호스트가 없으면 조기 반환하므로,
+   * 주입은 그 판단보다 먼저 해야 전 서비스가 같은 로딩 화면을 쓴다.
+   * (2026-09-14 통일: 이전에는 report-view.html 한 곳에서만 로드됐다.)
+   */
+  if (typeof document !== 'undefined' && !window.UMSHLoading
+      && !document.querySelector('script[src*="umsh-loading.js"]')) {
+    const loadingScript = document.createElement('script');
+    loadingScript.src = '/js/umsh-loading.js';
+    loadingScript.async = false;
+    (document.head || document.documentElement).appendChild(loadingScript);
+  }
+
   const topHost = document.querySelector('[data-umsh-service-top]');
   const bottomHost = document.querySelector('[data-umsh-service-bottom]');
   if (!topHost && !bottomHost) return;

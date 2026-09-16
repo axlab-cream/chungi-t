@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "work-move-corpus-2.1.0",
+  "serviceKey": "work_move",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/work-move-service.json",
+      "version": "2.0.0",
+      "sha256": "03f7d88687fc4b53c5c032d864eb472d71a15c814ffbd6f2f2fa23fbb7f56206"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/work-move-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "9bcc0792ef03a5f97c31b935e127b17978f9d4a6c2298effe0bad6e32da93c66"
+    },
+    "semanticReview": "tone-v2/corpus-review/work-move-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No work_move provider output evaluation was run; local corpus and snapshot verification only.",
+  "verificationEvidence": "tone-v2/evaluations/P05-work-move-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/work-move-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_10_of_10",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_815_of_815_113_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

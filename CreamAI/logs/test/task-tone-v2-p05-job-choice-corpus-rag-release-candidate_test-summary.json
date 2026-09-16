@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p05-job-choice-corpus-rag-release-candidate",
+  "mode": "test",
+  "timestamp": "2026-09-13T08:45:03.5265829+09:00",
+  "checks": [
+    {
+      "name": "npm test script",
+      "status": "WARN",
+      "detail": "package.json has no test script"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

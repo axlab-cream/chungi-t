@@ -2,6 +2,8 @@
 
 ## 1. Core Documents
 
+Tone V2: apply the user's common workflow at `C:/Users/user/.codex/workflows/aios-small-slice-workflow.md`: requirements -> PRD -> one vertical slice -> tests -> review -> KMS -> next issue. Keep supplied examples distinct from actual inputs. Do not mark partial checks as full release acceptance.
+
 This project is managed through:
 
 - `goal.md`
@@ -107,3 +109,9 @@ If a file is missing, create it. If it exists, preserve it and update only the r
 | --- | --- |
 | `notes/umsh-payment-storage-integrity-20260911.md` | 주문 상태 직렬화(U17)·불확정 승인(U22)·영속성 게이트(U20) |
 | `notes/static-exposure-guard-20260911.md` | 정적 서버 내부 산출물 노출, 가드가 여섯 번 뚫린 기록 |
+## Comparative nextCriterion recognition guard (2026-09-13)
+
+- Accept `해봐` only for the existing safe comparison/check action family, never as a generic encouragement wildcard.
+- A subject-marked target must be an observable outcome clause and remain bound to a concrete safe action.
+- Preserve negation, past/perfect, targetless, vague, and exam/study abandonment rejections.
+- Historical failed records are immutable evidence; a corrected replay must not rewrite their status or hash.

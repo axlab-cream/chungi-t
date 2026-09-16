@@ -1,37 +1,33 @@
-<!doctype html>
-<html lang="ko">
-  <head>
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-funnel-auth-gate.js"></script>
     <script src="/js/umsh-report-access.js"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>사주 입력 | 나는 왜 돈이 안 모일까?</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="운명상회" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
-    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
-    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="600" />
-    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="운명상회 - 운명을 팝니다." />
-    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
-    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta
-      name="description"
-      content="소비성향 사주풀이를 위해 생년월일시와 현재 돈 흐름을 입력하는 화면."
-    />
-    <meta name="application-name" content="운명상회" />
-    <meta property="og:title" content="나는 왜 돈이 안 모일까? 사주 입력" />
-    <meta property="og:description" content="돈이 들어오는 방식과 새는 패턴을 보기 위한 기본 정보를 입력합니다." />
-    <meta property="og:url" content="https://money.umsh.kr/save" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="운명상회">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="운명상회 - 운명을 팝니다.">
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요.">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="운명상회 - 운명을 팝니다.">
+    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요.">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="소비성향 사주풀이를 위해 생년월일시와 현재 돈 흐름을 입력하는 화면.">
+    <meta name="application-name" content="운명상회">
+    <meta property="og:title" content="나는 왜 돈이 안 모일까? 사주 입력">
+    <meta property="og:description" content="돈이 들어오는 방식과 새는 패턴을 보기 위한 기본 정보를 입력합니다.">
+    <meta property="og:url" content="https://money.umsh.kr/save">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
     <style>
       :root {
         color-scheme: dark;
@@ -612,13 +608,13 @@
       .save-saved-profile b { color: #70c292; font-size: 14px; }
       .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
       .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
-      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+      <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
   <body class="umsh-fields">
-    <div class="app" data-umsh-chrome data-service="소비성향" data-price="9,900원" data-active="home">
+    <div class="app" data-umsh-chrome="" data-service="소비성향" data-price="9,900원" data-active="home">
       <header class="appbar topbar" aria-label="서비스 단계">
-        <a class="back-link" href="../01-step-1-story/index.html#intro" aria-label="이전 단계로 돌아가기">‹</a>
+        
         <a class="brand" href="#step-2-saju-input" aria-label="나는 왜 돈이 안 모일까 입력 화면">
           <strong>나는 왜 돈이 안 모일까?</strong>
           <span>STEP 02 INPUT</span>
@@ -629,12 +625,7 @@
       <main id="step-2-saju-input">
         <section class="hero-panel" aria-labelledby="intro-title">
           <div class="hero-visual">
-            <img
-              data-asset-key="save-02-input-guide"
-              src="../assets/save/02-input-guide.webp"
-              data-source-file="assets/generated/save/02-input-guide.webp"
-              alt="빈 입력 화면을 안내하는 녹색 고양이귀 정장 캐릭터"
-            />
+            <img data-asset-key="save-02-input-guide" src="../assets/save/02-input-guide.webp" data-source-file="assets/generated/save/02-input-guide.webp" alt="빈 입력 화면을 안내하는 녹색 고양이귀 정장 캐릭터">
           </div>
           <div class="hero-copy">
             <span class="kicker">기본 정보 입력</span>
@@ -643,10 +634,10 @@
           </div>
         </section>
 
-        <section class="profile-card" data-profile-card aria-live="polite">
+        <section class="profile-card" data-profile-card="" aria-live="polite">
           <div class="profile-summary">
             <strong>저장된 사주 프로필을 찾았어요</strong>
-            <span data-profile-summary>이 프로필로 보면 기본 사주 정보를 다시 입력하지 않아도 됩니다.</span>
+            <span data-profile-summary="">이 프로필로 보면 기본 사주 정보를 다시 입력하지 않아도 됩니다.</span>
           </div>
           <div class="profile-actions">
             <button class="next-cta" type="button" data-action="use-profile">프로필 사용</button>
@@ -654,7 +645,7 @@
           </div>
         </section>
 
-        <form class="panel" data-input-form novalidate>
+        <form class="panel" data-input-form="" novalidate="">
           <div class="panel-head">
             <div>
               <h2>내 사주 기준</h2>
@@ -663,12 +654,12 @@
             <small>필수</small>
           </div>
 
-          <fieldset data-profile-fieldset>
+          <fieldset data-profile-fieldset="">
             <legend>기본 사주 정보</legend>
             <div class="field-grid">
               <div class="field">
                 <label for="nickname">이름 또는 호칭</label>
-                <input id="nickname" name="nickname" type="text" autocomplete="off" placeholder="예: 지민" aria-describedby="nickname-error" />
+                <input id="nickname" name="nickname" type="text" autocomplete="off" placeholder="예: 지민" aria-describedby="nickname-error">
                 <div class="field-error" id="nickname-error" aria-live="polite"></div>
               </div>
             </div>
@@ -679,7 +670,7 @@
                 <button class="choice" type="button" data-value="여자" aria-pressed="false">여자</button>
                 <button class="choice" type="button" data-value="남자" aria-pressed="false">남자</button>
               </div>
-              <input type="hidden" name="gender" id="gender" />
+              <input type="hidden" name="gender" id="gender">
               <div class="field-error" id="gender-error" aria-live="polite"></div>
             </div>
 
@@ -689,34 +680,34 @@
                 <button class="choice is-selected" type="button" data-value="양력" aria-pressed="true">양력</button>
                 <button class="choice" type="button" data-value="음력" aria-pressed="false">음력</button>
               </div>
-              <input type="hidden" name="calendar" id="calendar" value="양력" />
+              <input type="hidden" name="calendar" id="calendar" value="양력">
             </div>
 
             <div class="field-grid two">
               <div class="field">
                 <label for="birthDate">생년월일</label>
-                <input id="birthDate" name="birthDate" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birthDate-error" />
+                <input id="birthDate" name="birthDate" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birthDate-error">
                 <div class="field-error" id="birthDate-error" aria-live="polite"></div>
               </div>
               <div class="field">
                 <label for="birthPlace">출생지</label>
-                <input id="birthPlace" name="birthPlace" type="text" autocomplete="off" placeholder="도시만, 선택" aria-describedby="birthPlace-help" />
+                <input id="birthPlace" name="birthPlace" type="text" autocomplete="off" placeholder="도시만, 선택" aria-describedby="birthPlace-help">
                 <div class="helper" id="birthPlace-help">주소가 아니라 도시 단위만 적어주세요.</div>
               </div>
             </div>
 
-            <div class="time-row" data-time-row data-known="true">
+            <div class="time-row" data-time-row="" data-known="true">
               <div class="field">
                 <div class="choice-label">태어난 시간</div>
                 <div class="choices two" data-choice-group="birthTimeKnown" role="group" aria-label="출생시간 입력 여부">
                   <button class="choice is-selected" type="button" data-value="true" aria-pressed="true">알고 있어요</button>
                   <button class="choice" type="button" data-value="false" aria-pressed="false">시간 모름</button>
                 </div>
-                <input type="hidden" name="birthTimeKnown" id="birthTimeKnown" value="true" />
+                <input type="hidden" name="birthTimeKnown" id="birthTimeKnown" value="true">
               </div>
               <div class="field time-field">
                 <label for="birthTime">시간</label>
-                <input id="birthTime" name="birthTime" type="time" step="60" aria-describedby="birthTime-error" />
+                <input id="birthTime" name="birthTime" type="time" step="60" aria-describedby="birthTime-error">
                 <div class="field-error" id="birthTime-error" aria-live="polite"></div>
               </div>
             </div>
@@ -735,7 +726,7 @@
                 <button class="choice" type="button" data-value="학생/준비 중" aria-pressed="false">학생/준비 중</button>
                 <button class="choice" type="button" data-value="혼합" aria-pressed="false">혼합</button>
               </div>
-              <input type="hidden" name="incomeType" id="incomeType" />
+              <input type="hidden" name="incomeType" id="incomeType">
               <div class="field-error" id="incomeType-error" aria-live="polite"></div>
             </div>
 
@@ -749,7 +740,7 @@
                 <button class="choice" type="button" data-value="카드/할부" aria-pressed="false">카드/할부</button>
                 <button class="choice" type="button" data-value="잘 모르겠음" aria-pressed="false">잘 모르겠음</button>
               </div>
-              <input type="hidden" name="leakPattern" id="leakPattern" />
+              <input type="hidden" name="leakPattern" id="leakPattern">
               <div class="field-error" id="leakPattern-error" aria-live="polite"></div>
             </div>
 
@@ -763,7 +754,7 @@
                 <button class="choice" type="button" data-value="수입 구조" aria-pressed="false">수입 구조</button>
                 <button class="choice" type="button" data-value="계약/정산" aria-pressed="false">계약/정산</button>
               </div>
-              <input type="hidden" name="savingGoal" id="savingGoal" />
+              <input type="hidden" name="savingGoal" id="savingGoal">
               <div class="field-error" id="savingGoal-error" aria-live="polite"></div>
             </div>
 
@@ -775,12 +766,12 @@
                 <button class="choice" type="button" data-value="조금 남김" aria-pressed="false">조금 남김</button>
                 <button class="choice" type="button" data-value="정리 중" aria-pressed="false">정리 중</button>
               </div>
-              <input type="hidden" name="monthlyMood" id="monthlyMood" />
+              <input type="hidden" name="monthlyMood" id="monthlyMood">
             </div>
 
             <div class="field">
               <label for="relationMoney">관계에서 걸리는 돈 이슈</label>
-              <input id="relationMoney" name="relationMoney" type="text" autocomplete="off" placeholder="예: 더치가 애매해요, 자꾸 내가 먼저 내요" />
+              <input id="relationMoney" name="relationMoney" type="text" autocomplete="off" placeholder="예: 더치가 애매해요, 자꾸 내가 먼저 내요">
             </div>
 
             <div class="field">
@@ -798,11 +789,11 @@
               </div>
               <small>8개</small>
             </div>
-            <div class="toc-strip" data-toc-strip></div>
+            <div class="toc-strip" data-toc-strip=""></div>
           </section>
 
           <div class="actions">
-            <a class="ghost" href="../01-step-1-story/index.html#intro">이전</a>
+            
             <button class="next-cta" type="submit">입력한 정보로 무료 결과 보기</button>
           </div>
         </form>
@@ -815,7 +806,7 @@
         </div>
       </div>
 
-      <div class="toast" data-toast role="status" aria-live="polite"></div>
+      <div class="toast" data-toast="" role="status" aria-live="polite"></div>
     </div>
 
     <script type="application/json" id="PROMPT_INPUT">
@@ -1527,6 +1518,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/save-service.js" defer></script>
-  </body>
-</html>
+    <script src="/js/save-service.js" defer=""></script>
+  
+
+</body></html>

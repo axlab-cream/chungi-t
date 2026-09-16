@@ -3255,11 +3255,19 @@
         line-height: 1;
       }
 
+      /*
+       * 결과 화면 본문이 15,000px를 넘는다(36개 섹션). 이 CTA 가 유일한 결제 진입점인데
+       * 맨 끝에만 있으면 16.8 화면을 스크롤해야 닿는다(2026-09-14 실측).
+       * 스크롤 컨테이너는 `.phone[data-scene="result"] .stage` 이고, 하단 고정 내비
+       * 높이만큼 이미 줄여 놨으므로 bottom:0 으로 붙여도 내비와 겹치지 않는다.
+       * 위쪽은 페이드로 처리해 본문이 바 밑으로 스며들 때 글자가 잘려 보이지 않게 한다.
+       */
       .sticky-story-cta {
-        position: relative;
+        position: sticky;
+        bottom: 0;
         z-index: 4;
         padding: 28px 20px max(34px, env(safe-area-inset-bottom));
-        background: #000;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 26%, #000 100%);
       }
 
       .sample-enter .primary-cta,
@@ -3851,6 +3859,33 @@
         return `${birth.year}${pad2(birth.month)}${pad2(birth.day)}`;
       }
 
+      /**
+       * 서버(`isValidProfileName`)와 같은 규칙. 한글 2~20자.
+       * 클라이언트에서 먼저 보지 않으면 빈 상태로 저장 요청이 나가 400 을 맞고,
+       * 해석이 시작되지 못한 채 고민 화면으로 되돌아온다(2026-09-14 운영 확인).
+       */
+      function isUsableProfileName(value) {
+        const name = String(value ?? "").trim();
+        return /^[가-힣]{2,20}$/.test(name);
+      }
+
+      /** 분석에 들어가도 되는 상태인지. 이름과 생년월일이 모두 있어야 한다. */
+      function hasUsableProfileState() {
+        return isUsableProfileName(state.name) && Boolean(state.birth);
+      }
+
+      /**
+       * 로컬 캐시에서 사주 프로필을 복구한다. 새로고침·다른 탭 진입·로그인 복귀
+       * 뒤에는 `state` 가 비어 있는데 캐시에는 값이 남아 있는 경우가 많다.
+       */
+      function hydrateProfileFromCache(options = {}) {
+        if (hasUsableProfileState()) return true;
+        const cached = readCachedUserProfile();
+        if (!cached?.birth) return false;
+        applyUserProfile(cached, Object.assign({ preserveConcern: true }, options));
+        return hasUsableProfileState();
+      }
+
       function readCachedUserProfile() {
         try {
           const parsed = JSON.parse(localStorage.getItem(USER_PROFILE_CACHE_KEY) || "null");
@@ -3945,6 +3980,13 @@
       }
 
       async function saveCurrentUserProfile() {
+        // 서버가 거부할 값을 보내지 않는다. 400 응답은 "사주 분석에 실패했습니다"
+        // 같은 모호한 안내로 바뀌어 원인을 가린다.
+        if (!hasUsableProfileState()) {
+          const error = new Error("사주 정보를 먼저 입력해주세요.");
+          error.needsProfile = true;
+          throw error;
+        }
         const localProfile = localUserProfileFromState();
         writeCachedUserProfile(localProfile);
         const headers = await authHeaders({ "Content-Type": "application/json" });
@@ -4319,14 +4361,43 @@
           return;
         }
 
+        // 로그인에서 돌아온 뒤 폼 상태가 비어 있을 수 있다. 새로고침, 다른 탭 진입,
+        // reportId 를 달고 온 복귀, 그리고 직전 시도가 실패해 저장된 폼이 이미 지워진
+        // 경우가 모두 여기에 해당한다. 빈 상태로 분석에 들어가면 프로필 저장이
+        // 400(이름 미입력)으로 막혀서 티저로 넘어가지 못하고 고민 화면으로 되돌아온다.
+        // 1순위: 로컬 캐시. 네트워크 없이 즉시 복구된다.
+        hydrateProfileFromCache();
+        // 2순위: 서버 프로필.
+        if (!hasUsableProfileState()) {
+          try {
+            await fetchUserProfile({ preserveConcern: true });
+          } catch (err) {
+            // 저장된 프로필이 없으면 아래에서 입력 화면으로 보낸다.
+          }
+        }
+        // 이름 형식까지 본다. 비어 있거나 한글 2자 미만이면 프로필 저장이
+        // 400 으로 막혀 /api/saju/analyze 가 호출조차 되지 않는다.
+        if (!hasUsableProfileState()) {
+          showNudge("사주 정보를 먼저 입력해주세요.");
+          go("name");
+          return;
+        }
+
         sessionStorage.removeItem(AUTH_PENDING_KEY);
-        sessionStorage.removeItem(AUTH_FORM_KEY);
         go("loading");
         analyzeBirth()
-          .then(() => go("result"))
+          .then(() => {
+            // 분석이 성공한 뒤에 지운다. 미리 지우면 실패했을 때 입력값이 사라져
+            // 재시도할수록 같은 실패를 반복하게 된다.
+            sessionStorage.removeItem(AUTH_FORM_KEY);
+            go("result");
+          })
           .catch((err) => {
+            // 순서가 중요하다. go() 가 stage.innerHTML 을 갈아끼우므로 안내를 먼저
+            // 붙이면 그대로 지워진다. 화면을 바꾼 뒤에 붙여야 사용자가 볼 수 있다.
+            // 프로필이 원인이면 고민 화면으로 되돌려 봐야 같은 실패를 반복한다.
+            go(err && err.needsProfile ? "name" : "concern");
             showNudge(err.message || "사주 분석에 실패했습니다.");
-            go("concern");
           });
       }
 
@@ -5150,6 +5221,10 @@
         if (action === "open-settings") {
           openSettings();
         }
+        if (action === "retry-scene") {
+          const target = event.target.closest("[data-scene]")?.dataset.scene;
+          if (target) go(target, false);
+        }
         if (action === "my-edit-profile") {
           go("name");
         }
@@ -5256,13 +5331,37 @@
         }
       }
 
+      /**
+       * 렌더가 실패해도 빈 화면이나 조용한 되돌아가기로 끝내지 않는다.
+       * 해석 자체는 서버에 저장돼 있으므로 보관함 경로와 재시도를 같이 준다.
+       */
+      function renderSceneFailure(scene, error) {
+        const message = (error && error.message) || String(error || "알 수 없는 오류");
+        stage.innerHTML = `
+          <section class="panel">
+            <div class="status">화면 오류</div>
+            <h1>결과를 그리지 못했습니다</h1>
+            <p>해석은 저장되어 있습니다. 다시 시도하거나 보관함에서 열 수 있습니다.</p>
+            <div class="status" role="status">${escapeHtml(message)}</div>
+            <div class="actions">
+              <button class="ghost" type="button" data-action="open-settings">보관함 열기</button>
+              <button class="next-cta" type="button" data-action="retry-scene" data-scene="${escapeHtml(scene)}">다시 시도</button>
+            </div>
+          </section>
+        `;
+      }
+
       function showNudge(message) {
         const existing = document.querySelector(".nudge");
         if (existing) existing.remove();
         const nudge = document.createElement("div");
         nudge.className = "fineprint nudge";
         nudge.textContent = message;
-        stage.querySelector(".panel")?.append(nudge);
+        // 로딩 화면에는 `.panel` 이 없다. `?.append` 로 두면 실패 안내가 조용히
+        // 사라지고, 사용자에게는 "아무 일도 일어나지 않는" 것으로 보인다.
+        // 2026-09-14 운영 확인: 렌더 오류 메시지가 이 경로로 전부 버려지고 있었다.
+        const host = stage.querySelector(".panel") || stage.querySelector("section, article") || stage;
+        host.append(nudge);
       }
 
       function validateName(value) {
@@ -6078,7 +6177,15 @@
           todayChrome.bottomNav.hidden = scene !== "todayResult";
         }
         soundButton.style.display = "none";
-        steps[scene]();
+        // 렌더 실패가 호출부의 catch 로 흘러가면 "분석 실패"로 둔갑해 사용자를 조용히
+        // 앞 화면으로 되돌린다. 2026-09-14 운영에서 renderResult 의 TypeError 가 정확히
+        // 그렇게 삼켜졌다(분석 API 는 200 이었다). 여기서 끊고 화면에 남긴다.
+        try {
+          steps[scene]();
+        } catch (renderError) {
+          console.error("[umsh] 화면 렌더 실패:", scene, renderError);
+          renderSceneFailure(scene, renderError);
+        }
         phone.scrollTop = 0;
         if (scene === "result" || scene === "todayResult") stage.scrollTop = 0;
         requestAnimationFrame(() => {
@@ -6417,6 +6524,9 @@
           renderLoveConcern();
           return;
         }
+        // renderMy 와 같은 방식으로 캐시에서 복구한다. 복구하지 않으면 상단 칩이
+        // "이름 · 양력 생년월일" 플레이스홀더로 뜨고, 그 상태로 해석을 누르면 실패한다.
+        hydrateProfileFromCache();
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
@@ -6852,6 +6962,20 @@
         if (paidReportMarkup) setupReportReader();
       }
 
+      // /cmdg/ 로 배포되는 사주/사주/index.html 은 /js/umsh-report-access.js 를 붙이지
+      // 않는다. 그래서 window.UMSHReportAccess.firstInsight 를 그대로 부르면 결과 화면
+      // 렌더가 TypeError 로 죽고, 호출부의 catch 가 고민 화면으로 되돌려 보낸다.
+      // 분석은 성공했는데 티저로 못 넘어가던 원인이 이것이다. 뷰어가 있으면 그대로 쓰고,
+      // 없으면 같은 규칙으로 첫 문장만 뽑는다.
+      function firstInsightText(text) {
+        if (window.UMSHReportAccess) return window.UMSHReportAccess.firstInsight(text);
+        const clean = String(text || "")
+          .replace(/^\s*\[[^\]]+\]\s*/, "")
+          .replace(/^\s*(?:흠|허허|잠깐)[.…\s]+/, "")
+          .trim();
+        return clean.split(/\n\s*\n|(?<=[.!?。])\s+/).find((line) => line.trim().length > 5) || clean;
+      }
+
       function renderResult() {
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
@@ -6881,7 +7005,7 @@
         const usefulGod = escapeHtml(a?.usefulGod || "분석 중");
         const personalityRaw = preview?.personality || "흠... 입력한 기운을 보니 그냥 지나칠 사주는 아니군.";
         const personality = escapeHtml(personalityRaw);
-        const personalityShort = escapeHtml(window.UMSHReportAccess.firstInsight(personalityRaw));
+        const personalityShort = escapeHtml(firstInsightText(personalityRaw));
         const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보이는군.");
         const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
         const wealthText = escapeHtml(preview?.wealthFortune || "돈의 흐름이 보이는군. 새는 곳과 모이는 곳을 먼저 짚어야 하네.");

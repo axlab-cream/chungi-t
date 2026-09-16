@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p01-adjacent-next-criterion",
+  "mode": "rag",
+  "timestamp": "2026-09-12T17:16:58.7870554+09:00",
+  "checks": [
+    {
+      "name": "memory candidate exists",
+      "status": "PASS",
+      "detail": "C:\\Users\\user\\Desktop\\chungi-t-tone-v2\\CreamAI\\memory\\candidates\\task-tone-v2-p01-adjacent-next-criterion_memory.md"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

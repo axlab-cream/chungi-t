@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "love-mind-corpus-2.1.0",
+  "serviceKey": "love_mind",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/love-mind-service.json",
+      "version": "2.0.0",
+      "sha256": "7c7591bd88a4687b5b0cb22808fcc3a9b65e5c12979280ffb5406edc4b0ed588"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/love-mind-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "b502e28b61f7305d5c77ef2263f75dee6f2360bcc310547e5fbab243060f3edd"
+    },
+    "semanticReview": "tone-v2/corpus-review/love-mind-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No love_mind provider output evaluation was run or found; this candidate covers corpus semantics and snapshot-pinned RAG only.",
+  "verificationEvidence": "tone-v2/evaluations/P05-love-mind-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/love-mind-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_1_of_1",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_783_of_783_109_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

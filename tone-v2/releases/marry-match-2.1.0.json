@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "marry-match-corpus-2.1.0",
+  "serviceKey": "marry_match",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/marry-match-service.json",
+      "version": "2.0.0",
+      "sha256": "a98c7c14c6a0cab000240efd6e26bafeee90905604f524096532d3a2d83f66ff"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/marry-match-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "e8dc60b9d97755025055b773b76c93f17b8caa813011c83b6d3afd4e4c849b0b"
+    },
+    "semanticReview": "tone-v2/corpus-review/marry-match-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No marry_match provider output evaluation was run or found for this corpus-only Task.",
+  "verificationEvidence": "tone-v2/evaluations/P05-marry-match-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/marry-match-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_20_of_20",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_751_of_751_across_105_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_critical_major_minor_0"
+  }
+}

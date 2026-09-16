@@ -31,3 +31,10 @@ test('home narrative requires public evidence labels and action metadata', () =>
   assert.ok(reviewHomeNarrative('[근거] 사용자 체감과 측정 전 항목을 나눠 보면 외부 흐름은 아직 더 봐야 해요.\n\n[오늘] 오늘: 비용 0원 · 난이도 1 · 관찰 지표는 창가에서 들리는 반복 소리예요.','terrain-support').some(issue => /결손|터 유사도/.test(issue)))
   assert.deepEqual(reviewHomeNarrative('[터 유사도] 비슷한 터의 생활 패턴으로 보면 출입 부담과 받침감이 먼저 보여요.\n\n[오늘] 오늘: 비용 0원 · 난이도 1 · 관찰 지표는 집에 도착한 직후 몸의 긴장도예요.','terrain-support'),[])
 })
+
+test('observation needs a concrete target, not a heading or a bare imperative', () => {
+  for (const action of ['오늘 바로 확인하세요.', '잘 관찰해 보세요.', '확인하고 기록하세요.']) {
+    assert.ok(reviewHomeNarrative(`[관찰 대상] 사용자 체감으로 살펴봐요.\n\n[행동] ${action}`, 'entrance-flow').some(issue => /대상/.test(issue)))
+  }
+  assert.deepEqual(reviewHomeNarrative('[출입 동선] 사용자 체감에서 출입의 불편을 구분해요.\n\n[문 앞의 여유] 짐을 내려놓을 공간이 있는지 확인해 보세요.', 'entrance-flow'), [])
+})

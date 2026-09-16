@@ -10,6 +10,25 @@
 (function () {
   'use strict';
 
+  /**
+   * `umsh-report-access.js` 는 이 페이지에 없을 수 있다. 없을 때 멤버를 그대로 부르면
+   * TypeError 로 죽고, 호출부의 catch 가 그걸 다른 실패로 둔갑시킨다
+   * (2026-09-14 /cmdg/ 장애와 같은 유형). 접근을 한 곳으로 모아 막는다.
+   */
+  function reportAccess() {
+    return (typeof window !== 'undefined' && window.UMSHReportAccess) || null;
+  }
+  /** 뷰어가 없으면 같은 규칙으로 직접 뽑는다. */
+  function reportIdentity(payload) {
+    var ra = reportAccess();
+    if (ra && ra.identity) return ra.identity(payload);
+    if (!payload) return '';
+    return payload.resultId || payload.publicId || payload.reportId
+      || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))
+      || '';
+  }
+
+
   var SERVICE = {
     key: 'wedding_day',
     title: '우리 결혼, 이날 해도 될까?',
@@ -32,7 +51,8 @@
         var client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
         var got = await client.auth.getSession();
         var session = await window.UMSHAuthSession.enforceDeviceAuthSession(got.data.session, client);
-        window.UMSHReportAccess.setOwner(session && session.user && session.user.id);
+        var ra = reportAccess();
+        if (ra) ra.setOwner(session && session.user && session.user.id);
         return session;
       } catch (err) {
         return null;
@@ -51,7 +71,8 @@
 
   async function request(path, body) {
     var session = await initAuth();
-    var res = await window.UMSHReportAccess.fetch(path, {
+    var raFetch = (reportAccess() && reportAccess().fetch) || fetch;
+    var res = await raFetch(path, {
       method: 'POST',
       headers: Object.assign(
         { 'Content-Type': 'application/json' },
@@ -85,7 +106,8 @@
 
   async function analyze(input) {
     var payload = await request('/api/day/wedding/analyze', input || readInput() || {});
-    window.UMSHReportAccess.remember(payload);
+    var raRemember = reportAccess();
+    if (raRemember) raRemember.remember(payload);
     return payload;
   }
 
@@ -203,7 +225,7 @@
       try {
         var result = await analyze(input);
         say('비교를 마쳤습니다. 무료 방향으로 이동합니다.');
-        location.assign(SERVICE.base + '/04-step-4-report/index.html?reportId=' + encodeURIComponent(window.UMSHReportAccess.identity(result)) + '#step-4-report');
+        location.assign(SERVICE.base + '/04-step-4-report/index.html?reportId=' + encodeURIComponent(reportIdentity(result)) + '#step-4-report');
       } catch (err) {
         if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
         if (err && (err.status === 401 || err.status === 403)) {
@@ -233,7 +255,7 @@
     var sections = sectionsOf(payload).map(function (s) {
       return s.status === 'complete' ? s : Object.assign({}, s, { interpretation: s.status === 'failed' ? '이 항목을 완성하지 못했습니다.' : '해석을 준비하고 있습니다.', hook: '' });
     });
-    var id = window.UMSHReportAccess.identity(payload);
+    var id = reportIdentity(payload);
     function url(step, section) {
       return SERVICE.base + '/' + step + '?reportId=' + encodeURIComponent(id) + (section ? '&section=' + encodeURIComponent(section) : '');
     }
@@ -251,7 +273,7 @@
         var lines = preview.signals || preview.insights || [];
         panels[1].replaceChildren();
         lines.forEach(function(line) { var p = document.createElement('span'); p.className = 'preview-line'; p.textContent = line; panels[1].appendChild(p); });
-        if (!lines.length) panels[1].textContent = preview.paidValue || '6개 주제 · 21개 항목을 전체 풀이에서 확인합니다.';
+        if (!lines.length) panels[1].textContent = preview.paidValue || '6개 주제 · 20개 항목을 전체 풀이에서 확인합니다.';
       }
       root.querySelectorAll('a.item, a.cta').forEach(function (link) {
         link.href = payload.previewOnly ? payload.paymentUrl || '/payment?product=wedding_day&reportId=' + encodeURIComponent(id) : indexUrl;
@@ -290,7 +312,7 @@
           var p = document.createElement('p'); p.textContent = block; section.appendChild(p); body.appendChild(section);
         });
       }
-      put(root, '[data-reading-progress]', '21개 항목 중 ' + (sections.indexOf(current) + 1) + '번째 · ' + (current.status === 'complete' ? '해석 완료' : current.status === 'failed' ? '다시 불러오기 필요' : '해석 작성 중'));
+      put(root, '[data-reading-progress]', sections.length + '개 항목 중 ' + (sections.indexOf(current) + 1) + '번째 · ' + (current.status === 'complete' ? '해석 완료' : current.status === 'failed' ? '다시 불러오기 필요' : '해석 작성 중'));
       var chooser = root.querySelector('[data-section-select]');
       if (chooser) {
         chooser.replaceChildren();

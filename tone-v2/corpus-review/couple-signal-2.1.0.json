@@ -1,0 +1,221 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "couple_signal",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/couple-signal-service-2.1.0.json",
+  "sourceSha256": "204f201ef4872af6b8b9165e286ec39059bfffcb145873093038419cf40a893a",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/couple_signal.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit block-by-block confirmed fact, calculated symbol, partner-state, fidelity, consent, monitoring, safety, numeric and outcome review",
+  "blocks": [
+    {
+      "id": "sig-001",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-002",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-003",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-004",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-005",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-006",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-007",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-008",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-009",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-010",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-011",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "sig-012",
+      "status": "pass",
+      "checks": {
+        "confirmedFactBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "unknownPartnerStateBoundary": true,
+        "fidelityBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "monitoringBoundary": true,
+        "consentRefusalBoundary": true,
+        "safetyBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    }
+  ]
+}

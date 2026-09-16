@@ -309,6 +309,19 @@ test('an account switch removes an already displayed private result on its perma
   assert.doesNotMatch(h.nodes.get('umsh-verified-reading').innerHTML,/PRIVATE OWNER A/)
 })
 
+test('a generic permalink boots from its path identity and trusts only the server service key',async()=>{
+  const report={reportId:'fingerprint',resultId:'shared-uuid',serviceKey:'saju_master',status:'complete',title:'저장된 공용 리더',sections:[{id:'profile',status:'complete',category:'기본',classification:'현재 기준',interpretation:'서버가 반환한 저장 결과입니다.'}]}
+  const h=harness('/r/shared-uuid',[
+    {enabled:false,developmentReportAccess:true},
+    {reportId:'fingerprint',resultId:'shared-uuid',serviceKey:'saju_master',report,context:{serviceKey:'saju_master'}},
+  ])
+  await h.listeners.get('DOMContentLoaded')![0]()
+  assert.equal(h.calls[0].path,'/api/auth/config')
+  assert.equal(h.calls[1].path,'/api/report/shared-uuid')
+  assert.equal(h.location.searchParams.get('reportId'),'shared-uuid')
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/서버가 반환한 저장 결과입니다/)
+})
+
 test('an old account response arriving after logout cannot repopulate private content',async()=>{
   let release!:(value:unknown)=>void
   const waiting=new Promise(resolve=>{release=resolve})
@@ -471,6 +484,54 @@ test('a permalink selects the same item by section slug or immutable generation 
     assert.match(html,/<details data-section="second"[^>]* open>/)
     assert.doesNotMatch(html,/<details data-section="first"[^>]* open>/)
   }
+})
+
+test('saved report cards distinguish answer, evidence, and action without repeating the hook',()=>{
+  const h=harness('/r/readable-report',[])
+  h.api.consume({reportId:'readable-report',report:{title:'저장된 풀이',sections:[{
+    id:'first',status:'complete',category:'돈',classification:'지금의 선택.',hook:'지금은 보류가 맞습니다.',
+    interpretation:'지금은 보류가 맞습니다. 자동이체 뒤에 남는 금액이 판단 기준입니다.\n\n실제 결제 내역을 주 단위로 묶으면 반복 지출이 보입니다. 아직 쓰지 않은 돈은 수입처럼 세지 않습니다.\n\n이번 주에는 선택 지출 합계를 적습니다. 다음 결제 전에 남은 한도와 비교합니다.'
+  }]}})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/class="reading-block reading-answer"/)
+  assert.match(html,/>한 줄 답</)
+  assert.match(html,/class="reading-block reading-evidence"/)
+  assert.match(html,/>근거</)
+  assert.match(html,/class="reading-block reading-action"/)
+  assert.match(html,/>행동</)
+  assert.equal((html.match(/지금은 보류가 맞습니다\./g)||[]).length,1)
+  assert.match(html,/>돈 · 지금의 선택</)
+})
+
+test('legacy one-paragraph reports use a truthful combined role instead of inventing an action split',()=>{
+  const h=harness('/r/legacy-report',[])
+  h.api.consume({reportId:'legacy-report',report:{title:'예전 풀이',sections:[{
+    id:'legacy',status:'complete',category:'관계',classification:'현재 흐름',hook:'약속을 먼저 봅니다.',
+    interpretation:'답장의 속도만으로 마음을 정할 수 없습니다. 실제로 지켜진 약속을 확인합니다. 다음 대화에서 일정이 바뀐 이유를 묻습니다.'
+  }]}})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/>근거와 행동</)
+  assert.doesNotMatch(html,/class="reading-block reading-action"/)
+})
+
+test('preview CTA names the result the reader will open',()=>{
+  const h=harness('/work/move/04-step-4-report/index.html',[])
+  h.api.showPreview({preview:{headline:'먼저 본 방향',summary:'조건을 비교합니다.',signals:[]},paymentUrl:'/payment'}, {})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/>전체 해석 목차 보기</)
+  assert.doesNotMatch(html,/전체 해석 열어보기/)
+})
+
+test('preview separates verdict, representative evidence and exact full-report scope',()=>{
+  const h=harness('/work/move/04-step-4-report/index.html',[])
+  h.api.showPreview({preview:{headline:'지금은 제안 조건을 비교할 때입니다.',summary:'역할 범위와 통근 조건이 함께 확인됐습니다.',insights:['예를 들어 출근길 이동 시간을 기록해 보세요.'],signals:[],paidValue:'전체 해석에서는 10개 항목의 조건을 비교합니다.'},paymentUrl:'/payment'}, {})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/class="preview-heading"/)
+  assert.match(html,/id="preview-evidence-title">지금 먼저 확인할 장면/)
+  assert.match(html,/예를 들어 출근길 이동 시간을 기록/)
+  assert.match(html,/id="preview-scope-title">이어서 비교할 내용/)
+  assert.match(html,/10개 항목/)
+  assert.doesNotMatch(html,/전체 본문.*10개 항목.*예를 들어 출근길/s)
 })
 
 test('reader auth events replace refreshed credentials and clear content immediately on logout',async()=>{

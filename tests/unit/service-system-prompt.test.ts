@@ -11,7 +11,7 @@ import {
   loadServiceSystemPrompt,
   normalizeServiceKey,
 } from '../../src/prompt/service-system.js'
-import { SERVICE_VOICE_CONTRACTS, formatServiceVoiceContract } from '../../src/prompt/service-voice-contracts.js'
+import { loadTonePersona } from '../../src/prompt/tone-v2.js'
 import { loadSystemPrompt } from '../../src/conversation/prompt-builder.js'
 import { listPaymentProducts } from '../../src/payment/catalog.js'
 
@@ -50,7 +50,7 @@ describe('service-system prompt wiring', () => {
     assert.ok(loadServiceBlock('money_save').includes('해요체'))
 
     const master = loadServiceSystemPrompt('saju_master')
-    assert.ok(master.includes('~하네/~군/~일세/~보게') || master.includes('~일세'))
+    assert.ok(master.includes('최종 말투: 격식체'))
     assert.ok(master.includes('천명사주'))
   })
 
@@ -65,11 +65,11 @@ describe('service-system prompt wiring', () => {
     assert.ok(block.includes('해요체'))
   })
 
-  it('saju_master contains 하게체 cues from its md file', () => {
+  it('saju_master uses the final formal voice and explicitly retires old address', () => {
     clearServiceSystemPromptCache()
     const block = loadServiceBlock('saju_master')
-    assert.ok(block.includes('~하네') || block.includes('~일세') || block.includes('~보게'))
-    assert.ok(block.includes('자네') || block.includes('하게'))
+    assert.ok(block.includes('최종 말투: 격식체'))
+    assert.ok(block.includes('`자네`·`~일세` 금지'))
   })
 
   it('all 20 manifest service files exist, including new year and wedding', () => {
@@ -86,31 +86,22 @@ describe('service-system prompt wiring', () => {
   })
 
   it('all 20 services have enforceable voice contracts in the runtime prompt', () => {
-    assert.equal(Object.keys(SERVICE_VOICE_CONTRACTS).length, 20)
+    assert.equal(KNOWN_SERVICE_KEYS.length, 20)
     for (const key of KNOWN_SERVICE_KEYS) {
-      const contract = SERVICE_VOICE_CONTRACTS[key]
-      assert.equal(contract.serviceKey, key)
-      assert.ok(contract.userQuestion.length >= 12, `${key}: userQuestion too short`)
-      assert.ok(/먼저|보여|준다|잡아/.test(contract.teaserJob), `${key}: teaser job must guide preview`)
-      assert.ok(contract.reportJob.length >= 25, `${key}: report job too short`)
-      assert.ok(contract.requiredScenes.length >= 3, `${key}: needs concrete scenes`)
-      assert.ok(contract.decisionCriteria.length >= 3, `${key}: needs decision criteria`)
-      assert.ok(contract.holdConditions.length >= 3, `${key}: needs hold conditions`)
-      assert.ok(contract.forbiddenCustomerCopy.length >= 3, `${key}: needs forbidden copy`)
+      const contract = loadTonePersona(key)
+      assert.equal(contract.key, key)
+      assert.equal(Object.keys(contract.fields).length, 13)
+      for (const [name, value] of Object.entries(contract.fields)) assert.ok(value.length > 0, `${key}: missing ${name}`)
       const full = loadServiceSystemPrompt(key)
-      assert.ok(full.includes(formatServiceVoiceContract(key)), `${key}: runtime prompt missing contract`)
+      assert.ok(full.includes(contract.promise), `${key}: runtime prompt missing promise`)
+      for (const [name, value] of Object.entries(contract.fields)) {
+        if (name !== '대표 문장') assert.ok(full.includes(value), `${key}: runtime prompt missing ${name}`)
+      }
     }
   })
 
   it('service contracts do not expose internal customer-hostile wording', () => {
-    const joined = Object.values(SERVICE_VOICE_CONTRACTS).map((contract) => [
-      contract.promise,
-      contract.userQuestion,
-      contract.teaserJob,
-      contract.reportJob,
-      contract.requiredScenes.join(' '),
-      contract.decisionCriteria.join(' '),
-    ].join(' ')).join('\n')
+    const joined = KNOWN_SERVICE_KEYS.map(key => loadTonePersona(key).promise).join('\n')
     assert.doesNotMatch(joined, /측정 전|자료가 아직 없어요|DEM|서버 권한|로그인과 결제 상태|풀이\s*\d+/)
   })
 
@@ -164,6 +155,6 @@ describe('service-system prompt wiring', () => {
     assert.match(block, /문제·위험·해결/)
     assert.match(loadServiceSystemPrompt('newyear_flow'), /세운\(歲運, 한 해의 흐름\)/)
     assert.doesNotMatch(block, /자네|~일세/)
-    assert.throws(() => loadServiceBlock('not_a_real_service'), /서비스 프롬프트가 없습니다/)
+    assert.throws(() => loadServiceBlock('not_a_real_service'), /Unknown tone-v2 service/)
   })
 })

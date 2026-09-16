@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.0",
+  "evaluatedAt": "2026-09-12T14:56:58+09:00",
+  "scope": ["ZIP-003-037", "ZIP-003-038", "ZIP-003-039", "ZIP-003-040", "ZIP-003-041"],
+  "inputClass": "synthetic-only",
+  "acceptance": {
+    "newIsolatedRecord": true,
+    "maximumAttempts": 2,
+    "persistedSectionComplete": false,
+    "allDeterministicReviewGatesPass": false,
+    "result": "FAIL"
+  },
+  "environmentPrecheck": {
+    "initialVersion": "p01-pass-angle-e2e-20260912",
+    "record": ".cache/reading-live-20260907/records/41cdbd9a55ae1eb574128ecdc0bf.json",
+    "recordSha256": "8e7263f3cfa176a7f9bf4e62681546f5ec7b0b097458bd0512ac687aed668a95",
+    "persistedStatus": "failed",
+    "attemptCount": 1,
+    "attemptStatus": "failed",
+    "rawProviderResponsePresent": false,
+    "outboundProviderRequestMade": false,
+    "reason": "The isolated fork had no local .env, so OPENAI_API_KEY was absent and generation stopped before the adapter call.",
+    "secretCopiedOrLogged": false,
+    "disposition": "Loaded the already configured original AIOS environment in-process without copying or printing its value, then used a fresh version key."
+  },
+  "actualProviderRun": {
+    "version": "p01-pass-angle-e2e-envfix-20260912",
+    "provider": "OpenAI",
+    "record": ".cache/reading-live-20260907/records/77c9c0208239e49c16721d60d6ce.json",
+    "recordSha256": "c99b60c6828c001e54f6fbc1530caadac09e15fb5ae0e07caecb99e2823abec7",
+    "productionDataUsed": false,
+    "persistedStatus": "failed",
+    "attempts": [
+      {
+        "id": "b6ab4783-3f39-43d9-875d-76b7104b1d16",
+        "status": "failed",
+        "model": "gpt-5.5-2026-04-23",
+        "finishReason": "stop",
+        "tokenUsage": { "prompt": 18909, "completion": 725, "total": 19634 },
+        "rawSha256": "7612f9960300b029d5687718646edce2116231eecc2f0dfd0e4d5dfccced7fbb",
+        "proseSha256": "cd16ecb4d72e6df55da6138c52be5a92865edba14a973c5b7dd10e77f271369f",
+        "density": { "directAnswer": true, "grounding": true, "scene": true, "nextCriterion": false },
+        "remainingIssue": "nextCriterion",
+        "firstThreeVisibleSentences": [
+          "새 공부 말고 루틴 고정각이야.",
+          "연습 점수가 목표선이고 큰 불안도 없으니, 남은 하루는 실력 추가가 아니라 변수 차단이야.",
+          "객관식 시험은 새 자료보다 시간 배분, 마킹, 모르는 문제 넘김 기준에서 흔들려."
+        ],
+        "selectedSceneEvidence": [
+          "예를 들어 아침에 새 요약본을 여는 순간, 오답노트보다 낯선 표현이 먼저 머리에 남아."
+        ]
+      },
+      {
+        "id": "3e76d3a7-fd64-4649-9e3e-6179977f0a72",
+        "status": "failed",
+        "model": "gpt-5.5-2026-04-23",
+        "finishReason": "stop",
+        "tokenUsage": { "prompt": 19063, "completion": 2799, "total": 21862 },
+        "rawSha256": "5b5a9bbe23bba734f897b2218b4d04ad25bc281b0b14d1477749ac238708e2c6",
+        "proseSha256": "c7782768e6b66370448ee00b74b00d9e676234bdefc0b2c177e89839ae237b8e",
+        "density": { "directAnswer": true, "grounding": true, "scene": false, "nextCriterion": true },
+        "remainingIssue": "scene",
+        "candidateSceneSentences": [
+          "시험일은 이미 지나서, 다음엔 시험장 표시 규칙과 넘길 문제 기준만 고정해봐.",
+          "다음 복기에서 기억나는 문제를 맞힌 것과 찍은 것으로 나눠봐.",
+          "찍은 문제는 오답노트에 지식 부족, 표시 실수, 시간 밀림 중 무엇이었는지만 기록해."
+        ]
+      }
+    ]
+  },
+  "diagnosis": {
+    "classification": "representative E2E failed; likely deterministic scene-recognizer false negative",
+    "evidence": "The second attempt contains a concrete next-review setting ('다음 복기에서') and observable actions, while the current matcher does not include 복기/오답노트/마킹 and expects its existing scene noun before a later location/condition suffix.",
+    "nextTask": "Add a narrow review-session scene boundary with positive and generic counterexamples; do not accept every action sentence as a scene."
+  },
+  "limitations": [
+    "The representative section did not complete and must not be described as accepted.",
+    "Only one fresh provider-backed pass_angle record was evaluated.",
+    "This does not establish all-service semantic or release acceptance.",
+    "No production record, database, auth, payment, deployment, or Production state was changed."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p01-adjacent-next-criterion",
+  "mode": "test",
+  "timestamp": "2026-09-12T17:16:57.6353684+09:00",
+  "checks": [
+    {
+      "name": "npm test script",
+      "status": "WARN",
+      "detail": "package.json has no test script"
+    }
+  ],
+  "commands": [],
+  "warnings": [],
+  "failed": false
+}

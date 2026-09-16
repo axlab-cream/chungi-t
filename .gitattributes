@@ -1,0 +1,27 @@
+# 이 저장소는 LF 로 저장한다. `.editorconfig` 의 `end_of_line = lf` 와 같은 규칙이고,
+# CI 도 ubuntu-latest 에서 돈다.
+#
+# Windows 기본값(core.autocrlf=true)으로 클론하면 작업 트리가 CRLF 로 바뀐다.
+# 그런데 tone-v2 의 릴리스·증거 검사는 **파일 원본 바이트의 sha256** 을 고정한다.
+# 줄끝이 바뀌면 내용이 한 글자도 안 달라져도 해시가 어긋나, Windows 에서만
+# 54건이 실패한다(2026-09-14 확인). 그래서 체크아웃 줄끝을 여기서 고정한다.
+* text=auto eol=lf
+
+# 아래는 줄끝 변환 대상이 아니다.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.svg   text eol=lf
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.pdf   binary
+*.xlsx  binary
+*.zip   binary
+*.mp4   binary
+*.webm  binary
+*.mhtml binary

@@ -28,9 +28,9 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(packs.some((pack) => pack.id === 'saju-95-quality-bundles'))
       assert.ok(packs.some((pack) => pack.id === 'saju-advanced-manseryeok-gbr'))
       assert.ok(packs.some((pack) => pack.id === 'paid-report-scene-corpus'))
-      assert.ok(getChunkCorpusFiles().includes('corpus/saju-95-quality-bundles.json'))
-      assert.ok(getChunkCorpusFiles().includes('corpus/saju-advanced-manseryeok-gbr.json'))
-      assert.ok(getChunkCorpusFiles().includes('corpus/paid-report-scene-corpus.json'))
+      assert.ok(getChunkCorpusFiles().includes('tone-v2/corpus/saju-95-quality-bundles.json'))
+      assert.ok(getChunkCorpusFiles().includes('tone-v2/corpus/saju-advanced-manseryeok-gbr.json'))
+      assert.ok(getChunkCorpusFiles().includes('tone-v2/corpus/paid-report-scene-corpus.json'))
       assert.ok(getCorpusDomainBoost('saju_95_quality_bundles') >= 10)
       assert.ok(getCorpusDomainBoost('saju_advanced_manseryeok_gbr') >= 10)
       assert.ok(getCorpusDomainBoost('paid_report_scene_corpus') >= 15)
@@ -139,6 +139,24 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       const serviceChunks = chunks.filter((chunk) => chunk.domain === 'love_mind_service')
       assert.ok(serviceChunks.length >= 1)
       assert.ok(chunks.indexOf(serviceChunks[0]) <= 2)
+    })
+
+    it('20개 서비스 모두 자기 전용 코퍼스를 상위 두 청크 안에 둔다', () => {
+      const saju = analyzeSaju(sampleBirth)
+      const services: Record<string, string> = {
+        pass_angle: 'pass_angle_service', quit_fortune: 'quit_fortune_service', newyear_flow: 'newyear_service',
+        lucky_color: 'lucky_color_service', wedding_day: 'wedding_day_service', today_fortune: 'today_fortune_service',
+        saju_master: 'saju_master_service', love_this_year: 'love_this_year_service', job_choice: 'job_choice_service',
+        money_save: 'money_save_service', cat_compatibility: 'cat_compatibility_service', match_couple: 'match_couple_service',
+        marry_match: 'marry_match_service', couple_signal: 'couple_signal_service', work_move: 'work_move_service',
+        work_job: 'work_job_service', love_mind: 'love_mind_service', love_again: 'love_again_service',
+        love_spouse: 'love_spouse_service', home_fit: 'home_fit_service',
+      }
+
+      for (const [serviceKey, domain] of Object.entries(services)) {
+        const chunks = retrieveRagChunks('현재 항목의 판단 기준', saju, 5, { serviceKey })
+        assert.ok(chunks.slice(0, 2).some((chunk) => chunk.domain === domain), `${serviceKey} -> ${chunks.map(chunk => chunk.domain).join(', ')}`)
+      }
     })
 
     it('GBR 재랭킹 → 격국·조후·통관 질문에서 고급 청크를 회수', () => {

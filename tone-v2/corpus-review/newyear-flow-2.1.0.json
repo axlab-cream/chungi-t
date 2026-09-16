@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "newyear_flow",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/newyear-service-2.1.0.json",
+  "sourceSha256": "af2de895d527ba666c0fea5508ad7cf69f298a4f13647e425b77e348e83a3419",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/newyear_flow.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit annual calculation, solar-term calendar, future event, relationship, personal state, professional safety, unknown birth time, numeric and outcome review",
+  "blocks": [
+    {
+      "id": "newyear-001",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-002",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-003",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-004",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-005",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-006",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-007",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-008",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-009",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "newyear-010",
+      "status": "pass",
+      "checks": {
+        "calculatedValueBoundary": true,
+        "calendarAndSolarTermBoundary": true,
+        "userRealityBoundary": true,
+        "unknownFutureBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "relationshipBoundary": true,
+        "healthAndSafetyBoundary": true,
+        "legalAndFinancialBoundary": true,
+        "unknownBirthTimeBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    }
+  ]
+}

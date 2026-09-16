@@ -21,11 +21,11 @@ test('wedding layout separates text from images and uses local readable fonts', 
   assert.match(detail, /data-section-select/)
   assert.match(detail, /data-retry-section/)
 })
-test('all 21 wedding questions have distinct multi-paragraph answers and no cut-off corpus excerpts', () => {
+test('all 20 wedding questions have distinct multi-paragraph answers and no cut-off corpus excerpts', () => {
   const input = parseWeddingRequest({candidateDate1:'2027-05-15',partnerBirth:'1988-03-11'})
   const report = buildWeddingReport(analyzeSaju(birth),birth,buildWeddingContext('검증',input),input)
-  assert.equal(report.sections.length,21)
-  assert.equal(new Set(report.sections.map(s=>s.interpretation)).size,21)
+  assert.equal(report.sections.length,20)
+  assert.equal(new Set(report.sections.map(s=>s.interpretation)).size,20)
   for (const section of report.sections) {
     assert.ok(section.interpretation.split(/\n\s*\n/).length >= 3, section.id)
     assert.doesNotMatch(section.interpretation, /…| \/\/ |writing_guide|만들지 않으세요/)

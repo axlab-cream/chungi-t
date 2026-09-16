@@ -31,6 +31,8 @@ export async function beginSpecializedProgressiveReport(params: {
   analysis: SajuAnalysis
   owner?: ReportOwner
   orderId?: string
+  /** 코퍼스 세대와 무관한 계보 키. 코퍼스 개정 뒤에도 기존 해석을 이어 쓴다. */
+  lineageId?: string
 }): Promise<SpecializedProgressiveResult> {
   const { record, created } = await createOrGetReportRecord({
     reportId: params.reportId,
@@ -39,6 +41,7 @@ export async function beginSpecializedProgressiveReport(params: {
     templateReport: params.templateReport,
     analysis: params.analysis,
     owner: params.owner,
+    lineageId: params.lineageId,
   })
 
   const cached = !created && record.status === 'complete'

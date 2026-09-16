@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "quit_fortune",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/quit-fortune-service-2.1.0.json",
+  "sourceSha256": "3caf9303913b5eddaf73fbeee60d473a716b720130128092cb59ed8ad6ea6e47",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit block-by-block semantic boundary review with executable hash and safety assertions",
+  "blocks": [
+    {
+      "id": "qui-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-002",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-003",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-004",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-005",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-006",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-007",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-008",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-009",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-010",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-011",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    },
+    {
+      "id": "qui-012",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "nonDeterministicOutcome": true,
+        "safetyEscalation": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "match_couple",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/match-couple-service-2.1.0.json",
+  "sourceSha256": "84e7fb76d2072fa3c44a92e1f8438d4a603357b40ddf361a80a543e5725f899c",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit block-by-block relationship evidence, partner-mind and safety review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "cpl-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-002",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-003",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-004",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-005",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-006",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-007",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-008",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-009",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-010",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-011",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-012",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-013",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-014",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-015",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-016",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-017",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    },
+    {
+      "id": "cpl-018",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "partnerMindBoundary": true,
+        "deterministicOutcomeBoundary": true,
+        "relationshipSafety": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

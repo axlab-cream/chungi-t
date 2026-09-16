@@ -69,12 +69,40 @@
 | 정부 앱 | 아니오 | — |
 | 민감 권한 | **없음** | 매니페스트 권한은 INTERNET 과 BILLING 둘뿐 |
 
-## 4. 권한 목록 (병합 매니페스트 기준으로 재확인 필요)
+## 4. 권한 목록 (병합 매니페스트 실측)
 
-| 권한 | 출처 | 목적 |
-|---|---|---|
-| `android.permission.INTERNET` | 앱 | 해석 생성·조회 |
-| `com.android.vending.BILLING` | 앱 + billing 8.3.0 | Play 결제 |
+`aapt2 dump badging` 으로 실제 빌드된 APK 에서 읽은 값이다. **처음 문서에 적었던 2개가
+아니라 4개다.** 의존성이 끌어오는 것이 둘 있었다.
 
-**NOT_TESTED** — 최종 AAB 의 병합 매니페스트를 확인하지 않았다. 플러그인이 권한을 더
-끌어올 수 있어 빌드 후 `aapt dump permissions` 로 대조해야 한다.
+| 권한 | 출처 | 성격 | 목적 |
+|---|---|---|---|
+| `android.permission.INTERNET` | 앱 매니페스트 | 일반 | 해석 생성·조회 |
+| `com.android.vending.BILLING` | 앱 매니페스트 + billing 8.3.0 | 일반 | Play 결제 |
+| `android.permission.ACCESS_NETWORK_STATE` | 의존성이 끌어옴 | 일반 | 연결 상태 확인 |
+| `kr.umsh.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX 생성 | 자체 서명 | 앱 내부 브로드캐스트 보호 |
+
+**민감 권한은 하나도 없다.** 위치·카메라·연락처·저장소·알림 권한을 요청하지 않는다.
+런타임 권한 요청이 없으므로 Play 의 민감 권한 선언도 해당 없음이다.
+
+## 5. 16KB 페이지 호환성
+
+**NA — 근거 있음.** 빌드된 APK 에 네이티브 라이브러리가 없다.
+`aapt2 dump badging` 의 `native-code` 항목이 비어 있다. 포함된 `.so` 가 없으므로 정렬·
+실행을 확인할 대상 자체가 없다.
+
+의존성이 바뀌면 다시 확인해야 한다. 특히 결제 플러그인이나 향후 추가할 푸시 SDK 가
+네이티브 코드를 들여올 수 있다.
+
+## 6. Target API
+
+**충족.** 실측값이다.
+
+| 항목 | 값 |
+|---|---|
+| `package` | `kr.umsh.app` |
+| `targetSdkVersion` | 36 |
+| `compileSdkVersion` | 36 (Android 16) |
+| `versionCode` / `versionName` | 1 / 1.0 |
+| `application-label` | 운명상회 |
+
+2026-08-31 부터 일반 모바일 앱은 API 36 이상이어야 한다. 제출일 기준으로 다시 확인한다.

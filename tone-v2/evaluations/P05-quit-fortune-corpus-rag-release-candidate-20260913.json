@@ -1,0 +1,38 @@
+{
+  "taskId": "task-tone-v2-p05-quit-fortune-corpus-rag-release-candidate",
+  "evaluatedAt": "2026-09-13T05:50:00+09:00",
+  "status": "pass",
+  "serviceKey": "quit_fortune",
+  "corpus": {
+    "previousVersion": "2.0.0",
+    "candidateVersion": "2.1.0",
+    "semanticReviewPassed": 12,
+    "semanticReviewFailed": 0,
+    "sampleOutputsIngested": false
+  },
+  "snapshotBehavior": {
+    "newReportsUseCandidate": true,
+    "existingReportsKeepStoredVersion": true,
+    "hashMismatchFailsClosed": true,
+    "currentVectorRankingLeaksIntoOldSnapshot": false
+  },
+  "verification": {
+    "focusedTests": "pass_8_of_8",
+    "relatedTests": "pass_41_of_41",
+    "fullTests": "pass_727_of_727_102_suites",
+    "typecheck": "pass",
+    "vercelBuild": "pass",
+    "codexReview": "approved_with_comments_critical_0_major_0_minor_0",
+    "reviewReport": "CreamAI/logs/review/task-tone-v2-p05-quit-fortune-corpus-rag-release-candidate_closure-review.md"
+  },
+  "scope": {
+    "productionDeployment": false,
+    "customerDataMutation": false,
+    "databaseAuthPaymentAdminMutation": false
+  },
+  "sensitiveData": {
+    "providerProseStored": false,
+    "secretsStored": false,
+    "personalDataStored": false
+  }
+}

@@ -26,17 +26,26 @@
   var pollTimer = null;
   var resuming = new Set();
   var booting = false;
+  var printOpenedSections = [];
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   function canonical(value) { return ALIASES[value] || value; }
   function identity(payload) { return payload && (payload.resultId || payload.publicId || payload.reportId || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))) || ''; }
-  function locationId() { var query = new URLSearchParams(location.search); return query.get('reportId') || query.get('resultId') || ''; }
+  function isPermalink() { return /^\/r\/[^/]+\/?$/.test(location.pathname); }
+  function locationId() {
+    var query = new URLSearchParams(location.search);
+    var queryId = query.get('reportId') || query.get('resultId');
+    if (queryId) return queryId;
+    if (!isPermalink()) return '';
+    try { return decodeURIComponent(location.pathname.replace(/^\/r\//, '').replace(/\/$/, '')); }
+    catch (_) { return ''; }
+  }
   function reportUrl(id, orderId) {
     var query=new URLSearchParams();
     if(orderId) query.set('orderId',orderId);
     else if(key==='newyear_flow' && new URLSearchParams(location.search).get('preview')==='1' && new URLSearchParams(location.search).get('paid')!=='1') query.set('preview','1');
     return '/api/report/'+encodeURIComponent(id)+(query.toString()?'?'+query.toString():'');
   }
-  function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || /^\/r\//.test(location.pathname) || Boolean(locationId()); }
+  function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || isPermalink() || Boolean(locationId()); }
   function isDetailPage() { return /(?:05-step|06-step)/.test(location.pathname); }
   function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function remember(payload) {
@@ -97,17 +106,548 @@
   function gate(message) {
     authorized = null;
     if (pollTimer) clearTimeout(pollTimer);
+    if (gateInPlace(message)) return;
     var node = panel();
     node.innerHTML = navigation() + '<h1 style="font-size:24px">저장된 해석 확인</h1><p>' + escapeHtml(message) + '</p><a style="color:#e5bd69" href="/signup?entry=saved-report&returnTo='+encodeURIComponent(location.pathname+location.search)+'#login">로그인</a> · <a href="' + escapeHtml(route ? route[0] : '/') + '">서비스로 돌아가기</a>';
   }
+  function labelText(value) { return String(value == null ? '' : value).trim().replace(/[.。]+$/, ''); }
+  function readingBlock(kind, label, paragraphs) {
+    if (!paragraphs.length) return '';
+    return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + paragraphs.map(function(paragraph){return '<p>' + escapeHtml(paragraph) + '</p>';}).join('') + '</section>';
+  }
+  function readySectionBody(section) {
+    var interpretation = String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim();
+    var hook = String(section.hook || '').trim();
+    if (hook && interpretation.indexOf(hook) === 0) interpretation = interpretation.slice(hook.length).trim();
+    var paragraphs = interpretation.split(/\n\s*\n/).map(function(paragraph){return paragraph.trim();}).filter(Boolean);
+    var answer = hook ? readingBlock('answer', '한 줄 답', [hook]) : '';
+    if (paragraphs.length >= 2) {
+      return answer + readingBlock('evidence', '근거', paragraphs.slice(0, -1)) + readingBlock('action', '행동', paragraphs.slice(-1));
+    }
+    return answer + readingBlock('evidence', '근거와 행동', paragraphs);
+  }
+
+  /* ==================================================================
+   * in-place 렌더 — 등록 디자인을 감추지 않고 슬롯에만 검증 본문을 넣는다.
+   *
+   * 기존 동작은 `panel()` 이 body 자식을 전부 숨기고 자체 마크업으로 화면을
+   * 갈아끼우는 것이었다. 그 결과 서비스별로 등록한 히어로 이미지·영상·레이아웃이
+   * 전부 사라졌다. 디자인 껍데기에는 유료 본문이 없고(04 티저 1.2KB · 06 상세
+   * 186자 = 라벨뿐, 본문은 전부 <script type=json>) 숨길 이유도 없다.
+   *
+   * 옵트인은 <html data-umsh-verified-inplace>. 속성이 없는 페이지는 기존
+   * 전면 은폐를 그대로 쓴다 — 슬롯을 아직 안 단 서비스가 조용히 깨지지 않게.
+   *
+   * 검증 전에는 CSS 가드가 채워지지 않은 슬롯을 visibility:hidden 으로 가린다.
+   * 정적 HTML 에 박힌 샘플 문구(모든 사용자에게 동일)가 잠깐이라도 내 결과처럼
+   * 보이면 안 되기 때문이다.
+   * ================================================================== */
+  function inPlaceEnabled() {
+    return Boolean(document.documentElement && document.documentElement.hasAttribute('data-umsh-verified-inplace'));
+  }
+  /**
+   * 슬롯 해석 순서
+   *   1) 명시적 `data-umsh-slot` — 서비스별로 손으로 맞춘 것이 항상 이긴다
+   *   2) 알려진 컨테이너 id — 서비스마다 이름이 다르지만(detail-stack · detail-root ·
+   *      detailStage · section-items …) 역할은 같다. 26개 HTML을 일일이 고치는 대신
+   *      여기서 흡수한다
+   *   3) 진행률처럼 디자인에 자리가 아예 없는 것은 만들어 넣는다
+   */
+  var SLOT_FALLBACK_IDS = {
+    // 06 상세 본문 → 04 티저 본문 → 05 결과 목록 순. 05 는 목록형이라 id 가 또 다르다.
+    // 채팅 로그(`chat-log`·`chatLog`·`chatScroll`)는 넣지 않는다. 대화 기록 자리에
+    // 섹션 목록을 밀어 넣으면 그 화면이 망가진다.
+    sections: ['detail-stack', 'detail-root', 'detail-body', 'detailStage', 'detailContent',
+               'section-items', 'interpretationBlocks', 'reportStage', 'teaserStack', 'detail-group',
+               'groupList', 'group-list', 'group-grid', 'item-list', 'reportGroups', 'report-list',
+               'reportIndex', 'section-panel', 'content'],
+    title: ['detail-title', 'detailTitle', 'page-title', 'pageTitle', 'report-title', 'resultTitle',
+            'hero-title', 'sectionTitle', 'title'],
+    subtitle: ['detail-conclusion', 'detailIntro', 'page-summary', 'hero-summary', 'summaryCopy',
+               'resultAnswer', 'conclusion', 'subtitle', 'summary'],
+    state: ['state-panel', 'statePanel', 'status-root', 'state-message', 'stateNotice', 'stateCopy',
+            'state-copy', 'loading-panel', 'lockedState', 'accessState', 'state-card',
+            'permission-note', 'emptyPanel', 'missing-input', 'status-box', 'access-notice',
+            'emptyState', 'offline'],
+    insights: ['signal-list', 'signalList', 'signal-tags', 'heroTags', 'evidencePills', 'flowList'],
+    'paid-value': ['scope-list', 'scopeGrid', 'scope-grid', 'unlockList'],
+    headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle', 'teaser-title'],
+    summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview'],
+  };
+
+  /** 껍데기 안에서 본문을 넣기 적당한 컨테이너. 스크롤 영역이 있으면 그 안. */
+  function contentHost() {
+    var shell = document.querySelector('#step-6_1-report, #step-5-chat, #step-4-report, .phone');
+    if (!shell) return null;
+    return shell.querySelector('#scroll-area, .scroll-area, .scroll, main') || shell;
+  }
+
+  /**
+   * 본문 자리가 아예 없는 디자인(wedding·newyear·lucky·pass-angle·quit 상세)에는
+   * 컨테이너를 만들어 넣는다. 기존 블록(evidence·scene·actions 같은 서비스 전용 자리)에
+   * 섹션 목록을 밀어 넣으면 그 서비스의 렌더가 깨지므로 건드리지 않는다.
+   */
+  function ensureSectionsHost() {
+    var existing = document.getElementById('umsh-sections-host');
+    if (existing) return existing;
+    // 04 는 무료 티저다. 자리를 만들어서까지 전체 목차를 쏟으면 티저가 목록 화면이 되고,
+    // 05 목록·06 상세와 같은 내용이 세 번 나온다. 티저 디자인에 명시적인 sections 슬롯이
+    // 있는 서비스는 그 슬롯이 1순위로 잡히므로 여기까지 오지 않는다.
+    if (/\/04-step-4-report\//.test(location.pathname)) return null;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-sections-host';
+    node.setAttribute('data-umsh-slot', 'sections');
+    node.setAttribute('aria-label', '해석 본문');
+    var progress = document.getElementById('umsh-progress-host');
+    if (progress && progress.parentElement === host) host.insertBefore(node, progress.nextSibling);
+    else host.appendChild(node);
+    return node;
+  }
+
+  /**
+   * 만들어 넣는 자리는 **공용 GNB 바로 아래**에서 시작한다.
+   *
+   * 예전에는 host.firstChild 앞에 넣었는데, 공용 크롬의 상단 호스트도 같은 자리에
+   * 들어간다. 먼저 들어간 쪽이 밀려서 진행률과 상태 안내가 GNB 위에 떠 버렸다.
+   * GNB 는 어느 화면에서나 맨 위에 고정되어야 한다.
+   */
+  function insertBelowChrome(host, node) {
+    var top = host.querySelector(':scope > [data-umsh-service-top]') || document.querySelector('[data-umsh-service-top]');
+    var anchor = top && top.parentElement === host ? top.nextSibling : host.firstChild;
+    host.insertBefore(node, anchor);
+    return node;
+  }
+
+  /** 진행률 자리가 없는 디자인에는 GNB 아래에 하나 만들어 넣는다. */
+  function ensureProgressHost() {
+    var existing = document.getElementById('umsh-progress-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-progress-host';
+    node.className = 'umsh-progress-panel';
+    node.setAttribute('data-umsh-slot', 'progress');
+    node.setAttribute('aria-label', '해석 준비 진행률');
+    node.hidden = true;
+    return insertBelowChrome(host, node);
+  }
+
+  /**
+   * id 대신 data 속성으로 자리를 표시한 디자인도 있다(wedding 상세: data-title·data-body …).
+   */
+  var SLOT_FALLBACK_ATTRS = {
+    sections: ['[data-body]', '[data-sections]', '[data-reading-body]'],
+    title: ['[data-title]'],
+    subtitle: ['[data-subtitle]', '[data-conclusion]'],
+    state: ['[data-state]', '[data-status]'],
+  };
+
+  /**
+   * 내용을 넣을 수 없는 요소를 슬롯으로 잡으면 안 된다.
+   * `wedding-section` 은 `<select>` 였고, 거기에 본문을 넣으면 아무것도 렌더되지 않는다.
+   */
+  var UNFILLABLE = { SELECT: 1, INPUT: 1, TEXTAREA: 1, IMG: 1, BR: 1, HR: 1, OPTION: 1, VIDEO: 1, AUDIO: 1, IFRAME: 1 };
+  function usableSlotTarget(node) {
+    return Boolean(node) && !UNFILLABLE[node.tagName];
+  }
+
+  /** 상태 안내 자리가 없는 디자인에는 만들어 넣는다. 없으면 panel() 로 떨어져 디자인이 사라진다. */
+  function ensureStateHost() {
+    var existing = document.getElementById('umsh-state-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-state-host';
+    node.className = 'umsh-state-panel';
+    node.setAttribute('data-umsh-slot', 'state');
+    node.setAttribute('aria-live', 'polite');
+    return insertBelowChrome(host, node);
+  }
+
+  /**
+   * 미리보기(무료 티저) 자리가 없는 디자인에는 만들어 넣는다.
+   *
+   * 이게 없으면 renderPreviewInPlace 의 filled 가 false 가 되고, showPreview 가
+   * panel() 로 떨어져 **등록 디자인이 통째로 사라진다**. 04 티저는 대부분
+   * headline·summary·insights·paid-value·checkout 자리에 id 가 없어서 그렇게 됐다.
+   * sections·state·progress 가 이미 같은 방식으로 자리를 만든다.
+   */
+  function ensurePreviewHost() {
+    var existing = document.getElementById('umsh-preview-host');
+    if (existing) return existing;
+    var host = contentHost();
+    if (!host) return null;
+    var node = document.createElement('section');
+    node.id = 'umsh-preview-host';
+    node.className = 'umsh-preview-panel';
+    node.setAttribute('data-umsh-slot', 'preview');
+    node.setAttribute('aria-label', '내 입력으로 먼저 보는 해석');
+    // 상태 안내 바로 아래, 본문 자리보다 위. 진행률·상태는 이미 맨 위에 붙는다.
+    var after = document.getElementById('umsh-state-host') || document.getElementById('umsh-progress-host');
+    if (after && after.parentElement === host) { host.insertBefore(node, after.nextSibling); return node; }
+    return insertBelowChrome(host, node);
+  }
+
+  function slotNode(name) {
+    var explicit = document.querySelector('[data-umsh-slot="' + name + '"]');
+    if (usableSlotTarget(explicit)) return explicit;
+
+    var ids = SLOT_FALLBACK_IDS[name] || [];
+    for (var i = 0; i < ids.length; i++) {
+      var byId = document.getElementById(ids[i]);
+      if (usableSlotTarget(byId)) { byId.setAttribute('data-umsh-slot', name); return byId; }
+    }
+    var attrs = SLOT_FALLBACK_ATTRS[name] || [];
+    for (var j = 0; j < attrs.length; j++) {
+      var byAttr = document.querySelector(attrs[j]);
+      if (usableSlotTarget(byAttr)) { byAttr.setAttribute('data-umsh-slot', name); return byAttr; }
+    }
+    if (name === 'progress') return ensureProgressHost();
+    if (name === 'sections') return ensureSectionsHost();
+    if (name === 'state') return ensureStateHost();
+    if (name === 'preview') return ensurePreviewHost();
+    return null;
+  }
+  function markFilled(node) { if (node) node.setAttribute('data-umsh-filled', ''); }
+  /**
+   * 슬롯의 조상이 `hidden` 으로 접혀 있으면 채워도 보이지 않는다. 디자인 페이지는
+   * 자체 스크립트가 열어 주는 전제로 `#detail-content` 같은 래퍼를 hidden 으로 두는데,
+   * in-place 모드에서는 그 스크립트가 렌더를 양보하므로 여기서 직접 연다.
+   */
+  function revealAncestors(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.hasAttribute && el.hasAttribute('hidden')) el.removeAttribute('hidden');
+      el = el.parentElement;
+    }
+  }
+  function fillSlot(name, html) {
+    var node = slotNode(name);
+    if (!node) return false;
+    node.innerHTML = html;
+    revealAncestors(node);
+    markFilled(node);
+    return true;
+  }
+  function fillText(name, value) {
+    var node = slotNode(name);
+    if (!node) return false;
+    node.textContent = String(value == null ? '' : value);
+    revealAncestors(node);
+    markFilled(node);
+    return true;
+  }
+  function ensureInPlaceStyles() {
+    if (document.getElementById('umsh-inplace-css')) return;
+    var link = document.createElement('link');
+    link.id = 'umsh-inplace-css';
+    link.rel = 'stylesheet';
+    link.href = '/css/umsh-verified-inplace.css';
+    document.head.appendChild(link);
+  }
+  function sectionStateClass(section) {
+    if (!section) return 'is-pending';
+    if (section.status === 'complete') return 'is-ready';
+    if (section.status === 'generating') return 'is-generating';
+    if (section.status === 'failed') return 'is-failed';
+    return 'is-pending';
+  }
+  /**
+   * 확정형 진행률. 서버가 주는 report.progress {complete,total} 를 퍼센트로 그린다.
+   * 기존 `.interpret-progress` 는 방향만 보여주는 무한 스캔 애니메이션이라
+   * "얼마나 남았는지"를 답하지 못했다.
+   */
+  function renderProgress(report) {
+    var node = slotNode('progress');
+    if (!node) return;
+    var sections = (report && report.sections) || [];
+    var progress = report && report.progress;
+    var total = (progress && progress.total) || sections.length || 0;
+    if (!total) { node.setAttribute('hidden', ''); return; }
+    var done = progress && typeof progress.complete === 'number'
+      ? progress.complete
+      : sections.filter(function (item) { return item.status === 'complete'; }).length;
+    done = Math.max(0, Math.min(total, done));
+    var percent = Math.round((done / total) * 100);
+    var complete = done >= total;
+    node.removeAttribute('hidden');
+    revealAncestors(node);
+    node.setAttribute('role', 'progressbar');
+    node.setAttribute('aria-valuemin', '0');
+    node.setAttribute('aria-valuemax', String(total));
+    node.setAttribute('aria-valuenow', String(done));
+    node.setAttribute('aria-valuetext', total + '개 항목 중 ' + done + '개 준비 완료');
+    node.setAttribute('data-umsh-progress-state', complete ? 'complete' : 'working');
+    node.innerHTML =
+      '<div class="umsh-progress-head">' +
+        '<span class="umsh-progress-label">' + (complete ? '해석 준비 완료' : '해석 준비 중') + '</span>' +
+        '<span class="umsh-progress-count"><strong>' + done + '</strong> / ' + total + '</span>' +
+      '</div>' +
+      '<div class="umsh-progress-track"><div class="umsh-progress-fill" style="width:' + percent + '%"></div></div>';
+    // 안내 문구는 걷어냈다. "목차는 지금 보실 수 있고…" 같은 설명은 우리 사정이지
+    // 읽는 사람이 알아야 할 내용이 아니다. 숫자와 막대, 항목별 배지로 충분하다.
+    // (failed 개수는 항목 카드의 '미완성' 배지가 이미 말한다.)
+    markFilled(node);
+  }
+  /** 무료 티저 — 정적 샘플 문구를 내 입력에서 검증된 값으로 교체한다. */
+  function renderPreviewInPlace(payload) {
+    if (!inPlaceEnabled()) return false;
+    ensureInPlaceStyles();
+    var preview = payload.preview || {};
+    var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
+    var insights = source.filter(function (line) {
+      return String(line).trim() !== String(preview.summary || '').trim();
+    });
+    var filled = false;
+    if (fillText('headline', preview.headline || preview.title || '먼저 확인한 방향')) filled = true;
+    if (fillText('summary', preview.summary || '')) filled = true;
+    if (fillSlot('insights', insights.map(function (line, index) {
+      return '<article class="umsh-insight">' +
+        '<span class="umsh-insight-index" aria-hidden="true">' + ('0' + (index + 1)).slice(-2) + '</span>' +
+        '<p>' + escapeHtml(line) + '</p></article>';
+    }).join(''))) filled = true;
+    if (fillText('paid-value', preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.')) filled = true;
+    var checkout = slotNode('checkout');
+    if (checkout) {
+      var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
+      if (checkout.tagName === 'A') checkout.setAttribute('href', href);
+      else checkout.setAttribute('data-umsh-checkout-url', href);
+      markFilled(checkout);
+      filled = true;
+    }
+    // 디자인에 맞는 자리가 하나도 없으면 만들어 넣는다. 여기서 false 를 돌려주면
+    // showPreview 가 panel() 로 떨어져 등록 디자인이 사라진다 — 그 경로를 없앤다.
+    if (!filled) filled = fillSlot('preview', previewBlock(payload, insights));
+    renderProgress(payload.report);
+    return filled;
+  }
+  /** 자리를 만들어 넣을 때 쓰는 미리보기 본문. 디자인 슬롯을 찾은 경우에는 쓰지 않는다. */
+  function previewBlock(payload, insights) {
+    var preview = payload.preview || {};
+    var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
+    return '<h2 class="umsh-preview-headline">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h2>'
+      + (preview.summary ? '<p class="umsh-preview-summary">' + escapeHtml(preview.summary) + '</p>' : '')
+      + (insights.length
+        ? '<div class="umsh-preview-insights">' + insights.map(function (line, index) {
+            return '<article class="umsh-insight">'
+              + '<span class="umsh-insight-index" aria-hidden="true">' + ('0' + (index + 1)).slice(-2) + '</span>'
+              + '<p>' + escapeHtml(line) + '</p></article>';
+          }).join('') + '</div>'
+        : '')
+      + '<p class="umsh-preview-paid">' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(href) + '">전체 해석 목차 보기</a>';
+  }
+  /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
+  function renderReportInPlace(payload) {
+    if (!inPlaceEnabled()) return false;
+    var report = payload.report;
+    var host = slotNode('sections');
+    if (!host) return false;
+    ensureInPlaceStyles();
+    var selected = new URLSearchParams(location.search).get('section') || '';
+    var opened = Array.prototype.map.call(host.querySelectorAll('details[open]'), function (item) { return item.dataset.section; });
+    fillText('title', report.title);
+    fillText('subtitle', report.subtitle);
+    host.innerHTML = report.sections.map(function (section, index) {
+      var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
+      var body = ready ? richSectionBody(section) : (
+        '<div class="umsh-section-skeleton" role="status" aria-live="polite">' +
+          '<strong>' + escapeHtml(labelText(section.classification) || '이 항목') + ' 해석을 준비하고 있어요</strong>' +
+          '<p>' + (section.status === 'failed'
+            ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.'
+            : '목차는 바로 보실 수 있고, 이 장의 풀이가 끝나는 대로 채워집니다.') + '</p>' +
+          (section.status === 'failed'
+            ? '<button type="button" class="reading-retry" data-retry-section="' + escapeHtml(section.id) + '">이 항목 다시 준비하기</button>'
+            : '<div class="interpret-progress" aria-hidden="true"></div>') +
+        '</div>');
+      var open = opened.indexOf(section.id) !== -1 || selected === section.id
+        || selected === section.generationId || (!opened.length && !selected && index === 0);
+      return '<details class="reading-card ' + sectionStateClass(section) + '" data-section="' + escapeHtml(section.id) + '"' + (open ? ' open' : '') + '>' +
+        '<summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' +
+        body + '</details>';
+    }).join('');
+    revealAncestors(host);
+    markFilled(host);
+    renderProgress(report);
+    return true;
+  }
+  /** 진행 안내를 디자인 안 상태 슬롯에 표시한다. 본문 슬롯은 건드리지 않는다. */
+  function statusInPlace(message) {
+    if (!inPlaceEnabled()) return false;
+    var node = slotNode('state');
+    if (!node) return false;
+    ensureInPlaceStyles();
+    node.innerHTML = '<p class="umsh-gate-message" role="status">' + escapeHtml(message) + '</p>';
+    revealAncestors(node);
+    markFilled(node);
+    return true;
+  }
+  /** 접근 차단 안내를 디자인 안에서 보여준다. 본문 슬롯은 채우지 않아 가려진 채로 둔다. */
+  function gateInPlace(message) {
+    if (!inPlaceEnabled()) return false;
+    var node = slotNode('state');
+    if (!node) return false;
+    ensureInPlaceStyles();
+    node.innerHTML = '<p class="umsh-gate-message" role="status">' + escapeHtml(message) + '</p>' +
+      '<p class="umsh-gate-actions">' +
+        '<a href="/signup?entry=saved-report&returnTo=' + encodeURIComponent(location.pathname + location.search) + '#login">로그인</a>' +
+        ' · <a href="' + escapeHtml(route ? route[0] : '/') + '">서비스로 돌아가기</a>' +
+      '</p>';
+    markFilled(node);
+    return true;
+  }
+
+
+  /* ==================================================================
+   * 톤 v2 섹션 렌더
+   *
+   * `SectionStorytelling` 은 본문 문단 말고도 아래를 싣고 온다.
+   *   feel · softBridge · tableMd/tableCaption · chartPoints/chartCaption
+   *   · scene · actions[]
+   * 여기에 섹션 단위 이미지(imageSrc/imageAlt)와 근거(patternKeys/ragTopics)가 붙는다.
+   *
+   * 기존 `readySectionBody()` 는 hook + 문단만 그려서 이 중 대부분을 버렸다.
+   * 등록 디자인이 이미 이미지·표·행동 블록을 전제로 잡혀 있으므로, 빠진 만큼을
+   * 여기서 만들어 채운다. storytelling 이 없으면 기존 렌더로 폴백한다.
+   * ================================================================== */
+
+  /** 마크다운 파이프 표를 안전한 HTML 표로. 셀은 전부 이스케이프한다. */
+  function renderMarkdownTable(markdown, caption) {
+    var lines = String(markdown || '').split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
+    var rows = lines.filter(function (line) { return line.indexOf('|') !== -1; }).map(function (line) {
+      return line.replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (cell) { return cell.trim(); });
+    });
+    // 두 번째 줄이 --- 구분선이면 헤더가 있는 표다.
+    var hasHeader = rows.length > 1 && rows[1].every(function (cell) { return /^:?-{2,}:?$/.test(cell); });
+    if (hasHeader) rows.splice(1, 1);
+    if (!rows.length) return '';
+    var head = hasHeader
+      ? '<thead><tr>' + rows[0].map(function (cell) { return '<th scope="col">' + escapeHtml(cell) + '</th>'; }).join('') + '</tr></thead>'
+      : '';
+    var bodyRows = hasHeader ? rows.slice(1) : rows;
+    var body = '<tbody>' + bodyRows.map(function (row) {
+      return '<tr>' + row.map(function (cell) { return '<td>' + escapeHtml(cell) + '</td>'; }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    return '<figure class="story-table-figure">' +
+      '<div class="story-table-scroll"><table class="story-table">' + head + body + '</table></div>' +
+      (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '') +
+      '</figure>';
+  }
+
+  /**
+   * 수평 막대. 항목이 적고(보통 3~6개) 크기 비교가 목적이라 막대가 맞다.
+   * 단일 계열이라 범례를 두지 않고, 값과 설명을 전부 글자로 직접 붙인다 —
+   * 색만으로 정보를 전달하지 않고, 표 대체본이 따로 필요하지도 않게 된다.
+   */
+  function renderStoryChart(points, caption) {
+    var list = (points || []).filter(function (point) {
+      return point && typeof point.value === 'number' && isFinite(point.value);
+    });
+    if (!list.length) return '';
+    var max = list.reduce(function (acc, point) { return Math.max(acc, Math.abs(point.value)); }, 0) || 1;
+    var bars = list.map(function (point) {
+      var percent = Math.max(2, Math.round((Math.abs(point.value) / max) * 100));
+      var note = String(point.note || '').trim();
+      return '<li class="story-chart-row"' + (note ? ' title="' + escapeHtml(note) + '"' : '') + '>' +
+        '<div class="story-chart-head">' +
+          '<span class="story-chart-label">' + escapeHtml(point.label) + '</span>' +
+          '<span class="story-chart-value">' + escapeHtml(String(point.value)) + '</span>' +
+        '</div>' +
+        '<div class="story-chart-track"><div class="story-chart-fill" style="width:' + percent + '%"></div></div>' +
+        (note ? '<p class="story-chart-note">' + escapeHtml(note) + '</p>' : '') +
+        '</li>';
+    }).join('');
+    var summary = list.map(function (point) { return point.label + ' ' + point.value; }).join(', ');
+    return '<figure class="story-chart-figure">' +
+      '<ul class="story-chart" role="img" aria-label="' + escapeHtml(summary) + '">' + bars + '</ul>' +
+      (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '') +
+      '</figure>';
+  }
+
+  /** 섹션 전용 이미지. 등록 디자인의 장면 이미지가 여기로 들어온다. */
+  function renderSectionImage(section) {
+    var src = String(section.imageSrc || '').trim();
+    if (!src) return '';
+    return '<figure class="story-image">' +
+      '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
+      '</figure>';
+  }
+
+  /** 근거 칩. 어떤 기준으로 본 해석인지 드러낸다. */
+  function renderSectionEvidence(section) {
+    var keys = []
+      .concat(Array.isArray(section.patternKeys) ? section.patternKeys : [])
+      .concat(Array.isArray(section.ragTopics) ? section.ragTopics : [])
+      .map(function (key) { return String(key || '').trim(); })
+      .filter(Boolean);
+    var seen = {};
+    var unique = keys.filter(function (key) { if (seen[key]) return false; seen[key] = 1; return true; }).slice(0, 8);
+    if (!unique.length) return '';
+    return '<div class="story-evidence"><span class="reading-role">확인된 기준</span>' +
+      '<ul>' + unique.map(function (key) { return '<li>' + escapeHtml(key) + '</li>'; }).join('') + '</ul></div>';
+  }
+
+  function paragraphsOf(value) {
+    return String(value || '').split(/\n\s*\n/).map(function (part) { return part.trim(); }).filter(Boolean);
+  }
+
+  /** 톤 v2 본문. storytelling 이 없으면 기존 렌더로 넘긴다. */
+  function richSectionBody(section) {
+    var story = section && section.storytelling;
+    if (!story) return readySectionBody(section);
+
+    var blocks = [];
+    blocks.push(renderSectionImage(section));
+
+    var hook = String(section.hook || '').trim();
+    if (hook) blocks.push(readingBlock('answer', '한 줄 답', [hook]));
+    if (story.feel) blocks.push(readingBlock('feel', '지금 상태', paragraphsOf(story.feel)));
+    if (story.softBridge) blocks.push(readingBlock('bridge', '이어서', paragraphsOf(story.softBridge)));
+
+    // 본문에서 hook 중복을 덜어낸다.
+    var interpretation = String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim();
+    if (hook && interpretation.indexOf(hook) === 0) interpretation = interpretation.slice(hook.length).trim();
+    var body = paragraphsOf(interpretation);
+    if (body.length) blocks.push(readingBlock('evidence', '근거', body));
+
+    if (story.tableMd) blocks.push(renderMarkdownTable(story.tableMd, story.tableCaption));
+    if (story.chartPoints && story.chartPoints.length) blocks.push(renderStoryChart(story.chartPoints, story.chartCaption));
+    if (story.scene) blocks.push(readingBlock('scene', '생활 장면', paragraphsOf(story.scene)));
+
+    if (Array.isArray(story.actions) && story.actions.length) {
+      blocks.push('<section class="reading-block reading-action" aria-label="지금 할 것">' +
+        '<span class="reading-role">지금 할 것</span>' +
+        '<ol class="story-actions">' + story.actions.map(function (action) {
+          return '<li>' + escapeHtml(String(action)) + '</li>';
+        }).join('') + '</ol></section>');
+    }
+
+    blocks.push(renderSectionEvidence(section));
+    return blocks.filter(Boolean).join('');
+  }
+
   function showPreview(payload, request) {
     authorized = null;
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
+    // 등록 디자인에 슬롯이 있으면 화면을 갈아끼우지 않고 슬롯만 채운다.
+    if (renderPreviewInPlace(payload)) { if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search); return; }
+    // 옵트인한 페이지에서 여기까지 왔다면 자리조차 만들 수 없었다는 뜻이다. 그래도
+    // 디자인을 지우지는 않는다 — 사용자가 본 것은 등록 화면이고, 갈아끼우면 남의 화면이 된다.
+    if (inPlaceEnabled()) { if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search); return; }
     var preview = payload.preview || {};
-    var insights = (preview.signals || preview.insights || []).filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
+    var sourceInsights = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
+    var insights = sourceInsights.filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
     var node = panel();
-    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 내 입력으로 먼저 보는 해석</span><h1 style="font-size:26px">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p>' + escapeHtml(preview.summary || '') + '</p>' + insights.map(function(line){return '<p>' + escapeHtml(line) + '</p>';}).join('') + '<hr><h2 style="font-size:20px">전체 풀이에서 더 확인할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p><a id="umsh-preview-checkout" style="display:block;margin-top:20px;padding:12px;text-align:center;background:#e5bd69;color:#171109;border-radius:10px" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 열어보기</a><p style="font-size:13px">현재 미리보기는 결제 전 확인할 수 있는 범위입니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
+    node.innerHTML = navigation()
+      + '<header class="preview-heading"><span class="preview-eyebrow">운명상회 · 내 입력으로 먼저 보는 해석</span><h1>' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p class="preview-summary">' + escapeHtml(preview.summary || '') + '</p></header>'
+      + '<section class="preview-evidence" aria-labelledby="preview-evidence-title"><span class="reading-role">대표 근거</span><h2 id="preview-evidence-title">지금 먼저 확인할 장면</h2><div class="preview-evidence-list">' + insights.map(function(line,index){return '<article><span aria-hidden="true">0'+(index+1)+'</span><p>' + escapeHtml(line) + '</p></article>';}).join('') + '</div></section>'
+      + '<section class="preview-scope" aria-labelledby="preview-scope-title"><span class="reading-role">전체 해석 범위</span><h2 id="preview-scope-title">이어서 비교할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p></section>'
+      + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
     if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search);
   }
   function showReport(payload) {
@@ -118,17 +658,26 @@
     authorized = report;
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
+    if (renderReportInPlace(payload)) return;
+    if (inPlaceEnabled()) return;
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});
     node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 저장된 전체 해석</span><h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p><p style="font-size:13px">이 주소로 다시 열면 같은 해석을 확인합니다.</p>' + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
-      var body = ready ? String(section.interpretation).split(/\n\s*\n/).filter(Boolean).map(function(paragraph){return '<p style="white-space:pre-wrap">' + escapeHtml(paragraph) + '</p>';}).join('') : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" style="padding:10px 14px;border:1px solid #6b522c;background:#211a11;color:#f5ead7;border-radius:8px;cursor:pointer" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
-      var duplicateHook=section.hook && String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim().startsWith(section.hook);
-      return '<details data-section="' + escapeHtml(section.id) + '" style="border-top:1px solid #6b522c;padding:18px 0"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary style="cursor:pointer;font-weight:700">' + escapeHtml(section.category + ' · ' + section.classification) + '</summary>' + (ready && section.hook && !duplicateHook?'<p><strong>'+escapeHtml(section.hook)+'</strong></p>':'') + body + '</details>';
+      var body = ready ? readySectionBody(section) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
+      return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' + body + '</details>';
     }).join('');
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+  }
+  function expandReportForPrint() {
+    printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));
+    printOpenedSections.forEach(function (item) { item.setAttribute('open', ''); });
+  }
+  function restoreReportAfterPrint() {
+    printOpenedSections.forEach(function (item) { item.removeAttribute('open'); });
+    printOpenedSections = [];
   }
   function validTodayScore(value) {
     return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100 ? value : null;
@@ -211,10 +760,15 @@
     return response;
   }
   async function boot() {
-    if (booting || !key || !isOutputPage()) return;
+    if (booting || (!key && !isPermalink()) || !isOutputPage()) return;
     var id=locationId() || rememberedId;
     booting=true;
-    panel().innerHTML='<p role="status">저장된 해석과 열람 권한을 확인하고 있습니다.</p>';
+    // 확인 중이라는 문구는 화면에 쓰지 않는다. 등록 디자인이 이미 떠 있고, 곧
+    // 진행률이나 본문이 그 자리를 채운다. 옵트인하지 않은 화면에서만 예전처럼 알린다.
+    // (panel() 은 등록 디자인을 통째로 감추므로 in-place 화면에서는 절대 부르지 않는다.)
+    if (!inPlaceEnabled()) {
+      panel().innerHTML='<p role="status">저장된 해석을 확인하고 있습니다.</p>';
+    }
     try {
       var config=await rawFetch('/api/auth/config').then(function(r){return r.json();});
       if(config.developmentReportAccess===true) {headerCache={};if(id)await refresh(id);return;}
@@ -255,12 +809,20 @@
       }
     } catch(_) {}
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,verifiedReport:function(){return authorized;},identity:identity};
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,verifiedReport:function(){return authorized;},identity:identity};
   if (typeof document !== 'undefined') {
-    if(key && isOutputPage() && document.documentElement && document.head) {
+    if (global.addEventListener) {
+      global.addEventListener('beforeprint', expandReportForPrint);
+      global.addEventListener('afterprint', restoreReportAfterPrint);
+    }
+    if((key || isPermalink()) && isOutputPage() && document.documentElement && document.head) {
       document.documentElement.setAttribute('data-umsh-report-check','');
       var guard=document.createElement('style');
-      guard.textContent='html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
+      // in-place 페이지는 디자인을 살린다. 대신 검증 전 슬롯을 가려서 정적 샘플 문구가
+      // 내 결과처럼 잠깐이라도 보이는 일을 막는다. 진행률 슬롯은 처음부터 보여야 한다.
+      guard.textContent = inPlaceEnabled()
+        ? 'html[data-umsh-report-check][data-umsh-verified-inplace] [data-umsh-slot]:not([data-umsh-slot="progress"]):not([data-umsh-filled]){visibility:hidden}'
+        : 'html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
       document.head.appendChild(guard);
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();

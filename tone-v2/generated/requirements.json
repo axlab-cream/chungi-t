@@ -1,0 +1,1108 @@
+[
+  {
+    "id": "TV-00-1",
+    "source": "규격/00-인계-README.md",
+    "line": 1,
+    "title": "운명상회 톤앤보이스 규격 — 인계",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-5",
+    "source": "규격/00-인계-README.md",
+    "line": 5,
+    "title": "이게 무엇인가",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-10",
+    "source": "규격/00-인계-README.md",
+    "line": 10,
+    "title": "⚠️ 먼저 — `pilot/full20/out12/` 는 납품물이 아니다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-24",
+    "source": "규격/00-인계-README.md",
+    "line": 24,
+    "title": "규격 문서",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-38",
+    "source": "규격/00-인계-README.md",
+    "line": 38,
+    "title": "검사 도구 (`pilot/`)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-66",
+    "source": "규격/00-인계-README.md",
+    "line": 66,
+    "title": "확정 상태",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-76",
+    "source": "규격/00-인계-README.md",
+    "line": 76,
+    "title": "아직 초안인 것",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-83",
+    "source": "규격/00-인계-README.md",
+    "line": 83,
+    "title": "다음 단계",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-85",
+    "source": "규격/00-인계-README.md",
+    "line": 85,
+    "title": "긴 목차 실전 검증 — **5개 서비스 180항목** (2026-09-10)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-111",
+    "source": "규격/00-인계-README.md",
+    "line": 111,
+    "title": "⚠️ 목차 대조는 **검사 항목이었는데 아무도 안 보고 있었다**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-133",
+    "source": "규격/00-인계-README.md",
+    "line": 133,
+    "title": "파이프라인 튜닝 값 — **규격이 아니라 생성 설정이다**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-147",
+    "source": "규격/00-인계-README.md",
+    "line": 147,
+    "title": "병렬 생성기",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-161",
+    "source": "규격/00-인계-README.md",
+    "line": 161,
+    "title": "처음 검증 기록 (퇴사운 48항목)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-178",
+    "source": "규격/00-인계-README.md",
+    "line": 178,
+    "title": "배치 생성에는 **파이프라인 요구사항**이 있다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-192",
+    "source": "규격/00-인계-README.md",
+    "line": 192,
+    "title": "남은 것 — 말버릇 반복 2건",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-197",
+    "source": "규격/00-인계-README.md",
+    "line": 197,
+    "title": "목차는 **제작 쪽이 만들지 않는다**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-00-215",
+    "source": "규격/00-인계-README.md",
+    "line": 215,
+    "title": "그래서 다음 단계",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1,
+    "title": "공통 프롬프트 규칙",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-10",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 10,
+    "title": "1. 답변의 첫머리",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-17",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 17,
+    "title": "2. 근거의 위계",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-28",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 28,
+    "title": "2-1. 숫자는 두 종류다 — **처방 숫자를 만들지 않는다** (2026-09-10 추가)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-57",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 57,
+    "title": "3. 코퍼스와 LLM의 역할",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-65",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 65,
+    "title": "4. 유료 해석의 밀도",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-81",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 81,
+    "title": "5. 항목별 고유성",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-89",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 89,
+    "title": "6. 말투와 캐릭터",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-104",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 104,
+    "title": "7. 전문용어",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-112",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 112,
+    "title": "8. 점수·그래프·표",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-120",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 120,
+    "title": "9. 티저 규칙",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-131",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 131,
+    "title": "10. 안전과 확정 표현",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-140",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 140,
+    "title": "11. 가독성과 UI 문장",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-154",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 154,
+    "title": "12. 생성 후 필수 검수",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-178",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 178,
+    "title": "13. 날카로움의 실행 규격 ★ 신설",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-183",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 183,
+    "title": "13-1. 첫 문장은 판정이거나, 한 문장짜리 인정이다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-231",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 231,
+    "title": "13-2. 위로는 한 문장으로 끝낸다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-240",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 240,
+    "title": "13-3. 회피 중인 것에 이름을 붙인다 — **있을 때만**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-264",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 264,
+    "title": "13-4. 비용은 숫자나 기간으로 쓴다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-271",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 271,
+    "title": "13-5. 판정문의 형식은 항목 유형이 정한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-287",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 287,
+    "title": "말투별 대응 — §6이 §13보다 위다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-306",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 306,
+    "title": "13-6. 안전 영역에는 체언 판정을 쓰지 않는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-325",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 325,
+    "title": "13-7. 매운맛의 과녁은 미래가 아니라 현재의 선택이다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-334",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 334,
+    "title": "13-8. 리포트당 체언 판정은 전체 항목의 30% 이내 — **단 서비스 구성에 따른다**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-405",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 405,
+    "title": "13-9. 잘하고 있으면 같은 강도로 유지를 말한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-415",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 415,
+    "title": "13-10. 인격이 아니라 선택을 지적한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-432",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 432,
+    "title": "13-15. 안전 연락처는 고정값이다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-446",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 446,
+    "title": "13-17. 반말체 — 쓸 수 있다. 단 조건이 있다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-451",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 451,
+    "title": "반말이 이미 쓰이고 있는 자리 (유지)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-462",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 462,
+    "title": "본문에 반말체를 쓸 수 있는 조건",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-471",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 471,
+    "title": "반말체에서도 절대 금지",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-486",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 486,
+    "title": "인용 반말은 모든 서비스에서 허용",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-495",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 495,
+    "title": "13-16. 금지어는 단어가 아니라 용법으로 검사한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-514",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 514,
+    "title": "13-11. 2인칭은 무호칭",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-531",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 531,
+    "title": "13-12. 해당 없는 항목은 비우지도, 채우지도 않는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-546",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 546,
+    "title": "13-13. 판정 근거가 없으면 「무엇이 있으면 판정되는지」를 쓴다 ★",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-561",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 561,
+    "title": "13-14. 사용자가 질문 시점을 지났으면 질문을 다시 세운다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-588",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 588,
+    "title": "14. 재미의 실행 규격 ★ 신설",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-599",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 599,
+    "title": "14-1. 재미의 조건은 하나다 — 맞아야 한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-611",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 611,
+    "title": "14-2. 재미의 핵심 장치는 「반전」이다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-628",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 628,
+    "title": "반전의 형태도 하나가 아니다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-644",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 644,
+    "title": "14-3. 이름 붙이기 — 말 못 하던 것에 이름을 준다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-656",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 656,
+    "title": "14-4. 비용 노출 — 숫자는 가장 매운 재미다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-667",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 667,
+    "title": "14-5. 해상도 — 남들이 뭉뚱그리는 것을 쪼갠다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-684",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 684,
+    "title": "14-6. 전달 — 장면과 리듬은 재미의 그릇이다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-695",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 695,
+    "title": "14-7. 재미 강도는 「위트의 양」이지 「정확도의 양」이 아니다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-707",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 707,
+    "title": "14-9. 틈(Gap) — 완벽한 냉소가는 매력이 없다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-716",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 716,
+    "title": "틈은 어디에 두나 — 항목의 마지막 한 문장",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-732",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 732,
+    "title": "틈의 세 가지 형태 — 서비스에 맞는 것 하나만",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-743",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 743,
+    "title": "틈이 필요 없는 경우",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-748",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 748,
+    "title": "14-10. 말끝 처리는 결마다 다르다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-765",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 765,
+    "title": "14-8. 이렇게 만든 재미는 재미가 아니다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-779",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 779,
+    "title": "15. 매운맛의 결 ★ 신설",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-787",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 787,
+    "title": "15-1. 일곱 가지 결",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-799",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 799,
+    "title": "15-1-1. 시니컬과 서늘함은 문법이 있다 — 한 줄 정의로는 안 나온다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-804",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 804,
+    "title": "시니컬 — `money_save` 전용 (20개 중 하나뿐)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-822",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 822,
+    "title": "서늘함 — 마키마형 (`quit_fortune` · `saju_master` · `love_spouse`)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-836",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 836,
+    "title": "서늘함의 행동 지시는 **요청·확인형**이다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-852",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 852,
+    "title": "15-1-3. 찌르는 셋은 **거리와 온기**로 가른다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-873",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 873,
+    "title": "15-1-2. 결별 레퍼런스 — **내부 참조용. 프롬프트에 넣지 않는다**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-898",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 898,
+    "title": "15-2. 결은 서비스당 하나. 섞지 않는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-903",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 903,
+    "title": "15-3. 결은 「말투」와 다르다 — 둘 다 지정한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-917",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 917,
+    "title": "15-4. 결마다 넘어가는 지점이 다르다 — 검수는 결별로 본다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-947",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 947,
+    "title": "16. 뼈 때리기 — 모호함 제거 ★ 신설",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-956",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 956,
+    "title": "16-1. 설명조를 쓰지 않는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-974",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 974,
+    "title": "16-2. 정면 부정 — 사용자의 자기 인식을 뒤집는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1041",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1041,
+    "title": "16-3. 모호어 전면 금지",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1058",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1058,
+    "title": "16-4. 숫자는 비교로 놓는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1070",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1070,
+    "title": "16-5. §15(결)보다 위가 아니다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1089",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1089,
+    "title": "16-6. 검수",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1100",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1100,
+    "title": "17. 어휘층 — 요즘 말로 쓴다 ★ 신설",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1111",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1111,
+    "title": "17-1. 세 층을 구분한다. 낡는 속도가 다르다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1121",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1121,
+    "title": "17-2. 문어체 금지 목록",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1138",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1138,
+    "title": "17-3. 세대 어휘는 서비스별로 배정한다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1152",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1152,
+    "title": "17-4. 항목당 1~2개. 도배하지 않는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-01-1161",
+    "source": "규격/01-공통-프롬프트-규칙.md",
+    "line": 1161,
+    "title": "17-5. 검수",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-1",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 1,
+    "title": "핵심 약속 20개 — 결정 화행 개사안",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-3",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 3,
+    "title": "왜 고치는가",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-21",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 21,
+    "title": "개사 원칙",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-32",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 32,
+    "title": "20개 개사표",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-59",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 59,
+    "title": "개사 후 화행 분포",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-66",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 66,
+    "title": "안전 점검",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-02-78",
+    "source": "규격/02-핵심약속-개사안.md",
+    "line": 78,
+    "title": "반영 방법",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-1",
+    "source": "규격/03-말투-배정안.md",
+    "line": 1,
+    "title": "20개 서비스 말투 배정안",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-12",
+    "source": "규격/03-말투-배정안.md",
+    "line": 12,
+    "title": "1. 말투 팔레트 (5종)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-26",
+    "source": "규격/03-말투-배정안.md",
+    "line": 26,
+    "title": "2. 반말체 후보 — §13-17의 4조건으로 거른다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-39",
+    "source": "규격/03-말투-배정안.md",
+    "line": 39,
+    "title": "왜 이 둘인가",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-48",
+    "source": "규격/03-말투-배정안.md",
+    "line": 48,
+    "title": "왜 나머지는 아닌가",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-57",
+    "source": "규격/03-말투-배정안.md",
+    "line": 57,
+    "title": "3. 해요체 17개를 구분하는 법 — 어미가 아니라 세 축으로",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-73",
+    "source": "규격/03-말투-배정안.md",
+    "line": 73,
+    "title": "4. 최종 배정표",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-101",
+    "source": "규격/03-말투-배정안.md",
+    "line": 101,
+    "title": "하게체 2개 구분 (05 §3 미해결 항목) — 측정으로 확정",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-03-125",
+    "source": "규격/03-말투-배정안.md",
+    "line": 125,
+    "title": "5. 반영 시 주의",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-1",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 1,
+    "title": "20개 서비스 페르소나 상세 규정",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-35",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 35,
+    "title": "01. 오늘운 `today_fortune` · 무료",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-62",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 62,
+    "title": "02. 나한테 운 붙는 색과 물건 `lucky_color` · 4,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-89",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 89,
+    "title": "03. 천명사주 `saju_master` · 49,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-117",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 117,
+    "title": "04. 올해 연애운 `love_this_year` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-144",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 144,
+    "title": "05. 직장 선택 `job_choice` · 9,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-172",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 172,
+    "title": "06. 퇴사운 `quit_fortune` · 14,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-214",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 214,
+    "title": "07. 소비성향 `money_save` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-242",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 242,
+    "title": "08. 고양이 궁합 `cat_compatibility` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-270",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 270,
+    "title": "09. 커플궁합 `match_couple` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-298",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 298,
+    "title": "10. 결혼궁합 `marry_match` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-325",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 325,
+    "title": "11. 관계 신호 `couple_signal` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-366",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 366,
+    "title": "12. 나, 붙을 각이야? `pass_angle` · 9,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-393",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 393,
+    "title": "13. 이직운 `work_move` · —",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-420",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 420,
+    "title": "14. 직업운 `work_job` · 목록 숨김",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-447",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 447,
+    "title": "15. 상대방 마음 `love_mind` · 목록 숨김 · **공통 연애 캐릭터**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-477",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 477,
+    "title": "16. 재회운 `love_again` · 목록 숨김 · **공통 연애 캐릭터**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-508",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 508,
+    "title": "17. 배우자운 `love_spouse` · 목록 숨김 · **공통 연애 캐릭터**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-544",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 544,
+    "title": "18. 집 풍수 `home_fit` · 19,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-571",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 571,
+    "title": "19. 내 2027년, 풀릴 각이야? `newyear_flow` · 19,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-598",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 598,
+    "title": "20. 우리 결혼, 이날 해도 될까? `wedding_day` · 24,900",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-626",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 626,
+    "title": "결 배정 요약",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-641",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 641,
+    "title": "담백·차가움 조합 6개는 판정 축과 리듬으로 가른다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-657",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 657,
+    "title": "겹침은 전체가 아니라 **구매 트랙 안**에서 본다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-685",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 685,
+    "title": "왜 축만으로는 모자랐나",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-718",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 718,
+    "title": "미정 (별도 트랙)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-729",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 729,
+    "title": "서비스별 어휘 배정 (§17-3)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-734",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 734,
+    "title": "적극 등급 (8개)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-752",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 752,
+    "title": "제한 등급 (9개) — 세대 어휘는 조금만. 나머지는 일반 어휘로",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-772",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 772,
+    "title": "금지 등급 (3개) — 세대 어휘 없음. 3층(리듬)만",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-04-783",
+    "source": "규격/04-페르소나-상세규정.md",
+    "line": 783,
+    "title": "문어체 교체 예시 (전 서비스 공통 · §17-2)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-1",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 1,
+    "title": "서비스 편집 결정표 (개정본)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-12",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 12,
+    "title": "1. 톤 결정표 (9칸)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-48",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 48,
+    "title": "바뀐 값 정리 — 20개 중 8칸만 바뀌었다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-61",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 61,
+    "title": "2. 해요체 17개를 가르는 것 — 어미가 아니다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-72",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 72,
+    "title": "3. 하게체 2개 구분 (실측 확정)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-81",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 81,
+    "title": "4. 반말체 2개 — 조건과 환원 기준",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-95",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 95,
+    "title": "5. 별도 트랙 — 톤과 함께 정하지 않는다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-99",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 99,
+    "title": "5-1. 페르소나 성별·형태",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-109",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 109,
+    "title": "5-2. PDF 목표 장수",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-116",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 116,
+    "title": "6. 개정 대상은 20개가 아니라 16개다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-05-123",
+    "source": "규격/05-서비스-편집-결정표.md",
+    "line": 123,
+    "title": "7. 충돌 검사 (기존 §3 유지 + 추가)",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-1",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 1,
+    "title": "운명상회 캐릭터 ↔ 말투 대조표",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-14",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 14,
+    "title": "1. 캐릭터는 몇 명인가 — **18명**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-25",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 25,
+    "title": "2. 20개 전량 대조표",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-55",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 55,
+    "title": "3. 말투 배정을 바꾼 3건 — 시각 자산과 부딪혔다",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-68",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 68,
+    "title": "4. 마키마형 지정 — `quit_fortune` 퇴사운",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-92",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 92,
+    "title": "5. 구매 트랙 안에서 겹치는 인물 — **0건**",
+    "verification": "NEEDS_REVIEW"
+  },
+  {
+    "id": "TV-07-104",
+    "source": "규격/07-캐릭터-말투-대조표.md",
+    "line": 104,
+    "title": "6. 부착 전 확인할 것",
+    "verification": "NEEDS_REVIEW"
+  }
+]

@@ -21,7 +21,8 @@ test('newyear keeps the marketing shell and loads the shared access guard before
 test('newyear output pages contain no sample interpretation or lossy redirect', () => {
   for (const page of pages.slice(2)) {
     const html = read('사주/flow/newyear/'+page)
-    assert.match(html, /저장된 해석과 열람 권한을 확인하고 있습니다/)
+    // 내부 안내 문구는 노출하지 않는다(사용자 요청). 되돌아오지 않도록 부재를 고정한다.
+    assert.doesNotMatch(html, /저장된 해석과 열람 권한을 확인하고 있습니다/)
     assert.doesNotMatch(html, /http-equiv="refresh"|assets\/app\.js|data-detail-bars|data-detail-cards/)
     assert.doesNotMatch(html, /새해 초반은 계획을 넓히기보다|올해 당신의 흐름에는|감정 구간/)
   }

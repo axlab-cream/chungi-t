@@ -1,0 +1,66 @@
+{
+  "taskId": "task-tone-v2-p04-pass-angle-item3-recovery",
+  "date": "2026-09-13",
+  "service": "pass_angle",
+  "version": "p04-repair-next-criterion-retention-20260912-1",
+  "syntheticOnly": true,
+  "providerCalls": 0,
+  "providerConfiguredDuringRecovery": false,
+  "reportId": "e82e82d0def03bd2055495c751a3",
+  "resultId": "e7128f6c-488f-4c41-98e9-96482c9dbea6",
+  "target": { "order": 3, "id": "pass-angle-support-vs-drag" },
+  "before": {
+    "recordStatus": "failed",
+    "progress": { "complete": 2, "total": 52 },
+    "revision": 18,
+    "targetStatus": "failed",
+    "targetAttempts": 2,
+    "fileSha256": "90bbc4551d935a5c0b258039347f4b5bba099762f6915534c73008c6da836101"
+  },
+  "after": {
+    "recordStatus": "generating",
+    "progress": { "complete": 3, "total": 52 },
+    "revision": 19,
+    "targetStatus": "complete",
+    "targetAttempts": 2,
+    "fileSha256": "912f0a338e196c9751e8dac2df9bb3e4fb95647f1298267cc4ab7b0998a4d7b3",
+    "logicalRecordSha256": "11c26d3cf1ef31eaf895efbdd8c289418405ad7a5a27b75e24e6e194c0211d13"
+  },
+  "immutableEvidence": {
+    "identitiesSha256": "c7d1d5642bed8b6020fe11c4da59799f64b15f77d978183c15d675c0d7aa22d5",
+    "predecessorsSha256": "662790a8184bbc26117351b1b90521cdb08049c94b506cdaf54c02c80b70a921",
+    "attemptsSha256": "37de209aae6d2f2482cb310284dba47b2276028c94e7b709780ca993db37b105",
+    "attemptRawSha256": [
+      "febc1e0359d6f3a0ac360de59505051f2437f48e0cc51e9a89dd653763c89b2a",
+      "e6b80e10c7ff70856ccece467d4d7f64db1743ca73be307a9fcc35b4f884d7e4"
+    ],
+    "laterSectionsSha256": "f32cf5e752a3c982cec5c62f00ded39fded55a09e9957f940d4cd8440bb815ae",
+    "laterAttemptCount": 0
+  },
+  "idempotency": {
+    "concurrentCallers": 2,
+    "additionalSequentialCalls": 1,
+    "revisionDelta": 1,
+    "passed": true
+  },
+  "replay": {
+    "completedItems": 3,
+    "allCompletedItemsPassedProductionReview": true,
+    "firstFailure": null,
+    "items4Through52RemainPending": true
+  },
+  "tdd": {
+    "red": { "passed": 0, "failed": 1, "reason": "missing explicit recovery export" },
+    "green": { "passed": 12, "failed": 0 },
+    "reviewFollowupFocused": { "passed": 13, "failed": 0 },
+    "related": { "passed": 53, "failed": 0 }
+  },
+  "verification": {
+    "compilerAndTask": { "passed": 7, "failed": 0 },
+    "full": { "passed": 690, "failed": 0, "suites": 101 },
+    "typecheck": "PASS",
+    "vercelBuild": "PASS",
+    "independentReview": "Approved with comments; Critical 0, Major 0"
+  },
+  "wholeFileHashExpectedToChange": "The snapshot contains the approved status and revision transition; attempt raw hashes are the immutable content evidence."
+}

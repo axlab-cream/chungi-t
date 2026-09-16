@@ -20,6 +20,7 @@ import {
   checkReportStorageReadiness,
   createOrGetReportRecord,
   createReportId,
+  createReportLineageId,
   deleteReportRecord,
   getReportStorageMode,
   findReportRecord,
@@ -31,6 +32,7 @@ import {
   withReportBirthCertainty,
 } from '../report/report-store.js'
 import { createSavedPreview, guardPreview } from '../report/report-preview.js'
+import { selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
@@ -46,11 +48,17 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
-import { createAdminServiceDraft, getAdminServiceVersionSnapshot, publishAdminServiceDraft, updateAdminServiceDraft } from '../admin/service-version-store.js'
+import { createAdminServiceDraft, publishAdminServiceDraft, updateAdminServiceDraft } from '../admin/service-version-store.js'
 import { parseServiceDraftFields } from '../admin/service-draft.js'
 import { approveAdminSupportNoticeDraft, cancelAdminSupportNoticeSchedule, createAdminSupportNoticeDraft, getAdminSupportNoticeSnapshot, getPublishedSupportNotice, publishAdminSupportNoticeDraft, publishDueSupportNotices, requestAdminSupportNoticeApproval, scheduleAdminSupportNoticeDraft, updateAdminSupportNoticeDraft } from '../admin/notice-version-store.js'
 import { parseNoticeDraftFields, parseNoticeReviewNote, parseNoticeScheduleAt } from '../admin/notice-content.js'
-import { getPublicServiceDirectorySnapshot } from './published-service-directory.js'
+import {
+  NEW_SERVICE_DRAFT_REVISION,
+  getAdminServiceVersionSnapshot,
+  listCustomerServiceDirectory,
+  publishServiceConfigVersion,
+  saveServiceConfigDraft,
+} from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
@@ -63,7 +71,17 @@ import {
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
 import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
-import { createInicisPaymentFields, createPaymentOrderId, approveInicisPayment, publicInicisConfig } from '../payment/inicis.js'
+import {
+  approveInicisMobilePayment,
+  approveInicisPayment,
+  createInicisMobilePaymentFields,
+  createInicisPaymentFields,
+  createPaymentOrderId,
+  inicisResultIsSuccess,
+  publicInicisConfig,
+  type InicisCancellationContext,
+} from '../payment/inicis.js'
+import { recoverInicisPostApprovalFailure } from '../payment/inicis-recovery.js'
 import { isPaymentTestMode } from '../payment/test-mode.js'
 import {
   PURCHASE_STATE_PENDING,
@@ -149,9 +167,9 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { listServiceDirectory, serviceHrefForKey } from './service-directory.js'
-import { getCorpusSnapshot } from '../rag/corpus-registry.js'
-import { getPromptFilesSnapshot } from '../prompt/admin-snapshot.js'
+import { listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
+import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
+import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
   buildLoveMindContext,
   buildLoveMindReport,
@@ -1366,6 +1384,9 @@ async function toUiAnalysis(
     templateReport,
     analysis,
     owner,
+    // 종합 해석 ID 에는 코퍼스 지문이 들어 있다. 코퍼스를 고치면 ID 가 바뀌어 캐시를 비켜간다.
+    // 계보 키를 주면 같은 세대 안에서는 이미 만든 해석을 이어 쓴다 — LLM 재호출이 없다.
+    lineageId: createReportLineageId(birth, enrichedContext, owner?.id),
   })
 
   // Creation and GET do not generate paid text. The reader requests bounded sections
@@ -1461,6 +1482,9 @@ function historyEntryFromRecord(record: ReportRecord) {
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
     serviceHref: serviceHrefForKey(record.context?.serviceKey),
+    // 보관함이 열 주소. 서비스가 자기 06-1 화면을 가지고 있으면 그 화면에서, 없으면
+    // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.
+    openPath: savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
     savedAt,
     title: `${birthState.name || birthState.target || '당신'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,
@@ -1595,6 +1619,25 @@ function isCheckoutLive(): boolean {
 }
 
 // Entitlement rules decide money, so they live in `src/payment/entitlement.ts` under test.
+/**
+ * 특화 서비스의 리포트 ID 는 코퍼스를 전혀 참조하지 않는다. 그래서 코퍼스를 고쳐도
+ * 그 해석들은 영원히 갱신되지 않았다. 캐시 세대를 올렸을 때만 ID 가 바뀌도록 한 겹 씌우고,
+ * 이전 세대의 해석과 결제를 찾아갈 계보 키를 함께 돌려준다.
+ *
+ * 기준 세대(cacheEpoch = "")에서 `withCorpusEpoch` 는 아무것도 하지 않는다.
+ * 즉 이 변경을 배포해도 기존 리포트 ID 는 한 건도 바뀌지 않는다.
+ */
+function epochScopedIds(baseId: string): { reportId: string; lineageId: string } {
+  return { reportId: withCorpusEpoch(baseId), lineageId: baseId }
+}
+
+/** 같은 계보로 저장된 지난 리포트 ID들. 세대를 올리기 전 결제가 여기 묶여 있다. */
+async function reportIdsInLineage(owner: ReportOwner, lineageId: string): Promise<string[]> {
+  if (!lineageId) return []
+  const records = await listReportRecords(owner, 100).catch(() => [] as ReportRecord[])
+  return records.filter((record) => record.lineageId === lineageId).map((record) => record.reportId)
+}
+
 
 /** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
 async function findUnlockingOrder(
@@ -1602,11 +1645,27 @@ async function findUnlockingOrder(
   productKey: string,
   reportId: string,
   reportCreatedAt?: string,
+  lineageId = '',
 ): Promise<PaymentOrder | null> {
   const bound = await listPaymentOrders(owner.id, 100, reportId).catch(() => [] as PaymentOrder[])
   const exact = await firstEntitlingOrder(bound, owner, productKey, reportId, reportCreatedAt)
   if (exact) return exact
   const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
+
+  // 코퍼스 세대를 올리면 리포트 ID 가 바뀐다. 지난 ID 에 묶인 주문도 같은 사람의 같은 구매다.
+  // 계보 조회는 그럴 만한 주문이 실제로 있을 때만 한다 — 결제한 적 없는 사용자의 무료 경로에
+  // 왕복을 더하지 않기 위해서다.
+  const otherReports = orders.filter((order) => (
+    order.reportId && order.reportId !== reportId && isSettledOrder(order, owner, productKey)
+  ))
+  if (otherReports.length > 0) {
+    const lineage = new Set(await reportIdsInLineage(owner, lineageId))
+    const past = otherReports.find((order) => lineage.has(String(order.reportId)))
+    if (past) return past
+  }
+
+  // 느슨한 폴백은 계보 판정 뒤에 둔다. 앞에 두면 미결속 주문을 이 열람에 묶어버려,
+  // 계보로 정확히 짚었어야 할 지난 주문이 가려진다.
   // Already-bound orders are tried first so an order that covers this reading never triggers a
   // claim write on an unbound one.
   const ordered = [...orders.filter((order) => order.reportId), ...orders.filter((order) => !order.reportId)]
@@ -1650,6 +1709,7 @@ async function resolvePaidAccess(
   productKey: string,
   reportId = '',
   reportCreatedAt?: string,
+  lineageId = '',
 ): Promise<PaidAccess> {
   if (isAdminOwner(owner) && !checkoutQaRequested(req)) return { entitled: true, reason: 'admin' }
   if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
@@ -1663,7 +1723,7 @@ async function resolvePaidAccess(
     const settled = order ? await settleOrderAccess(order, owner, productKey, reportId, reportCreatedAt) : null
     if (settled) return { entitled: true, reason: 'order', order: settled }
   }
-  const order = await findUnlockingOrder(owner, productKey, reportId, reportCreatedAt)
+  const order = await findUnlockingOrder(owner, productKey, reportId, reportCreatedAt, lineageId)
   return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
 }
 
@@ -1689,6 +1749,7 @@ async function ensurePaidServiceAccess(
   owner: ReportOwner,
   productKey: string,
   reportId = '',
+  lineageId = '',
 ): Promise<boolean> {
   if (isAdminOwner(owner) && !checkoutQaRequested(req)) return true
   if (!isCheckoutLive()) return true
@@ -1697,7 +1758,7 @@ async function ensurePaidServiceAccess(
     res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: config.setupMessage })
     return false
   }
-  const access = await resolvePaidAccess(req, owner, productKey, reportId)
+  const access = await resolvePaidAccess(req, owner, productKey, reportId, undefined, lineageId)
   if (access.entitled) return true
   res.status(402).json({
     code: 'PAYMENT_REQUIRED',
@@ -1904,21 +1965,102 @@ app.get('/api/admin/v1/services', async (req, res) => {
     res.status(503).json({ code: 'SERVICE_VERSION_LOOKUP_FAILED', error: '서비스 버전 저장소를 불러오지 못했습니다.' })
   }
 })
+/**
+ * 서비스 버전 실패 사유별 응답.
+ *
+ * 환불 경로(T18)에서 배운 것을 그대로 적용한다 — 사유마다 다른 문장을 주고,
+ * 알 수 없는 실패의 원문은 서버 로그에만 남긴다.
+ */
+const SERVICE_VERSION_FAILURES: Record<string, { status: number; error: string }> = {
+  SERVICE_VERSION_UNKNOWN_SERVICE: { status: 404, error: '카탈로그에 없는 서비스입니다. 정식 키는 만들거나 바꿀 수 없습니다.' },
+  SERVICE_VERSION_PAYLOAD_INVALID: { status: 422, error: '제목·한 줄 소개·설명·분류·노출 여부를 모두 확인해 주세요.' },
+  SERVICE_VERSION_PRICE_INVALID: { status: 422, error: '가격은 1원 이상의 정수여야 합니다.' },
+  SERVICE_VERSION_DRAFT_EXISTS: { status: 409, error: '이미 작성 중인 초안이 있습니다. 그 초안을 불러와 이어서 고쳐 주세요.' },
+  SERVICE_VERSION_NOT_FOUND: { status: 404, error: '해당 개정을 찾지 못했습니다.' },
+  SERVICE_VERSION_NOT_DRAFT: { status: 409, error: '초안 상태의 개정만 게시할 수 있습니다.' },
+  SERVICE_VERSION_REVISION_CONFLICT: { status: 409, error: '이 개정이 그사이 변경되었습니다. 다시 불러온 뒤 확인해 주세요.' },
+  SERVICE_VERSION_CHECKSUM_MISMATCH: { status: 409, error: '검토한 내용과 저장된 초안이 다릅니다. 초안을 다시 확인해 주세요.' },
+  SERVICE_VERSION_STORE_UNAVAILABLE: { status: 503, error: '서비스 버전 저장소에 연결하지 못했습니다. 임의로 저장하지 않았습니다.' },
+}
+
+function respondServiceVersionFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = SERVICE_VERSION_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  console.error(fallback, raw || 'unknown')
+  res.status(503).json({ code: fallback, error: '서비스 개정을 처리하지 못했습니다. 저장된 상태를 먼저 확인해 주세요.' })
+}
+
+/**
+ * 초안 저장. 게시 전까지 고객 화면은 전혀 바뀌지 않는다.
+ * `expectedRevision` 이 -1 이면 새 초안, 그 외에는 기존 초안을 그 판(revision)에만 적용한다.
+ */
+app.post('/api/admin/v1/services/:serviceKey/draft', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:write'); if (!membership) return
+  const serviceKey = trimmedString(req.params.serviceKey)
+  const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!serviceKey || !Number.isInteger(expectedRevision) || expectedRevision < NEW_SERVICE_DRAFT_REVISION || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_SERVICE_DRAFT', error: '서비스 키, 개정 번호, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'service.draft.save', idempotencyKey,
+      body: { serviceKey, expectedRevision, payload: body.payload },
+      target: { type: 'service_config_version', id: serviceKey },
+    }, async () => saveServiceConfigDraft({ serviceKey, payload: body.payload, authorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ version: command.result, replayed: command.replayed, customerVisible: false })
+  } catch (error) { respondServiceVersionFailure(res, error, 'SERVICE_VERSION_DRAFT_FAILED') }
+})
+
+/**
+ * 게시. 여기서부터 새 고객 세션이 이 개정을 본다.
+ * 가격은 반영되지 않는다 — 유료 가격 변경은 결제 게이트를 거치는 별도 경로이고,
+ * 이미 만들어진 주문은 어떤 경우에도 바뀌지 않는다.
+ */
+app.post('/api/admin/v1/services/:serviceKey/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:publish'); if (!membership) return
+  const serviceKey = trimmedString(req.params.serviceKey)
+  const body = asObject(req.body)
+  const version = Number(body.version)
+  const checksum = trimmedString(body.checksum)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!serviceKey || !Number.isSafeInteger(version) || version <= 0 || !/^[a-f0-9]{64}$/.test(checksum) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_SERVICE_PUBLISH', error: '개정 번호, 검토 체크섬, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'service.version.publish', idempotencyKey,
+      body: { serviceKey, version, checksum, expectedRevision },
+      target: { type: 'service_config_version', id: `${serviceKey}:${version}` },
+    }, async () => publishServiceConfigVersion({ serviceKey, version, checksum, authorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ version: command.result, replayed: command.replayed, priceApplied: false })
+  } catch (error) { respondServiceVersionFailure(res, error, 'SERVICE_VERSION_PUBLISH_FAILED') }
+})
+
 app.get('/api/admin/v1/corpus', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
     const corpus = getCorpusSnapshot()
-    res.json({ registryVersion: corpus.registryVersion, fingerprint: corpus.fingerprint, policy: corpus.policy, packs: corpus.activePacks, asOf: new Date().toISOString() })
+    res.json({
+      registryVersion: corpus.registryVersion,
+      fingerprint: corpus.fingerprint,
+      policy: corpus.policy,
+      packs: corpus.activePacks,
+      asOf: new Date().toISOString(),
+    })
   } catch {
-    res.status(503).json({ code: 'CORPUS_SNAPSHOT_FAILED', error: '현재 배포의 코퍼스 파일 목록을 불러오지 못했습니다.' })
+    res.status(503).json({ code: 'CORPUS_SNAPSHOT_FAILED', error: '현재 배포의 코퍼스 레지스트리를 불러오지 못했습니다.' })
   }
 })
 app.get('/api/admin/v1/prompts', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
-    res.json(getPromptFilesSnapshot())
+    res.json(getToneV2AdminSnapshot())
   } catch {
-    res.status(503).json({ code: 'PROMPT_SNAPSHOT_FAILED', error: '현재 배포의 프롬프트 파일 목록을 불러오지 못했습니다.' })
+    res.status(503).json({ code: 'PROMPT_SNAPSHOT_FAILED', error: '현재 배포의 Tone V2 프롬프트 원천을 불러오지 못했습니다.' })
   }
 })
 app.get('/api/admin/v1/media', async (req, res) => {
@@ -2235,6 +2377,39 @@ app.get('/api/admin/v1/orders/:orderId', async (req, res) => {
   }
 })
 
+/**
+ * 환불 실패 사유별 응답.
+ *
+ * 이전에는 모든 실패가 같은 문장("환불 요청을 승인하지 못했습니다.")으로 나갔고, 구분은
+ * `code` 에만 담겼는데 관리자 화면은 `error` 만 읽는다. 운영자 입장에서 자기승인 차단,
+ * 동시 수정, 이미 처리된 요청, 저장소 장애가 전부 같은 한 문장으로 보였다.
+ * 그리고 `code` 에는 PostgREST 오류 본문이 통째로 들어가 DB 내부가 브라우저까지 흘렀다.
+ */
+const REFUND_FAILURES: Record<string, { status: number; error: string }> = {
+  REFUND_SELF_APPROVAL_FORBIDDEN: { status: 403, error: '요청자는 자신의 환불 요청을 승인할 수 없습니다. 다른 관리자가 승인해야 합니다.' },
+  REFUND_REVISION_CONFLICT: { status: 409, error: '이 환불 요청이 그사이 변경되었습니다. 목록을 다시 불러온 뒤 확인해 주세요.' },
+  REFUND_ORDER_REVISION_CONFLICT: { status: 409, error: '주문이 그사이 변경되었습니다. 주문을 다시 확인한 뒤 요청해 주세요.' },
+  REFUND_NOT_REQUESTED: { status: 409, error: '이미 처리된 요청입니다. PG 결과를 먼저 조회·대사해 주세요.' },
+  REFUND_NOT_FOUND: { status: 404, error: '환불 요청을 찾지 못했습니다.' },
+  REFUND_ORDER_NOT_FOUND: { status: 404, error: '주문을 찾지 못했습니다.' },
+  REFUND_ORDER_NOT_REFUNDABLE: { status: 409, error: '결제 완료 상태의 주문만 환불을 요청할 수 있습니다.' },
+  REFUND_AMOUNT_EXCEEDS_REMAINING: { status: 409, error: '이미 잡혀 있는 환불 요청까지 더하면 주문 금액을 넘습니다.' },
+  REFUND_IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
+  IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
+  IDEMPOTENCY_IN_PROGRESS: { status: 409, error: '같은 요청이 아직 처리 중입니다. 결과를 확인한 뒤 다시 시도해 주세요.' },
+  REFUND_INPUT_INVALID: { status: 422, error: '요청 값을 확인해 주세요.' },
+  REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 저장소에 연결하지 못했습니다. 임의로 처리하지 않았습니다.' },
+}
+
+function respondRefundFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = REFUND_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  // 알 수 없는 실패는 원문을 내보내지 않는다. 서버 로그에만 남긴다.
+  console.error(fallback, raw || 'unknown')
+  res.status(503).json({ code: fallback, error: '환불 처리를 완료하지 못했습니다. 저장된 상태를 먼저 확인해 주세요.' })
+}
+
 /** Refund requests persist an intent only. T17 deliberately does not call a PG. */
 app.get('/api/admin/v1/refunds', async (req, res) => {
   if (!await requireStaff(req, res, 'refunds:read')) return
@@ -2267,7 +2442,7 @@ app.post('/api/admin/v1/orders/:orderId/refund-requests', async (req, res) => {
     if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.request', idempotencyKey, body: { orderId, amount, reason, expectedRevision }, target: { type: 'refund_request', id: orderId } }, async () => createRefundRequest({ orderId, amount, reason, actorEmail: membership.email, idempotencyKey, orderAmount: order.amount, orderRevision: expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
-  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_REQUEST_CREATE_FAILED'; res.status(code.includes('CONFLICT') || code.includes('EXCEEDS') ? 409 : 503).json({ code, error: '환불 요청을 저장하지 못했습니다.' }) }
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_REQUEST_CREATE_FAILED') }
 })
 
 app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
@@ -2277,7 +2452,7 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
-  } catch (error) { const code = error instanceof AdminCommandConflict ? error.message : error instanceof Error ? error.message : 'REFUND_APPROVE_FAILED'; res.status(code.includes('SELF') ? 403 : code.includes('CONFLICT') || code.includes('NOT_REQUESTED') ? 409 : 503).json({ code, error: '환불 요청을 승인하지 못했습니다.' }) }
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_APPROVE_FAILED') }
 })
 
 /** Live, privacy-minimized member data. The service key never reaches the browser. */
@@ -2563,6 +2738,12 @@ app.post('/api/payment/orders', async (req, res) => {
       return
     }
 
+    const paymentMode = req.body?.paymentMode === 'mobile' ? 'mobile' : 'pc'
+    if (paymentMode === 'mobile' && !config.mobileEnabled) {
+      res.status(503).json({ code: 'MOBILE_PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
+      return
+    }
+
     const timestamp = new Date().toISOString()
     const order: PaymentOrder = {
       orderId: createPaymentOrderId(),
@@ -2587,10 +2768,14 @@ app.post('/api/payment/orders', async (req, res) => {
       })
       return
     }
-    const fields = createInicisPaymentFields({ order: saved, buyerName: profile.name })
+    const fields = paymentMode === 'mobile'
+      ? createInicisMobilePaymentFields({ order: saved, buyerName: profile.name })
+      : createInicisPaymentFields({ order: saved, buyerName: profile.name })
     res.json({
       order: clientPaymentOrder(saved),
       product: publicPaymentProduct(product),
+      paymentMode,
+      actionUrl: paymentMode === 'mobile' ? config.mobilePaymentUrl : undefined,
       fields,
     })
   } catch (err) {
@@ -2762,8 +2947,11 @@ app.get('/api/payment/google/product/:productKey', async (req, res) => {
 
 app.post('/api/payment/inicis/return', async (req, res) => {
   let approvalEvidenceRecorded = false
+  let providerApproved = false
+  let approvalSourceRef = ''
+  let cancellation: InicisCancellationContext | undefined
   const body = req.body as Record<string, unknown>
-  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid)
+  const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid || body.P_NOTI || body.P_OID)
   if (!orderId) {
     res.redirect(303, paymentOrderRedirect('', 'failed', '결제 주문번호를 확인하지 못했습니다.'))
     return
@@ -2780,9 +2968,10 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       return
     }
 
+    const mobile = Boolean(body.P_STATUS || body.P_REQ_URL || body.P_TID)
     const resultCode = trimmedString(body.resultCode || body.P_STATUS)
     const resultMessage = trimmedString(body.resultMsg || body.P_RMESG1) || '결제가 취소되었거나 승인되지 않았습니다.'
-    if (resultCode !== '0000') {
+    if (!inicisResultIsSuccess(resultCode)) {
       await updatePaymentOrder(order.orderId, { status: 'failed', message: resultMessage })
       res.redirect(303, paymentOrderRedirect(order.orderId, 'failed', resultMessage, order.productKey, order.reportId))
       return
@@ -2792,15 +2981,37 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (callbackMid && callbackMid !== (process.env.INICIS_MID?.trim() ?? '')) {
       throw new Error('결제 상점 정보를 확인하지 못했습니다.')
     }
-    const authToken = trimmedString(body.authToken)
-    const authUrl = trimmedString(body.authUrl)
-    if (!authToken || !authUrl) throw new Error('결제 승인 정보를 받지 못했습니다.')
+    const idcName = trimmedString(body.idc_name)
+    if (!idcName) throw new Error('결제 승인 IDC 정보를 받지 못했습니다.')
 
     await updatePaymentOrder(order.orderId, { status: 'approving' })
-    const approval = await approveInicisPayment({ order, authToken, authUrl })
+    let approval
+    if (mobile) {
+      const tid = trimmedString(body.P_TID)
+      const requestUrl = trimmedString(body.P_REQ_URL)
+      const returnedAmount = Number(trimmedString(body.P_AMT))
+      if (!tid || !requestUrl) throw new Error('모바일 결제 승인 정보를 받지 못했습니다.')
+      if (!Number.isFinite(returnedAmount) || returnedAmount !== order.amount) throw new Error('인증 결과의 결제금액이 일치하지 않습니다.')
+      cancellation = { mode: 'mobile', order, idcName, tid, requestUrl }
+      approval = await approveInicisMobilePayment({ order, tid, requestUrl, idcName })
+    } else {
+      const authToken = trimmedString(body.authToken)
+      const authUrl = trimmedString(body.authUrl)
+      const cancelUrl = trimmedString(body.netCancelUrl)
+      if (!authToken || !authUrl || !cancelUrl) throw new Error('결제 승인 또는 망취소 정보를 받지 못했습니다.')
+      cancellation = { mode: 'pc', order, idcName, authToken, cancelUrl }
+      approval = await approveInicisPayment({ order, authToken, authUrl, idcName })
+    }
+    providerApproved = true
 
     const sourceRef = approval.tid?.trim() || approval.approvalCode?.trim()
     if (!sourceRef) throw new Error('승인 거래 식별자를 받지 못했습니다.')
+    approvalSourceRef = sourceRef
+    const approvalSaved = await updatePaymentOrder(order.orderId, {
+      status: 'approving', tid: approval.tid, payMethod: approval.payMethod,
+      approvalCode: approval.approvalCode, message: approval.resultMessage,
+    })
+    if (!approvalSaved) throw new Error('승인 거래 증거를 주문에 저장하지 못했습니다.')
     // PG 승인 뒤에는 append-only 금융 증거를 먼저 남긴다. 주문 상태 투영이 실패해도
     // event가 남아 T19 대사에서 회수할 수 있고, catch가 과금 주문을 failed로 내리지 않는다.
     const paid = await projectApprovedPayment(order, {
@@ -2810,8 +3021,17 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
-    const message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
-    if (!approvalEvidenceRecorded) await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    let message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
+    if (providerApproved && cancellation) {
+      const recovery = await recoverInicisPostApprovalFailure({
+        order: cancellation.order,
+        sourceRef: approvalSourceRef || (cancellation.mode === 'mobile' ? cancellation.tid : cancellation.authToken),
+        cancellation,
+      })
+      message = recovery.message
+    } else if (!approvalEvidenceRecorded) {
+      await updatePaymentOrder(orderId, { status: 'failed', message }).catch(() => undefined)
+    }
     const failedOrder = await getPaymentOrder(orderId).catch(() => null)
     res.redirect(303, paymentOrderRedirect(orderId, 'failed', message, failedOrder?.productKey, failedOrder?.reportId))
   }
@@ -2890,21 +3110,47 @@ async function saveUserProfileHandler(req: Request, res: Response) {
 app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
 
-/** The 검색 page lists every service from here, so price and title stay in one place. */
+/**
+ * The 검색 page lists every service from here, so price and title stay in one place.
+ *
+ * 게시된 개정이 있으면 제목·한 줄 소개·설명·노출 여부가 반영된다. 가격은 반영되지 않는다 —
+ * 언제나 배포된 카탈로그가 권한이다. 버전 저장소를 못 읽으면 배포된 카탈로그를 그대로 준다.
+ */
 app.get('/api/services', async (_req, res) => {
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=30, stale-while-revalidate=60')
-  res.json(await getPublicServiceDirectorySnapshot())
+  try {
+    const directory = await listCustomerServiceDirectory()
+    res.json({ services: directory.services, source: directory.source })
+  } catch {
+    // 이 목록이 비면 검색 화면이 통째로 빈다. 어떤 실패에서도 배포된 카탈로그로 떨어진다.
+    res.json({ services: listServiceDirectory(), source: 'catalog' })
+  }
 })
 
 app.get('/api/user/reports', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
-    const records = await listReportRecords(owner, parseListLimit(req.query.limit))
+    const limit = parseListLimit(req.query.limit)
+    // 결제 여부로 거른 뒤 자른다. 요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다.
+    const records = await listReportRecords(owner, 100)
+    const orders = await listPaymentOrders(owner.id, 100).catch(() => null)
+    if (!orders) {
+      // 주문 조회가 죽었다고 보관함을 비우지는 않는다. 빈 보관함은 잘못된 정렬보다 나쁘다.
+      res.json({
+        userId: owner.id,
+        storage: getReportStorageMode(),
+        purchasedOnly: false,
+        reports: records.map(historyEntryFromRecord).slice(0, limit),
+      })
+      return
+    }
     res.json({
       userId: owner.id,
       storage: getReportStorageMode(),
-      reports: records.map(historyEntryFromRecord),
+      purchasedOnly: true,
+      reports: selectPurchasedReadings(records, orders)
+        .slice(0, limit)
+        .map((item) => ({ ...historyEntryFromRecord(item.record), purchasedAt: item.purchasedAt })),
     })
   } catch (err) {
     respondRequestFailure(res, err, '풀이 보관함 조회 실패')
@@ -3079,12 +3325,13 @@ app.post('/api/money/save/analyze', async (req, res) => {
     const input = parseMoneySaveRequest(req.body)
     const context = { ...buildMoneySaveContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createMoneySaveReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMoneySaveReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3112,12 +3359,13 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildCoupleMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createCoupleMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3144,12 +3392,13 @@ app.post('/api/work/job/analyze', async (req, res) => {
     const input = parseWorkJobRequest(req.body)
     const context = { ...buildWorkJobContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createWorkJobReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWorkJobReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildWorkJobReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'work_job', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3176,12 +3425,13 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     const input = parseWorkQuitRequest(req.body)
     const context = { ...buildWorkQuitContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createWorkQuitReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWorkQuitReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildWorkQuitReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3208,12 +3458,13 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     const input = parseJobChoiceRequest(req.body)
     const context = { ...buildJobChoiceContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createJobChoiceReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createJobChoiceReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildJobChoiceReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3240,12 +3491,13 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     const input = parseCatCompatRequest(req.body)
     const context = { ...buildCatCompatContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createCatCompatReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCatCompatReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildCatCompatReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3280,14 +3532,15 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
     const analysis = analyzeSaju(profile.birth)
     // 명식을 함께 넘겨야 문맥에 후보일 판정·조건 수·상대 명식이 실린다.
     const context = { ...buildWeddingContext(profile.name, input, analysis), birthTimeKnown: profile.birthTimeKnown }
-    const reportId = withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWeddingReportId(analysis, profile.birth, input) + '-' + owner.id, profile.birthTimeKnown))
     const teaser = buildWeddingTeaser(analysis, input, context)
     Object.assign(context, { wedding: { facts: teaser.frame, teaser: { headline: teaser.headline, lines: teaser.lines } } })
     const templateReport = buildWeddingReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'wedding_day', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3314,12 +3567,13 @@ app.post('/api/flow/newyear/analyze', async (req, res) => {
     const input = parseNewYearRequest(req.body)
     const analysis = analyzeSaju(profile.birth)
     const context = buildNewYearContext(profile.name, input, analysis, profile.birthTimeKnown)
-    const reportId = createNewYearReportId(analysis, profile.birth, owner.id, context)
+    const { reportId, lineageId } = epochScopedIds(createNewYearReportId(analysis, profile.birth, owner.id, context))
     const templateReport = buildNewYearReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'newyear_flow', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'newyear_flow', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3346,12 +3600,13 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
     const input = parseLuckyColorRequest(req.body)
     const context = { ...buildLuckyColorContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLuckyColorReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLuckyColorReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLuckyColorReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'lucky_color', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3379,12 +3634,13 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildMarryMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3412,12 +3668,13 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
     const context = { ...buildLoveMindContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveMindReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_mind', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3445,12 +3702,13 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildLoveSignalContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveSignalReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveSignalReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3481,12 +3739,13 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
     const input = parseLoveThisYearRequest(body)
     const context = { ...buildLoveThisYearContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveThisYearReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveThisYearReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveThisYearReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3514,12 +3773,13 @@ app.post('/api/love/again/analyze', async (req, res) => {
     const partnerAnalysis = input.partnerBirth ? analyzeSaju(input.partnerBirth) : undefined
     const context = { ...buildLoveAgainContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveAgainReport(analysis, profile.birth, context, input, partnerAnalysis, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_again', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3546,12 +3806,13 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
     const input = parseLoveSpouseRequest(req.body)
     const context = { ...buildLoveSpouseContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const reportId = withReportBirthCertainty(createLoveSpouseReportId(owner.id, profile.birth, input), profile.birthTimeKnown)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSpouseReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveSpouseReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, birth: profile.birth, context, templateReport, analysis, owner })) return
-    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId)) return
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!await ensurePaidServiceAccess(req, res, owner, 'love_spouse', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
+      lineageId,
       birth: profile.birth,
       context,
       templateReport,
@@ -3612,6 +3873,7 @@ app.post('/api/saju/analyze', async (req, res) => {
       const { record } = await createOrGetReportRecord({
         reportId: createReportId(birth, enriched, undefined, owner?.id), birth, context: enriched,
         analysis, templateReport: buildTemplateSajuReport(analysis, birth, enriched), owner,
+        lineageId: createReportLineageId(birth, enriched, owner?.id),
       })
       res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record) })
       return
@@ -3621,6 +3883,8 @@ app.post('/api/saju/analyze', async (req, res) => {
       owner,
       productKeyForContext(enriched),
       createReportId(birth, enriched, undefined, owner?.id),
+      undefined,
+      createReportLineageId(birth, enriched, owner?.id),
     )
     res.json(await toUiAnalysis(birth, context, owner, access))
   } catch (err) {

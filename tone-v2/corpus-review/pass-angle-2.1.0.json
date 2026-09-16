@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "pass_angle",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/pass-angle-service-2.1.0.json",
+  "sourceSha256": "44ab5c364540b7a943ca7739bd7f176fd45758973e3804b39ac481c8c2c0d96f",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit exam fact, official document, study record, calculated symbol, intelligence, pass/fail, numeric and health review",
+  "blocks": [
+    {
+      "id": "pang-001",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-002",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-003",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-004",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-005",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-006",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-007",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    },
+    {
+      "id": "pang-008",
+      "status": "pass",
+      "checks": {
+        "examFactBoundary": true,
+        "officialDocumentBoundary": true,
+        "studyRecordBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "intelligenceAbilityBoundary": true,
+        "passFailBoundary": true,
+        "numericProvenance": true,
+        "healthBoundary": true
+      }
+    }
+  ]
+}

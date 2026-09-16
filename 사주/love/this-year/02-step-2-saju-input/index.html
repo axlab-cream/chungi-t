@@ -1,27 +1,20 @@
-<!doctype html>
-<html lang="ko">
-  <head>
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-funnel-auth-gate.js"></script>
     <script src="/js/umsh-report-access.js"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>나, 올해 연애 가능? 입력 | 운명상회</title>
-    <meta
-      name="description"
-      content="도화, 세운, 배우자성으로 올해 연애 가능성과 관계 패턴을 보기 위한 최소 입력 화면"
-    />
-    <meta name="application-name" content="운명상회" />
-    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
-    <meta
-      property="og:description"
-      content="생년월일시와 현재 관계 상태를 기준으로 올해 연애 흐름을 확인합니다."
-    />
-    <meta property="og:site_name" content="운명상회" />
-    <meta property="og:url" content="https://love.umsh.kr/thisyear" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta name="theme-color" content="#090a16" />
-    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <meta name="description" content="도화, 세운, 배우자성으로 올해 연애 가능성과 관계 패턴을 보기 위한 최소 입력 화면">
+    <meta name="application-name" content="운명상회">
+    <meta property="og:title" content="운명상회 - 운명을 팝니다.">
+    <meta property="og:description" content="생년월일시와 현재 관계 상태를 기준으로 올해 연애 흐름을 확인합니다.">
+    <meta property="og:site_name" content="운명상회">
+    <meta property="og:url" content="https://love.umsh.kr/thisyear">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="theme-color" content="#090a16">
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
     <style>
       :root {
         color-scheme: dark;
@@ -577,12 +570,12 @@
       .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
       .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
       .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904" />
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
   </head>
   <body class="umsh-fields">
-    <div class="phone" data-umsh-chrome data-service="올해 연애운" data-price="12,900원" data-active="home" id="step-2-saju-input">
+    <div class="phone" data-umsh-chrome="" data-service="올해 연애운" data-price="12,900원" data-active="home" id="step-2-saju-input">
       <header class="appbar topbar" aria-label="서비스 정보">
-        <a class="brand" href="../01-step-1-story/index.html#step-1-story" aria-label="운명상회 인트로로 돌아가기">
+        <a class="brand" href="/" aria-label="운명상회 인트로로 돌아가기">
           <strong>운명상회</strong>
           <span>연애운 · 올해 흐름 입력</span>
         </a>
@@ -590,18 +583,7 @@
       </header>
 
       <section class="hero" id="heroVisual" aria-labelledby="pageTitle">
-        <video
-          class="hero-video"
-          poster="../assets/thisyear/videos/04-frontface-astrology-poster.webp"
-          src="../assets/thisyear/videos/04-frontface-astrology.mp4"
-          data-lazy-play
-          data-image-role="form-companion"
-          muted
-          loop
-          playsinline
-          preload="none"
-          aria-label="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"
-        ></video>
+        <video class="hero-video" poster="../assets/thisyear/videos/04-frontface-astrology-poster.webp" src="../assets/thisyear/videos/04-frontface-astrology.mp4" data-lazy-play="" data-image-role="form-companion" muted="" loop="" playsinline="" preload="none" aria-label="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"></video>
         <div class="hero-copy">
           <span class="eyebrow">02 · 사주 입력</span>
           <h1 id="pageTitle">나, 올해 연애 가능?</h1>
@@ -635,7 +617,7 @@
           <div class="progress-track" aria-hidden="true"><span></span></div>
         </section>
 
-        <form id="loveIntakeForm" novalidate>
+        <form id="loveIntakeForm" novalidate="">
           <div class="error-summary" id="formErrors" role="alert" aria-live="polite"></div>
 
           <section class="form-section" aria-labelledby="profileTitle">
@@ -647,14 +629,14 @@
               <legend>입력 방식</legend>
               <div class="choice-group single">
                 <label class="choice">
-                  <input type="radio" name="profile_mode" value="new_profile" checked />
+                  <input type="radio" name="profile_mode" value="new_profile" checked="">
                   <span>
                     <strong>새 정보 입력</strong>
                     지금 입력한 생년월일시로 올해 흐름을 봅니다.
                   </span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="profile_mode" value="saved_profile" />
+                  <input type="radio" name="profile_mode" value="saved_profile">
                   <span>
                     <strong>저장된 기본 프로필 사용</strong>
                     로그인 후 완성된 사주 프로필이 있으면 재입력 없이 이어갑니다.
@@ -675,18 +657,18 @@
             <div class="field-grid">
               <div class="field" data-field="display_name">
                 <label for="displayName">불러드릴 이름 또는 닉네임</label>
-                <input id="displayName" name="display_name" type="text" maxlength="18" autocomplete="name" placeholder="예: 민지" />
+                <input id="displayName" name="display_name" type="text" maxlength="18" autocomplete="name" placeholder="예: 민지">
                 <small>선택 입력입니다. 결과 문장 호칭에만 씁니다.</small>
               </div>
               <div class="field-grid two">
                 <div class="field" data-field="birth_date">
                   <label for="birthDate">생년월일</label>
-                  <input id="birthDate" name="birth_date" type="date" autocomplete="bday" />
+                  <input id="birthDate" name="birth_date" type="date" autocomplete="bday">
                   <small>사주 원국과 올해 흐름 계산에 필요합니다.</small>
                 </div>
                 <div class="field" data-field="birth_time">
                   <label for="birthTime">출생 시간</label>
-                  <input id="birthTime" name="birth_time" type="time" />
+                  <input id="birthTime" name="birth_time" type="time">
                   <small>시간 흐름과 도화 조건을 더 정확히 보기 위해 필요합니다.</small>
                 </div>
               </div>
@@ -704,11 +686,11 @@
                 <legend>양력 / 음력</legend>
                 <div class="choice-group">
                   <label class="choice">
-                    <input type="radio" name="calendar_type" value="solar" />
+                    <input type="radio" name="calendar_type" value="solar">
                     <span><strong>양력</strong> 주민등록 기준</span>
                   </label>
                   <label class="choice">
-                    <input type="radio" name="calendar_type" value="lunar" />
+                    <input type="radio" name="calendar_type" value="lunar">
                     <span><strong>음력</strong> 음력 생일 기준</span>
                   </label>
                 </div>
@@ -725,19 +707,19 @@
               <legend>현재 상태</legend>
               <div class="choice-group">
                 <label class="choice">
-                  <input type="radio" name="relationship_status" value="solo" />
+                  <input type="radio" name="relationship_status" value="solo">
                   <span><strong>솔로</strong> 새 인연이 궁금해요</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="relationship_status" value="some" />
+                  <input type="radio" name="relationship_status" value="some">
                   <span><strong>썸</strong> 이 관계가 열릴지 봐요</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="relationship_status" value="dating" />
+                  <input type="radio" name="relationship_status" value="dating">
                   <span><strong>연애 중</strong> 올해 흐름을 맞춰가요</span>
                 </label>
                 <label class="choice">
-                  <input type="radio" name="relationship_status" value="reunion" />
+                  <input type="radio" name="relationship_status" value="reunion">
                   <span><strong>재회</strong> 다시 이어질 타이밍을 봐요</span>
                 </label>
               </div>
@@ -1153,6 +1135,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/thisyear-service.js" defer></script>
-  </body>
-</html>
+    <script src="/js/thisyear-service.js" defer=""></script>
+  
+
+</body></html>

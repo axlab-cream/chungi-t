@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "task-tone-v2-p04-wedding-day-visual-render-evidence",
+  "evaluatedAt": "2026-09-13T12:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "wedding_day",
+  "source": {
+    "generationEvidencePath": "tone-v2/evaluations/P04-wedding-day-full-outline-generation-20260913.json",
+    "reportRecordSha256": "fa72149206392ed189898b4f48991c01129fa89868ac0c01dd359c456f63bcc5",
+    "recordStatus": "complete",
+    "expectedSections": 20,
+    "completedSections": 20
+  },
+  "render": {
+    "contents": { "groups": 6, "items": 20, "passed": true },
+    "desktop": { "sectionsChecked": 20, "readerWidthPx": 430, "paragraphCountRange": [5, 6], "selectorOptionCount": 20, "overflowFailures": 0, "contentFailures": 0, "passed": true },
+    "mobile": { "sectionsChecked": 20, "viewportWidthPx": 390, "contentWidthPx": 375, "paragraphCountRange": [5, 6], "selectorOptionCount": 20, "overflowFailures": 0, "contentFailures": 0, "passed": true }
+  },
+  "navigation": {
+    "steps": [
+      "contents lists 20 items",
+      "first item opens section 1-1",
+      "next opens section 1-2",
+      "selector opens section 6-3 with progress 20 of 20",
+      "back returns to contents with 20 items"
+    ],
+    "passedSteps": 5,
+    "failedSteps": 0,
+    "passed": true
+  },
+  "accessibility": { "visibleControls": 32, "minimumControlWidthPx": 38, "minimumControlHeightPx": 31.52, "controlsBelow24Px": 0, "itemLinkFocusOutlinePx": 3, "passed": true },
+  "print": { "documentsChecked": 20, "pageCountRange": [2, 3], "extractedCharacterCountRange": [846, 1131], "blankPages": 0, "missingProgressLabels": 0, "interactiveFlagControlsPresent": 0, "pageSizePoints": [612, 792], "representativePagesReviewed": 6, "passed": true },
+  "visualReview": {
+    "acceptedScreenshots": 2,
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "fixedFindings": [
+      "Corrected stale 21-item customer copy and fallback progress to the actual 20-item outline.",
+      "Removed fixed report controls from print output after they were found overlapping prose."
+    ],
+    "passed": true
+  },
+  "localArtifacts": {
+    "ignoredLocalOnly": true,
+    "directory": ".cache/wedding-visual-evidence",
+    "acceptedScreenshotSha256": {
+      "contentsDesktop": "e7c366f1f86f1f80a82670f372bf10819e989a6db427912851770440b19246d3",
+      "mobileFrame390": "c771577fae70071145bac481b769a228cda7149b90d4ac735513be5bf036355a"
+    },
+    "printManifestSha256": "0186ff31491ebe6776ab3cb6c5b3ebd03ec17034c1fdf2406a20d0ec2e43ac4c"
+  },
+  "privacy": { "containsProviderProse": false, "containsSecrets": false, "containsPersonalData": false },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

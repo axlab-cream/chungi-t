@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "love-again-corpus-2.1.0",
+  "serviceKey": "love_again",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/love-again-service.json",
+      "version": "2.0.0",
+      "sha256": "4f0ca7ab0fa92719f412e572ec5dd4bf0bd1d327934fb67fb30c8dca684752e1"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/love-again-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "8760c79d3f5e313c8d450927fa4d39c3d574601753aa6f5f38785020977562ca"
+    },
+    "semanticReview": "tone-v2/corpus-review/love-again-2.1.0.json"
+  },
+  "generationEvidence": null,
+  "generationEvidenceReason": "No love_again provider output evaluation was run; local corpus and snapshot verification only.",
+  "verificationEvidence": "tone-v2/evaluations/P05-love-again-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/love-again-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_1_of_1",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "not_run",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_791_of_791_110_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

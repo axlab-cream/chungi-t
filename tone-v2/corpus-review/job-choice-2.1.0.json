@@ -1,0 +1,245 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "job_choice",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/job-choice-service-2.1.0.json",
+  "sourceSha256": "e96e35e7d96ec14741ed0282316193d5fd5c49dcb735a88198df6095e0227c09",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json",
+    "tone-v2/generated/services/job_choice.md"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit offer document, calculation, company reality, employer intent, Ziwei viewpoint, contract, labor, financial, health, numeric and outcome review",
+  "blocks": [
+    {
+      "id": "job-001",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-002",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-003",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-004",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-005",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-006",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-007",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-008",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-009",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-010",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-011",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    },
+    {
+      "id": "job-012",
+      "status": "pass",
+      "checks": {
+        "offerDocumentBoundary": true,
+        "calculatedValueBoundary": true,
+        "userRealityBoundary": true,
+        "unknownCompanyBoundary": true,
+        "employerIntentBoundary": true,
+        "ziweiViewpointBoundary": true,
+        "futureOutcomeBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "contractAndLaborBoundary": true,
+        "financialBoundary": true,
+        "healthBoundary": true,
+        "numericProvenance": true,
+        "deterministicOutcomeBoundary": true
+      }
+    }
+  ]
+}

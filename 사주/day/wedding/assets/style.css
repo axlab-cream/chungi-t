@@ -2,7 +2,7 @@
 @font-face{font-family:WeddingSerif;src:url('/assets/fonts/MaruBuri-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
 :root{--paper:#f6f0e8;--paper-2:#fff9f0;--ink:#2f2520;--muted:#66594f;--seal:#a73b26;--seal-dark:#98351f;--brass:#b79058;--line:#dfd2c3}
 *{box-sizing:border-box}
-html{background:#e9ded2;scroll-padding-top:100px}
+html{background:#e9ded2;scroll-padding-top:100px;overflow-x:hidden}
 body{margin:0;background:#e9ded2;font-family:WeddingSans,"Malgun Gothic",sans-serif;color:var(--ink);font-size:16px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
 a{color:inherit;text-decoration:none}
 .phone{width:min(100%,430px);min-height:100vh;margin:0 auto;background:var(--paper);overflow:clip}
@@ -66,5 +66,6 @@ body.umsh-has-chrome{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))
 #umsh-verified-reading p{color:inherit;line-height:1.8}
 @media(max-width:360px){.wedding-content h1{font-size:28px}.wedding-content h2{font-size:22px}.section,.copy,.reading-nav{padding:28px 20px}.visual.hero img{height:260px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+@media print{html,body{background:#fff;overflow:visible!important}.phone{width:100%;max-width:none;min-height:0;overflow:visible;background:#fff}.umsh-service-shell,[data-umsh-service-bottom],.reading-nav,.pager,.wedding-content .cta,.umsh-flag-open,.umsh-flag-back{display:none!important}body.umsh-has-chrome{padding-bottom:0}.section,.copy,.footer{padding-left:0;padding-right:0;background:#fff}.summary,.reading-body>div{break-inside:avoid}.reading-body p{orphans:3;widows:3}.wedding-content{color:#000}.wedding-content p,.wedding-content .notice,.footer{color:#000}}
 .preview-line{display:block;white-space:pre-line}.preview-line+.preview-line{margin-top:18px}
 .reading-body{margin-top:22px}

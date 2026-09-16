@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "money_save",
+  "corpusVersion": "2.1.0",
+  "status": "approved",
+  "sourcePath": "data/tone-v2/corpus/releases/money-save-service-2.1.0.json",
+  "sourceSha256": "a0c0545b0073ee760f281d5f57c270a543b85f169c715cbbcfd9eb93c24446cc",
+  "reviewedAgainst": [
+    "tone-v2/README.md",
+    "tone-v2/generated/manifest.json"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "explicit block-by-block financial evidence and semantic boundary review with executable hash assertions",
+  "blocks": [
+    {
+      "id": "sav-001",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-002",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-003",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-004",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-005",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-006",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-007",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-008",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-009",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-010",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-011",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    },
+    {
+      "id": "sav-012",
+      "status": "pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "symbolicInterpretationBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "numericProvenance": true,
+        "financialSafety": true,
+        "nonDeterministicOutcome": true,
+        "noShaming": true
+      }
+    }
+  ]
+}

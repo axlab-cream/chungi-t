@@ -325,26 +325,27 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.ok(payload.services.every((service: Record<string, unknown>) => !('payload' in service) && !('authorEmail' in service)))
     })
 
-    it('코퍼스와 프롬프트 API는 현재 배포 파일 목록을 관리자에게만 반환한다', async () => {
+    it('코퍼스와 프롬프트 API는 현재 배포 파일의 Tone V2 원천 메타데이터를 조회한다', async () => {
       assert.equal((await request('/api/admin/v1/corpus')).response.status, 401)
       assert.equal((await request('/api/admin/v1/prompts')).response.status, 401)
 
       const corpusResult = await request('/api/admin/v1/corpus', 'super')
       assert.equal(corpusResult.response.status, 200)
       const corpus = JSON.parse(corpusResult.text)
-      assert.ok(corpus.registryVersion)
+      assert.match(corpus.registryVersion, /^tone-v2/)
       assert.match(corpus.fingerprint, /^[a-f0-9]{28}$/)
-      assert.ok(corpus.packs.length > 0)
-      assert.ok(corpus.packs.every((pack: Record<string, unknown>) => pack.path && pack.contentHash))
+      assert.ok(corpus.packs.length >= 20)
+      assert.ok(corpus.packs.every((pack: Record<string, unknown>) => pack.status === 'active' && pack.path && pack.contentHash))
 
       const promptResult = await request('/api/admin/v1/prompts', 'super')
       assert.equal(promptResult.response.status, 200)
       const prompts = JSON.parse(promptResult.text)
-      assert.match(prompts.fingerprint, /^[a-f0-9]{28}$/)
-      assert.equal(prompts.services.length, 20)
-      assert.ok(prompts.guides.some((guide: { path: string }) => guide.path === 'prompts/README.md'))
-      assert.ok(prompts.services.every((service: Record<string, unknown>) => service.path && service.contentHash && service.status === 'active'))
-      assert.ok(prompts.services.every((service: Record<string, unknown>) => !('content' in service) && !('prompt' in service)))
+      assert.match(prompts.bundle.version, /^tone-v2/)
+      assert.equal(prompts.bundle.releaseReady, false)
+      assert.equal(prompts.personas.length, 20)
+      assert.ok(prompts.sources.some((source: { path: string }) => source.path === 'tone-v2/source/규격/01-공통-프롬프트-규칙.md'))
+      assert.ok(prompts.personas.every((persona: Record<string, unknown>) => persona.definitionStatus === 'specified' && persona.sourcePath))
+      assert.ok(prompts.personas.every((persona: Record<string, unknown>) => !('prompt' in persona) && !('content' in persona)))
     })
 
     it('서비스 초안 API는 관리자 권한과 구조화 입력을 모두 요구한다', async () => {

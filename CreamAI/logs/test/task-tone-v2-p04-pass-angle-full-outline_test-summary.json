@@ -1,0 +1,15 @@
+{
+  "task_id": "task-tone-v2-p04-pass-angle-full-outline",
+  "date": "2026-09-12",
+  "results": [
+    { "command": "focused outline, generation, queue, harness and persistence tests", "status": "PASS", "tests": 53 },
+    { "command": "npm test", "status": "PASS", "tests": 681, "suites": 101 },
+    { "command": "node --test tone-v2/compile.test.mjs tone-v2/task-index.test.mjs", "status": "PASS", "tests": 7 },
+    { "command": "npm run typecheck", "status": "PASS" },
+    { "command": "npm run vercel-build", "status": "PASS" },
+    { "command": "git diff --check", "status": "PASS", "note": "line-ending warnings only" },
+    { "command": "provider-backed fresh 52-item harness", "status": "FAIL", "note": "first section failed after two attempts; 0 post-failure calls" }
+  ],
+  "business_acceptance": "FAIL",
+  "credentials_recorded": false
+}

@@ -1,0 +1,30 @@
+{
+  "task_id": "task-tone-v2-p01-pass-angle-e2e-rerun",
+  "date": "2026-09-12",
+  "business_acceptance": "FAIL",
+  "checks": [
+    { "name": "pre-existing record", "status": "PASS", "detail": "not-generated before provider call" },
+    { "name": "actual provider persistence", "status": "PASS", "detail": "new record, 2 attempts, final saved status failed" },
+    { "name": "saved-record metadata and hashes", "status": "PASS" },
+    { "name": "focused related regression", "status": "PASS", "detail": "59/59" },
+    { "name": "compiler and task coverage", "status": "PASS", "detail": "7/7" },
+    { "name": "full regression", "status": "PASS", "detail": "674/674, 101 suites; tone-v2/latest-regression.log" },
+    { "name": "typecheck", "status": "PASS", "detail": "exit 0" },
+    { "name": "vercel build", "status": "PASS", "detail": "exit 0" },
+    { "name": "git diff check", "status": "PASS", "detail": "exit 0; line-ending warnings only" }
+  ],
+  "commands": [
+    "npx tsx --test --test-concurrency=1 tests/unit/tone-v2-generation.test.ts tests/unit/report-persistence.test.ts tests/unit/report-content-guards.test.ts tests/unit/reading-live-harness.test.ts",
+    "node --test tone-v2/compile.test.mjs tone-v2/task-index.test.mjs",
+    "npx tsx --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=tone-v2/latest-regression.log tests/unit/*.test.ts",
+    "npm run typecheck",
+    "npm run vercel-build",
+    "git diff --check"
+  ],
+  "projectops_notes": [
+    "implementation broad secret scan false-positive on task-tone identifiers; boundary-aware task scan has 0 hits",
+    "test harness resolved CreamAI child package and warned; repository-root full regression is authoritative",
+    "release harness PASS is a documentation gate, not a deployment"
+  ],
+  "production_mutation": false
+}

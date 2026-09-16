@@ -1,0 +1,104 @@
+{
+  "taskId": "task-tone-v2-p04-wedding-day-full-outline-evidence",
+  "evaluatedAt": "2026-09-13T12:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "wedding_day",
+  "provider": {
+    "model": "gpt-5.5-2026-04-23",
+    "actualCalls": true,
+    "syntheticOnly": true,
+    "isolatedStorage": true,
+    "reasoningEffort": "low"
+  },
+  "identity": {
+    "version": "20260913-wedding-full-v2",
+    "reportId": "aa873d319ba79520285271cac79e",
+    "resultId": "2a8bc3fe-8ea2-4d66-95b4-77286206512f"
+  },
+  "completion": {
+    "completedSections": 20,
+    "expectedSections": 20,
+    "recordStatus": "complete",
+    "firstFailure": null,
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0
+  },
+  "sourceContract": {
+    "partItemCounts": [
+      7,
+      6,
+      7
+    ],
+    "totalItems": 20,
+    "sha256": [
+      "02e01e2b223d0ad8c2fe690944fd3e457d024cece005621c50806a0717dbcbca",
+      "950b4cd63e2b088403a91762ceaa28e9eaa0a886aad6a1a478e92eedd509d761",
+      "a9386c71e0bf70ef738e29e79ec2ff8d9e67573220af91f722d17876de9d0631"
+    ],
+    "sampleOutputsIngested": false
+  },
+  "evidence": {
+    "recordSha256": "fa72149206392ed189898b4f48991c01129fa89868ac0c01dd359c456f63bcc5",
+    "acceptedProseSha256": "cfd2fbefed41c7aa4aff687785ce4e4cc520c0096cb2ba0b95caee58c0fea88c",
+    "acceptedProseCanonicalForm": "JSON array of ordered {id,order,hook,interpretation} objects",
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false,
+    "sourceRecord": ".cache/reading-live-20260907/records/aa873d319ba79520285271cac79e.json"
+  },
+  "generation": {
+    "storedAttempts": 48,
+    "providerResponses": 47,
+    "acceptedSections": 20,
+    "acceptedAttempts": 19,
+    "recoveredAcceptedSections": 1,
+    "failedAttempts": 28,
+    "interruptedAttempts": 1,
+    "promptTokens": 1040804,
+    "completionTokens": 25730,
+    "totalTokens": 1066534
+  },
+  "replay": {
+    "passed": 20,
+    "failed": 0,
+    "interpretationCharacterCount": {
+      "minimum": 553,
+      "maximum": 815,
+      "average": 668.95
+    },
+    "paragraphCount": {
+      "minimum": 5,
+      "maximum": 6,
+      "average": 5.2
+    }
+  },
+  "verification": {
+    "focusedTests": {
+      "passed": 132,
+      "failed": 0
+    },
+    "fullTests": {
+      "suites": 122,
+      "passed": 903,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "independentReview": "approved_codex_review",
+    "reviewFindings": {
+      "critical": 0,
+      "major": 0,
+      "minor": 0,
+      "comments": 3,
+      "commentsSummary": [
+        "The runtime now matches the supplied 20 headings exactly without importing source sample prose.",
+        "One interrupted no-response attempt remains separately disclosed and is not counted as a provider response.",
+        "All sections preserve calculation-versus-reality boundaries and distinct title-specific next actions."
+      ]
+    }
+  },
+  "notRun": [
+    "production deployment",
+    "production customer report mutation"
+  ]
+}

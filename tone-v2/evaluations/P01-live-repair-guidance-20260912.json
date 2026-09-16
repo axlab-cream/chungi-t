@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0",
+  "evaluatedAt": "2026-09-12T14:18:00+09:00",
+  "scope": ["ZIP-003-066", "ZIP-003-068", "ZIP-003-094"],
+  "inputClass": "synthetic-only",
+  "provider": "OpenAI",
+  "model": "gpt-5.5-2026-04-23",
+  "rootCause": "The retry message flattened all validation failures into one sentence and repeated only the failures already seen. A repair could therefore introduce a new Hanja or paragraph-shape regression that was not restated.",
+  "implementation": {
+    "file": "src/report/report-generator.ts",
+    "behavior": "Deduplicate failures into a numbered list and restate the one-Hanja-explanation-per-sentence and two-to-four-sentences-per-paragraph invariants on every retry.",
+    "userTriggeredRetryFirstRequestGuidance": true,
+    "retryCountChanged": false,
+    "gateRelaxed": false,
+    "rejectedProseCopiedIntoRepairPrompt": false
+  },
+  "baselineRun": {
+    "command": "npx tsx scripts/check-reading-live.ts --generate --version=p01-repair-guidance-20260912",
+    "exitCode": 0,
+    "secondAttemptTargetPass": {
+      "technicalTermFormatting": { "passed": 2, "failed": 1 },
+      "crowdedHanja": { "passed": 3, "failed": 0 },
+      "paragraphSentenceCount": { "passed": 2, "failed": 1 }
+    },
+    "overallSectionsComplete": { "passed": 1, "failed": 2 },
+    "observedRegression": "love_mind introduced an unexplained technical term on repair; pass_angle fixed Hanja crowding but introduced a paragraph-shape failure."
+  },
+  "finalRun": {
+    "command": "npx tsx scripts/check-reading-live.ts --generate --version=p01-repair-guidance-v2-20260912",
+    "exitCode": 0,
+    "storage": ".cache/reading-live-20260907",
+    "productionDataUsed": false,
+    "secondAttemptTargetPass": {
+      "technicalTermFormatting": { "passed": 3, "failed": 0 },
+      "crowdedHanja": { "passed": 3, "failed": 0 },
+      "paragraphSentenceCount": { "passed": 3, "failed": 0 }
+    },
+    "overallSectionsComplete": { "passed": 2, "failed": 1 },
+    "remainingNonTargetFailure": "pass_angle still lacked a next decision criterion; this is a separate paid-density rule and was not relaxed."
+  },
+  "samples": [
+    {
+      "service": "saju_master",
+      "record": ".cache/reading-live-20260907/records/a462aafde3343397246c4100703d.json",
+      "status": "complete",
+      "attempts": [
+        {
+          "id": "686cc289-7bf1-4bad-b20b-5a1d62658a39",
+          "status": "failed",
+          "rawSha256": "93fb90b679c76911afe85a65cb751cb991add4b025992ce3d6d2342216676398",
+          "proseSha256": "3776deaa895cdcdd486e151dff2bda77a8d64f9931009003907376f9eea9c879",
+          "targetRules": { "technicalTermFormatting": "FAIL", "crowdedHanja": "FAIL", "paragraphSentenceCount": "FAIL" }
+        },
+        {
+          "id": "e9306e92-9014-4117-8b40-b92a60d6f612",
+          "status": "complete",
+          "rawSha256": "5ec754636af1d939cb0d9c8b1b773a4058b66c2847cdf8eb4718091f59f36cde",
+          "proseSha256": "ded9ed5278abf3538e811d8ec3d00c2fb109d5eaba89f4aa4a033e438ac56fb5",
+          "firstThreeVisibleSentences": [
+            "오래 가는 힘은 큰 설렘이 아니라 책임이 생활 속에서 굳는 데 있습니다.",
+            "관계가 잘 유지되는 조건은 감정의 크기보다 반복 가능한 책임 배분입니다.",
+            "일간(日干, 자신을 대표하는 하늘 기운)은 신금이며, 전체 계산에서는 약한 금으로 잡혔습니다."
+          ],
+          "targetRules": { "technicalTermFormatting": "PASS", "crowdedHanja": "PASS", "paragraphSentenceCount": "PASS" }
+        }
+      ]
+    },
+    {
+      "service": "love_mind",
+      "record": ".cache/reading-live-20260907/records/cc2d98e8c663e46911fe0a7fcd9c.json",
+      "status": "complete",
+      "attempts": [
+        {
+          "id": "3f510ad5-5d01-4dc5-8fe3-29e4beac29d4",
+          "status": "failed",
+          "rawSha256": "e02c677aa128ab0e2b1a187245a947d4b54f77b036a3c680dde930b28e28e4a7",
+          "proseSha256": "00b3f122737209a9861669132a557b2174d1ee245e24243052037c8d783122a9",
+          "targetRules": { "technicalTermFormatting": "FAIL", "crowdedHanja": "FAIL", "paragraphSentenceCount": "PASS" }
+        },
+        {
+          "id": "992fcd1b-cce4-4a50-be68-6725d01de402",
+          "status": "complete",
+          "rawSha256": "5eb6d6d459726f7bd530eb6c730e172d248fd1b83b802c9f890280b8892ab830",
+          "proseSha256": "7af03943303f820cdfca3803cff404aa899c43c27e86e088e6bd594377578d6a",
+          "firstThreeVisibleSentences": [
+            "지금 보낼 문장은 없어요.",
+            "지금 보낼 문장은 없어요.",
+            "차단과 연락 거부가 확인된 행동이라, 마음 해석보다 경계 존중이 먼저예요."
+          ],
+          "targetRules": { "technicalTermFormatting": "PASS", "crowdedHanja": "PASS", "paragraphSentenceCount": "PASS" }
+        }
+      ]
+    },
+    {
+      "service": "pass_angle",
+      "record": ".cache/reading-live-20260907/records/3a0c1bb100f142e3b9f5636cf9fe.json",
+      "status": "failed",
+      "attempts": [
+        {
+          "id": "921048cc-94f5-4e3e-9de8-e8fe98b6baa3",
+          "status": "failed",
+          "rawSha256": "92c0901da743a2e8a3e0d8fb6e0473e36f350c5e798bfec565c1c895eef37162",
+          "proseSha256": "534fc9c9db4e125e1fb070c57c3c84f84a80960e12902bf1ef613dc8c4f946f0",
+          "targetRules": { "technicalTermFormatting": "PASS", "crowdedHanja": "PASS", "paragraphSentenceCount": "FAIL" }
+        },
+        {
+          "id": "3486830a-401e-4078-9469-fb6088534577",
+          "status": "failed",
+          "rawSha256": "71b133c073cc9c3b4dad2bc165fa07c8a858a5577644f5c0907ecb8a9d7fb28c",
+          "proseSha256": "3027e7cc6d10056e16131fff9818052d8f8648ed38be3f1c7d3c31829fb07bfe",
+          "firstThreeVisibleSentences": [
+            "다음 응시에도 새 자료 말고 루틴 고정각이야.",
+            "일정은 이미 지난 상태야.",
+            "다음 시험 전날 루틴으로 다시 세워봐."
+          ],
+          "targetRules": { "technicalTermFormatting": "PASS", "crowdedHanja": "PASS", "paragraphSentenceCount": "PASS" },
+          "remainingIssues": ["next decision criterion"]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Representative three-service evaluation only; all-20-service acceptance is not complete.",
+    "The pass_angle section still failed a separate density rule, so this artifact does not claim complete generation quality.",
+    "Raw provider output remains in ignored isolated cache records; tracked hashes and visible opening sentences provide durable comparison evidence.",
+    "Independent review found that a user-triggered retry could omit repair guidance on its first provider request. The queue now seeds that request from the latest failed attempt, and a focused regression test covers it.",
+    "The review also noted the existing paid-density length floor. That behavior predates and is outside this retry-guidance slice; it was neither changed nor relaxed here."
+  ]
+}

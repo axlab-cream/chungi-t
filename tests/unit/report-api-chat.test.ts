@@ -221,8 +221,9 @@ describe('saved chat HTTP auth, persistence, parent entitlement and retry routes
     assert.equal((await request('/api/user/reports', undefined, null)).response.status, 401)
     const ownVault = await request('/api/user/reports')
     assert.equal(ownVault.response.status, 200)
-    assert.ok(ownVault.payload.reports.length >= 2)
-    assert.ok(ownVault.payload.reports.some((report: { resultId: string }) => report.resultId === parentResultId))
+    // 보관함은 "구매한 풀이"만 담는다(화면 문구: 무료로 본 티저는 여기에 남지 않습니다).
+    // 아직 결제가 없으므로 본인 목록도 비어 있어야 한다. 구매 후 나타나는 것은 아래 결제 테스트에서 고정한다.
+    assert.deepEqual(ownVault.payload.reports, [])
     assert.doesNotMatch(ownVault.text, /SYNTHETIC_PARENT_PAID_TEXT|상담 원문 저장 확인용|"savedChat"|"attempts"|"generationLease"|mock-api-token-a/)
     const otherVault = await request('/api/user/reports', undefined, otherOwner.accessToken)
     assert.equal(otherVault.response.status, 200)
@@ -258,6 +259,12 @@ describe('saved chat HTTP auth, persistence, parent entitlement and retry routes
     assert.equal(modelCalls, 1)
     paymentOrderId = randomUUID()
     await orders.savePaymentOrder({ orderId: paymentOrderId, ownerId: owner.id, buyerEmail: owner.email, buyerTel: '01000000000', productKey: 'work_job', productTitle: '합성 주문', amount: 9900, status: 'paid', reportId: parentReportId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
+    // 결제가 붙는 순간 보관함에 나타나고, 그래도 남의 계정에는 보이지 않는다.
+    const paidVault = await request('/api/user/reports')
+    assert.equal(paidVault.response.status, 200)
+    assert.ok(paidVault.payload.reports.some((report: { resultId: string }) => report.resultId === parentResultId))
+    assert.doesNotMatch(paidVault.text, /SYNTHETIC_PARENT_PAID_TEXT|상담 원문 저장 확인용|"savedChat"|"attempts"|"generationLease"|mock-api-token-a/)
+    assert.deepEqual((await request('/api/user/reports', undefined, otherOwner.accessToken)).payload.reports, [])
     delete process.env.OPENAI_API_KEY
     const allocated = await request('/api/chat', childBody)
     assert.equal(allocated.response.status, 502)

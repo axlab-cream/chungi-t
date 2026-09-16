@@ -2,4 +2,5 @@
 {"ts":"2026-09-14T10:48:16.5551191Z","service":"vercel","event":"ensure","status":"configured","command":"vercel whoami","setupHint":"vercel login","notes":"auth check passed","exitCode":0}
 {"ts":"2026-09-14T11:28:13.5898941Z","service":"vercel","event":"ensure","status":"needs_setup","command":"vercel whoami","setupHint":"vercel login","notes":"auth check did not pass","exitCode":2}
 {"ts":"2026-09-14T11:31:29.4896141Z","service":"vercel","event":"ensure","status":"configured","command":"vercel whoami","setupHint":"vercel login","notes":"auth check passed","exitCode":0}
+{"ts":"2026-09-14T12:49:12.5812618Z","service":"vercel","event":"ensure","status":"needs_setup","command":"vercel whoami","setupHint":"vercel login","notes":"auth check did not pass","exitCode":2}
 {"ts":"2026-09-16T02:46:26.2358581Z","service":"vercel","event":"ensure","status":"configured","command":"vercel whoami","setupHint":"vercel login","notes":"auth check passed","exitCode":0}

@@ -1,0 +1,89 @@
+{
+  "taskId": "task-tone-v2-p04-pass-angle-2-1-full-outline-generation",
+  "evaluatedAt": "2026-09-13T18:00:00+09:00",
+  "status": "pass",
+  "serviceKey": "pass_angle",
+  "provider": {
+    "models": ["gpt-5.5-2026-04-23", "gpt-5.5"],
+    "actualCalls": true,
+    "syntheticOnly": true,
+    "isolatedStorage": true,
+    "reasoningEffort": "low"
+  },
+  "identity": {
+    "version": "p04-pass-angle-corpus-2-1-20260913-1",
+    "reportId": "d69bb13bcb4041d87c1b45027be5",
+    "resultId": "5265b42e-b39e-4d48-999c-78c80066d082"
+  },
+  "corpus": {
+    "path": "tone-v2/corpus/releases/pass-angle-service-2.1.0.json",
+    "version": "2.1.0",
+    "sha256": "44ab5c364540b7a943ca7739bd7f176fd45758973e3804b39ac481c8c2c0d96f",
+    "contentHash": "44ab5c364540b7a9"
+  },
+  "completion": {
+    "completedSections": 52,
+    "expectedSections": 52,
+    "recordStatus": "complete",
+    "firstFailure": null,
+    "attemptedAfterFailure": 0,
+    "attemptedOutsideLimit": 0
+  },
+  "evidence": {
+    "recordSha256": "5fc40af448836d7084919d3fc9afba7199cbe47a3d88f656115370845633e7fa",
+    "acceptedProseSha256": "a25f7afd69e0417350600cbced7d60c1ee015bd276a3dc8f758e12488e9c007e",
+    "acceptedProseCanonicalForm": "JSON array of ordered {id,order,hook,interpretation} objects",
+    "containsProviderProse": false,
+    "containsSecrets": false,
+    "containsPersonalData": false,
+    "sourceRecord": ".cache/reading-live-20260907/records/d69bb13bcb4041d87c1b45027be5.json"
+  },
+  "generation": {
+    "providerAttempts": 112,
+    "acceptedSections": 52,
+    "acceptedAttempts": 52,
+    "acceptedOnCompleteStatusAttempt": 40,
+    "recoveredAfterFailedAttempt": 12,
+    "failedAttempts": 72,
+    "promptTokens": 2253994,
+    "completionTokens": 130133,
+    "totalTokens": 2384127
+  },
+  "replay": {
+    "againstStoredCorpusSnapshot": true,
+    "passed": 52,
+    "failed": 0,
+    "interpretationCharacterCount": { "minimum": 136, "maximum": 505, "average": 300.44 },
+    "paragraphCount": { "minimum": 1, "maximum": 4, "average": 3.02 }
+  },
+  "failedAttemptSignals": {
+    "paragraphOrReadability": 24,
+    "nextCriterion": 50,
+    "generationIncomplete": 4,
+    "hanjaCrowding": 6,
+    "unlabeledHanja": 1,
+    "scene": 34,
+    "grounding": 4,
+    "futureClaim": 2,
+    "completeSentenceStructure": 1,
+    "symbolicAuthority": 1
+  },
+  "verification": {
+    "focusedTests": { "passed": 92, "failed": 0 },
+    "fullTests": { "suites": 122, "passed": 930, "failed": 0 },
+    "typecheck": "pass",
+    "vercelBuild": "pass; 126 FAQs generated, 19 sitemap URLs and SEO checks passed",
+    "independentReview": "approved_codex_review",
+    "reviewFindings": {
+      "critical": 0,
+      "major": 0,
+      "minor": 0,
+      "comments": 2,
+      "commentsSummary": [
+        "Sections 33 and 39 are materially shorter than the surrounding sections but still preserve grounding, symbolic separation and a next comparison criterion.",
+        "The repeated error-log comparison pattern is deliberate for this corpus decision axis; future editorial work may diversify wording without weakening the measurable criterion."
+      ]
+    }
+  },
+  "notRun": ["production deployment", "production customer report mutation"]
+}

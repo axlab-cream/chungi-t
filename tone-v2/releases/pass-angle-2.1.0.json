@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseId": "pass-angle-corpus-2.1.0",
+  "serviceKey": "pass_angle",
+  "state": "candidate",
+  "deployed": false,
+  "promptBundle": {
+    "version": "tone-v2.20260910.1",
+    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "releaseReadyAtSource": false
+  },
+  "corpus": {
+    "previous": {
+      "path": "data/tone-v2/corpus/pass-angle-service.json",
+      "version": "2.0.0",
+      "sha256": "78cacec3763736f0699bf0a082d4d7002046885843309e78edb622cc78bdc460"
+    },
+    "candidate": {
+      "path": "data/tone-v2/corpus/releases/pass-angle-service-2.1.0.json",
+      "version": "2.1.0",
+      "sha256": "44ab5c364540b7a943ca7739bd7f176fd45758973e3804b39ac481c8c2c0d96f"
+    },
+    "semanticReview": "tone-v2/corpus-review/pass-angle-2.1.0.json"
+  },
+  "generationEvidence": {
+    "path": "tone-v2/evaluations/P04-pass-angle-2-1-full-outline-generation-20260913.json",
+    "recordSha256": "5fc40af448836d7084919d3fc9afba7199cbe47a3d88f656115370845633e7fa",
+    "acceptedProseSha256": "a25f7afd69e0417350600cbced7d60c1ee015bd276a3dc8f758e12488e9c007e",
+    "containsProviderProse": false
+  },
+  "visualEvidence": {
+    "path": "tone-v2/evaluations/P04-pass-angle-visual-render-evidence-20260913.json",
+    "sha256": "beb65d96554b7352ad660c0cfad378eb8ee2ea0b22f554ae591e5851eaba67b3",
+    "desktop": "pass_52_of_52",
+    "mobile": "pass_52_of_52",
+    "print": "pass_all_52_sections",
+    "containsProviderProse": false
+  },
+  "verificationEvidence": "tone-v2/evaluations/P05-pass-angle-corpus-rag-release-candidate-20260913.json",
+  "attachment": {
+    "newReportsOnly": true,
+    "storedSnapshotRequired": true,
+    "customerRecordMutation": false
+  },
+  "rollback": {
+    "strategy": "registry_only",
+    "restorePath": "data/tone-v2/corpus/pass-angle-service.json",
+    "restoreVersion": "2.0.0",
+    "customerRecordRewrite": false
+  },
+  "gates": {
+    "semanticReview": "pass_8_of_8",
+    "sampleOutputIngestion": "none",
+    "snapshotPinnedRag": "required",
+    "providerOutputEvaluation": "pass_52_of_52",
+    "focusedTests": "pass_8_of_8",
+    "fullTests": "pass_823_of_823_114_suites",
+    "typecheck": "pass",
+    "build": "pass",
+    "codexReview": "approved_with_comments_no_findings"
+  }
+}

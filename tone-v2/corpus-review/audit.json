@@ -1,0 +1,413 @@
+{
+  "sourceVersion": "1.9.0",
+  "releaseReady": false,
+  "policy": "Static flags are review candidates, not proof of violation or approval. No sample inputs or completed copy are ingested.",
+  "packs": [
+    {
+      "id": "myeongri-basics",
+      "source": "corpus/myeongri-basics.json",
+      "sourceHash": "4b6d82335760743104f07a4e7622bfa6ccc54afe4dab80b6c5c02161c6c1e5cf",
+      "domain": "myeongri_basics",
+      "blockCount": 0,
+      "legacyCount": 10,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "today-fortune-service",
+      "source": "corpus/today-fortune-service.json",
+      "sourceHash": "6d32b8dc8c07808416ca19822b100c7c2b20db0eb1d967a21cbde959580c2608",
+      "domain": "today_fortune_service",
+      "blockCount": 1,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "today-001",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "saju-master-service",
+      "source": "corpus/saju-master-service.json",
+      "sourceHash": "7a34e35dc948a31d14e5a437292bced0cd3fd08d8b2cd56d716f52fe5b970eda",
+      "domain": "saju_master_service",
+      "blockCount": 1,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "work-job-service",
+      "source": "corpus/work-job-service.json",
+      "sourceHash": "2537fe068d87376d96b768a36c21994fb720c7cf46c2de38cc684b1c3382b09b",
+      "domain": "work_job_service",
+      "blockCount": 1,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "workjob-001",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "love-mind-service",
+      "source": "corpus/love-mind-service.json",
+      "sourceHash": "ba9e56dd4aa8fe7fe6c225e5705b618d11658e884c9cc9f899f74cdcd3175c3b",
+      "domain": "love_mind_service",
+      "blockCount": 1,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "love-again-service",
+      "source": "corpus/love-again-service.json",
+      "sourceHash": "89ec3b555ba8af602c514f4539fec26e7164c284fc4d0a183f0604785b629c10",
+      "domain": "love_again_service",
+      "blockCount": 1,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "love-spouse-service",
+      "source": "corpus/love-spouse-service.json",
+      "sourceHash": "a7fc320900c782bc9866ec8861d9d6f2c897cba8aac94542b1599680b209d229",
+      "domain": "love_spouse_service",
+      "blockCount": 1,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "deep-saju-interpretation",
+      "source": "corpus/deep-saju-interpretation.json",
+      "sourceHash": "38f28ea2feaffc279cc4fe984142d933a107cedb882da0eff7bf244b3ef7a07e",
+      "domain": "deep_saju_interpretation",
+      "blockCount": 0,
+      "legacyCount": 65,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "input-context-interpretation",
+      "source": "corpus/input-context-interpretation.json",
+      "sourceHash": "b76e0391438a7781cfb1828ae8122bbfdf976c1aa39c363958fa718e65b57701",
+      "domain": "input_context_interpretation",
+      "blockCount": 0,
+      "legacyCount": 22,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "love-this-year-service",
+      "source": "corpus/love-this-year-service.json",
+      "sourceHash": "8811e661452c7a855cffb1156d6fed9a009c75e843f4e025f1c7609668cc215a",
+      "domain": "love_this_year_service",
+      "blockCount": 10,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "lty-001",
+          "kind": "legacy_voice"
+        },
+        {
+          "id": "lty-003",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "lty-004",
+          "kind": "legacy_voice"
+        },
+        {
+          "id": "lty-005",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "lty-008",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "lty-009",
+          "kind": "legacy_voice"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "home-fit-service",
+      "source": "corpus/home-fit-service.json",
+      "sourceHash": "33946b574610bc42cdda4d5ceb1327a48fe81731d9089d376f397a758f725e17",
+      "domain": "home_fit_service",
+      "blockCount": 12,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "hfit-004",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "hfit-012",
+          "kind": "numeric_provenance_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "work-move-service",
+      "source": "corpus/work-move-service.json",
+      "sourceHash": "a7de3966df5454c4dae67596c9d9a0f8ca6b4bf4c461acbf5a4f8af823bcebbd",
+      "domain": "work_move_service",
+      "blockCount": 10,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "wmov-001",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "wmov-008",
+          "kind": "numeric_provenance_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "pass-angle-service",
+      "source": "corpus/pass-angle-service.json",
+      "sourceHash": "e58332bf3822d3bb9ab937c13d50fc7077aa941fe213358dab57c5f411ddaeee",
+      "domain": "pass_angle_service",
+      "blockCount": 8,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "cat-compatibility-service",
+      "source": "corpus/cat-compatibility-service.json",
+      "sourceHash": "e336bed0acb9d6356abb8b30516c0a0546bdf3ff5b41b552eaa7660b7bf62605",
+      "domain": "cat_compatibility_service",
+      "blockCount": 38,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "cat-020",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "cat-027",
+          "kind": "legacy_voice"
+        },
+        {
+          "id": "cat-037",
+          "kind": "numeric_provenance_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "couple-signal-service",
+      "source": "corpus/couple-signal-service.json",
+      "sourceHash": "c215bb3d757ddc2c390c67687a0aaef26fa37dd1e4c01437fdc4ef5d44cdd59d",
+      "domain": "couple_signal_service",
+      "blockCount": 12,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "sig-012",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "lucky-color-service",
+      "source": "corpus/lucky-color-service.json",
+      "sourceHash": "2f98047a258a03479985c8dad5fcd138d3644d330d368640cbe8bea3686c116b",
+      "domain": "lucky_color_service",
+      "blockCount": 24,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "newyear-service",
+      "source": "corpus/newyear-service.json",
+      "sourceHash": "2d98b73d39e3639f29b30f0b338a09656c12d8a6305c6111b3cfc184f62e4466",
+      "domain": "newyear_service",
+      "blockCount": 10,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "newyear-002",
+          "kind": "numeric_provenance_review"
+        },
+        {
+          "id": "newyear-009",
+          "kind": "numeric_provenance_review"
+        },
+        {
+          "id": "newyear-010",
+          "kind": "numeric_provenance_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "wedding-day-service",
+      "source": "corpus/wedding-day-service.json",
+      "sourceHash": "810fe6dfc251092a2ff3ba355baa6c5afc2db22cc1b76a94b69d82e9bac153b6",
+      "domain": "wedding_day_service",
+      "blockCount": 6,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "wedding-004",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "job-choice-service",
+      "source": "corpus/job-choice-service.json",
+      "sourceHash": "5d3c713e7a981da1fcbffc6cec0430142e81fc81f51215ea287058ee182d6420",
+      "domain": "job_choice_service",
+      "blockCount": 12,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "job-005",
+          "kind": "numeric_provenance_review"
+        },
+        {
+          "id": "job-008",
+          "kind": "numeric_provenance_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "quit-fortune-service",
+      "source": "corpus/quit-fortune-service.json",
+      "sourceHash": "ee08b7cffaa3bf893b555501a690ff936db2f309486cc96a08a1e6667eb144ad",
+      "domain": "quit_fortune_service",
+      "blockCount": 12,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "qui-004",
+          "kind": "numeric_provenance_review"
+        },
+        {
+          "id": "qui-008",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "money-save-service",
+      "source": "corpus/money-save-service.json",
+      "sourceHash": "5170665080303d2747da6ab424a09e34a6a4e99c4d670176d079e2127431a897",
+      "domain": "money_save_service",
+      "blockCount": 12,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "match-couple-service",
+      "source": "corpus/match-couple-service.json",
+      "sourceHash": "aaceb679afe11eecc278ce3a3fa531bf5b976e41ef211c6532ae2c2870cf7690",
+      "domain": "match_couple_service",
+      "blockCount": 18,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "marry-match-service",
+      "source": "corpus/marry-match-service.json",
+      "sourceHash": "7cab70f0929b21eef03bab02aa46ac3e79d1aa4844dd5de19fbe0a6bf20f01de",
+      "domain": "marry_match_service",
+      "blockCount": 20,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "mar-020",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "saju-95-quality-bundles",
+      "source": "corpus/saju-95-quality-bundles.json",
+      "sourceHash": "b08d72e2937f03358011b90fe004d91c5ebbdf85fc204923454362aacddbfc3e",
+      "domain": "saju_95_quality_bundles",
+      "blockCount": 16,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "q95-002",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "paid-report-scene-corpus",
+      "source": "corpus/paid-report-scene-corpus.json",
+      "sourceHash": "4ba3606eaa6c7cc2ebf5fa6b26803e19f8e694946bfbda1c1a3c927ff55b47af",
+      "domain": "paid_report_scene_corpus",
+      "blockCount": 8,
+      "legacyCount": 0,
+      "findings": [
+        {
+          "id": "ps-001",
+          "kind": "contextual_claim_review"
+        },
+        {
+          "id": "ps-008",
+          "kind": "contextual_claim_review"
+        }
+      ],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "saju-advanced-manseryeok-gbr",
+      "source": "corpus/saju-advanced-manseryeok-gbr.json",
+      "sourceHash": "1e05160ace5bbb782edc1ede31c1e37d2b9a00d32e32595ec747e5e7aa503f1b",
+      "domain": "saju_advanced_manseryeok_gbr",
+      "blockCount": 0,
+      "legacyCount": 6,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "saju-elements",
+      "source": "corpus/saju-elements.json",
+      "sourceHash": "b331eb2c15289af1a3fc9beaf928c06d58ca3eb6e1b3258e6e53e2075c40b6d0",
+      "domain": "saju_elements",
+      "blockCount": 0,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    },
+    {
+      "id": "consultation-templates",
+      "source": "corpus/consultation-templates.json",
+      "sourceHash": "8139736aab8d0b052d62608565c31cb4239168c983fe1f7d1e9a2f7ec976af74",
+      "domain": "consultation_templates",
+      "blockCount": 0,
+      "legacyCount": 0,
+      "findings": [],
+      "status": "needs_semantic_review"
+    }
+  ]
+}
