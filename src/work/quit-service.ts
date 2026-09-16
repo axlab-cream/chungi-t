@@ -227,7 +227,7 @@ export function buildWorkQuitReport(
         category: category.title,
         categoryEn: category.label,
         classification: item,
-        hook: item,
+        hook: QUIT_DETAILS[item].answer,
         patternKeys: ['work', 'quit', category.id],
         ragTopics: categoryChunks.slice(0, 4).map((chunk) => chunk.topic),
         interpretation: buildInterpretation({

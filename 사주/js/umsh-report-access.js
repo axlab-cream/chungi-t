@@ -878,11 +878,26 @@
   }
   function paintTeaserPreview(preview) {
     if (!preview) return false;
-    var line = String(preview.headline || preview.summary || preview.title || '').trim();
+    var headline = String(preview.headline || '').trim();
+    var summary = String(preview.summary || preview.headline || preview.title || '').trim();
+    var line = headline || summary;
     if (!line) return false;
     var painted = false;
+    document.querySelectorAll('[data-teaser-headline]').forEach(function (node) {
+      node.textContent = headline || line;
+      node.dataset.boundPreview = '1';
+      markFilled(node);
+      painted = true;
+    });
+    document.querySelectorAll('[data-teaser-summary]').forEach(function (node) {
+      node.textContent = summary || line;
+      node.dataset.boundPreview = '1';
+      markFilled(node);
+      painted = true;
+    });
     document.querySelectorAll('[data-one-line-answer], #answerLine, #signal-main-copy, #freeSummary, #resultAnswer, #personal-teaser, #hero-summary, [data-hero-summary]').forEach(function (node) {
-      node.textContent = line;
+      if (node.hasAttribute('data-teaser-summary') || node.hasAttribute('data-teaser-headline')) return;
+      node.textContent = headline || line;
       node.dataset.boundPreview = '1';
       markFilled(node);
       painted = true;
@@ -891,7 +906,7 @@
     var list = document.querySelector('[data-signal-list]');
     if (list && insights.length) {
       list.innerHTML = insights.slice(0, 3).map(function (item, index) {
-        var title = item && typeof item === 'object' ? String(item.title || ('신호 ' + (index + 1))) : ('신호 ' + (index + 1));
+        var title = item && typeof item === 'object' ? String(item.title || ('근거 ' + (index + 1))) : ('근거 ' + (index + 1));
         var body = item && typeof item === 'object' ? String(item.body || item.text || '') : String(item || '');
         return '<div class="signal-item"><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(body) + '</span></div>';
       }).join('');

@@ -84,6 +84,13 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     )
     const prophecy = { ...base, headline: '올해 반드시 합격합니다.' }
     assert.equal(reviewTeaser({ preview: prophecy, sourceEvidence: prophecy.headline }).passed, false)
+    const bait = {
+      ...base,
+      headline: '지금 그만두고 싶은 진짜 이유, 회사가 아닐 수도 있습니다.',
+    }
+    const baitReview = reviewTeaser({ preview: bait, sourceEvidence: bait.headline })
+    assert.equal(baitReview.passed, false)
+    assert.ok(baitReview.issues.some(issue => issue.includes('후킹')))
   })
 
   it('routes newly assembled saved previews through the teaser gate and keeps two grounds at most', () => {
