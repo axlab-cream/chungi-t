@@ -449,11 +449,22 @@
       });
     }
 
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       const summary = $('#hero-summary');
       if (summary && line) summary.textContent = line;
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        if (stateCopy) stateCopy.textContent = '권한이 확인되어 전체 목차로 이어집니다.';
+        if (message) message.textContent = outcome.preview.summary || '';
+        if (nextPrimary) {
+          nextPrimary.textContent = '전체 목차 열기';
+          nextPrimary.addEventListener('click', () => {
+            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+          });
+        }
+        return;
+      }
       if (stateCopy) stateCopy.textContent = STEP_04_MESSAGES.payment;
       if (message) message.textContent = outcome.preview.summary || '';
       if (nextPrimary) {

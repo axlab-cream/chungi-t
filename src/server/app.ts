@@ -1418,8 +1418,10 @@ async function toUiAnalysis(
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
   const payload = buildUiAnalysisPayload(record.analysis ?? analysis, record.birth, report)
-  if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record) }
-  return payload
+  if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
+  return access?.entitled
+    ? { ...payload, entitled: true, unlockReason: access.reason }
+    : payload
 }
 
 function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
@@ -3010,10 +3012,13 @@ function reportToc(record: ReportRecord) {
   }))
 }
 
-function savedPreviewResponse(record: ReportRecord) {
+function savedPreviewResponse(record: ReportRecord, access?: PaidAccess) {
   const report = toClientReport(record)
+  const entitled = access?.entitled === true
   return {
     previewOnly: true,
+    entitled,
+    unlockReason: entitled ? access?.reason : undefined,
     reportId: record.reportId,
     resultId: report.resultId,
     publicId: report.publicId,
@@ -3021,7 +3026,7 @@ function savedPreviewResponse(record: ReportRecord) {
     serviceKey: record.context.serviceKey ?? 'saju_master',
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     toc: reportToc(record),
-    paymentUrl: paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
+    paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
 
@@ -3041,7 +3046,8 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   const { record } = await createOrGetReportRecord(params)
-  res.json(savedPreviewResponse(record))
+  const access = await resolvePaidAccess(req, params.owner, productKeyForContext(record.context), record.reportId)
+  res.json(savedPreviewResponse(record, access))
   return true
 }
 
@@ -3072,7 +3078,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
-    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
+    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
       res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis })
@@ -3652,7 +3658,14 @@ app.post('/api/saju/analyze', async (req, res) => {
         analysis, templateReport: buildTemplateSajuReport(analysis, birth, enriched), owner,
         lineageId: createReportLineageId(birth, enriched, owner?.id),
       })
-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record) })
+      const access = await resolvePaidAccess(
+        req,
+        owner,
+        productKeyForContext(enriched),
+        record.reportId,
+        createReportLineageId(birth, enriched, owner?.id),
+      )
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access) })
       return
     }
     const access = await resolvePaidAccess(
@@ -3684,9 +3697,8 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis })
       return
     }
-    if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
-    if (!access.entitled) { res.json(savedPreviewResponse(record)); return }
+    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
     applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,

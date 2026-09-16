@@ -285,11 +285,23 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const description = $('#accessDescription');
       if (description) description.textContent = outcome.preview.summary || GATE_COPY.payment;
       const cta = $('#mainCta');
+      const entitledLink = $('#entitledLink');
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        if (cta) {
+          cta.textContent = '전체 목차 열기';
+          cta.addEventListener('click', (event) => {
+            event.preventDefault();
+            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+          });
+        }
+        if (entitledLink) entitledLink.hidden = false;
+        return;
+      }
       if (cta) {
         cta.textContent = `전체 보기 (${SERVICE.price})`;
         cta.addEventListener('click', (event) => {

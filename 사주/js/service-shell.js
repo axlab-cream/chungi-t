@@ -300,6 +300,7 @@
   if (topHost) topHost.innerHTML = topMarkup();
   if (bottomHost) bottomHost.innerHTML = bottomMarkup();
   renderBottomMenu(activeTab);
+  setBottomMenuOpen(false);
 
   /**
    * The shell's back button goes home. It ran the capture phase on purpose: several

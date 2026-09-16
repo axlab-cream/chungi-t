@@ -347,7 +347,7 @@
     const outcome = await loadReport();
     const signals = document.querySelectorAll('.signal-list .signal');
 
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       if (line) summary.textContent = line;
@@ -357,6 +357,11 @@
         const item = insights[index];
         if (body && item) body.textContent = item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item);
       });
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        setStatus('전체 목차로 이어집니다', '열람 가능', '먼저 본 방향을 유지한 채 전체 항목을 엽니다.');
+        takeOverCta('전체 목차 열기', goReportIndex);
+        return;
+      }
       setStatus('핵심 결론을 먼저 열었습니다', '무료 공개', GATE_COPY.payment);
       takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
         location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);

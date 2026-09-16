@@ -47,6 +47,7 @@
   }
   function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || isPermalink() || Boolean(locationId()); }
   function isDetailPage() { return /(?:05-step|06-step)/.test(location.pathname); }
+  function isTeaserPage() { return /04-step/.test(location.pathname); }
   function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function remember(payload) {
     var id = identity(payload);
@@ -417,9 +418,11 @@
     if (fillText('paid-value', preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.')) filled = true;
     var checkout = slotNode('checkout');
     if (checkout) {
-      var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
-      if (checkout.tagName === 'A') checkout.setAttribute('href', href);
-      else checkout.setAttribute('data-umsh-checkout-url', href);
+      var cta = previewCta(payload);
+      if (checkout.tagName === 'A') {
+        checkout.setAttribute('href', cta.href);
+        if (checkout.textContent && /전체|보기|목차|결제/.test(checkout.textContent)) checkout.textContent = cta.label;
+      } else checkout.setAttribute('data-umsh-checkout-url', cta.href);
       markFilled(checkout);
       filled = true;
     }
@@ -432,7 +435,7 @@
   /** 자리를 만들어 넣을 때 쓰는 미리보기 본문. 디자인 슬롯을 찾은 경우에는 쓰지 않는다. */
   function previewBlock(payload, insights) {
     var preview = payload.preview || {};
-    var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
+    var cta = previewCta(payload);
     return '<h2 class="umsh-preview-headline">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h2>'
       + (preview.summary ? '<p class="umsh-preview-summary">' + escapeHtml(preview.summary) + '</p>' : '')
       + (insights.length
@@ -443,7 +446,7 @@
           }).join('') + '</div>'
         : '')
       + '<p class="umsh-preview-paid">' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p>'
-      + '<a class="umsh-preview-checkout" href="' + escapeHtml(href) + '">전체 해석 목차 보기</a>';
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>';
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
   function renderReportInPlace(payload) {
@@ -646,12 +649,13 @@
     var preview = payload.preview || {};
     var sourceInsights = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = sourceInsights.filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
-    var node = panel();
+  var node = panel();
+    var cta = previewCta(payload);
     node.innerHTML = navigation()
       + '<header class="preview-heading"><span class="preview-eyebrow">운명상회 · 내 입력으로 먼저 보는 해석</span><h1>' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p class="preview-summary">' + escapeHtml(preview.summary || '') + '</p></header>'
       + '<section class="preview-evidence" aria-labelledby="preview-evidence-title"><span class="reading-role">대표 근거</span><h2 id="preview-evidence-title">지금 먼저 확인할 장면</h2><div class="preview-evidence-list">' + insights.map(function(line,index){return '<article><span aria-hidden="true">0'+(index+1)+'</span><p>' + escapeHtml(line) + '</p></article>';}).join('') + '</div></section>'
       + '<section class="preview-scope" aria-labelledby="preview-scope-title"><span class="reading-role">전체 해석 범위</span><h2 id="preview-scope-title">이어서 비교할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p></section>'
-      + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
+      + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
     if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search);
   }
   function showReport(payload) {
@@ -710,7 +714,14 @@
     setTimeout(function(){if(epoch===ownerEpoch)remember(payload);},0);
     headerCache = headers || headerCache;
     if (payload.todayFortune) showToday(payload);
-    else if (payload.previewOnly) showPreview(payload, request);
+    else if (payload.previewOnly) {
+      // 04는 동결 티저를 유지한다. 05·06·종합은 권한이 있으면 본문 GET으로 넘어간다.
+      if (isEntitled(payload) && identity(payload) && !isTeaserPage()) {
+        refresh(identity(payload));
+        return payload;
+      }
+      showPreview(payload, request);
+    }
     else if (isOutputPage() || /\/(?:love\/(?:mind|again|spouse)|work\/job)(?:\/|$)/.test(location.pathname)) {
       showReport(payload);
       resumePending(payload);
@@ -751,9 +762,8 @@
     var target = path;
     var next = Object.assign({},options);
     if (id) { target=reportUrl(id,body.orderId || new URLSearchParams(location.search).get('orderId')); delete next.body;next.method='GET';next.cache='no-store'; }
-    else if (!explicitPaid && !daily) {
-      // 05 목차·06 상세도 04와 같이 preview analyze로 레코드/목차를 받는다.
-      // 주소가 없어도 404로 막으면 로그인 직후 목차·본문이 빈 화면이 된다.
+    else if (!explicitPaid && !daily && !isDetailPage()) {
+      // 04·입력·종합은 동결 티저. 05·06에 preview를 붙이면 권한 있는 목차가 빈 골격으로 남는다.
       next.body=JSON.stringify(Object.assign({},body,{preview:true}));
     }
     var epoch=ownerEpoch;
@@ -847,9 +857,44 @@
     } catch(_) {}
   }
   function hasPaidReading(report) {
+    if (report && (report.isPaid === true || report.paid === true || report.entitlement === 'paid')) return true;
     return Boolean(report && Array.isArray(report.sections) && report.sections.some(function (section) {
       return String((section && (section.interpretation || section.hook)) || '').trim();
     }));
+  }
+  function isEntitled(outcome) {
+    if (!outcome || typeof outcome !== 'object') return false;
+    var payload = outcome.payload && typeof outcome.payload === 'object' ? outcome.payload : outcome;
+    var report = outcome.report;
+    if (!report && payload.report && Array.isArray(payload.report.sections)) report = payload.report;
+    if (outcome.entitled === true || payload.entitled === true) return true;
+    if (hasPaidReading(report)) return true;
+    var reason = String(payload.unlockReason || (report && report.unlockReason) || '').trim();
+    return reason === 'admin' || reason === 'open' || reason === 'order';
+  }
+  function tocHref(reportId) {
+    var id = String(reportId || rememberedId || '').trim();
+    try {
+      var url = new URL('../05-step-5-chat/chat.html', location.href);
+      if (id) url.searchParams.set('reportId', id);
+      url.hash = 'step-5-chat';
+      return url.pathname + url.search + url.hash;
+    } catch (_) {
+      return '../05-step-5-chat/chat.html' + (id ? '?reportId=' + encodeURIComponent(id) : '') + '#step-5-chat';
+    }
+  }
+  function previewCta(payload) {
+    var entitled = isEntitled(payload);
+    var id = identity(payload);
+    if (entitled) {
+      if (isTeaserPage()) return { href: tocHref(id), label: '전체 목차 열기' };
+      if (id) return { href: '/r/' + encodeURIComponent(id), label: '전체 목차 열기' };
+      return { href: location.pathname + location.search, label: '전체 목차 열기' };
+    }
+    return {
+      href: (payload && payload.paymentUrl) || ('/payment?service=' + encodeURIComponent(key || 'cmdg')),
+      label: '전체 보기',
+    };
   }
   function acceptAnalyze(payload) {
     if (!payload || typeof payload !== 'object') return null;
@@ -860,20 +905,22 @@
       : (Array.isArray(payload.sections) && payload.sections.length ? payload : null);
     var toc = Array.isArray(payload.toc) ? payload.toc.filter(function (item) { return item && item.id; }) : [];
     var skeleton = !report && toc.length ? { sections: toc } : null;
+    var entitled = isEntitled({ payload: payload, report: report });
     if (hasPreview) {
-      var paid = hasPaidReading(report);
+      var paid = hasPaidReading(report) || entitled;
       // 04 티저는 동결 preview만 쓴다. toc 골격을 report로 넘기면 빈 섹션 제목만 12% 칸을 덮는다.
       return {
         preview: preview,
         previewOnly: payload.previewOnly !== false && !paid,
+        entitled: entitled,
         payload: payload,
         paymentUrl: payload.paymentUrl,
         toc: toc,
-        report: paid ? report : (isDetailPage() ? (report || skeleton || undefined) : undefined),
+        report: paid ? (report || undefined) : (isDetailPage() ? (report || skeleton || undefined) : undefined),
       };
     }
-    if (report) return { report: report, payload: payload, toc: toc };
-    if (skeleton) return { report: skeleton, previewOnly: true, payload: payload, toc: toc, paymentUrl: payload.paymentUrl };
+    if (report) return { report: report, payload: payload, toc: toc, entitled: entitled };
+    if (skeleton) return { report: skeleton, previewOnly: true, payload: payload, toc: toc, paymentUrl: payload.paymentUrl, entitled: entitled };
     return null;
   }
   function paintTeaserPreview(preview) {
@@ -941,7 +988,7 @@
     }
     return painted;
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity};
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,isEntitled:isEntitled,tocHref:tocHref,previewCta:previewCta,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity};
   if (typeof document !== 'undefined') {
     if (global.addEventListener) {
       global.addEventListener('beforeprint', expandReportForPrint);
@@ -960,5 +1007,11 @@
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
     document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var query=new URLSearchParams(location.search);var orderId=query.get('orderId');if(key==='newyear_flow') {if(orderId) {url.searchParams.set('orderId',orderId);url.searchParams.delete('preview');}else if(query.get('preview')==='1' && query.get('paid')!=='1')url.searchParams.set('preview','1');}link.href=url.pathname+url.search+url.hash;}},true);
     document.addEventListener('click',function(event){var button=event.target.closest && event.target.closest('[data-retry-section]');if(!button || !authorized)return;button.disabled=true;resumeSection(authorized.reportId || rememberedId,button.dataset.retrySection,true).then(function(){return refresh(rememberedId);}).catch(function(){button.disabled=false;});});
+    document.addEventListener('click',function(event){
+      var pdf = event.target.closest && event.target.closest('[data-umsh-pdf]');
+      if (!pdf) return;
+      event.preventDefault();
+      try { global.print(); } catch (_) {}
+    });
   }
 })(typeof window!=='undefined'?window:globalThis);

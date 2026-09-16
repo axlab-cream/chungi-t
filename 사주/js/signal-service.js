@@ -283,7 +283,7 @@
     const outcome = await loadReport();
 
     const primary = $('[data-state-primary]');
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       if (line) summary.textContent = line;
@@ -294,11 +294,19 @@
         if (node && item) node.textContent = item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item);
       });
       if (primary) {
-        primary.textContent = `전체 보기 (${SERVICE.price})`;
-        primary.addEventListener('click', (event) => {
-          event.preventDefault();
-          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
-        });
+        if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+          primary.textContent = '전체 목차 열기';
+          primary.addEventListener('click', (event) => {
+            event.preventDefault();
+            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+          });
+        } else {
+          primary.textContent = `전체 보기 (${SERVICE.price})`;
+          primary.addEventListener('click', (event) => {
+            event.preventDefault();
+            location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+          });
+        }
       }
       return;
     }

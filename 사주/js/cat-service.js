@@ -307,7 +307,7 @@
   function reportListUrl(report) {
     const params = new URLSearchParams();
     params.set('service_key', SERVICE.apiKey);
-    if (report.reportId) params.set('report_id', report.reportId);
+    if (report && report.reportId) params.set('report_id', report.reportId);
     params.set('analysis_period', 'current-12m');
     params.set('report_version', 'cat-compatibility-v1');
     // The design's own gate reads this; the server already decided access.
@@ -342,7 +342,7 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       setText('#signal-main-title', outcome.preview.headline || '우리 둘의 생활 박자');
@@ -351,6 +351,13 @@
       const insightLine = (item) => (item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item || ''));
       if (insights[0]) setText('#condition-signal', insightLine(insights[0]));
       if (insights[1]) setText('#blocker-signal', insightLine(insights[1]));
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        setText('#state-pill', '열람 가능');
+        setText('#state-title', '전체 목차로 이어집니다');
+        setText('#state-copy', '먼저 본 방향을 유지한 채 전체 항목을 엽니다.');
+        takeOverCta('전체 목차 열기', () => location.assign(reportListUrl(outcome.payload || outcome.report)));
+        return;
+      }
       setText('#state-pill', '무료 공개');
       setText('#state-title', '핵심 결론을 먼저 열었습니다');
       setText('#state-copy', GATE_COPY.payment);
