@@ -31,7 +31,7 @@
     <style>
       :root {
         color-scheme: dark;
-        --mobile-width: 390px;
+        --mobile-width: 430px;
         --bg: #0e1310;
         --bg-deep: #070907;
         --ink: #fff8ed;
@@ -90,7 +90,7 @@
 
       .phone {
         position: relative;
-        width: min(100vw, var(--mobile-width));
+        width: min(100%, var(--mobile-width));
         min-height: 100svh;
         margin: 0 auto;
         border-right: 1px solid rgba(231, 190, 101, 0.18);
@@ -575,7 +575,7 @@
         left: 50%;
         z-index: 40;
         display: none;
-        width: min(calc(100vw - 36px), calc(var(--mobile-width) - 36px));
+        width: min(calc(100% - 36px), calc(var(--mobile-width) - 36px));
         transform: translateX(-50%);
         padding: 12px 13px;
         border: 1px solid rgba(112, 194, 146, 0.36);
@@ -598,7 +598,7 @@
         left: 50%;
         z-index: 30;
         display: grid;
-        width: min(100vw, var(--mobile-width));
+        width: min(100%, var(--mobile-width));
         transform: translateX(-50%);
         justify-items: center;
         padding: 14px 14px max(14px, env(safe-area-inset-bottom));
@@ -768,7 +768,7 @@
 
       <footer class="submit-dock" aria-label="전체 결과 열기">
         <div class="dock-inner">
-          <button class="primary" type="button" data-action="dock-primary">로그인하고 전체 보기</button>
+          <button class="primary" type="button" data-action="dock-primary">로그인하고 전체 보기 (9,900원)</button>
           
         </div>
       </footer>
@@ -1126,11 +1126,11 @@
             "kicker": "로그인 전",
             "title": "로그인하면 이 무료 결과를 그대로 이어볼 수 있어요",
             "body": "계정 확인 뒤 결제 단계로 이동합니다. 입력한 생년월일과 돈 고민은 주소창에 붙이지 않습니다.",
-            "primary_label": "로그인하고 전체 보기",
+            "primary_label": "로그인하고 전체 보기 (9,900원)",
             "primary_action": "login",
             "secondary_label": "무료 결과 다시 보기",
             "secondary_action": "scroll-top",
-            "dock_label": "로그인하고 전체 보기"
+            "dock_label": "로그인하고 전체 보기 (9,900원)"
       },
       "login_pending": {
             "kicker": "로그인 이동 준비",
@@ -1146,11 +1146,11 @@
             "kicker": "로그인 완료 · 미결제",
             "title": "전체 풀이를 열려면 결제 확인이 필요해요",
             "body": "9,900원 결제 후 05 목록과 06 상세 풀이로 이어집니다. 중복 주문을 막기 위해 진행 중 결제는 세션에 보관합니다.",
-            "primary_label": "전체 보기 · 9,900원",
+            "primary_label": "전체 보기 (9,900원)",
             "primary_action": "start-payment",
             "secondary_label": "입력 다시 하기",
             "secondary_action": "back-input",
-            "dock_label": "전체 보기 · 9,900원"
+            "dock_label": "전체 보기 (9,900원)"
       },
       "payment_processing": {
             "kicker": "결제 진행 중",

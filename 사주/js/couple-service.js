@@ -18,6 +18,7 @@
     apiKey: 'match_couple',
     slug: 'couple',
     title: '우리 둘, 진짜 잘 맞아?',
+    price: '19,900원',
   };
 
   // The design pages read and write these; we fill them so their own renderers unlock.
@@ -290,7 +291,7 @@
       if (description) description.textContent = outcome.preview.summary || GATE_COPY.payment;
       const cta = $('#mainCta');
       if (cta) {
-        cta.textContent = '전체 보기';
+        cta.textContent = `전체 보기 (${SERVICE.price})`;
         cta.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
@@ -314,7 +315,7 @@
       if (description) description.textContent = GATE_COPY[reason] || GATE_COPY.error;
       const cta = $('#mainCta');
       if (cta && reason === 'login') {
-        cta.textContent = '로그인하고 전체 보기';
+        cta.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
         cta.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(loginUrl());

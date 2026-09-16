@@ -2,6 +2,12 @@
 
 ## Current Task
 
+- 2026-09-16 퍼널 CTA: STEP1~6 한 화면 한 제출, 결과 동사, STEP4 미결제는 `전체 보기 (금액)`. 커플 오표기 `1전체 보기 · 9,900원`을 `전체 보기 (19,900원)`으로 고친다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
+
+- 2026-09-16 동의 모두 선택: 티저 결제 동의는 개별 버튼 탭 대신 체크박스 + `모두 선택` 한 칸. 필수 2개와 선택 마케팅을 한 번에 켠다. 근거: CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-09-form.md`.
+
+- 2026-09-16 모바일 캔버스: 430px 프레임을 정본으로 `100vw`를 퍼센트 폭으로 바꾸고, 결제창을 680→430·입력/CTA 52px로 키트에 맞춘다. 상단바는 430 이하 56–64px, 360 이하 로고 100px. 소비성향 `.app { min-width: 390px }` 는 375에서 잘려 공용 크롬이 `min-width: 0`·`width: min(100%, 430px)`로 덮는다. 로컬 375/360/430/768 overflow-x 0. 근거: CreamWIKI `operations/aios-standards/07-design-system/AIOS-DS-02-typography.md`, `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`, `design-system/customer-kit.md`.
+
 - 2026-09-16 체크아웃 상품 로드: HTML 시드(`save`,`couple_match`,`love_thisyear`,`marriage_compatibility`)가 카탈로그 키와 달라 `/payment`가 "상품 정보를 확인하지 못했습니다"에서 멈췄다. 서버 `canonicalPaymentProductKey` + 설정 `aliases`/`pathPrefixes` + `payment.js` 정규화로 공개 서비스 전수 조회. 결제 처리(PG 과금)는 추가하지 않음. 근거: CreamWIKI `personal/carrotcap/notes/umsh-inicis-checkout-recovery-20260914.md`, `operations/aios-standards/04-workflows/AIOS-WF-07-e-commerce-flow.md`.
 
 - 2026-09-16 STEP4 핵심 티저: `reportId` 재진입 때 toc 골격을 report로 받아 빈 섹션 제목만 12% 칸에 그렸다. 04는 동결 `preview`만 쓰고, 유료 본문이 있을 때만 renderTeaser. JS `?v=live-20260916t`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.

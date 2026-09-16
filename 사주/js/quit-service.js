@@ -365,7 +365,7 @@
     if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       if (lead) lead.textContent = outcome.preview.summary || outcome.preview.headline || lead.textContent;
-      retargetCtas('전체 보기 · 14,900원', () => {
+      retargetCtas('전체 보기 (14,900원)', () => {
         location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
       });
       return;
@@ -383,9 +383,9 @@
         lead.textContent = GATE_COPY[reason] || GATE_COPY.error;
       }
       if (reason === 'login') {
-        retargetCtas('로그인하고 전체 보기', () => location.assign(loginUrl()));
+        retargetCtas('로그인하고 전체 보기 (14,900원)', () => location.assign(loginUrl()));
       } else if (reason === 'payment') {
-        retargetCtas('전체 보기 · 14,900원', () => {
+        retargetCtas('전체 보기 (14,900원)', () => {
           location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
         });
       } else {

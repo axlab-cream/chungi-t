@@ -440,6 +440,14 @@ body.umsh-kit form .umsh-ymd-source {
 
 /* --------------------------------------------------------------- reduced motion */
 
+@media (max-width: 360px) {
+  body.umsh-fields,
+  body.umsh-kit {
+    --umsh-field-pad-x: 12px;
+    --umsh-stack-gap: 12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   body.umsh-fields form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit'], input, select, textarea),
   body.umsh-kit form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit'], input, select, textarea) {

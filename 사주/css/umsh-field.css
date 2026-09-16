@@ -3,4 +3,4 @@
  * The geometry, 1-column stack and CTA rules now live in umsh-kit.css.
  * New pages may load /css/umsh-kit.css directly. Colour still comes from the page.
  */
-@import url("./umsh-kit.css?v=20260916-ymd3");
+@import url("./umsh-kit.css?v=20260916-mobile");

@@ -35,7 +35,7 @@
     <style>
       :root {
         color-scheme: dark;
-        --mobile-width: 390px;
+        --mobile-width: 430px;
         --bg: #0d1310;
         --bg-deep: #060806;
         --ink: #fff8ed;
@@ -93,7 +93,7 @@
 
       .phone {
         position: relative;
-        width: min(100vw, var(--mobile-width));
+        width: min(100%, var(--mobile-width));
         min-height: 100svh;
         margin: 0 auto;
         border-right: 1px solid rgba(231, 190, 101, 0.18);
@@ -618,7 +618,7 @@
         left: 50%;
         z-index: 40;
         display: none;
-        width: min(calc(100vw - 36px), calc(var(--mobile-width) - 36px));
+        width: min(calc(100% - 36px), calc(var(--mobile-width) - 36px));
         transform: translateX(-50%);
         padding: 12px 13px;
         border: 1px solid rgba(112, 194, 146, 0.36);
@@ -641,7 +641,7 @@
         left: 50%;
         z-index: 30;
         display: grid;
-        width: min(100vw, var(--mobile-width));
+        width: min(100%, var(--mobile-width));
         transform: translateX(-50%);
         justify-items: center;
         padding: 14px 14px max(14px, env(safe-area-inset-bottom));

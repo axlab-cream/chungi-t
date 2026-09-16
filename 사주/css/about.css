@@ -149,5 +149,5 @@ html{scroll-behavior:smooth}body{font-size:16px}.page{max-width:1000px;padding:2
 .faq-crumb{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:#c0aa8c}
 .faq-index{display:grid;grid-template-columns:1fr 1fr;gap:12px}.faq-index .card{align-content:start}
 .faq-index a{line-height:1.6}.question-link{font-size:13px;text-decoration:underline}
-@media(max-width:560px){.brand-film{min-height:410px}.film-copy{left:22px;bottom:72px}.film-copy h2{font-size:29px}.film-toggle{left:22px}.faq-index{grid-template-columns:1fr}.brand-public .poster-rail{--poster-w:min(300px,calc(100vw - 64px))}.brand-public .poster{height:400px}.faq-art{aspect-ratio:2.2/1}}
+@media(max-width:560px){.brand-film{min-height:410px}.film-copy{left:22px;bottom:72px}.film-copy h2{font-size:29px}.film-toggle{left:22px}.faq-index{grid-template-columns:1fr}.brand-public .poster-rail{--poster-w:min(300px,calc(100% - 64px))}.brand-public .poster{height:400px}.faq-art{aspect-ratio:2.2/1}}
 [hidden]{display:none!important}
