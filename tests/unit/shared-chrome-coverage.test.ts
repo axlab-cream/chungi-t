@@ -83,6 +83,8 @@ test('4. 바닥 여백 규칙은 공용 CSS 한 곳에 있다', () => {
     /body\.umsh-has-chrome\s*\{[^}]*padding-bottom:\s*calc\(max\(74px, var\(--umsh-chrome-bottom-h, 74px\)\)/.test(css),
     '공용 바닥 여백 규칙이 없다',
   )
+  assert.match(css, /visibility:\s*hidden/)
+  assert.match(css, /bottom-menu-panel\[aria-hidden="true"\]/)
 })
 
 test('5. 페이지 자체 헤더는 지우지 않고 appbar 로 바꿔 끼운다', () => {

@@ -638,7 +638,16 @@ function firstSentence(text) {
     }
 
     const purchase = $('[data-action="purchase"]');
+    const analysis = safeParse(sessionGet(STORAGE.analysis)) || readPayload()?.analysis;
+    const entitled = Boolean(reportAccess()?.isEntitled?.(analysis) || (report?.isPaid || report?.paid || report?.entitlement === 'paid'));
     purchase?.addEventListener('click', () => {
+      const openFullReport = () => {
+        window.location.href = '../05-step-5-chat/chat.html#step-5-chat';
+      };
+      if (entitled) {
+        openFullReport();
+        return;
+      }
       sessionSet(STORAGE.legacyPaymentIntent, {
         service_key: SERVICE.service_key,
         amount_krw: SERVICE.price_krw,
@@ -646,9 +655,6 @@ function firstSentence(text) {
         to: '../05-step-5-chat/chat.html#step-5-chat',
         requested_at: new Date().toISOString(),
       });
-      const openFullReport = () => {
-        window.location.href = '../05-step-5-chat/chat.html#step-5-chat';
-      };
       // Checkout first when the payment module is connected; otherwise keep the existing
       // direct hand-off so this step never dead-ends before launch.
       if (!window.UMSHCheckout) {
@@ -658,7 +664,7 @@ function firstSentence(text) {
       window.UMSHCheckout
         .start({
           productKey: 'work_move',
-          reportId: report?.reportId || '',
+          reportId: report?.reportId || analysis?.reportId || '',
           returnTo: '/work/move/05-step-5-chat/chat.html#step-5-chat',
         })
         .then((result) => {
@@ -666,6 +672,7 @@ function firstSentence(text) {
         })
         .catch(openFullReport);
     });
+    if (purchase && entitled) purchase.textContent = '전체 목차 열기';
   }
 
   function sectionPreview(section) {

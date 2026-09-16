@@ -497,6 +497,7 @@ body.is-umsh-top-menu-open .umsh-service-shell .action-sheet {
   padding: 0 12px 86px;
   background: rgba(5, 5, 4, 0);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transform: translateX(-50%);
   transition: background 180ms ease, opacity 180ms ease;
@@ -505,7 +506,13 @@ body.is-umsh-top-menu-open .umsh-service-shell .action-sheet {
 body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-panel {
   background: rgba(5, 5, 4, 0.56);
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+}
+
+.umsh-service-bottom .bottom-menu-panel[aria-hidden="true"] {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .umsh-service-bottom .bottom-menu-sheet {

@@ -78,6 +78,9 @@ test('공개 서비스는 다음 단계로만 보낸다', () => {
   for (const service of PUBLIC) {
     const story = htmlOf(service.dir, '01-step-1-story')
     if (!story.includes('02-step-2-saju-input')) broken.push(`${service.key}: 01이 02로 안 간다`)
+    if ((service.key === 'job_choice' || service.key === 'couple_signal') && !/<a[^>]+href=["'][^"']*02-step-2-saju-input/.test(story)) {
+      broken.push(`${service.key}: 01 CTA가 실링크가 아니다`)
+    }
     if (/href=["'][^"']*05-step-5/.test(story) || /href=["'][^"']*06-step-6/.test(story) || /href=["'][^"']*04-step-4/.test(story)) {
       broken.push(`${service.key}: 01이 입력 앞 단계로 건너뛴다`)
     }

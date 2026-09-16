@@ -279,8 +279,24 @@
     // is also what keeps this from looping.
     const hadCache = Boolean(readJson('sessionStorage', STORAGE.report)?.sections?.length);
     const outcome = await loadReport();
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const pay = document.getElementById('payButton');
+      if (pay) {
+        const fresh = pay.cloneNode(true);
+        pay.replaceWith(fresh);
+        if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+          fresh.textContent = '전체 목차 열기';
+          fresh.addEventListener('click', () => {
+            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+          });
+        } else {
+          fresh.textContent = `전체 보기 (${SERVICE.price})`;
+          fresh.addEventListener('click', () => {
+            location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+          });
+        }
+      }
       return;
     }
     if (outcome.report) {

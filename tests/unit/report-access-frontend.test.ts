@@ -264,29 +264,25 @@ test('an introductory pause is not selected as the first insight',()=>{
   assert.equal(h.api.firstInsight('흠... 지금은 조건을 먼저 비교합니다. 다음 문장입니다.'),'지금은 조건을 먼저 비교합니다.')
 })
 
-test('05·06은 주소가 없어도 preview analyze로 목차를 받는다', async () => {
+test('05·06은 preview analyze로 빈 목차를 만들지 않는다', async () => {
   const h = harness('/money/save/05-step-5-chat/chat.html', [{
-    previewOnly: true,
     reportId: 'save-1',
-    preview: { headline: '새는 자리' },
-    toc: [{ id: 'a', category: '장', classification: '항목' }],
+    report: { sections: [{ id: 'a', category: '장', classification: '항목', interpretation: '본문' }] },
   }])
   const response = await h.api.fetch('/api/money/save/analyze', { method: 'POST', body: '{}' })
   assert.equal(response.status, 200)
   assert.equal(h.calls[0].path, '/api/money/save/analyze')
-  assert.equal(JSON.parse(h.calls[0].options.body).preview, true)
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, undefined)
 })
 
-test('detail pages without an identity still request a preview instead of inventing a paid report', async () => {
+test('detail pages without an identity request the full analyze, not a preview skeleton', async () => {
   const h = harness('/me/lucky/06-step-6_1-report-detail/index.html', [{
-    previewOnly: true,
     reportId: 'lucky-1',
-    preview: { headline: '방향' },
-    toc: [{ id: 'a', category: '장', classification: '항목' }],
+    report: { sections: [{ id: 'a', interpretation: '본문' }] },
   }])
   const response = await h.api.fetch('/api/me/lucky/analyze', { method: 'POST', body: '{}' })
   assert.equal(response.status, 200)
-  assert.equal(JSON.parse(h.calls[0].options.body).preview, true)
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, undefined)
 })
 
 test('identity hints are stored separately for each owner and service',async()=>{
@@ -536,7 +532,7 @@ test('preview CTA names the result the reader will open',()=>{
   const h=harness('/work/move/04-step-4-report/index.html',[])
   h.api.showPreview({preview:{headline:'먼저 본 방향',summary:'조건을 비교합니다.',signals:[]},paymentUrl:'/payment'}, {})
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/>전체 해석 목차 보기</)
+  assert.match(html,/>전체 보기</)
   assert.doesNotMatch(html,/전체 해석 열어보기/)
 })
 

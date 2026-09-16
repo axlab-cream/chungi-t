@@ -317,11 +317,26 @@
       });
     }
 
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       answer.dataset.boundPreview = '1';
       if (title) title.textContent = '먼저 열리는 12%';
       if (body) body.textContent = outcome.preview.summary || GATE_COPY.payment;
+      const openToc = () => location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        if (nextPrimary) {
+          nextPrimary.dataset.action = 'open-toc';
+          nextPrimary.textContent = '전체 목차 열기';
+          nextPrimary.addEventListener('click', openToc);
+        }
+        if (dock) {
+          dock.dataset.action = 'open-toc';
+          dock.textContent = '전체 목차 열기';
+          dock.addEventListener('click', openToc);
+        }
+        if (dockNote) dockNote.textContent = '권한이 확인되어 전체 목차로 이어집니다.';
+        return;
+      }
       const pay = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
       if (nextPrimary) {
         nextPrimary.dataset.action = 'open-checkout';
@@ -519,10 +534,20 @@
     const apply = () => {
       const wanted = new URLSearchParams(location.search).get('section');
       const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
-      if (!section || detail.dataset.saveApplied === section.id) return;
+      if (!section) return;
+
+      document.querySelector('#missingState')?.classList.add('hidden');
+      document.querySelector('#lockedState')?.classList.add('hidden');
+      detail.classList.remove('hidden');
 
       const parts = paragraphs(section);
-      if (!parts.length) return;
+      if (!parts.length) {
+        const node = document.querySelector('#conclusionBody');
+        if (node) node.textContent = '이 항목의 풀이를 준비하고 있어요. 목차는 열려 있고, 본문이 끝나는 대로 이 자리에 채워집니다.';
+        return;
+      }
+
+      if (detail.dataset.saveApplied === section.id) return;
 
       // The template writes the same six roles for every section, so each block takes
       // the paragraph that belongs under its heading instead of a running text dump.

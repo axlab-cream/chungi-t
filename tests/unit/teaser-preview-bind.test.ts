@@ -78,6 +78,45 @@ test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다'
   assert.equal(accepted.previewOnly, true)
 })
 
+test('권한이 있으면 티저 CTA가 결제 대신 목차로 간다', () => {
+  const api = loadAccess('/money/save/04-step-4-report/index.html')
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    entitled: true,
+    unlockReason: 'admin',
+    reportId: 'save-admin-1',
+    preview: { headline: '새는 자리', summary: '관계 정산에서 먼저 막힙니다.' },
+    toc: [{ id: 'in-1', category: '돈이 들어오는 방식' }],
+  })
+  assert.equal(accepted.entitled, true)
+  assert.equal(api.isEntitled(accepted), true)
+  assert.equal(accepted.report, undefined)
+  const cta = api.previewCta({ entitled: true, unlockReason: 'admin', reportId: 'save-admin-1' })
+  assert.equal(cta.label, '전체 목차 열기')
+  assert.match(cta.href, /05-step-5-chat/)
+  assert.doesNotMatch(cta.href, /\/payment/)
+})
+
+test('미결제 티저 CTA는 결제 주소로 간다', () => {
+  const api = loadAccess('/money/save/04-step-4-report/index.html')
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    entitled: false,
+    preview: { headline: '새는 자리' },
+    paymentUrl: '/payment?product=money_save',
+  })
+  assert.equal(api.isEntitled(accepted), false)
+  const cta = api.previewCta({ paymentUrl: '/payment?product=money_save' })
+  assert.equal(cta.label, '전체 보기')
+  assert.equal(cta.href, '/payment?product=money_save')
+})
+
+test('isPaid 플래그만 있어도 유료 열람으로 본다', () => {
+  const api = loadAccess('/work/quit/04-step-4-report/index.html')
+  assert.equal(api.hasPaidReading({ isPaid: true, sections: [] }), true)
+  assert.equal(api.hasPaidReading({ sections: [{ id: 'a' }] }), false)
+})
+
 test('04는 toc 골격으로 티저 본문을 대체하지 않는다', () => {
   const api = loadAccess('/money/save/04-step-4-report/index.html')
   const accepted = api.acceptAnalyze({
@@ -121,9 +160,13 @@ test('공개 티저 서비스는 previewOnly를 계산 실패로 덮지 않는�
     }
     if (name === 'work-move-service.js') {
       assert.match(source, /readPreview\(/, `${name}: 미리보기 읽기가 없다`)
+      assert.match(source, /isEntitled/, `${name}: 권한 CTA 분기가 없다`)
       continue
     }
     assert.match(source, /hasPaidReading/, `${name}: 빈 목차로 티저를 덮는지 가드가 없다`)
+    if (!['lucky-service.js', 'pass-angle-service.js'].includes(name)) {
+      assert.match(source, /isEntitled/, `${name}: 권한 CTA 분기가 없다`)
+    }
     assert.doesNotMatch(
       source,
       /if \(!report\?\.sections\?\.length\) return \{ reason: 'error' \}/,
@@ -160,6 +203,8 @@ test('공유 접근기는 04 결론 칸을 미리보기 슬롯으로 본다', ()
   assert.match(accessSource, /\[data-teaser-headline\]/)
   assert.match(accessSource, /\[data-teaser-summary\]/)
   assert.match(accessSource, /function hasPaidReading\(/)
+  assert.match(accessSource, /function isEntitled\(/)
+  assert.match(accessSource, /05·06에 preview를 붙이면/)
   assert.match(accessSource, /04 티저는 동결 preview만 쓴다/)
 })
 

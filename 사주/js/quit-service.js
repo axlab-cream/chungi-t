@@ -440,7 +440,7 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
-    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
+    if (outcome.preview) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       paintQuitReading(
         root,
@@ -448,9 +448,13 @@
         outcome.preview.summary || outcome.preview.headline,
         insightBodies(outcome.preview),
       );
-      retargetCtas('전체 보기 (14,900원)', () => {
-        location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
-      });
+      if (!window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        retargetCtas('전체 보기 (14,900원)', () => {
+          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+        });
+        return;
+      }
+      retargetCtas('전체 목차 열기', () => location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat'));
       return;
     }
 
@@ -551,8 +555,18 @@
     const outcome = await loadReport();
     if (!outcome.report) return;
 
-    const wanted = new URLSearchParams(location.search).get('section') || 'mental-people';
-    const sections = outcome.report.sections.filter((section) => section.id.startsWith(`${wanted}-`));
+    const wanted = new URLSearchParams(location.search).get('section');
+    let sections = wanted
+      ? outcome.report.sections.filter((section) => (
+        section.id === wanted
+        || section.id.startsWith(`${wanted}-`)
+        || section.category === wanted
+      ))
+      : [];
+    if (!sections.length && outcome.report.sections[0]) {
+      const first = outcome.report.sections[0];
+      sections = outcome.report.sections.filter((section) => section.category === first.category);
+    }
     if (!sections.length) return;
 
     // The summary reads at group level; the cards below carry each point's own line,

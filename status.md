@@ -1754,3 +1754,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 운영에서 결제창을 새로 열고 KG이니시스 닫기 → 취소 확인을 실행했다. `/payment/close` 이벤트 뒤 `/place/home/01-step-1-story/index.html`로 정상 복귀했으며 실제 결제 승인·과금은 없었다.
 - 운영 로그는 주문 생성, 닫기 URL, 상품 기본 경로와 최종 시작 페이지의 순차 200 요청을 보여준다. Node `url.parse()` deprecation 경고는 남아 있지만 이번 사용자 흐름을 막지 않는 별도 기술부채다.
 - Task status: DONE.
+
+## 2026-09-17 — 공개 서비스 90점 품질 루프
+
+- 실측 62%의 공통 원인: STEP4 preview 응답에 권한이 없어 슈퍼관리자도 결제 CTA, 05·06도 preview라 빈 목차, 하단 시트가 STEP1 CTA 가로챔.
+- 보강: 미리보기에 `entitled` 표시, 권한 시 `전체 목차 열기`, 05·06은 본문 analyze, 시트 `visibility:hidden`, 직장선택·썸신호 STEP1 실링크, 06 기본 항목·PDF.
+- 단위 테스트 통과. 로컬 8790에서 직장선택 STEP2 도달·퇴사 06 PDF 확인. PG 보류. 배포 전 `umsh.kr` 점수는 그대로다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-quality-90-loop-20260917.md`
+
