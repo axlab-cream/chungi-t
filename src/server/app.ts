@@ -159,7 +159,7 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
+import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
 import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
@@ -236,8 +236,8 @@ const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
 const PASS_ANGLE_SERVICE_KEY = 'pass_angle'
 // 공개 상태를 한 곳에서 전환해 페이지·분석 경로가 서로 다른 상태가 되지 않게 한다.
-const HOME_FIT_PUBLICLY_ENABLED = true
-const PUBLICLY_DISABLED_PRODUCT_KEYS = new Set<string>()
+const HOME_FIT_PUBLICLY_ENABLED = false
+const PUBLICLY_DISABLED_PRODUCT_KEYS = CUSTOMER_PAUSED_PRODUCT_KEYS
 
 const app = express()
 app.use(cors())
@@ -511,6 +511,14 @@ app.use('/place/home', (_req, res, next) => {
   res.setHeader('Cache-Control', 'no-store')
   res.redirect(302, '/')
 })
+function holdPausedCustomerPages(_req: Request, res: Response, _next: () => void) {
+  res.setHeader('Cache-Control', 'no-store')
+  res.redirect(302, '/')
+}
+app.use('/me/lucky', holdPausedCustomerPages)
+app.use('/me/pass-angle', holdPausedCustomerPages)
+app.use('/flow/newyear', holdPausedCustomerPages)
+app.use('/day/wedding', holdPausedCustomerPages)
 // 집 풍수 공개 재개 시 위 게이트만 열면 아래 01~06 경로를 그대로 다시 쓸 수 있다.
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
@@ -1464,6 +1472,16 @@ function clientReportContext(record: ReportRecord): SajuReportContext {
   return publicReportContext(record.context)
 }
 
+function rejectPausedCustomerAnalyze(res: Response, serviceKey: string | undefined): boolean {
+  if (!isCustomerPausedProduct(serviceKey)) return false
+  res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
+  return true
+}
+
+function isCustomerFacingReport(record: ReportRecord): boolean {
+  return !isCustomerPausedProduct(record.context?.serviceKey)
+}
+
 function historyEntryFromRecord(record: ReportRecord) {
   const analysis = toUiAnalysisFromRecord(record)
   // Lists are metadata, not an alternate paid-content endpoint. Open the ID for entitlement checks.
@@ -1477,10 +1495,12 @@ function historyEntryFromRecord(record: ReportRecord) {
     publicUrl: analysis.report.publicUrl,
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
-    serviceHref: serviceHrefForKey(record.context?.serviceKey),
+    serviceHref: isCustomerPausedProduct(record.context?.serviceKey) ? undefined : serviceHrefForKey(record.context?.serviceKey),
     // 보관함이 열 주소. 서비스가 자기 06-1 화면을 가지고 있으면 그 화면에서, 없으면
     // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.
-    openPath: savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
+    openPath: isCustomerPausedProduct(record.context?.serviceKey)
+      ? undefined
+      : savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
     savedAt,
     title: `${birthState.name || birthState.target || '당신'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,
@@ -2856,7 +2876,7 @@ app.get('/api/user/reports', async (req, res) => {
         userId: owner.id,
         storage: getReportStorageMode(),
         purchasedOnly: false,
-        reports: records.map(historyEntryFromRecord).slice(0, limit),
+        reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord).slice(0, limit),
       })
       return
     }
@@ -2865,6 +2885,7 @@ app.get('/api/user/reports', async (req, res) => {
       storage: getReportStorageMode(),
       purchasedOnly: true,
       reports: selectPurchasedReadings(records, orders)
+        .filter((item) => isCustomerFacingReport(item.record))
         .slice(0, limit)
         .map((item) => ({ ...historyEntryFromRecord(item.record), purchasedAt: item.purchasedAt })),
     })
@@ -2884,7 +2905,7 @@ app.get('/api/user/destiny', async (req, res) => {
         userId: owner.id,
         complete: false,
         profile: null,
-        reports: records.map(historyEntryFromRecord),
+        reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord),
         storage: getReportStorageMode(),
       })
       return
@@ -2897,7 +2918,7 @@ app.get('/api/user/destiny', async (req, res) => {
       profile,
       analysis: analyzeSaju(profile.birth),
       todayFortune: { ...daily.auxiliary?.todayFortune, reportId: daily.reportId, resultId: daily.resultId, publicUrl: toClientReport(daily).publicUrl },
-      reports: records.map(historyEntryFromRecord),
+      reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord),
       storage: getReportStorageMode(),
     })
   } catch (err) {
@@ -3231,6 +3252,7 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    if (rejectPausedCustomerAnalyze(res, 'wedding_day')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼 택일을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -3274,6 +3296,7 @@ app.post('/api/flow/newyear/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    if (rejectPausedCustomerAnalyze(res, 'newyear_flow')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '2027년 흐름을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -3307,6 +3330,7 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    if (rejectPausedCustomerAnalyze(res, 'lucky_color')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '색과 물건을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -3545,7 +3569,7 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
 app.post('/api/saju/analyze', async (req, res) => {
   try {
     const requestedServiceKey = trimmedString(req.body?.context?.serviceKey || req.body?.context?.service_key || req.body?.serviceKey || req.body?.service_key)
-    if (!HOME_FIT_PUBLICLY_ENABLED && [HOME_FIT_SERVICE_KEY, 'home_pungsu', 'home', 'home-fit', 'place-home', 'place/home'].includes(requestedServiceKey)) {
+    if (isCustomerPausedProduct(requestedServiceKey) || (!HOME_FIT_PUBLICLY_ENABLED && [HOME_FIT_SERVICE_KEY, 'home_pungsu', 'home', 'home-fit', 'place-home', 'place/home'].includes(requestedServiceKey))) {
       res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
       return
     }

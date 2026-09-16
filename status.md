@@ -2,6 +2,8 @@
 
 ## Current Task
 
+- 2026-09-16 고객 화면 보류: `home_pungsu`(지금 사는 집), `lucky_color`(운 붙는 색과 물건), `pass_angle`(붙을 각), `newyear_flow`·`wedding_day`(곧 다가올 운명). 검색·보관함·결제·직접 진입을 막고 관리자 카탈로그는 유지. 코드는 삭제하지 않고 `hidden` + HTML 주석 + 경로 302.
+
 - 2026-09-13 `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate` DONE: reviewed 38/38 blocks, activated 2.1.0 for new snapshots, preserved 2.0.0 snapshots and rollback, and passed focused 8/8, related 139/139, full 831/831, typecheck/build/determinism/review. Next inactive Task is `task-tone-v2-p05-couple-signal-corpus-rag-release-candidate`.
 - 2026-09-13 `task-tone-v2-p05-pass-angle-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 8 blocks separate confirmed exam facts, official instructions, actual study records and calculated symbols; unsupported fixed periods were removed. Focused 8/8, related 143/143, full 823/823 across 114 suites, typecheck/build/determinism/review PASS. Existing 52-item record unchanged; 2.1.0 provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate`.
 - CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-corpus-snapshot-20260913.md` put/get/search PASS and ProjectOps memory promotion PASS.

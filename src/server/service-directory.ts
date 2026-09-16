@@ -44,14 +44,14 @@ const SEEDS: DirectorySeed[] = [
   { key: 'love_this_year', tagline: '도화가 들어오는 달과 놓치는 타이밍', category: '연애', href: '/love/this-year', image: '/love/this-year/assets/thisyear/videos/01-frontface-window-poster.webp', reportPath: '/love/this-year/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'job_choice', tagline: '관록·재백궁으로 보는 이 회사와 나의 결', category: '직업', href: '/work/job-choice', image: '/assets/umsh-jobchoice-card-bg.webp', reportPath: '/work/job-choice/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp', reportPath: '/match/cat/06-step-6_1-report-detail/index.html#step-6_1-report' },
-  { key: 'lucky_color', tagline: '채울 색과 덜어낼 색, 지니면 좋은 것까지', category: '흐름', href: '/me/lucky', image: '/assets/umsh-luckycolor-card-bg.webp', reportPath: '/me/lucky/06-step-6_1-report-detail/index.html#step-6_1-report' },
-  { key: 'newyear_flow', tagline: '입춘 전환과 열두 달 월운으로 2027년을 미리', category: '흐름', href: '/flow/newyear', image: '/assets/umsh-newyear-card-bg.webp', reportPath: '/flow/newyear/06-step-6_1-report-detail/index.html#step-6_1-report' },
-  { key: 'wedding_day', tagline: '후보일마다 두 사람 조건을 세어 비교하고', category: '택일', href: '/day/wedding', image: '/assets/umsh-wedding-card-bg.webp', reportPath: '/day/wedding/06-step-6_1-report-detail/index.html#step-6_1-report' },
+  { key: 'lucky_color', tagline: '채울 색과 덜어낼 색, 지니면 좋은 것까지', category: '흐름', href: '/me/lucky', image: '/assets/umsh-luckycolor-card-bg.webp', reportPath: '/me/lucky/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
+  { key: 'newyear_flow', tagline: '입춘 전환과 열두 달 월운으로 2027년을 미리', category: '흐름', href: '/flow/newyear', image: '/assets/umsh-newyear-card-bg.webp', reportPath: '/flow/newyear/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
+  { key: 'wedding_day', tagline: '후보일마다 두 사람 조건을 세어 비교하고', category: '택일', href: '/day/wedding', image: '/assets/umsh-wedding-card-bg.webp', reportPath: '/day/wedding/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
   { key: 'match_couple', tagline: '끌림, 갈등, 오래 가는 방식까지', category: '궁합', href: '/match/couple', image: '/match/couple/assets/couple/01-scene-01-hook.webp', reportPath: '/match/couple/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'marry_match', tagline: '연애 말고 결혼까지 갈 수 있는 사이인지', category: '궁합', href: '/match/marry', image: '/match/marry/assets/marry/01-scene-01-hero.webp', reportPath: '/match/marry/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'couple_signal', tagline: '연락, 약속, 표현의 온도 차이를 나눠서', category: '연애', href: '/love/signal', image: '/assets/umsh-affair-card-bg.png', reportPath: '/love/signal/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'quit_fortune', tagline: '관성·식상·대운으로 나갈 흐름을 보고', category: '직업', href: '/work/quit', image: '/assets/umsh-quit-card-bg.png', reportPath: '/work/quit/06-step-6_1-report-detail/index.html#step-6_1-report' },
-  { key: 'pass_angle', tagline: '준비 흐름과 시험 구간을 함께', category: '직업', href: '/me/pass-angle', image: '/assets/umsh-exam-card-bg.png', reportPath: '/me/pass-angle/06-step-6_1-report-detail/index.html#step-6_1-report' },
+  { key: 'pass_angle', tagline: '준비 흐름과 시험 구간을 함께', category: '직업', href: '/me/pass-angle', image: '/assets/umsh-exam-card-bg.png', reportPath: '/me/pass-angle/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
   { key: 'money_save', tagline: '돈이 모이지 않는 자리를 먼저 찾고', category: '재물', href: '/money/save', image: '/assets/umsh-money-card-bg.png', reportPath: '/money/save/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'work_move', tagline: '옮길 자리와 남을 자리를 가르고', category: '직업', href: '/work/move', image: '/work/move/assets/generated/move/01-scene-01-question.webp', reportPath: '/work/move/06-step-6_1-report-detail/index.html#step-6_1-report' },
   // Keep these live routes available for existing readings, but omit them from discovery
@@ -60,9 +60,18 @@ const SEEDS: DirectorySeed[] = [
   { key: 'love_mind', tagline: '그 사람도 나를 생각할까', category: '연애', href: '/love/mind', image: '/assets/love-ty-char-phone-v2.webp', hidden: true },
   { key: 'love_again', tagline: '그 사람, 다시 돌아올까', category: '연애', href: '/love/again', image: '/assets/love-ty-char-chart-v2.webp', hidden: true },
   { key: 'love_spouse', tagline: '내가 결혼하게 될 사람', category: '연애', href: '/love/spouse', image: '/assets/love-ty-char-cafe-v2.webp', hidden: true },
-  // 요청으로 잠시 내림. 경로와 상품은 살아 있고 검색 목록에서만 빠진다.
-  { key: 'home_pungsu', tagline: '공간의 기운과 내 명리를 겹쳐서', category: '풍수', href: '/place/home', image: '/assets/umsh-place-card-bg.webp', reportPath: '/place/home/06-step-6_1-report-detail/index.html?section=home-fit-overall#step-6_1-report' },
+  // 요청으로 고객 화면에서 잠시 내림. 관리자 카탈로그와 상품 정의는 유지한다.
+  { key: 'home_pungsu', tagline: '공간의 기운과 내 명리를 겹쳐서', category: '풍수', href: '/place/home', image: '/assets/umsh-place-card-bg.webp', reportPath: '/place/home/06-step-6_1-report-detail/index.html?section=home-fit-overall#step-6_1-report', hidden: true },
 ]
+
+/** 검색·보관함·결제·직접 진입까지 고객 진행을 막는 키. 관리자 목록에는 그대로 남긴다. */
+export const CUSTOMER_PAUSED_PRODUCT_KEYS = new Set<PaymentProductKey>([
+  'home_pungsu',
+  'lucky_color',
+  'pass_angle',
+  'newyear_flow',
+  'wedding_day',
+])
 
 export function listServiceDirectory(): ServiceDirectoryEntry[] {
   const entries: ServiceDirectoryEntry[] = []
@@ -117,6 +126,11 @@ function seedForKey(serviceKey: string | undefined): DirectorySeed | undefined {
   if (!serviceKey) return undefined
   const key = KEY_ALIASES[serviceKey] || (serviceKey as PaymentProductKey)
   return SEEDS.find((seed) => seed.key === key)
+}
+
+export function isCustomerPausedProduct(serviceKey: string | undefined): boolean {
+  const seed = seedForKey(serviceKey)
+  return Boolean(seed && CUSTOMER_PAUSED_PRODUCT_KEYS.has(seed.key))
 }
 
 /** Where a saved reading should reopen, looked up by the report's own serviceKey. */

@@ -13,7 +13,7 @@ const registry = JSON.parse(readFileSync(join(root, 'data', 'corpus', 'registry.
 
 const ROUTES: Partial<Record<KnownServiceKey, { dir?: string; visibility: 'public' | 'hidden' | 'embedded' }>> = {
   today_fortune: { dir: 'today/free', visibility: 'embedded' },
-  lucky_color: { dir: 'me/lucky', visibility: 'public' },
+  lucky_color: { dir: 'me/lucky', visibility: 'hidden' },
   saju_master: { dir: 'cmdg', visibility: 'embedded' },
   love_this_year: { dir: 'love/this-year', visibility: 'public' },
   job_choice: { dir: 'work/job-choice', visibility: 'public' },
@@ -23,15 +23,15 @@ const ROUTES: Partial<Record<KnownServiceKey, { dir?: string; visibility: 'publi
   match_couple: { dir: 'match/couple', visibility: 'public' },
   marry_match: { dir: 'match/marry', visibility: 'public' },
   couple_signal: { dir: 'love/signal', visibility: 'public' },
-  pass_angle: { dir: 'me/pass-angle', visibility: 'public' },
+  pass_angle: { dir: 'me/pass-angle', visibility: 'hidden' },
   work_move: { dir: 'work/move', visibility: 'public' },
   work_job: { visibility: 'hidden' },
   love_mind: { visibility: 'hidden' },
   love_again: { visibility: 'hidden' },
   love_spouse: { visibility: 'hidden' },
-  home_fit: { dir: 'place/home', visibility: 'public' },
-  newyear_flow: { dir: 'flow/newyear', visibility: 'public' },
-  wedding_day: { dir: 'day/wedding', visibility: 'public' },
+  home_fit: { dir: 'place/home', visibility: 'hidden' },
+  newyear_flow: { dir: 'flow/newyear', visibility: 'hidden' },
+  wedding_day: { dir: 'day/wedding', visibility: 'hidden' },
 }
 
 const CUSTOMER_HOSTILE = /로그인과 결제 상태|서버 권한|해석을 준비|결제 후 05 단계|상태별로 다음 행동|운영 서버 기준|측정\s*전|자료가 아직 없어요|DEM|Feature JSON|겁주기보다 확인 방법|이 풀이에 반영한 정보/i
