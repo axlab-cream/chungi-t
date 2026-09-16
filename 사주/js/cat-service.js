@@ -354,7 +354,7 @@
       setText('#state-pill', '무료 공개');
       setText('#state-title', '핵심 결론을 먼저 열었습니다');
       setText('#state-copy', GATE_COPY.payment);
-      takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
+      takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
         location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
       });
       return;
@@ -379,7 +379,7 @@
         setText('#state-pill', '비로그인');
         setText('#state-title', '로그인하면 내 사주로 계산합니다');
         setText('#state-copy', GATE_COPY.login);
-        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
+        takeOverCta(`로그인하고 전체 보기 (${SERVICE.price})`, () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         setText('#state-pill', '프로필 필요');
         setText('#state-title', '기본 사주 정보가 필요합니다');
@@ -391,7 +391,7 @@
         setText('#state-pill', '미결제');
         setText('#state-title', '결제 후 전체 리포트가 열립니다');
         setText('#state-copy', GATE_COPY.payment);
-        takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
+        takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else if (reason === 'input') {

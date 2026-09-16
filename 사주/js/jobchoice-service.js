@@ -303,13 +303,13 @@
     const action = document.createElement('a');
     action.className = 'link-button';
     if (reason === 'login') {
-      action.textContent = '로그인하고 전체 보기';
+      action.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
       action.href = loginUrl();
     } else if (reason === 'profile') {
       action.textContent = '내 사주 등록하기';
       action.href = `/profile?returnTo=${encodeURIComponent(location.pathname)}`;
     } else if (reason === 'payment') {
-      action.textContent = `전체 보기 · ${SERVICE.price}`;
+      action.textContent = `전체 보기 (${SERVICE.price})`;
       action.href = outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`;
     } else if (reason === 'input') {
       action.textContent = '입력하러 가기';

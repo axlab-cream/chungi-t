@@ -12,7 +12,7 @@
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
    */
-  var SHELL_CSS = '/css/service-shell.css?v=20260916-gnb-click';
+  var SHELL_CSS = '/css/service-shell.css?v=20260916-mobile';
   var SHELL_JS = '/js/service-shell.js';
   var FLAG_JS = '/js/ai-report-flag.js';
   var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd3';
@@ -32,6 +32,19 @@
   function text(value, fallback) {
     var next = String(value == null ? '' : value).trim();
     return next || fallback || '';
+  }
+
+  function ensureMobileViewport() {
+    var head = document.head || document.documentElement;
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'viewport');
+      head.insertBefore(meta, head.firstChild);
+    }
+    if (!/viewport-fit/.test(String(meta.getAttribute('content') || ''))) {
+      meta.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    }
   }
 
   function readFromLegacyAppbar(appbar) {
@@ -161,6 +174,7 @@
 
   function mount(options) {
     options = options || {};
+    ensureMobileViewport();
     var stage = document.getElementById('umsh-verified-layout') || document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
     var legacy = stage.querySelector('header.appbar, header.umsh-chrome-appbar');
     if (legacy && legacy.closest('.umsh-service-shell')) legacy = null;

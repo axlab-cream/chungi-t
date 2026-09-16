@@ -33,7 +33,7 @@ body::-webkit-scrollbar,
 }
 
 .phone {
-  width: min(100vw, 440px);
+  width: min(100%, 440px);
   height: 100svh;
   max-height: none;
   display: grid;

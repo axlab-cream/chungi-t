@@ -18,6 +18,7 @@
     apiKey: 'couple_signal',
     slug: 'couple-signal',
     title: '내 애인 바람필까?',
+    price: '19,900원',
   };
 
   // The design pages read and write these; we fill them so their own renderers unlock.
@@ -293,7 +294,7 @@
         if (node && item) node.textContent = item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item);
       });
       if (primary) {
-        primary.textContent = '전체 보기';
+        primary.textContent = `전체 보기 (${SERVICE.price})`;
         primary.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
@@ -318,7 +319,7 @@
         if (node) node.textContent = '아직 계산 전입니다. 위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.';
       });
       if (primary && reason === 'login') {
-        primary.textContent = '로그인하고 전체 보기';
+        primary.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
         primary.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(loginUrl());

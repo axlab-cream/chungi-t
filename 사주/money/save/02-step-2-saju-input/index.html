@@ -31,7 +31,7 @@
     <style>
       :root {
         color-scheme: dark;
-        --mobile-width: 390px;
+        --mobile-width: 430px;
         --bg: #101411;
         --bg-soft: #17201b;
         --ink: #fff8ed;
@@ -65,7 +65,6 @@
         display: grid;
         place-items: start center;
         min-height: 100svh;
-        min-width: var(--mobile-width);
         overflow-x: hidden;
         background:
           radial-gradient(circle at 12% 0%, rgba(102, 184, 137, 0.2), transparent 19rem),
@@ -99,8 +98,8 @@
 
       .app {
         position: relative;
-        width: var(--mobile-width);
-        min-width: var(--mobile-width);
+        width: min(100%, var(--mobile-width));
+        min-width: 0;
         max-width: var(--mobile-width);
         min-height: 100svh;
         margin: 0 auto;

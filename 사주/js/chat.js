@@ -1036,7 +1036,7 @@ function buildPdfStatusHtml(message) {
       font-family: Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
     }
     main {
-      width: min(520px, calc(100vw - 32px));
+      width: min(520px, calc(100% - 32px));
       padding: 28px;
       border: 1px solid rgba(242, 191, 107, 0.34);
       border-radius: 18px;

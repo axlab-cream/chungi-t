@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
   <style>
 :root {
-  --mobile-width: 390px;
+  --mobile-width: 430px;
   --ink: #19231f;
   --muted: #647069;
   --line: #dce6df;
@@ -41,7 +41,6 @@
 html { width: 100%; min-height: 100%; background: #e8eee9; }
 body {
   margin: 0;
-  min-width: var(--mobile-width);
   min-height: 100svh;
   display: grid;
   place-items: start center;
@@ -53,8 +52,8 @@ body {
 }
 button, input { font: inherit; }
 .phone {
-  width: var(--mobile-width);
-  min-width: var(--mobile-width);
+  width: min(100%, var(--mobile-width));
+  min-width: 0;
   max-width: var(--mobile-width);
   min-height: 100svh;
   position: relative;
@@ -282,7 +281,7 @@ li + li { margin-top: 8px; }
   left: 50%;
   bottom: 0;
   z-index: 9;
-  width: var(--mobile-width);
+  width: min(100%, var(--mobile-width));
   transform: translateX(-50%);
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
