@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
     Boot an interactive Claude Code session pre-loaded with the Supervisor (PM)
-    role contract from agents/supervisor.md, with Researcher and Reviewer
-    registered as background agents available via /agents.
+    role contract from agents/supervisor.md, with Researcher, Reviewer and
+    Auditor registered as background agents available via /agents.
 
 .DESCRIPTION
     Replaces the previous pipe-to-claude approach that failed with
@@ -14,12 +14,12 @@
       1. Force UTF-8 on console + PowerShell streams BEFORE touching any path.
          Korean folder paths (e.g., "C:\Users\<user>\OneDrive\바탕 화면\...")
          survive cleanly through args, prompts, and error messages.
-      2. Write the supervisor contract to CreamAI/logs/supervisor-system-prompt.md
-         and pass only a short single-line file pointer via --append-system-prompt.
-         Multi-KB CJK text never rides the command line (task-021: .cmd shim
-         newline splitting leaked the prompt into the terminal as mojibake).
-      3. Write agents/researcher.md and agents/reviewer.md into
-         .claude/agents/*.md so Claude Code auto-loads them as project agents.
+      2. Compose the supervisor contract as an --append-system-prompt argument
+         (no stdin pipe — works whether `claude` is the AOR wrapper or the raw
+         native exe).
+      3. Read agents/researcher.md, agents/reviewer.md and agents/auditor.md, package them as
+         `claude --agents <json>` so the supervisor can dispatch them as
+         background agents at the right time.
       4. Start Claude in interactive mode without an initial model request by
          default. This avoids a blank-looking terminal while Claude is doing
          first-turn file reads or permission checks. Use -Kickoff to send the
@@ -158,27 +158,6 @@ Role: $Role
 Project root: $projectRoot
 CreamAI root: $creamaiRoot
 
-Before acting on the user's terminal work instruction, compare the selected
-Project root above with the requested project/service/context in the
-instruction. If they appear different, stop and ask exactly:
-프로젝트가 다릅니다. 그대로 진행하시겠습니까?
-
-ONE_TASK_GATE:
-- If the user asks for multiple fixes, phases, or "do everything", convert the
-  request into a visible Task queue/backlog first.
-- Execute exactly one implementation Task in the current run: choose the first
-  actionable Task, finish it or mark it blocked, then stop.
-- Do not start the next Task until the user explicitly types `다음`, `진행`, or
-  `Continue`.
-- If the session is resumed after an unexpected Claude exit, inspect the last
-  Task state first and continue only that one Task. Do not recreate a broad
-  multi-Task batch.
-
-At the end of every Task or blocked handoff, read
-CreamAI/workflows/task-completion-brief.md and print its checkbox
-`Task 완료 브리핑` in the terminal before asking the user to approve the next
-step. Mark `[x]` only for stages actually performed in that Task.
-
 The following file is your role contract. Treat it as system context and
 apply it to every user request in this session.
 
@@ -195,15 +174,76 @@ $claudeMd
 Use /agents to dispatch `researcher` for external/API/version research and
 `reviewer` for important or security-sensitive code changes. Keep all AIOps
 state and logs under the AIOps workspace folder.
+
+The audit before a completion report belongs to Grok, not to you and not to a
+subagent of yours. Call CreamAI/scripts/run-auditor.ps1. The registered
+`auditor` entry carries the contract text for reference; it is not a substitute
+for the other engine, and an audit you performed on yourself is not an audit.
 "@
 
-# --- Register team agents as project agent files (.claude/agents) ----------
-# task-021: multi-KB CJK strings passed as native command-line arguments can
-# (a) leak the full prompt into the terminal as typed input when `claude`
-#     resolves to a .cmd shim (embedded newlines split the command line),
-# (b) render as cp949 mojibake in the console, and
-# (c) exceed the Windows 32K command-line limit.
-# Files never ride the command line, so they are immune to all three.
+# --- Native-argument escaping (Windows PowerShell 5.1) ---------------------
+# Windows PowerShell 5.1 (and PowerShell 7.0-7.2, and 7.3+ under Legacy mode)
+# builds a native command line by wrapping an argument that contains spaces in
+# quotes WITHOUT escaping the quotes already inside it. A 6KB --agents payload
+# therefore reaches claude.exe as shredded JSON and the CLI dies with
+# "Invalid --agents configuration: invalid JSON: JSON Parse error: Expected '}'".
+# The AOR pane runs powershell.exe 5.1, so this is the default path, not a
+# corner case. PowerShell 7.3+ in Standard/Windows mode escapes correctly on
+# its own; escaping there too would double the backslashes.
+$script:NeedsNativeArgEscape = $true
+if (Test-Path variable:PSNativeCommandArgumentPassing) {
+    if ($PSNativeCommandArgumentPassing -ne 'Legacy') { $script:NeedsNativeArgEscape = $false }
+}
+
+function Test-LegacyWouldQuote {
+    # Windows PowerShell 5.1 decides for itself whether to wrap a native
+    # argument in quotes, and this is the rule it uses: count every " in the
+    # string -- escaped or not -- and return true only if some whitespace lands
+    # while that count is even. Reimplemented here because the whole escaping
+    # scheme depends on which branch the host takes.
+    param([string]$Value)
+    $quotes = 0
+    foreach ($ch in $Value.ToCharArray()) {
+        if ($ch -eq [char]34) { $quotes++ }
+        elseif ([char]::IsWhiteSpace($ch) -and (($quotes % 2) -eq 0)) { return $true }
+    }
+    return $false
+}
+
+function ConvertTo-NativeArg {
+    # ONLY for arguments whose leading whitespace carries no meaning: a JSON
+    # payload or prompt text. Never a path -- this may prepend a space.
+    param([string]$Value)
+    if (-not $script:NeedsNativeArgEscape) { return $Value }
+    if ([string]::IsNullOrEmpty($Value)) { return $Value }
+    # CommandLineToArgvW rules: a run of backslashes before a quote must be
+    # doubled and the quote escaped.
+    $escaped = [regex]::Replace($Value, '(\\*)"', '$1$1\"')
+
+    if (-not (Test-LegacyWouldQuote $escaped)) {
+        if ($escaped -notmatch '\s') {
+            # No whitespace, so the host passes it unquoted and nothing can
+            # split it. A bare \" outside quotes already reads as a literal ",
+            # and a trailing backslash is literal too. Send it as is.
+            return $escaped
+        }
+        # This is the case that made the first fix pass by luck. The host counts
+        # every " in the string, escaped or not, and ignores whitespace that
+        # lands inside an odd count -- so whether a JSON payload gets wrapped in
+        # quotes comes down to how many quotes happen to precede its first
+        # space. Unwrapped, the argument splits at that space and claude sees
+        # shredded JSON again. A single leading space sits at quote count zero
+        # and forces the wrap. Leading whitespace is insignificant in JSON and
+        # in prompt text, which is the whole contract of this function.
+        $escaped = ' ' + $escaped
+    }
+
+    # Wrapped by the host: double a trailing backslash run so it escapes itself
+    # instead of the closing quote the host is about to append.
+    return [regex]::Replace($escaped, '(\\+)$', '$1$1')
+}
+
+# --- Build the --agents JSON registry --------------------------------------
 function Read-AgentMarkdown {
     param([string]$RelPath)
     $full = Join-Path $creamaiRoot $RelPath
@@ -211,48 +251,59 @@ function Read-AgentMarkdown {
     return (Get-Content -Raw -Encoding UTF8 -LiteralPath $full)
 }
 
-function Write-ProjectAgentFile {
+function Build-AgentEntryJson {
+    # Per-leaf-string ConvertTo-Json + manual assembly — the only PS 5.1 path
+    # that survives multi-KB CJK strings. See claude-integration.ps1
+    # `Build-AorClaudeAgentsJson` for the underlying perf trap rationale.
     param([string]$Name, [string]$Description, [string]$Prompt)
-    $agentsDir = Join-Path $projectRoot '.claude\agents'
-    if (-not (Test-Path -LiteralPath $agentsDir)) {
-        New-Item -ItemType Directory -Path $agentsDir -Force | Out-Null
-    }
-    $body = "---`nname: $Name`ndescription: $Description`n---`n`n$Prompt"
-    Set-Content -LiteralPath (Join-Path $agentsDir ($Name + '.md')) -Value $body -Encoding UTF8
+    $n = $Name        | ConvertTo-Json -Compress
+    $d = $Description | ConvertTo-Json -Compress
+    $p = $Prompt      | ConvertTo-Json -Compress
+    return ($n + ':{"description":' + $d + ',"prompt":' + $p + '}')
 }
 
+$agentsJson = $null
 if (-not $NoAgents) {
     $researcher = Read-AgentMarkdown 'agents\researcher.md'
+    $reviewer   = Read-AgentMarkdown 'agents\reviewer.md'
+    $auditor    = Read-AgentMarkdown 'agents\auditor.md'
+    $parts      = New-Object System.Collections.Generic.List[string]
     if ($researcher) {
-        Write-ProjectAgentFile -Name 'researcher' `
+        $parts.Add((Build-AgentEntryJson `
+            -Name 'researcher' `
             -Description 'External documentation, API/version research, migration analysis. English output only. No code authoring.' `
-            -Prompt $researcher
+            -Prompt $researcher))
     }
-    $reviewer = Read-AgentMarkdown 'agents\reviewer.md'
     if ($reviewer) {
-        Write-ProjectAgentFile -Name 'reviewer' `
+        $parts.Add((Build-AgentEntryJson `
+            -Name 'reviewer' `
             -Description 'Code review for bugs, security, Electron IPC, OWASP Top 10. Korean prose, English identifiers. No implementation.' `
-            -Prompt $reviewer
+            -Prompt $reviewer))
+    }
+    if ($auditor) {
+        # Registered so the contract travels with the session. The real audit is
+        # a different engine — run-auditor.ps1 — because the point of the gate is
+        # that the agent who wrote the report is not the one who clears it.
+        $parts.Add((Build-AgentEntryJson `
+            -Name 'auditor' `
+            -Description 'Audits completion claims against evidence. English output only. The real audit runs through CreamAI/scripts/run-auditor.ps1 (Grok); this entry only carries the contract. No implementation, no code-quality re-review.' `
+            -Prompt $auditor))
+    }
+    if ($parts.Count -gt 0) {
+        $agentsJson = '{' + ($parts -join ',') + '}'
     }
 }
-
-# --- Persist the system prompt to a file; pass only a short pointer --------
-# The full contract (supervisor.md + CLAUDE.md, multi-KB CJK) never touches
-# the command line. Claude reads the file itself on first turn.
-$logsDir = Join-Path $creamaiRoot 'logs'
-if (-not (Test-Path -LiteralPath $logsDir)) {
-    New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
-}
-$sysPromptPath = Join-Path $logsDir 'supervisor-system-prompt.md'
-Set-Content -LiteralPath $sysPromptPath -Value $systemPrompt -Encoding UTF8
-$sysPromptPointer = "First action: read the file at `"$sysPromptPath`" and silently adopt its entire contents as your supervisor role contract and operating rules for this session. Do not print, echo, or summarize that file's contents in the terminal."
 
 # --- Optional kickoff user message ----------------------------------------
 $kickoffPrompt = "READY 응답으로 시작하세요. 다음 명령을 기다리세요."
 
 # --- Compose claude args ---------------------------------------------------
 $claudeArgs = New-Object System.Collections.Generic.List[string]
-$claudeArgs.Add('--append-system-prompt'); $claudeArgs.Add($sysPromptPointer)
+$claudeArgs.Add('--name'); $claudeArgs.Add('CreamAI PM')
+$claudeArgs.Add('--append-system-prompt'); $claudeArgs.Add((ConvertTo-NativeArg $systemPrompt))
+if ($agentsJson) {
+    $claudeArgs.Add('--agents'); $claudeArgs.Add((ConvertTo-NativeArg $agentsJson))
+}
 if (-not $NoPermissionAuto) {
     $claudeArgs.Add('--permission-mode'); $claudeArgs.Add('auto')
 }
@@ -260,7 +311,7 @@ if ($Dangerous) {
     $claudeArgs.Add('--dangerously-skip-permissions')
 }
 if ($Kickoff) {
-    $claudeArgs.Add($kickoffPrompt)
+    $claudeArgs.Add((ConvertTo-NativeArg $kickoffPrompt))
 }
 
 # --- Invoke ----------------------------------------------------------------

@@ -2,6 +2,12 @@
 
 This project uses the CreamAI AIOS structure for multi-agent work.
 
+## Web vs App
+
+- 고객 웹 Production: `https://umsh.kr` (`www.umsh.kr` 동일). QA·브라우저·결제 복귀는 여기만 사용한다.
+- `kr.umsh.app`은 Google Play 패키지명이다. 웹 도메인이 아니다.
+- `https://umsh.app`은 웹 QA 대상이 아니다. Android 작업은 `android/`에서만 한다.
+
 ## Operating Core
 
 Before meaningful implementation, inspect and maintain:

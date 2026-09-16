@@ -167,6 +167,31 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | V-144 | staff | 관리자 권한 | `UMSH_ADMIN_SUPER_EMAILS` 설정 계정만 200 | 충족 | **PASS** — 빈 설정이면 아무도 없음, 대소문자 무시 | 2026-09-11 |
 | V-145 | staff | 자격증명 | 셸이 비밀번호를 보관·전송하는가 | 안 함 | **PASS** — Supabase Auth 직접 호출, 폼 즉시 비움 | 2026-09-11 |
 | V-146 | task-t18 | 환불 조회·UI | refund store/list API/운영 셸 | 26 tests, typecheck, vercel build | **PARTIAL** — 단위/API/셸 검증은 PASS. Production `/api/admin/v1/refunds`는 503으로 원인 확인 필요 | 2026-09-11 |
+| V-147 | task-t22 slice 2 | 서비스 초안 회귀 | `npm test` | 실패 0건 | **PASS** (629/629) | 2026-09-12 |
+| V-148 | task-t22 slice 2 | 서비스 초안 DB | rollback SQL + routine/grant/index 조회 | v1/revision 0, 영구 쓰기 0, 최소권한 | **PASS** — security invoker, service_role만 EXECUTE, active draft unique index | 2026-09-12 |
+| V-149 | task-t22 slice 2 | 운영 브라우저 | 지정 관리자 로그인 → `/admin/services` → 저장 2회 | 실제 초안 생성·CAS 수정 | **PASS** — `cmdg` v1/revision 1, create/update 감사 각 2단계 | 2026-09-12 |
+| V-150 | task-t22 slice 2 | Production 배포 | Vercel inspect + `umsh.kr` 화면 + error logs | Ready, 별칭 연결, 오류 0 | **PASS** — `dpl_L2tQHcEPX6dimtgabSc8vxbXpTC5` | 2026-09-12 |
+| V-151 | task-t22 slice 3 | 서비스 발행 회귀 | `npm test` + `npm run vercel-build` | 실패 0, 빌드 성공 | **PASS** — 632/632, typecheck·SEO PASS | 2026-09-12 |
+| V-152 | task-t22 slice 3 | DB 함수 권한 | routine 속성·EXECUTE 조회 | invoker, 빈 search path, service_role 전용 | **PASS** — anon/authenticated EXECUTE false | 2026-09-12 |
+| V-153 | task-t22 slice 3 | 운영 발행 | `/admin/services`에서 cmdg 초안 발행 | published v1/revision 2, draft 0, 감사 성공 | **PASS** — started/succeeded 감사와 published_at 확인 | 2026-09-12 |
+| V-154 | task-t22 slice 3 | 공개 read | 운영 `GET /api/services` | published source, 15건, 결제 정본 유지, 내부 필드 없음 | **PASS** — cmdg 49,900원·`/cmdg/`·이미지 유지 | 2026-09-12 |
+| V-155 | task-t22 slice 3 | 이전 발행본 archive | 기존 published가 있는 상태에서 후속 draft 발행 | 기존 1건 archived, 신규 1건 published | **NOT_RUN** — 최초 발행이라 이전 published 행이 없었음. 다음 실제 개정 발행에서 실측 | 2026-09-12 |
+| V-156 | task-t22 slice 4 | 공지 입력·권한·API 회귀 | targeted + 전체 `npm test` | 구조화 입력·scope·공개 null·권한 통과 | **PASS** — targeted 33/33, 고정 오라클 `npm test` 641/641. 직접 glob 실행은 기존 U24 실행형태 차이로 제외 | 2026-09-12 |
+| V-157 | task-t22 slice 4 | 빌드 | `npm run vercel-build` | FAQ/SEO/typecheck 성공 | **PASS** — 126 FAQ, 19 sitemap URL, typecheck PASS | 2026-09-12 |
+| V-158 | task-t22 slice 4 | 운영 DB | 신규 index/RPC SQL 실행 + migration list | additive 적용, service_role 전용, 이력 일치 | **PASS** — `20260911224332` local/remote 일치. 원격에만 있던 과거 6개 이력은 변경하지 않음 | 2026-09-12 |
+| V-159 | task-t22 slice 4 | Production 관리자 | `/admin/content` 로그인 세션 | LNB·실데이터 편집기·발행 없음 상태 | **PASS** — `support_top`, 초안 저장, disabled 발행 CTA, 현재 발행 없음 확인 | 2026-09-12 |
+| V-160 | task-t22 slice 4 | Production 고객 화면 | `/api/content/notices/support` + `/support` | `notice:null`, 빈 박스 미노출 | **PASS** — 초기 빈 NOTICE 노출을 브라우저가 검출해 수정 후 연락처가 첫 섹션임을 재확인 | 2026-09-12 |
+| V-161 | task-t07 LNB UX | 구조·회귀 | 관리자 셸 targeted + 전체 `npm test` + typecheck/build | 4개 업무군, 블릿·들여쓰기, 접근 가능한 토글, 기존 기능 무회귀 | **PASS** — targeted 26/26, 전체 641/641, typecheck·Vercel build PASS | 2026-09-12 |
+| V-162 | task-t07 LNB UX | Production 브라우저 | `/admin/content`에서 업무군 접기 → 새로고침 | 접힘 세션 유지, 현재 메뉴 업무군 자동 펼침, 콘솔 오류 없음 | **PASS** — 운영 현황 collapsed 유지, 고객 · 콘텐츠 expanded, active 콘텐츠 노출, console 0건 | 2026-09-12 |
+| V-163 | task-t23 slice 1 | 자산 인벤토리 | 실제 `사주/사주/assets` 빌드 스캔 + 단위 테스트 | 파일 83개, SHA-256/MIME/크기/규격/참조 검증 | **PASS** — 83개, 시그니처 실패 0, 코드 직접 참조 54, MP4 메타데이터 13/13 | 2026-09-12 |
+| V-164 | task-t23 slice 1 | 권한·API·회귀 | local admin cookie + staff bearer + 전체 `npm test` | 미로그인 401, 두 관리자 경로 200, 기존 회귀 실패 0 | **PASS** — targeted 33/33, 전체 645/645, typecheck·Vercel build PASS | 2026-09-12 |
+| V-165 | task-t23 slice 1 | Production 브라우저 | `/admin/media` 실제 계정 세션 | 83행, 요약 83/54/83/13, 이미지·영상 규격, 콘솔 오류 없음 | **PASS** — visible broken image 0, console 0 | 2026-09-12 |
+| V-166 | task-t23 slice 1 | 좁은 화면 표 | 994px viewport에서 DOM 실측 | 페이지 overflow 없음, 표만 내부 스크롤 | **PASS** — page/client 994/994, table scroller 670→1120 | 2026-09-12 |
+| V-167 | task-t23 slice 2 | 파일 검사·Storage 계약 | targeted + 전체 `npm test` | MIME/크기/규격/checksum, 권리·poster, signed upload/finalize/delete | **PASS** — targeted 36/36, 전체 고정 오라클 654/654, typecheck·Vercel build PASS | 2026-09-12 |
+| V-168 | task-t23 slice 2 | 운영 DB·Storage | migration/table/RLS/grant/RPC + bucket 조회 | service_role 전용, private, 제한 MIME·크기 | **PASS** — migration `20260912002420`, 두 테이블 RLS, delete RPC invoker, `umsh-media` private 50MB·MIME 5종 | 2026-09-12 |
+| V-169 | task-t23 slice 2 | Production 관리자 | `/admin/media` 지정 관리자 세션 | LNB·실제 83개·업로드 폼·권리 UI·콘솔 오류 0 | **PASS** — `dpl_2pVJ7NvA4ejomUDWdSLGeCVjMiNY`, 50MB 문구, Storage+배포 파일, console 0 | 2026-09-12 |
+| V-170 | task-t23 slice 2 | 운영 실파일 lifecycle | image upload→server inspect→signed preview→delete | 전체 단계 성공·잔존 0 | **NOT_RUN** — 브라우저 자동화가 native file chooser에 경로를 넣지 못하고 Vercel은 Production secret pull을 `[SENSITIVE]`로 차단. 임시 자산을 남기지 않음 | 2026-09-12 |
+| V-171 | task-t23 slice 2 | 운영 저장소 상한 대조 | Supabase 전역 상한 vs 서버/UI | 동일 값 | **PASS** — 운영 전역 50MB를 확인해 초기 100MB 가정을 50MB로 보정 | 2026-09-12 |
 
 ## 회귀 오라클 조건 (T04에서 고정)
 
@@ -666,3 +691,35 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | PAY-R11 | 닫기 수정 후 전체 저장소 회귀 | PASS (963/963, 124 suites) |
 | PAY-R12 | 닫기 수정 후 TypeScript 및 Vercel build | PASS |
 | PAY-R13 | Production 실제 닫기 버튼으로 해당 서비스 복귀 | PASS |
+
+## T25/T27 선행 — 운영 원천 파일 목록 (2026-09-12)
+
+- RED: 관리자 셸에서 코퍼스·프롬프트 로더 부재, 두 API 404를 재현했다.
+- focused: `tests/unit/admin-shell.test.ts` 29/29 PASS.
+- full regression: `npm test` 658 tests / 109 suites / 658 PASS / 0 FAIL.
+- build: `npm run vercel-build` PASS, typecheck 오류 0.
+- 보안: 미로그인 API 401, 원문 프롬프트 본문 미반환, 파일 경로·크기·해시만 반환.
+- 배포: `dpl_2dHGtPDevWMk832AL45drXBCzHXY` Ready, `umsh.kr` 별칭 연결 PASS.
+- Production 브라우저: 로그인된 `/admin/corpus`에서 레지스트리 1.9.0·활성 팩 28개 목록, `/admin/prompts`에서 가이드 4개·서비스 파일 20개 목록 표시 PASS.
+- Production health: `/api/health`가 `ok:true`, registry 1.9.0, packs 28개를 반환해 PASS.
+- Production error log: 애플리케이션 HTTP 실패 0건. 기존 Node `[DEP0169] url.parse()` deprecation warning 2건은 별도 런타임 정리 대상.
+
+## task-022 — 천명사주 결과 CTA 결제 진입 / 주문-리포트 결속 (2026-09-16)
+
+- RED: `tests/unit/paid-entitlement.test.ts` 의 누수 테스트 3건과 서버 QA 배선 가드 1건이
+  수정 전(관리자 무조건 면제, 미결속 주문이 상품 단위로 해제) 상태에서 FAIL 하는 것을 확인했다.
+  `tests/unit/paid-entitlement-claim.test.ts` 동시성 테스트는 CAS 검사를 제거하면 FAIL 한다.
+- focused: `paid-entitlement.test.ts` 24 PASS, `paid-entitlement-claim.test.ts` 6 PASS.
+- full regression: `npm test` 693 tests / 115 suites / 693 PASS / 0 FAIL.
+- typecheck: `npx tsc --noEmit` 오류 0.
+- 통합: `node scripts/check-integrations.mjs` 10/10 PASS (checkout enabled, Inicis ready,
+  payment order storage supabase).
+- 커버리지: 정상(결속 주문 = 그 풀이), 경계(컷오프 전/후, reportId 없음, 생성시각 불명),
+  에러(미결제 상태, 타 계정, 타 상품), 보안(orderId 재사용, 동시 claim, qa 플래그가 권한을
+  부여하지 못함).
+- 하네스: `CreamAI/logs/harness/task-022_{preflight,test,rag,release}.json` 전부 failed=false,
+  test 모드가 `npm test exit_code=0` 을 실제로 기록.
+- 명령 출력: `CreamAI/logs/test/task-022_commands.log`
+- NOT_RUN: 운영 브라우저 end-to-end (관리자 + `?qa=pay` → 결제창), 이니시스 실승인.
+- BLOCKED: 레거시 미결속 주문 실제 건수 조회 (로컬에 service role key 없음).
+

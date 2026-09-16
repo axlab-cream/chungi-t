@@ -40,11 +40,18 @@ import { staffMembership, staffMembershipConfigured, type StaffMembership } from
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports } from '../admin/live-data.js'
+import { listAdminMediaAssets, mediaInventorySummary } from '../admin/media-inventory.js'
+import { MediaInspectionError, validateMediaUploadInput } from '../admin/media-file-inspection.js'
+import { MediaStoreError, mediaStore, mediaStoreAvailable } from '../admin/media-store.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { createAdminServiceDraft, publishAdminServiceDraft, updateAdminServiceDraft } from '../admin/service-version-store.js'
+import { parseServiceDraftFields } from '../admin/service-draft.js'
+import { approveAdminSupportNoticeDraft, cancelAdminSupportNoticeSchedule, createAdminSupportNoticeDraft, getAdminSupportNoticeSnapshot, getPublishedSupportNotice, publishAdminSupportNoticeDraft, publishDueSupportNotices, requestAdminSupportNoticeApproval, scheduleAdminSupportNoticeDraft, updateAdminSupportNoticeDraft } from '../admin/notice-version-store.js'
+import { parseNoticeDraftFields, parseNoticeReviewNote, parseNoticeScheduleAt } from '../admin/notice-content.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
   getAdminServiceVersionSnapshot,
@@ -97,6 +104,7 @@ import {
   updatePaymentOrder,
 } from '../payment/order-store.js'
 import type { PaymentOrder } from '../payment/order-store.js'
+import { checkoutQaRequested, isSettledOrder, settleOrderAccess, type ReadingKey } from '../payment/entitlement.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import {
   buildMoneySaveContext,
@@ -327,6 +335,7 @@ app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res
 // 승인 API 는 이미 막혀 있었는데 화면만 운영에서 200 이라, 고객이 주소로
 // 들어오면 결제되지 않는 폼을 보게 됐다.
 app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
+  // 웹 운영에서는 테스트 결제 UI를 숨긴다. 앱 Google Play 검증 경로와 별개다.
   if (!isPaymentTestMode()) {
     res.status(404).type('text/plain').send('Not Found')
     return
@@ -1159,7 +1168,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish', 'content:read', 'content:write', 'content:publish', 'media:read', 'media:write', 'media:delete']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -1541,6 +1550,9 @@ function clientPaymentOrder(order: PaymentOrder) {
     productTitle: order.productTitle,
     amount: order.amount,
     status: order.status,
+    // The reading this order unlocks. The client marks a reading paid from this, never from
+    // the address bar.
+    reportId: order.reportId,
     tid: order.tid,
     payMethod: order.payMethod,
     createdAt: order.createdAt,
@@ -1611,10 +1623,7 @@ function isCheckoutLive(): boolean {
   return config.configured || config.testMode
 }
 
-/**
- * A settled order unlocks a report when it belongs to the caller, was bought for the same
- * product, and is either bound to that report or was created before any report id existed.
- */
+// Entitlement rules decide money, so they live in `src/payment/entitlement.ts` under test.
 /**
  * 특화 서비스의 리포트 ID 는 코퍼스를 전혀 참조하지 않는다. 그래서 코퍼스를 고쳐도
  * 그 해석들은 영원히 갱신되지 않았다. 캐시 세대를 올렸을 때만 ID 가 바뀌도록 한 겹 씌우고,
@@ -1634,48 +1643,62 @@ async function reportIdsInLineage(owner: ReportOwner, lineageId: string): Promis
   return records.filter((record) => record.lineageId === lineageId).map((record) => record.reportId)
 }
 
-function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: string, reportId: string): boolean {
-  if (order.ownerId !== owner.id || order.productKey !== productKey) return false
-  if (order.status !== 'paid' && order.status !== 'viewed') return false
-  if (!order.reportId || !reportId) return true
-  return order.reportId === reportId
-}
 
 /** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
 async function findUnlockingOrder(
   owner: ReportOwner,
   productKey: string,
-  reportId: string,
+  reading: ReadingKey,
   lineageId = '',
 ): Promise<PaymentOrder | null> {
-  const bound = await listPaymentOrders(owner.id, 100, reportId).catch(() => [] as PaymentOrder[])
-  const exact = bound.find((order) => orderUnlocks(order, owner, productKey, reportId))
+  const bound = await listPaymentOrders(owner.id, 100, reading.reportId).catch(() => [] as PaymentOrder[])
+  const exact = await firstEntitlingOrder(bound, owner, productKey, reading)
   if (exact) return exact
 
   // 아래 판정은 전부 이 한 번의 조회로 끝낸다. 지난 ID 마다 따로 물으면
   // 열람 한 번에 왕복이 그 수만큼 늘어난다.
   const orders = await listPaymentOrders(owner.id, 100).catch(() => [] as PaymentOrder[])
-  const unlocking = orders.filter((order) => orderUnlocks(order, owner, productKey, reportId))
-  const sameReport = unlocking.find((order) => order.reportId === reportId)
-  if (sameReport) return sameReport
 
   // 캐시 세대를 올리면 리포트 ID 가 바뀐다. 지난 ID 에 묶인 주문도 같은 사람의 같은 구매다.
   // 이 되짚기가 없으면 개정 한 번에 결제 사용자가 결제 화면으로 되돌아간다.
   //
   // 리포트 목록 조회는 **그럴 만한 주문이 실제로 있을 때만** 한다. 결제한 적 없는
   // 사용자에게도 매번 물으면 무료 티저 경로에 왕복이 하나씩 더 붙는다.
-  const otherReports = orders.filter((order) => (
-    order.reportId && order.reportId !== reportId
-    && orderUnlocks(order, owner, productKey, order.reportId)
+  const boundElsewhere = orders.some((order) => (
+    order.reportId && order.reportId !== reading.reportId && isSettledOrder(order, owner, productKey)
   ))
-  if (otherReports.length > 0) {
-    const lineage = new Set(await reportIdsInLineage(owner, lineageId))
-    const past = otherReports.find((order) => lineage.has(String(order.reportId)))
-    if (past) return past
-  }
+  const lineage = boundElsewhere ? await reportIdsInLineage(owner, lineageId) : []
 
-  // Retain legacy unbound-order compatibility; current orders use the exact report ID lookup above.
-  return unlocking[0] ?? null
+  // 레거시 미결속 주문 판정에는 리포트 생성 시각이 필요하다. 그 조회는 그런 주문을 실제로
+  // 가진 계정만 부담한다.
+  const holdsUnbound = orders.some((order) => isSettledOrder(order, owner, productKey) && !order.reportId)
+  const createdAt = reading.createdAt ?? (holdsUnbound ? await reportCreatedAtFor(reading.reportId, owner) : undefined)
+
+  // 이미 결속된 주문을 먼저 본다. 이 풀이를 이미 여는 주문이 있으면 미결속 주문에 claim
+  // 쓰기를 발생시키지 않는다.
+  const ordered = [...orders.filter((order) => order.reportId), ...orders.filter((order) => !order.reportId)]
+  return await firstEntitlingOrder(ordered, owner, productKey, { ...reading, lineage, createdAt })
+}
+
+/** Every order entitlement goes through `settleOrderAccess`, so the binding cannot be skipped. */
+async function firstEntitlingOrder(
+  orders: PaymentOrder[],
+  owner: ReportOwner,
+  productKey: string,
+  reading: ReadingKey,
+): Promise<PaymentOrder | null> {
+  for (const order of orders) {
+    const settled = await settleOrderAccess(order, owner, productKey, reading)
+    if (settled) return settled
+  }
+  return null
+}
+
+/** Creation time of a saved reading, used to decide what a legacy unbound order covers. */
+async function reportCreatedAtFor(reportId: string, owner: ReportOwner): Promise<string | undefined> {
+  if (!reportId) return undefined
+  const record = await findReportRecord(reportId, owner).catch(() => null)
+  return record?.createdAt
 }
 
 interface PaidAccess {
@@ -1690,19 +1713,21 @@ async function resolvePaidAccess(
   productKey: string,
   reportId = '',
   lineageId = '',
+  reportCreatedAt?: string,
 ): Promise<PaidAccess> {
-  if (isAdminOwner(owner)) return { entitled: true, reason: 'admin' }
+  if (isAdminOwner(owner) && !checkoutQaRequested(req)) return { entitled: true, reason: 'admin' }
   if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
   if (!owner) return { entitled: false, reason: 'none' }
 
+  const reading: ReadingKey = { reportId, createdAt: reportCreatedAt }
   const orderId = trimmedString(req.body?.orderId) || trimmedString(req.query?.orderId)
   if (orderId) {
     const order = await getPaymentOrder(orderId).catch(() => null)
-    if (order && orderUnlocks(order, owner, productKey, reportId)) {
-      return { entitled: true, reason: 'order', order }
-    }
+    // settleOrderAccess 를 거치므로 주문 ID 를 직접 대도 결속을 건너뛸 수 없다.
+    const settled = order ? await settleOrderAccess(order, owner, productKey, reading) : null
+    if (settled) return { entitled: true, reason: 'order', order: settled }
   }
-  const order = await findUnlockingOrder(owner, productKey, reportId, lineageId)
+  const order = await findUnlockingOrder(owner, productKey, reading, lineageId)
   return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
 }
 
@@ -1730,7 +1755,7 @@ async function ensurePaidServiceAccess(
   reportId = '',
   lineageId = '',
 ): Promise<boolean> {
-  if (isAdminOwner(owner)) return true
+  if (isAdminOwner(owner) && !checkoutQaRequested(req)) return true
   if (!isCheckoutLive()) return true
   const config = paymentConfigPayload()
   if (!config.checkoutEnabled) {
@@ -1923,7 +1948,13 @@ app.get('/api/admin/v1/search', async (req, res) => {
 app.get('/api/cron/ops', async (req, res) => {
   const secret = String(process.env.CRON_SECRET ?? '')
   if (!secret || req.header('authorization') !== `Bearer ${secret}`) { res.status(401).json({ error: 'Unauthorized' }); return }
-  try { res.json(await runOpsWorker()) }
+  try {
+    const [jobs, publishedNotices] = await Promise.all([
+      runOpsWorker(),
+      publishDueSupportNotices(),
+    ])
+    res.json({ ...jobs, publishedNotices })
+  }
   catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
 })
 app.get('/api/admin/v1/jobs', async (req, res) => {
@@ -2035,6 +2066,263 @@ app.get('/api/admin/v1/prompts', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'PROMPT_SNAPSHOT_FAILED', error: '현재 배포의 Tone V2 프롬프트 원천을 불러오지 못했습니다.' })
   }
+})
+app.get('/api/admin/v1/media', async (req, res) => {
+  if (!await requireStaff(req, res, 'media:read')) return
+  try {
+    const deployed = listAdminMediaAssets()
+    const managed = mediaStoreAvailable() ? await mediaStore().listAssets() : []
+    const staticSummary = mediaInventorySummary(deployed)
+    res.json({
+      assets: [...managed, ...deployed],
+      summary: {
+        total: managed.length + staticSummary.total,
+        managed: managed.length,
+        referenced: managed.filter((asset) => asset.references.length > 0).length + staticSummary.referenced,
+        rightsUnverified: staticSummary.rightsUnverified,
+        videoPosterMissing: staticSummary.videoPosterMissing,
+        invalid: managed.filter((asset) => asset.validation.status === 'invalid').length + staticSummary.invalid,
+      },
+      source: managed.length ? 'deployed-static+storage' : 'deployed-static',
+    })
+  } catch {
+    res.status(503).json({ code: 'MEDIA_INVENTORY_LOOKUP_FAILED', error: '배포 미디어 인벤토리를 불러오지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/media/uploads', async (req, res) => {
+  const membership = await requireStaff(req, res, 'media:write'); if (!membership) return
+  if (!mediaStoreAvailable()) { res.status(503).json({ code: 'MEDIA_STORE_UNAVAILABLE', error: '미디어 저장소가 설정되지 않았습니다.' }); return }
+  const idempotencyKey = adminCommandKey(req)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  let input
+  try {
+    const body = asObject(req.body)
+    input = validateMediaUploadInput({
+      fileName: trimmedString(body.fileName), mime: trimmedString(body.mime), bytes: Number(body.bytes),
+      alt: trimmedString(body.alt), rightsBasis: trimmedString(body.rightsBasis), rightsEvidence: trimmedString(body.rightsEvidence),
+      posterAssetId: trimmedString(body.posterAssetId) || null,
+    })
+  } catch (error) {
+    const code = error instanceof MediaInspectionError ? error.code : 'MEDIA_UPLOAD_INPUT_INVALID'
+    res.status(422).json({ code, error: '파일, 대체 텍스트, 권리 근거와 poster를 확인해 주세요.' }); return
+  }
+  try {
+    const id = randomUUID(); const store = mediaStore()
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'media.upload.begin', idempotencyKey, body: input, target: { type: 'media_asset', id },
+    }, async () => store.beginUploadRecord({ id, actorEmail: membership.email, input }))
+    const uploadUrl = await store.createUploadUrl(command.result.id)
+    res.status(command.replayed ? 200 : 201).json({ asset: command.result, uploadUrl, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof MediaStoreError || error instanceof AdminCommandConflict ? error.message : 'MEDIA_UPLOAD_BEGIN_FAILED'
+    res.status(code === 'IDEMPOTENCY_CONFLICT' ? 409 : 503).json({ code, error: '미디어 업로드를 시작하지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/media/:id/finalize', async (req, res) => {
+  const membership = await requireStaff(req, res, 'media:write'); if (!membership) return
+  if (!mediaStoreAvailable()) { res.status(503).json({ code: 'MEDIA_STORE_UNAVAILABLE', error: '미디어 저장소가 설정되지 않았습니다.' }); return }
+  const idempotencyKey = adminCommandKey(req); const id = trimmedString(req.params.id)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'media.upload.finalize', idempotencyKey, body: { id }, target: { type: 'media_asset', id },
+    }, async () => mediaStore().finalizeUpload({ id, actorEmail: membership.email }))
+    res.json({ asset: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof MediaStoreError || error instanceof AdminCommandConflict ? error.message : 'MEDIA_UPLOAD_FINALIZE_FAILED'
+    const status = code === 'IDEMPOTENCY_CONFLICT' ? 409 : code.startsWith('MEDIA_') && !code.endsWith('_FAILED') ? 422 : 503
+    res.status(status).json({ code, error: 'Storage 원본 검사에 실패했습니다.' })
+  }
+})
+app.delete('/api/admin/v1/media/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'media:delete'); if (!membership) return
+  if (!mediaStoreAvailable()) { res.status(503).json({ code: 'MEDIA_STORE_UNAVAILABLE', error: '미디어 저장소가 설정되지 않았습니다.' }); return }
+  const idempotencyKey = adminCommandKey(req); const id = trimmedString(req.params.id)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'media.delete', idempotencyKey, body: { id }, target: { type: 'media_asset', id },
+    }, async () => mediaStore().deleteAsset(id))
+    res.json({ ...command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof MediaStoreError || error instanceof AdminCommandConflict ? error.message : 'MEDIA_ASSET_DELETE_FAILED'
+    const status = code === 'MEDIA_ASSET_REFERENCED' ? 409 : code === 'IDEMPOTENCY_CONFLICT' ? 409 : 503
+    res.status(status).json({ code, error: code === 'MEDIA_ASSET_REFERENCED' ? '다른 콘텐츠에서 사용 중인 자산은 삭제할 수 없습니다.' : '미디어를 삭제하지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/services/:key/drafts', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:write'); if (!membership) return
+  const canonicalKey = trimmedString(req.params.key); const idempotencyKey = adminCommandKey(req)
+  let fields
+  try { fields = parseServiceDraftFields(canonicalKey, asObject(req.body).fields) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'SERVICE_DRAFT_FIELDS_INVALID', error: '서비스 초안 입력값을 확인해 주세요.' }); return }
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'service.draft.create', idempotencyKey, body: { canonicalKey, fields }, target: { type: 'service_config', id: canonicalKey } }, async () => createAdminServiceDraft({ canonicalKey, fields, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SERVICE_DRAFT_CREATE_FAILED'
+    res.status(error instanceof AdminCommandConflict || code === 'SERVICE_DRAFT_EXISTS' ? 409 : 503).json({ code, error: code === 'SERVICE_DRAFT_EXISTS' ? '이미 초안이 있습니다. 목록을 새로고침해 수정해 주세요.' : '서비스 초안을 저장하지 못했습니다.' })
+  }
+})
+app.patch('/api/admin/v1/services/:key/drafts/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:write'); if (!membership) return
+  const canonicalKey = trimmedString(req.params.key); const id = trimmedString(req.params.id); const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  let fields
+  try { fields = parseServiceDraftFields(canonicalKey, body.fields) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'SERVICE_DRAFT_FIELDS_INVALID', error: '서비스 초안 입력값을 확인해 주세요.' }); return }
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'SERVICE_DRAFT_UPDATE_INVALID', error: '초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'service.draft.update', idempotencyKey, body: { id, canonicalKey, expectedRevision, fields }, target: { type: 'service_config', id: canonicalKey } }, async () => {
+      const draft = await updateAdminServiceDraft({ id, canonicalKey, expectedRevision, fields })
+      if (!draft) throw new AdminCommandConflict('SERVICE_DRAFT_REVISION_CONFLICT')
+      return draft
+    })
+    res.json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SERVICE_DRAFT_UPDATE_FAILED'
+    res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code, error: error instanceof AdminCommandConflict ? '다른 관리자가 먼저 수정했습니다. 목록을 새로고침해 주세요.' : '서비스 초안을 변경하지 못했습니다.' })
+  }
+})
+app.post('/api/admin/v1/services/:key/drafts/:id/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'services:publish'); if (!membership) return
+  const canonicalKey = trimmedString(req.params.key); const id = trimmedString(req.params.id); const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'SERVICE_DRAFT_PUBLISH_INVALID', error: '초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const snapshot = await getAdminServiceVersionSnapshot()
+    const service = snapshot.services.find((item) => item.canonicalKey === canonicalKey)
+    if (!service?.draft || service.draft.id !== id || service.draft.revision !== expectedRevision) throw new AdminCommandConflict('SERVICE_DRAFT_REVISION_CONFLICT')
+    if (!service.catalogDiscoveryVisible && service.draft.fields.discoveryVisible) {
+      res.status(409).json({ code: 'SERVICE_DISCOVERY_RELEASE_REQUIRED', error: '현재 비공개 서비스는 별도 공개 승인 전 검색 노출로 발행할 수 없습니다.' }); return
+    }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'service.draft.publish', idempotencyKey, body: { id, canonicalKey, expectedRevision }, target: { type: 'service_config', id: canonicalKey } }, async () => publishAdminServiceDraft({ id, canonicalKey, expectedRevision, actorEmail: membership.email }))
+    res.json({ published: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SERVICE_DRAFT_PUBLISH_FAILED'
+    const conflict = error instanceof AdminCommandConflict || code === 'SERVICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '초안이 변경되었거나 이미 발행되었습니다. 목록을 새로고침해 주세요.' : '서비스 초안을 발행하지 못했습니다.' })
+  }
+})
+
+app.get('/api/admin/v1/content/notices/support', async (req, res) => {
+  if (!await requireStaff(req, res, 'content:read')) return
+  try { res.json(await getAdminSupportNoticeSnapshot()) }
+  catch { res.status(503).json({ code: 'NOTICE_VERSION_LOOKUP_FAILED', error: '공지 버전 저장소를 불러오지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const body = asObject(req.body); const idempotencyKey = adminCommandKey(req)
+  let fields; let reviewNote
+  try { fields = parseNoticeDraftFields(body.fields); reviewNote = parseNoticeReviewNote(body.reviewNote) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'NOTICE_FIELDS_INVALID', error: '공지 제목, 본문, 검수 의견을 확인해 주세요.' }); return }
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'IDEMPOTENCY_KEY_INVALID', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.draft.create', idempotencyKey, body: { fields, reviewNote }, target: { type: 'content_notice', id: 'support_top' } }, async () => createAdminSupportNoticeDraft({ fields, reviewNote, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_DRAFT_CREATE_FAILED'
+    const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_EXISTS'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '이미 공지 초안이 있습니다. 화면을 새로고침해 수정해 주세요.' : '공지 초안을 저장하지 못했습니다.' })
+  }
+})
+
+app.patch('/api/admin/v1/content/notices/support/drafts/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const id = trimmedString(req.params.id); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  let fields; let reviewNote
+  try { fields = parseNoticeDraftFields(body.fields); reviewNote = parseNoticeReviewNote(body.reviewNote) }
+  catch (error) { res.status(422).json({ code: error instanceof Error ? error.message : 'NOTICE_FIELDS_INVALID', error: '공지 제목, 본문, 검수 의견을 확인해 주세요.' }); return }
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_DRAFT_UPDATE_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.draft.update', idempotencyKey, body: { id, expectedRevision, fields, reviewNote }, target: { type: 'content_notice', id: 'support_top' } }, async () => {
+      const draft = await updateAdminSupportNoticeDraft({ id, expectedRevision, fields, reviewNote })
+      if (!draft) throw new AdminCommandConflict('SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT')
+      return draft
+    })
+    res.json({ draft: command.result, replayed: command.replayed, published: false })
+  } catch (error) {
+    const conflict = error instanceof AdminCommandConflict
+    res.status(conflict ? 409 : 503).json({ code: conflict ? error.message : 'SUPPORT_NOTICE_DRAFT_UPDATE_FAILED', error: conflict ? '다른 관리자가 먼저 수정했습니다. 화면을 새로고침해 주세요.' : '공지 초안을 변경하지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts/:id/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id); const expectedRevision = Number(asObject(req.body).expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_DRAFT_PUBLISH_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const snapshot = await getAdminSupportNoticeSnapshot()
+    if (!snapshot.draft || snapshot.draft.id !== id || snapshot.draft.revision !== expectedRevision) throw new AdminCommandConflict('SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT')
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.draft.publish', idempotencyKey, body: { id, expectedRevision }, target: { type: 'content_notice', id: 'support_top' } }, async () => publishAdminSupportNoticeDraft({ id, expectedRevision, actorEmail: membership.email }))
+    res.json({ published: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_DRAFT_PUBLISH_FAILED'
+    const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '초안이 변경되었거나 이미 발행되었습니다. 화면을 새로고침해 주세요.' : '공지 초안을 발행하지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts/:id/request-approval', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const id = trimmedString(req.params.id); const expectedRevision = Number(asObject(req.body).expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_APPROVAL_REQUEST_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.approval.request', idempotencyKey, body: { id, expectedRevision }, target: { type: 'content_notice', id: 'support_top' } }, async () => requestAdminSupportNoticeApproval({ id, expectedRevision, actorEmail: membership.email }))
+    res.json({ draft: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_APPROVAL_REQUEST_FAILED'; const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '초안이 변경되었습니다. 새로고침 후 다시 요청해 주세요.' : '승인을 요청하지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts/:id/approve', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id); const expectedRevision = Number(asObject(req.body).expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_APPROVAL_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.approve', idempotencyKey, body: { id, expectedRevision }, target: { type: 'content_notice', id: 'support_top' } }, async () => approveAdminSupportNoticeDraft({ id, expectedRevision, actorEmail: membership.email }))
+    res.json({ draft: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_APPROVAL_FAILED'; const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '승인 요청 상태 또는 revision을 확인해 주세요.' : '공지를 승인하지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts/:id/schedule', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  let scheduledAt
+  try { scheduledAt = parseNoticeScheduleAt(body.scheduledAt) }
+  catch { res.status(422).json({ code: 'NOTICE_SCHEDULE_AT_INVALID', error: '예약 시각은 현재보다 1분 이후여야 합니다.' }); return }
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_SCHEDULE_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.schedule', idempotencyKey, body: { id, expectedRevision, scheduledAt }, target: { type: 'content_notice', id: 'support_top' } }, async () => scheduleAdminSupportNoticeDraft({ id, expectedRevision, scheduledAt, actorEmail: membership.email }))
+    res.json({ draft: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_SCHEDULE_FAILED'; const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '승인된 최신 revision만 예약할 수 있습니다.' : '공지 예약에 실패했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/content/notices/support/drafts/:id/cancel-schedule', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id); const expectedRevision = Number(asObject(req.body).expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!id || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'NOTICE_SCHEDULE_CANCEL_INVALID', error: '공지 초안 식별자, revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'content.notice.schedule.cancel', idempotencyKey, body: { id, expectedRevision }, target: { type: 'content_notice', id: 'support_top' } }, async () => cancelAdminSupportNoticeSchedule({ id, expectedRevision, actorEmail: membership.email }))
+    res.json({ draft: command.result, replayed: command.replayed })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'SUPPORT_NOTICE_SCHEDULE_CANCEL_FAILED'; const conflict = error instanceof AdminCommandConflict || code === 'SUPPORT_NOTICE_DRAFT_REVISION_CONFLICT'
+    res.status(conflict ? 409 : 503).json({ code, error: conflict ? '취소할 예약이 없거나 revision이 변경되었습니다.' : '공지 예약을 취소하지 못했습니다.' })
+  }
+})
+
+app.get('/api/content/notices/support', async (_req, res) => {
+  try { res.json({ notice: await getPublishedSupportNotice() }) }
+  catch { res.json({ notice: null }) }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
@@ -3013,7 +3301,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     const expected = ANALYZE_SERVICES[req.path]
     if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
-    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, '', record.createdAt)
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
@@ -3624,7 +3912,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       return
     }
     if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
-    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
+    const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId, '', record.createdAt)
     if (!access.entitled) { res.json(savedPreviewResponse(record)); return }
     applyReportEntitlement(analysis.report, access, owner)
     res.json({

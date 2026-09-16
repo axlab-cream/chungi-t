@@ -37,15 +37,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-function Get-CarrotcapRoot {
+function Get-CosRoot {
     $root = Split-Path -Parent $PSScriptRoot
     if ((Split-Path -Leaf $root) -ieq 'CreamAI') { return $root }
     return (Join-Path $root 'CreamAI')
 }
 
-$CarrotcapRoot = Get-CarrotcapRoot
-$IntegrationsDir = Join-Path $CarrotcapRoot 'integrations'
-$LogsDir = Join-Path $CarrotcapRoot 'logs\integrations'
+$CosRoot = Get-CosRoot
+$IntegrationsDir = Join-Path $CosRoot 'integrations'
+$LogsDir = Join-Path $CosRoot 'logs\integrations'
 $StatePath = Join-Path $IntegrationsDir 'state.json'
 
 New-Item -ItemType Directory -Force -Path $IntegrationsDir, $LogsDir | Out-Null

@@ -17,6 +17,7 @@ export interface ServiceDirectoryEntry {
   href: string
   image: string
   amount: number
+  summary: string
 }
 
 export interface AdminServiceDirectoryEntry extends ServiceDirectoryEntry {
@@ -78,6 +79,7 @@ export function listServiceDirectory(): ServiceDirectoryEntry[] {
       href: seed.href,
       image: seed.image,
       amount: product.amount,
+      summary: product.summary,
     })
   }
   return entries
@@ -99,6 +101,7 @@ export function listAdminServiceDirectory(): AdminServiceDirectoryEntry[] {
       href: seed.href,
       image: seed.image,
       amount: product.amount,
+      summary: product.summary,
       discoveryVisible: seed.hidden !== true,
     }]
   })

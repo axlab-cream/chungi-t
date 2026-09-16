@@ -27,7 +27,8 @@
 - TypeScript typecheck: PASS.
 - Vercel build: PASS.
 - 운영 DB 권한 조회: 두 버전 테이블 모두 service_role SELECT/INSERT/UPDATE만 존재하고 anon/authenticated 권한 없음.
-- 운영 애플리케이션 배포·로그인 E2E: 아직 NOT_RUN.
+- 운영 애플리케이션: Vercel `dpl_E7vPCwMc7WoVSKfMfUG8SeTz9i4t` Ready 및 운영 승격 PASS. 보호 배포에서 관리자 셸/LNB/서비스 로더 PASS.
+- 로그인 후 실제 행 렌더: 기존 지정 관리자 자격증명이 운영 계정 저장소에서 거부되어 NOT_RUN. 비밀번호는 변경하지 않았다.
 
 ## Lesson
 

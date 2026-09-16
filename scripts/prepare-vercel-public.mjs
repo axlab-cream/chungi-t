@@ -1,5 +1,6 @@
 import './build-public-faq.mjs'
 import './verify-seo-foundation.mjs'
+import { buildAdminMediaInventory } from './build-admin-media-inventory.mjs'
 import { copyFileSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,6 +10,8 @@ const root = join(__dirname, '..')
 const publicRoot = join(root, 'public')
 const sajuRoot = join(root, '사주')
 const cmdgRoot = join(sajuRoot, '사주')
+
+buildAdminMediaInventory(root)
 
 function copyFile(from, to) {
   mkdirSync(dirname(to), { recursive: true })

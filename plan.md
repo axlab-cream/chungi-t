@@ -34,6 +34,8 @@
 이전 주 작업 흐름은 `admin-ops-execution-pack`(운명상회 운영 관리자 구축)이다.
 코드 리뷰는 Codex가 담당한다.
 
+2026-09-12 T25/T27 선행 읽기 슬라이스: `/admin/corpus`와 `/admin/prompts`에서 현재 배포가 실제로 읽는 코퍼스·프롬프트 파일 목록, 버전·지문·해시를 조회한다. 편집·import·비교·릴리스는 포함하지 않으며 T25/T27 완료로 간주하지 않는다.
+
 ## A. 환경/기반 Task
 
 Independent Tone V2 execution uses `tone-v2/PRD.md` and `tone-v2/PLAN.md`. User approved sequential execution on 2026-09-12; earlier admin track is retained for history and is not the active scope of this fork.
@@ -104,7 +106,7 @@ Independent Tone V2 execution uses `tone-v2/PRD.md` and `tone-v2/PLAN.md`. User 
 | T05 | task-t05 | M1 | P0 | T03,T04 | 직원 membership 및 RBAC | BLOCKED (U2 영속 저장소, U4 운영 스키마) |
 | T06 | task-t06 | M1 | P0 | T05 | 감사 및 멱등 명령 기반 | **DONE** — 실제 audit ledger·idempotency command foundation, `/admin/audit` 실데이터 연결 |
 | T06A | admin-account-management | M1 | P0 | T05,T06 | 관리자 계정 실제 변경 | **DONE** — 생성·비활성화·비밀번호 변경, 감사·멱등 명령 연결 |
-| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. 영속 membership 저장소는 T05 에서 교체 |
+| T07 | task-t07 | M1 | P0 | T05 | 관리자 셸·라우터 | **완료** (ADR-0002 승인, U3 해소). 직원 로그인 폼 + 설정 기반 membership(`src/auth/staff.ts`)으로 권한이 열린다. LNB는 4개 업무군, 들여쓴 블릿 메뉴, 세션 유지 접기·펼치기와 활성 업무군 자동 펼침을 제공한다. 영속 membership 저장소는 T05 에서 교체 |
 | T08 | task-t08 | M1 | P0 | T03,T05 | 주문 조회 adapter | TODO |
 | T09 | task-t09 | M1 | P0 | T07,T08 | 주문 화면·교차 탐색 | TODO |
 | T10 | task-t10 | M1 | P0 | T03,T05,T06 | 회원·리포트 조회 adapter | **DONE** — 원본 Supabase 테이블의 최소 DTO 조회·마스킹·실운영 화면 연결. U18/U19은 분석 관리·정본 스키마 문서화 후속으로 유지 |
@@ -117,8 +119,10 @@ Independent Tone V2 execution uses `tone-v2/PRD.md` and `tone-v2/PLAN.md`. User 
 | T17 | task-t17 | M2 | P0 | T06,T14,T15,T16 | 환불 요청·승인·실행 | DONE — 실제 영속 intent, 독립 승인, DB 잠금 기반 금액 예약. PG 호출·권한 철회는 후속 대사/실행 게이트까지 차단 |
 | T18 | task-t18 | M2 | P0 | T09,T17 | 환불 UI | NEEDS_REVIEW — 실제 refund_requests 조회·등록·독립 승인 검토 화면 구현; Production REST 조회 503 원인 확인 필요 |
 | T19~T21 | - | M2 | P0 | (pack) | 금융·복구 (대사, 재시도, incident) | TODO |
-| T22 | task-t22 | M3 | P1 | T02,T06,T14 | 서비스·콘텐츠 버전 저장 | IN_PROGRESS — 결제 트랙 보류 후 비결제 운영 우선 진행 |
-| T23~T30 | - | M3 | P1 | (pack) | 편집·지식 (미디어, 코퍼스, 평가, release, 롤백) | TODO |
+| T22 | task-t22 | M3 | P1 | T02,T06,T14 | 서비스·콘텐츠 버전 저장 | **DONE** — 서비스와 `support_top` 공지의 구조화 초안·revision CAS·명시적 발행·공개 allowlist read 완료. FAQ·배너·미디어·예약·롤백 UI는 T23/T24/T29/T30 범위 |
+| T23 | task-t23 | M3 | P1 | T22 | 미디어 관리 | **NEEDS_REVIEW** — 실제 private `umsh-media`, metadata/RLS, signed upload·서버 재검사·권리 증빙·poster·참조 잠금 삭제와 운영 UI 배포 완료. 운영자 실파일 1건의 upload→preview→delete smoke만 NOT_RUN |
+| T24 | task-t24 | M3 | P1 | T22,T23 | 콘텐츠 편집·예약 UI | **NEEDS_REVIEW** — `support_top` 실제 공지의 diff·승인·예약·취소·분 단위 worker를 운영 배포. 실제 공지 문안이 없어 운영 발행 lifecycle smoke만 남음 |
+| T25~T30 | - | M3 | P1 | (pack) | 지식 (코퍼스, 평가, release, 롤백) | TODO |
 | T31~T35 | - | M4 | P1 | (pack) | 분석·개인정보 | TODO |
 | T36~T38 | - | M5 | P0 | (pack) | 통합 안정화·인수·인계 | TODO |
 
@@ -572,3 +576,11 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 2. 닫기 문서가 동일 출처 부모 창에 명시적 닫힘 메시지를 전달한다.
 3. 부모 결제 화면은 외부 URL을 거부하고 결제 진입의 `returnTo`, 없으면 상품 기본 경로로 복귀한다.
 4. 집중/전체 회귀와 빌드 후 Production에 배포하고 실제 닫기 버튼으로 서비스 복귀를 확인한다.
+
+## task-022 / task-023 — 결제 자격·환불 (2026-09-16)
+
+| Task | 상태 | 내용 |
+| --- | --- | --- |
+| task-022 | **NEEDS_REVIEW** | 천명사주 결과 CTA 가 결제창으로 가도록 결제 자격 판정 정리. `?qa=pay` 관리자 QA 모드, 주문-리포트 결속 + 레거시 보호 + claim-on-first-use. Codex Approved, 단위 검증 완료. 운영 브라우저 end-to-end 만 NOT_RUN |
+| task-023 | **TODO (승인 대기)** | 관리자 원클릭 환불. 주문 저장·조회와 2인 승인 refund intent 는 이미 있고 PG 실환불 실행이 T17 로 잠겨 있다. 원클릭 범위(단독 즉시환불 vs 요청+1클릭 승인)를 사용자가 결정해야 착수 가능 |
+

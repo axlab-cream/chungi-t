@@ -8,6 +8,9 @@ Document public APIs, internal contracts, events, and schemas.
 | --- | --- | --- | --- | --- |
 | GET | `/admin`, `/admin/*` | 운영 관리자 셸(HTML). 직원 로그인 폼을 포함한다 | 없음 | 데이터 없는 셸. `noindex` + `no-store`. 정적 경로로는 열리지 않는다(ADR-0002 D1) |
 | GET | `/api/admin/v1/me` | 호출자의 운영 관리자 권한 판정 | `Authorization: Bearer` | `no-store` + `Vary: Authorization` 자동 적용 |
+| GET | `/api/admin/v1/services` | 실제 서비스 정본과 최신 발행/초안 버전 조회 | `services:read` | 원시 작성자 정보는 반환하지 않음 |
+| POST | `/api/admin/v1/services/:key/drafts` | 구조화 서비스 초안 생성 | `services:write` | `Idempotency-Key` 필수, 고객 화면 미반영 |
+| PATCH | `/api/admin/v1/services/:key/drafts/:id` | 초안 revision 조건부 수정 | `services:write` | `expectedRevision` 및 `Idempotency-Key` 필수 |
 
 ### `GET /api/admin/v1/me`
 
@@ -27,12 +30,19 @@ Document public APIs, internal contracts, events, and schemas.
 401 과 403 은 서로 다른 UI 상태로 다뤄야 한다(A35). 403 응답에는 `email`·`scopes` 를
 넣지 않는다 — 권한 근거가 없는 호출자에게 알려 줄 것이 없다.
 
-`role` 은 현재 `super_admin` 하나이고 `scopes` 는 조회 권한만 담는다
-(`orders:read`, `members:read`, `reports:read`, `settings:read`). 감사·멱등 명령 기반
-(T06)이 없는 동안 쓰기 scope 를 만들지 않는다.
+`role` 은 현재 `super_admin` 하나다. 쓰기 scope는 T06의 감사·멱등 명령 경계를 통과하는
+기능에만 부여하며, 서비스 초안은 `services:write`를 사용한다.
 
 **하위 호환**: T05 가 영속 membership 저장소를 만들 때 이 응답 형태를 유지한 채 판정만
 교체한다. `scopes` 는 추가만 하고, 기존 값의 의미를 바꾸지 않는다.
+
+### 서비스 초안 필드
+
+요청 본문의 `fields`는 `title`, `tagline`, `summary`, `category`,
+`discoveryVisible`, `landingPath`만 허용한다. `canonicalKey`는 경로에서 정본을 확인하며
+변경할 수 없다. 가격과 판매 상태는 결제 트랙이므로 이 API에서 받지 않는다. 새 초안은
+revision `0`으로 생성되고, 수정은 현재 revision이 일치할 때만 1 증가한다. `409`이면
+목록을 다시 불러와야 한다. 초안은 publish API가 아니며 공개 서비스에는 반영되지 않는다.
 
 ## Schemas
 

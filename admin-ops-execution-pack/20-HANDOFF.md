@@ -28,12 +28,27 @@ M0~M5 구현: 미착수. T01~T38: todo. 패키지 작성 중의 로컬 소스 �
 - 확인된 사실과 근거: 실제 판매 정본은 19개이며 discovery 노출 15, 숨김 4다. 버전 테이블 운영 권한은 service_role SELECT/INSERT/UPDATE만 남긴 SQL 조회로 검증했다.
 - 신규 제안·미확정: 로컬 실행에는 service role 키가 없어 버전 REST 실조회는 NOT_RUN. 이는 Vercel 운영 환경 누락 증거가 아니다.
 - 테스트 명령·결과: 관련 25 PASS, `npm test` 622 PASS, `npm run typecheck` PASS, `npm run vercel-build` PASS.
-- UI 검증 화면·폭: 운영 배포 전이므로 NOT_RUN.
+- UI 검증 화면·폭: 보호 배포 데스크톱에서 관리자 셸, 서비스 LNB, 신규 API 로더 존재 확인. 기존 관리자 자격증명이 거부되어 로그인 후 실제 행 렌더는 NOT_RUN.
 - 스키마 변경·복구: `20260911215407_tighten_service_content_grants.sql` 적용·migration history 반영. 복구가 필요하면 정확한 이전 권한 계약을 재검토한 별도 migration을 사용하며 DELETE를 임의 복원하지 않는다.
-- 운영 반영 여부: DB 권한 반영 완료, 애플리케이션 배포 전.
-- 미완료와 해제 조건: 운영 배포 Ready 및 인증된 `/admin/services` 확인, 이후 draft 생성 API의 revision/감사 계약 구현.
+- 운영 반영 여부: DB 권한 반영 완료. Vercel `dpl_E7vPCwMc7WoVSKfMfUG8SeTz9i4t` Ready 및 운영 승격 완료.
+- 미완료와 해제 조건: 관리자 계정 인증 복구 후 인증된 `/admin/services`의 19개 행과 `versionStore` 상태 확인. 이후 draft 생성 API의 revision/감사 계약 구현.
 - 다음 ready task: T22 Slice 2 구조화 draft 생성.
 - 갱신한 WIKI: `personal/carrotcap/notes/umsh-t22-service-version-read-20260912.md` 저장·재조회·검색 확인.
 
 ## 결과 보고 규칙
 코드작성/로컬검증/스테이징검증/운영반영을 구분한다. 각 완료 task는 수용 조건 증거를 첨부한다. 새 에이전트가 완료 상태를 추측하게 하지 않는다.
+
+## 2026-09-12 T23 Slice 2 인계
+
+- 작업일·작업자·저장소 HEAD: 2026-09-12, Codex, `82c22aa`
+- 실행한 task ID: T23 / Slice 2 private Storage lifecycle
+- 변경 파일: `src/admin/media-file-inspection.ts`, `src/admin/media-store.ts`, `src/server/app.ts`, `src/auth/staff.ts`, `admin-ui/index.html`, `design-system/MASTER.md`, migration·테스트·운영 문서
+- 확인된 사실과 근거: 운영 Supabase 전역 파일 상한은 50MB다. private `umsh-media` 버킷과 두 metadata table, signed upload/finalize/preview, 권리 증빙, poster, 참조 잠금 삭제가 연결됐다.
+- 신규 제안·미확정: 운영자 실파일 1건의 전체 lifecycle smoke만 NOT_RUN. 기존 정적 83개 권리 이관과 고객 발행은 별도 Task다.
+- 테스트 명령·결과: targeted 36/36, 전체 `npm test` 654/654, `npm run typecheck`, `npm run vercel-build` PASS.
+- UI 검증 화면·폭: Production 데스크톱과 기존 994px 표 실측. LNB·50MB 업로드 폼·83개 실제 자산·콘솔 오류 0 PASS.
+- 스키마 변경·복구: `20260912002420` 적용. 복구는 데이터·참조 존재 여부를 검토한 별도 additive migration으로 수행하며 Storage schema를 직접 수정하지 않는다.
+- 운영 반영 여부: Supabase bucket/DB 및 Vercel `dpl_2pVJ7NvA4ejomUDWdSLGeCVjMiNY` Ready, `umsh.kr` 반영.
+- 미완료와 해제 조건: 권리 근거가 있는 실제 이미지 1건을 운영 UI에서 등록→미리보기→미사용 삭제하고 잔존 0을 확인한다.
+- 다음 ready task: T24 콘텐츠 편집·예약 UI. T23 실파일 smoke는 병행 검증 가능.
+- 갱신한 WIKI: 원격 인증 부재로 NOT_RUN. 후보 `CreamAI/memory/candidates/task-t23-storage-media-lifecycle-20260912.md`.

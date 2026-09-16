@@ -10,8 +10,6 @@
       3. CLI noise lines (true color warning, ripgrep fallback, tool errors) are stripped
          from the captured output. Everything before the first Markdown H1 is dropped.
       4. The cleaned report is written to logs/research/<task-id>_<slug>.md.
-      5. Role fallback: if agy is not connected (missing or failing), Claude CLI
-         substitutes as the Researcher and the report is marked accordingly.
 
 .PARAMETER TaskId
     Backlog task identifier, e.g. "task-003".
@@ -87,9 +85,13 @@ $fullPrompt = $header + "`n" + $body
 ## Wrapper Guards (task-010 / task-013) — keep these guards in sync between
 ## run-researcher.ps1 and run-reviewer.ps1 even if the surrounding logic diverges.
 ##
-## G1. CLI-arg compatibility (CLI-specific):
-##     agy supports one-shot prompt mode with `-p`. A single-space placeholder
-##     keeps argv parsing stable while stdin carries the full prompt.
+## G1. CLI-arg compatibility (CLI-specific) — REVISED by task-007 (2026-09-14):
+##     The prompt goes on stdin with NO `-p`/`--print` flag. The old `-p " "`
+##     placeholder is DEAD: agy validates the -p value and exits 1 with
+##     "Error: empty prompt" before reading stdin. The prompt cannot go in argv
+##     either (PS 5.1 strips quotes from native arguments).
+##     Guards: tests/unit/researcher-agy-invocation.test.js (static) and
+##     CreamAI/evals/regression/agy-stdin-canary.ps1 (live).
 ## G2. Stderr isolation (PowerShell 5.1):
 ##     Do NOT use `2>&1` on native CLIs. PS 5.1 wraps each stderr line as a
 ##     NativeCommandError record; combined with $ErrorActionPreference = "Stop"
@@ -189,15 +191,48 @@ function Find-AntigravityCommand {
     return $null
 }
 
-# Role-fallback policy (task-023): if Antigravity (agy) is not connected, Claude
-# substitutes as the Researcher instead of auto-installing a remote CLI. The
-# saved report is marked with a role-fallback comment so the PM can tell who ran.
-function Find-ClaudeCommand {
-    foreach ($name in @('claude', 'claude.cmd', 'claude.exe', 'dsclaude')) {
-        $cmd = Get-Command $name -ErrorAction SilentlyContinue
-        if ($cmd) { return $cmd }
+function Install-AntigravityCli {
+    $isWindowsHost = ($env:OS -eq 'Windows_NT') -or (-not $PSVersionTable.ContainsKey('Platform')) -or ($PSVersionTable.Platform -eq 'Win32NT')
+    Write-Host "[researcher] Antigravity CLI (agy) not found; installing Google Antigravity CLI..." -ForegroundColor Yellow
+
+    if ($isWindowsHost) {
+        $installUri = 'https://antigravity.google/cli/install.ps1'
+        try {
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls
+        } catch {}
+        $installScript = Invoke-RestMethod -Uri $installUri -UseBasicParsing
+        if ([string]::IsNullOrWhiteSpace($installScript)) {
+            throw "Downloaded Antigravity installer was empty: $installUri"
+        }
+        Invoke-Expression $installScript
+    } else {
+        $bash = Get-Command bash -ErrorAction SilentlyContinue
+        $curl = Get-Command curl -ErrorAction SilentlyContinue
+        if (-not $bash -or -not $curl) {
+            throw "Antigravity CLI command 'agy' was not found, and auto-install on this OS requires bash and curl."
+        }
+        & $bash.Source -lc 'curl -fsSL https://antigravity.google/cli/install.sh | bash'
+        if ($LASTEXITCODE -ne 0) {
+            throw "Antigravity CLI install.sh exited with code $LASTEXITCODE."
+        }
     }
-    return $null
+
+    Update-ProcessPathFromRegistry
+}
+
+function Resolve-AntigravityCommand {
+    $cmd = Find-AntigravityCommand
+    if ($cmd) { return $cmd }
+
+    Install-AntigravityCli
+
+    $cmd = Find-AntigravityCommand
+    if ($cmd) {
+        Write-Host "[researcher] Antigravity CLI ready: $($cmd.Source)" -ForegroundColor Green
+        return $cmd
+    }
+
+    throw "Antigravity CLI installation finished, but 'agy' was still not found in PATH. Open a new shell or add the Antigravity bin folder to PATH, then run this script again."
 }
 
 # G4: snapshot + force UTF-8 across both .NET Console wrappers AND Win32 console CP.
@@ -207,8 +242,8 @@ function Find-ClaudeCommand {
 # transcodes via $OutputEncoding" pitfall, but full Korean fidelity also
 # requires invoking this wrapper from a non-AOR-routed shell — see
 # backlog/task-013.md "Residual Risk" section.
-if (-not ([System.Management.Automation.PSTypeName]'Carrotcap.Win32Console').Type) {
-    Add-Type -Namespace 'Carrotcap' -Name 'Win32Console' -MemberDefinition @'
+if (-not ([System.Management.Automation.PSTypeName]'Cos.Win32Console').Type) {
+    Add-Type -Namespace 'Cos' -Name 'Win32Console' -MemberDefinition @'
 [System.Runtime.InteropServices.DllImport("kernel32.dll")]
 public static extern uint GetConsoleCP();
 [System.Runtime.InteropServices.DllImport("kernel32.dll")]
@@ -222,47 +257,34 @@ public static extern bool SetConsoleOutputCP(uint cp);
 $origConsoleIn  = [Console]::InputEncoding
 $origConsoleOut = [Console]::OutputEncoding
 $origPSOutput   = $OutputEncoding
-$origWin32In    = [Carrotcap.Win32Console]::GetConsoleCP()
-$origWin32Out   = [Carrotcap.Win32Console]::GetConsoleOutputCP()
+$origWin32In    = [Cos.Win32Console]::GetConsoleCP()
+$origWin32Out   = [Cos.Win32Console]::GetConsoleOutputCP()
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [Console]::InputEncoding  = $utf8NoBom
 [Console]::OutputEncoding = $utf8NoBom
 $OutputEncoding           = $utf8NoBom
-[Carrotcap.Win32Console]::SetConsoleCP(65001)       | Out-Null
-[Carrotcap.Win32Console]::SetConsoleOutputCP(65001) | Out-Null
-$usedClaudeFallback = $false
+[Cos.Win32Console]::SetConsoleCP(65001)       | Out-Null
+[Cos.Win32Console]::SetConsoleOutputCP(65001) | Out-Null
 try {
-    $agyCommand = Find-AntigravityCommand
-    if ($agyCommand) {
-        # G1+G2: -p " " placeholder, no `2>&1`.
-        $rawLines = $fullPrompt | & $agyCommand.Source -p " " | ForEach-Object { "$_" }
-        # G3: explicit exit-code check. A non-zero exit (not installed properly,
-        # not logged in, network down) demotes agy and triggers the Claude fallback.
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "[researcher] agy exited with code $LASTEXITCODE — falling back to Claude as Researcher."
-            $agyCommand = $null
-        }
-    }
-    if (-not $agyCommand) {
-        $claudeCommand = Find-ClaudeCommand
-        if (-not $claudeCommand) {
-            throw "Neither Antigravity (agy) nor Claude CLI is available for the Researcher role. Install one of them and re-run."
-        }
-        Write-Host "[researcher] Antigravity not connected — Claude is substituting as Researcher." -ForegroundColor Yellow
-        $usedClaudeFallback = $true
-        # claude print mode reads the prompt from stdin; -p alone keeps argv stable.
-        $rawLines = $fullPrompt | & $claudeCommand.Source -p | ForEach-Object { "$_" }
-        if ($LASTEXITCODE -ne 0) {
-            throw "claude (Researcher fallback) exited with code $LASTEXITCODE. Raw stdout (for diagnosis):`n$($rawLines -join "`n")"
-        }
+    $agyCommand = Resolve-AntigravityCommand
+    # G1+G2: prompt on stdin with NO -p/--print, no `2>&1`.
+    #   agy validates the -p/--print value and exits 1 with "Error: empty prompt" before it
+    #   reads stdin, so the old `-p " "` placeholder made every research run fail (task-007,
+    #   same defect CARROTCAP fixed on 2026-09-04). The whole prompt cannot go in argv either:
+    #   Windows PowerShell 5.1 strips quotes from native arguments.
+    #   Guarded by tests/unit/researcher-agy-invocation.test.js.
+    $rawLines = $fullPrompt | & $agyCommand.Source | ForEach-Object { "$_" }
+    # G3: explicit exit-code check.
+    if ($LASTEXITCODE -ne 0) {
+        throw "agy exited with code $LASTEXITCODE. Raw stdout (for diagnosis):`n$($rawLines -join "`n")"
     }
 } finally {
     # G4: always restore console encodings (.NET + Win32) even on throw.
     [Console]::InputEncoding  = $origConsoleIn
     [Console]::OutputEncoding = $origConsoleOut
     $OutputEncoding           = $origPSOutput
-    [Carrotcap.Win32Console]::SetConsoleCP($origWin32In)        | Out-Null
-    [Carrotcap.Win32Console]::SetConsoleOutputCP($origWin32Out) | Out-Null
+    [Cos.Win32Console]::SetConsoleCP($origWin32In)        | Out-Null
+    [Cos.Win32Console]::SetConsoleOutputCP($origWin32Out) | Out-Null
 }
 
 # Strip leading noise: drop everything before the first Markdown H1.
@@ -277,17 +299,9 @@ if ($startIdx -lt 0) {
     $cleaned = $rawLines[$startIdx..($rawLines.Count - 1)]
 }
 
-# Mark role substitution so the PM (and later readers) can tell who produced this.
-if ($usedClaudeFallback) {
-    $cleaned = @("<!-- role-fallback: claude substituted for antigravity at $timestampUtc -->") + $cleaned
-}
-
 # Write UTF-8 with BOM (per global encoding rule for .md files).
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 [System.IO.File]::WriteAllText($outputPath, ($cleaned -join "`r`n"), $utf8Bom)
 
 Write-Host "[researcher] saved: $outputPath" -ForegroundColor Green
-if ($usedClaudeFallback) {
-    Write-Host "[researcher] role-fallback: Claude ran the Researcher role (agy unavailable)." -ForegroundColor Yellow
-}
 Write-Host "[researcher] task-id: $TaskId  dispatched-at: $timestampUtc"

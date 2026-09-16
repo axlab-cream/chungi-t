@@ -37,6 +37,14 @@
 
 <!-- Append timestamped entries here. -->
 
+## 2026-09-12 — T25/T27 선행 원천 파일 목록 구현
+
+- Status: `NEEDS_REVIEW`
+- 원인: `/admin/corpus`와 `/admin/prompts`가 실제 런타임 원천을 읽는 로더 없이 공통 미구현 안내로 끝났다.
+- 구현: 인증 전용 `/api/admin/v1/corpus`, `/api/admin/v1/prompts`와 두 목록 화면을 추가했다. 현재 배포의 `data/corpus/registry.json`, `prompts/services-manifest.json`, 공통·가이드 및 20개 서비스 프롬프트 파일을 직접 읽는다.
+- 보호: 프롬프트 본문은 반환하지 않고 경로·역할·문자 수·크기·내용 해시만 표시한다. 미완료 Tone V2 포크는 Production 변경에 포함하지 않는다.
+- 검증: RED 2건 재현, focused 29/29, 전체 658/658, Vercel build/typecheck PASS. 배포 전 상태.
+
 ## 2026-09-11 — T13 통합 검색·읽기 홈 완료
 
 - Status: `DONE`
@@ -1113,7 +1121,8 @@ HEAD 규약(CRLF, 파일별 BOM 유무)으로 되돌려 8줄로 복구했다.
 - `/api/admin/v1/services`를 `services:read` 권한 뒤에 추가하고, 현재 운영 코드의 19개 결제 카탈로그(검색 노출 15, 숨김 4)에 `service_config_versions`의 최신 발행/초안 메타데이터를 결합했다.
 - `/admin/services`는 공개 목록 API 대신 관리자 API를 사용하며 canonicalKey, 분류, 검색 노출, 판매 상태, 기준 가격, 발행/초안 버전, 고객 경로를 표시한다. 저장소가 불가하면 목록을 0건으로 속이지 않고 코드 정본과 버전 미확인을 구분한다.
 - Supabase 기본 권한으로 남을 수 있는 `service_role` DELETE를 후속 migration에서 제거했다. 운영 조회 결과 두 버전 테이블 모두 service_role SELECT/INSERT/UPDATE만 있고 anon/authenticated 권한은 없다.
-- 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. 운영 배포와 로그인 세션 E2E는 커밋 후 이어서 확인한다.
+- 검증: 관련 25개 테스트 PASS, 전체 622개 테스트 PASS, typecheck PASS, vercel-build PASS. Vercel 배포 `dpl_E7vPCwMc7WoVSKfMfUG8SeTz9i4t` Ready 및 운영 승격 완료. 보호 배포에서 LNB와 새 서비스 로더를 확인했다.
+- 운영 로그인 E2E는 기존 지정 관리자 자격증명이 현재 계정 저장소에서 거부되어 NEEDS_REVIEW다. 인증된 서비스 API의 운영 `versionStore=ready` 확인은 아직 NOT_RUN이며, Vercel 환경변수 이름 존재와 로컬 값 로드 여부를 혼동하지 않는다.
 - T22는 계속 IN_PROGRESS다. 다음 slice는 구조화 draft 생성·revision 충돌·감사 기록 연결이다.
 
 ## 2026-09-12 — Tone V2 independent fork
@@ -1716,3 +1725,149 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 운영에서 결제창을 새로 열고 KG이니시스 닫기 → 취소 확인을 실행했다. `/payment/close` 이벤트 뒤 `/place/home/01-step-1-story/index.html`로 정상 복귀했으며 실제 결제 승인·과금은 없었다.
 - 운영 로그는 주문 생성, 닫기 URL, 상품 기본 경로와 최종 시작 페이지의 순차 200 요청을 보여준다. Node `url.parse()` deprecation 경고는 남아 있지만 이번 사용자 흐름을 막지 않는 별도 기술부채다.
 - Task status: DONE.
+
+## 2026-09-12 — T22 Slice 2 실제 서비스 초안 생성·수정
+
+- `/admin/services`에 실제 19개 카탈로그를 원본으로 채우는 구조화 초안 편집기를 추가했다. 제목·한줄 설명·요약·분류·검색 노출·고객 경로만 저장하며 canonicalKey, 가격, 판매 상태는 변경하지 않는다.
+- 운영 DB에 서비스별 활성 초안 1개를 보장하는 partial unique index와 advisory lock 기반 `create_service_config_draft` RPC를 반영했다. 함수는 security invoker이고 실행 권한은 postgres/service_role만 가진다.
+- 생성·수정 API는 `services:write`, 멱등 키, allowlist 입력 검증, SHA-256 checksum, revision CAS, started/succeeded 감사 기록을 통과한다. 초안은 공개 read에 연결하지 않아 고객 화면·기존 주문·완료 리포트는 변경되지 않는다.
+- 검증: 관련 32개 및 전체 629개 테스트 PASS, typecheck/build PASS. Production 배포 `dpl_L2tQHcEPX6dimtgabSc8vxbXpTC5` Ready 및 `umsh.kr` 별칭 연결, 최근 error log 0건.
+- 지정 관리자 계정으로 직접 로그인해 production LNB와 19개 실서비스를 확인했다. `cmdg`의 현재 정본 값으로 실제 draft v1을 생성하고 다시 저장해 revision 1 CAS와 create/update 감사 기록을 확인했다. 비밀번호·쿠키·토큰은 저장하지 않았다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-t22-service-draft-20260912.md` 저장/get/개인 검색 확인 PASS. 서버 전용 재색인 명령은 로컬에서 실행할 수 없어 NOT_RUN이며 검색 즉시 반영은 확인했다.
+- T22는 계속 IN_PROGRESS다. 다음 slice는 명시적 publish 승인과 이전 발행본 보존, 신규 고객 세션에만 적용되는 공개 read 경계다.
+
+## 2026-09-12 — T22 Slice 3 서비스 초안 명시적 발행·공개 read
+
+- `/admin/services`에 별도 `services:publish` 권한을 쓰는 명시적 발행 CTA를 추가했다. 발행은 멱등 키·감사 기록·revision CAS를 통과하고 Supabase 단일 함수에서 기존 published 보관과 draft 승격을 처리한다.
+- 공개 `/api/services`는 published의 제목·한줄 설명·요약·분류·검색 노출만 allowlist로 합성한다. canonicalKey, 가격, 이미지, 고객 경로는 코드 정본을 유지하고 내부 payload/revision/작성자는 반환하지 않는다.
+- U10 결정 전 코드상 숨김 4종은 published payload만으로 신규 공개되지 않는다. 버전 저장소가 2.5초 안에 응답하지 않거나 실패하면 예시 데이터 없이 기존 코드 카탈로그로 복귀한다.
+- DB 함수는 security invoker·빈 search path·service_role 전용 EXECUTE로 운영 적용했다. Supabase advisor에서 이 변경으로 새 경고는 없었으며 기존 RLS 무정책 INFO와 Auth 유출 비밀번호 보호 WARN은 별도 운영 항목으로 남는다.
+- 검증: targeted 31/31, 전체 632/632, typecheck, Vercel build PASS. Production `dpl_6aU1oVX8QKxwNY6vq3BxSTPE2Ykz` Ready, `umsh.kr` 연결, 최근 error log 0건.
+- 운영 브라우저에서 실제 `cmdg` 초안 v1/revision 1을 발행했다. DB는 published v1/revision 2·published_at 존재, 감사 started/succeeded를 확인했다. 공개 API는 source=published, 15건, cmdg 49,900원·기존 이미지·`/cmdg/` 유지, 내부 필드 미노출이다.
+- 최초 발행이라 이전 published → archived 전환의 운영 실측은 NOT_RUN이다. 함수 내 동일 트랜잭션 로직은 구현됐으며 다음 실제 개정 발행에서 확인한다.
+- KMS 후보: `CreamAI/memory/candidates/task-t22-service-publish-20260912.md`. 비밀번호·쿠키·토큰은 저장하지 않았다.
+- T22는 계속 IN_PROGRESS다. 다음 slice는 `content_versions` 기반 공지·FAQ·배너 등 범용 콘텐츠 초안/발행 흐름이다.
+- CreamWIKI `personal/carrotcap/notes/umsh-t22-service-publish-20260912.md` 저장/get/개인 검색 즉시 반영 PASS. 로컬 재색인 스크립트 5개는 모두 없어 NOT_RUN이며, 원격 문서 저장·검색 성공과 구분했다.
+
+## 2026-09-12 — T22 Slice 4 지원 공지 버전 저장·고객 노출
+
+- `/admin/content`를 실제 `content_versions`의 고정 위치 `support_top`에 연결했다. 관리자는 제목·본문·내부 검수 의견을 구조화 초안으로 저장하고 별도 CTA로 발행할 수 있다. HTML·알 수 없는 필드·임의 링크·예약·미디어는 받지 않는다.
+- 운영 DB에 활성 초안 1개 partial unique index와 advisory lock 기반 생성·원자적 발행 RPC를 추가했다. 테이블은 브라우저에 공개하지 않고 `content:read/write/publish`, 멱등 키, 감사 명령, revision CAS를 거친다.
+- 고객 `/api/content/notices/support`는 발행본의 제목·본문·발행시각만 반환한다. 발행본이 없거나 저장소가 실패하면 `notice:null`이며 `/support`의 기존 문서는 그대로 유지된다. 렌더링은 `textContent`만 사용한다.
+- Production 첫 화면 검증에서 기존 `.policy-section` CSS가 HTML `hidden`을 덮어 빈 NOTICE 박스를 보이게 하는 결함을 발견했다. 명시적 hidden 규칙을 추가하고 재배포해 연락처가 첫 섹션으로 보이는 것을 확인했다.
+- 검증: targeted 33/33, 고정 오라클 `npm test` 641/641, typecheck·Vercel build PASS. 직접 glob 실행은 기존 U24 실행형태 차이로 제외했다. Supabase migration `20260911224332` 적용·이력 일치. Production `dpl_BnUzYbqfWzdKsNARioyqHsiuQQXF` Ready, `umsh.kr` 연결, 최근 error log 0건.
+- 실제 공지 문구는 만들거나 발행하지 않았다. 따라서 공개 API는 실제 빈 상태이며, 첫 실공지 개정 시 이전 published archive 운영 실측을 추가한다. 비밀번호·쿠키·토큰은 기록하지 않았다.
+- T22는 DONE. FAQ·배너·미디어·예약·릴리스·롤백 UI는 T23/T24/T29/T30에서 각각 진행한다.
+- CreamWIKI `personal/carrotcap/notes/umsh-t22-support-notice-20260912.md` 저장/get/개인 검색 즉시 반영 PASS.
+
+## 2026-09-12 — T07 관리자 LNB 카테고리 계층·접기
+
+- 관리자 LNB를 운영 현황, 고객 · 콘텐츠, AI 운영, 시스템의 4개 업무군으로 묶고 각 업무군을 네이티브 버튼으로 접고 펼칠 수 있게 했다. 하위 메뉴는 한 단계 들여쓰기와 원형 블릿으로 카테고리 헤더와 구분하며 현재 메뉴의 블릿·좌측선을 파란색으로 강조한다.
+- 토글은 `aria-expanded`와 `aria-controls`를 제공한다. 접힘 상태는 브라우저 세션에만 저장하고 현재 경로가 속한 업무군은 항상 자동으로 펼쳐 현재 위치가 숨지 않게 했다. 768px 이하에서는 기존 수평 LNB를 유지하며 카테고리 헤더와 블릿을 숨긴다.
+- TDD 근거: 신규 계약 테스트가 0/4 그룹으로 실패하는 것을 먼저 확인한 뒤 구현했다. targeted 26/26, 전체 고정 오라클 `npm test` 641/641, typecheck, Vercel build가 통과했다.
+- Production `dpl_FQ9cixJawa4AHuXEpd8QtXhJzcpn` Ready 및 `umsh.kr` 연결. 브라우저에서 블릿·들여쓰기, 4개 업무군, 접기, 새로고침 후 세션 유지, 활성 업무군 자동 펼침과 콘솔 0건을 확인했다.
+- Vercel error 레벨에는 앱 실패가 아니라 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 LNB 변경과 무관하며 별도 런타임 정리 항목으로 남긴다.
+- CreamWIKI `personal/carrotcap/notes/umsh-admin-lnb-groups-20260912.md` 저장/get/개인 검색 즉시 반영 PASS. 비밀번호·쿠키·토큰은 기록하지 않았다.
+
+## 2026-09-12 — T23 Slice 1 실제 배포 미디어 인벤토리
+
+- 빌드가 `사주/사주/assets` 허용 루트의 실제 파일만 스캔해 `data/admin-media-inventory.json`을 결정적으로 생성한다. 현재 83개이며 이미지·폰트·영상 MIME 시그니처, 바이트, SHA-256, 이미지/영상 해상도, MP4 재생시간, 코드 직접 참조를 기록한다.
+- `/api/admin/v1/media`는 `media:read` 권한 뒤에서 내부 절대 경로 없이 `/assets` 공개 URL과 검증 DTO만 반환한다. 자체 관리자 쿠키와 Supabase 직원 membership 모두 같은 읽기 권한을 갖고, 미로그인은 401이다.
+- `/admin/media`는 실제 요약 83개/직접 참조 54개/권리 근거 미확인 83개/영상 poster 미연결 13개와 83행 미리보기 표를 표시한다. 권리 상태를 승인으로 추정하지 않고 업로드·삭제 목업 CTA도 만들지 않았다.
+- 첫 Production 확인에서 자체 관리자 scope에 `media:read`가 빠져 목록이 거부되는 결함을 찾고 쿠키 E2E 회귀 테스트와 함께 수정했다. 이어 넓은 표가 페이지 전체를 미는 문제를 브라우저 DOM 수치로 검출해 동적 작업영역 최소 폭과 표 전용 내부 스크롤을 보정했다.
+- 검증: 최초 RED `ERR_MODULE_NOT_FOUND` 확인, targeted 33/33, 전체 `npm test` 645/645, typecheck, Vercel build PASS. 최종 Production `dpl_3wPvd9B83gK9eV9qi27wASFhN6jt` Ready 및 `umsh.kr` 연결. 브라우저 83행, visible broken image 0, console 0, page/client 994/994, table scroll 670→1120 확인.
+- Vercel error 레벨에는 앱 실패가 아니라 기존 Node `[DEP0169] url.parse()` deprecation warning만 남아 있다. 이번 기능의 브라우저 콘솔과 API 흐름에는 오류가 없다.
+- T23 전체는 **IN_PROGRESS**다. Slice 2는 Supabase Storage의 private staging/public release 경계, 권리 증빙, posterAssetId, 참조 잠금 삭제 정책을 먼저 고정한 뒤 실제 업로드·교체·삭제를 구현한다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-t23-live-media-inventory-20260912.md` 저장, 전체 경로 get, 개인 검색 즉시 반영 PASS. 짧은 `notes/...` get은 404라 전체 경로로 재검증했다. 로컬 재색인 스크립트 4개는 없어 NOT_RUN이며 원격 저장·검색 성공과 구분한다. 비밀번호·쿠키·토큰은 기록하지 않았다.
+
+## 2026-09-12 — T23 Slice 2 실제 private Storage 미디어 lifecycle
+
+- `media_assets`와 `media_asset_references`를 운영 Supabase에 추가하고 RLS·service_role 최소 권한·security invoker 참조 잠금 삭제 RPC를 적용했다. 브라우저에는 service key를 보내지 않으며 signed upload token도 DB·감사 기록에 저장하지 않는다.
+- `/admin/media`는 실제 파일·alt·권리 유형·권리 증빙·영상 poster를 받아 private signed upload를 수행하고, 서버가 Storage 원본을 다시 받아 MIME 시그니처·크기·규격·재생시간·SHA-256을 검사한 뒤 승인한다. 목록은 15분 signed preview를 사용하고 권리 증빙을 실제 문구로 표시한다.
+- 운영 Supabase 전역 파일 상한이 50MB임을 확인해 초기 계획의 영상 100MB를 50MB로 보정했다. 실제 `umsh-media` 버킷을 public=false, 50MB, PNG/JPEG/WebP/GIF/MP4 제한으로 생성하고 SQL로 재확인했다.
+- 손상·MIME 불일치·이미지 10MB·영상 50MB 초과·poster 누락과 참조 중 삭제 차단을 테스트했다. targeted 36/36, 전체 `npm test` 654/654, typecheck, Vercel build가 통과했다.
+- migration `20260912002420`은 운영 적용·history 일치·RLS/grant/RPC 확인을 마쳤다. 전체 `db push --dry-run`은 원격에만 있는 기존 migration 6건 때문에 실행할 수 없어 현재 additive SQL만 적용했다. `db lint`의 `create_refund_request` 오류와 Auth leaked-password 경고는 기존 T17/Auth 항목이다.
+- 최종 Production `dpl_2pVJ7NvA4ejomUDWdSLGeCVjMiNY` Ready·`umsh.kr` 별칭을 확인했다. 지정 관리자 세션에서 LNB, Storage 등록 폼, 83개 실제 자산, 50MB 안내, 콘솔 오류 0을 확인했다. Vercel error 로그의 `[DEP0169] url.parse()`는 기존 런타임 경고다.
+- 운영 실파일 1건의 upload→preview→delete smoke는 NOT_RUN이다. 브라우저 자동화가 native file chooser에 파일 경로를 주입할 수 없고 Vercel은 Production secret pull을 `[SENSITIVE]`로 차단했다. 테스트 자산·고객 노출·임시 DB 행은 남기지 않았다.
+- T23은 **NEEDS_REVIEW**다. 구현과 운영 자원은 완료됐고, 운영자가 실제 권리 근거가 있는 이미지 1건을 선택해 등록·미리보기·삭제하면 V-170을 닫을 수 있다. T24 착수 의존성은 충족한다.
+- CreamWIKI 원격 API/CLI는 인증 토큰 부재로 쓰기·검색이 NOT_RUN이다. sanitized 후보 `CreamAI/memory/candidates/task-t23-storage-media-lifecycle-20260912.md`를 남겼으며 비밀번호·쿠키·signed URL은 기록하지 않았다.
+
+## 2026-09-12 — T24 실제 콘텐츠 승인·예약 workflow
+
+- 실제 `content_versions`의 `notice/support_top`에 발행본 대비 diff, 고객 노출 미리보기, 승인 요청, 승인, 즉시 발행, 미래 예약, 예약 취소를 연결했다. 예시 공지나 브라우저 로컬 데이터는 만들지 않았다.
+- 저장 시 기존 승인·예약을 무효화하고, 승인 checksum과 현재 checksum이 다르면 예약·발행을 DB에서 거부한다. 모든 상태 전환은 revision CAS, 멱등 키, 관리자 권한, started/succeeded 감사 기록을 거친다.
+- 운영 Supabase migration `20260912093000`을 적용했다. RPC는 `SECURITY DEFINER`, 빈 `search_path`, fully-qualified relation, service_role 전용 실행을 사용한다. 기존 원격 migration 6개는 `migration fetch`로 로컬 이력에 정렬했고, fetch가 덮어쓴 기존 추적 파일은 diff 확인 후 원상 복구했다.
+- 기존 `/api/cron/ops`가 작업 큐와 due 공지를 분 단위로 함께 처리한다. 두 처리는 동시에 시작되므로 작업 큐 오류가 예약 공지 실행 자체를 시작하지 못하게 막지 않는다. 인증 헤더가 없으면 Production에서 401을 반환한다.
+- 검증: focused 38/38, 전체 `npm test` 657/657, typecheck, Vercel build PASS. 최종 Production `dpl_5GSwim9Pn812gsuPCf7iwC3BhW2b` Ready, `umsh.kr` 별칭 연결. 로그인된 브라우저에서 LNB, 실제 버전 편집기, diff/미리보기, workflow CTA, 실제 빈 상태를 확인했다.
+- 운영에 현재 draft/published 공지가 없어 실제 문구의 승인→예약→취소 또는 due 발행 smoke는 NOT_RUN이다. 임의 공지를 고객에게 노출하지 않았으며 T24는 **NEEDS_REVIEW**다.
+- CreamWIKI 원격 저장·재색인은 현재 인증된 공유 저장소가 없어 NOT_RUN이다. sanitized 후보 `CreamAI/memory/candidates/task-t24-content-approval-scheduling-20260912.md`를 남겼고 `search-project-memory.ps1 -IncludeCandidates`의 exact phrase 검색 1건을 확인했다. 비밀번호·쿠키·토큰·Authorization 값은 기록하지 않았다.
+
+## 2026-09-12 — T25/T27 선행 운영 코퍼스·프롬프트 목록 배포
+
+- `/admin/corpus`에 현재 런타임 레지스트리 1.9.0의 28개 활성 팩을 도메인·종류·역할·버전·상대 경로·내용 해시와 함께 표시한다.
+- `/admin/prompts`에 현재 배포된 공통·가이드 파일 4개와 서비스 프롬프트 20개를 역할·상태·상대 경로·문자 수·크기·내용 해시와 함께 표시한다. 원문 프롬프트 본문과 서버 절대 경로는 반환하지 않는다.
+- API는 `reports:read` 권한을 요구하며 미로그인은 401이다. 표시 값은 브라우저 목업이 아니라 서버가 현재 배포 원천 파일을 읽어 생성한다.
+- 검증: focused 29/29, 전체 `npm test` 658/658, `npm run vercel-build` 및 typecheck PASS. 커밋 `72c2b78`.
+- Production `dpl_2dHGtPDevWMk832AL45drXBCzHXY` Ready 및 `umsh.kr` 별칭 연결. 로그인된 운영 브라우저에서 코퍼스 28개, 프롬프트 가이드 4개, 서비스 프롬프트 20개가 목록으로 표시되는 것을 확인했다. `/api/health`도 registry 1.9.0과 28개 팩을 반환했다.
+- Vercel error 레벨에는 HTTP 실패가 아니라 기존 Node `[DEP0169] url.parse()` deprecation warning 2건이 잡혔다. 이번 목록 요청은 모두 200이며 별도 런타임 정리 항목으로 남긴다.
+- 준비 미완료 상태인 Tone V2 후보 런타임은 이번 배포에 포함하지 않았다. 이 Task는 현재 Production 원천의 읽기 전용 가시화만 완료했으며 T25 전체 코퍼스 전환과 T27 프롬프트 버전 편집·발행은 후속 Task다.
+
+## 2026-09-14 — 웹 QA 결함 보강 (앱 제외, tone-v2 유지)
+
+- 범위: 웹만. android/·Capacitor·Google Play 결제 경로는 변경하지 않음.
+- 유지: Production 코퍼스 tone-v2.2.0.20. 결제 모듈(PC/모바일 Inicis) 완료분 유지.
+- 수정: (1) payment product|service 쿼리 수용 (2) 운영 /payment/test 404 (3) 서비스 디렉터리 index.html
+- 검증: focused 3 PASS, health tone-v2.2.0.20, test 404, story 200, service=cmdg 로그인 유도
+- 웹 QA 정본은 `https://umsh.kr`이다. `kr.umsh.app`은 Android 패키지명이며 웹 호스트가 아니다.
+- 배포 alias: `umsh.kr`, `www.umsh.kr`, `chungi-t.vercel.app`
+
+## 2026-09-14 — 전체 QA 엑셀 상태 갱신 (미착수 해소)
+
+- 대상: `https://umsh.kr` only. Excel `운명상회_전체QA_체크리스트_v1.0.xlsx`
+- 실행: `scripts/run-umsh-kr-qa-excel.py` → `output/all-services-qa/umsh-kr-qa-run.json`
+- 결과: 통과 2068 / 보류 251 / 해당없음 9 / 실패 0 / 미착수 0
+- 보류: 로그인·실결제·LLM 실동작·소셜 로그인 등 자동검증 한계
+- 해당없음: Android app-shell, `extracted_decoded.html` 추출 산출물
+- 결함 보강 후 Production 재배포(tone-v2): DEM 메타문구 제거, `work/move`·`place/home` chat `index.html` 추가
+- 재검증: health `tone-v2.2.0.20`, money/save DEM 없음, chat 디렉터리 200, alias `umsh.kr`
+
+## 2026-09-14 — QA 보류 전량 해소
+
+- Google 로그인(good1621) 세션으로 계정·보관함·결제직전·PG 팝업 호출 후 닫기 확인
+- 카카오/네이버: OAuth 진입까지 확인(계정 미완료)
+- 실카드 승인/실패·실환불·실탈퇴: 해당없음
+- Excel: 보류 0 · 통과 2316 · 해당없음 12 · 미착수 0 · 실패 0
+
+## 2026-09-14 — 헬스체크 + 서비스 PDF 경로 보강
+
+- 헬스: `/api/health?storage=1` ok, openai true, corpus `tone-v2.2.0.20`, report/payment/profile storage durable
+- 결제: enabled/checkout/mobile true, catalog 19, `/payment/test` 404(운영 차단)
+- 정적 라우트: 공개 서비스 01/02/04/05 + 코어 경로 62/62 PASS (`04-step-4-teaser`는 실제 경로가 `04-step-4-report`)
+- `npm run qa:all-services` 20/20 PASS
+- P0 수정: 저장 해석(`/r/:id`)에 PDF 버튼 없음 → `umsh-report-access.js`에 PDF CTA+즉시 출력(본문 있는 항목) 추가
+- 부가: `report-view.html`에도 PDF 버튼·`umsh-report-pdf.js` 연결
+- 잔여 리스크: 일부 저장 리포트 섹션이 `pending/failed`로 남고 본문 생성이 느림. PDF는 본문 있는 항목부터 열고 나머지는 백그라운드 resume
+- 산출: `output/all-services-qa/health-pdf-qa.json`
+
+## 2026-09-16 — 천명사주 결과 CTA 결제 진입 복구 (task-022)
+
+- 제보: `/cmdg/?authReturn=1&reportId=...#result` 에서 `천명사주 상담` 이 결제창 대신
+  `/chat.html` 해석 목차로 이동. "결제 부착 회귀"로 보였다.
+- 실측: 운영 HTML 에 `startCheckout` 존재, `/api/payment/config` checkoutEnabled=true.
+  회귀가 아니었다. 테스트 계정 `good1621@gmail.com` 이 `src/auth/admin.ts` 관리자 목록에 있어
+  서버가 리포트를 결제 상태로 해제하고, 클라이언트 `isCurrentReportPaid()` 의 관리자 지름길이
+  결제 단계를 건너뛰었다.
+- 부수 발견: `orderUnlocks()` 가 reportId 없는 주문을 무조건 인정하고 `findUnlockingOrder()` 가
+  `?? unlocking[0]` 로 아무 주문이나 집어와, cmdg 주문 1건이 이후 모든 천명사주를 무한 개방했다.
+- 조치: (1) `?qa=pay` 로 관리자 면제만 제거하는 QA 모드 (권한 부여 불가). (2) 주문-리포트 결속
+  강화 + 레거시 보호(컷오프 이전 주문은 컷오프 이전 리포트만) + 컷오프 이후 미결속 주문은
+  claim-on-first-use (CAS, 실패 시 fail-closed). (3) 모든 주문 자격을 `settleOrderAccess` 한 곳으로.
+- 리뷰: Codex 3회. 1차 Major 3 → 2차 Major 3(제 수정의 결제 누수 2건 포함) → 3차 Approved
+  (Critical 0 / Major 0, Minor 2 반영).
+- 감사: Grok `CreamAI/logs/audit/task-022_cmdg-entitlement-audit.md` — Partially substantiated.
+  근본원인은 계정 확인 + 코드 추적이며 운영 브라우저 재현은 NOT_RUN 임을 명시.
+- 검증: npm test 693/693, tsc 0, check-integrations 10/10 PASS.
+- 부수 수정: ProjectOps 하네스 `$ProjectRoot` 가 CreamAI 폴더를 가리켜 `package.json` 을 찾지
+  못하고 모든 test/release 하네스가 명령 기록 없이 WARN 만 남기고 있었다. `$RepoRoot` 분리.
+- 배포: 미실시. 브랜치 `fix/umsh-qa-ux` 작업 트리 상태.
+

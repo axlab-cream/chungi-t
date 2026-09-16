@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "redactSecrets": true,
+  "scope": "database",
+  "loadOrder": [
+    "public/default_privileges.sql",
+    "public/schema.sql",
+    "_cluster/extensions/pgcrypto.sql",
+    "_cluster/extensions/uuid-ossp.sql",
+    "public/tables/cheongi_payment_orders.sql",
+    "public/tables/cheongi_reports.sql",
+    "public/tables/cheongi_user_profiles.sql",
+    "public/tables/umsh_admin_accounts.sql",
+    "public/functions/set_cheongi_reports_updated_at.sql"
+  ],
+  "profile": "supabase",
+  "defaultOwner": "postgres",
+  "files": [
+    "_cluster/extensions/pgcrypto.sql",
+    "_cluster/extensions/uuid-ossp.sql",
+    "public/default_privileges.sql",
+    "public/functions/set_cheongi_reports_updated_at.sql",
+    "public/schema.sql",
+    "public/tables/cheongi_payment_orders.sql",
+    "public/tables/cheongi_reports.sql",
+    "public/tables/cheongi_user_profiles.sql",
+    "public/tables/umsh_admin_accounts.sql"
+  ]
+}

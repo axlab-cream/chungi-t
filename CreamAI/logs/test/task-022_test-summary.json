@@ -1,0 +1,65 @@
+﻿{
+    "task_id":  "task-022",
+    "mode":  "test",
+    "timestamp":  "2026-09-16T17:34:09.1921186+09:00",
+    "checks":  [
+                   {
+                       "name":  "npm test",
+                       "status":  "PASS",
+                       "detail":  "exit_code=0"
+                   }
+               ],
+    "commands":  [
+                     {
+                         "name":  "npm test",
+                         "command":  "npm test",
+                         "exit_code":  0,
+                         "output_tail":  [
+                                             "✔ moving a loaded service shell into the reader immediately updates its fixed bottom column width (0.8495ms)",
+                                             "✔ an owner change clears saved content without unhiding the legacy app or removing common navigation (1.0767ms)",
+                                             "(node:35516) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.",
+                                             "(Use `node --trace-deprecation ...` to show where the warning was created)",
+                                             "▶ 웹 결제·서비스 경로 QA 게이트",
+                                             "  ✔ 운영에서 /payment/test 는 404 (앱 Google Play 경로와 분리) (23.6041ms)",
+                                             "  ✔ 서비스 단계 디렉터리 URL은 index.html 을 연다 (7.5875ms)",
+                                             "✔ 웹 결제·서비스 경로 QA 게이트 (35.8745ms)",
+                                             "✔ 웹 QA 정본 origin은 umsh.kr 이다 (0.4555ms)",
+                                             "✔ 결제 기본 PUBLIC_BASE_URL은 umsh.kr 이고 umsh.app이 아니다 (0.4032ms)",
+                                             "(node:13112) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.",
+                                             "(Use `node --trace-deprecation ...` to show where the warning was created)",
+                                             "▶ 결혼 택일 로그인 흐름과 저장 결과",
+                                             "  ✔ 로그인과 사주 등록을 먼저 요구한다 (43.4544ms)",
+                                             "  ✔ 후보일이 없거나 달력에 없는 날짜면 400 으로 되돌린다 (5.559ms)",
+                                             "  ✔ 결제 전에는 계산된 무료 미리보기만 주고 같은 입력은 같은 UUID 로 모인다 (694.1933ms)",
+                                             "  ✔ 출생시각 미상 프로필은 용신 일치를 확정으로 선고하지 않고 티저 사실을 함께 준다 (662.3514ms)",
+                                             "  ✔ 후보일이 달라지면 다른 결과로 저장된다 (614.1702ms)",
+                                             "  ✔ 사주가 같아도 계정이 다르면 남의 결과를 물려받지 않는다 (636.5066ms)",
+                                             "  ✔ 다른 서비스 ID 로는 결혼 택일 결과를 열 수 없다 (446.0016ms)",
+                                             "  ✔ 결제하고 돌아오면 저장된 UUID 로 후보일 판정이 담긴 본문이 열린다 (524.2291ms)",
+                                             "✔ 결혼 택일 로그인 흐름과 저장 결과 (3631.9919ms)",
+                                             "✔ wedding layout separates text from images and uses local readable fonts (2.0018ms)",
+                                             "✔ all 21 wedding questions have distinct multi-paragraph answers and no cut-off corpus excerpts (384.2714ms)",
+                                             "✔ unknown birth time never becomes a confirmed useful-element match (27.9666ms)",
+                                             "✔ work job service builds a dedicated job fit report (360.3123ms)",
+                                             "✔ work job request requires current job (0.4694ms)",
+                                             "✔ 직장 선택 builds a dedicated job-choice report (1055.125ms)",
+                                             "✔ 직장 선택 compares actual offer conditions without inventing palaces (989.345ms)",
+                                             "✔ 직장 선택 request validates its required answers (0.429ms)",
+                                             "✔ work quit service builds a dedicated resignation report (908.8658ms)",
+                                             "✔ work quit request requires a reason (0.3754ms)",
+                                             "ℹ tests 693",
+                                             "ℹ suites 115",
+                                             "ℹ pass 693",
+                                             "ℹ fail 0",
+                                             "ℹ cancelled 0",
+                                             "ℹ skipped 0",
+                                             "ℹ todo 0",
+                                             "ℹ duration_ms 116195.4188"
+                                         ]
+                     }
+                 ],
+    "warnings":  [
+
+                 ],
+    "failed":  false
+}

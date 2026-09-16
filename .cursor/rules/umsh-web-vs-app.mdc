@@ -1,0 +1,19 @@
+---
+description: 웹 QA 대상은 umsh.kr. kr.umsh.app은 Android 패키지명이다.
+alwaysApply: true
+---
+
+# 웹 vs 앱 — QA 대상 고정
+
+웹 Production URL은 **`https://umsh.kr`** 만 사용한다.
+`www.umsh.kr`은 같은 사이트의 별칭이다.
+
+금지:
+
+- `https://umsh.app` 를 웹 사이트로 열거나 QA하지 않는다. 이 호스트는 존재하지 않는다.
+- `kr.umsh.app`을 웹 도메인으로 읽지 않는다. 이것은 Google Play **패키지명**이다.
+- 사용자가 "앱 말고 웹만"이라고 하면 Android(`android/`)를 제외하라는 뜻이다. `.app` TLD가 아니다.
+
+웹 QA 브라우저·curl·Playwright 시작 URL: `https://umsh.kr/`
+결제 return/close 기본값: `PUBLIC_BASE_URL=https://umsh.kr`
+Android 작업은 `android/`에서 별도로만 한다.

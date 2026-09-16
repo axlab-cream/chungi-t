@@ -1,2 +1,9 @@
 {"ts":"2026-09-10T02:29:48.1116002Z","service":"supabase","event":"ensure","status":"missing_cli","command":"supabase projects list","setupHint":"supabase login","notes":"auth check did not pass","exitCode":3}
+{"ts":"2026-09-11T08:52:47.0194640Z","service":"supabase","event":"ensure","status":"missing_cli","command":"supabase projects list","setupHint":"supabase login","notes":"auth check did not pass","exitCode":3}
+{"ts":"2026-09-14T10:48:17.2333490Z","service":"supabase","event":"ensure","status":"missing_cli","command":"supabase projects list","setupHint":"supabase login","notes":"auth check did not pass","exitCode":3}
+{"ts":"2026-09-14T10:48:31.7040727Z","service":"supabase","event":"mark","status":"configured","command":"supabase projects list","setupHint":"supabase login","notes":"npx supabase works; linked to wdyzollywccgaepjeynu (chungi-t)","exitCode":0}
+{"ts":"2026-09-14T10:51:23.6265011Z","service":"supabase","event":"mark","status":"configured","command":"supabase projects list","setupHint":"supabase login","notes":"linked wdyzollywccgaepjeynu via npx supabase; projects list OK","exitCode":0}
+{"ts":"2026-09-14T11:28:14.0692376Z","service":"supabase","event":"ensure","status":"missing_cli","command":"supabase projects list","setupHint":"supabase login","notes":"auth check did not pass","exitCode":3}
+{"ts":"2026-09-14T11:31:31.2281036Z","service":"supabase","event":"ensure","status":"configured","command":"npx --yes supabase projects list","setupHint":"supabase login","notes":"auth check passed","exitCode":0}
 {"ts":"2026-09-14T12:49:16.7739218Z","service":"supabase","event":"ensure","status":"needs_setup","command":"supabase projects list","setupHint":"supabase login","notes":"auth check did not pass","exitCode":2}
+{"ts":"2026-09-16T02:46:27.2683077Z","service":"supabase","event":"ensure","status":"configured","command":"npx --yes supabase projects list","setupHint":"supabase login","notes":"auth check passed","exitCode":0}

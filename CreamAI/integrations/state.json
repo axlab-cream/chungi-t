@@ -1,45 +1,45 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-14T12:50:00.0000000Z",
   "services": {
     "github": {
       "service": "github",
       "display": "GitHub",
       "status": "configured",
-      "configuredAt": "2026-09-14T12:50:00.0000000Z",
-      "lastCheckedAt": "2026-09-14T12:50:00.0000000Z",
+      "configuredAt": "2026-09-10T02:29:46.8114139Z",
+      "lastCheckedAt": "2026-09-16T02:46:24.6322222Z",
       "lastCheckExitCode": 0,
-      "authCheck": "git ls-remote --heads origin main",
+      "authCheck": "gh auth status",
       "setupHint": "gh auth login",
-      "notes": "git HTTPS origin axlab-cream/chungi-t works on main. gh CLI is not installed; PRs/issues need gh later.",
-      "evidenceTail": "origin reachable; HEAD matches origin/main e6e59f2",
-      "updatedAt": "2026-09-14T12:50:00.0000000Z"
+      "notes": "auth check passed",
+      "evidenceTail": "github.com\n  ??Logged in to github.com account jaeyong-planner (keyring)\n  - Active account: true\n  - Git operations protocol: https\n  - Token=[REDACTED]\n  - Token scopes: 'gist', 'read:org', 'repo'",
+      "updatedAt": "2026-09-16T02:46:24.6391288Z"
     },
     "vercel": {
       "service": "vercel",
       "display": "Vercel",
       "status": "configured",
-      "configuredAt": "2026-09-14T12:50:00.0000000Z",
-      "lastCheckedAt": "2026-09-14T12:50:00.0000000Z",
+      "configuredAt": "2026-09-10T02:29:47.7720431Z",
+      "lastCheckedAt": "2026-09-16T02:46:26.2111031Z",
       "lastCheckExitCode": 0,
       "authCheck": "vercel whoami",
       "setupHint": "vercel login",
-      "notes": "logged in as jaeyong-planner; linked ax-lab-cream/chungi-t. .vercel/project.json and repo.json present.",
-      "evidenceTail": "jaeyong-planner / ax-lab-cream/chungi-t",
-      "updatedAt": "2026-09-14T12:50:00.0000000Z"
+      "notes": "auth check passed",
+      "evidenceTail": "Vercel CLI 50.19.1\njaeyong-planner",
+      "updatedAt": "2026-09-16T02:46:26.2182259Z"
     },
     "supabase": {
       "service": "supabase",
       "display": "Supabase",
-      "status": "needs_setup",
-      "configuredAt": null,
-      "lastCheckedAt": "2026-09-14T12:49:16.7005811Z",
-      "lastCheckExitCode": 2,
-      "authCheck": "supabase projects list",
-      "setupHint": "powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\\.aios\\projects\\umsh\\ops\\connect-supabase.ps1",
-      "notes": "CLI installed. Login Unauthorized because of stale SUPABASE_ACCESS_TOKEN. Run ops/connect-supabase.ps1 (browser login + link wdyzollywccgaepjeynu). Do not db pull unless DB password is available.",
-      "evidenceTail": "Unexpected error retrieving projects: {\"message\":\"Unauthorized\"}",
-      "updatedAt": "2026-09-14T12:50:00.0000000Z"
+      "status": "configured",
+      "configuredAt": "2026-09-14T10:51:23.5911485Z",
+      "lastCheckedAt": "2026-09-16T02:46:27.2428355Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "npx --yes supabase projects list",
+      "setupHint": "supabase login",
+      "notes": "auth check passed",
+      "evidenceTail": "Microsoft Windows [Version 10.0.26200.9457]\n(c) Microsoft Corporation. All rights reserved.\n\nC:\\Users\\user\\Desktop\\chungi-t>",
+      "updatedAt": "2026-09-16T02:46:27.2500491Z"
     }
-  }
+  },
+  "updatedAt": "2026-09-16T02:46:27.2572818Z"
 }
