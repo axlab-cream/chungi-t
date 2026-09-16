@@ -20,7 +20,10 @@ test('portal splash uses the supplied video once per browser session', async () 
   assert.match(portal, /document\.documentElement\.classList\.add\(shouldShowSplash \? 'splash-pending' : 'splash-disabled'\)/)
   assert.match(portal, /id="splashScreen" aria-hidden="false">/)
   assert.doesNotMatch(portal, /id="splashScreen"[^>]*\shidden(?:\s|>)/)
+  assert.match(portal, /document\.referrer/)
   assert.match(script, /sessionStorage\.getItem\(SPLASH_SESSION_KEY\)/)
+  assert.match(script, /shouldSkipSplashBySession/)
+  assert.match(script, /isOwnSiteReferrer/)
   assert.match(script, /classList\.contains\('splash-pending'\)/)
   assert.match(script, /classList\.add\('splash-disabled'\)/)
   assert.match(script, /addEventListener\('ended', finishSplash/)
@@ -29,4 +32,16 @@ test('portal splash uses the supplied video once per browser session', async () 
   assert.match(style, /\.splash-screen[\s\S]*position: fixed/)
   assert.match(style, /html\.splash-pending \.stage\s*{\s*visibility: hidden;/)
   assert.ok(video.size > 0)
+})
+
+test('bookmark and PWA launches replay splash before the portal main', async () => {
+  const [portal, script] = await Promise.all([
+    readFile(portalPath, 'utf8'),
+    readFile(portalScriptPath, 'utf8'),
+  ])
+
+  assert.match(portal, /fromOwnSite && !standalone/)
+  assert.match(script, /isStandaloneLaunch/)
+  assert.match(script, /shouldSkipSplashBySession\(\)/)
+  assert.doesNotMatch(script, /!splashPending \|\| hasSeenSplash\(\)/)
 })

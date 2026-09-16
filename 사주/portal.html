@@ -79,21 +79,35 @@
     <script>
       (() => {
         const splashSessionKey = 'umsh_splash_seen_v1';
-        let shouldShowSplash = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const standalone = window.matchMedia('(display-mode: standalone)').matches
+          || window.matchMedia('(display-mode: window-controls-overlay)').matches
+          || Boolean(window.navigator.standalone);
+        let fromOwnSite = false;
         try {
-          shouldShowSplash = shouldShowSplash && sessionStorage.getItem(splashSessionKey) !== '1';
+          fromOwnSite = Boolean(document.referrer) && new URL(document.referrer).origin === location.origin;
         } catch (_error) {
-          // Keep the splash available when storage is blocked.
+          fromOwnSite = false;
+        }
+        let shouldShowSplash = !reducedMotion;
+        if (fromOwnSite && !standalone) {
+          try {
+            shouldShowSplash = shouldShowSplash && sessionStorage.getItem(splashSessionKey) !== '1';
+          } catch (_error) {
+            // Keep the splash available when storage is blocked.
+          }
         }
 
         document.documentElement.classList.add(shouldShowSplash ? 'splash-pending' : 'splash-disabled');
       })();
     </script>
-    <link rel="icon" href="/favicon.ico?v=20260904" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260904" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260904" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260904" />
+    <meta name="theme-color" content="#0C0B0A" />
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="preload" as="video" href="/assets/umsh-splash.mp4?v=20260903" type="video/mp4" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />

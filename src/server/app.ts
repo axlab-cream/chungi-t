@@ -321,6 +321,10 @@ app.get(['/faq', '/faq/', '/faq.html'], (_req, res) => {
 app.get('/.well-known/assetlinks.json', (_req, res) => {
   res.type('application/json').sendFile(ASSETLINKS_FILE)
 })
+app.get('/manifest.json', (_req, res) => {
+  res.type('application/manifest+json; charset=utf-8')
+  res.sendFile(join(SAJU_ROOT, 'manifest.json'))
+})
 app.get(['/payment', '/payment/', '/payment/index.html'], (_req, res) => {
   res.sendFile(PAYMENT_PAGE)
 })
@@ -770,6 +774,7 @@ const PUBLIC_STATIC_EXCEPTIONS = new Set([
   '/robots.txt',
   '/sitemap.xml',
   '/.well-known/assetlinks.json',
+  '/manifest.json',
 ])
 /**
  * 웹으로 내보낼 형식. **허용 목록이다** — 여기 없는 확장자는 거부한다.

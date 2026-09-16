@@ -2,6 +2,10 @@
 
 ## Verification Matrix
 
+- 2026-09-17 이직운 STEP1 히어로: focused work-move-hero-copy PASS. 로컬 브라우저 카피 top 127→521, 상단 이미지 노출, 하단 문장 GNB 위. Production NOT_RUN.
+
+- 2026-09-17 Chrome 즐겨찾기 아이콘: focused app-icons + portal-splash PASS. static-exposure 아이콘/매니페스트 항목 PASS, 기존 `사주/ui-kit/index.html` UMSH 표기 1건은 이번 변경과 무관. 로컬 `/` 빈 referrer에서 스플래시 후 메인, SVG·192 아이콘 200. Production NOT_RUN.
+
 - 2026-09-17 퇴사운 STEP4 티저: focused quit-funnel-input + work-quit-service + teaser-preview-bind + funnel-cta-copy + funnel-step-order PASS. report-content-guards 티저/후킹 항목 PASS, 일일운 저장 1건은 서버 키 미설정으로 FAIL(이번 변경과 무관). 로컬 브라우저 STEP4: 판정+근거 유지, 로그인 CTA만 바뀜, 후킹/계산중 문구 없음. Production NOT_RUN.
 
 - 2026-09-17 퇴사운 STEP3 통합: focused funnel-step-order + quit-funnel-input + work-quit-service + funnel-cta-copy PASS. STEP2→04, `/situation`·03→02, reason-only parse. Browser 02/03/04 로컬 확인. Production NOT_RUN.
