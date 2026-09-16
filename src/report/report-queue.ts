@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportSection } from '../types/index.js'
-import { isOpenAiConfigured } from '../llm/openai-adapter.js'
+import { OpenAiTruncatedError, isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
 import { assertReportOwner, getReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
@@ -14,6 +14,14 @@ interface GenerationParams {
 }
 const inFlightReports = new Map<string, Promise<ReportRecord | null>>()
 const LEASE_MS = 6 * 60_000
+
+/**
+ * 검수는 밀도 네 요소(직접 답·개인 근거·생활 장면·다음 판단 기준)를 각각 정규식으로 본다.
+ * 두 번만 쓰게 하면 모델이 지적받은 한 요소를 고치다 다른 요소를 떨어뜨리고 그대로 실패로
+ * 굳는다 — 실제로 시도마다 남는 지적이 하나씩 달랐다(2026-09-17). 한 번 더 왕복할 여유를
+ * 준다. `maxDuration` 이 300초이므로 이 횟수까지는 요청 안에서 끝난다.
+ */
+export const SECTION_ATTEMPT_LIMIT = Math.min(Math.max(Number(process.env.REPORT_SECTION_ATTEMPTS) || 4, 2), 6)
 
 /**
  * Promote a previously rejected section only when its last persisted raw response
@@ -127,7 +135,7 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     ? [...(storedSection.attempts ?? [])].reverse().find((attempt) => attempt.status === 'failed' && attempt.error)?.error
     : undefined
   let issues: string[] = params.retry ? [priorFailure ?? '이전 검수 실패를 다시 확인하세요.'] : []
-  for (let index = 0; index < 2; index += 1) {
+  for (let index = 0; index < SECTION_ATTEMPT_LIMIT; index += 1) {
     const attemptId = randomUUID()
     await editClaim((section) => {
       section.attempts ??= []
@@ -167,11 +175,19 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
       })
       return saved?.report.sections.find((item) => item.id === params.sectionId) ?? storedSection
     } catch (error) {
-      issues = error instanceof InterpretationQualityError ? error.review.issues : ['해석 생성 또는 저장이 완료되지 않았습니다.']
-      const retryable = error instanceof InterpretationQualityError && index === 0
+      const truncated = error instanceof OpenAiTruncatedError
+      // 잘림은 내용 지적이 아니다. 재작성 지시문을 붙이면 프롬프트가 더 길어져 예산을 더 깎으므로
+      // 같은 프롬프트로 다시 부른다. 진단은 시도 기록에만 남긴다.
+      issues = error instanceof InterpretationQualityError ? error.review.issues : []
+      const diagnosis = error instanceof InterpretationQualityError
+        ? error.review.issues.join(' ')
+        : truncated
+          ? error.message
+          : '해석 생성 또는 저장이 완료되지 않았습니다.'
+      const retryable = (error instanceof InterpretationQualityError || truncated) && index < SECTION_ATTEMPT_LIMIT - 1
       await editClaim((section, current) => {
         const attempt = section.attempts?.find((item) => item.id === attemptId)
-        if (attempt) { attempt.status = 'failed'; attempt.error = issues.join(' '); attempt.finishedAt = new Date().toISOString() }
+        if (attempt) { attempt.status = 'failed'; attempt.error = diagnosis; attempt.finishedAt = new Date().toISOString() }
         if (!retryable) {
           section.status = 'failed'
           section.error = '완성 해석의 검수가 끝나지 않았습니다. 저장된 초안은 유지되며 재시도할 수 있습니다.'
