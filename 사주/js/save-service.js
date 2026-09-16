@@ -221,8 +221,10 @@
 
       try {
         const response = await api('/api/money/save/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         writeJson('sessionStorage', STORAGE.reportId, report.reportId || response.reportId || '');
         writeJson('sessionStorage', STORAGE.entitlement, { status: 'granted', verified_by: 'server' });
@@ -304,6 +306,23 @@
       nextSecondary.addEventListener('click', () => {
         location.assign('../02-step-2-saju-input/index.html#step-2-saju-input');
       });
+    }
+
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      if (title) title.textContent = '먼저 열리는 12%';
+      if (body) body.textContent = outcome.preview.summary || GATE_COPY.payment;
+      const pay = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+      if (nextPrimary) {
+        nextPrimary.textContent = '전체 보기';
+        nextPrimary.addEventListener('click', pay);
+      }
+      if (dock) {
+        dock.textContent = '전체 보기';
+        dock.addEventListener('click', pay);
+      }
+      if (dockNote) dockNote.textContent = GATE_COPY.payment;
+      return;
     }
 
     if (!outcome.report) {

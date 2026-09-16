@@ -64,7 +64,7 @@ function harness(path: string, responses: unknown[], cache: Record<string, unkno
   function element(tag = 'div'): any {
     const attrs = new Map<string,string>()
     return {id:'',tagName:tag.toUpperCase(),innerHTML:'',children:[],style:{cssText:'',setProperty(){},removeProperty(){}},
-      setAttribute(name:string,value:string){attrs.set(name,value)},hasAttribute(name:string){return attrs.has(name)},getAttribute(name:string){return attrs.get(name)},
+      setAttribute(name:string,value:string){attrs.set(name,value)},hasAttribute(name:string){return attrs.has(name)},getAttribute(name:string){return attrs.get(name)},removeAttribute(name:string){attrs.delete(name)},
       addEventListener(){},querySelectorAll(){return []},
       appendChild(node:any){this.children.push(node);node.parentNode=this;if(node.id)nodes.set(node.id,node)},
       insertAdjacentHTML(_where:string,text:string){this.innerHTML+=text}}

@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
@@ -78,5 +78,43 @@ test('생년월일은 년·월·일 세 칸이고 네이티브 미국식 달력�
   has(kit, /\.umsh-ymd-part > span[\s\S]*?display:\s*none/, '칸 옆 년월일 글자를 숨기지 않는다')
   assert.match(chrome, /umsh-ymd\.js/)
   assert.match(catalog, /umsh-ymd\.js/)
+})
+
+test('STEP2 제출 CTA는 화면당 하나다', () => {
+  const saju = join(root, '사주')
+  const pages: string[] = []
+  function walk(dir: string) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const next = join(dir, entry.name)
+      if (entry.isDirectory()) walk(next)
+      else if (entry.name === 'index.html' && dir.replace(/\\/g, '/').endsWith('02-step-2-saju-input')) {
+        pages.push(next)
+      }
+    }
+  }
+  walk(saju)
+  assert.ok(pages.length >= 10, 'STEP2 페이지를 못 찾았다')
+  for (const page of pages) {
+    const html = readFileSync(page, 'utf8')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+    const labels: string[] = []
+    for (const match of html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi)) {
+      const attrs = match[1]
+      const text = match[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+      const isSubmit =
+        /type\s*=\s*["']submit["']/.test(attrs) ||
+        /data-action\s*=\s*["']submit(?:-dock)?["']/.test(attrs) ||
+        /\bsubmit-main\b/.test(attrs)
+      if (isSubmit && text) labels.push(text)
+    }
+    const unique = new Set(labels)
+    assert.equal(
+      labels.length,
+      unique.size,
+      `${page} 제출 문구가 겹친다: ${labels.join(' / ')}`,
+    )
+    assert.equal(labels.length, 1, `${page} 제출 CTA가 ${labels.length}개다`)
+  }
 })
 

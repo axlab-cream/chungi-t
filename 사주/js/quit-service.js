@@ -283,8 +283,10 @@
 
       try {
         const response = await api('/api/work/quit/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
@@ -357,6 +359,15 @@
 
     const heroCopy = root.querySelector('.hero .copy');
     const lead = heroCopy?.querySelector('p');
+
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      if (lead) lead.textContent = outcome.preview.summary || outcome.preview.headline || lead.textContent;
+      retargetCtas('전체 보기 · 14,900원', () => {
+        location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+      });
+      return;
+    }
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';

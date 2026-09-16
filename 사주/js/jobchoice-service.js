@@ -209,8 +209,10 @@
 
       try {
         const response = await api('/api/work/job-choice/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !accepted.report) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
@@ -275,6 +277,10 @@
     // is also what keeps this from looping.
     const hadCache = Boolean(readJson('sessionStorage', STORAGE.report)?.sections?.length);
     const outcome = await loadReport();
+    if (outcome.preview && !outcome.report) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      return;
+    }
     if (outcome.report) {
       if (!hadCache && !window.UMSHReportAccess) location.reload();
       return;
