@@ -221,7 +221,7 @@
       try {
         const response = await api('/api/money/save/analyze', { method: 'POST', body: JSON.stringify(request) });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
-        if (accepted?.preview && !accepted.report) return accepted;
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
         if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
@@ -282,7 +282,7 @@
     const answer = $('[data-one-line-answer]');
     if (!answer) return;
 
-    if (!answer.dataset.boundPreview) {
+    if (!answer.dataset.boundPreview && !answer.hasAttribute('data-umsh-filled')) {
       answer.textContent = '입력한 사주로 계산하고 있습니다.';
     }
 
@@ -314,7 +314,7 @@
       });
     }
 
-    if (outcome.preview && !outcome.report) {
+    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       answer.dataset.boundPreview = '1';
       if (title) title.textContent = '먼저 열리는 12%';
@@ -392,28 +392,35 @@
   function renderTeaser(report, answer) {
     const groups = groupOrder(report);
     const leak = groups.find((group) => group.title === '돈이 새는 패턴') || groups[0];
-    const verdict = paragraphs(leak.sections[0]);
-    answer.textContent = clamp(verdict[1] || verdict[0] || '', 160);
+    const verdict = paragraphs(leak?.sections?.[0]);
+    const line = clamp(verdict[1] || verdict[0] || '', 160);
+    // 빈 저장 본문으로 결론 칸을 지우지 않는다. 동결 티저가 이미 있으면 그 문장을 유지한다.
+    if (line) answer.textContent = line;
 
     const signals = $('[data-signal-list]');
     if (signals) {
-      signals.innerHTML = '';
-      groups.slice(0, 3).forEach((group) => {
-        const line = paragraphs(group.sections[0])[1] || '';
-        const item = document.createElement('div');
-        item.className = 'signal-item';
-        const strong = document.createElement('strong');
-        strong.textContent = group.title;
-        const span = document.createElement('span');
-        span.textContent = clamp(line, 100);
-        item.append(strong, span);
-        signals.appendChild(item);
-      });
+      const items = groups.slice(0, 3).map((group) => {
+        const body = paragraphs(group.sections[0])[1] || paragraphs(group.sections[0])[0] || '';
+        return { title: group.title, body: clamp(body, 100) };
+      }).filter((item) => item.body);
+      if (items.length) {
+        signals.innerHTML = '';
+        items.forEach((item) => {
+          const node = document.createElement('div');
+          node.className = 'signal-item';
+          const strong = document.createElement('strong');
+          strong.textContent = item.title;
+          const span = document.createElement('span');
+          span.textContent = item.body;
+          node.append(strong, span);
+          signals.appendChild(node);
+        });
+      }
     }
 
     const summary = $('[data-input-summary]');
-    if (summary) summary.textContent = `${groups.length}개 대분류 · ${report.sections.length}개 항목으로 계산했습니다.`;
-    writeJson('sessionStorage', STORAGE.teaser, { answer: answer.textContent });
+    if (summary && line) summary.textContent = `${groups.length}개 대분류 · ${report.sections.length}개 항목으로 계산했습니다.`;
+    if (line) writeJson('sessionStorage', STORAGE.teaser, { answer: answer.textContent });
   }
 
   function groupOrder(report) {

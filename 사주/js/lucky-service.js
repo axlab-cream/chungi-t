@@ -232,7 +232,7 @@
         // The whole request is the account's saju, so there is nothing to collect.
         const response = await api('/api/me/lucky/analyze', { method: 'POST', body: JSON.stringify({}) });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
-        if (accepted?.preview && !accepted.report) return accepted;
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
         if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
@@ -325,7 +325,7 @@
     const teaserItems = $$('.teaser .item');
     const scopeItems = $$('.scope .item');
 
-    if (outcome.preview && !outcome.report) {
+    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const lead = teaser?.querySelector('p');
       if (lead) lead.textContent = outcome.preview.summary || outcome.preview.headline || lead.textContent;

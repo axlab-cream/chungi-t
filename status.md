@@ -2,7 +2,9 @@
 
 ## Current Task
 
-- 2026-09-16 STEP4~6 오픈 10개: 로그인 레이스로 티저/목차/상세가 비던 경로를 `resolveLiveSession`(900ms) + 05/06 preview analyze + `toc` 바인드로 고친다. JS `?v=live-20260916`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
+- 2026-09-16 STEP4 핵심 티저: `reportId` 재진입 때 toc 골격을 report로 받아 빈 섹션 제목만 12% 칸에 그렸다. 04는 동결 `preview`만 쓰고, 유료 본문이 있을 때만 renderTeaser. JS `?v=live-20260916t`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
+
+- 2026-09-16 STEP4~6 오픈 10개: 로그인 레이스로 티저/목차/상세가 비던 경로를 `resolveLiveSession`(900ms) + 05/06 preview analyze + `toc` 바인드로 고친다. JS `?v=live-20260916`. PR #32 merge `bd51e1e`, Vercel production `dpl_B2RcW8fuTiMMn82SMnxF8kPNQuT8` READY (`https://umsh.kr`). 운영 확인: 저축 04 HTML cache-bust, `umsh-auth-session.js`에 `resolveLiveSession`/`bindServiceSession`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
 
 - 2026-09-16 STEP4 저축 티저 결론 칸이 `GATE_COPY.login`으로 덮이던 원인: getSession 한 번 + 로그인 실패 `reportPromise` 캐시. `resolveLiveSession`/`bindServiceSession`으로 SIGNED_IN을 기다리고, 결론 칸에는 로그인 안내를 쓰지 않는다. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`. 커밋·배포 미실행.
 

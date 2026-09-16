@@ -78,6 +78,23 @@ test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다'
   assert.equal(accepted.previewOnly, true)
 })
 
+test('04는 toc 골격으로 티저 본문을 대체하지 않는다', () => {
+  const api = loadAccess('/money/save/04-step-4-report/index.html')
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    preview: { headline: '새는 자리', summary: '관계 정산에서 먼저 막힙니다.' },
+    toc: [
+      { id: 'in-1', category: '돈이 들어오는 방식' },
+      { id: 'leak-1', category: '돈이 새는 패턴' },
+      { id: 'save-1', category: '저축이 안 되는 이유' },
+    ],
+  })
+  assert.equal(accepted.report, undefined)
+  assert.equal(accepted.toc.length, 3)
+  assert.equal(accepted.preview.summary, '관계 정산에서 먼저 막힙니다.')
+  assert.equal(api.hasPaidReading?.({ sections: accepted.toc }), false)
+})
+
 test('빈 섹션만 있고 미리보기가 없으면 리포트로 받지 않는다', () => {
   const api = loadAccess('/money/save/04-step-4-report/index.html')
   assert.equal(api.acceptAnalyze({ report: { sections: [] } }), null)
@@ -106,7 +123,7 @@ test('공개 티저 서비스는 previewOnly를 계산 실패로 덮지 않는�
       assert.match(source, /readPreview\(/, `${name}: 미리보기 읽기가 없다`)
       continue
     }
-    assert.match(source, /outcome\.preview && !outcome\.report/, `${name}: 티저 성공 분기가 없다`)
+    assert.match(source, /hasPaidReading/, `${name}: 빈 목차로 티저를 덮는지 가드가 없다`)
     assert.doesNotMatch(
       source,
       /if \(!report\?\.sections\?\.length\) return \{ reason: 'error' \}/,
@@ -140,9 +157,8 @@ test('저축 티저 결론 칸은 로그인 안내문을 해석처럼 쓰지 않
 
 test('공유 접근기는 04 결론 칸을 미리보기 슬롯으로 본다', () => {
   assert.match(accessSource, /\[data-one-line-answer\]/)
-  assert.match(accessSource, /function acceptAnalyze\(/)
-  assert.match(accessSource, /function paintTeaserPreview\(/)
-  assert.match(accessSource, /04-step-4-report/)
+  assert.match(accessSource, /function hasPaidReading\(/)
+  assert.match(accessSource, /04 티저는 동결 preview만 쓴다/)
 })
 
 test('공개 서비스 05·06은 in-place 이고 세션 스크립트 캐시를 깬다', () => {
@@ -164,7 +180,7 @@ test('공개 서비스 05·06은 in-place 이고 세션 스크립트 캐시를 �
     ]) {
       const html = readFileSync(page, 'utf8')
       assert.match(html, /data-umsh-verified-inplace/, `${page}: in-place 옵트인이 없다`)
-      assert.match(html, /umsh-auth-session\.js\?v=live-20260916|umsh-report-access\.js\?v=live-20260916/, `${page}: 세션 스크립트 캐시가 그대로다`)
+      assert.match(html, /umsh-auth-session\.js\?v=live-20260916t|umsh-report-access\.js\?v=live-20260916t/, `${page}: 세션 스크립트 캐시가 그대로다`)
     }
   }
 })

@@ -237,7 +237,7 @@
       try {
         const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
-        if (accepted?.preview && !accepted.report) return accepted;
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
         if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
@@ -347,7 +347,7 @@
     const outcome = await loadReport();
     const signals = document.querySelectorAll('.signal-list .signal');
 
-    if (outcome.preview && !outcome.report) {
+    if (outcome.preview && !window.UMSHReportAccess?.hasPaidReading?.(outcome.report)) {
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       if (line) summary.textContent = line;

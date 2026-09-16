@@ -171,7 +171,7 @@
             'emptyState', 'offline'],
     insights: ['signal-list', 'signalList', 'signal-tags', 'heroTags', 'evidencePills', 'flowList'],
     'paid-value': ['scope-list', 'scopeGrid', 'scope-grid', 'unlockList'],
-    headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle', 'teaser-title'],
+    headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle'],
     summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview', 'answerLine', 'signal-main-copy'],
   };
 
@@ -244,7 +244,7 @@
     subtitle: ['[data-subtitle]', '[data-conclusion]'],
     state: ['[data-state]', '[data-status]'],
     summary: ['[data-one-line-answer]', '[data-teaser-summary]', '#answerLine', '#signal-main-copy', '#freeSummary', '#resultAnswer'],
-    headline: ['#teaser-title', '[data-teaser-headline]'],
+    headline: ['[data-teaser-headline]'],
     insights: ['[data-signal-list]', '#signal-tags'],
   };
 
@@ -406,6 +406,7 @@
       return String(line).trim() !== String(preview.summary || '').trim();
     });
     var filled = false;
+    if (paintTeaserPreview(preview)) filled = true;
     if (fillText('headline', preview.headline || preview.title || '먼저 확인한 방향')) filled = true;
     if (fillText('summary', preview.summary || '')) filled = true;
     if (fillSlot('insights', insights.map(function (line, index) {
@@ -845,6 +846,11 @@
       }
     } catch(_) {}
   }
+  function hasPaidReading(report) {
+    return Boolean(report && Array.isArray(report.sections) && report.sections.some(function (section) {
+      return String((section && (section.interpretation || section.hook)) || '').trim();
+    }));
+  }
   function acceptAnalyze(payload) {
     if (!payload || typeof payload !== 'object') return null;
     var preview = payload.preview;
@@ -855,13 +861,15 @@
     var toc = Array.isArray(payload.toc) ? payload.toc.filter(function (item) { return item && item.id; }) : [];
     var skeleton = !report && toc.length ? { sections: toc } : null;
     if (hasPreview) {
+      var paid = hasPaidReading(report);
+      // 04 티저는 동결 preview만 쓴다. toc 골격을 report로 넘기면 빈 섹션 제목만 12% 칸을 덮는다.
       return {
         preview: preview,
-        previewOnly: payload.previewOnly !== false,
+        previewOnly: payload.previewOnly !== false && !paid,
         payload: payload,
         paymentUrl: payload.paymentUrl,
         toc: toc,
-        report: report || skeleton || undefined,
+        report: paid ? report : (isDetailPage() ? (report || skeleton || undefined) : undefined),
       };
     }
     if (report) return { report: report, payload: payload, toc: toc };
@@ -875,6 +883,8 @@
     var painted = false;
     document.querySelectorAll('[data-one-line-answer], #answerLine, #signal-main-copy, #freeSummary, #resultAnswer, #personal-teaser, #hero-summary, [data-hero-summary]').forEach(function (node) {
       node.textContent = line;
+      node.dataset.boundPreview = '1';
+      markFilled(node);
       painted = true;
     });
     var insights = (preview.signals && preview.signals.length ? preview.signals : preview.insights) || [];
@@ -916,7 +926,7 @@
     }
     return painted;
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity};
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity};
   if (typeof document !== 'undefined') {
     if (global.addEventListener) {
       global.addEventListener('beforeprint', expandReportForPrint);
