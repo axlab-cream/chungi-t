@@ -624,6 +624,23 @@ li + li { margin-top: 8px; }
     els.sectionTitle.textContent = detail.title;
     els.sectionPreview.textContent = detail.preview;
     els.conclusionTitle.textContent = detail.conclusion.title;
+
+    const liveReport = window.UMSHReportAccess?.verifiedReport?.();
+    const allowMock = window.location.protocol === "file:";
+    if (!allowMock && !liveReport) {
+      // 항목 소개문도 시안 문장이다. 내 결론처럼 읽히지 않게 비운다.
+      els.sectionPreview.textContent = "";
+      els.conclusionBody.textContent = "이 항목의 풀이를 준비하고 있어요. 목차는 열려 있고, 본문이 끝나는 대로 이 자리에 채워집니다.";
+      // 공용 가드는 채워지지 않은 해석 칸을 가린다. 이 안내문은 의도한 문장이라 남긴다.
+      els.conclusionBody.setAttribute("data-umsh-filled", "");
+      els.evidenceBody.textContent = "";
+      els.realityBody.textContent = "";
+      els.conditionBody.textContent = "";
+      els.focusBody.textContent = "";
+      document.title = `${detail.title} | ${promptInput.title}`;
+      return;
+    }
+
     els.conclusionBody.textContent = detail.conclusion.body;
     els.evidenceBody.textContent = detail.evidence.body;
     els.realityBody.textContent = detail.interpretation_blocks[0].body;

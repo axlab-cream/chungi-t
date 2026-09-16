@@ -55,7 +55,7 @@ test('wedding preview uses original teaser without authorizing a full report', (
   assert.equal(h.nodes.has('umsh-verified-reading'), false)
 })
 
-function harness(path: string, responses: unknown[], cache: Record<string, unknown> = {}) {
+function harness(path: string, responses: unknown[], cache: Record<string, unknown> = {}, options: { inplace?: boolean } = {}) {
   const calls: Array<{path: string; options: any}> = []
   const nodes = new Map<string, any>()
   const items = new Map(Object.entries(cache).map(([key,value])=>[key,JSON.stringify(value)]))
@@ -69,10 +69,12 @@ function harness(path: string, responses: unknown[], cache: Record<string, unkno
       appendChild(node:any){this.children.push(node);node.parentNode=this;if(node.id)nodes.set(node.id,node)},
       insertAdjacentHTML(_where:string,text:string){this.innerHTML+=text}}
   }
+  const documentElement = element('html')
+  if (options.inplace) documentElement.setAttribute('data-umsh-verified-inplace', '')
   const document = {
     readyState:'loading', addEventListener(name:string,callback:()=>unknown) {listeners.set(name,[...(listeners.get(name)||[]),callback])}, querySelectorAll(){return []},querySelector(){return null},
     getElementById(id: string){return nodes.get(id)},
-    createElement:element,documentElement:element('html'),head:element('head'),body:element('body'),
+    createElement:element,documentElement,head:element('head'),body:element('body'),
   }
   const timers: Array<()=>void> = []
   const context: any = {
@@ -607,4 +609,16 @@ test('year-based daily copy is escaped and does not mutate a saved snapshot',()=
   assert.match(html,/&lt;img/)
   assert.doesNotMatch(html,/<img src=x/)
   assert.equal(JSON.stringify(fixture),before)
+})
+
+test('in-place 06 hides unfilled interpretation hosts on https', () => {
+  const h = harness('/love/this-year/06-step-6_1-report-detail/index.html?reportId=live-id', [], {}, { inplace: true })
+  assert.equal(h.api.allowDesignMockReading(), false)
+  const guard = h.context.document.head.children.find((node: any) => node.tagName === 'STYLE')
+  assert.match(guard.textContent, /#detail-stack/)
+  assert.match(guard.textContent, /#interpretationBlocks/)
+  assert.match(guard.textContent, /\[data-umsh-filled\]/)
+  const node = h.context.document.createElement('div')
+  h.api.markFilled(node)
+  assert.equal(node.getAttribute('data-umsh-filled'), '')
 })

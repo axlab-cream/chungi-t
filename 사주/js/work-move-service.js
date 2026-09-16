@@ -555,6 +555,8 @@
   }
 
   function readReport() {
+    const live = reportAccess()?.verifiedReport?.();
+    if (live?.sections?.length) return live;
     const report = safeParse(sessionGet(STORAGE.report));
     if (report?.sections?.length) return report;
     const payload = readPayload();
@@ -818,14 +820,32 @@ function firstSentence(text) {
   function setupStep6() {
     if (!$('#step-6_1-report')) return;
     const sectionId = new URLSearchParams(location.search).get('section') || '';
-    if (!renderDynamicDetail(sectionId)) return;
-    document.addEventListener('click', (event) => {
-      const link = event.target.closest?.('[data-dynamic-report-link]');
-      if (!link) return;
-      event.preventDefault();
-      renderDynamicDetail(link.dataset.dynamicReportLink, true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    const bind = () => {
+      document.addEventListener('click', (event) => {
+        const link = event.target.closest?.('[data-dynamic-report-link]');
+        if (!link) return;
+        event.preventDefault();
+        renderDynamicDetail(link.dataset.dynamicReportLink, true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    };
+    if (renderDynamicDetail(sectionId)) {
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('interpretationBlocks'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('conclusionText'));
+      bind();
+      return;
+    }
+    const started = Date.now();
+    const timer = setInterval(() => {
+      if (renderDynamicDetail(sectionId)) {
+        clearInterval(timer);
+        window.UMSHReportAccess?.markFilled?.(document.getElementById('interpretationBlocks'));
+        window.UMSHReportAccess?.markFilled?.(document.getElementById('conclusionText'));
+        bind();
+      } else if (Date.now() - started > 10000) {
+        clearInterval(timer);
+      }
+    }, 120);
   }
 
   setupStep2();

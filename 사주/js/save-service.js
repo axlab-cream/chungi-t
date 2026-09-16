@@ -591,6 +591,11 @@
       document.querySelector('#missingState')?.classList.add('hidden');
       detail.classList.remove('hidden');
       detail.dataset.saveApplied = section.id;
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('conclusionBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('realityBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('conditionBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('focusBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('evidenceBody'));
     };
 
     apply();

@@ -351,6 +351,7 @@
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       if (line) summary.textContent = line;
+      window.UMSHReportAccess?.markFilled?.(summary);
       const insights = outcome.preview.signals || outcome.preview.insights || [];
       signals.forEach((signal, index) => {
         const body = signal.querySelector('span');
@@ -448,22 +449,50 @@
 
   // ------------------------------------------------------- steps 05 / 06_1
   /**
-   * thisyear-report-store.js patches those pages' JSON before their own script parses
-   * it, but only when the report is already cached. Landing on 05 or 06 directly leaves
-   * nothing cached, so fetch it once and reload so the store can do its job.
+   * 스토어는 파싱 시점에 verifiedReport 가 없으면 시안 JSON을 비운다.
+   * 여기서 서버 리포트를 받은 뒤 상세 칸에 실제 해석만 그린다.
    */
-  async function ensureReportCached() {
-    if (!$('#step-5-chat') && !$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
+  async function enhanceDetail() {
+    const stack = document.getElementById('detail-stack');
+    if (!stack) return;
     const outcome = await loadReport();
-    if (outcome.report && !window.UMSHReportAccess) location.reload();
+    if (!outcome.report) return;
+    window.UMSHThisYearStore?.apply?.(outcome.report);
+
+    const wanted = new URLSearchParams(location.search).get('section');
+    const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
+    if (!section) return;
+    const parts = paragraphs(section);
+    const groupTitle = document.getElementById('group-title');
+    const title = document.getElementById('detail-title');
+    const conclusion = document.getElementById('detail-conclusion');
+    const content = document.getElementById('detail-content');
+    const state = document.getElementById('state-panel');
+    if (groupTitle) groupTitle.textContent = section.category || '';
+    if (title) title.textContent = section.classification || '';
+    if (conclusion) conclusion.textContent = (parts[0] || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"(?:일세|입니다)\.\s*/, '');
+    stack.innerHTML = '';
+    parts.forEach((paragraph, index) => {
+      const card = document.createElement('article');
+      card.className = 'detail-card';
+      const heading = document.createElement('h2');
+      heading.textContent = index === 0 ? '전체 해석' : '';
+      const body = document.createElement('p');
+      body.textContent = paragraph;
+      card.append(heading, body);
+      stack.append(card);
+    });
+    if (content) content.hidden = false;
+    state?.classList.remove('is-visible');
+    window.UMSHReportAccess?.markFilled?.(stack);
+    window.UMSHReportAccess?.markFilled?.(conclusion);
   }
 
   function init() {
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();
-    ensureReportCached();
+    enhanceDetail();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

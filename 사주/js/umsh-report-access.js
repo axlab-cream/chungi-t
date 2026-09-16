@@ -317,6 +317,21 @@
     return null;
   }
   function markFilled(node) { if (node) node.setAttribute('data-umsh-filled', ''); }
+  function allowDesignMockReading() {
+    try { return String(location.protocol) === 'file:'; }
+    catch (_) { return false; }
+  }
+  /** 슬롯 표시 전에 시안 본문이 잠깐이라도 내 결과처럼 보이면 안 된다. */
+  var LIVE_READING_HOST_IDS = [
+    'detail-stack', 'detail-body', 'interpretationBlocks', 'detail-conclusion',
+    'conclusionBody', 'realityBody', 'conditionBody', 'focusBody', 'evidenceBody',
+    'conclusionText',
+  ];
+  function unfilledHostCss() {
+    return LIVE_READING_HOST_IDS.map(function (id) {
+      return 'html[data-umsh-report-check][data-umsh-verified-inplace] #' + id + ':not([data-umsh-filled])';
+    }).join(',');
+  }
   /**
    * 슬롯의 조상이 `hidden` 으로 접혀 있으면 채워도 보이지 않는다. 디자인 페이지는
    * 자체 스크립트가 열어 주는 전제로 `#detail-content` 같은 래퍼를 hidden 으로 두는데,
@@ -988,7 +1003,7 @@
     }
     return painted;
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,isEntitled:isEntitled,tocHref:tocHref,previewCta:previewCta,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity};
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,isEntitled:isEntitled,tocHref:tocHref,previewCta:previewCta,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity,allowDesignMockReading:allowDesignMockReading,markFilled:markFilled};
   if (typeof document !== 'undefined') {
     if (global.addEventListener) {
       global.addEventListener('beforeprint', expandReportForPrint);
@@ -1000,7 +1015,10 @@
       // in-place 페이지는 디자인을 살린다. 대신 검증 전 슬롯을 가려서 정적 샘플 문구가
       // 내 결과처럼 잠깐이라도 보이는 일을 막는다. 진행률 슬롯은 처음부터 보여야 한다.
       guard.textContent = inPlaceEnabled()
-        ? 'html[data-umsh-report-check][data-umsh-verified-inplace] [data-umsh-slot]:not([data-umsh-slot="progress"]):not([data-umsh-filled]){visibility:hidden}'
+        ? [
+          'html[data-umsh-report-check][data-umsh-verified-inplace] [data-umsh-slot]:not([data-umsh-slot="progress"]):not([data-umsh-filled])',
+          unfilledHostCss(),
+        ].filter(Boolean).join(',') + '{visibility:hidden}'
         : 'html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
       document.head.appendChild(guard);
     }

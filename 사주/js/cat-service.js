@@ -488,16 +488,47 @@
   }
 
   // ------------------------------------------------------------- step 06_1
+  function escapeReading(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /**
-   * cat-report-store.js answers the page's own data request, but only when the report is
-   * already cached. Landing on 06 directly leaves nothing cached, so fetch it once and
-   * reload so the store can do its job.
+   * 시안 JSON/권한 쿼리 없이 서버 리포트만 상세 칸에 그린다.
    */
-  async function ensureReportCached() {
-    if (!$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
+  async function enhanceDetail() {
+    const content = document.getElementById('content');
+    if (!content) return;
     const outcome = await loadReport();
-    if (outcome.report && !window.UMSHReportAccess) location.reload();
+    if (!outcome.report) return;
+    const wanted = new URLSearchParams(location.search).get('section');
+    const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
+    if (!section) return;
+    const parts = paragraphs(section);
+    const lead = (parts[0] || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"일세\.\s*/, '');
+    content.innerHTML = `
+      <article class="detail-hero">
+        <div class="hero-copy">
+          <span class="eyebrow">${escapeReading(section.category)}</span>
+          <h1>${escapeReading(section.classification)}</h1>
+          <p class="lead">${escapeReading(lead)}</p>
+        </div>
+      </article>
+      <div class="block-stack">
+        ${parts.map((paragraph, index) => `
+          <section class="block">
+            <span class="block-kicker">해석</span>
+            <h2>${index === 0 ? '전체 해석' : ''}</h2>
+            <p>${escapeReading(paragraph)}</p>
+          </section>
+        `).join('')}
+      </div>
+    `;
+    window.UMSHReportAccess?.markFilled?.(content);
   }
 
   function init() {
@@ -505,7 +536,7 @@
     enhanceSajuInput();
     enhanceTeaser();
     enhanceList();
-    ensureReportCached();
+    enhanceDetail();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -7,12 +7,17 @@
  * functions: the original still builds the whole shape, and only the reader-facing text
  * is replaced from the report step 04 cached.
  *
- * With no cached report every function behaves exactly as authored, so the pages still
- * preview standalone.
+ * http(s) 실서비스에서는 캐시가 없으면 시안 해석을 비운다. file: 로컬 시안만 샘플을 남긴다.
  */
 (function () {
   var REPORT_KEY = 'umsh:report:job_choice';
   if (!window.JobChoice) return;
+
+  function allowDesignMockReading() {
+    var access = window.UMSHReportAccess;
+    if (access && typeof access.allowDesignMockReading === 'function') return access.allowDesignMockReading();
+    try { return window.location.protocol === 'file:'; } catch (error) { return false; }
+  }
 
   function readReport() {
     if (window.UMSHReportAccess) return window.UMSHReportAccess.verifiedReport();
@@ -27,7 +32,22 @@
   }
 
   var report = readReport();
-  if (!report) return;
+  if (!report) {
+    if (!allowDesignMockReading() && typeof window.JobChoice.buildDetail === 'function') {
+      var originalDetail = window.JobChoice.buildDetail;
+      window.JobChoice.buildDetail = function (sectionIdValue, input) {
+        var built = originalDetail(sectionIdValue, input);
+        if (built && built.detail) {
+          built.detail.conclusion = '';
+          built.detail.interpretation_blocks = [];
+          built.detail.actions = [];
+          built.detail.cautions = [];
+        }
+        return built;
+      };
+    }
+    return;
+  }
 
   var byId = {};
   var groupOrder = [];
