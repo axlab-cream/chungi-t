@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import test from 'node:test'
 
 /**
- * 공개 7단계 퍼널은 1→2→(3)→4→5→6 만 탄다.
+ * 공개 퍼널은 1→2→4→5→6 만 탄다. 남은 03은 02로 되돌린다.
  * 근거: design-system/customer-kit.md 퍼널 CTA 맵.
  */
 const SAJU = join(process.cwd(), '사주')
@@ -12,7 +12,7 @@ const SAJU = join(process.cwd(), '사주')
 const PUBLIC: Array<{ key: string; dir: string; extraInput?: boolean }> = [
   { key: 'love_this_year', dir: 'love/this-year' },
   { key: 'job_choice', dir: 'work/job-choice' },
-  { key: 'quit_fortune', dir: 'work/quit', extraInput: true },
+  { key: 'quit_fortune', dir: 'work/quit' },
   { key: 'money_save', dir: 'money/save' },
   { key: 'cat_compatibility', dir: 'match/cat' },
   { key: 'match_couple', dir: 'match/couple' },
@@ -48,7 +48,7 @@ function htmlOf(dir: string, step: string): string {
 }
 
 
-test('공개 서비스는 01·02·04·05·06 폴더를 갖고, 03은 퇴사운만 탄다', () => {
+test('공개 서비스는 01·02·04·05·06 폴더를 갖고, 남은 03은 02로 되돌린다', () => {
   const missing: string[] = []
   for (const service of PUBLIC) {
     for (const step of REQUIRED) {
@@ -60,9 +60,15 @@ test('공개 서비스는 01·02·04·05·06 폴더를 갖고, 03은 퇴사운�
         missing.push(`${service.key}: ${step}/index.html 없음`)
       }
     }
-    const hasThree = existsSync(join(SAJU, service.dir, '03-step-3-service-input', 'index.html'))
-    if (service.extraInput && !hasThree) missing.push(`${service.key}: STEP3가 있어야 한다`)
-    if (!service.extraInput && hasThree) missing.push(`${service.key}: STEP3가 있으면 안 된다`)
+    const three = join(SAJU, service.dir, '03-step-3-service-input', 'index.html')
+    if (service.extraInput && !existsSync(three)) missing.push(`${service.key}: STEP3가 있어야 한다`)
+    if (!service.extraInput && existsSync(three)) {
+      const extra = readFileSync(three, 'utf8')
+      if (!extra.includes('02-step-2-saju-input')) missing.push(`${service.key}: 남은 STEP3는 02로 돌려야 한다`)
+      if (/<form[\s\S]*04-step-4-report/.test(extra) && !/location\.replace|http-equiv="refresh"/.test(extra)) {
+        missing.push(`${service.key}: STEP3가 고객 입력 단계로 남아 있다`)
+      }
+    }
   }
   assert.deepEqual(missing, [])
 })

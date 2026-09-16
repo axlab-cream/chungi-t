@@ -157,6 +157,8 @@ test('저축 티저 결론 칸은 로그인 안내문을 해석처럼 쓰지 않
 
 test('공유 접근기는 04 결론 칸을 미리보기 슬롯으로 본다', () => {
   assert.match(accessSource, /\[data-one-line-answer\]/)
+  assert.match(accessSource, /\[data-teaser-headline\]/)
+  assert.match(accessSource, /\[data-teaser-summary\]/)
   assert.match(accessSource, /function hasPaidReading\(/)
   assert.match(accessSource, /04 티저는 동결 preview만 쓴다/)
 })

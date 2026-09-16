@@ -472,7 +472,14 @@ app.get(['/work/quit/input', '/work/quit/input.html'], (_req, res) => {
   res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
 })
 app.get(['/work/quit/situation', '/work/quit/situation.html'], (_req, res) => {
-  res.redirect(302, '/work/quit/03-step-3-service-input/index.html')
+  res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
+})
+app.get([
+  '/work/quit/03-step-3-service-input',
+  '/work/quit/03-step-3-service-input/',
+  '/work/quit/03-step-3-service-input/index.html',
+], (_req, res) => {
+  res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
 })
 app.get(['/work/quit/report', '/work/quit/report.html'], (_req, res) => {
   res.redirect(302, '/work/quit/04-step-4-report/index.html')

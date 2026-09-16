@@ -2,6 +2,10 @@
 
 ## Current Task
 
+- 2026-09-17 퇴사운 STEP2: 제출 아래 안내(`재직 기간·퇴사 후보일…`)와 하단 면책 푸터를 제거. 입력 칸과 CTA만 남긴다.
+
+- 2026-09-17 퇴사운 퍼널: STEP3 상황 입력을 STEP2에 합쳐 공개 9개와 같이 `1→2→4→5→6`. 저장 사주가 있으면 이유 라디오만, 없으면 이름·년월일·시(모름)·성별. 재직기간·후보일·다음계획·메모는 받지 않는다. `/situation`·03 주소는 02로 보낸다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-09-form.md`.
+
 - 2026-09-16 퍼널 순서: 공개 9개는 `1 스토리 → 2 입력 → 4 티저 → 5 목차 → 6 상세`. 퇴사운만 `2 → 3 추가입력 → 4`. 결혼궁합 01 미리보기 링크가 05로 건너뛰던 경로를 막는다. 천명사주는 한 화면. 근거: `design-system/customer-kit.md`.
 
 - 2026-09-16 퍼널 CTA: STEP1~6 한 화면 한 제출, 결과 동사, STEP4 미결제는 `전체 보기 (금액)`. 커플 오표기 `1전체 보기 · 9,900원`을 `전체 보기 (19,900원)`으로 고친다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.

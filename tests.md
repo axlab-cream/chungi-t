@@ -2,6 +2,10 @@
 
 ## Verification Matrix
 
+- 2026-09-17 퇴사운 STEP4 티저: focused quit-funnel-input + work-quit-service + teaser-preview-bind + funnel-cta-copy + funnel-step-order PASS. report-content-guards 티저/후킹 항목 PASS, 일일운 저장 1건은 서버 키 미설정으로 FAIL(이번 변경과 무관). 로컬 브라우저 STEP4: 판정+근거 유지, 로그인 CTA만 바뀜, 후킹/계산중 문구 없음. Production NOT_RUN.
+
+- 2026-09-17 퇴사운 STEP3 통합: focused funnel-step-order + quit-funnel-input + work-quit-service + funnel-cta-copy PASS. STEP2→04, `/situation`·03→02, reason-only parse. Browser 02/03/04 로컬 확인. Production NOT_RUN.
+
 - 2026-09-13 lucky_color visual acceptance: RED 2/3 → GREEN 3/3; focused 18/18; related 78/78; full 913/913 across 122 suites; real reader 6 categories/24 sections, exact 390px zero overflow, 21-page complete print, typecheck/build/five deterministic rebuilds PASS; provider/Production/customer mutation NOT_RUN.
 
 - 2026-09-13 cat_compatibility corpus release candidate: RED 1/8 → GREEN 8/8; related 139/139; full 831/831 across 115 suites; 38 unique interpretations, 76 unique labeled hypothetical scenes, stored-snapshot/hash isolation, typecheck/build/deterministic builder PASS; provider/Production NOT_RUN.

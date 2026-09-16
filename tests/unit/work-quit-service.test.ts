@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
+import { createSavedPreview, reviewTeaser } from '../../src/report/report-preview.js'
 import {
   buildWorkQuitContext,
   buildWorkQuitReport,
@@ -84,4 +85,32 @@ test('work quit service builds a dedicated resignation report', () => {
 test('work quit request requires a reason', () => {
   assert.throws(() => parseWorkQuitRequest({ reason: '' }), /이유를 선택/)
   assert.throws(() => parseWorkQuitRequest({ reason: '돈' }), /2자 이상/)
+})
+
+test('work quit request accepts a reason without extra situation fields', () => {
+  const input = parseWorkQuitRequest({ reason: '업무' })
+  assert.equal(input.reason, '업무')
+  assert.equal(input.tenure, '')
+  assert.equal(input.candidateDate, '')
+  assert.equal(input.nextPlan, '')
+  assert.equal(input.concern, '')
+})
+
+test('quit teaser uses a verdict sentence and a moderate-length reading', () => {
+  const input = parseWorkQuitRequest({ reason: '사람' })
+  const analysis = analyzeSaju(birth)
+  const context = buildWorkQuitContext('민지', input)
+  const report = buildWorkQuitReport(analysis, birth, context, input)
+  assert.notEqual(report.sections[0].hook, report.sections[0].classification)
+  assert.match(report.sections[0].hook, /판단해요/)
+  const preview = createSavedPreview(report, { serviceKey: 'quit_fortune' })
+  assert.equal(preview.headline, report.sections[0].hook)
+  const reading = [preview.headline, preview.summary, ...preview.insights].join('\n')
+  assert.doesNotMatch(reading, /진짜 이유|아닐 수도|열어봐야|계산하고 있습니다/)
+  assert.ok(preview.summary.length >= 80 && preview.summary.length <= 500, `summary length ${preview.summary.length}`)
+  assert.ok(preview.insights.length >= 1 && preview.insights.length <= 2)
+  assert.equal(reviewTeaser({
+    preview,
+    sourceEvidence: report.sections.flatMap((section) => [section.hook, section.interpretation]).join('\n'),
+  }).passed, true)
 })
