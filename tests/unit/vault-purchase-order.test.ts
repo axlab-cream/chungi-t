@@ -147,9 +147,15 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
   const app = source.slice(start, source.indexOf('app.get(', start + 1))
   assert.ok(app.length > 0 && app.length < 4000, '핸들러 구간을 잘못 잘랐다')
   assert.ok(/listReportRecords\(owner, 100\)/.test(app), '요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다')
-  assert.ok(/selectPurchasedReadings\(records, orders\)\s*\n\s*\.slice\(0, limit\)/.test(app), '거르기 전에 자르고 있다')
+  assert.ok(
+    /selectPurchasedReadings\(records, orders\)\s*\n\s*\.filter\(\(item\) => isCustomerFacingReport\(item\.record\)\)\s*\n\s*\.slice\(0, limit\)/.test(app),
+    '거르기 전에 자르고 있다',
+  )
   assert.ok(/listPaymentOrders\(owner\.id, 100\)\.catch\(\(\) => null\)/.test(app), '주문 조회 실패를 구분하지 않는다')
-  assert.ok(/purchasedOnly: false,\n\s*reports: records\.map\(historyEntryFromRecord\)/.test(app), '주문 조회가 죽으면 보관함이 빈다')
+  assert.ok(
+    /purchasedOnly: false,\n\s*reports: records\.filter\(isCustomerFacingReport\)\.map\(historyEntryFromRecord\)/.test(app),
+    '주문 조회가 죽으면 보관함이 빈다',
+  )
   assert.ok(/purchasedAt: item\.purchasedAt/.test(app), '구매 시각이 화면으로 나가지 않는다')
 })
 
