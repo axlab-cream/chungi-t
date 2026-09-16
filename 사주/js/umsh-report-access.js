@@ -368,6 +368,46 @@
     link.href = '/css/umsh-verified-inplace.css';
     document.head.appendChild(link);
   }
+  /**
+   * 규칙을 바꿨는데 캐시된 옛 파일이 남으면 PDF 가 다시 화면 배색으로 찍힌다. 실제로
+   * 브라우저가 새 규칙을 무시하고 옛 사본을 쓰는 것을 확인했다. HTML 의 `?v=` 규약과 같이
+   * 버전을 붙인다 — 규칙을 고칠 때 이 값을 함께 올린다.
+   */
+  var PRINT_CSS_HREF = '/css/umsh-report-print.css?v=print-20260917a';
+  function ensurePrintStyles() {
+    if (document.getElementById('umsh-report-print-css')) return;
+    var link = document.createElement('link');
+    link.id = 'umsh-report-print-css';
+    link.rel = 'stylesheet';
+    link.href = PRINT_CSS_HREF;
+    document.head.appendChild(link);
+  }
+  /**
+   * PDF 는 인쇄 대화상자의 "PDF로 저장"으로 받는다. 14개 상세 화면 가운데 버튼이 붙어
+   * 있던 것은 두 곳뿐이었고, 다른 두 곳은 로드되지 않는 모듈을 부르고 있었다. 화면마다
+   * 마크업이 달라 개별로 넣는 대신, 본문이 실제로 그려진 뒤 이 자리에서 한 번만 넣는다.
+   * 이미 자체 버튼이 있는 화면은 건드리지 않는다 — 한 화면에 같은 버튼이 둘이면 안 된다.
+   */
+  function ensurePdfDock(host) {
+    // 06-1 상세 화면이 없는 서비스는 공용 리더(`/r/:id`)로 떨어진다. 보관함에서 여는 화면이
+    // 거기라서, 고유 주소도 상세 화면과 같이 PDF 를 받을 수 있어야 한다. 티저(04)는 제외 —
+    // 아직 열지 않은 본문의 PDF 를 권할 자리가 아니다.
+    if (!isDetailPage() && !isPermalink()) return;
+    ensurePrintStyles();
+    if (document.querySelector('[data-umsh-pdf], #btn-pdf')) return;
+    var anchor = host && host.closest ? (host.closest('section, article, main, body') || host) : document.body;
+    if (!anchor) return;
+    var dock = document.createElement('div');
+    dock.className = 'umsh-pdf-dock';
+    dock.setAttribute('data-umsh-pdf-auto', '');
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'pdf-button';
+    button.setAttribute('data-umsh-pdf', '');
+    button.textContent = 'PDF 저장';
+    dock.appendChild(button);
+    anchor.appendChild(dock);
+  }
   function sectionStateClass(section) {
     if (!section) return 'is-pending';
     if (section.status === 'complete') return 'is-ready';
@@ -495,6 +535,7 @@
     revealAncestors(host);
     markFilled(host);
     renderProgress(report);
+    ensurePdfDock(host);
     return true;
   }
   /** 진행 안내를 디자인 안 상태 슬롯에 표시한다. 본문 슬롯은 건드리지 않는다. */
@@ -693,6 +734,7 @@
     }).join('');
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+    ensurePdfDock(node);
   }
   function expandReportForPrint() {
     printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));
@@ -1026,9 +1068,12 @@
     document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var query=new URLSearchParams(location.search);var orderId=query.get('orderId');if(key==='newyear_flow') {if(orderId) {url.searchParams.set('orderId',orderId);url.searchParams.delete('preview');}else if(query.get('preview')==='1' && query.get('paid')!=='1')url.searchParams.set('preview','1');}link.href=url.pathname+url.search+url.hash;}},true);
     document.addEventListener('click',function(event){var button=event.target.closest && event.target.closest('[data-retry-section]');if(!button || !authorized)return;button.disabled=true;resumeSection(authorized.reportId || rememberedId,button.dataset.retrySection,true).then(function(){return refresh(rememberedId);}).catch(function(){button.disabled=false;});});
     document.addEventListener('click',function(event){
+      // 냥궁합·올해연애의 `#btn-pdf` 는 자체 핸들러가 이미 `window.print()` 로 떨어진다.
+      // 여기서 같이 받으면 인쇄가 두 번 열린다.
       var pdf = event.target.closest && event.target.closest('[data-umsh-pdf]');
       if (!pdf) return;
       event.preventDefault();
+      ensurePrintStyles();
       try { global.print(); } catch (_) {}
     });
   }
