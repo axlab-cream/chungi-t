@@ -2,7 +2,9 @@
   'use strict';
 
   const query = new URLSearchParams(global.location.search);
-  // 서버·checkout는 product=, 일부 서비스 CTA는 service=를 쓴다. 둘 다 같은 카탈로그 키로 읽는다.
+  // 서버가 만드는 결제 주소는 `product=` 를 쓰지만, 각 서비스의 CTA 폴백은
+  // `/payment?service=<키>` 로 보낸다(umsh-report-access.js 등). 한쪽만 읽으면
+  // 폴백으로 들어온 고객이 "상품 정보를 확인하지 못했습니다" 에서 막힌다.
   // 앱(Google Play) 결제 진입은 app-billing 경로이며 이 웹 페이지와 분리한다.
   const productKey = query.get('product') || query.get('service') || '';
   const reportId = query.get('reportId') || '';

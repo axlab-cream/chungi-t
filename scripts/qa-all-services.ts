@@ -91,8 +91,8 @@ const services = manifest.services.map(({ key }) => {
 
   const prompt = loadServiceSystemPrompt(key)
   if (!prompt.includes('서비스별 해석 계약')) failures.push('런타임 프롬프트에 서비스 계약 미주입')
-  if (!prompt.includes('티저는 공짜 요약이 아니라')) failures.push('티저 품질 공통 규칙 미주입')
-  if (!prompt.includes('RAG·코퍼스·첨부 가이드는 문장 공급자가 아니라')) failures.push('RAG 복사 금지 규칙 미주입')
+  if (!/티저는 .{0,80}신뢰/.test(prompt)) failures.push('티저 품질 공통 규칙 미주입')
+  if (!prompt.includes('문장 공급자가 아니라')) failures.push('RAG 복사 금지 규칙 미주입')
 
   const pack = corpusPackFor(key)
   let corpusBlocks = 0

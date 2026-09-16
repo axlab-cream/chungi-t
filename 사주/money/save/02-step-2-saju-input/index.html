@@ -1129,16 +1129,7 @@
 }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      [
-        { "evidence_id": "item-12-p1-0004", "item": "십성 분석", "use": "비견·비겁과 관계 정산 흐름", "summary": "비견의 재물 결은 나눠야 할 때와 지켜야 할 때가 섞이는 편이며 수익 예측이 아니라 습관을 본다." },
-        { "evidence_id": "item-12-p1-0012", "item": "십성 분석", "use": "겁재와 빠른 소비·베팅 흐름", "summary": "겁재의 재물 결은 움직임이 빠르고 구멍이 같이 커질 수 있는 편이다." },
-        { "evidence_id": "item-12-p1-0036", "item": "십성 분석", "use": "편재와 N잡·기회형 수입", "summary": "편재의 재물 결은 들어옴과 나감이 함께 커지는 편이다." },
-        { "evidence_id": "item-12-p1-0044", "item": "십성 분석", "use": "정재와 안정형 수입·안정 착시", "summary": "정재의 재물 결은 모으는 힘은 있으나 안전해 보여 확인을 멈추는 점을 주의한다." },
-        { "evidence_id": "item-23-qa-0006", "item": "월간 흐름", "use": "수입·지출·계약 분리", "summary": "돈 문제는 받을 돈, 줄 돈, 새로 정할 조건을 따로 적어 보는 방향으로 안내한다." },
-        { "evidence_id": "item-23-qa-0010", "item": "월간 흐름", "use": "관계/계약 돈문제", "summary": "돈이 걸린 약속은 금액, 기한, 책임 범위를 짧게라도 기록으로 남기는 방향을 제안한다." }
-      ]
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       [
@@ -1160,27 +1151,6 @@
           "delivery": "embedded_data_uri"
         }
       ]
-    </script>
-
-    <script type="application/json" id="QA_RESULT">
-      {
-        "status": "pass_with_notes",
-        "scope_mismatch": [
-          "00-SERVICE-GENERATION-CONTRACT.md와 02 PROMPT.md는 직장운 job-choice 입력 폼을 예시로 들지만, 사용자 요청의 소비성향 save 서비스 입력값을 우선 적용했다.",
-          "직장/오퍼 입력 필드는 제거하고 수입 방식, 돈이 새는 느낌, 저축 목표, 관계 돈 이슈, 현재 질문으로 치환했다.",
-          "사용자 seed는 8개 대분류이므로 02 payload에도 8개 대분류 전체를 보존했다."
-        ],
-        "checks": [
-          { "id": "service_identity", "status": "pass", "detail": "service_key save, URL money.umsh.kr/save, price 9900을 적용했다." },
-          { "id": "required_inputs", "status": "pass", "detail": "사주 기본 정보와 돈관리 상황 입력을 분리했다." },
-          { "id": "profile_reuse", "status": "pass", "detail": "기존 로컬 프로필이 완전하면 프로필 사용 선택지를 보여주며, 새 입력은 장기 localStorage에 저장하지 않는다." },
-          { "id": "privacy", "status": "pass", "detail": "생년월일과 돈 고민을 URL query에 넣지 않고 sessionStorage로 다음 단계에 전달한다." },
-          { "id": "interpretation_payload", "status": "pass", "detail": "01에서 확정한 대분류 8개와 중분류 41개를 04로 넘길 payload로 보존한다." },
-          { "id": "image_asset", "status": "pass", "detail": "02 전용 WebP 이미지 파일을 생성했고 index.html에는 data URI로 내장했다." },
-          { "id": "mobile_only_layout", "status": "pass", "detail": "본문, 하단 CTA, 토스트를 390px 고정 모바일 캔버스 안에 배치하고 입력 선택지까지 단일 컬럼 흐름으로 줄였다." },
-          { "id": "next_route", "status": "pass", "detail": "제출 후 ../04-step-4-report/index.html#step-4-report로 이동한다." }
-        ]
-      }
     </script>
 
     <script>

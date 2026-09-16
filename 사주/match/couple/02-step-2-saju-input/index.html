@@ -1760,41 +1760,7 @@
 }
   </script>
 
-  <script type="application/json" id="RAG_EVIDENCE">
-{
-  "retrieval_policy": "입력 화면은 계산에 필요한 값만 수집하며 고객 화면에는 내부 근거 경로를 노출하지 않습니다.",
-  "evidence": [
-    {
-      "evidence_id": "zip-궁합-qa-000228",
-      "source": "ZIP-궁합",
-      "locator": "pdf0020001 p.105",
-      "review_status": "unreviewed",
-      "takeaway": "관계, 다툼, 결혼/동업, 신뢰, 의사소통을 함께 다루는 궁합 리포트 구조의 근거"
-    },
-    {
-      "evidence_id": "zip-색체명리학-qa-000147",
-      "source": "ZIP-색체명리학",
-      "locator": "일간·일지 설명 항목",
-      "review_status": "unreviewed",
-      "takeaway": "사주는 생년·생월·생일·생시의 천간과 지지를 보고, 일주의 천간은 일간, 지지는 일지로 구분함"
-    },
-    {
-      "evidence_id": "item-10-p1-0071",
-      "source": "ITEM-10_사주 핵심 해석",
-      "locator": "일간 설명 항목",
-      "review_status": "cataloged",
-      "takeaway": "일간은 기준점이며 단독으로 성격이나 결과를 단정하지 않음"
-    },
-    {
-      "evidence_id": "item-00-p1-g03",
-      "source": "ITEM-00_공통_RAG_플랫폼",
-      "locator": "공통 안전 샘플",
-      "review_status": "golden_sample",
-      "takeaway": "이별이나 결혼 여부를 사주로 단정하지 않고 선택은 사용자에게 둠"
-    }
-  ]
-}
-  </script>
+  
 
   <script type="application/json" id="IMAGE_MANIFEST">
 [
@@ -1816,51 +1782,7 @@
 ]
   </script>
 
-  <script type="application/json" id="QA_RESULT">
-{
-  "stage": "02-step-2-saju-input",
-  "status": "ready_for_review",
-  "scope_mismatch": false,
-  "checks": [
-    {
-      "item": "pair subject separation",
-      "status": "pass",
-      "note": "본인과 상대방 필드를 분리했고 상대 생년월일 누락 시 본인 정보로 대체하지 않습니다."
-    },
-    {
-      "item": "existing profile reuse",
-      "status": "pass",
-      "note": "기존 사주 프로필 캐시가 있으면 본인 직접 입력을 숨기고 저장 프로필 사용을 기본값으로 둡니다."
-    },
-    {
-      "item": "privacy and URL",
-      "status": "pass",
-      "note": "이름과 생년월일은 URL query에 넣지 않고 현재 브라우저 세션 상태로만 다음 단계에 전달합니다."
-    },
-    {
-      "item": "next route",
-      "status": "pass",
-      "note": "제출 후 ../04-step-4-report/index.html#step-4-report 로 이동합니다."
-    },
-    {
-      "item": "image usage",
-      "status": "pass",
-      "note": "02 보조 이미지가 생성되어 HTML에서 직접 참조됩니다."
-    },
-    {
-      "item": "customer-facing internal term exposure",
-      "status": "pass",
-      "note": "고객 화면에는 RAG, KMS, LLM 등 내부 용어를 노출하지 않았습니다."
-    }
-  ],
-  "notes": [
-    "운영 로그인 복원 키에는 비개인 진행 상태만 저장하도록 구성했습니다.",
-    "다음 04 단계는 umsh:couple-match:input 세션 payload를 우선 읽도록 설계해야 합니다.",
-    "상대방 생년월일은 필수로 두었고 태어난 시간은 모름 상태를 허용했습니다."
-  ]
-}
-  </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/payment-bridge.js"></script>

@@ -11,7 +11,7 @@ SERVICE_KEY: job_choice
 SERVICE_SLUG: job-choice
 SERVICE_TITLE: 자미두수로 보는 내가 선택한 직장 괜찮을까
 SERVICE_CATEGORY: 직장운
-PRICE_KRW: 9900
+PRICE_KRW: 19900
 TARGET_QUESTION: 이 회사, 나랑 결 맞아?
 INTERPRETATION_INDEX: 01 또는 02에서 전달된 10개 대분류 > 중분류 리스트
 REPRESENTATIVE_CHARACTER: ../IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png
@@ -31,7 +31,7 @@ REPRESENTATIVE_CHARACTER: ../IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_
 3. 첫 문장은 `이 회사가 지금 나에게 맞는지`에 답해야 한다.
 4. 관록궁, 재백궁, 교우궁, 천이궁, 복덕궁, 운한 근거 중 실제로 확인된 것만 쓴다.
 5. 유료 범위는 사용자가 제공한 10개 대분류를 기준으로 보여준다. `더 자세히` 같은 추상 표현만 쓰지 않는다.
-6. 가격 `9,900원`, 결제 후 제공 범위, 취소/환불 안내 진입점을 CTA 가까이에 둔다.
+6. 가격 `19,900원`, 결제 후 제공 범위, 취소/환불 안내 진입점을 CTA 가까이에 둔다.
 7. 고객 화면에는 `RAG`, `KMS`, 내부 파일명을 보이지 않는다.
 
 ## 상태 분기

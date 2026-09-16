@@ -1,3 +1,4 @@
+import { formatServiceVoiceContract } from './service-voice-contracts.js'
 import { loadToneCommon, loadToneService } from './tone-v2.js'
 
 export const SERVICE_KEY_ALIASES: Record<string, string> = {
@@ -27,7 +28,10 @@ export function loadServiceSystemPrompt(serviceKey?: string | null): string {
   const cached = cache.get(key)
   if (cached !== undefined) return cached
   const combined = `${loadToneCommon()}\n\n${loadToneService(key)}`
-  cache.set(key, combined)
-  return combined
+  const withContract = (KNOWN_SERVICE_KEYS as readonly string[]).includes(key)
+    ? `${combined}\n\n${formatServiceVoiceContract(key as KnownServiceKey)}`
+    : combined
+  cache.set(key, withContract)
+  return withContract
 }
 export function clearServiceSystemPromptCache(): void { cache.clear() }
