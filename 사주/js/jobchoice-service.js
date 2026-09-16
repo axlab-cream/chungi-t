@@ -344,23 +344,55 @@
   }
 
   // ------------------------------------------------------- steps 05 / 06_1
+  function paragraphs(section) {
+    return String(section?.interpretation || '')
+      .split('\n\n')
+      .map((text) => text.replace(/^\[[^\]]{1,12}\]\s*/, '').trim())
+      .filter(Boolean);
+  }
+
+  function escapeReading(value) {
+    return window.JobChoice?.escapeHtml
+      ? window.JobChoice.escapeHtml(value)
+      : String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]));
+  }
+
   /**
-   * jobchoice-report-store.js patches those pages before their own script parses, but
-   * only when the report is already cached. Landing on 05 or 06 directly leaves nothing
-   * cached, so fetch it once and reload so the store can do its job.
+   * 스토어는 파싱 시점에 시안 해석을 비운다. 서버 리포트가 오면 상세 칸에만 실제 본문을 넣는다.
    */
-  async function ensureReportCached() {
-    if (!$('#step-5-chat') && !$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
+  async function enhanceDetail() {
+    const stage = document.getElementById('detailStage');
+    if (!stage) return;
     const outcome = await loadReport();
-    if (outcome.report && !window.UMSHReportAccess) location.reload();
+    if (!outcome.report) return;
+    if (typeof window.JobChoice?.markPaid === 'function') window.JobChoice.markPaid();
+    const wanted = new URLSearchParams(location.search).get('section');
+    const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
+    if (!section) return;
+    const parts = paragraphs(section);
+    const esc = escapeReading;
+    stage.innerHTML = `
+      <section class="hero-panel detail-hero">
+        <span class="kicker">06_1 · ${esc(section.category)}</span>
+        <h1>${esc(section.classification)}</h1>
+        <p>${esc(parts[0] || '')}</p>
+      </section>
+      ${parts.slice(1).map((paragraph) => `
+        <section class="detail-section">
+          <p>${esc(paragraph)}</p>
+        </section>
+      `).join('')}
+    `;
+    window.UMSHReportAccess?.markFilled?.(stage);
   }
 
   function init() {
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();
-    ensureReportCached();
+    enhanceDetail();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

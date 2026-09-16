@@ -411,6 +411,8 @@
       const title = document.getElementById('detail-title');
       if (title) title.textContent = section.classification;
       body.dataset.coupleApplied = section.id;
+      window.UMSHReportAccess?.markFilled?.(body);
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('detail-conclusion'));
     };
 
     apply();

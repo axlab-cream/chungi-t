@@ -434,7 +434,7 @@ app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) =
 app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
 })
-// 퇴사운 runs as the 01 → 02 → 03 → 04 → 05 → 06_1 flow; these are the readable entry points.
+// 퇴사운 runs as the 01 → 02 → 04 → 05 → 06_1 flow (상황 입력은 02 에 합쳤다); these are the readable entry points.
 app.get(['/work/quit', '/work/quit/', '/work/quit/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.

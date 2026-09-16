@@ -75,8 +75,11 @@
 
   /** The shell reads its mount points once at load, so they must exist first. */
   function loadShellScript(src, onReady) {
+    // 캐시 버스터(`?v=`)가 붙은 주소도 같은 파일이다. 경로끼리 비교하지 않으면
+    // 마운트마다 같은 스크립트를 다시 올려 문서 핸들러가 겹친다.
+    var wanted = new URL(src, global.location.href).pathname;
     var existing = Array.from(document.querySelectorAll('script[src]')).find(function (script) {
-      return new URL(script.src, global.location.href).pathname === src;
+      return new URL(script.src, global.location.href).pathname === wanted;
     });
     if (existing) {
       onReady();

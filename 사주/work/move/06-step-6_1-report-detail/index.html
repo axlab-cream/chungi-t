@@ -14790,17 +14790,31 @@
       const detail = detailMap.get(sectionId) || detailMap.get(detailLibrary.default_section_id);
       const rawRequested = new URLSearchParams(window.location.search).get("section");
       const missingRequested = Boolean(rawRequested && !detailMap.has(rawRequested));
+      const allowMock = window.location.protocol === "file:";
+      const liveReport = window.UMSHReportAccess?.verifiedReport?.();
       document.title = `${detail.title} | 나, 회사 옮겨도 될까?`;
       $("#topSubtitle").textContent = `${detail.group_title} 상세`;
       $("#groupLabel").textContent = `06 상세 풀이 · ${detail.group_title}`;
       $("#detailTitle").textContent = detail.title;
       $("#detailIntro").textContent = detail.preview;
       $("#heroTags").innerHTML = tagHTML([detail.group_title, ...detail.public_tags, ...detail.palace_tags].slice(0, 5));
-      $("#conclusionText").textContent = detail.conclusion.text;
-      renderEvidence(detail);
-      renderBlocks(detail);
-      renderActions(detail);
-      renderCautions(detail);
+      if (!allowMock && !liveReport) {
+        // 히어로 소개문도 시안 문장이다. 내 결론처럼 읽히지 않게 비운다.
+        $("#detailIntro").textContent = "";
+        $("#conclusionText").textContent = "이 항목의 풀이를 준비하고 있어요. 목차는 열려 있고, 본문이 끝나는 대로 이 자리에 채워집니다.";
+        // 공용 가드는 채워지지 않은 해석 칸을 가린다. 이 안내문은 의도한 문장이라 남긴다.
+        $("#conclusionText").setAttribute("data-umsh-filled", "");
+        $("#evidenceGrid").innerHTML = "";
+        $("#interpretationBlocks").innerHTML = "";
+        $("#actionsList").innerHTML = "";
+        $("#cautionsList").innerHTML = "";
+      } else {
+        $("#conclusionText").textContent = detail.conclusion.text;
+        renderEvidence(detail);
+        renderBlocks(detail);
+        renderActions(detail);
+        renderCautions(detail);
+      }
       renderRelated(detail);
       setNotice(detail, missingRequested);
       sessionStorage.setItem("umsh:work_move:current_detail_v1", JSON.stringify({
