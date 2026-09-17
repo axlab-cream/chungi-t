@@ -2,6 +2,7 @@ import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { preGenerateReport } from './report-queue.js'
 import { findReportRecord, listIncompleteReportIds, type ReportRecord } from './report-store.js'
+import { listAllPaymentOrders } from '../payment/order-store.js'
 
 /**
  * 결제한 해석을 **사용자가 화면을 떠나도** 끝까지 만들어 두기 위한 작업.
@@ -93,7 +94,9 @@ export async function runReportCompletionJob(reportId: string): Promise<ReportCo
 }
 
 export interface BackfillOutcome {
+  /** 미완성으로 찾은 전체 건수. */
   scanned: number
+  /** 그중 결제로 열린 것만 큐에 넣는다. */
   queued: number
   requeued: number
   duplicate: number
@@ -107,9 +110,35 @@ export interface BackfillOutcome {
  * 만들어 주지 않는다. 멱등키가 같아서 여러 번 돌려도 작업이 복제되지 않는다 —
  * 이미 큐에 있는 건은 duplicate 로 세고 넘어간다.
  */
+/**
+ * 결제로 열린 리포트의 식별자. 주문 저장소를 한 번만 훑어 만든다.
+ *
+ * 저장소에는 결제되지 않은 해석도 쌓인다 — 관리자 QA, 중간에 그만둔 시도. 보관함은 그런
+ * 것을 고객에게 보여 주지 않는다(서비스당 최신 하나만 접어 보여 줄 뿐이다). 아무도 보지
+ * 않을 해석을 만드느라 모델 비용을 쓸 이유가 없다.
+ */
+async function paidReportIds(): Promise<Set<string>> {
+  const paid = new Set<string>()
+  let cursor: string | undefined
+  for (let page = 0; page < 20; page += 1) {
+    const result = await listAllPaymentOrders({ limit: 200, ...(cursor ? { cursor } : {}) })
+    for (const order of result.orders) {
+      // 결제가 확정된 뒤의 상태만 센다. ready·approving 은 아직 돈이 오지 않았다.
+      if (order.reportId && (order.status === 'paid' || order.status === 'viewed')) paid.add(order.reportId)
+    }
+    if (!result.nextCursor) break
+    cursor = result.nextCursor
+  }
+  return paid
+}
+
 export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
-  const ids = await listIncompleteReportIds(limit)
-  const outcome: BackfillOutcome = { scanned: ids.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
+  const candidates = await listIncompleteReportIds(limit)
+  const paid = await paidReportIds().catch(() => null)
+  // 주문 조회가 죽었으면 아무것도 태우지 않는다. 결제 여부를 모르는 채로 만들면
+  // 아무도 보지 않을 해석에 비용을 쓴다.
+  const ids = paid ? candidates.filter((id) => paid.has(id)) : []
+  const outcome: BackfillOutcome = { scanned: candidates.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
   for (const reportId of ids) {
     const result = await enqueueReportCompletion({ reportId })
     if (result === 'queued') outcome.queued += 1

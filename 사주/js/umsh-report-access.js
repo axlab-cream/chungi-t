@@ -420,12 +420,24 @@
     var title = document.createElement('strong');
     title.textContent = '중요 안내';
     title.style.cssText = 'display:block;margin-bottom:5px;font-size:12px;font-weight:900;letter-spacing:.06em;color:#e2b87b';
-    var text = document.createElement('p');
-    text.textContent = '구매하신 해석은 자체 만세력과 자미두수, 명리학 데이터를 함께 분석해 목차를 하나씩 만들어 갑니다. '
-      + '그래서 전체가 완성되기까지 시간이 걸립니다. 창을 닫아도 계속 만들어지니, 나중에 보관함에서 이어 보실 수 있어요.';
-    text.style.cssText = 'margin:0;font-size:12.5px;line-height:1.65;color:#c9bfb2';
+    var lines = [
+      ['당신만의 운명 해석이 지금 정밀하게 완성되고 있습니다.', 'lead'],
+      ['구매하신 해석은 단순히 정해진 결과를 보여드리는 방식이 아닙니다. 자체 만세력 · 자미두수 · 명리학 데이터를 함께 분석해, 당신의 사주에 맞춰 목차별 해석을 하나씩 생성합니다.', ''],
+      ['정밀한 분석 과정으로 인해 전체 완성까지 약 30~50분 정도 소요될 수 있습니다.', 'strongish'],
+      ['창을 닫으셔도 분석은 계속 진행됩니다. 지금 나가셔도 괜찮습니다. 나중에 다시 이 자리로 돌아오시면 완성된 해석을 이어서 확인하실 수 있습니다.', ''],
+      ['조금만 기다려 주세요. 당신의 데이터를 바탕으로 한 해석이 하나씩 완성되고 있습니다.', ''],
+    ];
     body.appendChild(title);
-    body.appendChild(text);
+    for (var i = 0; i < lines.length; i += 1) {
+      var line = document.createElement('p');
+      line.textContent = lines[i][0];
+      var tone = lines[i][1] === 'lead' ? 'color:#f0e6d6;font-weight:700'
+        : lines[i][1] === 'strongish' ? 'color:#e2b87b;font-weight:700'
+          : 'color:#c9bfb2';
+      line.style.cssText = 'margin:0 0 7px;font-size:12.5px;line-height:1.7;' + tone;
+      if (i === lines.length - 1) line.style.marginBottom = '0';
+      body.appendChild(line);
+    }
     box.appendChild(icon);
     box.appendChild(body);
     // 목차 위에 놓는 것이 목적이지만, 앞에 끼울 수 없는 자리면 붙이기라도 한다 —
