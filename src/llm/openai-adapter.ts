@@ -80,7 +80,18 @@ export async function chatWithOpenAI(
   }
   if (response.choices[0]?.finish_reason === 'content_filter') throw new Error('생성 응답이 안전 검토로 중단되었습니다.')
   if (!content) {
-    throw new Error('OpenAI 응답이 비어 있습니다.')
+    /*
+     * finish_reason 이 'length' 가 아니어도 빈 응답이 나온다. gpt-5 계열은 추론 토큰을
+     * max_completion_tokens 예산 안에서 쓰는데, 추론이 길어지면 본문 자리가 하나도
+     * 안 남고 finish_reason 은 'stop'으로 끝난다 — 겉보기엔 정상 종료인데 내용이 없다.
+     * 운영에서 love_mind 의 특정 항목이 사흘째 이 상태로 10분 간격 외부 재시도만
+     * 반복하며 dead-letter 로 빠졌다(2026-09-17). OpenAiTruncatedError 로 던지면
+     * generateReportSectionNow 가 같은 실행 안에서 SECTION_ATTEMPT_LIMIT 만큼(초 단위)
+     * 바로 재시도한다 — 외부 재시도(수~수십 분 간격)보다 훨씬 빠르고 성공률도 높다.
+     */
+    throw new OpenAiTruncatedError(response.usage
+      ? { promptTokens: response.usage.prompt_tokens, completionTokens: response.usage.completion_tokens, totalTokens: response.usage.total_tokens }
+      : undefined)
   }
   return content
 }

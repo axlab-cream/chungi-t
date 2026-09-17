@@ -201,6 +201,10 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     ? [...(storedSection.attempts ?? [])].reverse().find((attempt) => attempt.status === 'failed' && attempt.error)?.error
     : undefined
   let issues: string[] = params.retry ? [priorFailure ?? '이전 검수 실패를 다시 확인하세요.'] : []
+  // 직전 시도가 빈 응답/잘림이었으면 예산을 키운다. 같은 프롬프트가 같은 예산으로 다시
+  // 돌면 추론이 또 예산을 다 쓰고 본문을 못 낼 가능성이 크다(love_mind 항목이 열 몇 번을
+  // 같은 이유로 반복해서 실패했다, 2026-09-17). 매 시도 50%씩, 최대 2배까지 늘린다.
+  let tokenBudget: number | undefined
   for (let index = 0; index < SECTION_ATTEMPT_LIMIT; index += 1) {
     const attemptId = randomUUID()
     await editClaim((section) => {
@@ -216,6 +220,7 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
           siblings: record.report.sections.filter((item) => item.id !== params.sectionId && item.status === 'complete'),
           repairIssues: issues,
           corpusSnapshot: record.corpus,
+          maxTokens: tokenBudget,
           onResponse: (result) => editClaim((section) => {
             const attempt = section.attempts?.find((item) => item.id === attemptId)
             if (attempt) { attempt.raw = result.text; attempt.finishReason = result.finishReason; attempt.tokenUsage = result.usage; attempt.model = result.model; attempt.finishedAt = new Date().toISOString() }
@@ -245,6 +250,11 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
       // 잘림은 내용 지적이 아니다. 재작성 지시문을 붙이면 프롬프트가 더 길어져 예산을 더 깎으므로
       // 같은 프롬프트로 다시 부른다. 진단은 시도 기록에만 남긴다.
       issues = error instanceof InterpretationQualityError ? error.review.issues : []
+      if (truncated) {
+        // 같은 예산으로 다시 부르면 추론이 또 예산을 다 쓰고 빈 응답으로 끝날 수 있다.
+        const base = tokenBudget ?? (Number(process.env.REPORT_SECTION_MAX_TOKENS) || 9000)
+        tokenBudget = Math.min(Math.round(base * 1.5), 18_000)
+      }
       const diagnosis = error instanceof InterpretationQualityError
         ? error.review.issues.join(' ')
         : truncated

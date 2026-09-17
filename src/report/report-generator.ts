@@ -2324,6 +2324,8 @@ export async function buildOpenAiSajuReportSection(
     onResponse?: (result: OpenAiResult) => void | Promise<void>
     repairIssues?: string[]
     corpusSnapshot?: CorpusSnapshot
+    /** 이번 시도에만 쓸 예산. 비우면 기본값. 직전 시도가 빈 응답/잘림이었을 때 호출자가 키운다. */
+    maxTokens?: number
   } = {},
 ): Promise<SajuReportSection> {
   const section = savedSection ?? buildTemplateSajuReport(analysis, birth, context).sections.find((item) => item.id === sectionId)
@@ -2338,7 +2340,7 @@ export async function buildOpenAiSajuReportSection(
      * 4200 예산에서 money_save 첫 항목이 4200을 전부 쓰고도 본문을 못 냈다(2026-09-17).
      * 추론이 튀는 경우까지 본문이 들어갈 자리를 남긴다.
      */
-    maxTokens: Number(process.env.REPORT_SECTION_MAX_TOKENS) || runtimeConfig.report?.sectionMaxTokens || 9000,
+    maxTokens: options.maxTokens || Number(process.env.REPORT_SECTION_MAX_TOKENS) || runtimeConfig.report?.sectionMaxTokens || 9000,
     onResponse: async (result) => { metadata = result; await options.onResponse?.(result) },
   })
   const { hook, interpretation } = parseGeneratedSajuReportSection(raw, section.id)
