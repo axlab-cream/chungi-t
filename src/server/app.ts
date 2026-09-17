@@ -54,6 +54,7 @@ import {
 } from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
+import { enqueueReportCompletion } from '../report/report-completion-job.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
@@ -166,7 +167,7 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
+import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey, serviceTitleForKey } from './service-directory.js'
 import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
@@ -1516,6 +1517,8 @@ function historyEntryFromRecord(record: ReportRecord) {
     publicUrl: analysis.report.publicUrl,
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
+    // 판매할 때 쓴 이름 그대로 돌려준다. 화면이 자기 표를 들고 있으면 카탈로그와 갈라진다.
+    serviceTitle: serviceTitleForKey(record.context?.serviceKey || 'cmdg'),
     serviceHref: isCustomerPausedProduct(record.context?.serviceKey) ? undefined : serviceHrefForKey(record.context?.serviceKey),
     // 보관함이 열 주소. 서비스가 자기 06-1 화면을 가지고 있으면 그 화면에서, 없으면
     // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.
@@ -1590,6 +1593,20 @@ function clientPaymentOrder(order: PaymentOrder) {
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   }
+}
+
+/**
+ * 결제가 확정되면 남은 섹션 생성을 영속 큐에 넣는다.
+ *
+ * 화면은 결제 복귀 직후 스스로 생성을 시작하지만, 사용자가 탭을 닫으면 거기서 멈춘다.
+ * 목차가 열둘인 상품은 그렇게 미완성으로 남았다. 큐에 넣어 두면 워커가 이어 만든다.
+ *
+ * 큐에 넣지 못해도 **결제를 되돌리지 않는다**. 돈은 이미 받았고 화면도 이미 열린다 —
+ * 큐는 사용자가 나갔을 때를 위한 보험이지 결제의 전제가 아니다.
+ */
+function queueReportCompletionAfterPayment(reportId: string | undefined): void {
+  if (!reportId) return
+  void enqueueReportCompletion({ reportId }).catch(() => undefined)
 }
 
 function paymentOrderRedirect(
@@ -2578,6 +2595,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(500).json({ error: '테스트 주문 상태를 저장하지 못했습니다.' })
       return
     }
+    queueReportCompletionAfterPayment(order.reportId)
     res.json({ order: clientPaymentOrder(paid), testMode: true })
   } catch (err) {
     respondRequestFailure(res, err, '테스트 결제 승인 실패')
@@ -2677,6 +2695,7 @@ app.post('/api/payment/google/verify', async (req, res) => {
       res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
       return
     }
+    queueReportCompletionAfterPayment(order.reportId)
     res.json({ order: clientPaymentOrder(paid) })
   } catch (err) {
     respondRequestFailure(res, err, '구글플레이 결제 확인 실패')
@@ -2784,6 +2803,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       approvalCode: approval.approvalCode, message: approval.resultMessage,
     }, undefined, () => { approvalEvidenceRecorded = true })
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
+    queueReportCompletionAfterPayment(order.reportId)
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
     let message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'

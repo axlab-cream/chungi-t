@@ -120,6 +120,8 @@ export function listAdminServiceDirectory(): AdminServiceDirectoryEntry[] {
 const KEY_ALIASES: Record<string, PaymentProductKey> = {
   home_fit: 'home_pungsu',
   home: 'home_pungsu',
+  // 저장 레코드는 종합사주를 saju_master 로도 적는다(report-store 의 serviceKey 기본값).
+  saju_master: 'cmdg',
 }
 
 function seedForKey(serviceKey: string | undefined): DirectorySeed | undefined {
@@ -136,6 +138,17 @@ export function isCustomerPausedProduct(serviceKey: string | undefined): boolean
 /** Where a saved reading should reopen, looked up by the report's own serviceKey. */
 export function serviceHrefForKey(serviceKey: string | undefined): string | undefined {
   return seedForKey(serviceKey)?.href
+}
+
+/**
+ * The name the service was sold under, for any screen that shows a saved reading back to
+ * the buyer. It reads the payment catalog, so the 보관함 cannot drift from the price card
+ * the way its own hardcoded table had (`lucky_color` was "색과 물건" there, but
+ * "나한테 운 붙는 색과 물건" everywhere it was sold).
+ */
+export function serviceTitleForKey(serviceKey: string | undefined): string | undefined {
+  const seed = seedForKey(serviceKey)
+  return seed ? getPaymentProduct(seed.key)?.title : undefined
 }
 
 /**

@@ -23,7 +23,7 @@ describe('영속 작업 worker', { concurrency: false }, () => {
     claimedAttempts = 1; calls.length = 0
     const result = await worker.runOpsWorker()
     const finalize = calls.at(-1)
-    assert.deepEqual(result, { claimed: 1, retried: 1, dead: 0 })
+    assert.deepEqual(result, { claimed: 1, retried: 1, dead: 0, succeeded: 0 })
     assert.equal(finalize?.init?.method, 'PATCH')
     const body = JSON.parse(String(finalize?.init?.body)) as Record<string, unknown>
     assert.equal(body.state, 'retry'); assert.equal(body.last_error, 'NO_OPS_HANDLER')
@@ -33,7 +33,7 @@ describe('영속 작업 worker', { concurrency: false }, () => {
     claimedAttempts = 2; calls.length = 0
     const result = await worker.runOpsWorker()
     const body = JSON.parse(String(calls.at(-1)?.init?.body)) as Record<string, unknown>
-    assert.deepEqual(result, { claimed: 1, retried: 0, dead: 1 })
+    assert.deepEqual(result, { claimed: 1, retried: 0, dead: 1, succeeded: 0 })
     assert.equal(body.state, 'dead'); assert.equal(body.last_error, 'NO_OPS_HANDLER')
   })
 })
