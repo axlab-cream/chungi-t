@@ -3054,8 +3054,14 @@ app.get('/api/user/reports', async (req, res) => {
     // 결제 여부로 거른 뒤 자른다. 요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다.
     // light: 본문 없는 경량 행. 목록이 필요한 것은 진행률·상태·맥락뿐인데 본문째로 읽어
     // 2.7~4초가 걸렸다. 천명사주 동기화가 읽는 analysis 는 full 일 때만 함께 싣는다.
-    const records = await listReportRecords(owner, 100, { light: true, includeAnalysis: !slim })
-    const orders = await listPaymentOrders(owner.id, 100).catch(() => null)
+    //
+    // 리포트 조회와 주문 조회는 서로 의존하지 않는다. 순차로 기다리면 Supabase 왕복 두 번이
+    // 그대로 더해진다 — 경량 뷰로 리포트 쪽을 줄인 뒤에도 응답이 2.2~2.5초였던 이유가
+    // 이거였다(각 왕복이 ~1~1.2초, 2026-09-17 운영 실측). 나란히 보내 한 번의 왕복 시간으로 줄인다.
+    const [records, orders] = await Promise.all([
+      listReportRecords(owner, 100, { light: true, includeAnalysis: !slim }),
+      listPaymentOrders(owner.id, 100).catch(() => null),
+    ])
     if (!orders) {
       // 주문 조회가 죽었다고 보관함을 비우지는 않는다. 빈 보관함은 잘못된 정렬보다 나쁘다.
       res.json({
