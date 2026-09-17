@@ -15,6 +15,20 @@
   var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
   var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
   var FLAG_JS = '/js/ai-report-flag.js';
+  var TRACK_JS = '/js/umsh-track.js';
+
+  /**
+   * 퍼널 수집기. 공용 크롬이 모든 화면에 실리므로 여기서 한 번만 올린다 — 화면마다
+   * 넣으면 새 서비스가 생길 때 빠지고, 빠진 화면은 이탈 통계에서 통째로 사라진다.
+   */
+  function loadTracker() {
+    if (document.querySelector('script[data-umsh-track-js]')) return;
+    var script = document.createElement('script');
+    script.src = TRACK_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-track-js', '');
+    document.head.appendChild(script);
+  }
   var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd3';
 
   /** Which category chip the shell highlights, chosen from the page path. */
@@ -209,6 +223,7 @@
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
     // 다시 켤 때 이 한 줄만 되살리면 된다.
     // loadReportFlag();
+    loadTracker();
 
     return { appbar: topHost, bottomNav: bottomHost };
   }

@@ -45,6 +45,7 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { checkOpsQueueReadiness } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
+import { FUNNEL_BATCH_LIMIT, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import {
@@ -2045,6 +2046,43 @@ app.get('/api/admin/v1/jobs', async (req, res) => {
  * 운영자가 보는 릴리스 정보. 해석이 흔들렸다는 문의가 오면 여기부터 본다 —
  * `pinned: false` 면 버전을 올리지 않은 채 프롬프트나 코퍼스가 바뀐 것이다.
  */
+/**
+ * 퍼널 이벤트 수집.
+ *
+ * 로그인하지 않은 방문자도 세야 이탈을 볼 수 있으므로 인증을 요구하지 않는다. 대신
+ * 담기는 값을 좁게 제한한다 — 정해진 두 종류의 이벤트, 짧은 식별자, 아이디를 지운 라우트.
+ * 적재에 실패해도 204 로 답한다. 통계가 안 쌓이는 것이 화면을 막을 이유는 아니다.
+ */
+app.post('/api/events', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const body = req.body as { sessionId?: unknown; events?: unknown }
+    const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : ''
+    const list = Array.isArray(body?.events) ? body.events.slice(0, FUNNEL_BATCH_LIMIT) : []
+    if (!sessionId || !list.length) { res.status(204).end(); return }
+    // 로그인 상태면 계정을 붙인다. 아니면 익명 세션으로만 센다.
+    const owner = await verifySupabaseUser(req).catch(() => undefined)
+    const rows = list
+      .map((item) => toStoredEvent(item as never, sessionId, owner?.id))
+      .filter((row): row is NonNullable<typeof row> => Boolean(row))
+    await recordFunnelEvents(rows)
+    res.status(204).end()
+  } catch {
+    res.status(204).end()
+  }
+})
+
+/** 관심사(CTA 클릭)와 이탈(단계별 진입)을 기간별로 본다. */
+app.get('/api/admin/v1/funnel', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  const asked = String(req.query.period ?? 'day')
+  const period: FunnelPeriod = asked === 'week' || asked === 'month' ? asked : 'day'
+  try {
+    res.json(await summarizeFunnel(period))
+  } catch {
+    res.status(503).json({ code: 'FUNNEL_SUMMARY_FAILED', error: '퍼널 통계를 불러오지 못했습니다.' })
+  }
+})
 app.get('/api/admin/v1/release', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   res.json({ ...serviceRelease(), pins: SERVICE_RELEASE_PINS, asOf: new Date().toISOString() })
