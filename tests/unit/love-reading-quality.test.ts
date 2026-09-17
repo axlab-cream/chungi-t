@@ -82,9 +82,10 @@ test('all seven services answer their own questions without raw corpus or a thre
       assert.ok(section.interpretation.length >= 550, `${key}/${section.id}: insufficient fallback detail`)
       assert.doesNotMatch(section.interpretation, /concept:|condition:|shortParagraph|counselingQuestions|commonMistakes|Feature JSON|RAG|[“”](?:로|을) 알려/)
     }
+    // 2026-09-17 목차 축소: 대분류당 5개였던 중분류를 2개로 압축해 21 → 10.
     if (['love_mind', 'love_again', 'love_spouse'].includes(key)) {
-      assert.equal(new Set(report.sections.map((section) => section.interpretation.split('\n\n')[3])).size, 21, `${key}: examples must answer 21 different questions`)
-      assert.equal(new Set(report.sections.map((section) => section.interpretation.split('\n\n')[4])).size, 21, `${key}: decision tests must be item-specific`)
+      assert.equal(new Set(report.sections.map((section) => section.interpretation.split('\n\n')[3])).size, 10, `${key}: examples must answer 10 different questions`)
+      assert.equal(new Set(report.sections.map((section) => section.interpretation.split('\n\n')[4])).size, 10, `${key}: decision tests must be item-specific`)
     }
     t.diagnostic(JSON.stringify({ service: key, sections: bodies.length, paragraphs: 6, min: Math.min(...bodies.map((v) => v.length)), max: Math.max(...bodies.map((v) => v.length)), uniqueAnswers: new Set(openings).size, uniqueBodies: new Set(bodies).size }))
   }

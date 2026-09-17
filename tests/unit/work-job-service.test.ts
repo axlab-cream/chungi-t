@@ -34,7 +34,8 @@ test('work job service builds a dedicated job fit report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '직업운 해석문')
-  assert.equal(report.sections.length, 21)
+  // 2026-09-17 목차 축소: 5대분류·21중분류 → 5대분류·13중분류(대분류당 2~3개).
+  assert.equal(report.sections.length, 13)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '지금 일이 내 명식과 맞는가',
     '관성과 식상이 말하는 일의 방식',

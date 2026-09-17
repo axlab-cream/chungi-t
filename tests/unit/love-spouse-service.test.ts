@@ -36,7 +36,8 @@ test('love spouse service builds a 21-section marriage partner report', () => {
   assert.equal(context.orientation, '배우자궁과 생활 조건 · 자미두수 명반 미제공')
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '배우자운 해석문')
-  assert.equal(report.sections.length, 21)
+  // 2026-09-17 목차 축소: 5대분류·21중분류 → 5대분류·10중분류(대분류당 2개).
+  assert.equal(report.sections.length, 10)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '배우자궁이 보여주는 인연의 결',
     '배우자의 성향과 현실 모습',

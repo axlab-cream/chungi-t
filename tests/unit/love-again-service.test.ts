@@ -36,7 +36,8 @@ test('love again service builds a reunion report without partner birth', () => {
   assert.equal(context.partner?.mode, 'none')
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '재회운 해석문')
-  assert.equal(report.sections.length, 21)
+  // 2026-09-17 목차 축소: 5대분류·21중분류 → 5대분류·10중분류(대분류당 2개).
+  assert.equal(report.sections.length, 10)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '이별 뒤에 남은 마음은 같은 모양이 아닙니다',
     '재회 가능성은 그리움보다 흐름으로 확인합니다',

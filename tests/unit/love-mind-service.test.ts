@@ -35,7 +35,8 @@ test('love mind service builds a relationship-flow report without partner birth'
   assert.equal(context.partner?.mode, 'none')
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '상대방 마음 해석문')
-  assert.equal(report.sections.length, 21)
+  // 2026-09-17 목차 축소: 5대분류·21중분류 → 5대분류·10중분류(대분류당 2개).
+  assert.equal(report.sections.length, 10)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '마음이 남아 있는 신호는 따로 있습니다',
     '연락과 거리에는 각자의 속도가 있습니다',
