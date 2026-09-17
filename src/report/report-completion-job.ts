@@ -64,6 +64,7 @@ export async function runReportCompletionJob(reportId: string): Promise<ReportCo
   if (!record) throw new Error('REPORT_NOT_FOUND')
   if (record.status === 'complete') return progressOf(record)
 
+  const before = progressOf(record)
   await preGenerateReport({
     reportId: record.reportId,
     birth: record.birth,
@@ -73,5 +74,20 @@ export async function runReportCompletionJob(reportId: string): Promise<ReportCo
   })
 
   const latest = await findReportRecord(reportId)
-  return progressOf(latest ?? record)
+  const after = progressOf(latest ?? record)
+
+  /*
+   * `preGenerateReport` 는 실패로 굳은 섹션을 만나면 거기서 멈춘다(재시도는 사용자가
+   * 명시적으로 요청할 때만 한다). 그 상태로 "아직 안 끝났다"만 돌려주면 워커가 5초마다
+   * 같은 작업을 다시 집어 아무 일도 못 하고 attempts 만 태운다.
+   *
+   * 진행이 한 칸도 없었고 실패한 섹션이 있으면 스스로 풀 수 없는 상태다. 사유를 남기고
+   * 던져서 지수 백오프로 물러나게 하고, 한도에 닿으면 dead-letter 로 보낸다 — 운영자가
+   * 목록에서 보고 손을 쓸 수 있어야 한다.
+   */
+  const stalled = after.complete <= before.complete
+  const hasFailedSection = (latest ?? record).report?.sections?.some((section) => section.status === 'failed')
+  if (stalled && hasFailedSection) throw new Error('REPORT_SECTION_FAILED')
+
+  return after
 }
