@@ -427,6 +427,54 @@ export async function findReportRecord(id: string, owner?: ReportOwner): Promise
  * 큐가 도입되기 전에 만들어진 리포트는 작업이 없어서 스스로 이어지지 않는다. 2026-09-17
  * 운영 계정 한 곳에서만 13건 중 12건이 미완성이었다.
  */
+export interface IncompleteReportRef {
+  reportId: string
+  ownerId?: string
+  serviceKey?: string
+  updatedAt: string
+}
+
+/**
+ * 미완성 리포트를 소유자·서비스와 함께 돌려준다.
+ *
+ * 저장소에는 같은 서비스를 여러 번 시험한 기록이 쌓인다(운영 계정: 천명사주 9건, 오늘운
+ * 8건). 보관함은 결제분을 모두 보여 주고 결제되지 않은 것은 서비스당 최신 하나만 보여
+ * 준다. 만들 대상도 그 기준을 따라야 화면에 없는 중복까지 만들지 않는다.
+ */
+export async function listIncompleteReportRefs(limit = 200): Promise<IncompleteReportRef[]> {
+  const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 200, 1), 500)
+  const fromRecord = (record: ReportRecord): IncompleteReportRef => ({
+    reportId: record.reportId,
+    ownerId: record.owner?.id,
+    serviceKey: record.context?.serviceKey,
+    updatedAt: record.updatedAt,
+  })
+  const incomplete = (record: ReportRecord) => record.status !== 'complete'
+
+  if (localFiles) {
+    return (await localFiles.list()).filter(incomplete)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit).map(fromRecord)
+  }
+  if (storageMode() === 'memory') {
+    return Array.from(memoryReports.values()).filter(incomplete)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit).map(fromRecord)
+  }
+  if (storageMode() !== 'supabase') return []
+
+  const url = new URL(supabaseRestUrl)
+  url.searchParams.set('payload->>status', 'neq.complete')
+  // 본문은 읽지 않는다. 판단에 필요한 세 값만 뽑는다.
+  url.searchParams.set('select', 'report_id,user_id,updated_at,serviceKey:payload->context->>serviceKey')
+  url.searchParams.set('order', 'updated_at.desc')
+  url.searchParams.set('limit', String(safeLimit))
+  const response = await fetch(url, { headers: supabaseHeaders() })
+  if (!response.ok) throw new Error('미완성 리포트 목록 조회에 실패했습니다.')
+  const rows = await response.json() as Array<{ report_id?: string; user_id?: string; updated_at?: string; serviceKey?: string }>
+  return rows.flatMap((row) => row.report_id
+    ? [{ reportId: row.report_id, ownerId: row.user_id, serviceKey: row.serviceKey, updatedAt: row.updated_at ?? '' }]
+    : [])
+}
+
 export async function listIncompleteReportIds(limit = 200): Promise<string[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 200, 1), 500)
   const incomplete = (record: ReportRecord) => record.status !== 'complete'

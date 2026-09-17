@@ -1,7 +1,7 @@
 import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { preGenerateReport } from './report-queue.js'
-import { findReportRecord, listIncompleteReportIds, type ReportRecord } from './report-store.js'
+import { findReportRecord, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
 import { listAllPaymentOrders } from '../payment/order-store.js'
 
 /**
@@ -96,7 +96,7 @@ export async function runReportCompletionJob(reportId: string): Promise<ReportCo
 export interface BackfillOutcome {
   /** 미완성으로 찾은 전체 건수. */
   scanned: number
-  /** 그중 결제로 열린 것만 큐에 넣는다. */
+  /** 그중 실제로 큐에 넣은 건수(결제분 + 서비스당 최신 하나). */
   queued: number
   requeued: number
   duplicate: number
@@ -104,18 +104,10 @@ export interface BackfillOutcome {
 }
 
 /**
- * 큐가 생기기 전에 만들어져 미완성으로 남은 리포트를 한 번에 태운다.
- *
- * `enqueueReportCompletion` 은 결제 시점에만 걸리므로, 그 이전 구매분은 아무도 이어
- * 만들어 주지 않는다. 멱등키가 같아서 여러 번 돌려도 작업이 복제되지 않는다 —
- * 이미 큐에 있는 건은 duplicate 로 세고 넘어간다.
- */
-/**
  * 결제로 열린 리포트의 식별자. 주문 저장소를 한 번만 훑어 만든다.
  *
- * 저장소에는 결제되지 않은 해석도 쌓인다 — 관리자 QA, 중간에 그만둔 시도. 보관함은 그런
- * 것을 고객에게 보여 주지 않는다(서비스당 최신 하나만 접어 보여 줄 뿐이다). 아무도 보지
- * 않을 해석을 만드느라 모델 비용을 쓸 이유가 없다.
+ * 결제분은 무조건 만들어야 하므로 먼저 골라 둔다. 결제되지 않은 것은 아래에서 보관함과
+ * 같은 기준(서비스당 최신 하나)으로 추린다.
  */
 async function paidReportIds(): Promise<Set<string>> {
   const paid = new Set<string>()
@@ -133,11 +125,32 @@ async function paidReportIds(): Promise<Set<string>> {
 }
 
 export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
-  const candidates = await listIncompleteReportIds(limit)
+  const candidates = await listIncompleteReportRefs(limit)
   const paid = await paidReportIds().catch(() => null)
-  // 주문 조회가 죽었으면 아무것도 태우지 않는다. 결제 여부를 모르는 채로 만들면
-  // 아무도 보지 않을 해석에 비용을 쓴다.
-  const ids = paid ? candidates.filter((id) => paid.has(id)) : []
+
+  /*
+   * 만들 대상은 **보관함에 보이는 것**과 같다.
+   *
+   * 결제분은 전부 만든다. 결제되지 않은 것(관리자 QA)은 서비스당 최신 하나만 만든다 —
+   * 보관함이 그 하나만 보여 주기 때문이다. 저장소에는 같은 서비스를 여러 번 시험한 기록이
+   * 쌓여 있어(운영 계정: 천명사주 9건, 오늘운 8건) 전부 만들면 화면에 나오지도 않을
+   * 중복에 모델 비용을 쓴다.
+   *
+   * 주문 조회가 죽으면 결제 여부를 모르므로 결제분 판정은 포기하고 최신 하나 규칙만 쓴다.
+   * 그래도 아무것도 안 만드는 것보다 낫다 — 화면에 보이는 것은 어차피 만들어야 한다.
+   */
+  const latestByOwnerService = new Map<string, IncompleteReportRef>()
+  for (const ref of candidates) {
+    if (paid?.has(ref.reportId)) continue
+    const key = `${ref.ownerId ?? ''}:${ref.serviceKey ?? ''}`
+    const current = latestByOwnerService.get(key)
+    if (!current || ref.updatedAt > current.updatedAt) latestByOwnerService.set(key, ref)
+  }
+  const keep = new Set([...latestByOwnerService.values()].map((ref) => ref.reportId))
+  const ids = candidates
+    .filter((ref) => paid?.has(ref.reportId) || keep.has(ref.reportId))
+    .map((ref) => ref.reportId)
+
   const outcome: BackfillOutcome = { scanned: candidates.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
   for (const reportId of ids) {
     const result = await enqueueReportCompletion({ reportId })
