@@ -35,7 +35,10 @@ test('올해 연애운 builds a dedicated this-year report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '올해 연애운 해석문')
-  assert.equal(report.sections.length, 48)
+  // 2026-09-17 목차 축소: 8대분류·48중분류 → 8대분류·24중분류. '세운 십성별 연애 무드'는
+  // 계산된 세운 십성 하나만 활성화하고 나머지 9개는 적용되지 않는다고 밝히는 테스트가
+  // 있어(love-reading-quality.test.ts) 10개를 그대로 둔다. 나머지 7개 대분류만 2개로 압축.
+  assert.equal(report.sections.length, 24)
   assert.equal(new Set(report.sections.map((section) => section.category)).size, 8)
 
   // 05 목차 and 06 상세 route on the design's own section ids.
@@ -61,7 +64,7 @@ test('올해 연애운 builds a dedicated this-year report', () => {
   assert.match(opening, /관계 의욕|현재 관계/)
   const annual = report.sections.find((section) => section.id === 'ten-gods-bi-geon')!
   assert.match(annual.interpretation, /세운.*천간과 일간.*비교한 십성/)
-  const symbolic = report.sections.find((section) => section.id === 'match-zodiac-branches')!
+  const symbolic = report.sections.find((section) => section.id === 'match-five-elements')!
   assert.match(symbolic.interpretation, /상대 명식은 제공되지 않았으므로/)
   assert.match(opening, /썸/)
   assert.match(opening, /연락은 오는데 만나자는 말이 없어요/)
