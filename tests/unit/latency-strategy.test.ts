@@ -53,20 +53,20 @@ test('워커는 리포트 간에는 나란히, 함수 한도 앞에서 돌아온
   assert.match(worker, /deadlineAt: ctx\.deadlineAt/)
 })
 
-test('진행한 실행은 시도 횟수를 태우지 않고, 큐에 여유가 있으면 죽은 건을 되살린다', () => {
+test('진행한 실행은 시도 횟수를 태우지 않고, 매분 대기·실패 해석을 다시 태운다', () => {
   // 퇴사운 32/48 실측(2026-09-17): 실제 생성 ~20분, 나머지 7시간은 dead 로 빠져 기다린 시간.
   //  - claim 이 올린 attempts 는 실패한 실행만 남긴다
   //  - 차선 수만큼만 집어 집은 작업마다 예산을 온전히 쓴다
-  //  - 물러서는 폭은 8분까지
-  //  - 되살리기(backfill)는 한 건도 없는 분이 아니라 여유가 있는 분마다 돈다
+  //  - 해석 완성은 오류여도 1분 뒤 다시 집는다. 다른 잡만 지수 백오프
+  //  - 되살리기(backfill)는 워커가 바쁜 분에도 돈다. 안 그러면 그 사이 산 회원이 큐에 안 탄다
   const worker = read('src/admin/ops-worker.ts')
   assert.match(worker, /if \(!error\) body\.attempts = Math\.max\(0, job\.attempts - 1\)/)
-  // 오류 없이 진행한 실행은 attempts 가 한도여도 dead 가 아니다.
   assert.match(worker, /finished \? 'succeeded' : !error \? 'retry' :/)
   assert.match(worker, /p_limit: WORKER_CONCURRENCY/)
-  assert.match(worker, /Math\.pow\(2, Math\.min\(job\.attempts, 3\)\)/)
+  assert.match(worker, /REPORT_COMPLETION_JOB_KIND \? 60_000/)
   const app = read('src/server/app.ts')
-  assert.match(app, /worked\.claimed < worked\.capacity \? await backfillReportCompletions/)
+  assert.match(app, /await backfillReportCompletions\(/)
+  assert.doesNotMatch(app, /worked\.claimed < worked\.capacity \? await backfillReportCompletions/)
 })
 
 test('예산으로 멈춘 것은 실패로 던지지 않는다', () => {

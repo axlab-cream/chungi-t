@@ -512,6 +512,7 @@ export interface IncompleteReportRef {
   ownerId?: string
   serviceKey?: string
   updatedAt: string
+  adminAcquiredAt?: string
 }
 
 /**
@@ -528,30 +529,37 @@ export async function listIncompleteReportRefs(limit = 200): Promise<IncompleteR
     ownerId: record.owner?.id,
     serviceKey: record.context?.serviceKey,
     updatedAt: record.updatedAt,
+    adminAcquiredAt: record.adminAcquiredAt,
   })
   const incomplete = (record: ReportRecord) => record.status !== 'complete'
 
   if (localFiles) {
     return (await localFiles.list()).filter(incomplete)
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit).map(fromRecord)
+      .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt)).slice(0, safeLimit).map(fromRecord)
   }
   if (storageMode() === 'memory') {
     return Array.from(memoryReports.values()).filter(incomplete)
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit).map(fromRecord)
+      .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt)).slice(0, safeLimit).map(fromRecord)
   }
   if (storageMode() !== 'supabase') return []
 
   const url = new URL(supabaseRestUrl)
   url.searchParams.set('payload->>status', 'neq.complete')
   // 본문은 읽지 않는다. 판단에 필요한 세 값만 뽑는다.
-  url.searchParams.set('select', 'report_id,user_id,updated_at,serviceKey:payload->context->>serviceKey')
-  url.searchParams.set('order', 'updated_at.desc')
+  url.searchParams.set('select', 'report_id,user_id,updated_at,serviceKey:payload->context->>serviceKey,adminAcquiredAt:payload->>adminAcquiredAt')
+  url.searchParams.set('order', 'updated_at.asc')
   url.searchParams.set('limit', String(safeLimit))
   const response = await fetch(url, { headers: supabaseHeaders() })
   if (!response.ok) throw new Error('미완성 리포트 목록 조회에 실패했습니다.')
-  const rows = await response.json() as Array<{ report_id?: string; user_id?: string; updated_at?: string; serviceKey?: string }>
+  const rows = await response.json() as Array<{ report_id?: string; user_id?: string; updated_at?: string; serviceKey?: string; adminAcquiredAt?: string }>
   return rows.flatMap((row) => row.report_id
-    ? [{ reportId: row.report_id, ownerId: row.user_id, serviceKey: row.serviceKey, updatedAt: row.updated_at ?? '' }]
+    ? [{
+        reportId: row.report_id,
+        ownerId: row.user_id,
+        serviceKey: row.serviceKey,
+        updatedAt: row.updated_at ?? '',
+        adminAcquiredAt: row.adminAcquiredAt || undefined,
+      }]
     : [])
 }
 

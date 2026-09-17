@@ -2,6 +2,8 @@ import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { preGenerateReport } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
+
+export type { IncompleteReportRef }
 import { listAllPaymentOrders } from '../payment/order-store.js'
 
 /**
@@ -132,32 +134,50 @@ async function paidReportIds(): Promise<Set<string>> {
   return paid
 }
 
-export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
-  const candidates = await listIncompleteReportRefs(limit)
-  const paid = await paidReportIds().catch(() => null)
-
-  /*
-   * 만들 대상은 **보관함에 보이는 것**과 같다.
-   *
-   * 결제분은 전부 만든다. 결제되지 않은 것(관리자 QA)은 서비스당 최신 하나만 만든다 —
-   * 보관함이 그 하나만 보여 주기 때문이다. 저장소에는 같은 서비스를 여러 번 시험한 기록이
-   * 쌓여 있어(운영 계정: 천명사주 9건, 오늘운 8건) 전부 만들면 화면에 나오지도 않을
-   * 중복에 모델 비용을 쓴다.
-   *
-   * 주문 조회가 죽으면 결제 여부를 모르므로 결제분 판정은 포기하고 최신 하나 규칙만 쓴다.
-   * 그래도 아무것도 안 만드는 것보다 낫다 — 화면에 보이는 것은 어차피 만들어야 한다.
-   */
+/**
+ * Waiting and failed readings that should keep moving.
+ *
+ * Paid (and admin-acquired) reports all stay in the list — many sequential
+ * purchases must not drop earlier buyers. Unpaid teasers stay one per
+ * owner+service. Oldest updatedAt first so the queue walks in purchase order.
+ * If paid lookup fails, keep every incomplete row rather than skipping buyers.
+ */
+export function selectBackfillReportIds(
+  candidates: IncompleteReportRef[],
+  paid: Set<string> | null,
+): string[] {
+  if (paid === null) {
+    return [...candidates]
+      .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId))
+      .map((ref) => ref.reportId)
+  }
   const latestByOwnerService = new Map<string, IncompleteReportRef>()
+  const selected: IncompleteReportRef[] = []
+  const taken = new Set<string>()
   for (const ref of candidates) {
-    if (paid?.has(ref.reportId)) continue
+    if (paid.has(ref.reportId) || ref.adminAcquiredAt) {
+      if (taken.has(ref.reportId)) continue
+      selected.push(ref)
+      taken.add(ref.reportId)
+      continue
+    }
     const key = `${ref.ownerId ?? ''}:${ref.serviceKey ?? ''}`
     const current = latestByOwnerService.get(key)
     if (!current || ref.updatedAt > current.updatedAt) latestByOwnerService.set(key, ref)
   }
-  const keep = new Set([...latestByOwnerService.values()].map((ref) => ref.reportId))
-  const ids = candidates
-    .filter((ref) => paid?.has(ref.reportId) || keep.has(ref.reportId))
-    .map((ref) => ref.reportId)
+  for (const ref of latestByOwnerService.values()) {
+    if (taken.has(ref.reportId)) continue
+    selected.push(ref)
+    taken.add(ref.reportId)
+  }
+  selected.sort((a, b) => a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId))
+  return selected.map((ref) => ref.reportId)
+}
+
+export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
+  const candidates = await listIncompleteReportRefs(limit)
+  const paid = await paidReportIds().catch(() => null)
+  const ids = selectBackfillReportIds(candidates, paid)
 
   const outcome: BackfillOutcome = { scanned: candidates.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
   for (const reportId of ids) {

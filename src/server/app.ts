@@ -2125,18 +2125,14 @@ app.get('/api/cron/ops', async (req, res) => {
   try {
     const worked = await runOpsWorker()
     /*
-     * 큐가 비어 있으면 아직 안 끝난 리포트를 찾아 태운다.
+     * Every minute, scan waiting/failed readings and put them back on the queue.
      *
-     * enqueueReportCompletion 은 결제 시점에만 걸린다. 큐 도입 이전 구매분, 그리고
-     * dead-letter 로 빠진 건은 사람이 관리자 화면에서 버튼을 눌러야만 돌아왔다 — 그
-     * 버튼을 아무도 누르지 않아 운영 계정 한 곳에서 12건이 멈춰 있었다(2026-09-17).
-     *
-     * 여유가 있을 때 훑는다. 예전엔 **한 건도 집지 않은 분**에만 훑었는데, 리포트 열셋이
-     * 5초 간격 retry 로 돌아가는 동안은 그런 분이 오지 않아 dead 로 빠진 건이 두 시간 넘게
-     * 방치됐다(퇴사운 32/48, 2026-09-17). 집은 수가 차선 수보다 적으면 큐에 남은 게 없다는
-     * 뜻이니 그때 되살린다. enqueue 는 멱등이라 이미 도는 건은 건드리지 않는다.
+     * enqueueReportCompletion used to run only at payment. Pre-queue purchases and
+     * dead-letter jobs then sat until someone pressed an admin button. Skipping
+     * the scan while the worker was full made the next buyers wait for a quiet
+     * minute that never came. Enqueue is idempotent, so a busy worker is safe.
      */
-    const backfill = worked.claimed < worked.capacity ? await backfillReportCompletions(50).catch(() => undefined) : undefined
+    const backfill = await backfillReportCompletions(200).catch(() => undefined)
     res.json({ ...worked, ...(backfill ? { backfill } : {}) })
   }
   catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }

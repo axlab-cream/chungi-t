@@ -88,7 +88,9 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
        * 물러서는 폭은 1·2·4·8분까지다. 예전엔 64분까지 갔다 — 결제한 사람이 한 시간을
        * 기다릴 이유가 없고, 그 사이 다른 실행이 아무 일도 못 한다.
        */
-      const backoff = error ? 60_000 * Math.pow(2, Math.min(job.attempts, 3)) : 5_000
+      const backoff = error
+        ? (job.kind === REPORT_COMPLETION_JOB_KIND ? 60_000 : 60_000 * Math.pow(2, Math.min(job.attempts, 3)))
+        : 5_000
       body.next_run_at = new Date(Date.now() + backoff).toISOString()
       /*
        * 진행은 실패가 아니다. claim 이 올린 attempts 를 되돌려, 시도 횟수는 **실패한 실행**만

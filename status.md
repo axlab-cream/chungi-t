@@ -1840,3 +1840,9 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 보관함 `selectPurchasedReadings`만 `paid`만 인정했다. 그래서 good1621이 실제로 산 뒤 06-1을 열면 목록에서 빠졌다. 관리자 우회와 무관한 모든 계정 공통 결함이다.
 - 수정: `paid`와 `viewed`를 구매로 센다. 테스트 4b 포함 `vault-purchase-order` 17/17 PASS.
 - `reportId`가 비어 있는 구형 주문은 여전히 목록에 못 넣는다(무엇을 샀는지 추측하지 않음).
+
+## 2026-09-18 — 대기·실패 해석 매분 자동 재개
+
+- Vercel cron `/api/cron/ops` 는 이미 1분마다 돈다. 워커가 차선(3)을 가득 채운 분에는 백필을 건너뛰어, 그 사이 산 회원의 대기·실패 목차가 큐에 안 탔다.
+- 이제 매분 워커와 상관없이 미완성(pending/generating/failed)을 훑어 큐에 다시 넣는다. 결제분·관리자 적립분은 전부, 오래된 것부터. 해석 완성 잡 오류 백오프는 1분.
+- 검증: `report-completion-job` 8/8, `latency-strategy` 해당 항목 PASS (`NODE_ENV=test`).

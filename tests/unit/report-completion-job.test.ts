@@ -95,3 +95,42 @@ describe('결제한 해석의 백그라운드 완성', { concurrency: false }, (
     assert.equal(body.last_error, 'NO_OPS_HANDLER')
   })
 })
+
+function incompleteRef(over: Partial<import('../../src/report/report-completion-job.js').IncompleteReportRef> & { reportId: string }) {
+  return {
+    ownerId: 'u1',
+    serviceKey: 'money_save',
+    updatedAt: '2026-09-18T00:00:00.000Z',
+    ...over,
+  }
+}
+
+describe('대기·실패 해석 매분 백필 대상', { concurrency: false }, () => {
+  it('결제한 대기·실패 리포트는 회원 수와 상관없이 모두, 오래된 것부터 넣는다', () => {
+    const paid = new Set(['a', 'b', 'c'])
+    const ids = job.selectBackfillReportIds([
+      incompleteRef({ reportId: 'c', updatedAt: '2026-09-18T03:00:00.000Z' }),
+      incompleteRef({ reportId: 'a', updatedAt: '2026-09-18T01:00:00.000Z', ownerId: 'u2', serviceKey: 'quit_fortune' }),
+      incompleteRef({ reportId: 'b', updatedAt: '2026-09-18T02:00:00.000Z', ownerId: 'u3' }),
+    ], paid)
+    assert.deepEqual(ids, ['a', 'b', 'c'])
+  })
+
+  it('미결제 티저는 서비스당 최신 하나, 관리자가 연 해석은 모두 남긴다', () => {
+    const ids = job.selectBackfillReportIds([
+      incompleteRef({ reportId: 'old-qa', updatedAt: '2026-09-18T01:00:00.000Z' }),
+      incompleteRef({ reportId: 'new-qa', updatedAt: '2026-09-18T02:00:00.000Z' }),
+      incompleteRef({ reportId: 'admin-1', updatedAt: '2026-09-18T00:30:00.000Z', adminAcquiredAt: '2026-09-18T00:30:00.000Z' }),
+      incompleteRef({ reportId: 'admin-2', updatedAt: '2026-09-18T00:40:00.000Z', adminAcquiredAt: '2026-09-18T00:40:00.000Z' }),
+    ], new Set())
+    assert.deepEqual(ids, ['admin-1', 'admin-2', 'new-qa'])
+  })
+
+  it('결제 조회가 죽으면 미완성 전부를 넣어 구매 회원을 건너뛰지 않는다', () => {
+    const ids = job.selectBackfillReportIds([
+      incompleteRef({ reportId: 'p1', updatedAt: '2026-09-18T01:00:00.000Z' }),
+      incompleteRef({ reportId: 'p2', updatedAt: '2026-09-18T02:00:00.000Z', ownerId: 'u2' }),
+    ], null)
+    assert.deepEqual(ids, ['p1', 'p2'])
+  })
+})
