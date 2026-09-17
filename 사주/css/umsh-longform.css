@@ -1,0 +1,310 @@
+﻿/*
+ * umsh-longform.css
+ *
+ * 해석 목차 위에 오는 세 블록 — 결론 · 서머리 · 하이라이트.
+ * 색은 전부 var(--...) 로 받고 값이 없으면 운명상회 공통 골드/다크 팔레트로 폴백한다.
+ * 서비스 강조색은 JS 가 --umsh-lf-accent 를 인라인으로 주입한다.
+ * 레이아웃에는 관여하지 않고 블록 내부만 책임진다.
+ */
+
+.umsh-longform {
+  --umsh-lf-accent: var(--gold, #e8c76f);
+  --umsh-lf-ink: var(--ink, #fff7df);
+  --umsh-lf-muted: var(--muted, rgba(255, 247, 223, .72));
+  --umsh-lf-surface: var(--card, rgba(255, 255, 255, .04));
+  --umsh-lf-line: var(--line, rgba(255, 247, 223, .14));
+  --umsh-lf-radius: var(--umsh-card-radius, 12px);
+  display: grid;
+  gap: 18px;
+  margin: 0 0 22px;
+  min-width: 0;
+}
+
+/* ── 결론 배너 ───────────────────────────────────────────
+ * 이미지를 쓰지 않는다. 판정은 읽는 순간 잡혀야 하고 이미지는 판정을 흐린다.
+ * 왼쪽 강조 바 하나로 시선을 먼저 가져간다.
+ */
+.umsh-verdict {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 18px 18px 18px 22px;
+  border: 1px solid var(--umsh-lf-line);
+  border-radius: var(--umsh-lf-radius);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--umsh-lf-accent) 12%, transparent), transparent 42%),
+    var(--umsh-lf-surface);
+  overflow: hidden;
+}
+.umsh-verdict::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--umsh-lf-accent);
+}
+.umsh-verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: start;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--umsh-lf-accent);
+  color: var(--umsh-accent-ink, #111);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.umsh-verdict-statement {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--umsh-lf-ink);
+  text-wrap: pretty;
+}
+.umsh-verdict-axis {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--umsh-lf-muted);
+}
+
+/* ── 서머리 ─────────────────────────────────────────────
+ * 컷 A. 목차 위 첫 블록이라 리포트를 여는 얼굴이다.
+ */
+.umsh-summary {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--umsh-lf-line);
+  border-radius: var(--umsh-lf-radius);
+  background: var(--umsh-lf-surface);
+  overflow: hidden;
+}
+.umsh-summary-figure {
+  margin: 0;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: rgba(0, 0, 0, .18);
+}
+.umsh-summary-figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  display: block;
+}
+.umsh-summary-figure::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56%;
+  background: linear-gradient(to top, var(--umsh-lf-surface), transparent);
+  pointer-events: none;
+}
+.umsh-summary-body {
+  padding: 16px 18px 18px;
+  display: grid;
+  gap: 10px;
+}
+.umsh-summary-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: var(--umsh-lf-accent);
+}
+.umsh-summary-body p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--umsh-lf-ink);
+  text-wrap: pretty;
+}
+
+/* ── 하이라이트 3카드 ────────────────────────────────────
+ * 컷 B 는 카드 배경이 아니라 첫 카드 상단 배너로 한 번만 쓴다.
+ * 배경으로 깔면 글자 대비가 서비스마다 무너진다.
+ */
+.umsh-highlights {
+  display: grid;
+  gap: 12px;
+}
+.umsh-highlights-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.umsh-highlights-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--umsh-lf-accent);
+}
+.umsh-highlights-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+.umsh-highlight {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 16px;
+  border: 1px solid var(--umsh-lf-line);
+  border-radius: var(--umsh-lf-radius);
+  background: var(--umsh-lf-surface);
+  overflow: hidden;
+  break-inside: avoid;
+  align-content: start;
+}
+.umsh-highlight-banner {
+  margin: 0;
+  aspect-ratio: 21 / 9;
+  background: rgba(0, 0, 0, .18);
+}
+.umsh-highlight-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  display: block;
+}
+.umsh-highlight-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 14px 16px 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--umsh-lf-accent) 22%, transparent);
+  color: var(--umsh-lf-accent);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.umsh-highlight-title {
+  margin: 0 16px;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 700;
+  color: var(--umsh-lf-ink);
+  text-wrap: balance;
+}
+.umsh-highlight-body {
+  margin: 0 16px;
+  display: grid;
+  gap: 8px;
+}
+.umsh-highlight-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--umsh-lf-muted);
+  text-wrap: pretty;
+}
+
+/* ── 강조 버튼 ───────────────────────────────────────────
+ * 기존 CTA 높이 토큰을 그대로 쓴다. 터치 타깃 44px 이상.
+ */
+.umsh-lf-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--umsh-cta-height, 52px);
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--umsh-lf-accent);
+  color: var(--umsh-accent-ink, #111);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter .15s ease, transform .15s ease;
+}
+.umsh-lf-cta:hover { filter: brightness(1.06); }
+.umsh-lf-cta:active { transform: translateY(1px); }
+.umsh-lf-cta:focus-visible {
+  outline: 2px solid var(--umsh-lf-accent);
+  outline-offset: 3px;
+}
+
+/* ── 상태 ───────────────────────────────────────────────
+ * 생성 실패는 블록을 숨긴다. 본문 진입을 막지 않는다.
+ */
+.umsh-lf-skeleton {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px dashed var(--umsh-lf-line);
+  border-radius: var(--umsh-lf-radius);
+  color: var(--umsh-lf-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.umsh-lf-skeleton strong {
+  color: var(--umsh-lf-ink);
+  font-size: 14px;
+}
+.umsh-lf-locked {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 16px 18px;
+  border-top: 1px solid var(--umsh-lf-line);
+  background: color-mix(in srgb, var(--umsh-lf-accent) 7%, transparent);
+}
+.umsh-lf-locked p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--umsh-lf-muted);
+}
+
+/* ── 반응형 ─────────────────────────────────────────────
+ * 390px 는 이 프로젝트의 모바일 검증 기준폭이다.
+ */
+@media (min-width: 720px) {
+  .umsh-highlights-grid { grid-template-columns: repeat(3, 1fr); }
+  .umsh-summary { grid-template-columns: 300px 1fr; }
+  .umsh-summary-figure { aspect-ratio: auto; height: 100%; }
+  .umsh-summary-figure::after {
+    inset: 0 0 0 auto;
+    width: 40%;
+    height: auto;
+    background: linear-gradient(to left, var(--umsh-lf-surface), transparent);
+  }
+  .umsh-verdict-statement { font-size: 21px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .umsh-lf-cta { transition: none; }
+}
+
+/* ── 인쇄 ───────────────────────────────────────────────
+ * 결론은 첫 페이지 상단, 카드는 경계에서 잘리지 않게.
+ */
+@media print {
+  .umsh-longform {
+    --umsh-lf-ink: #111;
+    --umsh-lf-muted: #444;
+    --umsh-lf-surface: #fff;
+    --umsh-lf-line: #ccc;
+    gap: 14px;
+  }
+  .umsh-verdict,
+  .umsh-summary,
+  .umsh-highlight { break-inside: avoid; box-shadow: none; }
+  .umsh-summary { grid-template-columns: 1fr; }
+  .umsh-summary-figure { max-height: 220px; aspect-ratio: 21 / 9; }
+  .umsh-summary-figure::after { display: none; }
+  .umsh-highlights-grid { grid-template-columns: 1fr; }
+  .umsh-highlight-banner { display: none; }
+  .umsh-lf-cta,
+  .umsh-lf-locked { display: none; }
+}
