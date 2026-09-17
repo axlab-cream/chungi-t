@@ -28,9 +28,9 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     const analysis = analyzeSaju(sampleBirth)
     const report = buildTemplateSajuReport(analysis, sampleBirth, sampleContext)
 
-    // 2026-09-17 목차 축소(37 -> 15). 섹션당 69초라 37개는 43분이 걸렸다. 개수를 못박아
+    // 2026-09-17 목차 축소(37 -> 16). 섹션당 69초라 37개는 43분이 걸렸다. 개수를 못박아
     // 두어야 목차가 슬그머니 다시 불어나는 것을 배포 전에 알 수 있다.
-    assert.equal(report.sections.length, 15)
+    assert.equal(report.sections.length, 16)
     assert.ok(report.sections[0].patternKeys.some((key) => key.startsWith('dayPillar:')))
     assert.ok(report.sections[0].patternKeys.some((key) => key.startsWith('dayMaster:')))
     assert.ok(report.sections[0].patternKeys.includes('target:본인'))
@@ -49,10 +49,14 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     assert.ok(report.quality)
     assert.ok(report.quality.overallPercent >= 0 && report.quality.overallPercent <= 100)
     assert.ok(report.quality.ragUsagePercent >= 0 && report.quality.ragUsagePercent <= 100)
-    // 목차 축소로 용신·십성·명식구조·전환조건·전통설명 5개 축은 근거 목차가 모두 보류돼
-    // 사라졌다. 품질 모델은 실제로 만들어진 것만 센다. 남은 축으로 확인한다.
+    // 목차를 줄이면 품질 모델의 축도 함께 줄어든다 — 실제로 만들어진 것만 세기 때문이다.
+    // 용신 축은 해석 깊이를 보는 자리라 근거 목차(useful-god-eokbu)를 되살려 지켰다.
     assert.ok(report.quality.categories.some((category) => category.id === 'day-master'))
-    assert.ok(!report.quality.categories.some((category) => category.id === 'useful-god'))
+    assert.ok(report.quality.categories.some((category) => category.id === 'useful-god'))
+    // 십성·명식구조·전환조건·전통설명은 근거 목차가 모두 보류라 사라진다. 사고가 아니라 결정이다.
+    for (const gone of ['ten-gods', 'four-pillars', 'turning-point', 'corpus-quality']) {
+      assert.ok(!report.quality.categories.some((category) => category.id === gone), `${gone} 축이 되살아났다`)
+    }
     assert.ok(report.quality.categories.some((category) => category.id === 'rag-precision'))
     assert.ok(report.quality.categories.every((category) => category.completenessPercent > 0))
   })

@@ -100,7 +100,14 @@ interface ReportBlueprint {
  * 지우지 않고 주석으로 둔다. 되돌리려면 주석만 풀면 된다. id 는 그대로여서 이미 저장된
  * 리포트는 자기 목차를 그대로 읽는다.
  *
- * 남긴 15개의 도메인 균형 — 나 4 · 고민 1 · 일과 돈 3 · 연애 4 · 흐름 2 · 실행 1.
+ * 남긴 16개의 도메인 균형 — 나 5 · 고민 1 · 일과 돈 3 · 연애 4 · 흐름 2 · 실행 1.
+ *
+ * `useful-god-eokbu`(용신)는 한 번 뺐다가 되살렸다. 품질 모델이 이 목차를 근거로
+ * '용신/조후' 축을 채점하는데, 빼면 해석 깊이를 보는 축 하나가 통째로 사라진다.
+ * 제목만 도구 이름에서 질문으로 바꿨다 — '용신 1차 판단' → '내 기운을 살리는 것'.
+ *
+ * 아직 근거 목차가 모두 보류라 사라진 축이 넷 남아 있다(십성·명식구조·전환조건·
+ * 전통설명). 고객 화면에 나가지 않는 내부 지표이고, 목차를 줄이기로 한 결과다.
  */
 const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   {
@@ -201,13 +208,13 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
     focus: 'trap',
     query: '십신 위치 년주 월주 일주 시주 해석',
   }, */
-  /* 보류: {
+  {
     id: 'useful-god-eokbu',
-    category: '용신 1차 판단',
+    category: '내 기운을 살리는 것',
     categoryEn: 'Useful God',
     focus: 'balance',
     query: '용신 억부 신강 신약 보완 균형',
-  }, */
+  },
   /* 보류: {
     id: 'useful-god-johu',
     category: '조후와 온도의 보완',

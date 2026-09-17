@@ -36,7 +36,32 @@ export interface EnqueueOpsJobParams {
   maxAttempts?: number
 }
 
-export type EnqueueOpsJobResult = 'queued' | 'duplicate' | 'unavailable'
+export type EnqueueOpsJobResult = 'queued' | 'duplicate' | 'requeued' | 'unavailable'
+
+/**
+ * 멱등키는 한 번 쓰이면 계속 남는다. 그래서 dead-letter 로 빠진 작업이 있으면 같은 키로는
+ * 다시 넣을 수 없고, 그 리포트는 영원히 큐 밖에 남는다 — 멱등성이 복구를 막는 꼴이다.
+ *
+ * 이미 있는 작업이 끝나지 않은 상태(dead·retry)면 시각을 지금으로 되돌려 다시 태운다.
+ * succeeded·running·queued 는 건드리지 않는다. 각각 이미 끝났거나 지금 도는 중이다.
+ */
+async function reviveStalledJob(idempotencyKey: string): Promise<boolean> {
+  try {
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('idempotency_key', `eq.${idempotencyKey}`)
+    url.searchParams.set('state', 'in.(dead,retry)')
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: { ...opsHeaders(), prefer: 'return=representation' },
+      body: JSON.stringify({
+        state: 'queued', attempts: 0, lease_until: null,
+        next_run_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }),
+    })
+    if (!response.ok) return false
+    return ((await response.json()) as unknown[]).length > 0
+  } catch { return false }
+}
 
 /**
  * 결제 흐름에서 부른다. 큐가 없거나 실패해도 **던지지 않는다** — 작업을 못 넣은 것이
@@ -58,8 +83,9 @@ export async function enqueueOpsJob(params: EnqueueOpsJobParams): Promise<Enqueu
       }),
     })
     if (response.ok) return 'queued'
-    // 23505 = unique_violation. 같은 작업이 이미 큐에 있다는 뜻이라 정상이다.
-    if (response.status === 409) return 'duplicate'
+    // 23505 = unique_violation. 같은 키의 작업이 이미 있다는 뜻이다. 그게 끝나지 않은 채
+    // 멈춰 있으면(dead·retry) 다시 태우고, 아니면 그대로 둔다.
+    if (response.status === 409) return await reviveStalledJob(params.idempotencyKey) ? 'requeued' : 'duplicate'
     return 'unavailable'
   } catch {
     return 'unavailable'

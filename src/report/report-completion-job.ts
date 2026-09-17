@@ -95,6 +95,7 @@ export async function runReportCompletionJob(reportId: string): Promise<ReportCo
 export interface BackfillOutcome {
   scanned: number
   queued: number
+  requeued: number
   duplicate: number
   unavailable: number
 }
@@ -108,10 +109,11 @@ export interface BackfillOutcome {
  */
 export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
   const ids = await listIncompleteReportIds(limit)
-  const outcome: BackfillOutcome = { scanned: ids.length, queued: 0, duplicate: 0, unavailable: 0 }
+  const outcome: BackfillOutcome = { scanned: ids.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
   for (const reportId of ids) {
     const result = await enqueueReportCompletion({ reportId })
     if (result === 'queued') outcome.queued += 1
+    else if (result === 'requeued') outcome.requeued += 1
     else if (result === 'duplicate') outcome.duplicate += 1
     else outcome.unavailable += 1
   }

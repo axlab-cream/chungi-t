@@ -2013,7 +2013,21 @@ app.get('/api/admin/v1/search', async (req, res) => {
 app.get('/api/cron/ops', async (req, res) => {
   const secret = String(process.env.CRON_SECRET ?? '')
   if (!secret || req.header('authorization') !== `Bearer ${secret}`) { res.status(401).json({ error: 'Unauthorized' }); return }
-  try { res.json(await runOpsWorker()) }
+  try {
+    const worked = await runOpsWorker()
+    /*
+     * 큐가 비어 있으면 아직 안 끝난 리포트를 찾아 태운다.
+     *
+     * enqueueReportCompletion 은 결제 시점에만 걸린다. 큐 도입 이전 구매분, 그리고
+     * dead-letter 로 빠진 건은 사람이 관리자 화면에서 버튼을 눌러야만 돌아왔다 — 그
+     * 버튼을 아무도 누르지 않아 운영 계정 한 곳에서 12건이 멈춰 있었다(2026-09-17).
+     *
+     * 할 일이 없을 때만 훑어서 평소 실행에는 부담을 주지 않는다. enqueue 는 멱등이라
+     * 이미 도는 건은 건드리지 않는다.
+     */
+    const backfill = worked.claimed === 0 ? await backfillReportCompletions(50).catch(() => undefined) : undefined
+    res.json({ ...worked, ...(backfill ? { backfill } : {}) })
+  }
   catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
 })
 app.get('/api/admin/v1/jobs', async (req, res) => {
