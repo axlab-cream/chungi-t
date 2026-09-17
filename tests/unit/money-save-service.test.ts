@@ -36,7 +36,8 @@ test('money save service builds a dedicated spending tendency report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '소비성향 해석문')
-  assert.equal(report.sections.length, 41)
+  // 2026-09-17 목차 축소: 8대분류·41중분류 → 8대분류·16중분류(대분류당 2개).
+  assert.equal(report.sections.length, 16)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '돈이 들어오는 방식',
     '돈이 새는 패턴',

@@ -821,963 +821,421 @@
       "next_route_pattern": "../06-step-6_1-report-detail/index.html?section={{section_id}}#step-6_1-report"
 }</script>
     <script type="application/json" id="REPORT_INDEX">{
-      "report_id": "save-report-index-v1",
-      "source": "user_seed",
-      "access_level": "paid_after_server_entitlement",
-      "detail_route_pattern": "../06-step-6_1-report-detail/index.html?section={{section_id}}#step-6_1-report",
-      "groups": [
-            {
-                  "group_id": "income-flow",
-                  "title": "돈이 들어오는 방식",
-                  "summary": "내 돈의 입구가 월급형인지, 기회형인지, 생산형인지 먼저 나눕니다.",
-                  "visual_key": "수입",
-                  "sections": [
-                        {
-                              "section_id": "income-salary-stable",
-                              "title": "월급 안정러",
-                              "preview": "정재·정관형, 고정수입과 계약에는 강하지만 기회 확장은 느릴 수 있음",
-                              "evidence_ids": [
-                                    "item-12-p1-0041",
-                                    "item-12-p1-0057"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-salary-stable#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "월급 안정러"
-                              ]
-                        },
-                        {
-                              "section_id": "income-side-hustle",
-                              "title": "N잡 기회러",
-                              "preview": "편재형, 돈 들어올 구멍도 많지만 나갈 구멍도 같이 커짐",
-                              "evidence_ids": [
-                                    "item-12-p1-0033",
-                                    "item-12-p1-0009"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-side-hustle#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "N잡 기회러"
-                              ]
-                        },
-                        {
-                              "section_id": "income-steady-maker",
-                              "title": "꾸준 생산러",
-                              "preview": "식신형, 한방보다 루틴·콘텐츠·결과물로 돈을 만듦",
-                              "evidence_ids": [
-                                    "item-12-p1-0017"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-steady-maker#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "꾸준 생산러"
-                              ]
-                        },
-                        {
-                              "section_id": "income-idea-runner",
-                              "title": "아이디어 과속러",
-                              "preview": "상관형, 기획은 빠른데 마감 전에 새 판을 열기 쉬움",
-                              "evidence_ids": [
-                                    "item-12-p1-0025"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-idea-runner#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "아이디어 과속러"
-                              ]
-                        },
-                        {
-                              "section_id": "income-pressure-breaker",
-                              "title": "책임 돌파러",
-                              "preview": "편관형, 압박 속에서 크게 움직이지만 부담도 크게 남을 수 있음",
-                              "evidence_ids": [
-                                    "item-12-p1-0049"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-pressure-breaker#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "책임 돌파러"
-                              ]
-                        },
-                        {
-                              "section_id": "income-learning-investor",
-                              "title": "배움 투자러",
-                              "preview": "정인·편인형, 공부·자격·아이디어는 강하지만 실행 칸이 비기 쉬움",
-                              "evidence_ids": [
-                                    "item-12-p1-0073",
-                                    "item-12-p1-0065"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-learning-investor#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "배움 투자러"
-                              ]
-                        },
-                        {
-                              "section_id": "income-peer-share",
-                              "title": "같이 벌고 같이 쓰는 타입",
-                              "preview": "비견·겁재형, 협업·경쟁·분배 이슈가 돈 흐름에 영향",
-                              "evidence_ids": [
-                                    "item-12-p1-0001",
-                                    "item-12-p1-0009"
-                              ],
-                              "visual_key": "수입",
-                              "route": "../06-step-6_1-report-detail/index.html?section=income-peer-share#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "수입",
-                                    "월급",
-                                    "N잡",
-                                    "프로젝트",
-                                    "루틴",
-                                    "아이디어",
-                                    "책임",
-                                    "배움",
-                                    "같이 벌기",
-                                    "같이 벌고 같이 쓰는 타입"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "money-leak",
-                  "title": "돈이 새는 패턴",
-                  "summary": "통장에 남지 않는 지점을 감정, 관계, 체면, 준비비로 쪼개 봅니다.",
-                  "visual_key": "지출",
-                  "sections": [
-                        {
-                              "section_id": "leak-account-logout",
-                              "title": "통장 로그아웃형",
-                              "preview": "들어오자마자 지출·정산·약속으로 흩어짐",
-                              "evidence_ids": [
-                                    "item-12-p1-0009",
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "지출",
-                              "route": "../06-step-6_1-report-detail/index.html?section=leak-account-logout#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "지출",
-                                    "카드",
-                                    "쇼핑",
-                                    "정산",
-                                    "체면",
-                                    "비교",
-                                    "배움비",
-                                    "구독",
-                                    "통장 로그아웃형"
-                              ]
-                        },
-                        {
-                              "section_id": "leak-flex-overheat",
-                              "title": "플렉스 과열형",
-                              "preview": "화 기운·편재/겁재 흐름, 기분과 속도 때문에 소비가 커짐",
-                              "evidence_ids": [
-                                    "item-12-p1-0033",
-                                    "item-12-p1-0009"
-                              ],
-                              "visual_key": "지출",
-                              "route": "../06-step-6_1-report-detail/index.html?section=leak-flex-overheat#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "지출",
-                                    "카드",
-                                    "쇼핑",
-                                    "정산",
-                                    "체면",
-                                    "비교",
-                                    "배움비",
-                                    "구독",
-                                    "플렉스 과열형"
-                              ]
-                        },
-                        {
-                              "section_id": "leak-comparison",
-                              "title": "비교 소비형",
-                              "preview": "신금/정화 계열, 감정·취향·비교가 지출로 연결됨",
-                              "evidence_ids": [
-                                    "item-12-p1-0025",
-                                    "item-14-p1-0013"
-                              ],
-                              "visual_key": "지출",
-                              "route": "../06-step-6_1-report-detail/index.html?section=leak-comparison#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "지출",
-                                    "카드",
-                                    "쇼핑",
-                                    "정산",
-                                    "체면",
-                                    "비교",
-                                    "배움비",
-                                    "구독",
-                                    "비교 소비형"
-                              ]
-                        },
-                        {
-                              "section_id": "leak-face-payment",
-                              "title": "체면 결제형",
-                              "preview": "경금·정관 계열, 자존심·역할·체면 때문에 돈이 나감",
-                              "evidence_ids": [
-                                    "item-12-p1-0057",
-                                    "item-14-p1-0013"
-                              ],
-                              "visual_key": "지출",
-                              "route": "../06-step-6_1-report-detail/index.html?section=leak-face-payment#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "지출",
-                                    "카드",
-                                    "쇼핑",
-                                    "정산",
-                                    "체면",
-                                    "비교",
-                                    "배움비",
-                                    "구독",
-                                    "체면 결제형"
-                              ]
-                        },
-                        {
-                              "section_id": "leak-learning-cost",
-                              "title": "배움비 폭주형",
-                              "preview": "인성 계열, 강의·장비·자격·준비 비용이 커짐",
-                              "evidence_ids": [
-                                    "item-12-p1-0073",
-                                    "item-12-p1-0065"
-                              ],
-                              "visual_key": "지출",
-                              "route": "../06-step-6_1-report-detail/index.html?section=leak-learning-cost#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "지출",
-                                    "카드",
-                                    "쇼핑",
-                                    "정산",
-                                    "체면",
-                                    "비교",
-                                    "배움비",
-                                    "구독",
-                                    "배움비 폭주형"
-                              ]
-                        },
-                        {
-                              "section_id": "leak-relationship-blur",
-                              "title": "관계 정산 흐림형",
-                              "preview": "비견·겁재 계열, 친구·연인·동료와 돈 경계가 흐려짐",
-                              "evidence_ids": [
-                                    "item-12-p1-0001",
-                                    "item-12-p1-0009",
-                                    "item-23-qa-0010"
-                              ],
-                              "visual_key": "지출",
-                              "route": "../06-step-6_1-report-detail/index.html?section=leak-relationship-blur#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "지출",
-                                    "카드",
-                                    "쇼핑",
-                                    "정산",
-                                    "체면",
-                                    "비교",
-                                    "배움비",
-                                    "구독",
-                                    "관계 정산 흐림형"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "saving-blocker",
-                  "title": "저축이 안 되는 이유",
-                  "summary": "남는 돈이 없는 이유를 의지보다 구조와 예외 규칙에서 찾습니다.",
-                  "visual_key": "저축",
-                  "sections": [
-                        {
-                              "section_id": "saving-no-structure",
-                              "title": "모으는 구조 부재",
-                              "preview": "얼마를 남길지가 숫자로 고정되지 않음",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "저축",
-                              "route": "../06-step-6_1-report-detail/index.html?section=saving-no-structure#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "저축",
-                                    "예산",
-                                    "통장",
-                                    "자동화",
-                                    "계획",
-                                    "구조",
-                                    "예외",
-                                    "모으는 구조 부재"
-                              ]
-                        },
-                        {
-                              "section_id": "saving-income-outgoing-mixed",
-                              "title": "받을 돈/줄 돈 미분리",
-                              "preview": "수입·지출·계약을 한 덩어리로 봄",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "저축",
-                              "route": "../06-step-6_1-report-detail/index.html?section=saving-income-outgoing-mixed#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "저축",
-                                    "예산",
-                                    "통장",
-                                    "자동화",
-                                    "계획",
-                                    "구조",
-                                    "예외",
-                                    "받을 돈/줄 돈 미분리"
-                              ]
-                        },
-                        {
-                              "section_id": "saving-exception-budget",
-                              "title": "예외가 많은 예산",
-                              "preview": "가능한 범위보다 이번만이 자주 열림",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "저축",
-                              "route": "../06-step-6_1-report-detail/index.html?section=saving-exception-budget#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "저축",
-                                    "예산",
-                                    "통장",
-                                    "자동화",
-                                    "계획",
-                                    "구조",
-                                    "예외",
-                                    "예외가 많은 예산"
-                              ]
-                        },
-                        {
-                              "section_id": "saving-plan-over-action",
-                              "title": "실행보다 계획 과다",
-                              "preview": "아이디어는 많은데 자동화·마감·루틴이 약함",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "저축",
-                              "route": "../06-step-6_1-report-detail/index.html?section=saving-plan-over-action#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "저축",
-                                    "예산",
-                                    "통장",
-                                    "자동화",
-                                    "계획",
-                                    "구조",
-                                    "예외",
-                                    "실행보다 계획 과다"
-                              ]
-                        },
-                        {
-                              "section_id": "saving-stability-illusion",
-                              "title": "안정 착시",
-                              "preview": "정재형이어도 안전해 보여 확인을 멈추면 돈이 샘",
-                              "evidence_ids": [
-                                    "item-12-p1-0041"
-                              ],
-                              "visual_key": "저축",
-                              "route": "../06-step-6_1-report-detail/index.html?section=saving-stability-illusion#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "저축",
-                                    "예산",
-                                    "통장",
-                                    "자동화",
-                                    "계획",
-                                    "구조",
-                                    "예외",
-                                    "안정 착시"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "saju-strength",
-                  "title": "사주 균형과 관리 방식",
-                  "summary": "내가 돈관리를 밀어붙이는 타입인지, 지원과 순서가 필요한 타입인지 봅니다.",
-                  "visual_key": "체력",
-                  "sections": [
-                        {
-                              "section_id": "strength-strong",
-                              "title": "신강형 돈관리",
-                              "preview": "혼자 다 하려다 속도·고집·위임 부족으로 새는 구조",
-                              "evidence_ids": [
-                                    "item-13-p1-0001"
-                              ],
-                              "visual_key": "체력",
-                              "route": "../06-step-6_1-report-detail/index.html?section=strength-strong#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "신강",
-                                    "신약",
-                                    "중화",
-                                    "체력",
-                                    "위임",
-                                    "리듬",
-                                    "신강형 돈관리"
-                              ]
-                        },
-                        {
-                              "section_id": "strength-weak",
-                              "title": "신약형 돈관리",
-                              "preview": "큰 판보다 지원·리듬·순서가 먼저 필요한 구조",
-                              "evidence_ids": [
-                                    "item-13-p1-0009"
-                              ],
-                              "visual_key": "체력",
-                              "route": "../06-step-6_1-report-detail/index.html?section=strength-weak#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "신강",
-                                    "신약",
-                                    "중화",
-                                    "체력",
-                                    "위임",
-                                    "리듬",
-                                    "신약형 돈관리"
-                              ]
-                        },
-                        {
-                              "section_id": "strength-balanced",
-                              "title": "중화형 돈관리",
-                              "preview": "과한 처방보다 지금 치우친 한 축만 잡는 구조",
-                              "evidence_ids": [
-                                    "item-13-p1-0017"
-                              ],
-                              "visual_key": "체력",
-                              "route": "../06-step-6_1-report-detail/index.html?section=strength-balanced#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "신강",
-                                    "신약",
-                                    "중화",
-                                    "체력",
-                                    "위임",
-                                    "리듬",
-                                    "중화형 돈관리"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "ohaeng-os",
-                  "title": "오행 기반 돈관리 OS",
-                  "summary": "목·화·토·금·수의 치우침을 생활 속 돈관리 방식으로 번역합니다.",
-                  "visual_key": "오행",
-                  "sections": [
-                        {
-                              "section_id": "ohaeng-wood",
-                              "title": "목",
-                              "preview": "시작·확장형, 과하면 판이 많아지고 부족하면 시작이 늦음",
-                              "evidence_ids": [
-                                    "item-14-p1-0001"
-                              ],
-                              "visual_key": "오행",
-                              "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-wood#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "오행",
-                                    "목",
-                                    "화",
-                                    "토",
-                                    "금",
-                                    "수",
-                                    "OS",
-                                    "목"
-                              ]
-                        },
-                        {
-                              "section_id": "ohaeng-fire",
-                              "title": "화",
-                              "preview": "표현·가시성형, 과하면 충동/과열, 부족하면 홍보·표현이 약함",
-                              "evidence_ids": [
-                                    "item-14-p1-0005"
-                              ],
-                              "visual_key": "오행",
-                              "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-fire#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "오행",
-                                    "목",
-                                    "화",
-                                    "토",
-                                    "금",
-                                    "수",
-                                    "OS",
-                                    "화"
-                              ]
-                        },
-                        {
-                              "section_id": "ohaeng-earth",
-                              "title": "토",
-                              "preview": "안정·정리형, 과하면 걱정/정체, 부족하면 중심과 루틴이 약함",
-                              "evidence_ids": [
-                                    "item-14-p1-0009"
-                              ],
-                              "visual_key": "오행",
-                              "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-earth#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "오행",
-                                    "목",
-                                    "화",
-                                    "토",
-                                    "금",
-                                    "수",
-                                    "OS",
-                                    "토"
-                              ]
-                        },
-                        {
-                              "section_id": "ohaeng-metal",
-                              "title": "금",
-                              "preview": "기준·마감형, 과하면 너무 자르고 부족하면 마감·예산선이 흐림",
-                              "evidence_ids": [
-                                    "item-14-p1-0013"
-                              ],
-                              "visual_key": "오행",
-                              "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-metal#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "오행",
-                                    "목",
-                                    "화",
-                                    "토",
-                                    "금",
-                                    "수",
-                                    "OS",
-                                    "금"
-                              ]
-                        },
-                        {
-                              "section_id": "ohaeng-water",
-                              "title": "수",
-                              "preview": "흐름·휴식형, 과하면 생각이 길고 부족하면 회복·정리 시간이 부족함",
-                              "evidence_ids": [
-                                    "item-14-p1-0017"
-                              ],
-                              "visual_key": "오행",
-                              "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-water#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "오행",
-                                    "목",
-                                    "화",
-                                    "토",
-                                    "금",
-                                    "수",
-                                    "OS",
-                                    "수"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "timing",
-                  "title": "운의 타이밍",
-                  "summary": "올해, 이번 달, 오늘의 돈 이슈를 한 번에 섞지 않고 순서대로 봅니다.",
-                  "visual_key": "시기",
-                  "sections": [
-                        {
-                              "section_id": "timing-daeun-start",
-                              "title": "대운 초입",
-                              "preview": "익숙한 돈벌이 판이 흔들리는 리셋 구간",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "시기",
-                              "route": "../06-step-6_1-report-detail/index.html?section=timing-daeun-start#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "대운",
-                                    "세운",
-                                    "월운",
-                                    "오늘",
-                                    "타이밍",
-                                    "올해",
-                                    "대운 초입"
-                              ]
-                        },
-                        {
-                              "section_id": "timing-daeun-middle",
-                              "title": "대운 중반",
-                              "preview": "새로 벌리기보다 열린 일을 세 개 이하로 줄이는 구간",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "시기",
-                              "route": "../06-step-6_1-report-detail/index.html?section=timing-daeun-middle#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "대운",
-                                    "세운",
-                                    "월운",
-                                    "오늘",
-                                    "타이밍",
-                                    "올해",
-                                    "대운 중반"
-                              ]
-                        },
-                        {
-                              "section_id": "timing-daeun-end",
-                              "title": "대운 말기",
-                              "preview": "정리·넘김·회수·마감이 중요한 구간",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "시기",
-                              "route": "../06-step-6_1-report-detail/index.html?section=timing-daeun-end#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "대운",
-                                    "세운",
-                                    "월운",
-                                    "오늘",
-                                    "타이밍",
-                                    "올해",
-                                    "대운 말기"
-                              ]
-                        },
-                        {
-                              "section_id": "timing-year",
-                              "title": "세운",
-                              "preview": "올해 돈의 테마, 대운과 겹쳐서 해석해야 함",
-                              "evidence_ids": [
-                                    "item-22-p1-0001"
-                              ],
-                              "visual_key": "시기",
-                              "route": "../06-step-6_1-report-detail/index.html?section=timing-year#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "대운",
-                                    "세운",
-                                    "월운",
-                                    "오늘",
-                                    "타이밍",
-                                    "올해",
-                                    "세운"
-                              ]
-                        },
-                        {
-                              "section_id": "timing-month",
-                              "title": "월운",
-                              "preview": "이번 달 받을 돈·해야 할 일·약속 조건을 정리하는 구간",
-                              "evidence_ids": [
-                                    "item-21-qa-0009"
-                              ],
-                              "visual_key": "시기",
-                              "route": "../06-step-6_1-report-detail/index.html?section=timing-month#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "대운",
-                                    "세운",
-                                    "월운",
-                                    "오늘",
-                                    "타이밍",
-                                    "올해",
-                                    "월운"
-                              ]
-                        },
-                        {
-                              "section_id": "timing-today",
-                              "title": "오늘 운",
-                              "preview": "수입·지출·계약 중 오늘 하나만 먼저 보는 구간",
-                              "evidence_ids": [
-                                    "item-24-p1-0001"
-                              ],
-                              "visual_key": "시기",
-                              "route": "../06-step-6_1-report-detail/index.html?section=timing-today#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "대운",
-                                    "세운",
-                                    "월운",
-                                    "오늘",
-                                    "타이밍",
-                                    "올해",
-                                    "오늘 운"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "relationship-contract",
-                  "title": "관계/계약 돈문제",
-                  "summary": "돈이 사람 사이에서 흐려지는 순간을 기록, 거절, 공유 범위로 정리합니다.",
-                  "visual_key": "관계",
-                  "sections": [
-                        {
-                              "section_id": "relation-friend-lover-mix",
-                              "title": "친구·연인 돈 섞임",
-                              "preview": "가까운 사람과 돈 경계가 흐려지는 이슈",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "관계",
-                              "route": "../06-step-6_1-report-detail/index.html?section=relation-friend-lover-mix#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "관계",
-                                    "계약",
-                                    "더치",
-                                    "친구",
-                                    "연인",
-                                    "기한",
-                                    "금액",
-                                    "거절",
-                                    "친구·연인 돈 섞임"
-                              ]
-                        },
-                        {
-                              "section_id": "relation-shared-cost",
-                              "title": "공동비용·더치 정산 이슈",
-                              "preview": "같이 쓴 돈의 기준과 타이밍이 어긋나는 이슈",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "관계",
-                              "route": "../06-step-6_1-report-detail/index.html?section=relation-shared-cost#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "관계",
-                                    "계약",
-                                    "더치",
-                                    "친구",
-                                    "연인",
-                                    "기한",
-                                    "금액",
-                                    "거절",
-                                    "공동비용·더치 정산 이슈"
-                              ]
-                        },
-                        {
-                              "section_id": "relation-unwritten-condition",
-                              "title": "금액·기한·책임범위 미기록",
-                              "preview": "좋게 넘어간 조건이 뒤에 부담으로 남는 이슈",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "관계",
-                              "route": "../06-step-6_1-report-detail/index.html?section=relation-unwritten-condition#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "관계",
-                                    "계약",
-                                    "더치",
-                                    "친구",
-                                    "연인",
-                                    "기한",
-                                    "금액",
-                                    "거절",
-                                    "금액·기한·책임범위 미기록"
-                              ]
-                        },
-                        {
-                              "section_id": "relation-no-refusal-line",
-                              "title": "거절 문장 부재",
-                              "preview": "미리 정한 말이 없어 결제가 밀리는 이슈",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "관계",
-                              "route": "../06-step-6_1-report-detail/index.html?section=relation-no-refusal-line#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "관계",
-                                    "계약",
-                                    "더치",
-                                    "친구",
-                                    "연인",
-                                    "기한",
-                                    "금액",
-                                    "거절",
-                                    "거절 문장 부재"
-                              ]
-                        },
-                        {
-                              "section_id": "relation-short-share",
-                              "title": "믿을 사람에게만 짧게 공유해야 하는 이슈",
-                              "preview": "돈 고민을 넓게 풀어놓지 않고 안전하게 확인하는 이슈",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "관계",
-                              "route": "../06-step-6_1-report-detail/index.html?section=relation-short-share#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "관계",
-                                    "계약",
-                                    "더치",
-                                    "친구",
-                                    "연인",
-                                    "기한",
-                                    "금액",
-                                    "거절",
-                                    "믿을 사람에게만 짧게 공유해야 하는 이슈"
-                              ]
-                        }
-                  ]
-            },
-            {
-                  "group_id": "expanded-reading",
-                  "title": "확장 풀이",
-                  "summary": "필요할 때 자미두수와 공간 힌트를 보조 레이어로만 더합니다.",
-                  "visual_key": "확장",
-                  "sections": [
-                        {
-                              "section_id": "expand-ziwei-wealth",
-                              "title": "자미두수 재백궁",
-                              "preview": "수입 방식·소비 습관·돈 감각",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "확장",
-                              "route": "../06-step-6_1-report-detail/index.html?section=expand-ziwei-wealth#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "자미두수",
-                                    "재백궁",
-                                    "관록궁",
-                                    "전택궁",
-                                    "공간",
-                                    "풍수",
-                                    "자미두수 재백궁"
-                              ]
-                        },
-                        {
-                              "section_id": "expand-ziwei-career",
-                              "title": "자미두수 관록궁",
-                              "preview": "직업·역할·책임과 수입 연결",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "확장",
-                              "route": "../06-step-6_1-report-detail/index.html?section=expand-ziwei-career#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "자미두수",
-                                    "재백궁",
-                                    "관록궁",
-                                    "전택궁",
-                                    "공간",
-                                    "풍수",
-                                    "자미두수 관록궁"
-                              ]
-                        },
-                        {
-                              "section_id": "expand-ziwei-property",
-                              "title": "자미두수 전택궁",
-                              "preview": "쌓인 자산·주거·가족 자산",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "확장",
-                              "route": "../06-step-6_1-report-detail/index.html?section=expand-ziwei-property#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "자미두수",
-                                    "재백궁",
-                                    "관록궁",
-                                    "전택궁",
-                                    "공간",
-                                    "풍수",
-                                    "자미두수 전택궁"
-                              ]
-                        },
-                        {
-                              "section_id": "expand-fengshui",
-                              "title": "풍수/공간 보조",
-                              "preview": "현관·책상·동선·사업장 흐름을 돈 보장이 아니라 생활 정돈 힌트로 사용",
-                              "evidence_ids": [
-                                    "item-23-qa-0006"
-                              ],
-                              "visual_key": "확장",
-                              "route": "../06-step-6_1-report-detail/index.html?section=expand-fengshui#step-6_1-report",
-                              "status": "ready",
-                              "keywords": [
-                                    "자미두수",
-                                    "재백궁",
-                                    "관록궁",
-                                    "전택궁",
-                                    "공간",
-                                    "풍수",
-                                    "풍수/공간 보조"
-                              ]
-                        }
-                  ]
-            }
+  "report_id": "save-report-index-v1",
+  "source": "user_seed",
+  "access_level": "paid_after_server_entitlement",
+  "detail_route_pattern": "../06-step-6_1-report-detail/index.html?section={{section_id}}#step-6_1-report",
+  "groups": [
+    {
+      "group_id": "income-flow",
+      "title": "돈이 들어오는 방식",
+      "summary": "내 돈의 입구가 월급형인지, 기회형인지, 생산형인지 먼저 나눕니다.",
+      "visual_key": "수입",
+      "sections": [
+        {
+          "section_id": "income-salary-stable",
+          "title": "월급 안정러",
+          "preview": "정재·정관형, 고정수입과 계약에는 강하지만 기회 확장은 느릴 수 있음",
+          "evidence_ids": [
+            "item-12-p1-0041",
+            "item-12-p1-0057"
+          ],
+          "visual_key": "수입",
+          "route": "../06-step-6_1-report-detail/index.html?section=income-salary-stable#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "수입",
+            "월급",
+            "N잡",
+            "프로젝트",
+            "루틴",
+            "아이디어",
+            "책임",
+            "배움",
+            "같이 벌기",
+            "월급 안정러"
+          ]
+        },
+        {
+          "section_id": "income-peer-share",
+          "title": "같이 벌고 같이 쓰는 타입",
+          "preview": "비견·겁재형, 협업·경쟁·분배 이슈가 돈 흐름에 영향",
+          "evidence_ids": [
+            "item-12-p1-0001",
+            "item-12-p1-0009"
+          ],
+          "visual_key": "수입",
+          "route": "../06-step-6_1-report-detail/index.html?section=income-peer-share#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "수입",
+            "월급",
+            "N잡",
+            "프로젝트",
+            "루틴",
+            "아이디어",
+            "책임",
+            "배움",
+            "같이 벌기",
+            "같이 벌고 같이 쓰는 타입"
+          ]
+        }
       ]
+    },
+    {
+      "group_id": "money-leak",
+      "title": "돈이 새는 패턴",
+      "summary": "통장에 남지 않는 지점을 감정, 관계, 체면, 준비비로 쪼개 봅니다.",
+      "visual_key": "지출",
+      "sections": [
+        {
+          "section_id": "leak-account-logout",
+          "title": "통장 로그아웃형",
+          "preview": "들어오자마자 지출·정산·약속으로 흩어짐",
+          "evidence_ids": [
+            "item-12-p1-0009",
+            "item-23-qa-0006"
+          ],
+          "visual_key": "지출",
+          "route": "../06-step-6_1-report-detail/index.html?section=leak-account-logout#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "지출",
+            "카드",
+            "쇼핑",
+            "정산",
+            "체면",
+            "비교",
+            "배움비",
+            "구독",
+            "통장 로그아웃형"
+          ]
+        },
+        {
+          "section_id": "leak-flex-overheat",
+          "title": "플렉스 과열형",
+          "preview": "화 기운·편재/겁재 흐름, 기분과 속도 때문에 소비가 커짐",
+          "evidence_ids": [
+            "item-12-p1-0033",
+            "item-12-p1-0009"
+          ],
+          "visual_key": "지출",
+          "route": "../06-step-6_1-report-detail/index.html?section=leak-flex-overheat#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "지출",
+            "카드",
+            "쇼핑",
+            "정산",
+            "체면",
+            "비교",
+            "배움비",
+            "구독",
+            "플렉스 과열형"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "saving-blocker",
+      "title": "저축이 안 되는 이유",
+      "summary": "남는 돈이 없는 이유를 의지보다 구조와 예외 규칙에서 찾습니다.",
+      "visual_key": "저축",
+      "sections": [
+        {
+          "section_id": "saving-no-structure",
+          "title": "모으는 구조 부재",
+          "preview": "얼마를 남길지가 숫자로 고정되지 않음",
+          "evidence_ids": [
+            "item-23-qa-0006"
+          ],
+          "visual_key": "저축",
+          "route": "../06-step-6_1-report-detail/index.html?section=saving-no-structure#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "저축",
+            "예산",
+            "통장",
+            "자동화",
+            "계획",
+            "구조",
+            "예외",
+            "모으는 구조 부재"
+          ]
+        },
+        {
+          "section_id": "saving-stability-illusion",
+          "title": "안정 착시",
+          "preview": "정재형이어도 안전해 보여 확인을 멈추면 돈이 샘",
+          "evidence_ids": [
+            "item-12-p1-0041"
+          ],
+          "visual_key": "저축",
+          "route": "../06-step-6_1-report-detail/index.html?section=saving-stability-illusion#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "저축",
+            "예산",
+            "통장",
+            "자동화",
+            "계획",
+            "구조",
+            "예외",
+            "안정 착시"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "saju-strength",
+      "title": "사주 균형과 관리 방식",
+      "summary": "내가 돈관리를 밀어붙이는 타입인지, 지원과 순서가 필요한 타입인지 봅니다.",
+      "visual_key": "체력",
+      "sections": [
+        {
+          "section_id": "strength-strong",
+          "title": "신강형 돈관리",
+          "preview": "혼자 다 하려다 속도·고집·위임 부족으로 새는 구조",
+          "evidence_ids": [
+            "item-13-p1-0001"
+          ],
+          "visual_key": "체력",
+          "route": "../06-step-6_1-report-detail/index.html?section=strength-strong#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "신강",
+            "신약",
+            "중화",
+            "체력",
+            "위임",
+            "리듬",
+            "신강형 돈관리"
+          ]
+        },
+        {
+          "section_id": "strength-weak",
+          "title": "신약형 돈관리",
+          "preview": "큰 판보다 지원·리듬·순서가 먼저 필요한 구조",
+          "evidence_ids": [
+            "item-13-p1-0009"
+          ],
+          "visual_key": "체력",
+          "route": "../06-step-6_1-report-detail/index.html?section=strength-weak#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "신강",
+            "신약",
+            "중화",
+            "체력",
+            "위임",
+            "리듬",
+            "신약형 돈관리"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "ohaeng-os",
+      "title": "오행 기반 돈관리 OS",
+      "summary": "목·화·토·금·수의 치우침을 생활 속 돈관리 방식으로 번역합니다.",
+      "visual_key": "오행",
+      "sections": [
+        {
+          "section_id": "ohaeng-wood",
+          "title": "목",
+          "preview": "시작·확장형, 과하면 판이 많아지고 부족하면 시작이 늦음",
+          "evidence_ids": [
+            "item-14-p1-0001"
+          ],
+          "visual_key": "오행",
+          "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-wood#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "오행",
+            "목",
+            "화",
+            "토",
+            "금",
+            "수",
+            "OS",
+            "목"
+          ]
+        },
+        {
+          "section_id": "ohaeng-water",
+          "title": "수",
+          "preview": "흐름·휴식형, 과하면 생각이 길고 부족하면 회복·정리 시간이 부족함",
+          "evidence_ids": [
+            "item-14-p1-0017"
+          ],
+          "visual_key": "오행",
+          "route": "../06-step-6_1-report-detail/index.html?section=ohaeng-water#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "오행",
+            "목",
+            "화",
+            "토",
+            "금",
+            "수",
+            "OS",
+            "수"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "timing",
+      "title": "운의 타이밍",
+      "summary": "올해, 이번 달, 오늘의 돈 이슈를 한 번에 섞지 않고 순서대로 봅니다.",
+      "visual_key": "시기",
+      "sections": [
+        {
+          "section_id": "timing-year",
+          "title": "세운",
+          "preview": "올해 돈의 테마, 대운과 겹쳐서 해석해야 함",
+          "evidence_ids": [
+            "item-22-p1-0001"
+          ],
+          "visual_key": "시기",
+          "route": "../06-step-6_1-report-detail/index.html?section=timing-year#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "대운",
+            "세운",
+            "월운",
+            "오늘",
+            "타이밍",
+            "올해",
+            "세운"
+          ]
+        },
+        {
+          "section_id": "timing-today",
+          "title": "오늘 운",
+          "preview": "수입·지출·계약 중 오늘 하나만 먼저 보는 구간",
+          "evidence_ids": [
+            "item-24-p1-0001"
+          ],
+          "visual_key": "시기",
+          "route": "../06-step-6_1-report-detail/index.html?section=timing-today#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "대운",
+            "세운",
+            "월운",
+            "오늘",
+            "타이밍",
+            "올해",
+            "오늘 운"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "relationship-contract",
+      "title": "관계/계약 돈문제",
+      "summary": "돈이 사람 사이에서 흐려지는 순간을 기록, 거절, 공유 범위로 정리합니다.",
+      "visual_key": "관계",
+      "sections": [
+        {
+          "section_id": "relation-friend-lover-mix",
+          "title": "친구·연인 돈 섞임",
+          "preview": "가까운 사람과 돈 경계가 흐려지는 이슈",
+          "evidence_ids": [
+            "item-23-qa-0006"
+          ],
+          "visual_key": "관계",
+          "route": "../06-step-6_1-report-detail/index.html?section=relation-friend-lover-mix#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "관계",
+            "계약",
+            "더치",
+            "친구",
+            "연인",
+            "기한",
+            "금액",
+            "거절",
+            "친구·연인 돈 섞임"
+          ]
+        },
+        {
+          "section_id": "relation-no-refusal-line",
+          "title": "거절 문장 부재",
+          "preview": "미리 정한 말이 없어 결제가 밀리는 이슈",
+          "evidence_ids": [
+            "item-23-qa-0006"
+          ],
+          "visual_key": "관계",
+          "route": "../06-step-6_1-report-detail/index.html?section=relation-no-refusal-line#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "관계",
+            "계약",
+            "더치",
+            "친구",
+            "연인",
+            "기한",
+            "금액",
+            "거절",
+            "거절 문장 부재"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "expanded-reading",
+      "title": "확장 풀이",
+      "summary": "필요할 때 자미두수와 공간 힌트를 보조 레이어로만 더합니다.",
+      "visual_key": "확장",
+      "sections": [
+        {
+          "section_id": "expand-ziwei-wealth",
+          "title": "자미두수 재백궁",
+          "preview": "수입 방식·소비 습관·돈 감각",
+          "evidence_ids": [
+            "item-23-qa-0006"
+          ],
+          "visual_key": "확장",
+          "route": "../06-step-6_1-report-detail/index.html?section=expand-ziwei-wealth#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "자미두수",
+            "재백궁",
+            "관록궁",
+            "전택궁",
+            "공간",
+            "풍수",
+            "자미두수 재백궁"
+          ]
+        },
+        {
+          "section_id": "expand-fengshui",
+          "title": "풍수/공간 보조",
+          "preview": "현관·책상·동선·사업장 흐름을 돈 보장이 아니라 생활 정돈 힌트로 사용",
+          "evidence_ids": [
+            "item-23-qa-0006"
+          ],
+          "visual_key": "확장",
+          "route": "../06-step-6_1-report-detail/index.html?section=expand-fengshui#step-6_1-report",
+          "status": "ready",
+          "keywords": [
+            "자미두수",
+            "재백궁",
+            "관록궁",
+            "전택궁",
+            "공간",
+            "풍수",
+            "풍수/공간 보조"
+          ]
+        }
+      ]
+    }
+  ]
 }</script>
     <script type="application/json" id="CHAT_STARTERS">{
-      "opening": "전체 결과는 8개 대분류와 41개 중분류로 정리해뒀어요. 먼저 걸리는 항목을 고르면 상세 풀이로 이어집니다.",
+      "opening": "전체 결과는 8개 대분류와 16개 중분류로 정리해뒀어요. 먼저 걸리는 항목을 고르면 상세 풀이로 이어집니다.",
       "suggestions": [
             "정산이 애매해요",
             "카드값이 안 잡혀요",

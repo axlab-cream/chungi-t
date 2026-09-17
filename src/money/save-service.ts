@@ -34,11 +34,6 @@ export const MONEY_SAVE_TOC = [
     title: '돈이 들어오는 방식',
     items: [
       { id: 'income-salary-stable', title: '월급 안정러' },
-      { id: 'income-side-hustle', title: 'N잡 기회러' },
-      { id: 'income-steady-maker', title: '꾸준 생산러' },
-      { id: 'income-idea-runner', title: '아이디어 과속러' },
-      { id: 'income-pressure-breaker', title: '책임 돌파러' },
-      { id: 'income-learning-investor', title: '배움 투자러' },
       { id: 'income-peer-share', title: '같이 벌고 같이 쓰는 타입' },
     ],
   },
@@ -50,10 +45,6 @@ export const MONEY_SAVE_TOC = [
     items: [
       { id: 'leak-account-logout', title: '통장 로그아웃형' },
       { id: 'leak-flex-overheat', title: '플렉스 과열형' },
-      { id: 'leak-comparison', title: '비교 소비형' },
-      { id: 'leak-face-payment', title: '체면 결제형' },
-      { id: 'leak-learning-cost', title: '배움비 폭주형' },
-      { id: 'leak-relationship-blur', title: '관계 정산 흐림형' },
     ],
   },
   {
@@ -63,9 +54,6 @@ export const MONEY_SAVE_TOC = [
     title: '저축이 안 되는 이유',
     items: [
       { id: 'saving-no-structure', title: '모으는 구조 부재' },
-      { id: 'saving-income-outgoing-mixed', title: '받을 돈/줄 돈 미분리' },
-      { id: 'saving-exception-budget', title: '예외가 많은 예산' },
-      { id: 'saving-plan-over-action', title: '실행보다 계획 과다' },
       { id: 'saving-stability-illusion', title: '안정 착시' },
     ],
   },
@@ -77,7 +65,6 @@ export const MONEY_SAVE_TOC = [
     items: [
       { id: 'strength-strong', title: '신강형 돈관리' },
       { id: 'strength-weak', title: '신약형 돈관리' },
-      { id: 'strength-balanced', title: '중화형 돈관리' },
     ],
   },
   {
@@ -87,9 +74,6 @@ export const MONEY_SAVE_TOC = [
     title: '오행 기반 돈관리 OS',
     items: [
       { id: 'ohaeng-wood', title: '목' },
-      { id: 'ohaeng-fire', title: '화' },
-      { id: 'ohaeng-earth', title: '토' },
-      { id: 'ohaeng-metal', title: '금' },
       { id: 'ohaeng-water', title: '수' },
     ],
   },
@@ -99,11 +83,7 @@ export const MONEY_SAVE_TOC = [
     tag: '시기',
     title: '운의 타이밍',
     items: [
-      { id: 'timing-daeun-start', title: '대운 초입' },
-      { id: 'timing-daeun-middle', title: '대운 중반' },
-      { id: 'timing-daeun-end', title: '대운 말기' },
       { id: 'timing-year', title: '세운' },
-      { id: 'timing-month', title: '월운' },
       { id: 'timing-today', title: '오늘 운' },
     ],
   },
@@ -114,10 +94,7 @@ export const MONEY_SAVE_TOC = [
     title: '관계/계약 돈문제',
     items: [
       { id: 'relation-friend-lover-mix', title: '친구·연인 돈 섞임' },
-      { id: 'relation-shared-cost', title: '공동비용·더치 정산 이슈' },
-      { id: 'relation-unwritten-condition', title: '금액·기한·책임범위 미기록' },
       { id: 'relation-no-refusal-line', title: '거절 문장 부재' },
-      { id: 'relation-short-share', title: '믿을 사람에게만 짧게 공유해야 하는 이슈' },
     ],
   },
   {
@@ -127,8 +104,6 @@ export const MONEY_SAVE_TOC = [
     title: '확장 풀이',
     items: [
       { id: 'expand-ziwei-wealth', title: '자미두수 재백궁' },
-      { id: 'expand-ziwei-career', title: '자미두수 관록궁' },
-      { id: 'expand-ziwei-property', title: '자미두수 전택궁' },
       { id: 'expand-fengshui', title: '풍수/공간 보조' },
     ],
   },
