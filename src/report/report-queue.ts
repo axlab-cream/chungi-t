@@ -12,6 +12,18 @@ interface GenerationParams {
   context: SajuReportContext
   owner?: ReportOwner
 }
+
+/**
+ * 실패로 굳은 섹션을 이어서 다시 만들지 여부.
+ *
+ * 화면에서 부르는 경로는 끈다 — 사용자가 「다시 생성하기」를 누른 것이 아닌데 조용히
+ * 다시 태우면 같은 실패를 반복하며 요금만 쓴다. 영속 큐에서 부를 때만 켠다. 큐는
+ * attempts·max_attempts 로 횟수를 제한하고 지수 백오프로 물러나므로, 몇 번까지
+ * 시도할지는 여기서 또 세지 않는다.
+ */
+export interface PreGenerationOptions {
+  recoverFailed?: boolean
+}
 const inFlightReports = new Map<string, Promise<ReportRecord | null>>()
 const LEASE_MS = 6 * 60_000
 
@@ -202,7 +214,7 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
   return latest?.report.sections.find((item) => item.id === params.sectionId) ?? storedSection
 }
 
-export async function preGenerateReport(params: GenerationParams): Promise<ReportRecord | null> {
+export async function preGenerateReport(params: GenerationParams, options: PreGenerationOptions = {}): Promise<ReportRecord | null> {
   const record = await getReportRecord(params.reportId, params.owner)
   if (!record) return null
   assertReportOwner(record, params.owner)
@@ -213,8 +225,14 @@ export async function preGenerateReport(params: GenerationParams): Promise<Repor
     try {
       for (const section of record.report.sections) {
         if (section.status === 'complete') continue
-        if (section.status === 'failed') break
-        const result = await generateReportSectionNow({ ...params, sectionId: section.id })
+        // 실패한 자리에서 멈추면 뒤의 목차는 영영 만들어지지 않는다. 큐가 부른 실행에서는
+        // 그 한 칸을 다시 시도해 보고, 또 실패하면 그때 멈춘다.
+        if (section.status === 'failed' && !options.recoverFailed) break
+        const result = await generateReportSectionNow({
+          ...params,
+          sectionId: section.id,
+          ...(section.status === 'failed' ? { retry: true } : {}),
+        })
         if (result.status !== 'complete') break
       }
       return await getReportRecord(params.reportId, params.owner)

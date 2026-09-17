@@ -420,6 +420,41 @@ export async function findReportRecord(id: string, owner?: ReportOwner): Promise
   return record ? cloneRecord(record) : null
 }
 
+/**
+ * 아직 끝나지 않은 리포트의 식별자만 모은다. 영속 큐에 다시 태우기 위한 것이라 본문은
+ * 읽지 않는다 — 백필 한 번에 수백 건의 해석 전문을 메모리에 올릴 이유가 없다.
+ *
+ * 큐가 도입되기 전에 만들어진 리포트는 작업이 없어서 스스로 이어지지 않는다. 2026-09-17
+ * 운영 계정 한 곳에서만 13건 중 12건이 미완성이었다.
+ */
+export async function listIncompleteReportIds(limit = 200): Promise<string[]> {
+  const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 200, 1), 500)
+  const incomplete = (record: ReportRecord) => record.status !== 'complete'
+
+  if (localFiles) {
+    return (await localFiles.list()).filter(incomplete)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit)
+      .map((record) => record.reportId)
+  }
+  if (storageMode() === 'memory') {
+    return Array.from(memoryReports.values()).filter(incomplete)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit)
+      .map((record) => record.reportId)
+  }
+  if (storageMode() !== 'supabase') return []
+
+  const url = new URL(supabaseRestUrl)
+  // 상태는 payload 안에 있다. 서버에서 걸러야 완료된 것까지 끌고 오지 않는다.
+  url.searchParams.set('payload->>status', 'neq.complete')
+  url.searchParams.set('select', 'report_id')
+  url.searchParams.set('order', 'updated_at.desc')
+  url.searchParams.set('limit', String(safeLimit))
+  const response = await fetch(url, { headers: supabaseHeaders() })
+  if (!response.ok) throw new Error('미완성 리포트 목록 조회에 실패했습니다.')
+  const rows = await response.json() as Array<{ report_id?: string }>
+  return rows.map((row) => row.report_id).filter((id): id is string => Boolean(id))
+}
+
 export async function listReportRecords(owner: ReportOwner, limit = 50): Promise<ReportRecord[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
   if (localFiles) return (await localFiles.list()).filter((item) => item.owner?.id === owner.id).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit)

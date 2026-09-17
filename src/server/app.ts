@@ -54,7 +54,7 @@ import {
 } from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
-import { enqueueReportCompletion } from '../report/report-completion-job.js'
+import { backfillReportCompletions, enqueueReportCompletion } from '../report/report-completion-job.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
@@ -2254,6 +2254,20 @@ app.get('/api/admin/v1/members', async (req, res) => {
 })
 
 /** Live report index. Report text and birth data deliberately stay on the server. */
+/**
+ * 미완성 리포트를 영속 큐에 다시 태운다.
+ *
+ * 큐는 결제 시점에만 작업을 넣으므로, 큐 도입 이전 구매분은 스스로 이어지지 않는다.
+ * 멱등키가 같아 여러 번 눌러도 작업이 복제되지 않는다.
+ */
+app.post('/api/admin/v1/reports/requeue-incomplete', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json({ ...await backfillReportCompletions(Number(req.body?.limit ?? 200)), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'REPORT_REQUEUE_FAILED', error: '미완성 리포트를 큐에 넣지 못했습니다.' })
+  }
+})
 app.get('/api/admin/v1/reports', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {

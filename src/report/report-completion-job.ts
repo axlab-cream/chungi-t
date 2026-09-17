@@ -1,7 +1,7 @@
 import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { preGenerateReport } from './report-queue.js'
-import { findReportRecord, type ReportRecord } from './report-store.js'
+import { findReportRecord, listIncompleteReportIds, type ReportRecord } from './report-store.js'
 
 /**
  * 결제한 해석을 **사용자가 화면을 떠나도** 끝까지 만들어 두기 위한 작업.
@@ -71,23 +71,49 @@ export async function runReportCompletionJob(reportId: string): Promise<ReportCo
     context: record.context,
     analysis: record.analysis ?? analyzeSaju(record.birth),
     owner: record.owner,
-  })
+  }, { recoverFailed: true })
 
   const latest = await findReportRecord(reportId)
   const after = progressOf(latest ?? record)
 
   /*
-   * `preGenerateReport` 는 실패로 굳은 섹션을 만나면 거기서 멈춘다(재시도는 사용자가
-   * 명시적으로 요청할 때만 한다). 그 상태로 "아직 안 끝났다"만 돌려주면 워커가 5초마다
-   * 같은 작업을 다시 집어 아무 일도 못 하고 attempts 만 태운다.
+   * 위에서 실패한 섹션을 한 번 다시 시도했는데도 한 칸도 못 나아갔다면, 이 실행으로는
+   * 풀 수 없는 상태다(입력이 잘못됐거나 모델이 같은 이유로 계속 거절당하는 경우).
    *
-   * 진행이 한 칸도 없었고 실패한 섹션이 있으면 스스로 풀 수 없는 상태다. 사유를 남기고
-   * 던져서 지수 백오프로 물러나게 하고, 한도에 닿으면 dead-letter 로 보낸다 — 운영자가
-   * 목록에서 보고 손을 쓸 수 있어야 한다.
+   * 그대로 "아직 안 끝났다"만 돌려주면 워커가 5초 뒤 같은 작업을 다시 집어 아무 일도
+   * 못 하고 attempts 만 태운다. 사유를 남기고 던져서 지수 백오프로 물러나게 하고,
+   * max_attempts 에 닿으면 dead-letter 로 보낸다 — 몇 번까지 시도할지는 큐가 센다.
+   * 운영자가 /api/admin/v1/jobs 에서 사유와 함께 보고 손을 쓸 수 있어야 한다.
    */
   const stalled = after.complete <= before.complete
   const hasFailedSection = (latest ?? record).report?.sections?.some((section) => section.status === 'failed')
   if (stalled && hasFailedSection) throw new Error('REPORT_SECTION_FAILED')
 
   return after
+}
+
+export interface BackfillOutcome {
+  scanned: number
+  queued: number
+  duplicate: number
+  unavailable: number
+}
+
+/**
+ * 큐가 생기기 전에 만들어져 미완성으로 남은 리포트를 한 번에 태운다.
+ *
+ * `enqueueReportCompletion` 은 결제 시점에만 걸리므로, 그 이전 구매분은 아무도 이어
+ * 만들어 주지 않는다. 멱등키가 같아서 여러 번 돌려도 작업이 복제되지 않는다 —
+ * 이미 큐에 있는 건은 duplicate 로 세고 넘어간다.
+ */
+export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
+  const ids = await listIncompleteReportIds(limit)
+  const outcome: BackfillOutcome = { scanned: ids.length, queued: 0, duplicate: 0, unavailable: 0 }
+  for (const reportId of ids) {
+    const result = await enqueueReportCompletion({ reportId })
+    if (result === 'queued') outcome.queued += 1
+    else if (result === 'duplicate') outcome.duplicate += 1
+    else outcome.unavailable += 1
+  }
+  return outcome
 }
