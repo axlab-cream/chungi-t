@@ -1470,7 +1470,7 @@ function toUiAnalysisFromRecord(record: ReportRecord) {
  * 보관함 목록이 응답을 189KB→25KB 로 줄이고 조회를 나란히 보낸 뒤에도 1.5~2.3초였다. 어느
  * 구간이 남았는지 추측이 세 번 틀린 뒤에 붙였다(2026-09-17).
  */
-function requestTimings(): { mark: (name: string) => void; header: () => string } {
+function requestTimings(): { mark: (name: string) => void; lap: (name: string, since: number) => void; header: () => string } {
   const marks: string[] = []
   let last = performance.now()
   return {
@@ -1478,6 +1478,10 @@ function requestTimings(): { mark: (name: string) => void; header: () => string 
       const now = performance.now()
       marks.push(`${name};dur=${(now - last).toFixed(0)}`)
       last = now
+    },
+    // 나란히 보낸 호출 하나의 시간. 구간 기준점(last)은 옮기지 않는다.
+    lap(name, since) {
+      marks.push(`${name};dur=${(performance.now() - since).toFixed(0)}`)
     },
     header: () => marks.join(', '),
   }
@@ -2077,10 +2081,12 @@ app.get('/api/cron/ops', async (req, res) => {
      * dead-letter 로 빠진 건은 사람이 관리자 화면에서 버튼을 눌러야만 돌아왔다 — 그
      * 버튼을 아무도 누르지 않아 운영 계정 한 곳에서 12건이 멈춰 있었다(2026-09-17).
      *
-     * 할 일이 없을 때만 훑어서 평소 실행에는 부담을 주지 않는다. enqueue 는 멱등이라
-     * 이미 도는 건은 건드리지 않는다.
+     * 여유가 있을 때 훑는다. 예전엔 **한 건도 집지 않은 분**에만 훑었는데, 리포트 열셋이
+     * 5초 간격 retry 로 돌아가는 동안은 그런 분이 오지 않아 dead 로 빠진 건이 두 시간 넘게
+     * 방치됐다(퇴사운 32/48, 2026-09-17). 집은 수가 차선 수보다 적으면 큐에 남은 게 없다는
+     * 뜻이니 그때 되살린다. enqueue 는 멱등이라 이미 도는 건은 건드리지 않는다.
      */
-    const backfill = worked.claimed === 0 ? await backfillReportCompletions(50).catch(() => undefined) : undefined
+    const backfill = worked.claimed < worked.capacity ? await backfillReportCompletions(50).catch(() => undefined) : undefined
     res.json({ ...worked, ...(backfill ? { backfill } : {}) })
   }
   catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
@@ -3080,9 +3086,13 @@ app.get('/api/user/reports', async (req, res) => {
     // 리포트 조회와 주문 조회는 서로 의존하지 않는다. 순차로 기다리면 Supabase 왕복 두 번이
     // 그대로 더해진다 — 경량 뷰로 리포트 쪽을 줄인 뒤에도 응답이 2.2~2.5초였던 이유가
     // 이거였다(각 왕복이 ~1~1.2초, 2026-09-17 운영 실측). 나란히 보내 한 번의 왕복 시간으로 줄인다.
+    const dbStarted = performance.now()
     const [records, orders] = await Promise.all([
-      listReportRecords(owner, 100, { light: true, includeAnalysis: !slim }),
-      listPaymentOrders(owner.id, 100).catch(() => null),
+      listReportRecords(owner, 100, { light: true, includeAnalysis: !slim })
+        .then((rows) => { timing.lap('records', dbStarted); return rows }),
+      listPaymentOrders(owner.id, 100)
+        .then((rows) => { timing.lap('orders', dbStarted); return rows })
+        .catch(() => null),
     ])
     timing.mark('db')
     if (!orders) {

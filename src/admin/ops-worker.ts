@@ -40,9 +40,28 @@ export async function listOpsJobs() {
   const response = await fetch(`${base}/rest/v1/ops_jobs?select=id,kind,target_id,state,attempts,max_attempts,next_run_at,last_error,created_at,updated_at&order=updated_at.desc&limit=100`, { headers: headers() })
   if (!response.ok) throw new Error('OPS_LIST_FAILED'); return response.json()
 }
-export async function runOpsWorker(): Promise<{ claimed: number; retried: number; dead: number; succeeded: number }> {
+export interface OpsWorkerOutcome {
+  claimed: number
+  retried: number
+  dead: number
+  succeeded: number
+  /** 한 실행이 동시에 다룰 수 있는 작업 수. 이보다 적게 집었으면 큐에 여유가 있었다는 뜻이다. */
+  capacity: number
+}
+
+export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
   if (!base) throw new Error('OPS_STORE_UNAVAILABLE')
-  const claimed = await fetch(`${base}/rest/v1/rpc/claim_ops_jobs`, { method: 'POST', headers: headers(), body: JSON.stringify({ p_limit: 10, p_lease_seconds: 240 }) })
+  /*
+   * 차선 수만큼만 집는다.
+   *
+   * 예전에는 10개를 집어 3차선에 줄을 세웠다. 뒤에 선 작업은 앞 작업이 예산(200초)을 거의
+   * 다 쓴 뒤에야 차례가 와서, 한 칸도 못 만들고 `retry` 로 돌아갔다 — 그런데 claim 은 집을
+   * 때마다 attempts 를 올리므로, 아무 일도 못 한 작업이 시도 횟수만 태우다 dead 로 빠졌다.
+   * 퇴사운 32/48 이 7시간 반 동안 실제 생성은 20분, 나머지는 죽어서 기다린 시간이었다
+   * (2026-09-17 운영). 집는 수를 차선 수에 맞추면 집은 작업마다 예산을 온전히 쓴다. 나머지는
+   * 다음 분 실행이 집는다 — cron 이 매분 돌고 실행은 200초까지 겹치므로 처리량은 줄지 않는다.
+   */
+  const claimed = await fetch(`${base}/rest/v1/rpc/claim_ops_jobs`, { method: 'POST', headers: headers(), body: JSON.stringify({ p_limit: WORKER_CONCURRENCY, p_lease_seconds: 240 }) })
   if (!claimed.ok) throw new Error('OPS_CLAIM_FAILED')
   const jobs = await claimed.json() as Job[]; let retried = 0; let dead = 0; let succeeded = 0
   const ctx: HandlerContext = { deadlineAt: Date.now() + WORKER_BUDGET_MS }
@@ -62,9 +81,19 @@ export async function runOpsWorker(): Promise<{ claimed: number; retried: number
     const now = new Date().toISOString()
     const body: Record<string, unknown> = { state, lease_until: null, updated_at: now, last_error: error || null }
     if (state === 'retry') {
-      // 처리기가 일을 하고 남긴 경우엔 곧 이어간다. 실패한 경우에만 물러선다.
-      const backoff = error ? 60_000 * Math.pow(2, Math.min(job.attempts, 6)) : 5_000
+      /*
+       * 처리기가 일을 하고 남긴 경우엔 곧 이어간다. 실패한 경우에만 물러선다.
+       * 물러서는 폭은 1·2·4·8분까지다. 예전엔 64분까지 갔다 — 결제한 사람이 한 시간을
+       * 기다릴 이유가 없고, 그 사이 다른 실행이 아무 일도 못 한다.
+       */
+      const backoff = error ? 60_000 * Math.pow(2, Math.min(job.attempts, 3)) : 5_000
       body.next_run_at = new Date(Date.now() + backoff).toISOString()
+      /*
+       * 진행은 실패가 아니다. claim 이 올린 attempts 를 되돌려, 시도 횟수는 **실패한 실행**만
+       * 센다. 그렇지 않으면 항목 48개짜리 리포트는 열 번을 집어야 끝나는데 다섯 번째에
+       * dead 로 빠진다 — 한 번도 실패하지 않았는데도.
+       */
+      if (!error) body.attempts = Math.max(0, job.attempts - 1)
     }
     const response = await fetch(`${base}/rest/v1/ops_jobs?id=eq.${encodeURIComponent(job.id)}&state=eq.running`, { method: 'PATCH', headers: { ...headers(), prefer: 'return=minimal' }, body: JSON.stringify(body) })
     // 한 잡의 마감 실패가 나머지 잡을 세우지 않게 한다. 기록만 하고 끝에 한 번 던진다.
@@ -79,5 +108,5 @@ export async function runOpsWorker(): Promise<{ claimed: number; retried: number
   })
   await Promise.all(lanes)
   if (finalizeFailed) throw new Error('OPS_JOB_FINALIZE_FAILED')
-  return { claimed: jobs.length, retried, dead, succeeded }
+  return { claimed: jobs.length, retried, dead, succeeded, capacity: WORKER_CONCURRENCY }
 }

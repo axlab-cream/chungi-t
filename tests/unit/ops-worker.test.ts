@@ -23,17 +23,25 @@ describe('영속 작업 worker', { concurrency: false }, () => {
     claimedAttempts = 1; calls.length = 0
     const result = await worker.runOpsWorker()
     const finalize = calls.at(-1)
-    assert.deepEqual(result, { claimed: 1, retried: 1, dead: 0, succeeded: 0 })
+    assert.deepEqual(result, { claimed: 1, retried: 1, dead: 0, succeeded: 0, capacity: 3 })
     assert.equal(finalize?.init?.method, 'PATCH')
     const body = JSON.parse(String(finalize?.init?.body)) as Record<string, unknown>
     assert.equal(body.state, 'retry'); assert.equal(body.last_error, 'NO_OPS_HANDLER')
+    // 실패한 실행은 시도 횟수를 그대로 둔다(claim 이 올린 값). 되돌리는 건 진행한 실행만이다.
+    assert.equal('attempts' in body, false)
+    // 물러서는 폭은 8분을 넘지 않는다. 예전엔 64분까지 갔다.
+    const wait = Date.parse(String(body.next_run_at)) - Date.now()
+    assert.ok(wait > 0 && wait <= 8 * 60_000 + 5_000, `backoff ${wait}ms`)
+    // 차선 수만큼만 집는다. 더 집으면 뒤에 선 작업이 예산을 못 받고 시도 횟수만 태운다.
+    const claim = calls.find((call) => call.url.pathname.endsWith('/rpc/claim_ops_jobs'))
+    assert.equal(JSON.parse(String(claim?.init?.body)).p_limit, 3)
   })
 
   it('최대 시도에 도달한 처리기 없는 작업을 dead-letter로 이동한다', async () => {
     claimedAttempts = 2; calls.length = 0
     const result = await worker.runOpsWorker()
     const body = JSON.parse(String(calls.at(-1)?.init?.body)) as Record<string, unknown>
-    assert.deepEqual(result, { claimed: 1, retried: 0, dead: 1, succeeded: 0 })
+    assert.deepEqual(result, { claimed: 1, retried: 0, dead: 1, succeeded: 0, capacity: 3 })
     assert.equal(body.state, 'dead'); assert.equal(body.last_error, 'NO_OPS_HANDLER')
   })
 })
