@@ -133,4 +133,20 @@ describe('대기·실패 해석 매분 백필 대상', { concurrency: false }, (
     ], null)
     assert.deepEqual(ids, ['p1', 'p2'])
   })
+
+  it('결제 주문이 resultId UUID 여도 같은 서비스의 구매 리포트를 모두 백필한다', () => {
+    const ids = job.selectBackfillReportIds([
+      incompleteRef({
+        reportId: 'hash-save-1',
+        resultId: 'af9d5513-be18-4096-9ee1-c0eaea7fbeba',
+        updatedAt: '2026-09-18T01:00:00.000Z',
+      }),
+      incompleteRef({
+        reportId: 'hash-save-2',
+        resultId: 'bbbbbbbb-be18-4096-9ee1-c0eaea7fbeba',
+        updatedAt: '2026-09-18T02:00:00.000Z',
+      }),
+    ], new Set(['af9d5513-be18-4096-9ee1-c0eaea7fbeba', 'bbbbbbbb-be18-4096-9ee1-c0eaea7fbeba']))
+    assert.deepEqual(ids, ['hash-save-1', 'hash-save-2'])
+  })
 })

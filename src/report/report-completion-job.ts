@@ -32,11 +32,14 @@ export async function enqueueReportCompletion(params: {
   revision?: number
 }): Promise<EnqueueOpsJobResult> {
   if (!params.reportId) return 'unavailable'
+  const record = await getReportRecordAsService(params.reportId).catch(() => null)
+  const reportId = record?.reportId || params.reportId
+  const revision = params.revision ?? record?.revision ?? 0
   return enqueueOpsJob({
     kind: REPORT_COMPLETION_JOB_KIND,
-    targetId: params.reportId,
-    idempotencyKey: reportCompletionIdempotencyKey(params.reportId, params.revision),
-    payload: { reportId: params.reportId, revision: params.revision ?? 0 },
+    targetId: reportId,
+    idempotencyKey: reportCompletionIdempotencyKey(reportId, revision),
+    payload: { reportId, revision },
   })
 }
 
@@ -154,8 +157,13 @@ export function selectBackfillReportIds(
   const latestByOwnerService = new Map<string, IncompleteReportRef>()
   const selected: IncompleteReportRef[] = []
   const taken = new Set<string>()
+  const isPaid = (ref: IncompleteReportRef) => (
+    paid.has(ref.reportId)
+    || Boolean(ref.resultId && paid.has(ref.resultId))
+    || Boolean(ref.publicId && paid.has(ref.publicId))
+  )
   for (const ref of candidates) {
-    if (paid.has(ref.reportId) || ref.adminAcquiredAt) {
+    if (isPaid(ref) || ref.adminAcquiredAt) {
       if (taken.has(ref.reportId)) continue
       selected.push(ref)
       taken.add(ref.reportId)

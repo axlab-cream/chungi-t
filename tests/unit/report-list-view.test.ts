@@ -84,7 +84,16 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   }
   assert.equal(url.pathname, '/rest/v1/cheongi_reports')
   if (url.searchParams.get('limit') === '0') return Response.json([])
-  return Response.json(table.map((record) => ({ payload: record, user_id: owner.id, created_at: record.createdAt, updated_at: record.updatedAt })))
+  const reportIdEq = url.searchParams.get('report_id')
+  const orFilter = url.searchParams.get('or') || ''
+  let rows = table
+  if (reportIdEq?.startsWith('eq.')) {
+    const id = reportIdEq.slice(3)
+    rows = table.filter((record) => record.reportId === id)
+  } else if (orFilter) {
+    rows = table.filter((record) => orFilter.includes(record.resultId || '') || orFilter.includes(record.report.publicId || ''))
+  }
+  return Response.json(rows.map((record) => ({ payload: record, user_id: owner.id, created_at: record.createdAt, updated_at: record.updatedAt })))
 }) as typeof globalThis.fetch
 
 const store = await import('../../src/report/report-store.js')
@@ -160,6 +169,14 @@ describe('보관함 목록용 경량 뷰 (가짜 fetch, DB·네트워크 없음)
     const job = readFileSync(join(root, 'src/report/report-completion-job.ts'), 'utf8')
     assert.doesNotMatch(job, /findReportRecord\(/)
     assert.match(job, /getReportRecordAsService\(reportId\)/)
+  })
+
+  it('워커는 결제 URL 의 resultId UUID 로도 해시 리포트를 찾는다', async () => {
+    table[0].resultId = 'af9d5513-be18-4096-9ee1-c0eaea7fbeba'
+    table[0].report.publicId = 'af9d5513-be18-4096-9ee1-c0eaea7fbeba'
+    const record = await store.getReportRecordAsService('af9d5513-be18-4096-9ee1-c0eaea7fbeba')
+    assert.equal(record?.reportId, 'r1')
+    assert.equal(record?.resultId, 'af9d5513-be18-4096-9ee1-c0eaea7fbeba')
   })
 
   it('옵션이 없으면 예전처럼 표를 읽는다 — 본문을 쓰는 곳은 바뀌지 않는다', async () => {

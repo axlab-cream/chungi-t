@@ -3953,6 +3953,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
     if (access.reason === 'admin') await rememberAdminPaidEquivalent(owner, record.reportId)
+    if (record.status !== 'complete') queueReportCompletionAfterPayment(record.reportId)
     applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,

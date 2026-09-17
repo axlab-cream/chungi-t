@@ -433,40 +433,70 @@ export async function getReportRecord(reportId: string, owner?: ReportOwner): Pr
  * (퇴사운 32/48, 2026-09-17). 여기서 읽은 레코드는 소유자를 함께 돌려주므로 이후 생성·저장은
  * 그 소유자로 검증한다. 요청 경로(사용자 토큰)에서는 쓰지 않는다.
  */
+type ServiceReportRow = {
+  payload?: ReportRecord
+  user_id?: string | null
+  user_email?: string | null
+  auth_provider?: string | null
+}
+
+function recordFromServiceRow(row: ServiceReportRow | undefined): ReportRecord | null {
+  if (!row?.payload?.reportId) return null
+  const record = cloneRecord(row.payload)
+  if (!record.owner?.id && row.user_id) {
+    record.owner = { id: row.user_id, email: row.user_email ?? undefined, provider: row.auth_provider ?? undefined }
+  }
+  return record
+}
+
+function memoryRecordByAnyId(id: string): ReportRecord | null {
+  const direct = memoryReports.get(id)
+  if (direct) return cloneRecord(direct)
+  const alt = Array.from(memoryReports.values()).find((item) => item.resultId === id || item.report?.publicId === id)
+  return alt ? cloneRecord(alt) : null
+}
+
 export async function getReportRecordAsService(reportId: string): Promise<ReportRecord | null> {
   if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId)) return null
-  if (localFiles) return localFiles.read(reportId)
-  if (storageMode() === 'memory') {
-    const record = memoryReports.get(reportId)
-    return record ? cloneRecord(record) : null
+  if (localFiles) {
+    const direct = await localFiles.read(reportId)
+    if (direct) return direct
+    return (await localFiles.list()).find((item) => item.resultId === reportId || item.report?.publicId === reportId) ?? null
   }
+  if (storageMode() === 'memory') return memoryRecordByAnyId(reportId)
   if (storageMode() === 'supabase') {
     assertSupabaseServerKey()
-    const url = new URL(supabaseRestUrl)
-    url.searchParams.set('report_id', `eq.${reportId}`)
-    url.searchParams.set('select', 'payload,user_id,user_email,auth_provider,created_at,updated_at')
-    url.searchParams.set('limit', '1')
-    const response = await fetch(url, { headers: supabaseHeaders() })
-    if (!response.ok) throw new Error('Supabase 리포트 조회에 실패했습니다.')
-    const rows = await response.json() as Array<{ payload?: ReportRecord; user_id?: string; user_email?: string; auth_provider?: string; created_at?: string; updated_at?: string }>
-    const row = rows[0]
-    if (!row?.payload?.reportId) return null
-    const record = cloneRecord(row.payload)
-    // 소유자는 행에도 있다. payload 에 없으면(옛 레코드) 행의 것을 붙여 이후 검증이 통과하게 한다.
-    if (!record.owner?.id && row.user_id) record.owner = { id: row.user_id, email: row.user_email, provider: row.auth_provider }
-    return record
+    const select = 'payload,user_id,user_email,auth_provider,created_at,updated_at'
+    const byPrimary = new URL(supabaseRestUrl)
+    byPrimary.searchParams.set('report_id', `eq.${reportId}`)
+    byPrimary.searchParams.set('select', select)
+    byPrimary.searchParams.set('limit', '1')
+    const primaryResponse = await fetch(byPrimary, { headers: supabaseHeaders() })
+    if (!primaryResponse.ok) throw new Error('Supabase 리포트 조회에 실패했습니다.')
+    const primaryRows = await primaryResponse.json() as ServiceReportRow[]
+    const primary = recordFromServiceRow(primaryRows[0])
+    if (primary) return primary
+    // Checkout and 06-1 URLs store resultId/publicId as reportId. The row key is the hash.
+    const byPublic = new URL(supabaseRestUrl)
+    byPublic.searchParams.set('or', `(payload->>resultId.eq.${reportId},payload->report->>publicId.eq.${reportId})`)
+    byPublic.searchParams.set('select', select)
+    byPublic.searchParams.set('limit', '1')
+    const publicResponse = await fetch(byPublic, { headers: supabaseHeaders() })
+    if (!publicResponse.ok) throw new Error('Supabase 리포트 조회에 실패했습니다.')
+    const publicRows = await publicResponse.json() as ServiceReportRow[]
+    return recordFromServiceRow(publicRows[0])
   }
   if (!pool) return null
   await ensureDb()
-  const result = await pool.query<{ payload: ReportRecord; user_id: string | null }>(
-    'SELECT payload, user_id FROM cheongi_reports WHERE report_id = $1',
+  const result = await pool.query<ServiceReportRow>(
+    `SELECT payload, user_id, user_email, auth_provider FROM cheongi_reports
+     WHERE report_id = $1
+        OR payload->>'resultId' = $1
+        OR payload->'report'->>'publicId' = $1
+     LIMIT 1`,
     [reportId],
   )
-  const row = result.rows[0]
-  if (!row?.payload) return null
-  const record = cloneRecord(row.payload)
-  if (!record.owner?.id && row.user_id) record.owner = { id: row.user_id }
-  return record
+  return recordFromServiceRow(result.rows[0])
 }
 
 /** Lookup an immutable result UUID without recomputing inputs or running the LLM. */
@@ -513,6 +543,8 @@ export interface IncompleteReportRef {
   serviceKey?: string
   updatedAt: string
   adminAcquiredAt?: string
+  resultId?: string
+  publicId?: string
 }
 
 /**
@@ -530,6 +562,8 @@ export async function listIncompleteReportRefs(limit = 200): Promise<IncompleteR
     serviceKey: record.context?.serviceKey,
     updatedAt: record.updatedAt,
     adminAcquiredAt: record.adminAcquiredAt,
+    resultId: record.resultId,
+    publicId: record.report?.publicId,
   })
   const incomplete = (record: ReportRecord) => record.status !== 'complete'
 
@@ -546,12 +580,20 @@ export async function listIncompleteReportRefs(limit = 200): Promise<IncompleteR
   const url = new URL(supabaseRestUrl)
   url.searchParams.set('payload->>status', 'neq.complete')
   // 본문은 읽지 않는다. 판단에 필요한 세 값만 뽑는다.
-  url.searchParams.set('select', 'report_id,user_id,updated_at,serviceKey:payload->context->>serviceKey,adminAcquiredAt:payload->>adminAcquiredAt')
+  url.searchParams.set('select', 'report_id,user_id,updated_at,serviceKey:payload->context->>serviceKey,adminAcquiredAt:payload->>adminAcquiredAt,resultId:payload->>resultId,publicId:payload->report->>publicId')
   url.searchParams.set('order', 'updated_at.asc')
   url.searchParams.set('limit', String(safeLimit))
   const response = await fetch(url, { headers: supabaseHeaders() })
   if (!response.ok) throw new Error('미완성 리포트 목록 조회에 실패했습니다.')
-  const rows = await response.json() as Array<{ report_id?: string; user_id?: string; updated_at?: string; serviceKey?: string; adminAcquiredAt?: string }>
+  const rows = await response.json() as Array<{
+    report_id?: string
+    user_id?: string
+    updated_at?: string
+    serviceKey?: string
+    adminAcquiredAt?: string
+    resultId?: string
+    publicId?: string
+  }>
   return rows.flatMap((row) => row.report_id
     ? [{
         reportId: row.report_id,
@@ -559,6 +601,8 @@ export async function listIncompleteReportRefs(limit = 200): Promise<IncompleteR
         serviceKey: row.serviceKey,
         updatedAt: row.updated_at ?? '',
         adminAcquiredAt: row.adminAcquiredAt || undefined,
+        resultId: row.resultId || undefined,
+        publicId: row.publicId || undefined,
       }]
     : [])
 }
