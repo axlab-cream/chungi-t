@@ -26,11 +26,15 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
  * 서로 물려받는다(T-4). 그 승계는 6번에서 따로 검사하므로 나머지 검사는 서로 다른
  * 계보로 둬야 정렬·거르기만 본다.
  */
-function record(reportId: string, over: Partial<ReportRecord> = {}): ReportRecord {
+/**
+ * 같은 서비스·같은 사주는 한 줄로 합쳐진다(14번). 정렬·거르기만 보는 검사는 생일을
+ * 달리 줘서 합쳐지지 않게 한다.
+ */
+function record(reportId: string, over: Partial<ReportRecord> = {}, day = 26): ReportRecord {
   return {
     reportId,
     lineageId: `lineage-${reportId}`,
-    birth: { year: 1975, month: 9, day: 26, hour: 12, minute: 0, calendar: 'solar' },
+    birth: { year: 1975, month: 9, day, hour: 12, minute: 0, calendar: 'solar' },
     context: { serviceKey: 'cmdg' },
     report: { sections: [] },
     createdAt: '2026-09-01T00:00:00.000Z',
@@ -67,7 +71,7 @@ test('1. 결제 주문이 없는 해석은 보관함에 남지 않는다', () =>
 test('2. 정렬은 구매 시각 내림차순이다 — 나중에 건드린 순이 아니다', () => {
   // 오래전에 산 해석의 섹션이 오늘 채워져 updatedAt 이 가장 최신인 상황.
   const old = record('old', { createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-14T23:59:00.000Z' })
-  const fresh = record('fresh', { createdAt: '2026-09-13T00:00:00.000Z', updatedAt: '2026-09-13T00:10:00.000Z' })
+  const fresh = record('fresh', { createdAt: '2026-09-13T00:00:00.000Z', updatedAt: '2026-09-13T00:10:00.000Z' }, 27)
   const picked = selectPurchasedReadings(
     [old, fresh],
     [order('old', '2026-09-01T00:05:00.000Z'), order('fresh', '2026-09-13T00:05:00.000Z')],
@@ -80,7 +84,7 @@ test('2b. 구매 시각은 주문이 만들어진 시각이다 — 주문이 나
   // 주문 행은 상태 전이·대사·환불 의도 기록으로 나중에도 갱신된다. updatedAt 을 쓰면
   // 오래전 구매가 "방금 산 것"이 된다. 정렬 기준은 주문이 생긴 시각이어야 한다.
   const picked = selectPurchasedReadings(
-    [record('old'), record('fresh')],
+    [record('old'), record('fresh', {}, 27)],
     [
       order('old', '2026-09-01T00:00:00.000Z', { updatedAt: '2026-09-14T23:59:00.000Z' }),
       order('fresh', '2026-09-13T00:00:00.000Z'),
@@ -122,10 +126,12 @@ test('5. 리포트에 묶이지 않은 주문은 아무 해석도 열지 않는�
 
 test('6. 코퍼스 세대가 바뀌어도 예전 주문이 새 해석을 연다 (계보 승계)', () => {
   // T-4 의 계보 승계. 같은 생년월일·같은 맥락이면 리포트 ID 가 달라도 계보는 같다.
+  // 같은 사주이므로 화면에는 한 줄만 남되, 예전 주문의 구매 시각을 물려받는다.
   const previous = record('epoch-1', { lineageId: 'same-lineage' })
   const current = record('epoch-2', { lineageId: 'same-lineage' })
   const picked = selectPurchasedReadings([current, previous], [order('epoch-1', '2026-09-02T00:00:00.000Z')])
-  assert.deepEqual(picked.map((item) => item.record.reportId).sort(), ['epoch-1', 'epoch-2'])
+  assert.equal(picked.length, 1)
+  assert.equal(picked[0].purchasedAt, '2026-09-02T00:00:00.000Z')
 })
 
 test('7. 저장된 상담 기록은 보관함에 섞이지 않는다', () => {
@@ -140,9 +146,48 @@ test('7. 저장된 상담 기록은 보관함에 섞이지 않는다', () => {
 
 test('8. 같은 시각 구매는 리포트 ID 로 순서가 고정된다', () => {
   const at = '2026-09-14T00:00:00.000Z'
-  const forward = selectPurchasedReadings([record('a'), record('b')], [order('a', at), order('b', at)])
-  const reversed = selectPurchasedReadings([record('b'), record('a')], [order('b', at), order('a', at)])
+  const forward = selectPurchasedReadings([record('a'), record('b', {}, 27)], [order('a', at), order('b', at)])
+  const reversed = selectPurchasedReadings([record('b', {}, 27), record('a')], [order('b', at), order('a', at)])
+  assert.equal(forward.length, 2)
   assert.deepEqual(forward.map((i) => i.record.reportId), reversed.map((i) => i.record.reportId))
+})
+
+test('14. 같은 사주·같은 서비스는 한 줄만 남고, 완성된 것이 최신 실패 stub 을 이긴다', () => {
+  // 운영 보관함: 천명사주 8줄이 전부 같은 사람. 최신은 0/37 실패, 예전 것이 37/37 완성.
+  const complete = record('done', { status: 'complete', report: { status: 'complete', sections: [{ id: 'a', status: 'complete' }] } } as never)
+  const stub = record('stub', { report: { sections: [{ id: 'a', status: 'failed' }] }, status: 'failed' } as never)
+  const other = record('other-person', {}, 27)
+  const picked = selectPurchasedReadings(
+    [stub, complete, other],
+    [order('stub', '2026-09-17T00:00:00.000Z'), order('done', '2026-09-07T00:00:00.000Z'), order('other-person', '2026-09-10T00:00:00.000Z')],
+  )
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['other-person', 'done'])
+})
+
+test('14b. 둘 다 미완성이면 더 최근 구매가 남는다', () => {
+  const picked = selectPurchasedReadings(
+    [record('older'), record('newer')],
+    [order('older', '2026-09-01T00:00:00.000Z'), order('newer', '2026-09-15T00:00:00.000Z')],
+  )
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['newer'])
+})
+
+test('15. 오늘운은 날짜가 같으면 한 줄, 다르면 각각 남는다', () => {
+  const today = (id: string, date: string, updatedAt: string) => record(id, {
+    context: { serviceKey: 'today', concern: date } as never,
+    status: 'complete',
+    updatedAt,
+  })
+  const picked = selectAdminVaultReadings([
+    today('sep7-a', '2026-09-07', '2026-09-07T06:56:00.000Z'),
+    today('sep7-b', '2026-09-07', '2026-09-07T07:22:00.000Z'),
+    today('sep8', '2026-09-08', '2026-09-08T06:00:00.000Z'),
+  ], [
+    order('sep7-a', '2026-09-07T06:56:00.000Z', { productKey: 'today' }),
+    order('sep7-b', '2026-09-07T07:22:00.000Z', { productKey: 'today' }),
+    order('sep8', '2026-09-08T06:00:00.000Z', { productKey: 'today' }),
+  ])
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['sep8', 'sep7-b'])
 })
 
 test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을 비우지 않는다', () => {
@@ -179,12 +224,13 @@ test('11. 관리자 우회는 결제 없이 연 해석을 구매처럼 쌓고 �
     createdAt: '2026-09-17T03:00:00.000Z',
     updatedAt: '2026-09-17T03:00:00.000Z',
   })
+  // 같은 사주면 한 줄로 합쳐지므로(14번) 다른 사람의 저축 풀이로 둔다.
   const saveA = record('save-a', {
     status: 'generating',
     context: { serviceKey: 'money_save' } as never,
     createdAt: '2026-09-16T00:00:00.000Z',
     updatedAt: '2026-09-16T00:00:00.000Z',
-  })
+  }, 27)
   const saveB = record('save-b', {
     status: 'complete',
     context: { serviceKey: 'money_save' } as never,

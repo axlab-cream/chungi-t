@@ -1580,9 +1580,9 @@ function reportStage(record: ReportRecord): ReportStage {
  * 제목·진행률·단계·경로만 쓰는데, 기본 응답은 항목 41개짜리 리포트를 행마다 통째로
  * 직렬화해 13행에 189KB·2.7초가 걸렸다(2026-09-17 운영 실측).
  *
- * 기본(full)은 그대로 둔다 — 천명사주 화면이 `item.analysis` 로 로컬 보관함을 동기화한다
- * (사주/사주/index.html: `remoteItems.filter(item => item?.reportId && item?.analysis)`).
- * 그 필드를 빼면 그 화면의 동기화가 조용히 비어 버린다.
+ * 기본(full)은 그대로 둔다 — 예전 천명사주 화면이 `item.analysis` 로 로컬 보관함을 동기화했다.
+ * 지금 화면(사주/사주/index.html)은 `view=list` 로 메타만 받고, 항목을 열 때 `/api/report/:id` 로
+ * 본문을 받아 온다(2026-09-18). full 은 그 화면의 옛 캐시와 외부 호출부를 위해 남긴다.
  */
 function historyEntryFromRecord(record: ReportRecord, options: { slim?: boolean } = {}) {
   const slim = options.slim === true

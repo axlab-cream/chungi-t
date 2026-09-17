@@ -74,17 +74,24 @@ test('예산으로 멈춘 것은 실패로 던지지 않는다', () => {
   assert.match(job, /if \(budget\.exhausted\) return after/)
 })
 
-test('보관함은 슬림 목록을 받고, 천명사주는 원본을 그대로 받는다', () => {
+test('보관함과 천명사주 모두 슬림 목록을 받고, 천명사주는 열 때 본문을 받아 온다', () => {
   const vault = read('사주/vault.html')
   assert.match(vault, /\/api\/user\/reports\?limit=30&view=list/)
   const app = read('src/server/app.ts')
   assert.match(app, /const slim = String\(req\.query\.view \?\? ''\) === 'list'/)
-  // 천명사주 화면은 analysis 로 보관함을 동기화한다. 그 호출은 view=list 를 붙이지 않는다.
+  // 2026-09-18: 천명사주도 목록은 메타만 받는다(511KB·2.5초 → 60KB). 본문 없는 항목은
+  // 보관함에서 열 때 loadReportById 가 저장된 풀이를 받아 오고, 목록 동기화가 이미 읽어 둔
+  // 본문을 빈 것으로 덮어쓰지 않는다.
   const cmdg = read('사주/사주/index.html')
-  const calls = cmdg.match(/\/api\/user\/reports[^'"`]*/g) ?? []
+  // 목록 조회만 본다. `/api/user/reports/:id` 는 삭제 요청이다.
+  const calls = cmdg.match(/\/api\/user\/reports\?[^'"`]*/g) ?? []
   assert.ok(calls.length > 0)
-  for (const call of calls) assert.doesNotMatch(call, /view=list/, `천명사주가 슬림 목록을 받으면 동기화가 빈다: ${call}`)
-  assert.match(cmdg, /item\?\.reportId && item\?\.analysis/)
+  for (const call of calls) assert.match(call, /view=list/, `천명사주 목록 동기화가 본문째 받는다: ${call}`)
+  assert.match(cmdg, /hasReadableSections\(item\.analysis\) \|\| !existing\?\.analysis \? item\.analysis : existing\.analysis/)
+  assert.match(cmdg, /loadReportById\(reportId, \{ refresh: true \}\)/)
+  // 로컬 캐시는 계정별로 나뉘고, 서버 목록에 없는 항목은 남기지 않는다(기기마다 달라 보이던 문제).
+  assert.match(cmdg, /\$\{HISTORY_KEY\}:\$\{uid\}/)
+  assert.match(cmdg, /remoteIds\.has\(item\.reportId\) \|\| Date\.now\(\) - historyTimestamp\(item\.savedAt\) < LOCAL_ONLY_GRACE_MS/)
 })
 
 test('슬림 행은 원본을 싣지 않고 리포트를 복제하지도 않는다', () => {

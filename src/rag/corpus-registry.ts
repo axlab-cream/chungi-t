@@ -133,4 +133,32 @@ export function getCorpusSnapshot(): CorpusSnapshot {
 export function clearCorpusRegistryCache(): void {
   cachedRegistry = null
   cachedSnapshot = null
+  snapshotUsability.clear()
+}
+
+const snapshotUsability = new Map<string, boolean>()
+
+/**
+ * 저장된 스냅샷을 지금 배포에서 그대로 쓸 수 있는지 본다 — 활성 팩 파일이 모두 있고
+ * 해시가 맞아야 한다.
+ *
+ * 리포트는 만들 때의 코퍼스 스냅샷을 레코드에 박아 두고, 이어서 만드는 항목도 그 스냅샷으로
+ * 검색한다(`retrieveRagChunks` 는 해시가 다르면 fail-closed 로 던진다). 코퍼스를 개정하면
+ * 그 스냅샷은 더 이상 재현되지 않으므로, 아직 못 만든 항목은 **영원히** 첫 줄에서 실패한다.
+ * 운영에서 love_mind 0/21·cmdg 0/37·money_save 0/41 이 사흘째 10분 간격으로 같은 자리에서
+ * 죽고 있었고, 진단은 뭉뚱그린 "완료되지 않았습니다"뿐이었다(2026-09-18). 호출부는 이 판정이
+ * 거짓이면 활성 스냅샷으로 갈아타고 레코드에 새 스냅샷을 다시 박는다.
+ */
+export function isCorpusSnapshotUsable(snapshot: CorpusSnapshot | undefined): boolean {
+  if (!snapshot) return true
+  if (snapshot.fingerprint === getCorpusSnapshot().fingerprint) return true
+  const cached = snapshotUsability.get(snapshot.fingerprint)
+  if (cached !== undefined) return cached
+  const usable = snapshot.activePacks
+    .filter((pack) => pack.status === 'active')
+    .every((pack) => {
+      try { return corpusFileHash(pack.path) === pack.contentHash } catch { return false }
+    })
+  snapshotUsability.set(snapshot.fingerprint, usable)
+  return usable
 }

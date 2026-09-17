@@ -4000,11 +4000,17 @@
         }));
       }
 
+      let userProfileRequest = null;
       async function fetchUserProfile(options = {}) {
         const headers = await authHeaders();
         if (!headers.Authorization) return null;
-        const res = await fetch("/api/user/profile", { headers });
-        const json = await res.json();
+        // 로그인 초기화와 보관함 진입이 같은 순간에 부른다. 같은 응답을 나눠 쓴다.
+        if (!userProfileRequest) {
+          userProfileRequest = fetch("/api/user/profile", { headers })
+            .then(async (response) => ({ res: response, json: await response.json() }))
+            .finally(() => { userProfileRequest = null; });
+        }
+        const { res, json } = await userProfileRequest;
         if (!res.ok) throw new Error(json.error || "저장된 사주 프로필을 불러오지 못했습니다.");
         if (json.admin) isAdminAccount = true;
         if (json.profile) {
@@ -4510,10 +4516,25 @@
         brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
       };
 
+      /**
+       * 로컬 캐시는 계정별로 나눈다. 한 키를 같이 쓰면 이 기기에서 로그인한 다른 계정의 풀이가
+       * 섞이고, 기기마다 목록이 달라진다(같은 계정인데 PC 와 모바일 보관함이 다르게 보였다,
+       * 2026-09-18). 진짜 목록은 서버가 준다 — 캐시는 본문을 다시 받지 않기 위한 것이다.
+       */
+      function historyKey() {
+        const uid = authSession?.user?.id || "";
+        return uid ? `${HISTORY_KEY}:${uid}` : HISTORY_KEY;
+      }
+
       function readReportHistory() {
         try {
-          const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-          return Array.isArray(parsed) ? parsed.filter((item) => item?.reportId && item?.analysis) : [];
+          let parsed = JSON.parse(localStorage.getItem(historyKey()) || "[]");
+          // 계정 키가 아직 비어 있으면 옛 공용 키의 본문을 한 번 물려받는다. 목록은 동기화가 다시 세운다.
+          if ((!Array.isArray(parsed) || !parsed.length) && historyKey() !== HISTORY_KEY) {
+            parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+          }
+          // 목록 동기화로 들어온 항목은 analysis 가 없을 수 있다. 열 때 서버에서 받아 온다.
+          return Array.isArray(parsed) ? parsed.filter((item) => item?.reportId) : [];
         } catch (err) {
           return [];
         }
@@ -4528,7 +4549,7 @@
         });
         next.sort((a, b) => historyTimestamp(b.savedAt) - historyTimestamp(a.savedAt));
         try {
-          localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+          localStorage.setItem(historyKey(), JSON.stringify(next));
         } catch (err) {
           console.warn("풀이 보관함 저장 공간이 부족합니다. 기존 저장 데이터는 유지됩니다.", err);
         }
@@ -4539,10 +4560,22 @@
         return Number.isFinite(time) ? time : 0;
       }
 
+      function hasReadableSections(analysis) {
+        return Array.isArray(analysis?.report?.sections) && analysis.report.sections.length > 0;
+      }
+
+      /**
+       * 서버 목록이 기준이다. 서버에 없는 로컬 항목은 이 기기에만 남은 찌꺼기라 버린다 —
+       * 단, 방금 이 화면에서 만든 풀이(30분 안)는 목록 응답에 아직 안 실릴 수 있어 남긴다.
+       */
+      const LOCAL_ONLY_GRACE_MS = 30 * 60 * 1000;
       function mergeReportHistory(remoteItems = []) {
-        const usableRemoteItems = remoteItems.filter((item) => item?.reportId && item?.analysis);
-        if (!usableRemoteItems.length) return readReportHistory();
-        const localItems = readReportHistory();
+        const usableRemoteItems = remoteItems.filter((item) => item?.reportId);
+        const remoteIds = new Set(usableRemoteItems.map((item) => item.reportId));
+        const localItems = readReportHistory().filter((item) => (
+          remoteIds.has(item.reportId) || Date.now() - historyTimestamp(item.savedAt) < LOCAL_ONLY_GRACE_MS
+        ));
+        if (!usableRemoteItems.length) { writeReportHistory(localItems); return readReportHistory(); }
         const byReportId = new Map();
         [...localItems, ...usableRemoteItems].forEach((item) => {
           const existing = byReportId.get(item.reportId);
@@ -4550,6 +4583,9 @@
             byReportId.set(item.reportId, {
               ...existing,
               ...item,
+              // 목록 응답은 본문(sections)을 싣지 않는다. 이미 읽어 둔 풀이를 빈 것으로 덮어쓰면
+              // 보관함에서 열었을 때 목차가 사라진다(2026-09-18 운영 재현). 본문이 있는 쪽을 남긴다.
+              analysis: hasReadableSections(item.analysis) || !existing?.analysis ? item.analysis : existing.analysis,
               chatHistory: Array.isArray(item.chatHistory) && item.chatHistory.length
                 ? item.chatHistory
                 : (existing?.chatHistory || []),
@@ -4561,12 +4597,15 @@
         return readReportHistory();
       }
 
-      async function syncRemoteReportHistory(force = false) {
-        if (reportHistorySyncPromise && !force) return reportHistorySyncPromise;
+      async function syncRemoteReportHistory() {
+        // 로그인 초기화와 보관함 열기가 같은 순간에 부른다. 한 번만 보낸다.
+        if (reportHistorySyncPromise) return reportHistorySyncPromise;
         reportHistorySyncPromise = (async () => {
           const headers = await authHeaders();
           if (!headers.Authorization) return readReportHistory();
-          const res = await fetch(`/api/user/reports?limit=${REMOTE_HISTORY_SYNC_LIMIT}`, { headers });
+          // 목록은 카드용 메타만 받는다(60KB). 본문째 받으면 511KB·2.5초였다(2026-09-18 실측).
+          // 항목을 열 때 loadReportById 가 저장된 풀이를 그대로 받아 온다.
+          const res = await fetch(`/api/user/reports?view=list&limit=${REMOTE_HISTORY_SYNC_LIMIT}`, { headers });
           const json = await res.json();
           if (!res.ok) throw new Error(json.error || "원격 풀이 보관함을 불러오지 못했습니다.");
           return mergeReportHistory(Array.isArray(json.reports) ? json.reports : []);
@@ -4958,7 +4997,7 @@
         renderSettingsPanel();
         settingsPanel.classList.add("is-open");
         settingsPanel.setAttribute("aria-hidden", "false");
-        syncRemoteReportHistory(true)
+        syncRemoteReportHistory()
           .then(() => {
             if (settingsPanel.classList.contains("is-open")) renderSettingsPanel();
           })
@@ -5004,10 +5043,17 @@
 
       function restoreHistoryEntry(reportId) {
         const entry = readReportHistory().find((item) => item.reportId === reportId);
-        if (!entry?.analysis || !applyReadingPayload(entry)) return;
+        if (!entry) return;
         closeSettings();
         historyStack.length = 0;
-        go("result", false);
+        if (hasReadableSections(entry.analysis) && applyReadingPayload(entry)) {
+          go("result", false);
+          return;
+        }
+        // 목록 동기화로만 들어온 항목은 본문이 없다. 저장된 풀이를 서버에서 그대로 받아 온다 —
+        // 다시 만드는 것이 아니라 읽어 오는 것이다.
+        go("loading", false);
+        loadReportById(reportId, { refresh: true }).catch((err) => renderReportLookupError(err.message));
       }
 
       async function loadReportById(reportId, options = {}) {
@@ -5015,7 +5061,7 @@
         if (!trimmed) throw new Error("풀이 ID가 비어 있습니다.");
 
         const cached = options.refresh ? null : readReportHistory().find((item) => item.reportId === trimmed);
-        if (cached?.analysis && applyReadingPayload(cached)) {
+        if (cached?.analysis && hasReadableSections(cached.analysis) && applyReadingPayload(cached)) {
           historyStack.length = 0;
           go("result", false);
           return;

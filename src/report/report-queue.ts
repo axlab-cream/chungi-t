@@ -5,6 +5,7 @@ import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReport
 import { loadHighlightTopics } from './longform-blocks.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
 import { assertReportOwner, getReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
+import { getCorpusSnapshot, isCorpusSnapshotUsable } from '../rag/corpus-registry.js'
 
 interface GenerationParams {
   reportId: string
@@ -288,6 +289,11 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     if (!section || section.status === 'complete' || section.generationLease?.id !== leaseId) return false
     edit(section, current)
   })
+  // 박아 둔 스냅샷이 이 배포에서 재현되지 않으면(코퍼스 개정 뒤) 활성 스냅샷으로 만든다.
+  // 그대로 두면 retrieveRagChunks 가 첫 줄에서 던져 이 항목은 영영 완성되지 않는다.
+  const pinnedSnapshot = record.corpus
+  const corpusSnapshot = isCorpusSnapshotUsable(pinnedSnapshot) ? pinnedSnapshot : getCorpusSnapshot()
+  const corpusUpgraded = corpusSnapshot !== pinnedSnapshot
   const priorFailure = params.retry
     ? [...(storedSection.attempts ?? [])].reverse().find((attempt) => attempt.status === 'failed' && attempt.error)?.error
     : undefined
@@ -310,7 +316,7 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
         {
           siblings: record.report.sections.filter((item) => item.id !== params.sectionId && item.status === 'complete'),
           repairIssues: issues,
-          corpusSnapshot: record.corpus,
+          corpusSnapshot,
           verdict: record.report.verdict,
           maxTokens: tokenBudget,
           onResponse: (result) => editClaim((section) => {
@@ -331,6 +337,8 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
         section.status = 'complete'
         delete section.generationLease
         delete section.error
+        // 이 항목은 활성 스냅샷으로 만들어졌다. 레코드에도 그 스냅샷을 박아 다음 항목·검수가 같은 근거를 본다.
+        if (corpusUpgraded) current.corpus = corpusSnapshot
         const complete = current.report.sections.filter((item) => item.status === 'complete').length
         current.report.progress = { complete, total: current.report.sections.length }
         current.status = current.report.status = complete === current.report.sections.length ? 'complete' : 'generating'
@@ -357,7 +365,8 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
           ? error.message
           : transient
             ? `요청이 일시적으로 거절되었습니다(status=${error.status ?? '없음'}).`
-            : '해석 생성 또는 저장이 완료되지 않았습니다.'
+            // 원인을 함께 남긴다. 뭉뚱그린 한 줄만 남아 스냅샷 불일치를 사흘 동안 못 봤다(2026-09-18).
+            : `해석 생성 또는 저장이 완료되지 않았습니다. (${error instanceof Error ? `${error.name}: ${error.message}` : String(error)})`.slice(0, 240)
       const retryable = (error instanceof InterpretationQualityError || truncated || transient) && index < SECTION_ATTEMPT_LIMIT - 1
       // 429·5xx 는 곧바로 다시 보내면 같은 이유로 또 걸리기 쉽다. 짧게 물러선다
       // (1초·2초·4초) — 리포트 전체를 막는 것도 아니고 워커 예산(200초)에 비해 미미하다.

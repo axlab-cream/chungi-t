@@ -1,5 +1,5 @@
 import type { PaymentOrder } from '../payment/order-store.js'
-import { reportLineageId, type ReportRecord } from './report-store.js'
+import { reportBirthKey, reportLineageId, reportProgressOf, type ReportRecord } from './report-store.js'
 
 /**
  * 보관함 목록을 고르고 정렬한다.
@@ -26,6 +26,10 @@ export interface VaultListing<T> {
 /** 저장된 상담 기록은 같은 표를 쓰지만 해석이 아니다. 보관함에 섞이면 안 된다. */
 function isReading(record: ReportRecord): boolean {
   return !(record.context as { savedChat?: unknown } | undefined)?.savedChat
+}
+
+function serviceKeyOf(record: ReportRecord): string {
+  return String(record.context?.serviceKey || 'cmdg')
 }
 
 /**
@@ -55,6 +59,39 @@ function purchaseTimeByLineage(records: ReportRecord[], orders: PaymentOrder[]):
   return earliest
 }
 
+/**
+ * 같은 사주·같은 서비스는 한 줄만 남긴다.
+ *
+ * 저장소에는 같은 사람의 같은 서비스가 여러 행으로 쌓인다 — 코퍼스 세대가 바뀌어 ID 가
+ * 새로 생겼거나, 고민 문구를 바꿔 다시 열었거나, 관리자 QA 로 여러 번 돌렸거나. 화면에는
+ * "같은 사주는 한 건"이어야 한다(운영 보관함에 천명사주 8줄·오늘운 8줄이 같은 제목으로
+ * 늘어서 있었다, 2026-09-18). 오늘운은 날짜(`context.concern`)가 다르면 다른 풀이다.
+ *
+ * 남기는 순서: 완성된 것 > 더 최근 구매 > 리포트 ID. 최신이 0/37 실패 stub 이고 옛것이
+ * 37/37 완성이면 완성을 보여야 한다 — 사용자가 산 것은 그 내용이다.
+ */
+function dedupeSameReading(listings: VaultListing<ReportRecord>[]): VaultListing<ReportRecord>[] {
+  const keyOf = (record: ReportRecord) => {
+    const service = serviceKeyOf(record)
+    const date = service === 'today' ? String(record.context?.concern ?? '') : ''
+    return `${service}|${reportBirthKey(record)}|${date}`
+  }
+  const isComplete = (record: ReportRecord) => reportProgressOf(record).status === 'complete'
+  const better = (a: VaultListing<ReportRecord>, b: VaultListing<ReportRecord>) => {
+    const completeGap = Number(isComplete(a.record)) - Number(isComplete(b.record))
+    if (completeGap !== 0) return completeGap > 0
+    return a.purchasedAt.localeCompare(b.purchasedAt) > 0
+      || (a.purchasedAt === b.purchasedAt && a.record.reportId.localeCompare(b.record.reportId) > 0)
+  }
+  const kept = new Map<string, VaultListing<ReportRecord>>()
+  for (const listing of listings) {
+    const key = keyOf(listing.record)
+    const current = kept.get(key)
+    if (!current || better(listing, current)) kept.set(key, listing)
+  }
+  return listings.filter((listing) => kept.get(keyOf(listing.record)) === listing)
+}
+
 /** 구매한 해석만, 구매 시각 내림차순으로. 같은 시각이면 리포트 ID 로 순서를 고정한다. */
 export function selectPurchasedReadings(
   records: ReportRecord[],
@@ -63,7 +100,7 @@ export function selectPurchasedReadings(
   const readings = records.filter(isReading)
   const purchasedAt = purchaseTimeByLineage(readings, orders)
 
-  return readings
+  return dedupeSameReading(readings
     .flatMap((record) => {
       const at = purchasedAt.get(reportLineageId(record))
       return at ? [{ record, purchasedAt: at }] : []
@@ -71,7 +108,7 @@ export function selectPurchasedReadings(
     .sort((a, b) => (
       b.purchasedAt.localeCompare(a.purchasedAt)
       || b.record.reportId.localeCompare(a.record.reportId)
-    ))
+    )))
 }
 
 /**
@@ -98,8 +135,9 @@ export function selectAdminVaultReadings(
     if (taken.has(record.reportId) || !isAdminVaultEligible(record)) return []
     return [{ record, purchasedAt: record.adminAcquiredAt || record.createdAt }]
   })
-  return [...purchased, ...extras].sort((a, b) => (
+  // 관리자 QA 는 같은 사주를 여러 번 돌린다. 여기서도 같은 사주·같은 서비스는 한 줄이다.
+  return dedupeSameReading([...purchased, ...extras].sort((a, b) => (
     b.purchasedAt.localeCompare(a.purchasedAt)
     || b.record.reportId.localeCompare(a.record.reportId)
-  ))
+  )))
 }

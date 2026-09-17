@@ -34,16 +34,23 @@ test('카드는 생성 중·완료·실패 세 상태를 가진다', () => {
   for (const badge of ['생성 중', '완료', '생성 실패']) assert.ok(html.includes(badge))
 })
 
-test('PDF 는 전부 만들어졌을 때만 활성화된다', () => {
+test('PDF 는 전부 만들어졌을 때만 받고, 만드는 중에는 누르면 진행을 알려 준다', () => {
   // 완료 분기에만 활성 클래스가 붙는다.
   const complete = html.slice(html.indexOf("if (state === 'complete')"), html.indexOf("if (state === 'failed')"))
   assert.match(complete, /pdfClass: 'is-ready'/)
   assert.match(complete, /pdfAction: 'pdf'/)
 
-  // 생성 중에는 클래스가 비어 있고, 비어 있으면 마크업이 disabled 를 붙인다.
+  // 2026-09-18: 생성 중 버튼은 죽은 버튼이 아니다. 누르면 창을 열지 않고 지금 진행(n/m)을 보여 준다.
   const generating = html.slice(html.indexOf('return {\n            state, total, done, percent'))
-  assert.match(generating, /pdfClass: ''/)
+  assert.match(generating, /pdfClass: 'is-waiting'/)
+  assert.match(generating, /pdfAction: 'pdf'/)
   assert.match(html, /\$\{view\.pdfClass \? '' : 'disabled'\}/)
+  const download = html.slice(html.indexOf('async function downloadPdf'), html.indexOf('async function load()'))
+  assert.match(download, /const complete = button\.dataset\.state === 'complete'/)
+  assert.match(download, /만드는 중 \$\{done\}\/\$\{sections\.length\}/)
+  // 팝업은 fetch 전에, 클릭 안에서 연다. 뒤에 열면 차단기가 막아 아무 일도 일어나지 않았다.
+  assert.ok(download.indexOf('openPlaceholder') < download.indexOf('await fetch('), '창을 fetch 뒤에 열고 있다')
+  assert.match(download, /UMSHReportPdf\.open\(report, popup\)/)
 
   // 실패는 내려받기가 아니라 재생성이다. 없는 파일을 받게 하지 않는다.
   const failed = html.slice(html.indexOf("if (state === 'failed')"), html.indexOf('return {\n            state, total, done, percent'))

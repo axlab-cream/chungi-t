@@ -59,20 +59,43 @@
       '</div></body></html>';
   }
 
-  function open(report) {
-    if (!report || !Array.isArray(report.sections) || !report.sections.length) return false;
-    const html = buildHtml(report);
-    const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
-    const popup = global.open(url, '_blank');
-    if (!popup) {
-      URL.revokeObjectURL(url);
+  /**
+   * 호출부가 클릭 안에서 미리 연 창(`popup`)을 넘길 수 있다. fetch 나 스크립트 로드를 기다린 뒤에
+   * 창을 열면 팝업 차단기가 막는다 — 모바일은 거의 항상, 데스크톱도 첫 클릭은 막힌다.
+   * 보관함의 「PDF 다운로드」가 조용히 아무 일도 하지 않던 이유다(2026-09-18).
+   */
+  function open(report, popup) {
+    if (!report || !Array.isArray(report.sections) || !report.sections.length) {
+      if (popup) { try { popup.close(); } catch (_error) { /* already closed */ } }
+      return false;
+    }
+    const target = popup || global.open('', '_blank');
+    if (!target) return false;
+    try {
+      target.document.open();
+      target.document.write(buildHtml(report));
+      target.document.close();
+    } catch (_error) {
       return false;
     }
     setTimeout(function () {
-      try { popup.focus(); popup.print(); } catch (_error) { /* print can be blocked */ }
-      URL.revokeObjectURL(url);
+      try { target.focus(); target.print(); } catch (_error) { /* print can be blocked */ }
     }, 400);
     return true;
+  }
+
+  /** 클릭 안에서 바로 부른다. 안내 문구를 채운 빈 창을 돌려주고, 못 열면 null. */
+  function openPlaceholder(message) {
+    const target = global.open('', '_blank');
+    if (!target) return null;
+    try {
+      target.document.open();
+      target.document.write('<!doctype html><html lang="ko"><head><meta charset="utf-8" /><title>운명상회</title></head>' +
+        '<body style="margin:0;background:#fff9ef;color:#211715;font-family:Pretendard,\'Malgun Gothic\',sans-serif">' +
+        '<p style="padding:32px 24px;font-size:16px;line-height:1.6">' + escapeHtml(message || '해석을 준비하고 있어요…') + '</p></body></html>');
+      target.document.close();
+    } catch (_error) { /* placeholder is best effort */ }
+    return target;
   }
 
   function readStorage(key) {
@@ -94,5 +117,5 @@
     return false;
   }
 
-  global.UMSHReportPdf = { open: open, openFromStorage: openFromStorage };
+  global.UMSHReportPdf = { open: open, openPlaceholder: openPlaceholder, openFromStorage: openFromStorage };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -904,6 +904,11 @@ export function reportLineageId(record: ReportRecord): string {
   return record.lineageId ?? createReportLineageId(record.birth, record.context, record.owner?.id)
 }
 
+/** 같은 사주인지 가르는 열쇠. 생년월일시·성별·역법만 보고 고민 문구나 코퍼스 세대는 보지 않는다. */
+export function reportBirthKey(record: ReportRecord): string {
+  return stableJson(birthKey(record.birth))
+}
+
 /**
  * 같은 계보의 기존 해석을 찾는다. **LLM 재호출을 막는 지점이 여기다.**
  *

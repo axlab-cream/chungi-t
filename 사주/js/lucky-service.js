@@ -447,10 +447,15 @@
     }
     if (button.dataset.bound === '1') return;
     button.dataset.bound = '1';
+    // 헬퍼는 미리 받아 둔다. 클릭 뒤에 받으면 첫 클릭의 창 열기가 팝업 차단기에 막힌다.
+    void ensurePdfHelper();
     button.addEventListener('click', async () => {
+      // 창은 클릭 안에서 먼저 연다(팝업 차단 회피). 헬퍼가 아직 없으면 빈 창을 열어 넘긴다.
+      const popup = window.UMSHReportPdf?.openPlaceholder?.('해석을 준비하고 있어요…') ?? window.open('', '_blank');
       await ensurePdfHelper();
       const report = readJson('sessionStorage', STORAGE.report);
-      if (!window.UMSHReportPdf?.open(report)) {
+      if (!window.UMSHReportPdf?.open(report, popup)) {
+        if (popup) { try { popup.close(); } catch { /* closed */ } }
         button.textContent = '해석이 준비되면 PDF를 받을 수 있습니다';
       }
     });

@@ -5,7 +5,8 @@ import { randomUUID } from 'node:crypto'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { isTransientOpenAiFailure } from '../../src/llm/openai-adapter.js'
 import { generateReportSectionNow } from '../../src/report/report-queue.js'
-import { createOrGetReportRecord } from '../../src/report/report-store.js'
+import { createOrGetReportRecord, mutateReportRecord } from '../../src/report/report-store.js'
+import { loadHighlightTopics } from '../../src/report/longform-blocks.js'
 import type { BirthInput, SajuReport, SajuReportSection } from '../../src/types/index.js'
 
 /**
@@ -23,6 +24,16 @@ const owner = { id: 'transient-openai-retry-test-owner' }
 const section = (id: string): SajuReportSection => ({ id, order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '관계', categoryEn: 'Love', classification: '현재 관계를 유지할 기준', hook: '', interpretation: '', patternKeys: [], ragTopics: [] })
 const template = (ids: string[]): SajuReport => ({ title: '테스트', subtitle: '', model: 'template', generatedBy: 'template', sections: ids.map(section) })
 const passingReading = '현재 입력에서 관계를 바꿀 이유는 확인되지 않아요. 특별한 문제 없이 지낸다고 적었으니 숨은 갈등을 전제하지 않아요.\n\n예를 들어 약속 간격이 달라도 서로 불편하지 않다면 연락 횟수를 늘릴 이유가 없어요. 지금 그런 약속을 지키고 있다는 뜻은 아니에요.\n\n먼저 현재 방식에서 편한 점을 확인해 보세요. 새로운 걱정을 만들기보다 실제 불편이 생겼을 때 그 장면부터 이야기해요.'
+
+// 2026-09-18: 항목 생성 앞에 총평·요약·하이라이트 호출이 붙었다. 이 검사는 항목 호출만 세므로 그 셋은 미리 채워 둔다.
+async function seedLongformBlocks(reportId: string) {
+  const topics = loadHighlightTopics(context.serviceKey)
+  await mutateReportRecord(reportId, owner, (draft) => {
+    draft.report.verdict = { statement: '지금 방식을 유지해도 괜찮아요.', decidedAt: new Date().toISOString() }
+    draft.report.summary = { text: '요약', status: 'complete' }
+    if (topics) draft.report.highlights = topics.map((topic) => ({ title: topic.title, text: '하이라이트', status: 'complete' }))
+  })
+}
 
 const sdkCreate = OpenAI.Chat.Completions.prototype.create
 const previousKey = process.env.OPENAI_API_KEY
@@ -43,6 +54,7 @@ describe('429·5xx 로 요청 자체가 거절되면 같은 실행 안에서 재
   it('실제 생성 경로: 429 가 두 번 이어져도 같은 실행 안에서 재시도해 완료한다', async () => {
     const reportId = randomUUID()
     await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(['one']), owner })
+    await seedLongformBlocks(reportId)
     let calls = 0
     OpenAI.Chat.Completions.prototype.create = (async () => {
       calls += 1
