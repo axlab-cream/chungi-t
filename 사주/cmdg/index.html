@@ -2,9 +2,11 @@
 <html lang="ko">
   <head>
 <script src="/js/umsh-chrome.js" defer></script>
+<script src="/js/umsh-report-access.js"></script>
+<script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>운명상회 - 운명을 팝니다.</title>
+    <title>천명사주 · 사주</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
     <meta property="og:type" content="website" />
@@ -554,17 +556,6 @@
       .auth-provider.google {
         background: #fff;
         color: #211b18;
-      }
-
-      .google-identity-shell {
-        width: 100%;
-        min-height: 40px;
-        overflow: hidden;
-        border-radius: 12px;
-      }
-
-      .google-identity-shell > div {
-        width: 100% !important;
       }
 
       .auth-provider.is-unavailable {
@@ -1270,19 +1261,6 @@
 
       .phone[data-step="todayResult"] > [data-umsh-service-top]:not(:empty) ~ header.topbar { display: none; }
 
-      /* 공용 하단 메뉴는 화면에 고정되고 .phone 은 스크롤하지 않는다. 그래서 stage 를
-         메뉴 높이만큼 줄이지 않으면 마지막 줄이 메뉴 밑으로 들어가 닿을 수 없게 된다.
-         오늘운 화면은 위아래를 따로 잡고 있어 건드리지 않는다. */
-      body.umsh-has-chrome .phone:not([data-step="todayResult"]) .stage {
-        height: calc(100% - var(--topbar-height) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px));
-      }
-
-      /* 보관함 패널은 stage 밖에서 inset: 0 으로 깔리는 오버레이라 위 규칙이 닿지
-         않는다. 아래 여백을 메뉴 높이만큼 늘려 마지막 항목을 가리지 않게 한다. */
-      body.umsh-has-chrome .settings-panel {
-        padding-bottom: calc(18px + var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px));
-      }
-
       .phone[data-step="todayResult"] .stage {
         top: var(--umsh-chrome-appbar-h, 85px);
         bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom));
@@ -1763,7 +1741,7 @@
 
       .sample-upload-blend {
         aspect-ratio: 4 / 3;
-        background: #000 url("assets/chungi-preview-two.webp") center / cover no-repeat;
+        background: #000;
         isolation: isolate;
       }
 
@@ -1772,9 +1750,7 @@
         position: absolute;
         inset: 0;
         z-index: 0;
-        background: #000 url("assets/chungi-preview-two.webp") center / cover no-repeat;
-        filter: saturate(0.94) brightness(0.78);
-        transform: scale(1.035);
+        background: #000;
         pointer-events: none;
       }
 
@@ -3290,19 +3266,11 @@
         line-height: 1;
       }
 
-      /*
-       * 결과 화면 본문이 15,000px를 넘는다(36개 섹션). 이 CTA 가 유일한 결제 진입점인데
-       * 맨 끝에만 있으면 16.8 화면을 스크롤해야 닿는다(2026-09-14 실측).
-       * 스크롤 컨테이너는 `.phone[data-scene="result"] .stage` 이고, 하단 고정 내비
-       * 높이만큼 이미 줄여 놨으므로 bottom:0 으로 붙여도 내비와 겹치지 않는다.
-       * 위쪽은 페이드로 처리해 본문이 바 밑으로 스며들 때 글자가 잘려 보이지 않게 한다.
-       */
       .sticky-story-cta {
-        position: sticky;
-        bottom: 0;
+        position: relative;
         z-index: 4;
         padding: 28px 20px max(34px, env(safe-area-inset-bottom));
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 26%, #000 100%);
+        background: #000;
       }
 
       .sample-enter .primary-cta,
@@ -3427,7 +3395,7 @@
       </video>
       <div class="concern-video-shade" aria-hidden="true"></div>
 
-      <header class="appbar topbar">
+      <header class="topbar">
         <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
           <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
         </a>
@@ -3456,8 +3424,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="/js/payment-bridge.js"></script>
     <script>
       const phone = document.querySelector(".phone");
       const stage = document.querySelector("#stage");
@@ -3482,8 +3448,6 @@
       let authInitPromise = null;
       let authGateMessage = "";
       let authSignInProvider = "";
-      let googleIdentityInitPromise = null;
-      let googleIdentityNonce = "";
       let reportHistorySyncPromise = null;
       let todayChrome = null;
       let todayRequestError = "";
@@ -3894,33 +3858,6 @@
         return `${birth.year}${pad2(birth.month)}${pad2(birth.day)}`;
       }
 
-      /**
-       * 서버(`isValidProfileName`)와 같은 규칙. 한글 2~20자.
-       * 클라이언트에서 먼저 보지 않으면 빈 상태로 저장 요청이 나가 400 을 맞고,
-       * 해석이 시작되지 못한 채 고민 화면으로 되돌아온다(2026-09-14 운영 확인).
-       */
-      function isUsableProfileName(value) {
-        const name = String(value ?? "").trim();
-        return /^[가-힣]{2,20}$/.test(name);
-      }
-
-      /** 분석에 들어가도 되는 상태인지. 이름과 생년월일이 모두 있어야 한다. */
-      function hasUsableProfileState() {
-        return isUsableProfileName(state.name) && Boolean(state.birth);
-      }
-
-      /**
-       * 로컬 캐시에서 사주 프로필을 복구한다. 새로고침·다른 탭 진입·로그인 복귀
-       * 뒤에는 `state` 가 비어 있는데 캐시에는 값이 남아 있는 경우가 많다.
-       */
-      function hydrateProfileFromCache(options = {}) {
-        if (hasUsableProfileState()) return true;
-        const cached = readCachedUserProfile();
-        if (!cached?.birth) return false;
-        applyUserProfile(cached, Object.assign({ preserveConcern: true }, options));
-        return hasUsableProfileState();
-      }
-
       function readCachedUserProfile() {
         try {
           const parsed = JSON.parse(localStorage.getItem(USER_PROFILE_CACHE_KEY) || "null");
@@ -4006,7 +3943,6 @@
         const res = await fetch("/api/user/profile", { headers });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "저장된 사주 프로필을 불러오지 못했습니다.");
-        if (json.admin) isAdminAccount = true;
         if (json.profile) {
           writeCachedUserProfile(json.profile);
           if (options.apply !== false) applyUserProfile(json.profile, options);
@@ -4015,13 +3951,6 @@
       }
 
       async function saveCurrentUserProfile() {
-        // 서버가 거부할 값을 보내지 않는다. 400 응답은 "사주 분석에 실패했습니다"
-        // 같은 모호한 안내로 바뀌어 원인을 가린다.
-        if (!hasUsableProfileState()) {
-          const error = new Error("사주 정보를 먼저 입력해주세요.");
-          error.needsProfile = true;
-          throw error;
-        }
         const localProfile = localUserProfileFromState();
         writeCachedUserProfile(localProfile);
         const headers = await authHeaders({ "Content-Type": "application/json" });
@@ -4157,7 +4086,7 @@
           return;
         }
         if (!session?.access_token) {
-          showAuthGate(`${label}${topicParticle(label)} 로그인과 사주등록 후 열 수 있습니다.`);
+          showAuthGate(`${label}은 로그인과 사주등록 후 열 수 있습니다.`);
           return;
         }
 
@@ -4173,7 +4102,7 @@
 
         if (!profile?.name || !applyUserProfile(profile)) {
           go("name", false);
-          showNudge(`${label}${objectParticle(label)} 열려면 사주 프로필을 먼저 등록해주세요.`);
+          showNudge(`${label}을 열려면 사주 프로필을 먼저 등록해주세요.`);
           return;
         }
 
@@ -4214,138 +4143,6 @@
         if (target) target.textContent = message;
       }
 
-      function prepareAuthContinuation() {
-        if (isStandaloneSignupFlow()) {
-          if (initialAuthEntry === "today") {
-            setTodayEntryPending();
-          } else {
-            clearTodayEntryPending();
-          }
-          sessionStorage.removeItem(AUTH_PENDING_KEY);
-          sessionStorage.removeItem(AUTH_FORM_KEY);
-        } else {
-          persistAuthFormState();
-          sessionStorage.setItem(AUTH_PENDING_KEY, "1");
-        }
-      }
-
-      function createGoogleIdentityNonce() {
-        const bytes = new Uint8Array(32);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
-      }
-
-      async function sha256Hex(value) {
-        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-        return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-      }
-
-      async function waitForGoogleIdentity() {
-        const deadline = Date.now() + 8000;
-        while (!window.google?.accounts?.id) {
-          if (Date.now() >= deadline) throw new Error("Google 로그인 모듈을 불러오지 못했습니다.");
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-        return window.google.accounts.id;
-      }
-
-      function googleIdentityOrigins() {
-        return new Set([
-          "https://umsh.kr",
-          "https://www.umsh.kr",
-          "http://localhost:8790",
-        ]);
-      }
-
-      function shouldUseGoogleIdentity() {
-        return googleIdentityOrigins().has(location.origin);
-      }
-
-      async function initializeGoogleIdentity() {
-        if (!shouldUseGoogleIdentity()) {
-          throw new Error("Google Identity Services is disabled for this origin.");
-        }
-        if (googleIdentityInitPromise) return googleIdentityInitPromise;
-        googleIdentityInitPromise = (async () => {
-          await initAuth();
-          const clientId = authConfigData?.googleClientId;
-          if (!clientId || !authConfigData?.providers?.google) {
-            throw new Error("구글 로그인 설정을 확인해 주세요.");
-          }
-          const googleIdentity = await waitForGoogleIdentity();
-          googleIdentityNonce = createGoogleIdentityNonce();
-          googleIdentity.initialize({
-            client_id: clientId,
-            callback: handleGoogleCredentialResponse,
-            nonce: await sha256Hex(googleIdentityNonce),
-            auto_select: false,
-            ux_mode: "popup",
-            use_fedcm_for_prompt: false,
-          });
-          return googleIdentity;
-        })().catch((err) => {
-          googleIdentityInitPromise = null;
-          throw err;
-        });
-        return googleIdentityInitPromise;
-      }
-
-      async function renderGoogleIdentityButton() {
-        const container = document.querySelector("[data-google-identity-button]");
-        if (!container) return;
-        try {
-          const googleIdentity = await initializeGoogleIdentity();
-          if (!container.isConnected) return;
-          container.innerHTML = "";
-          googleIdentity.renderButton(container, {
-            type: "standard",
-            theme: "outline",
-            size: "large",
-            text: "continue_with",
-            shape: "rectangular",
-            logo_alignment: "left",
-            width: Math.max(240, Math.round(container.getBoundingClientRect().width)),
-            locale: "ko",
-          });
-        } catch (err) {
-          setAuthMessage(err.message || "구글 로그인 설정을 확인해 주세요.");
-        }
-      }
-
-      async function handleGoogleCredentialResponse(response) {
-        const providerButton = document.querySelector("[data-google-identity-button]");
-        try {
-          authSignInProvider = "google";
-          providerButton?.classList.add("is-loading");
-          providerButton?.setAttribute("aria-busy", "true");
-          setAuthMessage("구글 계정으로 로그인하고 있습니다.");
-          prepareAuthContinuation();
-
-          await initAuth();
-          if (!authConfigData?.enabled || !authClient) {
-            throw new Error("Supabase 공개 URL과 publishable key 설정을 확인해 주세요.");
-          }
-          if (!response?.credential || !googleIdentityNonce) {
-            throw new Error("Google 인증 정보를 받지 못했습니다.");
-          }
-          const { data, error } = await authClient.auth.signInWithIdToken({
-            provider: "google",
-            token: response.credential,
-            nonce: googleIdentityNonce,
-          });
-          if (error) throw error;
-          authSession = await enforceDeviceAuthSession(data.session || null);
-          if (!authSession?.access_token) throw new Error("로그인 세션을 만들지 못했습니다.");
-          location.replace(isStandaloneSignupFlow() ? signupReturnUrl() : authReturnUrl());
-        } catch (err) {
-          sessionStorage.removeItem(AUTH_PENDING_KEY);
-          authSignInProvider = "";
-          providerButton?.classList.remove("is-loading");
-          providerButton?.removeAttribute("aria-busy");
-          setAuthMessage(err.message || "구글 회원가입을 시작하지 못했습니다.");
-        }
-      }
-
       async function signInWithProvider(providerName) {
         let providerButton = null;
         try {
@@ -4355,7 +4152,18 @@
           providerButton?.setAttribute("aria-busy", "true");
           setAuthMessage(`${authProviderLabel(providerName)} 회원가입으로 이동합니다.`);
 
-          prepareAuthContinuation();
+          if (isStandaloneSignupFlow()) {
+            if (initialAuthEntry === "today") {
+              setTodayEntryPending();
+            } else {
+              clearTodayEntryPending();
+            }
+            sessionStorage.removeItem(AUTH_PENDING_KEY);
+            sessionStorage.removeItem(AUTH_FORM_KEY);
+          } else {
+            persistAuthFormState();
+            sessionStorage.setItem(AUTH_PENDING_KEY, "1");
+          }
 
           await initAuth();
           if (!authConfigData?.enabled || !authClient) {
@@ -4371,6 +4179,9 @@
           if (providerName === "kakao") {
             options.scopes = "profile_nickname profile_image";
             options.queryParams = { scope: "profile_nickname profile_image" };
+          }
+          if (providerName === "google") {
+            options.queryParams = { prompt: "select_account" };
           }
           const { error } = await authClient.auth.signInWithOAuth({ provider, options });
           if (error) throw error;
@@ -4400,19 +4211,14 @@
         // reportId 를 달고 온 복귀, 그리고 직전 시도가 실패해 저장된 폼이 이미 지워진
         // 경우가 모두 여기에 해당한다. 빈 상태로 분석에 들어가면 프로필 저장이
         // 400(이름 미입력)으로 막혀서 티저로 넘어가지 못하고 고민 화면으로 되돌아온다.
-        // 1순위: 로컬 캐시. 네트워크 없이 즉시 복구된다.
-        hydrateProfileFromCache();
-        // 2순위: 서버 프로필.
-        if (!hasUsableProfileState()) {
+        if (!state.name || !state.birth) {
           try {
             await fetchUserProfile({ preserveConcern: true });
           } catch (err) {
             // 저장된 프로필이 없으면 아래에서 입력 화면으로 보낸다.
           }
         }
-        // 이름 형식까지 본다. 비어 있거나 한글 2자 미만이면 프로필 저장이
-        // 400 으로 막혀 /api/saju/analyze 가 호출조차 되지 않는다.
-        if (!hasUsableProfileState()) {
+        if (!state.name || !state.birth) {
           showNudge("사주 정보를 먼저 입력해주세요.");
           go("name");
           return;
@@ -4428,11 +4234,8 @@
             go("result");
           })
           .catch((err) => {
-            // 순서가 중요하다. go() 가 stage.innerHTML 을 갈아끼우므로 안내를 먼저
-            // 붙이면 그대로 지워진다. 화면을 바꾼 뒤에 붙여야 사용자가 볼 수 있다.
-            // 프로필이 원인이면 고민 화면으로 되돌려 봐야 같은 실패를 반복한다.
-            go(err && err.needsProfile ? "name" : "concern");
             showNudge(err.message || "사주 분석에 실패했습니다.");
+            go("concern");
           });
       }
 
@@ -4443,7 +4246,6 @@
 
       const landingSampleVideo = {
         mp4: "assets/chungi-landing-story.mp4",
-        poster: "assets/chungi-preview-two.webp",
       };
 
       const landingIntroAssets = {
@@ -4615,85 +4417,7 @@
         }
       }
 
-      /** Catalog products this funnel can sell, keyed by the plan the reader picked. */
-      const PLAN_PRODUCT_KEYS = { single: "cmdg" };
-      let paymentConfigCache = null;
-      let isAdminAccount = false;
-
-      async function loadPaymentConfig() {
-        if (paymentConfigCache) return paymentConfigCache;
-        paymentConfigCache = await fetch("/api/payment/config").then((res) => res.json()).catch(() => null);
-        return paymentConfigCache;
-      }
-
-      function catalogProduct(productKey) {
-        return paymentConfigCache?.catalog?.find((item) => item.key === productKey) || null;
-      }
-
-      function isCheckoutLive() {
-        return Boolean(paymentConfigCache?.checkoutEnabled);
-      }
-
-      /**
-       * Product this funnel sells right now: the single love reading, or the plan the
-       * reader picked. Package plans have no catalog entry yet and return an empty key,
-       * which keeps their existing pre-launch screen.
-       */
-      function checkoutProductKey() {
-        if (isLoveThisYearService()) return LOVE_THIS_YEAR_SERVICE_KEY;
-        return PLAN_PRODUCT_KEYS[state.plan] || "";
-      }
-
-      /** Keeps a paid reading open on this device before the next server round-trip. */
-      function rememberPaidReport(reportId) {
-        const trimmed = String(reportId || "").trim();
-        if (!trimmed) return;
-        try {
-          const ids = readPaidReportIds();
-          if (!ids.includes(trimmed)) localStorage.setItem(PAID_REPORTS_KEY, JSON.stringify([...ids, trimmed]));
-        } catch (err) {
-          console.warn("결제한 풀이 표시를 저장하지 못했습니다.", err);
-        }
-      }
-
-      /** Sends the reader to the real checkout, bound to the reading they just previewed. */
-      async function startCheckout() {
-        const config = await loadPaymentConfig();
-        const productKey = checkoutProductKey();
-        if (!config?.checkoutEnabled || !productKey) {
-          if (config?.setupMessage) showNudge(config.setupMessage);
-          go("paymentReady");
-          return;
-        }
-        const reportId = state.analysis?.report?.reportId || "";
-        const basePath = servicePathForCurrentPage();
-        const returnTo = reportId ? `${basePath}?reportId=${encodeURIComponent(reportId)}` : basePath;
-        const params = new URLSearchParams({ product: productKey, returnTo });
-        if (reportId) params.set("reportId", reportId);
-        window.UMSHPaymentBridge?.save(productKey, { reportId }, returnTo);
-        location.assign(`/payment?${params.toString()}`);
-      }
-
-      /** Marks the order as read and drops the payment params from the address bar. */
-      async function finishPaidReturn(params) {
-        if (params.get("paid") !== "1") return;
-        const orderId = params.get("orderId") || "";
-        if (orderId) {
-          await fetch(`/api/payment/orders/${encodeURIComponent(orderId)}/viewed`, {
-            method: "POST",
-            headers: await authHeaders(),
-          }).catch(() => undefined);
-        }
-        window.UMSHPaymentBridge?.clear();
-        const clean = new URLSearchParams(location.search);
-        clean.delete("paid");
-        clean.delete("orderId");
-        const query = clean.toString();
-        history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
-      }
-
       function isCurrentReportPaid() {
-        if (isAdminAccount) return true;
         const report = state.analysis?.report || {};
         const reportId = report.reportId || "";
         const paidIds = readPaidReportIds();
@@ -5010,11 +4734,11 @@
         go("result", false);
       }
 
-      async function loadReportById(reportId, options = {}) {
+      async function loadReportById(reportId) {
         const trimmed = String(reportId || "").trim();
         if (!trimmed) throw new Error("풀이 ID가 비어 있습니다.");
 
-        const cached = options.refresh ? null : readReportHistory().find((item) => item.reportId === trimmed);
+        const cached = readReportHistory().find((item) => item.reportId === trimmed);
         if (cached?.analysis && applyReadingPayload(cached)) {
           historyStack.length = 0;
           go("result", false);
@@ -5224,10 +4948,6 @@
         if (action === "open-settings") {
           openSettings();
         }
-        if (action === "retry-scene") {
-          const target = event.target.closest("[data-scene]")?.dataset.scene;
-          if (target) go(target, false);
-        }
         if (action === "my-edit-profile") {
           go("name");
         }
@@ -5267,7 +4987,7 @@
         }
         if (action === "pay-demo") {
           if (!state.privacyAgree || !state.paymentAgree) return showNudge("필수 동의를 먼저 체크해주세요.");
-          startCheckout();
+          go("paymentReady");
         }
         if (action === "restart") {
           clearTodayEntryPending();
@@ -5344,37 +5064,13 @@
         }
       }
 
-      /**
-       * 렌더가 실패해도 빈 화면이나 조용한 되돌아가기로 끝내지 않는다.
-       * 해석 자체는 서버에 저장돼 있으므로 보관함 경로와 재시도를 같이 준다.
-       */
-      function renderSceneFailure(scene, error) {
-        const message = (error && error.message) || String(error || "알 수 없는 오류");
-        stage.innerHTML = `
-          <section class="panel">
-            <div class="status">화면 오류</div>
-            <h1>결과를 그리지 못했습니다</h1>
-            <p>해석은 저장되어 있습니다. 다시 시도하거나 보관함에서 열 수 있습니다.</p>
-            <div class="status" role="status">${escapeHtml(message)}</div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="open-settings">보관함 열기</button>
-              <button class="next-cta" type="button" data-action="retry-scene" data-scene="${escapeHtml(scene)}">다시 시도</button>
-            </div>
-          </section>
-        `;
-      }
-
       function showNudge(message) {
         const existing = document.querySelector(".nudge");
         if (existing) existing.remove();
         const nudge = document.createElement("div");
         nudge.className = "fineprint nudge";
         nudge.textContent = message;
-        // 로딩 화면에는 `.panel` 이 없다. `?.append` 로 두면 실패 안내가 조용히
-        // 사라지고, 사용자에게는 "아무 일도 일어나지 않는" 것으로 보인다.
-        // 2026-09-14 운영 확인: 렌더 오류 메시지가 이 경로로 전부 버려지고 있었다.
-        const host = stage.querySelector(".panel") || stage.querySelector("section, article") || stage;
-        host.append(nudge);
+        stage.querySelector(".panel")?.append(nudge);
       }
 
       function validateName(value) {
@@ -5496,25 +5192,6 @@
         })[char]);
       }
 
-      function lastHangul(word) {
-        const chars = String(word || "").replace(/[^가-힣]/g, "");
-        return chars.slice(-1);
-      }
-
-      function hasBatchim(word) {
-        const last = lastHangul(word);
-        if (!last) return false;
-        return (last.charCodeAt(0) - 0xac00) % 28 !== 0;
-      }
-
-      function objectParticle(word) {
-        return hasBatchim(word) ? "을" : "를";
-      }
-
-      function topicParticle(word) {
-        return hasBatchim(word) ? "은" : "는";
-      }
-
       function storyTopNavMarkup(_showBack = false) {
         return "";
       }
@@ -5601,7 +5278,7 @@
       function sampleVideoMarkup(video = sampleVideo, shellClass = "") {
         return `
           <section class="sample-video-shell ${shellClass}" data-sample-section="video">
-            <video class="sample-video" autoplay muted playsinline preload="auto" poster="${video.poster || ""}" aria-label="천명사주 티저 영상">
+            <video class="sample-video" autoplay muted playsinline preload="auto" aria-label="천명사주 티저 영상">
               ${video.webm ? `<source src="${video.webm}" type="video/webm" />` : ""}
               <source src="${video.mp4}" type="video/mp4" />
             </video>
@@ -5635,7 +5312,7 @@
         palzaBg = sampleAssets.palzaBg,
         assetOne = sampleAssets.assetOne,
         showAssetOneTopCopy = true,
-        assetOneBottomCopy = `<p>${concernHead}${topicParticle(concernHead)} 지금 흐름을 다시 보게 만든 신호일세.</p>`,
+        assetOneBottomCopy = `<p>${concernHead}은 지금 흐름을 다시 보게 만든 신호일세.</p>`,
         previewTwoCopy = `<h2>과거로부터 이어온<br /><span class="red">팔자</span>의 기운을 보겠네</h2>`,
         previewTwo = sampleAssets.previewTwo,
         assetTwoTopCopy = `<p>${displayName}님의 <span class="red">사주</span><br />입력한 생년월일 기준</p>`,
@@ -5824,7 +5501,7 @@
             ${sourceImg("datePreviewThree", "source-img", "결과 리포트 페이지 예시")}
             <div class="source-fade"></div>
             <div class="source-copy top"><p>결코 가벼운 <span class="red">사주</span>가 아닙니다.<br />감춰진 현재의 <span class="red">비밀</span>이 드러납니다.</p></div>
-            <div class="source-copy bottom"><h2>평생을 가져갈<br />당신의 <span class="red">운명 사전</span></h2></div>
+            <div class="source-copy bottom"><h2>읽는 데 2시간은<br />족히 넘게 걸릴 겁니다</h2></div>
           </section>
 
           <section class="source-full-section" data-sample-section="last-saju-book">
@@ -6184,19 +5861,11 @@
         phone.dataset.scene = phoneScene;
         phone.dataset.step = scene;
         if (todayChrome && !document.getElementById("umsh-verified-layout")) {
-          todayChrome.appbar.hidden = false;
-          todayChrome.bottomNav.hidden = false;
+          todayChrome.appbar.hidden = scene !== "todayResult";
+          todayChrome.bottomNav.hidden = scene !== "todayResult";
         }
         soundButton.style.display = "none";
-        // 렌더 실패가 호출부의 catch 로 흘러가면 "분석 실패"로 둔갑해 사용자를 조용히
-        // 앞 화면으로 되돌린다. 2026-09-14 운영에서 renderResult 의 TypeError 가 정확히
-        // 그렇게 삼켜졌다(분석 API 는 200 이었다). 여기서 끊고 화면에 남긴다.
-        try {
-          steps[scene]();
-        } catch (renderError) {
-          console.error("[umsh] 화면 렌더 실패:", scene, renderError);
-          renderSceneFailure(scene, renderError);
-        }
+        steps[scene]();
         phone.scrollTop = 0;
         if (scene === "result" || scene === "todayResult") stage.scrollTop = 0;
         requestAnimationFrame(() => {
@@ -6352,8 +6021,8 @@
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.name || "이름"} · ${state.gender || "성별"}</div>
-            <h1>생년월일을 알려주세요</h1>
-            <p>날짜 하나로 첫 번째 운의 결을 펼쳐봅니다.</p>
+            <h1>생년월일로 올해 운의 결이 열립니다</h1>
+            <p>양력·음력만 맞추면, 일간과 대운 방향부터 읽어 드립니다.</p>
             <div class="segmented" role="group" aria-label="달력 선택">
               <button type="button" data-key="calendar" data-value="양력" aria-pressed="${state.calendar === "양력"}">양력</button>
               <button type="button" data-key="calendar" data-value="음력" aria-pressed="${state.calendar === "음력"}">음력</button>
@@ -6378,8 +6047,8 @@
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
-            <h1>태어난 시간</h1>
-            <p>정확한 시간이 있으면 더 섬세하게 보고, 몰라도 그대로 진행할 수 있습니다.</p>
+            <h1>시간을 알면 시주까지 읽습니다</h1>
+            <p>정확한 시간이 있으면 시주를 열고, 모르면 일지와 대운 중심으로 이어갑니다.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="birthtime">태어난 시간</label>
@@ -6400,8 +6069,8 @@
         stage.innerHTML = `
           <section class="panel">
             <div class="status">1단계</div>
-            <h1>이름과 성별</h1>
-            <p>사주 풀이에 사용할 기본 정보를 먼저 적어주세요.</p>
+            <h1>부를 이름과 계산 기준을 엽니다</h1>
+            <p>결과는 이 이름으로 부르고, 성별은 대운 방향을 나누는 데만 씁니다.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="name">이름</label>
@@ -6535,14 +6204,11 @@
           renderLoveConcern();
           return;
         }
-        // renderMy 와 같은 방식으로 캐시에서 복구한다. 복구하지 않으면 상단 칩이
-        // "이름 · 양력 생년월일" 플레이스홀더로 뜨고, 그 상태로 해석을 누르면 실패한다.
-        hydrateProfileFromCache();
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
-            <h1>고민</h1>
-            <p>지금 가장 마음에 걸리는 질문을 적어주세요. 바로 건너뛰어도 됩니다.</p>
+            <h1>지금 걸리는 한 줄이 목차를 맞춥니다</h1>
+            <p>올해 연애, 돈, 직장처럼 한 가지만 적어도 해석 순서가 맞춰집니다. 비워도 전체 흐름은 열립니다.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="concern">고민</label>
@@ -6559,13 +6225,6 @@
       }
 
       function renderMy() {
-        const cached = readCachedUserProfile();
-        if (cached?.birth) applyUserProfile(cached);
-        if (!state.name) {
-          fetchUserProfile().then((profile) => {
-            if (state.scene === "my" && profile) renderMy();
-          }).catch(() => undefined);
-        }
         const birthText = `${state.calendar} ${formatBirthLabel(state.birth)} · ${state.birthTimeKnown ? state.time : "시간 모름"}`;
         stage.innerHTML = `
           <section class="panel">
@@ -6591,14 +6250,8 @@
 
       function renderAuthProviderButton(providerName, className, label, helper, mark) {
         const isLoading = !authConfigData;
-        const isConfigured = Boolean(
-          authConfigData?.providers?.[providerName]
-          && (providerName !== "google" || authConfigData?.googleClientId)
-        );
+        const isConfigured = Boolean(authConfigData?.providers?.[providerName]);
         const isSigningIn = authSignInProvider === providerName;
-        if (providerName === "google" && isConfigured && shouldUseGoogleIdentity()) {
-          return `<div class="google-identity-shell" data-google-identity-button aria-label="Google 계정으로 계속하기"></div>`;
-        }
         const stateAttrs = isLoading
           ? `data-auth-loading="${providerName}" aria-disabled="true"`
           : isConfigured
@@ -6637,14 +6290,14 @@
         const title = wantsTodayEntry()
           ? "오늘의 운을 보려면<br />먼저 가입해주세요"
           : wantsProtectedProfileEntry()
-            ? `${protectedLabel}${objectParticle(protectedLabel)} 열려면<br />먼저 로그인해주세요`
+            ? `${protectedLabel}을 열려면<br />먼저 로그인해주세요`
             : isStandaloneSignupFlow()
               ? "회원가입 후<br />운을 열어보세요"
               : "먼저 가입하고<br />해석을 시작합니다";
         const description = wantsTodayEntry()
           ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
           : wantsProtectedProfileEntry()
-            ? `${protectedLabel}${topicParticle(protectedLabel)} 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
+            ? `${protectedLabel}은 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
             : isStandaloneSignupFlow()
               ? "소셜 계정으로 가입하면 오늘운, 운명록, 보관함을 같은 계정에서 이어서 볼 수 있습니다."
               : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
@@ -6671,9 +6324,6 @@
             <button class="auth-cancel" type="button" data-auth-close>${closeLabel}</button>
           </section>
         `;
-        if (shouldUseGoogleIdentity() && authConfigData?.googleClientId && authConfigData?.providers?.google) {
-          requestAnimationFrame(() => renderGoogleIdentityButton());
-        }
       }
 
       function renderLoading() {
@@ -7039,7 +6689,7 @@
 
             <section class="story-section sub-result-text-band" data-sample-section="personality-bridge">
               <span class="chapter">허허...</span>
-              <h2><span class="red">성격</span> · ${displayName}</h2>
+              <h2><span class="red">성격</span><br />${displayName}</h2>
               <div class="sub-result-meta" aria-label="사주 기둥 요약">
                 <span>${yearLabel}</span>
                 <span>${monthLabel}</span>
@@ -7054,7 +6704,7 @@
               <h2 class="hero-line"><span class="red">${dominantElement}</span> <span class="red">기운</span>이<br />꽤 강하군요</h2>
               <div class="sub-result-summary" aria-label="서브 결과 요약">
                 <div class="sub-result-card"><strong>먼저 보이는 결</strong><span>${dominantElement}의 흐름이 강해 판단과 반응이 빠르게 움직입니다.</span></div>
-                <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>${objectParticle(concernRaw)} 중심으로 현실의 흐름을 다시 봅니다.</span></div>
+                <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>을 중심으로 현실의 흐름을 다시 봅니다.</span></div>
                 <div class="sub-result-card"><strong>해석 방향</strong><span>확인된 사주 구조를 바탕으로 강점과 살펴볼 조건을 함께 설명합니다.</span></div>
               </div>
               <div class="story-callout">현재 상황을 먼저 존중하고, 해당하는 부분만 생활의 판단 기준으로 연결합니다.</div>
@@ -7314,20 +6964,12 @@
       }
 
       function renderLoveThisYearPurchase() {
-        if (!paymentConfigCache) {
-          stage.innerHTML = `<section class="panel"><div class="status">결제 안내</div><h1>결제 정보를 확인하는 중입니다</h1><p>잠시만 기다려 주세요.</p></section>`;
-          loadPaymentConfig().then(() => renderLoveThisYearPurchase());
-          return;
-        }
         const service = currentService();
-        const live = isCheckoutLive();
-        const product = catalogProduct(LOVE_THIS_YEAR_SERVICE_KEY);
-        const priceLabel = product ? `${Number(product.amount).toLocaleString("ko-KR")}원` : service.price;
         stage.innerHTML = `
           <section class="panel teaser-panel">
-            <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
+            <div class="status">결제 안내 데모</div>
             <h1>${escapeHtml(service.title)}</h1>
-            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다."}</p>
+            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. 실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다.</p>
 
             <div class="teaser-block">
               <span class="chapter">상품 요약</span>
@@ -7335,7 +6977,7 @@
                 <div class="timeline-row"><strong>상품</strong><span>${escapeHtml(service.title)}</span></div>
                 <div class="timeline-row"><strong>구성</strong><span>10개 연애운 전용 목차</span></div>
                 <div class="timeline-row"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
-                <div class="timeline-row"><strong>결제금액</strong><span>${escapeHtml(priceLabel)}</span></div>
+                <div class="timeline-row"><strong>결제금액</strong><span>${escapeHtml(service.price)}</span></div>
               </div>
             </div>
 
@@ -7367,27 +7009,18 @@
           renderLoveThisYearPurchase();
           return;
         }
-        if (!paymentConfigCache) {
-          stage.innerHTML = `<section class="panel"><div class="status">결제 안내</div><h1>결제 정보를 확인하는 중입니다</h1><p>잠시만 기다려 주세요.</p></section>`;
-          loadPaymentConfig().then(() => renderPurchase());
-          return;
-        }
         const plans = [
           { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,900원" },
+          { id: "solo", title: "솔로탈출 패키지", badge: "추천", discount: "44%", origin: "108,000원", price: "60,000원" },
+          { id: "deep", title: "MZ 운세 패키지", badge: "인기", discount: "30%", origin: "96,000원", price: "67,000원" },
         ];
-        // Show the amount checkout will actually charge for every plan the catalog sells.
-        plans.forEach((plan) => {
-          const product = catalogProduct(PLAN_PRODUCT_KEYS[plan.id]);
-          if (product) plan.price = `${Number(product.amount).toLocaleString("ko-KR")}원`;
-        });
         const selected = plans.find((plan) => plan.id === state.plan) || plans[0];
-        const live = isCheckoutLive() && Boolean(PLAN_PRODUCT_KEYS[selected.id]);
 
         stage.innerHTML = `
           <section class="panel teaser-panel">
-            <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
+            <div class="status">결제 안내 데모</div>
             <h1>전체 풀이를 열어볼까요?</h1>
-            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제는 연결하지 않은 데모입니다."}</p>
+            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. 실제 결제는 연결하지 않은 데모입니다.</p>
 
             <div class="result-list">
               ${plans
@@ -7477,22 +7110,7 @@
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
       const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
       const settingsEntryScenes = new Set(["vault", "settings", "history"]);
-      loadPaymentConfig().then(() => {
-        if (state.scene === "purchase") renderPurchase();
-      });
-      function mountCommonBottomNav() {
-        if (!window.UMSHChrome || document.getElementById("umsh-verified-layout")) return;
-        const chrome = window.UMSHChrome.mount({ root: ".phone", service: "천명사주", category: "종합" });
-        if (!chrome) return;
-        chrome.appbar.hidden = false;
-        chrome.bottomNav.hidden = false;
-      }
-      if (window.UMSHChrome) mountCommonBottomNav();
-      else document.addEventListener("DOMContentLoaded", mountCommonBottomNav, { once: true });
       const initialReportId = new URLSearchParams(location.search).get("reportId");
-      const paidReturnParams = new URLSearchParams(location.search);
-      const isPaidReturn = paidReturnParams.get("paid") === "1";
-      if (isPaidReturn && initialReportId) rememberPaidReport(initialReportId);
       if (isStandaloneSignupFlow() && !isAuthReturn) {
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         sessionStorage.removeItem(AUTH_FORM_KEY);
@@ -7502,11 +7120,9 @@
       }
       if (initialReportId && (!resolvedInitialScene || resolvedInitialScene === "result")) {
         go("loading", false);
-        loadReportById(initialReportId, { refresh: isPaidReturn })
-          .catch((err) => {
-            renderReportLookupError(err.message);
-          })
-          .then(() => finishPaidReturn(paidReturnParams));
+        loadReportById(initialReportId).catch((err) => {
+          renderReportLookupError(err.message);
+        });
       } else if (urlScenes.has(resolvedInitialScene)) {
         if (freshInputScenes.has(resolvedInitialScene) && !isAuthReturn && sessionStorage.getItem(AUTH_PENDING_KEY) !== "1") {
           resetReadingState();
@@ -7525,10 +7141,7 @@
       if (isSignupReturn) {
         clearSignupQuery();
       }
-      initAuth().then(async () => {
-        if (authSession?.access_token) {
-          await fetchUserProfile({ apply: false }).catch(() => undefined);
-        }
+      initAuth().then(() => {
         if (wantsProtectedProfileEntry() && authSession?.access_token) {
           beginProtectedEntryAfterAuth();
           return;
@@ -7546,6 +7159,5 @@
         }
       });
     </script>
-      <script src="/js/umsh-panel-video.js?v=20260904c"></script>
   </body>
 </html>

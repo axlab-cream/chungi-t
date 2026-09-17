@@ -3,15 +3,7 @@ import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { runInNewContext, Script } from 'node:vm'
 
-/*
- * 예전에는 `cmdg` 와 `사주` 두 벌을 같이 검사했다. 그런데 `/cmdg/`·`/cmdg/index.html`·
- * `/signup` 을 실제로 내보내는 파일은 `사주/사주/index.html` 하나뿐이다 — 라우트가
- * 정적 마운트보다 먼저 잡기 때문이다(app.ts 의 `/cmdg/` 핸들러가 `SAJU_UI` 를 보낸다).
- * `사주/cmdg/` 는 어느 경로로도 나가지 않는 사본이라 내용이 이미 갈라져 있었고,
- * 2026-09-16 에 지웠다. 자산 50개는 전부 `사주/사주/assets` 에 같은 이름으로 있어서
- * `/cmdg/assets` 마운트가 그대로 받는다(고유 파일 0개 확인).
- */
-const portals = ['사주']
+const portals = ['cmdg', '사주']
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!)
 
 function functionSource(html: string, name: string, nextName: string) {

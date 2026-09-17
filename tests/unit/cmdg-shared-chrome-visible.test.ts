@@ -47,15 +47,16 @@ test('천명사주 화면은 공용 하단 메뉴도 숨기지 않는다', () =>
   }
 })
 
-test('공용 크롬은 상·하단을 한 벌로 올린다', () => {
-  assert.match(
-    html, /function mountCommonChrome\(\)/,
-    '상단까지 함께 올린다는 뜻이 이름에 남아 있어야 한다 — `mountCommonBottomNav` 로 되돌리지 말 것',
-  )
-  assert.doesNotMatch(html, /mountCommonBottomNav/)
-  const mount = html.slice(html.indexOf('function mountCommonChrome()'))
-    .slice(0, html.slice(html.indexOf('function mountCommonChrome()')).indexOf('\n      }') + 8)
+/*
+ * 함수 이름은 고정하지 않는다. `today-portal-view.test.ts` 가 `mountCommonBottomNav` 라는
+ * 이름을 이미 고정하고 있어서, 여기서 다른 이름을 요구하면 두 테스트가 서로를 깨뜨린다.
+ * 이 파일이 지키는 것은 이름이 아니라 동작이다 — 마운트한 크롬을 도로 숨기지 않는 것.
+ */
+test('공용 크롬 마운트는 상·하단을 한 벌로 올린다', () => {
+  const start = html.search(/function mountCommon\w*\(\)/)
+  assert.ok(start >= 0, '공용 크롬 마운트 함수를 찾지 못했다')
+  const mount = html.slice(start, start + html.slice(start).indexOf('\n      }') + 8)
   assert.match(mount, /UMSHChrome\.mount\(/)
-  assert.match(mount, /chrome\.appbar\.hidden = false/)
+  assert.match(mount, /chrome\.appbar\.hidden = false/, '상단을 숨긴 채로 올리면 안 된다')
   assert.match(mount, /chrome\.bottomNav\.hidden = false/)
 })
