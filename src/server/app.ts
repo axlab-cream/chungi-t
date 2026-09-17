@@ -43,6 +43,7 @@ import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, lis
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
+import { checkOpsQueueReadiness } from '../admin/ops-queue.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import {
@@ -1848,7 +1849,9 @@ app.get('/api/health', async (req, res) => {
   // 조용히 메모리로 떨어져 결제·회원 정보가 다음 요청에서 사라진다(U20).
   const paymentStorage = req.query.storage === '1' ? checkPaymentStorageReadiness() : undefined
   const profileStorage = req.query.storage === '1' ? checkUserProfileStorageReadiness() : undefined
-  const storages = [reportStorage, paymentStorage, profileStorage]
+  // 영속 작업 큐. 여기가 죽어 있으면 결제한 해석이 조용히 멈춘다.
+  const opsQueue = req.query.storage === '1' ? await checkOpsQueueReadiness() : undefined
+  const storages = [reportStorage, paymentStorage, profileStorage, opsQueue]
   res.setHeader('Cache-Control', 'no-store')
   res.status(storages.some((storage) => storage && !storage.ok) ? 503 : 200).json({
     ok: storages.every((storage) => !storage || storage.ok),
@@ -1856,6 +1859,7 @@ app.get('/api/health', async (req, res) => {
     ...(reportStorage ? { reportStorage } : {}),
     ...(paymentStorage ? { paymentStorage } : {}),
     ...(profileStorage ? { profileStorage } : {}),
+    ...(opsQueue ? { opsQueue } : {}),
     corpus: {
       registryVersion: corpus.registryVersion,
       fingerprint: corpus.fingerprint,

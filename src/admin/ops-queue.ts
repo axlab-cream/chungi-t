@@ -91,3 +91,58 @@ export async function enqueueOpsJob(params: EnqueueOpsJobParams): Promise<Enqueu
     return 'unavailable'
   }
 }
+
+export interface OpsQueueReadiness {
+  ok: boolean
+  configured: boolean
+  table?: 'ready' | 'missing' | 'denied' | 'error'
+  claimRpc?: 'ready' | 'missing' | 'denied' | 'error'
+  queued?: number
+  errorCode?: string
+}
+
+/**
+ * 큐가 실제로 살아 있는지 확인한다.
+ *
+ * 작업을 넣는 쪽은 실패해도 던지지 않게 해 두었다 — 결제를 막지 않기 위해서다. 그래서
+ * 테이블이나 RPC 가 없으면 **아무 소리 없이 아무 일도 일어나지 않는다.** 2026-09-17 에
+ * 운영에서 정확히 그 상태였다: 리포트 12건이 멈춰 있는데 어디가 막혔는지 볼 수가 없었다.
+ *
+ * 비밀은 담지 않는다. 테이블이 응답하는지와 대기 건수만 돌려준다.
+ */
+export async function checkOpsQueueReadiness(): Promise<OpsQueueReadiness> {
+  if (!opsStoreAvailable()) return { ok: false, configured: false, errorCode: 'OPS_STORE_UNAVAILABLE' }
+  const classify = (status: number) =>
+    status === 404 ? 'missing' as const
+      : status === 401 || status === 403 ? 'denied' as const
+        : 'error' as const
+  let table: OpsQueueReadiness['table']
+  let queued: number | undefined
+  try {
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('select', 'id')
+    url.searchParams.set('state', 'eq.queued')
+    const response = await fetch(url, { headers: { ...opsHeaders(), prefer: 'count=exact', range: '0-0' } })
+    if (response.ok) {
+      table = 'ready'
+      const range = response.headers.get('content-range') ?? ''
+      const total = Number(range.split('/')[1])
+      if (Number.isFinite(total)) queued = total
+    } else table = classify(response.status)
+  } catch { table = 'error' }
+
+  let claimRpc: OpsQueueReadiness['claimRpc']
+  try {
+    // p_limit 0 이면 아무것도 집지 않는다. 존재 여부만 본다.
+    const response = await fetch(`${opsBase()}/rest/v1/rpc/claim_ops_jobs`, {
+      method: 'POST', headers: opsHeaders(), body: JSON.stringify({ p_limit: 0, p_lease_seconds: 1 }),
+    })
+    claimRpc = response.ok ? 'ready' : classify(response.status)
+  } catch { claimRpc = 'error' }
+
+  const ok = table === 'ready' && claimRpc === 'ready'
+  return {
+    ok, configured: true, table, claimRpc, queued,
+    ...(ok ? {} : { errorCode: table !== 'ready' ? `OPS_TABLE_${String(table).toUpperCase()}` : `OPS_RPC_${String(claimRpc).toUpperCase()}` }),
+  }
+}
