@@ -37,7 +37,8 @@ test('love signal service builds a dedicated relationship signal report', () => 
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '관계 신호 해석문')
-  assert.equal(report.sections.length, 70)
+  // 2026-09-17 목차 축소: 10대분류·70중분류 → 10대분류·21중분류(대분류당 2~3개).
+  assert.equal(report.sections.length, 21)
   assert.equal(new Set(report.sections.map((section) => section.category)).size, 10)
 
   // 05 목차 and 06 상세 route on the design's own section ids.
@@ -53,7 +54,7 @@ test('love signal service builds a dedicated relationship signal report', () => 
   })
 
   // The reading has to reach the reader's own input and both saju, not a generic template.
-  assert.match(report.sections.find((section) => section.classification.includes('천간 궁합'))!.interpretation, /일간|일지/)
+  assert.match(report.sections.find((section) => section.classification.includes('오행 상생'))!.interpretation, /일간|일지/)
   assert.match(report.sections[0].interpretation, /연애 중/)
   assert.match(report.sections[0].interpretation, /연락 온도차/)
   assert.equal(context.partner?.name, '김하나')
