@@ -3916,12 +3916,42 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       context: publicReportContext(record.context),
       analysis,
       chatHistory: record.chatHistory ?? [],
+      // 관리자 계정에만. 실패한 항목이 왜 막혔는지(검수 사유) 화면 없이 볼 수 있어야 한다.
+      ...(owner && isAdminOwner(owner) ? { diagnostics: reportDiagnostics(record) } : {}),
     })
   } catch (err) {
     const denied = err instanceof Error && err.message === 'REPORT_ACCESS_DENIED'
     res.status(denied ? 403 : 500).json({ error: denied ? '본인의 해석만 조회할 수 있습니다.' : '리포트 조회 실패' })
   }
 })
+
+/**
+ * 관리자 전용 진단. 시도 기록의 상태·사유·길이만 싣고 원문(raw)은 싣지 않는다 — 원문은
+ * 검수에 떨어진 글이라 고객 응답 경로에 실을 이유가 없고, 길이만으로 잘림·빈 응답은 구분된다.
+ * 운영에서 0/21·0/70 으로 굳은 리포트 6건의 사유를 볼 곳이 없어 붙였다(2026-09-17).
+ */
+function reportDiagnostics(record: ReportRecord) {
+  return {
+    failedSections: record.report.sections
+      .filter((section) => section.status === 'failed' || (section.attempts ?? []).some((attempt) => attempt.status === 'failed'))
+      .map((section) => ({
+        id: section.id,
+        order: section.order,
+        category: section.category,
+        classification: section.classification,
+        status: section.status,
+        attempts: (section.attempts ?? []).map((attempt) => ({
+          status: attempt.status,
+          model: attempt.model,
+          startedAt: attempt.startedAt,
+          finishedAt: attempt.finishedAt,
+          finishReason: attempt.finishReason ?? null,
+          error: attempt.error ?? null,
+          rawChars: attempt.raw?.length ?? 0,
+        })),
+      })),
+  }
+}
 
 function parseConversationHistory(value: unknown): ConversationTurn[] {
   if (!Array.isArray(value)) return []
