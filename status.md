@@ -2,6 +2,50 @@
 
 ## Current Task
 
+- 2026-09-17 전 서비스 PDF 경로: 06-1 상세 14개 가운데 PDF 버튼이 붙어 있던 것은 저축·퇴사 두 곳뿐이었고, 냥궁합·올해연애는 어느 화면도 로드하지 않는 `UMSHReportPdf` 를 부르고 있었다(자체 `window.print()` 폴백으로만 동작). 나머지 10곳에는 버튼이 없었고, **인쇄 규칙이 한 곳도 없어** 눌러도 상단바·하단 내비·버튼까지 종이에 찍혔다. 14개 전부가 `umsh-report-access.js` 를 로드하므로 개별 수정 대신 그 한 곳에서 본문 렌더 직후 `ensurePdfDock()` 으로 처리한다 — 자체 버튼이 있으면 건드리지 않고, 없으면 키트의 `.umsh-pdf-dock`/`.pdf-button` 을 본문 아래에 넣는다. 06-1 이 없는 서비스는 보관함이 공용 리더(`/r/:id`)로 보내므로 고유 주소도 같이 포함하고, 티저(04)는 제외한다. 새 `사주/css/umsh-report-print.css` 는 역할 표시(`data-umsh-service-top` 등)와 대화형 요소를 기준으로 지운다. 실측에서 드러난 두 건을 함께 고쳤다: (1) 붙는 자리가 `display:grid`(직장선택 `#detailStage`)면 버튼이 92×402 세로 막대가 됐다 — 독이 스스로 크기를 고정한다. (2) 규칙을 고쳐도 브라우저가 캐시된 옛 사본을 써서 PDF 가 화면 배색으로 찍혔다 — HTML 의 `?v=` 규약대로 버전을 붙인다. 카드에 `break-inside: avoid` 는 쓰지 않는다(한 항목이 한 페이지보다 길어 앞 페이지가 크게 비므로, `umsh-verified-reader.css` 와 같은 판단). 검증: 로컬 파일 저장소로 실제 저축 리포트를 열어 인쇄 미디어에서 흰 배경·검은 글자·크롬 제거·문단 블록 잘림 방지 확인, 버튼 없던 직장선택에 92×44 로 주입 확인. `npm test` 1143/1143, typecheck, 검수 15종, 20개 서비스 QA 통과.
+
+- 2026-09-17 유료 해석 생성 실패 복구: 보관함의 `해석을 준비하고 있어요` 잔존은 데이터 상태가 아니라 결함 세 건이었다. (1) **검수 게이트 결함** — 다음 판단 기준 인식기가 `해요`·`하십시오` 계열만 받아서, 페르소나가 `~거예요`를 강제하는 `money_save`·`couple_signal`과 `~거야`인 `today_fortune`은 시간 표지·확인 대상·행동이 다 있는 문장을 써도 통과가 **구조적으로 불가능**했다. `~하는 거예요/거야`를 인식하되 대상 없는 문장과 부정형은 계속 거른다. (2) **토큰 예산 부족** — gpt-5 계열은 추론 토큰도 `max_completion_tokens`에서 깎는다. `money_save` 첫 항목은 4200을 전부 추론에 쓰고 본문을 한 글자도 못 냈고(`finish_reason: length`), 실측 성공에 5292 토큰이 필요했다. `sectionMaxTokens` 4200 → 9000. (3) **잘림이 재시도 대상이 아니었다** — `length` 가 일반 `Error` 로 올라와 한 번의 잘림이 항목을 영구 실패로 굳혔다. `OpenAiTruncatedError` 를 분리해 재시도하되, 프롬프트를 더 늘리지 않도록 재작성 지시문은 붙이지 않는다. 함께 1차 지시문과 재작성 지시문이 서로 다른 문장을 요구해 모든 서비스가 1차에서 같은 항목으로 떨어지던 것을 공유 상수 `SECTION_CLOSING_RULES` 로 묶고, 왕복을 2 → 4회로 늘렸다. 실측: 5개 서비스(`money_save` 2회·`work_move` 1회·`quit_fortune` 2회·`cat_compatibility` 2회·`couple_signal` 3회) 전부 complete. 검증: `npm test` 1139/1139, typecheck, 검수 15종, 20개 서비스 QA 통과. 회귀 테스트 2건 추가(페르소나 종결형 인식, 잘림 재시도).
+
+- 2026-09-17 06 상세 시안 해석 차단(PR #41, `3a13368`): 실측 중 드러난 결함 다섯 건을 함께 고쳤다. (1) 해석 칸 가드 CSS 를 `A{...},B,C{...}` 로 이어 붙여 뒤쪽 규칙이 통째로 무시되고 있었다 — 선택자를 먼저 합친 뒤 선언을 한 번만 붙인다. (2) `umsh-chrome.loadShellScript` 가 `?v=` 붙은 주소를 경로와 직접 비교해 마운트마다 `service-shell.js` 를 중복 로드했다 — 양쪽 `pathname` 비교. (3) 이직·저축 06 은 라이브 리포트가 없으면 히어로 소개문까지 비우고 의도한 안내문만 `data-umsh-filled` 로 남긴다. (4) 올해연애·직장선택 스토어의 무가드 `UMSHReportAccess` 접근. (5) 이직운 티저 금지 표현, ui-kit 의 `UMSH` 표기. 추가로 `check:quit` 이 리다이렉트 스텁이 된 03 을 정식 단계로 요구해 main 의 CI 가 빨간불이었던 것을 바로잡았다(`f33ef87`).
+
+- 2026-09-17 이직운 STEP1 히어로 카피를 하단으로 내려 상단 이미지가 보이게 한다. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-01-image-prompt.md`.
+
+- 2026-09-17 Chrome 즐겨찾기/트레이 아이콘: 장식형 3D 운 16px를 심플 금 원+궤도+받침 마크로 교체. SVG 우선, ICO 16/32/48/256, 192/512, `manifest.json` `start_url: /`. 북마크·PWA·빈 referrer는 스플래시 후 메인, 사이트 안 홈 이동은 세션당 1회. 근거: CreamWIKI `operations/aios-standards/09-assets/AIOS-AST-06-logo-rule.md`.
+
+- 2026-09-17 퇴사운 STEP2: 제출 아래 안내(`재직 기간·퇴사 후보일…`)와 하단 면책 푸터를 제거. 입력 칸과 CTA만 남긴다.
+
+- 2026-09-17 퇴사운 퍼널: STEP3 상황 입력을 STEP2에 합쳐 공개 9개와 같이 `1→2→4→5→6`. 저장 사주가 있으면 이유 라디오만, 없으면 이름·년월일·시(모름)·성별. 재직기간·후보일·다음계획·메모는 받지 않는다. `/situation`·03 주소는 02로 보낸다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-09-form.md`.
+
+- 2026-09-16 퍼널 순서: 공개 9개는 `1 스토리 → 2 입력 → 4 티저 → 5 목차 → 6 상세`. 퇴사운만 `2 → 3 추가입력 → 4`. 결혼궁합 01 미리보기 링크가 05로 건너뛰던 경로를 막는다. 천명사주는 한 화면. 근거: `design-system/customer-kit.md`.
+
+- 2026-09-16 퍼널 CTA: STEP1~6 한 화면 한 제출, 결과 동사, STEP4 미결제는 `전체 보기 (금액)`. 커플 오표기 `1전체 보기 · 9,900원`을 `전체 보기 (19,900원)`으로 고친다. 근거: `design-system/customer-kit.md`, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
+
+- 2026-09-16 동의 모두 선택: 티저 결제 동의는 개별 버튼 탭 대신 체크박스 + `모두 선택` 한 칸. 필수 2개와 선택 마케팅을 한 번에 켠다. 근거: CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-09-form.md`.
+
+- 2026-09-16 모바일 캔버스: 430px 프레임을 정본으로 `100vw`를 퍼센트 폭으로 바꾸고, 결제창을 680→430·입력/CTA 52px로 키트에 맞춘다. 상단바는 430 이하 56–64px, 360 이하 로고 100px. 소비성향 `.app { min-width: 390px }` 는 375에서 잘려 공용 크롬이 `min-width: 0`·`width: min(100%, 430px)`로 덮는다. 로컬 375/360/430/768 overflow-x 0. 근거: CreamWIKI `operations/aios-standards/07-design-system/AIOS-DS-02-typography.md`, `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`, `design-system/customer-kit.md`.
+
+- 2026-09-16 체크아웃 상품 로드: HTML 시드(`save`,`couple_match`,`love_thisyear`,`marriage_compatibility`)가 카탈로그 키와 달라 `/payment`가 "상품 정보를 확인하지 못했습니다"에서 멈췄다. 서버 `canonicalPaymentProductKey` + 설정 `aliases`/`pathPrefixes` + `payment.js` 정규화로 공개 서비스 전수 조회. 결제 처리(PG 과금)는 추가하지 않음. 근거: CreamWIKI `personal/carrotcap/notes/umsh-inicis-checkout-recovery-20260914.md`, `operations/aios-standards/04-workflows/AIOS-WF-07-e-commerce-flow.md`.
+
+- 2026-09-16 STEP4 핵심 티저: `reportId` 재진입 때 toc 골격을 report로 받아 빈 섹션 제목만 12% 칸에 그렸다. 04는 동결 `preview`만 쓰고, 유료 본문이 있을 때만 renderTeaser. JS `?v=live-20260916t`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
+
+- 2026-09-16 STEP4~6 오픈 10개: 로그인 레이스로 티저/목차/상세가 비던 경로를 `resolveLiveSession`(900ms) + 05/06 preview analyze + `toc` 바인드로 고친다. JS `?v=live-20260916`. PR #32 merge `bd51e1e`, Vercel production `dpl_B2RcW8fuTiMMn82SMnxF8kPNQuT8` READY (`https://umsh.kr`). 운영 확인: 저축 04 HTML cache-bust, `umsh-auth-session.js`에 `resolveLiveSession`/`bindServiceSession`. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
+
+- 2026-09-16 STEP4 저축 티저 결론 칸이 `GATE_COPY.login`으로 덮이던 원인: getSession 한 번 + 로그인 실패 `reportPromise` 캐시. `resolveLiveSession`/`bindServiceSession`으로 SIGNED_IN을 기다리고, 결론 칸에는 로그인 안내를 쓰지 않는다. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`. 커밋·배포 미실행.
+
+- 2026-09-16 STEP4 무료 티저: `previewOnly` 응답을 `report.sections` 없음으로 실패 처리하던 경로를 전수 보강. `UMSHReportAccess.acceptAnalyze`가 미리보기를 성공으로 받고, 공개 서비스 스크립트는 결론 칸에 `GATE_COPY.error`를 쓰지 않는다. 04는 reportId 없이 boot gate를 건너뛴다. 근거: CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-teaser-trust-gate-20260912.md`.
+
+- 2026-09-16 STEP2 제출 CTA는 화면당 1개. 저축 입력은 폼 `next-cta`만 남기고 같은 문구의 고정 `submit-dock`을 제거. 근거: `design-system/customer-kit.md` #4, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
+
+- 2026-09-16 생년월일 키트: 칸 안의 년·월·일만 쓰고 옆 접미사·중복 도움말 제거. 이직운 STEP1 히어로 `topline` 삭제. umsh.kr 배포.
+
+- 2026-09-16 버튼 가이드: STEP2/일부 STEP4 CTA를 가로 100% · 높이 52px · 1열 독으로 맞춤. `.primary-cta` 등 별칭을 `umsh-kit.css`에 포함. 냥궁합 150px 독 해소. 제출 문구를 결과 동사로 교체. 근거: `design-system/customer-kit.md` #4, CreamWIKI `operations/aios-standards/08-components/AIOS-CMP-08-cta.md`.
+
+- 2026-09-16 UX 라이팅: 커플 STEP2 히어로를 금지문(`상대 정보는 내 정보로 채우지 않아요`)에서 가치문(`두 사람이 맞는 방식부터 확인합니다`)으로 교체. 공개 10개 STEP2 제목도 같은 규칙(무엇을 얻는지 / 왜 이 입력인지). 결제·배포 미실행. 근거: CreamWIKI `personal/carrotcap/notes/umsh-all-service-teaser-release-20260914.md`.
+
+- 2026-09-16 공유 GNB: 커플 스토리 로고 클릭 홈 이동 + `/cmdg/` 상단 바 표시. PR #28 merge `c2613cac`, Vercel production `dpl_AacHfPv2MZ86hbtXZywx7mXutM1a` READY (`https://umsh.kr`). 운영 확인: couple logo → `/`, `/cmdg/` appbar 84px visible.
+
+- 2026-09-16 고객 화면 보류: `home_pungsu`(지금 사는 집), `lucky_color`(운 붙는 색과 물건), `pass_angle`(붙을 각), `newyear_flow`·`wedding_day`(곧 다가올 운명). 검색·보관함·결제·직접 진입을 막고 관리자 카탈로그는 유지. 코드는 삭제하지 않고 `hidden` + HTML 주석 + 경로 302.
+
 - 2026-09-13 `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate` DONE: reviewed 38/38 blocks, activated 2.1.0 for new snapshots, preserved 2.0.0 snapshots and rollback, and passed focused 8/8, related 139/139, full 831/831, typecheck/build/determinism/review. Next inactive Task is `task-tone-v2-p05-couple-signal-corpus-rag-release-candidate`.
 - 2026-09-13 `task-tone-v2-p05-pass-angle-corpus-rag-release-candidate` DONE: preserved 2.0.0 and activated reviewed 2.1.0 for new snapshots. All 8 blocks separate confirmed exam facts, official instructions, actual study records and calculated symbols; unsupported fixed periods were removed. Focused 8/8, related 143/143, full 823/823 across 114 suites, typecheck/build/determinism/review PASS. Existing 52-item record unchanged; 2.1.0 provider/Production NOT_RUN. Next inactive Task is `task-tone-v2-p05-cat-compatibility-corpus-rag-release-candidate`.
 - CreamWIKI `personal/carrotcap/notes/umsh-tone-v2-pass-angle-corpus-snapshot-20260913.md` put/get/search PASS and ProjectOps memory promotion PASS.
@@ -1716,3 +1760,30 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 운영에서 결제창을 새로 열고 KG이니시스 닫기 → 취소 확인을 실행했다. `/payment/close` 이벤트 뒤 `/place/home/01-step-1-story/index.html`로 정상 복귀했으며 실제 결제 승인·과금은 없었다.
 - 운영 로그는 주문 생성, 닫기 URL, 상품 기본 경로와 최종 시작 페이지의 순차 200 요청을 보여준다. Node `url.parse()` deprecation 경고는 남아 있지만 이번 사용자 흐름을 막지 않는 별도 기술부채다.
 - Task status: DONE.
+
+## 2026-09-17 — 공개 서비스 90점 품질 루프
+
+- 실측 62%의 공통 원인: STEP4 preview 응답에 권한이 없어 슈퍼관리자도 결제 CTA, 05·06도 preview라 빈 목차, 하단 시트가 STEP1 CTA 가로챔.
+- 보강: 미리보기에 `entitled` 표시, 권한 시 `전체 목차 열기`, 05·06은 본문 analyze, 시트 `visibility:hidden`, 직장선택·썸신호 STEP1 실링크, 06 기본 항목·PDF.
+- 단위 테스트 통과. 로컬 8790에서 직장선택 STEP2 도달·퇴사 06 PDF 확인. PG 보류. 배포 전 `umsh.kr` 점수는 그대로다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-quality-90-loop-20260917.md`
+
+## 2026-09-17 — 관리자 보관함 우회
+
+- 보관함은 `paid` 주문만 남긴다. 슈퍼관리자(`good1621`)는 결제 없이 본문만 열려 QA 서비스가 목록에 안 쌓였다.
+- 우회: 가짜 결제 주문은 만들지 않고, 관리자 `/api/user/reports`만 서비스당 최신 해석 1건을 보탠다. 일반 계정은 구매 목록 그대로다.
+- 단위 테스트 `vault-purchase-order` 14건 통과.
+
+## 2026-09-17 — 유료 해석 생성 복구와 전 서비스 PDF (PR #43, #44)
+
+- 생성 실패의 원인은 세 겹이었다. 게이트의 다음 판단 기준 정규식이 저축 페르소나의 `~거예요` 명사형을 못 읽었고, `gpt-5` 추론 토큰이 4200 예산을 먹어 응답이 잘렸고, 잘림이 재시도 대상이 아니었다.
+- 보강: `OpenAiTruncatedError` 도입해 잘림을 재시도로 돌리고, 섹션 예산을 9000으로 올리고, 시도 한도를 4로 늘리고, 마무리 문단 규칙을 본 프롬프트와 수정 프롬프트가 함께 쓰게 상수로 뺐다.
+- PDF: 06-1 상세와 공용 리더 `/r/:id` 모두에 인쇄 스타일시트와 `PDF 저장` 버튼을 주입한다. 06-1이 없는 4개 상품은 `hidden`이고 운용 중인 `cmdg`는 공용 리더를 그대로 쓴다(사용자 확정).
+
+## 2026-09-17 — 이에요/예요 받침 문법 게이트
+
+- 저축 리포트가 “깔끔해지는 타입예요.”를 실제로 내보냈다. 받침 유무로 기계 판정되는 오류라 사람 검수에 맡길 일이 아니다.
+- 게이트는 받침 있는 말 뒤의 `예요`·`에요`, 홀로 선 `이예요`, `아니예요`를 잡고 재생성으로 교정한다. 고칠 자리를 `타입예요`처럼 낱말째로 알려 준다.
+- 오탐 차단: `풀이예요`, `장바구니예요`, 페르소나가 강제하는 `~거예요`, `아니에요`는 통과한다. 코퍼스(`data/`)와 화면 문안(`사주/`) 전문을 게이트로 재스캔해 위반 0건을 확인했다.
+- 전체 1144/1144(테스트), typecheck PASS.
+

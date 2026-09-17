@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head>
-    <script src="/js/umsh-funnel-auth-gate.js"></script>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>나, 올해 연애 가능? 입력 | 운명상회</title>
@@ -74,7 +74,7 @@
 
       .phone {
         position: relative;
-        width: min(100vw, 440px);
+        width: min(100%, 440px);
         min-height: 100svh;
         overflow: hidden;
         background: var(--bg);
@@ -488,9 +488,9 @@
         bottom: 0;
         z-index: 30;
         display: grid;
-        grid-template-columns: 0.46fr 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 10px;
-        width: min(100vw, 440px);
+        width: min(100%, 440px);
         padding: 12px 18px max(14px, env(safe-area-inset-bottom));
         border-top: 1px solid var(--line);
         background: rgba(8, 9, 21, 0.88);
@@ -570,7 +570,7 @@
       .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
       .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
       .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
   </head>
   <body class="umsh-fields">
     <div class="phone" data-umsh-chrome="" data-service="올해 연애운" data-price="12,900원" data-active="home" id="step-2-saju-input">
@@ -585,11 +585,10 @@
       <section class="hero" id="heroVisual" aria-labelledby="pageTitle">
         <video class="hero-video" poster="../assets/thisyear/videos/04-frontface-astrology-poster.webp" src="../assets/thisyear/videos/04-frontface-astrology.mp4" data-lazy-play="" data-image-role="form-companion" muted="" loop="" playsinline="" preload="none" aria-label="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"></video>
         <div class="hero-copy">
-          <span class="eyebrow">02 · 사주 입력</span>
-          <h1 id="pageTitle">나, 올해 연애 가능?</h1>
+          <span class="eyebrow">올해 연애 흐름</span>
+          <h1 id="pageTitle">열리는 달과 조심할 때를 봅니다</h1>
           <p>
-            올해 연애운은 무조건 된다, 안 된다로 자르지 않습니다.
-            입력값을 기준으로 가능성, 주의점, 지금 할 작은 행동까지 이어서 봅니다.
+            생년월일을 넣으면, 된다/안 된다가 아니라 타이밍과 오늘 할 작은 행동까지 이어집니다.
           </p>
           <div class="quick-facts" aria-label="입력 요약">
             <div class="fact">
@@ -732,7 +731,7 @@
 
           <div class="sticky-actions">
             <button class="back-button" type="button" data-action="back">이전</button>
-            <button class="submit-button" id="submitButton" type="submit">입력한 정보로 무료 결과 보기</button>
+            <button class="submit-button" id="submitButton" type="submit">올해 연애 흐름 보기</button>
           </div>
         </form>
       </main>
@@ -1065,26 +1064,7 @@
       }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      {
-        "primary_evidence_ids": [
-          "item-22-p1-0003",
-          "item-22-p1-0027",
-          "item-22-p1-0045",
-          "item-23-qa-0003",
-          "item-23-qa-0014",
-          "zip-연예-qa-000030",
-          "zip-연예-qa-000035",
-          "zip-연예-qa-000108"
-        ],
-        "notes": [
-          "02 화면은 계산 결과를 만들지 않고, 결과 생성을 위한 최소 입력 계약만 수집한다.",
-          "세운, 대운, 월운 십성은 일반 고객에게 강제 질문하지 않고 자동 계산 또는 운영 검수값으로 처리한다.",
-          "개인정보는 URL query에 포함하지 않고, 정적 미리보기에서는 sessionStorage에만 임시 보관한다.",
-          "운영 환경에서는 개인정보 임시 보관을 서버 세션 또는 기존 인증 저장 방식으로 교체해야 한다."
-        ]
-      }
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       [
@@ -1109,33 +1089,12 @@
       ]
     </script>
 
-    <script type="application/json" id="QA_RESULT">
-      {
-        "scope_mismatch": [],
-        "checks": [
-          "01의 service_key, service_slug, report_version을 유지함",
-          "1인 연애운 서비스에 필요한 입력만 필수로 배치함",
-          "저장된 프로필 재사용과 새 정보 입력을 분리함",
-          "성별 또는 애인성 기준 선택을 지원함",
-          "현재 상태를 솔로, 썸, 연애, 재회로 수집함",
-          "세운, 대운, 월운 십성은 자동 계산 또는 운영 검수용 필드로 분리함",
-          "생년월일시를 URL query에 노출하지 않음",
-          "CTA가 04 리포트 단계로 이동함",
-          "대표 캐릭터 기반 신규 02 이미지를 실제 WebP 파일로 연결함"
-        ],
-        "manual_review_required": [
-          "운영 배포 시 sessionStorage 개인 입력 임시 보관을 서버 세션 또는 인증 저장소로 교체해야 함",
-          "도화 계산 로직 또는 도화 RAG 근거의 운영 승인본 여부 확인 필요",
-          "04 단계에서 무료 티저와 유료 리포트 범위의 경계를 확정해야 함"
-        ]
-      }
-    </script>
-      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/thisyear-service.js" defer=""></script>
+    <script src="/js/thisyear-service.js?v=live-20260917q" defer=""></script>
   
 
 </body></html>

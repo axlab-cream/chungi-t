@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>자미두수로 보는 내가 선택한 직장 괜찮을까 | 운명상회</title>
@@ -257,6 +257,9 @@
       }
 
       .cta-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
         min-height: 70px;
         margin-top: 24px;
@@ -266,6 +269,7 @@
         color: #15100a;
         font-size: 17px;
         font-weight: 950;
+        text-decoration: none;
         cursor: pointer;
         box-shadow: 0 18px 42px rgba(236, 156, 110, 0.3);
       }
@@ -557,7 +561,7 @@ body.umsh-has-chrome .umsh-chrome-appbar {
               <div class="fact-row"><span>확인하는 것</span><strong>회사 핏, 리스크, 액션</strong></div>
               <div class="fact-row"><span>진행 단계</span><strong>회사 조건 입력 후 풀이 시작</strong></div>
             </div>
-            <button class="cta-button" type="button" data-next>내 직장 핏 확인하기</button>
+            <a class="cta-button" href="../02-step-2-saju-input/index.html?entry=step-1-story#step-2-saju-input" data-next>내 직장 핏 확인하기</a>
           </div>
         </section>
 
@@ -650,13 +654,11 @@ body.umsh-has-chrome .umsh-chrome-appbar {
               <div class="result-item"><strong>03 · 돈과 성장</strong><span>연봉 만족도, 성과급 흐름, 승진·평가, 포트폴리오 성장</span></div>
               <div class="result-item"><strong>04 · 리스크와 타이밍</strong><span>역할 혼란, 과로, 계약 체크, 첫 90일 전략</span></div>
             </div>
-            <button class="cta-button" type="button" data-next>내 직장 핏 확인하기</button>
+            <a class="cta-button" href="../02-step-2-saju-input/index.html?entry=step-1-story#step-2-saju-input" data-next>내 직장 핏 확인하기</a>
             <p class="fineprint">자미두수와 사주 흐름은 선택을 대신 확정하지 않습니다. 현실 조건을 함께 확인하는 참고 풀이로 제공합니다.</p>
           </div>
         </section>
       </div>
-
-      <footer class="footer">자미두수로 보는 내가 선택한 직장 괜찮을까 · 직장 선택 사주</footer>
     </main>
 
     <script type="application/json" id="PROMPT_INPUT">
@@ -686,20 +688,7 @@ body.umsh-has-chrome .umsh-chrome-appbar {
       ]
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      [
-        {"id": "palace-career", "source": "ITEM-49_자미두수/KMS/02-십이궁/09-관록궁.md", "summary": "관록궁은 직업, 사회적 역할, 일의 방식, 명예와 책임을 보며 이직 질문은 천이궁, 수입 질문은 재백궁을 함께 엽니다."},
-        {"id": "palace-wealth", "source": "ITEM-49_자미두수/KMS/02-십이궁/05-재백궁.md", "summary": "재백궁은 수입이 생기는 방식, 소비 습관, 돈에 대한 감각을 보며 관록궁·천이궁과 함께 흐름을 나눠 봅니다."},
-        {"id": "palace-friends", "source": "ITEM-49_자미두수/KMS/02-십이궁/08-교우궁.md", "summary": "교우궁은 친구, 부하, 고객, 협력자, 대중과의 관계를 보며 조직 내 호흡과 상호 의존의 질을 살핍니다."},
-        {"id": "palace-travel", "source": "ITEM-49_자미두수/KMS/02-십이궁/07-천이궁.md", "summary": "천이궁은 이동, 이사, 해외, 바깥에서 보이는 나, 환경 변화를 보며 이직·출장 질문은 관록궁과 함께 엽니다."},
-        {"id": "palace-fortune", "source": "ITEM-49_자미두수/KMS/02-십이궁/11-복덕궁.md", "summary": "복덕궁은 정신적 여유, 취미, 가치관, 쉬는 방식, 주관적 만족과 회복력을 살피는 칸입니다."},
-        {"id": "question-palace", "source": "ITEM-49_자미두수/KMS/07-실전/03-질문별-궁위.md", "summary": "질문별로 볼 궁위를 먼저 정하며 이직은 관록을 주 궁으로, 천이·재백을 보조 궁으로 둡니다."},
-        {"id": "limits-years", "source": "ITEM-49_자미두수/KMS/06-운한/01-대한-유년.md", "summary": "본명 구조가 확정된 뒤 대한과 유년 같은 시간 층을 겹쳐 현재 선택의 무대와 올해의 스포트라이트를 봅니다."},
-        {"id": "timing-read", "source": "ITEM-49_자미두수/KMS/06-운한/02-운한-읽는-법.md", "summary": "운한은 사건 예언이 아니라 어느 영역이 활성화되는지를 보고, 사건·감정·통제 가능한 행동을 나눠 읽습니다."},
-        {"id": "item-22-p1-0064", "source": "ITEM-22_세운·연간 흐름/세운·연간 흐름_rag_dataset.csv", "summary": "세운만으로 이직을 결정하지 않고 올해 조건과 대운의 겹침을 나누며 단정 대신 확인 가능한 다음 행동을 남깁니다."},
-        {"id": "item-23-qa-0001", "source": "lib/teacher/daily-counsel-rag.ts", "summary": "지금 바로 답해야 하는 일인지 살피고, 상대 반응과 달라진 조건, 일정의 빈틈을 확인하는 행동으로 연결합니다."}
-      ]
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       [
@@ -711,25 +700,6 @@ body.umsh-has-chrome .umsh-chrome-appbar {
         {"asset_key": "job-choice-01-scene-06-free-teaser", "filename": "assets/generated/job-choice/01-scene-06-free-teaser.webp", "role": "scene", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["친근한 미소", "별 장식", "명반 소품", "금빛과 남보라 팔레트"], "generation_policy": "same-character-new-scene", "prompt": "무료 첫 신호를 보여주는 빈 명반, 회사 카드, 작은 달력 소품 장면, 이미지 안 텍스트 금지", "alt": "무료 첫 신호를 보여주는 빈 명반과 회사 카드 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-06'] .scene-media img"},
         {"asset_key": "job-choice-01-scene-07-cta", "filename": "assets/generated/job-choice/01-scene-07-cta.webp", "role": "hero", "aspect_ratio": "9:16", "reference_image": "IMAGE/ChatGPT Image 2026년 9월 2일 오후 03_37_30.png", "reference_status": "selected", "character_style_lock": ["상담자 얼굴 인상", "짙은 웨이브 헤어", "반가면", "별빛 조명"], "generation_policy": "same-character-new-scene", "prompt": "직장 선택 리포트 책과 회사 입구 앞에서 다음 단계를 안내하는 최종 CTA 장면, 이미지 안 텍스트 금지", "alt": "직장 선택 리포트를 펼쳐 다음 단계로 안내하는 이미지", "text_in_image": false, "generation_status": "generated", "file_exists": true, "html_usage_selector": "[data-scene-id='scene-07'] .scene-media img"}
       ]
-    </script>
-
-    <script type="application/json" id="QA_RESULT">
-      {
-        "prompt_contract": "01-step-1-story/PROMPT.md + 00-SERVICE-GENERATION-CONTRACT.md",
-        "scope_mismatch": null,
-        "classification_status": "resolved",
-        "classification_source": "user_seed",
-        "classification_detail": "사용자가 제공한 10개 대분류와 중분류를 interpretation_index로 반영하고 01 후킹 카드에 노출했습니다.",
-        "image_status": "resolved",
-        "image_detail": "7개 scene 모두 고유 asset_key, 실제 webp 파일, HTML img 참조, manifest selector를 가집니다.",
-        "checks": [
-          {"item": "5~8개 장면 구성", "status": "pass", "detail": "총 7개 장면으로 질문 직격, 공감, 반복 상황, 근거, 결과 예고, 무료 티저, CTA 순서를 반영했습니다."},
-          {"item": "대분류 > 중분류 후킹", "status": "pass", "detail": "주신 10개 대분류를 scene-05에 전체 미리보기로 반영했습니다."},
-          {"item": "CTA 연결", "status": "pass", "detail": "../02-step-2-saju-input/index.html#step-2-saju-input로 service_key, service_slug, entry, report_version을 전달합니다."},
-          {"item": "RAG/계산 안전", "status": "pass", "detail": "개인 계산 전 확정형 결과를 표시하지 않고, 자미두수 궁위와 운한 기준으로 확인할 범위만 예고했습니다."},
-          {"item": "고객 화면 내부 용어 노출", "status": "pass", "detail": "보이는 화면에는 RAG, KMS, LLM, 내부 파일 경로를 표시하지 않았습니다."}
-        ]
-      }
     </script>
 
     <script>
@@ -797,7 +767,8 @@ body.umsh-has-chrome .umsh-chrome-appbar {
       document.querySelectorAll("[data-next]").forEach((button) => {
         button.addEventListener("click", () => {
           persistContext();
-          window.location.href = buildNextUrl();
+          if (button.tagName === "A") button.setAttribute("href", buildNextUrl());
+          else window.location.href = buildNextUrl();
         });
       });
 
@@ -815,9 +786,9 @@ body.umsh-has-chrome .umsh-chrome-appbar {
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/jobchoice-service.js" defer></script>
+    <script src="/js/jobchoice-service.js?v=live-20260917q" defer></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head>
-    <script src="/js/umsh-funnel-auth-gate.js"></script>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#051013">
@@ -55,6 +55,8 @@
       --mint: #80f1dc;
       --coral: #ff7a66;
       --gold: #f1c76b;
+      --umsh-accent: var(--coral);
+      --umsh-accent-ink: #240806;
       --danger: #ff6b5a;
       --radius: 8px;
       --content: min(100%, 430px);
@@ -610,7 +612,7 @@
       position: sticky;
       bottom: 0;
       display: grid;
-      grid-template-columns: 112px 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 10px;
       margin: 4px -22px -22px;
       padding: 14px 22px max(14px, env(safe-area-inset-bottom));
@@ -822,7 +824,7 @@
       .couple-saved-profile b { color: #80f1dc; font-size: 14px; }
       .couple-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
       .couple-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
     <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
 <body class="umsh-fields">
@@ -839,7 +841,7 @@
       </div>
       <div class="top-actions">
         
-        <span class="stage-pill">02 · 정보 입력</span>
+        <span class="stage-pill">나와 상대</span>
       </div>
     </div>
   </header>
@@ -848,9 +850,9 @@
       <aside class="visual-card" data-asset-key="couple-match-02-form-guide" aria-labelledby="visual-title">
         <img src="../assets/couple/02-form-guide.webp" alt="두 사람의 관계 신호를 추상 차트로 입력하는 커플">
         <div class="visual-copy">
-          <span class="eyebrow">두 사람을 따로 보고 함께 읽기</span>
-          <h1 id="visual-title">상대 정보는 내 정보로 채우지 않아요</h1>
-          <p>관계 궁합은 두 사람의 생년월일, 달력 기준, 시간 정보가 분리되어야 방향이 흔들리지 않습니다.</p>
+          <span class="eyebrow">두 사람의 리듬을 겹쳐 읽기</span>
+          <h1 id="visual-title">두 사람이 맞는 방식부터 확인합니다</h1>
+          <p>내 생일과 상대 생일을 나눠 넣으면, 끌림·갈등·오래 가는 체력을 한 관계로 읽습니다.</p>
           <div class="signal-list" aria-label="입력 후 확인할 항목">
             <span>관계 총평</span>
             <span>오행 케미</span>
@@ -862,8 +864,8 @@
       <section class="form-card" aria-labelledby="form-title">
         <div class="form-head">
           <span class="eyebrow">커플궁합 · 19,900원</span>
-          <h2 id="form-title">두 사람 정보를 입력해주세요</h2>
-          <p>저장된 내 사주 프로필이 있으면 본인 정보는 다시 묻지 않습니다. 상대방 정보는 꼭 따로 입력해야 합니다.</p>
+          <h2 id="form-title">나와 상대를 나눠 적으면 궁합이 열립니다</h2>
+          <p>내 프로필이 있으면 본인 칸은 건너뜁니다. 상대는 따로 적어야 두 사람의 리듬을 비교할 수 있습니다.</p>
           <div class="meter" aria-label="예상 입력량">
             <div class="meter-row">
               <strong>예상 소요 2분</strong>
@@ -879,7 +881,7 @@
               <div>
                 <span class="panel-kicker">MY BASE</span>
                 <h2 id="self-base-title">내 사주 기준</h2>
-                <p>기존 사주 프로필이 있으면 불러와서 사용하고, 없으면 바로 직접 입력합니다.</p>
+                <p>기존 프로필이 있으면 불러오고, 없으면 바로 적습니다. 생년월일로 일지와 오행을 엽니다.</p>
               </div>
               <span class="badge">재사용 가능</span>
             </div>
@@ -899,7 +901,7 @@
           </section>
 
           <fieldset id="selfFields" class="panel-fields" aria-label="내 사주 정보">
-            <p class="section-helper">일지와 오행을 계산하기 위한 기본값입니다. 태어난 시간은 모르면 건너뛸 수 있습니다.</p>
+            <p class="section-helper">생년월일로 일지와 오행을 엽니다. 시간은 모르면 건너뜁니다.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="selfName">내 이름 또는 호칭</label>
@@ -914,7 +916,7 @@
                   <option value="female">여성</option>
                   <option value="male">남성</option>
                 </select>
-                <p class="field-help">관계 코드 보정이 필요한 항목에서만 사용합니다.</p>
+                <p class="field-help">대운 방향을 나누는 기준입니다.</p>
                 <div class="field-error" id="selfGender-error" aria-live="polite"></div>
               </div>
               <div class="field">
@@ -928,7 +930,6 @@
               <div class="field">
                 <label for="selfBirth">내 생년월일</label>
                 <input id="selfBirth" name="selfBirth" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="selfBirth-error">
-                <p class="field-help">달력에서 생년월일을 고르면 됩니다.</p>
                 <div class="field-error" id="selfBirth-error" aria-live="polite"></div>
               </div>
               <div class="field full" data-time-field="self">
@@ -951,7 +952,7 @@
               <div>
                 <span class="panel-kicker">PARTNER BASE</span>
                 <h2 id="partner-base-title">상대 사주 기준</h2>
-                <p>상대 생년월일이 없으면 궁합 계산이 흐려집니다. 본인 정보로 대신 채우지 않습니다.</p>
+                <p>상대 생일까지 있어야 두 사람의 리듬을 비교할 수 있습니다.</p>
               </div>
               <span class="badge">분리 입력</span>
             </div>
@@ -959,7 +960,7 @@
               <div class="field">
                 <label for="partnerName">상대 이름 또는 호칭</label>
                 <input id="partnerName" name="partnerName" type="text" autocomplete="off" placeholder="예: 준호" maxlength="20" aria-describedby="partnerName-error">
-                <p class="field-help">상대를 구분하기 위한 표시값입니다.</p>
+                <p class="field-help">결과에서 상대를 부를 이름입니다.</p>
                 <div class="field-error" id="partnerName-error" aria-live="polite"></div>
               </div>
               <div class="field">
@@ -997,7 +998,6 @@
               <div class="field">
                 <label for="partnerBirth">상대 생년월일</label>
                 <input id="partnerBirth" name="partnerBirth" type="date" autocomplete="off" min="1900-01-01" aria-describedby="partnerBirth-error">
-                <p class="field-help">달력에서 생년월일을 고르면 됩니다.</p>
                 <div class="field-error" id="partnerBirth-error" aria-live="polite"></div>
               </div>
               <div class="field" data-time-field="partner">
@@ -1020,7 +1020,7 @@
               <div>
                 <span class="panel-kicker">RELATION CHECK</span>
                 <h2 id="relation-check-title">지금 관계 상황</h2>
-                <p>결과 첫 화면에서 어떤 관점부터 볼지 정하는 값입니다.</p>
+                <p>무료 요약에서 먼저 열어 볼 관점을 고릅니다.</p>
               </div>
             </div>
             <div class="field-grid">
@@ -1046,7 +1046,7 @@
                   <option value="unstable">좋았다가 삐끗함</option>
                   <option value="unknown">아직 모르겠음</option>
                 </select>
-                <p class="field-help">오늘의 관계 액션 문구 톤을 맞추는 데 씁니다.</p>
+                <p class="field-help">지금 온도에 맞춰 오늘 할 말을 고릅니다.</p>
               </div>
               <div class="field full">
                 <label for="question">한 문장 질문</label>
@@ -1063,7 +1063,7 @@
                 <h2 id="privacy-title">안내 확인</h2>
               </div>
             </div>
-            <p class="privacy-copy">입력값은 이 브라우저의 현재 진행 상태와 다음 결과 화면 연결에만 사용합니다. 주소창에는 이름이나 생년월일을 넣지 않습니다.</p>
+            <p class="privacy-copy">이름과 생일은 주소창에 넣지 않습니다. 이번 진행과 다음 결과 연결에만 씁니다.</p>
             <label class="check-panel full">
               <input type="checkbox" id="privacyAgree" name="privacyAgree" aria-describedby="privacyAgree-error">
               <span class="label">두 사람 정보를 구분해서 분석에 사용하는 것에 동의합니다.</span>
@@ -1075,7 +1075,7 @@
 
           <div class="form-actions">
             
-            <button class="button" type="submit">입력한 정보로 무료 결과 보기</button>
+            <button class="button" type="submit">궁합 확인하기</button>
           </div>
         </form>
       </section>
@@ -1253,7 +1253,7 @@
           clearSelfErrors();
           setStatus("저장된 내 프로필을 사용합니다. 상대방 정보만 정확히 입력해주세요.");
         } else {
-          setStatus("내 정보와 상대 정보를 각각 입력해주세요.");
+          setStatus("나와 상대 생일이 있어야 궁합이 열립니다.");
         }
       }
 
@@ -1760,41 +1760,7 @@
 }
   </script>
 
-  <script type="application/json" id="RAG_EVIDENCE">
-{
-  "retrieval_policy": "입력 화면은 계산에 필요한 값만 수집하며 고객 화면에는 내부 근거 경로를 노출하지 않습니다.",
-  "evidence": [
-    {
-      "evidence_id": "zip-궁합-qa-000228",
-      "source": "ZIP-궁합",
-      "locator": "pdf0020001 p.105",
-      "review_status": "unreviewed",
-      "takeaway": "관계, 다툼, 결혼/동업, 신뢰, 의사소통을 함께 다루는 궁합 리포트 구조의 근거"
-    },
-    {
-      "evidence_id": "zip-색체명리학-qa-000147",
-      "source": "ZIP-색체명리학",
-      "locator": "일간·일지 설명 항목",
-      "review_status": "unreviewed",
-      "takeaway": "사주는 생년·생월·생일·생시의 천간과 지지를 보고, 일주의 천간은 일간, 지지는 일지로 구분함"
-    },
-    {
-      "evidence_id": "item-10-p1-0071",
-      "source": "ITEM-10_사주 핵심 해석",
-      "locator": "일간 설명 항목",
-      "review_status": "cataloged",
-      "takeaway": "일간은 기준점이며 단독으로 성격이나 결과를 단정하지 않음"
-    },
-    {
-      "evidence_id": "item-00-p1-g03",
-      "source": "ITEM-00_공통_RAG_플랫폼",
-      "locator": "공통 안전 샘플",
-      "review_status": "golden_sample",
-      "takeaway": "이별이나 결혼 여부를 사주로 단정하지 않고 선택은 사용자에게 둠"
-    }
-  ]
-}
-  </script>
+  
 
   <script type="application/json" id="IMAGE_MANIFEST">
 [
@@ -1816,56 +1782,12 @@
 ]
   </script>
 
-  <script type="application/json" id="QA_RESULT">
-{
-  "stage": "02-step-2-saju-input",
-  "status": "ready_for_review",
-  "scope_mismatch": false,
-  "checks": [
-    {
-      "item": "pair subject separation",
-      "status": "pass",
-      "note": "본인과 상대방 필드를 분리했고 상대 생년월일 누락 시 본인 정보로 대체하지 않습니다."
-    },
-    {
-      "item": "existing profile reuse",
-      "status": "pass",
-      "note": "기존 사주 프로필 캐시가 있으면 본인 직접 입력을 숨기고 저장 프로필 사용을 기본값으로 둡니다."
-    },
-    {
-      "item": "privacy and URL",
-      "status": "pass",
-      "note": "이름과 생년월일은 URL query에 넣지 않고 현재 브라우저 세션 상태로만 다음 단계에 전달합니다."
-    },
-    {
-      "item": "next route",
-      "status": "pass",
-      "note": "제출 후 ../04-step-4-report/index.html#step-4-report 로 이동합니다."
-    },
-    {
-      "item": "image usage",
-      "status": "pass",
-      "note": "02 보조 이미지가 생성되어 HTML에서 직접 참조됩니다."
-    },
-    {
-      "item": "customer-facing internal term exposure",
-      "status": "pass",
-      "note": "고객 화면에는 RAG, KMS, LLM 등 내부 용어를 노출하지 않았습니다."
-    }
-  ],
-  "notes": [
-    "운영 로그인 복원 키에는 비개인 진행 상태만 저장하도록 구성했습니다.",
-    "다음 04 단계는 umsh:couple-match:input 세션 payload를 우선 읽도록 설계해야 합니다.",
-    "상대방 생년월일은 필수로 두었고 태어난 시간은 모름 상태를 허용했습니다."
-  ]
-}
-  </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/couple-service.js" defer=""></script>
+    <script src="/js/couple-service.js?v=live-20260917q" defer=""></script>
   
 
 </body></html>

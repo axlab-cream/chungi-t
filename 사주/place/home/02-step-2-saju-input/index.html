@@ -489,8 +489,8 @@
         justify-content: center;
         border-radius: 8px;
         padding: 13px 16px;
-        font-size: 14px;
-        font-weight: 900;
+        font-size: 16px;
+        font-weight: 700;
       }
 
       .primary-cta {
@@ -550,7 +550,7 @@
           border: 1px solid rgba(214, 234, 213, 0.12);
         }
       }
-    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
     <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell">
     <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907">
   </head>
@@ -634,8 +634,7 @@
             <div class="two-col">
               <div class="field">
                 <label for="birth_date">생년월일</label>
-                <input id="birth_date" name="birth_date" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birth-date-help birth_date-error">
-                <p class="help" id="birth-date-help">달력에서 생년월일을 고르면 됩니다.</p>
+                <input id="birth_date" name="birth_date" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birth_date-error">
                 <div class="error" id="birth_date-error" aria-live="polite"></div>
               </div>
               <div class="field">
@@ -838,7 +837,7 @@
         </fieldset>
 
         <section class="submit-area" aria-label="입력 완료">
-          <button class="primary-cta" type="submit">입력한 정보로 무료 결과 보기</button>
+          <button class="primary-cta" type="submit">집 핏 확인하기</button>
           
           <p class="fineprint">
             이 단계에서는 무료 방향을 만들기 위한 입력만 정리합니다. 결제 권한과 최종 리포트는 다음 단계에서 별도 확인합니다.
@@ -857,7 +856,7 @@
         "service_title": "지금 사는 집, 나랑 잘 맞을까?",
         "service_category": "집 풍수",
         "service_subcategory": "집과 나의 생활 핏",
-        "service_price_krw": 9900,
+        "service_price_krw": 19900,
         "service_url_hint": "place.umsh.kr/home",
         "service_key": "home_fit",
         "service_slug": "home",
@@ -1051,26 +1050,7 @@
       }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      {
-        "evidence_ids": [
-          "ITEM-50_풍수지리/prompts/menu-home.txt",
-          "ITEM-50_풍수지리/prompts/menu-move.txt",
-          "ITEM-50_풍수지리/prompts/menu-compat.txt",
-          "ITEM-50_풍수지리/prompts/menu-place.txt",
-          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
-          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
-          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
-          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
-          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
-        ],
-        "evidence_summary": [
-          "집 풍수 입력은 현관, 침실, 책상, 앞뒤 좌우, 창밖·도로 흐름, 주거 목적을 우선한다.",
-          "개인 명리 입력은 일간, 오행, 신강약, 용신을 계산할 수 있는 기본 사주 프로필이 필요하다.",
-          "주소와 생년월일 같은 개인정보는 URL과 장기 로컬 저장소에 남기지 않는다."
-        ]
-      }
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       {
@@ -1092,29 +1072,6 @@
             "html_usage_selector": ".visual-card[data-asset-key='home-02-form-guide'] img"
           }
         ]
-      }
-    </script>
-
-    <script type="application/json" id="QA_RESULT">
-      {
-        "stage": "02-step-2-saju-input",
-        "status": "ready_for_review",
-        "checks": [
-          { "name": "latest_user_service_values_applied", "pass": true },
-          { "name": "job_choice_fields_removed", "pass": true },
-          { "name": "required_birth_profile_only_when_new_profile", "pass": true },
-          { "name": "home_fengshui_fields_present", "pass": true },
-          { "name": "interpretation_index_payload_preserved", "pass": true },
-          { "name": "no_personal_data_in_url_query", "pass": true },
-          { "name": "no_long_term_localstorage_write_for_personal_data", "pass": true },
-          { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
-          { "name": "images_are_full_width_single_blocks_without_side_layout", "pass": true },
-          { "name": "next_route_points_to_step_04", "pass": true }
-        ],
-        "scope_mismatch": [
-          "현재 프로젝트의 00-SERVICE-GENERATION-CONTRACT.md와 02 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 02 산출물은 사용자의 최신 집 풍수 입력값과 첨부 템플릿의 02 입력 폼 계약을 우선 적용했다."
-        ],
-        "review_note": "사용자 검토 후 '다음' 입력 시 04 무료 리포트 화면 제작으로 진행한다."
       }
     </script>
 

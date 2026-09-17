@@ -477,6 +477,47 @@ test('ZIP common 4 recognizes a targeted pass_angle next action but rejects vagu
   assert.equal(reviewPaidSectionDensity({ ...base, interpretation: base.interpretation.replace('다음 시험 전날 오답 루틴으로 다시 세워봐.', '다음 시험 전날 공부를 끊어.') }).elements.nextCriterion, false)
 })
 
+/**
+ * 2026-09-17 회귀 방지: `money_save`·`couple_signal` 페르소나는 `~거예요`, `today_fortune`
+ * 은 `~거야`를 종결어미로 강제한다. 그런데 다음 판단 기준 인식기가 `해요`·`하십시오` 계열만
+ * 받아서, 페르소나를 지킨 문장이 전부 탈락했다. 네 번을 다시 써도 같은 항목에서 떨어져
+ * money_save 리포트 41개 항목이 통째로 실패로 굳었다. 대상과 행동이 있는 문장은 종결형이
+ * 달라도 인식해야 하고, 대상 없는 문장은 그 종결형이어도 여전히 걸러야 한다.
+ */
+test('ZIP common 4 recognizes the persona-mandated 거예요 closing without accepting targetless advice', () => {
+  const base = {
+    hook: '돈을 못 모으는 팔자가 아니라, 기회가 보이면 지출 명분도 같이 커지는 구조예요.',
+    question: '기본 스펙',
+    interpretation: [
+      '기회를 빠르게 잡는 감각을 적어 냈으니 그 감각을 근거로 봐요.',
+      '예를 들어 카드 명세서를 열었을 때 자동결제와 장바구니 결제가 같이 보이는 경우가 있어요.',
+      '다음에는 카드 명세서에서 구독료와 일 관련 결제를 비교하는 거예요.',
+    ].join('\n\n'),
+    context: { serviceKey: 'money_save', concern: '돈이 모이지 않는 자리를 찾고 싶어요.' },
+  }
+
+  const polite = reviewPaidSectionDensity(base)
+  assert.equal(polite.elements.nextCriterion, true, JSON.stringify(polite))
+
+  // 반말 페르소나(today_fortune)의 같은 형태도 같은 문장 구조면 통과한다.
+  assert.equal(reviewPaidSectionDensity({
+    ...base,
+    interpretation: base.interpretation.replace('비교하는 거예요.', '비교하는 거야.'),
+  }).elements.nextCriterion, true)
+
+  // 대상이 없으면 종결형이 맞아도 다음 판단 기준이 아니다.
+  assert.equal(reviewPaidSectionDensity({
+    ...base,
+    interpretation: base.interpretation.replace('카드 명세서에서 구독료와 일 관련 결제를 비교하는 거예요.', '비교하는 거예요.'),
+  }).elements.nextCriterion, false)
+
+  // 하지 말라는 문장을 행동으로 세면 안 된다.
+  assert.equal(reviewPaidSectionDensity({
+    ...base,
+    interpretation: base.interpretation.replace('비교하는 거예요.', '비교하지 않는 거예요.'),
+  }).elements.nextCriterion, false)
+})
+
 test('ZIP common 4 recognizes a polite targeted marking proposal but rejects a targetless proposal', () => {
   const base = {
     hook: '지금은 두 선택의 조건을 나란히 보는 단계예요.',
@@ -1219,4 +1260,36 @@ test('ZIP common 11 keeps verdict punctuation and readable paragraph rules expli
   assert.match(instruction, /읽겠요.*편재이.*결를/)
   assert.match(instruction, /판정 문장.*마침표/)
   assert.match(instruction, /카드 라벨.*가운뎃점/)
+})
+
+/**
+ * 2026-09-17 실측 결함: 저축 리포트가 “깔끔해지는 타입예요.” 를 내보냈다. `이에요`/`예요` 는
+ * 앞 명사의 받침으로 갈리고, 옳은 형태는 둘 다 `에요` 앞 음절에 받침이 없다(`이에요` 의 `이`,
+ * `아니에요` 의 `니`). 기계로 판정되는 오류이므로 게이트가 잡아야 한다. 다만 페르소나가
+ * 강제하는 `~거예요`, `아니에요`, 받침 뒤의 `이에요` 는 계속 통과해야 한다.
+ */
+test('the copula spelling gate catches 받침 뒤 예요 without rejecting the persona forms', () => {
+  const say = (text: string) => reviewToneCopy(text, 'money_save')
+
+  // 실제로 나온 문장. `타입` 은 받침이 있으므로 `타입이에요` 가 맞다.
+  const bad = say('이번 돈 습관은 결제 명분을 먼저 자를 때 깔끔해지는 타입예요.')
+  assert.equal(bad.passed, false)
+  assert.match(bad.issues.join(' '), /“이에요\/예요”를 앞말의 받침에 맞춰/)
+  assert.match(bad.issues.join(' '), /타입예요/, '고칠 자리를 낱말째로 알려 줘야 합니다.')
+
+  // `에요` 로 써도 같은 오류다.
+  assert.equal(say('결제 명분을 먼저 자르는 타입에요.').passed, false)
+  // 낱말 없이 홀로 선 `이예요` 와 `아니예요` 도 오기다.
+  assert.equal(say('결제 명분을 먼저 자르는 습관. 이예요.').passed, false)
+  assert.equal(say('지금 텅장 판정은 아니예요.').passed, false)
+
+  // 받침이 있으면 `이에요` 가 맞다 — 통과해야 한다.
+  assert.equal(say('결제 명분을 먼저 자르는 타입이에요.').passed, true)
+  // 페르소나가 강제하는 `~거예요` 는 `거` 에 받침이 없어 옳다.
+  assert.equal(say('다음에는 카드 명세서에서 구독료를 비교하는 거예요.').passed, true)
+  // `아니에요` 의 `니` 도 받침이 없어 옳다.
+  assert.equal(say('지금 텅장 판정은 아니에요.').passed, true)
+  // 받침 없는 명사 뒤의 `예요` 도 옳다. `풀이예요` 는 `풀이` 에 받침이 없어 오탐이면 안 된다.
+  assert.equal(say('오늘 확인할 자리는 장바구니예요.').passed, true)
+  assert.equal(say('이번 달 지출을 다시 본 풀이예요.').passed, true)
 })

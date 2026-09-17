@@ -77,12 +77,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -205,16 +201,24 @@
       if (!request) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/work/job-choice/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl };
@@ -275,6 +279,26 @@
     // is also what keeps this from looping.
     const hadCache = Boolean(readJson('sessionStorage', STORAGE.report)?.sections?.length);
     const outcome = await loadReport();
+    if (outcome.preview) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const pay = document.getElementById('payButton');
+      if (pay) {
+        const fresh = pay.cloneNode(true);
+        pay.replaceWith(fresh);
+        if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+          fresh.textContent = '전체 목차 열기';
+          fresh.addEventListener('click', () => {
+            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+          });
+        } else {
+          fresh.textContent = `전체 보기 (${SERVICE.price})`;
+          fresh.addEventListener('click', () => {
+            location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+          });
+        }
+      }
+      return;
+    }
     if (outcome.report) {
       if (!hadCache && !window.UMSHReportAccess) location.reload();
       return;
@@ -295,13 +319,13 @@
     const action = document.createElement('a');
     action.className = 'link-button';
     if (reason === 'login') {
-      action.textContent = '로그인하고 전체 보기';
+      action.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
       action.href = loginUrl();
     } else if (reason === 'profile') {
       action.textContent = '내 사주 등록하기';
       action.href = `/profile?returnTo=${encodeURIComponent(location.pathname)}`;
     } else if (reason === 'payment') {
-      action.textContent = `전체 보기 · ${SERVICE.price}`;
+      action.textContent = `전체 보기 (${SERVICE.price})`;
       action.href = outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`;
     } else if (reason === 'input') {
       action.textContent = '입력하러 가기';
@@ -320,23 +344,55 @@
   }
 
   // ------------------------------------------------------- steps 05 / 06_1
+  function paragraphs(section) {
+    return String(section?.interpretation || '')
+      .split('\n\n')
+      .map((text) => text.replace(/^\[[^\]]{1,12}\]\s*/, '').trim())
+      .filter(Boolean);
+  }
+
+  function escapeReading(value) {
+    return window.JobChoice?.escapeHtml
+      ? window.JobChoice.escapeHtml(value)
+      : String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]));
+  }
+
   /**
-   * jobchoice-report-store.js patches those pages before their own script parses, but
-   * only when the report is already cached. Landing on 05 or 06 directly leaves nothing
-   * cached, so fetch it once and reload so the store can do its job.
+   * 스토어는 파싱 시점에 시안 해석을 비운다. 서버 리포트가 오면 상세 칸에만 실제 본문을 넣는다.
    */
-  async function ensureReportCached() {
-    if (!$('#step-5-chat') && !$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
+  async function enhanceDetail() {
+    const stage = document.getElementById('detailStage');
+    if (!stage) return;
     const outcome = await loadReport();
-    if (outcome.report && !window.UMSHReportAccess) location.reload();
+    if (!outcome.report) return;
+    if (typeof window.JobChoice?.markPaid === 'function') window.JobChoice.markPaid();
+    const wanted = new URLSearchParams(location.search).get('section');
+    const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
+    if (!section) return;
+    const parts = paragraphs(section);
+    const esc = escapeReading;
+    stage.innerHTML = `
+      <section class="hero-panel detail-hero">
+        <span class="kicker">06_1 · ${esc(section.category)}</span>
+        <h1>${esc(section.classification)}</h1>
+        <p>${esc(parts[0] || '')}</p>
+      </section>
+      ${parts.slice(1).map((paragraph) => `
+        <section class="detail-section">
+          <p>${esc(paragraph)}</p>
+        </section>
+      `).join('')}
+    `;
+    window.UMSHReportAccess?.markFilled?.(stage);
   }
 
   function init() {
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();
-    ensureReportCached();
+    enhanceDetail();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

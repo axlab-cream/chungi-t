@@ -6,7 +6,7 @@ import { test } from 'node:test'
 
 import type { PaymentOrder } from '../../src/payment/order-store.js'
 import type { ReportRecord } from '../../src/report/report-store.js'
-import { selectPurchasedReadings } from '../../src/report/vault-list.js'
+import { selectAdminVaultReadings, selectPurchasedReadings } from '../../src/report/vault-list.js'
 
 /**
  * 2026-09-14 회귀 방지: 보관함이 "구매한 순"도 아니었고 "구매한 것"도 아니었다.
@@ -147,10 +147,60 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
   const app = source.slice(start, source.indexOf('app.get(', start + 1))
   assert.ok(app.length > 0 && app.length < 4000, '핸들러 구간을 잘못 잘랐다')
   assert.ok(/listReportRecords\(owner, 100\)/.test(app), '요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다')
-  assert.ok(/selectPurchasedReadings\(records, orders\)\s*\n\s*\.slice\(0, limit\)/.test(app), '거르기 전에 자르고 있다')
+  assert.ok(/selectPurchasedReadings\(records, orders\)/.test(app), '일반 계정은 구매 목록을 쓴다')
+  assert.ok(/selectAdminVaultReadings\(records, orders\)/.test(app), '관리자 우회가 없다')
+  assert.ok(/isAdminOwner\(owner\)/.test(app), '관리자 판정이 핸들러에 없다')
+  assert.ok(
+    /\.filter\(\(item\) => isCustomerFacingReport\(item\.record\)\)\s*\n\s*\.slice\(0, limit\)/.test(app),
+    '거르기 전에 자르고 있다',
+  )
   assert.ok(/listPaymentOrders\(owner\.id, 100\)\.catch\(\(\) => null\)/.test(app), '주문 조회 실패를 구분하지 않는다')
-  assert.ok(/purchasedOnly: false,\n\s*reports: records\.map\(historyEntryFromRecord\)/.test(app), '주문 조회가 죽으면 보관함이 빈다')
+  assert.ok(
+    /purchasedOnly: false,\n\s*reports: records\.filter\(isCustomerFacingReport\)\.map\(historyEntryFromRecord\)/.test(app),
+    '주문 조회가 죽으면 보관함이 빈다',
+  )
   assert.ok(/purchasedAt: item\.purchasedAt/.test(app), '구매 시각이 화면으로 나가지 않는다')
+})
+
+test('11. 관리자 우회는 서비스당 최신 해석 한 건을 보관함에 보탠다', () => {
+  const olderSave = record('save-old', {
+    context: { serviceKey: 'money_save' } as never,
+    updatedAt: '2026-09-16T00:00:00.000Z',
+  })
+  const newerSave = record('save-new', {
+    context: { serviceKey: 'money_save' } as never,
+    updatedAt: '2026-09-17T00:00:00.000Z',
+  })
+  const quit = record('quit-1', {
+    context: { serviceKey: 'quit_fortune' } as never,
+    updatedAt: '2026-09-17T01:00:00.000Z',
+  })
+  const picked = selectAdminVaultReadings([olderSave, newerSave, quit], [])
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['quit-1', 'save-new'])
+})
+
+test('12. 관리자 우회는 실제 결제를 남기고 같은 서비스는 중복하지 않는다', () => {
+  const paidCmdg = record('paid-1', { context: { serviceKey: 'cmdg' } as never })
+  const unpaidCmdg = record('cmdg-teaser', {
+    context: { serviceKey: 'cmdg' } as never,
+    updatedAt: '2026-09-17T03:00:00.000Z',
+  })
+  const move = record('move-1', {
+    context: { serviceKey: 'work_move' } as never,
+    updatedAt: '2026-09-17T02:00:00.000Z',
+  })
+  const picked = selectAdminVaultReadings(
+    [paidCmdg, unpaidCmdg, move],
+    [order('paid-1', '2026-09-10T01:00:00.000Z')],
+  )
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['move-1', 'paid-1'])
+})
+
+test('13. 관리자 우회도 상담 기록은 보관함에 넣지 않는다', () => {
+  const chat = record('chat-1', { context: { serviceKey: 'cmdg', savedChat: { question: 'q' } } as never })
+  const reading = record('r1', { context: { serviceKey: 'job_choice' } as never })
+  const picked = selectAdminVaultReadings([chat, reading], [])
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['r1'])
 })
 
 test('10. 보관함 화면은 구매 시각과 고민 문구로 행을 구분한다', () => {

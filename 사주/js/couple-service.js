@@ -18,6 +18,7 @@
     apiKey: 'match_couple',
     slug: 'couple',
     title: '우리 둘, 진짜 잘 맞아?',
+    price: '19,900원',
   };
 
   // The design pages read and write these; we fill them so their own renderers unlock.
@@ -114,12 +115,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -209,16 +206,24 @@
       if (!request) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/match/couple/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl };
@@ -280,15 +285,49 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
+    if (outcome.preview) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const description = $('#accessDescription');
+      if (description) description.textContent = outcome.preview.summary || GATE_COPY.payment;
+      const cta = $('#mainCta');
+      const entitledLink = $('#entitledLink');
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        if (cta) {
+          cta.textContent = '전체 목차 열기';
+          cta.addEventListener('click', (event) => {
+            event.preventDefault();
+            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+          });
+        }
+        if (entitledLink) entitledLink.hidden = false;
+        return;
+      }
+      if (cta) {
+        cta.textContent = `전체 보기 (${SERVICE.price})`;
+        cta.addEventListener('click', (event) => {
+          event.preventDefault();
+          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+        });
+      }
+      return;
+    }
+
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample verdict must not stay on screen as if it were a personal reading.
-      answer.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      if (reason === 'login') {
+        if (!answer.dataset.boundPreview) answer.textContent = '입력한 사주로 계산하고 있습니다.';
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        answer.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      }
       const description = $('#accessDescription');
       if (description) description.textContent = GATE_COPY[reason] || GATE_COPY.error;
       const cta = $('#mainCta');
       if (cta && reason === 'login') {
-        cta.textContent = '로그인하고 전체 보기';
+        cta.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
         cta.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(loginUrl());
@@ -372,6 +411,8 @@
       const title = document.getElementById('detail-title');
       if (title) title.textContent = section.classification;
       body.dataset.coupleApplied = section.id;
+      window.UMSHReportAccess?.markFilled?.(body);
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('detail-conclusion'));
     };
 
     apply();

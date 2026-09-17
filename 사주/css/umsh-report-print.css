@@ -1,0 +1,168 @@
+/*
+ * 저장된 해석의 PDF 경로. 브라우저 인쇄 대화상자의 "PDF로 저장"이 다운로드 수단이다.
+ *
+ * 이 파일은 `umsh-report-access.js` 가 06-1 상세 화면에 넣는다. 공용 리더(`/r/:id`)는
+ * `umsh-verified-reader.css` 에 자체 인쇄 규칙이 있지만, 디자인이 적용된 상세 화면은
+ * 인쇄 규칙이 없어서 상단바·하단 독·버튼까지 종이에 그대로 찍혔다. 화면마다 마크업이
+ * 달라 개별 페이지에 규칙을 넣는 대신, 역할 표시(`data-umsh-service-top` 같은 공용 속성)와
+ * 대화형 요소를 기준으로 지운다.
+ */
+
+/*
+ * 자동으로 넣은 독만 여기서 꾸민다. 자체 독이 있는 화면은 그 화면의 스타일을 그대로 쓴다.
+ *
+ * 붙는 자리가 화면마다 다르다. 직장선택의 `#detailStage` 는 `display: grid` 여서, 늘어남을
+ * 막지 않으면 독이 428px 로 펴지고 버튼이 402px 짜리 세로 막대가 된다. 부모가 grid 든
+ * flex 든 같은 모양이 되도록 스스로 크기를 고정한다.
+ */
+.umsh-pdf-dock[data-umsh-pdf-auto] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  justify-self: stretch;
+  min-height: 0;
+  padding: 18px 20px 8px;
+}
+
+.umsh-pdf-dock[data-umsh-pdf-auto] .pdf-button {
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(232, 212, 154, 0.35);
+  border-radius: 12px;
+  background: rgba(216, 186, 114, 0.06);
+  color: var(--shell-gold-200, #e8d49a);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  body {
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /*
+   * 공용 상단바·하단 내비게이션·PDF 버튼 자신은 종이에 남을 이유가 없다. 화면 안내
+   * 문구(진행률·재시도)도 인쇄본에서는 조작할 수 없으므로 뺀다.
+   */
+  [data-umsh-service-top],
+  [data-umsh-service-bottom],
+  .umsh-pdf-dock,
+  .umsh-service-toast,
+  .interpret-progress,
+  .umsh-section-skeleton .interpret-progress,
+  .reading-retry,
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  form,
+  nav,
+  iframe,
+  video {
+    display: none !important;
+  }
+
+  /* 본문 안의 설명 링크는 남기고, 이동용 CTA 만 지운다. */
+  a[class*='cta'],
+  a[class*='next'],
+  a[class*='button'],
+  a[class*='primary-link'] {
+    display: none !important;
+  }
+
+  /* 430px 프레임을 종이 폭으로 편다. */
+  .app,
+  .stage,
+  .phone,
+  main,
+  #umsh-verified-layout,
+  [data-umsh-chrome] {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /*
+   * 접힌 항목은 `beforeprint` 에서 펼친다. 항목 전체를 한 페이지에 묶지는 않는다 —
+   * 한 항목이 한 페이지보다 길어서, 묶으면 앞 페이지에 빈 자리가 크게 남는다.
+   * `umsh-verified-reader.css` 가 같은 이유로 카드에 `break-inside: auto` 를 쓴다.
+   * 대신 문단 단위의 작은 블록만 쪼개지지 않게 한다.
+   */
+  details.reading-card,
+  .reading-card,
+  .detail-card,
+  article,
+  section {
+    background: #fff !important;
+    color: #111 !important;
+    box-shadow: none !important;
+  }
+
+  .reading-block,
+  .reading-answer,
+  .reading-action,
+  .reading-evidence,
+  blockquote,
+  table,
+  figure {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  details.reading-card > summary {
+    font-weight: 800;
+    list-style: none;
+  }
+
+  details.reading-card > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  li,
+  strong,
+  em,
+  span,
+  dt,
+  dd {
+    color: #111 !important;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+}

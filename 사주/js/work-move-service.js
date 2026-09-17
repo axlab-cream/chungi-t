@@ -418,7 +418,7 @@
     sessionSet(STORAGE.input, payload);
     if (payload.analysis) {
       sessionSet(STORAGE.analysis, payload.analysis);
-      sessionSet(STORAGE.report, payload.analysis.report || null);
+      sessionSet(STORAGE.report, payload.analysis.report?.sections?.length ? payload.analysis.report : null);
       sessionSet(STORAGE.cheongiAnalysis, payload.analysis);
     }
   }
@@ -458,18 +458,19 @@
    * 로그인 세션. /api/saju/analyze 는 회원만 받으므로 분석 요청과 프로필 조회가 같은
    * 토큰을 쓴다. 한 번 읽어 캐시한다.
    */
+  const auth = { config: null, client: null, session: null };
   let authSessionPromise = null;
   function getAuthSession() {
+    if (auth.session) return Promise.resolve(auth.session);
     if (authSessionPromise) return authSessionPromise;
     authSessionPromise = (async () => {
-      if (!window.supabase || !window.UMSHAuthSession) return null;
       try {
-        const config = await fetch('/api/auth/config').then((res) => res.json());
-        if (!config || !config.enabled) return null;
-        const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
-        const { data } = await client.auth.getSession();
-        return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
-      } catch (error) {
+        if (!window.UMSHAuthSession?.bindServiceSession) return null;
+        const session = await window.UMSHAuthSession.bindServiceSession(auth, 900);
+        if (!session) authSessionPromise = null;
+        return session;
+      } catch {
+        authSessionPromise = null;
         return null;
       }
     })();
@@ -532,8 +533,12 @@
       const payload = buildStep2Payload(form);
       try {
         payload.analysis = await requestAnalysis(payload);
-        payload.reportId = payload.analysis.report?.reportId || '';
-        if (note) note.textContent = '개인화 이직운 리포트를 저장했습니다. 04 무료 티저로 이어가세요.';
+        payload.reportId = payload.analysis.resultId || payload.analysis.reportId || payload.analysis.report?.reportId || '';
+        if (note) {
+          note.textContent = payload.analysis.preview && !payload.analysis.report?.sections?.length
+            ? '무료 티저를 저장했습니다. 04에서 먼저 확인하세요.'
+            : '개인화 이직운 리포트를 저장했습니다. 04 무료 티저로 이어가세요.';
+        }
       } catch (error) {
         payload.analysis_error = error instanceof Error ? error.message : '분석 리포트를 생성하지 못했습니다.';
         if (note) note.textContent = `${payload.analysis_error} 입력값은 저장했고 04 무료 티저에서 계속 확인할 수 있습니다.`;
@@ -550,6 +555,8 @@
   }
 
   function readReport() {
+    const live = reportAccess()?.verifiedReport?.();
+    if (live?.sections?.length) return live;
     const report = safeParse(sessionGet(STORAGE.report));
     if (report?.sections?.length) return report;
     const payload = readPayload();
@@ -584,19 +591,27 @@ function firstSentence(text) {
     return clean.split(/\n\s*\n|(?<=[.!?。])\s+/).find(function (line) { return line.trim().length > 5; }) || clean;
   }
 
+  function readPreview() {
+    const analysis = safeParse(sessionGet(STORAGE.analysis));
+    const accepted = reportAccess()?.acceptAnalyze?.(analysis);
+    if (accepted?.preview) return accepted.preview;
+    const payload = readPayload();
+    return reportAccess()?.acceptAnalyze?.(payload?.analysis)?.preview || payload?.analysis?.preview || null;
+  }
+
   function setupStep4() {
     if (!$('#step-4-report')) return;
     const report = readReport();
+    const setText = (id, text) => {
+      const node = document.getElementById(id);
+      if (node && text) node.textContent = text;
+    };
     if (report?.sections?.length) {
       const byId = new Map(report.sections.map((section) => [section.id, section]));
       const decision = byId.get('work-move-decision') || report.sections[0];
       const signal = byId.get('current-company-signal') || report.sections[1] || decision;
       const money = byId.get('money-terms') || report.sections[5] || decision;
       const risk = byId.get('risk-brake') || report.sections[7] || decision;
-      const setText = (id, text) => {
-        const node = document.getElementById(id);
-        if (node && text) node.textContent = text;
-      };
       setText('resultTitle', decision.hook || decision.category);
       setText('resultAnswer', firstSentence(decision.interpretation));
       setText('resultTypeChip', decision.category);
@@ -609,10 +624,32 @@ function firstSentence(text) {
       setText('brakeText', risk.category);
       setText('brakeBody', firstSentence(risk.interpretation));
       setText('signalNarrative', `${decision.category}. 전체 결과에서는 ${report.sections.length}개 섹션으로 대운·세운·관성·식상·재성 근거를 이어서 엽니다.`);
+    } else {
+      const preview = readPreview();
+      if (preview) {
+        reportAccess()?.paintTeaserPreview?.(preview);
+        setText('resultTitle', preview.headline || preview.title || '');
+        setText('resultAnswer', preview.headline || preview.summary || '');
+        setText('directionBody', preview.summary || preview.headline || '');
+        const insights = preview.signals || preview.insights || [];
+        const line = (item) => (item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item || ''));
+        if (insights[0]) setText('signalBody', line(insights[0]));
+        if (insights[1]) setText('conditionBody', line(insights[1]));
+        if (insights[2]) setText('brakeBody', line(insights[2]));
+      }
     }
 
     const purchase = $('[data-action="purchase"]');
+    const analysis = safeParse(sessionGet(STORAGE.analysis)) || readPayload()?.analysis;
+    const entitled = Boolean(reportAccess()?.isEntitled?.(analysis) || (report?.isPaid || report?.paid || report?.entitlement === 'paid'));
     purchase?.addEventListener('click', () => {
+      const openFullReport = () => {
+        window.location.href = '../05-step-5-chat/chat.html#step-5-chat';
+      };
+      if (entitled) {
+        openFullReport();
+        return;
+      }
       sessionSet(STORAGE.legacyPaymentIntent, {
         service_key: SERVICE.service_key,
         amount_krw: SERVICE.price_krw,
@@ -620,9 +657,6 @@ function firstSentence(text) {
         to: '../05-step-5-chat/chat.html#step-5-chat',
         requested_at: new Date().toISOString(),
       });
-      const openFullReport = () => {
-        window.location.href = '../05-step-5-chat/chat.html#step-5-chat';
-      };
       // Checkout first when the payment module is connected; otherwise keep the existing
       // direct hand-off so this step never dead-ends before launch.
       if (!window.UMSHCheckout) {
@@ -632,7 +666,7 @@ function firstSentence(text) {
       window.UMSHCheckout
         .start({
           productKey: 'work_move',
-          reportId: report?.reportId || '',
+          reportId: report?.reportId || analysis?.reportId || '',
           returnTo: '/work/move/05-step-5-chat/chat.html#step-5-chat',
         })
         .then((result) => {
@@ -640,6 +674,7 @@ function firstSentence(text) {
         })
         .catch(openFullReport);
     });
+    if (purchase && entitled) purchase.textContent = '전체 목차 열기';
   }
 
   function sectionPreview(section) {
@@ -785,14 +820,32 @@ function firstSentence(text) {
   function setupStep6() {
     if (!$('#step-6_1-report')) return;
     const sectionId = new URLSearchParams(location.search).get('section') || '';
-    if (!renderDynamicDetail(sectionId)) return;
-    document.addEventListener('click', (event) => {
-      const link = event.target.closest?.('[data-dynamic-report-link]');
-      if (!link) return;
-      event.preventDefault();
-      renderDynamicDetail(link.dataset.dynamicReportLink, true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    const bind = () => {
+      document.addEventListener('click', (event) => {
+        const link = event.target.closest?.('[data-dynamic-report-link]');
+        if (!link) return;
+        event.preventDefault();
+        renderDynamicDetail(link.dataset.dynamicReportLink, true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    };
+    if (renderDynamicDetail(sectionId)) {
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('interpretationBlocks'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('conclusionText'));
+      bind();
+      return;
+    }
+    const started = Date.now();
+    const timer = setInterval(() => {
+      if (renderDynamicDetail(sectionId)) {
+        clearInterval(timer);
+        window.UMSHReportAccess?.markFilled?.(document.getElementById('interpretationBlocks'));
+        window.UMSHReportAccess?.markFilled?.(document.getElementById('conclusionText'));
+        bind();
+      } else if (Date.now() - started > 10000) {
+        clearInterval(timer);
+      }
+    }, 120);
   }
 
   setupStep2();

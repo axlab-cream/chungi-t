@@ -663,7 +663,7 @@
       <section class="band paid-band" aria-labelledby="paid-title">
         <div class="section-head">
           <span class="eyebrow">결제 후 열리는 전체 범위</span>
-          <h2 id="paid-title">9,900원 리포트에서는 12장 흐름을 이어서 봅니다</h2>
+          <h2 id="paid-title">19,900원 리포트에서는 12장 흐름을 이어서 봅니다</h2>
           <p>무료 방향에서 멈추지 않고, 사주와 집의 오행 핏, 공간별 손질, 7일 액션까지 연결합니다.</p>
         </div>
 
@@ -679,7 +679,7 @@
             </div>
             <div class="receipt-row">
               <strong>결제 금액</strong>
-              <span class="price">9,900원</span>
+              <span class="price">19,900원</span>
             </div>
           </div>
           <figure class="visual-frame" data-asset-key="home-04-paid-preview">
@@ -720,7 +720,7 @@
 
       <nav class="cta-stack" aria-label="다음 단계">
         <a class="cta-primary" href="../05-step-5-chat/chat.html#step-5-chat" data-action="open-paid">
-          전체 보기 · 9,900원
+          전체 보기 (19,900원)
         </a>
         
         
@@ -733,7 +733,7 @@
         "service_category": "집 풍수",
         "rag": ["풍수지리", "개인 명리"],
         "domain": "place.umsh.kr/home",
-        "price_krw": 9900,
+        "price_krw": 19900,
         "stage": "04-step-4-report"
       }
     </script>
@@ -806,27 +806,7 @@
       }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      {
-        "basis": [
-          "ITEM-50_풍수지리/prompts/menu-home.txt",
-          "ITEM-50_풍수지리/prompts/menu-move.txt",
-          "ITEM-50_풍수지리/prompts/menu-compat.txt",
-          "ITEM-50_풍수지리/prompts/menu-place.txt",
-          "ITEM-50_풍수지리/guides/menu_guide_chunks.csv",
-          "ITEM-10_사주 핵심 해석/사주 핵심 해석_rag_dataset.csv",
-          "ITEM-11_오행 분석/오행 분석_rag_dataset.csv",
-          "ITEM-13_신강약 분석/신강약 분석_rag_dataset.csv",
-          "ITEM-14_용신 분석/용신 분석_rag_dataset.csv"
-        ],
-        "interpretation_guardrails": [
-          "공간은 절대 명당·흉지로 단정하지 않고 생활 리듬과의 핏으로 풀이",
-          "현관-침실 직선 흐름은 가림과 정리 처방으로 완화",
-          "도로·창밖 자극은 수면과 체감 피로의 보조 신호로만 사용",
-          "일간, 오행, 신강약, 용신은 계산된 개인 리듬이 있을 때만 상세 연결"
-        ]
-      }
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       {
@@ -883,29 +863,6 @@
       }
     </script>
 
-    <script type="application/json" id="QA_RESULT">
-      {
-        "stage": "04-step-4-report",
-        "status": "ready_for_review",
-        "checks": [
-          { "name": "latest_user_service_values_applied", "pass": true },
-          { "name": "free_teaser_shows_direction_without_full_paid_detail", "pass": true },
-          { "name": "all_12_interpretation_groups_visible", "pass": true },
-          { "name": "all_12_interpretation_groups_preserved_in_ui", "pass": true },
-          { "name": "client_does_not_assert_paid_authority", "pass": true },
-          { "name": "payment_failure_and_missing_input_states_have_recovery_copy", "pass": true },
-          { "name": "image_manifest_generated_file_exists_and_html_referenced", "pass": true },
-          { "name": "images_are_full_width_single_blocks_without_side_layout", "pass": true },
-          { "name": "customer_copy_hides_internal_rag_kms_terms", "pass": true },
-          { "name": "no_deterministic_moving_or_money_claims", "pass": true },
-          { "name": "next_route_points_to_step_05", "pass": true }
-        ],
-        "scope_mismatch": [
-          "현재 프로젝트의 04 PROMPT.md에는 이전 직장 선택 서비스 문구가 남아 있어, 이번 04 산출물은 사용자의 최신 집 풍수 입력값과 첨부 템플릿의 공통 계약을 우선 적용했다."
-        ]
-      }
-    </script>
-
     <script>
       const SERVICE = {
         service_key: "home_fit",
@@ -913,7 +870,7 @@
         service_title: "지금 사는 집, 나랑 잘 맞을까?",
         category: "집 풍수",
         subcategory: "집과 나의 생활 핏",
-        price_krw: 9900,
+        price_krw: 19900,
         report_version: "home-fit-v1.0",
         copy_version: "mz-home-pungsu-v1",
         next_route: "../05-step-5-chat/chat.html#step-5-chat"
@@ -1344,7 +1301,7 @@
     </script>
     <div data-umsh-service-bottom=""></div>
     <script src="/js/payment-bridge.js"></script>
-    <script src="/js/umsh-checkout.js"></script>
+    <script src="/js/umsh-checkout.js?v=20260916-product-alias"></script>
     <script src="/js/umsh-home-reading.js?v=20260907-gnb"></script>
     <script src="/js/service-shell.js?v=20260902-address-shell"></script>
       <!-- 2026-09-15: 해석 신고 버튼을 전 화면에서 내렸다. 되살릴 때 주석만 풀 것. <script src="/js/ai-report-flag.js?v=20260910-flag" defer=""></script> -->

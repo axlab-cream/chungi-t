@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>나, 올해 연애 가능? | 운명상회</title>
@@ -74,7 +74,7 @@
 
       .phone {
         position: relative;
-        width: min(100vw, 440px);
+        width: min(100%, 440px);
         min-height: 100svh;
         overflow: hidden;
         word-break: keep-all;
@@ -725,25 +725,7 @@
       }
     </script>
 
-    <script type="application/json" id="RAG_EVIDENCE">
-      {
-        "primary_evidence_ids": [
-          "item-22-p1-0003",
-          "item-22-p1-0027",
-          "item-22-p1-0045",
-          "item-23-qa-0003",
-          "item-23-qa-0014",
-          "zip-연예-qa-000030",
-          "zip-연예-qa-000035",
-          "zip-연예-qa-000108"
-        ],
-        "notes": [
-          "01 화면은 분석 결과를 단정하지 않고 후킹과 입력 유도만 제공한다.",
-          "세운 관계 원자는 개인 명식과 대운·월운에 따라 달라지므로 입력 전 확정 문장으로 쓰지 않는다.",
-          "배우자성 근거는 재성·관성의 전통 해석을 쉬운 말로 바꾸어 예고 수준으로만 사용한다."
-        ]
-      }
-    </script>
+    
 
     <script type="application/json" id="IMAGE_MANIFEST">
       [
@@ -828,28 +810,11 @@
       ]
     </script>
 
-    <script type="application/json" id="QA_RESULT">
-      {
-        "scope_mismatch": [],
-        "checks": [
-          "고객 화면에 RAG, KMS, LLM, 내부 출처 경로를 노출하지 않음",
-          "첫 화면에서 서비스 질문과 CTA 목적이 보임",
-          "샘플 서비스 문구를 복사하지 않고 연애운 주제로 재작성함",
-          "CTA가 02 입력 단계로 이동함",
-          "이미지 6개가 실제 WebP 파일로 존재하고 HTML에서 각각 참조됨",
-          "결과를 확정 예언으로 단정하지 않고 가능성, 주의점, 작은 행동 기준으로 예고함"
-        ],
-        "manual_review_required": [
-          "02 단계에서 실제 생년월일시, 성별 또는 애인성 기준, 현재 관계 상태, 세운·대운·월운 입력 계약 확정 필요",
-          "도화 계산 로직 또는 도화 RAG 근거의 운영 승인본 여부 확인 필요"
-        ]
-      }
-    </script>
-      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/thisyear-service.js" defer></script>
+    <script src="/js/thisyear-service.js?v=live-20260917q" defer></script>
   </body>
 </html>

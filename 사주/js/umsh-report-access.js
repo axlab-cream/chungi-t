@@ -47,6 +47,7 @@
   }
   function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || isPermalink() || Boolean(locationId()); }
   function isDetailPage() { return /(?:05-step|06-step)/.test(location.pathname); }
+  function isTeaserPage() { return /04-step/.test(location.pathname); }
   function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function remember(payload) {
     var id = identity(payload);
@@ -171,8 +172,8 @@
             'emptyState', 'offline'],
     insights: ['signal-list', 'signalList', 'signal-tags', 'heroTags', 'evidencePills', 'flowList'],
     'paid-value': ['scope-list', 'scopeGrid', 'scope-grid', 'unlockList'],
-    headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle', 'teaser-title'],
-    summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview'],
+    headline: ['hero-title', 'pageTitle', 'page-title', 'report-title', 'resultTitle'],
+    summary: ['freeSummary', 'hero-summary', 'summaryCopy', 'resultAnswer', 'sectionPreview', 'answerLine', 'signal-main-copy'],
   };
 
   /** 껍데기 안에서 본문을 넣기 적당한 컨테이너. 스크롤 영역이 있으면 그 안. */
@@ -243,6 +244,9 @@
     title: ['[data-title]'],
     subtitle: ['[data-subtitle]', '[data-conclusion]'],
     state: ['[data-state]', '[data-status]'],
+    summary: ['[data-one-line-answer]', '[data-teaser-summary]', '#answerLine', '#signal-main-copy', '#freeSummary', '#resultAnswer'],
+    headline: ['[data-teaser-headline]'],
+    insights: ['[data-signal-list]', '#signal-tags'],
   };
 
   /**
@@ -313,6 +317,21 @@
     return null;
   }
   function markFilled(node) { if (node) node.setAttribute('data-umsh-filled', ''); }
+  function allowDesignMockReading() {
+    try { return String(location.protocol) === 'file:'; }
+    catch (_) { return false; }
+  }
+  /** 슬롯 표시 전에 시안 본문이 잠깐이라도 내 결과처럼 보이면 안 된다. */
+  var LIVE_READING_HOST_IDS = [
+    'detail-stack', 'detail-body', 'interpretationBlocks', 'detail-conclusion',
+    'conclusionBody', 'realityBody', 'conditionBody', 'focusBody', 'evidenceBody',
+    'conclusionText',
+  ];
+  function unfilledHostCss() {
+    return LIVE_READING_HOST_IDS.map(function (id) {
+      return 'html[data-umsh-report-check][data-umsh-verified-inplace] #' + id + ':not([data-umsh-filled])';
+    }).join(',');
+  }
   /**
    * 슬롯의 조상이 `hidden` 으로 접혀 있으면 채워도 보이지 않는다. 디자인 페이지는
    * 자체 스크립트가 열어 주는 전제로 `#detail-content` 같은 래퍼를 hidden 으로 두는데,
@@ -348,6 +367,46 @@
     link.rel = 'stylesheet';
     link.href = '/css/umsh-verified-inplace.css';
     document.head.appendChild(link);
+  }
+  /**
+   * 규칙을 바꿨는데 캐시된 옛 파일이 남으면 PDF 가 다시 화면 배색으로 찍힌다. 실제로
+   * 브라우저가 새 규칙을 무시하고 옛 사본을 쓰는 것을 확인했다. HTML 의 `?v=` 규약과 같이
+   * 버전을 붙인다 — 규칙을 고칠 때 이 값을 함께 올린다.
+   */
+  var PRINT_CSS_HREF = '/css/umsh-report-print.css?v=print-20260917a';
+  function ensurePrintStyles() {
+    if (document.getElementById('umsh-report-print-css')) return;
+    var link = document.createElement('link');
+    link.id = 'umsh-report-print-css';
+    link.rel = 'stylesheet';
+    link.href = PRINT_CSS_HREF;
+    document.head.appendChild(link);
+  }
+  /**
+   * PDF 는 인쇄 대화상자의 "PDF로 저장"으로 받는다. 14개 상세 화면 가운데 버튼이 붙어
+   * 있던 것은 두 곳뿐이었고, 다른 두 곳은 로드되지 않는 모듈을 부르고 있었다. 화면마다
+   * 마크업이 달라 개별로 넣는 대신, 본문이 실제로 그려진 뒤 이 자리에서 한 번만 넣는다.
+   * 이미 자체 버튼이 있는 화면은 건드리지 않는다 — 한 화면에 같은 버튼이 둘이면 안 된다.
+   */
+  function ensurePdfDock(host) {
+    // 06-1 상세 화면이 없는 서비스는 공용 리더(`/r/:id`)로 떨어진다. 보관함에서 여는 화면이
+    // 거기라서, 고유 주소도 상세 화면과 같이 PDF 를 받을 수 있어야 한다. 티저(04)는 제외 —
+    // 아직 열지 않은 본문의 PDF 를 권할 자리가 아니다.
+    if (!isDetailPage() && !isPermalink()) return;
+    ensurePrintStyles();
+    if (document.querySelector('[data-umsh-pdf], #btn-pdf')) return;
+    var anchor = host && host.closest ? (host.closest('section, article, main, body') || host) : document.body;
+    if (!anchor) return;
+    var dock = document.createElement('div');
+    dock.className = 'umsh-pdf-dock';
+    dock.setAttribute('data-umsh-pdf-auto', '');
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'pdf-button';
+    button.setAttribute('data-umsh-pdf', '');
+    button.textContent = 'PDF 저장';
+    dock.appendChild(button);
+    anchor.appendChild(dock);
   }
   function sectionStateClass(section) {
     if (!section) return 'is-pending';
@@ -403,6 +462,7 @@
       return String(line).trim() !== String(preview.summary || '').trim();
     });
     var filled = false;
+    if (paintTeaserPreview(preview)) filled = true;
     if (fillText('headline', preview.headline || preview.title || '먼저 확인한 방향')) filled = true;
     if (fillText('summary', preview.summary || '')) filled = true;
     if (fillSlot('insights', insights.map(function (line, index) {
@@ -413,9 +473,11 @@
     if (fillText('paid-value', preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.')) filled = true;
     var checkout = slotNode('checkout');
     if (checkout) {
-      var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
-      if (checkout.tagName === 'A') checkout.setAttribute('href', href);
-      else checkout.setAttribute('data-umsh-checkout-url', href);
+      var cta = previewCta(payload);
+      if (checkout.tagName === 'A') {
+        checkout.setAttribute('href', cta.href);
+        if (checkout.textContent && /전체|보기|목차|결제/.test(checkout.textContent)) checkout.textContent = cta.label;
+      } else checkout.setAttribute('data-umsh-checkout-url', cta.href);
       markFilled(checkout);
       filled = true;
     }
@@ -428,7 +490,7 @@
   /** 자리를 만들어 넣을 때 쓰는 미리보기 본문. 디자인 슬롯을 찾은 경우에는 쓰지 않는다. */
   function previewBlock(payload, insights) {
     var preview = payload.preview || {};
-    var href = payload.paymentUrl || ('/payment?service=' + encodeURIComponent(key || 'cmdg'));
+    var cta = previewCta(payload);
     return '<h2 class="umsh-preview-headline">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h2>'
       + (preview.summary ? '<p class="umsh-preview-summary">' + escapeHtml(preview.summary) + '</p>' : '')
       + (insights.length
@@ -439,7 +501,7 @@
           }).join('') + '</div>'
         : '')
       + '<p class="umsh-preview-paid">' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p>'
-      + '<a class="umsh-preview-checkout" href="' + escapeHtml(href) + '">전체 해석 목차 보기</a>';
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>';
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
   function renderReportInPlace(payload) {
@@ -473,6 +535,7 @@
     revealAncestors(host);
     markFilled(host);
     renderProgress(report);
+    ensurePdfDock(host);
     return true;
   }
   /** 진행 안내를 디자인 안 상태 슬롯에 표시한다. 본문 슬롯은 건드리지 않는다. */
@@ -642,12 +705,13 @@
     var preview = payload.preview || {};
     var sourceInsights = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = sourceInsights.filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
-    var node = panel();
+  var node = panel();
+    var cta = previewCta(payload);
     node.innerHTML = navigation()
       + '<header class="preview-heading"><span class="preview-eyebrow">운명상회 · 내 입력으로 먼저 보는 해석</span><h1>' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p class="preview-summary">' + escapeHtml(preview.summary || '') + '</p></header>'
       + '<section class="preview-evidence" aria-labelledby="preview-evidence-title"><span class="reading-role">대표 근거</span><h2 id="preview-evidence-title">지금 먼저 확인할 장면</h2><div class="preview-evidence-list">' + insights.map(function(line,index){return '<article><span aria-hidden="true">0'+(index+1)+'</span><p>' + escapeHtml(line) + '</p></article>';}).join('') + '</div></section>'
       + '<section class="preview-scope" aria-labelledby="preview-scope-title"><span class="reading-role">전체 해석 범위</span><h2 id="preview-scope-title">이어서 비교할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p></section>'
-      + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(payload.paymentUrl || '/payment?service=' + encodeURIComponent(key || 'cmdg')) + '">전체 해석 목차 보기</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
+      + '<a id="umsh-preview-checkout" class="reading-primary-link" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a><p class="preview-note">현재 화면은 전체 본문을 열지 않고, 내 입력에서 확인된 방향과 대표 근거만 보여줍니다. 이미 받은 결과는 고유 주소로 다시 확인할 수 있어요.</p>';
     if (request && global.UMSHPaymentBridge) global.UMSHPaymentBridge.save(key, request, location.pathname + location.search);
   }
   function showReport(payload) {
@@ -670,6 +734,7 @@
     }).join('');
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+    ensurePdfDock(node);
   }
   function expandReportForPrint() {
     printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));
@@ -706,7 +771,14 @@
     setTimeout(function(){if(epoch===ownerEpoch)remember(payload);},0);
     headerCache = headers || headerCache;
     if (payload.todayFortune) showToday(payload);
-    else if (payload.previewOnly) showPreview(payload, request);
+    else if (payload.previewOnly) {
+      // 04는 동결 티저를 유지한다. 05·06·종합은 권한이 있으면 본문 GET으로 넘어간다.
+      if (isEntitled(payload) && identity(payload) && !isTeaserPage()) {
+        refresh(identity(payload));
+        return payload;
+      }
+      showPreview(payload, request);
+    }
     else if (isOutputPage() || /\/(?:love\/(?:mind|again|spouse)|work\/job)(?:\/|$)/.test(location.pathname)) {
       showReport(payload);
       resumePending(payload);
@@ -716,7 +788,7 @@
     return payload;
   }
   async function resumeSection(reportId,sectionId,retry) {
-    if(resuming.has(sectionId) || resuming.size>=2)return;
+    if(resuming.has(sectionId) || resuming.size>=4)return;
     resuming.add(sectionId);
     try {
       await rawFetch('/api/report/section',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},headerCache || {}),body:JSON.stringify({reportId:reportId,sectionId:sectionId,...(retry ? {retry:true}:{})})});
@@ -725,7 +797,7 @@
   function resumePending(payload) {
     if(!headerCache || !payload.report)return;
     var id=payload.reportId || payload.report.reportId || identity(payload);
-    payload.report.sections.filter(function(section){return !resuming.has(section.id) && (section.status==='pending' || section.status==='generating');}).slice(0,Math.max(0,2-resuming.size)).forEach(function(section){resumeSection(id,section.id).catch(function(){});});
+    payload.report.sections.filter(function(section){return !resuming.has(section.id) && (section.status==='pending' || section.status==='generating');}).slice(0,Math.max(0,4-resuming.size)).forEach(function(section){resumeSection(id,section.id).catch(function(){});});
   }
   async function refresh(id) {
     if (!id) return;
@@ -747,8 +819,8 @@
     var target = path;
     var next = Object.assign({},options);
     if (id) { target=reportUrl(id,body.orderId || new URLSearchParams(location.search).get('orderId')); delete next.body;next.method='GET';next.cache='no-store'; }
-    else if (!explicitPaid && !daily) {
-      if (isDetailPage()) return new Response(JSON.stringify({error:'저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.',code:'REPORT_REQUIRED'}),{status:404,headers:{'Content-Type':'application/json'}});
+    else if (!explicitPaid && !daily && !isDetailPage()) {
+      // 04·입력·종합은 동결 티저. 05·06에 preview를 붙이면 권한 있는 목차가 빈 골격으로 남는다.
       next.body=JSON.stringify(Object.assign({},body,{preview:true}));
     }
     var epoch=ownerEpoch;
@@ -772,11 +844,29 @@
     try {
       var config=await rawFetch('/api/auth/config').then(function(r){return r.json();});
       if(config.developmentReportAccess===true) {headerCache={};if(id)await refresh(id);return;}
-      if (!config.enabled || !global.supabase || !global.UMSHAuthSession) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
-      var client=global.UMSHAuthSession.createClient(global.supabase,config.url,config.publishableKey);
-      var result=await client.auth.getSession();
-      var session=await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session,client);
-      if (!session || !session.access_token) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      if (!config.enabled) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      var runtimeOk = global.UMSHAuthSession && global.UMSHAuthSession.waitForRuntime
+        ? await global.UMSHAuthSession.waitForRuntime(1500)
+        : Boolean(global.supabase && global.UMSHAuthSession);
+      if (!runtimeOk || !global.UMSHAuthSession) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      var resolved = global.UMSHAuthSession.resolveLiveSession
+        ? await global.UMSHAuthSession.resolveLiveSession(config, 900)
+        : null;
+      var client = resolved && resolved.client || global.UMSHAuthSession.createClient(global.supabase,config.url,config.publishableKey);
+      var session = resolved && resolved.session;
+      if (!session || !session.access_token) {
+        if (!session && client) {
+          var result=await client.auth.getSession();
+          session=await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session,client);
+        }
+      }
+      if (!session || !session.access_token) {
+        if (/\/04-step-4-report\//.test(location.pathname) && !id) {
+          document.documentElement.removeAttribute('data-umsh-report-check');
+          return;
+        }
+        throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
+      }
       setOwner(session.user && session.user.id);
       headerCache={Authorization:'Bearer '+session.access_token};
       client.auth.onAuthStateChange(function(event,nextSession){
@@ -790,8 +880,22 @@
         var response=await reportFetch('/api/flow/newyear/analyze',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},headerCache),body:JSON.stringify({orderId:new URLSearchParams(location.search).get('orderId')})});
         if(!response.ok) {var failed=await response.json().catch(function(){return {};});gate(failed.error || '구매 내역에서 결제 상태를 확인해 주세요.');}
       }
-      else if(!authorized) gate(isDetailPage() ? '저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.' : '입력한 내용을 확인하고 있습니다. 입력이 아직 없다면 서비스로 돌아가 사주와 현재 상황을 알려 주세요.');
-    } catch(error) {gate(error.message || '저장된 해석을 불러오지 못했습니다.');}
+      else if(!authorized) {
+        // 04 무료 티저는 reportId 없이 analyze(preview)로 채운다. 여기서 막으면
+        // 정상 미리보기도 "확인 중/계산 실패"로 덮인다.
+        if (/\/04-step-4-report\//.test(location.pathname) && !id) {
+          document.documentElement.removeAttribute('data-umsh-report-check');
+          return;
+        }
+        gate(isDetailPage() ? '저장된 해석 주소가 없습니다. 구매 내역에서 결과를 열어 주세요.' : '입력한 내용을 확인하고 있습니다. 입력이 아직 없다면 서비스로 돌아가 사주와 현재 상황을 알려 주세요.');
+      }
+    } catch(error) {
+      if (/\/04-step-4-report\//.test(location.pathname) && !id) {
+        document.documentElement.removeAttribute('data-umsh-report-check');
+        return;
+      }
+      gate(error.message || '저장된 해석을 불러오지 못했습니다.');
+    }
   }
   // Browser caches are lookup hints, never proof of ownership or purchase. Only a
   // fresh authenticated GET may supply displayable report content on a new page.
@@ -809,7 +913,139 @@
       }
     } catch(_) {}
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,verifiedReport:function(){return authorized;},identity:identity};
+  function hasPaidReading(report) {
+    if (report && (report.isPaid === true || report.paid === true || report.entitlement === 'paid')) return true;
+    return Boolean(report && Array.isArray(report.sections) && report.sections.some(function (section) {
+      return String((section && (section.interpretation || section.hook)) || '').trim();
+    }));
+  }
+  function isEntitled(outcome) {
+    if (!outcome || typeof outcome !== 'object') return false;
+    var payload = outcome.payload && typeof outcome.payload === 'object' ? outcome.payload : outcome;
+    var report = outcome.report;
+    if (!report && payload.report && Array.isArray(payload.report.sections)) report = payload.report;
+    if (outcome.entitled === true || payload.entitled === true) return true;
+    if (hasPaidReading(report)) return true;
+    var reason = String(payload.unlockReason || (report && report.unlockReason) || '').trim();
+    return reason === 'admin' || reason === 'open' || reason === 'order';
+  }
+  function tocHref(reportId) {
+    var id = String(reportId || rememberedId || '').trim();
+    try {
+      var url = new URL('../05-step-5-chat/chat.html', location.href);
+      if (id) url.searchParams.set('reportId', id);
+      url.hash = 'step-5-chat';
+      return url.pathname + url.search + url.hash;
+    } catch (_) {
+      return '../05-step-5-chat/chat.html' + (id ? '?reportId=' + encodeURIComponent(id) : '') + '#step-5-chat';
+    }
+  }
+  function previewCta(payload) {
+    var entitled = isEntitled(payload);
+    var id = identity(payload);
+    if (entitled) {
+      if (isTeaserPage()) return { href: tocHref(id), label: '전체 목차 열기' };
+      if (id) return { href: '/r/' + encodeURIComponent(id), label: '전체 목차 열기' };
+      return { href: location.pathname + location.search, label: '전체 목차 열기' };
+    }
+    return {
+      href: (payload && payload.paymentUrl) || ('/payment?service=' + encodeURIComponent(key || 'cmdg')),
+      label: '전체 보기',
+    };
+  }
+  function acceptAnalyze(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    var preview = payload.preview;
+    var hasPreview = Boolean(preview && String(preview.headline || preview.summary || preview.title || '').trim());
+    var report = payload.report && Array.isArray(payload.report.sections) && payload.report.sections.length
+      ? payload.report
+      : (Array.isArray(payload.sections) && payload.sections.length ? payload : null);
+    var toc = Array.isArray(payload.toc) ? payload.toc.filter(function (item) { return item && item.id; }) : [];
+    var skeleton = !report && toc.length ? { sections: toc } : null;
+    var entitled = isEntitled({ payload: payload, report: report });
+    if (hasPreview) {
+      var paid = hasPaidReading(report) || entitled;
+      // 04 티저는 동결 preview만 쓴다. toc 골격을 report로 넘기면 빈 섹션 제목만 12% 칸을 덮는다.
+      return {
+        preview: preview,
+        previewOnly: payload.previewOnly !== false && !paid,
+        entitled: entitled,
+        payload: payload,
+        paymentUrl: payload.paymentUrl,
+        toc: toc,
+        report: paid ? (report || undefined) : (isDetailPage() ? (report || skeleton || undefined) : undefined),
+      };
+    }
+    if (report) return { report: report, payload: payload, toc: toc, entitled: entitled };
+    if (skeleton) return { report: skeleton, previewOnly: true, payload: payload, toc: toc, paymentUrl: payload.paymentUrl, entitled: entitled };
+    return null;
+  }
+  function paintTeaserPreview(preview) {
+    if (!preview) return false;
+    var headline = String(preview.headline || '').trim();
+    var summary = String(preview.summary || preview.headline || preview.title || '').trim();
+    var line = headline || summary;
+    if (!line) return false;
+    var painted = false;
+    document.querySelectorAll('[data-teaser-headline]').forEach(function (node) {
+      node.textContent = headline || line;
+      node.dataset.boundPreview = '1';
+      markFilled(node);
+      painted = true;
+    });
+    document.querySelectorAll('[data-teaser-summary]').forEach(function (node) {
+      node.textContent = summary || line;
+      node.dataset.boundPreview = '1';
+      markFilled(node);
+      painted = true;
+    });
+    document.querySelectorAll('[data-one-line-answer], #answerLine, #signal-main-copy, #freeSummary, #resultAnswer, #personal-teaser, #hero-summary, [data-hero-summary]').forEach(function (node) {
+      if (node.hasAttribute('data-teaser-summary') || node.hasAttribute('data-teaser-headline')) return;
+      node.textContent = headline || line;
+      node.dataset.boundPreview = '1';
+      markFilled(node);
+      painted = true;
+    });
+    var insights = (preview.signals && preview.signals.length ? preview.signals : preview.insights) || [];
+    var list = document.querySelector('[data-signal-list]');
+    if (list && insights.length) {
+      list.innerHTML = insights.slice(0, 3).map(function (item, index) {
+        var title = item && typeof item === 'object' ? String(item.title || ('근거 ' + (index + 1))) : ('근거 ' + (index + 1));
+        var body = item && typeof item === 'object' ? String(item.body || item.text || '') : String(item || '');
+        return '<div class="signal-item"><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(body) + '</span></div>';
+      }).join('');
+      painted = true;
+    }
+    var insightText = function (item) {
+      if (item && typeof item === 'object') return String(item.body || item.text || item.title || '').trim();
+      return String(item || '').trim();
+    };
+    ['#condition-signal', '#blocker-signal', '[data-flow-main]', '[data-flow-condition]', '[data-flow-obstacle]'].forEach(function (selector, index) {
+      var node = document.querySelector(selector);
+      if (node && insights[index]) {
+        node.textContent = insightText(insights[index]);
+        painted = true;
+      }
+    });
+    document.querySelectorAll('#step-4-report .teaser .item p, #step-4-report .teaser-grid .mini-card span').forEach(function (node, index) {
+      if (insights[index]) {
+        node.textContent = insightText(insights[index]);
+        painted = true;
+      }
+    });
+    if (!painted) {
+      var lead = document.querySelector('#step-4-report .teaser > p, #step-4-report .hero .copy > p');
+      if (lead) {
+        lead.textContent = line;
+        painted = true;
+      }
+    } else if (!document.querySelector('[data-one-line-answer], #answerLine, #signal-main-copy, #freeSummary, #resultAnswer, #hero-summary, [data-hero-summary]')) {
+      var luckyLead = document.querySelector('#step-4-report .teaser > p');
+      if (luckyLead) luckyLead.textContent = String(preview.summary || line);
+    }
+    return painted;
+  }
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,isEntitled:isEntitled,tocHref:tocHref,previewCta:previewCta,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity,allowDesignMockReading:allowDesignMockReading,markFilled:markFilled};
   if (typeof document !== 'undefined') {
     if (global.addEventListener) {
       global.addEventListener('beforeprint', expandReportForPrint);
@@ -821,12 +1057,24 @@
       // in-place 페이지는 디자인을 살린다. 대신 검증 전 슬롯을 가려서 정적 샘플 문구가
       // 내 결과처럼 잠깐이라도 보이는 일을 막는다. 진행률 슬롯은 처음부터 보여야 한다.
       guard.textContent = inPlaceEnabled()
-        ? 'html[data-umsh-report-check][data-umsh-verified-inplace] [data-umsh-slot]:not([data-umsh-slot="progress"]):not([data-umsh-filled]){visibility:hidden}'
+        ? [
+          'html[data-umsh-report-check][data-umsh-verified-inplace] [data-umsh-slot]:not([data-umsh-slot="progress"]):not([data-umsh-filled])',
+          unfilledHostCss(),
+        ].filter(Boolean).join(',') + '{visibility:hidden}'
         : 'html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
       document.head.appendChild(guard);
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
     document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var query=new URLSearchParams(location.search);var orderId=query.get('orderId');if(key==='newyear_flow') {if(orderId) {url.searchParams.set('orderId',orderId);url.searchParams.delete('preview');}else if(query.get('preview')==='1' && query.get('paid')!=='1')url.searchParams.set('preview','1');}link.href=url.pathname+url.search+url.hash;}},true);
     document.addEventListener('click',function(event){var button=event.target.closest && event.target.closest('[data-retry-section]');if(!button || !authorized)return;button.disabled=true;resumeSection(authorized.reportId || rememberedId,button.dataset.retrySection,true).then(function(){return refresh(rememberedId);}).catch(function(){button.disabled=false;});});
+    document.addEventListener('click',function(event){
+      // 냥궁합·올해연애의 `#btn-pdf` 는 자체 핸들러가 이미 `window.print()` 로 떨어진다.
+      // 여기서 같이 받으면 인쇄가 두 번 열린다.
+      var pdf = event.target.closest && event.target.closest('[data-umsh-pdf]');
+      if (!pdf) return;
+      event.preventDefault();
+      ensurePrintStyles();
+      try { global.print(); } catch (_) {}
+    });
   }
 })(typeof window!=='undefined'?window:globalThis);

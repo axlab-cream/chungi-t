@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
-    <script src="/js/umsh-funnel-auth-gate.js"></script>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>무료 결과 | 나는 왜 돈이 안 모일까?</title>
@@ -31,7 +31,7 @@
     <style>
       :root {
         color-scheme: dark;
-        --mobile-width: 390px;
+        --mobile-width: 430px;
         --bg: #0e1310;
         --bg-deep: #070907;
         --ink: #fff8ed;
@@ -90,7 +90,7 @@
 
       .phone {
         position: relative;
-        width: min(100vw, var(--mobile-width));
+        width: min(100%, var(--mobile-width));
         min-height: 100svh;
         margin: 0 auto;
         border-right: 1px solid rgba(231, 190, 101, 0.18);
@@ -575,7 +575,7 @@
         left: 50%;
         z-index: 40;
         display: none;
-        width: min(calc(100vw - 36px), calc(var(--mobile-width) - 36px));
+        width: min(calc(100% - 36px), calc(var(--mobile-width) - 36px));
         transform: translateX(-50%);
         padding: 12px 13px;
         border: 1px solid rgba(112, 194, 146, 0.36);
@@ -598,7 +598,7 @@
         left: 50%;
         z-index: 30;
         display: grid;
-        width: min(100vw, var(--mobile-width));
+        width: min(100%, var(--mobile-width));
         transform: translateX(-50%);
         justify-items: center;
         padding: 14px 14px max(14px, env(safe-area-inset-bottom));
@@ -768,7 +768,7 @@
 
       <footer class="submit-dock" aria-label="전체 결과 열기">
         <div class="dock-inner">
-          <button class="primary" type="button" data-action="dock-primary">로그인하고 전체 보기</button>
+          <button class="primary" type="button" data-action="dock-primary">로그인하고 전체 보기 (9,900원)</button>
           
         </div>
       </footer>
@@ -1126,11 +1126,11 @@
             "kicker": "로그인 전",
             "title": "로그인하면 이 무료 결과를 그대로 이어볼 수 있어요",
             "body": "계정 확인 뒤 결제 단계로 이동합니다. 입력한 생년월일과 돈 고민은 주소창에 붙이지 않습니다.",
-            "primary_label": "로그인하고 전체 보기",
+            "primary_label": "로그인하고 전체 보기 (9,900원)",
             "primary_action": "login",
             "secondary_label": "무료 결과 다시 보기",
             "secondary_action": "scroll-top",
-            "dock_label": "로그인하고 전체 보기"
+            "dock_label": "로그인하고 전체 보기 (9,900원)"
       },
       "login_pending": {
             "kicker": "로그인 이동 준비",
@@ -1146,11 +1146,11 @@
             "kicker": "로그인 완료 · 미결제",
             "title": "전체 풀이를 열려면 결제 확인이 필요해요",
             "body": "9,900원 결제 후 05 목록과 06 상세 풀이로 이어집니다. 중복 주문을 막기 위해 진행 중 결제는 세션에 보관합니다.",
-            "primary_label": "전체 보기 · 9,900원",
+            "primary_label": "전체 보기 (9,900원)",
             "primary_action": "start-payment",
             "secondary_label": "입력 다시 하기",
             "secondary_action": "back-input",
-            "dock_label": "전체 보기 · 9,900원"
+            "dock_label": "전체 보기 (9,900원)"
       },
       "payment_processing": {
             "kicker": "결제 진행 중",
@@ -1203,44 +1203,7 @@
             "dock_label": "결제 상태 다시 확인"
       }
 }</script>
-    <script type="application/json" id="RAG_EVIDENCE">[
-      {
-            "evidence_id": "item-12-p1-0004",
-            "item": "비견 재물",
-            "use": "같이 벌고 같이 쓰는 패턴",
-            "summary": "비견 재물 흐름은 나눠야 할 때와 지켜야 할 때가 섞이며, 협업·경쟁·분배 갈등이 돈 흐름에 영향을 줄 수 있다."
-      },
-      {
-            "evidence_id": "item-12-p1-0012",
-            "item": "겁재 재물",
-            "use": "움직임이 빠르고 지출 구멍도 커지는 신호",
-            "summary": "겁재 재물 흐름은 움직임이 빠르고 과한 베팅이나 빼앗김 느낌으로 돈이 빠질 수 있어 경계 설정이 필요하다."
-      },
-      {
-            "evidence_id": "item-12-p1-0036",
-            "item": "편재 재물",
-            "use": "수입·지출 동시 확대",
-            "summary": "편재는 들어오는 구멍과 나가는 구멍이 같이 커질 수 있어 여러 판을 동시에 여는 속도를 조절해야 한다."
-      },
-      {
-            "evidence_id": "item-12-p1-0044",
-            "item": "정재 재물",
-            "use": "안정 착시 경계",
-            "summary": "정재 흐름은 모으는 힘이 있으나 안전해 보인다는 이유로 확인을 멈추면 돈이 샐 수 있다."
-      },
-      {
-            "evidence_id": "item-23-qa-0006",
-            "item": "월간 흐름",
-            "use": "받을 돈·줄 돈·조건 분리",
-            "summary": "돈 문제는 받을 돈, 줄 돈, 새로 정할 조건을 따로 적어 보는 방향으로 안내한다."
-      },
-      {
-            "evidence_id": "item-23-qa-0010",
-            "item": "월간 흐름",
-            "use": "관계·계약 기록",
-            "summary": "돈이 걸린 약속은 금액, 기한, 책임 범위를 짧게라도 기록으로 남기는 방향을 제안한다."
-      }
-]</script>
+    
     <script type="application/json" id="IMAGE_MANIFEST">[
       {
             "asset_key": "save-04-free-hero",
@@ -1312,62 +1275,6 @@
             "delivery": "embedded_data_uri"
       }
 ]</script>
-    <script type="application/json" id="QA_RESULT">{
-      "status": "pass_with_notes",
-      "scope_mismatch": [
-            "00-SERVICE-GENERATION-CONTRACT.md와 04 PROMPT.md는 직장운 job-choice 예시를 기준으로 쓰였지만, 사용자 요청의 소비성향 save 서비스 값을 우선 적용했다.",
-            "프롬프트의 10개 대분류 조건은 현재 사용자 seed의 8개 대분류 전체 보존으로 치환했다.",
-            "샘플의 로그인·결제 리듬은 유지하되 실제 결제 성공은 클라이언트 플래그가 아니라 서버 권한 확인이 필요하도록 기록했다."
-      ],
-      "checks": [
-            {
-                  "id": "service_identity",
-                  "status": "pass",
-                  "detail": "save, money.umsh.kr/save, 9,900원, 소비성향을 적용했다."
-            },
-            {
-                  "id": "mobile_only_layout",
-                  "status": "pass",
-                  "detail": "390px 모바일 전용 캔버스 안에 본문, CTA, 토스트를 고정했다."
-            },
-            {
-                  "id": "free_teaser_ratio",
-                  "status": "pass",
-                  "detail": "무료 공개 범위를 12%로 표시하고 한 줄 방향, 강한 신호, 조건, 방해 요인을 제공했다."
-            },
-            {
-                  "id": "paid_scope_preview",
-                  "status": "pass",
-                  "detail": "8개 대분류와 41개 중분류를 유료 범위 예고로 보존했다."
-            },
-            {
-                  "id": "cta_states",
-                  "status": "pass",
-                  "detail": "비로그인, 로그인 미결제, 결제 진행 중, 권한 있음, 취소·실패, reportId 없음 상태를 처리한다."
-            },
-            {
-                  "id": "payment_safety",
-                  "status": "pass",
-                  "detail": "결제 성공은 verified_by=server 권한 확인이 있어야 05로 이동한다."
-            },
-            {
-                  "id": "image_assets",
-                  "status": "pass",
-                  "detail": "04 전용 이미지 3개를 생성했고 HTML에는 data URI로 내장했다."
-            },
-            {
-                  "id": "visible_internal_terms",
-                  "status": "pass",
-                  "detail": "고객 표시 영역에는 내부 용어와 이전 프로젝트 문구를 노출하지 않는다."
-            },
-            {
-                  "id": "next_route",
-                  "status": "pass",
-                  "detail": "권한 확인 후 ../05-step-5-chat/chat.html#step-5-chat로 이동한다."
-            }
-      ]
-}</script>
-
     <script>
       const STORAGE_KEYS = {
         inputPayload: "umsh_save_step2_payload_v1",
@@ -1610,6 +1517,7 @@
         const url = new URL("/payment", location.origin);
         url.searchParams.set("product", SERVICE.service_key);
         url.searchParams.set("reportId", reportId);
+        url.searchParams.set("returnTo", request.return_to);
         location.assign(url.toString());
       }
 
@@ -1666,11 +1574,11 @@
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/save-service.js" defer=""></script>
+<script src="/js/save-service.js?v=live-20260916p" defer=""></script>
   
 
 </body></html>

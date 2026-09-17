@@ -50,19 +50,18 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
+      if (window.UMSHAuthSession?.bindServiceSession) {
+        return await window.UMSHAuthSession.bindServiceSession(auth, 900);
+      }
       auth.config = await fetch('/api/auth/config').then((response) => response.json());
       if (!auth.config?.enabled || !window.supabase?.createClient) return null;
       // Keep this flow usable even when the shared helper is delayed or cached.
       // The Supabase client itself persists and refreshes the same browser session.
-      auth.client = window.UMSHAuthSession
-        ? window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey)
-        : window.supabase.createClient(auth.config.url, auth.config.publishableKey, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: window.localStorage },
-          });
+      auth.client = window.supabase.createClient(auth.config.url, auth.config.publishableKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: window.localStorage },
+      });
       const { data } = await auth.client.auth.getSession();
-      auth.session = window.UMSHAuthSession
-        ? await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client)
-        : data.session;
+      auth.session = data.session;
       return auth.session;
     } catch {
       return null;
@@ -230,8 +229,10 @@
 
   // ------------------------------------------------------------ report load
   let needsLogin = false;
+  let lastPreview = null;
 
   async function loadReport() {
+    lastPreview = null;
     const cached = sessionGet(STORAGE.report);
     if (cached?.sections?.length && !window.UMSHReportAccess) return cached;
 
@@ -259,8 +260,16 @@
       if (error?.status === 401 || error?.status === 403) needsLogin = true;
       return null;
     }
-    const report = data.report || data;
-    if (!report?.sections?.length) return null;
+    const accepted = window.UMSHReportAccess?.acceptAnalyze?.(data);
+    if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) {
+      lastPreview = accepted;
+      return null;
+    }
+    const report = accepted?.report || data.report || data;
+    if (!report?.sections?.length) {
+      if (accepted?.preview) lastPreview = accepted;
+      return null;
+    }
     sessionSet(STORAGE.report, report);
     return report;
   }
@@ -285,7 +294,7 @@
     const cta = root.querySelector('.button');
     const href = `/signup?entry=pass-angle&returnTo=${encodeURIComponent(location.pathname)}`;
     if (cta) {
-      cta.textContent = '로그인하고 전체 보기';
+      cta.textContent = '로그인하고 전체 보기 (9,900원)';
       cta.setAttribute('href', href);
     }
 
@@ -294,7 +303,7 @@
     gate.innerHTML = `
       <b>로그인하면 내 사주로 풀이가 열립니다</b>
       <span>${message}</span>
-      <a class="button" href="${href}">로그인하고 전체 보기</a>
+      <a class="button" href="${href}">로그인하고 전체 보기 (9,900원)</a>
     `;
     host.appendChild(gate);
   }
@@ -339,6 +348,22 @@ function firstParagraph(text) {
     if (!root) return;
     const report = await loadReport();
     if (!report) {
+      if (lastPreview?.preview) {
+        window.UMSHReportAccess?.paintTeaserPreview?.(lastPreview.preview);
+        const heroCopy = root.querySelector('.hero .copy');
+        if (heroCopy) {
+          const h1 = heroCopy.querySelector('h1');
+          const lead = heroCopy.querySelector('p');
+          if (h1 && lastPreview.preview.headline) h1.textContent = lastPreview.preview.headline;
+          if (lead) lead.textContent = lastPreview.preview.summary || lastPreview.preview.headline || lead.textContent;
+        }
+        const results = root.querySelectorAll('.result');
+        if (results[0]) {
+          const span = results[0].querySelector('span');
+          if (span) span.textContent = lastPreview.preview.summary || lastPreview.preview.headline || span.textContent;
+        }
+        return;
+      }
       if (needsLogin) renderLoginGate(root, '지금 화면의 문장은 예시입니다. 로그인 후 입력하신 사주와 시험 정보로 다시 계산합니다.');
       return;
     }

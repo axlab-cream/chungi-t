@@ -118,7 +118,7 @@
 
       .phone {
         position: relative;
-        width: min(100vw, 440px);
+        width: min(100%, 440px);
         height: 100svh;
         max-height: none;
         overflow: hidden;
@@ -1483,6 +1483,41 @@
         font-size: 20px;
         line-height: 1.25;
         letter-spacing: 0;
+      }
+
+      .agree-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .agree-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        min-height: 44px;
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        color: inherit;
+        font-size: 14px;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      .agree-row input {
+        width: 18px;
+        height: 18px;
+        margin: 2px 0 0;
+        flex: 0 0 auto;
+        accent-color: var(--gold);
+      }
+
+      .agree-row.agree-all {
+        border-color: rgba(242, 191, 107, 0.42);
+        background: rgba(139, 30, 22, 0.32);
+        font-weight: 900;
       }
 
       .quote {
@@ -3392,7 +3427,7 @@
       </video>
       <div class="concern-video-shade" aria-hidden="true"></div>
 
-      <header class="topbar">
+      <header class="appbar topbar">
         <a class="brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
           <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
         </a>
@@ -5213,10 +5248,20 @@
           loadReportPage(index);
         }
         if (action === "open-purchase") go("purchase");
+        if (action === "toggle-agree-all") {
+          const checked = Boolean(event.target.closest("[data-action='toggle-agree-all']")?.querySelector("input")?.checked);
+          AGREE_KEYS.forEach((key) => {
+            state[key] = checked;
+          });
+          renderPurchase();
+          return;
+        }
         if (action === "toggle-agree") {
-          const key = event.target.closest("[data-agree]")?.dataset.agree;
+          const row = event.target.closest("[data-agree]");
+          const key = row?.dataset.agree;
+          const box = row?.querySelector("input[type='checkbox']");
           if (key) {
-            state[key] = !state[key];
+            state[key] = box ? box.checked : !state[key];
             renderPurchase();
           }
         }
@@ -7147,8 +7192,8 @@
                 </ul>
                 <div class="price-slate" aria-label="복채 안내">
                   <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천명사주 상담 연결</span><span>-13,200원</span></div>
-                  <div class="price-line final"><span>지금 열기</span><span>49,800원</span></div>
+                  <div class="price-line"><span>천명사주 상담 연결</span><span>-13,100원</span></div>
+                  <div class="price-line final"><span>지금 열기</span><span>49,900원</span></div>
                 </div>
               </div>
             </section>
@@ -7248,6 +7293,32 @@
         `;
       }
 
+      const AGREE_KEYS = ["privacyAgree", "paymentAgree", "marketingAgree"];
+
+      function agreeListMarkup() {
+        const allOn = AGREE_KEYS.every((key) => state[key]);
+        return `
+              <span class="chapter">동의</span>
+              <div class="agree-list">
+                <label class="agree-row agree-all" data-action="toggle-agree-all">
+                  <input type="checkbox"${allOn ? " checked" : ""}>
+                  <span>모두 선택</span>
+                </label>
+                <label class="agree-row" data-action="toggle-agree" data-agree="privacyAgree">
+                  <input type="checkbox"${state.privacyAgree ? " checked" : ""}>
+                  <span>개인정보 처리방침 동의</span>
+                </label>
+                <label class="agree-row" data-action="toggle-agree" data-agree="paymentAgree">
+                  <input type="checkbox"${state.paymentAgree ? " checked" : ""}>
+                  <span>결제 진행 필수 동의</span>
+                </label>
+                <label class="agree-row" data-action="toggle-agree" data-agree="marketingAgree">
+                  <input type="checkbox"${state.marketingAgree ? " checked" : ""}>
+                  <span>마케팅 수신 동의 (선택)</span>
+                </label>
+              </div>`;
+      }
+
       function renderLoveThisYearPurchase() {
         if (!paymentConfigCache) {
           stage.innerHTML = `<section class="panel"><div class="status">결제 안내</div><h1>결제 정보를 확인하는 중입니다</h1><p>잠시만 기다려 주세요.</p></section>`;
@@ -7286,12 +7357,7 @@
             </div>
 
             <div class="teaser-block">
-              <span class="chapter">동의</span>
-              <div class="choices single">
-                <button class="choice ${state.privacyAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="privacyAgree">개인정보 처리방침 동의</button>
-                <button class="choice ${state.paymentAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="paymentAgree">결제 진행 필수 동의</button>
-                <button class="choice ${state.marketingAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="marketingAgree">마케팅 수신 동의 (선택)</button>
-              </div>
+              ${agreeListMarkup()}
             </div>
 
             <div class="actions">
@@ -7313,7 +7379,7 @@
           return;
         }
         const plans = [
-          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,800원" },
+          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,900원" },
         ];
         // Show the amount checkout will actually charge for every plan the catalog sells.
         plans.forEach((plan) => {
@@ -7354,12 +7420,7 @@
             </div>
 
             <div class="teaser-block">
-              <span class="chapter">동의</span>
-              <div class="choices single">
-                <button class="choice ${state.privacyAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="privacyAgree">개인정보 처리방침 동의</button>
-                <button class="choice ${state.paymentAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="paymentAgree">결제 진행 필수 동의</button>
-                <button class="choice ${state.marketingAgree ? "is-selected" : ""}" type="button" data-action="toggle-agree" data-agree="marketingAgree">마케팅 수신 동의 (선택)</button>
-              </div>
+              ${agreeListMarkup()}
             </div>
 
             <div class="actions">

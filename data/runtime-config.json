@@ -20,7 +20,7 @@
   "report": {
     "model": "gpt-5.5",
     "ragTopK": 7,
-    "sectionMaxTokens": 4200,
+    "sectionMaxTokens": 9000,
     "maxTokens": 24000
   }
 }

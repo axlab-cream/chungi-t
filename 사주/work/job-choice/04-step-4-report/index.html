@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
-    <script src="/js/umsh-funnel-auth-gate.js"></script>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>무료 직장 핏 맛보기 | 운명상회</title>
@@ -47,9 +47,10 @@
 
       <section class="stage" id="reportStage">
         <div class="hero-panel">
-          <span class="kicker">04 · 무료 맛보기</span>
-          <h1>첫 신호만 먼저<br>짧게 봅니다.</h1>
-          <p>개인 사주 입력과 이번 회사 조건을 합쳐, 지금 가장 먼저 확인할 축을 보여드립니다.</p>
+          <img class="hero-visual" src="/assets/umsh-jobchoice-card-bg.webp" alt="선택한 직장과 내 사주 흐름을 겹쳐 보는 장면">
+          <span class="kicker">무료로 먼저 보는 신호</span>
+          <h1>이 회사와 맞는 축부터<br>보여 드립니다</h1>
+          <p>내 사주와 이번 회사 조건을 겹쳐, 관록·재백에서 가장 먼저 확인할 축을 열어 드립니다.</p>
         </div>
       </section>
 
@@ -58,10 +59,8 @@
 
     <script type="application/json" id="PROMPT_INPUT">{}</script>
     <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
-    <script type="application/json" id="RAG_EVIDENCE">[]</script>
+    
     <script type="application/json" id="IMAGE_MANIFEST">[]</script>
-    <script type="application/json" id="QA_RESULT">{}</script>
-
     <script src="/js/umsh-text-clip.js"></script>
 <script src="/js/jobchoice-report-store.js"></script>
     <script>
@@ -165,8 +164,7 @@
             <h2>전체 결과 목록으로 이동</h2>
             <p>결제 후에는 대분류와 중분류 목록을 먼저 보고, 필요한 상세 항목을 눌러 해석을 확인합니다.</p>
             <div class="button-row">
-              <button class="primary-button" type="button" id="payButton">전체 보기 · 9,900원</button>
-              <button class="secondary-button" type="button" id="loginButton">로그인하고 전체 보기</button>
+              <button class="primary-button" type="button" id="payButton">전체 보기 (9,900원)</button>
               <button class="text-button" type="button" id="retryButton">입력값 다시 확인</button>
             </div>
             <p class="fineprint">결제 확인 후 전체 결과가 열립니다. 취소나 실패가 있으면 이 무료 결과로 돌아와 다시 시도할 수 있습니다.</p>
@@ -175,11 +173,6 @@
       );
 
       document.getElementById("payButton").addEventListener("click", () => {
-        JobChoice.markPaid();
-        window.location.href = "../05-step-5-chat/chat.html#step-5-chat";
-      });
-
-      document.getElementById("loginButton").addEventListener("click", () => {
         JobChoice.markPaid();
         window.location.href = "../05-step-5-chat/chat.html#step-5-chat";
       });
@@ -198,10 +191,10 @@
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/jobchoice-service.js" defer=""></script>
+    <script src="/js/jobchoice-service.js?v=live-20260917q" defer=""></script>
   
 
 </body></html>

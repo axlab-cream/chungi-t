@@ -110,12 +110,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -235,16 +231,24 @@
       if (!request) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/match/cat/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl };
@@ -303,7 +307,7 @@
   function reportListUrl(report) {
     const params = new URLSearchParams();
     params.set('service_key', SERVICE.apiKey);
-    if (report.reportId) params.set('report_id', report.reportId);
+    if (report && report.reportId) params.set('report_id', report.reportId);
     params.set('analysis_period', 'current-12m');
     params.set('report_version', 'cat-compatibility-v1');
     // The design's own gate reads this; the server already decided access.
@@ -338,11 +342,43 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
+    if (outcome.preview) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
+      setText('#signal-main-title', outcome.preview.headline || '우리 둘의 생활 박자');
+      if (line) setText('#signal-main-copy', line);
+      const insights = outcome.preview.signals || outcome.preview.insights || [];
+      const insightLine = (item) => (item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item || ''));
+      if (insights[0]) setText('#condition-signal', insightLine(insights[0]));
+      if (insights[1]) setText('#blocker-signal', insightLine(insights[1]));
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        setText('#state-pill', '열람 가능');
+        setText('#state-title', '전체 목차로 이어집니다');
+        setText('#state-copy', '먼저 본 방향을 유지한 채 전체 항목을 엽니다.');
+        takeOverCta('전체 목차 열기', () => location.assign(reportListUrl(outcome.payload || outcome.report)));
+        return;
+      }
+      setText('#state-pill', '무료 공개');
+      setText('#state-title', '핵심 결론을 먼저 열었습니다');
+      setText('#state-copy', GATE_COPY.payment);
+      takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
+        location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+      });
+      return;
+    }
+
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample verdict must not stay on screen as if it were a personal reading.
       setText('#signal-main-title', '아직 계산 전입니다');
-      setText('#signal-main-copy', GATE_COPY[reason] || GATE_COPY.error);
+      if (reason === 'login') {
+        setText('#signal-main-copy', '입력한 사주로 계산하고 있습니다.');
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        setText('#signal-main-copy', GATE_COPY[reason] || GATE_COPY.error);
+      }
       setText('#condition-signal', '위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.');
       setText('#blocker-signal', '위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.');
 
@@ -350,7 +386,7 @@
         setText('#state-pill', '비로그인');
         setText('#state-title', '로그인하면 내 사주로 계산합니다');
         setText('#state-copy', GATE_COPY.login);
-        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
+        takeOverCta(`로그인하고 전체 보기 (${SERVICE.price})`, () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         setText('#state-pill', '프로필 필요');
         setText('#state-title', '기본 사주 정보가 필요합니다');
@@ -362,7 +398,7 @@
         setText('#state-pill', '미결제');
         setText('#state-title', '결제 후 전체 리포트가 열립니다');
         setText('#state-copy', GATE_COPY.payment);
-        takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
+        takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else if (reason === 'input') {
@@ -452,16 +488,47 @@
   }
 
   // ------------------------------------------------------------- step 06_1
+  function escapeReading(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /**
-   * cat-report-store.js answers the page's own data request, but only when the report is
-   * already cached. Landing on 06 directly leaves nothing cached, so fetch it once and
-   * reload so the store can do its job.
+   * 시안 JSON/권한 쿼리 없이 서버 리포트만 상세 칸에 그린다.
    */
-  async function ensureReportCached() {
-    if (!$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
+  async function enhanceDetail() {
+    const content = document.getElementById('content');
+    if (!content) return;
     const outcome = await loadReport();
-    if (outcome.report && !window.UMSHReportAccess) location.reload();
+    if (!outcome.report) return;
+    const wanted = new URLSearchParams(location.search).get('section');
+    const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
+    if (!section) return;
+    const parts = paragraphs(section);
+    const lead = (parts[0] || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"일세\.\s*/, '');
+    content.innerHTML = `
+      <article class="detail-hero">
+        <div class="hero-copy">
+          <span class="eyebrow">${escapeReading(section.category)}</span>
+          <h1>${escapeReading(section.classification)}</h1>
+          <p class="lead">${escapeReading(lead)}</p>
+        </div>
+      </article>
+      <div class="block-stack">
+        ${parts.map((paragraph, index) => `
+          <section class="block">
+            <span class="block-kicker">해석</span>
+            <h2>${index === 0 ? '전체 해석' : ''}</h2>
+            <p>${escapeReading(paragraph)}</p>
+          </section>
+        `).join('')}
+      </div>
+    `;
+    window.UMSHReportAccess?.markFilled?.(content);
   }
 
   function init() {
@@ -469,7 +536,7 @@
     enhanceSajuInput();
     enhanceTeaser();
     enhanceList();
-    ensureReportCached();
+    enhanceDetail();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

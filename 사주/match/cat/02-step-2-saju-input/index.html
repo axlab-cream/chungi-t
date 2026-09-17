@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head>
-    <script src="/js/umsh-funnel-auth-gate.js"></script>
-    <script src="/js/umsh-report-access.js"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>고양이랑 나 진짜 궁합 맞아 | 입력 | 운명상회</title>
@@ -600,7 +600,7 @@
         bottom: 0;
         z-index: 24;
         display: grid;
-        grid-template-columns: 0.9fr 1.4fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 10px;
         margin: 18px -18px -116px;
         padding: 14px 18px 18px;
@@ -611,7 +611,8 @@
 
       .primary-cta,
       .secondary-button {
-        min-height: 50px;
+        width: 100%;
+        min-height: 52px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -619,7 +620,8 @@
         border-radius: 8px;
         border: 1px solid transparent;
         text-decoration: none;
-        font-size: 14px;
+        font-size: 16px;
+        font-weight: 700;
       }
 
       .primary-cta {
@@ -725,7 +727,7 @@
       .cat-saved-profile b { color: #ffe9b5; font-size: 14px; }
       .cat-saved-profile span { color: rgba(255, 248, 232, 0.78); font-size: 13px; line-height: 1.55; }
       .cat-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
-</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260904">
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
   </head>
   <body class="umsh-fields">
     <div class="page-shell">
@@ -745,16 +747,16 @@
           </picture>
           <div class="intro-shade" aria-hidden="true"></div>
           <div class="intro-copy">
-            <span class="kicker">STEP 02 · 예상 2분</span>
-            <h1 id="page-title">냥궁합은 내 사주랑 고양이 습관을 같이 봐요</h1>
+            <span class="kicker">집사와 고양이</span>
+            <h1 id="page-title">같이 편해지는 거리와 루틴을 찾습니다</h1>
             <p>
-              보호자 기준값은 사주로, 고양이 쪽은 생일이 애매해도 행동 태그로 잡습니다.
-              거리감·루틴·공간 케미를 생활 언어로 이어갈게요.
+              보호자 사주와 고양이 습관을 겹치면, 거리감·밥자리·잠자리를 생활 언어로 읽을 수 있습니다.
+              고양이 생일이 애매해도 행동 태그로 이어서 봅니다.
             </p>
-            <ul class="trust-list" aria-label="입력 기준">
-              <li>보호자와 고양이를 섞어 계산하지 않음</li>
-              <li>생시 모르면 시간 해석은 보류</li>
-              <li>건강·질병·수명 판단 제외</li>
+            <ul class="trust-list" aria-label="이 입력으로 얻는 것">
+              <li>보호자 사주와 고양이 습관을 겹쳐 읽습니다</li>
+              <li>생시를 모르면 시간 해석은 빼고 루틴을 봅니다</li>
+              <li>건강·질병·수명은 판단하지 않습니다</li>
             </ul>
           </div>
         </section>
@@ -1055,7 +1057,7 @@
 
           <div class="bottom-actions">
             
-            <button class="primary-cta" type="submit" data-action="submit">입력한 정보로 무료 결과 보기</button>
+            <button class="primary-cta" type="submit" data-action="submit">거리와 루틴 확인하기</button>
           </div>
         </form>
       </main>
@@ -1552,10 +1554,10 @@
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
-    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/cat-service.js" defer=""></script>
+    <script src="/js/cat-service.js?v=live-20260917q" defer=""></script>
   
 
 </body></html>

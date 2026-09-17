@@ -70,6 +70,25 @@
     }
   }
 
+  function isStandaloneLaunch() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.matchMedia('(display-mode: window-controls-overlay)').matches
+      || Boolean(window.navigator.standalone);
+  }
+
+  function isOwnSiteReferrer() {
+    if (!document.referrer) return false;
+    try {
+      return new URL(document.referrer).origin === location.origin;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function shouldSkipSplashBySession() {
+    return isOwnSiteReferrer() && !isStandaloneLaunch() && hasSeenSplash();
+  }
+
   function markSplashSeen() {
     try {
       sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
@@ -105,7 +124,7 @@
 
   function startSplash() {
     const splashPending = document.documentElement.classList.contains('splash-pending');
-    if (!splashScreen || !splashVideo || !splashPending || hasSeenSplash() || prefersReducedMotion()) {
+    if (!splashScreen || !splashVideo || !splashPending || shouldSkipSplashBySession() || prefersReducedMotion()) {
       disableSplash();
       return;
     }
@@ -171,7 +190,8 @@
         { label: '궁합', meta: '둘의 끌림과 갈등', action: 'filter', category: '궁합', status: '검색' },
         { label: '재물', meta: '돈이 남는 흐름', action: 'filter', category: '재물', status: '검색' },
         { label: '직업', meta: '일과 적성의 방향', action: 'filter', category: '직업', status: '검색' },
-        { label: '풍수', meta: '집과 공간의 기운', action: 'filter', category: '풍수', status: '검색' },
+        // 고객 화면 보류: 집 풍수
+        // { label: '풍수', meta: '집과 공간의 기운', action: 'filter', category: '풍수', status: '검색' },
       ],
     },
     vault: {

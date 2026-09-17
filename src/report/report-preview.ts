@@ -16,7 +16,7 @@ export interface TeaserReviewInput {
   sourceEvidence: string
 }
 
-function excerpt(value: string, limit = 320): string {
+function excerpt(value: string, limit = 420): string {
   const text = value.replace(/^\[[^\]]+\]\s*/, '').trim()
   const sentences = text.match(/[^.!?。]+(?:[.!?。]+|$)/g) ?? []
   let result = ''
@@ -46,12 +46,13 @@ const TEASER_OPERATIONS_PATTERN = /(?:로그인[·\s]*(?:상태|여부)|결제[�
 const TEASER_FAKE_QUOTE_PATTERN = /(?:잠긴|유료|전체)\s*(?:본문|해석)[^.!?。\n]{0,30}[“「"][^”」"\n]+[”」"]/
 const TEASER_PRESSURE_PATTERN = /(?:결제|구매|지금\s*열|전체\s*해석)[^.!?。\n]{0,35}(?:안\s*하면|않으면|놓치|손해|후회|망하|위험)|(?:놓치|손해|후회|망하|위험)[^.!?。\n]{0,35}(?:결제|구매|열어)/
 const TEASER_CERTAIN_EVENT_PATTERN = /(?:반드시|무조건|확실히|100%)[^.!?。\n]{0,30}(?:합격|불합격|재회|이별|결혼|채용|수익|외도|질병|사고|파산|이혼|퇴사|이직)|(?:합격|불합격|재회|이별|결혼|채용|수익|외도|질병|사고|파산|이혼|퇴사|이직)[^.!?。\n]{0,30}(?:합니다|됩니다|확정입니다|예정입니다)/
+const TEASER_CLICKBAIT_PATTERN = /(?:진짜\s*이유|숨겨진\s*(?:원인|이유)|아닐\s*수도\s*있습니다|열어봐야\s*(?:압니다|보입니다)|결제해야\s*(?:보입니다|압니다))/
 
 function sceneExcerpt(report: SajuReport): string {
   for (const section of report.sections.slice(0, 6)) {
     const paragraphs = String(section.interpretation ?? '').split(/\n\s*\n/).map(line => line.trim()).filter(Boolean)
     const scene = paragraphs.find(paragraph => hasConcreteTeaserScene(paragraph))
-    if (scene) return excerpt(scene, 280)
+    if (scene) return excerpt(scene, 340)
   }
   return ''
 }
@@ -102,13 +103,16 @@ export function reviewTeaser(input: TeaserReviewInput): ToneReview {
   if (TEASER_CERTAIN_EVENT_PATTERN.test(interpretation)) {
     issues.push('근거 없는 개인 예언으로 결제를 유도하지 마세요.')
   }
+  if (TEASER_CLICKBAIT_PATTERN.test(allCopy)) {
+    issues.push('호기심만 남기는 후킹 문장 대신 판정과 근거를 보여 주세요.')
+  }
 
   return { passed: issues.length === 0, issues }
 }
 
 function enforceSafeTeaser(preview: ReportPreview, sourceEvidence: string): ReportPreview {
   const review = reviewTeaser({ preview, sourceEvidence })
-  const unsafe = review.issues.filter(issue => /결제·권한|운영 문구|가짜 인용|공포|개인 예언/.test(issue))
+  const unsafe = review.issues.filter(issue => /결제·권한|운영 문구|가짜 인용|공포|개인 예언|후킹/.test(issue))
   if (unsafe.length > 0) throw new Error(`저장 티저 안전 검수를 통과하지 못했습니다: ${unsafe.join(' ')}`)
   return preview
 }
@@ -157,7 +161,11 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
    * 이직운·붙을 각·운 붙는 색이 45자 넘는 문장을 그대로 반복하고 있었다. 겹치는 것을
    * 걷어 내 헤드라인·요약·통찰이 서로 다른 문장을 말하게 한다.
    */
-  const paragraphs = report.sections.slice(0, 3).map((section) => excerpt(section.interpretation.split(/\n\s*\n/)[0] ?? section.hook)).filter(Boolean)
+  const paragraphs = report.sections.slice(0, 3).map((section) => {
+    const parts = String(section.interpretation ?? '').split(/\n\s*\n/).map(line => line.trim()).filter(Boolean)
+    // 첫 문단은 대개 [주요 포인트] + hook 반복이다. 티저 요약은 그 다음 판정·장면부터 가져온다.
+    return excerpt(parts.slice(1).join(' ') || parts[0] || section.hook)
+  }).filter(Boolean)
   const headline = report.sections[0]?.hook || report.title
   // headline 은 첫 섹션의 hook 이고 summary 는 그 섹션의 첫 문단이다. 문단의 첫 문장이
   // 대개 hook 과 같아서, 덜어 내지 않으면 티저가 같은 줄로 두 번 시작한다.

@@ -107,12 +107,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -233,16 +229,24 @@
       if (!request) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl };
@@ -343,10 +347,40 @@
     const outcome = await loadReport();
     const signals = document.querySelectorAll('.signal-list .signal');
 
+    if (outcome.preview) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
+      if (line) summary.textContent = line;
+      window.UMSHReportAccess?.markFilled?.(summary);
+      const insights = outcome.preview.signals || outcome.preview.insights || [];
+      signals.forEach((signal, index) => {
+        const body = signal.querySelector('span');
+        const item = insights[index];
+        if (body && item) body.textContent = item && typeof item === 'object' ? String(item.body || item.text || item.title || '') : String(item);
+      });
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        setStatus('전체 목차로 이어집니다', '열람 가능', '먼저 본 방향을 유지한 채 전체 항목을 엽니다.');
+        takeOverCta('전체 목차 열기', goReportIndex);
+        return;
+      }
+      setStatus('핵심 결론을 먼저 열었습니다', '무료 공개', GATE_COPY.payment);
+      takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
+        location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+      });
+      return;
+    }
+
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample verdict must not stay on screen as if it were a personal reading.
-      summary.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      if (reason === 'login') {
+        summary.textContent = '입력한 사주로 계산하고 있습니다.';
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        summary.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      }
       signals.forEach((signal) => {
         const body = signal.querySelector('span');
         if (body) body.textContent = '아직 계산 전입니다. 위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.';
@@ -354,7 +388,7 @@
 
       if (reason === 'login') {
         setStatus('로그인하면 내 사주로 계산합니다', '비로그인', GATE_COPY.login);
-        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
+        takeOverCta(`로그인하고 전체 보기 (${SERVICE.price})`, () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         setStatus('기본 사주 정보가 필요합니다', '프로필 필요', GATE_COPY.profile);
         takeOverCta('내 사주 등록하기', () => {
@@ -362,7 +396,7 @@
         });
       } else if (reason === 'payment') {
         setStatus('결제 후 전체 리포트가 열립니다', '미결제', GATE_COPY.payment);
-        takeOverCta(`전체 보기 · ${SERVICE.price}`, () => {
+        takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else if (reason === 'input') {
@@ -415,22 +449,50 @@
 
   // ------------------------------------------------------- steps 05 / 06_1
   /**
-   * thisyear-report-store.js patches those pages' JSON before their own script parses
-   * it, but only when the report is already cached. Landing on 05 or 06 directly leaves
-   * nothing cached, so fetch it once and reload so the store can do its job.
+   * 스토어는 파싱 시점에 verifiedReport 가 없으면 시안 JSON을 비운다.
+   * 여기서 서버 리포트를 받은 뒤 상세 칸에 실제 해석만 그린다.
    */
-  async function ensureReportCached() {
-    if (!$('#step-5-chat') && !$('#step-6_1-report')) return;
-    if (readJson('sessionStorage', STORAGE.report)?.sections?.length && !window.UMSHReportAccess) return;
+  async function enhanceDetail() {
+    const stack = document.getElementById('detail-stack');
+    if (!stack) return;
     const outcome = await loadReport();
-    if (outcome.report && !window.UMSHReportAccess) location.reload();
+    if (!outcome.report) return;
+    window.UMSHThisYearStore?.apply?.(outcome.report);
+
+    const wanted = new URLSearchParams(location.search).get('section');
+    const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
+    if (!section) return;
+    const parts = paragraphs(section);
+    const groupTitle = document.getElementById('group-title');
+    const title = document.getElementById('detail-title');
+    const conclusion = document.getElementById('detail-conclusion');
+    const content = document.getElementById('detail-content');
+    const state = document.getElementById('state-panel');
+    if (groupTitle) groupTitle.textContent = section.category || '';
+    if (title) title.textContent = section.classification || '';
+    if (conclusion) conclusion.textContent = (parts[0] || '').replace(/^第[一二三四五六七八九十]+門[^"]*"[^"]*"(?:일세|입니다)\.\s*/, '');
+    stack.innerHTML = '';
+    parts.forEach((paragraph, index) => {
+      const card = document.createElement('article');
+      card.className = 'detail-card';
+      const heading = document.createElement('h2');
+      heading.textContent = index === 0 ? '전체 해석' : '';
+      const body = document.createElement('p');
+      body.textContent = paragraph;
+      card.append(heading, body);
+      stack.append(card);
+    });
+    if (content) content.hidden = false;
+    state?.classList.remove('is-visible');
+    window.UMSHReportAccess?.markFilled?.(stack);
+    window.UMSHReportAccess?.markFilled?.(conclusion);
   }
 
   function init() {
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();
-    ensureReportCached();
+    enhanceDetail();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

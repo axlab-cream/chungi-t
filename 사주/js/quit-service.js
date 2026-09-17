@@ -1,10 +1,9 @@
 /**
- * Bridges the 퇴사운 design pages (01 → 02 → 03 → 04 → 05 → 06_1) to the real service.
+ * Bridges the 퇴사운 design pages (01 → 02 → 04 → 05 → 06_1) to the real service.
  *
  * The design HTML ships as a static mock so it can be reviewed standalone. This file
  * leaves that markup alone and swaps in the live pieces:
- *   02 — reuses the saju already on the account instead of asking for it a second time
- *   03 — keeps the 퇴사 고민 answers for the analyze call
+ *   02 — reuses the saved 사주 and asks only the 퇴사 이유
  *   04 — replaces the sample teaser with the opening lines of the real RAG report
  *   05 — puts each 리딩's own reading on its list row
  *   06 — fills the reading points with that section's full RAG interpretation
@@ -26,6 +25,9 @@
     input: 'umsh_quit_input_payload_v1',
     report: 'umsh_quit_report_v1',
   };
+
+  const INPUT_PATH = '../02-step-2-saju-input/index.html#step-2-saju-input';
+  const TEASER_PATH = '../04-step-4-report/index.html#step-4-report';
 
   const pad2 = (value) => String(value).padStart(2, '0');
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -109,12 +111,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -185,84 +183,133 @@
   }
 
   // --------------------------------------------------------------- step 02
-  /** The saju the account already holds, so step 02 never asks for it twice. */
+  /** Saved 사주 stays folded. The only extra question is the 퇴사 이유. */
   async function enhanceSajuInput() {
     const form = $('#step-2-saju-input form');
     if (!form) return;
 
+    bindTimeUnknown(form);
+    const profileFields = $('#profileFields', form);
     const profile = await loadSavedProfile();
-    if (!profile) {
-      // Nothing on file yet: asking once is the only way to get the 사주.
-      form.addEventListener('submit', () => saveProfileFromForm(form));
-      return;
+    if (profile && profileFields) {
+      profileFields.setAttribute('hidden', '');
+      const card = document.createElement('div');
+      card.className = 'quit-saved-profile';
+      card.innerHTML = '<b>저장된 사주로 진행합니다</b><span></span><button type="button" data-edit-profile>다른 정보로 입력하기</button>';
+      card.querySelector('span').textContent = `${profileLabel(profile)} 기준으로 관성과 대운을 봅니다. 지금은 나가려는 이유만 고르면 됩니다.`;
+      form.prepend(card);
+      card.querySelector('[data-edit-profile]').addEventListener('click', () => {
+        card.remove();
+        profileFields.removeAttribute('hidden');
+        fillProfileFields(form, profile);
+        form.querySelector('#name')?.focus();
+      });
     }
 
-    const fields = form.querySelectorAll('.field, .grid');
-    fields.forEach((node) => node.setAttribute('hidden', ''));
-
-    const card = document.createElement('div');
-    card.className = 'quit-saved-profile';
-    card.innerHTML = '<b>저장된 사주로 진행합니다</b><span></span><button type="button" data-edit-profile>다른 정보로 입력하기</button>';
-    card.querySelector('span').textContent = `${profileLabel(profile)} 기준으로 관성과 대운을 봅니다. 이름·생년월일·태어난 시는 다시 입력하지 않아도 됩니다.`;
-    form.prepend(card);
-
-    card.querySelector('[data-edit-profile]').addEventListener('click', () => {
-      card.remove();
-      fields.forEach((node) => node.removeAttribute('hidden'));
-      const set = (id, value) => {
-        const node = form.querySelector(id);
-        if (node && value) node.value = value;
-      };
-      set('#name', profile.name);
-      set('#birth', `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)}`);
-      if (profile.birthTimeKnown) set('#time', `${pad2(profile.hour)}:${pad2(profile.minute)}`);
-      const gender = form.querySelector('#gender');
-      if (gender) gender.value = profile.gender === 'female' ? '여성' : '남성';
-      const calendar = form.querySelector('#calendar');
-      if (calendar) calendar.value = profile.calendar === 'lunar' ? '음력' : '양력';
-      form.querySelector('#name')?.focus();
-      form.addEventListener('submit', () => saveProfileFromForm(form), { once: true });
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const error = $('#quit-input-error', form);
+      if (error) error.textContent = '';
+      const picked = form.querySelector('input[name="reason"]:checked');
+      if (!picked?.value) {
+        if (error) error.textContent = '퇴사를 고민하게 된 이유를 선택해 주세요.';
+        return;
+      }
+      if (!profileFields?.hasAttribute('hidden')) {
+        const saved = saveProfileFromForm(form, error);
+        if (!saved) return;
+        await syncProfileToAccount(saved);
+      }
+      writeJson('sessionStorage', STORAGE.input, { reason: picked.value });
+      location.assign(TEASER_PATH);
     });
   }
 
-  function saveProfileFromForm(form) {
-    const name = form.querySelector('#name')?.value.trim();
-    const birthRaw = form.querySelector('#birth')?.value;
-    if (!name || !birthRaw) return;
+  function bindTimeUnknown(form) {
+    const time = form.querySelector('#time');
+    const unknown = form.querySelector('#birthTimeUnknown');
+    if (!time || !unknown) return;
+    const apply = () => {
+      time.disabled = unknown.checked;
+      if (unknown.checked) time.value = '';
+    };
+    unknown.addEventListener('change', apply);
+    apply();
+  }
+
+  function fillProfileFields(form, profile) {
+    const set = (id, value) => {
+      const node = form.querySelector(id);
+      if (node && value != null) node.value = value;
+    };
+    set('#name', profile.name);
+    set('#birth', `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)}`);
+    const unknown = form.querySelector('#birthTimeUnknown');
+    if (unknown) unknown.checked = !profile.birthTimeKnown;
+    if (profile.birthTimeKnown) set('#time', `${pad2(profile.hour)}:${pad2(profile.minute)}`);
+    else set('#time', '');
+    const gender = form.querySelector(`input[name="gender"][value="${profile.gender}"]`);
+    if (gender) gender.checked = true;
+    set('#calendar', profile.calendar === 'lunar' ? 'lunar' : 'solar');
+    form.querySelector('#birthTimeUnknown')?.dispatchEvent(new Event('change'));
+  }
+
+  function readGender(form) {
+    const picked = form.querySelector('input[name="gender"]:checked')?.value;
+    if (picked === 'female' || picked === 'male') return picked;
+    const select = form.querySelector('#gender')?.value || '';
+    if (select.includes('여')) return 'female';
+    if (select.includes('남')) return 'male';
+    return '';
+  }
+
+  function saveProfileFromForm(form, error) {
+    const name = form.querySelector('#name')?.value.trim() || '';
+    const birthRaw = form.querySelector('#birth')?.value || '';
+    const unknown = form.querySelector('#birthTimeUnknown')?.checked;
     const [year, month, day] = birthRaw.split('-').map(Number);
     const [hour, minute] = (form.querySelector('#time')?.value || '').split(':').map(Number);
-    const birthTimeKnown = Number.isFinite(hour);
-    writeJson('localStorage', STORAGE.profile, {
+    const gender = readGender(form);
+    const calendarRaw = form.querySelector('#calendar')?.value || '';
+    const calendar = calendarRaw.includes('음') || calendarRaw === 'lunar' ? 'lunar' : 'solar';
+    const fail = (message) => {
+      if (error) error.textContent = message;
+      return null;
+    };
+    if (!/^[가-힣]{2,20}$/.test(name)) return fail('이름은 한글 2자 이상 20자 이하로 입력해 주세요.');
+    if (!year || !month || !day) return fail('생년월일을 입력해 주세요.');
+    if (!unknown && !Number.isFinite(hour)) return fail('태어난 시를 입력하거나 모름을 선택해 주세요.');
+    if (!gender) return fail('성별을 선택해 주세요.');
+    const profile = {
       name,
-      birthTimeKnown,
+      birthTimeKnown: !unknown,
       birth: {
         year,
         month,
         day,
-        hour: birthTimeKnown ? hour : 12,
+        hour: !unknown && Number.isFinite(hour) ? hour : 12,
         minute: Number.isFinite(minute) ? minute : 0,
-        gender: (form.querySelector('#gender')?.value || '').includes('여') ? 'female' : 'male',
-        calendar: (form.querySelector('#calendar')?.value || '').includes('음') ? 'lunar' : 'solar',
+        gender,
+        calendar,
       },
-    });
+    };
+    writeJson('localStorage', STORAGE.profile, profile);
+    return profile;
   }
 
-  // --------------------------------------------------------------- step 03
-  /** The 퇴사 고민 answers the analyze call needs; the design page only navigated. */
+  async function syncProfileToAccount(profile) {
+    const session = await initAuth();
+    if (!session) return;
+    try {
+      await api('/api/user/profile', { method: 'POST', body: JSON.stringify(profile) });
+    } catch {
+      // Local cache still carries the 사주; STEP4 will ask again if the account is empty.
+    }
+  }
+
   function enhanceSituationInput() {
-    const form = $('#step-3-service-input form');
-    if (!form) return;
-    form.addEventListener('submit', () => {
-      const picked = form.querySelector('input[name="reason"]:checked');
-      const reasonLabel = picked?.closest('.option')?.textContent?.trim() || '복합';
-      writeJson('sessionStorage', STORAGE.input, {
-        reason: reasonLabel,
-        tenure: form.querySelector('#tenure')?.value || '',
-        candidateDate: form.querySelector('#candidate')?.value.trim() || '',
-        nextPlan: form.querySelector('#next')?.value || '',
-        concern: form.querySelector('#memo')?.value.trim() || '',
-      });
-    });
+    if (!/^\/work\/quit\/03-step-3-service-input/.test(location.pathname)) return;
+    location.replace(INPUT_PATH);
   }
 
   // ------------------------------------------------------- report retrieval
@@ -279,16 +326,24 @@
       if (!request?.reason) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/work/quit/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl };
@@ -325,12 +380,42 @@
     }
   }
 
-  const GATE_COPY = {
-    input: '퇴사 고민 정보를 먼저 입력하면 같은 흐름으로 이어집니다.',
+    const GATE_COPY = {
+    input: '퇴사 고민 이유를 먼저 고르면 같은 흐름으로 이어집니다.',
     login: '로그인하면 저장된 내 사주로 풀이를 계산합니다. 지금 화면의 문장은 예시입니다.',
     payment: '결제가 확인되면 10개 리딩이 모두 열립니다.',
     error: '풀이를 계산하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
   };
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function insightBodies(preview) {
+    const items = (preview && (preview.signals || preview.insights)) || [];
+    return items.map((item) => {
+      if (item && typeof item === 'object') return String(item.body || item.text || item.title || '').trim();
+      return String(item || '').trim();
+    }).filter(Boolean);
+  }
+
+  function paintQuitReading(root, headline, summary, grounds) {
+    const title = root.querySelector('[data-teaser-headline]');
+    const lead = root.querySelector('[data-teaser-summary]');
+    if (title && headline) title.textContent = headline;
+    if (lead && summary) lead.textContent = summary;
+    const list = root.querySelector('[data-signal-list]');
+    if (list && grounds && grounds.length) {
+      list.innerHTML = grounds.slice(0, 2).map((item, index) => {
+        const body = typeof item === 'string' ? item : String(item.body || item.text || '');
+        return '<div class="signal-item"><strong>근거 ' + (index + 1) + '</strong><span>' + escapeHtml(body) + '</span></div>';
+      }).join('');
+    }
+  }
 
   /** Point every CTA on the page at one destination. */
   function retargetCtas(label, handler) {
@@ -355,31 +440,54 @@
     await resumeAfterPayment();
     const outcome = await loadReport();
 
-    const heroCopy = root.querySelector('.hero .copy');
-    const lead = heroCopy?.querySelector('p');
+    if (outcome.preview) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      paintQuitReading(
+        root,
+        outcome.preview.headline,
+        outcome.preview.summary || outcome.preview.headline,
+        insightBodies(outcome.preview),
+      );
+      if (!window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        retargetCtas('전체 보기 (14,900원)', () => {
+          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+        });
+        return;
+      }
+      retargetCtas('전체 목차 열기', () => location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat'));
+      return;
+    }
 
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample verdict must not stay on screen as if it were a personal reading.
-      if (lead) lead.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      // 해석 칸은 로그인·결제 안내로 덮지 않는다. 시드/동결 판정을 유지하고 CTA만 바꾼다.
       if (reason === 'login') {
-        retargetCtas('로그인하고 전체 보기', () => location.assign(loginUrl()));
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+        retargetCtas('로그인하고 전체 보기 (14,900원)', () => location.assign(loginUrl()));
       } else if (reason === 'payment') {
-        retargetCtas('전체 보기 · 14,900원', () => {
+        retargetCtas('전체 보기 (14,900원)', () => {
           location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
         });
       } else {
-        retargetCtas('퇴사 고민 정보 입력하기', () => {
-          location.assign('../03-step-3-service-input/index.html#step-3-service-input');
+        retargetCtas('나가려는 이유 고르기', () => {
+          location.assign(INPUT_PATH);
         });
       }
       return;
     }
 
-    // Free teaser: the opening judgement only. The rest waits behind the list.
     const report = outcome.report;
     const verdict = report.sections.find((section) => section.id === 'flow-1') || report.sections[0];
-    if (lead) lead.textContent = clamp(readingLine(verdict), 170);
+    const headline = String(verdict.hook || '').trim() || clamp(readingLine(verdict, 0), 80);
+    const summary = clamp(paragraphs(verdict).slice(1).join(' ') || readingLine(verdict, 1), 420);
+    const grounds = report.sections.slice(1, 3).map((section) => {
+      const scene = paragraphs(section).find((part) => /예를 들어|대화창|기록|장면/.test(part));
+      return clamp(scene || readingLine(section, 1), 280);
+    }).filter(Boolean);
+    paintQuitReading(root, headline, summary, grounds);
 
     const tiles = root.querySelectorAll('#index .tile');
     const groups = groupOrder(report);
@@ -389,10 +497,10 @@
       const title = tile.querySelector('b');
       const small = tile.querySelector('small');
       if (title) title.textContent = group.title;
-      if (small) small.textContent = clamp(readingLine(group.sections[0]), 80);
+      if (small) small.textContent = clamp(readingLine(group.sections[0]), 180);
     });
 
-    retargetCtas('내 퇴사 타이밍 열어보기', () => location.assign('../05-step-5-chat/chat.html#step-5-chat'));
+    retargetCtas('전체 목차 열기', () => location.assign('../05-step-5-chat/chat.html#step-5-chat'));
   }
 
   function groupOrder(report) {
@@ -420,7 +528,7 @@
         item.setAttribute('aria-disabled', 'true');
         item.addEventListener('click', (event) => {
           event.preventDefault();
-          location.assign(reason === 'login' ? loginUrl() : '../03-step-3-service-input/index.html#step-3-service-input');
+          location.assign(reason === 'login' ? loginUrl() : INPUT_PATH);
         });
       });
       return;
@@ -447,8 +555,18 @@
     const outcome = await loadReport();
     if (!outcome.report) return;
 
-    const wanted = new URLSearchParams(location.search).get('section') || 'mental-people';
-    const sections = outcome.report.sections.filter((section) => section.id.startsWith(`${wanted}-`));
+    const wanted = new URLSearchParams(location.search).get('section');
+    let sections = wanted
+      ? outcome.report.sections.filter((section) => (
+        section.id === wanted
+        || section.id.startsWith(`${wanted}-`)
+        || section.category === wanted
+      ))
+      : [];
+    if (!sections.length && outcome.report.sections[0]) {
+      const first = outcome.report.sections[0];
+      sections = outcome.report.sections.filter((section) => section.category === first.category);
+    }
     if (!sections.length) return;
 
     // The summary reads at group level; the cards below carry each point's own line,

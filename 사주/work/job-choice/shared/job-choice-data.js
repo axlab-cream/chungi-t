@@ -738,23 +738,10 @@
     node.textContent = JSON.stringify(value, null, 2);
   }
 
-  function hydrateContracts(step, qa = []) {
-    writeJsonBlock("PROMPT_INPUT", {
-      ...SERVICE_CONTEXT,
-      step,
-      service_url_hint: "https://me.umsh.kr/job-choice",
-      target_audience: "입사, 이직, 오퍼 수락, 조건 협상 앞에서 확신이 필요한 20-30대",
-    });
+  function hydrateContracts(step) {
+    // 해석 목차만 화면에 쓴다. QA·근거·생성 매니페스트는 고객 HTML에 실리지 않는다.
     writeJsonBlock("INTERPRETATION_INDEX", getIndexWithSections());
-    writeJsonBlock("RAG_EVIDENCE", RAG_EVIDENCE);
-    writeJsonBlock("IMAGE_MANIFEST", []);
-    writeJsonBlock("QA_RESULT", {
-      prompt_contract: `${step}/PROMPT.md + 00-SERVICE-GENERATION-CONTRACT.md`,
-      scope_mismatch: null,
-      image_status: "not_required",
-      image_detail: "02/04/05/06_1은 새 이미지 슬롯 없이 01의 팔레트와 화면 리듬을 공통 스타일로 이어받았습니다.",
-      checks: qa,
-    });
+    void step;
   }
 
   function nav(path) {

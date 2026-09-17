@@ -28,6 +28,10 @@ function isReading(record: ReportRecord): boolean {
   return !(record.context as { savedChat?: unknown } | undefined)?.savedChat
 }
 
+function serviceKeyOf(record: ReportRecord): string {
+  return String(record.context?.serviceKey || 'cmdg')
+}
+
 /**
  * 결제 주문을 **계보** 단위로 모은다.
  *
@@ -70,4 +74,32 @@ export function selectPurchasedReadings(
       b.purchasedAt.localeCompare(a.purchasedAt)
       || b.record.reportId.localeCompare(a.record.reportId)
     ))
+}
+
+/**
+ * 슈퍼관리자는 결제 없이 본문을 연다. 보관함은 원래 `paid` 주문만 남기므로
+ * QA 로 열어 본 서비스가 비어 보인다. 가짜 결제 주문을 만들지 않고, 아직
+ * 구매 행이 없는 서비스마다 가장 최근 해석 한 건만 보탠다.
+ */
+export function selectAdminVaultReadings(
+  records: ReportRecord[],
+  orders: PaymentOrder[],
+): VaultListing<ReportRecord>[] {
+  const purchased = selectPurchasedReadings(records, orders)
+  const takenServices = new Set(purchased.map((item) => serviceKeyOf(item.record)))
+  const latestByService = new Map<string, ReportRecord>()
+  for (const record of records.filter(isReading)) {
+    const key = serviceKeyOf(record)
+    if (takenServices.has(key)) continue
+    const current = latestByService.get(key)
+    if (!current || record.updatedAt > current.updatedAt) latestByService.set(key, record)
+  }
+  const extras = [...latestByService.values()].map((record) => ({
+    record,
+    purchasedAt: record.updatedAt || record.createdAt,
+  }))
+  return [...purchased, ...extras].sort((a, b) => (
+    b.purchasedAt.localeCompare(a.purchasedAt)
+    || b.record.reportId.localeCompare(a.record.reportId)
+  ))
 }

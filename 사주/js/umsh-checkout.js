@@ -16,14 +16,20 @@
    */
   async function start(options) {
     const settings = options || {};
-    const productKey = String(settings.productKey || '');
-    if (!productKey) return { started: false, reason: 'no-product', message: '' };
+    const rawProductKey = String(settings.productKey || '');
+    if (!rawProductKey) return { started: false, reason: 'no-product', message: '' };
 
     const config = await loadConfig();
     if (!config) return { started: false, reason: 'unreachable', message: '' };
     if (!config.checkoutEnabled) {
       return { started: false, reason: 'not-configured', message: config.setupMessage || '' };
     }
+
+    const aliases = config.aliases || {};
+    const catalog = Array.isArray(config.catalog) ? config.catalog : [];
+    const productKey = catalog.some((item) => item.key === rawProductKey)
+      ? rawProductKey
+      : (aliases[rawProductKey] || rawProductKey);
 
     const reportId = String(settings.reportId || '');
     const returnTo = String(settings.returnTo || global.location.pathname);

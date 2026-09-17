@@ -32,7 +32,7 @@ import {
   withReportBirthCertainty,
 } from '../report/report-store.js'
 import { createSavedPreview, guardPreview } from '../report/report-preview.js'
-import { selectPurchasedReadings } from '../report/vault-list.js'
+import { selectAdminVaultReadings, selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
 import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
@@ -63,7 +63,14 @@ import {
   saveUserBirthProfile,
 } from '../user/profile-store.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
-import { getPaymentProduct, listPaymentProducts, publicPaymentProduct } from '../payment/catalog.js'
+import {
+  canonicalPaymentProductKey,
+  getPaymentProduct,
+  listPaymentProducts,
+  PAYMENT_PATH_PREFIXES,
+  PAYMENT_PRODUCT_ALIASES,
+  publicPaymentProduct,
+} from '../payment/catalog.js'
 import {
   approveInicisMobilePayment,
   approveInicisPayment,
@@ -159,7 +166,7 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
+import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey } from './service-directory.js'
 import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
@@ -236,8 +243,8 @@ const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
 const PASS_ANGLE_SERVICE_KEY = 'pass_angle'
 // 공개 상태를 한 곳에서 전환해 페이지·분석 경로가 서로 다른 상태가 되지 않게 한다.
-const HOME_FIT_PUBLICLY_ENABLED = true
-const PUBLICLY_DISABLED_PRODUCT_KEYS = new Set<string>()
+const HOME_FIT_PUBLICLY_ENABLED = false
+const PUBLICLY_DISABLED_PRODUCT_KEYS = CUSTOMER_PAUSED_PRODUCT_KEYS
 
 const app = express()
 app.use(cors())
@@ -314,6 +321,10 @@ app.get(['/faq', '/faq/', '/faq.html'], (_req, res) => {
 app.get('/.well-known/assetlinks.json', (_req, res) => {
   res.type('application/json').sendFile(ASSETLINKS_FILE)
 })
+app.get('/manifest.json', (_req, res) => {
+  res.type('application/manifest+json; charset=utf-8')
+  res.sendFile(join(SAJU_ROOT, 'manifest.json'))
+})
 app.get(['/payment', '/payment/', '/payment/index.html'], (_req, res) => {
   res.sendFile(PAYMENT_PAGE)
 })
@@ -323,7 +334,14 @@ app.get(['/payment/result', '/payment/result/', '/payment/result.html'], (_req, 
 app.get(['/payment/close', '/payment/close/', '/payment/close.html'], (_req, res) => {
   res.sendFile(PAYMENT_CLOSE_PAGE)
 })
+// 테스트 결제 화면은 `/api/payment/test/approve` 와 같은 조건에서만 열린다.
+// 승인 API 는 이미 막혀 있었는데 화면만 운영에서 200 이라, 고객이 주소로
+// 들어오면 결제되지 않는 폼을 보게 됐다.
 app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) => {
+  if (!isPaymentTestMode()) {
+    res.status(404).type('text/plain').send('Not Found')
+    return
+  }
   res.sendFile(PAYMENT_TEST_PAGE)
 })
 app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
@@ -416,7 +434,7 @@ app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) =
 app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
 })
-// 퇴사운 runs as the 01 → 02 → 03 → 04 → 05 → 06_1 flow; these are the readable entry points.
+// 퇴사운 runs as the 01 → 02 → 04 → 05 → 06_1 flow (상황 입력은 02 에 합쳤다); these are the readable entry points.
 app.get(['/work/quit', '/work/quit/', '/work/quit/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
@@ -458,7 +476,14 @@ app.get(['/work/quit/input', '/work/quit/input.html'], (_req, res) => {
   res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
 })
 app.get(['/work/quit/situation', '/work/quit/situation.html'], (_req, res) => {
-  res.redirect(302, '/work/quit/03-step-3-service-input/index.html')
+  res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
+})
+app.get([
+  '/work/quit/03-step-3-service-input',
+  '/work/quit/03-step-3-service-input/',
+  '/work/quit/03-step-3-service-input/index.html',
+], (_req, res) => {
+  res.redirect(302, '/work/quit/02-step-2-saju-input/index.html')
 })
 app.get(['/work/quit/report', '/work/quit/report.html'], (_req, res) => {
   res.redirect(302, '/work/quit/04-step-4-report/index.html')
@@ -504,6 +529,14 @@ app.use('/place/home', (_req, res, next) => {
   res.setHeader('Cache-Control', 'no-store')
   res.redirect(302, '/')
 })
+function holdPausedCustomerPages(_req: Request, res: Response, _next: () => void) {
+  res.setHeader('Cache-Control', 'no-store')
+  res.redirect(302, '/')
+}
+app.use('/me/lucky', holdPausedCustomerPages)
+app.use('/me/pass-angle', holdPausedCustomerPages)
+app.use('/flow/newyear', holdPausedCustomerPages)
+app.use('/day/wedding', holdPausedCustomerPages)
 // 집 풍수 공개 재개 시 위 게이트만 열면 아래 01~06 경로를 그대로 다시 쓸 수 있다.
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
@@ -741,6 +774,7 @@ const PUBLIC_STATIC_EXCEPTIONS = new Set([
   '/robots.txt',
   '/sitemap.xml',
   '/.well-known/assetlinks.json',
+  '/manifest.json',
 ])
 /**
  * 웹으로 내보낼 형식. **허용 목록이다** — 여기 없는 확장자는 거부한다.
@@ -880,7 +914,11 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 // 경로별로 명시 마운트했다. 즉 이 마운트는 스크랩 산출물만 추가로 공개했다 —
 // 확장자 허용 목록은 `.html` 을 통과시키므로 `GET /extracted_decoded.html` 이
 // 116KB 를 그대로 반환하고 있었다 (2026-09-10 Codex 리뷰 Major 확인 중 발견).
-app.use(cachedStatic(SAJU_ROOT, { index: false }))
+// 서비스 단계 주소는 `01-step-1-story/index.html` 처럼 디렉터리 + index.html 계약이라,
+// 끝의 파일명을 뗀 `/love/this-year/01-step-1-story/` 를 공유하면 404 였다. 같은
+// index.html 이 이미 파일명으로 공개돼 있으므로 새로 열리는 파일은 없다.
+// `/`·`/payment` 등은 위 명시 라우트가 먼저 처리한다.
+app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {
   return {
@@ -1380,8 +1418,10 @@ async function toUiAnalysis(
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
   const payload = buildUiAnalysisPayload(record.analysis ?? analysis, record.birth, report)
-  if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record) }
-  return payload
+  if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
+  return access?.entitled
+    ? { ...payload, entitled: true, unlockReason: access.reason }
+    : payload
 }
 
 function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
@@ -1453,6 +1493,16 @@ function clientReportContext(record: ReportRecord): SajuReportContext {
   return publicReportContext(record.context)
 }
 
+function rejectPausedCustomerAnalyze(res: Response, serviceKey: string | undefined): boolean {
+  if (!isCustomerPausedProduct(serviceKey)) return false
+  res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
+  return true
+}
+
+function isCustomerFacingReport(record: ReportRecord): boolean {
+  return !isCustomerPausedProduct(record.context?.serviceKey)
+}
+
 function historyEntryFromRecord(record: ReportRecord) {
   const analysis = toUiAnalysisFromRecord(record)
   // Lists are metadata, not an alternate paid-content endpoint. Open the ID for entitlement checks.
@@ -1466,10 +1516,12 @@ function historyEntryFromRecord(record: ReportRecord) {
     publicUrl: analysis.report.publicUrl,
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
-    serviceHref: serviceHrefForKey(record.context?.serviceKey),
+    serviceHref: isCustomerPausedProduct(record.context?.serviceKey) ? undefined : serviceHrefForKey(record.context?.serviceKey),
     // 보관함이 열 주소. 서비스가 자기 06-1 화면을 가지고 있으면 그 화면에서, 없으면
     // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.
-    openPath: savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
+    openPath: isCustomerPausedProduct(record.context?.serviceKey)
+      ? undefined
+      : savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
     savedAt,
     title: `${birthState.name || birthState.target || '당신'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,
@@ -1519,6 +1571,9 @@ function paymentConfigPayload() {
     catalog: listPaymentProducts()
       .filter((product) => !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key))
       .map(publicPaymentProduct),
+    aliases: PAYMENT_PRODUCT_ALIASES,
+    pathPrefixes: PAYMENT_PATH_PREFIXES,
+    pausedKeys: [...PUBLICLY_DISABLED_PRODUCT_KEYS],
     setupMessage: enabled || testMode ? '' : PAYMENT_UNAVAILABLE_NOTICE,
   }
 }
@@ -1579,13 +1634,18 @@ const DEFAULT_PRODUCT_KEY = 'cmdg'
 function productKeyForContext(context: SajuReportContext): string {
   const serviceKey = trimmedString(context.serviceKey)
   if (!serviceKey) return DEFAULT_PRODUCT_KEY
-  return PRODUCT_KEY_BY_SERVICE_KEY[serviceKey] ?? DEFAULT_PRODUCT_KEY
+  return canonicalPaymentProductKey(serviceKey)
+    || PRODUCT_KEY_BY_SERVICE_KEY[serviceKey]
+    || DEFAULT_PRODUCT_KEY
 }
 
 /** Checkout link carrying the report binding, so the order unlocks exactly this reading. */
 function paymentCheckoutUrl(productKey: string, reportId = ''): string {
   const product = getPaymentProduct(productKey)
-  const params = new URLSearchParams({ product: productKey, returnTo: product?.returnPath || '/' })
+  const params = new URLSearchParams({
+    product: product?.key || productKey,
+    returnTo: product?.returnPath || '/',
+  })
   if (reportId) params.set('reportId', reportId)
   return `/payment?${params.toString()}`
 }
@@ -2845,15 +2905,19 @@ app.get('/api/user/reports', async (req, res) => {
         userId: owner.id,
         storage: getReportStorageMode(),
         purchasedOnly: false,
-        reports: records.map(historyEntryFromRecord).slice(0, limit),
+        reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord).slice(0, limit),
       })
       return
     }
+    const listings = isAdminOwner(owner)
+      ? selectAdminVaultReadings(records, orders)
+      : selectPurchasedReadings(records, orders)
     res.json({
       userId: owner.id,
       storage: getReportStorageMode(),
-      purchasedOnly: true,
-      reports: selectPurchasedReadings(records, orders)
+      purchasedOnly: !isAdminOwner(owner),
+      reports: listings
+        .filter((item) => isCustomerFacingReport(item.record))
         .slice(0, limit)
         .map((item) => ({ ...historyEntryFromRecord(item.record), purchasedAt: item.purchasedAt })),
     })
@@ -2873,7 +2937,7 @@ app.get('/api/user/destiny', async (req, res) => {
         userId: owner.id,
         complete: false,
         profile: null,
-        reports: records.map(historyEntryFromRecord),
+        reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord),
         storage: getReportStorageMode(),
       })
       return
@@ -2886,7 +2950,7 @@ app.get('/api/user/destiny', async (req, res) => {
       profile,
       analysis: analyzeSaju(profile.birth),
       todayFortune: { ...daily.auxiliary?.todayFortune, reportId: daily.reportId, resultId: daily.resultId, publicUrl: toClientReport(daily).publicUrl },
-      reports: records.map(historyEntryFromRecord),
+      reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord),
       storage: getReportStorageMode(),
     })
   } catch (err) {
@@ -2942,17 +3006,30 @@ function wantsPreview(req: Request): boolean {
   return req.body?.preview === true || req.query.preview === '1'
 }
 
-function savedPreviewResponse(record: ReportRecord) {
+function reportToc(record: ReportRecord) {
+  return record.report.sections.map((section) => ({
+    id: section.id,
+    category: section.category,
+    classification: section.classification,
+    status: section.status || 'pending',
+  }))
+}
+
+function savedPreviewResponse(record: ReportRecord, access?: PaidAccess) {
   const report = toClientReport(record)
+  const entitled = access?.entitled === true
   return {
     previewOnly: true,
+    entitled,
+    unlockReason: entitled ? access?.reason : undefined,
     reportId: record.reportId,
     resultId: report.resultId,
     publicId: report.publicId,
     publicUrl: report.publicUrl,
     serviceKey: record.context.serviceKey ?? 'saju_master',
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
-    paymentUrl: paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
+    toc: reportToc(record),
+    paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
 
@@ -2972,7 +3049,8 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   const { record } = await createOrGetReportRecord(params)
-  res.json(savedPreviewResponse(record))
+  const access = await resolvePaidAccess(req, params.owner, productKeyForContext(record.context), record.reportId)
+  res.json(savedPreviewResponse(record, access))
   return true
 }
 
@@ -3003,7 +3081,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
-    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record)); return }
+    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
       res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis })
@@ -3220,6 +3298,7 @@ app.post('/api/day/wedding/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    if (rejectPausedCustomerAnalyze(res, 'wedding_day')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼 택일을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -3263,6 +3342,7 @@ app.post('/api/flow/newyear/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    if (rejectPausedCustomerAnalyze(res, 'newyear_flow')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '2027년 흐름을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -3296,6 +3376,7 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    if (rejectPausedCustomerAnalyze(res, 'lucky_color')) return
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '색과 물건을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
@@ -3534,7 +3615,7 @@ app.post('/api/love/spouse/analyze', async (req, res) => {
 app.post('/api/saju/analyze', async (req, res) => {
   try {
     const requestedServiceKey = trimmedString(req.body?.context?.serviceKey || req.body?.context?.service_key || req.body?.serviceKey || req.body?.service_key)
-    if (!HOME_FIT_PUBLICLY_ENABLED && [HOME_FIT_SERVICE_KEY, 'home_pungsu', 'home', 'home-fit', 'place-home', 'place/home'].includes(requestedServiceKey)) {
+    if (isCustomerPausedProduct(requestedServiceKey) || (!HOME_FIT_PUBLICLY_ENABLED && [HOME_FIT_SERVICE_KEY, 'home_pungsu', 'home', 'home-fit', 'place-home', 'place/home'].includes(requestedServiceKey))) {
       res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
       return
     }
@@ -3580,7 +3661,14 @@ app.post('/api/saju/analyze', async (req, res) => {
         analysis, templateReport: buildTemplateSajuReport(analysis, birth, enriched), owner,
         lineageId: createReportLineageId(birth, enriched, owner?.id),
       })
-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record) })
+      const access = await resolvePaidAccess(
+        req,
+        owner,
+        productKeyForContext(enriched),
+        record.reportId,
+        createReportLineageId(birth, enriched, owner?.id),
+      )
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access) })
       return
     }
     const access = await resolvePaidAccess(
@@ -3612,9 +3700,8 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       res.json({ todayFortune: record.auxiliary.todayFortune, report: analysis.report, reportId: record.reportId, resultId: analysis.report.resultId, publicUrl: analysis.report.publicUrl, birth: record.birth, context: publicReportContext(record.context), analysis })
       return
     }
-    if (wantsPreview(req)) { res.json(savedPreviewResponse(record)); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
-    if (!access.entitled) { res.json(savedPreviewResponse(record)); return }
+    if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
     applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,

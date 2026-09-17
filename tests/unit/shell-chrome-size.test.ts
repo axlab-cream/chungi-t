@@ -41,12 +41,26 @@ test('1. 공용 상단바의 배치 값이 못박혀 있다', () => {
   for (const [prop, value] of [
     ['display', 'flex'], ['flex-direction', 'row'], ['flex-wrap', 'nowrap'],
     ['align-items', 'center'], ['height', 'auto'], ['min-height', '0'], ['margin', '0'],
+    ['pointer-events', 'auto'],
   ]) {
     assert.ok(
       new RegExp(`${prop}:\\s*${value}\\b`).test(body),
       `상단바에 ${prop}: ${value} 가 없다 — 페이지 CSS 가 모양을 바꿀 수 있다`,
     )
   }
+})
+
+test('5. 커플궁합 01 의 .topbar pointer-events:none 이 로고를 막지 못한다', () => {
+  // 인클루드(umsh-chrome.js → service-shell) 는 이미 <a href="/"> 로고를 그린다.
+  // 페이지 CSS 가 같은 클래스 .topbar 에 pointer-events:none 을 걸어 클릭이 통과한다.
+  const couple = readFileSync(join(root, '사주', 'match', 'couple', '01-step-1-story', 'index.html'), 'utf8')
+  assert.ok(
+    /\.topbar\s*\{[^}]*pointer-events:\s*none/.test(couple),
+    '커플 01 페이지 CSS 가 바뀌어 이 검사가 의미를 잃었다',
+  )
+  assert.ok(couple.includes('/js/umsh-chrome.js'), '커플 01 이 공용 크롬 인클루드를 빼 냈다')
+  const logo = rule(css, '.umsh-service-shell .umsh-service-logo')
+  assert.ok(/pointer-events:\s*auto/.test(logo), '로고 링크가 페이지의 pointer-events:none 을 이기지 못한다')
 })
 
 test('2. 상단바 버튼 크기가 페이지 CSS 에 밀리지 않는다', () => {

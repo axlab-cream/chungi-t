@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 import { test } from 'node:test'
 
@@ -55,7 +55,7 @@ test('wedding preview uses original teaser without authorizing a full report', (
   assert.equal(h.nodes.has('umsh-verified-reading'), false)
 })
 
-function harness(path: string, responses: unknown[], cache: Record<string, unknown> = {}) {
+function harness(path: string, responses: unknown[], cache: Record<string, unknown> = {}, options: { inplace?: boolean } = {}) {
   const calls: Array<{path: string; options: any}> = []
   const nodes = new Map<string, any>()
   const items = new Map(Object.entries(cache).map(([key,value])=>[key,JSON.stringify(value)]))
@@ -64,15 +64,17 @@ function harness(path: string, responses: unknown[], cache: Record<string, unkno
   function element(tag = 'div'): any {
     const attrs = new Map<string,string>()
     return {id:'',tagName:tag.toUpperCase(),innerHTML:'',children:[],style:{cssText:'',setProperty(){},removeProperty(){}},
-      setAttribute(name:string,value:string){attrs.set(name,value)},hasAttribute(name:string){return attrs.has(name)},getAttribute(name:string){return attrs.get(name)},
+      setAttribute(name:string,value:string){attrs.set(name,value)},hasAttribute(name:string){return attrs.has(name)},getAttribute(name:string){return attrs.get(name)},removeAttribute(name:string){attrs.delete(name)},
       addEventListener(){},querySelectorAll(){return []},
       appendChild(node:any){this.children.push(node);node.parentNode=this;if(node.id)nodes.set(node.id,node)},
       insertAdjacentHTML(_where:string,text:string){this.innerHTML+=text}}
   }
+  const documentElement = element('html')
+  if (options.inplace) documentElement.setAttribute('data-umsh-verified-inplace', '')
   const document = {
     readyState:'loading', addEventListener(name:string,callback:()=>unknown) {listeners.set(name,[...(listeners.get(name)||[]),callback])}, querySelectorAll(){return []},querySelector(){return null},
     getElementById(id: string){return nodes.get(id)},
-    createElement:element,documentElement:element('html'),head:element('head'),body:element('body'),
+    createElement:element,documentElement,head:element('head'),body:element('body'),
   }
   const timers: Array<()=>void> = []
   const context: any = {
@@ -264,11 +266,25 @@ test('an introductory pause is not selected as the first insight',()=>{
   assert.equal(h.api.firstInsight('흠... 지금은 조건을 먼저 비교합니다. 다음 문장입니다.'),'지금은 조건을 먼저 비교합니다.')
 })
 
-test('detail pages without an identity cannot create a fresh interpretation',async()=>{
-  const h=harness('/me/lucky/06-step-6_1-report-detail/index.html',[])
-  const response=await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}'})
-  assert.equal(response.status,404)
-  assert.equal(h.calls.length,0)
+test('05·06은 preview analyze로 빈 목차를 만들지 않는다', async () => {
+  const h = harness('/money/save/05-step-5-chat/chat.html', [{
+    reportId: 'save-1',
+    report: { sections: [{ id: 'a', category: '장', classification: '항목', interpretation: '본문' }] },
+  }])
+  const response = await h.api.fetch('/api/money/save/analyze', { method: 'POST', body: '{}' })
+  assert.equal(response.status, 200)
+  assert.equal(h.calls[0].path, '/api/money/save/analyze')
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, undefined)
+})
+
+test('detail pages without an identity request the full analyze, not a preview skeleton', async () => {
+  const h = harness('/me/lucky/06-step-6_1-report-detail/index.html', [{
+    reportId: 'lucky-1',
+    report: { sections: [{ id: 'a', interpretation: '본문' }] },
+  }])
+  const response = await h.api.fetch('/api/me/lucky/analyze', { method: 'POST', body: '{}' })
+  assert.equal(response.status, 200)
+  assert.equal(JSON.parse(h.calls[0].options.body).preview, undefined)
 })
 
 test('identity hints are stored separately for each owner and service',async()=>{
@@ -288,14 +304,14 @@ test('a mismatched service cannot expose even its preview on the current page',a
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/이 서비스의 해석이 아닙니다/)
 })
 
-test('only pending sections resume automatically and no more than two at once',async()=>{
-  const sections=['a','b','c'].map(id=>({id,status:'pending',category:'장',classification:id}))
+test('only pending sections resume automatically and no more than four at once',async()=>{
+  const sections=['a','b','c','d','e'].map(id=>({id,status:'pending',category:'장',classification:id}))
   sections.push({id:'failed',status:'failed',category:'장',classification:'실패'})
-  const h=harness('/me/lucky/06-step-6_1-report-detail/index.html?reportId=r1',[{reportId:'r1',report:{reportId:'r1',status:'pending',title:'풀이',sections}}, {}, {}])
+  const h=harness('/me/lucky/06-step-6_1-report-detail/index.html?reportId=r1',[{reportId:'r1',report:{reportId:'r1',status:'pending',title:'풀이',sections}}, {}, {}, {}, {}])
   await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})
   const resumes=h.calls.filter(call=>call.path==='/api/report/section')
-  assert.equal(resumes.length,2)
-  assert.deepEqual(resumes.map(call=>JSON.parse(call.options.body).sectionId),['a','b'])
+  assert.equal(resumes.length,4)
+  assert.deepEqual(resumes.map(call=>JSON.parse(call.options.body).sectionId),['a','b','c','d'])
   assert.ok(resumes.every(call=>JSON.parse(call.options.body).retry!==true))
 })
 
@@ -518,7 +534,7 @@ test('preview CTA names the result the reader will open',()=>{
   const h=harness('/work/move/04-step-4-report/index.html',[])
   h.api.showPreview({preview:{headline:'먼저 본 방향',summary:'조건을 비교합니다.',signals:[]},paymentUrl:'/payment'}, {})
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/>전체 해석 목차 보기</)
+  assert.match(html,/>전체 보기</)
   assert.doesNotMatch(html,/전체 해석 열어보기/)
 })
 
@@ -593,4 +609,68 @@ test('year-based daily copy is escaped and does not mutate a saved snapshot',()=
   assert.match(html,/&lt;img/)
   assert.doesNotMatch(html,/<img src=x/)
   assert.equal(JSON.stringify(fixture),before)
+})
+
+test('in-place 06 hides unfilled interpretation hosts on https', () => {
+  const h = harness('/love/this-year/06-step-6_1-report-detail/index.html?reportId=live-id', [], {}, { inplace: true })
+  assert.equal(h.api.allowDesignMockReading(), false)
+  const guard = h.context.document.head.children.find((node: any) => node.tagName === 'STYLE')
+  assert.match(guard.textContent, /#detail-stack/)
+  assert.match(guard.textContent, /#interpretationBlocks/)
+  assert.match(guard.textContent, /\[data-umsh-filled\]/)
+  const node = h.context.document.createElement('div')
+  h.api.markFilled(node)
+  assert.equal(node.getAttribute('data-umsh-filled'), '')
+})
+
+/**
+ * PDF 는 인쇄 대화상자의 "PDF로 저장"으로 받는다. 14개 상세 화면 가운데 버튼이 붙어 있던
+ * 것은 저축·퇴사 두 곳뿐이었고, 냥궁합·올해연애는 로드되지 않는 `UMSHReportPdf` 를 부르고
+ * 나머지 10곳에는 버튼이 아예 없었다. 본문을 그린 뒤 공용 지점에서 한 번 넣는다.
+ */
+test('detail pages get a print stylesheet and a PDF button once the saved report is rendered', () => {
+  const h = harness('/work/move/06-step-6_1-report-detail/index.html?reportId=live-id', [])
+  h.api.consume({
+    reportId: 'live-id',
+    serviceKey: 'work_move',
+    report: { serviceKey: 'work_move', title: '이직운', subtitle: '', sections: [{ id: 'work-move-decision', status: 'complete', interpretation: '본문입니다.' }] },
+  }, {})
+
+  const printCss = h.context.document.head.children.find((node: any) => node.id === 'umsh-report-print-css')
+  assert.ok(printCss, 'PDF 인쇄 규칙이 없으면 상단바·버튼까지 종이에 찍힌다')
+  // 캐시된 옛 규칙이 남으면 PDF 가 화면 배색으로 찍힌다. 버전 없는 주소로 되돌아가지 않게 고정한다.
+  assert.match(printCss.href, /^\/css\/umsh-report-print\.css\?v=/)
+
+  const dock = h.context.document.body.children.find((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === '')
+  assert.ok(dock, '상세 화면에는 PDF 버튼이 있어야 한다')
+  assert.equal(dock.children[0].getAttribute('data-umsh-pdf'), '')
+  assert.equal(dock.children[0].textContent, 'PDF 저장')
+})
+
+/** 06-1 화면이 없는 서비스는 보관함에서 이 주소로 열린다. 여기에도 PDF 가 있어야 한다. */
+test('the shared permalink reader also gets a PDF button', () => {
+  const h = harness('/r/967d0551', [])
+  h.api.consume({
+    reportId: '967d0551',
+    serviceKey: 'love_mind',
+    report: { serviceKey: 'love_mind', title: '속마음', subtitle: '', sections: [{ id: 'love-mind-1', status: 'complete', interpretation: '본문입니다.' }] },
+  }, {})
+  const dock = h.context.document.body.children.find((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === '')
+  assert.ok(dock, '고유 주소 리더에도 PDF 버튼이 있어야 한다')
+})
+
+test('the teaser step never offers a PDF of a report the reader has not unlocked', () => {
+  const h = harness('/work/move/04-step-4-report/index.html?reportId=live-id', [])
+  h.api.consume({ previewOnly: true, serviceKey: 'work_move', reportId: 'live-id', preview: { summary: '미리보기' } })
+  assert.equal(h.context.document.body.children.some((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === ''), false)
+})
+
+test('every 06 detail page loads the shared report access script that installs the PDF path', () => {
+  const pages = readdirSync(new URL('../../사주', import.meta.url), { recursive: true, encoding: 'utf8' })
+    .filter((entry) => /06-step-6_1-report-detail[\\/]index\.html$/.test(entry))
+  assert.ok(pages.length >= 14, `상세 화면을 ${pages.length}개만 찾았습니다`)
+  for (const page of pages) {
+    const html = readFileSync(new URL(`../../사주/${page}`, import.meta.url), 'utf8')
+    assert.match(html, /<script src="\/js\/umsh-report-access\.js/, `${page} 에 공용 리포트 스크립트가 없어 PDF 경로가 생기지 않습니다`)
+  }
 })

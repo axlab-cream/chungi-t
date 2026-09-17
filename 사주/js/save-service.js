@@ -18,6 +18,7 @@
     apiKey: 'money_save',
     slug: 'save',
     title: '나는 왜 돈이 안 모일까?',
+    price: '9,900원',
   };
 
   // The design pages read and write these; we fill them so their own renderers unlock.
@@ -110,12 +111,8 @@
   async function initAuth() {
     if (auth.session) return auth.session;
     try {
-      auth.config = await fetch('/api/auth/config').then((res) => res.json());
-      if (!auth.config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
-      auth.client = window.UMSHAuthSession.createClient(window.supabase, auth.config.url, auth.config.publishableKey);
-      const { data } = await auth.client.auth.getSession();
-      auth.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, auth.client);
-      return auth.session;
+      if (!window.UMSHAuthSession?.bindServiceSession) return null;
+      return await window.UMSHAuthSession.bindServiceSession(auth, 900);
     } catch {
       return null;
     }
@@ -217,18 +214,26 @@
       if (!request) return { reason: 'input' };
 
       const session = await initAuth();
-      if (!session) return { reason: 'login' };
+      if (!session) {
+        reportPromise = null;
+        return { reason: 'login' };
+      }
 
       try {
         const response = await api('/api/money/save/analyze', { method: 'POST', body: JSON.stringify(request) });
-        const report = response.report || response;
-        if (!report?.sections?.length) return { reason: 'error' };
+        const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+        if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
+        const report = accepted?.report || response.report || response;
+        if (!report?.sections?.length) return accepted?.preview ? accepted : { reason: 'error' };
         writeJson('sessionStorage', STORAGE.report, report);
         writeJson('sessionStorage', STORAGE.reportId, report.reportId || response.reportId || '');
         writeJson('sessionStorage', STORAGE.entitlement, { status: 'granted', verified_by: 'server' });
         return { report };
       } catch (error) {
-        if (error.status === 401 || error.status === 403) return { reason: 'login' };
+        if (error.status === 401 || error.status === 403) {
+          reportPromise = null;
+          return { reason: 'login' };
+        }
         if (error.code === 'PAYMENT_REQUIRED') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
           return { reason: 'payment', paymentUrl: error.paymentUrl, request };
@@ -278,6 +283,10 @@
     const answer = $('[data-one-line-answer]');
     if (!answer) return;
 
+    if (!answer.dataset.boundPreview && !answer.hasAttribute('data-umsh-filled')) {
+      answer.textContent = '입력한 사주로 계산하고 있습니다.';
+    }
+
     await resumeAfterPayment();
     const outcome = await loadReport();
 
@@ -296,7 +305,9 @@
 
     // The sticky dock carries its own CTA; it must say the same thing as the state card,
     // or a reader with the report already open is still told to log in.
-    const dock = replace($('.submit-dock [data-action="login"]'));
+    const dock = replace($('.submit-dock [data-action="login"]')
+      || $('.submit-dock [data-action="dock-primary"]')
+      || $('.submit-dock [data-action="start-payment"]'));
     const dockNote = $('.submit-dock .dock-note');
 
     if (nextSecondary) {
@@ -306,24 +317,72 @@
       });
     }
 
+    if (outcome.preview) {
+      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      answer.dataset.boundPreview = '1';
+      if (title) title.textContent = '먼저 열리는 12%';
+      if (body) body.textContent = outcome.preview.summary || GATE_COPY.payment;
+      const openToc = () => location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
+      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
+        if (nextPrimary) {
+          nextPrimary.dataset.action = 'open-toc';
+          nextPrimary.textContent = '전체 목차 열기';
+          nextPrimary.addEventListener('click', openToc);
+        }
+        if (dock) {
+          dock.dataset.action = 'open-toc';
+          dock.textContent = '전체 목차 열기';
+          dock.addEventListener('click', openToc);
+        }
+        if (dockNote) dockNote.textContent = '권한이 확인되어 전체 목차로 이어집니다.';
+        return;
+      }
+      const pay = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+      if (nextPrimary) {
+        nextPrimary.dataset.action = 'open-checkout';
+        nextPrimary.textContent = `전체 보기 (${SERVICE.price})`;
+        nextPrimary.addEventListener('click', pay);
+      }
+      if (dock) {
+        dock.dataset.action = 'open-checkout';
+        dock.textContent = `전체 보기 (${SERVICE.price})`;
+        dock.addEventListener('click', pay);
+      }
+      if (dockNote) dockNote.textContent = GATE_COPY.payment;
+      return;
+    }
+
     if (!outcome.report) {
       const reason = outcome.reason || 'error';
-      // The sample sentences read like a personal verdict, so they must not stay on screen.
-      answer.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      // 로그인·결제 상태는 결론 칸에 쓰지 않는다. 티저 판정과 섞이면 예시/안내가 해석처럼 읽힌다.
+      if (reason === 'login') {
+        if (!answer.dataset.boundPreview) {
+          answer.textContent = '입력한 사주로 계산하고 있습니다.';
+        }
+        window.UMSHAuthSession?.watchSignedIn?.(auth, () => {
+          reportPromise = null;
+          enhanceTeaser();
+        });
+      } else {
+        answer.textContent = GATE_COPY[reason] || GATE_COPY.error;
+      }
       const signals = $('[data-signal-list]');
       if (signals) signals.innerHTML = '';
       if (title) title.textContent = reason === 'login' ? '로그인이 필요합니다' : '입력을 먼저 마쳐 주세요';
       if (body) body.textContent = GATE_COPY[reason] || GATE_COPY.error;
       if (nextPrimary) {
         if (reason === 'login') {
-          nextPrimary.textContent = '로그인하고 전체 보기';
+          nextPrimary.dataset.action = 'open-login';
+          nextPrimary.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
           nextPrimary.addEventListener('click', () => location.assign(loginUrl()));
         if (dock) {
-          dock.textContent = '로그인하고 전체 보기';
+          dock.dataset.action = 'open-login';
+          dock.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
           dock.addEventListener('click', () => location.assign(loginUrl()));
         }
         } else if (reason === 'payment') {
-          nextPrimary.textContent = '전체 보기';
+          nextPrimary.dataset.action = 'open-checkout';
+          nextPrimary.textContent = `전체 보기 (${SERVICE.price})`;
           nextPrimary.addEventListener('click', () => {
             location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
           });
@@ -338,6 +397,7 @@
     }
 
     renderTeaser(outcome.report, answer);
+    answer.dataset.boundPreview = '1';
     if (title) title.textContent = '전체 리포트가 열렸습니다';
     if (body) body.textContent = '8개 대분류 41개 항목을 목록에서 하나씩 열어볼 수 있습니다.';
     if (nextPrimary) {
@@ -355,28 +415,35 @@
   function renderTeaser(report, answer) {
     const groups = groupOrder(report);
     const leak = groups.find((group) => group.title === '돈이 새는 패턴') || groups[0];
-    const verdict = paragraphs(leak.sections[0]);
-    answer.textContent = clamp(verdict[1] || verdict[0] || '', 160);
+    const verdict = paragraphs(leak?.sections?.[0]);
+    const line = clamp(verdict[1] || verdict[0] || '', 160);
+    // 빈 저장 본문으로 결론 칸을 지우지 않는다. 동결 티저가 이미 있으면 그 문장을 유지한다.
+    if (line) answer.textContent = line;
 
     const signals = $('[data-signal-list]');
     if (signals) {
-      signals.innerHTML = '';
-      groups.slice(0, 3).forEach((group) => {
-        const line = paragraphs(group.sections[0])[1] || '';
-        const item = document.createElement('div');
-        item.className = 'signal-item';
-        const strong = document.createElement('strong');
-        strong.textContent = group.title;
-        const span = document.createElement('span');
-        span.textContent = clamp(line, 100);
-        item.append(strong, span);
-        signals.appendChild(item);
-      });
+      const items = groups.slice(0, 3).map((group) => {
+        const body = paragraphs(group.sections[0])[1] || paragraphs(group.sections[0])[0] || '';
+        return { title: group.title, body: clamp(body, 100) };
+      }).filter((item) => item.body);
+      if (items.length) {
+        signals.innerHTML = '';
+        items.forEach((item) => {
+          const node = document.createElement('div');
+          node.className = 'signal-item';
+          const strong = document.createElement('strong');
+          strong.textContent = item.title;
+          const span = document.createElement('span');
+          span.textContent = item.body;
+          node.append(strong, span);
+          signals.appendChild(node);
+        });
+      }
     }
 
     const summary = $('[data-input-summary]');
-    if (summary) summary.textContent = `${groups.length}개 대분류 · ${report.sections.length}개 항목으로 계산했습니다.`;
-    writeJson('sessionStorage', STORAGE.teaser, { answer: answer.textContent });
+    if (summary && line) summary.textContent = `${groups.length}개 대분류 · ${report.sections.length}개 항목으로 계산했습니다.`;
+    if (line) writeJson('sessionStorage', STORAGE.teaser, { answer: answer.textContent });
   }
 
   function groupOrder(report) {
@@ -412,7 +479,7 @@
         const section = byId.get(card.dataset.sectionId);
         if (!section) return;
         const lock = card.querySelector('.lock-label');
-        if (lock) lock.textContent = '열람 가능';
+        if (lock && !outcome.previewOnly) lock.textContent = '열람 가능';
       });
       list.querySelectorAll('details.group-card').forEach((group) => {
         const title = group.querySelector('.group-title strong')?.textContent?.trim();
@@ -450,7 +517,7 @@
     if (title) title.textContent = reason === 'login' ? '로그인이 필요합니다' : '리포트를 먼저 만들어 주세요';
     if (body) body.textContent = GATE_COPY[reason] || GATE_COPY.error;
     if (action) {
-      action.textContent = reason === 'login' ? '로그인하고 전체 보기' : '입력 화면으로 이동';
+      action.textContent = reason === 'login' ? `로그인하고 전체 보기 (${SERVICE.price})` : '입력 화면으로 이동';
       action.addEventListener('click', () => {
         location.assign(reason === 'login' ? loginUrl() : '../02-step-2-saju-input/index.html#step-2-saju-input');
       });
@@ -467,10 +534,20 @@
     const apply = () => {
       const wanted = new URLSearchParams(location.search).get('section');
       const section = outcome.report.sections.find((item) => item.id === wanted) || outcome.report.sections[0];
-      if (!section || detail.dataset.saveApplied === section.id) return;
+      if (!section) return;
+
+      document.querySelector('#missingState')?.classList.add('hidden');
+      document.querySelector('#lockedState')?.classList.add('hidden');
+      detail.classList.remove('hidden');
 
       const parts = paragraphs(section);
-      if (!parts.length) return;
+      if (!parts.length) {
+        const node = document.querySelector('#conclusionBody');
+        if (node) node.textContent = '이 항목의 풀이를 준비하고 있어요. 목차는 열려 있고, 본문이 끝나는 대로 이 자리에 채워집니다.';
+        return;
+      }
+
+      if (detail.dataset.saveApplied === section.id) return;
 
       // The template writes the same six roles for every section, so each block takes
       // the paragraph that belongs under its heading instead of a running text dump.
@@ -514,6 +591,11 @@
       document.querySelector('#missingState')?.classList.add('hidden');
       detail.classList.remove('hidden');
       detail.dataset.saveApplied = section.id;
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('conclusionBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('realityBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('conditionBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('focusBody'));
+      window.UMSHReportAccess?.markFilled?.(document.getElementById('evidenceBody'));
     };
 
     apply();

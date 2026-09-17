@@ -12,9 +12,10 @@
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
    */
-  var SHELL_CSS = '/css/service-shell.css';
-  var SHELL_JS = '/js/service-shell.js';
+  var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
+  var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
   var FLAG_JS = '/js/ai-report-flag.js';
+  var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd3';
 
   /** Which category chip the shell highlights, chosen from the page path. */
   var CATEGORY_BY_PATH = [
@@ -31,6 +32,19 @@
   function text(value, fallback) {
     var next = String(value == null ? '' : value).trim();
     return next || fallback || '';
+  }
+
+  function ensureMobileViewport() {
+    var head = document.head || document.documentElement;
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'viewport');
+      head.insertBefore(meta, head.firstChild);
+    }
+    if (!/viewport-fit/.test(String(meta.getAttribute('content') || ''))) {
+      meta.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    }
   }
 
   function readFromLegacyAppbar(appbar) {
@@ -61,8 +75,11 @@
 
   /** The shell reads its mount points once at load, so they must exist first. */
   function loadShellScript(src, onReady) {
+    // 캐시 버스터(`?v=`)가 붙은 주소도 같은 파일이다. 경로끼리 비교하지 않으면
+    // 마운트마다 같은 스크립트를 다시 올려 문서 핸들러가 겹친다.
+    var wanted = new URL(src, global.location.href).pathname;
     var existing = Array.from(document.querySelectorAll('script[src]')).find(function (script) {
-      return new URL(script.src, global.location.href).pathname === src;
+      return new URL(script.src, global.location.href).pathname === wanted;
     });
     if (existing) {
       onReady();
@@ -87,6 +104,15 @@
     script.src = FLAG_JS;
     script.defer = true;
     script.setAttribute('data-umsh-flag-js', '');
+    document.head.appendChild(script);
+  }
+
+  function loadYmdFields() {
+    if (document.querySelector('script[data-umsh-ymd-js]')) return;
+    var script = document.createElement('script');
+    script.src = YMD_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-ymd-js', '');
     document.head.appendChild(script);
   }
 
@@ -151,6 +177,7 @@
 
   function mount(options) {
     options = options || {};
+    ensureMobileViewport();
     var stage = document.getElementById('umsh-verified-layout') || document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
     var legacy = stage.querySelector('header.appbar, header.umsh-chrome-appbar');
     if (legacy && legacy.closest('.umsh-service-shell')) legacy = null;
@@ -177,6 +204,7 @@
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
     loadShellScript(SHELL_JS, watchChromeHeights);
+    loadYmdFields();
     // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
     // 다시 켤 때 이 한 줄만 되살리면 된다.
@@ -213,4 +241,5 @@
   } else {
     autoMount();
   }
+  loadYmdFields();
 })(window);

@@ -14,9 +14,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SERVICE_DIR = '사주/work/quit'
 const ASSET_DIR = `${SERVICE_DIR}/assets/quit`
 
-/** The 목차 shape the 05/06 pages are built against. */
+/**
+ * The 목차 shape the 05/06 pages are built against.
+ * 항목 수는 tone v2 통합(e75104c)에서 대분류당 3개에서 4~5개로 늘어 48개가 되었다.
+ * 정본은 tests/unit/quit-fortune-outline.test.ts 가 원문 해시로 함께 고정한다.
+ */
 const EXPECTED_GROUPS = 10
-const EXPECTED_ITEMS = 30
+const EXPECTED_ITEMS = 48
 
 /** [file, needle, human-readable description] */
 const CONTRACTS = [
@@ -48,7 +52,7 @@ const CONTRACTS = [
 const PAGES = [
   ['01-step-1-story/index.html', true],
   ['02-step-2-saju-input/index.html', true],
-  ['03-step-3-service-input/index.html', true],
+  ['03-step-3-service-input/index.html', false], // 상황 입력이 02로 합쳐진 뒤 남은 리다이렉트 스텁
   ['04-step-4-report/index.html', true],
   ['05-step-5-chat/chat.html', true],
   ['05-step-5-chat/index.html', false], // chat.html로 보내는 리다이렉트 스텁

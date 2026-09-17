@@ -1,0 +1,456 @@
+/**
+ * 운명상회 고객 화면 공통 키트.
+ *
+ * 참고: Desktop/preview.html (SK매직몰 PLP 관찰 가이드).
+ * 가져오는 것: 넓은 호흡, 한 화면 한 CTA, 무채 뼈대 + 액센트는 의도된 곳에만,
+ * 52px 터치, 1열 입력, 카드 12 / 컨트롤 8 radius.
+ * 가져오지 않는 것: SK 레드, 로고, 캠페인 블루/옐로, 상품 카드 그리드.
+ *
+ * 색은 페이지가 정한다. 이 파일은 크기·간격·상태만 고정한다.
+ * 액센트는 `--umsh-accent` (배경) / `--umsh-accent-ink` (그 위 글자).
+ *
+ * 진입: `body.umsh-fields` 또는 `body.umsh-kit`.
+ * 검색창·채팅 입력·공용 GNB 버튼은 form 밖이므로 건드리지 않는다.
+ */
+
+body.umsh-fields,
+body.umsh-kit {
+  --umsh-field-size: 16px;
+  --umsh-field-height: 52px;
+  --umsh-cta-height: 52px;
+  --umsh-field-radius: 8px;
+  --umsh-card-radius: 12px;
+  --umsh-field-pad-x: 14px;
+  --umsh-label-size: 13px;
+  --umsh-hint-size: 12px;
+  --umsh-field-gap: 6px;
+  --umsh-stack-gap: 14px;
+  --umsh-accent: currentColor;
+  --umsh-accent-ink: #111111;
+  --umsh-danger: #d2544a;
+}
+
+/* --------------------------------------------------------------- fields */
+
+body.umsh-fields form :is(input, select, textarea),
+body.umsh-kit form :is(input, select, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--umsh-field-height);
+  height: var(--umsh-field-height);
+  align-self: center;
+  padding: 0 var(--umsh-field-pad-x);
+  border-radius: var(--umsh-field-radius);
+  font-family: inherit;
+  font-size: var(--umsh-field-size);
+  font-weight: 500;
+  line-height: 1.35;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+body.umsh-fields form textarea,
+body.umsh-kit form textarea {
+  height: auto;
+  min-height: calc(var(--umsh-field-height) * 2);
+  padding: 12px var(--umsh-field-pad-x);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+body.umsh-fields form :is(input[type='checkbox'], input[type='radio']),
+body.umsh-kit form :is(input[type='checkbox'], input[type='radio']) {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--umsh-accent);
+  cursor: pointer;
+}
+
+body.umsh-fields form input[type='hidden'],
+body.umsh-kit form input[type='hidden'] {
+  display: none;
+}
+
+body.umsh-fields form :is(input[type='date'], input[type='time'], input[type='month']),
+body.umsh-kit form :is(input[type='date'], input[type='time'], input[type='month']) {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  text-align: left;
+}
+
+body.umsh-fields form :is(input[type='date'], input[type='time'], input[type='month'])::-webkit-date-and-time-value,
+body.umsh-kit form :is(input[type='date'], input[type='time'], input[type='month'])::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+body.umsh-fields form :is(input[type='date'], input[type='time'], input[type='month'])::-webkit-calendar-picker-indicator,
+body.umsh-kit form :is(input[type='date'], input[type='time'], input[type='month'])::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+body.umsh-fields form select,
+body.umsh-kit form select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: calc(var(--umsh-field-pad-x) + 18px);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right calc(var(--umsh-field-pad-x) + 5px) center, right var(--umsh-field-pad-x) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+body.umsh-fields form :is(input, select, textarea):focus-visible,
+body.umsh-kit form :is(input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(127, 127, 127, 0.28);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  body.umsh-fields form :is(input, select, textarea):focus-visible,
+  body.umsh-kit form :is(input, select, textarea):focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--umsh-accent) 32%, transparent);
+  }
+}
+
+body.umsh-fields form :is(input, select, textarea):disabled,
+body.umsh-fields form :is(input, textarea)[readonly],
+body.umsh-kit form :is(input, select, textarea):disabled,
+body.umsh-kit form :is(input, textarea)[readonly] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+body.umsh-fields form :is(input, select, textarea)[aria-invalid='true'],
+body.umsh-kit form :is(input, select, textarea)[aria-invalid='true'] {
+  border-color: var(--umsh-danger);
+  box-shadow: 0 0 0 3px rgba(210, 84, 74, 0.18);
+}
+
+body.umsh-fields form ::placeholder,
+body.umsh-kit form ::placeholder {
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+body.umsh-fields form label,
+body.umsh-kit form label {
+  display: block;
+  margin: 0 0 var(--umsh-field-gap);
+  font-size: var(--umsh-label-size);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.1px;
+}
+
+body.umsh-fields form label:has(> input[type='checkbox']),
+body.umsh-fields form label:has(> input[type='radio']),
+body.umsh-kit form label:has(> input[type='checkbox']),
+body.umsh-kit form label:has(> input[type='radio']) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+body.umsh-fields form :is(.hint, .help, .helper, .note, .field-help),
+body.umsh-kit form :is(.hint, .help, .helper, .note, .field-help) {
+  margin-top: var(--umsh-field-gap);
+  font-size: var(--umsh-hint-size);
+  line-height: 1.5;
+}
+
+body.umsh-fields form :is(.error, .field-error),
+body.umsh-kit form :is(.error, .field-error) {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+body.umsh-fields form :is(.error, .field-error):empty,
+body.umsh-kit form :is(.error, .field-error):empty {
+  display: none;
+}
+
+/* --------------------------------------------------------------- layout */
+
+/**
+ * 430px 프레임에서 이름|성별, 양력|생일을 한 줄에 두면 라벨이 잘리고
+ * 날짜 피커가 눌리지 않는다. 입력은 무조건 1열.
+ * 예외: .field-row 는 '시간 + 모름'처럼 한 필드의 보조 토글만 옆자리.
+ */
+body.umsh-fields form :is(.field-grid, .field-grid.two, .field-grid.two-col, .row, .two-col, .grid),
+body.umsh-kit form :is(.field-grid, .field-grid.two, .field-grid.two-col, .row, .two-col, .grid) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--umsh-stack-gap);
+}
+
+body.umsh-fields form :is(.field-grid, .row) > *,
+body.umsh-kit form :is(.field-grid, .row) > * {
+  min-width: 0;
+}
+
+body.umsh-fields form :is(.radio-row, .segmented),
+body.umsh-kit form :is(.radio-row, .segmented) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+body.umsh-fields form .field-row,
+body.umsh-kit form .field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+body.umsh-fields form .field,
+body.umsh-kit form .field {
+  display: grid;
+  gap: var(--umsh-field-gap);
+  min-width: 0;
+  position: relative;
+}
+
+body.umsh-fields form .field.full,
+body.umsh-fields form .radio-panel.full,
+body.umsh-kit form .field.full,
+body.umsh-kit form .radio-panel.full {
+  grid-column: 1 / -1;
+}
+
+/* MY BASE 같은 영문 눈머리는 운영 메모이지 고객 카피가 아니다. */
+body.umsh-fields .panel-kicker,
+body.umsh-kit .panel-kicker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------- buttons */
+
+/*
+ * 페이지마다 .button / .primary-cta / .next / .submit-main 으로 갈린다.
+ * 독이 2열이면 버튼이 150px로 줄어 가이드(가로 100% · 52px)를 깨므로 1열로 고정한다.
+ * 공용 GNB는 이 목록 밖이라 키우지 않는다.
+ */
+body.umsh-fields :is(
+    .form-actions,
+    .bottom-actions,
+    .bottom-action,
+    .sticky-actions,
+    .sticky-story-cta,
+    .sticky-cta,
+    .submit-dock,
+    .submit-inner,
+    .cta-row,
+    .button-row
+  ),
+body.umsh-fields form .actions,
+body.umsh-kit form .form-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+/* 공용 GNB에 뒤로가기가 있으면 독의 '이전'은 두 번째 CTA가 된다. */
+body.umsh-has-chrome :is(.sticky-actions, .bottom-actions, .form-actions, form .actions)
+  :is(.back-button, .ghost[data-back], button[data-action='back']:not([type='submit'])) {
+  display: none;
+}
+
+body.umsh-fields form :is(
+    .button,
+    .primary-button,
+    .ghost,
+    .primary-cta,
+    .next-cta,
+    .submit-button,
+    .submit-main,
+    .primary,
+    .next,
+    .back-button,
+    button[type='submit'],
+    a.button,
+    a.primary-cta,
+    a.primary
+  ),
+body.umsh-fields :is(
+    .form-actions,
+    .bottom-actions,
+    .sticky-actions,
+    .sticky-story-cta,
+    .sticky-cta,
+    .submit-dock,
+    .submit-inner
+  ) :is(button, a.button, a.primary-cta, a.primary, a.primary-button, a.next-cta),
+body.umsh-kit form :is(
+    .button,
+    .primary-button,
+    .ghost,
+    .primary-cta,
+    .next-cta,
+    .submit-button,
+    .submit-main,
+    .primary,
+    .next,
+    .back-button,
+    button[type='submit'],
+    a.button,
+    a.primary-cta,
+    a.primary
+  ) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--umsh-cta-height);
+  padding: 0 16px;
+  border-radius: var(--umsh-field-radius);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+/* 배경색은 페이지 팔레트가 맡는다. 키트는 크기와 한 줄 배치만 맞춘다. */
+body.umsh-fields form .ghost,
+body.umsh-kit form .ghost {
+  background: transparent;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(127, 127, 127, 0.28);
+}
+
+body.umsh-fields form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit']):hover,
+body.umsh-kit form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit']):hover {
+  transform: translateY(-1px);
+}
+
+body.umsh-fields form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit']):focus-visible,
+body.umsh-kit form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit']):focus-visible {
+  outline: 2px solid var(--umsh-accent);
+  outline-offset: 3px;
+}
+
+body.umsh-fields form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit']):disabled,
+body.umsh-kit form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit']):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --------------------------------------------------------------- choice cards */
+
+body.umsh-fields form :is(.radio-panel, .check-panel),
+body.umsh-kit form :is(.radio-panel, .check-panel) {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-height: 54px;
+  padding: 12px 12px 12px 38px;
+  border-radius: var(--umsh-field-radius);
+  cursor: pointer;
+}
+
+body.umsh-fields form :is(.radio-panel, .check-panel) input,
+body.umsh-kit form :is(.radio-panel, .check-panel) input {
+  position: absolute;
+  left: 13px;
+  top: 17px;
+}
+
+body.umsh-fields form :is(.radio-panel, .check-panel):has(input:checked),
+body.umsh-kit form :is(.radio-panel, .check-panel):has(input:checked) {
+  border-color: color-mix(in srgb, var(--umsh-accent) 70%, transparent);
+}
+
+body.umsh-fields form :is(.radio-panel, .check-panel):focus-within,
+body.umsh-kit form :is(.radio-panel, .check-panel):focus-within {
+  outline: 2px solid var(--umsh-accent);
+  outline-offset: 3px;
+}
+
+/* 생년월일은 OS 로케일 달력 대신 세 칸. 년·월·일은 칸 안의 빈 값만 쓰고 옆에 글자를 두지 않는다. */
+body.umsh-fields form .umsh-ymd,
+body.umsh-kit form .umsh-ymd {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+body.umsh-fields form .umsh-ymd-part,
+body.umsh-kit form .umsh-ymd-part {
+  display: block;
+  min-width: 0;
+  margin: 0;
+}
+
+body.umsh-fields form .umsh-ymd-part > span,
+body.umsh-kit form .umsh-ymd-part > span {
+  display: none;
+}
+
+body.umsh-fields form .umsh-ymd-source,
+body.umsh-kit form .umsh-ymd-source {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- reduced motion */
+
+@media (max-width: 360px) {
+  body.umsh-fields,
+  body.umsh-kit {
+    --umsh-field-pad-x: 12px;
+    --umsh-stack-gap: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.umsh-fields form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit'], input, select, textarea),
+  body.umsh-kit form :is(.button, .primary-button, .ghost, .primary-cta, .next-cta, .submit-button, .submit-main, .primary, .next, button[type='submit'], input, select, textarea) {
+    transition: none;
+  }
+}

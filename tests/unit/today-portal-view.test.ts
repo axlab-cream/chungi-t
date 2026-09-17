@@ -172,3 +172,12 @@ for (const portal of portals) {
     assert.equal(next, '/cmdg/?reportId=saved-uuid#todayResult')
   })
 }
+
+test('사주: /cmdg/ 랜딩은 공용 상단 GNB를 숨기지 않는다', () => {
+  // /cmdg/ 는 사주/사주/index.html 을 보낸다. 하단만 쓰려고 appbar.hidden=true 를 걸면
+  // 공용 CSS 가 페이지 자체 header.topbar:has(> .brand) 도 지워서 상단이 빈다.
+  const html = readFileSync(new URL('../../사주/사주/index.html', import.meta.url), 'utf8')
+  assert.match(html, /function mountCommonBottomNav\(/)
+  assert.doesNotMatch(html, /chrome\.appbar\.hidden\s*=\s*true/)
+  assert.match(html, /<header class="appbar topbar">/)
+})

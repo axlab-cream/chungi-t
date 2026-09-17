@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <title>운명상회 입력·버튼 키트</title>
+  <meta name="description" content="서비스 색은 유지하고, 입력과 단계 버튼만 같은 크기로 맞추는 운명상회 고객 화면 키트.">
+  <link rel="stylesheet" href="/css/umsh-kit.css?v=20260916-ymd3">
+  <style>
+    :root {
+      --ink: #111111;
+      --muted: #555555;
+      --line: #e8e8e3;
+      --paper: #fafaf8;
+      --max: 1080px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #fff;
+      font-family: "Pretendard", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    a { color: inherit; }
+    .wrap { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; padding: 48px 0 96px; }
+    .eyebrow { margin: 0 0 8px; color: #8a8a8a; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; }
+    h1 { margin: 0 0 12px; font-size: clamp(32px, 5vw, 48px); line-height: 1.12; letter-spacing: -0.04em; }
+    .lede { max-width: 42rem; color: var(--muted); }
+    .rules { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 36px 0 56px; }
+    .rule { min-height: 160px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .rule b { display: block; margin-bottom: 8px; font-size: 14px; }
+    .rule span { color: var(--muted); font-size: 13px; }
+    .stages { display: grid; gap: 28px; }
+    .stage {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .stage-head { display: flex; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .stage-head strong { font-size: 15px; }
+    .stage-head span { color: var(--muted); font-size: 12px; }
+    .phone {
+      width: min(100%, 430px);
+      margin: 0 auto;
+      padding: 20px 16px 28px;
+    }
+    .couple-demo {
+      --umsh-accent: #ff7a66;
+      --umsh-accent-ink: #240806;
+      color: #f8fffb;
+      background: #051013;
+    }
+    .couple-demo input, .couple-demo select, .couple-demo textarea {
+      border: 1px solid rgba(191, 239, 242, 0.2);
+      background: rgba(3, 12, 14, 0.72);
+      color: #f8fffb;
+    }
+    .couple-demo .button { background: #ff7a66; color: #240806; border: 0; }
+    .couple-demo .ghost { color: #e7fbf7; }
+    .cmdg-demo {
+      --umsh-accent: #e7bf69;
+      --umsh-accent-ink: #2a1608;
+      color: #f7efe4;
+      background: #1a0c0a;
+    }
+    .cmdg-demo input, .cmdg-demo select, .cmdg-demo textarea {
+      border: 1px solid rgba(231, 191, 105, 0.28);
+      background: rgba(20, 8, 6, 0.72);
+      color: #f7efe4;
+    }
+    .cmdg-demo .button { background: #e7bf69; color: #2a1608; border: 0; }
+    .cmdg-demo .ghost { color: #f7efe4; }
+    form { display: grid; gap: 14px; }
+    label { color: inherit; }
+    .panel-kicker { color: #80f1dc; }
+    @media (max-width: 880px) {
+      .rules { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .rules { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="umsh-kit">
+  <main class="wrap">
+    <p class="eyebrow">운명상회 고객 키트</p>
+    <h1>색은 서비스 것,<br>칸과 버튼은 하나.</h1>
+    <p class="lede">preview.html에서 가져온 것은 넓은 호흡과 한 개의 다음 버튼입니다. SK 레드와 상품 카드는 쓰지 않습니다. 아래 두 폼은 같은 키트이며 팔레트만 다릅니다.</p>
+    <div class="rules">
+      <article class="rule"><b>1열 입력</b><span>이름과 성별을 나란히 두지 않습니다. 430px에서 날짜가 눌려야 합니다.</span></article>
+      <article class="rule"><b>52px · 가로 100%</b><span>단계 버튼은 한 줄 전체, 화면당 하나. 폼 끝과 고정 독에 같은 제출을 두지 않습니다. 공용 GNB는 키우지 않습니다.</span></article>
+      <article class="rule"><b>액센트 절제</b><span>포커스·선택·제출만 서비스 색. 배경과 히어로는 각 서비스 아이덴티티.</span></article>
+      <article class="rule"><b>년 월 일</b><span>세 칸이다. 년·월·일은 칸 안에만 두고, 옆에 같은 글자를 반복하지 않는다.</span></article>
+    </div>
+
+    <div class="stages">
+      <article class="stage">
+        <div class="stage-head"><strong>커플궁합 팔레트</strong><span>--umsh-accent: #ff7a66</span></div>
+        <div class="phone couple-demo">
+          <form onsubmit="return false">
+            <span class="panel-kicker">MY BASE</span>
+            <div class="field-grid two">
+              <div class="field">
+                <label for="c-name">내 이름 또는 호칭</label>
+                <input id="c-name" value="민지">
+              </div>
+              <div class="field">
+                <label for="c-gender">사주 계산 기준 성별</label>
+                <select id="c-gender"><option>여성</option></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="c-birth">내 생년월일</label>
+              <input id="c-birth" type="date" value="1994-03-12">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="c-time">태어난 시간</label>
+                <input id="c-time" type="time">
+              </div>
+              <label class="ghost" style="min-height:52px;padding:0 12px;width:auto">시간 모름</label>
+            </div>
+            <div class="form-actions">
+              <button class="ghost" type="button">이전</button>
+              <button class="button" type="submit">궁합 확인하기</button>
+            </div>
+          </form>
+        </div>
+      </article>
+
+      <article class="stage">
+        <div class="stage-head"><strong>천명사주 팔레트</strong><span>--umsh-accent: #e7bf69</span></div>
+        <div class="phone cmdg-demo">
+          <form onsubmit="return false">
+            <div class="field-grid two">
+              <div class="field">
+                <label for="m-name">이름 또는 호칭</label>
+                <input id="m-name" value="지훈">
+              </div>
+              <div class="field">
+                <label for="m-cal">생일 기준</label>
+                <select id="m-cal"><option>양력</option></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="m-birth">생년월일</label>
+              <input id="m-birth" type="date" value="1990-11-02">
+            </div>
+            <div class="form-actions">
+              <button class="button" type="submit">오늘의 흐름 보기</button>
+            </div>
+          </form>
+        </div>
+      </article>
+    </div>
+  </main>
+  <script src="/js/umsh-ymd.js?v=20260916-ymd3"></script>
+</body>
+</html>

@@ -2,6 +2,16 @@
 
 ## Verification Matrix
 
+- 2026-09-17 06 상세 시안 해석 차단: `npm run typecheck` 0건, `npm test` 1137/1137 (126 suites, fail 0), `npm run qa:all-services` 20종 PASS, `npm run vercel-build` PASS, CI 서비스 점검 15종(`check:quit` 포함) 전부 PASS. 로컬 세션 없는 브라우저로 06 상세 14종 전수 실측 — 시안 해석 노출 0건, 정지 5종은 홈 리다이렉트, 나머지 9종은 상태 안내만 노출, 숨은 시안 산문 DOM 잔류 0건. 가드 실증: 채워지지 않은 해석 칸 `visibility: hidden`, 채워진 칸 `visible`. Production `https://umsh.kr`: `/api/health` `ok: true`(코퍼스 28팩), 배포 자산 9개가 로컬과 동일, 9종 전부 가드 활성. 유료 경로는 기존 로그인 세션으로 실동작 확인(이직운은 실제 원국 `乙亥 일주` 렌더, 저축은 실제 목차 렌더). money_save 계정 리포트에 미완료 항목이 남아 있는 것은 데이터 상태이며 코드 결함 아님.
+
+- 2026-09-17 이직운 STEP1 히어로: focused work-move-hero-copy PASS. 로컬 브라우저 카피 top 127→521, 상단 이미지 노출, 하단 문장 GNB 위. Production NOT_RUN.
+
+- 2026-09-17 Chrome 즐겨찾기 아이콘: focused app-icons + portal-splash PASS. static-exposure 아이콘/매니페스트 항목 PASS, 기존 `사주/ui-kit/index.html` UMSH 표기 1건은 이번 변경과 무관. 로컬 `/` 빈 referrer에서 스플래시 후 메인, SVG·192 아이콘 200. Production NOT_RUN.
+
+- 2026-09-17 퇴사운 STEP4 티저: focused quit-funnel-input + work-quit-service + teaser-preview-bind + funnel-cta-copy + funnel-step-order PASS. report-content-guards 티저/후킹 항목 PASS, 일일운 저장 1건은 서버 키 미설정으로 FAIL(이번 변경과 무관). 로컬 브라우저 STEP4: 판정+근거 유지, 로그인 CTA만 바뀜, 후킹/계산중 문구 없음. Production NOT_RUN.
+
+- 2026-09-17 퇴사운 STEP3 통합: focused funnel-step-order + quit-funnel-input + work-quit-service + funnel-cta-copy PASS. STEP2→04, `/situation`·03→02, reason-only parse. Browser 02/03/04 로컬 확인. Production NOT_RUN.
+
 - 2026-09-13 lucky_color visual acceptance: RED 2/3 → GREEN 3/3; focused 18/18; related 78/78; full 913/913 across 122 suites; real reader 6 categories/24 sections, exact 390px zero overflow, 21-page complete print, typecheck/build/five deterministic rebuilds PASS; provider/Production/customer mutation NOT_RUN.
 
 - 2026-09-13 cat_compatibility corpus release candidate: RED 1/8 → GREEN 8/8; related 139/139; full 831/831 across 115 suites; 38 unique interpretations, 76 unique labeled hypothetical scenes, stored-snapshot/hash isolation, typecheck/build/deterministic builder PASS; provider/Production NOT_RUN.
