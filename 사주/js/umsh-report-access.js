@@ -388,6 +388,52 @@
    * 마크업이 달라 개별로 넣는 대신, 본문이 실제로 그려진 뒤 이 자리에서 한 번만 넣는다.
    * 이미 자체 버튼이 있는 화면은 건드리지 않는다 — 한 화면에 같은 버튼이 둘이면 안 된다.
    */
+  /**
+   * 목차 위 "중요 안내".
+   *
+   * 해석은 목차를 하나씩 만들어 가고 전체가 끝나기까지 시간이 걸린다. 그 사실을 미리
+   * 말해 주지 않으면 사용자는 화면이 멈춘 줄 안다 — 실제로 % 가 안 움직인다는 문의가
+   * 먼저 왔다(2026-09-17).
+   *
+   * 14개 06-1 화면이 모두 이 파일을 싣는다. 화면마다 문구를 넣으면 새 서비스가 생길
+   * 때마다 빠지므로 여기서 한 번만 올린다.
+   */
+  function ensureImportantNotice(host) {
+    if (!isDetailPage() && !isPermalink()) return;
+    if (document.querySelector('[data-umsh-notice]')) return;
+    var anchor = host && host.closest ? (host.closest('section, article, main, body') || host) : document.body;
+    if (!anchor) return;
+    var box = document.createElement('aside');
+    box.setAttribute('data-umsh-notice', '');
+    box.setAttribute('role', 'note');
+    box.style.cssText = [
+      'margin:0 0 18px', 'padding:14px 16px', 'border-radius:14px',
+      'background:rgba(226,184,123,.08)', 'border:1px solid rgba(226,184,123,.28)',
+      'display:flex', 'gap:11px', 'align-items:flex-start', 'word-break:keep-all',
+    ].join(';');
+    var icon = document.createElement('span');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '📜';
+    icon.style.cssText = 'flex:none;font-size:18px;line-height:1.3';
+    var body = document.createElement('div');
+    body.style.cssText = 'flex:1;min-width:0';
+    var title = document.createElement('strong');
+    title.textContent = '중요 안내';
+    title.style.cssText = 'display:block;margin-bottom:5px;font-size:12px;font-weight:900;letter-spacing:.06em;color:#e2b87b';
+    var text = document.createElement('p');
+    text.textContent = '구매하신 해석은 자체 만세력과 자미두수, 명리학 데이터를 함께 분석해 목차를 하나씩 만들어 갑니다. '
+      + '그래서 전체가 완성되기까지 시간이 걸립니다. 창을 닫아도 계속 만들어지니, 나중에 보관함에서 이어 보실 수 있어요.';
+    text.style.cssText = 'margin:0;font-size:12.5px;line-height:1.65;color:#c9bfb2';
+    body.appendChild(title);
+    body.appendChild(text);
+    box.appendChild(icon);
+    box.appendChild(body);
+    // 목차 위에 놓는 것이 목적이지만, 앞에 끼울 수 없는 자리면 붙이기라도 한다 —
+    // 안내가 사라지는 것보다 위치가 아쉬운 편이 낫다.
+    if (typeof anchor.insertBefore === 'function' && anchor.firstChild) anchor.insertBefore(box, anchor.firstChild);
+    else if (typeof anchor.appendChild === 'function') anchor.appendChild(box);
+  }
+
   function ensurePdfDock(host) {
     // 06-1 상세 화면이 없는 서비스는 공용 리더(`/r/:id`)로 떨어진다. 보관함에서 여는 화면이
     // 거기라서, 고유 주소도 상세 화면과 같이 PDF 를 받을 수 있어야 한다. 티저(04)는 제외 —
@@ -535,6 +581,7 @@
     revealAncestors(host);
     markFilled(host);
     renderProgress(report);
+    ensureImportantNotice(host);
     ensurePdfDock(host);
     return true;
   }
@@ -734,6 +781,7 @@
     }).join('');
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+    ensureImportantNotice(node);
     ensurePdfDock(node);
   }
   function expandReportForPrint() {
