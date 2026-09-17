@@ -577,7 +577,7 @@
     box.setAttribute('role', 'note');
     box.style.cssText = [
       'margin:0 0 18px', 'padding:14px 16px', 'border-radius:14px',
-      'background:rgba(226,184,123,.08)', 'border:1px solid rgba(226,184,123,.28)',
+      'background:rgba(226,184,123,.16)', 'border:1px solid rgba(246,222,170,.45)',
       'display:flex', 'gap:11px', 'align-items:flex-start', 'word-break:keep-all',
     ].join(';');
     var icon = document.createElement('span');
@@ -588,7 +588,7 @@
     body.style.cssText = 'flex:1;min-width:0';
     var title = document.createElement('strong');
     title.textContent = '중요 안내';
-    title.style.cssText = 'display:block;margin-bottom:5px;font-size:12px;font-weight:900;letter-spacing:.06em;color:#e2b87b';
+    title.style.cssText = 'display:block;margin-bottom:5px;font-size:13px;font-weight:900;letter-spacing:.06em;color:#ffe9b8';
     var lines = [
       ['당신만의 운명 해석이 지금 정밀하게 완성되고 있습니다.', 'lead'],
       ['구매하신 해석은 단순히 정해진 결과를 보여드리는 방식이 아닙니다. 자체 만세력 · 자미두수 · 명리학 데이터를 함께 분석해, 당신의 사주에 맞춰 목차별 해석을 하나씩 생성합니다.', ''],
@@ -600,10 +600,10 @@
     for (var i = 0; i < lines.length; i += 1) {
       var line = document.createElement('p');
       line.textContent = lines[i][0];
-      var tone = lines[i][1] === 'lead' ? 'color:#f0e6d6;font-weight:700'
-        : lines[i][1] === 'strongish' ? 'color:#e2b87b;font-weight:700'
-          : 'color:#c9bfb2';
-      line.style.cssText = 'margin:0 0 7px;font-size:12.5px;line-height:1.7;' + tone;
+      var tone = lines[i][1] === 'lead' ? 'color:#fffaf0;font-weight:700'
+        : lines[i][1] === 'strongish' ? 'color:#ffe9b8;font-weight:800'
+          : 'color:#f7f2e8';
+      line.style.cssText = 'margin:0 0 7px;font-size:13.5px;line-height:1.75;' + tone;
       if (i === lines.length - 1) line.style.marginBottom = '0';
       body.appendChild(line);
     }

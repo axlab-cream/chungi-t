@@ -1846,3 +1846,8 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Vercel cron `/api/cron/ops` 는 이미 1분마다 돈다. 워커가 차선(3)을 가득 채운 분에는 백필을 건너뛰어, 그 사이 산 회원의 대기·실패 목차가 큐에 안 탔다.
 - 이제 매분 워커와 상관없이 미완성(pending/generating/failed)을 훑어 큐에 다시 넣는다. 결제분·관리자 적립분은 전부, 오래된 것부터. 해석 완성 잡 오류 백오프는 1분.
 - 검증: `report-completion-job` 8/8, `latency-strategy` 해당 항목 PASS (`NODE_ENV=test`).
+
+## 2026-09-18 — 중요 안내 가독성
+
+- 안내 박스는 보관함(`vault.html`)과 06-1/공용 리더(`umsh-report-access.js`가 심음) 두 곳이다. 본문이 `#c9bfb2`라 어두워 안 보였다.
+- 본문 `#f7f2e8`, 리드 `#fffaf0`, 강조 `#ffe9b8`, 글자 13.5px. 공통 `umsh-chrome.css`로 인라인 색도 덮는다.
