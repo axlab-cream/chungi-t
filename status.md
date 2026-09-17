@@ -1851,3 +1851,14 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 
 - 안내 박스는 보관함(`vault.html`)과 06-1/공용 리더(`umsh-report-access.js`가 심음) 두 곳이다. 본문이 `#c9bfb2`라 어두워 안 보였다.
 - 본문 `#f7f2e8`, 리드 `#fffaf0`, 강조 `#ffe9b8`, 글자 13.5px. 공통 `umsh-chrome.css`로 인라인 색도 덮는다.
+
+## 2026-09-18 — 중요 안내 화이트 글자가 밝은 06-1에서 안 보임
+
+- 소비성향 06-1 배경은 `rgb(232,238,233)`. 크림 화이트 본문은 대비 1.65로 사실상 안 보인다. 보관함·천명사주 등 어두운 페이지와 섞여 한 색으로 맞출 수 없다.
+- 안내 박스를 불투명 종이(`#fff8ee`) + 잉크(`#1a1814`/`#6b3f0e`)로 고정. 페이지 배경과 무관하게 대비 16.8. 06-1 19개+보관함 실측 후 샘플 6페이지 전부 PASS.
+
+## 2026-09-18 — 구매 리포트 UUID 로 워커가 못 찾아 미완성으로 남던 결함
+
+- 06-1 URL `reportId=` 는 결제·화면이 쓰는 `resultId` UUID 다. DB 행 키는 해시 `report_id`. 워커는 해시만 찾아 REPORT_NOT_FOUND 로 죽었고, 백필 결제 매칭도 UUID vs 해시라 구매분이 티저 1건에 밀렸다.
+- `getReportRecordAsService` 가 resultId/publicId 로도 찾고, 백필은 UUID 주문과 해시 행을 같은 구매로 본다. 유료 본문 GET 시 미완성이면 완성 큐에 다시 넣는다. 공개 서비스 공통.
+- 검증: `report-completion-job` + `report-list-view` 17/17 PASS (`NODE_ENV=test`).

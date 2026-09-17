@@ -246,28 +246,29 @@ body.umsh-has-chrome {
 /* 공통 상단바 로고는 스토리 장면이 아니므로 위 규칙에서 제외한다. */
 .umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }
 
-/* Generation notice on vault and 06-1. Body copy was #c9bfb2 on a dark gold wash. */
+/* Generation notice: self-contained paper card. Cream-on-translucent gold
+   vanished on light 06-1 pages (money_save body is #e8eee9). */
 [data-umsh-notice],
 .vault-notice {
-  background: rgba(226, 184, 123, 0.16) !important;
-  border-color: rgba(246, 222, 170, 0.45) !important;
+  background: #fff8ee !important;
+  border: 1px solid #c9a15a !important;
 }
 [data-umsh-notice] strong,
 .vault-notice strong {
-  color: #ffe9b8 !important;
+  color: #6b3f0e !important;
   font-size: 13px !important;
 }
 [data-umsh-notice] p,
 .vault-notice p {
-  color: #f7f2e8 !important;
+  color: #1a1814 !important;
   font-size: 13.5px !important;
   line-height: 1.75 !important;
 }
 [data-umsh-notice] p[style*="font-weight:700"],
 .vault-notice p.lead {
-  color: #fffaf0 !important;
+  color: #1a1814 !important;
 }
 [data-umsh-notice] p[style*="font-weight:800"],
 .vault-notice b {
-  color: #ffe9b8 !important;
+  color: #6b3f0e !important;
 }
