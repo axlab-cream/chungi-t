@@ -1463,6 +1463,26 @@ function toUiAnalysisFromRecord(record: ReportRecord) {
   return buildUiAnalysisPayload(analysis, record.birth, toClientReport(record))
 }
 
+/**
+ * 구간별 소요 시간을 `Server-Timing` 헤더로 내보낸다. 브라우저 개발자 도구와 fetch 의
+ * PerformanceResourceTiming.serverTiming 에서 읽힌다. 값은 밀리초 숫자만이라 새는 정보가 없다.
+ *
+ * 보관함 목록이 응답을 189KB→25KB 로 줄이고 조회를 나란히 보낸 뒤에도 1.5~2.3초였다. 어느
+ * 구간이 남았는지 추측이 세 번 틀린 뒤에 붙였다(2026-09-17).
+ */
+function requestTimings(): { mark: (name: string) => void; header: () => string } {
+  const marks: string[] = []
+  let last = performance.now()
+  return {
+    mark(name) {
+      const now = performance.now()
+      marks.push(`${name};dur=${(now - last).toFixed(0)}`)
+      last = now
+    },
+    header: () => marks.join(', '),
+  }
+}
+
 function parseListLimit(value: unknown, fallback = 50): number {
   const numeric = Number(Array.isArray(value) ? value[0] : value)
   if (!Number.isFinite(numeric)) return fallback
@@ -3045,8 +3065,10 @@ app.get('/api/services', async (_req, res) => {
 
 app.get('/api/user/reports', async (req, res) => {
   try {
+    const timing = requestTimings()
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    timing.mark('auth')
     const limit = parseListLimit(req.query.limit)
     // view=list: 카드용 메타만 싣는다. 해석 원본까지 실으면 13행에 189KB·2.7초였다.
     // 천명사주 화면은 원본이 필요해 기본(full)을 그대로 쓴다.
@@ -3062,20 +3084,24 @@ app.get('/api/user/reports', async (req, res) => {
       listReportRecords(owner, 100, { light: true, includeAnalysis: !slim }),
       listPaymentOrders(owner.id, 100).catch(() => null),
     ])
+    timing.mark('db')
     if (!orders) {
       // 주문 조회가 죽었다고 보관함을 비우지는 않는다. 빈 보관함은 잘못된 정렬보다 나쁘다.
-      res.json({
+      const body = {
         userId: owner.id,
         storage: getReportStorageMode(),
         purchasedOnly: false,
         reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record, { slim })).slice(0, limit),
-      })
+      }
+      timing.mark('render')
+      res.setHeader('Server-Timing', timing.header())
+      res.json(body)
       return
     }
     const listings = isAdminOwner(owner)
       ? selectAdminVaultReadings(records, orders)
       : selectPurchasedReadings(records, orders)
-    res.json({
+    const body = {
       userId: owner.id,
       storage: getReportStorageMode(),
       purchasedOnly: !isAdminOwner(owner),
@@ -3083,7 +3109,12 @@ app.get('/api/user/reports', async (req, res) => {
         .filter((item) => isCustomerFacingReport(item.record))
         .slice(0, limit)
         .map((item) => ({ ...historyEntryFromRecord(item.record, { slim }), purchasedAt: item.purchasedAt })),
-    })
+      // 조회한 행 수. 걸러진 뒤 화면에 남는 수와 다르면 그만큼 본문 없는 행을 헛읽은 것이다.
+      scanned: records.length,
+    }
+    timing.mark('render')
+    res.setHeader('Server-Timing', timing.header())
+    res.json(body)
   } catch (err) {
     respondRequestFailure(res, err, '풀이 보관함 조회 실패')
   }
