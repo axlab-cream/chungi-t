@@ -45,7 +45,8 @@ test('고양이 궁합 builds a dedicated cat report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '반려묘 생활 궁합 해석문')
-  assert.equal(report.sections.length, 50)
+  // 2026-09-17 목차 축소: 10대분류·50중분류 → 10대분류·20중분류(대분류당 2개).
+  assert.equal(report.sections.length, 20)
   assert.equal(new Set(report.sections.map((section) => section.category)).size, 10)
 
   // 05 목차 and 06 상세 route on the design's own section ids.
@@ -161,7 +162,7 @@ test('고양이 항목마다 고유한 관찰과 대응이 있고 지시문을 �
   const report = buildCatCompatReport(analysis, birth, context, input, 'specificity')
   const scenes = report.sections.map((section) => section.interpretation.split('\n\n').find((p) => p.startsWith('[확인할 장면]')))
   const actions = report.sections.map((section) => section.interpretation.split('\n\n').find((p) => p.startsWith('[해법]')))
-  assert.equal(new Set(scenes).size, 50)
-  assert.equal(new Set(actions).size, 50)
+  assert.equal(new Set(scenes).size, 20)
+  assert.equal(new Set(actions).size, 20)
   report.sections.forEach((section) => assert.doesNotMatch(section.interpretation, /concept:|condition:|Feature JSON/))
 })
