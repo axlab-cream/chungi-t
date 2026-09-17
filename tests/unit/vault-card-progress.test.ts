@@ -75,3 +75,15 @@ test('셀 수 없는 목차 수에는 칸 틱을 그리지 않는다', () => {
   // 1개짜리는 칸 하나가 막대를 통째로 덮어 진행률처럼 보인다.
   assert.match(html, /view\.total >= 2 && view\.total <= 20/)
 })
+
+test('대기 중인 풀이는 지금 이어볼 수 있는 길을 준다', () => {
+  // 차례를 기다리는 동안 아무 버튼도 없으면 사용자가 할 수 있는 일이 없다. 풀이 화면을
+  // 열면 그 자리에서 이어 만들어지므로, 그리로 보내는 버튼을 준다.
+  const start = html.indexOf("if (state === 'waiting')")
+  const waiting = html.slice(start, start + 700)
+  assert.ok(start > 0, '대기 중 분기를 찾지 못했다')
+  assert.match(waiting, /pdfAction: 'retry'/)
+  assert.match(waiting, /지금 이어보기/)
+  // 다 만들어지지 않았으므로 PDF 는 아니다.
+  assert.doesNotMatch(waiting, /pdfAction: 'pdf'/)
+})

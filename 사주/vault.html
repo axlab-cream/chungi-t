@@ -352,7 +352,9 @@
               num: `${percent}%`,
               // 앞선 풀이가 끝나야 이 풀이가 시작된다. 해석은 한 번에 하나씩 만들어진다.
               hint: '앞선 풀이가 끝나면 이어서 만듭니다.',
-              pdfClass: '', pdfLabel: 'PDF 다운로드', pdfIcon: '⤓', pdfAction: '',
+              // 기다리기만 하지 않아도 된다. 풀이 화면을 열면 그 자리에서 이어서 만들어진다 —
+              // 서버 차례를 앞당기는 것은 아니지만, 지금 보고 싶은 사람은 먼저 볼 수 있다.
+              pdfClass: 'is-retry', pdfLabel: '지금 이어보기', pdfIcon: '▶', pdfAction: 'retry',
               note: '',
             };
           }
