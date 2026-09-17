@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+body{margin:0;background:#141210;font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#e2b87b;text-decoration:none}
+a:hover{color:#fffdfa}
+@keyframes umshPulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes umshSheen{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
+</style>
+</helmet>
+
+<section style="padding:48px 40px 72px;display:flex;flex-direction:column;gap:28px;background:#141210">
+
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+    <span style="display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:7px;background:#e2b87b;color:#141210;font-size:12px;font-weight:900;letter-spacing:.04em">1a</span>
+    <span style="font-family:Georgia,serif;font-size:22px;letter-spacing:.12em;color:#fffdfa">UMSH</span>
+    <span style="font-size:13px;font-weight:900;letter-spacing:.14em;color:#8a7f70">보관함 리스트 아이템 · 상태 3종 · 430px</span>
+  </div>
+
+  <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start">
+
+    <sc-for list="{{ boards }}" as="b" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="{{ b.dot }}"></span>
+          <span style="font-size:13px;font-weight:900;color:#fffdfa;letter-spacing:-.01em">{{ b.boardTitle }}</span>
+          <span style="font-size:11px;font-weight:700;color:#a79d90">{{ b.boardNote }}</span>
+        </div>
+
+        <div style="width:430px;background:#0a0a0a;border-radius:26px;border:1px solid rgba(226,184,123,.14);overflow:hidden;box-shadow:0 26px 60px rgba(0,0,0,.5)">
+
+          <div style="padding:20px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,253,250,.07)">
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span style="font-family:Georgia,serif;font-size:17px;font-weight:800;letter-spacing:.10em;color:#fffdfa">UMSH</span>
+              <span style="font-size:10px;font-weight:900;letter-spacing:.14em;color:#b79058">보관함</span>
+            </div>
+            <span style="font-size:11px;font-weight:800;color:#a79d90">전체 8</span>
+          </div>
+
+          <div style="padding:16px">
+            <div style="{{ b.cardStyle }}">
+
+              <div style="{{ b.railStyle }}"></div>
+
+              <div style="padding:18px 18px 18px 20px;display:flex;flex-direction:column;gap:14px">
+
+                <div style="display:flex;align-items:flex-start;gap:12px">
+                  <div style="{{ b.sealStyle }}">{{ b.hanja }}</div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:7px">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <span style="{{ b.badgeStyle }}">{{ b.badge }}</span>
+                      <span style="font-size:10px;font-weight:800;letter-spacing:.10em;color:#a79d90">{{ b.tier }}</span>
+                    </div>
+                    <div style="{{ b.titleStyle }}">{{ b.title }}</div>
+                    <div style="display:flex;align-items:flex-start;gap:7px">
+                      <span style="font-size:13px;line-height:1.5;color:#a79d90">“</span>
+                      <span style="flex:1;font-size:13px;line-height:1.6;color:#9a9086;text-wrap:pretty">{{ b.worry }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="height:1px;background:rgba(255,253,250,.07)"></div>
+
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                    <span style="{{ b.progressLabelStyle }}">{{ b.progressLabel }}</span>
+                    <span style="{{ b.progressNumStyle }}">{{ b.progressNum }}</span>
+                  </div>
+                  <div style="position:relative;height:6px;border-radius:999px;background:rgba(255,253,250,.09);overflow:hidden">
+                    <div style="{{ b.fillStyle }}"></div>
+                    <div style="{{ b.sheenStyle }}"></div>
+                  </div>
+                  <div style="display:flex;gap:3px">
+                    <sc-for list="{{ b.ticks }}" as="t" hint-placeholder-count="12">
+                      <span style="{{ t }}"></span>
+                    </sc-for>
+                  </div>
+                  <div style="{{ b.hintStyle }}">{{ b.progressHint }}</div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                    <span style="font-size:10px;font-weight:900;letter-spacing:.12em;color:#a79d90">구매 일시</span>
+                    <span style="font-size:12px;font-weight:700;color:#d6cdc2;white-space:nowrap">{{ b.purchased }}</span>
+                  </div>
+                  <button style="{{ b.pdfStyle }}">
+                    <span style="font-size:13px">{{ b.pdfIcon }}</span>
+                    <span>{{ b.pdfLabel }}</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <div style="{{ b.footNoteStyle }}">{{ b.footNote }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+  </div>
+
+  <div style="margin-top:8px;max-width:1380px;padding:20px 22px;border-radius:18px;background:#0a0a0a;border:1px solid rgba(226,184,123,.14);display:flex;gap:34px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:200px">
+      <span style="font-size:10px;font-weight:900;letter-spacing:.14em;color:#b79058">COLOR</span>
+      <span style="font-size:12px;color:#9a9086;line-height:1.7">면 #0A0A0A · 카드 #121110<br />금색 #E2B87B / #B79058<br />실패 #D8512F · 텍스트 #FFFDFA</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:220px">
+      <span style="font-size:10px;font-weight:900;letter-spacing:.14em;color:#b79058">RULE</span>
+      <span style="font-size:12px;color:#9a9086;line-height:1.7">좌측 4px 레일이 상태를 알려주는 1차 신호<br />PDF는 12/12일 때만 금색 활성<br />진행률은 바 + 12칸 틱 이중 표기</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:220px">
+      <span style="font-size:10px;font-weight:900;letter-spacing:.14em;color:#b79058">TYPE</span>
+      <span style="font-size:12px;color:#9a9086;line-height:1.7">상품명 Noto Serif KR 19px/900<br />고민 한 줄 Sans 13px, 2줄 클램프<br />라벨 10px/900 자간 .12em</span>
+    </div>
+  </div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1460,&quot;height&quot;:720}}">
+class Component extends DCLogic {
+  renderVals() {
+    const GOLD = '#e2b87b', GOLD_D = '#b79058', RED = '#d8512f';
+
+    const ticks = (done, total, color, dim) => Array.from({ length: total }, (_, i) =>
+      `flex:1;height:3px;border-radius:2px;background:${i < done ? color : dim}`);
+
+    const base = {
+      cardStyle: 'position:relative;border-radius:20px;background:#121110;border:1px solid rgba(255,253,250,.08);overflow:hidden',
+      titleStyle: "font-family:'Noto Serif KR',serif;font-size:19px;font-weight:900;letter-spacing:-.035em;color:#fffdfa;line-height:1.3",
+      progressLabelStyle: 'font-size:12px;font-weight:800;color:#c9bfb2',
+      sheenStyle: 'display:none'
+    };
+
+    const boards = [
+      {
+        boardTitle: '생성 중',
+        boardNote: '7 / 12 · PDF 비활성',
+        dotColor: GOLD,
+        hanja: '命',
+        badge: '생성 중',
+        badgeBg: 'rgba(226,184,123,.14)',
+        badgeColor: GOLD,
+        badgeBorder: 'rgba(226,184,123,.34)',
+        tier: 'SIGNATURE · 49,900원',
+        title: '천명사주',
+        worry: '서른다섯인데 아직도 내가 뭘 잘하는 사람인지 모르겠어요.',
+        progressLabel: '목차 12개 중 7개 완료',
+        progressNum: '58%',
+        progressNumColor: GOLD,
+        progressHint: '8번째 장 「돈이 들어오는 방식」 집필 중 · 약 4분 남음',
+        hintColor: '#c0b6a8',
+        fill: 58, fillColor: `linear-gradient(90deg,${GOLD_D},${GOLD})`,
+        ticks: ticks(7, 12, GOLD, 'rgba(255,253,250,.10)'),
+        purchased: '2026. 09. 16  21:34',
+        pdfIcon: '⤓', pdfLabel: 'PDF 다운로드',
+        pdfEnabled: false,
+        rail: `linear-gradient(180deg,${GOLD},rgba(226,184,123,.15))`,
+        railPulse: true,
+        footNote: '완성되면 알림으로 알려드려요.',
+        footColor: '#a79d90'
+      },
+      {
+        boardTitle: '전체 완료',
+        boardNote: '12 / 12 · PDF 활성',
+        dotColor: '#7fd1a6',
+        hanja: '完',
+        badge: '완료',
+        badgeBg: 'rgba(127,209,166,.14)',
+        badgeColor: '#7fd1a6',
+        badgeBorder: 'rgba(127,209,166,.34)',
+        tier: 'DEEP · 14,900원',
+        title: '퇴사운',
+        worry: '지금 나가면 후회할까요? 버티는 게 맞는지 모르겠습니다.',
+        progressLabel: '목차 12개 모두 완료',
+        progressNum: '100%',
+        progressNumColor: '#7fd1a6',
+        progressHint: '2026. 09. 17 02:11 생성 완료 · 총 38쪽',
+        hintColor: '#a79d90',
+        fill: 100, fillColor: 'linear-gradient(90deg,#5aa87f,#7fd1a6)',
+        ticks: ticks(12, 12, '#7fd1a6', 'rgba(255,253,250,.10)'),
+        purchased: '2026. 09. 15  10:02',
+        pdfIcon: '⤓', pdfLabel: 'PDF 다운로드',
+        pdfEnabled: true,
+        rail: 'linear-gradient(180deg,#7fd1a6,rgba(127,209,166,.2))',
+        footNote: '보관 기한 2027. 09. 15 까지',
+        footColor: '#a79d90'
+      },
+      {
+        boardTitle: '생성 실패',
+        boardNote: '3 / 12 · 재시도 필요',
+        dotColor: RED,
+        hanja: '止',
+        badge: '생성 실패',
+        badgeBg: 'rgba(216,81,47,.16)',
+        badgeColor: '#f08461',
+        badgeBorder: 'rgba(216,81,47,.42)',
+        tier: 'PREMIUM · 19,900원',
+        title: '소비성향',
+        worry: '돈이 어디로 새는지 모르겠어요. 모으는 체질이 아닌 걸까요.',
+        progressLabel: '3개 완료 후 중단됨',
+        progressNum: '실패',
+        progressNumColor: '#f08461',
+        progressHint: '생년월시 정보가 확인되지 않았습니다 (E-402)',
+        hintColor: '#f0a48d',
+        fill: 25, fillColor: `linear-gradient(90deg,#8c3a22,${RED})`,
+        ticks: ticks(3, 12, RED, 'rgba(216,81,47,.16)'),
+        purchased: '2026. 09. 17  08:47',
+        pdfIcon: '↻', pdfLabel: '다시 생성하기',
+        pdfEnabled: 'retry',
+        rail: `linear-gradient(180deg,${RED},rgba(216,81,47,.2))`,
+        footNote: '결제 금액은 차감되지 않았습니다 · 문의하기',
+        footColor: '#a8968a'
+      }
+    ];
+
+    return {
+      boards: boards.map(b => {
+        const enabled = b.pdfEnabled === true;
+        const retry = b.pdfEnabled === 'retry';
+        return {
+          ...base, ...b,
+          dot: `width:9px;height:9px;border-radius:50%;background:${b.dotColor};box-shadow:0 0 0 3px ${b.dotColor}26`,
+          railStyle: `position:absolute;left:0;top:0;bottom:0;width:4px;background:${b.rail}${b.railPulse ? ';animation:umshPulse 1.8s ease-in-out infinite' : ''}`,
+          sealStyle: `flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-family:'Noto Serif KR',serif;font-size:22px;font-weight:900;color:${b.badgeColor};background:${b.badgeBg};border:1px solid ${b.badgeBorder}`,
+          badgeStyle: `padding:4px 9px;border-radius:999px;background:${b.badgeBg};border:1px solid ${b.badgeBorder};color:${b.badgeColor};font-size:10px;font-weight:900;letter-spacing:.08em`,
+          progressNumStyle: `font-family:Georgia,serif;font-size:14px;font-weight:900;letter-spacing:.02em;color:${b.progressNumColor}`,
+          fillStyle: `height:100%;width:${b.fill}%;border-radius:999px;background:${b.fillColor}`,
+          hintStyle: `font-size:11px;font-weight:600;line-height:1.5;color:${b.hintColor}`,
+          sheenStyle: b.railPulse
+            ? `position:absolute;top:0;bottom:0;left:0;width:26%;background:linear-gradient(90deg,transparent,rgba(255,253,250,.42),transparent);animation:umshSheen 1.8s linear infinite`
+            : 'display:none',
+          pdfStyle: `flex:none;display:inline-flex;align-items:center;gap:7px;padding:11px 16px;border-radius:999px;font:inherit;font-size:12px;font-weight:900;letter-spacing:-.01em;cursor:${enabled || retry ? 'pointer' : 'not-allowed'};`
+            + (enabled
+              ? 'background:#e2b87b;color:#141210;border:1px solid #e2b87b;box-shadow:0 8px 20px rgba(226,184,123,.22)'
+              : retry
+                ? 'background:transparent;color:#f08461;border:1px solid rgba(216,81,47,.48)'
+                : 'background:rgba(255,253,250,.05);color:#5f574c;border:1px solid rgba(255,253,250,.09)'),
+          footNoteStyle: `margin-top:11px;padding:0 4px;font-size:11px;font-weight:600;color:${b.footColor}`
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

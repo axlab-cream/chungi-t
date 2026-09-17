@@ -167,7 +167,7 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey, serviceTitleForKey } from './service-directory.js'
+import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey, serviceTierForKey, serviceTitleForKey } from './service-directory.js'
 import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
@@ -1519,6 +1519,12 @@ function historyEntryFromRecord(record: ReportRecord) {
     serviceKey: record.context?.serviceKey || 'cmdg',
     // 판매할 때 쓴 이름 그대로 돌려준다. 화면이 자기 표를 들고 있으면 카탈로그와 갈라진다.
     serviceTitle: serviceTitleForKey(record.context?.serviceKey || 'cmdg'),
+    serviceTier: serviceTierForKey(record.context?.serviceKey || 'cmdg'),
+    // 카드가 상태(생성 중·완료·실패)를 고르는 근거. 진행 숫자만으로는 멈춘 것과
+    // 만드는 중인 것이 구분되지 않는다.
+    reportStatus: record.status,
+    // 지금 만들고 있는 장의 이름. 사용자가 무엇을 기다리는지 알 수 있어야 한다.
+    currentSection: record.report?.sections?.find((section) => section.status !== 'complete')?.category,
     serviceHref: isCustomerPausedProduct(record.context?.serviceKey) ? undefined : serviceHrefForKey(record.context?.serviceKey),
     // 보관함이 열 주소. 서비스가 자기 06-1 화면을 가지고 있으면 그 화면에서, 없으면
     // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.

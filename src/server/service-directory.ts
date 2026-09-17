@@ -152,6 +152,22 @@ export function serviceTitleForKey(serviceKey: string | undefined): string | und
 }
 
 /**
+ * 보관함 카드의 한 줄 등급 표기 — "SIGNATURE · 49,900원".
+ *
+ * 카탈로그 eyebrow 는 "SIGNATURE · 종합사주" 처럼 등급과 분류를 함께 담는데, 보관함에서는
+ * 분류 대신 산 값을 보여 준다. 무엇을 얼마에 샀는지가 다시 열 때 궁금한 것이다.
+ * 금액 표기는 천단위 콤마 + "원" 으로 카탈로그와 같게 둔다.
+ */
+export function serviceTierForKey(serviceKey: string | undefined): string | undefined {
+  const seed = seedForKey(serviceKey)
+  const product = seed ? getPaymentProduct(seed.key) : undefined
+  if (!product) return undefined
+  const grade = product.eyebrow.split('·')[0]?.trim()
+  const price = product.amount > 0 ? `${product.amount.toLocaleString('en-US')}원` : '무료'
+  return grade ? `${grade} · ${price}` : price
+}
+
+/**
  * The address the 보관함 opens a saved reading at: the service's own 06-1 detail page, so
  * the reading is read in the design it was sold in rather than in the generic reader.
  *

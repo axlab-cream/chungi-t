@@ -117,54 +117,116 @@
         margin-top: 14px;
       }
 
-      .row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 12px;
-        padding: 14px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.04);
-        color: inherit;
-        text-decoration: none;
+      /*
+       * 보관함 카드 — Claude Design "UMSH 보관함 리스트" 사양(430px, 상태 3종).
+       *
+       * 좌측 4px 레일이 상태의 1차 신호다. 진행률은 바와 칸 틱으로 두 번 적는다 —
+       * 바는 한눈에, 틱은 "열둘 중 일곱" 처럼 셀 수 있게. PDF는 전부 만들어졌을 때만
+       * 금색으로 열린다.
+       */
+      @font-face {
+        font-family: MaruBuri;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+        font-display: swap;
+        font-weight: 700 900;
       }
 
-      .row .body {
-        display: grid;
-        gap: 4px;
-        min-width: 0;
+      @keyframes umshPulse { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+      @keyframes umshSheen { 0% { transform: translateX(-100%) } 100% { transform: translateX(320%) } }
+
+      .vault-item { display: block; margin-bottom: 16px; color: inherit; text-decoration: none; }
+
+      .vault-card {
+        position: relative;
+        border-radius: 20px;
+        background: #121110;
+        border: 1px solid rgba(255, 253, 250, 0.08);
+        overflow: hidden;
+        --accent: #e2b87b;
+        --accent-soft: rgba(226, 184, 123, 0.14);
+        --accent-line: rgba(226, 184, 123, 0.34);
+        --accent-dim: #b79058;
+      }
+      .vault-card.is-complete { --accent: #7fd1a6; --accent-soft: rgba(127, 209, 166, 0.14); --accent-line: rgba(127, 209, 166, 0.34); --accent-dim: #5aa87f; }
+      .vault-card.is-failed { --accent: #f08461; --accent-soft: rgba(216, 81, 47, 0.16); --accent-line: rgba(216, 81, 47, 0.42); --accent-dim: #8c3a22; }
+
+      .vault-rail { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 18%, transparent)); }
+      .vault-card.is-generating .vault-rail { animation: umshPulse 1.8s ease-in-out infinite; }
+
+      .vault-body { padding: 18px 18px 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+      .vault-head { display: flex; align-items: flex-start; gap: 12px; }
+
+      .vault-seal {
+        flex: none; width: 46px; height: 46px; border-radius: 13px;
+        display: grid; place-items: center;
+        font-family: MaruBuri, "Noto Serif KR", Georgia, serif;
+        font-size: 22px; font-weight: 900;
+        color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line);
       }
 
-      .row b {
-        font-size: 14px;
-        font-weight: 900;
-        line-height: 1.35;
+      .vault-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+      .vault-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .vault-badge {
+        padding: 4px 9px; border-radius: 999px;
+        background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--accent);
+        font-size: 10px; font-weight: 900; letter-spacing: .08em;
+      }
+      .vault-tier { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #a79d90; }
+
+      .vault-title {
+        font-family: MaruBuri, "Noto Serif KR", Georgia, serif;
+        font-size: 19px; font-weight: 900; letter-spacing: -.035em;
+        color: #fffdfa; line-height: 1.3; word-break: keep-all;
       }
 
-      .row span {
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.5;
+      .vault-worry { display: flex; align-items: flex-start; gap: 7px; }
+      .vault-worry i { font-style: normal; font-size: 13px; line-height: 1.5; color: #a79d90; }
+      /* 고민은 길이가 제각각이라 두 줄에서 끊는다. 카드 높이가 목록마다 달라지면 훑기 어렵다. */
+      .vault-worry span {
+        flex: 1; font-size: 13px; line-height: 1.6; color: #9a9086; word-break: keep-all;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
       }
 
-      .row em {
-        display: grid;
-        justify-items: end;
-        gap: 2px;
-        color: var(--gold);
-        font-size: 12px;
-        font-style: normal;
-        font-weight: 800;
-        white-space: nowrap;
+      .vault-hr { height: 1px; background: rgba(255, 253, 250, 0.07); }
+
+      .vault-progress { display: flex; flex-direction: column; gap: 9px; }
+      .vault-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .vault-progress-label { font-size: 12px; font-weight: 800; color: #c9bfb2; }
+      .vault-progress-num { font-family: Georgia, serif; font-size: 14px; font-weight: 900; letter-spacing: .02em; color: var(--accent); }
+
+      .vault-bar { position: relative; height: 6px; border-radius: 999px; background: rgba(255, 253, 250, 0.09); overflow: hidden; }
+      .vault-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+      .vault-sheen {
+        position: absolute; top: 0; bottom: 0; left: 0; width: 26%;
+        background: linear-gradient(90deg, transparent, rgba(255, 253, 250, 0.42), transparent);
+        animation: umshSheen 1.8s linear infinite;
       }
 
-      /* 같은 날 여러 건을 구분하려면 시각이 필요하다. 날짜보다 약하게 둔다. */
-      .row em small {
-        color: var(--muted);
-        font-size: 11px;
-        font-weight: 700;
+      .vault-ticks { display: flex; gap: 3px; }
+      .vault-ticks span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 253, 250, 0.1); }
+      .vault-ticks span.is-on { background: var(--accent); }
+      .vault-card.is-failed .vault-ticks span { background: rgba(216, 81, 47, 0.16); }
+
+      .vault-hint { font-size: 11px; font-weight: 600; line-height: 1.5; color: #c0b6a8; word-break: keep-all; }
+      .vault-card.is-failed .vault-hint { color: #f0a48d; }
+
+      .vault-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .vault-when { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+      .vault-when b { font-size: 10px; font-weight: 900; letter-spacing: .12em; color: #a79d90; }
+      .vault-when span { font-size: 12px; font-weight: 700; color: #d6cdc2; white-space: nowrap; }
+
+      .vault-pdf {
+        flex: none; display: inline-flex; align-items: center; gap: 7px;
+        padding: 11px 16px; border-radius: 999px;
+        font: inherit; font-size: 12px; font-weight: 900; letter-spacing: -.01em;
+        background: rgba(255, 253, 250, 0.05); color: #5f574c; border: 1px solid rgba(255, 253, 250, 0.09);
+        cursor: not-allowed; min-height: 40px;
       }
+      .vault-pdf.is-ready { background: #e2b87b; color: #141210; border-color: #e2b87b; box-shadow: 0 8px 20px rgba(226, 184, 123, 0.22); cursor: pointer; }
+      .vault-pdf.is-retry { background: transparent; color: #f08461; border-color: rgba(216, 81, 47, 0.48); cursor: pointer; }
+      .vault-pdf:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      .vault-note { margin-top: 11px; padding: 0 4px; font-size: 11px; font-weight: 600; color: #a79d90; word-break: keep-all; }
 
       body.umsh-has-chrome {
         padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
@@ -240,6 +302,92 @@
           }
         }
 
+        /**
+         * 카드가 고를 상태와 문구. 진행 숫자만으로는 "멈춘 것"과 "만드는 중"이 구분되지
+         * 않아서 서버가 내려준 리포트 상태를 함께 본다.
+         *
+         * 남은 시간은 적지 않는다. 섹션마다 걸리는 시간이 달라서 추정치를 적으면 대부분
+         * 틀린다 — 틀린 예고는 없는 예고보다 나쁘다.
+         */
+        function cardView(report) {
+          const total = Number(report.progress?.total) || 0;
+          const done = Math.min(Number(report.progress?.complete) || 0, total || Infinity) || 0;
+          const status = report.reportStatus || '';
+          const finished = status === 'complete' || (total > 0 && done >= total);
+          const state = status === 'failed' ? 'failed' : finished ? 'complete' : 'generating';
+          const percent = state === 'failed'
+            ? (total ? Math.round((done / total) * 100) : 0)
+            : finished ? 100 : total ? Math.round((done / total) * 100) : 0;
+
+          if (state === 'complete') {
+            return {
+              state, total, done: total, percent: 100, seal: '完', badge: '완료',
+              label: total ? `목차 ${total}개 모두 완료` : '생성 완료',
+              num: '100%',
+              hint: total ? `목차 ${total}개 생성 완료` : '생성이 끝났어요.',
+              pdfClass: 'is-ready', pdfLabel: 'PDF 다운로드', pdfIcon: '⤓', pdfAction: 'pdf',
+              note: '',
+            };
+          }
+          if (state === 'failed') {
+            return {
+              state, total, done, percent, seal: '止', badge: '생성 실패',
+              label: done ? `${done}개 완료 후 중단됨` : '생성이 중단됨',
+              num: '실패',
+              hint: '다시 생성하면 남은 목차부터 이어 만듭니다.',
+              pdfClass: 'is-retry', pdfLabel: '다시 생성하기', pdfIcon: '↻', pdfAction: 'retry',
+              note: '문제가 이어지면 고객센터로 알려주세요.',
+            };
+          }
+          return {
+            state, total, done, percent, seal: '命', badge: '생성 중',
+            label: total ? `목차 ${total}개 중 ${done}개 완료` : '해석을 준비하고 있어요',
+            num: `${percent}%`,
+            hint: report.currentSection
+              ? `「${report.currentSection}」 만드는 중`
+              : '남은 목차를 순서대로 만들고 있어요.',
+            pdfClass: '', pdfLabel: 'PDF 다운로드', pdfIcon: '⤓', pdfAction: '',
+            note: '전부 만들어지면 이 자리에서 PDF로 받을 수 있어요.',
+          };
+        }
+
+        /** PDF 모듈은 누를 때만 받는다. 목록을 여는 것만으로 받게 하면 첫 화면이 느려진다. */
+        function ensurePdfHelper() {
+          if (window.UMSHReportPdf) return Promise.resolve();
+          return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = '/js/umsh-report-pdf.js';
+            script.onload = () => resolve();
+            script.onerror = () => resolve();
+            document.head.appendChild(script);
+          });
+        }
+
+        async function downloadPdf(button, token) {
+          const id = button.dataset.reportId;
+          if (!id) return;
+          const label = button.querySelector('span:last-child');
+          const previous = label.textContent;
+          button.disabled = true;
+          label.textContent = '준비 중…';
+          try {
+            await ensurePdfHelper();
+            if (!window.UMSHReportPdf) throw new Error('PDF_HELPER_MISSING');
+            const payload = await fetch(`/api/report/${encodeURIComponent(id)}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }).then((response) => response.json());
+            const report = payload?.report || payload;
+            if (!report?.sections?.length) throw new Error('REPORT_EMPTY');
+            window.UMSHReportPdf.open(report);
+            label.textContent = previous;
+          } catch {
+            label.textContent = '열지 못했어요';
+            window.setTimeout(() => { label.textContent = previous; }, 1800);
+          } finally {
+            button.disabled = false;
+          }
+        }
+
         async function load() {
           const auth = await session();
           if (!auth) {
@@ -281,20 +429,80 @@
                 const openable = Boolean(href && href !== '/search');
                 // 같은 서비스를 여러 번 보면 제목(이름 · 생년월일)이 전부 같다. 레코드마다
                 // 다른 것은 그때 적어 낸 고민이므로 그것을 먼저 보여준다.
-                const subtitle = report.initialConcern || report.context?.concern || report.title || '';
+                const worry = report.initialConcern || report.context?.concern || report.title || '';
                 const at = stamp(report.purchasedAt || report.savedAt);
-                const body = `
-                  <span class="body">
-                    <b>${escapeHtml(service)}</b>
-                    <span>${escapeHtml(subtitle)}</span>
-                  </span>
-                  <em>${at ? `${escapeHtml(at.day)}<small>${escapeHtml(at.time)}</small>` : ''}</em>
+
+                const view = cardView(report);
+                const ticks = view.total > 0
+                  ? Array.from({ length: view.total }, (_, i) =>
+                      `<span class="${i < view.done ? 'is-on' : ''}"></span>`).join('')
+                  : '';
+
+                const card = `
+                  <article class="vault-card is-${view.state}">
+                    <div class="vault-rail" aria-hidden="true"></div>
+                    <div class="vault-body">
+                      <div class="vault-head">
+                        <div class="vault-seal" aria-hidden="true">${escapeHtml(view.seal)}</div>
+                        <div class="vault-meta">
+                          <div class="vault-badges">
+                            <span class="vault-badge">${escapeHtml(view.badge)}</span>
+                            ${report.serviceTier ? `<span class="vault-tier">${escapeHtml(report.serviceTier)}</span>` : ''}
+                          </div>
+                          <div class="vault-title">${escapeHtml(service)}</div>
+                          ${worry ? `<div class="vault-worry"><i aria-hidden="true">“</i><span>${escapeHtml(worry)}</span></div>` : ''}
+                        </div>
+                      </div>
+
+                      <div class="vault-hr" aria-hidden="true"></div>
+
+                      <div class="vault-progress">
+                        <div class="vault-progress-top">
+                          <span class="vault-progress-label">${escapeHtml(view.label)}</span>
+                          <span class="vault-progress-num">${escapeHtml(view.num)}</span>
+                        </div>
+                        <div class="vault-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${view.total}" aria-valuenow="${view.done}" aria-label="${escapeHtml(view.label)}">
+                          <div class="vault-fill" style="width:${view.percent}%"></div>
+                          ${view.state === 'generating' ? '<div class="vault-sheen" aria-hidden="true"></div>' : ''}
+                        </div>
+                        ${ticks ? `<div class="vault-ticks" aria-hidden="true">${ticks}</div>` : ''}
+                        <div class="vault-hint">${escapeHtml(view.hint)}</div>
+                      </div>
+
+                      <div class="vault-foot">
+                        <span class="vault-when">
+                          <b>구매 일시</b>
+                          <span>${at ? `${escapeHtml(at.day)} ${escapeHtml(at.time)}` : '-'}</span>
+                        </span>
+                        <button type="button" class="vault-pdf ${view.pdfClass}"
+                          ${view.pdfClass ? '' : 'disabled'}
+                          data-report-id="${escapeHtml(report.reportId || '')}"
+                          data-action="${escapeHtml(view.pdfAction)}"
+                          data-href="${escapeHtml(href)}">
+                          <span aria-hidden="true">${escapeHtml(view.pdfIcon)}</span>
+                          <span>${escapeHtml(view.pdfLabel)}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                  ${view.note ? `<div class="vault-note">${escapeHtml(view.note)}</div>` : ''}
                 `;
                 return openable
-                  ? `<a class="row" href="${escapeHtml(href)}">${body}</a>`
-                  : `<div class="row">${body}</div>`;
+                  ? `<a class="vault-item" href="${escapeHtml(href)}">${card}</a>`
+                  : `<div class="vault-item">${card}</div>`;
               })
               .join('');
+
+            // 카드 전체가 링크라, 버튼은 이동을 막고 자기 일만 한다.
+            list.addEventListener('click', (event) => {
+              const button = event.target.closest('.vault-pdf');
+              if (!button || button.disabled) return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (button.dataset.action === 'pdf') { void downloadPdf(button, auth.access_token); return; }
+              // 다시 생성은 해당 풀이 화면에서 이어진다. 목록에서 재생성을 흉내 내지 않는다.
+              if (button.dataset.action === 'retry' && button.dataset.href) location.assign(button.dataset.href);
+            });
           } catch {
             panel('보관함을 불러오지 못했어요', '잠시 뒤 다시 시도해 주세요.', { href: '/vault', label: '다시 시도' });
           }
