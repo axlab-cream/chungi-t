@@ -133,7 +133,7 @@ export function guardPreview(preview: ReportPreview, context: SajuReportContext 
 }
 
 export function createSavedPreview(report: SajuReport, context: SajuReportContext = {}): ReportPreview {
-  const reportEvidence = [report.title, ...report.sections.flatMap(section => [section.hook, section.interpretation])].join('\n')
+  const reportEvidence = [report.title ?? '', ...report.sections.flatMap(section => [section.hook ?? '', section.interpretation ?? ''])].join('\n')
   if (context.serviceKey === 'wedding_day' && context.wedding?.teaser) {
     const { headline, lines } = context.wedding.teaser
     const insights = lines.slice(1, 3)
@@ -161,12 +161,15 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
    * 이직운·붙을 각·운 붙는 색이 45자 넘는 문장을 그대로 반복하고 있었다. 겹치는 것을
    * 걷어 내 헤드라인·요약·통찰이 서로 다른 문장을 말하게 한다.
    */
+  // 목록용 경량 행(cheongi_report_list)은 항목의 hook·interpretation 을 싣지 않는다. 저장된
+  // 티저가 없는 옛 레코드가 그 행으로 여기 오면 값이 undefined 다 — 보관함 전체가 500 으로
+  // 죽었다(2026-09-18). 빈 문자열로 받아 안전한 기본 티저를 만든다.
   const paragraphs = report.sections.slice(0, 3).map((section) => {
     const parts = String(section.interpretation ?? '').split(/\n\s*\n/).map(line => line.trim()).filter(Boolean)
     // 첫 문단은 대개 [주요 포인트] + hook 반복이다. 티저 요약은 그 다음 판정·장면부터 가져온다.
-    return excerpt(parts.slice(1).join(' ') || parts[0] || section.hook)
+    return excerpt(parts.slice(1).join(' ') || parts[0] || String(section.hook ?? ''))
   }).filter(Boolean)
-  const headline = report.sections[0]?.hook || report.title
+  const headline = report.sections[0]?.hook || report.title || '저장된 풀이'
   // headline 은 첫 섹션의 hook 이고 summary 는 그 섹션의 첫 문단이다. 문단의 첫 문장이
   // 대개 hook 과 같아서, 덜어 내지 않으면 티저가 같은 줄로 두 번 시작한다.
   const headlineParts = new Set(splitSentences(headline).map(normalizeForCompare))

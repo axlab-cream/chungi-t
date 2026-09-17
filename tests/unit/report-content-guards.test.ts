@@ -16,6 +16,17 @@ const birth = { year: 1994, month: 4, day: 15, hour: 12, gender: 'female' as con
 const analysis = analyzeSaju(birth)
 
 describe('readability, uncertainty and daily snapshot regression', () => {
+  it('builds a safe fallback teaser from list-light sections that carry no hook or body', () => {
+    // 2026-09-18: cheongi_report_list 의 경량 행은 항목에 id·순서·상태·분류만 싣는다. 저장 티저가
+    // 없는 옛 레코드가 그 행으로 오면 hook 이 undefined 라 .replace 에서 보관함 전체가 500 이었다.
+    const sections = [1, 2, 3].map((n) => ({ id: `s-${n}`, order: n, status: 'complete', category: '분류', classification: '항목' })) as unknown as SajuReport['sections']
+    const report: SajuReport = { title: '천명사주', subtitle: '', model: 'template', generatedBy: 'template', sections }
+    const preview = createSavedPreview(report, { serviceKey: 'cmdg' })
+    assert.equal(preview.headline, '천명사주')
+    assert.ok(preview.summary.length > 0)
+    assert.doesNotThrow(() => createSavedPreview({ ...report, title: undefined as unknown as string, sections: [] }, {}))
+  })
+
   it('does not mistake ordinary Korean ending in 두고도 for the terrain term 고도', () => {
     const review = reviewInterpretation('예를 들어 모니터 앞에서 메일을 열어 두고도 문장이 들어오지 않는다면 그 장면을 기록합니다.', { serviceKey: 'work_quit' })
     assert.equal(review.issues.some(issue => issue.includes('데이터 결손이나 내부 지형')), false)
