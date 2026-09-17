@@ -4,7 +4,8 @@ import { test } from 'node:test'
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8')
 
-test('every Wedding reader surface tells customers the reviewed 20-item truth', () => {
+// 2026-09-17 목차 축소: 20 → 12.
+test('every Wedding reader surface tells customers the reviewed 12-item truth', () => {
   for (const path of [
     '사주/day/wedding/01-step-1-story/index.html',
     '사주/day/wedding/04-step-4-report/index.html',
@@ -12,8 +13,8 @@ test('every Wedding reader surface tells customers the reviewed 20-item truth', 
     '사주/day/wedding/05-step-5-chat/chat.html',
   ]) {
     const source = read(path)
-    assert.doesNotMatch(source, /21개 항목/, path)
-    assert.match(source, /20개 항목/, path)
+    assert.doesNotMatch(source, /20개 항목/, path)
+    assert.match(source, /12개 항목/, path)
   }
 
   const client = read('사주/js/wedding-service.js')

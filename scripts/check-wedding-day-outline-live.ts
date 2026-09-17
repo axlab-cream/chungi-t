@@ -45,7 +45,7 @@ if (requireFresh && record) throw new Error(`Fresh wedding_day outline version a
 
 if (shouldGenerate) {
   const templateReport = buildWeddingReport(analysis, birth, context, input, reportId)
-  assert.equal(templateReport.sections.length, 20)
+  assert.equal(templateReport.sections.length, 12)
   const created = await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport })
   if (requireFresh && !created.created) throw new Error(`Fresh wedding_day outline did not create a new record: ${version}`)
   console.log(JSON.stringify({ phase: 'saved-before-model', version, resultId: created.record.resultId, total: 20, created: created.created }))

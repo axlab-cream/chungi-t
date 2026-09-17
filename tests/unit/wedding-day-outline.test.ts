@@ -26,29 +26,41 @@ function outline(source: string) {
   return result
 }
 
-test('supplied wedding_day source hashes and exact ordered 20-item contract stay frozen', () => {
+// 공급 소스 파일(part01~03.md)은 손대지 않는다 — 계약 원본은 해시로 그대로 고정한다.
+test('supplied wedding_day source hashes stay frozen', () => {
   const extracted = parts.flatMap(([file, hash, count]) => {
     const source = readFileSync(`tone-v2/source/산출물-실전/wedding_day/${file}`, 'utf8')
     assert.equal(createHash('sha256').update(source).digest('hex').toUpperCase(), hash)
     const items = outline(source); assert.equal(items.length, count); return items
   })
-  const runtime = WEDDING_TOC.flatMap((group) => group.items.map((item) => ({ category: group.title, title: item.title })))
   assert.equal(extracted.length, 20)
-  assert.deepEqual(runtime, extracted)
-  assert.equal(new Set(WEDDING_TOC.flatMap((group) => group.items.map((item) => item.id))).size, 20)
+})
+/*
+ * 2026-09-17 목차 축소: 20 → 12. 대분류(6) 는 그대로 두고 대분류당 2개만 남긴다.
+ * 이 서비스도 신년운세와 같은 방식으로 문단을 대분류 단위로 계산해(`sectionBody`)
+ * 배열로 반환하고 남는 문단을 그 대분류의 마지막 항목에 붙인다 — 항목을 줄여도
+ * 계산된 문단은 사라지지 않는다.
+ */
+test('wedding_day runtime keeps a reviewed subset of the supplied items, invents no new titles', () => {
+  const extracted = parts.flatMap(([file]) => outline(readFileSync(`tone-v2/source/산출물-실전/wedding_day/${file}`, 'utf8')))
+  const runtime = WEDDING_TOC.flatMap((group) => group.items.map((item) => ({ category: group.title, title: item.title })))
+  assert.equal(runtime.length, 12, '6대분류 × 20항목 → 6대분류 × 12항목으로 줄이기로 했다')
+  const supplied = new Set(extracted.map((item) => item.title))
+  assert.deepEqual(runtime.filter((item) => !supplied.has(item.title)).map((item) => item.title), [], '공급되지 않은 제목을 새로 지어내지 않는다')
+  assert.equal(new Set(WEDDING_TOC.flatMap((group) => group.items.map((item) => item.id))).size, 12)
 })
 
-test('new isolated wedding_day record retains 20 immutable pending identities', async () => {
+test('new isolated wedding_day record retains 12 immutable pending identities', async () => {
   const birth = { year: 1991, month: 4, day: 18, hour: 11, gender: 'female' as const, calendar: 'solar' as const }
   const input = parseWeddingRequest({ candidateDate1: '2027-04-11', candidateDate2: '2027-05-23', candidateDate3: '2027-10-18', partnerBirth: '1989-03-11', familyLimit: '5월 넷째 주 가족 일정' })
   const analysis = analyzeSaju(birth); const context = buildWeddingContext('합성 결혼 택일 점검', input, analysis); const reportId = randomUUID(); const templateReport = buildWeddingReport(analysis, birth, context, input, reportId)
   const { record, created } = await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport, owner: { id: 'wedding-outline-test-owner' } }); const client = toClientReport(record)
-  assert.equal(created, true); assert.equal(record.context.serviceKey, WEDDING_SERVICE_KEY); assert.deepEqual(client.progress, { complete: 0, total: 20 }); assert.ok(client.sections.every((section) => section.status === 'pending' && section.hook === '' && section.interpretation === '' && section.generationId))
+  assert.equal(created, true); assert.equal(record.context.serviceKey, WEDDING_SERVICE_KEY); assert.deepEqual(client.progress, { complete: 0, total: 12 }); assert.ok(client.sections.every((section) => section.status === 'pending' && section.hook === '' && section.interpretation === '' && section.generationId))
 })
 
 test('wedding live harness is isolated, fresh-only, fail-closed and replaying', () => {
   const script = readFileSync(new URL('../../scripts/check-wedding-day-outline-live.ts', import.meta.url), 'utf8')
-  assert.match(script, /isolateLiveCheckEnvironment\(process\.env\)/); assert.match(script, /OPENAI_REASONING_EFFORT = 'low'/); assert.match(script, /shouldResume && !shouldGenerate/); assert.match(script, /retry: stored\.status === 'failed'/); assert.match(script, /assert\.equal\(templateReport\.sections\.length, 20\)/); assert.match(script, /if \(generated\.status !== 'complete'\) break/); assert.match(script, /attemptedAfterFailure\.length, 0/); assert.match(script, /reviewGeneratedSajuReportSection/); assert.doesNotMatch(script, /from ['"][^'"]*supabase|process\.env\.(?:SUPABASE|DATABASE_URL)/i)
+  assert.match(script, /isolateLiveCheckEnvironment\(process\.env\)/); assert.match(script, /OPENAI_REASONING_EFFORT = 'low'/); assert.match(script, /shouldResume && !shouldGenerate/); assert.match(script, /retry: stored\.status === 'failed'/); assert.match(script, /assert\.equal\(templateReport\.sections\.length, 12\)/); assert.match(script, /if \(generated\.status !== 'complete'\) break/); assert.match(script, /attemptedAfterFailure\.length, 0/); assert.match(script, /reviewGeneratedSajuReportSection/); assert.doesNotMatch(script, /from ['"][^'"]*supabase|process\.env\.(?:SUPABASE|DATABASE_URL)/i)
 })
 
 test('wedding planning tables are concrete scenes while abstract marriage wording is not', () => {

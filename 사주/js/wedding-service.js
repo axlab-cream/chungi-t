@@ -273,7 +273,7 @@
         var lines = preview.signals || preview.insights || [];
         panels[1].replaceChildren();
         lines.forEach(function(line) { var p = document.createElement('span'); p.className = 'preview-line'; p.textContent = line; panels[1].appendChild(p); });
-        if (!lines.length) panels[1].textContent = preview.paidValue || '6개 주제 · 20개 항목을 전체 풀이에서 확인합니다.';
+        if (!lines.length) panels[1].textContent = preview.paidValue || '6개 주제 · 12개 항목을 전체 풀이에서 확인합니다.';
       }
       root.querySelectorAll('a.item, a.cta').forEach(function (link) {
         link.href = payload.previewOnly ? payload.paymentUrl || '/payment?product=wedding_day&reportId=' + encodeURIComponent(id) : indexUrl;
