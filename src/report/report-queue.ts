@@ -63,6 +63,30 @@ const LEASE_MS = 6 * 60_000
 export const SECTION_ATTEMPT_LIMIT = Math.min(Math.max(Number(process.env.REPORT_SECTION_ATTEMPTS) || 4, 2), 6)
 
 /**
+ * 한 리포트 안에서 나란히 만드는 항목 수.
+ *
+ * 시간 ≈ 출력 토큰 ÷ 초당 토큰 ÷ 동시 수. 항목 하나가 21~63초인데 48개를 한 줄로 세우면
+ * 30분이고, 여섯씩 나란히면 5~6분이다(2026-09-17 퇴사운 실측). 순서 규칙은 이렇다 —
+ *  - **첫 항목은 혼자 먼저.** 독자가 처음 읽는 글이자 뒤 항목들이 참고할 뼈대다
+ *  - 그 뒤로는 아직 안 끝난 첫 칸(head)부터 이 수만큼의 창(window) 안에서 나란히 돈다.
+ *    창 밖의 항목은 기다린다 — 그래야 앞뒤 형제 글이 지나치게 멀어지지 않는다
+ *  - 실패로 남은 칸은 창을 막지 않는다(예전 규칙 그대로)
+ * 같은 창 안의 항목은 서로의 본문을 보지 못한다. 대신 앞 창까지의 완성 글을 모두 보고,
+ * 검수가 형제 글과의 반복을 잡는다. 모델 호출 한도(429)가 보이면 여기를 먼저 낮춘다.
+ */
+export const SECTION_PARALLELISM = Math.min(Math.max(Number(process.env.REPORT_SECTION_PARALLELISM) || 6, 1), 12)
+
+/** 지금 이 항목을 시작해도 되는가. 첫 항목이 끝나기 전엔 창이 1(순차)이다. */
+export function canStartSection(sections: SajuReportSection[], position: number, parallelism = SECTION_PARALLELISM): boolean {
+  const unfinished = (item: SajuReportSection) => item.status === 'pending' || item.status === 'generating'
+  const head = sections.findIndex(unfinished)
+  if (head < 0 || head >= position) return true
+  const window = sections[0]?.status === 'complete' ? parallelism : 1
+  if (position - head >= window) return false
+  return sections.filter((item) => item.status === 'generating').length < window
+}
+
+/**
  * Promote a previously rejected section only when its last persisted raw response
  * passes today's production review. The attempt remains immutable historical evidence.
  */
@@ -150,11 +174,11 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     if (current.status === 'complete' || section.status === 'complete' || (section.status === 'failed' && !params.retry)) return false
     const position = current.report.sections.indexOf(section)
     /*
-     * 앞 칸이 아직 도는 중이거나 시작도 안 했으면 기다린다 — 형제 글의 순서를 지키기
-     * 위해서다. 다만 앞 칸이 이미 **실패로 남은** 경우는 기다릴 이유가 없다. 그 한 칸을
+     * 창(window) 규칙 — SECTION_PARALLELISM 참고. 첫 항목은 혼자 먼저, 그 뒤는 head 부터
+     * 창 안에서 나란히. 앞 칸이 이미 **실패로 남은** 경우는 기다릴 이유가 없다. 그 한 칸을
      * 기다리다 뒤의 수십 개가 영영 멈췄다(2026-09-17 관계 신호 0/70).
      */
-    if (current.report.sections.slice(0, position).some(item => item.status === 'pending' || item.status === 'generating')) return false
+    if (!canStartSection(current.report.sections, position)) return false
     // 되살리기는 뒤 칸이 이미 시작했더라도 막지 않는다. 막으면 건너뛴 칸을 영영 회수할 수 없다.
     if (section.generationLease && Date.parse(section.generationLease.expiresAt) > Date.now()) return false
     section.generationId ??= randomUUID()
@@ -264,27 +288,47 @@ export async function preGenerateReport(params: GenerationParams, options: PreGe
        * 간다. 건너뛴 칸은 실패로 남아 다음 실행이 다시 집는다. 그때는 앞뒤 형제 글이 더
        * 쌓여 있어 성공할 여지가 커진다.
        */
-      const skipped: string[] = []
-      for (const section of record.report.sections) {
-        if (section.status === 'complete') continue
-        if (section.status === 'failed' && !options.recoverFailed) break
-        // 시간 조각 안에서만 만든다. 남은 예산으로 한 칸을 못 끝내면 여기서 멈추고
+      const skipped = new Set<string>()
+      let latest: ReportRecord | null = record
+      // 파도(wave) 단위로 돈다. 한 파도는 창 안에서 지금 시작할 수 있는 항목들을 나란히 만든다.
+      for (;;) {
+        if (!latest || latest.status === 'complete') break
+        const sections = latest.report.sections
+        const firstFailed = sections.findIndex((item) => item.status === 'failed')
+        const wave = sections
+          .map((item, position) => ({ item, position }))
+          .filter(({ item, position }) => {
+            if (item.status === 'complete' || skipped.has(item.id)) return false
+            // 되살리기 없는 실행은 실패한 칸에서 멈춘다(예전 규칙). 그 뒤 칸도 시작하지 않는다.
+            if (!options.recoverFailed && firstFailed >= 0 && position >= firstFailed) return false
+            return canStartSection(sections, position)
+          })
+          .slice(0, SECTION_PARALLELISM)
+        if (!wave.length) break
+        // 시간 조각 안에서만 만든다. 남은 예산으로 한 파도를 못 끝내면 여기서 멈추고
         // 다음 실행에 넘긴다 — 함수가 도중에 죽는 것보다 훨씬 빨리 이어진다.
         if (!canStartAnotherSection(Date.now(), options.deadlineAt)) {
           if (options.budget) options.budget.exhausted = true
           break
         }
-        const result = await generateReportSectionNow({
+        const results = await Promise.all(wave.map(({ item }) => generateReportSectionNow({
           ...params,
-          sectionId: section.id,
-          ...(section.status === 'failed' ? { retry: true } : {}),
-        })
-        if (result.status === 'complete') continue
-        if (!options.recoverFailed) break
-        skipped.push(section.id)
-        // 한 실행에서 너무 많이 건너뛰면 같은 이유로 전부 실패하는 중일 가능성이 크다.
-        // 모델 호출만 태우지 말고 물러나서 다음 실행에 맡긴다.
-        if (skipped.length >= SKIP_LIMIT_PER_RUN) break
+          sectionId: item.id,
+          ...(item.status === 'failed' ? { retry: true } : {}),
+        })))
+        let stop = false
+        for (const [index, result] of results.entries()) {
+          if (result.status === 'complete') continue
+          if (!options.recoverFailed) { stop = true; break }
+          skipped.add(wave[index].item.id)
+          // 한 실행에서 너무 많이 건너뛰면 같은 이유로 전부 실패하는 중일 가능성이 크다.
+          // 모델 호출만 태우지 말고 물러나서 다음 실행에 맡긴다.
+          if (skipped.size >= SKIP_LIMIT_PER_RUN) { stop = true; break }
+        }
+        if (stop) break
+        // 한 파도에서 한 칸도 못 나아갔으면(다른 인스턴스가 잡고 있거나 전부 건너뜀) 돌지 않는다.
+        if (!results.some((result) => result.status === 'complete')) break
+        latest = await getReportRecord(params.reportId, params.owner)
       }
       return await getReportRecord(params.reportId, params.owner)
     } finally { inFlightReports.delete(params.reportId) }

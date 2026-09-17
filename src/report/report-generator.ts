@@ -2127,6 +2127,34 @@ function compactPromptSiblings(siblings: SajuReportSection[]): Array<{
   }))
 }
 
+/**
+ * 분량 규격 (2026-09-17, 이정훈 대표 검토 반영).
+ *
+ * 만족도는 글자 수보다 강약에서 갈린다. 실측 평균 868자가 항목마다 같은 무게로 이어지면
+ * 길고 반복돼 보였다(퇴사운 48항목 ≈ 42,000자, 권장 20,000~30,000자). 규격은 셋이다 —
+ *  - 첫 항목: 독자가 처음 읽는 글. 방향을 잡아 주고 근거를 두텁게(1,200~1,600자)
+ *  - 하이라이트: 판정·타이밍·액션 플랜·다섯 스승처럼 값을 만드는 항목(1,100~1,500자)
+ *  - 나머지: 400~700자. 근거가 얇으면 늘리지 않고 짧게 둔다 — 늘린 문장이 반복으로 읽힌다
+ * 출력 토큰이 그만큼 줄어 생성 시간도 같은 비율로 준다(시간 ≈ 출력 토큰 ÷ 초당 토큰 ÷ 동시 수).
+ */
+export type SectionWeight = 'opening' | 'highlight' | 'standard'
+const HIGHLIGHT_PATTERN = /총평|전체 판정|타이밍|액션 플랜|실행 계획|전략|다섯|스승|조언|결론|시뮬레이션/
+export function sectionLengthPlan(section: Pick<SajuReportSection, 'order' | 'category' | 'classification'>): { weight: SectionWeight; min: number; max: number } {
+  if (section.order === 1) return { weight: 'opening', min: 1_200, max: 1_600 }
+  if (HIGHLIGHT_PATTERN.test(`${section.category} ${section.classification}`)) return { weight: 'highlight', min: 1_100, max: 1_500 }
+  return { weight: 'standard', min: 450, max: 700 }
+}
+
+function sectionLengthInstruction(section: SajuReportSection): string {
+  const plan = sectionLengthPlan(section)
+  const role = plan.weight === 'opening'
+    ? '첫 항목입니다. 독자가 처음 읽는 글이므로 이 리포트가 무엇에 답하는지 방향을 잡아 주고 근거를 두텁게 쓰세요.'
+    : plan.weight === 'highlight'
+      ? '이 항목은 하이라이트입니다. 근거·생활 장면·다음 판단 기준을 두텁게 쓰세요.'
+      : '근거가 얇으면 억지로 늘리지 말고 짧게 두세요. 늘린 문장은 반복으로 읽힙니다.'
+  return `분량 규격: 본문 ${plan.min.toLocaleString('ko-KR')}~${plan.max.toLocaleString('ko-KR')}자(공백 포함). ${role}`
+}
+
 export function sectionPrompt(
   analysis: SajuAnalysis,
   birth: BirthInput,
@@ -2154,6 +2182,7 @@ export function sectionPrompt(
         toneWritingInstruction(context.serviceKey),
         context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingInstruction(section.id) : INTERPRETATION_INSTRUCTION,
         sectionSpecificInstruction(context, section),
+        sectionLengthInstruction(section),
       ].filter(Boolean).join('\n'),
       outputShape: { id: section.id, hook: 'string', interpretation: 'string' },
       evidenceLayers: {
