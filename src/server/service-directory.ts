@@ -146,7 +146,18 @@ export function serviceHrefForKey(serviceKey: string | undefined): string | unde
  * the way its own hardcoded table had (`lucky_color` was "색과 물건" there, but
  * "나한테 운 붙는 색과 물건" everywhere it was sold).
  */
+/**
+ * 결제 카탈로그에 없는 무료 상품. 보관함에는 유료 풀이와 나란히 남으므로 이름이 필요하다 —
+ * 없으면 카드가 "저장된 풀이" 라는 폴백으로 떨어진다(2026-09-17 운영 보관함에서 확인).
+ */
+const FREE_SERVICE_TITLES: Record<string, string> = {
+  today: '오늘운',
+  today_fortune: '오늘운',
+}
+
 export function serviceTitleForKey(serviceKey: string | undefined): string | undefined {
+  const free = serviceKey ? FREE_SERVICE_TITLES[serviceKey] : undefined
+  if (free) return free
   const seed = seedForKey(serviceKey)
   return seed ? getPaymentProduct(seed.key)?.title : undefined
 }
@@ -159,6 +170,7 @@ export function serviceTitleForKey(serviceKey: string | undefined): string | und
  * 금액 표기는 천단위 콤마 + "원" 으로 카탈로그와 같게 둔다.
  */
 export function serviceTierForKey(serviceKey: string | undefined): string | undefined {
+  if (serviceKey && FREE_SERVICE_TITLES[serviceKey]) return 'FREE · 무료'
   const seed = seedForKey(serviceKey)
   const product = seed ? getPaymentProduct(seed.key) : undefined
   if (!product) return undefined

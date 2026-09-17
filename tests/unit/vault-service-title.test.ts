@@ -55,3 +55,9 @@ test('보관함 화면은 제목 맵을 다시 적어 두지 않는다', () => {
   assert.doesNotMatch(vaultHtml, /cmdg:\s*'천명사주'/)
   assert.match(vaultHtml, /report\.serviceTitle/, '서버가 내려준 제목을 써야 한다')
 })
+
+test('결제 카탈로그에 없는 무료 오늘운도 제목을 가진다', () => {
+  // 운영 보관함에 serviceKey "today" 저장분이 있었고 제목이 없어 "저장된 풀이" 로 떨어졌다.
+  assert.equal(serviceTitleForKey('today'), '오늘운')
+  assert.equal(serviceTitleForKey('today_fortune'), '오늘운')
+})

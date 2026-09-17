@@ -69,3 +69,9 @@ test('카드 안의 버튼은 카드 링크 이동을 가로챈다', () => {
   assert.match(handler, /event\.preventDefault\(\)/)
   assert.match(handler, /event\.stopPropagation\(\)/)
 })
+
+test('셀 수 없는 목차 수에는 칸 틱을 그리지 않는다', () => {
+  // 운영 보관함의 실제 목차는 1~70개였다. 70개를 그리면 한 칸이 2.1px 라 세어지지 않고,
+  // 1개짜리는 칸 하나가 막대를 통째로 덮어 진행률처럼 보인다.
+  assert.match(html, /view\.total >= 2 && view\.total <= 20/)
+})

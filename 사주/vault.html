@@ -433,7 +433,11 @@
                 const at = stamp(report.purchasedAt || report.savedAt);
 
                 const view = cardView(report);
-                const ticks = view.total > 0
+                // 칸 틱은 "열둘 중 일곱" 처럼 셀 수 있을 때만 쓸모가 있다. 운영 보관함의 실제
+                // 목차는 1~70개로, 70개를 그리면 한 칸이 2.1px 라 세어지지도 읽히지도 않았다
+                // (2026-09-17 good1621 계정 실측). 셀 수 있는 범위에서만 그리고, 그 밖은
+                // 막대와 "N개 중 M개" 문구가 대신한다.
+                const ticks = view.total >= 2 && view.total <= 20
                   ? Array.from({ length: view.total }, (_, i) =>
                       `<span class="${i < view.done ? 'is-on' : ''}"></span>`).join('')
                   : '';
