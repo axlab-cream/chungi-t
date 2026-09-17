@@ -46,10 +46,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '회사 오퍼 선택 결정 확신 찝찝 고민 수락 보류',
     items: [
       { id: 'company-fit-01', title: '전체 핏 판정' },
-      { id: 'company-fit-02', title: '끌리는 이유' },
-      { id: 'company-fit-03', title: '찝찝한 포인트' },
-      { id: 'company-fit-04', title: 'GO/HOLD/협상/보류 시그널' },
-      { id: 'company-fit-05', title: '지금 선택해도 되는 마음 상태' },
+      { id: 'company-fit-02', title: 'GO/HOLD/협상/보류 시그널' },
     ],
   },
   {
@@ -64,10 +61,6 @@ export const JOB_CHOICE_TOC = [
     items: [
       { id: 'role-fit-01', title: '리더형 업무' },
       { id: 'role-fit-02', title: '기획·분석형 업무' },
-      { id: 'role-fit-03', title: '말·교육·콘텐츠형 업무' },
-      { id: 'role-fit-04', title: '재무·운영·관리형 업무' },
-      { id: 'role-fit-05', title: '상담·연구형 업무' },
-      { id: 'role-fit-06', title: '개척·현장·스타트업형 업무' },
     ],
   },
   {
@@ -81,11 +74,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '상사 동료 팀 정치 라인 조직 케미 고객 협력',
     items: [
       { id: 'office-chemistry-01', title: '상사 케미' },
-      { id: 'office-chemistry-02', title: '팀원·동료 케미' },
-      { id: 'office-chemistry-03', title: '조직문화 적응도' },
-      { id: 'office-chemistry-04', title: '사내 정치/라인 리스크' },
-      { id: 'office-chemistry-05', title: '멘토·귀인 가능성' },
-      { id: 'office-chemistry-06', title: '고객·협력사와의 호흡' },
+      { id: 'office-chemistry-02', title: '사내 정치/라인 리스크' },
     ],
   },
   {
@@ -99,11 +88,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '연봉 돈 성과급 인센티브 계약 조건 수입 지출 복지',
     items: [
       { id: 'money-value-01', title: '연봉 만족도' },
-      { id: 'money-value-02', title: '성과급·인센티브 흐름' },
-      { id: 'money-value-03', title: '돈이 쌓이는 구조' },
-      { id: 'money-value-04', title: '지출·기회비용' },
-      { id: 'money-value-05', title: '계약 조건 체크' },
-      { id: 'money-value-06', title: '장기 자산화 가능성' },
+      { id: 'money-value-02', title: '지출·기회비용' },
     ],
   },
   {
@@ -117,11 +102,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '성장 승진 평가 스킬 권한 포트폴리오 커리어 네임밸류',
     items: [
       { id: 'growth-angle-01', title: '승진·평가운' },
-      { id: 'growth-angle-02', title: '포트폴리오 성장' },
-      { id: 'growth-angle-03', title: '자격·스킬업' },
-      { id: 'growth-angle-04', title: '권한 확대' },
-      { id: 'growth-angle-05', title: '업계 네임밸류' },
-      { id: 'growth-angle-06', title: '커리어 레벨업 포인트' },
+      { id: 'growth-angle-02', title: '커리어 레벨업 포인트' },
     ],
   },
   {
@@ -135,10 +116,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '출퇴근 근무지 원격 재택 출장 이동 해외 거리 환경',
     items: [
       { id: 'work-environment-01', title: '출퇴근·근무지 적합도' },
-      { id: 'work-environment-02', title: '출장·이동·해외 가능성' },
-      { id: 'work-environment-03', title: '원격/비대면 업무 궁합' },
-      { id: 'work-environment-04', title: '회사 규모와 안정감' },
-      { id: 'work-environment-05', title: '변화 많은 환경 적응도' },
+      { id: 'work-environment-02', title: '원격/비대면 업무 궁합' },
     ],
   },
   {
@@ -152,12 +130,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '리스크 불안 압박 계약 실수 갈등 과로 번아웃 평판',
     items: [
       { id: 'risk-check-01', title: '역할 혼란' },
-      { id: 'risk-check-02', title: '상사 압박' },
-      { id: 'risk-check-03', title: '문서·계약 실수' },
-      { id: 'risk-check-04', title: '팀 갈등' },
-      { id: 'risk-check-05', title: '과로·번아웃' },
-      { id: 'risk-check-06', title: '돈 문제' },
-      { id: 'risk-check-07', title: '평판·구설 관리' },
+      { id: 'risk-check-02', title: '과로·번아웃' },
     ],
   },
   {
@@ -172,9 +145,6 @@ export const JOB_CHOICE_TOC = [
     items: [
       { id: 'entry-timing-01', title: '지금 들어가도 되는 흐름' },
       { id: 'entry-timing-02', title: '대운·유년상 변동기' },
-      { id: 'entry-timing-03', title: '첫 90일 테스트' },
-      { id: 'entry-timing-04', title: '월간/오늘 컨디션' },
-      { id: 'entry-timing-05', title: '입사·계약일 택일' },
     ],
   },
   {
@@ -188,11 +158,7 @@ export const JOB_CHOICE_TOC = [
     keywords: '워라밸 멘탈 스트레스 회복 수면 현타 피로 소진 번아웃',
     items: [
       { id: 'mental-balance-01', title: '회사가 내 삶을 잡아먹는지' },
-      { id: 'mental-balance-02', title: '평가 스트레스' },
-      { id: 'mental-balance-03', title: '수면·회복 리듬' },
-      { id: 'mental-balance-04', title: '내면 만족도' },
-      { id: 'mental-balance-05', title: '현타 오는 포인트' },
-      { id: 'mental-balance-06', title: '오래 버틸 수 있는 루틴' },
+      { id: 'mental-balance-02', title: '오래 버틸 수 있는 루틴' },
     ],
   },
   {
@@ -206,10 +172,8 @@ export const JOB_CHOICE_TOC = [
     keywords: '액션 체크리스트 협상 질문 30일 60일 90일 전략 보류',
     items: [
       { id: 'action-plan-01', title: '오퍼 수락 전 체크리스트' },
-      { id: 'action-plan-02', title: '면접/협상 질문' },
-      { id: 'action-plan-03', title: '첫 30·60·90일 전략' },
-      { id: 'action-plan-04', title: '보류해야 할 조건' },
-      { id: 'action-plan-05', title: '그만둘 각/버틸 각 구분' },
+      { id: 'action-plan-02', title: '첫 30·60·90일 전략' },
+      { id: 'action-plan-03', title: '그만둘 각/버틸 각 구분' },
     ],
   },
 ] as const

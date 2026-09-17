@@ -39,7 +39,8 @@ test('직장 선택 builds a dedicated job-choice report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '직장 선택 해석문')
-  assert.equal(report.sections.length, 57)
+  // 2026-09-17 목차 축소: 10대분류·57중분류 → 10대분류·21중분류(대분류당 2~3개).
+  assert.equal(report.sections.length, 21)
   assert.equal(new Set(report.sections.map((section) => section.category)).size, 10)
 
   // 05 목차 and 06 상세 route on the design's own section ids.
