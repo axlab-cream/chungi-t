@@ -45,7 +45,7 @@ import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-comman
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { checkOpsQueueReadiness } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
-import { FUNNEL_BATCH_LIMIT, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
+import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import {
@@ -1853,6 +1853,8 @@ app.get('/api/health', async (req, res) => {
   const profileStorage = req.query.storage === '1' ? checkUserProfileStorageReadiness() : undefined
   // 영속 작업 큐. 여기가 죽어 있으면 결제한 해석이 조용히 멈춘다.
   const opsQueue = req.query.storage === '1' ? await checkOpsQueueReadiness() : undefined
+  // 퍼널 통계 표. 없으면 수집이 조용히 버려진다 — 여기서만 밖으로 드러난다.
+  const funnelStore = req.query.storage === '1' ? await checkFunnelStoreReadiness() : undefined
   const storages = [reportStorage, paymentStorage, profileStorage, opsQueue]
   res.setHeader('Cache-Control', 'no-store')
   res.status(storages.some((storage) => storage && !storage.ok) ? 503 : 200).json({
@@ -1864,6 +1866,7 @@ app.get('/api/health', async (req, res) => {
     ...(paymentStorage ? { paymentStorage } : {}),
     ...(profileStorage ? { profileStorage } : {}),
     ...(opsQueue ? { opsQueue } : {}),
+    ...(funnelStore ? { funnelStore } : {}),
     corpus: {
       registryVersion: corpus.registryVersion,
       fingerprint: corpus.fingerprint,
