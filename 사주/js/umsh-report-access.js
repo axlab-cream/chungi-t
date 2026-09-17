@@ -327,7 +327,7 @@
     // 06 상세 본문 → 04 티저 본문 → 05 결과 목록 순. 05 는 목록형이라 id 가 또 다르다.
     // 채팅 로그(`chat-log`·`chatLog`·`chatScroll`)는 넣지 않는다. 대화 기록 자리에
     // 섹션 목록을 밀어 넣으면 그 화면이 망가진다.
-    sections: ['detail-stack', 'detail-root', 'detail-body', 'detailStage', 'detailContent',
+    sections: ['detail-stack', 'detail-root', 'detail-body', 'detailStage',
                'section-items', 'interpretationBlocks', 'reportStage', 'teaserStack', 'detail-group',
                'groupList', 'group-list', 'group-grid', 'item-list', 'reportGroups', 'report-list',
                'reportIndex', 'section-panel', 'content'],
@@ -486,6 +486,16 @@
     return null;
   }
   function markFilled(node) { if (node) node.setAttribute('data-umsh-filled', ''); }
+  /**
+   * Single-section seed cards (#detailContent) are not the live TOC. After the
+   * paid reading mounts, hide that seed so 06-1 matches the this-year stack.
+   */
+  function hideNativeSeedDetail(liveHost) {
+    var native = document.getElementById('detailContent');
+    if (!native || native === liveHost) return;
+    native.hidden = true;
+    native.setAttribute('data-umsh-seed-hidden', '');
+  }
   function allowDesignMockReading() {
     try { return String(location.protocol) === 'file:'; }
     catch (_) { return false; }
@@ -763,6 +773,7 @@
     mountLongform(host, report, payload.entitled !== false);
     revealAncestors(host);
     markFilled(host);
+    hideNativeSeedDetail(host);
     renderProgress(report);
     ensureImportantNotice(host);
     ensurePdfDock(host);
