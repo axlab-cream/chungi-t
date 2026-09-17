@@ -40,7 +40,8 @@ test('marry match service builds a dedicated marriage compatibility report', () 
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '결혼궁합 해석문')
-  assert.equal(report.sections.length, 70)
+  // 2026-09-17 목차 축소: 10대분류·70중분류 → 10대분류·24중분류(대분류당 2~3개).
+  assert.equal(report.sections.length, 24)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '내 연애 기본값',
     '상대 연애 캐릭터',
@@ -56,7 +57,7 @@ test('marry match service builds a dedicated marriage compatibility report', () 
   assert.match(report.sections[0].interpretation, /배우자궁|대운|합충|결혼/)
   assert.equal(context.partner?.name, '김하나')
   assert.equal(report.sections[0].id, 'marry-01-01')
-  assert.equal(report.sections.at(-1)!.id, 'marry-10-08')
+  assert.equal(report.sections.at(-1)!.id, 'marry-10-03')
 
   // Each 대분류 carries its own artwork and its own reading angle, so the 05 list and
   // the 06 detail never show ten copies of the same card or the same opening sentence.
