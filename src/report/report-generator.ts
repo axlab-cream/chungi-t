@@ -7,7 +7,10 @@ import type {
   SajuAnalysis,
   SajuReport,
   SajuReportContext,
+  SajuReportHighlight,
   SajuReportSection,
+  SajuReportSummary,
+  SajuReportVerdict,
   TenGod,
 } from '../types/index.js'
 import { chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
@@ -15,7 +18,15 @@ import { InterpretationQualityError, reviewInterpretation, type InterpretationRe
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
-import { fixCopulaSpelling, numericEvidenceFrom, reviewPaidSectionDensity, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
+import { fixCopulaSpelling, numericEvidenceFrom, reviewPaidSectionDensity, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
+import type { HighlightTopic } from './longform-blocks.js'
+import {
+  lengthBudgetForRole,
+  lengthBudgetRoleForSection,
+  reviewEngineLabelExposure,
+  reviewLengthBudget,
+  strengthMeaning,
+} from './report-budget.js'
 import { standardReading } from './standard-reading.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
@@ -2088,15 +2099,27 @@ function sectionSpecificInstruction(context: SajuReportContext, section: SajuRep
 }
 
 
+function promptCalculations(features: ReturnType<typeof buildSajuFeatureJson>): Record<string, unknown> {
+  const { dayMasterStrength, ...calculation } = features.calculation
+  return { ...calculation, dayMasterForce: strengthMeaning(dayMasterStrength) }
+}
+
 export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuReportContext): unknown {
   // `buildSajuFeatureJson` 은 문맥을 `userContext` 로 통째로 실어 모델에 보낸다.
   // 그래서 호출자가 가려 주기를 기대하지 않고 이 함수가 직접 걷어낸다 — 호출자만 고치면
   // 다음 호출자가 다시 새게 된다(2026-09-10 Codex 리뷰 Critical).
   const context = publicReportContext(rawContext)
   const features = buildSajuFeatureJson(analysis, context)
-  if (context.birthTimeKnown !== false) return features
+  if (context.birthTimeKnown !== false) {
+    return { ...features, calculation: promptCalculations(features) }
+  }
   return {
-    calculation: { pillars: { year: features.calculation.pillars.year, month: features.calculation.pillars.month, day: features.calculation.pillars.day }, dayMaster: features.calculation.dayMaster, dayMasterElement: features.calculation.dayMasterElement },
+    calculation: {
+      pillars: { year: features.calculation.pillars.year, month: features.calculation.pillars.month, day: features.calculation.pillars.day },
+      dayMaster: features.calculation.dayMaster,
+      dayMasterElement: features.calculation.dayMasterElement,
+      dayMasterForce: strengthMeaning(features.calculation.dayMasterStrength),
+    },
     timing: features.timing ? { currentYear: features.timing.currentYear, yearPillar: features.timing.yearPillar } : undefined,
     uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신·정밀 운 시작 시점을 제외했습니다. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
     guardrails: features.guardrails,
@@ -2149,12 +2172,13 @@ export function sectionLengthPlan(section: Pick<SajuReportSection, 'order' | 'ca
 
 function sectionLengthInstruction(section: SajuReportSection): string {
   const plan = sectionLengthPlan(section)
+  const budget = lengthBudgetForRole(lengthBudgetRoleForSection(plan.weight))
   const role = plan.weight === 'opening'
     ? '첫 항목입니다. 독자가 처음 읽는 글이므로 이 리포트가 무엇에 답하는지 방향을 잡아 주고 근거를 두텁게 쓰세요.'
     : plan.weight === 'highlight'
       ? '이 항목은 하이라이트입니다. 근거·생활 장면·다음 판단 기준을 두텁게 쓰세요.'
       : '근거가 얇으면 억지로 늘리지 말고 짧게 두세요. 늘린 문장은 반복으로 읽힙니다.'
-  return `분량 규격: 본문 ${plan.min.toLocaleString('ko-KR')}~${plan.max.toLocaleString('ko-KR')}자(공백 포함). ${role}`
+  return `분량 예산: 본문 ${budget.min.toLocaleString('ko-KR')}~${budget.max.toLocaleString('ko-KR')}자(공백 포함). ${role}`
 }
 
 export function sectionPrompt(
@@ -2164,6 +2188,7 @@ export function sectionPrompt(
   section: SajuReportSection,
   siblings: SajuReportSection[] = [],
   corpusSnapshot?: CorpusSnapshot,
+  verdict?: SajuReportVerdict,
 ): LlmMessage[] {
   // 이 프롬프트는 외부 모델 제공자로 나간다. 상대의 생년월일시 원본은 어느 필드로도
   // 넘기지 않는다 — `featureJson` 이 문맥을 `userContext` 로 통째로 싣기 때문에
@@ -2185,6 +2210,9 @@ export function sectionPrompt(
         context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingInstruction(section.id) : INTERPRETATION_INSTRUCTION,
         sectionSpecificInstruction(context, section),
         sectionLengthInstruction(section),
+        verdict?.statement
+          ? 'evidenceLayers.fixedVerdict는 이 리포트의 고정 결론입니다. 1순위를 바꾸지 말고 그 결론을 현재 항목 각도에서만 풀으세요.'
+          : '',
       ].filter(Boolean).join('\n'),
       outputShape: { id: section.id, hook: 'string', interpretation: 'string' },
       evidenceLayers: {
@@ -2197,11 +2225,236 @@ export function sectionPrompt(
         verifiedCalculations: groundedReportFeatures(analysis, context),
         traditionalInterpretationCandidates: formatRagForPrompt(chunks),
         fictionalExamplePolicy: '실제 경험으로 쓰지 않습니다. 예를 들어 또는 만약으로 시작해 가상 사례임을 표시합니다.',
+        ...(verdict?.statement
+          ? { fixedVerdict: { statement: verdict.statement, rankedChoices: verdict.rankedChoices ?? [] } }
+          : {}),
       },
       section: { id: section.id, order: section.order, category: section.category, classification: section.classification },
       otherSections: compactPromptSiblings(siblings),
     }) },
   ]
+}
+
+export function verdictPrompt(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  rawContext: SajuReportContext,
+): LlmMessage[] {
+  const context = publicReportContext(rawContext)
+  return [
+    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 리포트의 고정 결론만 JSON 객체로 출력하세요.' },
+    { role: 'user', content: JSON.stringify({
+      instruction: [
+        toneWritingInstruction(context.serviceKey),
+        'statement는 이 리포트가 끝까지 유지할 한 줄 결론입니다. 항목마다 바꾸지 않을 문장입니다.',
+        'rankedChoices는 후보를 우선순위 순으로 적은 배열입니다. 첫 값이 1순위입니다.',
+        '하위 후보를 1순위로 쓰지 마세요. 날짜·선택지가 여럿이면 하나만 1순위로 고르세요.',
+      ].join('\n'),
+      outputShape: { statement: 'string', rankedChoices: ['string'] },
+      evidenceLayers: {
+        userFacts: {
+          birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
+          context,
+        },
+        verifiedCalculations: groundedReportFeatures(analysis, context),
+      },
+    }) },
+  ]
+}
+
+export function parseReportVerdict(raw: string): SajuReportVerdict {
+  const parsed = extractJsonObject(raw) as { statement?: unknown; rankedChoices?: unknown }
+  const statement = typeof parsed.statement === 'string' ? parsed.statement.trim() : ''
+  if (!statement) throw new Error('고정 결론 문장을 찾지 못했습니다.')
+  const rankedChoices = Array.isArray(parsed.rankedChoices)
+    ? parsed.rankedChoices.map((item) => String(item).trim()).filter(Boolean)
+    : []
+  return { statement, rankedChoices, decidedAt: new Date().toISOString() }
+}
+
+export async function buildOpenAiReportVerdict(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  context: SajuReportContext = {},
+): Promise<SajuReportVerdict> {
+  const raw = await chatWithOpenAI(verdictPrompt(analysis, birth, context), {
+    model: REPORT_MODEL,
+    maxTokens: Number(process.env.REPORT_VERDICT_MAX_TOKENS) || 800,
+  })
+  return parseReportVerdict(raw)
+}
+
+export function summaryPrompt(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  rawContext: SajuReportContext,
+  verdict?: SajuReportVerdict,
+): LlmMessage[] {
+  const context = publicReportContext(rawContext)
+  return [
+    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 리포트의 전체 요약만 JSON 객체로 출력하세요.' },
+    { role: 'user', content: JSON.stringify({
+      instruction: [
+        toneWritingInstruction(context.serviceKey),
+        'text는 목차보다 먼저 읽는 전체 요약이다. 항목을 나열하지 말고 결론과 근거와 다음 기준을 이어서 쓴다.',
+        `분량 예산: ${lengthBudgetForRole('summary').min}~${lengthBudgetForRole('summary').max}자(공백 포함).`,
+        '돈 낮음 같은 등급 라벨을 쓰지 말고 뜻으로 쓰세요.',
+        verdict?.statement
+          ? 'evidenceLayers.fixedVerdict의 1순위를 바꾸지 마세요.'
+          : '아직 고정 결론이 없으면 한 줄 결론을 요약 안에 먼저 밝히세요.',
+      ].join('\n'),
+      outputShape: { text: 'string' },
+      evidenceLayers: {
+        userFacts: {
+          birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
+          context,
+        },
+        verifiedCalculations: groundedReportFeatures(analysis, context),
+        ...(verdict?.statement
+          ? { fixedVerdict: { statement: verdict.statement, rankedChoices: verdict.rankedChoices ?? [] } }
+          : {}),
+      },
+    }) },
+  ]
+}
+
+export function parseReportSummary(raw: string): SajuReportSummary {
+  const parsed = extractJsonObject(raw) as { text?: unknown }
+  const text = typeof parsed.text === 'string' ? parsed.text.trim() : ''
+  if (!text) throw new Error('전체 요약 문장을 찾지 못했습니다.')
+  return { text, status: 'complete', generatedAt: new Date().toISOString() }
+}
+
+export async function buildOpenAiReportSummary(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  context: SajuReportContext = {},
+  verdict?: SajuReportVerdict,
+): Promise<SajuReportSummary> {
+  const budgetMaxAttempts = 3
+  let issues: string[] = []
+  let summary = parseReportSummary('{"text":"placeholder"}')
+  for (let attempt = 0; attempt < budgetMaxAttempts; attempt += 1) {
+    const raw = await chatWithOpenAI(
+      [
+        ...summaryPrompt(analysis, birth, context, verdict),
+        ...(issues.length ? [{ role: 'user' as const, content: `이전 초안 지적: ${issues.join(' ')}` }] : []),
+      ],
+      {
+        model: REPORT_MODEL,
+        maxTokens: Number(process.env.REPORT_SUMMARY_MAX_TOKENS) || 1600,
+      },
+    )
+    summary = parseReportSummary(raw)
+    const budget = reviewLengthBudget(summary.text, 'summary')
+    issues = [
+      ...reviewToneCopy(summary.text, context.serviceKey, { context, contentRole: 'body' }).issues,
+      ...reviewReportVerdictConsistency({ verdict, texts: [summary.text] }).issues,
+      ...reviewEngineLabelExposure(summary.text).issues,
+      ...budget.issues,
+    ]
+    if (!issues.length) return summary
+  }
+  throw new InterpretationQualityError({
+    passed: false,
+    issues,
+    characters: summary.text.length,
+    paragraphs: summary.text.split(/\n\s*\n/).filter(Boolean).length,
+  })
+}
+
+export function reviewHighlightShape(text: string, paragraphs?: number): InterpretationReview {
+  const parts = text.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean)
+  const issues: string[] = []
+  if (paragraphs && parts.length !== paragraphs) {
+    issues.push(`하이라이트 문단 수는 ${paragraphs}개여야 합니다.`)
+  }
+  return { passed: issues.length === 0, issues, characters: text.length, paragraphs: parts.length }
+}
+
+export function highlightPrompt(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  rawContext: SajuReportContext,
+  topic: HighlightTopic,
+  verdict?: SajuReportVerdict,
+): LlmMessage[] {
+  const context = publicReportContext(rawContext)
+  return [
+    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 하이라이트 항목만 JSON 객체로 출력하세요.' },
+    { role: 'user', content: JSON.stringify({
+      instruction: [
+        toneWritingInstruction(context.serviceKey),
+        '목차 항목을 요약하지 마세요. 이 주제에서 새 판단을 내리세요.',
+        `서술 형태: ${topic.shape}`,
+        `분량 예산: ${lengthBudgetForRole('highlightCard').min}~${lengthBudgetForRole('highlightCard').max}자(공백 포함).`,
+        '돈 낮음 같은 등급 라벨을 쓰지 말고 뜻으로 쓰세요.',
+        topic.paragraphs ? `문단 수: ${topic.paragraphs}개. 빈 줄로 문단을 나눕니다.` : '',
+        verdict?.statement
+          ? 'evidenceLayers.fixedVerdict의 1순위를 바꾸지 마세요.'
+          : '',
+      ].filter(Boolean).join('\n'),
+      outputShape: { text: 'string' },
+      highlight: { title: topic.title, shape: topic.shape, paragraphs: topic.paragraphs },
+      evidenceLayers: {
+        userFacts: {
+          birth: context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
+          context,
+        },
+        verifiedCalculations: groundedReportFeatures(analysis, context),
+        ...(verdict?.statement
+          ? { fixedVerdict: { statement: verdict.statement, rankedChoices: verdict.rankedChoices ?? [] } }
+          : {}),
+      },
+    }) },
+  ]
+}
+
+export function parseReportHighlight(raw: string, title: string): SajuReportHighlight {
+  const parsed = extractJsonObject(raw) as { text?: unknown }
+  const text = typeof parsed.text === 'string' ? parsed.text.trim() : ''
+  if (!text) throw new Error('하이라이트 본문을 찾지 못했습니다.')
+  return { title, text, status: 'complete', generatedAt: new Date().toISOString() }
+}
+
+export async function buildOpenAiReportHighlight(
+  analysis: SajuAnalysis,
+  birth: BirthInput,
+  context: SajuReportContext,
+  topic: HighlightTopic,
+  verdict?: SajuReportVerdict,
+): Promise<SajuReportHighlight> {
+  const budgetMaxAttempts = 3
+  let issues: string[] = []
+  let highlight = parseReportHighlight('{"text":"placeholder"}', topic.title)
+  for (let attempt = 0; attempt < budgetMaxAttempts; attempt += 1) {
+    const raw = await chatWithOpenAI(
+      [
+        ...highlightPrompt(analysis, birth, context, topic, verdict),
+        ...(issues.length ? [{ role: 'user' as const, content: `이전 초안 지적: ${issues.join(' ')}` }] : []),
+      ],
+      {
+        model: REPORT_MODEL,
+        maxTokens: Number(process.env.REPORT_HIGHLIGHT_MAX_TOKENS) || 1800,
+      },
+    )
+    highlight = parseReportHighlight(raw, topic.title)
+    const budget = reviewLengthBudget(highlight.text, 'highlightCard')
+    issues = [
+      ...reviewToneCopy(highlight.text, context.serviceKey, { context, contentRole: 'body' }).issues,
+      ...reviewReportVerdictConsistency({ verdict, texts: [highlight.text] }).issues,
+      ...reviewHighlightShape(highlight.text, topic.paragraphs).issues,
+      ...reviewEngineLabelExposure(highlight.text).issues,
+      ...budget.issues,
+    ]
+    if (!issues.length) return highlight
+  }
+  throw new InterpretationQualityError({
+    passed: false,
+    issues,
+    characters: highlight.text.length,
+    paragraphs: highlight.text.split(/\n\s*\n/).filter(Boolean).length,
+  })
 }
 
 function extractJsonObject(raw: string): unknown {
@@ -2267,8 +2520,9 @@ export function reviewGeneratedSajuReportSection(input: {
   interpretation: string
   siblings?: SajuReportSection[]
   corpusSnapshot?: CorpusSnapshot
+  verdict?: SajuReportVerdict
 }): InterpretationReview {
-  const { analysis, birth, context, section, hook, interpretation, siblings = [], corpusSnapshot } = input
+  const { analysis, birth, context, section, hook, interpretation, siblings = [], corpusSnapshot, verdict } = input
   const review = reviewInterpretation(interpretation, context, siblings)
  const numericEvidence = numericEvidenceFrom(
     context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
@@ -2304,6 +2558,12 @@ export function reviewGeneratedSajuReportSection(input: {
     hasComparisonTarget: context.partner?.mode === 'known'
       || Boolean(context.workMove?.targetCompanyName || context.workMove?.targetRole),
   }).issues)
+  review.issues.push(...reviewReportVerdictConsistency({
+    verdict,
+    texts: [hook, interpretation],
+  }).issues)
+  review.issues.push(...reviewEngineLabelExposure(interpretation).issues)
+  review.issues.push(...reviewEngineLabelExposure(hook).issues)
   if (!hook) review.issues.push('현재 항목의 답을 담은 한 줄 요약을 새로 작성하세요.')
   review.passed = review.issues.length === 0
   if (context.serviceKey === HOME_FIT_SERVICE_KEY) {
@@ -2326,11 +2586,12 @@ export async function buildOpenAiSajuReportSection(
     corpusSnapshot?: CorpusSnapshot
     /** 이번 시도에만 쓸 예산. 비우면 기본값. 직전 시도가 빈 응답/잘림이었을 때 호출자가 키운다. */
     maxTokens?: number
+    verdict?: SajuReportVerdict
   } = {},
 ): Promise<SajuReportSection> {
   const section = savedSection ?? buildTemplateSajuReport(analysis, birth, context).sections.find((item) => item.id === sectionId)
   if (!section || section.id !== sectionId) throw new Error('요청한 전용 항목을 찾지 못했습니다. 다른 항목으로 대체하지 않습니다.')
-  const messages = sectionPrompt(analysis, birth, context, section, options.siblings, options.corpusSnapshot)
+  const messages = sectionPrompt(analysis, birth, context, section, options.siblings, options.corpusSnapshot, options.verdict)
   if (options.repairIssues?.length) messages.push({ role: 'user', content: sectionRepairInstruction(options.repairIssues) })
   let metadata: OpenAiResult | undefined
   const raw = await chatWithOpenAI(messages, {
@@ -2353,6 +2614,7 @@ export async function buildOpenAiSajuReportSection(
     interpretation,
     siblings: options.siblings,
     corpusSnapshot: options.corpusSnapshot,
+    verdict: options.verdict,
   })
   if (!review.passed) throw new InterpretationQualityError(review)
 

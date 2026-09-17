@@ -2,20 +2,25 @@
  * umsh-longform.css
  *
  * 해석 목차 위에 오는 세 블록 — 결론 · 서머리 · 하이라이트.
- * 색은 전부 var(--...) 로 받고 값이 없으면 운명상회 공통 골드/다크 팔레트로 폴백한다.
- * 서비스 강조색은 JS 가 --umsh-lf-accent 를 인라인으로 주입한다.
+ * 색·크기 값은 만들지 않는다. 페이지 팔레트와 umsh-kit 토큰만 받는다.
+ *   accent : 기본 --gold. JS 가 서비스 토큰 이름만 인라인으로 지정
+ *   ink    : --text, 없으면 currentColor  (--ink 는 골드 위 짙은 글자라 본문에 쓰지 않음)
+ *   CTA    : --umsh-cta-height 52px, --umsh-field-radius 8px, 가로 100%
  * 레이아웃에는 관여하지 않고 블록 내부만 책임진다.
  */
 
 .umsh-longform {
   --umsh-lf-accent: var(--gold, #e8c76f);
-  --umsh-lf-ink: var(--ink, #fff7df);
+  --umsh-lf-accent-ink: var(--umsh-accent-ink, #111111);
+  --umsh-lf-ink: var(--text, currentColor);
   --umsh-lf-muted: var(--muted, rgba(255, 247, 223, .72));
-  --umsh-lf-surface: var(--card, rgba(255, 255, 255, .04));
+  --umsh-lf-surface: var(--panel, var(--card, var(--surface, rgba(255, 255, 255, .04))));
   --umsh-lf-line: var(--line, rgba(255, 247, 223, .14));
   --umsh-lf-radius: var(--umsh-card-radius, 12px);
+  --umsh-lf-control-radius: var(--umsh-field-radius, 8px);
+  --umsh-lf-gap: var(--umsh-stack-gap, 14px);
   display: grid;
-  gap: 18px;
+  gap: var(--umsh-lf-gap);
   margin: 0 0 22px;
   min-width: 0;
 }
@@ -51,7 +56,7 @@
   padding: 5px 11px;
   border-radius: 999px;
   background: var(--umsh-lf-accent);
-  color: var(--umsh-accent-ink, #111);
+  color: var(--umsh-lf-accent-ink);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .02em;
@@ -129,7 +134,7 @@
  */
 .umsh-highlights {
   display: grid;
-  gap: 12px;
+  gap: var(--umsh-lf-gap);
 }
 .umsh-highlights-head {
   display: flex;
@@ -146,7 +151,7 @@
 }
 .umsh-highlights-grid {
   display: grid;
-  gap: 12px;
+  gap: var(--umsh-lf-gap);
   grid-template-columns: 1fr;
 }
 .umsh-highlight {
@@ -208,27 +213,28 @@
 }
 
 /* ── 강조 버튼 ───────────────────────────────────────────
- * 기존 CTA 높이 토큰을 그대로 쓴다. 터치 타깃 44px 이상.
+ * umsh-kit 단계 CTA 와 같은 크기. 색만 서비스 액센트.
  */
 .umsh-lf-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  width: 100%;
   min-height: var(--umsh-cta-height, 52px);
-  padding: 0 20px;
+  padding: 0 16px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--umsh-lf-control-radius);
   background: var(--umsh-lf-accent);
-  color: var(--umsh-accent-ink, #111);
-  font-size: 15px;
-  font-weight: 800;
+  color: var(--umsh-lf-accent-ink);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   text-decoration: none;
   cursor: pointer;
-  transition: filter .15s ease, transform .15s ease;
+  transition: transform 160ms ease, opacity 160ms ease;
 }
-.umsh-lf-cta:hover { filter: brightness(1.06); }
-.umsh-lf-cta:active { transform: translateY(1px); }
+.umsh-lf-cta:hover { transform: translateY(-1px); }
+.umsh-lf-cta:active { transform: none; }
 .umsh-lf-cta:focus-visible {
   outline: 2px solid var(--umsh-lf-accent);
   outline-offset: 3px;

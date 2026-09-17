@@ -90,9 +90,9 @@ describe('리포트 안 병렬 창', { concurrency: false }, () => {
     assert.deepEqual(sectionLengthPlan({ order: 12, category: '번아웃 체크', classification: '몸이 먼저 보내는 신호' }), { weight: 'standard', min: 450, max: 700 })
     // 프롬프트에 실린다.
     const messages = sectionPrompt(analysis, birth, context, { ...section('two', 2), category: '번아웃 체크', classification: '몸이 먼저 보내는 신호' })
-    assert.match(String(messages[1].content), /분량 규격: 본문 450~700자/)
+    assert.match(String(messages[1].content), /분량 예산: 본문 405~945자/)
     const opening = sectionPrompt(analysis, birth, context, { ...section('one', 1) })
-    assert.match(String(opening[1].content), /1,200~1,600자/)
+    assert.match(String(opening[1].content), /1,080~2,160자/)
   })
 
   it('큐 실행은 파도(wave)로 나란히 만들고, 첫 항목 전엔 한 칸씩 간다', () => {

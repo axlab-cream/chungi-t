@@ -781,6 +781,7 @@ const PUBLIC_STATIC_EXCEPTIONS = new Set([
   '/sitemap.xml',
   '/.well-known/assetlinks.json',
   '/manifest.json',
+  '/data/longform-blocks.json',
 ])
 /**
  * 웹으로 내보낼 형식. **허용 목록이다** — 여기 없는 확장자는 거부한다.

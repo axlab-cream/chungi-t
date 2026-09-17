@@ -47,5 +47,6 @@ copyFile(join(cmdgRoot, 'index.html'), join(publicRoot, 'cmdg', 'index.html'))
 
 copyDirectory(join(sajuRoot, 'css'), join(publicRoot, 'css'))
 copyDirectory(join(sajuRoot, 'js'), join(publicRoot, 'js'))
+copyFile(join(sajuRoot, 'data', 'longform-blocks.json'), join(publicRoot, 'data', 'longform-blocks.json'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'assets'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'cmdg', 'assets'))

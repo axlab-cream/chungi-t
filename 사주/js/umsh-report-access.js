@@ -1,4 +1,4 @@
-(function (global) {
+﻿(function (global) {
   'use strict';
   if (global.UMSHReportAccess) return;
   var ROUTES = [
@@ -126,6 +126,175 @@
       return answer + readingBlock('evidence', '근거', paragraphs.slice(0, -1)) + readingBlock('action', '행동', paragraphs.slice(-1));
     }
     return answer + readingBlock('evidence', '근거와 행동', paragraphs);
+  }
+
+  /* ==================================================================
+   * 긴 풀이 블록 — 결론 · 서머리 · 하이라이트
+   *
+   * 해석 목차 위에 온다. 세 블록의 뼈대(판정 축·하이라이트 제목·이미지 2컷)는
+   * /data/longform-blocks.json 이 가지고 있고, 본문은 리포트가 채운다. 본문이 아직
+   * 없으면 뼈대만 스켈레톤으로 보여준다 — 구조가 먼저 보여야 무엇을 받는지 안다.
+   *
+   * 이미지는 서비스마다 이미 있는 대표 캐릭터 컷 2장만 쓴다. 새로 만들면 화풍과
+   * 인물이 어긋난다(퇴사운 화자 나이 불일치 전례).
+   * ================================================================== */
+  var longform = { config: null, loading: null, failed: false };
+
+  function ensureLongformStyles() {
+    if (document.getElementById('umsh-longform-css')) return;
+    var link = document.createElement('link');
+    link.id = 'umsh-longform-css';
+    link.rel = 'stylesheet';
+    link.href = '/css/umsh-longform.css?v=lf-20260917a';
+    document.head.appendChild(link);
+  }
+
+  function loadLongformConfig() {
+    if (longform.config || longform.failed) return Promise.resolve(longform.config);
+    if (longform.loading) return longform.loading;
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260917a', { credentials: 'same-origin' })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        longform.config = data && data.services ? data.services : null;
+        if (!longform.config) longform.failed = true;
+        return longform.config;
+      })
+      .catch(function () { longform.failed = true; return null; });
+    return longform.loading;
+  }
+
+  /** 라우트 키와 설정 키가 다르다 — cmdg 는 saju_master 로 정규화된다. 양쪽을 다 본다. */
+  function longformConfigFor(serviceKey) {
+    if (!longform.config) return null;
+    var wanted = [serviceKey, canonical(serviceKey), 'cmdg', key, canonical(key)];
+    for (var index = 0; index < wanted.length; index += 1) {
+      var name = wanted[index];
+      if (name && longform.config[name]) return longform.config[name];
+    }
+    return null;
+  }
+
+  function longformParagraphs(text) {
+    return String(text == null ? '' : text)
+      .split(/\n\s*\n/)
+      .map(function (part) { return part.trim(); })
+      .filter(Boolean);
+  }
+
+  function longformSkeleton(label) {
+    return '<div class="umsh-lf-skeleton" role="status" aria-live="polite">' +
+      '<strong>' + escapeHtml(label) + ' 준비하고 있어요</strong>' +
+      '<p>목차와 본문은 먼저 보실 수 있고, 이 자리는 준비가 끝나는 대로 채워집니다.</p>' +
+      '</div>';
+  }
+
+  function verdictBlock(report, config) {
+    var verdict = report && report.verdict;
+    var statement = verdict ? String(verdict.statement || '').trim() : '';
+    var axis = (verdict ? String(verdict.axis || '').trim() : '') || (config && config.verdictAxis) || '';
+    if (!statement && !axis) return '';
+    var headline = statement || (axis + ' 먼저 정리합니다.');
+    return '<section class="umsh-verdict" aria-labelledby="umsh-verdict-title">' +
+      '<span class="umsh-verdict-badge">결론</span>' +
+      '<p class="umsh-verdict-statement" id="umsh-verdict-title">' + escapeHtml(headline) + '</p>' +
+      (axis && statement ? '<p class="umsh-verdict-axis">판단 축 · ' + escapeHtml(axis) + '</p>' : '') +
+      '</section>';
+  }
+
+  function summaryBlock(report, config, entitled) {
+    var summary = report && report.summary;
+    if (summary && summary.status === 'failed') return '';
+    var paragraphs = longformParagraphs(summary && summary.text);
+    var locked = !entitled && paragraphs.length > 1;
+    var shown = locked ? paragraphs.slice(0, 1) : paragraphs;
+    var cut = config && config.cutA;
+    var figure = cut
+      ? '<figure class="umsh-summary-figure"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
+      : '';
+    var body = shown.length
+      ? shown.map(function (part) { return '<p>' + escapeHtml(part) + '</p>'; }).join('')
+      : longformSkeleton('전체 요약을');
+    var unlock = locked
+      ? '<div class="umsh-lf-locked"><p>요약의 나머지와 하이라이트는 결제 후 열립니다.</p>' +
+        '<a class="umsh-lf-cta" href="' + escapeHtml(tocHref(identity(report) || rememberedId)) + '">전체 해석 열기</a></div>'
+      : '';
+    return '<section class="umsh-summary" aria-label="전체 요약">' +
+      figure +
+      '<div class="umsh-summary-body">' +
+        '<p class="umsh-summary-eyebrow">한눈에 보기</p>' +
+        body +
+      '</div>' + unlock +
+      '</section>';
+  }
+
+  function highlightBlocks(report, config, entitled) {
+    var defined = (config && Array.isArray(config.highlights)) ? config.highlights : [];
+    if (!defined.length) return '';
+    var written = (report && Array.isArray(report.highlights)) ? report.highlights : [];
+    var cut = config && config.cutB;
+    var cards = defined.map(function (item, index) {
+      var match = written[index] || {};
+      if (match.status === 'failed') return '';
+      var paragraphs = longformParagraphs(match.text);
+      var locked = !entitled && paragraphs.length > 0;
+      var body = paragraphs.length
+        ? (locked
+          ? '<p>' + escapeHtml(paragraphs[0]) + '</p>'
+          : paragraphs.map(function (part) { return '<p>' + escapeHtml(part) + '</p>'; }).join(''))
+        : longformSkeleton(labelText(item.title) + ' 항목을');
+      var banner = (index === 0 && cut)
+        ? '<figure class="umsh-highlight-banner"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
+        : '';
+      return '<article class="umsh-highlight' + (locked ? ' is-locked' : '') + '">' +
+        banner +
+        '<span class="umsh-highlight-index" aria-hidden="true">' + (index + 1) + '</span>' +
+        '<h3 class="umsh-highlight-title">' + escapeHtml(labelText(item.title)) + '</h3>' +
+        '<div class="umsh-highlight-body">' + body + '</div>' +
+        '</article>';
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return '<section class="umsh-highlights" aria-label="하이라이트">' +
+      '<div class="umsh-highlights-head"><h2 class="umsh-highlights-title">하이라이트</h2></div>' +
+      '<div class="umsh-highlights-grid">' + cards + '</div>' +
+      '</section>';
+  }
+
+  /**
+   * accent is a page :root token name, never a hex.
+   * Unknown names omit the inline style so CSS falls back to --gold.
+   */
+  var LONGFORM_ACCENT_TOKENS = { gold: 1, teal: 1, rose: 1, coral: 1, pink: 1, green: 1 };
+  function longformAccentStyle(config) {
+    var name = config && String(config.accent || '').replace(/^--/, '').trim();
+    if (!LONGFORM_ACCENT_TOKENS[name]) return '';
+    return ' style="--umsh-lf-accent:var(--' + name + ', var(--gold))"';
+  }
+
+  /** 세 블록의 HTML. 설정이 없으면 아무것도 그리지 않는다 — 하위 호환. */
+  function longformHtml(report, entitled) {
+    var config = longformConfigFor(key);
+    if (!config) return '';
+    var inner = verdictBlock(report, config) + summaryBlock(report, config, entitled) + highlightBlocks(report, config, entitled);
+    if (!inner) return '';
+    return '<div class="umsh-longform" id="umsh-longform-host"' + longformAccentStyle(config) + '>' + inner + '</div>';
+  }
+
+  /**
+   * 설정은 네트워크로 온다. 리포트가 먼저 그려졌으면 도착한 뒤 한 번 더 채운다.
+   * 목차 위 자리만 건드리고 본문 섹션은 그대로 둔다.
+   */
+  function mountLongform(host, report, entitled) {
+    if (!host) return;
+    ensureLongformStyles();
+    var paint = function () {
+      var html = longformHtml(report, entitled);
+      var existing = host.querySelector('#umsh-longform-host');
+      if (!html) { if (existing && existing.parentNode) existing.parentNode.removeChild(existing); return; }
+      if (existing) { existing.outerHTML = html; return; }
+      host.insertAdjacentHTML('afterbegin', html);
+    };
+    if (longform.config) { paint(); return; }
+    loadLongformConfig().then(paint).catch(function () {});
   }
 
   /* ==================================================================
@@ -373,7 +542,7 @@
    * 브라우저가 새 규칙을 무시하고 옛 사본을 쓰는 것을 확인했다. HTML 의 `?v=` 규약과 같이
    * 버전을 붙인다 — 규칙을 고칠 때 이 값을 함께 올린다.
    */
-  var PRINT_CSS_HREF = '/css/umsh-report-print.css?v=print-20260917a';
+  var PRINT_CSS_HREF = '/css/umsh-report-print.css?v=print-20260917b';
   function ensurePrintStyles() {
     if (document.getElementById('umsh-report-print-css')) return;
     var link = document.createElement('link');
@@ -590,6 +759,8 @@
         '<summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' +
         body + '</details>';
     }).join('');
+    // 목차 위에 결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
+    mountLongform(host, report, payload.entitled !== false);
     revealAncestors(host);
     markFilled(host);
     renderProgress(report);
@@ -786,11 +957,13 @@
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});
-    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 저장된 전체 해석</span><h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p><p style="font-size:13px">이 주소로 다시 열면 같은 해석을 확인합니다.</p>' + report.sections.map(function(section,index) {
+    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 저장된 전체 해석</span><h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p><p style="font-size:13px">이 주소로 다시 열면 같은 해석을 확인합니다.</p>' + '<div id="umsh-longform-mount"></div>' + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
       var body = ready ? readySectionBody(section) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
       return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' + body + '</details>';
     }).join('');
+    // 공용 리더(/r/:id). 06-1 이 없는 서비스(cmdg)가 여기로 온다 — 같은 세 블록을 같은 자리에 올린다.
+    mountLongform(document.getElementById('umsh-longform-mount'), report, payload.entitled !== false);
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
     ensureImportantNotice(node);

@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportSection } from '../types/index.js'
 import { OpenAiTruncatedError, isOpenAiConfigured, isTransientOpenAiFailure } from '../llm/openai-adapter.js'
-import { buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
+import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
+import { loadHighlightTopics } from './longform-blocks.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
 import { assertReportOwner, getReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
 
@@ -166,6 +167,7 @@ export async function recoverReportSectionFromLatestAttempt(params: {
       interpretation: parsed.interpretation,
       siblings: current.report.sections.slice(0, position).filter((item) => item.status === 'complete'),
       corpusSnapshot: current.corpus,
+      verdict: current.report.verdict,
     })
     if (!review.passed) throw new InterpretationQualityError(review)
 
@@ -227,6 +229,60 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
   if (!record || !storedSection) throw new Error('리포트 섹션을 찾지 못했습니다.')
   if (!claimed) return storedSection
 
+  if (!record.report.verdict?.statement && isOpenAiConfigured()) {
+    try {
+      const verdict = await buildOpenAiReportVerdict(record.analysis ?? params.analysis, record.birth, record.context)
+      const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
+        if (current.report.verdict?.statement) return false
+        current.report.verdict = verdict
+      })
+      if (stored?.report.verdict) record.report.verdict = stored.report.verdict
+    } catch {
+      // Missing verdict keeps previous independent-section behaviour.
+    }
+  }
+
+  if (record.report.summary?.status !== 'complete' && isOpenAiConfigured()) {
+    try {
+      const summary = await buildOpenAiReportSummary(
+        record.analysis ?? params.analysis, record.birth, record.context, record.report.verdict,
+      )
+      const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
+        if (current.report.summary?.status === 'complete') return false
+        current.report.summary = summary
+      })
+      if (stored?.report.summary) record.report.summary = stored.report.summary
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'summary generation failed'
+      await mutateReportRecord(params.reportId, params.owner, (current) => {
+        if (current.report.summary?.status === 'complete') return false
+        current.report.summary = { text: '', status: 'failed', error: message }
+      })
+    }
+  }
+
+  const topics = loadHighlightTopics(record.context.serviceKey)
+  const currentHighlights = record.report.highlights ?? []
+  const highlightsPending = Boolean(topics && topics.some((_, index) => currentHighlights[index]?.status !== 'complete'))
+  if (topics && highlightsPending && isOpenAiConfigured()) {
+    const highlights = topics.map((topic, index) => currentHighlights[index] ?? { title: topic.title, text: '', status: 'pending' as const })
+    for (let index = 0; index < topics.length; index += 1) {
+      if (highlights[index]?.status === 'complete') continue
+      try {
+        highlights[index] = await buildOpenAiReportHighlight(
+          record.analysis ?? params.analysis, record.birth, record.context, topics[index], record.report.verdict,
+        )
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'highlight generation failed'
+        highlights[index] = { title: topics[index].title, text: '', status: 'failed', error: message }
+      }
+    }
+    const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
+      current.report.highlights = highlights
+    })
+    if (stored?.report.highlights) record.report.highlights = stored.report.highlights
+  }
+
   const editClaim = async (edit: (section: SajuReportSection, current: ReportRecord) => void) => mutateReportRecord(params.reportId, params.owner, (current) => {
     const section = current.report.sections.find((item) => item.id === params.sectionId)
     if (!section || section.status === 'complete' || section.generationLease?.id !== leaseId) return false
@@ -255,6 +311,7 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
           siblings: record.report.sections.filter((item) => item.id !== params.sectionId && item.status === 'complete'),
           repairIssues: issues,
           corpusSnapshot: record.corpus,
+          verdict: record.report.verdict,
           maxTokens: tokenBudget,
           onResponse: (result) => editClaim((section) => {
             const attempt = section.attempts?.find((item) => item.id === attemptId)

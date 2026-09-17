@@ -1,0 +1,16 @@
+{
+  "_about": "Length budgets for summary, highlight cards, and sections. Not copied from the discarded handoff price tiers. Source bands are the current pipeline sectionLengthPlan (2026-09-17 measured: opening 1200-1600, highlight 1100-1500, standard 450-700, observed mean 868). Two-pass formula: min = smaller * 0.9, max = larger * 1.35.",
+  "formula": { "minMultiplier": 0.9, "maxMultiplier": 1.35 },
+  "sourceBands": {
+    "opening": [1200, 1600],
+    "highlight": [1100, 1500],
+    "standard": [450, 700]
+  },
+  "roles": {
+    "summary": { "min": 405, "max": 945, "from": "standard" },
+    "highlightCard": { "min": 990, "max": 2025, "from": "highlight" },
+    "sectionOpening": { "min": 1080, "max": 2160, "from": "opening" },
+    "sectionHighlight": { "min": 990, "max": 2025, "from": "highlight" },
+    "sectionStandard": { "min": 405, "max": 945, "from": "standard" }
+  }
+}

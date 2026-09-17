@@ -205,7 +205,7 @@ describe('배포 라우팅은 선별한 public 자산만 정적으로 제공한�
       // `admin-ui` 는 정적 루트 밖에 있지만 함수는 그 파일을 읽어야 한다(ADR-0002 D1).
       assert.equal(
         config.functions['api/index.ts'].includeFiles,
-        '{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md}',
+        '{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}',
       )
     })
   })
@@ -254,6 +254,18 @@ describe('정적 제공은 허용 목록이다 (기본 거부)', { concurrency: 
         assert.equal(response.status, 200, `${path} 가 ${response.status} 로 막혔다`)
       })
     }
+
+    it('/data/longform-blocks.json 은 200', async () => {
+      const response = await fetch(origin + '/data/longform-blocks.json')
+      assert.equal(response.status, 200)
+      const body = await response.json() as { services?: Record<string, unknown> }
+      assert.ok(body.services && body.services.quit_fortune)
+    })
+
+    it('/data/runtime-config.json 은 404', async () => {
+      const response = await fetch(origin + '/data/runtime-config.json')
+      assert.equal(response.status, 404)
+    })
   })
 })
 describe('내부 산출물은 웹 확장자로 저장돼 있어도 나가지 않는다', { concurrency: false }, () => {

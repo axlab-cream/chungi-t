@@ -416,6 +416,29 @@ export interface CorpusSnapshot {
   activePacks: CorpusPackSnapshot[]
 }
 
+/** Fixed once at report creation; every section, summary and highlight call receives it. */
+export interface SajuReportVerdict {
+  statement: string
+  rankedChoices?: string[]
+  decidedAt: string
+}
+
+export interface SajuReportSummary {
+  text: string
+  status?: 'pending' | 'generating' | 'complete' | 'failed'
+  generationId?: string
+  generatedAt?: string
+  error?: string
+}
+
+export interface SajuReportHighlight {
+  title: string
+  text: string
+  status?: 'pending' | 'generating' | 'complete' | 'failed'
+  generatedAt?: string
+  error?: string
+}
+
 export interface SajuReport {
   reportId?: string
   resultId?: string
@@ -432,6 +455,12 @@ export interface SajuReport {
   storage?: 'postgres' | 'supabase' | 'file' | 'memory'
   corpus?: CorpusSnapshot
   quality?: SajuReportQuality
+  /** Absent on stored reports created before L1. Readers must render without it. */
+  verdict?: SajuReportVerdict
+  /** Absent on stored reports created before L2. Failure must not block sections. */
+  summary?: SajuReportSummary
+  /** Absent when the service has no highlight topics. Never an empty array for undefined services. */
+  highlights?: SajuReportHighlight[]
   sections: SajuReportSection[]
   /** Client unlock flags (admin / paid entitlement). */
   isPaid?: boolean

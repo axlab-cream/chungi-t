@@ -161,6 +161,23 @@
     max-width: 100% !important;
   }
 
+  /*
+   * 목차 위 결론·서머리·하이라이트. CTA·잠금 안내만 지우고 본문은 남긴다.
+   * 화면용 골드 배색은 umsh-longform.css 인쇄 규칙이 흰 배경·검은 글자로 바꾼다.
+   */
+  .umsh-lf-cta,
+  .umsh-lf-locked,
+  .umsh-lf-skeleton {
+    display: none !important;
+  }
+
+  .umsh-verdict,
+  .umsh-summary,
+  .umsh-highlight {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   @page {
     size: A4;
     margin: 16mm;

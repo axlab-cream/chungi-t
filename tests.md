@@ -2,6 +2,10 @@
 
 ## Verification Matrix
 
+- 2026-09-17 L4 분량 예산: focused `tests/unit/report-budget.test.ts`. 두 번 측정 공식, 구간 밖 재생성 신호, 등급 라벨 거부, 프롬프트 뜻 치환. Production NOT_RUN.
+
+- 2026-09-17 L3 하이라이트: focused `tests/unit/report-highlights.test.ts`. 정의된 서비스 3주제, `saju_master`←`cmdg` 별칭, 미정의는 `undefined`, shape/verdict 주입, 문단 수 검사. Production NOT_RUN.
+
 - 2026-09-17 06 상세 시안 해석 차단: `npm run typecheck` 0건, `npm test` 1137/1137 (126 suites, fail 0), `npm run qa:all-services` 20종 PASS, `npm run vercel-build` PASS, CI 서비스 점검 15종(`check:quit` 포함) 전부 PASS. 로컬 세션 없는 브라우저로 06 상세 14종 전수 실측 — 시안 해석 노출 0건, 정지 5종은 홈 리다이렉트, 나머지 9종은 상태 안내만 노출, 숨은 시안 산문 DOM 잔류 0건. 가드 실증: 채워지지 않은 해석 칸 `visibility: hidden`, 채워진 칸 `visible`. Production `https://umsh.kr`: `/api/health` `ok: true`(코퍼스 28팩), 배포 자산 9개가 로컬과 동일, 9종 전부 가드 활성. 유료 경로는 기존 로그인 세션으로 실동작 확인(이직운은 실제 원국 `乙亥 일주` 렌더, 저축은 실제 목차 렌더). money_save 계정 리포트에 미완료 항목이 남아 있는 것은 데이터 상태이며 코드 결함 아님.
 
 - 2026-09-17 이직운 STEP1 히어로: focused work-move-hero-copy PASS. 로컬 브라우저 카피 top 127→521, 상단 이미지 노출, 하단 문장 GNB 위. Production NOT_RUN.

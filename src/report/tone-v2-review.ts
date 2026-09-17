@@ -1,7 +1,7 @@
 import { loadTonePersona } from '../prompt/tone-v2.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
 import { relationshipState } from '../love/reading-content.js'
-import type { RagChunk, SajuReportContext, SajuReportSection } from '../types/index.js'
+import type { RagChunk, SajuReportContext, SajuReportSection, SajuReportVerdict } from '../types/index.js'
 
 export interface ToneReview { passed: boolean; issues: string[] }
 export interface ToneReviewOptions {
@@ -899,6 +899,35 @@ export function reviewPaidSectionDensity(input: PaidSectionDensityInput): PaidSe
     issues.push('평온하거나 만족한 사용자에게 입력에 없는 억지 위기를 만들지 마세요.')
   }
   return { passed: issues.length === 0, issues, elements }
+}
+
+export interface VerdictConsistencyInput {
+  verdict?: Pick<SajuReportVerdict, 'statement' | 'rankedChoices'> | null
+  texts: Array<string | null | undefined>
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * A later ranked choice spoken as the first pick contradicts the fixed verdict.
+ * Reports without a verdict keep the previous independent-section behaviour.
+ */
+export function reviewReportVerdictConsistency(input: VerdictConsistencyInput): ToneReview {
+  const choices = (input.verdict?.rankedChoices ?? []).map((item) => item.trim()).filter(Boolean)
+  const first = choices[0]
+  if (!first) return { passed: true, issues: [] }
+  const body = input.texts.map((item) => String(item ?? '')).join('\n')
+  const issues: string[] = []
+  for (const choice of choices.slice(1)) {
+    const token = escapeRegExp(choice)
+    const asFirst = new RegExp(`(?:${token}\\s*(?:이|가)?\\s*1순위)|(?:1순위(?:는|은|:)?\\s*${token})`)
+    if (asFirst.test(body)) {
+      issues.push(`고정 결론의 1순위(${first})와 다른 선택(${choice})을 1순위로 말하지 마세요.`)
+    }
+  }
+  return { passed: issues.length === 0, issues }
 }
 
 export function reviewToneCopy(text: string, serviceKey?: string | null, options: ToneReviewOptions = {}): ToneReview {
