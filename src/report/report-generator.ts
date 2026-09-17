@@ -15,7 +15,7 @@ import { InterpretationQualityError, reviewInterpretation, type InterpretationRe
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
-import { numericEvidenceFrom, reviewPaidSectionDensity, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
+import { fixCopulaSpelling, numericEvidenceFrom, reviewPaidSectionDensity, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import { standardReading } from './standard-reading.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
@@ -2189,9 +2189,12 @@ function extractJsonObject(raw: string): unknown {
 export function parseGeneratedSajuReportSection(raw: string, sectionId: string): { hook: string; interpretation: string } {
   const parsed = extractJsonObject(raw) as { id?: unknown; hook?: unknown; interpretation?: unknown }
   if (parsed.id !== sectionId) throw new Error('생성 결과의 항목 ID가 요청과 다릅니다.')
+  // 받침에 어긋난 `이에요/예요` 는 규칙으로 정확히 고칠 수 있는 표기 오류다. 이것 때문에
+  // 항목을 통째로 다시 쓰게 하면 재시도가 늘고 그만큼 완성이 늦어진다. 생성 경로와 저장
+  // 시도 복구 경로가 모두 이 함수를 지나므로 여기서 한 번만 고친다.
   return {
-    interpretation: typeof parsed.interpretation === 'string' ? parsed.interpretation.trim() : '',
-    hook: typeof parsed.hook === 'string' ? parsed.hook.trim() : '',
+    interpretation: fixCopulaSpelling(typeof parsed.interpretation === 'string' ? parsed.interpretation.trim() : ''),
+    hook: fixCopulaSpelling(typeof parsed.hook === 'string' ? parsed.hook.trim() : ''),
   }
 }
 

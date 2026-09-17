@@ -335,7 +335,18 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     await assert.rejects(recoverReportSectionFromLatestAttempt({ reportId: completed, sectionId: 'two', owner }), /후속 항목/)
   })
 
-  it('does not retry an earlier failure after a later section has changed from pristine pending state', async () => {
+  /*
+   * 2026-09-17 의도 변경: 뒤 항목이 이미 손을 댄 뒤에도 앞의 실패 항목을 다시 만든다.
+   *
+   * 예전에는 막았다 — 되살린 글이 이미 쓰인 뒤 글들과 맥락이 어긋날 수 있어서다. 그런데
+   * 막힌 한 칸이 회수되지 못하면 그 리포트는 영원히 미완성으로 남는다. 운영에서 관계 신호
+   * 0/70, 고양이 궁합 0/50 이 그 상태였다. 빈칸을 안고 가느니 맥락이 조금 어긋날 위험을
+   * 지고라도 완성시키는 쪽을 택했다.
+   *
+   * 저장된 시도를 그대로 승격하는 `recoverReportSectionFromLatestAttempt` 는 그대로 막는다
+   * (바로 위 테스트). 그쪽은 새로 쓰는 게 아니라 옛 원문을 끼워 넣는 것이라 위험이 다르다.
+   */
+  it('retries an earlier failure even after a later section has changed, so a stuck report can finish', async () => {
     const reportId = randomUUID()
     await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(['one', 'two', 'three']), owner })
     await mutateReportRecord(reportId, owner, record => {
@@ -345,14 +356,28 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
       record.report.sections[2].attempts = [{ id: 'later-attempt', startedAt: '2026-09-12T00:01:00.000Z', model: 'saved-model', status: 'failed' }]
       record.status = record.report.status = 'failed'
     })
+    let calls = 0
+    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; throw new Error('model unavailable') }) as unknown as typeof sdkCreate
+
+    await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'two', owner, retry: true })
+
+    // 모델을 실제로 불렀다는 것이 핵심이다. 호출이 실패했는지는 이 테스트의 관심사가 아니다.
+    assert.ok(calls > 0, '뒤 항목이 변경됐다고 회수를 포기하면 리포트가 영영 미완성으로 남는다')
+  })
+
+  it('still waits while an earlier section is pending or generating', async () => {
+    // 건너뛰기는 **실패로 남은** 칸만 지나친다. 아직 시작 안 했거나 도는 중인 앞 칸은
+    // 기다린다 — 그래야 형제 글의 순서가 지켜진다.
+    const reportId = randomUUID()
+    await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(['one', 'two', 'three']), owner })
     const before = (await getReportRecord(reportId, owner))!
     let calls = 0
-    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; throw new Error('Retry must not call a model') }) as unknown as typeof sdkCreate
+    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; throw new Error('must not be called') }) as unknown as typeof sdkCreate
 
-    const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'two', owner, retry: true })
+    const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'three', owner })
 
-    assert.equal(result.status, 'failed')
     assert.equal(calls, 0)
+    assert.equal(result.status, 'pending')
     assert.deepEqual(await getReportRecord(reportId, owner), before)
   })
 

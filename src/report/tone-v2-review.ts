@@ -629,6 +629,25 @@ function hasFinalConsonant(syllable: string): boolean {
  * 저축 리포트가 실제로 “깔끔해지는 타입예요.” 를 내보냈다(2026-09-17). 규칙이 기계적으로
  * 판정되는 오류이므로 사람이 읽고 잡을 일이 아니다.
  */
+/**
+ * 같은 규칙으로 **고친다**.
+ *
+ * 받침 판정은 기계적으로 100% 정확하다. 그런데 이 오류 하나로 검수를 떨어뜨리면 항목
+ * 전체를 다시 생성하게 된다 — 2026-09-17 소비성향 실측에서 첫 시도 실패의 가장 큰 사유가
+ * 이것이었고, 재시도가 곧 레이턴시와 정체였다. 내용 결함이 아니라 표기 오류이므로
+ * 다시 쓰게 하지 말고 그 자리에서 고친다. 고친 뒤에도 검수는 그대로 돈다.
+ */
+export function fixCopulaSpelling(text: string): string {
+  return String(text ?? '')
+    // 앞말에 받침이 있으면 `이에요` 다. `예요`·`에요` 둘 다 같은 자리에서 틀린다.
+    .replace(/([가-힣]+)(?:예요|에요)/g, (whole, stem: string) =>
+      hasFinalConsonant(stem.slice(-1)) ? `${stem}이에요` : whole)
+    // 낱말 없이 홀로 선 `이예요` 는 `이에요` 의 오기다.
+    .replace(/(?<![가-힣])이예요/g, '이에요')
+    // `아니다` 는 형용사라 `예요` 로 줄지 않는다.
+    .replace(/아니예요/g, '아니에요')
+}
+
 function copulaSpellingIssues(text: string): string[] {
   const wrong = new Set<string>()
   // 앞 낱말을 함께 담는다. “입예요” 보다 “타입예요” 가 고칠 자리를 바로 가리킨다.

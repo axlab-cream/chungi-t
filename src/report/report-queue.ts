@@ -24,6 +24,14 @@ interface GenerationParams {
 export interface PreGenerationOptions {
   recoverFailed?: boolean
 }
+
+/**
+ * 한 실행에서 건너뛸 수 있는 항목 수.
+ *
+ * 건너뛰기는 막힌 칸이 뒤를 세우지 않게 하려는 장치이지, 전부 실패하는 중에도 계속
+ * 모델을 부르라는 뜻이 아니다. 이 수를 넘기면 같은 이유로 무너지는 중으로 보고 물러난다.
+ */
+const SKIP_LIMIT_PER_RUN = Math.min(Math.max(Number(process.env.REPORT_SKIP_LIMIT) || 3, 1), 10)
 const inFlightReports = new Map<string, Promise<ReportRecord | null>>()
 const LEASE_MS = 6 * 60_000
 
@@ -122,10 +130,13 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     if (!section) throw new Error('리포트 섹션을 찾지 못했습니다.')
     if (current.status === 'complete' || section.status === 'complete' || (section.status === 'failed' && !params.retry)) return false
     const position = current.report.sections.indexOf(section)
-    if (current.report.sections.slice(0, position).some(item => item.status !== 'complete')) return false
-    if (params.retry && section.status === 'failed' && current.report.sections.slice(position + 1).some((item) =>
-      item.status !== 'pending' || (item.attempts?.length ?? 0) > 0,
-    )) return false
+    /*
+     * 앞 칸이 아직 도는 중이거나 시작도 안 했으면 기다린다 — 형제 글의 순서를 지키기
+     * 위해서다. 다만 앞 칸이 이미 **실패로 남은** 경우는 기다릴 이유가 없다. 그 한 칸을
+     * 기다리다 뒤의 수십 개가 영영 멈췄다(2026-09-17 관계 신호 0/70).
+     */
+    if (current.report.sections.slice(0, position).some(item => item.status === 'pending' || item.status === 'generating')) return false
+    // 되살리기는 뒤 칸이 이미 시작했더라도 막지 않는다. 막으면 건너뛴 칸을 영영 회수할 수 없다.
     if (section.generationLease && Date.parse(section.generationLease.expiresAt) > Date.now()) return false
     section.generationId ??= randomUUID()
     section.generationLease = { id: leaseId, expiresAt: new Date(Date.now() + LEASE_MS).toISOString() }
@@ -223,17 +234,32 @@ export async function preGenerateReport(params: GenerationParams, options: PreGe
   if (running) return running
   const run = (async () => {
     try {
+      /*
+       * 막힌 한 칸이 나머지 전부를 세우지 않게 한다.
+       *
+       * 예전에는 실패한 항목에서 루프를 끊었다. 항목이 70개인 서비스에서 첫 칸이 막히면
+       * 나머지 69개가 영영 시작되지 않았다 — 2026-09-17 운영에서 관계 신호 0/70,
+       * 고양이 궁합 0/50 이 정확히 그 상태였다.
+       *
+       * 이제 큐가 부른 실행에서는 한 번 되살려 보고, 그래도 안 되면 **건너뛰고 다음 칸으로**
+       * 간다. 건너뛴 칸은 실패로 남아 다음 실행이 다시 집는다. 그때는 앞뒤 형제 글이 더
+       * 쌓여 있어 성공할 여지가 커진다.
+       */
+      const skipped: string[] = []
       for (const section of record.report.sections) {
         if (section.status === 'complete') continue
-        // 실패한 자리에서 멈추면 뒤의 목차는 영영 만들어지지 않는다. 큐가 부른 실행에서는
-        // 그 한 칸을 다시 시도해 보고, 또 실패하면 그때 멈춘다.
         if (section.status === 'failed' && !options.recoverFailed) break
         const result = await generateReportSectionNow({
           ...params,
           sectionId: section.id,
           ...(section.status === 'failed' ? { retry: true } : {}),
         })
-        if (result.status !== 'complete') break
+        if (result.status === 'complete') continue
+        if (!options.recoverFailed) break
+        skipped.push(section.id)
+        // 한 실행에서 너무 많이 건너뛰면 같은 이유로 전부 실패하는 중일 가능성이 크다.
+        // 모델 호출만 태우지 말고 물러나서 다음 실행에 맡긴다.
+        if (skipped.length >= SKIP_LIMIT_PER_RUN) break
       }
       return await getReportRecord(params.reportId, params.owner)
     } finally { inFlightReports.delete(params.reportId) }
