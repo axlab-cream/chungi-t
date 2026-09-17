@@ -1817,3 +1817,26 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 런타임 연동은 정상이다. .env 에 SUPABASE_URL·ANON_KEY·PROJECT_REF 등 8개 키가 있어 REST/Auth 는 동작한다. 끊긴 것은 CLI 경로뿐이고 영향은 마이그레이션·db 작업에 한정된다.
 - 해제 조건(D6/사용자 조치): 브라우저 로그인. {"_tag":"Error","error":{"code":"LegacyLoginMissingTokenError","message":"Cannot use automatic login flow inside non-TTY environments. Please provide --token flag or set the SUPABASE_ACCESS_TOKEN environment variable."}} 후 {"project_ref":"wdyzollywccgaepjeynu","message":""}. 에이전트는 login 을 실행하지 않는다(rules.md §7).
 - github·vercel 은 configured 재확인. CreamWIKI 는 터널 18765·토큰 carrotcap·search 정상.
+
+## 2026-09-17 — 결제→06-1 재확인 + 해석 속도 분석 + 보관함 순차 QA [BLOCKED]
+
+- 운영 `/api/payment/config` 공개 카탈로그 14개 전부 `readingPath`가 06-1. 일시정지 lucky/newyear/wedding/pass_angle/home은 공개 카탈로그에 없음.
+- 실측 소비성향 주문 `UMSH1789651145148r6ml4prs` 결제 결과 CTA는 `전체 풀이보기`이며 href는 `/money/save/06-step-6_1-report-detail/index.html?paid=1&orderId=...&reportId=98515f23f9fb249e22c56ea023d5#step-6_1-report`. 클릭 후 같은 06-1로 이동. 04 미리보기 아님.
+- 공개 14개 06-1 HTML은 전부 production 200.
+- 속도: `generateReportSectionNow`가 첫 섹션 본문 전에 verdict → summary → 하이라이트 3장을 **순차** 호출. 첫 섹션은 창=1, 이후 6병렬. 보관함 안내는 전체 30~50분. 첫 화면이 느리게 느껴지는 주원인.
+- 소비성향 06-1 비로그인: 정적 히어로(`돈이 새는 장면을 하나씩 잡아볼게요`) + 로그인 게이트. `PDF 저장`은 보여서 `window.print()`는 호출되지만 본문 카드 0개라 실제 해석 PDF는 아님.
+- good1621 보관함 순차 QA는 세션 없음으로 BLOCKED. 이 계정은 Supabase 이메일/비밀번호가 없고 Google 전용이다. 자동화·CDP Chrome에서 Google은 `signin/rejected` 또는 비밀번호 입력 후 `다음` 미제출로 막힌다. 비밀번호·토큰은 문서에 남기지 않았다.
+- 다음: 일반 Chrome에서 good1621로 `/vault` 로그인된 상태를 열어 주면 소비성향 1건부터 해석 품질·PDF를 이어서 확인한다.
+
+## 2026-09-17 — 관리자 보관함은 결제 없이 구매 이후처럼 쌓인다
+
+- 슈퍼관리자(good1621)는 가짜 결제 주문을 만들지 않는다. 유료 본문(06-1·섹션 생성)을 여는 순간 `adminAcquiredAt`을 찍고 결제와 같은 생성 큐를 건다.
+- 보관함은 서비스당 1건이 아니라 그렇게 연 해석을 계보마다 쌓는다. 04 티저(pending)는 넣지 않는다. 이미 생성 중인 기존 QA 행은 stamp 없이도 목록에 남는다.
+- 단위 테스트 `vault-purchase-order` 16/16 PASS.
+
+## 2026-09-17 — 실제 구매가 보관함에서 사라진 원인
+
+- 결제는 `paid` → 풀이 화면(`?paid=1&orderId=`)을 여는 순간 `/viewed` 로 `viewed` 가 된다. 권한 판정·생성 큐는 `paid`와 `viewed`를 둘 다 산 것으로 본다.
+- 보관함 `selectPurchasedReadings`만 `paid`만 인정했다. 그래서 good1621이 실제로 산 뒤 06-1을 열면 목록에서 빠졌다. 관리자 우회와 무관한 모든 계정 공통 결함이다.
+- 수정: `paid`와 `viewed`를 구매로 센다. 테스트 4b 포함 `vault-purchase-order` 17/17 PASS.
+- `reportId`가 비어 있는 구형 주문은 여전히 목록에 못 넣는다(무엇을 샀는지 추측하지 않음).

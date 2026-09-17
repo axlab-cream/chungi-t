@@ -28,10 +28,6 @@ function isReading(record: ReportRecord): boolean {
   return !(record.context as { savedChat?: unknown } | undefined)?.savedChat
 }
 
-function serviceKeyOf(record: ReportRecord): string {
-  return String(record.context?.serviceKey || 'cmdg')
-}
-
 /**
  * 결제 주문을 **계보** 단위로 모은다.
  *
@@ -45,7 +41,9 @@ function purchaseTimeByLineage(records: ReportRecord[], orders: PaymentOrder[]):
 
   const earliest = new Map<string, string>()
   for (const order of orders) {
-    if (order.status !== 'paid') continue
+    // Opening the reading marks the order `viewed`. That is still a settled
+    // purchase — the same statuses that unlock the report and enqueue generation.
+    if (order.status !== 'paid' && order.status !== 'viewed') continue
     const lineage = order.reportId ? lineageOf.get(order.reportId) : undefined
     // 리포트에 묶이지 않은 주문은 무엇을 열어 주는지 알 수 없다. 추측하지 않는다.
     if (!lineage) continue
@@ -77,27 +75,29 @@ export function selectPurchasedReadings(
 }
 
 /**
- * 슈퍼관리자는 결제 없이 본문을 연다. 보관함은 원래 `paid` 주문만 남기므로
- * QA 로 열어 본 서비스가 비어 보인다. 가짜 결제 주문을 만들지 않고, 아직
- * 구매 행이 없는 서비스마다 가장 최근 해석 한 건만 보탠다.
+ * Super-admin vault rows without a paid order. Preview-only teasers stay out;
+ * once the paid reading is opened (stamp) or generation starts, each lineage
+ * stacks like a post-payment purchase. Fake payment orders are not created.
  */
+export function isAdminVaultEligible(record: ReportRecord): boolean {
+  if (!isReading(record)) return false
+  if (record.adminAcquiredAt) return true
+  if (record.status === 'generating' || record.status === 'complete' || record.status === 'failed') return true
+  return (record.report?.sections ?? []).some((section) => (
+    section.status === 'generating' || section.status === 'complete' || section.status === 'failed'
+  ))
+}
+
 export function selectAdminVaultReadings(
   records: ReportRecord[],
   orders: PaymentOrder[],
 ): VaultListing<ReportRecord>[] {
   const purchased = selectPurchasedReadings(records, orders)
-  const takenServices = new Set(purchased.map((item) => serviceKeyOf(item.record)))
-  const latestByService = new Map<string, ReportRecord>()
-  for (const record of records.filter(isReading)) {
-    const key = serviceKeyOf(record)
-    if (takenServices.has(key)) continue
-    const current = latestByService.get(key)
-    if (!current || record.updatedAt > current.updatedAt) latestByService.set(key, record)
-  }
-  const extras = [...latestByService.values()].map((record) => ({
-    record,
-    purchasedAt: record.updatedAt || record.createdAt,
-  }))
+  const taken = new Set(purchased.map((item) => item.record.reportId))
+  const extras = records.flatMap((record) => {
+    if (taken.has(record.reportId) || !isAdminVaultEligible(record)) return []
+    return [{ record, purchasedAt: record.adminAcquiredAt || record.createdAt }]
+  })
   return [...purchased, ...extras].sort((a, b) => (
     b.purchasedAt.localeCompare(a.purchasedAt)
     || b.record.reportId.localeCompare(a.record.reportId)

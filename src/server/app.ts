@@ -1714,6 +1714,19 @@ function queueReportCompletionAfterPayment(reportId: string | undefined): void {
   void enqueueReportCompletion({ reportId }).catch(() => undefined)
 }
 
+/**
+ * Super-admin skip-checkout is the same moment as a paid order: stamp the
+ * reading so the vault lists it, then enqueue background section generation.
+ */
+async function rememberAdminPaidEquivalent(owner: ReportOwner | undefined, reportId: string | undefined): Promise<void> {
+  if (!owner || !isAdminOwner(owner) || !reportId) return
+  await mutateReportRecord(reportId, owner, (current) => {
+    if (current.adminAcquiredAt) return false
+    current.adminAcquiredAt = new Date().toISOString()
+  }).catch(() => null)
+  queueReportCompletionAfterPayment(reportId)
+}
+
 function paymentOrderRedirect(
   orderId: string,
   state: 'paid' | 'failed' | 'cancelled',
@@ -1902,7 +1915,10 @@ async function ensurePaidServiceAccess(
   reportId = '',
   lineageId = '',
 ): Promise<boolean> {
-  if (isAdminOwner(owner)) return true
+  if (isAdminOwner(owner)) {
+    await rememberAdminPaidEquivalent(owner, reportId)
+    return true
+  }
   if (!isCheckoutLive()) return true
   const config = paymentConfigPayload()
   if (!config.checkoutEnabled) {
@@ -3940,6 +3956,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
+    if (access.reason === 'admin') await rememberAdminPaidEquivalent(owner, record.reportId)
     applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,

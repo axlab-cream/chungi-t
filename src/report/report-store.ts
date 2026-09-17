@@ -45,6 +45,11 @@ export interface ReportRecord {
   status: ReportStatus
   createdAt: string
   updatedAt: string
+  /**
+   * When a super-admin opens the paid reading without checkout. Vault uses this
+   * as the purchase time so QA rows stack like post-payment orders.
+   */
+  adminAcquiredAt?: string
   chatHistory?: ConversationTurn[]
   /**
    * 사용자가 이 해석을 신고한 기록.

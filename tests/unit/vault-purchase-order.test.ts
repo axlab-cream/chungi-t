@@ -105,6 +105,15 @@ test('4. 승인되지 않은 주문은 구매로 치지 않는다', () => {
   }
 })
 
+test('4b. 풀이를 열어 viewed 가 된 결제도 보관함에 남는다', () => {
+  const picked = selectPurchasedReadings(
+    [record('r1')],
+    [order('r1', '2026-09-10T00:00:00.000Z', { status: 'viewed' })],
+  )
+  assert.equal(picked[0]?.record.reportId, 'r1')
+  assert.equal(picked[0]?.purchasedAt, '2026-09-10T00:00:00.000Z')
+})
+
 test('5. 리포트에 묶이지 않은 주문은 아무 해석도 열지 않는다', () => {
   // reportId 가 비어 있으면 무엇을 산 것인지 알 수 없다. 추측하면 남의 해석이 열린다.
   assert.deepEqual(selectPurchasedReadings([record('r1')], [order(undefined, '2026-09-10T00:00:00.000Z')]), [])
@@ -163,31 +172,46 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
   assert.ok(/purchasedAt: item\.purchasedAt/.test(app), '구매 시각이 화면으로 나가지 않는다')
 })
 
-test('11. 관리자 우회는 서비스당 최신 해석 한 건을 보관함에 보탠다', () => {
-  const olderSave = record('save-old', {
+test('11. 관리자 우회는 결제 없이 연 해석을 구매처럼 쌓고 티저는 넣지 않는다', () => {
+  const teaser = record('save-teaser', {
+    status: 'pending',
     context: { serviceKey: 'money_save' } as never,
+    createdAt: '2026-09-17T03:00:00.000Z',
+    updatedAt: '2026-09-17T03:00:00.000Z',
+  })
+  const saveA = record('save-a', {
+    status: 'generating',
+    context: { serviceKey: 'money_save' } as never,
+    createdAt: '2026-09-16T00:00:00.000Z',
     updatedAt: '2026-09-16T00:00:00.000Z',
   })
-  const newerSave = record('save-new', {
+  const saveB = record('save-b', {
+    status: 'complete',
     context: { serviceKey: 'money_save' } as never,
+    createdAt: '2026-09-17T00:00:00.000Z',
     updatedAt: '2026-09-17T00:00:00.000Z',
   })
   const quit = record('quit-1', {
+    status: 'generating',
     context: { serviceKey: 'quit_fortune' } as never,
+    createdAt: '2026-09-17T01:00:00.000Z',
     updatedAt: '2026-09-17T01:00:00.000Z',
   })
-  const picked = selectAdminVaultReadings([olderSave, newerSave, quit], [])
-  assert.deepEqual(picked.map((item) => item.record.reportId), ['quit-1', 'save-new'])
+  const picked = selectAdminVaultReadings([teaser, saveA, saveB, quit], [])
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['quit-1', 'save-b', 'save-a'])
 })
 
-test('12. 관리자 우회는 실제 결제를 남기고 같은 서비스는 중복하지 않는다', () => {
-  const paidCmdg = record('paid-1', { context: { serviceKey: 'cmdg' } as never })
+test('12. 관리자 우회는 실제 결제를 남기고 같은 서비스의 미결제 티저는 넣지 않는다', () => {
+  const paidCmdg = record('paid-1', { context: { serviceKey: 'cmdg' } as never, status: 'complete' })
   const unpaidCmdg = record('cmdg-teaser', {
     context: { serviceKey: 'cmdg' } as never,
+    status: 'pending',
     updatedAt: '2026-09-17T03:00:00.000Z',
   })
   const move = record('move-1', {
     context: { serviceKey: 'work_move' } as never,
+    status: 'generating',
+    createdAt: '2026-09-17T02:00:00.000Z',
     updatedAt: '2026-09-17T02:00:00.000Z',
   })
   const picked = selectAdminVaultReadings(
@@ -197,9 +221,33 @@ test('12. 관리자 우회는 실제 결제를 남기고 같은 서비스는 중
   assert.deepEqual(picked.map((item) => item.record.reportId), ['move-1', 'paid-1'])
 })
 
+test('14. 관리자가 결제를 건너뛴 시각이 있으면 그 시각이 구매 시각이다', () => {
+  const reading = record('admin-1', {
+    status: 'pending',
+    adminAcquiredAt: '2026-09-17T12:00:00.000Z',
+    createdAt: '2026-09-01T00:00:00.000Z',
+  })
+  const picked = selectAdminVaultReadings([reading], [])
+  assert.equal(picked[0]?.record.reportId, 'admin-1')
+  assert.equal(picked[0]?.purchasedAt, '2026-09-17T12:00:00.000Z')
+})
+
+test('15. 관리자가 유료 본문을 열면 보관함 적립과 생성 큐를 건다', () => {
+  const source = readFileSync(join(root, 'src', 'server', 'app.ts'), 'utf8')
+  const start = source.indexOf('async function ensurePaidServiceAccess')
+  assert.notEqual(start, -1, '유료 관문을 찾지 못했다')
+  const gate = source.slice(start, source.indexOf('\nasync function', start + 1))
+  assert.ok(/rememberAdminPaidEquivalent/.test(gate), '관리자 유료 관문이 보관함에 적립하지 않는다')
+  assert.ok(/rememberAdminPaidEquivalent/.test(source), '관리자 본문 조회가 보관함에 적립하지 않는다')
+  assert.ok(/adminAcquiredAt/.test(source), '결제 우회 시각을 남기지 않는다')
+})
+
 test('13. 관리자 우회도 상담 기록은 보관함에 넣지 않는다', () => {
-  const chat = record('chat-1', { context: { serviceKey: 'cmdg', savedChat: { question: 'q' } } as never })
-  const reading = record('r1', { context: { serviceKey: 'job_choice' } as never })
+  const chat = record('chat-1', {
+    status: 'complete',
+    context: { serviceKey: 'cmdg', savedChat: { question: 'q' } } as never,
+  })
+  const reading = record('r1', { status: 'generating', context: { serviceKey: 'job_choice' } as never })
   const picked = selectAdminVaultReadings([chat, reading], [])
   assert.deepEqual(picked.map((item) => item.record.reportId), ['r1'])
 })
