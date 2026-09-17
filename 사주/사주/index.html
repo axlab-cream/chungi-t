@@ -3823,7 +3823,7 @@
 
       function protectedEntryTarget() {
         if (initialAuthEntry === "destiny") return "/destiny";
-        if (initialAuthEntry === "vault") return "/cmdg/#vault";
+        if (initialAuthEntry === "vault") return "/vault";
         return "";
       }
 
@@ -5102,7 +5102,9 @@
         soundButton.textContent = "몰입 모드가 준비됐어요";
       });
 
-      settingsButton.addEventListener("click", openSettings);
+      // 천명사주 안의 자체 보관함 시트는 없앴다(2026-09-18). 보관함은 공용 /vault 하나다 —
+      // 같은 계정의 풀이가 화면마다 다르게 보이던 원인이 이 두 번째 목록이었다.
+      settingsButton.addEventListener("click", () => { location.href = "/vault"; });
 
       settingsPanel.addEventListener("click", (event) => {
         if (event.target === settingsPanel || event.target.closest("[data-settings-close]")) {
@@ -5268,7 +5270,7 @@
           go("purchase");
         }
         if (action === "open-settings") {
-          openSettings();
+          location.href = "/vault";
         }
         if (action === "retry-scene") {
           const target = event.target.closest("[data-scene]")?.dataset.scene;
@@ -7559,9 +7561,8 @@
         }
         go(resolvedInitialScene, false);
       } else if (settingsEntryScenes.has(resolvedInitialScene)) {
-        syncSceneUrl("landing");
-        renderLanding();
-        requestAnimationFrame(() => openSettings());
+        // #vault·#settings·#history 는 예전 자체 보관함 시트 주소다. 공용 보관함으로 보낸다.
+        location.replace("/vault");
       } else if (legacyPolicyPaths[resolvedInitialScene]) {
         location.replace(legacyPolicyPaths[resolvedInitialScene]);
       } else {
