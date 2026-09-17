@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportSection } from '../types/index.js'
-import { OpenAiTruncatedError, isOpenAiConfigured } from '../llm/openai-adapter.js'
+import { OpenAiTruncatedError, isOpenAiConfigured, isTransientOpenAiFailure } from '../llm/openai-adapter.js'
 import { buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
 import { assertReportOwner, getReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
@@ -247,6 +247,10 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
       return saved?.report.sections.find((item) => item.id === params.sectionId) ?? storedSection
     } catch (error) {
       const truncated = error instanceof OpenAiTruncatedError
+      // 트래픽 문제(429·5xx·연결 끊김)는 콘텐츠 문제가 아니다. 워커 3차선 × 리포트 안
+      // 6병렬로 한 실행에서 최대 18개 동시 호출이 나갈 수 있어(2026-09-17), 이 경우를
+      // 구분하지 않으면 한 번 걸린 항목이 그대로 굳는다.
+      const transient = isTransientOpenAiFailure(error)
       // 잘림은 내용 지적이 아니다. 재작성 지시문을 붙이면 프롬프트가 더 길어져 예산을 더 깎으므로
       // 같은 프롬프트로 다시 부른다. 진단은 시도 기록에만 남긴다.
       issues = error instanceof InterpretationQualityError ? error.review.issues : []
@@ -259,8 +263,13 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
         ? error.review.issues.join(' ')
         : truncated
           ? error.message
-          : '해석 생성 또는 저장이 완료되지 않았습니다.'
-      const retryable = (error instanceof InterpretationQualityError || truncated) && index < SECTION_ATTEMPT_LIMIT - 1
+          : transient
+            ? `요청이 일시적으로 거절되었습니다(status=${error.status ?? '없음'}).`
+            : '해석 생성 또는 저장이 완료되지 않았습니다.'
+      const retryable = (error instanceof InterpretationQualityError || truncated || transient) && index < SECTION_ATTEMPT_LIMIT - 1
+      // 429·5xx 는 곧바로 다시 보내면 같은 이유로 또 걸리기 쉽다. 짧게 물러선다
+      // (1초·2초·4초) — 리포트 전체를 막는 것도 아니고 워커 예산(200초)에 비해 미미하다.
+      if (transient && retryable) await new Promise((resolve) => setTimeout(resolve, 1_000 * 2 ** index))
       await editClaim((section, current) => {
         const attempt = section.attempts?.find((item) => item.id === attemptId)
         if (attempt) { attempt.status = 'failed'; attempt.error = diagnosis; attempt.finishedAt = new Date().toISOString() }

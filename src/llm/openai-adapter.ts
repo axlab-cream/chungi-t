@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import OpenAI, { APIError, APIConnectionError, APIConnectionTimeoutError } from 'openai'
 import type { LlmMessage } from '../types/index.js'
 
 let client: OpenAI | null = null
@@ -32,6 +32,23 @@ export class OpenAiTruncatedError extends Error {
     super('생성 응답이 길이 제한으로 중단되었습니다.')
     this.name = 'OpenAiTruncatedError'
   }
+}
+
+/**
+ * 요청 자체가 거절된 경우(429 과다 호출·5xx·연결 끊김)를 골라낸다. 콘텐츠 문제가 아니라
+ * 트래픽 문제라 같은 프롬프트를 조금 쉬었다 그대로 다시 보내면 된다. 워커를 리포트 간
+ * 3차선, 리포트 안 6병렬로 늘린 뒤(2026-09-17) 한 실행에서 최대 18개 동시 호출이 나갈 수
+ * 있게 됐는데, 이 경우가 일반 Error 로 던져져 한 번 걸리면 그대로 굳었다 — love_mind 의
+ * 여러 항목이 사흘째 10분 간격 외부 재시도로만 되풀이되며 dead-letter 로 빠진 진짜
+ * 원인이었다(겉보기엔 rawChars 0 인 빈 응답과 같아 보였지만 이쪽은 응답 자체를 받지
+ * 못한 경우다). openai SDK 가 던지는 예외 그대로를 검사하며, 콘텐츠 검수 오류는 여기
+ * 오지 않는다(그건 응답을 받은 뒤 우리 코드가 던지는 InterpretationQualityError다).
+ */
+export function isTransientOpenAiFailure(error: unknown): error is APIError {
+  if (!(error instanceof APIError)) return false
+  if (error.status === 429) return true
+  if (typeof error.status === 'number' && error.status >= 500) return true
+  return error instanceof APIConnectionError || error instanceof APIConnectionTimeoutError
 }
 
 export interface OpenAiResult {
