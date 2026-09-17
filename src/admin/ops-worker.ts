@@ -77,7 +77,9 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
       catch (cause) { error = cause instanceof Error ? cause.message.slice(0, 200) : 'OPS_HANDLER_FAILED' }
     }
     // 끝났으면 닫는다. 남았으면(진행은 했지만 미완) 재시도 — 다음 실행이 이어받는다.
-    const state = finished ? 'succeeded' : job.attempts >= job.max_attempts ? 'dead' : 'retry'
+    // dead 판정은 **실패한** 실행에만 한다. 예전 실패로 attempts 가 이미 한도에 닿은 작업이
+    // 이번엔 오류 없이 진행했는데 dead 로 빠지면, 살아난 작업이 첫 진행에서 다시 죽는다.
+    const state = finished ? 'succeeded' : !error ? 'retry' : job.attempts >= job.max_attempts ? 'dead' : 'retry'
     const now = new Date().toISOString()
     const body: Record<string, unknown> = { state, lease_until: null, updated_at: now, last_error: error || null }
     if (state === 'retry') {

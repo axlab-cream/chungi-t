@@ -61,6 +61,8 @@ test('진행한 실행은 시도 횟수를 태우지 않고, 큐에 여유가 �
   //  - 되살리기(backfill)는 한 건도 없는 분이 아니라 여유가 있는 분마다 돈다
   const worker = read('src/admin/ops-worker.ts')
   assert.match(worker, /if \(!error\) body\.attempts = Math\.max\(0, job\.attempts - 1\)/)
+  // 오류 없이 진행한 실행은 attempts 가 한도여도 dead 가 아니다.
+  assert.match(worker, /finished \? 'succeeded' : !error \? 'retry' :/)
   assert.match(worker, /p_limit: WORKER_CONCURRENCY/)
   assert.match(worker, /Math\.pow\(2, Math\.min\(job\.attempts, 3\)\)/)
   const app = read('src/server/app.ts')
