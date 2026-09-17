@@ -245,6 +245,10 @@
       .vault-pdf[aria-busy="true"] span:first-child { display: inline-block; animation: vault-spin 0.9s linear infinite; }
       @keyframes vault-spin { to { transform: rotate(360deg); } }
       .vault-pdf:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      /* 관리자 전용 삭제. 서버가 admin 을 준 응답에서만 그려진다. */
+      .vault-delete { flex: none; min-height: 40px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 800; background: transparent; color: #f08461; border: 1px solid rgba(216, 81, 47, 0.42); cursor: pointer; }
+      .vault-delete[data-armed="1"] { background: #d8512f; color: #fff; border-color: #d8512f; }
+      .vault-delete:disabled { opacity: .5; cursor: progress; }
 
       .vault-note { margin-top: 11px; padding: 0 4px; font-size: 11px; font-weight: 600; color: #a79d90; word-break: keep-all; }
 
@@ -491,7 +495,9 @@
             const payload = await fetch('/api/user/reports?limit=30&view=list', {
               headers: { Authorization: `Bearer ${auth.access_token}` },
             }).then((response) => response.json());
-            const reports = Array.isArray(payload.reports) ? payload.reports : [];
+            let reports = Array.isArray(payload.reports) ? payload.reports : [];
+            // 삭제 버튼은 서버가 admin 을 준 계정(QA 운영자)에만 그린다. 다른 계정은 절대 보지 않는다.
+            const admin = payload.admin === true;
             state.innerHTML = '';
             // 최근 것이 위로. 상태별 묶음은 두지 않는다 — 두 탭으로 이미 갈라져 있고,
             // 사용자는 "방금 본 것"을 맨 위에서 찾는다(2026-09-18).
@@ -570,6 +576,7 @@
                           <span aria-hidden="true">${escapeHtml(view.pdfIcon)}</span>
                           <span>${escapeHtml(view.pdfLabel)}</span>
                         </button>
+                        ${admin ? `<button type="button" class="vault-delete" data-action="delete" data-report-id="${escapeHtml(report.reportId || '')}" aria-label="이 풀이 삭제">삭제</button>` : ''}
                       </div>
                     </div>
                   </article>
@@ -607,18 +614,54 @@
               }
               list.innerHTML = rows.map(cardMarkup).join('');
             };
+            let currentTab = 'today';
+            const renderCurrent = (tab) => { currentTab = tab; renderTab(tab); };
             tabs.addEventListener('click', (event) => {
               const button = event.target.closest('[data-tab]');
-              if (button) renderTab(button.dataset.tab);
+              if (button) renderCurrent(button.dataset.tab);
             });
-            renderTab('today');
+            renderCurrent('today');
+
+            /**
+             * 관리자 삭제. 두 번 눌러야 지운다 — 첫 탭은 「정말 삭제?」로 바뀌고 3초 안에 다시
+             * 누르면 서버에서 지운다(DELETE /api/user/reports/:id 는 행을 실제로 지우므로 관리자
+             * 목록에서도 사라진다). 네이티브 confirm 은 모바일·자동화에서 막히는 경우가 있어 쓰지 않는다.
+             */
+            async function deleteReport(button) {
+              const id = button.dataset.reportId;
+              if (!id) return;
+              if (button.dataset.armed !== '1') {
+                button.dataset.armed = '1';
+                button.textContent = '정말 삭제?';
+                window.setTimeout(() => { if (button.isConnected) { button.dataset.armed = '0'; button.textContent = '삭제'; } }, 3000);
+                return;
+              }
+              button.disabled = true;
+              button.textContent = '삭제 중…';
+              try {
+                const response = await fetch(`/api/user/reports/${encodeURIComponent(id)}`, {
+                  method: 'DELETE',
+                  headers: { Authorization: `Bearer ${auth.access_token}` },
+                });
+                const json = await response.json().catch(() => ({}));
+                if (!response.ok || !json.deleted) throw new Error(json.error || 'DELETE_FAILED');
+                reports = reports.filter((report) => report.reportId !== id);
+                renderCurrent(currentTab);
+              } catch {
+                button.disabled = false;
+                button.dataset.armed = '0';
+                button.textContent = '삭제 실패';
+                window.setTimeout(() => { if (button.isConnected) button.textContent = '삭제'; }, 2000);
+              }
+            }
 
             // 카드 전체가 링크라, 버튼은 이동을 막고 자기 일만 한다.
             list.addEventListener('click', (event) => {
-              const button = event.target.closest('.vault-pdf');
+              const button = event.target.closest('.vault-pdf, .vault-delete');
               if (!button || button.disabled) return;
               event.preventDefault();
               event.stopPropagation();
+              if (button.dataset.action === 'delete') { void deleteReport(button); return; }
               if (button.dataset.action === 'pdf') { void downloadPdf(button, auth.access_token); return; }
               // 다시 생성은 해당 풀이 화면에서 이어진다. 목록에서 재생성을 흉내 내지 않는다.
               if (button.dataset.action === 'retry' && button.dataset.href) location.assign(button.dataset.href);

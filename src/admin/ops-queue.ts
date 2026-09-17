@@ -92,6 +92,20 @@ export async function enqueueOpsJob(params: EnqueueOpsJobParams): Promise<Enqueu
   }
 }
 
+/** 대상(리포트)이 지워졌을 때 그 작업 행을 함께 지운다. 큐가 없거나 실패해도 던지지 않는다. */
+export async function deleteOpsJobsForTarget(targetId: string): Promise<number> {
+  if (!opsStoreAvailable() || !/^[a-zA-Z0-9_-]{1,160}$/.test(targetId)) return 0
+  try {
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('target_id', `eq.${targetId}`)
+    const response = await fetch(url, { method: 'DELETE', headers: { ...opsHeaders(), prefer: 'return=representation' } })
+    if (!response.ok) return 0
+    return ((await response.json().catch(() => [])) as unknown[]).length
+  } catch {
+    return 0
+  }
+}
+
 export interface OpsQueueReadiness {
   ok: boolean
   configured: boolean

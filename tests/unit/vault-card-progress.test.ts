@@ -58,6 +58,20 @@ test('PDF 는 전부 만들어졌을 때만 받고, 만드는 중에는 누르�
   assert.match(failed, /pdfAction: 'retry'/)
 })
 
+test('삭제 버튼은 서버가 admin 을 준 응답에서만 그려지고, 두 번 눌러야 지운다', () => {
+  // 2026-09-18: QA 계정(good1621)이 시험 기록을 치울 수 있게. 다른 계정은 절대 보지 않는다 —
+  // 판정은 서버의 isAdminOwner 한 곳에서만 한다.
+  assert.match(html, /const admin = payload\.admin === true/)
+  assert.match(html, /\$\{admin \? `<button type="button" class="vault-delete"/)
+  assert.match(html, /button\.dataset\.armed !== '1'/)
+  assert.match(html, /method: 'DELETE'/)
+  const app = readFileSync(join(root, 'src', 'server', 'app.ts'), 'utf8')
+  const route = app.slice(app.indexOf("app.get('/api/user/reports'"), app.indexOf("app.get(", app.indexOf("app.get('/api/user/reports'") + 1))
+  assert.equal((route.match(/admin: isAdminOwner\(owner\)/g) ?? []).length, 2, '두 응답 분기 모두 admin 을 실어야 한다')
+  const del = app.slice(app.indexOf("app.delete('/api/user/reports/:reportId'"), app.indexOf('app.post(', app.indexOf("app.delete('/api/user/reports/:reportId'")))
+  assert.match(del, /deleteOpsJobsForTarget\(reportId\)/, '지운 리포트의 큐 작업이 남아 dead 만 쌓인다')
+})
+
 test('남은 시간을 지어내지 않는다', () => {
   // 섹션마다 걸리는 시간이 달라서 추정치는 대부분 틀린다. 틀린 예고는 없는 예고보다 나쁘다.
   const script = html.slice(html.indexOf('function cardView'), html.indexOf('function ensurePdfHelper'))

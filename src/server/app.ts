@@ -45,7 +45,7 @@ import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, lis
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { checkOpsQueueReadiness } from '../admin/ops-queue.js'
+import { checkOpsQueueReadiness, deleteOpsJobsForTarget } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
@@ -3146,6 +3146,8 @@ app.get('/api/user/reports', async (req, res) => {
       const body = {
         userId: owner.id,
         storage: getReportStorageMode(),
+        // 관리자 계정에만 보관함 카드에 삭제 버튼이 붙는다(QA 기록 정리). 화면은 이 값만 본다.
+        admin: isAdminOwner(owner),
         purchasedOnly: false,
         reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record, { slim })).slice(0, limit),
       }
@@ -3160,6 +3162,7 @@ app.get('/api/user/reports', async (req, res) => {
     const body = {
       userId: owner.id,
       storage: getReportStorageMode(),
+      admin: isAdminOwner(owner),
       purchasedOnly: !isAdminOwner(owner),
       reports: listings
         .filter((item) => isCustomerFacingReport(item.record))
@@ -3218,6 +3221,8 @@ app.delete('/api/user/reports/:reportId', async (req, res) => {
       return
     }
     const deleted = await deleteReportRecord(reportId, owner)
+    // 지운 리포트를 큐가 다시 집으면 REPORT_NOT_FOUND 로 dead 만 쌓인다. 작업도 함께 지운다.
+    if (deleted) await deleteOpsJobsForTarget(reportId).catch(() => undefined)
     res.json({ ok: true, reportId, deleted })
   } catch (err) {
     respondRequestFailure(res, err, '풀이 삭제 실패')
