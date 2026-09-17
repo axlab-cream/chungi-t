@@ -28,7 +28,9 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     const analysis = analyzeSaju(sampleBirth)
     const report = buildTemplateSajuReport(analysis, sampleBirth, sampleContext)
 
-    assert.ok(report.sections.length >= 30)
+    // 2026-09-17 목차 축소(37 -> 15). 섹션당 69초라 37개는 43분이 걸렸다. 개수를 못박아
+    // 두어야 목차가 슬그머니 다시 불어나는 것을 배포 전에 알 수 있다.
+    assert.equal(report.sections.length, 15)
     assert.ok(report.sections[0].patternKeys.some((key) => key.startsWith('dayPillar:')))
     assert.ok(report.sections[0].patternKeys.some((key) => key.startsWith('dayMaster:')))
     assert.ok(report.sections[0].patternKeys.includes('target:본인'))
@@ -36,15 +38,21 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     assert.ok(report.sections[0].patternKeys.includes('work:직장 다녀요'))
     assert.ok(report.sections[0].classification.includes('일간'))
     assert.ok(report.sections[0].interpretation.includes('정재용'))
-    assert.ok(report.sections.some((section) => section.id === 'relationship-orientation'))
-    assert.ok(report.sections.some((section) => section.id === 'work-context'))
+    // `relationship-orientation`(관계 해석 기준)과 `work-context`(요즘 일상의 운)는 보류로
+    // 주석 처리됐다. 확인하려던 것은 입력 맥락이 목차에 반영되는가이므로, 그 역할을 이어받은
+    // 남은 목차로 본다 - 관계는 love-loop, 일과 돈은 career-money 가 같은 입력을 읽는다.
+    assert.ok(report.sections.some((section) => section.id === 'love-loop'))
+    assert.ok(report.sections.some((section) => section.id === 'career-money'))
     assert.ok(report.sections.some((section) => section.ragTopics.some((topic) => topic.includes('직장'))))
     assert.ok(report.sections.every((section) => section.interpretation.includes('\n\n')))
     assert.doesNotMatch(report.sections.map((section) => section.interpretation).join('\n'), /95점 번들|상담 의도:|hot\/dry/)
     assert.ok(report.quality)
     assert.ok(report.quality.overallPercent >= 0 && report.quality.overallPercent <= 100)
     assert.ok(report.quality.ragUsagePercent >= 0 && report.quality.ragUsagePercent <= 100)
-    assert.ok(report.quality.categories.some((category) => category.id === 'useful-god'))
+    // 목차 축소로 용신·십성·명식구조·전환조건·전통설명 5개 축은 근거 목차가 모두 보류돼
+    // 사라졌다. 품질 모델은 실제로 만들어진 것만 센다. 남은 축으로 확인한다.
+    assert.ok(report.quality.categories.some((category) => category.id === 'day-master'))
+    assert.ok(!report.quality.categories.some((category) => category.id === 'useful-god'))
     assert.ok(report.quality.categories.some((category) => category.id === 'rag-precision'))
     assert.ok(report.quality.categories.every((category) => category.completenessPercent > 0))
   })

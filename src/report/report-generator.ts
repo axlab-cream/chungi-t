@@ -86,6 +86,22 @@ interface ReportBlueprint {
   query: string
 }
 
+/*
+ * 2026-09-17 목차 축소: 37개 → 15개.
+ *
+ * 섹션 하나가 중앙값 69초다(운영 실측). 37개는 43분, 입력에 따라 70개까지 불어난 건은
+ * 80분이 걸렸다. 그동안 고객은 티저에서 37줄짜리 목차를 먼저 보고 기다린다 — 기대는
+ * 키우고 대기는 늘리는 조합이었다.
+ *
+ * 잘라낸 22개는 대부분 **명리 도구 해설**이었다. 년주·월주·일주·시주·지장간·십신 자리·
+ * 용신 1차 판단·조후... 고객이 산 것은 "지장간이 무엇인가"가 아니라 자기 질문에 대한
+ * 답이다. 구조 해설은 없애는 게 아니라 답 안에서 근거로 인용된다.
+ *
+ * 지우지 않고 주석으로 둔다. 되돌리려면 주석만 풀면 된다. id 는 그대로여서 이미 저장된
+ * 리포트는 자기 목차를 그대로 읽는다.
+ *
+ * 남긴 15개의 도메인 균형 — 나 4 · 고민 1 · 일과 돈 3 · 연애 4 · 흐름 2 · 실행 1.
+ */
 const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   {
     id: 'profile',
@@ -94,51 +110,51 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
     focus: 'profile',
     query: '일간 성격 오행 사주팔자 기본 성향',
   },
-  {
+  /* 보류: {
     id: 'target-context',
     category: '누구의 사주인가',
     categoryEn: 'The Target',
     focus: 'target',
     query: '본인 가족 연인 친구 기타 대상 선택 상담 방향',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'pillars-structure',
     category: '명식의 뼈대',
     categoryEn: 'The Four Pillars',
     focus: 'profile',
     query: '명식 사주팔자 년주 월주 일주 시주 구조 기둥',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'year-pillar',
     category: '년주에 남은 배경',
     categoryEn: 'Year Pillar',
     focus: 'profile',
     query: '년주 초년운 배경 첫인상 환경 가족',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'month-pillar',
     category: '월주가 만든 사회 얼굴',
     categoryEn: 'Month Pillar',
     focus: 'trap',
     query: '월주 월령 사회성 직업 반복 고민 무대',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'day-pillar',
     category: '일주와 가까운 관계',
     categoryEn: 'Day Pillar',
     focus: 'love',
     query: '일주 일간 일지 배우자궁 가까운 관계',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'hour-pillar',
     category: '시주에 숨은 후반부',
     categoryEn: 'Hour Pillar',
     focus: 'future',
     query: '시주 잠재력 후반부 노년 숨은 욕망',
-  },
+  }, */
   {
     id: 'day-master-strength',
-    category: '일간의 힘과 버티는 방식',
+    category: '내가 버티는 방식',
     categoryEn: 'Day Master Strength',
     focus: 'profile',
     query: '일간 강약 신강 신약 기질 버티는 방식',
@@ -152,81 +168,81 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   },
   {
     id: 'balance',
-    category: '나의 기운의 분포',
+    category: '내 기운이 쏠린 곳',
     categoryEn: 'The Balance',
     focus: 'balance',
     query: '오행 강한 기운 부족한 기운 용신 희신 기신',
   },
-  {
+  /* 보류: {
     id: 'dominant-element',
     category: '가장 먼저 치고 올라오는 기운',
     categoryEn: 'Dominant Element',
     focus: 'balance',
     query: 'dominant element 강한 오행 과다 목 화 토 금 수',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'weak-element',
     category: '상대적으로 적은 기운',
     categoryEn: 'Weak Element',
     focus: 'balance',
     query: '부족한 오행 약한 기운 보완 목 화 토 금 수',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'ten-gods-overview',
     category: '십신이 말하는 관계성',
     categoryEn: 'Ten Gods',
     focus: 'trap',
     query: '십신 관계성 비겁 식상 재성 관성 인성',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'ten-gods-position',
     category: '십신이 놓인 자리',
     categoryEn: 'Ten Gods Position',
     focus: 'trap',
     query: '십신 위치 년주 월주 일주 시주 해석',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'useful-god-eokbu',
     category: '용신 1차 판단',
     categoryEn: 'Useful God',
     focus: 'balance',
     query: '용신 억부 신강 신약 보완 균형',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'useful-god-johu',
     category: '조후와 온도의 보완',
     categoryEn: 'Climate Balance',
     focus: 'balance',
     query: '용신 조후 온도 한난조습 계절 월령',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'trap',
     category: '반복을 점검하는 기준',
     categoryEn: 'The Trap',
     focus: 'trap',
     query: '십신 비겁 식상 관성 재성 인성 반복 고민 합충형파해',
-  },
+  }, */
   {
     id: 'concern-loop',
-    category: '현재 고민과 확인할 조건',
+    category: '지금 이 고민, 무엇부터',
     categoryEn: 'Concern Loop',
     focus: 'trap',
     query: '현재 고민 반복 고민 패턴 마음 사주 연결',
   },
-  {
+  /* 보류: {
     id: 'relationship-orientation',
     category: '관계 해석 기준',
     categoryEn: 'Orientation',
     focus: 'relationshipContext',
     query: '이성 관계 중심 동성 관계 중심 배우자성 비겁 관계 기준',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'relationship-status',
     category: '지금 관계 상태',
     categoryEn: 'Relationship Status',
     focus: 'relationshipContext',
     query: '솔로 마음에 둔 사람 연애 중 이별 직후 결혼 관계 상태',
-  },
+  }, */
   {
     id: 'career-money',
     category: '일과 돈의 결',
@@ -234,16 +250,16 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
     focus: 'careerMoney',
     query: '직업 재물 정재 편재 식신 상관 관성 돈 흐름',
   },
-  {
+  /* 보류: {
     id: 'work-context',
     category: '요즘 일상의 운',
     categoryEn: 'Work Context',
     focus: 'workContext',
     query: '학생 일을 찾고 직장 사업 프리랜서 쉬고 있어요 일상 상태',
-  },
+  }, */
   {
     id: 'career-transition',
-    category: '버틸지 옮길지의 기준',
+    category: '버틸지 옮길지',
     categoryEn: 'Career Turn',
     focus: 'careerMoney',
     query: '이직 퇴사 직장 고민 버틸 옮길 직업 전환',
@@ -255,20 +271,20 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
     focus: 'careerMoney',
     query: '재물운 돈 재성 정재 편재 식상 수입 기회',
   },
-  {
+  /* 보류: {
     id: 'money-leak',
     category: '지출을 점검하는 기준',
     categoryEn: 'Money Leak',
     focus: 'moneyLeak',
     query: '돈구멍 돈이 새는 지출 겁재 상관 관계 비용',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'wealth-timing',
     category: '재물 기회가 붙는 때',
     categoryEn: 'Wealth Timing',
     focus: 'careerMoney',
     query: '재물 기회 재물 시기 용신 재성 대운 세운',
-  },
+  }, */
   {
     id: 'love-loop',
     category: '인연의 반복 패턴',
@@ -278,21 +294,21 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
   },
   {
     id: 'destiny-partner',
-    category: '운명의 상대가 가진 분위기',
+    category: '만나게 될 사람의 분위기',
     categoryEn: 'Destiny Partner',
     focus: 'destiny',
     query: '운명의 상대 인연 상대 성향 직업적 분위기 관계 패턴',
   },
   {
     id: 'avoid-relationship',
-    category: '멀리해야 할 관계',
+    category: '거리를 둬야 할 사람',
     categoryEn: 'Avoid Pattern',
     focus: 'relationshipContext',
     query: '멀리해야 할 관계 관계 함정 기신 연애 반복 관계 반복',
   },
   {
     id: 'love-timing',
-    category: '인연이 드러나는 시기',
+    category: '인연이 오는 시기',
     categoryEn: 'Love Timing',
     focus: 'destiny',
     query: '인연 시기 연애 시기 도화 합 세운 대운 신호',
@@ -304,34 +320,34 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
     focus: 'future',
     query: '대운 세운 운 흐름 용신 기신 시기 전환',
   },
-  {
+  /* 보류: {
     id: 'daewoon-detail',
     category: '대운이 바꾸는 무대',
     categoryEn: 'Daewoon',
     focus: 'future',
     query: '대운 10년 큰 흐름 전환 운세 시기',
-  },
+  }, */
   {
     id: 'sewoon-detail',
-    category: '올해 세운의 신호',
+    category: '올해 달라지는 것',
     categoryEn: 'Sewoon',
     focus: 'future',
     query: '세운 올해 올해운 연도 운세 신호',
   },
-  {
+  /* 보류: {
     id: 'turning-years',
     category: '인생 전환 구간',
     categoryEn: 'Turning Years',
     focus: 'future',
     query: '인생 전환 전환 시기 특정 연도 변곡점 대운 전환 세운',
-  },
-  {
+  }, */
+  /* 보류: {
     id: 'timing-place',
     category: '시기와 장소의 신호',
     categoryEn: 'Timing & Place',
     focus: 'timingPlace',
     query: '시기와 장소 인연 장소 사건 장소 오행 생활 공간',
-  },
+  }, */
   {
     id: 'action-guide',
     category: '지금 붙잡아야 할 신호',
@@ -339,13 +355,13 @@ const REPORT_BLUEPRINTS: ReportBlueprint[] = [
     focus: 'action',
     query: '사주 조언 용신 행동 기준 현재 고민 앞으로',
   },
-  {
+  /* 보류: {
     id: 'long-report-depth',
     category: '긴 리포트의 읽는 법',
     categoryEn: 'Report Depth',
     focus: 'reportDepth',
     query: '긴 리포트 장문 5만 자 상세 풀이 근거 섹션 95점',
-  },
+  }, */
 ]
 
 const LOVE_THIS_YEAR_BLUEPRINTS: ReportBlueprint[] = [

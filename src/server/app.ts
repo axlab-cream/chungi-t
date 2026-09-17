@@ -1504,6 +1504,15 @@ function isCustomerFacingReport(record: ReportRecord): boolean {
   return !isCustomerPausedProduct(record.context?.serviceKey)
 }
 
+type ReportStage = 'complete' | 'failed' | 'generating' | 'waiting'
+
+function reportStage(record: ReportRecord): ReportStage {
+  if (record.status === 'complete') return 'complete'
+  if (record.status === 'failed') return 'failed'
+  const sections = record.report?.sections ?? []
+  return sections.some((section) => section.status === 'generating') ? 'generating' : 'waiting'
+}
+
 function historyEntryFromRecord(record: ReportRecord) {
   const analysis = toUiAnalysisFromRecord(record)
   // Lists are metadata, not an alternate paid-content endpoint. Open the ID for entitlement checks.
@@ -1523,6 +1532,15 @@ function historyEntryFromRecord(record: ReportRecord) {
     // 카드가 상태(생성 중·완료·실패)를 고르는 근거. 진행 숫자만으로는 멈춘 것과
     // 만드는 중인 것이 구분되지 않는다.
     reportStatus: record.status,
+    /*
+     * 화면이 고를 단계. "생성 중"이 여러 개 떠 있는데 실제로 도는 것은 한 번에 하나뿐이면
+     * 나머지는 기다리는 중이다 — 그것까지 "생성 중"이라 적으면 % 가 멈춘 이유를 설명하지
+     * 못한다(2026-09-17 운영 보관함에서 5건 중 4건이 그 상태였다).
+     *
+     * 실제로 도는 중인지는 섹션이 알고 있다. 한 칸이라도 generating 이면 지금 그 리포트가
+     * 돌고 있는 것이고, 아니면 차례를 기다리는 것이다.
+     */
+    stage: reportStage(record),
     // 지금 만들고 있는 장의 이름. 사용자가 무엇을 기다리는지 알 수 있어야 한다.
     currentSection: record.report?.sections?.find((section) => section.status !== 'complete')?.category,
     serviceHref: isCustomerPausedProduct(record.context?.serviceKey) ? undefined : serviceHrefForKey(record.context?.serviceKey),

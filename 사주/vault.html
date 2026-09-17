@@ -148,6 +148,7 @@
         --accent-dim: #b79058;
       }
       .vault-card.is-complete { --accent: #7fd1a6; --accent-soft: rgba(127, 209, 166, 0.14); --accent-line: rgba(127, 209, 166, 0.34); --accent-dim: #5aa87f; }
+      .vault-card.is-waiting { --accent: #8f8577; --accent-soft: rgba(255, 253, 250, 0.06); --accent-line: rgba(255, 253, 250, 0.14); --accent-dim: #6b6358; }
       .vault-card.is-failed { --accent: #f08461; --accent-soft: rgba(216, 81, 47, 0.16); --accent-line: rgba(216, 81, 47, 0.42); --accent-dim: #8c3a22; }
 
       .vault-rail { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 18%, transparent)); }
@@ -239,7 +240,7 @@
 
       <section class="page-head">
         <h1>보관함</h1>
-        <p>구매한 풀이가 최근 구매 순으로 남습니다. 눌러서 다시 볼 수 있어요.</p>
+        <p>다 된 풀이가 먼저 보입니다. 만드는 중인 풀이는 그 아래에 차례로 남습니다.</p>
       </section>
 
       <section id="state"></section>
@@ -314,7 +315,12 @@
           const done = Math.min(Number(report.progress?.complete) || 0, total || Infinity) || 0;
           const status = report.reportStatus || '';
           const finished = status === 'complete' || (total > 0 && done >= total);
-          const state = status === 'failed' ? 'failed' : finished ? 'complete' : 'generating';
+          // 서버가 준 stage 를 따른다. 진행 숫자만으로는 지금 돌고 있는 것과 차례를
+          // 기다리는 것이 구분되지 않는다 — 둘 다 "생성 중"으로 보이면 % 가 멈춘 이유를
+          // 설명하지 못한다.
+          const state = status === 'failed' ? 'failed'
+            : finished ? 'complete'
+            : report.stage === 'waiting' ? 'waiting' : 'generating';
           const percent = state === 'failed'
             ? (total ? Math.round((done / total) * 100) : 0)
             : finished ? 100 : total ? Math.round((done / total) * 100) : 0;
@@ -337,6 +343,17 @@
               hint: '다시 생성하면 남은 목차부터 이어 만듭니다.',
               pdfClass: 'is-retry', pdfLabel: '다시 생성하기', pdfIcon: '↻', pdfAction: 'retry',
               note: '문제가 이어지면 고객센터로 알려주세요.',
+            };
+          }
+          if (state === 'waiting') {
+            return {
+              state, total, done, percent, seal: '待', badge: '대기 중',
+              label: total ? `목차 ${total}개 중 ${done}개 완료` : '차례를 기다리는 중',
+              num: `${percent}%`,
+              // 앞선 풀이가 끝나야 이 풀이가 시작된다. 해석은 한 번에 하나씩 만들어진다.
+              hint: '앞선 풀이가 끝나면 이어서 만듭니다.',
+              pdfClass: '', pdfLabel: 'PDF 다운로드', pdfIcon: '⤓', pdfAction: '',
+              note: '',
             };
           }
           return {
@@ -415,6 +432,24 @@
             }
 
             state.innerHTML = '';
+            /*
+             * 완료 → 생성 중 → 대기 중 → 실패 순으로 모은다.
+             *
+             * 구매순만으로 늘어놓으면 지금 볼 수 있는 풀이가 아직 못 보는 것들 아래에
+             * 묻힌다. 보관함에 다시 들어오는 이유는 "다 된 것을 보려고" 이므로 그것을
+             * 맨 위에 둔다. 같은 묶음 안에서는 최근 구매가 먼저다.
+             */
+            const rank = { complete: 0, generating: 1, waiting: 2, failed: 3 };
+            const stageOf = (r) => {
+              const t = Number(r.progress?.total) || 0;
+              const d = Number(r.progress?.complete) || 0;
+              if (r.reportStatus === 'failed') return 'failed';
+              if (r.reportStatus === 'complete' || (t > 0 && d >= t)) return 'complete';
+              return r.stage === 'waiting' ? 'waiting' : 'generating';
+            };
+            const when = (r) => Date.parse(r.purchasedAt || r.savedAt || '') || 0;
+            reports.sort((a, b) => (rank[stageOf(a)] - rank[stageOf(b)]) || (when(b) - when(a)));
+
             list.innerHTML = reports
               .map((report) => {
                 // 판매 제목은 서버(결제 카탈로그)가 정한다. 여기서 다시 적으면 상품 이름을
