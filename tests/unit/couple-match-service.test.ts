@@ -41,7 +41,8 @@ test('couple match service builds a dedicated compatibility report', () => {
   assert.equal(context.serviceKey, 'match_couple')
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '커플궁합 해석문')
-  assert.equal(report.sections.length, 70)
+  // 2026-09-17 목차 축소: 14대분류·70중분류 → 14대분류·28중분류(대분류당 2개).
+  assert.equal(report.sections.length, 28)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '관계 총평',
     '띠/지지 궁합',
@@ -66,9 +67,9 @@ test('couple match service builds a dedicated compatibility report', () => {
   assert.equal(report.sections[0].id, 'relationship_overview__chemistry_one_line')
   COUPLE_MATCH_TOC.forEach((group) => {
     const owned = report.sections.filter((section) => group.items.some((item) => item.id === section.id))
-    assert.equal(owned.length, 5, `${group.id} 는 다섯 개의 중분류를 가져야 합니다`)
+    assert.equal(owned.length, group.items.length, `${group.id} 의 중분류 수가 목차와 다릅니다`)
     const bodies = owned.map((section) => section.interpretation.split('\n\n')[0])
-    assert.equal(new Set(bodies).size, 5, `${group.id} 의 다섯 항목은 서로 다르게 읽혀야 합니다`)
+    assert.equal(new Set(bodies).size, owned.length, `${group.id} 의 항목들이 서로 다르게 읽혀야 합니다`)
   })
 
   // Corpus scaffolding must never reach the page.

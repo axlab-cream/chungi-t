@@ -43,9 +43,6 @@ export const COUPLE_MATCH_TOC = [
     items: [
       { id: 'relationship_overview__chemistry_one_line', title: '케미 한 줄', note: '두 사람 관계의 첫인상을 한 문장으로 압축해요.' },
       { id: 'relationship_overview__green_light_points', title: '그린라이트 포인트', note: '잘 맞는 버튼이 어디서 켜지는지 먼저 보여줘요.' },
-      { id: 'relationship_overview__yellow_points', title: '옐로포인트', note: '좋아도 살짝 걸리는 신호를 과하게 키우지 않고 체크해요.' },
-      { id: 'relationship_overview__maintenance_difficulty', title: '관계 유지 난이도', note: '좋아하는 마음과 실제 유지 체력을 나눠서 봐요.' },
-      { id: 'relationship_overview__question_to_check', title: '지금 확인할 질문', note: '오늘 바로 물어봐도 덜 부담스러운 질문을 뽑아요.' },
     ],
   },
   {
@@ -56,10 +53,7 @@ export const COUPLE_MATCH_TOC = [
     title: '띠/지지 궁합',
     items: [
       { id: 'zodiac_branch_match__best_fit_combo', title: '찰떡 조합', note: '같이 있을 때 자연스럽게 편해지는 조합 신호를 봐요.' },
-      { id: 'zodiac_branch_match__steady_combo', title: '무난한 조합', note: '큰 드라마보다 꾸준함으로 가는 궁합 결을 확인해요.' },
-      { id: 'zodiac_branch_match__needs_space_combo', title: '거리 필요한 조합', note: '붙어 있을수록 예민해질 수 있는 거리감을 체크해요.' },
       { id: 'zodiac_branch_match__collision_button', title: '충돌 버튼', note: '별일 아닌데 크게 튀는 포인트를 버튼처럼 표시해요.' },
-      { id: 'zodiac_branch_match__marriage_business_match', title: '결혼/동업 궁합', note: '연애 감정과 생활·파트너십 체력을 따로 봐요.' },
     ],
   },
   {
@@ -71,9 +65,6 @@ export const COUPLE_MATCH_TOC = [
     items: [
       { id: 'five_element_chemistry__generating_tension', title: '상생 텐션', note: '서로에게 힘을 실어주는 흐름을 오행으로 읽어요.' },
       { id: 'five_element_chemistry__controlling_tension', title: '상극 텐션', note: '끌리는데 피곤한 이유를 상극의 말투로 풀어요.' },
-      { id: 'five_element_chemistry__energy_charge_type', title: '에너지 충전형', note: '만나고 나면 기분이 차오르는 순간을 찾아요.' },
-      { id: 'five_element_chemistry__energy_drain_type', title: '에너지 소모형', note: '좋은데 자꾸 지치는 구간을 조용히 분리해요.' },
-      { id: 'five_element_chemistry__missing_element_support', title: '부족한 오행 보완 포인트', note: '둘 사이에서 비어 보이는 결을 생활 습관으로 채워요.' },
     ],
   },
   {
@@ -84,10 +75,7 @@ export const COUPLE_MATCH_TOC = [
     title: '일간 성향 싱크',
     items: [
       { id: 'daymaster_sync__expression_speed', title: '표현 속도', note: '좋아하는 마음이 말로 나오는 속도 차이를 봐요.' },
-      { id: 'daymaster_sync__emotion_processing', title: '감정 처리 방식', note: '서운함을 바로 말하는지, 혼자 정리하는지 나눠요.' },
       { id: 'daymaster_sync__affection_style', title: '애정 표현 스타일', note: '말, 행동, 챙김 중 어디서 사랑이 드러나는지 봐요.' },
-      { id: 'daymaster_sync__independence_dependence', title: '독립성/의존도', note: '각자 시간이 필요한 쪽과 붙어 있어야 안정되는 쪽을 비교해요.' },
-      { id: 'daymaster_sync__comfort_condition', title: '관계에서 편해지는 조건', note: '두 사람이 긴장을 풀고 자기답게 있는 조건을 찾습니다.' },
     ],
   },
   {
@@ -98,10 +86,7 @@ export const COUPLE_MATCH_TOC = [
     title: '십성 관계 코드',
     items: [
       { id: 'ten_star_code__friend_like_love', title: '친구 같은 연애', note: '편하게 장난치고 같이 노는 관계 코드를 봐요.' },
-      { id: 'ten_star_code__flirting_code', title: '설렘/플러팅 코드', note: '상대가 나를 끌리게 만드는 포인트를 짧게 잡아요.' },
       { id: 'ten_star_code__real_life_care', title: '현실 케어 코드', note: '챙김, 계획, 생활 안정감이 어디서 나오는지 봐요.' },
-      { id: 'ten_star_code__official_commitment', title: '책임/공식 관계 코드', note: '관계 이름표와 약속을 대하는 태도를 확인해요.' },
-      { id: 'ten_star_code__emotional_leaning', title: '기대고 싶은 정서 코드', note: '힘든 날 누구에게 어떻게 기대고 싶은지 읽어요.' },
     ],
   },
   {
@@ -112,10 +97,7 @@ export const COUPLE_MATCH_TOC = [
     title: '소통 궁합',
     items: [
       { id: 'communication_match__tone_temperature', title: '말투 온도', note: '차갑게 들리는 말과 따뜻하게 받는 말의 차이를 봐요.' },
-      { id: 'communication_match__reply_rhythm', title: '답장/연락 리듬', note: '답장 속도를 관심의 크기로만 보지 않게 정리해요.' },
       { id: 'communication_match__hurt_handling', title: '서운함 처리법', note: '서운할 때 바로 꺼낼 말과 잠깐 보류할 말을 나눠요.' },
-      { id: 'communication_match__defense_pattern', title: '싸울 때 방어 패턴', note: '말이 세지는 쪽, 닫히는 쪽, 피하는 쪽을 구분해요.' },
-      { id: 'communication_match__reconciliation_sentence', title: '화해 문장 추천', note: '상대 방어를 덜 건드리는 첫 문장을 제안해요.' },
     ],
   },
   {
@@ -126,10 +108,7 @@ export const COUPLE_MATCH_TOC = [
     title: '끌림/호감 포인트',
     items: [
       { id: 'attraction_points__first_spark', title: '첫눈 텐션', note: '처음부터 시선이 가는 이유를 감각적으로 정리해요.' },
-      { id: 'attraction_points__slow_burn_charm', title: '오래 볼수록 스며드는 매력', note: '처음보다 시간이 갈수록 좋아지는 결을 봐요.' },
-      { id: 'attraction_points__peach_blossom_charm', title: '도화/홍염식 매력', note: '자꾸 눈길 가는 분위기와 플러팅 결을 가볍게 봐요.' },
       { id: 'attraction_points__comfort_point', title: '편안함 포인트', note: '말하지 않아도 덜 긴장되는 지점을 찾아요.' },
-      { id: 'attraction_points__spark_maintenance', title: '설렘 유지 버튼', note: '관계가 익숙해져도 식지 않게 눌러볼 포인트예요.' },
     ],
   },
   {
@@ -140,9 +119,6 @@ export const COUPLE_MATCH_TOC = [
     title: '갈등 리포트',
     items: [
       { id: 'conflict_report__repeating_loop', title: '반복 갈등 루프', note: '매번 비슷하게 돌아오는 싸움 패턴을 도식화해요.' },
-      { id: 'conflict_report__competition_point', title: '경쟁심 포인트', note: '누가 맞는지 겨루게 되는 순간을 체크해요.' },
-      { id: 'conflict_report__communication_obstacle', title: '의사소통 장애', note: '말은 오가는데 뜻이 엇갈리는 구간을 분리해요.' },
-      { id: 'conflict_report__trust_shake', title: '신뢰 흔들림', note: '믿음이 약해지는 행동과 회복 포인트를 봐요.' },
       { id: 'conflict_report__line_crossing_moment', title: '선 넘는 순간', note: '서로가 멈춰야 하는 말과 행동의 기준을 세워요.' },
     ],
   },
@@ -154,10 +130,7 @@ export const COUPLE_MATCH_TOC = [
     title: '연애 단계별 풀이',
     items: [
       { id: 'dating_stage_reading__some_possibility', title: '썸 가능성', note: '아직 애매한 관계에서 신호와 착각을 나눠요.' },
-      { id: 'dating_stage_reading__confession_timing', title: '고백 타이밍', note: '밀어붙이기보다 대화 온도가 맞는 순간을 봐요.' },
-      { id: 'dating_stage_reading__early_love_caution', title: '연애 초반 주의점', note: '초반에 과속하거나 과하게 참는 패턴을 체크해요.' },
       { id: 'dating_stage_reading__long_term_stamina', title: '장기연애 체력', note: '오래 만나도 유지되는 힘과 지치는 구간을 봐요.' },
-      { id: 'dating_stage_reading__pre_marriage_check', title: '결혼 전 체크포인트', note: '생활, 가족, 돈, 책임 이야기를 나누는 기준을 잡아요.' },
     ],
   },
   {
@@ -168,9 +141,6 @@ export const COUPLE_MATCH_TOC = [
     title: '현실 궁합',
     items: [
       { id: 'real_life_match__money_temperature', title: '돈 쓰는 온도', note: '데이트비, 선물, 소비 감각의 차이를 가볍게 점검해요.' },
-      { id: 'real_life_match__promise_style', title: '약속 지키는 방식', note: '시간, 답장, 말한 것 지키는 태도의 결을 봐요.' },
-      { id: 'real_life_match__work_business_partnership', title: '일/사업 파트너십', note: '같이 일하거나 목표를 세울 때 맞는 역할을 봐요.' },
-      { id: 'real_life_match__family_expectation', title: '가족 기대치', note: '가족, 주변 사람, 공개 범위를 대하는 온도를 봐요.' },
       { id: 'real_life_match__daily_routine_fit', title: '생활 루틴 맞춤', note: '잠, 식사, 일상 템포가 관계 체감에 미치는 영향을 봐요.' },
     ],
   },
@@ -182,9 +152,6 @@ export const COUPLE_MATCH_TOC = [
     title: '운 흐름 궁합',
     items: [
       { id: 'luck_flow_match__year_temperature', title: '올해 관계 온도', note: '올해 두 사람 관계가 어느 쪽으로 예민한지 봐요.' },
-      { id: 'luck_flow_match__month_rhythm', title: '이번 달 관계 리듬', note: '이번 달 연락, 만남, 감정 기복의 리듬을 봐요.' },
-      { id: 'luck_flow_match__today_contact_day', title: '오늘 연락해도 되는 날', note: '오늘 먼저 말을 걸 때 부담이 덜한 톤을 골라요.' },
-      { id: 'luck_flow_match__clash_day_talk', title: '충 있는 날 대화법', note: '예민한 날에는 말을 줄일지, 구조를 바꿀지 봐요.' },
       { id: 'luck_flow_match__relationship_turning_time', title: '관계 전환 타이밍', note: '썸에서 연애, 연애에서 약속으로 넘어가는 결을 봐요.' },
     ],
   },
@@ -196,9 +163,6 @@ export const COUPLE_MATCH_TOC = [
     title: '마음 돌봄',
     items: [
       { id: 'mind_care__separate_confidence_anxiety', title: '확신과 불안 분리', note: '좋아하는 마음과 불안한 상상을 따로 놓고 봐요.' },
-      { id: 'mind_care__name_the_feeling', title: '감정 이름 붙이기', note: '짜증, 서운함, 불안, 외로움을 한 단어로 잡아요.' },
-      { id: 'mind_care__one_beat_late', title: '한 박자 늦추기', note: '보내기 직전 멈추면 달라지는 문장을 확인해요.' },
-      { id: 'mind_care__distance_mission', title: '거리두기 미션', note: '붙잡는 대신 나를 회복하는 짧은 미션을 줘요.' },
       { id: 'mind_care__boundary_sentence', title: '나를 지키는 경계 문장', note: '관계를 지키면서도 내 선을 말하는 문장을 준비해요.' },
     ],
   },
@@ -210,9 +174,6 @@ export const COUPLE_MATCH_TOC = [
     title: '결과 패키징',
     items: [
       { id: 'result_packaging__chemistry_card', title: '우리 둘 케미 카드', note: '둘만의 관계 키워드를 카드처럼 저장해요.' },
-      { id: 'result_packaging__support_quest', title: '보완 퀘스트', note: '잘 안 맞는 지점을 작은 실천으로 바꿔요.' },
-      { id: 'result_packaging__conversation_mission', title: '대화 미션', note: '오늘 해볼 수 있는 대화 주제를 짧게 제안해요.' },
-      { id: 'result_packaging__date_contact_guide', title: '데이트/연락 가이드', note: '만남과 연락을 어떤 톤으로 잡을지 제안해요.' },
       { id: 'result_packaging__no_absolute_decision_notice', title: '“헤어져/결혼해” 단정 금지 안내', note: '리포트가 선택을 대신하지 않는다는 기준을 분명히 둬요.' },
     ],
   },
@@ -225,9 +186,6 @@ export const COUPLE_MATCH_TOC = [
     items: [
       { id: 'today_relationship_action__contact_tone', title: '오늘 연락 톤', note: '먼저 연락한다면 어떤 온도가 덜 부담스러운지 골라요.' },
       { id: 'today_relationship_action__one_sentence_question', title: '한 문장 확인 질문', note: '관계를 흔들지 않고 확인할 수 있는 질문을 뽑아요.' },
-      { id: 'today_relationship_action__distance_mission', title: '거리두기 미션', note: '말을 더 하기보다 잠깐 덜어내는 미션을 제안해요.' },
-      { id: 'today_relationship_action__reconciliation_sentence', title: '화해 문장 추천', note: '오늘 먼저 풀고 싶을 때 쓸 수 있는 시작 문장을 줘요.' },
-      { id: 'today_relationship_action__avoid_tone_today', title: '오늘 피할 말투', note: '상대 방어를 키울 수 있는 표현을 미리 덜어내요.' },
     ],
   },
 ] as const
