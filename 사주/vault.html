@@ -246,6 +246,15 @@
 
       .vault-note { margin-top: 11px; padding: 0 4px; font-size: 11px; font-weight: 600; color: #a79d90; word-break: keep-all; }
 
+      .vault-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; padding: 4px; border-radius: 14px; background: rgba(255, 253, 250, 0.05); border: 1px solid rgba(255, 253, 250, 0.08); }
+      .vault-tabs button { font: inherit; font-size: 14px; font-weight: 800; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: #a79d90; cursor: pointer; }
+      .vault-tabs button[aria-selected="true"] { background: #e2b87b; color: #141210; box-shadow: 0 6px 16px rgba(226, 184, 123, 0.22); }
+      .vault-tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .vault-empty { display: grid; gap: 10px; margin-top: 14px; padding: 18px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, 0.04); }
+      .vault-empty strong { font-size: 15px; font-weight: 900; }
+      .vault-empty p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .vault-empty a { justify-self: start; min-height: 42px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--gold); border-radius: 10px; background: rgba(232, 212, 154, 0.14); color: var(--gold); font-size: 14px; font-weight: 800; text-decoration: none; }
+
       body.umsh-has-chrome {
         padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
       }
@@ -257,9 +266,13 @@
 
       <section class="page-head">
         <h1>보관함</h1>
-        <p>다 된 풀이가 먼저 보입니다. 만드는 중인 풀이는 그 아래에 차례로 남습니다.</p>
-        <!-- 해석이 왜 오래 걸리는지 먼저 말해 준다. 말해 주지 않으면 화면이 멈춘 줄 안다. -->
-        <aside class="vault-notice" role="note">
+        <p>오늘 운과 구매한 풀이를 나눠 보여줍니다. 최근 것이 위로 옵니다.</p>
+        <nav class="vault-tabs" role="tablist" aria-label="보관함 구분">
+          <button type="button" role="tab" data-tab="today" aria-selected="true">오늘 운</button>
+          <button type="button" role="tab" data-tab="paid" aria-selected="false">구매한 운</button>
+        </nav>
+        <!-- 해석이 왜 오래 걸리는지 먼저 말해 준다. 말해 주지 않으면 화면이 멈춘 줄 안다. 구매한 운 탭에서만. -->
+        <aside class="vault-notice" role="note" data-tab-only="paid" hidden>
           <span aria-hidden="true">📜</span>
           <div>
             <strong>중요 안내</strong>
@@ -477,36 +490,14 @@
               headers: { Authorization: `Bearer ${auth.access_token}` },
             }).then((response) => response.json());
             const reports = Array.isArray(payload.reports) ? payload.reports : [];
-            if (!reports.length) {
-              panel(
-                '아직 구매한 풀이가 없어요',
-                '무료로 본 티저는 여기에 남지 않습니다. 하나 열어 보면 구매한 순서대로 쌓여요.',
-                { href: '/search', label: '운세 둘러보기' },
-              );
-              return;
-            }
-
             state.innerHTML = '';
-            /*
-             * 완료 → 생성 중 → 대기 중 → 실패 순으로 모은다.
-             *
-             * 구매순만으로 늘어놓으면 지금 볼 수 있는 풀이가 아직 못 보는 것들 아래에
-             * 묻힌다. 보관함에 다시 들어오는 이유는 "다 된 것을 보려고" 이므로 그것을
-             * 맨 위에 둔다. 같은 묶음 안에서는 최근 구매가 먼저다.
-             */
-            const rank = { complete: 0, generating: 1, waiting: 2, failed: 3 };
-            const stageOf = (r) => {
-              const t = Number(r.progress?.total) || 0;
-              const d = Number(r.progress?.complete) || 0;
-              if (r.reportStatus === 'failed') return 'failed';
-              if (r.reportStatus === 'complete' || (t > 0 && d >= t)) return 'complete';
-              return r.stage === 'waiting' ? 'waiting' : 'generating';
-            };
+            // 최근 것이 위로. 상태별 묶음은 두지 않는다 — 두 탭으로 이미 갈라져 있고,
+            // 사용자는 "방금 본 것"을 맨 위에서 찾는다(2026-09-18).
             const when = (r) => Date.parse(r.purchasedAt || r.savedAt || '') || 0;
-            reports.sort((a, b) => (rank[stageOf(a)] - rank[stageOf(b)]) || (when(b) - when(a)));
+            reports.sort((a, b) => when(b) - when(a));
+            const isToday = (r) => r.serviceKey === 'today';
 
-            list.innerHTML = reports
-              .map((report) => {
+            const cardMarkup = (report) => {
                 // 판매 제목은 서버(결제 카탈로그)가 정한다. 여기서 다시 적으면 상품 이름을
                 // 바꿔도 보관함만 옛 이름으로 남는다.
                 const service = report.serviceTitle || report.context?.serviceTitle || report.context?.target || '저장된 풀이';
@@ -585,8 +576,40 @@
                 return openable
                   ? `<a class="vault-item" href="${escapeHtml(href)}">${card}</a>`
                   : `<div class="vault-item">${card}</div>`;
-              })
-              .join('');
+              };
+
+            /*
+             * 두 탭: 오늘 운 | 구매한 운. 기본은 오늘 운이다 — 매일 들어오는 이유가 그것이다.
+             * 30~50분 안내문은 구매한 운 탭에서만 보인다. 오늘 운은 즉시 계산되므로 해당 없다.
+             */
+            const tabs = document.querySelector('.vault-tabs');
+            const notice = document.querySelector('[data-tab-only="paid"]');
+            const empty = (title, copy, href, label) => `
+              <div class="vault-empty">
+                <strong>${escapeHtml(title)}</strong>
+                <p>${escapeHtml(copy)}</p>
+                <a href="${escapeHtml(href)}">${escapeHtml(label)}</a>
+              </div>
+            `;
+            const renderTab = (tab) => {
+              tabs.querySelectorAll('[data-tab]').forEach((button) => {
+                button.setAttribute('aria-selected', button.dataset.tab === tab ? 'true' : 'false');
+              });
+              if (notice) notice.hidden = tab !== 'paid';
+              const rows = reports.filter((report) => (tab === 'today' ? isToday(report) : !isToday(report)));
+              if (!rows.length) {
+                list.innerHTML = tab === 'today'
+                  ? empty('아직 오늘 운을 열지 않았어요', '오늘의 운을 열면 날짜별로 이 자리에 쌓여요. 같은 날은 한 번만 남습니다.', '/cmdg/?entry=today#todayResult', '오늘 운 보기')
+                  : empty('아직 구매한 풀이가 없어요', '무료로 본 티저는 여기에 남지 않습니다. 하나 열어 보면 최근 것이 위로 쌓여요.', '/search', '운세 둘러보기');
+                return;
+              }
+              list.innerHTML = rows.map(cardMarkup).join('');
+            };
+            tabs.addEventListener('click', (event) => {
+              const button = event.target.closest('[data-tab]');
+              if (button) renderTab(button.dataset.tab);
+            });
+            renderTab('today');
 
             // 카드 전체가 링크라, 버튼은 이동을 막고 자기 일만 한다.
             list.addEventListener('click', (event) => {
