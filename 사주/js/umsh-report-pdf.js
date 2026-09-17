@@ -50,7 +50,11 @@
       'h2{margin:0 0 8px;font-size:18px}' +
       'p{margin:0 0 8px}' +
       '.foot{margin-top:28px;color:#7a6a5a;font-size:12px}' +
+      '.tools{display:flex;gap:8px;margin-bottom:18px}.tools button{font:inherit;font-weight:800;padding:12px 16px;border-radius:10px;border:1px solid #8b1e16;background:#8b1e16;color:#fff;cursor:pointer}.tools button+button{background:transparent;color:#8b1e16}' +
+      '@media print{.tools{display:none}}' +
       '</style></head><body><div class="sheet">' +
+      '<div class="tools"><button type="button" onclick="window.print()">인쇄 · PDF로 저장</button>' +
+      '<button type="button" onclick="history.length>1?history.back():window.close()">돌아가기</button></div>' +
       '<div class="brand">운명상회 · UMSH</div>' +
       '<h1>' + escapeHtml(title) + '</h1>' +
       (subtitle ? '<p class="sub">' + escapeHtml(subtitle) + '</p>' : '') +
@@ -69,11 +73,21 @@
       if (popup) { try { popup.close(); } catch (_error) { /* already closed */ } }
       return false;
     }
+    const html = buildHtml(report);
     const target = popup || global.open('', '_blank');
-    if (!target) return false;
+    if (!target) {
+      // 팝업이 막히면(모바일 기본값) 같은 탭에서 인쇄용 문서를 연다. 문서 안의 버튼으로
+      // 인쇄·PDF 저장을 하고 「돌아가기」로 복귀한다. 아무 일도 없는 것보다 낫다.
+      try {
+        global.location.assign(URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' })));
+        return true;
+      } catch (_error) {
+        return false;
+      }
+    }
     try {
       target.document.open();
-      target.document.write(buildHtml(report));
+      target.document.write(html);
       target.document.close();
     } catch (_error) {
       return false;

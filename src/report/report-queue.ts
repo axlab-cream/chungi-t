@@ -364,7 +364,8 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
         : truncated
           ? error.message
           : transient
-            ? `요청이 일시적으로 거절되었습니다(status=${error.status ?? '없음'}).`
+            // 429 는 분당 한도(rate limit)와 잔액 소진(insufficient_quota)이 같은 코드다. 문구로 갈라 봐야 한다.
+            ? `요청이 일시적으로 거절되었습니다(status=${error.status ?? '없음'}): ${String(error.message ?? '').slice(0, 140)}`
             // 원인을 함께 남긴다. 뭉뚱그린 한 줄만 남아 스냅샷 불일치를 사흘 동안 못 봤다(2026-09-18).
             : `해석 생성 또는 저장이 완료되지 않았습니다. (${error instanceof Error ? `${error.name}: ${error.message}` : String(error)})`.slice(0, 240)
       const retryable = (error instanceof InterpretationQualityError || truncated || transient) && index < SECTION_ATTEMPT_LIMIT - 1
