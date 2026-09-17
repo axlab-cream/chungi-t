@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko" data-umsh-verified-inplace>
 <head>
-    <script src="/js/umsh-report-access.js?v=live-20260917q"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260918-toc"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>연애 말고 결혼까지 가능? | 상세 풀이</title>
@@ -694,7 +694,9 @@
       <span class="chip" id="access-chip">권한 확인</span>
     </div>
 
-    <section class="screen" id="detail-root" aria-live="polite"></section>
+    <section class="umsh-progress-panel" data-umsh-slot="progress" aria-label="해석 준비 진행률" hidden></section>
+    <section class="state-panel" id="state-panel" data-umsh-slot="state" aria-live="polite"></section>
+    <section class="screen" id="detail-root" data-umsh-slot="sections" aria-label="상세 해석" aria-live="polite"></section>
 
     <form class="composer" id="detail-form">
       <textarea id="detail-message" rows="2" placeholder="이 항목에서 더 묻고 싶은 걸 적어주세요"></textarea>
