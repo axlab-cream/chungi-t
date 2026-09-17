@@ -69,8 +69,45 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
     }
     assert.deepEqual([...seenRelations].sort(), ['output', 'pressure', 'same', 'support', 'wealth'])
     assert.equal(seenElements.size, 5)
-    assert.equal(summaries.size, 5)
+    // 요약은 그날의 일주(예: 갑오일)와 음양을 함께 말하므로 열흘이면 열 개다.
+    assert.equal(summaries.size, 10)
     assert.equal(new Set(guidance.values()).size, 5)
+  })
+
+  it('reads differently on consecutive days even when the day element repeats', () => {
+    // 2026-09-18 실제 문의: 갑오(甲午)일과 을미(乙未)일이 둘 다 목(木)이라 어제와 오늘 글이 같았다.
+    // 천간의 음양·지지 장면이 갈라 주어야 한다. 60일 연속으로 하루도 앞날과 같지 않아야 하고,
+    // 그러면서 문장 수·어조·한자 규칙은 그대로 지켜야 한다.
+    const owner: UserBirthProfile = { ...profile, birth: { year: 1975, month: 9, day: 26, hour: 5, minute: 0, gender: 'male', calendar: 'solar' } }
+    const sep17 = buildTodayFortune(owner, new Date('2026-09-17T03:00:00Z'))
+    const sep18 = buildTodayFortune(owner, new Date('2026-09-18T03:00:00Z'))
+    assert.equal(sep17.today.element, sep18.today.element, '같은 오행이 이어지는 이틀로 골라야 회귀가 잡힌다')
+    for (const key of ['title', 'summary', 'work', 'money', 'relationship', 'caution', 'action'] as const) {
+      assert.notEqual(sep17.reading[key], sep18.reading[key], `${key} 가 어제와 같다`)
+    }
+    assert.notDeepEqual(sep17.reading.score, sep18.reading.score)
+
+    let previous: ReturnType<typeof buildTodayFortune> | undefined
+    for (let offset = 0; offset < 60; offset += 1) {
+      const fortune = buildTodayFortune(owner, new Date(Date.UTC(2026, 8, 1 + offset, 3)))
+      const reading = fortune.reading
+      if (previous) {
+        assert.notEqual(reading.work + reading.money + reading.relationship + reading.caution, previous.reading.work + previous.reading.money + previous.reading.relationship + previous.reading.caution, `${fortune.date.iso} 본문이 전날과 같다`)
+        assert.notEqual(reading.action, previous.reading.action, `${fortune.date.iso} 결론이 전날과 같다`)
+      }
+      assert.match(reading.summary, /^[가-힣]{2}\([㐀-鿿]{2}\)일, [양음]의 [목화토금수]\([木火土金水]\) 기운이/)
+      for (const key of ['work', 'money', 'relationship', 'caution'] as const) {
+        assert.equal(reading[key].split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 3, `${fortune.date.iso}.${key}`)
+        assert.ok(reading[key].length >= 100)
+        assert.doesNotMatch(reading[key], /[㐀-鿿]/)
+      }
+      assert.equal(reading.action.split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 2, `${fortune.date.iso}.action`)
+      assert.match(reading.action, /^오늘의 결론은 .+거야\./)
+      for (const text of [reading.title, reading.summary, reading.work, reading.money, reading.relationship, reading.caution, reading.action]) {
+        assert.deepEqual(reviewToneCopy(text, 'today_fortune').issues, [], `${fortune.date.iso}: ${text}`)
+      }
+      previous = fortune
+    }
   })
 
   it('labels all twelve zodiac years conventionally, including January births before 입춘', () => {

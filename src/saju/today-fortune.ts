@@ -1,5 +1,6 @@
-import type { BirthInput, Element } from '../types/index.js'
+import type { BirthInput, EarthlyBranch, Element, HeavenlyStem } from '../types/index.js'
 import { analyzeSaju, calculateFourPillars, BRANCH_KO, ELEMENT_KO, STEM_ELEMENT, STEM_KO } from './analyzer.js'
+import { BRANCH_ELEMENT } from './analyzer-helpers.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
 
 type TodayRelation = 'same' | 'support' | 'output' | 'wealth' | 'pressure'
@@ -171,6 +172,160 @@ function relationText(relation: TodayRelation, _userName: string, todayElement: 
   return table[relation]
 }
 
+/*
+ * 하루의 결은 천간(오행 관계) 하나로 끝나지 않는다. 2026-09-17 갑오(甲午)일과 09-18 을미(乙未)일은
+ * 둘 다 목(木)이라 위 표만 쓰면 제목부터 본문까지 글자 하나 다르지 않았다("어제와 오늘이 왜
+ * 같아?"). 그래서 두 축을 더 본다 —
+ *  - 천간의 음양: 양(甲丙戊庚壬)은 밖으로 뻗는 날, 음(乙丁己辛癸)은 안으로 다듬는 날. 제목과 요약이
+ *    갈린다.
+ *  - 지지(12): 그날의 장면을 정한다. 네 본문의 둘째 문장과 결론의 둘째 문장을 지지가 바꾼다.
+ *  점수도 지지의 오행이 태어난 날의 중심 기운과 맺는 관계로 조금씩 움직인다.
+ * 사흘 연속 같은 오행이 와도 음양·지지가 함께 겹칠 일은 없으므로 매일 다른 글이 된다.
+ */
+type StemPolarity = '양' | '음'
+const STEM_POLARITY: Record<HeavenlyStem, StemPolarity> = {
+  '甲': '양', '乙': '음', '丙': '양', '丁': '음', '戊': '양', '己': '음', '庚': '양', '辛': '음', '壬': '양', '癸': '음',
+}
+const POLARITY_PHRASE: Record<StemPolarity, string> = {
+  양: '기운이 밖으로 뻗는 날이라',
+  음: '기운이 안으로 고이는 날이라',
+}
+const TITLE_BY_POLARITY: Record<TodayRelation, Record<StemPolarity, string>> = {
+  same: { 양: '잘되는 방식을 내 편으로 만드는 날', 음: '익숙한 방식을 조용히 다듬는 날' },
+  support: { 양: '좋은 정보를 내 판단으로 바꾸는 날', 음: '들은 이야기를 내 것으로 삭이는 날' },
+  output: { 양: '생각을 눈에 보이는 한 가지로 만드는 날', 음: '만들어 둔 것을 한 번 더 손보는 날' },
+  wealth: { 양: '막연한 기대를 분명한 조건으로 바꾸는 날', 음: '가진 것의 쓰임을 다시 세어 보는 날' },
+  pressure: { 양: '해야 할 일을 정하고 내 여유를 지키는 날', 음: '맡은 일의 끝을 정하고 숨을 고르는 날' },
+}
+
+/**
+ * 지지별 장면. 각 본문의 둘째 문장(구체 장면)과 결론의 둘째 문장을 갈아 끼운다. 첫 문장(방향)과
+ * 셋째 문장(평온할 때의 기준)은 오행 관계 표의 것을 그대로 쓴다 — 셋째 문장이 "괜찮은 날엔
+ * 괜찮다"는 안전장치라서 지지가 건드리지 않는다.
+ */
+interface BranchScene { work: string; money: string; relationship: string; caution: string; action: string }
+const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
+  '子': {
+    work: '오늘은 늦은 시간에 정신이 맑아지는 날이니, 낮에 흩어진 메모를 저녁에 한 장으로 모아 내일 첫 일을 정해 둬.',
+    money: '가계부나 결제 내역을 열어 이번 주에 빠져나간 돈을 한 번 훑고, 잊고 있던 자동 결제가 있는지만 확인해.',
+    relationship: '길게 이어진 대화 창이 있다면 오늘은 답을 급히 보내기보다 상대 말을 한 번 더 읽고 짧게 답해.',
+    caution: '밤에 내리는 결정은 아침에 한 번 더 읽어 볼 것으로 두고, 오늘은 결론을 기록만 해 둬.',
+    action: '잠들기 전 내일 첫 일 하나를 적어 두면 오늘 흐름은 충분히 마무리돼.',
+  },
+  '丑': {
+    work: '쌓아 둔 자료나 파일 가운데 오늘 쓸 것 하나만 꺼내 정리하고, 나머지는 자리만 표시해 둬.',
+    money: '통장이나 앱에 남은 잔액을 확인하고, 이달 남은 고정 지출을 한 줄로 적어 두면 충분해.',
+    relationship: '오래 미룬 연락 하나가 있다면 긴 설명 대신 안부 한 줄로 시작해 봐.',
+    caution: '한 번에 다 치우려는 마음이 들면 서랍 하나만큼으로 범위를 줄여 오늘 몫만 끝내.',
+    action: '정리할 것 가운데 하나를 골라 끝까지 치우고 나머지는 내일로 넘겨.',
+  },
+  '寅': {
+    work: '아침 첫 시간에 가장 어려운 일을 먼저 열고, 시작만 해 두면 오후는 이어 가기가 쉬워져.',
+    money: '새로 시작할 소비나 구독이 있다면 첫 달 비용과 해지 조건을 오늘 안에 적어 둬.',
+    relationship: '먼저 인사를 건네야 하는 자리가 있다면 오늘 아침에 짧게 시작해 봐.',
+    caution: '의욕이 앞서 일을 여러 개 동시에 열지 말고, 시작한 일 하나가 자리 잡는지 먼저 봐.',
+    action: '가장 미루던 일의 첫 단계를 오늘 오전에 열어 두면 이 날의 결론은 지켜져.',
+  },
+  '卯': {
+    work: '큰 그림보다 세부 항목을 다듬는 날이니, 문서나 작업물의 오탈자와 빠진 칸을 한 번 훑어.',
+    money: '작은 지출이 자주 나가는 날이니, 오늘 산 것을 저녁에 세 줄로만 적어 봐.',
+    relationship: '상대의 짧은 말이나 표정에서 놓친 신호가 있었는지 오늘은 한 번 되짚어 봐.',
+    caution: '작은 일을 붙잡고 오래 고치다 큰 마감을 놓치지 않게, 손볼 시간을 미리 정해 둬.',
+    action: '눈에 띈 작은 빈틈 하나를 오늘 안에 채우고 그 자리에서 손을 멈춰.',
+  },
+  '辰': {
+    work: '사람들과 맞춰야 하는 일이 있다면 오늘 회의나 대화에서 결정할 항목을 세 개 안으로 줄여 가.',
+    money: '함께 쓰는 돈이나 나눠 낼 비용이 있다면 오늘 누가 얼마를 내는지 문장으로 정해 둬.',
+    relationship: '여러 사람이 얽힌 약속이 있다면 시간과 장소를 먼저 확정하고 세부는 뒤에 맞춰.',
+    caution: '의견이 갈릴 때 중간에서 모두 맞추려다 결정을 미루지 말고, 오늘 정할 것 하나만 정해.',
+    action: '함께 정할 일 가운데 하나를 오늘 확정 문장으로 남겨 두면 이어지는 일이 가벼워져.',
+  },
+  '巳': {
+    work: '말로 설명해야 하는 일이 있다면 핵심 한 줄을 먼저 쓰고, 그 문장으로 대화를 시작해.',
+    money: '광고나 추천에 눈이 가는 날이니, 사고 싶은 것이 생기면 장바구니에 하루 두고 내일 다시 봐.',
+    relationship: '표현이 잘 나오는 날이니, 고마운 사람에게 이유를 붙여 한 줄 전해 봐.',
+    caution: '말이 앞서기 쉬운 날이니, 중요한 메시지는 보내기 전에 소리 내어 한 번 읽어 봐.',
+    action: '전하려던 말 하나를 핵심 한 줄로 다듬어 오늘 안에 보내면 결론이 지켜져.',
+  },
+  '午': {
+    work: '한낮에 집중이 가장 잘 되는 날이니, 점심 전후 두 시간에 가장 중요한 작업을 몰아 둬.',
+    money: '점심이나 모임 비용처럼 낮에 나가는 돈이 많은 날이니, 예산 한도를 정해 두고 움직여.',
+    relationship: '대화가 활발한 날이니, 함께 있는 자리에서는 듣는 시간을 말하는 시간만큼 남겨.',
+    caution: '열기가 오르면 결정이 빨라지니, 오후에 정한 일은 저녁에 한 번 다시 읽어 봐.',
+    action: '가장 밝은 시간대에 중요한 일 하나를 끝내고, 저녁에는 그 결과만 확인해.',
+  },
+  '未': {
+    work: '마무리에 힘이 붙는 날이니, 거의 끝난 일의 마지막 한 단계를 오늘 닫아.',
+    money: '이달 지출을 정리하기 좋은 날이니, 남은 예산으로 월말까지 버틸 수 있는지 한 번 계산해.',
+    relationship: '오래 함께한 사람과의 관계에서는 새 약속보다 지켜 온 약속 하나를 챙겨.',
+    caution: '마무리하려다 서둘러 빠뜨리는 것이 없게, 끝낼 일의 확인 항목을 세 개만 적어 둬.',
+    action: '거의 끝난 일 하나를 완전히 닫고 그 결과를 기록해 두면 오늘은 충분해.',
+  },
+  '申': {
+    work: '기준을 세우기 좋은 날이니, 진행 중인 일의 완료 조건을 문장으로 적어 팀이나 자신에게 공유해.',
+    money: '지출 기준을 손보는 날이니, 카드 한도나 저축 비율처럼 숫자 하나를 오늘 정해 둬.',
+    relationship: '부탁을 받거나 할 일이 있다면 가능한 범위를 먼저 정한 뒤 말해.',
+    caution: '기준이 분명해지는 날이라 남의 방식이 거슬릴 수 있으니, 내 기준은 내 일에만 적용해.',
+    action: '오늘 세운 기준 하나를 문장으로 적어 두고 그 기준대로 한 가지를 결정해.',
+  },
+  '酉': {
+    work: '검토가 잘 되는 날이니, 보내기 전 자료를 다른 사람 눈으로 읽듯 한 번 훑어 고쳐.',
+    money: '지난 결제 가운데 잘못 나간 것이 없는지 영수증이나 내역을 한 번 대조해 봐.',
+    relationship: '오해가 생겼던 대화가 있다면 오늘은 사실 확인 질문 하나로 매듭을 풀어.',
+    caution: '고칠 곳이 잘 보이는 날이라 지적이 늘 수 있으니, 말하기 전에 꼭 필요한 것인지 골라.',
+    action: '보낼 것 하나를 다시 읽고 고친 뒤 내보내면 오늘의 결론은 지켜져.',
+  },
+  '戌': {
+    work: '지키는 힘이 강한 날이니, 이미 정한 일정과 약속을 흔들지 말고 순서대로 소화해.',
+    money: '비상금이나 예비 예산이 제자리에 있는지 확인하고, 없다면 첫 금액만 정해 둬.',
+    relationship: '믿는 사람과의 약속 하나를 챙기고, 새로운 관계는 서두르지 않아도 돼.',
+    caution: '지키려는 마음이 고집으로 굳지 않게, 바뀐 조건이 있으면 그 부분만 열어 다시 봐.',
+    action: '정해 둔 약속 하나를 그대로 지켜 내면 오늘 흐름은 제 몫을 한 거야.',
+  },
+  '亥': {
+    work: '정보가 잘 들어오는 날이니, 막힌 일에 필요한 자료 하나를 찾아 읽고 요점만 남겨.',
+    money: '돈 흐름을 넓게 보는 날이니, 이번 달 들어온 돈과 나간 돈을 한 줄씩 나란히 적어 봐.',
+    relationship: '상대의 사정을 짐작하기보다 오늘은 물어보는 쪽을 택해 봐.',
+    caution: '정보가 많아지면 결정이 흐려지니, 오늘 알게 된 것 가운데 결정에 필요한 것만 남겨.',
+    action: '찾은 정보 가운데 하나를 실제 행동으로 옮겨 두면 오늘은 정리돼.',
+  },
+}
+
+/** 문장을 마침표 단위로 나눈다. 본문은 세 문장, 결론은 두 문장으로 고정돼 있다. */
+function sentencesOf(text: string): string[] {
+  return text.split(/(?<=[.!?])\s+/).map((part) => part.trim()).filter(Boolean)
+}
+
+function withScene(text: string, scene: string, index: number): string {
+  const parts = sentencesOf(text)
+  if (parts.length <= index) return text
+  parts[index] = scene
+  return parts.join(' ')
+}
+
+function composeReading(
+  base: BaseTodayReading,
+  relation: TodayRelation,
+  stem: HeavenlyStem,
+  branch: EarthlyBranch,
+  pillarKo: string,
+  pillar: string,
+): BaseTodayReading {
+  const polarity = STEM_POLARITY[stem]
+  const scene = BRANCH_SCENES[branch]
+  const summaryParts = sentencesOf(base.summary)
+  summaryParts[0] = `${pillarKo}(${pillar})일, ${polarity}의 ${ELEMENT_KO[STEM_ELEMENT[stem]]} ${POLARITY_PHRASE[polarity]} ${summaryParts[0].replace(/^오늘은 /, '')}`
+  return {
+    title: TITLE_BY_POLARITY[relation][polarity],
+    summary: summaryParts.join(' '),
+    work: withScene(base.work, scene.work, 1),
+    money: withScene(base.money, scene.money, 1),
+    relationship: withScene(base.relationship, scene.relationship, 1),
+    caution: withScene(base.caution, scene.caution, 1),
+    action: withScene(base.action, scene.action, 1),
+  }
+}
+
 // Persisted display weights summarize the symbolic daily flow. They are neither
 // measured outcomes nor probabilities; renderers must preserve these saved values.
 const LEGACY_DISPLAY_WEIGHTS: Record<TodayRelation, Record<TodayDetailKey, number>> = {
@@ -181,13 +336,35 @@ const LEGACY_DISPLAY_WEIGHTS: Record<TodayRelation, Record<TodayDetailKey, numbe
   pressure: { work: 64, money: 58, relationship: 61, caution: 52 },
 }
 
-function buildReadingDetails(relation: TodayRelation, reading: BaseTodayReading): Record<TodayDetailKey, TodayFortuneDetail> {
+/** 지지의 오행이 중심 기운과 맺는 관계로 무게를 조금 움직인다. 상징 표시일 뿐 측정값이 아니다. */
+const BRANCH_RELATION_SHIFT: Record<TodayRelation, Partial<Record<TodayDetailKey, number>>> = {
+  same: { work: 3, relationship: 2 },
+  support: { relationship: 4, caution: 3 },
+  output: { work: 4, caution: -3 },
+  wealth: { money: 5 },
+  pressure: { caution: -4, work: -2 },
+}
+
+function clampScore(value: number): number {
+  return Math.min(95, Math.max(35, value))
+}
+
+function buildReadingDetails(
+  relation: TodayRelation,
+  reading: BaseTodayReading,
+  branchRelation: TodayRelation,
+  polarity: StemPolarity,
+): Record<TodayDetailKey, TodayFortuneDetail> {
   const weights = LEGACY_DISPLAY_WEIGHTS[relation]
+  const shift = BRANCH_RELATION_SHIFT[branchRelation]
+  const score = (key: TodayDetailKey) => clampScore(
+    weights[key] + (shift[key] ?? 0) + (polarity === '양' && key === 'work' ? 1 : 0) + (polarity === '음' && key === 'caution' ? 1 : 0),
+  )
   return {
-    work: { text: reading.work, score: weights.work },
-    money: { text: reading.money, score: weights.money },
-    relationship: { text: reading.relationship, score: weights.relationship },
-    caution: { text: reading.caution, score: weights.caution },
+    work: { text: reading.work, score: score('work') },
+    money: { text: reading.money, score: score('money') },
+    relationship: { text: reading.relationship, score: score('relationship') },
+    caution: { text: reading.caution, score: score('caution') },
   }
 }
 
@@ -249,8 +426,13 @@ export function buildTodayFortune(profile: UserBirthProfile, now = new Date()): 
   const todayBranch = todayPillars.day.branch
   const todayElement = STEM_ELEMENT[todayStem]
   const relation = relationFor(analysis.dayMasterElement, todayElement)
-  const baseReading = relationText(relation, profile.name, todayElement)
-  const details = buildReadingDetails(relation, baseReading)
+  const branchRelation = relationFor(analysis.dayMasterElement, BRANCH_ELEMENT[todayBranch])
+  const baseReading = composeReading(
+    relationText(relation, profile.name, todayElement),
+    relation, todayStem, todayBranch,
+    `${STEM_KO[todayStem]}${BRANCH_KO[todayBranch]}`, `${todayStem}${todayBranch}`,
+  )
+  const details = buildReadingDetails(relation, baseReading, branchRelation, STEM_POLARITY[todayStem])
   const reading: TodayFortune['reading'] = {
     ...baseReading,
     zodiac: zodiacReading(profile.birth.year, relation),
