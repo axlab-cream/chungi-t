@@ -20,6 +20,8 @@ export interface ReportStorageReadiness {
   /** Local claim comparisons only; these are not JWT signature verification. */
   jwtRoleMatches?: boolean
   jwtProjectMatches?: boolean
+  /** 목록용 경량 뷰(cheongi_report_list). 없어도 동작은 하지만 목록이 본문째로 읽혀 느리다. */
+  listView?: 'ready' | 'missing' | 'unknown'
 }
 export interface ReportRecord {
   reportId: string
@@ -78,6 +80,17 @@ const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE
 const supabaseServiceRoleKey = configuredEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
 const supabaseRestUrl = supabaseUrl
   ? `${supabaseUrl.replace(/\/$/, '')}/rest/v1/cheongi_reports`
+  : ''
+/**
+ * 목록용 경량 뷰. 본문(해석 전문·스토리·시도 이력)을 뺀 리포트만 돌려준다.
+ *
+ * 보관함 목록은 소유자의 리포트 100건을 본문째로 끌어와 2.7~4초가 걸렸다(2026-09-17 운영
+ * 실측 — 따뜻한 함수 기준선은 0.25초). 응답을 줄여도 시간이 그대로였던 이유가 여기다.
+ * 뷰가 없으면(마이그레이션 전) 표로 되돌아가 예전처럼 동작한다.
+ * 정의: supabase/migrations/20260917150000_cheongi_report_list_view.sql
+ */
+const supabaseListViewUrl = supabaseUrl
+  ? `${supabaseUrl.replace(/\/$/, '')}/rest/v1/cheongi_report_list`
   : ''
 
 const memoryReports = new Map<string, ReportRecord>()
@@ -519,7 +532,80 @@ export async function listIncompleteReportIds(limit = 200): Promise<string[]> {
   return rows.map((row) => row.report_id).filter((id): id is string => Boolean(id))
 }
 
-export async function listReportRecords(owner: ReportOwner, limit = 50): Promise<ReportRecord[]> {
+export interface ListReportRecordsOptions {
+  /**
+   * 본문 없는 경량 행. 목록·진행률·결제 판정에는 충분하다. 본문을 읽거나 되저장하는 데는
+   * 쓰지 않는다 — 섹션에 해석이 비어 있다.
+   */
+  light?: boolean
+  /** 경량 행에 사주 분석(analysis)을 함께 싣는다. 천명사주 화면의 보관함 동기화가 읽는다. */
+  includeAnalysis?: boolean
+}
+
+/** 뷰가 없다고 확인되면 잠시 표로 간다. 요청마다 404 를 한 번 더 받지 않기 위해서다. */
+const LIST_VIEW_REPROBE_MS = 10 * 60_000
+let listViewMissingUntil = 0
+let listViewState: NonNullable<ReportStorageReadiness['listView']> = 'unknown'
+
+/**
+ * 마지막 목록 조회가 알아낸 뷰 상태. health 가 별도 요청 없이 보고한다 — 준비 상태 프로브는
+ * 요청 한 번·고정 코드만 내보내는 계약이라 거기에 끼우지 않는다.
+ */
+export function reportListViewState(): NonNullable<ReportStorageReadiness['listView']> {
+  return listViewState
+}
+
+interface LightListRow {
+  meta?: Partial<ReportRecord>
+  report?: SajuReport
+  analysis?: SajuAnalysis | null
+  user_id?: string
+  user_email?: string
+  auth_provider?: string
+  created_at?: string
+  updated_at?: string
+}
+
+function attachRowOwner(record: ReportRecord, row: { user_id?: string; user_email?: string; auth_provider?: string; created_at?: string; updated_at?: string }, owner: ReportOwner): ReportRecord {
+  record.owner = record.owner?.id
+    ? record.owner
+    : { id: row.user_id ?? owner.id, email: row.user_email ?? owner.email, provider: row.auth_provider ?? owner.provider }
+  record.createdAt = record.createdAt || row.created_at || nowIso()
+  record.updatedAt = record.updatedAt || row.updated_at || record.createdAt
+  return record
+}
+
+/** 경량 뷰에서 읽는다. 뷰가 없으면 null — 호출부가 표로 되돌아간다. */
+async function listLightReportRecords(owner: ReportOwner, limit: number, includeAnalysis: boolean): Promise<ReportRecord[] | null> {
+  if (!supabaseListViewUrl || Date.now() < listViewMissingUntil) return null
+  const url = new URL(supabaseListViewUrl)
+  url.searchParams.set('user_id', `eq.${owner.id}`)
+  url.searchParams.set('select', `meta,report,${includeAnalysis ? 'analysis,' : ''}user_id,user_email,auth_provider,created_at,updated_at`)
+  url.searchParams.set('order', 'updated_at.desc')
+  url.searchParams.set('limit', String(limit))
+  const response = await fetch(url, { headers: supabaseHeaders() })
+  if (response.status === 404) {
+    // PostgREST 는 없는 관계에 404 를 준다. 마이그레이션 전이다.
+    await response.body?.cancel().catch(() => undefined)
+    listViewMissingUntil = Date.now() + LIST_VIEW_REPROBE_MS
+    listViewState = 'missing'
+    return null
+  }
+  if (!response.ok) throw new Error('Supabase 리포트 목록 조회에 실패했습니다.')
+  listViewState = 'ready'
+  const rows = await response.json() as LightListRow[]
+  return rows
+    .filter((row) => row.meta?.reportId && Array.isArray(row.report?.sections))
+    .map((row) => {
+      const record: ReportRecord = { ...(row.meta as ReportRecord), report: row.report as SajuReport }
+      if (includeAnalysis && row.analysis) record.analysis = row.analysis
+      attachRowOwner(record, row, owner)
+      assertReportOwner(record, owner)
+      return record
+    })
+}
+
+export async function listReportRecords(owner: ReportOwner, limit = 50, options: ListReportRecordsOptions = {}): Promise<ReportRecord[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
   if (localFiles) return (await localFiles.list()).filter((item) => item.owner?.id === owner.id).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, safeLimit)
 
@@ -533,6 +619,10 @@ export async function listReportRecords(owner: ReportOwner, limit = 50): Promise
 
   if (storageMode() === 'supabase') {
     assertSupabaseOwner(owner)
+    if (options.light) {
+      const light = await listLightReportRecords(owner, safeLimit, options.includeAnalysis === true)
+      if (light) return light
+    }
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('user_id', `eq.${owner.id}`)
     url.searchParams.set('select', 'payload,user_id,user_email,auth_provider,created_at,updated_at')

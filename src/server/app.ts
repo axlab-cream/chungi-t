@@ -27,6 +27,7 @@ import {
   sectionGenerationId,
   listReportRecords,
   mutateReportRecord,
+  reportListViewState,
   reportProgressOf,
   toClientReport,
   updateReportChatHistory,
@@ -1742,7 +1743,8 @@ function epochScopedIds(baseId: string): { reportId: string; lineageId: string }
 /** 같은 계보로 저장된 지난 리포트 ID들. 세대를 올리기 전 결제가 여기 묶여 있다. */
 async function reportIdsInLineage(owner: ReportOwner, lineageId: string): Promise<string[]> {
   if (!lineageId) return []
-  const records = await listReportRecords(owner, 100).catch(() => [] as ReportRecord[])
+  // 계보 키와 ID 만 본다. 본문은 필요 없다 — 결제 판정이 리포트 100건의 본문을 기다릴 이유가 없다.
+  const records = await listReportRecords(owner, 100, { light: true }).catch(() => [] as ReportRecord[])
   return records.filter((record) => record.lineageId === lineageId).map((record) => record.reportId)
 }
 
@@ -1881,7 +1883,10 @@ app.get('/api/health', async (req, res) => {
     openai: isOpenAiConfigured(),
     // 어느 버전이 떠 있는지, 그 버전이 묶어 둔 규격과 지금 규격이 같은지.
     release: serviceRelease(),
-    ...(reportStorage ? { reportStorage } : {}),
+    // listView: 목록용 경량 뷰가 있는지. 없어도 목록은 표로 되돌아가지만 2.7~4초로 느려진다.
+    ...(reportStorage
+      ? { reportStorage: reportStorage.mode === 'supabase' ? { ...reportStorage, listView: reportListViewState() } : reportStorage }
+      : {}),
     ...(paymentStorage ? { paymentStorage } : {}),
     ...(profileStorage ? { profileStorage } : {}),
     ...(opsQueue ? { opsQueue } : {}),
@@ -3047,7 +3052,9 @@ app.get('/api/user/reports', async (req, res) => {
     // 천명사주 화면은 원본이 필요해 기본(full)을 그대로 쓴다.
     const slim = String(req.query.view ?? '') === 'list'
     // 결제 여부로 거른 뒤 자른다. 요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다.
-    const records = await listReportRecords(owner, 100)
+    // light: 본문 없는 경량 행. 목록이 필요한 것은 진행률·상태·맥락뿐인데 본문째로 읽어
+    // 2.7~4초가 걸렸다. 천명사주 동기화가 읽는 analysis 는 full 일 때만 함께 싣는다.
+    const records = await listReportRecords(owner, 100, { light: true, includeAnalysis: !slim })
     const orders = await listPaymentOrders(owner.id, 100).catch(() => null)
     if (!orders) {
       // 주문 조회가 죽었다고 보관함을 비우지는 않는다. 빈 보관함은 잘못된 정렬보다 나쁘다.
@@ -3081,7 +3088,7 @@ app.get('/api/user/destiny', async (req, res) => {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const profile = await getUserBirthProfile(owner)
-    const records = await listReportRecords(owner, parseListLimit(req.query.limit, 8))
+    const records = await listReportRecords(owner, parseListLimit(req.query.limit, 8), { light: true, includeAnalysis: true })
     if (!profile) {
       res.json({
         userId: owner.id,

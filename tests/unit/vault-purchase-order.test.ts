@@ -146,7 +146,7 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
   assert.notEqual(start, -1, '보관함 라우트를 찾지 못했다')
   const app = source.slice(start, source.indexOf('app.get(', start + 1))
   assert.ok(app.length > 0 && app.length < 4000, '핸들러 구간을 잘못 잘랐다')
-  assert.ok(/listReportRecords\(owner, 100\)/.test(app), '요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다')
+  assert.ok(/listReportRecords\(owner, 100, \{ light: true, includeAnalysis: !slim \}\)/.test(app), '요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다 / 목록은 본문 없는 경량 행을 읽는다')
   assert.ok(/selectPurchasedReadings\(records, orders\)/.test(app), '일반 계정은 구매 목록을 쓴다')
   assert.ok(/selectAdminVaultReadings\(records, orders\)/.test(app), '관리자 우회가 없다')
   assert.ok(/isAdminOwner\(owner\)/.test(app), '관리자 판정이 핸들러에 없다')
