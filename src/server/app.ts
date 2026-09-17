@@ -27,6 +27,7 @@ import {
   sectionGenerationId,
   listReportRecords,
   mutateReportRecord,
+  reportProgressOf,
   toClientReport,
   updateReportChatHistory,
   withReportBirthCertainty,
@@ -1516,17 +1517,32 @@ function reportStage(record: ReportRecord): ReportStage {
   return sections.some((section) => section.status === 'generating') ? 'generating' : 'waiting'
 }
 
-function historyEntryFromRecord(record: ReportRecord) {
-  const analysis = toUiAnalysisFromRecord(record)
+/**
+ * 목록 한 행.
+ *
+ * `slim` 이면 해석 원본(`analysis`)을 싣지 않고 리포트를 복제하지도 않는다. 보관함 카드는
+ * 제목·진행률·단계·경로만 쓰는데, 기본 응답은 항목 41개짜리 리포트를 행마다 통째로
+ * 직렬화해 13행에 189KB·2.7초가 걸렸다(2026-09-17 운영 실측).
+ *
+ * 기본(full)은 그대로 둔다 — 천명사주 화면이 `item.analysis` 로 로컬 보관함을 동기화한다
+ * (사주/사주/index.html: `remoteItems.filter(item => item?.reportId && item?.analysis)`).
+ * 그 필드를 빼면 그 화면의 동기화가 조용히 비어 버린다.
+ */
+function historyEntryFromRecord(record: ReportRecord, options: { slim?: boolean } = {}) {
+  const slim = options.slim === true
+  const full = slim ? undefined : toUiAnalysisFromRecord(record)
   // Lists are metadata, not an alternate paid-content endpoint. Open the ID for entitlement checks.
-  analysis.report.sections = []
+  if (full) full.report.sections = []
+  // 복제 없이 센다. 판정 규칙은 toClientReport 와 같다.
+  const progress = reportProgressOf(record)
+  const resultId = full?.report.resultId ?? record.resultId ?? record.report?.publicId ?? record.reportId
   const birthState = birthStateFromRecord(record)
   const savedAt = record.updatedAt || record.createdAt || new Date().toISOString()
 
   return {
     reportId: record.reportId,
-    resultId: analysis.report.resultId,
-    publicUrl: analysis.report.publicUrl,
+    resultId,
+    publicUrl: full?.report.publicUrl ?? `/r/${encodeURIComponent(String(resultId))}`,
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
     // 판매할 때 쓴 이름 그대로 돌려준다. 화면이 자기 표를 들고 있으면 카탈로그와 갈라진다.
@@ -1534,7 +1550,9 @@ function historyEntryFromRecord(record: ReportRecord) {
     serviceTier: serviceTierForKey(record.context?.serviceKey || 'cmdg'),
     // 카드가 상태(생성 중·완료·실패)를 고르는 근거. 진행 숫자만으로는 멈춘 것과
     // 만드는 중인 것이 구분되지 않는다.
-    reportStatus: record.status,
+    // 보이는 목차가 다 되면 완성으로 본다(toClientReport 와 같은 규칙). 원본 status 만 주면
+    // 옛 목차가 뒤에 남은 리포트가 영영 '생성 중'으로 보인다.
+    reportStatus: full ? full.report.status : progress.status,
     /*
      * 화면이 고를 단계. "생성 중"이 여러 개 떠 있는데 실제로 도는 것은 한 번에 하나뿐이면
      * 나머지는 기다리는 중이다 — 그것까지 "생성 중"이라 적으면 % 가 멈춘 이유를 설명하지
@@ -1551,16 +1569,17 @@ function historyEntryFromRecord(record: ReportRecord) {
     // 목록 쪽 /r/:id 폴백에서 읽힌다. 서비스별 경로를 화면에 두면 둘이 갈라진다.
     openPath: isCustomerPausedProduct(record.context?.serviceKey)
       ? undefined
-      : savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId),
+      : savedReadingHref(record.context?.serviceKey, String(resultId || record.reportId)),
     savedAt,
     title: `${birthState.name || birthState.target || '당신'} · ${birthState.calendar} ${birthState.birth}`,
     birth: record.birth,
     birthState,
     context: clientReportContext(record),
-    analysis,
-    progress: analysis.report?.progress,
-    storage: analysis.report?.storage,
-    corpusFingerprint: analysis.report?.corpus?.fingerprint,
+    // slim 이면 undefined 라 JSON 에서 빠진다. 이 한 필드가 응답의 대부분이었다.
+    analysis: full,
+    progress: { complete: progress.complete, total: progress.total },
+    storage: getReportStorageMode(),
+    corpusFingerprint: full?.report?.corpus?.fingerprint ?? record.corpus?.fingerprint ?? record.report?.corpus?.fingerprint,
     chatHistory: [],
     initialConcern: record.context?.concern || '',
   }
@@ -3024,6 +3043,9 @@ app.get('/api/user/reports', async (req, res) => {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const limit = parseListLimit(req.query.limit)
+    // view=list: 카드용 메타만 싣는다. 해석 원본까지 실으면 13행에 189KB·2.7초였다.
+    // 천명사주 화면은 원본이 필요해 기본(full)을 그대로 쓴다.
+    const slim = String(req.query.view ?? '') === 'list'
     // 결제 여부로 거른 뒤 자른다. 요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다.
     const records = await listReportRecords(owner, 100)
     const orders = await listPaymentOrders(owner.id, 100).catch(() => null)
@@ -3033,7 +3055,7 @@ app.get('/api/user/reports', async (req, res) => {
         userId: owner.id,
         storage: getReportStorageMode(),
         purchasedOnly: false,
-        reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord).slice(0, limit),
+        reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record, { slim })).slice(0, limit),
       })
       return
     }
@@ -3047,7 +3069,7 @@ app.get('/api/user/reports', async (req, res) => {
       reports: listings
         .filter((item) => isCustomerFacingReport(item.record))
         .slice(0, limit)
-        .map((item) => ({ ...historyEntryFromRecord(item.record), purchasedAt: item.purchasedAt })),
+        .map((item) => ({ ...historyEntryFromRecord(item.record, { slim }), purchasedAt: item.purchasedAt })),
     })
   } catch (err) {
     respondRequestFailure(res, err, '풀이 보관함 조회 실패')
@@ -3065,7 +3087,7 @@ app.get('/api/user/destiny', async (req, res) => {
         userId: owner.id,
         complete: false,
         profile: null,
-        reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord),
+        reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record)),
         storage: getReportStorageMode(),
       })
       return
@@ -3078,7 +3100,7 @@ app.get('/api/user/destiny', async (req, res) => {
       profile,
       analysis: analyzeSaju(profile.birth),
       todayFortune: { ...daily.auxiliary?.todayFortune, reportId: daily.reportId, resultId: daily.resultId, publicUrl: toClientReport(daily).publicUrl },
-      reports: records.filter(isCustomerFacingReport).map(historyEntryFromRecord),
+      reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record)),
       storage: getReportStorageMode(),
     })
   } catch (err) {

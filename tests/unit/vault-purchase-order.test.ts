@@ -156,7 +156,7 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
   )
   assert.ok(/listPaymentOrders\(owner\.id, 100\)\.catch\(\(\) => null\)/.test(app), '주문 조회 실패를 구분하지 않는다')
   assert.ok(
-    /purchasedOnly: false,\n\s*reports: records\.filter\(isCustomerFacingReport\)\.map\(historyEntryFromRecord\)/.test(app),
+    /purchasedOnly: false,\n\s*reports: records\.filter\(isCustomerFacingReport\)\.map\(\(record\) => historyEntryFromRecord\(record, \{ slim \}\)\)/.test(app),
     '주문 조회가 죽으면 보관함이 빈다',
   )
   assert.ok(/purchasedAt: item\.purchasedAt/.test(app), '구매 시각이 화면으로 나가지 않는다')

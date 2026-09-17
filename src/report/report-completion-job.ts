@@ -60,22 +60,28 @@ function progressOf(record: ReportRecord): ReportCompletionOutcome {
  * 남으면 `done: false` 로 돌려 다음 실행이 이어받게 한다. 그래서 호출부는 이 결과를 보고
  * 작업을 succeeded 로 닫을지 retry 로 되돌릴지 정한다.
  */
-export async function runReportCompletionJob(reportId: string): Promise<ReportCompletionOutcome> {
+export async function runReportCompletionJob(
+  reportId: string,
+  options: { deadlineAt?: number } = {},
+): Promise<ReportCompletionOutcome> {
   const record = await findReportRecord(reportId)
   if (!record) throw new Error('REPORT_NOT_FOUND')
   if (record.status === 'complete') return progressOf(record)
 
   const before = progressOf(record)
+  const budget = { exhausted: false }
   await preGenerateReport({
     reportId: record.reportId,
     birth: record.birth,
     context: record.context,
     analysis: record.analysis ?? analyzeSaju(record.birth),
     owner: record.owner,
-  }, { recoverFailed: true })
+  }, { recoverFailed: true, deadlineAt: options.deadlineAt, budget })
 
   const latest = await findReportRecord(reportId)
   const after = progressOf(latest ?? record)
+  // 시간 예산으로 멈춘 것은 실패가 아니다. 그대로 돌려 다음 실행이 5초 뒤 이어받는다.
+  if (budget.exhausted) return after
 
   /*
    * 위에서 실패한 섹션을 한 번 다시 시도했는데도 한 칸도 못 나아갔다면, 이 실행으로는

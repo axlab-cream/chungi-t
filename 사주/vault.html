@@ -448,7 +448,9 @@
           }
 
           try {
-            const payload = await fetch('/api/user/reports?limit=30', {
+            // view=list: 카드에 필요한 메타만 받는다. 기본 응답은 천명사주 화면이 보관함
+            // 동기화에 쓰는 해석 원본(analysis)을 실어 13행에 189KB·2.7초가 걸렸다.
+            const payload = await fetch('/api/user/reports?limit=30&view=list', {
               headers: { Authorization: `Bearer ${auth.access_token}` },
             }).then((response) => response.json());
             const reports = Array.isArray(payload.reports) ? payload.reports : [];

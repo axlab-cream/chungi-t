@@ -190,12 +190,16 @@ describe('saved report HTTP boundaries (local fixtures only)', { concurrency: fa
 
   it('report-list source strips paid sections and retains a checked-result locator', () => {
     const source = readFileSync(new URL('../../src/server/app.ts', import.meta.url), 'utf8')
-    const helper = source.split('function historyEntryFromRecord(record: ReportRecord) {')[1]?.split('/** Names the pieces')[0]
+    const helper = source.split('function historyEntryFromRecord(record: ReportRecord, options: { slim?: boolean } = {}) {')[1]?.split('/** Names the pieces')[0]
     assert.ok(helper, 'history metadata serializer must remain discoverable for this source guard')
-    assert.match(helper, /analysis\.report\.sections\s*=\s*\[\]/)
-    assert.ok(helper.indexOf('analysis.report.sections = []') < helper.indexOf('return {'))
-    assert.match(helper, /resultId:\s*analysis\.report\.resultId/)
-    assert.match(helper, /publicUrl:\s*analysis\.report\.publicUrl/)
-    assert.doesNotMatch(helper, /sections:\s*record\.report\.sections/)
+    // Full rows carry the analysis with sections stripped; slim rows carry no analysis at all.
+    assert.match(helper, /if \(full\) full\.report\.sections\s*=\s*\[\]/)
+    assert.ok(helper.indexOf('full.report.sections = []') < helper.indexOf('return {'))
+    assert.match(helper, /const full = slim \? undefined : toUiAnalysisFromRecord\(record\)/)
+    assert.match(helper, /analysis:\s*full,/)
+    assert.match(helper, /const resultId = full\?\.report\.resultId \?\? record\.resultId/)
+    assert.match(helper, /publicUrl:\s*full\?\.report\.publicUrl/)
+    // Reading a section's category for `currentSection` is fine; shipping the sections array is not.
+    assert.doesNotMatch(helper, /sections:\s*record\.report\??\.sections/)
   })
 })

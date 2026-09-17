@@ -226,6 +226,22 @@ function recordForStorage(record: ReportRecord): ReportRecord {
   return stored
 }
 
+/**
+ * 목록용 진행률. 레코드를 복제하지 않고 읽기만 한다.
+ *
+ * `toClientReport` 는 리포트 전체를 JSON 으로 복제한 뒤 진행률을 센다 — 항목이 41개인
+ * 리포트면 수십 KB 를 매 행마다 직렬화한다. 보관함 목록은 숫자 두 개만 필요하므로
+ * 복제 없이 센다. 판정 규칙은 `toClientReport` 와 같다(보이는 목차가 다 되면 완성).
+ */
+export function reportProgressOf(record: ReportRecord): { complete: number; total: number; status: ReportStatus } {
+  const sections: SajuReport['sections'] = record.report?.sections ?? []
+  const total = sections.length
+  const done = sections.filter((section) => section.status === 'complete').length
+  const complete = record.status === 'complete' || (total > 0 && done >= total) ? total : done
+  const status: ReportStatus = total > 0 && complete >= total ? 'complete' : record.status
+  return { complete, total, status }
+}
+
 function progressFor(report: SajuReport): { complete: number; total: number } {
   const total = report.sections.length
   const complete = report.status === 'complete' ? total : report.sections.filter((section) => section.status === 'complete').length

@@ -23,6 +23,25 @@ interface GenerationParams {
  */
 export interface PreGenerationOptions {
   recoverFailed?: boolean
+  /**
+   * 이 시각(epoch ms) 전에 끝나야 한다. 서버리스 함수는 300초에 강제 종료되는데, 그렇게
+   * 죽으면 lease 가 풀리기까지 리포트가 4분 가까이 방치된다. 예산이 남지 않으면 새 칸을
+   * 시작하지 않고 깨끗하게 돌아와, 다음 실행이 5초 뒤 바로 이어받게 한다.
+   */
+  deadlineAt?: number
+  /** 예산 때문에 멈췄는지 호출부에 알린다. 실패로 멈춘 것과 구분해야 한다. */
+  budget?: { exhausted: boolean }
+}
+
+/**
+ * 한 칸을 새로 시작하려면 이만큼은 남아 있어야 한다.
+ * 첫 시도 중앙값이 34초, 재시도가 붙으면 두 배다. 시작해 놓고 함수가 죽는 것이 가장 나쁘다.
+ */
+export const SECTION_RESERVE_MS = 75_000
+
+export function canStartAnotherSection(now: number, deadlineAt?: number): boolean {
+  if (!deadlineAt) return true
+  return now + SECTION_RESERVE_MS <= deadlineAt
 }
 
 /**
@@ -249,6 +268,12 @@ export async function preGenerateReport(params: GenerationParams, options: PreGe
       for (const section of record.report.sections) {
         if (section.status === 'complete') continue
         if (section.status === 'failed' && !options.recoverFailed) break
+        // 시간 조각 안에서만 만든다. 남은 예산으로 한 칸을 못 끝내면 여기서 멈추고
+        // 다음 실행에 넘긴다 — 함수가 도중에 죽는 것보다 훨씬 빨리 이어진다.
+        if (!canStartAnotherSection(Date.now(), options.deadlineAt)) {
+          if (options.budget) options.budget.exhausted = true
+          break
+        }
         const result = await generateReportSectionNow({
           ...params,
           sectionId: section.id,

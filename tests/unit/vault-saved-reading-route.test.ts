@@ -138,7 +138,7 @@ test('8. 보관함 응답에 openPath 가 실려 나간다', () => {
   const app = stripComments(read(APP))
   assert.ok(app.includes('openPath:'), 'historyEntryFromRecord 가 openPath 를 더 이상 싣지 않는다')
   assert.ok(
-    app.includes('savedReadingHref(record.context?.serviceKey, analysis.report.resultId || record.reportId)'),
+    app.includes('savedReadingHref(record.context?.serviceKey, String(resultId || record.reportId))'),
     'historyEntryFromRecord 가 savedReadingHref 를 더 이상 쓰지 않는다',
   )
 })
