@@ -36,23 +36,24 @@ test('work quit service builds a dedicated resignation report', () => {
 
   assert.equal(report.reportId, reportId)
   assert.equal(report.title, '퇴사운 해석문')
-  assert.equal(report.sections.length, 48)
+  // 2026-09-17 목차 축소: 10대분류·48중분류 → 8대분류·20중분류(운영 실측 42,000자를
+  // 권장 20,000~30,000자로 줄이기 위해서다). '왜 이렇게 힘든가'가 번아웃 체크를,
+  // '나가는 방식'이 남는다면을 흡수했다.
+  assert.equal(report.sections.length, 20)
   assert.deepEqual(Array.from(new Set(report.sections.map((section) => section.category))), [
     '지금 나와도 되는 흐름?',
     '왜 이렇게 힘든가',
-    '번아웃 체크',
     '돈 시뮬레이션',
     '나가면 뭐 할 사람인가',
     '퇴사 타이밍',
     '나가는 방식',
-    '남는다면',
     '멘탈과 주변',
     '현실 액션 플랜',
   ])
 
   // 05 목차 links on `?section=<group id>`, and 06 상세 renders that group's three points.
   assert.equal(report.sections[0].id, 'flow-1')
-  assert.equal(report.sections.at(-1)!.id, 'action-plan-5')
+  assert.equal(report.sections.at(-1)!.id, 'action-plan-3')
   assert.match(report.sections.at(-1)!.interpretation, /퇴사 여부를 결정하는 명령이 아니에요/)
   WORK_QUIT_TOC.forEach((group) => {
     const owned = report.sections.filter((section) => section.id.startsWith(`${group.id}-`))
@@ -66,7 +67,7 @@ test('work quit service builds a dedicated resignation report', () => {
 
   // Each 대분류 opens on its own angle, so the 05 목차 never shows ten copies of one line.
   const firstOfEachGroup = WORK_QUIT_TOC.map((group) => report.sections.find((section) => section.category === group.title)!)
-  assert.equal(new Set(firstOfEachGroup.map((section) => section.interpretation.split('\n\n')[0])).size, 10)
+  assert.equal(new Set(firstOfEachGroup.map((section) => section.interpretation.split('\n\n')[0])).size, WORK_QUIT_TOC.length)
 
   // The points under one 리딩 must read differently, or the 06 상세 화면 shows
   // the same paragraph several times in a row.

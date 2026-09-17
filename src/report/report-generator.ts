@@ -2079,7 +2079,9 @@ function sectionSpecificInstruction(context: SajuReportContext, section: SajuRep
   if (context.serviceKey === PASS_ANGLE_SERVICE_KEY && section.id === 'pass-angle-verdict') return PASS_ANGLE_OPENING_VERDICT_INSTRUCTION
   if (context.serviceKey === QUIT_FORTUNE_SERVICE_KEY) {
     if (section.id === 'flow-1') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION}`
-    if (section.id === 'mental-people-5') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION}`
+    // 2026-09-17 목차 축소로 '다섯 스승의 서로 다른 조언'이 mental-people 대분류의 2번째
+    // 항목이 됐다(5개 중 3개로 압축, 순서 유지). id 는 `${category.id}-${itemIndex+1}`.
+    if (section.id === 'mental-people-2') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION}`
     return QUIT_FORTUNE_COMMON_INSTRUCTION
   }
   return ''

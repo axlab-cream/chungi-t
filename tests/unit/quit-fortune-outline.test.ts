@@ -84,19 +84,28 @@ test('the supplied quit_fortune source blocks contain the exact ordered 48-item 
   })
 })
 
-test('quit_fortune runtime exposes all supplied items once and in source order', () => {
+/*
+ * 2026-09-17 목차 축소: 48 → 20. 운영 실측 42,000자가 권장 20,000~30,000자를 넘었고,
+ * 대분류당 4~5개였던 중분류가 늘어질수록 반복돼 보였다. 공급된 48항목 전체를 노출해야
+ * 한다는 옛 계약은 이 결정으로 끝났다 — 남은 20항목은 여전히 공급분의 부분집합이어야
+ * 하고(새 제목을 지어내지 않는다), 병합으로 대분류가 바뀐 항목(원인·소진 통합, 나가는
+ * 방식·잔류 통합)은 새 대분류 밑에서 산다.
+ */
+test('quit_fortune runtime keeps a reviewed subset of the supplied items, invents no new titles', () => {
   const actual = WORK_QUIT_TOC.flatMap(group => group.items.map(title => ({ category: group.title, title })))
-  assert.equal(actual.length, 48)
-  assert.deepEqual(actual, expected)
-  assert.equal(new Set(WORK_QUIT_TOC.flatMap(group => group.items.map((_, index) => `${group.id}-${index + 1}`))).size, 48)
+  assert.equal(actual.length, 20, '10대분류·48항목 → 8대분류·20항목으로 줄이기로 했다')
+  const supplied = new Set(expected.map(({ title }) => title))
+  assert.deepEqual(actual.filter(({ title }) => !supplied.has(title)).map(({ title }) => title), [], '공급되지 않은 제목을 새로 지어내지 않는다')
+  assert.equal(new Set(actual.map(({ title }) => title)).size, 20, '같은 제목을 두 대분류에 중복해서 두지 않는다')
+  assert.equal(new Set(WORK_QUIT_TOC.flatMap(group => group.items.map((_, index) => `${group.id}-${index + 1}`))).size, 20)
   assert.deepEqual(
     actual.filter(({ title }) => !QUIT_DETAILS[title]),
     [],
-    'every supplied title must own a direct reading instead of an alias to legacy copy',
+    'every kept title must own a direct reading instead of an alias to legacy copy',
   )
 })
 
-test('a new stored quit_fortune result keeps all 48 items pending with immutable identities', async () => {
+test('a new stored quit_fortune result keeps all 20 items pending with immutable identities', async () => {
   const birth = { year: 1992, month: 8, day: 20, hour: 12, gender: 'female' as const, calendar: 'solar' as const }
   const input = parseWorkQuitRequest({ reason: '업무 소진', tenure: '3년', candidateDate: '2027-02-01', nextPlan: '이직 탐색', concern: '합성 목차 저장 검증' })
   const context = buildWorkQuitContext('합성 저장 점검', input)
@@ -108,7 +117,7 @@ test('a new stored quit_fortune result keeps all 48 items pending with immutable
   })
   const client = toClientReport(record)
   assert.equal(created, true)
-  assert.deepEqual(client.progress, { complete: 0, total: 48 })
-  assert.equal(client.sections.length, 48)
+  assert.deepEqual(client.progress, { complete: 0, total: 20 })
+  assert.equal(client.sections.length, 20)
   assert.ok(client.sections.every(section => section.status === 'pending' && section.hook === '' && section.interpretation === '' && section.generationId))
 })

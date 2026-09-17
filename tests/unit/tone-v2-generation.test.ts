@@ -135,7 +135,9 @@ test('quit_fortune opening verdict receives a failure-specific safety contract w
   const context: SajuReportContext = { serviceKey: 'quit_fortune', concern: '남을 조건과 옮길 조건을 실제 정보로 비교하고 싶어요.' }
   const opening = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, context, base)[1].content)
   const later = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, context, { ...base, id: 'flow-2', order: 2, classification: '나가고 싶은 이유의 진짜 정체' })[1].content)
-  const advisers = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, context, { ...base, id: 'mental-people-5', order: 43, classification: '다섯 스승의 서로 다른 조언' })[1].content)
+  // 2026-09-17 목차 축소로 '다섯 스승의 서로 다른 조언'이 mental-people 대분류의
+  // 2번째 항목이 됐다(5개 중 3개로 압축).
+  const advisers = JSON.parse(sectionPrompt(analyzeSaju(birth), birth, context, { ...base, id: 'mental-people-2', order: 19, classification: '다섯 스승의 서로 다른 조언' })[1].content)
 
   assert.match(opening.instruction, /퇴사운 전체 판정 전용/)
   assert.match(opening.instruction, /퇴사·이직.*조건 표현/)
