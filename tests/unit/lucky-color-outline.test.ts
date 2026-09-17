@@ -65,6 +65,7 @@ function extractExplicitOutline(source: string): Array<{ category: string; title
   return result
 }
 
+// 공급 소스 파일(part01~03.md)은 손대지 않는다 — 계약 원본은 해시로 그대로 고정한다.
 test('the supplied lucky_color source blocks contain the exact ordered 24-item contract', () => {
   assert.deepEqual(sourceParts.map((part) => part.groups.reduce((count, [, titles]) => count + titles.length, 0)), [8, 7, 9])
   assert.equal(expected.length, 24)
@@ -76,15 +77,23 @@ test('the supplied lucky_color source blocks contain the exact ordered 24-item c
   }
 })
 
-test('lucky_color runtime exposes every supplied item once in source order with direct reading content', () => {
+/*
+ * 2026-09-17 목차 축소: 24 → 13. 대분류(6) 는 그대로 두고 대분류당 2개만 남긴다.
+ * quit_fortune 과 같은 방식으로 "13개는 24개의 부분집합이고 새 제목을 짓지 않는다"로
+ * 계약을 바꾼다. luckyDetails 는 제목으로 찾는 사전이라 남은 제목마다 직접 해석이
+ * 있어야 한다는 요건은 그대로 검사한다.
+ */
+test('lucky_color runtime keeps a reviewed subset of the supplied items, invents no new titles', () => {
   const actual = LUCKY_COLOR_TOC.flatMap((group) => group.items.map((item) => ({ category: group.title, title: item.title })))
   const readings = luckyDetails({ colors: '검증 색', materials: '검증 재질', shape: '검증 형태', direction: '검증 방향' })
-  assert.deepEqual(actual, expected)
-  assert.equal(new Set(LUCKY_COLOR_TOC.flatMap((group) => group.items.map((item) => item.id))).size, 24)
+  assert.equal(actual.length, 13, '6대분류 × 24항목 → 6대분류 × 13항목으로 줄이기로 했다')
+  const supplied = new Set(expected.map(({ title }) => title))
+  assert.deepEqual(actual.filter(({ title }) => !supplied.has(title)).map(({ title }) => title), [], '공급되지 않은 제목을 새로 지어내지 않는다')
+  assert.equal(new Set(LUCKY_COLOR_TOC.flatMap((group) => group.items.map((item) => item.id))).size, 13)
   assert.deepEqual(actual.filter(({ title }) => !readings[title]), [])
 })
 
-test('a new isolated lucky_color record keeps all 24 items pending with immutable identities', async () => {
+test('a new isolated lucky_color record keeps all 13 items pending with immutable identities', async () => {
   const birth = { year: 1993, month: 7, day: 14, hour: 9, gender: 'female' as const, calendar: 'solar' as const }
   const input = parseLuckyColorRequest({ displayName: '합성 색과 물건 점검' })
   const context = buildLuckyColorContext('합성 색과 물건 점검', input)
@@ -102,8 +111,8 @@ test('a new isolated lucky_color record keeps all 24 items pending with immutabl
   const client = toClientReport(record)
   assert.equal(created, true)
   assert.equal(record.context.serviceKey, LUCKY_COLOR_SERVICE_KEY)
-  assert.deepEqual(client.progress, { complete: 0, total: 24 })
-  assert.equal(client.sections.length, 24)
+  assert.deepEqual(client.progress, { complete: 0, total: 13 })
+  assert.equal(client.sections.length, 13)
   assert.ok(client.sections.every((section) =>
     section.status === 'pending' && section.hook === '' && section.interpretation === '' && section.generationId))
 })
@@ -113,7 +122,7 @@ test('the lucky_color live harness isolates credentials, requires fresh storage,
   assert.match(script, /isolateLiveCheckEnvironment\(process\.env\)/)
   assert.match(script, /REPORT_STORAGE_DIR = resolve\('\.cache\/reading-live-20260907'\)/)
   assert.match(script, /serviceKey:\s*LUCKY_COLOR_SERVICE_KEY/)
-  assert.match(script, /assert\.equal\(templateReport\.sections\.length, 24\)/)
+  assert.match(script, /assert\.equal\(templateReport\.sections\.length, 13\)/)
   assert.match(script, /requireFresh && record[\s\S]*Fresh lucky_color outline version already exists/)
   assert.match(script, /if \(generated\.status !== 'complete'\) break/)
   assert.match(script, /assert\.equal\(attemptedAfterFailure\.length, 0/)

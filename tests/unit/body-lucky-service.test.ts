@@ -30,17 +30,18 @@ function buildReport(overrides: Partial<BirthInput> = {}) {
 }
 
 test('나한테 운 붙는 색과 물건 covers the whole designed index', () => {
+  // 2026-09-17 목차 축소: 6대분류·24중분류 → 6대분류·12중분류(대분류당 2개).
   const report = buildReport()
   const expectedItems = LUCKY_COLOR_TOC.reduce((total, group) => total + group.items.length, 0)
 
   assert.equal(LUCKY_COLOR_TOC.length, 6)
-  assert.equal(expectedItems, 24)
+  assert.equal(expectedItems, 13)
   assert.equal(report.sections.length, expectedItems)
   assert.equal(new Set(report.sections.map((section) => section.category)).size, 6)
 
   // 05 목차와 06 상세는 디자인의 `?section=1-1` 아이디로 이동한다.
   const ids = report.sections.map((section) => section.id)
-  assert.deepEqual(ids.slice(0, 4), ['1-1', '1-2', '1-3', '1-4'])
+  assert.deepEqual(ids.slice(0, 2), ['1-1', '1-3'])
   assert.equal(new Set(ids).size, ids.length)
 })
 
@@ -84,7 +85,7 @@ test('the reading never turns corpus instructions or symbols into physical presc
   assert.match(report.sections.find((section) => section.id === '6-2')!.interpretation, /생체리듬을 알 수는 없/)
   assert.match(report.sections.find((section) => section.id === '6-3')!.interpretation, /영양 처방이 아니/)
   const scenes = report.sections.map((section) => section.interpretation.split('\n\n').find((p) => p.startsWith('[확인할 장면]')))
-  assert.equal(new Set(scenes).size, 24)
+  assert.equal(new Set(scenes).size, 13)
 })
 
 test('the report id is stable per person and per service', () => {

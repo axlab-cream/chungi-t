@@ -42,8 +42,8 @@ if (requireFresh && !shouldGenerate) throw new Error('--fresh requires --generat
 if (recoverSectionId && shouldGenerate) throw new Error('--recover-section cannot be combined with --generate')
 if (retrySectionId && (shouldGenerate || recoverSectionId)) throw new Error('--retry-section cannot be combined with --generate or --recover-section')
 const limitOption = process.argv.find((item) => item.startsWith('--limit='))?.slice('--limit='.length)
-const maxSections = limitOption === undefined ? 24 : Number(limitOption)
-if (!Number.isInteger(maxSections) || maxSections < 1 || maxSections > 24) throw new Error('--limit must be an integer from 1 through 24')
+const maxSections = limitOption === undefined ? 13 : Number(limitOption)
+if (!Number.isInteger(maxSections) || maxSections < 1 || maxSections > 13) throw new Error('--limit must be an integer from 1 through 13')
 
 const birth = { year: 1993, month: 7, day: 14, hour: 9, gender: 'female' as const, calendar: 'solar' as const }
 const input = parseLuckyColorRequest({ displayName: '합성 색과 물건 전체 목차 점검' })
@@ -58,7 +58,7 @@ if (requireFresh && record) throw new Error(`Fresh lucky_color outline version a
 
 if (shouldGenerate) {
   const templateReport = buildLuckyColorReport(analysis, birth, context, input, reportId)
-  assert.equal(templateReport.sections.length, 24)
+  assert.equal(templateReport.sections.length, 13)
   const created = await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport })
   if (requireFresh && !created.created) throw new Error(`Fresh lucky_color outline did not create a new record: ${version}`)
   console.log(JSON.stringify({ phase: 'saved-before-model', version, resultId: created.record.resultId, total: created.record.report.sections.length, created: created.created }))
@@ -70,7 +70,7 @@ if (shouldGenerate) {
     if (stored.status === 'failed') break
     const generated = await generateReportSectionNow({ reportId, birth, context, analysis, sectionId: section.id })
     const complete = (await getReportRecord(reportId))?.report.sections.filter((item) => item.status === 'complete').length ?? 0
-    console.log(JSON.stringify({ phase: 'section-finished', order: section.order, id: section.id, status: generated.status, complete, total: 24, attempts: generated.attempts?.length ?? 0 }))
+    console.log(JSON.stringify({ phase: 'section-finished', order: section.order, id: section.id, status: generated.status, complete, total: 13, attempts: generated.attempts?.length ?? 0 }))
     if (generated.status !== 'complete') break
   }
   record = await getReportRecord(reportId)
@@ -104,8 +104,8 @@ assertRequestedPrefixComplete({
   completedInRequestedPrefix: requestedCompleted.length,
   requestedPrefixSize: maxSections,
 })
-if (failedIndex < 0 && maxSections === 24) {
-  assert.equal(client.progress.complete, 24, 'The default live check must prove 24/24 completion')
+if (failedIndex < 0 && maxSections === 13) {
+  assert.equal(client.progress.complete, 13, 'The default live check must prove 13/13 completion')
 }
 const attemptedAfterFailure = failedIndex < 0
   ? []
