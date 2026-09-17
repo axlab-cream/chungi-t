@@ -14,8 +14,8 @@ Before meaningful implementation, inspect and maintain:
 - `status.md`
 
 Preserve existing user work. Append operational history to `status.md`.
-Follow `ROADMAP.md`: one Task at a time, then wait for `다음`, `진행`, or
-`Continue` before starting the next Task.
+승인/실행 정책은 `rules.md` §6 (SSOT) 을 따른다. 본 문서는 참조만 하며
+정책을 중복 기술하지 않는다.
 Keep Claude hook commands in `.claude/settings.json` project-relative with
 forward slashes, for example `.claude/hooks/validate-bash.ps1`.
 
@@ -48,10 +48,15 @@ before implementation. The required local registries are:
 
 If CreamWIKI/KMS is configured, search prior success and failure notes before implementation. Save verified reusable knowledge after verification.
 
-## 사용자 공통 워크플로우 (2026-09-12)
+## 사용자 공통 워크플로우 (2026-09-12, §6 이관 2026-09-17)
 
-`C:/Users/user/.codex/workflows/aios-small-slice-workflow.md`를 적용한다.
-사용자가 연속 실행을 승인한 현재 작업은 단일 이슈를 검증·리뷰·기록한 뒤 다음 승인된 이슈로 이어간다.
-위의 Task별 승인 대기는 새로운 제품 결정이나 승인 범위 밖 작업이 필요할 때 적용한다.
-현재 결제 트랙은 보류한다. 운영 화면에는 실제 데이터만 표시한다.
-T22의 스키마 생성은 중간 산출물이며 서버/API/사용자 흐름 검증 전 완료로 표시하지 않는다.
+승인/실행 정책은 `rules.md` §6 이 유일한 정본이다. 이전에 이 절에 있던
+"Task별 승인 대기" 정책 본문은 §6.1 무중단 연속 실행으로 대체되어 삭제했다.
+
+작업 절차 참조: `C:/Users/user/.codex/workflows/aios-small-slice-workflow.md`
+(requirements -> PRD -> one vertical slice -> tests -> review -> KMS -> next issue)
+
+제품 제약(정책 아님):
+- 현재 결제 트랙은 보류한다.
+- 운영 화면에는 실제 데이터만 표시한다.
+- T22의 스키마 생성은 중간 산출물이며 서버/API/사용자 흐름 검증 전 완료로 표시하지 않는다.

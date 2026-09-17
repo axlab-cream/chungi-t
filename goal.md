@@ -29,7 +29,7 @@ Completed slice (2026-09-13): one isolated `today_fortune` result completed and 
 어떤 고객 화면의 콘텐츠·CTA·배너·FAQ·가격·상태·메타데이터를 바꾸는지 명시한다.
 
 - 진행 방식: `admin-ops-execution-pack/15-TASKS.md`의 T01~T38을 의존성 순서로 한 번에 하나씩
-- 코드 리뷰: **Codex** (`CreamAI/scripts/run-reviewer.ps1`)
+- 코드 리뷰: **Grok** (`CreamAI/scripts/run-reviewer.ps1 -Cli grok`) — Codex rate limit으로 2026-09-17 전환
 - 검증 순서: 로컬 충분 검증 → Git → Vercel → Supabase 반영
 - 디자인 방향: `C:\Users\user\Desktop\preview.html` (SK매직몰 UI 레퍼런스) → `docs/adr/ADR-0002.md`
 - 초기 목표 범위: M0(T01~T04) + M1(T05~T13). 전체 요구가 M1만으로 완료되었다고 보고하지 않는다.

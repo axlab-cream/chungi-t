@@ -1787,3 +1787,19 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 오탐 차단: `풀이예요`, `장바구니예요`, 페르소나가 강제하는 `~거예요`, `아니에요`는 통과한다. 코퍼스(`data/`)와 화면 문안(`사주/`) 전문을 게이트로 재스캔해 위반 0건을 확인했다.
 - 전체 1144/1144(테스트), typecheck PASS.
 
+## 2026-09-17 — 실행 승인 모델 SSOT 교체 + 리뷰어 Grok 전환 [UPDATE]
+
+- rules.md §6 을 「실행 승인 모델 (SSOT)」 전문으로 교체했다. 무중단 연속 실행, D1~D8 기본값, H1~H5 하드 스톱, 자율 판단 범위, 코어 문서 로딩 범위를 한 곳에 모았다.
+- 중복 정책 제거: rules.md §2 의 one-Task approval gate 줄, AGENTS.md 2026-09-12 항목 본문, supervisor-system-prompt.md 의 ONE_TASK_GATE·One Task Gate 절, CreamAI/CLAUDE.md 작업순서 11 / §8.1.4 / §8.2.14 를 전부 §6 참조로 바꿨다.
+- 코드 리뷰어를 Codex → Grok 으로 전환했다(Codex rate limit). goal.md:32, CreamAI/CLAUDE.md, supervisor-system-prompt.md 문서와 CreamAI/scripts/run-reviewer.ps1 실제 호출부를 같은 작업에서 함께 고쳤다.
+- run-reviewer.ps1: -Cli 파라미터(auto|grok|codex|claude) 추가, 체인 grok → codex → claude(opus), grok 은 --prompt-file/--cwd(코드 루트)/읽기전용 플래그로 호출하고 -o 가 없으므로 래퍼가 보고서를 직접 쓴다. 1차가 아닌 CLI 가 돌면 role-fallback 주석을 첫 줄에 남긴다. 기존 codex 전용 경로가 CreamAI 폴더만 보던 문제도 $codeRoot 로 함께 고쳤다.
+- 검증: PowerShell 구문 파싱 PASS. 실제 grok 리뷰 1회 실행은 NOT_RUN.
+- .claude/settings.local.json allow 에 python/powershell/node/npx/curl 등 16개를 추가했다. 파괴적 명령 deny 목록은 그대로다.
+
+## 2026-09-17 — Supabase CLI 연동 [BLOCKED]
+
+- supabase CLI 가 PATH 에 없다. npm 전역 node_modules/supabase 는 package.json 도 bin 도 없는 실패 설치 잔해(tar 만 남음)였고, setupHint 가 가리키던 ~/.aios/projects/umsh/ops/connect-supabase.ps1 도 없다.
+- 우회로 확인: npx supabase@latest --version → 2.117.0 정상. 전역 설치 없이 쓸 수 있다.
+- 런타임 연동은 정상이다. .env 에 SUPABASE_URL·ANON_KEY·PROJECT_REF 등 8개 키가 있어 REST/Auth 는 동작한다. 끊긴 것은 CLI 경로뿐이고 영향은 마이그레이션·db 작업에 한정된다.
+- 해제 조건(D6/사용자 조치): 브라우저 로그인. {"_tag":"Error","error":{"code":"LegacyLoginMissingTokenError","message":"Cannot use automatic login flow inside non-TTY environments. Please provide --token flag or set the SUPABASE_ACCESS_TOKEN environment variable."}} 후 {"project_ref":"wdyzollywccgaepjeynu","message":""}. 에이전트는 login 을 실행하지 않는다(rules.md §7).
+- github·vercel 은 configured 재확인. CreamWIKI 는 터널 18765·토큰 carrotcap·search 정상.

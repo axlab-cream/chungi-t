@@ -87,6 +87,40 @@ export function canStartSection(sections: SajuReportSection[], position: number,
 }
 
 /**
+ * 생성 중이던 인스턴스가 사라지면 항목은 `generating` 인데 리스가 없는 잔해로 남는다. 뒤이은
+ * 순서 규칙이 “뒤 항목이 손대지지 않았을 때만” 앞의 실패 항목을 다시 부르게 하므로, 이 잔해는
+ * 앞 항목의 재시도를 영구히 막는다. 앞도 뒤도 못 움직이는 교착이다.
+ *
+ * 운영 보관함의 6개 리포트가 실제로 이 상태였다(2026-09-17). 0번은 `failed`, 1번부터는
+ * 리스 없는 `generating`. 살아 있는 리스가 없는 `generating` 은 진행이 아니라 잔해이므로
+ * 미완성으로 되돌린다. 저장된 초안과 시도 기록은 그대로 두고 완성 해석은 건드리지 않는다.
+ */
+function releaseAbandonedSections(record: ReportRecord): Set<string> {
+  const released = new Set<string>()
+  for (const section of record.report.sections) {
+    if (section.status !== 'generating') continue
+    const expiry = section.generationLease ? Date.parse(section.generationLease.expiresAt) : Number.NaN
+    if (Number.isFinite(expiry) && expiry > Date.now()) continue
+    section.status = 'pending'
+    section.error = undefined
+    delete section.generationLease
+    released.add(section.id)
+  }
+  return released
+}
+
+/**
+ * 앞선 실패 항목을 되살리려면 뒤 항목이 손대지지 않은 상태여야 한다. 방금 잔해로 판정해
+ * 되돌린 항목은 진행으로 세지 않는다 — 시도 기록은 증거로 남으므로 상태만으로 판단할 수 없다.
+ * 브랜치의 인라인 검사는 released 를 몰라서, 되돌린 항목이 있으면 복구를 영영 막았다.
+ */
+function laterSectionsUntouched(sections: SajuReportSection[], released: Set<string>): boolean {
+  return sections.every((item) =>
+    released.has(item.id) || (item.status === 'pending' && (item.attempts?.length ?? 0) === 0),
+  )
+}
+
+/**
  * Promote a previously rejected section only when its last persisted raw response
  * passes today's production review. The attempt remains immutable historical evidence.
  */
@@ -99,6 +133,7 @@ export async function recoverReportSectionFromLatestAttempt(params: {
     const section = current.report.sections.find((item) => item.id === params.sectionId)
     if (!section) throw new Error('리포트 섹션을 찾지 못했습니다.')
     if (section.status === 'complete') return false
+    const released = releaseAbandonedSections(current)
     if (section.status !== 'failed') throw new Error('복구할 실패 항목이 아닙니다.')
     if (section.generationLease) {
       const leaseExpiry = Date.parse(section.generationLease.expiresAt)
@@ -110,10 +145,7 @@ export async function recoverReportSectionFromLatestAttempt(params: {
     if (current.report.sections.slice(0, position).some((item) => item.status !== 'complete')) {
       throw new Error('선행 항목이 완료되지 않아 복구할 수 없습니다.')
     }
-    const changedLaterSection = current.report.sections.slice(position + 1).some((item) =>
-      item.status !== 'pending' || (item.attempts?.length ?? 0) > 0,
-    )
-    if (changedLaterSection) {
+    if (!laterSectionsUntouched(current.report.sections.slice(position + 1), released)) {
       throw new Error('후속 항목이 이미 변경되어 이전 실패 항목을 안전하게 복구할 수 없습니다.')
     }
     const attempt = [...(section.attempts ?? [])]
@@ -172,6 +204,9 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     const section = current.report.sections.find((item) => item.id === params.sectionId)
     if (!section) throw new Error('리포트 섹션을 찾지 못했습니다.')
     if (current.status === 'complete' || section.status === 'complete' || (section.status === 'failed' && !params.retry)) return false
+    // 부수효과가 목적이다 — 리스 없는 generating 잔해를 pending 으로 되돌려 창을 푼다.
+    // 생성 경로는 released 목록 자체를 쓰지 않는다(되살리기를 뒤 칸으로 막지 않기 때문).
+    releaseAbandonedSections(current)
     const position = current.report.sections.indexOf(section)
     /*
      * 창(window) 규칙 — SECTION_PARALLELISM 참고. 첫 항목은 혼자 먼저, 그 뒤는 head 부터

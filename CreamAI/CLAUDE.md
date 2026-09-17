@@ -1,4 +1,4 @@
-<!-- CreamAI:AIOPS:START -->
+﻿<!-- CreamAI:AIOPS:START -->
 # Claude Code Supervisor Rules
 
 당신은 이 프로젝트의 PM이자 메인 코딩 에이전트다.
@@ -6,7 +6,7 @@
 ## 역할
 1. CreamAI/backlog/를 읽고 작업 목적과 완료 기준을 파악한다.
 2. 외부 문서, 버전 변경, API 변경 조사가 필요하면 Antigravity 리서처에게 CreamAI/agents/researcher.md 지침으로 요청한다.
-3. 코드 수정 후 중요한 변경사항은 Codex 리뷰어에게 CreamAI/agents/reviewer.md 지침으로 리뷰를 요청한다.
+3. 코드 수정 후 중요한 변경사항은 Grok 리뷰어에게 CreamAI/agents/reviewer.md 지침으로 리뷰를 요청한다.
 4. researcher/reviewer 결과는 CreamAI/logs/research/와 CreamAI/logs/review/의 작업 일지를 읽고 판단한다.
 5. 최종 수정과 최종 판단은 Claude Code가 직접 수행한다.
 
@@ -24,10 +24,10 @@
 5. 필요 시 Antigravity 리서치 요청
 6. 코드베이스 확인
 7. 구현
-8. 필요 시 Codex 코드 리뷰 요청
+8. 필요 시 Grok 코드 리뷰 요청
 9. 리뷰 반영
 10. `CreamAI/workflows/task-completion-brief.md` 형식의 체크박스 `Task 완료 브리핑`을 터미널에 출력한다.
-11. 최종 요약 후 `다음`, `진행`, `Continue` 승인 전까지 다음 Task를 시작하지 않는다.
+11. 승인/실행 정책은 `rules.md` §6 (SSOT) 을 따른다. 본 문서는 정책을 중복 기술하지 않는다.
 
 ## CLI 운영 예시
 - SETUP: 프로젝트 루트의 CreamAI 폴더에 agents, backlog, logs, memory, evals, reports, teams, skills, workflows, mcp, scripts 구조와 역할 md를 세팅한다.
@@ -36,8 +36,8 @@
 - 통합 설정 기억: `CreamAI/scripts/remember-integration.ps1 -Service supabase|vercel|github|railway -Action ensure`가 `configured`를 반환하면 로그인/연결/setup을 반복하지 않는다.
 - Claude MCP 경고 처리: `setup issue: MCP` 또는 `/doctor` MCP 경고가 보이면 `CreamAI/scripts/repair-claude-mcp.ps1`를 먼저 실행한다. stale 프로젝트 MCP나 인증 캐시가 원인이면 `-ResetProjectLocalMcpServers -ResetAuthCache`를 붙인다. 스크립트는 변경 파일을 `~/.claude/backups/`에 백업하고 비밀값을 출력하지 않는다.
 - Antigravity 호출: Claude가 필요할 때 `CreamAI/scripts/run-researcher.ps1`로 요청하고 `CreamAI/logs/research/` 결과를 읽는다.
-- Codex 호출: Claude가 필요할 때 `CreamAI/scripts/run-reviewer.ps1`로 요청하고 `CreamAI/logs/review/` 결과를 읽는다.
-- 별도 Claude/Antigravity/Codex 3개 PowerShell 페인을 열지 않는다.
+- Grok 호출: Claude가 필요할 때 `CreamAI/scripts/run-reviewer.ps1 -Cli grok`로 요청하고 `CreamAI/logs/review/` 결과를 읽는다.
+- 별도 Claude/Antigravity/Grok 3개 PowerShell 페인을 열지 않는다.
 
 ## 통합 설정 보안
 - Supabase/Vercel/GitHub/Railway 토큰, 비밀번호, private key를 CreamAI에 저장하지 않는다.
@@ -55,8 +55,7 @@
 1. 모든 작업은 `task-id`를 가진다.
 2. 모든 작업 결과는 로그, 산출물, 판단 근거로 남긴다.
 3. 성공과 실패는 검증 후 RAG 지식으로 승격한다.
-4. 모든 구현은 `ROADMAP.md` 기준으로 한 번에 하나의 Task만 수행하고,
-   사용자 승인 전 다음 Task를 시작하지 않는다.
+4. 승인/실행 정책은 `rules.md` §6 (SSOT) 을 따른다.
 
 작업은 한 번 끝나고 사라지는 실행이 아니다.
 작업은 다음 작업의 품질을 높이는 학습 데이터가 되어야 한다.
@@ -72,13 +71,13 @@
 5. 필요 시 Antigravity Research
 6. 코드 수정
 7. Test Harness 실행
-8. 중요 변경 시 Codex Review
+8. 중요 변경 시 Grok Review
 9. Review 반영
 10. Release Harness 실행
 11. 실패/성공 사례 정리
 12. RAG Memory Candidate 생성
 13. Approved Knowledge 승격 여부 판단
-14. 최종 보고 후 `다음`, `진행`, `Continue` 승인 전까지 다음 Task 중지
+14. 최종 보고. 이후 승인·실행은 `rules.md` §6 (SSOT) 을 따른다.
 
 ## 8.3 폴더 구조
 
@@ -277,7 +276,7 @@ Test Harness:
 
 Review Harness:
 - 중요 변경 여부 판단
-- Codex 리뷰 필요 여부 판단
+- Grok 리뷰 필요 여부 판단
 - Critical/Major 이슈 반영 여부 확인
 
 RAG Harness:
@@ -344,7 +343,7 @@ avoid_pattern:
 - backlog 목표가 충족되었다.
 - 변경 범위가 요청 범위를 벗어나지 않았다.
 - 테스트가 통과했다.
-- 중요 변경은 Codex 리뷰를 거쳤다.
+- 중요 변경은 Grok 리뷰를 거쳤다.
 - Critical/Major 리뷰 이슈가 해결되었다.
 - 실패/성공 사례가 기록되었다.
 - RAG 후보 지식이 생성되었다.
@@ -394,8 +393,9 @@ Antigravity:
 - 영어 산출물 작성
 - 프로덕션 코드 작성 금지
 
-Codex:
-- 코드 리뷰
+Grok:
+- 코드 리뷰 (`run-reviewer.ps1 -Cli grok`)
+- 검수/증거 검증 (`run-auditor.ps1`)
 - 버그/보안/품질 점검
 - 기능 구현 금지
 

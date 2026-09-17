@@ -161,6 +161,41 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     assert.match(result.attempts?.[0].error ?? '', /길이 제한/)
   })
 
+  /**
+   * 2026-09-17 운영 결함: 생성 중이던 인스턴스가 사라지면 항목은 `generating` 인데 리스가 없는
+   * 잔해로 남는다. 앞선 실패 항목의 재시도는 "뒤 항목이 손대지지 않았을 때만" 허용되므로 이
+   * 잔해가 앞 항목의 재시도를 영구히 막았다. 앞도 뒤도 못 움직이는 교착이고, 보관함의 여섯
+   * 리포트가 실제로 이 상태로 굳어 있었다.
+   */
+  it('reclaims sections abandoned mid-generation so an earlier failure can retry', async () => {
+    process.env.OPENAI_API_KEY = 'test-key-no-network'
+    OpenAI.Chat.Completions.prototype.create = (async (request: { messages: Array<{ content: string }> }) => {
+      const payload = JSON.parse(request.messages[1].content)
+      return { model: 'mock-model', choices: [{ message: { content: JSON.stringify({ id: payload.section.id, hook: '현재 방식에서 편한 점을 확인해요.', interpretation: newToneReading }) }, finish_reason: 'stop' }] }
+    }) as unknown as typeof sdkCreate
+
+    const reportId = randomUUID()
+    const ids = ['specialized-only-id', 'second-id', 'third-id']
+    await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(ids), owner })
+    // 첫 항목은 실패, 뒤 항목은 리스 없는 `generating` 으로 굳혀 운영 상태를 재현한다.
+    await mutateReportRecord(reportId, owner, (record) => {
+      record.report.sections[0].status = 'failed'
+      record.report.sections[0].error = '완성 해석의 검수가 끝나지 않았습니다.'
+      for (const item of record.report.sections.slice(1)) {
+        item.status = 'generating'
+        delete item.generationLease
+      }
+      record.status = record.report.status = 'failed'
+    })
+
+    const retried = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: ids[0], owner, retry: true })
+    assert.equal(retried.status, 'complete', '뒤에 잔해가 남아 있어도 앞 항목은 다시 생성돼야 합니다.')
+
+    const saved = await getReportRecord(reportId)
+    assert.deepEqual(saved?.report.sections.slice(1).map((item) => item.status), ['pending', 'pending'],
+      '리스 없는 생성 중 항목은 미완성으로 되돌려 순서대로 이어가게 해야 합니다.')
+  })
+
   it('gives the second attempt structured Hanja and paragraph repair guidance without rejected prose', async () => {
     process.env.OPENAI_API_KEY = 'test-key-no-network'
     const firstInterpretation = [

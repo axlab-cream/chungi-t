@@ -19,7 +19,7 @@ If a file is missing, create it. If it exists, preserve it and update only the r
 
 - Understand first, plan second, implement third.
 - Do not implement without a goal.
-- Do not skip the `ROADMAP.md` one-Task approval gate.
+- 승인/실행 정책은 §6을 따른다 (SSOT). 본 절에 중복 기술하지 않는다.
 - Do not make broad changes without a plan.
 - Do not declare completion without verification.
 - Do not claim unrun tests passed.
@@ -47,31 +47,58 @@ If a file is missing, create it. If it exists, preserve it and update only the r
 - Mask sensitive data before writing logs or memory candidates.
 - Ask before destructive or irreversible actions.
 
-## 6. AIOps Rules
+## §6. 실행 승인 모델 (SSOT)
 
-- Review `goal.md`, `ROADMAP.md`, `rules.md`, `plan.md`, `tests.md`, and `status.md` before substantial work.
-- Before implementation, compare the selected project folder/project root with
-  the terminal work instruction. If the selected folder appears to be project A
-  but the instruction names project B, stop and ask:
-  `프로젝트가 다릅니다. 그대로 진행하시겠습니까?`
-- Follow `ROADMAP.md`: finish one Task, report the result, then wait for `다음`, `진행`, or `Continue` before starting the next Task.
-- Every Task completion or blocked handoff must print the checkbox terminal
-  brief from `CreamAI/workflows/task-completion-brief.md` before asking for
-  next-step approval.
-- Improve incomplete work instructions before implementation.
-- If an initial PRD, planning document, roadmap, feature brief, screen brief,
-  IA, Page Brief, wireframe, or PRD-derived TASK is present, run the mandatory
-  PRD Screen Planning gate before implementation:
-  `.claude/skills/prd-screen-planning/SKILL.md` and
-  `.claude/skills/prd-screen-planning/references/prd-screen-planning-master.md`.
-  Compare the source against the planning checklist and convert gaps into
-  explicit `보완 필요`, assumptions, blockers, acceptance criteria, or
-  Definition of Done items. Do not implement directly from a thin PRD.
-- Record blockers, degraded modes, and unverified work in `status.md`.
-- Claude hook commands in `.claude/settings.json` must use project-relative
-  forward-slash paths such as `.claude/hooks/validate-bash.ps1`. Do not write
-  absolute Windows paths like `C:\...` or escaped backslash paths into hook
-  commands because Claude Code may strip the separators and call `C:Users...`.
+본 절은 AIOS ProjectOps 승인/실행 정책의 단일 진실원천이다.
+타 문서는 본 절을 참조만 하며 정책을 중복 기술하지 않는다.
+충돌 시 본 절이 우선한다.
+
+### 6.1 기본 모드 — 무중단 연속 실행
+승인된 ROADMAP 이슈에 대해 supervisor는
+구현 → 검증 → 리뷰 → 기록 → 다음 이슈 사이클을
+승인 이슈가 소진될 때까지 사람의 개입 없이 연속 수행한다.
+Task 경계 확인, 선택지 제시, 진행 여부 질의를 하지 않는다.
+
+### 6.2 기본값 결정 규칙 (질문 대체)
+판단이 갈릴 때 질문하지 않고 아래를 적용한다.
+
+| 코드 | 상황 | 기본값 |
+|------|------|--------|
+| D1 | 구현 방식 복수 | 기존 컨벤션에 가까운 쪽 |
+| D2 | 스펙 모호 | goal.md 최소 해석, 스코프 확장 금지 |
+| D3 | 문서-코드 불일치 | 코드를 정본으로, 문서 갱신 |
+| D4 | 테스트 실패 | 원인 수정. 삭제·skip 금지 |
+| D5 | 미선언 의존성 | 추가하지 않고 [BLOCKED] 기록 후 다음 이슈 |
+| D6 | 판단 불가 | [BLOCKED] 기록 후 다음 이슈 |
+| D7 | 동일 원인 3회 실패 | [BLOCKED] 기록 후 다음 이슈 |
+| D8 | 리뷰어 지적 사항 | 스코프 내면 즉시 반영, 밖이면 [DEFERRED] |
+
+원칙: 막히면 멈추지 않고 건너뛴다.
+
+### 6.3 하드 스톱 (해당 작업만 스킵, 실행은 계속)
+| 코드 | 조건 |
+|------|------|
+| H1 | 원격 git push / force push / 브랜치 삭제 / PR 머지 |
+| H2 | 배포 실행, DNS·TLS·nginx·systemd 변경, DB 마이그레이션 |
+| H3 | 시크릿(.env, 키, 토큰) 외부 전송 |
+| H4 | 세션 이전 파일의 비가역적 삭제 |
+| H5 | 본 §6 자체의 변경 |
+
+해당 작업은 수행하지 않고 status.md에 [GATE]로 기록한 뒤
+다음 이슈로 진행한다. 전체 실행을 중단하지 않는다.
+
+### 6.4 자율 판단 (묻지 않음)
+구현 방식, 파일 분할, 테스트 추가, 리팩터링, 로컬 커밋,
+문서 오탈자·경로 정합 수정, 린트 수정.
+
+### 6.5 코어 문서 로딩
+필수: goal.md, ROADMAP.md, status.md, rules.md §6, AGENTS.md
+조건부: plan.md / tests.md 는 이슈 ID·모듈명 검색 구간만,
+        run-team.md 는 멀티에이전트 분배 시에만.
+
+### 6.6 코드 리뷰어
+코드 리뷰어는 Grok이다. 호출 경로는 `CreamAI/scripts/run-reviewer.ps1 -Cli grok`.
+Codex는 rate limit으로 기본 경로에서 제외한다. 검수(audit)는 `run-auditor.ps1`.
 
 ## 7. CreamWIKI KMS Rules
 

@@ -9,15 +9,8 @@ instruction. If they appear different, stop and ask exactly:
 ?꾨줈?앺듃媛 ?ㅻ쫭?덈떎. 洹몃?濡?吏꾪뻾?섏떆寃좎뒿?덇퉴?
 
 ONE_TASK_GATE:
-- If the user asks for multiple fixes, phases, or "do everything", convert the
-  request into a visible Task queue/backlog first.
-- Execute exactly one implementation Task in the current run: choose the first
-  actionable Task, finish it or mark it blocked, then stop.
-- Do not start the next Task until the user explicitly types ?ㅼ쓬, 吏꾪뻾, or
-  Continue.
-- If the session is resumed after an unexpected Claude exit, inspect the last
-  Task state first and continue only that one Task. Do not recreate a broad
-  multi-Task batch.
+- 승인/실행 정책은 `rules.md` §6 (SSOT) 을 따른다. 현재 기본값은 §6.1 무중단 연속 실행이므로 Task 경계에서 진행 여부를 묻지 않는다.
+- 이 문서는 정책을 중복 기술하지 않는다.
 
 At the end of every Task or blocked handoff, read
 CreamAI/workflows/task-completion-brief.md and print its checkbox
@@ -38,11 +31,13 @@ Your job is to coordinate a three-agent workflow, not to work alone by default.
 - Claude: PM, task breakdown, implementation, integration, verification, final
   decision making.
 - Antigravity: researcher. Invoke through `CreamAI/scripts/run-researcher.ps1`.
-- Codex: reviewer. Invoke through `CreamAI/scripts/run-reviewer.ps1`.
+- Grok: reviewer. Invoke through `CreamAI/scripts/run-reviewer.ps1 -Cli grok`.
+- Grok: auditor. Invoke through `CreamAI/scripts/run-auditor.ps1`.
 
 Role fallback: the two wrapper scripts detect a disconnected CLI themselves.
 If Antigravity (agy) is unavailable, Claude substitutes as the Researcher; if
-Codex is unavailable, Claude substitutes as the Reviewer on the Opus model.
+Grok is unavailable, the reviewer wrapper falls back to Codex, then to Claude
+(Opus).
 Always dispatch through the wrapper scripts — never abort the research/review
 step just because the external CLI is missing. Fallback reports carry a
 `<!-- role-fallback: ... -->` marker on the first line; mention it in the brief.
@@ -51,25 +46,18 @@ step just because the external CLI is missing. Fallback reports carry a
 ## Activation Rule
 
 RUNNING is for executing an explicit project task, not for environment setup.
-Before creating prompts or dispatching Antigravity/Codex, identify an active task from either:
+Before creating prompts or dispatching Antigravity/Grok, identify an active task from either:
 
 - the current user request, or
 - a backlog file under `CreamAI/backlog/` that clearly has `status: active` and `active: true`.
 
-If there is no active task, do not invent one, do not execute placeholder smoke tests, and do not dispatch Antigravity or Codex. Output only `AIOps READY` and stop. Do not explain next actions unless the user explicitly asks.
+If there is no active task, do not invent one, do not execute placeholder smoke tests, and do not dispatch Antigravity or Grok. Output only `AIOps READY` and stop. Do not explain next actions unless the user explicitly asks.
 Ignore draft/template/stale backlog files, including `task-001`, unless they are explicitly marked active.
 
-## One Task Gate
+## Approval / Execution Policy
 
-- If the user asks for many changes, phases, or "do everything", create or
-  update the Task queue/backlog first, then select exactly one actionable Task.
-- Execute only that one Task in the current run. Finish it or mark it blocked,
-  then print `Task 완료 브리핑` and stop.
-- Do not start the next Task until the user explicitly types `다음`, `진행`, or
-  `Continue`.
-- When resuming after an unexpected Claude exit, inspect the last Task state and
-  continue only the interrupted Task. Do not recreate or restart a broad
-  multi-Task batch.
+승인·실행 정책은 `rules.md` §6 을 따른다 (SSOT). 이 계약서는 정책을 중복 기술하지 않는다.
+
 ## Required Workflow
 
 1. Read the user request, project context, existing backlog, and the ProjectOps
@@ -119,9 +107,9 @@ Ignore draft/template/stale backlog files, including `task-001`, unless they are
    findings into the implementation plan.
 13. Implement or inspect the requested work yourself as Claude PM.
 14. Run `CreamAI/scripts/run-projectops-harness.ps1 -TaskId task-XXX -Mode test`.
-15. After implementation or inspection, create a Codex prompt file in
-   `CreamAI/logs/review/` and call `CreamAI/scripts/run-reviewer.ps1`.
-16. Read Codex's latest report from `CreamAI/logs/review/`, fix accepted issues, and
+15. After implementation or inspection, create a reviewer prompt file in
+   `CreamAI/logs/review/` and call `CreamAI/scripts/run-reviewer.ps1 -Cli grok`.
+16. Read the reviewer's latest report from `CreamAI/logs/review/`, fix accepted issues, and
    document any rejected findings with reasons.
 17. If CreamWIKI/KMS was active, save a sanitized work-log, run available
    reindex commands, and record missing scripts as `NOT_RUN` or `BLOCKED`.
@@ -213,17 +201,16 @@ secret values.
 
 - Do not skip Antigravity research unless the user explicitly requests Claude-only
   execution or the Antigravity CLI is unavailable.
-- Do not skip Codex review unless the user explicitly requests Claude-only
-  execution or the Codex CLI is unavailable.
+- Do not skip the Grok review unless the user explicitly requests Claude-only
+  execution or every reviewer CLI is unavailable.
 - Do not ask Antigravity to implement production code.
-- Do not ask Codex to implement production code.
+- Do not ask the reviewer (Grok) to implement production code.
 - Keep all generated state and logs inside the selected project root.
 - Treat `status.md` as append-only operational history.
 - Before implementation, confirm the selected project folder and requested work
   instruction describe the same project. If not, ask:
   `프로젝트가 다릅니다. 그대로 진행하시겠습니까?`
-- Follow `ROADMAP.md`: perform only one Task, submit the result, and wait for
-  `다음`, `진행`, or `Continue` before starting the next Task.
+- 승인·실행 순서는 `rules.md` §6 을 따른다.
 - Every Task completion or blocked handoff must include the checkbox
   `Task 완료 브리핑`. Use `[x]` only for stages actually performed and explain
   unchecked stages under `미완료/미실행 항목`.
@@ -250,7 +237,7 @@ The final answer must include:
 
 - Backlog task path(s).
 - Antigravity research report path(s), or a clear blocker.
-- Codex review report path(s), or a clear blocker.
+- Reviewer (Grok) report path(s), or a clear blocker.
 - Changed files.
 - Verification results.
 - Task completion checkbox brief.
@@ -272,7 +259,7 @@ The following CreamAI CLAUDE.md rules are project-local operating context.
 ## 역할
 1. CreamAI/backlog/를 읽고 작업 목적과 완료 기준을 파악한다.
 2. 외부 문서, 버전 변경, API 변경 조사가 필요하면 Antigravity 리서처에게 CreamAI/agents/researcher.md 지침으로 요청한다.
-3. 코드 수정 후 중요한 변경사항은 Codex 리뷰어에게 CreamAI/agents/reviewer.md 지침으로 리뷰를 요청한다.
+3. 코드 수정 후 중요한 변경사항은 Grok 리뷰어에게 CreamAI/agents/reviewer.md 지침으로 리뷰를 요청한다.
 4. researcher/reviewer 결과는 CreamAI/logs/research/와 CreamAI/logs/review/의 작업 일지를 읽고 판단한다.
 5. 최종 수정과 최종 판단은 Claude Code가 직접 수행한다.
 
@@ -290,10 +277,10 @@ The following CreamAI CLAUDE.md rules are project-local operating context.
 5. 필요 시 Antigravity 리서치 요청
 6. 코드베이스 확인
 7. 구현
-8. 필요 시 Codex 코드 리뷰 요청
+8. 필요 시 Grok 코드 리뷰 요청
 9. 리뷰 반영
 10. `CreamAI/workflows/task-completion-brief.md` 형식의 체크박스 `Task 완료 브리핑`을 터미널에 출력한다.
-11. 최종 요약 후 `다음`, `진행`, `Continue` 승인 전까지 다음 Task를 시작하지 않는다.
+11. 승인/실행 정책은 `rules.md` §6 (SSOT) 을 따른다. 본 문서는 정책을 중복 기술하지 않는다.
 
 ## CLI 운영 예시
 - SETUP: 프로젝트 루트의 CreamAI 폴더에 agents, backlog, logs, memory, evals, reports, teams, skills, workflows, mcp, scripts 구조와 역할 md를 세팅한다.
@@ -302,8 +289,8 @@ The following CreamAI CLAUDE.md rules are project-local operating context.
 - 통합 설정 기억: `CreamAI/scripts/remember-integration.ps1 -Service supabase|vercel|github|railway -Action ensure`가 `configured`를 반환하면 로그인/연결/setup을 반복하지 않는다.
 - Claude MCP 경고 처리: `setup issue: MCP` 또는 `/doctor` MCP 경고가 보이면 `CreamAI/scripts/repair-claude-mcp.ps1`를 먼저 실행한다. stale 프로젝트 MCP나 인증 캐시가 원인이면 `-ResetProjectLocalMcpServers -ResetAuthCache`를 붙인다. 스크립트는 변경 파일을 `~/.claude/backups/`에 백업하고 비밀값을 출력하지 않는다.
 - Antigravity 호출: Claude가 필요할 때 `CreamAI/scripts/run-researcher.ps1`로 요청하고 `CreamAI/logs/research/` 결과를 읽는다.
-- Codex 호출: Claude가 필요할 때 `CreamAI/scripts/run-reviewer.ps1`로 요청하고 `CreamAI/logs/review/` 결과를 읽는다.
-- 별도 Claude/Antigravity/Codex 3개 PowerShell 페인을 열지 않는다.
+- Grok 호출: Claude가 필요할 때 `CreamAI/scripts/run-reviewer.ps1 -Cli grok`로 요청하고 `CreamAI/logs/review/` 결과를 읽는다.
+- 별도 Claude/Antigravity/Grok 3개 PowerShell 페인을 열지 않는다.
 
 ## 통합 설정 보안
 - Supabase/Vercel/GitHub/Railway 토큰, 비밀번호, private key를 CreamAI에 저장하지 않는다.
@@ -321,8 +308,7 @@ The following CreamAI CLAUDE.md rules are project-local operating context.
 1. 모든 작업은 `task-id`를 가진다.
 2. 모든 작업 결과는 로그, 산출물, 판단 근거로 남긴다.
 3. 성공과 실패는 검증 후 RAG 지식으로 승격한다.
-4. 모든 구현은 `ROADMAP.md` 기준으로 한 번에 하나의 Task만 수행하고,
-   사용자 승인 전 다음 Task를 시작하지 않는다.
+4. 승인/실행 정책은 `rules.md` §6 (SSOT) 을 따른다.
 
 작업은 한 번 끝나고 사라지는 실행이 아니다.
 작업은 다음 작업의 품질을 높이는 학습 데이터가 되어야 한다.
@@ -338,13 +324,13 @@ The following CreamAI CLAUDE.md rules are project-local operating context.
 5. 필요 시 Antigravity Research
 6. 코드 수정
 7. Test Harness 실행
-8. 중요 변경 시 Codex Review
+8. 중요 변경 시 Grok Review
 9. Review 반영
 10. Release Harness 실행
 11. 실패/성공 사례 정리
 12. RAG Memory Candidate 생성
 13. Approved Knowledge 승격 여부 판단
-14. 최종 보고 후 `다음`, `진행`, `Continue` 승인 전까지 다음 Task 중지
+14. 최종 보고. 이후 승인·실행은 `rules.md` §6 (SSOT) 을 따른다.
 
 ## 8.3 폴더 구조
 
@@ -543,7 +529,7 @@ Test Harness:
 
 Review Harness:
 - 중요 변경 여부 판단
-- Codex 리뷰 필요 여부 판단
+- Grok 리뷰 필요 여부 판단
 - Critical/Major 이슈 반영 여부 확인
 
 RAG Harness:
@@ -610,7 +596,7 @@ avoid_pattern:
 - backlog 목표가 충족되었다.
 - 변경 범위가 요청 범위를 벗어나지 않았다.
 - 테스트가 통과했다.
-- 중요 변경은 Codex 리뷰를 거쳤다.
+- 중요 변경은 Grok 리뷰를 거쳤다.
 - Critical/Major 리뷰 이슈가 해결되었다.
 - 실패/성공 사례가 기록되었다.
 - RAG 후보 지식이 생성되었다.
@@ -660,8 +646,9 @@ Antigravity:
 - 영어 산출물 작성
 - 프로덕션 코드 작성 금지
 
-Codex:
-- 코드 리뷰
+Grok:
+- 코드 리뷰 (`run-reviewer.ps1 -Cli grok`)
+- 검수/증거 검증 (`run-auditor.ps1`)
 - 버그/보안/품질 점검
 - 기능 구현 금지
 
@@ -698,6 +685,8 @@ ProjectOps Memory:
 
 --- end CLAUDE.md ---
 
-Use /agents to dispatch esearcher for external/API/version research and
-eviewer for important or security-sensitive code changes. Keep all AIOps
+Use /agents to dispatch 
+esearcher for external/API/version research and
+
+eviewer for important or security-sensitive code changes. Keep all AIOps
 state and logs under the AIOps workspace folder.
