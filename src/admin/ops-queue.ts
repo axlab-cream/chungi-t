@@ -98,7 +98,39 @@ export interface OpsQueueReadiness {
   table?: 'ready' | 'missing' | 'denied' | 'error'
   claimRpc?: 'ready' | 'missing' | 'denied' | 'error'
   queued?: number
+  /** 최근 100건의 상태 분포. dead 가 쌓이는지, running 이 비는지 여기서 보인다. */
+  states?: Record<string, number>
+  /**
+   * 최근 100건에 남은 실패 코드와 횟수. 우리 코드가 남긴 대문자 코드만 싣고(예:
+   * REPORT_SECTION_FAILED), 그 밖의 문장은 `OTHER` 로 묶는다 — 저장소 오류 문구가 밖으로 나가지 않게.
+   */
+  recentErrors?: Record<string, number>
   errorCode?: string
+}
+
+/** 상태 분포와 실패 코드. 한 번의 조회로 끝나며 값은 숫자와 고정 코드뿐이다. */
+async function summarizeOpsJobs(): Promise<Pick<OpsQueueReadiness, 'states' | 'recentErrors'>> {
+  try {
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('select', 'state,last_error')
+    url.searchParams.set('order', 'updated_at.desc')
+    url.searchParams.set('limit', '100')
+    const response = await fetch(url, { headers: opsHeaders() })
+    if (!response.ok) return {}
+    const rows = await response.json() as Array<{ state?: string; last_error?: string | null }>
+    const states: Record<string, number> = {}
+    const recentErrors: Record<string, number> = {}
+    for (const row of rows) {
+      const state = String(row.state ?? 'unknown')
+      states[state] = (states[state] ?? 0) + 1
+      if (!row.last_error) continue
+      const code = /^[A-Z][A-Z0-9_]{2,60}$/.test(row.last_error) ? row.last_error : 'OTHER'
+      recentErrors[code] = (recentErrors[code] ?? 0) + 1
+    }
+    return { states, recentErrors }
+  } catch {
+    return {}
+  }
 }
 
 /**
@@ -141,8 +173,9 @@ export async function checkOpsQueueReadiness(): Promise<OpsQueueReadiness> {
   } catch { claimRpc = 'error' }
 
   const ok = table === 'ready' && claimRpc === 'ready'
+  const summary = table === 'ready' ? await summarizeOpsJobs() : {}
   return {
-    ok, configured: true, table, claimRpc, queued,
+    ok, configured: true, table, claimRpc, queued, ...summary,
     ...(ok ? {} : { errorCode: table !== 'ready' ? `OPS_TABLE_${String(table).toUpperCase()}` : `OPS_RPC_${String(claimRpc).toUpperCase()}` }),
   }
 }

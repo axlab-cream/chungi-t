@@ -418,6 +418,52 @@ export async function getReportRecord(reportId: string, owner?: ReportOwner): Pr
   return result.rows[0]?.payload ? cloneRecord(result.rows[0].payload) : null
 }
 
+/**
+ * 서버 자신이 리포트를 읽는다 — 소유자 검증 없이, 서버 키로만.
+ *
+ * 영속 큐 워커는 결제한 사람이 화면을 떠난 뒤에 돈다. 그 시점엔 요청도 토큰도 없고 작업에는
+ * reportId 만 있다. 그런데 `getReportRecord` 는 Supabase 모드에서 소유자 없는 조회를
+ * REPORT_ACCESS_DENIED 로 거부한다. 그래서 워커의 모든 작업이 첫 줄에서 실패했고, 운영의
+ * 백그라운드 생성은 한 번도 실제로 돌지 않았다 — 진행은 전부 화면을 열 때의 온디맨드 생성이었다
+ * (퇴사운 32/48, 2026-09-17). 여기서 읽은 레코드는 소유자를 함께 돌려주므로 이후 생성·저장은
+ * 그 소유자로 검증한다. 요청 경로(사용자 토큰)에서는 쓰지 않는다.
+ */
+export async function getReportRecordAsService(reportId: string): Promise<ReportRecord | null> {
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId)) return null
+  if (localFiles) return localFiles.read(reportId)
+  if (storageMode() === 'memory') {
+    const record = memoryReports.get(reportId)
+    return record ? cloneRecord(record) : null
+  }
+  if (storageMode() === 'supabase') {
+    assertSupabaseServerKey()
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('report_id', `eq.${reportId}`)
+    url.searchParams.set('select', 'payload,user_id,user_email,auth_provider,created_at,updated_at')
+    url.searchParams.set('limit', '1')
+    const response = await fetch(url, { headers: supabaseHeaders() })
+    if (!response.ok) throw new Error('Supabase 리포트 조회에 실패했습니다.')
+    const rows = await response.json() as Array<{ payload?: ReportRecord; user_id?: string; user_email?: string; auth_provider?: string; created_at?: string; updated_at?: string }>
+    const row = rows[0]
+    if (!row?.payload?.reportId) return null
+    const record = cloneRecord(row.payload)
+    // 소유자는 행에도 있다. payload 에 없으면(옛 레코드) 행의 것을 붙여 이후 검증이 통과하게 한다.
+    if (!record.owner?.id && row.user_id) record.owner = { id: row.user_id, email: row.user_email, provider: row.auth_provider }
+    return record
+  }
+  if (!pool) return null
+  await ensureDb()
+  const result = await pool.query<{ payload: ReportRecord; user_id: string | null }>(
+    'SELECT payload, user_id FROM cheongi_reports WHERE report_id = $1',
+    [reportId],
+  )
+  const row = result.rows[0]
+  if (!row?.payload) return null
+  const record = cloneRecord(row.payload)
+  if (!record.owner?.id && row.user_id) record.owner = { id: row.user_id }
+  return record
+}
+
 /** Lookup an immutable result UUID without recomputing inputs or running the LLM. */
 export async function findReportRecord(id: string, owner?: ReportOwner): Promise<ReportRecord | null> {
   if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id)) return null

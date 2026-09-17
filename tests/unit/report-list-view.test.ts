@@ -147,6 +147,21 @@ describe('보관함 목록용 경량 뷰 (가짜 fetch, DB·네트워크 없음)
     viewAvailable = true
   })
 
+  it('워커는 소유자 없이도 서버 키로 리포트를 읽고, 레코드의 소유자를 돌려받는다', async () => {
+    // 소유자 검증 조회는 Supabase 모드에서 소유자가 없으면 거부한다 — 워커가 그 경로를 쓰면 첫 줄에서 죽는다.
+    await assert.rejects(store.getReportRecord('r1'), /REPORT_ACCESS_DENIED/)
+    const record = await store.getReportRecordAsService('r1')
+    assert.equal(record?.reportId, 'r1')
+    assert.equal(record?.owner?.id, owner.id, '이후 생성·저장 검증에 쓸 소유자가 실려야 한다')
+    assert.equal(record?.report.sections[0].interpretation.length > 0, true, '본문을 만드는 경로라 본문째로 읽는다')
+    // 이상한 ID 는 조회조차 하지 않는다.
+    assert.equal(await store.getReportRecordAsService('bad id!'), null)
+    // 완성 작업은 이 경로로만 읽는다.
+    const job = readFileSync(join(root, 'src/report/report-completion-job.ts'), 'utf8')
+    assert.doesNotMatch(job, /findReportRecord\(/)
+    assert.match(job, /getReportRecordAsService\(reportId\)/)
+  })
+
   it('옵션이 없으면 예전처럼 표를 읽는다 — 본문을 쓰는 곳은 바뀌지 않는다', async () => {
     calls.length = 0
     const rows = await store.listReportRecords(owner, 100)

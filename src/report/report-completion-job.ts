@@ -1,7 +1,7 @@
 import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { preGenerateReport } from './report-queue.js'
-import { findReportRecord, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
+import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
 import { listAllPaymentOrders } from '../payment/order-store.js'
 
 /**
@@ -64,7 +64,9 @@ export async function runReportCompletionJob(
   reportId: string,
   options: { deadlineAt?: number } = {},
 ): Promise<ReportCompletionOutcome> {
-  const record = await findReportRecord(reportId)
+  // 워커에는 요청도 토큰도 없다. 서버 키로 읽고, 레코드에 실린 소유자로 이후 생성·저장을 검증한다.
+  // 소유자 검증이 있는 조회를 쓰면 Supabase 모드에서 여기서 REPORT_ACCESS_DENIED 로 죽는다.
+  const record = await getReportRecordAsService(reportId)
   if (!record) throw new Error('REPORT_NOT_FOUND')
   if (record.status === 'complete') return progressOf(record)
 
@@ -78,7 +80,7 @@ export async function runReportCompletionJob(
     owner: record.owner,
   }, { recoverFailed: true, deadlineAt: options.deadlineAt, budget })
 
-  const latest = await findReportRecord(reportId)
+  const latest = await getReportRecordAsService(reportId)
   const after = progressOf(latest ?? record)
   // 시간 예산으로 멈춘 것은 실패가 아니다. 그대로 돌려 다음 실행이 5초 뒤 이어받는다.
   if (budget.exhausted) return after
