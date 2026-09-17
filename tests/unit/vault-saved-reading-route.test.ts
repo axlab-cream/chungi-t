@@ -118,12 +118,19 @@ test('5. 옛 키로 저장된 풀이도 같은 화면으로 열린다', () => {
 
 test('6. 화면이 없는 서비스와 빈 id 는 undefined 를 돌려준다', () => {
   // 폴백을 살려 두는 계약이다. 여기서 추측 경로를 만들면 리더 대신 404 가 나간다.
-  assert.equal(savedReadingHref('cmdg', 'r1'), undefined)
-  assert.equal(savedReadingHref('love_mind', 'r1'), undefined)
   assert.equal(savedReadingHref('does_not_exist', 'r1'), undefined)
   assert.equal(savedReadingHref(undefined, 'r1'), undefined)
   assert.equal(savedReadingHref('wedding_day', ''), undefined)
   assert.equal(savedReadingHref('wedding_day', '   '), undefined)
+})
+
+test('6b. 천명사주·직업운·상대방마음·재회운·배우자운도 06-1 으로 연다', () => {
+  assert.equal(savedReadingHref('cmdg', 'r1'), '/cmdg/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
+  assert.equal(savedReadingHref('saju_master', 'r1'), '/cmdg/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
+  assert.equal(savedReadingHref('work_job', 'r1'), '/work/job/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
+  assert.equal(savedReadingHref('love_mind', 'r1'), '/love/mind/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
+  assert.equal(savedReadingHref('love_again', 'r1'), '/love/again/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
+  assert.equal(savedReadingHref('love_spouse', 'r1'), '/love/spouse/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
 })
 
 test('7. 보관함은 서버가 준 openPath 를 따르고 서비스별 경로를 들고 있지 않다', () => {

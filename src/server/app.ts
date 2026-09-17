@@ -172,7 +172,7 @@ import {
   createLuckyColorReportId,
   parseLuckyColorRequest,
 } from '../body/lucky-service.js'
-import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, savedReadingHref, serviceHrefForKey, serviceTierForKey, serviceTitleForKey } from './service-directory.js'
+import { CUSTOMER_PAUSED_PRODUCT_KEYS, isCustomerPausedProduct, listServiceDirectory, readingPathForProduct, savedReadingHref, serviceHrefForKey, serviceTierForKey, serviceTitleForKey } from './service-directory.js'
 import { getCorpusSnapshot, withCorpusEpoch } from '../rag/corpus-registry.js'
 import { getToneV2AdminSnapshot } from '../prompt/admin-snapshot.js'
 import {
@@ -403,6 +403,12 @@ app.get('/love/this-year/06-step-6_1-report-detail/index.html', (_req, res) => {
 app.get(['/love/mind', '/love/mind/', '/love/mind/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'mind', 'index.html'))
 })
+app.get(['/love/mind/detail', '/love/mind/detail.html'], (_req, res) => {
+  res.redirect(302, '/love/mind/06-step-6_1-report-detail/index.html')
+})
+app.get('/love/mind/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'mind', '06-step-6_1-report-detail', 'index.html'))
+})
 // 관계 신호 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
 app.get(['/love/signal', '/love/signal/', '/love/signal/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
@@ -431,14 +437,32 @@ app.get(['/love/signal/detail', '/love/signal/detail.html'], (_req, res) => {
 app.get(['/love/again', '/love/again/', '/love/again/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'again', 'index.html'))
 })
+app.get(['/love/again/detail', '/love/again/detail.html'], (_req, res) => {
+  res.redirect(302, '/love/again/06-step-6_1-report-detail/index.html')
+})
+app.get('/love/again/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'again', '06-step-6_1-report-detail', 'index.html'))
+})
 app.get(['/love/spouse', '/love/spouse/', '/love/spouse/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'love', 'spouse', 'index.html'))
+})
+app.get(['/love/spouse/detail', '/love/spouse/detail.html'], (_req, res) => {
+  res.redirect(302, '/love/spouse/06-step-6_1-report-detail/index.html')
+})
+app.get('/love/spouse/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'love', 'spouse', '06-step-6_1-report-detail', 'index.html'))
 })
 app.get(['/today/free', '/today/free/', '/today/free/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'today', 'free', 'index.html'))
 })
 app.get(['/work/job', '/work/job/', '/work/job/index.html'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'work', 'job', 'index.html'))
+})
+app.get(['/work/job/detail', '/work/job/detail.html'], (_req, res) => {
+  res.redirect(302, '/work/job/06-step-6_1-report-detail/index.html')
+})
+app.get('/work/job/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'work', 'job', '06-step-6_1-report-detail', 'index.html'))
 })
 // 퇴사운 runs as the 01 → 02 → 04 → 05 → 06_1 flow (상황 입력은 02 에 합쳤다); these are the readable entry points.
 app.get(['/work/quit', '/work/quit/', '/work/quit/index.html'], (req, res) => {
@@ -764,6 +788,12 @@ app.get(['/cmdg/chat.html', '/cmdg/chat'], (_req, res) => {
 })
 app.get(['/cmdg/result.html', '/cmdg/result'], (_req, res) => {
   res.sendFile(join(SAJU_ROOT, 'result.html'))
+})
+app.get(['/cmdg/detail', '/cmdg/detail.html'], (_req, res) => {
+  res.redirect(302, '/cmdg/06-step-6_1-report-detail/index.html')
+})
+app.get('/cmdg/06-step-6_1-report-detail/index.html', (_req, res) => {
+  res.sendFile(join(SAJU_ROOT, 'cmdg', '06-step-6_1-report-detail', 'index.html'))
 })
 
 /**
@@ -1645,7 +1675,10 @@ function paymentConfigPayload() {
     // 무인증 응답에 그대로 담아 고객에게 노출했다(aca0bf3).
     catalog: listPaymentProducts()
       .filter((product) => !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key))
-      .map(publicPaymentProduct),
+      .map((product) => ({
+        ...publicPaymentProduct(product),
+        readingPath: readingPathForProduct(product.key) || '',
+      })),
     aliases: PAYMENT_PRODUCT_ALIASES,
     pathPrefixes: PAYMENT_PATH_PREFIXES,
     pausedKeys: [...PUBLICLY_DISABLED_PRODUCT_KEYS],

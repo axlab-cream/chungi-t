@@ -700,6 +700,19 @@
       .save-saved-profile b { color: #70c292; font-size: 14px; }
       .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
       .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+
+      /*
+       * Live reading cards toggle under the guide image. The hub hero, stats,
+       * access card and static index are the same TOC printed twice, and those
+       * buttons leave this page instead of opening the body in place.
+       */
+      .hero,
+      .panel[aria-label="리포트 요약"],
+      .access-card,
+      .panel[aria-labelledby="index-title"],
+      .submit-dock {
+        display: none !important;
+      }
 </style>
       <link rel="stylesheet" href="/css/umsh-chrome.css" />
   </head>
@@ -771,6 +784,7 @@
             alt="돈관리 질문을 상담할 준비를 하는 녹색 고양이귀 정장 캐릭터"
           />
         </div>
+        <section data-umsh-slot="sections" aria-label="전체 풀이"></section>
         <div class="panel-head">
           <span class="chapter">상담 허브</span>
           <h2 id="chat-title">지금 질문을 목차에 연결해요</h2>

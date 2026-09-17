@@ -40,7 +40,7 @@ interface DirectorySeed {
 }
 
 const SEEDS: DirectorySeed[] = [
-  { key: 'cmdg', tagline: '내 인생, 원래 이런 팔자야?', category: '종합', href: '/cmdg/', image: '/assets/umsh-cmdg-card-bg.webp' },
+  { key: 'cmdg', tagline: '내 인생, 원래 이런 팔자야?', category: '종합', href: '/cmdg/', image: '/assets/umsh-cmdg-card-bg.webp', reportPath: '/cmdg/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'love_this_year', tagline: '도화가 들어오는 달과 놓치는 타이밍', category: '연애', href: '/love/this-year', image: '/love/this-year/assets/thisyear/videos/01-frontface-window-poster.webp', reportPath: '/love/this-year/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'job_choice', tagline: '관록·재백궁으로 보는 이 회사와 나의 결', category: '직업', href: '/work/job-choice', image: '/assets/umsh-jobchoice-card-bg.webp', reportPath: '/work/job-choice/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp', reportPath: '/match/cat/06-step-6_1-report-detail/index.html#step-6_1-report' },
@@ -56,10 +56,10 @@ const SEEDS: DirectorySeed[] = [
   { key: 'work_move', tagline: '옮길 자리와 남을 자리를 가르고', category: '직업', href: '/work/move', image: '/work/move/assets/generated/move/01-scene-01-question.webp', reportPath: '/work/move/06-step-6_1-report-detail/index.html#step-6_1-report' },
   // Keep these live routes available for existing readings, but omit them from discovery
   // until their public catalog presentation is ready.
-  { key: 'work_job', tagline: '관성, 식상, 적성으로 보는 지금 일', category: '직업', href: '/work/job', image: '/assets/umsh-work-card-bg.png', hidden: true },
-  { key: 'love_mind', tagline: '그 사람도 나를 생각할까', category: '연애', href: '/love/mind', image: '/assets/love-ty-char-phone-v2.webp', hidden: true },
-  { key: 'love_again', tagline: '그 사람, 다시 돌아올까', category: '연애', href: '/love/again', image: '/assets/love-ty-char-chart-v2.webp', hidden: true },
-  { key: 'love_spouse', tagline: '내가 결혼하게 될 사람', category: '연애', href: '/love/spouse', image: '/assets/love-ty-char-cafe-v2.webp', hidden: true },
+  { key: 'work_job', tagline: '관성, 식상, 적성으로 보는 지금 일', category: '직업', href: '/work/job', image: '/assets/umsh-work-card-bg.png', reportPath: '/work/job/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
+  { key: 'love_mind', tagline: '그 사람도 나를 생각할까', category: '연애', href: '/love/mind', image: '/assets/love-ty-char-phone-v2.webp', reportPath: '/love/mind/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
+  { key: 'love_again', tagline: '그 사람, 다시 돌아올까', category: '연애', href: '/love/again', image: '/assets/love-ty-char-chart-v2.webp', reportPath: '/love/again/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
+  { key: 'love_spouse', tagline: '내가 결혼하게 될 사람', category: '연애', href: '/love/spouse', image: '/assets/love-ty-char-cafe-v2.webp', reportPath: '/love/spouse/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
   // 요청으로 고객 화면에서 잠시 내림. 관리자 카탈로그와 상품 정의는 유지한다.
   { key: 'home_pungsu', tagline: '공간의 기운과 내 명리를 겹쳐서', category: '풍수', href: '/place/home', image: '/assets/umsh-place-card-bg.webp', reportPath: '/place/home/06-step-6_1-report-detail/index.html?section=home-fit-overall#step-6_1-report', hidden: true },
 ]
@@ -194,4 +194,19 @@ export function savedReadingHref(serviceKey: string | undefined, savedId: string
   const [address, hash] = reportPath.split('#')
   const separator = address.includes('?') ? '&' : '?'
   return `${address}${separator}reportId=${encodeURIComponent(id)}${hash ? `#${hash}` : ''}`
+}
+
+/** 06-1 해석 목차. 없으면 이 상품은 공용 리더(`/r/:id`)로 연다. */
+export function readingPathForProduct(productKey: string | undefined): string | undefined {
+  return seedForKey(productKey)?.reportPath
+}
+
+/**
+ * 결제 완료 후 열 주소. 06-1 목차가 있으면 그곳, 없으면 `/r/:id`.
+ * `returnPath`(04 미리보기·입력)는 쓰지 않는다 — 이미 결제했으므로 목차로 간다.
+ */
+export function paidReadingHref(productKey: string | undefined, reportId?: string): string {
+  const id = String(reportId ?? '').trim()
+  if (id) return savedReadingHref(productKey, id) || `/r/${encodeURIComponent(id)}`
+  return readingPathForProduct(productKey) || seedForKey(productKey)?.href || '/'
 }
