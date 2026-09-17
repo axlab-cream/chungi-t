@@ -45,7 +45,7 @@ if (requireFresh && record) throw new Error(`Fresh newyear_flow outline version 
 
 if (shouldGenerate) {
   const templateReport = buildNewYearReport(analysis, birth, context, input, reportId)
-  assert.equal(templateReport.sections.length, 36)
+  assert.equal(templateReport.sections.length, 20)
   const created = await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport })
   if (requireFresh && !created.created) throw new Error(`Fresh newyear_flow outline did not create a new record: ${version}`)
   console.log(JSON.stringify({ phase: 'saved-before-model', version, resultId: created.record.resultId, total: 36, created: created.created }))

@@ -22,12 +22,14 @@ const BIRTH: BirthInput = {
   gender: 'male', calendar: 'solar', isLeapMonth: false,
 }
 
-test('신년운세 목차는 10 대분류 36 중분류를 유지한다', () => {
+test('신년운세 목차는 10 대분류 20 중분류를 유지한다', () => {
+  // 2026-09-17 목차 축소: 36 → 20 (대분류당 2개). 05/06 은 API 가 돌려주는 항목을 그대로
+  // 그리므로(하드코딩된 id 목록 없음) 여기 개수만 맞으면 화면도 그대로 따라온다.
   assert.equal(NEWYEAR_TOC.length, 10)
   const items = allItems
-  assert.equal(items.length, 36)
+  assert.equal(items.length, 20)
   // 05 목차와 06 상세가 이 id 로 라우팅하므로 중복이 있으면 상세가 엉뚱한 항목을 연다.
-  assert.equal(new Set(items.map((item) => item.id)).size, 36)
+  assert.equal(new Set(items.map((item) => item.id)).size, 20)
   for (const group of NEWYEAR_TOC) {
     for (const item of group.items as readonly TocItem[]) {
       assert.match(item.id, new RegExp(`^${group.number}-\\d+$`))
@@ -106,7 +108,7 @@ test('리포트는 중분류마다 섹션 하나를 채운다', () => {
   const analysis = analyzeSaju(BIRTH)
   const context = buildNewYearContext('정재용', {})
   const report = buildNewYearReport(analysis, BIRTH, context, {})
-  assert.equal(report.sections.length, 36)
+  assert.equal(report.sections.length, 20)
   assert.equal(report.generatedBy, 'template')
   const ids = report.sections.map((section) => section.id)
   assert.deepEqual(ids, allItems.map((item) => item.id))
@@ -137,7 +139,7 @@ test('무료 티저는 계산된 사실만 앞세우고 유료 범위를 숨기�
   assert.ok(teaser.lines.some((line) => line.includes('입춘')))
   assert.ok(teaser.lines.some((line) => line.includes('丁未')))
   assert.equal(teaser.scope.length, 10)
-  assert.equal(teaser.scope.reduce((n, group) => n + group.items.length, 0), 36)
+  assert.equal(teaser.scope.reduce((n, group) => n + group.items.length, 0), 20)
 })
 
 test('요청은 표시 이름만 받고 길이를 자른다', () => {
