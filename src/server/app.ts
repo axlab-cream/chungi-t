@@ -44,6 +44,7 @@ import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { checkOpsQueueReadiness } from '../admin/ops-queue.js'
+import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import {
@@ -1856,6 +1857,8 @@ app.get('/api/health', async (req, res) => {
   res.status(storages.some((storage) => storage && !storage.ok) ? 503 : 200).json({
     ok: storages.every((storage) => !storage || storage.ok),
     openai: isOpenAiConfigured(),
+    // 어느 버전이 떠 있는지, 그 버전이 묶어 둔 규격과 지금 규격이 같은지.
+    release: serviceRelease(),
     ...(reportStorage ? { reportStorage } : {}),
     ...(paymentStorage ? { paymentStorage } : {}),
     ...(profileStorage ? { profileStorage } : {}),
@@ -2037,6 +2040,14 @@ app.get('/api/cron/ops', async (req, res) => {
 app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
+})
+/**
+ * 운영자가 보는 릴리스 정보. 해석이 흔들렸다는 문의가 오면 여기부터 본다 —
+ * `pinned: false` 면 버전을 올리지 않은 채 프롬프트나 코퍼스가 바뀐 것이다.
+ */
+app.get('/api/admin/v1/release', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  res.json({ ...serviceRelease(), pins: SERVICE_RELEASE_PINS, asOf: new Date().toISOString() })
 })
 app.get('/api/admin/v1/services', async (req, res) => {
   if (!await requireStaff(req, res, 'services:read')) return
