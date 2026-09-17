@@ -140,6 +140,8 @@
         background: #fff8ee; border: 1px solid #c9a15a;
         word-break: keep-all;
       }
+      /* display:flex 가 UA 의 [hidden] 규칙을 덮어쓴다. 오늘 운 탭에서는 숨겨야 한다. */
+      .vault-notice[hidden] { display: none; }
       .vault-notice > span { flex: none; font-size: 18px; line-height: 1.3; }
       .vault-notice strong { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 900; letter-spacing: .06em; color: #6b3f0e; }
       .vault-notice p { margin: 0 0 7px; font-size: 13.5px; line-height: 1.75; color: #1a1814; }
