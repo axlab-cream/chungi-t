@@ -87,12 +87,23 @@
   background: var(--umsh-lf-surface);
   overflow: hidden;
 }
+/*
+ * 장식 컷은 띠로만 둔다.
+ *
+ * 16:9 로 두면 375px 화면에서 210px 를 먹는다. 그 위에 상단바 59 + 진행 32 + 결론 101 이
+ * 이미 있어서, 첫 화면에 읽을 글이 한 줄도 남지 않았다(2026-09-18 실측). 컷은 aria-hidden 인
+ * 장식이고 이 자리의 본문은 요약이다. 21:9 로 낮추고 최대 높이를 묶어 요약 첫 줄이
+ * 접히는 선 위로 올라오게 한다.
+ */
 .umsh-summary-figure {
   margin: 0;
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 21 / 9;
+  max-height: 132px;
   background: rgba(0, 0, 0, .18);
 }
+/* 요약이 아직 없으면 컷도 걸지 않는다. 장식 아래 "준비 중" 골격만 남는 화면이 된다. */
+.umsh-summary.is-pending .umsh-summary-figure { display: none; }
 .umsh-summary-figure img {
   width: 100%;
   height: 100%;
@@ -278,7 +289,9 @@
 @media (min-width: 720px) {
   .umsh-highlights-grid { grid-template-columns: repeat(3, 1fr); }
   .umsh-summary { grid-template-columns: 300px 1fr; }
-  .umsh-summary-figure { aspect-ratio: auto; height: 100%; }
+  /* 2단에서는 컷이 글 옆에 서므로 높이 제한을 푼다. 다만 글이 짧을 때 컷만 길어지지 않게 묶는다. */
+  .umsh-summary-figure { aspect-ratio: auto; height: 100%; max-height: 320px; }
+  .umsh-summary.is-pending { grid-template-columns: 1fr; }
   .umsh-summary-figure::after {
     inset: 0 0 0 auto;
     width: 40%;

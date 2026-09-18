@@ -37,10 +37,16 @@ function stable(value: unknown): string {
   return JSON.stringify(value) ?? 'undefined'
 }
 
+/** 결론·요약·하이라이트는 목차 완료 뒤에도 붙는다. 완료 불변식은 목차 본문만 지킨다. */
+function withoutLongform(report: ReportRecord['report']): unknown {
+  const { verdict: _verdict, summary: _summary, highlights: _highlights, ...rest } = report
+  return rest
+}
+
 function retainsSnapshot(current: ReportRecord, next: ReportRecord): boolean {
   if (current.resultId !== next.resultId || current.report.publicId !== next.report.publicId || current.owner?.id !== next.owner?.id) return false
   if (stable(current.birth) !== stable(next.birth) || stable(current.context) !== stable(next.context)) return false
-  if (current.status === 'complete' && (next.status !== 'complete' || stable(current.report) !== stable(next.report) || stable(current.auxiliary) !== stable(next.auxiliary))) return false
+  if (current.status === 'complete' && (next.status !== 'complete' || stable(withoutLongform(current.report)) !== stable(withoutLongform(next.report)) || stable(current.auxiliary) !== stable(next.auxiliary))) return false
   return current.report.sections.every(section => section.status !== 'complete'
     || stable(section) === stable(next.report.sections.find(item => item.id === section.id)))
 }

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportSection } from '../types/index.js'
+import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportHighlight, SajuReportSection } from '../types/index.js'
+import { analyzeSaju } from '../saju/analyzer.js'
 import { OpenAiTruncatedError, isOpenAiConfigured, isTransientOpenAiFailure } from '../llm/openai-adapter.js'
 import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { loadHighlightTopics } from './longform-blocks.js'
@@ -198,6 +199,100 @@ export async function recoverReportSectionFromLatestAttempt(params: {
   return section
 }
 
+const inFlightLongform = new Map<string, Promise<ReportRecord | null>>()
+
+/**
+ * 결론 · 한눈에 보기 · 하이라이트를 만든다. 목차 본문과 **독립**이다.
+ *
+ * 예전에는 이 셋이 `generateReportSectionNow` 안, 첫 항목 생성 바로 앞에 줄줄이 있었다.
+ * 그래서 (1) 독자가 기다리는 첫 항목이 LLM 호출 다섯 번 뒤에야 시작했고, (2) 목차가 이미
+ * 다 끝난 리포트는 이 코드에 영영 닿지 못해 결론이 비었다 — 운영의 완료 리포트 전부가
+ * `verdict: null` 이라 화면은 설정에 적어 둔 축 문구("옮길 자리와 남을 자리 먼저 정리합니다.")와
+ * "준비하고 있어요" 골격만 보여 줬다. 그것이 목업처럼 보인 정체다(2026-09-18).
+ *
+ * 이제 따로 돌린다. 결론 하나만 먼저(뒤 둘의 판단 기준이라 순서를 지킨다), 그다음 요약과
+ * 하이라이트 셋을 **나란히** — 왕복이 5회에서 2회로 준다. 각각 끝나는 대로 저장하므로
+ * 화면은 폴링하며 빈자리를 하나씩 채운다. 실패는 그 블록만 접고 본문 읽기를 막지 않는다.
+ */
+export async function ensureReportLongform(params: { reportId: string; owner?: ReportOwner }): Promise<ReportRecord | null> {
+  const running = inFlightLongform.get(params.reportId)
+  if (running) return running
+  const run = (async () => {
+    try {
+      const record = await getReportRecord(params.reportId, params.owner)
+      if (!record) return null
+      assertReportOwner(record, params.owner)
+      if (!isOpenAiConfigured()) return record
+      const analysis = record.analysis ?? analyzeSaju(record.birth)
+      const topics = loadHighlightTopics(record.context.serviceKey)
+      const saved = record.report.highlights ?? []
+      const needsVerdict = !record.report.verdict?.statement
+      const needsSummary = record.report.summary?.status !== 'complete'
+      const pendingTopics = (topics ?? []).filter((_, index) => saved[index]?.status !== 'complete')
+      if (!needsVerdict && !needsSummary && !pendingTopics.length) return record
+
+      let verdict = record.report.verdict
+      if (needsVerdict) {
+        try {
+          verdict = await buildOpenAiReportVerdict(analysis, record.birth, record.context)
+          const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
+            if (current.report.verdict?.statement) return false
+            current.report.verdict = verdict
+          })
+          verdict = stored?.report.verdict ?? verdict
+        } catch {
+          // 결론이 없어도 요약·하이라이트는 만든다. 일관성 검사만 건너뛴다.
+        }
+      }
+
+      await Promise.all([
+        ...(needsSummary ? [(async () => {
+          try {
+            const summary = await buildOpenAiReportSummary(analysis, record.birth, record.context, verdict)
+            await mutateReportRecord(params.reportId, params.owner, (current) => {
+              if (current.report.summary?.status === 'complete') return false
+              current.report.summary = summary
+            })
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'summary generation failed'
+            await mutateReportRecord(params.reportId, params.owner, (current) => {
+              if (current.report.summary?.status === 'complete') return false
+              current.report.summary = { text: '', status: 'failed', error: message }
+            }).catch(() => null)
+          }
+        })()] : []),
+        ...(topics ?? []).map((topic, index) => async () => {
+          if (saved[index]?.status === 'complete') return
+          let result: SajuReportHighlight
+          try {
+            result = await buildOpenAiReportHighlight(analysis, record.birth, record.context, topic, verdict)
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'highlight generation failed'
+            result = { title: topic.title, text: '', status: 'failed', error: message }
+          }
+          // 자리(index)를 지켜 저장한다. 나란히 끝나므로 순서대로 밀어 넣으면 카드가 뒤섞인다.
+          await mutateReportRecord(params.reportId, params.owner, (current) => {
+            const list = current.report.highlights ?? (topics ?? []).map((item) => ({ title: item.title, text: '', status: 'pending' as const }))
+            if (list[index]?.status === 'complete') return false
+            list[index] = result
+            current.report.highlights = list
+          }).catch(() => null)
+        }).map((task) => task()),
+      ])
+      return await getReportRecord(params.reportId, params.owner)
+    } finally {
+      inFlightLongform.delete(params.reportId)
+    }
+  })()
+  inFlightLongform.set(params.reportId, run)
+  return run
+}
+
+/** 화면 요청에서 부른다. 응답을 막지 않고 뒤에서 돈다. */
+export function startReportLongform(params: { reportId: string; owner?: ReportOwner }): void {
+  void ensureReportLongform(params).catch(() => undefined)
+}
+
 /** Complete interpretations are immutable; pending work has a persisted cross-instance lease. */
 export async function generateReportSectionNow(params: GenerationParams & { sectionId: string; retry?: boolean }): Promise<SajuReportSection> {
   const leaseId = randomUUID()
@@ -229,60 +324,6 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
   const storedSection = record?.report.sections.find((item) => item.id === params.sectionId)
   if (!record || !storedSection) throw new Error('리포트 섹션을 찾지 못했습니다.')
   if (!claimed) return storedSection
-
-  if (!record.report.verdict?.statement && isOpenAiConfigured()) {
-    try {
-      const verdict = await buildOpenAiReportVerdict(record.analysis ?? params.analysis, record.birth, record.context)
-      const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
-        if (current.report.verdict?.statement) return false
-        current.report.verdict = verdict
-      })
-      if (stored?.report.verdict) record.report.verdict = stored.report.verdict
-    } catch {
-      // Missing verdict keeps previous independent-section behaviour.
-    }
-  }
-
-  if (record.report.summary?.status !== 'complete' && isOpenAiConfigured()) {
-    try {
-      const summary = await buildOpenAiReportSummary(
-        record.analysis ?? params.analysis, record.birth, record.context, record.report.verdict,
-      )
-      const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
-        if (current.report.summary?.status === 'complete') return false
-        current.report.summary = summary
-      })
-      if (stored?.report.summary) record.report.summary = stored.report.summary
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'summary generation failed'
-      await mutateReportRecord(params.reportId, params.owner, (current) => {
-        if (current.report.summary?.status === 'complete') return false
-        current.report.summary = { text: '', status: 'failed', error: message }
-      })
-    }
-  }
-
-  const topics = loadHighlightTopics(record.context.serviceKey)
-  const currentHighlights = record.report.highlights ?? []
-  const highlightsPending = Boolean(topics && topics.some((_, index) => currentHighlights[index]?.status !== 'complete'))
-  if (topics && highlightsPending && isOpenAiConfigured()) {
-    const highlights = topics.map((topic, index) => currentHighlights[index] ?? { title: topic.title, text: '', status: 'pending' as const })
-    for (let index = 0; index < topics.length; index += 1) {
-      if (highlights[index]?.status === 'complete') continue
-      try {
-        highlights[index] = await buildOpenAiReportHighlight(
-          record.analysis ?? params.analysis, record.birth, record.context, topics[index], record.report.verdict,
-        )
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'highlight generation failed'
-        highlights[index] = { title: topics[index].title, text: '', status: 'failed', error: message }
-      }
-    }
-    const stored = await mutateReportRecord(params.reportId, params.owner, (current) => {
-      current.report.highlights = highlights
-    })
-    if (stored?.report.highlights) record.report.highlights = stored.report.highlights
-  }
 
   const editClaim = async (edit: (section: SajuReportSection, current: ReportRecord) => void) => mutateReportRecord(params.reportId, params.owner, (current) => {
     const section = current.report.sections.find((item) => item.id === params.sectionId)

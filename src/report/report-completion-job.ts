@@ -1,6 +1,6 @@
 import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { preGenerateReport } from './report-queue.js'
+import { ensureReportLongform, preGenerateReport } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
 
 export type { IncompleteReportRef }
@@ -77,6 +77,9 @@ export async function runReportCompletionJob(
 
   const before = progressOf(record)
   const budget = { exhausted: false }
+  // 결론·요약·하이라이트는 목차와 나란히 만든다. 앞에 세우면 독자가 기다리는 첫 항목이
+  // LLM 왕복 다섯 번 뒤로 밀린다. 실패해도 목차 생성을 막지 않는다.
+  const longform = ensureReportLongform({ reportId: record.reportId, owner: record.owner }).catch(() => null)
   await preGenerateReport({
     reportId: record.reportId,
     birth: record.birth,
@@ -84,6 +87,7 @@ export async function runReportCompletionJob(
     analysis: record.analysis ?? analyzeSaju(record.birth),
     owner: record.owner,
   }, { recoverFailed: true, deadlineAt: options.deadlineAt, budget })
+  await longform
 
   const latest = await getReportRecordAsService(reportId)
   const after = progressOf(latest ?? record)

@@ -1,5 +1,8 @@
 ﻿import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { highlightPrompt, parseReportHighlight, reviewHighlightShape } from '../../src/report/report-generator.js'
 import { loadHighlightTopics } from '../../src/report/longform-blocks.js'
@@ -22,9 +25,28 @@ test('saju_master reads the cmdg block through the service alias', () => {
 })
 
 test('undefined services return undefined, not an empty list', () => {
-  assert.equal(loadHighlightTopics('pass_angle'), undefined)
+  // 오늘운은 규칙 기반이라 리포트 블록이 없다. 빈 키도 마찬가지다.
   assert.equal(loadHighlightTopics('today_fortune'), undefined)
   assert.equal(loadHighlightTopics(''), undefined)
+  assert.equal(loadHighlightTopics('no_such_service'), undefined)
+})
+
+/**
+ * 2026-09-18: 설정이 있는 서비스는 10개뿐이라 나머지 9개는 결론·요약·하이라이트가 아예
+ * 그려지지 않았다. 판매 카탈로그에 있는 서비스는 모두 세 블록을 가져야 한다.
+ */
+test('every catalog service defines three highlight topics and a verdict axis', () => {
+  const directory = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../src/server/service-directory.ts'), 'utf8')
+  const keys = [...new Set([...directory.matchAll(/key: '([a-z_]+)'/g)].map((match) => match[1]))]
+  assert.ok(keys.length >= 19, `카탈로그 키를 찾지 못했다: ${keys.length}`)
+  const blocks = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../사주/data/longform-blocks.json'), 'utf8').replace(/^﻿/, ''))
+  for (const key of keys) {
+    const config = blocks.services[key]
+    assert.ok(config, `${key} 에 결론·요약·하이라이트 설정이 없다`)
+    assert.ok(String(config.verdictAxis || '').trim(), `${key} 에 판단 축이 없다`)
+    assert.equal(loadHighlightTopics(key)?.length, 3, `${key} 하이라이트가 3개가 아니다`)
+    for (const cut of ['cutA', 'cutB']) assert.match(String(config[cut] || ''), /^\//, `${key}.${cut} 경로가 없다`)
+  }
 })
 
 test('highlight prompts carry shape, verdict, and a new-judgment instruction', () => {

@@ -14,7 +14,7 @@ import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParen
 import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
-import { generateReportSectionNow } from '../report/report-queue.js'
+import { generateReportSectionNow, startReportLongform } from '../report/report-queue.js'
 import { savedDailyFortune } from '../report/daily-report.js'
 import {
   checkReportStorageReadiness,
@@ -3959,6 +3959,9 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     if (wantsPreview(req) || !access.entitled) { res.json(savedPreviewResponse(record, access)); return }
     if (access.reason === 'admin') await rememberAdminPaidEquivalent(owner, record.reportId)
     if (record.status !== 'complete') queueReportCompletionAfterPayment(record.reportId)
+    // 결론·요약·하이라이트는 목차와 별개다. 이미 완성된 리포트도 이 자리에서 채워진다.
+    // 응답은 기다리지 않는다 — 화면이 폴링하며 빈자리를 메운다.
+    startReportLongform({ reportId: record.reportId, owner })
     applyReportEntitlement(analysis.report, access, owner)
     res.json({
       report: analysis.report,

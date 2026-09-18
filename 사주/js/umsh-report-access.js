@@ -145,14 +145,14 @@
     var link = document.createElement('link');
     link.id = 'umsh-longform-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-longform.css?v=lf-20260917a';
+    link.href = '/css/umsh-longform.css?v=lf-20260918a';
     document.head.appendChild(link);
   }
 
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260917a', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260918a', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -218,7 +218,8 @@
       ? '<div class="umsh-lf-locked"><p>요약의 나머지와 하이라이트는 결제 후 열립니다.</p>' +
         '<a class="umsh-lf-cta" href="' + escapeHtml(tocHref(identity(report) || rememberedId)) + '">전체 해석 열기</a></div>'
       : '';
-    return '<section class="umsh-summary" aria-label="전체 요약">' +
+    // 글이 아직 없으면 장식 컷을 걸지 않는다 — 첫 화면이 이미지와 골격으로만 차 버린다.
+    return '<section class="umsh-summary' + (shown.length ? '' : ' is-pending') + '" aria-label="전체 요약">' +
       figure +
       '<div class="umsh-summary-body">' +
         '<p class="umsh-summary-eyebrow">한눈에 보기</p>' +

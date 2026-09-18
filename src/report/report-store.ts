@@ -260,6 +260,16 @@ export function reportProgressOf(record: ReportRecord): { complete: number; tota
   return { complete, total, status }
 }
 
+/**
+ * 결론·요약·하이라이트를 뺀 리포트. 완료 불변식은 **목차 본문**을 지키기 위한 것이고, 이 세
+ * 블록은 목차와 별개로 나중에 붙는다. 함께 얼려 버리면 이미 완성된 리포트는 영영 결론 없이
+ * 설정값 문구만 보여 준다 — 운영 리포트 전부가 그 상태였다(2026-09-18).
+ */
+function withoutLongform(report: SajuReport): Omit<SajuReport, 'verdict' | 'summary' | 'highlights'> {
+  const { verdict: _verdict, summary: _summary, highlights: _highlights, ...rest } = report
+  return rest
+}
+
 function progressFor(report: SajuReport): { complete: number; total: number } {
   const total = report.sections.length
   const complete = report.status === 'complete' ? total : report.sections.filter((section) => section.status === 'complete').length
@@ -1014,7 +1024,7 @@ export async function mutateReportRecord(
     const next = cloneRecord(current)
     if (change(next) === false) return current
     if (next.reportId !== current.reportId || next.resultId !== current.resultId || next.owner?.id !== current.owner?.id || next.report.publicId !== current.report.publicId || JSON.stringify(next.birth) !== JSON.stringify(current.birth) || JSON.stringify(next.context) !== JSON.stringify(current.context)) throw new Error('저장된 결과의 ID·소유자·입력은 변경할 수 없습니다.')
-    if (current.status === 'complete' && (next.status !== 'complete' || JSON.stringify(next.report) !== JSON.stringify(current.report))) throw new Error('완료된 해석은 변경할 수 없습니다.')
+    if (current.status === 'complete' && (next.status !== 'complete' || JSON.stringify(withoutLongform(next.report)) !== JSON.stringify(withoutLongform(current.report)))) throw new Error('완료된 해석은 변경할 수 없습니다.')
     for (const section of current.report.sections.filter((item) => item.status === 'complete')) {
       if (JSON.stringify(next.report.sections.find((item) => item.id === section.id)) !== JSON.stringify(section)) throw new Error('완료된 항목은 변경할 수 없습니다.')
     }
