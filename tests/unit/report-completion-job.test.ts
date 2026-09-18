@@ -42,6 +42,15 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     const rows = opsRows.filter((row) => states.includes(row.state) && (!kind || row.kind === kind))
     return Response.json(rows)
   }
+  if (url.pathname.endsWith('/ops_jobs') && init?.method === 'PATCH' && url.searchParams.get('id')?.startsWith('in.(')) {
+    // closeOpsJobs: 상태가 대기·재시도인 행만 닫힌다. running 은 필터에 걸려 그대로 남는다.
+    const ids = inList(url.searchParams.get('id'))
+    const states = inList(url.searchParams.get('state'))
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>
+    const closed = opsRows.filter((row) => ids.includes(row.id) && states.includes(row.state))
+    for (const row of closed) { row.state = String(body.state); row.last_error = String(body.last_error) }
+    return Response.json(closed)
+  }
   if (url.pathname.endsWith('/ops_jobs') && init?.method === 'DELETE') {
     const states = inList(url.searchParams.get('state'))
     const targets = inList(url.searchParams.get('target_id'))
@@ -59,7 +68,7 @@ function inList(value: string | null): string[] {
   return match ? match[1].split(',').filter(Boolean) : []
 }
 
-type OpsRow = { id: string; kind: string; target_id: string; state: string }
+type OpsRow = { id: string; kind: string; target_id: string; state: string; idempotency_key?: string; created_at?: string; last_error?: string }
 let opsRows: OpsRow[] = []
 
 const job = await import('../../src/report/report-completion-job.js')
@@ -204,6 +213,104 @@ describe('한 회원의 완성 작업 걷어내기', { concurrency: false }, () 
     const outcome = await job.purgeReportCompletionJobsForOwner('owner-good', ['running', 'queued'])
     assert.equal(outcome.deleted, 0)
     assert.equal(opsRows.length, 1)
+  })
+})
+
+/**
+ * 2026-09-18: 큐의 자가 치유. 어떤 경로가 중복을 만들어도 1분 안에 걷혀야 한다 — 그래야
+ * 대기 200건이 결제 고객 앞에 서는 일이 다시 생기지 않는다.
+ */
+describe('큐 자가 치유(sweep)', { concurrency: false }, () => {
+  const kind = 'report.sections.complete'
+  function record(reportId: string, status: 'generating' | 'complete'): import('../../src/report/report-store.js').ReportRecord {
+    return {
+      reportId, revision: 1, owner: { id: 'owner-sweep', email: 'sweep@example.com', provider: 'email' },
+      birth: { year: 1990, month: 1, day: 1, hour: 12, minute: 0, gender: 'female', calendar: 'solar' },
+      context: { serviceKey: 'money_save', name: '테스트', birthTimeKnown: true },
+      status, createdAt: '2026-09-18T00:00:00Z', updatedAt: '2026-09-18T00:00:00Z',
+      report: {
+        title: '저축운', subtitle: '', model: 'test', generatedBy: 'template', status,
+        sections: [{ id: 's1', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '', categoryEn: '', classification: '', hook: '', patternKeys: [], ragTopics: [], interpretation: status === 'complete' ? '본문' : '', status: status === 'complete' ? 'complete' : 'pending' }],
+      },
+    }
+  }
+
+  it('쌍둥이는 정식 키 하나만 남기고, 끝난 대상·지워진 대상의 작업은 닫고, 미완성 정식 작업과 running 은 남긴다', async () => {
+    await store.saveReportRecord(record('r-live', 'generating'))
+    await store.saveReportRecord(record('r-done', 'complete'))
+    opsRows = [
+      // r-live: 예전 키 둘 + 정식 키 하나. 정식 키가 살아야 한다(가장 오래됐더라도).
+      { id: 'live-old-1', kind, target_id: 'r-live', state: 'queued', idempotency_key: `${kind}:r-live:3`, created_at: '2026-09-18T01:00:00Z' },
+      { id: 'live-canon', kind, target_id: 'r-live', state: 'retry', idempotency_key: `${kind}:r-live`, created_at: '2026-09-18T00:30:00Z' },
+      { id: 'live-old-2', kind, target_id: 'r-live', state: 'queued', idempotency_key: `${kind}:r-live:7`, created_at: '2026-09-18T02:00:00Z' },
+      // r-legacy: 정식 키 없음. 가장 새것이 산다. 미완성 목록에 있으니 대상 확인은 생략된다.
+      { id: 'legacy-a', kind, target_id: 'r-legacy', state: 'queued', idempotency_key: `${kind}:r-legacy:1`, created_at: '2026-09-18T01:00:00Z' },
+      { id: 'legacy-b', kind, target_id: 'r-legacy', state: 'queued', idempotency_key: `${kind}:r-legacy:2`, created_at: '2026-09-18T03:00:00Z' },
+      // r-done: 리포트가 이미 끝났다.
+      { id: 'done-1', kind, target_id: 'r-done', state: 'queued', idempotency_key: `${kind}:r-done`, created_at: '2026-09-18T01:00:00Z' },
+      // r-gone: 리포트가 지워졌다.
+      { id: 'gone-1', kind, target_id: 'r-gone', state: 'queued', idempotency_key: `${kind}:r-gone`, created_at: '2026-09-18T01:00:00Z' },
+      // running 과 다른 종류는 어떤 경우에도 건드리지 않는다.
+      { id: 'run-1', kind, target_id: 'r-done', state: 'running', idempotency_key: `${kind}:r-done:9`, created_at: '2026-09-18T01:00:00Z' },
+      { id: 'other-1', kind: 'outbox.deliver', target_id: 'r-done', state: 'queued', idempotency_key: 'outbox:r-done', created_at: '2026-09-18T01:00:00Z' },
+    ]
+    calls.length = 0
+    const outcome = await job.sweepReportCompletionJobs(new Set(['r-live', 'r-legacy']))
+    assert.deepEqual(outcome, { scanned: 7, duplicates: 3, completeTargets: 1, goneTargets: 1 })
+    const state = Object.fromEntries(opsRows.map((row) => [row.id, `${row.state}${row.last_error ? ':' + row.last_error : ''}`]))
+    assert.deepEqual(state, {
+      'live-old-1': 'succeeded:OPS_DUPLICATE_TARGET',
+      'live-canon': 'retry',
+      'live-old-2': 'succeeded:OPS_DUPLICATE_TARGET',
+      'legacy-a': 'succeeded:OPS_DUPLICATE_TARGET',
+      'legacy-b': 'queued',
+      'done-1': 'succeeded:OPS_TARGET_COMPLETE',
+      'gone-1': 'succeeded:OPS_TARGET_GONE',
+      'run-1': 'running',
+      'other-1': 'queued',
+    })
+    // 미완성 목록에 있는 대상은 레코드를 다시 읽지 않는다. 읽은 것은 r-done, r-gone 둘뿐이어야 한다.
+    const closes = calls.filter((call) => call.init?.method === 'PATCH')
+    for (const close of closes) assert.equal(close.url.searchParams.get('state'), 'in.(queued,retry)', 'running 은 닫는 필터에서 빠진다')
+  })
+
+  it('큐가 비어 있으면 아무것도 읽지 않는다', async () => {
+    opsRows = []
+    calls.length = 0
+    const outcome = await job.sweepReportCompletionJobs(new Set())
+    assert.deepEqual(outcome, { scanned: 0, duplicates: 0, completeTargets: 0, goneTargets: 0 })
+    assert.equal(calls.filter((call) => call.init?.method === 'PATCH').length, 0)
+  })
+
+  it('pickSurvivor: 정식 키가 있으면 그것, 없으면 가장 새것', () => {
+    const canon = { id: 'c', kind, target_id: 't', state: 'queued', idempotency_key: `${kind}:t`, created_at: '2026-01-01T00:00:00Z' }
+    const newer = { id: 'n', kind, target_id: 't', state: 'queued', idempotency_key: `${kind}:t:5`, created_at: '2026-02-01T00:00:00Z' }
+    const older = { id: 'o', kind, target_id: 't', state: 'queued', idempotency_key: `${kind}:t:4`, created_at: '2025-12-01T00:00:00Z' }
+    assert.equal(job.pickSurvivor([older, canon, newer]).id, 'c')
+    assert.equal(job.pickSurvivor([older, newer]).id, 'n')
+  })
+})
+
+describe('백필 대상에 소유자와 결제 여부를 싣는다', () => {
+  it('결제분은 paid, 관리자가 연 것도 paid, 티저는 false', () => {
+    const targets = job.selectBackfillReports([
+      incompleteRef({ reportId: 'paid-1', updatedAt: '2026-09-18T01:00:00.000Z' }),
+      incompleteRef({ reportId: 'admin-1', updatedAt: '2026-09-18T02:00:00.000Z', adminAcquiredAt: '2026-09-18T02:00:00.000Z' }),
+      incompleteRef({ reportId: 'teaser-1', updatedAt: '2026-09-18T03:00:00.000Z', ownerId: 'u9' }),
+    ], new Set(['paid-1']))
+    assert.deepEqual(targets, [
+      { reportId: 'paid-1', ownerId: 'u1', paid: true },
+      { reportId: 'admin-1', ownerId: 'u1', paid: true },
+      { reportId: 'teaser-1', ownerId: 'u9', paid: false },
+    ])
+  })
+
+  it('큐 작업 payload 에는 소유자 식별자와 결제 표시만 싣고 개인 정보는 싣지 않는다', async () => {
+    calls.length = 0; enqueueStatus = 201
+    await job.enqueueReportCompletion({ reportId: 'report-9', ownerId: 'owner-9', paid: true })
+    const post = calls.find((call) => call.url.pathname.endsWith('/ops_jobs') && call.init?.method === 'POST')
+    const body = JSON.parse(String(post?.init?.body)) as { payload: Record<string, unknown> }
+    assert.deepEqual(body.payload, { reportId: 'report-9', revision: 0, ownerId: 'owner-9', paid: true })
   })
 })
 

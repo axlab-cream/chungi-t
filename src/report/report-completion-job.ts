@@ -1,4 +1,4 @@
-import { deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
+import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { ensureReportLongform, preGenerateReport } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
@@ -39,16 +39,22 @@ export function reportCompletionIdempotencyKey(reportId: string): string {
 export async function enqueueReportCompletion(params: {
   reportId: string
   revision?: number
+  /** 결제로 열린 해석인지. 워커가 차선을 나눌 때 결제분을 먼저 태운다. */
+  paid?: boolean
+  ownerId?: string
 }): Promise<EnqueueOpsJobResult> {
   if (!params.reportId) return 'unavailable'
   const record = await getReportRecordAsService(params.reportId).catch(() => null)
   const reportId = record?.reportId || params.reportId
   const revision = params.revision ?? record?.revision ?? 0
+  const ownerId = params.ownerId ?? record?.owner?.id
   return enqueueOpsJob({
     kind: REPORT_COMPLETION_JOB_KIND,
     targetId: reportId,
     idempotencyKey: reportCompletionIdempotencyKey(reportId),
-    payload: { reportId, revision },
+    // 워커가 공정하게 나누는 데 필요한 것만 싣는다 — 소유자 식별자와 결제 여부.
+    // 이름·생년월일 같은 개인 정보는 작업 표에 두지 않는다.
+    payload: { reportId, revision, ...(ownerId ? { ownerId } : {}), ...(params.paid ? { paid: true } : {}) },
   })
 }
 
@@ -162,13 +168,27 @@ export function selectBackfillReportIds(
   candidates: IncompleteReportRef[],
   paid: Set<string> | null,
 ): string[] {
+  return selectBackfillReports(candidates, paid).map((ref) => ref.reportId)
+}
+
+export interface BackfillTarget {
+  reportId: string
+  ownerId?: string
+  /** 결제 확인분 또는 관리자가 연 해석. 워커가 먼저 태운다. 결제 조회가 죽었으면 알 수 없어 false. */
+  paid: boolean
+}
+
+export function selectBackfillReports(
+  candidates: IncompleteReportRef[],
+  paid: Set<string> | null,
+): BackfillTarget[] {
+  const byAge = (a: IncompleteReportRef, b: IncompleteReportRef) =>
+    a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId)
   if (paid === null) {
-    return [...candidates]
-      .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId))
-      .map((ref) => ref.reportId)
+    return [...candidates].sort(byAge).map((ref) => ({ reportId: ref.reportId, ownerId: ref.ownerId, paid: false }))
   }
   const latestByOwnerService = new Map<string, IncompleteReportRef>()
-  const selected: IncompleteReportRef[] = []
+  const selected: Array<IncompleteReportRef & { paid: boolean }> = []
   const taken = new Set<string>()
   const isPaid = (ref: IncompleteReportRef) => (
     paid.has(ref.reportId)
@@ -178,7 +198,7 @@ export function selectBackfillReportIds(
   for (const ref of candidates) {
     if (isPaid(ref) || ref.adminAcquiredAt) {
       if (taken.has(ref.reportId)) continue
-      selected.push(ref)
+      selected.push({ ...ref, paid: true })
       taken.add(ref.reportId)
       continue
     }
@@ -188,11 +208,72 @@ export function selectBackfillReportIds(
   }
   for (const ref of latestByOwnerService.values()) {
     if (taken.has(ref.reportId)) continue
-    selected.push(ref)
+    selected.push({ ...ref, paid: false })
     taken.add(ref.reportId)
   }
-  selected.sort((a, b) => a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId))
-  return selected.map((ref) => ref.reportId)
+  selected.sort(byAge)
+  return selected.map((ref) => ({ reportId: ref.reportId, ownerId: ref.ownerId, paid: ref.paid }))
+}
+
+export interface SweepOutcome {
+  /** 훑은 대기·재시도 작업 수. */
+  scanned: number
+  /** 같은 대상을 가리키는 쌍둥이 중 닫은 수. */
+  duplicates: number
+  /** 대상 리포트가 이미 끝나 있어 닫은 수. */
+  completeTargets: number
+  /** 대상 리포트가 지워져 닫은 수. */
+  goneTargets: number
+}
+
+/** 같은 대상의 여러 작업 중 살릴 하나. 정식 키(리포트당 하나)가 있으면 그것, 없으면 가장 새것. */
+export function pickSurvivor(jobs: OpsJobRef[]): OpsJobRef {
+  const canonical = jobs.find((job) => job.idempotency_key === reportCompletionIdempotencyKey(job.target_id))
+  if (canonical) return canonical
+  return [...jobs].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))[0]
+}
+
+/**
+ * 큐의 자가 치유. cron 이 매분 부른다.
+ *
+ * 세 종류의 "할 일 없는 작업"을 처리기 없이 닫는다 — 같은 리포트를 가리키는 쌍둥이, 이미
+ * 끝난 리포트의 작업, 지워진 리포트의 작업. 어느 경로가 앞으로 중복을 만들어도 1분 안에
+ * 여기서 걷힌다. 그래서 2026-09-18 처럼 대기 200건이 결제 고객 앞에 서는 일은 다시 생기지 않는다.
+ *
+ * `incompleteIds` 는 백필이 이미 읽은 미완성 목록이다. 거기 없는 대상만 레코드를 다시 읽어
+ * 확인하므로, 목록이 잘렸어도(limit) 미완성 리포트의 작업을 잘못 닫지 않는다.
+ */
+export async function sweepReportCompletionJobs(incompleteIds: Set<string>): Promise<SweepOutcome> {
+  const outcome: SweepOutcome = { scanned: 0, duplicates: 0, completeTargets: 0, goneTargets: 0 }
+  const jobs = await listOpsJobRefs({ kind: REPORT_COMPLETION_JOB_KIND, states: ['queued', 'retry'], limit: 5000 })
+  outcome.scanned = jobs.length
+  if (!jobs.length) return outcome
+
+  const byTarget = new Map<string, OpsJobRef[]>()
+  for (const job of jobs) byTarget.set(job.target_id, [...(byTarget.get(job.target_id) ?? []), job])
+
+  const twins: string[] = []
+  const survivors: OpsJobRef[] = []
+  for (const group of byTarget.values()) {
+    const survivor = pickSurvivor(group)
+    survivors.push(survivor)
+    for (const job of group) if (job.id !== survivor.id) twins.push(job.id)
+  }
+  if (twins.length) outcome.duplicates = await closeOpsJobs(twins, 'OPS_DUPLICATE_TARGET')
+
+  const complete: string[] = []
+  const gone: string[] = []
+  for (const job of survivors) {
+    if (incompleteIds.has(job.target_id)) continue
+    const record = await getReportRecordAsService(job.target_id).catch(() => undefined)
+    // 읽기 자체가 실패(undefined)한 것은 판단하지 않는다. 다음 분에 다시 본다.
+    if (record === undefined) continue
+    if (record === null) gone.push(job.id)
+    else if (record.status === 'complete') complete.push(job.id)
+  }
+  if (complete.length) outcome.completeTargets = await closeOpsJobs(complete, 'OPS_TARGET_COMPLETE')
+  if (gone.length) outcome.goneTargets = await closeOpsJobs(gone, 'OPS_TARGET_GONE')
+  return outcome
 }
 
 export interface PurgeOutcome {
@@ -236,18 +317,49 @@ export async function purgeReportCompletionJobsForOwner(
   return { scannedJobs: jobs.length, reports, deleted }
 }
 
-export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
-  const candidates = await listIncompleteReportRefs(limit)
-  const paid = await paidReportIds().catch(() => null)
-  const ids = selectBackfillReportIds(candidates, paid)
+/**
+ * 결제 식별자 집합은 5분 동안 재사용한다.
+ *
+ * 매분 주문 저장소를 최대 20페이지 훑는 것은 LLM 비용은 아니지만 저장소 부하다. 결제는
+ * 결제 시점에 `paid: true` 로 바로 큐에 들어가므로, 백필이 결제 여부를 5분 늦게 알아도
+ * 손해는 우선순위 5분뿐이다.
+ */
+const PAID_CACHE_MS = 5 * 60_000
+let paidCache: { at: number; ids: Set<string> } | null = null
 
-  const outcome: BackfillOutcome = { scanned: candidates.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
-  for (const reportId of ids) {
-    const result = await enqueueReportCompletion({ reportId })
-    if (result === 'queued') outcome.queued += 1
-    else if (result === 'requeued') outcome.requeued += 1
-    else if (result === 'duplicate') outcome.duplicate += 1
-    else outcome.unavailable += 1
+async function cachedPaidReportIds(): Promise<Set<string> | null> {
+  if (paidCache && Date.now() - paidCache.at < PAID_CACHE_MS) return paidCache.ids
+  const ids = await paidReportIds().catch(() => null)
+  if (ids) paidCache = { at: Date.now(), ids }
+  return ids
+}
+
+/** 테스트와 운영 점검에서 캐시를 비운다. */
+export function resetPaidReportIdCache(): void { paidCache = null }
+
+export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {
+  const { backfill } = await maintainReportCompletionQueue(limit)
+  return backfill
+}
+
+/**
+ * cron 한 번에 하는 큐 정비 — 자가 치유(sweep)와 백필을 한 번 읽은 미완성 목록으로 함께 한다.
+ * 백필이 먼저 들어가면 그 결과로 생긴 쌍둥이(있다면)를 같은 분에 sweep 이 걷는다.
+ */
+export async function maintainReportCompletionQueue(limit = 200): Promise<{ backfill: BackfillOutcome; sweep: SweepOutcome | null }> {
+  const candidates = await listIncompleteReportRefs(limit)
+  const paid = await cachedPaidReportIds()
+  const targets = selectBackfillReports(candidates, paid)
+
+  const backfill: BackfillOutcome = { scanned: candidates.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
+  for (const target of targets) {
+    const result = await enqueueReportCompletion({ reportId: target.reportId, ownerId: target.ownerId, paid: target.paid })
+    if (result === 'queued') backfill.queued += 1
+    else if (result === 'requeued') backfill.requeued += 1
+    else if (result === 'duplicate') backfill.duplicate += 1
+    else backfill.unavailable += 1
   }
-  return outcome
+  // 정비가 실패해도 백필 결과는 돌려준다. 다음 분에 다시 시도한다.
+  const sweep = await sweepReportCompletionJobs(new Set(candidates.map((ref) => ref.reportId))).catch(() => null)
+  return { backfill, sweep }
 }

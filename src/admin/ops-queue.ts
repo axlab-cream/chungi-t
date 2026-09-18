@@ -114,6 +114,8 @@ export interface OpsJobRef {
   kind: string
   target_id: string
   state: string
+  idempotency_key?: string
+  created_at?: string
 }
 
 /** 운영자가 지울 작업을 고르기 위한 목록. 식별자와 상태만 돌려주고 payload·오류 원문은 싣지 않는다. */
@@ -122,7 +124,7 @@ export async function listOpsJobRefs(filter: { kind?: string; states: string[]; 
   const states = filter.states.filter((state) => /^[a-z]{3,12}$/.test(state))
   if (!states.length) return []
   const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
-  url.searchParams.set('select', 'id,kind,target_id,state')
+  url.searchParams.set('select', 'id,kind,target_id,state,idempotency_key,created_at')
   url.searchParams.set('state', `in.(${states.join(',')})`)
   if (filter.kind) url.searchParams.set('kind', `eq.${filter.kind}`)
   url.searchParams.set('order', 'created_at.asc')
@@ -159,6 +161,36 @@ export async function deleteOpsJobsForTargets(targetIds: string[], states: strin
   return deleted
 }
 
+/**
+ * 대기 중인 작업을 처리기 없이 닫는다. 할 일이 없는 작업(같은 대상의 쌍둥이, 이미 끝난 대상,
+ * 지워진 대상)에 쓴다. 지우지 않고 `succeeded` 로 닫는 이유는 둘이다 — 작업 표에 DELETE 권한이
+ * 없어도 돌아야 하고, 무엇이 왜 닫혔는지 `last_error` 코드로 남아야 한다.
+ *
+ * `running` 은 어떤 경우에도 건드리지 않는다. 워커가 마감할 행이다. 필터에 상태를 함께 걸어
+ * 이 함수가 불리는 사이 워커가 집어 간 행은 자연히 빠진다.
+ */
+export async function closeOpsJobs(ids: string[], code: string): Promise<number> {
+  if (!opsStoreAvailable()) return 0
+  const safeIds = [...new Set(ids.filter((id) => /^[a-zA-Z0-9-]{1,64}$/.test(id)))]
+  if (!safeIds.length || !/^[A-Z][A-Z0-9_]{2,60}$/.test(code)) return 0
+  let closed = 0
+  const now = new Date().toISOString()
+  for (let index = 0; index < safeIds.length; index += 40) {
+    const chunk = safeIds.slice(index, index + 40)
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('id', `in.(${chunk.join(',')})`)
+    url.searchParams.set('state', 'in.(queued,retry)')
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: { ...opsHeaders(), prefer: 'return=representation' },
+      body: JSON.stringify({ state: 'succeeded', lease_until: null, last_error: code, updated_at: now }),
+    })
+    if (!response.ok) throw new Error('OPS_CLOSE_FAILED')
+    closed += ((await response.json().catch(() => [])) as unknown[]).length
+  }
+  return closed
+}
+
 export interface OpsQueueReadiness {
   ok: boolean
   configured: boolean
@@ -172,7 +204,42 @@ export interface OpsQueueReadiness {
    * REPORT_SECTION_FAILED), 그 밖의 문장은 `OTHER` 로 묶는다 — 저장소 오류 문구가 밖으로 나가지 않게.
    */
   recentErrors?: Record<string, number>
+  /**
+   * 대기·재시도 작업이 가리키는 서로 다른 대상 수. `queued` 가 이 값의 1.5배를 넘으면
+   * 같은 리포트에 작업이 겹쳐 쌓이는 중이다 — 2026-09-18 의 227건을 첫 1분에 잡았을 지표.
+   */
+  distinctTargets?: number
+  /** 대기·재시도 행 수에서 서로 다른 대상 수를 뺀 것. 0 이 정상이다. */
+  duplicateRows?: number
+  /** 가장 오래 기다린 대기·재시도 작업의 나이(초). 결제 고객이 얼마나 기다리는지 여기서 보인다. */
+  oldestWaitingSec?: number
   errorCode?: string
+}
+
+/** 대기·재시도 작업의 겹침과 최대 대기 시간. 대상 식별자만 읽고 밖으로는 숫자만 내보낸다. */
+async function measureWaitingJobs(): Promise<Pick<OpsQueueReadiness, 'distinctTargets' | 'duplicateRows' | 'oldestWaitingSec'>> {
+  try {
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('select', 'kind,target_id,created_at')
+    url.searchParams.set('state', 'in.(queued,retry)')
+    url.searchParams.set('limit', '5000')
+    const response = await fetch(url, { headers: opsHeaders() })
+    if (!response.ok) return {}
+    const rows = await response.json() as Array<{ kind?: string; target_id?: string; created_at?: string }>
+    const targets = new Set(rows.map((row) => `${row.kind ?? ''}:${row.target_id ?? ''}`))
+    let oldest = Number.NaN
+    for (const row of rows) {
+      const created = Date.parse(row.created_at ?? '')
+      if (Number.isFinite(created) && (!Number.isFinite(oldest) || created < oldest)) oldest = created
+    }
+    return {
+      distinctTargets: targets.size,
+      duplicateRows: rows.length - targets.size,
+      ...(Number.isFinite(oldest) ? { oldestWaitingSec: Math.max(0, Math.round((Date.now() - oldest) / 1000)) } : {}),
+    }
+  } catch {
+    return {}
+  }
 }
 
 /** 상태 분포와 실패 코드. 한 번의 조회로 끝나며 값은 숫자와 고정 코드뿐이다. */
@@ -240,9 +307,9 @@ export async function checkOpsQueueReadiness(): Promise<OpsQueueReadiness> {
   } catch { claimRpc = 'error' }
 
   const ok = table === 'ready' && claimRpc === 'ready'
-  const summary = table === 'ready' ? await summarizeOpsJobs() : {}
+  const [summary, waiting] = table === 'ready' ? await Promise.all([summarizeOpsJobs(), measureWaitingJobs()]) : [{}, {}]
   return {
-    ok, configured: true, table, claimRpc, queued, ...summary,
+    ok, configured: true, table, claimRpc, queued, ...summary, ...waiting,
     ...(ok ? {} : { errorCode: table !== 'ready' ? `OPS_TABLE_${String(table).toUpperCase()}` : `OPS_RPC_${String(claimRpc).toUpperCase()}` }),
   }
 }

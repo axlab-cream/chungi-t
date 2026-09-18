@@ -59,7 +59,7 @@ import {
 } from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
-import { backfillReportCompletions, enqueueReportCompletion, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner } from '../report/report-completion-job.js'
+import { backfillReportCompletions, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner } from '../report/report-completion-job.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
@@ -1711,7 +1711,8 @@ function clientPaymentOrder(order: PaymentOrder) {
  */
 function queueReportCompletionAfterPayment(reportId: string | undefined): void {
   if (!reportId) return
-  void enqueueReportCompletion({ reportId }).catch(() => undefined)
+  // 결제분 표시를 실어 워커가 차선을 나눌 때 먼저 태우게 한다.
+  void enqueueReportCompletion({ reportId, paid: true }).catch(() => undefined)
 }
 
 /**
@@ -2132,8 +2133,10 @@ app.get('/api/cron/ops', async (req, res) => {
      * the scan while the worker was full made the next buyers wait for a quiet
      * minute that never came. Enqueue is idempotent, so a busy worker is safe.
      */
-    const backfill = await backfillReportCompletions(200).catch(() => undefined)
-    res.json({ ...worked, ...(backfill ? { backfill } : {}) })
+    // 백필과 함께 큐를 정비한다(sweep). 쌍둥이·끝난 대상·지워진 대상의 작업을 처리기 없이 닫아
+    // 다음 분의 차선이 실제로 할 일이 있는 작업에만 쓰이게 한다.
+    const maintained = await maintainReportCompletionQueue(200).catch(() => undefined)
+    res.json({ ...worked, ...(maintained ? { backfill: maintained.backfill, ...(maintained.sweep ? { sweep: maintained.sweep } : {}) } : {}) })
   }
   catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
 })

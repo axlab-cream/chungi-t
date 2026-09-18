@@ -2,7 +2,16 @@ import { opsBase, opsHeaders, opsStoreAvailable } from './ops-queue.js'
 import { REPORT_COMPLETION_JOB_KIND, runReportCompletionJob } from '../report/report-completion-job.js'
 const base = opsStoreAvailable() ? opsBase() : undefined
 const headers = opsHeaders
-type Job = { id: string; kind: string; target_id: string; attempts: number; max_attempts: number }
+type Job = {
+  id: string
+  kind: string
+  target_id: string
+  attempts: number
+  max_attempts: number
+  next_run_at?: string
+  /** 넣는 쪽이 실은 값. 해석 완성 작업은 `ownerId` 와 `paid` 를 싣는다. */
+  payload?: { ownerId?: unknown; paid?: unknown } | null
+}
 
 /**
  * 종류별 처리기. 여기 없는 종류는 예전처럼 `NO_OPS_HANDLER` 로 되돌린다 — 처리기가 없는
@@ -35,6 +44,52 @@ const WORKER_BUDGET_MS = 200_000
  * 늘리려면 429 가 안 나는지 먼저 본다.
  */
 const WORKER_CONCURRENCY = 3
+
+/**
+ * 차선보다 몇 배를 집어 고를지. 집은 뒤 차선에 앉히지 못한 작업은 시도 횟수와 순번을 그대로
+ * 되돌려 놓는다(`releaseJobs`). 그래서 넓게 집어도 attempts 가 새지 않는다.
+ */
+const CLAIM_MULTIPLIER = 3
+
+/**
+ * 집은 작업 가운데 이번 실행이 실제로 태울 것을 고른다.
+ *
+ * 한 회원의 리포트 여러 개가 큐 앞에 몰려 있으면(예: 관리자 QA 계정 4건) 세 차선이 그
+ * 회원에게 다 가고, 그 사이 결제한 다른 고객은 다음 분을 기다린다. 결제분을 먼저, 그다음
+ * 도착 순으로 보되 **회원당 한 건**만 앉힌다. 회원 수가 차선보다 적을 때만 같은 회원의
+ * 둘째 건을 앉힌다. 소유자를 모르는(예전) 작업은 저마다 다른 회원으로 본다.
+ *
+ * 같은 대상의 쌍둥이는 여기서 처리기 없이 닫힌다(`duplicates`). 앉지 못한 나머지는 `released`.
+ */
+export function seatJobs(jobs: Job[], lanes = WORKER_CONCURRENCY): { seated: Job[]; duplicates: Job[]; released: Job[] } {
+  const ordered = [...jobs].sort((a, b) => Number(b.payload?.paid === true) - Number(a.payload?.paid === true))
+  const duplicates: Job[] = []
+  const seenTargets = new Set<string>()
+  const unique: Job[] = []
+  for (const job of ordered) {
+    const key = `${job.kind}:${job.target_id}`
+    if (seenTargets.has(key)) { duplicates.push(job); continue }
+    seenTargets.add(key)
+    unique.push(job)
+  }
+  const ownerOf = (job: Job) => (typeof job.payload?.ownerId === 'string' && job.payload.ownerId ? job.payload.ownerId : `job:${job.id}`)
+  const seated: Job[] = []
+  const seatedOwners = new Set<string>()
+  const waiting: Job[] = []
+  for (const job of unique) {
+    const owner = ownerOf(job)
+    if (seated.length < lanes && !seatedOwners.has(owner)) { seated.push(job); seatedOwners.add(owner); continue }
+    waiting.push(job)
+  }
+  // 회원이 차선보다 적으면 남은 차선을 같은 회원의 다음 건으로 채운다. 비워 두면 손해다.
+  const released: Job[] = []
+  for (const job of waiting) {
+    if (seated.length < lanes) seated.push(job)
+    else released.push(job)
+  }
+  return { seated, duplicates, released }
+}
+
 export async function listOpsJobs() {
   if (!base) throw new Error('OPS_STORE_UNAVAILABLE')
   const response = await fetch(`${base}/rest/v1/ops_jobs?select=id,kind,target_id,state,attempts,max_attempts,next_run_at,last_error,created_at,updated_at&order=updated_at.desc&limit=100`, { headers: headers() })
@@ -45,6 +100,8 @@ export interface OpsWorkerOutcome {
   retried: number
   dead: number
   succeeded: number
+  /** 집었지만 차선이 없어 순번·시도 횟수를 그대로 되돌린 작업 수. */
+  released: number
   /** 한 실행이 동시에 다룰 수 있는 작업 수. 이보다 적게 집었으면 큐에 여유가 있었다는 뜻이다. */
   capacity: number
 }
@@ -61,7 +118,7 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
    * (2026-09-17 운영). 집는 수를 차선 수에 맞추면 집은 작업마다 예산을 온전히 쓴다. 나머지는
    * 다음 분 실행이 집는다 — cron 이 매분 돌고 실행은 200초까지 겹치므로 처리량은 줄지 않는다.
    */
-  const claimed = await fetch(`${base}/rest/v1/rpc/claim_ops_jobs`, { method: 'POST', headers: headers(), body: JSON.stringify({ p_limit: WORKER_CONCURRENCY, p_lease_seconds: 240 }) })
+  const claimed = await fetch(`${base}/rest/v1/rpc/claim_ops_jobs`, { method: 'POST', headers: headers(), body: JSON.stringify({ p_limit: WORKER_CONCURRENCY * CLAIM_MULTIPLIER, p_lease_seconds: 240 }) })
   if (!claimed.ok) throw new Error('OPS_CLAIM_FAILED')
   const jobs = await claimed.json() as Job[]; let retried = 0; let dead = 0; let succeeded = 0
   const ctx: HandlerContext = { deadlineAt: Date.now() + WORKER_BUDGET_MS }
@@ -74,18 +131,33 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
    * 그 사이 틈으로 새는 호출은 그대로 비용이다. 쌍둥이는 처리기를 태우지 않고 닫는다.
    * 리포트에 남은 일은 살아 있는 쪽이 하고, 그마저 실패하면 매분 백필이 다시 넣는다.
    */
-  const targetsInFlight = new Set<string>()
+  const { seated, duplicates, released } = seatJobs(jobs, WORKER_CONCURRENCY)
+  const duplicateIds = new Set(duplicates.map((job) => job.id))
+
+  /**
+   * 앉지 못한 작업을 집기 전 상태로 되돌린다. claim 이 올린 attempts 를 내리고 `next_run_at`
+   * 을 원래 값으로 둔다 — 순번이 바뀌지 않고, 시도 횟수도 새지 않는다. 다음 분 실행이 집는다.
+   */
+  async function releaseJobs(list: Job[]): Promise<void> {
+    for (const job of list) {
+      const body = {
+        state: 'retry', lease_until: null, updated_at: new Date().toISOString(),
+        attempts: Math.max(0, job.attempts - 1),
+        next_run_at: job.next_run_at ?? new Date().toISOString(),
+      }
+      const response = await fetch(`${base}/rest/v1/ops_jobs?id=eq.${encodeURIComponent(job.id)}&state=eq.running`, { method: 'PATCH', headers: { ...headers(), prefer: 'return=minimal' }, body: JSON.stringify(body) })
+      if (!response.ok) finalizeFailed = true
+    }
+  }
 
   async function processJob(job: Job): Promise<void> {
     const handler = HANDLERS[job.kind]
     // 처리기가 없으면 성공으로 닫지 않는다. 아무도 하지 않은 일이 끝난 것처럼 보인다.
     let error = handler ? '' : 'NO_OPS_HANDLER'
     let finished = false
-    const laneKey = `${job.kind}:${job.target_id}`
-    if (handler && targetsInFlight.has(laneKey)) {
+    if (handler && duplicateIds.has(job.id)) {
       finished = true; error = 'OPS_DUPLICATE_TARGET'
     } else if (handler) {
-      targetsInFlight.add(laneKey)
       try { finished = await handler(job, ctx) }
       catch (cause) { error = cause instanceof Error ? cause.message.slice(0, 200) : 'OPS_HANDLER_FAILED' }
     }
@@ -118,12 +190,17 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
     if (state === 'succeeded') succeeded++; else if (state === 'dead') dead++; else retried++
   }
 
+  // 앉지 못한 작업은 처리기를 돌리기 전에 먼저 되돌려 놓는다. 그래야 실행이 200초를 쓰는 동안
+  // 그 작업들이 running 으로 묶여 다른 실행이 집지 못하는 일이 없다.
+  await releaseJobs(released)
+  // 쌍둥이는 처리기 없이 바로 닫는다. 차선을 차지하지 않는다.
+  for (const job of duplicates) await processJob(job)
   // 서로 다른 리포트는 독립이라 나란히 돈다. 한 리포트 안의 순서는 processJob 안에서 지킨다.
-  const queue = [...jobs]
+  const queue = [...seated]
   const lanes = Array.from({ length: Math.min(WORKER_CONCURRENCY, queue.length) }, async () => {
     for (let job = queue.shift(); job; job = queue.shift()) await processJob(job)
   })
   await Promise.all(lanes)
   if (finalizeFailed) throw new Error('OPS_JOB_FINALIZE_FAILED')
-  return { claimed: jobs.length, retried, dead, succeeded, capacity: WORKER_CONCURRENCY }
+  return { claimed: jobs.length, retried, dead, succeeded, released: released.length, capacity: WORKER_CONCURRENCY }
 }
