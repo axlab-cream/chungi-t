@@ -86,6 +86,47 @@ describe('차선 배정(seatJobs)', () => {
   })
 })
 
+/**
+ * 2026-09-18: 잔액이 끊긴 사이 큐가 매분 헛호출을 냈다. 실패 코드마다 물러서는 폭이 달라야 한다.
+ */
+describe('마감 계획(planFinalize)', () => {
+  const kind = 'report.sections.complete'
+  const job = (attempts: number, max = 5) => ({ id: 'j', kind, target_id: 'r', attempts, max_attempts: max })
+  const now = Date.parse('2026-09-18T10:00:00Z')
+
+  it('끝났으면 succeeded, 진행하고 남았으면 5초 뒤 retry 에 시도 횟수 복원', () => {
+    assert.equal(worker.planFinalize(job(2), { finished: true, error: '' }, now).state, 'succeeded')
+    const progress = worker.planFinalize(job(2), { finished: false, error: '' }, now)
+    assert.equal(progress.state, 'retry')
+    assert.equal(progress.body.attempts, 1)
+    assert.equal(progress.body.next_run_at, new Date(now + 5_000).toISOString())
+  })
+
+  it('잔액 소진은 15분 뒤 retry 이고 시도 횟수를 세지 않는다 — 한도에 닿아 있어도 dead 가 아니다', () => {
+    const plan = worker.planFinalize(job(5), { finished: false, error: 'OPENAI_QUOTA_EXHAUSTED' }, now)
+    assert.equal(plan.state, 'retry')
+    assert.equal(plan.body.attempts, 4)
+    assert.equal(plan.body.next_run_at, new Date(now + worker.QUOTA_BACKOFF_MS).toISOString())
+    assert.equal(plan.body.last_error, 'OPENAI_QUOTA_EXHAUSTED')
+  })
+
+  it('상한 도달은 시도 횟수와 상관없이 바로 dead', () => {
+    const plan = worker.planFinalize(job(1), { finished: false, error: 'REPORT_EXHAUSTED' }, now)
+    assert.equal(plan.state, 'dead')
+    assert.equal(plan.body.last_error, 'REPORT_EXHAUSTED')
+  })
+
+  it('그 밖의 실패는 해석 완성이면 1분, 다른 종류는 지수 백오프(최대 8분), 한도면 dead', () => {
+    const report = worker.planFinalize(job(2), { finished: false, error: 'REPORT_SECTION_FAILED' }, now)
+    assert.equal(report.state, 'retry')
+    assert.equal(report.body.next_run_at, new Date(now + 60_000).toISOString())
+    assert.equal('attempts' in report.body, false, '실패한 실행은 claim 이 올린 시도 횟수를 그대로 둔다')
+    const other = worker.planFinalize({ ...job(3), kind: 'outbox.deliver' }, { finished: false, error: 'NO_OPS_HANDLER' }, now)
+    assert.equal(other.body.next_run_at, new Date(now + 8 * 60_000).toISOString())
+    assert.equal(worker.planFinalize(job(5), { finished: false, error: 'REPORT_SECTION_FAILED' }, now).state, 'dead')
+  })
+})
+
 describe('앉지 못한 작업의 되돌리기', { concurrency: false }, () => {
   it('집었지만 차선이 없는 작업은 처리기 전에 원래 순번과 시도 횟수로 돌려놓는다', async () => {
     calls.length = 0

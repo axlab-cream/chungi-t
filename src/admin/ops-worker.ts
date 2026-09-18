@@ -1,5 +1,5 @@
 import { opsBase, opsHeaders, opsStoreAvailable } from './ops-queue.js'
-import { REPORT_COMPLETION_JOB_KIND, runReportCompletionJob } from '../report/report-completion-job.js'
+import { REPORT_COMPLETION_JOB_KIND, REPORT_JOB_CODES, runReportCompletionJob } from '../report/report-completion-job.js'
 const base = opsStoreAvailable() ? opsBase() : undefined
 const headers = opsHeaders
 type Job = {
@@ -90,6 +90,32 @@ export function seatJobs(jobs: Job[], lanes = WORKER_CONCURRENCY): { seated: Job
   return { seated, duplicates, released }
 }
 
+/** 잔액 소진 뒤 다시 보기까지. 충전은 사람이 하는 일이라 분 단위로 두드려도 얻는 것이 없다. */
+export const QUOTA_BACKOFF_MS = 15 * 60_000
+
+/**
+ * 처리기 결과를 작업 행의 다음 상태로 옮긴다. 순수 함수라 처리기 없이 시험한다.
+ *
+ * - 끝났으면 succeeded. 진행했지만 남았으면(오류 없음) 5초 뒤 retry, claim 이 올린 attempts 는 되돌린다.
+ * - 잔액 소진(OPENAI_QUOTA_EXHAUSTED): 15분 뒤 retry, attempts 는 세지 않는다. 크레딧이 끊긴 사이
+ *   정상 리포트가 dead 로 빠지면 안 된다.
+ * - 상한 도달(REPORT_EXHAUSTED): 바로 dead. 되살려도 같은 비용만 든다. 백필의 되살리기도 이 코드는 피한다.
+ * - 그 밖의 실패: attempts 가 한도면 dead, 아니면 1·2·4·8분(해석 완성은 1분) 백오프로 retry.
+ */
+export function planFinalize(job: Job, outcome: { finished: boolean; error: string }, now = Date.now()): { state: 'succeeded' | 'retry' | 'dead'; body: Record<string, unknown> } {
+  const { finished, error } = outcome
+  const iso = (offset: number) => new Date(now + offset).toISOString()
+  const base: Record<string, unknown> = { lease_until: null, updated_at: iso(0), last_error: error || null }
+  if (finished) return { state: 'succeeded', body: { ...base, state: 'succeeded' } }
+  if (!error) return { state: 'retry', body: { ...base, state: 'retry', next_run_at: iso(5_000), attempts: Math.max(0, job.attempts - 1) } }
+  if (error === REPORT_JOB_CODES.quota) {
+    return { state: 'retry', body: { ...base, state: 'retry', next_run_at: iso(QUOTA_BACKOFF_MS), attempts: Math.max(0, job.attempts - 1) } }
+  }
+  if (error === REPORT_JOB_CODES.exhausted || job.attempts >= job.max_attempts) return { state: 'dead', body: { ...base, state: 'dead' } }
+  const backoff = job.kind === REPORT_COMPLETION_JOB_KIND ? 60_000 : 60_000 * Math.pow(2, Math.min(job.attempts, 3))
+  return { state: 'retry', body: { ...base, state: 'retry', next_run_at: iso(backoff) } }
+}
+
 export async function listOpsJobs() {
   if (!base) throw new Error('OPS_STORE_UNAVAILABLE')
   const response = await fetch(`${base}/rest/v1/ops_jobs?select=id,kind,target_id,state,attempts,max_attempts,next_run_at,last_error,created_at,updated_at&order=updated_at.desc&limit=100`, { headers: headers() })
@@ -161,29 +187,16 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
       try { finished = await handler(job, ctx) }
       catch (cause) { error = cause instanceof Error ? cause.message.slice(0, 200) : 'OPS_HANDLER_FAILED' }
     }
-    // 끝났으면 닫는다. 남았으면(진행은 했지만 미완) 재시도 — 다음 실행이 이어받는다.
-    // dead 판정은 **실패한** 실행에만 한다. 예전 실패로 attempts 가 이미 한도에 닿은 작업이
-    // 이번엔 오류 없이 진행했는데 dead 로 빠지면, 살아난 작업이 첫 진행에서 다시 죽는다.
-    const state = finished ? 'succeeded' : !error ? 'retry' : job.attempts >= job.max_attempts ? 'dead' : 'retry'
-    const now = new Date().toISOString()
-    const body: Record<string, unknown> = { state, lease_until: null, updated_at: now, last_error: error || null }
-    if (state === 'retry') {
-      /*
-       * 처리기가 일을 하고 남긴 경우엔 곧 이어간다. 실패한 경우에만 물러선다.
-       * 물러서는 폭은 1·2·4·8분까지다. 예전엔 64분까지 갔다 — 결제한 사람이 한 시간을
-       * 기다릴 이유가 없고, 그 사이 다른 실행이 아무 일도 못 한다.
-       */
-      const backoff = error
-        ? (job.kind === REPORT_COMPLETION_JOB_KIND ? 60_000 : 60_000 * Math.pow(2, Math.min(job.attempts, 3)))
-        : 5_000
-      body.next_run_at = new Date(Date.now() + backoff).toISOString()
-      /*
-       * 진행은 실패가 아니다. claim 이 올린 attempts 를 되돌려, 시도 횟수는 **실패한 실행**만
-       * 센다. 그렇지 않으면 항목 48개짜리 리포트는 열 번을 집어야 끝나는데 다섯 번째에
-       * dead 로 빠진다 — 한 번도 실패하지 않았는데도.
-       */
-      if (!error) body.attempts = Math.max(0, job.attempts - 1)
-    }
+    /*
+     * 끝났으면 닫는다. 남았으면(진행은 했지만 미완) 재시도 — 다음 실행이 이어받는다.
+     * dead 판정은 **실패한** 실행에만 한다. 예전 실패로 attempts 가 이미 한도에 닿은 작업이
+     * 이번엔 오류 없이 진행했는데 dead 로 빠지면, 살아난 작업이 첫 진행에서 다시 죽는다.
+     * 진행은 실패가 아니다. claim 이 올린 attempts 를 되돌려, 시도 횟수는 **실패한 실행**만
+     * 센다. 그렇지 않으면 항목 48개짜리 리포트는 열 번을 집어야 끝나는데 다섯 번째에 dead 로 빠진다.
+     * 물러서는 폭은 1·2·4·8분까지(잔액 소진만 15분). 예전엔 64분까지 갔다 — 결제한 사람이 한 시간을
+     * 기다릴 이유가 없고, 그 사이 다른 실행이 아무 일도 못 한다.
+     */
+    const { state, body } = planFinalize(job, { finished, error })
     const response = await fetch(`${base}/rest/v1/ops_jobs?id=eq.${encodeURIComponent(job.id)}&state=eq.running`, { method: 'PATCH', headers: { ...headers(), prefer: 'return=minimal' }, body: JSON.stringify(body) })
     // 한 잡의 마감 실패가 나머지 잡을 세우지 않게 한다. 기록만 하고 끝에 한 번 던진다.
     if (!response.ok) { finalizeFailed = true; return }

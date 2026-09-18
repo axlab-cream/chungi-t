@@ -59,14 +59,16 @@ test('진행한 실행은 시도 횟수를 태우지 않고, 매분 대기·실�
   //  - 차선 수만큼만 집어 집은 작업마다 예산을 온전히 쓴다
   //  - 해석 완성은 오류여도 1분 뒤 다시 집는다. 다른 잡만 지수 백오프
   //  - 되살리기(backfill)는 워커가 바쁜 분에도 돈다. 안 그러면 그 사이 산 회원이 큐에 안 탄다
+  // 2026-09-18: 마감 규칙은 planFinalize 로 옮겨 ops-worker.test 가 동작으로 지킨다. 집는 수는 차선의
+  // 세 배로 넓혀 회원별로 고르되, 앉지 못한 작업은 처리기 전에 시도 횟수·순번을 되돌린다(releaseJobs).
   const worker = read('src/admin/ops-worker.ts')
-  assert.match(worker, /if \(!error\) body\.attempts = Math\.max\(0, job\.attempts - 1\)/)
-  assert.match(worker, /finished \? 'succeeded' : !error \? 'retry' :/)
-  assert.match(worker, /p_limit: WORKER_CONCURRENCY/)
+  assert.match(worker, /if \(!error\) return \{ state: 'retry', body: \{ \.\.\.base, state: 'retry', next_run_at: iso\(5_000\), attempts: Math\.max\(0, job\.attempts - 1\) \} \}/)
+  assert.match(worker, /p_limit: WORKER_CONCURRENCY \* CLAIM_MULTIPLIER/)
+  assert.match(worker, /await releaseJobs\(released\)[\s\S]*const queue = \[\.\.\.seated\]/, '되돌리기가 처리기 실행보다 앞선다')
   assert.match(worker, /REPORT_COMPLETION_JOB_KIND \? 60_000/)
   const app = read('src/server/app.ts')
-  assert.match(app, /await backfillReportCompletions\(/)
-  assert.doesNotMatch(app, /worked\.claimed < worked\.capacity \? await backfillReportCompletions/)
+  assert.match(app, /await maintainReportCompletionQueue\(200\)/)
+  assert.doesNotMatch(app, /worked\.claimed < worked\.capacity \? await/)
 })
 
 test('예산으로 멈춘 것은 실패로 던지지 않는다', () => {

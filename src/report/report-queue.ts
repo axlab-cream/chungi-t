@@ -69,6 +69,27 @@ export const SECTION_ATTEMPT_LIMIT = Math.min(Math.max(Number(process.env.REPORT
 export const FAILED_RETRY_COOLDOWN_MS = Math.max(Number(process.env.REPORT_FAILED_RETRY_COOLDOWN_MS) || 5 * 60 * 1000, 0)
 
 /**
+ * 잔액 소진 실패의 시도 기록 문구. 큐(`report-completion-job`)가 이 문구로 "충전 전까지는
+ * 어떤 재시도도 같은 답"인 실행을 알아보고 길게 물러선다. 바꾸면 그쪽 판정도 함께 바뀐다.
+ */
+export const OPENAI_QUOTA_EXHAUSTED_MESSAGE = 'OpenAI 잔액이 소진되어 생성할 수 없습니다. 크레딧을 충전하면 큐가 이어서 완성합니다.'
+
+/** 이 항목의 마지막 시도가 잔액 소진으로 끝났는가. */
+export function sectionHitQuotaExhaustion(section: Pick<SajuReportSection, 'attempts'>, since = 0): boolean {
+  const last = section.attempts?.at(-1)
+  if (!last || last.status !== 'failed' || last.error !== OPENAI_QUOTA_EXHAUSTED_MESSAGE) return false
+  return Date.parse(last.startedAt) >= since
+}
+
+/**
+ * 한 항목에서 잔액 소진을 뺀 실패 시도 수. 리포트를 포기할지(REPORT_EXHAUSTED) 셀 때 쓴다 —
+ * 바깥 사정으로 실패한 시도를 세면 크레딧이 끊긴 사이에 정상 리포트가 포기된다.
+ */
+export function countGenuineFailures(section: Pick<SajuReportSection, 'attempts'>): number {
+  return (section.attempts ?? []).filter((attempt) => attempt.status === 'failed' && attempt.error !== OPENAI_QUOTA_EXHAUSTED_MESSAGE).length
+}
+
+/**
  * 한 리포트 안에서 나란히 만드는 항목 수.
  *
  * 시간 ≈ 출력 토큰 ÷ 초당 토큰 ÷ 동시 수. 항목 하나가 21~63초인데 48개를 한 줄로 세우면
@@ -457,7 +478,7 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
             ? `요청이 일시적으로 거절되었습니다(status=${error.status ?? '없음'}): ${String(error.message ?? '').slice(0, 140)}`
             : isOpenAiQuotaExhausted(error)
               // 운영자가 한눈에 알아보는 문구로. 충전 전까지 재시도해도 같은 답이다.
-              ? 'OpenAI 잔액이 소진되어 생성할 수 없습니다. 크레딧을 충전하면 큐가 이어서 완성합니다.'
+              ? OPENAI_QUOTA_EXHAUSTED_MESSAGE
               // 원인을 함께 남긴다. 뭉뚱그린 한 줄만 남아 스냅샷 불일치를 사흘 동안 못 봤다(2026-09-18).
               : `해석 생성 또는 저장이 완료되지 않았습니다. (${error instanceof Error ? `${error.name}: ${error.message}` : String(error)})`.slice(0, 240)
       const retryable = (error instanceof InterpretationQualityError || truncated || transient) && index < SECTION_ATTEMPT_LIMIT - 1
@@ -610,6 +631,8 @@ export async function preGenerateReport(params: GenerationParams, options: PreGe
         let stop = false
         for (const [index, result] of results.entries()) {
           if (result.status === 'complete') continue
+          // 잔액 소진은 이 실행으로 풀리지 않는다. 다음 파도를 시작하면 같은 답만 여섯 번 더 받는다.
+          if (sectionHitQuotaExhaustion(result)) { stop = true; break }
           if (!options.recoverFailed) { stop = true; break }
           skipped.add(wave[index].item.id)
           // 한 실행에서 너무 많이 건너뛰면 같은 이유로 전부 실패하는 중일 가능성이 크다.

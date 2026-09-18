@@ -74,6 +74,7 @@ let opsRows: OpsRow[] = []
 const job = await import('../../src/report/report-completion-job.js')
 const worker = await import('../../src/admin/ops-worker.js')
 const store = await import('../../src/report/report-store.js')
+const queue = await import('../../src/report/report-queue.js')
 
 after(() => {
   globalThis.fetch = nativeFetch
@@ -107,11 +108,13 @@ describe('결제한 해석의 백그라운드 완성', { concurrency: false }, (
   it('이미 큐에 있으면 중복으로 돌려주고 결제를 막지 않는다', async () => {
     calls.length = 0; enqueueStatus = 409
     assert.equal(await job.enqueueReportCompletion({ reportId: 'report-3' }), 'duplicate')
-    // 409 뒤의 되살리기는 dead·retry 와 함께 succeeded 도 본다 — 키가 리포트당 하나가 된 뒤로
-    // 재생성이 지나갈 유일한 문이다. running·queued 는 그대로 둔다.
+    // 409 뒤의 되살리기는 dead 와 succeeded 만 본다 — 키가 리포트당 하나가 된 뒤로 재생성이
+    // 지나갈 유일한 문이다. retry 는 워커가 정한 백오프(잔액 소진 15분)를 지켜야 하므로 두고,
+    // running·queued 는 돌거나 기다리는 중이다. 상한까지 실패한(REPORT_EXHAUSTED) dead 도 두 번 살리지 않는다.
     const revive = calls.find((call) => call.init?.method === 'PATCH' && call.url.pathname.endsWith('/ops_jobs'))
     assert.ok(revive, '409 뒤에 되살리기 PATCH 가 있어야 한다')
-    assert.equal(revive?.url.searchParams.get('state'), 'in.(dead,retry,succeeded)')
+    assert.equal(revive?.url.searchParams.get('state'), 'in.(dead,succeeded)')
+    assert.equal(revive?.url.searchParams.get('or'), '(last_error.is.null,last_error.neq.REPORT_EXHAUSTED)')
     enqueueStatus = 500
     assert.equal(await job.enqueueReportCompletion({ reportId: 'report-4' }), 'unavailable')
     // 리포트 아이디가 없으면 넣을 것도 없다. 던지지 않는다.
@@ -311,6 +314,73 @@ describe('백필 대상에 소유자와 결제 여부를 싣는다', () => {
     const post = calls.find((call) => call.url.pathname.endsWith('/ops_jobs') && call.init?.method === 'POST')
     const body = JSON.parse(String(post?.init?.body)) as { payload: Record<string, unknown> }
     assert.deepEqual(body.payload, { reportId: 'report-9', revision: 0, ownerId: 'owner-9', paid: true })
+  })
+})
+
+/**
+ * 2026-09-18: OpenAI 잔액이 끊긴 사이 큐가 매분 리포트마다 여섯 번씩 헛호출을 냈다. 잔액 소진은
+ * 이 실행으로 풀리지 않는 일이므로 코드로 던져 워커가 15분 물러서게 하고, 반대로 진짜 실패가
+ * 상한까지 쌓인 리포트는 고정해 무한 재생성을 막는다.
+ */
+describe('실행 판정(classifyRun)과 상한', { concurrency: false }, () => {
+  const QUOTA = queue.OPENAI_QUOTA_EXHAUSTED_MESSAGE
+  type Attempt = NonNullable<import('../../src/types/index.js').SajuReportSection['attempts']>[number]
+  const failed = (error: string, startedAt: string): Attempt => ({ id: `a-${Math.random()}`, startedAt, finishedAt: startedAt, model: 'test', status: 'failed', error })
+  function record(sections: Array<{ status: 'pending' | 'failed' | 'complete'; attempts?: Attempt[] }>): import('../../src/report/report-store.js').ReportRecord {
+    return {
+      reportId: 'r-classify', revision: 1, owner: { id: 'owner-c', email: 'c@example.com', provider: 'email' },
+      birth: { year: 1990, month: 1, day: 1, hour: 12, minute: 0, gender: 'female', calendar: 'solar' },
+      context: { serviceKey: 'money_save', name: '테스트', birthTimeKnown: true },
+      status: 'generating', createdAt: '2026-09-18T00:00:00Z', updatedAt: '2026-09-18T00:00:00Z',
+      report: {
+        title: '저축운', subtitle: '', model: 'test', generatedBy: 'template', status: 'generating',
+        sections: sections.map((section, index) => ({
+          id: `s${index}`, order: index + 1, imageKey: '', imageSrc: '', imageAlt: '', category: '', categoryEn: '', classification: '', hook: '', patternKeys: [], ragTopics: [],
+          interpretation: section.status === 'complete' ? '본문' : '', status: section.status, attempts: section.attempts,
+        })),
+      },
+    }
+  }
+  const runStart = Date.parse('2026-09-18T10:00:00Z')
+
+  it('이 실행 안에 잔액 소진이 찍힌 항목이 하나라도 있으면 quota', () => {
+    const rec = record([
+      { status: 'complete' },
+      { status: 'failed', attempts: [failed('검수 지적', '2026-09-18T10:00:10Z')] },
+      { status: 'failed', attempts: [failed(QUOTA, '2026-09-18T10:00:20Z')] },
+      { status: 'pending' },
+    ])
+    assert.equal(job.classifyRun(rec, runStart), 'quota')
+  })
+
+  it('실행 전에 남은 옛 잔액 소진 기록은 이번 실행의 판정에 쓰지 않는다', () => {
+    const rec = record([{ status: 'failed', attempts: [failed(QUOTA, '2026-09-18T09:00:00Z')] }, { status: 'pending' }])
+    assert.equal(job.classifyRun(rec, runStart), null)
+  })
+
+  it('남은 항목 전부가 진짜 실패를 상한까지 쌓았을 때만 exhausted — 잔액 소진 실패는 세지 않는다', () => {
+    const many = (error: string) => Array.from({ length: job.REPORT_GIVE_UP_FAILURES }, (_, i) => failed(error, `2026-09-18T0${i % 9}:00:00Z`))
+    assert.equal(job.classifyRun(record([{ status: 'complete' }, { status: 'failed', attempts: many('검수 지적') }]), runStart), 'exhausted')
+    // 하나라도 아직 여유가 있으면 포기하지 않는다.
+    assert.equal(job.classifyRun(record([{ status: 'failed', attempts: many('검수 지적') }, { status: 'pending' }]), runStart), null)
+    // 잔액 소진으로만 쌓인 것은 상한이 아니다 — 충전되면 살 수 있다.
+    assert.equal(job.classifyRun(record([{ status: 'failed', attempts: many(QUOTA) }]), runStart), null)
+    // 다 끝난 리포트는 판정할 것이 없다.
+    assert.equal(job.classifyRun(record([{ status: 'complete' }]), runStart), null)
+  })
+
+  it('상한에 닿은 리포트는 모델을 부르기 전에 REPORT_EXHAUSTED 로 던진다', async () => {
+    const rec = record([{ status: 'failed', attempts: Array.from({ length: job.REPORT_GIVE_UP_FAILURES }, (_, i) => failed('검수 지적', `2026-09-18T0${i % 9}:00:00Z`)) }])
+    rec.reportId = 'r-exhausted'
+    await store.saveReportRecord(rec)
+    await assert.rejects(job.runReportCompletionJob('r-exhausted'), /REPORT_EXHAUSTED/)
+  })
+
+  it('sectionHitQuotaExhaustion 은 마지막 시도만 보고, countGenuineFailures 는 잔액 소진을 뺀다', () => {
+    const section = { attempts: [failed('검수', '2026-09-18T09:00:00Z'), failed(QUOTA, '2026-09-18T10:00:30Z')] }
+    assert.equal(queue.sectionHitQuotaExhaustion(section, runStart), true)
+    assert.equal(queue.sectionHitQuotaExhaustion({ attempts: [failed(QUOTA, '2026-09-18T10:00:30Z'), failed('검수', '2026-09-18T10:00:40Z')] }, runStart), false)
+    assert.equal(queue.countGenuineFailures(section), 1)
   })
 })
 

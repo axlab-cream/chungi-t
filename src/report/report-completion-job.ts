@@ -1,6 +1,6 @@
 import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { ensureReportLongform, preGenerateReport } from './report-queue.js'
+import { countGenuineFailures, ensureReportLongform, preGenerateReport, sectionHitQuotaExhaustion } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
 
 export type { IncompleteReportRef }
@@ -64,6 +64,38 @@ export interface ReportCompletionOutcome {
   done: boolean
 }
 
+/**
+ * 작업이 던지는 코드. 워커는 코드마다 다르게 물러선다(`planFinalize`).
+ * - QUOTA: 잔액 소진. 충전 전까지 같은 답이므로 길게 물러서고 시도 횟수를 세지 않는다.
+ * - EXHAUSTED: 남은 항목 전부가 진짜 실패를 상한까지 겹쳐 쌓았다. 되살려도 같은 비용만 든다 —
+ *   dead 로 고정하고 운영자가 진단(reviewNotes·attempts)을 보고 손을 쓴다.
+ * - SECTION_FAILED: 이번 실행에서 한 칸도 못 나아갔고 실패 항목이 있다. 보통 백오프.
+ */
+export const REPORT_JOB_CODES = {
+  quota: 'OPENAI_QUOTA_EXHAUSTED',
+  exhausted: 'REPORT_EXHAUSTED',
+  sectionFailed: 'REPORT_SECTION_FAILED',
+} as const
+
+/**
+ * 한 항목이 이 수만큼 **진짜** 실패(잔액 소진 제외)를 쌓으면 더 부르지 않는다. 한 실행이 최대
+ * 4번(SECTION_ATTEMPT_LIMIT) + 2·3차 구조 시도를 하므로 12 는 세 번의 온전한 실행이다.
+ */
+export const REPORT_GIVE_UP_FAILURES = Math.min(Math.max(Number(process.env.REPORT_GIVE_UP_FAILURES) || 12, 4), 40)
+
+/**
+ * 이번 실행이 어떻게 끝났는지 시도 기록으로 판정한다. 순수 함수라 저장소 없이 시험한다.
+ * 잔액 소진이 하나라도 이 실행 안에 찍혔으면 그것이 우선이다 — 다른 실패도 대개 같은 뿌리다.
+ */
+export function classifyRun(record: ReportRecord, runStartedAt: number): 'quota' | 'exhausted' | null {
+  const sections = record.report?.sections ?? []
+  const remaining = sections.filter((section) => section.status !== 'complete')
+  if (!remaining.length) return null
+  if (remaining.some((section) => sectionHitQuotaExhaustion(section, runStartedAt))) return 'quota'
+  if (remaining.every((section) => countGenuineFailures(section) >= REPORT_GIVE_UP_FAILURES)) return 'exhausted'
+  return null
+}
+
 function progressOf(record: ReportRecord): ReportCompletionOutcome {
   const sections = record.report?.sections ?? []
   const total = sections.length
@@ -91,6 +123,9 @@ export async function runReportCompletionJob(
   if (record.status === 'complete') return progressOf(record)
 
   const before = progressOf(record)
+  const runStartedAt = Date.now()
+  // 이미 상한에 닿은 리포트는 모델을 부르지 않는다. 되살아난 작업이 첫 실행에서 또 네 번 쓰는 일을 막는다.
+  if (classifyRun(record, 0) === 'exhausted') throw new Error(REPORT_JOB_CODES.exhausted)
   const budget = { exhausted: false }
   // 결론·요약·하이라이트는 목차와 나란히 만든다. 앞에 세우면 독자가 기다리는 첫 항목이
   // LLM 왕복 다섯 번 뒤로 밀린다. 실패해도 목차 생성을 막지 않는다.
@@ -106,6 +141,11 @@ export async function runReportCompletionJob(
 
   const latest = await getReportRecordAsService(reportId)
   const after = progressOf(latest ?? record)
+  if (after.done) return after
+  // 잔액 소진·상한 도달은 다음 분에 다시 태워도 같은 답이다. 코드로 던져 워커가 길게 물러서거나 고정하게 한다.
+  const verdict = classifyRun(latest ?? record, runStartedAt)
+  if (verdict === 'quota') throw new Error(REPORT_JOB_CODES.quota)
+  if (verdict === 'exhausted') throw new Error(REPORT_JOB_CODES.exhausted)
   // 시간 예산으로 멈춘 것은 실패가 아니다. 그대로 돌려 다음 실행이 5초 뒤 이어받는다.
   if (budget.exhausted) return after
 
@@ -120,7 +160,7 @@ export async function runReportCompletionJob(
    */
   const stalled = after.complete <= before.complete
   const hasFailedSection = (latest ?? record).report?.sections?.some((section) => section.status === 'failed')
-  if (stalled && hasFailedSection) throw new Error('REPORT_SECTION_FAILED')
+  if (stalled && hasFailedSection) throw new Error(REPORT_JOB_CODES.sectionFailed)
 
   return after
 }

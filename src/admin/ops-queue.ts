@@ -38,12 +38,17 @@ export interface EnqueueOpsJobParams {
 
 export type EnqueueOpsJobResult = 'queued' | 'duplicate' | 'requeued' | 'unavailable'
 
+/** 이 코드로 dead 가 된 작업은 되살리지 않는다. 상한까지 실패한 리포트는 사람이 봐야 한다. */
+export const NO_REVIVE_ERROR = 'REPORT_EXHAUSTED'
+
 /**
  * 멱등키는 한 번 쓰이면 계속 남는다. 그래서 dead-letter 로 빠진 작업이 있으면 같은 키로는
  * 다시 넣을 수 없고, 그 리포트는 영원히 큐 밖에 남는다 — 멱등성이 복구를 막는 꼴이다.
  *
- * 이미 있는 작업이 끝나지 않은 상태(dead·retry)면 시각을 지금으로 되돌려 다시 태운다.
- * succeeded·running·queued 는 건드리지 않는다. 각각 이미 끝났거나 지금 도는 중이다.
+ * 이미 있는 작업이 끝났거나 죽었으면(succeeded·dead) 시각을 지금으로 되돌려 다시 태운다.
+ * running·queued 는 지금 돌거나 기다리는 중이니 두고, **retry 도 두어야 한다** — 워커가 정한
+ * 백오프(실패 1분, 잔액 소진 15분)를 매분 지금으로 되돌리면 백오프가 없는 것과 같아,
+ * 잔액이 끊긴 사이에도 매분 헛호출이 나갔다(2026-09-18). 때가 되면 claim 이 알아서 집는다.
  */
 async function reviveStalledJob(idempotencyKey: string): Promise<boolean> {
   try {
@@ -51,8 +56,10 @@ async function reviveStalledJob(idempotencyKey: string): Promise<boolean> {
     url.searchParams.set('idempotency_key', `eq.${idempotencyKey}`)
     // succeeded 도 되살린다. 리포트당 키가 하나가 된 뒤로는, 다 끝난 작업이 남아 있는 리포트를
     // 다시 완성해야 할 때(재생성) 이 문이 유일한 길이다. 백필은 미완성 리포트만 넣으므로
-    // succeeded 를 되살리는 것은 곧 "할 일이 남았다"는 뜻이다. running·queued 는 건드리지 않는다.
-    url.searchParams.set('state', 'in.(dead,retry,succeeded)')
+    // succeeded 를 되살리는 것은 곧 "할 일이 남았다"는 뜻이다.
+    url.searchParams.set('state', 'in.(dead,succeeded)')
+    // 상한까지 실패해 고정된 작업은 그대로 둔다. 되살리면 같은 비용으로 같은 실패만 반복한다.
+    url.searchParams.set('or', `(last_error.is.null,last_error.neq.${NO_REVIVE_ERROR})`)
     const response = await fetch(url, {
       method: 'PATCH',
       headers: { ...opsHeaders(), prefer: 'return=representation' },
@@ -86,8 +93,8 @@ export async function enqueueOpsJob(params: EnqueueOpsJobParams): Promise<Enqueu
       }),
     })
     if (response.ok) return 'queued'
-    // 23505 = unique_violation. 같은 키의 작업이 이미 있다는 뜻이다. 그게 끝나지 않은 채
-    // 멈춰 있으면(dead·retry) 다시 태우고, 아니면 그대로 둔다.
+    // 23505 = unique_violation. 같은 키의 작업이 이미 있다는 뜻이다. 끝났거나 죽어 있으면
+    // (succeeded·dead) 다시 태우고, 돌거나 기다리는 중(running·queued·retry)이면 그대로 둔다.
     if (response.status === 409) return await reviveStalledJob(params.idempotencyKey) ? 'requeued' : 'duplicate'
     return 'unavailable'
   } catch {
@@ -213,6 +220,8 @@ export interface OpsQueueReadiness {
   duplicateRows?: number
   /** 가장 오래 기다린 대기·재시도 작업의 나이(초). 결제 고객이 얼마나 기다리는지 여기서 보인다. */
   oldestWaitingSec?: number
+  /** 최근 작업에 잔액 소진 코드가 남아 있다. 충전 전까지 해석 생성이 멈춰 있다는 뜻이다. */
+  quotaExhausted?: boolean
   errorCode?: string
 }
 
@@ -308,8 +317,9 @@ export async function checkOpsQueueReadiness(): Promise<OpsQueueReadiness> {
 
   const ok = table === 'ready' && claimRpc === 'ready'
   const [summary, waiting] = table === 'ready' ? await Promise.all([summarizeOpsJobs(), measureWaitingJobs()]) : [{}, {}]
+  const quotaExhausted = Boolean(summary.recentErrors?.OPENAI_QUOTA_EXHAUSTED)
   return {
-    ok, configured: true, table, claimRpc, queued, ...summary, ...waiting,
+    ok, configured: true, table, claimRpc, queued, ...summary, ...waiting, ...(quotaExhausted ? { quotaExhausted } : {}),
     ...(ok ? {} : { errorCode: table !== 'ready' ? `OPS_TABLE_${String(table).toUpperCase()}` : `OPS_RPC_${String(claimRpc).toUpperCase()}` }),
   }
 }
