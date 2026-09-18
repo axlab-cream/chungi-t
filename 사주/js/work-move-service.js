@@ -794,7 +794,7 @@ function firstSentence(text) {
     `).join(''));
     setHtml('cautionsList', `
       <article class="block">
-        <h3><span>!</span>확정 표현 금지</h3>
+        <h3><span>!</span>이 풀이의 범위</h3>
         <p>이 풀이는 퇴사, 합격, 연봉 상승을 확정하지 않고 입력값과 사주 근거를 의사결정 기준으로 정리합니다.</p>
       </article>
     `);

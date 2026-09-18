@@ -220,7 +220,15 @@
     var hook = String(section.hook || '').trim();
     if (hook && interpretation.indexOf(hook) === 0) interpretation = interpretation.slice(hook.length).trim();
     var paragraphs = interpretation.split(/\n\s*\n/).map(function(paragraph){return paragraph.trim();}).filter(Boolean);
-    var answer = hook ? readingBlock('answer', '한 줄 답', [hook]) : '';
+    /*
+     * 항목 그림.
+     *
+     * 2026-09-18 실측: 서버는 항목마다 imageSrc 와 imageAlt 를 빠짐없이 준다(퇴사운 20/20,
+     * 천명사주 37/37 …). 그런데 화면에는 한 장도 나오지 않았다. 그림을 그리는 쪽은
+     * `richSectionBody` 뿐이고, 그건 storytelling 이 있는 항목에서만 쓰인다. LLM 이 만든 항목에는
+     * 그 필드가 없어 전부 이 함수로 떨어졌고, 여기에는 그림이 없었다. 해석만 이어지는 글 벽이 됐다.
+     */
+    var answer = renderSectionImage(section) + (hook ? readingBlock('answer', '한 줄 답', [hook]) : '');
     if (paragraphs.length >= 2) {
       return answer + readingBlock('evidence', '근거', paragraphs.slice(0, -1)) + readingBlock('action', '행동', paragraphs.slice(-1));
     }

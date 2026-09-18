@@ -2,7 +2,7 @@
 <html lang="ko" data-umsh-verified-inplace>
 <head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
-    <script src="/js/umsh-report-access.js?v=live-20260918g"></script>
+    <script src="/js/umsh-report-access.js?v=live-20260918h"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>나, 올해 연애 가능? | 상세 풀이</title>
@@ -356,6 +356,12 @@
     .detail-stack {
       display: grid;
       gap: 10px;
+    }
+
+    /* 2026-09-18: 결제 흐름에서는 이 그리드가 채워지지 않아 내부 라벨만 62px 떠 있었다.
+       비어 있으면 패널째 감춘다. 옛 경로가 채우면 그때만 보인다. */
+    .source-panel:has(#source-grid:empty) {
+      display: none;
     }
 
     .source-panel {
@@ -713,7 +719,7 @@
         </nav>
 
         <section class="source-panel" aria-labelledby="source-title">
-          <h2 id="source-title">확인된 기준</h2>
+          <h2 id="source-title">이 풀이가 본 자료</h2>
           <div class="source-grid" id="source-grid"></div>
         </section>
 
