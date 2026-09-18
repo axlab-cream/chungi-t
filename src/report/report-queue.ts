@@ -65,6 +65,8 @@ const LEASE_MS = 6 * 60_000
  * 준다. `maxDuration` 이 300초이므로 이 횟수까지는 요청 안에서 끝난다.
  */
 export const SECTION_ATTEMPT_LIMIT = Math.min(Math.max(Number(process.env.REPORT_SECTION_ATTEMPTS) || 4, 2), 6)
+/** 실패한 칸을 다시 세우기까지 비워 두는 시간. 화면 새로고침으로 같은 칸을 연속으로 태우지 않게 한다. */
+export const FAILED_RETRY_COOLDOWN_MS = Math.max(Number(process.env.REPORT_FAILED_RETRY_COOLDOWN_MS) || 5 * 60 * 1000, 0)
 
 /**
  * 한 리포트 안에서 나란히 만드는 항목 수.
@@ -310,6 +312,16 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     const section = current.report.sections.find((item) => item.id === params.sectionId)
     if (!section) throw new Error('리포트 섹션을 찾지 못했습니다.')
     if (current.status === 'complete' || section.status === 'complete' || (section.status === 'failed' && !params.retry)) return false
+    /*
+     * 실패한 칸을 너무 자주 다시 세우지 않는다. 화면을 열 때마다 재시작을 보내므로(읽는 사람이
+     * 가장 확실한 신호다) 새로고침을 반복하면 같은 칸에 모델을 네 번씩 태우게 된다. 결과는 같고
+     * 비용만 는다. 규칙을 고쳐 배포한 뒤에는 이 창이 이미 지나 있어 회복을 막지 않는다.
+     */
+    if (section.status === 'failed' && params.retry) {
+      const lastFinished = [...(section.attempts ?? [])].reverse().find((item) => item.finishedAt)?.finishedAt
+      const finishedAt = lastFinished ? Date.parse(lastFinished) : Number.NaN
+      if (Number.isFinite(finishedAt) && Date.now() - finishedAt < FAILED_RETRY_COOLDOWN_MS) return false
+    }
     // 부수효과가 목적이다 — 리스 없는 generating 잔해를 pending 으로 되돌려 창을 푼다.
     // 생성 경로는 released 목록 자체를 쓰지 않는다(되살리기를 뒤 칸으로 막지 않기 때문).
     releaseAbandonedSections(current)

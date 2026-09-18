@@ -4,7 +4,7 @@ import OpenAI from 'openai'
 import { randomUUID } from 'node:crypto'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildOpenAiSajuReportSection } from '../../src/report/report-generator.js'
-import { SECTION_ATTEMPT_LIMIT, generateReportSectionNow, preGenerateReport, recoverReportSectionFromLatestAttempt } from '../../src/report/report-queue.js'
+import { FAILED_RETRY_COOLDOWN_MS, SECTION_ATTEMPT_LIMIT, generateReportSectionNow, preGenerateReport, recoverReportSectionFromLatestAttempt } from '../../src/report/report-queue.js'
 import { createOrGetReportRecord, findReportRecord, getReportRecord, mutateReportRecord, saveReportRecord, toClientReport, updateReportSection, type ReportRecord } from '../../src/report/report-store.js'
 import { reviewInterpretation } from '../../src/report/interpretation-validation.js'
 import type { BirthInput, SajuReport, SajuReportSection } from '../../src/types/index.js'
@@ -123,6 +123,14 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     assert.match(repairMessage, /한자 설명은 한 문장에 하나만/)
     assert.match(repairMessage, /빈 줄로 나눈 각 의미 단락은 2~4개/)
     assert.equal((await getReportRecord(reportId))?.status, 'failed')
+    // 2026-09-18: 실패한 칸에는 짧은 재시도 간격이 있다(화면 새로고침으로 같은 칸을 연속으로
+    // 태우지 않게). 여기서 보려는 것은 간격이 아니라 "다시 시도하면 수정 안내가 붙는가"이므로,
+    // 마지막 시도를 간격 밖으로 돌려 두고 확인한다.
+    const past = new Date(Date.now() - FAILED_RETRY_COOLDOWN_MS - 60_000).toISOString()
+    await mutateReportRecord(reportId, owner, (draft) => {
+      const section = draft.report.sections.find((item) => item.id === 'specialized-only-id')
+      for (const attempt of section?.attempts ?? []) attempt.finishedAt = past
+    })
     const retried = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'specialized-only-id', owner, retry: true })
     assert.equal(retried.status, 'failed')
     assert.equal(messageCounts[SECTION_ATTEMPT_LIMIT], 3, '사용자가 다시 시도한 첫 요청부터 수정 안내가 있어야 합니다.')

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import OpenAI from 'openai'
 import { randomUUID } from 'node:crypto'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
-import { SECTION_ATTEMPT_LIMIT, generateReportSectionNow } from '../../src/report/report-queue.js'
+import { FAILED_RETRY_COOLDOWN_MS, SECTION_ATTEMPT_LIMIT, generateReportSectionNow } from '../../src/report/report-queue.js'
 import { createOrGetReportRecord, getReportRecord, mutateReportRecord, toClientReport } from '../../src/report/report-store.js'
 import { loadHighlightTopics } from '../../src/report/longform-blocks.js'
 import { isSafetyIssue } from '../../src/report/tone-v2-review.js'
@@ -150,5 +150,45 @@ describe('안전 지적과 문체 지적을 가른다', () => {
       '다른 항목과 같은 편집 틀을 반복하지 말고 현재 질문에 맞는 결론 구조를 쓰세요.',
       '폐지된 하게체와 자네 호칭을 쓰지 마세요.',
     ]) assert.equal(isSafetyIssue(issue), false, issue)
+  })
+})
+
+/**
+ * 읽는 사람이 화면을 열 때마다 실패 칸에 재시작을 보내므로, 새로고침을 반복하면 같은 칸에
+ * 모델을 네 번씩 태우게 된다. 결과는 같고 비용만 는다. 짧은 간격을 두되, 규칙을 고쳐 배포한
+ * 뒤(그 창이 지난 뒤)에는 회복을 막지 않아야 한다.
+ */
+describe('실패한 칸의 재시도 간격', { concurrency: false }, () => {
+  async function failedReport() {
+    const reportId = await freshReport()
+    OpenAI.Chat.Completions.prototype.create = (async () => reply(unsafeReading)) as unknown as typeof sdkCreate
+    await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner })
+    const saved = await getReportRecord(reportId, owner)
+    assert.equal(saved?.report.sections[0].status, 'failed')
+    return reportId
+  }
+
+  it('막 실패한 칸은 곧바로 다시 세우지 않는다', async () => {
+    const reportId = await failedReport()
+    let calls = 0
+    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; return reply(passingReading) }) as unknown as typeof sdkCreate
+    const again = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner, retry: true })
+    assert.equal(calls, 0, '간격 안에서 모델을 다시 불렀다')
+    assert.equal(again.status, 'failed')
+  })
+
+  it('간격이 지나면 다시 세우고 완성한다', async () => {
+    const reportId = await failedReport()
+    // 마지막 시도를 간격 밖으로 돌린다(배포 뒤 다시 여는 상황).
+    const past = new Date(Date.now() - FAILED_RETRY_COOLDOWN_MS - 60_000).toISOString()
+    await mutateReportRecord(reportId, owner, (draft) => {
+      for (const attempt of draft.report.sections[0].attempts ?? []) attempt.finishedAt = past
+    })
+    let calls = 0
+    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; return reply(passingReading) }) as unknown as typeof sdkCreate
+    const again = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner, retry: true })
+    assert.ok(calls > 0, '간격이 지났는데도 다시 세우지 않았다')
+    assert.equal(again.status, 'complete')
+    assert.equal(again.interpretation, passingReading)
   })
 })

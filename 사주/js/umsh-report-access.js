@@ -1155,10 +1155,30 @@
       await rawFetch('/api/report/section',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},headerCache || {}),body:JSON.stringify({reportId:reportId,sectionId:sectionId,...(retry ? {retry:true}:{})})});
     } finally {resuming.delete(sectionId);}
   }
+  // 이 화면에서 이미 다시 세워 본 실패 항목. 한 번 열 때 같은 칸을 거듭 보내지 않는다.
+  var retriedFailed = Object.create(null);
   function resumePending(payload) {
     if(!headerCache || !payload.report)return;
     var id=payload.reportId || payload.report.reportId || identity(payload);
-    payload.report.sections.filter(function(section){return !resuming.has(section.id) && (section.status==='pending' || section.status==='generating');}).slice(0,Math.max(0,4-resuming.size)).forEach(function(section){resumeSection(id,section.id).catch(function(){});});
+    var sections=payload.report.sections;
+    var budget=Math.max(0,4-resuming.size);
+    var waiting=sections.filter(function(section){return !resuming.has(section.id) && (section.status==='pending' || section.status==='generating');});
+    waiting.slice(0,budget).forEach(function(section){resumeSection(id,section.id).catch(function(){});});
+    budget-=Math.min(waiting.length,budget);
+    /*
+     * 실패로 굳은 칸도 다시 세운다.
+     *
+     * 예전에는 pending·generating 만 재개했다. 그래서 검수에 막힌 칸 하나가 그대로 남아 고객
+     * 화면에 "미완성"이 계속 보였다 — 큐가 그 리포트를 다시 집지 않으면 영영 그대로다. 직장 선택
+     * '대운·유년상 변동기'가 실제로 그랬다. 막은 검수 규칙을 고쳐 배포한 뒤에도 아무도 다시
+     * 돌리지 않아 한 시간 반을 실패로 남아 있었고, 한 번 다시 세우자 곧바로 통과했다(2026-09-18).
+     *
+     * 읽는 사람이 화면을 여는 순간이 가장 확실한 재시작 신호다. 다만 비용이 드는 일이라 한 화면에서
+     * 같은 칸은 한 번만, 동시에 두 칸까지만 보낸다. 서버도 짧은 재시도 간격을 따로 둔다.
+     */
+    sections.filter(function(section){return section.status==='failed' && !resuming.has(section.id) && !retriedFailed[section.id];})
+      .slice(0,Math.min(budget,2))
+      .forEach(function(section){retriedFailed[section.id]=1;resumeSection(id,section.id,true).catch(function(){});});
   }
   async function refresh(id) {
     if (!id) return;

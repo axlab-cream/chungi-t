@@ -686,3 +686,53 @@ test('every 06 detail page loads the shared report access script that installs t
     assert.match(html, /<script src="\/js\/umsh-report-access\.js/, `${page} 에 공용 리포트 스크립트가 없어 PDF 경로가 생기지 않습니다`)
   }
 })
+
+/**
+ * 2026-09-18: 직장 선택 리포트의 '대운·유년상 변동기' 한 칸이 검수에 막혀 failed 로 굳었다.
+ * 그 칸을 막던 검수 규칙을 고쳐 배포한 뒤에도 아무도 다시 돌리지 않아 한 시간 반을 그대로
+ * 남아 있었고, 고객 화면에는 "미완성"이 계속 보였다. 한 번 다시 세우자 곧바로 통과했다.
+ * 읽는 사람이 화면을 여는 순간이 가장 확실한 재시작 신호다.
+ */
+test('failed sections are restarted when the reader opens the report', async () => {
+  const h = harness('/work/job-choice/06-step-6_1-report-detail/index.html?reportId=job-uuid', [], {}, { inplace: true })
+  h.api.setOwner('owner-a')
+  await h.api.fetch('/api/report/job-uuid', { headers: { Authorization: 'Bearer test' } })
+  h.calls.length = 0
+  h.api.consume({
+    reportId: 'job-uuid',
+    report: { serviceKey: 'job_choice', status: 'failed', sections: [
+      { id: 'done', status: 'complete', interpretation: '완료된 본문', hook: '답' },
+      { id: 'stuck', status: 'failed', interpretation: '', hook: '' },
+    ] },
+  }, { Authorization: 'Bearer test' })
+  const retries = h.calls.filter((call) => call.path === '/api/report/section').map((call) => JSON.parse(call.options.body))
+  assert.deepEqual(retries, [{ reportId: 'job-uuid', sectionId: 'stuck', retry: true }], `실패 칸을 다시 세우지 않았다: ${JSON.stringify(retries)}`)
+})
+
+test('the same failed section is not resent twice in one page view', async () => {
+  const h = harness('/work/job-choice/06-step-6_1-report-detail/index.html?reportId=job-uuid', [], {}, { inplace: true })
+  h.api.setOwner('owner-a')
+  await h.api.fetch('/api/report/job-uuid', { headers: { Authorization: 'Bearer test' } })
+  const payload = {
+    reportId: 'job-uuid',
+    report: { serviceKey: 'job_choice', status: 'failed', sections: [{ id: 'stuck', status: 'failed', interpretation: '', hook: '' }] },
+  }
+  h.api.consume(payload, { Authorization: 'Bearer test' })
+  const first = h.calls.filter((call) => call.path === '/api/report/section').length
+  h.api.consume(payload, { Authorization: 'Bearer test' })
+  const second = h.calls.filter((call) => call.path === '/api/report/section').length
+  assert.equal(first, 1)
+  assert.equal(second, 1, '같은 화면에서 같은 칸을 두 번 보냈다')
+})
+
+test('at most two failed sections are restarted at once', async () => {
+  const h = harness('/work/job-choice/06-step-6_1-report-detail/index.html?reportId=job-uuid', [], {}, { inplace: true })
+  h.api.setOwner('owner-a')
+  await h.api.fetch('/api/report/job-uuid', { headers: { Authorization: 'Bearer test' } })
+  h.calls.length = 0
+  h.api.consume({
+    reportId: 'job-uuid',
+    report: { serviceKey: 'job_choice', status: 'failed', sections: ['a', 'b', 'c', 'd'].map((id) => ({ id, status: 'failed', interpretation: '', hook: '' })) },
+  }, { Authorization: 'Bearer test' })
+  assert.equal(h.calls.filter((call) => call.path === '/api/report/section').length, 2)
+})
