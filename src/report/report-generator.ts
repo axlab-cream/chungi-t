@@ -19,7 +19,7 @@ import { InterpretationQualityError, reviewInterpretation, type InterpretationRe
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
-import { fixCopulaSpelling, numericEvidenceFrom, reviewPaidSectionDensity, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
+import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import type { HighlightTopic } from './longform-blocks.js'
 import {
   lengthBudgetForRole,
@@ -2525,6 +2525,12 @@ export async function buildOpenAiReportHighlight(
    * 빈 응답으로 끝났다 — 천명사주 하이라이트 셋이 모두 이 이유로 실패했다(2026-09-18).
    */
   let tokenBudget = Number(process.env.REPORT_HIGHLIGHT_MAX_TOKENS) || 9000
+  /*
+   * 끝까지 통과하지 못했을 때 건질 최선의 초안. 고양이 궁합 하이라이트 셋이 865~916자로 매번
+   * 최소 990자에 조금씩 못 미쳐 세 장 모두 빈 채로 남았다(2026-09-18). 92% 길이의 글을 버리고
+   * 아무것도 안 보여 주는 쪽이 더 나쁘다. 안전에 걸리는 초안은 여기 담지 않는다.
+   */
+  let salvage: { highlight: SajuReportHighlight; issues: string[] } | null = null
   for (let attempt = 0; attempt < budgetMaxAttempts; attempt += 1) {
     let raw: string
     try {
@@ -2552,7 +2558,12 @@ export async function buildOpenAiReportHighlight(
       ...budget.issues,
     ]
     if (!issues.length) return highlight
+    if (!issues.some(isBlockingIssue) && (!salvage || highlight.text.length > salvage.highlight.text.length)) {
+      salvage = { highlight, issues }
+    }
   }
+  // 안전·구조에 걸리지 않는 초안이 있으면 그것을 쓴다. 남은 지적은 운영자에게만 남긴다.
+  if (salvage) return { ...salvage.highlight, reviewMode: 'lenient', reviewNotes: salvage.issues }
   throw new InterpretationQualityError({
     passed: false,
     issues,

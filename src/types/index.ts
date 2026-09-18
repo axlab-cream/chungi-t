@@ -444,6 +444,10 @@ export interface SajuReportHighlight {
   status?: 'pending' | 'generating' | 'complete' | 'failed'
   generatedAt?: string
   error?: string
+  /** 목차 항목과 같은 뜻. lenient 는 안전·구조에 걸리지 않는 초안을 채택했다는 표시다. */
+  reviewMode?: 'strict' | 'repaired' | 'lenient'
+  /** lenient 채택 때 남은 문체 지적. 운영자용, 고객 응답에서는 제거된다. */
+  reviewNotes?: string[]
 }
 
 export interface SajuReport {
