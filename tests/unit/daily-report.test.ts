@@ -38,7 +38,7 @@ describe('daily snapshot identity across v3 upgrade', { concurrency: false }, ()
     ])
     assert.equal(first.resultId, concurrent.resultId)
     assert.match(first.resultId!, /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/)
-    assert.equal(first.report.model, 'daily-rules-v3')
+    assert.equal(first.report.model, 'daily-rules-v4')
     assert.equal(first.status, 'complete')
     assert.equal(first.revision, 1)
     assert.ok(first.report.sections[0].interpretation.includes('[1975년생 토끼띠 · 출생연도 기준]'))
@@ -49,6 +49,33 @@ describe('daily snapshot identity across v3 upgrade', { concurrency: false }, ()
     assert.deepEqual(reopened, first)
     assert.deepEqual(repeated, first, 'recall must preserve body, version and timestamps')
     await assert.rejects(findReportRecord(first.resultId!, { id: randomUUID() }), /REPORT_ACCESS_DENIED/)
+  })
+
+  /**
+   * 2026-09-18: 화면에서 어제와 오늘이 똑같아 보였다. 로직은 이미 날마다 갈리게 고쳤지만
+   * 저장된 하루는 다시 만들지 않으므로(auxiliary 검사) 옛 글이 그대로 남아 있었다. 판을
+   * 올려야 새 로직으로 만들어진다. 이 검사는 **저장된 결과 기준**으로 어제와 오늘이 처음부터
+   * 끝까지 같지 않은지 본다 — 화면이 읽는 것이 이 본문이다.
+   */
+  it('저장된 오늘운은 어제와 본문이 겹치지 않는다', async () => {
+    const profile = fixture()
+    const owner = { id: profile.userId }
+    const days = ['2026-09-17T03:00:00.000Z', '2026-09-18T03:00:00.000Z', '2026-09-19T03:00:00.000Z']
+    const saved = []
+    for (const day of days) saved.push(await savedDailyFortune(profile, owner, new Date(day)))
+    const bodyOf = (record: Awaited<ReturnType<typeof savedDailyFortune>>) => record.report.sections[0].interpretation
+    assert.equal(new Set(saved.map((record) => record.reportId)).size, 3, '날짜마다 다른 기록이어야 한다')
+    for (let index = 1; index < saved.length; index += 1) {
+      assert.notEqual(bodyOf(saved[index]), bodyOf(saved[index - 1]), `${days[index]} 본문이 전날과 같다`)
+      assert.notEqual(saved[index].report.sections[0].hook, saved[index - 1].report.sections[0].hook, `${days[index]} 제목이 전날과 같다`)
+      const today = saved[index].auxiliary!.todayFortune!.reading
+      const yesterday = saved[index - 1].auxiliary!.todayFortune!.reading
+      for (const key of ['work', 'money', 'relationship', 'caution', 'action'] as const) {
+        assert.notEqual(today[key], yesterday[key], `${days[index]}.${key} 가 전날과 같다`)
+      }
+      assert.notEqual(today.zodiac?.text, yesterday.zodiac?.text, `${days[index]} 띠운이 전날과 같다`)
+      assert.notDeepEqual(today.score, yesterday.score, `${days[index]} 점수가 전날과 같다`)
+    }
   })
 
   it('separates a new KST date, changed birth profile and a different owner without rewriting old readings', async () => {

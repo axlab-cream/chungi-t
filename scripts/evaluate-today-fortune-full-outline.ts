@@ -47,7 +47,7 @@ assert.equal(first.resultId, repeated.resultId)
 assert.deepEqual(recalled.report, first.report)
 assert.deepEqual(recalled.auxiliary?.todayFortune, first.auxiliary?.todayFortune)
 assert.equal(first.status, 'complete')
-assert.equal(first.report.model, 'daily-rules-v3')
+assert.equal(first.report.model, 'daily-rules-v4')
 assert.equal(first.report.sections.length, 1)
 assert.equal(first.report.sections[0]?.status, 'complete')
 
@@ -99,7 +99,7 @@ const evidence = {
   status: 'pass',
   serviceKey: 'today_fortune',
   provider: { actualCalls: false, reason: 'deterministic_daily_rules_service' },
-  identity: { reportId: first.reportId, resultId: first.resultId, model: 'daily-rules-v3' },
+  identity: { reportId: first.reportId, resultId: first.resultId, model: 'daily-rules-v4' },
   corpus: { id: corpus.id, version: corpus.version, path: `data/${corpus.path}`, contentHash: corpus.contentHash },
   completion: { completedFields: fields.length, expectedFields: fields.length, recordStatus: first.status, missingFields },
   coverage: {

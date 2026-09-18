@@ -882,18 +882,20 @@
       '</figure>';
   }
 
-  /** 근거 칩. 어떤 기준으로 본 해석인지 드러낸다. */
-  function renderSectionEvidence(section) {
-    var keys = []
-      .concat(Array.isArray(section.patternKeys) ? section.patternKeys : [])
-      .concat(Array.isArray(section.ragTopics) ? section.ragTopics : [])
-      .map(function (key) { return String(key || '').trim(); })
-      .filter(Boolean);
-    var seen = {};
-    var unique = keys.filter(function (key) { if (seen[key]) return false; seen[key] = 1; return true; }).slice(0, 8);
-    if (!unique.length) return '';
-    return '<div class="story-evidence"><span class="reading-role">확인된 기준</span>' +
-      '<ul>' + unique.map(function (key) { return '<li>' + escapeHtml(key) + '</li>'; }).join('') + '</ul></div>';
+  /**
+   * 근거 칩 — 고객 화면에서 내린다(2026-09-18).
+   *
+   * `patternKeys` 와 `ragTopics` 는 생성기가 쓰는 내부 식별자다. 화면에 그대로 붙으니
+   * `service:love_this_year`, `birth:solar:1975-9-26:5`, `yearPillar:乙卯`,
+   * `dayMasterElement:wood` 같은 줄이 항목마다 찍혔다 — 올해 연애운 06-1 한 페이지에만
+   * 열 군데였고, 생년월일과 내부 서비스 키가 그대로 노출됐다. 고객에게 보여 줄 내용이
+   * 아니고, 근거는 본문이 문장으로 말한다.
+   *
+   * 값을 쓰는 곳이 더 없는지 확인한 뒤 호출부까지 지우는 편이 깔끔하지만, 지금은 노출만
+   * 막는다. 함수와 호출부는 그대로 두어 되돌리기 쉽게 한다.
+   */
+  function renderSectionEvidence(_section) {
+    return '';
   }
 
   function paragraphsOf(value) {
