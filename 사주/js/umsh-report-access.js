@@ -653,12 +653,26 @@
   /**
    * Single-section seed cards (#detailContent) are not the live TOC. After the
    * paid reading mounts, hide that seed so 06-1 matches the this-year stack.
+   *
+   * 저축운(money/save) 06 페이지는 이 씨앗 카드와 함께 그 서비스만의 옛 한 칸씩 넘기는
+   * 뷰어(#lockedState·#missingState, prev/next)를 따로 갖고 있다. 그 뷰어는 자기 자신의
+   * `hasVerifiedEntitlement()` 를 페이지 로드 시점에 딱 한 번만 동기로 검사하는데, 공용
+   * 검증은 비동기라 그 시점에 아직 끝나지 않은 적이 있다 — 그러면 "권한 확인이 필요합니다"
+   * 배너가 `hidden` 클래스를 벗고 영구히 남는다. 다시 부르는 코드가 없어서 스스로는 안
+   * 닫힌다. 공용 리딩 뷰가 실제로 열렸다는 것은 검증이 끝났다는 뜻이므로, 여기서 같이 닫는다.
+   * 2026-09-18 저축운 리포트에서 실측(완성본 위에 배너가 그대로 떠 있었다).
    */
+  var LEGACY_GATE_IDS = ['lockedState', 'missingState'];
   function hideNativeSeedDetail(liveHost) {
     var native = document.getElementById('detailContent');
-    if (!native || native === liveHost) return;
-    native.hidden = true;
-    native.setAttribute('data-umsh-seed-hidden', '');
+    if (native && native !== liveHost) {
+      native.hidden = true;
+      native.setAttribute('data-umsh-seed-hidden', '');
+    }
+    for (var i = 0; i < LEGACY_GATE_IDS.length; i++) {
+      var gate = document.getElementById(LEGACY_GATE_IDS[i]);
+      if (gate && gate !== liveHost) gate.classList.add('hidden');
+    }
   }
   function allowDesignMockReading() {
     try { return String(location.protocol) === 'file:'; }
