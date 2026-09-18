@@ -14,6 +14,11 @@ export interface ServiceVoiceContract {
   teaserJob: string
   reportJob: string
   requiredScenes: string[]
+  /**
+   * 이 서비스만의 장면 어휘. 검수기의 장면 사전은 사람 생활(출근·회의·식탁)이 기본이라,
+   * 생활 무대가 전혀 다른 서비스는 여기 어휘를 적어 프롬프트와 검수기가 같은 말을 쓰게 한다.
+   */
+  sceneLexicon?: string[]
   decisionCriteria: string[]
   holdConditions: string[]
   forbiddenCustomerCopy: string[]
@@ -160,6 +165,9 @@ export const SERVICE_VOICE_CONTRACTS: Record<KnownServiceKey, ServiceVoiceContra
     teaserJob: '우리 집에서 바로 보이는 케미 포인트와 조심할 루틴 하나를 보여준다.',
     reportJob: '보호자 기질과 고양이 루틴을 먹이·놀이·휴식 장면으로 연결한다.',
     requiredScenes: ['밥 달라는 시간', '숨는 행동', '놀이 후 예민함'],
+    // 고양이 궁합의 무대는 집 안이다. 사람 생활 사전만 있던 검수기가 이 장면을 못 알아봐
+    // 1번 항목이 여덟 번 퇴짜를 맞았다(2026-09-18).
+    sceneLexicon: ['밥그릇', '사료', '간식', '츄르', '캣타워', '숨숨집', '스크래처', '화장실', '모래', '창가', '소파 밑', '침대 밑', '낚싯대', '장난감', '그루밍', '무릎', '새벽', '우다다', '쓰다듬', '발라당', '꼬리', '하악', '합사', '다묘'],
     decisionCriteria: ['맞는 루틴', '엇갈리는 시간대', '바꿀 환경'],
     holdConditions: ['질병을 사주 탓으로 돌림', '동물행동 진단 확정', '학대·방치 정당화'],
     forbiddenCustomerCopy: ['고양이가 당신을 싫어합니다', '아픈 이유는 궁합 때문입니다', '훈육하면 고쳐집니다'],
@@ -399,6 +407,7 @@ export function formatServiceVoiceContract(serviceKey: KnownServiceKey): string 
     `- 티저 임무: ${contract.teaserJob}`,
     `- 전체 해석 임무: ${contract.reportJob}`,
     `- 반드시 생활 장면으로 번역: ${contract.requiredScenes.join(' · ')}`,
+    ...(contract.sceneLexicon?.length ? [`- 이 서비스의 장면 어휘: ${contract.sceneLexicon.join(' · ')}`] : []),
     `- 판단 기준: ${contract.decisionCriteria.join(' · ')}`,
     `- 멈춤 조건: ${contract.holdConditions.join(' · ')}`,
     `- 고객 본문 금지문: ${contract.forbiddenCustomerCopy.join(' · ')}`,

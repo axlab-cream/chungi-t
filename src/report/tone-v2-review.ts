@@ -1,5 +1,6 @@
 import { loadTonePersona } from '../prompt/tone-v2.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
+import { SERVICE_VOICE_CONTRACTS, type ServiceVoiceContract } from '../prompt/service-voice-contracts.js'
 import { relationshipState } from '../love/reading-content.js'
 import type { RagChunk, SajuReportContext, SajuReportSection, SajuReportVerdict } from '../types/index.js'
 
@@ -63,7 +64,64 @@ const SAFE_FUTURE_EVENT_REFERENCE_PATTERN = /(?:합격|불합격|이별|결혼|�
 const SAFE_EVENT_TIME_REFERENCE_PATTERN = /(?:퇴사|이직)\s*(?:전|뒤|후)/g
 const SAFE_STATE_RECOVERY_PATTERN = /(?:판단|집중|감각|리듬|회복감|상태)(?:이|가)\s*돌아오(?:는지|면|나|는\s*때|지\s*않는|는데)/g
 const SYMBOLIC_OMNISCIENCE_PATTERN = /(?:사주|명식|오행|용신|신강|신약|합|충|운세)[^.!?。\n]{0,36}(?:미래|합격\s*여부|불합격\s*여부|상대(?:의)?\s*(?:마음|속마음|진심|감정)|사람의\s*마음)[^.!?。\n]{0,20}(?:알\s*수\s*있|알아낼\s*수\s*있|확인할\s*수\s*있)/
-const INVENTED_PRIVATE_FACT_PATTERN = /(?:회사\s*(?:문화|분위기|상사|동료)|가족\s*(?:문제|갈등|사정)|집\s*구조|고양이(?:\s*(?:행동|성격|마음|기분|외로움)|[이가는은])|지역\s*(?:사건|문제)|질병|병)[^.!?。\n]{0,30}(?:입니다|이에요|해요|합니다|때문입니다|때문이에요|원인입니다|원인이에요|탓입니다|탓이에요|생깁니다|생겨요)/
+/*
+ * 입력에 없는 사적 사실을 단정하는 문장을 잡는다. 다만 **그 서비스가 다루는 주제**는 예외다.
+ * 고양이 궁합은 고양이를, 이직·퇴사운은 회사를, 집 풍수는 집 구조를 쓰라고 프롬프트가
+ * 요구하는데 검수기가 같은 문장을 "만든 사실"로 막았다. 고양이 궁합 1번 항목이 여덟 번
+ * 생성돼 여덟 번 모두 이 규칙에 걸려 리포트 전체가 멈췄다(2026-09-18). 질병은 어느
+ * 서비스에서도 예외가 없다 — 그쪽은 professionalAuthorityIssues 와 함께 막는다.
+ */
+const INVENTED_FACT_SUBJECTS = {
+  company: '회사\\s*(?:문화|분위기|상사|동료)',
+  family: '가족\\s*(?:문제|갈등|사정)',
+  homeStructure: '집\\s*구조',
+  cat: '고양이(?:\\s*(?:행동|성격|마음|기분|외로움)|[이가는은])',
+  region: '지역\\s*(?:사건|문제)',
+  illness: '질병|병',
+} as const
+type InventedFactSubject = keyof typeof INVENTED_FACT_SUBJECTS
+const INVENTED_FACT_ASSERTION = '[^.!?。\\n]{0,30}(?:입니다|이에요|해요|합니다|때문입니다|때문이에요|원인입니다|원인이에요|탓입니다|탓이에요|생깁니다|생겨요)'
+const WORKPLACE_SERVICES = new Set(['work_move', 'quit_fortune', 'work_job', 'job_choice'])
+
+/** 이 문맥이 정당하게 다루는 주제. 여기 든 주제는 "입력에 없는 사실"로 보지 않는다. */
+function ownedFactSubjects(context: SajuReportContext | undefined): Set<InventedFactSubject> {
+  const owned = new Set<InventedFactSubject>()
+  const key = normalizeServiceKey(context?.serviceKey)
+  if (key === 'cat_compatibility' || /고양이\s*:/.test(context?.concern ?? '')) owned.add('cat')
+  if (WORKPLACE_SERVICES.has(key) || context?.workMove || context?.work) owned.add('company')
+  if (key === 'home_fit' || context?.home) owned.add('homeStructure')
+  return owned
+}
+
+function inventedPrivateFactPattern(context: SajuReportContext | undefined): RegExp {
+  const owned = ownedFactSubjects(context)
+  const subjects = (Object.keys(INVENTED_FACT_SUBJECTS) as InventedFactSubject[])
+    .filter((name) => !owned.has(name))
+    .map((name) => INVENTED_FACT_SUBJECTS[name])
+  return new RegExp(`(?:${subjects.join('|')})${INVENTED_FACT_ASSERTION}`)
+}
+
+/*
+ * 서비스 계약서의 필수 장면과 장면 어휘를 검수기의 장면 사전에 더한다. 예전 사전은 사람 생활
+ * (출근·회의·식탁)만 알아서, 프롬프트가 "밥 달라는 시간·숨는 행동"을 쓰라고 시킨 뒤 검수기가
+ * "구체적인 장면이 없다"고 되돌려 보냈다. 20개 서비스 중 17개에서 필수 장면의 일부 또는
+ * 전부가 이렇게 어긋났다(2026-09-18 전수 점검).
+ */
+const serviceScenePatternCache = new Map<string, RegExp | null>()
+function serviceScenePattern(serviceKey: string | null | undefined): RegExp | null {
+  const key = normalizeServiceKey(serviceKey)
+  if (serviceScenePatternCache.has(key)) return serviceScenePatternCache.get(key) ?? null
+  const contract = (SERVICE_VOICE_CONTRACTS as Record<string, ServiceVoiceContract | undefined>)[key]
+  const words = new Set<string>()
+  for (const phrase of [...(contract?.requiredScenes ?? []), ...(contract?.sceneLexicon ?? [])]) {
+    for (const token of phrase.split(/[·,/\s]+/)) if (token.length >= 2) words.add(token)
+  }
+  const pattern = words.size
+    ? new RegExp(`(?:${[...words].map(escapeRegExp).join('|')})[^.!?。\\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|이면|여야|없다면|있다면|않다면|보이면|갈리면|반복되면|늘면|줄면|나오면|직후|전후|무렵|시간대|앉으면|놓으면|비교하면|확인하면)`)
+    : null
+  serviceScenePatternCache.set(key, pattern)
+  return pattern
+}
 const GROUNDED_OBSERVATION_EVIDENCE_PATTERN = /(?:관찰|측정)(?:한|된)?\s*(?:기록|결과|자료)[^.!?。\n]{0,20}(?:으로|에서)[^.!?。\n]{0,12}(?:확인|판단)/
 const NUMERIC_KEY_UNITS: Array<[RegExp, string]> = [
   [/(?:^|_)(?:year|targetYear|currentYear|startYear|solarYear|lunarYear)$/i, '년'],
@@ -404,8 +462,9 @@ function arithmeticReview(text: string, evidence: Set<string>): { issues: string
   return { issues, derived }
 }
 
-function certaintyIssues(text: string): string[] {
+function certaintyIssues(text: string, context?: SajuReportContext): string[] {
   const issues: string[] = []
+  const inventedPrivateFact = inventedPrivateFactPattern(context)
   for (const sentence of sentences(text)) {
     if (NEGATED_CERTAINTY_PATTERN.test(sentence) || CONDITIONAL_PATTERN.test(sentence)) continue
     if (THIRD_PARTY_MIND_PATTERN.test(sentence)) {
@@ -427,7 +486,7 @@ function certaintyIssues(text: string): string[] {
   for (const sentence of sentences(text)) {
     if (NEGATED_CERTAINTY_PATTERN.test(sentence) || CONDITIONAL_PATTERN.test(sentence)) continue
     if (GROUNDED_OBSERVATION_EVIDENCE_PATTERN.test(sentence)) continue
-    if (INVENTED_PRIVATE_FACT_PATTERN.test(sentence)) {
+    if (inventedPrivateFact.test(sentence)) {
       issues.push('입력에 없는 회사·가족·집·반려묘·지역·질병 사실을 만들지 마세요.')
       break
     }
@@ -503,7 +562,7 @@ function unmeasuredHomeIssues(text: string, context: SajuReportContext | undefin
 export function reviewSafetyClaims(input: SafetyClaimsInput): ToneReview {
   const prose = narrator(input.text)
   const issues = [
-    ...certaintyIssues(prose),
+    ...certaintyIssues(prose, input.context),
     ...relationshipSafetyIssues(prose, input.context),
     ...professionalAuthorityIssues(prose),
     ...petCausationIssues(prose),
@@ -793,7 +852,9 @@ export function reviewSectionUniqueness(input: SectionUniquenessInput): ToneRevi
   return { passed: issues.length === 0, issues }
 }
 
-function hasRecognizableScene(text: string): boolean {
+function hasRecognizableScene(text: string, serviceKey?: string | null): boolean {
+  // 그 서비스의 계약서가 요구하는 장면은 장면이다. 프롬프트와 검수기가 같은 사전을 쓴다.
+  if (serviceScenePattern(serviceKey)?.test(text)) return true
   // An example marker is framing, not a scene by itself. Require a concrete
   // everyday setting/object to be paired with an observable situation.
   const ordinaryScene = /(?:(?:출근|퇴근|회의|답장|연락|약속|대화|업무|시험|책상|침대|현관|옷장|거울|가방|서랍|신발장|식사|밥상|식탁|점심|메뉴판|냉장고|산책|결제|지출|면접|공부|하루|주말|도서관|예식장|웨딩홀|상담\s*테이블|대관표|보증\s*인원표|양가\s*이동|계약서|스드메|협업\s*도구|메신저|캘린더)[^.!?。\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|앉으면|이면|여야|없다면|있다면|않다면|보이면|갈리면|펼쳐|놓으면|적으면|비교하면|확인하면))|(?:(?:독서실|자습실|학원|서점|장바구니|강의|문제집|실모|채점표|오답\s*노트|노트북|접수\s*화면|주문창)[^.!?。\n]{0,55}(?:앞(?:에서는)?|옆에|순간|채점\s*직후|열\s*때|보면|켜면|펴봐|펴고|펴지면|열면|여는|닫아봐|반복될\s*때|밀려))|(?:문제[^.!?。\n]{0,45}(?:때|장면|상황|경우|했을))/.test(text)
@@ -882,7 +943,7 @@ export function reviewPaidSectionDensity(input: PaidSectionDensityInput): PaidSe
       && !/[?？]\s*$/.test(hook),
     grounding: /(?:적었|말했|느낀|고른|선택한|기록한|입력된|측정한|확인된|계산(?:된|값|에서)|관찰된|값\s*(?:없|미확인|미입력)|때문|이유|근거|조건(?:이|은|을|으로|부터)|판단\s*기준)/.test(text)
       || hasContextGrounding(text, input.context),
-    scene: hasRecognizableScene(text),
+    scene: hasRecognizableScene(text, input.context?.serviceKey),
     nextCriterion: hasSameSentenceNextCriterion(text) || hasAdjacentNextCriterion(text),
   }
   const issues: string[] = []

@@ -1138,9 +1138,16 @@
       resumePending(payload);
       var pending = payload.report.sections.some(function(section){return !['complete','failed'].includes(section.status);});
       if (pending && !pollTimer) pollTimer = setTimeout(function(){pollTimer=null;refresh(identity(payload)).catch(function(){});},1800);
+      // 전부 실패로 멈춘 리포트도 서버 큐가 뒤에서 다시 만든다. 화면이 그 결과를 받으려면
+      // 느리게라도 물어야 한다 — 12초 간격, 열 번까지(2분). 그 뒤엔 새로고침에 맡긴다.
+      else if (!pending && payload.report.status === 'failed' && !pollTimer && failedPolls < 10) {
+        failedPolls += 1;
+        pollTimer = setTimeout(function(){pollTimer=null;refresh(identity(payload)).catch(function(){});},12000);
+      }
     }
     return payload;
   }
+  var failedPolls = 0;
   async function resumeSection(reportId,sectionId,retry) {
     if(resuming.has(sectionId) || resuming.size>=4)return;
     resuming.add(sectionId);

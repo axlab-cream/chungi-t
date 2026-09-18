@@ -82,3 +82,30 @@ test('a highlight that promotes a lower choice fails the verdict gate', () => {
   })
   assert.equal(review.passed, false)
 })
+
+/**
+ * 2026-09-18: 천명사주 하이라이트 셋이 모두 실패했다. 사유는 "본문을 찾지 못했습니다"와
+ * "길이 제한으로 중단" — 내용 문제가 아니라 예산 문제였다. 하이라이트 본문은 990~2025자로
+ * 목차 항목(405~945자)의 두 배가 넘는데 토큰 상한이 1800 으로 항목(9000)의 1/5 였다.
+ * gpt-5 는 추론에도 같은 예산을 쓰므로 본문이 남지 않는다.
+ */
+test('긴 본문을 요구하는 블록이 더 작은 토큰 예산을 갖지 않는다', () => {
+  const source = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../src/report/report-generator.ts'), 'utf8')
+  // 기본값은 `... || 9000` 처럼 그 줄의 마지막 숫자다(항목 예산은 중간에 runtimeConfig 폴백이 하나 더 있다).
+  const budgetOf = (name: string) => {
+    const line = source.split('\n').find((item) => item.includes(`process.env.${name}`))
+    const match = line ? /(\d[\d_]*)\s*,?\s*$/.exec(line.trim()) : null
+    assert.ok(match, `${name} 기본 예산을 찾지 못했다`)
+    return Number(match[1].replace(/_/g, ''))
+  }
+  const section = budgetOf('REPORT_SECTION_MAX_TOKENS')
+  const highlight = budgetOf('REPORT_HIGHLIGHT_MAX_TOKENS')
+  const summary = budgetOf('REPORT_SUMMARY_MAX_TOKENS')
+  assert.ok(highlight >= section, `하이라이트(${highlight})가 항목(${section})보다 긴 글을 요구하는데 예산이 더 작다`)
+  assert.ok(summary >= 4000, `요약 예산이 빠듯하다: ${summary}`)
+  // 잘리면 예산을 키워 다시 부른다. 한 번 잘렸다고 실패로 굳으면 안 된다.
+  for (const fn of ['buildOpenAiReportSummary', 'buildOpenAiReportHighlight']) {
+    const body = source.slice(source.indexOf(`export async function ${fn}`))
+    assert.match(body.slice(0, 2000), /OpenAiTruncatedError/, `${fn} 이 잘림을 다시 시도하지 않는다`)
+  }
+})

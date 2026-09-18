@@ -13,7 +13,8 @@ import type {
   SajuReportVerdict,
   TenGod,
 } from '../types/index.js'
-import { chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
+import { OpenAiTruncatedError, chatWithOpenAI, type OpenAiResult } from '../llm/openai-adapter.js'
+import { SERVICE_VOICE_CONTRACTS, type ServiceVoiceContract } from '../prompt/service-voice-contracts.js'
 import { InterpretationQualityError, reviewInterpretation, type InterpretationReview } from './interpretation-validation.js'
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
@@ -2062,6 +2063,35 @@ const QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION = [
   '현재 입력은 차분한 비교 요청입니다. 갈등·질병·해고·경제 위기를 실제 사실처럼 만들지 마세요.',
 ].join('\n')
 
+/*
+ * 고양이 궁합 전 항목 공통. 이 서비스에는 항목별 규칙이 없어 모델이 집사의 기둥을 한 번도
+ * 부르지 않은 일반론을 쓰거나 고양이의 사주를 지어냈고, 그 문장이 검수기와 어긋나 반복
+ * 퇴짜를 맞았다(2026-09-18). 집사의 명식에 묶고, 고양이 사실은 입력으로만 제한한다.
+ */
+const CAT_COMPAT_COMMON_INSTRUCTION = [
+  '고양이 궁합 전 항목 공통:',
+  '이 항목은 집사(사용자)의 사주로 씁니다. verifiedCalculations의 일간·일주·오행 분포·십성 가운데 이 항목의 질문과 맞닿는 값을 첫 의미 단락에서 생활말로 풀어 이름 붙여 인용하고(예: 뜨거운 불 기운(丙火) 일간, 물 기운 0), 그 기질이 돌봄 장면에서 어떻게 나오는지로 연결하세요. 고양이의 명식·오행은 계산하지 않았으므로 만들지 마세요.',
+  '고양이에 관한 사실은 userFacts.context에 입력된 것(이름·가정·나이대·성향·손길·놀이·루틴 고민·우선 확인·예정)만 쓰세요. 그 밖의 고양이 행동은 단정하지 말고 "…가 보이면", "…한다면"처럼 집사가 확인할 조건으로 쓰세요.',
+  '생활 장면은 밥 달라는 시간·숨는 행동·놀이 후 예민함과 밥그릇·숨숨집·캣타워·화장실 모래·창가·새벽 같은 집 안 장면으로 쓰세요.',
+  '질병·통증·공격성은 사주로 설명하지 말고 수의사 확인을 안내하세요. 고양이의 행동을 집사의 사주 결함 탓으로 돌리지 마세요.',
+  '마지막 의미 단락에는 집사가 이번 주에 관찰·기록할 고양이 행동 하나와 바꿔 볼 집사 쪽 행동 하나를 2~4문장으로 쓰세요.',
+].join('\n')
+
+/*
+ * 항목별 규칙이 따로 없는 서비스의 공통 규칙. 두 가지를 강제한다 — 사용자의 기둥을 이름 붙여
+ * 인용할 것, 그리고 장면은 서비스 계약서의 필수 장면 어휘로 쓸 것. 검수기도 같은 계약서로
+ * 장면을 판정하므로 프롬프트와 검수기가 어긋나지 않는다(2026-09-18 전수 점검).
+ */
+function serviceGroundingInstruction(context: SajuReportContext): string {
+  const contract = (SERVICE_VOICE_CONTRACTS as Record<string, ServiceVoiceContract | undefined>)[normalizeServiceKey(context.serviceKey)]
+  if (!contract) return ''
+  return [
+    `${contract.serviceTitle} 전 항목 공통:`,
+    'verifiedCalculations의 일간·오행 분포·십성·시기 가운데 이 항목의 질문과 맞닿는 값을 첫 의미 단락에서 생활말로 풀어 이름 붙여 인용하고, 그 값이 이 질문에서 어떻게 드러나는지로 연결하세요. 기둥을 한 번도 부르지 않은 일반론은 쓰지 마세요.',
+    `생활 장면은 이 서비스의 필수 장면(${contract.requiredScenes.join(' · ')})${contract.sceneLexicon?.length ? `과 장면 어휘(${contract.sceneLexicon.join(' · ')})` : ''} 어휘로 쓰세요.`,
+  ].join('\n')
+}
+
 const QUIT_FORTUNE_COMMON_INSTRUCTION = [
   '퇴사운 전 항목 공통:',
   '퇴사·이직·잔류 뒤의 미래 결과는 확인된 사실처럼 단정하지 말고, 실제 조건이 충족될 때의 가능성이라는 조건부 표현으로 쓰세요.',
@@ -2095,7 +2125,9 @@ function sectionSpecificInstruction(context: SajuReportContext, section: SajuRep
     if (section.id === 'mental-people-2') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION}`
     return QUIT_FORTUNE_COMMON_INSTRUCTION
   }
-  return ''
+  if (normalizeServiceKey(context.serviceKey) === 'cat_compatibility') return CAT_COMPAT_COMMON_INSTRUCTION
+  // 그 밖의 서비스: 기둥 인용과 필수 장면 어휘를 공통 규칙으로 건다.
+  return serviceGroundingInstruction(context)
 }
 
 
@@ -2334,17 +2366,25 @@ export async function buildOpenAiReportSummary(
   const budgetMaxAttempts = 3
   let issues: string[] = []
   let summary = parseReportSummary('{"text":"placeholder"}')
+  let tokenBudget = Number(process.env.REPORT_SUMMARY_MAX_TOKENS) || 6000
   for (let attempt = 0; attempt < budgetMaxAttempts; attempt += 1) {
-    const raw = await chatWithOpenAI(
-      [
-        ...summaryPrompt(analysis, birth, context, verdict),
-        ...(issues.length ? [{ role: 'user' as const, content: `이전 초안 지적: ${issues.join(' ')}` }] : []),
-      ],
-      {
-        model: REPORT_MODEL,
-        maxTokens: Number(process.env.REPORT_SUMMARY_MAX_TOKENS) || 1600,
-      },
-    )
+    let raw: string
+    try {
+      raw = await chatWithOpenAI(
+        [
+          ...summaryPrompt(analysis, birth, context, verdict),
+          ...(issues.length ? [{ role: 'user' as const, content: `이전 초안 지적: ${issues.join(' ')}` }] : []),
+        ],
+        { model: REPORT_MODEL, maxTokens: tokenBudget },
+      )
+    } catch (error) {
+      // 잘림·빈 응답은 내용 결함이 아니다. 예산을 키워 다시 부른다(항목 생성과 같은 규칙).
+      if (error instanceof OpenAiTruncatedError && attempt < budgetMaxAttempts - 1) {
+        tokenBudget = Math.min(Math.round(tokenBudget * 1.5), 18_000)
+        continue
+      }
+      throw error
+    }
     summary = parseReportSummary(raw)
     const budget = reviewLengthBudget(summary.text, 'summary')
     issues = [
@@ -2427,17 +2467,29 @@ export async function buildOpenAiReportHighlight(
   const budgetMaxAttempts = 3
   let issues: string[] = []
   let highlight = parseReportHighlight('{"text":"placeholder"}', topic.title)
+  /*
+   * 하이라이트 본문은 990~2025자로 목차 항목(405~945자)의 두 배가 넘는데 예산은 1800토큰,
+   * 항목(9000)의 1/5 였다. gpt-5 는 추론에도 같은 예산을 쓰므로 본문이 남지 않아 잘리거나
+   * 빈 응답으로 끝났다 — 천명사주 하이라이트 셋이 모두 이 이유로 실패했다(2026-09-18).
+   */
+  let tokenBudget = Number(process.env.REPORT_HIGHLIGHT_MAX_TOKENS) || 9000
   for (let attempt = 0; attempt < budgetMaxAttempts; attempt += 1) {
-    const raw = await chatWithOpenAI(
-      [
-        ...highlightPrompt(analysis, birth, context, topic, verdict),
-        ...(issues.length ? [{ role: 'user' as const, content: `이전 초안 지적: ${issues.join(' ')}` }] : []),
-      ],
-      {
-        model: REPORT_MODEL,
-        maxTokens: Number(process.env.REPORT_HIGHLIGHT_MAX_TOKENS) || 1800,
-      },
-    )
+    let raw: string
+    try {
+      raw = await chatWithOpenAI(
+        [
+          ...highlightPrompt(analysis, birth, context, topic, verdict),
+          ...(issues.length ? [{ role: 'user' as const, content: `이전 초안 지적: ${issues.join(' ')}` }] : []),
+        ],
+        { model: REPORT_MODEL, maxTokens: tokenBudget },
+      )
+    } catch (error) {
+      if (error instanceof OpenAiTruncatedError && attempt < budgetMaxAttempts - 1) {
+        tokenBudget = Math.min(Math.round(tokenBudget * 1.5), 18_000)
+        continue
+      }
+      throw error
+    }
     highlight = parseReportHighlight(raw, topic.title)
     const budget = reviewLengthBudget(highlight.text, 'highlightCard')
     issues = [
