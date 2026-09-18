@@ -1299,13 +1299,20 @@
     if((key || isPermalink()) && isOutputPage() && document.documentElement && document.head) {
       document.documentElement.setAttribute('data-umsh-report-check','');
       var guard=document.createElement('style');
-      // in-place 페이지는 디자인을 살린다. 대신 검증 전 슬롯을 가려서 정적 샘플 문구가
-      // 내 결과처럼 잠깐이라도 보이는 일을 막는다. 진행률 슬롯은 처음부터 보여야 한다.
+      /*
+       * in-place 페이지는 디자인을 살린다. 대신 검증 전 슬롯을 가려서 정적 샘플 문구가
+       * 내 결과처럼 잠깐이라도 보이는 일을 막는다. 진행률 슬롯은 처음부터 보여야 한다.
+       *
+       * 가릴 때 자리는 남기지 않는다(display). visibility 로 가리면 글자만 사라지고 상자는
+       * 그대로 남는다 — 올해 연애운 06-1 의 상태 패널이 min-height 260px 라, 리포트가 정상으로
+       * 열렸는데도 상단바와 첫 이미지 사이에 245px 짜리 빈 구멍이 생겼다(2026-09-18 실측).
+       * 채워지면 규칙이 풀리므로 보이는 결과는 같고, 빈 자리만 사라진다.
+       */
       guard.textContent = inPlaceEnabled()
         ? [
           'html[data-umsh-report-check][data-umsh-verified-inplace] [data-umsh-slot]:not([data-umsh-slot="progress"]):not([data-umsh-filled])',
           unfilledHostCss(),
-        ].filter(Boolean).join(',') + '{visibility:hidden}'
+        ].filter(Boolean).join(',') + '{display:none}'
         : 'html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
       document.head.appendChild(guard);
     }

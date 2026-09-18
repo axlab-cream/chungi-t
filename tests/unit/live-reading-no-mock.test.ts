@@ -20,15 +20,21 @@ test('https 실서비스는 file: 시안 해석만 허용한다', () => {
   assert.match(access, /markFilled:markFilled/)
 })
 
-test('해석 칸 가드는 선택자 하나로 합쳐진 유효한 규칙이다', () => {
-  // `A{visibility:hidden},B,C{visibility:hidden}` 처럼 이어 붙이면 뒤쪽 규칙이 통째로
+test('해석 칸 가드는 선택자 하나로 합쳐진 유효한 규칙이고, 가릴 때 자리를 남기지 않는다', () => {
+  // `A{display:none},B,C{display:none}` 처럼 이어 붙이면 뒤쪽 규칙이 통째로
   // 무시돼서 가드가 있으나 마나였다. 선택자를 먼저 합친 뒤 선언을 한 번만 붙인다.
   const access = read('사주/js/umsh-report-access.js')
   const start = access.indexOf('guard.textContent = inPlaceEnabled()')
   assert.notEqual(start, -1, '가드 생성부를 찾지 못했다')
   const build = access.slice(start, access.indexOf('document.head.appendChild(guard)', start))
-  assert.match(build, /\.filter\(Boolean\)\.join\(','\) \+ '\{visibility:hidden\}'/)
-  assert.doesNotMatch(build, /\{visibility:hidden\}'\s*\+\s*'?,/, '선언 뒤에 선택자를 이어 붙였다')
+  assert.match(build, /\.filter\(Boolean\)\.join\(','\) \+ '\{display:none\}'/)
+  assert.doesNotMatch(build, /\{display:none\}'\s*\+\s*'?,/, '선언 뒤에 선택자를 이어 붙였다')
+  /*
+   * visibility 로 가리면 글자만 사라지고 상자는 남는다. 올해 연애운 06-1 의 상태 패널이
+   * min-height 260px 라, 리포트가 정상으로 열렸는데도 상단바와 첫 이미지 사이에 245px 짜리
+   * 빈 구멍이 남았다(2026-09-18). 가릴 자리는 접어야 한다.
+   */
+  assert.doesNotMatch(build, /visibility:hidden/, '가린 슬롯이 빈 자리를 그대로 차지한다')
 })
 
 test('공용 크롬은 캐시 버스터가 붙어도 셸 스크립트를 다시 올리지 않는다', () => {
