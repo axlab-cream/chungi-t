@@ -112,9 +112,108 @@
     node.innerHTML = navigation() + '<h1 style="font-size:24px">저장된 해석 확인</h1><p>' + escapeHtml(message) + '</p><a style="color:#e5bd69" href="/signup?entry=saved-report&returnTo='+encodeURIComponent(location.pathname+location.search)+'#login">로그인</a> · <a href="' + escapeHtml(route ? route[0] : '/') + '">서비스로 돌아가기</a>';
   }
   function labelText(value) { return String(value == null ? '' : value).trim().replace(/[.。]+$/, ''); }
+
+  /*
+   * 본문 안의 마크다운을 옮긴다.
+   *
+   * 모델이 표·목록·굵은 글씨를 쓰는데 렌더러가 글자를 이스케이프해 <p> 하나에 통째로
+   * 넣기만 해서, 올해 연애운 본문에 `| 마음 신호 | 올해의 장면 |` `| --- | --- |` 가 그대로
+   * 보였다(한 리포트에 표 줄 55개, 2026-09-18). 이미 저장된 해석도 다시 만들지 않고 제대로
+   * 보이게 하려면 화면에서 옮기는 쪽이 맞다.
+   *
+   * 안전 규칙: **이스케이프를 먼저 하고** 그 결과 위에 서식 태그를 붙인다. 본문의 <, & 는
+   * 글자로 남고, 우리가 만든 태그만 살아난다.
+   */
+  var richTextStyled = false;
+  function ensureRichTextStyles() {
+    if (richTextStyled || typeof document === 'undefined' || !document.head) return;
+    richTextStyled = true;
+    var style = document.createElement('style');
+    style.id = 'umsh-richtext-css';
+    style.textContent = [
+      '.reading-table-wrap{overflow-x:auto;margin:10px 0}',
+      '.reading-table{width:100%;border-collapse:collapse;font-size:.95em}',
+      '.reading-table th,.reading-table td{border:1px solid currentColor;border-color:color-mix(in srgb,currentColor 24%,transparent);padding:7px 9px;text-align:left;vertical-align:top;word-break:keep-all}',
+      '.reading-table th{font-weight:800;background:color-mix(in srgb,currentColor 8%,transparent)}',
+      '.reading-list{margin:8px 0;padding-left:1.2em}',
+      '.reading-list li{margin:4px 0}',
+      '.reading-subhead{font-weight:800;margin:10px 0 4px}',
+    ].join('');
+    document.head.appendChild(style);
+  }
+  function inlineMarkdown(escaped) {
+    return escaped
+      .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  }
+  function isTableRow(line) { return /^\|.*\|$/.test(line.trim()); }
+  function isTableDivider(line) { return /^\|[\s:|-]+\|$/.test(line.trim()) && line.indexOf('-') !== -1; }
+  function tableCells(line) {
+    return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (cell) { return cell.trim(); });
+  }
+  function cellsHtml(cells, tag) {
+    return cells.map(function (cell) { return '<' + tag + '>' + inlineMarkdown(escapeHtml(cell)) + '</' + tag + '>'; }).join('');
+  }
+  function richText(raw) {
+    ensureRichTextStyles();
+    var lines = String(raw == null ? '' : raw).split('\n');
+    var html = '';
+    var plain = [];
+    function flush() {
+      if (!plain.length) return;
+      html += '<p>' + inlineMarkdown(escapeHtml(plain.join(' '))) + '</p>';
+      plain = [];
+    }
+    for (var index = 0; index < lines.length;) {
+      var line = lines[index];
+      if (isTableRow(line)) {
+        var rows = [];
+        while (index < lines.length && isTableRow(lines[index])) {
+          if (!isTableDivider(lines[index])) rows.push(tableCells(lines[index]));
+          index += 1;
+        }
+        if (rows.length) {
+          flush();
+          var head = rows.shift();
+          html += '<div class="reading-table-wrap"><table class="reading-table"><thead><tr>' + cellsHtml(head, 'th') + '</tr></thead>'
+            + (rows.length ? '<tbody>' + rows.map(function (row) { return '<tr>' + cellsHtml(row, 'td') + '</tr>'; }).join('') + '</tbody>' : '')
+            + '</table></div>';
+        }
+        continue;
+      }
+      if (/^\s*[-*]\s+\S/.test(line)) {
+        flush();
+        var bullets = [];
+        while (index < lines.length && /^\s*[-*]\s+\S/.test(lines[index])) {
+          bullets.push(lines[index].replace(/^\s*[-*]\s+/, '')); index += 1;
+        }
+        html += '<ul class="reading-list">' + cellsHtml(bullets, 'li') + '</ul>';
+        continue;
+      }
+      if (/^\s*\d+[.)]\s+\S/.test(line)) {
+        flush();
+        var ordered = [];
+        while (index < lines.length && /^\s*\d+[.)]\s+\S/.test(lines[index])) {
+          ordered.push(lines[index].replace(/^\s*\d+[.)]\s+/, '')); index += 1;
+        }
+        html += '<ol class="reading-list">' + cellsHtml(ordered, 'li') + '</ol>';
+        continue;
+      }
+      if (/^\s*#{1,4}\s+\S/.test(line)) {
+        flush();
+        html += '<p class="reading-subhead">' + inlineMarkdown(escapeHtml(line.replace(/^\s*#{1,4}\s+/, ''))) + '</p>';
+        index += 1;
+        continue;
+      }
+      if (line.trim()) plain.push(line.trim());
+      index += 1;
+    }
+    flush();
+    return html;
+  }
   function readingBlock(kind, label, paragraphs) {
     if (!paragraphs.length) return '';
-    return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + paragraphs.map(function(paragraph){return '<p>' + escapeHtml(paragraph) + '</p>';}).join('') + '</section>';
+    return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + paragraphs.map(richText).join('') + '</section>';
   }
   function readySectionBody(section) {
     var interpretation = String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim();
@@ -212,7 +311,7 @@
       ? '<figure class="umsh-summary-figure"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
       : '';
     var body = shown.length
-      ? shown.map(function (part) { return '<p>' + escapeHtml(part) + '</p>'; }).join('')
+      ? shown.map(richText).join('')
       : longformSkeleton('전체 요약을');
     var unlock = locked
       ? '<div class="umsh-lf-locked"><p>요약의 나머지와 하이라이트는 결제 후 열립니다.</p>' +
@@ -239,9 +338,7 @@
       var paragraphs = longformParagraphs(match.text);
       var locked = !entitled && paragraphs.length > 0;
       var body = paragraphs.length
-        ? (locked
-          ? '<p>' + escapeHtml(paragraphs[0]) + '</p>'
-          : paragraphs.map(function (part) { return '<p>' + escapeHtml(part) + '</p>'; }).join(''))
+        ? (locked ? richText(paragraphs[0]) : paragraphs.map(richText).join(''))
         : longformSkeleton(labelText(item.title) + ' 항목을');
       var banner = (index === 0 && cut)
         ? '<figure class="umsh-highlight-banner"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
@@ -1292,7 +1389,7 @@
     }
     return painted;
   }
-  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,isEntitled:isEntitled,tocHref:tocHref,previewCta:previewCta,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity,allowDesignMockReading:allowDesignMockReading,markFilled:markFilled};
+  global.UMSHReportAccess={fetch:reportFetch,consume:consume,remember:remember,setOwner:setOwner,inPlace:inPlaceEnabled,renderProgress:renderProgress,ownerEpoch:function(){return ownerEpoch;},firstInsight:firstInsight,showPreview:showPreview,showReport:showReport,acceptAnalyze:acceptAnalyze,hasPaidReading:hasPaidReading,isEntitled:isEntitled,tocHref:tocHref,previewCta:previewCta,paintTeaserPreview:paintTeaserPreview,verifiedReport:function(){return authorized;},identity:identity,allowDesignMockReading:allowDesignMockReading,markFilled:markFilled,richText:richText};
   if (typeof document !== 'undefined') {
     if (global.addEventListener) {
       global.addEventListener('beforeprint', expandReportForPrint);
