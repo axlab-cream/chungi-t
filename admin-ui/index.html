@@ -67,10 +67,44 @@
       background: var(--admin-surface); border-right: 1px solid var(--admin-line);
     }
     .admin-nav-title { margin: 0 0 var(--admin-space-4); padding: 0 var(--admin-space-3); color: var(--admin-text); font-size: 16px; font-weight: 700; }
-    .admin-nav-label { margin: var(--admin-space-4) var(--admin-space-3) var(--admin-space-1); color: var(--admin-text-disabled); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+    /*
+      대분류(summary)와 소분류(a)를 크기·색·들여쓰기 세 축으로 구분한다. 대분류는 토글 —
+      `<details>` 는 JS 없이도 열고 닫히고, 자바스크립트는 선호를 localStorage 에 기억하는
+      역할만 한다(bindNavGroups). 접었을 때도 현재 페이지가 그 안에 있으면 강제로 편다 —
+      내가 보고 있는 메뉴가 접혀 사라지면 안 된다.
+
+      소분류를 감싼 `.admin-nav-links` 는 장식이 아니라 필수다 — 최근 크로미움은 `<details>`
+      의 summary 아닌 자식들을 내부 익명 박스(`::details-content`)로 한 번 더 감싼다. 그
+      익명 박스는 `<details>` 에 준 `display:flex` 를 물려받지 않아서, `<a>` 들이 인라인
+      흐름으로 남아 옆으로 늘어섰다(실측). 우리가 만든 진짜 엘리먼트로 감싸면 그 익명 박스와
+      상관없이 항상 우리가 원하는 레이아웃을 쓴다.
+    */
+    .admin-nav-group + .admin-nav-group { margin-top: var(--admin-space-2); }
+    .admin-nav-links { display: flex; flex-direction: column; gap: var(--admin-space-1); }
+    /*
+      author 규칙은 명시도와 무관하게 UA 기본 규칙(`details:not([open]) > *:not(summary)`)을
+      이긴다 — 그래서 위 flex 규칙만 있으면 접어도(open=false) 계속 보인다(실측). 접힌 상태를
+      되찾는 규칙을 직접 쓴다. 모바일에서는 아래 미디어쿼리의 `!important` 가 이 규칙보다
+      다시 이긴다 — 그쪽은 대분류 구분 없이 항상 펼쳐 보여야 한다.
+    */
+    .admin-nav-group:not([open]) .admin-nav-links { display: none; }
+    .admin-nav-group summary {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--admin-space-2);
+      list-style: none; cursor: pointer; user-select: none; border-radius: 2px;
+    }
+    .admin-nav-group summary::-webkit-details-marker { display: none; }
+    .admin-nav-group summary:hover { background: var(--admin-bg); }
+    .admin-nav-group summary::after {
+      content: ''; flex: none; width: 7px; height: 7px;
+      border-right: 1.5px solid var(--admin-text-disabled); border-bottom: 1.5px solid var(--admin-text-disabled);
+      transform: rotate(45deg); margin-right: var(--admin-space-2); transition: transform .15s ease;
+    }
+    .admin-nav-group[open] summary::after { transform: rotate(-135deg); }
+    .admin-nav-label { margin: var(--admin-space-4) 0 var(--admin-space-1); padding: 0 var(--admin-space-3); color: var(--admin-text-disabled); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+    .admin-nav-group:first-of-type .admin-nav-label { margin-top: 0; }
     .admin-nav a {
-      padding: 10px var(--admin-space-3); border-left: 2px solid transparent;
-      color: var(--admin-text-muted); text-decoration: none; border-radius: 2px;
+      padding: 9px var(--admin-space-3) 9px 22px; border-left: 2px solid transparent;
+      color: var(--admin-text-muted); text-decoration: none; border-radius: 2px; font-size: 13px;
     }
     .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
     .admin-nav a[aria-current='page'] { color: var(--admin-text); border-left-color: var(--admin-focus); background: var(--admin-bg); font-weight: 700; }
@@ -188,6 +222,13 @@
       .admin-header { margin-left: 0; padding: var(--admin-space-3) var(--admin-space-4); }
       .admin-nav { position: sticky; top: 0; width: auto; height: auto; flex-direction: row; overflow-x: auto; padding: var(--admin-space-2) var(--admin-space-4); border-right: 0; border-bottom: 1px solid var(--admin-line); }
       .admin-nav-title, .admin-nav-label { display: none; }
+      /* 좁은 화면은 가로로 쭉 늘어선 탭 한 줄이다 — 대분류 토글은 넓은 화면 전용이라 여기서는 무의미하다.
+         `.admin-nav-group` 와 `.admin-nav-links` 를 둘 다 `contents` 로 지워서 `<a>` 들이
+         `.admin-nav` 의 가로 flex 에 바로 놓이게 한다. `<details>` 는 접히면 요약 외 자식을
+         숨기는 것이 기본 동작이라(`:not([open]) > *:not(summary)`), `!important` 로 이긴다. */
+      .admin-nav-group { display: contents; margin-top: 0; }
+      .admin-nav-group summary { display: none; }
+      .admin-nav-group .admin-nav-links { display: contents !important; }
       .admin-nav a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
       .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
       main { margin-left: 0; padding: var(--admin-space-4); }
@@ -207,31 +248,47 @@
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
     <p class="admin-nav-title">운명상회<br />운영 관리자</p>
-    <p class="admin-nav-label">운영 현황</p>
-    <a href="/admin" data-admin-route="overview">개요</a>
-    <a href="/admin/search" data-admin-route="search">통합 검색</a>
-    <a href="/admin/orders" data-admin-route="orders">주문</a>
-    <a href="/admin/refunds" data-admin-route="refunds">환불</a>
-    <a href="/admin/reconciliation" data-admin-route="reconciliation">정산</a>
-    <p class="admin-nav-label">고객 · 콘텐츠</p>
-    <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
-    <a href="/admin/support" data-admin-route="support">고객 지원</a>
-    <a href="/admin/content" data-admin-route="content">콘텐츠</a>
-    <a href="/admin/services" data-admin-route="services">서비스</a>
-    <a href="/admin/media" data-admin-route="media">미디어</a>
-    <p class="admin-nav-label">AI 운영</p>
-    <a href="/admin/reports" data-admin-route="reports">리포트</a>
-    <a href="/admin/jobs" data-admin-route="jobs">작업 큐</a>
-    <a href="/admin/corpus" data-admin-route="corpus">코퍼스</a>
-    <a href="/admin/prompts" data-admin-route="prompts">프롬프트</a>
-    <a href="/admin/evaluations" data-admin-route="evaluations">평가</a>
-    <a href="/admin/releases" data-admin-route="releases">릴리스</a>
-    <p class="admin-nav-label">시스템</p>
-    <a href="/admin/analytics" data-admin-route="analytics">통계</a>
-    <a href="/admin/logs" data-admin-route="logs">로그</a>
-    <a href="/admin/incidents" data-admin-route="incidents">장애</a>
-    <a href="/admin/audit" data-admin-route="audit">감사 기록</a>
-    <a href="/admin/settings" data-admin-route="settings">설정</a>
+    <details class="admin-nav-group" data-nav-group="overview" open>
+      <summary class="admin-nav-label">운영 현황</summary>
+      <div class="admin-nav-links">
+        <a href="/admin" data-admin-route="overview">개요</a>
+        <a href="/admin/search" data-admin-route="search">통합 검색</a>
+        <a href="/admin/orders" data-admin-route="orders">주문</a>
+        <a href="/admin/refunds" data-admin-route="refunds">환불</a>
+        <a href="/admin/reconciliation" data-admin-route="reconciliation">정산</a>
+      </div>
+    </details>
+    <details class="admin-nav-group" data-nav-group="customer" open>
+      <summary class="admin-nav-label">고객 · 콘텐츠</summary>
+      <div class="admin-nav-links">
+        <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
+        <a href="/admin/support" data-admin-route="support">고객 지원</a>
+        <a href="/admin/content" data-admin-route="content">콘텐츠</a>
+        <a href="/admin/services" data-admin-route="services">서비스</a>
+        <a href="/admin/media" data-admin-route="media">미디어</a>
+      </div>
+    </details>
+    <details class="admin-nav-group" data-nav-group="ai-ops" open>
+      <summary class="admin-nav-label">AI 운영</summary>
+      <div class="admin-nav-links">
+        <a href="/admin/reports" data-admin-route="reports">리포트</a>
+        <a href="/admin/jobs" data-admin-route="jobs">작업 큐</a>
+        <a href="/admin/corpus" data-admin-route="corpus">코퍼스</a>
+        <a href="/admin/prompts" data-admin-route="prompts">프롬프트</a>
+        <a href="/admin/evaluations" data-admin-route="evaluations">평가</a>
+        <a href="/admin/releases" data-admin-route="releases">릴리스</a>
+      </div>
+    </details>
+    <details class="admin-nav-group" data-nav-group="system" open>
+      <summary class="admin-nav-label">시스템</summary>
+      <div class="admin-nav-links">
+        <a href="/admin/analytics" data-admin-route="analytics">통계</a>
+        <a href="/admin/logs" data-admin-route="logs">로그</a>
+        <a href="/admin/incidents" data-admin-route="incidents">장애</a>
+        <a href="/admin/audit" data-admin-route="audit">감사 기록</a>
+        <a href="/admin/settings" data-admin-route="settings">설정</a>
+      </div>
+    </details>
   </nav>
 
   <main data-width="narrow">
@@ -480,10 +537,33 @@
       function markCurrentRoute() {
         var route = currentAdminRoute();
         document.querySelectorAll('[data-admin-route]').forEach(function (link) {
-          if (link.getAttribute('data-admin-route') === route.key) link.setAttribute('aria-current', 'page');
-          else link.removeAttribute('aria-current');
+          if (link.getAttribute('data-admin-route') === route.key) {
+            link.setAttribute('aria-current', 'page');
+            // 지금 보고 있는 메뉴는 그 대분류를 접어 뒀어도 강제로 편다 — 현재 위치가
+            // 접힌 메뉴 안에 숨어 사라지면 안 된다.
+            var group = link.closest('.admin-nav-group');
+            if (group) group.open = true;
+          } else {
+            link.removeAttribute('aria-current');
+          }
         });
         return route;
+      }
+
+      /**
+       * 대분류(`<details>`)는 열고 닫히는 것 자체는 브라우저 기본 동작이라 JS 없이도 된다.
+       * 여기서는 그 선택을 기억만 한다 — 새로고침해도 접어 둔 메뉴가 다시 펴지지 않게.
+       * localStorage 가 막혀 있어도(사생활 보호 모드 등) 토글 자체는 그대로 동작해야 하므로
+       * 읽기·쓰기 모두 던지지 않는다.
+       */
+      function bindNavGroups() {
+        document.querySelectorAll('.admin-nav-group[data-nav-group]').forEach(function (group) {
+          var key = 'umsh-admin-nav-collapsed:' + group.getAttribute('data-nav-group');
+          try { if (localStorage.getItem(key) === '1') group.open = false; } catch (_error) { /* 무시 */ }
+          group.addEventListener('toggle', function () {
+            try { localStorage.setItem(key, group.open ? '0' : '1'); } catch (_error) { /* 무시 */ }
+          });
+        });
       }
 
       function addLiveTable(body, title, columns, items, toCells, emptyText) {
@@ -1174,6 +1254,7 @@
         bindLogin();
         bindPasswordRecovery();
         bindSignOut();
+        bindNavGroups();
         var config;
         try {
           config = await adminAuthConfig();
