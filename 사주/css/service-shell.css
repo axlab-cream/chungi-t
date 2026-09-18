@@ -1,4 +1,4 @@
-.umsh-service-shell,
+﻿.umsh-service-shell,
 .umsh-service-bottom,
 .umsh-service-toast {
   --shell-width: var(--umsh-page-width, 430px);
@@ -270,6 +270,28 @@ body.has-umsh-service-shell .cta-dock {
   cursor: pointer;
   font-size: 17px;
   line-height: 1;
+}
+
+/*
+ * 2026-09-18: 두 동그란 버튼이 38px 이라 손가락 최소 크기(44px)에 못 미쳤다. 다만 38px 원은
+ * 디자인이고 19개 서비스 화면이 같은 상단바를 쓰므로, 보이는 크기는 건드리지 않고 **닿는 넓이만**
+ * 44px 로 넓힌다. 겹쳐 놓는 판은 흐름 밖(absolute)이라 아이콘 위치도 상단바 높이도 바뀌지 않는다.
+ */
+.umsh-service-shell .app-back,
+.umsh-service-shell .topbar-vault-button {
+  position: relative;
+}
+
+.umsh-service-shell .app-back::after,
+.umsh-service-shell .topbar-vault-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
 }
 
 .umsh-service-shell .topbar-vault-button:hover,
@@ -566,7 +588,9 @@ body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
   word-break: keep-all;
 }
 
+/* 닫기 칩도 같은 방식. 알약 모양은 그대로 두고 닿는 넓이만 44px 로 넓힌다(아래 ::after). */
 .umsh-service-bottom .bottom-menu-close {
+  position: relative;
   flex: 0 0 auto;
   min-width: 48px;
   height: 32px;
@@ -578,6 +602,16 @@ body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
   cursor: pointer;
   font-size: 10px;
   font-weight: 900;
+}
+
+.umsh-service-bottom .bottom-menu-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 44px;
+  transform: translateY(-50%);
 }
 
 .umsh-service-bottom .bottom-menu-list {
