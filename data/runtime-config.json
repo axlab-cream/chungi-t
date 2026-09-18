@@ -15,10 +15,10 @@
     "requiresSaju": true,
     "maxHistoryTurns": 10,
     "ragTopK": 7,
-    "maxTokens": 1800
+    "maxTokens": 4000
   },
   "report": {
-    "model": "gpt-5.5",
+    "model": "gpt-5.6-luna",
     "ragTopK": 7,
     "sectionMaxTokens": 9000,
     "maxTokens": 24000

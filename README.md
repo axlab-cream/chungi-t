@@ -145,7 +145,7 @@ Production, Preview, Development 기준으로 등록합니다.
 | 변수 | 설명 |
 |------|------|
 | `OPENAI_API_KEY` | OpenAI API 키 |
-| `OPENAI_MODEL` | (선택) 기본 `gpt-4o-mini` |
+| `OPENAI_MODEL` | (선택) 기본 `gpt-5.6-luna` — 2026-09-18부터 모든 생성은 이 한 모델로 간다 |
 | `SUPABASE_URL` | Supabase API URL |
 | `SUPABASE_PROJECT_REF` | Supabase project ref |
 | `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |

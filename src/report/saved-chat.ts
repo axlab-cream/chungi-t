@@ -159,7 +159,7 @@ async function resolveRecord(params: SavedChatParams): Promise<ReportRecord> {
     ...baseContext, serviceKey,
     savedChat: {
       version: 1, requestId, parentReportId: parent?.reportId, message, history, messages,
-      intent: prepared.intent, model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+      intent: prepared.intent, model: process.env.OPENAI_MODEL ?? 'gpt-5.6-luna',
       maxTokens: runtimeConfig.conversation?.maxTokens ?? 1800,
     },
   }

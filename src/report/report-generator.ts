@@ -66,7 +66,13 @@ function reportVoiceSystemPrompt(context: SajuReportContext): string {
   const key = normalizeServiceKey(context.serviceKey)
   return `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}`
 }
-const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? 'gpt-5.5'
+/*
+ * 2026-09-18 결정: 모든 생성은 gpt-5.6-luna 하나로 간다. gpt-5.5 는 호출당 약 $0.19(입력 22.8K·출력 2.4K)
+ * 였고 결혼궁합 1차 실패율 87% 와 겹쳐 리포트 하나에 수만 원이 나갔다. luna 는 같은 GPT-5 계열이면서
+ * 입력 $0.20/1M·캐시 $0.02/1M·출력 $1.20/1M 으로 25배 이상 싸다. 다른 모델 기본값을 다시 두지 않는다.
+ */
+export const SINGLE_MODEL_POLICY = 'gpt-5.6-luna'
+const REPORT_MODEL = process.env.REPORT_OPENAI_MODEL ?? runtimeConfig.report?.model ?? SINGLE_MODEL_POLICY
 const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'

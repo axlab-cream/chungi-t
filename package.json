@@ -27,7 +27,8 @@
     "check:polish": "node scripts/check-flow-polish.mjs",
     "check:prompt-guide": "node scripts/check-prompt-guide.mjs",
     "check:service-contracts": "tsx scripts/check-service-contracts.ts",
-    "qa:all-services": "tsx scripts/qa-all-services.ts"
+    "qa:all-services": "tsx scripts/qa-all-services.ts",
+    "eval:model": "tsx scripts/model-eval-live.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

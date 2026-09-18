@@ -90,7 +90,8 @@ export async function chatWithOpenAI(
   options: OpenAiChatOptions = {},
 ): Promise<string> {
   const openai = getClient()
-  const model = options.model ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini'
+  // 2026-09-18: 모든 호출의 기본 모델은 gpt-5.6-luna 하나다(report-generator 의 SINGLE_MODEL_POLICY 와 같은 값).
+  const model = options.model ?? process.env.OPENAI_MODEL ?? 'gpt-5.6-luna'
   const request: Record<string, unknown> = {
     model,
     messages,
