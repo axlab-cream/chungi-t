@@ -1,4 +1,4 @@
-import { opsBase, opsHeaders, opsStoreAvailable } from './ops-queue.js'
+import { isGenerationPaused, opsBase, opsHeaders, opsStoreAvailable } from './ops-queue.js'
 import { PROVIDER_OUTAGE_CODES, REPORT_COMPLETION_JOB_KIND, REPORT_JOB_CODES, runReportCompletionJob } from '../report/report-completion-job.js'
 const base = opsStoreAvailable() ? opsBase() : undefined
 const headers = opsHeaders
@@ -128,12 +128,16 @@ export interface OpsWorkerOutcome {
   succeeded: number
   /** 집었지만 차선이 없어 순번·시도 횟수를 그대로 되돌린 작업 수. */
   released: number
+  /** 운영자가 생성을 멈춰 두어 아무것도 집지 않았다. */
+  paused?: boolean
   /** 한 실행이 동시에 다룰 수 있는 작업 수. 이보다 적게 집었으면 큐에 여유가 있었다는 뜻이다. */
   capacity: number
 }
 
 export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
   if (!base) throw new Error('OPS_STORE_UNAVAILABLE')
+  // 운영자가 멈춰 두었으면 집지 않는다. 집은 뒤 멈추면 attempts 만 오르고 lease 만 묶인다.
+  if (await isGenerationPaused()) return { claimed: 0, retried: 0, dead: 0, succeeded: 0, released: 0, capacity: WORKER_CONCURRENCY, paused: true }
   /*
    * 차선 수만큼만 집는다.
    *

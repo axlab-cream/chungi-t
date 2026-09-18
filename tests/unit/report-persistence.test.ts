@@ -237,7 +237,8 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     // 재작성 지시문이 1차 지시문과 갈라져 있어서 모든 서비스가 1차에서 같은 항목으로 떨어졌다.
     // 이제 두 지시문이 `SECTION_CLOSING_RULES` 를 공유하므로, 마지막 단락 규칙은 그 문구로 본다.
     assert.match(repairMessage, /마지막 의미 단락은 2~4개의 완성 문장으로 쓰고.*시간 표지와 확인 대상과 행동 서술어를 함께/)
-    assert.match(repairMessage, /다음에는·앞으로·이후·먼저·오늘 가운데 하나와.*목적어와.*기록·비교·확인·유지 가운데 하나의 서술어/)
+    // 2026-09-18: 서술어 목록을 관계·결혼·돈 상담의 자연스러운 동사까지 넓혔다(게이트와 같은 사전).
+    assert.match(repairMessage, /다음에는·앞으로·이후·먼저·오늘 가운데 하나와.*목적어\(…을\/를\)와.*기록·비교·확인·유지·점검·정리·상의·맞춰 보기·나눠 보기·물어보기·체크 가운데 하나의 서술어/)
     assert.match(repairMessage, /아래 네 가지는 한 응답 안에 모두 있어야.*하나를 고치면서 나머지를 빼지/)
     assert.match(repairMessage, /직접 답.*사용자 사실과 검증된 계산.*전통적 상징/)
     assert.match(repairMessage, /실제 경험이 아니면.*예를 들어.*장소 또는 도구.*관찰 행동/)

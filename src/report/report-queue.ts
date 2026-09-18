@@ -8,6 +8,7 @@ import { loadHighlightTopics } from './longform-blocks.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
 import { assertReportOwner, getReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
 import { getCorpusSnapshot, isCorpusSnapshotUsable } from '../rag/corpus-registry.js'
+import { isGenerationPaused } from '../admin/ops-queue.js'
 
 interface GenerationParams {
   reportId: string
@@ -265,6 +266,8 @@ export async function ensureReportLongform(params: { reportId: string; owner?: R
       if (!record) return null
       assertReportOwner(record, params.owner)
       if (!isOpenAiConfigured()) return record
+      // 운영자가 멈춰 두었으면 모델을 부르지 않는다. 화면은 빈자리를 그대로 두고 폴링한다.
+      if (await isGenerationPaused()) return record
       const analysis = record.analysis ?? analyzeSaju(record.birth)
       /*
        * 서비스 키는 화면이 쓰는 것과 같은 순서로 찾는다. 천명사주 레코드에는 `context.serviceKey`
@@ -344,6 +347,16 @@ export function startReportLongform(params: { reportId: string; owner?: ReportOw
 
 /** Complete interpretations are immutable; pending work has a persisted cross-instance lease. */
 export async function generateReportSectionNow(params: GenerationParams & { sectionId: string; retry?: boolean }): Promise<SajuReportSection> {
+  /*
+   * 운영자가 생성을 멈춰 두었으면 리스도 잡지 않고 시도 기록도 남기지 않는다. 항목은 pending 그대로,
+   * 화면은 "준비 중"을 보이며 폴링한다. 해제되면 다음 호출이 그 자리에서 이어간다.
+   */
+  if (await isGenerationPaused()) {
+    const paused = await getReportRecord(params.reportId, params.owner)
+    const section = paused?.report.sections.find((item) => item.id === params.sectionId)
+    if (!section) throw new Error('리포트 섹션을 찾지 못했습니다.')
+    return section
+  }
   const leaseId = randomUUID()
   let claimed = false
   const record = await mutateReportRecord(params.reportId, params.owner, (current) => {

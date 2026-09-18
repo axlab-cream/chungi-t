@@ -45,7 +45,7 @@ import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, lis
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { checkOpsQueueReadiness, deleteOpsJobsForTarget } from '../admin/ops-queue.js'
+import { checkOpsQueueReadiness, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
@@ -2152,6 +2152,34 @@ app.get('/api/admin/v1/jobs', async (req, res) => {
  * **한 건씩** 다시 넣는다. running 은 지우지 않는다. 감사 명령을 거치므로 누가 누구 것을
  * 지웠는지 남는다.
  */
+/**
+ * 생성 일시정지. 켜면 워커는 집지 않고 화면이 부르는 항목 생성도 모델을 부르지 않는다.
+ * 2026-09-18 게이트 오탐으로 호출의 87% 가 실패하며 토큰을 태울 때 멈출 수단이 없어 만들었다.
+ */
+app.get('/api/admin/v1/jobs/pause', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  res.json({ paused: await isGenerationPaused(), asOf: new Date().toISOString() })
+})
+app.post('/api/admin/v1/jobs/pause', async (req, res) => {
+  const membership = await requireStaff(req, res, 'settings:write'); if (!membership) return
+  const body = asObject(req.body)
+  const idempotencyKey = adminCommandKey(req)
+  if (typeof body.paused !== 'boolean' || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_PAUSE_INPUT', error: 'paused(true/false)와 멱등 키를 확인해 주세요.' }); return }
+  const paused = body.paused
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: paused ? 'ops.generation.pause' : 'ops.generation.resume', idempotencyKey,
+      body: { paused }, target: { type: 'ops_jobs', id: 'report-generation' },
+    }, async () => {
+      const ok = await setGenerationPaused(paused, membership.email)
+      if (!ok) throw new Error('OPS_PAUSE_FAILED')
+      return { paused }
+    })
+    res.json({ ...command.result, replayed: command.replayed })
+  } catch (error) {
+    res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'OPS_PAUSE_FAILED', error: '생성 일시정지 상태를 바꾸지 못했습니다.' })
+  }
+})
 app.post('/api/admin/v1/jobs/purge', async (req, res) => {
   const membership = await requireStaff(req, res, 'settings:write'); if (!membership) return
   const body = asObject(req.body)

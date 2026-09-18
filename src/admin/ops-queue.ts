@@ -116,6 +116,62 @@ export async function deleteOpsJobsForTarget(targetId: string): Promise<number> 
   }
 }
 
+/**
+ * 생성 일시정지 스위치.
+ *
+ * 2026-09-18: 게이트 어휘 불일치로 결혼궁합 호출의 87% 가 실패하며 토큰만 태우는 것을 보고도
+ * 멈출 수단이 없었다 — cron 은 매분 돌고, 고객이 페이지를 열어도 생성이 시작된다. 스키마를
+ * 바꾸지 않고 작업 표에 표지 행 하나를 둔다. kind 가 다르고 상태가 `dead` 라 claim 이 집지 않고
+ * sweep 도 보지 않는다. 켜져 있으면 워커는 집지 않고, 화면이 부르는 항목 생성도 모델을 부르지 않는다.
+ */
+export const OPS_PAUSE_KIND = 'ops.pause'
+const OPS_PAUSE_KEY = 'ops.pause:report-generation'
+const PAUSE_CACHE_MS = 15_000
+let pauseCache: { at: number; paused: boolean } | null = null
+
+export async function isGenerationPaused(): Promise<boolean> {
+  if (!opsStoreAvailable()) return false
+  if (pauseCache && Date.now() - pauseCache.at < PAUSE_CACHE_MS) return pauseCache.paused
+  try {
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('idempotency_key', `eq.${OPS_PAUSE_KEY}`)
+    url.searchParams.set('select', 'state')
+    const response = await fetch(url, { headers: opsHeaders() })
+    if (!response.ok) return false
+    const rows = await response.json() as Array<{ state?: string }>
+    const paused = rows.some((row) => row.state === 'dead')
+    pauseCache = { at: Date.now(), paused }
+    return paused
+  } catch { return false }
+}
+
+/** 테스트용. 캐시를 비운다. */
+export function resetGenerationPauseCache(): void { pauseCache = null }
+
+/** 표지 행을 만들거나 상태를 바꾼다. `dead` = 정지, `succeeded` = 해제. 던지지 않고 성공 여부를 돌려준다. */
+export async function setGenerationPaused(paused: boolean, actorEmail: string): Promise<boolean> {
+  if (!opsStoreAvailable()) return false
+  const state = paused ? 'dead' : 'succeeded'
+  const now = new Date().toISOString()
+  try {
+    const response = await fetch(`${opsBase()}/rest/v1/ops_jobs?on_conflict=idempotency_key`, {
+      method: 'POST',
+      headers: { ...opsHeaders(), prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        kind: OPS_PAUSE_KIND, target_id: 'report-generation', idempotency_key: OPS_PAUSE_KEY,
+        state, attempts: 0, max_attempts: 1, lease_until: null,
+        // claim 은 queued·retry 만 집지만, 혹시라도 집히지 않게 실행 시각을 먼 미래로 둔다.
+        next_run_at: '2099-01-01T00:00:00.000Z',
+        last_error: paused ? 'GENERATION_PAUSED' : null,
+        payload: { by: actorEmail, at: now }, updated_at: now,
+      }),
+    })
+    if (!response.ok) return false
+    pauseCache = { at: Date.now(), paused }
+    return true
+  } catch { return false }
+}
+
 export interface OpsJobRef {
   id: string
   kind: string
@@ -224,6 +280,8 @@ export interface OpsQueueReadiness {
   quotaExhausted?: boolean
   /** 최근 작업에 키 거절(401/403) 코드가 남아 있다. 환경변수의 키를 고치고 재배포해야 한다. */
   keyRejected?: boolean
+  /** 운영자가 생성을 일시정지해 두었다. 워커도 화면도 모델을 부르지 않는다. */
+  generationPaused?: boolean
   errorCode?: string
 }
 
@@ -258,6 +316,7 @@ async function summarizeOpsJobs(): Promise<Pick<OpsQueueReadiness, 'states' | 'r
   try {
     const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
     url.searchParams.set('select', 'state,last_error')
+    url.searchParams.set('kind', `neq.${OPS_PAUSE_KIND}`)
     url.searchParams.set('order', 'updated_at.desc')
     url.searchParams.set('limit', '100')
     const response = await fetch(url, { headers: opsHeaders() })
@@ -318,12 +377,14 @@ export async function checkOpsQueueReadiness(): Promise<OpsQueueReadiness> {
   } catch { claimRpc = 'error' }
 
   const ok = table === 'ready' && claimRpc === 'ready'
-  const [summary, waiting] = table === 'ready' ? await Promise.all([summarizeOpsJobs(), measureWaitingJobs()]) : [{}, {}]
+  const [summary, waiting, generationPaused] = table === 'ready'
+    ? await Promise.all([summarizeOpsJobs(), measureWaitingJobs(), isGenerationPaused()])
+    : [{}, {}, false]
   const quotaExhausted = Boolean(summary.recentErrors?.OPENAI_QUOTA_EXHAUSTED)
   const keyRejected = Boolean(summary.recentErrors?.OPENAI_KEY_REJECTED)
   return {
     ok, configured: true, table, claimRpc, queued, ...summary, ...waiting,
-    ...(quotaExhausted ? { quotaExhausted } : {}), ...(keyRejected ? { keyRejected } : {}),
+    ...(quotaExhausted ? { quotaExhausted } : {}), ...(keyRejected ? { keyRejected } : {}), ...(generationPaused ? { generationPaused } : {}),
     ...(ok ? {} : { errorCode: table !== 'ready' ? `OPS_TABLE_${String(table).toUpperCase()}` : `OPS_RPC_${String(claimRpc).toUpperCase()}` }),
   }
 }

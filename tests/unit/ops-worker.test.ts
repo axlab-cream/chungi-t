@@ -16,6 +16,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   return new Response(null, { status: 204 })
 }) as typeof fetch
 const worker = await import('../../src/admin/ops-worker.js')
+const queue = await import('../../src/admin/ops-queue.js')
 after(() => { globalThis.fetch = nativeFetch; for (const key of Object.keys(process.env)) if (!(key in previousEnv)) delete process.env[key]; Object.assign(process.env, previousEnv) })
 
 describe('영속 작업 worker', { concurrency: false }, () => {
@@ -131,6 +132,67 @@ describe('마감 계획(planFinalize)', () => {
     const other = worker.planFinalize({ ...job(3), kind: 'outbox.deliver' }, { finished: false, error: 'NO_OPS_HANDLER' }, now)
     assert.equal(other.body.next_run_at, new Date(now + 8 * 60_000).toISOString())
     assert.equal(worker.planFinalize(job(5), { finished: false, error: 'REPORT_SECTION_FAILED' }, now).state, 'dead')
+  })
+})
+
+/**
+ * 2026-09-18: 게이트 오탐으로 호출의 87% 가 실패하며 토큰을 태울 때 멈출 수단이 없었다.
+ * 표지 행(kind ops.pause, state dead)이 있으면 워커는 집지도 않는다 — 집은 뒤 멈추면 attempts 만 오른다.
+ */
+describe('생성 일시정지', { concurrency: false }, () => {
+  it('정지 표지가 있으면 claim 을 부르지 않고 paused 로 돌아온다', async () => {
+    calls.length = 0
+    queue.resetGenerationPauseCache()
+    const original = globalThis.fetch
+    globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
+      calls.push({ url, init })
+      if (url.pathname.endsWith('/ops_jobs') && url.searchParams.get('idempotency_key') === 'eq.ops.pause:report-generation') return Response.json([{ state: 'dead' }])
+      if (url.pathname.endsWith('/rpc/claim_ops_jobs')) return Response.json([{ id: 'j', kind: 'report.sections.complete', target_id: 'r', attempts: 0, max_attempts: 5 }])
+      return new Response(null, { status: 204 })
+    }) as typeof fetch
+    try {
+      const result = await worker.runOpsWorker()
+      assert.equal(result.paused, true)
+      assert.equal(result.claimed, 0)
+      assert.equal(calls.some((call) => call.url.pathname.endsWith('/rpc/claim_ops_jobs')), false, '정지 중에는 집지 않는다')
+    } finally { globalThis.fetch = original; queue.resetGenerationPauseCache() }
+  })
+
+  it('표지가 succeeded 로 바뀌면 해제된 것이다', async () => {
+    queue.resetGenerationPauseCache()
+    const original = globalThis.fetch
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
+      if (url.searchParams.get('idempotency_key') === 'eq.ops.pause:report-generation') return Response.json([{ state: 'succeeded' }])
+      return new Response(null, { status: 204 })
+    }) as typeof fetch
+    try { assert.equal(await queue.isGenerationPaused(), false) }
+    finally { globalThis.fetch = original; queue.resetGenerationPauseCache() }
+  })
+
+  it('setGenerationPaused 는 표지 행을 병합 저장하고 claim 이 집지 않는 상태·시각으로 둔다', async () => {
+    const posts: Array<Record<string, unknown>> = []
+    const original = globalThis.fetch
+    globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
+      if (url.pathname.endsWith('/ops_jobs') && init?.method === 'POST') { posts.push({ conflict: url.searchParams.get('on_conflict'), prefer: (init.headers as Record<string, string>).prefer, body: JSON.parse(String(init.body)) }); return new Response(null, { status: 201 }) }
+      return new Response(null, { status: 204 })
+    }) as typeof fetch
+    try {
+      assert.equal(await queue.setGenerationPaused(true, 'ops@example.com'), true)
+      const body = posts[0].body as Record<string, unknown>
+      assert.equal(posts[0].conflict, 'idempotency_key')
+      assert.match(String(posts[0].prefer), /merge-duplicates/)
+      assert.equal(body.kind, 'ops.pause')
+      assert.equal(body.state, 'dead', 'dead 는 claim 이 집지 않는다')
+      assert.equal(body.next_run_at, '2099-01-01T00:00:00.000Z')
+      assert.equal(body.last_error, 'GENERATION_PAUSED')
+      assert.equal(await queue.isGenerationPaused(), true, '방금 켠 값은 캐시로 바로 보인다')
+      assert.equal(await queue.setGenerationPaused(false, 'ops@example.com'), true)
+      assert.equal((posts[1].body as Record<string, unknown>).state, 'succeeded')
+      assert.equal(await queue.isGenerationPaused(), false)
+    } finally { globalThis.fetch = original; queue.resetGenerationPauseCache() }
   })
 })
 
