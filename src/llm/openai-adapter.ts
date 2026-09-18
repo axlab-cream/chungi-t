@@ -44,8 +44,21 @@ export class OpenAiTruncatedError extends Error {
  * 못한 경우다). openai SDK 가 던지는 예외 그대로를 검사하며, 콘텐츠 검수 오류는 여기
  * 오지 않는다(그건 응답을 받은 뒤 우리 코드가 던지는 InterpretationQualityError다).
  */
+/**
+ * 429 중에서도 잔액 소진(insufficient_quota)은 몇 초 뒤에 풀리는 문제가 아니다. 충전 전까지는
+ * 같은 답만 돌아온다. 이것을 일시 장애로 보고 1·2·4초 뒤 다시 보내면 한 항목에 네 번, 큐가
+ * 매 분 다시 태우니 시간당 수백 번 헛호출이 나간다(2026-09-18 고양이 궁합 80/80 이 전부 이 한
+ * 문구였다). 잔액 소진은 즉시 실패로 남겨 큐의 긴 백오프로 물러나게 한다.
+ */
+export function isOpenAiQuotaExhausted(error: unknown): boolean {
+  if (!(error instanceof APIError) || error.status !== 429) return false
+  const code = String((error as { code?: unknown }).code ?? '')
+  return code === 'insufficient_quota' || /no credits remaining|insufficient_quota|exceeded your current quota/i.test(error.message ?? '')
+}
+
 export function isTransientOpenAiFailure(error: unknown): error is APIError {
   if (!(error instanceof APIError)) return false
+  if (isOpenAiQuotaExhausted(error)) return false
   if (error.status === 429) return true
   if (typeof error.status === 'number' && error.status >= 500) return true
   return error instanceof APIConnectionError || error instanceof APIConnectionTimeoutError

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import OpenAI, { RateLimitError } from 'openai'
 import { randomUUID } from 'node:crypto'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
-import { isTransientOpenAiFailure } from '../../src/llm/openai-adapter.js'
+import { isOpenAiQuotaExhausted, isTransientOpenAiFailure } from '../../src/llm/openai-adapter.js'
 import { generateReportSectionNow } from '../../src/report/report-queue.js'
 import { createOrGetReportRecord, mutateReportRecord } from '../../src/report/report-store.js'
 import { loadHighlightTopics } from '../../src/report/longform-blocks.js'
@@ -49,6 +49,25 @@ describe('429·5xx 로 요청 자체가 거절되면 같은 실행 안에서 재
     assert.equal(isTransientOpenAiFailure(rateLimitError()), true)
     assert.equal(isTransientOpenAiFailure(new Error('일반 오류')), false)
     assert.equal(isTransientOpenAiFailure(undefined), false)
+  })
+
+  it('잔액 소진 429 는 일시 장애가 아니다 — 같은 실행 안에서 다시 보내지 않는다', async () => {
+    // 2026-09-18: 고양이 궁합 20항목 80시도가 전부 "You have no credits remaining" 이었다.
+    // 초 단위 재시도는 헛호출만 늘린다. 즉시 실패로 남기고 큐의 긴 백오프로 물러난다.
+    const quota = new RateLimitError(429, { message: 'You have no credits remaining.', code: 'insufficient_quota' }, '429 You have no credits remaining. Add credits to continue using the API.', {})
+    assert.equal(isOpenAiQuotaExhausted(quota), true)
+    assert.equal(isTransientOpenAiFailure(quota), false)
+    assert.equal(isOpenAiQuotaExhausted(rateLimitError()), false, '분당 한도는 잔액 소진이 아니다')
+
+    const reportId = randomUUID()
+    await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(['one']), owner })
+    await seedLongformBlocks(reportId)
+    let calls = 0
+    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; throw quota }) as unknown as typeof sdkCreate
+    const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner })
+    assert.equal(calls, 1, '잔액 소진인데 같은 실행 안에서 다시 보냈다')
+    assert.equal(result.status, 'failed')
+    assert.ok(result.attempts?.some((attempt) => attempt.error?.includes('잔액이 소진')), `진단에 잔액 소진이 없다: ${result.attempts?.map((a) => a.error).join(' | ')}`)
   })
 
   it('실제 생성 경로: 429 가 두 번 이어져도 같은 실행 안에서 재시도해 완료한다', async () => {

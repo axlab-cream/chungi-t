@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportHighlight, SajuReportSection } from '../types/index.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { OpenAiTruncatedError, isOpenAiConfigured, isTransientOpenAiFailure } from '../llm/openai-adapter.js'
+import { OpenAiTruncatedError, isOpenAiConfigured, isOpenAiQuotaExhausted, isTransientOpenAiFailure } from '../llm/openai-adapter.js'
 import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { loadHighlightTopics } from './longform-blocks.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
@@ -407,8 +407,11 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
           : transient
             // 429 는 분당 한도(rate limit)와 잔액 소진(insufficient_quota)이 같은 코드다. 문구로 갈라 봐야 한다.
             ? `요청이 일시적으로 거절되었습니다(status=${error.status ?? '없음'}): ${String(error.message ?? '').slice(0, 140)}`
-            // 원인을 함께 남긴다. 뭉뚱그린 한 줄만 남아 스냅샷 불일치를 사흘 동안 못 봤다(2026-09-18).
-            : `해석 생성 또는 저장이 완료되지 않았습니다. (${error instanceof Error ? `${error.name}: ${error.message}` : String(error)})`.slice(0, 240)
+            : isOpenAiQuotaExhausted(error)
+              // 운영자가 한눈에 알아보는 문구로. 충전 전까지 재시도해도 같은 답이다.
+              ? 'OpenAI 잔액이 소진되어 생성할 수 없습니다. 크레딧을 충전하면 큐가 이어서 완성합니다.'
+              // 원인을 함께 남긴다. 뭉뚱그린 한 줄만 남아 스냅샷 불일치를 사흘 동안 못 봤다(2026-09-18).
+              : `해석 생성 또는 저장이 완료되지 않았습니다. (${error instanceof Error ? `${error.name}: ${error.message}` : String(error)})`.slice(0, 240)
       const retryable = (error instanceof InterpretationQualityError || truncated || transient) && index < SECTION_ATTEMPT_LIMIT - 1
       // 429·5xx 는 곧바로 다시 보내면 같은 이유로 또 걸리기 쉽다. 짧게 물러선다
       // (1초·2초·4초) — 리포트 전체를 막는 것도 아니고 워커 예산(200초)에 비해 미미하다.
