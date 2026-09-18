@@ -36,7 +36,9 @@ test('love signal service builds a dedicated relationship signal report', () => 
   const report = buildLoveSignalReport(analysis, partnerAnalysis, birth, context, input, reportId)
 
   assert.equal(report.reportId, reportId)
-  assert.equal(report.title, '관계 신호 해석문')
+  // 2026-09-18: 서비스 이름표를 고객이 보는 문구로 통일했다. 화면 제목·결제 카탈로그·해석 계약이
+  // 모두 '내 애인 바람필까?' 를 쓰고, 해석문 제목도 같은 이름을 따른다.
+  assert.equal(report.title, '내 애인 바람필까? 해석문')
   // 2026-09-17 목차 축소: 10대분류·70중분류 → 10대분류·21중분류(대분류당 2~3개).
   assert.equal(report.sections.length, 21)
   assert.equal(new Set(report.sections.map((section) => section.category)).size, 10)

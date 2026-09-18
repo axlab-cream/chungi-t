@@ -150,7 +150,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
   },
   couple_signal: {
     key: 'couple_signal',
-    title: '관계 신호',
+    title: '내 애인 바람필까?',
     eyebrow: 'SECRET · 연애',
     amount: 19900,
     // Step 04 is where the paid request resumes, so the PG returns straight to it.

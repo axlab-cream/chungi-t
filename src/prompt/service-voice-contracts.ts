@@ -210,7 +210,7 @@ export const SERVICE_VOICE_CONTRACTS: Record<KnownServiceKey, ServiceVoiceContra
   },
   couple_signal: {
     serviceKey: 'couple_signal',
-    serviceTitle: '관계 신호',
+    serviceTitle: '내 애인 바람필까?',
     promise: '헷갈리는 연락과 태도를 내 감정과 실제 행동으로 나눠 읽는다.',
     userQuestion: '이 관계, 계속 봐도 되는 신호일까?',
     emotionalState: '상대 반응 하나에 마음이 크게 흔들리는 상태',
