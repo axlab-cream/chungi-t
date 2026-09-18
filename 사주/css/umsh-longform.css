@@ -260,6 +260,10 @@
 /* ── 상태 ───────────────────────────────────────────────
  * 생성 실패는 블록을 숨긴다. 본문 진입을 막지 않는다.
  */
+/*
+ * 준비 중 자리. 예전에는 글자만 있어서 멈춘 화면으로 오해했다(2026-09-18). 빛이 한 번씩
+ * 지나가고 제목 앞의 점이 돌아, 지금 만들고 있다는 것이 눈에 보이게 한다.
+ */
 .umsh-lf-skeleton {
   display: grid;
   gap: 8px;
@@ -269,10 +273,46 @@
   color: var(--umsh-lf-muted);
   font-size: 13px;
   line-height: 1.7;
+  position: relative;
+  overflow: hidden;
+}
+.umsh-lf-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--umsh-lf-accent) 16%, transparent) 50%, transparent 80%);
+  transform: translateX(-100%);
+  animation: umsh-lf-shimmer 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes umsh-lf-shimmer {
+  to { transform: translateX(100%); }
 }
 .umsh-lf-skeleton strong {
   color: var(--umsh-lf-ink);
   font-size: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+/* 제목 앞에서 도는 점. 진행 중이라는 가장 작은 신호다. */
+.umsh-lf-skeleton strong::before {
+  content: '';
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--umsh-lf-accent) 40%, transparent);
+  border-top-color: var(--umsh-lf-accent);
+  animation: umsh-lf-spin 900ms linear infinite;
+}
+@keyframes umsh-lf-spin {
+  to { transform: rotate(360deg); }
+}
+/* 움직임을 줄인 기기에서는 돌지 않되, 진행 중이라는 표시는 남긴다. */
+@media (prefers-reduced-motion: reduce) {
+  .umsh-lf-skeleton::after { animation: none; opacity: 0; }
+  .umsh-lf-skeleton strong::before { animation: none; border-top-color: var(--umsh-lf-accent); }
 }
 .umsh-lf-locked {
   display: grid;

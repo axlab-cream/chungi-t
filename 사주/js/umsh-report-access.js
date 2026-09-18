@@ -244,14 +244,14 @@
     var link = document.createElement('link');
     link.id = 'umsh-longform-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-longform.css?v=lf-20260918b';
+    link.href = '/css/umsh-longform.css?v=lf-20260918c';
     document.head.appendChild(link);
   }
 
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260918b', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260918c', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -568,7 +568,34 @@
     return insertBelowChrome(host, node);
   }
 
+  /**
+   * 해석 슬롯을 히어로 이미지 아래로 내린다.
+   *
+   * 퇴사운·이직운·커플궁합 06 화면은 슬롯이 히어로보다 **앞**에 있었다. 그래서 고객은 표지
+   * 이미지와 제목을 보기도 전에 본문부터 만나고, 정작 이미지는 본문 수천 픽셀 아래에 홀로
+   * 남았다 — 화면이 깨진 것처럼 보인다(2026-09-18). 페이지마다 마크업이 달라 26개를 손으로
+   * 고치는 대신, 히어로가 뒤에 있는 경우에만 슬롯을 히어로 바로 아래로 옮긴다. 옮기는 자리는
+   * 히어로의 부모라서 그 화면이 원래 쓰던 레이아웃 안으로 들어간다.
+   */
+  var slotsPlaced = false;
+  function placeSlotsUnderHero() {
+    if (slotsPlaced || !document.querySelector) return;
+    var hero = document.querySelector('[data-umsh-hero], .hero');
+    if (!hero || !hero.parentNode) return;
+    var slots = ['progress', 'state', 'sections']
+      .map(function (name) { return document.querySelector('[data-umsh-slot="' + name + '"]'); })
+      .filter(Boolean);
+    if (!slots.length || !hero.compareDocumentPosition) return;
+    slotsPlaced = true;
+    // 4 = DOCUMENT_POSITION_FOLLOWING. 슬롯이 이미 히어로 뒤면 그대로 둔다.
+    if (hero.compareDocumentPosition(slots[0]) & 4) return;
+    var anchor = hero;
+    slots.forEach(function (slot) {
+      try { anchor.parentNode.insertBefore(slot, anchor.nextSibling); anchor = slot; } catch (_) {}
+    });
+  }
   function slotNode(name) {
+    placeSlotsUnderHero();
     var explicit = document.querySelector('[data-umsh-slot="' + name + '"]');
     if (usableSlotTarget(explicit)) return explicit;
 
