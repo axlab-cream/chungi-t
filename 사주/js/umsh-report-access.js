@@ -291,8 +291,13 @@
     var verdict = report && report.verdict;
     var statement = verdict ? String(verdict.statement || '').trim() : '';
     var axis = (verdict ? String(verdict.axis || '').trim() : '') || (config && config.verdictAxis) || '';
-    if (!statement && !axis) return '';
-    var headline = statement || (axis + ' 먼저 정리합니다.');
+    /*
+     * 결론은 이 사람의 사주로 만든 문장일 때만 건다. 예전에는 결론이 없으면 설정에 적어 둔
+     * 판단 축을 "…를 먼저 정리합니다."로 바꿔 내걸었는데, 모든 사용자에게 같은 문장이라
+     * 목업처럼 보였다(2026-09-18). 아직 없으면 자리째 비운다.
+     */
+    if (!statement) return '';
+    var headline = statement;
     return '<section class="umsh-verdict" aria-labelledby="umsh-verdict-title">' +
       '<span class="umsh-verdict-badge">결론</span>' +
       '<p class="umsh-verdict-statement" id="umsh-verdict-title">' + escapeHtml(headline) + '</p>' +
@@ -1048,7 +1053,7 @@
     var insights = sourceInsights.filter(function(line){return String(line).trim()!==String(preview.summary || '').trim();});
   var node = panel();
     var cta = previewCta(payload);
-    node.innerHTML = navigation()
+    node.innerHTML = ''
       + '<header class="preview-heading"><span class="preview-eyebrow">운명상회 · 내 입력으로 먼저 보는 해석</span><h1>' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h1><p class="preview-summary">' + escapeHtml(preview.summary || '') + '</p></header>'
       + '<section class="preview-evidence" aria-labelledby="preview-evidence-title"><span class="reading-role">대표 근거</span><h2 id="preview-evidence-title">지금 먼저 확인할 장면</h2><div class="preview-evidence-list">' + insights.map(function(line,index){return '<article><span aria-hidden="true">0'+(index+1)+'</span><p>' + escapeHtml(line) + '</p></article>';}).join('') + '</div></section>'
       + '<section class="preview-scope" aria-labelledby="preview-scope-title"><span class="reading-role">전체 해석 범위</span><h2 id="preview-scope-title">이어서 비교할 내용</h2><p>' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p></section>'
@@ -1068,7 +1073,12 @@
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
     var opened = Array.from(node.querySelectorAll('details[open]')).map(function(item){return item.dataset.section;});
-    node.innerHTML = navigation() + '<span style="color:#e5bd69">운명상회 · 저장된 전체 해석</span><h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p><p style="font-size:13px">이 주소로 다시 열면 같은 해석을 확인합니다.</p>' + '<div id="umsh-longform-mount"></div>' + report.sections.map(function(section,index) {
+    /*
+     * 상단 안내 줄(홈·구매 내역 링크, "운명상회 · 저장된 전체 해석", 주소 안내)은 걷어냈다.
+     * 공용 상단바와 하단 내비게이션이 이미 같은 이동을 제공하고, 해석을 열자마자 읽을 것은
+     * 제목과 결론이다. 오류·로그인 화면(gate)에는 갈 곳이 필요하므로 그쪽 navigation() 은 남긴다.
+     */
+    node.innerHTML = '<h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p>' + '<div id="umsh-longform-mount"></div>' + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
       var body = ready ? readySectionBody(section) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
       return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' + body + '</details>';

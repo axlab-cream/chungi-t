@@ -23,6 +23,12 @@
   gap: var(--umsh-lf-gap);
   margin: 0 0 22px;
   min-width: 0;
+  /*
+   * 폭 기준을 화면이 아니라 이 블록으로 잡는다. 서비스 화면은 390px 짜리 폰 틀 안에서
+   * 그려지는데 예전 규칙은 뷰포트(min-width:720px)를 봐서, 넓은 창에서는 폰 틀 안에
+   * 하이라이트 3열이 들어가 한 칸이 120px 가 되고 글자가 한 줄에 한 단어씩 끊겼다(2026-09-18).
+   */
+  container-type: inline-size;
 }
 
 /* ── 결론 배너 ───────────────────────────────────────────
@@ -286,7 +292,8 @@
 /* ── 반응형 ─────────────────────────────────────────────
  * 390px 는 이 프로젝트의 모바일 검증 기준폭이다.
  */
-@media (min-width: 720px) {
+/* 기준은 블록의 실제 폭이다. 폰 틀 안에서는 창이 아무리 넓어도 1열로 남는다. */
+@container (min-width: 720px) {
   .umsh-highlights-grid { grid-template-columns: repeat(3, 1fr); }
   .umsh-summary { grid-template-columns: 300px 1fr; }
   /* 2단에서는 컷이 글 옆에 서므로 높이 제한을 푼다. 다만 글이 짧을 때 컷만 길어지지 않게 묶는다. */
@@ -299,6 +306,12 @@
     background: linear-gradient(to left, var(--umsh-lf-surface), transparent);
   }
   .umsh-verdict-statement { font-size: 21px; }
+}
+
+/* 컨테이너 쿼리를 모르는 브라우저는 1열로 남는다 — 좁게 눌리는 것보다 낫다. */
+@supports not (container-type: inline-size) {
+  .umsh-highlights-grid,
+  .umsh-summary { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

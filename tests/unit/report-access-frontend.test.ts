@@ -569,13 +569,25 @@ test('reader auth events replace refreshed credentials and clear content immedia
   assert.doesNotMatch(h.nodes.get('umsh-verified-reading').innerHTML,/OWNER_READING|PRIVATE_READING/)
 })
 
-test('preview and full reader keep branded navigation available',()=>{
+/**
+ * 2026-09-18: 해석 화면 맨 위의 "운명상회 홈 · 내 구매 내역" 줄과 "운명상회 · 저장된 전체 해석"
+ * 꼬리표를 걷어냈다. 공용 상단바와 하단 내비게이션이 같은 이동을 이미 제공해서 중복이었고,
+ * 해석을 열자마자 읽어야 할 것은 제목과 결론이다. 갈 곳이 꼭 필요한 오류·로그인 화면(gate)
+ * 에는 그대로 남긴다.
+ */
+test('해석 화면은 공용 크롬과 중복되는 상단 링크를 넣지 않는다',()=>{
   const h=harness('/me/lucky/04-step-4-report/index.html',[])
   h.api.consume({previewOnly:true,reportId:'report',preview:{headline:'미리보기',signals:[]}})
   assert.match(h.nodes.get('umsh-verified-reading').style.cssText,/background:#110e0a;color:#f5ead7/)
-  assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/운명상회 홈/)
+  assert.doesNotMatch(h.nodes.get('umsh-verified-reading').innerHTML,/운명상회 홈/)
   h.api.consume({reportId:'report',report:{title:'풀이',sections:[]}})
-  assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/내 구매 내역/)
+  const reader=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.doesNotMatch(reader,/내 구매 내역/)
+  assert.doesNotMatch(reader,/저장된 전체 해석/)
+  assert.match(reader,/풀이/,'제목은 남아야 한다')
+  // 로그인·오류 화면은 갈 곳이 필요하므로 링크를 유지한다.
+  const gate=source.slice(source.indexOf('function gate(message)'),source.indexOf('function labelText'))
+  assert.match(gate,/navigation\(\)/,'오류 화면에서 갈 곳이 사라졌다')
 })
 
 test('saved daily uses the shared shell layout and keeps legacy body private',()=>{

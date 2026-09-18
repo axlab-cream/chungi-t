@@ -224,7 +224,14 @@ export async function ensureReportLongform(params: { reportId: string; owner?: R
       assertReportOwner(record, params.owner)
       if (!isOpenAiConfigured()) return record
       const analysis = record.analysis ?? analyzeSaju(record.birth)
-      const topics = loadHighlightTopics(record.context.serviceKey)
+      /*
+       * 서비스 키는 화면이 쓰는 것과 같은 순서로 찾는다. 천명사주 레코드에는 `context.serviceKey`
+       * 가 비어 있는데(옛 기록), 화면은 `report.serviceKey`(기본 saju_master)로 설정을 찾아
+       * 하이라이트 카드 세 장을 그렸다. 서버만 undefined 로 읽어 주제를 못 찾으니 아무것도
+       * 저장되지 않았고, 카드가 영영 "준비하고 있어요" 골격으로 남았다(2026-09-18).
+       */
+      const serviceKey = record.context.serviceKey ?? record.report.serviceKey ?? 'saju_master'
+      const topics = loadHighlightTopics(serviceKey)
       const saved = record.report.highlights ?? []
       const needsVerdict = !record.report.verdict?.statement
       const needsSummary = record.report.summary?.status !== 'complete'
