@@ -88,13 +88,21 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
     assert.notDeepEqual(sep17.reading.score, sep18.reading.score)
 
     let previous: ReturnType<typeof buildTodayFortune> | undefined
+    const zodiacTexts = new Set<string>()
     for (let offset = 0; offset < 60; offset += 1) {
       const fortune = buildTodayFortune(owner, new Date(Date.UTC(2026, 8, 1 + offset, 3)))
       const reading = fortune.reading
+      zodiacTexts.add(reading.zodiac!.text)
       if (previous) {
         assert.notEqual(reading.work + reading.money + reading.relationship + reading.caution, previous.reading.work + previous.reading.money + previous.reading.relationship + previous.reading.caution, `${fortune.date.iso} 본문이 전날과 같다`)
         assert.notEqual(reading.action, previous.reading.action, `${fortune.date.iso} 결론이 전날과 같다`)
+        // 띠운과 점수도 매일 바뀌어야 한다 — 오행 관계만 보던 때는 띠운이 60일에 다섯 종류였다.
+        assert.notEqual(reading.zodiac!.text, previous.reading.zodiac!.text, `${fortune.date.iso} 띠운이 전날과 같다`)
+        assert.notDeepEqual(reading.score, previous.reading.score, `${fortune.date.iso} 점수가 전날과 같다`)
       }
+      // 하루의 천간이 내 일간에게 무엇인지(십성)와 지지가 내 기둥과 맺는 관계를 요약이 밝힌다.
+      assert.match(reading.summary, /내 일간에게 오늘 천간은 (?:비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)이고,/)
+      assert.match(reading.summary, /오늘 지지(?:가|는) 내 (?:기둥|[년월일시]지)/)
       assert.match(reading.summary, /^[가-힣]{2}\([㐀-鿿]{2}\)일, [양음]의 [목화토금수]\([木火土金水]\) 기운이/)
       for (const key of ['work', 'money', 'relationship', 'caution'] as const) {
         assert.equal(reading[key].split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 3, `${fortune.date.iso}.${key}`)
@@ -108,6 +116,19 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
       }
       previous = fortune
     }
+    assert.equal(zodiacTexts.size, 60, '띠운이 60일 동안 날마다 달라야 한다')
+  })
+
+  it('같은 날이라도 사주가 다르면 다른 오늘운이 나온다', () => {
+    // 오늘의 기둥만 보고 내 기둥을 보지 않으면 모든 사용자가 같은 글을 받는다. 십성과
+    // 지지 관계(합·충·파·해)는 내 네 기둥과 견주므로 사람마다 갈린다(2026-09-18).
+    const when = new Date('2026-09-18T03:00:00Z')
+    const first = buildTodayFortune({ ...profile, birth: { ...profile.birth, year: 1975, month: 9, day: 26, hour: 5, gender: 'male' } }, when)
+    const second = buildTodayFortune({ ...profile, birth: { ...profile.birth, year: 1994, month: 3, day: 11, hour: 9, gender: 'female' } }, when)
+    assert.equal(first.today.pillar, second.today.pillar, '같은 날이면 일진은 같아야 한다')
+    assert.notEqual(first.reading.summary, second.reading.summary, '사주가 달라도 요약이 같다')
+    assert.notDeepEqual(first.reading.score, second.reading.score, '사주가 달라도 점수가 같다')
+    assert.notEqual(first.reading.zodiac?.text, second.reading.zodiac?.text)
   })
 
   it('labels all twelve zodiac years conventionally, including January births before 입춘', () => {

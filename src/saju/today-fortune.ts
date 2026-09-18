@@ -1,6 +1,6 @@
 import type { BirthInput, EarthlyBranch, Element, HeavenlyStem } from '../types/index.js'
 import { analyzeSaju, calculateFourPillars, BRANCH_KO, ELEMENT_KO, STEM_ELEMENT, STEM_KO } from './analyzer.js'
-import { BRANCH_ELEMENT } from './analyzer-helpers.js'
+import { BRANCH_BREAK_PAIRS, BRANCH_CLASH_PAIRS, BRANCH_COMBINATION_PAIRS, BRANCH_ELEMENT, BRANCH_HARM_PAIRS } from './analyzer-helpers.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
 
 type TodayRelation = 'same' | 'support' | 'output' | 'wealth' | 'pressure'
@@ -186,18 +186,101 @@ type StemPolarity = '양' | '음'
 const STEM_POLARITY: Record<HeavenlyStem, StemPolarity> = {
   '甲': '양', '乙': '음', '丙': '양', '丁': '음', '戊': '양', '己': '음', '庚': '양', '辛': '음', '壬': '양', '癸': '음',
 }
+
+/**
+ * 오늘의 천간이 내 일간에게 무엇인가 — 십성.
+ *
+ * 오행 관계 다섯 가지만 보면 같은 목(木)이라도 갑(甲)과 을(乙)이 구별되지 않는다. 음양까지
+ * 같이 봐야 비견과 겁재가 갈린다. 이것이 "하루의 천간과 내 기둥을 잇는" 전통적인 축이다.
+ */
+type TenGod = '비견' | '겁재' | '식신' | '상관' | '편재' | '정재' | '편관' | '정관' | '편인' | '정인'
+
+function tenGodOf(dayMaster: HeavenlyStem, dayStem: HeavenlyStem): TenGod {
+  const mine = STEM_ELEMENT[dayMaster]
+  const today = STEM_ELEMENT[dayStem]
+  const samePolarity = STEM_POLARITY[dayMaster] === STEM_POLARITY[dayStem]
+  if (mine === today) return samePolarity ? '비견' : '겁재'
+  if (GENERATES[mine] === today) return samePolarity ? '식신' : '상관'
+  if (CONTROLS[mine] === today) return samePolarity ? '편재' : '정재'
+  if (CONTROLS[today] === mine) return samePolarity ? '편관' : '정관'
+  return samePolarity ? '편인' : '정인'
+}
+
+/** 십성이 하루에 주는 방향. 제목과 요약의 첫 축이다. */
+const TEN_GOD_FOCUS: Record<TenGod, { title: string; note: string }> = {
+  비견: { title: '내 페이스를 지키는 날', note: '내 방식이 그대로 서는 흐름이라 남과 견주기보다 내 속도를 지키는 쪽이 좋아' },
+  겁재: { title: '내 몫을 분명히 하는 날', note: '함께 나누는 자리가 늘어나는 흐름이라 내 몫과 남의 몫을 흐리지 않는 편이 나아' },
+  식신: { title: '하던 것을 꾸준히 밀고 가는 날', note: '만들어 내는 힘이 붙는 흐름이라 새로 벌이기보다 하던 것을 이어 가면 돼' },
+  상관: { title: '말과 표현을 고르는 날', note: '표현이 앞서기 쉬운 흐름이라 하고 싶은 말을 한 번 고르고 꺼내면 좋아' },
+  편재: { title: '기회와 씀씀이를 함께 재는 날', note: '눈앞의 기회가 커 보이는 흐름이라 얻는 것 옆에 드는 비용을 같이 세어 봐' },
+  정재: { title: '정해 둔 기준을 지키는 날', note: '차곡히 쌓는 힘이 붙는 흐름이라 정해 둔 예산과 약속을 지키는 쪽이 나아' },
+  편관: { title: '밀려오는 일의 순서를 정하는 날', note: '압박이 몰리기 쉬운 흐름이라 다 받기보다 순서를 먼저 정해 둬' },
+  정관: { title: '맡은 자리를 반듯하게 지키는 날', note: '책임이 또렷해지는 흐름이라 맡은 범위를 반듯하게 지키면 충분해' },
+  편인: { title: '한 발 물러나 다시 보는 날', note: '생각이 깊어지는 흐름이라 서둘러 답을 내기보다 한 번 더 살펴봐' },
+  정인: { title: '배우고 기대는 힘이 붙는 날', note: '도움과 배움이 들어오는 흐름이라 혼자 버티기보다 묻고 기대도 좋아' },
+}
+
+/** 지지의 정기(正氣)로 본 십성. 천간 하나만 보면 하루의 결이 열 가지에 머문다. */
+const BRANCH_POLARITY: Record<EarthlyBranch, StemPolarity> = {
+  '子': '양', '丑': '음', '寅': '양', '卯': '음', '辰': '양', '巳': '음',
+  '午': '양', '未': '음', '申': '양', '酉': '음', '戌': '양', '亥': '음',
+}
+
+function branchTenGod(dayMaster: HeavenlyStem, branch: EarthlyBranch): TenGod {
+  const mine = STEM_ELEMENT[dayMaster]
+  const today = BRANCH_ELEMENT[branch]
+  const samePolarity = STEM_POLARITY[dayMaster] === BRANCH_POLARITY[branch]
+  if (mine === today) return samePolarity ? '비견' : '겁재'
+  if (GENERATES[mine] === today) return samePolarity ? '식신' : '상관'
+  if (CONTROLS[mine] === today) return samePolarity ? '편재' : '정재'
+  if (CONTROLS[today] === mine) return samePolarity ? '편관' : '정관'
+  return samePolarity ? '편인' : '정인'
+}
+
+type BranchTie = '육합' | '충' | '파' | '해' | '같음' | '보통'
+
+/**
+ * 오늘의 지지가 **내 네 기둥의 지지**와 맺는 관계. 같은 날이라도 사람마다 달라지는 축이라,
+ * 이것이 빠지면 "내 사주와 연동된 오늘"이 아니라 그냥 달력이 된다.
+ * 한자 해설 문자열(子丑合土…)은 쓰지 않는다 — 본문은 한글만 쓰기로 되어 있다.
+ */
+function branchTie(today: EarthlyBranch, mine: EarthlyBranch[]): { tie: BranchTie; pillar: string } {
+  const labels = ['년', '월', '일', '시']
+  const find = (pairs: Array<[EarthlyBranch, EarthlyBranch, string]>) => {
+    for (let index = 0; index < mine.length; index += 1) {
+      const branch = mine[index]
+      if (pairs.some(([a, b]) => (a === today && b === branch) || (b === today && a === branch))) {
+        return labels[index] ?? ''
+      }
+    }
+    return ''
+  }
+  // 순서가 뜻을 정한다 — 충이 있으면 합보다 먼저 말해야 오해가 없다.
+  const clash = find(BRANCH_CLASH_PAIRS)
+  if (clash) return { tie: '충', pillar: clash }
+  const combine = find(BRANCH_COMBINATION_PAIRS)
+  if (combine) return { tie: '육합', pillar: combine }
+  const harm = find(BRANCH_HARM_PAIRS)
+  if (harm) return { tie: '해', pillar: harm }
+  const broken = find(BRANCH_BREAK_PAIRS)
+  if (broken) return { tie: '파', pillar: broken }
+  const same = mine.indexOf(today)
+  if (same >= 0) return { tie: '같음', pillar: labels[same] ?? '' }
+  return { tie: '보통', pillar: '' }
+}
+
+const BRANCH_TIE_NOTE: Record<BranchTie, (pillar: string) => string> = {
+  육합: (pillar) => `오늘 지지는 내 ${pillar}지와 묶이는 결이라 사람과 일이 붙는 자리가 늘어`,
+  충: (pillar) => `오늘 지지는 내 ${pillar}지와 부딪히는 결이라 예정이 흔들릴 수 있어`,
+  해: (pillar) => `오늘 지지는 내 ${pillar}지와 어긋나는 결이라 사소한 오해가 끼기 쉬워`,
+  파: (pillar) => `오늘 지지는 내 ${pillar}지를 흔드는 결이라 정해 둔 일정을 한 번 더 확인하면 좋아`,
+  같음: (pillar) => `오늘 지지가 내 ${pillar}지와 같은 결이라 익숙한 흐름이 그대로 이어져`,
+  보통: () => '오늘 지지는 내 기둥과 특별히 얽히지 않아 흐름이 무난해',
+}
 const POLARITY_PHRASE: Record<StemPolarity, string> = {
   양: '기운이 밖으로 뻗는 날이라',
   음: '기운이 안으로 고이는 날이라',
 }
-const TITLE_BY_POLARITY: Record<TodayRelation, Record<StemPolarity, string>> = {
-  same: { 양: '잘되는 방식을 내 편으로 만드는 날', 음: '익숙한 방식을 조용히 다듬는 날' },
-  support: { 양: '좋은 정보를 내 판단으로 바꾸는 날', 음: '들은 이야기를 내 것으로 삭이는 날' },
-  output: { 양: '생각을 눈에 보이는 한 가지로 만드는 날', 음: '만들어 둔 것을 한 번 더 손보는 날' },
-  wealth: { 양: '막연한 기대를 분명한 조건으로 바꾸는 날', 음: '가진 것의 쓰임을 다시 세어 보는 날' },
-  pressure: { 양: '해야 할 일을 정하고 내 여유를 지키는 날', 음: '맡은 일의 끝을 정하고 숨을 고르는 날' },
-}
-
 /**
  * 지지별 장면. 각 본문의 둘째 문장(구체 장면)과 결론의 둘째 문장을 갈아 끼운다. 첫 문장(방향)과
  * 셋째 문장(평온할 때의 기준)은 오행 관계 표의 것을 그대로 쓴다 — 셋째 문장이 "괜찮은 날엔
@@ -305,18 +388,22 @@ function withScene(text: string, scene: string, index: number): string {
 
 function composeReading(
   base: BaseTodayReading,
-  relation: TodayRelation,
   stem: HeavenlyStem,
   branch: EarthlyBranch,
   pillarKo: string,
   pillar: string,
+  tenGod: TenGod,
+  tie: { tie: BranchTie; pillar: string },
 ): BaseTodayReading {
   const polarity = STEM_POLARITY[stem]
   const scene = BRANCH_SCENES[branch]
   const summaryParts = sentencesOf(base.summary)
   summaryParts[0] = `${pillarKo}(${pillar})일, ${polarity}의 ${ELEMENT_KO[STEM_ELEMENT[stem]]} ${POLARITY_PHRASE[polarity]} ${summaryParts[0].replace(/^오늘은 /, '')}`
+  // 오늘의 천간이 내 일간에게 무엇인지(십성)와, 오늘의 지지가 내 기둥과 어떻게 맞물리는지를
+  // 함께 적는다. 이 한 줄이 "달력"과 "내 사주로 본 오늘"을 가른다.
+  summaryParts.push(`내 일간에게 오늘 천간은 ${tenGod}이고, ${TEN_GOD_FOCUS[tenGod].note}. ${BRANCH_TIE_NOTE[tie.tie](tie.pillar)}.`)
   return {
-    title: TITLE_BY_POLARITY[relation][polarity],
+    title: TEN_GOD_FOCUS[tenGod].title,
     summary: summaryParts.join(' '),
     work: withScene(base.work, scene.work, 1),
     money: withScene(base.money, scene.money, 1),
@@ -349,16 +436,51 @@ function clampScore(value: number): number {
   return Math.min(95, Math.max(35, value))
 }
 
+/**
+ * 십성이 네 갈래에 주는 무게. 오행 관계(5)만으로는 같은 목(木)이라도 비견과 겁재가 같은 점수라
+ * 60일에 쉰 종류밖에 안 나왔다. 상징 표시일 뿐 측정값이 아니다.
+ */
+const TEN_GOD_SHIFT: Record<TenGod, Partial<Record<TodayDetailKey, number>>> = {
+  비견: { work: 2, money: -2 },
+  겁재: { money: -5, relationship: -2 },
+  식신: { work: 3, relationship: 3 },
+  상관: { relationship: -3, caution: -3 },
+  편재: { money: 6, caution: -2 },
+  정재: { money: 4, work: 2 },
+  편관: { caution: -5, work: -2 },
+  정관: { work: 4, caution: 2 },
+  편인: { work: -2, caution: 3 },
+  정인: { relationship: 4, caution: 4 },
+}
+
+/** 오늘 지지가 내 기둥과 맺는 관계. 같은 날이라도 사람마다 갈리는 축이다. */
+const BRANCH_TIE_SHIFT: Record<BranchTie, Partial<Record<TodayDetailKey, number>>> = {
+  육합: { relationship: 5, work: 2 },
+  충: { caution: -6, relationship: -3 },
+  해: { relationship: -4, caution: -2 },
+  파: { work: -3, caution: -3 },
+  같음: { work: 3, caution: 2 },
+  보통: {},
+}
+
 function buildReadingDetails(
   relation: TodayRelation,
   reading: BaseTodayReading,
   branchRelation: TodayRelation,
   polarity: StemPolarity,
+  tenGod: TenGod,
+  tie: BranchTie,
+  branchGod: TenGod,
 ): Record<TodayDetailKey, TodayFortuneDetail> {
   const weights = LEGACY_DISPLAY_WEIGHTS[relation]
   const shift = BRANCH_RELATION_SHIFT[branchRelation]
+  const god = TEN_GOD_SHIFT[tenGod]
+  const tied = BRANCH_TIE_SHIFT[tie]
+  // 지지의 십성은 절반 무게로 본다. 천간이 그날의 얼굴이고 지지는 바탕이다.
+  const ground = TEN_GOD_SHIFT[branchGod]
   const score = (key: TodayDetailKey) => clampScore(
-    weights[key] + (shift[key] ?? 0) + (polarity === '양' && key === 'work' ? 1 : 0) + (polarity === '음' && key === 'caution' ? 1 : 0),
+    weights[key] + (shift[key] ?? 0) + (god[key] ?? 0) + (tied[key] ?? 0) + Math.round((ground[key] ?? 0) / 2)
+    + (polarity === '양' && key === 'work' ? 1 : 0) + (polarity === '음' && key === 'caution' ? 1 : 0),
   )
   return {
     work: { text: reading.work, score: score('work') },
@@ -369,6 +491,9 @@ function buildReadingDetails(
 }
 
 const ZODIAC_ANIMALS = ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지'] as const
+/** 띠 순서 그대로의 지지. 띠운을 오늘 지지와 견주는 데 쓴다. */
+const ZODIAC_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const satisfies readonly EarthlyBranch[]
+const BRANCH_ORDER: readonly EarthlyBranch[] = ZODIAC_BRANCHES
 const ZODIAC_GUIDES = [
   '실행하기 전 필요한 정보 하나만 더 확인하고, 이미 정한 목표는 불필요하게 늘리지 마.',
   '진행 중인 일의 끝을 먼저 정하고, 익숙한 순서로 한 단계씩 마무리해 봐.',
@@ -388,15 +513,38 @@ const RELATION_FOCUS: Record<TodayRelation, string> = {
   wealth: '조건을 분명히 정하기', pressure: '약속과 여유 함께 지키기',
 }
 
-function zodiacReading(birthYear: number, relation: TodayRelation): NonNullable<TodayFortune['reading']['zodiac']> {
+/** 띠 지지와 오늘 지지의 관계. 띠운이 날마다 달라지는 축이다. */
+const ZODIAC_TIE_LABEL: Record<BranchTie, string> = {
+  육합: '내 띠와 묶이는 날이라 사람과 일이 붙는 자리',
+  충: '내 띠와 부딪히는 날이라 예정을 한 번 더 확인할 자리',
+  해: '내 띠와 어긋나는 날이라 말이 겹치지 않게 살필 자리',
+  파: '내 띠를 흔드는 날이라 일정부터 다시 볼 자리',
+  같음: '내 띠와 같은 날이라 익숙한 방식이 그대로 통하는 자리',
+  보통: '내 띠와 특별히 얽히지 않아 흐름이 무난한 자리',
+}
+
+function zodiacReading(
+  birthYear: number,
+  relation: TodayRelation,
+  todayBranch: EarthlyBranch,
+): NonNullable<TodayFortune['reading']['zodiac']> {
   // Calendar-year label as in newspaper birth-year fortunes, NOT the saju year
   // pillar (which changes at 입춘). Do not silently assign January births last year's 띠.
   const index = ((birthYear - 4) % 12 + 12) % 12
   const animal = ZODIAC_ANIMALS[index]
+  /*
+   * 2026-09-18: 띠운이 오행 관계(5가지)만 봐서 60일에 다섯 종류뿐이었다. 띠는 지지이므로
+   * 오늘 지지와의 관계(합·충·파·해·같음)를 봐야 날마다 갈린다. 조언도 띠 자리에 고정하지 않고
+   * 오늘 지지만큼 돌린다 — 같은 날 열두 띠는 서로 다른 조언을 받고(자리 이동이 일대일이라),
+   * 같은 띠는 날이 바뀌면 다른 조언을 받는다.
+   */
+  const zodiacBranch = ZODIAC_BRANCHES[index]
+  const tie = branchTie(todayBranch, [zodiacBranch]).tie
+  const guide = ZODIAC_GUIDES[(index + BRANCH_ORDER.indexOf(todayBranch)) % ZODIAC_GUIDES.length]
   return {
     birthYear, animal, basis: 'birth-year',
     title: `${birthYear}년생 ${animal}띠 · 출생연도 기준`,
-    text: `${birthYear}년생 ${animal}띠의 오늘 키워드는 ‘${RELATION_FOCUS[relation]}’야. ${ZODIAC_GUIDES[index]}`,
+    text: `${birthYear}년생 ${animal}띠에게 오늘은 ${ZODIAC_TIE_LABEL[tie]}이고, 키워드는 ‘${RELATION_FOCUS[relation]}’야. ${guide}`,
   }
 }
 
@@ -427,15 +575,24 @@ export function buildTodayFortune(profile: UserBirthProfile, now = new Date()): 
   const todayElement = STEM_ELEMENT[todayStem]
   const relation = relationFor(analysis.dayMasterElement, todayElement)
   const branchRelation = relationFor(analysis.dayMasterElement, BRANCH_ELEMENT[todayBranch])
+  const tenGod = tenGodOf(analysis.dayMaster, todayStem)
+  // 내 네 기둥의 지지와 견준다. 여기서 같은 날도 사람마다 갈린다.
+  const tie = branchTie(todayBranch, [
+    analysis.fourPillars.year.branch,
+    analysis.fourPillars.month.branch,
+    analysis.fourPillars.day.branch,
+    analysis.fourPillars.hour.branch,
+  ])
   const baseReading = composeReading(
     relationText(relation, profile.name, todayElement),
-    relation, todayStem, todayBranch,
+    todayStem, todayBranch,
     `${STEM_KO[todayStem]}${BRANCH_KO[todayBranch]}`, `${todayStem}${todayBranch}`,
+    tenGod, tie,
   )
-  const details = buildReadingDetails(relation, baseReading, branchRelation, STEM_POLARITY[todayStem])
+  const details = buildReadingDetails(relation, baseReading, branchRelation, STEM_POLARITY[todayStem], tenGod, tie.tie, branchTenGod(analysis.dayMaster, todayBranch))
   const reading: TodayFortune['reading'] = {
     ...baseReading,
-    zodiac: zodiacReading(profile.birth.year, relation),
+    zodiac: zodiacReading(profile.birth.year, relation, todayBranch),
     score: {
       total: totalScore(details),
       work: details.work.score,
