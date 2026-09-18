@@ -134,3 +134,28 @@ test('긴 본문을 요구하는 블록이 더 작은 토큰 예산을 갖지 �
     assert.match(body.slice(0, 2000), /OpenAiTruncatedError/, `${fn} 이 잘림을 다시 시도하지 않는다`)
   }
 })
+
+/**
+ * 2026-09-18: 예산과 배열 형태를 고친 뒤에도 하이라이트 둘이 "본문을 찾지 못했습니다"로 남았다.
+ * 어떤 모양으로 왔는지 기록이 없어 다음 수를 둘 수 없었다. 모양만(내용 말고) 남긴다.
+ */
+test('짐작 못 한 키로 와도 충분히 긴 문자열이면 본문으로 받는다', () => {
+  const body = '가'.repeat(400)
+  assert.equal(parseReportHighlight(JSON.stringify({ highlight_text: body }), '제목').text, body)
+  // 제목 한 줄짜리 짧은 문자열은 본문으로 오인하지 않는다.
+  assert.throws(() => parseReportHighlight(JSON.stringify({ label: '짧은 제목' }), '제목'), /본문을 찾지 못했습니다/)
+})
+
+test('파싱 실패에는 응답 모양이 함께 남고, 본문 내용은 남지 않는다', () => {
+  const secretish = '고객 본문이 그대로 새면 안 된다'
+  try {
+    parseReportHighlight(JSON.stringify({ label: secretish, count: 3, items: [1, 2] }), '제목')
+    assert.fail('던지지 않았다')
+  } catch (error) {
+    const message = (error as Error).message
+    assert.match(message, /응답 모양/)
+    assert.match(message, /label:string/)
+    assert.match(message, /items:array\(2\)/)
+    assert.ok(!message.includes(secretish), `본문이 오류 문구에 들어갔다: ${message}`)
+  }
+})

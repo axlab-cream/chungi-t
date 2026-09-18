@@ -2381,12 +2381,29 @@ function coerceBlockText(parsed: unknown, depth = 0): string {
       if (inner) return inner
     }
   }
-  return ''
+  /*
+   * 마지막 수단: 아는 키가 하나도 없으면 가장 긴 문자열을 본문으로 본다. `highlight_text` 처럼
+   * 짐작하지 못한 이름으로 내는 경우가 있었다. 제목 한 줄을 본문으로 오인하지 않도록 넉넉히
+   * 긴 것만 받는다.
+   */
+  const longest = Object.values(record)
+    .filter((value): value is string => typeof value === 'string')
+    .sort((left, right) => right.length - left.length)[0]
+  return longest && longest.trim().length >= 200 ? longest.trim() : ''
+}
+
+/** 파싱 실패를 고칠 수 있게 남기는 단서. 본문 내용은 싣지 않고 **모양**만 적는다. */
+function describeBlockShape(parsed: unknown): string {
+  if (Array.isArray(parsed)) return `array(${parsed.length})`
+  if (!parsed || typeof parsed !== 'object') return typeof parsed
+  const entries = Object.entries(parsed as Record<string, unknown>).slice(0, 8)
+  return entries.map(([key, value]) => `${key}:${Array.isArray(value) ? `array(${value.length})` : typeof value}`).join(', ')
 }
 
 export function parseReportSummary(raw: string): SajuReportSummary {
-  const text = coerceBlockText(extractJsonObject(raw))
-  if (!text) throw new Error('전체 요약 문장을 찾지 못했습니다.')
+  const parsed = extractJsonObject(raw)
+  const text = coerceBlockText(parsed)
+  if (!text) throw new Error(`전체 요약 문장을 찾지 못했습니다. (응답 모양 ${describeBlockShape(parsed)})`)
   return { text, status: 'complete', generatedAt: new Date().toISOString() }
 }
 
@@ -2486,8 +2503,9 @@ export function highlightPrompt(
 }
 
 export function parseReportHighlight(raw: string, title: string): SajuReportHighlight {
-  const text = coerceBlockText(extractJsonObject(raw))
-  if (!text) throw new Error('하이라이트 본문을 찾지 못했습니다.')
+  const parsed = extractJsonObject(raw)
+  const text = coerceBlockText(parsed)
+  if (!text) throw new Error(`하이라이트 본문을 찾지 못했습니다. (응답 모양 ${describeBlockShape(parsed)})`)
   return { title, text, status: 'complete', generatedAt: new Date().toISOString() }
 }
 
