@@ -680,14 +680,17 @@
   }
   /*
    * 서비스마다 "가린다"의 구현이 다르다 — 저축운은 자기 CSS 에 `.hidden{display:none!important}`
-   * 를 따로 두고 클래스로 가리고, 결혼궁합은 그런 규칙이 아예 없이 네이티브 `hidden` 속성만
-   * 쓴다(공용 CSS 어디에도 `.hidden` 규칙이 없다). 어느 쪽인지 페이지마다 추적하는 대신 둘 다
-   * 건다 — 있는 쪽이 실제로 가리고, 없는 쪽은 아무 효과가 없을 뿐 해가 되지 않는다.
+   * 를 따로 두고 클래스로 가리고, 결혼궁합은 그런 규칙 없이 네이티브 `hidden` 속성만 쓴다.
+   * 그런데 결혼궁합의 `.contextbar{display:flex}` 처럼, 클래스 선택자가 `[hidden]` 의 낮은
+   * 명시도를 이겨 `hidden` 속성만으로는 실제로 안 가려지는 경우가 있다(2026-09-18 실측 —
+   * `hidden:true` 인데 `getComputedStyle().display`는 `flex` 그대로였다). 인라인 `style.display`
+   * 는 그 페이지의 어떤 클래스 규칙보다도 위에 있으므로 셋을 모두 건다.
    */
   function hideLegacyNode(node) {
     if (!node) return;
     node.hidden = true;
     if (node.classList) node.classList.add('hidden');
+    if (node.style) node.style.display = 'none';
   }
   function hideNativeSeedDetail(liveHost) {
     var native = document.getElementById('detailContent');

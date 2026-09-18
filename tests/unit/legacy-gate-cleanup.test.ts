@@ -19,6 +19,7 @@ interface FakeElement {
   parentElement: FakeElement | null
   attrs: Map<string, string>
   classList: { add: (name: string) => void; contains: (name: string) => boolean }
+  style: { display: string }
   setAttribute: (name: string, value: string) => void
 }
 
@@ -43,6 +44,7 @@ function fakeElement(parent: FakeElement | null = null): FakeElement {
     parentElement: parent,
     attrs,
     classList: { add: (name: string) => classes.add(name), contains: (name: string) => classes.has(name) },
+    style: { display: '' },
     setAttribute(name: string, value: string) { attrs.set(name, value) },
   }
 }
@@ -62,22 +64,30 @@ test('공용 리딩 뷰가 열리면 옛 잠금·누락 배너도 함께 닫는�
   assert.equal(missing.classList.contains('hidden'), true, '누락 배너가 안 닫혔다')
   assert.equal(locked.hidden, true)
   assert.equal(missing.hidden, true)
+  assert.equal(locked.style.display, 'none')
+  assert.equal(missing.style.display, 'none')
 })
 
 /**
  * 2026-09-18: 결혼궁합 06 페이지는 실측에서 "결혼궁합 / 대분류 확인 / 중분류 확인 / 항목 없음"
  * 네 번째 칩을 진짜 탭처럼 보여 줬다. 그 뷰어의 항목 배열은 설계 시점 목업 id 만 담고 있어
- * 실제 생성 항목 id 와 맞은 적이 없다 — 그래서 모든 실제 고객에게 뜬다. 결혼궁합은 공용
- * `.hidden` CSS 규칙이 아예 없어(페이지도 공용 CSS 도) 네이티브 `hidden` 속성으로만 가려진다.
+ * 실제 생성 항목 id 와 맞은 적이 없다 — 그래서 모든 실제 고객에게 뜬다.
+ *
+ * 첫 수정(네이티브 `hidden` 속성 + `.hidden` 클래스)은 배포 후에도 칩이 그대로 보였다 —
+ * 실측하니 `hidden:true` 인데 `.contextbar{display:flex}` 가 `[hidden]` 의 낮은 명시도를
+ * 이겨 `getComputedStyle().display` 가 `flex` 그대로였다. 인라인 `style.display` 를 더해야
+ * 그 페이지의 어떤 클래스 규칙도 이긴다.
  */
-test('결혼궁합의 access-chip 은 상위 contextbar 째 닫히고, 네이티브 hidden 속성으로도 가려진다', () => {
+test('결혼궁합의 access-chip 은 상위 contextbar 째 닫히고, 인라인 style 로 실제로 가려진다', () => {
   const hide = extractHideNativeSeedDetail()
   const bar = fakeElement()
   bar.classList.add('contextbar')
   const chip = fakeElement(bar)
   hide(null, { 'access-chip': chip }, { id: 'live' })
-  assert.equal(bar.hidden, true, '결혼궁합은 .hidden 클래스 규칙이 없어 네이티브 속성이 실제로 가린다')
+  assert.equal(bar.hidden, true)
   assert.equal(bar.classList.contains('hidden'), true)
+  // 이 값이 실제로 화면을 가리는 결정타다 — 페이지 자체 CSS 가 무엇이든 인라인 스타일이 이긴다.
+  assert.equal(bar.style.display, 'none', '인라인 style 이 없으면 .contextbar{display:flex} 에 진다')
   assert.equal(chip.hidden, false, '칩 하나가 아니라 상위 contextbar 를 닫는다')
 })
 
