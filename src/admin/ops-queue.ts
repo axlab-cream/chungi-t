@@ -49,7 +49,10 @@ async function reviveStalledJob(idempotencyKey: string): Promise<boolean> {
   try {
     const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
     url.searchParams.set('idempotency_key', `eq.${idempotencyKey}`)
-    url.searchParams.set('state', 'in.(dead,retry)')
+    // succeeded 도 되살린다. 리포트당 키가 하나가 된 뒤로는, 다 끝난 작업이 남아 있는 리포트를
+    // 다시 완성해야 할 때(재생성) 이 문이 유일한 길이다. 백필은 미완성 리포트만 넣으므로
+    // succeeded 를 되살리는 것은 곧 "할 일이 남았다"는 뜻이다. running·queued 는 건드리지 않는다.
+    url.searchParams.set('state', 'in.(dead,retry,succeeded)')
     const response = await fetch(url, {
       method: 'PATCH',
       headers: { ...opsHeaders(), prefer: 'return=representation' },
@@ -104,6 +107,56 @@ export async function deleteOpsJobsForTarget(targetId: string): Promise<number> 
   } catch {
     return 0
   }
+}
+
+export interface OpsJobRef {
+  id: string
+  kind: string
+  target_id: string
+  state: string
+}
+
+/** 운영자가 지울 작업을 고르기 위한 목록. 식별자와 상태만 돌려주고 payload·오류 원문은 싣지 않는다. */
+export async function listOpsJobRefs(filter: { kind?: string; states: string[]; limit?: number }): Promise<OpsJobRef[]> {
+  if (!opsStoreAvailable()) return []
+  const states = filter.states.filter((state) => /^[a-z]{3,12}$/.test(state))
+  if (!states.length) return []
+  const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+  url.searchParams.set('select', 'id,kind,target_id,state')
+  url.searchParams.set('state', `in.(${states.join(',')})`)
+  if (filter.kind) url.searchParams.set('kind', `eq.${filter.kind}`)
+  url.searchParams.set('order', 'created_at.asc')
+  url.searchParams.set('limit', String(Math.min(Math.max(filter.limit ?? 1000, 1), 5000)))
+  const response = await fetch(url, { headers: opsHeaders() })
+  if (!response.ok) throw new Error('OPS_LIST_FAILED')
+  return await response.json() as OpsJobRef[]
+}
+
+/**
+ * 여러 대상의 작업을 상태를 골라 지운다. 2026-09-18 멱등키 결함으로 한 리포트에 수십 건이 쌓인
+ * 것을 걷어낼 때 쓴다.
+ *
+ * `running` 은 어떤 경우에도 지우지 않는다 — 워커가 마감 PATCH 를 할 행이 없어지면 실행 전체가
+ * OPS_JOB_FINALIZE_FAILED 로 던져 나머지 결과까지 잃는다. 대상은 한 번에 40개씩 끊어 URL 길이를 지킨다.
+ */
+export async function deleteOpsJobsForTargets(targetIds: string[], states: string[], kind?: string): Promise<number> {
+  if (!opsStoreAvailable()) return 0
+  const safeStates = states.filter((state) => /^[a-z]{3,12}$/.test(state) && state !== 'running')
+  const safeTargets = [...new Set(targetIds.filter((id) => /^[a-zA-Z0-9_-]{1,160}$/.test(id)))]
+  if (!safeStates.length || !safeTargets.length) return 0
+  let deleted = 0
+  for (let index = 0; index < safeTargets.length; index += 40) {
+    const chunk = safeTargets.slice(index, index + 40)
+    const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+    url.searchParams.set('target_id', `in.(${chunk.join(',')})`)
+    url.searchParams.set('state', `in.(${safeStates.join(',')})`)
+    // 종류를 좁힌다. 같은 리포트를 가리키는 다른 종류의 작업(예: 발송)까지 지우면 안 된다.
+    if (kind) url.searchParams.set('kind', `eq.${kind}`)
+    const response = await fetch(url, { method: 'DELETE', headers: { ...opsHeaders(), prefer: 'return=representation' } })
+    if (!response.ok) throw new Error('OPS_DELETE_FAILED')
+    deleted += ((await response.json().catch(() => [])) as unknown[]).length
+  }
+  return deleted
 }
 
 export interface OpsQueueReadiness {

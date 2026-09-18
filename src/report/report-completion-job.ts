@@ -1,4 +1,4 @@
-import { enqueueOpsJob, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
+import { deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, type EnqueueOpsJobResult } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { ensureReportLongform, preGenerateReport } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
@@ -21,10 +21,19 @@ export const REPORT_COMPLETION_JOB_KIND = 'report.sections.complete'
 
 /**
  * 한 리포트당 한 건만 큐에 남긴다. 결제 복귀를 새로고침하거나 PG 가 같은 주문으로 두 번
- * 돌아와도 작업이 복제되지 않는다. `revision` 이 오르면(재생성) 새 작업으로 본다.
+ * 돌아와도 작업이 복제되지 않는다.
+ *
+ * 2026-09-18: 예전에는 키에 `revision` 을 넣어 "재생성은 새 작업"으로 봤다. 그런데 revision 은
+ * 레코드가 바뀔 때마다 오른다 — 항목이 하나 완성될 때마다 오른다는 뜻이다. cron 은 1분마다
+ * 미완성 리포트를 전부 큐에 넣으므로, 생성이 진행되는 내내 같은 리포트가 매분 **다른 키**로
+ * 새 작업을 만들었다. 37개짜리 리포트 하나가 30분 돌면 작업이 수십 건 쌓인다. 실제로 대기 작업이
+ * 227건까지 불어나 새 리포트가 그 뒤에 줄을 섰다.
+ *
+ * 이제 리포트당 키는 하나다. 재생성은 `reviveStalledJob` 이 맡는다 — 끝났거나 멈춘 작업을
+ * 다시 태우는 것이 그 함수의 일이고, 백필은 애초에 **미완성** 리포트만 넣는다.
  */
-export function reportCompletionIdempotencyKey(reportId: string, revision?: number): string {
-  return `${REPORT_COMPLETION_JOB_KIND}:${reportId}:${revision ?? 0}`
+export function reportCompletionIdempotencyKey(reportId: string): string {
+  return `${REPORT_COMPLETION_JOB_KIND}:${reportId}`
 }
 
 export async function enqueueReportCompletion(params: {
@@ -38,7 +47,7 @@ export async function enqueueReportCompletion(params: {
   return enqueueOpsJob({
     kind: REPORT_COMPLETION_JOB_KIND,
     targetId: reportId,
-    idempotencyKey: reportCompletionIdempotencyKey(reportId, revision),
+    idempotencyKey: reportCompletionIdempotencyKey(reportId),
     payload: { reportId, revision },
   })
 }
@@ -184,6 +193,47 @@ export function selectBackfillReportIds(
   }
   selected.sort((a, b) => a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId))
   return selected.map((ref) => ref.reportId)
+}
+
+export interface PurgeOutcome {
+  /** 걷어내기 전에 큐에 있던 이 종류의 작업 수(모든 회원). */
+  scannedJobs: number
+  /** 이 회원의 것으로 확인된 리포트. 미완성인 것은 다음 분 백필이 **한 건씩** 다시 넣는다. */
+  reports: Array<{ reportId: string; serviceKey?: string; status: string; jobs: number }>
+  deleted: number
+}
+
+/** 운영자가 지울 수 있는 상태. running 은 워커가 들고 있으므로 제외한다. */
+export const PURGEABLE_JOB_STATES = ['queued', 'retry', 'dead'] as const
+
+/**
+ * 한 회원의 리포트를 가리키는 작업을 큐에서 걷어낸다.
+ *
+ * 작업 행에는 소유자가 없다. 대상(리포트)을 서버 키로 읽어 소유자를 맞춘다 — 그래서 남의
+ * 리포트 작업은 건드리지 않는다. 지운 뒤에도 미완성 리포트는 다음 분 백필이 새 키로 한 건씩
+ * 다시 넣는다. 즉 이 함수가 하는 일은 "중복을 지우는 것"이지 "생성을 멈추는 것"이 아니다.
+ * 생성 자체를 멈추려면 리포트를 지워야 한다.
+ */
+export async function purgeReportCompletionJobsForOwner(
+  ownerId: string,
+  states: readonly string[] = PURGEABLE_JOB_STATES,
+): Promise<PurgeOutcome> {
+  const allowed = states.filter((state): state is typeof PURGEABLE_JOB_STATES[number] =>
+    (PURGEABLE_JOB_STATES as readonly string[]).includes(state))
+  const jobs = await listOpsJobRefs({ kind: REPORT_COMPLETION_JOB_KIND, states: allowed, limit: 5000 })
+  const jobsByTarget = new Map<string, number>()
+  for (const job of jobs) jobsByTarget.set(job.target_id, (jobsByTarget.get(job.target_id) ?? 0) + 1)
+
+  const reports: PurgeOutcome['reports'] = []
+  for (const [reportId, count] of jobsByTarget) {
+    const record = await getReportRecordAsService(reportId).catch(() => null)
+    if (!record || record.owner?.id !== ownerId) continue
+    reports.push({ reportId: record.reportId, serviceKey: record.context?.serviceKey, status: record.status, jobs: count })
+  }
+  const deleted = reports.length
+    ? await deleteOpsJobsForTargets(reports.map((report) => report.reportId), allowed, REPORT_COMPLETION_JOB_KIND)
+    : 0
+  return { scannedJobs: jobs.length, reports, deleted }
 }
 
 export async function backfillReportCompletions(limit = 200): Promise<BackfillOutcome> {

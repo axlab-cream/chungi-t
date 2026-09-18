@@ -59,7 +59,7 @@ import {
 } from '../admin/service-version-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
-import { backfillReportCompletions, enqueueReportCompletion } from '../report/report-completion-job.js'
+import { backfillReportCompletions, enqueueReportCompletion, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner } from '../report/report-completion-job.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
@@ -2140,6 +2140,35 @@ app.get('/api/cron/ops', async (req, res) => {
 app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
+})
+/**
+ * 한 회원의 해석 완성 작업을 큐에서 걷어낸다.
+ *
+ * 2026-09-18: 멱등키에 revision 이 들어 있어 한 리포트에 작업이 수십 건 쌓였다(대기 227건).
+ * 키는 고쳤지만 이미 쌓인 행은 남는다. 여기로 걷어내면 다음 분 백필이 미완성 리포트마다
+ * **한 건씩** 다시 넣는다. running 은 지우지 않는다. 감사 명령을 거치므로 누가 누구 것을
+ * 지웠는지 남는다.
+ */
+app.post('/api/admin/v1/jobs/purge', async (req, res) => {
+  const membership = await requireStaff(req, res, 'settings:write'); if (!membership) return
+  const body = asObject(req.body)
+  const ownerId = trimmedString(body.ownerId)
+  const requested = Array.isArray(body.states) ? body.states.map((state) => trimmedString(state)) : [...PURGEABLE_JOB_STATES]
+  const states = requested.filter((state) => (PURGEABLE_JOB_STATES as readonly string[]).includes(state))
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[a-zA-Z0-9_-]{8,160}$/.test(ownerId) || !states.length || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_JOB_PURGE', error: '회원 식별자, 지울 상태, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'ops.jobs.purge', idempotencyKey,
+      body: { ownerId, states },
+      target: { type: 'ops_jobs', id: ownerId },
+    }, async () => purgeReportCompletionJobsForOwner(ownerId, states))
+    res.json({ ...command.result, replayed: command.replayed })
+  } catch (error) {
+    res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'OPS_PURGE_FAILED', error: '작업 큐를 걷어내지 못했습니다.' })
+  }
 })
 /**
  * 운영자가 보는 릴리스 정보. 해석이 흔들렸다는 문의가 오면 여기부터 본다 —

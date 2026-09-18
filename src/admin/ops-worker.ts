@@ -66,13 +66,26 @@ export async function runOpsWorker(): Promise<OpsWorkerOutcome> {
   const jobs = await claimed.json() as Job[]; let retried = 0; let dead = 0; let succeeded = 0
   const ctx: HandlerContext = { deadlineAt: Date.now() + WORKER_BUDGET_MS }
   let finalizeFailed = false
+  /*
+   * 같은 대상을 가리키는 작업은 한 실행에서 하나만 돈다.
+   *
+   * 2026-09-18 멱등키 결함으로 한 리포트에 작업이 수십 건 쌓였다. 그걸 세 차선이 나란히 집으면
+   * 같은 리포트의 항목을 동시에 만들려 들어 모델 호출이 겹친다 — 항목 lease 가 대부분 막지만
+   * 그 사이 틈으로 새는 호출은 그대로 비용이다. 쌍둥이는 처리기를 태우지 않고 닫는다.
+   * 리포트에 남은 일은 살아 있는 쪽이 하고, 그마저 실패하면 매분 백필이 다시 넣는다.
+   */
+  const targetsInFlight = new Set<string>()
 
   async function processJob(job: Job): Promise<void> {
     const handler = HANDLERS[job.kind]
     // 처리기가 없으면 성공으로 닫지 않는다. 아무도 하지 않은 일이 끝난 것처럼 보인다.
     let error = handler ? '' : 'NO_OPS_HANDLER'
     let finished = false
-    if (handler) {
+    const laneKey = `${job.kind}:${job.target_id}`
+    if (handler && targetsInFlight.has(laneKey)) {
+      finished = true; error = 'OPS_DUPLICATE_TARGET'
+    } else if (handler) {
+      targetsInFlight.add(laneKey)
       try { finished = await handler(job, ctx) }
       catch (cause) { error = cause instanceof Error ? cause.message.slice(0, 200) : 'OPS_HANDLER_FAILED' }
     }
