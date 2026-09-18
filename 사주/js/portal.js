@@ -28,6 +28,26 @@
   const toast = document.querySelector('#toast');
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const dragThreshold = 24;
+
+  /*
+   * 오늘운 입구의 "매일" 신호. 오늘 아직 안 봤으면 fresh(점·버튼 맥박), 보고 나면 seen 으로
+   * 바꿔 "오늘 확인함"을 쓴다. 날짜는 기기 기준이라 자정이 지나면 다시 fresh 가 된다.
+   * 저장은 이 기기에만 남는 편의 정보다 — 없어도 화면은 그대로 동작한다.
+   */
+  const todayTicket = document.querySelector('.today-ticket');
+  if (todayTicket) {
+    const TODAY_SEEN_KEY = 'umsh_today_seen_date';
+    const now = new Date();
+    const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let seenToday = false;
+    try { seenToday = localStorage.getItem(TODAY_SEEN_KEY) === dateKey; } catch (_) { seenToday = false; }
+    todayTicket.dataset.todayState = seenToday ? 'seen' : 'fresh';
+    const eyebrow = todayTicket.querySelector(':scope > div > span');
+    if (eyebrow) eyebrow.textContent = `TODAY · 무료 · ${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
+    todayTicket.addEventListener('click', () => {
+      try { localStorage.setItem(TODAY_SEEN_KEY, dateKey); } catch (_) { /* private mode */ }
+    });
+  }
   const AUTH_DEVICE_SESSION_KEY = 'cheongi_auth_device_session_started_at_v1';
   const AUTH_DEVICE_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 

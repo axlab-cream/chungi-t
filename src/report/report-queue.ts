@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportHighlight, SajuReportSection } from '../types/index.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { OpenAiTruncatedError, isOpenAiConfigured, isOpenAiQuotaExhausted, isTransientOpenAiFailure } from '../llm/openai-adapter.js'
+import { OpenAiTruncatedError, isOpenAiConfigured, isOpenAiQuotaExhausted, isTransientOpenAiFailure, type OpenAiResult } from '../llm/openai-adapter.js'
+import { isBlockingIssue } from './tone-v2-review.js'
 import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { loadHighlightTopics } from './longform-blocks.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
@@ -350,48 +351,76 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
   // 돌면 추론이 또 예산을 다 쓰고 본문을 못 낼 가능성이 크다(love_mind 항목이 열 몇 번을
   // 같은 이유로 반복해서 실패했다, 2026-09-17). 매 시도 50%씩, 최대 2배까지 늘린다.
   let tokenBudget: number | undefined
-  for (let index = 0; index < SECTION_ATTEMPT_LIMIT; index += 1) {
+  const analysis = record.analysis ?? params.analysis
+  const siblings = record.report.sections.filter((item) => item.id !== params.sectionId && item.status === 'complete')
+  const openAttempt = async (): Promise<string> => {
     const attemptId = randomUUID()
     await editClaim((section) => {
       section.attempts ??= []
       section.attempts.push({ id: attemptId, startedAt: new Date().toISOString(), model: getReportModel(), status: 'generating' })
       section.generationLease = { id: leaseId, expiresAt: new Date(Date.now() + LEASE_MS).toISOString() }
     })
+    return attemptId
+  }
+  const recordResponse = (attemptId: string) => (result: OpenAiResult) => editClaim((section) => {
+    const attempt = section.attempts?.find((item) => item.id === attemptId)
+    if (attempt) { attempt.raw = result.text; attempt.finishReason = result.finishReason; attempt.tokenUsage = result.usage; attempt.model = result.model; attempt.finishedAt = new Date().toISOString() }
+  }).then(() => undefined)
+  const failAttempt = (attemptId: string, diagnosis: string) => editClaim((section) => {
+    const attempt = section.attempts?.find((item) => item.id === attemptId)
+    if (attempt) { attempt.status = 'failed'; attempt.error = diagnosis; attempt.finishedAt = new Date().toISOString() }
+  })
+  const saveComplete = async (
+    generated: Pick<SajuReportSection, 'hook' | 'interpretation' | 'generatedAt' | 'tokenUsage' | 'model'>,
+    attemptId: string | undefined,
+    verdictOfReview: Pick<SajuReportSection, 'reviewMode' | 'reviewNotes'>,
+  ) => editClaim((section, current) => {
+    const attempt = attemptId ? section.attempts?.find((item) => item.id === attemptId) : undefined
+    if (attempt) { attempt.status = 'complete'; attempt.finishedAt = new Date().toISOString() }
+    section.hook = generated.hook
+    section.interpretation = generated.interpretation
+    section.generatedAt = generated.generatedAt
+    section.tokenUsage = generated.tokenUsage
+    section.generatedBy = 'openai'
+    section.model = generated.model ?? getReportModel()
+    section.status = 'complete'
+    if (verdictOfReview.reviewMode && verdictOfReview.reviewMode !== 'strict') {
+      section.reviewMode = verdictOfReview.reviewMode
+      if (verdictOfReview.reviewNotes?.length) section.reviewNotes = verdictOfReview.reviewNotes
+    }
+    delete section.generationLease
+    delete section.error
+    // 이 항목은 활성 스냅샷으로 만들어졌다. 레코드에도 그 스냅샷을 박아 다음 항목·검수가 같은 근거를 본다.
+    if (corpusUpgraded) current.corpus = corpusSnapshot
+    const complete = current.report.sections.filter((item) => item.status === 'complete').length
+    current.report.progress = { complete, total: current.report.sections.length }
+    current.status = current.report.status = complete === current.report.sections.length ? 'complete' : 'generating'
+    if (complete === current.report.sections.length) { current.report.generatedBy = 'openai'; current.report.model = generated.model ?? getReportModel() }
+  })
+  const markFailed = () => editClaim((section, current) => {
+    section.status = 'failed'
+    section.error = '완성 해석의 검수가 끝나지 않았습니다. 저장된 초안은 유지되며 재시도할 수 있습니다.'
+    delete section.generationLease
+    current.status = current.report.status = 'failed'
+  })
+
+  let needsRescue = false
+  for (let index = 0; index < SECTION_ATTEMPT_LIMIT; index += 1) {
+    const attemptId = await openAttempt()
     try {
       if (!isOpenAiConfigured()) throw new Error('GENERATION_UNAVAILABLE')
       const generated = await buildOpenAiSajuReportSection(
-        record.analysis ?? params.analysis, record.birth, params.sectionId, record.context, storedSection,
+        analysis, record.birth, params.sectionId, record.context, storedSection,
         {
-          siblings: record.report.sections.filter((item) => item.id !== params.sectionId && item.status === 'complete'),
+          siblings,
           repairIssues: issues,
           corpusSnapshot,
           verdict: record.report.verdict,
           maxTokens: tokenBudget,
-          onResponse: (result) => editClaim((section) => {
-            const attempt = section.attempts?.find((item) => item.id === attemptId)
-            if (attempt) { attempt.raw = result.text; attempt.finishReason = result.finishReason; attempt.tokenUsage = result.usage; attempt.model = result.model; attempt.finishedAt = new Date().toISOString() }
-          }).then(() => undefined),
+          onResponse: recordResponse(attemptId),
         },
       )
-      const saved = await editClaim((section, current) => {
-        const attempt = section.attempts?.find((item) => item.id === attemptId)
-        if (attempt) { attempt.status = 'complete'; attempt.finishedAt = new Date().toISOString() }
-        section.hook = generated.hook
-        section.interpretation = generated.interpretation
-        section.generatedAt = generated.generatedAt
-        section.tokenUsage = generated.tokenUsage
-        section.generatedBy = 'openai'
-        section.model = generated.model ?? getReportModel()
-        section.status = 'complete'
-        delete section.generationLease
-        delete section.error
-        // 이 항목은 활성 스냅샷으로 만들어졌다. 레코드에도 그 스냅샷을 박아 다음 항목·검수가 같은 근거를 본다.
-        if (corpusUpgraded) current.corpus = corpusSnapshot
-        const complete = current.report.sections.filter((item) => item.status === 'complete').length
-        current.report.progress = { complete, total: current.report.sections.length }
-        current.status = current.report.status = complete === current.report.sections.length ? 'complete' : 'generating'
-        if (complete === current.report.sections.length) { current.report.generatedBy = 'openai'; current.report.model = generated.model ?? getReportModel() }
-      })
+      const saved = await saveComplete(generated, attemptId, { reviewMode: 'strict' })
       return saved?.report.sections.find((item) => item.id === params.sectionId) ?? storedSection
     } catch (error) {
       const truncated = error instanceof OpenAiTruncatedError
@@ -423,18 +452,96 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
       // 429·5xx 는 곧바로 다시 보내면 같은 이유로 또 걸리기 쉽다. 짧게 물러선다
       // (1초·2초·4초) — 리포트 전체를 막는 것도 아니고 워커 예산(200초)에 비해 미미하다.
       if (transient && retryable) await new Promise((resolve) => setTimeout(resolve, 1_000 * 2 ** index))
-      await editClaim((section, current) => {
-        const attempt = section.attempts?.find((item) => item.id === attemptId)
-        if (attempt) { attempt.status = 'failed'; attempt.error = diagnosis; attempt.finishedAt = new Date().toISOString() }
-        if (!retryable) {
-          section.status = 'failed'
-          section.error = '완성 해석의 검수가 끝나지 않았습니다. 저장된 초안은 유지되며 재시도할 수 있습니다.'
-          delete section.generationLease
-          current.status = current.report.status = 'failed'
-        }
-      })
-      if (!retryable) break
+      await failAttempt(attemptId, diagnosis)
+      if (retryable) continue
+      // 1차(엄격 검수)가 검수 사유로 끝났으면 실패로 굳히지 않고 아래 2·3차에 넘긴다.
+      // 잔액·연결 같은 바깥 사정은 초안이 없으니 넘길 것도 없다 — 예전처럼 실패로 남긴다.
+      if (error instanceof InterpretationQualityError) needsRescue = true
+      else await markFailed()
+      break
     }
+  }
+
+  /*
+   * 2·3차 재검증 — 1차 미완성은 여기서 끝을 낸다(2026-09-18).
+   *
+   * 1차는 같은 항목을 네 번 새로 쓴다. 매번 다른 지적(장면 → 한자 설명 → 숫자)에 걸려 끝내
+   * 실패로 남는 항목이 실제로 있었다. 그러면 큐가 같은 작업을 되살려 또 네 번 새로 쓰고, 고객은
+   * "미완성"만 본다.
+   *
+   * 2차: 저장된 초안 가운데 지적이 가장 적은 것을 골라 **그 초안에서 지적만 고치는** 편집 호출을
+   *      한 번 한다. 통째로 다시 쓰지 않으니 통과했던 요소가 다시 빠지지 않는다. 엄격 검수 통과면
+   *      reviewMode='repaired' 로 완성.
+   * 3차: 그래도 남으면 초안들(2차 결과 포함, 최신부터)을 안전 검수만으로 다시 본다. 없는 사실
+   *      단정·확정 예언·건강 판단·내부 노출·근거 없는 숫자 같은 안전 지적이 하나도 없으면 채택하고,
+   *      남은 문체 지적은 reviewNotes 로 운영자에게 남긴다(reviewMode='lenient').
+   * 안전 지적이 남는 초안은 어떤 경우에도 채택하지 않는다 — 그때만 실패로 남는다.
+   */
+  type SavedAttempt = NonNullable<SajuReportSection['attempts']>[number]
+  interface Draft { attempt: SavedAttempt; raw: string; hook: string; interpretation: string; issues: string[] }
+  const rescueSectionFromDrafts = async (): Promise<boolean> => {
+    const strictReview = (raw: string): Omit<Draft, 'attempt' | 'raw'> | null => {
+      try {
+        const parsed = parseGeneratedSajuReportSection(raw, params.sectionId)
+        const review = reviewGeneratedSajuReportSection({
+          analysis, birth: record.birth, context: record.context, section: storedSection,
+          hook: parsed.hook, interpretation: parsed.interpretation, siblings, corpusSnapshot, verdict: record.report.verdict,
+        })
+        return { hook: parsed.hook, interpretation: parsed.interpretation, issues: review.issues }
+      } catch { return null }
+    }
+    const loadDrafts = async (): Promise<Draft[]> => {
+      const fresh = await getReportRecord(params.reportId, params.owner)
+      const section = fresh?.report.sections.find((item) => item.id === params.sectionId)
+      const drafts: Draft[] = []
+      for (const attempt of section?.attempts ?? []) {
+        if (attempt.status !== 'failed' || typeof attempt.raw !== 'string' || !attempt.raw.trim()) continue
+        const reviewed = strictReview(attempt.raw)
+        if (reviewed) drafts.push({ attempt, raw: attempt.raw, ...reviewed })
+      }
+      return drafts
+    }
+
+    // 2차 — 문체 지적만 남은 초안 가운데 지적이 가장 적은 것을 편집한다. 안전·구조 지적이
+    // 남은 초안은 편집으로 고칠 것이 아니므로(없는 사실을 지운다고 글이 되지 않는다) 건너뛴다.
+    const drafts = await loadDrafts()
+    const best = drafts
+      .filter((draft) => !draft.issues.some(isBlockingIssue))
+      .sort((a, b) => a.issues.length - b.issues.length)[0]
+    if (best && isOpenAiConfigured()) {
+      const attemptId = await openAttempt()
+      try {
+        const generated = await buildOpenAiSajuReportSection(
+          analysis, record.birth, params.sectionId, record.context, storedSection,
+          {
+            siblings, repairIssues: best.issues, repairDraft: best.raw, corpusSnapshot,
+            verdict: record.report.verdict, maxTokens: tokenBudget, onResponse: recordResponse(attemptId),
+          },
+        )
+        await saveComplete(generated, attemptId, { reviewMode: 'repaired' })
+        return true
+      } catch (error) {
+        const reason = error instanceof InterpretationQualityError ? error.review.issues.join(' ') : (error instanceof Error ? `${error.name}: ${error.message}` : String(error))
+        await failAttempt(attemptId, `2차 편집 검수: ${reason}`.slice(0, 240))
+      }
+    }
+
+    // 3차 — 안전·구조 지적이 없는 초안을 채택한다. 최신 초안부터.
+    for (const draft of (await loadDrafts()).reverse()) {
+      if (draft.issues.some(isBlockingIssue)) continue
+      await saveComplete(
+        { hook: draft.hook, interpretation: draft.interpretation, generatedAt: draft.attempt.finishedAt ?? new Date().toISOString(), tokenUsage: draft.attempt.tokenUsage, model: draft.attempt.model },
+        undefined,
+        { reviewMode: 'lenient', reviewNotes: draft.issues },
+      )
+      return true
+    }
+    return false
+  }
+
+  if (needsRescue) {
+    const rescued = await rescueSectionFromDrafts().catch(() => false)
+    if (!rescued) await markFailed()
   }
   const latest = await getReportRecord(params.reportId, params.owner)
   return latest?.report.sections.find((item) => item.id === params.sectionId) ?? storedSection

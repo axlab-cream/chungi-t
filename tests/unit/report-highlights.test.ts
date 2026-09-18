@@ -75,6 +75,31 @@ test('parseReportHighlight keeps title and complete status', () => {
   assert.match(parsed.text, /보류/)
 })
 
+/**
+ * 2026-09-18: 예산을 늘린 뒤에도 하이라이트 세 장이 "본문을 찾지 못했습니다"로 실패했다.
+ * JSON 은 읽혔는데 text 가 문자열이 아니었다 — "문단 6개"를 요구하니 모델이 문단을 배열로
+ * 냈다. 형태가 달라도 본문이 있으면 살려야 한다.
+ */
+test('parseReportHighlight는 배열·다른 키·한 겹 감싼 형태와 날것 줄바꿈도 읽는다', () => {
+  const array = parseReportHighlight('{"text":["첫 문단이에요.","둘째 문단이에요."]}', '제목')
+  assert.equal(array.text, '첫 문단이에요.\n\n둘째 문단이에요.')
+  assert.equal(array.status, 'complete')
+  assert.equal(parseReportHighlight('{"paragraphs":["하나.","둘."]}', '제목').text, '하나.\n\n둘.')
+  assert.equal(parseReportHighlight('{"highlight":{"title":"제목","text":"감싼 본문이에요."}}', '제목').text, '감싼 본문이에요.')
+  const rawNewline = parseReportHighlight('{"text":"첫 줄이에요.\n\n둘째 줄이에요."}', '제목')
+  assert.equal(rawNewline.text, '첫 줄이에요.\n\n둘째 줄이에요.')
+  assert.throws(() => parseReportHighlight('{"text":""}', '제목'), /본문을 찾지 못했습니다/)
+  assert.throws(() => parseReportHighlight('{"title":"본문 없음"}', '제목'), /본문을 찾지 못했습니다/)
+})
+
+test('highlight prompt pins text to a single string', () => {
+  const topics = loadHighlightTopics('quit_fortune')
+  assert.ok(topics?.[0])
+  const payload = JSON.parse(highlightPrompt(analyzeSaju(birth), birth, { serviceKey: 'quit_fortune' }, topics[0])[1].content)
+  assert.match(payload.instruction, /text는 문자열 하나/)
+  assert.match(payload.instruction, /배열이나 다른 키로 내지 마세요/)
+})
+
 test('a highlight that promotes a lower choice fails the verdict gate', () => {
   const review = reviewReportVerdictConsistency({
     verdict: { statement: '지금은 보류다.', rankedChoices: ['HOLD', 'GO'] },

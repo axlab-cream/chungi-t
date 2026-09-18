@@ -244,14 +244,14 @@
     var link = document.createElement('link');
     link.id = 'umsh-longform-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-longform.css?v=lf-20260918a';
+    link.href = '/css/umsh-longform.css?v=lf-20260918b';
     document.head.appendChild(link);
   }
 
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260918a', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260918b', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;

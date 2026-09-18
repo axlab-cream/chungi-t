@@ -367,6 +367,13 @@ export interface SajuReportSection {
   model?: string
   status?: 'pending' | 'generating' | 'complete' | 'failed'
   error?: string
+  /**
+   * 어느 검수로 완성됐는지. strict(기본) = 1차 엄격 검수 통과. repaired = 2차 편집 재생성 통과.
+   * lenient = 3차, 안전 지적은 없고 문체 지적만 남은 초안을 채택. 고객 응답에서는 제거된다.
+   */
+  reviewMode?: 'strict' | 'repaired' | 'lenient'
+  /** lenient 채택 때 남은 문체 지적. 운영자용, 고객 응답에서는 제거된다. */
+  reviewNotes?: string[]
 }
 
 export interface SajuReportQualityCategory {

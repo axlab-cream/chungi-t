@@ -3996,6 +3996,9 @@ function reportDiagnostics(record: ReportRecord) {
         category: section.category,
         classification: section.classification,
         status: section.status,
+        // 2차 편집(repaired)·3차 안전 채택(lenient)으로 완성된 항목은 남은 문체 지적을 함께 보인다.
+        reviewMode: section.reviewMode,
+        reviewNotes: section.reviewNotes,
         attempts: (section.attempts ?? []).map((attempt) => ({
           status: attempt.status,
           model: attempt.model,

@@ -77,7 +77,9 @@ const INVENTED_FACT_SUBJECTS = {
   homeStructure: '집\\s*구조',
   cat: '고양이(?:\\s*(?:행동|성격|마음|기분|외로움)|[이가는은])',
   region: '지역\\s*(?:사건|문제)',
-  illness: '질병|병',
+  // 낱말 `병`만. 병원·유리병·병아리의 병이 아니다 — "병원 예약을 미리 잡아요"가 질병 단정으로
+  // 막혀 고양이 궁합 '병원·미용 예약 타이밍' 항목이 두 번 되돌아왔다(2026-09-18).
+  illness: '질병|지병|투병|(?<![가-힣])병(?=[이가은는을를도만과와]|\\s|$)',
 } as const
 type InventedFactSubject = keyof typeof INVENTED_FACT_SUBJECTS
 const INVENTED_FACT_ASSERTION = '[^.!?。\\n]{0,30}(?:입니다|이에요|해요|합니다|때문입니다|때문이에요|원인입니다|원인이에요|탓입니다|탓이에요|생깁니다|생겨요)'
@@ -117,7 +119,7 @@ function serviceScenePattern(serviceKey: string | null | undefined): RegExp | nu
     for (const token of phrase.split(/[·,/\s]+/)) if (token.length >= 2) words.add(token)
   }
   const pattern = words.size
-    ? new RegExp(`(?:${[...words].map(escapeRegExp).join('|')})[^.!?。\\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|이면|여야|없다면|있다면|않다면|보이면|갈리면|반복되면|늘면|줄면|나오면|직후|전후|무렵|시간대|앉으면|놓으면|비교하면|확인하면)`)
+    ? new RegExp(`(?:${[...words].map(escapeRegExp).join('|')})${SCENE_TAIL}`)
     : null
   serviceScenePatternCache.set(key, pattern)
   return pattern
@@ -852,9 +854,24 @@ export function reviewSectionUniqueness(input: SectionUniquenessInput): ToneRevi
   return { passed: issues.length === 0, issues }
 }
 
-function hasRecognizableScene(text: string, serviceKey?: string | null): boolean {
+const SCENE_TAIL = '[^.!?。\\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|이면|여야|없다면|있다면|않다면|보이면|갈리면|반복되면|늘면|줄면|나오면|직후|전후|무렵|시간대|앉으면|놓으면|비교하면|확인하면)'
+const GENERIC_QUESTION_WORDS = new Set(['궁합', '해석', '기준', '포인트', '타이밍', '패턴', '방식', '지점', '흐름', '기운', '온도', '신호'])
+
+/**
+ * 항목 제목의 낱말은 그 항목의 장면이다. "아침 루틴 궁합"을 묻는 항목에서 "아침에 알람이 울릴
+ * 때"는 장면인데, 사전에 '아침'이 없어 되돌아왔다. 제목 낱말과 상황 꼬리가 함께 있으면 장면으로
+ * 본다. 궁합·기준 같은 범용어는 뺀다.
+ */
+function questionScenePattern(question: string | undefined): RegExp | null {
+  if (!question) return null
+  const words = question.split(/[\s·:,/()]+/).map((word) => word.trim()).filter((word) => word.length >= 2 && !GENERIC_QUESTION_WORDS.has(word))
+  return words.length ? new RegExp(`(?:${words.map(escapeRegExp).join('|')})${SCENE_TAIL}`) : null
+}
+
+function hasRecognizableScene(text: string, serviceKey?: string | null, question?: string): boolean {
   // 그 서비스의 계약서가 요구하는 장면은 장면이다. 프롬프트와 검수기가 같은 사전을 쓴다.
   if (serviceScenePattern(serviceKey)?.test(text)) return true
+  if (questionScenePattern(question)?.test(text)) return true
   // An example marker is framing, not a scene by itself. Require a concrete
   // everyday setting/object to be paired with an observable situation.
   const ordinaryScene = /(?:(?:출근|퇴근|회의|답장|연락|약속|대화|업무|시험|책상|침대|현관|옷장|거울|가방|서랍|신발장|식사|밥상|식탁|점심|메뉴판|냉장고|산책|결제|지출|면접|공부|하루|주말|도서관|예식장|웨딩홀|상담\s*테이블|대관표|보증\s*인원표|양가\s*이동|계약서|스드메|협업\s*도구|메신저|캘린더)[^.!?。\n]{0,70}(?:때|장면|상황|경우|에서|하면|했을|앉으면|이면|여야|없다면|있다면|않다면|보이면|갈리면|펼쳐|놓으면|적으면|비교하면|확인하면))|(?:(?:독서실|자습실|학원|서점|장바구니|강의|문제집|실모|채점표|오답\s*노트|노트북|접수\s*화면|주문창)[^.!?。\n]{0,55}(?:앞(?:에서는)?|옆에|순간|채점\s*직후|열\s*때|보면|켜면|펴봐|펴고|펴지면|열면|여는|닫아봐|반복될\s*때|밀려))|(?:문제[^.!?。\n]{0,45}(?:때|장면|상황|경우|했을))/.test(text)
@@ -943,7 +960,7 @@ export function reviewPaidSectionDensity(input: PaidSectionDensityInput): PaidSe
       && !/[?？]\s*$/.test(hook),
     grounding: /(?:적었|말했|느낀|고른|선택한|기록한|입력된|측정한|확인된|계산(?:된|값|에서)|관찰된|값\s*(?:없|미확인|미입력)|때문|이유|근거|조건(?:이|은|을|으로|부터)|판단\s*기준)/.test(text)
       || hasContextGrounding(text, input.context),
-    scene: hasRecognizableScene(text, input.context?.serviceKey),
+    scene: hasRecognizableScene(text, input.context?.serviceKey, input.question),
     nextCriterion: hasSameSentenceNextCriterion(text) || hasAdjacentNextCriterion(text),
   }
   const issues: string[] = []
@@ -989,6 +1006,40 @@ export function reviewReportVerdictConsistency(input: VerdictConsistencyInput): 
     }
   }
   return { passed: issues.length === 0, issues }
+}
+
+/*
+ * 검수 지적을 두 부류로 나눈다. **안전** 지적은 어떤 경우에도 통과시키지 않는다 — 없는 사실 단정,
+ * 확정 예언, 건강·복약 판단, 재접촉 권유, 내부 필드 노출, 근거 없는 숫자, 고정 결론 뒤집기.
+ * 나머지는 **문체** 지적이다 — 장면·다음 기준·단락 문장 수·한자 설명·편집 틀. 1차 엄격 검수와
+ * 2차 편집 재생성까지 실패한 초안이 안전 지적만 없으면 3차에서 채택한다. 그래야 "미완성"이
+ * 영영 남지 않는다(2026-09-18). 문체 지적은 reviewNotes 로 남겨 운영자가 본다.
+ */
+const SAFETY_ISSUE_PATTERNS: RegExp[] = [
+  /입력에 없는/, /타인의 마음을 확인된 사실처럼/, /미래 사건을 확인된 사실처럼/, /확정 예언/,
+  /확인되지 않은 사건을 단정/, /승패를 결정한다고 단정/, /건강·질병·복약/, /보호자의 사주 결함/,
+  /측정하지 않은 방위·지형/, /경계 존중과 안전을 우선/, /재접촉을 제안하지/, /상징 해석으로 미래 사건/,
+  /상징 해석을 현실의 정답/, /고정 결론의 1순위/, /근거 없는 처방 숫자/, /서버 근거에 없는/, /계산이 맞지|계산 결과가/,
+  /내부 근거 필드/, /내부 필드나 타 서비스 원문/, /제작용 제목·운영 상태·권한/, /데이터 결손이나 내부 지형/,
+  /출생 시각을 받지 못했으므로/, /코퍼스 문장을 복사/, /고객 본문 금지문|금지문/, /외도/,
+]
+export function isSafetyIssue(issue: string): boolean {
+  return SAFETY_ISSUE_PATTERNS.some((pattern) => pattern.test(issue))
+}
+
+/*
+ * 3차 채택의 최소선. 안전 지적이 없어도 **글이 아닌 것**은 채택하지 않는다 — hook 이 없거나,
+ * 80자 미만이거나, 완성 문장이 셋이 안 되거나, 같은 문단·문장을 되풀이하거나, 형제 항목을
+ * 베낀 초안. "짧습니다." 한 줄이 완료로 찍히면 미완성보다 나쁘다.
+ */
+const STRUCTURAL_FLOOR_PATTERNS: RegExp[] = [
+  /질문의 답·근거·생활 장면·다음 기준을 갖춘 해석을 작성하세요/, /판단과 근거, 다음 기준을 구분해 완성된 문장으로/,
+  /현재 항목의 답을 담은 한 줄 요약을 새로 작성하세요/, /같은 문단이 중복/, /같은 문장을 두 번/, /다른 항목의 문단을 반복/,
+  /긴 문장 2개 이상이 겹칩니다/, /다른 항목의 hook이나 긴 문단을 재사용/,
+]
+/** 어느 단계에서도 통과시킬 수 없는 지적 — 안전 지적 또는 구조 최소선 미달. */
+export function isBlockingIssue(issue: string): boolean {
+  return isSafetyIssue(issue) || STRUCTURAL_FLOOR_PATTERNS.some((pattern) => pattern.test(issue))
 }
 
 export function reviewToneCopy(text: string, serviceKey?: string | null, options: ToneReviewOptions = {}): ToneReview {

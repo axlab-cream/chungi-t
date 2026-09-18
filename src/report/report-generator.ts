@@ -2082,6 +2082,12 @@ const CAT_COMPAT_COMMON_INSTRUCTION = [
  * 인용할 것, 그리고 장면은 서비스 계약서의 필수 장면 어휘로 쓸 것. 검수기도 같은 계약서로
  * 장면을 판정하므로 프롬프트와 검수기가 어긋나지 않는다(2026-09-18 전수 점검).
  */
+/** 계약서의 필수 장면·판단 기준 문구. 여기 든 숫자(예: '첫 3개월 적응')는 검수에서 근거로 친다. */
+function serviceNumericHints(context: SajuReportContext): string[] {
+  const contract = (SERVICE_VOICE_CONTRACTS as Record<string, ServiceVoiceContract | undefined>)[normalizeServiceKey(context.serviceKey)]
+  return contract ? [...contract.requiredScenes, ...contract.decisionCriteria] : []
+}
+
 function serviceGroundingInstruction(context: SajuReportContext): string {
   const contract = (SERVICE_VOICE_CONTRACTS as Record<string, ServiceVoiceContract | undefined>)[normalizeServiceKey(context.serviceKey)]
   if (!contract) return ''
@@ -2350,9 +2356,36 @@ export function summaryPrompt(
   ]
 }
 
+/*
+ * `{"text": "..."}` 를 기대하지만 모델은 종종 다르게 낸다 — 문단을 배열로(`"text": ["…","…"]`),
+ * 다른 키로(`paragraphs`·`body`), 한 겹 감싸서(`{"highlight": {"text": …}}`). 하이라이트가
+ * "본문을 찾지 못했습니다"로 세 장 모두 실패한 원인이 이것이다(2026-09-18). 형태가 달라도
+ * 본문이 있으면 살린다. 문단 배열은 빈 줄로 잇는다.
+ */
+function coerceBlockText(parsed: unknown, depth = 0): string {
+  const pick = (value: unknown): string => {
+    if (typeof value === 'string') return value.trim()
+    if (Array.isArray(value)) return value.map(pick).filter(Boolean).join('\n\n')
+    return ''
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return pick(parsed)
+  const record = parsed as Record<string, unknown>
+  for (const key of ['text', 'paragraphs', 'body', 'content', 'interpretation']) {
+    const value = pick(record[key])
+    if (value) return value
+  }
+  if (depth >= 2) return ''
+  for (const value of Object.values(record)) {
+    if (value && typeof value === 'object') {
+      const inner = coerceBlockText(value, depth + 1)
+      if (inner) return inner
+    }
+  }
+  return ''
+}
+
 export function parseReportSummary(raw: string): SajuReportSummary {
-  const parsed = extractJsonObject(raw) as { text?: unknown }
-  const text = typeof parsed.text === 'string' ? parsed.text.trim() : ''
+  const text = coerceBlockText(extractJsonObject(raw))
   if (!text) throw new Error('전체 요약 문장을 찾지 못했습니다.')
   return { text, status: 'complete', generatedAt: new Date().toISOString() }
 }
@@ -2430,6 +2463,8 @@ export function highlightPrompt(
         `분량 예산: ${lengthBudgetForRole('highlightCard').min}~${lengthBudgetForRole('highlightCard').max}자(공백 포함).`,
         '돈 낮음 같은 등급 라벨을 쓰지 말고 뜻으로 쓰세요.',
         topic.paragraphs ? `문단 수: ${topic.paragraphs}개. 빈 줄로 문단을 나눕니다.` : '',
+        // 문단 수를 말하면 모델이 문단을 배열로 내기 쉽다. 형식을 못 박는다.
+        'text는 문자열 하나입니다. 문단은 그 문자열 안에서 빈 줄(\\n\\n)로 나누고, 배열이나 다른 키로 내지 마세요.',
         verdict?.statement
           ? 'evidenceLayers.fixedVerdict의 1순위를 바꾸지 마세요.'
           : '',
@@ -2451,8 +2486,7 @@ export function highlightPrompt(
 }
 
 export function parseReportHighlight(raw: string, title: string): SajuReportHighlight {
-  const parsed = extractJsonObject(raw) as { text?: unknown }
-  const text = typeof parsed.text === 'string' ? parsed.text.trim() : ''
+  const text = coerceBlockText(extractJsonObject(raw))
   if (!text) throw new Error('하이라이트 본문을 찾지 못했습니다.')
   return { title, text, status: 'complete', generatedAt: new Date().toISOString() }
 }
@@ -2518,7 +2552,20 @@ function extractJsonObject(raw: string): unknown {
   const start = cleaned.indexOf('{')
   const end = cleaned.lastIndexOf('}')
   if (start < 0 || end < start) throw new Error('리포트 JSON을 찾지 못했습니다.')
-  return JSON.parse(cleaned.slice(start, end + 1)) as unknown
+  const slice = cleaned.slice(start, end + 1)
+  try {
+    return JSON.parse(slice) as unknown
+  } catch (error) {
+    // 문단을 빈 줄로 나누라고 하면 모델이 문자열 안에 줄바꿈을 날것으로 넣는 일이 있다.
+    // JSON 으로는 틀렸지만 본문은 온전하다. 문자열 안의 줄바꿈만 이스케이프해 한 번 더 읽는다.
+    const repaired = slice.replace(/"(?:[^"\\]|\\.)*"|[\r\n]+/gs, (match) => (
+      match.startsWith('"') ? match.replace(/\r?\n/g, '\\n') : match
+    ))
+    if (repaired !== slice) {
+      try { return JSON.parse(repaired) as unknown } catch { /* fall through to the original error */ }
+    }
+    throw error
+  }
 }
 
 /** Parse the same bounded section payload for live generation and saved-attempt recovery. */
@@ -2534,7 +2581,13 @@ export function parseGeneratedSajuReportSection(raw: string, sectionId: string):
   }
 }
 
-function sectionRepairInstruction(issues: string[]): string {
+/**
+ * rewrite(1차) = 같은 항목을 처음부터 다시 쓴다. edit(2차) = 직전 응답의 초안에서 지적만 고친다.
+ * 1차에서 네 번 다시 써도 매번 다른 지적에 걸려 끝내 미완성으로 남는 항목이 있었다(직장 선택
+ * '지금 들어가도 되는 흐름' 2026-09-18). 통째로 다시 쓰면 통과했던 요소가 다시 빠진다.
+ * 편집은 남은 지적만 건드려 수렴이 빠르다.
+ */
+function sectionRepairInstruction(issues: string[], mode: 'rewrite' | 'edit' = 'rewrite'): string {
   const uniqueIssues = [...new Set(issues.map((issue) => issue.trim()).filter(Boolean))]
   const guidance = [
     '현재 실패만 고치고 끝내지 말고 원래 요청의 모든 품질 불변식을 함께 보존하세요.',
@@ -2554,9 +2607,11 @@ function sectionRepairInstruction(issues: string[]): string {
     '근거 없는 수치, 내부 필드, 코퍼스 문장 복사, 형제 항목과 같은 답이나 긴 문단 반복을 만들지 마세요.',
   ]
   return [
-    '이전 응답은 아래 검수에서 실패했습니다. 같은 항목 전체를 새로 작성해 바로잡으세요.',
+    mode === 'edit'
+      ? '직전 응답(assistant)의 초안은 아래 지적만 남기고 검수를 통과했습니다. 지적된 부분만 고치고, 지적과 무관한 문장·구조·근거·장면은 그대로 유지하세요. 통째로 다시 쓰지 마세요.'
+      : '이전 응답은 아래 검수에서 실패했습니다. 같은 항목 전체를 새로 작성해 바로잡으세요.',
     ...uniqueIssues.map((issue, index) => `${index + 1}. ${issue}`),
-    '재작성 형식:',
+    mode === 'edit' ? '고친 뒤에도 지켜야 할 것:' : '재작성 형식:',
     ...guidance.map((item) => `- ${item}`),
     '요청한 JSON의 id, hook, interpretation만 반환하세요.',
   ].join('\n')
@@ -2581,6 +2636,9 @@ export function reviewGeneratedSajuReportSection(input: {
     publicReportContext(context),
     groundedReportFeatures(analysis, context),
     { category: section.category, classification: section.classification },
+    // 계약서가 쓰라고 한 장면·기준에 든 숫자는 근거 있는 숫자다. 직장 선택은 '첫 3개월 적응'을
+    // 요구하면서 "3개월"을 근거 없는 처방 숫자로 되돌려 보냈다(2026-09-18).
+    serviceNumericHints(context),
   )
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(publicReportContext(context))}`,
@@ -2635,6 +2693,11 @@ export async function buildOpenAiSajuReportSection(
     siblings?: SajuReportSection[]
     onResponse?: (result: OpenAiResult) => void | Promise<void>
     repairIssues?: string[]
+    /**
+     * 2차 편집용. 이 초안(직전 응답 원문)을 assistant 메시지로 붙이고 지적만 고치게 한다.
+     * repairIssues 와 함께 쓴다.
+     */
+    repairDraft?: string
     corpusSnapshot?: CorpusSnapshot
     /** 이번 시도에만 쓸 예산. 비우면 기본값. 직전 시도가 빈 응답/잘림이었을 때 호출자가 키운다. */
     maxTokens?: number
@@ -2644,7 +2707,10 @@ export async function buildOpenAiSajuReportSection(
   const section = savedSection ?? buildTemplateSajuReport(analysis, birth, context).sections.find((item) => item.id === sectionId)
   if (!section || section.id !== sectionId) throw new Error('요청한 전용 항목을 찾지 못했습니다. 다른 항목으로 대체하지 않습니다.')
   const messages = sectionPrompt(analysis, birth, context, section, options.siblings, options.corpusSnapshot, options.verdict)
-  if (options.repairIssues?.length) messages.push({ role: 'user', content: sectionRepairInstruction(options.repairIssues) })
+  if (options.repairIssues?.length) {
+    if (options.repairDraft) messages.push({ role: 'assistant', content: options.repairDraft })
+    messages.push({ role: 'user', content: sectionRepairInstruction(options.repairIssues, options.repairDraft ? 'edit' : 'rewrite') })
+  }
   let metadata: OpenAiResult | undefined
   const raw = await chatWithOpenAI(messages, {
     model: REPORT_MODEL,

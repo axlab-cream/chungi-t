@@ -92,3 +92,50 @@ test('항목별 규칙이 없던 서비스도 기둥 인용과 필수 장면 규
   assert.match(payload.instruction, /기둥을 한 번도 부르지 않은 일반론/)
   assert.match(payload.instruction, /필수 장면\(새 만남/)
 })
+
+/**
+ * 배포 직후 운영에서 남은 두 가지. '병원·미용 예약 타이밍' 항목이 질병 규칙(`병`)에 걸렸고,
+ * '아침 루틴 궁합' 항목은 "아침에 알람이 울릴 때"를 장면으로 못 봐 두 번 되돌아왔다.
+ */
+test('병원은 질병이 아니다 — 낱말 병만 막는다', () => {
+  assert.deepEqual(inventedFactIssues('병원 예약을 미리 잡아 두면 좋아요.', 'cat_compatibility'), [])
+  assert.deepEqual(inventedFactIssues('동물병원 미용 예약은 오전이 편해요.', 'cat_compatibility'), [])
+  assert.ok(inventedFactIssues('병이 이 시기에 생겨요.', 'cat_compatibility').length, '낱말 병 단정이 통과했다')
+  assert.ok(inventedFactIssues('지병이 원인입니다.', 'saju_master').length)
+})
+
+/**
+ * 직장 선택 계약서는 '첫 3개월 적응'을 필수 장면으로 요구하는데, 검수기는 "3개월"을 근거 없는
+ * 처방 숫자로 되돌려 보냈다. 계약서의 장면·기준에 든 숫자는 근거 있는 숫자다.
+ */
+test('계약서 필수 장면의 숫자는 근거 없는 처방 숫자가 아니다', async () => {
+  const { reviewGeneratedSajuReportSection } = await import('../../src/report/report-generator.js')
+  const section: SajuReportSection = {
+    id: 'growth-1', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '성장', categoryEn: 'Growth',
+    classification: '첫 3개월 적응', hook: '', interpretation: '', patternKeys: [], ragTopics: [],
+  }
+  const review = reviewGeneratedSajuReportSection({
+    analysis, birth, context: { serviceKey: 'job_choice', concern: '오퍼를 받았어요.' }, section,
+    hook: '첫 3개월은 속도보다 기준을 맞추는 시간이에요.',
+    interpretation: '첫 3개월 동안은 성과보다 팀의 기준을 읽는 시간으로 써요. 입력된 오퍼 조건에서 급한 선택은 확인되지 않아요.\n\n예를 들어 회의에서 결정이 뒤집히는 장면이 반복되면 그 빈도를 적어요. 그 기록이 비교 기준이에요.\n\n먼저 첫 3개월의 기준 하나를 적어 두세요. 매주 같은 기준으로 비교해요.',
+  })
+  assert.deepEqual(review.issues.filter((issue) => issue.includes('근거 없는 처방 숫자')), [])
+})
+
+test('항목 제목의 낱말과 상황 꼬리가 함께 있으면 장면이다', () => {
+  const review = reviewPaidSectionDensity({
+    hook: '직접 답을 먼저 써요.',
+    question: '아침 루틴 궁합',
+    interpretation: '알람이 울릴 때 먼저 움직이는 쪽이 누구인지 적어요.',
+    context: { serviceKey: 'cat_compatibility' },
+  })
+  assert.equal(review.elements.scene, true)
+  // 범용어(궁합·기준)만 있는 제목은 장면을 만들지 않는다.
+  const generic = reviewPaidSectionDensity({
+    hook: '직접 답을 먼저 써요.',
+    question: '궁합 기준',
+    interpretation: '기준 상황에서 반응이 갈려요.',
+    context: { serviceKey: 'love_this_year' },
+  })
+  assert.equal(generic.elements.scene, false)
+})

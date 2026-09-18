@@ -36,11 +36,11 @@ test('today landing reserves the live bottom-menu height and pins its GNB host',
   assert.doesNotMatch(stylesheet,/#umsh-verified-layout|#umsh-verified-reading/)
 })
 
-test('opening the story or a saved daily URL does not initiate a new fortune request',()=>{
-  for(const path of ['/today/free#step-1-story','/today/free?reportId=saved-daily','/today/free?start=1&reportId=saved-daily']) {
+test('a saved daily URL renders the story without any request',()=>{
+  for(const path of ['/today/free?reportId=saved-daily','/today/free?start=1&reportId=saved-daily','/today/free?intro=1']) {
     const location=new URL(path,'https://umsh.kr')
     const calls:string[]=[]
-    const context:any={location,URL,URLSearchParams,document:{
+    const context:any={location,URL,URLSearchParams,setTimeout,clearTimeout,document:{
       addEventListener(){},
       querySelector(){return {classList:{remove(){}}}},
     },fetch:()=>{throw new Error('No new authentication or generation request expected')}}
@@ -52,4 +52,53 @@ test('opening the story or a saved daily URL does not initiate a new fortune req
     assert.deepEqual(calls,['render-story','mark-story'])
     assert.equal(location.href,new URL(path,'https://umsh.kr').href)
   }
+})
+
+/**
+ * 2026-09-18: 이미 로그인한 사람에게 이 소개 화면은 "로그인 후 오늘운 확인하기"를 한 번 더
+ * 누르게 하는 관문일 뿐이었다. 매일 들어오는 무료 입구라 그 한 번이 크다. 세션이 있으면
+ * 건너뛰고 바로 부르고, 없으면 예전처럼 소개를 보여준다.
+ */
+function bootTodayWith(session:{access_token:string}|null,path='/today/free') {
+  const location=new URL(path,'https://umsh.kr')
+  const calls:string[]=[]
+  const requests:string[]=[]
+  const context:any={location,URL,URLSearchParams,setTimeout,clearTimeout,document:{
+    addEventListener(){},
+    // 로그인 흐름이 끝나면 본문이 그려진다. 그 자리는 있다고 답한다.
+    querySelector(selector:string){calls.push(`query:${selector}`);return {classList:{remove(){}},appendChild(){}}},
+    createElement(){return {dataset:{},setAttribute(){},style:{}}},
+  },fetch:async(url:string)=>{requests.push(String(url));return {json:async()=>({enabled:true,url:'https://x.supabase.co',publishableKey:'pk'})}}}
+  context.window=context
+  context.UMSHServiceDetail={render:()=>calls.push('render-story')}
+  context.UMSHServiceSteps={markStory:()=>calls.push('mark-story'),markAuth:()=>calls.push('mark-auth')}
+  context.UMSHLoading={show:()=>calls.push('loading-show'),hide:()=>calls.push('loading-hide')}
+  context.supabase={}
+  context.UMSHAuthSession={
+    createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session}})}}),
+    enforceDeviceAuthSession:async(current:unknown)=>current,
+  }
+  context.UMSHReportAccess={
+    setOwner(){},
+    fetch:async(url:string)=>{requests.push(`POST ${url}`);return {ok:true,status:200,json:async()=>({todayFortune:{}})}},
+  }
+  runInNewContext(pageScript,context)
+  return {calls,requests,location}
+}
+
+test('로그인 상태면 소개를 건너뛰고 바로 오늘운을 부른다',async()=>{
+  const {calls,requests}=bootTodayWith({access_token:'live-token'})
+  await new Promise((resolve)=>setTimeout(resolve,50))
+  assert.ok(requests.includes('POST /api/today/fortune'),`오늘운을 부르지 않았다: ${requests.join(', ')}`)
+  assert.ok(!calls.includes('render-story'),'로그인 상태인데 소개 화면을 그렸다')
+  assert.ok(calls.includes('loading-hide'),'로딩을 닫지 않았다')
+})
+
+test('로그인 전이면 소개 화면을 보여주고 오늘운을 부르지 않는다',async()=>{
+  const {calls,requests}=bootTodayWith(null)
+  await new Promise((resolve)=>setTimeout(resolve,50))
+  assert.ok(calls.includes('render-story'),'소개 화면을 그리지 않았다')
+  assert.ok(calls.includes('mark-story'))
+  assert.ok(!requests.some((item)=>item.startsWith('POST')),`로그인 전에 생성을 불렀다: ${requests.join(', ')}`)
+  assert.ok(calls.includes('loading-hide'))
 })

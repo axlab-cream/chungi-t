@@ -291,7 +291,7 @@ export function toClientReport(record: ReportRecord): SajuReport {
   report.publicId = report.resultId
   report.publicUrl = `/r/${encodeURIComponent(report.resultId)}`
   report.serviceKey = record.context.serviceKey ?? 'saju_master'
-  report.sections = report.sections.map(({ attempts: _attempts, generationLease: _lease, ...section }) => ({ ...section, generationId: sectionGenerationId(record, section), status: record.status === 'complete' ? 'complete' : section.status }))
+  report.sections = report.sections.map(({ attempts: _attempts, generationLease: _lease, reviewMode: _reviewMode, reviewNotes: _reviewNotes, ...section }) => ({ ...section, generationId: sectionGenerationId(record, section), status: record.status === 'complete' ? 'complete' : section.status }))
   return report
 }
 
