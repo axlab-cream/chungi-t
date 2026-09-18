@@ -661,17 +661,48 @@
    * 배너가 `hidden` 클래스를 벗고 영구히 남는다. 다시 부르는 코드가 없어서 스스로는 안
    * 닫힌다. 공용 리딩 뷰가 실제로 열렸다는 것은 검증이 끝났다는 뜻이므로, 여기서 같이 닫는다.
    * 2026-09-18 저축운 리포트에서 실측(완성본 위에 배너가 그대로 떠 있었다).
+   *
+   * 결혼궁합(match/marry) 06 페이지는 또 다른 모양의 같은 문제를 갖고 있다. 자기만의 옛
+   * 목업 뷰어가 `#access-chip` 에 "권한 불일치"·"항목 없음" 같은 내부 상태 문구를 적는데,
+   * 그 뷰어의 항목 배열은 설계 시점의 목업 id(`marry-01-01` 등)만 담고 있어 실제 생성된
+   * 리포트의 항목 id 와 맞는 적이 없다 — 그래서 실제 고객에게도 항상 이 칩이 뜬다. 상위
+   * `.contextbar` 째로 닫는다. 그 칩이 없는 서비스의 `.contextbar` 는 건드리지 않는다.
+   * 2026-09-18 결혼궁합 리포트에서 실측("항목 없음" 칩이 탭처럼 보였다).
    */
   var LEGACY_GATE_IDS = ['lockedState', 'missingState'];
+  function closestByClass(node, className) {
+    var el = node;
+    while (el) {
+      if (el.classList && el.classList.contains(className)) return el;
+      el = el.parentElement || el.parentNode || null;
+    }
+    return null;
+  }
+  /*
+   * 서비스마다 "가린다"의 구현이 다르다 — 저축운은 자기 CSS 에 `.hidden{display:none!important}`
+   * 를 따로 두고 클래스로 가리고, 결혼궁합은 그런 규칙이 아예 없이 네이티브 `hidden` 속성만
+   * 쓴다(공용 CSS 어디에도 `.hidden` 규칙이 없다). 어느 쪽인지 페이지마다 추적하는 대신 둘 다
+   * 건다 — 있는 쪽이 실제로 가리고, 없는 쪽은 아무 효과가 없을 뿐 해가 되지 않는다.
+   */
+  function hideLegacyNode(node) {
+    if (!node) return;
+    node.hidden = true;
+    if (node.classList) node.classList.add('hidden');
+  }
   function hideNativeSeedDetail(liveHost) {
     var native = document.getElementById('detailContent');
     if (native && native !== liveHost) {
-      native.hidden = true;
+      hideLegacyNode(native);
       native.setAttribute('data-umsh-seed-hidden', '');
     }
     for (var i = 0; i < LEGACY_GATE_IDS.length; i++) {
       var gate = document.getElementById(LEGACY_GATE_IDS[i]);
-      if (gate && gate !== liveHost) gate.classList.add('hidden');
+      if (gate && gate !== liveHost) hideLegacyNode(gate);
+    }
+    var accessChip = document.getElementById('access-chip');
+    if (accessChip) {
+      var bar = closestByClass(accessChip, 'contextbar') || accessChip;
+      if (bar !== liveHost) hideLegacyNode(bar);
     }
   }
   function allowDesignMockReading() {
