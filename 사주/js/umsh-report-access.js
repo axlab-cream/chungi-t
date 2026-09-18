@@ -789,9 +789,28 @@
    * 14개 06-1 화면이 모두 이 파일을 싣는다. 화면마다 문구를 넣으면 새 서비스가 생길
    * 때마다 빠지므로 여기서 한 번만 올린다.
    */
-  function ensureImportantNotice(host) {
+  /**
+   * 완성됐으면 "정밀 분석 중… 30~50분" 안내는 낼 이유가 없다. 그런데 이 함수는 지금까지
+   * `report.status` 를 보지 않고 매 렌더에서 한 번만(중복 방지 가드) 무조건 붙였다 — 그래서
+   * 21/21·28/28 처럼 이미 다 끝난 리포트를 처음 여는 순간에도 "완성까지 30~50분" 문구가
+   * 최상단(GNB 위)에 실렸다. 14개 06-1 화면이 다 이 파일을 쓰므로 넓게 걸린 문제였다.
+   * 완성 여부는 상태값과 진행률 두 신호를 함께 본다 — 어느 한쪽 필드가 비어 있는 서비스가
+   * 있을 수 있어서다.
+   */
+  function reportIsComplete(report) {
+    if (!report) return false;
+    if (report.status === 'complete') return true;
+    var progress = report.progress;
+    return Boolean(progress && progress.total > 0 && progress.complete >= progress.total);
+  }
+  function ensureImportantNotice(host, report) {
     if (!isDetailPage() && !isPermalink()) return;
-    if (document.querySelector('[data-umsh-notice]')) return;
+    var existing = document.querySelector('[data-umsh-notice]');
+    if (reportIsComplete(report)) {
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      return;
+    }
+    if (existing) return;
     var anchor = host && host.closest ? (host.closest('section, article, main, body') || host) : document.body;
     if (!anchor) return;
     var box = document.createElement('aside');
@@ -988,7 +1007,7 @@
     markFilled(host);
     hideNativeSeedDetail(host);
     renderProgress(report);
-    ensureImportantNotice(host);
+    ensureImportantNotice(host, report);
     ensurePdfDock(host);
     return true;
   }
@@ -1197,7 +1216,7 @@
     mountLongform(document.getElementById('umsh-longform-mount'), report, payload.entitled !== false);
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
-    ensureImportantNotice(node);
+    ensureImportantNotice(node, report);
     ensurePdfDock(node);
   }
   function expandReportForPrint() {
