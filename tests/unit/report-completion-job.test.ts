@@ -353,6 +353,15 @@ describe('실행 판정(classifyRun)과 상한', { concurrency: false }, () => {
     assert.equal(job.classifyRun(rec, runStart), 'quota')
   })
 
+  it('키 거절은 잔액 소진보다 우선한다 — 잔액이 있어도 키가 죽었으면 아무것도 안 된다', () => {
+    const rec = record([
+      { status: 'failed', attempts: [failed(QUOTA, '2026-09-18T10:00:10Z')] },
+      { status: 'failed', attempts: [failed(queue.OPENAI_KEY_REJECTED_MESSAGE, '2026-09-18T10:00:20Z')] },
+    ])
+    assert.equal(job.classifyRun(rec, runStart), 'key')
+    assert.deepEqual([...job.PROVIDER_OUTAGE_CODES], ['OPENAI_QUOTA_EXHAUSTED', 'OPENAI_KEY_REJECTED'])
+  })
+
   it('실행 전에 남은 옛 잔액 소진 기록은 이번 실행의 판정에 쓰지 않는다', () => {
     const rec = record([{ status: 'failed', attempts: [failed(QUOTA, '2026-09-18T09:00:00Z')] }, { status: 'pending' }])
     assert.equal(job.classifyRun(rec, runStart), null)

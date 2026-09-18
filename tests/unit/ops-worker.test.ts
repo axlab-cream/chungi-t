@@ -110,6 +110,13 @@ describe('마감 계획(planFinalize)', () => {
     assert.equal(plan.body.last_error, 'OPENAI_QUOTA_EXHAUSTED')
   })
 
+  it('키 거절(401/403)도 잔액 소진과 같은 길 — 15분 뒤 retry, 시도 횟수 미소모', () => {
+    const plan = worker.planFinalize(job(5), { finished: false, error: 'OPENAI_KEY_REJECTED' }, now)
+    assert.equal(plan.state, 'retry')
+    assert.equal(plan.body.attempts, 4)
+    assert.equal(plan.body.next_run_at, new Date(now + worker.QUOTA_BACKOFF_MS).toISOString())
+  })
+
   it('상한 도달은 시도 횟수와 상관없이 바로 dead', () => {
     const plan = worker.planFinalize(job(1), { finished: false, error: 'REPORT_EXHAUSTED' }, now)
     assert.equal(plan.state, 'dead')

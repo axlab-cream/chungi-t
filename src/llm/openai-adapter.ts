@@ -56,6 +56,15 @@ export function isOpenAiQuotaExhausted(error: unknown): boolean {
   return code === 'insufficient_quota' || /no credits remaining|insufficient_quota|exceeded your current quota/i.test(error.message ?? '')
 }
 
+/**
+ * 401·403 은 키가 폐기됐거나 권한이 없다는 뜻이다. 재시도로 풀리지 않고 운영자가 환경변수를
+ * 고치고 재배포해야 한다. 2026-09-18 키 교체 뒤 프로덕션이 옛 키를 그대로 들고 있어 모든 항목이
+ * 이 오류로 떨어졐는데, 일반 실패로 세어져 리포트 상한을 갉아먹었다. 잔액 소진과 같은 길로 보낸다.
+ */
+export function isOpenAiKeyRejected(error: unknown): boolean {
+  return error instanceof APIError && (error.status === 401 || error.status === 403)
+}
+
 export function isTransientOpenAiFailure(error: unknown): error is APIError {
   if (!(error instanceof APIError)) return false
   if (isOpenAiQuotaExhausted(error)) return false

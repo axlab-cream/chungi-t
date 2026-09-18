@@ -1,6 +1,6 @@
 import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { countGenuineFailures, ensureReportLongform, preGenerateReport, sectionHitQuotaExhaustion } from './report-queue.js'
+import { countGenuineFailures, ensureReportLongform, preGenerateReport, sectionHitProviderOutage } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
 
 export type { IncompleteReportRef }
@@ -67,15 +67,20 @@ export interface ReportCompletionOutcome {
 /**
  * 작업이 던지는 코드. 워커는 코드마다 다르게 물러선다(`planFinalize`).
  * - QUOTA: 잔액 소진. 충전 전까지 같은 답이므로 길게 물러서고 시도 횟수를 세지 않는다.
+ * - KEY: 키 거절(401/403). 환경변수 교체·재배포 전까지 같은 답이다. 잔액 소진과 같은 길.
  * - EXHAUSTED: 남은 항목 전부가 진짜 실패를 상한까지 겹쳐 쌓았다. 되살려도 같은 비용만 든다 —
  *   dead 로 고정하고 운영자가 진단(reviewNotes·attempts)을 보고 손을 쓴다.
  * - SECTION_FAILED: 이번 실행에서 한 칸도 못 나아갔고 실패 항목이 있다. 보통 백오프.
  */
 export const REPORT_JOB_CODES = {
   quota: 'OPENAI_QUOTA_EXHAUSTED',
+  key: 'OPENAI_KEY_REJECTED',
   exhausted: 'REPORT_EXHAUSTED',
   sectionFailed: 'REPORT_SECTION_FAILED',
 } as const
+
+/** 공급자 사정 코드. 워커는 이 코드들을 15분 백오프·시도 미소모로 다룬다. */
+export const PROVIDER_OUTAGE_CODES: readonly string[] = [REPORT_JOB_CODES.quota, REPORT_JOB_CODES.key]
 
 /**
  * 한 항목이 이 수만큼 **진짜** 실패(잔액 소진 제외)를 쌓으면 더 부르지 않는다. 한 실행이 최대
@@ -87,11 +92,14 @@ export const REPORT_GIVE_UP_FAILURES = Math.min(Math.max(Number(process.env.REPO
  * 이번 실행이 어떻게 끝났는지 시도 기록으로 판정한다. 순수 함수라 저장소 없이 시험한다.
  * 잔액 소진이 하나라도 이 실행 안에 찍혔으면 그것이 우선이다 — 다른 실패도 대개 같은 뿌리다.
  */
-export function classifyRun(record: ReportRecord, runStartedAt: number): 'quota' | 'exhausted' | null {
+export function classifyRun(record: ReportRecord, runStartedAt: number): 'quota' | 'key' | 'exhausted' | null {
   const sections = record.report?.sections ?? []
   const remaining = sections.filter((section) => section.status !== 'complete')
   if (!remaining.length) return null
-  if (remaining.some((section) => sectionHitQuotaExhaustion(section, runStartedAt))) return 'quota'
+  const outages = remaining.map((section) => sectionHitProviderOutage(section, runStartedAt)).filter(Boolean)
+  // 키 거절이 하나라도 있으면 그것이 우선이다 — 잔액이 있어도 키가 죽었으면 아무것도 안 된다.
+  if (outages.includes('key')) return 'key'
+  if (outages.includes('quota')) return 'quota'
   if (remaining.every((section) => countGenuineFailures(section) >= REPORT_GIVE_UP_FAILURES)) return 'exhausted'
   return null
 }
@@ -145,6 +153,7 @@ export async function runReportCompletionJob(
   // 잔액 소진·상한 도달은 다음 분에 다시 태워도 같은 답이다. 코드로 던져 워커가 길게 물러서거나 고정하게 한다.
   const verdict = classifyRun(latest ?? record, runStartedAt)
   if (verdict === 'quota') throw new Error(REPORT_JOB_CODES.quota)
+  if (verdict === 'key') throw new Error(REPORT_JOB_CODES.key)
   if (verdict === 'exhausted') throw new Error(REPORT_JOB_CODES.exhausted)
   // 시간 예산으로 멈춘 것은 실패가 아니다. 그대로 돌려 다음 실행이 5초 뒤 이어받는다.
   if (budget.exhausted) return after

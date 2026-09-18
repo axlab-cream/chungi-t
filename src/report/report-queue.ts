@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportHighlight, SajuReportSection } from '../types/index.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { OpenAiTruncatedError, isOpenAiConfigured, isOpenAiQuotaExhausted, isTransientOpenAiFailure, type OpenAiResult } from '../llm/openai-adapter.js'
+import { OpenAiTruncatedError, isOpenAiConfigured, isOpenAiKeyRejected, isOpenAiQuotaExhausted, isTransientOpenAiFailure, type OpenAiResult } from '../llm/openai-adapter.js'
 import { isBlockingIssue } from './tone-v2-review.js'
 import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { loadHighlightTopics } from './longform-blocks.js'
@@ -73,20 +73,38 @@ export const FAILED_RETRY_COOLDOWN_MS = Math.max(Number(process.env.REPORT_FAILE
  * 어떤 재시도도 같은 답"인 실행을 알아보고 길게 물러선다. 바꾸면 그쪽 판정도 함께 바뀐다.
  */
 export const OPENAI_QUOTA_EXHAUSTED_MESSAGE = 'OpenAI 잔액이 소진되어 생성할 수 없습니다. 크레딧을 충전하면 큐가 이어서 완성합니다.'
+/** 키가 폐기·거절된 실패의 시도 기록 문구. 환경변수를 고치고 재배포해야 풀린다. */
+export const OPENAI_KEY_REJECTED_MESSAGE = 'OpenAI API 키가 거절되었습니다(401/403). 환경변수의 키를 확인하고 재배포하면 큐가 이어서 완성합니다.'
 
-/** 이 항목의 마지막 시도가 잔액 소진으로 끝났는가. */
-export function sectionHitQuotaExhaustion(section: Pick<SajuReportSection, 'attempts'>, since = 0): boolean {
+/** 공급자 쪽 사정으로 끝난 실패. 재시도로 풀리지 않고 리포트의 잘못도 아니다. */
+export type ProviderOutage = 'quota' | 'key'
+
+export function providerOutageOf(attempt: { status: string; error?: string } | undefined): ProviderOutage | null {
+  if (!attempt || attempt.status !== 'failed') return null
+  if (attempt.error === OPENAI_QUOTA_EXHAUSTED_MESSAGE) return 'quota'
+  if (attempt.error === OPENAI_KEY_REJECTED_MESSAGE) return 'key'
+  return null
+}
+
+/** 이 항목의 마지막 시도가 공급자 사정(잔액 소진·키 거절)으로 끝났는가. `since` 이후 시작한 시도만 본다. */
+export function sectionHitProviderOutage(section: Pick<SajuReportSection, 'attempts'>, since = 0): ProviderOutage | null {
   const last = section.attempts?.at(-1)
-  if (!last || last.status !== 'failed' || last.error !== OPENAI_QUOTA_EXHAUSTED_MESSAGE) return false
-  return Date.parse(last.startedAt) >= since
+  const outage = providerOutageOf(last)
+  if (!outage || !last || Date.parse(last.startedAt) < since) return null
+  return outage
+}
+
+/** 예전 이름. 잔액 소진만 묻는 호출부가 남아 있어 유지한다. */
+export function sectionHitQuotaExhaustion(section: Pick<SajuReportSection, 'attempts'>, since = 0): boolean {
+  return sectionHitProviderOutage(section, since) === 'quota'
 }
 
 /**
- * 한 항목에서 잔액 소진을 뺀 실패 시도 수. 리포트를 포기할지(REPORT_EXHAUSTED) 셀 때 쓴다 —
- * 바깥 사정으로 실패한 시도를 세면 크레딧이 끊긴 사이에 정상 리포트가 포기된다.
+ * 한 항목에서 공급자 사정(잔액 소진·키 거절)을 뺀 실패 시도 수. 리포트를 포기할지(REPORT_EXHAUSTED)
+ * 셀 때 쓴다 — 바깥 사정으로 실패한 시도를 세면 크레딧이 끊긴 사이에 정상 리포트가 포기된다.
  */
 export function countGenuineFailures(section: Pick<SajuReportSection, 'attempts'>): number {
-  return (section.attempts ?? []).filter((attempt) => attempt.status === 'failed' && attempt.error !== OPENAI_QUOTA_EXHAUSTED_MESSAGE).length
+  return (section.attempts ?? []).filter((attempt) => attempt.status === 'failed' && !providerOutageOf(attempt)).length
 }
 
 /**
@@ -479,6 +497,8 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
             : isOpenAiQuotaExhausted(error)
               // 운영자가 한눈에 알아보는 문구로. 충전 전까지 재시도해도 같은 답이다.
               ? OPENAI_QUOTA_EXHAUSTED_MESSAGE
+              : isOpenAiKeyRejected(error)
+                ? OPENAI_KEY_REJECTED_MESSAGE
               // 원인을 함께 남긴다. 뭉뚱그린 한 줄만 남아 스냅샷 불일치를 사흘 동안 못 봤다(2026-09-18).
               : `해석 생성 또는 저장이 완료되지 않았습니다. (${error instanceof Error ? `${error.name}: ${error.message}` : String(error)})`.slice(0, 240)
       const retryable = (error instanceof InterpretationQualityError || truncated || transient) && index < SECTION_ATTEMPT_LIMIT - 1
@@ -631,8 +651,8 @@ export async function preGenerateReport(params: GenerationParams, options: PreGe
         let stop = false
         for (const [index, result] of results.entries()) {
           if (result.status === 'complete') continue
-          // 잔액 소진은 이 실행으로 풀리지 않는다. 다음 파도를 시작하면 같은 답만 여섯 번 더 받는다.
-          if (sectionHitQuotaExhaustion(result)) { stop = true; break }
+          // 잔액 소진·키 거절은 이 실행으로 풀리지 않는다. 다음 파도를 시작하면 같은 답만 여섯 번 더 받는다.
+          if (sectionHitProviderOutage(result)) { stop = true; break }
           if (!options.recoverFailed) { stop = true; break }
           skipped.add(wave[index].item.id)
           // 한 실행에서 너무 많이 건너뛰면 같은 이유로 전부 실패하는 중일 가능성이 크다.

@@ -222,6 +222,8 @@ export interface OpsQueueReadiness {
   oldestWaitingSec?: number
   /** 최근 작업에 잔액 소진 코드가 남아 있다. 충전 전까지 해석 생성이 멈춰 있다는 뜻이다. */
   quotaExhausted?: boolean
+  /** 최근 작업에 키 거절(401/403) 코드가 남아 있다. 환경변수의 키를 고치고 재배포해야 한다. */
+  keyRejected?: boolean
   errorCode?: string
 }
 
@@ -318,8 +320,10 @@ export async function checkOpsQueueReadiness(): Promise<OpsQueueReadiness> {
   const ok = table === 'ready' && claimRpc === 'ready'
   const [summary, waiting] = table === 'ready' ? await Promise.all([summarizeOpsJobs(), measureWaitingJobs()]) : [{}, {}]
   const quotaExhausted = Boolean(summary.recentErrors?.OPENAI_QUOTA_EXHAUSTED)
+  const keyRejected = Boolean(summary.recentErrors?.OPENAI_KEY_REJECTED)
   return {
-    ok, configured: true, table, claimRpc, queued, ...summary, ...waiting, ...(quotaExhausted ? { quotaExhausted } : {}),
+    ok, configured: true, table, claimRpc, queued, ...summary, ...waiting,
+    ...(quotaExhausted ? { quotaExhausted } : {}), ...(keyRejected ? { keyRejected } : {}),
     ...(ok ? {} : { errorCode: table !== 'ready' ? `OPS_TABLE_${String(table).toUpperCase()}` : `OPS_RPC_${String(claimRpc).toUpperCase()}` }),
   }
 }

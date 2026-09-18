@@ -1,5 +1,5 @@
 import { opsBase, opsHeaders, opsStoreAvailable } from './ops-queue.js'
-import { REPORT_COMPLETION_JOB_KIND, REPORT_JOB_CODES, runReportCompletionJob } from '../report/report-completion-job.js'
+import { PROVIDER_OUTAGE_CODES, REPORT_COMPLETION_JOB_KIND, REPORT_JOB_CODES, runReportCompletionJob } from '../report/report-completion-job.js'
 const base = opsStoreAvailable() ? opsBase() : undefined
 const headers = opsHeaders
 type Job = {
@@ -97,8 +97,8 @@ export const QUOTA_BACKOFF_MS = 15 * 60_000
  * 처리기 결과를 작업 행의 다음 상태로 옮긴다. 순수 함수라 처리기 없이 시험한다.
  *
  * - 끝났으면 succeeded. 진행했지만 남았으면(오류 없음) 5초 뒤 retry, claim 이 올린 attempts 는 되돌린다.
- * - 잔액 소진(OPENAI_QUOTA_EXHAUSTED): 15분 뒤 retry, attempts 는 세지 않는다. 크레딧이 끊긴 사이
- *   정상 리포트가 dead 로 빠지면 안 된다.
+ * - 공급자 사정(OPENAI_QUOTA_EXHAUSTED·OPENAI_KEY_REJECTED): 15분 뒤 retry, attempts 는 세지 않는다.
+ *   크레딧이 끊기거나 키가 바뀌는 사이 정상 리포트가 dead 로 빠지면 안 된다.
  * - 상한 도달(REPORT_EXHAUSTED): 바로 dead. 되살려도 같은 비용만 든다. 백필의 되살리기도 이 코드는 피한다.
  * - 그 밖의 실패: attempts 가 한도면 dead, 아니면 1·2·4·8분(해석 완성은 1분) 백오프로 retry.
  */
@@ -108,7 +108,7 @@ export function planFinalize(job: Job, outcome: { finished: boolean; error: stri
   const base: Record<string, unknown> = { lease_until: null, updated_at: iso(0), last_error: error || null }
   if (finished) return { state: 'succeeded', body: { ...base, state: 'succeeded' } }
   if (!error) return { state: 'retry', body: { ...base, state: 'retry', next_run_at: iso(5_000), attempts: Math.max(0, job.attempts - 1) } }
-  if (error === REPORT_JOB_CODES.quota) {
+  if (PROVIDER_OUTAGE_CODES.includes(error)) {
     return { state: 'retry', body: { ...base, state: 'retry', next_run_at: iso(QUOTA_BACKOFF_MS), attempts: Math.max(0, job.attempts - 1) } }
   }
   if (error === REPORT_JOB_CODES.exhausted || job.attempts >= job.max_attempts) return { state: 'dead', body: { ...base, state: 'dead' } }

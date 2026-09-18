@@ -1,10 +1,10 @@
 import { after, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import OpenAI, { RateLimitError } from 'openai'
+import OpenAI, { AuthenticationError, RateLimitError } from 'openai'
 import { randomUUID } from 'node:crypto'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
-import { isOpenAiQuotaExhausted, isTransientOpenAiFailure } from '../../src/llm/openai-adapter.js'
-import { generateReportSectionNow } from '../../src/report/report-queue.js'
+import { isOpenAiKeyRejected, isOpenAiQuotaExhausted, isTransientOpenAiFailure } from '../../src/llm/openai-adapter.js'
+import { OPENAI_KEY_REJECTED_MESSAGE, countGenuineFailures, generateReportSectionNow, sectionHitProviderOutage } from '../../src/report/report-queue.js'
 import { createOrGetReportRecord, mutateReportRecord } from '../../src/report/report-store.js'
 import { loadHighlightTopics } from '../../src/report/longform-blocks.js'
 import type { BirthInput, SajuReport, SajuReportSection } from '../../src/types/index.js'
@@ -49,6 +49,27 @@ describe('429·5xx 로 요청 자체가 거절되면 같은 실행 안에서 재
     assert.equal(isTransientOpenAiFailure(rateLimitError()), true)
     assert.equal(isTransientOpenAiFailure(new Error('일반 오류')), false)
     assert.equal(isTransientOpenAiFailure(undefined), false)
+  })
+
+  it('폐기된 키의 401 은 공급자 사정으로 남기고, 같은 실행 안에서 다시 보내지 않고, 리포트 상한에 세지 않는다', async () => {
+    // 2026-09-18: 키 교체 뒤 프로덕션이 옛 키를 들고 있어 "401 Your API key has been invalidated" 가
+    // 모든 항목에 찍혔다. 일반 실패로 세어져 1분마다 재시도하고 리포트 상한(12회)을 갉아먹었다.
+    const revoked = new AuthenticationError(401, { message: 'Your API key has been invalidated.' }, '401 Your API key has been invalidated.', {})
+    assert.equal(isOpenAiKeyRejected(revoked), true)
+    assert.equal(isTransientOpenAiFailure(revoked), false)
+    assert.equal(isOpenAiKeyRejected(rateLimitError()), false)
+
+    const reportId = randomUUID()
+    await createOrGetReportRecord({ reportId, birth, context, analysis, templateReport: template(['one']), owner })
+    await seedLongformBlocks(reportId)
+    let calls = 0
+    OpenAI.Chat.Completions.prototype.create = (async () => { calls += 1; throw revoked }) as unknown as typeof sdkCreate
+    const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner })
+    assert.equal(calls, 1, '키 거절인데 같은 실행 안에서 다시 보냈다')
+    assert.equal(result.status, 'failed')
+    assert.equal(result.attempts?.at(-1)?.error, OPENAI_KEY_REJECTED_MESSAGE)
+    assert.equal(sectionHitProviderOutage(result), 'key')
+    assert.equal(countGenuineFailures(result), 0, '키 거절은 리포트를 포기할 근거가 아니다')
   })
 
   it('잔액 소진 429 는 일시 장애가 아니다 — 같은 실행 안에서 다시 보내지 않는다', async () => {
