@@ -594,6 +594,28 @@
       try { anchor.parentNode.insertBefore(slot, anchor.nextSibling); anchor = slot; } catch (_) {}
     });
   }
+  /**
+   * 화면이 가진 그림을 관련 해석 항목 **바로 위**로 옮긴다.
+   *
+   * 퇴사운의 '다섯 스승' 그림은 본문과 한참 떨어진 화면 맨 아래에 있었다. 그림과 그 그림이
+   * 말하는 해석이 따로 놀면 둘 다 장식으로 읽힌다(2026-09-18). 그림 쪽에
+   * `data-umsh-visual-for="<항목 id>"` 를 달면 그 항목 카드 앞으로 옮겨 붙인다. 짝이 없는
+   * 그림은 원래 자리에 그대로 둔다.
+   */
+  function placeSectionVisuals(host) {
+    if (!host || !document.querySelectorAll) return;
+    var visuals = document.querySelectorAll('[data-umsh-visual-for]');
+    for (var i = 0; i < visuals.length; i++) {
+      var visual = visuals[i];
+      if (visual.getAttribute('data-umsh-visual-placed')) continue;
+      var target = host.querySelector('[data-section="' + visual.getAttribute('data-umsh-visual-for') + '"]');
+      if (!target || !target.parentNode) continue;
+      try {
+        target.parentNode.insertBefore(visual, target);
+        visual.setAttribute('data-umsh-visual-placed', '');
+      } catch (_) {}
+    }
+  }
   function slotNode(name) {
     placeSlotsUnderHero();
     var explicit = document.querySelector('[data-umsh-slot="' + name + '"]');
@@ -901,6 +923,7 @@
     }).join('');
     // 목차 위에 결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
     mountLongform(host, report, payload.entitled !== false);
+    placeSectionVisuals(host);
     revealAncestors(host);
     markFilled(host);
     hideNativeSeedDetail(host);

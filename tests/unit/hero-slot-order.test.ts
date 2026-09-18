@@ -132,3 +132,49 @@ test('준비 중 자리에 움직이는 표시가 있다', () => {
   assert.ok(shimmerOff > reduceAt, '빛 지나가기를 끄지 않는다')
   assert.ok(spinOff > reduceAt, '점 돌기를 끄지 않는다')
 })
+
+/**
+ * 2026-09-18: 퇴사운의 '다섯 스승' 그림이 본문과 한참 떨어진 화면 맨 아래에 있었다. 그림과 그
+ * 그림이 말하는 해석이 따로 놀면 둘 다 장식으로 읽힌다. 그림에 짝이 되는 항목 id 를 달면
+ * 그 항목 카드 바로 앞으로 옮긴다.
+ */
+test('그림은 짝이 되는 해석 항목 바로 위로 옮겨진다', () => {
+  const body = source.slice(source.indexOf('function placeSectionVisuals(host)'), source.indexOf('function slotNode(name)'))
+  assert.ok(body.includes('data-umsh-visual-for'), '옮기는 함수를 찾지 못했다')
+
+  const moved: Array<{ visual: string; before: string }> = []
+  const visual = {
+    getAttribute(name: string) { return name === 'data-umsh-visual-for' ? 'mental-people-2' : null },
+    setAttribute() {},
+  }
+  const card = {
+    id: 'mental-people-2',
+    parentNode: {
+      insertBefore(node: unknown, ref: { id: string }) {
+        moved.push({ visual: (node as typeof visual).getAttribute('data-umsh-visual-for')!, before: ref.id })
+      },
+    },
+  }
+  const host = { querySelector: (selector: string) => (selector.includes('mental-people-2') ? card : null) }
+  const document = { querySelectorAll: () => [visual] }
+  // eslint-disable-next-line no-new-func
+  new Function('document', `${body}\nreturn placeSectionVisuals;`)(document)(host)
+
+  assert.deepEqual(moved, [{ visual: 'mental-people-2', before: 'mental-people-2' }])
+})
+
+test('짝이 없는 그림은 원래 자리에 둔다', () => {
+  const body = source.slice(source.indexOf('function placeSectionVisuals(host)'), source.indexOf('function slotNode(name)'))
+  let touched = false
+  const visual = { getAttribute: () => 'no-such-section', setAttribute() { touched = true } }
+  const host = { querySelector: () => null }
+  const document = { querySelectorAll: () => [visual] }
+  // eslint-disable-next-line no-new-func
+  new Function('document', `${body}\nreturn placeSectionVisuals;`)(document)(host)
+  assert.equal(touched, false, '짝이 없는데 옮겼다')
+})
+
+test('퇴사운의 다섯 스승 그림에 짝이 표시돼 있다', () => {
+  const page = readFileSync(new URL('../../사주/work/quit/06-step-6_1-report-detail/index.html', import.meta.url), 'utf8')
+  assert.match(page, /data-umsh-visual-for="mental-people-2"/)
+})
