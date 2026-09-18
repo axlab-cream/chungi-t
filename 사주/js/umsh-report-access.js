@@ -602,19 +602,23 @@
    * `data-umsh-visual-for="<항목 id>"` 를 달면 그 항목 카드 앞으로 옮겨 붙인다. 짝이 없는
    * 그림은 원래 자리에 그대로 둔다.
    */
+  var sectionVisuals = null;
   function placeSectionVisuals(host) {
     if (!host || !document.querySelectorAll) return;
-    var visuals = document.querySelectorAll('[data-umsh-visual-for]');
-    for (var i = 0; i < visuals.length; i++) {
-      var visual = visuals[i];
-      if (visual.getAttribute('data-umsh-visual-placed')) continue;
-      var target = host.querySelector('[data-section="' + visual.getAttribute('data-umsh-visual-for') + '"]');
-      if (!target || !target.parentNode) continue;
-      try {
-        target.parentNode.insertBefore(visual, target);
-        visual.setAttribute('data-umsh-visual-placed', '');
-      } catch (_) {}
+    /*
+     * 원소를 **처음 한 번** 붙잡아 둔다. 옮겨 넣은 자리는 본문 host 안인데, 폴링이 돌 때마다
+     * host.innerHTML 을 다시 쓰므로 그때 함께 지워진다. 실제로 그림이 화면에서 사라졌다.
+     * 참조를 들고 있으면 지워져도 같은 원소를 다시 끼워 넣을 수 있다(2026-09-18).
+     */
+    if (!sectionVisuals) {
+      sectionVisuals = [].slice.call(document.querySelectorAll('[data-umsh-visual-for]'))
+        .filter(function (node) { return !host.contains(node); });
     }
+    sectionVisuals.forEach(function (visual) {
+      var target = host.querySelector('[data-section="' + visual.getAttribute('data-umsh-visual-for') + '"]');
+      if (!target || !target.parentNode) return;
+      try { target.parentNode.insertBefore(visual, target); } catch (_) {}
+    });
   }
   function slotNode(name) {
     placeSlotsUnderHero();

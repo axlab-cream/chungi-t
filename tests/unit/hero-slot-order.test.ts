@@ -139,7 +139,7 @@ test('준비 중 자리에 움직이는 표시가 있다', () => {
  * 그 항목 카드 바로 앞으로 옮긴다.
  */
 test('그림은 짝이 되는 해석 항목 바로 위로 옮겨진다', () => {
-  const body = source.slice(source.indexOf('function placeSectionVisuals(host)'), source.indexOf('function slotNode(name)'))
+  const body = source.slice(source.indexOf('var sectionVisuals = null;'), source.indexOf('function slotNode(name)'))
   assert.ok(body.includes('data-umsh-visual-for'), '옮기는 함수를 찾지 못했다')
 
   const moved: Array<{ visual: string; before: string }> = []
@@ -155,19 +155,25 @@ test('그림은 짝이 되는 해석 항목 바로 위로 옮겨진다', () => {
       },
     },
   }
-  const host = { querySelector: (selector: string) => (selector.includes('mental-people-2') ? card : null) }
+  const host = { contains: () => false, querySelector: (selector: string) => (selector.includes('mental-people-2') ? card : null) }
   const document = { querySelectorAll: () => [visual] }
   // eslint-disable-next-line no-new-func
-  new Function('document', `${body}\nreturn placeSectionVisuals;`)(document)(host)
+  const place = new Function('document', `${body}\nreturn placeSectionVisuals;`)(document)
+  place(host)
+  // 폴링으로 본문을 다시 그리면 옮겨 둔 그림이 함께 지워진다. 같은 원소를 다시 끼워야 한다.
+  place(host)
 
-  assert.deepEqual(moved, [{ visual: 'mental-people-2', before: 'mental-people-2' }])
+  assert.deepEqual(moved, [
+    { visual: 'mental-people-2', before: 'mental-people-2' },
+    { visual: 'mental-people-2', before: 'mental-people-2' },
+  ])
 })
 
 test('짝이 없는 그림은 원래 자리에 둔다', () => {
-  const body = source.slice(source.indexOf('function placeSectionVisuals(host)'), source.indexOf('function slotNode(name)'))
+  const body = source.slice(source.indexOf('var sectionVisuals = null;'), source.indexOf('function slotNode(name)'))
   let touched = false
   const visual = { getAttribute: () => 'no-such-section', setAttribute() { touched = true } }
-  const host = { querySelector: () => null }
+  const host = { contains: () => false, querySelector: () => null }
   const document = { querySelectorAll: () => [visual] }
   // eslint-disable-next-line no-new-func
   new Function('document', `${body}\nreturn placeSectionVisuals;`)(document)(host)
