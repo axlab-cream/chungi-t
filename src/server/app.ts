@@ -41,7 +41,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports, listQualityReviews } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listGenerationFailureLog, listLiveMembers, listLiveReports, listQualityReviews } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
@@ -2270,6 +2270,18 @@ app.get('/api/admin/v1/media', async (req, res) => {
     res.json({ assets: getMediaCatalog(), asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'MEDIA_CATALOG_FAILED', error: '실제 미디어 카탈로그를 불러오지 못했습니다.' })
+  }
+})
+/**
+ * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도
+ * 기록(attempts[])에서 실패한 시도만 뽑아 시간순으로 모은다.
+ */
+app.get('/api/admin/v1/logs', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json({ failures: await listGenerationFailureLog(Number(req.query?.limit ?? 200)), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'GENERATION_LOG_LOOKUP_FAILED', error: '실제 생성 실패 로그를 불러오지 못했습니다.' })
   }
 })
 app.get('/api/admin/v1/services', async (req, res) => {

@@ -871,6 +871,7 @@
         if (route.key === 'evaluations') { loadQualityEvaluations(body); return; }
         if (route.key === 'media') { loadMediaCatalog(body); return; }
         if (route.key === 'incidents') { loadIncidents(body); return; }
+        if (route.key === 'logs') { loadGenerationLog(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
       }
       /**
@@ -946,6 +947,20 @@
           if (unused) addLiveError(body, '어느 페이지에서도 참조되지 않는 이미지가 ' + unused + '개 있습니다. 배포 크기를 줄이려면 정리 대상입니다.');
           addLiveTable(body, '실제 배포된 이미지 자산', ['경로', '크기', '참조 페이지 수', '공개 상태'], assets, function (item) { return [item.path, Math.round(item.bytes / 1024) + ' KB', item.referencedBy, item.status === 'in_use' ? '사용 중' : '미사용']; }, '실제 배포된 이미지 자산을 찾지 못했습니다.');
         } catch (_error) { addLiveError(body, '실제 미디어 카탈로그를 불러오지 못했습니다.'); }
+      }
+      /**
+       * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도
+       * 기록에서 실패한 시도만 뽑아 시간순으로 보여준다. 개별 리포트 화면에서만 보이던
+       * 실패 원인(잔액 소진·요청 거절·429·검수 미통과 등)을 서비스 전체에 걸쳐 모은다.
+       */
+      async function loadGenerationLog(body) {
+        try {
+          var response = await fetch('/api/admin/v1/logs', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('GENERATION_LOG_LOOKUP_FAILED');
+          var payload = await response.json();
+          var failures = Array.isArray(payload.failures) ? payload.failures : [];
+          addLiveTable(body, '실제 생성 실패 로그', ['시각', '리포트', '회원', '서비스', '항목', '모델', '실패 사유'], failures, function (item) { return [item.occurredAt, item.reportId, item.member, item.serviceKey, item.sectionId, item.model, item.errorSummary]; }, '최근 생성 시도 중 실패한 기록이 없습니다.');
+        } catch (_error) { addLiveError(body, '실제 생성 실패 로그를 불러오지 못했습니다.'); }
       }
       async function loadAdminAccounts(body) {
         if (!body) return;

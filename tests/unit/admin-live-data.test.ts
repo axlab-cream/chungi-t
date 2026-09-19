@@ -23,6 +23,36 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select')?.includes('admin_status')) {
     return new Response(JSON.stringify([{ report_id: 'report-123456789', user_email: 'customer@example.com', admin_status: 'new', payload: { context: { serviceKey: 'cmdg' }, birth: { year: 1990 } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/68' } })
   }
+  if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select') === 'report_id,user_email,payload,updated_at' && url.searchParams.get('limit') === '400') {
+    return new Response(JSON.stringify([
+      {
+        report_id: 'report-log-0001', user_email: 'buyer@example.com', updated_at: '2026-09-19T10:00:00.000Z',
+        payload: {
+          context: { serviceKey: 'marry_match' },
+          report: {
+            sections: [
+              {
+                id: 's1', classification: '결혼까지 가는 조건', status: 'complete',
+                attempts: [
+                  { id: 'a1', startedAt: '2026-09-19T09:00:00.000Z', model: 'gpt-5.6-luna', status: 'failed', error: 'OpenAI 잔액이 소진되어 생성할 수 없습니다. 크레딧을 충전하면 큐가 이어서 완성합니다.' },
+                  { id: 'a2', startedAt: '2026-09-19T09:05:00.000Z', model: 'gpt-5.6-luna', status: 'complete' },
+                ],
+              },
+              {
+                id: 's2', classification: '돈 관리 방식', status: 'failed',
+                attempts: [{ id: 'a3', startedAt: '2026-09-19T09:10:00.000Z', model: 'gpt-5.6-luna', status: 'failed', error: '요청이 일시적으로 거절되었습니다(status=429)' }],
+              },
+            ],
+          },
+        },
+      },
+      {
+        // 실패 시도가 하나도 없는 리포트는 어떤 행도 만들지 않아야 한다.
+        report_id: 'report-log-0002', user_email: 'other@example.com', updated_at: '2026-09-19T08:00:00.000Z',
+        payload: { context: { serviceKey: 'money_save' }, report: { sections: [{ id: 's1', classification: '월급 안정러', status: 'complete', attempts: [{ id: 'a4', startedAt: '2026-09-19T07:00:00.000Z', model: 'gpt-5.6-luna', status: 'complete' }] }] } },
+      },
+    ]), { headers: { 'content-range': '0-1/2' } })
+  }
   if (url.pathname.endsWith('/cheongi_reports')) {
     return new Response(JSON.stringify([
       {
@@ -93,5 +123,19 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     ])
     // report-quality-0002 는 strict 뿐이라 어떤 행도 만들지 않았다.
     assert.ok(!reviews.some((review) => review.serviceKey === 'money_save'))
+  })
+
+  /**
+   * 2026-09-19: "로그" 메뉴는 별도 저장소가 없다 — 생성 파이프라인이 이미 남기는 실패
+   * 시도(attempts[].status==='failed')를 시간순으로 뽑는다. 성공한 시도, 실패가 없는
+   * 리포트는 걸러낸다.
+   */
+  it('실패한 시도만 뽑아 최신순으로 정렬하고, 성공한 시도는 걸러낸다', async () => {
+    const failures = await liveData.listGenerationFailureLog()
+    assert.deepEqual(failures, [
+      { reportId: 'report••••', member: 'b•••@example.com', serviceKey: 'marry_match', sectionId: 's2', errorSummary: '요청이 일시적으로 거절되었습니다(status=429)', model: 'gpt-5.6-luna', occurredAt: '2026-09-19T09:10:00.000Z' },
+      { reportId: 'report••••', member: 'b•••@example.com', serviceKey: 'marry_match', sectionId: 's1', errorSummary: 'OpenAI 잔액이 소진되어 생성할 수 없습니다. 크레딧을 충전하면 큐가 이어서 완성합니다.', model: 'gpt-5.6-luna', occurredAt: '2026-09-19T09:00:00.000Z' },
+    ])
+    assert.ok(!failures.some((failure) => failure.serviceKey === 'money_save'), '실패 시도가 없는 리포트가 로그에 섞였다')
   })
 })

@@ -11,19 +11,27 @@ const source = readFileSync(new URL('../../admin-ui/index.html', import.meta.url
  * 안 한 것이다(사용자가 "데이터 안 보이는 곳 전부 확인" 요청으로 발견).
  */
 
-test('renderWorkspace 가 통계·릴리스·평가·미디어·장애를 각각의 실제 로더로 연결한다', () => {
-  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 1900)
+test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그를 각각의 실제 로더로 연결한다', () => {
+  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 2000)
   assert.match(body, /if \(route\.key === 'analytics'\) \{ loadFunnelAnalytics\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'releases'\) \{ loadReleaseInfo\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'evaluations'\) \{ loadQualityEvaluations\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'media'\) \{ loadMediaCatalog\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'incidents'\) \{ loadIncidents\(body\); return; \}/)
-  // 다섯 분기 모두 "아직 생성되지 않았습니다" 안내보다 앞에 있어야 실제로 도달한다.
+  assert.match(body, /if \(route\.key === 'logs'\) \{ loadGenerationLog\(body\); return; \}/)
+  // 여섯 분기 모두 "아직 생성되지 않았습니다" 안내보다 앞에 있어야 실제로 도달한다.
   const fallbackAt = body.indexOf('아직 생성되지 않았습니다')
-  for (const key of ['analytics', 'releases', 'evaluations', 'media', 'incidents']) {
+  for (const key of ['analytics', 'releases', 'evaluations', 'media', 'incidents', 'logs']) {
     const at = body.indexOf(`route.key === '${key}'`)
     assert.ok(at >= 0 && at < fallbackAt, `${key} 분기가 없거나 안내 뒤에 있다`)
   }
+})
+
+test('loadGenerationLog 는 실제 로그 엔드포인트를 부르고, 실패 사유를 시간순으로 싣는다', () => {
+  const body = source.slice(source.indexOf('async function loadGenerationLog'), source.indexOf('async function loadGenerationLog') + 900)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/logs'/)
+  assert.match(body, /payload\.failures/)
+  assert.match(body, /item\.errorSummary/)
 })
 
 test('loadIncidents 는 실제 장애 엔드포인트를 부르고, 등록 폼을 함께 그린다', () => {

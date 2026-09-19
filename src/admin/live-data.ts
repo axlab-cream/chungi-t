@@ -18,6 +18,16 @@ export type AdminReportSummary = {
   updatedAt: string
 }
 
+export type AdminGenerationFailure = {
+  reportId: string
+  member: string
+  serviceKey: string
+  sectionId: string
+  errorSummary: string
+  model: string
+  occurredAt: string
+}
+
 export type AdminQualityReview = {
   reportId: string
   member: string
@@ -177,6 +187,50 @@ export async function listQualityReviews(limit = 200): Promise<AdminQualityRevie
     }
   }
   return reviews.slice(0, safeLimit)
+}
+
+/**
+ * "로그" 메뉴가 보여줄 실제 데이터.
+ *
+ * 구조화된 시스템 로그 적재는 이 서비스에 아직 없다 — 앱 전체 실패 경로에 기록 훅을
+ * 심어야 하는 큰 작업이라 이번 범위에서 뺐다. 대신 생성 파이프라인이 항목마다 이미
+ * 남기는 시도 기록(`attempts[]`)에서 실패한 시도만 뽑는다. 잔액 소진·요청 거절·429·
+ * 검수 미통과 등 실제로 무엇이 언제 왜 실패했는지가 이미 여기 있다 — 개별 리포트
+ * 화면(reportDiagnostics)에서만 보이던 것을 서비스 전체에 걸쳐 시간순으로 모은다.
+ */
+export async function listGenerationFailureLog(limit = 200): Promise<AdminGenerationFailure[]> {
+  const safeLimit = Math.min(Math.max(limit, 1), 200)
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('select', 'report_id,user_email,payload,updated_at')
+  url.searchParams.set('order', 'updated_at.desc')
+  // 실패 시도는 최근에 손댄 리포트에 몰려 있다. 넉넉히 훑어 최근 실패 200건을 채운다.
+  url.searchParams.set('limit', String(Math.min(safeLimit * 2, 400)))
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) throw new Error('GENERATION_LOG_LOOKUP_FAILED')
+  const rows = await response.json() as RestRow[]
+  const failures: AdminGenerationFailure[] = []
+  for (const row of rows) {
+    const payload = row.payload as Record<string, unknown> | undefined
+    const report = payload?.report as Record<string, unknown> | undefined
+    const sections = Array.isArray(report?.sections) ? report.sections as RestRow[] : []
+    for (const section of sections) {
+      const attempts = Array.isArray(section.attempts) ? section.attempts as RestRow[] : []
+      for (const attempt of attempts) {
+        if (attempt.status !== 'failed' || !attempt.error) continue
+        failures.push({
+          reportId: maskIdentifier(row.report_id),
+          member: maskEmail(row.user_email),
+          serviceKey: reportServiceKey(payload),
+          sectionId: clipped(section.id, ''),
+          errorSummary: clipped(attempt.error, ''),
+          model: clipped(attempt.model, '알 수 없음'),
+          occurredAt: clipped(attempt.startedAt, ''),
+        })
+      }
+    }
+  }
+  failures.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+  return failures.slice(0, safeLimit)
 }
 
 export async function findLiveReport(reportId: string): Promise<AdminReportSummary | null> {
