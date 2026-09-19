@@ -79,3 +79,42 @@ test('loadReleaseInfo 는 실제 릴리스 엔드포인트를 부르고, 규격 
   assert.match(body, /release\.pinned/)
   assert.match(body, /release\.pins\.promptSpec/)
 })
+
+/**
+ * 2026-09-19: 서비스 카탈로그는 코드로 관리되어 실제로 지울 수 없다 — 판매 중단
+ * (saleAvailable=false, 결제 생성 자체를 막는다) + 검색 노출 해제가 이 시스템의 "삭제"다.
+ * 행을 눌러 수정하고, 발행 기록이 없는 서비스는 일괄 초기화로 채운다.
+ */
+test('loadLiveServices 는 행마다 수정 버튼을 달고, 발행 기록 없는 서비스만 일괄 초기화 대상으로 삼는다', () => {
+  const body = source.slice(source.indexOf('async function loadLiveServices'), source.indexOf('function renderServiceDetail'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/services', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /edit\.addEventListener\('click', function \(\) \{ renderServiceDetail\(body, item\); \}\)/)
+  assert.match(body, /return !item\.publishedVersion && !item\.draftVersion;/)
+  assert.match(body, /expectedRevision: -1/)
+  assert.match(body, /saleAvailable: true/)
+})
+
+test('renderServiceDetail 은 초안 저장 후에만 발행 버튼을 열고, 판매 가능·검색 노출 체크박스를 함께 보낸다', () => {
+  const body = source.slice(source.indexOf('function renderServiceDetail'), source.indexOf('async function loadLiveCorpus'))
+  assert.match(body, /publishArea\.hidden = true;/)
+  assert.match(body, /discoveryVisible: form\.elements\.discoveryVisible\.checked, saleAvailable: form\.elements\.saleAvailable\.checked/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/services\/' \+ encodeURIComponent\(item\.canonicalKey\) \+ '\/draft'/)
+  assert.match(body, /publishArea\.hidden = false;/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/services\/' \+ encodeURIComponent\(item\.canonicalKey\) \+ '\/publish'/)
+  assert.match(body, /완전히 삭제할 수 없습니다/)
+})
+
+test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔드 라우트에 연결한다', () => {
+  const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadLiveOverview'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/reports\/requeue-incomplete', \{ method: 'POST'/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/reports', \{ credentials: 'same-origin' \}\)/)
+})
+
+test('loadOpsJobs 는 일시정지·정리를 기존 백엔드 라우트에 연결한다', () => {
+  const body = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('function refundStatus'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/pause', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/pause', \{ method: 'POST'/)
+  assert.match(body, /body: JSON\.stringify\(\{ paused: next \}\)/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/purge', \{ method: 'POST'/)
+  assert.match(body, /\^\[a-zA-Z0-9_-\]\{8,160\}\$/)
+})

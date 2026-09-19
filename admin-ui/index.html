@@ -643,6 +643,22 @@
         } catch (_error) { addLiveError(body, '실제 회원 저장소를 불러오지 못했습니다.'); }
       }
       async function loadLiveReports(body) {
+        body.replaceChildren();
+        var requeueSection = document.createElement('section'); requeueSection.className = 'admin-section';
+        requeueSection.innerHTML = '<header class="admin-section-head"><h3>미완성 리포트 재시도</h3><span class="admin-chip">기존 백엔드 라우트 연결</span></header><div class="admin-actions" style="padding:0 16px 16px"><button class="admin-button" type="button" data-requeue-incomplete>미완성 리포트 큐에 다시 넣기</button><p class="admin-note" role="status" data-requeue-result></p></div>';
+        body.appendChild(requeueSection);
+        var requeueButton = requeueSection.querySelector('[data-requeue-incomplete]'); var requeueResult = requeueSection.querySelector('[data-requeue-result]');
+        requeueButton.addEventListener('click', async function () {
+          if (!window.confirm('완료되지 않은 리포트를 다시 생성 큐에 넣습니다. 계속할까요?')) return;
+          requeueButton.disabled = true; requeueResult.textContent = '재시도 대상을 큐에 넣는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/reports/requeue-incomplete', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+            var payload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(payload.error || '재시도 큐 등록에 실패했습니다.');
+            requeueResult.textContent = JSON.stringify(payload).length < 200 ? ('처리됨: ' + JSON.stringify(payload)) : '재시도 큐에 등록했습니다.';
+          } catch (error) { requeueResult.textContent = error instanceof Error ? error.message : '재시도 큐 등록에 실패했습니다.'; }
+          finally { requeueButton.disabled = false; }
+        });
         try {
           var payload = await (await fetch('/api/admin/v1/reports', { credentials: 'same-origin' })).json();
           if (!Array.isArray(payload.reports)) throw new Error('LIVE_REPORT_LOOKUP_FAILED');
@@ -657,15 +673,120 @@
           addLiveTable(body, '실제 운영 요약', ['회원 프로필', '생성 리포트', '공개 서비스', '활성 코퍼스 팩', '기준 시각'], [[snapshot.members, snapshot.reports, snapshot.services, snapshot.corpusPacks, snapshot.asOf]], function (item) { return item; }, '실제 운영 데이터가 아직 없습니다.');
         } catch (_error) { addLiveError(body, '실제 운영 요약을 불러오지 못했습니다.'); }
       }
+      /**
+       * 2026-09-19: 코드로 관리되는 카탈로그는 실제로 지울 수 없다 — 판매 중단(saleAvailable
+       * =false, 결제 생성 자체를 막는다) + 검색 노출 해제를 함께 끄는 것이 이 시스템의
+       * "삭제"다. 행을 눌러 수정하고, 발행 기록이 없는 서비스는 일괄 초기화로 채운다.
+       */
       async function loadLiveServices(body) {
+        body.replaceChildren();
+        var initSection = document.createElement('section'); initSection.className = 'admin-section';
+        initSection.innerHTML = '<header class="admin-section-head"><h3>버전 일괄 초기화</h3><span class="admin-chip">발행 기록 없는 서비스만 대상</span></header><p class="admin-note" style="padding:0 16px 12px">현재 배포된 카탈로그 값을 그대로 1판으로 저장·발행합니다. 이미 발행되었거나 초안이 있는 서비스는 건드리지 않습니다.</p><div class="admin-actions" style="padding:0 16px 16px"><button class="admin-button" type="button" data-bulk-init disabled>불러오는 중…</button><p class="admin-note" role="status" data-bulk-init-result></p></div>';
+        body.appendChild(initSection);
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 운영 서비스</h3><span class="admin-chip">배포된 카탈로그 + 버전 저장소</span></header><p class="admin-empty">서비스 카탈로그를 불러오는 중입니다.</p>';
+        body.appendChild(listSection);
+        function renderServiceTable(services) {
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">서비스</th><th scope="col">canonicalKey</th><th scope="col">분류</th><th scope="col">검색 노출</th><th scope="col">판매</th><th scope="col">기준 가격</th><th scope="col">발행 버전</th><th scope="col">초안 버전</th><th scope="col">고객 경로</th><th scope="col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!services.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">실제 서비스 카탈로그가 비어 있습니다.</td>'; rows.appendChild(empty); }
+          services.forEach(function (item) {
+            var row = document.createElement('tr');
+            [item.title, item.canonicalKey, item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 가능' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion || '없음', item.draftVersion || '없음', item.landingPath].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
+            });
+            var actionCell = document.createElement('td'); var edit = document.createElement('button'); edit.className = 'admin-button'; edit.type = 'button'; edit.textContent = '수정';
+            edit.addEventListener('click', function () { renderServiceDetail(body, item); });
+            actionCell.appendChild(edit); row.appendChild(actionCell);
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          listSection.replaceChildren(listSection.firstElementChild, scroll);
+        }
         try {
           var response = await fetch('/api/admin/v1/services', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('LIVE_SERVICE_LOOKUP_FAILED');
           var payload = await response.json();
           var services = Array.isArray(payload.services) ? payload.services : [];
           if (payload.versionStore !== 'ready') addLiveError(body, '서비스 버전 저장소 연결을 확인하지 못했습니다. 아래 목록은 현재 배포 코드의 실제 카탈로그이며 버전 정보는 미확인입니다.');
-          addLiveTable(body, '실제 운영 서비스', ['서비스', 'canonicalKey', '분류', '검색 노출', '판매', '기준 가격', '발행 버전', '초안 버전', '고객 경로'], services, function (item) { return [item.title, item.canonicalKey, item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 가능' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion || '없음', item.draftVersion || '없음', item.landingPath]; }, '실제 서비스 카탈로그가 비어 있습니다.');
-        } catch (_error) { addLiveError(body, '실제 서비스 카탈로그를 불러오지 못했습니다.'); }
+          renderServiceTable(services);
+          var bulkButton = initSection.querySelector('[data-bulk-init]'); var bulkResult = initSection.querySelector('[data-bulk-init-result]');
+          var targets = services.filter(function (item) { return !item.publishedVersion && !item.draftVersion; });
+          bulkButton.textContent = targets.length ? ('발행 기록 없는 ' + targets.length + '개 서비스 초기화') : '초기화할 대상이 없습니다';
+          bulkButton.disabled = payload.versionStore !== 'ready' || !targets.length;
+          bulkButton.addEventListener('click', async function () {
+            if (!window.confirm('발행 기록이 없는 ' + targets.length + '개 서비스에 현재 카탈로그 값으로 1판을 발행합니다. 계속할까요?')) return;
+            bulkButton.disabled = true; var done = 0, failed = 0;
+            for (var i = 0; i < targets.length; i++) {
+              var item = targets[i];
+              bulkResult.textContent = (i + 1) + '/' + targets.length + ' 처리 중 (' + done + ' 성공, ' + failed + ' 실패)';
+              try {
+                var draftResponse = await fetch('/api/admin/v1/services/' + encodeURIComponent(item.canonicalKey) + '/draft', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: -1, payload: { title: item.title, tagline: item.tagline || item.title, summary: item.tagline || item.title, category: item.category, discoveryVisible: item.discoveryVisible, saleAvailable: true, amount: item.amount } }) });
+                var draftPayload = await draftResponse.json().catch(function () { return {}; });
+                if (!draftResponse.ok) throw new Error(draftPayload.error || 'DRAFT_FAILED');
+                var saved = draftPayload.version;
+                var publishResponse = await fetch('/api/admin/v1/services/' + encodeURIComponent(item.canonicalKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: saved.revision }) });
+                if (!publishResponse.ok) throw new Error('PUBLISH_FAILED');
+                done++;
+              } catch (_error) { failed++; }
+            }
+            bulkResult.textContent = done + '개 초기화 완료' + (failed ? ', ' + failed + '개 실패' : '') + '.';
+            await loadLiveServices(body);
+          });
+        } catch (_error) {
+          addLiveError(initSection, '초기화 대상을 판단할 수 없어 일괄 초기화를 열지 못했습니다.');
+          var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 서비스 카탈로그를 불러오지 못했습니다.';
+        }
+      }
+      function renderServiceDetail(body, item) {
+        var previous = body.querySelector('[data-service-detail]'); if (previous) previous.remove();
+        var payload = item.currentPayload || { title: item.title, tagline: item.tagline || item.title, summary: item.tagline || item.title, category: item.category, discoveryVisible: item.discoveryVisible, saleAvailable: true, amount: item.amount };
+        var section = document.createElement('section'); section.dataset.serviceDetail = 'true'; section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>서비스 수정 — ' + escapeHtml(item.title) + '</h3><span class="admin-chip">' + escapeHtml(item.canonicalKey) + '</span></header><p class="admin-note" style="padding:0 16px">이 카탈로그는 코드로 관리되어 완전히 삭제할 수 없습니다. \'판매 가능\'과 \'검색 노출\'을 함께 끄면 사실상 삭제와 같은 효과입니다.</p>';
+        body.appendChild(section);
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="60"></div>'
+          + '<div class="admin-field" data-span="2"><label>한 줄 소개</label><input required name="tagline" maxlength="120"></div>'
+          + '<div class="admin-field" data-span="2"><label>설명</label><input required name="summary" maxlength="400"></div>'
+          + '<div class="admin-field"><label>분류</label><input required name="category" maxlength="20"></div>'
+          + '<div class="admin-field"><label>가격(참고용, 결제엔 미반영)</label><input name="amount" type="number" min="1" step="1"></div>'
+          + '<div class="admin-field"><label><input type="checkbox" name="discoveryVisible"> 검색 노출</label></div>'
+          + '<div class="admin-field"><label><input type="checkbox" name="saleAvailable"> 판매 가능</label></div>'
+          + '<div class="admin-actions"><button class="admin-button" type="submit">초안 저장</button></div>'
+          + '<p class="admin-note" role="status" data-service-form-result></p>';
+        form.elements.title.value = payload.title; form.elements.tagline.value = payload.tagline; form.elements.summary.value = payload.summary; form.elements.category.value = payload.category;
+        form.elements.amount.value = payload.amount || item.amount; form.elements.discoveryVisible.checked = payload.discoveryVisible !== false; form.elements.saleAvailable.checked = payload.saleAvailable !== false;
+        var result = form.querySelector('[data-service-form-result]');
+        var revision = (item.revision === null || item.revision === undefined) ? -1 : item.revision;
+        var publishArea = document.createElement('div'); publishArea.className = 'admin-actions'; publishArea.style.padding = '0 16px 16px'; publishArea.hidden = true;
+        var publishButton = document.createElement('button'); publishButton.className = 'admin-button'; publishButton.type = 'button'; publishButton.textContent = '이 초안 발행';
+        publishArea.appendChild(publishButton);
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '초안을 저장하는 중입니다.';
+          try {
+            var draftBody = { title: form.elements.title.value.trim(), tagline: form.elements.tagline.value.trim(), summary: form.elements.summary.value.trim(), category: form.elements.category.value.trim(), discoveryVisible: form.elements.discoveryVisible.checked, saleAvailable: form.elements.saleAvailable.checked };
+            var amountValue = Number(form.elements.amount.value);
+            if (form.elements.amount.value && Number.isFinite(amountValue) && amountValue > 0) draftBody.amount = amountValue;
+            var response = await fetch('/api/admin/v1/services/' + encodeURIComponent(item.canonicalKey) + '/draft', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: revision, payload: draftBody }) });
+            var responsePayload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(responsePayload.error || '초안 저장에 실패했습니다.');
+            var saved = responsePayload.version; revision = saved.revision;
+            result.textContent = '초안이 저장되었습니다(v' + saved.version + '). 발행하면 검색 결과와 결제 가능 여부에 바로 반영됩니다.';
+            publishArea.hidden = false;
+            publishButton.onclick = async function () {
+              if (!window.confirm('이 초안을 발행하면 새 고객 화면에 바로 반영됩니다. 발행할까요?')) return;
+              publishButton.disabled = true;
+              try {
+                var publishResponse = await fetch('/api/admin/v1/services/' + encodeURIComponent(item.canonicalKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
+                var publishPayload = await publishResponse.json().catch(function () { return {}; });
+                if (!publishResponse.ok) throw new Error(publishPayload.error || '발행에 실패했습니다.');
+                result.textContent = 'v' + saved.version + ' 발행 완료. 새 고객 화면에 반영되었습니다.'; publishArea.hidden = true;
+              } catch (error) { publishButton.disabled = false; window.alert(error instanceof Error ? error.message : '발행에 실패했습니다.'); }
+            };
+          } catch (error) { result.textContent = error instanceof Error ? error.message : '초안 저장에 실패했습니다.'; }
+          finally { submit.disabled = false; }
+        });
+        section.appendChild(form); section.appendChild(publishArea); section.scrollIntoView({ block: 'nearest' });
       }
       async function loadLiveCorpus(body) {
         try {
@@ -701,6 +822,43 @@
         } catch (_error) { addLiveError(body, '실제 감사 기록 저장소를 불러오지 못했습니다.'); }
       }
       async function loadOpsJobs(body) {
+        body.replaceChildren();
+        var controlSection = document.createElement('section'); controlSection.className = 'admin-section';
+        controlSection.innerHTML = '<header class="admin-section-head"><h3>작업 큐 제어</h3><span class="admin-chip">기존 백엔드 라우트 연결</span></header><div class="admin-actions" style="padding:0 16px 16px;flex-wrap:wrap"><button class="admin-button" type="button" data-pause-toggle disabled>확인 중…</button><span class="admin-actions" style="gap:8px"><input data-purge-owner placeholder="정리할 소유자 ID" style="padding:8px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit"><button class="admin-button" type="button" data-purge-owner-button>대기·재시도·실패 작업 정리</button></span></div><p class="admin-note" role="status" data-jobs-control-result></p>';
+        body.appendChild(controlSection);
+        var pauseButton = controlSection.querySelector('[data-pause-toggle]'); var controlResult = controlSection.querySelector('[data-jobs-control-result]');
+        try {
+          var pauseState = await (await fetch('/api/admin/v1/jobs/pause', { credentials: 'same-origin' })).json();
+          pauseButton.textContent = pauseState.paused ? '생성 재개' : '생성 일시정지';
+          pauseButton.disabled = false;
+          pauseButton.addEventListener('click', async function () {
+            var next = !pauseState.paused;
+            if (!window.confirm((next ? '리포트 생성을 일시정지' : '리포트 생성을 재개') + '합니다. 계속할까요?')) return;
+            pauseButton.disabled = true;
+            try {
+              var response = await fetch('/api/admin/v1/jobs/pause', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ paused: next }) });
+              var payload = await response.json().catch(function () { return {}; });
+              if (!response.ok) throw new Error(payload.error || '상태 변경에 실패했습니다.');
+              pauseState.paused = payload.paused; pauseButton.textContent = pauseState.paused ? '생성 재개' : '생성 일시정지';
+              controlResult.textContent = pauseState.paused ? '리포트 생성을 일시정지했습니다.' : '리포트 생성을 재개했습니다.';
+            } catch (error) { controlResult.textContent = error instanceof Error ? error.message : '상태 변경에 실패했습니다.'; }
+            finally { pauseButton.disabled = false; }
+          });
+        } catch (_error) { pauseButton.textContent = '상태 확인 실패'; }
+        var purgeInput = controlSection.querySelector('[data-purge-owner]'); var purgeButton = controlSection.querySelector('[data-purge-owner-button]');
+        purgeButton.addEventListener('click', async function () {
+          var ownerId = purgeInput.value.trim();
+          if (!/^[a-zA-Z0-9_-]{8,160}$/.test(ownerId)) { controlResult.textContent = '소유자 ID 형식을 확인해 주세요(영문·숫자·_·- 8자 이상).'; return; }
+          if (!window.confirm('이 소유자의 대기·재시도·실패 작업을 정리합니다(실행 중인 작업은 건드리지 않습니다). 계속할까요?')) return;
+          purgeButton.disabled = true; controlResult.textContent = '작업을 정리하는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/jobs/purge', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ ownerId: ownerId }) });
+            var payload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(payload.error || '작업 정리에 실패했습니다.');
+            controlResult.textContent = '정리되었습니다.'; await loadOpsJobs(body); return;
+          } catch (error) { controlResult.textContent = error instanceof Error ? error.message : '작업 정리에 실패했습니다.'; }
+          finally { purgeButton.disabled = false; }
+        });
         try { var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED'); var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : []; addLiveTable(body, '실제 영속 작업 큐', ['작업', '대상', '상태', '시도', '다음 실행', '오류'], jobs, function (item) { return [item.kind, item.target_id, item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—']; }, '실행 대기 중인 실제 작업이 없습니다.'); } catch (_error) { addLiveError(body, '실제 작업 큐를 불러오지 못했습니다.'); }
       }
       function refundStatus(state) {

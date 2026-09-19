@@ -55,6 +55,7 @@ import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentU
 import {
   NEW_SERVICE_DRAFT_REVISION,
   getAdminServiceVersionSnapshot,
+  isServiceSaleAvailable,
   listCustomerServiceDirectory,
   publishServiceConfigVersion,
   saveServiceConfigDraft,
@@ -2875,6 +2876,10 @@ app.post('/api/payment/orders', async (req, res) => {
     }
     if (PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key)) {
       res.status(404).json({ error: '현재 공개하지 않는 서비스입니다.' })
+      return
+    }
+    if (!await isServiceSaleAvailable(product.key)) {
+      res.status(409).json({ code: 'SERVICE_SALE_PAUSED', error: '현재 판매가 중단된 서비스입니다.' })
       return
     }
     const profile = await getUserBirthProfile(owner)

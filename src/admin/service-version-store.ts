@@ -7,6 +7,7 @@ type Row = Record<string, unknown>
 export type AdminServiceVersionSummary = {
   canonicalKey: string
   title: string
+  tagline: string
   category: string
   amount: number
   discoveryVisible: boolean
@@ -16,6 +17,8 @@ export type AdminServiceVersionSummary = {
   draftVersion: number | null
   revision: number | null
   updatedAt: string | null
+  /** 초안이 있으면 초안, 없으면 발행본의 편집 가능한 원문. 둘 다 없으면 null(수정 화면이 카탈로그 값으로 채운다). */
+  currentPayload: ServiceConfigPayload | null
 }
 
 export type AdminServiceVersionSnapshot = {
@@ -62,7 +65,7 @@ function latestByState(rows: Row[], state: 'draft' | 'published'): Map<string, R
 
 async function loadVersionRows(): Promise<Row[]> {
   const request = new URL(storeUrl())
-  request.searchParams.set('select', 'service_key,version,state,revision,updated_at')
+  request.searchParams.set('select', 'service_key,version,state,revision,updated_at,payload')
   request.searchParams.set('state', 'in.(draft,published)')
   request.searchParams.set('order', 'service_key.asc,version.desc')
   request.searchParams.set('limit', '1000')
@@ -84,18 +87,23 @@ export async function getAdminServiceVersionSnapshot(): Promise<AdminServiceVers
     const draft = drafts.get(service.key)
     const live = published.get(service.key)
     const current = draft ?? live
+    const currentPayload = current && current.payload && typeof current.payload === 'object' && !Array.isArray(current.payload)
+      ? current.payload as ServiceConfigPayload
+      : null
     return {
       canonicalKey: service.key,
       title: service.title,
+      tagline: service.tagline,
       category: service.category,
       amount: service.amount,
       discoveryVisible: service.discoveryVisible,
-      saleAvailable: true,
+      saleAvailable: currentPayload?.saleAvailable ?? true,
       landingPath: service.href,
       publishedVersion: validVersion(live?.version),
       draftVersion: validVersion(draft?.version),
       revision: current && Number.isSafeInteger(Number(current.revision)) ? Number(current.revision) : null,
       updatedAt: typeof current?.updated_at === 'string' ? current.updated_at : null,
+      currentPayload,
     }
   })
   return { services, versionStore, asOf: new Date().toISOString() }
@@ -126,6 +134,9 @@ export interface ServiceConfigPayload {
   summary: string
   category: string
   discoveryVisible: boolean
+  /** 기본값 true. false 면 결제 생성 자체를 막는다 — 코드로 관리되는 카탈로그를 실제로
+   *  지울 수는 없으므로, 판매 중단 + 검색 노출 해제가 이 시스템에서의 "삭제"에 해당한다. */
+  saleAvailable?: boolean
   /** 보관만 한다. 고객 노출 가격의 권한은 T29 전까지 카탈로그에 있다. */
   amount?: number
 }
@@ -195,6 +206,10 @@ export function normalizeServiceConfigPayload(serviceKey: string, input: unknown
   if (typeof source.discoveryVisible !== 'boolean') throw new Error('SERVICE_VERSION_PAYLOAD_INVALID')
 
   const payload: ServiceConfigPayload = { title, tagline, summary, category, discoveryVisible: source.discoveryVisible }
+  if (source.saleAvailable !== undefined) {
+    if (typeof source.saleAvailable !== 'boolean') throw new Error('SERVICE_VERSION_PAYLOAD_INVALID')
+    payload.saleAvailable = source.saleAvailable
+  }
   if (source.amount !== undefined && source.amount !== null) {
     const amount = Number(source.amount)
     if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error('SERVICE_VERSION_PRICE_INVALID')
@@ -336,6 +351,21 @@ export async function getPublishedServiceConfig(serviceKey: string): Promise<Ser
   if (!canUseVersionTestStore()) throw new Error('SERVICE_VERSION_STORE_UNAVAILABLE')
   const found = Array.from(testVersions.values()).find((item) => item.serviceKey === serviceKey && item.state === 'published')
   return found ? { ...found } : null
+}
+
+/**
+ * 결제 생성 직전에 부르는 게이트. 발행된 개정이 판매를 중단했다고 밝히면(false) 막는다.
+ * 저장소 장애·미설정·발행본 없음은 모두 "막지 않음"으로 접는다 — 이 서비스와 무관한
+ * 원인으로 결제가 막히면 안 된다(고객 목록이 저장소 장애에 카탈로그로 접는 것과 같은 원칙).
+ */
+export async function isServiceSaleAvailable(serviceKey: string): Promise<boolean> {
+  try {
+    const published = await getPublishedServiceConfig(serviceKey)
+    const payload = published?.payload as Partial<ServiceConfigPayload> | undefined
+    return payload?.saleAvailable !== false
+  } catch {
+    return true
+  }
 }
 
 /* ── 고객 읽기 어댑터 ────────────────────────────────────────────────────────
