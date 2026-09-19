@@ -109,9 +109,12 @@
     .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
     .admin-nav a[aria-current='page'] { color: var(--admin-text); border-left-color: var(--admin-focus); background: var(--admin-bg); font-weight: 700; }
 
-    /* 표 중심 화면은 넓게, 폼·상세는 좁게 — 두 단계만 쓴다. */
-    main { max-width: 1512px; margin: 0 0 0 232px; padding: var(--admin-space-6); }
-    main[data-width='narrow'] { max-width: 720px; }
+    /*
+      표 중심 화면은 화면 폭을 그대로 쓴다 — 넓은 모니터에서 표가 줄어들 이유가 없다.
+      폼·상세만 720px 로 좁게 잡는다. 두 단계만 쓴다.
+    */
+    main { max-width: none; width: calc(100% - 232px); margin: 0 0 0 232px; padding: var(--admin-space-6); }
+    main[data-width='narrow'] { max-width: 720px; width: auto; }
 
     .admin-panel {
       background: var(--admin-surface);
@@ -231,7 +234,7 @@
       .admin-nav-group .admin-nav-links { display: contents !important; }
       .admin-nav a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
       .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
-      main { margin-left: 0; padding: var(--admin-space-4); }
+      main { width: auto; margin-left: 0; padding: var(--admin-space-4); }
       .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .admin-refund-form { grid-template-columns: 1fr; }
       .admin-refund-form .admin-field[data-span='2'] { grid-column: auto; }
