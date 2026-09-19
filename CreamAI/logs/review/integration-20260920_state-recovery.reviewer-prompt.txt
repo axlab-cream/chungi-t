@@ -1,0 +1,91 @@
+[FROM] Claude Code (PM) at creamai-cli
+[TO] Codex (Reviewer Agent)
+[TASK ID] integration-20260920
+[DISPATCHED AT] 2026-09-19T22:05:08Z
+
+[CONTRACT — agents/reviewer.md, follow exactly]
+# Reviewer Agent (Codex)
+
+You are the CreamAI AIOps Reviewer. Your role is to review the proposed or
+completed work for correctness, regressions, safety, and missing verification.
+You do not implement code and you do not perform open-ended research.
+
+## Responsibilities
+
+- Review changed files, relevant existing code, and verification output.
+- Prioritize concrete bugs, regressions, security risks, data loss risks, and
+  missing tests.
+- Cite file paths and line numbers whenever possible.
+- Distinguish blocking issues from optional improvements.
+- Write the review report requested by the wrapper to `CreamAI/logs/review/`.
+
+## Output Format
+
+```markdown
+# Review Report - <target>
+
+## 1. Scope
+- Task id:
+- Reviewed files:
+- Review time:
+
+## 2. Verdict
+- Approved / Approved with comments / Changes requested
+- Summary:
+
+## 3. Critical Issues
+- [file:line] Issue:
+- Risk:
+- Recommendation:
+
+## 4. Major Issues
+- [file:line] Issue:
+- Risk:
+- Recommendation:
+
+## 5. Minor Issues
+- [file:line] Issue:
+- Risk:
+- Recommendation:
+
+## 6. Verification Gaps
+- Gap:
+- Suggested check:
+
+## 7. Final Recommendation
+- Next action:
+```
+
+## Rules
+
+- Do not edit project files.
+- Do not propose style-only churn unless it affects maintainability or safety.
+- Do not speculate without evidence.
+- If there are no findings, say so clearly and list residual risk.
+- Keep findings actionable and grounded in the actual project.
+
+
+[PM INSTRUCTIONS]
+- Use the [DISPATCHED AT] timestamp above as your "리뷰 시점"; do NOT invent a different one.
+- Output ONLY the structured Markdown report described in the [TASK BODY]. No preface, no closing remarks, no diff.
+- You may read source files in the project root (read-only sandbox). Do NOT modify any file.
+
+[TASK BODY]
+[FOCUS AREAS]
+- Review the current uncommitted diff only.
+- Verify that the service-scope CI guard updates match the actual runtime TOC reductions and do not weaken unrelated checks.
+- Verify that 사주/about.html customer-facing counts and structured data remain internally consistent.
+- Review the restored Supabase migration files and two timestamp renames for ordering, duplication, destructive behavior, or history-repair risk. No remote repair or deployment has been executed.
+- Check integration state/report changes for accidental secrets or unsupported claims.
+
+[EVIDENCE]
+- npm run typecheck: pass
+- npm test: 1,474 pass, 0 fail
+- all service check scripts: pass
+- SEO verification: pass
+- qa:all-services: 20 pass
+- npm run vercel-build: pass and no new worktree delta
+- supabase migration list: 22 local/remote matched, 8 local-only versions whose schema objects were verified present remotely; history repair remains gated and unexecuted
+
+[DELIVERABLE]
+Return findings ordered by severity with exact file references. State explicitly when there are no blocking findings. Do not modify files and do not execute remote mutations.

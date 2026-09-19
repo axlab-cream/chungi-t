@@ -42,7 +42,7 @@ export interface CatCompatRequest {
 }
 
 /**
- * The 10 대분류 / 50 중분류 index the 고양이 궁합 pages are designed around.
+ * The 10 대분류 / 20 중분류 index the 고양이 궁합 pages are designed around.
  * The ids are what 05 목차 and 06 상세 route on.
  */
 export const CAT_COMPAT_TOC = [

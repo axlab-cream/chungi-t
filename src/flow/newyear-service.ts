@@ -43,7 +43,7 @@ export interface NewYearRequest {
 }
 
 /**
- * 10 대분류 / 36 중분류. id 는 05 목차와 06 상세가 라우팅하는 값이라 디자인의 `g-i`
+ * 10 대분류 / 20 중분류. id 는 05 목차와 06 상세가 라우팅하는 값이라 디자인의 `g-i`
  * 모양을 그대로 따른다.
  */
 export const NEWYEAR_TOC = [

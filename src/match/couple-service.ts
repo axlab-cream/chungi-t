@@ -29,7 +29,7 @@ export interface CoupleMatchRequest {
 }
 
 /**
- * The 14 대분류 / 70 중분류 index the 커플궁합 pages are designed around.
+ * The 14 대분류 / 28 중분류 index the 커플궁합 pages are designed around.
  * `cluster` drives the 05 목차 filter, `image` picks the group artwork where the design
  * supplied one, and the ids are what 05 목차 and 06 상세 route on.
  */

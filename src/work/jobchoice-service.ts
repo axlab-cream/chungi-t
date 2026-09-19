@@ -30,7 +30,7 @@ export interface JobChoiceRequest {
 }
 
 /**
- * The 10 대분류 / 57 중분류 index the 직장 선택 pages are designed around.
+ * The 10 대분류 / 21 중분류 index the 직장 선택 pages are designed around.
  * The ids are what 05 목차 and 06 상세 route on, and focus/preview/action/caution are
  * the design own per-group lens.
  */

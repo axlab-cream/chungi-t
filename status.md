@@ -2,6 +2,8 @@
 
 ## Current Task
 
+- 2026-09-20 연동 안전 복구 완료: 기존 미커밋 기록을 `codex/backup-pre-sync-20260920`/`0a4e4c3`에 보존하고 로컬 `main`을 `origin/main` `69d36fc`로 fast-forward했다. 깨진 legacy `upstream`은 보존하되 기본 fetch에서 제외해 `git fetch --all`을 복구했다. 승인된 서비스 목차 축소 뒤 남은 CI 가드·고객 안내·JSON-LD·묶음 칩을 11개 서비스의 실제 범위에 맞추고 회귀 테스트를 추가했다. 전체 1,474 테스트와 CI-equivalent 검증, 운영 연동 10/10, Vercel Production Ready를 확인했다. Supabase 원격 전용 migration 11개를 원격 history SQL로 복원하고 타임스탬프 오기 2개를 맞춰 원격 전용은 0이 됐다. 로컬 전용 8개는 운영 스키마에 객체가 모두 존재하지만 history에 없으며, 원격 `migration repair`는 §6 H2/TASK-004 G1~G5에 따라 미실행이다. 상세: `CreamAI/reports/integration-recovery-20260920.md`.
+
 - 2026-09-17 06-1 디자인 부착: 천명사주·직업운·상대방 마음·재회운·배우자운. 디자인 폴더에 전용 패키지는 없어 연애 계열은 `나 올해 연애기` 06-1 구조, 직업운은 직장/퇴사 계열, 천명사주는 골드 히어로로 붙이고 `reportPath`와 라우트를 연결했다.
 
 - 2026-09-17 소비성향 05: 가이드 이미지 위 히어로·통계·권한카드·정적 목차를 숨기고, 이미지 아래에 검증 본문 슬롯(`data-umsh-slot=sections`)을 두어 항목을 같은 화면에서 토글로 연다. 아래쪽에 같은 목차가 한 번 더 그려지던 중복을 없앤다.
@@ -1873,3 +1875,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 06-1 URL `reportId=` 는 결제·화면이 쓰는 `resultId` UUID 다. DB 행 키는 해시 `report_id`. 워커는 해시만 찾아 REPORT_NOT_FOUND 로 죽었고, 백필 결제 매칭도 UUID vs 해시라 구매분이 티저 1건에 밀렸다.
 - `getReportRecordAsService` 가 resultId/publicId 로도 찾고, 백필은 UUID 주문과 해시 행을 같은 구매로 본다. 유료 본문 GET 시 미완성이면 완성 큐에 다시 넣는다. 공개 서비스 공통.
 - 검증: `report-completion-job` + `report-list-view` 17/17 PASS (`NODE_ENV=test`).
+
+## 2026-09-20 — 로컬·Git·Vercel·Supabase 안전 복구
+
+- 미커밋 연동 증거를 로컬 백업 브랜치에 보존한 뒤 `main`을 `origin/main`에 fast-forward했다. push·배포는 실행하지 않았다.
+- 승인된 목차 축소와 달랐던 11개 서비스 CI 기대값, 소개 페이지 숫자·구조화 데이터·묶음 칩을 정합화했다. Grok 리뷰의 퇴사운 칩 불일치와 기존 주석·예시·상태 문구 지적도 반영했다.
+- 검증: typecheck, 단위 테스트 1,474/1,474, 서비스 검수 14종, SEO, 20개 서비스 QA, Vercel build, 운영 연동 10/10 모두 PASS.
+- Supabase migration은 원격과 일치 22, 원격 전용 0, schema-present/history-missing 로컬 전용 8이다. `migration repair`·`db push`는 승인 게이트 때문에 실행하지 않았다. `db lint --linked`는 DB password 인증 실패로 BLOCKED이며 원격 변경은 없었다.
+- CreamWIKI `personal/.../notes/umsh-integration-state-recovery-20260920.md`에 비밀정보 없는 복구 패턴을 저장하고 검색 재조회했다.

@@ -17,7 +17,7 @@ const ASSET_DIR = `${SERVICE_DIR}/assets/cat-compatibility`
 
 /** The 목차 shape the 05/06 pages are built against. */
 const EXPECTED_GROUPS = 10
-const EXPECTED_ITEMS = 50
+const EXPECTED_ITEMS = 20
 
 /** [file, needle, human-readable description] */
 const CONTRACTS = [

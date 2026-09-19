@@ -29,7 +29,7 @@ export interface LoveThisYearRequest {
 }
 
 /**
- * The 8 대분류 / 48 중분류 index the 올해 연애운 pages are designed around.
+ * The 8 대분류 / 24 중분류 index the 올해 연애운 pages are designed around.
  * `image` picks the group artwork, and the ids are what 05 목차 and 06 상세 route on.
  */
 export const LOVE_THISYEAR_TOC = [

@@ -59,7 +59,7 @@ export interface WeddingRequest {
 }
 
 /**
- * 6 대분류 / 20 중분류. 05 목차와 06 상세는 디자인에서 대분류 번호(`section=1`)로
+ * 6 대분류 / 12 중분류. 05 목차와 06 상세는 디자인에서 대분류 번호(`section=1`)로
  * 링크하므로, 섹션 id 는 중분류(`1-1`)로 두고 브리지가 번호도 받아 첫 항목으로 넘긴다.
  */
 export const WEDDING_TOC = [

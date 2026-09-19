@@ -13,9 +13,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8')
 
 const EXPECTED_GROUPS = 6
-// tone v2 통합(e75104c)에서 3-3·3-4 를 한 항목으로 합쳐 20개가 되었다.
+// 2026-09-17 목차 정리에서 겹치는 항목을 합쳐 12개가 되었다.
 // 정본은 tests/unit/day-wedding-service.test.ts 가 목차·섹션·티저 세 곳에서 함께 고정한다.
-const EXPECTED_ITEMS = 20
+const EXPECTED_ITEMS = 12
 const PAGES = [
   '01-step-1-story/index.html',
   '02-step-2-saju-input/index.html',

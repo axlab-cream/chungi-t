@@ -1,0 +1,77 @@
+{
+  "task_id": "task-integration-20260920",
+  "mode": "implementation",
+  "timestamp": "2026-09-20T07:17:26.4610799+09:00",
+  "checks": [
+    {
+      "name": "secret scan changed files",
+      "status": "PASS",
+      "detail": "no obvious secret patterns"
+    },
+    {
+      "name": "git status available",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "commands": [
+    {
+      "name": "git status",
+      "command": "git status --short",
+      "exit_code": 0,
+      "output_tail": [
+        "M  integrations/state.json",
+        "A  logs/events/task-integration-20260920.jsonl",
+        "A  logs/harness/task-integration-20260920_implementation.json",
+        "A  logs/integrations/creamwiki.jsonl",
+        "M  logs/integrations/github.jsonl",
+        "M  logs/integrations/supabase.jsonl",
+        "M  logs/integrations/vercel.jsonl",
+        "A  logs/review/integration-20260920_state-recovery.md",
+        "A  logs/review/integration-20260920_state-recovery.reviewer-prompt.txt",
+        "A  memory/candidates/integration-state-recovery-20260920.md",
+        "A  reports/integration-recovery-20260920.md",
+        "A  ../docs/superpowers/plans/2026-09-20-integration-state-recovery.md",
+        "M  ../scripts/check-cat.mjs",
+        "M  ../scripts/check-couple.mjs",
+        "M  ../scripts/check-jobchoice.mjs",
+        "M  ../scripts/check-lucky.mjs",
+        "M  ../scripts/check-marry.mjs",
+        "M  ../scripts/check-newyear.mjs",
+        "M  ../scripts/check-quit.mjs",
+        "M  ../scripts/check-save.mjs",
+        "M  ../scripts/check-signal.mjs",
+        "M  ../scripts/check-thisyear.mjs",
+        "M  ../scripts/check-wedding.mjs",
+        "M  ../src/body/lucky-service.ts",
+        "M  ../src/day/wedding-service.ts",
+        "M  ../src/flow/newyear-service.ts",
+        "M  ../src/love/signal-service.ts",
+        "M  ../src/love/thisyear-service.ts",
+        "M  ../src/match/couple-service.ts",
+        "M  ../src/match/marry-service.ts",
+        "M  ../src/money/save-service.ts",
+        "M  ../src/pet/cat-service.ts",
+        "M  ../src/work/jobchoice-service.ts",
+        "M  ../status.md",
+        "A  ../supabase/migrations/20260831053851_create_cheongi_reports_auth_storage.sql",
+        "A  ../supabase/migrations/20260831054747_harden_cheongi_reports_rls.sql",
+        "A  ../supabase/migrations/20260831073111_allow_users_delete_own_cheongi_reports.sql",
+        "A  ../supabase/migrations/20260831115018_create_cheongi_user_profiles.sql",
+        "A  ../supabase/migrations/20260831115038_drop_cheongi_user_profiles_updated_at_index.sql",
+        "A  ../supabase/migrations/20260901010303_harden_cheongi_reports_anon_grants.sql",
+        "A  ../supabase/migrations/20260911220432_create_service_config_draft.sql",
+        "A  ../supabase/migrations/20260911222600_publish_service_config_draft.sql",
+        "A  ../supabase/migrations/20260911224332_support_notice_version_functions.sql",
+        "A  ../supabase/migrations/20260912002420_media_assets_storage_lifecycle.sql",
+        "A  ../supabase/migrations/20260912093000_support_notice_approval_schedule.sql",
+        "R  ../supabase/migrations/20260914024326_payment_net_cancelled_event.sql -> ../supabase/migrations/20260914024826_payment_net_cancelled_event.sql",
+        "R  ../supabase/migrations/20260914043723_payment_order_revision.sql -> ../supabase/migrations/20260914043741_payment_order_revision.sql",
+        "A  ../tests/unit/service-scope-contract.test.ts",
+        "M  \"../\\354\\202\\254\\354\\243\\274/about.html\""
+      ]
+    }
+  ],
+  "warnings": [],
+  "failed": false
+}

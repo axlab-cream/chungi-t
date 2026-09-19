@@ -29,7 +29,7 @@ export interface LoveSignalRequest {
 }
 
 /**
- * The 10 대분류 / 70 중분류 index the 관계 신호 pages are designed around.
+ * The 10 대분류 / 21 중분류 index the 관계 신호 pages are designed around.
  * `image` picks the group artwork, and the ids are what 05 목차 and 06 상세 route on.
  */
 export const LOVE_SIGNAL_TOC = [

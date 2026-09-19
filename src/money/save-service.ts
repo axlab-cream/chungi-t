@@ -22,7 +22,7 @@ export interface MoneySaveRequest {
 }
 
 /**
- * The 8 대분류 / 41 중분류 index the 소비성향 service pages are designed around.
+ * The 8 대분류 / 16 중분류 index the 소비성향 service pages are designed around.
  * `tag` drives the 05 목차 filter chips; the ids are the ones the 05 목차 and the 06
  * 상세 페이지 route on, so they must stay in step with the design deliverable.
  */

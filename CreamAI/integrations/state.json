@@ -1,45 +1,58 @@
-﻿{
-    "updatedAt":  "2026-09-17T10:00:28.2230822Z",
-    "services":  {
-                     "github":  {
-                                    "service":  "github",
-                                    "display":  "GitHub",
-                                    "status":  "configured",
-                                    "configuredAt":  "2026-09-14T12:50:00.0000000Z",
-                                    "lastCheckedAt":  "2026-09-14T12:50:00.0000000Z",
-                                    "lastCheckExitCode":  0,
-                                    "authCheck":  "git ls-remote --heads origin main",
-                                    "setupHint":  "gh auth login",
-                                    "notes":  "git HTTPS origin axlab-cream/chungi-t works on main. gh CLI is not installed; PRs/issues need gh later.",
-                                    "evidenceTail":  "origin reachable; HEAD matches origin/main e6e59f2",
-                                    "updatedAt":  "2026-09-14T12:50:00.0000000Z"
-                                },
-                     "vercel":  {
-                                    "service":  "vercel",
-                                    "display":  "Vercel",
-                                    "status":  "configured",
-                                    "configuredAt":  "2026-09-14T12:50:00.0000000Z",
-                                    "lastCheckedAt":  "2026-09-14T12:50:00.0000000Z",
-                                    "lastCheckExitCode":  0,
-                                    "authCheck":  "vercel whoami",
-                                    "setupHint":  "vercel login",
-                                    "notes":  "logged in as jaeyong-planner; linked ax-lab-cream/chungi-t. .vercel/project.json and repo.json present.",
-                                    "evidenceTail":  "jaeyong-planner / ax-lab-cream/chungi-t",
-                                    "updatedAt":  "2026-09-14T12:50:00.0000000Z"
-                                },
-                     "supabase":  {
-                                      "service":  "supabase",
-                                      "display":  "Supabase",
-                                      "status":  "missing_cli",
-                                      "configuredAt":  null,
-                                      "lastCheckedAt":  "2026-09-17T10:00:28.2015740Z",
-                                      "lastCheckExitCode":  3,
-                                      "authCheck":  "supabase projects list",
-                                      "setupHint":  "powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\\.aios\\projects\\umsh\\ops\\connect-supabase.ps1",
-                                      "notes":  "auth check did not pass",
-                                      "evidenceTail":  "CLI command not found: supabase",
-                                      "updatedAt":  "2026-09-17T10:00:28.2100819Z"
-                                  }
-                 },
-    "version":  1
+{
+  "services": {
+    "github": {
+      "service": "github",
+      "display": "GitHub",
+      "status": "configured",
+      "configuredAt": "2026-09-19T21:55:18.4482763Z",
+      "lastCheckedAt": "2026-09-19T21:55:18.4500879Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "git ls-remote --heads origin main",
+      "setupHint": "gh auth login",
+      "notes": "gh 2.87.0; origin axlab-cream/chungi-t; local main at 69d36fc; legacy upstream skipped by fetch --all",
+      "evidenceTail": "manual mark; no secret stored",
+      "updatedAt": "2026-09-19T21:55:18.4583484Z"
+    },
+    "vercel": {
+      "service": "vercel",
+      "display": "Vercel",
+      "status": "configured",
+      "configuredAt": "2026-09-19T21:55:18.5440593Z",
+      "lastCheckedAt": "2026-09-19T21:55:18.544102Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "vercel whoami",
+      "setupHint": "vercel login",
+      "notes": "Vercel CLI 50.19.1; ax-lab-cream/chungi-t; Production dpl_EcVojiijZu21uqbN9QMUZZJNP7Ru Ready at 69d36fc",
+      "evidenceTail": "manual mark; no secret stored",
+      "updatedAt": "2026-09-19T21:55:18.5444335Z"
+    },
+    "supabase": {
+      "service": "supabase",
+      "display": "Supabase",
+      "status": "configured",
+      "configuredAt": "2026-09-19T21:55:18.5594293Z",
+      "lastCheckedAt": "2026-09-19T21:55:18.5594525Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "supabase projects list",
+      "setupHint": "powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\\.aios\\projects\\umsh\\ops\\connect-supabase.ps1",
+      "notes": "npx Supabase CLI 2.117.0; linked project ACTIVE_HEALTHY; 22 versions matched after restoring 11 historical files and renaming 2 timestamps; 8 schema-present versions await gated history repair",
+      "evidenceTail": "manual mark; no secret stored",
+      "updatedAt": "2026-09-19T21:55:18.5595155Z"
+    },
+    "creamwiki": {
+      "service": "creamwiki",
+      "display": "creamwiki",
+      "status": "configured",
+      "configuredAt": "2026-09-19T21:55:18.5753301Z",
+      "lastCheckedAt": "2026-09-19T21:55:18.5753574Z",
+      "lastCheckExitCode": 0,
+      "authCheck": "",
+      "setupHint": "pwsh -NoProfile -File C:/Users/user/bin/creamwiki-tunnel.ps1",
+      "notes": "local tunnel 127.0.0.1:18765; account identifiers omitted",
+      "evidenceTail": "manual mark; no secret stored",
+      "updatedAt": "2026-09-19T21:55:18.5754271Z"
+    }
+  },
+  "updatedAt": "2026-09-19T21:55:18.5778826Z",
+  "version": 1
 }

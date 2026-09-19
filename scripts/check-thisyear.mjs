@@ -16,7 +16,7 @@ const ASSET_DIR = `${SERVICE_DIR}/assets/thisyear`
 
 /** The 목차 shape the 05/06 pages are built against. */
 const EXPECTED_GROUPS = 8
-const EXPECTED_ITEMS = 48
+const EXPECTED_ITEMS = 24
 
 /** [file, needle, human-readable description] */
 const CONTRACTS = [

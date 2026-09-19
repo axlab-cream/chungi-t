@@ -29,7 +29,7 @@ export interface MarryMatchRequest {
 }
 
 /**
- * The 10 대분류 / 70 중분류 index the 결혼궁합 service pages are designed around.
+ * The 10 대분류 / 24 중분류 index the 결혼궁합 service pages are designed around.
  * `tag` drives the 05 목차 filter chips, `image` picks the per-group artwork the
  * 05 list card and the 06 detail hero share.
  */

@@ -16,11 +16,11 @@ const ASSET_DIR = `${SERVICE_DIR}/assets/quit`
 
 /**
  * The 목차 shape the 05/06 pages are built against.
- * 항목 수는 tone v2 통합(e75104c)에서 대분류당 3개에서 4~5개로 늘어 48개가 되었다.
- * 정본은 tests/unit/quit-fortune-outline.test.ts 가 원문 해시로 함께 고정한다.
+ * 2026-09-17 목차 정리에서 겹치는 대분류와 항목을 합쳐 8대분류 20항목이 되었다.
+ * 정본은 tests/unit/quit-fortune-outline.test.ts 와 서비스 범위 검수가 함께 고정한다.
  */
-const EXPECTED_GROUPS = 10
-const EXPECTED_ITEMS = 48
+const EXPECTED_GROUPS = 8
+const EXPECTED_ITEMS = 20
 
 /** [file, needle, human-readable description] */
 const CONTRACTS = [

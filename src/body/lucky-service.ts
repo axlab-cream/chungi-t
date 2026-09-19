@@ -28,7 +28,7 @@ export interface LuckyColorRequest {
 }
 
 /**
- * The 6 대분류 / 24 중분류 index the 나한테 운 붙는 색과 물건 pages are designed around.
+ * The 6 대분류 / 13 중분류 index the 나한테 운 붙는 색과 물건 pages are designed around.
  * The ids are what 05 목차 and 06 상세 route on, so they follow the design's `g-i` shape.
  */
 export const LUCKY_COLOR_TOC = [

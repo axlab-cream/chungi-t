@@ -13,7 +13,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8')
 
 const EXPECTED_GROUPS = 10
-const EXPECTED_ITEMS = 36
+const EXPECTED_ITEMS = 20
 const PAGES = [
   '01-step-1-story/index.html',
   '02-step-2-saju-input/index.html',
