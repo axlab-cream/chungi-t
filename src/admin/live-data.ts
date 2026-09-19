@@ -18,6 +18,18 @@ export type AdminReportSummary = {
   updatedAt: string
 }
 
+export type AdminQualityReview = {
+  reportId: string
+  member: string
+  serviceKey: string
+  sectionId: string
+  classification: string
+  /** 1차(엄격 검수)를 못 넘고 2차(편집 재생성) 또는 3차(안전 검수만) 로 완성됐다는 뜻이다. */
+  reviewMode: string
+  reviewNotes: string
+  updatedAt: string
+}
+
 const supabaseUrl = configuredEnv(process.env.SUPABASE_URL)?.replace(/\/$/, '')
 const serviceRoleKey = configuredEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -124,6 +136,47 @@ export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]
 
 export function countLiveReports(): Promise<number> {
   return countRows('cheongi_reports', 'report_id')
+}
+
+/**
+ * "평가" 메뉴가 보여줄 실제 데이터.
+ *
+ * 별도의 평가 저장소를 새로 만들지 않는다 — 이미 생성 파이프라인이 각 항목에
+ * `reviewMode`(strict·repaired·lenient)를 남기고 있다(2026-09-18 재검증 단계 도입).
+ * `repaired`·`lenient` 는 1차 엄격 검수를 못 넘고 2·3차로 완성됐다는 뜻이라, 그 자체가
+ * 실제 품질 검토 이력이다. 여기서는 그 기록을 리포트 저장소에서 그대로 뽑아 보여준다.
+ */
+export async function listQualityReviews(limit = 200): Promise<AdminQualityReview[]> {
+  const safeLimit = Math.min(Math.max(limit, 1), 200)
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('select', 'report_id,user_email,payload,updated_at')
+  url.searchParams.set('order', 'updated_at.desc')
+  url.searchParams.set('limit', String(safeLimit))
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) throw new Error('QUALITY_REVIEW_LOOKUP_FAILED')
+  const rows = await response.json() as RestRow[]
+  const reviews: AdminQualityReview[] = []
+  for (const row of rows) {
+    const payload = row.payload as Record<string, unknown> | undefined
+    const report = payload?.report as Record<string, unknown> | undefined
+    const sections = Array.isArray(report?.sections) ? report.sections as RestRow[] : []
+    for (const section of sections) {
+      const reviewMode = typeof section.reviewMode === 'string' ? section.reviewMode : ''
+      if (reviewMode !== 'repaired' && reviewMode !== 'lenient') continue
+      const notes = Array.isArray(section.reviewNotes) ? section.reviewNotes.map(String).join(' · ') : ''
+      reviews.push({
+        reportId: maskIdentifier(row.report_id),
+        member: maskEmail(row.user_email),
+        serviceKey: reportServiceKey(payload),
+        sectionId: clipped(section.id, ''),
+        classification: clipped(section.classification, ''),
+        reviewMode,
+        reviewNotes: notes || '기록 없음',
+        updatedAt: clipped(row.updated_at, ''),
+      })
+    }
+  }
+  return reviews.slice(0, safeLimit)
 }
 
 export async function findLiveReport(reportId: string): Promise<AdminReportSummary | null> {

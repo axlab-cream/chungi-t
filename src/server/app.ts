@@ -41,7 +41,8 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listLiveMembers, listLiveReports, listQualityReviews } from '../admin/live-data.js'
+import { getMediaCatalog } from '../admin/media-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
@@ -2245,6 +2246,30 @@ app.get('/api/admin/v1/funnel', async (req, res) => {
 app.get('/api/admin/v1/release', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   res.json({ ...serviceRelease(), pins: SERVICE_RELEASE_PINS, asOf: new Date().toISOString() })
+})
+/**
+ * 별도 평가 저장소가 없다 — 생성 파이프라인이 이미 각 항목에 남기는 reviewMode
+ * (repaired·lenient = 1차 엄격 검수를 못 넘고 2·3차로 완성됨)를 그대로 보여준다.
+ */
+app.get('/api/admin/v1/evaluations', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json({ reviews: await listQualityReviews(Number(req.query?.limit ?? 200)), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'QUALITY_REVIEW_LOOKUP_FAILED', error: '실제 품질 검토 기록을 불러오지 못했습니다.' })
+  }
+})
+/**
+ * 미디어 저장소도 없다 — 이미지는 배포에 실린 정적 파일 자체다. 실제로 배포된 파일을
+ * 훑어 카탈로그를 만들고, 어떤 서비스 페이지가 그 파일을 실제로 참조하는지까지 센다.
+ */
+app.get('/api/admin/v1/media', async (req, res) => {
+  if (!await requireStaff(req, res, 'services:read')) return
+  try {
+    res.json({ assets: getMediaCatalog(), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'MEDIA_CATALOG_FAILED', error: '실제 미디어 카탈로그를 불러오지 못했습니다.' })
+  }
 })
 app.get('/api/admin/v1/services', async (req, res) => {
   if (!await requireStaff(req, res, 'services:read')) return

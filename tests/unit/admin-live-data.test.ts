@@ -16,8 +16,34 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url.pathname.endsWith('/cheongi_user_profiles')) {
     return new Response(JSON.stringify([{ user_id: '12345678-1234-1234-1234-123456789012', name: '홍길동', created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/6' } })
   }
-  if (url.pathname.endsWith('/cheongi_reports')) {
+  if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select') === 'report_id') {
+    // countLiveReports() 의 count-only 조회. 실제 행은 안 보고 content-range 헤더만 쓴다.
+    return new Response(JSON.stringify([]), { headers: { 'content-range': '0-0/68' } })
+  }
+  if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select')?.includes('admin_status')) {
     return new Response(JSON.stringify([{ report_id: 'report-123456789', user_email: 'customer@example.com', admin_status: 'new', payload: { context: { serviceKey: 'cmdg' }, birth: { year: 1990 } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/68' } })
+  }
+  if (url.pathname.endsWith('/cheongi_reports')) {
+    return new Response(JSON.stringify([
+      {
+        report_id: 'report-quality-0001', user_email: 'buyer@example.com', updated_at: '2026-09-18T12:00:00.000Z',
+        payload: {
+          context: { serviceKey: 'marry_match' },
+          report: {
+            sections: [
+              { id: 's1', classification: '결혼까지 가는 조건', status: 'complete', reviewMode: 'strict' },
+              { id: 's2', classification: '돈 관리 방식', status: 'complete', reviewMode: 'repaired' },
+              { id: 's3', classification: '가족 문제', status: 'complete', reviewMode: 'lenient', reviewNotes: ['서비스 말투가 지정된 해요체를 벗어남'] },
+            ],
+          },
+        },
+      },
+      {
+        // 1차를 그대로 통과한 리포트는 어떤 항목도 이 목록에 실리지 않아야 한다.
+        report_id: 'report-quality-0002', user_email: 'other@example.com', updated_at: '2026-09-18T11:00:00.000Z',
+        payload: { context: { serviceKey: 'money_save' }, report: { sections: [{ id: 's1', classification: '월급 안정러', status: 'complete', reviewMode: 'strict' }] } },
+      },
+    ]), { headers: { 'content-range': '0-1/2' } })
   }
   throw new Error(`Unexpected request: ${url}`)
 }) as typeof fetch
@@ -52,5 +78,20 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     assert.equal(await liveData.countLiveReports(), 68)
     assert.equal(requests[2]?.headers.get('prefer'), 'count=exact')
     assert.equal(requests[3]?.headers.get('prefer'), 'count=exact')
+  })
+
+  /**
+   * 2026-09-19: "평가" 메뉴는 별도 저장소가 없다 — 생성 파이프라인이 이미 남기는
+   * reviewMode(repaired·lenient)를 그대로 뽑아 보여준다. 1차를 그대로 통과한(strict)
+   * 항목은 검토 이력이 아니므로 목록에 나오면 안 된다.
+   */
+  it('1차 엄격 검수를 못 넘고 2·3차로 완성된 항목만 뽑고, strict 는 걸러낸다', async () => {
+    const reviews = await liveData.listQualityReviews(10)
+    assert.deepEqual(reviews, [
+      { reportId: 'report••••', member: 'b•••@example.com', serviceKey: 'marry_match', sectionId: 's2', classification: '돈 관리 방식', reviewMode: 'repaired', reviewNotes: '기록 없음', updatedAt: '2026-09-18T12:00:00.000Z' },
+      { reportId: 'report••••', member: 'b•••@example.com', serviceKey: 'marry_match', sectionId: 's3', classification: '가족 문제', reviewMode: 'lenient', reviewNotes: '서비스 말투가 지정된 해요체를 벗어남', updatedAt: '2026-09-18T12:00:00.000Z' },
+    ])
+    // report-quality-0002 는 strict 뿐이라 어떤 행도 만들지 않았다.
+    assert.ok(!reviews.some((review) => review.serviceKey === 'money_save'))
   })
 })
