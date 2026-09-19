@@ -811,6 +811,78 @@
           addLiveTable(body, '작업 기준 가이드', ['원천 파일', '크기', '내용 해시'], sources, function (item) { return [item.path, Number(item.bytes).toLocaleString('ko-KR') + ' B', item.contentHash]; }, '연결된 가이드 원천 파일이 없습니다.');
           addLiveTable(body, '서비스별 실제 퍼소나·프롬프트', ['서비스', '퍼소나', '정의', '이름 상태', '말투', '핵심 약속', '생성 파일', '내용 해시'], personas, function (item) { return [item.title + ' · ' + item.key, item.displayName, item.definitionStatus === 'specified' ? '정의됨' : item.definitionStatus, item.displayNameStatus === 'draft' ? '이름 초안' : item.displayNameStatus, item.voice, item.promise, item.sourcePath, item.contentHash]; }, '연결된 서비스 퍼소나가 없습니다.');
         } catch (_error) { addLiveError(body, '현재 배포의 실제 Tone V2 프롬프트 원천을 불러오지 못했습니다.'); }
+        await loadPromptContentEditor(body);
+      }
+      /**
+       * 2026-09-19 (T30): 공통 규칙 1개 + 서비스 페르소나 20개를 실시간으로 고친다.
+       * 발행하면 다음 생성 요청부터(오버레이 새로고침 주기 30초 이내) 실제 유료 고객
+       * 리포트에 바로 반영된다 — 서비스 카탈로그 문구와 달리 되돌리기가 훨씬 무겁다.
+       */
+      async function loadPromptContentEditor(body) {
+        var section = document.createElement('section'); section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 실시간 편집</h3><span class="admin-chip">발행 즉시 실제 리포트에 반영</span></header><p class="admin-note" style="padding:0 16px 12px">발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.</p>';
+        var noteEl = section.querySelector('.admin-note');
+        var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.'; section.appendChild(status);
+        body.appendChild(section);
+        try {
+          var response = await fetch('/api/admin/v1/prompts/content', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('PROMPT_CONTENT_LOOKUP_FAILED');
+          var payload = await response.json();
+          var items = Array.isArray(payload.items) ? payload.items : [];
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">항목</th><th scope="col">종류</th><th scope="col">발행 버전</th><th scope="col">초안 버전</th><th scope="col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          items.forEach(function (item) {
+            var row = document.createElement('tr');
+            [item.label, item.contentType === 'common' ? '공통 규칙' : '서비스 페르소나', item.publishedVersion || '없음', item.draftVersion || '없음'].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
+            });
+            var actionCell = document.createElement('td'); var edit = document.createElement('button'); edit.className = 'admin-button'; edit.type = 'button'; edit.textContent = '수정';
+            edit.addEventListener('click', function () { renderPromptContentDetail(body, item); });
+            actionCell.appendChild(edit); row.appendChild(actionCell);
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          section.replaceChildren(section.firstElementChild, noteEl, scroll);
+          if (payload.versionStore !== 'ready') addLiveError(body, '프롬프트 개정 저장소 연결을 확인하지 못했습니다.');
+        } catch (_error) { status.textContent = '프롬프트 개정 목록을 불러오지 못했습니다.'; }
+      }
+      function renderPromptContentDetail(body, item) {
+        var previous = body.querySelector('[data-prompt-content-detail]'); if (previous) previous.remove();
+        var section = document.createElement('section'); section.dataset.promptContentDetail = 'true'; section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 수정 — ' + escapeHtml(item.label) + '</h3><span class="admin-chip">' + escapeHtml(item.contentType) + ':' + escapeHtml(item.contentKey) + '</span></header><p class="admin-note" style="padding:0 16px;color:var(--admin-state-warn)">발행하면 이 항목을 쓰는 모든 신규 리포트 생성에 즉시 반영됩니다. 저장 전에 내용을 두 번 확인하세요.</p>';
+        body.appendChild(section);
+        var form = document.createElement('form'); form.style.padding = '0 16px 16px';
+        form.innerHTML = '<textarea name="body" rows="16" style="width:100%;padding:12px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit;font-size:13px" maxlength="20000"></textarea><div class="admin-actions" style="margin-top:12px"><button class="admin-button" type="submit">초안 저장</button></div><p class="admin-note" role="status" data-prompt-form-result></p>';
+        form.elements.body.value = item.currentBody || '';
+        var result = form.querySelector('[data-prompt-form-result]');
+        var revision = (item.revision === null || item.revision === undefined) ? -1 : item.revision;
+        var publishArea = document.createElement('div'); publishArea.className = 'admin-actions'; publishArea.style.padding = '0 16px 16px'; publishArea.hidden = true;
+        var publishButton = document.createElement('button'); publishButton.className = 'admin-button'; publishButton.type = 'button'; publishButton.textContent = '이 초안 발행';
+        publishArea.appendChild(publishButton);
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '초안을 저장하는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/prompts/content/' + encodeURIComponent(item.contentType) + '/' + encodeURIComponent(item.contentKey) + '/draft', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: revision, body: form.elements.body.value }) });
+            var responsePayload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(responsePayload.error || '초안 저장에 실패했습니다.');
+            var saved = responsePayload.version; revision = saved.revision;
+            result.textContent = '초안이 저장되었습니다(v' + saved.version + ').';
+            publishArea.hidden = false;
+            publishButton.onclick = async function () {
+              if (!window.confirm('이 초안을 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?')) return;
+              publishButton.disabled = true;
+              try {
+                var publishResponse = await fetch('/api/admin/v1/prompts/content/' + encodeURIComponent(item.contentType) + '/' + encodeURIComponent(item.contentKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
+                var publishPayload = await publishResponse.json().catch(function () { return {}; });
+                if (!publishResponse.ok) throw new Error(publishPayload.error || '발행에 실패했습니다.');
+                result.textContent = 'v' + saved.version + ' 발행 완료. 다음 생성 요청부터 반영됩니다.'; publishArea.hidden = true;
+              } catch (error) { publishButton.disabled = false; window.alert(error instanceof Error ? error.message : '발행에 실패했습니다.'); }
+            };
+          } catch (error) { result.textContent = error instanceof Error ? error.message : '초안 저장에 실패했습니다.'; }
+          finally { submit.disabled = false; }
+        });
+        section.appendChild(form); section.appendChild(publishArea); section.scrollIntoView({ block: 'nearest' });
       }
       async function loadLiveAudit(body) {
         try {

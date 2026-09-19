@@ -104,6 +104,25 @@ test('renderServiceDetail 은 초안 저장 후에만 발행 버튼을 열고, �
   assert.match(body, /완전히 삭제할 수 없습니다/)
 })
 
+/**
+ * 2026-09-19 (T30): 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 반영되므로,
+ * 두 단계(초안 저장 → 명시적 발행 확인)와 강한 경고 문구가 반드시 있어야 한다.
+ */
+test('loadPromptContentEditor 는 21개 항목에 수정 버튼을 달아 렌더한다', () => {
+  const body = source.slice(source.indexOf('async function loadPromptContentEditor'), source.indexOf('function renderPromptContentDetail'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /edit\.addEventListener\('click', function \(\) \{ renderPromptContentDetail\(body, item\); \}\)/)
+})
+
+test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고, 초안 저장 후에만 발행 버튼을 연다', () => {
+  const body = source.slice(source.indexOf('function renderPromptContentDetail'), source.indexOf('async function loadLiveAudit'))
+  assert.match(body, /publishArea\.hidden = true;/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/draft'/)
+  assert.match(body, /publishArea\.hidden = false;/)
+  assert.match(body, /window\.confirm\('이 초안을 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 바로 반영됩니다/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/publish'/)
+})
+
 test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔드 라우트에 연결한다', () => {
   const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadLiveOverview'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports\/requeue-incomplete', \{ method: 'POST'/)

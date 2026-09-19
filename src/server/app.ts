@@ -60,6 +60,13 @@ import {
   publishServiceConfigVersion,
   saveServiceConfigDraft,
 } from '../admin/service-version-store.js'
+import {
+  NEW_PROMPT_DRAFT_REVISION,
+  getAdminPromptContentSnapshot,
+  publishGenerationPromptVersion,
+  saveGenerationPromptDraft,
+  type PromptContentType,
+} from '../admin/prompt-content-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { backfillReportCompletions, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner } from '../report/report-completion-job.js'
@@ -1226,7 +1233,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write', 'prompts:write', 'prompts:publish']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -2390,6 +2397,85 @@ app.get('/api/admin/v1/prompts', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'PROMPT_SNAPSHOT_FAILED', error: '현재 배포의 Tone V2 프롬프트 원천을 불러오지 못했습니다.' })
   }
+})
+
+/**
+ * T30: 공통 규칙 1개 + 서비스 페르소나 20개의 발행/초안 상태. 실제 편집 본문은
+ * 각 항목의 currentBody 에 있다(초안이 있으면 초안, 없으면 발행본, 둘 다 없으면 배포 파일).
+ */
+app.get('/api/admin/v1/prompts/content', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json(await getAdminPromptContentSnapshot())
+  } catch {
+    res.status(503).json({ code: 'PROMPT_CONTENT_LOOKUP_FAILED', error: '프롬프트 개정 저장소를 불러오지 못했습니다.' })
+  }
+})
+
+const PROMPT_CONTENT_FAILURES: Record<string, { status: number; error: string }> = {
+  PROMPT_CONTENT_UNKNOWN_KEY: { status: 404, error: '알 수 없는 프롬프트 항목입니다.' },
+  PROMPT_CONTENT_PAYLOAD_INVALID: { status: 422, error: '내용을 확인해 주세요(1자 이상 20,000자 이하).' },
+  PROMPT_CONTENT_DRAFT_EXISTS: { status: 409, error: '이미 작성 중인 초안이 있습니다. 그 초안을 불러와 이어서 고쳐 주세요.' },
+  PROMPT_CONTENT_NOT_FOUND: { status: 404, error: '해당 개정을 찾지 못했습니다.' },
+  PROMPT_CONTENT_NOT_DRAFT: { status: 409, error: '초안 상태의 개정만 게시할 수 있습니다.' },
+  PROMPT_CONTENT_REVISION_CONFLICT: { status: 409, error: '이 개정이 그사이 변경되었습니다. 다시 불러온 뒤 확인해 주세요.' },
+  PROMPT_CONTENT_CHECKSUM_MISMATCH: { status: 409, error: '검토한 내용과 저장된 초안이 다릅니다. 초안을 다시 확인해 주세요.' },
+  PROMPT_CONTENT_STORE_UNAVAILABLE: { status: 503, error: '프롬프트 개정 저장소에 연결하지 못했습니다. 임의로 저장하지 않았습니다.' },
+}
+
+function respondPromptContentFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = PROMPT_CONTENT_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  console.error(fallback, raw || 'unknown')
+  res.status(500).json({ code: fallback, error: '요청을 처리하지 못했습니다.' })
+}
+
+function parsePromptContentType(value: unknown): PromptContentType | null {
+  return value === 'common' || value === 'service' ? value : null
+}
+
+app.post('/api/admin/v1/prompts/content/:contentType/:contentKey/draft', async (req, res) => {
+  const membership = await requireStaff(req, res, 'prompts:write'); if (!membership) return
+  const contentType = parsePromptContentType(req.params.contentType)
+  const contentKey = trimmedString(req.params.contentKey)
+  const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!contentType || !contentKey || !Number.isInteger(expectedRevision) || expectedRevision < NEW_PROMPT_DRAFT_REVISION || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_PROMPT_DRAFT', error: '항목 종류, 개정 번호, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'prompt.draft.save', idempotencyKey,
+      body: { contentType, contentKey, expectedRevision },
+      target: { type: 'prompt_content_version', id: `${contentType}:${contentKey}` },
+    }, async () => saveGenerationPromptDraft({ contentType, contentKey, body: body.body, authorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ version: command.result, replayed: command.replayed })
+  } catch (error) { respondPromptContentFailure(res, error, 'PROMPT_CONTENT_DRAFT_FAILED') }
+})
+
+/** 게시 즉시 다음 생성 요청부터(오버레이 새로고침 주기 이내) 실제 고객 리포트에 반영된다. */
+app.post('/api/admin/v1/prompts/content/:contentType/:contentKey/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'prompts:publish'); if (!membership) return
+  const contentType = parsePromptContentType(req.params.contentType)
+  const contentKey = trimmedString(req.params.contentKey)
+  const body = asObject(req.body)
+  const version = Number(body.version)
+  const checksum = trimmedString(body.checksum)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!contentType || !contentKey || !Number.isSafeInteger(version) || version <= 0 || !/^[a-f0-9]{64}$/.test(checksum) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_PROMPT_PUBLISH', error: '개정 번호, 검토 체크섬, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'prompt.version.publish', idempotencyKey,
+      body: { contentType, contentKey, version, checksum, expectedRevision },
+      target: { type: 'prompt_content_version', id: `${contentType}:${contentKey}:${version}` },
+    }, async () => publishGenerationPromptVersion({ contentType, contentKey, version, checksum, authorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ version: command.result, replayed: command.replayed })
+  } catch (error) { respondPromptContentFailure(res, error, 'PROMPT_CONTENT_PUBLISH_FAILED') }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
   // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
