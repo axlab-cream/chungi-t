@@ -74,6 +74,17 @@ describe('발행된 프롬프트 개정이 생성 경로에 동기로 반영된�
     }) as typeof fetch
   })
 
+  it('ensurePromptOverridesFresh 는 콜드 스타트 직후에도 새로고침을 기다려 첫 호출부터 개정본을 쓴다', async () => {
+    overrides.resetPromptOverlayForTests()
+    publishedRows = [{ content_type: 'service', content_key: 'job_choice', body: '개정된 직장 선택 페르소나입니다.' }]
+    await overrides.ensurePromptOverridesFresh()
+    assert.equal(serviceSystem.loadServiceBlock('job_choice'), '개정된 직장 선택 페르소나입니다.')
+    // 주기 안의 재호출은 새 요청 없이 즉시 돌아온다.
+    const before = calls.length
+    await overrides.ensurePromptOverridesFresh()
+    assert.equal(calls.length, before)
+  })
+
   it('새로고침 주기 안에서는 다시 조회하지 않는다', async () => {
     await overrides.forceRefreshPromptOverridesForTests()
     const before = calls.length

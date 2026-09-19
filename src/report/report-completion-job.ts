@@ -2,6 +2,7 @@ import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, r
 import { analyzeSaju } from '../saju/analyzer.js'
 import { countGenuineFailures, ensureReportLongform, preGenerateReport, providerOutageOf, sectionHitProviderOutage } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, mutateReportRecord, reportProgressOf, type IncompleteReportRef, type ReportRecord } from './report-store.js'
+import { ensurePromptOverridesFresh } from '../prompt/prompt-overrides.js'
 
 export type { IncompleteReportRef }
 import { listAllPaymentOrders } from '../payment/order-store.js'
@@ -134,6 +135,8 @@ export async function runReportCompletionJob(
   const runStartedAt = Date.now()
   // 이미 상한에 닿은 리포트는 모델을 부르지 않는다. 되살아난 작업이 첫 실행에서 또 네 번 쓰는 일을 막는다.
   if (classifyRun(record, 0) === 'exhausted') throw new Error(REPORT_JOB_CODES.exhausted)
+  // 관리자가 발행한 프롬프트 개정을 이 실행의 첫 항목부터 쓴다(T30). 실패해도 파일 폴백.
+  await ensurePromptOverridesFresh()
   const budget = { exhausted: false }
   // 결론·요약·하이라이트는 목차와 나란히 만든다. 앞에 세우면 독자가 기다리는 첫 항목이
   // LLM 왕복 다섯 번 뒤로 밀린다. 실패해도 목차 생성을 막지 않는다.

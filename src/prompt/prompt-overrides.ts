@@ -67,6 +67,17 @@ export function refreshPromptOverridesIfStale(): void {
     .finally(() => { refreshInFlight = null })
 }
 
+/**
+ * 비동기 진입점. 워커처럼 이미 비동기인 곳에서 생성 **직전에** 한 번 기다린다 — 콜드 스타트
+ * 직후 첫 항목이 새로고침이 끝나기 전에 옛 파일 내용으로 만들어지는 틈을 막는다.
+ * 저장소가 없거나 실패하면 그냥 돌아온다(파일 폴백).
+ */
+export async function ensurePromptOverridesFresh(): Promise<void> {
+  if (!storeAvailable()) return
+  refreshPromptOverridesIfStale()
+  if (refreshInFlight) await refreshInFlight
+}
+
 export function getPromptOverrideBody(contentType: 'common' | 'service', contentKey: string): string | undefined {
   return overlay.get(overlayKey(contentType, contentKey))
 }
