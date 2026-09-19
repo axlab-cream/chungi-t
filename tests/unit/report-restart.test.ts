@@ -134,7 +134,8 @@ describe('수동 재시작은 상한만 다시 열고 기록은 남긴다', { co
 
 describe('진단·재시작 라우트', () => {
   const source = readFileSync(join(ROOT, 'src/server/app.ts'), 'utf8')
-  const diagnosticsRoute = source.slice(source.indexOf("app.get('/api/admin/v1/reports/:id/diagnostics'"), source.indexOf("app.post('/api/admin/v1/reports/:id/restart'"))
+  const diagnosticsRoute = source.slice(source.indexOf("app.get('/api/admin/v1/reports/:id/diagnostics'"), source.indexOf("app.get('/api/admin/v1/reports/:id/content'"))
+  const contentRoute = source.slice(source.indexOf("app.get('/api/admin/v1/reports/:id/content'"), source.indexOf("app.post('/api/admin/v1/reports/:id/restart'"))
   const restartRoute = source.slice(source.indexOf("app.post('/api/admin/v1/reports/:id/restart'"), source.indexOf("app.post('/api/admin/v1/reports/requeue-incomplete'"))
 
   it('진단은 reports:read 로 읽기만 하고, 재시작은 reports:write 로 감사 명령을 거친다', () => {
@@ -144,5 +145,17 @@ describe('진단·재시작 라우트', () => {
     assert.match(restartRoute, /executeAdminCommand\(/)
     assert.match(restartRoute, /adminCommandKey\(req\)/)
     assert.match(restartRoute, /'report\.generation\.restart'/)
+  })
+
+  /**
+   * 2026-09-19: 관리자 화면의 "PDF 받기" 버튼이 부르는 라우트. 읽기 전용(reports:read)이고,
+   * 완성되지 않은 리포트는 409 로 거절해 빈 PDF를 내주지 않는다.
+   */
+  it('PDF 본문 라우트는 reports:read 로 읽기만 하고, 미완성 리포트는 409 로 거절한다', () => {
+    assert.match(contentRoute, /requireStaff\(req, res, 'reports:read'\)/)
+    assert.doesNotMatch(contentRoute, /executeAdminCommand\(/)
+    assert.match(contentRoute, /getReportRecordAsService\(reportId\)/)
+    assert.match(contentRoute, /record\.status !== 'complete'/)
+    assert.match(contentRoute, /REPORT_NOT_COMPLETE/)
   })
 })

@@ -11,9 +11,13 @@ export type AdminMemberSummary = {
 
 export type AdminReportSummary = {
   reportId: string
+  /** Raw, unmasked report_id — only for admin actions (e.g. the PDF button's fetch target), never rendered as visible text. */
+  id: string
   member: string
   serviceKey: string
   status: string
+  /** True once report.status is 'complete' — the point at which a customer-facing PDF exists to hand out. */
+  pdfReady: boolean
   createdAt: string
   updatedAt: string
 }
@@ -104,6 +108,11 @@ function reportMemberLabel(email: unknown, userId: unknown): string {
   return id ? `이메일 없음(회원 ${maskIdentifier(id)})` : '연결되지 않음'
 }
 
+/** payload.status (top-level ReportStatus), not admin_status and not payload.report.status. */
+function reportIsComplete(payload: unknown): boolean {
+  return Boolean(payload && typeof payload === 'object' && (payload as Record<string, unknown>).status === 'complete')
+}
+
 function reportServiceKey(payload: unknown): string {
   if (!payload || typeof payload !== 'object') return '기록 없음'
   const context = (payload as Record<string, unknown>).context
@@ -148,9 +157,11 @@ export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]
   if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
   return (await response.json() as RestRow[]).map((row) => ({
     reportId: maskIdentifier(row.report_id),
+    id: clipped(row.report_id, ''),
     member: reportMemberLabel(row.user_email, row.user_id),
     serviceKey: reportServiceKey(row.payload),
     status: clipped(row.admin_status, 'new'),
+    pdfReady: reportIsComplete(row.payload),
     createdAt: clipped(row.created_at, ''),
     updatedAt: clipped(row.updated_at, ''),
   }))
@@ -250,7 +261,7 @@ export async function findLiveReport(reportId: string): Promise<AdminReportSumma
   url.searchParams.set('report_id', `eq.${reportId}`); url.searchParams.set('select', 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at'); url.searchParams.set('limit', '1')
   const response = await fetch(url, { headers: serviceHeaders() }); if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
   const row = (await response.json() as RestRow[])[0]
-  return row ? { reportId: maskIdentifier(row.report_id), member: reportMemberLabel(row.user_email, row.user_id), serviceKey: reportServiceKey(row.payload), status: clipped(row.admin_status, 'new'), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
+  return row ? { reportId: maskIdentifier(row.report_id), id: clipped(row.report_id, ''), member: reportMemberLabel(row.user_email, row.user_id), serviceKey: reportServiceKey(row.payload), status: clipped(row.admin_status, 'new'), pdfReady: reportIsComplete(row.payload), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
 }
 
 export type AdminMemberBirth = {

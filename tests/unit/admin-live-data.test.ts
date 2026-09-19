@@ -23,7 +23,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select')?.includes('admin_status')) {
     if (url.searchParams.get('limit') === '2') {
       return new Response(JSON.stringify([
-        { report_id: 'report-no-email-000', user_id: 'a1b2c3d4-owner', user_email: null, admin_status: 'new', payload: { context: { serviceKey: 'today' } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' },
+        { report_id: 'report-no-email-000', user_id: 'a1b2c3d4-owner', user_email: null, admin_status: 'new', payload: { status: 'complete', context: { serviceKey: 'today' } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' },
         { report_id: 'report-no-owner-000', user_id: null, user_email: null, admin_status: 'new', payload: {}, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' },
       ]), { headers: { 'content-range': '0-1/2' } })
     }
@@ -104,7 +104,7 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
 
   it('리포트 원문·생년월일을 DTO로 흘리지 않고 상태와 서비스 키만 반환한다', async () => {
     const reports = await liveData.listLiveReports(1)
-    assert.deepEqual(reports, [{ reportId: 'report••••', member: 'c•••@example.com', serviceKey: 'cmdg', status: 'new', createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
+    assert.deepEqual(reports, [{ reportId: 'report••••', id: 'report-123456789', member: 'c•••@example.com', serviceKey: 'cmdg', status: 'new', pdfReady: false, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
     assert.equal(requests[1]?.url.searchParams.get('select'), 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at')
     assert.ok(!JSON.stringify(reports).includes('1990'))
   })
@@ -155,5 +155,15 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     assert.equal(reports.length, 2)
     assert.equal(reports[0].member, '이메일 없음(회원 a1b2c3••••)')
     assert.equal(reports[1].member, '연결되지 않음')
+  })
+
+  /**
+   * 2026-09-19: 리포트 화면의 "PDF 받기" 버튼은 report.status 가 아니라 record 최상위
+   * payload.status 가 'complete' 일 때만 보인다(admin_status·report.status 와는 다른 필드).
+   */
+  it('PDF 버튼은 payload.status 가 complete 일 때만 보인다', async () => {
+    const reports = await liveData.listLiveReports(2)
+    assert.equal(reports[0].pdfReady, true)
+    assert.equal(reports[1].pdfReady, false)
   })
 })

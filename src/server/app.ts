@@ -22,6 +22,7 @@ import {
   createReportId,
   createReportLineageId,
   deleteReportRecord,
+  getReportRecordAsService,
   getReportStorageMode,
   findReportRecord,
   sectionGenerationId,
@@ -2902,6 +2903,28 @@ app.get('/api/admin/v1/reports/:id/diagnostics', async (req, res) => {
     res.json({ diagnostics, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'REPORT_DIAGNOSTICS_FAILED', error: '리포트 진단을 불러오지 못했습니다.' })
+  }
+})
+
+/**
+ * 2026-09-19: 서버에 PDF 파일이 없다 — 고객 리더 화면의 인쇄창(umsh-report-pdf.js)과
+ * 같은 방식을 관리자 화면에서도 쓰기 위해, 그 창을 채우는 데 필요한 본문만 돌려준다.
+ * 완성되지 않은 리포트는 내줄 PDF가 없으므로 409 로 거절한다.
+ */
+app.get('/api/admin/v1/reports/:id/content', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  const reportId = trimmedString(req.params.id)
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId)) { res.status(422).json({ code: 'INVALID_REPORT_ID', error: '리포트 ID를 확인해 주세요.' }); return }
+  try {
+    const record = await getReportRecordAsService(reportId)
+    if (!record) { res.status(404).json({ code: 'REPORT_NOT_FOUND', error: '해당 리포트를 찾지 못했습니다.' }); return }
+    if (record.status !== 'complete') { res.status(409).json({ code: 'REPORT_NOT_COMPLETE', error: '아직 완성되지 않은 리포트는 PDF로 받을 수 없습니다.' }); return }
+    const writtenSections = record.report.sections
+      .filter((section) => section.interpretation && section.interpretation.trim())
+      .map((section) => ({ id: section.id, category: section.category, classification: section.classification, hook: section.hook, interpretation: section.interpretation }))
+    res.json({ title: record.report.title, subtitle: record.report.subtitle, sections: writtenSections })
+  } catch {
+    res.status(503).json({ code: 'REPORT_CONTENT_FAILED', error: '리포트 내용을 불러오지 못했습니다.' })
   }
 })
 
