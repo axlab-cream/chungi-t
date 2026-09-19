@@ -264,6 +264,43 @@ function validPruneCutoff(before: string): boolean {
   return Number.isFinite(at) && at < Date.now() - 60 * 60 * 1000
 }
 
+function validErrorCode(code: string): boolean {
+  return /^[A-Z][A-Z0-9_]{2,60}$/.test(code)
+}
+
+/**
+ * 특정 실패 코드로 닫힌 작업 전용 정리. `OPS_DUPLICATE_TARGET`·`OPS_TARGET_COMPLETE`·
+ * `OPS_TARGET_GONE` 은 **처리기를 태우지 않고** 닫힌 행이다(closeOpsJobs 참조) — 모델을
+ * 부른 적이 없으므로 나이 제한(1시간) 없이 바로 지워도 안전하다. running 과 일시정지
+ * 표지 행은 이 필터에도 그대로 걸러진다(정의상 last_error 가 이 값일 수 없다).
+ */
+function errorCodeFilter(code: string): URL {
+  const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+  url.searchParams.set('last_error', `eq.${code}`)
+  url.searchParams.set('state', 'neq.running')
+  url.searchParams.set('kind', `neq.${OPS_PAUSE_KIND}`)
+  return url
+}
+
+export async function countOpsJobsByErrorCode(code: string): Promise<number> {
+  if (!opsStoreAvailable() || !validErrorCode(code)) return 0
+  const url = errorCodeFilter(code)
+  url.searchParams.set('select', 'id')
+  url.searchParams.set('limit', '1')
+  const response = await fetch(url, { headers: { ...opsHeaders(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('OPS_COUNT_FAILED')
+  const total = response.headers.get('content-range')?.split('/')[1]
+  return total && /^\d+$/.test(total) ? Number(total) : 0
+}
+
+export async function deleteOpsJobsByErrorCode(code: string): Promise<number> {
+  if (!opsStoreAvailable()) return 0
+  if (!validErrorCode(code)) throw new Error('OPS_PRUNE_ERROR_CODE_INVALID')
+  const response = await fetch(errorCodeFilter(code), { method: 'DELETE', headers: { ...opsHeaders(), prefer: 'return=representation' } })
+  if (!response.ok) throw new Error('OPS_DELETE_FAILED')
+  return ((await response.json().catch(() => [])) as unknown[]).length
+}
+
 /** 정리 대상 건수만 센다(미리보기). 행은 읽지 않는다. */
 export async function countOpsJobsBefore(before: string): Promise<number> {
   if (!opsStoreAvailable() || !validPruneCutoff(before)) return 0

@@ -46,7 +46,7 @@ import { getMediaCatalog } from '../admin/media-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { checkOpsQueueReadiness, countOpsJobsBefore, deleteOpsJobsBefore, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
+import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, deleteOpsJobsBefore, deleteOpsJobsByErrorCode, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
@@ -2200,14 +2200,39 @@ app.post('/api/admin/v1/jobs/pause', async (req, res) => {
 })
 /**
  * 오래된 작업 내역 정리. `dryRun: true` 면 건수만 센다. 실제 삭제는 감사 명령을 거친다.
- * running 과 일시정지 표지 행은 건드리지 않고, 기준 시각은 최소 1시간 전이어야 한다.
+ * running 과 일시정지 표지 행은 건드리지 않는다.
+ *
+ * 두 가지 방식:
+ *   - `before`(ISO 시각): 기준 시각은 최소 1시간 전이어야 한다(진행 중인 리포트의 작업을
+ *     지우지 않기 위해서). 종류를 가리지 않고 지운다.
+ *   - `errorCode`: OPS_DUPLICATE_TARGET 처럼 **처리기를 태우지 않고** 닫힌 실패 코드 전용.
+ *     모델을 부른 적이 없는 행이므로 나이 제한 없이 바로 지울 수 있다.
  */
 app.post('/api/admin/v1/jobs/prune', async (req, res) => {
   const membership = await requireStaff(req, res, 'settings:write'); if (!membership) return
   const body = asObject(req.body)
   const before = trimmedString(body.before)
+  const errorCode = trimmedString(body.errorCode)
   const dryRun = body.dryRun === true
   const idempotencyKey = adminCommandKey(req)
+
+  if (errorCode) {
+    if (!/^[A-Z][A-Z0-9_]{2,60}$/.test(errorCode) || (!dryRun && idempotencyKey.length < 8)) {
+      res.status(422).json({ code: 'INVALID_JOB_PRUNE', error: '실패 코드와 멱등 키를 확인해 주세요.' }); return
+    }
+    try {
+      if (dryRun) { res.json({ errorCode, dryRun: true, count: await countOpsJobsByErrorCode(errorCode) }); return }
+      const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+        actorEmail: membership.email, action: 'ops.jobs.prune_by_error', idempotencyKey,
+        body: { errorCode }, target: { type: 'ops_jobs', id: `error:${errorCode}` },
+      }, async () => ({ errorCode, deleted: await deleteOpsJobsByErrorCode(errorCode) }))
+      res.json({ ...command.result, replayed: command.replayed })
+    } catch {
+      res.status(503).json({ code: 'OPS_PRUNE_FAILED', error: '작업 내역을 정리하지 못했습니다. 임의로 지우지 않았습니다.' })
+    }
+    return
+  }
+
   if (!before || !Number.isFinite(Date.parse(before)) || (!dryRun && idempotencyKey.length < 8)) {
     res.status(422).json({ code: 'INVALID_JOB_PRUNE', error: '기준 시각(ISO)과 멱등 키를 확인해 주세요.' }); return
   }

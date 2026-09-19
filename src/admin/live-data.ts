@@ -92,6 +92,18 @@ function maskEmail(value: unknown): string {
   return `${email.slice(0, 1)}•••${email.slice(at)}`
 }
 
+/**
+ * 2026-09-19: "연결되지 않음"이 회원 자체가 없다는 뜻으로 읽혔지만, 실제로는 회원 계정은
+ * 있는데 이메일만 없는 경우가 섞여 있었다(가입 경로에 따라 이메일이 없을 수 있다).
+ * user_id 가 있으면 그것을 마스킹해 보여준다 — 진짜로 연결이 없는 것과 구분한다.
+ */
+function reportMemberLabel(email: unknown, userId: unknown): string {
+  const masked = maskEmail(email)
+  if (masked !== '연결되지 않음') return masked
+  const id = clipped(userId, '')
+  return id ? `이메일 없음(회원 ${maskIdentifier(id)})` : '연결되지 않음'
+}
+
 function reportServiceKey(payload: unknown): string {
   if (!payload || typeof payload !== 'object') return '기록 없음'
   const context = (payload as Record<string, unknown>).context
@@ -129,14 +141,14 @@ export async function findLiveMember(memberId: string): Promise<AdminMemberSumma
 
 export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]> {
   const url = new URL(tableUrl('cheongi_reports'))
-  url.searchParams.set('select', 'report_id,user_email,admin_status,payload,created_at,updated_at')
+  url.searchParams.set('select', 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at')
   url.searchParams.set('order', 'updated_at.desc')
   url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 100)))
   const response = await fetch(url, { headers: serviceHeaders() })
   if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
   return (await response.json() as RestRow[]).map((row) => ({
     reportId: maskIdentifier(row.report_id),
-    member: maskEmail(row.user_email),
+    member: reportMemberLabel(row.user_email, row.user_id),
     serviceKey: reportServiceKey(row.payload),
     status: clipped(row.admin_status, 'new'),
     createdAt: clipped(row.created_at, ''),
@@ -235,10 +247,10 @@ export async function listGenerationFailureLog(limit = 200): Promise<AdminGenera
 
 export async function findLiveReport(reportId: string): Promise<AdminReportSummary | null> {
   const url = new URL(tableUrl('cheongi_reports'))
-  url.searchParams.set('report_id', `eq.${reportId}`); url.searchParams.set('select', 'report_id,user_email,admin_status,payload,created_at,updated_at'); url.searchParams.set('limit', '1')
+  url.searchParams.set('report_id', `eq.${reportId}`); url.searchParams.set('select', 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at'); url.searchParams.set('limit', '1')
   const response = await fetch(url, { headers: serviceHeaders() }); if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
   const row = (await response.json() as RestRow[])[0]
-  return row ? { reportId: maskIdentifier(row.report_id), member: maskEmail(row.user_email), serviceKey: reportServiceKey(row.payload), status: clipped(row.admin_status, 'new'), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
+  return row ? { reportId: maskIdentifier(row.report_id), member: reportMemberLabel(row.user_email, row.user_id), serviceKey: reportServiceKey(row.payload), status: clipped(row.admin_status, 'new'), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
 }
 
 export type AdminMemberBirth = {

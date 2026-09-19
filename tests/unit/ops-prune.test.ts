@@ -70,6 +70,34 @@ describe('작업 내역 정리', { concurrency: false }, () => {
     assert.equal(await ops.countOpsJobsBefore(recent), 0)
   })
 
+  it('실패 코드 전용 정리는 나이 제한 없이 곧바로 지운다 — 처리기를 태우지 않고 닫힌 행이라 안전하다', async () => {
+    assert.equal(await ops.countOpsJobsByErrorCode('OPS_DUPLICATE_TARGET'), 312)
+    const countCall = calls.at(-1)!
+    assert.equal(countCall.url.searchParams.get('last_error'), 'eq.OPS_DUPLICATE_TARGET')
+    assert.equal(countCall.url.searchParams.get('state'), 'neq.running')
+    assert.equal(countCall.url.searchParams.get('kind'), 'neq.ops.pause')
+    assert.equal(countCall.url.searchParams.has('updated_at'), false, '나이 필터가 없어야 한다')
+
+    assert.equal(await ops.deleteOpsJobsByErrorCode('OPS_DUPLICATE_TARGET'), 312)
+    const deleteCall = calls.at(-1)!
+    assert.equal(deleteCall.init?.method, 'DELETE')
+    assert.equal(deleteCall.url.searchParams.get('last_error'), 'eq.OPS_DUPLICATE_TARGET')
+  })
+
+  it('형태가 이상한 실패 코드는 거절한다', async () => {
+    assert.equal(await ops.countOpsJobsByErrorCode('not a code'), 0)
+    await assert.rejects(ops.deleteOpsJobsByErrorCode('not a code'), /OPS_PRUNE_ERROR_CODE_INVALID/)
+  })
+
+  it('errorCode 라우트는 나이 검사를 건너뛰고, before 와 같은 감사 명령 경로를 쓴다', () => {
+    const source = readFileSync(join(ROOT, 'src/server/app.ts'), 'utf8')
+    const route = source.slice(source.indexOf("app.post('/api/admin/v1/jobs/prune'"), source.indexOf("app.post('/api/admin/v1/jobs/purge'"))
+    assert.match(route, /requireStaff\(req, res, 'settings:write'\)/)
+    assert.match(route, /countOpsJobsByErrorCode\(errorCode\)/)
+    assert.match(route, /'ops\.jobs\.prune_by_error'/)
+    assert.match(route, /deleteOpsJobsByErrorCode\(errorCode\)/)
+  })
+
   it('라우트는 settings:write 를 요구하고, 실제 삭제만 감사 명령을 거치며, 1시간 규칙을 서버에서도 건다', () => {
     const source = readFileSync(join(ROOT, 'src/server/app.ts'), 'utf8')
     const route = source.slice(source.indexOf("app.post('/api/admin/v1/jobs/prune'"), source.indexOf("app.post('/api/admin/v1/jobs/purge'"))
