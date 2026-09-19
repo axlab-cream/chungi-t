@@ -511,6 +511,45 @@ export async function getReportRecordAsService(reportId: string): Promise<Report
   return recordFromServiceRow(result.rows[0])
 }
 
+/**
+ * 2026-09-19: 관리자 전용, 아주 좁은 백필 하나만 한다 — 원래 없던 `context.serviceKey` 를
+ * 채운다. `mutateReportRecord` 는 `context`(입력) 전체를 바꾸지 못하게 막는데(저장된 입력을
+ * 사후에 바꿀 수 있으면 신뢰가 깨진다), 이건 "다른 값으로 바꾸는" 게 아니라 "애초에 없던
+ * 값을 채우는" 것이라 그 불변식과 다른 문제다. 그래서 그 경로를 쓰지 않고 이 함수를 따로 둔다.
+ *
+ * DB 쪽에서도 조건을 건다(`payload->context->>serviceKey=is.null`) — 이미 값이 있으면
+ * 0행이 바뀌어 안전하게 `already_set` 으로 떨어진다. 원본 payload 를 읽어 그 안의
+ * context.serviceKey 하나만 얹어 쓰므로, 타입을 거친 재구성 과정에서 필드가 빠질 위험이 없다.
+ */
+export async function backfillMissingReportServiceKey(reportId: string, serviceKey: string): Promise<'filled' | 'already_set' | 'not_found'> {
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId) || !/^[a-z][a-z0-9_]{1,60}$/.test(serviceKey)) throw new Error('BACKFILL_INPUT_INVALID')
+  if (storageMode() !== 'supabase') throw new Error('BACKFILL_UNSUPPORTED_STORAGE_MODE')
+  assertSupabaseServerKey()
+  const readUrl = new URL(supabaseRestUrl)
+  readUrl.searchParams.set('report_id', `eq.${reportId}`)
+  readUrl.searchParams.set('select', 'payload')
+  readUrl.searchParams.set('limit', '1')
+  const readResponse = await fetch(readUrl, { headers: supabaseHeaders() })
+  if (!readResponse.ok) throw new Error('BACKFILL_READ_FAILED')
+  const rows = await readResponse.json() as Array<{ payload?: Record<string, unknown> }>
+  const raw = rows[0]?.payload
+  if (!raw) return 'not_found'
+  const context = raw.context && typeof raw.context === 'object' && !Array.isArray(raw.context) ? raw.context as Record<string, unknown> : {}
+  if (typeof context.serviceKey === 'string' && context.serviceKey.trim()) return 'already_set'
+
+  const writeUrl = new URL(supabaseRestUrl)
+  writeUrl.searchParams.set('report_id', `eq.${reportId}`)
+  writeUrl.searchParams.set('payload->context->>serviceKey', 'is.null')
+  const writeResponse = await fetch(writeUrl, {
+    method: 'PATCH',
+    headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'return=representation' },
+    body: JSON.stringify({ payload: { ...raw, context: { ...context, serviceKey } }, updated_at: new Date().toISOString() }),
+  })
+  if (!writeResponse.ok) throw new Error('BACKFILL_WRITE_FAILED')
+  const written = await writeResponse.json() as unknown[]
+  return written.length ? 'filled' : 'already_set'
+}
+
 /** Lookup an immutable result UUID without recomputing inputs or running the LLM. */
 export async function findReportRecord(id: string, owner?: ReportOwner): Promise<ReportRecord | null> {
   if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id)) return null

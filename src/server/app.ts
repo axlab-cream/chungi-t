@@ -78,6 +78,7 @@ import {
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { backfillReportCompletions, describeReportCompletion, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner, restartReportCompletion } from '../report/report-completion-job.js'
+import { backfillCmdgServiceKeyIfMatching } from '../report/report-data-repair.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
@@ -2927,6 +2928,29 @@ app.post('/api/admin/v1/reports/:id/restart', async (req, res) => {
     if (raw === 'REPORT_ALREADY_COMPLETE') { res.status(409).json({ code: raw, error: '이미 완성된 리포트입니다. 재시작할 것이 없습니다.' }); return }
     console.error('REPORT_RESTART_FAILED', raw || 'unknown')
     res.status(503).json({ code: 'REPORT_RESTART_FAILED', error: '리포트 재시작에 실패했습니다. 임의로 바꾸지 않았습니다.' })
+  }
+})
+
+/**
+ * 2026-09-19: 8/31~9/14 에 만들어졌지만 그때는 context.serviceKey 를 남기지 않던 옛
+ * 리포트를 위한, 아주 좁은 1회성 도구. 값이 이미 있거나 항목 구성이 cmdg 지문과 안 맞으면
+ * 손대지 않는다 — 그 경우 "기록 없음"으로 정직하게 남기는 편이 지어내는 것보다 낫다.
+ */
+app.post('/api/admin/v1/reports/:id/backfill-service-key', async (req, res) => {
+  const membership = await requireStaff(req, res, 'reports:write'); if (!membership) return
+  const reportId = trimmedString(req.params.id)
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId) || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_BACKFILL_REQUEST', error: '리포트 ID와 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'report.context.backfill_service_key', idempotencyKey,
+      body: { reportId }, target: { type: 'report', id: reportId },
+    }, async () => backfillCmdgServiceKeyIfMatching(reportId))
+    res.status(command.replayed ? 200 : 202).json({ ...command.result, replayed: command.replayed })
+  } catch {
+    res.status(503).json({ code: 'BACKFILL_FAILED', error: '서비스 키 백필에 실패했습니다. 임의로 바꾸지 않았습니다.' })
   }
 })
 
