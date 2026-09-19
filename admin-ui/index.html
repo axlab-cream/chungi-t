@@ -529,6 +529,7 @@
       // 인증 클라이언트는 한 번만 만든다. 설정값은 런타임에 서버에서 받아오며
       // 이 파일에 인라인하지 않는다.
       var clientPromise = null;
+      var adminPasswordClientPromise = null;
       var authConfigPromise = null;
       function adminAuthConfig() {
         if (!authConfigPromise) {
@@ -1762,7 +1763,7 @@
         if (clientPromise) return clientPromise;
         clientPromise = (async function () {
           var config = await adminAuthConfig();
-          if (config.adminLocalAuth || !config.enabled || !window.supabase || !window.supabase.createClient) return null;
+          if (!config.enabled || !window.supabase || !window.supabase.createClient) return null;
           var helper = window.UMSHAuthSession;
           return (helper && helper.createClient(window.supabase, config.url, config.publishableKey)) ||
             window.supabase.createClient(config.url, config.publishableKey, {
@@ -1778,6 +1779,25 @@
         return clientPromise;
       }
 
+      // 관리자 비밀번호 폴백은 Supabase 세션을 브라우저에 보관하지 않는다.
+      // 인증이 끝나면 서버의 HttpOnly 관리자 쿠키만 남긴다.
+      function adminPasswordClient() {
+        if (adminPasswordClientPromise) return adminPasswordClientPromise;
+        adminPasswordClientPromise = (async function () {
+          var config = await adminAuthConfig();
+          if (!config.enabled || !window.supabase || !window.supabase.createClient) return null;
+          return window.supabase.createClient(config.url, config.publishableKey, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+              detectSessionInUrl: false,
+              flowType: 'pkce',
+            },
+          });
+        })();
+        return adminPasswordClientPromise;
+      }
+
       async function currentSession() {
         var client = await authClient();
         if (!client) return null;
@@ -1787,6 +1807,16 @@
           session = await helper.enforceDeviceAuthSession(session, client);
         }
         return session && session.access_token ? session : null;
+      }
+
+      async function exchangeSupabaseAdminSession(session) {
+        if (!session || !session.access_token) return false;
+        var response = await fetch('/api/admin/v1/session/supabase', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { Authorization: 'Bearer ' + session.access_token },
+        });
+        return response.ok;
       }
 
       // 권한 판정은 서버만 한다. 화면에서 권한을 추정하지 않는다.
@@ -2027,6 +2057,7 @@
 
           if (submit) submit.disabled = true;
           setHidden('[data-admin-login-note]', false);
+          var fallbackClient = null;
           try {
             var result = await fetch('/api/admin/v1/login', {
               method: 'POST',
@@ -2034,7 +2065,17 @@
               credentials: 'same-origin',
               body: JSON.stringify({ email: email, password: password }),
             });
-            if (!result.ok) throw new Error(result.status === 401 ? 'LOCAL_LOGIN_FAILED' : 'LOCAL_LOGIN_UNAVAILABLE');
+            if (!result.ok && result.status === 401) {
+              fallbackClient = await adminPasswordClient();
+              if (!fallbackClient) throw new Error('LOCAL_LOGIN_FAILED');
+              var supabaseResult = await fallbackClient.auth.signInWithPassword({ email: email, password: password });
+              var session = supabaseResult && supabaseResult.data && supabaseResult.data.session;
+              if (supabaseResult.error || !session || !await exchangeSupabaseAdminSession(session)) {
+                throw new Error('LOCAL_LOGIN_FAILED');
+              }
+            } else if (!result.ok) {
+              throw new Error('LOCAL_LOGIN_UNAVAILABLE');
+            }
 
             // 비밀번호를 폼에 남겨 두지 않는다.
             form.elements.password.value = '';
@@ -2044,6 +2085,7 @@
             setText('[data-admin-login-error-detail]', loginFailureMessage(error));
             setHidden('[data-admin-login-error]', false);
           } finally {
+            if (fallbackClient) await fallbackClient.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
             if (submit) submit.disabled = false;
             setHidden('[data-admin-login-note]', true);
           }
@@ -2086,10 +2128,11 @@
 
           if (submit) submit.disabled = true;
           setHidden('[data-admin-recovery-note]', false);
+          var recoveryClient = null;
           try {
-            var client = await authClient();
-            if (!client) throw new Error('auth unavailable');
-            var result = await client.auth.updateUser({ password: password });
+            recoveryClient = await authClient();
+            if (!recoveryClient) throw new Error('auth unavailable');
+            var result = await recoveryClient.auth.updateUser({ password: password });
             if (result.error) throw result.error;
 
             // 성공·실패 어느 경우에도 비밀번호를 DOM에 남겨 두지 않는다.
@@ -2098,14 +2141,16 @@
             window.history.replaceState(null, '', window.location.pathname + window.location.search);
             var session = await currentSession();
             if (!session) throw new Error('recovery session unavailable');
+            if (!await exchangeSupabaseAdminSession(session)) throw new Error('admin session unavailable');
             var helper = window.UMSHAuthSession;
-            if (helper && helper.rememberDeviceAuthSession) helper.rememberDeviceAuthSession(session);
+            if (helper && helper.clearDeviceAuthSession) helper.clearDeviceAuthSession();
             show('loading');
-            await checkAuthority(session);
+            await checkAuthority(null);
           } catch (error) {
             setText('[data-admin-recovery-error-detail]', recoveryFailureMessage(error));
             setHidden('[data-admin-recovery-error]', false);
           } finally {
+            if (recoveryClient) await recoveryClient.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
             if (submit) submit.disabled = false;
             setHidden('[data-admin-recovery-note]', true);
           }
@@ -2141,9 +2186,12 @@
         document.querySelectorAll('[data-admin-signout]').forEach(function (button) {
           button.addEventListener('click', async function () {
             await fetch('/api/admin/v1/logout', { method: 'POST', credentials: 'same-origin' }).catch(function () { return undefined; });
-            var client = await authClient();
-            if (client && client.auth && client.auth.signOut) {
-              await client.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
+            var config = await adminAuthConfig().catch(function () { return null; });
+            if (config && !config.adminLocalAuth) {
+              var client = await authClient();
+              if (client && client.auth && client.auth.signOut) {
+                await client.auth.signOut({ scope: 'local' }).catch(function () { return undefined; });
+              }
             }
             var helper = window.UMSHAuthSession;
             if (helper && helper.clearDeviceAuthSession) helper.clearDeviceAuthSession();
@@ -2182,6 +2230,22 @@
           show('error');
           return;
         }
+        if (isRecoveryLink()) {
+          var recoverySession = null;
+          try {
+            recoverySession = await currentSession();
+          } catch (_error) {
+            show('error');
+            return;
+          }
+          if (!recoverySession) {
+            setText('[data-admin-error-detail]', '재설정 링크가 만료되었거나 이미 사용되었습니다. 새 링크를 요청해 주세요.');
+            show('error');
+            return;
+          }
+          show('recovery');
+          return;
+        }
         if (config.adminLocalAuth) {
           // 로그인된 관리자는 공개 예외보다 먼저 전체 LNB와 권한별 화면을 연다.
           if (await checkAuthority(null)) return;
@@ -2196,15 +2260,6 @@
           session = await currentSession();
         } catch (_error) {
           show('error');
-          return;
-        }
-        if (isRecoveryLink()) {
-          if (!session) {
-            setText('[data-admin-error-detail]', '재설정 링크가 만료되었거나 이미 사용되었습니다. 새 링크를 요청해 주세요.');
-            show('error');
-            return;
-          }
-          show('recovery');
           return;
         }
         if (!session) {

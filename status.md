@@ -1906,3 +1906,12 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 로컬/원격 migration 31/31, dry-run 0건, typecheck PASS, 운영 연동 10/10 PASS.
 - PITR은 별도 유료 add-on이라 사용자 지시에 따라 제외했다. 비용·설정 변경 0건이며 기존 physical backup 8개를 유지한다.
 - Docker는 이 프로젝트 운영에 필요하지 않아 사용을 중단했다. 오래된 Windows 소켓 폴더는 삭제하지 않고 백업 이름으로 이동했으며 Docker 프로세스는 종료했다.
+
+## 2026-09-20 — 관리자 비밀번호 재설정 후 로그인 401 복구
+
+- 원인은 관리자 로그인 API가 `umsh_admin_accounts.password_hash`만 검사하는 반면, 비밀번호 재설정은 Supabase Auth 비밀번호만 변경한 이중 정본이었다.
+- 기존 로컬 관리자 로그인을 롤백 경로로 유지하고, 그 경로가 401일 때만 Supabase 비밀번호 인증을 수행한 뒤 새 `/api/admin/v1/session/supabase`에서 인증 사용자와 활성 관리자 행을 독립 검증해 기존 HttpOnly 관리자 쿠키로 교환한다.
+- 브라우저용 Supabase 관리자 세션은 저장·자동갱신하지 않고 교환 직후 제거한다. 복구 링크는 로컬 관리자 단축 분기보다 먼저 처리한다.
+- 독립 리뷰의 Major 2건(토큰 지속 저장, 복구 분기 도달 불가)과 Minor 1건(로컬 관리자 로그아웃이 무관한 고객 세션을 지울 가능성)을 모두 반영했다. 최종 리뷰 기준 Critical 0, Major 0이다.
+- 집중 인증 테스트 29/29, 전체 직렬 테스트 1,476/1,476, typecheck, Vercel build, diff check가 통과했다.
+- CreamWIKI `personal/carrotcap/notes/umsh-admin-supabase-session-20260920.md`에 비밀정보 없는 원인·결정·검증을 저장하고 재조회·검색했다.

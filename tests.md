@@ -680,3 +680,20 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | PAY-R11 | 닫기 수정 후 전체 저장소 회귀 | PASS (963/963, 124 suites) |
 | PAY-R12 | 닫기 수정 후 TypeScript 및 Vercel build | PASS |
 | PAY-R13 | Production 실제 닫기 버튼으로 해당 서비스 복귀 | PASS |
+
+## 2026-09-20 — 관리자 Supabase 비밀번호 로그인 복구
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| ADM-AUTH-01 | 변경 전 집중 테스트가 세션 교환 라우트 부재를 재현 | RED 확인 |
+| ADM-AUTH-02 | 활성 관리자 Supabase 토큰 → HttpOnly·SameSite=Strict 쿠키 | PASS |
+| ADM-AUTH-03 | 비활성 관리자·유효하지 않은 토큰 거부 및 쿠키 미발급 | PASS |
+| ADM-AUTH-04 | 기존 로컬 관리자 로그인·로그아웃 회귀 | PASS |
+| ADM-AUTH-05 | 비영속 Supabase 클라이언트와 교환 후 로컬 세션 제거 | PASS |
+| ADM-AUTH-06 | 복구 링크를 로컬 관리자 분기보다 먼저 처리 | PASS |
+| ADM-AUTH-07 | 집중 인증 테스트 | PASS (29/29) |
+| ADM-AUTH-08 | 전체 직렬 테스트 | PASS (1,476/1,476, 162 suites) |
+| ADM-AUTH-09 | TypeScript typecheck 및 Vercel build | PASS |
+| ADM-AUTH-10 | 독립 코드 리뷰 | PASS (Critical 0, Major 0; Minor 1 수정) |
+| ADM-AUTH-11 | CreamWIKI 저장·재조회·검색 | PASS |
+| ADM-AUTH-12 | Production 배포·브라우저 로그인 화면 | PENDING |

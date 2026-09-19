@@ -2103,6 +2103,37 @@ app.post('/api/admin/v1/login', async (req, res) => {
   res.json({ email, role: 'super_admin', scopes: [...LOCAL_ADMIN_SCOPES], environment: adminEnvironmentLabel() })
 })
 
+app.post('/api/admin/v1/session/supabase', async (req, res) => {
+  if (!localAdminConfigured() || !adminAccountStoreEnabled() || !adminAccountStoreAvailable()) {
+    res.status(503).json({ code: 'ADMIN_AUTH_UNAVAILABLE', error: '관리자 로그인 설정을 확인해 주세요.' })
+    return
+  }
+
+  let owner: ReportOwner | undefined
+  try {
+    owner = await verifySupabaseUser(req)
+  } catch {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인 후 다시 시도해 주세요.' })
+    return
+  }
+  if (!owner?.email) {
+    res.status(401).json({ code: 'AUTH_REQUIRED', error: '로그인 후 다시 시도해 주세요.' })
+    return
+  }
+
+  try {
+    const account = await findAdminAccountByEmail(owner.email)
+    if (!account?.isActive) {
+      res.status(403).json({ code: 'STAFF_MEMBERSHIP_REQUIRED', error: '이 계정에는 운영 관리자 권한이 없습니다.' })
+      return
+    }
+    res.setHeader('Set-Cookie', localAdminCookie(signedLocalAdminSession(account.email), LOCAL_ADMIN_SESSION_SECONDS))
+    res.json({ email: account.email, role: account.role, scopes: [...LOCAL_ADMIN_SCOPES], environment: adminEnvironmentLabel() })
+  } catch {
+    res.status(503).json({ code: 'ADMIN_ACCOUNT_STORE_UNAVAILABLE', error: '관리자 계정 저장소를 확인할 수 없습니다.' })
+  }
+})
+
 app.post('/api/admin/v1/logout', (_req, res) => {
   res.setHeader('Set-Cookie', localAdminCookie('', 0))
   res.status(204).end()
