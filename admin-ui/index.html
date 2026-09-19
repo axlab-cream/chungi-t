@@ -917,6 +917,33 @@
             finally { pauseButton.disabled = false; }
           });
         } catch (_error) { pauseButton.textContent = '상태 확인 실패'; }
+        var pruneRow = document.createElement('div'); pruneRow.className = 'admin-actions'; pruneRow.style.padding = '0 16px 16px'; pruneRow.style.flexWrap = 'wrap';
+        pruneRow.innerHTML = '<label style="font-size:12px;color:var(--admin-text-muted)">이 시각 이전 내역 정리(running 제외)</label><input data-prune-before type="datetime-local" style="padding:8px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit"><button class="admin-button" type="button" data-prune-preview data-variant="quiet">건수 미리보기</button><button class="admin-button" type="button" data-prune-delete disabled>삭제</button><span class="admin-note" role="status" data-prune-result></span>';
+        controlSection.appendChild(pruneRow);
+        var pruneBefore = pruneRow.querySelector('[data-prune-before]'); var prunePreview = pruneRow.querySelector('[data-prune-preview]'); var pruneDelete = pruneRow.querySelector('[data-prune-delete]'); var pruneResult = pruneRow.querySelector('[data-prune-result]');
+        function pruneCutoffIso() { var value = pruneBefore.value; return value ? new Date(value).toISOString() : ''; }
+        prunePreview.addEventListener('click', async function () {
+          var before = pruneCutoffIso(); if (!before) { pruneResult.textContent = '기준 시각을 선택해 주세요.'; return; }
+          pruneDelete.disabled = true; pruneResult.textContent = '건수를 세는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/jobs/prune', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ before: before, dryRun: true }) });
+            var payload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(payload.error || '건수를 세지 못했습니다.');
+            pruneResult.textContent = '삭제 대상 ' + payload.count + '건 (' + before + ' 이전, running 제외).'; pruneDelete.disabled = !payload.count;
+          } catch (error) { pruneResult.textContent = error instanceof Error ? error.message : '건수를 세지 못했습니다.'; }
+        });
+        pruneDelete.addEventListener('click', async function () {
+          var before = pruneCutoffIso(); if (!before) return;
+          if (!window.confirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(running 제외). 되돌릴 수 없습니다. 계속할까요?')) return;
+          pruneDelete.disabled = true; pruneResult.textContent = '삭제하는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/jobs/prune', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ before: before }) });
+            var payload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(payload.error || '삭제에 실패했습니다.');
+            // 목록을 다시 그리면 이 줄이 사라지므로, 다시 그린 뒤 결과를 따로 남긴다.
+            await loadOpsJobs(body); addLiveError(body, payload.deleted + '건 삭제됨 (' + before + ' 이전, running 제외).'); return;
+          } catch (error) { pruneResult.textContent = error instanceof Error ? error.message : '삭제에 실패했습니다.'; }
+        });
         var purgeInput = controlSection.querySelector('[data-purge-owner]'); var purgeButton = controlSection.querySelector('[data-purge-owner-button]');
         purgeButton.addEventListener('click', async function () {
           var ownerId = purgeInput.value.trim();

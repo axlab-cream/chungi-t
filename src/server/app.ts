@@ -46,7 +46,7 @@ import { getMediaCatalog } from '../admin/media-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
-import { checkOpsQueueReadiness, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
+import { checkOpsQueueReadiness, countOpsJobsBefore, deleteOpsJobsBefore, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
@@ -2190,6 +2190,34 @@ app.post('/api/admin/v1/jobs/pause', async (req, res) => {
     res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'OPS_PAUSE_FAILED', error: '생성 일시정지 상태를 바꾸지 못했습니다.' })
   }
 })
+/**
+ * 오래된 작업 내역 정리. `dryRun: true` 면 건수만 센다. 실제 삭제는 감사 명령을 거친다.
+ * running 과 일시정지 표지 행은 건드리지 않고, 기준 시각은 최소 1시간 전이어야 한다.
+ */
+app.post('/api/admin/v1/jobs/prune', async (req, res) => {
+  const membership = await requireStaff(req, res, 'settings:write'); if (!membership) return
+  const body = asObject(req.body)
+  const before = trimmedString(body.before)
+  const dryRun = body.dryRun === true
+  const idempotencyKey = adminCommandKey(req)
+  if (!before || !Number.isFinite(Date.parse(before)) || (!dryRun && idempotencyKey.length < 8)) {
+    res.status(422).json({ code: 'INVALID_JOB_PRUNE', error: '기준 시각(ISO)과 멱등 키를 확인해 주세요.' }); return
+  }
+  if (Date.parse(before) >= Date.now() - 60 * 60 * 1000) {
+    res.status(422).json({ code: 'OPS_PRUNE_CUTOFF_INVALID', error: '기준 시각은 최소 1시간 전이어야 합니다. 진행 중인 리포트의 작업을 지우지 않기 위해서입니다.' }); return
+  }
+  try {
+    if (dryRun) { res.json({ before, dryRun: true, count: await countOpsJobsBefore(before) }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'ops.jobs.prune', idempotencyKey,
+      body: { before }, target: { type: 'ops_jobs', id: `before:${before}` },
+    }, async () => ({ before, deleted: await deleteOpsJobsBefore(before) }))
+    res.json({ ...command.result, replayed: command.replayed })
+  } catch {
+    res.status(503).json({ code: 'OPS_PRUNE_FAILED', error: '작업 내역을 정리하지 못했습니다. 임의로 지우지 않았습니다.' })
+  }
+})
+
 app.post('/api/admin/v1/jobs/purge', async (req, res) => {
   const membership = await requireStaff(req, res, 'settings:write'); if (!membership) return
   const body = asObject(req.body)

@@ -249,6 +249,46 @@ export async function deleteOpsJobsForTargets(targetIds: string[], states: strin
   return deleted
 }
 
+/** 오래된 작업 내역 정리의 대상 필터. running 은 어떤 경우에도 제외하고, 일시정지 표지 행도 제외한다. */
+function pruneFilter(before: string): URL {
+  const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+  url.searchParams.set('updated_at', `lt.${before}`)
+  url.searchParams.set('state', 'neq.running')
+  url.searchParams.set('kind', `neq.${OPS_PAUSE_KIND}`)
+  return url
+}
+
+function validPruneCutoff(before: string): boolean {
+  const at = Date.parse(before)
+  // 미래나 "방금"은 받지 않는다 — 진행 중인 리포트의 작업이 통째로 사라진다. 최소 1시간 전.
+  return Number.isFinite(at) && at < Date.now() - 60 * 60 * 1000
+}
+
+/** 정리 대상 건수만 센다(미리보기). 행은 읽지 않는다. */
+export async function countOpsJobsBefore(before: string): Promise<number> {
+  if (!opsStoreAvailable() || !validPruneCutoff(before)) return 0
+  const url = pruneFilter(before)
+  url.searchParams.set('select', 'id')
+  url.searchParams.set('limit', '1')
+  const response = await fetch(url, { headers: { ...opsHeaders(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('OPS_COUNT_FAILED')
+  const total = response.headers.get('content-range')?.split('/')[1]
+  return total && /^\d+$/.test(total) ? Number(total) : 0
+}
+
+/**
+ * 운영자의 작업 내역 정리. `before` 이전에 마지막으로 갱신된 작업(running 제외)을 지운다.
+ * 2026-09-19: 9/18 중복 사고가 남긴 succeeded 쌍둥이 수백 건이 화면 최근 100건을 다 차지해
+ * 실제로 볼 것이 안 보였다. 지운 뒤에도 미완성 리포트는 다음 분 백필이 새 작업으로 다시 넣는다.
+ */
+export async function deleteOpsJobsBefore(before: string): Promise<number> {
+  if (!opsStoreAvailable()) return 0
+  if (!validPruneCutoff(before)) throw new Error('OPS_PRUNE_CUTOFF_INVALID')
+  const response = await fetch(pruneFilter(before), { method: 'DELETE', headers: { ...opsHeaders(), prefer: 'return=representation' } })
+  if (!response.ok) throw new Error('OPS_DELETE_FAILED')
+  return ((await response.json().catch(() => [])) as unknown[]).length
+}
+
 /**
  * 대기 중인 작업을 처리기 없이 닫는다. 할 일이 없는 작업(같은 대상의 쌍둥이, 이미 끝난 대상,
  * 지워진 대상)에 쓴다. 지우지 않고 `succeeded` 로 닫는 이유는 둘이다 — 작업 표에 DELETE 권한이
