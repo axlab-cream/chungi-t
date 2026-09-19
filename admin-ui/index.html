@@ -794,7 +794,55 @@
         if (route.key === 'audit') { loadLiveAudit(body); return; }
         if (route.key === 'support') { loadSupportCases(body); return; }
         if (route.key === 'settings') { loadAdminAccounts(body); return; }
+        if (route.key === 'analytics') { loadFunnelAnalytics(body); return; }
+        if (route.key === 'releases') { loadReleaseInfo(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
+      }
+      /**
+       * 2026-09-19: 백엔드에 `/api/admin/v1/funnel`·`/api/admin/v1/release` 가 이미 있는데
+       * 사이드바의 통계·릴리스 메뉴는 renderWorkspace 의 route.key 분기에 없어서 "아직
+       * 생성되지 않았습니다" 안내로 떨어졌다 — 실제로는 데이터가 있는데 화면이 연결을 안
+       * 했을 뿐이다(사용자가 "데이터 안 보이는 곳 전부 확인" 요청으로 발견).
+       */
+      async function loadFunnelAnalytics(body) {
+        var head = document.createElement('section'); head.className = 'admin-section';
+        head.innerHTML = '<header class="admin-section-head"><h3>퍼널 통계</h3><span class="admin-chip">실제 이벤트 집계</span></header>';
+        var filters = document.createElement('form'); filters.className = 'admin-filters';
+        filters.innerHTML = '<label for="admin-funnel-period">기간</label><select id="admin-funnel-period" name="period"><option value="day">오늘</option><option value="week">이번 주</option><option value="month">이번 달</option></select>';
+        head.querySelector('header').insertAdjacentElement('afterend', filters);
+        body.appendChild(head);
+        var status = document.createElement('p'); status.className = 'admin-empty'; body.appendChild(status);
+        var resultNodes = [];
+        async function load(period) {
+          resultNodes.forEach(function (node) { node.remove(); }); resultNodes = [];
+          status.hidden = false; status.textContent = '퍼널 통계를 불러오는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/funnel?period=' + encodeURIComponent(period), { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('FUNNEL_SUMMARY_FAILED');
+            var payload = await response.json();
+            status.hidden = true;
+            var before = Array.from(body.children);
+            var steps = Array.isArray(payload.steps) ? payload.steps : [];
+            var ctas = Array.isArray(payload.ctas) ? payload.ctas : [];
+            addLiveTable(body, '단계별 진입', ['서비스', '단계', '조회', '세션'], steps, function (item) { return [item.serviceKey || '전체', item.step || '—', item.views, item.sessions]; }, '이 기간에 쌓인 단계 조회가 없습니다.');
+            addLiveTable(body, '많이 눌린 CTA', ['서비스', '대상', '클릭'], ctas, function (item) { return [item.serviceKey || '전체', item.target || '—', item.clicks]; }, '이 기간에 쌓인 CTA 클릭이 없습니다.');
+            if (payload.sampled) addLiveError(body, '표본이 상한(' + payload.sampled + '건)에 닿아 전체 기간을 다 세지 못했습니다.');
+            resultNodes = Array.from(body.children).filter(function (node) { return before.indexOf(node) === -1; });
+          } catch (_error) {
+            status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다.';
+          }
+        }
+        filters.querySelector('select').addEventListener('change', function (event) { load(event.target.value); });
+        await load('day');
+      }
+      async function loadReleaseInfo(body) {
+        try {
+          var response = await fetch('/api/admin/v1/release', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('RELEASE_LOOKUP_FAILED');
+          var release = await response.json();
+          addLiveTable(body, '현재 배포 릴리스', ['버전', '프롬프트 규격', '코퍼스 레지스트리', '규격 일치', '기준 시각'], [[release.version, release.promptSpec || '확인 불가', release.corpusRegistry || '확인 불가', release.pinned ? '일치' : '불일치 — 확인 필요', release.asOf]], function (item) { return item; }, '릴리스 정보를 찾지 못했습니다.');
+          if (!release.pinned) addLiveError(body, '코드에 박아 둔 규격(' + release.pins.promptSpec + ' · ' + release.pins.corpusRegistry + ')과 지금 올라온 규격이 다릅니다. 버전을 올리지 않은 채 프롬프트나 코퍼스가 바뀌었을 수 있습니다.');
+        } catch (_error) { addLiveError(body, '릴리스 정보를 불러오지 못했습니다.'); }
       }
       async function loadAdminAccounts(body) {
         if (!body) return;
