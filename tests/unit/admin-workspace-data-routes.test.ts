@@ -110,6 +110,24 @@ test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔�
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports', \{ credentials: 'same-origin' \}\)/)
 })
 
+/**
+ * 2026-09-19: 회원 목록(loadLiveMembers)의 마스킹은 그대로 둔다 — 상세·수정은
+ * "정확 식별자 검색" 결과에서만 연다(정확한 ID를 이미 입력한 뒤라야 한다).
+ */
+test('loadAdminSearch 는 회원 검색 결과에서만 프로필 상세 버튼을 달고, 목록 마스킹은 건드리지 않는다', () => {
+  const body = source.slice(source.indexOf('function loadAdminSearch'), source.indexOf('async function renderMemberDetail'))
+  assert.match(body, /if \(kind === 'member'\) \{/)
+  assert.match(body, /renderMemberDetail\(result, exactId\)/)
+})
+
+test('renderMemberDetail 은 회원 상세를 불러와 채우고, 저장·계정 정지를 감사 라우트로 보낸다', () => {
+  const body = source.slice(source.indexOf('async function renderMemberDetail'), source.length)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/members\/' \+ encodeURIComponent\(userId\), \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /method: 'PATCH'/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/members\/' \+ encodeURIComponent\(userId\) \+ '\/status'/)
+  assert.match(body, /banned: next/)
+})
+
 test('loadOpsJobs 는 일시정지·정리를 기존 백엔드 라우트에 연결한다', () => {
   const body = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('function refundStatus'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/pause', \{ credentials: 'same-origin' \}\)/)

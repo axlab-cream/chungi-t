@@ -23,6 +23,7 @@ export type StaffRole = 'super_admin'
 const SUPER_ADMIN_SCOPES = Object.freeze([
   'orders:read',
   'members:read',
+  'members:write',
   'reports:read',
   'audit:read',
   'settings:read',

@@ -915,7 +915,93 @@
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
         var form = document.createElement('form'); form.className = 'admin-actions'; form.innerHTML = '<select name="kind" aria-label="검색 대상"><option value="order">주문</option><option value="member">회원</option><option value="report">리포트</option><option value="support">고객 지원 케이스</option></select><input required name="exactId" maxlength="160" placeholder="정확한 식별자 입력" autocomplete="off"><button class="admin-button" type="submit">검색</button>'; section.appendChild(form);
         var result = document.createElement('div'); result.className = 'admin-section'; result.hidden = true; section.appendChild(result);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); result.hidden = false; result.replaceChildren(); var query = new URLSearchParams({ kind: form.elements.kind.value, exactId: form.elements.exactId.value.trim() }); try { var response = await fetch('/api/admin/v1/search?' + query.toString(), { credentials: 'same-origin' }); if (response.status === 404) { result.textContent = '실제 운영 데이터에서 일치하는 결과가 없습니다.'; return; } if (!response.ok) throw new Error('ADMIN_SEARCH_FAILED'); var payload = await response.json(); var heading = document.createElement('h3'); heading.textContent = '실제 검색 결과'; var table = document.createElement('table'); table.className = 'admin-table'; var rows = document.createElement('tbody'); Object.entries(payload.result.value || {}).forEach(function (entry) { var row = document.createElement('tr'); var key = document.createElement('th'); key.scope = 'row'; key.textContent = entry[0]; var value = document.createElement('td'); value.textContent = entry[1] == null ? '—' : String(entry[1]); row.appendChild(key); row.appendChild(value); rows.appendChild(row); }); table.appendChild(rows); result.appendChild(heading); result.appendChild(table); } catch (_error) { result.textContent = '실제 운영 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'; } });
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); result.hidden = false; result.replaceChildren();
+          var kind = form.elements.kind.value; var exactId = form.elements.exactId.value.trim();
+          var query = new URLSearchParams({ kind: kind, exactId: exactId });
+          try {
+            var response = await fetch('/api/admin/v1/search?' + query.toString(), { credentials: 'same-origin' });
+            if (response.status === 404) { result.textContent = '실제 운영 데이터에서 일치하는 결과가 없습니다.'; return; }
+            if (!response.ok) throw new Error('ADMIN_SEARCH_FAILED');
+            var payload = await response.json();
+            var heading = document.createElement('h3'); heading.textContent = '실제 검색 결과';
+            var table = document.createElement('table'); table.className = 'admin-table'; var rows = document.createElement('tbody');
+            Object.entries(payload.result.value || {}).forEach(function (entry) { var row = document.createElement('tr'); var key = document.createElement('th'); key.scope = 'row'; key.textContent = entry[0]; var value = document.createElement('td'); value.textContent = entry[1] == null ? '—' : String(entry[1]); row.appendChild(key); row.appendChild(value); rows.appendChild(row); });
+            table.appendChild(rows); result.appendChild(heading); result.appendChild(table);
+            // 목록(loadLiveMembers)은 마스킹을 그대로 유지한다 — 정확 식별자로 이미 지목한
+            // 회원 한 명만 이 버튼으로 상세를 연다(ADR-0002 를 목록에서 되돌리지 않는다).
+            if (kind === 'member') {
+              var editButton = document.createElement('button'); editButton.className = 'admin-button'; editButton.type = 'button'; editButton.style.marginTop = '12px'; editButton.textContent = '프로필 상세·수정';
+              editButton.addEventListener('click', function () { renderMemberDetail(result, exactId); });
+              result.appendChild(editButton);
+            }
+          } catch (_error) { result.textContent = '실제 운영 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
+        });
+      }
+      async function renderMemberDetail(body, userId) {
+        var previous = body.querySelector('[data-member-detail]'); if (previous) previous.remove();
+        var section = document.createElement('section'); section.dataset.memberDetail = 'true'; section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>회원 프로필 상세</h3><span class="admin-chip">' + escapeHtml(userId) + '</span></header><p class="admin-note" style="padding:0 16px">불러오는 중입니다.</p>';
+        body.appendChild(section); section.scrollIntoView({ block: 'nearest' });
+        try {
+          var response = await fetch('/api/admin/v1/members/' + encodeURIComponent(userId), { credentials: 'same-origin' });
+          if (response.status === 404) { section.querySelector('.admin-note').textContent = '해당 회원을 찾지 못했습니다.'; return; }
+          if (!response.ok) throw new Error('MEMBER_PROFILE_LOOKUP_FAILED');
+          var payload = await response.json(); var member = payload.member;
+          var note = section.querySelector('.admin-note');
+          note.textContent = (member.email || '이메일 미확인') + (member.banned ? ' · 계정 정지됨' : ' · 정상 계정');
+          var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+          form.innerHTML = '<div class="admin-field" data-span="2"><label>이름</label><input required name="name" maxlength="20" placeholder="한글 2~20자"></div>'
+            + '<div class="admin-field"><label>생년월일</label><div style="display:flex;gap:8px"><input required name="year" type="number" min="1900" placeholder="연"><input required name="month" type="number" min="1" max="12" placeholder="월"><input required name="day" type="number" min="1" max="31" placeholder="일"></div></div>'
+            + '<div class="admin-field"><label>태어난 시각</label><div style="display:flex;gap:8px;align-items:center"><input name="hour" type="number" min="0" max="23" placeholder="시"><input name="minute" type="number" min="0" max="59" placeholder="분"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" name="birthTimeKnown"> 시간 앎</label></div></div>'
+            + '<div class="admin-field"><label>성별</label><select name="gender"><option value="male">남</option><option value="female">여</option></select></div>'
+            + '<div class="admin-field"><label>달력</label><select name="calendar"><option value="solar">양력</option><option value="lunar">음력</option></select></div>'
+            + '<div class="admin-field"><label><input type="checkbox" name="isLeapMonth"> 윤달</label></div>'
+            + '<div class="admin-actions"><button class="admin-button" type="submit">프로필 저장</button></div>'
+            + '<p class="admin-note" role="status" data-member-form-result></p>';
+          var birth = member.birth || {};
+          form.elements.name.value = member.name || '';
+          form.elements.year.value = birth.year || ''; form.elements.month.value = birth.month || ''; form.elements.day.value = birth.day || '';
+          form.elements.hour.value = birth.hour ?? ''; form.elements.minute.value = birth.minute ?? 0;
+          form.elements.birthTimeKnown.checked = member.birthTimeKnown !== false;
+          form.elements.gender.value = birth.gender || 'female'; form.elements.calendar.value = birth.calendar || 'solar'; form.elements.isLeapMonth.checked = Boolean(birth.isLeapMonth);
+          var formResult = form.querySelector('[data-member-form-result]');
+          form.addEventListener('submit', async function (event) {
+            event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; formResult.textContent = '저장하는 중입니다.';
+            try {
+              var saveResponse = await fetch('/api/admin/v1/members/' + encodeURIComponent(userId), {
+                method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() },
+                body: JSON.stringify({
+                  name: form.elements.name.value.trim(),
+                  birthTimeKnown: form.elements.birthTimeKnown.checked,
+                  birth: { year: Number(form.elements.year.value), month: Number(form.elements.month.value), day: Number(form.elements.day.value), hour: Number(form.elements.hour.value || 0), minute: Number(form.elements.minute.value || 0), gender: form.elements.gender.value, calendar: form.elements.calendar.value, isLeapMonth: form.elements.isLeapMonth.checked },
+                }),
+              });
+              var savePayload = await saveResponse.json().catch(function () { return {}; });
+              if (!saveResponse.ok) throw new Error(savePayload.error || '저장에 실패했습니다.');
+              formResult.textContent = '저장되었습니다.';
+            } catch (error) { formResult.textContent = error instanceof Error ? error.message : '저장에 실패했습니다.'; }
+            finally { submit.disabled = false; }
+          });
+          section.appendChild(form);
+          var statusForm = document.createElement('div'); statusForm.className = 'admin-actions'; statusForm.style.padding = '0 16px 16px';
+          var statusButton = document.createElement('button'); statusButton.className = 'admin-button'; statusButton.type = 'button';
+          statusButton.textContent = member.banned ? '계정 정지 해제' : '계정 정지';
+          statusButton.addEventListener('click', async function () {
+            var next = !member.banned;
+            if (!window.confirm((next ? '이 회원 계정을 정지합니다' : '이 회원 계정의 정지를 해제합니다') + '. 재로그인·토큰 갱신에 영향을 줍니다. 계속할까요?')) return;
+            statusButton.disabled = true;
+            try {
+              var statusResponse = await fetch('/api/admin/v1/members/' + encodeURIComponent(userId) + '/status', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ banned: next }) });
+              var statusPayload = await statusResponse.json().catch(function () { return {}; });
+              if (!statusResponse.ok) throw new Error(statusPayload.error || '계정 상태 변경에 실패했습니다.');
+              member = statusPayload.member; note.textContent = (member.email || '이메일 미확인') + (member.banned ? ' · 계정 정지됨' : ' · 정상 계정');
+              statusButton.textContent = member.banned ? '계정 정지 해제' : '계정 정지';
+            } catch (error) { window.alert(error instanceof Error ? error.message : '계정 상태 변경에 실패했습니다.'); }
+            finally { statusButton.disabled = false; }
+          });
+          statusForm.appendChild(statusButton); section.appendChild(statusForm);
+        } catch (_error) { var note2 = section.querySelector('.admin-note'); if (note2) note2.textContent = '회원 프로필을 불러오지 못했습니다.'; }
       }
       async function loadSupportCases(body) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>고객 지원 케이스</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">케이스를 불러오는 중입니다.</p>'; body.appendChild(section);

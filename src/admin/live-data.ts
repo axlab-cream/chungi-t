@@ -240,3 +240,133 @@ export async function findLiveReport(reportId: string): Promise<AdminReportSumma
   const row = (await response.json() as RestRow[])[0]
   return row ? { reportId: maskIdentifier(row.report_id), member: maskEmail(row.user_email), serviceKey: reportServiceKey(row.payload), status: clipped(row.admin_status, 'new'), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
 }
+
+export type AdminMemberBirth = {
+  year: number
+  month: number
+  day: number
+  hour: number
+  minute: number
+  gender: 'male' | 'female'
+  calendar: 'solar' | 'lunar'
+  isLeapMonth: boolean
+}
+
+/**
+ * 2026-09-19: 목록(listLiveMembers)은 이름 첫 글자·ID 일부만 보여 대량 열람을 막는다
+ * (ADR-0002). 이 상세 조회는 그 원칙을 지키면서, 관리자가 "정확 식별자 검색"으로 이미
+ * 알아낸 회원 한 명만 열어 수정하는 별도의 좁은 통로다 — 목록을 바꾸지 않는다.
+ */
+export type AdminMemberProfile = {
+  userId: string
+  email: string | null
+  name: string | null
+  birth: AdminMemberBirth | null
+  birthTimeKnown: boolean | null
+  createdAt: string | null
+  updatedAt: string | null
+  banned: boolean
+  bannedUntil: string | null
+}
+
+export type AdminMemberProfileInput = {
+  userId: string
+  name: string
+  birth: AdminMemberBirth
+  birthTimeKnown: boolean
+}
+
+type AuthAdminUser = { id: string; email?: string; banned_until?: string | null }
+
+async function fetchMemberProfileRow(userId: string): Promise<RestRow | null> {
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('select', 'user_id,name,birth_year,birth_month,birth_day,birth_hour,birth_minute,gender,calendar,is_leap_month,birth_time_known,created_at,updated_at')
+  url.searchParams.set('user_id', `eq.${userId}`)
+  url.searchParams.set('limit', '1')
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) throw new Error('MEMBER_PROFILE_LOOKUP_FAILED')
+  return (await response.json() as RestRow[])[0] ?? null
+}
+
+async function fetchAuthAdminUser(userId: string): Promise<AuthAdminUser | null> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, { headers: serviceHeaders() })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error('MEMBER_AUTH_LOOKUP_FAILED')
+  return await response.json() as AuthAdminUser
+}
+
+function memberIsBanned(bannedUntil: string | null | undefined): boolean {
+  if (!bannedUntil) return false
+  const until = Date.parse(bannedUntil)
+  return Number.isFinite(until) && until > Date.now()
+}
+
+function memberProfileFromRow(userId: string, row: RestRow | null, authUser: AuthAdminUser | null): AdminMemberProfile {
+  return {
+    userId,
+    email: typeof authUser?.email === 'string' ? authUser.email : null,
+    name: row && typeof row.name === 'string' ? row.name : null,
+    birth: row ? {
+      year: Number(row.birth_year), month: Number(row.birth_month), day: Number(row.birth_day),
+      hour: Number(row.birth_hour), minute: Number(row.birth_minute ?? 0),
+      gender: row.gender === 'female' ? 'female' : 'male',
+      calendar: row.calendar === 'lunar' ? 'lunar' : 'solar',
+      isLeapMonth: Boolean(row.is_leap_month),
+    } : null,
+    birthTimeKnown: row ? Boolean(row.birth_time_known) : null,
+    createdAt: typeof row?.created_at === 'string' ? row.created_at : null,
+    updatedAt: typeof row?.updated_at === 'string' ? row.updated_at : null,
+    banned: memberIsBanned(authUser?.banned_until),
+    bannedUntil: authUser?.banned_until ?? null,
+  }
+}
+
+/** 프로필 행도 인증 계정도 없으면 null — 있는 쪽만으로 임의 값을 지어내지 않는다. */
+export async function getAdminMemberDetail(userId: string): Promise<AdminMemberProfile | null> {
+  const [row, authUser] = await Promise.all([fetchMemberProfileRow(userId), fetchAuthAdminUser(userId)])
+  if (!row && !authUser) return null
+  return memberProfileFromRow(userId, row, authUser)
+}
+
+export async function updateAdminMemberProfile(input: AdminMemberProfileInput): Promise<AdminMemberProfile> {
+  const response = await fetch(tableUrl('cheongi_user_profiles'), {
+    method: 'POST',
+    headers: { ...serviceHeaders(), 'content-type': 'application/json', prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({
+      user_id: input.userId,
+      name: input.name,
+      birth_year: input.birth.year,
+      birth_month: input.birth.month,
+      birth_day: input.birth.day,
+      birth_hour: input.birth.hour,
+      birth_minute: input.birth.minute,
+      gender: input.birth.gender,
+      calendar: input.birth.calendar,
+      is_leap_month: input.birth.isLeapMonth,
+      birth_time_known: input.birthTimeKnown,
+      updated_at: new Date().toISOString(),
+    }),
+  })
+  if (!response.ok) throw new Error('MEMBER_PROFILE_SAVE_FAILED')
+  const detail = await getAdminMemberDetail(input.userId)
+  if (!detail) throw new Error('MEMBER_PROFILE_SAVE_FAILED')
+  return detail
+}
+
+/**
+ * Supabase Auth 의 계정 정지 기능을 그대로 쓴다 — 새 컬럼·마이그레이션이 필요 없다.
+ * `ban_duration: 'none'` 이 공식 해제 값이다(Supabase Auth Admin API).
+ */
+export async function setMemberBanned(userId: string, banned: boolean): Promise<AdminMemberProfile> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'PATCH',
+    headers: { ...serviceHeaders(), 'content-type': 'application/json' },
+    body: JSON.stringify({ ban_duration: banned ? '876000h' : 'none' }),
+  })
+  if (!response.ok) throw new Error('MEMBER_BAN_UPDATE_FAILED')
+  const detail = await getAdminMemberDetail(userId)
+  if (!detail) throw new Error('MEMBER_BAN_UPDATE_FAILED')
+  return detail
+}

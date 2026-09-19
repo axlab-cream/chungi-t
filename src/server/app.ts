@@ -41,7 +41,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, listGenerationFailureLog, listLiveMembers, listLiveReports, listQualityReviews } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveMembers, listLiveReports, listQualityReviews, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
@@ -1226,7 +1226,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -2534,6 +2534,97 @@ app.get('/api/admin/v1/members', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
   }
+})
+
+/**
+ * 2026-09-19: 회원 상세는 "정확 식별자 검색"으로 이미 특정 회원을 지목한 다음에만
+ * 연다 — 목록에는 붙이지 않는다(ADR-0002, listLiveMembers 는 그대로 마스킹).
+ */
+app.get('/api/admin/v1/members/:id', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  const userId = trimmedString(req.params.id)
+  if (!userId) { res.status(422).json({ code: 'INVALID_MEMBER_ID', error: '회원 ID를 확인해 주세요.' }); return }
+  try {
+    const member = await getAdminMemberDetail(userId)
+    if (!member) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '해당 회원을 찾지 못했습니다.' }); return }
+    res.json({ member })
+  } catch {
+    res.status(503).json({ code: 'MEMBER_PROFILE_LOOKUP_FAILED', error: '회원 프로필을 불러오지 못했습니다.' })
+  }
+})
+
+const MEMBER_PROFILE_FAILURES: Record<string, { status: number; error: string }> = {
+  MEMBER_PROFILE_SAVE_FAILED: { status: 503, error: '회원 프로필 저장에 실패했습니다.' },
+  MEMBER_BAN_UPDATE_FAILED: { status: 503, error: '계정 상태 변경에 실패했습니다.' },
+  LIVE_DATA_STORE_UNAVAILABLE: { status: 503, error: '회원 저장소에 연결하지 못했습니다.' },
+}
+
+function respondMemberProfileFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = MEMBER_PROFILE_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  console.error(fallback, raw || 'unknown')
+  res.status(500).json({ code: fallback, error: '요청을 처리하지 못했습니다.' })
+}
+
+app.patch('/api/admin/v1/members/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const userId = trimmedString(req.params.id)
+  const idempotencyKey = adminCommandKey(req)
+  const body = asObject(req.body)
+  const name = trimmedString(body.name)
+  const birthBody = asObject(body.birth)
+  const year = Number(birthBody.year)
+  const month = Number(birthBody.month)
+  const day = Number(birthBody.day)
+  const birthTimeKnown = body.birthTimeKnown !== false
+  const hour = Number(birthBody.hour ?? (birthTimeKnown ? Number.NaN : 12))
+  const minute = Number(birthBody.minute ?? 0)
+  const gender = birthBody.gender
+  const calendar = birthBody.calendar
+  const isLeapMonth = birthBody.isLeapMonth === true
+
+  if (!userId || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '회원 ID와 멱등 키를 확인해 주세요.' }); return }
+  if (!isValidProfileName(name)) { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '이름은 한글 2자 이상 20자 이하로 입력해 주세요.' }); return }
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) {
+    res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '생년월일을 다시 확인해 주세요.' }); return
+  }
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
+    res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '태어난 시간을 다시 확인해 주세요.' }); return
+  }
+  if (gender !== 'male' && gender !== 'female') { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '성별을 선택해 주세요.' }); return }
+  if (calendar !== 'solar' && calendar !== 'lunar') { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '양력 또는 음력을 선택해 주세요.' }); return }
+
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.profile.update', idempotencyKey,
+      body: { userId, name, year, month, day, hour, minute, gender, calendar, isLeapMonth, birthTimeKnown },
+      target: { type: 'member_profile', id: userId },
+    }, async () => updateAdminMemberProfile({ userId, name, birth: { year, month, day, hour, minute, gender, calendar, isLeapMonth }, birthTimeKnown }))
+    res.status(command.replayed ? 200 : 202).json({ member: command.result, replayed: command.replayed })
+  } catch (error) { respondMemberProfileFailure(res, error, 'MEMBER_PROFILE_UPDATE_FAILED') }
+})
+
+/**
+ * 계정 정지/해제는 Supabase Auth 의 ban_duration 을 그대로 쓴다 — 프로필 테이블에
+ * 컬럼을 추가하지 않는다. 정지된 계정은 재로그인·토큰 갱신이 막힌다.
+ */
+app.post('/api/admin/v1/members/:id/status', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const userId = trimmedString(req.params.id)
+  const idempotencyKey = adminCommandKey(req)
+  const body = asObject(req.body)
+  if (!userId || typeof body.banned !== 'boolean' || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_MEMBER_STATUS', error: '회원 ID, 정지 여부, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: body.banned ? 'member.account.suspend' : 'member.account.restore', idempotencyKey,
+      body: { userId, banned: body.banned },
+      target: { type: 'member_auth', id: userId },
+    }, async () => setMemberBanned(userId, body.banned as boolean))
+    res.status(command.replayed ? 200 : 202).json({ member: command.result, replayed: command.replayed })
+  } catch (error) { respondMemberProfileFailure(res, error, 'MEMBER_STATUS_UPDATE_FAILED') }
 })
 
 /** Live report index. Report text and birth data deliberately stay on the server. */
