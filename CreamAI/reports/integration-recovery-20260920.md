@@ -94,3 +94,12 @@ Git/Vercel 반영은 완료됐다.
 - 운영 연동: 10/10 PASS
 
 Advisor 결과에서 신규 차단 결함은 없었다. 서버 전용 테이블의 `RLS enabled/no policy`는 anon/auth 권한을 폐쇄한 의도된 구조다. 별도 개선 후보로 invoker 함수 `cheongi_report_light`의 고정 search path, Auth leaked-password protection 활성화, 사용량이 아직 없는 인덱스 관찰이 남았다.
+
+## 무료 보안 후속 조치 — 2026-09-20
+
+- `20260919224312_fix_cheongi_report_light_search_path.sql`을 생성·적용해 `cheongi_report_light(jsonb)`의 `search_path`를 빈 값으로 고정했다. 함수 본문, `SECURITY INVOKER`, service-role-only ACL은 유지됐다.
+- Supabase Auth `password_hibp_enabled`를 공식 Management API로 활성화했다. 저장된 CLI 토큰은 메모리에서만 사용했고 임시 스크립트는 즉시 제거했다.
+- 사후 security advisor에서 `function_search_path_mutable`과 `auth_leaked_password_protection` 경고가 모두 사라졌다. 남은 `RLS enabled/no policy`는 서버 전용 테이블을 deny-by-default로 운용하는 INFO 항목이다.
+- migration은 로컬/원격 31/31 일치하며 `db push --dry-run` 적용 대상은 0건이다. typecheck와 운영 연동 10/10도 PASS다.
+- PITR은 별도 유료 add-on이므로 사용자 지시에 따라 활성화하지 않았다. 기존 physical backup 8개를 유지한다.
+- Docker는 운영·배포·Supabase 사용에 필수가 아니다. 오래된 소켓 폴더 두 개는 삭제하지 않고 `.stale-20260920` 이름으로 보존했으며 Docker 프로세스는 종료했다. 이후 DB 검증은 Docker 없는 공식 API 경로를 사용한다.

@@ -1,0 +1,33 @@
+{
+  "task_id": "task-supabase-security-followup-20260920",
+  "mode": "implementation",
+  "timestamp": "2026-09-20T07:48:21.7056556+09:00",
+  "checks": [
+    {
+      "name": "secret scan changed files",
+      "status": "PASS",
+      "detail": "no obvious secret patterns"
+    },
+    {
+      "name": "git status available",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "commands": [
+    {
+      "name": "git status",
+      "command": "git status --short",
+      "exit_code": 0,
+      "output_tail": [
+        " M memory/candidates/integration-state-recovery-20260920.md",
+        " M reports/integration-recovery-20260920.md",
+        " M ../status.md",
+        " M ../tests.md",
+        "?? ../supabase/migrations/20260919224312_fix_cheongi_report_light_search_path.sql"
+      ]
+    }
+  ],
+  "warnings": [],
+  "failed": false
+}

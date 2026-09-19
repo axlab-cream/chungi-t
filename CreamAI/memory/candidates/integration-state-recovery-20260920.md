@@ -29,6 +29,9 @@
 - 추가 승인 후 공식 Management API 읽기 전용 SQL로 8개 변경의 함수·테이블·뷰·권한·RLS 조건 21/21을 확인했다.
 - `migration repair --status applied`는 스키마 SQL 없이 history 8건만 복구했다. 사후 로컬/원격 30/30 일치, `db push --dry-run` 적용 대상 0건, 운영 연동 10/10 PASS다.
 - Docker shadow diff가 Inference Manager 소켓 오류로 불가능할 때는 원격 catalog를 읽기 전용 SQL로 검증하되, 대상 migration의 최종 객체·권한·RLS를 명시적 assertion으로 고정한다.
+- Docker는 hosted Supabase 운영에 필수 조건이 아니다. shadow diff가 필요하지 않은 사후 검증은 Management API와 advisor로 수행한다.
+- `cheongi_report_light` search path 고정 migration과 Auth HIBP 보호 활성화 후 두 security advisor 경고가 해소됐다. migration 31/31, dry-run 0건, 운영 연동 10/10을 확인했다.
+- PITR은 Pro에서도 별도 유료 add-on이므로 비용 승인 없는 기본 조치로 취급하지 않는다. 사용자가 제외를 지시해 기존 physical backup만 유지했다.
 
 ## 교훈
 

@@ -1898,3 +1898,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 사후 `migration list`는 로컬/원격 30/30 일치, `db push --dry-run --include-all --skip-vault`는 적용 대상 0건이다. 운영 연동도 10/10 PASS.
 - Docker Desktop은 shadow diff 기동 중 Inference Manager의 `dockerInference` 소켓 정리 오류로 종료됐다. 검증은 Docker에 의존하지 않는 공식 읽기 전용 API로 대체했으며 DB 작업 결과에는 영향이 없다.
 - Advisor 후속 후보: invoker 함수 `cheongi_report_light` search path 고정, Auth leaked-password protection 활성화, unused index 추세 관찰. 이번 history 복구 범위에서는 변경하지 않았다.
+
+## 2026-09-20 — 무료 Supabase 보안 후속 완료·Docker 제외
+
+- 새 migration으로 `cheongi_report_light(jsonb)`의 search path를 고정했다. 함수 본문·SECURITY INVOKER·service-role-only 권한은 유지되고 advisor 경고는 해소됐다.
+- 공식 Management API의 단일 필드 변경으로 Auth 유출 비밀번호 차단을 활성화했다. 사후 advisor에서 해당 경고가 사라졌다.
+- 로컬/원격 migration 31/31, dry-run 0건, typecheck PASS, 운영 연동 10/10 PASS.
+- PITR은 별도 유료 add-on이라 사용자 지시에 따라 제외했다. 비용·설정 변경 0건이며 기존 physical backup 8개를 유지한다.
+- Docker는 이 프로젝트 운영에 필요하지 않아 사용을 중단했다. 오래된 Windows 소켓 폴더는 삭제하지 않고 백업 이름으로 이동했으며 Docker 프로세스는 종료했다.
