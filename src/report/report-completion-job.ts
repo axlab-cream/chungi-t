@@ -1,4 +1,4 @@
-import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, reviveOpsJobForTarget, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
+import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, reviveOpsJobByKey, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { countGenuineFailures, ensureReportLongform, preGenerateReport, providerOutageOf, sectionHitProviderOutage } from './report-queue.js'
 import { getReportRecordAsService, listIncompleteReportRefs, mutateReportRecord, reportProgressOf, type IncompleteReportRef, type ReportRecord } from './report-store.js'
@@ -274,7 +274,8 @@ export async function restartReportCompletion(reportId: string): Promise<ReportR
     return reopenedSections > 0
   })
 
-  const revivedJobs = await reviveOpsJobForTarget(REPORT_COMPLETION_JOB_KIND, record.reportId)
+  // 정식 키 한 행만. 옛 쌍둥이(다른 키)는 건드리지 않는다.
+  const revivedJobs = await reviveOpsJobByKey(reportCompletionIdempotencyKey(record.reportId))
   const enqueue = revivedJobs > 0
     ? 'skipped' as const
     : await enqueueReportCompletion({ reportId: record.reportId, ownerId: record.owner?.id, paid: true })

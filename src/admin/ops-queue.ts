@@ -76,14 +76,17 @@ async function reviveStalledJob(idempotencyKey: string): Promise<boolean> {
 /**
  * 운영자의 명시적 재시작. `reviveStalledJob` 과 달리 REPORT_EXHAUSTED 로 고정된 작업도 되살린다 —
  * 사람이 사유를 보고 결정한 것이므로. `last_error` 를 비워 다음 분 백필의 자동 되살리기도 다시
- * 열린다. running·queued·retry 는 건드리지 않는다. 되살린 행 수를 돌려준다.
+ * 열린다. running·queued·retry 는 건드리지 않는다. 되살린 행 수(0 또는 1)를 돌려준다.
+ *
+ * **정식 멱등키 한 행만** 되살린다. 2026-09-19 첫 배포는 대상(target_id)으로 걸어, 9/18 중복
+ * 사고가 남긴 succeeded 쌍둥이 97건이 한꺼번에 queued 로 돌아왔다(sweep 이 1분 안에 닫았지만
+ * 한 리포트에 대기 97건이 다시 섰다). 키로 걸면 리포트당 한 건이다.
  */
-export async function reviveOpsJobForTarget(kind: string, targetId: string): Promise<number> {
+export async function reviveOpsJobByKey(idempotencyKey: string): Promise<number> {
   if (!opsStoreAvailable()) return 0
-  if (!/^[a-z.]{3,60}$/.test(kind) || !/^[a-zA-Z0-9_-]{1,160}$/.test(targetId)) return 0
+  if (!/^[a-zA-Z0-9_.:-]{3,220}$/.test(idempotencyKey)) return 0
   const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
-  url.searchParams.set('kind', `eq.${kind}`)
-  url.searchParams.set('target_id', `eq.${targetId}`)
+  url.searchParams.set('idempotency_key', `eq.${idempotencyKey}`)
   url.searchParams.set('state', 'in.(dead,succeeded)')
   const now = new Date().toISOString()
   const response = await fetch(url, {

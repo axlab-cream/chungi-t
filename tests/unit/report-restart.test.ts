@@ -107,7 +107,9 @@ describe('수동 재시작은 상한만 다시 열고 기록은 남긴다', { co
     const revive = calls.find((call) => call.init?.method === 'PATCH' && call.url.pathname.endsWith('/ops_jobs'))
     assert.ok(revive, '되살리기 PATCH 가 나가야 한다')
     assert.equal(revive?.url.searchParams.get('state'), 'in.(dead,succeeded)')
-    assert.equal(revive?.url.searchParams.get('target_id'), 'eq.r-restart')
+    // 대상(target_id)이 아니라 정식 멱등키로 건다 — 옛 쌍둥이 수십 건이 함께 살아나면 안 된다.
+    assert.equal(revive?.url.searchParams.get('idempotency_key'), 'eq.report.sections.complete:r-restart')
+    assert.equal(revive?.url.searchParams.get('target_id'), null)
     const body = JSON.parse(String(revive?.init?.body)) as Record<string, unknown>
     assert.equal(body.state, 'queued')
     assert.equal(body.last_error, null, 'REPORT_EXHAUSTED 를 비워야 다음 백필이 다시 돈다')
