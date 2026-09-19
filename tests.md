@@ -696,4 +696,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | ADM-AUTH-09 | TypeScript typecheck 및 Vercel build | PASS |
 | ADM-AUTH-10 | 독립 코드 리뷰 | PASS (Critical 0, Major 0; Minor 1 수정) |
 | ADM-AUTH-11 | CreamWIKI 저장·재조회·검색 | PASS |
-| ADM-AUTH-12 | Production 배포·브라우저 로그인 화면 | PENDING |
+| ADM-AUTH-12 | Production 배포·브라우저 로그인 화면 | PASS (`dpl_AL2zBFeEWX7WTAmmHyzSghqerZJ3`) |

@@ -57,5 +57,6 @@
 
 - [x] Run focused auth tests, typecheck, full serial tests, and `vercel-build`.
 - [x] Complete independent review and address in-scope findings.
-- [ ] Commit, push, verify production deployment, and reproduce the user login flow without reading the password.
+- [x] Commit, push, verify the production deployment, and confirm the clean administrator login form without reading the password.
+- [ ] Complete one user-entered password login to confirm the authenticated administrator screen.
 - [x] Write and re-read the sanitized CreamWIKI record.

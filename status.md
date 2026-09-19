@@ -1915,3 +1915,5 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 독립 리뷰의 Major 2건(토큰 지속 저장, 복구 분기 도달 불가)과 Minor 1건(로컬 관리자 로그아웃이 무관한 고객 세션을 지울 가능성)을 모두 반영했다. 최종 리뷰 기준 Critical 0, Major 0이다.
 - 집중 인증 테스트 29/29, 전체 직렬 테스트 1,476/1,476, typecheck, Vercel build, diff check가 통과했다.
 - CreamWIKI `personal/carrotcap/notes/umsh-admin-supabase-session-20260920.md`에 비밀정보 없는 원인·결정·검증을 저장하고 재조회·검색했다.
+- 커밋 `0b12c0d`를 `origin/main`에 push했고 Vercel Production `dpl_AL2zBFeEWX7WTAmmHyzSghqerZJ3`가 Ready로 `umsh.kr`에 연결됐다. 운영 health, 관리자 HTML의 새 폴백·비영속 설정, 무토큰 교환 401을 확인했다.
+- Codex 브라우저에서 `/admin`을 새로 열어 이전 실패 문구가 사라진 깨끗한 직원 로그인 폼을 확인했다. 비밀번호를 읽거나 입력하지 않았으므로 인증 완료 화면 확인만 사용자 재입력 뒤 남아 있다.
