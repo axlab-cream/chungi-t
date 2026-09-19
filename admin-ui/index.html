@@ -884,6 +884,137 @@
         });
         section.appendChild(form); section.appendChild(publishArea); section.scrollIntoView({ block: 'nearest' });
       }
+      var CONTENT_TYPE_LABELS = { service_card: '서비스 카드', landing_copy: '랜딩 문구', faq: 'FAQ', notice: '공지', banner: '배너', legal_link: '약관 링크' };
+      var CONTENT_STATE_LABELS = { draft: '초안', published: '게시됨', archived: '보관됨' };
+      /**
+       * 2026-09-19 (T24): 서비스 카드·랜딩 문구·FAQ·공지·배너·약관 링크의 초안 작성·수정·게시·
+       * 보관. T22 가 만든 content_versions 표를 그대로 쓴다. 발행본을 실제 고객 화면에 얹는
+       * 어댑터(T29)는 아직 없다 — 여기서 발행해도 이 화면과 API 밖에서는 아무것도 바뀌지
+       * 않는다. 임의로 "고객에게 노출됨"이라 말하지 않는다(ADR-0002).
+       */
+      async function loadLiveContent(body) {
+        body.replaceChildren();
+        var notice = document.createElement('p'); notice.className = 'admin-note'; notice.style.padding = '0 0 12px';
+        notice.textContent = '이 메뉴는 콘텐츠 개정을 저장·게시하는 저장소까지만 연결되어 있습니다. 게시본을 실제 고객 화면에 반영하는 경로(T29)는 아직 없어, 여기서 게시해도 고객 화면은 바뀌지 않습니다.';
+        body.appendChild(notice);
+
+        var createSection = document.createElement('section'); createSection.className = 'admin-section';
+        createSection.innerHTML = '<header class="admin-section-head"><h3>콘텐츠 초안 등록</h3></header>';
+        var createForm = document.createElement('form'); createForm.className = 'admin-refund-form'; createForm.noValidate = true;
+        var typeOptions = CONTENT_TYPES_FALLBACK.map(function (type) { return '<option value="' + type + '">' + (CONTENT_TYPE_LABELS[type] || type) + '</option>'; }).join('');
+        createForm.innerHTML = '<div class="admin-field"><label>종류</label><select name="contentType">' + typeOptions + '</select></div>'
+          + '<div class="admin-field"><label>대상 서비스(선택, 실제 서비스 키)</label><input name="serviceKey" maxlength="80" placeholder="예: money_save"></div>'
+          + '<div class="admin-field" data-span="2"><label>노출 위치</label><input required name="placement" maxlength="120" placeholder="예: home/top-banner"></div>'
+          + '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="120"></div>'
+          + '<div class="admin-field" data-span="2"><label>본문</label><input required name="bodyText" maxlength="4000"></div>'
+          + '<div class="admin-field"><label>링크(선택)</label><input name="href" maxlength="300" placeholder="/path 또는 https://"></div>'
+          + '<div class="admin-field"><label>예약 시각(선택)</label><input name="scheduledAt" type="datetime-local"></div>'
+          + '<div class="admin-field" data-span="2"><label>검토 의견(선택)</label><input name="reviewNote" maxlength="500"></div>'
+          + '<div class="admin-actions"><button class="admin-button" type="submit">초안 등록</button></div>'
+          + '<p class="admin-note" role="status" data-content-create-result></p>';
+        var createResult = createForm.querySelector('[data-content-create-result]');
+        createForm.addEventListener('submit', async function (event) {
+          event.preventDefault(); var submit = createForm.querySelector('button[type="submit"]'); submit.disabled = true; createResult.textContent = '초안을 등록하는 중입니다.';
+          try {
+            var scheduledAt = createForm.elements.scheduledAt.value ? new Date(createForm.elements.scheduledAt.value).toISOString() : undefined;
+            var response = await fetch('/api/admin/v1/content', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({
+              contentType: createForm.elements.contentType.value,
+              serviceKey: createForm.elements.serviceKey.value.trim() || undefined,
+              placement: createForm.elements.placement.value.trim(),
+              payload: { title: createForm.elements.title.value.trim(), body: createForm.elements.bodyText.value.trim(), href: createForm.elements.href.value.trim() || undefined },
+              scheduledAt: scheduledAt, reviewNote: createForm.elements.reviewNote.value.trim() || undefined,
+            }) });
+            var payload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(payload.error || '초안 등록에 실패했습니다.');
+            createResult.textContent = '초안이 등록되었습니다.'; createForm.reset();
+            await loadLiveContent(body); return;
+          } catch (error) { createResult.textContent = error instanceof Error ? error.message : '초안 등록에 실패했습니다.'; submit.disabled = false; }
+        });
+        createSection.appendChild(createForm); body.appendChild(createSection);
+
+        var listSection = document.createElement('section'); listSection.className = 'admin-section';
+        listSection.innerHTML = '<header class="admin-section-head"><h3>실제 콘텐츠 개정</h3></header><p class="admin-empty">불러오는 중입니다.</p>';
+        body.appendChild(listSection);
+        try {
+          var listResponse = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
+          if (!listResponse.ok) throw new Error('CONTENT_LOOKUP_FAILED');
+          var listPayload = await listResponse.json();
+          var items = Array.isArray(listPayload.items) ? listPayload.items : [];
+          if (listPayload.versionStore !== 'ready') addLiveError(body, '콘텐츠 저장소 연결을 확인하지 못했습니다.');
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">등록된 실제 콘텐츠 초안·게시본이 없습니다.</td>'; rows.appendChild(empty); }
+          items.forEach(function (item) {
+            var row = document.createElement('tr');
+            [CONTENT_TYPE_LABELS[item.contentType] || item.contentType, item.serviceKey || '전체', item.placement, item.payload.title, CONTENT_STATE_LABELS[item.state] || item.state, item.revision, item.updatedAt].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
+            });
+            var actionCell = document.createElement('td');
+            if (item.state === 'draft') {
+              var edit = document.createElement('button'); edit.className = 'admin-button'; edit.type = 'button'; edit.textContent = '수정';
+              edit.addEventListener('click', function () { renderContentDetail(body, item); });
+              actionCell.appendChild(edit);
+            } else if (item.state === 'published') {
+              var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '보관(삭제)';
+              archive.addEventListener('click', async function () {
+                if (!window.confirm('이 콘텐츠를 보관 처리합니다. 게시 후보에서 빠집니다. 계속할까요?')) return;
+                archive.disabled = true;
+                try {
+                  var archiveResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) });
+                  var archivePayload = await archiveResponse.json().catch(function () { return {}; });
+                  if (!archiveResponse.ok) throw new Error(archivePayload.error || '보관 처리에 실패했습니다.');
+                  await loadLiveContent(body);
+                } catch (error) { archive.disabled = false; window.alert(error instanceof Error ? error.message : '보관 처리에 실패했습니다.'); }
+              });
+              actionCell.appendChild(archive);
+            }
+            row.appendChild(actionCell); rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          listSection.replaceChildren(listSection.firstElementChild, scroll);
+        } catch (_error) { var notice2 = listSection.querySelector('.admin-empty'); if (notice2) notice2.textContent = '실제 콘텐츠 저장소를 불러오지 못했습니다.'; }
+      }
+      var CONTENT_TYPES_FALLBACK = ['service_card', 'landing_copy', 'faq', 'notice', 'banner', 'legal_link'];
+      function renderContentDetail(body, item) {
+        var previous = body.querySelector('[data-content-detail]'); if (previous) previous.remove();
+        var section = document.createElement('section'); section.dataset.contentDetail = 'true'; section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>콘텐츠 수정 — ' + escapeHtml(item.payload.title) + '</h3><span class="admin-chip">' + escapeHtml(item.contentType) + ' · ' + escapeHtml(item.placement) + '</span></header>';
+        body.appendChild(section);
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="120"></div>'
+          + '<div class="admin-field" data-span="2"><label>본문</label><input required name="bodyText" maxlength="4000"></div>'
+          + '<div class="admin-field"><label>링크(선택)</label><input name="href" maxlength="300"></div>'
+          + '<div class="admin-actions"><button class="admin-button" type="submit">초안 저장</button></div>'
+          + '<p class="admin-note" role="status" data-content-form-result></p>';
+        form.elements.title.value = item.payload.title || ''; form.elements.bodyText.value = item.payload.body || ''; form.elements.href.value = item.payload.href || '';
+        var result = form.querySelector('[data-content-form-result]'); var revision = item.revision;
+        var publishArea = document.createElement('div'); publishArea.className = 'admin-actions'; publishArea.style.padding = '0 16px 16px'; publishArea.hidden = true;
+        var publishButton = document.createElement('button'); publishButton.className = 'admin-button'; publishButton.type = 'button'; publishButton.textContent = '이 초안 게시';
+        publishArea.appendChild(publishButton);
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '저장하는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id), { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: revision, payload: { title: form.elements.title.value.trim(), body: form.elements.bodyText.value.trim(), href: form.elements.href.value.trim() || undefined } }) });
+            var responsePayload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(responsePayload.error || '저장에 실패했습니다.');
+            var saved = responsePayload.content; revision = saved.revision;
+            result.textContent = '저장되었습니다.'; publishArea.hidden = false;
+            publishButton.onclick = async function () {
+              if (!window.confirm('이 초안을 게시합니다. 계속할까요?')) return;
+              publishButton.disabled = true;
+              try {
+                var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ checksum: saved.checksum, expectedRevision: revision }) });
+                var publishPayload = await publishResponse.json().catch(function () { return {}; });
+                if (!publishResponse.ok) throw new Error(publishPayload.error || '게시에 실패했습니다.');
+                result.textContent = '게시되었습니다.'; publishArea.hidden = true; await loadLiveContent(body);
+              } catch (error) { publishButton.disabled = false; window.alert(error instanceof Error ? error.message : '게시에 실패했습니다.'); }
+            };
+          } catch (error) { result.textContent = error instanceof Error ? error.message : '저장에 실패했습니다.'; }
+          finally { submit.disabled = false; }
+        });
+        section.appendChild(form); section.appendChild(publishArea); section.scrollIntoView({ block: 'nearest' });
+      }
       async function loadLiveAudit(body) {
         try {
           var response = await fetch('/api/admin/v1/audit', { credentials: 'same-origin' });
@@ -1289,6 +1420,7 @@
         if (route.key === 'media') { loadMediaCatalog(body); return; }
         if (route.key === 'incidents') { loadIncidents(body); return; }
         if (route.key === 'logs') { loadGenerationLog(body); return; }
+        if (route.key === 'content') { loadLiveContent(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
       }
       /**

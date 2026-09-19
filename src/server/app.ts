@@ -61,6 +61,14 @@ import {
   saveServiceConfigDraft,
 } from '../admin/service-version-store.js'
 import {
+  CONTENT_TYPES,
+  archiveContentVersion,
+  createContentDraft,
+  getAdminContentSnapshot,
+  publishContentVersion,
+  updateContentDraft,
+} from '../admin/content-store.js'
+import {
   NEW_PROMPT_DRAFT_REVISION,
   getAdminPromptContentSnapshot,
   publishGenerationPromptVersion,
@@ -1233,7 +1241,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'reports:write', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write', 'prompts:write', 'prompts:publish']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'reports:write', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write', 'prompts:write', 'prompts:publish', 'content:read', 'content:write', 'content:publish']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -2418,6 +2426,112 @@ app.get('/api/admin/v1/corpus', async (req, res) => {
     res.status(503).json({ code: 'CORPUS_SNAPSHOT_FAILED', error: '현재 배포의 코퍼스 레지스트리를 불러오지 못했습니다.' })
   }
 })
+/**
+ * T24: 고객 화면 문안(안내·배너·FAQ·서비스 카드·랜딩 문구·약관 링크). T22 가 만든
+ * content_versions 표를 그대로 쓴다. 발행본을 고객 화면에 얹는 어댑터(T29)는 아직 없다 —
+ * 화면이 그 사실을 그대로 말한다. 여기서 임의의 노출 효과를 꾸미지 않는다.
+ */
+app.get('/api/admin/v1/content', async (req, res) => {
+  if (!await requireStaff(req, res, 'content:read')) return
+  try {
+    res.json({ ...await getAdminContentSnapshot(Number(req.query?.limit ?? 200)), contentTypes: CONTENT_TYPES })
+  } catch {
+    res.status(503).json({ code: 'CONTENT_LOOKUP_FAILED', error: '콘텐츠 저장소를 불러오지 못했습니다.' })
+  }
+})
+
+const CONTENT_FAILURES: Record<string, { status: number; error: string }> = {
+  CONTENT_TYPE_INVALID: { status: 422, error: '콘텐츠 종류를 확인해 주세요.' },
+  CONTENT_PAYLOAD_INVALID: { status: 422, error: '제목(120자)·본문(4,000자)·링크·예약 시각을 확인해 주세요. 태그 문자(<, >)는 받지 않습니다.' },
+  CONTENT_PLACEMENT_INVALID: { status: 422, error: '노출 위치는 1~120자의 글자·숫자·_-./: 만 쓸 수 있습니다.' },
+  CONTENT_SERVICE_UNKNOWN: { status: 404, error: '카탈로그에 없는 서비스입니다. 대상 서비스는 실제 서비스 키만 받습니다.' },
+  CONTENT_NOT_FOUND: { status: 404, error: '해당 콘텐츠를 찾지 못했습니다.' },
+  CONTENT_NOT_DRAFT: { status: 409, error: '초안 상태의 콘텐츠만 고치거나 게시할 수 있습니다.' },
+  CONTENT_REVISION_CONFLICT: { status: 409, error: '이 콘텐츠가 그사이 변경되었습니다. 다시 불러온 뒤 확인해 주세요.' },
+  CONTENT_CHECKSUM_MISMATCH: { status: 409, error: '검토한 내용과 저장된 초안이 다릅니다. 초안을 다시 확인해 주세요.' },
+  CONTENT_PUBLISH_CONFLICT: { status: 409, error: '같은 자리에 이미 게시된 콘텐츠가 있습니다. 다시 불러온 뒤 시도해 주세요.' },
+  CONTENT_STORE_UNAVAILABLE: { status: 503, error: '콘텐츠 저장소에 연결하지 못했습니다. 임의로 저장하지 않았습니다.' },
+}
+
+function respondContentFailure(res: Response, error: unknown, fallback: string): void {
+  const raw = error instanceof Error ? error.message : ''
+  const known = CONTENT_FAILURES[raw]
+  if (known) { res.status(known.status).json({ code: raw, error: known.error }); return }
+  console.error(fallback, raw || 'unknown')
+  res.status(500).json({ code: fallback, error: '요청을 처리하지 못했습니다.' })
+}
+
+app.post('/api/admin/v1/content', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const body = asObject(req.body)
+  const idempotencyKey = adminCommandKey(req)
+  if (idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_CONTENT_DRAFT', error: '멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'content.draft.create', idempotencyKey,
+      body: { contentType: body.contentType, serviceKey: body.serviceKey ?? null, placement: body.placement },
+      target: { type: 'content_version', id: `${String(body.contentType)}:${String(body.placement)}` },
+    }, async () => createContentDraft({ contentType: body.contentType, serviceKey: body.serviceKey, placement: body.placement, payload: body.payload, scheduledAt: body.scheduledAt, reviewNote: body.reviewNote, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 202).json({ content: command.result, replayed: command.replayed })
+  } catch (error) { respondContentFailure(res, error, 'CONTENT_DRAFT_FAILED') }
+})
+
+app.patch('/api/admin/v1/content/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:write'); if (!membership) return
+  const id = trimmedString(req.params.id)
+  const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_CONTENT_UPDATE', error: '콘텐츠 ID, 개정 번호, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'content.draft.update', idempotencyKey,
+      body: { id, expectedRevision }, target: { type: 'content_version', id },
+    }, async () => updateContentDraft({ id, expectedRevision, payload: body.payload, scheduledAt: body.scheduledAt, reviewNote: body.reviewNote, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 202).json({ content: command.result, replayed: command.replayed })
+  } catch (error) { respondContentFailure(res, error, 'CONTENT_UPDATE_FAILED') }
+})
+
+app.post('/api/admin/v1/content/:id/publish', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id)
+  const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision)
+  const checksum = trimmedString(body.checksum)
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || !/^[a-f0-9]{64}$/.test(checksum) || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_CONTENT_PUBLISH', error: '콘텐츠 ID, 개정 번호, 검토 체크섬, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'content.version.publish', idempotencyKey,
+      body: { id, expectedRevision, checksum }, target: { type: 'content_version', id },
+    }, async () => publishContentVersion({ id, expectedRevision, checksum, authorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 202).json({ content: command.result, replayed: command.replayed })
+  } catch (error) { respondContentFailure(res, error, 'CONTENT_PUBLISH_FAILED') }
+})
+
+/** "삭제". DELETE 권한이 없고 이력을 남겨야 하므로 archived 로 내린다. 게시본이면 고객 노출 후보에서 빠진다. */
+app.post('/api/admin/v1/content/:id/archive', async (req, res) => {
+  const membership = await requireStaff(req, res, 'content:publish'); if (!membership) return
+  const id = trimmedString(req.params.id)
+  const body = asObject(req.body)
+  const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_CONTENT_ARCHIVE', error: '콘텐츠 ID, 개정 번호, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'content.version.archive', idempotencyKey,
+      body: { id, expectedRevision }, target: { type: 'content_version', id },
+    }, async () => archiveContentVersion({ id, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ content: command.result, replayed: command.replayed })
+  } catch (error) { respondContentFailure(res, error, 'CONTENT_ARCHIVE_FAILED') }
+})
+
 app.get('/api/admin/v1/prompts', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {

@@ -123,6 +123,33 @@ test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고,
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/publish'/)
 })
 
+/**
+ * 2026-09-19 (T24): "콘텐츠" 메뉴가 renderWorkspace 분기에 없어 항상 "아직 생성되지
+ * 않았습니다" 안내로 떨어졌다 — 화면이 비어 보인다는 사용자 보고로 발견.
+ */
+test('renderWorkspace 는 콘텐츠 메뉴를 loadLiveContent 로 연결한다', () => {
+  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 2200)
+  assert.match(body, /if \(route\.key === 'content'\) \{ loadLiveContent\(body\); return; \}/)
+})
+
+test('loadLiveContent 는 T29 어댑터 부재를 화면에 정직하게 알리고, 초안은 등록 후 목록에서 수정·발행·보관할 수 있다', () => {
+  const body = source.slice(source.indexOf('async function loadLiveContent'), source.indexOf('function renderContentDetail'))
+  assert.match(body, /T29\)는 아직 없어/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/content', \{ method: 'POST'/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/content', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /edit\.addEventListener\('click', function \(\) \{ renderContentDetail\(body, item\); \}\)/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\) \+ '\/archive'/)
+})
+
+test('renderContentDetail 은 저장 후에만 게시 버튼을 열고, 게시 전 확인을 요구한다', () => {
+  const body = source.slice(source.indexOf('function renderContentDetail'), source.indexOf('async function loadLiveAudit'))
+  assert.match(body, /publishArea\.hidden = true;/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\), \{ method: 'PATCH'/)
+  assert.match(body, /publishArea\.hidden = false;/)
+  assert.match(body, /window\.confirm\('이 초안을 게시합니다/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\) \+ '\/publish'/)
+})
+
 test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔드 라우트에 연결한다', () => {
   const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadLiveOverview'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports\/requeue-incomplete', \{ method: 'POST'/)
