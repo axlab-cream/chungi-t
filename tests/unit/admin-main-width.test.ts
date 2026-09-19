@@ -25,8 +25,18 @@ test('작은 안내 패널 상태만 좁게 두고, 실제 운영 화면(workspa
 
 test('show(name) 이 상태마다 main 의 data-width 를 직접 설정하거나 지운다', () => {
   const body = source.slice(source.indexOf('function show(name)'), source.indexOf('function show(name)') + 400)
-  assert.match(body, /main\.setAttribute\('data-width', 'narrow'\)/)
-  assert.match(body, /main\.removeAttribute\('data-width'\)/)
+  assert.match(body, /setMainWidth\(ADMIN_NARROW_STATES\.indexOf\(name\) !== -1\)/)
+})
+
+/**
+ * 2026-09-19: 주문(orders) 패널은 `show()` 의 states 맵을 거치지 않고 `startOrders()` 가
+ * `[data-admin-state="orders"]` 를 직접 연다. `show('ready')` 가 먼저 narrow 를 남겨 뒀는데
+ * 그걸 되돌리는 코드가 없어서, 표 중심 화면인 주문 페이지가 유일하게 계속 720px 에 갇혔다
+ * (실사용자 재확인 리포트로 발견). startOrders 도 같은 setMainWidth 를 써야 한다.
+ */
+test('주문 패널은 show() 를 거치지 않지만, startOrders 가 직접 폭을 넓힌다', () => {
+  const body = source.slice(source.indexOf('function startOrders('), source.indexOf('function startOrders(') + 400)
+  assert.match(body, /setMainWidth\(false\)/, 'startOrders 가 main 을 넓히지 않는다')
 })
 
 test('main[data-width=narrow] 만 720px 로 좁고, 기본 main 은 사이드바를 뺀 폭 전체를 쓴다', () => {

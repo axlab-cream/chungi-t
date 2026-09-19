@@ -499,13 +499,20 @@
         작은 안내 패널만 좁게 두고, 실제 운영 화면(workspace·orders)은 화면 폭을 그대로 쓴다.
       */
       var ADMIN_NARROW_STATES = ['loading', 'anonymous', 'recovery', 'forbidden', 'error', 'ready'];
+      /**
+       * `show()` 는 `states` 맵에 있는 이름만 안다. 주문(orders) 패널은 그 맵을 거치지
+       * 않고 `startOrders()` 가 직접 `hidden` 을 끈다 — 그래서 `show('ready')` 가 남긴
+       * narrow 가 안 지워졌다. `setMainWidth` 로 두 경로가 같은 규칙을 쓰게 한다.
+       */
+      function setMainWidth(narrow) {
+        var main = document.querySelector('main');
+        if (!main) return;
+        if (narrow) main.setAttribute('data-width', 'narrow');
+        else main.removeAttribute('data-width');
+      }
       function show(name) {
         Object.keys(states).forEach(function (key) { states[key].hidden = key !== name; });
-        var main = document.querySelector('main');
-        if (main) {
-          if (ADMIN_NARROW_STATES.indexOf(name) !== -1) main.setAttribute('data-width', 'narrow');
-          else main.removeAttribute('data-width');
-        }
+        setMainWidth(ADMIN_NARROW_STATES.indexOf(name) !== -1);
       }
 
       function setText(selector, value) {
@@ -1095,6 +1102,8 @@
         orderState.session = session;
         var section = document.querySelector('[data-admin-state="orders"]');
         if (section) section.hidden = false;
+        // 주문 표는 show() 의 states 맵을 거치지 않는다 — 여기서 직접 넓힌다.
+        setMainWidth(false);
         var form = document.querySelector('[data-admin-order-filters]');
         if (form) {
           form.addEventListener('submit', function (event) {
