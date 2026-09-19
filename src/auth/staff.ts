@@ -20,7 +20,7 @@ export type StaffRole = 'super_admin'
  * 감사 명령(T06)을 거치는 쓰기만 여기에 들어온다. 감사 경로가 없는 동작에는
  * 스코프를 만들지 않는다 — 기록 없는 권한이 생기기 때문이다.
  */
-const SUPER_ADMIN_SCOPES = Object.freeze([
+export const SUPER_ADMIN_SCOPES = Object.freeze([
   'orders:read',
   'members:read',
   'members:write',
