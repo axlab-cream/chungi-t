@@ -23,6 +23,9 @@
 - 운영 연동 점검 10개 통과, Vercel Production Ready 확인.
 - Supabase migration inventory는 원격 전용 0, 원격과 일치 22, schema-present/history-missing 로컬 전용 8로 정리됐다.
 - 변경 파일 비밀정보 패턴 검사 통과.
+- 승인 후 `origin/main` push, GitHub CI, Vercel Production 배포가 성공했다.
+- 운영 도메인 연동 10/10과 서비스 범위 표시를 재검증했다.
+- 물리 백업 8개는 확인했지만 PITR은 비활성이다. history repair는 전체 권한·RLS 검토와 dry-run 0건 게이트가 남아 실행하지 않았다.
 
 ## 교훈
 

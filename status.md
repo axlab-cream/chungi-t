@@ -1883,3 +1883,10 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 검증: typecheck, 단위 테스트 1,474/1,474, 서비스 검수 14종, SEO, 20개 서비스 QA, Vercel build, 운영 연동 10/10 모두 PASS.
 - Supabase migration은 원격과 일치 22, 원격 전용 0, schema-present/history-missing 로컬 전용 8이다. `migration repair`·`db push`는 승인 게이트 때문에 실행하지 않았다. `db lint --linked`는 DB password 인증 실패로 BLOCKED이며 원격 변경은 없었다.
 - CreamWIKI `personal/.../notes/umsh-integration-state-recovery-20260920.md`에 비밀정보 없는 복구 패턴을 저장하고 검색 재조회했다.
+
+## 2026-09-20 — 승인 후 GitHub·Vercel 운영 반영
+
+- 사용자 승인 후 `ae12c69`를 `origin/main`에 push했다. GitHub CI run `35473142768`은 typecheck, 1,474 테스트, 서비스 검수, SEO, 20서비스 QA, Vercel build, 생성물 diff를 모두 통과했다.
+- Vercel Production `dpl_8hxeRbUCLcHAofNXms8uHoCzXvGU`가 Ready로 `umsh.kr`에 연결됐다. 운영 연동 10/10과 `/about`의 서비스 범위·퇴사운 8개 칩을 재검증했다.
+- Supabase에는 완료된 물리 백업 8개가 있고 최신 백업은 `2026-09-19T16:55:10Z`다. PITR은 비활성이다.
+- 사용자의 승인은 TASK-004 G5를 충족한다. 다만 G3 전체 권한·RLS 동등성 검토와 G4 사전 dry-run 0건은 아직 충족되지 않아 migration history repair와 `db push`는 실행하지 않았다.

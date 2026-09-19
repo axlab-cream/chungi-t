@@ -42,7 +42,9 @@
 
 ## Gate
 
-원격 migration history 수정은 `rules.md` §6 H2와 `plan.md` TASK-004 G1~G5의 하드 스톱 대상이다. 이 작업에서는 `migration repair`, `db push`, 배포, push를 실행하지 않았다.
+원격 migration history 수정은 `rules.md` §6 H2와 `plan.md` TASK-004 G1~G5의 하드 스톱 대상이다. 사용자의 2026-09-20 후속 승인은 G5를 충족했지만, G3 전체 권한·RLS 동등성 검토와 G4 사전 dry-run 0건이 충족되지 않아 `migration repair`와 `db push`는 실행하지 않았다.
+
+같은 승인으로 Git push와 Vercel 자동 배포는 실행했다. 커밋 `ae12c69`를 `origin/main`에 push했고 GitHub CI와 Production 배포가 성공했다.
 
 백업/PITR, 정확한 함수 정의·권한·RLS diff, 롤백 담당자를 확인한 뒤에만 아래 형태의 명령을 검토한다. 이 문장은 실행 기록이 아니다.
 
@@ -72,5 +74,9 @@ npx supabase@latest migration repair --linked --status applied 20260914150000 20
 - ProjectOps changed-file secret scan: PASS
 - Grok reviewer: blocking finding 없음. 퇴사운 칩/기존 안내 문구/주석/상태 기록 지적은 반영.
 - Supabase `db lint --linked`: `BLOCKED`, DB password 인증 실패. 마이그레이션 조회와 운영 REST/Auth 점검은 정상이며 원격 변경은 없었음.
+- Supabase physical backup: 완료 백업 8개, 최신 `2026-09-19T16:55:10Z`; PITR 비활성.
+- GitHub push: `origin/main` = `ae12c69`, CI run `35473142768` SUCCESS.
+- Vercel Production: `dpl_8hxeRbUCLcHAofNXms8uHoCzXvGU` Ready, `umsh.kr` alias 확인.
+- 운영 재검증: 연동 10/10 PASS, `/about` 서비스 범위 및 퇴사운 8개 칩 PASS.
 
-로컬 커밋까지만 만든다. 원격 history repair와 Git push는 별도 하드 스톱 해제 후 수행한다.
+Git/Vercel 반영은 완료됐다. 원격 migration history repair는 G3·G4를 충족하는 별도 DB 작업으로 남긴다.
