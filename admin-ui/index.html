@@ -776,6 +776,78 @@
         var notes = document.createElement('div'); notes.className = 'admin-section'; notes.innerHTML = '<h3>내부 처리 기록</h3><p class="admin-empty">메모를 불러오는 중입니다.</p>'; section.appendChild(notes); try { var response = await fetch('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { credentials: 'same-origin' }); if (!response.ok) throw new Error('SUPPORT_NOTE_LOOKUP_FAILED'); var payload = await response.json(); var entries = Array.isArray(payload.notes) ? payload.notes : []; notes.replaceChildren(notes.firstElementChild); entries.forEach(function (entry) { var line = document.createElement('p'); line.textContent = '[' + (entry.kind === 'internal' ? '내부 메모' : '고객 답변 초안') + '] ' + entry.text + ' · ' + entry.createdAt; notes.appendChild(line); }); if (!entries.length) { var empty = document.createElement('p'); empty.className = 'admin-empty'; empty.textContent = '기록이 없습니다.'; notes.appendChild(empty); } } catch (_error) { var err = notes.querySelector('.admin-empty'); if (err) err.textContent = '메모를 불러오지 못했습니다.'; }
         var noteForm = document.createElement('form'); noteForm.className = 'admin-actions'; noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option></select><input required name="text" maxlength="4000" placeholder="고객에게 자동 전송되지 않는 처리 기록"><button class="admin-button" type="submit">기록 추가</button>'; noteForm.addEventListener('submit', async function (event) { event.preventDefault(); var formNode = event.currentTarget; var response = await fetch('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: formNode.elements.kind.value, text: formNode.elements.text.value }) }); if (!response.ok) { window.alert('기록 저장에 실패했습니다.'); return; } renderWorkspace(currentAdminRoute()); }); section.appendChild(noteForm);
       }
+      var INCIDENT_SEVERITY_LABELS = { low: '낮음', medium: '보통', high: '높음', critical: '치명적' };
+      var INCIDENT_STATUS_LABELS = { open: '접수', investigating: '조사 중', mitigated: '완화됨', resolved: '해결됨', closed: '종료' };
+      function incidentStatusTone(status) { return status === 'resolved' || status === 'closed' ? 'ok' : status === 'critical' ? 'error' : 'warn'; }
+      async function loadIncidents(body) {
+        var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>장애 등록</h3><span class="admin-chip">실제 운영 데이터</span></header>';
+        var createForm = document.createElement('form'); createForm.className = 'admin-refund-form'; createForm.noValidate = true;
+        createForm.innerHTML = '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="200" placeholder="한 줄로 요약"></div><div class="admin-field"><label>심각도</label><select name="severity"><option value="low">낮음</option><option value="medium" selected>보통</option><option value="high">높음</option><option value="critical">치명적</option></select></div><div class="admin-field"><label>담당자 이메일 (선택)</label><input name="ownerEmail" type="email"></div><div class="admin-field" data-span="2"><label>영향 범위 (선택)</label><input name="affectedArea" maxlength="200" placeholder="예: 결제, 저축운 생성"></div><div class="admin-field" data-span="2"><label>요약</label><input required name="summary" maxlength="2000" placeholder="무엇이 어떻게 잘못됐는지"></div><div class="admin-actions"><button class="admin-button" type="submit">장애 등록</button></div><p class="admin-note" role="status" data-incident-create-result></p>';
+        var createResult = createForm.querySelector('[data-incident-create-result]');
+        createForm.addEventListener('submit', async function (event) {
+          event.preventDefault(); var form = event.currentTarget; var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; createResult.textContent = '장애를 등록하는 중입니다.';
+          try {
+            var response = await fetch('/api/admin/v1/incidents', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ title: form.elements.title.value.trim(), severity: form.elements.severity.value, summary: form.elements.summary.value.trim(), ownerEmail: form.elements.ownerEmail.value.trim(), affectedArea: form.elements.affectedArea.value.trim() }) });
+            var payload = await response.json().catch(function () { return {}; });
+            if (!response.ok) throw new Error(payload.error || '장애 등록에 실패했습니다.');
+            createResult.textContent = '장애가 등록되었습니다.'; form.reset(); form.elements.severity.value = 'medium';
+            await loadIncidents(body);
+          } catch (error) { createResult.textContent = error instanceof Error ? error.message : '장애 등록에 실패했습니다.'; submit.disabled = false; }
+        });
+        createSection.appendChild(createForm); body.replaceChildren(); body.appendChild(createSection);
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 장애 기록</h3><span class="admin-chip">열린 사건 우선</span></header><p class="admin-empty">장애 기록을 불러오는 중입니다.</p>'; body.appendChild(listSection);
+        try {
+          var listResponse = await fetch('/api/admin/v1/incidents', { credentials: 'same-origin' }); if (!listResponse.ok) throw new Error('INCIDENT_LOOKUP_FAILED');
+          var listPayload = await listResponse.json(); var incidents = Array.isArray(listPayload.incidents) ? listPayload.incidents : [];
+          var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">제목</th><th scope="col">심각도</th><th scope="col">상태</th><th scope="col">영향 범위</th><th scope="col">담당자</th><th scope="col">최근 변경</th><th scope="col">처리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!incidents.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 등록된 실제 장애가 없습니다.</td>'; rows.appendChild(empty); }
+          incidents.forEach(function (item) {
+            var row = document.createElement('tr');
+            var titleCell = document.createElement('td'); titleCell.textContent = item.title; row.appendChild(titleCell);
+            var severityCell = document.createElement('td'); severityCell.textContent = INCIDENT_SEVERITY_LABELS[item.severity] || item.severity; row.appendChild(severityCell);
+            var statusCell = document.createElement('td'); var statusLabel = document.createElement('span'); statusLabel.className = 'admin-status'; statusLabel.dataset.tone = incidentStatusTone(item.status); statusLabel.textContent = INCIDENT_STATUS_LABELS[item.status] || item.status; statusCell.appendChild(statusLabel); row.appendChild(statusCell);
+            [item.affectedArea || '—', item.ownerEmail || '미배정', item.updatedAt].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
+            var actionCell = document.createElement('td'); var manage = document.createElement('button'); manage.className = 'admin-button'; manage.type = 'button'; manage.textContent = '처리'; manage.addEventListener('click', function () { renderIncidentDetail(body, item); }); actionCell.appendChild(manage); row.appendChild(actionCell);
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
+        } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 장애 기록 저장소를 불러오지 못했습니다.'; }
+      }
+      async function renderIncidentDetail(body, item) {
+        var previous = body.querySelector('[data-incident-detail]'); if (previous) previous.remove();
+        var section = document.createElement('section'); section.dataset.incidentDetail = 'true'; section.className = 'admin-section';
+        var status = INCIDENT_STATUS_LABELS[item.status] || item.status; var tone = incidentStatusTone(item.status);
+        section.innerHTML = '<header class="admin-section-head"><h3>장애 처리 — ' + escapeHtml(item.title) + '</h3><span class="admin-status" data-tone="' + tone + '">' + escapeHtml(status) + '</span></header><p class="admin-note" style="padding:0 16px">' + escapeHtml(item.summary) + '</p>';
+        body.appendChild(section);
+        var form = document.createElement('form'); form.className = 'admin-actions'; form.style.padding = '0 16px 16px';
+        form.innerHTML = '<select name="severity" aria-label="심각도"><option value="low">낮음</option><option value="medium">보통</option><option value="high">높음</option><option value="critical">치명적</option></select><select name="status" aria-label="상태"><option value="open">접수</option><option value="investigating">조사 중</option><option value="mitigated">완화됨</option><option value="resolved">해결됨</option><option value="closed">종료</option></select><input name="ownerEmail" type="email" placeholder="담당자 이메일 (선택)"><button class="admin-button" type="submit">상태 저장</button>';
+        form.elements.severity.value = item.severity; form.elements.status.value = item.status; form.elements.ownerEmail.value = item.ownerEmail || '';
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); var formNode = event.currentTarget;
+          var response = await fetch('/api/admin/v1/incidents/' + encodeURIComponent(item.id), { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ severity: formNode.elements.severity.value, status: formNode.elements.status.value, ownerEmail: formNode.elements.ownerEmail.value, expectedRevision: item.revision }) });
+          if (!response.ok) { window.alert('상태 저장에 실패했습니다. 새로고침 후 다시 시도해 주세요.'); return; }
+          renderWorkspace(currentAdminRoute());
+        });
+        section.appendChild(form);
+        var updates = document.createElement('div'); updates.className = 'admin-section'; updates.innerHTML = '<h3>처리 기록</h3><p class="admin-empty">기록을 불러오는 중입니다.</p>'; section.appendChild(updates);
+        try {
+          var response = await fetch('/api/admin/v1/incidents/' + encodeURIComponent(item.id) + '/updates', { credentials: 'same-origin' }); if (!response.ok) throw new Error('INCIDENT_UPDATE_LOOKUP_FAILED');
+          var payload = await response.json(); var entries = Array.isArray(payload.updates) ? payload.updates : [];
+          updates.replaceChildren(updates.firstElementChild);
+          entries.forEach(function (entry) { var line = document.createElement('p'); line.textContent = entry.text + ' · ' + entry.author + ' · ' + entry.createdAt; updates.appendChild(line); });
+          if (!entries.length) { var empty = document.createElement('p'); empty.className = 'admin-empty'; empty.textContent = '처리 기록이 없습니다.'; updates.appendChild(empty); }
+        } catch (_error) { var err = updates.querySelector('.admin-empty'); if (err) err.textContent = '처리 기록을 불러오지 못했습니다.'; }
+        var noteForm = document.createElement('form'); noteForm.className = 'admin-actions'; noteForm.innerHTML = '<input required name="text" maxlength="4000" placeholder="진행 상황 기록"><button class="admin-button" type="submit">기록 추가</button>';
+        noteForm.addEventListener('submit', async function (event) {
+          event.preventDefault(); var formNode = event.currentTarget;
+          var response = await fetch('/api/admin/v1/incidents/' + encodeURIComponent(item.id) + '/updates', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ text: formNode.elements.text.value }) });
+          if (!response.ok) { window.alert('기록 저장에 실패했습니다.'); return; }
+          renderWorkspace(currentAdminRoute());
+        });
+        section.appendChild(noteForm);
+        section.scrollIntoView({ block: 'nearest' });
+      }
       function renderWorkspace(route) {
         setText('[data-admin-workspace-title]', route.title);
         setText('[data-admin-workspace-detail]', route.detail || '운영 화면을 확인합니다.');
@@ -798,6 +870,7 @@
         if (route.key === 'releases') { loadReleaseInfo(body); return; }
         if (route.key === 'evaluations') { loadQualityEvaluations(body); return; }
         if (route.key === 'media') { loadMediaCatalog(body); return; }
+        if (route.key === 'incidents') { loadIncidents(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
       }
       /**

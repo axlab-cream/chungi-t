@@ -51,6 +51,7 @@ import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
   getAdminServiceVersionSnapshot,
@@ -1224,7 +1225,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'services:read', 'incidents:read', 'incidents:write']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -2675,6 +2676,78 @@ app.post('/api/admin/v1/support/:id/notes', async (req, res) => {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.note.create', idempotencyKey, body: { id, kind, textLength: text.length }, target: { type: 'support_case', id } }, async () => createSupportNote({ caseId: id, kind: kind as typeof SUPPORT_NOTE_KINDS[number], text, actorEmail: membership.email }))
     res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed })
   } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'SUPPORT_NOTE_CREATE_FAILED', error: '케이스 메모를 저장하지 못했습니다.' }) }
+})
+
+app.get('/api/admin/v1/incidents', async (req, res) => {
+  if (!await requireStaff(req, res, 'incidents:read')) return
+  try { res.json({ incidents: await listIncidents() }) }
+  catch { res.status(503).json({ code: 'INCIDENT_LOOKUP_FAILED', error: '실제 장애 기록 저장소를 불러오지 못했습니다.' }) }
+})
+
+app.get('/api/admin/v1/incidents/:id/updates', async (req, res) => {
+  if (!await requireStaff(req, res, 'incidents:read')) return
+  const id = trimmedString(req.params.id)
+  if (!id) { res.status(422).json({ code: 'INVALID_INCIDENT_ID', error: '장애 식별자를 확인해 주세요.' }); return }
+  try { res.json({ updates: await listIncidentUpdates(id) }) }
+  catch { res.status(503).json({ code: 'INCIDENT_UPDATE_LOOKUP_FAILED', error: '장애 처리 기록을 불러오지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/incidents', async (req, res) => {
+  const membership = await requireStaff(req, res, 'incidents:write'); if (!membership) return
+  const body = asObject(req.body)
+  const title = trimmedString(body.title); const severity = trimmedString(body.severity); const summary = trimmedString(body.summary)
+  const idempotencyKey = trimmedString(req.header('idempotency-key'))
+  if (!title || title.length > 200 || !(INCIDENT_SEVERITIES as readonly string[]).includes(severity) || !summary || summary.length > 2000 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_INCIDENT_INPUT', error: '제목, 심각도, 요약, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'incident.create', idempotencyKey,
+      body: { title, severity, summary, affectedArea: trimmedString(body.affectedArea) || null, ownerEmail: trimmedString(body.ownerEmail) || null },
+      target: { type: 'admin_incident', id: 'new' },
+    }, async () => createIncident({
+      title, severity: severity as typeof INCIDENT_SEVERITIES[number], summary,
+      affectedArea: trimmedString(body.affectedArea) || undefined, ownerEmail: trimmedString(body.ownerEmail) || undefined,
+      actorEmail: membership.email,
+    }))
+    res.status(command.replayed ? 200 : 201).json({ incident: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'INCIDENT_CREATE_FAILED', error: '장애 기록을 만들지 못했습니다.' }) }
+})
+
+app.patch('/api/admin/v1/incidents/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'incidents:write'); if (!membership) return
+  const body = asObject(req.body)
+  const id = trimmedString(req.params.id); const severity = trimmedString(body.severity); const status = trimmedString(body.status)
+  const ownerEmail = trimmedString(body.ownerEmail) || null; const expectedRevision = Number(body.expectedRevision)
+  const idempotencyKey = trimmedString(req.header('idempotency-key'))
+  if (!id || !(INCIDENT_SEVERITIES as readonly string[]).includes(severity) || !(INCIDENT_STATUSES as readonly string[]).includes(status) || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_INCIDENT_INPUT', error: '심각도, 상태, revision, 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'incident.update', idempotencyKey,
+      body: { id, severity, status, ownerEmail, expectedRevision }, target: { type: 'admin_incident', id },
+    }, async () => {
+      const record = await updateIncident({ id, expectedRevision, severity: severity as typeof INCIDENT_SEVERITIES[number], status: status as typeof INCIDENT_STATUSES[number], ownerEmail })
+      if (!record) throw new AdminCommandConflict('INCIDENT_REVISION_CONFLICT')
+      return record
+    })
+    res.json({ incident: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'INCIDENT_UPDATE_FAILED', error: '장애 기록을 변경하지 못했습니다.' }) }
+})
+
+app.post('/api/admin/v1/incidents/:id/updates', async (req, res) => {
+  const membership = await requireStaff(req, res, 'incidents:write'); if (!membership) return
+  const id = trimmedString(req.params.id); const text = typeof req.body?.text === 'string' ? req.body.text.trim() : ''
+  const idempotencyKey = trimmedString(req.header('idempotency-key'))
+  if (!id || text.length < 1 || text.length > 4000 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_INCIDENT_UPDATE_INPUT', error: '처리 기록 내용과 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'incident.update_note.create', idempotencyKey,
+      body: { id, textLength: text.length }, target: { type: 'admin_incident', id },
+    }, async () => createIncidentUpdate({ incidentId: id, text, actorEmail: membership.email }))
+    res.status(command.replayed ? 200 : 201).json({ update: command.result, replayed: command.replayed })
+  } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'INCIDENT_UPDATE_CREATE_FAILED', error: '장애 처리 기록을 저장하지 못했습니다.' }) }
 })
 
 app.get('/api/admin/v1/admin-accounts', async (req, res) => {

@@ -11,18 +11,34 @@ const source = readFileSync(new URL('../../admin-ui/index.html', import.meta.url
  * 안 한 것이다(사용자가 "데이터 안 보이는 곳 전부 확인" 요청으로 발견).
  */
 
-test('renderWorkspace 가 통계·릴리스·평가·미디어를 각각의 실제 로더로 연결한다', () => {
-  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 1800)
+test('renderWorkspace 가 통계·릴리스·평가·미디어·장애를 각각의 실제 로더로 연결한다', () => {
+  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 1900)
   assert.match(body, /if \(route\.key === 'analytics'\) \{ loadFunnelAnalytics\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'releases'\) \{ loadReleaseInfo\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'evaluations'\) \{ loadQualityEvaluations\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'media'\) \{ loadMediaCatalog\(body\); return; \}/)
-  // 네 분기 모두 "아직 생성되지 않았습니다" 안내보다 앞에 있어야 실제로 도달한다.
+  assert.match(body, /if \(route\.key === 'incidents'\) \{ loadIncidents\(body\); return; \}/)
+  // 다섯 분기 모두 "아직 생성되지 않았습니다" 안내보다 앞에 있어야 실제로 도달한다.
   const fallbackAt = body.indexOf('아직 생성되지 않았습니다')
-  for (const key of ['analytics', 'releases', 'evaluations', 'media']) {
+  for (const key of ['analytics', 'releases', 'evaluations', 'media', 'incidents']) {
     const at = body.indexOf(`route.key === '${key}'`)
     assert.ok(at >= 0 && at < fallbackAt, `${key} 분기가 없거나 안내 뒤에 있다`)
   }
+})
+
+test('loadIncidents 는 실제 장애 엔드포인트를 부르고, 등록 폼을 함께 그린다', () => {
+  const body = source.slice(source.indexOf('async function loadIncidents'), source.indexOf('async function renderIncidentDetail'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/incidents', \{ method: 'POST'/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/incidents', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /listPayload\.incidents/)
+})
+
+test('renderIncidentDetail 은 상태 변경에 expectedRevision 을 싣고, 제목·요약을 이스케이프한다', () => {
+  const body = source.slice(source.indexOf('async function renderIncidentDetail'), source.indexOf('function renderWorkspace'))
+  assert.match(body, /expectedRevision: item\.revision/)
+  assert.match(body, /escapeHtml\(item\.title\)/)
+  assert.match(body, /escapeHtml\(item\.summary\)/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/incidents\/' \+ encodeURIComponent\(item\.id\) \+ '\/updates'/)
 })
 
 test('loadQualityEvaluations 는 실제 평가 엔드포인트를 부르고 reviewMode 를 표에 싣는다', () => {
