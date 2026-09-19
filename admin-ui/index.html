@@ -20,6 +20,7 @@
     */
     :root {
       --admin-bg: #f6f6f8;
+      --admin-bg-hover: #e8ecfb;     /* --admin-focus 를 흰 배경에 8% 섞은 값. 줄무늬(--admin-bg)와 구분되게 */
       --admin-surface: #ffffff;
       --admin-line: #dfdfe4;
       --admin-text: #1b1b1f;         /* 16.1:1 */
@@ -155,8 +156,17 @@
       padding: var(--admin-space-2) var(--admin-space-3);
       border-bottom: 1px solid var(--admin-line); text-align: left; white-space: nowrap;
     }
-    .admin-table th { color: var(--admin-text-muted); font-weight: 600; }
-    .admin-table tbody tr:hover { background: var(--admin-bg); }
+    /*
+      머리글과 본문이 회색 한 톤 차이뿐이라 표가 넓어지니(위 main 전체폭 수정) 시선이
+      줄을 놓치기 쉬웠다. 배경 음영 + 굵은 진한 글자 + 두꺼운 밑줄 세 축으로 머리글을
+      뚜렷하게 분리하고, 본문 줄은 홀짝 배경을 살짝 갈라 가로로 읽기 쉽게 한다.
+    */
+    .admin-table thead th {
+      color: var(--admin-text); background: var(--admin-bg); font-weight: 700;
+      border-bottom: 2px solid var(--admin-line);
+    }
+    .admin-table tbody tr:nth-child(even) { background: var(--admin-bg); }
+    .admin-table tbody tr:hover { background: var(--admin-bg-hover); }
     .admin-table code { font-size: 12px; color: var(--admin-text-muted); }
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
@@ -481,8 +491,21 @@
         states[node.getAttribute('data-admin-state')] = node;
       });
 
+      /*
+        2026-09-19: `<main>` 이 처음부터 `data-width="narrow"`(720px 캡)를 달고 있었고,
+        어떤 상태에서도 그 값을 바꾸는 코드가 없었다 — 그래서 "표 중심 화면은 넓게" 규칙을
+        CSS 에 아무리 고쳐도 실제 화면(개요·주문 등 표가 있는 모든 화면)은 계속 720px 에
+        갇혀 있었다(실측: 넓은 모니터에서 표 오른쪽이 텅 비었다). 로그인·확인 중·오류 같은
+        작은 안내 패널만 좁게 두고, 실제 운영 화면(workspace·orders)은 화면 폭을 그대로 쓴다.
+      */
+      var ADMIN_NARROW_STATES = ['loading', 'anonymous', 'recovery', 'forbidden', 'error', 'ready'];
       function show(name) {
         Object.keys(states).forEach(function (key) { states[key].hidden = key !== name; });
+        var main = document.querySelector('main');
+        if (main) {
+          if (ADMIN_NARROW_STATES.indexOf(name) !== -1) main.setAttribute('data-width', 'narrow');
+          else main.removeAttribute('data-width');
+        }
       }
 
       function setText(selector, value) {
