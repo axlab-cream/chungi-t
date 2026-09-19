@@ -1917,3 +1917,9 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - CreamWIKI `personal/carrotcap/notes/umsh-admin-supabase-session-20260920.md`에 비밀정보 없는 원인·결정·검증을 저장하고 재조회·검색했다.
 - 커밋 `0b12c0d`를 `origin/main`에 push했고 Vercel Production `dpl_AL2zBFeEWX7WTAmmHyzSghqerZJ3`가 Ready로 `umsh.kr`에 연결됐다. 운영 health, 관리자 HTML의 새 폴백·비영속 설정, 무토큰 교환 401을 확인했다.
 - Codex 브라우저에서 `/admin`을 새로 열어 이전 실패 문구가 사라진 깨끗한 직원 로그인 폼을 확인했다. 비밀번호를 읽거나 입력하지 않았으므로 인증 완료 화면 확인만 사용자 재입력 뒤 남아 있다.
+
+## 2026-09-20 — 관리자 운영 로그인 최종 확인
+
+- 사용자가 Codex 브라우저에서 자격 증명을 다시 입력해 관리자 로그인을 완료했다.
+- Vercel Production 로그에서 `POST /api/admin/v1/login` 200, 후속 `GET /api/admin/v1/me` 200, 운영 데이터 API 200을 확인했다.
+- 활성 `super_admin` 계정과 기존 HttpOnly 관리자 세션 경로가 정상 동작하므로 추가 코드·Supabase 설정 변경은 하지 않았다.
