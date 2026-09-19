@@ -25,7 +25,10 @@
 - 변경 파일 비밀정보 패턴 검사 통과.
 - 승인 후 `origin/main` push, GitHub CI, Vercel Production 배포가 성공했다.
 - 운영 도메인 연동 10/10과 서비스 범위 표시를 재검증했다.
-- 물리 백업 8개는 확인했지만 PITR은 비활성이다. history repair는 전체 권한·RLS 검토와 dry-run 0건 게이트가 남아 실행하지 않았다.
+- 물리 백업 8개를 확인했고 PITR은 비활성이다.
+- 추가 승인 후 공식 Management API 읽기 전용 SQL로 8개 변경의 함수·테이블·뷰·권한·RLS 조건 21/21을 확인했다.
+- `migration repair --status applied`는 스키마 SQL 없이 history 8건만 복구했다. 사후 로컬/원격 30/30 일치, `db push --dry-run` 적용 대상 0건, 운영 연동 10/10 PASS다.
+- Docker shadow diff가 Inference Manager 소켓 오류로 불가능할 때는 원격 catalog를 읽기 전용 SQL로 검증하되, 대상 migration의 최종 객체·권한·RLS를 명시적 assertion으로 고정한다.
 
 ## 교훈
 

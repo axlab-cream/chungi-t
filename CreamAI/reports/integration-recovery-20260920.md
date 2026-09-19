@@ -79,4 +79,18 @@ npx supabase@latest migration repair --linked --status applied 20260914150000 20
 - Vercel Production: `dpl_8hxeRbUCLcHAofNXms8uHoCzXvGU` Ready, `umsh.kr` alias 확인.
 - 운영 재검증: 연동 10/10 PASS, `/about` 서비스 범위 및 퇴사운 8개 칩 PASS.
 
-Git/Vercel 반영은 완료됐다. 원격 migration history repair는 G3·G4를 충족하는 별도 DB 작업으로 남긴다.
+Git/Vercel 반영은 완료됐다.
+
+## Supabase migration history repair — 2026-09-20
+
+사용자의 추가 승인 후 Docker 기반 shadow diff 대신 Supabase 공식 Management API의 읽기 전용 SQL을 사용해 8개 migration의 최종 원격 상태를 검증했다. 함수 본문·실행 권한, 테이블·열·제약·인덱스, RLS, 뷰 `security_invoker`, 생성 열과 역할 권한을 확인한 21개 조건이 모두 PASS였다.
+
+- 대상 프로젝트: `wdyzollywccgaepjeynu` (`chungi-t`)
+- 복구 전 안전장치: 완료된 physical backup 8개 확인, PITR 비활성 확인
+- 실행: 위 8개 버전을 `migration repair --status applied`로 history에만 기록
+- 실제 스키마 SQL 실행: 0건
+- 사후 migration inventory: 로컬/원격 30/30 일치
+- 사후 `db push --dry-run --include-all --skip-vault`: 적용 대상 0건, `Remote database is up to date`
+- 운영 연동: 10/10 PASS
+
+Advisor 결과에서 신규 차단 결함은 없었다. 서버 전용 테이블의 `RLS enabled/no policy`는 anon/auth 권한을 폐쇄한 의도된 구조다. 별도 개선 후보로 invoker 함수 `cheongi_report_light`의 고정 search path, Auth leaked-password protection 활성화, 사용량이 아직 없는 인덱스 관찰이 남았다.

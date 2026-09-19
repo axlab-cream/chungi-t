@@ -44,8 +44,8 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | V-007 | TASK-002 | integration (supabase rest) | Supabase REST `GET /rest/v1/<table>?limit=1` (anon key) | 3개 테이블 도달 가능 | PASS (3개 모두 HTTP 401 = RLS 거부, 테이블 존재 확인) | 2026-09-10 |
 | V-008 | TASK-002 | integration (supabase auth) | Supabase `GET /auth/v1/settings` | HTTP 200 | PASS (google, kakao, email 활성) | 2026-09-10 |
 | V-009 | TASK-003 | integration (local) | `node scripts/check-integrations.mjs --base http://localhost:8790` | 결제 외 전 항목 PASS | NOT_RUN | - |
-| V-010 | TASK-004 | schema | `supabase migration list` | baseline이 remote applied로 표시 | NOT_RUN | - |
-| V-011 | TASK-004 | schema (dry) | `supabase db push --dry-run` | 적용 대상 0건 | NOT_RUN | - |
+| V-010 | TASK-004 | schema | `supabase migration list` | baseline이 remote applied로 표시 | PASS (로컬/원격 30/30 일치) | 2026-09-20 |
+| V-011 | TASK-004 | schema (dry) | `supabase db push --dry-run` | 적용 대상 0건 | PASS (`upToDate=true`, migrations 0) | 2026-09-20 |
 | V-012 | TASK-005 | ci | GitHub Actions `ci` 워크플로 | typecheck + test 통과 | NOT_RUN | - |
 | V-013 | TASK-006 | deploy | Preview 배포 후 `/api/health` | `ok: true` + supabase 저장 경로 정상 | NOT_RUN | - |
 | V-014 | TASK-007 | payment | `node scripts/check-integrations.mjs` | `checkout enabled` PASS | BLOCKED (PG 콘솔 자격 필요) | - |

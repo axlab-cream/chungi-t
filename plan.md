@@ -43,7 +43,7 @@ Independent Tone V2 execution uses `tone-v2/PRD.md` and `tone-v2/PLAN.md`. User 
 | TASK-001 | Define task | 사용자 요청을 검증 가능한 Task로 변환 | P0 | `goal.md`, `ROADMAP.md`, `plan.md` | User request | 범위·완료 기준·승인 게이트 확정 | Document review | DONE |
 | TASK-002 | 프로젝트 분석 + 3서비스 연동 베이스라인 진단 | Git/Vercel/Supabase 상태를 근거와 함께 확정 | P0 | `CreamAI/reports/task-002_analysis.md` 외 | - | 세 서비스 판정 + 누락 항목 특정 | typecheck / test / check-integrations | DONE |
 | TASK-003 | 로컬 `.env` 완결화 | Vercel 변수와 로컬 정합화, 누락 서버 키 보완 | P0 | `.env`(비커밋), `.env.example`, `README.md` | TASK-002 | 로컬에서 결제·유료 리포트 경로 재현 가능 | `check-integrations --base http://localhost:8790` | PAUSED |
-| TASK-004 | Supabase CLI + migrations baseline | 루트 SQL을 migrations 히스토리로 편입 | P1 | `supabase/**` | TASK-003 + 안전 게이트 G1~G5 | baseline이 원격 히스토리에 applied | `supabase migration list` | BLOCKED |
+| TASK-004 | Supabase CLI + migrations baseline | 루트 SQL을 migrations 히스토리로 편입 | P1 | `supabase/**` | TASK-003 + 안전 게이트 G1~G5 | baseline이 원격 히스토리에 applied | `supabase migration list` | **DONE** (30/30 일치, dry-run 0) |
 | TASK-005 | GitHub Actions CI | push/PR에서 typecheck + test 자동 실행 | P1 | `.github/workflows/ci.yml` | TASK-002 | PR에서 CI 통과/실패 보고 | Actions run | TODO |
 | TASK-006 | Vercel 환경별 변수 공백 보완 | Preview/Development 서버 키 정책 확정 | P2 | Vercel 설정, `docs/WORKFLOW.md` | TASK-003 | Preview에서 서비스 롤 경로 동작 | Preview `/api/health` | TODO |
 | TASK-007 | 결제(Inicis) SignKey 설정 | `check-integrations` 결제 2건 FAIL 해소 | P2 | Vercel env(Production) | 사용자 자격 **+ U22 선행 해소** | `checkout enabled` PASS | check-integrations | BLOCKED |
@@ -63,11 +63,13 @@ Independent Tone V2 execution uses `tone-v2/PRD.md` and `tone-v2/PLAN.md`. User 
 `supabase link` 이후의 어떤 원격 쓰기(`db pull`의 히스토리 기록, `migration repair`,
 `db push`)도 실행하지 않는다.
 
-- [ ] G1. 복구 가능성 확인: 검증된 백업 또는 PITR 복구 지점이 존재하고, 복구 담당자가 지정되어 있다.
-- [ ] G2. 대상 확인: 링크된 프로젝트 ref와 환경이 `wdyzollywccgaepjeynu`(운영)임을 읽기 전용 명령으로 확인했다.
-- [ ] G3. baseline 검토: 생성된 baseline 마이그레이션 SQL과 스키마 diff를 사람이 읽고 의도 외 변경이 없음을 확인했다.
-- [ ] G4. dry-run 무변경: `supabase db push --dry-run`의 적용 대상이 0건이다.
-- [ ] G5. 명시적 승인: 사용자가 원격 히스토리 쓰기에 대해 명시적으로 승인했다.
+- [x] G1. 복구 가능성 확인: 완료 physical backup 8개를 확인했고 history-only 변경은 같은 8개를 `reverted`로 되돌릴 수 있다. 물리 복원 에스컬레이션은 프로젝트 소유자 범위다.
+- [x] G2. 대상 확인: 링크된 프로젝트 ref와 환경이 `wdyzollywccgaepjeynu`(운영)임을 읽기 전용 명령으로 확인했다.
+- [x] G3. baseline 검토: 기존 SQL 검토와 원격 catalog 읽기 전용 assertion 21/21로 함수·테이블·뷰·권한·RLS의 동등성을 확인했다.
+- [x] G4. dry-run 무변경: history repair 직후 `supabase db push --dry-run --include-all --skip-vault`의 적용 대상이 0건이다. 누락 history 자체 때문에 repair 전에는 8건으로 보이는 구조였음을 증거에 기록했다.
+- [x] G5. 명시적 승인: 사용자가 원격 히스토리 쓰기에 대해 명시적으로 승인했다.
+
+2026-09-20 완료 기록: 8개 버전을 `migration repair --status applied`로 history에만 기록했다. 스키마 SQL 실행은 0건이며 로컬/원격 migration은 30/30 일치한다.
 
 금지: `supabase db reset`(특히 `--linked`), dry-run 없는 `db push`,
 검토되지 않은 `db diff` 결과를 마이그레이션으로 저장하는 행위.

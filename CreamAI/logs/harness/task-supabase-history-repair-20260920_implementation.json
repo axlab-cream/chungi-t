@@ -1,0 +1,35 @@
+{
+  "task_id": "task-supabase-history-repair-20260920",
+  "mode": "implementation",
+  "timestamp": "2026-09-20T07:34:16.7234537+09:00",
+  "checks": [
+    {
+      "name": "secret scan changed files",
+      "status": "PASS",
+      "detail": "no obvious secret patterns"
+    },
+    {
+      "name": "git status available",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "commands": [
+    {
+      "name": "git status",
+      "command": "git status --short",
+      "exit_code": 0,
+      "output_tail": [
+        " M memory/candidates/integration-state-recovery-20260920.md",
+        " M reports/integration-recovery-20260920.md",
+        " M ../plan.md",
+        " M ../status.md",
+        " M ../tests.md",
+        "?? logs/events/task-supabase-history-repair-20260920.jsonl",
+        "?? logs/harness/task-supabase-history-repair-20260920_implementation.json"
+      ]
+    }
+  ],
+  "warnings": [],
+  "failed": false
+}

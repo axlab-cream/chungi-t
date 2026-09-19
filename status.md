@@ -1890,3 +1890,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Vercel Production `dpl_8hxeRbUCLcHAofNXms8uHoCzXvGU`가 Ready로 `umsh.kr`에 연결됐다. 운영 연동 10/10과 `/about`의 서비스 범위·퇴사운 8개 칩을 재검증했다.
 - Supabase에는 완료된 물리 백업 8개가 있고 최신 백업은 `2026-09-19T16:55:10Z`다. PITR은 비활성이다.
 - 사용자의 승인은 TASK-004 G5를 충족한다. 다만 G3 전체 권한·RLS 동등성 검토와 G4 사전 dry-run 0건은 아직 충족되지 않아 migration history repair와 `db push`는 실행하지 않았다.
+
+## 2026-09-20 — Supabase migration history 정합화
+
+- 사용자 추가 승인 후 공식 Management API 읽기 전용 SQL로 history 누락 8건의 실제 원격 스키마·함수·권한·RLS를 대조했다. 기계적 동등성 조건 21/21 PASS.
+- 완료된 physical backup 8개와 프로젝트 ref `wdyzollywccgaepjeynu`를 재확인한 뒤, 스키마 SQL 없이 `migration repair --status applied`로 8개 history 행만 복구했다.
+- 사후 `migration list`는 로컬/원격 30/30 일치, `db push --dry-run --include-all --skip-vault`는 적용 대상 0건이다. 운영 연동도 10/10 PASS.
+- Docker Desktop은 shadow diff 기동 중 Inference Manager의 `dockerInference` 소켓 정리 오류로 종료됐다. 검증은 Docker에 의존하지 않는 공식 읽기 전용 API로 대체했으며 DB 작업 결과에는 영향이 없다.
+- Advisor 후속 후보: invoker 함수 `cheongi_report_light` search path 고정, Auth leaked-password protection 활성화, unused index 추세 관찰. 이번 history 복구 범위에서는 변경하지 않았다.
