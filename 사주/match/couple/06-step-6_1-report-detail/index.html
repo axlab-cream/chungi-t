@@ -107,6 +107,18 @@
       backdrop-filter: blur(18px);
     }
 
+    /*
+     * umsh-chrome.js replaces this <header class="topbar"> with its own
+     * [data-umsh-service-top] wrapper (the original header ends up nested
+     * inside it, so its own grid-column:1/-1 above no longer reaches .shell's
+     * direct child). Without this, the wrapper falls into row 1 col 1 only,
+     * pushing .content-panel into row 2 col 1 — a 292px column narrow enough
+     * to wrap the hero <h1> one syllable per line on desktop widths.
+     */
+    .shell > [data-umsh-service-top] {
+      grid-column: 1 / -1;
+    }
+
     .brand {
       display: flex;
       align-items: center;
