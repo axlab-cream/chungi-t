@@ -1,12 +1,37 @@
 import { configuredEnv } from '../env/load.js'
+import { listPaymentOrders, type PaymentOrder } from '../payment/order-store.js'
 
 type RestRow = Record<string, unknown>
 
 export type AdminMemberSummary = {
-  memberId: string
+  /** Page-relative display ordinal (offset + index + 1) — not a stored membership number, shifts if the page or sort order changes. */
+  no?: number
+  /** Raw, unmasked user_id — this screen is a deliberate lookup (list page or exact-ID search), not a scan-safe public listing. */
+  id: string
   name: string
+  email: string | null
   createdAt: string
+  /** Supabase Auth's own last_sign_in_at. Null when the account has never signed in or the auth lookup failed. */
+  lastSignInAt: string | null
+  /** Supabase Auth app_metadata.provider (kakao/google/email/…). Null when unknown. */
+  signupProvider: string | null
+  /** Proxy for "완성된 사주 프로필을 등록했는가" — this app's core personal info is name + birth data, and only name is cheaply checkable here. */
+  personalInfoRegistered: boolean
+  /** Settled (paid/viewed) order count. */
+  purchaseCount: number
+  totalPurchaseAmount: number
   updatedAt: string
+}
+
+export type AdminMemberPurchase = {
+  orderId: string
+  productTitle: string
+  amount: number
+  status: string
+  reportId: string | null
+  /** null when the order has no bound report, or the report lookup failed. */
+  reportComplete: boolean | null
+  createdAt: string
 }
 
 export type AdminReportSummary = {
@@ -83,12 +108,6 @@ function maskIdentifier(value: unknown): string {
   return text.length <= 8 ? `${text.slice(0, 2)}•••` : `${text.slice(0, 6)}••••`
 }
 
-function maskName(value: unknown): string {
-  const text = clipped(value, '')
-  if (!text) return '이름 미등록'
-  return text.length === 1 ? '•' : `${text.slice(0, 1)}•`
-}
-
 function maskEmail(value: unknown): string {
   const email = clipped(value, '')
   const at = email.indexOf('@')
@@ -121,18 +140,62 @@ function reportServiceKey(payload: unknown): string {
     : '기록 없음'
 }
 
-export async function listLiveMembers(limit = 100): Promise<AdminMemberSummary[]> {
+function purchaseAmountFacts(orders: PaymentOrder[]): { purchaseCount: number; totalPurchaseAmount: number } {
+  const settled = orders.filter((order) => order.status === 'paid' || order.status === 'viewed')
+  return {
+    purchaseCount: settled.length,
+    totalPurchaseAmount: settled.reduce((sum, order) => sum + (Number.isFinite(order.amount) ? order.amount : 0), 0),
+  }
+}
+
+async function memberPurchaseFacts(userId: string): Promise<{ purchaseCount: number; totalPurchaseAmount: number }> {
+  const orders = await listPaymentOrders(userId, 100).catch(() => [] as PaymentOrder[])
+  return purchaseAmountFacts(orders)
+}
+
+/** Best-effort — a single member's Supabase Auth lookup failing must not blank out the whole list. */
+async function memberAuthFacts(userId: string): Promise<{ email: string | null; lastSignInAt: string | null; signupProvider: string | null }> {
+  const authUser = await fetchAuthAdminUser(userId).catch(() => null)
+  return {
+    email: typeof authUser?.email === 'string' ? authUser.email : null,
+    lastSignInAt: typeof authUser?.last_sign_in_at === 'string' ? authUser.last_sign_in_at : null,
+    signupProvider: typeof authUser?.app_metadata?.provider === 'string' ? authUser.app_metadata.provider : null,
+  }
+}
+
+/**
+ * 2026-09-19: 회원 화면에 가입·최종 방문·SNS·구매 요약을 직접 보여 달라는 요청으로,
+ * 행마다 Supabase Auth 조회 1회 + 주문 조회 1회가 추가로 붙는다. 페이지당 20건으로
+ * 제한해 두는 이유가 이것이다 — 100건씩 불러오던 예전 기본값을 그대로 쓰면 매 조회마다
+ * 최대 200회의 외부 호출이 겹친다.
+ */
+export async function listLiveMembers(limit = 20, offset = 0): Promise<AdminMemberSummary[]> {
   const url = new URL(tableUrl('cheongi_user_profiles'))
   url.searchParams.set('select', 'user_id,name,created_at,updated_at')
   url.searchParams.set('order', 'updated_at.desc')
-  url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 100)))
+  const safeLimit = Math.min(Math.max(limit, 1), 50)
+  const safeOffset = Math.max(offset, 0)
+  url.searchParams.set('limit', String(safeLimit))
+  url.searchParams.set('offset', String(safeOffset))
   const response = await fetch(url, { headers: serviceHeaders() })
   if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
-  return (await response.json() as RestRow[]).map((row) => ({
-    memberId: maskIdentifier(row.user_id),
-    name: maskName(row.name),
-    createdAt: clipped(row.created_at, ''),
-    updatedAt: clipped(row.updated_at, ''),
+  const rows = await response.json() as RestRow[]
+  return Promise.all(rows.map(async (row, index) => {
+    const userId = clipped(row.user_id, '')
+    const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
+    return {
+      no: safeOffset + index + 1,
+      id: userId,
+      name: clipped(row.name, '이름 미등록'),
+      email: auth.email,
+      createdAt: clipped(row.created_at, ''),
+      lastSignInAt: auth.lastSignInAt,
+      signupProvider: auth.signupProvider,
+      personalInfoRegistered: Boolean(clipped(row.name, '')),
+      purchaseCount: purchases.purchaseCount,
+      totalPurchaseAmount: purchases.totalPurchaseAmount,
+      updatedAt: clipped(row.updated_at, ''),
+    }
   }))
 }
 
@@ -145,7 +208,59 @@ export async function findLiveMember(memberId: string): Promise<AdminMemberSumma
   url.searchParams.set('user_id', `eq.${memberId}`); url.searchParams.set('select', 'user_id,name,created_at,updated_at'); url.searchParams.set('limit', '1')
   const response = await fetch(url, { headers: serviceHeaders() }); if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
   const row = (await response.json() as RestRow[])[0]
-  return row ? { memberId: maskIdentifier(row.user_id), name: maskName(row.name), createdAt: clipped(row.created_at, ''), updatedAt: clipped(row.updated_at, '') } : null
+  if (!row) return null
+  const userId = clipped(row.user_id, '')
+  const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
+  return {
+    id: userId,
+    name: clipped(row.name, '이름 미등록'),
+    email: auth.email,
+    createdAt: clipped(row.created_at, ''),
+    lastSignInAt: auth.lastSignInAt,
+    signupProvider: auth.signupProvider,
+    personalInfoRegistered: Boolean(clipped(row.name, '')),
+    purchaseCount: purchases.purchaseCount,
+    totalPurchaseAmount: purchases.totalPurchaseAmount,
+    updatedAt: clipped(row.updated_at, ''),
+  }
+}
+
+/** report_id 는 우리 쪽에서 만든 값만 들어오지만, in.() 필터에 얹기 전 형태를 한 번 더 확인한다. */
+async function reportCompletionByIds(reportIds: string[]): Promise<Map<string, boolean>> {
+  const map = new Map<string, boolean>()
+  const validIds = reportIds.filter((id) => /^[a-zA-Z0-9_-]{1,160}$/.test(id))
+  if (!validIds.length) return map
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('select', 'report_id,payload')
+  url.searchParams.set('report_id', `in.(${validIds.join(',')})`)
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) return map
+  const rows = await response.json() as RestRow[]
+  for (const row of rows) {
+    if (typeof row.report_id === 'string') map.set(row.report_id, reportIsComplete(row.payload))
+  }
+  return map
+}
+
+/**
+ * 회원 상세의 "구매 목록" — 완성 여부(PDF 받기 가능 여부)까지 함께 준다. 별도 저장소를
+ * 두지 않는다: 주문은 order-store 가 이미 갖고 있고, 완성 여부는 cheongi_reports.payload.status
+ * 그대로다(리포트 화면의 pdfReady 와 같은 판정).
+ */
+export async function listMemberPurchases(userId: string, limit = 100): Promise<{ purchases: AdminMemberPurchase[]; purchaseCount: number; totalPurchaseAmount: number }> {
+  const orders = await listPaymentOrders(userId, limit)
+  const reportIds = Array.from(new Set(orders.map((order) => order.reportId).filter((id): id is string => Boolean(id))))
+  const completion = await reportCompletionByIds(reportIds)
+  const purchases = orders.map((order) => ({
+    orderId: order.orderId,
+    productTitle: order.productTitle,
+    amount: order.amount,
+    status: order.status,
+    reportId: order.reportId ?? null,
+    reportComplete: order.reportId ? completion.get(order.reportId) ?? null : null,
+    createdAt: order.createdAt,
+  }))
+  return { purchases, ...purchaseAmountFacts(orders) }
 }
 
 export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]> {
@@ -276,9 +391,8 @@ export type AdminMemberBirth = {
 }
 
 /**
- * 2026-09-19: 목록(listLiveMembers)은 이름 첫 글자·ID 일부만 보여 대량 열람을 막는다
- * (ADR-0002). 이 상세 조회는 그 원칙을 지키면서, 관리자가 "정확 식별자 검색"으로 이미
- * 알아낸 회원 한 명만 열어 수정하는 별도의 좁은 통로다 — 목록을 바꾸지 않는다.
+ * 2026-09-19: 회원 상세·수정 화면 전용 조회다. 관리자가 목록의 "상세" 버튼이나
+ * "정확 식별자 검색"으로 이미 특정 회원 한 명을 지목한 다음에만 연다.
  */
 export type AdminMemberProfile = {
   userId: string
@@ -290,6 +404,8 @@ export type AdminMemberProfile = {
   updatedAt: string | null
   banned: boolean
   bannedUntil: string | null
+  lastSignInAt: string | null
+  signupProvider: string | null
 }
 
 export type AdminMemberProfileInput = {
@@ -299,7 +415,7 @@ export type AdminMemberProfileInput = {
   birthTimeKnown: boolean
 }
 
-type AuthAdminUser = { id: string; email?: string; banned_until?: string | null }
+type AuthAdminUser = { id: string; email?: string; banned_until?: string | null; last_sign_in_at?: string | null; app_metadata?: { provider?: string } }
 
 async function fetchMemberProfileRow(userId: string): Promise<RestRow | null> {
   const url = new URL(tableUrl('cheongi_user_profiles'))
@@ -342,6 +458,8 @@ function memberProfileFromRow(userId: string, row: RestRow | null, authUser: Aut
     updatedAt: typeof row?.updated_at === 'string' ? row.updated_at : null,
     banned: memberIsBanned(authUser?.banned_until),
     bannedUntil: authUser?.banned_until ?? null,
+    lastSignInAt: typeof authUser?.last_sign_in_at === 'string' ? authUser.last_sign_in_at : null,
+    signupProvider: typeof authUser?.app_metadata?.provider === 'string' ? authUser.app_metadata.provider : null,
   }
 }
 

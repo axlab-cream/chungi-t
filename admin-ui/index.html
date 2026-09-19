@@ -636,12 +636,64 @@
         notice.textContent = text;
         body.appendChild(notice);
       }
+      var memberListState = { offset: 0, limit: 20 };
+      /**
+       * 2026-09-19: 가입·최종 방문·SNS·구매 요약을 목록에 바로 보여 달라는 요청으로 행마다
+       * 외부 호출이 두 번(인증 정보 + 주문) 붙는다(live-data.ts listLiveMembers 주석 참고).
+       * 그래서 20건씩 페이지네이션한다 — 기존 100건 기본값을 유지하면 화면 하나가 최대
+       * 200회의 외부 호출을 한 번에 만든다.
+       */
       async function loadLiveMembers(body) {
+        body.replaceChildren();
+        var section = document.createElement('section'); section.className = 'admin-section';
+        var heading = document.createElement('h3'); heading.textContent = '실제 회원 프로필';
+        section.appendChild(heading);
+        var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
+        section.appendChild(status);
+        body.appendChild(section);
+        memberListState.offset = 0;
+        await renderMembersPage(body, section);
+      }
+      async function renderMembersPage(body, section) {
         try {
-          var payload = await (await fetch('/api/admin/v1/members', { credentials: 'same-origin' })).json();
-          if (!Array.isArray(payload.members)) throw new Error('LIVE_MEMBER_LOOKUP_FAILED');
-          addLiveTable(body, '실제 회원 프로필', ['회원 식별자', '이름', '가입 시각', '최근 변경'], payload.members, function (item) { return [item.memberId, item.name, item.createdAt, item.updatedAt]; }, '실제 회원 프로필이 아직 없습니다.');
-        } catch (_error) { addLiveError(body, '실제 회원 저장소를 불러오지 못했습니다.'); }
+          var response = await fetch('/api/admin/v1/members?limit=' + memberListState.limit + '&offset=' + memberListState.offset, { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED');
+          var payload = await response.json();
+          var members = Array.isArray(payload.members) ? payload.members : [];
+          var total = Number(payload.total || 0);
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">No</th><th scope="col">UID</th><th scope="col">이름</th><th scope="col">이메일</th><th scope="col">가입일</th><th scope="col">최종 방문</th><th scope="col">SNS</th><th scope="col">개인정보</th><th scope="col">구매 건수</th><th scope="col">총 구매금액</th><th scope="col">상세</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!members.length) {
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="11">실제 회원 프로필이 아직 없습니다.</td>'; rows.appendChild(empty);
+          }
+          members.forEach(function (item) {
+            var row = document.createElement('tr');
+            [item.no, item.id, item.name, item.email || '이메일 미확인', item.createdAt, item.lastSignInAt || '기록 없음', item.signupProvider || '미확인', item.personalInfoRegistered ? '등록됨' : '미등록', item.purchaseCount, Number(item.totalPurchaseAmount || 0).toLocaleString('ko-KR') + '원'].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = value == null || value === '' ? '—' : String(value); row.appendChild(cell);
+            });
+            var actionCell = document.createElement('td');
+            var detailButton = document.createElement('button'); detailButton.className = 'admin-button'; detailButton.type = 'button'; detailButton.textContent = '상세';
+            detailButton.addEventListener('click', function () { renderMemberDetail(body, item.id); });
+            actionCell.appendChild(detailButton); row.appendChild(actionCell);
+            rows.appendChild(row);
+          });
+          table.appendChild(rows);
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          var pager = document.createElement('div'); pager.className = 'admin-actions';
+          var pageCount = Math.max(1, Math.ceil(total / memberListState.limit));
+          var currentPage = Math.floor(memberListState.offset / memberListState.limit) + 1;
+          var prev = document.createElement('button'); prev.className = 'admin-button'; prev.type = 'button'; prev.textContent = '이전'; prev.disabled = memberListState.offset <= 0;
+          var next = document.createElement('button'); next.className = 'admin-button'; next.type = 'button'; next.textContent = '다음'; next.disabled = memberListState.offset + memberListState.limit >= total;
+          var pageLabel = document.createElement('span'); pageLabel.className = 'admin-note'; pageLabel.textContent = currentPage + ' / ' + pageCount + ' 페이지 · 총 ' + total + '명';
+          prev.addEventListener('click', function () { memberListState.offset = Math.max(0, memberListState.offset - memberListState.limit); renderMembersPage(body, section); });
+          next.addEventListener('click', function () { memberListState.offset += memberListState.limit; renderMembersPage(body, section); });
+          pager.appendChild(prev); pager.appendChild(pageLabel); pager.appendChild(next);
+          section.replaceChildren(section.firstElementChild, scroll, pager);
+        } catch (_error) {
+          var notice = section.querySelector('.admin-empty');
+          if (notice) notice.textContent = '실제 회원 저장소를 불러오지 못했습니다.';
+        }
       }
       async function loadLiveReports(body) {
         body.replaceChildren();
@@ -1317,6 +1369,9 @@
           var payload = await response.json(); var member = payload.member;
           var note = section.querySelector('.admin-note');
           note.textContent = (member.email || '이메일 미확인') + (member.banned ? ' · 계정 정지됨' : ' · 정상 계정');
+          var facts = document.createElement('p'); facts.className = 'admin-note'; facts.style.padding = '0 16px';
+          facts.textContent = '가입일 ' + (member.createdAt || '기록 없음') + ' · 최종 방문 ' + (member.lastSignInAt || '기록 없음') + ' · SNS ' + (member.signupProvider || '미확인');
+          note.insertAdjacentElement('afterend', facts);
           var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
           form.innerHTML = '<div class="admin-field" data-span="2"><label>이름</label><input required name="name" maxlength="20" placeholder="한글 2~20자"></div>'
             + '<div class="admin-field"><label>생년월일</label><div style="display:flex;gap:8px"><input required name="year" type="number" min="1900" placeholder="연"><input required name="month" type="number" min="1" max="12" placeholder="월"><input required name="day" type="number" min="1" max="31" placeholder="일"></div></div>'
@@ -1368,7 +1423,59 @@
             finally { statusButton.disabled = false; }
           });
           statusForm.appendChild(statusButton); section.appendChild(statusForm);
+          await renderMemberPurchases(section, userId);
         } catch (_error) { var note2 = section.querySelector('.admin-note'); if (note2) note2.textContent = '회원 프로필을 불러오지 못했습니다.'; }
+      }
+      /**
+       * 2026-09-19: 회원 상세의 구매 목록. 완료된 리포트는 리포트 화면과 같은 "PDF 받기"
+       * 버튼(downloadReportPdf)을 그대로 재사용한다 — 서버에 PDF 파일이 따로 있는 게 아니라
+       * 같은 인쇄창 방식을 쓰기 때문이다.
+       */
+      async function renderMemberPurchases(section, userId) {
+        var wrap = document.createElement('section'); wrap.className = 'admin-section';
+        wrap.innerHTML = '<h3 style="padding:0 16px">구매 목록</h3><p class="admin-empty">불러오는 중입니다.</p>';
+        section.appendChild(wrap);
+        try {
+          var response = await fetch('/api/admin/v1/members/' + encodeURIComponent(userId) + '/purchases', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('MEMBER_PURCHASES_LOOKUP_FAILED');
+          var payload = await response.json();
+          var purchases = Array.isArray(payload.purchases) ? payload.purchases : [];
+          var summary = document.createElement('p'); summary.className = 'admin-note'; summary.style.padding = '0 16px';
+          summary.textContent = '구매 완료 ' + (payload.purchaseCount || 0) + '건 · 총 ' + Number(payload.totalPurchaseAmount || 0).toLocaleString('ko-KR') + '원';
+          if (!purchases.length) {
+            var empty = document.createElement('p'); empty.className = 'admin-empty'; empty.textContent = '구매 내역이 없습니다.';
+            wrap.replaceChildren(wrap.firstElementChild, summary, empty);
+            return;
+          }
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">주문</th><th scope="col">상품</th><th scope="col">금액</th><th scope="col">상태</th><th scope="col">리포트 완료</th><th scope="col">PDF</th><th scope="col">주문 시각</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          purchases.forEach(function (purchase) {
+            var row = document.createElement('tr');
+            [purchase.orderId, purchase.productTitle, Number(purchase.amount || 0).toLocaleString('ko-KR') + '원', purchase.status].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = String(value || '—'); row.appendChild(cell);
+            });
+            var completeCell = document.createElement('td');
+            completeCell.textContent = purchase.reportComplete === true ? '완료' : (purchase.reportComplete === false ? '진행 중' : '해당 없음');
+            row.appendChild(completeCell);
+            var pdfCell = document.createElement('td');
+            if (purchase.reportComplete === true && purchase.reportId) {
+              var pdfButton = document.createElement('button'); pdfButton.className = 'admin-button'; pdfButton.type = 'button'; pdfButton.textContent = 'PDF 받기';
+              pdfButton.addEventListener('click', function () { downloadReportPdf(purchase.reportId, pdfButton); });
+              pdfCell.appendChild(pdfButton);
+            } else {
+              pdfCell.textContent = '—';
+            }
+            row.appendChild(pdfCell);
+            var dateCell = document.createElement('td'); dateCell.textContent = String(purchase.createdAt || '—'); row.appendChild(dateCell);
+            rows.appendChild(row);
+          });
+          table.appendChild(rows);
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          wrap.replaceChildren(wrap.firstElementChild, summary, scroll);
+        } catch (_error) {
+          var notice = wrap.querySelector('.admin-empty'); if (notice) notice.textContent = '구매 내역을 불러오지 못했습니다.';
+        }
       }
       async function loadSupportCases(body) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>고객 지원 케이스</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">케이스를 불러오는 중입니다.</p>'; body.appendChild(section);

@@ -85,6 +85,8 @@ describe('회원 프로필 상세·수정·계정 정지', { concurrency: false 
       updatedAt: '2026-01-02T00:00:00.000Z',
       banned: false,
       bannedUntil: null,
+      lastSignInAt: null,
+      signupProvider: null,
     })
   })
 
@@ -149,5 +151,23 @@ describe('회원 상세·수정·정지 라우트는 감사 명령을 거치고,
     assert.match(staff, /'members:write'/)
     const localScopesLine = source.slice(source.indexOf('const LOCAL_ADMIN_SCOPES'), source.indexOf('\n', source.indexOf('const LOCAL_ADMIN_SCOPES')))
     assert.match(localScopesLine, /'members:write'/, '로컬 관리자 계정에도 members:write 가 없으면 화면이 403 으로 막힌다')
+  })
+
+  /**
+   * 2026-09-19: 회원 상세의 구매 목록 라우트. PDF 받기와 마찬가지로 읽기 전용이라
+   * members:read 만 요구하고, 감사 명령을 거치지 않는다.
+   */
+  it('구매 목록 라우트는 members:read 로 읽기만 한다', () => {
+    const purchasesRoute = source.slice(source.indexOf("app.get('/api/admin/v1/members/:id/purchases'"), source.indexOf("app.patch('/api/admin/v1/members/:id'"))
+    assert.match(purchasesRoute, /requireStaff\(req, res, 'members:read'\)/)
+    assert.doesNotMatch(purchasesRoute, /executeAdminCommand\(/)
+    assert.match(purchasesRoute, /listMemberPurchases\(userId\)/)
+  })
+
+  it('회원 목록 라우트는 offset·total 을 페이지네이션에 쓴다', () => {
+    const listRoute = source.slice(source.indexOf("app.get('/api/admin/v1/members',"), source.indexOf("app.get('/api/admin/v1/members/:id'"))
+    assert.match(listRoute, /requireStaff\(req, res, 'members:read'\)/)
+    assert.match(listRoute, /req\.query\?\.offset/)
+    assert.match(listRoute, /countLiveMembers\(\)/)
   })
 })

@@ -9,12 +9,42 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
 type RequestLog = { url: URL; headers: Headers }
 const requests: RequestLog[] = []
 
+const MEMBER_A = '12345678-1234-1234-1234-123456789012'
+const MEMBER_B = 'b2b2b2b2-2222-2222-2222-222222222222'
+
 globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
   const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
   const headers = new Headers(init?.headers)
   requests.push({ url, headers })
+  if (url.pathname.includes('/auth/v1/admin/users/')) {
+    const id = decodeURIComponent(url.pathname.split('/').pop() || '')
+    if (id === MEMBER_A) {
+      return new Response(JSON.stringify({ id, email: 'member-a@example.com', last_sign_in_at: '2026-09-15T03:00:00.000Z', app_metadata: { provider: 'kakao' } }), { status: 200 })
+    }
+    if (id === MEMBER_B) return new Response(JSON.stringify({ id, email: 'member-b@example.com' }), { status: 200 })
+    return new Response(null, { status: 404 })
+  }
+  if (url.pathname.endsWith('/cheongi_payment_orders')) {
+    const ownerId = url.searchParams.get('owner_id')
+    if (ownerId === `eq.${MEMBER_A}`) {
+      return new Response(JSON.stringify([
+        { order_id: 'order-paid-1', owner_id: MEMBER_A, buyer_email: 'member-a@example.com', buyer_tel: '', product_key: 'cmdg', product_title: '종합사주', amount: 9900, status: 'paid', report_id: 'report-purchase-complete', created_at: '2026-09-10T00:00:00.000Z', updated_at: '2026-09-10T00:10:00.000Z' },
+        { order_id: 'order-viewed-1', owner_id: MEMBER_A, buyer_email: 'member-a@example.com', buyer_tel: '', product_key: 'money_save', product_title: '돈 관리', amount: 5900, status: 'viewed', report_id: 'report-purchase-pending', created_at: '2026-09-11T00:00:00.000Z', updated_at: '2026-09-11T00:10:00.000Z' },
+        { order_id: 'order-failed-1', owner_id: MEMBER_A, buyer_email: 'member-a@example.com', buyer_tel: '', product_key: 'cmdg', product_title: '종합사주', amount: 9900, status: 'failed', report_id: null, created_at: '2026-09-12T00:00:00.000Z', updated_at: '2026-09-12T00:10:00.000Z' },
+      ]), { headers: { 'content-range': '0-2/3' } })
+    }
+    return new Response(JSON.stringify([]), { headers: { 'content-range': '*/0' } })
+  }
+  if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select') === 'report_id,payload') {
+    return new Response(JSON.stringify([
+      { report_id: 'report-purchase-complete', payload: { status: 'complete' } },
+      { report_id: 'report-purchase-pending', payload: { status: 'generating' } },
+    ]))
+  }
   if (url.pathname.endsWith('/cheongi_user_profiles')) {
-    return new Response(JSON.stringify([{ user_id: '12345678-1234-1234-1234-123456789012', name: '홍길동', created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/6' } })
+    const exact = url.searchParams.get('user_id')
+    if (exact && exact !== `eq.${MEMBER_A}`) return new Response(JSON.stringify([]), { headers: { 'content-range': '*/0' } })
+    return new Response(JSON.stringify([{ user_id: MEMBER_A, name: '홍길동', created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/6' } })
   }
   if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select') === 'report_id') {
     // countLiveReports() 의 count-only 조회. 실제 행은 안 보고 content-range 헤더만 쓴다.
@@ -95,25 +125,34 @@ after(() => {
 describe('관리자 실데이터 DTO', { concurrency: false }, () => {
   before(() => { requests.length = 0 })
 
-  it('회원 원본에서 생년월일·성별·프로필 원문을 요청하거나 반환하지 않는다', async () => {
+  it('회원 목록은 생년월일·성별 같은 프로필 원문은 요청하지 않고, 가입·인증·구매 요약을 합쳐 돌려준다', async () => {
     const members = await liveData.listLiveMembers(1)
-    assert.deepEqual(members, [{ memberId: '123456••••', name: '홍•', createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
-    assert.equal(requests[0]?.url.searchParams.get('select'), 'user_id,name,created_at,updated_at')
-    assert.equal(requests[0]?.headers.get('apikey'), 'test-service-role-key')
+    assert.deepEqual(members, [{
+      no: 1, id: MEMBER_A, name: '홍길동', email: 'member-a@example.com',
+      createdAt: '2026-09-01T00:00:00.000Z', lastSignInAt: '2026-09-15T03:00:00.000Z', signupProvider: 'kakao',
+      personalInfoRegistered: true, purchaseCount: 2, totalPurchaseAmount: 15800,
+      updatedAt: '2026-09-02T00:00:00.000Z',
+    }])
+    const profileRequest = requests.find((r) => r.url.pathname.endsWith('/cheongi_user_profiles'))
+    assert.equal(profileRequest?.url.searchParams.get('select'), 'user_id,name,created_at,updated_at')
+    assert.equal(profileRequest?.headers.get('apikey'), 'test-service-role-key')
   })
 
   it('리포트 원문·생년월일을 DTO로 흘리지 않고 상태와 서비스 키만 반환한다', async () => {
     const reports = await liveData.listLiveReports(1)
     assert.deepEqual(reports, [{ reportId: 'report••••', id: 'report-123456789', member: 'c•••@example.com', serviceKey: 'cmdg', status: 'new', pdfReady: false, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
-    assert.equal(requests[1]?.url.searchParams.get('select'), 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at')
+    const reportRequest = requests.find((r) => r.url.pathname.endsWith('/cheongi_reports') && r.url.searchParams.get('select')?.includes('admin_status'))
+    assert.equal(reportRequest?.url.searchParams.get('select'), 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at')
     assert.ok(!JSON.stringify(reports).includes('1990'))
   })
 
   it('운영 요약용 카운트는 원본 테이블의 exact count 헤더를 사용한다', async () => {
+    const before = requests.length
     assert.equal(await liveData.countLiveMembers(), 6)
     assert.equal(await liveData.countLiveReports(), 68)
-    assert.equal(requests[2]?.headers.get('prefer'), 'count=exact')
-    assert.equal(requests[3]?.headers.get('prefer'), 'count=exact')
+    const countRequests = requests.slice(before)
+    assert.equal(countRequests[0]?.headers.get('prefer'), 'count=exact')
+    assert.equal(countRequests[1]?.headers.get('prefer'), 'count=exact')
   })
 
   /**
@@ -165,5 +204,26 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     const reports = await liveData.listLiveReports(2)
     assert.equal(reports[0].pdfReady, true)
     assert.equal(reports[1].pdfReady, false)
+  })
+
+  /**
+   * 2026-09-19: 회원 상세의 구매 목록 — 실패(failed) 주문은 목록에는 실리지만 구매
+   * 건수·총액에는 안 들어간다(paid·viewed 만 "구매"로 센다). 완료 여부는 리포트 화면의
+   * pdfReady 와 같은 판정(payload.status==='complete')을 주문에 묶인 reportId 로 조회한다.
+   */
+  it('구매 목록은 실패 주문도 보여주되, 건수·총액은 결제 완료(paid·viewed)만 센다', async () => {
+    const overview = await liveData.listMemberPurchases(MEMBER_A)
+    assert.equal(overview.purchaseCount, 2)
+    assert.equal(overview.totalPurchaseAmount, 15800)
+    assert.equal(overview.purchases.length, 3)
+    const byId = new Map(overview.purchases.map((p) => [p.orderId, p]))
+    assert.equal(byId.get('order-paid-1')?.reportComplete, true)
+    assert.equal(byId.get('order-viewed-1')?.reportComplete, false)
+    assert.equal(byId.get('order-failed-1')?.reportComplete, null, '리포트가 안 묶인 주문은 완료 여부가 해당 없음(null)이다')
+  })
+
+  it('없는 회원 ID 는 임의 값을 지어내지 않고 null 을 돌려준다', async () => {
+    const summary = await liveData.findLiveMember('unknown-member-id')
+    assert.equal(summary, null)
   })
 })

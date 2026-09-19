@@ -42,7 +42,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveMembers, listLiveReports, listQualityReviews, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveMembers, listLiveReports, listMemberPurchases, listQualityReviews, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
@@ -2781,19 +2781,27 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
   } catch (error) { respondRefundFailure(res, error, 'REFUND_APPROVE_FAILED') }
 })
 
-/** Live, privacy-minimized member data. The service key never reaches the browser. */
+/**
+ * 2026-09-19: 가입·최종 방문·SNS·구매 요약까지 목록에 그대로 보여 달라는 요청으로
+ * 행마다 외부 호출이 붙는다(listLiveMembers 주석 참고) — 그래서 페이지당 20건으로 자르고
+ * total 을 함께 내려 화면이 페이지네이션을 할 수 있게 한다.
+ */
 app.get('/api/admin/v1/members', async (req, res) => {
   if (!await requireStaff(req, res, 'members:read')) return
+  const limit = Number(req.query?.limit ?? 20)
+  const offset = Number(req.query?.offset ?? 0)
   try {
-    res.json({ members: await listLiveMembers(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+    const [members, total] = await Promise.all([listLiveMembers(limit, offset), countLiveMembers()])
+    res.json({ members, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
   }
 })
 
 /**
- * 2026-09-19: 회원 상세는 "정확 식별자 검색"으로 이미 특정 회원을 지목한 다음에만
- * 연다 — 목록에는 붙이지 않는다(ADR-0002, listLiveMembers 는 그대로 마스킹).
+ * 2026-09-19: 목록의 "상세" 버튼이나 "정확 식별자 검색"으로 이미 특정 회원을 지목한
+ * 다음에만 연다. 목록(listLiveMembers) 자체는 이제 실명을 보여주지만, 생년월일 같은
+ * 원본 입력값은 이 편집 전용 조회에서만 나간다.
  */
 app.get('/api/admin/v1/members/:id', async (req, res) => {
   if (!await requireStaff(req, res, 'members:read')) return
@@ -2805,6 +2813,22 @@ app.get('/api/admin/v1/members/:id', async (req, res) => {
     res.json({ member })
   } catch {
     res.status(503).json({ code: 'MEMBER_PROFILE_LOOKUP_FAILED', error: '회원 프로필을 불러오지 못했습니다.' })
+  }
+})
+
+/**
+ * 2026-09-19: 회원 상세 화면의 구매 목록. 완료 여부(reportComplete)는 리포트 화면의
+ * pdfReady 와 같은 판정이라, 화면은 이 응답의 reportId 를 그대로 PDF 받기 버튼에 넘긴다.
+ */
+app.get('/api/admin/v1/members/:id/purchases', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  const userId = trimmedString(req.params.id)
+  if (!userId) { res.status(422).json({ code: 'INVALID_MEMBER_ID', error: '회원 ID를 확인해 주세요.' }); return }
+  try {
+    const overview = await listMemberPurchases(userId)
+    res.json({ ...overview, asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'MEMBER_PURCHASES_LOOKUP_FAILED', error: '구매 내역을 불러오지 못했습니다.' })
   }
 })
 
