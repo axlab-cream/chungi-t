@@ -349,6 +349,11 @@ export interface SajuReportSection {
   tokenUsage?: { promptTokens: number; completionTokens: number; totalTokens: number }
   /** Internal generation attempts; removed from customer responses. */
   attempts?: Array<{ id: string; startedAt: string; finishedAt?: string; model: string; status: 'generating' | 'complete' | 'failed'; raw?: string; finishReason?: string | null; error?: string; tokenUsage?: { promptTokens: number; completionTokens: number; totalTokens: number } }>
+  /**
+   * 운영자가 수동 재시작한 시각. 이 시각 이전의 실패 시도는 포기 판정(REPORT_EXHAUSTED)에서
+   * 세지 않는다 — 기록은 그대로 남기고 상한만 다시 연다. 고객 응답에서는 제거된다.
+   */
+  retryFloorAt?: string
   generationLease?: { id: string; expiresAt: string }
   order: number
   imageKey: string

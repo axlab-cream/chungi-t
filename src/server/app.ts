@@ -69,7 +69,7 @@ import {
 } from '../admin/prompt-content-store.js'
 import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
-import { backfillReportCompletions, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner } from '../report/report-completion-job.js'
+import { backfillReportCompletions, describeReportCompletion, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner, restartReportCompletion } from '../report/report-completion-job.js'
 import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
@@ -1233,7 +1233,7 @@ function bearerToken(req: Request): string {
 
 const LOCAL_ADMIN_COOKIE = '__Host-umsh-admin-session'
 const LOCAL_ADMIN_SESSION_SECONDS = 8 * 60 * 60
-const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write', 'prompts:write', 'prompts:publish']
+const LOCAL_ADMIN_SCOPES = ['orders:read', 'members:read', 'members:write', 'reports:read', 'reports:write', 'audit:read', 'settings:read', 'settings:write', 'support:read', 'support:write', 'refunds:read', 'refunds:request', 'refunds:approve', 'services:read', 'services:write', 'services:publish', 'incidents:read', 'incidents:write', 'prompts:write', 'prompts:publish']
 
 function localAdminEmail(): string {
   return String(process.env.UMSH_LOCAL_ADMIN_EMAIL ?? '').trim().toLowerCase()
@@ -2720,6 +2720,49 @@ app.post('/api/admin/v1/members/:id/status', async (req, res) => {
  * 큐는 결제 시점에만 작업을 넣으므로, 큐 도입 이전 구매분은 스스로 이어지지 않는다.
  * 멱등키가 같아 여러 번 눌러도 작업이 복제되지 않는다.
  */
+/**
+ * 2026-09-19: 죽은(dead) 작업의 리포트가 실제로 어디까지 됐고 왜 막혔는지 화면 없이 볼 곳이 없었다.
+ * 원문은 싣지 않는다. 실패 사유·시도 수·상한 판정만.
+ */
+app.get('/api/admin/v1/reports/:id/diagnostics', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  const reportId = trimmedString(req.params.id)
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId)) { res.status(422).json({ code: 'INVALID_REPORT_ID', error: '리포트 ID를 확인해 주세요.' }); return }
+  try {
+    const diagnostics = await describeReportCompletion(reportId)
+    if (!diagnostics) { res.status(404).json({ code: 'REPORT_NOT_FOUND', error: '해당 리포트를 찾지 못했습니다.' }); return }
+    res.json({ diagnostics, asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'REPORT_DIAGNOSTICS_FAILED', error: '리포트 진단을 불러오지 못했습니다.' })
+  }
+})
+
+/**
+ * 운영자의 수동 재시작. REPORT_EXHAUSTED 로 고정된 리포트는 자동 백필이 영영 건너뛰므로 여기가
+ * 유일한 길이다. 모델을 다시 부르므로 비용이 든다 — 화면이 확인을 받고, 감사 명령으로 남긴다.
+ */
+app.post('/api/admin/v1/reports/:id/restart', async (req, res) => {
+  const membership = await requireStaff(req, res, 'reports:write'); if (!membership) return
+  const reportId = trimmedString(req.params.id)
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(reportId) || idempotencyKey.length < 8) {
+    res.status(422).json({ code: 'INVALID_REPORT_RESTART', error: '리포트 ID와 멱등 키를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'report.generation.restart', idempotencyKey,
+      body: { reportId }, target: { type: 'report', id: reportId },
+    }, async () => restartReportCompletion(reportId))
+    res.status(command.replayed ? 200 : 202).json({ ...command.result, replayed: command.replayed })
+  } catch (error) {
+    const raw = error instanceof Error ? error.message : ''
+    if (raw === 'REPORT_NOT_FOUND') { res.status(404).json({ code: raw, error: '해당 리포트를 찾지 못했습니다.' }); return }
+    if (raw === 'REPORT_ALREADY_COMPLETE') { res.status(409).json({ code: raw, error: '이미 완성된 리포트입니다. 재시작할 것이 없습니다.' }); return }
+    console.error('REPORT_RESTART_FAILED', raw || 'unknown')
+    res.status(503).json({ code: 'REPORT_RESTART_FAILED', error: '리포트 재시작에 실패했습니다. 임의로 바꾸지 않았습니다.' })
+  }
+})
+
 app.post('/api/admin/v1/reports/requeue-incomplete', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {

@@ -104,8 +104,14 @@ export function sectionHitQuotaExhaustion(section: Pick<SajuReportSection, 'atte
  * 한 항목에서 공급자 사정(잔액 소진·키 거절)을 뺀 실패 시도 수. 리포트를 포기할지(REPORT_EXHAUSTED)
  * 셀 때 쓴다 — 바깥 사정으로 실패한 시도를 세면 크레딧이 끊긴 사이에 정상 리포트가 포기된다.
  */
-export function countGenuineFailures(section: Pick<SajuReportSection, 'attempts'>): number {
-  return (section.attempts ?? []).filter((attempt) => attempt.status === 'failed' && !providerOutageOf(attempt)).length
+export function countGenuineFailures(section: Pick<SajuReportSection, 'attempts' | 'retryFloorAt'>): number {
+  // 운영자가 수동 재시작했으면 그 시각 이전의 실패는 상한에서 빼고 다시 센다. 기록은 남는다.
+  const floor = section.retryFloorAt ? Date.parse(section.retryFloorAt) : Number.NaN
+  return (section.attempts ?? []).filter((attempt) => (
+    attempt.status === 'failed'
+    && !providerOutageOf(attempt)
+    && !(Number.isFinite(floor) && Date.parse(attempt.startedAt) < floor)
+  )).length
 }
 
 /**

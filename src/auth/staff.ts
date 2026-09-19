@@ -25,6 +25,7 @@ export const SUPER_ADMIN_SCOPES = Object.freeze([
   'members:read',
   'members:write',
   'reports:read',
+  'reports:write',
   'audit:read',
   'settings:read',
   'settings:write',

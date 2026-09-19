@@ -147,8 +147,19 @@ test('renderMemberDetail 은 회원 상세를 불러와 채우고, 저장·계�
   assert.match(body, /banned: next/)
 })
 
+test('loadOpsJobs 는 dead 작업에만 진단 버튼을 달고, 진단 화면은 확인 뒤에만 재시작한다', () => {
+  const jobs = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('async function renderReportDiagnostics'))
+  assert.match(jobs, /item\.kind === 'report\.sections\.complete' && item\.state === 'dead'/)
+  assert.match(jobs, /renderReportDiagnostics\(body, item\.target_id\)/)
+  const diagnostics = source.slice(source.indexOf('async function renderReportDiagnostics'), source.indexOf('function refundStatus'))
+  assert.match(diagnostics, /fetch\('\/api\/admin\/v1\/reports\/' \+ encodeURIComponent\(reportId\) \+ '\/diagnostics'/)
+  assert.match(diagnostics, /window\.confirm\('미완성 항목의 포기 상한을 다시 열고/)
+  assert.match(diagnostics, /fetch\('\/api\/admin\/v1\/reports\/' \+ encodeURIComponent\(reportId\) \+ '\/restart', \{ method: 'POST'/)
+  assert.match(diagnostics, /if \(d\.status !== 'complete'\)/, '완성된 리포트에는 재시작 버튼을 내지 않는다')
+})
+
 test('loadOpsJobs 는 일시정지·정리를 기존 백엔드 라우트에 연결한다', () => {
-  const body = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('function refundStatus'))
+  const body = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('async function renderReportDiagnostics'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/pause', \{ credentials: 'same-origin' \}\)/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/pause', \{ method: 'POST'/)
   assert.match(body, /body: JSON\.stringify\(\{ paused: next \}\)/)

@@ -931,7 +931,81 @@
           } catch (error) { controlResult.textContent = error instanceof Error ? error.message : '작업 정리에 실패했습니다.'; }
           finally { purgeButton.disabled = false; }
         });
-        try { var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED'); var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : []; addLiveTable(body, '실제 영속 작업 큐', ['작업', '대상', '상태', '시도', '다음 실행', '오류'], jobs, function (item) { return [item.kind, item.target_id, item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—']; }, '실행 대기 중인 실제 작업이 없습니다.'); } catch (_error) { addLiveError(body, '실제 작업 큐를 불러오지 못했습니다.'); }
+        var listSection = document.createElement('section'); listSection.className = 'admin-section';
+        listSection.innerHTML = '<header class="admin-section-head"><h3>실제 영속 작업 큐</h3><span class="admin-chip">dead 는 진단·재시작 가능</span></header><p class="admin-empty">작업 큐를 불러오는 중입니다.</p>';
+        body.appendChild(listSection);
+        try {
+          var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED');
+          var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">작업</th><th scope="col">대상</th><th scope="col">상태</th><th scope="col">시도</th><th scope="col">다음 실행</th><th scope="col">오류</th><th scope="col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!jobs.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">실행 대기 중인 실제 작업이 없습니다.</td>'; rows.appendChild(empty); }
+          jobs.forEach(function (item) {
+            var row = document.createElement('tr');
+            [item.kind, item.target_id, item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—'].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
+            });
+            var actionCell = document.createElement('td');
+            if (item.kind === 'report.sections.complete' && item.state === 'dead') {
+              var diagnose = document.createElement('button'); diagnose.className = 'admin-button'; diagnose.type = 'button'; diagnose.textContent = '진단'; diagnose.setAttribute('data-variant', 'quiet');
+              diagnose.addEventListener('click', function () { renderReportDiagnostics(body, item.target_id); });
+              actionCell.appendChild(diagnose);
+            }
+            row.appendChild(actionCell); rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          listSection.replaceChildren(listSection.firstElementChild, scroll);
+        } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 작업 큐를 불러오지 못했습니다.'; }
+      }
+      /**
+       * 2026-09-19: 죽은 작업의 리포트가 어디까지 됐고 왜 막혔는지, 그리고 재시작하면 모델이 다시
+       * 불릴지(비용)를 보고 사람이 결정한다. REPORT_EXHAUSTED 는 자동 백필이 영영 건너뛰므로
+       * 여기 재시작 버튼이 유일한 길이다.
+       */
+      async function renderReportDiagnostics(body, reportId) {
+        var previous = body.querySelector('[data-report-diagnostics]'); if (previous) previous.remove();
+        var section = document.createElement('section'); section.dataset.reportDiagnostics = 'true'; section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>리포트 진단</h3><span class="admin-chip">' + escapeHtml(reportId) + '</span></header><p class="admin-empty">진단을 불러오는 중입니다.</p>';
+        body.appendChild(section); section.scrollIntoView({ block: 'nearest' });
+        try {
+          var response = await fetch('/api/admin/v1/reports/' + encodeURIComponent(reportId) + '/diagnostics', { credentials: 'same-origin' });
+          var payload = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(payload.error || 'REPORT_DIAGNOSTICS_FAILED');
+          var d = payload.diagnostics;
+          var verdictText = d.verdict === 'exhausted' ? '상한 도달 — 재시작 없이는 모델을 부르지 않음' : d.verdict === 'quota' ? '잔액 소진 대기' : d.verdict === 'key' ? '키 거절 대기' : d.status === 'complete' ? '완성' : '재시도 가능(자동 백필 대상)';
+          var summary = document.createElement('p'); summary.className = 'admin-note'; summary.style.padding = '0 16px';
+          summary.textContent = (d.serviceKey || '서비스 미확인') + ' · ' + d.progress.complete + '/' + d.progress.total + ' 완성 · 상태 ' + d.status + ' · 판정: ' + verdictText + ' · 포기 상한 ' + d.giveUpThreshold + '회/항목';
+          section.replaceChildren(section.firstElementChild, summary);
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">순서</th><th scope="col">항목</th><th scope="col">상태</th><th scope="col">진짜 실패/전체 시도</th><th scope="col">마지막 실패 사유</th><th scope="col">마지막 실패</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!d.sections.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="6">실패 기록이 있는 항목이 없습니다.</td>'; rows.appendChild(empty); }
+          d.sections.forEach(function (s) {
+            var row = document.createElement('tr');
+            [s.order, s.classification || s.id, s.status, s.genuineFailures + '/' + s.totalAttempts + (s.retryFloorAt ? ' (재시작 ' + s.retryFloorAt.slice(0, 16) + ')' : ''), s.lastError || '—', s.lastFailedAt || '—'].forEach(function (value) {
+              var cell = document.createElement('td'); cell.textContent = String(value); cell.style.whiteSpace = 'normal'; row.appendChild(cell);
+            });
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); section.appendChild(scroll);
+          if (d.status !== 'complete') {
+            var actions = document.createElement('div'); actions.className = 'admin-actions'; actions.style.padding = '16px';
+            var restart = document.createElement('button'); restart.className = 'admin-button'; restart.type = 'button'; restart.textContent = '이 리포트 재시작(모델 재호출 · 비용 발생)';
+            var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status');
+            restart.addEventListener('click', async function () {
+              if (!window.confirm('미완성 항목의 포기 상한을 다시 열고 생성을 재시작합니다. 항목마다 OpenAI 호출 비용이 다시 듭니다. 실패 원인(프롬프트·검수 규칙)을 고치지 않았다면 같은 실패가 반복될 수 있습니다. 계속할까요?')) return;
+              restart.disabled = true; result.textContent = '재시작하는 중입니다.';
+              try {
+                var r = await fetch('/api/admin/v1/reports/' + encodeURIComponent(reportId) + '/restart', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({}) });
+                var p = await r.json().catch(function () { return {}; });
+                if (!r.ok) throw new Error(p.error || '재시작에 실패했습니다.');
+                result.textContent = '재시작됨: 항목 ' + p.reopenedSections + '개 상한 재개방, 옛 실패 ' + p.forgivenFailures + '건 제외, 작업 ' + (p.revivedJobs ? '되살림' : ('새로 넣음(' + p.enqueue + ')')) + '. 다음 분 워커가 집습니다.';
+              } catch (error) { restart.disabled = false; result.textContent = error instanceof Error ? error.message : '재시작에 실패했습니다.'; }
+            });
+            actions.appendChild(restart); actions.appendChild(result); section.appendChild(actions);
+          }
+        } catch (error) { var err = section.querySelector('.admin-empty'); if (err) err.textContent = error instanceof Error ? error.message : '리포트 진단을 불러오지 못했습니다.'; }
       }
       function refundStatus(state) {
         var labels = {

@@ -74,6 +74,28 @@ async function reviveStalledJob(idempotencyKey: string): Promise<boolean> {
 }
 
 /**
+ * 운영자의 명시적 재시작. `reviveStalledJob` 과 달리 REPORT_EXHAUSTED 로 고정된 작업도 되살린다 —
+ * 사람이 사유를 보고 결정한 것이므로. `last_error` 를 비워 다음 분 백필의 자동 되살리기도 다시
+ * 열린다. running·queued·retry 는 건드리지 않는다. 되살린 행 수를 돌려준다.
+ */
+export async function reviveOpsJobForTarget(kind: string, targetId: string): Promise<number> {
+  if (!opsStoreAvailable()) return 0
+  if (!/^[a-z.]{3,60}$/.test(kind) || !/^[a-zA-Z0-9_-]{1,160}$/.test(targetId)) return 0
+  const url = new URL(`${opsBase()}/rest/v1/ops_jobs`)
+  url.searchParams.set('kind', `eq.${kind}`)
+  url.searchParams.set('target_id', `eq.${targetId}`)
+  url.searchParams.set('state', 'in.(dead,succeeded)')
+  const now = new Date().toISOString()
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: { ...opsHeaders(), prefer: 'return=representation' },
+    body: JSON.stringify({ state: 'queued', attempts: 0, lease_until: null, last_error: null, next_run_at: now, updated_at: now }),
+  })
+  if (!response.ok) throw new Error('OPS_REVIVE_FAILED')
+  return ((await response.json().catch(() => [])) as unknown[]).length
+}
+
+/**
  * 결제 흐름에서 부른다. 큐가 없거나 실패해도 **던지지 않는다** — 작업을 못 넣은 것이
  * 결제를 되돌릴 이유는 아니고, 사용자는 화면에서 생성이 시작되는 것을 이미 본다.
  * 큐는 사용자가 나갔을 때를 위한 보험이다.

@@ -1,7 +1,7 @@
-import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
+import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, reviveOpsJobForTarget, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
-import { countGenuineFailures, ensureReportLongform, preGenerateReport, sectionHitProviderOutage } from './report-queue.js'
-import { getReportRecordAsService, listIncompleteReportRefs, type IncompleteReportRef, type ReportRecord } from './report-store.js'
+import { countGenuineFailures, ensureReportLongform, preGenerateReport, providerOutageOf, sectionHitProviderOutage } from './report-queue.js'
+import { getReportRecordAsService, listIncompleteReportRefs, mutateReportRecord, reportProgressOf, type IncompleteReportRef, type ReportRecord } from './report-store.js'
 
 export type { IncompleteReportRef }
 import { listAllPaymentOrders } from '../payment/order-store.js'
@@ -172,6 +172,110 @@ export async function runReportCompletionJob(
   if (stalled && hasFailedSection) throw new Error(REPORT_JOB_CODES.sectionFailed)
 
   return after
+}
+
+export interface ReportCompletionDiagnostics {
+  reportId: string
+  serviceKey?: string
+  status: string
+  progress: { complete: number; total: number }
+  /** 지금 다시 태우면 어떻게 판정되는가. exhausted 면 재시작 없이는 모델을 부르지 않는다. */
+  verdict: 'quota' | 'key' | 'exhausted' | null
+  giveUpThreshold: number
+  sections: Array<{
+    id: string
+    order: number
+    classification: string
+    status: string
+    genuineFailures: number
+    totalAttempts: number
+    retryFloorAt?: string
+    lastError?: string
+    lastFailedAt?: string
+    reviewMode?: string
+    reviewNotes?: string[]
+  }>
+}
+
+/**
+ * 운영자용 진단. 원문(raw)은 싣지 않는다 — 실패 사유·시도 수·상한 판정만. 어느 항목이 왜 막혔고
+ * 재시작하면 모델이 다시 불릴지(비용) 를 사람이 판단하는 데 필요한 것만 싣는다.
+ */
+export async function describeReportCompletion(reportId: string): Promise<ReportCompletionDiagnostics | null> {
+  const record = await getReportRecordAsService(reportId)
+  if (!record) return null
+  const progress = reportProgressOf(record)
+  return {
+    reportId: record.reportId,
+    serviceKey: record.context?.serviceKey,
+    status: progress.status,
+    progress: { complete: progress.complete, total: progress.total },
+    verdict: record.status === 'complete' ? null : classifyRun(record, 0),
+    giveUpThreshold: REPORT_GIVE_UP_FAILURES,
+    sections: (record.report?.sections ?? [])
+      .filter((section) => section.status !== 'complete' || (section.attempts ?? []).some((attempt) => attempt.status === 'failed'))
+      .map((section) => {
+        const failed = (section.attempts ?? []).filter((attempt) => attempt.status === 'failed')
+        const last = failed.at(-1)
+        return {
+          id: section.id,
+          order: section.order,
+          classification: section.classification,
+          status: section.status ?? 'pending',
+          genuineFailures: countGenuineFailures(section),
+          totalAttempts: section.attempts?.length ?? 0,
+          retryFloorAt: section.retryFloorAt,
+          lastError: last?.error ? `${providerOutageOf(last) ? '[공급자 사정] ' : ''}${last.error}`.slice(0, 240) : undefined,
+          lastFailedAt: last?.finishedAt ?? last?.startedAt,
+          reviewMode: section.reviewMode,
+          reviewNotes: section.reviewNotes,
+        }
+      }),
+  }
+}
+
+export interface ReportRestartOutcome {
+  reportId: string
+  /** 상한 계산에서 제외한 옛 실패 시도 수. 기록 자체는 남는다. */
+  forgivenFailures: number
+  /** 상한을 다시 연 미완성 항목 수. */
+  reopenedSections: number
+  /** 되살린 기존 작업 수(dead·succeeded). 0 이면 새 작업을 넣었다. */
+  revivedJobs: number
+  enqueue: EnqueueOpsJobResult | 'skipped'
+}
+
+/**
+ * 운영자의 수동 재시작. 세 가지를 한 번에 한다.
+ *   1. 미완성 항목의 `retryFloorAt` 을 지금으로 — 옛 실패는 REPORT_EXHAUSTED 상한에서 빠진다.
+ *      시도 기록은 지우지 않는다(로그 메뉴·진단에 그대로 남는다).
+ *   2. REPORT_EXHAUSTED 로 고정된 작업까지 되살린다(백필은 이 코드를 피하므로 여기서만 된다).
+ *   3. 작업이 없으면 새로 넣는다.
+ * 완료된 리포트는 건드리지 않는다 — mutateReportRecord 의 완료 불변식이 어차피 막는다.
+ */
+export async function restartReportCompletion(reportId: string): Promise<ReportRestartOutcome> {
+  const record = await getReportRecordAsService(reportId)
+  if (!record) throw new Error('REPORT_NOT_FOUND')
+  if (record.status === 'complete') throw new Error('REPORT_ALREADY_COMPLETE')
+
+  const now = new Date().toISOString()
+  let forgivenFailures = 0
+  let reopenedSections = 0
+  await mutateReportRecord(record.reportId, record.owner, (current) => {
+    for (const section of current.report.sections) {
+      if (section.status === 'complete') continue
+      forgivenFailures += countGenuineFailures(section)
+      section.retryFloorAt = now
+      reopenedSections += 1
+    }
+    return reopenedSections > 0
+  })
+
+  const revivedJobs = await reviveOpsJobForTarget(REPORT_COMPLETION_JOB_KIND, record.reportId)
+  const enqueue = revivedJobs > 0
+    ? 'skipped' as const
+    : await enqueueReportCompletion({ reportId: record.reportId, ownerId: record.owner?.id, paid: true })
+  return { reportId: record.reportId, forgivenFailures, reopenedSections, revivedJobs, enqueue }
 }
 
 export interface BackfillOutcome {
