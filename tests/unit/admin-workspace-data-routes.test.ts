@@ -104,6 +104,15 @@ test('renderServiceDetail 은 초안 저장 후에만 발행 버튼을 열고, �
   assert.match(body, /완전히 삭제할 수 없습니다/)
 })
 
+test('loadLiveCorpus 는 역할을 한국어 설명으로 표시하고 등록된 파일을 다운로드 링크로 연다', () => {
+  const body = source.slice(source.indexOf('async function loadLiveCorpus'), source.indexOf('async function loadLivePrompts'))
+  assert.match(body, /item\.roleLabel/)
+  assert.match(body, /item\.roleDescription/)
+  assert.match(body, /item\.downloadUrl/)
+  assert.match(body, /link\.download = item\.fileName/)
+  assert.doesNotMatch(body, /item\.role, item\.version/)
+})
+
 /**
  * 2026-09-19 (T30): 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 반영되므로,
  * 두 단계(초안 저장 → 명시적 발행 확인)와 강한 경고 문구가 반드시 있어야 한다.

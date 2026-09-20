@@ -279,6 +279,11 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(corpus.fingerprint, /^[a-f0-9]{28}$/)
       assert.ok(corpus.packs.length >= 20)
       assert.ok(corpus.packs.every((pack: Record<string, unknown>) => pack.status === 'active' && pack.path && pack.contentHash))
+      assert.ok(corpus.packs.every((pack: Record<string, unknown>) => (
+        typeof pack.roleLabel === 'string' && /[가-힣]/.test(pack.roleLabel)
+        && typeof pack.roleDescription === 'string' && /[가-힣]/.test(pack.roleDescription)
+        && typeof pack.downloadUrl === 'string' && pack.downloadUrl.startsWith('/api/admin/v1/corpus/')
+      )))
 
       const promptResult = await request('/api/admin/v1/prompts', 'super')
       assert.equal(promptResult.response.status, 200)
@@ -289,6 +294,21 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.ok(prompts.sources.some((source: { path: string }) => source.path === 'tone-v2/source/규격/01-공통-프롬프트-규칙.md'))
       assert.ok(prompts.personas.every((persona: Record<string, unknown>) => persona.definitionStatus === 'specified' && persona.sourcePath))
       assert.ok(prompts.personas.every((persona: Record<string, unknown>) => !('prompt' in persona) && !('content' in persona)))
+    })
+
+    it('코퍼스 파일 다운로드는 관리자에게만 등록된 활성 파일을 첨부로 제공한다', async () => {
+      const path = '/api/admin/v1/corpus/myeongri-basics/download'
+      assert.equal((await request(path)).response.status, 401)
+
+      const allowed = await request(path, 'super')
+      assert.equal(allowed.response.status, 200)
+      assert.match(allowed.response.headers.get('content-disposition') ?? '', /^attachment;.*myeongri-basics\.json/i)
+      assert.equal(allowed.response.headers.get('cache-control'), 'private, no-store')
+      assert.ok(JSON.parse(allowed.text), '다운로드한 코퍼스는 JSON 파일이어야 한다')
+
+      const missing = await request('/api/admin/v1/corpus/not-registered/download', 'super')
+      assert.equal(missing.response.status, 404)
+      assert.equal(JSON.parse(missing.text).code, 'CORPUS_PACK_NOT_FOUND')
     })
 
     it('환불 목록 API는 읽기 scope가 있는 관리자만 실제 원천을 조회한다', async () => {

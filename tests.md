@@ -697,3 +697,16 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | ADM-AUTH-10 | 독립 코드 리뷰 | PASS (Critical 0, Major 0; Minor 1 수정) |
 | ADM-AUTH-11 | CreamWIKI 저장·재조회·검색 | PASS |
 | ADM-AUTH-12 | Production 배포·브라우저 로그인 화면 | PASS (`dpl_AL2zBFeEWX7WTAmmHyzSghqerZJ3`) |
+
+## 2026-09-20 — 관리자 코퍼스 역할 설명·파일 다운로드
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| ADM-CORPUS-01 | 모든 활성 팩의 한국어 역할명·사용 설명·다운로드 URL | PASS |
+| ADM-CORPUS-02 | 비로그인 다운로드 요청 차단 | PASS (401) |
+| ADM-CORPUS-03 | 미등록 팩 ID 차단 | PASS (404) |
+| ADM-CORPUS-04 | 등록된 활성 JSON 파일의 첨부 응답·비캐시 헤더 | PASS |
+| ADM-CORPUS-05 | 관리자 표의 한국어 역할 설명·다운로드 링크 연결 | PASS |
+| ADM-CORPUS-06 | 집중 테스트 | PASS (46/46) |
+| ADM-CORPUS-07 | 전체 직렬 테스트 | PASS (1,478/1,478, 162 suites) |
+| ADM-CORPUS-08 | TypeScript typecheck·Vercel build·diff check | PASS |

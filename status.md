@@ -1940,3 +1940,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - Vercel Production `dpl_HVAYBq8PbVY3TqpJ6QukShArZUB5`가 Ready로 `umsh.kr`에 연결됐다. 운영 연동 10/10 PASS, 배포 직후 error log 0건이다.
 - Codex 브라우저에서 로그인 세션으로 `/admin/reports`를 새로고침해 `회원 이름` 헤더, 사주 입력 이름, `오늘운`·`천명사주` 등 실제 서비스명, 과거 누락 행의 `이름 미확인`·`서비스 미확인` 표시를 확인했다.
 - 사용자의 지시에 따라 Grok은 실행하지 않았고 이후에도 이 작업에 사용하지 않는다.
+
+## 2026-09-20 — 관리자 코퍼스 역할 설명·파일 다운로드
+
+- 코퍼스 레지스트리의 내부 영문 `role`은 실행 계약이라 바꾸지 않고, 관리자 API에서 한국어 역할명과 실제 사용 설명을 파생하도록 분리했다. 서비스 전용 팩은 공용 서비스 디렉터리의 실제 한국어 상품명을 사용한다.
+- 관리자 코퍼스 표는 `역할과 사용 방식` 셀에 한국어 역할명·설명을 함께 표시하며, 원천 파일명은 클릭 가능한 다운로드 링크로 바꿨다.
+- 다운로드 라우트는 `reports:read` 권한을 다시 검사하고 현재 활성 레지스트리에 등록된 팩 ID만 허용한다. 클라이언트가 임의 파일 경로를 전달할 수 없고 응답은 `attachment`, `private, no-store`다.
+- 집중 테스트 46/46, 전체 직렬 테스트 1,478/1,478, TypeScript typecheck, Vercel build, diff check가 통과했다.
+- Grok은 사용하지 않았다. 로컬 구현은 완료됐다. [GATE] Git push·Vercel 운영 배포는 `rules.md` §6 H1/H2에 따라 새 승인 전이라 실행하지 않았다.

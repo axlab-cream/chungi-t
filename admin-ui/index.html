@@ -168,6 +168,10 @@
     .admin-table tbody tr:nth-child(even) { background: var(--admin-bg); }
     .admin-table tbody tr:hover { background: var(--admin-bg-hover); }
     .admin-table code { font-size: 12px; color: var(--admin-text-muted); }
+    .admin-role-cell { display: grid; gap: 3px; min-width: 260px; white-space: normal; }
+    .admin-role-cell strong { font-size: 13px; }
+    .admin-role-cell span { color: var(--admin-text-muted); line-height: 1.45; }
+    .admin-file-link { color: var(--admin-text); font-weight: 600; text-underline-offset: 3px; }
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
     .admin-workspace { display: grid; gap: var(--admin-space-6); }
@@ -626,7 +630,12 @@
         var rows = document.createElement('tbody');
         items.forEach(function (item) {
           var row = document.createElement('tr');
-          toCells(item).forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value || '—'); row.appendChild(cell); });
+          toCells(item).forEach(function (value) {
+            var cell = document.createElement('td');
+            if (value instanceof Node) cell.appendChild(value);
+            else cell.textContent = String(value || '—');
+            row.appendChild(cell);
+          });
           rows.appendChild(row);
         });
         table.appendChild(head); table.appendChild(rows); scroll.appendChild(table); section.appendChild(scroll); body.appendChild(section);
@@ -911,7 +920,15 @@
           var payload = await response.json();
           var packs = Array.isArray(payload.packs) ? payload.packs : [];
           addLiveTable(body, '현재 배포 코퍼스', ['레지스트리', '지문', '활성 팩', '정책'], [[payload.registryVersion, payload.fingerprint, packs.length, payload.policy]], function (item) { return item; }, '현재 배포에서 활성 코퍼스를 찾지 못했습니다.');
-          addLiveTable(body, '실제 RAG 원천 파일', ['팩', '서비스', '도메인', '종류', '역할', '버전', '파일', '내용 해시'], packs, function (item) { return [item.id, item.serviceKey || '공통', item.domain, item.kind, item.role, item.version, item.path, item.contentHash]; }, '현재 배포에서 활성 코퍼스 팩을 찾지 못했습니다.');
+          addLiveTable(body, '실제 RAG 원천 파일', ['팩', '서비스', '도메인', '종류', '역할과 사용 방식', '버전', '파일', '내용 해시'], packs, function (item) {
+            var role = document.createElement('span'); role.className = 'admin-role-cell';
+            var roleLabel = document.createElement('strong'); roleLabel.textContent = item.roleLabel;
+            var roleDescription = document.createElement('span'); roleDescription.textContent = item.roleDescription;
+            role.appendChild(roleLabel); role.appendChild(roleDescription);
+            var link = document.createElement('a'); link.className = 'admin-file-link'; link.href = item.downloadUrl;
+            link.download = item.fileName; link.textContent = item.fileName + ' 다운로드';
+            return [item.id, item.serviceTitle, item.domain, item.kindLabel, role, item.version, link, item.contentHash];
+          }, '현재 배포에서 활성 코퍼스 팩을 찾지 못했습니다.');
         } catch (_error) { addLiveError(body, '현재 배포의 실제 코퍼스 레지스트리를 불러오지 못했습니다.'); }
       }
       async function loadLivePrompts(body) {

@@ -44,6 +44,7 @@ import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveMembers, listLiveReports, listMemberPurchases, listQualityReviews, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
+import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
@@ -2472,7 +2473,7 @@ app.post('/api/admin/v1/services/:serviceKey/publish', async (req, res) => {
 app.get('/api/admin/v1/corpus', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
-    const corpus = getCorpusSnapshot()
+    const corpus = getAdminCorpusSnapshot()
     res.json({
       registryVersion: corpus.registryVersion,
       fingerprint: corpus.fingerprint,
@@ -2483,6 +2484,21 @@ app.get('/api/admin/v1/corpus', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'CORPUS_SNAPSHOT_FAILED', error: '현재 배포의 코퍼스 레지스트리를 불러오지 못했습니다.' })
   }
+})
+
+app.get('/api/admin/v1/corpus/:packId/download', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  const file = resolveActiveCorpusDownload(trimmedString(req.params.packId))
+  if (!file) {
+    res.status(404).json({ code: 'CORPUS_PACK_NOT_FOUND', error: '현재 배포에 등록된 활성 코퍼스 파일이 아닙니다.' })
+    return
+  }
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.download(file.absolutePath, file.fileName, (error) => {
+    if (error && !res.headersSent) {
+      res.status(503).json({ code: 'CORPUS_DOWNLOAD_FAILED', error: '코퍼스 파일을 내려받지 못했습니다.' })
+    }
+  })
 })
 /**
  * T24: 고객 화면 문안(안내·배너·FAQ·서비스 카드·랜딩 문구·약관 링크). T22 가 만든
