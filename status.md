@@ -1933,3 +1933,10 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 사용자의 지시에 따라 Grok 리뷰는 중단했고 앞으로 이 작업에 사용하지 않는다. 로컬 diff 자체 점검에서 추가 결함은 발견되지 않았다.
 - CreamWIKI `personal/carrotcap/notes/umsh-admin-report-identity-20260920.md`에 비밀·개인정보 없는 기준을 저장하고 get/search 재조회했다.
 - [GATE] 로컬 변경은 아직 Git push·Vercel 운영 배포하지 않았다. `rules.md` §6 H1/H2에 따라 명시적 승인 뒤 진행한다.
+
+## 2026-09-20 — 관리자 리포트 이름·서비스명 운영 배포
+
+- 사용자 승인 후 커밋 `d6011e7`을 `origin/main`에 push했다. GitHub CI run `35490010617`은 typecheck, 전체 테스트, 서비스 검수, 검색 기반 검증, 20개 서비스 QA, Vercel build, 생성물 검사를 모두 통과했다.
+- Vercel Production `dpl_HVAYBq8PbVY3TqpJ6QukShArZUB5`가 Ready로 `umsh.kr`에 연결됐다. 운영 연동 10/10 PASS, 배포 직후 error log 0건이다.
+- Codex 브라우저에서 로그인 세션으로 `/admin/reports`를 새로고침해 `회원 이름` 헤더, 사주 입력 이름, `오늘운`·`천명사주` 등 실제 서비스명, 과거 누락 행의 `이름 미확인`·`서비스 미확인` 표시를 확인했다.
+- 사용자의 지시에 따라 Grok은 실행하지 않았고 이후에도 이 작업에 사용하지 않는다.
