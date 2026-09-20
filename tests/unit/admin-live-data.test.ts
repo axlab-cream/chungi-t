@@ -53,11 +53,11 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select')?.includes('admin_status')) {
     if (url.searchParams.get('limit') === '2') {
       return new Response(JSON.stringify([
-        { report_id: 'report-no-email-000', user_id: 'a1b2c3d4-owner', user_email: null, admin_status: 'new', payload: { status: 'complete', context: { serviceKey: 'today' } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' },
+        { report_id: 'report-no-email-000', user_id: 'a1b2c3d4-owner', user_email: null, admin_status: 'new', payload: { status: 'complete', context: { serviceKey: 'today', name: '김오늘' } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' },
         { report_id: 'report-no-owner-000', user_id: null, user_email: null, admin_status: 'new', payload: {}, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' },
       ]), { headers: { 'content-range': '0-1/2' } })
     }
-    return new Response(JSON.stringify([{ report_id: 'report-123456789', user_id: 'owner-123456789', user_email: 'customer@example.com', admin_status: 'new', payload: { context: { serviceKey: 'cmdg' }, birth: { year: 1990 } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/68' } })
+    return new Response(JSON.stringify([{ report_id: 'report-123456789', user_id: 'owner-123456789', user_email: 'customer@example.com', admin_status: 'new', payload: { context: { serviceKey: 'cmdg', name: '김천명' }, birth: { year: 1990 } }, created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/68' } })
   }
   if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select') === 'report_id,user_email,payload,updated_at' && url.searchParams.get('limit') === '400') {
     return new Response(JSON.stringify([
@@ -138,12 +138,15 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     assert.equal(profileRequest?.headers.get('apikey'), 'test-service-role-key')
   })
 
-  it('리포트 원문·생년월일을 DTO로 흘리지 않고 상태와 서비스 키만 반환한다', async () => {
+  it('리포트 원문·생년월일·계정 이메일을 DTO로 흘리지 않고 입력 이름과 실제 서비스명을 반환한다', async () => {
     const reports = await liveData.listLiveReports(1)
-    assert.deepEqual(reports, [{ reportId: 'report••••', id: 'report-123456789', member: 'c•••@example.com', serviceKey: 'cmdg', status: 'new', pdfReady: false, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
+    assert.deepEqual(reports, [{ reportId: 'report••••', id: 'report-123456789', memberName: '김천명', serviceKey: 'cmdg', serviceTitle: '천명사주', status: 'new', pdfReady: false, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
     const reportRequest = requests.find((r) => r.url.pathname.endsWith('/cheongi_reports') && r.url.searchParams.get('select')?.includes('admin_status'))
-    assert.equal(reportRequest?.url.searchParams.get('select'), 'report_id,user_id,user_email,admin_status,payload,created_at,updated_at')
+    assert.equal(reportRequest?.url.searchParams.get('select'), 'report_id,admin_status,payload,created_at,updated_at')
     assert.ok(!JSON.stringify(reports).includes('1990'))
+    const exactReport = await liveData.findLiveReport('report-123456789')
+    assert.equal(exactReport?.memberName, '김천명')
+    assert.equal(exactReport?.serviceTitle, '천명사주')
   })
 
   it('운영 요약용 카운트는 원본 테이블의 exact count 헤더를 사용한다', async () => {
@@ -184,16 +187,13 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     assert.ok(!failures.some((failure) => failure.serviceKey === 'money_save'), '실패 시도가 없는 리포트가 로그에 섞였다')
   })
 
-  /**
-   * 2026-09-19: "연결되지 않음"이 회원 자체가 없다는 뜻으로 읽혔지만, 실제로는 이메일만
-   * 없고 회원 계정(user_id)은 있는 경우가 섞여 있었다(가입 경로에 따라 이메일이 없을 수
-   * 있다). user_id 가 있으면 마스킹해 보여줘 "진짜 연결 없음"과 구분한다.
-   */
-  it('이메일이 없어도 회원 ID 가 있으면 마스킹된 ID 로 구분하고, 둘 다 없을 때만 연결되지 않음이다', async () => {
+  it('회원 열은 계정 이메일이 아니라 사주 입력 이름을 쓰고, 이름이 없으면 추측하지 않는다', async () => {
     const reports = await liveData.listLiveReports(2)
     assert.equal(reports.length, 2)
-    assert.equal(reports[0].member, '이메일 없음(회원 a1b2c3••••)')
-    assert.equal(reports[1].member, '연결되지 않음')
+    assert.equal(reports[0].memberName, '김오늘')
+    assert.equal(reports[1].memberName, '이름 미확인')
+    assert.equal(reports[0].serviceTitle, '오늘운')
+    assert.equal(reports[1].serviceTitle, '서비스 미확인')
   })
 
   /**

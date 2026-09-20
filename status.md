@@ -1923,3 +1923,13 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 사용자가 Codex 브라우저에서 자격 증명을 다시 입력해 관리자 로그인을 완료했다.
 - Vercel Production 로그에서 `POST /api/admin/v1/login` 200, 후속 `GET /api/admin/v1/me` 200, 운영 데이터 API 200을 확인했다.
 - 활성 `super_admin` 계정과 기존 HttpOnly 관리자 세션 경로가 정상 동작하므로 추가 코드·Supabase 설정 변경은 하지 않았다.
+
+## 2026-09-20 — 관리자 리포트의 회원 이름·서비스명 정합화
+
+- 원인은 `/admin/reports`가 리포트 대상 이름 대신 계정 이메일을, 서비스명 대신 내부 키(`cmdg`, `today` 등)를 직접 표시한 것이었다.
+- 운영 Supabase 읽기 전용 집계에서 리포트 84건 중 81건은 `payload.context.name`에 사주 입력 이름이 있고 3건은 이름이 없음을 확인했다. 비어 있지 않은 실제 서비스 키 21종은 공용 서비스 디렉터리로 모두 해석됐다.
+- 회원 열을 `회원 이름`으로 바꾸고 리포트 스냅샷의 입력 이름을 표시한다. 이름 없는 과거 기록은 `이름 미확인`, 알 수 없는 서비스는 `서비스 미확인`으로 표시한다. 목록 조회에서 불필요한 `user_id`·`user_email` 요청도 제거했다.
+- 검증: 집중 테스트 29/29 PASS, `npm run vercel-build` PASS, diff check PASS. 서비스명 변경 뒤 전체 회귀 1,476/1,476 PASS.
+- 사용자의 지시에 따라 Grok 리뷰는 중단했고 앞으로 이 작업에 사용하지 않는다. 로컬 diff 자체 점검에서 추가 결함은 발견되지 않았다.
+- CreamWIKI `personal/carrotcap/notes/umsh-admin-report-identity-20260920.md`에 비밀·개인정보 없는 기준을 저장하고 get/search 재조회했다.
+- [GATE] 로컬 변경은 아직 Git push·Vercel 운영 배포하지 않았다. `rules.md` §6 H1/H2에 따라 명시적 승인 뒤 진행한다.

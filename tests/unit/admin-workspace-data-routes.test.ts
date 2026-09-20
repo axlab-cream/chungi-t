@@ -154,6 +154,9 @@ test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔�
   const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadLiveOverview'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports\/requeue-incomplete', \{ method: 'POST'/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /회원 이름/, '회원 열은 사주 입력 이름임을 명확히 표시해야 한다')
+  assert.match(body, /item\.memberName/, '회원 열은 계정 이메일이 아니라 리포트 입력 이름을 표시해야 한다')
+  assert.match(body, /item\.serviceTitle/, '서비스 열은 내부 키가 아니라 실제 카탈로그명을 표시해야 한다')
 })
 
 /**

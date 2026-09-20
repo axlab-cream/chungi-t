@@ -736,11 +736,11 @@
         }
         var table = document.createElement('table'); table.className = 'admin-table';
         var head = document.createElement('thead');
-        head.innerHTML = '<tr><th scope="col">리포트</th><th scope="col">회원</th><th scope="col">서비스</th><th scope="col">운영 상태</th><th scope="col">PDF</th><th scope="col">최근 변경</th></tr>';
+        head.innerHTML = '<tr><th scope="col">리포트</th><th scope="col">회원 이름</th><th scope="col">서비스</th><th scope="col">운영 상태</th><th scope="col">PDF</th><th scope="col">최근 변경</th></tr>';
         var rows = document.createElement('tbody');
         reports.forEach(function (item) {
           var row = document.createElement('tr');
-          [item.reportId, item.member, item.serviceKey, item.status].forEach(function (value) {
+          [item.reportId, item.memberName, item.serviceTitle, item.status].forEach(function (value) {
             var cell = document.createElement('td'); cell.textContent = String(value || '—'); row.appendChild(cell);
           });
           var pdfCell = document.createElement('td');
