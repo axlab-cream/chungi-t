@@ -51,6 +51,14 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     for (const row of closed) { row.state = String(body.state); row.last_error = String(body.last_error) }
     return Response.json(closed)
   }
+  if (url.pathname.endsWith('/ops_jobs') && init?.method === 'PATCH' && url.searchParams.get('idempotency_key')) {
+    const key = url.searchParams.get('idempotency_key')?.replace(/^eq\./, '')
+    const states = inList(url.searchParams.get('state'))
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>
+    const revived = opsRows.filter((row) => row.idempotency_key === key && states.includes(row.state))
+    for (const row of revived) Object.assign(row, body)
+    return Response.json(revived)
+  }
   if (url.pathname.endsWith('/ops_jobs') && init?.method === 'DELETE') {
     const states = inList(url.searchParams.get('state'))
     const targets = inList(url.searchParams.get('target_id'))
@@ -119,6 +127,49 @@ describe('결제한 해석의 백그라운드 완성', { concurrency: false }, (
     assert.equal(await job.enqueueReportCompletion({ reportId: 'report-4' }), 'unavailable')
     // 리포트 아이디가 없으면 넣을 것도 없다. 던지지 않는다.
     assert.equal(await job.enqueueReportCompletion({ reportId: '' }), 'unavailable')
+  })
+
+  it('코드 매핑 때문에 막힌 구형 집궁합 두 항목만 한 번 다시 열고 dead 작업을 되살린다', async () => {
+    const error = '해석 생성 실패 (Error: UNKNOWN_HOME_READING_SECTION)'
+    const attempt = (id: string) => ({ id, startedAt: '2026-09-19T09:00:00Z', finishedAt: '2026-09-19T09:01:00Z', model: 'test', status: 'failed' as const, error })
+    const rec: import('../../src/report/report-store.js').ReportRecord = {
+      reportId: 'legacy-home-recover', revision: 7,
+      owner: { id: 'owner-home', email: 'home@example.com', provider: 'email' },
+      birth: { year: 1990, month: 1, day: 1, hour: 12, minute: 0, gender: 'female', calendar: 'solar' },
+      context: { serviceKey: 'home_fit', name: '테스트', birthTimeKnown: true },
+      status: 'failed', createdAt: '2026-09-19T00:00:00Z', updatedAt: '2026-09-19T09:01:00Z',
+      report: {
+        title: '집궁합', subtitle: '', model: 'test', generatedBy: 'template', status: 'failed',
+        sections: [
+          { id: 'summary', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '', categoryEn: '', classification: '요약', hook: '', patternKeys: [], ragTopics: [], interpretation: '완료', status: 'complete' },
+          { id: 'house-energy', order: 2, imageKey: '', imageSrc: '', imageAlt: '', category: '', categoryEn: '', classification: '주택 기운', hook: '', patternKeys: [], ragTopics: [], interpretation: '', status: 'failed', attempts: [attempt('a1')] },
+          { id: 'spatial-fix', order: 3, imageKey: '', imageSrc: '', imageAlt: '', category: '', categoryEn: '', classification: '공간 개선', hook: '', patternKeys: [], ragTopics: [], interpretation: '', status: 'failed', attempts: [attempt('a2')] },
+        ],
+      },
+    }
+    await store.saveReportRecord(rec)
+    opsRows = [{
+      id: 'legacy-home-job', kind: 'report.sections.complete', target_id: rec.reportId,
+      idempotency_key: job.reportCompletionIdempotencyKey(rec.reportId), state: 'dead', last_error: 'REPORT_EXHAUSTED',
+    }]
+    calls.length = 0
+
+    assert.equal(job.needsLegacyHomeSectionRestart(rec), true)
+    const otherService = structuredClone(rec); otherService.context.serviceKey = 'money_save'
+    assert.equal(job.needsLegacyHomeSectionRestart(otherService), false, '다른 서비스의 같은 오류는 자동 재시작하지 않는다')
+    const otherFailure = structuredClone(rec); otherFailure.report.sections[1].attempts![0].error = '일반 검수 실패'
+    assert.equal(job.needsLegacyHomeSectionRestart(otherFailure), false, '일반 생성 실패는 자동 재시작하지 않는다')
+    assert.equal(await job.enqueueReportCompletion({ reportId: rec.reportId, ownerId: rec.owner?.id, paid: true }), 'requeued')
+
+    const saved = (await store.getReportRecordAsService(rec.reportId))!
+    assert.ok(saved.report.sections[1].retryFloorAt)
+    assert.ok(saved.report.sections[2].retryFloorAt)
+    assert.equal(saved.report.sections[0].retryFloorAt, undefined)
+    assert.equal(saved.report.sections[1].attempts?.length, 1, '실패 이력은 지우지 않는다')
+    assert.equal(opsRows[0].state, 'queued')
+    assert.equal(opsRows[0].last_error, null)
+    assert.equal(job.needsLegacyHomeSectionRestart(saved), false, 'retryFloorAt 이 있으면 다시 열지 않는다')
+    assert.equal(calls.filter((call) => call.init?.method === 'POST').length, 0, '기존 정식 작업을 되살리고 새 행은 만들지 않는다')
   })
 
   it('처리기가 실패하면 성공으로 닫지 않고 사유를 남긴다', async () => {

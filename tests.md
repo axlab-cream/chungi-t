@@ -738,3 +738,14 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MEDIA-WEBP-13 | 운영 WebP 8개 HTTP 200·제거 PNG 표본 3개 HTTP 404 | PASS |
 | MEDIA-WEBP-14 | 운영 관리자 미사용 이미지 110→102, 코퍼스 한글 역할·다운로드 링크 | PASS |
 | MEDIA-WEBP-15 | 배포 직후 5xx 로그 | PASS (0건; 200 응답의 Node `url.parse` deprecation 1건 별도 관찰) |
+
+## 2026-09-21 — 구형 집궁합 작업 큐 복구
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| OPS-HOME-01 | 구형 `house-energy`·`spatial-fix` 코퍼스 라우팅 | PASS |
+| OPS-HOME-02 | 정확한 `UNKNOWN_HOME_READING_SECTION` 두 항목만 자동 재시작 | PASS |
+| OPS-HOME-03 | 다른 서비스·일반 생성 실패 자동 재시작 차단 | PASS |
+| OPS-HOME-04 | 실패 이력 보존·`retryFloorAt` 1회 설정·정식 dead 작업 재사용 | PASS |
+| OPS-HOME-05 | 관리자 작업 큐 진행·조치·완료 이력 분리 | PASS |
+| OPS-HOME-06 | 전체 직렬 테스트·TypeScript·Vercel production build·diff check | PASS (1,482/1,482, 162 suites) |

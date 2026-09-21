@@ -37,6 +37,46 @@ export function reportCompletionIdempotencyKey(reportId: string): string {
   return `${REPORT_COMPLETION_JOB_KIND}:${reportId}`
 }
 
+const LEGACY_HOME_SECTION_IDS = new Set(['house-energy', 'spatial-fix'])
+const LEGACY_HOME_SECTION_ERROR = 'UNKNOWN_HOME_READING_SECTION'
+
+/**
+ * 2026-09-21 이전 집궁합은 지금 코퍼스의 `terrain-support`·`reality-action` 대신
+ * `house-energy`·`spatial-fix` 를 저장했다. 생성 라우터가 그 옛 ID를 모르던 배포에서 두 항목만
+ * 반복 실패해 REPORT_EXHAUSTED 로 고정됐다. 배포된 별칭이 이제 처리할 수 있으므로 이 정확한
+ * 코드 결함만 자동으로 한 번 다시 연다. 일반 모델 실패나 다른 서비스는 운영자 진단 대상으로 남긴다.
+ */
+export function needsLegacyHomeSectionRestart(record: ReportRecord): boolean {
+  if (record.context?.serviceKey !== 'home_fit' || record.status === 'complete') return false
+  const incomplete = (record.report?.sections ?? []).filter((section) => section.status !== 'complete')
+  if (incomplete.length !== LEGACY_HOME_SECTION_IDS.size || !incomplete.every((section) => LEGACY_HOME_SECTION_IDS.has(section.id) && !section.retryFloorAt)) return false
+  return incomplete.every((section) => (section.attempts ?? []).some(
+    (attempt) => attempt.status === 'failed' && String(attempt.error ?? '').includes(LEGACY_HOME_SECTION_ERROR),
+  ))
+}
+
+async function recoverLegacyHomeSectionFailure(record: ReportRecord, paid = false): Promise<EnqueueOpsJobResult> {
+  // cron 은 worker 실행 뒤 백필을 수행한다. 먼저 기존 정식 작업을 되살려도 다음 cron 전까지
+  // claim 되지 않으므로, 이어지는 retryFloorAt 저장과 경쟁하지 않는다. 저장이 잠시 실패하면
+  // 다음 백필이 다시 시도할 수 있도록 floor 가 없는 상태도 그대로 남는다.
+  const revivedJobs = await reviveOpsJobByKey(reportCompletionIdempotencyKey(record.reportId))
+  const now = new Date().toISOString()
+  await mutateReportRecord(record.reportId, record.owner, (current) => {
+    if (!needsLegacyHomeSectionRestart(current)) return false
+    for (const section of current.report.sections) {
+      if (section.status !== 'complete' && LEGACY_HOME_SECTION_IDS.has(section.id)) section.retryFloorAt = now
+    }
+    return true
+  })
+  if (revivedJobs > 0) return 'requeued'
+  return enqueueOpsJob({
+    kind: REPORT_COMPLETION_JOB_KIND,
+    targetId: record.reportId,
+    idempotencyKey: reportCompletionIdempotencyKey(record.reportId),
+    payload: { reportId: record.reportId, revision: record.revision ?? 0, ...(record.owner?.id ? { ownerId: record.owner.id } : {}), ...(paid ? { paid: true } : {}) },
+  })
+}
+
 export async function enqueueReportCompletion(params: {
   reportId: string
   revision?: number
@@ -49,6 +89,7 @@ export async function enqueueReportCompletion(params: {
   const reportId = record?.reportId || params.reportId
   const revision = params.revision ?? record?.revision ?? 0
   const ownerId = params.ownerId ?? record?.owner?.id
+  if (record && needsLegacyHomeSectionRestart(record)) return recoverLegacyHomeSectionFailure(record, params.paid)
   return enqueueOpsJob({
     kind: REPORT_COMPLETION_JOB_KIND,
     targetId: reportId,
