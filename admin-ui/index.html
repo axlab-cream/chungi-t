@@ -1228,25 +1228,50 @@
         try {
           var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED');
           var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
-          var table = document.createElement('table'); table.className = 'admin-table';
-          table.innerHTML = '<thead><tr><th scope="col">작업</th><th scope="col">대상</th><th scope="col">상태</th><th scope="col">시도</th><th scope="col">다음 실행</th><th scope="col">오류</th><th scope="col">관리</th></tr></thead>';
-          var rows = document.createElement('tbody');
-          if (!jobs.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">실행 대기 중인 실제 작업이 없습니다.</td>'; rows.appendChild(empty); }
-          jobs.forEach(function (item) {
-            var row = document.createElement('tr');
-            [item.kind, item.target_id, item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—'].forEach(function (value) {
-              var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
+          // ops.pause 는 작업이 아니라 현재 일시정지 상태를 보존하는 제어 마커다. 위 제어 버튼으로만 보인다.
+          var visibleJobs = jobs.filter(function (item) { return item.kind !== 'ops.pause'; });
+          var activeJobs = visibleJobs.filter(function (item) { return ['queued', 'running', 'retry'].includes(item.state); });
+          var actionJobs = visibleJobs.filter(function (item) { return item.state === 'dead'; });
+          var historyJobs = visibleJobs.filter(function (item) { return !['queued', 'running', 'retry', 'dead'].includes(item.state); });
+          var stateLabels = { queued: '대기', running: '실행 중', retry: '재시도 대기', dead: '실패 · 조치 필요', succeeded: '완료' };
+          function jobLabel(kind) { return kind === 'report.sections.complete' ? '리포트 섹션 생성' : kind; }
+          function buildJobTable(items, emptyText) {
+            var table = document.createElement('table'); table.className = 'admin-table';
+            table.innerHTML = '<thead><tr><th scope="col">작업</th><th scope="col">대상</th><th scope="col">상태</th><th scope="col">시도</th><th scope="col">다음 실행</th><th scope="col">오류</th><th scope="col">관리</th></tr></thead>';
+            var rows = document.createElement('tbody');
+            if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">' + emptyText + '</td>'; rows.appendChild(empty); }
+            items.forEach(function (item) {
+              var row = document.createElement('tr');
+              [jobLabel(item.kind), item.target_id, stateLabels[item.state] || item.state, String(item.attempts) + '/' + String(item.max_attempts), item.next_run_at, item.last_error || '—'].forEach(function (value) {
+                var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
+              });
+              var actionCell = document.createElement('td');
+              if (item.kind === 'report.sections.complete' && item.state === 'dead') {
+                var diagnose = document.createElement('button'); diagnose.className = 'admin-button'; diagnose.type = 'button'; diagnose.textContent = '원인 확인'; diagnose.setAttribute('data-variant', 'quiet');
+                diagnose.addEventListener('click', function () { renderReportDiagnostics(body, item.target_id); });
+                actionCell.appendChild(diagnose);
+              }
+              row.appendChild(actionCell); rows.appendChild(row);
             });
-            var actionCell = document.createElement('td');
-            if (item.kind === 'report.sections.complete' && item.state === 'dead') {
-              var diagnose = document.createElement('button'); diagnose.className = 'admin-button'; diagnose.type = 'button'; diagnose.textContent = '진단'; diagnose.setAttribute('data-variant', 'quiet');
-              diagnose.addEventListener('click', function () { renderReportDiagnostics(body, item.target_id); });
-              actionCell.appendChild(diagnose);
-            }
-            row.appendChild(actionCell); rows.appendChild(row);
-          });
-          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-          listSection.replaceChildren(listSection.firstElementChild, scroll);
+            table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); return scroll;
+          }
+          function appendJobGroup(title, count, items, emptyText) {
+            var heading = document.createElement('div'); heading.className = 'admin-section-head'; heading.innerHTML = '<h4>' + title + '</h4><span class="admin-chip">' + count + '건</span>';
+            listSection.appendChild(heading); listSection.appendChild(buildJobTable(items, emptyText));
+          }
+          var listHeader = listSection.firstElementChild;
+          listHeader.querySelector('h3').textContent = '작업 큐 현황';
+          listHeader.querySelector('.admin-chip').textContent = '진행 ' + activeJobs.length + '건 · 조치 ' + actionJobs.length + '건';
+          listSection.replaceChildren(listHeader);
+          var summary = document.createElement('p'); summary.className = 'admin-note'; summary.style.padding = '0 16px 12px';
+          summary.textContent = activeJobs.length ? '현재 처리 중이거나 다시 시도할 작업이 있습니다.' : '현재 대기·실행·재시도 중인 작업이 없습니다.';
+          listSection.appendChild(summary);
+          appendJobGroup('현재 진행 중', activeJobs.length, activeJobs, '현재 대기·실행·재시도 중인 작업이 없습니다.');
+          appendJobGroup('조치 필요', actionJobs.length, actionJobs, '원인 확인이 필요한 실패 작업이 없습니다.');
+          var history = document.createElement('details'); history.style.borderTop = '1px solid var(--admin-line)';
+          var historySummary = document.createElement('summary'); historySummary.className = 'admin-section-head'; historySummary.style.cursor = 'pointer';
+          historySummary.innerHTML = '<h4>최근 완료 이력</h4><span class="admin-chip">' + historyJobs.length + '건</span>';
+          history.appendChild(historySummary); history.appendChild(buildJobTable(historyJobs, '표시할 완료 이력이 없습니다.')); listSection.appendChild(history);
         } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 작업 큐를 불러오지 못했습니다.'; }
       }
       /**

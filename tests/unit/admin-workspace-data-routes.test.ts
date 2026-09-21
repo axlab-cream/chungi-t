@@ -197,6 +197,17 @@ test('loadOpsJobs 는 dead 작업에만 진단 버튼을 달고, 진단 화면�
   assert.match(diagnostics, /if \(d\.status !== 'complete'\)/, '완성된 리포트에는 재시작 버튼을 내지 않는다')
 })
 
+test('loadOpsJobs 는 제어 마커를 숨기고 진행·조치·완료 이력을 구분한다', () => {
+  const jobs = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('async function renderReportDiagnostics'))
+  assert.match(jobs, /item\.kind !== 'ops\.pause'/)
+  assert.match(jobs, /\['queued', 'running', 'retry'\]\.includes\(item\.state\)/)
+  assert.match(jobs, /item\.state === 'dead'/)
+  assert.match(jobs, /현재 진행 중/)
+  assert.match(jobs, /조치 필요/)
+  assert.match(jobs, /최근 완료 이력/)
+  assert.match(jobs, /document\.createElement\('details'\)/)
+})
+
 test('loadOpsJobs 는 일시정지·정리를 기존 백엔드 라우트에 연결한다', () => {
   const body = source.slice(source.indexOf('async function loadOpsJobs'), source.indexOf('async function renderReportDiagnostics'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/jobs\/pause', \{ credentials: 'same-origin' \}\)/)

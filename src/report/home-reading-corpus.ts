@@ -7,6 +7,20 @@ export const HOME_READING_SECTIONS = [
   'money-living', 'relationship-cohabitation', 'saju-house-ohaeng', 'reality-action',
 ] as const
 
+/**
+ * 2026-09-21: 12개 목차로 개편하기 전에 저장된 리포트는 두 항목의 옛 ID를 계속 가진다.
+ * 저장 스냅샷의 ID를 바꾸면 링크·감사 이력이 흔들리므로, 생성 계약을 찾을 때만 현재 ID로
+ * 정규화한다. 고객 화면도 같은 대응표를 사용한다.
+ */
+const HOME_READING_SECTION_ALIASES: Record<string, string> = {
+  'house-energy': 'terrain-support',
+  'spatial-fix': 'reality-action',
+}
+
+function canonicalHomeReadingSectionId(sectionId: string): string {
+  return HOME_READING_SECTION_ALIASES[sectionId] ?? sectionId
+}
+
 const HOME_SECTION_CONTRACTS: Record<string, string> = {
   'home-fit-overall': '질문: 전체 판정은 무엇인가. 근거: 입력 커버리지, 목적, 핵심 강점/마찰. 시각화: 8축 점수판. 쓰지 말 것: 세부 처방을 길게 반복.',
   'terrain-support': '질문: 터가 나를 받치나 밀어내나. 근거: 지형 API의 터 유사도·터 타입·경사 흐름을 생활 언어로 번역. 쓰지 말 것: 내부 지형 필드명, 결손 안내, 실내 배치.',
@@ -24,7 +38,8 @@ const HOME_SECTION_CONTRACTS: Record<string, string> = {
 
 /** Dedicated section knowledge must not be displaced by shared room keywords. */
 export function homeReadingCorpus(sectionId: string, corpusSnapshot?: CorpusSnapshot): RagChunk[] {
-  const index = HOME_READING_SECTIONS.findIndex(id => id === sectionId)
+  const canonicalId = canonicalHomeReadingSectionId(sectionId)
+  const index = HOME_READING_SECTIONS.findIndex(id => id === canonicalId)
   if (index < 0) throw new Error('UNKNOWN_HOME_READING_SECTION')
   const id = `hfit-${String(index + 1).padStart(3, '0')}`
   const chunks = buildCorpusIndex(corpusSnapshot).filter(chunk => chunk.id === id && chunk.domain === 'home_fit_service')
@@ -34,6 +49,7 @@ export function homeReadingCorpus(sectionId: string, corpusSnapshot?: CorpusSnap
 
 /** Home uses a narrative contract, not the generic input/astrology recap template. */
 export function homeReadingInstruction(sectionId: string): string {
+  sectionId = canonicalHomeReadingSectionId(sectionId)
   if (!HOME_READING_SECTIONS.some(id => id === sectionId)) throw new Error('UNKNOWN_HOME_READING_SECTION')
   return [
     '현재 제목에 대한 결론이나 우선순위부터 답하세요. 항목에 맞는 의미 단락으로 나누고 근거가 적으면 반복으로 분량을 늘리지 마세요.',
@@ -55,6 +71,7 @@ export function homeReadingInstruction(sectionId: string): string {
 
 /** Narrow, testable editorial gates. Not a guarantee of semantic quality. */
 export function reviewHomeNarrative(text: string, sectionId: string): string[] {
+  sectionId = canonicalHomeReadingSectionId(sectionId)
   const issues: string[] = []
   if (sectionId !== 'home-fit-overall' && /확인된 입력|입력하셨|현재 입력|현재 항목|이 항목에서는/.test(text)) issues.push('입력 재소개나 항목 안내를 삭제하고 현재 주제의 생활 장면과 결론으로 바로 답하세요.')
   if (sectionId !== 'saju-house-ohaeng' && /일간\s*[（(은이가:]|태어난 날의 천간/.test(text)) issues.push('일간 정의는 11번 전용입니다. 명식 소개 대신 현재 주제의 판단 이유를 설명하세요.')

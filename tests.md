@@ -25,6 +25,14 @@
 
 - 2026-09-13 home_fit corpus release candidate: RED 1/8 → GREEN 8/8; related 107/107; full 807/807 across 112 suites; typecheck/build/deterministic builder PASS; dedicated home-reader stored-snapshot regression fixed; provider/Production NOT_RUN.
 
+## 2026-09-21 — 작업 큐 실패 복구·상태 구분
+
+- RED: 구형 `home_fit`의 `house-energy`, `spatial-fix`는 `UNKNOWN_HOME_READING_SECTION`으로 실패했다. 작업 큐 화면도 `ops.pause`, `succeeded`, `dead`를 한 표에 섞었다.
+- GREEN: 구형 ID를 현재 계약(`terrain-support`, `reality-action`)에 생성 시점에만 연결한다. 저장 리포트 ID는 보존한다.
+- 화면: `ops.pause` 제어 마커 제외, `queued/running/retry`는 현재 진행 중, `dead`는 조치 필요, 나머지는 접힌 최근 완료 이력으로 구분한다.
+- 검증: 신규 집중 테스트 25/25, 관련 회귀 83/83, `npm test` exit 0, `npm run typecheck` PASS, `npm run vercel-build` PASS, `git diff --check` PASS.
+- 운영: Supabase 읽기 진단으로 실패 리포트의 미완성 2개 항목과 오류 코드를 확인했다. 운영 배포·재시작·완료 확인은 H1/H2 승인 전 NOT_RUN.
+
 - 2026-09-13 love_mind corpus release candidate: RED 1/8 → GREEN 8/8; related 88/88; full 783/783 across 109 suites; typecheck/build/deterministic builder PASS; provider/Production NOT_RUN.
 
 - 2026-09-13 work_job corpus release candidate: RED 1/8 → GREEN 8/8; related 100/100; serial full 775/775 across 108 suites; typecheck initially caught an invalid test field and passed after correction; Vercel build, deterministic builder and credential scan PASS; provider/Production NOT_RUN.
