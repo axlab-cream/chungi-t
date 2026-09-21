@@ -8,7 +8,7 @@
   "deployed": false,
   "promptBundle": {
     "version": "tone-v2.20260910.1",
-    "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+    "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
     "releaseReadyAtSource": false
   },
   "corpusRegistry": {
@@ -83,7 +83,7 @@
       "prompt": {
         "serviceKey": "cat_compatibility",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/cat_compatibility.md",
         "sha256": "6062c375bebfc8776094775520bbb420c76cd95a11cc8b7c586eae846ac5c1d2"
       },
@@ -147,7 +147,7 @@
       "prompt": {
         "serviceKey": "couple_signal",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/couple_signal.md",
         "sha256": "fcf29323186c848c4d1ffc4a70522a27aa2ced9ba57db2703952a9b32a36ac4c"
       },
@@ -211,7 +211,7 @@
       "prompt": {
         "serviceKey": "home_fit",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/home_fit.md",
         "sha256": "b83746410e890b798646fcb44ad1001a0934f77c2111d357e2a23b1b3449fda3"
       },
@@ -275,7 +275,7 @@
       "prompt": {
         "serviceKey": "job_choice",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/job_choice.md",
         "sha256": "21b50b71097ed9de1d2f50a81c44ed63253723e0fdc72076be00e8c1b32a25e8"
       },
@@ -339,7 +339,7 @@
       "prompt": {
         "serviceKey": "love_again",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/love_again.md",
         "sha256": "3f6a58c6243e69f3e0bcd375497643aa2da93ef7f6eabd58b1ee66917d50bb4d"
       },
@@ -403,7 +403,7 @@
       "prompt": {
         "serviceKey": "love_mind",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/love_mind.md",
         "sha256": "b01b7f08d545cc2b34ff51887fe8cfb6505f1e46b1b10d0bb134eadd5c1dc8f3"
       },
@@ -467,7 +467,7 @@
       "prompt": {
         "serviceKey": "love_spouse",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/love_spouse.md",
         "sha256": "f4a1d7504f57816ba202705627104f90eb887d46b55e2353e54f9b0e95700d7b"
       },
@@ -531,7 +531,7 @@
       "prompt": {
         "serviceKey": "love_this_year",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/love_this_year.md",
         "sha256": "1fd7927ea97e88c6b4284eb9b36b6a344d7edefa65fddedf701b041506bccea3"
       },
@@ -595,7 +595,7 @@
       "prompt": {
         "serviceKey": "lucky_color",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/lucky_color.md",
         "sha256": "193da75b88e795d54b73bd38eb03da6b1fe484b224e5c5a742c6dfb6cfe37b0f"
       },
@@ -660,7 +660,7 @@
       "prompt": {
         "serviceKey": "marry_match",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/marry_match.md",
         "sha256": "8c90ffa8c40eb13e09d6b3485550914b049f466d32da17a49f63d4c9b8657f85"
       },
@@ -724,7 +724,7 @@
       "prompt": {
         "serviceKey": "match_couple",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/match_couple.md",
         "sha256": "4a0d4d709bb602d4945fbc7f0387b138760cb2a9783c7b7a3a4784dbae7b20e3"
       },
@@ -788,7 +788,7 @@
       "prompt": {
         "serviceKey": "money_save",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/money_save.md",
         "sha256": "2763f73d99b6c22d22af4e2b679ceee0558fe7d3e4ff9b0f244141a028e13327"
       },
@@ -852,9 +852,9 @@
       "prompt": {
         "serviceKey": "newyear_flow",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/newyear_flow.md",
-        "sha256": "dc892c51262eb09a0d360136580945d21eaad9d5eec03a3e88a249948b4cabbe"
+        "sha256": "e5425472e59a11389b1a8db44b29e371513af4de51a605eaf879127a9a4c206a"
       },
       "corpus": {
         "previous": {
@@ -917,7 +917,7 @@
       "prompt": {
         "serviceKey": "pass_angle",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/pass_angle.md",
         "sha256": "29c92a5b8809c2d7b6a6f87eee3f12c77f8103ad66dfd98ca1082432836e3fe1"
       },
@@ -982,7 +982,7 @@
       "prompt": {
         "serviceKey": "quit_fortune",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/quit_fortune.md",
         "sha256": "500360c78f62cbc5274a01467cd40fd9312836761d0c02c8ba75d74e623e2474"
       },
@@ -1047,9 +1047,9 @@
       "prompt": {
         "serviceKey": "saju_master",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/saju_master.md",
-        "sha256": "0bfb2a28f6e0664bde6267de5802499407c606d14aa81fa9f8961f511941f743"
+        "sha256": "bdd3124a01dc1aa44aa8c4ac5897993b980a15e83d73203f1cdc275435cfa7d5"
       },
       "corpus": {
         "previous": {
@@ -1112,7 +1112,7 @@
       "prompt": {
         "serviceKey": "today_fortune",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/today_fortune.md",
         "sha256": "f6f04de71a363df0f80824cb00c4666d8513a1bb71b4ddf69938899d0dff13ca"
       },
@@ -1178,9 +1178,9 @@
       "prompt": {
         "serviceKey": "wedding_day",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/wedding_day.md",
-        "sha256": "544c7e0b18978c6e57fd5cddff72ea4d93956988447ce947dd783b71b9c7b4bf"
+        "sha256": "43ef834fe850534c8828268404ee852fb9b267bb3b757c30618e5b3a7f0d7751"
       },
       "corpus": {
         "previous": {
@@ -1243,7 +1243,7 @@
       "prompt": {
         "serviceKey": "work_job",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/work_job.md",
         "sha256": "406e02edd42a0f3b68241706f373d36948fa821883f4cc15ded4f3020fc6ccae"
       },
@@ -1307,7 +1307,7 @@
       "prompt": {
         "serviceKey": "work_move",
         "bundleVersion": "tone-v2.20260910.1",
-        "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+        "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
         "sourcePath": "tone-v2/generated/services/work_move.md",
         "sha256": "72c6c77c6713b205e6be793ecbaea84fe6fc3ecf1cb7f73b76dd766818dd32fd"
       },

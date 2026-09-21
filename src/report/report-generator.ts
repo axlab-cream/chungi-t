@@ -19,7 +19,7 @@ import { InterpretationQualityError, reviewInterpretation, type InterpretationRe
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy } from './copy-guide.js'
-import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
+import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import type { HighlightTopic } from './longform-blocks.js'
 import {
   lengthBudgetForRole,
@@ -2034,7 +2034,7 @@ export function buildTemplateSajuReport(
 const SECTION_CLOSING_RULES = [
   '마지막 의미 단락은 2~4개의 완성 문장으로 쓰고, 그중 한 문장에 시간 표지와 확인 대상과 행동 서술어를 함께 담으세요. “다음에는 카드 명세서에서 구독료 항목을 비교해요.” 또는 격식체라면 “다음에는 업무 요청별 책임 범위를 기록하십시오.”처럼 다음에는·앞으로·이후·먼저·오늘 가운데 하나와, 무엇을 볼지 가리키는 목적어(…을/를)와, 기록·비교·확인·유지·점검·정리·상의·맞춰 보기·나눠 보기·물어보기·체크 가운데 하나의 서술어가 한 문장 안에 모두 있어야 합니다. 관계·결혼 상담이면 “먼저 생활비 분담을 상의해요.”, “다음에는 양가 일정을 맞춰 보세요.”처럼 씁니다.',
   '“다음에는 잘해봐” 같은 격려, “확인해”처럼 대상 없는 행동, 과거형이나 부정형 문장은 다음 판단 기준으로 세지 않습니다.',
-  '한자 설명은 한 문장에 하나만 씁니다. 다른 전문용어의 첫 설명은 새 문장으로 분리하세요.',
+  '고객 문장에는 한자를 쓰지 않습니다. 전문용어가 꼭 필요하면 쉬운 뜻을 먼저 말하고 한글 용어만 덧붙이세요.',
 ]
 
 const INTERPRETATION_INSTRUCTION = [
@@ -2043,8 +2043,8 @@ const INTERPRETATION_INSTRUCTION = [
   '정상 상태의 원인도 지어내면 안 됩니다. 만족한다는 입력만으로 업무 경계·약속·휴식 습관이 좋다고 확인한 것처럼 쓰지 말고, 첫 문단과 결론까지 실제 해당할 경우라는 조건을 유지하세요.',
   '제목·생년·명식 재소개로 분량을 채우지 말고 이 항목만의 근거, 생활 사례, 비교 기준과 적절한 다음 행동을 충분히 풀어주세요.',
   '항목의 질문과 서비스 페르소나에 맞는 길이로 씁니다. 근거·장면·다음 기준을 갖추되 같은 설명으로 분량을 늘리지 않습니다.',
-  '독립 카드에서 전문용어가 처음 나오면 한글(한자, 쉬운 뜻)으로 풀고, 독음 없는 한자·내부 자료 필드를 노출하지 마세요. 특히 합·충의 첫 설명은 “합(合, 서로 붙는 전통 관계)”, “충(沖, 서로 부딪히는 전통 관계)”처럼 단독 용어로 먼저 쓰고 오미 합(午未合) 같은 복합 표기로 대신하지 마세요.',
-  '계산값의 한자는 설명 괄호 밖에 그대로 복사하지 마세요. 午는 오화, 丙午는 병오, 乙未는 을미처럼 한글 독음으로 쓰세요.',
+  '전문용어가 꼭 필요하면 쉬운 뜻을 먼저 말하고 괄호 안에 한글 용어만 한 번 붙이세요. 예: “태어난 날의 기준 기운(일간)”. 한자는 쓰지 마세요.',
+  '계산값도 한글 독음으로 쓰세요. 한자 표기는 고객 문장에 복사하지 마세요.',
   '경고·해법·행동 세 가지를 모든 항목에 강제하지 마세요. 위험을 말하려면 실제 입력 근거와 해당 조건이 있어야 합니다.',
   '사용자가 연락 거부·차단을 알리면 재접촉보다 그 의사 존중을 우선하세요.',
   '다른 항목과 같은 문단을 쓰지 마세요. 미래 날짜·점수·자미두수 명반을 새로 계산하거나 만들어내지 마세요.',
@@ -2058,13 +2058,13 @@ const PASS_ANGLE_OPENING_VERDICT_INSTRUCTION = [
   '전통적 상징은 해석 후보로만 설명하세요. 상징을 현실의 정답·결정·명령·증명·보장·확정으로 쓰지 마세요.',
   '입력에 실제 경험 장면이 없으면 “예를 들어”로 시작하세요. 모의고사 복기처럼 장소 또는 도구와 분류·기록·비교 같은 관찰 행동이 함께 있는 장면을 한 문단에 넣으세요.',
   '마지막 의미 단락에는 오늘 또는 다음 복기에서 확인할 구체 대상을 밝히고 기록·비교·확인 중 하나를 실행 기준으로 쓰세요.',
-  '전문용어는 꼭 필요한 경우 하나씩만 소개하세요. 한자 묶음은 문장당 하나만 쓰고 같은 문장에 두 용어의 한자 설명을 겹치지 마세요.',
+  '전문용어는 꼭 필요한 경우 하나씩만 소개하고 쉬운 생활말로 먼저 설명하세요. 한자는 쓰지 마세요.',
 ].join('\n')
 
 const QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION = [
   '퇴사운 전체 판정 전용:',
   '퇴사·이직을 언급하는 미래 문장은 확정 결과로 끝내지 말고, “라면”, “다면”, “경우”, “수 있어요”, “가능성” 가운데 맞는 조건 표현을 문장 안에 명시하세요.',
-  '전문용어 충이 꼭 필요하면 첫 사용을 “충(沖, 서로 부딪혀 변화를 만드는 전통 관계)”처럼 한글(한자, 쉬운 뜻)로 설명하세요. 필요하지 않으면 전문용어를 새로 쓰지 마세요.',
+  '전문용어 충이 꼭 필요하면 “서로 부딪혀 변화를 만드는 관계(충)”처럼 쉬운 뜻을 먼저 설명하세요. 필요하지 않으면 전문용어를 새로 쓰지 마세요.',
   '마지막 의미 단락에는 남을 조건과 옮길 조건 중 구체적인 확인 대상을 먼저 밝히고, 그 대상을 기록·비교·확인하는 행동과 결과별 다음 판단을 2~4문장으로 쓰세요.',
   '현재 입력은 차분한 비교 요청입니다. 갈등·질병·해고·경제 위기를 실제 사실처럼 만들지 마세요.',
 ].join('\n')
@@ -2108,7 +2108,7 @@ const QUIT_FORTUNE_COMMON_INSTRUCTION = [
   '퇴사운 전 항목 공통:',
   '퇴사·이직·잔류 뒤의 미래 결과는 확인된 사실처럼 단정하지 말고, 실제 조건이 충족될 때의 가능성이라는 조건부 표현으로 쓰세요.',
   '빈 줄로 나눈 각 의미 단락을 2~4개의 완성 문장으로 구성하고, 한 문장짜리 단락이나 문장 조각을 만들지 마세요.',
-  '전문용어가 꼭 필요할 때만 하나씩 소개하고, 괄호 속 한자 설명은 문장당 하나만 쓰세요.',
+  '전문용어가 꼭 필요할 때만 하나씩 소개하고 쉬운 뜻을 먼저 말하세요. 한자는 쓰지 마세요.',
 ].join('\n')
 
 const QUIT_FORTUNE_FIVE_ADVISERS_INSTRUCTION = [
@@ -2635,8 +2635,8 @@ function sectionRepairInstruction(issues: string[], mode: 'rewrite' | 'edit' = '
     '그 단락의 첫 문장에는 구체적인 확인 대상을 밝히고, 이어지는 문장에는 그 대상을 기록·비교·확인하는 행동을 쓰세요.',
     'JSON 반환 전 내부 자기검사에서 마지막 의미 단락의 다음 판단 기준을 확인하되, 자기검사 체크리스트는 출력하지 마세요.',
     '필요하지 않은 전문용어를 새로 추가하지 마세요.',
-    '설명 괄호 밖의 한자는 모두 한글 독음으로 바꾸세요. 午는 오화, 丙午는 병오, 乙未는 을미로 쓰며 계산값의 한자를 그대로 복사하지 마세요.',
-    '합·충의 첫 설명은 “합(合, 서로 붙는 전통 관계)”, “충(沖, 서로 부딪히는 전통 관계)”처럼 단독 용어로 먼저 쓰고 오미 합(午未合) 같은 복합 표기로 대신하지 마세요.',
+    '한자는 모두 한글 독음으로 바꾸고 계산값의 한자를 그대로 복사하지 마세요.',
+    '합·충이 꼭 필요하면 “서로 붙는 전통 관계(합)”, “서로 부딪히는 전통 관계(충)”처럼 쉬운 뜻을 먼저 쓰세요.',
     '빈 줄로 나눈 각 의미 단락은 2~4개의 완성 문장으로 다시 구성하세요. 한 문장짜리 단락은 만들지 마세요.',
     '지정된 서비스 말투를 유지하고 확정 예언을 하지 말며 상징을 현실의 정답·결정·명령·증명·보장으로 바꾸지 마세요.',
     '근거 없는 수치, 내부 필드, 코퍼스 문장 복사, 형제 항목과 같은 답이나 긴 문단 반복을 만들지 마세요.',
@@ -2681,6 +2681,7 @@ export function reviewGeneratedSajuReportSection(input: {
   )
   review.issues.push(...reviewToneCopy(interpretation, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'body' }).issues)
   review.issues.push(...reviewToneCopy(hook, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'hook' }).issues)
+  review.issues.push(...reviewReadableCopy(`${hook}\n${interpretation}`, { role: 'body' }).issues)
   review.issues.push(...reviewPaidSectionDensity({
     hook,
     question: section.classification,

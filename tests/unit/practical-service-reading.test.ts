@@ -52,7 +52,8 @@ test('lucky reading distinguishes a small element count from absence and withhol
   const modified = { ...analysis, elementCount: counts, weakElement: 'wood' as const, usefulGod: null }
   const input = parseLuckyColorRequest({})
   const report = buildLuckyColorReport(modified, birth, buildLuckyColorContext('검증', input), input)
-  assert.match(report.sections[0].interpretation, /목\(木\)도 1개/)
+  assert.match(report.sections[0].interpretation, /목도 1개/)
+  assert.doesNotMatch(report.sections[0].interpretation, /[一-龥]/)
   const text = report.sections.map((section) => section.interpretation).join('\n')
   assert.doesNotMatch(text, /원국에 아예 비어|몸이 먼저 열립니다|그 시간대의 리듬이 특히|반드시 .*방향/)
   assert.match(text, /용신.*확정되지 않았/)

@@ -1620,7 +1620,7 @@ function historyEntryFromRecord(record: ReportRecord, options: { slim?: boolean 
     reportId: record.reportId,
     resultId,
     publicUrl: full?.report.publicUrl ?? `/r/${encodeURIComponent(String(resultId))}`,
-    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
+    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
     // 판매할 때 쓴 이름 그대로 돌려준다. 화면이 자기 표를 들고 있으면 카탈로그와 갈라진다.
     serviceTitle: serviceTitleForKey(record.context?.serviceKey || 'cmdg'),
@@ -3962,7 +3962,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess) {
     publicId: report.publicId,
     publicUrl: report.publicUrl,
     serviceKey: record.context.serviceKey ?? 'saju_master',
-    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context), record.context),
+    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context),
     toc: reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }

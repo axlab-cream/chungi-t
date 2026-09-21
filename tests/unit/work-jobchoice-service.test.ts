@@ -63,7 +63,8 @@ test('직장 선택 builds a dedicated job-choice report', () => {
 
   // The reading has to reach the reader's own 원국 and this offer, not a generic template.
   const opening = report.sections[0].interpretation
-  assert.match(opening, /관성\(官星, 조직의 역할과 책임/)
+  assert.match(opening, /관성\(조직의 역할과 책임/)
+  assert.doesNotMatch(opening, /[一-龥]/)
   assert.match(opening, /A회사 최종 오퍼/)
   assert.match(opening, /콘텐츠 기획/)
   assert.match(opening, /상사 스타일이 강해 보이고 역할 범위가 애매합니다/)

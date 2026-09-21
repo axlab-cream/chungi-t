@@ -1,6 +1,7 @@
 import type { SajuReport, SajuReportContext } from '../types/index.js'
 import { relationshipState } from '../love/reading-content.js'
-import type { ToneReview } from './tone-v2-review.js'
+import { normalizeTeaserCopy, splitReadableSentences } from './copy-guide.js'
+import { reviewReadableCopy, type ToneReview } from './tone-v2-review.js'
 
 export interface ReportPreview {
   title: string
@@ -40,8 +41,16 @@ function normalizeForCompare(value: string): string {
   return value.replace(/\s+/g, '').replace(/[.,!?·。]/g, '')
 }
 
+/** Duplicate detection ignores spacing and terminal punctuation only. */
+function normalizeForDedup(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[.!?。]+$/g, '')
+}
+
 const TEASER_CONCRETE_SETTING_PATTERN = /(?:출근길|퇴근길|회의(?:실|에서|중|시간)|대화창|메신저|캘린더|일정표|업무\s*도구|시험장|오답\s*노트|책상|침대|현관|식탁|산책로|결제창|계약서|면접장|예식장|휴대폰|가계부|영수증|밥[·ㆍ,\s]*(?:청소|급여)|청소[·ㆍ,\s]*(?:놀이|급여)|놀이\s*(?:시간|중))/
-const TEASER_OBSERVATION_PATTERN = /(?:기록|비교|확인|표시|나누|질문|적(?:어|고|으)|열(?:어|고)|보았|보면|살펴|고르|정하|누가|횟수|시간|금액|담당자|마감)/
+const TEASER_OBSERVATION_PATTERN = /(?:기록|비교|확인|표시|나누|질문|반복|보완|적(?:어|고|으)|열(?:어|고)|보았|보면|살펴|고르|정하|누가|횟수|시간|금액|담당자|마감)/
 const TEASER_OPERATIONS_PATTERN = /(?:로그인[·\s]*(?:상태|여부)|결제[·\s]*상태|서버\s*권한|해석\s*준비\s*중|내부\s*생성\s*상태|측정\s*전|자료\s*없음|previewOnly|generationId|entitlement)/i
 const TEASER_FAKE_QUOTE_PATTERN = /(?:잠긴|유료|전체)\s*(?:본문|해석)[^.!?。\n]{0,30}[“「"][^”」"\n]+[”」"]/
 const TEASER_PRESSURE_PATTERN = /(?:결제|구매|지금\s*열|전체\s*해석)[^.!?。\n]{0,35}(?:안\s*하면|않으면|놓치|손해|후회|망하|위험)|(?:놓치|손해|후회|망하|위험)[^.!?。\n]{0,35}(?:결제|구매|열어)/
@@ -106,15 +115,46 @@ export function reviewTeaser(input: TeaserReviewInput): ToneReview {
   if (TEASER_CLICKBAIT_PATTERN.test(allCopy)) {
     issues.push('호기심만 남기는 후킹 문장 대신 판정과 근거를 보여 주세요.')
   }
+  issues.push(...reviewReadableCopy(interpretation, { role: 'teaser' }).issues)
 
   return { passed: issues.length === 0, issues }
 }
 
-function enforceSafeTeaser(preview: ReportPreview, sourceEvidence: string): ReportPreview {
-  const review = reviewTeaser({ preview, sourceEvidence })
-  const unsafe = review.issues.filter(issue => /결제·권한|운영 문구|가짜 인용|공포|개인 예언|후킹/.test(issue))
+function enforceSafeTeaser(preview: ReportPreview, sourceEvidence: string, strictReadability = true): ReportPreview {
+  // Normalization must never turn an unsafe source into a safe-looking sentence.
+  // Review the raw copy first, then review the exact copy that will be stored.
+  const rawReview = reviewTeaser({ preview, sourceEvidence })
+  const rawUnsafe = rawReview.issues.filter(issue => /결제·권한|운영 문구|가짜 인용|공포|개인 예언|후킹/.test(issue))
+  if (rawUnsafe.length > 0) throw new Error(`저장 티저 안전 검수를 통과하지 못했습니다: ${rawUnsafe.join(' ')}`)
+  const normalizedInsights = preview.insights.map((line) => normalizeTeaserCopy(line))
+  const spoken = new Set(splitReadableSentences(`${normalizeTeaserCopy(preview.headline, true)} ${normalizeTeaserCopy(preview.summary)}`).map(normalizeForDedup))
+  const uniqueInsights = normalizedInsights.map((line) => {
+    let preserved = line
+    for (const sentence of splitReadableSentences(line)) {
+      const content = sentence.trim()
+      const key = normalizeForDedup(content)
+      if (!key) continue
+      if (spoken.has(key)) {
+        preserved = preserved.replace(content, '')
+        continue
+      }
+      spoken.add(key)
+    }
+    return preserved.replace(/[ \t]{2,}/g, ' ').trim()
+  }).filter(Boolean)
+  const normalized: ReportPreview = {
+    ...preview,
+    headline: normalizeTeaserCopy(preview.headline, true),
+    summary: normalizeTeaserCopy(preview.summary),
+    insights: uniqueInsights,
+    signals: preview.signals.map((line) => normalizeTeaserCopy(line)),
+  }
+  const review = reviewTeaser({ preview: normalized, sourceEvidence: normalizeTeaserCopy(sourceEvidence) })
+  const unsafe = review.issues.filter(issue => strictReadability
+    ? /결제·권한|운영 문구|가짜 인용|공포|개인 예언|후킹|한자|전문용어|65자|쉬운 한국어|티저 첫 판정은 한 줄/.test(issue)
+    : /결제·권한|운영 문구|가짜 인용|공포|개인 예언|후킹/.test(issue))
   if (unsafe.length > 0) throw new Error(`저장 티저 안전 검수를 통과하지 못했습니다: ${unsafe.join(' ')}`)
-  return preview
+  return normalized
 }
 
 /** A small complete insight, frozen with the record; never expose paid paragraphs. */
@@ -124,15 +164,17 @@ export function guardPreview(preview: ReportPreview, context: SajuReportContext 
     const state = relationshipState({ concern: context.concern, relationship: context.relationship, signals: { partner: context.partner?.relationship } })
     if (state === 'boundary' || state === 'unsafe') {
       const summary = state === 'boundary'
-        ? '상대가 연락을 원하지 않는다는 의사를 밝혔으므로, 지금의 기준은 새 메시지를 보내는 것이 아니라 그 경계를 존중하는 데 있습니다. 마음을 추측하지 않고 내 일상을 회복할 선택부터 살펴보세요.'
-        : '말씀하신 안전 문제는 관계를 되돌리는 방법보다 안전한 거리와 도움을 먼저 확인해야 할 상황입니다. 운세를 이유로 불편한 접촉이나 강요를 감수할 필요는 없습니다.'
+        ? '상대가 연락을 원하지 않는다고 밝혔습니다. 지금은 새 메시지를 보내지 말고 그 경계를 존중해야 합니다. 마음을 추측하지 말고 내 일상을 회복할 선택부터 살펴보세요.'
+        : '지금은 관계를 되돌리는 방법보다 안전한 거리와 도움을 먼저 확인해야 합니다. 운세를 이유로 불편한 접촉이나 강요를 감수할 필요는 없습니다.'
       guarded = { ...preview, headline: state === 'boundary' ? '연락하지 않고 마음을 정리할 기준' : '관계보다 먼저 지켜야 할 나의 안전', summary, insights: [summary], signals: [summary], paidValue: '전체 해석에서도 재접촉을 권하거나 상대 마음을 단정하지 않습니다. 감정을 정리하고 내 선택과 경계를 지키는 기준을 자세히 설명합니다. 결제는 연락이나 안전 문제를 해결하는 조건이 아닙니다.' }
     }
   }
-  return enforceSafeTeaser(guarded, guarded.headline)
+  // This path also serves previously saved previews. Keep safety blocking, but
+  // do not make a new style threshold turn an old readable record into a 500.
+  return enforceSafeTeaser(guarded, guarded.headline, false)
 }
 
-export function createSavedPreview(report: SajuReport, context: SajuReportContext = {}): ReportPreview {
+export function createSavedPreview(report: SajuReport, context: SajuReportContext = {}, strictReadability = true): ReportPreview {
   const reportEvidence = [report.title ?? '', ...report.sections.flatMap(section => [section.hook ?? '', section.interpretation ?? ''])].join('\n')
   if (context.serviceKey === 'wedding_day' && context.wedding?.teaser) {
     const { headline, lines } = context.wedding.teaser
@@ -144,7 +186,7 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
       insights,
       signals: insights,
       paidValue: `길일·흉일을 선고하지 않습니다. 전체 해석에서는 6개 대분류 · ${report.sections.length}개 중분류로 후보일 조건을 비교합니다.`,
-    }, [headline, ...lines].join('\n')), context)
+    }, [headline, ...lines].join('\n'), strictReadability), context)
   }
   if (context.serviceKey === 'newyear_flow' && context.newyear?.teaser) {
     const { headline, lines } = context.newyear.teaser
@@ -153,7 +195,7 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
       title: report.title, headline, summary: lines[0] ?? headline,
       insights, signals: insights,
       paidValue: `전체 해석에서는 ${context.newyear.targetYear}년 입춘 전환과 열두 달 월운, 일·돈·관계의 선택 기준을 10개 대분류 · ${report.sections.length}개 항목으로 자세히 확인합니다.`,
-    }, [headline, ...lines].join('\n')), context)
+    }, [headline, ...lines].join('\n'), strictReadability), context)
   }
   /**
    * summary 에 insights[0] 을 그대로 넣고 insights 를 함께 내보내면 같은 문장이 티저에서
@@ -204,5 +246,5 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
     title: report.title, headline, summary,
     insights, signals: insights,
     paidValue: `전체 해석에서는 ${report.sections.length}개 항목의 근거와 생활 사례, 지금 상황에 맞는 판단 기준을 확인할 수 있습니다.`,
-  }, reportEvidence), context)
+  }, reportEvidence, strictReadability), context)
 }

@@ -13,8 +13,8 @@
     },
     {
       "path": "규격/01-공통-프롬프트-규칙.md",
-      "sha256": "3acb590bb5806a49b3ec82b446ab881493ea11fc70f0a9ec50e7ad4342a72449",
-      "bytes": 64274
+      "sha256": "4c72d62f43f03050b66e6a61df2422fe8d8c8cf7518dc0bcc0d7c84bb7f7e74b",
+      "bytes": 64496
     },
     {
       "path": "규격/02-핵심약속-개사안.md",
@@ -23,18 +23,18 @@
     },
     {
       "path": "규격/03-말투-배정안.md",
-      "sha256": "34d5bba91a6f13be240dc877f93b6ab66aa6ec2a2f68a6733def7a447a06bc08",
-      "bytes": 8129
+      "sha256": "0ec2a5ba1be8d7ff01a25f56483d1577b59bd57e73669ca5c70bac981d32ac87",
+      "bytes": 8135
     },
     {
       "path": "규격/04-페르소나-상세규정.md",
-      "sha256": "926c0c7e54ed3e6847fa3a41e8ae6866bade0f0b1e22f089e528746939038bab",
-      "bytes": 42867
+      "sha256": "f0077d7e100bb578f5053518d6013214e6978972ddb26a18609813a507dd08f3",
+      "bytes": 42887
     },
     {
       "path": "규격/05-서비스-편집-결정표.md",
-      "sha256": "5d0f203742d0353f0e924be982ff3923e1dd024752abd1aef029810b66924f67",
-      "bytes": 7511
+      "sha256": "1b74986080d53ae6347b8ba073f0124f98364cf4677233b201cc0f5719dbb353",
+      "bytes": 7517
     },
     {
       "path": "규격/07-캐릭터-말투-대조표.md",
@@ -183,8 +183,8 @@
     },
     {
       "path": "산출물-샘플/saju_master.md",
-      "sha256": "ff75b1348c8426f433486479665956513d692b830805854808e90c25a0939d2e",
-      "bytes": 14380
+      "sha256": "9dcef7714cdbc4ebcb40fc7512d81039ce6d19c9f45465aff1b3e855511546b9",
+      "bytes": 14400
     },
     {
       "path": "산출물-샘플/today_fortune.md",
@@ -388,8 +388,8 @@
     },
     {
       "path": "프롬프트/saju_master.md",
-      "sha256": "b59bfa885b66a32fe21e241eff56751169270e95d2887286b1f12d548aaa2cac",
-      "bytes": 11663
+      "sha256": "3003b848771c92f54dbdbf8dc07a53cb743c467056fef95c6b867e6bb01afd8e",
+      "bytes": 11684
     },
     {
       "path": "프롬프트/today_fortune.md",
@@ -412,7 +412,7 @@
       "bytes": 10402
     }
   ],
-  "sourceFingerprint": "1a558d8b0af0b1678a76bbb1a3b3e993b25ed69f846d8b5df24fbf8840ac27c5",
+  "sourceFingerprint": "8ce36476ed8604fe9c60c2b62f733691c3001744309d2beb903853c6d7ae5c2c",
   "services": [
     "today_fortune",
     "lucky_color",

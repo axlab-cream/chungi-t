@@ -178,475 +178,475 @@
     "id": "TV-01-104",
     "source": "규격/01-공통-프롬프트-규칙.md",
     "line": 104,
-    "title": "7. 전문용어",
+    "title": "7. 전문용어와 쉬운 문장",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-112",
+    "id": "TV-01-113",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 112,
+    "line": 113,
     "title": "8. 점수·그래프·표",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-120",
+    "id": "TV-01-121",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 120,
+    "line": 121,
     "title": "9. 티저 규칙",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-131",
+    "id": "TV-01-132",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 131,
+    "line": 132,
     "title": "10. 안전과 확정 표현",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-140",
+    "id": "TV-01-141",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 140,
+    "line": 141,
     "title": "11. 가독성과 UI 문장",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-154",
+    "id": "TV-01-155",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 154,
+    "line": 155,
     "title": "12. 생성 후 필수 검수",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-178",
+    "id": "TV-01-179",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 178,
+    "line": 179,
     "title": "13. 날카로움의 실행 규격 ★ 신설",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-183",
+    "id": "TV-01-184",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 183,
+    "line": 184,
     "title": "13-1. 첫 문장은 판정이거나, 한 문장짜리 인정이다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-231",
+    "id": "TV-01-232",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 231,
+    "line": 232,
     "title": "13-2. 위로는 한 문장으로 끝낸다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-240",
+    "id": "TV-01-241",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 240,
+    "line": 241,
     "title": "13-3. 회피 중인 것에 이름을 붙인다 — **있을 때만**",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-264",
+    "id": "TV-01-265",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 264,
+    "line": 265,
     "title": "13-4. 비용은 숫자나 기간으로 쓴다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-271",
+    "id": "TV-01-272",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 271,
+    "line": 272,
     "title": "13-5. 판정문의 형식은 항목 유형이 정한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-287",
+    "id": "TV-01-288",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 287,
+    "line": 288,
     "title": "말투별 대응 — §6이 §13보다 위다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-306",
+    "id": "TV-01-307",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 306,
+    "line": 307,
     "title": "13-6. 안전 영역에는 체언 판정을 쓰지 않는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-325",
+    "id": "TV-01-326",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 325,
+    "line": 326,
     "title": "13-7. 매운맛의 과녁은 미래가 아니라 현재의 선택이다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-334",
+    "id": "TV-01-335",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 334,
+    "line": 335,
     "title": "13-8. 리포트당 체언 판정은 전체 항목의 30% 이내 — **단 서비스 구성에 따른다**",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-405",
+    "id": "TV-01-406",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 405,
+    "line": 406,
     "title": "13-9. 잘하고 있으면 같은 강도로 유지를 말한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-415",
+    "id": "TV-01-416",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 415,
+    "line": 416,
     "title": "13-10. 인격이 아니라 선택을 지적한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-432",
+    "id": "TV-01-433",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 432,
+    "line": 433,
     "title": "13-15. 안전 연락처는 고정값이다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-446",
+    "id": "TV-01-447",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 446,
+    "line": 447,
     "title": "13-17. 반말체 — 쓸 수 있다. 단 조건이 있다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-451",
+    "id": "TV-01-452",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 451,
+    "line": 452,
     "title": "반말이 이미 쓰이고 있는 자리 (유지)",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-462",
+    "id": "TV-01-463",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 462,
+    "line": 463,
     "title": "본문에 반말체를 쓸 수 있는 조건",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-471",
+    "id": "TV-01-472",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 471,
+    "line": 472,
     "title": "반말체에서도 절대 금지",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-486",
+    "id": "TV-01-487",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 486,
+    "line": 487,
     "title": "인용 반말은 모든 서비스에서 허용",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-495",
+    "id": "TV-01-496",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 495,
+    "line": 496,
     "title": "13-16. 금지어는 단어가 아니라 용법으로 검사한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-514",
+    "id": "TV-01-515",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 514,
+    "line": 515,
     "title": "13-11. 2인칭은 무호칭",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-531",
+    "id": "TV-01-532",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 531,
+    "line": 532,
     "title": "13-12. 해당 없는 항목은 비우지도, 채우지도 않는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-546",
+    "id": "TV-01-547",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 546,
+    "line": 547,
     "title": "13-13. 판정 근거가 없으면 「무엇이 있으면 판정되는지」를 쓴다 ★",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-561",
+    "id": "TV-01-562",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 561,
+    "line": 562,
     "title": "13-14. 사용자가 질문 시점을 지났으면 질문을 다시 세운다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-588",
+    "id": "TV-01-589",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 588,
+    "line": 589,
     "title": "14. 재미의 실행 규격 ★ 신설",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-599",
+    "id": "TV-01-600",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 599,
+    "line": 600,
     "title": "14-1. 재미의 조건은 하나다 — 맞아야 한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-611",
+    "id": "TV-01-612",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 611,
+    "line": 612,
     "title": "14-2. 재미의 핵심 장치는 「반전」이다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-628",
+    "id": "TV-01-629",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 628,
+    "line": 629,
     "title": "반전의 형태도 하나가 아니다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-644",
+    "id": "TV-01-645",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 644,
+    "line": 645,
     "title": "14-3. 이름 붙이기 — 말 못 하던 것에 이름을 준다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-656",
+    "id": "TV-01-657",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 656,
+    "line": 657,
     "title": "14-4. 비용 노출 — 숫자는 가장 매운 재미다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-667",
+    "id": "TV-01-668",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 667,
+    "line": 668,
     "title": "14-5. 해상도 — 남들이 뭉뚱그리는 것을 쪼갠다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-684",
+    "id": "TV-01-685",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 684,
+    "line": 685,
     "title": "14-6. 전달 — 장면과 리듬은 재미의 그릇이다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-695",
+    "id": "TV-01-696",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 695,
+    "line": 696,
     "title": "14-7. 재미 강도는 「위트의 양」이지 「정확도의 양」이 아니다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-707",
+    "id": "TV-01-708",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 707,
+    "line": 708,
     "title": "14-9. 틈(Gap) — 완벽한 냉소가는 매력이 없다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-716",
+    "id": "TV-01-717",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 716,
+    "line": 717,
     "title": "틈은 어디에 두나 — 항목의 마지막 한 문장",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-732",
+    "id": "TV-01-733",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 732,
+    "line": 733,
     "title": "틈의 세 가지 형태 — 서비스에 맞는 것 하나만",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-743",
+    "id": "TV-01-744",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 743,
+    "line": 744,
     "title": "틈이 필요 없는 경우",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-748",
+    "id": "TV-01-749",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 748,
+    "line": 749,
     "title": "14-10. 말끝 처리는 결마다 다르다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-765",
+    "id": "TV-01-766",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 765,
+    "line": 766,
     "title": "14-8. 이렇게 만든 재미는 재미가 아니다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-779",
+    "id": "TV-01-780",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 779,
+    "line": 780,
     "title": "15. 매운맛의 결 ★ 신설",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-787",
+    "id": "TV-01-788",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 787,
+    "line": 788,
     "title": "15-1. 일곱 가지 결",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-799",
+    "id": "TV-01-800",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 799,
+    "line": 800,
     "title": "15-1-1. 시니컬과 서늘함은 문법이 있다 — 한 줄 정의로는 안 나온다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-804",
+    "id": "TV-01-805",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 804,
+    "line": 805,
     "title": "시니컬 — `money_save` 전용 (20개 중 하나뿐)",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-822",
+    "id": "TV-01-823",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 822,
+    "line": 823,
     "title": "서늘함 — 마키마형 (`quit_fortune` · `saju_master` · `love_spouse`)",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-836",
+    "id": "TV-01-837",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 836,
+    "line": 837,
     "title": "서늘함의 행동 지시는 **요청·확인형**이다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-852",
+    "id": "TV-01-853",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 852,
+    "line": 853,
     "title": "15-1-3. 찌르는 셋은 **거리와 온기**로 가른다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-873",
+    "id": "TV-01-874",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 873,
+    "line": 874,
     "title": "15-1-2. 결별 레퍼런스 — **내부 참조용. 프롬프트에 넣지 않는다**",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-898",
+    "id": "TV-01-899",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 898,
+    "line": 899,
     "title": "15-2. 결은 서비스당 하나. 섞지 않는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-903",
+    "id": "TV-01-904",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 903,
+    "line": 904,
     "title": "15-3. 결은 「말투」와 다르다 — 둘 다 지정한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-917",
+    "id": "TV-01-918",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 917,
+    "line": 918,
     "title": "15-4. 결마다 넘어가는 지점이 다르다 — 검수는 결별로 본다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-947",
+    "id": "TV-01-948",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 947,
+    "line": 948,
     "title": "16. 뼈 때리기 — 모호함 제거 ★ 신설",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-956",
+    "id": "TV-01-957",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 956,
+    "line": 957,
     "title": "16-1. 설명조를 쓰지 않는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-974",
+    "id": "TV-01-975",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 974,
+    "line": 975,
     "title": "16-2. 정면 부정 — 사용자의 자기 인식을 뒤집는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1041",
+    "id": "TV-01-1042",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1041,
+    "line": 1042,
     "title": "16-3. 모호어 전면 금지",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1058",
+    "id": "TV-01-1059",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1058,
+    "line": 1059,
     "title": "16-4. 숫자는 비교로 놓는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1070",
+    "id": "TV-01-1071",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1070,
+    "line": 1071,
     "title": "16-5. §15(결)보다 위가 아니다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1089",
+    "id": "TV-01-1090",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1089,
+    "line": 1090,
     "title": "16-6. 검수",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1100",
+    "id": "TV-01-1101",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1100,
+    "line": 1101,
     "title": "17. 어휘층 — 요즘 말로 쓴다 ★ 신설",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1111",
+    "id": "TV-01-1112",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1111,
+    "line": 1112,
     "title": "17-1. 세 층을 구분한다. 낡는 속도가 다르다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1121",
+    "id": "TV-01-1122",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1121,
+    "line": 1122,
     "title": "17-2. 문어체 금지 목록",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1138",
+    "id": "TV-01-1139",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1138,
+    "line": 1139,
     "title": "17-3. 세대 어휘는 서비스별로 배정한다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1152",
+    "id": "TV-01-1153",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1152,
+    "line": 1153,
     "title": "17-4. 항목당 1~2개. 도배하지 않는다",
     "verification": "NEEDS_REVIEW"
   },
   {
-    "id": "TV-01-1161",
+    "id": "TV-01-1162",
     "source": "규격/01-공통-프롬프트-규칙.md",
-    "line": 1161,
+    "line": 1162,
     "title": "17-5. 검수",
     "verification": "NEEDS_REVIEW"
   },

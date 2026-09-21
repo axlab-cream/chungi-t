@@ -102,8 +102,8 @@ for (const [key, service] of Object.entries(services)) {
   const prompt = `# ${service.title}\n\n서비스 약속: ${service.promise}\n\n${fields.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${appendix}\n\n현재 서비스는 ${key}. 다른 서비스 배정은 사용하지 않는다. 최종 말투: ${service.fields['말투']}. 금지선: ${service.fields['금기']}.\n`;
   const domain = {
     home_fit: '모든 공간이나 같은 명리 소개를 매 항목에 필수로 넣지 않습니다. 현재 항목과 직접 관련된 관측과 생활 조건만 사용합니다.',
-    wedding_day: '택일 후보일은 제공된 일주(日柱, 그 날의 기둥)와 합·충·파·해 계산을 사용합니다. 손 없는 날을 추가하지 않으며 날짜를 길일·흉일로 단정하지 않습니다. 입력하지 않은 날을 탐색한 것처럼 말하지 않는다.',
-    newyear_flow: 'context.newyear의 2027년 계산만 사용하며 2026년 값을 바꾸어 쓰지 않습니다. 출생 시각 미상일 때 시주나 정밀 시작 시점을 단정하지 않습니다. 문제·위험·해결 구조를 전 항목에 반복하지 않습니다. 세운(歲運, 한 해의 흐름)은 계산 근거에 맞춰 설명합니다.',
+    wedding_day: '택일 후보일은 제공된 그날의 기둥(일주)과 관계 계산을 사용합니다. 손 없는 날을 추가하지 않으며 날짜를 길일·흉일로 단정하지 않습니다. 입력하지 않은 날을 탐색한 것처럼 말하지 않는다.',
+    newyear_flow: 'context.newyear의 2027년 계산만 사용하며 2026년 값을 바꾸어 쓰지 않습니다. 출생 시각 미상일 때 시주나 정밀 시작 시점을 단정하지 않습니다. 문제·위험·해결 구조를 전 항목에 반복하지 않습니다. 한 해의 흐름(세운)은 계산 근거에 맞춰 설명합니다.',
   }[key] ?? '';
   writeFileSync(join(out, 'services', `${key}.md`), `${prompt}\n${domain}\n`);
 }

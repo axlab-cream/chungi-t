@@ -70,6 +70,8 @@ describe('service-system prompt wiring', () => {
     const block = loadServiceBlock('saju_master')
     assert.ok(block.includes('최종 말투: 격식체'))
     assert.ok(block.includes('`자네`·`~일세` 금지'))
+    assert.doesNotMatch(block, /35자 이상|장문/)
+    assert.match(block, /짧은 문장/)
   })
 
   it('all 20 manifest service files exist, including new year and wedding', () => {
@@ -93,6 +95,8 @@ describe('service-system prompt wiring', () => {
       assert.equal(Object.keys(contract.fields).length, 13)
       for (const [name, value] of Object.entries(contract.fields)) assert.ok(value.length > 0, `${key}: missing ${name}`)
       const full = loadServiceSystemPrompt(key)
+      assert.match(full, /중학생.*사전 없이 이해|사전 없이.*중학생/, `${key}: 쉬운말 공통 계약이 없습니다`)
+      assert.match(full, /한자를 쓰지/, `${key}: 한자 비노출 계약이 없습니다`)
       assert.ok(full.includes(contract.promise), `${key}: runtime prompt missing promise`)
       for (const [name, value] of Object.entries(contract.fields)) {
         if (name !== '대표 문장') assert.ok(full.includes(value), `${key}: runtime prompt missing ${name}`)
@@ -138,9 +142,9 @@ describe('service-system prompt wiring', () => {
     // 계산값과 통념을 가르는 규칙, 그리고 날짜 선고 금지가 프롬프트에 남아 있어야 한다.
     assert.match(block, /손 없는 날/)
     assert.match(block, /길일·흉일로 단정/)
-    assert.match(block, /합·충·파·해/)
+    assert.match(block, /관계 계산/)
     assert.match(block, /해요체/)
-    assert.match(loadServiceSystemPrompt('wedding_day'), /일주\(日柱, 그 날의 기둥\)/)
+    assert.match(loadServiceSystemPrompt('wedding_day'), /일주\(그날의 기둥\)|그날의 기둥\(일주\)/)
     // 다른 서비스의 목소리가 섞이면 안 된다.
     assert.doesNotMatch(block, /자네|~일세/)
     assert.doesNotMatch(block, /context\.newyear/)
@@ -153,7 +157,7 @@ describe('service-system prompt wiring', () => {
     assert.match(block, /2026년/)
     assert.match(block, /출생 시각 미상/)
     assert.match(block, /문제·위험·해결/)
-    assert.match(loadServiceSystemPrompt('newyear_flow'), /세운\(歲運, 한 해의 흐름\)/)
+    assert.match(loadServiceSystemPrompt('newyear_flow'), /세운\(한 해의 흐름\)|한 해의 흐름\(세운\)/)
     assert.doesNotMatch(block, /자네|~일세/)
     assert.throws(() => loadServiceBlock('not_a_real_service'), /Unknown tone-v2 service/)
   })

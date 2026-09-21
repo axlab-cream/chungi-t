@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
-import { explainFirstTerms } from '../../src/report/copy-guide.js'
+import { explainFirstTerms, normalizeTeaserCopy, normalizeUserCopy } from '../../src/report/copy-guide.js'
 import { standardReading } from '../../src/report/standard-reading.js'
 import { groundedReportFeatures } from '../../src/report/report-generator.js'
 import { reportedState } from '../../src/report/practical-service-copy.js'
@@ -104,6 +104,112 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     assert.ok(baitReview.issues.some(issue => issue.includes('후킹')))
   })
 
+  it('rejects hard-to-read teaser copy before it is saved', () => {
+    const base = {
+      title: '새해 흐름',
+      headline: '올해는 준비한 기준을 지킬 때예요.',
+      summary: '달력에서 중요한 일정을 먼저 확인해요.',
+      insights: ['예를 들어 일정표에서 준비할 날짜를 표시해요.'],
+      signals: ['예를 들어 일정표에서 준비할 날짜를 표시해요.'],
+      paidValue: '전체 해석에서는 달마다 확인할 기준을 12개 항목으로 비교합니다.',
+    }
+    assert.equal(reviewTeaser({ preview: base, sourceEvidence: base.headline }).passed, true)
+    const hanja = { ...base, summary: '세운(歲運, 한 해의 흐름)은 정미예요.' }
+    assert.match(reviewTeaser({ preview: hanja, sourceEvidence: hanja.headline }).issues.join(' '), /한자/)
+    const dense = { ...base, summary: '세운과 일간과 정인을 함께 봐요.' }
+    assert.match(reviewTeaser({ preview: dense, sourceEvidence: dense.headline }).issues.join(' '), /전문용어/)
+  })
+
+  it('keeps normalization from bypassing safety or changing ordinary words, quotes and paragraphs', () => {
+    const base = {
+      title: '확인',
+      headline: '확인할 기준입니다.',
+      summary: '예를 들어 일정표에서 날짜를 확인해요.',
+      insights: ['예를 들어 일정표에서 날짜를 확인해요.'],
+      signals: ['예를 들어 일정표에서 날짜를 확인해요.'],
+      paidValue: '전체 해석에서는 조건을 2개 항목으로 비교합니다.',
+    }
+    assert.throws(
+      () => guardPreview({ ...base, summary: `${'가'.repeat(58)} 결제하지 않으면 손해입니다.` }),
+      /공포나 손실 회피/,
+    )
+    assert.equal(normalizeTeaserCopy('상관없이 인성검사 결과를 확인해요.'), '상관없이 인성검사 결과를 확인해요.')
+    assert.equal(normalizeTeaserCopy('세운 계획을 확인해요.'), '세운 계획을 확인해요.')
+    assert.equal(guardPreview({ ...base, summary: '세운 계획과 상관없이 인성검사를 확인해요.' }).summary, '세운 계획과 상관없이 인성검사를 확인해요.')
+    assert.equal(guardPreview({ ...base, summary: '상관이 없고 컨디션이 좋아요.' }).summary, '상관이 없고 상태가 좋아요.')
+    assert.equal(guardPreview({ ...base, summary: '컨디션은 좋아요.' }).summary, '상태는 좋아요.')
+    assert.equal(guardPreview({ ...base, summary: '현재 컨디션이면 충분해요.' }).summary, '현재 상태면 충분해요.')
+    assert.equal(guardPreview({ ...base, summary: '명식이 기준이에요.' }).summary, '태어난 때의 기본 구조가 기준이에요.')
+    assert.equal(guardPreview({ ...base, summary: '명식이라고 불러요.' }).summary, '태어난 때의 기본 구조라고 불러요.')
+    assert.equal(guardPreview({ ...base, summary: '컨디션이어서 쉬어야 해요.' }).summary, '상태여서 쉬어야 해요.')
+    assert.equal(guardPreview({ ...base, summary: '컨디션과 일정을 확인해요.' }).summary, '상태와 일정을 확인해요.')
+    assert.equal(guardPreview({ ...base, summary: '컨디션이에요.' }).summary, '상태예요.')
+    assert.equal(guardPreview({ ...base, summary: '명식이었어요.' }).summary, '태어난 때의 기본 구조였어요.')
+    assert.equal(guardPreview({ ...base, summary: '컨디션이라도 확인해요.' }).summary, '상태라도 확인해요.')
+    assert.equal(normalizeTeaserCopy('금리는 3.5%예요. 계약서에서 확인해요.'), '금리는 3.5%예요. 계약서에서 확인해요.')
+    assert.equal(normalizeTeaserCopy('2026.09.21 일정을 확인해요.'), '2026.09.21 일정을 확인해요.')
+    assert.equal(normalizeTeaserCopy('십성(기운 사이의 관계를 열 가지로 나눈 방식) 요약을 확인해요.'), '열 가지 관계 요약을 확인해요.')
+    const quote = `“${'회사에서 맡은 역할과 실제 업무 조건을 함께 확인하고 '.repeat(3)}싶어요.”라고 적었어요.`
+    assert.equal(normalizeTeaserCopy(quote), quote)
+    assert.equal(normalizeTeaserCopy('“RAG 자료를 봤어요.”라고 적었어요.'), '“RAG 자료를 봤어요.”라고 적었어요.')
+    assert.equal(normalizeTeaserCopy('그는 “확인해요.”라고 말했어요.'), '그는 “확인해요.”라고 말했어요.')
+    assert.equal(normalizeTeaserCopy('첫 문단입니다.\n\n둘째 문단입니다.'), '첫 문단입니다.\n\n둘째 문단입니다.')
+    const preservedInsights = [
+      '금리는 3.5%예요. 계약서에서 확인해요.',
+      '그는 “확인해요.”라고 말했어요.',
+      '첫 문단입니다.\n\n둘째 문단입니다.',
+    ]
+    assert.deepEqual(guardPreview({ ...base, insights: preservedInsights, signals: preservedInsights }).insights, preservedInsights)
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '금리는 3.5%예요. 계약서에서 확인해요.',
+      insights: ['금리는 3.8%예요. 다른 계약서도 비교해요.'],
+    }).insights, ['금리는 3.8%예요. 다른 계약서도 비교해요.'])
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '금리는 3.5%예요.',
+      insights: ['금리는 35%예요. 계약서에서 확인해요.'],
+    }).insights, ['금리는 35%예요. 계약서에서 확인해요.'])
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '선택 번호는 1, 2예요.',
+      insights: ['선택 번호는 12예요. 계약서에서 확인해요.'],
+    }).insights, ['선택 번호는 12예요. 계약서에서 확인해요.'])
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '그는 “A,B”라고 적었어요.',
+      insights: ['그는 “AB”라고 적었어요. 계약서에서 확인해요.'],
+    }).insights, ['그는 “AB”라고 적었어요. 계약서에서 확인해요.'])
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '그는 “A B”라고 적었어요.',
+      insights: ['그는 “AB”라고 적었어요. 계약서에서 확인해요.'],
+    }).insights, ['그는 “AB”라고 적었어요. 계약서에서 확인해요.'])
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '중복 문장입니다.',
+      insights: ['첫 문단입니다.\n\n중복 문장입니다. 둘째 문단입니다.'],
+    }).insights, ['첫 문단입니다.\n\n 둘째 문단입니다.'])
+    assert.deepEqual(guardPreview({
+      ...base,
+      summary: '그는 “확인해요.”라고 말했어요.',
+      insights: ['그는 “확인해요. 그리고 비교해요.”라고 말했어요.'],
+    }).insights, ['그는 “확인해요. 그리고 비교해요.”라고 말했어요.'])
+    const oldLongSummary = '회사에서 맡을 업무 범위와 출근 시간에 따른 생활 변화까지 충분히 확인한 다음 실제 서면 계약서에 적힌 조건을 기준으로 선택을 비교해요.'
+    assert.equal(guardPreview({ ...base, summary: oldLongSummary }).summary, oldLongSummary)
+    const conditionalHeadline = '지금 제안받은 회사의 업무 범위와 출근 조건을 먼저 살펴보세요, 다만 서면 계약을 확인하기 전에는 옮기겠다고 약속하지 마세요.'
+    assert.equal(guardPreview({ ...base, headline: conditionalHeadline }).headline, conditionalHeadline)
+    const legacyReport: SajuReport = {
+      title: '기존 결과', subtitle: '', model: 'template', generatedBy: 'template',
+      sections: [{
+        id: 'legacy', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '확인', categoryEn: '',
+        classification: '확인', hook: '확인할 기준입니다.', patternKeys: [], ragTopics: [],
+        interpretation: oldLongSummary, generatedBy: 'template', status: 'complete',
+      }],
+    }
+    assert.doesNotThrow(() => createSavedPreview(legacyReport, {}, false))
+  })
+
   it('routes newly assembled saved previews through the teaser gate and keeps two grounds at most', () => {
     const sections = [
       ['지금은 제안 조건을 비교할 때입니다.', '입력한 제안에서 역할 범위와 출근 조건이 함께 확인됐습니다.'],
@@ -192,6 +298,12 @@ describe('readability, uncertainty and daily snapshot regression', () => {
   })
   it('does not rewrite quoted customer input', () => {
     assert.equal(explainFirstTerms('“일간신문을 읽어요. 상사의 인성이 불편해요”'), '“일간신문을 읽어요. 상사의 인성이 불편해요”')
+  })
+  it('removes narrator Hanja from deterministic interpretations but preserves customer quotes', () => {
+    const copy = normalizeUserCopy('세운(歲運, 한 해의 흐름)은 참고 기준이에요. “회사 문서에 歲運이라고 적혀 있어요.”')
+    assert.match(copy, /세운\(한 해의 흐름\)/)
+    assert.doesNotMatch(copy.replace(/“[^”]*”/g, ''), /[一-龥]/)
+    assert.match(copy, /“회사 문서에 歲運이라고 적혀 있어요.”/)
   })
   it('does not read dissatisfaction and instability as a settled state', () => {
     for (const concern of ['불만족합니다', '불안정하고 갈등이 큽니다', '만족하지 못합니다']) {

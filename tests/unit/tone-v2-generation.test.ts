@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { numericEvidenceFrom, reviewPaidSectionDensity, reviewSafetyClaims, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from '../../src/report/tone-v2-review.js'
+import { numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewSafetyClaims, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from '../../src/report/tone-v2-review.js'
 import { reviewGeneratedSajuReportSection, sectionPrompt } from '../../src/report/report-generator.js'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import type { BirthInput, RagChunk, SajuReportContext, SajuReportSection } from '../../src/types/index.js'
@@ -125,7 +125,7 @@ test('pass_angle opening verdict receives its exact quality repair contract with
   assert.match(opening.instruction, /상징.*현실의 정답·결정·명령·증명·보장·확정/)
   assert.match(opening.instruction, /장소 또는 도구.*관찰 행동/)
   assert.match(opening.instruction, /구체 대상.*기록·비교·확인/)
-  assert.match(opening.instruction, /한자 묶음은 문장당 하나/)
+  assert.match(opening.instruction, /한자는 쓰지/)
   assert.doesNotMatch(later.instruction, /첫 전체 흐름 판정 전용/)
 })
 
@@ -141,13 +141,13 @@ test('quit_fortune opening verdict receives a failure-specific safety contract w
 
   assert.match(opening.instruction, /퇴사운 전체 판정 전용/)
   assert.match(opening.instruction, /퇴사·이직.*조건 표현/)
-  assert.match(opening.instruction, /충\(沖,.*쉬운 뜻/)
+  assert.match(opening.instruction, /서로 부딪혀 변화를 만드는 관계\(충\)/)
   assert.match(opening.instruction, /마지막 의미 단락.*확인 대상.*기록·비교·확인/)
   assert.doesNotMatch(later.instruction, /퇴사운 전체 판정 전용/)
   assert.match(later.instruction, /퇴사운 전 항목 공통/)
   assert.match(later.instruction, /미래.*조건부 표현/)
   assert.match(later.instruction, /각 의미 단락.*2~4개/)
-  assert.match(later.instruction, /한자 설명.*문장당 하나/)
+  assert.match(later.instruction, /한자는 쓰지/)
   assert.match(advisers.instruction, /다섯 관점 전용/)
   assert.match(advisers.instruction, /직접 인용.*하지/)
   assert.match(advisers.instruction, /하게체/)
@@ -1127,6 +1127,30 @@ test('ZIP common 7 explains a technical term on first report use and permits lat
   assert.equal(ordinaryWords.passed, true, JSON.stringify(ordinaryWords))
   const ordinaryCombination = reviewTechnicalTerms({ hook: '색을 덜어내요.', interpretation: '이 조합은 이미 충분하니 하나만 남겨요.' })
   assert.equal(ordinaryCombination.passed, true, JSON.stringify(ordinaryCombination))
+})
+
+test('all-service readable copy keeps Hanja and dense jargon out of customer copy', () => {
+  const easy = reviewReadableCopy('태어난 날의 기준 기운(일간)은 실제 선택을 대신하지 않아요.', { role: 'body' })
+  assert.equal(easy.passed, true, easy.issues.join(' '))
+
+  const hanja = reviewReadableCopy('일간(日干, 태어난 날의 기준 기운)은 선택을 대신하지 않아요.', { role: 'body' })
+  assert.equal(hanja.passed, false)
+  assert.match(hanja.issues.join(' '), /한자/)
+
+  const dense = reviewReadableCopy('오행과 일간과 세운을 함께 봐요.', { role: 'teaser' })
+  assert.equal(dense.passed, false)
+  assert.match(dense.issues.join(' '), /전문용어/)
+
+  const long = reviewReadableCopy(`예를 들어 ${'계약 조건과 실제 생활 부담을 함께 비교하고 '.repeat(3)}결정해요.`, { role: 'teaser' })
+  assert.equal(long.passed, false)
+  assert.match(long.issues.join(' '), /65자/)
+
+  const jargon = reviewReadableCopy('지금은 커리어 핏과 관계 DNA를 확인해요.', { role: 'teaser' })
+  assert.equal(jargon.passed, false)
+  assert.match(jargon.issues.join(' '), /쉬운 한국어/)
+
+  const quoted = reviewReadableCopy('“회사에서 DNA라는 말을 썼어요.”라고 적었어요. 실제 업무 조건을 확인해요.', { role: 'body' })
+  assert.equal(quoted.passed, true, quoted.issues.join(' '))
 })
 
 test('ZIP common 7 rejects crowded Hanja and nested parentheses', () => {

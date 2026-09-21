@@ -11,6 +11,9 @@ export interface ToneReviewOptions {
   context?: SajuReportContext
   contentRole?: 'hook' | 'body'
 }
+export interface ReadableCopyOptions {
+  role: 'teaser' | 'body'
+}
 export interface SafetyClaimsInput { text: string; context?: SajuReportContext }
 export interface PaidSectionDensityReview extends ToneReview {
   elements: {
@@ -243,6 +246,47 @@ function sentences(text: string): string[] {
   return text.split(/(?<=[.!?。])\s+|\n+/).map(part => part.trim()).filter(Boolean)
 }
 
+const READABILITY_TERMS = [
+  '일간', '일지', '원국', '명식', '월주', '년주', '시주', '대운', '세운', '오행', '십성',
+  '용신', '기신', '관성', '재성', '인성', '식상', '비겁', '도화', '지장간', '조후',
+  '신강', '신약', '정관', '편관', '정재', '편재', '정인', '편인', '식신', '상관', '비견', '겁재',
+] as const
+const UNNECESSARY_FOREIGN_WORDS = /(?:커리어\s*핏|관계\s*DNA|레드\s*플래그|그린\s*플래그|인사이트|솔루션|컨디션|밸런스|타이밍)/i
+
+const READABILITY_TERM_SUFFIX = '(?:은|는|이|가|을|를|의|과|와|에서|에|으로|로|도|만|부터|보다|처럼|이라|라고|입니다|인데)?'
+const AMBIGUOUS_READABILITY_TERMS = /(?:사주|명리|십성|운세)[^.!?。\n]{0,12}(?:세운|상관|인성)|(?:세운|상관|인성)(?:격|운|기운|흐름|구조)/g
+
+function termCount(sentence: string): number {
+  const unambiguous = READABILITY_TERMS
+    .filter((term) => !['세운', '상관', '인성'].includes(term))
+    .filter((term) => new RegExp(`(?<![가-힣])${term}(?=${READABILITY_TERM_SUFFIX}(?:[^가-힣]|$))`).test(sentence))
+    .length
+  return unambiguous + (sentence.match(AMBIGUOUS_READABILITY_TERMS)?.length ?? 0)
+}
+
+/** 중학생이 사전 없이 읽을 수 있는 티저·본문의 공통 최소선. 인용한 사용자 문장은 제외한다. */
+export function reviewReadableCopy(text: string, options: ReadableCopyOptions): ToneReview {
+  const prose = narrator(text)
+  const issues: string[] = []
+  if (/[一-龥]/.test(prose)) issues.push('고객 문장에 한자를 쓰지 말고 쉬운 한국어로 바꾸세요.')
+  if (UNNECESSARY_FOREIGN_WORDS.test(prose)) issues.push('불필요한 외래어 대신 중학생도 이해할 쉬운 한국어를 쓰세요.')
+  for (const sentence of sentences(prose)) {
+    const compact = sentence.trim()
+    const limit = options.role === 'teaser' ? 65 : 90
+    if (compact.length > limit) {
+      issues.push(options.role === 'teaser'
+        ? '티저의 한 문장이 65자를 넘습니다. 한 문장에 한 생각만 남기세요.'
+        : '본문의 한 문장이 90자를 넘습니다. 한 문장에 한 생각만 남기세요.')
+      break
+    }
+  }
+  const allowedTerms = options.role === 'teaser' ? 1 : 2
+  if (sentences(prose).some((sentence) => termCount(sentence) > allowedTerms)) {
+    issues.push(`한 문장에 전문용어를 ${allowedTerms}개 넘게 쓰지 말고 생활말로 풀어 쓰세요.`)
+  }
+  return { passed: issues.length === 0, issues }
+}
+
 const TECHNICAL_TERMS = [
   { korean: '오행', hanja: '五行' },
   { korean: '용신', hanja: '用神' },
@@ -256,7 +300,11 @@ function hasFirstUseExplanation(text: string, index: number, korean: string, han
   const atFirstUse = text.slice(index)
   const escapedKorean = korean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const escapedHanja = hanja.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return new RegExp(`^${escapedKorean}\\s*[（(]\\s*${escapedHanja}\\s*[,，]\\s*[가-힣][^()（）]{1,30}[)）]`).test(atFirstUse)
+  const legacy = new RegExp(`^${escapedKorean}\\s*[（(]\\s*${escapedHanja}\\s*[,，]\\s*[가-힣][^()（）]{1,30}[)）]`).test(atFirstUse)
+  const termFirstEasy = new RegExp(`^${escapedKorean}\\s*[（(]\\s*[가-힣][^一-龥()（）]{1,30}[)）]`).test(atFirstUse)
+  const aroundFirstUse = text.slice(Math.max(0, index - 40), index + korean.length + 2)
+  const easyFirst = new RegExp(`[가-힣][가-힣\\s·]{2,35}[（(]\\s*${escapedKorean}\\s*[)）]`).test(aroundFirstUse)
+  return legacy || termFirstEasy || easyFirst
 }
 
 function technicalTermIndex(text: string, korean: string, hanja: string): number {
@@ -286,7 +334,7 @@ export function reviewTechnicalTerms(input: TechnicalTermsInput): ToneReview {
     if (technicalTermIndex(prior, term.korean, term.hanja) >= 0) continue
     const firstIndex = technicalTermIndex(current, term.korean, term.hanja)
     if (firstIndex >= 0 && !hasFirstUseExplanation(current, firstIndex, term.korean, term.hanja)) {
-      issues.push(`처음 나오는 전문용어 ${term.korean}은 한글(한자, 쉬운 뜻)로 설명하세요.`)
+      issues.push(`처음 나오는 전문용어 ${term.korean}은 쉬운 뜻을 먼저 말하고 한글 용어만 덧붙이세요.`)
     }
   }
 
@@ -1030,6 +1078,7 @@ const SAFETY_ISSUE_PATTERNS: RegExp[] = [
   /상징 해석을 현실의 정답/, /고정 결론의 1순위/, /근거 없는 처방 숫자/, /서버 근거에 없는/, /계산이 맞지|계산 결과가/,
   /내부 근거 필드/, /내부 필드나 타 서비스 원문/, /제작용 제목·운영 상태·권한/, /데이터 결손이나 내부 지형/,
   /출생 시각을 받지 못했으므로/, /코퍼스 문장을 복사/, /고객 본문 금지문|금지문/, /외도/,
+  /고객 문장에 한자를 쓰지/, /중학생도 이해할 쉬운 한국어/, /한 문장에 전문용어를/, /한 문장에 한 생각만/,
 ]
 export function isSafetyIssue(issue: string): boolean {
   return SAFETY_ISSUE_PATTERNS.some((pattern) => pattern.test(issue))
@@ -1112,6 +1161,9 @@ export function toneWritingInstruction(serviceKey?: string | null): string {
     '자료가 없는 빈칸을 소설로 채우지 않습니다. 대신 지금 확인할 수 있는 현실 조건을 제시합니다.',
     '문단은 의미에 따라 구분합니다. 모든 서비스에 같은 글자 수나 문장 수를 강제하지 않습니다.',
     '한 문장에는 하나의 중심 생각만 담습니다. 각 의미 단락은 2~4개의 완성 문장으로 쓰고 의미가 바뀌면 빈 줄을 둡니다.',
+    '모든 고객 문장은 중학생이 사전 없이 이해할 수 있는 쉬운 한국어로 씁니다. 서비스 말투보다 이 기준이 우선합니다.',
+    '고객 문장에는 한자를 쓰지 않습니다. 명리 용어가 꼭 필요하면 먼저 쉬운 뜻을 말하고 괄호 안에 한글 용어만 한 번 붙입니다.',
+    '티저는 한 문장 65자 이내, 본문은 한 문장 90자 이내를 목표로 하며 한 문장에 전문용어를 티저 1개, 본문 2개보다 많이 넣지 않습니다.',
     '본문의 마지막 의미 단락에는 사용자가 실제로 확인·비교·기록할 행동을 2~4개의 완성 문장으로 따로 씁니다.',
     '긴 목록을 슬래시로 압축하지 않습니다. 문장이나 항목으로 나누어 모바일에서도 한 번에 읽히게 씁니다.',
     '읽겠요, 편재이, 결를 같은 조사·종결어미 오류가 없는지 최종 응답 전에 바로잡습니다.',
@@ -1121,7 +1173,7 @@ export function toneWritingInstruction(serviceKey?: string | null): string {
     '풀이 번호·상세 풀이·확인한 기준 같은 제작용 소제목 대신 내용을 바로 알 수 있는 생활 장면형 소제목을 씁니다.',
     '한 서비스 안에서는 지정된 말투를 유지하되 같은 종결어미만 모든 문장에 반복하지 않습니다. 체언 판정은 종결어미가 없으므로 말투 이탈로 보지 않습니다.',
     '캐릭터의 나이·출신·경력·자격·초능력·과거를 만들지 않습니다. 비하·아기 말투·독심술·과장된 신당 연출 대신 정확한 생활 장면과 작은 비유를 씁니다.',
-    '한 리포트에서 전문용어가 처음 나오면 한글(한자, 쉬운 뜻)로 한 번 설명하고 이후에는 한글만 써도 됩니다. 한 문장에 여러 한자 설명이나 중첩 괄호를 넣지 않습니다.',
+    '한 리포트에서 전문용어가 처음 나오면 쉬운 뜻을 먼저 말하고 괄호 안에 한글 용어만 한 번 덧붙입니다. 한자는 쓰지 않으며 한 문장에 전문용어를 겹치지 않습니다.',
     '오행 개수만으로 용신을 정하지 않고, 신강·신약을 체력·의지·인격 등급으로 바꾸지 않습니다. 합을 재결합, 충을 이별 사건과 등치하지 않습니다.',
     '점수·확률·날짜·차트 값은 evidenceLayers의 서버 근거에 있는 값만 씁니다. 해석 점수는 사건 확률이 아니라 적합도·주의도·우선순위로 이름 붙이고 산정 축과 높고 낮을 때의 의미를 설명합니다.',
     '실제 비교 대상이 없으면 비교 점수를 만들지 않습니다. 차트는 비교·변화·우선순위 판단에 필요할 때만 쓰고 같은 데이터를 표와 차트에 반복하지 않습니다.',

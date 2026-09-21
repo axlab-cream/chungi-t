@@ -124,7 +124,7 @@ function reviewSection(section: SajuReportSection, report: SajuReport, context: 
   if (state === 'unknown' && !uncertaintyRecognized && !currentExplained) issues.push('정보 부족을 문제의 증거로 취급하지 말고 판단 범위를 밝혀 주세요.')
 
   const missingTerms = unexplainedTerms(text)
-  const longSentences = lines.filter((line) => line.length > 180).length / Math.max(1, lines.length)
+  const longSentences = lines.filter((line) => line.length > 90).length / Math.max(1, lines.length)
   const clarity = percent(100 - Math.min(70, missingTerms.length * 14) - longSentences * 30)
   if (missingTerms.length) issues.push(`첫 전문용어·한자의 쉬운 풀이 필요: ${missingTerms.slice(0, 6).join(', ')}`)
   if (longSentences > 0.25) issues.push('한 문장에 조건이 겹쳐 있습니다. 문장을 나누세요.')

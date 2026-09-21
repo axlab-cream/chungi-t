@@ -120,7 +120,7 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     // 실패해서, 정작 확인해야 할 "실패를 완료로 표시하지 않는다"가 가려진다.
     assert.equal(result.attempts?.length, SECTION_ATTEMPT_LIMIT)
     assert.ok(result.attempts?.every((item) => item.raw?.includes('짧습니다.')))
-    assert.match(repairMessage, /한자 설명은 한 문장에 하나만/)
+    assert.match(repairMessage, /고객 문장에는 한자를 쓰지/)
     assert.match(repairMessage, /빈 줄로 나눈 각 의미 단락은 2~4개/)
     assert.equal((await getReportRecord(reportId))?.status, 'failed')
     // 2026-09-18: 실패한 칸에는 짧은 재시도 간격이 있다(화면 새로고침으로 같은 칸을 연속으로
@@ -230,8 +230,8 @@ describe('immutable result identity and generation pipeline', { concurrency: fal
     assert.equal(result.status, 'complete')
     assert.equal(calls, 2)
     assert.match(repairMessage, /1\. .*각 의미 단락은 2~4개/)
-    assert.match(repairMessage, /2\. .*한 문장에는 여러 한자 설명/)
-    assert.match(repairMessage, /한자 설명은 한 문장에 하나만/)
+    assert.match(repairMessage, /2\. .*고객 문장에 한자를 쓰지/)
+    assert.match(repairMessage, /고객 문장에는 한자를 쓰지/)
     assert.match(repairMessage, /빈 줄로 나눈 각 의미 단락은 2~4개/)
     assert.match(repairMessage, /현재 실패만 고치고 끝내지 말고.*원래 요청의 모든 품질 불변식/)
     // 재작성 지시문이 1차 지시문과 갈라져 있어서 모든 서비스가 1차에서 같은 항목으로 떨어졌다.
