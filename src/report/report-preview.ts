@@ -49,6 +49,28 @@ function normalizeForDedup(value: string): string {
     .replace(/[.!?。]+$/g, '')
 }
 
+function readableHeadline(value: string, fallback: string): string {
+  const groundedPiece = (source: string): string => {
+    const sentences = splitReadableSentences(normalizeTeaserCopy(source, true).replace(/\s+/g, ' ').trim())
+      .map((sentence) => sentence.trim()).filter(Boolean)
+    const complete = sentences.find((sentence) => sentence.length <= 65)
+    if (complete) return complete
+    const first = sentences[0] ?? ''
+    const window = first.slice(0, 65)
+    const wordBoundary = window.lastIndexOf(' ')
+    return (wordBoundary >= 24 ? window.slice(0, wordBoundary) : window).replace(/[,，.!?。\s]+$/g, '').trim()
+  }
+  return groundedPiece(value) || groundedPiece(fallback) || '저장된 풀이'
+}
+
+function readableTeaserLine(value: string, fallback: string): string {
+  const normalized = normalizeTeaserCopy(value)
+  const sentences = splitReadableSentences(normalized).map((sentence) => sentence.trim()).filter(Boolean)
+  if (sentences.every((sentence) => sentence.length <= 65)) return normalized
+  const retained = sentences.filter((sentence) => sentence.length <= 65).slice(0, 2).join(' ')
+  return retained || fallback
+}
+
 const TEASER_CONCRETE_SETTING_PATTERN = /(?:출근길|퇴근길|회의(?:실|에서|중|시간)|대화창|메신저|캘린더|일정표|업무\s*도구|시험장|오답\s*노트|책상|침대|현관|식탁|산책로|결제창|계약서|면접장|예식장|휴대폰|가계부|영수증|밥[·ㆍ,\s]*(?:청소|급여)|청소[·ㆍ,\s]*(?:놀이|급여)|놀이\s*(?:시간|중))/
 const TEASER_OBSERVATION_PATTERN = /(?:기록|비교|확인|표시|나누|질문|반복|보완|적(?:어|고|으)|열(?:어|고)|보았|보면|살펴|고르|정하|누가|횟수|시간|금액|담당자|마감)/
 const TEASER_OPERATIONS_PATTERN = /(?:로그인[·\s]*(?:상태|여부)|결제[·\s]*상태|서버\s*권한|해석\s*준비\s*중|내부\s*생성\s*상태|측정\s*전|자료\s*없음|previewOnly|generationId|entitlement)/i
@@ -126,8 +148,16 @@ function enforceSafeTeaser(preview: ReportPreview, sourceEvidence: string, stric
   const rawReview = reviewTeaser({ preview, sourceEvidence })
   const rawUnsafe = rawReview.issues.filter(issue => /결제·권한|운영 문구|가짜 인용|공포|개인 예언|후킹/.test(issue))
   if (rawUnsafe.length > 0) throw new Error(`저장 티저 안전 검수를 통과하지 못했습니다: ${rawUnsafe.join(' ')}`)
-  const normalizedInsights = preview.insights.map((line) => normalizeTeaserCopy(line))
-  const spoken = new Set(splitReadableSentences(`${normalizeTeaserCopy(preview.headline, true)} ${normalizeTeaserCopy(preview.summary)}`).map(normalizeForDedup))
+  const normalizedHeadline = strictReadability
+    ? readableHeadline(preview.headline, preview.title)
+    : normalizeTeaserCopy(preview.headline, true)
+  const normalizedSummary = strictReadability
+    ? readableTeaserLine(preview.summary, '입력한 내용에서 먼저 확인할 기준을 정리했습니다.')
+    : normalizeTeaserCopy(preview.summary)
+  const normalizedInsights = preview.insights.map((line) => strictReadability
+    ? readableTeaserLine(line, '일정표나 메모에서 실제로 확인한 내용을 적어 보세요.')
+    : normalizeTeaserCopy(line))
+  const spoken = new Set(splitReadableSentences(`${normalizedHeadline} ${normalizedSummary}`).map(normalizeForDedup))
   const uniqueInsights = normalizedInsights.map((line) => {
     let preserved = line
     for (const sentence of splitReadableSentences(line)) {
@@ -144,10 +174,12 @@ function enforceSafeTeaser(preview: ReportPreview, sourceEvidence: string, stric
   }).filter(Boolean)
   const normalized: ReportPreview = {
     ...preview,
-    headline: normalizeTeaserCopy(preview.headline, true),
-    summary: normalizeTeaserCopy(preview.summary),
+    headline: normalizedHeadline,
+    summary: normalizedSummary,
     insights: uniqueInsights,
-    signals: preview.signals.map((line) => normalizeTeaserCopy(line)),
+    signals: strictReadability
+      ? uniqueInsights
+      : preview.signals.map((line) => normalizeTeaserCopy(line)),
   }
   const review = reviewTeaser({ preview: normalized, sourceEvidence: normalizeTeaserCopy(sourceEvidence) })
   const unsafe = review.issues.filter(issue => strictReadability
@@ -186,7 +218,7 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
       insights,
       signals: insights,
       paidValue: `길일·흉일을 선고하지 않습니다. 전체 해석에서는 6개 대분류 · ${report.sections.length}개 중분류로 후보일 조건을 비교합니다.`,
-    }, [headline, ...lines].join('\n'), strictReadability), context)
+    }, [report.title, headline, ...lines].join('\n'), strictReadability), context)
   }
   if (context.serviceKey === 'newyear_flow' && context.newyear?.teaser) {
     const { headline, lines } = context.newyear.teaser
@@ -195,7 +227,7 @@ export function createSavedPreview(report: SajuReport, context: SajuReportContex
       title: report.title, headline, summary: lines[0] ?? headline,
       insights, signals: insights,
       paidValue: `전체 해석에서는 ${context.newyear.targetYear}년 입춘 전환과 열두 달 월운, 일·돈·관계의 선택 기준을 10개 대분류 · ${report.sections.length}개 항목으로 자세히 확인합니다.`,
-    }, [headline, ...lines].join('\n'), strictReadability), context)
+    }, [report.title, headline, ...lines].join('\n'), strictReadability), context)
   }
   /**
    * summary 에 insights[0] 을 그대로 넣고 insights 를 함께 내보내면 같은 문장이 티저에서

@@ -227,6 +227,32 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     assert.equal(reviewTeaser({ preview, sourceEvidence: sections.flatMap(section => [section.hook, section.interpretation]).join('\n') }).passed, true)
   })
 
+  it('keeps template previews readable without blocking record creation', () => {
+    const longSentence = `${'확인할 조건을 차례로 적고 '.repeat(5)}마지막 기준을 비교해요.`
+    const report: SajuReport = {
+      title: '저장된 상담', subtitle: '', model: 'template', generatedBy: 'template',
+      sections: [{
+        id: 'pending', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '상담', categoryEn: '',
+        classification: '질문', hook: '질문을 저장했습니다. 답변을 준비하고 있습니다.', patternKeys: [], ragTopics: [],
+        interpretation: `${longSentence} 일정표에서 확인한 내용을 적어 보세요.`, generatedBy: 'template', status: 'pending',
+      }],
+    }
+    const preview = createSavedPreview(report, { serviceKey: 'saju_master' })
+    assert.equal(preview.headline, '질문을 저장했습니다.')
+    assert.ok([preview.summary, ...preview.insights, ...preview.signals].every((line) => line.split(/(?<=[.!?。])/).every((sentence) => sentence.trim().length <= 65)))
+    assert.deepEqual(preview.signals, preview.insights)
+
+    const longHeadlineReport: SajuReport = {
+      ...report,
+      title: longSentence,
+      sections: [{ ...report.sections[0], hook: longSentence }],
+    }
+    const longHeadlinePreview = createSavedPreview(longHeadlineReport)
+    assert.ok(longHeadlinePreview.headline.length <= 65)
+    assert.ok(longSentence.replace(/\s+/g, '').includes(longHeadlinePreview.headline.replace(/\s+/g, '')))
+    assert.equal(reviewTeaser({ preview: longHeadlinePreview, sourceEvidence: longSentence }).issues.some((issue) => issue.includes('저장된 계산·해석 근거')), false)
+  })
+
   it('pulls a grounded everyday scene from later report paragraphs without exposing the full paid body', () => {
     const sections = [
       {
