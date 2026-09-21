@@ -37,3 +37,26 @@ test('5분 안에는 다시 훑지 않고 캐시를 돌려준다', () => {
   const second = getMediaCatalog()
   assert.equal(first, second, '캐시가 재사용되지 않았다')
 })
+
+test('대용량 미사용 PNG 8개는 실제 페이지가 참조하는 WebP로 교체된다', () => {
+  resetMediaCatalogCache()
+  const assets = getMediaCatalog()
+  const converted = [
+    '/사주/assets/love-ty-chart-flow.webp',
+    '/사주/assets/faq-study-v2.webp',
+    '/사주/assets/love-ty-scene-cafe.webp',
+    '/사주/assets/love-ty-hook-silhouettes.webp',
+    '/사주/assets/umsh-share-scene-bg.webp',
+    '/work/quit/assets/quit/04-envelope-reading.webp',
+    '/사주/assets/love-ty-feel-phone.webp',
+    '/사주/assets/umsh-share-banner.webp',
+  ]
+  for (const path of converted) {
+    const asset = assets.find((item) => item.path === path)
+    assert.ok(asset, `${path} WebP가 없다`)
+    assert.equal(asset!.status, 'in_use', `${path}가 실제 페이지에 연결되지 않았다`)
+    assert.ok(asset!.referencedBy >= 1, `${path} 참조 페이지 수가 0이다`)
+    assert.ok(asset!.bytes < 1_000_000, `${path}가 1MB보다 커 최적화 효과가 부족하다`)
+    assert.ok(!assets.some((item) => item.path === path.replace(/\.webp$/, '.png')), `${path}의 PNG 원본이 배포 목록에 남았다`)
+  }
+})

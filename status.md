@@ -1948,3 +1948,12 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 다운로드 라우트는 `reports:read` 권한을 다시 검사하고 현재 활성 레지스트리에 등록된 팩 ID만 허용한다. 클라이언트가 임의 파일 경로를 전달할 수 없고 응답은 `attachment`, `private, no-store`다.
 - 집중 테스트 46/46, 전체 직렬 테스트 1,478/1,478, TypeScript typecheck, Vercel build, diff check가 통과했다.
 - Grok은 사용하지 않았다. 로컬 구현은 완료됐다. [GATE] Git push·Vercel 운영 배포는 `rules.md` §6 H1/H2에 따라 새 승인 전이라 실행하지 않았다.
+
+## 2026-09-21 — 대용량 미사용 PNG 8개 WebP 전환·부착
+
+- 지정된 PNG 8개를 WebP 품질 82로 변환하고, 원본 15,483KB를 778KB로 줄여 14,706KB(95.0%)를 절감했다. 원본 PNG는 Git 이력으로 복구 가능하며 작업 트리에서는 제거했다.
+- 연애운 4개 이미지는 기존 연애운 랜딩의 각 설명 구간, FAQ 이미지는 질문 안내 상단, 퇴사운 이미지는 무료 리포트 히어로, 포털 2개 이미지는 홈 히어로 배경과 보조 Open Graph 이미지에 연결했다.
+- 중첩 자산의 실제 공개 경로는 관리자 표시 경로 `/사주/assets/...`가 아니라 서버 마운트 `/assets/...`임을 HTTP 404/200으로 확인해 브라우저 참조를 바로잡았다.
+- 8개 공개 URL HTTP 200, FAQ·퇴사운·포털 시각 렌더링, 관리자 카탈로그 `in_use`, 전체 직렬 테스트 1,479/1,479, typecheck, Vercel production build·SEO 생성 검사, `check:quit`, `check:thisyear`, diff check를 통과했다.
+- CreamWIKI `personal/carrotcap/notes/umsh-admin-media-webp-20260921.md`에 원인·변환 기준·검증·재사용 교훈을 저장하고 재조회·검색했다.
+- Grok은 사용하지 않았다. [GATE] Git push·Vercel 운영 배포는 `rules.md` §6 H1/H2에 따라 새 승인 전이라 실행하지 않았다.

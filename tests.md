@@ -710,3 +710,18 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | ADM-CORPUS-06 | 집중 테스트 | PASS (46/46) |
 | ADM-CORPUS-07 | 전체 직렬 테스트 | PASS (1,478/1,478, 162 suites) |
 | ADM-CORPUS-08 | TypeScript typecheck·Vercel build·diff check | PASS |
+
+## 2026-09-21 — 대용량 PNG → WebP 및 실사용 연결
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| MEDIA-WEBP-01 | 지정 PNG 8개가 동일 이름 WebP로 교체되고 PNG 원본은 작업 트리에서 제거됨 | PASS |
+| MEDIA-WEBP-02 | 총 15,483KB → 778KB, 14,706KB(95.0%) 절감 | PASS |
+| MEDIA-WEBP-03 | 관리자 미디어 카탈로그가 WebP 8개를 `in_use`로 판정하고 각 파일이 1MB 미만임 | PASS |
+| MEDIA-WEBP-04 | 공개 URL 8개가 로컬 서버에서 모두 HTTP 200 | PASS |
+| MEDIA-WEBP-05 | FAQ·퇴사운·포털에서 실제 이미지 렌더링 시각 확인 | PASS |
+| MEDIA-WEBP-06 | 전체 직렬 단위 테스트 | PASS (1,479/1,479, 162 suites) |
+| MEDIA-WEBP-07 | TypeScript typecheck·Vercel production build·SEO 생성 검사 | PASS |
+| MEDIA-WEBP-08 | 퇴사운·올해 연애운 서비스 계약 검사 | PASS |
+| MEDIA-WEBP-09 | `git diff --check` | PASS |
+| MEDIA-WEBP-10 | CreamWIKI 저장·재조회·검색 | PASS |

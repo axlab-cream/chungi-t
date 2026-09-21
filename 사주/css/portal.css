@@ -391,6 +391,10 @@ html.splash-disabled .splash-screen,
   position: relative;
   overflow: hidden;
   padding: 22px 20px 20px;
+  background:
+    linear-gradient(90deg, rgba(5, 4, 3, 0.98), rgba(5, 4, 3, 0.78) 58%, rgba(5, 4, 3, 0.3)),
+    var(--home-hero-image) center 44% / cover no-repeat;
+  border-bottom: 1px solid rgba(216, 186, 114, 0.12);
 }
 
 .home-hero::after {
