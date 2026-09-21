@@ -1957,3 +1957,12 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 8개 공개 URL HTTP 200, FAQ·퇴사운·포털 시각 렌더링, 관리자 카탈로그 `in_use`, 전체 직렬 테스트 1,479/1,479, typecheck, Vercel production build·SEO 생성 검사, `check:quit`, `check:thisyear`, diff check를 통과했다.
 - CreamWIKI `personal/carrotcap/notes/umsh-admin-media-webp-20260921.md`에 원인·변환 기준·검증·재사용 교훈을 저장하고 재조회·검색했다.
 - Grok은 사용하지 않았다. [GATE] Git push·Vercel 운영 배포는 `rules.md` §6 H1/H2에 따라 새 승인 전이라 실행하지 않았다.
+
+## 2026-09-21 — 코퍼스 개선·미디어 WebP 운영 배포
+
+- 사용자 승인 후 커밋 `bc6e863`, `77e201f`를 `origin/main`에 push했다. GitHub CI run `35551515507`은 typecheck, 전체 테스트, 서비스 검수, 검색 기반 검증, 20개 서비스 QA, Vercel build, 생성물 검사를 모두 통과했다.
+- Vercel Production `dpl_3MXjCMCxZCe1np69MeXVHBaFPzdT`가 Ready로 `umsh.kr`, `www.umsh.kr`에 연결됐다.
+- 운영 WebP 8개는 모두 HTTP 200, 제거한 PNG 표본 3개는 HTTP 404였다. FAQ와 포털 HTML도 새 WebP 경로를 참조한다.
+- 로그인된 운영 관리자 화면에서 미사용 이미지가 110개에서 102개로 감소하고 기존 대용량 PNG 8개가 사라졌음을 확인했다. 코퍼스 화면에서도 한글 역할 설명과 파일 다운로드 링크를 확인했다.
+- 배포 직후 5xx 로그는 0건이다. `/api/cron/ops` 200 응답에서 Node `url.parse()` deprecation 경고 1건이 error 레벨로 수집됐지만 이번 변경과 무관하며 요청 실패는 아니다.
+- 롤백 기준은 직전 Ready 배포 `dpl_H8hEyygKZ1ey3HtTsZeVURyDn2jW`이며, 장애 시 해당 배포로 Vercel alias를 되돌린다.

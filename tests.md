@@ -725,3 +725,8 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MEDIA-WEBP-08 | 퇴사운·올해 연애운 서비스 계약 검사 | PASS |
 | MEDIA-WEBP-09 | `git diff --check` | PASS |
 | MEDIA-WEBP-10 | CreamWIKI 저장·재조회·검색 | PASS |
+| MEDIA-WEBP-11 | GitHub CI run `35551515507` 전체 검수 | PASS |
+| MEDIA-WEBP-12 | Vercel Production `dpl_3MXjCMCxZCe1np69MeXVHBaFPzdT` Ready·도메인 연결 | PASS |
+| MEDIA-WEBP-13 | 운영 WebP 8개 HTTP 200·제거 PNG 표본 3개 HTTP 404 | PASS |
+| MEDIA-WEBP-14 | 운영 관리자 미사용 이미지 110→102, 코퍼스 한글 역할·다운로드 링크 | PASS |
+| MEDIA-WEBP-15 | 배포 직후 5xx 로그 | PASS (0건; 200 응답의 Node `url.parse` deprecation 1건 별도 관찰) |
