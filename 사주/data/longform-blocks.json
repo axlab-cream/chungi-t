@@ -1,6 +1,6 @@
 {
-  "_about": "결론·서머리·하이라이트 블록 설정. 이미지는 각 서비스의 기존 대표 캐릭터 컷 2장을 재사용한다 — 새로 생성하면 화풍·인물이 어긋난다. 하이라이트 주제는 quit_fortune 만 확정이고 나머지는 초안(draft)이다. accent 는 hex 가 아니라 해당 페이지 :root 토큰 이름이다.",
-  "_imageRule": "cutA = 서머리 키 비주얼(대표 캐릭터 정면 장면). cutB = 하이라이트 배너(근거·판정 장면). 두 컷 모두 해당 서비스 assets 안에서만 고른다.",
+  "_about": "결론·서머리·하이라이트 블록 설정. 서비스별 이미지 2컷을 사용한다. 천명사주 하이라이트는 본문에 맞는 별도 실사형 배너를 쓴다. 하이라이트 주제는 quit_fortune 만 확정이고 나머지는 초안(draft)이다. accent 는 hex 가 아니라 해당 페이지 :root 토큰 이름이다.",
+  "_imageRule": "cutA = 서머리 키 비주얼. cutB = 하이라이트 배너(근거·판정 장면). 각 서비스의 맥락에 맞는 공개 자산만 고른다.",
   "_accentRule": "허용 토큰: gold, teal, rose, coral, pink, green. JS 가 var(--이름) 으로만 주입한다. 페이지에 없으면 --gold 로 떨어진다.",
   "services": {
     "cmdg": {
@@ -9,7 +9,7 @@
       "verdictAxis": "타고난 결과 지금의 자리",
       "accent": "gold",
       "cutA": "/assets/umsh-cmdg-card-bg.webp",
-      "cutB": "/assets/hero-mystic.webp",
+      "cutB": "/assets/cmdg-wood-path-highlight-v2.webp",
       "highlights": [
         { "title": "타고난 그릇과 쓰는 법", "shape": "타고난 축을 한 문단으로 짚고, 지금 그것을 어떻게 쓰고 있는지 한 문단으로 잇는다" },
         { "title": "지금 대운의 위치", "shape": "들어온 대운과 남은 구간을 한 문단씩 놓고, 마지막 문단에서 지금 위치를 못 박는다" },

@@ -294,8 +294,8 @@
    * /data/longform-blocks.json 이 가지고 있고, 본문은 리포트가 채운다. 본문이 아직
    * 없으면 뼈대만 스켈레톤으로 보여준다 — 구조가 먼저 보여야 무엇을 받는지 안다.
    *
-   * 이미지는 서비스마다 이미 있는 대표 캐릭터 컷 2장만 쓴다. 새로 만들면 화풍과
-   * 인물이 어긋난다(퇴사운 화자 나이 불일치 전례).
+   * 이미지는 각 서비스의 cutA·cutB 설정을 따른다. 천명사주 cutB는
+   * 첫 하이라이트의 본문과 맞는 별도 실사형 배너다.
    * ================================================================== */
   var longform = { config: null, loading: null, failed: false };
 
@@ -311,7 +311,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260918c', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-wood-banner', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;

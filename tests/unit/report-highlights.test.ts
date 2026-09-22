@@ -24,6 +24,17 @@ test('saju_master reads the cmdg block through the service alias', () => {
   assert.equal(topics?.[0]?.title, '타고난 그릇과 쓰는 법')
 })
 
+test('cmdg first highlight uses a distinct photographic wood-path banner', () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
+  const blocks = JSON.parse(readFileSync(join(root, '사주/data/longform-blocks.json'), 'utf8').replace(/^﻿/, ''))
+  const banner = blocks.services.cmdg.cutB
+  assert.equal(banner, '/assets/cmdg-wood-path-highlight-v2.webp')
+  assert.notEqual(banner, blocks.services.cmdg.cutA)
+  const bytes = readFileSync(join(root, '사주/사주', banner.slice(1)))
+  assert.equal(bytes.toString('ascii', 0, 4), 'RIFF')
+  assert.equal(bytes.toString('ascii', 8, 12), 'WEBP')
+})
+
 test('undefined services return undefined, not an empty list', () => {
   // 오늘운은 규칙 기반이라 리포트 블록이 없다. 빈 키도 마찬가지다.
   assert.equal(loadHighlightTopics('today_fortune'), undefined)
