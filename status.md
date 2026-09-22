@@ -1992,3 +1992,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 검증: 집중 테스트 70/70, 전체 직렬 회귀 1,518/1,518, TypeScript, Vercel build, diff check PASS. 로컬 500px 정적 렌더에서 입력 간격·버튼 배치를 확인했다. 인증된 실제 프로필 저장의 브라우저 E2E는 로컬 정적 서버로는 실행하지 않았다.
 - CreamWIKI `personal/carrotcap/notes/umsh-profile-optional-context-20260922.md`에 원인·결정·검증·교훈을 기록한다.
 - [GATE] 원격 push·운영 배포는 현재 요청에 포함되지 않아 `rules.md` §6 H1/H2에 따라 미실행이다.
+
+## 2026-09-22 — 공유 링크·천명사주 이미지·프로필 간소화 운영 배포
+
+- 사용자 요청에 따라 미배포 로컬 커밋 `853c195`, `f218f30`, `88c7e87`을 `origin/main`에 fast-forward push했다. 팝업 관리자·팝업 및 DB migration은 포함되지 않았다.
+- GitHub CI run `35705222319`에서 typecheck, 전체 테스트, 서비스 검수, 검색 기반 검증, 20개 서비스 QA, Vercel build, 생성물 검사 모두 PASS.
+- Vercel Production `dpl_4f84M3R7474U4Y6oecqr2VVHR1MM`이 Ready이며 `umsh.kr`, `www.umsh.kr`에 연결됐다. 이전 Ready 배포 `dpl_8CqcZWgfc46N5oWSTPENHq2mMjeS`가 롤백 기준이다.
+- 운영 HTTP에서 `/profile` 새 문구·필드 제거, 공용 리더 스크립트 200, 새 WebP 200 `image/webp`, 공유 리포트의 브랜드 OG 메타데이터와 새 스크립트 참조를 확인했다. 로그인된 운영 브라우저에서는 프로필의 입력 간소화·간격, 해석의 MY 등록 안내 제거·공유 버튼·새 이미지 연결을 확인했다. 프로필 저장 제출은 하지 않았다.
+- 배포 직후 5xx 로그 0건이다. error 레벨 1건은 기존에도 관찰된 Node `url.parse()` 사용 중단 경고이며 요청 실패는 아니다.
