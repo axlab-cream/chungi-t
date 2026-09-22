@@ -41,6 +41,11 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading a { color: #e8d49a; text-underline-offset: 4px; }
 #umsh-verified-reading a:focus-visible { outline: 2px solid #e8d49a; outline-offset: 4px; }
 #umsh-verified-reading > a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 12px; }
+#umsh-verified-reading .umsh-report-share { margin-top: 16px; }
+#umsh-verified-reading .umsh-report-share button { min-height: 44px; padding: 0 16px; border: 1px solid rgba(216,186,114,.5); border-radius: 12px; background: rgba(216,186,114,.08); color: #e8d49a; font-weight: 800; }
+#umsh-verified-reading .umsh-report-share button:hover { background: rgba(216,186,114,.16); }
+#umsh-verified-reading .umsh-report-share button:focus-visible { outline: 2px solid #e8d49a; outline-offset: 3px; }
+#umsh-verified-reading .umsh-report-share [role="status"] { display: block; margin-top: 6px; color: #c8bea8; font-size: 12px; line-height: 1.5; }
 #umsh-verified-reading nav a { display: inline-flex; align-items: center; min-height: 44px; }
 #umsh-verified-reading .reading-primary-link { display: block; margin-top: 20px; padding: 13px 18px; border-radius: 12px; background: #d8ba72; color: #171109; font-weight: 800; text-align: center; text-decoration: none; }
 #umsh-verified-reading .reading-card { padding: 0; border: 0; border-top: 1px solid rgba(216,186,114,.28); }
@@ -244,6 +249,7 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
   #umsh-verified-reading > span,
   #umsh-verified-reading > p { color: #111 !important; }
   #umsh-verified-reading nav,
+  #umsh-verified-reading .umsh-report-share,
   #umsh-verified-reading > a { display: none !important; }
   .umsh-flag-open,
   .umsh-flag-back { display: none !important; }

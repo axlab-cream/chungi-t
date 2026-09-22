@@ -149,7 +149,7 @@
     layout.appendChild(node);
     document.body.appendChild(layout);
     document.documentElement.setAttribute('data-umsh-verified-reader','');
-    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-cmdg-template4';css.addEventListener('load',mountChrome);document.head.appendChild(css);
+    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-report-share';css.addEventListener('load',mountChrome);document.head.appendChild(css);
     function mountChrome() { if(global.UMSHChrome)global.UMSHChrome.mount({root:'#umsh-verified-layout',service:key==='today_fortune'?'오늘운':'저장된 해석',category:'흐름'}); }
     if(global.UMSHChrome) mountChrome();
     else if(!document.querySelector('script[src="/js/umsh-chrome.js"]')) {var script=document.createElement('script');script.src='/js/umsh-chrome.js';script.addEventListener('load',mountChrome);document.head.appendChild(script);}
@@ -1481,7 +1481,7 @@
     // 공용 리더(/r/:id). 06-1 이 없는 서비스(cmdg)가 여기로 온다 — 같은 세 블록을 같은 자리에 올린다.
     mountLongform(document.getElementById('umsh-longform-mount'), report, payload.entitled !== false, serverKey, payload);
     var id = identity(payload);
-    if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
+    if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<div class="umsh-report-share"><button type="button" data-umsh-report-share="'+escapeHtml(id)+'">링크 공유하기</button><span role="status" aria-live="polite"></span></div>');
     ensureImportantNotice(node, report);
     ensurePdfDock(node);
   }
@@ -1857,6 +1857,19 @@
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
     document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var query=new URLSearchParams(location.search);var orderId=query.get('orderId');if(key==='newyear_flow') {if(orderId) {url.searchParams.set('orderId',orderId);url.searchParams.delete('preview');}else if(query.get('preview')==='1' && query.get('paid')!=='1')url.searchParams.set('preview','1');}link.href=url.pathname+url.search+url.hash;}},true);
     document.addEventListener('click',function(event){var button=event.target.closest && event.target.closest('[data-retry-section]');if(!button || !authorized)return;button.disabled=true;resumeSection(authorized.reportId || rememberedId,button.dataset.retrySection,true).then(function(){return refresh(rememberedId);}).catch(function(){button.disabled=false;});});
+    document.addEventListener('click',async function(event){
+      var button=event.target.closest && event.target.closest('[data-umsh-report-share]');
+      if(!button || !authorized || button.dataset.umshReportShare!==rememberedId)return;
+      event.preventDefault();
+      var status=button.nextElementSibling;
+      try {
+        if(!global.navigator || !global.navigator.clipboard || !global.navigator.clipboard.writeText)throw new Error('clipboard unavailable');
+        await global.navigator.clipboard.writeText(location.origin+'/r/'+encodeURIComponent(rememberedId));
+        if(status)status.textContent='링크를 복사했습니다. 해석은 권한 있는 계정에서만 열 수 있어요.';
+      } catch(_) {
+        if(status)status.textContent='링크를 복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.';
+      }
+    });
     document.addEventListener('click',function(event){
       // 냥궁합·올해연애의 `#btn-pdf` 는 자체 핸들러가 이미 `window.print()` 로 떨어진다.
       // 여기서 같이 받으면 인쇄가 두 번 열린다.

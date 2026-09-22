@@ -5,6 +5,44 @@ import { test } from 'node:test'
 
 const source = readFileSync(new URL('../../사주/js/umsh-report-access.js', import.meta.url), 'utf8')
 
+test('saved reading shares only its canonical URL by copying and never navigates', async () => {
+  const h = harness('/r/saved-uuid?reportId=saved-uuid', [])
+  const copied: string[] = []
+  h.context.navigator = { clipboard: { writeText: async (value: string) => { copied.push(value) } } }
+  h.api.consume({ resultId: 'saved-uuid', report: { serviceKey: 'saju_master', title: '개인 제목', subtitle: '개인 내용', sections: [] } })
+  const node = h.nodes.get('umsh-verified-reading')
+  assert.match(node.innerHTML, /data-umsh-report-share="saved-uuid"[^>]*>링크 공유하기<\/button>/)
+  assert.doesNotMatch(node.innerHTML, /이 해석의 고유 주소 열기/)
+  const status = { textContent: '' }
+  const button = { dataset: { umshReportShare: 'saved-uuid' }, nextElementSibling: status }
+  const click = h.listeners.get('click')![2] as (event: any) => Promise<void>
+  await click({ target: { closest(selector: string) { return selector === '[data-umsh-report-share]' ? button : null } }, preventDefault() {} })
+  assert.deepEqual(copied, ['https://umsh.kr/r/saved-uuid'])
+  assert.match(status.textContent, /복사/)
+  assert.equal(h.location.href, 'https://umsh.kr/r/saved-uuid?reportId=saved-uuid')
+})
+
+test('saved reading share shows a failure without opening another app when clipboard is denied', async () => {
+  const h = harness('/r/saved-uuid', [])
+  h.context.navigator = { clipboard: { writeText: async () => { throw new Error('denied') } } }
+  h.api.consume({ resultId: 'saved-uuid', report: { serviceKey: 'saju_master', title: '제목', subtitle: '', sections: [] } })
+  const status = { textContent: '' }
+  const button = { dataset: { umshReportShare: 'saved-uuid' }, nextElementSibling: status }
+  const click = h.listeners.get('click')![2] as (event: any) => Promise<void>
+  await click({ target: { closest(selector: string) { return selector === '[data-umsh-report-share]' ? button : null } }, preventDefault() {} })
+  assert.match(status.textContent, /복사하지 못/)
+  assert.equal(h.location.pathname, '/r/saved-uuid')
+})
+
+test('report sharing metadata uses the public brand JPEG with correct type and dimensions, not private report text', () => {
+  const html = readFileSync(new URL('../../사주/report-view.html', import.meta.url), 'utf8')
+  assert.match(html, /property="og:image" content="https:\/\/umsh\.kr\/assets\/umsh-kakao-share\.jpg\?v=20260904-wide"/)
+  assert.match(html, /property="og:image:type" content="image\/jpeg"/)
+  assert.match(html, /property="og:image:width" content="1200"/)
+  assert.match(html, /property="og:image:height" content="600"/)
+  assert.doesNotMatch(html, /property="og:url" content="https:\/\/umsh\.kr\/r\/"/)
+})
+
 test('home verified responses use the original page renderer and revoke on owner change', () => {
   const h = harness('/place/home/04-step-4-report/index.html?reportId=home-uuid', [])
   const rendered: any[] = []
