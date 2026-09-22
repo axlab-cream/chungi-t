@@ -46,6 +46,22 @@
     page_referrer: cleanReferrer,
   });
 
+  /**
+   * GA4의 자동 page_view와 짝을 이룬다. 페이지 경로만 남기므로 보고서·주문 URL의
+   * 식별자를 보내지 않으며, 탐색 분석에서 `page_path`별 이탈 수를 바로 비교할 수 있다.
+   */
+  var exitTracked = false;
+  function trackPageExit() {
+    if (exitTracked) return;
+    exitTracked = true;
+    gtag('event', 'page_exit', {
+      page_location: cleanLocation,
+      page_path: String(location.pathname || ''),
+      exit_reason: 'pagehide',
+    });
+  }
+  if (typeof global.addEventListener === 'function') global.addEventListener('pagehide', trackPageExit, { capture: true });
+
   var script = document.createElement('script');
   script.async = true;
   script.src = 'https://www.googletagmanager.com/gtag/js?id=' + MEASUREMENT_ID;

@@ -54,6 +54,7 @@ test('측정 태그는 공용 파일 한 곳에서만 실린다', () => {
 function runTag(href: string, referrer = '') {
   const url = new URL(href)
   const scripts: Array<{ src?: string; async?: boolean }> = []
+  const listeners: Record<string, () => void> = {}
   const context: Record<string, unknown> = {
     location: { origin: url.origin, pathname: url.pathname, href },
     navigator: {},
@@ -63,6 +64,7 @@ function runTag(href: string, referrer = '') {
       head: { appendChild(node: { src?: string }) { scripts.push(node) } },
       documentElement: {},
     },
+    addEventListener: (event: string, listener: () => void) => { listeners[event] = listener },
   }
   context.window = context
   runInNewContext(source, context)
@@ -70,7 +72,7 @@ function runTag(href: string, referrer = '') {
   const config = [...layer].map((item) => [...item]).find((item) => item[0] === 'config') as
     | [string, string, Record<string, string>]
     | undefined
-  return { config, scripts, layer }
+  return { config, scripts, layer, listeners }
 }
 
 test('주소의 식별자는 떼고 경로만 보낸다', () => {
@@ -87,6 +89,17 @@ test('유입 주소(referrer)의 식별자도 뗀다', () => {
   assert.ok(config)
   assert.equal(config[2].page_referrer, 'https://umsh.kr/match/cat/06-step-6_1-report-detail/index.html')
   assert.ok(!config[2].page_referrer.includes('secret-9'))
+})
+
+test('각 페이지 이탈은 식별자 없는 page_exit 이벤트로 한 번만 전송한다', () => {
+  const { layer, listeners } = runTag('https://umsh.kr/today/free?reportId=private-123')
+  assert.ok(listeners.pagehide, 'pagehide 이탈 처리기가 없다')
+  listeners.pagehide()
+  listeners.pagehide()
+  const exits = [...layer].map((item) => [...item]).filter((item) => item[0] === 'event' && item[1] === 'page_exit') as Array<[string, string, Record<string, string>]>
+  assert.equal(exits.length, 1)
+  assert.equal(exits[0][2].page_path, '/today/free')
+  assert.ok(!JSON.stringify(exits[0]).includes('private-123'), '이탈 이벤트에 식별자가 남아 있다')
 })
 
 test('추적을 끈 브라우저에서는 아무것도 싣지 않는다', () => {
