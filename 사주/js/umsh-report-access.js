@@ -70,7 +70,7 @@
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   // 설정 JSON은 비동기로 읽는다. 그 전에 본문이 먼저 칠해져도 반복 그림이 잠깐
   // 나타나지 않도록, 대표 이미지 한 장 계약의 키는 여기에도 좁게 둔다.
-  var SUMMARY_ONLY_SERVICE_KEYS = { match_couple: true, couple_signal: true, work_move: true, quit_fortune: true, cat_compatibility: true, money_save: true };
+  var SUMMARY_ONLY_SERVICE_KEYS = { match_couple: true, couple_signal: true, work_move: true, quit_fortune: true, money_save: true };
   function canonical(value) { return ALIASES[value] || value; }
   function usesSummaryOnlyImages(serviceKey, config) {
     return Boolean((config && config.sectionImageMode === 'summary-only') || SUMMARY_ONLY_SERVICE_KEYS[canonical(serviceKey || key)]);
@@ -500,7 +500,7 @@
         : order % 2 === 1 ? String(config.cutB || '').trim() : String(config.cutA || '').trim());
       if (!src) return;
       image.setAttribute('src', src);
-      if (canonical(serviceKey) !== 'marry_match') image.setAttribute('alt', String(config.title || '해석') + ' 풀이 이미지');
+      if (canonical(serviceKey) !== 'marry_match' && canonical(serviceKey) !== 'cat_compatibility') image.setAttribute('alt', String(config.title || '해석') + ' 풀이 이미지');
     });
   }
 
@@ -1534,7 +1534,7 @@
     var src = sectionImageSource(section, serviceKey);
     if (!src) return '';
     return '<figure class="story-image">' +
-      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || canonical(serviceKey) === 'marry_match' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + (canonical(serviceKey) === 'marry_match' ? escapeHtml((labelText(section.classification) || '결혼궁합') + ' 주제를 표현한 연출 사진') : escapeHtml(section.imageAlt || '')) + '" loading="lazy" decoding="async" />' +
+      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + ((canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility') ? escapeHtml((labelText(section.classification) || (canonical(serviceKey) === 'cat_compatibility' ? '고양이 궁합' : '결혼궁합')) + ' 주제를 표현한 연출 사진') : escapeHtml(section.imageAlt || '')) + '" loading="lazy" decoding="async" />' +
       '</figure>';
   }
 
@@ -1629,7 +1629,7 @@
     if (key && serverKey !== key) { gate('이 서비스의 해석이 아닙니다. 구매 내역에서 해당 결과를 열어 주세요.'); return; }
     // 결혼궁합은 저장 이미지가 구형 일러스트일 수 있다. 편집 매핑을 받은 뒤 첫 화면을
     // 그려 이전 컷이 잠깐 비치는 일을 막고, 설정 실패 시에는 저장 본문을 계속 보여준다.
-    if (serverKey === 'marry_match' && !longform.config && !longform.failed) {
+    if ((serverKey === 'marry_match' || serverKey === 'cat_compatibility') && !longform.config && !longform.failed) {
       var renderOwnerEpoch = ownerEpoch;
       loadLongformConfig().then(function () {
         if (renderOwnerEpoch === ownerEpoch) showReport(payload);

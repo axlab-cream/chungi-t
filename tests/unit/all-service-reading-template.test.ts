@@ -47,16 +47,39 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(css, /\.umsh-reading-guide:focus-within/)
 })
 
-test('six completed services retain one representative thumbnail without repeating section or highlight images', () => {
+test('five completed services retain one representative thumbnail without repeating section or highlight images', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const names = ['match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'cat_compatibility', 'money_save']
-  assert.equal(names.length, 6)
+  const names = ['match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'money_save']
+  assert.equal(names.length, 5)
   for (const name of names) {
     const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
     assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
     assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
   }
   assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
+})
+
+test('고양이 궁합은 요약·하이라이트·20개 해석에 서로 다른 실사 이미지를 표시한다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const service = blocks.services.cat_compatibility as { thumbnail: string; cutA: string; cutB: string; sectionImageMode?: string; sectionImages: string[]; summaryImageFit?: string }
+  const detail = read('사주/match/cat/06-step-6_1-report-detail/index.html')
+  const reader = read('사주/js/umsh-report-access.js')
+  assert.equal(service.sectionImageMode, undefined)
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.equal(service.cutA, service.thumbnail)
+  assert.equal(service.sectionImages.length, 20)
+  assert.equal(new Set([service.thumbnail, service.cutB, ...service.sectionImages]).size, 22)
+  for (const image of [service.thumbnail, service.cutB, ...service.sectionImages]) {
+    assert.match(image, /^\/match\/cat\/assets\/cat-compatibility\/reading-v2\/.+\.webp$/)
+    assert.ok(existsSync(join(root, '사주', image)), `고양이 궁합 이미지가 없다: ${image}`)
+  }
+  assert.doesNotMatch(reader, /cat_compatibility: true/)
+  assert.match(reader, /serverKey === 'cat_compatibility'\) && !longform\.config && !longform\.failed/)
+  assert.match(reader, /canonical\(serviceKey\) === 'cat_compatibility' \|\| original/)
+  assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
+  assert.match(detail, /\.reading-card > summary::after\s*\{\s*content: "펼치기 \+";/)
+  assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{\s*content: "접기 −";/)
+  assert.match(detail, /#detail-stack\[data-umsh-filled\] ~ #content \{ display: none; \}/)
 })
 
 test('결혼궁합은 요약과 24개 해석에 중복 없는 실사 이미지를 쓰고 끝 항목까지 읽을 수 있다', () => {
@@ -75,8 +98,8 @@ test('결혼궁합은 요약과 24개 해석에 중복 없는 실사 이미지�
     assert.match(image, /^\/match\/marry\/assets\/marry\/reading-v2\/.+\.webp$/)
     assert.ok(existsSync(join(root, '사주', image)), `결혼궁합 이미지가 없다: ${image}`)
   }
-  assert.match(reader, /canonical\(serviceKey\) === 'marry_match' \|\| original/)
-  assert.match(reader, /serverKey === 'marry_match' && !longform\.config && !longform\.failed/)
+  assert.match(reader, /canonical\(serviceKey\) === 'marry_match' \|\| canonical\(serviceKey\) === 'cat_compatibility' \|\| original/)
+  assert.match(reader, /\(serverKey === 'marry_match' \|\| serverKey === 'cat_compatibility'\) && !longform\.config && !longform\.failed/)
   assert.match(reader, /renderOwnerEpoch === ownerEpoch/, '설정 로딩 중 계정이 바뀌면 이전 회원의 해석을 표시하지 않는다')
   assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
   assert.match(detail, /\.reading-card > summary::after\s*\{\s*content: "펼치기 \+";/)
@@ -105,7 +128,7 @@ test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미
     assert.ok(existsSync(join(root, '사주', image)), `직장 선택 목차 이미지가 없다: ${image}`)
   }
   assert.doesNotMatch(reader, /job_choice: true/)
-  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| canonical\(serviceKey\) === 'marry_match' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
+  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| canonical\(serviceKey\) === 'marry_match' \|\| canonical\(serviceKey\) === 'cat_compatibility' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
   assert.match(css, /aspect-ratio: 3 \/ 2/)
   assert.match(css, /\.reading-card\.is-ready\[open\] > summary::after/)
   assert.match(css, /content: "접기 −"/)
