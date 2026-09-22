@@ -10,6 +10,7 @@ import type { ReportOwner, ReportStorageMode } from '../report/report-store.js'
  */
 export interface UserLifeContext {
   work?: string
+  workAlternative?: string
   money?: string
   relationship?: string
   planning?: string
@@ -142,6 +143,7 @@ function rowToProfile(row: UserProfileRow): UserBirthProfile {
     lifeContext: row.profile_payload?.life_context
       ? {
           work: row.profile_payload.life_context.work,
+          workAlternative: row.profile_payload.life_context.workAlternative,
           money: row.profile_payload.life_context.money,
           relationship: row.profile_payload.life_context.relationship,
           planning: row.profile_payload.life_context.planning,
@@ -209,6 +211,7 @@ export function buildUserBirthProfile(params: {
     ...(params.lifeContext ? {
       lifeContext: {
         work: params.lifeContext.work,
+        workAlternative: params.lifeContext.workAlternative,
         money: params.lifeContext.money,
         relationship: params.lifeContext.relationship,
         planning: params.lifeContext.planning,

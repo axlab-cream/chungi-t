@@ -43,6 +43,7 @@
     form.time.value = pad2(hour) + ':' + pad2(minute);
     var lifeContext = profile.lifeContext || {};
     form.lifeWork.value = lifeContext.work || '';
+    form.lifeWorkAlternative.value = lifeContext.workAlternative || '';
     form.lifeMoney.value = lifeContext.money || '';
     form.lifeRelationship.value = lifeContext.relationship || '';
     form.lifePlanning.value = lifeContext.planning || '';
@@ -52,6 +53,7 @@
   function lifeContextParts() {
     return {
       work: form.lifeWork.value.trim(),
+      workAlternative: form.lifeWorkAlternative.value.trim(),
       money: form.lifeMoney.value.trim(),
       relationship: form.lifeRelationship.value.trim(),
       planning: form.lifePlanning.value.trim(),

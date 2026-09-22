@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
+import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
@@ -1415,7 +1416,7 @@ function validDateParts(year: number, month: number, day: number): boolean {
     && date.getDate() === day
 }
 
-const LIFE_CONTEXT_FIELDS = ['work', 'money', 'relationship', 'planning'] as const
+const LIFE_CONTEXT_FIELDS = ['work', 'workAlternative', 'money', 'relationship', 'planning'] as const
 
 /** 공통 현실 기준은 한 문장씩만 받는다. 계산값·리포트 원문과 섞지 않는다. */
 function parseUserLifeContext(value: unknown): UserLifeContext | undefined {
@@ -1527,7 +1528,7 @@ async function toUiAnalysis(
 
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
-  const payload = buildUiAnalysisPayload(record.analysis ?? analysis, record.birth, report)
+  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report)
   if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
   return access?.entitled
     ? { ...payload, entitled: true, unlockReason: access.reason }
@@ -1562,9 +1563,15 @@ function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, repor
   }
 }
 
-function toUiAnalysisFromRecord(record: ReportRecord) {
+function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
   const analysis = record.analysis ?? analyzeSaju(record.birth)
-  return buildUiAnalysisPayload(analysis, record.birth, toClientReport(record))
+  // 저장된 풀이 원문은 유지하고, 조회 연도의 대운·삼재만 같은 출생값으로 다시 계산한다.
+  // 과거 저장 스냅샷에 samjae가 없어도 기존 리포트와 신규 리포트가 같은 형식으로 보인다.
+  return { ...analysis, fortune: calculateFortuneCycle(record.birth) }
+}
+
+function toUiAnalysisFromRecord(record: ReportRecord) {
+  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record))
 }
 
 /**

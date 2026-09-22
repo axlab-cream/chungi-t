@@ -62,6 +62,9 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
   height: 100%;
   object-fit: cover;
 }
+#umsh-verified-reading .umsh-summary-figure { position: static; aspect-ratio: auto; max-height: none; }
+#umsh-verified-reading .umsh-summary-figure img { width: 100%; height: auto; object-fit: contain; object-position: center; }
+#umsh-verified-reading .umsh-summary-figure::after { display: none; }
 #umsh-verified-reading .reading-role { display: block; margin-bottom: 8px; color: #a39a8c; font-size: 11px; font-weight: 800; letter-spacing: .06em; }
 #umsh-verified-reading .reading-block p { margin: 0; color: #d5cec1; line-height: 1.95; }
 #umsh-verified-reading .reading-block p + p { margin-top: 14px; }
@@ -109,6 +112,50 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading .umsh-life-context li strong { color: #d8ba72; font-size: 11px; }
 #umsh-verified-reading .umsh-life-context li span { color: #d5cec1; font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
 #umsh-verified-reading .umsh-life-context p { margin: 0; color: #a39a8c; font-size: 12px; line-height: 1.7; }
+#umsh-verified-reading .umsh-flow-intro { margin: 10px 0 14px; color: #e2dbcf; font-size: 13px; line-height: 1.7; }
+#umsh-verified-reading .umsh-flow-curve { margin: 12px 0; padding: 14px 10px; border: 1px solid rgba(216,186,114,.3); border-radius: 12px; background: linear-gradient(145deg,#352a17,#16130e); }
+#umsh-verified-reading .umsh-flow-plot { overflow-x: auto; }
+#umsh-verified-reading .umsh-flow-plot svg { display: block; width: 100%; min-width: 340px; height: auto; }
+#umsh-verified-reading .umsh-flow-grid { stroke: rgba(216,186,114,.24); stroke-dasharray: 3 4; }
+#umsh-verified-reading .umsh-flow-axis { fill: #c9b78e; font-size: 9px; font-weight: 700; }
+#umsh-verified-reading .umsh-flow-line { fill: none; stroke: #d8ba72; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+#umsh-verified-reading .umsh-flow-point { fill: #17140f; stroke: #f0dfac; stroke-width: 2; }
+#umsh-verified-reading .umsh-flow-point.is-current { fill: #e6bd5a; stroke: #fff1c5; stroke-width: 3; }
+#umsh-verified-reading .umsh-flow-age { fill: #c9b78e; font-size: 9px; font-weight: 700; }
+#umsh-verified-reading .umsh-flow-age.is-current { fill: #ffe3a0; font-weight: 800; }
+#umsh-verified-reading .umsh-flow-callout { display: grid; gap: 4px; margin: 12px 0; padding: 13px; border-left: 3px solid #e6bd5a; border-radius: 0 8px 8px 0; background: #2a2115; }
+#umsh-verified-reading .umsh-flow-callout strong { color: #fff3d6; font-size: 13px; }
+#umsh-verified-reading .umsh-flow-callout span { color: #f2dc9a; font-size: 12px; }
+#umsh-verified-reading .umsh-life-flow-source .umsh-life-flow-timeline { margin-top: 14px; }
+#umsh-verified-reading .umsh-cmdg-lead { margin: 0 0 14px; padding: 16px; border-left: 3px solid #d8ba72; border-radius: 0 10px 10px 0; background: #241d13; color: #fff3d6; font-size: 15px; line-height: 1.7; }
+#umsh-verified-reading .umsh-cmdg-editorial { margin: 18px 0; padding: 15px; border-left: 3px solid #d8ba72; border-radius: 0 9px 9px 0; background: #211b13; }
+#umsh-verified-reading .umsh-cmdg-editorial .reading-role { color: #f1d28a; }
+#umsh-verified-reading .umsh-cmdg-editorial p { color: #f5ead4; font-weight: 650; }
+#umsh-verified-reading .umsh-cmdg-visual { margin: 15px 0; padding: 16px; border: 1px solid rgba(216,186,114,.28); border-radius: 12px; background: #15130f; }
+#umsh-verified-reading .umsh-cmdg-visual figcaption { margin-bottom: 13px; color: #c9b78e; font-size: 11px; line-height: 1.55; }
+#umsh-verified-reading .umsh-cmdg-facts, #umsh-verified-reading .umsh-cmdg-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+#umsh-verified-reading .umsh-cmdg-facts > div, #umsh-verified-reading .umsh-cmdg-columns > div { min-width: 0; padding: 12px; border: 1px solid rgba(216,186,114,.17); border-radius: 9px; background: #211b13; }
+#umsh-verified-reading .umsh-cmdg-facts span, #umsh-verified-reading .umsh-cmdg-facts small { display: block; color: #cfc5b6; font-size: 11px; line-height: 1.5; }
+#umsh-verified-reading .umsh-cmdg-facts strong { display: block; color: #fff3d6; font-size: 26px; }
+#umsh-verified-reading .umsh-cmdg-columns strong { color: #f2dc9a; font-size: 13px; }
+#umsh-verified-reading .umsh-cmdg-columns p { margin: 5px 0 0; color: #e2dbcf; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+#umsh-verified-reading .umsh-cmdg-steps, #umsh-verified-reading .umsh-cmdg-checks { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+#umsh-verified-reading .umsh-cmdg-steps li { display: grid; grid-template-columns: 25px minmax(0,1fr); gap: 3px 8px; padding: 8px 0; border-top: 1px solid rgba(216,186,114,.12); }
+#umsh-verified-reading .umsh-cmdg-steps li span { grid-row: span 2; color: #d8ba72; font-weight: 800; }
+#umsh-verified-reading .umsh-cmdg-steps li strong { color: #fff3d6; font-size: 13px; }
+#umsh-verified-reading .umsh-cmdg-steps li p { margin: 0; color: #d5cec1; font-size: 12px; }
+#umsh-verified-reading .umsh-cmdg-checks li { padding: 8px 8px 8px 24px; border-top: 1px solid rgba(216,186,114,.12); color: #e2dbcf; font-size: 13px; }
+#umsh-verified-reading .umsh-cmdg-checks li::before { content: '□'; display: inline-block; width: 19px; margin-left: -19px; color: #d8ba72; }
+#umsh-verified-reading .umsh-cmdg-table-scroll { overflow-x: auto; }
+#umsh-verified-reading .umsh-cmdg-visual table { width: 100%; border-collapse: collapse; table-layout: fixed; color: #e2dbcf; font-size: 12px; }
+#umsh-verified-reading .umsh-cmdg-visual th, #umsh-verified-reading .umsh-cmdg-visual td { padding: 9px 7px; border: 1px solid rgba(216,186,114,.2); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+#umsh-verified-reading .umsh-cmdg-visual thead th { color: #fff3d6; background: #2a2114; }
+#umsh-verified-reading .umsh-cmdg-visual tbody th { color: #f2dc9a; }
+#umsh-verified-reading .umsh-cmdg-domain-flow { margin: 16px 0; padding: 14px 12px; border: 1px solid rgba(216,186,114,.3); border-radius: 10px; background: #211b13; }
+#umsh-verified-reading .umsh-cmdg-domain-flow h3 { margin: 0; color: #fff3d6; font-size: 15px; }
+#umsh-verified-reading .umsh-cmdg-domain-flow p { margin: 6px 0; color: #d5cec1; font-size: 12px; line-height: 1.6; }
+#umsh-verified-reading .umsh-cmdg-domain-flow span { display: inline-block; padding: 3px 6px; border-radius: 4px; background: rgba(216,186,114,.16); color: #f2dc9a; font-size: 11px; }
+#umsh-verified-reading .umsh-cmdg-domain-flow a { display: block; width: fit-content; margin-top: 10px; color: #f2dc9a; font-size: 12px; text-decoration: underline; }
 #umsh-verified-reading .reading-card > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #umsh-verified-reading .reading-card > summary::-webkit-details-marker { display: none; }
 #umsh-verified-reading .reading-card > summary::after { flex: 0 0 auto; padding: 4px 7px; border: 1px solid rgba(216,186,114,.42); border-radius: 999px; color: #d8ba72; content: '펼치기 +'; font-size: 10px; font-weight: 800; line-height: 1; white-space: nowrap; }
@@ -220,6 +267,20 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
     background: #f5f1e8 !important;
     border-left-color: #80672f !important;
   }
+  #umsh-verified-reading .umsh-flow-curve,
+  #umsh-verified-reading .umsh-flow-callout,
+  #umsh-verified-reading .umsh-cmdg-lead,
+  #umsh-verified-reading .umsh-cmdg-editorial,
+  #umsh-verified-reading .umsh-cmdg-visual,
+  #umsh-verified-reading .umsh-cmdg-domain-flow { background: #fff !important; color: #111 !important; border-color: #bbb !important; break-inside: avoid; }
+  #umsh-verified-reading .umsh-cmdg-visual *,
+  #umsh-verified-reading .umsh-cmdg-domain-flow *,
+  #umsh-verified-reading .umsh-cmdg-lead *,
+  #umsh-verified-reading .umsh-cmdg-editorial *,
+  #umsh-verified-reading .umsh-flow-callout * { color: #111 !important; }
+  #umsh-verified-reading .umsh-flow-axis,
+  #umsh-verified-reading .umsh-flow-age { fill: #111 !important; }
+  #umsh-verified-reading .umsh-flow-line { stroke: #80672f !important; }
   #umsh-verified-reading .umsh-life-flow,
   #umsh-verified-reading .umsh-life-context li {
     background: #fff !important;

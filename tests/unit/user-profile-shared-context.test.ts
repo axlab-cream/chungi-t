@@ -47,10 +47,11 @@ describe('회원 공통 현실 기준', { concurrency: false }, () => {
       owner,
       name: '김철수',
       birth: existing!.birth,
-      lifeContext: { money: '보상 조건과 고정 지출을 비교합니다.', relationship: '약속 시간은 미리 조정합니다.' },
+      lifeContext: { workAlternative: '새 역할과 보상을 비교합니다.', money: '보상 조건과 고정 지출을 비교합니다.', relationship: '약속 시간은 미리 조정합니다.' },
     })
     const saved = await profileStore.saveUserBirthProfile(draft, owner)
     assert.equal(saved.lifeContext?.money, '보상 조건과 고정 지출을 비교합니다.')
+    assert.equal(saved.lifeContext?.workAlternative, '새 역할과 보상을 비교합니다.')
     assert.equal(row.profile_payload.life_context.relationship, '약속 시간은 미리 조정합니다.')
 
     const legacyDraft = profileStore.buildUserBirthProfile({ owner, name: '김철수', birth: saved.birth })

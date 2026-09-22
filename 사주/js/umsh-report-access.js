@@ -23,6 +23,40 @@
     'wealth-flow': '09-value-created.png', 'love-loop': '10-relationship-pattern.png', 'destiny-partner': '11-relationship-atmosphere.png', 'avoid-relationship': '12-boundary.png',
     'love-timing': '13-relationship-timing.png', 'future-flow': '14-long-current.png', 'sewoon-detail': '15-yearly-change.png', 'action-guide': '16-next-signal.png'
   };
+  var CMDG_CARD_TITLES = {
+    profile: '타고난 강점을 쓰는 법', 'day-master-strength': '힘들 때 버티는 방식', 'hidden-personality': '선택할 때 드러나는 기준', balance: '내 힘이 집중되는 곳',
+    'useful-god-eokbu': '내 힘을 살리는 방법', 'concern-loop': '고민이 겹칠 때 먼저 할 일', 'career-money': '일과 돈을 함께 살피는 법', 'career-transition': '지금 일, 계속할까 옮길까',
+    'wealth-flow': '일의 대가를 받을 때 살필 점', 'love-loop': '관계에서 반복하는 선택', 'destiny-partner': '나에게 편안한 관계', 'avoid-relationship': '거리를 조절할 때 살필 행동',
+    'love-timing': '다음 만남을 정할 때 살필 점', 'future-flow': '앞으로 살펴볼 큰 흐름', 'sewoon-detail': '올해 확인할 변화', 'action-guide': '지금 먼저 확인할 한 가지'
+  };
+  var CMDG_CARD_LEADS = {
+    profile: '타고난 특징을 일상의 선택에 어떻게 쓸지 살펴봅니다.', 'day-master-strength': '버티기 전에 내 책임과 마감을 먼저 확인해 보세요.',
+    'hidden-personality': '상대에게 맞추는 행동과 내가 지킬 기준을 함께 살펴보세요.', balance: '힘이 모인 곳과 보완할 곳을 나눠 읽어 보세요.',
+    'useful-god-eokbu': '자료를 모은 뒤에는 결론을 한 문장으로 말해 보세요.', 'concern-loop': '제안에 빠진 조건부터 찾아보세요.',
+    'career-money': '새 일을 맡기 전 업무 범위와 보상 조건을 함께 확인해 보세요.', 'career-transition': '옮길지 정하기 전에 두 선택의 실제 조건을 비교해 보세요.',
+    'wealth-flow': '맡을 일과 그 대가를 문서에서 함께 확인해 보세요.', 'love-loop': '약속하기 전에 내 부담도 말해 보세요.',
+    'destiny-partner': '끌림만큼 약속이 지켜지는지도 살펴보세요.', 'avoid-relationship': '첫인상보다 반복해서 나타난 행동을 기준으로 삼아 보세요.',
+    'love-timing': '다음 약속의 시간과 장소처럼 확인할 수 있는 조건을 보세요.', 'future-flow': '오래 이어지는 기준과 올해의 참고점을 나눠 보세요.',
+    'sewoon-detail': '새 제안을 받으면 담당자와 마감, 결과물을 먼저 확인해 보세요.', 'action-guide': '확인한 내용을 바탕으로 지금 답할 수 있는 한 가지를 정해 보세요.'
+  };
+  var CMDG_EDITORIAL = {
+    profile: ['오행의 개수는 전통 해석에 쓰이는 계산값이지 성격 점수나 미래 결과가 아닙니다. 가장 많은 기운과 보완할 기운을 나누어 읽어 보세요.', '새 요청을 받으면 맡을 범위와 조정할 범위를 한 문장씩 적어 보세요.'],
+    'day-master-strength': ['자료가 모자라서 답을 미루는 일과 이미 확인했는데도 결론을 미루는 일은 다릅니다. 필요한 정보가 남았는지 먼저 살펴보세요.', '요청 하나를 골라 마감과 담당 범위를 적고 추가 질문이 필요한지만 결정해 보세요.'],
+    'hidden-personality': ['상대에게 부드럽게 답하면서도 약속의 범위를 다시 조정할 수 있습니다. 이것은 고정된 성격 판정이 아니라 선택을 점검하는 관점입니다.', '겹친 약속 중 하나를 골라 받아들일 일과 거절할 일을 구분해 보세요.'],
+    balance: ['한쪽에 힘이 모인 계산 표시를 실제 행동으로 옮길 때에는 정보를 살핀 다음 말이나 결과물로 정리하는 순서가 도움이 됩니다.', '지금 맡은 일의 조건을 확인한 뒤 처리 순서를 짧은 답변으로 보내 보세요.'],
+    'useful-god-eokbu': ['전통 해석의 기운은 선택을 설명하는 상징입니다. 어느 기운도 실제 결과를 보장하지 않습니다.', '비교 중인 선택 하나의 기준을 정하고 그 기준에 따른 결론을 말해 보세요.'],
+    'concern-loop': ['기회처럼 보여도 맡을 일, 받을 대가, 끝낼 시점이 흐리면 판단할 자료가 부족합니다. 상대의 의도보다 제안의 조건을 살펴보세요.', '새 제안 한 건에서 비어 있는 조건을 질문으로 바꿔 보내 보세요.'],
+    'career-money': ['일을 맡는다는 말과 대가가 서로 다른 곳에 적혀 있다면 오해가 생기기 쉽습니다. 실제 금액이나 수입 변화를 이 리포트가 보장하지는 않습니다.', '구두로 들은 조건과 문서에 적힌 조건이 같은지 맞춰 보세요.'],
+    'career-transition': ['현재 자리와 새 선택의 실제 조건이 비어 있다면 유지나 이직을 단정할 근거는 없습니다. 입력한 조건이 있어도 역할·평가·보상·소진을 함께 비교해야 합니다.', '두 선택의 조건을 같은 항목으로 적고 빈칸을 담당자에게 물어보세요.'],
+    'wealth-flow': ['받은 제안이 실제 결과와 보상으로 이어지려면 조건을 확인해야 합니다. 새로운 수입이 생긴다는 예측은 아닙니다.', '제안서에 결과물과 대가가 둘 다 적혀 있는지 확인해 보세요.'],
+    'love-loop': ['상대의 마음을 짐작하는 것보다 약속의 시간과 분담이 실제로 어떻게 정해졌는지 보는 편이 분명합니다. 관계의 결과를 미리 정하는 해석은 아닙니다.', '다음 약속에서 내가 부담스러운 조건 한 가지를 먼저 말해 보세요.'],
+    'destiny-partner': ['특정한 사람의 성격을 사주로 예측할 수는 없습니다. 말이 통하는지, 일정과 책임을 분명히 하는지처럼 확인 가능한 행동을 기준으로 삼으세요.', '최근 만남 하나를 떠올리며 아래 질문에 실제 있었던 일로 답해 보세요.'],
+    'avoid-relationship': ['누군가를 피해야 할 사람으로 분류하는 해석은 아닙니다. 약속과 책임이 계속 흐려지는 상황에서 내가 정할 경계를 살펴보세요.', '반복된 요청 하나에 대해 내가 할 수 있는 범위를 분명히 말해 보세요.'],
+    'love-timing': ['만남 날짜를 계산한 값이 없다면 특정 시기나 상대의 마음을 예언할 수 없습니다. 실제 답장과 일정 조율을 살펴보세요.', '다음 만남을 제안할 때 시간과 장소를 구체적으로 물어보세요.'],
+    'future-flow': ['큰 흐름과 올해의 참고는 길이가 다른 전통 해석 단위입니다. 사건이 일어날 날짜나 확률이 아닙니다.', '현재 맡은 일과 올해 들어온 제안을 나눠 적어 보세요.'],
+    'sewoon-detail': ['올해 간지는 전통 해석의 참고점입니다. 일이 반드시 늘거나 좋은 결과가 생긴다는 뜻이 아니라 실제 제안의 조건을 살필 계기로 읽으세요.', '올해 받은 제안 한 건에서 비어 있는 항목을 물어보세요.'],
+    'action-guide': ['세부 운세 계산이 표시되지 않은 날에는 오늘은 반드시라는 판단을 더하지 않습니다. 확인된 조건과 더 물어볼 조건을 나누세요.', '확인된 일에는 답하고 빈칸이 남은 일에는 질문 한 가지를 보내 보세요.' ]
+  };
   var rawFetch = global.fetch.bind(global);
   var authorized = null;
   var rememberedId = '';
@@ -115,7 +149,7 @@
     layout.appendChild(node);
     document.body.appendChild(layout);
     document.documentElement.setAttribute('data-umsh-verified-reader','');
-    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css';css.addEventListener('load',mountChrome);document.head.appendChild(css);
+    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-cmdg-template';css.addEventListener('load',mountChrome);document.head.appendChild(css);
     function mountChrome() { if(global.UMSHChrome)global.UMSHChrome.mount({root:'#umsh-verified-layout',service:key==='today_fortune'?'오늘운':'저장된 해석',category:'흐름'}); }
     if(global.UMSHChrome) mountChrome();
     else if(!document.querySelector('script[src="/js/umsh-chrome.js"]')) {var script=document.createElement('script');script.src='/js/umsh-chrome.js';script.addEventListener('load',mountChrome);document.head.appendChild(script);}
@@ -291,7 +325,8 @@
   /** 라우트 키와 설정 키가 다르다 — cmdg 는 saju_master 로 정규화된다. 양쪽을 다 본다. */
   function longformConfigFor(serviceKey) {
     if (!longform.config) return null;
-    var wanted = [serviceKey, canonical(serviceKey), 'cmdg', key, canonical(key)];
+    var normalized = canonical(serviceKey || key);
+    var wanted = [serviceKey, normalized, normalized === 'saju_master' ? 'cmdg' : '', key, canonical(key)];
     for (var index = 0; index < wanted.length; index += 1) {
       var name = wanted[index];
       if (name && longform.config[name]) return longform.config[name];
@@ -400,10 +435,11 @@
   }
 
   /** 세 블록의 HTML. 설정이 없으면 아무것도 그리지 않는다 — 하위 호환. */
-  function longformHtml(report, entitled) {
-    var config = longformConfigFor(key);
+  function longformHtml(report, entitled, serviceKey, payload) {
+    var config = longformConfigFor(serviceKey);
     if (!config) return '';
-    var inner = verdictBlock(report, config) + summaryBlock(report, config, entitled) + highlightBlocks(report, config, entitled);
+    var inner = verdictBlock(report, config) + summaryBlock(report, config, entitled)
+      + highlightBlocks(report, config, entitled);
     if (!inner) return '';
     return '<div class="umsh-longform" id="umsh-longform-host"' + longformAccentStyle(config) + '>' + inner + '</div>';
   }
@@ -412,15 +448,21 @@
    * 설정은 네트워크로 온다. 리포트가 먼저 그려졌으면 도착한 뒤 한 번 더 채운다.
    * 목차 위 자리만 건드리고 본문 섹션은 그대로 둔다.
    */
-  function mountLongform(host, report, entitled) {
+  function mountLongform(host, report, entitled, serviceKey, payload) {
     if (!host) return;
     ensureLongformStyles();
     var paint = function () {
-      var html = longformHtml(report, entitled);
+      var html = longformHtml(report, entitled, serviceKey, payload);
       var existing = host.querySelector('#umsh-longform-host');
       if (!html) { if (existing && existing.parentNode) existing.parentNode.removeChild(existing); return; }
-      if (existing) { existing.outerHTML = html; return; }
-      host.insertAdjacentHTML('afterbegin', html);
+      if (existing) existing.outerHTML = html;
+      else host.insertAdjacentHTML('afterbegin', html);
+      if (canonical(serviceKey) === 'saju_master') {
+        var container = host.parentNode || host;
+        var summary = container.querySelector('.umsh-summary');
+        var flow = container.querySelector('.umsh-life-flow');
+        if (summary && flow && summary.parentNode) summary.parentNode.insertBefore(flow, summary.nextSibling);
+      }
     };
     if (longform.config) { paint(); return; }
     loadLongformConfig().then(paint).catch(function () {});
@@ -431,6 +473,51 @@
    * 미래 사건을 다시 계산하거나 만들지 않는다. memberContext 는 회원이 프로필에 직접
    * 저장한 현실 기준이며, 리포트 원문과는 별개다.
    */
+  var CMDG_STEM_ELEMENTS = { '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토', '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수' };
+  var CMDG_BRANCH_ELEMENTS = { '寅': '목', '卯': '목', '巳': '화', '午': '화', '辰': '토', '戌': '토', '丑': '토', '未': '토', '申': '금', '酉': '금', '亥': '수', '子': '수' };
+  var CMDG_FLOW_LABELS = { 1: '속도를 조절할 흐름', 2: '기준을 정리할 흐름', 3: '힘을 쓰기 쉬운 흐름' };
+
+  /** 대운 간지의 대표 오행과 저장 분석의 보완 기운을 비교한 세 단계 안내다. 결과 예측 점수가 아니다. */
+  function cmdgFlowLevel(pillar, analysis) {
+    var useful = String(analysis && (analysis.usefulGod || analysis.weakElement) || '');
+    var dominant = String(analysis && analysis.dominantElement || '');
+    var elements = [CMDG_STEM_ELEMENTS[pillar && pillar[0]], CMDG_BRANCH_ELEMENTS[pillar && pillar[1]]].filter(Boolean);
+    if (!elements.length || !useful) return 2;
+    var support = elements.filter(function (element) { return element === useful; }).length;
+    var pressure = elements.filter(function (element) { return element === dominant; }).length;
+    return Math.max(1, Math.min(3, 2 + support - pressure));
+  }
+
+  function cmdgFlowCurveHtml(payload, compact) {
+    var analysis = payload && payload.analysis || {};
+    var fortune = analysis.fortune || {};
+    var segments = Array.isArray(fortune.daewoon) ? fortune.daewoon.filter(function (item) {
+      return item && typeof item.age === 'string' && typeof item.pillar === 'string';
+    }).slice(0, 10) : [];
+    if (!segments.length) return '';
+    var currentPillar = typeof fortune.currentDaewoon === 'string' ? fortune.currentDaewoon : String(fortune.currentDaewoon && fortune.currentDaewoon.pillar || '');
+    var levels = segments.map(function (item) { return cmdgFlowLevel(item.pillar, analysis); });
+    var height = compact ? 116 : 166;
+    var y = compact ? { 1: 82, 2: 52, 3: 22 } : { 1: 130, 2: 84, 3: 35 };
+    var x = function (index) { return 58 + index * 30; };
+    var path = levels.map(function (level, index) { return (index ? 'L' : 'M') + x(index) + ' ' + y[level]; }).join(' ');
+    var currentIndex = segments.findIndex(function (item) { return item.pillar === currentPillar; });
+    var guide = [[3, '힘을 쓰기 쉬움'], [2, '기준을 정리'], [1, '속도를 조절']].map(function (item) {
+      return '<line x1="53" x2="334" y1="' + y[item[0]] + '" y2="' + y[item[0]] + '" class="umsh-flow-grid"/>'
+        + '<text x="0" y="' + (y[item[0]] + 4) + '" class="umsh-flow-axis">' + item[1] + '</text>';
+    }).join('');
+    var points = segments.map(function (item, index) {
+      var current = index === currentIndex;
+      return '<circle cx="' + x(index) + '" cy="' + y[levels[index]] + '" r="' + (current ? 6 : 3) + '" class="umsh-flow-point' + (current ? ' is-current' : '') + '"/>'
+        + ((!compact && (index % 2 === 0 || current)) ? '<text x="' + x(index) + '" y="158" text-anchor="middle" class="umsh-flow-age' + (current ? ' is-current' : '') + '">' + escapeHtml(item.age.replace(/세$/, '')) + '</text>' : '');
+    }).join('');
+    var summary = segments.map(function (item, index) { return item.age + ' ' + CMDG_FLOW_LABELS[levels[index]]; }).join(', ');
+    return '<figure class="umsh-flow-curve' + (compact ? ' is-compact' : '') + '" role="img" aria-label="' + escapeHtml(summary) + '">'
+      + '<div class="umsh-flow-plot"><svg viewBox="0 0 340 ' + height + '" aria-hidden="true" focusable="false">'
+      + guide + '<path d="' + path + '" class="umsh-flow-line"/>' + points + '</svg></div>'
+      + '</figure>';
+  }
+
   function lifeFlowHtml(payload) {
     var fortune = payload && payload.analysis && payload.analysis.fortune;
     var daewoon = fortune && Array.isArray(fortune.daewoon) ? fortune.daewoon.filter(function (item) {
@@ -460,22 +547,27 @@
         + (isCurrent ? '<em>현재</em>' : '')
         + '</li>';
     }).join('');
-    var labels = { work: '일·직장', money: '재물·보상', relationship: '관계·연애', planning: '계획 기준' };
+    var labels = { work: '일·직장', workAlternative: '새 직장·제안', money: '재물·보상', relationship: '관계·연애', planning: '계획 기준' };
     var member = payload && payload.memberContext && typeof payload.memberContext === 'object' ? payload.memberContext : {};
     var contextRows = Object.keys(labels).map(function (field) {
       var value = typeof member[field] === 'string' ? member[field].trim() : '';
       return value ? '<li><strong>' + labels[field] + '</strong><span>' + escapeHtml(value) + '</span></li>' : '';
     }).filter(Boolean).join('');
+    var serviceKey = canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
+    var cmdg = serviceKey === 'saju_master';
+    var currentLevel = currentSegment ? cmdgFlowLevel(currentSegment.pillar, payload.analysis) : 2;
     return '<section class="umsh-life-flow" aria-labelledby="umsh-life-flow-title">'
       + '<span class="umsh-life-flow-eyebrow">만세력 계산 결과</span>'
       + '<h2 id="umsh-life-flow-title">나의 대운 흐름</h2>'
       + (currentText ? '<p class="umsh-life-flow-current">현재 위치 · ' + escapeHtml(currentText) + '</p>' : '')
-      + '<ol class="umsh-life-flow-timeline" aria-label="대운 구간">' + timeline + '</ol>'
+      + (cmdg ? '<p class="umsh-flow-intro">선이 위로 갈수록 보완 기운을 쓰기 쉬운 구간, 아래로 갈수록 속도와 조건을 살필 구간입니다. 인생의 성공·수입을 예측한 점수는 아닙니다.</p>' + cmdgFlowCurveHtml(payload, false)
+        + '<div class="umsh-flow-callout"><strong>지금의 위치 · ' + escapeHtml(currentLabel || '현재') + '</strong><span>' + CMDG_FLOW_LABELS[currentLevel] + '</span></div>' : '')
       + '<section class="umsh-life-flow-reference" aria-label="올해 참고와 삼재">'
       + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(String(fortune.yearPillar || '')) + '</span></p>'
       + (samjaePeriod ? '<p><strong>삼재</strong><span>' + escapeHtml(samjae.status === 'current' ? '현재 삼재 · ' + samjaePeriod + (samjaePhase ? ' · ' + samjaePhase : '') : '다음 삼재 · ' + samjaePeriod) + '</span></p>' : '')
       + '</section>'
       + '<details class="umsh-life-flow-source" open><summary>만세력 원자료 보기</summary>'
+      + '<ol class="umsh-life-flow-timeline" aria-label="대운 구간">' + timeline + '</ol>'
       + '<p class="umsh-life-flow-note">대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.</p>'
       + '</details>'
       + '<section class="umsh-life-context" aria-labelledby="umsh-life-context-title">'
@@ -493,6 +585,89 @@
     if (!html) { if (existing && existing.parentNode) existing.parentNode.removeChild(existing); return; }
     if (existing) { existing.outerHTML = html; return; }
     host.insertAdjacentHTML('afterbegin', html);
+  }
+
+  function isCmdgPayload(payload) {
+    return canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key) === 'saju_master';
+  }
+
+  function cmdgVisualSpec(section, payload) {
+    var analysis = payload && payload.analysis || {};
+    var member = payload && payload.memberContext || {};
+    var fortune = analysis.fortune || {};
+    var fields = analysis.elements || {};
+    var saved = function (value) { return typeof value === 'string' && value.trim() ? value.trim() : '추가 정보 입력 전'; };
+    switch (section.id) {
+      case 'profile': return { type: 'facts', caption: '저장 리포트의 오행 계산값 · 성격 점수가 아닙니다', items: [['나무', fields.wood], ['불', fields.fire], ['흙', fields.earth], ['쇠', fields.metal], ['물', fields.water]].filter(function (item) { return typeof item[1] === 'number'; }) };
+      case 'day-master-strength': return { type: 'columns', caption: '요청을 받은 뒤 나눠 볼 두 가지', items: [['더 확인할 일', '마감이나 담당 범위가 비어 있음'], ['답해도 될 일', '조건을 확인했고 맡을 범위가 분명함']] };
+      case 'hidden-personality': return { type: 'columns', caption: '약속이 겹칠 때', items: [['겉으로 보이는 행동', '상대의 요청에 답하는 방식'], ['내가 지킬 기준', '가능한 시간과 맡을 범위를 먼저 밝히기']] };
+      case 'balance': return { type: 'steps', caption: '계산값을 일상적인 선택 순서로 옮긴 예', items: [['1', '살피기', '자료와 마감 확인'], ['2', '표현하기', '맡을 일과 처리 순서 전달']] };
+      case 'useful-god-eokbu': return { type: 'steps', caption: '보완 기운은 실제 결과를 보장하지 않습니다', items: [['1', '살피기', '필요한 정보 찾기'], ['2', '말하기', '확인한 결론 전달하기']] };
+      case 'concern-loop': return { type: 'check', caption: '제안받은 일을 살필 때', items: ['내 책임 범위', '받을 대가', '마감 또는 결정 시점'] };
+      case 'career-money': return { type: 'table', caption: '제안의 역할·보상·마감을 한 문장으로 확인하는 표', headers: ['구분', '입력한 실제 조건'], rows: [['제안 조건', saved(member.money)]] };
+      case 'career-transition': return { type: 'table', caption: '현재 자리와 새 선택의 조건을 비교하는 표', headers: ['구분', '입력한 실제 조건'], rows: [['현재 자리', saved(member.work)], ['새 선택', saved(member.workAlternative)]] };
+      case 'wealth-flow': return { type: 'steps', caption: '제안 수락 전 확인 순서', items: [['1', '제안', '누가 어떤 일을 요청했나요?'], ['2', '결과물', '무엇을 완성해야 하나요?'], ['3', '대가', '지급 조건은 무엇인가요?']] };
+      case 'love-loop': return { type: 'table', caption: '약속·부담·조정할 말을 한 문장으로 정리하는 표', headers: ['구분', '입력한 실제 조건'], rows: [['관계의 조건', saved(member.relationship)]] };
+      case 'destiny-partner': return { type: 'check', caption: '관계를 살필 질문', items: ['약속한 시간을 지켰나요?', '변경 사항을 미리 말했나요?', '부담을 함께 조정할 수 있었나요?'] };
+      case 'avoid-relationship': return { type: 'table', caption: '사람의 등급이 아닌 행동 기준', headers: ['반복된 행동', '내 경계', '다음 대응'], rows: [['역할이 계속 바뀜', '맡을 범위 정하기', '수락 전 다시 묻기'], ['약속 변경을 알리지 않음', '가능한 시간 밝히기', '새 일정 합의하기']] };
+      case 'love-timing': return { type: 'check', caption: '다음 약속의 확인 항목 · 날짜 예측이 아닙니다', items: ['답장이 서로 이어지나요?', '시간과 장소가 정해졌나요?', '변경할 때 서로 알리나요?'] };
+      case 'future-flow': return { type: 'columns', caption: '리포트의 기간 표기', items: [['장기 기준', saved(fortune.currentDaewoon) + ' 대운'], ['올해 참고', saved(fortune.yearPillar) + ' · ' + saved(member.planning)]] };
+      case 'sewoon-detail': return { type: 'check', caption: '실제 제안서와 대조할 항목', items: ['담당자는 누구인가요?', '마감은 언제인가요?', '완성할 결과물은 무엇인가요?'] };
+      case 'action-guide': return { type: 'steps', caption: '받은 요청을 정리하는 세 칸', items: [['1', '확인됨', '이미 아는 조건'], ['2', '더 물어볼 것', '결정에 필요한 빈칸'], ['3', '답할 말', '지금 전달할 한 문장']] };
+      default: return null;
+    }
+  }
+
+  function cmdgVisualHtml(spec) {
+    if (!spec || !Array.isArray(spec.items || spec.rows)) return '';
+    var html = '';
+    if (spec.type === 'facts') html = '<div class="umsh-cmdg-facts">' + spec.items.map(function (item) {
+      return '<div><span>' + escapeHtml(item[0]) + '</span><strong>' + escapeHtml(String(item[1])) + '</strong><small>계산에 나타난 횟수</small></div>';
+    }).join('') + '</div>';
+    if (spec.type === 'columns') html = '<div class="umsh-cmdg-columns">' + spec.items.map(function (item) {
+      return '<div><strong>' + escapeHtml(item[0]) + '</strong><p>' + escapeHtml(item[1]) + '</p></div>';
+    }).join('') + '</div>';
+    if (spec.type === 'steps') html = '<ol class="umsh-cmdg-steps">' + spec.items.map(function (item) {
+      return '<li><span>' + escapeHtml(item[0]) + '</span><strong>' + escapeHtml(item[1]) + '</strong><p>' + escapeHtml(item[2]) + '</p></li>';
+    }).join('') + '</ol>';
+    if (spec.type === 'check') html = '<ul class="umsh-cmdg-checks">' + spec.items.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul>';
+    if (spec.type === 'table') html = '<div class="umsh-cmdg-table-scroll"><table><thead><tr>' + spec.headers.map(function (item) { return '<th scope="col">' + escapeHtml(item) + '</th>'; }).join('') + '</tr></thead><tbody>'
+      + spec.rows.map(function (row) { return '<tr>' + row.map(function (cell, index) { return '<' + (index ? 'td' : 'th scope="row"') + '>' + escapeHtml(cell) + '</' + (index ? 'td' : 'th') + '>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+    return '<figure class="umsh-cmdg-visual"><figcaption>' + escapeHtml(spec.caption) + '</figcaption>' + html + '</figure>';
+  }
+
+  function cmdgDomainFlowHtml(section, payload) {
+    var labels = { 'career-money': ['재물·보상', '재물운', 'money'], 'career-transition': ['일·직장', '직장운', 'work'], 'love-loop': ['관계·연애', '연애운', 'relationship'] };
+    var item = labels[section.id];
+    if (!item) return '';
+    var member = payload && payload.memberContext || {};
+    var recorded = typeof member[item[2]] === 'string' && member[item[2]].trim();
+    return '<section class="umsh-cmdg-domain-flow" aria-label="' + item[0] + ' 흐름">'
+      + '<h3>' + item[0] + ' · ' + item[1] + ' 참고 흐름</h3>'
+      + '<p>위의 대운과 같은 기운 균형 흐름입니다. 재물·직장·연애의 결과나 성공률을 예측하지 않습니다.</p>'
+      + cmdgFlowCurveHtml(payload, true)
+      + '<span>' + (recorded ? '실제 조건 등록됨' : '실제 조건 입력 전') + '</span>'
+      + '<a href="/profile">MY에서 실제 조건 확인하기</a>'
+      + '</section>';
+  }
+
+  function cmdgCardBody(section, payload, body) {
+    if (!isCmdgPayload(payload) || !CMDG_CARD_TITLES[section.id]) return body;
+    var lead = '<p class="umsh-cmdg-lead"><strong>' + escapeHtml(CMDG_CARD_LEADS[section.id]) + '</strong></p>';
+    var visual = cmdgVisualHtml(cmdgVisualSpec(section, payload)) + cmdgDomainFlowHtml(section, payload);
+    var image = renderSectionImage(section);
+    var answer = section.hook ? readingBlock('answer', '한 줄 답', [String(section.hook).trim()]) : '';
+    var prefix = image + answer;
+    var editorial = CMDG_EDITORIAL[section.id] || [];
+    var supplement = editorial.length ? readingBlock('evidence umsh-cmdg-editorial', '쉬운 풀이·보강', [editorial[0]])
+      + readingBlock('action umsh-cmdg-editorial', '추가로 확인할 것', [editorial[1]]) : '';
+    return body.indexOf(prefix) === 0 ? lead + prefix + visual + body.slice(prefix.length) + supplement : lead + body + visual + supplement;
+  }
+
+  function cmdgCardTitle(section, payload) {
+    return isCmdgPayload(payload) && CMDG_CARD_TITLES[section.id]
+      ? CMDG_CARD_TITLES[section.id]
+      : labelText(section.category) + ' · ' + labelText(section.classification);
   }
 
   /* ==================================================================
@@ -1071,7 +1246,7 @@
     fillText('subtitle', report.subtitle);
     host.innerHTML = report.sections.map(function (section, index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
-      var body = ready ? richSectionBody(section) : (
+      var body = ready ? cmdgCardBody(section, payload, richSectionBody(section)) : (
         '<div class="umsh-section-skeleton" role="status" aria-live="polite">' +
           '<strong>' + escapeHtml(labelText(section.classification) || '이 항목') + ' 해석을 준비하고 있어요</strong>' +
           '<p>' + (section.status === 'failed'
@@ -1084,12 +1259,12 @@
       var open = opened.indexOf(section.id) !== -1 || selected === section.id
         || selected === section.generationId || (!opened.length && !selected && index === 0);
       return '<details class="reading-card ' + sectionStateClass(section) + '" data-section="' + escapeHtml(section.id) + '"' + (open ? ' open' : '') + '>' +
-        '<summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' +
+        '<summary>' + escapeHtml(cmdgCardTitle(section, payload)) + '</summary>' +
         body + '</details>';
     }).join('');
     // 목차 위에 계산 결과·결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
     mountLifeFlow(host, payload);
-    mountLongform(host, report, payload.entitled !== false);
+    mountLongform(host, report, payload.entitled !== false, (payload.context && payload.context.serviceKey) || report.serviceKey || key, payload);
     placeSectionVisuals(host);
     revealAncestors(host);
     markFilled(host);
@@ -1297,13 +1472,13 @@
      * 공용 상단바와 하단 내비게이션이 이미 같은 이동을 제공하고, 해석을 열자마자 읽을 것은
      * 제목과 결론이다. 오류·로그인 화면(gate)에는 갈 곳이 필요하므로 그쪽 navigation() 은 남긴다.
      */
-    node.innerHTML = '<h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p>' + lifeFlowHtml(payload) + '<div id="umsh-longform-mount"></div>' + report.sections.map(function(section,index) {
+    node.innerHTML = '<h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p>' + '<div id="umsh-longform-mount"></div>' + lifeFlowHtml(payload) + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
-      var body = ready ? readySectionBody(section) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
-      return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' + body + '</details>';
+      var body = ready ? cmdgCardBody(section, payload, richSectionBody(section)) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
+      return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(cmdgCardTitle(section, payload)) + '</summary>' + body + '</details>';
     }).join('');
     // 공용 리더(/r/:id). 06-1 이 없는 서비스(cmdg)가 여기로 온다 — 같은 세 블록을 같은 자리에 올린다.
-    mountLongform(document.getElementById('umsh-longform-mount'), report, payload.entitled !== false);
+    mountLongform(document.getElementById('umsh-longform-mount'), report, payload.entitled !== false, serverKey, payload);
     var id = identity(payload);
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<a style="color:#e5bd69" href="/r/'+encodeURIComponent(id)+'">이 해석의 고유 주소 열기</a>');
     ensureImportantNotice(node, report);

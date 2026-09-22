@@ -26,6 +26,7 @@ globalThis.fetch = (async (input: string | URL | Request, options?: RequestInit)
 
 const { default: app } = await import('../../src/server/app.js')
 const { analyzeSaju } = await import('../../src/saju/analyzer.js')
+const { calculateFortuneCycle } = await import('../../src/saju/fortune-cycle.js')
 const store = await import('../../src/report/report-store.js')
 const birth: BirthInput = { year: 1994, month: 3, day: 11, hour: 9, gender: 'female', calendar: 'solar' }
 const context = { serviceKey: 'love_this_year', name: '로컬 합성 점검', concern: '특별한 문제 없이 잘 지내고 있습니다.' }
@@ -44,6 +45,7 @@ let sectionGenerationId: string
 let ownerId: string
 let ownerResultId: string
 let pendingId: string
+let legacyFortuneId: string
 
 async function request(path: string, body?: unknown) {
   const response = await fetch(origin + path, body === undefined ? undefined : {
@@ -75,6 +77,14 @@ before(async () => {
   ownerResultId = owned.record.resultId!
   pendingId = `api-pending-${randomUUID()}`
   await store.createOrGetReportRecord({ reportId: pendingId, birth, context, analysis, templateReport: template })
+  legacyFortuneId = `api-legacy-fortune-${randomUUID()}`
+  await store.createOrGetReportRecord({
+    reportId: legacyFortuneId,
+    birth,
+    context,
+    analysis: { ...analysis, fortune: { ...analysis.fortune!, currentYear: 2024, samjae: undefined } },
+    templateReport: template,
+  })
 })
 
 after(async () => {
@@ -123,6 +133,15 @@ describe('saved report HTTP boundaries (local fixtures only)', { concurrency: fa
       assert.equal(result.payload.report.sections[0].attempts, undefined)
     }
     assert.deepEqual(await store.getReportRecord(anonymousId), before)
+  })
+
+  it('refreshes fortune and samjae for a legacy saved report without rewriting its stored reading', async () => {
+    const storedBefore = await store.getReportRecord(legacyFortuneId)
+    assert.equal(storedBefore?.analysis?.fortune?.samjae, undefined)
+    const result = await request(`/api/report/${legacyFortuneId}`)
+    assert.equal(result.response.status, 200)
+    assert.deepEqual(result.payload.analysis.fortune, calculateFortuneCycle(birth))
+    assert.deepEqual(await store.getReportRecord(legacyFortuneId), storedBefore)
   })
 
   it('serves a data-free reader shell at /r/UUID', async () => {
