@@ -41,21 +41,23 @@
   outline: 2px solid var(--cyan, var(--gold, #e8c76f));
   outline-offset: 3px;
 }
+.umsh-reader-actions [data-umsh-report-share] {
+  grid-column: 1;
+  grid-row: 1;
+}
 .umsh-reader-actions [data-umsh-pdf] {
+  grid-column: 2;
+  grid-row: 1;
   border-color: var(--gold, #e8c76f);
   color: var(--gold-soft, var(--gold, #e8c76f));
 }
 .umsh-reader-actions [role="status"] {
   grid-column: 1 / -1;
+  grid-row: 2;
   min-height: 0;
   color: var(--muted, rgba(255, 247, 223, .72));
   font-size: 12px;
   line-height: 1.6;
-}
-
-@media (max-width: 359px) {
-  .umsh-reader-actions { grid-template-columns: 1fr; }
-  .umsh-reader-actions [role="status"] { grid-column: auto; }
 }
 
 /* ── 진행률 ─────────────────────────────────────────────── */

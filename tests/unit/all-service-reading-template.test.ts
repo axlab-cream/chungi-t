@@ -119,6 +119,10 @@ test('올해 연애운 상세은 공통 GNB·하단 내비게이션을 유지하
   assert.match(reader, /if \(!ensureInPlaceReaderActions\(host, payload\)\) ensurePdfDock\(host\)/)
   assert.match(css, /\.umsh-reader-actions\s*\{/)
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/)
+  assert.match(css, /\.umsh-reader-actions \[data-umsh-report-share\]\s*\{[^}]*grid-column: 1;[^}]*grid-row: 1;/)
+  assert.match(css, /\.umsh-reader-actions \[data-umsh-pdf\]\s*\{[^}]*grid-column: 2;[^}]*grid-row: 1;/)
+  assert.match(css, /\.umsh-reader-actions \[role="status"\]\s*\{[^}]*grid-column: 1 \/ -1;[^}]*grid-row: 2;/)
+  assert.doesNotMatch(css, /\.umsh-reader-actions\s*\{\s*grid-template-columns: 1fr;/)
 })
 
 test('올해 연애운 상세은 공통 리더 액션 외의 이전·다음, 말 가이드, 연관 항목을 중복 노출하지 않는다', () => {
@@ -187,7 +191,7 @@ test('삽입형 상세 19개는 대운 흐름 스타일을 정적으로 먼저 �
 
   assert.equal(detailPages.length, 19)
   for (const page of detailPages) {
-    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=20260922-lifeflow-width-v3"/)
+    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=20260922-reader-actions-row-v1"/)
   }
   assert.match(css, /\[data-umsh-slot="sections"\] > \.umsh-life-flow/)
   assert.match(css, /font: 15px\/1\.85 Pretendard/)
