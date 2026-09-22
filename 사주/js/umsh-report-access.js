@@ -1147,7 +1147,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260922-common-reader-actions-v1';
+    link.href = '/css/umsh-verified-inplace.css?v=20260922-life-flow-readable-v1';
     document.head.appendChild(link);
   }
   /**

@@ -2078,3 +2078,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 
 - `80b0962` → `2a27839` → `17f1a9e`를 `origin/main`에 순차 반영했다. 마지막 수정은 설정 JSON이 늦게 도착할 때 저장 항목 이미지가 잠깐 보이던 순서 문제를 막는다.
 - Vercel Production 최종 배포가 Ready다. 로그인된 실제 직장 선택 저장 리포트에서 원문 21개 목차·토글·표·오행 그래프·링크 공유/PDF 도구를 유지하면서, 본문 첫 토글의 반복 이미지가 사라진 것을 확인했다.
+
+## 2026-09-22 — 삽입형 상세 대운 흐름 가독성 보강 (로컬 검토)
+
+- 원인: 공용 전체화면 리더의 `#umsh-verified-reading` 전용 대운 스타일이, 올해 연애운 06 상세처럼 `[data-umsh-slot="sections"]` 안에 삽입되는 리더에는 적용되지 않았다. 그 결과 기본 브라우저 글자 크기·검은 SVG 선·나열된 원자료가 노출됐다.
+- 해결: 삽입형 공용 리더에도 같은 문단 위계를 적용했다. 대운 제목·현재 위치·설명·그래프·현재 구간·삼재 참고·원자료 토글·10년 카드에 서비스별 색상 토큰과 읽기 가능한 글자 크기/행간을 부여했다. 그래프는 저장된 계산값을 읽는 보조 도구이며 성공·수입 예측 점수로 바꾸지 않았다.
+- 캐시: `umsh-verified-inplace.css`와 공용 접근 스크립트 참조 69개를 새 버전으로 맞춰 기존 브라우저 캐시가 이전 무스타일 컴포넌트를 계속 읽지 않게 했다.
+- 검증: 공용 접근기 집중 테스트 66/66, TypeScript, `npm run vercel-build`, `npm run qa:all-services` 20/20, `git diff --check` PASS. `npm build` 스크립트는 저장소에 없어 Vercel 빌드 스크립트로 대체했다.
+- CreamWIKI: `personal/carrotcap/notes/umsh-inplace-life-flow-readable-20260922.md`에 원인·결정·검증·재발 방지를 기록한다. [GATE H2] 원격 배포는 `rules.md` §6.3에 따라 실행하지 않았다.

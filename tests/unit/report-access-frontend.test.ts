@@ -4,6 +4,15 @@ import { runInNewContext } from 'node:vm'
 import { test } from 'node:test'
 
 const source = readFileSync(new URL('../../사주/js/umsh-report-access.js', import.meta.url), 'utf8')
+const inplaceCss = readFileSync(new URL('../../사주/css/umsh-verified-inplace.css', import.meta.url), 'utf8')
+
+test('in-place detailed readers render the life-flow component with the shared readable hierarchy', () => {
+  assert.match(source, /umsh-verified-inplace\.css\?v=20260922-life-flow-readable-v1/)
+  assert.match(inplaceCss, /\[data-umsh-slot="sections"\] > \.umsh-life-flow/)
+  assert.match(inplaceCss, /\.umsh-flow-line \{ fill: none; stroke: var\(--gold/)
+  assert.match(inplaceCss, /\.umsh-life-flow-source > summary::after \{ content: '접기 −'/)
+  assert.match(inplaceCss, /\.umsh-life-flow-timeline \{[\s\S]*grid-template-columns: repeat\(5, minmax\(116px, 1fr\)\)/)
+})
 
 test('saved reading shares only its canonical URL by copying and never navigates', async () => {
   const h = harness('/r/saved-uuid?reportId=saved-uuid', [])
