@@ -70,7 +70,7 @@
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   // 설정 JSON은 비동기로 읽는다. 그 전에 본문이 먼저 칠해져도 반복 그림이 잠깐
   // 나타나지 않도록, 대표 이미지 한 장 계약의 키는 여기에도 좁게 둔다.
-  var SUMMARY_ONLY_SERVICE_KEYS = { match_couple: true, couple_signal: true, work_move: true, quit_fortune: true, money_save: true };
+  var SUMMARY_ONLY_SERVICE_KEYS = { match_couple: true, couple_signal: true, quit_fortune: true, money_save: true };
   function canonical(value) { return ALIASES[value] || value; }
   function usesSummaryOnlyImages(serviceKey, config) {
     return Boolean((config && config.sectionImageMode === 'summary-only') || SUMMARY_ONLY_SERVICE_KEYS[canonical(serviceKey || key)]);
@@ -331,7 +331,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260923-marry-reader-v1', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260923-work-move-v1', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -1539,7 +1539,7 @@
     var src = sectionImageSource(section, serviceKey);
     if (!src) return '';
     return '<figure class="story-image">' +
-      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + ((canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility') ? escapeHtml((labelText(section.classification) || (canonical(serviceKey) === 'cat_compatibility' ? '고양이 궁합' : '결혼궁합')) + ' 주제를 표현한 연출 사진') : escapeHtml(section.imageAlt || '')) + '" loading="lazy" decoding="async" />' +
+      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || canonical(serviceKey) === 'work_move' || canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + ((canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility') ? escapeHtml((labelText(section.classification) || (canonical(serviceKey) === 'cat_compatibility' ? '고양이 궁합' : '결혼궁합')) + ' 주제를 표현한 연출 사진') : escapeHtml(section.imageAlt || '')) + '" loading="lazy" decoding="async" />' +
       '</figure>';
   }
 
