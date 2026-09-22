@@ -789,4 +789,5 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MARRY-READER-03 | 결혼궁합 전용 이미지 매핑·조기 설정 로드·접힘/펼침·문단 대비·스크롤 계약 | PASS (집중 82/82) |
 | MARRY-READER-04 | 전체 테스트·TypeScript·결혼궁합 계약·20개 서비스 QA·Vercel build·diff check | PASS (1,538/1,538) |
 | MARRY-READER-05 | 로컬 브라우저 공용 셸 뒤 레이아웃 계산값 | PASS (`max-height: none`, `overflow: visible`); 저장 해석 시 상담 입력 숨김은 DOM 계약 테스트, 로그인 후 직접 검수는 배포 전 |
-| MARRY-READER-06 | 변경 후 로그인된 운영 화면의 마지막 항목·이미지·공유/PDF 직접 클릭 | NOT_RUN (배포 전) |
+| MARRY-READER-06 | 변경 후 로그인된 운영 화면의 24개 카드·26개 이미지 경로·첫/마지막 사진·토글·스크롤·공유/PDF 배치 | PASS (`dpl_6awgLmv3JygSbDk35ec9vKxkRCpX`, 카드 24/24·새 WebP 26/26 HTTP 200, 첫/마지막 사진 로드, 버튼 같은 줄) |
+| MARRY-READER-07 | 실제 링크 복사·PDF 생성 클릭 | NOT_RUN (사진 반영 검수 범위 밖, 기존 공통 기능 유지) |

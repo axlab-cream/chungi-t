@@ -2119,3 +2119,10 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 검증: 실사 WebP 해시 26개 고유·로컬 HTTP 26/26, 집중 테스트 82/82, 전체 1,538/1,538, `check:marry`, TypeScript, Vercel build, 서비스 QA 20/20, `git diff --check` 통과. 로컬 브라우저에서 공용 셸 적용 후 높이 제한 해제를 확인했다.
 - [GATE] 이번 결혼궁합 UI 개선 요청에는 원격 push·운영 배포 지시가 없어 로컬 커밋까지만 수행한다. 로그인 저장 화면의 변경 후 직접 검수는 운영 반영 뒤 별도로 필요하다.
 - 문서: `docs/marry-reader-slice-20260923.md`. [GATE H2] 이번 요청에는 결혼궁합 운영 배포 지시가 없어 원격 push·운영 반영·변경 후 로그인 실화면 검수는 실행하지 않았다. 팝업·팝업 관리자·DB는 변경하지 않았다.
+
+## 2026-09-23 — 결혼궁합 사진·토글 운영 배포와 실화면 확인
+
+- 사용자 요청으로 결혼궁합 커밋 `a49cea2`를 `origin/main`에 일반 푸시했다. 이전 운영 배포는 `dpl_FoZfANjoiTXaLDZaHMwjXZ2A1vkb`, 새 Vercel Production은 `dpl_6awgLmv3JygSbDk35ec9vKxkRCpX` Ready, `umsh.kr` 별칭 연결을 확인했다. 복구 기준은 이전 Ready 배포다.
+- 운영의 저장 결혼궁합 리포트에서 완료된 해석 24개와 카드 이미지 24개(고유 경로 24개)를 확인했다. 요약·하이라이트 2개를 포함한 새 WebP 26개가 모두 HTTP 200이었다. 첫 카드와 24번째 카드의 사진을 브라우저 화면과 `naturalWidth: 1536`으로 직접 확인했다.
+- 첫/마지막 토글의 펼침 상태, 본문 전체 스크롤(`max-height: none`, `overflow: visible`), 저장 해석에서 상담 입력 숨김, 공유·PDF 두 버튼의 같은 줄 배치를 확인했다. 버튼 클릭으로 공유·PDF 파일을 실제 생성하지는 않았다.
+- Production 최근 15분 5xx 요청 로그는 0건이었다. 팝업·팝업 관리자·DB는 변경하지 않았다.
