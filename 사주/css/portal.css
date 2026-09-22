@@ -846,7 +846,7 @@ html.splash-disabled .splash-screen,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 20px 26px;
+  margin: 14px 20px 12px;
   padding: 16px;
   /*
    * 2026-09-18: 페이지 배경과 거의 같은 색이라 눈에 띄지 않았다. 매일 들어와 볼 무료 입구라

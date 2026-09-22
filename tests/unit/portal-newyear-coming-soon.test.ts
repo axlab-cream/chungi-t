@@ -34,6 +34,19 @@ test('released now keeps the remaining live cards', () => {
   }
 })
 
+test('daily free fortune ticket appears immediately above the home key visual', () => {
+  const ticket = '<a class="today-ticket service-card is-live"'
+  const ticketIndex = visible.indexOf(ticket)
+  const heroIndex = visible.indexOf('<section class="home-hero"')
+
+  assert.ok(ticketIndex >= 0, '오늘운 무료 카드가 없다')
+  assert.ok(heroIndex >= 0, '메인 키비주얼이 없다')
+  assert.ok(ticketIndex < heroIndex, '오늘운 무료 카드는 키비주얼 바로 위에 있어야 한다')
+  assert.equal(visible.split(ticket).length - 1, 1, '오늘운 무료 카드는 한 번만 있어야 한다')
+  assert.match(visible.slice(ticketIndex, heroIndex), /href="\/today\/free"/)
+  assert.match(visible.slice(ticketIndex, heroIndex), /aria-label="오늘 나한테 들어오는 운 보기"/)
+})
+
 test('homepage hold does not delete payment catalog or admin href mapping', () => {
   const app=read('src/server/app.ts')
   assert.match(app, /app\.get\(\['\/flow\/newyear',/)

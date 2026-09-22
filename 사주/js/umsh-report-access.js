@@ -29,6 +29,18 @@
     'wealth-flow': '일의 대가를 받을 때 살필 점', 'love-loop': '관계에서 반복하는 선택', 'destiny-partner': '나에게 편안한 관계', 'avoid-relationship': '거리를 조절할 때 살필 행동',
     'love-timing': '다음 만남을 정할 때 살필 점', 'future-flow': '앞으로 살펴볼 큰 흐름', 'sewoon-detail': '올해 확인할 변화', 'action-guide': '지금 먼저 확인할 한 가지'
   };
+  var LOVE_THIS_YEAR_CARD_TITLES = {
+    'love-year-possibility': '올해, 연애가 시작될까?',
+    'love-attraction-pattern': '나는 어떤 사람에게 끌릴까?',
+    'love-dohwa-months': '언제 사람을 만나기 쉬울까?',
+    'love-spouse-star': '나와 잘 맞는 사람의 특징',
+    'love-monthly-flow': '달마다 연애운이 어떻게 달라질까?',
+    'love-progress-timing': '썸이 연애로 바뀌는 순간',
+    'love-missed-signals': '좋은 신호를 놓치는 내 습관',
+    'love-partner-compatibility': '그 사람과 나는 잘 맞을까?',
+    'love-emotion-temperature': '나만 더 좋아하는 건 아닐까?',
+    'love-action-strategy': '올해 연애를 시작하는 방법'
+  };
   var CMDG_CARD_LEADS = {
     profile: '타고난 특징을 일상의 선택에 어떻게 쓸지 살펴봅니다.', 'day-master-strength': '버티기 전에 내 책임과 마감을 먼저 확인해 보세요.',
     'hidden-personality': '상대에게 맞추는 행동과 내가 지킬 기준을 함께 살펴보세요.', balance: '힘이 모인 곳과 보완할 곳을 나눠 읽어 보세요.',
@@ -793,6 +805,9 @@
   }
 
   function cmdgCardTitle(section, payload) {
+    if (canonical(reportServiceKey(payload)) === 'love_this_year' && LOVE_THIS_YEAR_CARD_TITLES[section.id]) {
+      return LOVE_THIS_YEAR_CARD_TITLES[section.id];
+    }
     return isCmdgPayload(payload) && CMDG_CARD_TITLES[section.id]
       ? CMDG_CARD_TITLES[section.id]
       : labelText(section.category) + ' · ' + labelText(section.classification);
