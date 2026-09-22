@@ -27,7 +27,7 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   const css = read('사주/css/umsh-verified-reader.css')
 
   assert.match(source, /function sectionImageSource\(section, serviceKey\)/)
-  assert.match(source, /var SUMMARY_ONLY_SERVICE_KEYS = \{ marry_match: true/)
+  assert.doesNotMatch(source, /marry_match: true/, '결혼궁합은 목차마다 한 컷을 보여준다')
   assert.match(source, /function usesSummaryOnlyImages\(serviceKey, config\)/)
   assert.match(source, /config\.sectionImageMode === 'summary-only'/)
   assert.match(source, /function configuredSectionImage\(config, order\)/)
@@ -47,16 +47,42 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(css, /\.umsh-reading-guide:focus-within/)
 })
 
-test('seven completed services render one representative thumbnail without repeating section or highlight images', () => {
+test('six completed services retain one representative thumbnail without repeating section or highlight images', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const names = ['marry_match', 'match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'cat_compatibility', 'money_save']
-  assert.equal(names.length, 7)
+  const names = ['match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'cat_compatibility', 'money_save']
+  assert.equal(names.length, 6)
   for (const name of names) {
     const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
     assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
     assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
   }
   assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
+})
+
+test('결혼궁합은 요약과 24개 해석에 중복 없는 실사 이미지를 쓰고 끝 항목까지 읽을 수 있다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const service = blocks.services.marry_match as { thumbnail: string; cutA: string; cutB: string; sectionImageMode?: string; sectionImages: string[]; summaryImageFit?: string }
+  const detail = read('사주/match/marry/06-step-6_1-report-detail/index.html')
+  const reader = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-verified-inplace.css')
+  assert.equal(service.sectionImageMode, undefined)
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.equal(service.sectionImages.length, 24)
+  assert.equal(new Set(service.sectionImages).size, 24)
+  assert.equal(service.cutA, service.thumbnail)
+  assert.ok(!service.sectionImages.includes(service.cutB), '하이라이트 컷을 목차에서 반복하지 않는다')
+  for (const image of [service.thumbnail, service.cutB, ...service.sectionImages]) {
+    assert.match(image, /^\/match\/marry\/assets\/marry\/reading-v2\/.+\.webp$/)
+    assert.ok(existsSync(join(root, '사주', image)), `결혼궁합 이미지가 없다: ${image}`)
+  }
+  assert.match(reader, /canonical\(serviceKey\) === 'marry_match' \|\| original/)
+  assert.match(reader, /serverKey === 'marry_match' && !longform\.config && !longform\.failed/)
+  assert.match(reader, /renderOwnerEpoch === ownerEpoch/, '설정 로딩 중 계정이 바뀌면 이전 회원의 해석을 표시하지 않는다')
+  assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
+  assert.match(detail, /\.reading-card > summary::after\s*\{\s*content: "펼치기 \+";/)
+  assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{\s*content: "접기 −";/)
+  assert.match(detail, /#detail-root\[data-umsh-filled\] \+ #detail-form \{ display: none; \}/)
+  assert.match(css, /\.umsh-life-flow h2\s*\{[^}]*color: var\(--text, #fff7f2\)/)
 })
 
 test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미지를 연결한다', () => {
@@ -79,7 +105,7 @@ test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미
     assert.ok(existsSync(join(root, '사주', image)), `직장 선택 목차 이미지가 없다: ${image}`)
   }
   assert.doesNotMatch(reader, /job_choice: true/)
-  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
+  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| canonical\(serviceKey\) === 'marry_match' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
   assert.match(css, /aspect-ratio: 3 \/ 2/)
   assert.match(css, /\.reading-card\.is-ready\[open\] > summary::after/)
   assert.match(css, /content: "접기 −"/)
@@ -191,7 +217,7 @@ test('삽입형 상세 19개는 대운 흐름 스타일을 정적으로 먼저 �
 
   assert.equal(detailPages.length, 19)
   for (const page of detailPages) {
-    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=20260922-reader-actions-row-v1"/)
+    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=\d{8}-[\w-]+"/)
   }
   assert.match(css, /\[data-umsh-slot="sections"\] > \.umsh-life-flow/)
   assert.match(css, /font: 15px\/1\.85 Pretendard/)

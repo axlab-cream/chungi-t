@@ -77,6 +77,20 @@ if (serviceBody !== null) {
   }
 }
 
+// 저장 해석 공용 리더는 24개 문단 이미지를 순서대로 읽는다. 한 장이 빠져도
+// 카드 자체는 뜨므로 파일 존재와 중복 없는 1:1 매핑을 여기서 막는다.
+const longformBody = read('사주/data/longform-blocks.json')
+if (longformBody !== null) {
+  const marry = JSON.parse(longformBody).services?.marry_match
+  const images = marry?.sectionImages ?? []
+  if (images.length !== EXPECTED_ITEMS) failures.push(`저장 해석 이미지 ${images.length}개 (기대 ${EXPECTED_ITEMS}개)`)
+  if (new Set(images).size !== images.length) failures.push('저장 해석 이미지가 중복됨')
+  if (marry?.sectionImageMode === 'summary-only') failures.push('결혼궁합 이미지 summary-only 정책이 다시 켜짐')
+  for (const path of [marry?.cutA, marry?.cutB, ...images]) {
+    if (!path || !existsSync(join(ROOT, '사주', path.replace(/^\//, '')))) failures.push(`저장 해석 이미지 없음: ${path}`)
+  }
+}
+
 for (const [page, needsChrome] of PAGES) {
   const rel = `${SERVICE_DIR}/${page}`
   const body = read(rel)

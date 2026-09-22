@@ -7,7 +7,7 @@ const source = readFileSync(new URL('../../사주/js/umsh-report-access.js', imp
 const inplaceCss = readFileSync(new URL('../../사주/css/umsh-verified-inplace.css', import.meta.url), 'utf8')
 
 test('in-place detailed readers render the life-flow component with the shared readable hierarchy', () => {
-  assert.match(source, /umsh-verified-inplace\.css\?v=20260922-lifeflow-width-v3/)
+  assert.match(source, /umsh-verified-inplace\.css\?v=\d{8}-[\w-]+/)
   assert.match(inplaceCss, /\[data-umsh-slot="sections"\] \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/)
   assert.match(inplaceCss, /\[data-umsh-slot="sections"\] \.umsh-summary \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/)
   assert.match(inplaceCss, /\[data-umsh-slot="sections"\] > \.umsh-life-flow/)

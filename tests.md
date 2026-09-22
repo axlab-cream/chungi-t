@@ -779,3 +779,14 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | LOVE-CHROME-04 | 집중 리더 회귀 | PASS (93/93) |
 | LOVE-CHROME-05 | 전체 회귀·TypeScript·Vercel build·diff check | PASS |
 | LOVE-CHROME-06 | 로그인 운영 상세의 실제 클릭 흐름 | 미실행 (배포 전) |
+
+## 2026-09-23 — 결혼궁합 24개 저장 해석 읽기 화면
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| MARRY-READER-01 | 운영 기존 DOM의 24개 완료 본문·이미지 0개·높이 제한 원인 확인 | PASS (읽기 전용) |
+| MARRY-READER-02 | 요약·하이라이트·24개 목차의 26개 고유 WebP 및 HTTP 응답 | PASS (26/26) |
+| MARRY-READER-03 | 결혼궁합 전용 이미지 매핑·조기 설정 로드·접힘/펼침·문단 대비·스크롤 계약 | PASS (집중 82/82) |
+| MARRY-READER-04 | 전체 테스트·TypeScript·결혼궁합 계약·20개 서비스 QA·Vercel build·diff check | PASS (1,538/1,538) |
+| MARRY-READER-05 | 로컬 브라우저 공용 셸 뒤 레이아웃 계산값 | PASS (`max-height: none`, `overflow: visible`); 저장 해석 시 상담 입력 숨김은 DOM 계약 테스트, 로그인 후 직접 검수는 배포 전 |
+| MARRY-READER-06 | 변경 후 로그인된 운영 화면의 마지막 항목·이미지·공유/PDF 직접 클릭 | NOT_RUN (배포 전) |
