@@ -27,6 +27,8 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   const css = read('사주/css/umsh-verified-reader.css')
 
   assert.match(source, /function sectionImageSource\(section, serviceKey\)/)
+  assert.match(source, /var SUMMARY_ONLY_SERVICE_KEYS = \{ marry_match: true/)
+  assert.match(source, /function usesSummaryOnlyImages\(serviceKey, config\)/)
   assert.match(source, /config\.sectionImageMode === 'summary-only'/)
   assert.match(source, /function configuredSectionImage\(config, order\)/)
   assert.match(source, /order % 2 === 1/)
@@ -54,6 +56,7 @@ test('eight completed services render one representative thumbnail without repea
     assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
     assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
   }
+  assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
 })
 
 test('올해 연애운은 모든 목차에 고유한 실사형 장면을 연결한다', () => {

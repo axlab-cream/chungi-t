@@ -68,7 +68,13 @@
   var booting = false;
   var printOpenedSections = [];
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
+  // 설정 JSON은 비동기로 읽는다. 그 전에 본문이 먼저 칠해져도 반복 그림이 잠깐
+  // 나타나지 않도록, 대표 이미지 한 장 계약의 키는 여기에도 좁게 둔다.
+  var SUMMARY_ONLY_SERVICE_KEYS = { marry_match: true, match_couple: true, couple_signal: true, work_move: true, quit_fortune: true, job_choice: true, cat_compatibility: true, money_save: true };
   function canonical(value) { return ALIASES[value] || value; }
+  function usesSummaryOnlyImages(serviceKey, config) {
+    return Boolean((config && config.sectionImageMode === 'summary-only') || SUMMARY_ONLY_SERVICE_KEYS[canonical(serviceKey || key)]);
+  }
   function withCmdgTemplateImages(report, serviceKey) {
     if (serviceKey !== 'saju_master' || !report || !Array.isArray(report.sections)) return report;
     return Object.assign({}, report, { sections: report.sections.map(function (section) {
@@ -324,7 +330,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-summary-only-v1', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-summary-only-v2', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -414,7 +420,7 @@
     if (!defined.length) return '';
     var written = (report && Array.isArray(report.highlights)) ? report.highlights : [];
     var cut = config && config.cutB;
-    var singleImage = config && config.sectionImageMode === 'summary-only';
+    var singleImage = usesSummaryOnlyImages('', config);
     var cards = defined.map(function (item, index) {
       var match = written[index] || {};
       if (match.status === 'failed') return '';
@@ -473,7 +479,7 @@
   function sectionImageSource(section, serviceKey) {
     var existing = String(section && section.imageSrc || '').trim();
     var config = longformConfigFor(serviceKey);
-    if (config && config.sectionImageMode === 'summary-only') return '';
+    if (usesSummaryOnlyImages(serviceKey, config)) return '';
     var order = Number(section && section.order) || 1;
     var configured = configuredSectionImage(config, order);
     if (configured) return configured;
@@ -990,8 +996,14 @@
    * 그림은 원래 자리에 그대로 둔다.
    */
   var sectionVisuals = null;
-  function placeSectionVisuals(host) {
+  function placeSectionVisuals(host, serviceKey) {
     if (!host || !document.querySelectorAll) return;
+    if (usesSummaryOnlyImages(serviceKey)) {
+      [].slice.call(document.querySelectorAll('[data-umsh-visual-for]')).forEach(function (visual) {
+        visual.setAttribute('hidden', '');
+      });
+      return;
+    }
     /*
      * 원소를 **처음 한 번** 붙잡아 둔다. 옮겨 넣은 자리는 본문 host 안인데, 폴링이 돌 때마다
      * host.innerHTML 을 다시 쓰므로 그때 함께 지워진다. 실제로 그림이 화면에서 사라졌다.
@@ -1412,7 +1424,7 @@
     // 목차 위에 계산 결과·결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
     mountLifeFlow(host, payload);
     mountLongform(host, report, payload.entitled !== false, (payload.context && payload.context.serviceKey) || report.serviceKey || key, payload);
-    placeSectionVisuals(host);
+    placeSectionVisuals(host, (payload.context && payload.context.serviceKey) || report.serviceKey || key);
     revealAncestors(host);
     markFilled(host);
     hideNativeSeedDetail(host);

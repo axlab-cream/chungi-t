@@ -867,31 +867,31 @@ test('at most two failed sections are restarted at once', async () => {
 })
 
 /**
- * 2026-09-18 실측: 서버는 항목마다 imageSrc·imageAlt 를 빠짐없이 준다(퇴사운 20/20, 천명사주
- * 37/37). 그런데 화면에는 한 장도 나오지 않았다. 그림을 그리는 쪽이 storytelling 이 있는 항목
- * 전용 경로뿐이었고, LLM 이 만든 항목에는 그 필드가 없어 전부 글만 남았다.
+ * 대표 이미지 한 장 계약이 없는 서비스는 저장된 항목 그림을 본문과 함께 유지한다.
+ * 여덟 서비스의 반복 이미지는 별도 계약에서 막고, 이 회귀는 나머지 서비스의 저장 자산
+ * 렌더링이 사라지지 않는지 확인한다.
  */
-test('항목 그림이 해석과 함께 그려지고 대체 텍스트를 가진다', () => {
-  const h = harness('/work/quit/06-step-6_1-report-detail/index.html?reportId=quit-uuid', [], {}, { inplace: true })
+test('대표 이미지 한 장 계약 밖의 항목 그림은 해석과 함께 그려지고 대체 텍스트를 가진다', () => {
+  const h = harness('/love/mind/06-step-6_1-report-detail/index.html?reportId=mind-uuid', [], {}, { inplace: true })
   const host = h.context.document.createElement('section')
   host.id = 'detail-stack'
   h.context.document.body.appendChild(host)
   h.api.setOwner('owner-a')
   h.api.consume({
-    reportId: 'quit-uuid',
-    report: { serviceKey: 'quit_fortune', status: 'complete', sections: [{
+    reportId: 'mind-uuid',
+    report: { serviceKey: 'love_mind', status: 'complete', sections: [{
       id: 'flow-1', status: 'complete',
-      imageSrc: '/work/quit/assets/quit/06-five-mentors.png',
-      imageAlt: '다섯 스승이 서로 다른 조언을 건네는 장면',
+      imageSrc: '/assets/love-ty-char-phone-v2.webp',
+      imageAlt: '다음 연락을 고르는 장면',
       hook: '지금은 보류예요.',
       interpretation: '첫 문단이에요.\n\n둘째 문단이에요.',
     }] },
   }, { Authorization: 'Bearer test' })
   const html = String(host.innerHTML || '')
-  assert.match(html, /06-five-mentors\.png/, '항목 그림이 그려지지 않았다')
-  assert.match(html, /alt="다섯 스승이 서로 다른 조언을 건네는 장면"/, '대체 텍스트가 빠졌다')
+  assert.match(html, /love-ty-char-phone-v2\.webp/, '항목 그림이 그려지지 않았다')
+  assert.match(html, /alt="다음 연락을 고르는 장면"/, '대체 텍스트가 빠졌다')
   // 그림이 본문보다 먼저 와야 장면을 보고 글을 읽는다.
-  assert.ok(html.indexOf('06-five-mentors.png') < html.indexOf('첫 문단이에요'), '그림이 본문 뒤로 밀렸다')
+  assert.ok(html.indexOf('love-ty-char-phone-v2.webp') < html.indexOf('첫 문단이에요'), '그림이 본문 뒤로 밀렸다')
 })
 
 test('그림이 없는 항목은 빈 자리를 만들지 않는다', () => {
