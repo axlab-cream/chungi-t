@@ -653,6 +653,29 @@
       .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
       .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
       .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+      #step-6_1-report { height: auto; max-height: none; overflow: visible; }
+      #step-6_1-report #detail-root { display: block; padding: 0 16px 104px; }
+      #step-6_1-report #detail-root[data-umsh-filled] ~ .nav-bar { display: none; }
+      #step-6_1-report #detail-root .reading-card { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; overflow: visible; }
+      #step-6_1-report #detail-root .reading-card:last-of-type { border-bottom: 1px solid var(--line); }
+      #step-6_1-report .umsh-highlight-banner,
+      #step-6_1-report #detail-root .story-image { aspect-ratio: 3 / 2; }
+      #step-6_1-report .umsh-highlight-banner img,
+      #step-6_1-report #detail-root .story-image img { object-position: center; }
+      #step-6_1-report #detail-root .reading-card > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 17px 2px; color: var(--ink); font-size: 15px; font-weight: 800; line-height: 1.55; }
+      #step-6_1-report #detail-root .reading-card > summary::after { content: "펼치기 +"; flex: 0 0 auto; float: none; margin: 0; padding: 5px 7px; border: 1px solid rgba(255, 226, 183, 0.42); border-radius: 999px; color: var(--gold); font-size: 11px; line-height: 1; white-space: nowrap; }
+      #step-6_1-report #detail-root .reading-card[open] > summary::after { content: "접기 −"; border-color: var(--gold); background: rgba(255, 226, 183, 0.1); color: var(--ink); }
+      #step-6_1-report #detail-root .reading-card > summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+      #step-6_1-report #detail-root .reading-card > .reading-block { padding: 18px 2px; }
+      #step-6_1-report #detail-root .reading-card > .reading-block.reading-answer { padding: 18px 16px; }
+      #step-6_1-report #detail-root .reading-card > .story-image { margin: 4px 0 20px; padding: 0; }
+      #step-6_1-report #detail-root .reading-block p,
+      #step-6_1-report #detail-root .reading-block li { color: var(--ink); font-size: 15px; font-weight: 520; line-height: 1.9; word-break: keep-all; }
+      #step-6_1-report #detail-root .reading-block.reading-answer p { font-size: 16px; font-weight: 800; line-height: 1.65; }
+      @media (min-width: 860px) {
+        .phone { width: min(100%, 448px); }
+        #detail-root { grid-template-columns: none; padding: 0 16px 104px; }
+      }
 </style>
     <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
@@ -673,7 +696,7 @@
       </div>
     </header>
 
-    <div class="contextbar">
+    <div class="contextbar" data-umsh-legacy-reading-ui>
       <span id="context-label">명리궁합 · 오행 · 일지</span>
       <button class="pill-btn primary-btn" type="button" id="btn-list">목록</button>
     </div>
@@ -682,7 +705,7 @@
     <section class="umsh-progress-panel" data-umsh-slot="progress" aria-label="해석 준비 진행률" hidden></section>
     <section class="state-panel" id="state-panel" data-umsh-slot="state" aria-live="polite"></section>
     <div id="detail-root" data-umsh-slot="sections" aria-label="상세 해석"></div>
-    <nav class="nav-bar" aria-label="상세 리포트 탐색">
+    <nav class="nav-bar" aria-label="상세 리포트 탐색" data-umsh-legacy-reading-ui>
       <button type="button" id="btn-prev">이전</button>
       <button type="button" id="btn-next">다음</button>
     </nav>

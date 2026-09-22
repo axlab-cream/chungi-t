@@ -52,16 +52,39 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(source, /aria-label="풀이 읽는 순서 표" tabindex="0"/)
 })
 
-test('two completed services retain one representative thumbnail without repeating section or highlight images', () => {
+test('money save retains one representative thumbnail without repeating section or highlight images', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const names = ['couple_signal', 'money_save']
-  assert.equal(names.length, 2)
+  const names = ['money_save']
+  assert.equal(names.length, 1)
   for (const name of names) {
     const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
     assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
     assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
   }
   assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
+})
+
+test('커플 시그널은 운영 21개 해석마다 고유한 실사 이미지를 쓰고 저장 리포트만 남긴다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const service = blocks.services.couple_signal as { thumbnail: string; cutB: string; sectionImageMode?: string; sectionImages: string[]; summaryImageFit?: string }
+  const detail = read('사주/love/signal/06-step-6_1-report-detail/index.html')
+  const reader = read('사주/js/umsh-report-access.js')
+
+  assert.equal(service.sectionImageMode, undefined)
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.equal(service.sectionImages.length, 21)
+  assert.equal(new Set(service.sectionImages).size, 21)
+  for (const image of service.sectionImages) {
+    assert.match(image, /^\/love\/signal\/assets\/signal\/reading-v2\/.+\.webp$/)
+    assert.ok(existsSync(join(root, '사주', image)), `커플 시그널 이미지가 없다: ${image}`)
+  }
+  assert.doesNotMatch(reader, /couple_signal: true/)
+  assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
+  assert.match(detail, /\.reading-card > summary::after\s*\{[^}]*content: "펼치기 \+";/)
+  assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{[^}]*content: "접기 −";/)
+  assert.match(detail, /font-size: 15px;[^}]*line-height: 1\.9;/)
+  assert.match(detail, /class="contextbar" data-umsh-legacy-reading-ui/)
+  assert.match(detail, /class="nav-bar"[^>]*data-umsh-legacy-reading-ui/)
 })
 
 test('퇴사운은 운영 20개 해석마다 고유한 실사 이미지를 쓰고 저장 리포트만 남긴다', () => {
