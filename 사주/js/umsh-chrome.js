@@ -15,7 +15,7 @@
   var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
   var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
   var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
-  var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20260922-love';
+  var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20260922-popup-metrics';
   var FLAG_JS = '/js/ai-report-flag.js';
   var TRACK_JS = '/js/umsh-track.js';
 
@@ -235,13 +235,14 @@
     ensureStylesheet(SHELL_CSS);
     loadShellScript(SHELL_JS, watchChromeHeights);
     loadYmdFields();
+    // 동적으로 삽입한 스크립트는 defer 순서를 보장하지 않으므로, CTA가 생기기 전에
+    // 공용 수집기를 먼저 요청한다.
+    loadTracker();
     loadSignupBenefitPopup();
     // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
     // 다시 켤 때 이 한 줄만 되살리면 된다.
     // loadReportFlag();
-    loadTracker();
-
     return { appbar: topHost, bottomNav: bottomHost };
   }
 

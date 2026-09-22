@@ -42,6 +42,16 @@
     return '/signup?entry=today&returnTo=' + encodeURIComponent(returnTo) + '#login';
   }
 
+  /**
+   * 관리 화면에서는 문구가 아닌 게시 버전별 버튼 클릭을 센다.
+   * 콘텐츠 버전 ID는 서버가 만든 UUID(기본 팝업은 고정 ID)만 쓰며, 추적값에는
+   * 이름·입력값·URL 질의문자열처럼 개인정보가 들어가지 않는다.
+   */
+  function popupTrackingTarget(popup) {
+    var id = String(popup && popup.id || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
+    return 'signup_popup:' + (id || 'unknown');
+  }
+
   /** GA4에서는 이벤트 `cta_click`, cta_name 필터로 이 팝업 CTA만 확인한다. */
   function trackTodayFortuneCta() {
     if (typeof global.gtag !== 'function') return;
@@ -82,7 +92,7 @@
       '<div class="umsh-signup-benefit-popup__art">',
       '  <img src="' + popup.imageSrc + '" alt="천명보살의 오늘운. 오늘, 밀어붙일까요? 한 번 더 지켜볼까요? 신규 회원 오늘운 무료 혜택">',
       '  <button class="umsh-signup-benefit-popup__close" type="button" aria-label="혜택 안내 닫기"></button>',
-      '  <a class="umsh-signup-benefit-popup__cta" data-action="signup_today_fortune_popup" href="' + signupHref() + '" aria-label="' + (popup.ctaLabel || '내 사주로 오늘운 무료 보기') + '"></a>',
+      '  <a class="umsh-signup-benefit-popup__cta" data-action="signup_today_fortune_popup" data-track-target="' + popupTrackingTarget(popup) + '" href="' + signupHref() + '" aria-label="' + (popup.ctaLabel || '내 사주로 오늘운 무료 보기') + '"></a>',
       '  <button class="umsh-signup-benefit-popup__hide" type="button" aria-pressed="false" aria-label="일주일간 다시 보지 않기"></button>',
       '</div>',
     ].join('');

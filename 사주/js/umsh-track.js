@@ -94,6 +94,10 @@
   function targetOf(node) {
     var actionNode = node.closest('[data-action], [data-shell-nav], [data-shell-bottom-menu]');
     if (!actionNode) return null;
+    // 팝업처럼 같은 문구라도 게시 버전별로 따로 보아야 하는 CTA는 안정적인 전용 키를 준다.
+    // 값은 서버가 이벤트 저장 전에 다시 길이·제어문자를 검증한다.
+    var trackedTarget = actionNode.getAttribute('data-track-target');
+    if (trackedTarget) return trackedTarget;
     return actionNode.getAttribute('data-action')
       || (actionNode.getAttribute('data-shell-nav') && 'nav:' + actionNode.getAttribute('data-shell-nav'))
       || (actionNode.getAttribute('data-shell-bottom-menu') && 'menu:' + actionNode.getAttribute('data-shell-bottom-menu'))

@@ -306,8 +306,9 @@
    * /data/longform-blocks.json 이 가지고 있고, 본문은 리포트가 채운다. 본문이 아직
    * 없으면 뼈대만 스켈레톤으로 보여준다 — 구조가 먼저 보여야 무엇을 받는지 안다.
    *
-   * 이미지는 각 서비스의 cutA·cutB 설정을 따른다. 천명사주 cutB는
-   * 첫 하이라이트의 본문과 맞는 별도 실사형 배너다.
+   * 이미지는 기본적으로 각 서비스의 cutA·cutB 설정을 따른다. 단, 대표 이미지
+   * 한 장만 쓰는 서비스는 `sectionImageMode: summary-only`로 본문·하이라이트의
+   * 반복 이미지를 끈다. 저장된 원문과 개인 데이터에는 손대지 않는다.
    * ================================================================== */
   var longform = { config: null, loading: null, failed: false };
 
@@ -323,7 +324,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-love-hero-photo-v1', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-summary-only-v1', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -413,6 +414,7 @@
     if (!defined.length) return '';
     var written = (report && Array.isArray(report.highlights)) ? report.highlights : [];
     var cut = config && config.cutB;
+    var singleImage = config && config.sectionImageMode === 'summary-only';
     var cards = defined.map(function (item, index) {
       var match = written[index] || {};
       if (match.status === 'failed') return '';
@@ -421,7 +423,7 @@
       var body = paragraphs.length
         ? (locked ? richText(paragraphs[0]) : paragraphs.map(richText).join(''))
         : longformSkeleton(labelText(item.title) + ' 항목을');
-      var banner = (index === 0 && cut)
+      var banner = (!singleImage && index === 0 && cut)
         ? '<figure class="umsh-highlight-banner"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
         : '';
       return '<article class="umsh-highlight' + (locked ? ' is-locked' : '') + '">' +
@@ -465,12 +467,13 @@
   }
 
   /**
-   * 서비스가 목차별 편집 이미지를 명시하면 그것을 우선한다. 없는 서비스는 기존의
-   * 저장 전용 이미지 → 서비스 공용 A/B 컷 순서를 유지한다.
+   * 대표 이미지 한 장 모드에서는 본문 카드·목차 이미지가 없다. 그 외 서비스는
+   * 목차별 편집 이미지 → 저장 전용 이미지 → 서비스 공용 A/B 컷 순서를 유지한다.
    */
   function sectionImageSource(section, serviceKey) {
     var existing = String(section && section.imageSrc || '').trim();
     var config = longformConfigFor(serviceKey);
+    if (config && config.sectionImageMode === 'summary-only') return '';
     var order = Number(section && section.order) || 1;
     var configured = configuredSectionImage(config, order);
     if (configured) return configured;

@@ -1130,6 +1130,10 @@
         if (!payload.campaignEndAt || new Date(payload.campaignEndAt).getTime() < now) return '기간 종료';
         return '노출 중';
       }
+      function popupTrackingTarget(item) {
+        var id = String(item && item.id || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
+        return 'signup_popup:' + (id || 'unknown');
+      }
       async function loadPopupManager(body) {
         body.replaceChildren();
         var section = document.createElement('section'); section.className = 'admin-section';
@@ -1154,6 +1158,18 @@
           if (!response.ok) throw new Error('POPUP_LOOKUP_FAILED');
           var responsePayload = await response.json();
           var items = (Array.isArray(responsePayload.items) ? responsePayload.items : []).filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
+          // 팝업 이력은 콘텐츠 저장소, 클릭 수는 개인정보 없는 퍼널 이벤트가 원천이다.
+          // 통계가 일시적으로 실패해도 팝업 관리 자체는 멈추지 않고 '집계 불가'로 정직하게 표시한다.
+          var popupClickCounts = null;
+          try {
+            var funnelResponse = await fetch('/api/admin/v1/funnel?period=month', { credentials: 'same-origin' });
+            if (!funnelResponse.ok) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
+            var funnelPayload = await funnelResponse.json();
+            popupClickCounts = {};
+            (Array.isArray(funnelPayload.ctas) ? funnelPayload.ctas : []).forEach(function (cta) {
+              if (typeof cta.target === 'string' && typeof cta.clicks === 'number') popupClickCounts[cta.target] = cta.clicks;
+            });
+          } catch (_error) { popupClickCounts = null; }
           if (items[0]) {
             var active = items[0]; var payload = active.payload || {};
             ['title', 'headline', 'subheadline', 'imageSrc', 'ctaLabel'].forEach(function (key) { if (payload[key] && form.elements[key]) form.elements[key].value = payload[key]; });
@@ -1161,11 +1177,13 @@
             form.elements.startsAt.value = toLocalDateTime(active.scheduledAt) || form.elements.startsAt.value;
             form.elements.endsAt.value = toLocalDateTime(payload.campaignEndAt) || form.elements.endsAt.value;
           }
-          var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>';
+          var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">버튼 클릭<br><small>최근 30일</small></th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="5">등록된 팝업이 없습니다. 위 설정을 게시하면 노출이 시작됩니다.</td>'; rows.appendChild(empty); }
+          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="6">등록된 팝업이 없습니다. 위 설정을 게시하면 노출이 시작됩니다.</td>'; rows.appendChild(empty); }
           items.forEach(function (item) {
-            var row = document.createElement('tr'); [item.payload.title, item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', item.payload.campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
+            var clickCount = popupClickCounts && popupClickCounts[popupTrackingTarget(item)];
+            var clickLabel = popupClickCounts ? Number(clickCount || 0).toLocaleString('ko-KR') + '회' : '집계 불가';
+            var row = document.createElement('tr'); [item.payload.title, item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', item.payload.campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
             var cell = document.createElement('td');
             if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!window.confirm('현재 팝업을 즉시 내릴까요?')) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; window.alert('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
             row.appendChild(cell); rows.appendChild(row);

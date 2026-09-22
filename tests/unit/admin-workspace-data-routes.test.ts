@@ -73,6 +73,17 @@ test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 
   assert.match(body, /resultNodes\.forEach\(function \(node\) \{ node\.remove\(\); \}\)/)
 })
 
+test('loadPopupManager 는 팝업별 실제 버튼 클릭 수를 최근 30일 퍼널에서 표시한다', () => {
+  const body = source.slice(source.indexOf('function popupTrackingTarget'), source.indexOf('function renderContentDetail'))
+  assert.match(body, /function popupTrackingTarget\(item\)/)
+  assert.match(body, /signup_popup:/)
+  assert.ok(body.includes("fetch('/api/admin/v1/funnel?period=month'"))
+  assert.match(body, /버튼 클릭/)
+  assert.match(body, /최근 30일/)
+  assert.match(body, /집계 불가/)
+  assert.match(body, /popupClickCounts\[popupTrackingTarget\(item\)\]/)
+})
+
 test('loadReleaseInfo 는 실제 릴리스 엔드포인트를 부르고, 규격 불일치를 알린다', () => {
   const body = source.slice(source.indexOf('async function loadReleaseInfo'), source.indexOf('async function loadReleaseInfo') + 900)
   assert.match(body, /fetch\('\/api\/admin\/v1\/release'/)

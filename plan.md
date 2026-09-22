@@ -528,6 +528,31 @@ push 한 번에 배포가 2회 돈다(T02 리서치 F9). Actions는 CI 전용.
 6. Run the full verification and review gates, write/re-read CreamWIKI, then commit, push and deploy the exact verified tree.
 
 Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/full tests, typecheck, service-contract check, Vercel Production build, staged scan, commit/push and live deployment verification PASS.
+
+# Active Task — task-reading-eight-service-completion-20260922
+
+목적: 로그인된 `good1621` 보관함의 실제 저장 해석을 원문·개인값 복제 없이 그 자체로 읽는 공용 리더에 연결하고, 아래 여덟 서비스의 화면을 천명사주 수준의 읽기 경험으로 완성한 뒤 한 번의 검증된 운영 배포로 반영한다.
+
+| 순서 | 서비스 | 실제 저장 리포트 구조 | 사용자 결과 |
+| --- | --- | --- | --- |
+| S01 | 직장 선택 (`job_choice`) | 21개 목차 | 회사·직무·보상·리스크를 같은 공용 토글 카드로 읽음 |
+| S02 | 퇴사운 (`quit_fortune`) | 20개 목차 | 퇴사 판단·준비·시기를 과장 없이 읽음 |
+| S03 | 고양이 궁합 (`cat_compatibility`) | 20개 목차 | 돌봄·거리·생활 리듬에 맞는 이미지와 표를 읽음 |
+| S04 | 이직운 (`work_move`) | 10개 목차 | 현재/새 자리·조건·타이밍을 공용 카드로 비교함 |
+| S05 | 소비성향 (`money_save`) | 16개 목차 | 돈 흐름·지출 패턴을 근거·표·그래프로 읽음 |
+| S06 | 결혼궁합 (`marry_match`) | 24개 목차 | 연애에서 결혼으로 이어지는 현실 조건을 읽음 |
+| S07 | 애인 바람 신호 (`couple_signal`) | 21개 목차 | 단정 없이 사실·확인 질문·경계 기준을 읽음 |
+| S08 | 커플궁합 (`match_couple`) | 28개 목차 | 케미·갈등·현실·관계 흐름을 함께 읽음 |
+
+## 실행 순서
+
+1. **실데이터·공용 경로 확인** — 로그인된 보관함의 여덟 저장 리포트가 같은 API·공용 리더로 원문을 그리는지 확인한다. 개인 식별값과 본문은 코드·테스트·KMS에 복제하지 않는다.
+2. **서비스별 대표 이미지 계약** — 비용 절감을 위해 서비스별로 메인 대표 썸네일 한 장만 전체 해석 상단에 사용한다. 목차별 이미지 세트·콜라주는 생성하지 않으며, 본문 토글에는 같은 이미지를 반복하지 않는다.
+3. **공용 읽기 카드 완성** — 안전한 마크다운, 이미지 토글, 열림/닫힘 표시, 서비스별 실제 계산값 기반 그래프·표를 공통 리더로 구현한다. 임의 예측 점수나 미연결 안내문은 만들지 않는다.
+4. **불완전·중복 패턴 제거** — 각 06-1 화면의 독자 렌더링과 공용 렌더러 충돌, 중복 네비게이션·채팅·미완성 문구를 정리하되, 보고서 원문과 소유권·결제 권한은 보존한다.
+5. **검증·배포** — 실제 로그인 리포트 구조, 데스크톱/모바일, 이미지 HTTP, 권한/빈 상태, 전체 회귀·TypeScript·Vercel build를 검증하고, 사용자가 승인한 범위로 커밋·`main` 배포 후 Production을 확인한다.
+
+완료 기준: 8개 서비스가 해당 회원의 저장된 원문·목차 수를 그대로 보여주고, 서비스별 대표 썸네일 한 장과 명확한 토글 상태를 가지며, 공용 리더에서 마크다운/표/그래프가 안전하게 렌더되고, 준비 중·미연결·반복 이미지·중복 제어가 남지 않으며, 배포된 운영 화면에서 확인된다.
 # Active slice — saju_master full-outline provider evidence (2026-09-14)
 
 - Task: `task-tone-v2-p04-saju-master-full-outline-evidence-20260914`

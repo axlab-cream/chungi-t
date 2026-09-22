@@ -35,6 +35,10 @@ test('팝업 CTA는 GA4와 내부 퍼널에서 안정적인 이름으로 측정�
   assert.match(popupScript, /cta_name: 'signup_today_fortune_popup'/)
   assert.match(popupScript, /cta_location: 'home_signup_popup'/)
   assert.match(popupScript, /data-action="signup_today_fortune_popup"/)
+  assert.match(popupScript, /function popupTrackingTarget\(popup\)/)
+  assert.match(popupScript, /data-track-target=/)
+  assert.match(popupScript, /signup_popup:/)
+  assert.match(chrome, /loadTracker\(\)/)
 })
 
 test('공용 크롬이 팝업과 기본 시안 이미지를 모든 연결 화면에 로드한다', () => {
@@ -50,5 +54,6 @@ test('공용 크롬이 팝업과 기본 시안 이미지를 모든 연결 화면
 
 test('운명상회 첫 페이지 포털은 팝업 자산을 직접 불러온다', () => {
   assert.match(portal, /umsh-signup-benefit-popup\.css\?v=20260922-default/)
-  assert.match(portal, /umsh-signup-benefit-popup\.js\?v=20260922-default/)
+  assert.match(portal, /umsh-track\.js\?v=20260922-popup-metrics/)
+  assert.match(portal, /umsh-signup-benefit-popup\.js\?v=20260922-popup-metrics/)
 })

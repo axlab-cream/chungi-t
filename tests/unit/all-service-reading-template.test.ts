@@ -27,6 +27,7 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   const css = read('사주/css/umsh-verified-reader.css')
 
   assert.match(source, /function sectionImageSource\(section, serviceKey\)/)
+  assert.match(source, /config\.sectionImageMode === 'summary-only'/)
   assert.match(source, /function configuredSectionImage\(config, order\)/)
   assert.match(source, /order % 2 === 1/)
   assert.match(source, /String\(config\.cutB/)
@@ -42,6 +43,17 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(css, /\.umsh-reading-guide\s*\{/)
   assert.match(css, /\.umsh-reading-guide-scroll\s*\{ overflow-x: auto/)
   assert.match(css, /\.umsh-reading-guide:focus-within/)
+})
+
+test('eight completed services render one representative thumbnail without repeating section or highlight images', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const names = ['marry_match', 'match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'job_choice', 'cat_compatibility', 'money_save']
+  assert.equal(names.length, 8)
+  for (const name of names) {
+    const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
+    assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
+    assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
+  }
 })
 
 test('올해 연애운은 모든 목차에 고유한 실사형 장면을 연결한다', () => {
