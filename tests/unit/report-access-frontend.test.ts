@@ -588,6 +588,7 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
 
 test('verified summary photo stays inside the narrow report card without cropping',()=>{
   const css=readFileSync(new URL('../../사주/css/umsh-verified-reader.css',import.meta.url),'utf8')
+  assert.match(css,/#umsh-verified-reading \.umsh-longform \{ grid-template-columns: minmax\(0, 1fr\); \}/)
   assert.match(css,/#umsh-verified-reading \.umsh-summary \{ grid-template-columns: minmax\(0, 1fr\); \}/)
   assert.match(css,/#umsh-verified-reading \.umsh-summary-figure \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*overflow: hidden;/)
   assert.match(css,/#umsh-verified-reading \.umsh-summary-figure img \{[^}]*width: 100%;[^}]*max-width: 100%;[^}]*height: auto;[^}]*object-fit: contain;/)
