@@ -66,10 +66,12 @@ import {
   CONTENT_TYPES,
   archiveContentVersion,
   createContentDraft,
+  getActiveSignupPopup,
   getAdminContentSnapshot,
   publishContentVersion,
   updateContentDraft,
 } from '../admin/content-store.js'
+import { DEFAULT_SIGNUP_POPUP, signupPopupIsActive } from '../marketing/signup-popup.js'
 import {
   NEW_PROMPT_DRAFT_REVISION,
   getAdminPromptContentSnapshot,
@@ -818,6 +820,24 @@ app.get('/cmdg/06-step-6_1-report-detail/index.html', (_req, res) => {
 })
 
 /**
+ * 첫 화면 레이어의 공개 설정. 운영자가 게시한 전용 배너가 현재 기간 안에 있을 때만
+ * 내려 보낸다. 저장소가 아직 준비되지 않은 배포에서도 이번 가입 혜택은 기본값으로
+ * 유지한다. 종료 시각은 응답 전에 판정하므로 별도 정리 작업 없이 자동으로 내려간다.
+ */
+app.get('/api/public/signup-benefit-popup', async (_req, res) => {
+  try {
+    const popup = (await getActiveSignupPopup()) ?? (signupPopupIsActive(DEFAULT_SIGNUP_POPUP) ? DEFAULT_SIGNUP_POPUP : null)
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
+    if (!popup) { res.status(204).end(); return }
+    res.json({ popup })
+  } catch {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
+    if (!signupPopupIsActive(DEFAULT_SIGNUP_POPUP)) { res.status(204).end(); return }
+    res.json({ popup: DEFAULT_SIGNUP_POPUP })
+  }
+})
+
+/**
  * 정적 루트에는 웹 자산이 아닌 내부 산출물이 섞여 있다 — 서비스 생성 프롬프트
  * (`PROMPT.md` 15개), 생성 결과(`*-RESULT.json`), 스크래핑·검증 스크립트(`*.py`).
  * `express.static` 은 트리를 통째로 내보내므로 2026-09-10 기준 운영에서
@@ -915,6 +935,12 @@ app.use((req, res, next) => {
  * 경우를 원천 차단하기 위한 것이다.
  */
 const ADMIN_SHELL = join(ROOT, 'admin-ui', 'index.html')
+// 공개적으로 추측하기 쉬운 `/admin` 대신 운영팀이 공유하는 비색인 진입 주소를 쓴다.
+// 경로 은닉은 인증을 대체하지 않으며, 실제 데이터 접근은 아래 `/api/admin/v1/*`의
+// 직원 membership 검사로 계속 보호된다.
+const ADMIN_PORTAL_PATH = '/ops/constellation-7f3c'
+const ADMIN_PORTAL_DEEP_LINK = /^\/ops\/constellation-7f3c\/.+/
+const LEGACY_ADMIN_PATH = /^\/admin(?:\/.*)?$/
 
 /** 관리자 응답은 색인하지 않는다(ADR-0002 D2 실패 모드 표). */
 function sendAdminShell(res: Response): void {
@@ -927,10 +953,16 @@ function sendAdminShell(res: Response): void {
 // 목록·설정값·키가 하나도 들어 있지 않고 모든 데이터는 인증된 `/api/admin/v1/*` 로만 온다.
 // **셸 HTML 자체를 미로그인에 감추려면 서버 세션 쿠키가 필요하다(U36).**
 // 이 프로젝트의 인증은 `Authorization: Bearer` 하나이고 주소창 이동에는 그 헤더가 없다.
-app.get(['/admin', '/admin/', '/admin/index.html'], (_req, res) => { sendAdminShell(res) })
+// 이전 `/admin` 주소는 리다이렉트하지 않는다. 주소를 알고 있던 제3자에게 새 진입점을
+// 알려 주지 않고 일반 존재하지 않는 경로와 같은 응답을 준다.
+app.all(LEGACY_ADMIN_PATH, (_req, res) => {
+  res.status(404).type('text/plain; charset=utf-8').send('찾을 수 없는 경로입니다.')
+})
 
-// 딥링크는 정적 탐색으로 흘리지 않는다(D2-4). `/admin/orders` 같은 경로도 셸이 받는다.
-app.get(/^\/admin\/.+/, (_req, res) => { sendAdminShell(res) })
+app.get([ADMIN_PORTAL_PATH, `${ADMIN_PORTAL_PATH}/`, `${ADMIN_PORTAL_PATH}/index.html`], (_req, res) => { sendAdminShell(res) })
+
+// 딥링크는 정적 탐색으로 흘리지 않는다(D2-4). 운영 주소 아래 경로도 셸이 받는다.
+app.get(ADMIN_PORTAL_DEEP_LINK, (_req, res) => { sendAdminShell(res) })
 
 /**
  * 자산 캐시 정책. **브라우저는 짧게, 엣지는 길게.**

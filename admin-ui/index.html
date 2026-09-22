@@ -7,7 +7,7 @@
   <title>운영 관리자 · 운명상회</title>
   <!--
     이 파일은 정적 루트(`사주/`) 밖에 있다. ADR-0002 D1 의 결정이며, 정적 미들웨어가
-    인증 검사 없이 파일을 내보내는 것을 구조적으로 막는다. 서빙은 `/admin` 라우트만 한다.
+    인증 검사 없이 파일을 내보내는 것을 구조적으로 막는다. 서빙은 `/ops/constellation-7f3c` 라우트만 한다.
 
     설정값·키·엔드포인트 비밀을 인라인하지 않는다(ADR-0002 D2-5).
     화면에 들어가는 모든 데이터는 인증된 `/api/admin/v1/*` 응답으로만 온다.
@@ -268,42 +268,43 @@
     <details class="admin-nav-group" data-nav-group="overview" open>
       <summary class="admin-nav-label">운영 현황</summary>
       <div class="admin-nav-links">
-        <a href="/admin" data-admin-route="overview">개요</a>
-        <a href="/admin/search" data-admin-route="search">통합 검색</a>
-        <a href="/admin/orders" data-admin-route="orders">주문</a>
-        <a href="/admin/refunds" data-admin-route="refunds">환불</a>
-        <a href="/admin/reconciliation" data-admin-route="reconciliation">정산</a>
+        <a href="/ops/constellation-7f3c" data-admin-route="overview">개요</a>
+        <a href="/ops/constellation-7f3c/search" data-admin-route="search">통합 검색</a>
+        <a href="/ops/constellation-7f3c/orders" data-admin-route="orders">주문</a>
+        <a href="/ops/constellation-7f3c/refunds" data-admin-route="refunds">환불</a>
+        <a href="/ops/constellation-7f3c/reconciliation" data-admin-route="reconciliation">정산</a>
       </div>
     </details>
     <details class="admin-nav-group" data-nav-group="customer" open>
       <summary class="admin-nav-label">고객 · 콘텐츠</summary>
       <div class="admin-nav-links">
-        <a href="/admin/members" data-admin-route="members">회원 · 리포트</a>
-        <a href="/admin/support" data-admin-route="support">고객 지원</a>
-        <a href="/admin/content" data-admin-route="content">콘텐츠</a>
-        <a href="/admin/services" data-admin-route="services">서비스</a>
-        <a href="/admin/media" data-admin-route="media">미디어</a>
+        <a href="/ops/constellation-7f3c/members" data-admin-route="members">회원 · 리포트</a>
+        <a href="/ops/constellation-7f3c/support" data-admin-route="support">고객 지원</a>
+        <a href="/ops/constellation-7f3c/content" data-admin-route="content">콘텐츠</a>
+        <a href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업 관리</a>
+        <a href="/ops/constellation-7f3c/services" data-admin-route="services">서비스</a>
+        <a href="/ops/constellation-7f3c/media" data-admin-route="media">미디어</a>
       </div>
     </details>
     <details class="admin-nav-group" data-nav-group="ai-ops" open>
       <summary class="admin-nav-label">AI 운영</summary>
       <div class="admin-nav-links">
-        <a href="/admin/reports" data-admin-route="reports">리포트</a>
-        <a href="/admin/jobs" data-admin-route="jobs">작업 큐</a>
-        <a href="/admin/corpus" data-admin-route="corpus">코퍼스</a>
-        <a href="/admin/prompts" data-admin-route="prompts">프롬프트</a>
-        <a href="/admin/evaluations" data-admin-route="evaluations">평가</a>
-        <a href="/admin/releases" data-admin-route="releases">릴리스</a>
+        <a href="/ops/constellation-7f3c/reports" data-admin-route="reports">리포트</a>
+        <a href="/ops/constellation-7f3c/jobs" data-admin-route="jobs">작업 큐</a>
+        <a href="/ops/constellation-7f3c/corpus" data-admin-route="corpus">코퍼스</a>
+        <a href="/ops/constellation-7f3c/prompts" data-admin-route="prompts">프롬프트</a>
+        <a href="/ops/constellation-7f3c/evaluations" data-admin-route="evaluations">평가</a>
+        <a href="/ops/constellation-7f3c/releases" data-admin-route="releases">릴리스</a>
       </div>
     </details>
     <details class="admin-nav-group" data-nav-group="system" open>
       <summary class="admin-nav-label">시스템</summary>
       <div class="admin-nav-links">
-        <a href="/admin/analytics" data-admin-route="analytics">통계</a>
-        <a href="/admin/logs" data-admin-route="logs">로그</a>
-        <a href="/admin/incidents" data-admin-route="incidents">장애</a>
-        <a href="/admin/audit" data-admin-route="audit">감사 기록</a>
-        <a href="/admin/settings" data-admin-route="settings">설정</a>
+        <a href="/ops/constellation-7f3c/analytics" data-admin-route="analytics">통계</a>
+        <a href="/ops/constellation-7f3c/logs" data-admin-route="logs">로그</a>
+        <a href="/ops/constellation-7f3c/incidents" data-admin-route="incidents">장애</a>
+        <a href="/ops/constellation-7f3c/audit" data-admin-route="audit">감사 기록</a>
+        <a href="/ops/constellation-7f3c/settings" data-admin-route="settings">설정</a>
       </div>
     </details>
   </nav>
@@ -544,34 +545,35 @@
       }
 
       var adminRoutes = {
-        '/admin': { key: 'overview', title: '개요', detail: '오늘의 운영 상황과 우선 처리 항목을 한 화면에서 확인합니다.' },
-        '/admin/search': { key: 'search', title: '통합 검색', detail: '주문번호·회원·리포트 식별자를 기준으로 운영 대상을 찾습니다.' },
-        '/admin/orders': { key: 'orders', title: '주문' },
-        '/admin/refunds': { key: 'refunds', title: '환불', detail: '환불 요청과 처리 상태를 주문 단위로 관리합니다.' },
-        '/admin/reconciliation': { key: 'reconciliation', title: '정산', detail: '승인·취소·환불 금액을 정산 기준으로 대조합니다.' },
-        '/admin/members': { key: 'members', title: '회원 · 리포트', detail: '회원의 구매·리포트 이력을 조회하고 지원 요청을 연결합니다.' },
-        '/admin/support': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
-        '/admin/cs': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
-        '/admin/content': { key: 'content', title: '콘텐츠', detail: '고객 화면에 노출되는 안내·배너·FAQ 콘텐츠를 관리합니다.' },
-        '/admin/services': { key: 'services', title: '서비스', detail: '서비스별 노출·판매·가격 정책과 고객 화면 연결을 관리합니다.' },
-        '/admin/media': { key: 'media', title: '미디어', detail: '이미지와 첨부 자산의 사용 위치 및 공개 상태를 관리합니다.' },
-        '/admin/jobs': { key: 'jobs', title: '작업 큐', detail: '리포트 생성과 후처리 작업의 진행·재시도 상태를 확인합니다.' },
-        '/admin/corpus': { key: 'corpus', title: '코퍼스', detail: '검색 지식 소스의 버전, 출처, 색인 상태를 관리합니다.' },
-        '/admin/prompts': { key: 'prompts', title: '프롬프트', detail: '서비스별 프롬프트 버전과 적용 범위를 검토합니다.' },
-        '/admin/evaluations': { key: 'evaluations', title: '평가', detail: '생성 결과의 품질 평가와 검토 이력을 기록합니다.' },
-        '/admin/reports': { key: 'reports', title: '리포트', detail: '리포트 생성·완료·실패 상태와 제공 이력을 확인합니다.' },
-        '/admin/releases': { key: 'releases', title: '릴리스', detail: '콘텐츠·프롬프트·서비스 변경의 배포 이력을 관리합니다.' },
-        '/admin/analytics': { key: 'analytics', title: '통계', detail: '유입·전환·구매 흐름을 운영 지표로 확인합니다.' },
-        '/admin/logs': { key: 'logs', title: '로그', detail: '시스템 이벤트와 실패 신호를 시간순으로 추적합니다.' },
-        '/admin/incidents': { key: 'incidents', title: '장애', detail: '운영 이슈의 영향 범위·담당자·복구 진행을 관리합니다.' },
-        '/admin/audit': { key: 'audit', title: '감사 기록', detail: '관리자 변경 작업의 주체·대상·시점을 확인합니다.' },
-        '/admin/settings': { key: 'settings', title: '설정', detail: '운영 환경, 권한, 알림 정책을 확인하고 관리합니다.' }
+        '/ops/constellation-7f3c': { key: 'overview', title: '개요', detail: '오늘의 운영 상황과 우선 처리 항목을 한 화면에서 확인합니다.' },
+        '/ops/constellation-7f3c/search': { key: 'search', title: '통합 검색', detail: '주문번호·회원·리포트 식별자를 기준으로 운영 대상을 찾습니다.' },
+        '/ops/constellation-7f3c/orders': { key: 'orders', title: '주문' },
+        '/ops/constellation-7f3c/refunds': { key: 'refunds', title: '환불', detail: '환불 요청과 처리 상태를 주문 단위로 관리합니다.' },
+        '/ops/constellation-7f3c/reconciliation': { key: 'reconciliation', title: '정산', detail: '승인·취소·환불 금액을 정산 기준으로 대조합니다.' },
+        '/ops/constellation-7f3c/members': { key: 'members', title: '회원 · 리포트', detail: '회원의 구매·리포트 이력을 조회하고 지원 요청을 연결합니다.' },
+        '/ops/constellation-7f3c/support': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
+        '/ops/constellation-7f3c/cs': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
+        '/ops/constellation-7f3c/content': { key: 'content', title: '콘텐츠', detail: '고객 화면에 노출되는 안내·배너·FAQ 콘텐츠를 관리합니다.' },
+        '/ops/constellation-7f3c/popup': { key: 'popup', title: '첫 페이지 팝업 관리', detail: '오늘운 무료 혜택 팝업의 이미지와 노출 기간을 관리합니다. 종료 시각이 지나면 자동으로 내려갑니다.' },
+        '/ops/constellation-7f3c/services': { key: 'services', title: '서비스', detail: '서비스별 노출·판매·가격 정책과 고객 화면 연결을 관리합니다.' },
+        '/ops/constellation-7f3c/media': { key: 'media', title: '미디어', detail: '이미지와 첨부 자산의 사용 위치 및 공개 상태를 관리합니다.' },
+        '/ops/constellation-7f3c/jobs': { key: 'jobs', title: '작업 큐', detail: '리포트 생성과 후처리 작업의 진행·재시도 상태를 확인합니다.' },
+        '/ops/constellation-7f3c/corpus': { key: 'corpus', title: '코퍼스', detail: '검색 지식 소스의 버전, 출처, 색인 상태를 관리합니다.' },
+        '/ops/constellation-7f3c/prompts': { key: 'prompts', title: '프롬프트', detail: '서비스별 프롬프트 버전과 적용 범위를 검토합니다.' },
+        '/ops/constellation-7f3c/evaluations': { key: 'evaluations', title: '평가', detail: '생성 결과의 품질 평가와 검토 이력을 기록합니다.' },
+        '/ops/constellation-7f3c/reports': { key: 'reports', title: '리포트', detail: '리포트 생성·완료·실패 상태와 제공 이력을 확인합니다.' },
+        '/ops/constellation-7f3c/releases': { key: 'releases', title: '릴리스', detail: '콘텐츠·프롬프트·서비스 변경의 배포 이력을 관리합니다.' },
+        '/ops/constellation-7f3c/analytics': { key: 'analytics', title: '통계', detail: '유입·전환·구매 흐름을 운영 지표로 확인합니다.' },
+        '/ops/constellation-7f3c/logs': { key: 'logs', title: '로그', detail: '시스템 이벤트와 실패 신호를 시간순으로 추적합니다.' },
+        '/ops/constellation-7f3c/incidents': { key: 'incidents', title: '장애', detail: '운영 이슈의 영향 범위·담당자·복구 진행을 관리합니다.' },
+        '/ops/constellation-7f3c/audit': { key: 'audit', title: '감사 기록', detail: '관리자 변경 작업의 주체·대상·시점을 확인합니다.' },
+        '/ops/constellation-7f3c/settings': { key: 'settings', title: '설정', detail: '운영 환경, 권한, 알림 정책을 확인하고 관리합니다.' }
       };
       function currentAdminRoute() {
-        var path = window.location.pathname.replace(/\/$/, '') || '/admin';
+        var path = window.location.pathname.replace(/\/$/, '') || '/ops/constellation-7f3c';
         if (adminRoutes[path]) return adminRoutes[path];
-        var parent = path.split('/').slice(0, 3).join('/');
-        return adminRoutes[parent] || adminRoutes['/admin'];
+        var parent = path.split('/').slice(0, 4).join('/');
+        return adminRoutes[parent] || adminRoutes['/ops/constellation-7f3c'];
       }
       function markCurrentRoute() {
         var route = currentAdminRoute();
@@ -1109,6 +1111,81 @@
         } catch (_error) { var notice2 = listSection.querySelector('.admin-empty'); if (notice2) notice2.textContent = '실제 콘텐츠 저장소를 불러오지 못했습니다.'; }
       }
       var CONTENT_TYPES_FALLBACK = ['service_card', 'landing_copy', 'faq', 'notice', 'banner', 'legal_link'];
+      var SIGNUP_POPUP_PLACEMENT = 'home/signup-benefit-popup';
+      var SIGNUP_POPUP_DEFAULTS = {
+        title: '천명보살의 오늘운', headline: '오늘, 밀어붙일까요?', subheadline: '한 번 더 지켜볼까요?',
+        body: '마음은 기울었는데, 아직 망설여진다면. 당신의 사주와 오늘의 흐름을 함께 살펴보세요.',
+        imageSrc: '/assets/signup-benefit-popup-default-2026-09-22.png', ctaLabel: '내 사주로 오늘운 무료 보기'
+      };
+      function toLocalDateTime(value) {
+        if (!value) return '';
+        var date = new Date(value); if (Number.isNaN(date.getTime())) return '';
+        var offset = date.getTimezoneOffset() * 60000;
+        return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+      }
+      function popupStateLabel(item) {
+        if (item.state !== 'published') return CONTENT_STATE_LABELS[item.state] || item.state;
+        var payload = item.payload || {}; var now = Date.now();
+        if (!item.scheduledAt || new Date(item.scheduledAt).getTime() > now) return '시작 대기';
+        if (!payload.campaignEndAt || new Date(payload.campaignEndAt).getTime() < now) return '기간 종료';
+        return '노출 중';
+      }
+      async function loadPopupManager(body) {
+        body.replaceChildren();
+        var section = document.createElement('section'); section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>오늘운 무료 팝업</h3></header><p class="admin-note">저장 후 게시하면 첫 페이지에서 설정한 시작 시각부터 보이고, 종료 시각이 지나면 별도 작업 없이 자동으로 내려갑니다. 이미지는 <code>/assets/</code> 경로의 공개 자산을 사용합니다.</p>';
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field"><label>팝업 이름</label><input required name="title" maxlength="120"></div>'
+          + '<div class="admin-field"><label>상단 문구</label><input required name="headline" maxlength="120"></div>'
+          + '<div class="admin-field"><label>메인 문구</label><input required name="subheadline" maxlength="120"></div>'
+          + '<div class="admin-field"><label>설명</label><input required name="bodyText" maxlength="500"></div>'
+          + '<div class="admin-field" data-span="2"><label>팝업 이미지 경로</label><input required name="imageSrc" maxlength="300" placeholder="/assets/popup-image.png"></div>'
+          + '<div class="admin-field"><label>버튼 안내 문구</label><input required name="ctaLabel" maxlength="80"></div>'
+          + '<div class="admin-field"><label>노출 시작</label><input required name="startsAt" type="datetime-local"></div>'
+          + '<div class="admin-field"><label>노출 종료</label><input required name="endsAt" type="datetime-local"></div>'
+          + '<div class="admin-actions"><button class="admin-button" type="submit">저장 후 게시</button></div><p class="admin-note" role="status" data-popup-result></p>';
+        Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { if (form.elements[key]) form.elements[key].value = SIGNUP_POPUP_DEFAULTS[key]; });
+        form.elements.startsAt.value = '2026-09-22T00:00'; form.elements.endsAt.value = '2026-10-01T23:59';
+        var result = form.querySelector('[data-popup-result]');
+        section.appendChild(form); body.appendChild(section);
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>팝업 이력</h3></header><p class="admin-empty">불러오는 중입니다.</p>'; body.appendChild(listSection);
+        try {
+          var response = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('POPUP_LOOKUP_FAILED');
+          var responsePayload = await response.json();
+          var items = (Array.isArray(responsePayload.items) ? responsePayload.items : []).filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
+          if (items[0]) {
+            var active = items[0]; var payload = active.payload || {};
+            ['title', 'headline', 'subheadline', 'imageSrc', 'ctaLabel'].forEach(function (key) { if (payload[key] && form.elements[key]) form.elements[key].value = payload[key]; });
+            if (payload.body) form.elements.bodyText.value = payload.body;
+            form.elements.startsAt.value = toLocalDateTime(active.scheduledAt) || form.elements.startsAt.value;
+            form.elements.endsAt.value = toLocalDateTime(payload.campaignEndAt) || form.elements.endsAt.value;
+          }
+          var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="5">등록된 팝업이 없습니다. 위 설정을 게시하면 노출이 시작됩니다.</td>'; rows.appendChild(empty); }
+          items.forEach(function (item) {
+            var row = document.createElement('tr'); [item.payload.title, item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', item.payload.campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
+            var cell = document.createElement('td');
+            if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!window.confirm('현재 팝업을 즉시 내릴까요?')) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; window.alert('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
+            row.appendChild(cell); rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
+        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다.'; }
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '팝업을 저장하고 게시하는 중입니다.';
+          try {
+            var startsAt = new Date(form.elements.startsAt.value); var endsAt = new Date(form.elements.endsAt.value);
+            if (!(startsAt.getTime() < endsAt.getTime())) throw new Error('종료 시각은 시작 시각보다 뒤여야 합니다.');
+            var draftResponse = await fetch('/api/admin/v1/content', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ contentType: 'banner', placement: SIGNUP_POPUP_PLACEMENT, scheduledAt: startsAt.toISOString(), payload: { title: form.elements.title.value.trim(), headline: form.elements.headline.value.trim(), subheadline: form.elements.subheadline.value.trim(), body: form.elements.bodyText.value.trim(), imageSrc: form.elements.imageSrc.value.trim(), ctaLabel: form.elements.ctaLabel.value.trim(), campaignEndAt: endsAt.toISOString() } }) });
+            var draftPayload = await draftResponse.json().catch(function () { return {}; }); if (!draftResponse.ok) throw new Error(draftPayload.error || '팝업 저장에 실패했습니다.');
+            var draft = draftPayload.content;
+            var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: draft.revision, checksum: draft.checksum }) });
+            var publishPayload = await publishResponse.json().catch(function () { return {}; }); if (!publishResponse.ok) throw new Error(publishPayload.error || '팝업 게시에 실패했습니다.');
+            result.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.'; await loadPopupManager(body);
+          } catch (error) { result.textContent = error instanceof Error ? error.message : '팝업 게시에 실패했습니다.'; submit.disabled = false; }
+        });
+      }
       function renderContentDetail(body, item) {
         var previous = body.querySelector('[data-content-detail]'); if (previous) previous.remove();
         var section = document.createElement('section'); section.dataset.contentDetail = 'true'; section.className = 'admin-section';
@@ -1634,6 +1711,7 @@
         if (route.key === 'incidents') { loadIncidents(body); return; }
         if (route.key === 'logs') { loadGenerationLog(body); return; }
         if (route.key === 'content') { loadLiveContent(body); return; }
+        if (route.key === 'popup') { loadPopupManager(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
       }
       /**
@@ -2214,7 +2292,7 @@
           button.disabled = true;
           var result = await client.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: window.location.origin + '/admin' },
+            options: { redirectTo: window.location.origin + '/ops/constellation-7f3c' },
           });
           if (result && result.error) {
             button.disabled = false;
@@ -2247,7 +2325,7 @@
       }
 
       function isPublicOrdersPath() {
-        return /^\/admin\/orders\/?$/.test(window.location.pathname);
+        return /^\/ops\/constellation-7f3c\/orders\/?$/.test(window.location.pathname);
       }
 
       function openPublicOrders() {

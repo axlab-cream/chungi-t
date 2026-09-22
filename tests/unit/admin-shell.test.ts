@@ -80,27 +80,36 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
 
     it('셸에 설정값·키·목록이 들어 있지 않다', async () => {
       // D2-5: 관리자 자산에는 어떤 설정값·키·엔드포인트 비밀도 인라인하지 않는다.
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       for (const secret of ['SUPABASE', 'INICIS', 'apikey', 'service_role', 'synthetic-public-fixture-only', 'staff@synthetic.invalid']) {
         assert.ok(!text.includes(secret), `셸에 ${secret} 가 인라인됐다`)
       }
     })
 
     it('관리자 응답은 색인되지 않는다', async () => {
-      for (const path of ['/admin', '/admin/orders']) {
+      for (const path of ['/ops/constellation-7f3c', '/ops/constellation-7f3c/orders']) {
         const { response } = await request(path)
         assert.match(response.headers.get('x-robots-tag') ?? '', /noindex/, `${path} 에 noindex 가 없다`)
         assert.match(response.headers.get('cache-control') ?? '', /no-store/, `${path} 가 캐시될 수 있다`)
       }
     })
 
+    it('이전 관리자 주소는 새 진입점으로 안내하지 않고 404를 준다', async () => {
+      for (const path of ['/admin', '/admin/', '/admin/orders']) {
+        const { response, text } = await request(path)
+        assert.equal(response.status, 404, `${path} 가 닫히지 않았다`)
+        assert.ok(!text.includes('운영 관리자'), `${path} 가 셸을 노출했다`)
+        assert.equal(response.headers.get('location'), null, `${path} 가 새 주소로 리다이렉트한다`)
+      }
+    })
+
     it('robots.txt 가 관리자 경로를 막는다', () => {
       const robots = readFileSync(new URL('../../사주/robots.txt', import.meta.url), 'utf8')
-      assert.match(robots, /^Disallow: \/admin$/m)
+      assert.match(robots, /^Disallow: \/ops\/constellation-7f3c$/m)
     })
 
     it('미로그인은 데이터를 받지 못한다', async () => {
-      // A01: `/admin` 직접 접근(미로그인)은 데이터 없이 응답한다.
+      // A01: `/ops/constellation-7f3c` 직접 접근(미로그인)은 데이터 없이 응답한다.
       const { response, text } = await request('/api/admin/v1/me')
       assert.equal(response.status, 401)
       assert.equal(JSON.parse(text).code, 'AUTH_REQUIRED')
@@ -197,18 +206,28 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
     })
 
     it('셸이 진입점과 딥링크 모두에서 열린다', async () => {
-      // D2-4: `/admin/*` 미매칭 경로를 정적 탐색으로 흘리지 않는다.
-      for (const path of ['/admin', '/admin/', '/admin/index.html', '/admin/orders', '/admin/members/deep/link', '/admin/settings']) {
+      // D2-4: `/ops/constellation-7f3c/*` 미매칭 경로를 정적 탐색으로 흘리지 않는다.
+      for (const path of ['/ops/constellation-7f3c', '/ops/constellation-7f3c/', '/ops/constellation-7f3c/index.html', '/ops/constellation-7f3c/orders', '/ops/constellation-7f3c/members/deep/link', '/ops/constellation-7f3c/settings']) {
         const { response, text } = await request(path)
         assert.equal(response.status, 200, `${path} 가 ${response.status} 로 응답했다`)
         assert.match(text, /운영 관리자/, `${path} 가 셸을 주지 않았다`)
       }
     })
 
+    it('섹션 아래 딥링크가 해당 운영 화면을 선택한다', async () => {
+      const { text } = await request('/ops/constellation-7f3c/members/deep/link')
+      const start = text.indexOf('var adminRoutes = {')
+      const end = text.indexOf('function markCurrentRoute()', start)
+      assert.ok(start >= 0 && end > start, '딥링크 선택 로직을 찾지 못했다')
+      const resolveCurrentRoute = new Function('window', `${text.slice(start, end)}; return currentAdminRoute;`) as (window: { location: { pathname: string } }) => () => { key: string }
+      const currentRoute = resolveCurrentRoute({ location: { pathname: '/ops/constellation-7f3c/members/deep/link' } })
+      assert.equal(currentRoute().key, 'members')
+    })
+
     it('셸이 직원 로그인 폼을 갖고 있다', async () => {
       // 일반 회원 로그인은 소셜 로그인만 지원한다. 직원 계정으로 들어올 입력 지점이
       // 셸 안에 있어야 하며, 예전처럼 없는 경로(`/login`)로 보내면 안 된다.
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       assert.match(text, /data-admin-login\b/, '로그인 폼이 없다')
       assert.match(text, /autocomplete="current-password"/, '비밀번호 입력이 없다')
       assert.match(text, /\/api\/admin\/v1\/login/, '자체 비밀번호 로그인 호출이 없다')
@@ -232,13 +251,13 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
     })
 
     it('관리자 메뉴는 좌측 LNB와 모든 운영 화면 경로를 제공한다', async () => {
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       assert.match(text, /position: fixed; inset: 0 auto 0 0/, '좌측 LNB 레이아웃이 없다')
       for (const path of [
-        '/admin/search', '/admin/orders', '/admin/refunds', '/admin/reconciliation',
-        '/admin/members', '/admin/support', '/admin/content', '/admin/services', '/admin/media',
-        '/admin/reports', '/admin/jobs', '/admin/corpus', '/admin/prompts', '/admin/evaluations', '/admin/releases',
-        '/admin/analytics', '/admin/logs', '/admin/incidents', '/admin/audit', '/admin/settings',
+        '/ops/constellation-7f3c/search', '/ops/constellation-7f3c/orders', '/ops/constellation-7f3c/refunds', '/ops/constellation-7f3c/reconciliation',
+        '/ops/constellation-7f3c/members', '/ops/constellation-7f3c/support', '/ops/constellation-7f3c/content', '/ops/constellation-7f3c/popup', '/ops/constellation-7f3c/services', '/ops/constellation-7f3c/media',
+        '/ops/constellation-7f3c/reports', '/ops/constellation-7f3c/jobs', '/ops/constellation-7f3c/corpus', '/ops/constellation-7f3c/prompts', '/ops/constellation-7f3c/evaluations', '/ops/constellation-7f3c/releases',
+        '/ops/constellation-7f3c/analytics', '/ops/constellation-7f3c/logs', '/ops/constellation-7f3c/incidents', '/ops/constellation-7f3c/audit', '/ops/constellation-7f3c/settings',
       ]) {
         assert.ok(text.includes(`href="${path}"`), `${path} 메뉴가 없다`)
       }
@@ -252,6 +271,8 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /loadLivePrompts/, '실제 프롬프트 원천 로더가 없다')
       assert.match(text, /\/api\/admin\/v1\/corpus/, '관리자 코퍼스 API 로더가 없다')
       assert.match(text, /\/api\/admin\/v1\/prompts/, '관리자 프롬프트 API 로더가 없다')
+      assert.match(text, /loadPopupManager/, '첫 페이지 팝업 관리 로더가 없다')
+      assert.match(text, /home\/signup-benefit-popup/, '첫 페이지 팝업의 고정 노출 위치가 없다')
       assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
@@ -323,15 +344,15 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
 
     it('모든 운영 화면 딥링크가 실제 데이터 컨테이너를 갖고 목업 상태를 노출하지 않는다', async () => {
       for (const path of [
-        '/admin/search', '/admin/services', '/admin/content', '/admin/media', '/admin/refunds',
-        '/admin/reconciliation', '/admin/support', '/admin/reports', '/admin/jobs', '/admin/corpus', '/admin/prompts',
-        '/admin/evaluations', '/admin/releases', '/admin/logs', '/admin/incidents', '/admin/audit',
+        '/ops/constellation-7f3c/search', '/ops/constellation-7f3c/services', '/ops/constellation-7f3c/content', '/ops/constellation-7f3c/media', '/ops/constellation-7f3c/refunds',
+        '/ops/constellation-7f3c/reconciliation', '/ops/constellation-7f3c/support', '/ops/constellation-7f3c/reports', '/ops/constellation-7f3c/jobs', '/ops/constellation-7f3c/corpus', '/ops/constellation-7f3c/prompts',
+        '/ops/constellation-7f3c/evaluations', '/ops/constellation-7f3c/releases', '/ops/constellation-7f3c/logs', '/ops/constellation-7f3c/incidents', '/ops/constellation-7f3c/audit',
       ]) {
         const { response, text } = await request(path)
         assert.equal(response.status, 200, `${path} 딥링크가 열리지 않는다`)
         assert.match(text, /data-admin-workspace-body/, `${path} 에 운영 화면 컨테이너가 없다`)
       }
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       assert.ok(!text.includes('데이터 연동 대기'), '목업 연동 대기 상태가 셸에 남아 있다')
       assert.match(text, /실제 운영 원천 테이블은 아직 생성되지 않았습니다/, '원천 미생성 상태를 명시하지 않는다')
     })
@@ -341,18 +362,18 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       // access token fragment를 보존한 채 관리자 복구 화면으로 넘겨야 한다.
       const { text } = await request('/')
       assert.match(text, /hash\.get\('type'\) === 'recovery'/, '루트가 복구 링크를 감지하지 않는다')
-      assert.match(text, /window\.location\.replace\('\/admin' \+ window\.location\.search \+ window\.location\.hash\)/, '복구 토큰을 관리자 화면으로 넘기지 않는다')
+      assert.match(text, /window\.location\.replace\('\/ops\/constellation-7f3c' \+ window\.location\.search \+ window\.location\.hash\)/, '복구 토큰을 관리자 화면으로 넘기지 않는다')
     })
 
     it('주문 목록 경로는 로그인 없이 목록을 불러온다', async () => {
-      const { text } = await request('/admin/orders')
+      const { text } = await request('/ops/constellation-7f3c/orders')
       assert.match(text, /isPublicOrdersPath/, '공개 주문 목록 경로를 구분하지 않는다')
       assert.match(text, /startOrders\(null\)/, '공개 목록을 시작하지 않는다')
       assert.match(text, /if \(await checkAuthority\(null\)\) return;/, '로그인된 관리자에게 전체 LNB를 먼저 열지 않는다')
     })
 
     it('셸이 자격증명을 보관하지 않는다', async () => {
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       // 비밀번호를 저장·전송·로깅하는 코드가 없어야 한다.
       assert.ok(!/localStorage\.setItem\([^)]*password/i.test(text), '비밀번호를 브라우저에 저장한다')
       assert.ok(!/console\.(log|info|warn|error)\([^)]*password/i.test(text), '비밀번호를 로그로 남긴다')
@@ -364,7 +385,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
 
     it('셸이 네 가지 상태를 구분해 갖고 있다', async () => {
       // A35: 빈 목록 / 필터 결과 없음 / 조회 실패 / 권한 없음을 서로 다른 상태로 둔다.
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       for (const state of ['anonymous', 'forbidden', 'error', 'ready']) {
         assert.ok(text.includes(`data-admin-state="${state}"`), `셸에 ${state} 상태가 없다`)
       }
@@ -372,7 +393,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
 
     it('셸이 레퍼런스의 색상값·토큰 이름을 쓰지 않는다', async () => {
       // ADR-0002 D3: 원칙만 차용하고 토큰은 독립 정의한다.
-      const { text } = await request('/admin')
+      const { text } = await request('/ops/constellation-7f3c')
       assert.ok(!/--sk-/.test(text), '레퍼런스 토큰 이름이 남았다')
       assert.ok(!/#ea1738/i.test(text), '레퍼런스 색상값이 남았다')
       assert.ok(!/skmagic/i.test(text), '레퍼런스 CDN 경로가 남았다')

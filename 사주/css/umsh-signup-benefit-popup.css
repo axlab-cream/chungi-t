@@ -1,0 +1,81 @@
+html.umsh-signup-benefit-popup-open,
+html.umsh-signup-benefit-popup-open body {
+  overflow: hidden;
+}
+
+.umsh-signup-benefit-popup {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgba(3, 4, 18, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.umsh-signup-benefit-popup__art {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  max-height: calc(100dvh - 24px);
+  filter: drop-shadow(0 26px 64px rgba(0, 0, 0, 0.52));
+}
+
+.umsh-signup-benefit-popup__art > img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 24px);
+  border-radius: 24px;
+}
+
+.umsh-signup-benefit-popup__close,
+.umsh-signup-benefit-popup__cta,
+.umsh-signup-benefit-popup__hide {
+  position: absolute;
+  display: block;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.umsh-signup-benefit-popup__close {
+  top: 4.4%;
+  right: 6.5%;
+  width: 8%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.umsh-signup-benefit-popup__cta {
+  top: 74%;
+  left: 11%;
+  width: 78%;
+  height: 7.5%;
+  border-radius: 12px;
+}
+
+.umsh-signup-benefit-popup__hide {
+  top: 90.5%;
+  left: 26%;
+  width: 51%;
+  height: 6%;
+  border-radius: 8px;
+}
+
+.umsh-signup-benefit-popup :is(button, a):focus-visible {
+  outline: 3px solid #f2bf6b;
+  outline-offset: 3px;
+}
+
+@media (max-width: 430px) {
+  .umsh-signup-benefit-popup {
+    padding: 8px;
+  }
+
+  .umsh-signup-benefit-popup__art > img {
+    max-height: calc(100dvh - 16px);
+    border-radius: 18px;
+  }
+}

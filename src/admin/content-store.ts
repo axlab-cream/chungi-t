@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { configuredEnv } from '../env/load.js'
 import { listAdminServiceDirectory } from '../server/service-directory.js'
+import { SIGNUP_POPUP_PLACEMENT, normalizeSignupPopupPayload, signupPopupIsActive, type ActiveSignupPopup } from '../marketing/signup-popup.js'
 
 /**
  * T24: 고객 화면 문안(안내·배너·FAQ·서비스 카드·랜딩 문구·약관 링크)의 편집·발행.
@@ -20,6 +21,11 @@ export interface ContentPayload {
   title: string
   body: string
   href?: string
+  headline?: string
+  subheadline?: string
+  imageSrc?: string
+  ctaLabel?: string
+  campaignEndAt?: string
 }
 
 export interface ContentVersion {
@@ -113,6 +119,11 @@ export function normalizeContentPayload(input: unknown): ContentPayload {
   return payload
 }
 
+function normalizePayloadForPlacement(contentType: ContentType, placement: string, input: unknown, scheduledAt: string | null): ContentPayload {
+  if (contentType === 'banner' && placement === SIGNUP_POPUP_PLACEMENT) return normalizeSignupPopupPayload(input, scheduledAt) as ContentPayload
+  return normalizeContentPayload(input)
+}
+
 export function normalizePlacement(value: unknown): string {
   const placement = text(value, 120)
   if (!placement || !/^[\p{L}\p{N}][\p{L}\p{N} _.:/-]{0,119}$/u.test(placement)) throw new Error('CONTENT_PLACEMENT_INVALID')
@@ -183,6 +194,30 @@ export async function getAdminContentSnapshot(limit = 200): Promise<AdminContent
   return { items: rows.map(fromRow), versionStore: 'ready', asOf: new Date().toISOString() }
 }
 
+/** 첫 페이지 공개 API가 쓰는 전용 게시본 조회. 예약 전·종료 후 팝업은 여기서 제외한다. */
+export async function getActiveSignupPopup(now = Date.now()): Promise<ActiveSignupPopup | null> {
+  if (!contentStoreAvailable()) return null
+  const url = tableUrl()
+  url.searchParams.set('select', SELECT)
+  url.searchParams.set('content_type', 'eq.banner')
+  url.searchParams.set('placement', `eq.${SIGNUP_POPUP_PLACEMENT}`)
+  url.searchParams.set('service_key', 'is.null')
+  url.searchParams.set('state', 'eq.published')
+  url.searchParams.set('order', 'updated_at.desc')
+  const rows = await readRows(url)
+  for (const row of rows) {
+    const version = fromRow(row)
+    try {
+      const payload = normalizeSignupPopupPayload(version.payload, version.scheduledAt)
+      const popup: ActiveSignupPopup = { id: version.id, startsAt: version.scheduledAt as string, endsAt: payload.campaignEndAt, ...payload }
+      if (signupPopupIsActive(popup, now)) return popup
+    } catch {
+      // 운영자가 저장한 잘못된 과거 레코드는 공개 화면으로 내보내지 않는다.
+    }
+  }
+  return null
+}
+
 export async function getContentVersion(id: string): Promise<ContentVersion | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null
   const url = tableUrl()
@@ -203,17 +238,19 @@ export async function createContentDraft(input: {
   authorEmail: string
 }): Promise<ContentVersion> {
   if (!isContentType(input.contentType)) throw new Error('CONTENT_TYPE_INVALID')
-  const payload = normalizeContentPayload(input.payload)
+  const placement = normalizePlacement(input.placement)
+  const scheduledAt = normalizeScheduledAt(input.scheduledAt)
+  const payload = normalizePayloadForPlacement(input.contentType, placement, input.payload, scheduledAt)
   const row = {
     content_type: input.contentType,
     service_key: normalizeServiceKey(input.serviceKey),
-    placement: normalizePlacement(input.placement),
+    placement,
     payload,
     checksum: contentChecksum(payload),
     state: 'draft',
     author_email: normalizeAuthor(input.authorEmail),
     review_note: normalizeReviewNote(input.reviewNote),
-    scheduled_at: normalizeScheduledAt(input.scheduledAt),
+    scheduled_at: scheduledAt,
     revision: 0,
   }
   const response = await fetch(tableUrl(), { method: 'POST', headers: { ...headers(), prefer: 'return=representation' }, body: JSON.stringify(row) })
@@ -236,7 +273,8 @@ export async function updateContentDraft(input: {
   if (!current) throw new Error('CONTENT_NOT_FOUND')
   if (current.state !== 'draft') throw new Error('CONTENT_NOT_DRAFT')
   if (current.revision !== input.expectedRevision) throw new Error('CONTENT_REVISION_CONFLICT')
-  const payload = normalizeContentPayload(input.payload)
+  const scheduledAt = normalizeScheduledAt(input.scheduledAt === undefined ? current.scheduledAt : input.scheduledAt)
+  const payload = normalizePayloadForPlacement(current.contentType, current.placement, input.payload, scheduledAt)
   const url = tableUrl()
   url.searchParams.set('id', `eq.${input.id}`)
   url.searchParams.set('state', 'eq.draft')
@@ -245,7 +283,7 @@ export async function updateContentDraft(input: {
     method: 'PATCH', headers: { ...headers(), prefer: 'return=representation' },
     body: JSON.stringify({
       payload, checksum: contentChecksum(payload), author_email: normalizeAuthor(input.authorEmail),
-      review_note: normalizeReviewNote(input.reviewNote), scheduled_at: normalizeScheduledAt(input.scheduledAt),
+      review_note: normalizeReviewNote(input.reviewNote), scheduled_at: scheduledAt,
       revision: input.expectedRevision + 1, updated_at: new Date().toISOString(),
     }),
   })

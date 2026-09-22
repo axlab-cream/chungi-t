@@ -14,6 +14,8 @@
    */
   var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
   var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
+  var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
+  var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20260922-love';
   var FLAG_JS = '/js/ai-report-flag.js';
   var TRACK_JS = '/js/umsh-track.js';
 
@@ -130,6 +132,20 @@
     document.head.appendChild(script);
   }
 
+  function loadSignupBenefitPopup() {
+    if (document.querySelector('script[data-umsh-signup-benefit-popup-js]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = SIGNUP_BENEFIT_POPUP_CSS;
+    link.setAttribute('data-umsh-signup-benefit-popup-css', '');
+    document.head.appendChild(link);
+    var script = document.createElement('script');
+    script.src = SIGNUP_BENEFIT_POPUP_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-signup-benefit-popup-js', '');
+    document.head.appendChild(script);
+  }
+
   function buildTopHost(options) {
     var host = document.querySelector('[data-umsh-service-top]');
     if (!host) {
@@ -219,6 +235,7 @@
     ensureStylesheet(SHELL_CSS);
     loadShellScript(SHELL_JS, watchChromeHeights);
     loadYmdFields();
+    loadSignupBenefitPopup();
     // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
     // 다시 켤 때 이 한 줄만 되살리면 된다.

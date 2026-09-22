@@ -129,6 +129,16 @@ describe('콘텐츠(안내·배너·FAQ) 초안·게시·보관', { concurrency:
     assert.equal(store.normalizeContentPayload({ title: 't', body: 'b', href: '/legal/terms' }).href, '/legal/terms')
     assert.equal(store.normalizeContentPayload({ title: 't', body: 'b', href: 'https://example.com/x' }).href, 'https://example.com/x')
   })
+
+  it('첫 페이지 팝업은 시작·종료 시각을 함께 저장하고 기간 밖에서는 공개 후보에서 빠진다', async () => {
+    const payload = { title: '천명보살의 오늘운', headline: '오늘, 밀어붙일까요?', subheadline: '한 번 더 지켜볼까요?', body: '오늘의 흐름을 함께 살펴보세요.', imageSrc: '/assets/signup-benefit-popup-default-2026-09-22.png', ctaLabel: '내 사주로 오늘운 무료 보기', campaignEndAt: '2026-10-01T14:59:59.999Z' }
+    const draft = await store.createContentDraft({ contentType: 'banner', placement: 'home/signup-benefit-popup', payload, scheduledAt: '2026-09-21T15:00:00.000Z', authorEmail: 'a@example.com' })
+    const published = await store.publishContentVersion({ id: draft.id, expectedRevision: draft.revision, checksum: draft.checksum, authorEmail: 'a@example.com' })
+    assert.equal(published.payload.imageSrc, payload.imageSrc)
+    assert.equal((await store.getActiveSignupPopup(Date.parse('2026-09-22T12:00:00.000Z')))?.id, published.id)
+    assert.equal(await store.getActiveSignupPopup(Date.parse('2026-10-02T00:00:00.000Z')), null)
+    await assert.rejects(store.createContentDraft({ contentType: 'banner', placement: 'home/signup-benefit-popup', payload: { ...payload, campaignEndAt: '2026-09-20T00:00:00.000Z' }, scheduledAt: '2026-09-21T15:00:00.000Z', authorEmail: 'a@example.com' }), /SIGNUP_POPUP_PERIOD_INVALID/)
+  })
 })
 
 describe('콘텐츠 라우트는 scope 별로 나뉘고 감사 명령을 거친다', () => {
