@@ -14,7 +14,7 @@ const read = (path: string) => readFileSync(join(root, path), 'utf8')
  * 표 줄 55개). 이미 저장된 해석을 다시 만들지 않고 고치려면 화면에서 옮겨야 한다.
  */
 /** 스크립트는 브라우저 전역을 읽으며 시작한다. 렌더러만 꺼내 쓰기 위한 최소 스텁. */
-function richText(): (raw: string) => string {
+function richText(): (raw: string, listState?: { orderedNext?: number }) => string {
   const source = readFileSync(join(root, '사주/js/umsh-report-access.js'), 'utf8')
   const node = () => ({ id: '', textContent: '', style: {}, children: [] as unknown[], setAttribute() {}, hasAttribute: () => false, getAttribute: () => null, removeAttribute() {}, appendChild() {}, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [], closest: () => null })
   const store = new Map<string, string>()
@@ -61,6 +61,15 @@ test('목록과 굵은 글씨를 옮긴다', () => {
   const ordered = render('1. 먼저 확인\n2. 다음 확인')
   assert.match(ordered, /<ol class="reading-list"><li>먼저 확인<\/li><li>다음 확인<\/li><\/ol>/)
   assert.match(render('여기는 **중요**해요.'), /<strong>중요<\/strong>/)
+})
+
+test('설명 문단 사이에 나뉜 번호 목록도 같은 해석 블록에서는 번호를 이어 간다', () => {
+  const render = richText()
+  const state = { orderedNext: 1 }
+  assert.match(render('1. 첫 번째 확인', state), /<ol class="reading-list"><li>첫 번째 확인<\/li><\/ol>/)
+  assert.equal(render('첫 항목을 설명하는 문단입니다.', state), '<p>첫 항목을 설명하는 문단입니다.</p>')
+  assert.match(render('1. 두 번째 확인', state), /<ol class="reading-list" start="2"><li>두 번째 확인<\/li><\/ol>/)
+  assert.match(render('1. 세 번째 확인', state), /<ol class="reading-list" start="3"><li>세 번째 확인<\/li><\/ol>/)
 })
 
 test('저장 원문의 인용·강조·밑줄·형광 표시를 안전한 마크다운 뷰로 옮긴다', () => {
@@ -121,8 +130,8 @@ test('본문의 HTML 은 글자로 남는다 — 서식만 우리가 만든 태�
 test('해석 본문·요약·하이라이트가 모두 같은 렌더러를 쓴다', () => {
   const source = readFileSync(join(root, '사주/js/umsh-report-access.js'), 'utf8')
   // 한 곳이라도 옛 방식(escapeHtml 을 <p> 에 그대로)으로 남으면 그 화면만 글자로 보인다.
-  assert.match(source, /paragraphs\.map\(richText\)\.join\(''\)/, '해석 본문이 렌더러를 쓰지 않는다')
-  assert.match(source, /shown\.map\(richText\)\.join\(''\)/, '한눈에 보기가 렌더러를 쓰지 않는다')
-  assert.match(source, /paragraphs\.map\(richText\)\.join\(''\)\)/, '하이라이트가 렌더러를 쓰지 않는다')
+  assert.match(source, /richTextParagraphs\(paragraphs\)/, '해석 본문이 렌더러를 쓰지 않는다')
+  assert.match(source, /richTextParagraphs\(shown\)/, '한눈에 보기가 렌더러를 쓰지 않는다')
+  assert.match(source, /richTextParagraphs\(paragraphs\)/, '하이라이트가 렌더러를 쓰지 않는다')
   assert.doesNotMatch(source, /'<p>' \+ escapeHtml\(paragraph\) \+ '<\/p>'/, '옛 렌더가 남아 있다')
 })

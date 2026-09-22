@@ -231,7 +231,7 @@
     var attributes = tag === 'th' ? ' scope="col"' : '';
     return cells.map(function (cell) { return '<' + tag + attributes + '>' + inlineMarkdown(escapeHtml(cell)) + '</' + tag + '>'; }).join('');
   }
-  function richText(raw) {
+  function richText(raw, listState) {
     ensureRichTextStyles();
     var lines = String(raw == null ? '' : raw).split('\n');
     var html = '';
@@ -273,7 +273,10 @@
         while (index < lines.length && /^\s*\d+[.)]\s+\S/.test(lines[index])) {
           ordered.push(lines[index].replace(/^\s*\d+[.)]\s+/, '')); index += 1;
         }
-        html += '<ol class="reading-list">' + cellsHtml(ordered, 'li') + '</ol>';
+        var orderedStart = listState && Number.isFinite(listState.orderedNext) ? listState.orderedNext : 1;
+        var startAttribute = orderedStart > 1 ? ' start="' + orderedStart + '"' : '';
+        html += '<ol class="reading-list"' + startAttribute + '>' + cellsHtml(ordered, 'li') + '</ol>';
+        if (listState) listState.orderedNext = orderedStart + ordered.length;
         continue;
       }
       if (/^\s*#{1,4}\s+\S/.test(line)) {
@@ -294,9 +297,15 @@
     flush();
     return html;
   }
+  function richTextParagraphs(paragraphs) {
+    var listState = { orderedNext: 1 };
+    return paragraphs.map(function (paragraph) {
+      return richText(paragraph, listState);
+    }).join('');
+  }
   function readingBlock(kind, label, paragraphs) {
     if (!paragraphs.length) return '';
-    return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + paragraphs.map(richText).join('') + '</section>';
+    return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + richTextParagraphs(paragraphs) + '</section>';
   }
   function readySectionBody(section, payload) {
     var interpretation = String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim();
@@ -412,7 +421,7 @@
       ? '<figure class="umsh-summary-figure' + summaryFit + '"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
       : '';
     var body = shown.length
-      ? shown.map(richText).join('')
+      ? richTextParagraphs(shown)
       : longformSkeleton('전체 요약을');
     var unlock = locked
       ? '<div class="umsh-lf-locked"><p>요약의 나머지와 하이라이트는 결제 후 열립니다.</p>' +
@@ -440,7 +449,7 @@
       var paragraphs = longformParagraphs(match.text);
       var locked = !entitled && paragraphs.length > 0;
       var body = paragraphs.length
-        ? (locked ? richText(paragraphs[0]) : paragraphs.map(richText).join(''))
+        ? (locked ? richText(paragraphs[0]) : richTextParagraphs(paragraphs))
         : longformSkeleton(labelText(item.title) + ' 항목을');
       var banner = (!singleImage && index === 0 && cut)
         ? '<figure class="umsh-highlight-banner"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
