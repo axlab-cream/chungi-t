@@ -2027,3 +2027,9 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 
 - 올해 연애운 상세 템플릿은 `reportId`와 무관하게 대표 썸네일과 목차별 이미지 계약을 공통 적용한다. 따라서 동일 서비스의 모든 회원 리포트가 배포본을 사용한다.
 - [GATE H2] 원격 배포는 `rules.md` §6.3의 하드 스톱 대상이므로 이 작업에서는 실행하지 않았다. 배포 후에는 실제 로그인 리포트에서 대표 썸네일과 목차별 실사 이미지를 재확인해야 한다.
+
+### 운영 배포 완료 — 사용자 승인 후
+
+- 사용자가 커밋·배포를 요청하여 `fff9c26`을 `origin/main`으로 fast-forward push했다. Vercel 운영 배포 `dpl_Etp5wQGvEk4K9qAwhXPWUw5NN5Hc`가 Ready가 되었고 `umsh.kr` 별칭에 연결됐다.
+- 배포 전 전체 테스트 1523/1523, 올해 연애운 전용 계약 22개, TypeScript와 Vercel build를 통과했다. Production에서 상세 HTML의 새 대표 이미지 참조, 대표 및 표본 목차 자산 HTTP 200, 10개 목차 설정, `/api/health` 정상 응답을 확인했다.
+- 로그인된 기존 올해 연애운 리포트를 새로고침해 대표 이미지 로드와 10개 본문 항목의 새 이미지 경로를 확인했다. 개인 리포트 본문·DB·팝업 관리자·팝업은 변경하지 않았다.
