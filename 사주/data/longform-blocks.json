@@ -98,10 +98,11 @@
       "status": "draft",
       "verdictAxis": "올해 들어오는 달과 놓치는 달",
       "accent": "pink",
-      "thumbnail": "/love/this-year/assets/thisyear/videos/01-frontface-window-poster.webp",
+      "thumbnail": "/love/this-year/assets/thisyear/report-sections/00-year-love-summary-wide-v1.png",
+      "summaryImageFit": "wide",
       "guide": ["마음이 열리는 계절의 신호", "서두르면 놓치기 쉬운 장면", "올해 안에 해 볼 한 가지"],
       "cutA": "/love/this-year/assets/thisyear/01-scene-01-hook.webp",
-      "cutB": "/love/this-year/assets/thisyear/01-scene-04-basis.webp",
+      "cutB": "/love/this-year/assets/thisyear/report-sections/11-dohwa-highlight-cafe-v1.png",
       "sectionImages": [
         "/love/this-year/assets/thisyear/report-sections/01-love-possibility-window-v1.png",
         "/love/this-year/assets/thisyear/report-sections/02-attraction-cafe-v1.png",

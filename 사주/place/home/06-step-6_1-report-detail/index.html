@@ -2,7 +2,7 @@
 <html lang="ko" data-umsh-verified-inplace>
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
-<script src="/js/umsh-report-access.js?v=20260922-love-hero-photo-v1"></script>
+<script src="/js/umsh-report-access.js?v=20260922-common-reader-actions-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
@@ -309,6 +309,11 @@
         font-weight: 950;
         line-height: 1.35;
       }
+
+      .home-richtext { min-width: 0; color: var(--muted); line-height: 1.8; overflow-wrap: anywhere; }
+      .home-richtext p { margin: 0 0 12px; }
+      .home-richtext .reading-table-wrap { max-width: 100%; }
+      .home-richtext .reading-quote { color: var(--ink); }
 
       .conclusion-card span,
       .block-card span,
@@ -989,7 +994,7 @@
             (block) => `
               <article class="block-card">
                 ${block.heading ? `<strong>${escapeHtml(block.heading)}</strong>` : ""}
-                ${block.body ? `<span>${escapeHtml(block.body)}</span>` : ""}
+                ${block.body ? `<div class="home-richtext">${window.UMSHReportAccess && window.UMSHReportAccess.richText ? window.UMSHReportAccess.richText(block.body) : `<p>${escapeHtml(block.body)}</p>`}</div>` : ""}
               </article>
             `
           )

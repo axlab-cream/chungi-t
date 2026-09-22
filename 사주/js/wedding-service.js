@@ -309,7 +309,13 @@
           var section = document.createElement('div');
           var match = block.match(/^\s*\[([^\]]+)\]\s*/);
           if (match) { var heading = document.createElement('h3'); heading.textContent = match[1]; section.appendChild(heading); block = block.slice(match[0].length); }
-          var p = document.createElement('p'); p.textContent = block; section.appendChild(p); body.appendChild(section);
+          var prose = document.createElement('div');
+          prose.className = 'wedding-richtext';
+          var reportAccess = window.UMSHReportAccess;
+          prose.innerHTML = reportAccess && typeof reportAccess.richText === 'function'
+            ? reportAccess.richText(block)
+            : '<p>' + escapeHtml(block) + '</p>';
+          section.appendChild(prose); body.appendChild(section);
         });
       }
       put(root, '[data-reading-progress]', sections.length + '개 항목 중 ' + (sections.indexOf(current) + 1) + '번째 · ' + (current.status === 'complete' ? '해석 완료' : current.status === 'failed' ? '다시 불러오기 필요' : '해석 작성 중'));

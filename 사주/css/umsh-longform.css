@@ -117,6 +117,18 @@
   object-position: 50% 22%;
   display: block;
 }
+.umsh-summary-figure.is-wide-summary {
+  height: auto;
+  max-height: none;
+  aspect-ratio: auto;
+  overflow: visible;
+}
+.umsh-summary-figure.is-wide-summary img {
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+}
+.umsh-summary-figure.is-wide-summary::after { display: none; }
 .umsh-summary-figure::after {
   content: "";
   position: absolute;
@@ -193,6 +205,9 @@
   object-fit: cover;
   object-position: 50% 30%;
   display: block;
+}
+.umsh-highlight-banner img[src*="11-dohwa-highlight-cafe-v1.png"] {
+  object-position: center top;
 }
 .umsh-highlight-index {
   display: inline-flex;
@@ -338,6 +353,7 @@
   .umsh-summary { grid-template-columns: 300px 1fr; }
   /* 2단에서는 컷이 글 옆에 서므로 높이 제한을 푼다. 다만 글이 짧을 때 컷만 길어지지 않게 묶는다. */
   .umsh-summary-figure { aspect-ratio: auto; height: 100%; max-height: 320px; }
+  .umsh-summary-figure.is-wide-summary { height: auto; max-height: none; }
   .umsh-summary.is-pending { grid-template-columns: 1fr; }
   .umsh-summary-figure::after {
     inset: 0 0 0 auto;

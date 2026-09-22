@@ -82,15 +82,15 @@ describe('리포트 안 병렬 창', { concurrency: false }, () => {
     assert.ok(calls > 0, '첫 항목이 끝났는데도 둘째를 기다리면 병렬이 아니다')
   })
 
-  it('분량 규격: 첫 항목 두텁게, 하이라이트 두텁게, 나머지는 400~700자', () => {
+  it('분량 규격: 모든 유료 항목에 충분한 근거·장면·다음 판단 기준을 담는다', () => {
     assert.deepEqual(sectionLengthPlan({ order: 1, category: '지금 나와도 되는 흐름?', classification: '전체 판정' }), { weight: 'opening', min: 1200, max: 1600 })
     assert.deepEqual(sectionLengthPlan({ order: 25, category: '퇴사 타이밍', classification: '유리한 달' }), { weight: 'highlight', min: 1100, max: 1500 })
     assert.deepEqual(sectionLengthPlan({ order: 43, category: '멘탈과 주변', classification: '다섯 스승의 서로 다른 조언' }), { weight: 'highlight', min: 1100, max: 1500 })
     assert.deepEqual(sectionLengthPlan({ order: 44, category: '현실 액션 플랜', classification: '이번 주 할 일' }), { weight: 'highlight', min: 1100, max: 1500 })
-    assert.deepEqual(sectionLengthPlan({ order: 12, category: '번아웃 체크', classification: '몸이 먼저 보내는 신호' }), { weight: 'standard', min: 450, max: 700 })
+    assert.deepEqual(sectionLengthPlan({ order: 12, category: '번아웃 체크', classification: '몸이 먼저 보내는 신호' }), { weight: 'standard', min: 1200, max: 1600 })
     // 프롬프트에 실린다.
     const messages = sectionPrompt(analysis, birth, context, { ...section('two', 2), category: '번아웃 체크', classification: '몸이 먼저 보내는 신호' })
-    assert.match(String(messages[1].content), /분량 예산: 본문 405~945자/)
+    assert.match(String(messages[1].content), /분량 예산: 본문 1,080~2,160자/)
     const opening = sectionPrompt(analysis, birth, context, { ...section('one', 1) })
     assert.match(String(opening[1].content), /1,080~2,160자/)
   })

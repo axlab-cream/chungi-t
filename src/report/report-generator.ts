@@ -2215,7 +2215,7 @@ function compactPromptSiblings(siblings: SajuReportSection[]): Array<{
  * 길고 반복돼 보였다(퇴사운 48항목 ≈ 42,000자, 권장 20,000~30,000자). 규격은 셋이다 —
  *  - 첫 항목: 독자가 처음 읽는 글. 방향을 잡아 주고 근거를 두텁게(1,200~1,600자)
  *  - 하이라이트: 판정·타이밍·액션 플랜·다섯 스승처럼 값을 만드는 항목(1,100~1,500자)
- *  - 나머지: 400~700자. 근거가 얇으면 늘리지 않고 짧게 둔다 — 늘린 문장이 반복으로 읽힌다
+ *  - 나머지: 1,200~1,600자. 천명사주와 같이 근거·생활 장면·다음 기준을 충분히 설명한다
  * 출력 토큰이 그만큼 줄어 생성 시간도 같은 비율로 준다(시간 ≈ 출력 토큰 ÷ 초당 토큰 ÷ 동시 수).
  */
 export type SectionWeight = 'opening' | 'highlight' | 'standard'
@@ -2223,7 +2223,7 @@ const HIGHLIGHT_PATTERN = /총평|전체 판정|타이밍|액션 플랜|실행 �
 export function sectionLengthPlan(section: Pick<SajuReportSection, 'order' | 'category' | 'classification'>): { weight: SectionWeight; min: number; max: number } {
   if (section.order === 1) return { weight: 'opening', min: 1_200, max: 1_600 }
   if (HIGHLIGHT_PATTERN.test(`${section.category} ${section.classification}`)) return { weight: 'highlight', min: 1_100, max: 1_500 }
-  return { weight: 'standard', min: 450, max: 700 }
+  return { weight: 'standard', min: 1_200, max: 1_600 }
 }
 
 function sectionLengthInstruction(section: SajuReportSection): string {
@@ -2233,7 +2233,7 @@ function sectionLengthInstruction(section: SajuReportSection): string {
     ? '첫 항목입니다. 독자가 처음 읽는 글이므로 이 리포트가 무엇에 답하는지 방향을 잡아 주고 근거를 두텁게 쓰세요.'
     : plan.weight === 'highlight'
       ? '이 항목은 하이라이트입니다. 근거·생활 장면·다음 판단 기준을 두텁게 쓰세요.'
-      : '근거가 얇으면 억지로 늘리지 말고 짧게 두세요. 늘린 문장은 반복으로 읽힙니다.'
+      : '현재 질문의 개인 근거·쉬운 풀이·생활 장면·확인할 현실 조건·다음 행동을 각각 다른 내용으로 충분히 설명하세요. 확인되지 않은 사실이나 반복 문장으로 분량을 채우지 마세요.'
   return `분량 예산: 본문 ${budget.min.toLocaleString('ko-KR')}~${budget.max.toLocaleString('ko-KR')}자(공백 포함). ${role}`
 }
 

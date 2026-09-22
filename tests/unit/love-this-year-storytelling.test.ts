@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { readFileSync } from 'node:fs'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
 import {
   buildLoveThisYearStoryBeat,
+  calculateLoveMonthlySignals,
   formatStoryInterpretation,
   loveThisYearHook,
 } from '../../src/report/storytelling.js'
@@ -73,11 +75,34 @@ describe('love_this_year storytelling shape', () => {
     const beat = buildLoveThisYearStoryBeat('love-monthly-flow', analysis, loveContext, ['연애운'], sampleBirth)
     const text = formatStoryInterpretation(beat)
 
-    assert.ok(beat.chartPoints && beat.chartPoints.length >= 4)
+    assert.equal(beat.chartPoints?.length, 12)
+    assert.ok(beat.chartPoints?.every((point) => Number.isInteger(point.value) && point.value >= 0 && point.value <= 3))
     assert.ok(beat.tableMd && beat.tableMd.includes('|'))
-    assert.ok(text.includes('<!--chart:'))
-    assert.ok(text.includes('love_monthly_flow'))
+    assert.ok(text.includes('선택한 신호'))
+    assert.ok(!text.includes('<!--chart:'), '내부 차트 JSON을 고객 원문에 노출하지 않는다')
     assert.ok(loveThisYearHook('love-dohwa-months', analysis, loveContext, sampleBirth).includes('공기') || loveThisYearHook('love-dohwa-months', analysis, loveContext, sampleBirth).includes('월'))
+  })
+
+  it('연애 흐름 그래프는 실제 월주와 개인 도화·보완 기운에서만 신호를 센다', () => {
+    const analysis = analyzeSaju(sampleBirth)
+    const first = calculateLoveMonthlySignals(sampleBirth, analysis, 2026)
+    const next = calculateLoveMonthlySignals(sampleBirth, analysis, 2027)
+    assert.equal(first.length, 12)
+    assert.equal(next.length, 12)
+    assert.ok(first.some((point, index) => point.value !== next[index]?.value || point.note !== next[index]?.note))
+    assert.ok(first.every((point) => /^\d{1,2}월$/.test(point.label) && point.value <= 3))
+    assert.ok(first.some((point) => point.note.includes('도화') || point.note.includes('보완')))
+    assert.ok(first.every((point) => !point.note.includes('성공률') && !point.note.includes('확률')))
+  })
+
+  it('기존 저장 리포트의 화면용 퍼센트 대신 로그인 API의 새 계산값을 그린다', () => {
+    const source = readFileSync('사주/js/umsh-report-access.js', 'utf8')
+    const server = readFileSync('src/server/app.ts', 'utf8')
+    assert.match(server, /record\.analysis\?\.fortune\?\.currentYear \?\? analysis\.fortune\?\.currentYear/)
+    assert.match(server, /calculateLoveMonthlySignals\(record\.birth, currentAnalysisForRecord\(record\), loveReportYear\)/)
+    assert.match(source, /payload && payload\.loveMonthlySignals/)
+    assert.match(source, /renderStoryChart\(monthly, .*?, 3\)/)
+    assert.match(source, /section\.id === 'love-monthly-flow'/)
   })
 
   it('소비자 훅은 상품 제목 반복이 아니라 장면형이다', () => {

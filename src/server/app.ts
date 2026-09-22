@@ -14,6 +14,7 @@ import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
 import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { calculateLoveMonthlySignals } from '../report/storytelling.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow, startReportLongform } from '../report/report-queue.js'
 import { savedDailyFortune } from '../report/daily-report.js'
@@ -4707,6 +4708,10 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     // 이 레코드는 findReportRecord에서 owner 소유권 검사를 이미 통과했다. 현실 기준은
     // 해당 회원의 프로필에서만 읽고, 비로그인/다른 계정의 응답에는 싣지 않는다.
     const memberContext = owner ? (await getUserBirthProfile(owner))?.lifeContext : undefined
+    const loveReportYear = record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
+    const loveMonthlySignals = record.context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY && loveReportYear
+      ? calculateLoveMonthlySignals(record.birth, currentAnalysisForRecord(record), loveReportYear)
+      : undefined
     res.json({
       report: analysis.report,
       reportId: record.reportId,
@@ -4715,6 +4720,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       birth: record.birth,
       context: publicReportContext(record.context),
       analysis,
+      ...(loveMonthlySignals ? { loveMonthlySignals } : {}),
       ...(memberContext ? { memberContext } : {}),
       chatHistory: record.chatHistory ?? [],
       // 관리자 계정에만. 실패한 항목이 왜 막혔는지(검수 사유) 화면 없이 볼 수 있어야 한다.

@@ -4,8 +4,8 @@ import type {
   SajuReportContext,
   SajuReportSection,
 } from '../types/index.js'
-import { BRANCH_KO, ELEMENT_KO } from '../saju/analyzer-helpers.js'
-import { pillarLabel } from '../saju/calculator.js'
+import { BRANCH_KO, ELEMENT_KO, STEM_ELEMENT } from '../saju/analyzer-helpers.js'
+import { buildPillar, calculateStemBranchIndices, pillarLabel } from '../saju/calculator.js'
 import { addressName, applyServiceTone } from './report-tone.js'
 
 export interface StoryImagePrompt {
@@ -103,19 +103,11 @@ export function formatStoryInterpretation(beat: StoryBeat): string {
   }
 
   if (beat.chartPoints && beat.chartPoints.length > 0) {
-    const caption = beat.chartCaption?.trim() || '달마다 마음이 움직이는 온도가 달라요.'
+    const caption = beat.chartCaption?.trim() || '달마다 확인되는 전통적 관계 신호를 비교해요.'
     const timeline = beat.chartPoints
-      .map((point) => `- ${point.label} · ${point.note} (${Math.max(0, Math.min(100, point.value))}%)`)
+      .map((point) => `- ${point.label} · ${point.note} (선택한 신호 ${point.value}/3개)`)
       .join('\n')
-    const chartJson = JSON.stringify({
-      type: 'love_monthly_flow',
-      points: beat.chartPoints.map((point) => ({
-        label: point.label,
-        value: point.value,
-        note: point.note,
-      })),
-    })
-    parts.push(`${caption}\n\n${timeline}\n\n<!--chart:${chartJson}-->`)
+    parts.push(`${caption}\n\n${timeline}`)
   }
 
   parts.push(beat.scene.trim())
@@ -147,19 +139,27 @@ export function toStorytellingPayload(beat: StoryBeat): StorytellingPayload {
   }
 }
 
-function loveMonthlyChart(
-  currentYear: number,
-  dohwaMonth: string,
-  yearPillar: string,
-): StoryChartPoint[] {
-  return [
-    { label: `${currentYear}.봄`, value: 62, note: '소개와 새 동선이 스며드는 때' },
-    { label: `${currentYear}.초여름`, value: dohwaMonth.includes('5') || dohwaMonth.includes('6') || dohwaMonth.includes('3') || dohwaMonth.includes('4') ? 88 : 74, note: '마음이 먼저 밝아지는 창' },
-    { label: `도화 · ${dohwaMonth}`, value: 92, note: '시선이 붙고 연락이 길어지는 장면' },
-    { label: `${currentYear}.가을`, value: 70, note: '관계의 온도를 고르는 때' },
-    { label: `${currentYear}.겨울`, value: 58, note: '확인과 여운이 남는 달' },
-    { label: `${yearPillar} 세운`, value: 66, note: '올해 물결 위에서 인연이 출렁이는 결' },
-  ]
+/** Three observable traditional markers, not an encounter probability or a prediction. */
+export function calculateLoveMonthlySignals(birth: BirthInput, analysis: SajuAnalysis, year: number): StoryChartPoint[] {
+  const dayBranch = analysis.fourPillars.day.branch
+  const dohwaBranch = dohwaBranchFromDayBranch(dayBranch)
+  const complementary = analysis.usefulGod || analysis.weakElement
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1
+    // The 15th lies after the month's solar-term boundary; use the same calculator as the report.
+    const indices = calculateStemBranchIndices({ ...birth, year, month, day: 15, hour: 12, minute: 0, calendar: 'solar' })
+    const pillar = buildPillar(indices.month.stemIdx, indices.month.branchIdx)
+    const signals = [
+      pillar.branch === dohwaBranch ? '도화 지지와 겹침' : '',
+      complementary && STEM_ELEMENT[pillar.stem] === complementary ? '보완 기운이 월간에 있음' : '',
+      pillar.branch === dayBranch ? '태어난 날의 지지와 같음' : '',
+    ].filter(Boolean)
+    return {
+      label: `${month}월`,
+      value: signals.length,
+      note: signals.length ? signals.join(' · ') : '선택한 세 신호와 직접 겹치지 않음',
+    }
+  })
 }
 
 interface LoveStoryContext {
@@ -278,7 +278,7 @@ export function buildLoveThisYearStoryBeat(
 ): StoryBeat {
   const f = baseFacts({ analysis, context, birth, ragTopics })
   const hook = loveThisYearHook(sectionId, analysis, context, birth)
-  const chart = loveMonthlyChart(f.currentYear, f.dohwaMonth, f.yearPillar)
+  const chart = birth ? calculateLoveMonthlySignals(birth, analysis, f.currentYear) : []
   const softYear = `그래서 ${f.currentYear}년 ${f.yearPillar} 세운 아래, 연애 가능성이 마음으로 먼저 움직이는 해예요.`
   const softDohwa = `그래서 ${f.dohwaMonth} 도화의 공기가 유난히 다가와요. 타이밍 신호예요.`
   const softUseful = `천천히 확인해 주는 온기가, 더 오래 남아요.`
@@ -390,7 +390,7 @@ export function buildLoveThisYearStoryBeat(
       feel: `${f.currentYear}년의 월별 연애 흐름은 한 방에 오지 않네. 봄엔 만남의 문이 열리고, 여름엔 말이 많아지며, 가을엔 관계를 고르고, 겨울엔 남는 사람을 확인하는 리듬이 있어요.`,
       softBridge: softYear,
       chartPoints: chart,
-      chartCaption: '월별 연애 온도 — 숫자보다 장면으로 읽어 보세요.',
+      chartCaption: '월별 관계 신호 수 · 세 가지 전통 기준과 겹친 횟수입니다. 만남이나 연애 성공률이 아닙니다.',
       tableMd: [
         '| 계절 | 마음의 일 |',
         '| --- | --- |',

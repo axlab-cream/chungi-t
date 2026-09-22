@@ -9,6 +9,55 @@
 
 [data-umsh-slot] { min-width: 0; }
 
+/* ── 공용 리더 하단 도구 ─────────────────────────────────── */
+/*
+ * 실제 저장 리포트에만 접근기가 붙인다. 서비스의 색은 유지하되, 행동은 모든 06
+ * 상세에서 같은 순서(공유 → PDF)로 끝낸다. 상태 문구는 버튼 다음에 독립 줄로
+ * 두어 긴 복사 결과가 버튼 폭을 밀어내지 않는다.
+ */
+.umsh-reader-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin: 26px 0 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line, rgba(222, 188, 113, .28));
+}
+.umsh-reader-actions button {
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1px solid var(--line, rgba(222, 188, 113, .42));
+  border-radius: 12px;
+  background: var(--panel, rgba(255, 255, 255, .045));
+  color: var(--ink, #fff7f2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.35;
+  cursor: pointer;
+}
+.umsh-reader-actions button:hover { background: rgba(255, 255, 255, .1); }
+.umsh-reader-actions button:focus-visible {
+  outline: 2px solid var(--cyan, var(--gold, #e8c76f));
+  outline-offset: 3px;
+}
+.umsh-reader-actions [data-umsh-pdf] {
+  border-color: var(--gold, #e8c76f);
+  color: var(--gold-soft, var(--gold, #e8c76f));
+}
+.umsh-reader-actions [role="status"] {
+  grid-column: 1 / -1;
+  min-height: 0;
+  color: var(--muted, rgba(255, 247, 223, .72));
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 359px) {
+  .umsh-reader-actions { grid-template-columns: 1fr; }
+  .umsh-reader-actions [role="status"] { grid-column: auto; }
+}
+
 /* ── 진행률 ─────────────────────────────────────────────── */
 [data-umsh-slot="progress"] {
   display: grid;

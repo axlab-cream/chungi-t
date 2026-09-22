@@ -749,3 +749,33 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | OPS-HOME-04 | 실패 이력 보존·`retryFloorAt` 1회 설정·정식 dead 작업 재사용 | PASS |
 | OPS-HOME-05 | 관리자 작업 큐 진행·조치·완료 이력 분리 | PASS |
 | OPS-HOME-06 | 전체 직렬 테스트·TypeScript·Vercel production build·diff check | PASS (1,482/1,482, 162 suites) |
+
+## 2026-09-22 — 서비스 공통 풍부한 읽기·연애 월별 신호·실사 하이라이트
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| READING-ALL-01 | 공용 마크다운 표·강조·인용·HTML 이스케이프 및 전용 화면 호출 | PASS |
+| READING-ALL-02 | 17개 공용 리더의 실제 오행값 그래프·서비스 색상·이미지 계약 | PASS |
+| READING-ALL-03 | 올해 연애운 12개월 신호값 계산·저장 퍼센트 차트 차단·새 실사 배너 | PASS |
+| READING-ALL-04 | 전체 단위 테스트·집중 재검증 | PASS (1,529/1,529; 변경 후 12/12) |
+| READING-ALL-05 | TypeScript·20개 서비스 QA·Vercel build·diff check | PASS |
+| READING-ALL-06 | 로그인 회원 실제 화면의 시각 QA·운영 배포 | 미실행 (별도 승인 게이트) |
+
+## 2026-09-22 — 올해 연애운 요약 이미지 크롭 보정
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| LOVE-SUMMARY-01 | 가로 전용 실사 자산·원본비율 렌더러·CSS 계약 | PASS (13/13) |
+| LOVE-SUMMARY-02 | JS 문법·diff check·Vercel build | PASS |
+| LOVE-SUMMARY-03 | 로그인 운영 리포트의 실제 이미지 표시 | 미실행 (배포 전) |
+
+## 2026-09-22 — 올해 연애운 공통 리더 액션
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| LOVE-CHROME-01 | 별도 상태/PDF 바·채팅 입력을 legacy 표시로 구분하고 공용 크롬과 중복 제거 | PASS |
+| LOVE-CHROME-02 | 저장 리포트 끝 공통 `링크 공유하기`·`PDF 저장` 액션 및 canonical 권한 계약 | PASS |
+| LOVE-CHROME-03 | 공통 액션 CSS의 2열/좁은 화면 1열·포커스 상태 | PASS |
+| LOVE-CHROME-04 | 집중 리더 회귀 | PASS (93/93) |
+| LOVE-CHROME-05 | 전체 회귀·TypeScript·Vercel build·diff check | PASS |
+| LOVE-CHROME-06 | 로그인 운영 상세의 실제 클릭 흐름 | 미실행 (배포 전) |

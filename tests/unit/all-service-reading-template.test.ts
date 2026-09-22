@@ -64,6 +64,45 @@ test('올해 연애운 상세의 대표 썸네일은 실사형 표지 자산을 
   assert.match(detail, /els\.hero\.src = "\.\.\/assets\/thisyear\/report-sections\/00-year-love-report-hero-v1\.png"/)
 })
 
+test('올해 연애운 상세은 공통 GNB·하단 내비게이션을 유지하고, 실제 리포트에서는 공통 공유·PDF 도구만 쓴다', () => {
+  const detail = read('사주/love/this-year/06-step-6_1-report-detail/index.html')
+  const reader = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-verified-inplace.css')
+
+  assert.match(detail, /data-umsh-chrome/)
+  assert.match(detail, /class="contextbar" data-umsh-legacy-reading-ui/)
+  assert.match(detail, /class="chat-input" id="chat-form" data-umsh-legacy-reading-ui/)
+  assert.match(detail, /#step-6_1-report \[data-umsh-legacy-reading-ui\] \{ display: none !important; \}/)
+  assert.match(reader, /function ensureInPlaceReaderActions\(host, payload\)/)
+  assert.match(reader, /링크 공유하기/)
+  assert.match(reader, /data-umsh-pdf>PDF 저장/)
+  assert.match(reader, /if \(!ensureInPlaceReaderActions\(host, payload\)\) ensurePdfDock\(host\)/)
+  assert.match(css, /\.umsh-reader-actions\s*\{/)
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/)
+})
+
+test('올해 연애운 한눈에 보기에는 잘림 없는 가로형 전용 실사 이미지를 사용한다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const reader = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-longform.css')
+  const service = blocks.services.love_this_year
+
+  assert.equal(service.thumbnail, '/love/this-year/assets/thisyear/report-sections/00-year-love-summary-wide-v1.png')
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.ok(existsSync(join(root, '사주', service.thumbnail)))
+  assert.match(reader, /summaryImageFit === 'wide'/)
+  assert.match(css, /\.umsh-summary-figure\.is-wide-summary/)
+  assert.match(css, /object-fit: contain/)
+})
+
+test('올해 연애운 첫 하이라이트는 도화 주제의 독립 실사 배너를 사용한다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const banner = blocks.services.love_this_year.cutB as string
+  assert.equal(banner, '/love/this-year/assets/thisyear/report-sections/11-dohwa-highlight-cafe-v1.png')
+  assert.ok(existsSync(join(root, '사주', banner)))
+  assert.ok(!blocks.services.love_this_year.sectionImages.includes(banner), '토글 이미지와 하이라이트 배너를 반복하지 않는다')
+})
+
 test('reader keeps source prose and shows a textual accordion state', () => {
   const source = read('사주/js/umsh-report-access.js')
   const css = read('사주/css/umsh-verified-reader.css')
@@ -71,4 +110,17 @@ test('reader keeps source prose and shows a textual accordion state', () => {
   assert.match(source, /readingBlock\('evidence'/)
   assert.match(css, /content: '펼치기 \+'/)
   assert.match(css, /content: '접기 −'/)
+})
+
+test('every standard service can show only verified five-element counts in its first accordion', () => {
+  const source = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-verified-reader.css')
+  assert.match(source, /function serviceElementsChartHtml\(payload, index\)/)
+  assert.match(source, /if \(index !== 0\) return ''/)
+  assert.match(source, /Number\.isFinite\(value\)/)
+  assert.match(source, /analysis\.elements/)
+  assert.match(source, /사주 오행 계산값/)
+  assert.match(source, /성공률이나 사건 예측 점수가 아닙니다/)
+  assert.match(source, /serviceElementsChartHtml\(payload, index\)/)
+  assert.match(css, /\.umsh-service-elements/)
 })

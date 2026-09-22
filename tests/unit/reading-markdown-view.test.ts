@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { runInNewContext } from 'node:vm'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
+const read = (path: string) => readFileSync(join(root, path), 'utf8')
 
 /**
  * 2026-09-18: 해석 본문이 마크다운 뷰가 아니라 글자 그대로 찍혔다. 모델이 표를 쓰면
@@ -59,6 +60,23 @@ test('목록과 굵은 글씨를 옮긴다', () => {
   const ordered = render('1. 먼저 확인\n2. 다음 확인')
   assert.match(ordered, /<ol class="reading-list"><li>먼저 확인<\/li><li>다음 확인<\/li><\/ol>/)
   assert.match(render('여기는 **중요**해요.'), /<strong>중요<\/strong>/)
+})
+
+test('저장 원문의 인용·강조·밑줄·형광 표시를 안전한 마크다운 뷰로 옮긴다', () => {
+  const render = richText()
+  const html = render('> 선택의 기준\n\n## 오늘 할 일\n**핵심**과 *설명*, ++밑줄++, ==강조==')
+  assert.match(html, /<blockquote class="reading-quote">선택의 기준<\/blockquote>/)
+  assert.match(html, /<p class="reading-subhead">오늘 할 일<\/p>/)
+  assert.match(html, /<strong>핵심<\/strong>/)
+  assert.match(html, /<em>설명<\/em>/)
+  assert.match(html, /<u>밑줄<\/u>/)
+  assert.match(html, /<mark>강조<\/mark>/)
+  assert.doesNotMatch(render('==<img onerror=alert(1)>=='), /<img/)
+})
+
+test('전용 집 풍수·결혼 날짜 상세도 공용 마크다운 뷰를 호출한다', () => {
+  assert.match(read('사주/place/home/06-step-6_1-report-detail/index.html'), /UMSHReportAccess\.richText\(block\.body\)/)
+  assert.match(read('사주/js/wedding-service.js'), /reportAccess\.richText\(block\)/)
 })
 
 test('평범한 문단은 그대로 한 문단으로 남는다', () => {

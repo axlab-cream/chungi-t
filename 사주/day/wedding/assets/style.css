@@ -51,6 +51,9 @@ a{color:inherit;text-decoration:none}
 .reading-body{display:grid;gap:22px}
 .reading-body h3{color:var(--seal-dark);margin-bottom:8px}
 .reading-body p{white-space:pre-line}
+.wedding-richtext{min-width:0;overflow-wrap:anywhere;line-height:1.8}
+.wedding-richtext p{margin:0 0 12px}
+.wedding-richtext .reading-table-wrap{max-width:100%}
 .reading-progress{margin-top:16px;font-size:14px;color:var(--muted)}
 .reading-nav{padding:24px;background:var(--paper-2)}
 .wedding-content .reading-nav label{display:block;margin-bottom:8px;font-size:15px}

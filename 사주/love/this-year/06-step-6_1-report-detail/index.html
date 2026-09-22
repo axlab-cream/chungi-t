@@ -2,7 +2,7 @@
 <html lang="ko" data-umsh-verified-inplace>
 <head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
-    <script src="/js/umsh-report-access.js?v=20260922-love-hero-photo-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20260922-common-reader-actions-v1"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>나, 올해 연애 가능? | 상세 풀이</title>
@@ -171,6 +171,9 @@
       border-bottom: 1px solid var(--line);
       background: rgba(17, 19, 26, 0.96);
     }
+
+    /* 공용 크롬이 상단과 하단을 맡는다. 저장 해석의 도구는 본문 끝 공통 영역에서만 제공한다. */
+    #step-6_1-report [data-umsh-legacy-reading-ui] { display: none !important; }
 
     .context-chip {
       min-width: 0;
@@ -690,7 +693,7 @@
       </div>
     </header>
 
-    <div class="contextbar">
+    <div class="contextbar" data-umsh-legacy-reading-ui>
       <p class="context-chip" id="context-chip">상세 풀이 준비 중</p>
       <button class="pdf-button" type="button" id="btn-pdf">PDF</button>
     </div>
@@ -746,7 +749,7 @@
       </section>
     </section>
 
-    <form class="chat-input" id="chat-form">
+    <form class="chat-input" id="chat-form" data-umsh-legacy-reading-ui>
       <textarea id="chat-message" rows="2" placeholder="이 항목에서 더 궁금한 점을 적어주세요." required></textarea>
       <button class="send-btn" type="submit">전송</button>
     </form>

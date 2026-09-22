@@ -190,12 +190,18 @@
       '.reading-list{margin:8px 0;padding-left:1.2em}',
       '.reading-list li{margin:4px 0}',
       '.reading-subhead{font-weight:800;margin:10px 0 4px}',
+      '.reading-quote{margin:12px 0;padding:9px 13px;border-left:3px solid #d8ba72;background:rgba(216,186,114,.09);line-height:1.7}',
+      '.reading-block mark,.home-richtext mark,.wedding-richtext mark{padding:0 .12em;background:#b88935;color:#171109}',
+      '.reading-block u,.home-richtext u,.wedding-richtext u{text-decoration-color:#d8ba72;text-underline-offset:.2em}',
     ].join('');
     document.head.appendChild(style);
   }
   function inlineMarkdown(escaped) {
     return escaped
       .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+      .replace(/\+\+([^+\n]+)\+\+/g, '<u>$1</u>')
+      .replace(/==([^=\n]+)==/g, '<mark>$1</mark>')
       .replace(/`([^`\n]+)`/g, '<code>$1</code>');
   }
   function isTableRow(line) { return /^\|.*\|$/.test(line.trim()); }
@@ -254,6 +260,12 @@
       if (/^\s*#{1,4}\s+\S/.test(line)) {
         flush();
         html += '<p class="reading-subhead">' + inlineMarkdown(escapeHtml(line.replace(/^\s*#{1,4}\s+/, ''))) + '</p>';
+        index += 1;
+        continue;
+      }
+      if (/^\s*>\s*\S/.test(line)) {
+        flush();
+        html += '<blockquote class="reading-quote">' + inlineMarkdown(escapeHtml(line.replace(/^\s*>\s*/, ''))) + '</blockquote>';
         index += 1;
         continue;
       }
@@ -375,8 +387,9 @@
     // 대표 이미지는 포털에서 사용자가 처음 만난 서비스 썸네일과 같은 자산을 쓴다.
     // 서비스별 하이라이트·본문 컷은 아래 `cutA`/`cutB`가 이어받는다.
     var cut = config && (config.thumbnail || config.cutA);
+    var summaryFit = config && config.summaryImageFit === 'wide' ? ' is-wide-summary' : '';
     var figure = cut
-      ? '<figure class="umsh-summary-figure"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
+      ? '<figure class="umsh-summary-figure' + summaryFit + '"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
       : '';
     var body = shown.length
       ? shown.map(richText).join('')
@@ -495,6 +508,21 @@
       + '<div class="umsh-reading-guide-scroll"><table><thead><tr><th scope="col">해석의 초점</th><th scope="col">지금 읽는 기준</th></tr></thead><tbody>'
       + guide.map(function (line, guideIndex) { return '<tr><th scope="row">' + escapeHtml(labelText(topics[guideIndex].title)) + '</th><td>' + escapeHtml(line) + '</td></tr>'; }).join('')
       + '</tbody></table></div></section>';
+  }
+
+  function serviceElementsChartHtml(payload, index) {
+    if (index !== 0) return '';
+    var analysis = payload && payload.analysis || {};
+    var elements = analysis.elements || {};
+    var config = longformConfigFor(reportServiceKey(payload));
+    if (!config || !Array.isArray(config.guide)) return '';
+    var entries = [['나무', elements.wood], ['불', elements.fire], ['흙', elements.earth], ['쇠', elements.metal], ['물', elements.water]];
+    if (!entries.every(function (item) { var value = item[1]; return typeof value === 'number' && Number.isFinite(value) && value >= 0; })) return '';
+    var maximum = Math.max(1, ...entries.map(function (item) { return item[1]; }));
+    return '<figure class="umsh-service-elements"' + serviceAccentStyle(config) + '>'
+      + '<figcaption><strong>' + escapeHtml(config.title) + ' · 사주 오행 계산값</strong><span>태어난 사주에 나타난 다섯 기운의 횟수입니다. 연애·재물·일의 성공률이나 사건 예측 점수가 아닙니다.</span></figcaption>'
+      + '<ul>' + entries.map(function (item) { return '<li><span>' + item[0] + '</span><div class="umsh-service-element-track"><span style="width:' + Math.round(item[1] / maximum * 100) + '%"></span></div><strong>' + item[1] + '</strong></li>'; }).join('') + '</ul>'
+      + '</figure>';
   }
 
   function mountServiceReadingGuide(host, payload, serviceKey) {
@@ -746,7 +774,8 @@
     var hook = section.hook ? readingBlock('answer', '한 줄 답', [String(section.hook).trim()]) : '';
     var prefix = image + hook;
     var guide = serviceReadingGuideHtml(section, payload, index);
-    return body.indexOf(prefix) === 0 ? prefix + guide + body.slice(prefix.length) : guide + body;
+    var chart = serviceElementsChartHtml(payload, index);
+    return body.indexOf(prefix) === 0 ? prefix + guide + chart + body.slice(prefix.length) : guide + chart + body;
   }
 
   function cmdgCardTitle(section, payload) {
@@ -1103,7 +1132,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css';
+    link.href = '/css/umsh-verified-inplace.css?v=20260922-common-reader-actions-v1';
     document.head.appendChild(link);
   }
   /**
@@ -1222,6 +1251,36 @@
     button.textContent = 'PDF 저장';
     dock.appendChild(button);
     anchor.appendChild(dock);
+  }
+  /**
+   * 등록 디자인 안에서 실제 저장 리포트를 여는 06 상세 화면도 공용 리더와 같은 끝맺음을 쓴다.
+   *
+   * 각 서비스가 남긴 상태 칩·채팅 입력창은 결과를 읽을 때 필요한 도구가 아니고, 서비스마다
+   * 높이와 색이 달라 공통 GNB/하단 내비게이션 사이에 또 하나의 "앱"처럼 보이게 했다.
+   * 실제 리포트가 검증되어 채워진 뒤에만 이 두 레거시 영역을 닫고, 링크 복사와 PDF 저장을
+   * 한 자리에 제공한다. 링크는 권한을 양도하지 않는 canonical `/r/:id` 주소만 복사한다.
+   */
+  function ensureInPlaceReaderActions(host, payload) {
+    if (!isDetailPage() || !host || !payload) return false;
+    var id = identity(payload);
+    if (!id) return false;
+    var shell = host.closest && host.closest('[data-umsh-chrome], main');
+    var scrollArea = shell && shell.querySelector && shell.querySelector('.scroll-area');
+    var anchor = scrollArea || host.parentNode;
+    if (!anchor || !document.createElement) return false;
+    var existing = anchor.querySelector && anchor.querySelector('[data-umsh-reader-actions]');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    var legacy = document.querySelectorAll ? document.querySelectorAll('[data-umsh-legacy-reading-ui]') : [];
+    for (var i = 0; i < legacy.length; i++) hideLegacyNode(legacy[i]);
+    var actions = document.createElement('section');
+    actions.className = 'umsh-reader-actions';
+    actions.setAttribute('data-umsh-reader-actions', '');
+    actions.setAttribute('aria-label', '리포트 도구');
+    actions.innerHTML = '<button type="button" data-umsh-report-share="' + escapeHtml(id) + '">링크 공유하기</button>'
+      + '<span role="status" aria-live="polite"></span>'
+      + '<button type="button" data-umsh-pdf>PDF 저장</button>';
+    anchor.appendChild(actions);
+    return true;
   }
   function sectionStateClass(section) {
     if (!section) return 'is-pending';
@@ -1356,7 +1415,7 @@
     hideNativeSeedDetail(host);
     renderProgress(report);
     ensureImportantNotice(host, report);
-    ensurePdfDock(host);
+    if (!ensureInPlaceReaderActions(host, payload)) ensurePdfDock(host);
     return true;
   }
   /** 진행 안내를 디자인 안 상태 슬롯에 표시한다. 본문 슬롯은 건드리지 않는다. */
@@ -1427,14 +1486,14 @@
    * 단일 계열이라 범례를 두지 않고, 값과 설명을 전부 글자로 직접 붙인다 —
    * 색만으로 정보를 전달하지 않고, 표 대체본이 따로 필요하지도 않게 된다.
    */
-  function renderStoryChart(points, caption) {
+  function renderStoryChart(points, caption, fixedMax) {
     var list = (points || []).filter(function (point) {
       return point && typeof point.value === 'number' && isFinite(point.value);
     });
     if (!list.length) return '';
-    var max = list.reduce(function (acc, point) { return Math.max(acc, Math.abs(point.value)); }, 0) || 1;
+    var max = fixedMax || list.reduce(function (acc, point) { return Math.max(acc, Math.abs(point.value)); }, 0) || 1;
     var bars = list.map(function (point) {
-      var percent = Math.max(2, Math.round((Math.abs(point.value) / max) * 100));
+      var percent = Math.min(100, Math.round((Math.abs(point.value) / max) * 100));
       var note = String(point.note || '').trim();
       return '<li class="story-chart-row"' + (note ? ' title="' + escapeHtml(note) + '"' : '') + '>' +
         '<div class="story-chart-head">' +
@@ -1504,7 +1563,15 @@
     if (body.length) blocks.push(readingBlock('evidence', '근거', body));
 
     if (story.tableMd) blocks.push(renderMarkdownTable(story.tableMd, story.tableCaption));
-    if (story.chartPoints && story.chartPoints.length) blocks.push(renderStoryChart(story.chartPoints, story.chartCaption));
+    if (reportServiceKey(payload) === 'love_this_year') {
+      // Old stored storytelling carried decorative percentages in two sections. Never show those as a personal score.
+      if (section.id === 'love-monthly-flow') {
+        var monthly = payload && payload.loveMonthlySignals;
+        if (Array.isArray(monthly) && monthly.length === 12 && monthly.every(function (point) {
+          return point && /^\d{1,2}월$/.test(point.label) && Number.isInteger(point.value) && point.value >= 0 && point.value <= 3;
+        })) blocks.push(renderStoryChart(monthly, '월별 관계 신호 수 · 각 달 15일 기준 월주에서 도화 지지, 보완 기운, 태어난 날의 지지가 겹친 횟수입니다. 만남이나 연애 성공률이 아닙니다.', 3));
+      }
+    } else if (story.chartPoints && story.chartPoints.length) blocks.push(renderStoryChart(story.chartPoints, story.chartCaption));
     if (story.scene) blocks.push(readingBlock('scene', '생활 장면', paragraphsOf(story.scene)));
 
     if (Array.isArray(story.actions) && story.actions.length) {
