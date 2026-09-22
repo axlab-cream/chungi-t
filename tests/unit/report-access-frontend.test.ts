@@ -562,8 +562,8 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
   const h=harness('/r/cmdg-review',[])
   h.api.consume({
     reportId:'cmdg-review',context:{serviceKey:'saju_master'},
-    analysis:{elements:{wood:3,fire:1,earth:1,metal:1,water:2},dominantElement:'목',usefulGod:'수',fortune:{currentYear:2026,currentDaewoon:'癸未',yearPillar:'丙午',daewoon:[
-      {age:'16~25세',ageStart:16,ageEnd:25,startYear:2016,pillar:'壬午'},
+    analysis:{elements:{wood:3,fire:1,earth:1,metal:1,water:2},dominantElement:'목(木)',usefulGod:'수(水)',fortune:{currentYear:2026,currentDaewoon:'癸未',yearPillar:'丙午',daewoon:[
+      {age:'16~25세',ageStart:16,ageEnd:25,startYear:2016,pillar:'甲申'},
       {age:'26~35세',ageStart:26,ageEnd:35,startYear:2026,pillar:'癸未'},
     ]}},
     memberContext:{money:'실제 보상 조건',work:'현재 직장의 역할',relationship:'토요일 약속',planning:'올해의 결정'},
@@ -582,6 +582,7 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
   assert.match(html,/토요일 약속/)
   assert.match(html,/추가 정보 입력 전/)
   assert.match(html,/umsh-flow-line/)
+  assert.match(html,/M58 130 L88 35/)
   assert.match(html,/인생의 성공·수입을 예측한 점수는 아닙니다/)
 })
 

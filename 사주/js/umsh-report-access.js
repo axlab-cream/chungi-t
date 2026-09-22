@@ -479,8 +479,9 @@
 
   /** 대운 간지의 대표 오행과 저장 분석의 보완 기운을 비교한 세 단계 안내다. 결과 예측 점수가 아니다. */
   function cmdgFlowLevel(pillar, analysis) {
-    var useful = String(analysis && (analysis.usefulGod || analysis.weakElement) || '');
-    var dominant = String(analysis && analysis.dominantElement || '');
+    // API는 '수(水)'처럼 한글·한자를 함께 주므로, 간지 오행의 한글 한 글자와 맞춘다.
+    var useful = String(analysis && (analysis.usefulGod || analysis.weakElement) || '').charAt(0);
+    var dominant = String(analysis && analysis.dominantElement || '').charAt(0);
     var elements = [CMDG_STEM_ELEMENTS[pillar && pillar[0]], CMDG_BRANCH_ELEMENTS[pillar && pillar[1]]].filter(Boolean);
     if (!elements.length || !useful) return 2;
     var support = elements.filter(function (element) { return element === useful; }).length;
