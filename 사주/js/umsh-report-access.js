@@ -17,6 +17,12 @@
   if(key==='saju_master' && (new URLSearchParams(location.search).get('entry')==='today' || location.hash==='#todayResult')) key='today_fortune';
   var LEGACY = {newyear_flow:['umsh_newyear_report_v1'],love_this_year:['umsh:report:love_this_year'],job_choice:['umsh:report:job_choice'],quit_fortune:['umsh_quit_report_v1'],money_save:['umsh_save_report_v1'],cat_compatibility:['umsh:report:cat_compatibility'],lucky_color:['umsh:report:lucky_color'],match_couple:['umsh:couple-match:report-v1'],marry_match:['umsh_marry_report_v1'],couple_signal:['umsh:report:couple_signal'],pass_angle:['umsh_pass_angle_report_v1'],work_move:['umsh_work_move_report_v1','umsh_work_move_analysis_v1'],home_fit:['umsh_home_fit_report_v1'],saju_master:['cheongi_analysis']};
   var NESTED = {work_move:['umsh_work_move_input_payload_v1','umsh:work_move:form_v1'],home_fit:['umsh_home_fit_step2_payload_v1','umsh_home_fit_input_payload_v1']};
+  var CMDG_TEMPLATE_IMAGES = {
+    profile: '01-core-strength.png', 'day-master-strength': '02-resilience.png', 'hidden-personality': '03-private-presence.png', balance: '04-energy-focus.png',
+    'useful-god-eokbu': '05-restoration.png', 'concern-loop': '06-priority.png', 'career-money': '07-work-money.png', 'career-transition': '08-stay-or-move.png',
+    'wealth-flow': '09-value-created.png', 'love-loop': '10-relationship-pattern.png', 'destiny-partner': '11-relationship-atmosphere.png', 'avoid-relationship': '12-boundary.png',
+    'love-timing': '13-relationship-timing.png', 'future-flow': '14-long-current.png', 'sewoon-detail': '15-yearly-change.png', 'action-guide': '16-next-signal.png'
+  };
   var rawFetch = global.fetch.bind(global);
   var authorized = null;
   var rememberedId = '';
@@ -29,6 +35,18 @@
   var printOpenedSections = [];
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   function canonical(value) { return ALIASES[value] || value; }
+  function withCmdgTemplateImages(report, serviceKey) {
+    if (serviceKey !== 'saju_master' || !report || !Array.isArray(report.sections)) return report;
+    return Object.assign({}, report, { sections: report.sections.map(function (section) {
+      var filename = CMDG_TEMPLATE_IMAGES[section && section.id];
+      if (!filename) return section;
+      return Object.assign({}, section, {
+        imageKey: 'cmdg-review-' + String(section.order || ''),
+        imageSrc: '/assets/cmdg-review/' + filename,
+        imageAlt: String(section.category || '천명사주') + ' 풀이 이미지'
+      });
+    }) });
+  }
   function identity(payload) { return payload && (payload.resultId || payload.publicId || payload.reportId || (payload.report && (payload.report.resultId || payload.report.publicId || payload.report.reportId))) || ''; }
   function isPermalink() { return /^\/r\/[^/]+\/?$/.test(location.pathname); }
   function locationId() {
@@ -406,6 +424,75 @@
     };
     if (longform.config) { paint(); return; }
     loadLongformConfig().then(paint).catch(function () {});
+  }
+
+  /**
+   * 서버가 저장 리포트의 만세력으로 계산한 대운·삼재만 화면에 옮긴다. 브라우저에서는 나이·삼재·운세 점수나
+   * 미래 사건을 다시 계산하거나 만들지 않는다. memberContext 는 회원이 프로필에 직접
+   * 저장한 현실 기준이며, 리포트 원문과는 별개다.
+   */
+  function lifeFlowHtml(payload) {
+    var fortune = payload && payload.analysis && payload.analysis.fortune;
+    var daewoon = fortune && Array.isArray(fortune.daewoon) ? fortune.daewoon.filter(function (item) {
+      return item && typeof item.age === 'string' && typeof item.startYear === 'number' && typeof item.pillar === 'string';
+    }) : [];
+    if (!daewoon.length) return '';
+    var current = fortune.currentDaewoon || {};
+    var currentYear = typeof fortune.currentYear === 'number' ? fortune.currentYear : null;
+    var currentPillar = typeof current === 'string' ? current.trim() : String(current.pillar || '').trim();
+    var currentSegment = daewoon.find(function (item) { return item.pillar === currentPillar; }) || null;
+    var currentLabel = currentSegment ? currentSegment.age : String(current.age || '').trim();
+    var currentStart = currentSegment ? Number(currentSegment.startYear) : Number(current.startYear);
+    var currentText = [currentLabel, currentPillar && currentPillar + ' 대운', currentYear && String(currentYear) + '년 기준'].filter(Boolean).join(' · ');
+    var samjae = fortune && fortune.samjae && typeof fortune.samjae === 'object' ? fortune.samjae : null;
+    var samjaeStart = samjae && Number(samjae.periodStartYear);
+    var samjaeEnd = samjae && Number(samjae.periodEndYear);
+    var samjaePhases = { entering: '들어가는 해', middle: '가운데 해', leaving: '마무리 해' };
+    var samjaePhase = samjae && samjaePhases[samjae.phase] ? samjaePhases[samjae.phase] : '';
+    var samjaePeriod = Number.isFinite(samjaeStart) && Number.isFinite(samjaeEnd) ? String(samjaeStart) + '~' + String(samjaeEnd) + '년' : '';
+    var timeline = daewoon.map(function (item) {
+      var isCurrent = (Number.isFinite(currentStart) && item.startYear === currentStart)
+        || (!currentStart && currentLabel && item.age === currentLabel && item.pillar === currentPillar);
+      return '<li class="umsh-life-flow-segment' + (isCurrent ? ' is-current' : '') + '"' + (isCurrent ? ' aria-current="step"' : '') + '>'
+        + '<span class="umsh-life-flow-age">' + escapeHtml(item.age) + '</span>'
+        + '<strong>' + escapeHtml(item.pillar) + '</strong>'
+        + '<span>' + escapeHtml(String(item.startYear)) + '년 시작</span>'
+        + (isCurrent ? '<em>현재</em>' : '')
+        + '</li>';
+    }).join('');
+    var labels = { work: '일·직장', money: '재물·보상', relationship: '관계·연애', planning: '계획 기준' };
+    var member = payload && payload.memberContext && typeof payload.memberContext === 'object' ? payload.memberContext : {};
+    var contextRows = Object.keys(labels).map(function (field) {
+      var value = typeof member[field] === 'string' ? member[field].trim() : '';
+      return value ? '<li><strong>' + labels[field] + '</strong><span>' + escapeHtml(value) + '</span></li>' : '';
+    }).filter(Boolean).join('');
+    return '<section class="umsh-life-flow" aria-labelledby="umsh-life-flow-title">'
+      + '<span class="umsh-life-flow-eyebrow">만세력 계산 결과</span>'
+      + '<h2 id="umsh-life-flow-title">나의 대운 흐름</h2>'
+      + (currentText ? '<p class="umsh-life-flow-current">현재 위치 · ' + escapeHtml(currentText) + '</p>' : '')
+      + '<ol class="umsh-life-flow-timeline" aria-label="대운 구간">' + timeline + '</ol>'
+      + '<section class="umsh-life-flow-reference" aria-label="올해 참고와 삼재">'
+      + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(String(fortune.yearPillar || '')) + '</span></p>'
+      + (samjaePeriod ? '<p><strong>삼재</strong><span>' + escapeHtml(samjae.status === 'current' ? '현재 삼재 · ' + samjaePeriod + (samjaePhase ? ' · ' + samjaePhase : '') : '다음 삼재 · ' + samjaePeriod) + '</span></p>' : '')
+      + '</section>'
+      + '<details class="umsh-life-flow-source" open><summary>만세력 원자료 보기</summary>'
+      + '<p class="umsh-life-flow-note">대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.</p>'
+      + '</details>'
+      + '<section class="umsh-life-context" aria-labelledby="umsh-life-context-title">'
+      + '<h3 id="umsh-life-context-title">내가 저장한 현실 기준</h3>'
+      + (contextRows
+        ? '<ul>' + contextRows + '</ul>'
+        : '<p>아직 등록한 현실 기준이 없습니다. <a href="/profile">MY에서 한 번 등록</a>하면 이후 해석에서 다시 사용합니다.</p>')
+      + '</section></section>';
+  }
+
+  function mountLifeFlow(host, payload) {
+    if (!host) return;
+    var html = lifeFlowHtml(payload);
+    var existing = host.querySelector && host.querySelector('.umsh-life-flow');
+    if (!html) { if (existing && existing.parentNode) existing.parentNode.removeChild(existing); return; }
+    if (existing) { existing.outerHTML = html; return; }
+    host.insertAdjacentHTML('afterbegin', html);
   }
 
   /* ==================================================================
@@ -1000,7 +1087,8 @@
         '<summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' +
         body + '</details>';
     }).join('');
-    // 목차 위에 결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
+    // 목차 위에 계산 결과·결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
+    mountLifeFlow(host, payload);
     mountLongform(host, report, payload.entitled !== false);
     placeSectionVisuals(host);
     revealAncestors(host);
@@ -1194,6 +1282,8 @@
     if (!report || !Array.isArray(report.sections)) return;
     var serverKey = canonical((payload.context && payload.context.serviceKey) || report.serviceKey || key);
     if (key && serverKey !== key) { gate('이 서비스의 해석이 아닙니다. 구매 내역에서 해당 결과를 열어 주세요.'); return; }
+    report = withCmdgTemplateImages(report, serverKey);
+    payload = Object.assign({}, payload, { report: report });
     authorized = report;
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
@@ -1207,7 +1297,7 @@
      * 공용 상단바와 하단 내비게이션이 이미 같은 이동을 제공하고, 해석을 열자마자 읽을 것은
      * 제목과 결론이다. 오류·로그인 화면(gate)에는 갈 곳이 필요하므로 그쪽 navigation() 은 남긴다.
      */
-    node.innerHTML = '<h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p>' + '<div id="umsh-longform-mount"></div>' + report.sections.map(function(section,index) {
+    node.innerHTML = '<h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p>' + lifeFlowHtml(payload) + '<div id="umsh-longform-mount"></div>' + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
       var body = ready ? readySectionBody(section) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
       return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(labelText(section.category) + ' · ' + labelText(section.classification)) + '</summary>' + body + '</details>';

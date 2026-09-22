@@ -1,8 +1,39 @@
-import type { BirthInput, FortuneCycle } from '../types/index.js'
+import type { BirthInput, EarthlyBranch, FortuneCycle } from '../types/index.js'
 import { buildPillar, calculateStemBranchIndices, getDaewoonStartInfo, resolveBirthDate } from './calculator.js'
 
 function mod(n: number, m: number): number {
   return ((n % m) + m) % m
+}
+
+const SAMJAE_GROUPS: Array<{ birth: EarthlyBranch[]; period: EarthlyBranch[] }> = [
+  { birth: ['申', '子', '辰'], period: ['寅', '卯', '辰'] },
+  { birth: ['寅', '午', '戌'], period: ['申', '酉', '戌'] },
+  { birth: ['亥', '卯', '未'], period: ['巳', '午', '未'] },
+  { birth: ['巳', '酉', '丑'], period: ['亥', '子', '丑'] },
+]
+const EARTHLY_BRANCHES: EarthlyBranch[] = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+/**
+ * 출생 년주의 지지와 절기 기준 해의 지지로 삼재 기간만 계산한다.
+ * 좋고 나쁜 사건·점수는 만들지 않으며, 화면은 이 결과를 전통적인 연도 분류로만 안내한다.
+ */
+export function calculateSamjaeCycle(birthBranch: EarthlyBranch, pillarYear: number): NonNullable<FortuneCycle['samjae']> {
+  const group = SAMJAE_GROUPS.find((item) => item.birth.includes(birthBranch))
+  if (!group) throw new Error(`Unsupported birth branch: ${birthBranch}`)
+
+  const currentBranchIndex = mod(pillarYear - 4, 12)
+  const periodBranchIndex = EARTHLY_BRANCHES.indexOf(group.period[0])
+  const difference = mod(currentBranchIndex - periodBranchIndex, 12)
+  const active = difference <= 2
+  const periodStartYear = active ? pillarYear - difference : pillarYear + (12 - difference)
+
+  return {
+    status: active ? 'current' : 'next',
+    phase: active ? (['entering', 'middle', 'leaving'] as const)[difference] : null,
+    periodStartYear,
+    periodEndYear: periodStartYear + 2,
+    branches: group.period,
+  }
 }
 
 /** O(n) — 절기 기반 대운 흐름 */
@@ -53,6 +84,7 @@ export function calculateFortuneCycle(birth: BirthInput): FortuneCycle {
     yearPillar: `${yearPillar.stem}${yearPillar.branch}`,
     daewoon,
     currentDaewoon,
+    samjae: calculateSamjaeCycle(buildPillar(indices.year.stemIdx, indices.year.branchIdx).branch, currentIndices.pillarYear),
     direction,
     startAge,
     startAgeText: startInfo.text,

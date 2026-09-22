@@ -145,6 +145,13 @@ export interface FortuneCycle {
   yearPillar: string
   daewoon: Array<{ age: string; pillar: string; ageStart?: number; ageEnd?: number; startYear?: number }>
   currentDaewoon: string
+  samjae?: {
+    status: 'current' | 'next'
+    phase: 'entering' | 'middle' | 'leaving' | null
+    periodStartYear: number
+    periodEndYear: number
+    branches: EarthlyBranch[]
+  }
   direction?: 'forward' | 'backward'
   startAge?: number
   startAgeText?: string

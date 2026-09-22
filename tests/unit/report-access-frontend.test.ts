@@ -531,6 +531,32 @@ test('saved report cards distinguish answer, evidence, and action without repeat
   assert.match(html,/>돈 · 지금의 선택</)
 })
 
+test('saved report renders only the API-calculated daewoon timeline and shared member context',()=>{
+  const h=harness('/r/life-flow-report',[])
+  h.api.consume({
+    reportId:'life-flow-report',
+    context:{serviceKey:'saju_master'},
+    analysis:{fortune:{currentYear:2026,currentDaewoon:'庚辰',samjae:{status:'current',phase:'middle',periodStartYear:2025,periodEndYear:2027,branches:['巳','午','未']},daewoon:[
+      {age:'22~31세',ageStart:22,ageEnd:31,startYear:2013,pillar:'己卯'},
+      {age:'32~41세',ageStart:32,ageEnd:41,startYear:2023,pillar:'庚辰'},
+    ]}},
+    memberContext:{work:'역할과 평가 기준을 한 문장으로 정리해 두었습니다.',relationship:'약속의 시간과 이동 부담을 먼저 확인합니다.'},
+    report:{title:'저장된 풀이',sections:[{id:'profile',order:1,status:'complete',category:'현재',classification:'기준',interpretation:'저장된 원문입니다.'}]},
+  })
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.match(html,/나의 대운 흐름/)
+  assert.match(html,/32~41세/)
+  assert.match(html,/2023년 시작/)
+  assert.match(html,/현재/)
+  assert.match(html,/aria-current="step"/)
+  assert.match(html,/삼재/)
+  assert.match(html,/2025~2027년/)
+  assert.match(html,/가운데 해/)
+  assert.match(html,/\/assets\/cmdg-review\/01-core-strength\.png/)
+  assert.match(html,/역할과 평가 기준을 한 문장으로 정리/)
+  assert.doesNotMatch(html,/운세 점수|상승 곡선/)
+})
+
 test('legacy one-paragraph reports use a truthful combined role instead of inventing an action split',()=>{
   const h=harness('/r/legacy-report',[])
   h.api.consume({reportId:'legacy-report',report:{title:'예전 풀이',sections:[{

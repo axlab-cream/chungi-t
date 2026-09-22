@@ -51,6 +51,17 @@ import {
 } from './report-tone.js'
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
+const SAJU_MASTER_REVIEW_IMAGES = [
+  '01-core-strength.png', '02-resilience.png', '03-private-presence.png', '04-energy-focus.png',
+  '05-restoration.png', '06-priority.png', '07-work-money.png', '08-stay-or-move.png',
+  '09-value-created.png', '10-relationship-pattern.png', '11-relationship-atmosphere.png', '12-boundary.png',
+  '13-relationship-timing.png', '14-long-current.png', '15-yearly-change.png', '16-next-signal.png',
+]
+
+function sajuMasterReviewImage(index: number): string | null {
+  const filename = SAJU_MASTER_REVIEW_IMAGES[index]
+  return filename ? `/assets/cmdg-review/${filename}` : null
+}
 
 /** Always appended to report system prompts (scores, leak, invent, framing). */
 const SAFETY_ADDENDUM = [
@@ -1964,6 +1975,7 @@ export function buildTemplateSajuReport(
     ...(analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
   ]
   const name = addressName(context)
+  const isSajuMaster = normalizeServiceKey(context.serviceKey) === 'saju_master'
   const sections: SajuReportSection[] = blueprintsForContext(context).map((blueprint, index) => {
     const chunks = retrieveRagChunks(
       `${blueprint.query} ${reportContextQuery(context)}`,
@@ -1983,9 +1995,9 @@ export function buildTemplateSajuReport(
     return {
       id: blueprint.id,
       order: index + 1,
-      imageKey: 'common-mystic',
-      imageSrc: COMMON_IMAGE_SRC,
-      imageAlt: `${blueprint.category} 공통 이미지`,
+      imageKey: isSajuMaster && sajuMasterReviewImage(index) ? `cmdg-review-${index + 1}` : 'common-mystic',
+      imageSrc: isSajuMaster ? (sajuMasterReviewImage(index) ?? COMMON_IMAGE_SRC) : COMMON_IMAGE_SRC,
+      imageAlt: isSajuMaster && sajuMasterReviewImage(index) ? `${blueprint.category} 풀이 이미지` : `${blueprint.category} 공통 이미지`,
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
       classification: blueprint.classification ?? classificationFor(blueprint.focus, analysis, context, blueprint.id),

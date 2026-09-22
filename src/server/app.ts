@@ -91,7 +91,7 @@ import {
   getUserProfileStorageMode,
   saveUserBirthProfile,
 } from '../user/profile-store.js'
-import type { UserBirthProfile } from '../user/profile-store.js'
+import type { UserBirthProfile, UserLifeContext } from '../user/profile-store.js'
 import {
   canonicalPaymentProductKey,
   getPaymentProduct,
@@ -1415,6 +1415,24 @@ function validDateParts(year: number, month: number, day: number): boolean {
     && date.getDate() === day
 }
 
+const LIFE_CONTEXT_FIELDS = ['work', 'money', 'relationship', 'planning'] as const
+
+/** 공통 현실 기준은 한 문장씩만 받는다. 계산값·리포트 원문과 섞지 않는다. */
+function parseUserLifeContext(value: unknown): UserLifeContext | undefined {
+  if (value === undefined) return undefined
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('현실 기준 입력 형식을 다시 확인해 주세요.')
+  }
+  const source = value as Record<string, unknown>
+  const context: UserLifeContext = {}
+  for (const field of LIFE_CONTEXT_FIELDS) {
+    const text = trimmedString(source[field])
+    if (text.length > 180) throw new Error('현실 기준은 항목마다 180자 이하로 입력해 주세요.')
+    if (text) context[field] = text
+  }
+  return context
+}
+
 function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwner): UserBirthProfile {
   const birthBody = asObject(body.birth)
   const source = Object.keys(birthBody).length ? birthBody : body
@@ -1448,6 +1466,7 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   }
 
   const context = asObject(body.context)
+  const lifeContext = parseUserLifeContext(body.lifeContext)
   return buildUserBirthProfile({
     owner,
     name,
@@ -1468,6 +1487,7 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
       orientation: trimmedString(context.orientation),
       work: trimmedString(context.work),
     },
+    lifeContext,
   })
 }
 
@@ -4677,6 +4697,9 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     // 응답은 기다리지 않는다 — 화면이 폴링하며 빈자리를 메운다.
     startReportLongform({ reportId: record.reportId, owner })
     applyReportEntitlement(analysis.report, access, owner)
+    // 이 레코드는 findReportRecord에서 owner 소유권 검사를 이미 통과했다. 현실 기준은
+    // 해당 회원의 프로필에서만 읽고, 비로그인/다른 계정의 응답에는 싣지 않는다.
+    const memberContext = owner ? (await getUserBirthProfile(owner))?.lifeContext : undefined
     res.json({
       report: analysis.report,
       reportId: record.reportId,
@@ -4685,6 +4708,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       birth: record.birth,
       context: publicReportContext(record.context),
       analysis,
+      ...(memberContext ? { memberContext } : {}),
       chatHistory: record.chatHistory ?? [],
       // 관리자 계정에만. 실패한 항목이 왜 막혔는지(검수 사유) 화면 없이 볼 수 있어야 한다.
       ...(owner && isAdminOwner(owner) ? { diagnostics: reportDiagnostics(record) } : {}),

@@ -48,6 +48,22 @@ test('shared result permalink derives its immutable identity before booting the 
   assert.match(source, /\(key \|\| isPermalink\(\)\) && isOutputPage\(\)/)
 })
 
+test('saju master uses the same sixteen public thumbnails for new and saved reports', () => {
+  const generator = read('src/report/report-generator.ts')
+  const reader = read('사주/js/umsh-report-access.js')
+  const images = [
+    '01-core-strength.png', '02-resilience.png', '03-private-presence.png', '04-energy-focus.png',
+    '05-restoration.png', '06-priority.png', '07-work-money.png', '08-stay-or-move.png',
+    '09-value-created.png', '10-relationship-pattern.png', '11-relationship-atmosphere.png', '12-boundary.png',
+    '13-relationship-timing.png', '14-long-current.png', '15-yearly-change.png', '16-next-signal.png',
+  ]
+
+  assert.match(generator, /SAJU_MASTER_REVIEW_IMAGES/)
+  assert.match(generator, /\/assets\/cmdg-review\//)
+  assert.match(reader, /CMDG_TEMPLATE_IMAGES/)
+  images.forEach((image) => assert.equal(existsSync(join(root, '사주/사주/assets/cmdg-review', image)), true, image))
+})
+
 test('saju master release requires sanitized desktop, mobile and print evidence', () => {
   const evidencePath = 'tone-v2/evaluations/P04-saju-master-visual-render-evidence-20260914.json'
   assert.equal(existsSync(join(root, evidencePath)), true)

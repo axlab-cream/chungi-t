@@ -73,6 +73,46 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading .reading-action p { color: #f0e2b8; font-weight: 650; }
 #umsh-verified-reading .reading-retry { padding: 10px 14px; border: 1px solid #6b522c; border-radius: 8px; background: #211a11; color: #f5ead7; cursor: pointer; }
 #umsh-verified-reading .reading-retry:focus-visible { outline: 2px solid #e8d49a; outline-offset: 4px; }
+#umsh-verified-reading .umsh-life-flow {
+  margin: 0 0 24px;
+  padding: 22px 18px;
+  border: 1px solid rgba(216,186,114,.3);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #17140d, #0e0d0a);
+}
+#umsh-verified-reading .umsh-life-flow-eyebrow { display: block; margin-bottom: 6px; color: #d8ba72; font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+#umsh-verified-reading .umsh-life-flow h2 { margin-bottom: 6px; }
+#umsh-verified-reading .umsh-life-flow-current { margin: 0 0 18px; color: #f0e2b8; font-weight: 750; }
+#umsh-verified-reading .umsh-life-flow-timeline { display: grid; grid-template-columns: repeat(5, minmax(106px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; overflow-x: auto; scroll-snap-type: x proximity; }
+#umsh-verified-reading .umsh-life-flow-segment { position: relative; display: grid; gap: 3px; min-height: 96px; padding: 12px; border: 1px solid rgba(216,186,114,.15); border-radius: 10px; background: rgba(0,0,0,.24); color: #a39a8c; scroll-snap-align: start; }
+#umsh-verified-reading .umsh-life-flow-segment strong { color: #e5ddcd; font-size: 16px; }
+#umsh-verified-reading .umsh-life-flow-age { color: #d5cec1; font-size: 12px; font-weight: 750; }
+#umsh-verified-reading .umsh-life-flow-segment > span:last-of-type { font-size: 11px; }
+#umsh-verified-reading .umsh-life-flow-segment.is-current { border-color: #d8ba72; background: #282113; box-shadow: inset 0 0 0 1px rgba(216,186,114,.16); }
+#umsh-verified-reading .umsh-life-flow-segment.is-current strong { color: #f4d684; }
+#umsh-verified-reading .umsh-life-flow-segment em { position: absolute; top: 8px; right: 8px; padding: 2px 6px; border-radius: 999px; background: #d8ba72; color: #171109; font-size: 10px; font-style: normal; font-weight: 900; }
+#umsh-verified-reading .umsh-life-flow-note { margin: 14px 0 0; color: #a39a8c; font-size: 11px; line-height: 1.7; }
+#umsh-verified-reading .umsh-life-flow-reference { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 16px 0 0; }
+#umsh-verified-reading .umsh-life-flow-reference p { display: grid; gap: 4px; margin: 0; padding: 10px 11px; border-radius: 8px; background: rgba(216,186,114,.1); }
+#umsh-verified-reading .umsh-life-flow-reference strong { color: #d8ba72; font-size: 11px; }
+#umsh-verified-reading .umsh-life-flow-reference span { color: #f0e2b8; font-size: 12px; font-weight: 700; line-height: 1.55; }
+#umsh-verified-reading .umsh-life-flow-source { margin-top: 16px; border-top: 1px solid rgba(216,186,114,.18); }
+#umsh-verified-reading .umsh-life-flow-source > summary { display: flex; align-items: center; justify-content: space-between; padding: 13px 0 0; color: #d8ba72; font-size: 12px; font-weight: 800; cursor: pointer; list-style: none; }
+#umsh-verified-reading .umsh-life-flow-source > summary::-webkit-details-marker { display: none; }
+#umsh-verified-reading .umsh-life-flow-source > summary::after { content: '접기 −'; color: #c9b78e; font-size: 11px; }
+#umsh-verified-reading .umsh-life-flow-source:not([open]) > summary::after { content: '펼치기 +'; }
+#umsh-verified-reading .umsh-life-flow-source > summary:focus-visible { outline: 2px solid #e8d49a; outline-offset: 3px; }
+#umsh-verified-reading .umsh-life-context { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(216,186,114,.16); }
+#umsh-verified-reading .umsh-life-context h3 { margin: 0 0 10px; color: #e8d49a; font-size: 14px; }
+#umsh-verified-reading .umsh-life-context ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+#umsh-verified-reading .umsh-life-context li { display: grid; gap: 3px; padding: 10px 11px; border-radius: 8px; background: rgba(255,255,255,.035); }
+#umsh-verified-reading .umsh-life-context li strong { color: #d8ba72; font-size: 11px; }
+#umsh-verified-reading .umsh-life-context li span { color: #d5cec1; font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
+#umsh-verified-reading .umsh-life-context p { margin: 0; color: #a39a8c; font-size: 12px; line-height: 1.7; }
+#umsh-verified-reading .reading-card > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+#umsh-verified-reading .reading-card > summary::-webkit-details-marker { display: none; }
+#umsh-verified-reading .reading-card > summary::after { flex: 0 0 auto; padding: 4px 7px; border: 1px solid rgba(216,186,114,.42); border-radius: 999px; color: #d8ba72; content: '펼치기 +'; font-size: 10px; font-weight: 800; line-height: 1; white-space: nowrap; }
+#umsh-verified-reading .reading-card[open] > summary::after { border-color: rgba(216,186,114,.7); background: rgba(216,186,114,.14); color: #fff0bd; content: '접기 −'; }
 #umsh-verified-reading .preview-heading { margin: 12px 0 26px; }
 #umsh-verified-reading .preview-eyebrow { display: block; color: #d8ba72; font-size: 12px; font-weight: 800; letter-spacing: .03em; }
 #umsh-verified-reading .preview-heading h1 { margin-top: 12px; }
@@ -126,6 +166,8 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
   #umsh-verified-reading .reading-card > summary { padding-right: 4px; padding-left: 4px; }
   #umsh-verified-reading .preview-evidence,
   #umsh-verified-reading .preview-scope { padding: 20px 17px; }
+  #umsh-verified-reading .umsh-life-flow { padding: 20px 16px; }
+  #umsh-verified-reading .umsh-life-flow-reference { grid-template-columns: 1fr; }
 }
 
 @media print {
@@ -178,6 +220,22 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
     background: #f5f1e8 !important;
     border-left-color: #80672f !important;
   }
+  #umsh-verified-reading .umsh-life-flow,
+  #umsh-verified-reading .umsh-life-context li {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #bbb !important;
+  }
+  #umsh-verified-reading .umsh-life-flow-eyebrow,
+  #umsh-verified-reading .umsh-life-flow-current,
+  #umsh-verified-reading .umsh-life-flow-segment strong,
+  #umsh-verified-reading .umsh-life-flow-age,
+  #umsh-verified-reading .umsh-life-flow-segment > span:last-of-type,
+  #umsh-verified-reading .umsh-life-flow-note,
+  #umsh-verified-reading .umsh-life-context h3,
+  #umsh-verified-reading .umsh-life-context li strong,
+  #umsh-verified-reading .umsh-life-context li span,
+  #umsh-verified-reading .umsh-life-context p { color: #111 !important; }
 
   #umsh-verified-reading .umsh-lf-cta,
   #umsh-verified-reading .umsh-lf-locked,

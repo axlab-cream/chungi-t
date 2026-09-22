@@ -4,12 +4,25 @@ import { Pool } from 'pg'
 import type { BirthInput, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportStorageMode } from '../report/report-store.js'
 
+/**
+ * 회원이 한 번만 적어 두는 현실 기준이다. 저장 리포트의 계산값이나 원문과 달리
+ * 프로필에 속하며, 새 해석에서도 같은 값을 읽을 수 있다.
+ */
+export interface UserLifeContext {
+  work?: string
+  money?: string
+  relationship?: string
+  planning?: string
+}
+
 export interface UserBirthProfile {
   userId: string
   name: string
   birth: BirthInput
   birthTimeKnown: boolean
   context: Pick<SajuReportContext, 'target' | 'relationship' | 'orientation' | 'work'>
+  /** undefined 는 구형 클라이언트가 아직 이 필드를 보내지 않았다는 뜻이다. */
+  lifeContext?: UserLifeContext
   createdAt: string
   updatedAt: string
 }
@@ -31,6 +44,7 @@ type UserProfileRow = {
     relationship?: string
     orientation?: string
     work?: string
+    life_context?: UserLifeContext
   }
   created_at: string
   updated_at: string
@@ -125,6 +139,14 @@ function rowToProfile(row: UserProfileRow): UserBirthProfile {
       orientation: row.profile_payload?.orientation,
       work: row.profile_payload?.work,
     },
+    lifeContext: row.profile_payload?.life_context
+      ? {
+          work: row.profile_payload.life_context.work,
+          money: row.profile_payload.life_context.money,
+          relationship: row.profile_payload.life_context.relationship,
+          planning: row.profile_payload.life_context.planning,
+        }
+      : undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -148,6 +170,7 @@ function profileToRow(profile: UserBirthProfile): UserProfileRow {
       relationship: profile.context.relationship,
       orientation: profile.context.orientation,
       work: profile.context.work,
+      ...(profile.lifeContext ? { life_context: profile.lifeContext } : {}),
     },
     created_at: profile.createdAt,
     updated_at: profile.updatedAt,
@@ -160,6 +183,7 @@ export function buildUserBirthProfile(params: {
   birth: BirthInput
   birthTimeKnown?: boolean
   context?: Pick<SajuReportContext, 'target' | 'relationship' | 'orientation' | 'work'>
+  lifeContext?: UserLifeContext
 }): UserBirthProfile {
   const timestamp = nowIso()
   return {
@@ -182,6 +206,14 @@ export function buildUserBirthProfile(params: {
       orientation: params.context?.orientation,
       work: params.context?.work,
     },
+    ...(params.lifeContext ? {
+      lifeContext: {
+        work: params.lifeContext.work,
+        money: params.lifeContext.money,
+        relationship: params.lifeContext.relationship,
+        planning: params.lifeContext.planning,
+      },
+    } : {}),
     createdAt: timestamp,
     updatedAt: timestamp,
   }
@@ -224,6 +256,8 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
     userId: owner.id,
     createdAt: previous?.createdAt ?? profile.createdAt,
     updatedAt: nowIso(),
+    // 이전 클라이언트·회원가입 경로가 lifeContext를 모르더라도 저장된 기준을 지우지 않는다.
+    lifeContext: profile.lifeContext === undefined ? previous?.lifeContext : profile.lifeContext,
   }
   const row = profileToRow(next)
 

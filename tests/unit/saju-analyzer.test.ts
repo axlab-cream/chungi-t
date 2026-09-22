@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju, calculateFourPillars } from '../../src/saju/analyzer.js'
 import { getSolarTermUtcMs } from '../../src/saju/calculator.js'
+import { calculateSamjaeCycle } from '../../src/saju/fortune-cycle.js'
 import type { BirthInput } from '../../src/types/index.js'
 
 const sampleBirth: BirthInput = {
@@ -62,6 +63,23 @@ describe('[TASK] 사주 분석 테스트 하네스', () => {
       assert.ok((analysis.fortune?.startAge ?? 0) >= 1)
       assert.ok(analysis.fortune?.startAgeText?.startsWith('약 '))
       assert.equal(analysis.fortune?.daewoon.length, 10)
+    })
+
+    it('삼재는 출생 년주와 절기 기준 해로만 계산한다', () => {
+      assert.deepEqual(calculateSamjaeCycle('卯', 2026), {
+        status: 'current',
+        phase: 'middle',
+        periodStartYear: 2025,
+        periodEndYear: 2027,
+        branches: ['巳', '午', '未'],
+      })
+      assert.deepEqual(calculateSamjaeCycle('卯', 2024), {
+        status: 'next',
+        phase: null,
+        periodStartYear: 2025,
+        periodEndYear: 2027,
+        branches: ['巳', '午', '未'],
+      })
     })
   })
 

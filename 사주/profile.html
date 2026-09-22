@@ -68,6 +68,14 @@
           <div class="profile-row" data-time-fields>
             <label class="payment-label">태어난 시각<input name="time" type="time" step="60" value="12:00" /></label>
           </div>
+          <fieldset class="profile-life-context" data-life-context>
+            <legend>현실 기준 <small>선택</small></legend>
+            <p>한 번 저장하면 이후 해석에서 다시 묻지 않고 참고합니다. 결과를 자동으로 단정하는 정보는 아닙니다.</p>
+            <label class="payment-label">일·직장<textarea name="lifeWork" maxlength="180" rows="2" placeholder="예: 현재 역할, 평가 기준, 회복에 필요한 조건"></textarea></label>
+            <label class="payment-label">재물·보상<textarea name="lifeMoney" maxlength="180" rows="2" placeholder="예: 보상 조건, 고정 지출, 비교할 기준"></textarea></label>
+            <label class="payment-label">관계·연애<textarea name="lifeRelationship" maxlength="180" rows="2" placeholder="예: 약속, 부담, 조정할 기준"></textarea></label>
+            <label class="payment-label">계획 기준<textarea name="lifePlanning" maxlength="180" rows="2" placeholder="예: 책임 범위, 제안·승인 기준"></textarea></label>
+          </fieldset>
           <button class="payment-submit" type="submit">프로필 저장</button>
           <p class="payment-status" data-profile-status role="status" aria-live="polite"></p>
         </form>
@@ -76,8 +84,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
-    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-account-pages.js?v=20260901-myhub"></script>
-    <script src="/js/profile.js?v=20260901-myhub"></script>
+    <script src="/js/profile.js?v=20260922-life-context"></script>
   </body>
 </html>
