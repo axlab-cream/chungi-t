@@ -10,8 +10,8 @@ html.umsh-signup-benefit-popup-open body {
   display: grid;
   place-items: center;
   padding: 32px;
-  background: rgba(3, 4, 18, 0.76);
-  backdrop-filter: blur(8px);
+  background: rgba(3, 4, 18, 0.52);
+  backdrop-filter: blur(4px);
 }
 
 .umsh-signup-benefit-popup__art {
