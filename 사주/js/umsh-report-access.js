@@ -998,7 +998,7 @@
   var sectionVisuals = null;
   function placeSectionVisuals(host, serviceKey) {
     if (!host || !document.querySelectorAll) return;
-    if (usesSummaryOnlyImages(serviceKey)) {
+    if (serviceKey && usesSummaryOnlyImages(serviceKey)) {
       [].slice.call(document.querySelectorAll('[data-umsh-visual-for]')).forEach(function (visual) {
         visual.setAttribute('hidden', '');
       });
