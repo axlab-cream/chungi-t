@@ -30,6 +30,13 @@ test('팝업 CTA는 회원가입 후 천명보살의 오늘운 무료 해석으�
   assert.match(todayFree, /params\.get\('start'\) === '1'/)
 })
 
+test('팝업 CTA는 GA4와 내부 퍼널에서 안정적인 이름으로 측정된다', () => {
+  assert.match(popupScript, /gtag\('event', 'cta_click'/)
+  assert.match(popupScript, /cta_name: 'signup_today_fortune_popup'/)
+  assert.match(popupScript, /cta_location: 'home_signup_popup'/)
+  assert.match(popupScript, /data-action="signup_today_fortune_popup"/)
+})
+
 test('공용 크롬이 팝업과 기본 시안 이미지를 모든 연결 화면에 로드한다', () => {
   assert.match(chrome, /loadSignupBenefitPopup\(\)/)
   assert.match(chrome, /umsh-signup-benefit-popup\.js/)
