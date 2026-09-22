@@ -775,6 +775,9 @@
       <a class="list-link" href="../05-step-5-chat/chat.html#step-5-chat">전체 목록으로 돌아가기</a>
     </div>
 
+    <!--
+    이직운 저장 리포트에서는 후속 채팅 입력 기능을 노출하지 않는다.
+    기능 재검토 시 아래 마크업과 하단의 이벤트 처리 코드를 함께 복원한다.
     <div class="bottom-input chat-input">
       <form id="chatForm">
         <textarea id="chatMessage" rows="2" placeholder="이 상세 풀이에서 더 묻고 싶은 걸 입력하세요" required></textarea>
@@ -786,6 +789,7 @@
         </button>
       </form>
     </div>
+    -->
   </main>
 
   <script type="application/json" id="PROMPT_INPUT">{
@@ -14950,6 +14954,8 @@
       window.location.href = "../05-step-5-chat/chat.html#step-5-chat";
     });
 
+    /*
+    이직운 저장 리포트의 후속 채팅 입력 기능은 현재 비노출 상태다.
     $("#chatForm").addEventListener("submit", (event) => {
       event.preventDefault();
       const message = $("#chatMessage");
@@ -14964,6 +14970,7 @@
       message.value = "";
       $("#stateNotice span").textContent = "질문을 임시 보관했습니다. 운영 상담에서는 이 항목과 질문을 이어서 답변합니다.";
     });
+    */
 
     window.addEventListener("popstate", () => render(currentSectionId()));
 

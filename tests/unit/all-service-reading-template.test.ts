@@ -87,6 +87,8 @@ test('이직운은 요약·하이라이트·10개 목차에 서로 다른 실사
   assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{[^}]*content: "접기 −";/)
   assert.match(detail, /#detail-stack\[data-umsh-filled\] ~ #content/)
   assert.match(detail, /#detail-stack\[data-umsh-filled\] ~ \.bottom-input/)
+  assert.match(detail, /<!--\s*이직운 저장 리포트에서는 후속 채팅 입력 기능을 노출하지 않는다\./)
+  assert.match(detail, /\/\*\s*이직운 저장 리포트의 후속 채팅 입력 기능은 현재 비노출 상태다\./)
 })
 
 test('고양이 궁합은 요약·하이라이트·20개 해석에 서로 다른 실사 이미지를 표시한다', () => {
