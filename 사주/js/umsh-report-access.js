@@ -571,12 +571,9 @@
       + '<ol class="umsh-life-flow-timeline" aria-label="대운 구간">' + timeline + '</ol>'
       + '<p class="umsh-life-flow-note">대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.</p>'
       + '</details>'
-      + '<section class="umsh-life-context" aria-labelledby="umsh-life-context-title">'
-      + '<h3 id="umsh-life-context-title">내가 저장한 현실 기준</h3>'
-      + (contextRows
-        ? '<ul>' + contextRows + '</ul>'
-        : '<p>아직 등록한 현실 기준이 없습니다. <a href="/profile">MY에서 한 번 등록</a>하면 이후 해석에서 다시 사용합니다.</p>')
-      + '</section></section>';
+      + (contextRows ? '<section class="umsh-life-context" aria-labelledby="umsh-life-context-title">'
+        + '<h3 id="umsh-life-context-title">내가 저장한 현실 기준</h3><ul>' + contextRows + '</ul></section>' : '')
+      + '</section>';
   }
 
   function mountLifeFlow(host, payload) {
@@ -597,7 +594,7 @@
     var member = payload && payload.memberContext || {};
     var fortune = analysis.fortune || {};
     var fields = analysis.elements || {};
-    var saved = function (value) { return typeof value === 'string' && value.trim() ? value.trim() : '추가 정보 입력 전'; };
+    var saved = function (value, fallback) { return typeof value === 'string' && value.trim() ? value.trim() : fallback; };
     switch (section.id) {
       case 'profile': return { type: 'facts', caption: '저장 리포트의 오행 계산값 · 성격 점수가 아닙니다', items: [['나무', fields.wood], ['불', fields.fire], ['흙', fields.earth], ['쇠', fields.metal], ['물', fields.water]].filter(function (item) { return typeof item[1] === 'number'; }) };
       case 'day-master-strength': return { type: 'columns', caption: '요청을 받은 뒤 나눠 볼 두 가지', items: [['더 확인할 일', '마감이나 담당 범위가 비어 있음'], ['답해도 될 일', '조건을 확인했고 맡을 범위가 분명함']] };
@@ -605,14 +602,14 @@
       case 'balance': return { type: 'steps', caption: '계산값을 일상적인 선택 순서로 옮긴 예', items: [['1', '살피기', '자료와 마감 확인'], ['2', '표현하기', '맡을 일과 처리 순서 전달']] };
       case 'useful-god-eokbu': return { type: 'steps', caption: '보완 기운은 실제 결과를 보장하지 않습니다', items: [['1', '살피기', '필요한 정보 찾기'], ['2', '말하기', '확인한 결론 전달하기']] };
       case 'concern-loop': return { type: 'check', caption: '제안받은 일을 살필 때', items: ['내 책임 범위', '받을 대가', '마감 또는 결정 시점'] };
-      case 'career-money': return { type: 'table', caption: '제안의 역할·보상·마감을 한 문장으로 확인하는 표', headers: ['구분', '입력한 실제 조건'], rows: [['제안 조건', saved(member.money)]] };
-      case 'career-transition': return { type: 'table', caption: '현재 자리와 새 선택의 조건을 비교하는 표', headers: ['구분', '입력한 실제 조건'], rows: [['현재 자리', saved(member.work)], ['새 선택', saved(member.workAlternative)]] };
+      case 'career-money': return { type: 'table', caption: '제안의 역할·보상·마감을 확인하는 표', headers: ['구분', '실제 결정 전에 확인할 것'], rows: [['제안 조건', saved(member.money, '받을 보상과 지급 시점은 무엇인가요?')]] };
+      case 'career-transition': return { type: 'table', caption: '현재 자리와 새 선택의 조건을 비교하는 표', headers: ['구분', '실제 결정 전에 확인할 것'], rows: [['현재 자리', saved(member.work, '맡은 역할·평가·보상·소진 정도는 어떤가요?')], ['새 선택', saved(member.workAlternative, '제안받은 역할·보상·근무 방식은 확인됐나요?')]] };
       case 'wealth-flow': return { type: 'steps', caption: '제안 수락 전 확인 순서', items: [['1', '제안', '누가 어떤 일을 요청했나요?'], ['2', '결과물', '무엇을 완성해야 하나요?'], ['3', '대가', '지급 조건은 무엇인가요?']] };
-      case 'love-loop': return { type: 'table', caption: '약속·부담·조정할 말을 한 문장으로 정리하는 표', headers: ['구분', '입력한 실제 조건'], rows: [['관계의 조건', saved(member.relationship)]] };
+      case 'love-loop': return { type: 'table', caption: '약속·부담·조정할 말을 한 문장으로 정리하는 표', headers: ['구분', '실제 관계에서 확인할 것'], rows: [['관계의 조건', saved(member.relationship, '서로 약속한 시간·부담·조정할 점은 무엇인가요?')]] };
       case 'destiny-partner': return { type: 'check', caption: '관계를 살필 질문', items: ['약속한 시간을 지켰나요?', '변경 사항을 미리 말했나요?', '부담을 함께 조정할 수 있었나요?'] };
       case 'avoid-relationship': return { type: 'table', caption: '사람의 등급이 아닌 행동 기준', headers: ['반복된 행동', '내 경계', '다음 대응'], rows: [['역할이 계속 바뀜', '맡을 범위 정하기', '수락 전 다시 묻기'], ['약속 변경을 알리지 않음', '가능한 시간 밝히기', '새 일정 합의하기']] };
       case 'love-timing': return { type: 'check', caption: '다음 약속의 확인 항목 · 날짜 예측이 아닙니다', items: ['답장이 서로 이어지나요?', '시간과 장소가 정해졌나요?', '변경할 때 서로 알리나요?'] };
-      case 'future-flow': return { type: 'columns', caption: '리포트의 기간 표기', items: [['장기 기준', saved(fortune.currentDaewoon) + ' 대운'], ['올해 참고', saved(fortune.yearPillar) + ' · ' + saved(member.planning)]] };
+      case 'future-flow': return { type: 'columns', caption: '리포트의 기간 표기', items: [['장기 기준', saved(fortune.currentDaewoon, '계산 결과 없음') + ' 대운'], ['올해 참고', saved(fortune.yearPillar, '계산 결과 없음') + ' · ' + saved(member.planning, '결정할 일의 마감·책임 범위를 확인하세요.')]] };
       case 'sewoon-detail': return { type: 'check', caption: '실제 제안서와 대조할 항목', items: ['담당자는 누구인가요?', '마감은 언제인가요?', '완성할 결과물은 무엇인가요?'] };
       case 'action-guide': return { type: 'steps', caption: '받은 요청을 정리하는 세 칸', items: [['1', '확인됨', '이미 아는 조건'], ['2', '더 물어볼 것', '결정에 필요한 빈칸'], ['3', '답할 말', '지금 전달할 한 문장']] };
       default: return null;
@@ -647,8 +644,7 @@
       + '<h3>' + item[0] + ' · ' + item[1] + ' 참고 흐름</h3>'
       + '<p>위의 대운과 같은 기운 균형 흐름입니다. 재물·직장·연애의 결과나 성공률을 예측하지 않습니다.</p>'
       + cmdgFlowCurveHtml(payload, true)
-      + '<span>' + (recorded ? '실제 조건 등록됨' : '실제 조건 입력 전') + '</span>'
-      + '<a href="/profile">MY에서 실제 조건 확인하기</a>'
+      + '<span>' + (recorded ? '함께 참고할 실제 조건이 있습니다.' : '개인의 실제 조건은 이 그래프에 포함되지 않습니다.') + '</span>'
       + '</section>';
   }
 

@@ -41,30 +41,19 @@
     var hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12;
     var minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0;
     form.time.value = pad2(hour) + ':' + pad2(minute);
-    var lifeContext = profile.lifeContext || {};
-    form.lifeWork.value = lifeContext.work || '';
-    form.lifeWorkAlternative.value = lifeContext.workAlternative || '';
-    form.lifeMoney.value = lifeContext.money || '';
-    form.lifeRelationship.value = lifeContext.relationship || '';
-    form.lifePlanning.value = lifeContext.planning || '';
     syncTimeUi();
-  }
-
-  function lifeContextParts() {
-    return {
-      work: form.lifeWork.value.trim(),
-      workAlternative: form.lifeWorkAlternative.value.trim(),
-      money: form.lifeMoney.value.trim(),
-      relationship: form.lifeRelationship.value.trim(),
-      planning: form.lifePlanning.value.trim(),
-    };
   }
 
   function syncTimeUi() {
     document.querySelectorAll('[data-time-known]').forEach(function (btn) {
-      btn.classList.toggle('is-selected', (btn.getAttribute('data-time-known') === '1') === birthTimeKnown);
+      var selected = (btn.getAttribute('data-time-known') === '1') === birthTimeKnown;
+      btn.classList.toggle('is-selected', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
-    if (timeFields) timeFields.hidden = !birthTimeKnown;
+    if (timeFields) {
+      timeFields.hidden = !birthTimeKnown;
+      form.time.disabled = !birthTimeKnown;
+    }
   }
 
   async function init() {
@@ -99,9 +88,7 @@
           isLeapMonth: false,
         },
         context: {},
-        // 리포트마다 반복하지 않는 회원 공통 현실 기준이다. 빈 값도 함께 보내
-        // 회원이 프로필에서 지운 항목이 다음 조회에 되살아나지 않게 한다.
-        lifeContext: lifeContextParts(),
+        // 회원이 이전에 저장한 현실 기준은 서버가 유지한다. 프로필 저장으로 지우지 않는다.
       };
       var save = await fetch('/api/user/profile', {
         method: 'PUT',

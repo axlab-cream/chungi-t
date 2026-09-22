@@ -115,7 +115,7 @@ body.umsh-has-chrome .payment-page {
 
 .profile-form {
   display: grid;
-  gap: 14px;
+  gap: 20px;
 }
 
 .profile-row {
@@ -144,6 +144,17 @@ body.umsh-has-chrome .payment-page {
   box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.1);
 }
 
+.profile-time-choice {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-time-fields {
+  margin-top: 2px;
+}
+
+[data-time-fields][hidden] { display: none; }
+
 .profile-toggle {
   display: flex;
   gap: 8px;
@@ -151,7 +162,7 @@ body.umsh-has-chrome .payment-page {
 }
 
 .profile-toggle button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--payment-line);
   border-radius: 999px;
@@ -166,40 +177,6 @@ body.umsh-has-chrome .payment-page {
   background: rgba(232, 199, 111, 0.12);
   color: var(--payment-gold);
 }
-
-.profile-life-context {
-  display: grid;
-  gap: 12px;
-  margin: 4px 0 0;
-  padding: 18px 16px;
-  border: 1px solid var(--payment-line);
-  border-radius: 10px;
-  background: var(--payment-panel);
-}
-
-.profile-life-context legend {
-  padding: 0 5px;
-  color: var(--payment-cream);
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.profile-life-context legend small { color: var(--payment-gold); font-size: 11px; }
-.profile-life-context > p { margin: -2px 0 4px; color: var(--payment-muted); font-size: 12px; line-height: 1.6; }
-.payment-label textarea {
-  width: 100%;
-  min-height: 74px;
-  padding: 11px 14px;
-  border: 1px solid rgba(255, 247, 223, .14);
-  border-radius: 8px;
-  outline: 0;
-  resize: vertical;
-  background: #080807;
-  color: var(--payment-cream);
-  font: inherit;
-  line-height: 1.5;
-}
-.payment-label textarea:focus { border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, .1); }
 
 .faq-list {
   display: grid;
