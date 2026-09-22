@@ -257,6 +257,49 @@
       .vault-tabs button { font: inherit; font-size: 14px; font-weight: 800; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: #a79d90; cursor: pointer; }
       .vault-tabs button[aria-selected="true"] { background: #e2b87b; color: #141210; box-shadow: 0 6px 16px rgba(226, 184, 123, 0.22); }
       .vault-tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .today-calendar {
+        margin-top: 14px; padding: 16px 14px 14px; border-radius: 18px;
+        border: 1px solid rgba(226, 184, 123, 0.28);
+        background: radial-gradient(circle at 50% 0, rgba(226, 184, 123, 0.12), transparent 44%), #11100f;
+      }
+      .today-calendar[hidden], .today-recent-head[hidden] { display: none; }
+      .today-calendar-head { display: grid; grid-template-columns: 42px 1fr 42px; align-items: center; gap: 8px; }
+      .today-calendar-title { text-align: center; }
+      .today-calendar-title strong {
+        display: block; font-family: MaruBuri, "Noto Serif KR", Georgia, serif;
+        font-size: 18px; font-weight: 900; letter-spacing: -.02em; color: #fffdfa;
+      }
+      .today-calendar-title span { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; color: #a79d90; }
+      .today-calendar-nav {
+        width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%;
+        border: 1px solid rgba(232, 212, 154, 0.32); background: rgba(255, 255, 255, 0.025);
+        color: var(--gold); font: inherit; font-size: 18px; cursor: pointer;
+      }
+      .today-calendar-nav:focus-visible, .today-calendar-day a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .today-calendar-weekdays, .today-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .today-calendar-weekdays { margin-top: 16px; padding-bottom: 7px; border-bottom: 1px solid rgba(255, 253, 250, 0.07); }
+      .today-calendar-weekdays span { text-align: center; font-size: 10px; font-weight: 800; color: #80776d; }
+      .today-calendar-weekdays span:first-child { color: #c97d6c; }
+      .today-calendar-weekdays span:last-child { color: #7797b8; }
+      .today-calendar-grid { padding-top: 7px; row-gap: 4px; }
+      .today-calendar-day { position: relative; min-width: 0; aspect-ratio: 1; display: grid; place-items: center; }
+      .today-calendar-day > span, .today-calendar-day a {
+        position: relative; width: 100%; height: 100%; display: grid; place-items: center;
+        border-radius: 12px; color: #b8afa4; font-size: 12px; font-weight: 750; text-decoration: none;
+      }
+      .today-calendar-day.is-today > span, .today-calendar-day.is-today a { box-shadow: inset 0 0 0 1px rgba(232, 212, 154, 0.42); color: #fffdfa; }
+      .today-calendar-day.is-stamped a { color: #e8d49a; background: rgba(127, 209, 166, 0.07); }
+      .today-calendar-stamp {
+        position: absolute; inset: 5px; display: grid; place-items: center; border-radius: 50%;
+        border: 2px solid rgba(105, 195, 151, 0.9); box-shadow: inset 0 0 0 2px #11100f, inset 0 0 0 3px rgba(105, 195, 151, 0.48);
+        color: #7fd1a6; font-family: MaruBuri, "Noto Serif KR", Georgia, serif; font-size: 10px; font-weight: 900;
+        transform: rotate(-8deg); opacity: .94;
+      }
+      .today-calendar-day-number { position: relative; z-index: 1; transform: translateY(-9px); font-size: 9px; color: #d8d0c6; }
+      .today-calendar-legend { margin: 10px 2px 0; color: #9d948a; font-size: 11px; line-height: 1.55; text-align: center; word-break: keep-all; }
+      .today-recent-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 20px 2px 0; }
+      .today-recent-head strong { font-family: MaruBuri, "Noto Serif KR", Georgia, serif; font-size: 17px; font-weight: 900; }
+      .today-recent-head span { font-size: 11px; font-weight: 700; color: #8f8577; }
       .vault-empty { display: grid; gap: 10px; margin-top: 14px; padding: 18px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, 0.04); }
       .vault-empty strong { font-size: 15px; font-weight: 900; }
       .vault-empty p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
@@ -296,6 +339,25 @@
       </section>
 
       <section id="state"></section>
+      <section class="today-calendar" id="todayCalendar" aria-label="오늘운 출석 달력" hidden>
+        <div class="today-calendar-head">
+          <button type="button" class="today-calendar-nav" data-calendar-move="-1" aria-label="이전 달">‹</button>
+          <div class="today-calendar-title">
+            <strong id="todayCalendarMonth"></strong>
+            <span>오늘운 출석 달력</span>
+          </div>
+          <button type="button" class="today-calendar-nav" data-calendar-move="1" aria-label="다음 달">›</button>
+        </div>
+        <div class="today-calendar-weekdays" aria-hidden="true">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="today-calendar-grid" id="todayCalendarGrid"></div>
+        <p class="today-calendar-legend">출석 도장이 찍힌 날을 누르면 그날의 오늘운이 열려요.</p>
+      </section>
+      <div class="today-recent-head" id="todayRecentHead" hidden>
+        <strong>최근 5일 오늘운</strong>
+        <span>최근 기록부터 보여드려요</span>
+      </div>
       <section class="list" id="list" aria-label="보관된 풀이"></section>
     </main>
 
@@ -307,6 +369,10 @@
       (() => {
         const state = document.querySelector('#state');
         const list = document.querySelector('#list');
+        const todayCalendar = document.querySelector('#todayCalendar');
+        const todayCalendarMonth = document.querySelector('#todayCalendarMonth');
+        const todayCalendarGrid = document.querySelector('#todayCalendarGrid');
+        const todayRecentHead = document.querySelector('#todayRecentHead');
 
         function escapeHtml(value) {
           return String(value ?? '')
@@ -493,7 +559,9 @@
           try {
             // view=list: 카드에 필요한 메타만 받는다. 기본 응답은 천명사주 화면이 보관함
             // 동기화에 쓰는 해석 원본(analysis)을 실어 13행에 189KB·2.7초가 걸렸다.
-            const payload = await fetch('/api/user/reports?limit=30&view=list', {
+            // 한 달은 최대 31개의 오늘운을 가진다. 다른 구매 리포트가 함께 있어도 달력 날짜가
+            // 잘리지 않도록 서버가 허용하는 경량 목록 최대치(100)를 요청한다.
+            const payload = await fetch('/api/user/reports?limit=100&view=list', {
               headers: { Authorization: `Bearer ${auth.access_token}` },
             }).then((response) => response.json());
             let reports = Array.isArray(payload.reports) ? payload.reports : [];
@@ -504,18 +572,66 @@
             // 사용자는 "방금 본 것"을 맨 위에서 찾는다(2026-09-18).
             const when = (r) => Date.parse(r.purchasedAt || r.savedAt || '') || 0;
             reports.sort((a, b) => when(b) - when(a));
-            const isToday = (r) => r.serviceKey === 'today';
+            const isToday = (r) => r.serviceKey === 'today' || r.serviceKey === 'today_fortune';
+
+            const reportHref = (report) => {
+              const savedId = report.resultId || report.reportId;
+              return report.openPath || (savedId ? `/r/${encodeURIComponent(savedId)}` : '/search');
+            };
+
+            // 오늘운 생성기가 날짜를 context.concern 에 YYYY-MM-DD 로 저장한다. 목록 DTO 에서는
+            // initialConcern 으로 내려온다. 날짜가 없는 오래된 행만 저장 시각의 로컬 날짜로 보완한다.
+            const dailyIsoDate = (report) => {
+              const exact = [report.initialConcern, report.context?.concern, report.title]
+                .map((value) => String(value || '').trim())
+                .find((value) => /^\d{4}-\d{2}-\d{2}$/.test(value));
+              if (exact) return exact;
+              const fallback = new Date(report.savedAt || report.purchasedAt || '');
+              if (Number.isNaN(fallback.getTime())) return '';
+              const pad = (value) => String(value).padStart(2, '0');
+              return `${fallback.getFullYear()}-${pad(fallback.getMonth() + 1)}-${pad(fallback.getDate())}`;
+            };
+
+            const now = new Date();
+            let calendarYear = now.getFullYear();
+            let calendarMonth = now.getMonth();
+            const localIsoDate = (date) => {
+              const pad = (value) => String(value).padStart(2, '0');
+              return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+            };
+            const renderTodayCalendar = (todayRows) => {
+              const byDate = new Map();
+              todayRows.forEach((report) => {
+                const key = dailyIsoDate(report);
+                if (key && !byDate.has(key)) byDate.set(key, report);
+              });
+              todayCalendarMonth.textContent = `${calendarYear}년 ${calendarMonth + 1}월`;
+              const firstWeekday = new Date(calendarYear, calendarMonth, 1).getDay();
+              const lastDay = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+              const todayKey = localIsoDate(now);
+              const blanks = Array.from({ length: firstWeekday }, () => '<div class="today-calendar-day" aria-hidden="true"></div>');
+              const days = Array.from({ length: lastDay }, (_, index) => {
+                const day = index + 1;
+                const key = localIsoDate(new Date(calendarYear, calendarMonth, day));
+                const report = byDate.get(key);
+                const classes = ['today-calendar-day'];
+                if (key === todayKey) classes.push('is-today');
+                if (report) classes.push('is-stamped');
+                if (!report) return `<div class="${classes.join(' ')}"><span>${day}</span></div>`;
+                const href = reportHref(report);
+                return `<div class="${classes.join(' ')}"><a href="${escapeHtml(href)}" aria-label="${escapeHtml(`${calendarMonth + 1}월 ${day}일 오늘운 열기`)}"><span class="today-calendar-day-number">${day}</span><span class="today-calendar-stamp" aria-hidden="true">완료</span></a></div>`;
+              });
+              todayCalendarGrid.innerHTML = [...blanks, ...days].join('');
+            };
 
             const cardMarkup = (report) => {
                 // 판매 제목은 서버(결제 카탈로그)가 정한다. 여기서 다시 적으면 상품 이름을
                 // 바꿔도 보관함만 옛 이름으로 남는다.
                 const service = report.serviceTitle || report.context?.serviceTitle || report.context?.target || '저장된 풀이';
-                const savedId = report.resultId || report.reportId;
                 // 어느 화면에서 열지는 서버가 정한다(`openPath`). 여기에 서비스별 경로를
                 // 다시 적어 두면 서비스가 늘 때마다 두 곳이 갈라지고, 화면에만 적힌 경로는
                 // 잘못돼도 배포 전까지 아무도 모른다. 등록된 화면이 없을 때만 공용 리더로 간다.
-                const href = report.openPath
-                  || (savedId ? `/r/${encodeURIComponent(savedId)}` : '/search');
+                const href = reportHref(report);
                 const openable = Boolean(href && href !== '/search');
                 // 같은 서비스를 여러 번 보면 제목(이름 · 생년월일)이 전부 같다. 레코드마다
                 // 다른 것은 그때 적어 낸 고민이므로 그것을 먼저 보여준다.
@@ -606,7 +722,12 @@
                 button.setAttribute('aria-selected', button.dataset.tab === tab ? 'true' : 'false');
               });
               if (notice) notice.hidden = tab !== 'paid';
-              const rows = reports.filter((report) => (tab === 'today' ? isToday(report) : !isToday(report)));
+              const todayRows = reports.filter(isToday);
+              const rows = tab === 'today' ? todayRows.slice(0, 5) : reports.filter((report) => !isToday(report));
+              todayCalendar.hidden = tab !== 'today';
+              todayRecentHead.hidden = tab !== 'today' || todayRows.length === 0;
+              list.setAttribute('aria-label', tab === 'today' ? '최근 5일 오늘운' : '구매한 운');
+              if (tab === 'today') renderTodayCalendar(todayRows);
               if (!rows.length) {
                 list.innerHTML = tab === 'today'
                   ? empty('아직 오늘 운을 열지 않았어요', '오늘의 운을 열면 날짜별로 이 자리에 쌓여요. 같은 날은 한 번만 남습니다.', '/cmdg/?entry=today#todayResult', '오늘 운 보기')
@@ -620,6 +741,14 @@
             tabs.addEventListener('click', (event) => {
               const button = event.target.closest('[data-tab]');
               if (button) renderCurrent(button.dataset.tab);
+            });
+            todayCalendar.addEventListener('click', (event) => {
+              const button = event.target.closest('[data-calendar-move]');
+              if (!button) return;
+              const next = new Date(calendarYear, calendarMonth + Number(button.dataset.calendarMove), 1);
+              calendarYear = next.getFullYear();
+              calendarMonth = next.getMonth();
+              renderTodayCalendar(reports.filter(isToday));
             });
             renderCurrent('today');
 

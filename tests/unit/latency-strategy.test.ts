@@ -78,7 +78,10 @@ test('예산으로 멈춘 것은 실패로 던지지 않는다', () => {
 
 test('보관함과 천명사주 모두 슬림 목록을 받고, 천명사주는 열 때 본문을 받아 온다', () => {
   const vault = read('사주/vault.html')
-  assert.match(vault, /\/api\/user\/reports\?limit=30&view=list/)
+  // 오늘운 출석 달력은 한 달 최대 31일을 보여야 하고 구매 풀이가 같은 응답에 섞인다.
+  // 서버는 어차피 경량 행 100개 안에서 구매 여부를 판정하므로, 본문을 싣지 않는 list 뷰를
+  // 유지한 채 응답 한도도 100으로 맞춘다. 30으로 자르면 월말 출석일이 사라질 수 있다.
+  assert.match(vault, /\/api\/user\/reports\?limit=100&view=list/)
   const app = read('src/server/app.ts')
   assert.match(app, /const slim = String\(req\.query\.view \?\? ''\) === 'list'/)
   // 2026-09-18: 천명사주도 목록은 메타만 받는다(511KB·2.5초 → 60KB). 본문 없는 항목은
