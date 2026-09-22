@@ -149,7 +149,7 @@
     layout.appendChild(node);
     document.body.appendChild(layout);
     document.documentElement.setAttribute('data-umsh-verified-reader','');
-    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-report-share';css.addEventListener('load',mountChrome);document.head.appendChild(css);
+    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-all-service-template';css.addEventListener('load',mountChrome);document.head.appendChild(css);
     function mountChrome() { if(global.UMSHChrome)global.UMSHChrome.mount({root:'#umsh-verified-layout',service:key==='today_fortune'?'오늘운':'저장된 해석',category:'흐름'}); }
     if(global.UMSHChrome) mountChrome();
     else if(!document.querySelector('script[src="/js/umsh-chrome.js"]')) {var script=document.createElement('script');script.src='/js/umsh-chrome.js';script.addEventListener('load',mountChrome);document.head.appendChild(script);}
@@ -267,7 +267,7 @@
     if (!paragraphs.length) return '';
     return '<section class="reading-block reading-' + kind + '" aria-label="' + escapeHtml(label) + '"><span class="reading-role">' + escapeHtml(label) + '</span>' + paragraphs.map(richText).join('') + '</section>';
   }
-  function readySectionBody(section) {
+  function readySectionBody(section, payload) {
     var interpretation = String(section.interpretation || '').replace(/^\[[^\]]+\]\s*/, '').trim();
     var hook = String(section.hook || '').trim();
     if (hook && interpretation.indexOf(hook) === 0) interpretation = interpretation.slice(hook.length).trim();
@@ -280,7 +280,7 @@
      * `richSectionBody` 뿐이고, 그건 storytelling 이 있는 항목에서만 쓰인다. LLM 이 만든 항목에는
      * 그 필드가 없어 전부 이 함수로 떨어졌고, 여기에는 그림이 없었다. 해석만 이어지는 글 벽이 됐다.
      */
-    var answer = renderSectionImage(section) + (hook ? readingBlock('answer', '한 줄 답', [hook]) : '');
+    var answer = renderSectionImage(section, reportServiceKey(payload)) + (hook ? readingBlock('answer', '한 줄 답', [hook]) : '');
     if (paragraphs.length >= 2) {
       return answer + readingBlock('evidence', '근거', paragraphs.slice(0, -1)) + readingBlock('action', '행동', paragraphs.slice(-1));
     }
@@ -311,7 +311,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-wood-banner', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-all-service-template', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -372,7 +372,9 @@
     var paragraphs = longformParagraphs(summary && summary.text);
     var locked = !entitled && paragraphs.length > 1;
     var shown = locked ? paragraphs.slice(0, 1) : paragraphs;
-    var cut = config && config.cutA;
+    // 대표 이미지는 포털에서 사용자가 처음 만난 서비스 썸네일과 같은 자산을 쓴다.
+    // 서비스별 하이라이트·본문 컷은 아래 `cutA`/`cutB`가 이어받는다.
+    var cut = config && (config.thumbnail || config.cutA);
     var figure = cut
       ? '<figure class="umsh-summary-figure"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'
       : '';
@@ -434,6 +436,73 @@
     return ' style="--umsh-lf-accent:var(--' + name + ', var(--gold))"';
   }
 
+  function serviceAccentStyle(config) {
+    var name = config && String(config.accent || '').replace(/^--/, '').trim();
+    if (!LONGFORM_ACCENT_TOKENS[name]) return '';
+    return ' style="--umsh-guide-accent:var(--' + name + ', var(--gold))"';
+  }
+
+  function reportServiceKey(payload) {
+    return canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
+  }
+
+  /**
+   * 오래된 저장 리포트의 `/assets/hero-mystic.webp`는 서비스 구분 없이 같은 그림이었다.
+   * 새 자산을 억지로 만들지 않고, 각 서비스에 이미 연결된 cutA/cutB를 모든 기본
+   * 토글에서 교차해 쓴다. 항목에 실제 전용 이미지가 있으면 언제나 그 이미지가 우선이다.
+   */
+  function sectionImageSource(section, serviceKey) {
+    var existing = String(section && section.imageSrc || '').trim();
+    if (existing && existing !== '/assets/hero-mystic.webp') return existing;
+    var config = longformConfigFor(serviceKey);
+    if (!config) return existing;
+    var order = Number(section && section.order) || 1;
+    if (order === 1) return String(config.thumbnail || config.cutB || '').trim() || existing;
+    return order % 2 === 1
+      ? String(config.cutB || '').trim() || existing
+      : String(config.cutA || '').trim() || existing;
+  }
+
+  function refreshServiceSectionImages(serviceKey) {
+    var config = longformConfigFor(serviceKey);
+    if (!config) return;
+    Array.from(document.querySelectorAll('img[data-umsh-template-image]')).forEach(function (image) {
+      var order = Number(image.getAttribute('data-umsh-template-image')) || 1;
+      var src = order === 1 ? String(config.thumbnail || config.cutB || '').trim()
+        : order % 2 === 1 ? String(config.cutB || '').trim() : String(config.cutA || '').trim();
+      if (!src) return;
+      image.setAttribute('src', src);
+      image.setAttribute('alt', String(config.title || '해석') + ' 풀이 이미지');
+    });
+  }
+
+  function serviceReadingGuideHtml(section, payload, index) {
+    if (index !== 0) return '';
+    var serviceKey = reportServiceKey(payload);
+    var config = longformConfigFor(serviceKey);
+    var guide = config && Array.isArray(config.guide) ? config.guide.filter(function (item) { return typeof item === 'string' && item.trim(); }) : [];
+    var topics = config && Array.isArray(config.highlights) ? config.highlights : [];
+    if (guide.length !== 3 || topics.length !== 3) return '';
+    return '<section class="umsh-reading-guide" aria-labelledby="umsh-reading-guide-title"' + serviceAccentStyle(config) + '>'
+      + '<span class="reading-role">풀이 읽는 순서</span>'
+      + '<h3 id="umsh-reading-guide-title">' + escapeHtml(String(config.title || '이 해석')) + '에서 먼저 볼 것</h3>'
+      + '<div class="umsh-reading-guide-scroll"><table><thead><tr><th scope="col">해석의 초점</th><th scope="col">지금 읽는 기준</th></tr></thead><tbody>'
+      + guide.map(function (line, guideIndex) { return '<tr><th scope="row">' + escapeHtml(labelText(topics[guideIndex].title)) + '</th><td>' + escapeHtml(line) + '</td></tr>'; }).join('')
+      + '</tbody></table></div></section>';
+  }
+
+  function mountServiceReadingGuide(host, payload, serviceKey) {
+    var scope = host && host.closest ? (host.closest('#umsh-verified-reading, [data-umsh-slot="sections"], main, section') || document) : document;
+    if (!scope || scope.querySelector('.umsh-reading-guide')) return;
+    var card = scope.querySelector('details.reading-card');
+    if (!card) return;
+    var guide = serviceReadingGuideHtml({}, payload, 0);
+    if (!guide) return;
+    var answer = card.querySelector('.reading-answer');
+    if (answer && typeof answer.insertAdjacentHTML === 'function') answer.insertAdjacentHTML('afterend', guide);
+    else card.insertAdjacentHTML('beforeend', guide);
+  }
+
   /** 세 블록의 HTML. 설정이 없으면 아무것도 그리지 않는다 — 하위 호환. */
   function longformHtml(report, entitled, serviceKey, payload) {
     var config = longformConfigFor(serviceKey);
@@ -457,6 +526,8 @@
       if (!html) { if (existing && existing.parentNode) existing.parentNode.removeChild(existing); return; }
       if (existing) existing.outerHTML = html;
       else host.insertAdjacentHTML('afterbegin', html);
+      refreshServiceSectionImages(serviceKey);
+      mountServiceReadingGuide(host, payload, serviceKey);
       if (canonical(serviceKey) === 'saju_master') {
         var container = host.parentNode || host;
         var summary = container.querySelector('.umsh-summary');
@@ -555,13 +626,13 @@
       return value ? '<li><strong>' + labels[field] + '</strong><span>' + escapeHtml(value) + '</span></li>' : '';
     }).filter(Boolean).join('');
     var serviceKey = canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
-    var cmdg = serviceKey === 'saju_master';
+    var canShowCurve = Boolean(currentSegment && payload && payload.analysis);
     var currentLevel = currentSegment ? cmdgFlowLevel(currentSegment.pillar, payload.analysis) : 2;
     return '<section class="umsh-life-flow" aria-labelledby="umsh-life-flow-title">'
       + '<span class="umsh-life-flow-eyebrow">만세력 계산 결과</span>'
       + '<h2 id="umsh-life-flow-title">나의 대운 흐름</h2>'
       + (currentText ? '<p class="umsh-life-flow-current">현재 위치 · ' + escapeHtml(currentText) + '</p>' : '')
-      + (cmdg ? '<p class="umsh-flow-intro">선이 위로 갈수록 보완 기운을 쓰기 쉬운 구간, 아래로 갈수록 속도와 조건을 살필 구간입니다. 인생의 성공·수입을 예측한 점수는 아닙니다.</p>' + cmdgFlowCurveHtml(payload, false)
+      + (canShowCurve ? '<p class="umsh-flow-intro">선이 위로 갈수록 내 힘을 쓰기 쉬운 구간, 아래로 갈수록 속도와 조건을 살필 구간입니다. 인생의 성공·수입을 예측한 점수는 아닙니다.</p>' + cmdgFlowCurveHtml(payload, false)
         + '<div class="umsh-flow-callout"><strong>지금의 위치 · ' + escapeHtml(currentLabel || '현재') + '</strong><span>' + CMDG_FLOW_LABELS[currentLevel] + '</span></div>' : '')
       + '<section class="umsh-life-flow-reference" aria-label="올해 참고와 삼재">'
       + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(String(fortune.yearPillar || '')) + '</span></p>'
@@ -648,17 +719,28 @@
       + '</section>';
   }
 
-  function cmdgCardBody(section, payload, body) {
+  function cmdgCardBody(section, payload, body, index) {
     if (!isCmdgPayload(payload) || !CMDG_CARD_TITLES[section.id]) return body;
     var lead = '<p class="umsh-cmdg-lead"><strong>' + escapeHtml(CMDG_CARD_LEADS[section.id]) + '</strong></p>';
     var visual = cmdgVisualHtml(cmdgVisualSpec(section, payload)) + cmdgDomainFlowHtml(section, payload);
-    var image = renderSectionImage(section);
+    var image = renderSectionImage(section, reportServiceKey(payload));
     var answer = section.hook ? readingBlock('answer', '한 줄 답', [String(section.hook).trim()]) : '';
     var prefix = image + answer;
+    var guide = serviceReadingGuideHtml(section, payload, index);
     var editorial = CMDG_EDITORIAL[section.id] || [];
     var supplement = editorial.length ? readingBlock('evidence umsh-cmdg-editorial', '쉬운 풀이·보강', [editorial[0]])
       + readingBlock('action umsh-cmdg-editorial', '추가로 확인할 것', [editorial[1]]) : '';
-    return body.indexOf(prefix) === 0 ? lead + prefix + visual + body.slice(prefix.length) + supplement : lead + body + visual + supplement;
+    return body.indexOf(prefix) === 0 ? lead + prefix + guide + visual + body.slice(prefix.length) + supplement : lead + body + guide + visual + supplement;
+  }
+
+  function serviceCardBody(section, payload, body, index) {
+    if (isCmdgPayload(payload) && CMDG_CARD_TITLES[section.id]) return cmdgCardBody(section, payload, body, index);
+    var serviceKey = reportServiceKey(payload);
+    var image = renderSectionImage(section, serviceKey);
+    var hook = section.hook ? readingBlock('answer', '한 줄 답', [String(section.hook).trim()]) : '';
+    var prefix = image + hook;
+    var guide = serviceReadingGuideHtml(section, payload, index);
+    return body.indexOf(prefix) === 0 ? prefix + guide + body.slice(prefix.length) : guide + body;
   }
 
   function cmdgCardTitle(section, payload) {
@@ -1243,7 +1325,7 @@
     fillText('subtitle', report.subtitle);
     host.innerHTML = report.sections.map(function (section, index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
-      var body = ready ? cmdgCardBody(section, payload, richSectionBody(section)) : (
+      var body = ready ? serviceCardBody(section, payload, richSectionBody(section, payload), index) : (
         '<div class="umsh-section-skeleton" role="status" aria-live="polite">' +
           '<strong>' + escapeHtml(labelText(section.classification) || '이 항목') + ' 해석을 준비하고 있어요</strong>' +
           '<p>' + (section.status === 'failed'
@@ -1365,11 +1447,12 @@
   }
 
   /** 섹션 전용 이미지. 등록 디자인의 장면 이미지가 여기로 들어온다. */
-  function renderSectionImage(section) {
-    var src = String(section.imageSrc || '').trim();
+  function renderSectionImage(section, serviceKey) {
+    var original = String(section && section.imageSrc || '').trim();
+    var src = sectionImageSource(section, serviceKey);
     if (!src) return '';
     return '<figure class="story-image">' +
-      '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
+      '<img' + ((original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(section && section.order || '')) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
       '</figure>';
   }
 
@@ -1394,12 +1477,12 @@
   }
 
   /** 톤 v2 본문. storytelling 이 없으면 기존 렌더로 넘긴다. */
-  function richSectionBody(section) {
+  function richSectionBody(section, payload) {
     var story = section && section.storytelling;
-    if (!story) return readySectionBody(section);
+    if (!story) return readySectionBody(section, payload);
 
     var blocks = [];
-    blocks.push(renderSectionImage(section));
+    blocks.push(renderSectionImage(section, reportServiceKey(payload)));
 
     var hook = String(section.hook || '').trim();
     if (hook) blocks.push(readingBlock('answer', '한 줄 답', [hook]));
@@ -1471,7 +1554,7 @@
      */
     node.innerHTML = '<h1 style="font-size:26px">' + escapeHtml(report.title) + '</h1><p>' + escapeHtml(report.subtitle) + '</p>' + '<div id="umsh-longform-mount"></div>' + lifeFlowHtml(payload) + report.sections.map(function(section,index) {
       var ready = section.status === 'complete' && typeof section.interpretation === 'string' && section.interpretation.trim();
-      var body = ready ? cmdgCardBody(section, payload, richSectionBody(section)) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
+       var body = ready ? serviceCardBody(section, payload, richSectionBody(section, payload), index) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
       return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(cmdgCardTitle(section, payload)) + '</summary>' + body + '</details>';
     }).join('');
     // 공용 리더(/r/:id). 06-1 이 없는 서비스(cmdg)가 여기로 온다 — 같은 세 블록을 같은 자리에 올린다.

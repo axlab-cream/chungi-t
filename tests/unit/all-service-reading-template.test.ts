@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import test from 'node:test'
+
+const root = process.cwd()
+const read = (path: string) => readFileSync(join(root, path), 'utf8')
+
+test('all configured reading services carry an identity-specific first-toggle guide', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const services = Object.values(blocks.services) as Array<{ title?: string; guide?: unknown[]; thumbnail?: string; cutA?: string; cutB?: string }>
+  assert.equal(services.length, 19, '유료 해석 서비스 19개의 공통 계약이 필요하다')
+  for (const service of services) {
+    assert.ok(service.title)
+    assert.ok(service.thumbnail?.startsWith('/'), `${service.title} 메인 썸네일 연결이 없다`)
+    assert.ok(service.cutA?.startsWith('/'), `${service.title} 요약 이미지가 없다`)
+    assert.ok(service.cutB?.startsWith('/'), `${service.title} 첫 토글 이미지가 없다`)
+    assert.equal(service.guide?.length, 3, `${service.title} 읽기 표가 3줄이 아니다`)
+    for (const image of [service.thumbnail, service.cutA, service.cutB]) {
+      assert.ok(['사주/사주', '사주'].some((root) => existsSync(join(root, image!))), `${service.title} 공개 이미지 파일이 없다: ${image}`)
+    }
+  }
+})
+
+test('shared reader applies the configured image, guide, and actual fortune graph without fake scores', () => {
+  const source = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-verified-reader.css')
+
+  assert.match(source, /function sectionImageSource\(section, serviceKey\)/)
+  assert.match(source, /order % 2 === 1/)
+  assert.match(source, /String\(config\.cutB/)
+  assert.match(source, /String\(config\.cutA/)
+  assert.match(source, /config\.thumbnail \|\| config\.cutB/)
+  assert.match(source, /function serviceReadingGuideHtml\(section, payload, index\)/)
+  assert.match(source, /config\.guide/)
+  assert.match(source, /function serviceCardBody\(section, payload, body, index\)/)
+  assert.match(source, /function refreshServiceSectionImages\(serviceKey\)/)
+  assert.match(source, /var canShowCurve = Boolean\(currentSegment && payload && payload\.analysis\)/)
+  assert.match(source, /인생의 성공·수입을 예측한 점수는 아닙니다/)
+
+  assert.match(css, /\.umsh-reading-guide\s*\{/)
+  assert.match(css, /\.umsh-reading-guide-scroll\s*\{ overflow-x: auto/)
+  assert.match(css, /\.umsh-reading-guide:focus-within/)
+})
+
+test('reader keeps source prose and shows a textual accordion state', () => {
+  const source = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-verified-reader.css')
+  assert.match(source, /paragraphs\.slice\(0, -1\)/)
+  assert.match(source, /readingBlock\('evidence'/)
+  assert.match(css, /content: '펼치기 \+'/)
+  assert.match(css, /content: '접기 −'/)
+})

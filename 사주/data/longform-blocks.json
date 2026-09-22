@@ -8,6 +8,8 @@
       "status": "draft",
       "verdictAxis": "타고난 결과 지금의 자리",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-cmdg-card-bg.webp",
+      "guide": ["타고난 결에서 먼저 드러나는 강점", "지금 대운에서 속도를 조절할 지점", "반복되는 선택을 바꾸는 한 가지"],
       "cutA": "/assets/umsh-cmdg-card-bg.webp",
       "cutB": "/assets/cmdg-wood-path-highlight-v2.webp",
       "highlights": [
@@ -21,6 +23,8 @@
       "status": "draft",
       "verdictAxis": "결혼까지 가는 조건",
       "accent": "rose",
+      "thumbnail": "/match/marry/assets/marry/01-scene-01-hero.webp",
+      "guide": ["두 사람이 실제로 맞춰야 할 조건", "갈등이 생길 때 지킬 약속", "양가·일정·생활에서 확인할 현실"],
       "cutA": "/match/marry/assets/marry/01-scene-01-hero.webp",
       "cutB": "/match/marry/assets/marry/01-scene-04-basis.webp",
       "highlights": [
@@ -34,6 +38,8 @@
       "status": "draft",
       "verdictAxis": "오래 갈 수 있는 결인가",
       "accent": "coral",
+      "thumbnail": "/match/couple/assets/couple/01-scene-01-hook.webp",
+      "guide": ["둘을 끌어당기는 공통점", "자주 엇갈리는 장면", "관계를 오래 잇는 대화 방식"],
       "cutA": "/match/couple/assets/couple/01-scene-01-hook.webp",
       "cutB": "/match/couple/assets/couple/01-scene-04-basis.webp",
       "highlights": [
@@ -47,6 +53,8 @@
       "status": "draft",
       "verdictAxis": "온도 차이의 정체",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-affair-card-bg.png",
+      "guide": ["연락·약속·표현에서 보이는 사실", "혼자 해석하기 쉬운 신호", "다음 대화에서 직접 확인할 점"],
       "cutA": "/love/signal/assets/signal/01-scene-01-hero.webp",
       "cutB": "/love/signal/assets/signal/01-scene-04-evidence.webp",
       "highlights": [
@@ -60,6 +68,8 @@
       "status": "draft",
       "verdictAxis": "옮길 자리와 남을 자리",
       "accent": "gold",
+      "thumbnail": "/work/move/assets/generated/move/01-scene-01-question.webp",
+      "guide": ["현재 자리에서 이미 확인된 조건", "새 자리에서 꼭 비교할 조건", "결정 전에 질문으로 남길 항목"],
       "cutA": "/work/move/assets/generated/move/01-scene-01-question.webp",
       "cutB": "/work/move/assets/generated/move/01-scene-04-basis.webp",
       "highlights": [
@@ -73,6 +83,8 @@
       "status": "confirmed",
       "verdictAxis": "GO / HOLD / 타이밍 조정",
       "accent": "teal",
+      "thumbnail": "/assets/umsh-quit-card-bg.png",
+      "guide": ["지금 떠나도 되는 조건", "잠시 더 준비할 이유", "퇴사 전 현실적으로 정리할 항목"],
       "cutA": "/work/quit/assets/quit/01-hero.png",
       "cutB": "/work/quit/assets/quit/06-five-mentors.png",
       "highlights": [
@@ -86,6 +98,8 @@
       "status": "draft",
       "verdictAxis": "올해 들어오는 달과 놓치는 달",
       "accent": "pink",
+      "thumbnail": "/love/this-year/assets/thisyear/videos/01-frontface-window-poster.webp",
+      "guide": ["마음이 열리는 계절의 신호", "서두르면 놓치기 쉬운 장면", "올해 안에 해 볼 한 가지"],
       "cutA": "/love/this-year/assets/thisyear/01-scene-01-hook.webp",
       "cutB": "/love/this-year/assets/thisyear/01-scene-04-basis.webp",
       "highlights": [
@@ -99,6 +113,8 @@
       "status": "draft",
       "verdictAxis": "이 회사와 나의 결",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-jobchoice-card-bg.webp",
+      "guide": ["두 자리에서 맡게 될 역할", "내가 오래 버티기 어려운 조건", "결정 전 문서로 확인할 기준"],
       "cutA": "/work/job-choice/assets/job-choice/01-scene-01-hook.webp",
       "cutB": "/work/job-choice/assets/job-choice/01-scene-04-evidence-bridge.webp",
       "highlights": [
@@ -112,6 +128,8 @@
       "status": "draft",
       "verdictAxis": "집사와 고양이의 결",
       "accent": "green",
+      "thumbnail": "/assets/umsh-petmatch-card-bg.webp",
+      "guide": ["집사와 고양이의 생활 리듬", "불편함이 커지는 환경", "같이 편안해지는 돌봄 습관"],
       "cutA": "/match/cat/assets/cat-compatibility/01-scene-01-hook.webp",
       "cutB": "/match/cat/assets/cat-compatibility/01-scene-04-basis.webp",
       "highlights": [
@@ -125,6 +143,8 @@
       "status": "draft",
       "verdictAxis": "돈이 모이지 않는 자리",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-money-card-bg.png",
+      "guide": ["지출이 새기 쉬운 순간", "돈이 남기 시작하는 생활 조건", "이번 달 먼저 바꿔 볼 습관"],
       "cutA": "/money/save/assets/save/01-scene-01-hook.webp",
       "cutB": "/money/save/assets/save/01-scene-04-wealth-peer-balance.webp",
       "highlights": [
@@ -138,6 +158,8 @@
       "status": "draft",
       "verdictAxis": "지금 상대가 서 있는 자리",
       "accent": "rose",
+      "thumbnail": "/assets/love-ty-char-phone-v2.webp",
+      "guide": ["실제로 확인된 말과 행동", "오래 생각하게 만든 장면", "다음 연락에서 물어볼 한 가지"],
       "cutA": "/assets/umsh-love-card-bg.webp",
       "cutB": "/love/signal/assets/signal/01-scene-04-evidence.webp",
       "highlights": [
@@ -151,6 +173,8 @@
       "status": "draft",
       "verdictAxis": "다시 이어질 조건과 지금의 거리",
       "accent": "rose",
+      "thumbnail": "/assets/love-ty-char-chart-v2.webp",
+      "guide": ["이별 뒤 아직 남아 있는 것", "다시 만나기 전 갖춰질 조건", "지금 내 생활에서 지킬 기준"],
       "cutA": "/assets/cut-05-romance.webp",
       "cutB": "/love/signal/assets/signal/01-scene-04-evidence.webp",
       "highlights": [
@@ -164,6 +188,8 @@
       "status": "draft",
       "verdictAxis": "어떤 사람과 어떤 시기에",
       "accent": "rose",
+      "thumbnail": "/assets/love-ty-char-cafe-v2.webp",
+      "guide": ["오래 가는 관계의 공통 조건", "인연을 만나는 생활 장면", "관계를 맞을 준비가 되는 행동"],
       "cutA": "/assets/cut-05-romance.webp",
       "cutB": "/assets/cut-03-saju.webp",
       "highlights": [
@@ -177,6 +203,8 @@
       "status": "draft",
       "verdictAxis": "지금 일과 나의 결",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-work-card-bg.png",
+      "guide": ["현재 일에서 가장 잘 쓰이는 힘", "계속하면 지치기 쉬운 역할", "이번 분기 우선 확인할 기준"],
       "cutA": "/assets/umsh-work-card-bg.png",
       "cutB": "/work/move/assets/generated/move/01-scene-04-basis.webp",
       "highlights": [
@@ -190,6 +218,8 @@
       "status": "draft",
       "verdictAxis": "채울 기운과 덜어낼 기운",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-luckycolor-card-bg.webp",
+      "guide": ["지금 보완하면 좋은 기운", "몸 가까이에 둘 색과 물건", "공간에서 덜어낼 한 가지"],
       "cutA": "/assets/umsh-luckycolor-card-bg.webp",
       "cutB": "/assets/cut-03-saju.webp",
       "highlights": [
@@ -203,6 +233,8 @@
       "status": "draft",
       "verdictAxis": "올해의 중심과 전환점",
       "accent": "gold",
+      "thumbnail": "/assets/umsh-newyear-card-bg.webp",
+      "guide": ["올해 먼저 붙들 중심축", "달이 바뀌며 주의할 구간", "연초에 정해 두면 좋은 기준"],
       "cutA": "/assets/umsh-newyear-card-bg.webp",
       "cutB": "/assets/cut-06-outro.webp",
       "highlights": [
@@ -216,6 +248,8 @@
       "status": "draft",
       "verdictAxis": "후보일 가운데 조건이 맞는 날",
       "accent": "rose",
+      "thumbnail": "/assets/umsh-wedding-card-bg.webp",
+      "guide": ["후보일마다 맞춰 볼 현실 조건", "두 사람의 우선순위가 갈리는 지점", "날을 확정하기 전 확인할 준비"],
       "cutA": "/assets/umsh-wedding-card-bg.webp",
       "cutB": "/assets/cut-03-saju.webp",
       "highlights": [
@@ -229,6 +263,8 @@
       "status": "draft",
       "verdictAxis": "준비 흐름과 시험 구간",
       "accent": "teal",
+      "thumbnail": "/assets/umsh-exam-card-bg.png",
+      "guide": ["지금 준비가 쌓인 위치", "집중이 흔들리는 시간", "남은 기간에 하나씩 끝낼 일"],
       "cutA": "/assets/umsh-exam-card-bg.png",
       "cutB": "/assets/cut-01-intro.webp",
       "highlights": [
@@ -242,6 +278,8 @@
       "status": "draft",
       "verdictAxis": "공간의 기운과 내 명리",
       "accent": "green",
+      "thumbnail": "/assets/umsh-place-card-bg.webp",
+      "guide": ["지금 공간이 생활에 주는 영향", "동선과 빛이 막히는 자리", "이번 주 바로 옮길 한 가지"],
       "cutA": "/assets/umsh-place-card-bg.webp",
       "cutB": "/assets/cut-03-saju.webp",
       "highlights": [

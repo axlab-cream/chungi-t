@@ -55,7 +55,10 @@ test('every catalog service defines three highlight topics and a verdict axis', 
     const config = blocks.services[key]
     assert.ok(config, `${key} 에 결론·요약·하이라이트 설정이 없다`)
     assert.ok(String(config.verdictAxis || '').trim(), `${key} 에 판단 축이 없다`)
+    assert.equal(config.guide?.length, 3, `${key} 에 첫 토글의 서비스별 읽기 표가 없다`)
+    assert.ok(config.guide.every((line: unknown) => typeof line === 'string' && line.trim()), `${key} 읽기 표 문구가 비었다`)
     assert.equal(loadHighlightTopics(key)?.length, 3, `${key} 하이라이트가 3개가 아니다`)
+    assert.ok(loadHighlightTopics(key)?.every((topic, index) => Number(topic.paragraphs) >= [6, 6, 5][index]), `${key} 하이라이트 문단 길이가 공통 계약보다 짧다`)
     for (const cut of ['cutA', 'cutB']) assert.match(String(config[cut] || ''), /^\//, `${key}.${cut} 경로가 없다`)
   }
 })

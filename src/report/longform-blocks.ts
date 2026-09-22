@@ -18,6 +18,7 @@ interface LongformBlocksFile {
 }
 
 const BLOCKS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../사주/data/longform-blocks.json')
+const DEFAULT_HIGHLIGHT_PARAGRAPHS = [6, 6, 5] as const
 
 let cached: LongformBlocksFile | undefined
 
@@ -56,9 +57,10 @@ export function loadHighlightTopics(serviceKey?: string | null): HighlightTopic[
     const shape = typeof item.shape === 'string' ? item.shape.trim() : ''
     if (!title || !shape) continue
     const topic: HighlightTopic = { title, shape }
-    if (typeof item.paragraphs === 'number' && Number.isInteger(item.paragraphs) && item.paragraphs > 0) {
-      topic.paragraphs = item.paragraphs
-    }
+    const configuredParagraphs = typeof item.paragraphs === 'number' && Number.isInteger(item.paragraphs) && item.paragraphs > 0
+      ? item.paragraphs
+      : DEFAULT_HIGHLIGHT_PARAGRAPHS[topics.length]
+    if (configuredParagraphs) topic.paragraphs = configuredParagraphs
     topics.push(topic)
   }
   return topics.length ? topics : undefined

@@ -160,6 +160,15 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading .umsh-cmdg-visual th, #umsh-verified-reading .umsh-cmdg-visual td { padding: 9px 7px; border: 1px solid rgba(216,186,114,.2); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
 #umsh-verified-reading .umsh-cmdg-visual thead th { color: #fff3d6; background: #2a2114; }
 #umsh-verified-reading .umsh-cmdg-visual tbody th { color: #f2dc9a; }
+#umsh-verified-reading .umsh-reading-guide { --umsh-guide-accent: var(--gold, #d8ba72); margin: 16px 0; padding: 15px; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 38%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--umsh-guide-accent) 8%, #11100d); }
+#umsh-verified-reading .umsh-reading-guide .reading-role { color: var(--umsh-guide-accent); }
+#umsh-verified-reading .umsh-reading-guide h3 { margin: 6px 0 12px; color: #fff3d6; font-size: 15px; line-height: 1.45; }
+#umsh-verified-reading .umsh-reading-guide-scroll { overflow-x: auto; }
+#umsh-verified-reading .umsh-reading-guide table { width: 100%; min-width: 360px; border-collapse: collapse; color: #e2dbcf; font-size: 12px; }
+#umsh-verified-reading .umsh-reading-guide th, #umsh-verified-reading .umsh-reading-guide td { padding: 9px 8px; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 25%, transparent); text-align: left; vertical-align: top; line-height: 1.65; overflow-wrap: anywhere; }
+#umsh-verified-reading .umsh-reading-guide thead th { color: #fff3d6; background: color-mix(in srgb, var(--umsh-guide-accent) 16%, #17140f); }
+#umsh-verified-reading .umsh-reading-guide tbody th { width: 38%; color: var(--umsh-guide-accent); font-weight: 800; }
+#umsh-verified-reading .umsh-reading-guide:focus-within { outline: 2px solid var(--umsh-guide-accent); outline-offset: 3px; }
 #umsh-verified-reading .umsh-cmdg-domain-flow { margin: 16px 0; padding: 14px 12px; border: 1px solid rgba(216,186,114,.3); border-radius: 10px; background: #211b13; }
 #umsh-verified-reading .umsh-cmdg-domain-flow h3 { margin: 0; color: #fff3d6; font-size: 15px; }
 #umsh-verified-reading .umsh-cmdg-domain-flow p { margin: 6px 0; color: #d5cec1; font-size: 12px; line-height: 1.6; }
@@ -283,10 +292,12 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
   #umsh-verified-reading .umsh-cmdg-editorial,
   #umsh-verified-reading .umsh-cmdg-visual,
   #umsh-verified-reading .umsh-cmdg-domain-flow { background: #fff !important; color: #111 !important; border-color: #bbb !important; break-inside: avoid; }
+  #umsh-verified-reading .umsh-reading-guide { background: #fff !important; color: #111 !important; border-color: #bbb !important; break-inside: avoid; }
   #umsh-verified-reading .umsh-cmdg-visual *,
   #umsh-verified-reading .umsh-cmdg-domain-flow *,
   #umsh-verified-reading .umsh-cmdg-lead *,
   #umsh-verified-reading .umsh-cmdg-editorial *,
+  #umsh-verified-reading .umsh-reading-guide *,
   #umsh-verified-reading .umsh-flow-callout * { color: #111 !important; }
   #umsh-verified-reading .umsh-flow-axis,
   #umsh-verified-reading .umsh-flow-age { fill: #111 !important; }
