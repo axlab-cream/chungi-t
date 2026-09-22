@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head><link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260923-markdown-view-v1">
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
-    <script src="/js/umsh-report-access.js?v=20260923-match-couple-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20260923-quit-reader-v1"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>상세 리포트 | 나 지금 그만둬도 될까?</title>
@@ -37,6 +37,31 @@
       .quit-saved-profile b { color: #e2b76a; font-size: 14px; }
       .quit-saved-profile span { color: rgba(255, 247, 232, 0.74); font-size: 13px; line-height: 1.55; }
       .quit-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+
+      /* 저장된 전체 리포트는 공용 마크다운 뷰 한 흐름으로 끝까지 읽는다. */
+      #step-6_1-report { height: auto; max-height: none; overflow: visible; }
+      #step-6_1-report #detail-stack[data-umsh-filled] ~ .hero,
+      #step-6_1-report #detail-stack[data-umsh-filled] ~ .tabs,
+      #step-6_1-report #detail-stack[data-umsh-filled] ~ .section,
+      #step-6_1-report #detail-stack[data-umsh-filled] ~ .visual,
+      #step-6_1-report #detail-stack[data-umsh-filled] ~ .umsh-pdf-dock,
+      #step-6_1-report #detail-stack[data-umsh-filled] ~ .footer { display: none; }
+      #step-6_1-report #detail-stack .reading-card { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; overflow: visible; }
+      #step-6_1-report #detail-stack .reading-card:last-of-type { border-bottom: 1px solid var(--line); }
+      #step-6_1-report .umsh-highlight-banner,
+      #step-6_1-report #detail-stack .story-image { aspect-ratio: 3 / 2; }
+      #step-6_1-report .umsh-highlight-banner img,
+      #step-6_1-report #detail-stack .story-image img { object-position: center; }
+      #step-6_1-report #detail-stack .reading-card > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 17px 2px; color: var(--ink); font-size: 15px; font-weight: 800; line-height: 1.55; }
+      #step-6_1-report #detail-stack .reading-card > summary::after { content: "펼치기 +"; flex: 0 0 auto; float: none; margin: 0; padding: 5px 7px; border: 1px solid rgba(48, 240, 223, 0.42); border-radius: 999px; color: var(--teal); font-size: 11px; line-height: 1; white-space: nowrap; }
+      #step-6_1-report #detail-stack .reading-card[open] > summary::after { content: "접기 −"; border-color: var(--teal); background: rgba(48, 240, 223, 0.12); color: var(--ink); }
+      #step-6_1-report #detail-stack .reading-card > summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+      #step-6_1-report #detail-stack .reading-card > .reading-block { padding: 18px 2px; }
+      #step-6_1-report #detail-stack .reading-card > .reading-block.reading-answer { padding: 18px 16px; }
+      #step-6_1-report #detail-stack .reading-card > .story-image { margin: 4px 0 20px; padding: 0; }
+      #step-6_1-report #detail-stack .reading-block p,
+      #step-6_1-report #detail-stack .reading-block li { color: var(--ink); font-size: 15px; font-weight: 520; line-height: 1.9; word-break: keep-all; }
+      #step-6_1-report #detail-stack .reading-block.reading-answer p { font-size: 16px; font-weight: 800; line-height: 1.65; }
 </style>
       <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>

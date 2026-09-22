@@ -52,16 +52,39 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(source, /aria-label="풀이 읽는 순서 표" tabindex="0"/)
 })
 
-test('three completed services retain one representative thumbnail without repeating section or highlight images', () => {
+test('two completed services retain one representative thumbnail without repeating section or highlight images', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const names = ['couple_signal', 'quit_fortune', 'money_save']
-  assert.equal(names.length, 3)
+  const names = ['couple_signal', 'money_save']
+  assert.equal(names.length, 2)
   for (const name of names) {
     const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
     assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
     assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
   }
   assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
+})
+
+test('퇴사운은 운영 20개 해석마다 고유한 실사 이미지를 쓰고 저장 리포트만 남긴다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const service = blocks.services.quit_fortune as { thumbnail: string; cutB: string; sectionImageMode?: string; sectionImages: string[]; summaryImageFit?: string }
+  const detail = read('사주/work/quit/06-step-6_1-report-detail/index.html')
+  const reader = read('사주/js/umsh-report-access.js')
+
+  assert.equal(service.sectionImageMode, undefined)
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.equal(service.sectionImages.length, 20)
+  assert.equal(new Set(service.sectionImages).size, 20)
+  for (const image of service.sectionImages) {
+    assert.match(image, /^\/work\/quit\/assets\/quit\/reading-v2\/.+\.webp$/)
+    assert.ok(existsSync(join(root, '사주', image)), `퇴사운 이미지가 없다: ${image}`)
+  }
+  assert.doesNotMatch(reader, /quit_fortune: true/)
+  assert.match(reader, /canonical\(serviceKey\) === 'quit_fortune'/)
+  assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
+  assert.match(detail, /\.reading-card > summary::after\s*\{[^}]*content: "펼치기 \+";/)
+  assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{[^}]*content: "접기 −";/)
+  assert.match(detail, /#detail-stack\[data-umsh-filled\] ~ \.hero/)
+  assert.match(detail, /#detail-stack\[data-umsh-filled\] ~ \.umsh-pdf-dock/)
 })
 
 test('커플궁합은 실제 28개 목차마다 고유한 실사 이미지를 쓰고 공용 읽기 화면만 남긴다', () => {
@@ -182,7 +205,7 @@ test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미
     assert.ok(existsSync(join(root, '사주', image)), `직장 선택 목차 이미지가 없다: ${image}`)
   }
   assert.doesNotMatch(reader, /job_choice: true/)
-  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| canonical\(serviceKey\) === 'work_move' \|\| canonical\(serviceKey\) === 'match_couple' \|\| canonical\(serviceKey\) === 'marry_match' \|\| canonical\(serviceKey\) === 'cat_compatibility' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
+  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| canonical\(serviceKey\) === 'work_move' \|\| canonical\(serviceKey\) === 'quit_fortune' \|\| canonical\(serviceKey\) === 'match_couple' \|\| canonical\(serviceKey\) === 'marry_match' \|\| canonical\(serviceKey\) === 'cat_compatibility' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
   assert.match(css, /aspect-ratio: 3 \/ 2/)
   assert.match(css, /\.reading-card\.is-ready\[open\] > summary::after/)
   assert.match(css, /content: "접기 −"/)
