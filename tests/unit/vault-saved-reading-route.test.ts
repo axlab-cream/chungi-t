@@ -133,6 +133,11 @@ test('6b. 천명사주·직업운·상대방마음·재회운·배우자운도 0
   assert.equal(savedReadingHref('love_spouse', 'r1'), '/love/spouse/06-step-6_1-report-detail/index.html?reportId=r1#step-6_1-report')
 })
 
+test('저장된 오늘운은 보관함에서도 오늘운 포털 결과 화면으로 연다', () => {
+  assert.equal(savedReadingHref('today_fortune', 'daily result'), '/cmdg/?reportId=daily%20result#todayResult')
+  assert.equal(savedReadingHref('today', 'daily result'), '/cmdg/?reportId=daily%20result#todayResult')
+})
+
 test('7. 보관함은 서버가 준 openPath 를 따르고 서비스별 경로를 들고 있지 않다', () => {
   const vault = stripComments(read(VAULT))
   assert.ok(vault.includes('report.openPath'), 'vault.html 이 openPath 를 쓰지 않는다')

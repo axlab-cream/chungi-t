@@ -198,7 +198,9 @@ describe('saved report HTTP boundaries (local fixtures only)', { concurrency: fa
     assert.match(helper, /const full = slim \? undefined : toUiAnalysisFromRecord\(record\)/)
     assert.match(helper, /analysis:\s*full,/)
     assert.match(helper, /const resultId = full\?\.report\.resultId \?\? record\.resultId/)
-    assert.match(helper, /publicUrl:\s*full\?\.report\.publicUrl/)
+    assert.match(helper, /publicUrl:\s*record\.context\?\.serviceKey === 'today_fortune'/)
+    assert.match(helper, /\? savedReadingHref\('today_fortune', String\(resultId\)\)/)
+    assert.match(helper, /: full\?\.report\.publicUrl \?\? `\/r\/\$\{encodeURIComponent/)
     // Reading a section's category for `currentSection` is fine; shipping the sections array is not.
     assert.doesNotMatch(helper, /sections:\s*record\.report\??\.sections/)
   })

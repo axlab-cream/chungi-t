@@ -3517,9 +3517,11 @@
       };
       const isSignupPath = /^\/signup(?:\/|\.html)?$/i.test(location.pathname);
       const protectedAuthEntries = new Set(["destiny", "vault", "my"]);
+      const isLifelongTeaserEntry = initialAuthEntry === "lifelong";
       const isPortalSignupEntry =
         isSignupPath ||
         initialAuthEntry === "today" ||
+        isLifelongTeaserEntry ||
         initialAuthEntry === "signup" ||
         protectedAuthEntries.has(initialAuthEntry);
       const isSignupReturn = initialAuthParams.get("signupReturn") === "1";
@@ -4443,6 +4445,39 @@
           });
       }
 
+      async function beginLifelongTeaserAfterAuth() {
+        clearTodayEntryPending();
+        let session = null;
+        try {
+          session = await currentAuthSession();
+        } catch (err) {
+          showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
+          return;
+        }
+        if (!session?.access_token) {
+          showAuthGate("평생운을 보려면 먼저 로그인해주세요.");
+          return;
+        }
+
+        // 오늘운 결과의 이름·생년월일을 URL로 옮기지 않는다. 현재 계정의 서버 프로필만 사용한다.
+        let profile = null;
+        try {
+          profile = await fetchUserProfile({ apply: false });
+        } catch (err) {
+          go("name", false);
+          showNudge(err.message || "저장된 사주 정보를 불러오지 못했습니다. 다시 확인해주세요.");
+          return;
+        }
+        if (!profile || !isUsableProfileName(profile.name) || !applyUserProfile(profile) || !hasUsableProfileState()) {
+          go("name", false);
+          showNudge("평생운을 보려면 사주 정보를 먼저 입력해주세요.");
+          return;
+        }
+        state.concern = "";
+        state.serviceKey = "";
+        beginAnalysisAfterAuth();
+      }
+
       const sampleVideo = {
         webm: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.webm",
         mp4: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/mzmudang_teaser_sales_video.mp4",
@@ -5246,17 +5281,8 @@
           go("name");
         }
         if (action === "today-full-report") {
-          state.concern = TODAY_CONCERN;
-          go("loading");
-          analyzeBirth()
-            .then(() => {
-              go("result");
-              syncFullReportResultUrl(state.analysis?.report?.reportId);
-            })
-            .catch((err) => {
-              go("todayResult", false);
-              showNudge(err.message || "전체 풀이를 불러오지 못했습니다.");
-            });
+          location.href = "/cmdg/?entry=lifelong";
+          return;
         }
         if (action === "open-chat") {
           if (isCurrentReportPaid()) {
@@ -6888,7 +6914,7 @@
 
             <div class="actions">
               <button class="ghost" type="button" data-action="today-edit-profile">사주 수정</button>
-              <button class="next-cta" type="button" data-action="today-full-report">전체 풀이</button>
+              <button class="next-cta" type="button" data-action="today-full-report">평생운 확인</button>
             </div>
           </section>
         `;
@@ -7592,11 +7618,16 @@
         clearSignupQuery();
       }
       initAuth().then(async () => {
-        if (authSession?.access_token) {
+        if (authSession?.access_token && !isLifelongTeaserEntry) {
           await fetchUserProfile({ apply: false }).catch(() => undefined);
         }
         if (wantsProtectedProfileEntry() && authSession?.access_token) {
           beginProtectedEntryAfterAuth();
+          return;
+        }
+        if (isLifelongTeaserEntry) {
+          clearTodayEntryPending();
+          if (!initialReportId) beginLifelongTeaserAfterAuth();
           return;
         }
         if (wantsTodayEntry()) {
@@ -7607,7 +7638,7 @@
           beginAnalysisAfterAuth();
         }
       }).catch((err) => {
-        if (wantsTodayEntry() || isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
+        if (isLifelongTeaserEntry || wantsTodayEntry() || isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
           showAuthGate(err.message || "회원 인증을 확인하지 못했습니다.");
         }
       });

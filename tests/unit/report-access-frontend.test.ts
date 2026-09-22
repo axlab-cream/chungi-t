@@ -354,6 +354,17 @@ test('an old account response arriving after logout cannot repopulate private co
 
 const dailyFixture={todayFortune:{date:{label:'합성 날짜'},profile:{name:'점검'},reading:{title:'저장한 오늘의 기준',summary:'이미 잘되는 일을 유지합니다.',work:'일 문단',money:'돈 문단',relationship:'관계 문단',caution:'확인할 조건',action:'행동 기준',score:{total:99}}},reportId:'daily-legacy',resultId:'daily-result',publicUrl:'/r/daily-result'}
 
+test('saved today routes converge on the same portal page and result identity', () => {
+  for (const path of ['/r/daily-result', '/today/free?reportId=daily-result']) {
+    const h = harness(path, [])
+    const redirects: string[] = []
+    ;(h.location as any).replace = (target: string) => redirects.push(target)
+    h.api.consume(dailyFixture)
+    assert.deepEqual(redirects, ['/cmdg/?reportId=daily-result#todayResult'])
+    assert.equal(h.nodes.has('umsh-verified-reading'), false)
+  }
+})
+
 test('today fortune stores its result address without requesting a paid preview',async()=>{
   const h=harness('/today/free',[dailyFixture])
   h.api.setOwner('owner-a')
@@ -366,7 +377,8 @@ test('today fortune stores its result address without requesting a paid preview'
   assert.match(html,/저장한 오늘의 기준/)
   assert.match(html,/돈 문단/)
   assert.doesNotMatch(html,/같은 해석 다시 열기|href="\/r\//)
-  assert.match(html,/새 오늘운 확인/)
+  assert.match(html,/<nav class="daily-links" aria-label="평생운 보기"><a class="daily-primary-link" href="\/cmdg\/\?entry=lifelong">평생운 확인<\/a><\/nav>/)
+  assert.doesNotMatch(html,/새 오늘운 확인|href="\/today\/free\?start=1"/)
   assert.match(html,/aria-label="오늘의 운 점수 99점, 100점 만점"/)
   assert.doesNotMatch(html,/전체 해석 열어보기/)
 })
@@ -606,7 +618,7 @@ test('saved daily uses the shared shell layout and keeps legacy body private',()
   const html=h.nodes.get('umsh-verified-reading').innerHTML
   assert.match(html,/오늘의 결론/)
   assert.doesNotMatch(html,/실제 사건·성과|점수로 측정/)
-  assert.match(html,/href="\/today\/free\?start=1"/)
+  assert.match(html,/href="\/cmdg\/\?entry=lifelong">평생운 확인/)
 })
 
 test('year-based daily copy is escaped and does not mutate a saved snapshot',()=>{

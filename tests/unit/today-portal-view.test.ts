@@ -47,6 +47,7 @@ for (const portal of portals) {
     assert.match(markup, /1983년생 · 돼지띠/)
     assert.match(markup, /<p>첫 문장입니다\.<\/p><p>두 번째 문장입니다\.<\/p>/)
     assert.match(markup, /오늘의 결론/)
+    if (portal === '사주') assert.match(markup, /data-action="today-full-report">평생운 확인<\/button>/)
     assert.match(markup, /중요한 한 가지부터 마무리하세요/)
     assert.match(markup, /목\(木\) · 나무처럼 자라고 뻗는 기운/)
     assert.doesNotMatch(markup, /today-saved-link|같은 내용으로 다시 보기|href="\/r\//)

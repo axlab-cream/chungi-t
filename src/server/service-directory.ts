@@ -183,12 +183,15 @@ export function serviceTierForKey(serviceKey: string | undefined): string | unde
  * The address the 보관함 opens a saved reading at: the service's own 06-1 detail page, so
  * the reading is read in the design it was sold in rather than in the generic reader.
  *
- * `undefined` means "no registered page for this key" and the caller keeps its /r/:id
- * fallback; returning a guessed path here would produce a 404 instead of a plain reader.
+ * Today fortune opens its portal result scene; other services use their registered
+ * detail page. `undefined` keeps the generic /r/:id fallback.
  */
 export function savedReadingHref(serviceKey: string | undefined, savedId: string | undefined): string | undefined {
   const id = String(savedId ?? '').trim()
   if (!id) return undefined
+  if (serviceKey === 'today_fortune' || serviceKey === 'today') {
+    return `/cmdg/?reportId=${encodeURIComponent(id)}#todayResult`
+  }
   const reportPath = seedForKey(serviceKey)?.reportPath
   if (!reportPath) return undefined
   const [address, hash] = reportPath.split('#')

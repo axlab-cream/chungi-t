@@ -1619,7 +1619,9 @@ function historyEntryFromRecord(record: ReportRecord, options: { slim?: boolean 
   return {
     reportId: record.reportId,
     resultId,
-    publicUrl: full?.report.publicUrl ?? `/r/${encodeURIComponent(String(resultId))}`,
+    publicUrl: record.context?.serviceKey === 'today_fortune'
+      ? savedReadingHref('today_fortune', String(resultId))
+      : full?.report.publicUrl ?? `/r/${encodeURIComponent(String(resultId))}`,
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context),
     serviceKey: record.context?.serviceKey || 'cmdg',
     // 판매할 때 쓴 이름 그대로 돌려준다. 화면이 자기 표를 들고 있으면 카탈로그와 갈라진다.
@@ -3882,7 +3884,7 @@ app.get('/api/user/destiny', async (req, res) => {
       complete: true,
       profile,
       analysis: analyzeSaju(profile.birth),
-      todayFortune: { ...daily.auxiliary?.todayFortune, reportId: daily.reportId, resultId: daily.resultId, publicUrl: toClientReport(daily).publicUrl },
+      todayFortune: { ...daily.auxiliary?.todayFortune, reportId: daily.reportId, resultId: daily.resultId, publicUrl: savedReadingHref('today_fortune', daily.resultId) },
       reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record)),
       storage: getReportStorageMode(),
     })
@@ -3917,7 +3919,7 @@ app.post('/api/today/fortune', async (req, res) => {
     if (requestedId) {
       const existing = await findReportRecord(requestedId, owner)
       if (!existing?.auxiliary?.todayFortune) { res.status(404).json({ error: '저장된 오늘의 운세를 찾지 못했습니다.' }); return }
-      res.json({ todayFortune: existing.auxiliary.todayFortune, reportId: existing.reportId, resultId: existing.resultId, publicUrl: toClientReport(existing).publicUrl })
+      res.json({ todayFortune: existing.auxiliary.todayFortune, reportId: existing.reportId, resultId: existing.resultId, publicUrl: savedReadingHref('today_fortune', existing.resultId) })
       return
     }
     const profile = await getUserBirthProfile(owner)
@@ -3928,7 +3930,7 @@ app.post('/api/today/fortune', async (req, res) => {
     const record = await savedDailyFortune(profile, owner)
     res.json({
       todayFortune: record.auxiliary?.todayFortune,
-      reportId: record.reportId, resultId: record.resultId, publicUrl: toClientReport(record).publicUrl,
+      reportId: record.reportId, resultId: record.resultId, publicUrl: savedReadingHref('today_fortune', record.resultId),
       ...userProfilePayload(profile, owner),
     })
   } catch (err) {
