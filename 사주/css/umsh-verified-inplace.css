@@ -141,7 +141,17 @@
 /* ── 섹션 목록 ──────────────────────────────────────────── */
 [data-umsh-slot="sections"] {
   display: grid;
+  /* 가로 스크롤 타임라인의 최소 너비가 폰 화면 전체를 밀지 않게 한다. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+}
+[data-umsh-slot="sections"] .umsh-longform,
+[data-umsh-slot="sections"] .umsh-summary {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+@container (min-width: 720px) {
+  [data-umsh-slot="sections"] .umsh-summary { grid-template-columns: 300px minmax(0, 1fr); }
 }
 
 /* ── 만세력 흐름: 삽입형 상세도 공용 리더의 읽기 위계를 따른다 ── */
@@ -152,6 +162,7 @@
  * 우선한다. 그래프는 예측 점수가 아니라 구간을 읽는 보조 도구다.
  */
 [data-umsh-slot="sections"] > .umsh-life-flow {
+  min-width: 0;
   margin: 0;
   padding: 20px;
   border: 1px solid var(--line, rgba(222, 188, 113, .32));

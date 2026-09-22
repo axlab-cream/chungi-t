@@ -20,6 +20,7 @@
   --umsh-lf-control-radius: var(--umsh-field-radius, 8px);
   --umsh-lf-gap: var(--umsh-stack-gap, 14px);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--umsh-lf-gap);
   margin: 0 0 22px;
   min-width: 0;
@@ -87,6 +88,7 @@
  */
 .umsh-summary {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   border: 1px solid var(--umsh-lf-line);
   border-radius: var(--umsh-lf-radius);
@@ -350,7 +352,7 @@
 /* 기준은 블록의 실제 폭이다. 폰 틀 안에서는 창이 아무리 넓어도 1열로 남는다. */
 @container (min-width: 720px) {
   .umsh-highlights-grid { grid-template-columns: repeat(3, 1fr); }
-  .umsh-summary { grid-template-columns: 300px 1fr; }
+  .umsh-summary { grid-template-columns: 300px minmax(0, 1fr); }
   /* 2단에서는 컷이 글 옆에 서므로 높이 제한을 푼다. 다만 글이 짧을 때 컷만 길어지지 않게 묶는다. */
   .umsh-summary-figure { aspect-ratio: auto; height: 100%; max-height: 320px; }
   .umsh-summary-figure.is-wide-summary { height: auto; max-height: none; }

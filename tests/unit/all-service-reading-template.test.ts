@@ -184,7 +184,7 @@ test('삽입형 상세 19개는 대운 흐름 스타일을 정적으로 먼저 �
 
   assert.equal(detailPages.length, 19)
   for (const page of detailPages) {
-    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=20260922-lifeflow-readable-v2"/)
+    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=20260922-lifeflow-width-v3"/)
   }
   assert.match(css, /\[data-umsh-slot="sections"\] > \.umsh-life-flow/)
   assert.match(css, /font: 15px\/1\.85 Pretendard/)
