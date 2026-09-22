@@ -173,10 +173,15 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading .umsh-service-elements figcaption { display: grid; gap: 5px; margin-bottom: 14px; }
 #umsh-verified-reading .umsh-service-elements figcaption strong { color: var(--umsh-guide-accent); font-size: 14px; }
 #umsh-verified-reading .umsh-service-elements figcaption span { color: #d5cec1; font-size: 11px; line-height: 1.6; }
-#umsh-verified-reading .umsh-service-elements ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
-#umsh-verified-reading .umsh-service-elements li { display: grid; grid-template-columns: 35px minmax(0, 1fr) 20px; align-items: center; gap: 8px; color: #efe4ce; font-size: 12px; }
-#umsh-verified-reading .umsh-service-elements li strong { text-align: right; font-variant-numeric: tabular-nums; }
-#umsh-verified-reading .umsh-service-element-track { height: 8px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.11); }
+#umsh-verified-reading .umsh-service-elements-scroll { min-width: 0; overflow-x: auto; }
+#umsh-verified-reading .umsh-service-elements-table { width: 100%; min-width: 280px; border-collapse: separate; border-spacing: 0; table-layout: fixed; color: #efe4ce; font-size: 12px; }
+#umsh-verified-reading .umsh-service-elements-table th,
+#umsh-verified-reading .umsh-service-elements-table td { padding: 9px 5px; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 22%, transparent); text-align: center; }
+#umsh-verified-reading .umsh-service-elements-table th { background: color-mix(in srgb, var(--umsh-guide-accent) 12%, #17140f); color: var(--umsh-guide-accent); font-weight: 800; }
+#umsh-verified-reading .umsh-service-elements-table th:first-child { border-radius: 9px 0 0; }
+#umsh-verified-reading .umsh-service-elements-table th:last-child { border-radius: 0 9px 0 0; }
+#umsh-verified-reading .umsh-service-elements-table td strong { display: block; margin-bottom: 7px; color: #fff3d6; font-size: 16px; font-variant-numeric: tabular-nums; }
+#umsh-verified-reading .umsh-service-element-track { display: block; height: 6px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.11); }
 #umsh-verified-reading .umsh-service-element-track > span { display: block; height: 100%; border-radius: inherit; background: var(--umsh-guide-accent); }
 #umsh-verified-reading .umsh-cmdg-domain-flow { margin: 16px 0; padding: 14px 12px; border: 1px solid rgba(216,186,114,.3); border-radius: 10px; background: #211b13; }
 #umsh-verified-reading .umsh-cmdg-domain-flow h3 { margin: 0; color: #fff3d6; font-size: 15px; }

@@ -226,8 +226,12 @@ test('every standard service can show only verified five-element counts in its f
   assert.match(source, /analysis\.elements/)
   assert.match(source, /사주 오행 계산값/)
   assert.match(source, /성공률이나 사건 예측 점수가 아닙니다/)
+  assert.match(source, /class="umsh-service-elements-table"/)
+  assert.match(source, /<th scope="col">/)
+  assert.doesNotMatch(source, /'<ul>' \+ entries\.map/)
   assert.match(source, /serviceElementsChartHtml\(payload, index\)/)
   assert.match(css, /\.umsh-service-elements/)
+  assert.match(css, /\.umsh-service-elements-table/)
 })
 
 test('삽입형 상세 19개는 대운 흐름 스타일을 정적으로 먼저 읽어 기본 브라우저 글꼴로 떨어지지 않는다', () => {

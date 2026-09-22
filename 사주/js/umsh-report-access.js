@@ -530,7 +530,11 @@
     var maximum = Math.max(1, ...entries.map(function (item) { return item[1]; }));
     return '<figure class="umsh-service-elements"' + serviceAccentStyle(config) + '>'
       + '<figcaption><strong>' + escapeHtml(config.title) + ' · 사주 오행 계산값</strong><span>태어난 사주에 나타난 다섯 기운의 횟수입니다. 연애·재물·일의 성공률이나 사건 예측 점수가 아닙니다.</span></figcaption>'
-      + '<ul>' + entries.map(function (item) { return '<li><span>' + item[0] + '</span><div class="umsh-service-element-track"><span style="width:' + Math.round(item[1] / maximum * 100) + '%"></span></div><strong>' + item[1] + '</strong></li>'; }).join('') + '</ul>'
+      + '<div class="umsh-service-elements-scroll"><table class="umsh-service-elements-table" aria-label="사주 오행 계산값"><thead><tr>'
+      + entries.map(function (item) { return '<th scope="col">' + item[0] + '</th>'; }).join('')
+      + '</tr></thead><tbody><tr>'
+      + entries.map(function (item) { return '<td><strong>' + item[1] + '</strong><span class="umsh-service-element-track" aria-hidden="true"><span style="width:' + Math.round(item[1] / maximum * 100) + '%"></span></span></td>'; }).join('')
+      + '</tr></tbody></table></div>'
       + '</figure>';
   }
 

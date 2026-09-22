@@ -394,6 +394,78 @@
   background: var(--panel-strong, rgba(232, 199, 111, .08));
 }
 
+/* ── 실제 오행 계산값 표 ─────────────────────────────────── */
+[data-umsh-slot="sections"] .umsh-service-elements {
+  min-width: 0;
+  margin: 16px 0 22px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 38%, transparent);
+  border-radius: 13px;
+  background: var(--panel-strong, rgba(255, 255, 255, .065));
+}
+[data-umsh-slot="sections"] .umsh-service-elements figcaption {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+[data-umsh-slot="sections"] .umsh-service-elements figcaption strong {
+  color: var(--umsh-guide-accent, var(--gold, #e8c76f));
+  font-size: 14px;
+  line-height: 1.5;
+}
+[data-umsh-slot="sections"] .umsh-service-elements figcaption span {
+  color: var(--muted, rgba(255, 247, 223, .76));
+  font-size: 12px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+[data-umsh-slot="sections"] .umsh-service-elements-scroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+[data-umsh-slot="sections"] .umsh-service-elements-table {
+  width: 100%;
+  min-width: 280px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  color: var(--text, #fff7f2);
+  font-size: 12px;
+}
+[data-umsh-slot="sections"] .umsh-service-elements-table th,
+[data-umsh-slot="sections"] .umsh-service-elements-table td {
+  padding: 9px 5px;
+  border: 1px solid color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 22%, transparent);
+  text-align: center;
+}
+[data-umsh-slot="sections"] .umsh-service-elements-table th {
+  background: color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 12%, rgba(0, 0, 0, .42));
+  color: var(--umsh-guide-accent, var(--gold, #e8c76f));
+  font-weight: 850;
+}
+[data-umsh-slot="sections"] .umsh-service-elements-table th:first-child { border-radius: 9px 0 0; }
+[data-umsh-slot="sections"] .umsh-service-elements-table th:last-child { border-radius: 0 9px 0 0; }
+[data-umsh-slot="sections"] .umsh-service-elements-table td strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text, #fff7f2);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+[data-umsh-slot="sections"] .umsh-service-element-track {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .11);
+}
+[data-umsh-slot="sections"] .umsh-service-element-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--umsh-guide-accent, var(--gold, #e8c76f));
+}
+
 /* ── 항목 준비중 스켈레톤 ────────────────────────────────── */
 .umsh-section-skeleton {
   padding: 16px;
