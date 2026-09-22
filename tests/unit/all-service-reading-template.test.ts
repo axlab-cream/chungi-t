@@ -63,12 +63,14 @@ test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
   const reader = read('사주/js/umsh-report-access.js')
   const css = read('사주/css/umsh-verified-inplace.css')
-  const service = blocks.services.job_choice as { thumbnail?: string; summaryImageFit?: string; sectionImages?: string[]; sectionImageMode?: string }
+  const service = blocks.services.job_choice as { thumbnail?: string; cutA?: string; cutB?: string; summaryImageFit?: string; sectionImages?: string[]; sectionImageMode?: string }
   const images = service.sectionImages ?? []
 
   assert.equal(service.sectionImageMode, undefined, '직장 선택은 대표 한 장 모드가 아니다')
   assert.equal(service.summaryImageFit, 'wide')
   assert.equal(service.thumbnail, '/work/job-choice/assets/job-choice/reading-v2/00-job-choice-summary-v2.webp')
+  assert.equal(service.cutA, service.thumbnail, '설정 폴백에도 이전 일러스트를 남기지 않는다')
+  assert.equal(service.cutB, images[0], '하이라이트에도 제작된 실사 이미지를 사용한다')
   assert.equal(images.length, 21)
   assert.equal(new Set(images).size, 21, '21개 목차는 이미지를 반복하지 않는다')
   assert.ok(existsSync(join(root, '사주', service.thumbnail!)))
@@ -77,6 +79,7 @@ test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미
     assert.ok(existsSync(join(root, '사주', image)), `직장 선택 목차 이미지가 없다: ${image}`)
   }
   assert.doesNotMatch(reader, /job_choice: true/)
+  assert.match(reader, /canonical\(serviceKey\) === 'job_choice' \|\| original === '\/assets\/hero-mystic\.webp'/, '저장된 이전 이미지도 설정 도착 후 새 목차 이미지로 교체해야 한다')
   assert.match(css, /aspect-ratio: 3 \/ 2/)
   assert.match(css, /\.reading-card\.is-ready\[open\] > summary::after/)
   assert.match(css, /content: "접기 −"/)

@@ -330,7 +330,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-jobchoice-visual-v1', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-jobchoice-visual-v2', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -1534,7 +1534,7 @@
     var src = sectionImageSource(section, serviceKey);
     if (!src) return '';
     return '<figure class="story-image">' +
-      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
+      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
       '</figure>';
   }
 

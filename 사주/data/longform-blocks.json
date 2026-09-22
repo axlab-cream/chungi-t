@@ -157,8 +157,8 @@
         "/work/job-choice/assets/job-choice/reading-v2/21-action-stay-or-leave.webp"
       ],
       "guide": ["두 자리에서 맡게 될 역할", "내가 오래 버티기 어려운 조건", "결정 전 문서로 확인할 기준"],
-      "cutA": "/work/job-choice/assets/job-choice/01-scene-01-hook.webp",
-      "cutB": "/work/job-choice/assets/job-choice/01-scene-04-evidence-bridge.webp",
+      "cutA": "/work/job-choice/assets/job-choice/reading-v2/00-job-choice-summary-v2.webp",
+      "cutB": "/work/job-choice/assets/job-choice/reading-v2/01-company-fit-overall.webp",
       "highlights": [
         { "title": "두 자리 조건 비교", "shape": "자리마다 조건을 한 문단으로 따져 본 뒤, 마지막 문단에서 이 사람에게 맞는 하나를 고른다" },
         { "title": "이 회사에서 닳는 지점", "shape": "닳는 지점을 한 문단씩 짚고, 마지막 문단은 그것을 견디는 조건이다" },
