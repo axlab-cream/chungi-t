@@ -586,6 +586,13 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
   assert.match(html,/인생의 성공·수입을 예측한 점수는 아닙니다/)
 })
 
+test('verified summary photo stays inside the narrow report card without cropping',()=>{
+  const css=readFileSync(new URL('../../사주/css/umsh-verified-reader.css',import.meta.url),'utf8')
+  assert.match(css,/#umsh-verified-reading \.umsh-summary \{ grid-template-columns: minmax\(0, 1fr\); \}/)
+  assert.match(css,/#umsh-verified-reading \.umsh-summary-figure \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*overflow: hidden;/)
+  assert.match(css,/#umsh-verified-reading \.umsh-summary-figure img \{[^}]*width: 100%;[^}]*max-width: 100%;[^}]*height: auto;[^}]*object-fit: contain;/)
+})
+
 test('legacy one-paragraph reports use a truthful combined role instead of inventing an action split',()=>{
   const h=harness('/r/legacy-report',[])
   h.api.consume({reportId:'legacy-report',report:{title:'예전 풀이',sections:[{

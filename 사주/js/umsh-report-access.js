@@ -149,7 +149,7 @@
     layout.appendChild(node);
     document.body.appendChild(layout);
     document.documentElement.setAttribute('data-umsh-verified-reader','');
-    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-cmdg-template';css.addEventListener('load',mountChrome);document.head.appendChild(css);
+    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-cmdg-template3';css.addEventListener('load',mountChrome);document.head.appendChild(css);
     function mountChrome() { if(global.UMSHChrome)global.UMSHChrome.mount({root:'#umsh-verified-layout',service:key==='today_fortune'?'오늘운':'저장된 해석',category:'흐름'}); }
     if(global.UMSHChrome) mountChrome();
     else if(!document.querySelector('script[src="/js/umsh-chrome.js"]')) {var script=document.createElement('script');script.src='/js/umsh-chrome.js';script.addEventListener('load',mountChrome);document.head.appendChild(script);}
