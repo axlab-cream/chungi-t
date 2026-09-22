@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import test from 'node:test'
 
@@ -172,4 +172,22 @@ test('every standard service can show only verified five-element counts in its f
   assert.match(source, /성공률이나 사건 예측 점수가 아닙니다/)
   assert.match(source, /serviceElementsChartHtml\(payload, index\)/)
   assert.match(css, /\.umsh-service-elements/)
+})
+
+test('삽입형 상세 19개는 대운 흐름 스타일을 정적으로 먼저 읽어 기본 브라우저 글꼴로 떨어지지 않는다', () => {
+  const sajuRoot = join(root, '사주')
+  const detailPages = readdirSync(sajuRoot, { recursive: true })
+    .filter((entry): entry is string => typeof entry === 'string' && entry.replaceAll('\\', '/').endsWith('06-step-6_1-report-detail/index.html'))
+    .map((entry) => join(sajuRoot, entry))
+    .filter((path) => readFileSync(path, 'utf8').includes('data-umsh-verified-inplace'))
+  const css = read('사주/css/umsh-verified-inplace.css')
+
+  assert.equal(detailPages.length, 19)
+  for (const page of detailPages) {
+    assert.match(readFileSync(page, 'utf8'), /<link id="umsh-inplace-css" rel="stylesheet" href="\/css\/umsh-verified-inplace\.css\?v=20260922-lifeflow-readable-v2"/)
+  }
+  assert.match(css, /\[data-umsh-slot="sections"\] > \.umsh-life-flow/)
+  assert.match(css, /font: 15px\/1\.85 Pretendard/)
+  assert.match(css, /\.umsh-flow-point\.is-current/)
+  assert.match(css, /\.umsh-life-flow-timeline/)
 })

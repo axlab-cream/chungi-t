@@ -158,6 +158,9 @@
   border-radius: 16px;
   background: linear-gradient(145deg, var(--panel-strong, rgba(255, 255, 255, .075)), var(--panel, rgba(255, 255, 255, .035)));
   color: var(--ink, #fff7f2);
+  font: 15px/1.85 Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  letter-spacing: -.012em;
+  text-rendering: optimizeLegibility;
 }
 [data-umsh-slot="sections"] .umsh-life-flow-eyebrow {
   display: block;
@@ -177,30 +180,40 @@
   word-break: keep-all;
 }
 [data-umsh-slot="sections"] .umsh-life-flow-current {
-  margin: 9px 0 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  margin: 12px 0 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line, rgba(222, 188, 113, .38));
+  border-radius: 999px;
+  background: var(--current-panel, rgba(232, 199, 111, .11));
   color: var(--gold-soft, #f2dc9a);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
-  line-height: 1.6;
+  line-height: 1.45;
   word-break: keep-all;
 }
 [data-umsh-slot="sections"] .umsh-flow-intro {
   margin: 16px 0 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line, rgba(222, 188, 113, .2));
   color: var(--muted, rgba(255, 247, 223, .78));
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: 13px;
+  line-height: 1.8;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 [data-umsh-slot="sections"] .umsh-flow-curve {
   margin: 0;
-  padding: 14px 10px 10px;
+  padding: 16px 10px 11px;
   border: 1px solid var(--line, rgba(222, 188, 113, .28));
   border-radius: 13px;
   background: var(--chart-panel, rgba(0, 0, 0, .2));
 }
 [data-umsh-slot="sections"] .umsh-flow-plot { overflow-x: auto; scrollbar-color: var(--gold, #e8c76f) transparent; }
 [data-umsh-slot="sections"] .umsh-flow-plot svg { display: block; width: 100%; min-width: 340px; height: auto; }
+[data-umsh-slot="sections"] .umsh-flow-plot text { font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
 [data-umsh-slot="sections"] .umsh-flow-grid { stroke: var(--chart-grid, rgba(232, 199, 111, .3)); stroke-dasharray: 3 4; }
 [data-umsh-slot="sections"] .umsh-flow-axis { fill: var(--muted, #d7c9aa); font-size: 10px; font-weight: 800; }
 [data-umsh-slot="sections"] .umsh-flow-line { fill: none; stroke: var(--gold, #e8c76f); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
@@ -291,6 +304,7 @@
 @media (max-width: 420px) {
   [data-umsh-slot="sections"] > .umsh-life-flow { padding: 18px 15px; }
   [data-umsh-slot="sections"] .umsh-life-flow-reference { grid-template-columns: 1fr; }
+  [data-umsh-slot="sections"] .umsh-life-flow-current { max-width: 100%; border-radius: 10px; }
 }
 [data-umsh-slot="sections"] .reading-card {
   border: 1px solid var(--line, rgba(222, 188, 113, .24));

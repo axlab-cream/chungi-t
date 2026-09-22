@@ -1147,7 +1147,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260922-jobchoice-markdown-v1';
+    link.href = '/css/umsh-verified-inplace.css?v=20260922-lifeflow-readable-v2';
     document.head.appendChild(link);
   }
   /**
