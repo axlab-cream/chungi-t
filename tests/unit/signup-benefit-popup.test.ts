@@ -8,6 +8,7 @@ const popupScript = readFileSync(join(ROOT, '사주/js/umsh-signup-benefit-popup
 const popupStyles = readFileSync(join(ROOT, '사주/css/umsh-signup-benefit-popup.css'), 'utf8')
 const chrome = readFileSync(join(ROOT, '사주/js/umsh-chrome.js'), 'utf8')
 const todayFree = readFileSync(join(ROOT, '사주/today/free/index.html'), 'utf8')
+const portal = readFileSync(join(ROOT, '사주/portal.html'), 'utf8')
 
 test('회원가입 오늘운 팝업은 관리 API의 기간을 확인하고 일주일 숨김 상태를 가진다', () => {
   assert.match(popupScript, /2026-09-22T00:00:00\+09:00/)
@@ -38,4 +39,9 @@ test('공용 크롬이 팝업과 기본 시안 이미지를 모든 연결 화면
   assert.match(popupScript, /천명보살의 오늘운/)
   assert.match(popupStyles, /z-index:\s*1000/)
   assert.match(popupStyles, /:focus-visible/)
+})
+
+test('운명상회 첫 페이지 포털은 팝업 자산을 직접 불러온다', () => {
+  assert.match(portal, /umsh-signup-benefit-popup\.css\?v=20260922-default/)
+  assert.match(portal, /umsh-signup-benefit-popup\.js\?v=20260922-default/)
 })
