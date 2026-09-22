@@ -163,12 +163,29 @@ html[data-umsh-verified-reader] body { overflow: visible !important; }
 #umsh-verified-reading .umsh-reading-guide { --umsh-guide-accent: var(--gold, #d8ba72); margin: 16px 0; padding: 15px; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 38%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--umsh-guide-accent) 8%, #11100d); }
 #umsh-verified-reading .umsh-reading-guide .reading-role { color: var(--umsh-guide-accent); }
 #umsh-verified-reading .umsh-reading-guide h3 { margin: 6px 0 12px; color: #fff3d6; font-size: 15px; line-height: 1.45; }
-#umsh-verified-reading .umsh-reading-guide-scroll { overflow-x: auto; }
+#umsh-verified-reading .umsh-reading-guide-scroll { overflow-x: auto; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 24%, transparent); border-radius: 9px; }
 #umsh-verified-reading .umsh-reading-guide table { width: 100%; min-width: 360px; border-collapse: collapse; color: #e2dbcf; font-size: 12px; }
 #umsh-verified-reading .umsh-reading-guide th, #umsh-verified-reading .umsh-reading-guide td { padding: 9px 8px; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 25%, transparent); text-align: left; vertical-align: top; line-height: 1.65; overflow-wrap: anywhere; }
 #umsh-verified-reading .umsh-reading-guide thead th { color: #fff3d6; background: color-mix(in srgb, var(--umsh-guide-accent) 16%, #17140f); }
 #umsh-verified-reading .umsh-reading-guide tbody th { width: 38%; color: var(--umsh-guide-accent); font-weight: 800; }
 #umsh-verified-reading .umsh-reading-guide:focus-within { outline: 2px solid var(--umsh-guide-accent); outline-offset: 3px; }
+#umsh-verified-reading .reading-block strong { color: #fff9ec; font-weight: 850; }
+#umsh-verified-reading .reading-block em { color: #f2dc9a; }
+#umsh-verified-reading .reading-block u { text-decoration-color: var(--umsh-guide-accent, var(--gold, #d8ba72)); text-decoration-thickness: 2px; text-underline-offset: .24em; }
+#umsh-verified-reading .reading-block mark { padding: .05em .24em; border-radius: .3em; background: color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #d8ba72)) 82%, white); color: #171109; font-weight: 800; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+#umsh-verified-reading .reading-block code { padding: .12em .36em; border: 1px solid rgba(216,186,114,.3); border-radius: 5px; background: #17140f; color: #f2dc9a; font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: .9em; }
+#umsh-verified-reading .reading-subhead { margin: 20px 0 8px; padding-left: 10px; border-left: 3px solid var(--umsh-guide-accent, var(--gold, #d8ba72)); color: #fff3d6; font-size: 16px; font-weight: 850; line-height: 1.55; }
+#umsh-verified-reading .reading-quote { margin: 15px 0; padding: 12px 14px; border-left: 3px solid var(--umsh-guide-accent, var(--gold, #d8ba72)); border-radius: 0 10px 10px 0; background: rgba(216,186,114,.1); color: #f5ead4; font-size: 14px; font-weight: 650; line-height: 1.8; }
+#umsh-verified-reading .reading-list { margin: 12px 0; padding-left: 23px; }
+#umsh-verified-reading .reading-list li { margin: 7px 0; padding-left: 3px; line-height: 1.8; }
+#umsh-verified-reading .reading-list li::marker { color: var(--umsh-guide-accent, var(--gold, #d8ba72)); font-weight: 850; }
+#umsh-verified-reading .reading-table-wrap { margin: 15px 0; overflow-x: auto; border: 1px solid rgba(216,186,114,.3); border-radius: 11px; }
+#umsh-verified-reading .reading-table { width: 100%; min-width: 340px; border-collapse: collapse; color: #e2dbcf; font-size: 13px; }
+#umsh-verified-reading .reading-table th, #umsh-verified-reading .reading-table td { padding: 10px 11px; border: 0; border-right: 1px solid rgba(216,186,114,.18); border-bottom: 1px solid rgba(216,186,114,.18); text-align: left; vertical-align: top; line-height: 1.7; word-break: keep-all; }
+#umsh-verified-reading .reading-table thead th { background: #2a2114; color: #f2dc9a; font-weight: 850; }
+#umsh-verified-reading .reading-table th:last-child, #umsh-verified-reading .reading-table td:last-child { border-right: 0; }
+#umsh-verified-reading .reading-table tbody tr:last-child td { border-bottom: 0; }
+#umsh-verified-reading :is(.umsh-reading-guide-scroll,.umsh-service-elements-scroll,.reading-table-wrap):focus-visible { outline: 2px solid var(--umsh-guide-accent, var(--gold, #d8ba72)); outline-offset: 3px; }
 #umsh-verified-reading .umsh-service-elements { --umsh-guide-accent: var(--gold, #d8ba72); margin: 16px 0 22px; padding: 16px; border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 38%, transparent); border-radius: 12px; background: #15130f; }
 #umsh-verified-reading .umsh-service-elements figcaption { display: grid; gap: 5px; margin-bottom: 14px; }
 #umsh-verified-reading .umsh-service-elements figcaption strong { color: var(--umsh-guide-accent); font-size: 14px; }

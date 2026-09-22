@@ -394,6 +394,169 @@
   background: var(--panel-strong, rgba(232, 199, 111, .08));
 }
 
+/* ── 공용 마크다운 뷰 ─────────────────────────────────────
+ * 저장 원문의 구조를 카드 본문에서도 제목·표·목록·강조로 구분한다.
+ * 서비스별 accent 변수를 사용해 고양이 궁합 등 각 테마의 정체성은 유지한다. */
+[data-umsh-slot="sections"] .reading-block strong {
+  color: var(--text-strong, #fffdf5);
+  font-weight: 850;
+}
+[data-umsh-slot="sections"] .reading-block em { color: var(--gold-soft, #f2dc9a); }
+[data-umsh-slot="sections"] .reading-block u {
+  text-decoration-color: var(--umsh-guide-accent, var(--gold, #e8c76f));
+  text-decoration-thickness: 2px;
+  text-underline-offset: .24em;
+}
+[data-umsh-slot="sections"] .reading-block mark {
+  padding: .05em .24em;
+  border-radius: .3em;
+  background: color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 82%, white);
+  color: #171109;
+  font-weight: 800;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+[data-umsh-slot="sections"] .reading-block code {
+  padding: .12em .36em;
+  border: 1px solid color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 30%, transparent);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, .28);
+  color: var(--gold-soft, #f2dc9a);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .9em;
+}
+[data-umsh-slot="sections"] .reading-subhead {
+  margin: 20px 0 8px;
+  padding-left: 10px;
+  border-left: 3px solid var(--umsh-guide-accent, var(--gold, #e8c76f));
+  color: var(--text-strong, #fffdf5);
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+[data-umsh-slot="sections"] .reading-quote {
+  margin: 15px 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--umsh-guide-accent, var(--gold, #e8c76f));
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 10%, transparent);
+  color: var(--text, #fff7f2);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.8;
+}
+[data-umsh-slot="sections"] .reading-list {
+  margin: 12px 0;
+  padding-left: 23px;
+  color: var(--text, #fff7f2);
+}
+[data-umsh-slot="sections"] .reading-list li {
+  margin: 7px 0;
+  padding-left: 3px;
+  font-size: 14px;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+[data-umsh-slot="sections"] .reading-list li::marker {
+  color: var(--umsh-guide-accent, var(--gold, #e8c76f));
+  font-weight: 850;
+}
+[data-umsh-slot="sections"] .reading-table-wrap {
+  min-width: 0;
+  margin: 15px 0;
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 30%, transparent);
+  border-radius: 11px;
+  -webkit-overflow-scrolling: touch;
+}
+[data-umsh-slot="sections"] .reading-table {
+  width: 100%;
+  min-width: 340px;
+  border-collapse: collapse;
+  color: var(--text, #fff7f2);
+  font-size: 13px;
+}
+[data-umsh-slot="sections"] .reading-table th,
+[data-umsh-slot="sections"] .reading-table td {
+  padding: 10px 11px;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 18%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 18%, transparent);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+[data-umsh-slot="sections"] .reading-table th:last-child,
+[data-umsh-slot="sections"] .reading-table td:last-child { border-right: 0; }
+[data-umsh-slot="sections"] .reading-table tbody tr:last-child td { border-bottom: 0; }
+[data-umsh-slot="sections"] .reading-table thead th {
+  background: color-mix(in srgb, var(--umsh-guide-accent, var(--gold, #e8c76f)) 14%, rgba(0, 0, 0, .46));
+  color: var(--umsh-guide-accent, var(--gold, #e8c76f));
+  font-weight: 850;
+}
+
+/* 첫 토글의 읽기 순서도 본문 표와 같은 위계로 보인다. */
+[data-umsh-slot="sections"] .umsh-reading-guide {
+  --umsh-guide-accent: var(--gold, #e8c76f);
+  min-width: 0;
+  margin: 16px 0 20px;
+  padding: 15px;
+  border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 38%, transparent);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--umsh-guide-accent) 8%, rgba(0, 0, 0, .42));
+}
+[data-umsh-slot="sections"] .umsh-reading-guide .reading-role { color: var(--umsh-guide-accent); }
+[data-umsh-slot="sections"] .umsh-reading-guide h3 {
+  margin: 6px 0 12px;
+  color: var(--text-strong, #fffdf5);
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+[data-umsh-slot="sections"] .umsh-reading-guide-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 26%, transparent);
+  border-radius: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+[data-umsh-slot="sections"] .umsh-reading-guide table {
+  width: 100%;
+  min-width: 360px;
+  border-collapse: collapse;
+  color: var(--text, #fff7f2);
+  font-size: 12px;
+}
+[data-umsh-slot="sections"] .umsh-reading-guide th,
+[data-umsh-slot="sections"] .umsh-reading-guide td {
+  padding: 10px 9px;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 20%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--umsh-guide-accent) 20%, transparent);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+[data-umsh-slot="sections"] .umsh-reading-guide th:last-child,
+[data-umsh-slot="sections"] .umsh-reading-guide td:last-child { border-right: 0; }
+[data-umsh-slot="sections"] .umsh-reading-guide tbody tr:last-child > * { border-bottom: 0; }
+[data-umsh-slot="sections"] .umsh-reading-guide thead th {
+  color: var(--text-strong, #fffdf5);
+  background: color-mix(in srgb, var(--umsh-guide-accent) 15%, rgba(0, 0, 0, .5));
+  font-weight: 850;
+}
+[data-umsh-slot="sections"] .umsh-reading-guide tbody th {
+  width: 40%;
+  color: var(--umsh-guide-accent);
+  font-weight: 850;
+}
+[data-umsh-slot="sections"] :is(.umsh-reading-guide-scroll,.umsh-service-elements-scroll,.reading-table-wrap,.story-table-scroll):focus-visible {
+  outline: 2px solid var(--umsh-guide-accent, var(--gold, #e8c76f));
+  outline-offset: 3px;
+}
+
 /* ── 실제 오행 계산값 표 ─────────────────────────────────── */
 [data-umsh-slot="sections"] .umsh-service-elements {
   min-width: 0;

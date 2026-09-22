@@ -189,16 +189,16 @@
     var style = document.createElement('style');
     style.id = 'umsh-richtext-css';
     style.textContent = [
-      '.reading-table-wrap{overflow-x:auto;margin:10px 0}',
+      '.reading-table-wrap{overflow-x:auto;margin:12px 0}',
       '.reading-table{width:100%;border-collapse:collapse;font-size:.95em}',
       '.reading-table th,.reading-table td{border:1px solid currentColor;border-color:color-mix(in srgb,currentColor 24%,transparent);padding:7px 9px;text-align:left;vertical-align:top;word-break:keep-all}',
       '.reading-table th{font-weight:800;background:color-mix(in srgb,currentColor 8%,transparent)}',
       '.reading-list{margin:8px 0;padding-left:1.2em}',
       '.reading-list li{margin:4px 0}',
       '.reading-subhead{font-weight:800;margin:10px 0 4px}',
-      '.reading-quote{margin:12px 0;padding:9px 13px;border-left:3px solid #d8ba72;background:rgba(216,186,114,.09);line-height:1.7}',
-      '.reading-block mark,.home-richtext mark,.wedding-richtext mark{padding:0 .12em;background:#b88935;color:#171109}',
-      '.reading-block u,.home-richtext u,.wedding-richtext u{text-decoration-color:#d8ba72;text-underline-offset:.2em}',
+      '.reading-quote{margin:12px 0;padding:9px 13px;border-left:3px solid var(--umsh-guide-accent,var(--gold,#d8ba72));background:color-mix(in srgb,var(--umsh-guide-accent,var(--gold,#d8ba72)) 9%,transparent);line-height:1.7}',
+      '.reading-block mark,.home-richtext mark,.wedding-richtext mark{padding:.05em .22em;border-radius:.28em;background:color-mix(in srgb,var(--umsh-guide-accent,var(--gold,#d8ba72)) 82%,white);color:#171109;box-decoration-break:clone;-webkit-box-decoration-break:clone}',
+      '.reading-block u,.home-richtext u,.wedding-richtext u{text-decoration-color:var(--umsh-guide-accent,var(--gold,#d8ba72));text-decoration-thickness:2px;text-underline-offset:.24em}',
     ].join('');
     document.head.appendChild(style);
   }
@@ -216,7 +216,8 @@
     return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (cell) { return cell.trim(); });
   }
   function cellsHtml(cells, tag) {
-    return cells.map(function (cell) { return '<' + tag + '>' + inlineMarkdown(escapeHtml(cell)) + '</' + tag + '>'; }).join('');
+    var attributes = tag === 'th' ? ' scope="col"' : '';
+    return cells.map(function (cell) { return '<' + tag + attributes + '>' + inlineMarkdown(escapeHtml(cell)) + '</' + tag + '>'; }).join('');
   }
   function richText(raw) {
     ensureRichTextStyles();
@@ -239,7 +240,7 @@
         if (rows.length) {
           flush();
           var head = rows.shift();
-          html += '<div class="reading-table-wrap"><table class="reading-table"><thead><tr>' + cellsHtml(head, 'th') + '</tr></thead>'
+          html += '<div class="reading-table-wrap" role="region" aria-label="해석 비교표" tabindex="0"><table class="reading-table"><thead><tr>' + cellsHtml(head, 'th') + '</tr></thead>'
             + (rows.length ? '<tbody>' + rows.map(function (row) { return '<tr>' + cellsHtml(row, 'td') + '</tr>'; }).join('') + '</tbody>' : '')
             + '</table></div>';
         }
@@ -514,7 +515,7 @@
     return '<section class="umsh-reading-guide" aria-labelledby="umsh-reading-guide-title"' + serviceAccentStyle(config) + '>'
       + '<span class="reading-role">풀이 읽는 순서</span>'
       + '<h3 id="umsh-reading-guide-title">' + escapeHtml(String(config.title || '이 해석')) + '에서 먼저 볼 것</h3>'
-      + '<div class="umsh-reading-guide-scroll"><table><thead><tr><th scope="col">해석의 초점</th><th scope="col">지금 읽는 기준</th></tr></thead><tbody>'
+      + '<div class="umsh-reading-guide-scroll" role="region" aria-label="풀이 읽는 순서 표" tabindex="0"><table><thead><tr><th scope="col">해석의 초점</th><th scope="col">지금 읽는 기준</th></tr></thead><tbody>'
       + guide.map(function (line, guideIndex) { return '<tr><th scope="row">' + escapeHtml(labelText(topics[guideIndex].title)) + '</th><td>' + escapeHtml(line) + '</td></tr>'; }).join('')
       + '</tbody></table></div></section>';
   }
@@ -530,7 +531,7 @@
     var maximum = Math.max(1, ...entries.map(function (item) { return item[1]; }));
     return '<figure class="umsh-service-elements"' + serviceAccentStyle(config) + '>'
       + '<figcaption><strong>' + escapeHtml(config.title) + ' · 사주 오행 계산값</strong><span>태어난 사주에 나타난 다섯 기운의 횟수입니다. 연애·재물·일의 성공률이나 사건 예측 점수가 아닙니다.</span></figcaption>'
-      + '<div class="umsh-service-elements-scroll"><table class="umsh-service-elements-table" aria-label="사주 오행 계산값"><thead><tr>'
+      + '<div class="umsh-service-elements-scroll" role="region" aria-label="사주 오행 계산값 표" tabindex="0"><table class="umsh-service-elements-table" aria-label="사주 오행 계산값"><thead><tr>'
       + entries.map(function (item) { return '<th scope="col">' + item[0] + '</th>'; }).join('')
       + '</tr></thead><tbody><tr>'
       + entries.map(function (item) { return '<td><strong>' + item[1] + '</strong><span class="umsh-service-element-track" aria-hidden="true"><span style="width:' + Math.round(item[1] / maximum * 100) + '%"></span></span></td>'; }).join('')
@@ -1495,7 +1496,7 @@
       return '<tr>' + row.map(function (cell) { return '<td>' + escapeHtml(cell) + '</td>'; }).join('') + '</tr>';
     }).join('') + '</tbody>';
     return '<figure class="story-table-figure">' +
-      '<div class="story-table-scroll"><table class="story-table">' + head + body + '</table></div>' +
+      '<div class="story-table-scroll" role="region" aria-label="' + escapeHtml(caption || '해석 비교표') + '" tabindex="0"><table class="story-table">' + head + body + '</table></div>' +
       (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '') +
       '</figure>';
   }

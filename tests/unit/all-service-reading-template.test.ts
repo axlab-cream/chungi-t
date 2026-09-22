@@ -25,6 +25,7 @@ test('all configured reading services carry an identity-specific first-toggle gu
 test('shared reader applies the configured image, guide, and actual fortune graph without fake scores', () => {
   const source = read('사주/js/umsh-report-access.js')
   const css = read('사주/css/umsh-verified-reader.css')
+  const inplaceCss = read('사주/css/umsh-verified-inplace.css')
 
   assert.match(source, /function sectionImageSource\(section, serviceKey\)/)
   assert.doesNotMatch(source, /marry_match: true/, '결혼궁합은 목차마다 한 컷을 보여준다')
@@ -45,6 +46,10 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(css, /\.umsh-reading-guide\s*\{/)
   assert.match(css, /\.umsh-reading-guide-scroll\s*\{ overflow-x: auto/)
   assert.match(css, /\.umsh-reading-guide:focus-within/)
+  assert.match(inplaceCss, /\[data-umsh-slot="sections"\] \.umsh-reading-guide\s*\{/)
+  assert.match(inplaceCss, /\.umsh-reading-guide-scroll\s*\{/)
+  assert.match(inplaceCss, /\.umsh-reading-guide thead th/)
+  assert.match(source, /aria-label="풀이 읽는 순서 표" tabindex="0"/)
 })
 
 test('five completed services retain one representative thumbnail without repeating section or highlight images', () => {

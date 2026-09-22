@@ -47,7 +47,8 @@ test('마크다운 표를 표로 그린다', () => {
     '| 놓침 | 바쁘다는 말로 미룰 때 |',
   ].join('\n'))
   assert.match(html, /<table class="reading-table">/)
-  assert.match(html, /<th>마음 신호<\/th><th>올해의 장면<\/th>/)
+  assert.match(html, /<th scope="col">마음 신호<\/th><th scope="col">올해의 장면<\/th>/)
+  assert.match(html, /role="region" aria-label="해석 비교표" tabindex="0"/)
   assert.match(html, /<td>설렘<\/td>/)
   assert.doesNotMatch(html, /\| --- \|/, '구분선이 글자로 남았다')
   assert.doesNotMatch(html, /\|\s*설렘/, '표가 글자로 남았다')
@@ -72,6 +73,25 @@ test('저장 원문의 인용·강조·밑줄·형광 표시를 안전한 마크
   assert.match(html, /<u>밑줄<\/u>/)
   assert.match(html, /<mark>강조<\/mark>/)
   assert.doesNotMatch(render('==<img onerror=alert(1)>=='), /<img/)
+})
+
+test('공용 마크다운 컴포넌트는 인플레이스·전체 리더에서 같은 가독성 규칙을 쓴다', () => {
+  const inplace = read('사주/css/umsh-verified-inplace.css')
+  const full = read('사주/css/umsh-verified-reader.css')
+  for (const css of [inplace, full]) {
+    assert.match(css, /\.reading-block strong/)
+    assert.match(css, /\.reading-block u/)
+    assert.match(css, /\.reading-block mark/)
+    assert.match(css, /\.reading-subhead/)
+    assert.match(css, /\.reading-quote/)
+    assert.match(css, /\.reading-list li::marker/)
+    assert.match(css, /\.reading-table-wrap/)
+    assert.match(css, /\.reading-table thead th/)
+  }
+  assert.match(inplace, /\.umsh-reading-guide table/)
+  assert.match(inplace, /\.umsh-reading-guide thead th/)
+  assert.match(inplace, /\.story-chart-track/)
+  assert.match(inplace, /\.story-table th/)
 })
 
 test('전용 집 풍수·결혼 날짜 상세도 공용 마크다운 뷰를 호출한다', () => {
