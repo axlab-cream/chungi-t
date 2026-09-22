@@ -716,11 +716,6 @@
           </div>
         </article>
 
-        <nav class="nav-row" aria-label="상세 항목 이동">
-          <a class="nav-button" id="prev-link" href="#step-6_1-report">이전 항목</a>
-          <a class="nav-button" id="next-link" href="#step-6_1-report">다음 항목</a>
-        </nav>
-
         <section class="source-panel" aria-labelledby="source-title">
           <h2 id="source-title">이 풀이가 본 자료</h2>
           <div class="source-grid" id="source-grid"></div>
@@ -728,31 +723,9 @@
 
         <section class="detail-stack" id="detail-stack" data-umsh-slot="sections" aria-label="상세 해석"></section>
 
-        <section class="detail-card" id="talk-card" aria-label="지금 할 말과 하지 않을 말">
-          <h2>지금 할 말 / 하지 않을 말</h2>
-          <div class="talk-guide">
-            <div class="talk-row">
-              <strong>지금 할 말</strong>
-              <p id="say-line"></p>
-            </div>
-            <div class="talk-row">
-              <strong>하지 않을 말</strong>
-              <p id="avoid-line"></p>
-            </div>
-          </div>
-        </section>
-
-        <section class="related-panel" aria-labelledby="related-title">
-          <h2 id="related-title">연관 항목</h2>
-          <div class="related-list" id="related-list"></div>
-        </section>
       </section>
     </section>
 
-    <form class="chat-input" id="chat-form" data-umsh-legacy-reading-ui>
-      <textarea id="chat-message" rows="2" placeholder="이 항목에서 더 궁금한 점을 적어주세요." required></textarea>
-      <button class="send-btn" type="submit">전송</button>
-    </form>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -5745,11 +5718,6 @@
       hero: document.getElementById("hero-image"),
       sourceGrid: document.getElementById("source-grid"),
       stack: document.getElementById("detail-stack"),
-      prev: document.getElementById("prev-link"),
-      next: document.getElementById("next-link"),
-      related: document.getElementById("related-list"),
-      say: document.getElementById("say-line"),
-      avoid: document.getElementById("avoid-line"),
       toast: document.getElementById("toast"),
       scroll: document.getElementById("scroll-area"),
     };
@@ -5863,25 +5831,6 @@
       return card;
     }
 
-    function renderRelated(detail) {
-      els.related.innerHTML = "";
-      detail.related_sections.forEach((section) => {
-        const link = document.createElement("a");
-        link.className = "quick-link";
-        link.href = withRoute(section.section_id);
-        const copy = document.createElement("div");
-        const group = document.createElement("span");
-        group.textContent = section.group_title;
-        const title = document.createElement("strong");
-        title.textContent = section.title;
-        copy.append(group, title);
-        const arrow = document.createElement("i");
-        arrow.textContent = "›";
-        link.append(copy, arrow);
-        els.related.append(link);
-      });
-    }
-
     function renderDetail() {
       const mode = getAccessMode();
       if (mode === "processing") {
@@ -5905,9 +5854,6 @@
       }
 
       const currentIndex = DETAILS.findIndex((entry) => entry.section_id === detail.section_id);
-      const previous = DETAILS[(currentIndex - 1 + DETAILS.length) % DETAILS.length];
-      const next = DETAILS[(currentIndex + 1) % DETAILS.length];
-
       els.state.classList.remove("is-visible");
       els.content.hidden = false;
       els.chip.textContent = detail.group_title + " · " + (currentIndex + 1) + "/" + DETAILS.length;
@@ -5916,17 +5862,9 @@
       els.conclusion.textContent = detail.conclusion;
       els.hero.src = "../assets/thisyear/report-sections/00-year-love-report-hero-v1.png";
       els.hero.alt = "창가에서 휴대폰을 보며 올해의 만남을 생각하는 여성";
-      els.prev.href = withRoute(previous.section_id);
-      els.prev.textContent = "‹ " + previous.title;
-      els.next.href = withRoute(next.section_id);
-      els.next.textContent = next.title + " ›";
-      els.say.textContent = detail.talk_guide.say;
-      els.avoid.textContent = detail.talk_guide.avoid;
-
       renderSources(detail);
       els.stack.innerHTML = "";
       detail.interpretation_blocks.forEach((block) => els.stack.append(renderBlock(block)));
-      renderRelated(detail);
       els.scroll.scrollTop = 0;
     }
 
@@ -5945,14 +5883,6 @@
     document.getElementById("btn-pdf").addEventListener("click", () => {
       if (window.UMSHReportPdf && window.UMSHReportPdf.openFromStorage()) return;
       window.print();
-    });
-
-    document.getElementById("chat-form").addEventListener("submit", (event) => {
-      event.preventDefault();
-      const message = document.getElementById("chat-message");
-      if (!message.value.trim()) return;
-      showToast("운영 환경에서는 이 항목을 기준으로 이어서 상담합니다.");
-      message.value = "";
     });
 
     window.addEventListener("popstate", renderDetail);

@@ -71,7 +71,6 @@ test('올해 연애운 상세은 공통 GNB·하단 내비게이션을 유지하
 
   assert.match(detail, /data-umsh-chrome/)
   assert.match(detail, /class="contextbar" data-umsh-legacy-reading-ui/)
-  assert.match(detail, /class="chat-input" id="chat-form" data-umsh-legacy-reading-ui/)
   assert.match(detail, /#step-6_1-report \[data-umsh-legacy-reading-ui\] \{ display: none !important; \}/)
   assert.match(reader, /function ensureInPlaceReaderActions\(host, payload\)/)
   assert.match(reader, /링크 공유하기/)
@@ -79,6 +78,18 @@ test('올해 연애운 상세은 공통 GNB·하단 내비게이션을 유지하
   assert.match(reader, /if \(!ensureInPlaceReaderActions\(host, payload\)\) ensurePdfDock\(host\)/)
   assert.match(css, /\.umsh-reader-actions\s*\{/)
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/)
+})
+
+test('올해 연애운 상세은 공통 리더 액션 외의 이전·다음, 말 가이드, 연관 항목을 중복 노출하지 않는다', () => {
+  const detail = read('사주/love/this-year/06-step-6_1-report-detail/index.html')
+
+  assert.doesNotMatch(detail, /aria-label="상세 항목 이동"/)
+  assert.doesNotMatch(detail, /id="talk-card"/)
+  assert.doesNotMatch(detail, /id="related-list"/)
+  assert.doesNotMatch(detail, /id="prev-link"/)
+  assert.doesNotMatch(detail, /id="next-link"/)
+  assert.doesNotMatch(detail, /id="chat-form"/)
+  assert.doesNotMatch(detail, /id="chat-message"/)
 })
 
 test('올해 연애운 한눈에 보기에는 잘림 없는 가로형 전용 실사 이미지를 사용한다', () => {
