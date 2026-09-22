@@ -1,4 +1,4 @@
-﻿(function (global) {
+(function (global) {
   'use strict';
   if (global.UMSHReportAccess) return;
   var ROUTES = [
@@ -149,7 +149,7 @@
     layout.appendChild(node);
     document.body.appendChild(layout);
     document.documentElement.setAttribute('data-umsh-verified-reader','');
-    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-all-service-template';css.addEventListener('load',mountChrome);document.head.appendChild(css);
+    var css=document.createElement('link');css.rel='stylesheet';css.href='/css/umsh-verified-reader.css?v=20260922-love-hero-photo-v1';css.addEventListener('load',mountChrome);document.head.appendChild(css);
     function mountChrome() { if(global.UMSHChrome)global.UMSHChrome.mount({root:'#umsh-verified-layout',service:key==='today_fortune'?'오늘운':'저장된 해석',category:'흐름'}); }
     if(global.UMSHChrome) mountChrome();
     else if(!document.querySelector('script[src="/js/umsh-chrome.js"]')) {var script=document.createElement('script');script.src='/js/umsh-chrome.js';script.addEventListener('load',mountChrome);document.head.appendChild(script);}
@@ -311,7 +311,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-all-service-template', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-love-hero-photo-v1', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -446,17 +446,23 @@
     return canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
   }
 
+  function configuredSectionImage(config, order) {
+    if (!config || !Array.isArray(config.sectionImages)) return '';
+    return String(config.sectionImages[order - 1] || '').trim();
+  }
+
   /**
-   * 오래된 저장 리포트의 `/assets/hero-mystic.webp`는 서비스 구분 없이 같은 그림이었다.
-   * 새 자산을 억지로 만들지 않고, 각 서비스에 이미 연결된 cutA/cutB를 모든 기본
-   * 토글에서 교차해 쓴다. 항목에 실제 전용 이미지가 있으면 언제나 그 이미지가 우선이다.
+   * 서비스가 목차별 편집 이미지를 명시하면 그것을 우선한다. 없는 서비스는 기존의
+   * 저장 전용 이미지 → 서비스 공용 A/B 컷 순서를 유지한다.
    */
   function sectionImageSource(section, serviceKey) {
     var existing = String(section && section.imageSrc || '').trim();
-    if (existing && existing !== '/assets/hero-mystic.webp') return existing;
     var config = longformConfigFor(serviceKey);
-    if (!config) return existing;
     var order = Number(section && section.order) || 1;
+    var configured = configuredSectionImage(config, order);
+    if (configured) return configured;
+    if (existing && existing !== '/assets/hero-mystic.webp') return existing;
+    if (!config) return existing;
     if (order === 1) return String(config.thumbnail || config.cutB || '').trim() || existing;
     return order % 2 === 1
       ? String(config.cutB || '').trim() || existing
@@ -468,8 +474,8 @@
     if (!config) return;
     Array.from(document.querySelectorAll('img[data-umsh-template-image]')).forEach(function (image) {
       var order = Number(image.getAttribute('data-umsh-template-image')) || 1;
-      var src = order === 1 ? String(config.thumbnail || config.cutB || '').trim()
-        : order % 2 === 1 ? String(config.cutB || '').trim() : String(config.cutA || '').trim();
+      var src = configuredSectionImage(config, order) || (order === 1 ? String(config.thumbnail || config.cutB || '').trim()
+        : order % 2 === 1 ? String(config.cutB || '').trim() : String(config.cutA || '').trim());
       if (!src) return;
       image.setAttribute('src', src);
       image.setAttribute('alt', String(config.title || '해석') + ' 풀이 이미지');
@@ -1449,10 +1455,12 @@
   /** 섹션 전용 이미지. 등록 디자인의 장면 이미지가 여기로 들어온다. */
   function renderSectionImage(section, serviceKey) {
     var original = String(section && section.imageSrc || '').trim();
+    var order = Number(section && section.order) || 1;
+    var configured = configuredSectionImage(longformConfigFor(serviceKey), order);
     var src = sectionImageSource(section, serviceKey);
     if (!src) return '';
     return '<figure class="story-image">' +
-      '<img' + ((original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(section && section.order || '')) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
+      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + escapeHtml(section.imageAlt || '') + '" loading="lazy" decoding="async" />' +
       '</figure>';
   }
 

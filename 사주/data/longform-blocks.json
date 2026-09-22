@@ -102,6 +102,18 @@
       "guide": ["마음이 열리는 계절의 신호", "서두르면 놓치기 쉬운 장면", "올해 안에 해 볼 한 가지"],
       "cutA": "/love/this-year/assets/thisyear/01-scene-01-hook.webp",
       "cutB": "/love/this-year/assets/thisyear/01-scene-04-basis.webp",
+      "sectionImages": [
+        "/love/this-year/assets/thisyear/report-sections/01-love-possibility-window-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/02-attraction-cafe-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/03-social-signal-bookshop-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/04-introduction-brunch-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/05-monthly-calendar-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/06-relationship-timing-riverside-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/07-signal-check-window-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/08-compatibility-cards-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/09-emotional-temperature-cafe-v1.png",
+        "/love/this-year/assets/thisyear/report-sections/10-action-step-doorway-v1.png"
+      ],
       "highlights": [
         { "title": "도화가 들어오는 달", "shape": "들어오는 달을 한 문단씩 놓고, 마지막 문단에서 가장 진한 달을 고른다" },
         { "title": "놓치는 타이밍의 정체", "shape": "놓치는 장면을 한 문단씩 짚고, 마지막 문단은 그 장면을 알아보는 법이다" },

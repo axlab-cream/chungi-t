@@ -2,7 +2,7 @@
 <html lang="ko" data-umsh-verified-inplace>
 <head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
-    <script src="/js/umsh-report-access.js?v=20260922-all-service-template"></script>
+    <script src="/js/umsh-report-access.js?v=20260922-love-hero-photo-v1"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>나, 올해 연애 가능? | 상세 풀이</title>
@@ -700,7 +700,7 @@
       <section class="state-panel" id="state-panel" data-umsh-slot="state" aria-live="polite"></section>
       <section id="detail-content" hidden>
         <article class="hero">
-          <img src="../assets/thisyear/06-overall-love-mode-on-hero.webp" alt="올해 연애 신호를 상징하는 카드와 휴대폰을 보는 여성 캐릭터" data-image-role="thisyear-06-overall-love-mode-on-hero" id="hero-image" />
+          <img src="../assets/thisyear/report-sections/00-year-love-report-hero-v1.png" alt="창가에서 휴대폰을 보며 올해의 만남을 생각하는 여성" data-image-role="thisyear-06-overall-love-mode-on-hero" id="hero-image" />
           <div class="hero-copy">
             <span class="eyebrow" id="group-title">올해 연애 가능성 총평</span>
             <h1 id="detail-title" data-umsh-slot="title">연애 모드 ON각</h1>
@@ -5700,22 +5700,21 @@
 [
   {
     "asset_key": "thisyear-06-overall-love-mode-on-hero",
-    "filename": "assets/generated/thisyear/06-overall-love-mode-on-hero.webp",
+    "filename": "assets/thisyear/report-sections/00-year-love-report-hero-v1.png",
     "role": "hero",
     "aspect_ratio": "9:16",
-    "reference_image": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png",
+    "reference_image": "01-frontface-window-poster.webp",
     "reference_status": "selected",
     "character_style_lock": [
-      "푸른 눈",
-      "얇은 짙은 갈색 잔머리",
-      "밝은 역광",
-      "파스텔 리본",
-      "몽환적이고 현대적인 분위기"
+      "자연스러운 한국인 인물",
+      "창가의 따뜻한 자연광",
+      "아이보리와 연핑크의 절제된 색감",
+      "제목 오버레이를 위한 하단 어두운 여백"
     ],
-    "generation_policy": "same-character-new-scene",
-    "prompt": "대표 여성 캐릭터가 올해 연애 신호를 읽는 9:16 상세 리포트 히어로. 같은 얼굴 인상, 푸른 눈, 짙은 잔머리, 파스텔 리본과 밝은 역광을 유지하고 장면만 바꾼다. 이미지 안 텍스트 없음.",
-    "alt": "올해 연애 신호를 상징하는 카드와 휴대폰을 보는 여성 캐릭터",
-    "mobile_crop": "center 42%",
+    "generation_policy": "photorealistic-report-cover",
+    "prompt": "창가에서 휴대폰과 작은 메모를 보는 실제 인물의 9:16 올해 연애운 리포트 표지. 따뜻한 자연광, 아이보리와 연핑크, 하단 제목 오버레이 영역, 이미지 안 텍스트 없음.",
+    "alt": "창가에서 휴대폰을 보며 올해의 만남을 생각하는 여성",
+    "mobile_crop": "center 48%",
     "text_in_image": false,
     "generation_status": "generated",
     "file_exists": true,
@@ -5912,8 +5911,8 @@
       els.groupTitle.textContent = detail.group_title;
       els.title.textContent = detail.title;
       els.conclusion.textContent = detail.conclusion;
-      els.hero.src = "../assets/thisyear/06-overall-love-mode-on-hero.webp";
-      els.hero.alt = "올해 연애 신호를 상징하는 카드와 휴대폰을 보는 여성 캐릭터";
+      els.hero.src = "../assets/thisyear/report-sections/00-year-love-report-hero-v1.png";
+      els.hero.alt = "창가에서 휴대폰을 보며 올해의 만남을 생각하는 여성";
       els.prev.href = withRoute(previous.section_id);
       els.prev.textContent = "‹ " + previous.title;
       els.next.href = withRoute(next.section_id);

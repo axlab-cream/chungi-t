@@ -27,6 +27,7 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   const css = read('사주/css/umsh-verified-reader.css')
 
   assert.match(source, /function sectionImageSource\(section, serviceKey\)/)
+  assert.match(source, /function configuredSectionImage\(config, order\)/)
   assert.match(source, /order % 2 === 1/)
   assert.match(source, /String\(config\.cutB/)
   assert.match(source, /String\(config\.cutA/)
@@ -41,6 +42,26 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(css, /\.umsh-reading-guide\s*\{/)
   assert.match(css, /\.umsh-reading-guide-scroll\s*\{ overflow-x: auto/)
   assert.match(css, /\.umsh-reading-guide:focus-within/)
+})
+
+test('올해 연애운은 모든 목차에 고유한 실사형 장면을 연결한다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const images = blocks.services.love_this_year.sectionImages as string[]
+  assert.equal(images.length, 10)
+  assert.equal(new Set(images).size, 10, '목차별 이미지를 반복하지 않는다')
+  for (const image of images) {
+    assert.match(image, /^\/love\/this-year\/assets\/thisyear\/report-sections\/.+\.png$/)
+    assert.ok(existsSync(join('사주', image)), `올해 연애운 목차 이미지가 없다: ${image}`)
+  }
+})
+
+test('올해 연애운 상세의 대표 썸네일은 실사형 표지 자산을 사용한다', () => {
+  const detail = read('사주/love/this-year/06-step-6_1-report-detail/index.html')
+  const image = '사주/love/this-year/assets/thisyear/report-sections/00-year-love-report-hero-v1.png'
+
+  assert.ok(existsSync(join(root, image)))
+  assert.match(detail, /src="\.\.\/assets\/thisyear\/report-sections\/00-year-love-report-hero-v1\.png"/)
+  assert.match(detail, /els\.hero\.src = "\.\.\/assets\/thisyear\/report-sections\/00-year-love-report-hero-v1\.png"/)
 })
 
 test('reader keeps source prose and shows a textual accordion state', () => {
