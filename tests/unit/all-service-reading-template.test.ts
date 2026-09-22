@@ -138,6 +138,7 @@ test('이직운은 요약·하이라이트·10개 목차에 서로 다른 실사
   assert.match(detail, /id="actionsList"[^>]*data-umsh-legacy-reading-ui/)
   assert.match(detail, /id="cautionsList"[^>]*data-umsh-legacy-reading-ui/)
   assert.match(detail, /id="relatedNav"[^>]*data-umsh-legacy-reading-ui/)
+  assert.doesNotMatch(detail, /전체 목록으로 돌아가기/, '현재 화면이 전체 목록이므로 중복 복귀 버튼을 두지 않는다')
   assert.match(detail, /<!--\s*이직운 저장 리포트에서는 후속 채팅 입력 기능을 노출하지 않는다\./)
   assert.match(detail, /\/\*\s*이직운 저장 리포트의 후속 채팅 입력 기능은 현재 비노출 상태다\./)
 })
