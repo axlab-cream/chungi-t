@@ -319,23 +319,52 @@
 .reading-card.is-pending    > summary::after { content: "준비중"; opacity: .72; }
 .reading-card.is-generating > summary::after { content: "작성중"; }
 .reading-card.is-failed     > summary::after { content: "미완성"; color: #ff9b9b; }
-.reading-card.is-ready      > summary::after { content: ""; }
+.reading-card.is-ready      > summary::after { content: "펼치기 +"; }
+.reading-card.is-ready[open] > summary::after { content: "접기 −"; }
 [data-umsh-slot="sections"] .reading-card > :not(summary) { padding: 0 14px 14px; }
 
-.reading-block { margin: 0 0 12px; }
-.reading-role {
+[data-umsh-slot="sections"] .reading-block {
+  margin: 0;
+  padding: 18px 2px;
+  border-top: 1px solid var(--line, rgba(222, 188, 113, .24));
+  overflow-wrap: anywhere;
+}
+[data-umsh-slot="sections"] .reading-role {
   display: block;
-  margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: 800;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 850;
   color: var(--gold, #e8c76f);
 }
-.reading-block p {
-  margin: 0 0 8px;
-  font-size: 14px;
-  line-height: 1.75;
+[data-umsh-slot="sections"] .reading-block p {
+  margin: 0;
+  color: var(--ink, #fff7f2);
+  font-size: 15px;
+  font-weight: 540;
+  line-height: 1.92;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+[data-umsh-slot="sections"] .reading-block p + p { margin-top: 14px; }
+[data-umsh-slot="sections"] .reading-block.reading-answer {
+  margin: 18px 0 2px;
+  padding: 18px 16px;
+  border: 0;
+  border-left: 3px solid var(--gold, #e8c76f);
+  border-radius: 0 12px 12px 0;
+  background: var(--answer-panel, rgba(232, 199, 111, .10));
+}
+[data-umsh-slot="sections"] .reading-block.reading-answer .reading-role { margin-bottom: 9px; }
+[data-umsh-slot="sections"] .reading-block.reading-answer p {
+  color: var(--ink, #fff7f2);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.65;
+}
+[data-umsh-slot="sections"] .reading-block.reading-action {
+  padding: 18px 14px;
+  border-radius: 12px;
+  background: var(--panel-strong, rgba(232, 199, 111, .08));
 }
 
 /* ── 항목 준비중 스켈레톤 ────────────────────────────────── */
@@ -452,14 +481,19 @@
 }
 
 /* ── 톤 v2 섹션 블록 ─────────────────────────────────────── */
-.story-image { margin: 0 0 12px; }
-.story-image img {
+[data-umsh-slot="sections"] .story-image {
+  margin: 0 0 14px;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border: 1px solid var(--line, rgba(222, 188, 113, .24));
+  border-radius: 14px;
+  background: var(--panel, rgba(255, 255, 255, .045));
+}
+[data-umsh-slot="sections"] .story-image img {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: 100%;
   object-fit: cover;
-  border-radius: 14px;
-  border: 1px solid var(--line, rgba(222, 188, 113, .24));
 }
 
 .reading-feel .reading-role,

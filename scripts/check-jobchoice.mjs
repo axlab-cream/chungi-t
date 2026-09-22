@@ -18,6 +18,8 @@ const ASSET_DIR = `${SERVICE_DIR}/assets/job-choice`
 /** The 목차 shape the 05/06 pages are built against. */
 const EXPECTED_GROUPS = 10
 const EXPECTED_ITEMS = 21
+const READING_ASSET_DIR = `${ASSET_DIR}/reading-v2`
+const EXPECTED_READING_IMAGES = 21
 
 /** [file, needle, human-readable description] */
 const CONTRACTS = [
@@ -118,6 +120,28 @@ for (const [page, needsChrome, needsStore] of PAGES) {
 }
 
 if (!existsSync(join(ROOT, ASSET_DIR))) failures.push(`${ASSET_DIR} 아트워크 폴더 없음`)
+
+// 저장 리포트는 공용 렌더러가 이 설정을 읽어 요약 한 장과 21개 목차 장면을 붙인다.
+// 이미지가 누락되면 화면은 정상으로 열려도 빈 그림만 남기 때문에 경로와 중복을 함께 막는다.
+const longform = read('사주/data/longform-blocks.json')
+if (longform === null) {
+  failures.push('사주/data/longform-blocks.json 없음')
+} else {
+  const jobChoiceVisuals = JSON.parse(longform).services?.job_choice
+  const images = Array.isArray(jobChoiceVisuals?.sectionImages) ? jobChoiceVisuals.sectionImages : []
+  if (jobChoiceVisuals?.summaryImageFit !== 'wide') failures.push('직장 선택 요약 이미지가 잘림 없는 wide 모드가 아님')
+  if (jobChoiceVisuals?.sectionImageMode === 'summary-only') failures.push('직장 선택이 본문 이미지 비노출 모드로 남아 있음')
+  if (images.length !== EXPECTED_READING_IMAGES) failures.push(`직장 선택 목차 이미지 ${images.length}개 (기대 ${EXPECTED_READING_IMAGES}개)`)
+  if (new Set(images).size !== images.length) failures.push('직장 선택 목차 이미지가 중복됨')
+  for (const image of [jobChoiceVisuals?.thumbnail, ...images]) {
+    if (typeof image !== 'string' || !image.startsWith('/work/job-choice/assets/job-choice/reading-v2/')) {
+      failures.push(`직장 선택 읽기 이미지 경로가 잘못됨: ${image ?? '없음'}`)
+    } else if (!existsSync(join(ROOT, '사주', image))) {
+      failures.push(`직장 선택 읽기 이미지 파일 없음: ${image}`)
+    }
+  }
+  if (!existsSync(join(ROOT, READING_ASSET_DIR))) failures.push(`${READING_ASSET_DIR} 읽기 이미지 폴더 없음`)
+}
 
 if (failures.length === 0) {
   console.log('job_choice 연동 지점 전부 정상 (%d개 계약, %d개 페이지, %d개 대분류)', CONTRACTS.length, PAGES.length, EXPECTED_GROUPS)

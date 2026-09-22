@@ -2086,3 +2086,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 캐시: `umsh-verified-inplace.css`와 공용 접근 스크립트 참조 69개를 새 버전으로 맞춰 기존 브라우저 캐시가 이전 무스타일 컴포넌트를 계속 읽지 않게 했다.
 - 검증: 공용 접근기 집중 테스트 66/66, TypeScript, `npm run vercel-build`, `npm run qa:all-services` 20/20, `git diff --check` PASS. `npm build` 스크립트는 저장소에 없어 Vercel 빌드 스크립트로 대체했다.
 - CreamWIKI: `personal/carrotcap/notes/umsh-inplace-life-flow-readable-20260922.md`에 원인·결정·검증·재발 방지를 기록한다. [GATE H2] 원격 배포는 `rules.md` §6.3에 따라 실행하지 않았다.
+
+## 2026-09-22 — 직장 선택 토글별 실사 이미지와 천명사주형 본문 위계 (로컬 검토)
+
+- 직장 선택 저장 해석의 상단 요약 이미지를 전신/손/문서가 함께 보이는 3:2 실사 편집 이미지로 교체했다. `summaryImageFit: wide`를 사용하므로 인물 머리만 남는 크롭을 만들지 않는다.
+- 공용 리더의 설정에 직장 선택 21개 목차별 고유 실사 WebP를 연결했다. 역할·상사·보상·평가·출퇴근·원격·소진·입사 시점·정착·결정 장면으로 구분했으며, 같은 이미지를 토글 사이에 반복하지 않는다.
+- 삽입형 06 상세의 본문을 천명사주와 같은 읽기 위계로 맞췄다: 한 줄 답 강조 박스, 근거/행동 문단 간격, 15px·1.92행간, 행동 블록, 3:2 이미지 프레임, `펼치기 +`/`접기 −` 상태 표시를 공통 적용한다. 저장 원문·개인 계산값·팝업 관리자/팝업·DB는 변경하지 않았다.
+- 검증: `node --check`, `check:jobchoice`, 목차 이미지 계약 12/12, TypeScript, 20개 서비스 QA, Vercel build, diff check PASS. CreamWIKI에 자산 규칙·검증을 기록한다.
+- [GATE H2] 원격 push·운영 배포는 `rules.md` §6.3에 따라 이번 로컬 검토 변경에서는 실행하지 않았다.

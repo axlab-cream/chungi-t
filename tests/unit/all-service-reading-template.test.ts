@@ -47,16 +47,39 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(css, /\.umsh-reading-guide:focus-within/)
 })
 
-test('eight completed services render one representative thumbnail without repeating section or highlight images', () => {
+test('seven completed services render one representative thumbnail without repeating section or highlight images', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const names = ['marry_match', 'match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'job_choice', 'cat_compatibility', 'money_save']
-  assert.equal(names.length, 8)
+  const names = ['marry_match', 'match_couple', 'couple_signal', 'work_move', 'quit_fortune', 'cat_compatibility', 'money_save']
+  assert.equal(names.length, 7)
   for (const name of names) {
     const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
     assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
     assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
   }
   assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
+})
+
+test('직장 선택은 요약·21개 목차에 각각 고유한 실사형 이미지를 연결한다', () => {
+  const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
+  const reader = read('사주/js/umsh-report-access.js')
+  const css = read('사주/css/umsh-verified-inplace.css')
+  const service = blocks.services.job_choice as { thumbnail?: string; summaryImageFit?: string; sectionImages?: string[]; sectionImageMode?: string }
+  const images = service.sectionImages ?? []
+
+  assert.equal(service.sectionImageMode, undefined, '직장 선택은 대표 한 장 모드가 아니다')
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.equal(service.thumbnail, '/work/job-choice/assets/job-choice/reading-v2/00-job-choice-summary-v2.webp')
+  assert.equal(images.length, 21)
+  assert.equal(new Set(images).size, 21, '21개 목차는 이미지를 반복하지 않는다')
+  assert.ok(existsSync(join(root, '사주', service.thumbnail!)))
+  for (const image of images) {
+    assert.match(image, /^\/work\/job-choice\/assets\/job-choice\/reading-v2\/.+\.webp$/)
+    assert.ok(existsSync(join(root, '사주', image)), `직장 선택 목차 이미지가 없다: ${image}`)
+  }
+  assert.doesNotMatch(reader, /job_choice: true/)
+  assert.match(css, /aspect-ratio: 3 \/ 2/)
+  assert.match(css, /\.reading-card\.is-ready\[open\] > summary::after/)
+  assert.match(css, /content: "접기 −"/)
 })
 
 test('올해 연애운은 모든 목차에 고유한 실사형 장면을 연결한다', () => {

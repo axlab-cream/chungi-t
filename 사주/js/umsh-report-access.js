@@ -70,7 +70,7 @@
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',today:'today_fortune'};
   // 설정 JSON은 비동기로 읽는다. 그 전에 본문이 먼저 칠해져도 반복 그림이 잠깐
   // 나타나지 않도록, 대표 이미지 한 장 계약의 키는 여기에도 좁게 둔다.
-  var SUMMARY_ONLY_SERVICE_KEYS = { marry_match: true, match_couple: true, couple_signal: true, work_move: true, quit_fortune: true, job_choice: true, cat_compatibility: true, money_save: true };
+  var SUMMARY_ONLY_SERVICE_KEYS = { marry_match: true, match_couple: true, couple_signal: true, work_move: true, quit_fortune: true, cat_compatibility: true, money_save: true };
   function canonical(value) { return ALIASES[value] || value; }
   function usesSummaryOnlyImages(serviceKey, config) {
     return Boolean((config && config.sectionImageMode === 'summary-only') || SUMMARY_ONLY_SERVICE_KEYS[canonical(serviceKey || key)]);
@@ -330,7 +330,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-summary-only-v2', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260922-jobchoice-visual-v1', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -1147,7 +1147,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260922-life-flow-readable-v1';
+    link.href = '/css/umsh-verified-inplace.css?v=20260922-jobchoice-markdown-v1';
     document.head.appendChild(link);
   }
   /**
