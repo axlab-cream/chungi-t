@@ -98,7 +98,7 @@ for (const portal of portals) {
     assert.equal(fallback.mounts, 1)
     assert.equal(fallback.chrome.appbar.hidden, false)
     assert.equal(fallback.chrome.bottomNav.hidden, false)
-    assert.match(html, /src="\/js\/umsh-chrome\.js" defer/)
+    assert.match(html, /src="\/js\/umsh-chrome\.js(?:\?v=[^"]+)?" defer/)
     assert.doesNotMatch(html, /src="\/js\/service-shell\.js"/)
     assert.match(html, /bottom: calc\(var\(--umsh-chrome-bottom-h, 74px\) \+ env\(safe-area-inset-bottom\)\)/)
   })
