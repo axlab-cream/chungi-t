@@ -1,0 +1,160 @@
+{
+  "service": {
+    "service_key": "pass_angle",
+    "service_slug": "pass-angle",
+    "service_title": "나, 붙을 각이야?",
+    "category": "시험운",
+    "subcategory": "합격각 판정과 공부 전략",
+    "price_krw": 9900,
+    "price_display": "9,900원",
+    "service_url_hint": "umsh.kr/me/pass-angle",
+    "analysis_basis": [
+      "인성",
+      "관성",
+      "식상",
+      "일간 강약",
+      "대운",
+      "세운"
+    ],
+    "report_version": "pass-angle-v1.0",
+    "copy_version": "mz-pass-angle-v1",
+    "stage": "04-step-4-report"
+  },
+  "teaser": {
+    "source": "buildTemplateSajuReport(analysis, birth, {serviceKey:'pass_angle', exam})",
+    "free_scope": [
+      "첫 섹션(전체 판정) 첫 문단",
+      "mental-stamina 섹션 첫 문단"
+    ],
+    "personalisation": [
+      "이름",
+      "시험명",
+      "시험 유형",
+      "우선순위",
+      "고민 한 문장",
+      "D-day",
+      "일주·세운"
+    ]
+  },
+  "paid_scope_preview": [
+    {
+      "section_id": "pass-angle-verdict",
+      "title": "나, 붙을 각이야?",
+      "summary": "전체 흐름 판정, 밀어도 되는 구간인지, 순서를 바꿔야 하는지"
+    },
+    {
+      "section_id": "study-style",
+      "title": "내 머리 쓰는 법",
+      "summary": "암기형·이해형, 몰아치기·꾸준형, 혼공·스터디 궁합"
+    },
+    {
+      "section_id": "exam-type-fit",
+      "title": "나랑 맞는 시험",
+      "summary": "객관식, 서술형, 전문직, 어학, 실기, 면접·구술"
+    },
+    {
+      "section_id": "pass-timing",
+      "title": "붙는 타이밍",
+      "summary": "유리한 구간, 접수 시기, 재도전 판단 시점"
+    },
+    {
+      "section_id": "mental-stamina",
+      "title": "버티는 몸과 멘탈",
+      "summary": "번아웃 신호, 수면, 회복 리듬, 흔들릴 때의 한 문장"
+    },
+    {
+      "section_id": "exam-day-routine",
+      "title": "시험 날 택일과 컨디션",
+      "summary": "전날·당일 루틴, 이동 동선, 시간 배분"
+    },
+    {
+      "section_id": "action-plan",
+      "title": "현실 액션 플랜",
+      "summary": "D-100, D-30, D-7, 버릴 것, 주 단위 배분"
+    }
+  ],
+  "cta_states": {
+    "checkout_enabled": {
+      "label": "9,900원 리포트 열기",
+      "route": "/me/pass-angle/05-step-5-chat/chat.html#step-5-chat"
+    },
+    "checkout_disabled": {
+      "label": "전체 리포트 무료로 보기",
+      "reason": "결제 모듈 연결 전이라 전체 풀이를 무료로 공개",
+      "route": "/me/pass-angle/05-step-5-chat/chat.html#step-5-chat"
+    },
+    "logged_out": {
+      "label": "로그인하고 결과 보기",
+      "reason": "/api/saju/analyze 가 로그인 세션을 요구한다",
+      "route": "/signup?entry=pass-angle"
+    }
+  },
+  "image_manifest": [
+    {
+      "asset_key": "blockers",
+      "filename": "사주/me/pass-angle/assets/pass-angle/blockers.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "공부 방해 요인과 멘탈 패턴을 끊어내는 장면",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "94725e84",
+      "html_usage_selector": "#step-4-report img[src$='blockers.png']"
+    }
+  ],
+  "next_route": "/me/pass-angle/05-step-5-chat/chat.html#step-5-chat",
+  "qa_result": {
+    "status": "verified",
+    "checked_at": "2026-09-03",
+    "checked_on": [
+      "local http://localhost:8790",
+      "production https://umsh.kr"
+    ],
+    "stage": "04-step-4-report",
+    "checks": [
+      {
+        "name": "route_redirects",
+        "status": "pass",
+        "value": "/me/pass-angle{,/input,/exam,/report,/chat,/detail} 모두 302"
+      },
+      {
+        "name": "shared_chrome_mounted",
+        "status": "pass",
+        "value": "상단 로고·뒤로가기 + 하단 5탭 GNB (umsh-chrome)"
+      },
+      {
+        "name": "image_references_resolve",
+        "status": "pass",
+        "value": "페이지 내 src/href 34건 전수 HTTP 200"
+      },
+      {
+        "name": "banned_phrases_absent",
+        "status": "pass",
+        "value": "무조건·반드시·100%·망한다 0건 (84섹션 전수)"
+      },
+      {
+        "name": "internal_terms_absent",
+        "status": "pass",
+        "value": "RAG·KMS·LLM·코퍼스·내부 라벨 0건"
+      },
+      {
+        "name": "teaser_is_personalised",
+        "status": "pass",
+        "value": "정적 시안 문구를 실제 계산 결과로 교체 확인"
+      },
+      {
+        "name": "free_until_payment",
+        "status": "pass",
+        "value": "checkoutEnabled=false 일 때 FREE PREVIEW 로 전환"
+      },
+      {
+        "name": "logged_out_no_fake_verdict",
+        "status": "pass",
+        "value": "401 시 시안 판정문을 지우고 로그인 안내로 대체"
+      }
+    ],
+    "scope_mismatch": []
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "_about": "결론·서머리·하이라이트 블록 설정. 이미지는 각 서비스의 기존 대표 캐릭터 컷 2장을 재사용한다 — 새로 생성하면 화풍·인물이 어긋난다. 하이라이트 주제는 quit_fortune 만 확정이고 나머지는 초안(draft)이다. accent 는 hex 가 아니라 해당 페이지 :root 토큰 이름이다.",
+  "_imageRule": "cutA = 서머리 키 비주얼(대표 캐릭터 정면 장면). cutB = 하이라이트 배너(근거·판정 장면). 두 컷 모두 해당 서비스 assets 안에서만 고른다.",
+  "_accentRule": "허용 토큰: gold, teal, rose, coral, pink, green. JS 가 var(--이름) 으로만 주입한다. 페이지에 없으면 --gold 로 떨어진다.",
+  "services": {
+    "cmdg": {
+      "title": "천명사주",
+      "status": "draft",
+      "verdictAxis": "타고난 결과 지금의 자리",
+      "accent": "gold",
+      "cutA": "/assets/umsh-cmdg-card-bg.webp",
+      "cutB": "/assets/hero-mystic.webp",
+      "highlights": [
+        { "title": "타고난 그릇과 쓰는 법", "shape": "타고난 축을 한 문단으로 짚고, 지금 그것을 어떻게 쓰고 있는지 한 문단으로 잇는다" },
+        { "title": "지금 대운의 위치", "shape": "들어온 대운과 남은 구간을 한 문단씩 놓고, 마지막 문단에서 지금 위치를 못 박는다" },
+        { "title": "평생 반복되는 매듭", "shape": "반복되는 장면을 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "marry_match": {
+      "title": "결혼궁합",
+      "status": "draft",
+      "verdictAxis": "결혼까지 가는 조건",
+      "accent": "rose",
+      "cutA": "/match/marry/assets/marry/01-scene-01-hero.webp",
+      "cutB": "/match/marry/assets/marry/01-scene-04-basis.webp",
+      "highlights": [
+        { "title": "결혼까지 가는 조건", "shape": "두 사람의 조건을 한 문단씩 놓고, 마지막 문단에서 무엇이 갖춰지면 되는지 고른다" },
+        { "title": "둘이 부딪히는 축", "shape": "부딪히는 축을 한 문단씩 짚고, 마지막 문단은 그 축을 다루는 방식이다" },
+        { "title": "양가·현실 변수", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "match_couple": {
+      "title": "커플궁합",
+      "status": "draft",
+      "verdictAxis": "오래 갈 수 있는 결인가",
+      "accent": "coral",
+      "cutA": "/match/couple/assets/couple/01-scene-01-hook.webp",
+      "cutB": "/match/couple/assets/couple/01-scene-04-basis.webp",
+      "highlights": [
+        { "title": "끌림의 구조", "shape": "무엇이 끌리게 하는지 한 문단씩 놓고, 마지막 문단에서 그 끌림의 정체를 고른다" },
+        { "title": "갈등이 반복되는 자리", "shape": "반복 지점을 한 문단씩 짚고, 마지막 문단은 그 자리를 비켜 가는 방식이다" },
+        { "title": "오래 가는 방식", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "couple_signal": {
+      "title": "내 애인 바람필까?",
+      "status": "draft",
+      "verdictAxis": "온도 차이의 정체",
+      "accent": "gold",
+      "cutA": "/love/signal/assets/signal/01-scene-01-hero.webp",
+      "cutB": "/love/signal/assets/signal/01-scene-04-evidence.webp",
+      "highlights": [
+        { "title": "온도 차이의 정체", "shape": "연락·약속·표현을 한 문단씩 놓고, 마지막 문단에서 차이의 정체를 고른다" },
+        { "title": "신호를 오독하는 지점", "shape": "오독이 나는 장면을 한 문단씩 짚고, 마지막 문단은 다시 읽는 법이다" },
+        { "title": "다음 연락에서 볼 것", "shape": "볼 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "work_move": {
+      "title": "이직운",
+      "status": "draft",
+      "verdictAxis": "옮길 자리와 남을 자리",
+      "accent": "gold",
+      "cutA": "/work/move/assets/generated/move/01-scene-01-question.webp",
+      "cutB": "/work/move/assets/generated/move/01-scene-04-basis.webp",
+      "highlights": [
+        { "title": "옮길 자리와 남을 자리", "shape": "두 갈래를 각각 한 문단으로 따져 본 뒤, 마지막 문단에서 이 사람에게 맞는 하나를 고른다" },
+        { "title": "타이밍 구간", "shape": "지금 위치를 먼저 말한 뒤 남은 구간별로 볼 것을 한 문단씩 짚는다" },
+        { "title": "옮기기 전 체크리스트", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "quit_fortune": {
+      "title": "퇴사운",
+      "status": "confirmed",
+      "verdictAxis": "GO / HOLD / 타이밍 조정",
+      "accent": "teal",
+      "cutA": "/work/quit/assets/quit/01-hero.png",
+      "cutB": "/work/quit/assets/quit/06-five-mentors.png",
+      "highlights": [
+        { "title": "GO/HOLD/타이밍 조정", "shape": "GO · HOLD · 타이밍 조정 세 갈래를 각각 한 문단으로 따져 본 뒤, 마지막 문단에서 이 사람에게 맞는 하나를 고른다", "paragraphs": 6 },
+        { "title": "다섯 스승의 서로 다른 조언", "shape": "목·화·토·금·수 다섯 스승이 같은 고민에 서로 다른 답을 준다. 스승마다 한 문단. 마지막 한 문단은 이 인물이 다섯 답을 한 줄로 정리한다", "paragraphs": 8 },
+        { "title": "퇴사 전 체크리스트", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다", "paragraphs": 5 }
+      ]
+    },
+    "love_this_year": {
+      "title": "올해 연애운",
+      "status": "draft",
+      "verdictAxis": "올해 들어오는 달과 놓치는 달",
+      "accent": "pink",
+      "cutA": "/love/this-year/assets/thisyear/01-scene-01-hook.webp",
+      "cutB": "/love/this-year/assets/thisyear/01-scene-04-basis.webp",
+      "highlights": [
+        { "title": "도화가 들어오는 달", "shape": "들어오는 달을 한 문단씩 놓고, 마지막 문단에서 가장 진한 달을 고른다" },
+        { "title": "놓치는 타이밍의 정체", "shape": "놓치는 장면을 한 문단씩 짚고, 마지막 문단은 그 장면을 알아보는 법이다" },
+        { "title": "올해 안에 할 한 가지", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "job_choice": {
+      "title": "직장 선택",
+      "status": "draft",
+      "verdictAxis": "이 회사와 나의 결",
+      "accent": "gold",
+      "cutA": "/work/job-choice/assets/job-choice/01-scene-01-hook.webp",
+      "cutB": "/work/job-choice/assets/job-choice/01-scene-04-evidence-bridge.webp",
+      "highlights": [
+        { "title": "두 자리 조건 비교", "shape": "자리마다 조건을 한 문단으로 따져 본 뒤, 마지막 문단에서 이 사람에게 맞는 하나를 고른다" },
+        { "title": "이 회사에서 닳는 지점", "shape": "닳는 지점을 한 문단씩 짚고, 마지막 문단은 그것을 견디는 조건이다" },
+        { "title": "결정 기준 체크리스트", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "cat_compatibility": {
+      "title": "고양이 궁합",
+      "status": "draft",
+      "verdictAxis": "집사와 고양이의 결",
+      "accent": "green",
+      "cutA": "/match/cat/assets/cat-compatibility/01-scene-01-hook.webp",
+      "cutB": "/match/cat/assets/cat-compatibility/01-scene-04-basis.webp",
+      "highlights": [
+        { "title": "집사와 고양이의 결", "shape": "둘의 결을 한 문단씩 놓고, 마지막 문단에서 어디가 맞고 어디가 어긋나는지 고른다" },
+        { "title": "갈등이 나는 장면", "shape": "갈등 장면을 한 문단씩 짚고, 마지막 문단은 그 장면을 줄이는 방식이다" },
+        { "title": "같이 사는 법", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "money_save": {
+      "title": "소비성향",
+      "status": "draft",
+      "verdictAxis": "돈이 모이지 않는 자리",
+      "accent": "gold",
+      "cutA": "/money/save/assets/save/01-scene-01-hook.webp",
+      "cutB": "/money/save/assets/save/01-scene-04-wealth-peer-balance.webp",
+      "highlights": [
+        { "title": "돈이 새는 자리", "shape": "새는 자리를 한 문단씩 놓고, 마지막 문단에서 가장 큰 구멍을 고른다" },
+        { "title": "모이기 시작하는 조건", "shape": "조건을 한 문단씩 짚고, 마지막 문단은 그 조건이 갖춰지는 시점이다" },
+        { "title": "이번 달 한 가지", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "love_mind": {
+      "title": "상대방 마음",
+      "status": "draft",
+      "verdictAxis": "지금 상대가 서 있는 자리",
+      "accent": "rose",
+      "cutA": "/assets/umsh-love-card-bg.webp",
+      "cutB": "/love/signal/assets/signal/01-scene-04-evidence.webp",
+      "highlights": [
+        { "title": "지금 상대가 서 있는 자리", "shape": "확인된 연락과 표현을 한 문단씩 놓고, 마지막 문단에서 지금 자리를 고른다. 상대의 속마음을 단정하지 않는다" },
+        { "title": "신호를 오래 읽은 지점", "shape": "오래 읽게 만든 장면을 한 문단씩 짚고, 마지막 문단은 그 장면을 다시 보는 기준이다" },
+        { "title": "다음 연락에서 확인할 것", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "love_again": {
+      "title": "재회운",
+      "status": "draft",
+      "verdictAxis": "다시 이어질 조건과 지금의 거리",
+      "accent": "rose",
+      "cutA": "/assets/cut-05-romance.webp",
+      "cutB": "/love/signal/assets/signal/01-scene-04-evidence.webp",
+      "highlights": [
+        { "title": "이별에 남은 것과 지나간 것", "shape": "남은 것과 지나간 것을 한 문단씩 나누고, 마지막 문단에서 지금 무엇이 남았는지 고른다" },
+        { "title": "다시 이어지려면 필요한 조건", "shape": "조건을 한 문단씩 짚고, 마지막 문단은 그 조건이 갖춰졌는지 보는 법이다. 재접촉을 권하지 않는다" },
+        { "title": "지금 내 자리에서 할 것", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "love_spouse": {
+      "title": "배우자운",
+      "status": "draft",
+      "verdictAxis": "어떤 사람과 어떤 시기에",
+      "accent": "rose",
+      "cutA": "/assets/cut-05-romance.webp",
+      "cutB": "/assets/cut-03-saju.webp",
+      "highlights": [
+        { "title": "오래 가는 결의 조건", "shape": "내 기준과 계산된 결을 한 문단씩 놓고, 마지막 문단에서 오래 가는 조건을 고른다. 특정 인물을 지목하지 않는다" },
+        { "title": "인연이 들어오는 자리", "shape": "만나는 경로를 한 문단씩 짚고, 마지막 문단은 그 자리를 알아보는 기준이다" },
+        { "title": "지금 준비할 한 가지", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "work_job": {
+      "title": "직업운",
+      "status": "draft",
+      "verdictAxis": "지금 일과 나의 결",
+      "accent": "gold",
+      "cutA": "/assets/umsh-work-card-bg.png",
+      "cutB": "/work/move/assets/generated/move/01-scene-04-basis.webp",
+      "highlights": [
+        { "title": "지금 일에서 쓰이는 강점", "shape": "쓰이는 강점을 한 문단씩 놓고, 마지막 문단에서 가장 크게 쓰이는 하나를 고른다" },
+        { "title": "역할이 닳는 지점", "shape": "닳는 지점을 한 문단씩 짚고, 마지막 문단은 그것을 줄이는 조건이다" },
+        { "title": "이번 분기에 볼 것", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "lucky_color": {
+      "title": "행운의 색과 물건",
+      "status": "draft",
+      "verdictAxis": "채울 기운과 덜어낼 기운",
+      "accent": "gold",
+      "cutA": "/assets/umsh-luckycolor-card-bg.webp",
+      "cutB": "/assets/cut-03-saju.webp",
+      "highlights": [
+        { "title": "채울 기운과 덜어낼 기운", "shape": "넘치는 기운과 모자란 기운을 한 문단씩 놓고, 마지막 문단에서 지금 채울 하나를 고른다" },
+        { "title": "몸에 두면 붙는 것", "shape": "색과 재질을 한 문단씩 짚고, 마지막 문단은 오늘 바로 쓸 수 있는 방식이다" },
+        { "title": "공간에서 바꿀 한 가지", "shape": "바꿀 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "newyear_flow": {
+      "title": "신년운세",
+      "status": "draft",
+      "verdictAxis": "올해의 중심과 전환점",
+      "accent": "gold",
+      "cutA": "/assets/umsh-newyear-card-bg.webp",
+      "cutB": "/assets/cut-06-outro.webp",
+      "highlights": [
+        { "title": "올해의 중심축", "shape": "입춘 전환과 올해 세운을 한 문단씩 놓고, 마지막 문단에서 올해의 중심을 고른다" },
+        { "title": "열두 달 가운데 갈리는 구간", "shape": "구간을 한 문단씩 짚고, 마지막 문단은 그 구간에서 볼 신호다" },
+        { "title": "연초에 정해 둘 것", "shape": "정할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "wedding_day": {
+      "title": "결혼 택일",
+      "status": "draft",
+      "verdictAxis": "후보일 가운데 조건이 맞는 날",
+      "accent": "rose",
+      "cutA": "/assets/umsh-wedding-card-bg.webp",
+      "cutB": "/assets/cut-03-saju.webp",
+      "highlights": [
+        { "title": "후보일 조건 비교", "shape": "후보일마다 조건을 한 문단으로 따져 본 뒤, 마지막 문단에서 조건이 가장 맞는 날을 고른다. 길일·흉일로 선고하지 않는다" },
+        { "title": "두 사람 기준이 갈리는 자리", "shape": "갈리는 자리를 한 문단씩 짚고, 마지막 문단은 그 자리를 맞추는 방식이다" },
+        { "title": "날을 정하기 전 확인할 것", "shape": "확인할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "pass_angle": {
+      "title": "붙을 각",
+      "status": "draft",
+      "verdictAxis": "준비 흐름과 시험 구간",
+      "accent": "teal",
+      "cutA": "/assets/umsh-exam-card-bg.png",
+      "cutB": "/assets/cut-01-intro.webp",
+      "highlights": [
+        { "title": "지금 준비의 위치", "shape": "확인된 준비 기록을 한 문단씩 놓고, 마지막 문단에서 지금 위치를 고른다. 합격 여부를 단정하지 않는다" },
+        { "title": "집중이 흔들리는 지점", "shape": "흔들리는 지점을 한 문단씩 짚고, 마지막 문단은 그것을 줄이는 조건이다" },
+        { "title": "남은 구간에서 할 것", "shape": "할 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    },
+    "home_pungsu": {
+      "title": "집터 풍수",
+      "status": "draft",
+      "verdictAxis": "공간의 기운과 내 명리",
+      "accent": "green",
+      "cutA": "/assets/umsh-place-card-bg.webp",
+      "cutB": "/assets/cut-03-saju.webp",
+      "highlights": [
+        { "title": "이 공간이 나에게 하는 일", "shape": "확인된 공간 조건을 한 문단씩 놓고, 마지막 문단에서 나에게 미치는 결을 고른다" },
+        { "title": "기운이 막히는 자리", "shape": "막히는 자리를 한 문단씩 짚고, 마지막 문단은 그 자리를 여는 방식이다" },
+        { "title": "이번 주에 바꿀 한 가지", "shape": "바꿀 것을 순서대로 짧은 줄로 나열한 뒤, 마지막 두 문장은 이 서비스의 말투로 닫는다" }
+      ]
+    }
+  }
+}

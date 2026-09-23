@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>회원 탈퇴 · 운명상회</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="운명상회 - 운명을 팝니다." />
+    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <style>
+      /* 공용 하단 메뉴는 화면에 고정된다. 본문 아래에 그만큼 자리를 비워 두지 않으면
+         마지막 버튼이 메뉴 뒤로 들어간다. 서비스 페이지들과 같은 규칙이다. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+  </head>
+  <body>
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="appbar topbar"></header>
+      <section class="payment-shell" aria-labelledby="leave-title">
+        <p class="payment-eyebrow">MY · ACCOUNT</p>
+        <h1 id="leave-title">회원 탈퇴</h1>
+        <p class="payment-intro">탈퇴하면 저장한 사주 프로필과 풀이 기록을 삭제합니다. 결제·거래 기록은 관련 법령이 정한 기간 동안 보관될 수 있습니다.</p>
+        <div class="payment-notice"><strong>탈퇴 전 확인</strong><br />탈퇴 후에는 보관함과 상담 기록을 복구할 수 없습니다. 결제 후 아직 열람하지 않은 상품의 환불 요청은 탈퇴 전에 고객센터로 접수해 주세요.</div>
+        <form class="payment-form" id="leave-form">
+          <label class="payment-consent"><input type="checkbox" name="confirm" required /><span>삭제 대상과 결제 기록 보관 안내를 확인했습니다.</span></label>
+          <button class="payment-submit" type="submit">탈퇴하고 정보 삭제하기</button>
+          <p class="payment-status" data-leave-status role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/leave.js?v=20260901-account"></script>
+  </body>
+</html>

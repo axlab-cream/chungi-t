@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>개인정보 수정 · 운명상회</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="운명상회 - 운명을 팝니다." />
+    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20260901-myhub" /><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3" />
+  </head>
+  <body class="umsh-fields">
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="appbar topbar"></header>
+      <section class="payment-shell" aria-labelledby="page-title">
+        <p class="payment-eyebrow">MY · PROFILE</p>
+        <h1 id="page-title">개인정보 수정</h1>
+        <p class="payment-intro">오늘운·운명록·보관함에 쓰는 사주 프로필을 수정합니다.</p>
+        <form class="payment-form profile-form" id="profile-form">
+          <label class="payment-label">이름<input name="name" type="text" required maxlength="20" autocomplete="name" /></label>
+          <div class="profile-row">
+            <label class="payment-label">성별
+              <select name="gender" required>
+                <option value="female">여자</option>
+                <option value="male">남자</option>
+              </select>
+            </label>
+            <label class="payment-label">달력
+              <select name="calendar" required>
+                <option value="solar">양력</option>
+                <option value="lunar">음력</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label class="payment-label">생년월일<input name="birth" type="date" min="1900-01-01" autocomplete="bday" required /></label>
+          </div>
+          <div>
+            <span class="payment-label">태어난 시간</span>
+            <div class="profile-toggle" role="group" aria-label="시간 알고 여부">
+              <button type="button" data-time-known="1" class="is-selected">시간을 알아요</button>
+              <button type="button" data-time-known="0">시간 모름</button>
+            </div>
+          </div>
+          <div class="profile-row" data-time-fields>
+            <label class="payment-label">태어난 시각<input name="time" type="time" step="60" value="12:00" /></label>
+          </div>
+          <button class="payment-submit" type="submit">프로필 저장</button>
+          <p class="payment-status" data-profile-status role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script src="/js/umsh-account-pages.js?v=20260901-myhub"></script>
+    <script src="/js/profile.js?v=20260901-myhub"></script>
+  </body>
+</html>

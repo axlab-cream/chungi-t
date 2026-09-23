@@ -1,0 +1,260 @@
+(function (global) {
+  'use strict';
+
+  /**
+   * This file used to draw its own appbar and bottom nav, which left the consultation
+   * pages (합격운, 연애, 결혼궁합, 직업운, MY ...) carrying a top bar that did not match the
+   * service-shell pages - no category rail, and a bottom nav that jumped straight to a
+   * link instead of opening the menu sheet. It now mounts the shared shell instead, so
+   * every page gets the identical logo + GNB + bottom menu while keeping the back button
+   * and the service/price line these pages need.
+   *
+   * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
+   * unchanged, so no page markup had to move.
+   */
+  var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
+  var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
+  var FLAG_JS = '/js/ai-report-flag.js';
+  var TRACK_JS = '/js/umsh-track.js';
+
+  /**
+   * 퍼널 수집기. 공용 크롬이 모든 화면에 실리므로 여기서 한 번만 올린다 — 화면마다
+   * 넣으면 새 서비스가 생길 때 빠지고, 빠진 화면은 이탈 통계에서 통째로 사라진다.
+   */
+  function loadTracker() {
+    if (document.querySelector('script[data-umsh-track-js]')) return;
+    var script = document.createElement('script');
+    script.src = TRACK_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-track-js', '');
+    document.head.appendChild(script);
+  }
+  var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd3';
+
+  /** Which category chip the shell highlights, chosen from the page path. */
+  var CATEGORY_BY_PATH = [
+    [/^\/cmdg(\/|$)/, '종합'],
+    [/^\/money(\/|$)/, '재물'],
+    [/^\/love(\/|$)/, '연애'],
+    [/^\/match(\/|$)/, '궁합'],
+    [/^\/work(\/|$)/, '직업'],
+    [/^\/place(\/|$)/, '풍수'],
+    [/^\/me(\/|$)/, '흐름'],
+    [/^\/today(\/|$)/, '흐름'],
+  ];
+
+  function text(value, fallback) {
+    var next = String(value == null ? '' : value).trim();
+    return next || fallback || '';
+  }
+
+  function ensureMobileViewport() {
+    var head = document.head || document.documentElement;
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'viewport');
+      head.insertBefore(meta, head.firstChild);
+    }
+    if (!/viewport-fit/.test(String(meta.getAttribute('content') || ''))) {
+      meta.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    }
+  }
+
+  function readFromLegacyAppbar(appbar) {
+    if (!appbar) return { service: '', price: '' };
+    var serviceNode = appbar.querySelector('.brand span, .umsh-chrome-service');
+    var priceNode = appbar.querySelector('.small, .umsh-chrome-price');
+    return {
+      service: text(serviceNode && serviceNode.textContent),
+      price: text(priceNode && priceNode.textContent),
+    };
+  }
+
+  function categoryForPath(pathname) {
+    for (var i = 0; i < CATEGORY_BY_PATH.length; i += 1) {
+      if (CATEGORY_BY_PATH[i][0].test(pathname)) return CATEGORY_BY_PATH[i][1];
+    }
+    return 'all';
+  }
+
+  function ensureStylesheet(href) {
+    if (document.querySelector('link[data-umsh-shell-css]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.setAttribute('data-umsh-shell-css', '');
+    document.head.appendChild(link);
+  }
+
+  /** The shell reads its mount points once at load, so they must exist first. */
+  function loadShellScript(src, onReady) {
+    // 캐시 버스터(`?v=`)가 붙은 주소도 같은 파일이다. 경로끼리 비교하지 않으면
+    // 마운트마다 같은 스크립트를 다시 올려 문서 핸들러가 겹친다.
+    var wanted = new URL(src, global.location.href).pathname;
+    var existing = Array.from(document.querySelectorAll('script[src]')).find(function (script) {
+      return new URL(script.src, global.location.href).pathname === wanted;
+    });
+    if (existing) {
+      onReady();
+      existing.addEventListener('load', onReady, { once: true });
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = src;
+    script.setAttribute('data-umsh-shell-js', '');
+    script.addEventListener('load', onReady);
+    document.head.appendChild(script);
+  }
+
+  /**
+   * 생성형 AI 결과 신고 경로. 리포트가 있는 화면에서만 버튼이 생기고, 없는 화면에서는
+   * 스크립트가 스스로 아무것도 하지 않는다. 서비스별 렌더러를 건드리지 않으려고
+   * 공용 크롬에서 한 번만 올린다.
+   */
+  function loadReportFlag() {
+    if (document.querySelector('script[data-umsh-flag-js]')) return;
+    var script = document.createElement('script');
+    script.src = FLAG_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-flag-js', '');
+    document.head.appendChild(script);
+  }
+
+  function loadYmdFields() {
+    if (document.querySelector('script[data-umsh-ymd-js]')) return;
+    var script = document.createElement('script');
+    script.src = YMD_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-ymd-js', '');
+    document.head.appendChild(script);
+  }
+
+  function buildTopHost(options) {
+    var host = document.querySelector('[data-umsh-service-top]');
+    if (!host) {
+      host = document.createElement('div');
+      host.setAttribute('data-umsh-service-top', '');
+    }
+    host.setAttribute('data-umsh-service-category', options.category);
+    host.setAttribute('data-umsh-service-back', '');
+    if (options.service) host.setAttribute('data-umsh-service-name', options.service);
+    if (options.price) host.setAttribute('data-umsh-service-price', options.price);
+    if (options.active) host.setAttribute('data-umsh-service-active', options.active);
+    return host;
+  }
+
+  function buildBottomHost() {
+    var host = document.querySelector('[data-umsh-service-bottom]');
+    if (!host) {
+      host = document.createElement('div');
+      host.setAttribute('data-umsh-service-bottom', '');
+      document.body.appendChild(host);
+    }
+    return host;
+  }
+
+  /**
+   * `umsh-chrome.css` sizes the scrolling area with fixed 72px/74px chrome heights.
+   * The shared shell is taller because of the category rail, so the real heights are
+   * measured and written back into those variables - otherwise the last card on a
+   * `.scroll` page ends up under the bottom menu.
+   */
+  function syncChromeHeights() {
+    var top = document.querySelector('.umsh-service-shell');
+    var bottom = document.querySelector('.umsh-service-bottom .bottom-nav');
+    var root = document.documentElement;
+    if (top) root.style.setProperty('--umsh-chrome-appbar-h', Math.round(top.getBoundingClientRect().height) + 'px');
+    if (bottom) root.style.setProperty('--umsh-chrome-bottom-h', Math.round(bottom.getBoundingClientRect().height) + 'px');
+  }
+
+  /**
+   * Measuring once on script load reads the appbar before the web font and the
+   * category rail have settled, which came out 48px short and pushed the bottom of
+   * a `.scroll` page under the fixed menu. Watch the chrome instead of guessing when
+   * it is final.
+   */
+  function watchChromeHeights() {
+    syncChromeHeights();
+
+    // The chip rail grows by ~19px once the web font swaps in, and a ResizeObserver
+    // on its own did not always fire for that, so re-read at every point the chrome
+    // can still settle.
+    var top = document.querySelector('.umsh-service-shell');
+    if (top && typeof global.ResizeObserver === 'function') {
+      new global.ResizeObserver(syncChromeHeights).observe(top);
+    }
+    global.requestAnimationFrame(syncChromeHeights);
+    global.addEventListener('load', syncChromeHeights);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncChromeHeights);
+  }
+
+  function mount(options) {
+    options = options || {};
+    ensureMobileViewport();
+    var stage = document.getElementById('umsh-verified-layout') || document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
+    var legacy = stage.querySelector('header.appbar, header.umsh-chrome-appbar');
+    if (legacy && legacy.closest('.umsh-service-shell')) legacy = null;
+    var inferred = readFromLegacyAppbar(legacy);
+
+    var topHost = buildTopHost({
+      service: text(options.service, inferred.service),
+      price: text(options.price, inferred.price),
+      category: text(options.category, categoryForPath(global.location.pathname)),
+      active: text(options.active),
+    });
+
+    if (legacy && legacy.parentNode) legacy.replaceWith(topHost);
+    else if (topHost.parentNode !== stage) stage.insertBefore(topHost, stage.firstChild);
+    topHost.hidden = false;
+    topHost.style.removeProperty('display');
+    var columnWidth = Math.round(stage.getBoundingClientRect().width);
+    if (columnWidth > 0) document.documentElement.style.setProperty('--umsh-page-width', columnWidth + 'px');
+
+    var bottomHost = buildBottomHost();
+    bottomHost.hidden = false;
+    bottomHost.style.removeProperty('display');
+
+    document.body.classList.add('umsh-has-chrome');
+    ensureStylesheet(SHELL_CSS);
+    loadShellScript(SHELL_JS, watchChromeHeights);
+    loadYmdFields();
+    // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
+    // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
+    // 다시 켤 때 이 한 줄만 되살리면 된다.
+    // loadReportFlag();
+    loadTracker();
+
+    return { appbar: topHost, bottomNav: bottomHost };
+  }
+
+  function autoMount() {
+    if (document.getElementById('umsh-verified-layout')) return mount({ root: '#umsh-verified-layout', service: '저장된 해석' });
+    var host = document.querySelector('[data-umsh-chrome], main.stage[data-service], main.stage');
+    if (!host || document.body.dataset.umshChrome === 'off') return null;
+    if (!document.querySelector('header.appbar, header.umsh-chrome-appbar') && !host.hasAttribute('data-umsh-chrome')) {
+      return null;
+    }
+    return mount({
+      service: host.getAttribute('data-service') || host.dataset.service,
+      price: host.getAttribute('data-price') || host.dataset.price,
+      category: host.getAttribute('data-category') || host.dataset.category,
+      active: host.getAttribute('data-active') || host.dataset.active || '',
+      root: 'main.stage, .stage, main',
+    });
+  }
+
+  global.addEventListener('resize', syncChromeHeights);
+
+  global.UMSHChrome = {
+    mount: mount,
+    autoMount: autoMount,
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoMount);
+  } else {
+    autoMount();
+  }
+  loadYmdFields();
+})(window);

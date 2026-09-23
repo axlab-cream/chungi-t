@@ -114,7 +114,7 @@ test('6. FAQ 생성기 템플릿이 공용 크롬을 달고 있다', () => {
   // 생성물이 아니라 템플릿을 고정한다. 생성물만 보면 손으로 고친 직후엔 통과하고
   // 다음 빌드에서 되돌아간다 — 실제로 그렇게 한 번 놓쳤다.
   const generator = readFileSync(FAQ_GENERATOR, 'utf8')
-  for (const piece of ['/js/umsh-chrome.js', 'data-umsh-chrome', 'policy-header appbar', '/css/umsh-chrome.css']) {
+  for (const piece of ['/js/umsh-chrome.js?v=20260922c', 'data-umsh-chrome', 'policy-header appbar', '/css/umsh-chrome.css']) {
     assert.ok(generator.includes(piece), `FAQ 생성기 템플릿에 ${piece} 가 없다`)
   }
 })

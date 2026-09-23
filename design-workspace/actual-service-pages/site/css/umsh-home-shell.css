@@ -1,0 +1,39 @@
+/* Home pages share the same width as the common navigation. */
+:root {
+  --umsh-page-width: 430px;
+}
+
+#status-box[hidden] { display: none !important; }
+#pdf-button:disabled { opacity: .55; cursor: not-allowed; }
+
+.home-dashboard-shell { --home-element-0:#80ba99; --home-element-1:#df8d83; --home-element-2:#dfbf70; --home-element-3:#c7d2df; --home-element-4:#7fabe0; }
+.home-dashboard-shell > summary { font-size:18px;font-weight:700;cursor:pointer;padding:8px 0;line-height:1.6; }
+.home-dashboard { display:grid;gap:16px;margin-top:18px; }
+.home-dashboard-card { min-width:0;padding:18px 14px;border:1px solid #445049;border-radius:12px;background:#151e1a; }
+.home-dashboard-card h3 { font-size:18px;line-height:1.5;margin:0 0 16px;color:#f4ead6; }
+.home-dashboard-card p,.home-dashboard-card summary { font-size:14px;line-height:1.8;color:#c8cec8;word-break:keep-all;overflow-wrap:anywhere; }
+.home-dashboard-score { display:flex;align-items:center;justify-content:space-between;gap:8px; }
+.home-dashboard-score strong { font-size:38px;color:#efd47d; }
+.home-dashboard-score small { font-size:16px;color:#c8cec8; }
+.home-dashboard-score span { font-size:14px; }
+.home-dashboard meter { width:100%;height:14px;margin:12px 0;accent-color:#efd47d; }
+.home-dashboard table { width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;line-height:1.65; }
+.home-dashboard caption { text-align:left;color:#c8cec8;font-size:13px;margin-bottom:10px; }
+.home-dashboard th,.home-dashboard td { padding:10px 5px;border-bottom:1px solid #445049;text-align:left;word-break:keep-all;overflow-wrap:anywhere; }
+.home-dashboard th a { color:#efd47d;text-decoration:underline;text-underline-offset:3px; }
+.home-chart-row { display:grid;grid-template-columns:76px minmax(0,1fr) 30px;gap:8px;align-items:center;margin:14px 0;font-size:14px; }
+.home-chart-track { height:14px;background:#303b35;border-radius:7px;overflow:hidden; }
+.home-chart-track i { height:100%;display:block;border-radius:7px; }
+.home-dashboard-metric { font-size:30px;color:#efd47d; }
+.home-dashboard-shell summary:focus-visible { outline:2px solid #efd47d;outline-offset:4px; }
+
+.app,
+.chat-input,
+body > .bottom-nav[aria-label="상세 이동과 상담"] {
+  width: min(100%, var(--umsh-page-width));
+}
+
+/* The shell already draws the divider; do not draw it again on the header. */
+.umsh-service-shell .appbar {
+  border-bottom: 0;
+}

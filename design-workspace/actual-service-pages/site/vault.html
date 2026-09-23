@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>보관함 | 운명상회</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="운명상회" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="운명상회 - 운명을 팝니다." />
+    <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="운명상회 - 운명을 팝니다." />
+    <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta name="description" content="구매한 운세 리포트를 모아 두는 보관함입니다. 로그인하면 저장된 풀이를 다시 열 수 있습니다." />
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=notice-ink-20260918" />
+    <style>
+      :root {
+        --bg: #050504;
+        --ink: #f7f2e9;
+        --muted: rgba(247, 242, 233, 0.62);
+        --line: rgba(216, 186, 114, 0.22);
+        --gold: #e8d49a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+      }
+
+      .phone {
+        width: min(100%, 430px);
+        margin: 0 auto;
+        min-height: 100svh;
+        padding: 0 18px 24px;
+      }
+
+      .page-head {
+        padding: 18px 0 12px;
+      }
+
+      .page-head h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: -0.4px;
+      }
+
+      .page-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .panel {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 18px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .panel strong {
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .panel p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .panel a.button {
+        justify-self: start;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 16px;
+        border: 1px solid var(--gold);
+        border-radius: 10px;
+        background: rgba(232, 212, 154, 0.14);
+        color: var(--gold);
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      /*
+       * 보관함 카드 — Claude Design "UMSH 보관함 리스트" 사양(430px, 상태 3종).
+       *
+       * 좌측 4px 레일이 상태의 1차 신호다. 진행률은 바와 칸 틱으로 두 번 적는다 —
+       * 바는 한눈에, 틱은 "열둘 중 일곱" 처럼 셀 수 있게. PDF는 전부 만들어졌을 때만
+       * 금색으로 열린다.
+       */
+      @font-face {
+        font-family: MaruBuri;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+        font-display: swap;
+        font-weight: 700 900;
+      }
+
+      @keyframes umshPulse { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+      @keyframes umshSheen { 0% { transform: translateX(-100%) } 100% { transform: translateX(320%) } }
+
+      .vault-notice {
+        display: flex; gap: 11px; align-items: flex-start;
+        margin: 14px 0 0; padding: 14px 16px; border-radius: 14px;
+        background: #fff8ee; border: 1px solid #c9a15a;
+        word-break: keep-all;
+      }
+      /* display:flex 가 UA 의 [hidden] 규칙을 덮어쓴다. 오늘 운 탭에서는 숨겨야 한다. */
+      .vault-notice[hidden] { display: none; }
+      .vault-notice > span { flex: none; font-size: 18px; line-height: 1.3; }
+      .vault-notice strong { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 900; letter-spacing: .06em; color: #6b3f0e; }
+      .vault-notice p { margin: 0 0 7px; font-size: 13.5px; line-height: 1.75; color: #1a1814; }
+      .vault-notice p:last-child { margin-bottom: 0; }
+      .vault-notice p.lead { color: #1a1814; font-weight: 700; }
+      .vault-notice b { color: #6b3f0e; font-weight: 800; }
+
+      .vault-item { display: block; margin-bottom: 16px; color: inherit; text-decoration: none; }
+
+      .vault-card {
+        position: relative;
+        border-radius: 20px;
+        background: #121110;
+        border: 1px solid rgba(255, 253, 250, 0.08);
+        overflow: hidden;
+        --accent: #e2b87b;
+        --accent-soft: rgba(226, 184, 123, 0.14);
+        --accent-line: rgba(226, 184, 123, 0.34);
+        --accent-dim: #b79058;
+      }
+      .vault-card.is-complete { --accent: #7fd1a6; --accent-soft: rgba(127, 209, 166, 0.14); --accent-line: rgba(127, 209, 166, 0.34); --accent-dim: #5aa87f; }
+      .vault-card.is-waiting { --accent: #8f8577; --accent-soft: rgba(255, 253, 250, 0.06); --accent-line: rgba(255, 253, 250, 0.14); --accent-dim: #6b6358; }
+      .vault-card.is-failed { --accent: #f08461; --accent-soft: rgba(216, 81, 47, 0.16); --accent-line: rgba(216, 81, 47, 0.42); --accent-dim: #8c3a22; }
+
+      .vault-rail { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 18%, transparent)); }
+      .vault-card.is-generating .vault-rail { animation: umshPulse 1.8s ease-in-out infinite; }
+
+      .vault-body { padding: 18px 18px 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+      .vault-head { display: flex; align-items: flex-start; gap: 12px; }
+
+      .vault-seal {
+        flex: none; width: 46px; height: 46px; border-radius: 13px;
+        display: grid; place-items: center;
+        font-family: MaruBuri, "Noto Serif KR", Georgia, serif;
+        font-size: 22px; font-weight: 900;
+        color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line);
+      }
+
+      .vault-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+      .vault-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .vault-badge {
+        padding: 4px 9px; border-radius: 999px;
+        background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--accent);
+        font-size: 10px; font-weight: 900; letter-spacing: .08em;
+      }
+      .vault-tier { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #a79d90; }
+
+      .vault-title {
+        font-family: MaruBuri, "Noto Serif KR", Georgia, serif;
+        font-size: 19px; font-weight: 900; letter-spacing: -.035em;
+        color: #fffdfa; line-height: 1.3; word-break: keep-all;
+      }
+
+      .vault-worry { display: flex; align-items: flex-start; gap: 7px; }
+      .vault-worry i { font-style: normal; font-size: 13px; line-height: 1.5; color: #a79d90; }
+      /* 고민은 길이가 제각각이라 두 줄에서 끊는다. 카드 높이가 목록마다 달라지면 훑기 어렵다. */
+      .vault-worry span {
+        flex: 1; font-size: 13px; line-height: 1.6; color: #9a9086; word-break: keep-all;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+
+      .vault-hr { height: 1px; background: rgba(255, 253, 250, 0.07); }
+
+      .vault-progress { display: flex; flex-direction: column; gap: 9px; }
+      .vault-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .vault-progress-label { font-size: 12px; font-weight: 800; color: #c9bfb2; }
+      .vault-progress-num { font-family: Georgia, serif; font-size: 14px; font-weight: 900; letter-spacing: .02em; color: var(--accent); }
+
+      .vault-bar { position: relative; height: 6px; border-radius: 999px; background: rgba(255, 253, 250, 0.09); overflow: hidden; }
+      .vault-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+      .vault-sheen {
+        position: absolute; top: 0; bottom: 0; left: 0; width: 26%;
+        background: linear-gradient(90deg, transparent, rgba(255, 253, 250, 0.42), transparent);
+        animation: umshSheen 1.8s linear infinite;
+      }
+
+      .vault-ticks { display: flex; gap: 3px; }
+      .vault-ticks span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 253, 250, 0.1); }
+      .vault-ticks span.is-on { background: var(--accent); }
+      .vault-card.is-failed .vault-ticks span { background: rgba(216, 81, 47, 0.16); }
+
+      .vault-hint { font-size: 11px; font-weight: 600; line-height: 1.5; color: #c0b6a8; word-break: keep-all; }
+      .vault-card.is-failed .vault-hint { color: #f0a48d; }
+
+      .vault-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .vault-when { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+      .vault-when b { font-size: 10px; font-weight: 900; letter-spacing: .12em; color: #a79d90; }
+      .vault-when span { font-size: 12px; font-weight: 700; color: #d6cdc2; white-space: nowrap; }
+
+      .vault-pdf {
+        flex: none; display: inline-flex; align-items: center; gap: 7px;
+        padding: 11px 16px; border-radius: 999px;
+        font: inherit; font-size: 12px; font-weight: 900; letter-spacing: -.01em;
+        background: rgba(255, 253, 250, 0.05); color: #5f574c; border: 1px solid rgba(255, 253, 250, 0.09);
+        cursor: not-allowed; min-height: 40px;
+      }
+      .vault-pdf.is-ready { background: #e2b87b; color: #141210; border-color: #e2b87b; box-shadow: 0 8px 20px rgba(226, 184, 123, 0.22); cursor: pointer; }
+      .vault-pdf.is-retry { background: transparent; color: #f08461; border-color: rgba(216, 81, 47, 0.48); cursor: pointer; }
+      .vault-pdf.is-waiting { color: #d6cdc2; border-color: rgba(226, 184, 123, 0.4); cursor: pointer; }
+      .vault-pdf[aria-busy="true"] { cursor: progress; }
+      .vault-pdf[aria-busy="true"] span:first-child { display: inline-block; animation: vault-spin 0.9s linear infinite; }
+      @keyframes vault-spin { to { transform: rotate(360deg); } }
+      .vault-pdf:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      /* 관리자 전용 삭제. 서버가 admin 을 준 응답에서만 그려진다. */
+      .vault-delete { flex: none; min-height: 40px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 800; background: transparent; color: #f08461; border: 1px solid rgba(216, 81, 47, 0.42); cursor: pointer; }
+      .vault-delete[data-armed="1"] { background: #d8512f; color: #fff; border-color: #d8512f; }
+      .vault-delete:disabled { opacity: .5; cursor: progress; }
+
+      .vault-note { margin-top: 11px; padding: 0 4px; font-size: 11px; font-weight: 600; color: #a79d90; word-break: keep-all; }
+
+      .vault-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; padding: 4px; border-radius: 14px; background: rgba(255, 253, 250, 0.05); border: 1px solid rgba(255, 253, 250, 0.08); }
+      .vault-tabs button { font: inherit; font-size: 14px; font-weight: 800; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: #a79d90; cursor: pointer; }
+      .vault-tabs button[aria-selected="true"] { background: #e2b87b; color: #141210; box-shadow: 0 6px 16px rgba(226, 184, 123, 0.22); }
+      .vault-tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .vault-empty { display: grid; gap: 10px; margin-top: 14px; padding: 18px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, 0.04); }
+      .vault-empty strong { font-size: 15px; font-weight: 900; }
+      .vault-empty p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .vault-empty a { justify-self: start; min-height: 42px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--gold); border-radius: 10px; background: rgba(232, 212, 154, 0.14); color: var(--gold); font-size: 14px; font-weight: 800; text-decoration: none; }
+
+      body.umsh-has-chrome {
+        padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="보관함" data-active="vault">
+      <header class="appbar topbar"></header>
+
+      <section class="page-head">
+        <h1>보관함</h1>
+        <p>오늘 운과 구매한 풀이를 나눠 보여줍니다. 최근 것이 위로 옵니다.</p>
+        <nav class="vault-tabs" role="tablist" aria-label="보관함 구분">
+          <button type="button" role="tab" data-tab="today" aria-selected="true">오늘 운</button>
+          <button type="button" role="tab" data-tab="paid" aria-selected="false">구매한 운</button>
+        </nav>
+        <!-- 해석이 왜 오래 걸리는지 먼저 말해 준다. 말해 주지 않으면 화면이 멈춘 줄 안다. 구매한 운 탭에서만. -->
+        <aside class="vault-notice" role="note" data-tab-only="paid" hidden>
+          <span aria-hidden="true">📜</span>
+          <div>
+            <strong>중요 안내</strong>
+            <p class="lead">당신만의 운명 해석이 지금 정밀하게 완성되고 있습니다.</p>
+            <p>구매하신 해석은 단순히 정해진 결과를 보여드리는 방식이 아닙니다.
+              <b>자체 만세력 · 자미두수 · 명리학 데이터</b>를 함께 분석해, 당신의 사주에 맞춰
+              <b>목차별 해석을 하나씩 생성</b>합니다.</p>
+            <p>정밀한 분석 과정으로 인해 <b>전체 완성까지 약 30~50분 정도 소요될 수 있습니다.</b></p>
+            <p><b>창을 닫으셔도 분석은 계속 진행됩니다.</b> 지금 나가셔도 괜찮습니다.
+              나중에 다시 이 자리로 돌아오시면 완성된 해석을 이어서 확인하실 수 있습니다.</p>
+            <p>조금만 기다려 주세요. 당신의 데이터를 바탕으로 한 해석이 하나씩 완성되고 있습니다.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section id="state"></section>
+      <section class="list" id="list" aria-label="보관된 풀이"></section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js"></script>
+    <script>
+      (() => {
+        const state = document.querySelector('#state');
+        const list = document.querySelector('#list');
+
+        function escapeHtml(value) {
+          return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+        }
+
+        function panel(title, copy, action) {
+          state.innerHTML = `
+            <div class="panel">
+              <strong>${escapeHtml(title)}</strong>
+              <p>${escapeHtml(copy)}</p>
+              ${action ? `<a class="button" href="${escapeHtml(action.href)}">${escapeHtml(action.label)}</a>` : ''}
+            </div>
+          `;
+        }
+
+        function loginUrl() {
+          const returnTo = '/vault';
+          return window.UMSHCommonAuth?.commonLoginUrl('vault', returnTo)
+            || `/signup?entry=vault&returnTo=${encodeURIComponent(returnTo)}#login`;
+        }
+
+        // 날짜와 시각을 따로 돌려준다. 같은 날 산 것이 여러 건이면 날짜만으로는 구분되지 않는다.
+        function stamp(value) {
+          const date = value ? new Date(value) : null;
+          if (!date || Number.isNaN(date.getTime())) return null;
+          const pad = (n) => String(n).padStart(2, '0');
+          return {
+            day: `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`,
+            time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+          };
+        }
+
+        async function session() {
+          try {
+            const config = await fetch('/api/auth/config').then((response) => response.json());
+            if (!config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
+            const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+            const { data } = await client.auth.getSession();
+            return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+          } catch {
+            return null;
+          }
+        }
+
+        /**
+         * 카드가 고를 상태와 문구. 진행 숫자만으로는 "멈춘 것"과 "만드는 중"이 구분되지
+         * 않아서 서버가 내려준 리포트 상태를 함께 본다.
+         *
+         * 남은 시간은 적지 않는다. 섹션마다 걸리는 시간이 달라서 추정치를 적으면 대부분
+         * 틀린다 — 틀린 예고는 없는 예고보다 나쁘다.
+         */
+        function cardView(report) {
+          const total = Number(report.progress?.total) || 0;
+          const done = Math.min(Number(report.progress?.complete) || 0, total || Infinity) || 0;
+          const status = report.reportStatus || '';
+          const finished = status === 'complete' || (total > 0 && done >= total);
+          // 서버가 준 stage 를 따른다. 진행 숫자만으로는 지금 돌고 있는 것과 차례를
+          // 기다리는 것이 구분되지 않는다 — 둘 다 "생성 중"으로 보이면 % 가 멈춘 이유를
+          // 설명하지 못한다.
+          const state = status === 'failed' ? 'failed'
+            : finished ? 'complete'
+            : report.stage === 'waiting' ? 'waiting' : 'generating';
+          const percent = state === 'failed'
+            ? (total ? Math.round((done / total) * 100) : 0)
+            : finished ? 100 : total ? Math.round((done / total) * 100) : 0;
+
+          if (state === 'complete') {
+            return {
+              state, total, done: total, percent: 100, seal: '完', badge: '완료',
+              label: total ? `목차 ${total}개 모두 완료` : '생성 완료',
+              num: '100%',
+              hint: total ? `목차 ${total}개 생성 완료` : '생성이 끝났어요.',
+              pdfClass: 'is-ready', pdfLabel: 'PDF 다운로드', pdfIcon: '⤓', pdfAction: 'pdf',
+              note: '',
+            };
+          }
+          if (state === 'failed') {
+            return {
+              state, total, done, percent, seal: '止', badge: '생성 실패',
+              label: done ? `${done}개 완료 후 중단됨` : '생성이 중단됨',
+              num: '실패',
+              hint: '다시 생성하면 남은 목차부터 이어 만듭니다.',
+              pdfClass: 'is-retry', pdfLabel: '다시 생성하기', pdfIcon: '↻', pdfAction: 'retry',
+              note: '문제가 이어지면 고객센터로 알려주세요.',
+            };
+          }
+          if (state === 'waiting') {
+            return {
+              state, total, done, percent, seal: '待', badge: '대기 중',
+              label: total ? `목차 ${total}개 중 ${done}개 완료` : '차례를 기다리는 중',
+              num: `${percent}%`,
+              // 앞선 풀이가 끝나야 이 풀이가 시작된다. 해석은 한 번에 하나씩 만들어진다.
+              hint: '앞선 풀이가 끝나면 이어서 만듭니다.',
+              // 기다리기만 하지 않아도 된다. 풀이 화면을 열면 그 자리에서 이어서 만들어진다 —
+              // 서버 차례를 앞당기는 것은 아니지만, 지금 보고 싶은 사람은 먼저 볼 수 있다.
+              pdfClass: 'is-retry', pdfLabel: '지금 이어보기', pdfIcon: '▶', pdfAction: 'retry',
+              note: '',
+            };
+          }
+          return {
+            state, total, done, percent, seal: '命', badge: '생성 중',
+            label: total ? `목차 ${total}개 중 ${done}개 완료` : '해석을 준비하고 있어요',
+            num: `${percent}%`,
+            hint: report.currentSection
+              ? `「${report.currentSection}」 만드는 중`
+              : '남은 목차를 순서대로 만들고 있어요.',
+            // 죽은 버튼이 아니라 누르면 지금 진행을 알려 준다. 다 됐으면 그 자리에서 바로 받는다.
+            pdfClass: 'is-waiting', pdfLabel: 'PDF 다운로드', pdfIcon: '⤓', pdfAction: 'pdf',
+            note: '전부 만들어지면 이 자리에서 PDF로 받을 수 있어요.',
+          };
+        }
+
+        /** PDF 모듈은 누를 때만 받는다. 목록을 여는 것만으로 받게 하면 첫 화면이 느려진다. */
+        function ensurePdfHelper() {
+          if (window.UMSHReportPdf) return Promise.resolve();
+          return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = '/js/umsh-report-pdf.js';
+            script.onload = () => resolve();
+            script.onerror = () => resolve();
+            document.head.appendChild(script);
+          });
+        }
+
+        /**
+         * 완성된 풀이는 클릭 안에서 창을 먼저 열고(팝업 차단을 피하려면 fetch 전에 열어야 한다)
+         * 본문을 받아 채운 뒤 인쇄 대화상자를 띄운다. 아직 만드는 중이면 창을 열지 않고 버튼에
+         * 지금 진행(n/m)을 잠깐 보여 준다 — 눌렀는데 아무 일도 없던 것이 문제였다(2026-09-18).
+         */
+        async function downloadPdf(button, token) {
+          const id = button.dataset.reportId;
+          if (!id) return;
+          const label = button.querySelector('span:last-child');
+          const previous = label.textContent;
+          const complete = button.dataset.state === 'complete';
+          button.disabled = true;
+          button.setAttribute('aria-busy', 'true');
+          label.textContent = complete ? '준비 중…' : '확인 중…';
+          const popup = complete && window.UMSHReportPdf ? window.UMSHReportPdf.openPlaceholder('해석을 준비하고 있어요…') : (complete ? window.open('', '_blank') : null);
+          try {
+            await ensurePdfHelper();
+            if (!window.UMSHReportPdf) throw new Error('PDF_HELPER_MISSING');
+            const payload = await fetch(`/api/report/${encodeURIComponent(id)}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }).then((response) => response.json());
+            const report = payload?.report || payload;
+            const sections = Array.isArray(report?.sections) ? report.sections : [];
+            const done = sections.filter((section) => section.status === 'complete').length;
+            const finished = sections.length > 0 && (report.status === 'complete' || done >= sections.length);
+            if (!finished) {
+              if (popup) { try { popup.close(); } catch { /* closed */ } }
+              label.textContent = sections.length ? `만드는 중 ${done}/${sections.length}` : '아직 준비 중';
+              window.setTimeout(() => { label.textContent = previous; }, 2600);
+              return;
+            }
+            if (!window.UMSHReportPdf.open(report, popup)) throw new Error('POPUP_BLOCKED');
+            label.textContent = previous;
+          } catch {
+            if (popup) { try { popup.close(); } catch { /* closed */ } }
+            label.textContent = '열지 못했어요 · 팝업 허용 확인';
+            window.setTimeout(() => { label.textContent = previous; }, 2600);
+          } finally {
+            button.disabled = false;
+            button.setAttribute('aria-busy', 'false');
+          }
+        }
+
+        async function load() {
+          const auth = await session();
+          if (!auth) {
+            // 보관함은 비로그인도 들어올 수 있지만, 목록은 계정에 묶여 있다.
+            panel(
+              '로그인하면 보관된 풀이가 보여요',
+              '결제해서 열어 본 리포트는 계정에 저장됩니다. 로그인하면 이 자리에서 다시 열 수 있어요.',
+              { href: loginUrl(), label: '로그인하고 보관함 열기' },
+            );
+            return;
+          }
+
+          try {
+            // view=list: 카드에 필요한 메타만 받는다. 기본 응답은 천명사주 화면이 보관함
+            // 동기화에 쓰는 해석 원본(analysis)을 실어 13행에 189KB·2.7초가 걸렸다.
+            const payload = await fetch('/api/user/reports?limit=30&view=list', {
+              headers: { Authorization: `Bearer ${auth.access_token}` },
+            }).then((response) => response.json());
+            let reports = Array.isArray(payload.reports) ? payload.reports : [];
+            // 삭제 버튼은 서버가 admin 을 준 계정(QA 운영자)에만 그린다. 다른 계정은 절대 보지 않는다.
+            const admin = payload.admin === true;
+            state.innerHTML = '';
+            // 최근 것이 위로. 상태별 묶음은 두지 않는다 — 두 탭으로 이미 갈라져 있고,
+            // 사용자는 "방금 본 것"을 맨 위에서 찾는다(2026-09-18).
+            const when = (r) => Date.parse(r.purchasedAt || r.savedAt || '') || 0;
+            reports.sort((a, b) => when(b) - when(a));
+            const isToday = (r) => r.serviceKey === 'today';
+
+            const cardMarkup = (report) => {
+                // 판매 제목은 서버(결제 카탈로그)가 정한다. 여기서 다시 적으면 상품 이름을
+                // 바꿔도 보관함만 옛 이름으로 남는다.
+                const service = report.serviceTitle || report.context?.serviceTitle || report.context?.target || '저장된 풀이';
+                const savedId = report.resultId || report.reportId;
+                // 어느 화면에서 열지는 서버가 정한다(`openPath`). 여기에 서비스별 경로를
+                // 다시 적어 두면 서비스가 늘 때마다 두 곳이 갈라지고, 화면에만 적힌 경로는
+                // 잘못돼도 배포 전까지 아무도 모른다. 등록된 화면이 없을 때만 공용 리더로 간다.
+                const href = report.openPath
+                  || (savedId ? `/r/${encodeURIComponent(savedId)}` : '/search');
+                const openable = Boolean(href && href !== '/search');
+                // 같은 서비스를 여러 번 보면 제목(이름 · 생년월일)이 전부 같다. 레코드마다
+                // 다른 것은 그때 적어 낸 고민이므로 그것을 먼저 보여준다.
+                const worry = report.initialConcern || report.context?.concern || report.title || '';
+                const at = stamp(report.purchasedAt || report.savedAt);
+
+                const view = cardView(report);
+                // 칸 틱은 "열둘 중 일곱" 처럼 셀 수 있을 때만 쓸모가 있다. 운영 보관함의 실제
+                // 목차는 1~70개로, 70개를 그리면 한 칸이 2.1px 라 세어지지도 읽히지도 않았다
+                // (2026-09-17 good1621 계정 실측). 셀 수 있는 범위에서만 그리고, 그 밖은
+                // 막대와 "N개 중 M개" 문구가 대신한다.
+                const ticks = view.total >= 2 && view.total <= 20
+                  ? Array.from({ length: view.total }, (_, i) =>
+                      `<span class="${i < view.done ? 'is-on' : ''}"></span>`).join('')
+                  : '';
+
+                const card = `
+                  <article class="vault-card is-${view.state}">
+                    <div class="vault-rail" aria-hidden="true"></div>
+                    <div class="vault-body">
+                      <div class="vault-head">
+                        <div class="vault-seal" aria-hidden="true">${escapeHtml(view.seal)}</div>
+                        <div class="vault-meta">
+                          <div class="vault-badges">
+                            <span class="vault-badge">${escapeHtml(view.badge)}</span>
+                            ${report.serviceTier ? `<span class="vault-tier">${escapeHtml(report.serviceTier)}</span>` : ''}
+                          </div>
+                          <div class="vault-title">${escapeHtml(service)}</div>
+                          ${worry ? `<div class="vault-worry"><i aria-hidden="true">“</i><span>${escapeHtml(worry)}</span></div>` : ''}
+                        </div>
+                      </div>
+
+                      <div class="vault-hr" aria-hidden="true"></div>
+
+                      <div class="vault-progress">
+                        <div class="vault-progress-top">
+                          <span class="vault-progress-label">${escapeHtml(view.label)}</span>
+                          <span class="vault-progress-num">${escapeHtml(view.num)}</span>
+                        </div>
+                        <div class="vault-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${view.total}" aria-valuenow="${view.done}" aria-label="${escapeHtml(view.label)}">
+                          <div class="vault-fill" style="width:${view.percent}%"></div>
+                          ${view.state === 'generating' ? '<div class="vault-sheen" aria-hidden="true"></div>' : ''}
+                        </div>
+                        ${ticks ? `<div class="vault-ticks" aria-hidden="true">${ticks}</div>` : ''}
+                        <div class="vault-hint">${escapeHtml(view.hint)}</div>
+                      </div>
+
+                      <div class="vault-foot">
+                        <span class="vault-when">
+                          <b>구매 일시</b>
+                          <span>${at ? `${escapeHtml(at.day)} ${escapeHtml(at.time)}` : '-'}</span>
+                        </span>
+                        <button type="button" class="vault-pdf ${view.pdfClass}"
+                          ${view.pdfClass ? '' : 'disabled'}
+                          data-report-id="${escapeHtml(report.reportId || '')}"
+                          data-state="${escapeHtml(view.state)}"
+                          data-action="${escapeHtml(view.pdfAction)}"
+                          data-href="${escapeHtml(href)}">
+                          <span aria-hidden="true">${escapeHtml(view.pdfIcon)}</span>
+                          <span>${escapeHtml(view.pdfLabel)}</span>
+                        </button>
+                        ${admin ? `<button type="button" class="vault-delete" data-action="delete" data-report-id="${escapeHtml(report.reportId || '')}" aria-label="이 풀이 삭제">삭제</button>` : ''}
+                      </div>
+                    </div>
+                  </article>
+                  ${view.note ? `<div class="vault-note">${escapeHtml(view.note)}</div>` : ''}
+                `;
+                return openable
+                  ? `<a class="vault-item" href="${escapeHtml(href)}">${card}</a>`
+                  : `<div class="vault-item">${card}</div>`;
+              };
+
+            /*
+             * 두 탭: 오늘 운 | 구매한 운. 기본은 오늘 운이다 — 매일 들어오는 이유가 그것이다.
+             * 30~50분 안내문은 구매한 운 탭에서만 보인다. 오늘 운은 즉시 계산되므로 해당 없다.
+             */
+            const tabs = document.querySelector('.vault-tabs');
+            const notice = document.querySelector('[data-tab-only="paid"]');
+            const empty = (title, copy, href, label) => `
+              <div class="vault-empty">
+                <strong>${escapeHtml(title)}</strong>
+                <p>${escapeHtml(copy)}</p>
+                <a href="${escapeHtml(href)}">${escapeHtml(label)}</a>
+              </div>
+            `;
+            const renderTab = (tab) => {
+              tabs.querySelectorAll('[data-tab]').forEach((button) => {
+                button.setAttribute('aria-selected', button.dataset.tab === tab ? 'true' : 'false');
+              });
+              if (notice) notice.hidden = tab !== 'paid';
+              const rows = reports.filter((report) => (tab === 'today' ? isToday(report) : !isToday(report)));
+              if (!rows.length) {
+                list.innerHTML = tab === 'today'
+                  ? empty('아직 오늘 운을 열지 않았어요', '오늘의 운을 열면 날짜별로 이 자리에 쌓여요. 같은 날은 한 번만 남습니다.', '/cmdg/?entry=today#todayResult', '오늘 운 보기')
+                  : empty('아직 구매한 풀이가 없어요', '무료로 본 티저는 여기에 남지 않습니다. 하나 열어 보면 최근 것이 위로 쌓여요.', '/search', '운세 둘러보기');
+                return;
+              }
+              list.innerHTML = rows.map(cardMarkup).join('');
+            };
+            let currentTab = 'today';
+            const renderCurrent = (tab) => { currentTab = tab; renderTab(tab); };
+            tabs.addEventListener('click', (event) => {
+              const button = event.target.closest('[data-tab]');
+              if (button) renderCurrent(button.dataset.tab);
+            });
+            renderCurrent('today');
+
+            /**
+             * 관리자 삭제. 두 번 눌러야 지운다 — 첫 탭은 「정말 삭제?」로 바뀌고 3초 안에 다시
+             * 누르면 서버에서 지운다(DELETE /api/user/reports/:id 는 행을 실제로 지우므로 관리자
+             * 목록에서도 사라진다). 네이티브 confirm 은 모바일·자동화에서 막히는 경우가 있어 쓰지 않는다.
+             */
+            async function deleteReport(button) {
+              const id = button.dataset.reportId;
+              if (!id) return;
+              if (button.dataset.armed !== '1') {
+                button.dataset.armed = '1';
+                button.textContent = '정말 삭제?';
+                window.setTimeout(() => { if (button.isConnected) { button.dataset.armed = '0'; button.textContent = '삭제'; } }, 3000);
+                return;
+              }
+              button.disabled = true;
+              button.textContent = '삭제 중…';
+              try {
+                const response = await fetch(`/api/user/reports/${encodeURIComponent(id)}`, {
+                  method: 'DELETE',
+                  headers: { Authorization: `Bearer ${auth.access_token}` },
+                });
+                const json = await response.json().catch(() => ({}));
+                if (!response.ok || !json.deleted) throw new Error(json.error || 'DELETE_FAILED');
+                reports = reports.filter((report) => report.reportId !== id);
+                renderCurrent(currentTab);
+              } catch {
+                button.disabled = false;
+                button.dataset.armed = '0';
+                button.textContent = '삭제 실패';
+                window.setTimeout(() => { if (button.isConnected) button.textContent = '삭제'; }, 2000);
+              }
+            }
+
+            // 카드 전체가 링크라, 버튼은 이동을 막고 자기 일만 한다.
+            list.addEventListener('click', (event) => {
+              const button = event.target.closest('.vault-pdf, .vault-delete');
+              if (!button || button.disabled) return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (button.dataset.action === 'delete') { void deleteReport(button); return; }
+              if (button.dataset.action === 'pdf') { void downloadPdf(button, auth.access_token); return; }
+              // 다시 생성은 해당 풀이 화면에서 이어진다. 목록에서 재생성을 흉내 내지 않는다.
+              if (button.dataset.action === 'retry' && button.dataset.href) location.assign(button.dataset.href);
+            });
+          } catch {
+            panel('보관함을 불러오지 못했어요', '잠시 뒤 다시 시도해 주세요.', { href: '/vault', label: '다시 시도' });
+          }
+        }
+
+        load();
+      })();
+    </script>
+  </body>
+</html>

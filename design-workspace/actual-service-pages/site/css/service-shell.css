@@ -1,0 +1,818 @@
+﻿.umsh-service-shell,
+.umsh-service-bottom,
+.umsh-service-toast {
+  --shell-width: var(--umsh-page-width, 430px);
+  --shell-black-1000: #050504;
+  --shell-black-950: #080807;
+  --shell-black-900: #0c0b0a;
+  --shell-gold-600: #9e7b35;
+  --shell-gold-500: #c5a152;
+  --shell-gold-400: #d8ba72;
+  --shell-gold-300: #e8d49a;
+  --shell-gold-200: #f0e2b8;
+  --shell-cream-100: #f7f2e9;
+  --shell-muted: #a39a8c;
+  --shell-muted-2: #746e64;
+  --shell-line: rgba(216, 186, 114, 0.22);
+  --shell-line-soft: rgba(247, 242, 233, 0.1);
+  --shell-gradient: linear-gradient(120deg, #846427 0%, #b99142 27%, #e0c47b 54%, #f1e3b1 72%, #9a7531 100%);
+  --shell-font-ui: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+body.has-umsh-service-shell:not(.has-service-fixed-bottom) .app {
+  padding-bottom: 84px;
+}
+
+body.has-umsh-service-shell.has-chat-fixed-bottom .app {
+  padding-bottom: 212px;
+}
+
+body.has-umsh-service-shell.has-detail-fixed-bottom .app {
+  padding-bottom: 230px;
+}
+
+body.has-umsh-service-shell .cta-stack {
+  bottom: 74px;
+}
+
+body.has-umsh-service-shell .chat-input,
+body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] {
+  bottom: 74px;
+}
+
+.umsh-service-shell {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  width: 100%;
+  border-bottom: 1px solid var(--shell-line-soft);
+  background: var(--shell-black-950);
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+}
+
+.umsh-service-shell button,
+.umsh-service-bottom button {
+  border: 0;
+  color: inherit;
+  font: inherit;
+}
+
+.umsh-service-shell a,
+.umsh-service-bottom a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.umsh-service-shell .appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 21px 20px 12px;
+  border-bottom: 1px solid var(--shell-line-soft);
+  background: rgba(8, 8, 7, 0.96);
+}
+
+/* Some legacy service pages reset every header/button below the shared shell.
+ * Keep the common GNB and bottom tabs authoritative when those page-local rules
+ * have the same element scope.
+ *
+ * 그 초기화는 padding 뿐 아니라 background 와 border, position 까지 지운다.
+ * 상단은 감싸는 .umsh-service-shell 이 불투명해서 드러나지 않았지만, 하단을 감싸는
+ * 상자는 투명하다. 그래서 신년운세·결혼택일 01 화면에서 하단 메뉴 뒤로 사진이 그대로
+ * 비쳤다. position 이 static 이 되면 활성 탭 표시(.is-active::before)도 자리를
+ * 잃는다. 공용 크롬이 스스로 칠하는 값은 페이지 초기화의 대상이 아니다. */
+body.umsh-has-chrome .umsh-service-shell .appbar {
+  padding: 21px 20px 12px;
+  border-bottom: 1px solid var(--shell-line-soft);
+  background: rgba(8, 8, 7, 0.96);
+}
+
+body.umsh-has-chrome .umsh-service-bottom .bottom-nav {
+  position: relative;
+  border-top: 1px solid var(--shell-line-soft);
+  background: rgba(8, 8, 7, 0.96);
+}
+
+/*
+ * 페이지가 원래 그리던 브랜드 바는, 공용 GNB 가 올라오면 **두 번째 상단바**가 된다.
+ *
+ * 2026-09-15 실측: 이직운 04 에서 공용 GNB(85px) 바로 아래 `nav.topbar > div.brand`(62px)
+ * 가 또 있어 로고가 두 번 나왔다. 서비스마다 자기 HTML 에 한 줄씩 숨김을 넣어 왔는데
+ * (`body.umsh-has-chrome header.top{display:none}`), 새 페이지가 생길 때마다 잊는다.
+ *
+ * 브랜드를 직접 품은 상단바만 골라 숨긴다. 공용 셸의 로고는 클래스가 .app-brand 라
+ * 여기 걸리지 않고, 단계 표시나 목차 이동 같은 다른 nav 도 .brand 가 없어 남는다.
+ */
+/* 셸을 직접 쓰는 화면(이직운·이 집)은 umsh-has-chrome 이 붙지 않는다. 셸이 스스로 다는
+   has-umsh-service-shell 로 잡아야 두 경로가 모두 걸린다 — 실제로 이 차이 때문에
+   페이지마다 넣어 둔 `body.umsh-has-chrome .brand{display:none}` 이 이직운에선 안 들었다. */
+body.has-umsh-service-shell nav.topbar:has(> .brand),
+body.has-umsh-service-shell header.topbar:has(> .brand),
+body.has-umsh-service-shell .nav:has(> .brand) {
+  display: none;
+}
+.umsh-service-shell nav.topbar:has(> .brand),
+.umsh-service-shell header.topbar:has(> .brand) {
+  display: flex;
+}
+
+/*
+ * PDF 받기 같은 화면 전용 동작은 공용 GNB 가 아니라 **본문 맨 아래** 같은 자리에 둔다.
+ * 상단바는 어느 화면에서나 같아야 하고, 거기에 서비스마다 다른 버튼이 하나씩 붙기
+ * 시작하면 통일이 무너진다. 대화 화면은 입력창이 아래에 고정돼 있으므로 이 자리는
+ * 고정이 아니라 본문 흐름의 끝에 둔다 — 겹치지 않는다.
+ */
+.umsh-pdf-dock {
+  display: flex;
+  justify-content: center;
+  padding: 18px 20px 8px;
+}
+
+.umsh-pdf-dock .pdf-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(232, 212, 154, 0.35);
+  border-radius: 12px;
+  background: rgba(216, 186, 114, 0.06);
+  color: var(--shell-gold-200, #e8d49a);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 대화 화면의 자체 상단바. 공용 GNB 가 로고와 뒤로가기를 대신하므로 감춘다.
+   지우지 않고 감추는 이유: chat.js 가 #btn-back 을 가드 없이 찾아 쓴다. */
+body.has-umsh-service-shell .chat-phone > header.topbar {
+  display: none;
+}
+
+/* 공용 상단바는 sticky 인데 부모인 [data-umsh-service-top] 박스가 85px 뿐이라 그
+   안에서만 붙을 수 있었다. 그래서 한 화면을 넘는 페이지에서는 스크롤과 함께 사라졌다.
+   .phone 은 overflow: clip 이라 스크롤 컨테이너가 아니고 .payment-page 계열은 body
+   가 스크롤한다. 어느 쪽이든 호스트가 붙어 있어야 상단바가 화면에 남는다. 이 셸을
+   직접 쓰는 화면(이 집, 이직)은 umsh-has-chrome 이 붙지 않으므로 셸이 스스로 다는
+   클래스로 잡는다. */
+body.has-umsh-service-shell [data-umsh-service-top] {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+/* overflow: hidden 은 스크롤되지 않는 스크롤 컨테이너를 만들어 그 안의 sticky 를
+   무력화한다. clip 은 같은 잘라내기를 하되 컨테이너를 만들지 않는다. 페이지들의 통합
+   스타일은 .phone 만 clip 으로 바꾸는데, 최상위 상자 이름이 서비스마다 .app / .page /
+   .phone 로 갈려 있어 상단바가 붙지 않는 화면이 남았다(썸 신호, 결혼 궁합, 붙을 각,
+   이 집, 이직). 세 이름을 함께 잡는다. */
+body.has-umsh-service-shell .app,
+body.has-umsh-service-shell .page,
+body.has-umsh-service-shell .phone {
+  overflow: clip;
+}
+
+/*
+ * 화면 아래에 붙어 따라다니는 페이지 CTA 는 공용 하단 메뉴와 겹쳐 바가 두 겹이 된다.
+ * 서비스마다 기준이 갈려 있었다 — 신년운세·결혼택일·올해 연애운·운 붙는 색은 sticky,
+ * 썸 신호·우리 둘·저축은 fixed, 고양이는 이름만 다른 sticky, 나머지 여섯 서비스는 아예
+ * 없다. 화면 아래는 공용 하단 메뉴가 쓰는 자리이므로, 페이지 CTA 는 본문 흐름 끝에 둔다.
+ */
+body.has-umsh-service-shell .sticky-cta,
+body.has-umsh-service-shell .sticky-story-cta,
+body.has-umsh-service-shell .cta-dock {
+  position: static;
+  inset: auto;
+  width: auto;
+  transform: none;
+}
+
+.umsh-service-shell .app-brand {
+  display: inline-grid;
+  gap: 1px;
+}
+
+.umsh-service-shell .app-brand img {
+  display: block;
+  width: 132px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/**
+ * `umsh-chrome-appbar` stays on the shell's appbar as an alias so pages that look
+ * their back button up through `.umsh-chrome-appbar [data-back]` keep working. The
+ * old stylesheet is still linked on those pages, so its 72px grid appbar has to be
+ * turned off here or the 50px logo gets clipped.
+ */
+/*
+ * 공용 상단바는 페이지의 클래스(.appbar .topbar)를 그대로 물려받는다. 그래야 페이지가
+ * 원래 두던 자리에 그대로 끼워지기 때문인데, 대신 **페이지 CSS 가 이 바를 건드린다.**
+ *
+ * 2026-09-15 실측: 커플궁합 04 의 상단바가 165px 로 기준(85px)의 두 배였다. 그 페이지의
+ * 좁은 화면 미디어쿼리에 `.topbar { flex-direction: column }` 이 있어서 로고와 버튼이
+ * 세로로 쌓였다(50 + 48 + gap 14 + 여백 33 = 146). display 만 고정해 두어서는 막지 못한다.
+ *
+ * 그래서 배치에 관여하는 값을 여기서 전부 못박는다. 한 서비스를 고치는 게 아니라,
+ * 어느 페이지가 bare 선택자로 무엇을 하든 상단바 모양이 같게 만드는 것이 목적이다.
+ */
+.umsh-service-shell .appbar.umsh-chrome-appbar {
+  position: static;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+  height: auto;
+  min-height: 0;
+  grid-template-columns: none;
+  backdrop-filter: none;
+  box-sizing: border-box;
+  /* 스토리 01 류는 옛 캡슐 바에 pointer-events:none 을 걸어 두고 안쪽 .topbar-inner 만
+     클릭을 받았다. 공용 GNB 는 그 inner 없이 .topbar 클래스를 물려받아, 로고가
+     href="/" 인데도 클릭이 통과했다. 직장 선택은 페이지 CSS 로 되돌려 뒀고, 여기서
+     한 번에 고정한다. */
+  pointer-events: auto;
+}
+
+.umsh-service-shell .umsh-service-logo,
+.umsh-service-shell .app-brand {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/*
+ * 같은 이유로 버튼 크기도 못박는다. 커플궁합 04 는 `button { min-height: 48px }` 를
+ * bare 선택자로 걸어 두어 공용 상단바의 동그란 버튼까지 48px 로 키웠다. 셸은 height 만
+ * 주고 min-height 를 주지 않아 페이지 쪽이 이겼다.
+ */
+.umsh-service-shell .app-back,
+.umsh-service-shell .topbar-vault-button,
+.umsh-service-shell .circle-button {
+  min-height: 0;
+  margin: 0;
+}
+
+/* Back and menu sit together on the right, the way the /love/this-year sample does it. */
+.umsh-service-shell .app-back,
+.umsh-service-shell .topbar-vault-button {
+  display: grid;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  pointer-events: auto;
+  place-items: center;
+  border: 1px solid rgba(232, 212, 154, 0.35);
+  border-radius: 50%;
+  background: rgba(216, 186, 114, 0.035);
+  color: var(--shell-gold-200);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+/*
+ * 2026-09-18: 두 동그란 버튼이 38px 이라 손가락 최소 크기(44px)에 못 미쳤다. 다만 38px 원은
+ * 디자인이고 19개 서비스 화면이 같은 상단바를 쓰므로, 보이는 크기는 건드리지 않고 **닿는 넓이만**
+ * 44px 로 넓힌다. 겹쳐 놓는 판은 흐름 밖(absolute)이라 아이콘 위치도 상단바 높이도 바뀌지 않는다.
+ */
+.umsh-service-shell .app-back,
+.umsh-service-shell .topbar-vault-button {
+  position: relative;
+}
+
+.umsh-service-shell .app-back::after,
+.umsh-service-shell .topbar-vault-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.umsh-service-shell .topbar-vault-button:hover,
+.umsh-service-shell .topbar-vault-button:focus-visible {
+  border-color: rgba(232, 212, 154, 0.74);
+  background: rgba(216, 186, 114, 0.12);
+}
+
+.umsh-service-shell .app-back:hover,
+.umsh-service-shell .app-back:focus-visible {
+  border-color: rgba(232, 212, 154, 0.74);
+  background: rgba(216, 186, 114, 0.12);
+}
+
+.umsh-service-shell .app-meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 0;
+  align-self: center;
+}
+
+.umsh-service-shell .app-meta-service {
+  color: var(--shell-gold-400);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.umsh-service-shell .app-meta-price {
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.umsh-service-shell .app-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.umsh-service-shell .circle-button {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--shell-line);
+  border-radius: 50%;
+  background: rgba(216, 186, 114, 0.035);
+  color: var(--shell-gold-300);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-shell .circle-button:hover,
+.umsh-service-shell .circle-button:focus-visible,
+.umsh-service-shell .circle-button.is-pressing {
+  border-color: rgba(232, 212, 154, 0.74);
+  background: rgba(216, 186, 114, 0.12);
+  box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.08);
+  color: var(--shell-gold-200);
+  transform: translateY(-1px);
+}
+
+.umsh-service-shell .category-rail {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 12px 20px 16px;
+  background: var(--shell-black-950);
+  cursor: grab;
+  scrollbar-width: none;
+}
+
+.umsh-service-shell .category-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.umsh-service-shell .chip {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 32px;
+  overflow: hidden;
+  padding: 0 12px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: #aaa196;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 850;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.umsh-service-shell .chip.is-active {
+  border-color: var(--shell-gold-400);
+  background: var(--shell-gold-400);
+  color: var(--shell-black-950);
+  font-weight: 950;
+}
+
+.umsh-service-shell .chip:hover,
+.umsh-service-shell .chip:focus-visible {
+  border-color: rgba(216, 186, 114, 0.48);
+  background: rgba(216, 186, 114, 0.08);
+  color: var(--shell-gold-200);
+  transform: translateY(-1px);
+}
+
+/* 포털과 같은 문제: hover 배경이 활성 칩의 금색을 덮어 글자가 사라졌다. */
+.umsh-service-shell .chip.is-active:hover,
+.umsh-service-shell .chip.is-active:focus-visible {
+  border-color: var(--shell-gold-400);
+  background: var(--shell-gold-400);
+  color: var(--shell-black-950);
+}
+
+.umsh-service-shell .action-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 95;
+  display: flex;
+  width: min(var(--shell-width), 100%);
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 74px 14px 0;
+  background: rgba(5, 5, 4, 0);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: background 180ms ease, opacity 180ms ease;
+}
+
+body.is-umsh-top-menu-open .umsh-service-shell .action-panel {
+  background: rgba(5, 5, 4, 0.52);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.umsh-service-shell .action-sheet {
+  display: grid;
+  width: min(260px, calc(100% - 32px));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(216, 186, 114, 0.24);
+  border-radius: 18px;
+  background: radial-gradient(circle at 86% 0%, rgba(216, 186, 114, 0.14), transparent 9rem), rgba(12, 11, 10, 0.98);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.52);
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition: transform 180ms ease;
+}
+
+body.is-umsh-top-menu-open .umsh-service-shell .action-sheet {
+  transform: translateY(0) scale(1);
+}
+
+.umsh-service-shell .action-sheet button {
+  position: relative;
+  min-height: 58px;
+  overflow: hidden;
+  padding: 12px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 14px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--shell-cream-100);
+  cursor: pointer;
+  text-align: left;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-shell .action-sheet button:hover,
+.umsh-service-shell .action-sheet button:focus-visible {
+  border-color: var(--shell-line);
+  background: rgba(216, 186, 114, 0.1);
+  transform: translateX(-2px);
+}
+
+.umsh-service-shell .action-sheet strong,
+.umsh-service-shell .action-sheet span {
+  display: block;
+}
+
+.umsh-service-shell .action-sheet strong {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.umsh-service-shell .action-sheet span {
+  margin-top: 4px;
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.umsh-service-bottom {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 80;
+  width: min(var(--shell-width), 100%);
+  margin: 0 auto;
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+}
+
+.umsh-service-bottom .bottom-menu-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 82;
+  display: flex;
+  width: min(var(--shell-width), 100%);
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px 86px;
+  background: rgba(5, 5, 4, 0);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: background 180ms ease, opacity 180ms ease;
+}
+
+body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-panel {
+  background: rgba(5, 5, 4, 0.56);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.umsh-service-bottom .bottom-menu-panel[aria-hidden="true"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.umsh-service-bottom .bottom-menu-sheet {
+  width: 100%;
+  max-height: min(520px, calc(100dvh - 164px));
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(216, 186, 114, 0.24);
+  border-radius: 18px;
+  background: radial-gradient(circle at 92% 8%, rgba(216, 186, 114, 0.16), transparent 12rem), rgba(12, 11, 10, 0.98);
+  box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.54);
+  transform: translateY(12px) scale(0.985);
+  transition: transform 180ms ease;
+}
+
+body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
+  transform: translateY(0) scale(1);
+}
+
+.umsh-service-bottom .bottom-menu-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 2px 12px;
+}
+
+.umsh-service-bottom .bottom-menu-head span {
+  display: block;
+  color: var(--shell-gold-400);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.umsh-service-bottom .bottom-menu-head strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--shell-cream-100);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.umsh-service-bottom .bottom-menu-head p {
+  max-width: 250px;
+  margin: 5px 0 0;
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* 닫기 칩도 같은 방식. 알약 모양은 그대로 두고 닿는 넓이만 44px 로 넓힌다(아래 ::after). */
+.umsh-service-bottom .bottom-menu-close {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 999px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--shell-gold-300);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.umsh-service-bottom .bottom-menu-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.umsh-service-bottom .bottom-menu-list {
+  display: grid;
+  gap: 8px;
+}
+
+.umsh-service-bottom .bottom-menu-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 12px;
+  border: 1px solid var(--shell-line-soft);
+  border-radius: 14px;
+  background: rgba(247, 242, 233, 0.04);
+  color: var(--shell-cream-100);
+  cursor: pointer;
+  text-align: left;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-bottom .bottom-menu-item:hover,
+.umsh-service-bottom .bottom-menu-item:focus-visible {
+  border-color: rgba(216, 186, 114, 0.42);
+  background: rgba(216, 186, 114, 0.09);
+  transform: translateY(-1px);
+}
+
+.umsh-service-bottom .bottom-menu-item strong,
+.umsh-service-bottom .bottom-menu-item small {
+  display: block;
+  min-width: 0;
+  word-break: keep-all;
+}
+
+.umsh-service-bottom .bottom-menu-item strong {
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.umsh-service-bottom .bottom-menu-item small {
+  margin-top: 4px;
+  color: var(--shell-muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.45;
+}
+
+.umsh-service-bottom .bottom-menu-item em {
+  display: inline-grid;
+  min-width: 48px;
+  height: 30px;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(216, 186, 114, 0.32);
+  border-radius: 999px;
+  color: var(--shell-gold-300);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.umsh-service-bottom .bottom-nav {
+  position: relative;
+  z-index: 84;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: 74px;
+  border-top: 1px solid var(--shell-line-soft);
+  background: rgba(8, 8, 7, 0.96);
+}
+
+.umsh-service-bottom .bottom-nav button {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+  color: var(--shell-muted-2);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+body.umsh-has-chrome .umsh-service-bottom .bottom-nav button {
+  font-size: 11px;
+}
+
+.umsh-service-bottom .bottom-nav .is-active {
+  color: var(--shell-gold-300);
+}
+
+.umsh-service-bottom .bottom-nav .is-active::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--shell-gold-400);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.umsh-service-bottom .tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 3px;
+  text-overflow: ellipsis;
+}
+
+.umsh-service-bottom .bottom-nav button:hover,
+.umsh-service-bottom .bottom-nav button:focus-visible {
+  background: rgba(216, 186, 114, 0.07);
+  color: var(--shell-gold-200);
+}
+
+.umsh-service-toast {
+  position: fixed;
+  right: max(18px, calc((100% - var(--shell-width)) / 2 + 18px));
+  bottom: 92px;
+  z-index: 100;
+  max-width: min(320px, calc(100% - 36px));
+  padding: 13px 16px;
+  border: 1px solid var(--shell-line);
+  border-radius: 14px;
+  background: var(--shell-black-900);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.36);
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+  font-size: 13px;
+  font-weight: 850;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.umsh-service-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 430px) {
+  .umsh-service-shell .appbar,
+  body.umsh-has-chrome .umsh-service-shell .appbar {
+    padding: 10px 14px 8px;
+    gap: 10px;
+  }
+
+  .umsh-service-shell .app-brand img {
+    width: 112px;
+    height: 40px;
+  }
+
+  .umsh-service-shell .category-rail {
+    padding: 8px 14px 12px;
+  }
+}
+
+@media (max-width: 372px) {
+  .umsh-service-shell .appbar {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .umsh-service-shell .category-rail {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .umsh-service-shell .app-brand img {
+    width: 100px;
+    height: 36px;
+  }
+}
+
+/* 스토리 장면이 위아래로 이어질 때 이미지 경계가 가로선으로 드러난다. umsh-chrome.css를
+   쓰지 않고 이 셸만 부르는 화면(집 풍수, 이직운)도 같은 규칙을 따라야 한다. */
+#step-1-story :is(.hero, .story, .scene, .scene-image, .scene-media, .story-media, .story-image, .story-scene, .scene-visual, .image-strip, .cta-visual, .visual, .final-visual, .poster, .cta-section) > img,
+#top :is(.story-block, .scene-media, .visual) > img {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+
+.umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }
+
+/* ──────────────────────────────────────────────────────────────
+ * 공용 하단 메뉴가 붙은 페이지의 바닥 여백.
+ *
+ * 서비스 화면들은 이 규칙을 각자 HTML 안에 한 줄씩 들고 있었다. 정책·FAQ 처럼
+ * 나중에 크롬을 붙이는 화면까지 매번 복사해 넣을 이유가 없어 여기로 올린다.
+ * 값이 같아 이미 규칙을 가진 화면과 충돌하지 않는다.
+ * ────────────────────────────────────────────────────────────── */
+body.umsh-has-chrome {
+  padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+}

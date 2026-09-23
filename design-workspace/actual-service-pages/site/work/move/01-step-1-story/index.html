@@ -1,0 +1,889 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=live-20260918l"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>나, 회사 옮겨도 될까? | 운명상회</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="운명상회" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="운명상회 - 운명을 팝니다." />
+  <meta property="og:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="나경을 든 운명상회 상담자와 운명상회 로고" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="운명상회 - 운명을 팝니다." />
+  <meta name="twitter:description" content="지금 뭐가 걸리는지, 사주가 먼저 말해줍니다. 연애·돈·직장·궁합까지 궁금한 운을 한 칸씩 꺼내보세요." />
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta name="description" content="대운, 세운, 관성 흐름으로 지금 이직이 맞는지 현실 조건까지 함께 점검하는 이직운 서비스입니다.">
+  <style>
+    :root {
+      --bg: #130b0c;
+      --bg-2: #241012;
+      --ink: #fff8ef;
+      --muted: #d9c6b7;
+      --soft: #b99477;
+      --red: #8e171b;
+      --red-2: #c8322e;
+      --gold: #d8a94f;
+      --mint: #8bb6a8;
+      --panel: #211416;
+      --line: rgba(255, 230, 188, .18);
+      --shadow: 0 24px 60px rgba(0, 0, 0, .42);
+      color-scheme: dark;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(200, 50, 46, .18), transparent 34rem), var(--bg);
+      color: var(--ink);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(100%, 440px);
+      margin: 0 auto;
+      min-height: 100svh;
+      background: linear-gradient(180deg, rgba(36, 16, 18, .94), rgba(19, 11, 12, 1) 52%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 88svh;
+      padding: 24px 22px calc(92px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(19, 11, 12, .06) 0%, rgba(19, 11, 12, .18) 38%, rgba(19, 11, 12, .78) 72%, rgba(19, 11, 12, .94) 100%);
+      z-index: -2;
+    }
+
+    /* The hero art is a 7s loop now; the still it replaced stays as the poster, so the
+       header looks identical before playback and if a browser refuses to autoplay. */
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 25%;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 22px 22px 22px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(216, 169, 79, .64), transparent);
+      z-index: -1;
+    }
+
+    .hero-copy {
+      margin-top: auto;
+      padding-top: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 9em;
+      font-size: 40px;
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .lead {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.72;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .meta-pill {
+      min-height: 58px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(19, 11, 12, .56);
+    }
+
+    .meta-pill span {
+      display: block;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .meta-pill strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .scroll-cue {
+      margin-top: 20px;
+      color: rgba(255, 248, 239, .74);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    main {
+      background: var(--bg);
+    }
+
+    .story {
+      padding: 0 18px 8px;
+    }
+
+    .story-block {
+      position: relative;
+      padding: 0 0 48px;
+      overflow: hidden;
+    }
+
+    .story-block:first-child {
+      padding-top: 0;
+    }
+
+    /* 장면은 이제 <video> 이고 정지컷은 poster 로 남는다. 두 요소가 같은 상자를 쓴다. */
+    .scene-media {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      border-radius: 0;
+      object-fit: cover;
+      object-position: 50% 25%;
+      display: block;
+      background: #12090a;
+      border: 0;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 76%, transparent 100%);
+    }
+
+    .scene-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: -112px;
+      padding: 0 2px;
+    }
+
+    .scene-kicker {
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .scene-copy h2 {
+      margin-top: 8px;
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-wrap: pretty;
+    }
+
+    .scene-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+      text-wrap: pretty;
+    }
+
+    .quote-line {
+      margin-top: 16px;
+      padding: 14px 15px;
+      border-left: 3px solid var(--red-2);
+      background: rgba(255, 248, 239, .055);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.55;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+      margin-top: 16px;
+    }
+
+    .decision-row span {
+      min-height: 48px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 7px 4px;
+      border: 1px solid rgba(216, 169, 79, .24);
+      border-radius: 8px;
+      background: rgba(36, 16, 18, .86);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.28;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .signal {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(33, 20, 22, .78);
+    }
+
+    .signal-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--bg);
+      background: var(--gold);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .signal strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .signal span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .index-section {
+      padding: 26px 18px 34px;
+      background: linear-gradient(180deg, var(--bg), #1a0d0e);
+      border-top: 1px solid var(--line);
+    }
+
+    .index-head {
+      margin-bottom: 16px;
+    }
+
+    .index-head h2 {
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .index-head p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .index-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .index-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 248, 239, .045);
+    }
+
+    .index-card h3 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 900;
+    }
+
+    .index-card h3 span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .chips span {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(139, 182, 168, .12);
+      color: #d8f0e7;
+      border: 1px solid rgba(139, 182, 168, .22);
+      font-size: 12px;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+
+    .cta {
+      padding: 24px 18px 34px;
+      background: linear-gradient(180deg, #1a0d0e, #2b1114);
+    }
+
+    .cta-panel {
+      border: 1px solid rgba(216, 169, 79, .28);
+      border-radius: 8px;
+      background: rgba(19, 11, 12, .68);
+      overflow: hidden;
+    }
+
+    .cta-panel img {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      object-fit: cover;
+      object-position: 50% 25%;
+      display: block;
+      border: 0;
+      border-radius: 0;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
+    }
+
+    .cta-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: -92px;
+      padding: 0 18px 18px;
+    }
+
+    .cta-copy h2 {
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .cta-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .cta-button {
+      margin-top: 18px;
+      min-height: 54px;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: #1a0d0e;
+      background: linear-gradient(135deg, #f1c96d, #c8322e);
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 900;
+      box-shadow: 0 16px 34px rgba(200, 50, 46, .24);
+      cursor: pointer;
+    }
+
+    .fine-print {
+      margin-top: 14px;
+      color: rgba(217, 198, 183, .82);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 380px) {
+      .decision-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 481px) {
+      body {
+        padding: 18px 0;
+      }
+
+      .page {
+        border-radius: 14px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/css/service-shell.css?v=20260916-mobile" />
+  <link rel="stylesheet" href="/css/work-move-service.css?v=20260902-work-move" />
+</head>
+<body class="work-move-page">
+  <div class="page">
+    <div data-umsh-service-top data-umsh-service-category="직업"></div>
+    <header class="hero" id="top">
+      <video
+        class="hero-video"
+        poster="../assets/generated/move/01-scene-01-question.webp"
+        src="../assets/generated/move/01-hero.mp4"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+        tabindex="-1"
+      ></video>
+      <div class="hero-copy">
+        <p class="eyebrow">커리어 환승 판단 리포트</p>
+        <h1>나, 회사 옮겨도 될까?</h1>
+        <p class="lead">퇴사 버튼 누르기 전, 지금이 진짜 이직각인지 아니면 준비각인지 먼저 나눠봅니다.</p>
+        <div class="hero-meta" aria-label="풀이 기준">
+          <div class="meta-pill">
+            <span>보는 흐름</span>
+            <strong>큰 판 · 올해 · 직장 책임</strong>
+          </div>
+          <div class="meta-pill">
+            <span>결론 타입</span>
+            <strong>이직각부터 보류각까지</strong>
+          </div>
+        </div>
+        <p class="scroll-cue">내 상황을 먼저 정리하고, 조건 확인까지 이어집니다.</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="story" aria-label="서비스 스토리">
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-question" poster="../assets/generated/move/01-scene-01-question.webp" src="../assets/generated/move/01-scene-01-question.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="야근 후 퇴근길에 휴대폰을 보며 이직을 고민하는 직장인"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 01</p>
+            <h2>퇴근길에 갑자기 든 생각, 나 지금 옮겨도 되나?</h2>
+            <p>현 회사가 별로인지, 내가 지친 건지, 새 회사가 진짜 답인지 헷갈릴 때가 있습니다. 이 서비스는 감정 한 줄로 결론 내리지 않고 흐름과 조건을 같이 봅니다.</p>
+            <div class="quote-line">“지금은 바로 런보다 준비각일 수도 있어요.”</div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-pressure" poster="../assets/generated/move/01-scene-02-pressure.webp" src="../assets/generated/move/01-scene-02-pressure.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="늦은 밤 사무실 책상 위 업무 자료와 고민의 흔적"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 02</p>
+            <h2>문제는 회사가 아니라 역할일 수도 있어요.</h2>
+            <p>역할은 흐린데 책임만 커지고, 결정권은 애매한데 압박은 세지는 구간이 있습니다. 여기서는 상사, 동료, 인정 욕구, 번아웃 신호를 분리해서 읽습니다.</p>
+            <div class="quote-line">“현 회사는 역할정리 먼저. 감정 퇴사는 잠깐 멈춤.”</div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-crossroad" poster="../assets/generated/move/01-scene-03-crossroad.webp" src="../assets/generated/move/01-scene-03-crossroad.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="익숙한 문과 새로운 문 사이에서 고민하는 커리어 선택 장면"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 03</p>
+            <h2>결론은 다섯 가지로 딱 나눕니다.</h2>
+            <p>이직을 무조건 밀거나 막지 않습니다. 지금 흐름이 이동을 받쳐주는지, 조건 확인이 먼저인지, 버퍼를 쌓아야 하는지 현실적으로 분류합니다.</p>
+            <div class="decision-row" aria-label="최종 결론 타입">
+              <span>이직각</span>
+              <span>존버각</span>
+              <span>준비각</span>
+              <span>보류각</span>
+              <span>조건부 환승각</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-basis" poster="../assets/generated/move/01-scene-04-basis.webp" src="../assets/generated/move/01-scene-04-basis.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="커리어 상담 테이블에서 큰 흐름과 올해 흐름을 함께 분석하는 장면"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 04</p>
+            <h2>큰 흐름, 올해 흐름, 직장 책임 신호를 같이 봅니다.</h2>
+            <p>대운은 커리어의 큰 판, 세운은 올해의 분위기, 관성은 조직 안에서 맡는 역할과 압박의 신호로 번역합니다. 세 가지가 같은 방향인지 엇갈리는지 보는 게 핵심입니다.</p>
+            <div class="signal-list">
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">大</div>
+                <div><strong>큰 흐름</strong><span>10년 단위의 판 변화와 감당 가능한 방향</span></div>
+              </div>
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">年</div>
+                <div><strong>올해 흐름</strong><span>올해의 기회, 압박, 계약 타이밍</span></div>
+              </div>
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">官</div>
+                <div><strong>직장 책임</strong><span>역할, 상사, 조직력, 압박을 받는 방식</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-index" poster="../assets/generated/move/01-scene-05-index.webp" src="../assets/generated/move/01-scene-05-index.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="열한 개의 결과 카드가 테이블 위에 펼쳐진 리포트 미리보기"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 05</p>
+            <h2>보고서는 이런 항목으로 열립니다.</h2>
+            <p>결론만 던지고 끝내지 않고, 내 커리어 체질부터 돈 조건, 리스크 브레이크, 현실 액션까지 이어집니다.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="index-section" aria-label="풀이 대분류와 중분류">
+        <div class="index-head">
+          <h2>풀이 대분류</h2>
+          <p>검토 기준에 맞춰 대분류와 중분류를 먼저 고정했습니다. 실제 결과에서는 생년월일시 입력값에 따라 필요한 항목만 더 깊게 펼칩니다.</p>
+        </div>
+
+        <div class="index-grid">
+          <article class="index-card">
+            <h3>최종 결론 타입 <span>01</span></h3>
+            <div class="chips"><span>이직각</span><span>존버각</span><span>준비각</span><span>보류각</span><span>조건부 환승각</span></div>
+          </article>
+          <article class="index-card">
+            <h3>내 커리어 체질 <span>02</span></h3>
+            <div class="chips"><span>일간별 일 스타일</span><span>오행 밸런스</span><span>신강·신약 감당력</span><span>용신 보완 방향</span></div>
+          </article>
+          <article class="index-card">
+            <h3>직무 핏 분석 <span>03</span></h3>
+            <div class="chips"><span>비견·겁재</span><span>식신·상관</span><span>편재·정재</span><span>편관·정관</span><span>편인·정인</span></div>
+          </article>
+          <article class="index-card">
+            <h3>현 회사 상태 풀이 <span>04</span></h3>
+            <div class="chips"><span>역할 흐림</span><span>결정권 애매함</span><span>상사 압박</span><span>경쟁 스트레스</span><span>번아웃 신호</span></div>
+          </article>
+          <article class="index-card">
+            <h3>새 회사 궁합 풀이 <span>05</span></h3>
+            <div class="chips"><span>일·직업궁</span><span>이동·외부환경</span><span>연봉·수입 흐름</span><span>버티는 방식</span></div>
+          </article>
+          <article class="index-card">
+            <h3>돈 조건 풀이 <span>06</span></h3>
+            <div class="chips"><span>연봉 상승각</span><span>수입 안정성</span><span>계약서 체크</span><span>지출 리스크</span><span>퇴사 전 버퍼</span></div>
+          </article>
+          <article class="index-card">
+            <h3>타이밍 풀이 <span>07</span></h3>
+            <div class="chips"><span>대운 초·중·말기</span><span>대운 교차기</span><span>세운 흐름</span><span>월운</span><span>택일·일진</span></div>
+          </article>
+          <article class="index-card">
+            <h3>리스크 브레이크 <span>08</span></h3>
+            <div class="chips"><span>공망</span><span>충</span><span>형</span><span>파</span><span>해</span><span>화기</span></div>
+          </article>
+          <article class="index-card">
+            <h3>현실 액션 가이드 <span>09</span></h3>
+            <div class="chips"><span>90일 테스트</span><span>포트폴리오 정리</span><span>면접 타이밍</span><span>퇴사 대화</span><span>연봉 체크리스트</span></div>
+          </article>
+          <article class="index-card">
+            <h3>MZ 톤 결과 카드 <span>10</span></h3>
+            <div class="chips"><span>바로 런보다 준비각</span><span>설레발 금지</span><span>역할정리 먼저</span><span>계약서가 찐</span><span>회복이 먼저</span></div>
+          </article>
+          <article class="index-card">
+            <h3>안전·운영 기준 <span>11</span></h3>
+            <div class="chips"><span>퇴사 단정 금지</span><span>근거와 추론 분리</span><span>감수 전 내부 참고</span><span>무조건 표현 금지</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta" id="start" aria-label="입력 단계 이동">
+        <div class="cta-panel">
+          <video class="scene-media" data-asset="scene-cta" poster="../assets/generated/move/01-scene-06-cta.webp" src="../assets/generated/move/01-scene-06-cta.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="커리어 리포트 입력 단계로 들어가는 모바일 서비스 화면"></video>
+          <div class="cta-copy">
+            <h2>무료 티저로 먼저 감 잡고, 진짜 판단은 조건까지 확인합니다.</h2>
+            <p>생년월일시와 현재 고민을 입력하면, 지금 이직을 움직여도 되는지와 먼저 챙겨야 할 현실 조건을 함께 정리합니다.</p>
+            <a class="cta-button" data-action="enter" href="../02-step-2-saju-input/index.html#step-2-saju-input" aria-label="내 이직운 확인하기">
+              내 이직운 확인하기
+            </a>
+            <p class="fine-print">사주는 퇴사, 채용, 수익을 확정하지 않습니다. 결과는 의사결정의 참고 자료이며 최종 선택은 실제 계약 조건과 본인의 상황을 함께 확인해야 합니다.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "service_title": "나, 회사 옮겨도 될까?",
+  "service_category": "이직운",
+  "service_price_krw": 14900,
+  "service_url": "https://work.umsh.kr/move",
+  "service_slug": "move",
+  "service_key": "work_move",
+  "analysis_basis": ["대운", "세운", "관성"],
+  "target_question": "나, 회사 옮겨도 될까?",
+  "target_audience": "이직, 퇴사, 오퍼 수락, 현 회사 존버 여부 앞에서 확신이 필요한 20~30대 직장인",
+  "source_priority": [
+    "RAG 분류 README",
+    "RAG LLM 계약",
+    "자미두수 KMS 이직=관록궁+천이궁+재백궁 규칙",
+    "승인본 CSV의 대운/세운/택일/목표설정/마음돌봄/십성/신강약/용신 코퍼스"
+  ],
+  "stage": "01-step-1-story"
+}
+  </script>
+
+  <script type="application/json" id="INTERPRETATION_INDEX">
+{
+  "source": "user_seed_preserved",
+  "groups": [
+    {
+      "id": "decision_type",
+      "order": 1,
+      "major": "최종 결론 타입",
+      "middle": ["이직각", "존버각", "준비각", "보류각", "조건부 환승각"],
+      "tone_examples": ["지금은 바로 런보다 준비각", "조건 맞으면 환승 가능"]
+    },
+    {
+      "id": "career_constitution",
+      "order": 2,
+      "major": "내 커리어 체질",
+      "middle": ["일간별 일 스타일", "오행 밸런스", "신강·신약 감당력", "용신 기반 보완 방향"]
+    },
+    {
+      "id": "role_fit",
+      "order": 3,
+      "major": "직무 핏 분석",
+      "middle": [
+        "비견: 주체성",
+        "겁재: 승부·경쟁",
+        "식신: 꾸준한 결과물",
+        "상관: 개선·기획",
+        "편재: 확장·영업",
+        "정재: 계약·정산",
+        "편관: 돌파·위기대응",
+        "정관: 공식 역할·조직력",
+        "편인: 연구·아이디어",
+        "정인: 문서·교육·지원"
+      ]
+    },
+    {
+      "id": "current_company",
+      "order": 4,
+      "major": "현 회사 상태 풀이",
+      "middle": ["역할 흐림", "결정권 애매함", "상사 압박", "동료·경쟁 스트레스", "인정 욕구", "번아웃 신호"]
+    },
+    {
+      "id": "new_company_fit",
+      "order": 5,
+      "major": "새 회사 궁합 풀이",
+      "middle": ["관록궁: 일·직업궁", "천이궁: 이동·외부환경", "재백궁: 연봉·수입 흐름", "명궁·신궁: 내가 실제로 버틸 수 있는 방식"]
+    },
+    {
+      "id": "money_terms",
+      "order": 6,
+      "major": "돈 조건 풀이",
+      "middle": ["연봉 상승각", "수입 구조 안정성", "계약서 체크", "지출 증가 리스크", "퇴사 전 버퍼 필요성"]
+    },
+    {
+      "id": "timing",
+      "order": 7,
+      "major": "타이밍 풀이",
+      "middle": ["대운 초입·중반·말기", "대운 교차기", "세운·연간 흐름", "월운", "택일·일진", "입춘·새 출발 흐름"]
+    },
+    {
+      "id": "risk_brake",
+      "order": 8,
+      "major": "리스크 브레이크",
+      "middle": ["공망: 확정 보류", "충: 부딪힘 조심", "형: 반복 마찰", "파: 기존 약속 점검", "해: 느슨한 확인", "화기: 역할 혼란·돈 걱정"]
+    },
+    {
+      "id": "action_guide",
+      "order": 9,
+      "major": "현실 액션 가이드",
+      "middle": ["90일 테스트", "이력서·포트폴리오 정리", "면접 타이밍", "퇴사 대화 스크립트", "연봉·업무범위 체크리스트"]
+    },
+    {
+      "id": "mz_result_cards",
+      "order": 10,
+      "major": "MZ 톤 결과 카드",
+      "middle": [
+        "지금은 바로 런보다 준비각",
+        "돈 조건 확인 전엔 설레발 금지",
+        "현 회사는 역할정리 먼저",
+        "새 회사는 핏보다 계약서가 찐",
+        "멘탈 방전이면 운보다 회복이 먼저"
+      ]
+    },
+    {
+      "id": "safety_operation",
+      "order": 11,
+      "major": "안전·운영 기준",
+      "middle": ["사주로 퇴사·채용·수익을 확정하지 않음", "근거와 개인 추론 분리", "감수 전 자료는 내부 참고", "무조건 성공·실패 표현 금지"]
+    }
+  ]
+}
+  </script>
+
+  
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+{
+  "reference_image": "IMAGE/umsh-signature-card-bg.png",
+  "reference_usage": "style_reference_only_text_removed_in_generated_assets",
+  "html_delivery_mode": "single_file_embedded_data_uri",
+  "character_style_lock": {
+    "character": "Korean professional woman, black blazer, white shirt, red scarf accent",
+    "mood": "premium fortune consultation, career decision, cinematic red and gold lighting",
+    "constraints": [
+      "no readable text inside image",
+      "no logo recreation",
+      "consistent character styling across scenes"
+    ]
+  },
+  "assets": [
+    {
+      "asset_key": "scene-question",
+      "filename": "assets/generated/move/01-scene-01-question.webp",
+      "role": "hero_and_scene_01",
+      "aspect_ratio": "9:16",
+      "alt": "야근 후 퇴근길에 휴대폰을 보며 이직을 고민하는 직장인",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-question']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-pressure",
+      "filename": "assets/generated/move/01-scene-02-pressure.webp",
+      "role": "scene_02_current_company_pressure",
+      "aspect_ratio": "9:16",
+      "alt": "늦은 밤 사무실 책상 위 업무 자료와 고민의 흔적",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-pressure']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-crossroad",
+      "filename": "assets/generated/move/01-scene-03-crossroad.webp",
+      "role": "scene_03_decision_type",
+      "aspect_ratio": "9:16",
+      "alt": "익숙한 문과 새로운 문 사이에서 고민하는 커리어 선택 장면",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-crossroad']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-basis",
+      "filename": "assets/generated/move/01-scene-04-basis.webp",
+      "role": "scene_04_analysis_basis",
+      "aspect_ratio": "9:16",
+      "alt": "커리어 상담 테이블에서 큰 흐름과 올해 흐름을 함께 분석하는 장면",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-basis']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-index",
+      "filename": "assets/generated/move/01-scene-05-index.webp",
+      "role": "scene_05_interpretation_index",
+      "aspect_ratio": "9:16",
+      "alt": "열한 개의 결과 카드가 테이블 위에 펼쳐진 리포트 미리보기",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-index']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-cta",
+      "filename": "assets/generated/move/01-scene-06-cta.webp",
+      "role": "scene_06_next_step_cta",
+      "aspect_ratio": "9:16",
+      "alt": "커리어 리포트 입력 단계로 들어가는 모바일 서비스 화면",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-cta']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    }
+  ]
+}
+  </script>
+
+  <div data-umsh-service-bottom></div>
+  <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/work-move-service.js?v=live-20260917q"></script>
+  <script src="/js/service-shell.js?v=20260902-work-move"></script>
+    <script src="/js/umsh-lazy-video.js?v=20260904"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+{
+  "service": {
+    "service_key": "pass_angle",
+    "service_slug": "pass-angle",
+    "service_title": "나, 붙을 각이야?",
+    "category": "시험운",
+    "subcategory": "합격각 판정과 공부 전략",
+    "price_krw": 9900,
+    "price_display": "9,900원",
+    "service_url_hint": "umsh.kr/me/pass-angle",
+    "analysis_basis": [
+      "인성",
+      "관성",
+      "식상",
+      "일간 강약",
+      "대운",
+      "세운"
+    ],
+    "report_version": "pass-angle-v1.0",
+    "copy_version": "mz-pass-angle-v1",
+    "stage": "06-step-6_1-report-detail"
+  },
+  "detail": {
+    "selection_order": [
+      "location.hash",
+      "sessionStorage umsh:pass_angle:selected_section_v1",
+      "첫 섹션"
+    ],
+    "rendered_blocks": [
+      "카테고리 제목",
+      "훅",
+      "분류(classification)",
+      "해석 본문 전체",
+      "다른 섹션 3개 미리보기"
+    ],
+    "sections": [
+      {
+        "section_id": "pass-angle-verdict",
+        "title": "나, 붙을 각이야?"
+      },
+      {
+        "section_id": "study-style",
+        "title": "내 머리 쓰는 법"
+      },
+      {
+        "section_id": "exam-type-fit",
+        "title": "나랑 맞는 시험"
+      },
+      {
+        "section_id": "pass-timing",
+        "title": "붙는 타이밍"
+      },
+      {
+        "section_id": "mental-stamina",
+        "title": "버티는 몸과 멘탈"
+      },
+      {
+        "section_id": "exam-day-routine",
+        "title": "시험 날 택일과 컨디션"
+      },
+      {
+        "section_id": "action-plan",
+        "title": "현실 액션 플랜"
+      }
+    ]
+  },
+  "image_manifest": [
+    {
+      "asset_key": "action",
+      "filename": "사주/me/pass-angle/assets/pass-angle/action.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "합격각 리포트 상세 결과를 건네는 시험운 전략가",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "2099770f",
+      "html_usage_selector": "#step-6_1-report img[src$='action.png']"
+    },
+    {
+      "asset_key": "study",
+      "filename": "사주/me/pass-angle/assets/pass-angle/study.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "공부법을 분석하는 실사웹툰 장면",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "d08f1dfc",
+      "html_usage_selector": "#step-6_1-report img[src$='study.png']"
+    },
+    {
+      "asset_key": "timing",
+      "filename": "사주/me/pass-angle/assets/pass-angle/timing.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "시험 타이밍을 분석하는 실사웹툰 장면",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "070ec244",
+      "html_usage_selector": "#step-6_1-report img[src$='timing.png']"
+    },
+    {
+      "asset_key": "incense",
+      "filename": "사주/me/pass-angle/assets/pass-angle/incense.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "멘탈 중심을 잡는 향 연기 장면",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "0f2da818",
+      "html_usage_selector": "#step-6_1-report img[src$='incense.webp']"
+    }
+  ],
+  "next_route": "/me/pass-angle/05-step-5-chat/chat.html#step-5-chat",
+  "qa_result": {
+    "status": "verified",
+    "checked_at": "2026-09-03",
+    "checked_on": [
+      "local http://localhost:8790",
+      "production https://umsh.kr"
+    ],
+    "stage": "06-step-6_1-report-detail",
+    "checks": [
+      {
+        "name": "route_redirects",
+        "status": "pass",
+        "value": "/me/pass-angle{,/input,/exam,/report,/chat,/detail} 모두 302"
+      },
+      {
+        "name": "shared_chrome_mounted",
+        "status": "pass",
+        "value": "상단 로고·뒤로가기 + 하단 5탭 GNB (umsh-chrome)"
+      },
+      {
+        "name": "image_references_resolve",
+        "status": "pass",
+        "value": "페이지 내 src/href 34건 전수 HTTP 200"
+      },
+      {
+        "name": "banned_phrases_absent",
+        "status": "pass",
+        "value": "무조건·반드시·100%·망한다 0건 (84섹션 전수)"
+      },
+      {
+        "name": "internal_terms_absent",
+        "status": "pass",
+        "value": "RAG·KMS·LLM·코퍼스·내부 라벨 0건"
+      },
+      {
+        "name": "section_density",
+        "status": "pass",
+        "value": "84섹션 전수 평균 658자 (work_move 635 대비 동급)"
+      },
+      {
+        "name": "hash_deeplink",
+        "status": "pass",
+        "value": "#section_id 직접 진입 시 해당 섹션 렌더"
+      }
+    ],
+    "scope_mismatch": []
+  }
+}

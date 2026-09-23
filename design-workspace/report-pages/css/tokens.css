@@ -1,0 +1,42 @@
+:root {
+  color-scheme: dark;
+  --canvas: #080405;
+  --canvas-warm: #100809;
+  --surface: #170c0e;
+  --surface-strong: #221315;
+  --surface-soft: #2b191b;
+  --ink: #fff9f0;
+  --ink-soft: #d9cbbd;
+  --muted: #a99a8e;
+  --gold: #e5bc6d;
+  --gold-deep: #a97831;
+  --red: #a92e28;
+  --green: #7fc5a0;
+  --line: rgba(229, 188, 109, 0.22);
+  --line-soft: rgba(255, 249, 240, 0.09);
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  --serif: MaruBuri, "Noto Serif KR", "Iropke Batang", Georgia, serif;
+  --sans: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  /* 운영 모바일 결과 화면의 실제 콘텐츠 폭에 맞춘 값 */
+  --page-width: 448px;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--canvas); }
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(169, 46, 40, 0.18), transparent 34rem),
+    var(--canvas);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+img { display: block; max-width: 100%; }
+a { color: inherit; }

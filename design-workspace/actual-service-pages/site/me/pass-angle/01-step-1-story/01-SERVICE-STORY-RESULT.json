@@ -1,0 +1,301 @@
+{
+  "service": {
+    "service_key": "pass_angle",
+    "service_slug": "pass-angle",
+    "service_title": "나, 붙을 각이야?",
+    "category": "시험운",
+    "subcategory": "합격각 판정과 공부 전략",
+    "price_krw": 9900,
+    "price_display": "9,900원",
+    "service_url_hint": "umsh.kr/me/pass-angle",
+    "analysis_basis": [
+      "인성",
+      "관성",
+      "식상",
+      "일간 강약",
+      "대운",
+      "세운"
+    ],
+    "report_version": "pass-angle-v1.0",
+    "copy_version": "mz-pass-angle-v1",
+    "stage": "01-step-1-story"
+  },
+  "hook_question": "올해 밀어붙일지, 전략을 바꿀지, 다시 잡아야 할지",
+  "story_summary": "시험운과 공부법, 멘탈, 환경, 시험 당일 컨디션까지 한 번에 보는 후킹 페이지. 결론을 예언하지 않고 '지금 방식으로 밀어도 되는지'를 판단 기준으로 제시한다.",
+  "interpretation_index_preview": [
+    {
+      "section_id": "pass-angle-verdict",
+      "title": "나, 붙을 각이야?",
+      "summary": "전체 흐름 판정, 밀어도 되는 구간인지, 순서를 바꿔야 하는지"
+    },
+    {
+      "section_id": "study-style",
+      "title": "내 머리 쓰는 법",
+      "summary": "암기형·이해형, 몰아치기·꾸준형, 혼공·스터디 궁합"
+    },
+    {
+      "section_id": "exam-type-fit",
+      "title": "나랑 맞는 시험",
+      "summary": "객관식, 서술형, 전문직, 어학, 실기, 면접·구술"
+    },
+    {
+      "section_id": "pass-timing",
+      "title": "붙는 타이밍",
+      "summary": "유리한 구간, 접수 시기, 재도전 판단 시점"
+    },
+    {
+      "section_id": "mental-stamina",
+      "title": "버티는 몸과 멘탈",
+      "summary": "번아웃 신호, 수면, 회복 리듬, 흔들릴 때의 한 문장"
+    },
+    {
+      "section_id": "exam-day-routine",
+      "title": "시험 날 택일과 컨디션",
+      "summary": "전날·당일 루틴, 이동 동선, 시간 배분"
+    },
+    {
+      "section_id": "action-plan",
+      "title": "현실 액션 플랜",
+      "summary": "D-100, D-30, D-7, 버릴 것, 주 단위 배분"
+    }
+  ],
+  "image_manifest": [
+    {
+      "asset_key": "hero",
+      "filename": "사주/me/pass-angle/assets/pass-angle/hero.png",
+      "role": "hero",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "합격 티켓과 시험 오브제가 폭발하듯 배치된 나 붙을 각이야 대표 이미지",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "e831a3ab",
+      "html_usage_selector": "#step-1-story img[src$='hero.png']"
+    },
+    {
+      "asset_key": "01-bridge-01-flow-split",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-01-flow-split.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "검은 기운과 황금빛 기운이 갈라지는 사주 흐름의 길",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "a05e0d98",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-01-flow-split.webp']"
+    },
+    {
+      "asset_key": "01-bridge-06-life-flow",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-06-life-flow.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "시험 준비의 긴 흐름을 상징하는 황금빛 운명의 길",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "3ea2e2ea",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-06-life-flow.webp']"
+    },
+    {
+      "asset_key": "study",
+      "filename": "사주/me/pass-angle/assets/pass-angle/study.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "공부 성향과 기억 방식을 분석하는 영적 시험 전략가",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "d08f1dfc",
+      "html_usage_selector": "#step-1-story img[src$='study.png']"
+    },
+    {
+      "asset_key": "01-bridge-02-destiny-paper",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-02-destiny-paper.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "촛불 아래 놓인 오래된 운명 문서와 사주 차트",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "eb320a06",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-02-destiny-paper.webp']"
+    },
+    {
+      "asset_key": "timing",
+      "filename": "사주/me/pass-angle/assets/pass-angle/timing.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "시험 합격 타이밍과 준비 구간을 재는 전략가",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "070ec244",
+      "html_usage_selector": "#step-1-story img[src$='timing.png']"
+    },
+    {
+      "asset_key": "01-bridge-03-energy-orb",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-03-energy-orb.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "어둠 속에서 황금빛 에너지가 솟아오르는 구슬",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "27f7ef4f",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-03-energy-orb.webp']"
+    },
+    {
+      "asset_key": "blockers",
+      "filename": "사주/me/pass-angle/assets/pass-angle/blockers.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "공부 방해 요인과 멘탈 흔들림을 막아주는 시험 전략가",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "94725e84",
+      "html_usage_selector": "#step-1-story img[src$='blockers.png']"
+    },
+    {
+      "asset_key": "01-bridge-07-support-network",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-07-support-network.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "나를 밀어주는 사람과 피해야 할 조언을 상징하는 황금빛 연결망",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "8cbbd6ad",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-07-support-network.webp']"
+    },
+    {
+      "asset_key": "01-bridge-04-old-books",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-04-old-books.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "고서와 촛불, 사주 차트가 놓인 깊은 해석의 책상",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "4191eb91",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-04-old-books.webp']"
+    },
+    {
+      "asset_key": "01-bridge-05-golden-road",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-05-golden-road.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "먼 곳의 빛을 향해 이어지는 황금빛 시험 준비의 길",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "ce463ed1",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-05-golden-road.webp']"
+    },
+    {
+      "asset_key": "01-bridge-08-incense-ring",
+      "filename": "사주/me/pass-angle/assets/pass-angle/01-bridge-08-incense-ring.webp",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "흔들릴 때 마음의 중심을 잡는 향 연기와 운명의 고리",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "0f2da818",
+      "html_usage_selector": "#step-1-story img[src$='01-bridge-08-incense-ring.webp']"
+    },
+    {
+      "asset_key": "action",
+      "filename": "사주/me/pass-angle/assets/pass-angle/action.png",
+      "role": "scene",
+      "reference_image": "IMAGE/representative-real-v4.png",
+      "reference_status": "present",
+      "alt": "시험장으로 향하는 길 앞에서 합격 부적과 플래너를 내미는 전략가",
+      "text_in_image": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "content_sha8": "2099770f",
+      "html_usage_selector": "#step-1-story img[src$='action.png']"
+    }
+  ],
+  "rag_evidence": {
+    "corpus_pack": "data/corpus/pass-angle-service.json",
+    "registry_id": "pass-angle-service",
+    "retrieval_boost": 22,
+    "block_count": 8,
+    "retrieved_in_sections": 7,
+    "source_pool": "KMS/HAEIMDAL_RAG IMPORT_20260814_ZIP_QA (만세력, 사주 MBTI, 무당사주, 관상, 손금)",
+    "intake_funnel": {
+      "source_rows": 1749,
+      "topic_match": 371,
+      "after_hanja_validation": 319,
+      "myeongri_study_only": 12,
+      "accepted_as_evidence": 2
+    },
+    "verified_records": [
+      "zip-무당사주-qa-000107",
+      "zip-무당사주-qa-000109"
+    ],
+    "review_note": "원본 전량이 review_status=*_unreviewed 였고 천간 한자가 체계적으로 오인식되어 있어(임王/을己 등 52건) 원문을 인용하지 않았다. 확인된 십신 대응만 취하고 시험 도메인 연결과 문장은 감수자가 표준 명리 기준으로 작성했다."
+  },
+  "next_route": "/me/pass-angle/02-step-2-saju-input/index.html#step-2-saju-input",
+  "qa_result": {
+    "status": "verified",
+    "checked_at": "2026-09-03",
+    "checked_on": [
+      "local http://localhost:8790",
+      "production https://umsh.kr"
+    ],
+    "stage": "01-step-1-story",
+    "checks": [
+      {
+        "name": "route_redirects",
+        "status": "pass",
+        "value": "/me/pass-angle{,/input,/exam,/report,/chat,/detail} 모두 302"
+      },
+      {
+        "name": "shared_chrome_mounted",
+        "status": "pass",
+        "value": "상단 로고·뒤로가기 + 하단 5탭 GNB (umsh-chrome)"
+      },
+      {
+        "name": "image_references_resolve",
+        "status": "pass",
+        "value": "페이지 내 src/href 34건 전수 HTTP 200"
+      },
+      {
+        "name": "banned_phrases_absent",
+        "status": "pass",
+        "value": "무조건·반드시·100%·망한다 0건 (84섹션 전수)"
+      },
+      {
+        "name": "internal_terms_absent",
+        "status": "pass",
+        "value": "RAG·KMS·LLM·코퍼스·내부 라벨 0건"
+      },
+      {
+        "name": "duplicate_cta_removed",
+        "status": "pass",
+        "value": "본문 마지막 CTA와 겹치던 sticky CTA 제거, 마크업·CSS 모두 정리"
+      },
+      {
+        "name": "cta_count",
+        "status": "pass",
+        "value": "히어로 1 + 마무리 섹션 1 = 2개, 화면상 중복 없음"
+      }
+    ],
+    "scope_mismatch": []
+  }
+}

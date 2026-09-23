@@ -1,0 +1,274 @@
+/* Shared UMSH consultation chrome (GNB + fixed bottom nav) */
+
+:root {
+  --umsh-chrome-appbar-h: 72px;
+  --umsh-chrome-bottom-h: 74px;
+  --umsh-chrome-max: 430px;
+  --umsh-chrome-line: rgba(222, 188, 113, 0.22);
+  --umsh-chrome-gold: #e8c76f;
+  --umsh-chrome-gold-soft: #f2dc9a;
+  --umsh-chrome-muted: rgba(255, 247, 223, 0.62);
+}
+
+/* 100vw 는 스크롤바·안전영역까지 세어 430 프레임 밖으로 가로 스크롤을 만든다.
+   모바일 페이지가 정본이므로 폭은 퍼센트와 430 상한만 쓴다. */
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body.umsh-has-chrome {
+  min-width: 0 !important;
+  padding-bottom: 0;
+}
+
+/* 페이지 인라인 min(100%, …) 가 남아도 430 프레임을 넘지 않게 한다.
+   소비성향 등은 .app에 min-width: 390px 를 걸어 375 화면에서 잘렸다. */
+body.umsh-has-chrome .stage,
+body.umsh-has-chrome .phone,
+body.umsh-has-chrome .app {
+  width: min(100%, var(--umsh-chrome-max)) !important;
+  min-width: 0 !important;
+  max-width: min(100%, var(--umsh-chrome-max)) !important;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.umsh-chrome-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--umsh-chrome-appbar-h);
+  height: var(--umsh-chrome-appbar-h);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--umsh-chrome-line);
+  background: rgba(8, 8, 7, 0.96);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+}
+
+.umsh-chrome-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 199, 111, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff7df;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.umsh-chrome-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.umsh-chrome-brand img {
+  display: block;
+  width: 132px;
+  height: 50px;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.umsh-chrome-meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.umsh-chrome-service {
+  color: var(--umsh-chrome-gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.umsh-chrome-price {
+  color: var(--umsh-chrome-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.umsh-chrome-bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: min(100%, var(--umsh-chrome-max));
+  height: calc(var(--umsh-chrome-bottom-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid var(--umsh-chrome-line);
+  background: rgba(8, 8, 7, 0.96);
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+.umsh-chrome-bottom-nav a {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  padding: 0 2px;
+  color: rgba(224, 199, 173, 0.72);
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.umsh-chrome-bottom-nav a.is-active {
+  color: var(--umsh-chrome-gold-soft);
+}
+
+.umsh-chrome-bottom-nav a.is-active::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--umsh-chrome-gold);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.umsh-chrome-bottom-nav .tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 3px;
+  text-overflow: ellipsis;
+}
+
+.umsh-chrome-bottom-nav a:hover,
+.umsh-chrome-bottom-nav a:focus-visible {
+  background: rgba(216, 186, 114, 0.07);
+  color: #f7e7c2;
+}
+
+/* Reserve space so content is never covered by the fixed bottom bar */
+body.umsh-has-chrome .stage {
+  min-height: 100vh;
+  padding-bottom: 0;
+}
+
+body.umsh-has-chrome .scroll {
+  height: calc(100vh - var(--umsh-chrome-appbar-h) - var(--umsh-chrome-bottom-h) - env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: 28px !important;
+  box-sizing: border-box;
+}
+
+@media (min-width: 860px) {
+  .umsh-chrome-bottom-nav,
+  .umsh-chrome-appbar {
+    /* Keep the same fixed/sticky treatment on PC as on mobile */
+  }
+
+  body.umsh-has-chrome .scroll {
+    height: calc(100vh - var(--umsh-chrome-appbar-h) - var(--umsh-chrome-bottom-h)) !important;
+  }
+}
+
+/* 키트: 모바일 헤더 56–64px, 로고가 작은 화면에서 잘리지 않게 줄인다. */
+@media (max-width: 430px) {
+  :root {
+    --umsh-chrome-appbar-h: 56px;
+  }
+
+  .umsh-chrome-appbar {
+    min-height: 56px;
+    height: 56px;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .umsh-chrome-brand img {
+    width: 112px;
+    height: 40px;
+  }
+
+  .umsh-chrome-back {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .umsh-chrome-brand img {
+    width: 100px;
+    height: 36px;
+  }
+
+  .umsh-chrome-bottom-nav a {
+    font-size: 10px;
+  }
+}
+
+/* 한글은 어절 단위로 끊어야 읽힌다. keep-all이 없으면 제목과 본문이 낱말 중간에서
+   잘려 줄바꿈이 어색해진다. 두 속성 모두 상속되므로 body에 한 번만 걸면 서비스
+   페이지 전체가 같은 규칙을 따른다. break-word를 쓰는 이유는 anywhere가 flex 항목의
+   최소 너비까지 바꿔 레이아웃을 흔들기 때문이다. */
+body.umsh-has-chrome {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 스토리 장면이 위아래로 이어질 때 이미지 경계가 그대로 가로선으로 드러났다. 위아래
+   끝을 배경으로 흘려보내면 장면이 잘리지 않고 이어진다. 배경이 어두운 페이지들이라
+   투명으로 빠지는 것이 곧 배경으로 스며드는 것이다.
+   01 스토리 화면에만 건다 — 04~06의 카드 썸네일까지 흐려지면 안 된다. */
+#step-1-story :is(.hero, .story, .scene, .scene-image, .scene-media, .story-media, .story-image, .story-scene, .visual, .final-visual, .poster, .cta-section) > img,
+#intro :is(.story-scene, .visual, .scene-media) > img,
+#top :is(.story-block, .scene-media, .visual) > img {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+
+/* 공통 상단바 로고는 스토리 장면이 아니므로 위 규칙에서 제외한다. */
+.umsh-service-shell img { -webkit-mask-image: none; mask-image: none; }
+
+/* Generation notice: self-contained paper card. Cream-on-translucent gold
+   vanished on light 06-1 pages (money_save body is #e8eee9). */
+[data-umsh-notice],
+.vault-notice {
+  background: #fff8ee !important;
+  border: 1px solid #c9a15a !important;
+}
+[data-umsh-notice] strong,
+.vault-notice strong {
+  color: #6b3f0e !important;
+  font-size: 13px !important;
+}
+[data-umsh-notice] p,
+.vault-notice p {
+  color: #1a1814 !important;
+  font-size: 13.5px !important;
+  line-height: 1.75 !important;
+}
+[data-umsh-notice] p[style*="font-weight:700"],
+.vault-notice p.lead {
+  color: #1a1814 !important;
+}
+[data-umsh-notice] p[style*="font-weight:800"],
+.vault-notice b {
+  color: #6b3f0e !important;
+}

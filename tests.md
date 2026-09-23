@@ -750,44 +750,245 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | OPS-HOME-05 | 관리자 작업 큐 진행·조치·완료 이력 분리 | PASS |
 | OPS-HOME-06 | 전체 직렬 테스트·TypeScript·Vercel production build·diff check | PASS (1,482/1,482, 162 suites) |
 
-## 2026-09-22 — 서비스 공통 풍부한 읽기·연애 월별 신호·실사 하이라이트
+## 2026-09-21 — 정부기관 입찰 제안서 제작계획 문서 검증
 
 | ID | 검증 | 상태 |
 | --- | --- | --- |
-| READING-ALL-01 | 공용 마크다운 표·강조·인용·HTML 이스케이프 및 전용 화면 호출 | PASS |
-| READING-ALL-02 | 17개 공용 리더의 실제 오행값 그래프·서비스 색상·이미지 계약 | PASS |
-| READING-ALL-03 | 올해 연애운 12개월 신호값 계산·저장 퍼센트 차트 차단·새 실사 배너 | PASS |
-| READING-ALL-04 | 전체 단위 테스트·집중 재검증 | PASS (1,529/1,529; 변경 후 12/12) |
-| READING-ALL-05 | TypeScript·20개 서비스 QA·Vercel build·diff check | PASS |
-| READING-ALL-06 | 로그인 회원 실제 화면의 시각 QA·운영 배포 | 미실행 (별도 승인 게이트) |
+| GOV-RFP-01 | 제작요청서 MD 생성 후 재읽기 | PASS |
+| GOV-RFP-02 | HTML 필수 구조: 11개 섹션·18개 WBS 행·원문 미탑재 고지 | PASS |
+| GOV-RFP-03 | Chromium 1440×1000 전체 페이지 렌더 | PASS |
+| GOV-RFP-04 | Chromium 390×844 전체 페이지 렌더 | PASS |
+| GOV-RFP-05 | WBS `제작` 필터 18→4, 전체 필터 복원 4→18 | PASS |
+| GOV-RFP-06 | 브라우저 콘솔 warning/error | PASS (0건) |
+| GOV-RFP-07 | CSV 내보내기 버튼 실제 파일 저장 | NOT_RUN (인앱 브라우저가 Blob 다운로드 이벤트 미노출) |
+| GOV-RFP-08 | 실제 RFP 기반 사업명·배점·일정·필수서류 분석 | BLOCKED (RFP 원문 미제공) |
 
-## 2026-09-22 — 올해 연애운 요약 이미지 크롭 보정
-
-| ID | 검증 | 상태 |
-| --- | --- | --- |
-| LOVE-SUMMARY-01 | 가로 전용 실사 자산·원본비율 렌더러·CSS 계약 | PASS (13/13) |
-| LOVE-SUMMARY-02 | JS 문법·diff check·Vercel build | PASS |
-| LOVE-SUMMARY-03 | 로그인 운영 리포트의 실제 이미지 표시 | 미실행 (배포 전) |
-
-## 2026-09-22 — 올해 연애운 공통 리더 액션
+## 2026-09-21 — 전 서비스 티저·해석 쉬운말 보강
 
 | ID | 검증 | 상태 |
 | --- | --- | --- |
-| LOVE-CHROME-01 | 별도 상태/PDF 바·채팅 입력을 legacy 표시로 구분하고 공용 크롬과 중복 제거 | PASS |
-| LOVE-CHROME-02 | 저장 리포트 끝 공통 `링크 공유하기`·`PDF 저장` 액션 및 canonical 권한 계약 | PASS |
-| LOVE-CHROME-03 | 공통 액션 CSS의 2열/좁은 화면 1열·포커스 상태 | PASS |
-| LOVE-CHROME-04 | 집중 리더 회귀 | PASS (93/93) |
-| LOVE-CHROME-05 | 전체 회귀·TypeScript·Vercel build·diff check | PASS |
-| LOVE-CHROME-06 | 로그인 운영 상세의 실제 클릭 흐름 | 미실행 (배포 전) |
+| READABLE-01 | 한자·전문용어 과밀·65자 초과 티저·불필요한 외래어 차단, 사용자 인용 보존 | PASS (3/3 집중 재검증) |
+| READABLE-02 | 20개 서비스 런타임 프롬프트의 중학생 쉬운말·한자 비노출 계약 | PASS (20/20) |
+| READABLE-03 | 프롬프트·생성·서비스 흐름 회귀 | PASS (119/119) |
+| READABLE-04 | TypeScript typecheck | PASS |
+| READABLE-05 | 서비스 계약 검사 | PASS (20/20) |
+| READABLE-06 | 전체 서비스 정적 QA | PASS (20/20) |
+| READABLE-07 | 전체 로컬 테스트의 서버 저장소 연동 항목 | NOT_RUN (로컬 서버 전용 Supabase 키 미설정) |
 
-## 2026-09-23 — 결혼궁합 24개 저장 해석 읽기 화면
+## 2026-09-22 — 저장 오늘운 화면 통합
 
 | ID | 검증 | 상태 |
 | --- | --- | --- |
-| MARRY-READER-01 | 운영 기존 DOM의 24개 완료 본문·이미지 0개·높이 제한 원인 확인 | PASS (읽기 전용) |
-| MARRY-READER-02 | 요약·하이라이트·24개 목차의 26개 고유 WebP 및 HTTP 응답 | PASS (26/26) |
-| MARRY-READER-03 | 결혼궁합 전용 이미지 매핑·조기 설정 로드·접힘/펼침·문단 대비·스크롤 계약 | PASS (집중 82/82) |
-| MARRY-READER-04 | 전체 테스트·TypeScript·결혼궁합 계약·20개 서비스 QA·Vercel build·diff check | PASS (1,538/1,538) |
-| MARRY-READER-05 | 로컬 브라우저 공용 셸 뒤 레이아웃 계산값 | PASS (`max-height: none`, `overflow: visible`); 저장 해석 시 상담 입력 숨김은 DOM 계약 테스트, 로그인 후 직접 검수는 배포 전 |
-| MARRY-READER-06 | 변경 후 로그인된 운영 화면의 24개 카드·26개 이미지 경로·첫/마지막 사진·토글·스크롤·공유/PDF 배치 | PASS (`dpl_6awgLmv3JygSbDk35ec9vKxkRCpX`, 카드 24/24·새 WebP 26/26 HTTP 200, 첫/마지막 사진 로드, 버튼 같은 줄) |
-| MARRY-READER-07 | 실제 링크 복사·PDF 생성 클릭 | NOT_RUN (사진 반영 검수 범위 밖, 기존 공통 기능 유지) |
+| TODAY-CANON-01 | 저장 `/r/`·`/today/free` → 같은 ID의 `/cmdg/#todayResult` | PASS (집중 테스트) |
+| TODAY-CANON-02 | 오늘운 전용 화면 CTA `평생운 확인`·로그인/프로필 예외 | PASS (집중 테스트) |
+| TODAY-CANON-03 | 보관함 열기 주소·전체 단위 테스트 | PASS (1497/1497) |
+| TODAY-CANON-04 | TypeScript | PASS |
+| TODAY-CANON-05 | 운영 계정 클릭·배포 | PARTIAL (배포·화면 이동 PASS, 실제 새 사주 분석 클릭 NOT_RUN) |
+
+### 배포 후 검증 (2026-09-22)
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| TODAY-DEPLOY-01 | 깨끗한 소스 검사·Vercel 빌드·타입 검사 | PASS |
+| TODAY-DEPLOY-02 | Vercel Production Ready 및 `umsh.kr` 별칭 | PASS |
+| TODAY-DEPLOY-03 | 기존 두 저장 주소 → 전용 오늘운 화면, 결과 ID 유지, CTA 표시 | PASS (운영 브라우저) |
+| TODAY-DEPLOY-04 | `평생운 확인` 클릭 후 실제 사주 분석 생성 | NOT_RUN (실제 계정에 새 결과 생성) |
+| TODAY-DEPLOY-05 | 새 배포 HTTP 500 로그 | PASS (0건) |
+
+## 해석 디자인 작업실 (2026-09-22)
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| DESIGN-01 | 20개 서비스 × 3개 화면 링크·로컬 이미지·격리 규칙 | PASS (집중 테스트 7/7) |
+| DESIGN-02 | 공개 유료 서비스 무료 티저 10종, 가상 상대 3종, 무료 오늘운 구분 | PASS |
+| DESIGN-03 | TypeScript | PASS |
+| DESIGN-04 | 로컬 허브·티저·목록·상세 브라우저 확인 | PASS |
+| DESIGN-05 | 비공개 9종 실제 본문·실제 상대 정보 기반 무료 티저 | NOT_RUN (원본 데이터 없음) |
+
+## 2026-09-22 — 공용 저장 해석 이미지 프레임
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| READER-IMAGE-01 | 세로 원본 이미지가 공용 `/r/:id`에서 자연 크기 그대로 렌더되는 재현 테스트 | RED 확인 |
+| READER-IMAGE-02 | 공용 리더의 16:10 프레임·`object-fit: cover` 회귀 테스트 | PASS (1/1) |
+| READER-IMAGE-03 | 공용 리더 셸과 프레임 집중 단위 테스트 | PASS (6/6) |
+| READER-IMAGE-04 | 세로 원본 `864×1821`의 로컬 브라우저 렌더 | PASS (`388×242`, 16:10 프레임·overflow 없음) |
+| READER-IMAGE-05 | Vercel production build·생성 public CSS 규칙 | PASS |
+| READER-IMAGE-06 | 독립 Grok 코드 리뷰 | BLOCKED (리뷰어가 결과 없이 대기 상태로 남아 중지) |
+| READER-IMAGE-07 | 원격 push·Vercel 운영 배포 | NOT_RUN ([GATE] `rules.md` §6 H1/H2) |
+
+## 2026-09-22 — 천명사주 해석 이미지 격리 검토
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-IMAGE-REVIEW-01 | 운영 분리·검토용 새 하이라이트 이미지 경로 | PASS (집중 테스트 2/2) |
+| CMDG-IMAGE-REVIEW-02 | 요약 원본 비율 보존 | PASS (로컬 `388×689px`) |
+| CMDG-IMAGE-REVIEW-03 | 새 하이라이트 21:9 배너 렌더 | PASS (로컬 `388×166px`) |
+| CMDG-IMAGE-REVIEW-04 | TypeScript | PASS |
+| CMDG-IMAGE-REVIEW-05 | 운영 반영·원격 push·배포 | NOT_RUN (사용자 검토 전, [GATE] `rules.md` §6 H1/H2) |
+| CMDG-IMAGE-REVIEW-06 | 공통 상단·하단 내비게이션, 하이라이트 3개, 해석 카드 16개가 검토 화면에 있음 | PASS (집중 테스트·로컬 브라우저 확인) |
+| CMDG-IMAGE-REVIEW-07 | 16개 해석 카드의 고유 실사 이미지 파일 존재·경로 연결 | PASS (집중 테스트 3/3) |
+| CMDG-IMAGE-REVIEW-08 | 로컬 브라우저에서 16개 이미지의 고유 경로·자연 크기 로드 | PASS (16/16) |
+| CMDG-IMAGE-REVIEW-09 | 16개 카드 모두의 한 줄 답·근거·행동 원문 구조 | PASS (집중 테스트) |
+| CMDG-IMAGE-REVIEW-10 | 로그인된 저장 리포트와 로컬 카드의 공백 제외 텍스트 대조 | PASS (16/16, 불일치 0) |
+
+## 2026-09-22 — 일반 회원가입·로그인 진단
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| AUTH-CHECK-01 | 인증·세션·로그인 관문·계정별 이력 집중 테스트 | PASS (19/19) |
+| AUTH-CHECK-02 | 운영 공개 인증 설정: 활성, 공개 URL·키, 3개 공급자 매핑 | PASS |
+| AUTH-CHECK-03 | Supabase 공급자 설정 및 Google·Kakao·Naver 인증 진입점 | PASS (각 공급자 도메인으로 302) |
+| AUTH-CHECK-04 | 비로그인 사용자 API 3종 보호 | PASS (각각 401) |
+| AUTH-CHECK-05 | 기존 로그인 세션의 MY 복귀 및 계정 정보 로드 | PASS |
+| AUTH-CHECK-06 | 신규 계정 생성·로그아웃 후 재로그인 완료 | NOT_RUN (기존 세션 변경 및 소셜 계정 인증 필요) |
+
+## 2026-09-22 — 천명사주 해석 편집·분량 검토본
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-EDITORIAL-01 | 카드 16개, 이미지 16개, 원문 한 줄 답·근거·행동 전문 유지 | PASS (집중 테스트 6/6) |
+| CMDG-EDITORIAL-02 | 쉬운 제목·수치 카드·비교표·확인 목록·강조와 원문 기본 표시 | PASS (로컬 브라우저 확인) |
+| CMDG-EDITORIAL-03 | 첫 카드 원문 토큰 계측(`o200k_base`/`cl100k_base`) | PASS (849/1,384; 토크나이저별 차이) |
+| CMDG-EDITORIAL-04 | PDF 다운로드 컨트롤·브라우저 인쇄 연동이 검토본에 없음 | PASS (집중 테스트 및 로컬 DOM 확인) |
+| CMDG-EDITORIAL-05 | TypeScript 및 JavaScript 구문 검사 | PASS |
+| CMDG-EDITORIAL-06 | 운영 반영·원격 push·배포 | NOT_RUN (격리 디자인 검토 단계) |
+
+## 2026-09-22 — 천명사주 검토본 추가 정보 입력
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-CONTEXT-01 | 현재 자리·새 선택의 역할, 평가·보상, 소진·회복 6칸 입력이 비교표에 반영 | PASS (로컬 브라우저) |
+| CMDG-CONTEXT-02 | `입력한 내용 지우기`가 비교표를 `직접 확인`으로 복원 | PASS (로컬 브라우저) |
+| CMDG-CONTEXT-03 | 제안·관계·계획에 같은 추가 정보 입력 패턴 제공 | PASS (10개 카드 패널) |
+| CMDG-CONTEXT-04 | 입력값 비저장·비전송 (`localStorage`, `sessionStorage`, `fetch` 미사용) | PASS (집중 테스트) |
+| CMDG-CONTEXT-05 | 집중 테스트, JavaScript 구문 검사, TypeScript, diff 공백 검사 | PASS (7/7) |
+| CMDG-CONTEXT-06 | 운영 반영·원격 push·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 천명사주 검토본 인생 흐름 지도
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-LIFE-FLOW-01 | `경진 대운`, `2026년 병오`, 삼재 `계산값 미연결` 레일 | PASS (로컬 브라우저) |
+| CMDG-LIFE-FLOW-02 | 재물·보상, 일·직장, 관계·연애 확인 그래프 초기 상태 | PASS (0/3, 0/6, 0/3) |
+| CMDG-LIFE-FLOW-03 | 직장 추가 정보 6개 입력이 일·직장 그래프 6/6·100%로 반영 | PASS (로컬 브라우저) |
+| CMDG-LIFE-FLOW-04 | 375px 모바일 흐름 지도 렌더·접근성 구조 | PASS (로컬 브라우저) |
+| CMDG-LIFE-FLOW-05 | 집중 테스트, JavaScript 구문 검사, TypeScript | PASS (8/8) |
+| CMDG-LIFE-FLOW-06 | 운영별 실제 사주 원자료·삼재 계산·저장·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 천명사주 검토본 최소 입력 전환
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-CONTEXT-COMPACT-01 | 제안·관계·계획은 각 한 문장, 일·직장은 현재·새 선택 두 문장만 입력 | PASS (로컬 브라우저·정적 검사) |
+| CMDG-CONTEXT-COMPACT-02 | 비교표는 입력 전 `직접 확인`, 입력 후 해당 문장, 초기화 후 `직접 확인` | PASS (로컬 브라우저) |
+| CMDG-CONTEXT-COMPACT-03 | 인생 흐름 지도는 재물·관계 0/1, 일·직장 0/2 기준으로 갱신 | PASS (로컬 브라우저) |
+| CMDG-CONTEXT-COMPACT-04 | 브라우저 메모리만 사용하고 저장·전송하지 않음 | PASS (새로고침 초기화·정적 검사) |
+| CMDG-CONTEXT-COMPACT-05 | 운영 반영·원격 push·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 회원별 대운 흐름·공통 현실 기준
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| MEMBER-LIFE-01 | 공용 리더가 API의 실제 `fortune.daewoon`·현재 대운만 렌더하고 임의 점수·삼재를 만들지 않음 | PASS (프론트 집중 테스트) |
+| MEMBER-LIFE-02 | 프로필 `life_context` 저장·복원 및 구형 저장 요청의 기존 값 보존 | PASS (저장소 집중 테스트) |
+| MEMBER-LIFE-03 | 저장 리포트 HTTP 경계·소유권·`private, no-store` 회귀 | PASS (10/10) |
+| MEMBER-LIFE-04 | JavaScript 구문 검사·TypeScript·diff 공백 검사 | PASS |
+| MEMBER-LIFE-05 | 로그인된 원격 회원 데이터 저장·운영 배포 | NOT_RUN (`rules.md` §6 H1/H2; 로컬 코드 검증 범위) |
+| MEMBER-LIFE-06 | 로컬 프로필 UI 인증 후 실제 저장 클릭 | NOT_RUN (로컬 서버에 운영 로그인 세션이 없으며 개인정보를 새로 저장하지 않음) |
+
+## 2026-09-22 — 대운 그래프 기본 위치
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-LIFE-FLOW-POSITION-01 | 대운 흐름이 한눈에 보기 전체 요약보다 먼저 렌더 | PASS (로컬 브라우저 접근성 트리) |
+| CMDG-LIFE-FLOW-POSITION-02 | 검토본 제목·위치 회귀 | PASS (집중 테스트 8/8) |
+| CMDG-LIFE-FLOW-POSITION-03 | JavaScript 구문·TypeScript·diff 공백 검사 | PASS |
+
+## 2026-09-22 — 대운 블록 기존 위치 복원
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-LIFE-FLOW-POSITION-04 | 대운 흐름이 한눈에 보기 전체 요약 다음에 렌더 | PASS (로컬 브라우저 접근성 트리) |
+| CMDG-LIFE-FLOW-POSITION-05 | 검토본 위치 회귀 | PASS (집중 테스트 8/8) |
+| CMDG-LIFE-FLOW-POSITION-06 | JavaScript 구문·TypeScript·diff 공백 검사 | PASS |
+
+## 2026-09-22 — 실제 대운 타임라인 가시화
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-LIFE-GRAPH-01 | 저장 해석의 시작 나이 6세·역행·월주 乙酉로 계산한 10개 대운 구간 표시 | PASS (로컬 브라우저) |
+| CMDG-LIFE-GRAPH-02 | 현재 `46~55세 · 庚辰` 구간을 금색 현재 위치로 표시 | PASS (로컬 브라우저·접근성 트리) |
+| CMDG-LIFE-GRAPH-03 | 운영 리더가 실제 API의 문자열 `currentDaewoon`에서 현재 구간을 지정 | PASS (프론트 집중 테스트) |
+| CMDG-LIFE-GRAPH-04 | 집중 테스트·구문·TypeScript·diff 공백 검사 | PASS (78/78) |
+
+## 2026-09-22 — 검토본 GNB 단일 라인
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-GNB-LINE-01 | 공통 GNB 아래 바깥 셸 테두리 제거, 앱바 구분선 하나 유지 | PASS (로컬 브라우저) |
+| CMDG-GNB-LINE-02 | 검토본 스타일 회귀 | PASS (집중 테스트 8/8·구문·diff 검사) |
+
+## 2026-09-22 — 대운 그래프 쉬운 말 전환
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-LIFE-CURVE-01 | 10년 단위 대운을 위·가운데·아래의 활용 흐름 곡선과 현재 금색 점으로 표시 | PASS (로컬 브라우저 시각·접근성 트리) |
+| CMDG-LIFE-CURVE-02 | 기본 화면에서 한자 원자료를 접고, `만세력 원자료 보기`로만 제공 | PASS (로컬 브라우저 접근성 트리) |
+| CMDG-LIFE-CURVE-03 | 성공·수입·사건 예측 점수가 아니라는 안내와 현재 행동 설명 표시 | PASS (집중 테스트·로컬 브라우저) |
+| CMDG-LIFE-CURVE-04 | 집중 테스트·JavaScript 구문·TypeScript·diff 공백 검사 | PASS (78/78) |
+| CMDG-LIFE-CURVE-05 | 운영 반영·원격 데이터 변경·커밋·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 검토본 삼재 실제 계산
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-SAMJAE-01 | 저장 리포트의 년주 지지와 2026년 기준으로 2025~2027 삼재 기간·가운데 해 계산 | PASS (로컬 계산·브라우저) |
+| CMDG-SAMJAE-02 | 삼재를 사건·결과 예측으로 보이지 않게 한계 문구 표시 | PASS (로컬 브라우저) |
+| CMDG-SAMJAE-03 | 계산 근거는 원자료 접힘 영역에서만 표시 | PASS (로컬 브라우저) |
+| CMDG-SAMJAE-04 | 집중 테스트·JavaScript 구문·TypeScript·diff 공백 검사 | PASS (78/78) |
+| CMDG-SAMJAE-05 | 운영 API·회원 원자료 변경·커밋·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 검토본 데이터 연결 상태 정리
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-DATA-STATUS-01 | 원자료의 삼재가 `계산값 미연결`로 중복 표시되지 않고 실제 계산값만 표시 | PASS (집중 테스트·로컬 브라우저) |
+| CMDG-DATA-STATUS-02 | 핵심 계산값·기간 표기에서 과거의 값 없음 안내 제거 | PASS (정적 검사·로컬 브라우저) |
+| CMDG-DATA-STATUS-03 | 사주 계산 연결값과 현실 조건 5개 선택 입력을 한 블록에서 구분 표시 | PASS (로컬 브라우저 접근성 트리·시각 확인) |
+| CMDG-DATA-STATUS-04 | 집중 테스트·JavaScript 구문·TypeScript·diff 공백 검사 | PASS (8/8) |
+| CMDG-DATA-STATUS-05 | 운영 API·회원 원자료·저장소·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 만세력 원자료 기본 펼침
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-DAEWOON-OPEN-01 | 페이지 최초 로드에서 `만세력 원자료 보기`가 펼침 상태 | PASS (집중 테스트·로컬 브라우저 접근성 트리) |
+| CMDG-DAEWOON-OPEN-02 | 집중 테스트·JavaScript 구문·diff 공백 검사 | PASS (8/8) |
+
+## 2026-09-22 — 분야별 대운 흐름 그래프
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-DOMAIN-FLOW-01 | 재물·보상, 일·직장, 관계·연애 카드에 각각 대운 흐름 그래프 1개씩 표시 | PASS (로컬 DOM·카드 열기 확인) |
+| CMDG-DOMAIN-FLOW-02 | 각 그래프가 표 → 그래프 → 추가 정보 입력 순서를 유지하고, 상단 중복 막대는 제거 | PASS (로컬 DOM 확인) |
+| CMDG-DOMAIN-FLOW-03 | 집중 테스트·JavaScript 구문·diff 공백 검사 | PASS (8/8) |
+| CMDG-DOMAIN-FLOW-04 | 운영 API·회원 원자료·저장소·배포 | NOT_RUN (격리 검토 단계) |
+
+## 2026-09-22 — 해석 카드 펼침 상태 표시
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-TOGGLE-01 | 닫힌 카드에 `펼치기 +`, 열린 카드에 `접기 −` 표시 | PASS (로컬 CSS 계산값) |
+| CMDG-TOGGLE-02 | CSS 캐시 버전 갱신 및 집중 테스트·JavaScript 구문·diff 공백 검사 | PASS (8/8) |
+
+## 2026-09-22 — 천명사주 운영 공통 템플릿·썸네일 이식
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| CMDG-TEMPLATE-01 | 신규 천명사주 리포트 16개 섹션에 공용 이미지 키·공개 경로를 순서대로 배치 | PASS (단위 테스트) |
+| CMDG-TEMPLATE-02 | 기존 저장 천명사주 리포트도 저장 원문을 변경하지 않고 같은 16개 이미지로 렌더 | PASS (프런트엔드 단위 테스트) |
+| CMDG-TEMPLATE-03 | 삼재가 서버의 절기 기준 년주 계산으로 반환되고, 현재·다음 구간을 구분 | PASS (단위 테스트) |
+| CMDG-TEMPLATE-04 | 실제 정적 빌드 원본과 build 산출물에 이미지 16개 포함 | PASS (`npm run vercel-build`) |
+| CMDG-TEMPLATE-05 | 집중 테스트·TypeScript·JavaScript 구문·diff 공백 검사 | PASS (78/78) |
+| CMDG-TEMPLATE-06 | 원격 push·운영 배포 | NOT_RUN (`rules.md` §6 H1/H2 gate) |

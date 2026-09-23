@@ -1,0 +1,1746 @@
+{
+  "service": {
+    "service_key": "work_move",
+    "service_slug": "move",
+    "service_title": "나, 회사 옮겨도 될까?",
+    "category": "이직운",
+    "subcategory": "회사 이동 판단",
+    "price_krw": 14900,
+    "price_display": "14,900원",
+    "service_url_hint": "work.umsh.kr/move",
+    "analysis_basis": [
+      "대운",
+      "세운",
+      "관성"
+    ],
+    "analysis_basis_public": [
+      "큰 흐름",
+      "올해 흐름",
+      "역할·책임 신호",
+      "일·이동·돈 보조 판단"
+    ],
+    "report_version": "work-move-v1.0",
+    "copy_version": "mz-work-move-v1",
+    "stage": "05-step-5-chat"
+  },
+  "report_index": {
+    "report_id": "work-move-index-v1",
+    "source": "user_seed",
+    "detail_route_template": "../06-step-6_1-report-detail/index.html?section={{section_id}}#step-6_1-report",
+    "groups": [
+      {
+        "id": "decision_type",
+        "order": 1,
+        "major": "최종 결론 타입",
+        "summary": "이직을 밀지, 버틸지, 준비할지 먼저 판정하는 묶음입니다.",
+        "sections": [
+          {
+            "section_id": "decision_type.move_now",
+            "title": "이직각",
+            "preview": "움직임을 열어도 되는 조건과 먼저 확인할 신호를 봅니다.",
+            "evidence_ids": [
+              "rag-daewoon-001",
+              "rag-sewoon-001",
+              "rag-gwanseong-001"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "천이궁",
+              "운한"
+            ],
+            "public_tags": [
+              "이직",
+              "타이밍",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=decision_type.move_now#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "decision_type.stay",
+            "title": "존버각",
+            "preview": "현 회사에서 역할 정리가 먼저인지, 버틸 이유가 남았는지 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-001",
+              "ziweidoushu-palace-career",
+              "ziweidoushu-palace-welfare"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "복덕궁"
+            ],
+            "public_tags": [
+              "현 회사",
+              "멘탈",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=decision_type.stay#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "decision_type.prepare",
+            "title": "준비각",
+            "preview": "바로 런보다 90일 테스트와 포트폴리오 정리가 필요한 구간을 봅니다.",
+            "evidence_ids": [
+              "rag-daewoon-001",
+              "rag-goal-001",
+              "rag-sewoon-001"
+            ],
+            "palace_tags": [
+              "운한",
+              "관록궁"
+            ],
+            "public_tags": [
+              "준비",
+              "90일",
+              "포트폴리오"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=decision_type.prepare#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "decision_type.pause",
+            "title": "보류각",
+            "preview": "확정 전에 멘탈, 돈, 계약 브레이크가 걸리는지 먼저 봅니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-care-001",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "복덕궁",
+              "운한"
+            ],
+            "public_tags": [
+              "보류",
+              "돈",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=decision_type.pause#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "decision_type.conditional_switch",
+            "title": "조건부 환승각",
+            "preview": "오퍼 조건이 맞을 때만 움직이는 기준과 협상 포인트를 봅니다.",
+            "evidence_ids": [
+              "rag-sewoon-002",
+              "ziweidoushu-palace-money",
+              "rag-gwanseong-001"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "재백궁",
+              "천이궁"
+            ],
+            "public_tags": [
+              "오퍼",
+              "계약",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=decision_type.conditional_switch#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "career_constitution",
+        "order": 2,
+        "major": "내 커리어 체질",
+        "summary": "내가 일을 밀고 버티는 방식을 사주 보조 지표로 정리합니다.",
+        "sections": [
+          {
+            "section_id": "career_constitution.day_master_style",
+            "title": "일간별 일 스타일",
+            "preview": "내가 일을 시작하고 밀어붙이는 기본 리듬을 봅니다.",
+            "evidence_ids": [
+              "rag-daymaster-001",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "일 스타일",
+              "개인 성향"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=career_constitution.day_master_style#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "career_constitution.element_balance",
+            "title": "오행 밸런스",
+            "preview": "속도, 초점, 회복을 어디서 조절해야 하는지 봅니다.",
+            "evidence_ids": [
+              "rag-ohaeng-001",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "복덕궁"
+            ],
+            "public_tags": [
+              "밸런스",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=career_constitution.element_balance#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "career_constitution.strength_capacity",
+            "title": "신강·신약 감당력",
+            "preview": "새 회사의 압박을 내 체력이 감당할 수 있는지 봅니다.",
+            "evidence_ids": [
+              "rag-strength-001",
+              "rag-gwanseong-002",
+              "ziweidoushu-palace-welfare"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁",
+              "복덕궁"
+            ],
+            "public_tags": [
+              "감당력",
+              "압박",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=career_constitution.strength_capacity#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "career_constitution.yongsin_direction",
+            "title": "용신 기반 보완 방향",
+            "preview": "성공 보장이 아니라 덜 흔들리게 만드는 보완 방향을 봅니다.",
+            "evidence_ids": [
+              "rag-yongsin-001",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "복덕궁"
+            ],
+            "public_tags": [
+              "보완",
+              "루틴",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=career_constitution.yongsin_direction#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "role_fit",
+        "order": 3,
+        "major": "직무 핏 분석",
+        "summary": "직무가 내 십성의 일하는 방식과 맞는지 봅니다.",
+        "sections": [
+          {
+            "section_id": "role_fit.bigeon",
+            "title": "비견: 주체성",
+            "preview": "혼자 지키거나 같이 밀어야 하는 일에서 힘이 나는지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-bigeon-001",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "직무",
+              "주체성"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.bigeon#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.geopjae",
+            "title": "겁재: 승부·경쟁",
+            "preview": "경쟁 구도에서 에너지가 오르는지, 소모가 커지는지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-geopjae-001",
+              "ziweidoushu-palace-friends"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "교우궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "경쟁",
+              "사람",
+              "직무"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.geopjae#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.siksin",
+            "title": "식신: 꾸준한 결과물",
+            "preview": "반복 산출, 운영, 루틴형 성과가 맞는지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-siksin-001",
+              "rag-goal-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "결과물",
+              "루틴"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.siksin#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.sanggwan",
+            "title": "상관: 개선·기획",
+            "preview": "기획, 개선, 문제 제기 역할이 득인지 부담인지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-sanggwan-001",
+              "rag-gwanseong-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "기획",
+              "개선",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.sanggwan#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.pyeonjae",
+            "title": "편재: 확장·영업",
+            "preview": "시장, 고객, 영업, 확장형 환경이 맞는지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-pyeonjae-001",
+              "ziweidoushu-palace-move",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "천이궁",
+              "재백궁"
+            ],
+            "public_tags": [
+              "확장",
+              "영업",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.pyeonjae#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.jeongjae",
+            "title": "정재: 계약·정산",
+            "preview": "계약, 정산, 운영 안정성이 중요한 직무인지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-jeongjae-001",
+              "rag-sewoon-002",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "재백궁"
+            ],
+            "public_tags": [
+              "계약",
+              "정산",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.jeongjae#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.pyeongwan",
+            "title": "편관: 돌파·위기대응",
+            "preview": "압박과 변수 대응이 내 성장으로 바뀔 수 있는지 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-002",
+              "rag-gwanseong-003",
+              "rag-strength-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁",
+              "운한"
+            ],
+            "public_tags": [
+              "압박",
+              "위기대응",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.pyeongwan#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.jeonggwan",
+            "title": "정관: 공식 역할·조직력",
+            "preview": "공식 직함, 책임 범위, 조직 질서가 맞는지 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-001",
+              "rag-sewoon-002",
+              "ziweidoushu-palace-career"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "조직",
+              "역할",
+              "책임"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.jeonggwan#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.pyeonin",
+            "title": "편인: 연구·아이디어",
+            "preview": "아이디어, 리서치, 독립 판단이 필요한 일이 맞는지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-pyeonin-001",
+              "rag-daymaster-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "연구",
+              "아이디어"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.pyeonin#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "role_fit.jeongin",
+            "title": "정인: 문서·교육·지원",
+            "preview": "문서, 교육, 지원 체계형 업무가 편한지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-jeongin-001",
+              "rag-goal-001"
+            ],
+            "palace_tags": [
+              "사주보조",
+              "관록궁"
+            ],
+            "public_tags": [
+              "문서",
+              "교육",
+              "지원"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=role_fit.jeongin#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "current_company",
+        "order": 4,
+        "major": "현 회사 상태 풀이",
+        "summary": "지금 회사가 힘든 이유를 역할, 사람, 회복 관점으로 나눕니다.",
+        "sections": [
+          {
+            "section_id": "current_company.role_blur",
+            "title": "역할 흐림",
+            "preview": "내 일이 어디까지인지 흐려진 지점을 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-001",
+              "ziweidoushu-palace-career"
+            ],
+            "palace_tags": [
+              "관록궁"
+            ],
+            "public_tags": [
+              "현 회사",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=current_company.role_blur#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "current_company.authority_blur",
+            "title": "결정권 애매함",
+            "preview": "책임은 있는데 권한이 부족한 구조인지 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-001",
+              "rag-gwanseong-002"
+            ],
+            "palace_tags": [
+              "관록궁"
+            ],
+            "public_tags": [
+              "권한",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=current_company.authority_blur#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "current_company.boss_pressure",
+            "title": "상사 압박",
+            "preview": "상사의 압박이 성장 압력인지 소모 신호인지 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-002",
+              "rag-gwanseong-003",
+              "ziweidoushu-palace-career"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "교우궁"
+            ],
+            "public_tags": [
+              "상사",
+              "압박",
+              "사람"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=current_company.boss_pressure#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "current_company.peer_competition",
+            "title": "동료·경쟁 스트레스",
+            "preview": "동료 경쟁이 동기부여인지 관계 피로인지 봅니다.",
+            "evidence_ids": [
+              "rag-ten-god-bigeon-001",
+              "ziweidoushu-palace-friends"
+            ],
+            "palace_tags": [
+              "교우궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "동료",
+              "경쟁",
+              "사람"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=current_company.peer_competition#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "current_company.recognition_gap",
+            "title": "인정 욕구",
+            "preview": "내가 원하는 인정과 회사가 주는 보상이 어긋나는지 봅니다.",
+            "evidence_ids": [
+              "rag-sewoon-002",
+              "ziweidoushu-palace-career",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "재백궁"
+            ],
+            "public_tags": [
+              "인정",
+              "돈",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=current_company.recognition_gap#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "current_company.burnout",
+            "title": "번아웃 신호",
+            "preview": "회사를 옮겨야 할 문제인지 먼저 회복이 필요한지 봅니다.",
+            "evidence_ids": [
+              "rag-care-001",
+              "ziweidoushu-palace-welfare",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "복덕궁",
+              "운한"
+            ],
+            "public_tags": [
+              "번아웃",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=current_company.burnout#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "new_company_fit",
+        "order": 5,
+        "major": "새 회사 궁합 풀이",
+        "summary": "새 회사가 일, 이동, 돈, 지속력 면에서 맞는지 봅니다.",
+        "sections": [
+          {
+            "section_id": "new_company_fit.career_palace",
+            "title": "관록궁: 일·직업궁",
+            "preview": "새 회사에서 맡을 일이 내 직업 흐름과 맞는지 봅니다.",
+            "evidence_ids": [
+              "ziweidoushu-palace-career",
+              "rag-gwanseong-001"
+            ],
+            "palace_tags": [
+              "관록궁"
+            ],
+            "public_tags": [
+              "새 회사",
+              "직무",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=new_company_fit.career_palace#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "new_company_fit.move_palace",
+            "title": "천이궁: 이동·외부환경",
+            "preview": "출퇴근, 원격, 외부 환경 변화가 맞는지 봅니다.",
+            "evidence_ids": [
+              "ziweidoushu-palace-move",
+              "rag-sewoon-001"
+            ],
+            "palace_tags": [
+              "천이궁",
+              "운한"
+            ],
+            "public_tags": [
+              "이동",
+              "근무환경"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=new_company_fit.move_palace#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "new_company_fit.money_palace",
+            "title": "재백궁: 연봉·수입 흐름",
+            "preview": "연봉 상승감과 실제 수입 구조가 따로 노는지 봅니다.",
+            "evidence_ids": [
+              "ziweidoushu-palace-money",
+              "rag-sewoon-002"
+            ],
+            "palace_tags": [
+              "재백궁"
+            ],
+            "public_tags": [
+              "연봉",
+              "돈",
+              "계약"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=new_company_fit.money_palace#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "new_company_fit.self_sustain",
+            "title": "명궁·신궁: 내가 실제로 버틸 수 있는 방식",
+            "preview": "끌림보다 오래 버틸 수 있는 일상 구조인지 봅니다.",
+            "evidence_ids": [
+              "ziweidoushu-palace-self",
+              "ziweidoushu-palace-welfare",
+              "rag-strength-001"
+            ],
+            "palace_tags": [
+              "명궁",
+              "신궁",
+              "복덕궁"
+            ],
+            "public_tags": [
+              "지속력",
+              "멘탈",
+              "생활"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=new_company_fit.self_sustain#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "money_terms",
+        "order": 6,
+        "major": "돈 조건 풀이",
+        "summary": "연봉 숫자보다 계약 구조와 퇴사 전 버퍼를 먼저 봅니다.",
+        "sections": [
+          {
+            "section_id": "money_terms.salary_upside",
+            "title": "연봉 상승각",
+            "preview": "올라 보이는 금액이 실제 체감 상승인지 봅니다.",
+            "evidence_ids": [
+              "ziweidoushu-palace-money",
+              "rag-sewoon-002"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "운한"
+            ],
+            "public_tags": [
+              "연봉",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=money_terms.salary_upside#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "money_terms.income_stability",
+            "title": "수입 구조 안정성",
+            "preview": "기본급, 성과급, 변동비가 흔들릴 여지를 봅니다.",
+            "evidence_ids": [
+              "rag-sewoon-002",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁"
+            ],
+            "public_tags": [
+              "수입",
+              "안정",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=money_terms.income_stability#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "money_terms.contract_check",
+            "title": "계약서 체크",
+            "preview": "설레기 전에 업무범위, 수습, 보상 조건을 확인합니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-tackil-001",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "계약",
+              "업무범위",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=money_terms.contract_check#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "money_terms.spending_risk",
+            "title": "지출 증가 리스크",
+            "preview": "출퇴근, 장비, 생활비 증가가 연봉 상승분을 먹는지 봅니다.",
+            "evidence_ids": [
+              "ziweidoushu-palace-money",
+              "ziweidoushu-palace-move"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "천이궁"
+            ],
+            "public_tags": [
+              "지출",
+              "이동",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=money_terms.spending_risk#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "money_terms.exit_buffer",
+            "title": "퇴사 전 버퍼 필요성",
+            "preview": "퇴사 전 현금, 일정, 멘탈 여유가 필요한지 봅니다.",
+            "evidence_ids": [
+              "rag-daewoon-001",
+              "rag-care-001",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "복덕궁",
+              "운한"
+            ],
+            "public_tags": [
+              "퇴사",
+              "버퍼",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=money_terms.exit_buffer#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "timing",
+        "order": 7,
+        "major": "타이밍 풀이",
+        "summary": "움직여도 되는 시기와 조금 더 준비할 시기를 나눕니다.",
+        "sections": [
+          {
+            "section_id": "timing.daewoon_phase",
+            "title": "대운 초입·중반·말기",
+            "preview": "큰 흐름의 초입, 중반, 말기마다 움직임 기준을 달리 봅니다.",
+            "evidence_ids": [
+              "rag-daewoon-001",
+              "rag-daewoon-002"
+            ],
+            "palace_tags": [
+              "운한",
+              "관록궁"
+            ],
+            "public_tags": [
+              "큰 흐름",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=timing.daewoon_phase#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "timing.daewoon_crossing",
+            "title": "대운 교차기",
+            "preview": "판이 바뀌는 구간에서 무리한 결정을 줄이는 기준을 봅니다.",
+            "evidence_ids": [
+              "rag-daewoon-cross-001",
+              "rag-daewoon-001"
+            ],
+            "palace_tags": [
+              "운한"
+            ],
+            "public_tags": [
+              "변동기",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=timing.daewoon_crossing#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "timing.sewoon_year",
+            "title": "세운·연간 흐름",
+            "preview": "올해 흐름만 보고 결정하지 않고 큰 흐름과 겹쳐 봅니다.",
+            "evidence_ids": [
+              "rag-sewoon-001",
+              "rag-sewoon-002"
+            ],
+            "palace_tags": [
+              "운한",
+              "관록궁"
+            ],
+            "public_tags": [
+              "올해",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=timing.sewoon_year#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "timing.month_flow",
+            "title": "월운",
+            "preview": "면접, 협상, 퇴사 대화가 덜 꼬일 월간 컨디션을 봅니다.",
+            "evidence_ids": [
+              "rag-month-001",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "운한"
+            ],
+            "public_tags": [
+              "월간",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=timing.month_flow#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "timing.date_pick",
+            "title": "택일·일진",
+            "preview": "입사일, 계약일, 퇴사 대화일은 참고 조건으로만 봅니다.",
+            "evidence_ids": [
+              "rag-tackil-001",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "운한"
+            ],
+            "public_tags": [
+              "날짜",
+              "계약",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=timing.date_pick#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "timing.spring_start",
+            "title": "입춘·새 출발 흐름",
+            "preview": "새 출발감이 실제 준비 상태와 맞는지 봅니다.",
+            "evidence_ids": [
+              "rag-spring-001",
+              "rag-goal-001"
+            ],
+            "palace_tags": [
+              "운한"
+            ],
+            "public_tags": [
+              "새출발",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=timing.spring_start#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "risk_brake",
+        "order": 8,
+        "major": "리스크 브레이크",
+        "summary": "확정 전에 멈춰 확인해야 할 마찰과 누락 포인트입니다.",
+        "sections": [
+          {
+            "section_id": "risk_brake.gongmang",
+            "title": "공망: 확정 보류",
+            "preview": "빈칸이 많은 상태에서 결론을 서두르는지 봅니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-sewoon-001"
+            ],
+            "palace_tags": [
+              "운한"
+            ],
+            "public_tags": [
+              "보류",
+              "확인"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=risk_brake.gongmang#step-6_1-report",
+            "status": "needs_confirmation"
+          },
+          {
+            "section_id": "risk_brake.chung",
+            "title": "충: 부딪힘 조심",
+            "preview": "사람, 일정, 조건이 정면으로 부딪히는 지점을 봅니다.",
+            "evidence_ids": [
+              "rag-sewoon-001",
+              "ziweidoushu-palace-friends"
+            ],
+            "palace_tags": [
+              "운한",
+              "교우궁"
+            ],
+            "public_tags": [
+              "마찰",
+              "사람"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=risk_brake.chung#step-6_1-report",
+            "status": "needs_confirmation"
+          },
+          {
+            "section_id": "risk_brake.hyeong",
+            "title": "형: 반복 마찰",
+            "preview": "같은 문제를 다른 회사에서도 반복할 가능성을 봅니다.",
+            "evidence_ids": [
+              "rag-care-001",
+              "rag-gwanseong-003"
+            ],
+            "palace_tags": [
+              "복덕궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "반복",
+              "멘탈",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=risk_brake.hyeong#step-6_1-report",
+            "status": "needs_confirmation"
+          },
+          {
+            "section_id": "risk_brake.pa",
+            "title": "파: 기존 약속 점검",
+            "preview": "현 회사, 새 회사, 개인 일정의 약속 누락을 봅니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-tackil-001"
+            ],
+            "palace_tags": [
+              "운한",
+              "관록궁"
+            ],
+            "public_tags": [
+              "약속",
+              "계약"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=risk_brake.pa#step-6_1-report",
+            "status": "needs_confirmation"
+          },
+          {
+            "section_id": "risk_brake.hae",
+            "title": "해: 느슨한 확인",
+            "preview": "대충 넘긴 조건이 뒤늦게 피곤해질 여지를 봅니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "확인",
+              "계약",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=risk_brake.hae#step-6_1-report",
+            "status": "needs_confirmation"
+          },
+          {
+            "section_id": "risk_brake.fire_confusion",
+            "title": "화기: 역할 혼란·돈 걱정",
+            "preview": "말은 뜨거운데 역할과 돈이 흐려지는 구간인지 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-001",
+              "ziweidoushu-palace-money",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "재백궁"
+            ],
+            "public_tags": [
+              "역할",
+              "돈",
+              "계약"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=risk_brake.fire_confusion#step-6_1-report",
+            "status": "needs_confirmation"
+          }
+        ]
+      },
+      {
+        "id": "action_guide",
+        "order": 9,
+        "major": "현실 액션 가이드",
+        "summary": "운세 느낌을 실제 행동으로 바꾸는 체크리스트입니다.",
+        "sections": [
+          {
+            "section_id": "action_guide.ninety_day_test",
+            "title": "90일 테스트",
+            "preview": "바로 결론 내기 전 90일 안에 확인할 실험을 잡습니다.",
+            "evidence_ids": [
+              "rag-daewoon-001",
+              "rag-goal-001"
+            ],
+            "palace_tags": [
+              "운한",
+              "관록궁"
+            ],
+            "public_tags": [
+              "90일",
+              "준비"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=action_guide.ninety_day_test#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "action_guide.resume_portfolio",
+            "title": "이력서·포트폴리오 정리",
+            "preview": "말이 아니라 증거로 보여줄 자료를 먼저 정리합니다.",
+            "evidence_ids": [
+              "rag-goal-001",
+              "rag-gwanseong-001"
+            ],
+            "palace_tags": [
+              "관록궁"
+            ],
+            "public_tags": [
+              "이력서",
+              "포트폴리오"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=action_guide.resume_portfolio#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "action_guide.interview_timing",
+            "title": "면접 타이밍",
+            "preview": "면접을 밀어붙일 때와 컨디션 조절이 필요한 때를 봅니다.",
+            "evidence_ids": [
+              "rag-sewoon-001",
+              "rag-month-001"
+            ],
+            "palace_tags": [
+              "운한",
+              "천이궁"
+            ],
+            "public_tags": [
+              "면접",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=action_guide.interview_timing#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "action_guide.exit_script",
+            "title": "퇴사 대화 스크립트",
+            "preview": "감정 폭발 대신 역할, 일정, 인수인계를 중심으로 말합니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-care-001",
+              "ziweidoushu-palace-career"
+            ],
+            "palace_tags": [
+              "관록궁",
+              "복덕궁"
+            ],
+            "public_tags": [
+              "퇴사",
+              "대화",
+              "멘탈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=action_guide.exit_script#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "action_guide.salary_scope_checklist",
+            "title": "연봉·업무범위 체크리스트",
+            "preview": "연봉, 업무범위, 수습, 평가 기준을 한 번에 확인합니다.",
+            "evidence_ids": [
+              "rag-sewoon-002",
+              "rag-contract-001",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "연봉",
+              "계약",
+              "업무범위"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=action_guide.salary_scope_checklist#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "mz_result_cards",
+        "order": 10,
+        "major": "MZ 톤 결과 카드",
+        "summary": "긴 풀이 전에 바로 읽히는 한 줄 카드입니다.",
+        "sections": [
+          {
+            "section_id": "mz_result_cards.prepare_not_run",
+            "title": "지금은 바로 런보다 준비각",
+            "preview": "도망보다 준비가 먼저인 흐름인지 한 줄로 잡습니다.",
+            "evidence_ids": [
+              "rag-daewoon-001",
+              "rag-sewoon-001"
+            ],
+            "palace_tags": [
+              "운한",
+              "관록궁"
+            ],
+            "public_tags": [
+              "준비",
+              "타이밍"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=mz_result_cards.prepare_not_run#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "mz_result_cards.no_hype_before_money",
+            "title": "돈 조건 확인 전엔 설레발 금지",
+            "preview": "끌림보다 계약과 수입 구조를 먼저 보는 카드입니다.",
+            "evidence_ids": [
+              "rag-sewoon-002",
+              "ziweidoushu-palace-money",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "재백궁"
+            ],
+            "public_tags": [
+              "돈",
+              "계약"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=mz_result_cards.no_hype_before_money#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "mz_result_cards.clean_current_role",
+            "title": "현 회사는 역할정리 먼저",
+            "preview": "퇴사 전에 현 회사에서 정리할 선을 봅니다.",
+            "evidence_ids": [
+              "rag-gwanseong-001",
+              "ziweidoushu-palace-career"
+            ],
+            "palace_tags": [
+              "관록궁"
+            ],
+            "public_tags": [
+              "현 회사",
+              "역할"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=mz_result_cards.clean_current_role#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "mz_result_cards.contract_is_real",
+            "title": "새 회사는 핏보다 계약서가 찐",
+            "preview": "분위기보다 문서 조건이 진짜 기준인지 봅니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-sewoon-002",
+              "ziweidoushu-palace-money"
+            ],
+            "palace_tags": [
+              "재백궁",
+              "관록궁"
+            ],
+            "public_tags": [
+              "새 회사",
+              "계약",
+              "돈"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=mz_result_cards.contract_is_real#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "mz_result_cards.recover_first",
+            "title": "멘탈 방전이면 운보다 회복이 먼저",
+            "preview": "결정력 부족이 아니라 회복 신호일 수 있는지 봅니다.",
+            "evidence_ids": [
+              "rag-care-001",
+              "ziweidoushu-palace-welfare",
+              "rag-contract-001"
+            ],
+            "palace_tags": [
+              "복덕궁"
+            ],
+            "public_tags": [
+              "멘탈",
+              "회복"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=mz_result_cards.recover_first#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      },
+      {
+        "id": "safety_operation",
+        "order": 11,
+        "major": "안전·운영 기준",
+        "summary": "서비스가 고객 결정을 대신하지 않도록 지키는 운영 기준입니다.",
+        "sections": [
+          {
+            "section_id": "safety_operation.no_certainty",
+            "title": "사주로 퇴사·채용·수익을 확정하지 않음",
+            "preview": "결정은 고객의 현실 조건과 함께 보도록 안내합니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "ziweidoushu-ethics-001"
+            ],
+            "palace_tags": [
+              "윤리"
+            ],
+            "public_tags": [
+              "안전",
+              "결정"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=safety_operation.no_certainty#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "safety_operation.fact_vs_inference",
+            "title": "근거와 개인 추론 분리",
+            "preview": "계산된 사실, 코퍼스 근거, 개인 추론을 섞지 않습니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "ziweidoushu-calculation-001"
+            ],
+            "palace_tags": [
+              "윤리"
+            ],
+            "public_tags": [
+              "안전",
+              "근거"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=safety_operation.fact_vs_inference#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "safety_operation.review_only_sources",
+            "title": "감수 전 자료는 내부 참고",
+            "preview": "확인되지 않은 자료는 고객 결론으로 단정하지 않습니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "rag-readme-001"
+            ],
+            "palace_tags": [
+              "윤리"
+            ],
+            "public_tags": [
+              "안전",
+              "검수"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=safety_operation.review_only_sources#step-6_1-report",
+            "status": "ready"
+          },
+          {
+            "section_id": "safety_operation.no_absolute_words",
+            "title": "무조건 성공·실패 표현 금지",
+            "preview": "가능성, 경향, 확인 행동 중심으로 말합니다.",
+            "evidence_ids": [
+              "rag-contract-001",
+              "ziweidoushu-ethics-001"
+            ],
+            "palace_tags": [
+              "윤리"
+            ],
+            "public_tags": [
+              "안전",
+              "표현"
+            ],
+            "visual_key": "stage-05-report-list",
+            "route": "../06-step-6_1-report-detail/index.html?section=safety_operation.no_absolute_words#step-6_1-report",
+            "status": "ready"
+          }
+        ]
+      }
+    ]
+  },
+  "image_manifest": [
+    {
+      "asset_key": "stage-05-chat-hero",
+      "filename": "assets/generated/move/05-chat-hero.webp",
+      "role": "paid_result_index_hero",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": [
+        "dramatic black updo hair",
+        "sharp confident gaze",
+        "black blazer",
+        "white shirt",
+        "red scarf accent",
+        "crimson red background",
+        "gold saju lines"
+      ],
+      "generation_policy": "same-character-new-stage-scene",
+      "prompt": "Strictly match project reference character and red-black-gold identity. Paid result index opening with blank report cards, no readable text.",
+      "alt": "기준 캐릭터가 이직운 전체 결과 목록을 여는 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": "img[data-asset='stage-05-chat-hero']"
+    },
+    {
+      "asset_key": "stage-05-report-list",
+      "filename": "assets/generated/move/05-report-list.webp",
+      "role": "report_index_support_visual",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": [
+        "dramatic black updo hair",
+        "sharp confident gaze",
+        "black blazer",
+        "white shirt",
+        "red scarf accent",
+        "crimson red background",
+        "gold saju lines"
+      ],
+      "generation_policy": "same-character-new-stage-scene",
+      "prompt": "Strictly match project reference character. Sorting blank result cards into groups on a consultation desk, no readable text.",
+      "alt": "기준 캐릭터가 이직운 결과 항목을 정리하는 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": "img[data-asset='stage-05-report-list']"
+    },
+    {
+      "asset_key": "stage-05-chat-cta",
+      "filename": "assets/generated/move/05-chat-cta.webp",
+      "role": "followup_chat_visual",
+      "aspect_ratio": "9:16",
+      "reference_image": "IMAGE/umsh-signature-card-bg.png",
+      "reference_status": "selected_project_reference_with_text_removed_in_generated_assets",
+      "character_style_lock": [
+        "dramatic black updo hair",
+        "sharp confident gaze",
+        "black blazer",
+        "white shirt",
+        "red scarf accent",
+        "crimson red background",
+        "gold saju lines"
+      ],
+      "generation_policy": "same-character-new-stage-scene",
+      "prompt": "Strictly match project reference character. Consultation chat desk with blank notebook and blank speech cards, no readable text.",
+      "alt": "기준 캐릭터가 이직운 상담을 이어갈 준비를 하는 이미지",
+      "text_in_image": false,
+      "embedded_in_html": true,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": "img[data-asset='stage-05-chat-cta']"
+    }
+  ],
+  "character_reference": {
+    "reference_image": "IMAGE/umsh-signature-card-bg.png",
+    "reference_usage": "style_reference_only_text_removed_in_generated_assets",
+    "style_bible": {
+      "character": "illustrated Korean professional woman with dramatic black updo hair, sharp gaze, black blazer, white shirt, red scarf accent",
+      "palette": [
+        "crimson red",
+        "black",
+        "ivory",
+        "muted gold",
+        "muted olive accent"
+      ],
+      "mood": "premium career fortune consultation without fear language"
+    }
+  },
+  "rag_evidence": [
+    {
+      "evidence_id": "rag-daewoon-001",
+      "source_key": "ITEM-19 item-19-p1-0001 and related 대운 초입 records",
+      "claim": "대운 초입은 전부 뒤집기보다 90일짜리 작은 시험으로 읽는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-daewoon-002",
+      "source_key": "ITEM-19 편관 대운 초입 records",
+      "claim": "편관 흐름은 압박, 결단, 어려운 책임으로 읽되 단정하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-daewoon-cross-001",
+      "source_key": "ITEM-21 대운 교차 records",
+      "claim": "큰 흐름이 바뀌는 교차기에는 이전 방식과 새 방식의 전환을 분리해 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-sewoon-001",
+      "source_key": "ITEM-22 item-22-p1-0064",
+      "claim": "세운만 보고 이직을 결정하지 않고 큰 흐름과 올해 조건을 분리해 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-sewoon-002",
+      "source_key": "ITEM-22 item-22-p1-0044",
+      "claim": "정관 세운은 역할, 약속, 눈에 보이는 책임과 안정적 수입 흐름을 함께 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-gwanseong-001",
+      "source_key": "ITEM-12 item-12-p1-0057",
+      "claim": "정관은 역할, 약속, 눈에 보이는 책임으로 읽는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-gwanseong-002",
+      "source_key": "ITEM-12 item-12-p1-0049",
+      "claim": "편관은 압박, 결단, 어려운 책임으로 읽는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-gwanseong-003",
+      "source_key": "ITEM-12 item-12-p1-0056",
+      "claim": "편관 흐름은 어려운 결정과 긴장 습관을 점검하게 한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-daymaster-001",
+      "source_key": "ITEM-24 일간·오늘 운 records",
+      "claim": "일간 해석은 오늘과 일의 기본 리듬을 보조하되 하루를 단정하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ohaeng-001",
+      "source_key": "ITEM-11 item-11-p1-0001",
+      "claim": "오행 과다·부족은 성격 결함이 아니라 조절 힌트로만 말한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-strength-001",
+      "source_key": "ITEM-13 item-13-p1-0001",
+      "claim": "신강약은 월령, 뿌리, 주변 글자를 함께 보며 성격을 확정하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-yongsin-001",
+      "source_key": "ITEM-14 item-14-p1-0001",
+      "claim": "용신은 성공 보장이 아니라 덜 흔들리게 하는 보완 방향으로 말한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-bigeon-001",
+      "source_key": "ITEM-12 item-12-p1-0001 to item-12-p1-0003",
+      "claim": "비견은 같은 힘, 동료, 자립과 주체성의 결을 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-geopjae-001",
+      "source_key": "ITEM-12 겁재 records",
+      "claim": "겁재는 경쟁과 승부 구도의 장단을 보되 직업을 확정하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-siksin-001",
+      "source_key": "ITEM-12 식신 records",
+      "claim": "식신은 꾸준한 산출과 루틴형 성과의 결을 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-sanggwan-001",
+      "source_key": "ITEM-12 상관 records",
+      "claim": "상관은 개선, 표현, 기획의 결을 보되 조직 마찰 가능성을 함께 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-pyeonjae-001",
+      "source_key": "ITEM-12 편재 records",
+      "claim": "편재는 확장, 영업, 외부 기회의 결을 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-jeongjae-001",
+      "source_key": "ITEM-12 정재 records",
+      "claim": "정재는 계약, 정산, 안정적 수입 습관의 결을 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-pyeonin-001",
+      "source_key": "ITEM-12 편인 records",
+      "claim": "편인은 연구, 아이디어, 독립 판단의 결을 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-ten-god-jeongin-001",
+      "source_key": "ITEM-12 정인 records",
+      "claim": "정인은 문서, 교육, 지원 체계의 결을 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-tackil-001",
+      "source_key": "ITEM-25 and ITEM-26 택일 records",
+      "claim": "택일은 참고 조건이며 계약·결정 결과를 보장하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-month-001",
+      "source_key": "ITEM-23 월간 흐름 records",
+      "claim": "월간 흐름은 컨디션과 실행 시점을 보조하는 참고값으로 쓴다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-spring-001",
+      "source_key": "ITEM-48 입춘·새 출발 records",
+      "claim": "입춘과 새 출발 흐름은 준비 상태와 함께 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-goal-001",
+      "source_key": "ITEM-27 목표 설정 records",
+      "claim": "현실 행동은 작은 목표와 확인 가능한 다음 단계로 연결한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-care-001",
+      "source_key": "ITEM-41 마음 돌봄 리포트 records",
+      "claim": "번아웃과 회복 이슈는 결정 강요보다 돌봄과 확인 행동으로 연결한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-career",
+      "source_key": "ITEM-49 KMS 02-십이궁/09-관록궁.md",
+      "claim": "관록궁은 일과 직업의 궁으로 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-move",
+      "source_key": "ITEM-49 KMS 02-십이궁/07-천이궁.md and 07-실전/03-질문별-궁위.md",
+      "claim": "이직 판단에서 천이궁은 이동과 외부환경 보조 궁으로 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-money",
+      "source_key": "ITEM-49 KMS 02-십이궁/05-재백궁.md and 07-실전/03-질문별-궁위.md",
+      "claim": "이직 판단에서 재백궁은 연봉과 수입 흐름 보조 궁으로 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-friends",
+      "source_key": "ITEM-49 KMS 02-십이궁/08-교우궁.md",
+      "claim": "교우궁은 동료, 협력, 관계 환경을 보조해 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-welfare",
+      "source_key": "ITEM-49 KMS 02-십이궁/11-복덕궁.md",
+      "claim": "복덕궁은 마음의 만족과 회복 리듬을 보조해 본다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-palace-self",
+      "source_key": "ITEM-49 KMS 01-명반/04-명궁-신궁.md",
+      "claim": "명궁과 신궁은 실제로 버티고 드러나는 방식을 보조한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-calculation-001",
+      "source_key": "ITEM-49 KMS 01-명반/07-계산-엔진과-RAG.md",
+      "claim": "계산 가능한 사실과 문장 해석을 분리한다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "ziweidoushu-ethics-001",
+      "source_key": "ITEM-49 KMS 07-실전/04-해석-한계와-윤리.md",
+      "claim": "자미두수 해석은 상징적 참고이며 현실 결정을 확정하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-contract-001",
+      "source_key": "INDEX/RAG_LLM_RETRIEVAL_CONTRACT.md",
+      "claim": "근거와 개인 추론을 분리하고, 미래·채용·수익을 단정하지 않는다.",
+      "visibility": "internal"
+    },
+    {
+      "evidence_id": "rag-readme-001",
+      "source_key": "README_서비스별_RAG_코퍼스_분류.md",
+      "claim": "서비스별 승인 코퍼스와 분류 기준을 우선 적용한다.",
+      "visibility": "internal"
+    }
+  ],
+  "qa": {
+    "status": "ready_for_review",
+    "checked_at": "2026-09-02",
+    "scope_mismatch": [
+      {
+        "type": "legacy_prompt_values_detected",
+        "detail": "05-step-5-chat/PROMPT.md에는 기존 job-choice, 직장운, 9,900원 값이 남아 있었으나 이번 사용자 입력값을 우선 적용했다."
+      },
+      {
+        "type": "interpretation_group_count",
+        "detail": "00 계약과 05 프롬프트는 10개 대분류를 언급하지만, 사용자 검토 기준의 11개 대분류를 01~04와 동일하게 보존했다."
+      },
+      {
+        "type": "route_authorization_boundary",
+        "detail": "05 목록에는 상세 본문을 포함하지 않고 section_id와 preview만 포함한다. 운영 권한 검증은 06 상세 API/서버 레이어에서 처리해야 한다."
+      }
+    ],
+    "checks": [
+      {
+        "name": "service_identity",
+        "status": "pass",
+        "value": "work_move / move / 나, 회사 옮겨도 될까?"
+      },
+      {
+        "name": "price_applied",
+        "status": "pass",
+        "value": "14,900원"
+      },
+      {
+        "name": "group_count_accessible",
+        "status": "pass",
+        "value": 11
+      },
+      {
+        "name": "section_count_accessible",
+        "status": "pass",
+        "value": 60
+      },
+      {
+        "name": "routes_to_06_1",
+        "status": "pass",
+        "value": "../06-step-6_1-report-detail/index.html?section={{section_id}}#step-6_1-report"
+      },
+      {
+        "name": "list_does_not_expose_full_detail",
+        "status": "pass",
+        "value": "only title, preview, tags, route"
+      },
+      {
+        "name": "client_paid_flag_not_used",
+        "status": "pass",
+        "value": "payment intent may be read for UX notice only, no paid=true unlock"
+      },
+      {
+        "name": "single_html_image_delivery",
+        "status": "pass",
+        "value": "visible images are embedded as data:image/webp URIs"
+      },
+      {
+        "name": "image_manifest_present",
+        "status": "pass",
+        "value": 3
+      },
+      {
+        "name": "customer_visible_internal_terms_removed",
+        "status": "pass",
+        "value": "internal source terms are hidden in JSON scripts only"
+      },
+      {
+        "name": "safety_language",
+        "status": "pass",
+        "value": "퇴사·채용·수익 확정 표현 없음"
+      }
+    ],
+    "blocked": [],
+    "next_step": "사용자 검토 후 '다음' 입력 시 06-step-6_1-report-detail 진행"
+  }
+}
