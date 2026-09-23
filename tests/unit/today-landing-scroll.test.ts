@@ -31,8 +31,8 @@ test('today landing reserves the live bottom-menu height and pins its GNB host',
   assert.match(top,/position:\s*sticky;/)
   assert.match(top,/top:\s*0;/)
   assert.match(top,/z-index:\s*60;/)
-  assert.match(page,/<script src="\/js\/umsh-chrome.js"><\/script>/)
-  assert.match(page,/<script src="\/js\/umsh-report-access.js"><\/script>/)
+  assert.match(page,/<script src="\/js\/umsh-chrome\.js(?:\?v=[^"]+)?"(?: defer)?><\/script>/)
+  assert.match(page,/<script src="\/js\/umsh-report-access\.js(?:\?v=[^"]+)?"(?: defer)?><\/script>/)
   assert.doesNotMatch(stylesheet,/#umsh-verified-layout|#umsh-verified-reading/)
 })
 
