@@ -82,7 +82,7 @@
   var ALIASES = {cmdg:'saju_master',home_pungsu:'home_fit',home:'home_fit',love_thisyear:'love_this_year',love_signal:'couple_signal',couple_match:'match_couple',today:'today_fortune'};
   // 설정 JSON은 비동기로 읽는다. 그 전에 본문이 먼저 칠해져도 반복 그림이 잠깐
   // 나타나지 않도록, 대표 이미지 한 장 계약의 키는 여기에도 좁게 둔다.
-  var SUMMARY_ONLY_SERVICE_KEYS = { money_save: true };
+  var SUMMARY_ONLY_SERVICE_KEYS = {};
   function canonical(value) { return ALIASES[value] || value; }
   function usesSummaryOnlyImages(serviceKey, config) {
     return Boolean((config && config.sectionImageMode === 'summary-only') || SUMMARY_ONLY_SERVICE_KEYS[canonical(serviceKey || key)]);

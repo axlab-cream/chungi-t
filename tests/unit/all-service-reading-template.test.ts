@@ -52,16 +52,28 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(source, /aria-label="풀이 읽는 순서 표" tabindex="0"/)
 })
 
-test('money save retains one representative thumbnail without repeating section or highlight images', () => {
+test('저축운은 운영 16개 해석마다 메인 재물 톤의 고유 이미지를 쓰고 공용 읽기 화면만 남긴다', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const names = ['money_save']
-  assert.equal(names.length, 1)
-  for (const name of names) {
-    const service = blocks.services[name] as { sectionImageMode?: string; thumbnail?: string }
-    assert.equal(service.sectionImageMode, 'summary-only', `${name}은 대표 이미지 한 장만 사용한다`)
-    assert.ok(service.thumbnail?.startsWith('/'), `${name} 대표 이미지가 없다`)
+  const service = blocks.services.money_save as { thumbnail: string; cutA: string; cutB: string; sectionImageMode?: string; sectionImages: string[] }
+  const detail = read('사주/money/save/06-step-6_1-report-detail/index.html')
+  const reader = read('사주/js/umsh-report-access.js')
+
+  assert.equal(service.sectionImageMode, undefined)
+  assert.equal(service.thumbnail, '/assets/umsh-money-card-bg.png')
+  assert.equal(service.sectionImages.length, 16)
+  assert.equal(new Set(service.sectionImages).size, 16)
+  for (const image of service.sectionImages) {
+    assert.match(image, /^\/money\/save\/assets\/save\/reading-v2\/.+\.webp$/)
+    assert.ok(existsSync(join(root, '사주', image)), `저축운 이미지가 없다: ${image}`)
   }
-  assert.match(read('사주/js/umsh-report-access.js'), /visual\.setAttribute\('hidden', ''\)/)
+  assert.doesNotMatch(reader, /money_save: true/)
+  assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
+  assert.match(detail, /\.reading-card > summary::after\s*\{[^}]*content: "펼치기 \+";/)
+  assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{[^}]*content: "접기 −";/)
+  assert.match(detail, /font-size: 15px;[^}]*line-height: 1\.9;/)
+  assert.match(detail, /--muted: #45584e;/)
+  assert.match(detail, /id="detailContent" data-umsh-legacy-reading-ui/)
+  assert.match(detail, /class="bottom-nav"[^>]*data-umsh-legacy-reading-ui/)
 })
 
 test('커플 시그널은 운영 21개 해석마다 고유한 실사 이미지를 쓰고 저장 리포트만 남긴다', () => {
