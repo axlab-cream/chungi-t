@@ -2342,3 +2342,13 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 메인 서비스 썸네일은 그대로 유지하고, 공용 리더가 `summaryImage` 설정을 우선해 저장 리포트 요약에서만 새 배너를 쓴다. 공용 스크립트와 설정 캐시 버전은 모든 참조 페이지에서 하나로 맞춰 옛 자산이 남지 않게 했다.
 - 검증: TDD 실패→통과, 집중 테스트 22/22, 전체 회귀 1571/1571, `npm run check:save`, TypeScript, 20개 서비스 QA, Vercel production build, diff 공백 검사 PASS. 운영 push·배포는 이번 이미지 교체 요청에 명시되지 않아 NOT_RUN으로 남겼다.
 - 독립 리뷰에서 지적한 신규 WebP 누락 위험은 자산을 같은 커밋에 포함해 해소했고, 캐시 쿼리 적용 HTML 전수 스캔 회귀 테스트와 검증 문서의 서비스 수 오타 수정을 추가했다.
+
+## 2026-09-26 — 20개 서비스 공용 토글 상단 이동 수정
+
+- [DONE] 저축운 상세의 구형 문서 클릭 위임이 공용 `details.reading-card[data-section]`까지 잡아 `renderDetail()`과 `window.scrollTo({ top: 0 })`를 실행하는 원인을 확인했다.
+- [DONE] 공용 렌더러 두 경로에 summary 클릭 이벤트 경계를 설치했다. 기본 `<details>` 동작과 키보드 의미는 막지 않고 상위 문서 핸들러로의 버블링만 차단한다.
+- [DONE] 저축운 레거시 화면 전환 위임은 실제 연관 항목인 `.related-btn[data-section]`으로 범위를 좁혔다. 저장 원문·회원 계산값·이미지·표·그래프는 변경하지 않았다.
+- [DONE] 공용 스크립트 캐시 키를 모든 참조 HTML에 동기화해 20개 서비스가 같은 수정본을 받도록 했다.
+- [PASS] RED→GREEN 계약, 동적 native-details 회귀, 집중 90/90, 20개 서비스 QA, 저축운 계약, 전체 1573/1573(165 suites), TypeScript, JavaScript 구문, diff 공백, Vercel build를 통과했다.
+- [PASS] 최종 diff 수동 검토에서 공용 두 렌더 경로, 저축운 선택자 범위, 캐시 전수 동기화, 접근성 기본 동작 보존을 확인했다. Grok 외부 리뷰는 로컬 MCP 인증 오류 뒤 응답 없이 정지해 중단했으며 코드 변경 결과로 간주하지 않았다.
+- [NOT_RUN] 운영 push·배포와 로그인된 운영 화면 재확인은 이번 요청에 포함되지 않아 실행하지 않았다.

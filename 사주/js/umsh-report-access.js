@@ -1421,6 +1421,21 @@
       + '<p class="umsh-preview-paid">' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p>'
       + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>';
   }
+  /**
+   * 공용 해석 카드의 summary 클릭은 이 카드 안에서 끝낸다.
+   * 일부 구형 서비스 화면은 문서 전체의 `[data-section]` 클릭을 화면 전환으로
+   * 처리한다. 그 핸들러까지 이벤트가 올라가면 native details 는 열리지만 곧바로
+   * 상단으로 스크롤된다. 기본 토글 동작은 막지 않고 버블링만 차단한다.
+   */
+  function protectReadingCardInteractions(root) {
+    if (!root || root.dataset.umshReadingInteractionBoundary === '1') return;
+    root.dataset.umshReadingInteractionBoundary = '1';
+    root.addEventListener('click', function (event) {
+      var summary = event.target.closest && event.target.closest('details.reading-card > summary');
+      if (!summary || !root.contains(summary)) return;
+      event.stopPropagation();
+    });
+  }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
   function renderReportInPlace(payload) {
     if (!inPlaceEnabled()) return false;
@@ -1450,6 +1465,7 @@
         '<summary>' + escapeHtml(cmdgCardTitle(section, payload)) + '</summary>' +
         body + '</details>';
     }).join('');
+    protectReadingCardInteractions(host);
     // 목차 위에 계산 결과·결론·서머리·하이라이트를 올린다. 본문 섹션 마크업은 건드리지 않는다.
     mountLifeFlow(host, payload);
     mountLongform(host, report, payload.entitled !== false, (payload.context && payload.context.serviceKey) || report.serviceKey || key, payload);
@@ -1685,6 +1701,7 @@
        var body = ready ? serviceCardBody(section, payload, richSectionBody(section, payload), index) : '<p role="status">' + (section.status === 'failed' ? '이 항목을 완성하지 못했습니다. 완료된 항목은 그대로 읽을 수 있습니다.' : '해석을 준비하고 있습니다. 완료되면 이 자리에 전체 내용이 표시됩니다.') + '</p>' + (section.status === 'failed' ? '<button type="button" class="reading-retry" data-retry-section="'+escapeHtml(section.id)+'">이 항목 다시 준비하기</button>':'');
       return '<details data-section="' + escapeHtml(section.id) + '" class="reading-card"' + ((opened.indexOf(section.id) !== -1 || selected === section.id || selected === section.generationId || (!opened.length && !selected && index===0))?' open':'') + '><summary>' + escapeHtml(cmdgCardTitle(section, payload)) + '</summary>' + body + '</details>';
     }).join('');
+    protectReadingCardInteractions(node);
     // 공용 리더(/r/:id). 06-1 이 없는 서비스(cmdg)가 여기로 온다 — 같은 세 블록을 같은 자리에 올린다.
     mountLongform(document.getElementById('umsh-longform-mount'), report, payload.entitled !== false, serverKey, payload);
     var id = identity(payload);

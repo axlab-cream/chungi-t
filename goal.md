@@ -362,3 +362,10 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 - Ensure the middle teaser page contains a grounded verdict, representative evidence, an everyday scene and an exact full-report scope without exposing paid body copy.
 - Verify the shared teaser UI on desktop and mobile, then commit, push and deploy the verified change to `umsh.kr`.
 - Status: DONE for this teaser slice. Complete Tone V2 release remains `NO_GO` until the independent provider/full-outline/visual aggregate gates are complete.
+
+## 2026-09-26 — 20개 서비스 해석 토글 위치 고정
+
+- 공용 저장 리포트의 해석 토글을 누르면 클릭한 목록 행 바로 아래에서 본문이 열려야 한다.
+- 서비스별 구형 클릭 처리기가 공용 `<details>`를 화면 전환으로 오인해 상단으로 이동시키지 않아야 한다.
+- 20개 서비스의 저장 원문·계산값·이미지·표·그래프와 native 펼침/접힘·키보드 의미는 그대로 유지한다.
+- 공용 렌더러 한 곳에서 재발을 막고, 캐시 버전을 모든 참조 화면에 동기화한다.

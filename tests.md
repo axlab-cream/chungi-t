@@ -1002,3 +1002,19 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MONEY-SUMMARY-03 | 공용 접근 스크립트에 캐시 쿼리를 쓰는 모든 HTML이 동일 최신 버전을 요청 | PASS (전수 스캔 회귀 테스트) |
 | MONEY-SUMMARY-04 | 전체 회귀 1571/1571·저축운 연동·TypeScript·20개 서비스 QA·Vercel build·diff 공백 | PASS |
 | MONEY-SUMMARY-05 | 운영 페이지 실제 교체·push·배포 | NOT_RUN (이번 요청은 이미지 제작·배치 범위) |
+
+## 2026-09-26 — 공용 해석 토글 제자리 펼침
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| READING-TOGGLE-01 | 기존 코드에서 공용 이벤트 경계 계약이 실패하고 수정 후 통과 | PASS (RED → GREEN) |
+| READING-TOGGLE-02 | summary 클릭이 `stopPropagation`되고 `preventDefault`되지 않음 | PASS (동적 VM 회귀) |
+| READING-TOGGLE-03 | 저축운 구형 위임 선택자가 `.related-btn[data-section]`에만 적용 | PASS |
+| READING-TOGGLE-04 | 공용 리더 캐시 버전이 모든 HTML 참조에서 단일 값 | PASS |
+| READING-TOGGLE-05 | 20개 서비스 공개 플로우·정책·코퍼스 계약 | PASS (`npm run qa:all-services`) |
+| READING-TOGGLE-06 | 저축운 21개 계약·6개 페이지·8개 대분류 | PASS (`npm run check:save`) |
+| READING-TOGGLE-07 | 공용 리더 집중 회귀 | PASS (90/90) |
+| READING-TOGGLE-08 | 전체 단위·통합 회귀 | PASS (1573/1573, 165 suites) |
+| READING-TOGGLE-09 | TypeScript·JavaScript 구문·diff 공백·Vercel build | PASS |
+| READING-TOGGLE-09B | 독립 Grok 리뷰 | BLOCKED (외부 MCP 인증 오류 후 무응답, 수동 diff 리뷰 PASS) |
+| READING-TOGGLE-10 | 운영 실제 화면 | NOT_RUN (이번 요청은 구현·검증 범위이며 운영 배포 요청 없음) |

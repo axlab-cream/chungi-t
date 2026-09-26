@@ -112,9 +112,10 @@ function harness(path: string, responses: unknown[], cache: Record<string, unkno
   const listeners = new Map<string, Array<() => unknown>>()
   function element(tag = 'div'): any {
     const attrs = new Map<string,string>()
-    return {id:'',tagName:tag.toUpperCase(),innerHTML:'',children:[],style:{cssText:'',setProperty(){},removeProperty(){}},
+    const eventListeners = new Map<string, Array<(event:any)=>unknown>>()
+    return {id:'',tagName:tag.toUpperCase(),innerHTML:'',children:[],dataset:{},eventListeners,style:{cssText:'',setProperty(){},removeProperty(){}},
       setAttribute(name:string,value:string){attrs.set(name,value)},hasAttribute(name:string){return attrs.has(name)},getAttribute(name:string){return attrs.get(name)},removeAttribute(name:string){attrs.delete(name)},
-      addEventListener(){},querySelectorAll(){return []},
+      addEventListener(name:string,callback:(event:any)=>unknown){eventListeners.set(name,[...(eventListeners.get(name)||[]),callback])},querySelectorAll(){return []},
       appendChild(node:any){this.children.push(node);node.parentNode=this;if(node.id)nodes.set(node.id,node)},
       insertAdjacentHTML(_where:string,text:string){this.innerHTML+=text}}
   }
@@ -773,6 +774,33 @@ test('in-place 06 hides unfilled interpretation hosts on https', () => {
   const node = h.context.document.createElement('div')
   h.api.markFilled(node)
   assert.equal(node.getAttribute('data-umsh-filled'), '')
+})
+
+test('shared reading summaries keep native details behavior while blocking legacy page navigation', () => {
+  const h = harness('/money/save/06-step-6_1-report-detail/index.html?reportId=save-id', [], {}, { inplace: true })
+  const host = h.context.document.createElement('section')
+  host.id = 'detail-stack'
+  host.contains = () => true
+  h.context.document.body.appendChild(host)
+  h.api.consume({
+    reportId: 'save-id',
+    report: { serviceKey: 'money_save', status: 'complete', sections: [
+      { id: 'income-peer-share', status: 'complete', hook: '이번 달 기준', interpretation: '현재 위치에서 바로 읽는 본문입니다.' },
+    ] },
+  })
+
+  const click = host.eventListeners.get('click')?.[0]
+  assert.ok(click, '공용 카드 클릭 경계가 설치되지 않았다')
+  let propagationStopped = false
+  let defaultPrevented = false
+  const summary = { tagName: 'SUMMARY' }
+  click!({
+    target: { closest(selector: string) { return selector === 'details.reading-card > summary' ? summary : null } },
+    stopPropagation() { propagationStopped = true },
+    preventDefault() { defaultPrevented = true },
+  })
+  assert.equal(propagationStopped, true, '구형 문서 클릭 핸들러까지 전파되면 화면이 상단으로 이동한다')
+  assert.equal(defaultPrevented, false, 'native details 기본 동작을 막으면 클릭한 자리에서 펼쳐지지 않는다')
 })
 
 /**

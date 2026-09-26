@@ -448,3 +448,11 @@ Step XX
 - [x] Capture and inspect the actual shared teaser surface on desktop and exact 390px mobile.
 - [x] Run focused, full, typecheck, Vercel build, direct code review and staged credential/diff guards.
 - [x] Save/re-read CreamWIKI evidence, commit/push, deploy Production and verify the live teaser route plus runtime health.
+
+## task-reading-toggle-in-place-20260926
+
+- [x] 저축운 운영 증상의 이벤트 전파 경로를 재현한다.
+- [x] 공용 리더의 summary 클릭은 native 동작을 유지한 채 구형 문서 핸들러로의 버블링만 차단한다.
+- [x] 저축운 구형 `[data-section]` 위임은 실제 연관 항목 버튼으로 범위를 좁힌다.
+- [x] 공용 리더 참조 캐시를 동기화하고 20개 서비스 계약·전체 회귀·빌드를 검증한다.
+- [x] CreamWIKI 기록·재조회와 최종 diff 리뷰 후 로컬 커밋한다.
