@@ -352,7 +352,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260923-work-move-v1', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260926-money-summary-v2', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -413,9 +413,9 @@
     var paragraphs = longformParagraphs(summary && summary.text);
     var locked = !entitled && paragraphs.length > 1;
     var shown = locked ? paragraphs.slice(0, 1) : paragraphs;
-    // 대표 이미지는 포털에서 사용자가 처음 만난 서비스 썸네일과 같은 자산을 쓴다.
+    // 세로형 포털 썸네일을 요약 배너에서 잘라 쓰지 않도록, 요약 전용 자산이 있으면 우선한다.
     // 서비스별 하이라이트·본문 컷은 아래 `cutA`/`cutB`가 이어받는다.
-    var cut = config && (config.thumbnail || config.cutA);
+    var cut = config && (config.summaryImage || config.thumbnail || config.cutA);
     var summaryFit = config && config.summaryImageFit === 'wide' ? ' is-wide-summary' : '';
     var figure = cut
       ? '<figure class="umsh-summary-figure' + summaryFit + '"><img src="' + escapeHtml(cut) + '" alt="" loading="lazy" decoding="async" aria-hidden="true"></figure>'

@@ -6,6 +6,11 @@ import test from 'node:test'
 const root = process.cwd()
 const read = (path: string) => readFileSync(join(root, path), 'utf8')
 
+const htmlFiles = (directory: string): string[] => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+  const path = join(directory, entry.name)
+  return entry.isDirectory() ? htmlFiles(path) : entry.name.endsWith('.html') ? [path] : []
+})
+
 test('all configured reading services carry an identity-specific first-toggle guide', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
   const services = Object.values(blocks.services) as Array<{ title?: string; guide?: unknown[]; thumbnail?: string; cutA?: string; cutB?: string }>
@@ -52,14 +57,17 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(source, /aria-label="풀이 읽는 순서 표" tabindex="0"/)
 })
 
-test('저축운은 운영 16개 해석마다 메인 재물 톤의 고유 이미지를 쓰고 공용 읽기 화면만 남긴다', () => {
+test('저축운은 요약에 21:9 실사 전용 이미지를 쓰고 16개 해석에 고유 이미지를 연결한다', () => {
   const blocks = JSON.parse(read('사주/data/longform-blocks.json'))
-  const service = blocks.services.money_save as { thumbnail: string; cutA: string; cutB: string; sectionImageMode?: string; sectionImages: string[] }
+  const service = blocks.services.money_save as { thumbnail: string; summaryImage: string; summaryImageFit?: string; cutA: string; cutB: string; sectionImageMode?: string; sectionImages: string[] }
   const detail = read('사주/money/save/06-step-6_1-report-detail/index.html')
   const reader = read('사주/js/umsh-report-access.js')
 
   assert.equal(service.sectionImageMode, undefined)
   assert.equal(service.thumbnail, '/assets/umsh-money-card-bg.png')
+  assert.equal(service.summaryImage, '/money/save/assets/save/reading-v2/00-money-save-summary-v2.webp')
+  assert.equal(service.summaryImageFit, 'wide')
+  assert.ok(existsSync(join(root, '사주', service.summaryImage)), `저축운 요약 이미지가 없다: ${service.summaryImage}`)
   assert.equal(service.sectionImages.length, 16)
   assert.equal(new Set(service.sectionImages).size, 16)
   for (const image of service.sectionImages) {
@@ -67,6 +75,7 @@ test('저축운은 운영 16개 해석마다 메인 재물 톤의 고유 이미�
     assert.ok(existsSync(join(root, '사주', image)), `저축운 이미지가 없다: ${image}`)
   }
   assert.doesNotMatch(reader, /money_save: true/)
+  assert.match(reader, /config\.summaryImage \|\| config\.thumbnail \|\| config\.cutA/)
   assert.match(detail, /#step-6_1-report\s*\{[^}]*max-height: none;[^}]*overflow: visible;/)
   assert.match(detail, /\.reading-card > summary::after\s*\{[^}]*content: "펼치기 \+";/)
   assert.match(detail, /\.reading-card\[open\] > summary::after\s*\{[^}]*content: "접기 −";/)
@@ -74,6 +83,16 @@ test('저축운은 운영 16개 해석마다 메인 재물 톤의 고유 이미�
   assert.match(detail, /--muted: #45584e;/)
   assert.match(detail, /id="detailContent" data-umsh-legacy-reading-ui/)
   assert.match(detail, /class="bottom-nav"[^>]*data-umsh-legacy-reading-ui/)
+})
+
+test('공용 리더의 캐시 쿼리를 쓰는 모든 HTML은 최신 버전으로 동기화한다', () => {
+  const versions = htmlFiles(join(root, '사주')).flatMap((path) => {
+    const source = readFileSync(path, 'utf8')
+    return [...source.matchAll(/\/js\/umsh-report-access\.js\?v=([^"']+)/g)].map((match) => match[1])
+  })
+
+  assert.ok(versions.length > 0, '캐시 쿼리를 사용하는 공용 리더 참조가 없다')
+  assert.deepEqual([...new Set(versions)], ['20260926-money-summary-v2'])
 })
 
 test('커플 시그널은 운영 21개 해석마다 고유한 실사 이미지를 쓰고 저장 리포트만 남긴다', () => {

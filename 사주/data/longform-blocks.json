@@ -321,6 +321,8 @@
       "verdictAxis": "돈이 모이지 않는 자리",
       "accent": "gold",
       "thumbnail": "/assets/umsh-money-card-bg.png",
+      "summaryImage": "/money/save/assets/save/reading-v2/00-money-save-summary-v2.webp",
+      "summaryImageFit": "wide",
       "guide": ["지출이 새기 쉬운 순간", "돈이 남기 시작하는 생활 조건", "이번 달 먼저 바꿔 볼 습관"],
       "cutA": "/money/save/assets/save/01-scene-01-hook.webp",
       "cutB": "/money/save/assets/save/01-scene-04-wealth-peer-balance.webp",

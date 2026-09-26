@@ -992,3 +992,13 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | CMDG-TEMPLATE-04 | 실제 정적 빌드 원본과 build 산출물에 이미지 16개 포함 | PASS (`npm run vercel-build`) |
 | CMDG-TEMPLATE-05 | 집중 테스트·TypeScript·JavaScript 구문·diff 공백 검사 | PASS (78/78) |
 | CMDG-TEMPLATE-06 | 원격 push·운영 배포 | NOT_RUN (`rules.md` §6 H1/H2 gate) |
+
+## 2026-09-26 — 저축운 요약 전용 실사 배너
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| MONEY-SUMMARY-01 | 요약에서 메인 세로 썸네일 대신 요약 전용 21:9 실사 자산을 우선 사용 | PASS (TDD 집중 테스트) |
+| MONEY-SUMMARY-02 | 새 자산 1536×658, 인물·손·휴대폰·가계부·비상금 봉투가 프레임 안에 있고 외화·텍스트·로고 없음 | PASS (`view_image`, `ffprobe`) |
+| MONEY-SUMMARY-03 | 공용 접근 스크립트에 캐시 쿼리를 쓰는 모든 HTML이 동일 최신 버전을 요청 | PASS (전수 스캔 회귀 테스트) |
+| MONEY-SUMMARY-04 | 전체 회귀 1571/1571·저축운 연동·TypeScript·20개 서비스 QA·Vercel build·diff 공백 | PASS |
+| MONEY-SUMMARY-05 | 운영 페이지 실제 교체·push·배포 | NOT_RUN (이번 요청은 이미지 제작·배치 범위) |
