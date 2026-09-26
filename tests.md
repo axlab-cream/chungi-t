@@ -1018,3 +1018,13 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | READING-TOGGLE-09 | TypeScript·JavaScript 구문·diff 공백·Vercel build | PASS |
 | READING-TOGGLE-09B | 독립 Grok 리뷰 | BLOCKED (외부 MCP 인증 오류 후 무응답, 수동 diff 리뷰 PASS) |
 | READING-TOGGLE-10 | 운영 실제 화면 | NOT_RUN (이번 요청은 구현·검증 범위이며 운영 배포 요청 없음) |
+
+### 2026-09-26 운영 직접 검증 보정
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| READING-TOGGLE-11 | 배포된 v1을 로그인된 운영 저축운에서 실제 클릭 | FAIL → 결함 재현 (스크롤은 유지되나 토글이 열리지 않음) |
+| READING-TOGGLE-12 | 공용 클릭 경계가 `preventDefault`·`stopPropagation` 후 현재 카드 `open`을 직접 반전 | PASS (열기·닫기 동적 단위 테스트) |
+| READING-TOGGLE-13 | 캐시 키 v2를 공용 리더 참조 HTML 69개에 전수 동기화 | PASS (전수 스캔 계약) |
+| READING-TOGGLE-14 | 집중 회귀·직장 선택 계약·20개 서비스 QA·TypeScript·Vercel build·diff | PASS (90/90 외) |
+| READING-TOGGLE-15 | v2 운영 배포와 로그인된 실제 화면 재확인 | PENDING |

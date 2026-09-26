@@ -776,7 +776,7 @@ test('in-place 06 hides unfilled interpretation hosts on https', () => {
   assert.equal(node.getAttribute('data-umsh-filled'), '')
 })
 
-test('shared reading summaries keep native details behavior while blocking legacy page navigation', () => {
+test('shared reading summaries toggle in place while blocking legacy page navigation', () => {
   const h = harness('/money/save/06-step-6_1-report-detail/index.html?reportId=save-id', [], {}, { inplace: true })
   const host = h.context.document.createElement('section')
   host.id = 'detail-stack'
@@ -793,14 +793,22 @@ test('shared reading summaries keep native details behavior while blocking legac
   assert.ok(click, '공용 카드 클릭 경계가 설치되지 않았다')
   let propagationStopped = false
   let defaultPrevented = false
-  const summary = { tagName: 'SUMMARY' }
+  const card = { open: false }
+  const summary = { tagName: 'SUMMARY', parentElement: card }
   click!({
     target: { closest(selector: string) { return selector === 'details.reading-card > summary' ? summary : null } },
     stopPropagation() { propagationStopped = true },
     preventDefault() { defaultPrevented = true },
   })
   assert.equal(propagationStopped, true, '구형 문서 클릭 핸들러까지 전파되면 화면이 상단으로 이동한다')
-  assert.equal(defaultPrevented, false, 'native details 기본 동작을 막으면 클릭한 자리에서 펼쳐지지 않는다')
+  assert.equal(defaultPrevented, true, '브라우저별 native details 동작 대신 공용 토글이 상태를 직접 관리해야 한다')
+  assert.equal(card.open, true, '클릭한 카드가 현재 위치에서 열려야 한다')
+  click!({
+    target: { closest(selector: string) { return selector === 'details.reading-card > summary' ? summary : null } },
+    stopPropagation() {},
+    preventDefault() {},
+  })
+  assert.equal(card.open, false, '같은 카드를 다시 클릭하면 현재 위치에서 닫혀야 한다')
 })
 
 /**

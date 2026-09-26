@@ -92,7 +92,7 @@ test('공용 리더의 캐시 쿼리를 쓰는 모든 HTML은 최신 버전으�
   })
 
   assert.ok(versions.length > 0, '캐시 쿼리를 사용하는 공용 리더 참조가 없다')
-  assert.deepEqual([...new Set(versions)], ['20260926-reading-toggle-v1'])
+  assert.deepEqual([...new Set(versions)], ['20260926-reading-toggle-v2'])
 })
 
 test('공용 해석 토글은 서비스별 구형 클릭 핸들러로 전파되지 않고 현재 위치에서 열린다', () => {
@@ -101,7 +101,9 @@ test('공용 해석 토글은 서비스별 구형 클릭 핸들러로 전파되�
 
   assert.match(reader, /function protectReadingCardInteractions\(root\)/)
   assert.match(reader, /closest\('details\.reading-card > summary'\)/)
+  assert.match(reader, /event\.preventDefault\(\)/)
   assert.match(reader, /event\.stopPropagation\(\)/)
+  assert.match(reader, /card\.open = !card\.open/)
   assert.equal((reader.match(/protectReadingCardInteractions\(/g) || []).length, 3, '함수 정의와 두 공용 렌더 경로에서 적용해야 한다')
   assert.match(moneySave, /closest\("\.related-btn\[data-section\]"\)/)
   assert.doesNotMatch(moneySave, /closest\("\[data-section\]"\)/)

@@ -2352,3 +2352,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] RED→GREEN 계약, 동적 native-details 회귀, 집중 90/90, 20개 서비스 QA, 저축운 계약, 전체 1573/1573(165 suites), TypeScript, JavaScript 구문, diff 공백, Vercel build를 통과했다.
 - [PASS] 최종 diff 수동 검토에서 공용 두 렌더 경로, 저축운 선택자 범위, 캐시 전수 동기화, 접근성 기본 동작 보존을 확인했다. Grok 외부 리뷰는 로컬 MCP 인증 오류 뒤 응답 없이 정지해 중단했으며 코드 변경 결과로 간주하지 않았다.
 - [NOT_RUN] 운영 push·배포와 로그인된 운영 화면 재확인은 이번 요청에 포함되지 않아 실행하지 않았다.
+
+## 2026-09-26 — 운영 브라우저 토글 직접 검증과 보정
+
+- [FOUND] `d82a3289` 운영 배포 뒤 로그인된 저축운 실데이터 화면에서 토글을 직접 클릭했다. 상단 이동은 막혔지만 브라우저 환경에서 `stopPropagation()`만 사용한 summary가 열리지 않는 결함을 확인했다.
+- [FIXED] 공용 리더가 summary 클릭의 기본 동작과 상위 전파를 함께 막고, 클릭한 `details.reading-card`의 `open` 상태만 직접 전환하도록 보정했다. 구형 화면 전환이나 URL 변경 없이 현재 위치에서 열고 닫는다.
+- [FIXED] 공용 리더 캐시 키를 `20260926-reading-toggle-v2`로 올리고 69개 HTML 참조를 전수 동기화했다.
+- [PASS] 동적 토글 열기·닫기 회귀, 공용 리더 집중 90/90, 직장 선택 캐시 계약, 20개 서비스 QA, TypeScript, Vercel production build, diff 공백 검사를 통과했다. 전체 회귀는 1,573개 중 기능 테스트 1,572개가 통과하고 구 캐시 문자열 기대 1개만 실패했으며, 기대값 보정 후 해당 계약을 포함한 집중 90/90을 재통과했다.
+- [PENDING] 보정 커밋 push 뒤 Vercel Ready, CI, 운영 JS v2, 로그인된 운영 토글의 열기·닫기·스크롤·URL 불변을 다시 확인한다.

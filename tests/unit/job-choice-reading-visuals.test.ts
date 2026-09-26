@@ -40,5 +40,5 @@ test('직장 핏 삽입형 리더는 공용 마크다운·이미지·토글 컴�
   assert.match(longformStyle, /\.umsh-summary-figure\.is-wide-summary/)
   assert.match(longformStyle, /object-fit: contain/)
   assert.match(page, /id="umsh-inplace-css"/)
-  assert.match(page, /umsh-report-access\.js\?v=20260926-reading-toggle-v1/)
+  assert.match(page, /umsh-report-access\.js\?v=20260926-reading-toggle-v2/)
 })

@@ -1424,8 +1424,8 @@
   /**
    * 공용 해석 카드의 summary 클릭은 이 카드 안에서 끝낸다.
    * 일부 구형 서비스 화면은 문서 전체의 `[data-section]` 클릭을 화면 전환으로
-   * 처리한다. 그 핸들러까지 이벤트가 올라가면 native details 는 열리지만 곧바로
-   * 상단으로 스크롤된다. 기본 토글 동작은 막지 않고 버블링만 차단한다.
+   * 처리한다. 브라우저별 native details 기본 동작에 맡기면 버블링 차단 뒤 토글이
+   * 되지 않는 경우가 있어, 기본 동작을 취소하고 현재 카드의 open 상태만 직접 바꾼다.
    */
   function protectReadingCardInteractions(root) {
     if (!root || root.dataset.umshReadingInteractionBoundary === '1') return;
@@ -1433,7 +1433,10 @@
     root.addEventListener('click', function (event) {
       var summary = event.target.closest && event.target.closest('details.reading-card > summary');
       if (!summary || !root.contains(summary)) return;
+      event.preventDefault();
       event.stopPropagation();
+      var card = summary.parentElement;
+      if (card) card.open = !card.open;
     });
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
