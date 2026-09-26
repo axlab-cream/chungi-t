@@ -1436,7 +1436,12 @@
       event.preventDefault();
       event.stopPropagation();
       var card = summary.parentElement;
-      if (card) card.open = !card.open;
+      if (!card) return;
+      var shouldOpen = !card.open;
+      card.open = shouldOpen;
+      // 일부 브라우저는 조상에서 preventDefault 된 summary의 native 토글을
+      // 이벤트 디스패치 뒤 다시 적용한다. 다음 task에서 의도한 상태를 확정한다.
+      setTimeout(function () { card.open = shouldOpen; }, 0);
     });
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */

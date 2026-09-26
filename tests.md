@@ -1025,6 +1025,7 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | --- | --- | --- |
 | READING-TOGGLE-11 | 배포된 v1을 로그인된 운영 저축운에서 실제 클릭 | FAIL → 결함 재현 (스크롤은 유지되나 토글이 열리지 않음) |
 | READING-TOGGLE-12 | 공용 클릭 경계가 `preventDefault`·`stopPropagation` 후 현재 카드 `open`을 직접 반전 | PASS (열기·닫기 동적 단위 테스트) |
-| READING-TOGGLE-13 | 캐시 키 v2를 공용 리더 참조 HTML 69개에 전수 동기화 | PASS (전수 스캔 계약) |
+| READING-TOGGLE-13 | v2 운영 Chrome에서 native summary 후처리가 상태를 되돌리는지 재검증 | FAIL → 결함 재현 (스크롤·URL 불변, 열림 상태만 복귀) |
 | READING-TOGGLE-14 | 집중 회귀·직장 선택 계약·20개 서비스 QA·TypeScript·Vercel build·diff | PASS (90/90 외) |
-| READING-TOGGLE-15 | v2 운영 배포와 로그인된 실제 화면 재확인 | PENDING |
+| READING-TOGGLE-15 | 다음 task에서 의도 상태를 확정하고 캐시 키 v3를 69개 HTML에 동기화 | PASS (집중 90/90·전수 스캔) |
+| READING-TOGGLE-16 | v3 운영 배포와 로그인된 실제 화면 재확인 | PENDING |
