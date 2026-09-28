@@ -234,9 +234,9 @@
           reportPromise = null;
           return { reason: 'login' };
         }
-        if (error.code === 'PAYMENT_REQUIRED') {
+        if (error.code === 'PAYMENT_REQUIRED' || error.code === 'FREE_PREVIEW_LIMIT') {
           window.UMSHPaymentBridge?.save(SERVICE.apiKey, request, location.pathname);
-          return { reason: 'payment', paymentUrl: error.paymentUrl, request };
+          return { reason: 'payment', paymentUrl: error.paymentUrl, request, message: error.message };
         }
         if (error.code === 'PROFILE_REQUIRED') return { reason: 'input' };
         return { reason: 'error', message: error.message };

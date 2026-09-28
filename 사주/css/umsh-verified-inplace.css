@@ -790,6 +790,8 @@
   object-fit: cover;
   object-position: center top;
 }
+.job-teaser-reading.money-teaser-reading .story-image { aspect-ratio: 3 / 2; }
+.job-teaser-reading.money-teaser-reading .story-image img { object-position: center; }
 .job-teaser-reading-inner { padding: 20px 17px 22px; }
 .job-teaser-stage { margin-bottom: 5px; color: rgba(255, 247, 242, .62); }
 .job-teaser-number { margin: 0; }
@@ -839,6 +841,30 @@
   padding: 12px 15px;
   color: var(--text, #fff7f2);
 }
+.job-teaser-toc-collapsible > summary {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  color: var(--text, #fff7f2);
+  cursor: pointer;
+  list-style: none;
+}
+.job-teaser-toc-collapsible > summary::-webkit-details-marker { display: none; }
+.job-teaser-toc-collapsible > summary::after {
+  content: "펼치기 +";
+  flex: 0 0 auto;
+  color: var(--gold, #e8c76f);
+  font-size: 10px;
+  font-weight: 850;
+}
+.job-teaser-toc-collapsible[open] > summary::after { content: "접기 −"; }
+.job-teaser-toc-collapsible > summary strong,
+.job-teaser-toc-collapsible > summary small { display: block; }
+.job-teaser-toc-collapsible > summary strong { font-size: 15px; }
+.job-teaser-toc-collapsible > summary small { margin-left: auto; color: rgba(255, 247, 242, .58); font-size: 10px; }
 .job-teaser-toc > header strong,
 .job-teaser-toc > header small { display: block; }
 .job-teaser-toc > header strong { font-size: 15px; }
@@ -866,6 +892,18 @@
 .quit-teaser-opening,
 .quit-teaser-final-cta { background: linear-gradient(145deg, rgba(13, 35, 32, .96), rgba(10, 13, 22, .98)); }
 .quit-teaser-reading { border-color: rgba(48, 240, 223, .2); }
+
+/* 저축운 표에는 사용자가 직접 적은 긴 문장이 들어간다. 화면 안에서 줄바꿈하고,
+   오행 차트는 저장 사주의 서버 계산값만 표시한다. */
+[data-umsh-slot="preview"] .money-teaser-reading .story-table-figure,
+[data-umsh-slot="preview"] .money-teaser-reading .story-chart-figure { margin: 22px 0 0; padding: 16px; border: 1px solid rgba(112, 194, 146, .24); border-radius: 12px; background: rgba(0, 0, 0, .22); }
+[data-umsh-slot="preview"] .money-teaser-reading .story-table-scroll { overflow: visible; }
+[data-umsh-slot="preview"] .money-teaser-reading .story-table { width: 100%; table-layout: fixed; }
+[data-umsh-slot="preview"] .money-teaser-reading .story-table th,
+[data-umsh-slot="preview"] .money-teaser-reading .story-table td { padding: 10px 9px; overflow-wrap: anywhere; word-break: break-word; vertical-align: top; }
+[data-umsh-slot="preview"] .money-teaser-reading .story-table th:first-child,
+[data-umsh-slot="preview"] .money-teaser-reading .story-table td:first-child { width: 34%; }
+.money-teaser-reading { border-color: rgba(112, 194, 146, .28); }
 
 @media (max-width: 360px) {
   .job-teaser-reading-inner { padding-inline: 15px; }

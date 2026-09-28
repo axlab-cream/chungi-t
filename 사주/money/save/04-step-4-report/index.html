@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
     <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
-    <script src="/js/umsh-report-access.js?v=20260928-quit-teaser-v5"></script>
+    <script src="/js/umsh-report-access.js?v=20260928-money-save-teaser-v2"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>무료 결과 | 나는 왜 돈이 안 모일까?</title>
@@ -158,6 +158,10 @@
         color: var(--green);
         font-size: 11px;
         font-weight: 950;
+      }
+
+      html[data-umsh-report-check] #step-4-report > :not([data-umsh-slot]) {
+        display: none !important;
       }
 
       main {
@@ -670,10 +674,10 @@
           <strong>나는 왜 돈이 안 모일까?</strong>
           <span>STEP 04 FREE REPORT</span>
         </a>
-        <div class="price-pill">9,900원</div>
       </header>
 
       <main id="step-4-report">
+        <section id="umsh-preview-host" class="umsh-preview-panel" data-umsh-slot="preview" aria-label="내 입력으로 먼저 보는 해석"></section>
         <section class="hero" aria-labelledby="report-title">
           <div class="hero-figure">
             <img data-asset-key="save-04-free-hero" src="../assets/save/04-free-hero.webp" data-source-file="assets/generated/save/04-free-hero.webp" alt="돈이 들어오고 새는 흐름을 살피는 녹색 고양이귀 정장 캐릭터">
@@ -770,7 +774,7 @@
 
       <footer class="submit-dock" aria-label="전체 결과 열기">
         <div class="dock-inner">
-          <button class="primary" type="button" data-action="dock-primary">로그인하고 전체 보기 (9,900원)</button>
+          <button class="primary" type="button" data-action="dock-primary">전체 해석 보기</button>
           
         </div>
       </footer>

@@ -8,6 +8,8 @@ import { test } from 'node:test'
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const accessSource = readFileSync(join(root, '사주', 'js', 'umsh-report-access.js'), 'utf8')
 const inplaceCss = readFileSync(join(root, '사주', 'css', 'umsh-verified-inplace.css'), 'utf8')
+const serverSource = readFileSync(join(root, 'src', 'server', 'app.ts'), 'utf8')
+const saveReportHtml = readFileSync(join(root, '사주', 'money', 'save', '04-step-4-report', 'index.html'), 'utf8')
 const jsRoot = join(root, '사주', 'js')
 
 const TEASER_SERVICES = [
@@ -130,6 +132,39 @@ test('퇴사운 티저는 저장 해석 1·2와 실제 시각화 뒤에 항상 �
   assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc\)/)
   assert.match(accessSource, /slice\(2, 10\)/)
   assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
+})
+
+test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에 닫힌 실제 3~N 목차를 한 번만 렌더한다', () => {
+  const api = loadAccess('/money/save/04-step-4-report/index.html')
+  const teaserSections = [
+    { id: 'income-salary-stable', order: 1, imageSrc: '/money/save/assets/save/reading-v2/01-stable-salary.webp', interpretation: '[주요 포인트] 월급과 저축 순서를 읽은 본문', storytelling: { tableMd: '| 확인한 정보 | 입력 내용 |\n| --- | --- |\n| 수입 | 월급 |' } },
+    { id: 'income-peer-share', order: 2, imageSrc: '/money/save/assets/save/reading-v2/02-shared-income-spending.webp', interpretation: '[확인할 장면] 공동 지출 장면을 읽은 본문', storytelling: { chartPoints: [{ label: '나무', value: 2, note: '서버 계산값' }] } },
+  ]
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    serviceKey: 'money_save',
+    preview: { headline: '돈이 남지 않는 장면부터 읽었습니다.' },
+    teaserSections,
+    toc: [...teaserSections, ...Array.from({ length: 14 }, (_, index) => ({ id: `locked-${index + 3}`, classification: `실제 목차 ${index + 3}`, category: '저축운' }))],
+    freeSearch: { used: 1, limit: 5, allowed: true },
+  })
+
+  assert.equal(accepted.payload.teaserSections.length, 2)
+  assert.match(serverSource, /serviceKey === 'money_save'/)
+  assert.match(accessSource, /function renderMoneySaveTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'money_save'\)/)
+  assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true \}\)/)
+  assert.match(accessSource, /<details class="job-teaser-toc job-teaser-toc-collapsible"/)
+  assert.match(accessSource, /무료 결과 조회 ' \+ used \+ '\/5회 사용/)
+  assert.match(accessSource, /function showPreviewLimit\(payload\)/)
+  assert.match(accessSource, /무료 결과 5회를 모두 확인했습니다/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-image \{ aspect-ratio: 3 \/ 2; \}/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-table \{ width: 100%; table-layout: fixed; \}/)
+  assert.match(saveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
+  assert.doesNotMatch(saveReportHtml, /class="price-pill">9,900원/)
+  assert.doesNotMatch(saveReportHtml, />로그인하고 전체 보기 \(9,900원\)</)
 })
 
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {

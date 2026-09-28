@@ -1,11 +1,14 @@
 import { Pool } from 'pg'
 import { configuredEnv } from '../env/load.js'
 
-export interface JobChoicePreviewQuota {
+export interface ServicePreviewQuota {
   used: number
   limit: 5
   allowed: boolean
 }
+
+export type JobChoicePreviewQuota = ServicePreviewQuota
+export type PreviewQuotaService = 'job_choice' | 'money_save'
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const serviceKey = configuredEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -17,15 +20,15 @@ const pool = connectionString ? new Pool({
 const testClaims = new Map<string, Set<string>>()
 const isTest = process.env.NODE_ENV === 'test' || process.env.npm_lifecycle_event === 'test'
 
-function validateQuota(value: unknown): JobChoicePreviewQuota {
-  const result = value as Partial<JobChoicePreviewQuota> | null
+function validateQuota(value: unknown): ServicePreviewQuota {
+  const result = value as Partial<ServicePreviewQuota> | null
   if (!result || !Number.isInteger(result.used) || result.used! < 0 || result.used! > 5 || result.limit !== 5 || typeof result.allowed !== 'boolean') {
-    throw new Error('직장 선택 무료 조회 횟수를 확인하지 못했습니다.')
+    throw new Error('무료 결과 조회 횟수를 확인하지 못했습니다.')
   }
-  return result as JobChoicePreviewQuota
+  return result as ServicePreviewQuota
 }
 
-async function callQuota(name: 'claim_job_choice_free_preview' | 'job_choice_free_preview_status', input: Record<string, string>): Promise<JobChoicePreviewQuota> {
+async function callQuota(name: 'claim_job_choice_free_preview' | 'job_choice_free_preview_status', input: Record<string, string>): Promise<ServicePreviewQuota> {
   if (isTest) {
     const claims = testClaims.get(input.p_user_id) ?? new Set<string>()
     if (name === 'claim_job_choice_free_preview' && input.p_lineage_id && (claims.has(input.p_lineage_id) || claims.size < 5)) {
@@ -43,7 +46,7 @@ async function callQuota(name: 'claim_job_choice_free_preview' | 'job_choice_fre
     const result = await pool.query<{ quota: unknown }>(query, values)
     return validateQuota(result.rows[0]?.quota)
   }
-  if (!supabaseUrl || !serviceKey) throw new Error('직장 선택 무료 조회 저장소가 설정되지 않았습니다.')
+  if (!supabaseUrl || !serviceKey) throw new Error('무료 결과 조회 저장소가 설정되지 않았습니다.')
   const headers: Record<string, string> = { apikey: serviceKey, 'content-type': 'application/json' }
   if (!serviceKey.startsWith('sb_secret_') && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(serviceKey)) {
     headers.authorization = `Bearer ${serviceKey}`
@@ -51,16 +54,33 @@ async function callQuota(name: 'claim_job_choice_free_preview' | 'job_choice_fre
   const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/rpc/${name}`, {
     method: 'POST', headers, body: JSON.stringify(input),
   })
-  if (!response.ok) throw new Error('직장 선택 무료 조회 횟수를 저장하지 못했습니다.')
+  if (!response.ok) throw new Error('무료 결과 조회 횟수를 저장하지 못했습니다.')
   return validateQuota(await response.json())
 }
 
+function quotaOwnerId(service: PreviewQuotaService, ownerId: string): string {
+  return service === 'job_choice' ? ownerId : `${service}:${ownerId}`
+}
+
+export function claimServicePreview(service: PreviewQuotaService, ownerId: string, lineageId: string): Promise<ServicePreviewQuota> {
+  if (!ownerId || !lineageId) throw new Error('무료 결과 조회 계정과 입력 식별자가 필요합니다.')
+  return callQuota('claim_job_choice_free_preview', {
+    p_user_id: quotaOwnerId(service, ownerId),
+    // Existing job-choice rows were stored before this helper became shared. Keep their
+    // lineage keys byte-for-byte compatible so a previously viewed input is not charged again.
+    p_lineage_id: service === 'job_choice' ? lineageId : `${service}:${lineageId}`,
+  })
+}
+
+export function servicePreviewStatus(service: PreviewQuotaService, ownerId: string): Promise<ServicePreviewQuota> {
+  if (!ownerId) throw new Error('무료 결과 조회 계정이 필요합니다.')
+  return callQuota('job_choice_free_preview_status', { p_user_id: quotaOwnerId(service, ownerId) })
+}
+
 export function claimJobChoicePreview(ownerId: string, lineageId: string): Promise<JobChoicePreviewQuota> {
-  if (!ownerId || !lineageId) throw new Error('직장 선택 무료 조회 계정과 입력 식별자가 필요합니다.')
-  return callQuota('claim_job_choice_free_preview', { p_user_id: ownerId, p_lineage_id: lineageId })
+  return claimServicePreview('job_choice', ownerId, lineageId)
 }
 
 export function jobChoicePreviewStatus(ownerId: string): Promise<JobChoicePreviewQuota> {
-  if (!ownerId) throw new Error('직장 선택 무료 조회 계정이 필요합니다.')
-  return callQuota('job_choice_free_preview_status', { p_user_id: ownerId })
+  return servicePreviewStatus('job_choice', ownerId)
 }

@@ -37,7 +37,7 @@ import {
   withReportBirthCertainty,
 } from '../report/report-store.js'
 import { createSavedPreview, guardPreview } from '../report/report-preview.js'
-import { claimJobChoicePreview, jobChoicePreviewStatus, type JobChoicePreviewQuota } from '../work/jobchoice-preview-quota.js'
+import { claimServicePreview, servicePreviewStatus, type ServicePreviewQuota } from '../work/jobchoice-preview-quota.js'
 import { selectAdminVaultReadings, selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
@@ -142,6 +142,7 @@ import {
   buildMoneySaveContext,
   buildMoneySaveReport,
   createMoneySaveReportId,
+  moneySaveTeaserSection,
   parseMoneySaveRequest,
 } from '../money/save-service.js'
 import {
@@ -4025,11 +4026,11 @@ function reportToc(record: ReportRecord) {
   }))
 }
 
-function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSearch?: JobChoicePreviewQuota) {
+function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSearch?: ServicePreviewQuota) {
   const report = toClientReport(record)
   const entitled = access?.entitled === true
   const serviceKey = record.context.serviceKey ?? 'saju_master'
-  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save'
   const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
   const opening = serviceKey === 'quit_fortune'
     && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
@@ -4056,7 +4057,9 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
       ? { teaserSections: opening.map((savedSection, index) => {
         const section = serviceKey === 'quit_fortune'
           ? workQuitTeaserSection(savedSection, index, record.analysis, record.context)
-          : savedSection
+          : serviceKey === 'money_save'
+            ? moneySaveTeaserSection(savedSection, index, record.analysis, record.context)
+            : savedSection
         return {
         id: section.id,
         order: section.order,
@@ -4070,7 +4073,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         }
       }) }
       : {}),
-    toc: richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
+    toc: serviceKey === 'money_save' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
@@ -4090,22 +4093,24 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
-  let freeSearch: JobChoicePreviewQuota | undefined
-  if (params.context.serviceKey === 'job_choice' && params.owner && isCheckoutLive()) {
-    const access = await resolvePaidAccess(req, params.owner, 'job_choice', params.reportId, params.lineageId)
+  let freeSearch: ServicePreviewQuota | undefined
+  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save'
+    ? params.context.serviceKey : undefined
+  if (quotaService && params.owner && isCheckoutLive()) {
+    const access = await resolvePaidAccess(req, params.owner, quotaService, params.reportId, params.lineageId)
     if (access.reason !== 'order' && access.reason !== 'admin') {
-      freeSearch = await claimJobChoicePreview(params.owner.id, params.lineageId ?? params.reportId)
+      freeSearch = await claimServicePreview(quotaService, params.owner.id, params.lineageId ?? params.reportId)
       if (!freeSearch.allowed) {
         res.status(429).json({
           code: 'FREE_PREVIEW_LIMIT',
           error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.',
           freeSearch,
-          paymentUrl: paymentCheckoutUrl('job_choice', params.reportId),
+          paymentUrl: paymentCheckoutUrl(quotaService, params.reportId),
         })
         return true
       }
     } else {
-      freeSearch = await jobChoicePreviewStatus(params.owner.id)
+      freeSearch = await servicePreviewStatus(quotaService, params.owner.id)
     }
   }
   const { record } = await createOrGetReportRecord(params)
@@ -4142,8 +4147,17 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const freeSearch = record.context.serviceKey === 'job_choice' && owner && isCheckoutLive()
-        ? await jobChoicePreviewStatus(owner.id) : undefined
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save'
+        ? record.context.serviceKey : undefined
+      const freeSearch = quotaService && owner && isCheckoutLive()
+        ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'
+            ? await servicePreviewStatus(quotaService, owner.id)
+            : await claimServicePreview(quotaService, owner.id, record.lineageId ?? record.reportId))
+        : undefined
+      if (freeSearch && !freeSearch.allowed) {
+        res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
+        return
+      }
       res.json(savedPreviewResponse(record, access, freeSearch))
       return
     }
@@ -4767,8 +4781,17 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const freeSearch = record.context.serviceKey === 'job_choice' && owner && isCheckoutLive()
-        ? await jobChoicePreviewStatus(owner.id) : undefined
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save'
+        ? record.context.serviceKey : undefined
+      const freeSearch = quotaService && owner && isCheckoutLive()
+        ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'
+            ? await servicePreviewStatus(quotaService, owner.id)
+            : await claimServicePreview(quotaService, owner.id, record.lineageId ?? record.reportId))
+        : undefined
+      if (freeSearch && !freeSearch.allowed) {
+        res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
+        return
+      }
       res.json(savedPreviewResponse(record, access, freeSearch))
       return
     }

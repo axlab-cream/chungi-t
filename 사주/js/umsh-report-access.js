@@ -1188,7 +1188,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-quit-teaser-v3';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v1';
     document.head.appendChild(link);
   }
   /**
@@ -1400,6 +1400,13 @@
       renderProgress(payload.report);
       return renderedQuit;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'money_save'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideMoneySaveTeaserShell();
+      var renderedMoney = fillSlot('preview', renderMoneySaveTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedMoney;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1546,6 +1553,65 @@
       + '</footer>';
   }
 
+  function hideMoneySaveTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      // The live preview host is a direct child too. Hiding it inline would override the
+      // renderer after it fills the host, leaving a blank production page.
+      if (!child.hasAttribute || !child.hasAttribute('data-umsh-slot')) hideLegacyNode(child);
+    });
+    hideLegacyNode(document.querySelector('.submit-dock'));
+    hideLegacyNode(document.querySelector('.price-pill'));
+  }
+
+  /** 저축운은 저장된 1·2번 본문을 실제 입력 표와 계산된 오행 차트까지 이어서 보여 준다. */
+  function renderMoneySaveTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeMoneySaveTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 입력한 돈 정보를 모았습니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '저장된 사주에서 계산한 값입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '수입 형태와 저축 목표 사이에서 실제로 남는 금액을 확인해야, 더 벌어야 하는지 돈을 배치하는 순서를 바꿔야 하는지 구분할 수 있습니다.'
+        : '공동 지출이 있다면 결제와 정산의 담당을 분명히 하고, 없다면 이 유형을 내 소비 문제로 적용하지 않는 것이 맞습니다.';
+      return '<article class="job-teaser-reading money-teaser-reading" aria-labelledby="money-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'money_save')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="money-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    var ctaLabel = cta.label === '전체 목차 열기' ? cta.label : '전체 해석 보기';
+    return '<header class="job-teaser-opening money-teaser-opening">'
+      + '<span>저축운 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '돈이 들어온 뒤 어디에서 멈추는지부터 읽었습니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta money-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>돈이 새는 순간부터 남기기 시작하는 조건까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 지출, 저축, 관계 비용과 시기별 돈 관리를 입력한 상황에 맞춰 이어서 확인합니다.')) + '</p>'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(ctaLabel) + '</a>'
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</footer>';
+  }
+
   function teaserQuotaText(quota) {
     if (!quota || !Number.isInteger(quota.used) || quota.limit !== 5) return '';
     var used = Math.min(5, Math.max(0, quota.used));
@@ -1558,8 +1624,9 @@
     return renderLockedTeaserToc(toc);
   }
 
-  function renderLockedTeaserToc(toc) {
-    var locked = (Array.isArray(toc) ? toc : []).slice(2, 10).filter(function (item) {
+  function renderLockedTeaserToc(toc, options) {
+    var source = Array.isArray(toc) ? toc : [];
+    var locked = (options && options.all ? source.slice(2) : source.slice(2, 10)).filter(function (item) {
       return item && (item.classification || item.category);
     });
     if (!locked.length) return '';
@@ -1571,10 +1638,28 @@
         + '<span class="job-teaser-toc-copy"><strong>' + escapeHtml(title) + '</strong>' + subtitle + '</span>'
         + '<span class="job-teaser-toc-lock" aria-label="잠긴 해석">잠김</span></li>';
     }).join('');
+    var content = '<header><strong>나머지 ' + locked.length + '개 목차</strong><small>전체 해석에서 이어집니다</small></header>'
+      + '<ol>' + rows + '</ol>';
+    if (options && options.collapsible) {
+      return '<details class="job-teaser-toc job-teaser-toc-collapsible" aria-label="나머지 잠긴 목차">'
+        + '<summary><strong>나머지 ' + locked.length + '개 목차</strong><small>눌러서 목차 보기</small></summary>'
+        + '<ol>' + rows + '</ol>'
+        + '</details>';
+    }
     return '<section class="job-teaser-toc" aria-label="나머지 잠긴 목차">'
-      + '<header><strong>나머지 ' + locked.length + '개 목차</strong><small>전체 해석에서 이어집니다</small></header>'
-      + '<ol>' + rows + '</ol>'
+      + content
       + '</section>';
+  }
+
+  function normalizeMoneySaveTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 사주와 입력한 돈 습관을 함께 보면\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 통장에서 실제로 확인할 장면\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 다음 소비 전에 물어볼 것\n')
+      .replace(/재성\s*\([^)]*\)/g, '돈과 자원을 다루는 방식')
+      .replace(/비겁\s*\([^)]*\)/g, '사람과 나누고 경쟁하는 방식')
+      .trim();
   }
 
   function normalizeQuitFortuneTeaserCopy(value) {
@@ -1692,6 +1777,27 @@
         '<a href="/signup?entry=saved-report&returnTo=' + encodeURIComponent(location.pathname + location.search) + '#login">로그인</a>' +
         ' · <a href="' + escapeHtml(route ? route[0] : '/') + '">서비스로 돌아가기</a>' +
       '</p>';
+    markFilled(node);
+    return true;
+  }
+
+  /** 다섯 번째 이후 새 입력은 정적 껍데기 대신 실제 결제 경계만 한 번 보여 준다. */
+  function showPreviewLimit(payload) {
+    if (!inPlaceEnabled() || !payload || payload.code !== 'FREE_PREVIEW_LIMIT') return false;
+    var node = slotNode('preview') || slotNode('state');
+    if (!node) return false;
+    ensureInPlaceStyles();
+    if (canonical(key) === 'money_save') hideMoneySaveTeaserShell();
+    var quota = payload.freeSearch || {};
+    var used = Number.isInteger(quota.used) ? Math.min(5, Math.max(0, quota.used)) : 5;
+    node.innerHTML = '<section class="job-teaser-final-cta money-teaser-final-cta" aria-labelledby="preview-limit-title">'
+      + '<span>무료 결과 조회 ' + used + '/5회 사용</span>'
+      + '<h1 id="preview-limit-title">무료 결과 5회를 모두 확인했습니다</h1>'
+      + '<p>' + escapeHtml(payload.error || '전체 해석을 열면 저장된 사주와 입력값으로 이어지는 모든 항목을 확인할 수 있습니다.') + '</p>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(payload.paymentUrl || '/payment?product=' + encodeURIComponent(canonical(key) || 'money_save')) + '">전체 해석 보기</a>'
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</section>';
+    revealAncestors(node);
     markFilled(node);
     return true;
   }
@@ -2003,7 +2109,10 @@
     var response = await rawFetch(reportUrl(id,new URLSearchParams(location.search).get('orderId')), {headers:headerCache || {},cache:'no-store'});
     var payload = await response.json().catch(function(){return {};});
     if(epoch!==ownerEpoch) return;
-    if (!response.ok) { gate(payload.error || '이 계정에서 해석을 확인할 수 없습니다. 로그인과 구매 내역을 확인해 주세요.'); return; }
+    if (!response.ok) {
+      if (!showPreviewLimit(payload)) gate(payload.error || '이 계정에서 해석을 확인할 수 없습니다. 로그인과 구매 내역을 확인해 주세요.');
+      return;
+    }
     consume(payload,headerCache);
   }
   async function reportFetch(path, options) {
@@ -2026,7 +2135,7 @@
     var payload=await response.clone().json().catch(function(){return {};});
     if(epoch!==ownerEpoch) return new Response(JSON.stringify({error:'계정이 변경되었습니다. 현재 계정으로 다시 열어 주세요.',code:'ACCOUNT_CHANGED'}),{status:403,headers:{'Content-Type':'application/json'}});
     if (response.ok) consume(payload,next.headers,body);
-    else if (id) gate(payload.error || '저장된 해석을 확인할 수 없습니다.');
+    else if (!showPreviewLimit(payload) && id) gate(payload.error || '저장된 해석을 확인할 수 없습니다.');
     return response;
   }
   async function boot() {

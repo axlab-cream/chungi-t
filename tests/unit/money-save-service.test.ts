@@ -6,6 +6,8 @@ import {
   buildMoneySaveReport,
   createMoneySaveReportId,
   MONEY_SAVE_TOC,
+  moneySaveRequestFromContext,
+  moneySaveTeaserSection,
   parseMoneySaveRequest,
 } from '../../src/money/save-service.js'
 import type { BirthInput } from '../../src/types/index.js'
@@ -65,4 +67,44 @@ test('money save service builds a dedicated spending tendency report', () => {
 test('money save request requires money habit', () => {
   assert.throws(() => parseMoneySaveRequest({ moneyHabit: '' }), /돈 쓰는 습관/)
   assert.throws(() => parseMoneySaveRequest({ moneyHabit: '돈' }), /2자 이상/)
+})
+
+test('saved money teaser adds only entered facts, distinct images and computed five-element evidence', () => {
+  const input = parseMoneySaveRequest({
+    moneyHabit: '월급 뒤 쇼핑비가 커집니다',
+    incomePattern: '고정 월급',
+    leakPoint: '쇼핑과 취향',
+    relationSpending: '친구 모임에서 먼저 결제',
+    savingGoal: '매달 비상금',
+    concern: '정산이 늦으면 계획이 흔들립니다.',
+  })
+  const analysis = analyzeSaju(birth)
+  const context = buildMoneySaveContext('테스트', input)
+  const report = buildMoneySaveReport(analysis, birth, context, input, 'money-teaser')
+  const parsed = moneySaveRequestFromContext(context)
+  const first = moneySaveTeaserSection(report.sections[0], 0, analysis, context)
+  const second = moneySaveTeaserSection(report.sections[1], 1, analysis, context)
+
+  assert.deepEqual(parsed, input)
+  assert.notEqual(first.imageSrc, second.imageSrc)
+  assert.match(first.imageSrc!, /01-stable-salary\.webp$/)
+  assert.match(second.imageSrc!, /02-shared-income-spending\.webp$/)
+  assert.match(first.storytelling!.tableMd!, /고정 월급/)
+  assert.match(first.storytelling!.tableMd!, /쇼핑과 취향/)
+  assert.match(first.storytelling!.tableMd!, /매달 비상금/)
+  assert.doesNotMatch(first.storytelling!.tableMd!, /월 수입|지출 금액|만원/)
+  assert.ok(first.interpretation.length > 900)
+  assert.ok(second.interpretation.length > 800)
+  assert.match(first.interpretation, /월급 뒤 쇼핑비가 커집니다/)
+  assert.match(first.interpretation, /정산이 늦으면 계획이 흔들립니다/)
+  assert.match(second.interpretation, /친구 모임에서 먼저 결제/)
+  assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /기본 QA|가상 입력|샘플 데이터|작업실 예시|실제 회원의 결과가 아닙니다/)
+  assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /[木火土金水]\)/)
+  assert.deepEqual(second.storytelling!.chartPoints!.map((point) => point.value), [
+    analysis.elementCount.wood,
+    analysis.elementCount.fire,
+    analysis.elementCount.earth,
+    analysis.elementCount.metal,
+    analysis.elementCount.water,
+  ])
 })
