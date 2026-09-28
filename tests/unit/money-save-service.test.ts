@@ -7,6 +7,7 @@ import {
   createMoneySaveReportId,
   MONEY_SAVE_TOC,
   moneySaveRequestFromContext,
+  moneySaveTeaserPreview,
   moneySaveTeaserSection,
   parseMoneySaveRequest,
 } from '../../src/money/save-service.js'
@@ -92,12 +93,22 @@ test('saved money teaser adds only entered facts, distinct images and computed f
   assert.match(first.storytelling!.tableMd!, /고정 월급/)
   assert.match(first.storytelling!.tableMd!, /쇼핑과 취향/)
   assert.match(first.storytelling!.tableMd!, /매달 비상금/)
+  assert.match(first.storytelling!.tableMd!, /이 풀이에서 보는 이유/)
   assert.doesNotMatch(first.storytelling!.tableMd!, /월 수입|지출 금액|만원/)
+  assert.deepEqual(first.storytelling!.flowSteps!.map((step) => step.value), ['고정 월급', '매달 비상금', '쇼핑과 취향'])
+  assert.equal(second.storytelling!.flowSteps!.length, 3)
+  assert.match(second.storytelling!.tableMd!, /태어난 해.*태어난 달.*태어난 날.*태어난 시간/s)
+  assert.match(second.storytelling!.tableMd!, /돈 문제에서 읽는 부분/)
+  assert.doesNotMatch(second.storytelling!.tableMd!, /[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/)
   assert.ok(first.interpretation.length > 900)
   assert.ok(second.interpretation.length > 800)
   assert.match(first.interpretation, /월급 뒤 쇼핑비가 커집니다/)
   assert.match(first.interpretation, /정산이 늦으면 계획이 흔들립니다/)
   assert.match(second.interpretation, /친구 모임에서 먼저 결제/)
+  assert.match(first.interpretation, /돈이 안 모이는 첫 원인은 수입의 크기보다 순서/)
+  assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /비교 설명으로만|현재 정보만으로|판단할 수 없어요/)
+  assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /\bwood\b|\bfire\b/)
+  assert.match(first.interpretation, /네 기둥을 풀어 보면 태어난 날의 중심은/)
   assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /기본 QA|가상 입력|샘플 데이터|작업실 예시|실제 회원의 결과가 아닙니다/)
   assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /[木火土金水]\)/)
   assert.deepEqual(second.storytelling!.chartPoints!.map((point) => point.value), [
@@ -107,4 +118,20 @@ test('saved money teaser adds only entered facts, distinct images and computed f
     analysis.elementCount.metal,
     analysis.elementCount.water,
   ])
+  assert.equal(new Set(second.storytelling!.chartPoints!.map((point) => point.note)).size, 5)
+})
+
+test('money teaser preview leads with the customer problem instead of interpretation mechanics', () => {
+  const input = parseMoneySaveRequest({
+    moneyHabit: '왔다 갔다 · 쇼핑/취향',
+    incomePattern: '월급 중심',
+    leakPoint: '쇼핑/취향',
+    savingGoal: '월 고정저축',
+    concern: '돈은 들어오는데 왜 안 남을까요?',
+  })
+  const preview = moneySaveTeaserPreview(buildMoneySaveContext('테스트', input), 16)
+  assert.match(preview.headline, /월급 중심.*쇼핑\/취향.*저축보다 먼저/)
+  assert.match(preview.summary, /월 고정저축.*수입일 직후/)
+  assert.match(preview.paidValue, /16개 항목/)
+  assert.doesNotMatch(JSON.stringify(preview), /적어 주셨습니다|전통 명리에서|비교 설명|해석을 연결/)
 })

@@ -155,6 +155,8 @@ test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에
   assert.match(accessSource, /renderSectionImage\(section, 'money_save'\)/)
   assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
   assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /renderMoneyFlow\(story\.flowSteps/)
+  assert.match(accessSource, /data-label=/)
   assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: true \}\)/)
   assert.match(accessSource, /<details class="job-teaser-toc job-teaser-toc-collapsible"/)
   assert.match(accessSource, /\(opened \? ' open' : ''\)/)

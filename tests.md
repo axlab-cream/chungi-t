@@ -1058,3 +1058,6 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MONEY-TEASER-10 | main·운영 배포·실제 운영 모바일 검증 | PASS (`164baf5b`, CI `36402994729`, Vercel `dpl_7tP4q6EpaunYeAhnZVBNggQJJLXp`; 390px에서 2개 해석·2개 이미지·표·차트·기본 닫힘 14개 잠금 목차·단일 CTA·가로 넘침 0 확인) |
 | MONEY-TEASER-11 | 무료 본문을 결제 권한으로 오인하지 않음; 미결제는 개인 결제 URL, 권한 회원은 저장 목차 URL | PASS (공통 리더 회귀) |
 | MONEY-TEASER-12 | 입력값 다시 확인을 5회 조회 상태 행에 배치하고 CTA는 아래 한 번만 유지 | PASS (렌더·CSS 계약) |
+| MONEY-TEASER-13 | 고객 문제 중심 저축 티저 문구 | PASS (첫 화면 내부 절차·비교 설명 제거, 실제 수입·누수·저축 목표 직접 연결, 집중 22/22) |
+| MONEY-TEASER-14 | 표·순서도·오행 차트 상세성과 모바일 가독성 | PASS (3열 근거표, 실제 입력 기반 3단계 순서도, 오행별 개별 설명, 430px 카드형 표 계약) |
+| MONEY-TEASER-15 | 네 기둥 기반 개인 사주 근거 | PASS (해·달·날·시간 실제 기운 구성, 태어난 날 중심/달 반복/시간 목표 연결, 한자 기둥 미노출) |

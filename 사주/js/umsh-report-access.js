@@ -1188,7 +1188,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v2';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v3';
     document.head.appendChild(link);
   }
   /**
@@ -1579,6 +1579,9 @@
       var bodyText = normalizeMoneySaveTeaserCopy(source);
       var title = String(story.feel || section.hook || section.classification || '').trim();
       var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '입력한 내용을 돈의 순서로 정리했습니다.')
+        : '';
       var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 입력한 돈 정보를 모았습니다.') : '';
       var chart = story.chartPoints && story.chartPoints.length
         ? renderStoryChart(story.chartPoints, story.chartCaption || '저장된 사주에서 계산한 값입니다.')
@@ -1593,7 +1596,7 @@
         + '<h2 id="money-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
         + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
         + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
-        + table + chart
+        + flow + table + chart
         + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
         + '</div></article>';
     }).join('');
@@ -1662,7 +1665,9 @@
     return String(value || '')
       .replace(/^\[주요 포인트\]\s*/, '')
       .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 사주와 입력한 돈 습관을 함께 보면\n')
+      .replace(/\s*\[사주와 생활을 함께 보면\]\s*/g, '\n\n### 사주와 돈 습관이 겹치는 지점\n')
       .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 통장에서 실제로 확인할 장면\n')
+      .replace(/\s*\[결정 전에 물어볼 질문\]\s*/g, '\n\n### 지금 답해야 할 질문\n')
       .replace(/\s*\[해법\]\s*/g, '\n\n### 다음 소비 전에 물어볼 것\n')
       .replace(/재성\s*\([^)]*\)/g, '돈과 자원을 다루는 방식')
       .replace(/비겁\s*\([^)]*\)/g, '사람과 나누고 경쟁하는 방식')
@@ -1836,14 +1841,31 @@
     var head = hasHeader
       ? '<thead><tr>' + rows[0].map(function (cell) { return '<th scope="col">' + escapeHtml(cell) + '</th>'; }).join('') + '</tr></thead>'
       : '';
+    var headerCells = hasHeader ? rows[0] : [];
     var bodyRows = hasHeader ? rows.slice(1) : rows;
     var body = '<tbody>' + bodyRows.map(function (row) {
-      return '<tr>' + row.map(function (cell) { return '<td>' + escapeHtml(cell) + '</td>'; }).join('') + '</tr>';
+      return '<tr>' + row.map(function (cell, index) { return '<td' + (headerCells[index] ? ' data-label="' + escapeHtml(headerCells[index]) + '"' : '') + '>' + escapeHtml(cell) + '</td>'; }).join('') + '</tr>';
     }).join('') + '</tbody>';
     return '<figure class="story-table-figure">' +
       '<div class="story-table-scroll" role="region" aria-label="' + escapeHtml(caption || '해석 비교표') + '" tabindex="0"><table class="story-table">' + head + body + '</table></div>' +
       (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '') +
       '</figure>';
+  }
+
+  /** 저축운 입력값을 숫자 점수로 바꾸지 않고, 실제로 적용할 순서로 보여 준다. */
+  function renderMoneyFlow(steps, caption) {
+    var list = (steps || []).filter(function (step) {
+      return step && String(step.label || '').trim() && String(step.value || '').trim();
+    });
+    if (!list.length) return '';
+    return '<figure class="money-flow-figure" aria-label="' + escapeHtml(caption || '돈의 순서') + '">'
+      + '<ol class="money-flow">' + list.map(function (step) {
+        return '<li><span class="money-flow-label">' + escapeHtml(step.label) + '</span>'
+          + '<strong>' + escapeHtml(step.value) + '</strong>'
+          + (step.note ? '<small>' + escapeHtml(step.note) + '</small>' : '') + '</li>';
+      }).join('') + '</ol>'
+      + (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '')
+      + '</figure>';
   }
 
   /**

@@ -142,6 +142,7 @@ import {
   buildMoneySaveContext,
   buildMoneySaveReport,
   createMoneySaveReportId,
+  moneySaveTeaserPreview,
   moneySaveTeaserSection,
   parseMoneySaveRequest,
 } from '../money/save-service.js'
@@ -4042,6 +4043,10 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
       record.reportId,
     ).sections.slice(0, 2)
     : savedOpening
+  const storedPreview = guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context)
+  const preview = serviceKey === 'money_save'
+    ? guardPreview(moneySaveTeaserPreview(record.context, report.sections.length), record.context)
+    : storedPreview
   return {
     previewOnly: true,
     entitled,
@@ -4052,7 +4057,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
     publicUrl: report.publicUrl,
     serviceKey,
     ...(freeSearch ? { freeSearch } : {}),
-    preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context),
+    preview,
     ...(opening.length === 2 && opening.every((section) => section.status === 'complete' && section.interpretation?.trim())
       ? { teaserSections: opening.map((savedSection, index) => {
         const section = serviceKey === 'quit_fortune'

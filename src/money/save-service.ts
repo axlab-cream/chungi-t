@@ -30,6 +30,18 @@ const MONEY_ELEMENT_LABELS: Array<[keyof SajuAnalysis['elementCount'], string]> 
   ['wood', '나무'], ['fire', '불'], ['earth', '흙'], ['metal', '쇠'], ['water', '물'],
 ]
 
+const MONEY_ELEMENT_MEANING: Record<keyof SajuAnalysis['elementCount'], string> = {
+  wood: '새 목표를 시작하고 넓히는 힘',
+  fire: '욕구와 만족을 밖으로 드러내는 힘',
+  earth: '생활 기반과 반복 비용을 유지하는 힘',
+  metal: '한도와 우선순위를 분명히 나누는 힘',
+  water: '입금과 지출 사이의 변화를 살피는 힘',
+}
+
+function moneyElementLabel(key: keyof SajuAnalysis['elementCount']): string {
+  return MONEY_ELEMENT_LABELS.find(([element]) => element === key)?.[1] ?? '기운'
+}
+
 function moneyTableCell(value: string): string {
   return value.replace(/\r?\n/g, ' ').replace(/\|/g, '｜').trim()
 }
@@ -60,23 +72,33 @@ export function moneySaveRequestFromContext(context: SajuReportContext): MoneySa
 }
 
 function moneyTeaserStories(analysis: SajuAnalysis | undefined, input: MoneySaveRequest): [SectionStorytelling, SectionStorytelling] {
-  const rows = [
-    ['수입 형태', input.incomePattern ?? ''],
-    ['요즘 돈 쓰는 습관', input.moneyHabit],
-    ['직접 짚은 지출', input.leakPoint ?? ''],
-    ['관계에서 쓰는 돈', input.relationSpending ?? ''],
-    ['저축 목표', input.savingGoal ?? ''],
-    ['현재 고민', input.concern ?? ''],
-  ].filter((row): row is [string, string] => Boolean(row[1]?.trim()))
-  const table = [
-    '| 확인한 정보 | 입력 내용 |',
-    '| --- | --- |',
-    ...rows.map(([label, value]) => `| ${label} | ${moneyTableCell(value)} |`),
-  ].join('\n')
   const income = moneyTableCell(input.incomePattern ?? '')
+  const habit = moneyTableCell(input.moneyHabit)
   const goal = moneyTableCell(input.savingGoal ?? '')
   const leak = moneyTableCell(input.leakPoint || input.moneyHabit || input.concern || '')
   const relation = moneyTableCell(input.relationSpending ?? '')
+  const pillarTable = analysis ? [
+    '| 사주의 기둥 | 실제 구성 | 돈 문제에서 읽는 부분 |',
+    '| --- | --- | --- |',
+    `| 태어난 해 | ${moneyElementLabel(analysis.fourPillars.year.stemElement)} · ${moneyElementLabel(analysis.fourPillars.year.branchElement)} | 처음 익힌 돈 습관과 주변의 영향 |`,
+    `| 태어난 달 | ${moneyElementLabel(analysis.fourPillars.month.stemElement)} · ${moneyElementLabel(analysis.fourPillars.month.branchElement)} | 일과 수입을 반복해서 운영하는 방식 |`,
+    `| 태어난 날 | ${moneyElementLabel(analysis.fourPillars.day.stemElement)} · ${moneyElementLabel(analysis.fourPillars.day.branchElement)} | 내가 직접 결제하고 멈추는 방식 |`,
+    `| 태어난 시간 | ${moneyElementLabel(analysis.fourPillars.hour.stemElement)} · ${moneyElementLabel(analysis.fourPillars.hour.branchElement)} | 앞으로 만들 저축 목표와 실행 방식 |`,
+  ].join('\n') : undefined
+  const rowCandidates: Array<[string, string, string]> = [
+    ['돈이 들어오는 방식', income, income ? '매달 분석을 시작할 지점' : ''],
+    ['반복되는 소비 장면', habit, '잔액이 흔들리는 패턴'],
+    ['직접 짚은 돈구멍', leak, '저축보다 앞서는지 확인할 지출'],
+    ...(relation ? [['관계에서 쓰는 돈', relation, '정산일과 내 몫을 분리할 항목'] as [string, string, string]] : []),
+    ['먼저 남기고 싶은 돈', goal, '월급일에 선분리할 목표'],
+    ['지금 풀고 싶은 문제', moneyTableCell(input.concern ?? ''), '이번 풀이가 답해야 할 질문'],
+  ]
+  const rows = rowCandidates.filter((row) => Boolean(row[1]?.trim()))
+  const table = [
+    '| 확인 포인트 | 실제 입력 | 이 풀이에서 보는 이유 |',
+    '| --- | --- | --- |',
+    ...rows.map(([label, value, meaning]) => `| ${label} | ${value} | ${meaning} |`),
+  ].join('\n')
   return [
     {
       feel: income && goal
@@ -86,22 +108,56 @@ function moneyTeaserStories(analysis: SajuAnalysis | undefined, input: MoneySave
         ? `직접 짚은 “${leak}”이 월급 직후인지, 예정된 비용을 낸 뒤인지 나누어 보면 수입의 문제가 아니라 돈을 배치하는 순서가 보입니다.`
         : '수입이 들어온 뒤 저축과 생활비가 어떤 순서로 빠져나가는지 보면 돈이 남지 않는 원인을 더 구체적으로 읽을 수 있습니다.',
       tableMd: table,
-      tableCaption: '직접 입력한 내용만 모았습니다. 비어 있던 금액이나 횟수는 덧붙이지 않았습니다.',
+      tableCaption: '입력한 사실과 각 항목이 이번 풀이에서 맡는 역할을 한 표에 연결했습니다.',
+      flowSteps: [
+        { label: '1. 들어오는 돈', value: income || '입력한 수입', note: '돈 관리가 시작되는 시점' },
+        { label: '2. 먼저 남길 돈', value: goal || '입력한 저축 목표', note: '수입일에 가장 먼저 분리' },
+        { label: '3. 남은 범위에서 쓸 돈', value: leak || '직접 짚은 지출', note: '목표를 뺀 뒤 사용할 항목' },
+      ],
+      flowCaption: '현재 입력을 바탕으로 바꿔야 할 돈의 순서입니다. 입력하지 않은 금액이나 비율은 만들지 않았습니다.',
       scene: '', actions: [], imagePrompt: { ko: '', en: '' },
     },
     {
       feel: relation
         ? `“${relation}”에서 쓰는 돈은 호의일까요, 반복되는 부담일까요?`
-        : '함께 쓰는 돈이 없다면, 이 항목은 내 소비와 타인의 몫을 가르는 질문으로 읽어야 합니다.',
+        : leak
+          ? `${income || '수입'}은 들어오는데 왜 “${leak}” 뒤에는 잔액이 크게 흔들릴까요?`
+          : '수입은 들어오는데 왜 잔액은 매달 다르게 남을까요?',
       softBridge: relation
         ? `말씀한 “${relation}”에서 누가 먼저 결제하고 언제 정산하는지 확인하면, 관계를 지키는 지출과 경계가 흐려진 지출을 구분할 수 있습니다.`
-        : '공동 지출이 실제로 없다면 해당 유형을 내 문제로 단정하지 않습니다. 대신 부탁받은 결제와 내 생활비가 섞이는 순간이 있는지만 확인합니다.',
+        : leak
+          ? `지금 잔액을 흔드는 쪽은 관계 비용보다 직접 짚은 “${leak}”입니다. 취향 소비를 없애기보다 결제 시점과 저축 시점의 순서를 바꾸는 편이 훨씬 정확합니다.`
+          : '사람에게 쓰는 돈보다 내 생활비 안에서 반복되는 결제 시점을 먼저 살펴봅니다.',
       ...(analysis ? { chartPoints: MONEY_ELEMENT_LABELS.map(([key, label]) => ({
         label,
         value: analysis.elementCount[key],
-        note: '저장된 사주에서 서버가 계산한 오행 개수입니다.',
+        note: ({
+          wood: '새 목표와 관심사를 시작하고 넓히는 힘',
+          fire: '욕구와 만족을 눈에 보이게 드러내는 힘',
+          earth: '생활비와 고정비처럼 기반을 유지하는 힘',
+          metal: '한도와 우선순위를 나누는 힘',
+          water: '입금과 지출 사이의 움직임을 읽는 힘',
+        } as Record<string, string>)[key],
       })) } : {}),
-      chartCaption: '소비 점수나 재물운 등급이 아니라, 저장된 사주에서 계산한 다섯 기운의 분포입니다.',
+      chartCaption: '저장된 사주에서 계산한 다섯 기운의 개수입니다. 막대 길이는 소비 점수가 아니라 어느 성향의 힘이 상대적으로 많이 드러나는지 비교합니다.',
+      ...(pillarTable ? {
+        tableMd: pillarTable,
+        tableCaption: '한자를 노출하지 않고 네 기둥의 실제 기운 구성과 이번 돈 풀이에서 맡는 역할을 연결했습니다.',
+      } : {}),
+      flowSteps: relation
+        ? [
+            { label: '내가 먼저 낸 돈', value: relation, note: '공동 비용과 내 생활비를 분리' },
+            { label: '상대의 몫', value: '결제 전에 범위 합의', note: '누가 얼마를 맡는지 확인' },
+            { label: '정산 완료', value: '돌려받을 날짜 기록', note: '저축 가능액과 섞지 않기' },
+          ]
+        : [
+            { label: '결제 욕구', value: leak || habit, note: '사고 싶은 이유를 한 문장으로 확인' },
+            { label: '하루 간격', value: '바로 결제하지 않기', note: '짧게 반복되는 구매 속도를 늦춤' },
+            { label: '다시 확인', value: goal || '저축 목표', note: '목표를 건드리지 않는 범위에서 결제' },
+          ],
+      flowCaption: relation
+        ? '관계 비용이 내 저축을 대신 쓰지 않도록 결제부터 정산까지의 책임을 나눈 순서입니다.'
+        : '직접 짚은 지출을 없애지 않고 결제 속도만 조절하는 순서입니다.',
       scene: '', actions: [], imagePrompt: { ko: '', en: '' },
     },
   ]
@@ -114,9 +170,18 @@ function entered(value: string | undefined, fallback: string): string {
 function moneyElementSentence(analysis: SajuAnalysis | undefined): string {
   if (!analysis) return ''
   const counts = MONEY_ELEMENT_LABELS.map(([key, label]) => `${label} ${analysis.elementCount[key]}개`).join(', ')
-  const dominant = String(analysis.dominantElement ?? '').replace(/\([^)]*\)/g, '').trim()
-  const weak = String(analysis.weakElement ?? '').replace(/\([^)]*\)/g, '').trim()
-  return `저장된 사주에서는 ${counts}로 계산됩니다. 가장 많이 나타난 ${dominant || '기운'}은 익숙한 방식에 힘이 쏠리는 모습을, 상대적으로 적은 ${weak || '기운'}은 돈을 남길 때 의식적으로 보완할 부분을 읽는 참고가 됩니다. 이 숫자는 저축 점수가 아니라 태어난 날짜와 시간에서 계산한 분포입니다.`
+  const dominant = moneyElementLabel(analysis.dominantElement)
+  const weak = moneyElementLabel(analysis.weakElement)
+  const day = analysis.fourPillars.day
+  const month = analysis.fourPillars.month
+  const hour = analysis.fourPillars.hour
+  const dayLabel = moneyElementLabel(day.stemElement)
+  const monthLabel = moneyElementLabel(month.branchElement)
+  const hourLabel = moneyElementLabel(hour.stemElement)
+  const routineLink = day.stemElement === month.branchElement
+    ? `태어난 날의 ${dayLabel}과 태어난 달의 ${monthLabel}이 같은 방향이라, 한 번 정한 소비 습관이 수입 주기 안에서 꾸준히 반복되기 쉽습니다.`
+    : `태어난 날의 ${dayLabel}과 태어난 달의 ${monthLabel}이 서로 달라, 사고 싶은 마음과 월급을 운영하는 방식이 엇갈릴 때 잔액의 폭이 커지기 쉽습니다.`
+  return `네 기둥을 풀어 보면 태어난 날의 중심은 ${dayLabel}, 수입과 일상의 반복을 보는 태어난 달은 ${monthLabel}, 앞으로의 목표를 보는 태어난 시간은 ${hourLabel} 기운입니다. ${routineLink} 전체 분포는 ${counts}이며, 가장 강한 ${dominant}은 ${MONEY_ELEMENT_MEANING[analysis.dominantElement]}에 힘을 싣고 상대적으로 약한 ${weak}은 ${MONEY_ELEMENT_MEANING[analysis.weakElement]}을 의식적으로 보완하게 합니다. 지금 적어 준 소비 습관까지 겹쳐 보면, 의지가 약해서가 아니라 시작하는 힘보다 멈추고 나누는 순서가 늦어지는 쪽에 가깝습니다.`
 }
 
 function moneyTeaserInterpretation(index: number, analysis: SajuAnalysis | undefined, input: MoneySaveRequest): string {
@@ -130,31 +195,55 @@ function moneyTeaserInterpretation(index: number, analysis: SajuAnalysis | undef
 
   if (index === 0) {
     return [
-      `[주요 포인트] “${habit}”이라고 적은 대목에는 돈이 부족하다는 말보다, 수입이 들어온 직후 지출의 우선순위가 바뀐다는 단서가 있습니다. ${income}에서 ${goal}을 남기고 싶은 지금, 가장 먼저 볼 것은 더 아끼라는 충고가 아니라 돈이 들어온 날부터 ${leak}에 닿기 전까지의 순서입니다.`,
-      `“${concern}”이라는 고민도 같은 장면을 가리킵니다. 저축을 월말의 남은 돈으로 처리하면 ${leak}이 먼저 자리를 차지하고, 목표는 다음 달로 밀릴 수 있습니다. 반대로 수입이 확인되는 날 목표 몫을 먼저 떼고 남은 범위에서 생활비를 쓰고 있다면, 이미 작동하는 습관이므로 무리하게 바꿀 필요가 없습니다. 핵심은 의지가 아니라 이 순서가 실제 통장에서 반복되는지입니다.`,
+      `[주요 포인트] 돈이 안 모이는 첫 원인은 수입의 크기보다 순서에 있습니다. ${income}이 들어와도 “${habit}”이 반복되고, 직접 돈이 새는 곳으로 “${leak}”을 짚었습니다. 지금 통장에서는 ${goal}보다 ${leak}이 먼저 움직일 가능성이 가장 큽니다.`,
+      `“${concern}”이라는 고민은 이 순서가 만든 결과입니다. 저축을 월말에 남은 돈으로 처리하는 동안 ${leak}은 결제 순간마다 먼저 빠져나갑니다. 그래서 수입이 들어와도 남는 금액은 매달 달라집니다. ${goal}을 만드는 데 필요한 것은 더 독하게 참는 일이 아니라, 수입이 들어온 당일 저축 몫이 ${leak}보다 먼저 빠져나가게 만드는 것입니다.`,
       `[사주와 생활을 함께 보면] ${elements}`,
-      `[확인할 장면] 최근 수입이 들어온 날의 거래 내역에서 첫 세 건만 보세요. 저축, 고정비, ${leak} 가운데 무엇이 먼저 빠졌는지 확인하면 “왜 안 모이지?”라는 막연한 질문이 어느 단계에서 무너지는지로 바뀝니다. 금액을 입력하지 않았으므로 임의의 예산이나 비율은 제시하지 않습니다.`,
+      `[확인할 장면] 최근 수입일 직후의 거래 세 건을 펼쳐 보세요. 저축보다 ${leak} 결제가 먼저 있다면, 돈이 사라지는 구간은 이미 확인된 셈입니다. 그 순서를 뒤집는 순간부터 “돈은 들어오는데 남지 않는 달”이 달라집니다.`,
       `[결정 전에 물어볼 질문] ${goal}은 수입이 들어오자마자 분리되는 돈인가요, 한 달을 쓰고 남으면 옮기는 돈인가요? ${leak}에 쓰기 전 멈출 수 있는 계좌·자동이체·결제일 장치가 지금 하나라도 있나요?`,
-      `[해법] 이번 장의 결론은 소비를 전부 줄이라는 뜻이 아닙니다. ${income}이 들어온 날 ${goal}을 먼저 떼어 두는 구조가 실제로 있는지 확인해야, 수입을 늘릴 문제인지 돈을 배치하는 순서를 고칠 문제인지 분명해집니다.`,
+      `[해법] ${income}이 들어온 날 ${goal}을 먼저 분리하고, 남은 범위 안에서 ${leak}을 쓰는 순서가 이 문제의 핵심 해법입니다. 취향을 없애는 방식보다 저축이 먼저 끝난 뒤 편하게 쓰는 방식이 오래갑니다.`,
     ].join('\n\n')
   }
 
   const relationOpening = relation
-    ? `“${relation}”이라고 적은 관계 비용은 단순한 과소비보다 정산 시점과 책임이 흐려질 때 부담으로 남기 쉽습니다.`
-    : '관계 비용을 따로 적지 않았다면, 사람 때문에 돈이 샌다고 단정할 근거는 없습니다.'
+    ? `“${relation}”에서 쓰는 돈은 금액보다 먼저 낸 사람과 정산 날짜가 흐려질 때 저축을 흔듭니다.`
+    : `지금 잔액을 흔드는 중심은 사람에게 쓰는 돈보다 직접 짚은 “${leak}”입니다.`
   const relationScene = relation
     ? `최근 ${relation}이 있었던 장면을 떠올려 보세요. 누가 먼저 결제했는지, 돌려받을 날짜를 말했는지, 내 몫과 상대 몫이 기록됐는지가 실제 확인 지점입니다.`
-    : '대신 부탁받아 먼저 결제한 일, 선물·모임비·공동 구독처럼 내 생활비와 다른 사람의 몫이 섞인 장면이 있었는지만 확인하세요. 그런 장면도 없다면 이 항목은 현재의 누수 원인에서 제외하는 편이 맞습니다.'
+    : `최근 ${leak} 결제 세 건의 날짜를 나란히 놓아 보세요. 금액보다 결제 사이의 간격이 짧아진 구간이 있다면 잔액이 흔들린 시점과 바로 맞닿아 있습니다.`
   return [
-    `[주요 포인트] ${relationOpening} 첫 번째 해석에서 ${leak}과 저축 순서를 살폈다면, 이번에는 내 소비와 함께 쓰는 돈이 어디에서 섞이는지 봅니다.`,
+    `[주요 포인트] ${relationOpening} 첫 번째 해석에서 수입일의 순서를 짚었다면, 이번에는 같은 ${leak} 지출이 왜 어떤 달에는 더 커지는지 봅니다.`,
     relation
-      ? `${relation} 자체가 나쁜 지출이라는 뜻은 아닙니다. 즐거운 모임이나 필요한 공동 비용도 정산 방식이 분명하면 생활을 해치지 않습니다. 문제는 먼저 낸 돈이 돌아오기 전에 다음 결제가 겹치거나, 거절하기 어려워 내 목표인 “${goal}”을 미루게 되는 장면입니다. “${concern}”이라는 고민과 이 장면이 실제로 이어지는지 거래 내역으로 맞춰봐야 합니다.`
-      : `입력한 내용에서 관계 지출이 확인되지 않았으므로, 이 장을 억지로 소비 원인에 넣지 않습니다. 현재 적어 준 “${habit}”과 “${leak}”을 먼저 보는 것이 맞습니다. 다만 내 결제에 다른 사람의 몫이 섞인 적이 있다면 그 부분만 별도로 떼어 확인하면 됩니다.`,
+      ? `${relation} 자체가 문제는 아닙니다. 먼저 낸 돈이 돌아오기 전에 다음 결제가 겹치거나, 거절하기 어려워 “${goal}”을 미루는 순간부터 관계 비용이 내 저축을 대신 사용하게 됩니다. “${concern}”이라는 고민이 커지는 달에는 결제 금액보다 정산이 끝나지 않은 건수를 먼저 보세요.`
+      : `“${habit}”처럼 지출 폭이 달라지는 습관은 구매 금액보다 구매 간격에서 커집니다. 한 번의 큰 결제보다 작은 ${leak} 결제가 짧은 기간에 이어질 때 수입의 안정감이 사라집니다. ${goal}을 먼저 분리한 뒤 다음 결제까지 하루를 두면, 좋아하는 것을 포기하지 않고도 잔액의 출렁임을 줄일 수 있습니다.`,
+    relation
+      ? `특히 ${relation}이 월급일과 가까우면 아직 돌려받지 못한 돈까지 내 생활비가 대신 감당하게 됩니다. 정산 전에는 잔액이 충분해 보여도, ${goal}과 다음 고정비를 빼고 나면 쓸 수 있는 돈은 달라집니다. 관계를 불편하게 만들지 않으면서 저축을 지키려면 결제 전에 각자 부담할 범위와 보내는 날짜를 한 문장으로 맞추는 편이 가장 빠릅니다.`
+      : `${leak}이 즐거움을 주는 만큼 아예 막는 규칙은 오래가기 어렵습니다. 대신 수입일과 저축일을 같은 날로 붙이고, ${leak} 전용 한도를 남은 생활비 안에서 따로 보이게 만들면 “써도 되는 돈”이 선명해집니다. 잔액만 보고 결제하던 때와 달리, 목표를 건드리지 않는 범위에서 마음 편하게 쓸 수 있습니다.`,
     `[사주와 생활을 함께 보면] ${elements}`,
     `[확인할 장면] ${relationScene}`,
-    `[결정 전에 물어볼 질문] 함께 쓰는 돈의 범위와 정산 날짜를 결제 전에 말할 수 있나요? 먼저 낸 돈이 늦게 돌아와도 ${goal}이 흔들리지 않도록 개인 생활비와 분리되어 있나요?`,
-    `[해법] 이 장의 결론은 관계를 줄이라는 뜻이 아닙니다. 공동 비용의 담당·범위·정산일이 분명하면 유지하고, 말하지 못한 부담이 반복된다면 다음 결제 전에 내 몫을 먼저 정하는 것이 돈과 관계를 함께 지키는 방법입니다.`,
+    `[결정 전에 물어볼 질문] ${relation ? `함께 쓰는 돈의 범위와 정산 날짜를 결제 전에 말할 수 있나요? 먼저 낸 돈이 늦게 돌아와도 ${goal}이 흔들리지 않도록 개인 생활비와 분리되어 있나요?` : `${leak} 결제가 짧은 기간에 이어지는 순간은 언제인가요? ${goal}을 먼저 떼어 둔 뒤에도 같은 속도로 결제할 수 있나요?`}`,
+    `[해법] ${relation ? '공동 비용은 결제 전에 내 몫과 정산일을 정하고, 돌려받을 돈을 생활비처럼 계산하지 않는 것이 해법입니다.' : `${goal}을 수입일에 먼저 떼고 ${leak} 결제 사이에 하루의 간격을 두는 것이 해법입니다. 잔액이 흔들리는 원인을 수입 탓으로 돌리지 않고 실제 결제 속도를 바꿀 수 있습니다.`}`,
   ].join('\n\n')
+}
+
+export function moneySaveTeaserPreview(context: SajuReportContext, sectionCount: number) {
+  const input = moneySaveRequestFromContext(context)
+  const income = entered(input.incomePattern, '수입')
+  const habit = entered(input.moneyHabit, '반복 지출')
+  const leak = entered(input.leakPoint, habit)
+  const goal = entered(input.savingGoal, '저축 목표')
+  return {
+    title: '나는 왜 돈이 안 모일까?',
+    headline: `${income}인데도 돈이 안 남는 첫 원인은 “${leak}”이 저축보다 먼저 움직이는 순서입니다`,
+    summary: `“${habit}”이라고 느낀 이유와 “${goal}”이 매달 뒤로 밀리는 지점을 수입일 직후의 소비 순서에서 찾았습니다. 더 참으라는 말보다, 돈이 들어온 날 무엇이 먼저 빠져나가는지부터 분명하게 짚어드립니다.`,
+    insights: [
+      `${goal}을 월말의 남은 돈으로 두면 ${leak}이 먼저 차지합니다. 수입일에 저축을 먼저 끝내는 구조가 필요합니다.`,
+      input.relationSpending?.trim()
+        ? `${moneyTableCell(input.relationSpending)}에서 먼저 낸 돈과 정산일을 분리해야 내 저축이 관계 비용을 대신하지 않습니다.`
+        : `${leak} 결제의 금액보다 간격을 좁히는 습관이 잔액을 더 크게 흔듭니다.`,
+    ],
+    signals: [],
+    paidValue: `전체 해석에서는 ${sectionCount}개 항목으로 지출이 커지는 순간, 저축을 막는 습관, 관계 비용과 시기별 돈 관리까지 이어서 풉니다.`,
+  }
 }
 
 /** Existing saved reports receive input evidence and computed visuals without rewriting paid prose. */

@@ -335,6 +335,12 @@ export interface StoryChartPoint {
   note: string
 }
 
+export interface StoryFlowStep {
+  label: string
+  value: string
+  note: string
+}
+
 /** Emotional storytelling payload for UMSH narrative sections (love/this-year etc.). */
 export interface SectionStorytelling {
   feel: string
@@ -343,6 +349,8 @@ export interface SectionStorytelling {
   tableCaption?: string
   chartPoints?: StoryChartPoint[]
   chartCaption?: string
+  flowSteps?: StoryFlowStep[]
+  flowCaption?: string
   scene: string
   actions: string[]
   imagePrompt: StoryImagePrompt
