@@ -7359,6 +7359,7 @@
         return String(value || "")
           .replace(/재성\([^)]*\)/g, "돈과 현실 활동을 다루는 힘")
           .replace(/일간\([^)]*\)/g, "태어난 날의 중심 기운")
+          .replace(/일지\([^)]*\)(?:은|는)/g, "가까운 관계를 보여 주는 태어난 날의 기운은")
           .replace(/일지\([^)]*\)/g, "가까운 관계를 보여 주는 태어난 날의 기운")
           .replace(/오행\([^)]*\)/g, "다섯 기운")
           .replace(/[一-龥]/gu, "")
@@ -7616,7 +7617,7 @@
                 <p>${displayName}님의 ${dayMasterKo} · ${dayMasterElement} 기운과 지금의 ${escapeHtml(currentFlow.name)} 흐름을 겹쳐 보면, ${escapeHtml(currentRelation)}</p>
                 <p>${escapeHtml(currentAction)} 이 흐름을 일·돈·관계 가운데 어디에 먼저 쓸지가 지금 풀이의 핵심입니다.</p>
               </article>
-              <div class="flow-next-hook"><strong>다음 10년에는 무엇이 달라질까요?</strong><br />${nextFlowRow ? `${escapeHtml(formatFlowAge(nextFlowRow.age))}의 ${escapeHtml(nextFlow.name)} 흐름에서는 ${escapeHtml(withSubjectParticle(nextFlow.meaning))} 이어집니다. 지금 무엇을 정리하느냐에 따라 다음 장면의 쓰임이 달라집니다.` : "지금의 큰 흐름 다음에 어떤 힘이 들어오고, 일·돈·관계 중 어디에서 먼저 움직이는지 전체 풀이에서 이어집니다."}</div>
+              <div class="flow-next-hook"><strong>다음 10년에는 무엇이 달라질까요?</strong><br />${nextFlowRow ? `${escapeHtml(formatFlowAge(nextFlowRow.age))}의 ${escapeHtml(nextFlow.name)} 흐름에서는 ${escapeHtml(withSubjectParticle(nextFlow.meaning))} 이어집니다. 지금의 시간을 어떻게 마무리하느냐에 따라 다음 장면의 쓰임이 달라집니다.` : "지금의 큰 흐름 다음에 어떤 힘이 들어오고, 일·돈·관계 중 어디에서 먼저 움직이는지 전체 풀이에서 이어집니다."}</div>
             </section>
 
             <section class="story-visual statement visual-fan image-only" data-sample-section="warning" aria-label="숨은 결 이미지"></section>
