@@ -82,7 +82,7 @@ need(app.includes("wedding_day: 'wedding_day'"), '서비스 키 → 결제 상�
 const catalog = read('src/payment/catalog.ts')
 need(catalog.includes("| 'wedding_day'"), '카탈로그 키 유니온 없음')
 need(catalog.includes('amount: 24900'), '카탈로그 금액 24,900원 없음')
-need(catalog.includes("returnPath: '/day/wedding'"), '카탈로그 복귀 경로 없음')
+need(catalog.includes("returnPath: '/day/wedding/04-step-4-report/index.html'"), '카탈로그 무료 티저 복귀 경로 없음')
 const directory = read('src/server/service-directory.ts')
 need(directory.includes("key: 'wedding_day'"), '검색 디렉토리 등록 없음')
 

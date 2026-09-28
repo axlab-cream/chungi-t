@@ -80,7 +80,7 @@ need(app.includes("newyear_flow: 'newyear_flow'"), '서비스 키 → 결제 상
 const catalog = read('src/payment/catalog.ts')
 need(catalog.includes("| 'newyear_flow'"), '카탈로그 키 유니온 없음')
 need(catalog.includes('amount: 19900'), '카탈로그 금액 19,900원 없음')
-need(catalog.includes("returnPath: '/flow/newyear'"), '카탈로그 복귀 경로 없음')
+need(catalog.includes("returnPath: '/flow/newyear/04-step-4-report/index.html'"), '카탈로그 무료 티저 복귀 경로 없음')
 const directory = read('src/server/service-directory.ts')
 need(directory.includes("key: 'newyear_flow'"), '검색 디렉토리 등록 없음')
 
