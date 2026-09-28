@@ -149,23 +149,23 @@
 
       .story-scene {
         display: grid;
-        align-content: center;
-        gap: 18px;
-        min-height: calc(100svh - 64px);
-        padding: 24px 18px 30px;
+        align-content: start;
+        gap: 12px;
+        min-height: auto;
+        padding: 16px 18px 22px;
         border-bottom: 1px solid rgba(220, 184, 104, 0.14);
       }
 
       .story-scene:first-child {
-        min-height: 92svh;
-        padding-top: 18px;
+        min-height: auto;
+        padding-top: 14px;
       }
 
       .visual {
         position: relative;
-        width: min(72vw, 286px);
+        width: min(76vw, 300px);
         max-width: 100%;
-        aspect-ratio: 9 / 16;
+        aspect-ratio: 4 / 5;
         justify-self: center;
         overflow: hidden;
         border: 1px solid rgba(217, 168, 69, 0.28);
@@ -175,7 +175,8 @@
       }
 
       .visual.wide {
-        width: min(82vw, 322px);
+        width: 100%;
+        aspect-ratio: 16 / 10;
       }
 
       .visual img {
@@ -183,12 +184,12 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: 50% 25%;
+        object-position: 50% 28%;
       }
 
       .copy {
         display: grid;
-        gap: 12px;
+        gap: 9px;
       }
 
       .kicker {
@@ -363,8 +364,8 @@
       }
 
       .group-card p {
-        font-size: 12px;
-        line-height: 1.52;
+        font-size: 13px;
+        line-height: 1.58;
       }
 
       .group-card .chip-row {
@@ -380,30 +381,6 @@
 
       .promise {
         padding: 14px;
-      }
-
-      .price-line {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 14px;
-        border: 1px solid rgba(102, 184, 137, 0.32);
-        border-radius: 8px;
-        background:
-          linear-gradient(135deg, rgba(102, 184, 137, 0.2), rgba(217, 168, 69, 0.1)),
-          rgba(255, 248, 237, 0.055);
-      }
-
-      .price-line strong {
-        font-size: 14px;
-        font-weight: 950;
-      }
-
-      .price-line span {
-        color: var(--gold-soft);
-        font-size: 18px;
-        font-weight: 950;
       }
 
       .notice {
@@ -533,7 +510,7 @@
 
       <main id="intro">
         <section class="story-scene" aria-labelledby="scene-1-title">
-          <div class="visual wide">
+          <div class="visual">
             <img
               data-asset-key="save-01-hook"
               src="../assets/save/01-scene-01-hook.webp" data-source-file="assets/generated/save/01-scene-01-hook.webp"
@@ -542,16 +519,16 @@
           </div>
           <div class="copy">
             <span class="kicker">소비성향 사주풀이</span>
-            <h1 id="scene-1-title">나는 왜 돈이 안 모일까?</h1>
+            <h1 id="scene-1-title">월급날은 있었는데,<br />남은 돈은 왜 없을까요?</h1>
             <p>
-              월급은 분명 들어왔는데, 통장은 벌써 로그아웃한 느낌. 이 풀이에서는
-              <span class="accent">돈의 입구</span>와 <span class="hot">돈의 출구</span>를
-              따로 봅니다.
+              큰돈을 한 번 쓴 기억은 없는데 통장 잔액은 늘 비슷하다면, 문제는 의지가
+              아니라 <span class="accent">반복해서 열리는 지출 장면</span>에 있을 수 있어요.
+              들어오는 돈보다 먼저 사라지는 돈부터 찾아봅니다.
             </p>
             <div class="pill-row" aria-label="핵심 고민">
-              <span class="pill">통장 로그아웃</span>
-              <span class="pill">이번만 예산</span>
-              <span class="pill">정산 밀림</span>
+              <span class="pill">월급 뒤 잔액 실종</span>
+              <span class="pill">작은 결제 반복</span>
+              <span class="pill">사람 앞에서 커지는 지출</span>
             </div>
           </div>
         </section>
@@ -565,17 +542,17 @@
             />
           </div>
           <div class="copy">
-            <span class="kicker">의지 탓 말고 구조부터</span>
-            <h2 id="scene-2-title">아낀다고 했는데 카드값이 먼저 와요</h2>
+            <span class="kicker">내 통장에서 반복되는 장면</span>
+            <h2 id="scene-2-title">아낀 날보다, 무너진 순간이 더 정확합니다</h2>
             <p>
-              돈이 안 모이는 이유를 성격 탓으로 몰아가지는 않습니다. 약속, 구독,
-              기분 소비가 어떤 타이밍에 같이 열리는지부터 차분히 나눕니다.
+              계획을 못 세워서가 아니라 특정 순간마다 같은 방식으로 돈이 빠질 수 있어요.
+              아래 네 장면 중 어디에서 지갑이 가장 쉽게 열리는지부터 좁혀갑니다.
             </p>
             <div class="signal-grid" aria-label="자주 보이는 소비 흐름">
-              <div class="signal"><strong>관계 결제</strong><span>좋은 분위기에서 선이 흐려지는 지점</span></div>
-              <div class="signal"><strong>플렉스 과열</strong><span>속도와 감정이 결제를 밀어붙이는 지점</span></div>
-              <div class="signal"><strong>준비비 폭주</strong><span>공부와 장비가 실행보다 커지는 지점</span></div>
-              <div class="signal"><strong>안정 착시</strong><span>안전해 보여 확인을 멈추는 지점</span></div>
+              <div class="signal"><strong>사람 앞에서</strong><span>거절하기 어려워 내가 더 내는 순간</span></div>
+              <div class="signal"><strong>기분이 흔들릴 때</strong><span>보상하고 싶어 결제가 빨라지는 순간</span></div>
+              <div class="signal"><strong>시작하기 전에</strong><span>공부·장비·준비비부터 커지는 순간</span></div>
+              <div class="signal"><strong>월급이 들어온 날</strong><span>안도감 때문에 확인을 멈추는 순간</span></div>
             </div>
           </div>
         </section>
@@ -589,11 +566,11 @@
             />
           </div>
           <div class="copy">
-            <span class="kicker">먼저 세 칸으로 분리</span>
-            <h2 id="scene-3-title">돈은 한 덩어리로 보면 더 빨리 새요</h2>
+            <span class="kicker">돈이 사라진 이유를 찾는 방법</span>
+            <h2 id="scene-3-title">내 돈이 섞이는 세 칸부터 갈라봅니다</h2>
             <p>
-              오늘 볼 것은 운의 좋고 나쁨보다, 받을 돈과 줄 돈, 새로 정할 조건이
-              어디서 섞였는지입니다.
+              월급, 약속한 정산, 반복 결제를 한 덩어리로 보면 어디서 새는지 놓치기
+              쉬워요. 실제 입력과 사주를 함께 보고 세 칸 중 먼저 손댈 곳을 찾습니다.
             </p>
             <div class="lane-grid" aria-label="돈 흐름 세 칸">
               <div class="lane"><strong>받을 돈</strong><span>수입, 입금, 고정 계약</span></div>
@@ -612,15 +589,16 @@
             />
           </div>
           <div class="copy">
-            <span class="kicker">재성 + 비겁</span>
-            <h2 id="scene-4-title">돈이 들어오는 힘과 같이 쓰는 힘을 같이 봅니다</h2>
+            <span class="kicker">태어난 때에 담긴 돈 습관</span>
+            <h2 id="scene-4-title">버는 힘보다, 돈을 붙잡는 방식이 먼저입니다</h2>
             <p>
-              재성은 돈을 어떻게 얻는지, 비겁은 사람·경쟁·분배 속에서 돈이 어떻게
-              흔들리는지 보는 힌트입니다. 둘이 엉키면 벌어도 남는 칸이 비기 쉽습니다.
+              사주에서는 돈을 얻는 성향과 사람 사이에서 나누는 성향을 따로 봅니다.
+              혼자 쓸 때는 괜찮은데 관계가 끼면 예산이 흔들리는지, 기회가 생길수록
+              지출도 같이 커지는지 생활 장면으로 풀어드립니다.
             </p>
             <div class="notice">
-              수입 예측이나 투자 판단이 아니라, 소비성향과 돈 경계가 반복되는 방식을
-              참고용으로 정리합니다.
+              운이 좋다거나 부자가 된다는 말보다, 실제 통장에서 반복되는 습관과 돈의
+              경계를 먼저 설명합니다.
             </div>
           </div>
         </section>
@@ -634,11 +612,11 @@
             />
           </div>
           <div class="copy">
-            <span class="kicker">결제 후 열리는 지도</span>
-            <h2 id="scene-5-title">내 돈 흐름을 8개 관점으로 쪼개 봅니다</h2>
+            <span class="kicker">무료 결과 다음에 이어질 질문</span>
+            <h2 id="scene-5-title">내 돈이 새는 이유는 한 문장으로 끝나지 않습니다</h2>
             <p>
-              한 줄 판정 대신, 돈이 들어오는 방식부터 관계 정산까지 실제로 손댈 수 있는
-              항목으로 나눠 보여드립니다.
+              돈이 들어오는 방식, 관계에서 흐려지는 금액, 저축이 멈추는 예외까지 여덟
+              갈래로 나눕니다. 먼저 무료 결과에서 지금 가장 강한 두 갈래를 확인합니다.
             </p>
             <div class="group-grid" data-group-grid aria-label="풀이 대분류 목록"></div>
           </div>
@@ -653,20 +631,16 @@
             />
           </div>
           <div class="copy">
-            <span class="kicker">무료 미리보기 먼저</span>
-            <h2 id="scene-6-title">지금은 돈 새는 길 하나부터 확인해요</h2>
+            <span class="kicker">첫 두 해석은 무료</span>
+            <h2 id="scene-6-title">내 통장에서 가장 먼저 막아야 할 구멍은 어디일까요?</h2>
             <p>
-              생년월일시와 현재 돈 고민을 입력하면, 무료 티저에서 강하게 보이는 소비
-              신호와 오늘 먼저 정리할 칸을 보여드립니다.
+              생년월일시와 지금 가장 답답한 돈 문제를 적으면, 저장된 사주와 입력값을
+              바탕으로 반복되는 소비 장면과 오늘 먼저 정리할 항목을 보여드립니다.
             </p>
             <div class="promise-grid" aria-label="진행 전 확인">
-              <div class="promise"><strong>단정하지 않기</strong><span>사주는 참고용 흐름으로만 안내</span></div>
-              <div class="promise"><strong>숫자 만들지 않기</strong><span>근거 없는 수익·확률·점수 배제</span></div>
-              <div class="promise"><strong>행동으로 끝내기</strong><span>받을 돈, 줄 돈, 조건 정리로 연결</span></div>
-            </div>
-            <div class="price-line" aria-label="유료 리포트 가격">
-              <strong>전체 리포트</strong>
-              <span>9,900원</span>
+              <div class="promise"><strong>내 돈의 입구</strong><span>수입이 안정되는 방식과 흔들리는 순간</span></div>
+              <div class="promise"><strong>가장 큰 누수</strong><span>관계·감정·준비비 중 먼저 막을 지점</span></div>
+              <div class="promise"><strong>오늘 정리할 한 칸</strong><span>받을 돈, 줄 돈, 반복 결제 중 우선순위</span></div>
             </div>
           </div>
         </section>
@@ -675,9 +649,9 @@
       <nav class="cta-dock" aria-label="다음 단계">
         <div class="cta-inner">
           <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input">
-            내 돈 흐름 확인하기
+            무료로 내 돈 흐름 보기
           </a>
-          <div class="dock-note">무료 티저 확인 후 전체 리포트를 선택할 수 있습니다.</div>
+          <div class="dock-note">결제 없이 개인화 해석 2개를 먼저 확인합니다.</div>
         </div>
       </nav>
     </div>
@@ -927,13 +901,7 @@
       }
 
       groupGrid.innerHTML = indexData.groups.map((group, index) => {
-        const chips = group.sections
-          .slice(0, 3)
-          .map((section) => `<span class="chip">${escapeHtml(section.title)}</span>`)
-          .join("");
-        const extra = group.sections.length > 3
-          ? `<span class="chip">외 ${group.sections.length - 3}개</span>`
-          : "";
+        const sectionCount = Array.isArray(group.sections) ? group.sections.length : 0;
         return `
           <article class="group-card" data-group-id="${escapeHtml(group.group_id)}">
             <header>
@@ -941,7 +909,7 @@
               <small>${String(index + 1).padStart(2, "0")}</small>
             </header>
             <p>${escapeHtml(group.summary)}</p>
-            <div class="chip-row">${chips}${extra}</div>
+            <div class="chip-row"><span class="chip">${sectionCount}개 세부 해석</span></div>
           </article>
         `;
       }).join("");
