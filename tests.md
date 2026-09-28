@@ -1076,3 +1076,5 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | FUNNEL-GATE-04 | 결제 완료 뒤 표준 서비스는 05 목차부터 진입 | PASS |
 | FUNNEL-GATE-05 | 정적 CTA·결제 장애 fallback·로컬 권한 코드가 결제 없이 05를 열지 않음 | PASS |
 | WORK-MOVE-NAV-01 | 이직운 입력 완료는 reportId를 보존해 04 티저로 이동 | PASS |
+| FUNNEL-GATE-06 | 05 권한 확인 전 화면 전체 숨김, 권한 실패·preview 응답은 04 티저 복귀 | PASS (정적 계약·로컬 브라우저 직접 접근) |
+| FUNNEL-GATE-07 | 14개 05 chat/index가 공통 fail-closed 캐시 버전을 사용 | PASS (28개 HTML) |

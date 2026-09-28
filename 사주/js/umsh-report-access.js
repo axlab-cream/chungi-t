@@ -130,6 +130,25 @@
   function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || isPermalink() || Boolean(locationId()); }
   function isDetailPage() { return /(?:05-step|06-step)/.test(location.pathname); }
   function isTeaserPage() { return /04-step/.test(location.pathname); }
+  function isTocPage() { return /\/05-step-5-chat(?:\/|$)/.test(location.pathname); }
+  function teaserHref() {
+    try {
+      var target = new URL('../04-step-4-report/index.html', location.href);
+      var id = locationId() || rememberedId;
+      target.search = '';
+      if (id) target.searchParams.set('reportId', id);
+      target.hash = 'step-4-report';
+      return target.pathname + target.search + target.hash;
+    } catch (_) {
+      return '../04-step-4-report/index.html#step-4-report';
+    }
+  }
+  function returnToTeaser() {
+    if (!isTocPage()) return false;
+    if (document.documentElement) document.documentElement.setAttribute('data-umsh-toc-check', '');
+    if (global.location && typeof global.location.replace === 'function') global.location.replace(teaserHref());
+    return true;
+  }
   function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function remember(payload) {
     var id = identity(payload);
@@ -189,6 +208,11 @@
   function gate(message) {
     authorized = null;
     if (pollTimer) clearTimeout(pollTimer);
+    // 05는 결제 완료 뒤에만 여는 전체 목차다. 예전 서비스 HTML은 정적 목차를
+    // 자체 렌더링하므로 안내 문구만 올리면 그 아래에 유료 목차가 그대로 남았다.
+    // 권한 검증이 실패한 05 주소는 내용을 한 줄도 드러내지 않고 반드시 04 티저로
+    // 돌려보내 결제 경계를 다시 통과시킨다.
+    if (returnToTeaser()) return;
     if (gateInPlace(message)) return;
     var node = panel();
     node.innerHTML = navigation() + '<h1 style="font-size:24px">저장된 해석 확인</h1><p>' + escapeHtml(message) + '</p><a style="color:#e5bd69" href="/signup?entry=saved-report&returnTo='+encodeURIComponent(location.pathname+location.search)+'#login">로그인</a> · <a href="' + escapeHtml(route ? route[0] : '/') + '">서비스로 돌아가기</a>';
@@ -2011,6 +2035,7 @@
     report = withCmdgTemplateImages(report, serverKey);
     payload = Object.assign({}, payload, { report: report });
     authorized = report;
+    if (document.documentElement) document.documentElement.removeAttribute('data-umsh-toc-check');
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
     if (renderReportInPlace(payload)) return;
@@ -2070,6 +2095,10 @@
   }
   function consume(payload, headers, request) {
     if (!payload || (!payload.report && !payload.previewOnly && !payload.todayFortune)) return payload;
+    if (isTocPage() && !isEntitled(payload)) {
+      returnToTeaser();
+      return payload;
+    }
     var responseKey=canonical(payload.todayFortune ? 'today' : payload.serviceKey || (payload.context && payload.context.serviceKey) || (payload.report && payload.report.serviceKey) || key);
     if(key && responseKey!==key) {gate('이 서비스의 해석이 아닙니다. 구매 내역에서 해당 결과를 열어 주세요.');return payload;}
     remember(payload);
@@ -2179,7 +2208,12 @@
     }
     try {
       var config=await rawFetch('/api/auth/config').then(function(r){return r.json();});
-      if(config.developmentReportAccess===true) {headerCache={};if(id)await refresh(id);return;}
+      if(config.developmentReportAccess===true) {
+        headerCache={};
+        if(id) await refresh(id);
+        else if(isTocPage()) returnToTeaser();
+        return;
+      }
       if (!config.enabled) throw new Error('로그인 후 같은 계정의 해석을 확인해 주세요.');
       var runtimeOk = global.UMSHAuthSession && global.UMSHAuthSession.waitForRuntime
         ? await global.UMSHAuthSession.waitForRuntime(1500)
@@ -2393,6 +2427,7 @@
     }
     if((key || isPermalink()) && isOutputPage() && document.documentElement && document.head) {
       document.documentElement.setAttribute('data-umsh-report-check','');
+      if (isTocPage()) document.documentElement.setAttribute('data-umsh-toc-check','');
       var guard=document.createElement('style');
       /*
        * in-place 페이지는 디자인을 살린다. 대신 검증 전 슬롯을 가려서 정적 샘플 문구가
@@ -2410,6 +2445,12 @@
         ].filter(Boolean).join(',') + '{display:none}'
         : 'html[data-umsh-report-check] body > :not(#umsh-verified-layout):not([data-umsh-service-bottom]):not(.umsh-service-toast):not(script):not(style):not(link){display:none!important}';
       document.head.appendChild(guard);
+      if (isTocPage()) {
+        var tocGuard=document.createElement('style');
+        tocGuard.id='umsh-toc-access-guard';
+        tocGuard.textContent='html[data-umsh-toc-check] body{visibility:hidden!important}';
+        document.head.appendChild(tocGuard);
+      }
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
     document.addEventListener('click',function(event){var link=event.target.closest && event.target.closest('a[href]');if(!link || !rememberedId)return;var url=new URL(link.href,location.origin);if(url.origin===location.origin && route && url.pathname.indexOf(route[0])===0 && /(?:04-step|05-step|06-step)/.test(url.pathname)){url.searchParams.set('reportId',rememberedId);var query=new URLSearchParams(location.search);var orderId=query.get('orderId');if(key==='newyear_flow') {if(orderId) {url.searchParams.set('orderId',orderId);url.searchParams.delete('preview');}else if(query.get('preview')==='1' && query.get('paid')!=='1')url.searchParams.set('preview','1');}link.href=url.pathname+url.search+url.hash;}},true);

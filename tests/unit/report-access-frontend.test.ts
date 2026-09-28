@@ -152,8 +152,8 @@ test('newyear analysis creates only an authenticated preview with an owner-scope
   assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /2027년의 기준/)
 })
 
-test('newyear saved preview stays a preview on every reader route without starting paid sections', async () => {
-  for (const page of ['04-step-4-report/index.html','05-step-5-chat/index.html','05-step-5-chat/chat.html','06-step-6_1-report-detail/index.html']) {
+test('newyear saved preview stays a preview on teaser/detail routes without starting paid sections', async () => {
+  for (const page of ['04-step-4-report/index.html','06-step-6_1-report-detail/index.html']) {
     const h = harness('/flow/newyear/'+page+'?reportId=newyear-uuid&preview=1', [{previewOnly:true,serviceKey:'newyear_flow',reportId:'fingerprint',resultId:'newyear-uuid',preview:{headline:'내 2027년 미리보기',signals:[]},paymentUrl:'/payment?product=newyear_flow&reportId=newyear-uuid'}])
     await h.api.fetch('/api/flow/newyear/analyze', {method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})
     assert.equal(h.calls.length, 1)
@@ -161,6 +161,18 @@ test('newyear saved preview stays a preview on every reader route without starti
     assert.equal(h.location.searchParams.get('preview'), '1')
     assert.equal(h.api.verifiedReport(), null)
     assert.match(h.nodes.get('umsh-verified-reading').innerHTML, /내 2027년 미리보기/)
+  }
+})
+
+test('newyear unpaid preview cannot remain on the paid 05 table of contents', async () => {
+  for (const page of ['05-step-5-chat/index.html','05-step-5-chat/chat.html']) {
+    const h = harness('/flow/newyear/'+page+'?reportId=newyear-uuid&preview=1', [{previewOnly:true,serviceKey:'newyear_flow',reportId:'fingerprint',resultId:'newyear-uuid',preview:{headline:'내 2027년 미리보기',signals:[]},paymentUrl:'/payment?product=newyear_flow&reportId=newyear-uuid'}])
+    h.context.location.replace = (next: string) => { h.location.href = new URL(next, h.location.href).href }
+    await h.api.fetch('/api/flow/newyear/analyze', {method:'POST',body:'{}',headers:{Authorization:'Bearer test'}})
+    assert.equal(h.api.verifiedReport(), null)
+    assert.equal(h.location.pathname, '/flow/newyear/04-step-4-report/index.html')
+    assert.equal(h.location.searchParams.get('reportId'), 'newyear-uuid')
+    assert.equal(h.location.hash, '#step-4-report')
   }
 })
 

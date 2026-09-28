@@ -174,6 +174,15 @@ test('무료 티저의 정적 CTA와 장애 fallback은 결제를 우회하지 �
   assert.deepEqual(broken, [])
 })
 
+test('05 전체 목차는 서버 권한 확인 전 숨기고 실패하면 04 티저로 복귀한다', () => {
+  const access = readFileSync(join(SAJU, 'js', 'umsh-report-access.js'), 'utf8')
+  assert.match(access, /function isTocPage\(\).*05-step-5-chat/)
+  assert.match(access, /html\[data-umsh-toc-check\] body\{visibility:hidden!important\}/)
+  assert.match(access, /function gate\(message\)[\s\S]{0,500}returnToTeaser\(\)/)
+  assert.match(access, /isTocPage\(\) && !isEntitled\(payload\)[\s\S]{0,120}returnToTeaser\(\)/)
+  assert.match(access, /new URL\('\.\.\/04-step-4-report\/index\.html'/)
+})
+
 test('05 목록 폴더는 디렉터리 주소로도 chat.html 에 닿는다', () => {
   const missing: string[] = []
   for (const service of PUBLIC) {

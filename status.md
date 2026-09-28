@@ -2464,3 +2464,6 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [FIXED] 정적 CTA의 기본 주소도 결제로 바꾸고 로컬 권한 부여·무료 전체 공개·결제 장애 시 목차 fallback을 제거했다. 권한 회원에게만 서버 검증 뒤 05 목차 주소를 만든다.
 - [PASS] 관련 단위 테스트 13건과 전체 회귀 1613/1613(165 suites)를 통과했다. 14개 서비스 입력 단계의 05·06 직접 링크 금지, 05 권한 스크립트, 정적 CTA·결제 fail-open 금지를 자동 회귀 규칙으로 추가했다.
 - [PASS] TypeScript, 20개 서비스 계약, 20개 서비스 QA, Vercel production build와 diff 검사를 통과했다.
+- [FOUND] 운영 05 주소를 결제 없이 직접 열면 공용 권한 안내는 표시되지만, 일부 구형 페이지가 자체 렌더링한 정적 전체 목차가 그 아래에 남아 있었다. 권한 검사는 실행됐으나 화면 전체를 fail-closed로 잠그지 않은 것이 원인이었다.
+- [FIXED] 14개 표준 서비스의 05 화면은 서버 권한 확인 전 본문 전체를 숨긴다. 전체 리포트 권한이 확인된 경우에만 잠금을 풀고, 미로그인·미결제·preview 응답·잘못된 reportId는 reportId를 보존해 04 무료 티저로 즉시 되돌린다. 공용 접근 스크립트 캐시는 모든 참조 화면에서 `20260928-toc-gate-v1`로 일괄 갱신했다.
+- [PASS] 로컬 브라우저에서 `/work/move/05-step-5-chat/chat.html` 직접 접근이 정적 목차를 노출하지 않고 `/work/move/04-step-4-report/index.html#step-4-report`로 복귀하는 것을 확인했다. 전체 회귀 1615/1615(165 suites), 집중 퍼널 회귀 7/7, TypeScript, 20개 서비스 계약·QA, 프로덕션 빌드, JavaScript 구문·diff 검사를 통과했다.
