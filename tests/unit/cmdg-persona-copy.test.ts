@@ -17,10 +17,34 @@ function sliceBetween(startMarker: string, endMarker: string): string {
 
 test('천명사주 랜딩은 남부대공 존댓말 퍼소나를 유지한다', () => {
   const landing = sliceBetween('function sampleIntroMarkup', 'function renderImmersion')
+  const landingText = landing.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
 
   assert.doesNotMatch(landing, /자네|허허|일세|보겠네|하네|다르네|풀어보게|보이는군/)
-  assert.match(landing, /좋은 말보다 먼저[\s\S]{0,120}필요한 기준/)
-  assert.match(landing, /전통 명리의 기준/)
+  assert.doesNotMatch(landing, /선택의 결|선택의 기준|타고난 결|필요한 기준|모이는 자리|새는 자리|선택의 이유|선택의 뿌리|선택 기준/)
+  assert.match(landingText, /사주는 당신을 단정하지 않습니다/)
+  assert.match(landingText, /오래 써온 방식이 이제 맞지 않을 수 있습니다/)
+  assert.match(landingText, /내 삶을 다시 읽는\s*한 권의 기록/)
+})
+
+test('천명사주 랜딩은 고민에서 자기 이해로 이어지는 한 편의 서사를 만든다', () => {
+  const landing = sliceBetween('function sampleIntroMarkup', 'function renderImmersion')
+  const landingText = landing.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
+  const beats = [
+    '그 질문이 생긴 곳부터 따라가 보겠습니다',
+    '지금까지 어떻게 버텨왔는지부터 읽습니다',
+    '익숙한 반응이 드러납니다',
+    '오래 써온 방식이 이제 맞지 않을 수 있습니다',
+    '일, 돈, 사람의 이야기를',
+    '지나온 시간을 이해하면',
+    '한 권의 기록',
+  ]
+
+  let previous = -1
+  for (const beat of beats) {
+    const current = landingText.indexOf(beat)
+    assert.ok(current > previous, `서사 순서가 어긋났습니다: ${beat}`)
+    previous = current
+  }
 })
 
 test('천명사주 개인 결과는 입력값과 근거가 맞는 후킹 문구를 쓴다', () => {
