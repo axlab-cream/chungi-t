@@ -83,6 +83,7 @@ test('대운 한자는 한글 이름과 쉬운 뜻으로 바뀐다', () => {
   const flowRelationshipText = loadFunction('flowRelationshipText') as (day: string, pillar: string) => string
   const plainSajuPreview = loadFunction('plainSajuPreview') as (value: string) => string
   const easyElementName = loadFunction('easyElementName') as (value: string) => string
+  const withSubjectParticle = loadFunction('withSubjectParticle') as (value: string) => string
 
   const read = (value: string) => JSON.parse(JSON.stringify(formatFlowPillar(value)))
   assert.deepEqual(read('庚辰'), { name: '경진', meaning: '단단히 다듬는 쇠와 현실을 쌓는 땅' })
@@ -95,6 +96,12 @@ test('대운 한자는 한글 이름과 쉬운 뜻으로 바뀐다', () => {
   assert.doesNotMatch(plainSajuPreview('일간은 을(乙)이고 오행(五行)을 봅니다.'), /[一-龥]|일간|오행/)
   assert.equal(easyElementName('목'), '나무')
   assert.equal(easyElementName('metal'), '쇠')
+  assert.equal(withSubjectParticle('기준을 세우는 쇠'), '기준을 세우는 쇠가')
+  assert.equal(withSubjectParticle('현실을 쌓는 땅'), '현실을 쌓는 땅이')
+  assert.equal(
+    plainSajuPreview('재성(財星, 일간이 다루는 기운과의 관계)은 전통적으로 자원을 살핍니다.'),
+    '돈과 현실 활동을 다루는 힘은 전통적으로 자원을 살핍니다.',
+  )
 })
 
 test('현재 흐름 설명은 각자의 사주 관계에 따라 달라진다', () => {
