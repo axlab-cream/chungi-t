@@ -1580,6 +1580,178 @@
         color: #ffe0a8;
       }
 
+      .flow-evidence {
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px solid rgba(238, 190, 96, 0.28);
+        border-radius: 14px;
+        background: linear-gradient(145deg, rgba(109, 72, 24, 0.22), rgba(255, 255, 255, 0.025));
+        text-align: left;
+      }
+
+      .flow-evidence-kicker {
+        color: #f1c76f;
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+      }
+
+      .flow-evidence h3 {
+        margin: 8px 0 7px;
+        color: #fff4df;
+        font-family: var(--font-saju-heading);
+        font-size: 24px;
+        line-height: 1.25;
+      }
+
+      .flow-evidence p {
+        margin: 0;
+        color: #d6c8b8;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .element-flow-chart {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+        padding: 17px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        text-align: left;
+      }
+
+      .element-flow-row {
+        display: grid;
+        grid-template-columns: minmax(112px, 1fr) minmax(82px, 1.25fr) 22px;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .element-flow-row > div:first-child {
+        display: grid;
+        gap: 2px;
+      }
+
+      .element-flow-row strong,
+      .element-flow-row b {
+        color: #ffe1a6;
+        font-size: 13px;
+      }
+
+      .element-flow-row span {
+        color: #9d9287;
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
+      .element-flow-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .element-flow-track i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #9c6829, #f1c76f);
+        box-shadow: 0 0 12px rgba(241, 199, 111, 0.25);
+      }
+
+      .flow-story-grid {
+        display: grid;
+        gap: 10px;
+        margin-top: 20px;
+        text-align: left;
+      }
+
+      .flow-story-card {
+        position: relative;
+        display: grid;
+        gap: 6px;
+        padding: 17px 17px 17px 21px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: rgba(10, 10, 12, 0.7);
+      }
+
+      .flow-story-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: rgba(238, 190, 96, 0.55);
+      }
+
+      .flow-story-card > span {
+        color: #d5a84f;
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .flow-story-card strong {
+        color: #fff2da;
+        font-size: 18px;
+      }
+
+      .flow-story-card p {
+        margin: 0;
+        color: #c4b8aa;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .flow-current-card {
+        margin-top: 12px;
+        padding: 20px;
+        border: 1px solid rgba(241, 199, 111, 0.55);
+        border-radius: 14px;
+        background: radial-gradient(circle at 85% 0%, rgba(164, 108, 35, 0.24), transparent 46%), #141212;
+        text-align: left;
+        box-shadow: 0 16px 35px rgba(0, 0, 0, 0.26);
+      }
+
+      .flow-current-card small {
+        color: #f1c76f;
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .flow-current-card h3 {
+        margin: 7px 0 9px;
+        color: #fff4df;
+        font-family: var(--font-saju-heading);
+        font-size: 25px;
+        line-height: 1.25;
+      }
+
+      .flow-current-card p {
+        margin: 0;
+        color: #dfd0bd;
+        font-size: 14px;
+        line-height: 1.75;
+      }
+
+      .flow-current-card p + p {
+        margin-top: 9px;
+      }
+
+      .flow-next-hook {
+        margin-top: 16px;
+        padding: 17px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #7f1d18, #301211);
+        color: #fff0df;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.6;
+        text-align: left;
+      }
+
       .story-list {
         display: grid;
         gap: 10px;
@@ -7155,6 +7327,141 @@
         return clean.split(/\n\s*\n|(?<=[.!?。])\s+/).find((line) => line.trim().length > 5) || clean;
       }
 
+      function formatFlowPillar(value) {
+        const stems = {
+          甲: ["갑", "곧게 뻗는 나무", "와"], 乙: ["을", "유연하게 자라는 나무", "와"],
+          丙: ["병", "환하게 드러나는 불", "과"], 丁: ["정", "오래 집중하는 불", "과"],
+          戊: ["무", "크게 버티는 땅", "과"], 己: ["기", "차분히 가꾸는 땅", "과"],
+          庚: ["경", "단단히 다듬는 쇠", "와"], 辛: ["신", "정교하게 벼리는 쇠", "와"],
+          壬: ["임", "크게 흐르는 물", "과"], 癸: ["계", "스며드는 물", "과"],
+        };
+        const branches = {
+          子: ["자", "새 흐름을 품은 물"], 丑: ["축", "천천히 굳히는 땅"],
+          寅: ["인", "봄을 여는 나무"], 卯: ["묘", "부드럽게 퍼지는 나무"],
+          辰: ["진", "현실을 쌓는 땅"], 巳: ["사", "빠르게 번지는 불"],
+          午: ["오", "밖으로 드러나는 불"], 未: ["미", "여문 것을 품는 땅"],
+          申: ["신", "기준을 세우는 쇠"], 酉: ["유", "정교하게 가르는 쇠"],
+          戌: ["술", "끝을 맺고 지키는 땅"], 亥: ["해", "깊이 저장하는 물"],
+        };
+        const raw = String(value || "").trim();
+        const stem = stems[raw[0]];
+        const branch = branches[raw[1]];
+        if (!stem || !branch) return { name: "큰 운", meaning: "삶의 방향이 바뀌는 시기" };
+        return { name: `${stem[0]}${branch[0]}`, meaning: `${stem[1]}${stem[2]} ${branch[1]}` };
+      }
+
+      function formatFlowAge(value) {
+        const age = String(value || "").trim().replace(/(?:\s*세)+$/u, "").trim();
+        return age ? `${age}세` : "나이 구간 확인 중";
+      }
+
+      function plainSajuPreview(value) {
+        return String(value || "")
+          .replace(/[一-龥]/gu, "")
+          .replace(/\(\s*[,·\-\s]*\)/g, "")
+          .replace(/\(([^)]{0,24})\)/g, "$1")
+          .replace(/오행/g, "다섯 기운")
+          .replace(/일간/g, "태어난 날의 중심 기운")
+          .replace(/일지/g, "가까운 관계에서 드러나는 기운")
+          .replace(/재성/g, "현실의 자원과 돈을 다루는 힘")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+      }
+
+      function easyElementName(value) {
+        const text = String(value || "");
+        if (text.includes("목") || text.includes("wood")) return "나무";
+        if (text.includes("화") || text.includes("fire")) return "불";
+        if (text.includes("토") || text.includes("earth")) return "땅";
+        if (text.includes("금") || text.includes("metal")) return "쇠";
+        if (text.includes("수") || text.includes("water")) return "물";
+        return plainSajuPreview(text) || "다섯 기운";
+      }
+
+      function flowRelationshipText(dayElementValue, pillarValue) {
+        const elementKey = (value) => {
+          const text = String(value || "");
+          if (text.includes("목")) return "wood";
+          if (text.includes("화")) return "fire";
+          if (text.includes("토")) return "earth";
+          if (text.includes("금")) return "metal";
+          if (text.includes("수")) return "water";
+          return "";
+        };
+        const stemElements = { 甲: "wood", 乙: "wood", 丙: "fire", 丁: "fire", 戊: "earth", 己: "earth", 庚: "metal", 辛: "metal", 壬: "water", 癸: "water" };
+        const branchElements = { 子: "water", 丑: "earth", 寅: "wood", 卯: "wood", 辰: "earth", 巳: "fire", 午: "fire", 未: "earth", 申: "metal", 酉: "metal", 戌: "earth", 亥: "water" };
+        const generates = { wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" };
+        const controls = { wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood" };
+        const labels = { wood: "나무", fire: "불", earth: "땅", metal: "쇠", water: "물" };
+        const day = elementKey(dayElementValue);
+        const raw = String(pillarValue || "");
+        const incoming = [stemElements[raw[0]], branchElements[raw[1]]].filter(Boolean);
+        const relation = (flow) => {
+          if (!day || !flow) return "";
+          if (flow === day) return `${labels[flow]} 기운이 내 방식을 더 선명하게 만듭니다.`;
+          if (generates[flow] === day) return `${labels[flow]} 기운이 배움과 회복을 받쳐 줍니다.`;
+          if (generates[day] === flow) return `${labels[flow]} 기운이 생각을 표현과 결과로 꺼내게 합니다.`;
+          if (controls[flow] === day) return `${labels[flow]} 기운이 책임과 규칙을 통해 나를 다듬습니다.`;
+          if (controls[day] === flow) return `${labels[flow]} 기운이 노력의 대가를 일과 돈의 결과로 바꾸게 합니다.`;
+          return "";
+        };
+        return [...new Set(incoming.map(relation).filter(Boolean))].join(" ");
+      }
+
+      function dayMasterNatureText(dayMasterValue) {
+        const nature = {
+          갑: "큰 나무처럼 방향을 세우면 곧게 밀고 가는 힘",
+          을: "풀과 덩굴처럼 환경을 읽고 유연하게 이어 가는 힘",
+          병: "햇빛처럼 분위기를 밝히고 바깥으로 드러내는 힘",
+          정: "등불처럼 한곳에 집중해 오래 밝히는 힘",
+          무: "큰 산처럼 중심을 잡고 쉽게 흔들리지 않는 힘",
+          기: "밭처럼 사람과 일을 돌보며 차근차근 기르는 힘",
+          경: "큰 쇠처럼 빠르게 판단하고 불필요한 것을 덜어내는 힘",
+          신: "보석처럼 세밀하게 살피고 완성도를 높이는 힘",
+          임: "큰물처럼 판을 넓게 보고 흐름을 바꾸는 힘",
+          계: "비와 이슬처럼 빈틈을 읽고 조용히 스며드는 힘",
+        };
+        return nature[String(dayMasterValue || "").trim()] || "상황을 읽고 자기 방식으로 답을 만들어 가는 힘";
+      }
+
+      function flowActionText(dayElementValue, pillarValue) {
+        const elementKey = (value) => {
+          const text = String(value || "");
+          if (text.includes("목")) return "wood";
+          if (text.includes("화")) return "fire";
+          if (text.includes("토")) return "earth";
+          if (text.includes("금")) return "metal";
+          if (text.includes("수")) return "water";
+          return "";
+        };
+        const stemElements = { 甲: "wood", 乙: "wood", 丙: "fire", 丁: "fire", 戊: "earth", 己: "earth", 庚: "metal", 辛: "metal", 壬: "water", 癸: "water" };
+        const generates = { wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" };
+        const controls = { wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood" };
+        const day = elementKey(dayElementValue);
+        const incoming = stemElements[String(pillarValue || "")[0]];
+        if (!day || !incoming) return "이미 해 온 일에서 남길 것과 덜어낼 것을 먼저 가려 보세요.";
+        if (controls[incoming] === day) return "무작정 넓히기보다 책임의 범위와 끝낼 일을 분명히 할 때입니다.";
+        if (controls[day] === incoming) return "들인 노력 가운데 일과 돈의 결과로 남길 것을 묶어 볼 때입니다.";
+        if (generates[incoming] === day) return "새로 밀어붙이기보다 배움과 회복을 받쳐 줄 기반을 채울 때입니다.";
+        if (generates[day] === incoming) return "준비한 생각을 말과 결과물로 꺼내 보여 줄 때입니다.";
+        return "내 방식을 지키되 혼자 감당하는 몫과 함께할 몫을 나눌 때입니다.";
+      }
+
+      function elementFlowChartMarkup(elementCount) {
+        const rows = [
+          ["wood", "나무", "시작하고 키우는 힘"], ["fire", "불", "표현하고 드러내는 힘"],
+          ["earth", "땅", "현실로 묶고 버티는 힘"], ["metal", "쇠", "덜어내고 정리하는 힘"],
+          ["water", "물", "살피고 이어 가는 힘"],
+        ];
+        const values = rows.map(([key]) => Number(elementCount?.[key]) || 0);
+        const max = Math.max(1, ...values);
+        return rows.map(([key, label, meaning], index) => {
+          const value = values[index];
+          const width = value === 0 ? 0 : Math.max(12, Math.round(value / max * 100));
+          return `<div class="element-flow-row"><div><strong>${label}</strong><span>${meaning}</span></div><div class="element-flow-track" aria-hidden="true"><i style="width:${width}%"></i></div><b>${value}</b></div>`;
+        }).join("");
+      }
+
       function renderResult() {
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
@@ -7170,30 +7477,50 @@
         const calendarLabel = escapeHtml(state.calendar);
         const timeLabel = escapeHtml(state.time || "시간모름");
         const targetLabel = escapeHtml(state.target || "본인");
-        const hourLabel = escapeHtml(pillars?.hour?.hanja || (state.time === "모름" ? "時柱모름" : "-"));
-        const dayLabel = escapeHtml(pillars?.day?.hanja || "-");
-        const monthLabel = escapeHtml(pillars?.month?.hanja || "-");
-        const yearLabel = escapeHtml(pillars?.year?.hanja || "-");
-        const dayMasterKo = escapeHtml(a?.dayMaster?.ko || "일간");
-        const dayMasterHanja = escapeHtml(a?.dayMaster?.hanja || "");
-        const dayMasterElement = escapeHtml(a?.dayMaster?.element || a?.dominantElement || "오행");
+        const hourLabel = escapeHtml(pillars?.hour?.ko || (state.time === "모름" ? "태어난 시각 모름" : "-"));
+        const dayLabel = escapeHtml(pillars?.day?.ko || "-");
+        const monthLabel = escapeHtml(pillars?.month?.ko || "-");
+        const yearLabel = escapeHtml(pillars?.year?.ko || "-");
+        const dayMasterKoRaw = a?.dayMaster?.ko || "나";
+        const dayMasterKo = escapeHtml(dayMasterKoRaw);
+        const dayMasterElementRaw = a?.dayMaster?.element || a?.dominantElement || "다섯 기운";
+        const dayMasterElement = escapeHtml(easyElementName(dayMasterElementRaw));
         const strengthLabel = a?.dayMaster?.strength === "strong" ? "기운이 강한" : a?.dayMaster?.strength === "weak" ? "섬세한" : "균형 잡힌";
-        const dominantElement = escapeHtml(a?.dominantElement || dayMasterElement);
-        const usefulGod = escapeHtml(a?.usefulGod || "분석 중");
+        const dominantElement = escapeHtml(easyElementName(a?.dominantElement || dayMasterElementRaw));
+        const usefulGod = escapeHtml(a?.usefulGod ? easyElementName(a.usefulGod) : "균형을 돕는");
         const personalityRaw = preview?.personality || "입력한 기운에서 그냥 넘기기 어려운 결이 보입니다.";
-        const personality = escapeHtml(personalityRaw);
-        const personalityShort = escapeHtml(firstInsightText(personalityRaw));
-        const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보입니다.");
-        const loveText = escapeHtml(preview?.loveFortune || "끌리는 관계와 오래 남는 관계의 조건은 다릅니다. 반복되는 태도부터 보겠습니다.");
-        const wealthText = escapeHtml(preview?.wealthFortune || "돈이 모이는 자리와 새는 자리가 함께 보입니다. 먼저 반복되는 지출과 일의 방식을 짚겠습니다.");
+        const personality = escapeHtml(plainSajuPreview(personalityRaw));
+        const personalityShort = escapeHtml(plainSajuPreview(firstInsightText(personalityRaw)));
+        const elementBalance = escapeHtml(plainSajuPreview(preview?.elementBalance || "다섯 기운의 균형에서 한쪽으로 힘이 몰리는 모습이 보입니다."));
+        const loveText = escapeHtml(plainSajuPreview(preview?.loveFortune || "끌리는 관계와 오래 남는 관계의 조건은 다릅니다. 반복되는 태도부터 보겠습니다."));
+        const wealthText = escapeHtml(plainSajuPreview(preview?.wealthFortune || "돈이 모이는 곳과 빠져나가는 곳이 함께 보입니다. 먼저 반복되는 지출과 일의 방식을 짚겠습니다."));
         const concernRaw = state.concern || "현재 생활에서 유지할 점과 궁금한 방향";
         const concernText = escapeHtml(concernRaw);
         const concernHead = state.concern ? `"${concernText}"` : concernText;
         const currentYear = Number(fortune?.currentYear) || 2026;
-        const daewoonRows = (fortune?.daewoon || [])
-          .slice(0, 4)
-          .map((d) => `<div class="timeline-row"><strong>${escapeHtml(d.age)}</strong><span>${escapeHtml(d.pillar)}</span></div>`)
-          .join("");
+        const flowRows = Array.isArray(fortune?.daewoon) ? fortune.daewoon : [];
+        const storyBeats = [
+          ["기 · 뿌리를 세운 때", "주변의 규칙 속에서 내 방식을 처음 세워 가는 장면입니다."],
+          ["승 · 세상으로 넓힌 때", "배운 것을 바깥으로 넓히며 사람과 환경의 영향을 크게 받는 장면입니다."],
+          ["전 · 내 이름으로 움직인 때", "내 이름으로 결과를 만들며 속도와 방향을 바꾸는 장면입니다."],
+          ["결 · 남길 것을 고른 때", "쌓아 온 방식 가운데 오래 가져갈 것과 덜어낼 것을 가르는 장면입니다."],
+        ];
+        const daewoonRows = flowRows.slice(0, 4).map((d, index) => {
+          const flow = formatFlowPillar(d.pillar);
+          const relation = flowRelationshipText(dayMasterElementRaw, d.pillar);
+          return `<article class="flow-story-card"><span>${storyBeats[index][0]}</span><strong>${escapeHtml(formatFlowAge(d.age))} · ${escapeHtml(flow.name)}</strong><p>${escapeHtml(flow.meaning)}이 만납니다. ${escapeHtml(relation)} ${storyBeats[index][1]}</p></article>`;
+        }).join("");
+        const currentFlowRaw = fortune?.currentDaewoon || "";
+        const currentFlow = formatFlowPillar(currentFlowRaw);
+        const currentFlowIndex = flowRows.findIndex((item) => item.pillar === currentFlowRaw);
+        const currentFlowRow = currentFlowIndex >= 0 ? flowRows[currentFlowIndex] : null;
+        const nextFlowRow = currentFlowIndex >= 0 ? flowRows[currentFlowIndex + 1] : null;
+        const nextFlow = formatFlowPillar(nextFlowRow?.pillar || "");
+        const yearFlow = formatFlowPillar(fortune?.yearPillar || "");
+        const currentRelation = flowRelationshipText(dayMasterElementRaw, currentFlowRaw);
+        const currentAction = flowActionText(dayMasterElementRaw, currentFlowRaw);
+        const dayMasterNature = dayMasterNatureText(dayMasterKoRaw);
+        const elementChart = elementFlowChartMarkup(a?.elementCount || a?.elements || {});
 
         stage.innerHTML = `
           <article class="story sample-story sub-result">
@@ -7249,27 +7576,35 @@
             </section>
 
             <section class="story-section" data-sample-section="saju-table">
-              <span class="chapter">태어난 순간의 결</span>
-              <h2>${displayName}님의 <span class="red">사주 팔자</span></h2>
+              <span class="chapter">사주 근거 · 전체 풀이의 약 20%</span>
+              <h2>${displayName}님을 이루는<br /><span class="red">네 기둥과 다섯 기운</span></h2>
               <p>${calendarLabel} ${birthLabel} · ${timeLabel} · <span class="red">${dominantElement}</span> <span class="red">기운</span>이 두드러집니다.</p>
               <div class="saju-table" aria-label="사주팔자">
-                <div class="pillar"><span>時柱</span><b>${hourLabel}</b><span>${escapeHtml(pillars?.hour?.ko || state.time || "모름")}</span></div>
-                <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>${escapeHtml(pillars?.day?.ko || "내 중심")}</span></div>
-                <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>${escapeHtml(pillars?.month?.ko || "")}</span></div>
-                <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>${escapeHtml(pillars?.year?.ko || "")}</span></div>
+                <div class="pillar"><span>태어난 시각</span><b>${hourLabel}</b><span>속마음과 말년</span></div>
+                <div class="pillar"><span>나 자신</span><b>${dayLabel}</b><span>성향과 가까운 관계</span></div>
+                <div class="pillar"><span>사회생활</span><b>${monthLabel}</b><span>일과 역할</span></div>
+                <div class="pillar"><span>바깥 환경</span><b>${yearLabel}</b><span>첫인상과 뿌리</span></div>
               </div>
-              <div class="quote">내 중심 <span class="red">기운</span> ${dayMasterHanja}(${dayMasterKo}) · 나를 살리는 흐름 ${usefulGod}</div>
+              <div class="element-flow-chart" aria-label="다섯 기운 분포 차트">${elementChart}</div>
+              <div class="quote">${displayName}님의 중심은 <span class="red">${dayMasterKo} · ${dayMasterElement} 기운</span>입니다. ${escapeHtml(dayMasterNature)}이 있고, <strong>${usefulGod}</strong> 기운이 숨을 돌릴 여백을 보탭니다.</div>
             </section>
 
             <section class="story-section center" data-sample-section="future-flow">
-              <span class="chapter">앞으로 바뀔 큰 흐름</span>
-              <h2>앞으로 바뀌는 <span class="red">큰 흐름</span>을<br />순서대로 짚어보겠습니다</h2>
-              <p>올해 ${escapeHtml(fortune?.currentYear || "")}년 · 먼저 보이는 신호 ${escapeHtml(fortune?.yearPillar || "-")}</p>
-              <div class="big-kanji" aria-hidden="true"><span>大</span><span>運</span><span>轉</span></div>
-              <div class="timeline">
-                <div class="timeline-row"><strong>현재</strong><span>큰 흐름 ${escapeHtml(fortune?.currentDaewoon || "-")}</span></div>
-                ${daewoonRows}
+              <span class="chapter">지나온 시간에는 한 줄의 이야기가 있습니다</span>
+              <h2>네 번의 변화가<br /><span class="red">지금의 나</span>로 이어졌습니다</h2>
+              <div class="flow-evidence">
+                <span class="flow-evidence-kicker">올해 ${currentYear}년 · ${escapeHtml(yearFlow.name)}</span>
+                <h3>${escapeHtml(yearFlow.meaning)}</h3>
+                <p>올해의 기운은 평생을 단정하는 답이 아니라, 현재의 큰 흐름 안에서 특히 또렷해지는 한 장면입니다.</p>
               </div>
+              <div class="flow-story-grid" aria-label="기승전결로 보는 대운 이야기">${daewoonRows}</div>
+              <article class="flow-current-card">
+                <small>현재 · ${escapeHtml(formatFlowAge(currentFlowRow?.age))}</small>
+                <h3>${escapeHtml(currentFlow.name)} · ${escapeHtml(currentFlow.meaning)}</h3>
+                <p>${displayName}님의 ${dayMasterKo} · ${dayMasterElement} 기운과 지금의 ${escapeHtml(currentFlow.name)} 흐름을 겹쳐 보면, ${escapeHtml(currentRelation)}</p>
+                <p>${escapeHtml(currentAction)} 이 흐름을 일·돈·관계 가운데 어디에 먼저 쓸지가 지금 풀이의 핵심입니다.</p>
+              </article>
+              <div class="flow-next-hook"><strong>다음 10년에는 무엇이 달라질까요?</strong><br />${nextFlowRow ? `${escapeHtml(formatFlowAge(nextFlowRow.age))}의 ${escapeHtml(nextFlow.name)} 흐름에서는 ${escapeHtml(nextFlow.meaning)}이 이어집니다. 지금 무엇을 정리하느냐에 따라 다음 장면의 쓰임이 달라집니다.` : "지금의 큰 흐름 다음에 어떤 힘이 들어오고, 일·돈·관계 중 어디에서 먼저 움직이는지 전체 풀이에서 이어집니다."}</div>
             </section>
 
             <section class="story-visual statement visual-fan image-only" data-sample-section="warning" aria-label="숨은 결 이미지"></section>
@@ -7280,10 +7615,10 @@
             </section>
 
             <section class="story-section deep tall center" data-sample-section="prophecy">
-              <span class="chapter">지금 바뀌는 흐름</span>
-              <h2 class="hero-line">현재의 큰 흐름과<br /><span class="red">올해의 신호</span>를 함께 봅니다</h2>
-              <p>지금의 <span class="red">팔자</span>는 멈춘 그림이 아닙니다. <span class="red">선택</span>이 쌓이는 자리, <span class="red">사람</span>이 붙는 자리, 무리하면 새는 자리를 나눠 봐야 합니다.</p>
-              <div class="story-callout">그 전환을 어떻게 받아야 하는지 천천히 풀겠습니다.</div>
+              <span class="chapter">현재 장면의 다음 질문</span>
+              <h2 class="hero-line">지금 가장 먼저 써야 할<br /><span class="red">힘은 무엇일까요?</span></h2>
+              <p>${escapeHtml(currentFlow.name)}의 ${escapeHtml(currentFlow.meaning)}이 지금의 삶에 들어와 있습니다. ${escapeHtml(currentRelation)} ${escapeHtml(currentAction)}</p>
+              <div class="story-callout">이제 이 변화가 <span class="red">일과 돈</span>, 그리고 가까운 사람과의 관계에서 각각 어떻게 나타나는지 이어서 보겠습니다.</div>
             </section>
 
             <section class="story-visual compact visual-wealth image-only" data-sample-section="wealth-teaser" aria-label="재물 흐름 이미지"></section>
