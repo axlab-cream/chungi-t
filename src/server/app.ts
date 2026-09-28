@@ -242,7 +242,7 @@ const DESTINY_PAGE = join(SAJU_ROOT, 'destiny.html')
 const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
 const PRIVACY_PAGE = join(SAJU_ROOT, 'privacy.html')
 const REFUND_PAGE = join(SAJU_ROOT, 'refund.html')
-const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html')
+const SUPPORT_PAGE = join(SAJU_ROOT, 'support.html'); const COMMUNITY_PAGE = join(SAJU_ROOT, 'community.html')
 const ABOUT_PAGE = join(SAJU_ROOT, 'about.html')
 const FAQ_PAGE = join(SAJU_ROOT, 'faq.html')
 const ASSETLINKS_FILE = join(SAJU_ROOT, '.well-known', 'assetlinks.json')
@@ -332,6 +332,9 @@ app.get(['/refund', '/refund/', '/refund.html'], (_req, res) => {
 })
 app.get(['/support', '/support/', '/support.html'], (_req, res) => {
   res.sendFile(SUPPORT_PAGE)
+})
+app.get(['/community', '/community/', '/community.html'], (_req, res) => {
+  res.sendFile(COMMUNITY_PAGE)
 })
 app.get(['/about', '/about/', '/about.html'], (_req, res) => {
   res.sendFile(ABOUT_PAGE)
