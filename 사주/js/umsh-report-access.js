@@ -1188,7 +1188,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-quit-teaser-v1';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-quit-teaser-v2';
     document.head.appendChild(link);
   }
   /**
@@ -1571,10 +1571,10 @@
         + '<span class="job-teaser-toc-copy"><strong>' + escapeHtml(title) + '</strong>' + subtitle + '</span>'
         + '<span class="job-teaser-toc-lock" aria-label="잠긴 해석">잠김</span></li>';
     }).join('');
-    return '<details class="job-teaser-toc">'
-      + '<summary><span><strong>나머지 ' + locked.length + '개 목차</strong><small>눌러서 목차 확인</small></span></summary>'
+    return '<section class="job-teaser-toc" aria-label="나머지 잠긴 목차">'
+      + '<header><strong>나머지 ' + locked.length + '개 목차</strong><small>전체 해석에서 이어집니다</small></header>'
       + '<ol>' + rows + '</ol>'
-      + '</details>';
+      + '</section>';
   }
 
   function normalizeQuitFortuneTeaserCopy(value) {

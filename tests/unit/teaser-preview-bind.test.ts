@@ -95,7 +95,8 @@ test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 �
   assert.match(accessSource, /job-teaser-final-cta/)
   assert.match(accessSource, /function renderJobChoiceLockedToc\(/)
   assert.match(accessSource, /slice\(2, 10\)/)
-  assert.match(accessSource, /<details class="job-teaser-toc">/)
+  assert.match(accessSource, /<section class="job-teaser-toc" aria-label="나머지 잠긴 목차">/)
+  assert.doesNotMatch(accessSource, /<details class="job-teaser-toc">/)
   assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
   assert.match(accessSource, /inlineMarkdown\(escapeHtml\(preview\.summary/)
   assert.match(inplaceCss, /\.job-teaser-reading/)
@@ -103,7 +104,7 @@ test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 �
   assert.match(inplaceCss, /\[data-umsh-slot="preview"\] \.reading-table/)
 })
 
-test('퇴사운 티저는 저장 해석 1·2와 실제 시각화 뒤에 닫힌 3~10 목차를 렌더한다', () => {
+test('퇴사운 티저는 저장 해석 1·2와 실제 시각화 뒤에 항상 펼친 3~10 잠금 목차를 렌더한다', () => {
   const api = loadAccess('/work/quit/04-step-4-report/index.html')
   const teaserSections = [
     { id: 'flow-1', order: 1, imageSrc: '/work/quit/assets/quit/04-teaser.png', interpretation: '[주요 포인트] 실제 첫 본문', storytelling: { tableMd: '| 항목 | 입력값 |\n| --- | --- |\n| 이유 | 업무 |' } },
@@ -122,6 +123,8 @@ test('퇴사운 티저는 저장 해석 1·2와 실제 시각화 뒤에 닫힌 3
   assert.match(accessSource, /renderSectionImage\(section, 'quit_fortune'\)/)
   assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
   assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(inplaceCss, /\.job-teaser-reading\.quit-teaser-reading \.story-image \{ aspect-ratio: auto; \}/)
+  assert.match(inplaceCss, /\.job-teaser-reading\.quit-teaser-reading \.story-image img \{ height: auto; object-fit: contain; \}/)
   assert.match(accessSource, /normalizeQuitFortuneTeaserCopy/)
   assert.match(accessSource, /data-exact-source-chars/)
   assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc\)/)
