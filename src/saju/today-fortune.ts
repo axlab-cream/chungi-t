@@ -37,6 +37,13 @@ export interface TodayFortune {
     relation: TodayRelation
   }
   reading: {
+    /** v6 keeps every exact title and section distinct inside any rolling 90-day window. */
+    formatVersion?: 6
+    personalization: {
+      /** X=0 standard member, X=1 member with at least one settled purchase. */
+      purchaseX: 0 | 1
+      lens: number
+    }
     title: string
     summary: string
     score: {
@@ -63,7 +70,11 @@ export interface TodayFortune {
   }
 }
 
-type BaseTodayReading = Omit<TodayFortune['reading'], 'score' | 'details'>
+type BaseTodayReading = Omit<TodayFortune['reading'], 'score' | 'details' | 'formatVersion' | 'personalization'>
+
+export interface TodayFortuneOptions {
+  purchaseDepth?: boolean
+}
 
 const GENERATES: Record<Element, Element> = {
   wood: 'fire',
@@ -288,14 +299,6 @@ const POLARITY_PHRASE: Record<StemPolarity, string> = {
  * 괜찮다"는 안전장치라서 지지가 건드리지 않는다.
  */
 interface BranchScene { work: string; money: string; relationship: string; caution: string; action: string }
-const BRANCH_TITLE: Record<EarthlyBranch, string> = {
-  '子': '흩어진 생각을 한 장에 모으고', '丑': '쌓인 것 하나를 정리하고',
-  '寅': '미루던 첫 단계를 열고', '卯': '작은 빈틈 하나를 다듬고',
-  '辰': '함께 정할 말을 분명히 하고', '巳': '전할 말을 한 줄로 고르고',
-  '午': '중요한 일에 시간을 모으고', '未': '거의 끝난 일을 마무리하고',
-  '申': '해야 할 범위를 분명히 하고', '酉': '보낼 것을 한 번 더 살피고',
-  '戌': '정한 약속 하나를 지키고', '亥': '필요한 정보 하나를 찾고',
-}
 const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
   '子': {
     work: '오늘은 늦은 시간에 정신이 맑아지는 날이니, 낮에 흩어진 메모를 저녁에 한 장으로 모아 내일 첫 일을 정해 둬.',
@@ -395,6 +398,46 @@ function withScene(text: string, scene: string, index: number): string {
   return parts.join(' ')
 }
 
+interface DailyLens {
+  title: string
+  summary: string
+  body: string
+  action: string
+  zodiac: string
+}
+
+/**
+ * The calculated day repeats after 60 days. Eleven expression lenses create a 660-day exact-copy
+ * cycle, so a rolling 90-day window never repeats. A member's saved birth data and purchase X only
+ * choose how the same calculation is explained; they never alter the pillars, relation, or scores.
+ */
+const DAILY_LENSES: readonly DailyLens[] = [
+  { title: '가장 중요한 것부터 보는', summary: '먼저 가장 중요한 것부터 볼게.', body: '먼저 중요한 것부터 보면,', action: '마지막으로,', zodiac: '띠의 조언을 오늘에 쓰려면,' },
+  { title: '서두르지 않고 살피는', summary: '오늘은 속도를 내기 전에 한 번 살펴볼게.', body: '서두르지 않고 보면,', action: '서두르지 말고,', zodiac: '내 속도에 맞춰 쓰려면,' },
+  { title: '작은 일 하나부터 시작하는', summary: '오늘은 손에 잡히는 작은 일부터 풀어 볼게.', body: '작은 일 하나부터 보면,', action: '작게 시작해서,', zodiac: '가볍게 실천하려면,' },
+  { title: '순서를 먼저 세우는', summary: '오늘은 무엇부터 할지 순서를 먼저 세워 볼게.', body: '순서를 먼저 세워 보면,', action: '순서를 지켜,', zodiac: '하루의 순서를 잡으려면,' },
+  { title: '내 속도를 지키는', summary: '오늘은 남의 속도보다 내 호흡을 기준으로 볼게.', body: '내 속도에 맞춰 보면,', action: '내 속도를 지키며,', zodiac: '무리 없이 이어 가려면,' },
+  { title: '말보다 행동을 앞세우는', summary: '오늘은 설명을 늘리기보다 먼저 움직여 볼게.', body: '행동으로 옮길 것을 먼저 보면,', action: '말로만 남기지 말고,', zodiac: '생각을 행동으로 바꾸려면,' },
+  { title: '끝낼 일을 먼저 고르는', summary: '오늘은 새로 벌이기보다 끝낼 일을 먼저 고를게.', body: '끝낼 일을 먼저 고르면,', action: '끝을 정해 두고,', zodiac: '마무리에 힘을 쓰려면,' },
+  { title: '지금 가능한 만큼 움직이는', summary: '오늘은 무리한 계획보다 지금 가능한 만큼 움직여 볼게.', body: '지금 가능한 만큼 보면,', action: '할 수 있는 만큼,', zodiac: '지금 여건에 맞춰 쓰려면,' },
+  { title: '불필요한 힘을 빼는', summary: '오늘은 애쓰는 양보다 힘을 어디서 뺄지 살펴볼게.', body: '불필요한 힘을 빼고 보면,', action: '힘을 덜 쓰는 쪽으로,', zodiac: '여유를 남겨 두려면,' },
+  { title: '오늘 쓸 기준 하나를 세우는', summary: '오늘은 흔들릴 때 돌아볼 기준 하나를 세워 둘게.', body: '기준 하나를 세워 보면,', action: '정한 기준에 맞춰,', zodiac: '판단을 또렷하게 하려면,' },
+  { title: '한 번 숨을 고르고 보는', summary: '오늘은 바로 답하기보다 한 번 숨을 고르고 볼게.', body: '한 번 숨을 고르고 보면,', action: '잠깐 멈춰 본 뒤,', zodiac: '마음을 가라앉혀 쓰려면,' },
+] as const
+
+function dailyLensIndex(daySerial: number, birth: BirthInput): number {
+  const birthSeed = birth.year + birth.month * 31 + birth.day * 17 + (birth.hour ?? 0) * 7 + (birth.minute ?? 0)
+  return ((daySerial + birthSeed) % DAILY_LENSES.length + DAILY_LENSES.length) % DAILY_LENSES.length
+}
+
+function leadSentence(text: string, lead: string, purchaseX: 0 | 1): string {
+  const parts = sentencesOf(text)
+  if (!parts.length) return text
+  parts[0] = `${lead} ${parts[0].replace(/^오늘은\s*/, '')}`
+  if (purchaseX === 1) parts.splice(1, 0, '이 방향이 잘 맞는 조건과 조정이 필요한 상황도 이어서 볼게.')
+  return parts.join(' ')
+}
+
 function composeReading(
   base: BaseTodayReading,
   stem: HeavenlyStem,
@@ -402,29 +445,32 @@ function composeReading(
   tenGod: TenGod,
   tie: { tie: BranchTie; pillar: string },
   variant: number,
+  purchaseX: 0 | 1,
 ): BaseTodayReading {
   const polarity = STEM_POLARITY[stem]
   const scene = BRANCH_SCENES[branch]
+  const lens = DAILY_LENSES[variant]
   const summaryParts = sentencesOf(base.summary)
-  summaryParts[0] = `${POLARITY_PHRASE[polarity]} ${summaryParts[0].replace(/^오늘은 /, '')}`
+  summaryParts[0] = `${purchaseX === 1 ? '조금 더 자세히 볼 수 있도록 세부 흐름까지 이어서 짚을게. ' : ''}${lens.summary} ${POLARITY_PHRASE[polarity]} ${summaryParts[0].replace(/^오늘은 /, '')}`
   // 계산에는 십성과 지지 관계를 그대로 쓰되, 고객에게는 한자 이름 대신 실제 생활에서
   // 어떤 식으로 느껴지는지 풀어 쓴다.
   summaryParts.push(`${TEN_GOD_FOCUS[tenGod].note}. ${BRANCH_TIE_NOTE[tie.tie](tie.pillar)}.`)
-  const varied = (text: string, sceneText: string) => {
-    const parts = sentencesOf(text)
+  const varied = (text: string, sceneText: string, offset: number) => {
+    const bodyLens = DAILY_LENSES[(variant + offset) % DAILY_LENSES.length]
+    const parts = sentencesOf(leadSentence(text, bodyLens.body, purchaseX))
     if (parts.length < 3) return withScene(text, sceneText, 1)
     if (variant % 3 === 1) return [sceneText, parts[0], parts[2]].join(' ')
     if (variant % 3 === 2) return [parts[0], parts[2], sceneText].join(' ')
     return [parts[0], sceneText, parts[2]].join(' ')
   }
   return {
-    title: `${BRANCH_TITLE[branch]} ${TEN_GOD_FOCUS[tenGod].title}`,
+    title: `${purchaseX === 1 ? '세부 흐름까지 보는 날 · ' : ''}${lens.title} 날 · ${TEN_GOD_FOCUS[tenGod].title}`,
     summary: summaryParts.join(' '),
-    work: varied(base.work, scene.work),
-    money: varied(base.money, scene.money),
-    relationship: varied(base.relationship, scene.relationship),
-    caution: varied(base.caution, scene.caution),
-    action: withScene(base.action, scene.action, 1),
+    work: varied(base.work, scene.work, 0),
+    money: varied(base.money, scene.money, 2),
+    relationship: varied(base.relationship, scene.relationship, 4),
+    caution: varied(base.caution, scene.caution, 6),
+    action: withScene(base.action, `${lens.action} ${purchaseX === 1 ? '세부 흐름까지 챙기며 ' : ''}${scene.action}`, 1),
   }
 }
 
@@ -542,6 +588,8 @@ function zodiacReading(
   birthYear: number,
   relation: TodayRelation,
   todayBranch: EarthlyBranch,
+  lens: DailyLens,
+  purchaseX: 0 | 1,
 ): NonNullable<TodayFortune['reading']['zodiac']> {
   // Calendar-year label as in newspaper birth-year fortunes, NOT the saju year
   // pillar (which changes at 입춘). Do not silently assign January births last year's 띠.
@@ -559,7 +607,7 @@ function zodiacReading(
   return {
     birthYear, animal, basis: 'birth-year',
     title: `${birthYear}년생 ${animal}띠 · 출생연도 기준`,
-    text: `${birthYear}년생 ${animal}띠에게 오늘은 ${ZODIAC_TIE_LABEL[tie]}이고, 키워드는 ‘${RELATION_FOCUS[relation]}’야. ${guide}`,
+    text: `${birthYear}년생 ${animal}띠에게 오늘은 ${ZODIAC_TIE_LABEL[tie]}이고, 키워드는 ‘${RELATION_FOCUS[relation]}’야. ${purchaseX === 1 ? '세부 흐름까지 이어서, ' : ''}${lens.zodiac} ${guide}`,
   }
 }
 
@@ -572,7 +620,7 @@ function totalScore(details: Record<TodayDetailKey, TodayFortuneDetail>): number
   )
 }
 
-export function buildTodayFortune(profile: UserBirthProfile, now = new Date()): TodayFortune {
+export function buildTodayFortune(profile: UserBirthProfile, now = new Date(), options: TodayFortuneOptions = {}): TodayFortune {
   const analysis = analyzeSaju(profile.birth)
   const kst = kstDateParts(now)
   const todayBirth: BirthInput = {
@@ -599,15 +647,19 @@ export function buildTodayFortune(profile: UserBirthProfile, now = new Date()): 
     analysis.fourPillars.hour.branch,
   ])
   const daySerial = Math.floor(Date.UTC(kst.year, kst.month - 1, kst.day) / 86_400_000)
+  const purchaseX: 0 | 1 = options.purchaseDepth ? 1 : 0
+  const lensIndex = dailyLensIndex(daySerial, profile.birth)
   const baseReading = composeReading(
     relationText(relation, profile.name, todayElement),
     todayStem, todayBranch,
-    tenGod, tie, daySerial % 7,
+    tenGod, tie, lensIndex, purchaseX,
   )
   const details = buildReadingDetails(relation, baseReading, branchRelation, STEM_POLARITY[todayStem], tenGod, tie.tie, branchTenGod(analysis.dayMaster, todayBranch))
   const reading: TodayFortune['reading'] = {
     ...baseReading,
-    zodiac: zodiacReading(profile.birth.year, relation, todayBranch),
+    formatVersion: 6,
+    personalization: { purchaseX, lens: lensIndex },
+    zodiac: zodiacReading(profile.birth.year, relation, todayBranch, DAILY_LENSES[lensIndex], purchaseX),
     score: {
       total: totalScore(details),
       work: details.work.score,

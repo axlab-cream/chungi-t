@@ -146,4 +146,19 @@ describe('payment order REST key-format compatibility (mock network only)', () =
       assert.equal(await store.getPaymentOrder('missing-synthetic-order'), null);
     `)
   })
+
+  it('finds an older settled purchase without truncating to recent orders', () => {
+    isolatedStoreCheck(secretKey, `
+      globalThis.fetch = async (input, init = {}) => {
+        const url = new URL(input);
+        assert.equal(url.searchParams.get('owner_id'), 'eq.synthetic-owner-a');
+        assert.equal(url.searchParams.get('status'), 'in.(paid,viewed)');
+        assert.equal(url.searchParams.get('select'), 'order_id');
+        assert.equal(url.searchParams.get('limit'), '1');
+        return Response.json([{ order_id: 'old-paid-order' }]);
+      };
+      const store = await import('./src/payment/order-store.ts');
+      assert.equal(await store.hasSettledPaymentOrder('synthetic-owner-a'), true);
+    `)
+  })
 })

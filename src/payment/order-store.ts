@@ -471,6 +471,40 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
 }
 
 /**
+ * 회원에게 정산된 구매 이력이 하나라도 있는지 확인한다.
+ *
+ * 최근 주문 일부를 가져온 뒤 애플리케이션에서 찾으면, 오래된 정상 결제가 더 최근의
+ * 실패·취소 주문에 밀려 누락될 수 있다. 저장소가 상태를 먼저 거른 뒤 한 행만 읽는다.
+ */
+export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> {
+  if (storageMode() === 'memory') {
+    return Array.from(memoryOrders.values()).some((order) => (
+      order.ownerId === ownerId && (order.status === 'paid' || order.status === 'viewed')
+    ))
+  }
+
+  if (storageMode() === 'supabase') {
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('owner_id', `eq.${ownerId}`)
+    url.searchParams.set('status', 'in.(paid,viewed)')
+    url.searchParams.set('select', 'order_id')
+    url.searchParams.set('limit', '1')
+    const response = await fetch(url, { headers: supabaseHeaders() })
+    if (!response.ok) throw new Error('결제 이력 확인에 실패했습니다.')
+    const rows = await response.json() as Array<Record<string, unknown>>
+    return rows.length > 0
+  }
+
+  if (!pool) return false
+  await ensureDb()
+  const result = await pool.query(
+    "SELECT 1 FROM cheongi_payment_orders WHERE owner_id = $1 AND status IN ('paid', 'viewed') LIMIT 1",
+    [ownerId],
+  )
+  return result.rowCount !== null && result.rowCount > 0
+}
+
+/**
  * 주문을 새로 만들거나 통째로 덮는다. **동시성 보호가 없다.**
  *
  * 생성과 픽스처 적재에만 쓴다. 상태를 바꾸는 갱신은 `updatePaymentOrder` 나

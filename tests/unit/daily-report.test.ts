@@ -1,6 +1,7 @@
 import { after, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import type { UserBirthProfile } from '../../src/user/profile-store.js'
 import type { ReportRecord } from '../../src/report/report-store.js'
 
@@ -28,7 +29,7 @@ function fixture(): UserBirthProfile {
   }
 }
 
-describe('daily snapshot identity across v5 upgrade', { concurrency: false }, () => {
+describe('daily snapshot identity across v6 upgrade', { concurrency: false }, () => {
   it('saves once, coalesces concurrent creation, and reopens the exact UUID snapshot within its KST day', async () => {
     const profile = fixture()
     const owner = { id: profile.userId }
@@ -38,13 +39,14 @@ describe('daily snapshot identity across v5 upgrade', { concurrency: false }, ()
     ])
     assert.equal(first.resultId, concurrent.resultId)
     assert.match(first.resultId!, /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/)
-    assert.equal(first.report.model, 'daily-rules-v5')
+    assert.equal(first.report.model, 'daily-rules-v6')
     assert.equal(first.status, 'complete')
     assert.equal(first.revision, 1)
     assert.ok(first.report.sections[0].interpretation.includes('[1975년생 토끼띠 · 출생연도 기준]'))
     assert.ok(first.report.sections[0].interpretation.includes('[오늘의 결론]'))
     assert.doesNotMatch(first.report.sections[0].interpretation, /[㐀-鿿]|일간|천간|지지|일지|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인/)
     assert.equal(first.auxiliary?.todayFortune?.reading.zodiac?.animal, '토끼')
+    assert.equal(first.auxiliary?.todayFortune?.reading.formatVersion, 6)
     const reopened = await findReportRecord(first.resultId!, owner)
     const repeated = await savedDailyFortune(profile, owner, new Date('2026-09-07T14:59:59Z'))
     assert.deepEqual(reopened, first)
@@ -92,7 +94,20 @@ describe('daily snapshot identity across v5 upgrade', { concurrency: false }, ()
     assert.deepEqual(await findReportRecord(first.resultId!, owner), first)
   })
 
-  it('never overwrites an existing v2 UUID or its interpretation when generating the v5 same-day reading', async () => {
+  it('stores a separate expanded snapshot when purchase X changes without rewriting the standard reading', async () => {
+    const profile = fixture()
+    const owner = { id: profile.userId }
+    const today = new Date('2026-09-28T03:00:00Z')
+    const standard = await savedDailyFortune(profile, owner, today, { purchaseDepth: false })
+    const expanded = await savedDailyFortune(profile, owner, today, { purchaseDepth: true })
+    assert.notEqual(expanded.reportId, standard.reportId)
+    assert.notEqual(expanded.resultId, standard.resultId)
+    assert.equal(standard.auxiliary?.todayFortune?.reading.personalization.purchaseX, 0)
+    assert.equal(expanded.auxiliary?.todayFortune?.reading.personalization.purchaseX, 1)
+    assert.deepEqual((await findReportRecord(standard.resultId!, owner))?.auxiliary?.todayFortune, standard.auxiliary?.todayFortune)
+  })
+
+  it('never overwrites an existing v2 UUID or its interpretation when generating the v6 same-day reading', async () => {
     const profile = fixture()
     const owner = { id: profile.userId }
     const today = new Date('2026-09-07T03:00:00Z')
@@ -120,4 +135,10 @@ describe('daily snapshot identity across v5 upgrade', { concurrency: false }, ()
     assert.equal(toClientReport(recalled!).sections[0].interpretation, '저장되어 있던 원문입니다.')
     assert.equal(recalled?.auxiliary?.todayFortune?.reading.zodiac, undefined)
   })
+})
+
+it('resolves purchase X for both member-facing today generation routes', () => {
+  const app = readFileSync(new URL('../../src/server/app.ts', import.meta.url), 'utf8')
+  assert.match(app, /hasSettledPaymentOrder\(ownerId\)\.catch\(\(\) => false\)/)
+  assert.equal((app.match(/savedDailyFortune\(profile, owner, new Date\(\), await todayFortuneOptions\(owner\.id\)\)/g) || []).length, 2)
 })

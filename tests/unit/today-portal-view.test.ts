@@ -121,6 +121,39 @@ for (const portal of portals) {
     assert.match(markup, /중요한 메시지는 보내기 전에/)
   })
 
+  test(`${portal}: legacy saved readings receive deterministic 90-day non-repeating presentation`, () => {
+    const titles = new Set<string>()
+    const summaries = new Set<string>()
+    const workReadings = new Set<string>()
+    const actions = new Set<string>()
+    for (let offset = 0; offset < 90; offset += 1) {
+      const date = new Date(Date.UTC(2026, 8, 1 + offset))
+      const iso = date.toISOString().slice(0, 10)
+      const { markup } = harness(true, {
+        date: { iso, label: iso },
+        profile: { name: '저장된 이름', birth: { year: 1975, month: 9, day: 26 } },
+      })
+      titles.add(markup.match(/<div class="today-reading-head">[\s\S]*?<h2>(.*?)<\/h2>/)?.[1] || '')
+      summaries.add(markup.match(/<div class="today-reading-head">[\s\S]*?<div class="today-reading-copy">([\s\S]*?)<\/div>/)?.[1] || '')
+      workReadings.add(markup.match(/<strong>일 · 오늘의 방향<\/strong>[\s\S]*?<div class="today-reading-copy">([\s\S]*?)<\/div>/)?.[1] || '')
+      actions.add(markup.match(/<section class="today-action-box"[\s\S]*?<div class="today-reading-copy">([\s\S]*?)<\/div>/)?.[1] || '')
+    }
+    assert.equal(titles.size, 90)
+    assert.equal(summaries.size, 90)
+    assert.equal(workReadings.size, 90)
+    assert.equal(actions.size, 90)
+  })
+
+  test(`${portal}: v6 readings are rendered as stored without a second legacy variation`, () => {
+    const { markup } = harness(true, {
+      date: { iso: '2026-09-28', label: '2026-09-28' },
+      profile: { name: '저장된 이름', birth: { year: 1975, month: 9, day: 26 } },
+      reading: { formatVersion: 6, title: '저장된 v6 제목', summary: '저장된 v6 요약입니다.' },
+    })
+    assert.match(markup, /<h2>저장된 v6 제목<\/h2>/)
+    assert.match(markup, /<p>저장된 v6 요약입니다\.<\/p>/)
+  })
+
   test(`${portal}: first direct visit is pending until auth and reading finish, not a false failure`, () => {
     const stage = { innerHTML: '' }
     runInNewContext(`${render}\nrenderTodayResult()`, {

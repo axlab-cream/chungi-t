@@ -127,6 +127,7 @@ import {
   findPaymentOrderByTid,
   getPaymentOrder,
   getPaymentStorageMode,
+  hasSettledPaymentOrder,
   type PaymentStorageMode,
   listAllPaymentOrders,
   listPaymentOrders,
@@ -3925,6 +3926,12 @@ app.get('/api/user/reports', async (req, res) => {
   }
 })
 
+/** Purchase X changes only the explanation lens. A payment lookup failure keeps the free reading available. */
+async function todayFortuneOptions(ownerId: string): Promise<{ purchaseDepth: boolean }> {
+  const purchaseDepth = await hasSettledPaymentOrder(ownerId).catch(() => false)
+  return { purchaseDepth }
+}
+
 app.get('/api/user/destiny', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
@@ -3942,7 +3949,7 @@ app.get('/api/user/destiny', async (req, res) => {
       return
     }
 
-    const daily = await savedDailyFortune(profile, owner)
+    const daily = await savedDailyFortune(profile, owner, new Date(), await todayFortuneOptions(owner.id))
     res.json({
       userId: owner.id,
       complete: true,
@@ -3991,7 +3998,7 @@ app.post('/api/today/fortune', async (req, res) => {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '오늘의 운세를 보려면 기본 사주 정보를 먼저 입력해 주세요.' })
       return
     }
-    const record = await savedDailyFortune(profile, owner)
+    const record = await savedDailyFortune(profile, owner, new Date(), await todayFortuneOptions(owner.id))
     res.json({
       todayFortune: record.auxiliary?.todayFortune,
       reportId: record.reportId, resultId: record.resultId, publicUrl: savedReadingHref('today_fortune', record.resultId),

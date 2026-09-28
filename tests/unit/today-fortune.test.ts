@@ -10,11 +10,12 @@ const profile: UserBirthProfile = {
   birthTimeKnown: true, context: { target: '본인' }, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
 }
 
-describe('오늘운 v5: readable deterministic daily guidance', () => {
+describe('오늘운 v6: 90-day non-repeating deterministic guidance', () => {
   it('uses the saved birth profile and keeps compatibility detail fields consistent', () => {
     const fortune = buildTodayFortune(profile, new Date('2026-08-31T03:00:00.000Z'))
     assert.equal(fortune.date.iso, '2026-08-31')
     assert.equal(fortune.profile.name, '홍길동')
+    assert.equal(fortune.reading.formatVersion, 6)
     assert.equal(fortune.user.dayMaster, '庚')
     assert.ok(fortune.today.pillar.length >= 2)
     assert.doesNotMatch(fortune.reading.summary, /홍길동|님/)
@@ -76,7 +77,7 @@ describe('오늘운 v5: readable deterministic daily guidance', () => {
 
   it('reads differently on consecutive days even when the day element repeats', () => {
     // 2026-09-18 실제 문의: 갑오(甲午)일과 을미(乙未)일이 둘 다 목(木)이라 어제와 오늘 글이 같았다.
-    // 천간의 음양·지지 장면이 갈라 주어야 한다. 60일 연속으로 하루도 앞날과 같지 않아야 하고,
+    // 천간의 음양·지지 장면에 11개 생활 표현 축을 더해 90일 동안 같은 제목과 본문이 없어야 하고,
     // 그러면서 문장 수·어조·한자 규칙은 그대로 지켜야 한다.
     const owner: UserBirthProfile = { ...profile, birth: { year: 1975, month: 9, day: 26, hour: 5, minute: 0, gender: 'male', calendar: 'solar' } }
     const sep17 = buildTodayFortune(owner, new Date('2026-09-17T03:00:00Z'))
@@ -88,11 +89,15 @@ describe('오늘운 v5: readable deterministic daily guidance', () => {
     assert.notDeepEqual(sep17.reading.score, sep18.reading.score)
 
     let previous: ReturnType<typeof buildTodayFortune> | undefined
-    const zodiacTexts = new Set<string>()
-    for (let offset = 0; offset < 60; offset += 1) {
+    const unique = Object.fromEntries(
+      ['title', 'summary', 'work', 'money', 'relationship', 'caution', 'action', 'zodiac']
+        .map((key) => [key, new Set<string>()]),
+    ) as Record<string, Set<string>>
+    for (let offset = 0; offset < 90; offset += 1) {
       const fortune = buildTodayFortune(owner, new Date(Date.UTC(2026, 8, 1 + offset, 3)))
       const reading = fortune.reading
-      zodiacTexts.add(reading.zodiac!.text)
+      for (const key of ['title', 'summary', 'work', 'money', 'relationship', 'caution', 'action'] as const) unique[key].add(reading[key])
+      unique.zodiac.add(reading.zodiac!.text)
       if (previous) {
         assert.notEqual(reading.work + reading.money + reading.relationship + reading.caution, previous.reading.work + previous.reading.money + previous.reading.relationship + previous.reading.caution, `${fortune.date.iso} 본문이 전날과 같다`)
         assert.notEqual(reading.action, previous.reading.action, `${fortune.date.iso} 결론이 전날과 같다`)
@@ -115,9 +120,24 @@ describe('오늘운 v5: readable deterministic daily guidance', () => {
       }
       previous = fortune
     }
-    assert.equal(zodiacTexts.size, 60, '띠운이 60일 동안 날마다 달라야 한다')
-    const titles = new Set(Array.from({ length: 60 }, (_, offset) => buildTodayFortune(owner, new Date(Date.UTC(2026, 8, 1 + offset, 3))).reading.title))
-    assert.equal(titles.size, 60, '제목부터 60일 동안 같은 틀을 반복하지 않아야 한다')
+    for (const [key, values] of Object.entries(unique)) {
+      assert.equal(values.size, 90, `${key}가 90일 안에 반복됐다`)
+    }
+    for (const mode of ['purchased', 'mixed'] as const) {
+      const fields = Object.fromEntries(
+        ['title', 'summary', 'work', 'money', 'relationship', 'caution', 'action', 'zodiac']
+          .map((key) => [key, new Set<string>()]),
+      ) as Record<string, Set<string>>
+      for (let offset = 0; offset < 90; offset += 1) {
+        const purchaseDepth = mode === 'purchased' || offset >= 45
+        const reading = buildTodayFortune(owner, new Date(Date.UTC(2026, 8, 1 + offset, 3)), { purchaseDepth }).reading
+        for (const key of ['title', 'summary', 'work', 'money', 'relationship', 'caution', 'action'] as const) fields[key].add(reading[key])
+        fields.zodiac.add(reading.zodiac!.text)
+      }
+      for (const [key, values] of Object.entries(fields)) {
+        assert.equal(values.size, 90, `${mode} ${key}가 90일 안에 반복됐다`)
+      }
+    }
   })
 
   it('같은 날이라도 사주가 다르면 다른 오늘운이 나온다', () => {
@@ -130,6 +150,19 @@ describe('오늘운 v5: readable deterministic daily guidance', () => {
     assert.notEqual(first.reading.summary, second.reading.summary, '사주가 달라도 요약이 같다')
     assert.notDeepEqual(first.reading.score, second.reading.score, '사주가 달라도 점수가 같다')
     assert.notEqual(first.reading.zodiac?.text, second.reading.zodiac?.text)
+  })
+
+  it('구매 X는 표현 깊이만 바꾸고 실제 날짜와 사주 계산값은 유지한다', () => {
+    const when = new Date('2026-09-28T03:00:00Z')
+    const standard = buildTodayFortune(profile, when, { purchaseDepth: false })
+    const expanded = buildTodayFortune(profile, when, { purchaseDepth: true })
+    assert.deepEqual(expanded.today, standard.today)
+    assert.deepEqual(expanded.user, standard.user)
+    assert.deepEqual(expanded.reading.score, standard.reading.score)
+    assert.notEqual(expanded.reading.title, standard.reading.title)
+    assert.notEqual(expanded.reading.summary, standard.reading.summary)
+    assert.equal(standard.reading.personalization.purchaseX, 0)
+    assert.equal(expanded.reading.personalization.purchaseX, 1)
   })
 
   it('labels all twelve zodiac years conventionally, including January births before 입춘', () => {

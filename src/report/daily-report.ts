@@ -1,12 +1,12 @@
-import { buildTodayFortune } from '../saju/today-fortune.js'
+import { buildTodayFortune, type TodayFortuneOptions } from '../saju/today-fortune.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
 import type { SajuReport, SajuReportContext } from '../types/index.js'
 import { createOrGetReportRecord, createReportId, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
 
 /** Daily rules-based readings are snapshots too: an old ID never becomes today's reading. */
-export async function savedDailyFortune(profile: UserBirthProfile, owner: ReportOwner, now = new Date()): Promise<ReportRecord> {
-  const fortune = buildTodayFortune(profile, now)
+export async function savedDailyFortune(profile: UserBirthProfile, owner: ReportOwner, now = new Date(), options: TodayFortuneOptions = {}): Promise<ReportRecord> {
+  const fortune = buildTodayFortune(profile, now, options)
   const context: SajuReportContext = {
     serviceKey: 'today', name: profile.name, birthTimeKnown: profile.birthTimeKnown,
     concern: fortune.date.iso,
@@ -14,17 +14,17 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
   /*
    * Content changes get a new identity; a saved v2 UUID must never be rewritten.
    *
-   * v5(2026-09-28): 계산 근거는 유지하되 제목·문장 순서를 날짜마다 넓게 바꾸고, 한자와
-   * 전문용어는 생활 언어로 풀었다. 저장된 하루는
+   * v6(2026-09-28): 계산 근거는 유지하고 11개 생활 표현 축과 구매 X를 결합해 같은 회원의
+   * 90일 안에서 제목과 각 본문이 반복되지 않게 했다. 저장된 하루는
    * 다시 만들지 않으므로(아래 auxiliary 검사), 판을 올리지 않으면 이미 저장된 날짜는 영영 옛
    * 글로 남는다 — 어제와 오늘이 똑같아 보이던 이유가 이것이다. 판을 올려 날짜마다 새 신분을
    * 주면 옛 기록은 그대로 보존되고 새로 여는 날부터 새 로직으로 만들어진다.
    */
-  const reportId = createReportId(profile.birth, context, 'daily-reading-v5', owner.id)
+  const reportId = createReportId(profile.birth, context, `daily-reading-v6-x${fortune.reading.personalization.purchaseX}`, owner.id)
   const reading = fortune.reading
   const templateReport: SajuReport = {
     title: '오늘 나한테 들어온 운', subtitle: '내 사주와 오늘의 흐름으로 정하는 하루의 방향',
-    model: 'daily-rules-v5', generatedBy: 'template',
+    model: 'daily-rules-v6', generatedBy: 'template',
     sections: [{ id: 'daily-reading', order: 1, imageKey: '', imageSrc: '', imageAlt: '',
       category: '하루의 흐름', categoryEn: 'daily', classification: fortune.date.label,
       hook: reading.title, patternKeys: [], ragTopics: [],
@@ -37,14 +37,14 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
     if (draft.auxiliary?.todayFortune) return false
     draft.auxiliary = { ...draft.auxiliary, todayFortune: fortune }
     draft.status = draft.report.status = 'complete'
-    draft.report.model = 'daily-rules-v5'
+    draft.report.model = 'daily-rules-v6'
     draft.report.sections.forEach((section) => {
       const calculated = templateReport.sections.find(item => item.id === section.id)
       if (!calculated) throw new Error('DAILY_READING_SECTION_MISSING')
       section.hook = calculated.hook
       section.interpretation = calculated.interpretation
       section.status = 'complete'
-      section.model = 'daily-rules-v5'
+      section.model = 'daily-rules-v6'
       section.generatedAt = new Date().toISOString()
     })
   })

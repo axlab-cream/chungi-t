@@ -6457,15 +6457,45 @@
           return text;
         };
         const profile = fortune.profile || {};
+        const legacyLenses = [
+          { title: "가장 중요한 것부터 보는", body: "먼저 중요한 것부터 보면," },
+          { title: "서두르지 않고 살피는", body: "서두르지 않고 보면," },
+          { title: "작은 일 하나부터 시작하는", body: "작은 일 하나부터 보면," },
+          { title: "순서를 먼저 세우는", body: "순서를 먼저 세워 보면," },
+          { title: "내 속도를 지키는", body: "내 속도에 맞춰 보면," },
+          { title: "말보다 행동을 앞세우는", body: "행동으로 옮길 것을 먼저 보면," },
+          { title: "끝낼 일을 먼저 고르는", body: "끝낼 일을 먼저 고르면," },
+          { title: "지금 가능한 만큼 움직이는", body: "지금 가능한 만큼 보면," },
+          { title: "불필요한 힘을 빼는", body: "불필요한 힘을 빼고 보면," },
+          { title: "오늘 쓸 기준 하나를 세우는", body: "기준 하나를 세워 보면," },
+          { title: "한 번 숨을 고르고 보는", body: "한 번 숨을 고르고 보면," },
+        ];
+        const dateParts = String(fortune.date?.iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const birth = profile.birth || {};
+        const daySerial = dateParts ? Math.floor(Date.UTC(Number(dateParts[1]), Number(dateParts[2]) - 1, Number(dateParts[3])) / 86400000) : 0;
+        const purchaseX = reading.personalization?.purchaseX === 1 ? 1 : 0;
+        const birthSeed = Number(birth.year || 0) + Number(birth.month || 0) * 31 + Number(birth.day || 0) * 17 + Number(birth.hour || 0) * 7 + Number(birth.minute || 0);
+        const legacyLensIndex = ((daySerial + birthSeed + purchaseX * 5) % legacyLenses.length + legacyLenses.length) % legacyLenses.length;
+        const legacyReading = reading.formatVersion !== 6 && Boolean(dateParts);
+        const dateLead = dateParts ? `${Number(dateParts[2])}월 ${Number(dateParts[3])}일` : "오늘";
+        const displayText = (value, offset = 0) => {
+          const plain = plainTodayText(value);
+          if (!legacyReading) return plain;
+          const lens = legacyLenses[(legacyLensIndex + offset) % legacyLenses.length];
+          return `${dateLead}에는 ${lens.body} ${plain.replace(/^오늘은\s*/, "")}`;
+        };
+        const displayTitle = legacyReading
+          ? `${dateLead} · ${legacyLenses[legacyLensIndex].title} 날 · ${plainTodayText(reading.title)}`
+          : plainTodayText(reading.title);
         const detailMap = reading.details || {};
         const validScore = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
         const savedScores = reading.score || {};
         const total = validScore(savedScores.total) ? savedScores.total : null;
         const detailRows = [
-          { label: "일 · 오늘의 방향", ...(detailMap.work || {}), text: plainTodayText(detailMap.work?.text || reading.work), key: "work", scoreLabel: "일" },
-          { label: "돈 · 지킬 기준", ...(detailMap.money || {}), text: plainTodayText(detailMap.money?.text || reading.money), key: "money", scoreLabel: "돈" },
-          { label: "관계 · 마음을 전하는 법", ...(detailMap.relationship || {}), text: plainTodayText(detailMap.relationship?.text || reading.relationship), key: "relationship", scoreLabel: "관계" },
-          { label: "오늘 기억할 한 가지", ...(detailMap.caution || {}), text: plainTodayText(detailMap.caution?.text || reading.caution), key: "caution", scoreLabel: "주의점" },
+          { label: "일 · 오늘의 방향", ...(detailMap.work || {}), text: displayText(detailMap.work?.text || reading.work, 1), key: "work", scoreLabel: "일" },
+          { label: "돈 · 지킬 기준", ...(detailMap.money || {}), text: displayText(detailMap.money?.text || reading.money, 3), key: "money", scoreLabel: "돈" },
+          { label: "관계 · 마음을 전하는 법", ...(detailMap.relationship || {}), text: displayText(detailMap.relationship?.text || reading.relationship, 5), key: "relationship", scoreLabel: "관계" },
+          { label: "오늘 기억할 한 가지", ...(detailMap.caution || {}), text: displayText(detailMap.caution?.text || reading.caution, 7), key: "caution", scoreLabel: "주의점" },
         ].map((item) => ({ ...item, score: validScore(item.score) ? item.score : validScore(savedScores[item.key]) ? savedScores[item.key] : null }));
         const zodiac = reading.zodiac;
         const elementMeanings = { 목: "나무처럼 시작하고 키우는 힘", 화: "불처럼 드러내고 표현하는 힘", 토: "흙처럼 중심을 잡고 정리하는 힘", 금: "쇠처럼 덜어 내고 다듬는 힘", 수: "물처럼 살피고 유연하게 잇는 힘" };
@@ -6489,14 +6519,14 @@
 
             <div class="today-reading-head">
               <span>오늘의 흐름</span>
-              <h2>${escapeHtml(plainTodayText(reading.title))}</h2>
-              <div class="today-reading-copy">${formatInterpretationHtml(plainTodayText(reading.summary))}</div>
+              <h2>${escapeHtml(displayTitle)}</h2>
+              <div class="today-reading-copy">${formatInterpretationHtml(displayText(reading.summary))}</div>
             </div>
 
             ${zodiac?.text ? `<section class="today-zodiac-card" aria-label="나의 출생연도와 띠로 보는 오늘운">
               <span class="today-zodiac-label">${escapeHtml(zodiac.birthYear)}년생 · ${escapeHtml(zodiac.animal)}띠</span>
               <h2>${escapeHtml(plainTodayText(zodiac.title || "내 띠로 읽는 오늘의 한 장"))}</h2>
-              <div class="today-reading-copy">${formatInterpretationHtml(plainTodayText(zodiac.text))}</div>
+              <div class="today-reading-copy">${formatInterpretationHtml(displayText(zodiac.text, 9))}</div>
             </section>` : ""}
 
             <div class="result-list today-reading-list">
@@ -6515,7 +6545,7 @@
 
             <section class="today-action-box" aria-label="오늘의 결론">
               <strong>오늘의 결론</strong>
-              <div class="today-reading-copy">${formatInterpretationHtml(plainTodayText(reading.action))}</div>
+              <div class="today-reading-copy">${formatInterpretationHtml(displayText(reading.action, 10))}</div>
             </section>
 
             <div class="actions">
