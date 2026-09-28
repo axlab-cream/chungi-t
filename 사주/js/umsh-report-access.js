@@ -1188,7 +1188,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v1';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v2';
     document.head.appendChild(link);
   }
   /**
@@ -1502,9 +1502,11 @@
       + lockedToc
       + '<span>전체 해석에서 이어집니다</span><h2>돈·성장·관계·위험까지 같은 조건으로 이어집니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '전체 해석에서는 나머지 항목의 근거와 생활 장면을 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
-      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
       + '</footer>';
   }
 
@@ -1547,9 +1549,11 @@
       + lockedToc
       + '<span>전체 해석에서 이어집니다</span><h2>돈·시점·말하는 방법까지, 퇴사 뒤의 현실을 이어서 봅니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 돈, 다음 일, 퇴사 시점, 인수인계와 회복 계획을 저장된 정보에 맞춰 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
-      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
       + '</footer>';
   }
 
@@ -1593,7 +1597,7 @@
         + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
         + '</div></article>';
     }).join('');
-    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true });
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: true });
     var quotaText = teaserQuotaText(payload.freeSearch);
     var ctaLabel = cta.label === '전체 목차 열기' ? cta.label : '전체 해석 보기';
     return '<header class="job-teaser-opening money-teaser-opening">'
@@ -1606,9 +1610,11 @@
       + lockedToc
       + '<span>전체 해석에서 이어집니다</span><h2>돈이 새는 순간부터 남기기 시작하는 조건까지 이어서 봅니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 지출, 저축, 관계 비용과 시기별 돈 관리를 입력한 상황에 맞춰 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
-      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(ctaLabel) + '</a>'
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(ctaLabel) + '</a>'
       + '</footer>';
   }
 
@@ -1641,8 +1647,9 @@
     var content = '<header><strong>나머지 ' + locked.length + '개 목차</strong><small>전체 해석에서 이어집니다</small></header>'
       + '<ol>' + rows + '</ol>';
     if (options && options.collapsible) {
-      return '<details class="job-teaser-toc job-teaser-toc-collapsible" aria-label="나머지 잠긴 목차">'
-        + '<summary><strong>나머지 ' + locked.length + '개 목차</strong><small>눌러서 목차 보기</small></summary>'
+      var opened = options.open === true;
+      return '<details class="job-teaser-toc job-teaser-toc-collapsible" aria-label="나머지 잠긴 목차"' + (opened ? ' open' : '') + '>'
+        + '<summary><strong>나머지 ' + locked.length + '개 목차</strong><small>' + (opened ? '눌러서 목차 닫기' : '눌러서 목차 보기') + '</small></summary>'
         + '<ol>' + rows + '</ol>'
         + '</details>';
     }
@@ -2232,9 +2239,13 @@
     var report = outcome.report;
     if (!report && payload.report && Array.isArray(payload.report.sections)) report = payload.report;
     if (outcome.entitled === true || payload.entitled === true) return true;
-    if (hasPaidReading(report)) return true;
     var reason = String(payload.unlockReason || (report && report.unlockReason) || '').trim();
-    return reason === 'admin' || reason === 'open' || reason === 'order';
+    if (reason === 'admin' || reason === 'open' || reason === 'order') return true;
+    // 무료 티저의 1·2번 본문도 interpretation을 가지므로 본문 존재만으로 결제 완료로
+    // 오인하면 안 된다. 서버가 previewOnly/teaserSections를 보낸 응답은 명시적 권한이
+    // 확인된 경우에만 목차로 보내고, 그 외에는 paymentUrl을 그대로 사용한다.
+    if (payload.previewOnly === true || Array.isArray(payload.teaserSections)) return false;
+    return hasPaidReading(report);
   }
   function tocHref(reportId) {
     var id = String(reportId || rememberedId || '').trim();
@@ -2257,7 +2268,7 @@
     }
     return {
       href: (payload && payload.paymentUrl) || ('/payment?service=' + encodeURIComponent(key || 'cmdg')),
-      label: '전체 보기',
+      label: '전체 목차 열기',
     };
   }
   function acceptAnalyze(payload) {

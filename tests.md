@@ -1049,10 +1049,12 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MONEY-TEASER-01 | 저장 해석 1·2만 본문으로 반환하고 3~N은 실제 TOC 메타데이터만 반환 | PASS (단위/소스 계약) |
 | MONEY-TEASER-02 | 실제 입력 6종과 서버 계산 오행만 표·차트·서사에 사용 | PASS (단위 테스트) |
 | MONEY-TEASER-03 | 서로 다른 이미지, 공용 마크다운, 800자 이상 본문 | PASS (단위/렌더 계약) |
-| MONEY-TEASER-04 | 잠금 목차 기본 닫힘, 목차·CTA 중복 없음 | PASS (렌더 계약) |
+| MONEY-TEASER-04 | 14개 잠금 목차 기본 펼침, 목차·CTA 중복 없음 | PASS (렌더 계약) |
 | MONEY-TEASER-05 | 직장 선택 조회 이력 보존, 저축운 5회 한도 분리, 같은 lineage 멱등 | PASS (단위 테스트) |
 | MONEY-TEASER-06 | 모바일 표·차트 줄바꿈과 공용 캐시 버전 전수 동기화 | PASS (CSS/전수 스캔) |
 | MONEY-TEASER-07 | TypeScript, JS 구문, Vercel production build, diff 검사 | PASS |
 | MONEY-TEASER-08 | 전체 회귀 | PASS (1606/1606, 165 suites) |
 | MONEY-TEASER-09 | 독립 Grok 리뷰 | BLOCKED (사용하지 않는 외부 MCP 인증 재시도로 중단), 수동 리뷰 진행 |
 | MONEY-TEASER-10 | main·운영 배포·실제 운영 모바일 검증 | PASS (`164baf5b`, CI `36402994729`, Vercel `dpl_7tP4q6EpaunYeAhnZVBNggQJJLXp`; 390px에서 2개 해석·2개 이미지·표·차트·기본 닫힘 14개 잠금 목차·단일 CTA·가로 넘침 0 확인) |
+| MONEY-TEASER-11 | 무료 본문을 결제 권한으로 오인하지 않음; 미결제는 개인 결제 URL, 권한 회원은 저장 목차 URL | PASS (공통 리더 회귀) |
+| MONEY-TEASER-12 | 입력값 다시 확인을 5회 조회 상태 행에 배치하고 CTA는 아래 한 번만 유지 | PASS (렌더·CSS 계약) |

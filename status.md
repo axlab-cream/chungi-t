@@ -2419,3 +2419,10 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] Vercel production 배포 `dpl_7tP4q6EpaunYeAhnZVBNggQJJLXp`가 Ready이며 `umsh.kr`, `www.umsh.kr` 별칭에 연결됐다.
 - [PASS] 로그인된 운영 모바일 390px 화면에서 실제 해석 1·2, 서로 다른 이미지 2개, 입력 표 1개, 서버 오행 차트 1개, 기본 닫힘인 실제 03~16번 잠금 목차 14개, 단일 CTA와 5회 조회 상태를 확인했다. 원시 마크다운·내부 QA 문구·9,900원·가로 넘침은 없었다.
 - [KMS] 원인·해결·검증 기록은 `personal/carrotcap/notes/umsh-money-save-teaser-real-first-two-20260928.md`에 저장한다.
+
+## 2026-09-28 — 저축운 잠금 목차·공통 결제 CTA 후속 보정
+
+- [FOUND] 무료 공개 1·2번도 `interpretation`을 가지는데 공통 프런트가 본문 존재를 유료 권한으로 보아, 미결제 티저의 `전체 목차 열기`가 결제 대신 05 목차로 향할 수 있었다.
+- [FIXED] `entitled`와 `unlockReason`을 권한 정본으로 삼는다. `previewOnly` 또는 `teaserSections` 응답은 명시 권한이 없으면 서버의 개인 `paymentUrl`로 보내고, 결제·관리자 권한이 확인된 경우에만 저장 리포트 05 목차로 보낸다. 이 분기는 공용 리더를 쓰는 모든 티저에 적용된다.
+- [FIXED] 저축운 03~16번 잠금 목차 14개는 기본 펼침으로 바꾸고, `입력값 다시 확인`은 무료 조회 횟수와 같은 상태 행으로 올렸다. 결제 CTA는 그 아래 한 번만 유지한다.
+- [PASS] 공통 리더 집중 회귀 109/109, 저축운 21개 계약, 20개 서비스 QA, 전체 회귀 1607/1607(165 suites), TypeScript, JavaScript 구문, Vercel production build와 diff 검사를 통과했다.

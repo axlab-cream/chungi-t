@@ -134,7 +134,7 @@ test('퇴사운 티저는 저장 해석 1·2와 실제 시각화 뒤에 항상 �
   assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
 })
 
-test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에 닫힌 실제 3~N 목차를 한 번만 렌더한다', () => {
+test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에 펼친 실제 3~N 잠금 목차를 한 번만 렌더한다', () => {
   const api = loadAccess('/money/save/04-step-4-report/index.html')
   const teaserSections = [
     { id: 'income-salary-stable', order: 1, imageSrc: '/money/save/assets/save/reading-v2/01-stable-salary.webp', interpretation: '[주요 포인트] 월급과 저축 순서를 읽은 본문', storytelling: { tableMd: '| 확인한 정보 | 입력 내용 |\n| --- | --- |\n| 수입 | 월급 |' } },
@@ -155,9 +155,12 @@ test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에
   assert.match(accessSource, /renderSectionImage\(section, 'money_save'\)/)
   assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
   assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
-  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true \}\)/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: true \}\)/)
   assert.match(accessSource, /<details class="job-teaser-toc job-teaser-toc-collapsible"/)
+  assert.match(accessSource, /\(opened \? ' open' : ''\)/)
   assert.match(accessSource, /무료 결과 조회 ' \+ used \+ '\/5회 사용/)
+  assert.match(accessSource, /class="job-teaser-status-row"/)
+  assert.match(inplaceCss, /\.job-teaser-status-row \{ display: flex;/)
   assert.match(accessSource, /function showPreviewLimit\(payload\)/)
   assert.match(accessSource, /무료 결과 5회를 모두 확인했습니다/)
   assert.match(inplaceCss, /\.money-teaser-reading \.story-image \{ aspect-ratio: 3 \/ 2; \}/)
@@ -211,8 +214,26 @@ test('미결제 티저 CTA는 결제 주소로 간다', () => {
   })
   assert.equal(api.isEntitled(accepted), false)
   const cta = api.previewCta({ paymentUrl: '/payment?product=money_save' })
-  assert.equal(cta.label, '전체 보기')
+  assert.equal(cta.label, '전체 목차 열기')
   assert.equal(cta.href, '/payment?product=money_save')
+})
+
+test('무료 공개 1·2번 본문은 결제 권한으로 오인하지 않고 전 서비스 공통 결제 주소를 쓴다', () => {
+  const api = loadAccess('/money/save/04-step-4-report/index.html')
+  const payload = {
+    previewOnly: true,
+    entitled: false,
+    reportId: 'save-free-1',
+    teaserSections: [
+      { id: 'free-1', interpretation: '무료 공개 본문 1' },
+      { id: 'free-2', interpretation: '무료 공개 본문 2' },
+    ],
+    paymentUrl: '/payment?product=money_save&reportId=save-free-1',
+  }
+  assert.equal(api.isEntitled(payload), false)
+  const cta = api.previewCta(payload)
+  assert.equal(cta.href, '/payment?product=money_save&reportId=save-free-1')
+  assert.equal(cta.label, '전체 목차 열기')
 })
 
 test('isPaid 플래그만 있어도 유료 열람으로 본다', () => {

@@ -692,7 +692,7 @@ test('preview CTA names the result the reader will open',()=>{
   const h=harness('/work/move/04-step-4-report/index.html',[])
   h.api.showPreview({preview:{headline:'먼저 본 방향',summary:'조건을 비교합니다.',signals:[]},paymentUrl:'/payment'}, {})
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/>전체 보기</)
+  assert.match(html,/>전체 목차 열기</)
   assert.doesNotMatch(html,/전체 해석 열어보기/)
 })
 
