@@ -2381,3 +2381,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] Vercel production 배포 dpl_FphcJP4tGejAvMHvpUvwUcNHY7YK가 Ready이며 umsh.kr, www.umsh.kr 별칭에 연결됐다.
 - [PASS] 운영 대상 HTML, 공용 리더 v2, 공용 CSS, 서로 다른 두 WebP 이미지가 모두 HTTP 200이다. 운영 HTML에는 정적 티저·중간 CTA가 없고 실제 결과 슬롯만 남는다.
 - [LIMIT] 앱 내 자동화 브라우저는 보안 격리로 window가 확장 불가하고 fetch API도 제공하지 않아 로그인 결과 DOM을 다시 가져오지 못했다. 실제 개인화 데이터 경계는 인증 API 통합 테스트로, 모바일 너비·마크다운·표·차트·잠금 목차 구조는 렌더러 회귀 테스트로 검증했다.
+
+## 2026-09-28 — 퇴사운 권한 보유 회원의 빈 티저 화면 수정
+
+- [REPRODUCED] 로그인된 운영 URL `work/quit/04-step-4-report`에서 상·하단 공용 내비게이션만 남고 결과 슬롯이 비는 현상을 확인했다. 같은 시각 `/api/report/:id`는 200이어서 저장소나 인증 실패가 아니라 응답 종류와 화면 슬롯의 불일치였다.
+- [ROOT CAUSE] 04 티저의 저장 리포트 GET에 `preview=1`이 없었다. 구매 또는 관리자 등 전체 열람 권한이 있는 회원에게 서버가 전체 리포트를 반환했지만, 04 화면은 유료 본문 `sections` 슬롯을 의도적으로 만들지 않아 정상 응답을 그리지 못했다.
+- [FIXED] 결제 완료 복귀(`orderId` 또는 `paid=1`)가 아닌 모든 04 화면은 저장 리포트 GET에 `preview=1`을 붙인다. 따라서 권한 보유 여부와 상관없이 04는 실제 무료 1·2번 티저를 받고, 05·06 및 결제 복귀의 전체 리포트 경로는 유지된다. 공용 리더 캐시는 v3로 갱신했다.
+- [PASS] 원인 재현 회귀를 추가했고 공용 리더·티저·캐시 집중 테스트 91/91, 퇴사운 계약 22개/페이지 7개/대분류 8개, TypeScript, Vercel build, JavaScript 구문 및 diff 검사를 통과했다. 전체 회귀 1차 실행에서 구 캐시 버전 기대 2개만 실패했으며 기대값 갱신 후 해당 계약을 포함한 집중 테스트가 통과했다.
+- [PENDING] 핫픽스 커밋의 main 반영, Vercel Ready 확인, 같은 로그인 운영 URL에서 실제 1·2번 해석·이미지·마크다운·시각화·닫힌 잠금 목차가 표시되는지 재검증한다.

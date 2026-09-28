@@ -190,10 +190,27 @@ test('newyear paid returns ignore stale preview flags and full responses clear p
   }
 })
 
-test('newyear preview URL behavior does not alter another service saved GET', async () => {
+test('every 04 teaser requests the saved preview even for an entitled member', async () => {
   const h=harness('/me/lucky/04-step-4-report/index.html?reportId=lucky-uuid&preview=1',[{previewOnly:true,serviceKey:'lucky_color',reportId:'lucky-uuid',preview:{headline:'기존 서비스'}}])
   await h.api.fetch('/api/me/lucky/analyze',{method:'POST',body:'{}'})
-  assert.equal(h.calls[0].path,'/api/report/lucky-uuid')
+  assert.equal(h.calls[0].path,'/api/report/lucky-uuid?preview=1')
+})
+
+test('quit 04 saved report never asks for the entitled full body that its teaser shell cannot render', async () => {
+  const h=harness('/work/quit/04-step-4-report/index.html?reportId=quit-uuid',[{
+    previewOnly:true,
+    entitled:true,
+    serviceKey:'quit_fortune',
+    reportId:'quit-uuid',
+    preview:{headline:'퇴사 고민을 읽은 제목'},
+    teaserSections:[
+      {id:'q1',order:1,status:'complete',classification:'첫 해석',interpretation:'첫 본문'},
+      {id:'q2',order:2,status:'complete',classification:'둘째 해석',interpretation:'둘째 본문'},
+    ],
+    toc:[],
+  }])
+  await h.api.fetch('/api/work/quit/analyze',{method:'POST',body:'{}'})
+  assert.equal(h.calls[0].path,'/api/report/quit-uuid?preview=1')
 })
 
 test('all newyear reader routes re-open saved UUIDs and preserve the paid order reference', async () => {

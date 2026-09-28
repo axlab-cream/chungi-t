@@ -114,7 +114,17 @@
   function reportUrl(id, orderId) {
     var query=new URLSearchParams();
     if(orderId) query.set('orderId',orderId);
-    else if(key==='newyear_flow' && new URLSearchParams(location.search).get('preview')==='1' && new URLSearchParams(location.search).get('paid')!=='1') query.set('preview','1');
+    else {
+      var pageQuery = new URLSearchParams(location.search);
+      // 04 is the free teaser surface even when the signed-in member already owns the
+      // full report (or has admin-equivalent access). Without this explicit intent the
+      // server correctly returns the entitled full report, but 04 deliberately has no
+      // full `sections` slot, leaving a successful response with an empty page.
+      // A confirmed payment return keeps its orderId above and therefore still opens
+      // the paid reader path.
+      if (isTeaserPage() && pageQuery.get('paid') !== '1') query.set('preview','1');
+      else if(key==='newyear_flow' && pageQuery.get('preview')==='1' && pageQuery.get('paid')!=='1') query.set('preview','1');
+    }
     return '/api/report/'+encodeURIComponent(id)+(query.toString()?'?'+query.toString():'');
   }
   function isOutputPage() { return /(?:04-step|05-step|06-step)/.test(location.pathname) || isPermalink() || Boolean(locationId()); }
