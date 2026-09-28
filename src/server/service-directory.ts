@@ -199,17 +199,33 @@ export function savedReadingHref(serviceKey: string | undefined, savedId: string
   return `${address}${separator}reportId=${encodeURIComponent(id)}${hash ? `#${hash}` : ''}`
 }
 
-/** 06-1 해석 목차. 없으면 이 상품은 공용 리더(`/r/:id`)로 연다. */
+/** 결제 뒤 첫 화면. 표준 퍼널은 05 목차, 단일 화면 서비스는 등록된 상세 화면을 쓴다. */
 export function readingPathForProduct(productKey: string | undefined): string | undefined {
-  return seedForKey(productKey)?.reportPath
+  const seed = seedForKey(productKey)
+  if (!seed?.reportPath) return undefined
+  // The standard service funnel always opens the paid table of contents first. The
+  // vault deliberately keeps using `savedReadingHref` above, which reopens a saved
+  // reading in its 06 detail surface.
+  const tocProducts = new Set<PaymentProductKey>([
+    'love_this_year', 'job_choice', 'cat_compatibility', 'lucky_color',
+    'newyear_flow', 'wedding_day', 'match_couple', 'marry_match',
+    'couple_signal', 'quit_fortune', 'pass_angle', 'money_save',
+    'work_move', 'home_pungsu',
+  ])
+  if (!tocProducts.has(seed.key)) return seed.reportPath
+  const detailAddress = seed.reportPath.split('#')[0].split('?')[0]
+  return `${detailAddress.replace('/06-step-6_1-report-detail/index.html', '/05-step-5-chat/chat.html')}#step-5-chat`
 }
 
 /**
- * 결제 완료 후 열 주소. 06-1 목차가 있으면 그곳, 없으면 `/r/:id`.
- * `returnPath`(04 미리보기·입력)는 쓰지 않는다 — 이미 결제했으므로 목차로 간다.
+ * 결제 완료 후 열 주소. 표준 퍼널은 05 목차를 먼저 열고, 없으면 등록된 리더를 쓴다.
+ * `returnPath`(04 미리보기·입력)는 쓰지 않는다 — 결제가 끝난 뒤의 읽기 화면이다.
  */
 export function paidReadingHref(productKey: string | undefined, reportId?: string): string {
   const id = String(reportId ?? '').trim()
-  if (id) return savedReadingHref(productKey, id) || `/r/${encodeURIComponent(id)}`
-  return readingPathForProduct(productKey) || seedForKey(productKey)?.href || '/'
+  const path = readingPathForProduct(productKey)
+  if (!path) return id ? `/r/${encodeURIComponent(id)}` : seedForKey(productKey)?.href || '/'
+  if (!id) return path
+  const [address, hash] = path.split('#')
+  return `${address}${address.includes('?') ? '&' : '?'}reportId=${encodeURIComponent(id)}${hash ? `#${hash}` : ''}`
 }

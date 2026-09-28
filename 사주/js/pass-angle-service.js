@@ -308,19 +308,6 @@
     host.appendChild(gate);
   }
 
-  /** Checkout is not wired yet, so every reading opens free until the PG goes live. */
-  async function checkoutEnabled() {
-    try {
-      const response = await fetch('/api/payment/config');
-      if (!response.ok) return false;
-      const config = await response.json();
-      return Boolean(config.checkoutEnabled);
-    } catch {
-      return false;
-    }
-  }
-
-  
   function clipTeaser(text, limit) {
     var max = typeof limit === 'number' ? Math.max(limit, 220) : 220;
     if (window.UMSHTextClip && window.UMSHTextClip.clipCompleteSentences) {
@@ -362,6 +349,11 @@ function firstParagraph(text) {
           const span = results[0].querySelector('span');
           if (span) span.textContent = lastPreview.preview.summary || lastPreview.preview.headline || span.textContent;
         }
+        const cta = root.querySelector('.button');
+        if (cta) {
+          cta.textContent = `전체 보기 (${SERVICE.price_krw.toLocaleString('ko-KR')}원)`;
+          cta.setAttribute('href', lastPreview.paymentUrl || `/payment?product=${SERVICE.service_key}&returnTo=${encodeURIComponent(location.pathname)}`);
+        }
         return;
       }
       if (needsLogin) renderLoginGate(root, '지금 화면의 문장은 예시입니다. 로그인 후 입력하신 사주와 시험 정보로 다시 계산합니다.');
@@ -397,15 +389,11 @@ function firstParagraph(text) {
       `).join('');
     }
 
-    if (!(await checkoutEnabled())) {
-      const heading = root.querySelectorAll('h2')[1];
-      if (heading) heading.textContent = '지금은 전체 풀이가 무료로 열립니다';
-      const eyebrow = root.querySelector('.section .eyebrow');
-      if (eyebrow) eyebrow.textContent = 'FREE PREVIEW';
-      const cta = root.querySelector('.button');
-      if (cta) cta.textContent = '전체 리포트 무료로 보기';
-      const footer = root.querySelector('.footer');
-      if (footer) footer.textContent = '결제 모듈 연결 전이라 전체 풀이를 무료로 공개합니다. 결과는 확정 예언이 아니라 선택 기준입니다.';
+    const cta = root.querySelector('.button');
+    if (cta) {
+      const reportId = report.reportId || report.id || '';
+      cta.textContent = '전체 목차 열기';
+      cta.setAttribute('href', `../05-step-5-chat/chat.html${reportId ? `?reportId=${encodeURIComponent(reportId)}` : ''}#step-5-chat`);
     }
   }
 

@@ -720,7 +720,7 @@
       </section>
 
       <nav class="cta-stack" aria-label="다음 단계">
-        <a class="cta-primary" href="../05-step-5-chat/chat.html#step-5-chat" data-action="open-paid">
+        <a class="cta-primary" href="/payment?product=home_pungsu&amp;returnTo=%2Fplace%2Fhome%2F04-step-4-report%2Findex.html" data-action="open-paid">
           전체 보기 (19,900원)
         </a>
         
@@ -1278,15 +1278,15 @@
               input_payload_present: Boolean(payload)
             });
             if (!window.UMSHCheckout) return;
-            // Hold the navigation while checkout answers; fall back to the plain link when
-            // the payment module is not connected yet, so this step never dead-ends.
+            // Hold navigation while checkout answers. The plain-link fallback is the
+            // payment page, never the paid table of contents.
             const fallbackHref = link.getAttribute("href");
             event.preventDefault();
             window.UMSHCheckout
               .start({
                 productKey: "home_pungsu",
                 reportId,
-                returnTo: "/place/home/05-step-5-chat/chat.html#step-5-chat"
+                returnTo: "/place/home/04-step-4-report/index.html"
               })
               .then((result) => {
                 if (!result.started) window.location.href = fallbackHref;

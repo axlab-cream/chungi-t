@@ -197,55 +197,8 @@
       line-height: 1.7;
     }
 
-    .trust-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-    }
-
-    .trust-row span {
-      min-height: 30px;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 248, 239, .2);
-      background: rgba(17, 9, 10, .58);
-      color: var(--ink);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
     main {
       padding: 20px 18px 34px;
-    }
-
-    .stepper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 18px;
-    }
-
-    .step {
-      min-height: 40px;
-      display: grid;
-      place-items: center;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      color: var(--dim);
-      background: rgba(255, 248, 239, .04);
-      font-size: 12px;
-      font-weight: 900;
-      text-align: center;
-      line-height: 1.3;
-    }
-
-    .step.is-current {
-      color: #1a0d0e;
-      background: linear-gradient(135deg, var(--gold), #e7c982);
-      border-color: rgba(216, 169, 79, .78);
     }
 
     .form-card,
@@ -622,21 +575,10 @@
         <p class="eyebrow">이직운 입력</p>
         <h1>옮길 자리와 남을 자리를 가릅니다</h1>
         <p class="lead">생년월일과 이번 고민만 있으면, 이직이 흐름인지 감정인지부터 나눠 보여 드립니다.</p>
-        <div class="trust-row" aria-label="입력 보안 안내">
-          <span>URL 저장 없음</span>
-          <span>회사명 장기 저장 안 함</span>
-          <span>로그인하고 전체 보기</span>
-        </div>
       </div>
     </header>
 
     <main>
-      <div class="stepper" aria-label="진행 단계">
-        <div class="step">01<br>스토리</div>
-        <div class="step is-current">02<br>입력</div>
-        <div class="step">04<br>티저</div>
-      </div>
-
       <form class="form-card" id="moveForm" novalidate="">
         <section class="section">
           <div class="section-head">
@@ -1271,8 +1213,7 @@
         if (!validate()) return;
         const payload = collectPayload();
         savePayload(payload);
-        history.replaceState(null, "", "#step-2-saju-input");
-        renderSaved(payload);
+        location.assign(payload.next_route);
       });
 
       editAgain.addEventListener("click", () => {
@@ -1288,7 +1229,7 @@
   <script src="/js/common-auth-return.js"></script>
   <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
   <script src="/js/umsh-text-clip.js"></script>
-  <script src="/js/work-move-service.js?v=live-20260917q"></script>
+  <script src="/js/work-move-service.js?v=20260928-funnel-gate"></script>
   <script src="/js/umsh-ymd.js?v=20260916-ymd3"></script>
   <script src="/js/service-shell.js?v=20260902-work-move"></script>
 

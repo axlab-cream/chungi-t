@@ -56,6 +56,6 @@ test('homepage hold does not delete payment catalog or admin href mapping', () =
   const product=getPaymentProduct('newyear_flow')
   assert.equal(product?.title, title)
   assert.equal(product?.amount, 19900)
-  assert.equal(product?.returnPath, '/flow/newyear')
+  assert.equal(product?.returnPath, '/flow/newyear/04-step-4-report/index.html')
   assert.equal(serviceHrefForKey('newyear_flow'), '/flow/newyear')
 })

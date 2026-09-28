@@ -875,22 +875,6 @@
           .replaceAll("'", "&#039;");
       }
 
-      document.querySelector('[data-action="purchase"]').addEventListener("click", () => {
-        const message = document.getElementById("paymentMessage");
-        const intent = {
-          service_key: "work_move",
-          amount_krw: 14900,
-          from: "04-step-4-report",
-          to: "../05-step-5-chat/chat.html#step-5-chat",
-          requested_at: new Date().toISOString(),
-          note: "권한 확인 전 상세 결과를 열지 않음"
-        };
-        if (canUseSession()) {
-          sessionStorage.setItem(storageKeys.paymentIntent, JSON.stringify(intent));
-        }
-        message.innerHTML = '결제와 권한 확인이 끝나면 전체 결과 목록으로 이동합니다. <a href="../05-step-5-chat/chat.html#step-5-chat">검토용 전체 결과 화면 보기</a>';
-      });
-
       renderScope();
       renderTeaser();
     })();
@@ -902,7 +886,7 @@
   <script src="/js/common-auth-return.js"></script>
   <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
   <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/work-move-service.js?v=live-20260917q"></script>
+<script src="/js/work-move-service.js?v=20260928-funnel-gate"></script>
   <script src="/js/service-shell.js?v=20260902-work-move"></script>
 <!-- 2026-09-15: 해석 신고 버튼을 전 화면에서 내렸다. 되살릴 때 주석만 풀 것. <script src="/js/ai-report-flag.js?v=20260910-flag" defer=""></script> -->
 

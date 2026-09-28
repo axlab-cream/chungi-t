@@ -1062,3 +1062,17 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MONEY-TEASER-14 | 표·순서도·오행 차트 상세성과 모바일 가독성 | PASS (3열 근거표, 실제 입력 기반 3단계 순서도, 오행별 개별 설명, 430px 카드형 표 계약) |
 | MONEY-TEASER-15 | 네 기둥 기반 개인 사주 근거 | PASS (해·달·날·시간 실제 기운 구성, 태어난 날 중심/달 반복/시간 목표 연결, 한자 기둥 미노출) |
 | MONEY-TEASER-16 | 마크다운 표 셀·순서도·캡션의 모바일 줄바꿈 | PASS (공용 `nowrap` 덮어쓰기, 셀·라벨 `min-width: 0`, `white-space: normal`, `overflow-wrap: anywhere` 계약) |
+
+## 2026-09-28 — 이직운 STEP2 상단 정리
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| WORK-MOVE-INPUT-01 | `입력 보안 안내` 배지 행 미노출 | PASS (정적 계약) |
+| WORK-MOVE-INPUT-02 | `01 스토리 · 02 입력 · 04 티저` 진행 단계 미노출 | PASS (정적 계약) |
+| WORK-MOVE-INPUT-03 | 히어로 다음 `<main>`이 입력 폼으로 바로 연결 | PASS (DOM 순서 계약) |
+| FUNNEL-GATE-01 | 14개 표준 서비스 입력 단계에서 05·06 직접 링크 금지 | PASS |
+| FUNNEL-GATE-02 | 모든 05 목차가 서버 권한 검사 스크립트를 사용 | PASS |
+| FUNNEL-GATE-03 | 결제 모듈 부재·오류 때 05로 보내는 fail-open 금지 | PASS |
+| FUNNEL-GATE-04 | 결제 완료 뒤 표준 서비스는 05 목차부터 진입 | PASS |
+| FUNNEL-GATE-05 | 정적 CTA·결제 장애 fallback·로컬 권한 코드가 결제 없이 05를 열지 않음 | PASS |
+| WORK-MOVE-NAV-01 | 이직운 입력 완료는 reportId를 보존해 04 티저로 이동 | PASS |

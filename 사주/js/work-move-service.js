@@ -448,6 +448,13 @@
     if (goReport) goReport.setAttribute('href', '../04-step-4-report/index.html#step-4-report');
   }
 
+  function teaserUrl(reportId) {
+    const url = new URL('../04-step-4-report/index.html', location.href);
+    if (reportId) url.searchParams.set('reportId', reportId);
+    url.hash = 'step-4-report';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
 
   /**
    * 이 화면은 저장된 사주를 localStorage 캐시에서만 읽었다. 계정에는 사주가 있어도 이
@@ -534,17 +541,12 @@
       try {
         payload.analysis = await requestAnalysis(payload);
         payload.reportId = payload.analysis.resultId || payload.analysis.reportId || payload.analysis.report?.reportId || '';
-        if (note) {
-          note.textContent = payload.analysis.preview && !payload.analysis.report?.sections?.length
-            ? '무료 티저를 저장했습니다. 04에서 먼저 확인하세요.'
-            : '개인화 이직운 리포트를 저장했습니다. 04 무료 티저로 이어가세요.';
-        }
+        saveStep2Payload(payload);
+        location.assign(teaserUrl(payload.reportId));
       } catch (error) {
         payload.analysis_error = error instanceof Error ? error.message : '분석 리포트를 생성하지 못했습니다.';
-        if (note) note.textContent = `${payload.analysis_error} 입력값은 저장했고 04 무료 티저에서 계속 확인할 수 있습니다.`;
-      } finally {
         saveStep2Payload(payload);
-        renderStep2Saved(payload);
+        if (note) note.textContent = `${payload.analysis_error} 잠시 후 다시 눌러 주세요.`;
         if (submitButton) submitButton.disabled = false;
       }
     }, true);
@@ -644,7 +646,8 @@ function firstSentence(text) {
     const entitled = Boolean(reportAccess()?.isEntitled?.(analysis) || (report?.isPaid || report?.paid || report?.entitlement === 'paid'));
     purchase?.addEventListener('click', () => {
       const openFullReport = () => {
-        window.location.href = '../05-step-5-chat/chat.html#step-5-chat';
+        const id = reportIdentity(analysis) || report?.reportId || '';
+        window.location.href = reportAccess()?.tocHref?.(id) || `../05-step-5-chat/chat.html${id ? `?reportId=${encodeURIComponent(id)}` : ''}#step-5-chat`;
       };
       if (entitled) {
         openFullReport();
@@ -657,22 +660,14 @@ function firstSentence(text) {
         to: '../05-step-5-chat/chat.html#step-5-chat',
         requested_at: new Date().toISOString(),
       });
-      // Checkout first when the payment module is connected; otherwise keep the existing
-      // direct hand-off so this step never dead-ends before launch.
-      if (!window.UMSHCheckout) {
-        window.setTimeout(openFullReport, 120);
-        return;
-      }
-      window.UMSHCheckout
-        .start({
-          productKey: 'work_move',
-          reportId: report?.reportId || analysis?.reportId || '',
-          returnTo: '/work/move/05-step-5-chat/chat.html#step-5-chat',
-        })
-        .then((result) => {
-          if (!result.started) window.setTimeout(openFullReport, 120);
-        })
-        .catch(openFullReport);
+      const reportId = reportIdentity(analysis) || report?.reportId || '';
+      window.UMSHPaymentBridge?.save?.('work_move', readPayload(), location.pathname);
+      const params = new URLSearchParams({
+        product: 'work_move',
+        returnTo: '/work/move/04-step-4-report/index.html',
+      });
+      if (reportId) params.set('reportId', reportId);
+      window.location.assign(`/payment?${params.toString()}`);
     });
     if (purchase && entitled) purchase.textContent = '전체 목차 열기';
   }

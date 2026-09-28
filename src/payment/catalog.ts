@@ -42,7 +42,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '올해 연애운',
     eyebrow: 'LOVE · 연애운',
     amount: 12900,
-    returnPath: '/love/this-year',
+    returnPath: '/love/this-year/04-step-4-report/index.html',
     summary: '도화가 들어오는 시기와 놓치기 쉬운 타이밍을 봅니다.',
   },
   wedding_day: {
@@ -50,7 +50,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '우리 결혼, 이날 해도 될까?',
     eyebrow: 'WEDDING DAY · 결혼택일',
     amount: 24900,
-    returnPath: '/day/wedding',
+    returnPath: '/day/wedding/04-step-4-report/index.html',
     summary: '후보일마다 두 사람의 명식과 맞물리는 조건을 세어 비교합니다.',
   },
   newyear_flow: {
@@ -58,7 +58,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '내 2027년, 풀릴 각이야?',
     eyebrow: '2027 · 신년운세',
     amount: 19900,
-    returnPath: '/flow/newyear',
+    returnPath: '/flow/newyear/04-step-4-report/index.html',
     summary: '입춘 전환과 세운, 열두 달 월운으로 2027년 한 해의 결을 봅니다.',
   },
   home_pungsu: {
@@ -66,7 +66,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '집 풍수',
     eyebrow: 'PLACE · 집 풍수',
     amount: 19900,
-    returnPath: '/place/home',
+    returnPath: '/place/home/04-step-4-report/index.html',
     summary: '주소와 사주 프로필을 겹쳐 지금 사는 집의 흐름을 봅니다.',
   },
   work_move: {
@@ -74,7 +74,8 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '이직운',
     eyebrow: 'WORK · 이직운',
     amount: 14900,
-    returnPath: '/work/move',
+    // Step 04 verifies the paid order before the customer opens the full TOC.
+    returnPath: '/work/move/04-step-4-report/index.html',
     summary: '대운, 세운, 관성으로 옮길 시기와 조건을 봅니다.',
   },
   work_job: {
@@ -186,7 +187,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '나, 붙을 각이야?',
     eyebrow: 'EXAM · 합격운',
     amount: 9900,
-    returnPath: '/me/pass-angle',
+    returnPath: '/me/pass-angle/04-step-4-report/index.html',
     summary: '인성, 관성, 세운으로 시험 흐름과 공부 전략을 봅니다.',
   },
 }

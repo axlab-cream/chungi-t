@@ -18,7 +18,7 @@ test('결제 카탈로그는 서버 기준 상품명과 금액을 사용한다',
   const product = getPaymentProduct('home_pungsu')
   assert.equal(product?.title, '집 풍수')
   assert.equal(product?.amount, 19900)
-  assert.equal(product?.returnPath, '/place/home')
+  assert.equal(product?.returnPath, '/place/home/04-step-4-report/index.html')
 })
 
 test('이니시스 표준결제 필드와 서명은 서버에서 생성한다', () => {
