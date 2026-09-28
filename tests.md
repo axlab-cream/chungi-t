@@ -1040,4 +1040,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | QUIT-TEASER-03 | 3~10번 실제 목차는 본문 없이 기본 닫힘·잠김, 중복 목차·중간 CTA 없음 | PASS (렌더러·API 통합) |
 | QUIT-TEASER-04 | 정적 키비주얼 오버레이와 구형 테이블·이미지 중첩 제거, 모바일 표 줄바꿈 | PASS (정적·CSS 계약) |
 | QUIT-TEASER-05 | 5회 조회 수치는 실제 API 값이 있을 때만 표시 | PASS (가짜 수치 없음), DB 저장소는 GATE |
-| QUIT-TEASER-06 | 전체 회귀·타입·프로덕션 빌드 | PASS (1600/1600, typecheck, vercel-build) |
+| QUIT-TEASER-06 | 전체 회귀·타입·프로덕션 빌드·CI | PASS (1600/1600, typecheck, vercel-build, CI 36395644118) |

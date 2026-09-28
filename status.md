@@ -2374,3 +2374,10 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [FOUND] 앱 내 자동화 브라우저처럼 fetch API를 제공하지 않는 격리 환경에서는 공용 리더가 초기화 전에 예외로 중단되어 본문 슬롯이 비었다.
 - [FIXED] 공용 리더는 fetch가 없을 때도 초기화되며, 네트워크 요청 단계에서 명시적으로 실패하도록 보강했다. 일반 브라우저의 fetch 경로는 그대로이며 공용 스크립트 캐시를 v2로 갱신했다.
 - [PASS] 보강 뒤 공용 리더·티저 집중 회귀 52/52, TypeScript, JavaScript 구문, diff 검사를 통과했다.
+
+## 2026-09-28 — 퇴사운 무료 티저 운영 배포 완료
+
+- [PASS] 코드 커밋 ff66d269를 origin/main에 일반 push했고 GitHub Actions 36395644118의 타입·전체 회귀·서비스 검수·20개 서비스 QA·배포 빌드가 모두 성공했다.
+- [PASS] Vercel production 배포 dpl_FphcJP4tGejAvMHvpUvwUcNHY7YK가 Ready이며 umsh.kr, www.umsh.kr 별칭에 연결됐다.
+- [PASS] 운영 대상 HTML, 공용 리더 v2, 공용 CSS, 서로 다른 두 WebP 이미지가 모두 HTTP 200이다. 운영 HTML에는 정적 티저·중간 CTA가 없고 실제 결과 슬롯만 남는다.
+- [LIMIT] 앱 내 자동화 브라우저는 보안 격리로 window가 확장 불가하고 fetch API도 제공하지 않아 로그인 결과 DOM을 다시 가져오지 못했다. 실제 개인화 데이터 경계는 인증 API 통합 테스트로, 모바일 너비·마크다운·표·차트·잠금 목차 구조는 렌더러 회귀 테스트로 검증했다.
