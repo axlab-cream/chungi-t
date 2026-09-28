@@ -156,22 +156,8 @@
       return;
     }
 
-    const status = $('#profileStatus');
-    if (!status || $('.jobchoice-saved-profile')) return;
-    const card = document.createElement('div');
-    card.className = 'jobchoice-saved-profile';
-    const title = document.createElement('b');
-    title.textContent = `${stored.name}님의 저장된 사주로 이어갑니다`;
-    const detail = document.createElement('span');
-    detail.textContent = `${stored.calendarType === 'lunar' ? '음력' : '양력'} ${stored.birthDate} ${stored.birthTime} — 계정에 저장된 값이라 다시 입력하지 않아도 됩니다. 이 화면에서는 회사와 오퍼 조건만 받습니다.`;
-    const change = document.createElement('button');
-    change.type = 'button';
-    change.textContent = '저장된 사주 수정하기';
-    change.addEventListener('click', () => {
-      location.assign(`/profile?returnTo=${encodeURIComponent(location.pathname)}`);
-    });
-    card.append(title, detail, change);
-    status.parentNode.insertBefore(card, status);
+    // The input page owns the single saved-profile status block and its
+    // "새 사주로 보기" state. Do not insert a second account-profile card here.
   }
 
   // ------------------------------------------------------- report retrieval
