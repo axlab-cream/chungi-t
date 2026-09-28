@@ -246,6 +246,11 @@
     return ELEMENT_LABELS[element] || element || '-';
   }
 
+  function formatFortuneAge(value) {
+    const age = String(value ?? '').trim().replace(/(?:\s*세)+$/u, '').trim();
+    return age ? `${age}세` : '나이 확인 중';
+  }
+
   function sectionTabsMarkup() {
     return SECTION_LABELS.map(([id, label], index) => (
       `<button class="${index === 0 ? 'is-active' : ''}" type="button" data-section-target="${id}">${escapeHtml(label)}</button>`
@@ -382,10 +387,12 @@
     if (!rows.length) return '<div class="empty-card">대운 흐름은 사주 프로필 생성 후 표시됩니다.</div>';
     return rows.map((row) => {
       const isCurrent = row.pillar === current;
-      const age = row.age || [row.ageStart, row.ageEnd].filter((value) => value !== undefined).join('-') || '나이';
+      const age = formatFortuneAge(
+        row.age || [row.ageStart, row.ageEnd].filter((value) => value !== undefined).join('-'),
+      );
       return `
         <article class="timeline-card ${isCurrent ? 'is-current' : ''}">
-          <span>${escapeHtml(age)}세</span>
+          <span>${escapeHtml(age)}</span>
           <strong>${escapeHtml(row.pillar || '-')}</strong>
           <em>${isCurrent ? '현재' : '대운'}</em>
         </article>
@@ -734,7 +741,7 @@
     }
     const shareData = {
       title: `운명상회 운명록 · ${currentRecordName}`,
-      text: `${currentRecordName}님의 운명록을 확인해보세요.`,
+      text: `${currentRecordName}님의 운명록을 확인해 보세요.`,
       url: location.href,
     };
     try {
