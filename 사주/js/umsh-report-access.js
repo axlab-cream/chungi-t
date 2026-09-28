@@ -1638,7 +1638,7 @@
         + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
         + '</div></article>';
     }).join('');
-    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false });
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false, normalizeText: normalizeWorkMoveTocText });
     var quotaText = teaserQuotaText(payload.freeSearch);
     return '<header class="job-teaser-opening move-teaser-opening">'
       + '<span>이직운 · 무료 공개 2개 해석</span>'
@@ -1730,8 +1730,9 @@
     });
     if (!locked.length) return '';
     var rows = locked.map(function (item, index) {
-      var title = labelText(item.classification) || labelText(item.category) || ('해석 ' + (index + 3));
-      var category = labelText(item.category);
+      var normalizeText = options && typeof options.normalizeText === 'function' ? options.normalizeText : function (value) { return value; };
+      var title = normalizeText(labelText(item.classification) || labelText(item.category) || ('해석 ' + (index + 3)));
+      var category = normalizeText(labelText(item.category));
       var subtitle = category && category !== title ? '<small>' + escapeHtml(category) + '</small>' : '';
       return '<li><span class="job-teaser-toc-number">' + ('0' + (index + 3)).slice(-2) + '</span>'
         + '<span class="job-teaser-toc-copy"><strong>' + escapeHtml(title) + '</strong>' + subtitle + '</span>'
@@ -1749,6 +1750,29 @@
     return '<section class="job-teaser-toc" aria-label="나머지 잠긴 목차">'
       + content
       + '</section>';
+  }
+
+  function normalizeWorkMoveTocText(value) {
+    var elementByHanja = {
+      '甲': '나무', '乙': '나무', '寅': '나무', '卯': '나무',
+      '丙': '불', '丁': '불', '巳': '불', '午': '불',
+      '戊': '흙', '己': '흙', '辰': '흙', '戌': '흙', '丑': '흙', '未': '흙',
+      '庚': '쇠', '辛': '쇠', '申': '쇠', '酉': '쇠',
+      '壬': '물', '癸': '물', '亥': '물', '子': '물'
+    };
+    return String(value || '')
+      .replace(/([甲乙丙丁戊己庚辛壬癸])([子丑寅卯辰巳午未申酉戌亥])/g, function (_, stem, branch) {
+        return elementByHanja[stem] + '·' + elementByHanja[branch] + ' 기운';
+      })
+      .replace(/목\(木\)/g, '나무 기운')
+      .replace(/화\(火\)/g, '불 기운')
+      .replace(/토\(土\)/g, '흙 기운')
+      .replace(/금\(金\)/g, '쇠 기운')
+      .replace(/수\(水\)/g, '물 기운')
+      .replace(/편재\s*기반\s*직무\s*핏/g, '성과를 보상으로 연결하는 힘을 바탕으로 본 직무 적합성')
+      .replace(/직무\s*핏/g, '직무 적합성')
+      .replace(/직무 적합성과 일의 결/g, '직무 적합성과 일하는 방식')
+      .trim();
   }
 
   function normalizeMoneySaveTeaserCopy(value) {
