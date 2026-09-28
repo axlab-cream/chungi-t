@@ -768,26 +768,6 @@
   line-height: 1.78;
   word-break: keep-all;
 }
-.job-teaser-opening ol {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 7px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.job-teaser-opening li {
-  min-width: 0;
-  padding: 10px 4px;
-  border: 1px solid rgba(232, 199, 111, .2);
-  border-radius: 10px;
-  color: rgba(255, 247, 242, .72);
-  font-size: 10px;
-  line-height: 1.45;
-  text-align: center;
-  word-break: keep-all;
-}
-.job-teaser-opening li strong { display: block; color: var(--gold, #e8c76f); font-size: 14px; }
 .job-teaser-reading {
   overflow: hidden;
   border: 1px solid rgba(232, 199, 111, .28);
@@ -838,12 +818,41 @@
 .job-teaser-closing strong { display: block; margin-bottom: 5px; color: var(--gold, #e8c76f); font-size: 11px; }
 .job-teaser-final-cta { margin-top: 2px; }
 .job-teaser-final-cta h2 { font-size: 21px; }
+.job-teaser-toc {
+  margin: 0 0 22px;
+  border: 1px solid rgba(232, 199, 111, .3);
+  border-radius: 12px;
+  background: rgba(5, 7, 14, .48);
+}
+.job-teaser-toc summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 12px 15px;
+  color: var(--text, #fff7f2);
+  cursor: pointer;
+  list-style: none;
+}
+.job-teaser-toc summary::-webkit-details-marker { display: none; }
+.job-teaser-toc summary::after { content: '+'; color: var(--gold, #e8c76f); font-size: 22px; font-weight: 700; }
+.job-teaser-toc[open] summary::after { content: '−'; }
+.job-teaser-toc summary span,
+.job-teaser-toc summary strong,
+.job-teaser-toc summary small { display: block; }
+.job-teaser-toc summary strong { font-size: 15px; }
+.job-teaser-toc summary small { margin-top: 3px; color: rgba(255, 247, 242, .58); font-size: 11px; font-weight: 600; }
+.job-teaser-toc ol { margin: 0; padding: 0 12px 12px; list-style: none; }
+.job-teaser-toc li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 58px; padding: 9px 4px; border-top: 1px solid rgba(232, 199, 111, .14); }
+.job-teaser-toc-number { color: var(--gold, #e8c76f); font-size: 11px; font-weight: 850; }
+.job-teaser-toc-copy strong { display: block; color: var(--text, #fff7f2); font-size: 13px; line-height: 1.45; word-break: keep-all; }
+.job-teaser-toc-copy small { display: block; margin-top: 3px; color: rgba(255, 247, 242, .55); font-size: 10px; line-height: 1.4; }
+.job-teaser-toc-lock { padding: 5px 7px; border-radius: 999px; background: rgba(232, 199, 111, .11); color: var(--gold, #e8c76f); font-size: 9px; font-weight: 850; }
 .job-teaser-final-cta .umsh-preview-checkout { margin-top: 18px; background: var(--gold, #e8c76f); color: #16100a; }
 .job-teaser-usage { margin-top: 12px !important; color: var(--gold, #e8c76f) !important; font-size: 12px !important; }
 .job-teaser-retry { display: block; width: fit-content; margin: 14px auto 0; color: rgba(255, 247, 242, .68); font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 360px) {
-  .job-teaser-opening ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .job-teaser-reading-inner { padding-inline: 15px; }
 }
 

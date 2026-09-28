@@ -74,6 +74,10 @@ test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 �
     previewOnly: true,
     preview: { headline: '제안의 속을 봅니다', summary: '**실제 산출물**부터 확인합니다.' },
     teaserSections,
+    toc: [
+      ...teaserSections,
+      ...Array.from({ length: 8 }, (_, index) => ({ id: `locked-${index + 3}`, classification: `잠긴 해석 ${index + 3}` })),
+    ],
   })
 
   assert.equal(accepted.payload.teaserSections.length, 2)
@@ -88,8 +92,13 @@ test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 �
   assert.match(accessSource, /전면 출근이라는/)
   assert.match(accessSource, /참고합니다\\\.를 참고하되/)
   assert.match(accessSource, /job-teaser-final-cta/)
+  assert.match(accessSource, /function renderJobChoiceLockedToc\(/)
+  assert.match(accessSource, /slice\(2, 10\)/)
+  assert.match(accessSource, /<details class="job-teaser-toc">/)
+  assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
   assert.match(accessSource, /inlineMarkdown\(escapeHtml\(preview\.summary/)
   assert.match(inplaceCss, /\.job-teaser-reading/)
+  assert.match(inplaceCss, /\.job-teaser-toc/)
   assert.match(inplaceCss, /\[data-umsh-slot="preview"\] \.reading-table/)
 })
 

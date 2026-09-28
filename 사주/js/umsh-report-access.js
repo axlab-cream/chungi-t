@@ -1176,7 +1176,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-job-teaser-v2';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-job-teaser-v3';
     document.head.appendChild(link);
   }
   /**
@@ -1471,20 +1471,40 @@
         ? '무료 결과 조회 5/5회 사용 · 다음 조회는 전체 해석 결제가 필요합니다.'
         : '무료 결과 조회 ' + Math.min(5, Math.max(0, quota.used)) + '/5회 사용 · ' + (5 - Math.min(5, Math.max(0, quota.used))) + '회 남음')
       : '';
+    var lockedToc = renderJobChoiceLockedToc(payload.toc);
     return '<header class="job-teaser-opening">'
       + '<span>직장 선택 · 무료 공개 2개 해석</span>'
       + '<h1>' + escapeHtml(preview.headline || '좋아 보이는 제안의 속을 먼저 확인합니다') + '</h1>'
       + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
-      + '<ol aria-label="무료 해석의 이야기 순서"><li><strong>기</strong> 끌린 이유</li><li><strong>승</strong> 실제 역할</li><li><strong>전</strong> 달라질 일상</li><li><strong>결</strong> 결정 전 질문</li></ol>'
       + '</header>'
       + cards
       + '<footer class="job-teaser-final-cta">'
-      + '<span>나머지 8개 해석</span><h2>돈·성장·관계·위험까지 같은 조건으로 이어집니다</h2>'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>돈·성장·관계·위험까지 같은 조건으로 이어집니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '전체 해석에서는 나머지 항목의 근거와 생활 장면을 이어서 확인합니다.')) + '</p>'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
       + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
       + '</footer>';
+  }
+
+  function renderJobChoiceLockedToc(toc) {
+    var locked = (Array.isArray(toc) ? toc : []).slice(2, 10).filter(function (item) {
+      return item && (item.classification || item.category);
+    });
+    if (!locked.length) return '';
+    var rows = locked.map(function (item, index) {
+      var title = labelText(item.classification) || labelText(item.category) || ('해석 ' + (index + 3));
+      var category = labelText(item.category);
+      var subtitle = category && category !== title ? '<small>' + escapeHtml(category) + '</small>' : '';
+      return '<li><span class="job-teaser-toc-number">' + ('0' + (index + 3)).slice(-2) + '</span>'
+        + '<span class="job-teaser-toc-copy"><strong>' + escapeHtml(title) + '</strong>' + subtitle + '</span>'
+        + '<span class="job-teaser-toc-lock" aria-label="잠긴 해석">잠김</span></li>';
+    }).join('');
+    return '<details class="job-teaser-toc">'
+      + '<summary><span><strong>나머지 ' + locked.length + '개 목차</strong><small>눌러서 목차 확인</small></span></summary>'
+      + '<ol>' + rows + '</ol>'
+      + '</details>';
   }
 
   function normalizeJobChoiceTeaserCopy(value) {
