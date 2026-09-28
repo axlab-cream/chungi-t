@@ -4927,7 +4927,7 @@
           concern: state.concern,
           partner: getPartnerContext(),
         };
-        const titleName = state.name || state.target || "자네";
+        const titleName = state.name || state.target || "고객";
         return {
           reportId: report.reportId,
           savedAt: new Date().toISOString(),
@@ -5688,7 +5688,7 @@
         return `
           <section class="sample-intro-top ${sectionClass}" data-sample-section="sample-top">
             <img data-source-asset="introBg" alt="부채를 펼치는 손" class="sample-intro-bg" src="${introBg}" />
-            <h1 class="sample-intro-title">자네의 운명 실마리를 풀어줄<br /><span>천명사주일세.</span></h1>
+            <h1 class="sample-intro-title">같은 선택이 반복된다면<br /><span>이유부터 보겠습니다.</span></h1>
             ${sfxText ? `<div class="sample-sfx ${sfxClass}">${sfxText}</div>` : ""}
           </section>
         `;
@@ -5700,28 +5700,28 @@
         dominantElement,
         heroCharacter = sampleAssets.heroCharacter,
         showHeroDecor = true,
-        heroCopy = `${displayName}<br />자네 <span class="red">사주</span>의 결이 보이는군`,
+        heroCopy = `${displayName}님의<br /><span class="red">사주</span>에서 반복되는 결이 보입니다`,
         showWorryBubble = true,
         worryBg = sampleAssets.worryBg,
-        worryCopy = `<p><span class="red">${dominantElement}</span>의 흐름이<br />먼저 반응하고 있군</p><p><span class="red">팔자</span>의 결을 더 깊게 보겠네</p>`,
-        palzaCopy = `<p>반복된 선택과 놓친 신호,<br />그 안의 <span class="red">실마리</span>가 보이는군</p>`,
+        worryCopy = `<p><span class="red">${dominantElement}</span>의 흐름이<br />먼저 반응하고 있습니다</p><p>좋은 말보다 <span class="red">필요한 기준</span>부터 보겠습니다</p>`,
+        palzaCopy = `<p>반복된 선택과 놓친 신호,<br />그 안의 <span class="red">실마리</span>가 보입니다</p>`,
         showPalzaBubbleTwo = true,
         showPalzaBubbleOne = true,
         palzaBg = sampleAssets.palzaBg,
         assetOne = sampleAssets.assetOne,
         showAssetOneTopCopy = true,
-        assetOneBottomCopy = `<p>${concernHead}${topicParticle(concernHead)} 지금 흐름을 다시 보게 만든 신호일세.</p>`,
-        previewTwoCopy = `<h2>과거로부터 이어온<br /><span class="red">팔자</span>의 기운을 보겠네</h2>`,
+        assetOneBottomCopy = `<p>${concernHead}${topicParticle(concernHead)} 지금 흐름을 다시 볼 때라는 신호입니다.</p>`,
+        previewTwoCopy = `<h2>지나온 선택에서<br />반복되는 <span class="red">패턴</span>을 보겠습니다</h2>`,
         previewTwo = sampleAssets.previewTwo,
         assetTwoTopCopy = `<p>${displayName}님의 <span class="red">사주</span><br />입력한 생년월일 기준</p>`,
         assetTwo = sampleAssets.assetTwo,
         showManseryeokBubble = true,
-        manseryeokTopCopy = `<h2><span class="red">시간</span>과 <span class="red">공간</span>이 얽히며<br />운명이 움직이는군</h2>`,
+        manseryeokTopCopy = `<h2><span class="red">타고난 결</span>과 지금의 선택이<br />만나는 지점을 봅니다</h2>`,
         manseryeokBg = sampleAssets.manseryeokBg,
         showFrameCharacter = true,
         characterA = sampleAssets.characterA,
         showCharacterAImage = true,
-        characterACopy = `<h2>좋은 말보다 먼저<br /><span class="red">진짜 흐름</span>을 보겠네</h2>`,
+        characterACopy = `<h2>좋은 말보다 먼저<br /><span class="red">필요한 기준</span>을 보겠습니다</h2>`,
         characterACopyPosition = "bottom",
         characterASectionClass = "tall",
         showCharacterCImage = true,
@@ -5733,29 +5733,29 @@
         wealthBg = sampleAssets.wealthBg,
         showWealthChart = true,
         datePreviewOne = sampleAssets.datePreviewOne,
-        datePreviewCopy = `<p>작은 <span class="red">신호</span>가 모이면<br />인생의 방향이 바뀌는군</p>`,
+        datePreviewCopy = `<p>작은 <span class="red">신호</span>가 쌓이면<br />선택의 방향이 달라집니다</p>`,
         characterD = sampleAssets.characterD,
-        romanceCharacterCopy = `<h2><span class="red">인연</span>은 우연처럼 오지만<br />남는 관계는 결이 다르네</h2>`,
-        romanceCloseupCopy = `<p><span class="red">인연</span>은 겉보다<br />속의 결을 봐야 하네</p>`,
+        romanceCharacterCopy = `<h2><span class="red">끌리는 사람</span>과<br />오래 남는 사람은 다릅니다</h2>`,
+        romanceCloseupCopy = `<p><span class="red">인연</span>은 첫인상보다<br />반복되는 태도에서 드러납니다</p>`,
         romanceCloseup = sampleAssets.romanceCloseup,
         handBells = sampleAssets.handBells,
-        handBellsCopy = `<p>흩어진 <span class="red">실타래</span>를<br />이제 하나씩 풀어보게</p>`,
+        handBellsCopy = `<p>흩어진 <span class="red">실마리</span>를<br />이제 하나씩 풀어보겠습니다</p>`,
         destinyCardBg = sampleAssets.destinyCardBg,
-        destinyCardCopy = `<h2>${displayName}님 앞에 놓인<br /><span class="red">사람</span>의 기운이 보이는군</h2>`,
+        destinyCardCopy = `<h2>${displayName}님이 오래 편안할<br /><span class="red">관계의 조건</span>이 보입니다</h2>`,
         characterOutro = sampleAssets.characterOutro,
-        characterOutroCopy = `<h2>자네의 <span class="red">사주</span> 속<br />숨은 <span class="red">진실</span>이 펼쳐지는군</h2>`,
+        characterOutroCopy = `<h2>${displayName}님의 <span class="red">사주</span>에서<br />반복되는 <span class="red">선택의 이유</span>를 봅니다</h2>`,
         priceCharacter = sampleAssets.priceCharacter,
-        priceCharacterCopy = `<p>가볍게 넘길 흐름과<br />붙잡아야 할 흐름을 구분하네</p>`,
+        priceCharacterCopy = `<p>흘려보낼 신호와<br />붙잡아야 할 기준을 구분합니다</p>`,
         showFinalSajuSection = true,
         showBrandProof = true,
         handReach = sampleAssets.handReach,
-        handReachCopy = `<h2>수많은 <span class="red">고서</span>와 해석으로<br />풀어낸 이야기일세</h2>`
+        handReachCopy = `<h2><span class="red">전통 명리의 기준</span>과<br />지금의 질문을 함께 읽습니다</h2>`
       ) {
         return `
           <section class="source-section tall" data-sample-section="hero-character">
             <img data-source-asset="heroCharacter" alt="신당에 앉은 도령" class="source-img center-wide" src="${heroCharacter}" />
             <div class="source-fade"></div>
-            ${showHeroDecor ? `<div class="source-bubble left">허허...</div>` : ""}
+            ${showHeroDecor ? `<div class="source-bubble left">잠깐.</div>` : ""}
             ${showHeroDecor ? sourceImg("introAsset", "source-asset intro-card", "사주 종이 장식") : ""}
             <div class="source-copy bottom"><h2>${heroCopy}</h2></div>
           </section>
@@ -5782,8 +5782,8 @@
             <img data-source-asset="assetOne" alt="사주 풀이 장면" class="source-img" src="${assetOne}" />
             <div class="source-fade"></div>
             ${showAssetOneTopCopy ? `<div class="source-copy top">
-              <p class="red">자네 말이야</p>
-              <h2>바로 자네 <span class="red">팔자</span> 때문</h2>
+              <p class="red">같은 고민이 돌아온다면</p>
+              <h2>선택의 <span class="red">패턴</span>부터 봐야 합니다</h2>
             </div>` : ""}
             <div class="source-copy bottom">${assetOneBottomCopy}</div>
           </section>
@@ -5805,7 +5805,7 @@
             <div class="source-fade"></div>
             <div class="source-copy top">${manseryeokTopCopy}</div>
             ${showManseryeokBubble ? sourceImg("speechBubbleThree", "source-asset manseryeok-bubble-img", "인생 스포 말풍선") : ""}
-            ${showManseryeokBubble ? `<div class="source-manseryeok-bubble-text">앞으로 바뀔<br />운명의 신호가<br />보이는군</div>` : ""}
+            ${showManseryeokBubble ? `<div class="source-manseryeok-bubble-text">앞으로 바뀔<br />선택의 신호를<br />짚어봅니다</div>` : ""}
           </section>
 
           ${showFrameCharacter ? `<section class="source-section" data-sample-section="frame-character">
@@ -5824,14 +5824,14 @@
           ${showCharacterCImage || showCharacterCCopy ? `<section class="source-section ${characterCSectionClass}" data-sample-section="character-c">
             ${showCharacterCImage ? `<img data-source-asset="characterC" alt="${characterCAlt}" class="${characterCImageClass}" src="${characterC}" />` : ""}
             <div class="source-fade"></div>
-            ${showCharacterCCopy ? `<div class="source-copy bottom"><h2>이제 하나씩<br />풀어보게</h2></div>` : ""}
+            ${showCharacterCCopy ? `<div class="source-copy bottom"><h2>이제 하나씩<br />풀어보겠습니다</h2></div>` : ""}
           </section>` : ""}
 
           <section class="source-section tall" data-sample-section="wealth-bg">
             <img data-source-asset="wealthBg" alt="재물운 배경" class="source-img" src="${wealthBg}" />
             <div class="source-fade"></div>
             ${showWealthChart ? sourceImg("wealthChart", "source-asset chart", "재물 흐름 차트") : ""}
-            <div class="source-copy top"><h2>돈의 흐름이<br />보이는군</h2></div>
+            <div class="source-copy top"><h2>돈이 모이는 자리와<br />새는 자리가 다릅니다</h2></div>
           </section>
 
           <section class="source-section" data-sample-section="date-preview-one">
@@ -5892,14 +5892,14 @@
             ${sourceImg("destinyBg", "source-img", "운명 배경")}
             ${sourceImg("comparisonBg", "source-img", "비교 배경")}
             <div class="source-fade"></div>
-            <div class="source-copy bottom"><p>처음과 끝<br />인생의 굴곡이 보이는군.</p></div>
+            <div class="source-copy bottom"><p>지나온 선택과<br />앞으로의 기준을 함께 봅니다.</p></div>
           </section>
 
           <section class="source-section book" data-sample-section="date-preview-three">
             ${sourceImg("datePreviewThree", "source-img", "결과 리포트 페이지 예시")}
             <div class="source-fade"></div>
-            <div class="source-copy top"><p>결코 가벼운 <span class="red">사주</span>가 아닙니다.<br />감춰진 현재의 <span class="red">비밀</span>이 드러납니다.</p></div>
-            <div class="source-copy bottom"><h2>평생을 가져갈<br />당신의 <span class="red">운명 사전</span></h2></div>
+            <div class="source-copy top"><p>한 번 보고 넘길 풀이가 아닙니다.<br />반복되는 <span class="red">선택의 뿌리</span>를 짚습니다.</p></div>
+            <div class="source-copy bottom"><h2>흔들릴 때 다시 펼쳐볼<br />나만의 <span class="red">선택 기준</span></h2></div>
           </section>
 
           <section class="source-full-section" data-sample-section="last-saju-book">
@@ -6366,33 +6366,33 @@
             ${sampleVideoMarkup(landingSampleVideo, "sample-upload-blend")}
             ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "", "")}
             ${sampleSourceSections(
-              "자네",
+              "고객",
               "직장 운",
               "기운",
               landingSourceAssets.heroCharacter,
               false,
-              '<span class="red">사주</span>는 한 줄로 끝나지 않네.<br />숨은 <span class="red">결</span>부터 보겠네.',
+              '<span class="red">사주</span>는 한 줄로 끝나지 않습니다.<br />반복되는 <span class="red">선택의 결</span>부터 보겠습니다.',
               false,
               landingSourceAssets.worryBg,
-              '<p class="landing-worry-copy">지금 흔들리는 건<br /><span class="red">기운</span>이 움직인다는 뜻일세.</p>',
-              '<p>반복된 선택과 놓친 신호,<br />그 안의 <span class="red">실마리</span>가 보이는군.</p>',
+              '<p class="landing-worry-copy">같은 고민이 돌아왔다면<br /><span class="red">선택의 기준</span>부터 다시 볼 때입니다.</p>',
+              '<p>반복된 선택과 놓친 신호,<br />그 안의 <span class="red">실마리</span>가 보입니다.</p>',
               false,
               false,
               landingSourceAssets.palzaBg,
               landingSourceAssets.assetOne,
               false,
-              '<p><span class="red">직장</span> 운 때문에 여기까지 나를 찾았나?<br />그 흐름은 여러 가지 <span class="red">기운</span>이 얽혀 움직이는군.</p>',
-              '<h2>과거로부터 이어온<br />자네의 <span class="red">팔자</span>가 보이는군.</h2>',
+              '<p><span class="red">일</span> 때문에 마음이 걸렸군요.<br />타고난 결보다 지금 반복되는 선택부터 보겠습니다.</p>',
+              '<h2>지나온 선택에서<br />반복되는 <span class="red">패턴</span>이 보입니다.</h2>',
               landingSourceAssets.previewTwo,
               "",
               landingSourceAssets.assetTwo,
               false,
-              '<h2><span class="red">시간</span>, <span class="red">공간</span>, 선택이<br />한 점에서 얽힐 때<br /><span class="red">운명</span>은 방향을 바꾸는군.</h2>',
+              '<h2><span class="red">타고난 결</span>과 지금의 선택이<br />만나는 지점에서<br />다음 방향이 드러납니다.</h2>',
               landingSourceAssets.manseryeokBg,
               false,
               landingSourceAssets.characterA,
               true,
-              '<h2>좋은 말보다 먼저<br /><span class="red">진짜 흐름</span>을 보겠네.</h2>',
+              '<h2>좋은 말보다 먼저<br /><span class="red">필요한 기준</span>을 보겠습니다.</h2>',
               "top",
               "landing-character-a",
               true,
@@ -6404,27 +6404,27 @@
               landingSourceAssets.wealthBg,
               false,
               landingSourceAssets.datePreviewOne,
-              '<p>지금 나를 만난 것도 <span class="red">운명</span>일세.<br /><span class="red">인생</span>을 바꿀 때가 되었군.</p>',
+              '<p>지금 마음에 걸린 질문부터 보겠습니다.<br /><span class="red">바꿀 것</span>과 지킬 것을 나눠야 합니다.</p>',
               landingSourceAssets.characterD,
-              '<h2><span class="red">인연</span>은 우연처럼 오지만<br />남는 <span class="red">관계</span>는 결이 다르네.</h2>',
+              '<h2><span class="red">끌리는 사람</span>과<br />오래 남는 사람은 다릅니다.</h2>',
               "",
               landingSourceAssets.romanceCloseup,
               landingSourceAssets.handBells,
-              '<p>흩어진 <span class="red">실타래</span>를<br />이제 하나씩 풀어보게.</p>',
+              '<p>흩어진 <span class="red">실마리</span>를<br />이제 하나씩 풀어보겠습니다.</p>',
               landingSourceAssets.destinyCardBg,
-              '<h2>자네 앞에 놓인<br /><span class="red">사람</span>의 기운이 보이는군.</h2>',
+              '<h2>오래 편안할<br /><span class="red">관계의 조건</span>이 보입니다.</h2>',
               landingSourceAssets.characterOutro,
-              '<h2>이제 자네의 <span class="red">사주</span> 속에<br />숨겨진 <span class="red">진실</span>이 펼쳐지는군.</h2>',
+              '<h2><span class="red">사주</span>에서 반복되는<br /><span class="red">선택의 이유</span>를 봅니다.</h2>',
               landingSourceAssets.priceCharacter,
               "",
               false,
               false,
               landingSourceAssets.handReach,
-              '<h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸<br />자네만의 <span class="red">대분석</span></h2>'
+              '<h2><span class="red">전통 명리의 기준</span>과<br />지금의 질문을 함께 읽는<br />나만의 <span class="red">깊은 풀이</span></h2>'
             )}
             <div class="sample-enter">
-              <button class="primary-cta" type="button" data-action="enter">입장하기</button>
-              <p class="fineprint">천명사주의 대분석 흐름을 확인한 뒤, 입력 단계로 이어집니다.</p>
+              <button class="primary-cta" type="button" data-action="enter">내 사주 흐름 확인하기</button>
+              <p class="fineprint">생년월일과 지금 마음에 걸린 질문을 바탕으로 풀이를 시작합니다.</p>
             </div>
             ${businessFooterMarkup()}
           </article>
@@ -6799,7 +6799,7 @@
               <div class="interpret-orb" aria-hidden="true"></div>
               <div class="interpret-loader-copy">
                 <div class="line-pill">천명사주가 해석하고 있습니다</div>
-                <p>입력한 사주 기둥과 지금의 기운을 맞춰<br />자네에게만 열리는 풀이를 준비하네</p>
+                <p>입력한 사주와 지금의 질문을 맞춰<br />개인 풀이를 준비하고 있습니다</p>
               </div>
               <div class="interpret-progress" aria-hidden="true"></div>
               <div class="interpret-steps" aria-hidden="true">
@@ -6963,7 +6963,7 @@
         const pillars = a?.pillars;
         const preview = a?.preview;
         const fortune = a?.fortune;
-        const displayNameRaw = state.name || "자네";
+        const displayNameRaw = state.name || "고객";
         const displayName = escapeHtml(displayNameRaw);
         const birthLabel = escapeHtml(formatBirthLabel(state.birth));
         const dayLabel = escapeHtml(pillars?.day?.hanja || "-");
@@ -6975,7 +6975,7 @@
         const partnerSummary = escapeHtml(lovePartnerSummary());
         const relationLabel = escapeHtml([state.relationship, state.orientation].filter(Boolean).join(" · ") || "관계 기준");
         const concernText = escapeHtml(state.concern || service.defaultConcern);
-        const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
+        const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보입니다. 오래 남는 관계의 조건부터 살펴보겠습니다.");
         const sections = a?.report?.sections || [];
         const tocMarkup = sections.length
           ? sections.map((section, index) => `
@@ -7085,7 +7085,7 @@
           renderLoveThisYearResult();
           return;
         }
-        const displayNameRaw = state.name || state.target || "자네";
+        const displayNameRaw = state.name || state.target || "고객";
         const a = state.analysis;
         const pillars = a?.pillars;
         const preview = a?.preview;
@@ -7095,8 +7095,6 @@
         const calendarLabel = escapeHtml(state.calendar);
         const timeLabel = escapeHtml(state.time || "시간모름");
         const targetLabel = escapeHtml(state.target || "본인");
-        const workLabel = escapeHtml(state.work || "일상 흐름");
-        const relationLabel = escapeHtml([state.relationship, state.orientation].filter(Boolean).join(" · ") || "관계 기준");
         const hourLabel = escapeHtml(pillars?.hour?.hanja || (state.time === "모름" ? "時柱모름" : "-"));
         const dayLabel = escapeHtml(pillars?.day?.hanja || "-");
         const monthLabel = escapeHtml(pillars?.month?.hanja || "-");
@@ -7107,18 +7105,16 @@
         const strengthLabel = a?.dayMaster?.strength === "strong" ? "기운이 강한" : a?.dayMaster?.strength === "weak" ? "섬세한" : "균형 잡힌";
         const dominantElement = escapeHtml(a?.dominantElement || dayMasterElement);
         const usefulGod = escapeHtml(a?.usefulGod || "분석 중");
-        const personalityRaw = preview?.personality || "흠... 입력한 기운을 보니 그냥 지나칠 사주는 아니군.";
+        const personalityRaw = preview?.personality || "입력한 기운에서 그냥 넘기기 어려운 결이 보입니다.";
         const personality = escapeHtml(personalityRaw);
         const personalityShort = escapeHtml(firstInsightText(personalityRaw));
-        const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보이는군.");
-        const loveText = escapeHtml(preview?.loveFortune || "관계의 흐름이 먼저 보이는군. 오래 남는 사람은 따로 있는 법일세.");
-        const wealthText = escapeHtml(preview?.wealthFortune || "돈의 흐름이 보이는군. 새는 곳과 모이는 곳을 먼저 짚어야 하네.");
+        const elementBalance = escapeHtml(preview?.elementBalance || "오행의 균형에서 한쪽으로 힘이 몰리는 모습이 보입니다.");
+        const loveText = escapeHtml(preview?.loveFortune || "끌리는 관계와 오래 남는 관계의 조건은 다릅니다. 반복되는 태도부터 보겠습니다.");
+        const wealthText = escapeHtml(preview?.wealthFortune || "돈이 모이는 자리와 새는 자리가 함께 보입니다. 먼저 반복되는 지출과 일의 방식을 짚겠습니다.");
         const concernRaw = state.concern || "현재 생활에서 유지할 점과 궁금한 방향";
         const concernText = escapeHtml(concernRaw);
         const concernHead = state.concern ? `"${concernText}"` : concernText;
         const currentYear = Number(fortune?.currentYear) || 2026;
-        const turningYear = currentYear + 2;
-        const romanceYear = currentYear + 1;
         const daewoonRows = (fortune?.daewoon || [])
           .slice(0, 4)
           .map((d) => `<div class="timeline-row"><strong>${escapeHtml(d.age)}</strong><span>${escapeHtml(d.pillar)}</span></div>`)
@@ -7131,7 +7127,7 @@
             <section class="story-visual visual-intro tall" data-sample-section="intro" aria-label="사주 결과 인트로 이미지"></section>
 
             <section class="story-section sub-result-text-band" data-sample-section="personality-bridge">
-              <span class="chapter">허허...</span>
+              <span class="chapter">먼저 보이는 결</span>
               <h2><span class="red">성격</span> · ${displayName}</h2>
               <div class="sub-result-meta" aria-label="사주 기둥 요약">
                 <span>${yearLabel}</span>
@@ -7143,8 +7139,8 @@
             <section class="story-visual compact visual-fan image-only" data-sample-section="personality-hero" aria-label="성격 흐름 이미지"></section>
 
             <section class="story-section deep tall center" data-sample-section="worry">
-              <span class="chapter">흠...</span>
-              <h2 class="hero-line"><span class="red">${dominantElement}</span> <span class="red">기운</span>이<br />꽤 강하군요</h2>
+              <span class="chapter">첫 번째 신호</span>
+              <h2 class="hero-line"><span class="red">${dominantElement}</span> <span class="red">기운</span>이<br />먼저 보입니다</h2>
               <div class="sub-result-summary" aria-label="서브 결과 요약">
                 <div class="sub-result-card"><strong>먼저 보이는 결</strong><span>${dominantElement}의 흐름이 강해 판단과 반응이 빠르게 움직입니다.</span></div>
                 <div class="sub-result-card"><strong>지금 걸린 질문</strong><span><span class="gold">${concernHead}</span>${objectParticle(concernRaw)} 중심으로 현실의 흐름을 다시 봅니다.</span></div>
@@ -7156,24 +7152,24 @@
             <section class="story-visual statement visual-saju image-only" data-sample-section="palja-intro" aria-label="팔자 흐름 이미지"></section>
 
             <section class="story-section sub-result-text-band" data-sample-section="palja-bridge">
-              <p>자네가 어떤 사람인지,<br />무엇에 마음이 걸렸는지</p>
-              <h2><span class="red">흐름</span>이<br />먼저 보이는군</h2>
+              <p>타고난 결보다 먼저,<br />반복되는 선택을 봅니다</p>
+              <h2><span class="red">같은 고민</span>이<br />돌아오는 이유가 있습니다</h2>
             </section>
 
             <section class="story-section" data-sample-section="personality-story">
-              <span class="chapter">자네 말이야</span>
+              <span class="chapter">지금 마음에 걸린 질문</span>
               <h2>${dayMasterKo} · ${strengthLabel} 결</h2>
               <div class="story-copy">
                 <p>${personality}</p>
                 <p>${elementBalance}</p>
               </div>
-              <div class="story-callout">자네가 지금 이게 고민되는 데는 다 이유가 있네. 바로 자네 <span class="red">팔자</span> 때문일세.</div>
+              <div class="story-callout">지금 이 고민이 돌아온 데에는 이유가 있습니다. <span class="red">사주의 결</span>과 실제 선택을 함께 놓고 보겠습니다.</div>
             </section>
 
             <section class="story-visual compact visual-saju image-only" data-sample-section="saju-evidence" aria-label="사주 근거 이미지"></section>
 
             <section class="story-section sub-result-text-band" data-sample-section="saju-evidence-bridge">
-              <p>지금 흔들리는 데에는 다 이유가 있습니다.</p>
+              <p>지금 마음이 걸리는 이유부터 봅니다.</p>
               <h2>${displayName}님의<br /><span class="red">사주 팔자</span></h2>
             </section>
 
@@ -7192,7 +7188,7 @@
 
             <section class="story-section center" data-sample-section="future-flow">
               <span class="chapter">앞으로 바뀔 큰 흐름</span>
-              <h2>자네 <span class="red">팔자</span>가 앞으로<br />어떻게 흘러갈까?</h2>
+              <h2>앞으로 바뀌는 <span class="red">큰 흐름</span>을<br />순서대로 짚어보겠습니다</h2>
               <p>올해 ${escapeHtml(fortune?.currentYear || "")}년 · 먼저 보이는 신호 ${escapeHtml(fortune?.yearPillar || "-")}</p>
               <div class="big-kanji" aria-hidden="true"><span>大</span><span>運</span><span>轉</span></div>
               <div class="timeline">
@@ -7204,13 +7200,13 @@
             <section class="story-visual statement visual-fan image-only" data-sample-section="warning" aria-label="숨은 결 이미지"></section>
 
             <section class="story-section sub-result-text-band" data-sample-section="warning-bridge">
-              <p>대분석은 먼저 숨은 결부터 봅니다.</p>
-              <h2>좋은 말보다<br /><span class="red">진짜 흐름</span>을 보겠네</h2>
+              <p>깊은 풀이는 반복되는 결부터 봅니다.</p>
+              <h2>좋은 말보다<br /><span class="red">필요한 기준</span>부터 보겠습니다</h2>
             </section>
 
             <section class="story-section deep tall center" data-sample-section="prophecy">
-              <span class="chapter">대운의 갈림길</span>
-              <h2 class="hero-line">${turningYear}년 전후<br /><span class="red">흐름</span>이 크게 바뀝니다</h2>
+              <span class="chapter">지금 바뀌는 흐름</span>
+              <h2 class="hero-line">현재의 큰 흐름과<br /><span class="red">올해의 신호</span>를 함께 봅니다</h2>
               <p>지금의 <span class="red">팔자</span>는 멈춘 그림이 아닙니다. <span class="red">선택</span>이 쌓이는 자리, <span class="red">사람</span>이 붙는 자리, 무리하면 새는 자리를 나눠 봐야 합니다.</p>
               <div class="story-callout">그 전환을 어떻게 받아야 하는지 천천히 풀겠습니다.</div>
             </section>
@@ -7224,7 +7220,7 @@
 
             <section class="story-section" data-sample-section="wealth-section">
               <span class="chapter">재물운</span>
-              <h2><span class="red">돈</span>의 흐름이 보이는군</h2>
+              <h2><span class="red">돈</span>이 모이는 방식부터 보겠습니다</h2>
               <p>${wealthText}</p>
               <div class="wealth-chart" aria-label="재물운 흐름">
               </div>
@@ -7240,14 +7236,14 @@
 
             <section class="story-section" data-sample-section="destiny-card">
               <span class="chapter">연애운</span>
-              <h2>${relationLabel}</h2>
+              <h2>끌리는 인연과 오래 남는 인연의 차이</h2>
               <p>${loveText}</p>
-              <div class="destiny-card" aria-label="운명의 상대">
-                <h3>${displayName}님의 <span class="red">운명</span>의 상대</h3>
-                <div class="destiny-row"><strong>시기</strong><span>특정 만남 날짜는 확정하지 않습니다. 관계가 달라지는 실제 신호를 살펴봅니다.</span></div>
-                <div class="destiny-row"><strong>직업</strong><span>상대의 직업을 예언하지 않고, 서로 맞는 생활과 역할을 확인합니다.</span></div>
-                <div class="destiny-row"><strong>외모</strong><span>외모보다 실제 대화와 약속에서 드러나는 태도를 살펴봅니다.</span></div>
-                <div class="destiny-row"><strong>장소</strong><span>실제 만남 접점과 편안한 관계의 조건을 기준으로 봅니다.</span></div>
+              <div class="destiny-card" aria-label="오래 남는 관계의 조건">
+                <h3>${displayName}님에게 오래 남는 <span class="red">관계의 조건</span></h3>
+                <div class="destiny-row"><strong>시기</strong><span>만남의 날짜보다 관계가 달라지는 실제 신호를 봅니다.</span></div>
+                <div class="destiny-row"><strong>생활</strong><span>서로의 일상과 역할이 무리 없이 맞는지 확인합니다.</span></div>
+                <div class="destiny-row"><strong>태도</strong><span>대화와 약속에서 반복되는 행동을 기준으로 봅니다.</span></div>
+                <div class="destiny-row"><strong>접점</strong><span>실제로 자주 만나고 편안해지는 조건을 살펴봅니다.</span></div>
               </div>
             </section>
 
@@ -7255,7 +7251,7 @@
 
             <section class="story-section sub-result-text-band" data-sample-section="outro-bridge">
               <p>여기부터가 진짜 시작입니다.</p>
-              <h2>자네의 <span class="red">사주</span> 속<br />숨은 <span class="red">진실</span>이 펼쳐지는군</h2>
+              <h2>${displayName}님의 <span class="red">사주</span>에서<br />반복되는 <span class="red">선택의 이유</span>를 봅니다</h2>
               <p>가볍게 넘길 흐름과 붙잡아야 할 흐름을 구분합니다.</p>
             </section>
 
@@ -7289,11 +7285,11 @@
 
             <section class="story-section sub-result-text-band" data-sample-section="hesitation-bridge">
               <p>천명사주의 시선</p>
-              <h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸 이야기</h2>
+              <h2><span class="red">전통 명리의 기준</span>과<br />지금의 질문을 함께 읽습니다</h2>
             </section>
 
             <section class="story-section center tall" data-sample-section="comparison">
-              <span class="chapter">대분석의 기준</span>
+              <span class="chapter">깊은 풀이의 기준</span>
               <h2 class="hero-line">한 해 운세가 아니라<br /><span class="red">인생의 구조</span>를 봅니다</h2>
               <p>천명사주 풀이는 태어난 순간의 결, 지금의 질문, 앞으로의 흐름을 한 줄로 엮어 봅니다.</p>
               <div class="story-list">
@@ -7305,8 +7301,8 @@
 
             <section class="story-section deep" data-sample-section="report-preview">
               <span class="chapter">리포트 미리보기</span>
-              <h2>결코 가벼운 <span class="red">사주</span>가 아닙니다</h2>
-              <p>감춰진 현재의 <span class="red">비밀</span>, 반복된 <span class="red">선택</span>의 이유, 앞으로 바뀔 <span class="red">흐름</span>을 함께 정리합니다.</p>
+              <h2>반복되는 <span class="red">선택</span>에는 같은 뿌리가 있습니다</h2>
+              <p>겉으로 보이는 성향, 돈을 다루는 방식, 관계에서 되풀이되는 선택과 앞으로 살펴볼 기준을 함께 정리합니다.</p>
               <div class="report-preview">
                 <div class="report-page">성격의 결: 겉으로 보이는 태도와 속에서 반복되는 불안의 방향을 함께 봅니다.</div>
                 <div class="report-page">재물의 결: 돈이 모이는 자리와 새는 자리를 나눠서 봅니다.</div>
@@ -7318,19 +7314,19 @@
 
             <section class="story-section sub-result-text-band" data-sample-section="last-saju-book-bridge">
               <p>사주의 처음과 끝</p>
-              <h2>처음과 끝<br /><span class="red">인생</span>의 굴곡이 보이는군</h2>
+              <h2>지나온 선택과<br />앞으로의 <span class="red">기준</span>을 함께 봅니다</h2>
             </section>
 
             <section class="story-section center" data-sample-section="book-volume">
               <span class="chapter">긴 풀이의 방향</span>
-              <h2 class="hero-line">결코 짧게 끝낼 수 없는<br /><span class="red">대분석</span>입니다</h2>
-              <p>하지만 여기서는 길게 늘어놓기보다, 먼저 ${displayName}님이 묻고 싶은 것을 바로 파고들겠습니다.</p>
+              <h2 class="hero-line">길게 늘어놓기보다<br /><span class="red">중요한 순서</span>대로 짚겠습니다</h2>
+              <p>${displayName}님이 지금 묻고 싶은 것부터 시작해 성향, 일과 돈, 관계의 순서로 연결하겠습니다.</p>
               <div class="story-callout">방금 본 천명사주의 흐름 그대로 상담이 이어집니다.</div>
             </section>
 
             <section class="story-section" data-sample-section="contents-list">
               <span class="chapter">더 이어질 풀이</span>
-              <h2>자네 안쪽의 <span class="red">기운</span>부터<br />현실의 선택까지 보겠네</h2>
+              <h2>타고난 <span class="red">기운</span>부터<br />현실의 선택까지 짚어드립니다</h2>
               <div class="story-list">
                 <div class="story-list-item">겉으로 보이는 태도와 혼자 있을 때 선명해지는 <span class="red">진짜 성향</span></div>
                 <div class="story-list-item"><span class="red">돈</span>이 모이는 방식과 막아야 할 지출의 구멍</div>
@@ -7350,21 +7346,21 @@
               <span class="chapter">실제 상담 흐름</span>
               <h2>혼자 읽고 끝나는 풀이가 아닙니다</h2>
               <p>결과를 읽다가 걸리는 문장이 생기면 바로 묻습니다. 천명사주가 같은 사주표를 붙잡고 이어서 봅니다.</p>
-              <div class="stats" aria-label="상담 지표">
-                <div class="stat"><strong>1:1</strong><span>맞춤 상담</span></div>
-                <div class="stat"><strong>24</strong><span>오행 흐름</span></div>
-                <div class="stat"><strong>100</strong><span>페이지급 밀도</span></div>
+              <div class="stats" aria-label="상담 기준">
+                <div class="stat"><strong>개인 사주</strong><span>타고난 결</span></div>
+                <div class="stat"><strong>현재 고민</strong><span>질문의 맥락</span></div>
+                <div class="stat"><strong>다음 행동</strong><span>현실의 기준</span></div>
               </div>
               <div class="reviews">
-                <div class="review">“직장 운 때문에 들어왔는데, 그냥 위로가 아니라 왜 같은 고민이 반복되는지부터 짚어줘서 몰입됐습니다.”</div>
-                <div class="review">“처음 결과 화면 말투 그대로 상담이 이어져서 한 사람이 보고 있는 느낌이 납니다.”</div>
+                <div class="review">먼저 보이는 기운을 짚고, 같은 고민이 반복되는 이유를 생활의 선택과 연결합니다.</div>
+                <div class="review">결과를 읽다가 걸리는 문장은 같은 사주표를 기준으로 이어서 물을 수 있습니다.</div>
               </div>
             </section>
 
             <section class="story-section flush-bottom" data-sample-section="proof-and-chat">
               <span class="chapter">마지막 확인</span>
               <h2>이제 상담으로 들어갑니다</h2>
-              <p>방금 펼친 사주를 바탕으로 더 깊은 상담에 들어가네. 묻고 싶은 걸 던지면 천명사주가 같은 말투로 이어서 풀어주겠네.</p>
+              <p>방금 펼친 사주를 바탕으로 더 깊이 들어갑니다. 묻고 싶은 것을 남기면 같은 사주표를 기준으로 이어서 풀어드립니다.</p>
               <div class="proof-stack">
                 <div class="proof-row"><span>분석 기준</span><strong>${birthLabel}</strong></div>
                 <div class="proof-row"><span>먼저 보이는 기운</span><strong>${dayMasterElement}</strong></div>
@@ -7373,7 +7369,7 @@
             </section>
 
             <div class="sticky-story-cta">
-              <button class="primary-cta" type="button" data-action="open-chat">천명사주 상담</button>
+              <button class="primary-cta" type="button" data-action="open-chat">천명사주 상담 시작</button>
             </div>
             ${businessFooterMarkup()}
           </article>
@@ -7420,7 +7416,7 @@
           <section class="panel teaser-panel">
             <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
             <h1>${escapeHtml(service.title)}</h1>
-            <p>${escapeHtml(state.name || "자네")}님의 올해 연애운 전체 리포트입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다."}</p>
+            <p>${escapeHtml(state.name || "고객")}님의 올해 연애운 전체 리포트입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다."}</p>
 
             <div class="teaser-block">
               <span class="chapter">상품 요약</span>
@@ -7480,7 +7476,7 @@
           <section class="panel teaser-panel">
             <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
             <h1>전체 풀이를 열어볼까요?</h1>
-            <p>${state.name || "자네"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제는 연결하지 않은 데모입니다."}</p>
+            <p>${state.name || "고객"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제는 연결하지 않은 데모입니다."}</p>
 
             <div class="result-list">
               ${plans
