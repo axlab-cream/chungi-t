@@ -2415,4 +2415,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] 집중 계약 45/45, TypeScript, JavaScript 구문, Vercel production build, 공용 캐시 전수 동기화와 diff 검사를 통과했다.
 - [REVIEW] 지정 Grok 리뷰는 사용하지 않는 Supabase·Figma·Vercel 등 외부 MCP 인증과 sequential-thinking 재시도를 반복해 중단했다. 변경 파일을 수동 검토해 유료 본문 경계, 인증/결제 경로, 기존 직장 선택 이력 호환, live preview host 가시성을 확인했다.
 - [PASS] 전체 회귀 1606/1606(165 suites), 집중 113/113, 저축운 계약 21개, 20개 서비스 QA, TypeScript, JavaScript 구문, Vercel production build, 공용 캐시 전수 동기화와 diff 검사를 통과했다.
-- [PENDING] 커밋·main 반영, 운영 배포, 실제 모바일 URL 검증, CreamWIKI 기록.
+- [PASS] 구현 커밋 `164baf5b`을 `origin/main`에 반영했고 CI `36402994729`의 타입 검사·전체 회귀·서비스 검수·20개 서비스 QA·프로덕션 빌드가 모두 성공했다.
+- [PASS] Vercel production 배포 `dpl_7tP4q6EpaunYeAhnZVBNggQJJLXp`가 Ready이며 `umsh.kr`, `www.umsh.kr` 별칭에 연결됐다.
+- [PASS] 로그인된 운영 모바일 390px 화면에서 실제 해석 1·2, 서로 다른 이미지 2개, 입력 표 1개, 서버 오행 차트 1개, 기본 닫힘인 실제 03~16번 잠금 목차 14개, 단일 CTA와 5회 조회 상태를 확인했다. 원시 마크다운·내부 QA 문구·9,900원·가로 넘침은 없었다.
+- [KMS] 원인·해결·검증 기록은 `personal/carrotcap/notes/umsh-money-save-teaser-real-first-two-20260928.md`에 저장한다.

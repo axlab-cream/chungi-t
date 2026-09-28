@@ -1055,4 +1055,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | MONEY-TEASER-07 | TypeScript, JS 구문, Vercel production build, diff 검사 | PASS |
 | MONEY-TEASER-08 | 전체 회귀 | PASS (1606/1606, 165 suites) |
 | MONEY-TEASER-09 | 독립 Grok 리뷰 | BLOCKED (사용하지 않는 외부 MCP 인증 재시도로 중단), 수동 리뷰 진행 |
-| MONEY-TEASER-10 | main·운영 배포·실제 운영 모바일 검증 | PENDING |
+| MONEY-TEASER-10 | main·운영 배포·실제 운영 모바일 검증 | PASS (`164baf5b`, CI `36402994729`, Vercel `dpl_7tP4q6EpaunYeAhnZVBNggQJJLXp`; 390px에서 2개 해석·2개 이미지·표·차트·기본 닫힘 14개 잠금 목차·단일 CTA·가로 넘침 0 확인) |
