@@ -788,6 +788,7 @@
 .job-teaser-stage { margin-bottom: 5px; color: rgba(255, 247, 242, .62); }
 .job-teaser-number { margin: 0; }
 .job-teaser-reading h2 { font-size: 22px; }
+.job-teaser-body h3 { margin: 24px 0 10px; color: var(--gold, #e8c76f); font-size: 16px; line-height: 1.55; word-break: keep-all; }
 .job-teaser-hook {
   margin: 15px 0 18px;
   padding: 13px 14px;
@@ -851,6 +852,20 @@
 .job-teaser-final-cta .umsh-preview-checkout { margin-top: 18px; background: var(--gold, #e8c76f); color: #16100a; }
 .job-teaser-usage { margin-top: 12px !important; color: var(--gold, #e8c76f) !important; font-size: 12px !important; }
 .job-teaser-retry { display: block; width: fit-content; margin: 14px auto 0; color: rgba(255, 247, 242, .68); font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 퇴사운은 실제 입력 표가 긴 문장을 담는다. 셀 안에서 줄을 바꾸고 화면 자체에는
+   가로 스크롤을 만들지 않는다. 오행 차트 역시 저장 사주의 계산값만 표시한다. */
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table-figure,
+[data-umsh-slot="preview"] .quit-teaser-reading .story-chart-figure { margin: 22px 0 0; padding: 16px; border: 1px solid rgba(48, 240, 223, .2); border-radius: 12px; background: rgba(0, 0, 0, .22); }
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table-scroll { overflow: visible; }
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table { width: 100%; table-layout: fixed; }
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table th,
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table td { white-space: normal; overflow-wrap: anywhere; word-break: keep-all; vertical-align: top; }
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table th:first-child,
+[data-umsh-slot="preview"] .quit-teaser-reading .story-table td:first-child { width: 34%; }
+.quit-teaser-opening,
+.quit-teaser-final-cta { background: linear-gradient(145deg, rgba(13, 35, 32, .96), rgba(10, 13, 22, .98)); }
+.quit-teaser-reading { border-color: rgba(48, 240, 223, .2); }
 
 @media (max-width: 360px) {
   .job-teaser-reading-inner { padding-inline: 15px; }

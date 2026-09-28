@@ -29,23 +29,18 @@ test('퇴사운 STEP2는 티저로 가고 이유만 추가로 받는다', () => 
   assert.doesNotMatch(step2, /class="note"|class="footer"/)
 })
 
-test('퇴사운 STEP4 티저는 후킹 없이 판정·근거를 보여 준다', () => {
+test('퇴사운 STEP4는 정적 샘플 없이 실제 저장 해석 슬롯만 제공한다', () => {
   const step4 = readFileSync(join(root, '사주/work/quit/04-step-4-report/index.html'), 'utf8')
-  assert.match(step4, /data-teaser-headline/)
-  assert.match(step4, /data-teaser-summary/)
-  assert.match(step4, /data-signal-list/)
-  assert.match(step4, /전체 보기 \(14,900원\)/)
+  assert.match(step4, /data-umsh-slot="progress"/)
+  assert.match(step4, /data-umsh-slot="preview"/)
   assert.match(step4, /미리보기/)
-  assert.doesNotMatch(step4, /REPORT PREVIEW/)
-  assert.doesNotMatch(step4, /진짜 이유/)
-  assert.doesNotMatch(step4, /아닐 수도/)
-  assert.doesNotMatch(step4, /구성 먼저/)
-  assert.doesNotMatch(step4, /열어보기/)
-  assert.doesNotMatch(step4, /결제 후 열리는/)
+  assert.doesNotMatch(step4, /data-teaser-headline|data-teaser-summary|data-signal-list/)
+  assert.doesNotMatch(step4, /지금의 선택은|판정과 근거를 먼저|열 가지 항목/)
   assert.doesNotMatch(script, /입력한 사주로 계산하고 있습니다/)
   assert.doesNotMatch(script, /열어보기/)
   assert.match(script, /전체 목차 열기/)
-  assert.match(script, /paintQuitReading/)
+  assert.match(script, /teaserSections[\s\S]*showPreview/)
+  assert.match(app, /quit_fortune[\s\S]*teaserSections/)
 })
 
 test('퇴사운 STEP3와 /situation 은 STEP2로 되돌린다', () => {

@@ -1,4 +1,4 @@
-﻿# Plan
+# Plan
 
 - 2026-09-13 `task-tone-v2-p04-pass-angle-visual-render-evidence` DONE: verified the immutable 52-section result through the real reader on desktop, exact 390px mobile and complete print; fixed target sizing and print-intro contrast; attached sanitized evidence and advanced aggregate visual coverage to 5/20. No next Task is active before a new user gate.
 - 2026-09-13 `task-tone-v2-p04-pass-angle-2-1-full-outline-generation` DONE: fresh isolated provider generation pinned to corpus 2.1.0 completed 52/52 and replayed 52/52; direct review approved with comments, sanitized evidence attached, aggregate full-outline review 5/20 and release remains NO_GO. Focused 92/92, full 930/930, typecheck/build/determinism PASS.
@@ -631,3 +631,12 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 3. 저축운 구형 위임을 실제 연관 항목 버튼에만 적용한다.
 4. 캐시 키를 공용 참조 전부에 동기화하고 20개 서비스 계약·전체 회귀·빌드를 검증한다.
 5. ProjectOps·CreamWIKI 기록과 최종 리뷰 후 로컬 커밋한다.
+
+## 2026-09-28 — 퇴사운 실제 데이터 무료 티저 운영 적용
+
+1. 구형 정적 키비주얼·목차·중간 구매 CTA를 제거하고 저장 리포트 전용 슬롯 하나로 통합한다.
+2. 로그인 회원의 저장 사주, 퇴사 고민과 서버 계산값으로 실제 1·2번 해석만 공개한다.
+3. 두 해석에는 서로 다른 WebP 이미지, 공용 마크다운 뷰, 실제 입력 표와 오행 분포 차트를 붙인다.
+4. 서버의 3~10번 목차는 본문 없이 기본 닫힘·잠김 상태로 한 번만 보여주고, 구매 CTA는 그 아래 한 번만 둔다.
+5. 회귀·타입·프로덕션 빌드·모바일 운영 화면을 검증한 뒤 main과 기존 Vercel 운영 경로에 배포한다.
+6. 퇴사운 5회 조회 카운터는 운영 저장소가 없는 상태이므로 임의 값을 만들지 않는다. DB 마이그레이션은 별도 승인 전까지 GATE로 남기며, 실제 API 값이 제공될 때만 UI가 표시한다.

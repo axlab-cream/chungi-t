@@ -382,7 +382,7 @@
 
     const GATE_COPY = {
     input: '퇴사 고민 이유를 먼저 고르면 같은 흐름으로 이어집니다.',
-    login: '로그인하면 저장된 내 사주로 풀이를 계산합니다. 지금 화면의 문장은 예시입니다.',
+    login: '로그인하면 저장된 내 사주와 퇴사 고민을 이어서 읽습니다.',
     payment: '결제가 확인되면 10개 리딩이 모두 열립니다.',
     error: '풀이를 계산하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
   };
@@ -441,6 +441,10 @@
     const outcome = await loadReport();
 
     if (outcome.preview) {
+      if (outcome.payload?.teaserSections?.length === 2) {
+        window.UMSHReportAccess?.showPreview?.(outcome.payload, readJson('sessionStorage', STORAGE.input));
+        return;
+      }
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       paintQuitReading(
         root,

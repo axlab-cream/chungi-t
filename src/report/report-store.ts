@@ -990,7 +990,7 @@ export async function createOrGetReportRecord(params: {
   /** 주면 계보 승계가 켜진다. 없으면 리포트 ID 정확 일치만 본다(기존 동작). */
   lineageId?: string
 }): Promise<{ record: ReportRecord; created: boolean }> {
-  const freeOpening = params.context?.serviceKey === 'job_choice'
+  const freeOpening = (params.context?.serviceKey === 'job_choice' || params.context?.serviceKey === 'quit_fortune')
     && !(params.context as { savedChat?: unknown }).savedChat
     && params.templateReport.sections.length >= 2
   const existing = await getReportRecord(params.reportId, params.owner)

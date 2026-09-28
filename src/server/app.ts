@@ -167,6 +167,8 @@ import {
   buildWorkQuitReport,
   createWorkQuitReportId,
   parseWorkQuitRequest,
+  workQuitRequestFromContext,
+  workQuitTeaserSection,
 } from '../work/quit-service.js'
 import {
   buildJobChoiceContext,
@@ -4026,8 +4028,19 @@ function reportToc(record: ReportRecord) {
 function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSearch?: JobChoicePreviewQuota) {
   const report = toClientReport(record)
   const entitled = access?.entitled === true
-  const jobChoice = record.context.serviceKey === 'job_choice'
-  const opening = jobChoice ? report.sections.slice(0, 2) : []
+  const serviceKey = record.context.serviceKey ?? 'saju_master'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune'
+  const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
+  const opening = serviceKey === 'quit_fortune'
+    && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
+    ? buildWorkQuitReport(
+      record.analysis ?? analyzeSaju(record.birth),
+      record.birth,
+      record.context,
+      workQuitRequestFromContext(record.context),
+      record.reportId,
+    ).sections.slice(0, 2)
+    : savedOpening
   return {
     previewOnly: true,
     entitled,
@@ -4036,11 +4049,15 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
     resultId: report.resultId,
     publicId: report.publicId,
     publicUrl: report.publicUrl,
-    serviceKey: record.context.serviceKey ?? 'saju_master',
+    serviceKey,
     ...(freeSearch ? { freeSearch } : {}),
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context),
     ...(opening.length === 2 && opening.every((section) => section.status === 'complete' && section.interpretation?.trim())
-      ? { teaserSections: opening.map((section) => ({
+      ? { teaserSections: opening.map((savedSection, index) => {
+        const section = serviceKey === 'quit_fortune'
+          ? workQuitTeaserSection(savedSection, index, record.analysis, record.context)
+          : savedSection
+        return {
         id: section.id,
         order: section.order,
         category: section.category,
@@ -4050,9 +4067,10 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         imageSrc: section.imageSrc,
         imageAlt: section.imageAlt,
         storytelling: section.storytelling,
-      })) }
+        }
+      }) }
       : {}),
-    toc: jobChoice ? reportToc(record).slice(0, 10) : reportToc(record),
+    toc: richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }

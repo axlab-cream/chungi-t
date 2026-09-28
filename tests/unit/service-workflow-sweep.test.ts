@@ -233,6 +233,27 @@ it('2단계 입력: 전용 입력 화면이 있는 서비스는 그 경로가 �
     assert.deepEqual(leaks, [])
   })
 
+  it('퇴사운 티저는 소유자의 실제 1·2번만 공개하고 3~10번은 목차 메타데이터만 준다', async () => {
+    const { response, payload, text } = await call('/api/work/quit/analyze', {
+      preview: true,
+      reason: '업무 범위가 계속 넓어져서 퇴사를 고민하고 있어요',
+      concern: '조정 요청 뒤에도 같은 일이 반복됐습니다.',
+    })
+    assert.equal(response.status, 200)
+    assert.equal(payload.previewOnly, true)
+    assert.equal(payload.serviceKey, 'quit_fortune')
+    const opened = payload.teaserSections as Array<Record<string, any>>
+    const toc = payload.toc as Array<Record<string, any>>
+    assert.equal(opened.length, 2)
+    assert.equal(toc.length, 10)
+    assert.notEqual(opened[0].imageSrc, opened[1].imageSrc)
+    assert.match(opened[0].storytelling.tableMd, /업무 범위가 계속 넓어져서/)
+    assert.equal(opened[1].storytelling.chartPoints.length, 5)
+    assert.ok(toc.slice(2).every((item) => item.interpretation === undefined))
+    assert.equal(payload.report, undefined)
+    assert.doesNotMatch(text, /"attempts"|"generationLease"/)
+  })
+
   it('4단계 티저: 같은 문장을 두 번 말하지 않고 금지 표현이 없다', async () => {
     // summary 가 곧 insights[0] 이고 첫 섹션의 hook 이 그 문단의 첫 문장과 같아서, 티저가
     // 같은 45자 넘는 문장을 두세 번 말하고 있었다(천명사주·이직운·붙을 각·운 붙는 색).

@@ -1176,7 +1176,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-job-teaser-v4';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-quit-teaser-v1';
     document.head.appendChild(link);
   }
   /**
@@ -1382,6 +1382,12 @@
       renderProgress(payload.report);
       return rendered;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'quit_fortune'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      var renderedQuit = fillSlot('preview', renderQuitFortuneTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedQuit;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1465,13 +1471,8 @@
         + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(closing[index]) + '</p>'
         + '</div></article>';
     }).join('');
-    var quota = payload.freeSearch;
-    var quotaText = quota && Number.isInteger(quota.used) && quota.limit === 5
-      ? (Math.min(5, Math.max(0, quota.used)) >= 5
-        ? '무료 결과 조회 5/5회 사용 · 다음 조회는 전체 해석 결제가 필요합니다.'
-        : '무료 결과 조회 ' + Math.min(5, Math.max(0, quota.used)) + '/5회 사용 · ' + (5 - Math.min(5, Math.max(0, quota.used))) + '회 남음')
-      : '';
-    var lockedToc = renderJobChoiceLockedToc(payload.toc);
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    var lockedToc = renderLockedTeaserToc(payload.toc);
     return '<header class="job-teaser-opening">'
       + '<span>직장 선택 · 무료 공개 2개 해석</span>'
       + '<h1>' + escapeHtml(preview.headline || '좋아 보이는 제안의 속을 먼저 확인합니다') + '</h1>'
@@ -1488,7 +1489,64 @@
       + '</footer>';
   }
 
+  /** 퇴사운도 같은 공개 경계를 쓰되, 저장된 퇴사 입력과 계산값만으로 읽는다. */
+  function renderQuitFortuneTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeQuitFortuneTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var hook = String(section.hook || '').trim();
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 입력한 내용입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '저장된 사주에서 계산한 값입니다.')
+        : '';
+      var conclusion = String(story.softBridge || '').trim();
+      return '<article class="job-teaser-reading quit-teaser-reading" aria-labelledby="quit-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'quit_fortune')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="quit-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (hook && hook !== title ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(hook)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + table + chart
+        + (conclusion ? '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>' : '')
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc);
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening quit-teaser-opening">'
+      + '<span>퇴사운 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '그만두고 싶은 이유부터 현재 준비 상태까지 읽었습니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta quit-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>돈·시점·말하는 방법까지, 퇴사 뒤의 현실을 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 돈, 다음 일, 퇴사 시점, 인수인계와 회복 계획을 저장된 정보에 맞춰 이어서 확인합니다.')) + '</p>'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</footer>';
+  }
+
+  function teaserQuotaText(quota) {
+    if (!quota || !Number.isInteger(quota.used) || quota.limit !== 5) return '';
+    var used = Math.min(5, Math.max(0, quota.used));
+    return used >= 5
+      ? '무료 결과 조회 5/5회 사용 · 다음 조회는 전체 해석 결제가 필요합니다.'
+      : '무료 결과 조회 ' + used + '/5회 사용 · ' + (5 - used) + '회 남음';
+  }
+
   function renderJobChoiceLockedToc(toc) {
+    return renderLockedTeaserToc(toc);
+  }
+
+  function renderLockedTeaserToc(toc) {
     var locked = (Array.isArray(toc) ? toc : []).slice(2, 10).filter(function (item) {
       return item && (item.classification || item.category);
     });
@@ -1505,6 +1563,19 @@
       + '<summary><span><strong>나머지 ' + locked.length + '개 목차</strong><small>눌러서 목차 확인</small></span></summary>'
       + '<ol>' + rows + '</ol>'
       + '</details>';
+  }
+
+  function normalizeQuitFortuneTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 사주와 지금 상황을 함께 보면\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 현실에서 먼저 볼 장면\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 결정을 내리기 전에 물어볼 것\n')
+      .replace(/관성\(官星, 조직의 역할과 책임을 살피는 상징\)/g, '조직 안에서 맡는 역할과 책임을 나타내는 기운')
+      .replace(/십성\(十星, 일간을 기준으로 다른 기운과의 관계를 나눈 열 가지 분류\)/g, '태어난 날을 중심으로 다른 기운과의 관계를 풀어낸 열 가지 상징')
+      .replace(/GO는/g, '바로 움직이는 경우는')
+      .replace(/HOLD는/g, '잠시 보류하는 경우는')
+      .trim();
   }
 
   function normalizeJobChoiceTeaserCopy(value) {

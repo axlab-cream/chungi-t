@@ -103,6 +103,32 @@ test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 �
   assert.match(inplaceCss, /\[data-umsh-slot="preview"\] \.reading-table/)
 })
 
+test('퇴사운 티저는 저장 해석 1·2와 실제 시각화 뒤에 닫힌 3~10 목차를 렌더한다', () => {
+  const api = loadAccess('/work/quit/04-step-4-report/index.html')
+  const teaserSections = [
+    { id: 'flow-1', order: 1, imageSrc: '/work/quit/assets/quit/04-teaser.png', interpretation: '[주요 포인트] 실제 첫 본문', storytelling: { tableMd: '| 항목 | 입력값 |\n| --- | --- |\n| 이유 | 업무 |' } },
+    { id: 'flow-2', order: 2, imageSrc: '/work/quit/assets/quit/03-thread-tension.png', interpretation: '[주요 포인트] 실제 둘째 본문', storytelling: { chartPoints: [{ label: '나무', value: 2, note: '서버 계산값' }] } },
+  ]
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    serviceKey: 'quit_fortune',
+    preview: { headline: '그만두고 싶은 이유부터 읽었습니다.' },
+    teaserSections,
+    toc: [...teaserSections, ...Array.from({ length: 8 }, (_, index) => ({ id: `locked-${index + 3}`, classification: `실제 목차 ${index + 3}`, category: '퇴사운' }))],
+  })
+
+  assert.equal(accepted.payload.teaserSections.length, 2)
+  assert.match(accessSource, /function renderQuitFortuneTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'quit_fortune'\)/)
+  assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /normalizeQuitFortuneTeaserCopy/)
+  assert.match(accessSource, /data-exact-source-chars/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc\)/)
+  assert.match(accessSource, /slice\(2, 10\)/)
+  assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
+})
+
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {
   const api = loadAccess('/money/save/05-step-5-chat/chat.html')
   const accepted = api.acceptAnalyze({

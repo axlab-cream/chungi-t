@@ -65,6 +65,18 @@ test('work quit service builds a dedicated resignation report', () => {
   assert.match(report.sections.map((section) => section.interpretation).join('\n'), /사람/)
   assert.match(report.sections.map((section) => section.interpretation).join('\n'), /이직 준비 중/)
 
+  // 무료 공개 1·2는 같은 대표 이미지를 반복하지 않고, 실제 입력과 계산값으로
+  // 각각 표와 차트를 만든다. 장식용 점수나 임의의 생활 수치는 넣지 않는다.
+  assert.notEqual(report.sections[0].imageSrc, report.sections[1].imageSrc)
+  assert.match(report.sections[0].storytelling?.tableMd ?? '', /퇴사 고민 이유[\s\S]*사람/)
+  assert.match(report.sections[0].storytelling?.tableMd ?? '', /재직 기간[\s\S]*오래 버틴 상태/)
+  assert.equal(report.sections[1].storytelling?.chartPoints?.length, 5)
+  assert.deepEqual(
+    report.sections[1].storytelling?.chartPoints?.map((point) => point.value),
+    Object.values(analysis.elementCount),
+  )
+  assert.match(report.sections[0].storytelling?.softBridge ?? '', /사람/)
+
   // Each 대분류 opens on its own angle, so the 05 목차 never shows ten copies of one line.
   const firstOfEachGroup = WORK_QUIT_TOC.map((group) => report.sections.find((section) => section.category === group.title)!)
   assert.equal(new Set(firstOfEachGroup.map((section) => section.interpretation.split('\n\n')[0])).size, WORK_QUIT_TOC.length)
@@ -114,4 +126,13 @@ test('quit teaser uses a verdict sentence and a moderate-length reading', () => 
     preview,
     sourceEvidence: report.sections.flatMap((section) => [section.hook, section.interpretation]).join('\n'),
   }).passed, true)
+})
+
+test('quit teaser leaves missing optional inputs out of its evidence table', () => {
+  const input = parseWorkQuitRequest({ reason: '업무' })
+  const analysis = analyzeSaju(birth)
+  const report = buildWorkQuitReport(analysis, birth, buildWorkQuitContext('민지', input), input)
+  const table = report.sections[0].storytelling?.tableMd ?? ''
+  assert.match(table, /퇴사 고민 이유[\s\S]*업무/)
+  assert.doesNotMatch(table, /재직 기간|후보일|다음 계획|현재 고민/)
 })

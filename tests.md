@@ -1,4 +1,4 @@
-﻿# Tests
+# Tests
 
 ## Verification Matrix
 
@@ -1030,3 +1030,14 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | READING-TOGGLE-15 | v3 운영에서 공용 클릭 가로채기 자체가 native details를 방해하는지 재검증 | FAIL → 결함 재현 |
 | READING-TOGGLE-16 | 공용 클릭 가로채기 제거, 저축운 구형 위임만 격리, 캐시 키 v4를 69개 HTML에 동기화 | PASS (집중·전수 스캔) |
 | READING-TOGGLE-17 | v4 운영 배포와 로그인된 실제 화면 재확인 | PENDING |
+
+## 2026-09-28 — 퇴사운 무료 티저
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| QUIT-TEASER-01 | 신규·기존 저장 리포트에서 실제 1·2번 해석만 공개 | PASS (단위·API 통합) |
+| QUIT-TEASER-02 | 서로 다른 실제 WebP 이미지, 마크다운 본문, 입력 표, 서버 계산 오행 차트 | PASS (계약 테스트) |
+| QUIT-TEASER-03 | 3~10번 실제 목차는 본문 없이 기본 닫힘·잠김, 중복 목차·중간 CTA 없음 | PASS (렌더러·API 통합) |
+| QUIT-TEASER-04 | 정적 키비주얼 오버레이와 구형 테이블·이미지 중첩 제거, 모바일 표 줄바꿈 | PASS (정적·CSS 계약) |
+| QUIT-TEASER-05 | 5회 조회 수치는 실제 API 값이 있을 때만 표시 | PASS (가짜 수치 없음), DB 저장소는 GATE |
+| QUIT-TEASER-06 | 전체 회귀·타입·프로덕션 빌드 | PASS (1600/1600, typecheck, vercel-build) |

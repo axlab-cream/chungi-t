@@ -1,6 +1,6 @@
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
-import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
+import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection, SectionStorytelling } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
@@ -19,6 +19,105 @@ export interface WorkQuitRequest {
   candidateDate?: string
   nextPlan?: string
   concern?: string
+}
+
+const QUIT_TEASER_IMAGES = [
+  { key: '04-teaser', src: `${QUIT_ASSET_BASE}/04-envelope-reading.webp`, alt: '퇴사를 고민하며 현재 상황을 차분히 살피는 장면' },
+  { key: '03-thread-tension', src: `${QUIT_ASSET_BASE}/reading-v2/02-go-hold-timing.webp`, alt: '그만둘 시점과 남은 조건을 하나씩 풀어 보는 장면' },
+] as const
+
+const ELEMENT_LABELS: Array<[keyof SajuAnalysis['elementCount'], string]> = [
+  ['wood', '나무'], ['fire', '불'], ['earth', '흙'], ['metal', '쇠'], ['water', '물'],
+]
+
+function tableCell(value: string): string {
+  return value.replace(/\r?\n/g, ' ').replace(/\|/g, '｜').trim()
+}
+
+function inputRows(input: WorkQuitRequest): Array<[string, string]> {
+  return [
+    ['퇴사 고민 이유', input.reason],
+    ['재직 기간', input.tenure ?? ''],
+    ['생각한 시점', input.candidateDate ?? ''],
+    ['다음 계획', input.nextPlan ?? ''],
+    ['현재 고민', input.concern ?? ''],
+  ].filter((row): row is [string, string] => Boolean(row[1]?.trim()))
+}
+
+function quitTeaserStories(analysis: SajuAnalysis | undefined, input: WorkQuitRequest): [SectionStorytelling, SectionStorytelling] {
+  const rows = inputRows(input)
+  const table = [
+    '| 확인한 정보 | 입력 내용 |',
+    '| --- | --- |',
+    ...rows.map(([label, value]) => `| ${label} | ${tableCell(value)} |`),
+  ].join('\n')
+  const reason = tableCell(input.reason)
+  const timing = tableCell(input.candidateDate ?? '')
+  return [
+    {
+      feel: `“${reason}” 때문에 그만두고 싶은 지금, 회사를 떠나는 것이 답일까요?`,
+      softBridge: `적어 주신 “${reason}”이 한 번의 불편인지 반복된 업무 장면인지 나누어 볼 때, 지금 필요한 답이 퇴사인지 조건 조정인지 더 분명해집니다.`,
+      tableMd: table,
+      tableCaption: '직접 입력한 내용만 모았습니다. 비어 있던 항목은 덧붙이지 않았습니다.',
+      scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+    },
+    {
+      feel: timing
+        ? `“${timing}”을 생각하고 있다면, 마음보다 준비 상태를 먼저 가를 때입니다.`
+        : '그만둘 마음은 생겼지만, 움직일 시점까지 준비되었을까요?',
+      softBridge: timing
+        ? `말씀하신 “${timing}”까지 확인할 조건을 채우면, 불안에 밀린 퇴사와 준비된 이동을 구분할 수 있습니다.`
+        : `퇴사 날짜를 임의로 정하지 않고, 생활과 다음 계획에서 실제로 확인된 항목이 쌓였을 때 움직이는 편이 안전합니다.`,
+      ...(analysis ? { chartPoints: ELEMENT_LABELS.map(([key, label]) => ({
+        label,
+        value: analysis.elementCount[key],
+        note: '저장된 사주에서 서버가 계산한 오행 개수입니다.',
+      })) } : {}),
+      chartCaption: '성격 점수나 퇴사 적합도가 아니라, 저장된 사주에서 계산한 다섯 기운의 분포입니다.',
+      scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+    },
+  ]
+}
+
+export function workQuitRequestFromContext(context: SajuReportContext): WorkQuitRequest {
+  const values = new Map<string, string>()
+  const unlabelled: string[] = []
+  String(context.concern ?? '').split(/\s*·\s*/).forEach((part) => {
+    const separator = part.indexOf(':')
+    if (separator > 0) values.set(part.slice(0, separator).trim(), part.slice(separator + 1).trim())
+    else if (part.trim()) unlabelled.push(part.trim())
+  })
+  return {
+    reason: values.get('퇴사 고민 이유') || String(context.concern ?? '').trim() || '퇴사를 고민하게 된 상황',
+    tenure: values.get('재직 기간') || '',
+    candidateDate: values.get('후보일') || '',
+    nextPlan: values.get('다음 계획') || '',
+    concern: [...values.entries()]
+      .filter(([label]) => !['퇴사 고민 이유', '재직 기간', '후보일', '다음 계획'].includes(label))
+      .map(([, value]) => value).concat(unlabelled).join(' · '),
+  }
+}
+
+/** Existing saved reports receive the same evidence view without rewriting their paid text. */
+export function workQuitTeaserSection(
+  section: SajuReportSection,
+  index: number,
+  analysis: SajuAnalysis | undefined,
+  context: SajuReportContext,
+): SajuReportSection {
+  const stories = quitTeaserStories(analysis, workQuitRequestFromContext(context))
+  const image = QUIT_TEASER_IMAGES[index]
+  const storedStory = section.storytelling
+  return {
+    ...section,
+    ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
+    storytelling: {
+      ...stories[index],
+      ...(storedStory ?? {}),
+      ...(storedStory?.tableMd ? {} : { tableMd: stories[index]?.tableMd, tableCaption: stories[index]?.tableCaption }),
+      ...(storedStory?.chartPoints?.length ? {} : { chartPoints: stories[index]?.chartPoints, chartCaption: stories[index]?.chartCaption }),
+    },
+  }
 }
 
 /**
@@ -200,6 +299,7 @@ export function buildWorkQuitReport(
   const chunks = retrieveRagChunks(query, analysis, 10, context)
   const categoryRagCache = new Map<string, RagChunk[]>()
   const sections: SajuReportSection[] = []
+  const teaserStories = quitTeaserStories(analysis, input)
   let order = 1
 
   WORK_QUIT_TOC.forEach((category) => {
@@ -209,13 +309,15 @@ export function buildWorkQuitReport(
     const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, category, analysis, context, OWN_CORPUS_DOMAIN, 6)
     const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
     category.items.forEach((item, itemIndex) => {
+      const teaserIndex = category.id === 'flow' ? itemIndex : -1
+      const teaserImage = teaserIndex >= 0 ? QUIT_TEASER_IMAGES[teaserIndex] : undefined
       sections.push({
         // 05 목차 links on the group id, and 06 상세 renders that group's three points.
         id: `${category.id}-${itemIndex + 1}`,
         order,
-        imageKey: category.image,
-        imageSrc: `${QUIT_ASSET_BASE}/${category.image}.png`,
-        imageAlt: `${category.title} 풀이`,
+        imageKey: teaserImage?.key ?? category.image,
+        imageSrc: teaserImage?.src ?? `${QUIT_ASSET_BASE}/${category.image}.png`,
+        imageAlt: teaserImage?.alt ?? `${category.title} 풀이`,
         category: category.title,
         categoryEn: category.label,
         classification: item,
@@ -233,6 +335,7 @@ export function buildWorkQuitReport(
           chunks: categoryChunks,
           index: order + itemIndex,
         }),
+        ...(teaserIndex >= 0 ? { storytelling: teaserStories[teaserIndex] } : {}),
         generatedBy: 'template',
         model: 'work-quit-rag-template',
         status: 'complete',

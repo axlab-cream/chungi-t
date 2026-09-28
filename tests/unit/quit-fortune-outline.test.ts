@@ -105,7 +105,7 @@ test('quit_fortune runtime keeps a reviewed subset of the supplied items, invent
   )
 })
 
-test('a new stored quit_fortune result keeps all 20 items pending with immutable identities', async () => {
+test('a new stored quit_fortune result opens only the first two items and keeps the rest pending', async () => {
   const birth = { year: 1992, month: 8, day: 20, hour: 12, gender: 'female' as const, calendar: 'solar' as const }
   const input = parseWorkQuitRequest({ reason: '업무 소진', tenure: '3년', candidateDate: '2027-02-01', nextPlan: '이직 탐색', concern: '합성 목차 저장 검증' })
   const context = buildWorkQuitContext('합성 저장 점검', input)
@@ -117,7 +117,8 @@ test('a new stored quit_fortune result keeps all 20 items pending with immutable
   })
   const client = toClientReport(record)
   assert.equal(created, true)
-  assert.deepEqual(client.progress, { complete: 0, total: 20 })
+  assert.deepEqual(client.progress, { complete: 2, total: 20 })
   assert.equal(client.sections.length, 20)
-  assert.ok(client.sections.every(section => section.status === 'pending' && section.hook === '' && section.interpretation === '' && section.generationId))
+  assert.ok(client.sections.slice(0, 2).every(section => section.status === 'complete' && section.hook && section.interpretation && section.generationId))
+  assert.ok(client.sections.slice(2).every(section => section.status === 'pending' && section.hook === '' && section.interpretation === '' && section.generationId))
 })
