@@ -1447,11 +1447,12 @@
     var cards = sections.map(function (section, index) {
       var story = section.storytelling || {};
       var image = renderSectionImage(section, 'job_choice');
-      var title = labelText(section.classification) || labelText(section.category) || ('공개 해석 ' + (index + 1));
+      var bodyText = normalizeJobChoiceTeaserCopy(section.interpretation);
+      var title = jobChoiceTeaserTitle(section, bodyText, index);
       var hook = String(section.hook || '').trim();
       var chart = story.chartPoints && story.chartPoints.length
         ? renderStoryChart(story.chartPoints, story.chartCaption || '입력한 값으로 비교한 생활 시간입니다.')
-        : '';
+        : jobChoiceCommuteChart(bodyText, index);
       return '<article class="job-teaser-reading" aria-labelledby="job-teaser-title-' + (index + 1) + '">'
         + image
         + '<div class="job-teaser-reading-inner">'
@@ -1459,7 +1460,7 @@
         + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
         + '<h2 id="job-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
         + (hook ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(hook)) + '</blockquote>' : '')
-        + '<div class="job-teaser-body">' + richText(section.interpretation, { orderedNext: 1 }) + '</div>'
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
         + chart
         + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(closing[index]) + '</p>'
         + '</div></article>';
@@ -1484,6 +1485,43 @@
       + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
       + '</footer>';
+  }
+
+  function normalizeJobChoiceTeaserCopy(value) {
+    return String(value || '')
+      .replace(/전면 출근라면/g, '전면 출근이라면')
+      .replace(/전면 출근가/g, '전면 출근이')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 사주와 현실 조건을 함께 보면\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 실제로 확인할 장면\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 결정 전에 할 질문\n')
+      .trim();
+  }
+
+  function jobChoiceTeaserTitle(section, bodyText, index) {
+    var company = String(bodyText || '').match(/후보는\s*[“\"]([^”\"]+)[”\"]/);
+    var commute = String(bodyText || '').match(/왕복\s*(\d{1,4})\s*분/);
+    if (index === 0 && company && company[1]) {
+      return company[1] + ', 조건은 좋은데 왜 마음이 흔들릴까요?';
+    }
+    if (index === 1 && commute && commute[1]) {
+      return '왕복 ' + commute[1] + '분, 이 회사가 내 하루에서 가져가는 시간';
+    }
+    return index === 0
+      ? '좋아 보이는 제안일수록 먼저 확인해야 할 한 가지'
+      : '출근 방식보다 먼저 계산해야 할 퇴근 뒤의 시간';
+  }
+
+  function jobChoiceCommuteChart(bodyText, index) {
+    if (index !== 1) return '';
+    var commute = String(bodyText || '').match(/왕복\s*(\d{1,4})\s*분/);
+    if (!commute) return '';
+    var minutes = Number(commute[1]);
+    if (!Number.isFinite(minutes) || minutes <= 0) return '';
+    var ceiling = Math.max(60, Math.ceil(minutes / 60) * 60);
+    return renderStoryChart([
+      { label: '입력한 하루 왕복 이동(분)', value: minutes, note: '사용자가 입력한 이동 조건만 표시했습니다.' },
+    ], '적합도 점수가 아니라 입력한 왕복 이동 시간입니다. 출근 횟수는 임의로 계산하지 않습니다.', ceiling);
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
   function renderReportInPlace(payload) {
