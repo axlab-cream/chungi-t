@@ -1762,16 +1762,26 @@
     };
     return String(value || '')
       .replace(/([甲乙丙丁戊己庚辛壬癸])([子丑寅卯辰巳午未申酉戌亥])/g, function (_, stem, branch) {
-        return elementByHanja[stem] + '·' + elementByHanja[branch] + ' 기운';
+        return elementByHanja[stem] === elementByHanja[branch]
+          ? elementByHanja[stem] + ' 기운'
+          : elementByHanja[stem] + '·' + elementByHanja[branch] + ' 기운';
       })
-      .replace(/목\(木\)/g, '나무 기운')
-      .replace(/화\(火\)/g, '불 기운')
-      .replace(/토\(土\)/g, '흙 기운')
-      .replace(/금\(金\)/g, '쇠 기운')
-      .replace(/수\(水\)/g, '물 기운')
+      .replace(/목\(木\)(?:\s*기운)?/g, '나무 기운')
+      .replace(/화\(火\)(?:\s*기운)?/g, '불 기운')
+      .replace(/토\(土\)(?:\s*기운)?/g, '흙 기운')
+      .replace(/금\(金\)(?:\s*기운)?/g, '쇠 기운')
+      .replace(/수\(水\)(?:\s*기운)?/g, '물 기운')
+      .replace(/나무 기운 과다/g, '나무 기운이 많음')
       .replace(/편재\s*기반\s*직무\s*핏/g, '성과를 보상으로 연결하는 힘을 바탕으로 본 직무 적합성')
       .replace(/직무\s*핏/g, '직무 적합성')
       .replace(/직무 적합성과 일의 결/g, '직무 적합성과 일하는 방식')
+      .replace(/현금 버퍼/g, '비상 생활비')
+      .replace(/브레이크/g, '멈춰 볼 신호')
+      .replace(/액션/g, '실행')
+      .replace(/멘탈/g, '마음 상태')
+      .replace(/타이밍/g, '시점')
+      .replace(/커리어/g, '경력')
+      .replace(/오퍼/g, '입사 제안')
       .trim();
   }
 

@@ -189,6 +189,8 @@ test('이직운 티저는 개인화 1·2번과 닫힌 실제 잠금 목차, 단�
   assert.match(accessSource, /function normalizeWorkMoveTocText\(value\)/)
   assert.match(accessSource, /성과를 보상으로 연결하는 힘을 바탕으로 본 직무 적합성/)
   assert.match(accessSource, /직무 적합성과 일하는 방식/)
+  assert.match(accessSource, /현금 버퍼\/g, '비상 생활비'/)
+  assert.match(accessSource, /브레이크\/g, '멈춰 볼 신호'/)
   assert.match(accessSource, /class="job-teaser-status-row"/)
   assert.match(accessSource, /previewCta\(payload\)/)
   assert.match(moveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
