@@ -1212,7 +1212,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v4';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-move-teaser-v1';
     document.head.appendChild(link);
   }
   /**
@@ -1431,6 +1431,13 @@
       renderProgress(payload.report);
       return renderedMoney;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'work_move'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideWorkMoveTeaserShell();
+      var renderedMove = fillSlot('preview', renderWorkMoveTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedMove;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1592,6 +1599,65 @@
     hideLegacyNode(document.querySelector('.price-pill'));
   }
 
+  function hideWorkMoveTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
+    });
+  }
+
+  /** 이직운은 실제 입력·네 기둥·오행 계산값으로 공개 1·2번을 완성한다. */
+  function renderWorkMoveTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeWorkMoveTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '입력한 조건을 판단 순서로 연결했습니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 입력한 이직 조건입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '저장된 사주에서 계산한 값입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '역할·권한·평가가 같은 방향을 가리키면 좋은 제안이 실제로 오래 갈 회사가 됩니다. 하나라도 비어 있으면 결정일보다 확인 질문이 먼저입니다.'
+        : '현재의 피로를 새 회사의 운영 규칙이 실제로 끊어 줄 수 있을 때 이동의 이유가 단단해집니다. 답이 계속 달라지면 보류하는 편이 맞습니다.';
+      return '<article class="job-teaser-reading move-teaser-reading" aria-labelledby="move-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'work_move')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="move-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening move-teaser-opening">'
+      + '<span>이직운 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '새 회사가 좋아 보일수록 지금의 피로가 정말 끝나는지 먼저 봅니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta move-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>직무·돈·시점·위험 신호와 90일 준비까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 새 회사의 실제 일상과 계약 조건, 움직일 시점과 준비 순서를 입력한 상황에 맞춰 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
   /** 저축운은 저장된 1·2번 본문을 실제 입력 표와 계산된 오행 차트까지 이어서 보여 준다. */
   function renderMoneySaveTeaserSections(payload) {
     var preview = payload.preview || {};
@@ -1695,6 +1761,21 @@
       .replace(/\s*\[해법\]\s*/g, '\n\n### 다음 소비 전에 물어볼 것\n')
       .replace(/재성\s*\([^)]*\)/g, '돈과 자원을 다루는 방식')
       .replace(/비겁\s*\([^)]*\)/g, '사람과 나누고 경쟁하는 방식')
+      .trim();
+  }
+
+  function normalizeWorkMoveTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 지금 마음이 흔들린 이유\n')
+      .replace(/\s*\[사주와 생활을 함께 보면\]\s*/g, '\n\n### 네 기둥과 지금 상황이 만나는 지점\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 현실에서 바로 확인할 장면\n')
+      .replace(/\s*\[결정 전에 물어볼 질문\]\s*/g, '\n\n### 결정 전에 꼭 물어볼 질문\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 지금 답을 내리는 방법\n')
+      .replace(/관성/g, '조직에서 맡는 책임')
+      .replace(/식상/g, '성과와 표현 방식')
+      .replace(/재성/g, '돈과 현실 조건')
+      .replace(/십신/g, '사주 속 열 가지 관계')
       .trim();
   }
 

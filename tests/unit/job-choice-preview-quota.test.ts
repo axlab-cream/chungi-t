@@ -26,3 +26,11 @@ test('저축운 무료 결과 횟수는 직장 선택 횟수와 분리하고 같
   assert.deepEqual(await jobChoicePreviewStatus(owner), { used: 1, limit: 5, allowed: true })
   assert.deepEqual(await servicePreviewStatus('money_save', owner), { used: 1, limit: 5, allowed: true })
 })
+
+test('이직운 무료 결과도 서비스별 5회이며 같은 리포트 재열람은 차감하지 않는다', async () => {
+  const owner = 'work-move-preview-quota-owner'
+  assert.deepEqual(await claimServicePreview('work_move', owner, 'move-lineage-1'), { used: 1, limit: 5, allowed: true })
+  assert.deepEqual(await claimServicePreview('work_move', owner, 'move-lineage-1'), { used: 1, limit: 5, allowed: true })
+  assert.deepEqual(await claimServicePreview('work_move', owner, 'move-lineage-2'), { used: 2, limit: 5, allowed: true })
+  assert.deepEqual(await servicePreviewStatus('work_move', owner), { used: 2, limit: 5, allowed: true })
+})

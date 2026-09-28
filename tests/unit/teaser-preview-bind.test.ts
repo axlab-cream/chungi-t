@@ -10,6 +10,9 @@ const accessSource = readFileSync(join(root, '사주', 'js', 'umsh-report-access
 const inplaceCss = readFileSync(join(root, '사주', 'css', 'umsh-verified-inplace.css'), 'utf8')
 const serverSource = readFileSync(join(root, 'src', 'server', 'app.ts'), 'utf8')
 const saveReportHtml = readFileSync(join(root, '사주', 'money', 'save', '04-step-4-report', 'index.html'), 'utf8')
+const moveReportHtml = readFileSync(join(root, '사주', 'work', 'move', '04-step-4-report', 'index.html'), 'utf8')
+const moveInputHtml = readFileSync(join(root, '사주', 'work', 'move', '02-step-2-saju-input', 'index.html'), 'utf8')
+const moveServiceSource = readFileSync(join(root, '사주', 'js', 'work-move-service.js'), 'utf8')
 const jsRoot = join(root, '사주', 'js')
 
 const TEASER_SERVICES = [
@@ -166,11 +169,40 @@ test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에
   assert.match(accessSource, /function showPreviewLimit\(payload\)/)
   assert.match(accessSource, /무료 결과 5회를 모두 확인했습니다/)
   assert.match(inplaceCss, /\.money-teaser-reading \.story-image \{ aspect-ratio: 3 \/ 2; \}/)
-  assert.match(inplaceCss, /\.money-teaser-reading \.story-table \{ width: 100%; table-layout: fixed; \}/)
-  assert.match(inplaceCss, /\.money-teaser-reading \.story-table td \{[\s\S]*?white-space: normal;[\s\S]*?overflow-wrap: anywhere;/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-table,[\s\S]*?\.move-teaser-reading \.story-table \{ width: 100%; table-layout: fixed; \}/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-table td,[\s\S]*?\.move-teaser-reading \.story-table td \{[\s\S]*?white-space: normal;[\s\S]*?overflow-wrap: anywhere;/)
   assert.match(saveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
   assert.doesNotMatch(saveReportHtml, /class="price-pill">9,900원/)
   assert.doesNotMatch(saveReportHtml, />로그인하고 전체 보기 \(9,900원\)</)
+})
+
+test('이직운 티저는 개인화 1·2번과 닫힌 실제 잠금 목차, 단일 CTA를 렌더한다', () => {
+  assert.match(serverSource, /workMoveTeaserPreview/)
+  assert.match(serverSource, /workMoveTeaserSection/)
+  assert.match(serverSource, /serviceKey === WORK_MOVE_SERVICE_KEY/)
+  assert.match(accessSource, /function renderWorkMoveTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'work_move'\)/)
+  assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /renderMoneyFlow\(story\.flowSteps/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: false \}\)/)
+  assert.match(accessSource, /class="job-teaser-status-row"/)
+  assert.match(accessSource, /previewCta\(payload\)/)
+  assert.match(moveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
+  assert.match(moveReportHtml, /umsh-verified-inplace\.css\?v=20260928-move-teaser-v1/)
+  assert.match(inplaceCss, /\.move-teaser-reading/)
+  assert.match(inplaceCss, /\.move-teaser-reading \.story-table/)
+  assert.match(inplaceCss, /overflow-wrap: anywhere/)
+  assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
+})
+
+test('이직운 입력은 03 공통 로딩을 보인 뒤 04 티저로 이동한다', () => {
+  assert.match(moveServiceSource, /function showAnalysisLoading\(/)
+  assert.match(moveServiceSource, /data-umsh-step', '03-loading'/)
+  assert.match(moveServiceSource, /preview: true/)
+  assert.match(moveServiceSource, /location\.assign\(teaserUrl\(payload\.reportId\)\)/)
+  assert.match(moveInputHtml, /\.work-move-analysis-loading/)
+  assert.match(moveInputHtml, /@media \(prefers-reduced-motion: reduce\)/)
 })
 
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {

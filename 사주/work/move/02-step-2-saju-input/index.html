@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
     <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
-    <script src="/js/umsh-report-access.js?v=20260928-toc-gate-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20260928-move-teaser-v1"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>이직운 입력 | 나, 회사 옮겨도 될까?</title>
@@ -475,6 +475,34 @@
       line-height: 1.55;
       text-align: center;
     }
+
+    .work-move-analysis-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(4, 2, 2, .9);
+      backdrop-filter: blur(8px);
+    }
+
+    .work-move-analysis-loading__card {
+      width: min(100%, 360px);
+      padding: 26px 22px;
+      border: 1px solid rgba(242, 194, 101, .55);
+      border-radius: 20px;
+      background: linear-gradient(145deg, #251416, #0d090a);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .55);
+    }
+
+    .work-move-analysis-loading__card span { color: #f2c265; font-weight: 800; }
+    .work-move-analysis-loading__card h2 { margin: 10px 0; font-size: 24px; line-height: 1.35; }
+    .work-move-analysis-loading__card p { margin: 0; color: #d6c8c2; line-height: 1.75; }
+    .work-move-analysis-loading__bar { height: 6px; margin-top: 20px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.1); }
+    .work-move-analysis-loading__bar i { display: block; width: 42%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f2c265, #d94a43); animation: work-move-loading 1.2s ease-in-out infinite alternate; }
+    @keyframes work-move-loading { from { transform: translateX(-25%); } to { transform: translateX(165%); } }
+    @media (prefers-reduced-motion: reduce) { .work-move-analysis-loading__bar i { animation: none; width: 100%; } }
 
     .result-card {
       margin-top: 18px;
@@ -1229,7 +1257,7 @@
   <script src="/js/common-auth-return.js"></script>
   <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
   <script src="/js/umsh-text-clip.js"></script>
-  <script src="/js/work-move-service.js?v=20260928-funnel-gate"></script>
+  <script src="/js/work-move-service.js?v=20260928-move-teaser-v1"></script>
   <script src="/js/umsh-ymd.js?v=20260916-ymd3"></script>
   <script src="/js/service-shell.js?v=20260902-work-move"></script>
 

@@ -405,11 +405,32 @@
         context: payload.context,
         workMove: payload.workMove,
         input: payload.input,
+        preview: true,
       }),
     });
     const json = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(json.error || '분석 리포트를 생성하지 못했습니다.');
     return json;
+  }
+
+  function showAnalysisLoading() {
+    const existing = document.querySelector('[data-work-move-loading]');
+    if (existing) return existing;
+    const overlay = document.createElement('section');
+    overlay.className = 'work-move-analysis-loading';
+    overlay.setAttribute('data-work-move-loading', 'true');
+    overlay.setAttribute('data-umsh-step', '03-loading');
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.innerHTML = `
+      <div class="work-move-analysis-loading__card">
+        <span>03 · 개인화 해석 준비</span>
+        <h2>입력한 이직 조건을 사주와 맞춰 보고 있어요</h2>
+        <p>저장된 사주 확인 → 현재 회사의 반복 패턴 대조 → 무료 해석 1·2 준비</p>
+        <div class="work-move-analysis-loading__bar" aria-hidden="true"><i></i></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    return overlay;
   }
 
   function saveStep2Payload(payload) {
@@ -535,7 +556,8 @@
       const submitButton = $('button[type="submit"]', form);
       const note = $('.submit-note', form);
       if (submitButton) submitButton.disabled = true;
-      if (note) note.textContent = '입력값에 맞춰 이직운 무료 티저와 RAG 리포트를 생성하고 있습니다.';
+      if (note) note.textContent = '입력한 조건으로 무료 해석을 준비하고 있습니다.';
+      const loading = showAnalysisLoading();
 
       const payload = buildStep2Payload(form);
       try {
@@ -544,6 +566,7 @@
         saveStep2Payload(payload);
         location.assign(teaserUrl(payload.reportId));
       } catch (error) {
+        loading.remove();
         payload.analysis_error = error instanceof Error ? error.message : '분석 리포트를 생성하지 못했습니다.';
         saveStep2Payload(payload);
         if (note) note.textContent = `${payload.analysis_error} 잠시 후 다시 눌러 주세요.`;

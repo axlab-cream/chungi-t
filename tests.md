@@ -1092,3 +1092,18 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | ADMIN-ANALYTICS-07 | TypeScript·20개 서비스 계약·20개 서비스 QA·Vercel production build | PASS |
 | ADMIN-ANALYTICS-08 | 전체 회귀 | PASS (1618/1618, 165 suites) |
 | ADMIN-ANALYTICS-09 | main·운영 배포·실제 관리자 화면 | PENDING |
+
+## 2026-09-28 — 이직운 실제 데이터 무료 티저 검증표
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| WORK-MOVE-TEASER-01 | 실제 전체 리포트의 1·2번만 공개하고 서로 다른 운영 이미지 사용 | PASS (단위·렌더 계약) |
+| WORK-MOVE-TEASER-02 | 저장 사주 네 기둥과 이직 입력을 본문·표·차트에 연결 | PASS (단위 테스트) |
+| WORK-MOVE-TEASER-03 | 내부 QA·샘플·RAG·한자 기둥 미노출 | PASS (문구 계약) |
+| WORK-MOVE-TEASER-04 | 실제 03~N 목차 기본 닫힘·잠김, 목차·CTA 중복 없음 | PASS (렌더 계약) |
+| WORK-MOVE-TEASER-05 | 이직운별 5회 조회, 같은 리포트 재열람 멱등 | PASS (단위 테스트) |
+| WORK-MOVE-TEASER-06 | STEP2 → 03 준비 표시 → reportId 포함 04 이동 | PASS (프런트 계약) |
+| WORK-MOVE-TEASER-07 | 미결제 결제 URL, 권한 회원 05 목차, 05 직접 접근 fail-closed | PASS (공통 권한 회귀) |
+| WORK-MOVE-TEASER-08 | 430px 표 카드화·긴 문장 줄바꿈·가로 넘침 방지 | PASS (CSS 계약) |
+| WORK-MOVE-TEASER-09 | 전체 회귀·타입·서비스 계약·QA·프로덕션 빌드 | PASS (1624/1624, 166 suites) |
+| WORK-MOVE-TEASER-10 | main·운영 배포·실제 모바일 검증 | PENDING |

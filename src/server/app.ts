@@ -38,6 +38,7 @@ import {
 } from '../report/report-store.js'
 import { createSavedPreview, guardPreview } from '../report/report-preview.js'
 import { claimServicePreview, servicePreviewStatus, type ServicePreviewQuota } from '../work/jobchoice-preview-quota.js'
+import { workMoveTeaserPreview, workMoveTeaserSection } from '../work/move-teaser.js'
 import { selectAdminVaultReadings, selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
@@ -4031,7 +4032,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
   const report = toClientReport(record)
   const entitled = access?.entitled === true
   const serviceKey = record.context.serviceKey ?? 'saju_master'
-  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY
   const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
   const opening = serviceKey === 'quit_fortune'
     && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
@@ -4046,7 +4047,9 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
   const storedPreview = guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context)
   const preview = serviceKey === 'money_save'
     ? guardPreview(moneySaveTeaserPreview(record.context, report.sections.length), record.context)
-    : storedPreview
+    : serviceKey === WORK_MOVE_SERVICE_KEY
+      ? guardPreview(workMoveTeaserPreview(record.context, report.sections.length), record.context)
+      : storedPreview
   return {
     previewOnly: true,
     entitled,
@@ -4064,7 +4067,9 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
           ? workQuitTeaserSection(savedSection, index, record.analysis, record.context)
           : serviceKey === 'money_save'
             ? moneySaveTeaserSection(savedSection, index, record.analysis, record.context)
-            : savedSection
+            : serviceKey === WORK_MOVE_SERVICE_KEY
+              ? workMoveTeaserSection(savedSection, index, record.analysis, record.context)
+              : savedSection
         return {
         id: section.id,
         order: section.order,
@@ -4099,7 +4104,7 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   let freeSearch: ServicePreviewQuota | undefined
-  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save'
+  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY
     ? params.context.serviceKey : undefined
   if (quotaService && params.owner && isCheckoutLive()) {
     const access = await resolvePaidAccess(req, params.owner, quotaService, params.reportId, params.lineageId)
@@ -4152,7 +4157,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save'
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY
         ? record.context.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'
@@ -4752,7 +4757,18 @@ app.post('/api/saju/analyze', async (req, res) => {
         record.reportId,
         createReportLineageId(birth, enriched, owner?.id),
       )
-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access) })
+      const quotaService = enriched.serviceKey === 'job_choice' || enriched.serviceKey === 'money_save' || enriched.serviceKey === WORK_MOVE_SERVICE_KEY
+        ? enriched.serviceKey : undefined
+      const freeSearch = quotaService && owner && isCheckoutLive()
+        ? (access.reason === 'order' || access.reason === 'admin'
+            ? await servicePreviewStatus(quotaService, owner.id)
+            : await claimServicePreview(quotaService, owner.id, record.lineageId ?? record.reportId))
+        : undefined
+      if (freeSearch && !freeSearch.allowed) {
+        res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
+        return
+      }
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access, freeSearch) })
       return
     }
     const access = await resolvePaidAccess(
@@ -4786,7 +4802,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save'
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY
         ? record.context.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'
