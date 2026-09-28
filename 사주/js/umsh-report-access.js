@@ -1776,12 +1776,15 @@
       .replace(/직무\s*핏/g, '직무 적합성')
       .replace(/직무 적합성과 일의 결/g, '직무 적합성과 일하는 방식')
       .replace(/현금 버퍼/g, '비상 생활비')
+      .replace(/멈춰 봐야 할 브레이크/g, '멈춰 봐야 할 신호')
       .replace(/브레이크/g, '멈춰 볼 신호')
       .replace(/액션/g, '실행')
       .replace(/멘탈/g, '마음 상태')
       .replace(/타이밍/g, '시점')
       .replace(/커리어/g, '경력')
       .replace(/오퍼/g, '입사 제안')
+      .replace(/90일 테스트/g, '90일 점검')
+      .replace(/\s*\/\s*/g, '·')
       .trim();
   }
 

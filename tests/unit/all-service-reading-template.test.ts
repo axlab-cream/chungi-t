@@ -92,7 +92,7 @@ test('공용 리더의 캐시 쿼리를 쓰는 모든 HTML은 최신 버전으�
   })
 
   assert.ok(versions.length > 0, '캐시 쿼리를 사용하는 공용 리더 참조가 없다')
-  assert.deepEqual([...new Set(versions)], ['20260928-move-teaser-v3'])
+  assert.deepEqual([...new Set(versions)], ['20260928-move-teaser-v4'])
 })
 
 test('공용 해석 토글은 native details를 유지하고 구형 화면 전환 선택자만 격리한다', () => {
