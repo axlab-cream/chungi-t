@@ -21,7 +21,7 @@ for (const item of all) {
   for (const link of item.links) assert.ok(/^\/(?!\/)/.test(link.href), 'Only local links: '+item.id);
 }
 
-const policyNav = `<nav class="policy-nav" aria-label="서비스와 정책"><a href="/about">운명상회란?</a><a href="/faq" aria-current="page">자주 묻는 질문</a><a href="/terms">이용약관</a><a href="/privacy">개인정보처리방침</a><a href="/refund">환불·취소 정책</a><a href="/support">고객센터</a></nav>`;
+const policyNav = `<nav class="policy-nav" aria-label="서비스와 정책"><a href="/about">운명상회란?</a><a href="/faq" aria-current="page">자주 묻는 질문</a><a href="/terms">이용약관</a><a href="/privacy">개인정보처리방침</a><a href="/refund">환불·취소 정책</a><a href="/support">고객센터</a><a href="https://cafe.naver.com/ggient" target="_blank" rel="noopener">커뮤니티</a></nav>`;
 const footer = `<footer class="company-footer"><p><strong>상호</strong> 더크림유니언 <strong>대표</strong> 이정훈</p><p><strong>사업자등록번호</strong> 206-81-92596 · <strong>통신판매업신고</strong> 2026-서울강남-03303</p><p>서울특별시 강남구 도산대로 12길 18 크림빌딩</p><p>02-6953-6685 · <a href="mailto:axlab@crea-m.com">axlab@crea-m.com</a></p></footer>`;
 
 function nav(group) {
