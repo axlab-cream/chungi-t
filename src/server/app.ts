@@ -4043,6 +4043,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
       ? { teaserSections: opening.map((section) => ({
         id: section.id,
         order: section.order,
+        category: section.category,
         classification: section.classification,
         hook: section.hook,
         interpretation: section.interpretation,

@@ -1176,7 +1176,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260923-marry-reader-v1';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-job-teaser-v2';
     document.head.appendChild(link);
   }
   /**
@@ -1374,6 +1374,14 @@
   function renderPreviewInPlace(payload) {
     if (!inPlaceEnabled()) return false;
     ensureInPlaceStyles();
+    if (canonical((payload && payload.serviceKey) || key) === 'job_choice'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      var legacyStage = document.getElementById('reportStage');
+      if (legacyStage) hideLegacyNode(legacyStage);
+      var rendered = fillSlot('preview', renderJobChoiceTeaserSections(payload));
+      renderProgress(payload.report);
+      return rendered;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1410,16 +1418,72 @@
     var preview = payload.preview || {};
     var cta = previewCta(payload);
     return '<h2 class="umsh-preview-headline">' + escapeHtml(preview.headline || preview.title || '먼저 확인한 방향') + '</h2>'
-      + (preview.summary ? '<p class="umsh-preview-summary">' + escapeHtml(preview.summary) + '</p>' : '')
+      + (preview.summary ? '<p class="umsh-preview-summary">' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
       + (insights.length
         ? '<div class="umsh-preview-insights">' + insights.map(function (line, index) {
             return '<article class="umsh-insight">'
               + '<span class="umsh-insight-index" aria-hidden="true">' + ('0' + (index + 1)).slice(-2) + '</span>'
-              + '<p>' + escapeHtml(line) + '</p></article>';
+              + '<p>' + inlineMarkdown(escapeHtml(line)) + '</p></article>';
           }).join('') + '</div>'
         : '')
       + '<p class="umsh-preview-paid">' + escapeHtml(preview.paidValue || '항목별 근거와 생활 장면, 유지할 강점과 확인할 조건을 자세히 풀어드립니다.') + '</p>'
       + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>';
+  }
+
+  /**
+   * 직장 선택 무료 결과는 서버가 공개용 해석 1·2의 저장 본문과 각 이미지를 따로 보낸다.
+   * 짧은 preview 문장만 그리면 마크다운 표·강조·이동 차트가 모두 사라지고, 정적 목업의
+   * 목차 CTA가 중간에 남는다. 공개 범위 두 장만 실제 본문 순서로 조립해 유료 경계를 지킨다.
+   */
+  function renderJobChoiceTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var stageLabels = ['기·승 · 제안의 속을 확인하는 장면', '전·결 · 내 일상으로 옮겨 보는 장면'];
+    var closing = [
+      '회사 이름보다 첫 90일의 산출물·승인권·평가 기준이 같은 답을 가리킬 때, 좋은 제안이 실제 좋은 자리로 이어집니다.',
+      '출근 방식보다 퇴근 뒤 남는 시간과 회복 가능성이 선명할 때, 이 선택이 오래 갈 수 있는지 판단할 수 있습니다.',
+    ];
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var image = renderSectionImage(section, 'job_choice');
+      var title = labelText(section.classification) || labelText(section.category) || ('공개 해석 ' + (index + 1));
+      var hook = String(section.hook || '').trim();
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '입력한 값으로 비교한 생활 시간입니다.')
+        : '';
+      return '<article class="job-teaser-reading" aria-labelledby="job-teaser-title-' + (index + 1) + '">'
+        + image
+        + '<div class="job-teaser-reading-inner">'
+        + '<span class="job-teaser-stage">' + escapeHtml(stageLabels[index]) + '</span>'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="job-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (hook ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(hook)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(section.interpretation, { orderedNext: 1 }) + '</div>'
+        + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(closing[index]) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var quota = payload.freeSearch;
+    var quotaText = quota && Number.isInteger(quota.used) && quota.limit === 5
+      ? (Math.min(5, Math.max(0, quota.used)) >= 5
+        ? '무료 결과 조회 5/5회 사용 · 다음 조회는 전체 해석 결제가 필요합니다.'
+        : '무료 결과 조회 ' + Math.min(5, Math.max(0, quota.used)) + '/5회 사용 · ' + (5 - Math.min(5, Math.max(0, quota.used))) + '회 남음')
+      : '';
+    return '<header class="job-teaser-opening">'
+      + '<span>직장 선택 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '좋아 보이는 제안의 속을 먼저 확인합니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '<ol aria-label="무료 해석의 이야기 순서"><li><strong>기</strong> 끌린 이유</li><li><strong>승</strong> 실제 역할</li><li><strong>전</strong> 달라질 일상</li><li><strong>결</strong> 결정 전 질문</li></ol>'
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta">'
+      + '<span>나머지 8개 해석</span><h2>돈·성장·관계·위험까지 같은 조건으로 이어집니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '전체 해석에서는 나머지 항목의 근거와 생활 장면을 이어서 확인합니다.')) + '</p>'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</footer>';
   }
   /** 전체 해석 — 목록과 본문을 디자인 안 슬롯에 채운다. */
   function renderReportInPlace(payload) {

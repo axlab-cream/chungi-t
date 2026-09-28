@@ -7,6 +7,7 @@ import { test } from 'node:test'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const accessSource = readFileSync(join(root, '사주', 'js', 'umsh-report-access.js'), 'utf8')
+const inplaceCss = readFileSync(join(root, '사주', 'css', 'umsh-verified-inplace.css'), 'utf8')
 const jsRoot = join(root, '사주', 'js')
 
 const TEASER_SERVICES = [
@@ -61,6 +62,30 @@ test('previewOnly 응답은 유료 섹션 없이도 티저로 받는다', () => 
   assert.equal(accepted.preview.headline, '새는 자리')
   assert.equal(accepted.report, undefined)
   assert.equal(accepted.previewOnly, true)
+})
+
+test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 읽기 순서대로 렌더한다', () => {
+  const api = loadAccess('/work/job-choice/04-step-4-report/index.html')
+  const teaserSections = [
+    { id: 'company-fit', order: 1, imageSrc: '/assets/one.webp', interpretation: '**첫 기준**입니다.\n\n| 조건 | 값 |\n| --- | --- |\n| 역할 | 기획 |' },
+    { id: 'daily-fit', order: 2, imageSrc: '/assets/two.webp', interpretation: '**둘째 기준**입니다.', storytelling: { chartPoints: [{ label: '왕복', value: 80 }] } },
+  ]
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    preview: { headline: '제안의 속을 봅니다', summary: '**실제 산출물**부터 확인합니다.' },
+    teaserSections,
+  })
+
+  assert.equal(accepted.payload.teaserSections.length, 2)
+  assert.equal(accepted.payload.teaserSections[0].imageSrc, '/assets/one.webp')
+  assert.match(accessSource, /function renderJobChoiceTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'job_choice'\)/)
+  assert.match(accessSource, /richText\(section\.interpretation/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /job-teaser-final-cta/)
+  assert.match(accessSource, /inlineMarkdown\(escapeHtml\(preview\.summary/)
+  assert.match(inplaceCss, /\.job-teaser-reading/)
+  assert.match(inplaceCss, /\[data-umsh-slot="preview"\] \.reading-table/)
 })
 
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {
