@@ -69,7 +69,9 @@
     'sewoon-detail': ['올해 간지는 전통 해석의 참고점입니다. 일이 반드시 늘거나 좋은 결과가 생긴다는 뜻이 아니라 실제 제안의 조건을 살필 계기로 읽으세요.', '올해 받은 제안 한 건에서 비어 있는 항목을 물어보세요.'],
     'action-guide': ['세부 운세 계산이 표시되지 않은 날에는 오늘은 반드시라는 판단을 더하지 않습니다. 확인된 조건과 더 물어볼 조건을 나누세요.', '확인된 일에는 답하고 빈칸이 남은 일에는 질문 한 가지를 보내 보세요.' ]
   };
-  var rawFetch = global.fetch.bind(global);
+  var rawFetch = typeof global.fetch === 'function'
+    ? global.fetch.bind(global)
+    : function () { return Promise.reject(new Error('fetch unavailable')); };
   var authorized = null;
   var rememberedId = '';
   var headerCache = null;
