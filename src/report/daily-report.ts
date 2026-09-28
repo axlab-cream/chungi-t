@@ -14,16 +14,17 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
   /*
    * Content changes get a new identity; a saved v2 UUID must never be rewritten.
    *
-   * v4(2026-09-18): 오늘운이 십성과 내 기둥의 지지 관계를 함께 보도록 바뀌었다. 저장된 하루는
+   * v5(2026-09-28): 계산 근거는 유지하되 제목·문장 순서를 날짜마다 넓게 바꾸고, 한자와
+   * 전문용어는 생활 언어로 풀었다. 저장된 하루는
    * 다시 만들지 않으므로(아래 auxiliary 검사), 판을 올리지 않으면 이미 저장된 날짜는 영영 옛
    * 글로 남는다 — 어제와 오늘이 똑같아 보이던 이유가 이것이다. 판을 올려 날짜마다 새 신분을
    * 주면 옛 기록은 그대로 보존되고 새로 여는 날부터 새 로직으로 만들어진다.
    */
-  const reportId = createReportId(profile.birth, context, 'daily-reading-v4', owner.id)
+  const reportId = createReportId(profile.birth, context, 'daily-reading-v5', owner.id)
   const reading = fortune.reading
   const templateReport: SajuReport = {
     title: '오늘 나한테 들어온 운', subtitle: '내 사주와 오늘의 흐름으로 정하는 하루의 방향',
-    model: 'daily-rules-v4', generatedBy: 'template',
+    model: 'daily-rules-v5', generatedBy: 'template',
     sections: [{ id: 'daily-reading', order: 1, imageKey: '', imageSrc: '', imageAlt: '',
       category: '하루의 흐름', categoryEn: 'daily', classification: fortune.date.label,
       hook: reading.title, patternKeys: [], ragTopics: [],
@@ -36,14 +37,14 @@ export async function savedDailyFortune(profile: UserBirthProfile, owner: Report
     if (draft.auxiliary?.todayFortune) return false
     draft.auxiliary = { ...draft.auxiliary, todayFortune: fortune }
     draft.status = draft.report.status = 'complete'
-    draft.report.model = 'daily-rules-v4'
+    draft.report.model = 'daily-rules-v5'
     draft.report.sections.forEach((section) => {
       const calculated = templateReport.sections.find(item => item.id === section.id)
       if (!calculated) throw new Error('DAILY_READING_SECTION_MISSING')
       section.hook = calculated.hook
       section.interpretation = calculated.interpretation
       section.status = 'complete'
-      section.model = 'daily-rules-v4'
+      section.model = 'daily-rules-v5'
       section.generatedAt = new Date().toISOString()
     })
   })

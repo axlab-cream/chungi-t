@@ -6411,19 +6411,55 @@
         }
 
         const reading = fortune.reading;
+        const plainTodayText = (value) => {
+          const tenGodMeaning = {
+            비견: "내 방식을 지키는 힘", 겁재: "내 몫을 분명히 하는 힘",
+            식신: "꾸준히 만들어 내는 힘", 상관: "생각을 말로 꺼내는 힘",
+            편재: "기회와 비용을 함께 보는 힘", 정재: "예산과 약속을 지키는 힘",
+            편관: "밀려오는 일의 순서를 정하는 힘", 정관: "맡은 책임을 지키는 힘",
+            편인: "한 번 더 깊게 살피는 힘", 정인: "배우고 도움받는 힘",
+          };
+          const pillarMeaning = { 년: "해", 월: "달", 일: "날", 시: "시간" };
+          let text = String(value || "")
+            .replace(/^[가-힣]{2}\([㐀-鿿]{2}\)일,\s*/, "")
+            .replace(/목\(木\)/g, "나무처럼 시작하고 키우는 힘")
+            .replace(/화\(火\)/g, "불처럼 드러내고 표현하는 힘")
+            .replace(/토\(土\)/g, "흙처럼 중심을 잡고 정리하는 힘")
+            .replace(/금\(金\)/g, "쇠처럼 덜어 내고 다듬는 힘")
+            .replace(/수\(水\)/g, "물처럼 살피고 유연하게 잇는 힘")
+            .replace(/내 일간에게 오늘 천간은 (비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)이고,/g, (_, key) => `오늘은 ${tenGodMeaning[key]}이 두드러지고,`)
+            .replace(/오늘 지지는 내 ([년월일시])지와/g, (_, key) => `오늘의 생활 흐름은 태어난 ${pillarMeaning[key]}의 흐름과`)
+            .replace(/오늘 지지가 내 ([년월일시])지와/g, (_, key) => `오늘의 생활 흐름이 태어난 ${pillarMeaning[key]}의 흐름과`)
+            .replace(/내 일간/g, "태어난 날의 중심 힘")
+            .replace(/천간/g, "겉으로 드러나는 흐름")
+            .replace(/일지/g, "태어난 날의 생활 흐름")
+            .replace(/년지/g, "태어난 해의 생활 흐름")
+            .replace(/월지/g, "태어난 달의 생활 흐름")
+            .replace(/시지/g, "태어난 시간의 생활 흐름")
+            .replace(/지지/g, "생활 흐름")
+            .replace(/같은 결/g, "비슷한 흐름")
+            .replace(/결이라/g, "흐름이라")
+            .replace(/선택/g, "판단")
+            .replace(/자리가/g, "상황이")
+            .replace(/자리/g, "때")
+            .replace(/[㐀-鿿]/g, "")
+            .replace(/\(\)/g, "");
+          Object.entries(tenGodMeaning).forEach(([key, meaning]) => { text = text.replaceAll(key, meaning); });
+          return text;
+        };
         const profile = fortune.profile || {};
         const detailMap = reading.details || {};
         const validScore = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
         const savedScores = reading.score || {};
         const total = validScore(savedScores.total) ? savedScores.total : null;
         const detailRows = [
-          { label: "일 · 오늘의 방향", text: reading.work, ...(detailMap.work || {}), key: "work", scoreLabel: "일" },
-          { label: "돈 · 지킬 기준", text: reading.money, ...(detailMap.money || {}), key: "money", scoreLabel: "돈" },
-          { label: "관계 · 마음을 전하는 법", text: reading.relationship, ...(detailMap.relationship || {}), key: "relationship", scoreLabel: "관계" },
-          { label: "오늘 기억할 한 가지", text: reading.caution, ...(detailMap.caution || {}), key: "caution", scoreLabel: "주의점" },
+          { label: "일 · 오늘의 방향", ...(detailMap.work || {}), text: plainTodayText(detailMap.work?.text || reading.work), key: "work", scoreLabel: "일" },
+          { label: "돈 · 지킬 기준", ...(detailMap.money || {}), text: plainTodayText(detailMap.money?.text || reading.money), key: "money", scoreLabel: "돈" },
+          { label: "관계 · 마음을 전하는 법", ...(detailMap.relationship || {}), text: plainTodayText(detailMap.relationship?.text || reading.relationship), key: "relationship", scoreLabel: "관계" },
+          { label: "오늘 기억할 한 가지", ...(detailMap.caution || {}), text: plainTodayText(detailMap.caution?.text || reading.caution), key: "caution", scoreLabel: "주의점" },
         ].map((item) => ({ ...item, score: validScore(item.score) ? item.score : validScore(savedScores[item.key]) ? savedScores[item.key] : null }));
         const zodiac = reading.zodiac;
-        const elementMeanings = { 목: "목(木) · 나무처럼 자라고 뻗는 기운", 화: "화(火) · 불처럼 드러내고 표현하는 기운", 토: "토(土) · 흙처럼 중심을 잡고 쌓는 기운", 금: "금(金) · 쇠처럼 기준을 세우고 다듬는 기운", 수: "수(水) · 물처럼 흐름을 살피고 받아들이는 기운" };
+        const elementMeanings = { 목: "나무처럼 시작하고 키우는 힘", 화: "불처럼 드러내고 표현하는 힘", 토: "흙처럼 중심을 잡고 정리하는 힘", 금: "쇠처럼 덜어 내고 다듬는 힘", 수: "물처럼 살피고 유연하게 잇는 힘" };
         const todayElement = elementMeanings[String(fortune.today?.element || "").slice(0, 1)] || fortune.today?.element || "";
 
         stage.innerHTML = `
@@ -6437,21 +6473,21 @@
             ${total !== null || detailRows.some((item) => item.score !== null) ? '<p class="today-score-caption">100점 기준 · 오늘의 흐름 지표</p>' : ""}
 
             ${todayElement ? `<div class="today-pillar-card">
-              <span>오늘 기운의 키워드</span>
-              <strong>${escapeHtml(fortune.today?.pillarKo || "")}</strong>
-              <small>${escapeHtml(todayElement)}</small>
+              <span>오늘 흐름을 쉽게 풀면</span>
+              <strong>${escapeHtml(todayElement)}</strong>
+              <small>오늘 할 일에 바로 써보세요</small>
             </div>` : ""}
 
             <div class="today-reading-head">
               <span>오늘의 흐름</span>
-              <h2>${escapeHtml(reading.title)}</h2>
-              <div class="today-reading-copy">${formatInterpretationHtml(reading.summary)}</div>
+              <h2>${escapeHtml(plainTodayText(reading.title))}</h2>
+              <div class="today-reading-copy">${formatInterpretationHtml(plainTodayText(reading.summary))}</div>
             </div>
 
             ${zodiac?.text ? `<section class="today-zodiac-card" aria-label="나의 출생연도와 띠로 보는 오늘운">
               <span class="today-zodiac-label">${escapeHtml(zodiac.birthYear)}년생 · ${escapeHtml(zodiac.animal)}띠</span>
-              <h2>${escapeHtml(zodiac.title || "내 띠로 읽는 오늘의 한 장")}</h2>
-              <div class="today-reading-copy">${formatInterpretationHtml(zodiac.text)}</div>
+              <h2>${escapeHtml(plainTodayText(zodiac.title || "내 띠로 읽는 오늘의 한 장"))}</h2>
+              <div class="today-reading-copy">${formatInterpretationHtml(plainTodayText(zodiac.text))}</div>
             </section>` : ""}
 
             <div class="result-list today-reading-list">
@@ -6462,15 +6498,15 @@
                     ${item.score !== null ? `<span class="today-score-badge" aria-label="${escapeHtml(item.scoreLabel)} 점수 ${item.score}점, 100점 만점">${item.score}점</span>` : ""}
                   </div>
                   <div class="today-reading-copy">${formatInterpretationHtml(item.text)}</div>
-                  ${item.opportunity ? `<p class="today-detail-note"><b>이렇게 활용하세요</b> ${escapeHtml(item.opportunity)}</p>` : ""}
-                  ${item.caution ? `<p class="today-detail-note"><b>이럴 때만 한 번 더</b> ${escapeHtml(item.caution)}</p>` : ""}
+                  ${item.opportunity ? `<p class="today-detail-note"><b>이렇게 활용하세요</b> ${escapeHtml(plainTodayText(item.opportunity))}</p>` : ""}
+                  ${item.caution ? `<p class="today-detail-note"><b>이럴 때만 한 번 더</b> ${escapeHtml(plainTodayText(item.caution))}</p>` : ""}
                 </section>
               `).join("")}
             </div>
 
             <section class="today-action-box" aria-label="오늘의 결론">
               <strong>오늘의 결론</strong>
-              <div class="today-reading-copy">${formatInterpretationHtml(reading.action)}</div>
+              <div class="today-reading-copy">${formatInterpretationHtml(plainTodayText(reading.action))}</div>
             </section>
 
             <div class="actions">

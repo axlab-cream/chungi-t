@@ -49,7 +49,8 @@ for (const portal of portals) {
     assert.match(markup, /오늘의 결론/)
     if (portal === '사주') assert.match(markup, /data-action="today-full-report">평생운 확인<\/button>/)
     assert.match(markup, /중요한 한 가지부터 마무리하세요/)
-    assert.match(markup, /목\(木\) · 나무처럼 자라고 뻗는 기운/)
+    assert.match(markup, /나무처럼 시작하고 키우는 힘/)
+    assert.doesNotMatch(markup, /[㐀-鿿]|일간|천간|지지|일지|같은 결|자리가/)
     assert.doesNotMatch(markup, /today-saved-link|같은 내용으로 다시 보기|href="\/r\//)
     assert.match(markup, /저장된 이름님/)
     assert.doesNotMatch(markup, /임시 입력님|예측한 결과가 아닙니다/)
@@ -107,6 +108,15 @@ for (const portal of portals) {
     const { markup } = harness(true, { reading: { zodiac: undefined, work: '<img src=x onerror=alert(1)>', details: {} } })
     assert.match(markup, /&lt;img src=x onerror=alert\(1\)&gt;/)
     assert.doesNotMatch(markup, /<img src=x|class="today-zodiac-card"/)
+  })
+
+  test(`${portal}: saved legacy jargon and hanja are translated before display`, () => {
+    const { markup } = harness(true, { reading: {
+      summary: '을사(乙巳)일, 목(木)은 나무의 힘이야. 내 일간에게 오늘 천간은 비견이고, 오늘 지지는 내 일지와 부딪히는 결이라 사람이 모이는 자리가 늘어.',
+      work: '지금 선택할 일을 한 자리에서 확인해.',
+    } })
+    assert.doesNotMatch(markup, /[㐀-鿿]|일간|천간|지지|일지|비견|같은 결|자리가|선택할/)
+    assert.match(markup, /태어난 날의 중심 힘|내 방식을 지키는 힘|판단할/)
   })
 
   test(`${portal}: first direct visit is pending until auth and reading finish, not a false failure`, () => {

@@ -190,6 +190,22 @@ test('15. 오늘운은 날짜가 같으면 한 줄, 다르면 각각 남는다',
   assert.deepEqual(picked.map((item) => item.record.reportId), ['sep8', 'sep7-b'])
 })
 
+test('15b. 일반 회원의 무료 오늘운도 결제 주문 없이 보관함에 남고 구형 키와 새 키를 같은 서비스로 본다', () => {
+  const today = (id: string, serviceKey: 'today' | 'today_fortune', date: string, createdAt: string) => record(id, {
+    context: { serviceKey, concern: date } as never,
+    status: 'complete',
+    createdAt,
+    updatedAt: createdAt,
+  })
+  const picked = selectPurchasedReadings([
+    today('sep27-old', 'today', '2026-09-27', '2026-09-27T01:00:00.000Z'),
+    today('sep27-new', 'today_fortune', '2026-09-27', '2026-09-27T02:00:00.000Z'),
+    today('sep28', 'today_fortune', '2026-09-28', '2026-09-28T01:00:00.000Z'),
+    record('unpaid-teaser', { context: { serviceKey: 'job_choice' } as never }),
+  ], [])
+  assert.deepEqual(picked.map((item) => item.record.reportId), ['sep28', 'sep27-new'])
+})
+
 test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을 비우지 않는다', () => {
   const source = readFileSync(join(root, 'src', 'server', 'app.ts'), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -305,4 +321,5 @@ test('10. 보관함 화면은 구매 시각과 고민 문구로 행을 구분한
   assert.ok(/stamp\(report\.purchasedAt \|\| report\.savedAt\)/.test(vault), '구매 시각보다 저장 시각을 먼저 본다')
   assert.ok(/report\.initialConcern/.test(vault), '부제가 다시 이름·생년월일로 돌아갔다')
   assert.ok(/at\.time/.test(vault), '시각이 사라져 같은 날 구매를 구분할 수 없다')
+  assert.ok(/today_fortune/.test(vault), '정규 오늘운 키가 오늘운 탭과 출석 달력에서 빠진다')
 })

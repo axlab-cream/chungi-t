@@ -1680,7 +1680,7 @@ function historyEntryFromRecord(record: ReportRecord, options: { slim?: boolean 
   return {
     reportId: record.reportId,
     resultId,
-    publicUrl: record.context?.serviceKey === 'today_fortune'
+    publicUrl: (record.context?.serviceKey === 'today_fortune' || record.context?.serviceKey === 'today')
       ? savedReadingHref('today_fortune', String(resultId))
       : full?.report.publicUrl ?? `/r/${encodeURIComponent(String(resultId))}`,
     preview: guardPreview(record.preview ?? createSavedPreview(record.report, record.context, false), record.context),

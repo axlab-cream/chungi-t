@@ -10,7 +10,7 @@ const profile: UserBirthProfile = {
   birthTimeKnown: true, context: { target: '본인' }, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
 }
 
-describe('오늘운 v3: readable deterministic daily guidance', () => {
+describe('오늘운 v5: readable deterministic daily guidance', () => {
   it('uses the saved birth profile and keeps compatibility detail fields consistent', () => {
     const fortune = buildTodayFortune(profile, new Date('2026-08-31T03:00:00.000Z'))
     assert.equal(fortune.date.iso, '2026-08-31')
@@ -38,7 +38,7 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
     assert.deepEqual(next, buildTodayFortune(profile, new Date('2026-09-07T15:00:00.000Z')))
   })
 
-  it('reaches all five element relationships with substantial non-alarmist guidance and explained Hanja', () => {
+  it('reaches all five element relationships with substantial non-alarmist guidance in plain Korean', () => {
     const seenRelations = new Set<string>()
     const seenElements = new Set<string>()
     const summaries = new Set<string>()
@@ -50,8 +50,8 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
       seenElements.add(fortune.today.element)
       summaries.add(reading.summary)
       guidance.set(fortune.today.relation, reading.work)
-      assert.match(reading.summary, /[목화토금수]\([木火土金水]\)[은는] .+힘을 뜻하고/)
-      assert.match(reading.summary, /태어난 날의 중심 기운/)
+      assert.match(reading.summary, /나무|불|흙|쇠|물/)
+      assert.match(reading.summary, /태어난 날의 중심 힘/)
       for (const key of ['work', 'money', 'relationship', 'caution'] as const) {
         assert.ok(reading[key].length >= 100, `${fortune.today.relation}.${key} should have useful depth`)
         assert.equal(reading[key].split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 3)
@@ -101,9 +101,8 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
         assert.notDeepEqual(reading.score, previous.reading.score, `${fortune.date.iso} 점수가 전날과 같다`)
       }
       // 하루의 천간이 내 일간에게 무엇인지(십성)와 지지가 내 기둥과 맺는 관계를 요약이 밝힌다.
-      assert.match(reading.summary, /내 일간에게 오늘 천간은 (?:비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)이고,/)
-      assert.match(reading.summary, /오늘 지지(?:가|는) 내 (?:기둥|[년월일시]지)/)
-      assert.match(reading.summary, /^[가-힣]{2}\([㐀-鿿]{2}\)일, [양음]의 [목화토금수]\([木火土金水]\) 기운이/)
+      assert.doesNotMatch(reading.summary, /일간|천간|지지|[년월일시]지|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인/)
+      assert.doesNotMatch(reading.summary, /[㐀-鿿]/)
       for (const key of ['work', 'money', 'relationship', 'caution'] as const) {
         assert.equal(reading[key].split(/[.!?]+/).filter((sentence) => sentence.trim()).length, 3, `${fortune.date.iso}.${key}`)
         assert.ok(reading[key].length >= 100)
@@ -117,6 +116,8 @@ describe('오늘운 v3: readable deterministic daily guidance', () => {
       previous = fortune
     }
     assert.equal(zodiacTexts.size, 60, '띠운이 60일 동안 날마다 달라야 한다')
+    const titles = new Set(Array.from({ length: 60 }, (_, offset) => buildTodayFortune(owner, new Date(Date.UTC(2026, 8, 1 + offset, 3))).reading.title))
+    assert.equal(titles.size, 60, '제목부터 60일 동안 같은 틀을 반복하지 않아야 한다')
   })
 
   it('같은 날이라도 사주가 다르면 다른 오늘운이 나온다', () => {

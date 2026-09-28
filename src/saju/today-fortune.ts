@@ -114,36 +114,36 @@ function relationFor(userElement: Element, todayElement: Element): TodayRelation
 }
 
 const ELEMENT_EXPLANATION: Record<Element, string> = {
-  wood: '목(木)은 나무가 자라듯 방향을 세우고 이어 가는 힘',
-  fire: '화(火)는 불이 밝히듯 생각을 드러내고 교류하는 힘',
-  earth: '토(土)는 흙이 받치듯 일을 안정시키고 정리하는 힘',
-  metal: '금(金)은 금속을 다듬듯 기준을 세우고 선택하는 힘',
-  water: '수(水)는 물이 흐르듯 정보를 받아들이고 유연하게 잇는 힘',
+  wood: '나무가 자라듯 방향을 세우고 이어 가는 힘',
+  fire: '불이 밝히듯 생각을 드러내고 교류하는 힘',
+  earth: '흙이 받치듯 일을 안정시키고 정리하는 힘',
+  metal: '쇠를 다듬듯 기준을 세우고 덜어 내는 힘',
+  water: '물이 흐르듯 정보를 받아들이고 유연하게 잇는 힘',
 }
 
 function relationText(relation: TodayRelation, _userName: string, todayElement: Element): BaseTodayReading {
   const table: Record<TodayRelation, BaseTodayReading> = {
     same: {
       title: '잘되는 방식을 내 편으로 만드는 날',
-      summary: `오늘은 새 방법을 늘리기보다 이미 잘해 온 방식으로 중요한 일 하나를 마무리하는 데 무게를 둬. ${ELEMENT_EXPLANATION[todayElement]}을 뜻하고, 태어난 날의 중심 기운과 같은 결이라서 자기 기준을 점검하는 흐름으로 풀이해.`,
+      summary: `오늘은 새 방법을 늘리기보다 이미 잘해 온 방식으로 중요한 일 하나를 마무리하는 데 무게를 둬. ${ELEMENT_EXPLANATION[todayElement]}이 태어난 날의 중심 힘과 닮아 있어, 내가 잘하는 방법을 다시 쓰기 좋은 흐름이야.`,
       work: '오늘 일의 방향은 새로운 시도보다 익숙한 강점을 제대로 쓰는 쪽이야. 최근 수월하게 끝낸 일의 순서를 하나 가져와 가장 중요한 작업부터 마무리해. 함께하는 일이라면 최종 기준만 먼저 맞추고, 잘 진행되는 부분까지 바꿀 필요는 없어.',
       money: '돈에서는 더 큰 이익을 찾기보다 이미 세운 기준을 지키는 데 초점을 둬. 구매할 일이 있다면 가격뿐 아니라 실제로 쓸 횟수까지 따져 예산 안에서 골라. 현재 지출이 안정적이라면 무리한 절약 계획을 새로 세우지 않아도 돼.',
-      relationship: '관계에서는 내 생각을 분명히 말하되, 상대가 선택할 여지를 남기는 게 오늘의 방향이야. 함께 정할 일이 있다면 내가 원하는 점 한 가지를 말하고 상대의 기준도 한 가지 물어봐. 평온하게 지내고 있다면 익숙한 안부와 작은 고마움을 이어 가면 충분해.',
+      relationship: '관계에서는 내 생각을 분명히 말하되, 상대가 판단할 여지를 남기는 게 오늘의 방향이야. 함께 정할 일이 있다면 내가 원하는 점 한 가지를 말하고 상대의 기준도 한 가지 물어봐. 평온하게 지내고 있다면 익숙한 안부와 작은 고마움을 이어 가면 충분해.',
       caution: '오늘 조심할 지점은 익숙하다는 이유로 확인을 생략하는 순간이야. 의견이 다르거나 조건이 바뀐 일이 있을 때만 잠깐 멈춰 새로 확인해. 이미 합의했고 순조로운 일까지 의심하며 다시 점검할 필요는 없어.',
       action: '오늘의 결론은 잘되는 방식을 지키며 중요한 일 하나를 끝내는 거야. 내 기준은 분명히 세우고, 함께하는 일의 마지막 결정만 한 번 더 맞춰.',
     },
     support: {
       title: '좋은 정보를 내 판단으로 바꾸는 날',
-      summary: `오늘은 급하게 답을 내기보다 필요한 근거 하나를 더 챙긴 뒤 움직이는 데 무게를 둬. ${ELEMENT_EXPLANATION[todayElement]}을 뜻하고, 태어난 날의 중심 기운을 돕는 관계라서 배움과 준비를 살리는 흐름으로 풀이해.`,
+      summary: `오늘은 급하게 답을 내기보다 필요한 근거 하나를 더 챙긴 뒤 움직이는 데 무게를 둬. ${ELEMENT_EXPLANATION[todayElement]}이 태어난 날의 중심 힘을 받쳐 줘, 배우고 준비한 것을 쓰기 좋은 흐름이야.`,
       work: '오늘 일의 방향은 막연히 더 노력하기보다 필요한 정보를 정확히 찾는 쪽이야. 막힌 일이 있다면 질문을 한 문장으로 좁혀 자료나 경험자의 답을 확인해. 이미 방법을 아는 일은 검색을 더 늘리지 말고 정한 순서대로 진행하면 돼.',
-      money: '돈과 관련한 선택에서는 추천의 강도보다 조건이 얼마나 분명한지를 먼저 봐. 계약이나 구매를 앞두었다면 총비용과 취소 조건을 함께 확인하고, 이해되지 않는 항목은 질문한 뒤 결정해. 오늘 결정할 지출이 없다면 기존 계획을 그대로 유지해도 좋아.',
+      money: '돈과 관련한 판단에서는 추천의 강도보다 조건이 얼마나 분명한지를 먼저 봐. 계약이나 구매를 앞두었다면 총비용과 취소 조건을 함께 확인하고, 이해되지 않는 항목은 질문한 뒤 결정해. 오늘 결정할 지출이 없다면 기존 계획을 그대로 유지해도 좋아.',
       relationship: '관계에서는 혼자 추측하기보다 필요한 말을 구체적으로 나누는 쪽에 힘을 줘. 도움을 구할 일이 있다면 상황과 원하는 도움을 짧게 말하고 상대가 가능한 범위를 물어봐. 특별한 부탁이 없다면 최근 받았던 배려 한 가지에 고마움을 전해도 좋아.',
-      caution: '오늘 조심할 지점은 정보를 많이 모으고도 결정을 계속 미루는 순간이야. 선택에 꼭 필요한 조건만 남기고 확인되면 다음 단계로 옮겨. 조언이 서로 다를 때는 모두 따르기보다 내 시간과 여건에 맞는 기준을 골라.',
+      caution: '오늘 조심할 지점은 정보를 많이 모으고도 결정을 계속 미루는 순간이야. 판단에 꼭 필요한 조건만 남기고 확인되면 다음 단계로 옮겨. 조언이 서로 다를 때는 모두 따르기보다 내 시간과 여건에 맞는 기준을 골라.',
       action: '오늘의 결론은 필요한 근거를 확인한 뒤 내 판단으로 움직이는 거야. 답을 찾는 데서 멈추지 말고, 확인한 내용으로 작은 실행 하나까지 마쳐.',
     },
     output: {
       title: '생각을 눈에 보이는 한 가지로 만드는 날',
-      summary: `오늘은 머릿속에서 고치기만 하던 생각을 짧은 말이나 작은 결과물로 꺼내 봐. ${ELEMENT_EXPLANATION[todayElement]}을 뜻하고, 태어난 날의 중심 기운이 밖으로 이어지는 관계라서 표현과 실행을 살리는 흐름으로 풀이해.`,
+      summary: `오늘은 머릿속에서 고치기만 하던 생각을 짧은 말이나 작은 결과물로 꺼내 봐. ${ELEMENT_EXPLANATION[todayElement]}이 태어난 날의 중심 힘에서 바깥으로 이어져, 표현하고 실행하기 좋은 흐름이야.`,
       work: '오늘 일의 방향은 완벽한 구상보다 확인할 수 있는 결과물 하나를 만드는 쪽이야. 제안이나 정리할 일이 있다면 핵심 한 문장을 먼저 쓰고 필요한 근거를 두 가지만 붙여. 이미 초안이 있다면 처음부터 다시 만들기보다 전달에 꼭 필요한 부분부터 다듬어.',
       money: '돈에서는 갖고 싶은 마음을 실제 사용 계획으로 바꾸어 살펴봐. 구매를 고려 중이라면 언제 어디에 쓸지 한 번 적고, 이미 가진 것으로 가능한지도 비교해. 쓰임이 분명하고 정한 예산 안이라면 필요한 소비까지 막연히 죄책감으로 대할 필요는 없어.',
       relationship: '관계에서는 길게 설명하기보다 마음과 요청을 알아듣기 쉽게 전하는 데 초점을 둬. 전할 말이 있다면 실제 있었던 일과 내가 바라는 점을 나누어 말해. 좋은 관계라면 거창한 대화를 만들기보다 고마웠던 장면을 구체적으로 짚어 주면 돼.',
@@ -152,20 +152,20 @@ function relationText(relation: TodayRelation, _userName: string, todayElement: 
     },
     wealth: {
       title: '막연한 기대를 분명한 조건으로 바꾸는 날',
-      summary: `오늘은 얼마나 많이 얻을지보다 무엇을 남기고 어디까지 맡을지를 구체적으로 정해 봐. ${ELEMENT_EXPLANATION[todayElement]}을 뜻하고, 태어난 날의 중심 기운이 다루는 관계라서 자원과 결과의 조건을 살리는 흐름으로 풀이해.`,
+      summary: `오늘은 얼마나 많이 얻을지보다 무엇을 남기고 어디까지 맡을지를 구체적으로 정해 봐. ${ELEMENT_EXPLANATION[todayElement]}이 태어난 날의 중심 힘과 맞물려, 시간과 돈의 조건을 구체적으로 살피기 좋은 흐름이야.`,
       work: '오늘 일의 방향은 바쁘게 움직이는 양보다 끝났다고 판단할 기준을 분명히 하는 쪽이야. 협의할 일이 있다면 작업 범위와 마감, 누가 확인할지를 짧게 남겨 둬. 이미 합의된 조건이 잘 지켜진다면 목표를 무리하게 키우기보다 약속한 결과를 마무리해.',
       money: '돈에서는 들어올 것으로 기대하는 금액과 이미 확정된 금액을 구분해 봐. 지출을 결정할 때는 지금 쓸 수 있는 예산을 기준으로 삼고 할인보다 총액과 필요성을 함께 따져. 별도의 거래가 없는 날이라면 큰 기회를 찾기보다 정해 둔 생활비 기준을 지키면 돼.',
       relationship: '관계에서는 호의와 책임의 범위를 함께 챙기는 게 오늘의 방향이야. 시간이나 비용을 나눌 일이 있다면 각자 편하게 감당할 수 있는 정도를 먼저 이야기해. 합의가 잘되어 있다면 더 계산적으로 바꾸기보다 약속을 지키고 배려에 감사하는 쪽을 택해.',
       caution: '오늘 조심할 지점은 눈앞의 성과만 보고 시간과 수고를 빠뜨리는 순간이야. 새 제안을 받을 때는 얻는 것 옆에 드는 시간과 추가 책임도 적어 비교해. 부담이 크지 않고 조건이 명확하다면 막연한 불안 때문에 결정을 계속 미룰 필요는 없어.',
-      action: '오늘의 결론은 기대를 키우기 전에 조건을 분명히 정하는 거야. 금액과 시간, 맡을 범위를 확인하고 내가 감당할 수 있는 선택 하나를 확정해.',
+      action: '오늘의 결론은 기대를 키우기 전에 조건을 분명히 정하는 거야. 금액과 시간, 맡을 범위를 확인하고 내가 감당할 수 있는 일 하나를 확정해.',
     },
     pressure: {
       title: '해야 할 일을 정하고 내 여유를 지키는 날',
-      summary: `오늘은 해야 할 일을 모두 끌어안기보다 우선순위와 책임의 끝을 분명히 해 봐. ${ELEMENT_EXPLANATION[todayElement]}을 뜻하고, 태어난 날의 중심 기운에 기준을 세우는 관계라서 약속과 순서를 정돈하는 흐름으로 풀이해.`,
+      summary: `오늘은 해야 할 일을 모두 끌어안기보다 우선순위와 책임의 끝을 분명히 해 봐. ${ELEMENT_EXPLANATION[todayElement]}이 태어난 날의 중심 힘을 다잡아, 약속과 순서를 정돈하기 좋은 흐름이야.`,
       work: '오늘 일의 방향은 더 많은 일을 맡는 것보다 약속한 일을 순서 있게 끝내는 쪽이야. 마감이 있는 작업 중 먼저 끝낼 것 하나를 고르고 완료 기준과 필요한 시간을 확인해. 일정에 여유가 있다면 일을 억지로 추가하지 말고 마친 뒤 쉴 시간까지 남겨 둬.',
       money: '돈에서는 큰 판단보다 이미 정해진 납부와 지출 일정을 먼저 정리해. 가까운 결제일이 있다면 금액과 처리 여부를 한 번 확인하고, 추가 구매는 남은 예산을 본 뒤 결정해. 이미 확인했고 변동도 없다면 같은 항목을 반복해서 걱정할 필요는 없어.',
       relationship: '관계에서는 상대의 요청을 듣는 일과 모두 들어주는 일을 구분해 봐. 부탁을 받았다면 가능한 범위와 시간을 분명히 말하고, 어려운 부분은 짧게 이유를 전해. 특별한 부담 없이 지내는 관계라면 거리부터 두기보다 지금의 편안한 약속을 이어 가면 돼.',
-      caution: '오늘 조심할 지점은 책임감 때문에 필요 이상으로 약속을 늘리는 순간이야. 새 일을 맡기 전에는 기존 일정에 실제로 들어갈 자리가 있는지 확인해. 모든 일이 순조롭다면 숨은 문제를 찾기보다 정한 만큼 마무리하고 쉬는 게 좋아.',
+      caution: '오늘 조심할 지점은 책임감 때문에 필요 이상으로 약속을 늘리는 순간이야. 새 일을 맡기 전에는 기존 일정에 실제로 들어갈 시간이 있는지 확인해. 모든 일이 순조롭다면 숨은 문제를 찾기보다 정한 만큼 마무리하고 쉬는 게 좋아.',
       action: '오늘의 결론은 약속한 일을 끝내되 내 몫을 넘는 부담까지 가져오지 않는 거야. 먼저 마칠 일 하나와 오늘 하지 않을 일 하나를 정해 시간을 지켜.',
     },
   }
@@ -209,13 +209,13 @@ function tenGodOf(dayMaster: HeavenlyStem, dayStem: HeavenlyStem): TenGod {
 /** 십성이 하루에 주는 방향. 제목과 요약의 첫 축이다. */
 const TEN_GOD_FOCUS: Record<TenGod, { title: string; note: string }> = {
   비견: { title: '내 페이스를 지키는 날', note: '내 방식이 그대로 서는 흐름이라 남과 견주기보다 내 속도를 지키는 쪽이 좋아' },
-  겁재: { title: '내 몫을 분명히 하는 날', note: '함께 나누는 자리가 늘어나는 흐름이라 내 몫과 남의 몫을 흐리지 않는 편이 나아' },
+  겁재: { title: '내 몫을 분명히 하는 날', note: '함께 나눌 일이 늘어나는 흐름이라 내 몫과 남의 몫을 흐리지 않는 편이 나아' },
   식신: { title: '하던 것을 꾸준히 밀고 가는 날', note: '만들어 내는 힘이 붙는 흐름이라 새로 벌이기보다 하던 것을 이어 가면 돼' },
   상관: { title: '말과 표현을 고르는 날', note: '표현이 앞서기 쉬운 흐름이라 하고 싶은 말을 한 번 고르고 꺼내면 좋아' },
   편재: { title: '기회와 씀씀이를 함께 재는 날', note: '눈앞의 기회가 커 보이는 흐름이라 얻는 것 옆에 드는 비용을 같이 세어 봐' },
   정재: { title: '정해 둔 기준을 지키는 날', note: '차곡히 쌓는 힘이 붙는 흐름이라 정해 둔 예산과 약속을 지키는 쪽이 나아' },
   편관: { title: '밀려오는 일의 순서를 정하는 날', note: '압박이 몰리기 쉬운 흐름이라 다 받기보다 순서를 먼저 정해 둬' },
-  정관: { title: '맡은 자리를 반듯하게 지키는 날', note: '책임이 또렷해지는 흐름이라 맡은 범위를 반듯하게 지키면 충분해' },
+  정관: { title: '맡은 일을 반듯하게 지키는 날', note: '책임이 또렷해지는 흐름이라 맡은 범위를 반듯하게 지키면 충분해' },
   편인: { title: '한 발 물러나 다시 보는 날', note: '생각이 깊어지는 흐름이라 서둘러 답을 내기보다 한 번 더 살펴봐' },
   정인: { title: '배우고 기대는 힘이 붙는 날', note: '도움과 배움이 들어오는 흐름이라 혼자 버티기보다 묻고 기대도 좋아' },
 }
@@ -269,13 +269,14 @@ function branchTie(today: EarthlyBranch, mine: EarthlyBranch[]): { tie: BranchTi
   return { tie: '보통', pillar: '' }
 }
 
+const plainPillar = (pillar: string) => ({ 년: '태어난 해', 월: '태어난 달', 일: '태어난 날', 시: '태어난 시간' })[pillar] ?? '태어난 날'
 const BRANCH_TIE_NOTE: Record<BranchTie, (pillar: string) => string> = {
-  육합: (pillar) => `오늘 지지는 내 ${pillar}지와 묶이는 결이라 사람과 일이 붙는 자리가 늘어`,
-  충: (pillar) => `오늘 지지는 내 ${pillar}지와 부딪히는 결이라 예정이 흔들릴 수 있어`,
-  해: (pillar) => `오늘 지지는 내 ${pillar}지와 어긋나는 결이라 사소한 오해가 끼기 쉬워`,
-  파: (pillar) => `오늘 지지는 내 ${pillar}지를 흔드는 결이라 정해 둔 일정을 한 번 더 확인하면 좋아`,
-  같음: (pillar) => `오늘 지지가 내 ${pillar}지와 같은 결이라 익숙한 흐름이 그대로 이어져`,
-  보통: () => '오늘 지지는 내 기둥과 특별히 얽히지 않아 흐름이 무난해',
+  육합: (pillar) => `${plainPillar(pillar)}의 생활 흐름과 잘 맞아 사람과 일이 자연스럽게 이어지기 쉬워`,
+  충: (pillar) => `${plainPillar(pillar)}의 생활 흐름과 부딪혀 예정이 흔들릴 수 있어`,
+  해: (pillar) => `${plainPillar(pillar)}의 생활 흐름과 어긋나 사소한 오해가 끼기 쉬워`,
+  파: (pillar) => `${plainPillar(pillar)}의 생활 흐름을 흔들 수 있어 정해 둔 일정을 한 번 더 확인하면 좋아`,
+  같음: (pillar) => `${plainPillar(pillar)}의 생활 흐름과 닮아 익숙한 방법이 그대로 이어져`,
+  보통: () => '태어난 날의 생활 흐름과 크게 부딪히지 않아 무난하게 이어져',
 }
 const POLARITY_PHRASE: Record<StemPolarity, string> = {
   양: '기운이 밖으로 뻗는 날이라',
@@ -287,6 +288,14 @@ const POLARITY_PHRASE: Record<StemPolarity, string> = {
  * 괜찮다"는 안전장치라서 지지가 건드리지 않는다.
  */
 interface BranchScene { work: string; money: string; relationship: string; caution: string; action: string }
+const BRANCH_TITLE: Record<EarthlyBranch, string> = {
+  '子': '흩어진 생각을 한 장에 모으고', '丑': '쌓인 것 하나를 정리하고',
+  '寅': '미루던 첫 단계를 열고', '卯': '작은 빈틈 하나를 다듬고',
+  '辰': '함께 정할 말을 분명히 하고', '巳': '전할 말을 한 줄로 고르고',
+  '午': '중요한 일에 시간을 모으고', '未': '거의 끝난 일을 마무리하고',
+  '申': '해야 할 범위를 분명히 하고', '酉': '보낼 것을 한 번 더 살피고',
+  '戌': '정한 약속 하나를 지키고', '亥': '필요한 정보 하나를 찾고',
+}
 const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
   '子': {
     work: '오늘은 늦은 시간에 정신이 맑아지는 날이니, 낮에 흩어진 메모를 저녁에 한 장으로 모아 내일 첫 일을 정해 둬.',
@@ -296,7 +305,7 @@ const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
     action: '잠들기 전 내일 첫 일 하나를 적어 두면 오늘 흐름은 충분히 마무리돼.',
   },
   '丑': {
-    work: '쌓아 둔 자료나 파일 가운데 오늘 쓸 것 하나만 꺼내 정리하고, 나머지는 자리만 표시해 둬.',
+    work: '쌓아 둔 자료나 파일 가운데 오늘 쓸 것 하나만 꺼내 정리하고, 나머지는 위치만 표시해 둬.',
     money: '통장이나 앱에 남은 잔액을 확인하고, 이달 남은 고정 지출을 한 줄로 적어 두면 충분해.',
     relationship: '오래 미룬 연락 하나가 있다면 긴 설명 대신 안부 한 줄로 시작해 봐.',
     caution: '한 번에 다 치우려는 마음이 들면 서랍 하나만큼으로 범위를 줄여 오늘 몫만 끝내.',
@@ -305,8 +314,8 @@ const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
   '寅': {
     work: '아침 첫 시간에 가장 어려운 일을 먼저 열고, 시작만 해 두면 오후는 이어 가기가 쉬워져.',
     money: '새로 시작할 소비나 구독이 있다면 첫 달 비용과 해지 조건을 오늘 안에 적어 둬.',
-    relationship: '먼저 인사를 건네야 하는 자리가 있다면 오늘 아침에 짧게 시작해 봐.',
-    caution: '의욕이 앞서 일을 여러 개 동시에 열지 말고, 시작한 일 하나가 자리 잡는지 먼저 봐.',
+    relationship: '먼저 인사를 건네야 하는 사람이 있다면 오늘 아침에 짧게 시작해 봐.',
+    caution: '의욕이 앞서 일을 여러 개 동시에 열지 말고, 시작한 일 하나가 안정되는지 먼저 봐.',
     action: '가장 미루던 일의 첫 단계를 오늘 오전에 열어 두면 이 날의 결론은 지켜져.',
   },
   '卯': {
@@ -314,7 +323,7 @@ const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
     money: '작은 지출이 자주 나가는 날이니, 오늘 산 것을 저녁에 세 줄로만 적어 봐.',
     relationship: '상대의 짧은 말이나 표정에서 놓친 신호가 있었는지 오늘은 한 번 되짚어 봐.',
     caution: '작은 일을 붙잡고 오래 고치다 큰 마감을 놓치지 않게, 손볼 시간을 미리 정해 둬.',
-    action: '눈에 띈 작은 빈틈 하나를 오늘 안에 채우고 그 자리에서 손을 멈춰.',
+    action: '눈에 띈 작은 빈틈 하나를 오늘 안에 채우고 거기서 손을 멈춰.',
   },
   '辰': {
     work: '사람들과 맞춰야 하는 일이 있다면 오늘 회의나 대화에서 결정할 항목을 세 개 안으로 줄여 가.',
@@ -333,7 +342,7 @@ const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
   '午': {
     work: '한낮에 집중이 가장 잘 되는 날이니, 점심 전후 두 시간에 가장 중요한 작업을 몰아 둬.',
     money: '점심이나 모임 비용처럼 낮에 나가는 돈이 많은 날이니, 예산 한도를 정해 두고 움직여.',
-    relationship: '대화가 활발한 날이니, 함께 있는 자리에서는 듣는 시간을 말하는 시간만큼 남겨.',
+    relationship: '대화가 활발한 날이니, 함께 있을 때는 듣는 시간을 말하는 시간만큼 남겨.',
     caution: '열기가 오르면 결정이 빨라지니, 오후에 정한 일은 저녁에 한 번 다시 읽어 봐.',
     action: '가장 밝은 시간대에 중요한 일 하나를 끝내고, 저녁에는 그 결과만 확인해.',
   },
@@ -360,7 +369,7 @@ const BRANCH_SCENES: Record<EarthlyBranch, BranchScene> = {
   },
   '戌': {
     work: '지키는 힘이 강한 날이니, 이미 정한 일정과 약속을 흔들지 말고 순서대로 소화해.',
-    money: '비상금이나 예비 예산이 제자리에 있는지 확인하고, 없다면 첫 금액만 정해 둬.',
+    money: '비상금이나 예비 예산이 따로 마련돼 있는지 확인하고, 없다면 첫 금액만 정해 둬.',
     relationship: '믿는 사람과의 약속 하나를 챙기고, 새로운 관계는 서두르지 않아도 돼.',
     caution: '지키려는 마음이 고집으로 굳지 않게, 바뀐 조건이 있으면 그 부분만 열어 다시 봐.',
     action: '정해 둔 약속 하나를 그대로 지켜 내면 오늘 흐름은 제 몫을 한 거야.',
@@ -390,25 +399,31 @@ function composeReading(
   base: BaseTodayReading,
   stem: HeavenlyStem,
   branch: EarthlyBranch,
-  pillarKo: string,
-  pillar: string,
   tenGod: TenGod,
   tie: { tie: BranchTie; pillar: string },
+  variant: number,
 ): BaseTodayReading {
   const polarity = STEM_POLARITY[stem]
   const scene = BRANCH_SCENES[branch]
   const summaryParts = sentencesOf(base.summary)
-  summaryParts[0] = `${pillarKo}(${pillar})일, ${polarity}의 ${ELEMENT_KO[STEM_ELEMENT[stem]]} ${POLARITY_PHRASE[polarity]} ${summaryParts[0].replace(/^오늘은 /, '')}`
-  // 오늘의 천간이 내 일간에게 무엇인지(십성)와, 오늘의 지지가 내 기둥과 어떻게 맞물리는지를
-  // 함께 적는다. 이 한 줄이 "달력"과 "내 사주로 본 오늘"을 가른다.
-  summaryParts.push(`내 일간에게 오늘 천간은 ${tenGod}이고, ${TEN_GOD_FOCUS[tenGod].note}. ${BRANCH_TIE_NOTE[tie.tie](tie.pillar)}.`)
+  summaryParts[0] = `${POLARITY_PHRASE[polarity]} ${summaryParts[0].replace(/^오늘은 /, '')}`
+  // 계산에는 십성과 지지 관계를 그대로 쓰되, 고객에게는 한자 이름 대신 실제 생활에서
+  // 어떤 식으로 느껴지는지 풀어 쓴다.
+  summaryParts.push(`${TEN_GOD_FOCUS[tenGod].note}. ${BRANCH_TIE_NOTE[tie.tie](tie.pillar)}.`)
+  const varied = (text: string, sceneText: string) => {
+    const parts = sentencesOf(text)
+    if (parts.length < 3) return withScene(text, sceneText, 1)
+    if (variant % 3 === 1) return [sceneText, parts[0], parts[2]].join(' ')
+    if (variant % 3 === 2) return [parts[0], parts[2], sceneText].join(' ')
+    return [parts[0], sceneText, parts[2]].join(' ')
+  }
   return {
-    title: TEN_GOD_FOCUS[tenGod].title,
+    title: `${BRANCH_TITLE[branch]} ${TEN_GOD_FOCUS[tenGod].title}`,
     summary: summaryParts.join(' '),
-    work: withScene(base.work, scene.work, 1),
-    money: withScene(base.money, scene.money, 1),
-    relationship: withScene(base.relationship, scene.relationship, 1),
-    caution: withScene(base.caution, scene.caution, 1),
+    work: varied(base.work, scene.work),
+    money: varied(base.money, scene.money),
+    relationship: varied(base.relationship, scene.relationship),
+    caution: varied(base.caution, scene.caution),
     action: withScene(base.action, scene.action, 1),
   }
 }
@@ -506,7 +521,7 @@ const ZODIAC_GUIDES = [
   '새로운 방법이 떠오르면 작은 범위에서 먼저 시험하고, 기존에 잘되던 방법과 차이를 비교해.',
   '마무리할 일의 기준을 미리 정한 뒤, 꼭 필요한 확인을 마쳤다면 다음 일정으로 넘어가.',
   '약속이 있다면 지킬 수 있는 범위를 먼저 확인하고, 상대의 몫까지 혼자 떠맡지는 마.',
-  '오늘 누리고 싶은 즐거움 하나를 정하고, 시간과 예산 안에서 편안하게 즐길 자리를 남겨 둬.',
+  '오늘 누리고 싶은 즐거움 하나를 정하고, 시간과 예산 안에서 편안하게 즐길 여유를 남겨 둬.',
 ] as const
 const RELATION_FOCUS: Record<TodayRelation, string> = {
   same: '잘되는 방식 유지', support: '확인한 뒤 실행', output: '생각을 결과로 표현',
@@ -515,12 +530,12 @@ const RELATION_FOCUS: Record<TodayRelation, string> = {
 
 /** 띠 지지와 오늘 지지의 관계. 띠운이 날마다 달라지는 축이다. */
 const ZODIAC_TIE_LABEL: Record<BranchTie, string> = {
-  육합: '내 띠와 묶이는 날이라 사람과 일이 붙는 자리',
-  충: '내 띠와 부딪히는 날이라 예정을 한 번 더 확인할 자리',
-  해: '내 띠와 어긋나는 날이라 말이 겹치지 않게 살필 자리',
-  파: '내 띠를 흔드는 날이라 일정부터 다시 볼 자리',
-  같음: '내 띠와 같은 날이라 익숙한 방식이 그대로 통하는 자리',
-  보통: '내 띠와 특별히 얽히지 않아 흐름이 무난한 자리',
+  육합: '내 띠와 잘 맞아 사람과 일이 자연스럽게 이어지는 날',
+  충: '내 띠와 부딪혀 예정을 한 번 더 확인하면 좋은 날',
+  해: '내 띠와 어긋나 말이 겹치지 않게 살피면 좋은 날',
+  파: '내 띠의 흐름을 흔들 수 있어 일정부터 다시 보면 좋은 날',
+  같음: '내 띠와 같아 익숙한 방식이 그대로 통하는 날',
+  보통: '내 띠와 특별히 얽히지 않아 무난하게 이어지는 날',
 }
 
 function zodiacReading(
@@ -583,11 +598,11 @@ export function buildTodayFortune(profile: UserBirthProfile, now = new Date()): 
     analysis.fourPillars.day.branch,
     analysis.fourPillars.hour.branch,
   ])
+  const daySerial = Math.floor(Date.UTC(kst.year, kst.month - 1, kst.day) / 86_400_000)
   const baseReading = composeReading(
     relationText(relation, profile.name, todayElement),
     todayStem, todayBranch,
-    `${STEM_KO[todayStem]}${BRANCH_KO[todayBranch]}`, `${todayStem}${todayBranch}`,
-    tenGod, tie,
+    tenGod, tie, daySerial % 7,
   )
   const details = buildReadingDetails(relation, baseReading, branchRelation, STEM_POLARITY[todayStem], tenGod, tie.tie, branchTenGod(analysis.dayMaster, todayBranch))
   const reading: TodayFortune['reading'] = {

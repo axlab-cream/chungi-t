@@ -32,6 +32,11 @@ function serviceKeyOf(record: ReportRecord): string {
   return String(record.context?.serviceKey || 'cmdg')
 }
 
+function isTodayReading(record: ReportRecord): boolean {
+  const service = serviceKeyOf(record)
+  return service === 'today' || service === 'today_fortune'
+}
+
 /**
  * 결제 주문을 **계보** 단위로 모은다.
  *
@@ -72,8 +77,8 @@ function purchaseTimeByLineage(records: ReportRecord[], orders: PaymentOrder[]):
  */
 function dedupeSameReading(listings: VaultListing<ReportRecord>[]): VaultListing<ReportRecord>[] {
   const keyOf = (record: ReportRecord) => {
-    const service = serviceKeyOf(record)
-    const date = service === 'today' ? String(record.context?.concern ?? '') : ''
+    const service = isTodayReading(record) ? 'today_fortune' : serviceKeyOf(record)
+    const date = isTodayReading(record) ? String(record.context?.concern ?? '') : ''
     return `${service}|${reportBirthKey(record)}|${date}`
   }
   const isComplete = (record: ReportRecord) => reportProgressOf(record).status === 'complete'
@@ -102,7 +107,12 @@ export function selectPurchasedReadings(
 
   return dedupeSameReading(readings
     .flatMap((record) => {
-      const at = purchasedAt.get(reportLineageId(record))
+      // 오늘운은 무료지만 저장된 개인 풀이이며, 날짜별 출석 기록의 근거다. 유료 주문이
+      // 없다는 이유로 빼면 일반 회원의 보관함에서만 도장이 사라진다. 생성된 시각을
+      // 보관 시각으로 사용하고, 그 밖의 서비스는 종전대로 결제 주문이 있어야 남긴다.
+      const at = isTodayReading(record)
+        ? (record.createdAt || record.updatedAt)
+        : purchasedAt.get(reportLineageId(record))
       return at ? [{ record, purchasedAt: at }] : []
     })
     .sort((a, b) => (
