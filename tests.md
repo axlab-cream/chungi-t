@@ -1078,3 +1078,17 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | WORK-MOVE-NAV-01 | 이직운 입력 완료는 reportId를 보존해 04 티저로 이동 | PASS |
 | FUNNEL-GATE-06 | 05 권한 확인 전 화면 전체 숨김, 권한 실패·preview 응답은 04 티저 복귀 | PASS (정적 계약·로컬 브라우저 직접 접근) |
 | FUNNEL-GATE-07 | 14개 05 chat/index가 공통 fail-closed 캐시 버전을 사용 | PASS (28개 HTML) |
+
+## 2026-09-28 — 관리자 서비스별 페이지뷰 통계 검증표
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| ADMIN-ANALYTICS-01 | 모든 고객 화면의 공용 크롬이 자체 퍼널 수집기를 연결하고 포털 중복 실행을 차단 | PASS (단위 테스트) |
+| ADMIN-ANALYTICS-02 | 방문 ID가 localStorage에서 30분 활동 기준으로 갱신되고 탭 간 공유 | PASS (단위 테스트) |
+| ADMIN-ANALYTICS-03 | 같은 방문이 여러 단계를 보아도 서비스 방문과 전체 방문은 한 건 | PASS (집계 단위 테스트) |
+| ADMIN-ANALYTICS-04 | 서비스별 전체 조회·방문·스토리·입력·티저·결제·목차·상세 해석 표시 | PASS (관리자 UI 계약) |
+| ADMIN-ANALYTICS-05 | 로그인 방문자는 원본 계정 정보 없이 고유 수만 표시 | PASS (집계 단위 테스트·DTO 검토) |
+| ADMIN-ANALYTICS-06 | 조회 상한 경고는 실제 상한 도달 때만 표시 | PASS (관리자 UI 계약) |
+| ADMIN-ANALYTICS-07 | TypeScript·20개 서비스 계약·20개 서비스 QA·Vercel production build | PASS |
+| ADMIN-ANALYTICS-08 | 전체 회귀 | PASS (1618/1618, 165 suites) |
+| ADMIN-ANALYTICS-09 | main·운영 배포·실제 관리자 화면 | PENDING |

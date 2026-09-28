@@ -101,42 +101,54 @@ export function periodStart(period: FunnelPeriod, now = new Date()): string {
 export interface FunnelSummary {
   period: FunnelPeriod
   since: string
+  /** 선택 기간 전체의 페이지 조회·방문·로그인 방문자. 서로 다른 서비스 행을 더해서 만들지 않는다. */
+  overview: { views: number; sessions: number; signedInUsers: number }
+  /** 서비스 하나를 가로로 읽는 운영 요약. steps 는 실제로 수집된 단계만 가진다. */
+  services: Array<{ serviceKey: string | null; views: number; sessions: number; steps: Record<string, number> }>
   /** 단계별 진입 세션 수. 이탈은 앞 단계와의 차이로 읽는다. */
   steps: Array<{ serviceKey: string | null; step: string | null; sessions: number; views: number }>
   /** 많이 눌린 CTA 순. 고객의 관심사가 여기에 드러난다. */
   ctas: Array<{ serviceKey: string | null; target: string | null; clicks: number }>
   sampled: number
+  /** 조회 상한에 닿아 선택 기간 전체가 아닐 수 있을 때만 true 다. */
+  truncated: boolean
 }
 
-/**
- * 집계.
- *
- * PostgREST 에 group by 가 없어 행을 받아 서버에서 센다. 그래서 상한을 둔다 — 통계를
- * 보려다 함수가 메모리로 죽으면 안 된다. 상한에 닿으면 `sampled` 로 알린다.
- */
-export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promise<FunnelSummary> {
-  const since = periodStart(period)
-  const empty: FunnelSummary = { period, since, steps: [], ctas: [], sampled: 0 }
-  if (!opsStoreAvailable()) return empty
+type FunnelRow = {
+  event: string
+  service_key: string | null
+  step: string | null
+  target: string | null
+  session_id: string
+  user_id: string | null
+}
 
-  const url = new URL(`${opsBase()}/rest/v1/umsh_funnel_events`)
-  url.searchParams.set('select', 'event,service_key,step,target,session_id')
-  url.searchParams.set('occurred_at', `gte.${since}`)
-  url.searchParams.set('order', 'occurred_at.desc')
-  url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 20000)))
-  const response = await fetch(url, { headers: opsHeaders() })
-  if (!response.ok) return empty
-  const rows = await response.json() as Array<{ event: string; service_key: string | null; step: string | null; target: string | null; session_id: string }>
-
+/** PostgREST I/O와 분리한 실제 집계 규칙. 관리자 화면과 단위 테스트가 같은 계산을 쓴다. */
+export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, since: string, truncated = false): FunnelSummary {
   const stepViews = new Map<string, { serviceKey: string | null; step: string | null; views: number; sessions: Set<string> }>()
+  const serviceViews = new Map<string, { serviceKey: string | null; views: number; sessions: Set<string>; steps: Record<string, number> }>()
   const ctaClicks = new Map<string, { serviceKey: string | null; target: string | null; clicks: number }>()
+  const sessions = new Set<string>()
+  const signedInUsers = new Set<string>()
+
   for (const row of rows) {
     if (row.event === 'step_view') {
-      const key = `${row.service_key ?? ''}|${row.step ?? ''}`
-      const entry = stepViews.get(key) ?? { serviceKey: row.service_key, step: row.step, views: 0, sessions: new Set<string>() }
-      entry.views += 1
-      entry.sessions.add(row.session_id)
-      stepViews.set(key, entry)
+      sessions.add(row.session_id)
+      if (row.user_id) signedInUsers.add(row.user_id)
+
+      const stepKey = `${row.service_key ?? ''}|${row.step ?? ''}`
+      const stepEntry = stepViews.get(stepKey) ?? { serviceKey: row.service_key, step: row.step, views: 0, sessions: new Set<string>() }
+      stepEntry.views += 1
+      stepEntry.sessions.add(row.session_id)
+      stepViews.set(stepKey, stepEntry)
+
+      const serviceKey = row.service_key ?? ''
+      const serviceEntry = serviceViews.get(serviceKey) ?? { serviceKey: row.service_key, views: 0, sessions: new Set<string>(), steps: {} }
+      serviceEntry.views += 1
+      serviceEntry.sessions.add(row.session_id)
+      const step = row.step ?? 'other'
+      serviceEntry.steps[step] = (serviceEntry.steps[step] ?? 0) + 1
+      serviceViews.set(serviceKey, serviceEntry)
     } else if (row.event === 'cta_click') {
       const key = `${row.service_key ?? ''}|${row.target ?? ''}`
       const entry = ctaClicks.get(key) ?? { serviceKey: row.service_key, target: row.target, clicks: 0 }
@@ -148,12 +160,44 @@ export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promi
   return {
     period,
     since,
+    overview: {
+      views: [...stepViews.values()].reduce((sum, entry) => sum + entry.views, 0),
+      sessions: sessions.size,
+      signedInUsers: signedInUsers.size,
+    },
+    services: [...serviceViews.values()]
+      .map((entry) => ({ serviceKey: entry.serviceKey, views: entry.views, sessions: entry.sessions.size, steps: entry.steps }))
+      .sort((a, b) => b.views - a.views),
     steps: [...stepViews.values()]
       .map((entry) => ({ serviceKey: entry.serviceKey, step: entry.step, sessions: entry.sessions.size, views: entry.views }))
       .sort((a, b) => b.sessions - a.sessions),
     ctas: [...ctaClicks.values()].sort((a, b) => b.clicks - a.clicks).slice(0, 100),
     sampled: rows.length,
+    truncated,
   }
+}
+
+/**
+ * 집계.
+ *
+ * PostgREST 에 group by 가 없어 행을 받아 서버에서 센다. 그래서 상한을 둔다 — 통계를
+ * 보려다 함수가 메모리로 죽으면 안 된다. 상한에 닿으면 `sampled` 로 알린다.
+ */
+export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promise<FunnelSummary> {
+  const since = periodStart(period)
+  const empty: FunnelSummary = { period, since, overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], ctas: [], sampled: 0, truncated: false }
+  if (!opsStoreAvailable()) return empty
+
+  const safeLimit = Math.min(Math.max(limit, 1), 20000)
+  const url = new URL(`${opsBase()}/rest/v1/umsh_funnel_events`)
+  url.searchParams.set('select', 'event,service_key,step,target,session_id,user_id')
+  url.searchParams.set('occurred_at', `gte.${since}`)
+  url.searchParams.set('order', 'occurred_at.desc')
+  url.searchParams.set('limit', String(safeLimit))
+  const response = await fetch(url, { headers: opsHeaders() })
+  if (!response.ok) return empty
+  const rows = await response.json() as FunnelRow[]
+  return summarizeFunnelRows(rows, period, since, rows.length >= safeLimit)
 }
 
 export interface FunnelStoreReadiness {

@@ -1,6 +1,9 @@
 (function (global) {
   'use strict';
 
+  if (global.__umshTrackLoaded) return;
+  global.__umshTrackLoaded = true;
+
   /**
    * 퍼널 수집기.
    *
@@ -13,17 +16,45 @@
    */
   var ENDPOINT = '/api/events';
   var SESSION_KEY = 'umsh:track:session';
+  var SESSION_TTL_MS = 30 * 60 * 1000;
   var queue = [];
   var flushTimer = null;
+  var authPromise = null;
+  var cachedAuthHeaders = null;
+
+  /** 로그인 런타임이 있는 고객 화면에서만 현재 세션을 읽는다. 실패하면 익명 집계를 유지한다. */
+  function authHeaders() {
+    if (cachedAuthHeaders) return Promise.resolve(cachedAuthHeaders);
+    if (authPromise) return authPromise;
+    if (!global.UMSHAuthSession || !global.supabase || typeof global.fetch !== 'function') return Promise.resolve({});
+    authPromise = global.fetch('/api/auth/config')
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (config) {
+        if (!config || !config.enabled) return null;
+        return global.UMSHAuthSession.resolveLiveSession(config, 500);
+      })
+      .then(function (resolved) {
+        var token = resolved && resolved.session && resolved.session.access_token;
+        cachedAuthHeaders = token ? { Authorization: 'Bearer ' + token } : {};
+        return cachedAuthHeaders;
+      })
+      .catch(function () { cachedAuthHeaders = {}; return cachedAuthHeaders; });
+    return authPromise;
+  }
 
   function sessionId() {
     try {
-      var found = sessionStorage.getItem(SESSION_KEY);
-      if (found) return found;
+      var now = Date.now();
+      var stored = global.localStorage.getItem(SESSION_KEY);
+      var found = stored ? JSON.parse(stored) : null;
+      if (found && typeof found.id === 'string' && Number.isFinite(found.lastSeenAt) && now - found.lastSeenAt < SESSION_TTL_MS) {
+        global.localStorage.setItem(SESSION_KEY, JSON.stringify({ id: found.id, lastSeenAt: now }));
+        return found.id;
+      }
       var made = (global.crypto && global.crypto.randomUUID)
         ? global.crypto.randomUUID()
-        : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
-      sessionStorage.setItem(SESSION_KEY, made);
+        : String(now) + '-' + Math.random().toString(36).slice(2);
+      global.localStorage.setItem(SESSION_KEY, JSON.stringify({ id: made, lastSeenAt: now }));
       return made;
     } catch (_) {
       // 저장소가 막힌 브라우저에서도 한 화면 안의 흐름은 이어진다.
@@ -63,17 +94,25 @@
     return { service: service, step: step };
   }
 
-  function send(force) {
+  function send(force, leaving) {
     if (!queue.length) return;
-    var body = JSON.stringify({ sessionId: sessionId(), events: queue.splice(0, 20) });
-    try {
-      // sendBeacon 은 화면을 떠나는 중에도 전달된다. 이탈 직전 이벤트가 그때 가장 중요하다.
-      if (!force && global.navigator && navigator.sendBeacon) {
-        navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'application/json' }));
-        return;
-      }
-      fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body: body, keepalive: true }).catch(function () {});
-    } catch (_) { /* 통계 실패가 화면을 막지 않는다 */ }
+    var batch = queue.splice(0, 20);
+    var body = JSON.stringify({ sessionId: sessionId(), events: batch });
+    // 첫 인증 조회가 끝나기 전에 화면을 닫으면 beacon으로 익명 이벤트라도 보존한다.
+    if (leaving && !cachedAuthHeaders && global.navigator && navigator.sendBeacon) {
+      navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'application/json' }));
+      return Promise.resolve();
+    }
+    return authHeaders().then(function (headers) {
+      try {
+        // 인증된 요청은 Authorization 헤더가 필요해 keepalive fetch로 보낸다.
+        if (!headers.Authorization && !force && global.navigator && navigator.sendBeacon) {
+          navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'application/json' }));
+          return;
+        }
+        return global.fetch(ENDPOINT, { method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, headers), body: body, keepalive: true }).catch(function () {});
+      } catch (_) { /* 통계 실패가 화면을 막지 않는다 */ }
+    });
   }
 
   function push(event, extra) {
@@ -105,6 +144,7 @@
   }
 
   function start() {
+    authHeaders();
     push('step_view');
     document.addEventListener('click', function (event) {
       var node = event.target && event.target.closest ? event.target : null;
@@ -113,12 +153,12 @@
       if (target) push('cta_click', { target: target });
     }, true);
     // 떠나기 직전에 남은 것을 보낸다.
-    global.addEventListener('pagehide', function () { send(); });
-    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') send(); });
+    global.addEventListener('pagehide', function () { send(false, true); });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') send(false, true); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 
-  global.UMSHTrack = { push: push, flush: function () { send(true); } };
+  global.UMSHTrack = { push: push, flush: function () { return send(true); }, sessionTimeoutMs: SESSION_TTL_MS };
 })(typeof window !== 'undefined' ? window : globalThis);

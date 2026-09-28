@@ -1740,13 +1740,42 @@
        */
       async function loadFunnelAnalytics(body) {
         var head = document.createElement('section'); head.className = 'admin-section';
-        head.innerHTML = '<header class="admin-section-head"><h3>퍼널 통계</h3><span class="admin-chip">실제 이벤트 집계</span></header>';
+        head.innerHTML = '<header class="admin-section-head"><h3>서비스별 이용 통계</h3><span class="admin-chip">실시간 운영 이벤트</span></header><p class="admin-note" style="padding:0 16px 12px">페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.</p>';
         var filters = document.createElement('form'); filters.className = 'admin-filters';
-        filters.innerHTML = '<label for="admin-funnel-period">기간</label><select id="admin-funnel-period" name="period"><option value="day">오늘</option><option value="week">이번 주</option><option value="month">이번 달</option></select>';
+        filters.style.padding = '0 16px 12px';
+        filters.innerHTML = '<label for="admin-funnel-period">기간</label><select id="admin-funnel-period" name="period"><option value="day">최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select>';
         head.querySelector('header').insertAdjacentElement('afterend', filters);
         body.appendChild(head);
         var status = document.createElement('p'); status.className = 'admin-empty'; body.appendChild(status);
         var resultNodes = [];
+        var serviceNames = {
+          cmdg: '천명사주', money_save: '나는 왜 돈이 안 모일까?', quit_fortune: '나 지금 그만둬도 될까?',
+          work_move: '나, 회사 옮겨도 될까?', job_choice: '내가 선택한 직장 괜찮을까?', work_job: '직업운',
+          love_this_year: '올해 연애운', couple_signal: '연애 신호', love_mind: '상대방 마음', love_again: '재회운',
+          love_spouse: '배우자운', match_couple: '커플궁합', marry_match: '결혼궁합', cat_compatibility: '고양이 궁합',
+          lucky_color: '행운색', pass_angle: '나, 붙을 각이야?', newyear_flow: '새해운', wedding_day: '결혼 날짜',
+          home_pungsu: '집 풍수', today_fortune: '오늘운'
+        };
+        var stepNames = { home: '홈', entry: '진입', '01-story': '스토리', '02-input': '입력', '03-service-input': '추가 입력', '04-report': '무료 티저', payment: '결제', '05-toc': '전체 목차', '06-detail': '상세 해석', vault: '보관함', search: '검색' };
+        function serviceName(key) { return serviceNames[key] || key || '공통 화면'; }
+        function stepName(key) { return stepNames[key] || key || '기타'; }
+        function count(value) { return Number(value || 0).toLocaleString('ko-KR'); }
+        function appendKpis(overview, sampled) {
+          var grid = document.createElement('section'); grid.className = 'admin-kpi-grid'; grid.setAttribute('aria-label', '선택 기간 이용 요약');
+          [
+            ['페이지뷰', overview.views, '고객 화면이 열린 횟수'],
+            ['방문', overview.sessions, '30분 활동 기준 고유 세션'],
+            ['로그인 방문자', overview.signedInUsers, '로그인 상태로 본 고유 계정'],
+            ['수집 이벤트', sampled, '페이지뷰와 CTA 이벤트 합계']
+          ].forEach(function (item) {
+            var card = document.createElement('article'); card.className = 'admin-kpi';
+            var label = document.createElement('small'); label.textContent = item[0];
+            var value = document.createElement('strong'); value.textContent = count(item[1]);
+            var detail = document.createElement('span'); detail.textContent = item[2];
+            card.appendChild(label); card.appendChild(value); card.appendChild(detail); grid.appendChild(card);
+          });
+          body.appendChild(grid);
+        }
         async function load(period) {
           resultNodes.forEach(function (node) { node.remove(); }); resultNodes = [];
           status.hidden = false; status.textContent = '퍼널 통계를 불러오는 중입니다.';
@@ -1756,11 +1785,18 @@
             var payload = await response.json();
             status.hidden = true;
             var before = Array.from(body.children);
+            var overview = payload.overview || { views: 0, sessions: 0, signedInUsers: 0 };
+            var services = Array.isArray(payload.services) ? payload.services : [];
             var steps = Array.isArray(payload.steps) ? payload.steps : [];
             var ctas = Array.isArray(payload.ctas) ? payload.ctas : [];
-            addLiveTable(body, '단계별 진입', ['서비스', '단계', '조회', '세션'], steps, function (item) { return [item.serviceKey || '전체', item.step || '—', item.views, item.sessions]; }, '이 기간에 쌓인 단계 조회가 없습니다.');
-            addLiveTable(body, '많이 눌린 CTA', ['서비스', '대상', '클릭'], ctas, function (item) { return [item.serviceKey || '전체', item.target || '—', item.clicks]; }, '이 기간에 쌓인 CTA 클릭이 없습니다.');
-            if (payload.sampled) addLiveError(body, '표본이 상한(' + payload.sampled + '건)에 닿아 전체 기간을 다 세지 못했습니다.');
+            appendKpis(overview, payload.sampled || 0);
+            addLiveTable(body, '서비스별 페이지뷰', ['서비스', '전체 조회', '방문', '스토리', '입력', '무료 티저', '결제', '전체 목차', '상세 해석'], services, function (item) {
+              var byStep = item.steps || {};
+              return [serviceName(item.serviceKey), count(item.views), count(item.sessions), count(byStep['01-story']), count((byStep['02-input'] || 0) + (byStep['03-service-input'] || 0)), count(byStep['04-report']), count(byStep.payment), count(byStep['05-toc']), count(byStep['06-detail'])];
+            }, '선택 기간에 수집된 서비스 페이지뷰가 없습니다.');
+            addLiveTable(body, '페이지 단계별 상세', ['서비스', '페이지 단계', '조회', '방문'], steps, function (item) { return [serviceName(item.serviceKey), stepName(item.step), count(item.views), count(item.sessions)]; }, '선택 기간에 수집된 단계 조회가 없습니다.');
+            addLiveTable(body, '많이 눌린 CTA', ['서비스', '대상', '클릭'], ctas, function (item) { return [serviceName(item.serviceKey), item.target || '—', count(item.clicks)]; }, '선택 기간에 수집된 CTA 클릭이 없습니다.');
+            if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
             resultNodes = Array.from(body.children).filter(function (node) { return before.indexOf(node) === -1; });
           } catch (_error) {
             status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다.';

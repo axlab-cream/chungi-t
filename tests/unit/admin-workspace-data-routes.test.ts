@@ -63,12 +63,18 @@ test('loadMediaCatalog 는 실제 미디어 엔드포인트를 부르고 미사�
   assert.match(body, /item\.status === 'unused'/)
 })
 
-test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 부르고, steps·ctas 를 표로 그린다', () => {
+test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 부르고, 서비스별 페이지뷰를 표시한다', () => {
   const body = source.slice(source.indexOf('async function loadFunnelAnalytics'), source.indexOf('async function loadReleaseInfo'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/funnel\?period=' \+ encodeURIComponent\(period\)/)
+  assert.match(body, /payload\.overview/)
+  assert.match(body, /payload\.services/)
   assert.match(body, /payload\.steps/)
   assert.match(body, /payload\.ctas/)
-  assert.match(body, /item\.serviceKey \|\| '전체'/)
+  assert.match(body, /서비스별 페이지뷰/)
+  assert.match(body, /무료 티저/)
+  assert.match(body, /전체 목차/)
+  assert.match(body, /payload\.truncated/)
+  assert.doesNotMatch(body, /if \(payload\.sampled\) addLiveError/, '이벤트가 한 건이라도 있으면 상한 경고를 내면 안 된다')
   // 기간을 바꾸면 이전 결과만 지우고 필터 폼 자체는 남아야 한다.
   assert.match(body, /resultNodes\.forEach\(function \(node\) \{ node\.remove\(\); \}\)/)
 })
