@@ -2437,3 +2437,12 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [IMPROVED] 430px 이하에서는 표 머리글을 접근성 트리에 유지한 채 각 행을 항목 카드로 바꿔 가로 스크롤과 좁은 셀을 없앴다.
 - [FOUND] 기존 무료 풀이의 개인 사주 근거는 다섯 기운 합계에 머물러 네 기둥 중 어느 부분에서 나온 해석인지 고객이 확인하기 어려웠다.
 - [FIXED] 서버가 계산한 해·달·날·시간 기둥의 실제 기운을 표로 보여 주고, 태어난 날의 중심·태어난 달의 수입 반복·태어난 시간의 저축 목표를 본문에 연결했다. 기둥의 한자는 노출하지 않는다.
+- [PASS] 최종 전체 회귀 1608/1608(165 suites), 집중 45/45, TypeScript, JavaScript 구문, Vercel production build, 20개 서비스 QA, 저축운 21개 계약을 통과했다.
+- [PASS] 기능 커밋 `b3791134`를 `origin/main`에 반영했고 CI `36406708326`이 성공했다. Vercel production `dpl_CAhLq2Xj43xMGTVweVGF9H3PUC6f`가 Ready이며 `umsh.kr` 별칭에 연결됐다.
+- [PASS] 로그인된 운영 390px 화면에서 실제 해석 2개, 이미지 2개, 입력/네 기둥 표 2개, 돈 순서도 2개·6단계, 오행 차트 1개·5막대, 기본 펼침 잠금 목차 14개, 단일 CTA, 조회 상태와 입력 재확인 같은 행을 확인했다. 내부 절차 문구·원시 태그·가로 넘침은 0이었다.
+
+## 2026-09-28 — 저축운 마크다운 표 셀 줄바꿈 보정
+
+- [FOUND] 페이지 전체 `scrollWidth`는 정상이어도 공용 `.story-table td { white-space: nowrap; }`가 저축운 전용 규칙에 남아 있었다. 390px 카드형 표에서 긴 제목 6개가 각 셀 경계를 9~35px 넘었다.
+- [FIXED] 저축운 표의 제목·값에 `white-space: normal`, `min-width: 0`, `overflow-wrap: anywhere`를 명시하고 한글 어절은 가능한 한 보존한다. 모바일 `data-label`, 순서도 제목·설명, 캡션에도 같은 안전 규칙을 적용했다.
+- [PASS] 공용 리더·캐시·저축 티저 집중 회귀 41/41, TypeScript, JavaScript 구문 및 diff 검사를 통과했다. 동적 CSS 캐시는 v4, 공용 리더 캐시는 v5로 갱신했다.

@@ -1188,7 +1188,7 @@
     var link = document.createElement('link');
     link.id = 'umsh-inplace-css';
     link.rel = 'stylesheet';
-    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v3';
+    link.href = '/css/umsh-verified-inplace.css?v=20260928-money-save-teaser-v4';
     document.head.appendChild(link);
   }
   /**

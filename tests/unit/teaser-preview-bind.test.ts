@@ -167,6 +167,7 @@ test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에
   assert.match(accessSource, /무료 결과 5회를 모두 확인했습니다/)
   assert.match(inplaceCss, /\.money-teaser-reading \.story-image \{ aspect-ratio: 3 \/ 2; \}/)
   assert.match(inplaceCss, /\.money-teaser-reading \.story-table \{ width: 100%; table-layout: fixed; \}/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-table td \{[\s\S]*?white-space: normal;[\s\S]*?overflow-wrap: anywhere;/)
   assert.match(saveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
   assert.doesNotMatch(saveReportHtml, /class="price-pill">9,900원/)
   assert.doesNotMatch(saveReportHtml, />로그인하고 전체 보기 \(9,900원\)</)
