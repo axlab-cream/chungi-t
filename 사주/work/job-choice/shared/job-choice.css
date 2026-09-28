@@ -255,6 +255,41 @@ h3 {
   margin-top: 18px;
 }
 
+.jobchoice-hero-flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.jobchoice-hero-flow div {
+  min-height: 88px;
+  padding: 11px 9px;
+  border: 1px solid rgba(243, 196, 111, 0.2);
+  border-radius: 10px;
+  background: rgba(4, 6, 12, 0.62);
+}
+
+.jobchoice-hero-flow b,
+.jobchoice-hero-flow span {
+  display: block;
+}
+
+.jobchoice-hero-flow b {
+  margin-bottom: 6px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.jobchoice-hero-flow span {
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.42;
+  word-break: keep-all;
+}
+
 .meta-row,
 .summary-row,
 .fact-row {
