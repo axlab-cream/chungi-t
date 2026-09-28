@@ -1091,7 +1091,7 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | ADMIN-ANALYTICS-06 | 조회 상한 경고는 실제 상한 도달 때만 표시 | PASS (관리자 UI 계약) |
 | ADMIN-ANALYTICS-07 | TypeScript·20개 서비스 계약·20개 서비스 QA·Vercel production build | PASS |
 | ADMIN-ANALYTICS-08 | 전체 회귀 | PASS (1618/1618, 165 suites) |
-| ADMIN-ANALYTICS-09 | main·운영 배포·실제 관리자 화면 | PENDING |
+| ADMIN-ANALYTICS-09 | main·운영 배포·실제 관리자 화면 | PASS (`0afe978b`, 운영 통계에서 기간 KPI·서비스별 8단계 표·CTA 표 확인) |
 
 ## 2026-09-28 — 이직운 실제 데이터 무료 티저 검증표
 
@@ -1106,4 +1106,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | WORK-MOVE-TEASER-07 | 미결제 결제 URL, 권한 회원 05 목차, 05 직접 접근 fail-closed | PASS (공통 권한 회귀) |
 | WORK-MOVE-TEASER-08 | 430px 표 카드화·긴 문장 줄바꿈·가로 넘침 방지 | PASS (CSS 계약) |
 | WORK-MOVE-TEASER-09 | 전체 회귀·타입·서비스 계약·QA·프로덕션 빌드 | PASS (1624/1624, 166 suites) |
-| WORK-MOVE-TEASER-10 | main·운영 배포·실제 모바일 검증 | PENDING |
+| WORK-MOVE-TEASER-10 | main·운영 배포·실제 모바일 검증 | PASS (`635db421`, Vercel `dpl_CZwis3UCus4bBSNH36uTtoEtghGA`; 375px 해석 2·이미지 2·표 2·차트 1·닫힌 잠금 목차 8·단일 CTA·가로 넘침 0) |
