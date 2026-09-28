@@ -1490,7 +1490,9 @@
   function normalizeJobChoiceTeaserCopy(value) {
     return String(value || '')
       .replace(/전면 출근라면/g, '전면 출근이라면')
+      .replace(/전면 출근라는/g, '전면 출근이라는')
       .replace(/전면 출근가/g, '전면 출근이')
+      .replace(/참고합니다\.를 참고하되/g, '참고하되')
       .replace(/^\[주요 포인트\]\s*/, '')
       .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 사주와 현실 조건을 함께 보면\n')
       .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 실제로 확인할 장면\n')

@@ -85,6 +85,8 @@ test('직장 선택 티저는 실제 해석 1·2와 이미지·표·차트를 �
   assert.match(accessSource, /jobChoiceCommuteChart\(bodyText, index\)/)
   assert.match(accessSource, /왕복 ' \+ commute\[1\] \+ '분, 이 회사가 내 하루에서 가져가는 시간/)
   assert.match(accessSource, /전면 출근이라면/)
+  assert.match(accessSource, /전면 출근이라는/)
+  assert.match(accessSource, /참고합니다\\\.를 참고하되/)
   assert.match(accessSource, /job-teaser-final-cta/)
   assert.match(accessSource, /inlineMarkdown\(escapeHtml\(preview\.summary/)
   assert.match(inplaceCss, /\.job-teaser-reading/)
