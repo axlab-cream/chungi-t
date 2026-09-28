@@ -73,7 +73,7 @@ test('천명사주 개인 결과는 입력값과 근거가 맞는 후킹 문구�
   assert.doesNotMatch(result, /<h2>\$\{relationLabel\}<\/h2>/)
 
   assert.match(result, /반복되는[\s\S]{0,80}선택의 이유/)
-  assert.match(result, /끌리는 인연과 오래 남는 인연의 차이/)
+  assert.match(result, /마음이[\s\S]{0,40}열리고 닫히는 순간/)
   assert.match(result, /현재 고민[\s\S]{0,120}다음 행동/)
   assert.match(result, /천명사주 상담 시작/)
 })
@@ -123,6 +123,47 @@ test('현재 흐름 설명은 각자의 사주 관계에 따라 달라진다', (
   )
 })
 
+test('성격·재물·인연 미리보기는 실제 명식 개수와 현재 대운을 구체적으로 풀이한다', () => {
+  const buildPersonalReadingDetails = loadFunction('buildPersonalReadingDetails') as (input: Record<string, unknown>) => {
+    personality: { body: string, evidence: string }
+    wealth: { body: string, evidence: string }
+    love: { body: string, evidence: string }
+  }
+  const details = JSON.parse(JSON.stringify(buildPersonalReadingDetails({
+    dayMasterKo: '을',
+    dayElement: '목',
+    strength: 'strong',
+    elementCount: { wood: 5, fire: 0, earth: 1, metal: 1, water: 1 },
+    stems: ['을', '을', '을', '기'],
+    dayBranch: '해',
+    currentPillar: '庚辰',
+  })))
+
+  assert.match(details.personality.body, /을 기운이[^.]*3번/)
+  assert.match(details.personality.body, /나무[^.]*5개/)
+  assert.match(details.personality.evidence, /불[^.]*0개/)
+  assert.match(details.wealth.body, /돈과 성과[^.]*땅[^.]*1개/)
+  assert.match(details.wealth.evidence, /경진[^.]*땅 기운/)
+  assert.match(details.love.body, /해[^.]*물[^.]*나무/)
+  assert.doesNotMatch(JSON.stringify(details), /함께 봅니다|살펴보겠습니다|풀이합니다/)
+
+  for (const [dayMasterKo, dayElement, dayBranch, currentPillar] of [
+    ['갑', '목', '묘', '甲寅'], ['병', '화', '오', '壬子'], ['무', '토', '진', '乙卯'],
+    ['경', '금', '유', '丙午'], ['임', '수', '자', '戊戌'],
+  ]) {
+    const rendered = JSON.stringify(buildPersonalReadingDetails({
+      dayMasterKo,
+      dayElement,
+      strength: 'balanced',
+      elementCount: { wood: 2, fire: 1, earth: 2, metal: 1, water: 2 },
+      stems: [dayMasterKo],
+      dayBranch,
+      currentPillar,
+    }))
+    assert.doesNotMatch(rendered, /undefined|null|[一-龥]/)
+  }
+})
+
 test('개인 결과는 사주 근거 20퍼센트와 기승전결형 대운 차트를 보여준다', () => {
   const result = sliceBetween('function renderResult()', 'const AGREE_KEYS')
 
@@ -137,4 +178,18 @@ test('개인 결과는 사주 근거 20퍼센트와 기승전결형 대운 차�
   assert.doesNotMatch(result, /<span>大<\/span><span>運<\/span><span>轉<\/span>/)
   assert.doesNotMatch(result, /escapeHtml\(d\.pillar\)/)
   assert.doesNotMatch(result, /\.hanja|dayMasterHanja/)
+})
+
+test('하단 미리보기 표와 재물 차트는 비어 있지 않고 모바일 너비를 채운다', () => {
+  const result = sliceBetween('function renderResult()', 'const AGREE_KEYS')
+  const styles = sliceBetween('.report-preview {', '.report-reader-section {')
+
+  assert.match(result, /wealthChart/)
+  assert.match(result, /report-page-title/)
+  assert.doesNotMatch(result, /성격의 결: 겉으로 보이는 태도와 속에서 반복되는 불안의 방향/)
+  assert.doesNotMatch(result, /재물의 결: 돈이 모이는 자리와 새는 자리를 나눠서/)
+  assert.doesNotMatch(result, /인연의 결: 끌리는 사람과 오래 남는 사람이 왜 다른지/)
+  assert.match(styles, /width:\s*100%/)
+  assert.match(styles, /grid-template-columns:\s*74px minmax\(0, 1fr\)/)
+  assert.doesNotMatch(styles, /min-height:\s*116px/)
 })
