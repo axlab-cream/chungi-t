@@ -9,6 +9,7 @@ import {
   parseJobChoiceRequest,
 } from '../../src/work/jobchoice-service.js'
 import type { BirthInput } from '../../src/types/index.js'
+import { createOrGetReportRecord, toClientReport } from '../../src/report/report-store.js'
 
 const birth: BirthInput = {
   year: 1994,
@@ -98,6 +99,28 @@ test('직장 선택 compares actual offer conditions without inventing palaces',
   assert.match(money.interpretation, /성과급|고정급|보상/)
   assert.match(environment.interpretation, /왕복 90분/)
   assert.match(mental.interpretation, /생활|시간/)
+})
+
+test('직장 선택 무료 첫 두 해석은 개인 입력에서 생성되어 저장 본문과 일치한다', async () => {
+  const analysis = analyzeSaju(birth)
+  const firstInput = parseJobChoiceRequest({ ...offer, commute: '편도 40분' })
+  const secondInput = parseJobChoiceRequest({ ...offer, companyName: 'B회사', workMode: 'remote', commute: '왕복 90분' })
+  const firstTemplate = buildJobChoiceReport(analysis, birth, buildJobChoiceContext('지민', firstInput), firstInput, 'job-choice-personal-a')
+  const secondTemplate = buildJobChoiceReport(analysis, birth, buildJobChoiceContext('지민', secondInput), secondInput, 'job-choice-personal-b')
+  const owner = { id: 'job-choice-personal-test-owner' }
+  const first = (await createOrGetReportRecord({ reportId: 'job-choice-personal-a', birth, context: buildJobChoiceContext('지민', firstInput), templateReport: firstTemplate, owner })).record
+  const second = (await createOrGetReportRecord({ reportId: 'job-choice-personal-b', birth, context: buildJobChoiceContext('지민', secondInput), templateReport: secondTemplate, owner })).record
+  const firstClient = toClientReport(first)
+
+  assert.deepEqual(first.report.sections.slice(0, 2).map((section) => section.status), ['complete', 'complete'])
+  assert.ok(first.report.sections.slice(2).every((section) => section.status === 'pending' && !section.interpretation))
+  assert.equal(firstClient.sections[0].interpretation, firstTemplate.sections[0].interpretation)
+  assert.equal(firstClient.sections[1].interpretation, firstTemplate.sections[1].interpretation)
+  assert.match(firstClient.sections[1].interpretation, /편도 40분, 왕복 약 80분/)
+  assert.deepEqual(firstClient.sections[1].storytelling?.chartPoints?.map((point) => point.value), [40, 80])
+  assert.notEqual(firstClient.sections[0].interpretation, second.report.sections[0].interpretation)
+  assert.equal(second.report.sections[1].storytelling?.chartPoints, undefined)
+  assert.doesNotMatch(firstClient.sections[1].interpretation, /기본 QA|가상 입력/)
 })
 
 test('직장 선택 request validates its required answers', () => {

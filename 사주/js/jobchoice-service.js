@@ -91,7 +91,11 @@
   }
 
   async function api(path, options = {}) {
-    const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, {
+    // A newly submitted offer must reach POST. The shared reader may otherwise turn
+    // analyze into GET for the previous remembered report ID.
+    const freshTeaser = path === '/api/work/job-choice/analyze' && /\/04-step-4-report\//.test(location.pathname) && options.method === 'POST';
+    const transport = freshTeaser ? fetch : (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch);
+    const response = await transport(path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -105,6 +109,7 @@
       error.status = response.status;
       error.code = payload.code;
       error.paymentUrl = payload.paymentUrl;
+      error.freeSearch = payload.freeSearch;
       throw error;
     }
     return payload;
@@ -194,6 +199,8 @@
   function loadReport() {
     if (reportPromise) return reportPromise;
     reportPromise = (async () => {
+      const linked = await window.UMSHReportAccess?.loadLinkedReport?.();
+      if (linked?.report?.sections?.length) return linked;
       const cached = readJson('sessionStorage', STORAGE.report);
       if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
@@ -207,7 +214,12 @@
       }
 
       try {
-        const response = await api('/api/work/job-choice/analyze', { method: 'POST', body: JSON.stringify(request) });
+        const teaserPage = /\/04-step-4-report\//.test(location.pathname);
+        const response = await api('/api/work/job-choice/analyze', {
+          method: 'POST',
+          body: JSON.stringify(teaserPage ? { ...request, preview: true } : request),
+        });
+        if (teaserPage) window.UMSHReportAccess?.remember?.(response);
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
         if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
@@ -224,6 +236,7 @@
           return { reason: 'payment', paymentUrl: error.paymentUrl };
         }
         if (error.code === 'PROFILE_REQUIRED') return { reason: 'profile' };
+        if (error.code === 'FREE_PREVIEW_LIMIT') return { reason: 'limit', paymentUrl: error.paymentUrl, freeSearch: error.freeSearch };
         return { reason: 'error', message: error.message };
       }
     })();
@@ -261,7 +274,26 @@
     profile: '기본 사주 정보를 등록하면 이 오퍼를 내 원국 기준으로 바로 계산합니다.',
     payment: '결제가 확인되면 10개 대분류 57개 항목이 모두 열립니다.',
     error: '풀이를 계산하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+    limit: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.',
   };
+
+  function showFreeSearchCount(quota) {
+    const retry = document.getElementById('retryButton');
+    if (!retry || !quota || !Number.isInteger(quota.used) || quota.limit !== 5) return;
+    const used = Math.min(5, Math.max(0, quota.used));
+    retry.textContent = used >= 5 ? '무료 재검색 5/5회 사용' : `다시 검색하기 · ${used}/5회 사용`;
+    retry.disabled = used >= 5;
+    let count = document.getElementById('jobChoiceFreeSearchCount');
+    if (!count) {
+      count = document.createElement('p');
+      count.id = 'jobChoiceFreeSearchCount';
+      count.className = 'fineprint';
+      retry.parentNode.insertBefore(count, retry.nextSibling);
+    }
+    count.textContent = used >= 5
+      ? '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.'
+      : `무료 결과 조회 ${used}/5회 사용 · ${5 - used}회 남음`;
+  }
 
   // --------------------------------------------------------------- step 04
   /**
@@ -280,7 +312,11 @@
     const hadCache = Boolean(readJson('sessionStorage', STORAGE.report)?.sections?.length);
     const outcome = await loadReport();
     if (outcome.preview) {
+      if (outcome.payload?.teaserSections?.length === 2) {
+        window.UMSHReportAccess?.showPreview?.(outcome.payload, buildRequest());
+      }
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      showFreeSearchCount(outcome.payload?.freeSearch);
       const pay = document.getElementById('payButton');
       if (pay) {
         const fresh = pay.cloneNode(true);
@@ -324,7 +360,7 @@
     } else if (reason === 'profile') {
       action.textContent = '내 사주 등록하기';
       action.href = `/profile?returnTo=${encodeURIComponent(location.pathname)}`;
-    } else if (reason === 'payment') {
+    } else if (reason === 'payment' || reason === 'limit') {
       action.textContent = `전체 보기 (${SERVICE.price})`;
       action.href = outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`;
     } else if (reason === 'input') {
@@ -335,7 +371,7 @@
       action.href = location.href;
     }
     notice.append(eyebrow, heading, copy, action);
-    stage.insertBefore(notice, stage.firstChild);
+    stage.replaceChildren(notice);
 
     // The sample signal bodies must not stay on screen as if they were personal.
     document.querySelectorAll('.signal-item span').forEach((node) => {

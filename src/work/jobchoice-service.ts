@@ -289,6 +289,44 @@ function buildInterpretation(params: {
   })
 }
 
+function oneWayCommuteMinutes(value: string): number | null {
+  const match = value.match(/편도\s*(\d{1,3})\s*분|(\d{1,3})\s*분\s*편도/)
+  const minutes = Number(match?.[1] ?? match?.[2])
+  return Number.isInteger(minutes) && minutes > 0 && minutes <= 180 ? minutes : null
+}
+
+function openingJobChoiceReading(input: JobChoiceRequest, analysis: SajuAnalysis, index: number): string {
+  const mode = WORK_MODE_LABEL[input.workMode]
+  const salary = SALARY_LABEL[input.salaryFeeling]
+  const minutes = oneWayCommuteMinutes(input.commute)
+  if (index === 0) return `**${input.companyName}의 ${input.roleName} 제안에서 지금 먼저 확인할 것은 무엇일까요?** 적어 주신 근무 형태는 ${mode}, 출퇴근 조건은 “${input.commute}”, 보상 체감은 “${salary}”입니다. 특히 “${input.concernPoint}”라는 고민이 있다면 회사 이름이나 첫인상보다 실제로 맡을 일의 경계가 먼저입니다. 이 입력만으로 회사의 내부 운영을 알 수는 없으므로, 판단은 확인 가능한 조건부터 쌓아야 합니다.
+
+첫 기준은 **직무명보다 실제 산출물**입니다. ${input.roleName}이라는 이름 아래 어떤 결과물을 언제까지 내야 하는지, 누가 최종 승인하는지, 다른 팀과의 조율을 어디까지 책임지는지 물어보세요. 역할 설명이 넓어 보여도 결정권과 지원 인력이 분명하다면 성장의 여지가 있습니다. 반대로 책임만 넓고 승인권이 흐리면 기대한 자율성이 수정 요청을 처리하는 시간으로 바뀔 수 있습니다. 사주 쪽에서는 ${workSymbol(analysis, 'role')}를 참고하되, 이것만으로 특정 회사의 실제 업무 방식을 판정하지는 않습니다.
+
+두 번째 기준은 **평가와 보상이 같은 일을 가리키는지**입니다. 첫 3개월의 산출물, 평가자, 평가 시점이 문서에 있는지 확인하세요. 입력하신 보상 체감은 ${salary}이지만 실제 급여, 성과급, 수습 조건의 숫자는 제공되지 않았습니다. 보상이 좋게 느껴져도 기대 업무가 매번 바뀌면 비교 기준이 흔들립니다. 반대로 업무 범위와 평가 기준이 일치한다면 출퇴근 부담을 감수할 이유가 있는지 더 분명해집니다.
+
+| 비교할 조건 | 지금 입력한 내용 | 결정 전 확인할 것 |
+| --- | --- | --- |
+| 맡을 일 | ${input.roleName} | 첫 90일 산출물과 맡지 않을 일 |
+| 근무 방식 | ${mode} | 실제 출근·재택·출장 운영 규칙 |
+| 이동 | ${input.commute} | 출근 요일과 변경 통보 방식 |
+| 보상 | ${salary} | 고정급·변동급·수습 조건 |
+
+이 표에서 아직 답하지 못한 칸은 불합격 판정이 아닙니다. 오퍼를 수락할 근거를 더 모아야 할 자리입니다. 역할·권한·평가가 같은 설명으로 이어지는지 확인한 뒤 보상과 생활 부담을 비교해 보세요.`
+
+  return `**${mode}라면 내 일상은 실제로 어떻게 달라질까요?** 입력하신 출퇴근 조건은 “${input.commute}”입니다. ${minutes !== null ? `같은 경로로 오간다고 가정하면 편도 ${minutes}분, 왕복 약 ${minutes * 2}분입니다. 이 수치는 입력한 시간을 두 배로 환산한 값이며 실제 출근 횟수나 교통 상황까지 계산한 값은 아닙니다.` : '편도 시간과 출근 횟수가 함께 확인되지 않아 주간·월간 이동 시간을 숫자로 단정할 수 없습니다.'} ${mode}라는 명칭만으로 회복할 저녁 시간이 보장되지는 않습니다. 출근 일정이 고정인지, 회의 때문에 바뀌는지, 이동하는 날에 대면 업무가 몰리는지에 따라 체감이 달라집니다.
+
+${input.roleName} 업무에서는 이동만이 아니라 **회의 뒤의 일**도 확인해야 합니다. 수정 의견을 누가 정리하고 누가 승인하는지, 퇴근 뒤 요청에는 언제 답해야 하는지 물어보세요. 출근한 날 조율을 끝내고 다른 날에 집중할 수 있다면 ${mode}가 도움이 될 수 있습니다. 반대로 회의가 끝난 뒤 결과를 혼자 정리해야 한다면 장소만 바뀌고 업무 시간은 길어질 수 있습니다. “${input.concernPoint}”라는 걱정도 이런 실제 일정과 대조해야 막연한 불안인지 필요한 협상 조건인지 나눌 수 있습니다.
+
+| 일상에서 볼 장면 | 회사에 물을 질문 | 답이 모호할 때의 영향 |
+| --- | --- | --- |
+| 출근 일정 | 요일과 변경 통보 시점은 정해져 있나요? | 이동 계획이 흔들릴 수 있음 |
+| 대면 회의 | 회의 뒤 산출물 작업 시간은 확보되나요? | 조율 뒤 일이 쌓일 수 있음 |
+| 퇴근 뒤 연락 | 응답 기한과 긴급 기준은 무엇인가요? | 회복 시간이 대기로 바뀔 수 있음 |
+
+결정을 도울 질문은 “버틸 수 있나요?”보다 구체적이어야 합니다. 첫 달의 근무 일정을 예시로 받아 보고, 실제로 업무가 끝나는 시각과 첫 90일 피드백 주기를 확인해 보세요. 답이 문서와 현장 설명에서 일치하면 이동 부담을 감수할 이유가 있는지 비교할 수 있습니다. 규칙이 계속 말로만 남는다면 좋은 첫인상만으로 오래 다닐 수 있다고 판단하지 마세요.`
+}
+
 const OWN_CORPUS_DOMAIN = 'job_choice_service'
 
 export function buildJobChoiceReport(
@@ -324,29 +362,37 @@ export function buildJobChoiceReport(
     const ownChunks = retrieveCategoryOwnChunks(categoryRagCache, query, ragCategory, analysis, context, OWN_CORPUS_DOMAIN, 6)
     const categoryChunks = ownChunks.length ? [...ownChunks, ...generalChunks] : generalChunks
     group.items.forEach((item, itemIndex) => {
+      const openingIndex = order - 1
+      const isOpening = openingIndex < 2
+      const minutes = isOpening && openingIndex === 1 ? oneWayCommuteMinutes(input.commute) : null
+      const baseInterpretation = buildInterpretation({
+        group, itemTitle: item.title, itemIndex, analysis, birth, input,
+        chunks: categoryChunks, index: order + itemIndex,
+      })
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.
         id: item.id,
         order,
         imageKey: group.id,
-        imageSrc: `${JOB_CHOICE_ASSET_BASE}/01-scene-05-index-preview.webp`,
+        imageSrc: isOpening
+          ? `${JOB_CHOICE_ASSET_BASE}/reading-v2/0${openingIndex + 1}-company-fit-${openingIndex === 0 ? 'overall' : 'decision'}.webp`
+          : `${JOB_CHOICE_ASSET_BASE}/01-scene-05-index-preview.webp`,
         imageAlt: `${group.title} 풀이`,
         category: group.title,
         categoryEn: group.label,
         classification: item.title,
-        hook: item.title,
+        hook: isOpening ? (openingIndex === 0 ? '좋아 보이는 제안일수록 실제 맡을 일과 평가 기준을 먼저 확인하세요.' : '근무 형태보다 실제 출근 일정과 회복 시간을 먼저 비교하세요.') : item.title,
         patternKeys: ['work', 'job-choice', group.id],
         ragTopics: categoryChunks.slice(0, 4).map((chunk) => chunk.topic),
-        interpretation: buildInterpretation({
-          group,
-          itemTitle: item.title,
-          itemIndex,
-          analysis,
-          birth,
-          input,
-          chunks: categoryChunks,
-          index: order + itemIndex,
-        }),
+        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex)}\n\n${baseInterpretation}` : baseInterpretation,
+        ...(minutes !== null ? { storytelling: {
+          feel: '', scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+          chartPoints: [
+            { label: '편도 이동', value: minutes, note: '고객이 입력한 편도 시간' },
+            { label: '같은 경로 왕복', value: minutes * 2, note: `편도 ${minutes}분 × 2 단순 환산` },
+          ],
+          chartCaption: '이동 시간(분) · 입력한 편도 시간의 단순 환산입니다.',
+        } } : {}),
         generatedBy: 'template',
         model: 'job-choice-rag-template',
         status: 'complete',

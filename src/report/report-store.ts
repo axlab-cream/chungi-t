@@ -990,16 +990,39 @@ export async function createOrGetReportRecord(params: {
   /** 주면 계보 승계가 켜진다. 없으면 리포트 ID 정확 일치만 본다(기존 동작). */
   lineageId?: string
 }): Promise<{ record: ReportRecord; created: boolean }> {
+  const freeOpening = params.context?.serviceKey === 'job_choice'
+    && !(params.context as { savedChat?: unknown }).savedChat
+    && params.templateReport.sections.length >= 2
   const existing = await getReportRecord(params.reportId, params.owner)
   if (existing) {
     assertReportOwner(existing, params.owner)
-    return { record: existing, created: false }
+    if (!freeOpening || existing.status === 'complete') return { record: existing, created: false }
+    const opening = params.templateReport.sections.slice(0, 2)
+    if (opening.length !== 2 || opening.some((section) => !section.interpretation?.trim())) return { record: existing, created: false }
+    const upgraded = await mutateReportRecord(existing.reportId, params.owner, (draft) => {
+      let changed = false
+      for (let index = 0; index < 2; index += 1) {
+        if (draft.report.sections[index]?.status === 'complete') continue
+        draft.report.sections[index] = {
+          ...opening[index],
+          generationId: draft.report.sections[index]?.generationId ?? randomUUID(),
+          status: 'complete',
+        }
+        changed = true
+      }
+      if (!changed) return false
+      draft.report.progress = { complete: draft.report.sections.filter((section) => section.status === 'complete').length, total: draft.report.sections.length }
+    })
+    return { record: upgraded ?? existing, created: false }
   }
 
   if (params.lineageId) {
     const inherited = await findReportInLineage(params.lineageId, params.owner)
     if (inherited) {
       assertReportOwner(inherited, params.owner)
+      if (freeOpening) {
+        return createOrGetReportRecord({ ...params, reportId: inherited.reportId, lineageId: undefined })
+      }
       return { record: inherited, created: false }
     }
   }
@@ -1016,16 +1039,16 @@ export async function createOrGetReportRecord(params: {
     storage: storageMode(),
     corpus,
     quality: undefined,
-    progress: { complete: 0, total: params.templateReport.sections.length },
-    sections: params.templateReport.sections.map((section) => ({
+    progress: { complete: freeOpening ? 2 : 0, total: params.templateReport.sections.length },
+    sections: params.templateReport.sections.map((section, index) => ({
       ...section,
-      hook: '',
-      interpretation: '',
-      storytelling: undefined,
+      hook: freeOpening && index < 2 ? section.hook : '',
+      interpretation: freeOpening && index < 2 ? section.interpretation : '',
+      storytelling: freeOpening && index < 2 ? section.storytelling : undefined,
       generationId: randomUUID(),
       generatedBy: 'template',
       model: 'template',
-      status: 'pending',
+      status: freeOpening && index < 2 ? 'complete' : 'pending',
     })),
   }
   const record: ReportRecord = {
