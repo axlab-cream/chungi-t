@@ -82,8 +82,10 @@ test('friend invitation always shares the public test URL and supports copy/manu
   await context.share()
   assert.equal(copied, 'https://umsh.kr/play/love-speed/')
   assert.ok(message.includes('친구'))
-  context.navigator.share = async () => { throw Error('copy-only must skip native share') }
+  let nativeCalls = 0
+  context.navigator.share = async () => { nativeCalls++ }
   await context.share(undefined, true)
+  assert.equal(nativeCalls, 0)
   assert.equal(copied, 'https://umsh.kr/play/love-speed/')
   delete context.navigator.share
   context.navigator.clipboard.writeText = async () => { throw Error('denied') }
