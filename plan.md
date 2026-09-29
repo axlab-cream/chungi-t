@@ -1,5 +1,14 @@
 # Plan
 
+## 2026-09-29 — 관계 신호 STEP2 입력 경험 보강
+
+- [x] 세로 포스터·동영상 비율과 모바일 히어로 자르기 원인 확인
+- [x] 내부 단계 문구와 기능 중심 요약을 고객 고민 중심 카피로 교체
+- [x] 날짜 선택 목록의 흰 배경/흰 글자 대비 결함 수정
+- [x] 전용 회귀 테스트 작성 및 로컬 모바일 시각 검수
+- [x] 전체 회귀·타입 검사·프로덕션 빌드
+- [ ] 운영 배포 및 운영 URL 재검증
+
 - 2026-09-29 `task-cat-compatibility-teaser-production`: 저장/새 보호자 사주와 관찰한 고양이 행동 기반 1·2번 해석, 닫힌 실제 잠금 목차, 조회 5회, 결제/권한 분기를 한 수직 슬라이스로 구현·검증·배포했다. 상태: DONE (`d8d4a70a`, `dpl_MrDDXj5QYBvTArk2nh1XVQmGC8WK`).
 
 - 2026-09-13 `task-tone-v2-p04-pass-angle-visual-render-evidence` DONE: verified the immutable 52-section result through the real reader on desktop, exact 390px mobile and complete print; fixed target sizing and print-intro contrast; attached sanitized evidence and advanced aggregate visual coverage to 5/20. No next Task is active before a new user gate.

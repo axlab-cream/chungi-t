@@ -1,5 +1,14 @@
 # Tests
 
+## 2026-09-29 — 관계 신호 STEP2 입력 경험
+
+- [PASS] `npx tsx --test tests/unit/love-signal-input.test.ts tests/unit/love-signal-story.test.ts` — 7/7
+- [PASS] 720×1280 세로 포스터를 정적 히어로로 사용하고 360px 프레임·상단 초점으로 머리 잘림 방지
+- [PASS] 선택 목록 `option`에 `#fff8ee` 배경과 `#24110e` 글자색 적용
+- [PASS] 로컬 운영형 모바일 화면에서 공통 GNB, 히어로, 요약 3개, 입력 카드의 가로 넘침·겹침 없음
+- [PASS] 전체 회귀 1,670/1,670(166 suites), TypeScript, 관계 신호 20개 계약, 20개 서비스 계약·QA, 프로덕션 빌드
+- [PENDING] 운영 URL 검증
+
 ## Verification Matrix
 
 - 2026-09-17 L4 분량 예산: focused `tests/unit/report-budget.test.ts`. 두 번 측정 공식, 구간 밖 재생성 신호, 등급 라벨 거부, 프롬프트 뜻 치환. Production NOT_RUN.
