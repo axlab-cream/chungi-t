@@ -480,3 +480,11 @@ Step XX
 - [x] 이미지·표·순서·차트와 모바일 줄바꿈, 닫힌 03~N 잠금 목차를 구현한다.
 - [x] 03 준비 표시와 이직운 전용 5회 조회를 연결한다.
 - [x] 전체 검증·리뷰·main 배포·운영 브라우저 확인·CreamWIKI 기록을 완료한다.
+
+## task-work-move-gnb-order-20260929
+
+- [x] 운영 이직운 STEP4에서 공통 상단 GNB가 개인화 티저 6,500px 뒤에 놓이는 DOM 순서 회귀를 재현했다.
+- [x] `data-umsh-service-top`을 `umsh-preview-host` 앞에 복구하고 순서 계약 테스트를 추가했다.
+- [x] focused 31/31, full 1624/1624, typecheck, Vercel production build를 통과했다.
+- [x] main `f75872a3`, CI `36508514403`, Production `dpl_6NWMgVRLPy9pWFmvgzZTWsH5QEjM` Ready를 확인했다.
+- [x] 운영 URL에서 GNB y=0/h=85, 티저 y=85와 로고·뒤로·메뉴 마운트를 확인했다.

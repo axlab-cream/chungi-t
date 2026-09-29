@@ -2501,3 +2501,12 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] `0afe978b`가 이직운 배포와 함께 main·Production에 반영됐다. 운영 관리자 통계에서 최근 24시간 페이지뷰·방문·로그인 방문자·수집 이벤트와 서비스별 스토리/입력/무료 티저/결제/전체 목차/상세 해석 열을 실제 집계값으로 확인했다.
 - [PASS] 기간 선택, 단계별 상세, CTA 순위도 운영 데이터로 표시된다. 원본 계정 정보와 리포트 본문은 통계 DTO에 포함하지 않는다.
 - [KMS] `personal/carrotcap/notes/umsh-admin-service-pageviews-20260928.md`에 집계 정의와 운영 검증을 저장하고 재조회했다.
+
+## 2026-09-29 — 이직운 무료 티저 공통 GNB 상단 복구
+
+- observation: 운영 이직운 STEP4의 공통 GNB 호스트가 `umsh-preview-host` 다음 형제로 배치되어, sticky GNB가 약 6,500px 길이의 티저 본문 아래에서 시작했다. GNB는 존재했지만 첫 화면에는 보이지 않았다.
+- decision: 이직운 STEP4의 정적 DOM 순서를 공통 셸 계약에 맞게 `data-umsh-service-top` → `umsh-preview-host`로 복구하고, 이 순서를 고정하는 회귀 테스트를 추가했다.
+- artifact: 구현 커밋 `f75872a3`; 배포 `dpl_6NWMgVRLPy9pWFmvgzZTWsH5QEjM`; CI `36508514403`.
+- QA result: focused 31/31, full 1624/1624, typecheck, production build, CI PASS. 운영 URL에서 GNB y=0/h=85, 티저 y=85, 공통 상단 로고·뒤로·메뉴 마운트를 확인했다.
+- scope: HTML 순서와 회귀 테스트만 변경했다. DB/API/개인화 데이터/결제/보관함/하단 내비게이션 변경 없음.
+- lesson: 고정된 GNB 호스트가 DOM에 존재하는지만 검사하지 말고, 동적 본문 호스트보다 앞서는 읽기·레이아웃 순서까지 계약으로 고정한다.

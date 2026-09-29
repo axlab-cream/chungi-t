@@ -681,3 +681,11 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 4. STEP2 제출 뒤 03 개인화 준비 상태를 보여 주고 `reportId`를 보존해 04로 이동한다.
 5. 이직운 전용 5회 조회 키와 기존 결제·관리자 권한·05 fail-closed·06 상세 흐름을 함께 회귀 검증한다.
 6. 전체 회귀·타입·서비스 계약·QA·프로덕션 빌드·리뷰 후 main과 운영에 배포하고 실제 모바일 화면을 확인한다.
+
+## task-work-move-gnb-order-20260929
+
+- [x] 운영 이직운 STEP4에서 공통 상단 GNB가 개인화 티저 6,500px 뒤에 놓이는 DOM 순서 회귀를 재현했다.
+- [x] `data-umsh-service-top`을 `umsh-preview-host` 앞에 복구하고 순서 계약 테스트를 추가했다.
+- [x] focused 31/31, full 1624/1624, typecheck, Vercel production build를 통과했다.
+- [x] main `f75872a3`, CI `36508514403`, Production `dpl_6NWMgVRLPy9pWFmvgzZTWsH5QEjM` Ready를 확인했다.
+- [x] 운영 URL에서 GNB y=0/h=85, 티저 y=85와 로고·뒤로·메뉴 마운트를 확인했다.

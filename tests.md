@@ -1107,3 +1107,15 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | WORK-MOVE-TEASER-08 | 430px 표 카드화·긴 문장 줄바꿈·가로 넘침 방지 | PASS (CSS 계약) |
 | WORK-MOVE-TEASER-09 | 전체 회귀·타입·서비스 계약·QA·프로덕션 빌드 | PASS (1624/1624, 166 suites) |
 | WORK-MOVE-TEASER-10 | main·운영 배포·실제 모바일 검증 | PASS (`635db421`, Vercel `dpl_CZwis3UCus4bBSNH36uTtoEtghGA`; 375px 해석 2·이미지 2·표 2·차트 1·닫힌 잠금 목차 8·단일 CTA·가로 넘침 0) |
+
+## 2026-09-29 — 이직운 무료 티저 공통 GNB 순서 회귀
+
+| 검증 | 결과 |
+|---|---|
+| RED: `npx tsx --test tests/unit/teaser-preview-bind.test.ts` | GNB 호스트가 티저 뒤에 있어 1건 실패 |
+| GREEN focused 3 suites | 31/31 PASS |
+| `npm test` | 1624/1624 PASS |
+| `npm run typecheck` | PASS |
+| `npm run vercel-build` | PASS |
+| GitHub Actions `36508514403` | PASS |
+| 운영 DOM | GNB y=0, 티저 y=85, 공통 상단 버튼 마운트 PASS |
