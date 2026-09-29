@@ -114,4 +114,3 @@
   else if (state.answers.length) question(state.answers.length);
   else home();
 })();
-
