@@ -194,6 +194,10 @@ test('이직운 티저는 개인화 1·2번과 닫힌 실제 잠금 목차, 단�
   assert.match(accessSource, /class="job-teaser-status-row"/)
   assert.match(accessSource, /previewCta\(payload\)/)
   assert.match(moveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
+  assert.ok(
+    moveReportHtml.indexOf('data-umsh-service-top') < moveReportHtml.indexOf('id="umsh-preview-host"'),
+    '공통 GNB 호스트는 개인화 티저 본문보다 먼저 렌더되어야 한다',
+  )
   assert.match(moveReportHtml, /umsh-verified-inplace\.css\?v=20260928-move-teaser-v1/)
   assert.match(inplaceCss, /\.move-teaser-reading/)
   assert.match(inplaceCss, /\.move-teaser-reading \.story-table/)
