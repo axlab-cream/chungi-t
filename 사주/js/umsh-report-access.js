@@ -1881,7 +1881,7 @@
         + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
         + '</div></article>';
     }).join('');
-    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false });
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: true });
     var quotaText = teaserQuotaText(payload.freeSearch);
     return '<header class="job-teaser-opening cat-teaser-opening">'
       + '<span>고양이 궁합 · 무료 공개 2개 해석</span>'

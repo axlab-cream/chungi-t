@@ -1180,3 +1180,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - [PASS] 구현 `d8d4a70a`를 `origin/main`에 반영하고 Production `dpl_MrDDXj5QYBvTArk2nh1XVQmGC8WK` Ready·`umsh.kr` 별칭을 확인했다.
 - [PASS] 로그인 운영 URL에서 공통 GNB, 개인화 1·2번, 서로 다른 이미지 2개, 입력 표, 보호자 네 기둥 표, 실제 다섯 기운 차트, 닫힌 실제 03~20 잠금 목차, 조회 0/5·5회 남음, 입력값 재확인, 단일 CTA를 확인했다.
 - [PASS] 검증 계정은 기존 열람 권한이 있어 CTA가 reportId를 보존한 05 목차로 연결됐다. 미결제 결제 URL 분기는 서버·렌더 회귀 테스트에서 통과했다.
+- [PASS] 후속 운영 피드백에 따라 고양이 궁합의 실제 03~20 잠금 목차를 기본 펼침으로 변경했다. 접기 기능과 잠김 표시, 단일 CTA는 유지하며 집중 회귀 52/52·타입·프로덕션 빌드를 통과했다.

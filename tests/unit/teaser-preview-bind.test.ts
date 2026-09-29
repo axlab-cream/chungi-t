@@ -310,7 +310,7 @@ test('올해 연애운 캠페인 이미지는 메인·스토리·입력·티저�
   assert.match(thisYearServiceSource, /campaign-2026\/year-love-teaser-02-v1\.webp/)
 })
 
-test('고양이 궁합 티저는 실제 행동 입력·보호자 사주 1·2번과 닫힌 03~N 목차를 렌더한다', () => {
+test('고양이 궁합 티저는 실제 행동 입력·보호자 사주 1·2번과 기본 펼침 03~N 잠금 목차를 렌더한다', () => {
   const teaserSections = [
     { id: 'guardian-dna', imageSrc: '/match/cat/assets/cat-compatibility/reading-v2/01-guardian-dna.webp', interpretation: '[주요 포인트] 실제 첫 본문', storytelling: { tableMd: '| 확인 | 입력 |\n| --- | --- |\n| 손길 | 짧게만 |' } },
     { id: 'affection-temperature', imageSrc: '/match/cat/assets/cat-compatibility/reading-v2/02-affection-temperature.webp', interpretation: '[사주와 생활을 함께 보면] 실제 둘째 본문', storytelling: { chartPoints: [{ label: '나무', value: 2, note: '서버 계산값' }] } },
@@ -327,7 +327,7 @@ test('고양이 궁합 티저는 실제 행동 입력·보호자 사주 1·2번�
   assert.match(accessSource, /renderSectionImage\(section, 'cat_compatibility'\)/)
   assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
   assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
-  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: false \}\)/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: true \}\)/)
   assert.match(catReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
   assert.ok(catReportHtml.indexOf('data-umsh-service-top') < catReportHtml.indexOf('id="umsh-preview-host"'))
   assert.match(inplaceCss, /\.cat-teaser-reading/)
