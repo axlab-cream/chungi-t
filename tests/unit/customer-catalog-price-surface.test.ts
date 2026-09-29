@@ -49,3 +49,11 @@ test('홈 카드·상세 가격은 결제 카탈로그와 같다', () => {
   assert.match(portal, /합격운 나, 붙을 각이야\? 9,900원/)
   assert.doesNotMatch(portal, /붙을 각이야\? 새로 열린 서비스/)
 })
+
+test('올해 연애운 홈 카드는 캠페인 대표 이미지를 사용한다', () => {
+  const portal = readFileSync(join(SAJU, 'portal.html'), 'utf8')
+  const card = portal.match(/<a class="poster service-card is-live is-love"[\s\S]*?<\/a>/)?.[0] ?? ''
+
+  assert.match(card, /campaign-2026\/year-love-home-banner-v1\.webp/)
+  assert.doesNotMatch(card, /<video|01-frontface-window/)
+})
