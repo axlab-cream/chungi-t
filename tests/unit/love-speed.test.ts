@@ -6,6 +6,42 @@ import { runInNewContext } from 'node:vm'
 import { calculateLoveResult, parseLoveInput } from '../../src/play/love-speed.js'
 import { loveSpeedRouter } from '../../src/play/love-speed-route.js'
 
+test('existing signup OAuth callback resumes the game only after authentication, without requiring a birth profile', () => {
+  const source = readFileSync(new URL('../../사주/사주/index.html', import.meta.url), 'utf8')
+  const functions = source.slice(source.indexOf('      function returnToLoveSpeedAfterAuth'), source.indexOf('      function isStandaloneSignupFlow'))
+  let target = ''
+  const removed: string[] = []
+  const context: any = { initialAuthEntry: 'love-speed', URL, AUTH_PENDING_KEY:'pending', AUTH_FORM_KEY:'form', sessionStorage:{ removeItem:(key:string)=>removed.push(key) }, location:{origin:'https://umsh.kr',replace:(url:string)=>{target=url}} }
+  runInNewContext(functions, context)
+  const callback = new URL(context.signupReturnUrl())
+  assert.equal(callback.pathname, '/cmdg/')
+  assert.equal(callback.searchParams.get('entry'), 'love-speed')
+  assert.equal(context.returnToLoveSpeedAfterAuth(null), false)
+  assert.equal(target, '')
+  assert.equal(context.returnToLoveSpeedAfterAuth({access_token:'test-only'}), true)
+  assert.equal(target, '/play/love-speed/')
+  assert.ok(!removed.includes('umsh:love-speed:v1'))
+  context.initialAuthEntry='today'; target=''
+  assert.equal(context.returnToLoveSpeedAfterAuth({access_token:'test-only'}),false)
+  assert.equal(target,'')
+  assert.ok(source.indexOf('if (returnToLoveSpeedAfterAuth(authSession)) return;') < source.indexOf('await fetchUserProfile({ apply: false }).catch(() => undefined);',source.indexOf('initAuth().then(async')))
+})
+
+test('browser result resolution explains unavailable, expired, denied and failed sessions without opening a result', async () => {
+  const source=readFileSync(new URL('../../사주/play/love-speed/app.js',import.meta.url),'utf8')
+  const resolver=source.slice(source.indexOf('  async function resolveResult()'),source.indexOf('  function renderResult'))
+  for (const mode of ['disabled','expired','denied','network']) {
+    let message=''; let opened=false
+    const context:any={ busy:false, preview:false, generation:0, auth:{config:{enabled:mode!=='disabled'}}, show(){}, document:{getElementById:()=>null}, gate:(text:string)=>{message=text}, state:{answers:[0,0,0,0,0],mbti:null}, AbortSignal, window:{UMSHAuthSession:{bindServiceSession:async()=>mode==='expired'?null:{access_token:'test-only'}}}, fetch:async()=>{if(mode==='network')throw Error('raw-private-error'); return {status:401}}, renderResult:()=>{opened=true} }
+    runInNewContext(resolver,context)
+    await context.resolveResult()
+    assert.ok(message.length>0,mode)
+    assert.ok(!message.includes('raw-private-error'))
+    assert.equal(opened,false)
+    assert.equal(context.busy,false)
+  }
+})
+
 test('sharing sends only the public type; cancellation never falls back to clipboard', async () => {
   const source = readFileSync(new URL('../../사주/play/love-speed/app.js', import.meta.url), 'utf8')
   const shareSource = source.slice(source.indexOf('  async function share(data)'), source.indexOf('  function sampleResult'))
@@ -47,6 +83,7 @@ test('sa ju and MBTI supply context without fabricating probabilities or leaking
   assert.ok(r.mbtiNote.includes('ENFP'))
   assert.ok(!JSON.stringify(r).includes('PRIVATE'))
   assert.deepEqual(r.stats, calculateLoveResult({ ...input, mbti: null }).stats)
+  assert.ok(calculateLoveResult({ ...input, mbti: null }).sajuNote.includes('다섯 답변만'))
 })
 test('route enforces auth, validates input, uses owner context and fails closed', async () => {
   let mode = 'anonymous'

@@ -3828,6 +3828,15 @@
         return url.toString();
       }
 
+      // Keep the existing OAuth callback URL, then resume the game before profile onboarding.
+      function returnToLoveSpeedAfterAuth(session) {
+        if (initialAuthEntry !== "love-speed" || !session?.access_token) return false;
+        sessionStorage.removeItem(AUTH_PENDING_KEY);
+        sessionStorage.removeItem(AUTH_FORM_KEY);
+        sessionStorage.removeItem("umsh_common_auth_return_to_v1");
+        location.replace("/play/love-speed/");
+        return true;
+      }
       function signupReturnUrl() {
         const url = new URL("/cmdg/", location.origin);
         url.searchParams.set("signupReturn", "1");
@@ -8219,6 +8228,7 @@
         clearSignupQuery();
       }
       initAuth().then(async () => {
+        if (returnToLoveSpeedAfterAuth(authSession)) return;
         if (authSession?.access_token && !isLifelongTeaserEntry) {
           await fetchUserProfile({ apply: false }).catch(() => undefined);
         }

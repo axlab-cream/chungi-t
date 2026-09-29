@@ -31,7 +31,7 @@ export function calculateLoveResult(input: unknown, saju: Pick<SajuAnalysis, 'da
   return {
     version: 'love-speed-v1', type, ...LOVE_TYPES[type], stats: { ignition, cooling, holding },
     mbtiNote: mbti ? `${mbti}로 선택했어요. ${mbti[0] === 'E' ? '마음을 말하며 정리하는 편인지' : '혼자 생각할 시간이 필요한 편인지'} 돌아보세요. MBTI는 점수에 영향을 주지 않아요.` : 'MBTI를 몰라도 괜찮아요. 다섯 답변으로 내 연애 속도를 살펴봤어요.',
-    sajuNote: saju ? `내 사주 일간의 기운을 참고했어요. ${elementCopy[saju.dayMasterElement]}${birthTimeKnown ? '' : ' 출생 시간은 미상이며 일간만 참고했어요.'}` : '등록된 사주가 없어 이번에는 답변과 선택한 MBTI만 참고했어요.',
+    sajuNote: saju ? `내 사주 일간의 기운을 참고했어요. ${elementCopy[saju.dayMasterElement]}${birthTimeKnown ? '' : ' 출생 시간은 미상이며 일간만 참고했어요.'}` : (mbti ? '등록된 사주가 없어 이번에는 답변과 선택한 MBTI만 참고했어요.' : 'MBTI와 등록된 사주가 없어 이번에는 다섯 답변만 참고했어요.'),
     sajuApplied: Boolean(saju),
   }
 }

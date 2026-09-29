@@ -39,7 +39,7 @@
   function question(index) {
     busy = false;
     const q = questions[index];
-    show(`<div class="progress-label"><button id="back" class="small-button" aria-label="이전 문항">← 이전</button><span>LOVE TEST · ${index+1} / 5</span></div><div class="progress" role="progressbar" aria-label="답변 진행률" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${index}">${questions.map((_,i) => `<i class="${i<index ? 'done' : ''}"></i>`).join('')}</div><div class="question"><div class="q-number">0${index+1}<span style="color:var(--gold);font-size:26px"> /</span></div><h2>${esc(q[0]).replace('\n','<br>')}</h2><div class="answers">${q[1].map((answer,i) => `<button class="answer" data-answer="${i}" aria-pressed="${state.answers[index] === i}"><span class="key">${String.fromCharCode(65+i)}</span><span>${esc(answer)}</span><span class="emoji" aria-hidden="true">${q[2][i]}</span></button>`).join('')}</div></div><p class="intro-note">끌리는 답을 누르면 바로 넘어가요.</p>`);
+    show(`<div class="progress-label"><button id="back" class="small-button" aria-label="이전 문항">← 이전</button><span>LOVE TEST · ${index+1} / 5</span></div><div class="progress" role="progressbar" aria-label="답변 진행률" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${index+1}">${questions.map((_,i) => `<i class="${i<=index ? 'done' : ''}"></i>`).join('')}</div><div class="question"><div class="q-number">0${index+1}<span style="color:var(--gold);font-size:26px"> /</span></div><h2>${esc(q[0]).replace('\n','<br>')}</h2><div class="answers">${q[1].map((answer,i) => `<button class="answer" data-answer="${i}" aria-pressed="${state.answers[index] === i}"><span class="key">${String.fromCharCode(65+i)}</span><span>${esc(answer)}</span><span class="emoji" aria-hidden="true">${q[2][i]}</span></button>`).join('')}</div></div><p class="intro-note">끌리는 답을 누르면 바로 넘어가요.</p>`);
     on('back', () => { if (busy) return; index ? question(index-1) : mbtiScreen(); });
     stage.querySelectorAll('[data-answer]').forEach(button => button.addEventListener('click', () => {
       if (busy) return; busy = true; state.answers[index] = Number(button.dataset.answer); state.answers = state.answers.slice(0,index+1); save();
@@ -50,16 +50,17 @@
   }
   function analyze() {
     show(`<div class="loading"><p class="eyebrow">LOVE ENGINE</p><div class="beating" aria-hidden="true">♥</div><h2>두근, 두근.<br>내 마음의 속도는?</h2><p class="muted">다섯 답변을 모으고 있어요.</p><div class="loadbar"><i></i></div><p class="fine">조금만 기다려주세요.</p></div>`);
-    setTimeout(() => { busy = false; gate(); resolveResult(); }, 1600);
+    setTimeout(() => { busy = false; resolveResult(); }, 1600);
   }
   function gate(message = '') {
     show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>내 연애 유형,<br>드디어 찾았어요.</h2><p class="muted">로그인하고 내 마음의 속도를 만나보세요.</p><div class="lock-card"><div class="lock-symbol" aria-hidden="true">♧</div><p>나의 LOVE TYPE</p><div class="locked-lines" aria-hidden="true"><i></i><i></i><i></i></div><span class="pill">결과 열기</span></div></div><button id="login" class="primary">로그인하고 결과 열기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">등록한 사주가 있으면 함께 참고해요.<br>답변은 이 탭에서 최대 2시간 동안 유지돼요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`);
-    on('login', () => { save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = '/signup?entry=love-speed&returnTo=' + encodeURIComponent('/play/love-speed/') + '#login'; });
+    on('login', () => { save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('love-speed', '/play/love-speed/') : '/signup?entry=love-speed&returnTo=' + encodeURIComponent('/play/love-speed/') + '#login'; });
     on('retry', resolveResult);
   }
   async function resolveResult() {
     if (busy || preview) return;
     busy = true; const current = generation;
+    show('<div class="loading"><p class="eyebrow">LOVE ENGINE</p><div class="beating" aria-hidden="true">♥</div><h2>내 결과를 열고 있어요.</h2><p class="muted">로그인 상태와 등록된 사주를 확인해요.</p></div>');
     const retry = document.getElementById('retry'); if (retry) { retry.disabled = true; retry.textContent = '로그인 확인 중…'; }
     try {
       if (!window.UMSHAuthSession) throw Error('로그인 연결을 불러오지 못했어요. 새로고침 후 다시 시도해주세요.');
@@ -68,6 +69,7 @@
         if (!configResponse.ok) throw Error('로그인 연결을 확인하지 못했어요. 다시 시도해주세요.');
         auth.config = await configResponse.json();
       }
+      if (!auth.config.enabled) { gate('지금은 로그인 연결을 사용할 수 없어요. 잠시 후 다시 확인해주세요.'); return; }
       // Refresh from the live client on every attempt; never trust an old cached access token.
       auth.session = null;
       const session = await window.UMSHAuthSession.bindServiceSession(auth, 1600);
@@ -78,7 +80,7 @@
         });
       }
       if (current !== generation) return;
-      if (!session) { gate(); return; }
+      if (!session) { gate('로그인이 필요해요. 로그인하고 결과를 열어주세요.'); return; }
       const response = await fetch('/api/play/love-speed/result', { method: 'POST', headers: { 'Content-Type':'application/json', Authorization:`Bearer ${session.access_token}` }, body: JSON.stringify({ answers: state.answers, mbti: state.mbti }), signal: AbortSignal.timeout(15000) });
       if (current !== generation) return;
       if (response.status === 401) { gate('로그인이 만료되었어요. 다시 로그인해주세요.'); return; }
@@ -86,7 +88,7 @@
       const data = await response.json();
       if (!Object.hasOwn(types, data.type) || !data.stats || Object.values(data.stats).some(n => !Number.isFinite(n) || n < 0 || n > 100)) throw Error('결과를 확인하지 못했어요. 다시 시도해주세요.');
       result = data; renderResult(data);
-    } catch (error) { if (current === generation) gate(error.name === 'TimeoutError' ? '연결이 늦어지고 있어요. 잠시 후 다시 확인해주세요.' : error.message); }
+    } catch (error) { if (current === generation) gate(error.name === 'TimeoutError' ? '연결이 늦어지고 있어요. 잠시 후 다시 확인해주세요.' : '결과를 불러오지 못했어요. 답변은 유지되어 있으니 다시 확인해주세요.'); }
     finally { busy = false; }
   }
   function renderResult(data, sample = false) {
@@ -110,7 +112,7 @@
   // Remove arbitrary tracking/PII parameters before any authentication redirect or share action.
   history.replaceState(null, '', location.pathname + (Object.hasOwn(types, shared) ? '?type='+shared : ''));
   if (Object.hasOwn(types, shared)) home(shared);
-  else if (state.answers.length === 5) { gate(); resolveResult(); }
+  else if (state.answers.length === 5) { resolveResult(); }
   else if (state.answers.length) question(state.answers.length);
   else home();
 })();
