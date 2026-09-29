@@ -23,6 +23,8 @@ test('올해 연애운 스토리는 전문 용어보다 사용자가 확인할 �
 })
 
 test('올해 연애운 스토리는 장면 높이와 CTA 접근성을 모바일에 맞춘다', () => {
+  assert.match(html, /body\s*\{[\s\S]*?width:\s*100%;[\s\S]*?min-width:\s*0/)
+  assert.match(html, /@media \(max-width: 430px\)[\s\S]*?font-size:\s*clamp\(29px, 8vw, 34px\)/)
   assert.match(html, /min-height:\s*min\(92svh, 780px\)/)
   assert.match(html, /min-height:\s*min\(72svh, 640px\)/)
   assert.match(html, /\.primary-cta:focus-visible/)

@@ -61,6 +61,8 @@
       body {
         display: grid;
         place-items: start center;
+        width: 100%;
+        min-width: 0;
       }
 
       button,
@@ -413,6 +415,13 @@
         .scene { min-height: min(calc(100svh - 56px), 780px); }
 
         .scene.compact { min-height: min(72svh, 640px); }
+      }
+
+      @media (max-width: 430px) {
+        h1,
+        h2 {
+          font-size: clamp(29px, 8vw, 34px);
+        }
       }
 
       @media (max-width: 360px) {
