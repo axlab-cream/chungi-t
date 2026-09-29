@@ -263,6 +263,20 @@ const PLAIN_ELEMENT: Record<string, string> = {
   목: '나무', 화: '불', 토: '흙', 금: '쇠', 수: '물',
 }
 
+const SIGNAL_FOCUS_LABELS: Record<string, string> = {
+  contact_change: '연락 텐션 변화',
+  schedule_change: '약속 변경이 잦아짐',
+  sns_group: 'SNS·모임 변수',
+  ex_return: '전애인 재등장 느낌',
+  cold_mood: '표현이 식은 느낌',
+  not_sure: '아직 잘 모르겠음',
+}
+
+function signalFocusLabel(value: unknown): string {
+  const raw = safeCell(value)
+  return SIGNAL_FOCUS_LABELS[raw] || raw
+}
+
 function safeCell(value: unknown): string {
   return String(value ?? '').replace(/\r?\n/g, ' ').replace(/\|/g, '｜').trim()
 }
@@ -279,7 +293,7 @@ function signalFacts(context: SajuReportContext) {
     selfName: safeCell(context.name) || '나',
     partnerName: safeCell(context.partner?.name) || pick('상대') || '상대',
     relationship: safeCell(context.partner?.relationship) || pick('현재 관계') || '가까운 관계',
-    focus: pick('신경 쓰이는 신호') || '최근 달라진 행동',
+    focus: signalFocusLabel(pick('신경 쓰이는 신호')) || '최근 달라진 행동',
     concern: described,
   }
 }
@@ -306,7 +320,8 @@ function signalPillarTable(analysis: SajuAnalysis, context: SajuReportContext): 
     ['태어난 날의 중심', elementName(analysis.dayMasterElement), elementName(context.partner?.dayMasterElement)],
     ['전체에서 많이 쓰는 기운', elementName(analysis.dominantElement), elementName(context.partner?.dominantElement)],
   ]
-  return ['| 사주의 네 기둥 | 나에게 드러난 기운 | 상대에게 드러난 기운 |', '| --- | --- | --- |', ...rows.map((row) => `| ${row.join(' | ')} |`)].join('\n')
+  const heading = theirs ? '사주의 네 기둥' : '저장된 사주 계산값'
+  return [`| ${heading} | 나에게 드러난 기운 | 상대에게 드러난 기운 |`, '| --- | --- | --- |', ...rows.map((row) => `| ${row.join(' | ')} |`)].join('\n')
 }
 
 function signalElementChart(analysis: SajuAnalysis, context: SajuReportContext) {
@@ -347,7 +362,7 @@ function signalTeaserInterpretation(index: number, analysis: SajuAnalysis | unde
   return [
     `[주요 포인트] ${facts.selfName}님과 ${facts.partnerName}님의 관계가 흔들리는 순간은 다른 사람의 등장보다, 불편한 질문을 꺼냈을 때 대화가 끊기는 장면에서 먼저 드러납니다. 첫 해석이 달라진 행동을 짚었다면, 이번에는 두 사람이 그 불안을 함께 다룰 수 있는지를 봅니다.`,
     `${facts.selfName}님은 ${mine}, ${facts.partnerName}님은 ${theirs} 기운을 주로 씁니다. 반응 방식이 다르면 한쪽은 확인 질문을 사랑의 관심으로 느끼고 다른 쪽은 통제로 받아들일 수 있습니다. 이 차이를 모른 채 같은 질문을 반복하면 내용보다 말투가 싸움의 중심이 되지만, 필요한 설명과 사생활의 경계를 함께 정하면 오히려 신뢰를 회복하는 힘이 됩니다.`,
-    `[사주와 관계를 함께 보면] 태어난 날의 기둥은 가까운 사람 앞에서 나오는 반응을, 태어난 달의 기둥은 일상에서 반복되는 방식을 살피는 참고점입니다. 두 사람의 네 기둥을 나란히 놓으면 누가 바람을 피울지를 판정하는 대신, 한 사람이 불안할 때 다른 사람이 설명과 약속으로 응답할 수 있는지를 구체적으로 읽을 수 있습니다.`,
+    `[사주와 관계를 함께 보면] 태어난 날의 기둥은 가까운 사람 앞에서 나오는 반응을, 태어난 달의 기둥은 일상에서 반복되는 방식을 살피는 참고점입니다. 두 사람의 사주 계산값을 나란히 놓으면 누가 바람을 피울지를 판정하는 대신, 한 사람이 불안할 때 다른 사람이 설명과 약속으로 응답할 수 있는지를 구체적으로 읽을 수 있습니다.`,
     `[확인할 장면] 불편한 이야기를 꺼낸 뒤의 24시간을 보세요. 상대가 질문을 비난으로 돌리지 않고 사실을 설명하는지, 둘이 합의한 연락이나 모임의 경계를 다시 정하는지, 다음 행동이 실제로 달라지는지가 신뢰 회복의 핵심 장면입니다.`,
     `[결정 전에 물어볼 질문] 서로 편안한 모임·SNS·이성 친구의 범위는 어디까지인가요? 일정이 바뀌면 언제 알려 주기로 할까요? 같은 일이 반복될 때 어떤 행동을 관계 약속 위반으로 볼지도 함께 말할 수 있나요?`,
     `[해법] 대화를 피하지 않고 설명·경계·다음 행동을 함께 정할 수 있다면 이 관계에는 회복할 힘이 있습니다. 질문할 때마다 말을 바꾸거나 합의한 약속을 반복해서 무시한다면, 믿으라는 말보다 거리를 두고 나를 보호하는 판단이 먼저입니다.`,
@@ -359,7 +374,7 @@ export function loveSignalTeaserPreview(context: SajuReportContext, sectionCount
   return {
     title: '내 애인 바람필까?',
     headline: `${facts.partnerName}님의 마음보다 먼저, “${facts.focus}”이 실제 약속과 함께 달라졌는지 봐야 합니다`,
-    summary: `“${facts.concern || facts.focus}”이라는 불안을 두 사람의 네 기둥과 ${facts.relationship}에서 실제로 달라진 행동에 겹쳐, 추측과 확인 가능한 신호를 분리했습니다.`,
+    summary: `“${facts.concern || facts.focus}”이라는 불안을 두 사람의 사주 계산값과 ${facts.relationship}에서 실제로 달라진 행동에 겹쳐, 추측과 확인 가능한 신호를 분리했습니다.`,
     insights: [], signals: [],
     paidValue: `전체 해석에서는 ${sectionCount}개 항목으로 관계 온도, 모임·SNS 경계, 새로운 접점, 두 사람의 반응 차이와 지금 꺼낼 질문까지 이어서 풉니다.`,
   }
@@ -377,6 +392,7 @@ export function loveSignalTeaserSection(
   context: SajuReportContext,
 ): SajuReportSection {
   const facts = signalFacts(context)
+  const hasPartnerPillars = Boolean(context.partner?.pillarElements)
   const image = LOVE_SIGNAL_TEASER_IMAGES[index]
   const story = index === 0 ? {
     feel: `“${facts.focus}”이 달라진 지금, 불안과 실제 신호는 어디에서 갈릴까요?`,
@@ -392,10 +408,14 @@ export function loveSignalTeaserSection(
     scene: '', actions: [], imagePrompt: { ko: '', en: '' },
   } : {
     feel: '두 사람의 신뢰는 의심이 없는 상태보다, 불편한 질문 뒤에도 설명과 약속이 이어지는지에서 드러납니다.',
-    softBridge: '두 사람의 네 기둥과 다섯 기운을 생활 언어로 나란히 놓아, 불안을 처리하는 속도와 관계 경계를 비교했습니다.',
+    softBridge: hasPartnerPillars
+      ? '두 사람의 네 기둥과 다섯 기운을 생활 언어로 나란히 놓아, 불안을 처리하는 속도와 관계 경계를 비교했습니다.'
+      : '저장된 두 사람의 사주 계산값을 생활 언어로 나란히 놓아, 불안을 처리하는 속도와 관계 경계를 비교했습니다.',
     ...(analysis ? {
       tableMd: signalPillarTable(analysis, context),
-      tableCaption: '한자를 걷어 내고 두 사람의 네 기둥을 생활 언어의 기운으로 비교했습니다.',
+      tableCaption: hasPartnerPillars
+        ? '한자를 걷어 내고 두 사람의 네 기둥을 생활 언어의 기운으로 비교했습니다.'
+        : '이 리포트에 저장된 두 사람의 사주 계산값만 사용해 생활 언어로 비교했습니다.',
       chartPoints: signalElementChart(analysis, context),
       chartCaption: '입력한 출생 정보에서 계산한 다섯 기운의 개수입니다. 태어난 시간을 모르면 시간 기둥은 제외했으며, 외도 확률이나 사랑의 점수가 아닙니다.',
     } : {}),

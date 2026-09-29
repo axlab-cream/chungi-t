@@ -69,6 +69,23 @@ test('love signal teaser excludes an unknown birth hour from the visible pillars
   assert.equal(teaser.storytelling?.chartPoints?.reduce((sum, point) => sum + Number(point.value), 0), 12)
 })
 
+test('love signal teaser converts stored option codes and labels legacy summaries honestly', () => {
+  const { analysis, context, report } = fixture()
+  const legacyContext = {
+    ...context,
+    concern: '현재 관계: 연애 중 · 신경 쓰이는 신호: cold_mood',
+    partner: { ...context.partner, pillarElements: undefined },
+  }
+  const preview = loveSignalTeaserPreview(legacyContext, report.sections.length)
+  const teaser = loveSignalTeaserSection(report.sections[1], 1, analysis, legacyContext)
+
+  assert.match(preview.headline, /표현이 식은 느낌/)
+  assert.doesNotMatch(preview.headline, /cold_mood/)
+  assert.match(teaser.storytelling?.tableMd || '', /저장된 사주 계산값/)
+  assert.doesNotMatch(teaser.storytelling?.tableMd || '', /사주의 네 기둥/)
+  assert.match(teaser.storytelling?.tableCaption || '', /저장된 두 사람의 사주 계산값/)
+})
+
 test('love signal teaser is wired to saved report preview, quota, locked toc, and payment gate', () => {
   const server = readFileSync(join(root, 'src/server/app.ts'), 'utf8')
   const access = readFileSync(join(root, 'public/js/umsh-report-access.js'), 'utf8')
