@@ -6,13 +6,13 @@ import { summarizeLoveSpeedRows } from '../../src/analytics/funnel-store.js'
 const read = (p: string) => readFileSync(new URL('../../'+p,import.meta.url),'utf8')
 const telemetry = read('사주/play/love-speed/telemetry.js')
 const collector = read('사주/js/umsh-track.js')
-function run(href: string, referrer = '', privacy = false) {
+function run(href: string, referrer = '', privacy = false, readyState = 'loading') {
   const url = new URL(href), ga: any[] = [], requests: any[] = [], listeners: Record<string,Function[]> = {}
-  const context: any = { URL, Blob, Date, Math, JSON, Number, location:{href,origin:url.origin,pathname:url.pathname}, navigator:{doNotTrack:privacy?'1':'0'}, localStorage:{getItem(){return null},setItem(){}}, crypto:{randomUUID(){return 'qa-session'}}, document:{referrer,readyState:'loading',addEventListener(name:string,fn:Function){(listeners[name] ||= []).push(fn)}},addEventListener(){},setTimeout(){return 1},clearTimeout(){},UMSHAnalytics:{},gtag(...args:any[]){ga.push(args)},fetch(_url:string,opts:any){requests.push(JSON.parse(opts.body));return Promise.resolve({ok:true})} }
+  const context: any = { URL, Blob, Date, Math, JSON, Number, location:{href,origin:url.origin,pathname:url.pathname}, navigator:{doNotTrack:privacy?'1':'0'}, localStorage:{getItem(){return null},setItem(){}}, crypto:{randomUUID(){return 'qa-session'}}, document:{referrer,readyState,addEventListener(name:string,fn:Function){(listeners[name] ||= []).push(fn)}},addEventListener(){},setTimeout(){return 1},clearTimeout(){},UMSHAnalytics:{},gtag(...args:any[]){ga.push(args)},fetch(_url:string,opts:any){requests.push(JSON.parse(opts.body));return Promise.resolve({ok:true})} }
   context.window=context
-  runInNewContext(collector,context)
   runInNewContext(telemetry,context)
-  listeners.DOMContentLoaded.forEach(fn=>fn())
+  runInNewContext(collector,context)
+  ;(listeners.DOMContentLoaded || []).forEach(fn=>fn())
   return {context,ga,requests}
 }
 test('love-speed source and events use only fixed codes, preserve one pageview, and deduplicate completion',async()=>{
@@ -55,8 +55,15 @@ test('SEO is readable without JS and the admin CTA and tracker are wired',()=>{
   assert.ok(read('사주/sitemap.xml').includes('<loc>https://umsh.kr/play/love-speed/</loc>'))
   const schema=JSON.parse(page.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)![1])
   assert.equal(schema.isAccessibleForFree,true)
+  assert.ok(page.indexOf('telemetry.js')<page.indexOf('umsh-track.js'))
   assert.ok(page.indexOf('telemetry.js')<page.indexOf('./app.js'))
   assert.ok(app.includes("track('complete')")); assert.ok(app.includes("on('love-details', () => track('details'))"))
   assert.ok(read('admin-ui/index.html').includes('appendLoveSpeed(payload.loveSpeed'))
   assert.ok(read('사주/portal.html').includes('data-track-target="love_speed:home"'))
+})
+
+test('deferred scripts capture source before collector starts in interactive document',async()=>{
+  const {context,requests}=run('https://umsh.kr/play/love-speed/?src=admin','',false,'interactive')
+  await context.UMSHTrack.flush()
+  assert.equal(requests[0].events[0].target,'love_speed:source:admin')
 })
