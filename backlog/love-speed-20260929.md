@@ -59,3 +59,8 @@ R1~R6 증거가 있어야 완료. 원격 로그인 완료는 사용자 세션이
 - GA 기존 측정ID 사용, start/complete/share/copy/details/login/restart/result_view 이벤트. DNT/GPC 준수, preview 제외.
 - SEO 정적 설명/구조화데이터/사이트맵/기존canonical·OG 유지. 원본 CTA URL 유지.
 - 검증: 순수 집계·수집기VM·GA payload 프라이버시·중복·실패·권한·SEO·기존회귀. 운영 전송과 관리자 조회, GA 실제 수신은 별도 증거로 보고.
+
+## LOVE-SPEED-06 결과 설명·오늘운세
+- 결과 설명 details 기본 open, 설명 아래 무료 오늘운세 매일 보기 링크 /today/free?start=1 추가. 기존 오늘운세 로그인/프로필/실제 결과 흐름 재사용.
+- 검증: 기존 게임/GA 회귀·빌드, 실제 모바일 기본 펼침·링크 이동. 개인정보 링크 포함 없음.
+
