@@ -88,8 +88,8 @@ test('love signal teaser converts stored option codes and labels legacy summarie
 
 test('love signal teaser is wired to saved report preview, quota, locked toc, and payment gate', () => {
   const server = readFileSync(join(root, 'src/server/app.ts'), 'utf8')
-  const access = readFileSync(join(root, 'public/js/umsh-report-access.js'), 'utf8')
-  const bridge = readFileSync(join(root, 'public/js/signal-service.js'), 'utf8')
+  const access = readFileSync(join(root, '사주/js/umsh-report-access.js'), 'utf8')
+  const bridge = readFileSync(join(root, '사주/js/signal-service.js'), 'utf8')
   const quota = readFileSync(join(root, 'src/work/jobchoice-preview-quota.ts'), 'utf8')
   const inputHtml = readFileSync(join(root, '사주/love/signal/02-step-2-saju-input/index.html'), 'utf8')
   const html = readFileSync(join(root, '사주/love/signal/04-step-4-report/index.html'), 'utf8')
@@ -116,7 +116,7 @@ test('love signal teaser is wired to saved report preview, quota, locked toc, an
 })
 
 test('love signal customer copy removes raw markdown labels and specialist toc terms', () => {
-  const access = readFileSync(join(root, 'public/js/umsh-report-access.js'), 'utf8')
+  const access = readFileSync(join(root, '사주/js/umsh-report-access.js'), 'utf8')
   assert.match(access, /normalizeLoveSignalTeaserCopy/)
   assert.match(access, /가까운 관계에서 붙고 부딪히는 방식/)
   assert.match(access, /사랑을 표현하고 약속을 지키는 방식/)
