@@ -25,14 +25,14 @@
     <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
     <meta
       name="description"
-      content="명리궁합, 오행, 일지 흐름으로 애인의 관계 신호를 확인하는 관계 신호 리포트"
+      content="연락과 약속이 달라진 이유, 반복되는 거리감, 지금 관계를 지킬 대화를 두 사람의 사주와 현재 상황으로 확인합니다."
     />
     <meta name="application-name" content="운명상회" />
     <meta name="theme-color" content="#080303" />
     <meta property="og:title" content="내 애인 바람필까? | 운명상회" />
     <meta
       property="og:description"
-      content="바람 여부를 단정하지 않고, 관계 온도와 관찰된 관계 변화를 현실적으로 짚어봅니다."
+      content="괜찮다고 믿고 싶은데 자꾸 걸리는 변화가 있다면, 추측보다 두 사람 사이에서 실제로 반복된 장면부터 확인합니다."
     />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
@@ -470,21 +470,6 @@
         line-height: 1.42;
       }
 
-      .price-line {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        margin-top: 18px;
-        padding: 14px;
-        border: 1px solid rgba(235, 189, 101, 0.26);
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.24);
-        color: var(--gold-soft);
-        font-size: 14px;
-        font-weight: 950;
-      }
-
       .cta-section {
         position: relative;
         min-height: 720px;
@@ -528,23 +513,6 @@
         line-height: 1.55;
       }
 
-      .sticky-cta {
-        position: fixed;
-        z-index: 9;
-        left: 50%;
-        bottom: 0;
-        width: min(100%, 440px);
-        transform: translateX(-50%);
-        padding: 12px 16px max(12px, env(safe-area-inset-bottom));
-        background: linear-gradient(to top, rgba(8, 3, 3, 0.98), rgba(8, 3, 3, 0.68), transparent);
-        pointer-events: none;
-      }
-
-      .sticky-cta .primary-cta {
-        width: 100%;
-        pointer-events: auto;
-      }
-
       .footer {
         padding: 24px 20px 84px;
         border-top: 1px solid rgba(235, 189, 101, 0.14);
@@ -570,9 +538,6 @@
           border-right: 1px solid rgba(235, 189, 101, 0.16);
         }
 
-        .sticky-cta {
-          bottom: 24px;
-        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -589,7 +554,6 @@
          layout settles, so the floor keeps the reserve honest either way. */
       body.umsh-has-chrome .app,
       body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
-      body.umsh-has-chrome .sticky-cta,
       body.umsh-has-chrome .sticky,
       body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
       .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
@@ -606,7 +570,6 @@
           <strong>운명상회</strong>
           <span>커플궁합</span>
         </a>
-        <span class="top-pill">19,900원</span>
       </header>
 
       <section class="hero" aria-labelledby="hero-title">
@@ -622,19 +585,20 @@
           aria-label="레드 의상의 상담자가 휴대폰과 사주 차트를 함께 살피는 장면"
         ></video>
         <div class="hero-copy">
-          <span class="eyebrow">COUPLE SIGNAL</span>
-          <h1 id="hero-title">내 애인 바람필까?</h1>
+          <span class="eyebrow">괜찮다고 믿고 싶은데, 자꾸 걸릴 때</span>
+          <h1 id="hero-title">달라진 건 사랑일까요,<br /><span class="red">우리 사이일까요?</span></h1>
           <p class="lead">
-            찍어서 단정하지 않습니다. 연락과 약속에서 잘 유지되는 점, 실제 변화가 있는 조건을 먼저 봅니다.
+            답장이 늦어진 하루보다 설명 없이 달라진 날들이 더 마음에 남습니다. 두 사람의 사주와 지금 겪는
+            장면을 함께 놓고, 이 불안이 어디서 시작됐는지부터 봅니다.
           </p>
           <div class="cta-row">
-            <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>내 애인 신호 확인하기</a>
-            <a class="secondary-link" href="#preview">뭐까지 보는지 보기</a>
+            <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>우리 관계의 첫 신호 보기</a>
+            <a class="secondary-link" href="#preview">어디까지 풀어주는지 보기</a>
           </div>
-          <ul class="quick-signals" aria-label="핵심 분석 기준">
-            <li>명리궁합</li>
-            <li>오행 온도</li>
-            <li>일지 시그널</li>
+          <ul class="quick-signals" aria-label="먼저 확인할 관계 장면">
+            <li>달라진 연락</li>
+            <li>흐려진 약속</li>
+            <li>다시 묻고 싶은 말</li>
           </ul>
         </div>
       </section>
@@ -653,15 +617,15 @@
           ></video>
         </div>
         <div class="scene-copy">
-          <span class="chapter">불안이 켜지는 순간</span>
-          <h2 id="concern-title">답장이 늦어진 날, 촉이 먼저 움직이죠</h2>
+          <span class="chapter">불안은 작은 변화에서 시작됩니다</span>
+          <h2 id="concern-title">답장이 늦어서가 아니라,<br /><span class="gold">설명이 사라져서</span> 불안한 겁니다</h2>
           <p>
-            평소와 다른 답장 속도, 갑자기 바뀐 약속, 묘하게 짧아진 말투. 하나만 보면 우연일 수 있지만
-            반복되면 관계 온도를 다시 봐야 합니다.
+            전에는 먼저 알려 주던 일정을 나중에 알게 되고, 약속이 바뀐 이유는 짧아지고, 묻는 내가 예민한
+            사람처럼 느껴질 때가 있습니다. 마음을 흔드는 건 한 번의 지각이 아니라 달라진 설명 방식입니다.
           </p>
           <ul class="signal-list">
-            <li>연락 텐션이 식은 건지, 단순히 바쁜 흐름인지 나눠 봅니다.</li>
-            <li>의심을 키우기 전에 확인할 수 있는 현실 신호부터 정리합니다.</li>
+            <li>연락 횟수보다 먼저, 이전과 달라진 시간대와 설명의 빈틈을 봅니다.</li>
+            <li>상대가 멀어진 장면과 내가 불안해서 더 확인한 장면을 나눠 봅니다.</li>
           </ul>
         </div>
       </section>
@@ -680,15 +644,15 @@
           ></video>
         </div>
         <div class="scene-copy">
-          <span class="chapter">한 번보다 반복</span>
-          <h2 id="pattern-title">사실과 추측을 나누어 봅니다</h2>
+          <span class="chapter">한 번의 장면보다 반복된 순서</span>
+          <h2 id="pattern-title">의심이 커지는 데도<br /><span class="red">늘 같은 순서</span>가 있습니다</h2>
           <p>
-            갑자기 생긴 불안인지, 예전부터 쌓인 거리감인지가 다릅니다. 이 서비스는 애인의 행동 하나를
-            몰아가지 않고, 관계 안에서 반복되는 신호를 묶어서 봅니다.
+            연락이 줄고, 이유를 물으면 다투고, 며칠 뒤 아무 일 없던 듯 넘어가는 일이 반복된다면 문제는
+            답장 한 번이 아닙니다. 두 사람이 불편함을 다루는 방식이 같은 곳에서 계속 막히는 것입니다.
           </p>
           <ul class="signal-list">
-            <li>연락, 시간, 관심이 어디로 분산되는지 확인합니다.</li>
-            <li>불안이나 거리감이 실제로 있을 때만 내가 느낀 점과 확인된 행동을 나눠 봅니다.</li>
+            <li>처음 달라진 장면, 질문했을 때의 반응, 다시 가까워진 계기를 순서대로 놓습니다.</li>
+            <li>지금도 애정이 남아 있는 신호와 더는 넘기면 안 되는 경계를 따로 봅니다.</li>
           </ul>
         </div>
       </section>
@@ -707,24 +671,24 @@
           ></video>
         </div>
         <div class="scene-copy">
-          <span class="chapter">풀이 기준</span>
-          <h2 id="basis-title">명리궁합, 오행, 일지로 관계 신호를 봅니다</h2>
+          <span class="chapter">두 사람의 사주에서 읽는 차이</span>
+          <h2 id="basis-title">사랑하는 방식이 다르면,<br />같은 침묵도 <span class="gold">전혀 다르게</span> 느껴집니다</h2>
           <p>
-            어려운 말은 바로 풀어서 설명합니다. 사주표의 글자를 결과처럼 던지지 않고, 두 사람의 끌림과
-            마찰이 현실에서 어떻게 보이는지로 연결합니다.
+            한 사람은 바로 묻고 풀어야 안심하고, 다른 사람은 혼자 정리할 시간이 필요할 수 있습니다.
+            두 사람의 태어난 정보는 이 반응 속도와 갈등 뒤 돌아오는 방식을 생활 언어로 푸는 데 사용합니다.
           </p>
           <ul class="basis-list">
             <li>
-              <strong>명리궁합</strong>
-              <span>두 사람의 애정 방식과 부딪히는 포인트를 함께 봅니다.</span>
+              <strong>애정을 확인하는 속도</strong>
+              <span>말로 바로 확인해야 안심하는지, 행동을 지켜본 뒤 마음을 여는지 봅니다.</span>
             </li>
             <li>
-              <strong>오행 온도</strong>
-              <span>편한 구간, 식는 구간, 말이 세지는 구간을 나눕니다.</span>
+              <strong>다툰 뒤 돌아오는 방식</strong>
+              <span>먼저 손을 내미는 사람과 시간을 두는 사람 사이의 간격을 풉니다.</span>
             </li>
             <li>
-              <strong>일지 시그널</strong>
-              <span>연인 자리의 합, 충, 형, 파, 해 흐름을 관계 언어로 풉니다.</span>
+              <strong>관계 밖에서 흔들리는 순간</strong>
+              <span>일·모임·SNS처럼 관심이 분산될 때 두 사람이 보이는 태도를 살핍니다.</span>
             </li>
           </ul>
         </div>
@@ -745,53 +709,54 @@
         </div>
         <div class="preview-section">
           <div class="preview-head">
-            <span class="chapter">리포트 예고</span>
-            <h2 id="preview-title">이런 것까지 봅니다</h2>
+            <span class="chapter">무료 해석 뒤에 이어지는 이야기</span>
+            <h2 id="preview-title">알고 싶은 건 바람의 OX보다,<br /><span class="gold">이 관계를 믿어도 되는 이유</span>니까</h2>
             <p>
-              전체 리포트에서는 바람 여부를 단정하지 않고, 안심각부터 경계각까지 지금 필요한 판단 기준을
-              정리합니다.
+              막연한 의심을 키우지 않도록 두 사람의 사주와 직접 적은 변화를 연결해, 안심할 장면과 그냥
+              넘기면 안 되는 장면을 차례로 풉니다.
             </p>
           </div>
-          <div class="preview-grid" aria-label="제공되는 대표 풀이 항목">
-            <a class="preview-card" href="#cta">
+          <div
+            class="preview-grid"
+            aria-label="제공되는 대표 풀이 항목"
+            data-report-topic="관계 밖 활동과 합의한 경계"
+            data-next-topic="새 접점과 관계 의향"
+          >
+            <div class="preview-card">
               <span class="preview-icon" aria-hidden="true">1</span>
               <span>
-                <strong>지금 우리 관계 온도</strong>
-                <span>찐사랑 유지각, 권태기, 연락 텐션, 데이트 에너지</span>
+                <strong>처음 달라진 건 무엇이었는지</strong>
+                <span>연락·약속·말투 가운데 실제 변화가 시작된 장면</span>
               </span>
-            </a>
-            <a class="preview-card" href="#cta">
+            </div>
+            <div class="preview-card">
               <span class="preview-icon" aria-hidden="true">2</span>
               <span>
-                <strong>관계 밖 활동과 합의한 경계</strong>
-                <span>도화·홍염(전통적으로 매력을 나타내는 상징), 실제 약속과 경계</span>
+                <strong>아직 애정이 남아 있는 행동</strong>
+                <span>말보다 일정·책임·회복 시도에서 확인되는 관계 의향</span>
               </span>
-            </a>
-            <a class="preview-card" href="#cta">
+            </div>
+            <div class="preview-card">
               <span class="preview-icon" aria-hidden="true">3</span>
               <span>
-                <strong>새 접점과 관계 의향</strong>
-                <span>새 사람 타이밍, SNS·모임 변수, 전애인 재등장</span>
+                <strong>관계 밖으로 관심이 향하는 때</strong>
+                <span>일·모임·SNS·지난 인연이 둘 사이에 끼어드는 방식</span>
               </span>
-            </a>
-            <a class="preview-card" href="#cta">
+            </div>
+            <div class="preview-card">
               <span class="preview-icon" aria-hidden="true">4</span>
               <span>
-                <strong>부부궁·연인궁 시그널</strong>
-                <span>합충형파해, 원진식 미움 포인트, 붙는 구조와 밀어내는 구조</span>
+                <strong>이번에는 그냥 넘기면 안 되는 경계</strong>
+                <span>반복되는 회피와 거짓말, 서로 합의한 약속이 깨지는 순간</span>
               </span>
-            </a>
-            <a class="preview-card" href="#cta">
+            </div>
+            <div class="preview-card">
               <span class="preview-icon" aria-hidden="true">5</span>
               <span>
-                <strong>현실 확인 액션</strong>
-                <span>추궁 말고 확인 질문, 대화 타이밍, 관계 회복용 한 문장</span>
+                <strong>상대의 진짜 의향을 듣는 질문</strong>
+                <span>추궁으로 끝나지 않게 묻는 순서와 대화를 시작할 때</span>
               </span>
-            </a>
-          </div>
-          <div class="price-line" aria-label="전체 리포트 가격">
-            <span>전체 리포트</span>
-            <strong>19,900원</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -808,12 +773,13 @@
           aria-label="레드 의상의 상담자가 봉투와 빈 사주 차트를 건네는 마지막 장면"
         ></video>
         <div class="cta-copy">
-          <span class="chapter">다음 단계</span>
-          <h2 id="cta-title">결론보다 먼저, 확인할 기준부터 잡아볼게요</h2>
+          <span class="chapter">무료로 먼저 확인</span>
+          <h2 id="cta-title">걱정만 반복하기 전에,<br /><span class="gold">우리 둘의 첫 두 장면</span>부터 보세요</h2>
           <p>
-            내 정보와 상대 정보를 분리해서 입력하면, 관계에서 유지할 점과 실제로 확인할 조건을 이어서 살펴봅니다.
+            두 사람의 태어난 정보와 지금 실제로 달라진 일을 적으면, 안심해도 되는 부분과 먼저 대화해야 할
+            부분을 무료 해석 2개로 자세히 보여드립니다.
           </p>
-          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>내 애인 신호 확인하기</a>
+          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>우리 관계 무료 해석 열기</a>
           <p class="notice">
             전통 명리 기반의 참고 해석입니다. 실제 사실 확인, 대화, 상호 동의가 관계 판단의 기준입니다.
           </p>
@@ -821,13 +787,9 @@
       </section>
 
       <footer class="footer">
-        운명상회 관계 신호 리포트는 관계를 단정하거나 특정 행동을 몰아가지 않습니다. 확인된 입력과 전통
-        해석 기준을 바탕으로 가능성, 양면성, 지금 할 수 있는 대화 방향을 함께 봅니다.
+        이 서비스는 두 사람의 관계를 한 장면으로 단정하지 않습니다. 직접 적은 변화와 전통 명리 해석을
+        함께 놓고, 지금 확인할 대화와 지켜야 할 경계를 안내합니다.
       </footer>
-
-      <div class="sticky-cta" aria-hidden="false">
-        <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>내 애인 신호 확인하기</a>
-      </div>
     </main>
 
     <script src="../signal-video.js"></script>
@@ -843,7 +805,7 @@
         analysis_period: "현재 흐름과 가까운 시기",
         target_question: "관계에서 확인된 변화와 서로 합의한 경계를 살펴보고 싶다.",
         report_version: "couple-signal-v1",
-        copy_version: "intro-red-v1"
+        copy_version: "intro-red-v2"
       };
 
       const nextRoute = "../02-step-2-saju-input/index.html";
