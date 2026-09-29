@@ -205,11 +205,11 @@ describe('배포 라우팅은 선별한 public 자산만 정적으로 제공한�
       // `admin-ui` 는 정적 루트 밖에 있지만 함수는 그 파일을 읽어야 한다(ADR-0002 D1).
       assert.equal(
         config.functions['api/index.ts'].includeFiles,
-        '{admin-ui/**,data/**,prompts/**,사주/**/*.html,사주/**/*.htm,사주/**/*.css,사주/**/*.js,사주/**/*.mjs,사주/**/*.json,사주/**/*.xml,사주/**/*.txt,사주/**/*.woff,사주/**/*.woff2,사주/**/*.ico,사주/**/*.svg,사주/**/*.webp,사주/**/*.jpg,사주/**/*.jpeg,사주/**/*.gif,사주/**/*.avif,사주/**/*.webm,사주/**/*.mp3,사주/**/*.otf,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}',
+        '{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}',
       )
       assert.equal(
         config.functions['api/index.ts'].excludeFiles,
-        '{사주/**/*.png,사주/**/*.mp4,사주/**/*.ttf}',
+        '{사주/**/*.png,사주/**/*.mp4,사주/**/*.ttf,public/**/*.png,public/**/*.mp4,public/**/*.ttf}',
       )
       assert.match(prepareSource, /copySelectedFiles\([\s\S]*\['\.png', '\.mp4', '\.ttf'\]/)
     })

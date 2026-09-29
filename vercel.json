@@ -4,8 +4,8 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 300,
-      "includeFiles": "{admin-ui/**,data/**,prompts/**,사주/**/*.html,사주/**/*.htm,사주/**/*.css,사주/**/*.js,사주/**/*.mjs,사주/**/*.json,사주/**/*.xml,사주/**/*.txt,사주/**/*.woff,사주/**/*.woff2,사주/**/*.ico,사주/**/*.svg,사주/**/*.webp,사주/**/*.jpg,사주/**/*.jpeg,사주/**/*.gif,사주/**/*.avif,사주/**/*.webm,사주/**/*.mp3,사주/**/*.otf,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}",
-      "excludeFiles": "{사주/**/*.png,사주/**/*.mp4,사주/**/*.ttf}"
+      "includeFiles": "{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}",
+      "excludeFiles": "{사주/**/*.png,사주/**/*.mp4,사주/**/*.ttf,public/**/*.png,public/**/*.mp4,public/**/*.ttf}"
     }
   },
   "crons": [
