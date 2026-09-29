@@ -1944,7 +1944,7 @@
         + flow + table + chart
         + '</div></article>';
     }).join('');
-    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false, normalizeText: normalizeLoveSignalTocText });
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: true, normalizeText: normalizeLoveSignalTocText });
     var quotaText = teaserQuotaText(payload.freeSearch);
     return '<header class="job-teaser-opening couple-teaser-opening love-signal-teaser-opening">'
       + '<span>관계 신호 · 무료 공개 2개 해석</span>'

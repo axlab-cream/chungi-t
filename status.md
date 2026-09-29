@@ -2635,3 +2635,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 별도 Grok 리뷰는 MCP 오류 후 결과 미반환으로 중단; 직접 diff 리뷰 완료.
 - KMS: personal/carrotcap/notes/umsh-ga-integrity-20260929.md. [GATE] rules.md §6.3에 따른 명시적 운영 배포 요청 전 push/배포 미실행.
 - 최종 격리 검증: 전체 회귀 1,694/1,694 PASS (166 suites), 빌드/타입 PASS. 운영 반영은 미실행.
+
+## 2026-09-29 — 관계 신호 티저 제목 폭·잠금 목차 기본 펼침
+
+- [FOUND] 관계 신호 04 화면의 전역 `h1 { max-width: 11ch }`가 런타임으로 삽입한 개인화 티저 제목에도 적용되어 카드 오른쪽에 불필요한 빈 공간을 만들었다.
+- [FIXED] 제목 폭 제한을 정적 대표 영역의 `.hero h1`에만 적용해 개인화 제목이 카드 가로폭을 사용하게 했다.
+- [FIXED] 실제 03~21번 잠금 목차 19개를 기본 펼침으로 변경하고 접기·잠김·결제/권한 분기는 유지했다.
+- [CACHE] 공용 리더 캐시 키를 `20260929-love-signal-teaser-v2`로 동기화했다.
+- [PASS] 전체 1,696/1,696(166 suites), TypeScript, 20개 서비스 계약·QA, 프로덕션 빌드와 diff 검사를 통과했다.
