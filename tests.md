@@ -1138,3 +1138,18 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - 새 사주는 계정 기본 프로필을 덮지 않고 서로 다른 리포트 식별자를 만드는 계약을 검증했다.
 - GitHub Actions `36513425518` | PASS — typecheck, 1,630 tests, 서비스 검수, 20개 서비스 QA, production build
 - 운영 배포 `dpl_9hYdPmV8fMVTKs2V9VdumgwqoJNf` | Ready — `umsh.kr` alias, STEP2 공통 chrome, STEP4 GNB 선행 DOM, 기존 실제 커플궁합 28개 해석 저장 이력 확인
+
+## 2026-09-29 — 올해 연애운 STEP1 스토리 보강
+
+| 검증 | 결과 |
+| --- | --- |
+| `npx tsx --test tests/unit/love-this-year-story.test.ts` | PASS — 3/3 |
+| `npm run check:thisyear` | PASS — 22 contracts, 6 pages, 8 groups |
+| `npm test` | PASS — 1,634/1,634, 166 suites |
+| `npm run typecheck` | PASS |
+| `npm run check:service-contracts` | PASS — 20 services |
+| `npm run qa:all-services` | PASS — 20 services |
+| `npm run vercel-build` | PASS |
+| `git diff --check` | PASS |
+
+- 로컬 운영형 화면에서 첫 장면, 중간 리포트 범위, 마지막 무료 CTA를 시각 검수했다. 가로 넘침은 없고 공통 상·하단 내비게이션이 유지된다.

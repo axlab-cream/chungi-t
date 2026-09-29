@@ -8,13 +8,13 @@
     <title>나, 올해 연애 가능? | 운명상회</title>
     <meta
       name="description"
-      content="도화, 세운, 배우자성으로 올해 연애 가능성과 내 관계 패턴을 확인하는 운명상회 연애운 서비스"
+      content="이번에도 스칠 인연인지, 올해 실제 관계로 이어질 사람인지 내 사주와 현재 상황으로 먼저 확인합니다."
     />
     <meta name="application-name" content="운명상회" />
     <meta property="og:title" content="운명상회 - 운명을 팝니다." />
     <meta
       property="og:description"
-      content="올해 연애 모드, 새 인연, 썸 타이밍, 관계 운영 포인트를 내 사주 흐름으로 확인합니다."
+      content="올해 내 연애가 시작되는 장면과 자꾸 애매하게 끝나는 이유를 무료 해석으로 먼저 확인합니다."
     />
     <meta property="og:site_name" content="운명상회" />
     <meta property="og:url" content="https://love.umsh.kr/thisyear" />
@@ -136,7 +136,7 @@
 
       .scene {
         position: relative;
-        min-height: 100svh;
+        min-height: min(92svh, 780px);
         display: grid;
         align-content: end;
         overflow: hidden;
@@ -145,7 +145,7 @@
       }
 
       .scene.compact {
-        min-height: 82svh;
+        min-height: min(72svh, 640px);
       }
 
       .scene-image {
@@ -160,6 +160,11 @@
         transform: scale(1.01);
         -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
         mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
+      }
+
+      [data-scene-id="scene-01"] .scene-image,
+      [data-scene-id="scene-02"] .scene-image {
+        object-position: center 34%;
       }
 
       .scene-video {
@@ -329,6 +334,14 @@
         margin-top: 2px;
       }
 
+      .cta-note {
+        color: rgba(255, 248, 249, 0.7);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.4;
+        text-align: center;
+      }
+
       .primary-cta,
       .ghost-cta {
         display: inline-flex;
@@ -397,9 +410,9 @@
           border-radius: 28px;
         }
 
-        .scene {
-          min-height: calc(100svh - 56px);
-        }
+        .scene { min-height: min(calc(100svh - 56px), 780px); }
+
+        .scene.compact { min-height: min(72svh, 640px); }
       }
 
       @media (max-width: 360px) {
@@ -472,7 +485,6 @@
           <strong>운명상회</strong>
           <span>연애운 · 올해 흐름</span>
         </a>
-        <span class="price-chip">12,900원</span>
       </header>
 
       <article class="story" aria-label="나, 올해 연애 가능? 인트로">
@@ -490,16 +502,17 @@
             aria-label="밝은 빛을 바라보는 여성 캐릭터와 연애 흐름을 암시하는 빛의 궤도"
           ></video>
           <div class="content">
-            <span class="eyebrow">올해 연애운</span>
-            <h1>나, 올해 <span class="accent">연애 가능?</span></h1>
+            <span class="eyebrow">올해 연애, 기다릴지 움직일지</span>
+            <h1>이번에도 스쳐 갈까,<br /><span class="accent">이번엔 진짜 시작될까?</span></h1>
             <p>
-              올해의 끌림이 진짜 시작인지, 잠깐 스치는 텐션인지
-              도화·세운·배우자성 흐름으로 먼저 확인합니다.
+              아무도 없는 날보다 애매한 사람 한 명 때문에 마음이 흔들리는 날이 더 길죠.
+              올해 내 연애가 어디서 시작되고 왜 멈추는지, 내 사주와 지금 상황을 함께 놓고 봅니다.
             </p>
             <div class="cta-stack">
               <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story#step-2-saju-input">
-                내 올해 연애 흐름 확인하기
+                내 연애가 움직이는 때 보기
               </a>
+              <span class="cta-note">무료 해석 2개 먼저 확인</span>
             </div>
           </div>
         </section>
@@ -517,17 +530,17 @@
             aria-label="카페 창가에서 휴대폰을 내려놓고 생각에 잠긴 여성 캐릭터"
           ></video>
           <div class="content">
-            <span class="eyebrow">고민 공감</span>
-            <h2>연락 하나에도 <span class="accent">텐션</span>이 흔들릴 때</h2>
+            <span class="eyebrow">지금 내 얘기라면</span>
+            <h2>좋아하는 사람은 생기는데,<br /><span class="accent">왜 관계는 늘 애매하게 끝날까요?</span></h2>
             <p>
-              먼저 연락해도 되는지, 이 사람이 나를 보는지, 올해는
-              진짜 관계가 열리는지 헷갈릴 수 있습니다.
+              연락이 오는 때, 마음이 커지는 속도, 가까워질수록 피하고 싶은 지점은 사람마다 다릅니다.
+              올해는 그 반복이 어디서 끊길 수 있는지부터 봅니다.
             </p>
             <div class="panel">
               <div class="signal-row" aria-label="주요 고민">
-                <div class="signal"><strong>솔로</strong><span>새 인연이 들어올 타이밍</span></div>
-                <div class="signal"><strong>썸</strong><span>고백각인지 간보기각인지</span></div>
-                <div class="signal"><strong>재회</strong><span>오래된 감정 정리와 재가동</span></div>
+                <div class="signal"><strong>새 인연</strong><span>어디서, 어떤 방식으로 시작되는지</span></div>
+                <div class="signal"><strong>썸·관심</strong><span>지금 다가갈지 조금 더 볼지</span></div>
+                <div class="signal"><strong>지난 인연</strong><span>다시 시작할 감정인지 끝낼 반복인지</span></div>
               </div>
             </div>
           </div>
@@ -546,11 +559,11 @@
             aria-label="비 오는 밤 도시에서 알림 빛 사이를 걷는 여성 캐릭터"
           ></video>
           <div class="content">
-            <span class="eyebrow">내 패턴</span>
-            <h2>올해는 <span class="soft">내 반복 패턴</span>부터 봅니다</h2>
+            <span class="eyebrow">첫 번째 반전</span>
+            <h2>문제는 인연이 없는 게 아니라,<br /><span class="soft">시작될 때 놓치는 신호</span>일 수 있어요</h2>
             <p>
-              매번 비슷한 사람에게 끌리는지, 썸은 많은데 안정감이 약한지,
-              관계가 깊어지기 전에 멈추는 이유를 흐름으로 나눠봅니다.
+              끌림은 빠른데 확인은 늦는지, 상대가 다가오면 오히려 거리를 두는지,
+              좋아하는 마음보다 불안이 먼저 커지는지. 반복되는 장면을 알아야 올해의 인연을 놓치지 않습니다.
             </p>
           </div>
         </section>
@@ -568,16 +581,16 @@
             aria-label="빛으로 된 사주 흐름과 꽃잎 사이에 서 있는 여성 캐릭터"
           ></video>
           <div class="content">
-            <span class="eyebrow">분석 기준</span>
-            <h2>도화, 세운, 배우자성을 <span class="accent">같이</span> 봅니다</h2>
+            <span class="eyebrow">내 사주에서 보는 세 가지</span>
+            <h2>언제 눈에 띄고, 누구에게 끌리고,<br /><span class="accent">어디서 관계가 멈추는지</span></h2>
             <p>
-              매력의 신호만 보지 않고, 올해 흐름과 실제 관계로 이어지는
-              배우자성까지 나눠서 봐야 과한 단정을 피할 수 있습니다.
+              단순히 “연애운이 있다”로 끝내지 않습니다. 내 매력이 드러나는 때와
+              실제 만남이 이어질 조건을 지금의 관계 상태와 함께 읽습니다.
             </p>
-            <div class="panel basis-grid" aria-label="분석 기준 설명">
-              <div class="basis"><strong>도화</strong><span>사람을 끌어당기는 매력과 노출되는 분위기</span></div>
-              <div class="basis"><strong>세운</strong><span>올해 관계가 움직이는 방향과 주의할 속도</span></div>
-              <div class="basis"><strong>배우자성</strong><span>연애가 실제 관계로 연결되는 조건</span></div>
+            <div class="panel basis-grid" aria-label="개인화 해석 범위">
+              <div class="basis"><strong>사람이 나를 알아보는 때</strong><span>평소보다 매력과 존재감이 또렷해지는 시기</span></div>
+              <div class="basis"><strong>관계가 움직이는 달</strong><span>만남과 연락이 실제로 이어지기 쉬운 구간</span></div>
+              <div class="basis"><strong>썸이 연애로 넘어가는 조건</strong><span>끌림이 잠깐의 관심으로 끝나지 않게 만드는 행동</span></div>
             </div>
           </div>
         </section>
@@ -595,28 +608,28 @@
             aria-label="연애 결과 카드처럼 보이는 빛의 패널을 바라보는 여성 캐릭터"
           ></video>
           <div class="content">
-            <span class="eyebrow">이런 것까지 봅니다</span>
-            <h2>결과는 <span class="accent">가능성</span>에서 행동까지 이어집니다</h2>
+            <span class="eyebrow">무료 결과 뒤에 이어지는 이야기</span>
+            <h2>“연애 가능” 한마디보다,<br /><span class="accent">언제 누구에게 어떻게 움직일지</span>가 궁금하니까</h2>
             <div class="panel preview-grid" aria-label="유료 리포트 대표 목차">
               <div class="preview-card">
-                <strong>올해 연애 가능성 총평</strong>
-                <span>연애 모드 ON각, 새 인연 유입각, 쉬어가는 각</span>
+                <strong>올해 가장 먼저 달라지는 장면</strong>
+                <span>일상에서 인연이 들어올 통로와 알아차릴 신호</span>
               </div>
               <div class="preview-card">
-                <strong>세운 십성별 연애 무드</strong>
-                <span>비견부터 정인까지 올해 관계의 기본 텐션</span>
+                <strong>끌리는 사람과 오래 갈 사람의 차이</strong>
+                <span>처음의 설렘이 실제 관계로 남는 조건</span>
               </div>
               <div class="preview-card">
-                <strong>만남 타이밍</strong>
-                <span>입춘 전후, 월운, 연락하기 좋은 타이밍</span>
+                <strong>연락과 만남이 움직이는 때</strong>
+                <span>먼저 다가가기 좋은 구간과 서두르지 말아야 할 때</span>
               </div>
               <div class="preview-card">
-                <strong>관계 운영 가이드</strong>
-                <span>고백각, 읽씹 텐션, 선 지키기, 과몰입 방지</span>
+                <strong>썸이 멈추는 나의 반복</strong>
+                <span>읽씹, 눈치 보기, 과몰입으로 넘어가는 순간</span>
               </div>
               <div class="preview-card">
-                <strong>MZ형 결과 카드</strong>
-                <span>연애 온도, 플러팅 포인트, 이번 달 액션 한 줄</span>
+                <strong>이번 달 바로 써먹을 한 가지</strong>
+                <span>내 상황에 맞춘 연락·만남·거리 조절 행동</span>
               </div>
             </div>
           </div>
@@ -635,14 +648,15 @@
             aria-label="밝은 문 앞에서 손을 내미는 여성 캐릭터와 꽃잎, 별빛"
           ></video>
           <div class="content center">
-            <span class="eyebrow">확인 시작</span>
-            <h2>올해 내 연애 흐름을 <span class="accent">입력값</span>으로 열어볼게요</h2>
+            <span class="eyebrow">무료로 먼저 확인</span>
+            <h2>올해 연애가 풀리는<br /><span class="accent">첫 장면부터 열어보세요</span></h2>
             <p>
-              결과는 가능성, 주의점, 지금 할 작은 행동 순서로 보여줍니다.
-              생년월일시와 현재 관계 상태를 넣으면 다음 화면으로 이어집니다.
+              저장된 사주와 지금의 관계 상태를 바탕으로 첫 2개 해석을 자세히 보여드립니다.
+              막연한 가능성보다 지금 내 이야기와 닿는 장면부터 확인해보세요.
             </p>
             <div class="cta-stack">
-              <a class="ghost-cta" href="#step-1-story">처음부터 다시 보기</a>
+              <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story-end#step-2-saju-input">내 무료 연애 해석 열기</a>
+              <span class="cta-note">무료 해석 2개 먼저 확인</span>
             </div>
           </div>
         </section>
@@ -655,9 +669,9 @@
 
       <div class="sticky-cta" aria-label="고정 진행 버튼">
         <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=sticky#step-2-saju-input">
-          내 올해 연애 흐름 확인하기
+          내 무료 연애 해석 열기
         </a>
-        <small>도화 + 세운 + 배우자성 기준 · 12,900원</small>
+        <small>무료 해석 2개 먼저 확인</small>
       </div>
     </main>
 
