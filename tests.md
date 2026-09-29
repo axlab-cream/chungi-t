@@ -1200,3 +1200,5 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - 첫 화면 CTA와 마지막 CTA는 각 장면에 맞는 서로 다른 문구를 사용하며, 페이지 끝에서는 최종 CTA 하나만 보인다.
 - 운영 DOM은 고정 CTA 0개, 가격 노출 0개, 미리보기 링크 0개, 가로 넘침 0이며 여섯 영상이 스크롤 후 모두 장면 이미지로 로드된다.
 - 번호 원 정렬 후속 검증: 전용 4/4, 관계 신호 계약 20건, TypeScript, production build PASS. 공통 span 규칙이 번호 아이콘을 덮지 않도록 선택자를 분리했다.
+
+LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analytics fix; build/typecheck PASS. Browser 375/390/768/1440 no overflow. Production verification pending.

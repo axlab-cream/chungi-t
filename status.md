@@ -2591,3 +2591,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] 운영 화면에서 공통 GNB, 새 문제 중심 카피, 고정 CTA 0개, 가격 노출 0개, 읽기 전용 범위 카드 5개, 페이지 끝 최종 CTA 1개와 공통 하단 내비게이션을 확인했다. 문서 너비와 앱 너비가 일치해 가로 넘침이 없다.
 - [KMS] `personal/carrotcap/notes/umsh-love-signal-story-hook-cta-20260929.md`에 원인·결정·검증·재사용 교훈을 저장하고 재조회했다.
 - [FOLLOW-UP] `.preview-card span` 규칙이 `.preview-icon`의 grid 표시와 위 여백을 덮어 숫자가 원 밖으로 밀렸다. 설명문에만 적용되는 직접 자식 선택자로 범위를 좁히고 번호 원은 `place-items:center`, `margin-top:0`, `align-self:start`로 고정했다.
+
+## 2026-09-29 LOVE-SPEED-01
+- 독립 모바일 미니게임 및 인증 결과 API 구현. 신규 DB 변경 없음.
+- 행동답변 점수/4유형, MBTI/실제 일간 참고 해석, 개인정보 없는 유형 공유.
+- 최신 origin/main 격리본 타입/빌드 PASS. 전체 1655 중 1654 PASS, 공통 측정 태그 누락 1건 수정 후 관련 12/12 PASS. 공유 테스트 1건 추가 포함.
+- 브라우저: 5문항/분석/로그인 게이트/4유형/다시하기, 375/390/768/1440px overflow 0, CTA exact PASS.
+- 실제 회원 OAuth 완료 및 운영 개인 결과는 배포 후 확인 예정. 샘플 preview.html은 명확히 표시.
+- 원본 checkout의 기존 서버 누락 모듈/타입 오류는 보존; 릴리스는 7a90f93c 최신 원격 기반.

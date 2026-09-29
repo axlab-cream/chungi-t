@@ -1,3 +1,4 @@
+import { loveSpeedRouter } from '../play/love-speed-route.js'
 import { respondRequestFailure } from './input-error.js'
 import '../env/load.js'
 import type { ServerResponse } from 'node:http'
@@ -3831,6 +3832,13 @@ app.get('/api/user/orders', async (req, res) => {
 })
 
 
+app.use('/api/play/love-speed', loveSpeedRouter({
+  authenticate: requireSupabaseUser,
+  context: async (owner) => {
+    const profile = await getUserBirthProfile(owner)
+    return { saju: profile ? analyzeSaju(profile.birth) : null, birthTimeKnown: profile?.birthTimeKnown !== false }
+  },
+}))
 app.get('/api/user/profile', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)

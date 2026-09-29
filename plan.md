@@ -723,3 +723,5 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 3. 사용자 불안 → 반복 장면 → 두 사람의 반응 차이 → 전체 리포트 질문 → 무료 해석 진입으로 서사를 다시 쓴다. **완료**
 4. 정보 카드를 비클릭 요소로 정리하고 모바일 화면과 회귀 계약을 검증한다. **완료**
 5. 전체 테스트·타입·서비스 QA·빌드 후 main 배포와 운영 화면 검증, CreamWIKI 기록을 완료한다. **완료**
+
+LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.

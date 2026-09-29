@@ -50,3 +50,5 @@ copyDirectory(join(sajuRoot, 'js'), join(publicRoot, 'js'))
 copyFile(join(sajuRoot, 'data', 'longform-blocks.json'), join(publicRoot, 'data', 'longform-blocks.json'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'assets'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'cmdg', 'assets'))
+
+copyDirectory(join(sajuRoot, 'play', 'love-speed'), join(publicRoot, 'play', 'love-speed'))
