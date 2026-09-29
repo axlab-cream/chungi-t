@@ -34,4 +34,6 @@ test('관계 신호 STEP1은 전문 용어 대신 실제 관계 장면을 먼저
 test('리포트 범위 카드는 버튼처럼 가장하지 않고 읽는 정보로 제공한다', () => {
   assert.equal((html.match(/class="preview-card"/g) ?? []).length, 5)
   assert.doesNotMatch(html, /<a class="preview-card"/)
+  assert.match(html, /\.preview-icon\s*\{[\s\S]*?place-items:\s*center;[\s\S]*?margin-top:\s*0;/)
+  assert.doesNotMatch(html, /\.preview-card span\s*\{/)
 })

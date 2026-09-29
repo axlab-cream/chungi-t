@@ -445,8 +445,10 @@
       .preview-icon {
         display: grid;
         place-items: center;
+        align-self: start;
         width: 42px;
         height: 42px;
+        margin-top: 0;
         border: 1px solid rgba(235, 189, 101, 0.28);
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.22);
@@ -462,7 +464,11 @@
         line-height: 1.34;
       }
 
-      .preview-card span {
+      .preview-card > span:not(.preview-icon) {
+        min-width: 0;
+      }
+
+      .preview-card > span:not(.preview-icon) > span {
         display: block;
         margin-top: 4px;
         color: var(--muted);
