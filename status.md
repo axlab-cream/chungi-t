@@ -2522,3 +2522,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [DB/API] DB 스키마 변경은 없다. 기존 저장 리포트·결제·보관함 API를 유지하면서 커플 요청/응답과 공통 5회 미리보기 대상만 확장했다.
 
 - [LIVE FIX] 첫 운영 확인에서 공통 크롬이 구형 appbar를 교체하며 GNB 호스트를 티저 슬롯 아래로 다시 이동시키는 런타임 순서 문제를 발견했다. 마운트 직후 GNB를 화면 루트의 첫 요소로 복구하고 회귀 테스트를 추가했다.
+- [PASS] 구현 `4cef6a2b`와 GNB 보정 `c459e9d0`을 `origin/main`에 반영했다. GitHub Actions `36513425518`의 타입 검사·전체 테스트·서비스 검수·20개 서비스 QA·프로덕션 빌드가 모두 통과했다.
+- [PASS] Vercel Production `dpl_9hYdPmV8fMVTKs2V9VdumgwqoJNf`가 Ready 상태이며 `umsh.kr` 별칭에 연결됐다. 운영 STEP2에서 저장 사주와 상대·관계 입력 폼, 공통 상·하단 내비게이션을 확인했고 STEP4에서 GNB가 티저보다 먼저 배치되는 런타임 DOM 순서를 확인했다.
+- [PASS] 운영 관리자에서 기존 커플궁합 리포트가 실제 회원·서비스 이력으로 누적되고, 저장된 두 사람의 사주와 관계 입력을 사용하는 전체 28개 해석이 조회되는 것을 확인했다. 검증 과정에서 새 가상 리포트나 운영 데이터를 만들지 않았다.
+- [KMS] `personal/carrotcap/notes/umsh-match-couple-teaser-personalized-20260929.md`에 원인·해결·검증·배포 결과를 갱신하고 재조회한다.

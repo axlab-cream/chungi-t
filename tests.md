@@ -1136,3 +1136,5 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - 커플궁합 실제 1·2번 개인화, 이미지 2개, 두 사람 입력/네 기둥 표, 실제 다섯 기운 막대 10개, 닫힌 실제 03~N 잠금 목차, 단일 CTA를 회귀 테스트로 고정했다.
 - 동일 입력 재열람 미차감과 서비스별 5회 분리, 미결제 결제 URL·권한 회원 05 목차 URL, 04/05/06 직접 reportId 응답 분리를 검증했다.
 - 새 사주는 계정 기본 프로필을 덮지 않고 서로 다른 리포트 식별자를 만드는 계약을 검증했다.
+- GitHub Actions `36513425518` | PASS — typecheck, 1,630 tests, 서비스 검수, 20개 서비스 QA, production build
+- 운영 배포 `dpl_9hYdPmV8fMVTKs2V9VdumgwqoJNf` | Ready — `umsh.kr` alias, STEP2 공통 chrome, STEP4 GNB 선행 DOM, 기존 실제 커플궁합 28개 해석 저장 이력 확인
