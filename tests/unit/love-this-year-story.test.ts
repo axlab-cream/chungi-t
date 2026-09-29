@@ -34,3 +34,9 @@ test('올해 연애운 스토리는 장면 높이와 CTA 접근성을 모바일�
   assert.match(html, /min-height:\s*52px/)
 })
 
+test('올해 연애운 스토리 여섯 장면은 같은 캠페인 이미지이고 구형 영상이 없다', () => {
+  assert.equal((html.match(/src="\.\.\/assets\/thisyear\/campaign-2026\/year-love-story-(?:hero|scene-\d{2})-v1\.webp"/g) ?? []).length, 6)
+  assert.doesNotMatch(html, /<video|\.mp4|data-video-src|scene-video/)
+  assert.equal((html.match(/class="scene-image"/g) ?? []).length, 6)
+})
+
