@@ -7,7 +7,7 @@
 - [x] 날짜 선택 목록의 흰 배경/흰 글자 대비 결함 수정
 - [x] 전용 회귀 테스트 작성 및 로컬 모바일 시각 검수
 - [x] 전체 회귀·타입 검사·프로덕션 빌드
-- [ ] 운영 배포 및 운영 URL 재검증
+- [x] 운영 배포 및 운영 URL 재검증 (`758a21be`, `dpl_4h8fLLaUwK12xtRDV333H38kFQxZ`)
 
 - 2026-09-29 `task-cat-compatibility-teaser-production`: 저장/새 보호자 사주와 관찰한 고양이 행동 기반 1·2번 해석, 닫힌 실제 잠금 목차, 조회 5회, 결제/권한 분기를 한 수직 슬라이스로 구현·검증·배포했다. 상태: DONE (`d8d4a70a`, `dpl_MrDDXj5QYBvTArk2nh1XVQmGC8WK`).
 

@@ -7,7 +7,7 @@
 - [PASS] 선택 목록 `option`에 `#fff8ee` 배경과 `#24110e` 글자색 적용
 - [PASS] 로컬 운영형 모바일 화면에서 공통 GNB, 히어로, 요약 3개, 입력 카드의 가로 넘침·겹침 없음
 - [PASS] 전체 회귀 1,670/1,670(166 suites), TypeScript, 관계 신호 20개 계약, 20개 서비스 계약·QA, 프로덕션 빌드
-- [PENDING] 운영 URL 검증
+- [PASS] 운영 URL에서 option 계산 색상 `#fff8ee`/`#24110e`, 히어로 360px·상단 초점, 내부 티저 문구 미노출, 문서 폭과 뷰포트 폭 일치 확인
 
 ## Verification Matrix
 

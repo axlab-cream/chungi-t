@@ -9,6 +9,8 @@
 - [FIXED] 모든 기본 선택 목록의 옵션에 밝은 배경과 진한 글자색을 명시했다. 저장 사주·입력 검증·리포트 생성 로직은 변경하지 않았다.
 - [PASS] 전용·STEP1 연계 회귀 7/7, 로컬 모바일 시각 검수를 통과했다. 전체 검증과 운영 배포를 이어간다.
 - [PASS] 전체 회귀 1,670/1,670(166 suites), TypeScript, 관계 신호 20개 계약, 20개 서비스 계약·QA, 프로덕션 빌드를 통과했다.
+- [DEPLOYED] 구현 커밋 `758a21be`, Vercel Production `dpl_4h8fLLaUwK12xtRDV333H38kFQxZ`가 Ready 상태로 `umsh.kr`에 반영됐다.
+- [PASS] 운영 URL에서 선택 목록 계산 색상 `rgb(36, 17, 14)`/`rgb(255, 248, 238)`, 히어로 360px·상단 초점, 내부 문구 미노출, `scrollWidth === clientWidth`를 확인했다.
 
 ## Current Task
 
