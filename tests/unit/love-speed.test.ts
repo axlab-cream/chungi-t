@@ -44,7 +44,7 @@ test('browser result resolution explains unavailable, expired, denied and failed
 
 test('sharing sends only the public type; cancellation never falls back to clipboard', async () => {
   const source = readFileSync(new URL('../../사주/play/love-speed/app.js', import.meta.url), 'utf8')
-  const shareSource = source.slice(source.indexOf('  async function share(data)'), source.indexOf('  function sampleResult'))
+  const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function sampleResult'))
   let payload: any
   let copied = 0
   const context: any = { types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } }, notice() {} }
@@ -60,6 +60,47 @@ test('sharing sends only the public type; cancellation never falls back to clipb
   delete context.navigator.share
   await context.share({ type: 'spark' })
   assert.equal(copied, 1)
+})
+
+test('friend invitation always shares the public test URL and supports copy/manual fallbacks', async () => {
+  const source = readFileSync(new URL('../../사주/play/love-speed/app.js', import.meta.url), 'utf8')
+  const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function sampleResult'))
+  let payload: any; let copied = ''; let html = ''; let message = ''
+  const context: any = { types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data } }, notice: (text: string) => { message = text }, esc: (value: string) => value, document: { getElementById: () => ({ set innerHTML(value: string) { html = value } }) } }
+  runInNewContext(shareSource, context)
+  await context.share()
+  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/')
+  assert.ok(payload.text.includes('같이'))
+  await context.share({ type: 'PRIVATE&birth=PRIVATE' })
+  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/')
+  assert.ok(!JSON.stringify(payload).includes('PRIVATE'))
+  context.navigator.share = async () => { throw Object.assign(Error(), { name: 'AbortError' }) }
+  await context.share()
+  assert.equal(html, '')
+  delete context.navigator.share
+  context.navigator.clipboard = { writeText: async (text: string) => { copied = text } }
+  await context.share()
+  assert.equal(copied, 'https://umsh.kr/play/love-speed/')
+  assert.ok(message.includes('친구'))
+  context.navigator.share = async () => { throw Error('copy-only must skip native share') }
+  await context.share(undefined, true)
+  assert.equal(copied, 'https://umsh.kr/play/love-speed/')
+  delete context.navigator.share
+  context.navigator.clipboard.writeText = async () => { throw Error('denied') }
+  await context.share()
+  assert.ok(html.includes('readonly'))
+  assert.ok(html.includes('https://umsh.kr/play/love-speed/'))
+})
+
+test('public link preview declares a real 1200x630 PNG without personal metadata', () => {
+  const html = readFileSync(new URL('../../사주/play/love-speed/index.html', import.meta.url), 'utf8')
+  const png = readFileSync(new URL('../../사주/play/love-speed/share-banner-v1.png', import.meta.url))
+  assert.equal(png.subarray(1, 4).toString(), 'PNG')
+  assert.equal(png.readUInt32BE(16), 1200)
+  assert.equal(png.readUInt32BE(20), 630)
+  assert.ok(html.includes('property="og:image" content="https://umsh.kr/play/love-speed/share-banner-v1.png"'))
+  assert.ok(html.includes('name="twitter:card" content="summary_large_image"'))
+  assert.ok(html.includes('property="og:image:alt"'))
 })
 
 test('all 1024 answer combinations produce bounded scores and reach all four types', () => {
