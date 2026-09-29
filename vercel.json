@@ -4,8 +4,7 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 300,
-      "includeFiles": "{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}",
-      "excludeFiles": "{사주/**/*.png,사주/**/*.mp4,사주/**/*.ttf,public/**/*.png,public/**/*.mp4,public/**/*.ttf}"
+      "includeFiles": "{admin-ui/**,data/**,prompts/**,.vercel-runtime/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/{PRD.md,PLAN.md,HANDOFF-PROMPT-20260912.md,report-budget.json}}"
     }
   },
   "crons": [

@@ -10,6 +10,7 @@
 - [PASS] 운영 앱 428px 본문에서 문서·호스트·표 가로 넘침 0, GNB·하단 내비게이션, 이미지 2/2 로드, 실제 잠금 19개 기본 닫힘, CTA 1개 확인
 - [PASS] 내부 코드 `cold_mood`와 원시 마크다운 0개, 고객 문구 `표현이 식은 느낌` 표시, 권한 보유 CTA 05 연결 확인
 - [PASS] 최종 GitHub Actions CI `36555954526`, Vercel Production `dpl_FdbCkoqC6wprRBGZCqUKE2EgfezN`, 운영 홈 3회 연속 HTTP 200
+- [PASS] 자동 배포 재현에서 함수 399.23MB·첫 호출 500을 확인하고 정상 배포로 즉시 복구. 텍스트 전용 `.vercel-runtime`과 빌드 미디어 카탈로그 적용 뒤 로컬 Vercel 함수 12.72MB, 전체 회귀 1,695/1,695, 정적/관리자 미디어 집중 69/69 PASS
 
 ## 2026-09-29 — 관계 신호 STEP2 입력 경험
 

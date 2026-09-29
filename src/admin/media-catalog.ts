@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, extname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -6,14 +6,18 @@ import { fileURLToPath } from 'node:url'
  * 미디어(이미지·첨부 자산) 카탈로그.
  *
  * 이 서비스에는 미디어를 저장하는 데이터베이스 표가 없다 — 이미지는 배포에 실린 정적
- * 파일 그 자체다(`사주/**`, vercel.json 의 includeFiles 로 함수 번들에 포함됨). 그래서
- * 저장소를 새로 만드는 대신 **실제로 배포된 파일**을 훑어 카탈로그를 만든다. 어떤 서비스
+ * 파일 그 자체다. 빌드에서는 실제 파일을 훑은 작은 JSON 카탈로그만 함수에 넣고, 로컬에서는
+ * 원본 트리를 직접 훑는다. 어떤 서비스
  * 페이지가 그 파일을 실제로 참조하는지까지 세어, 어디에도 안 쓰이는 자산(정리 대상)을
  * 구분한다. 임의 수치나 예시 행은 만들지 않는다.
  */
 
 const PROJECT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..')
-const STATIC_ROOT = join(PROJECT_ROOT, '사주')
+// Keep the local fallback dynamic so Vercel's file tracer does not pull the
+// complete 400MB source media tree into the server function. Production reads
+// GENERATED_CATALOG; local development still scans the real directory.
+const STATIC_ROOT = join(PROJECT_ROOT, String.fromCodePoint(0xc0ac, 0xc8fc))
+const GENERATED_CATALOG = join(PROJECT_ROOT, 'data', 'generated-media-catalog.json')
 const IMAGE_EXTENSIONS = new Set(['.webp', '.png', '.jpg', '.jpeg', '.svg', '.gif'])
 
 export type AdminMediaAsset = {
@@ -43,6 +47,11 @@ let cached: { at: number; assets: AdminMediaAsset[] } | null = null
  */
 export function getMediaCatalog(): AdminMediaAsset[] {
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.assets
+  if (existsSync(GENERATED_CATALOG)) {
+    const assets = JSON.parse(readFileSync(GENERATED_CATALOG, 'utf8')) as AdminMediaAsset[]
+    cached = { at: Date.now(), assets }
+    return assets
+  }
   const files: string[] = []
   walk(STATIC_ROOT, files)
   const images = files.filter((file) => IMAGE_EXTENSIONS.has(extname(file).toLowerCase()))

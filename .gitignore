@@ -19,6 +19,8 @@ supabase/.temp/
 사주/assets/consultation-targets/
 .env*.local
 public/
+data/generated-media-catalog.json
+.vercel-runtime/
 .claude/
 # 개인 로컬 컨텍스트. 파일 자체가 커밋 금지를 명시한다.
 CLAUDE.local.md

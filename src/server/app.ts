@@ -7,6 +7,7 @@ import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
@@ -250,8 +251,12 @@ import {
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const ROOT = join(__dirname, '../..')
-const SAJU_UI = join(ROOT, '사주', '사주')
-const SAJU_ROOT = join(ROOT, '사주')
+const DEPLOY_SAJU_ROOT = join(ROOT, '.vercel-runtime', '사주')
+const LOCAL_SAJU_DIRECTORY = String.fromCodePoint(0xc0ac, 0xc8fc)
+const SAJU_ROOT = process.env.VERCEL && existsSync(DEPLOY_SAJU_ROOT)
+  ? DEPLOY_SAJU_ROOT
+  : join(ROOT, LOCAL_SAJU_DIRECTORY)
+const SAJU_UI = join(SAJU_ROOT, '사주')
 const PORTAL_PAGE = join(SAJU_ROOT, 'portal.html')
 const DESTINY_PAGE = join(SAJU_ROOT, 'destiny.html')
 const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
