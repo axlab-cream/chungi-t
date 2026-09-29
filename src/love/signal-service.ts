@@ -20,6 +20,9 @@ export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 export const SIGNAL_ASSET_BASE = '/love/signal/assets/signal'
 
 export interface LoveSignalRequest {
+  selfName?: string
+  selfBirth?: BirthInput
+  selfBirthTimeKnown?: boolean
   relationshipStage: string
   signalFocus: string
   partnerName?: string
@@ -174,12 +177,32 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
 }
 
 export function parseLoveSignalRequest(body: Record<string, unknown>): LoveSignalRequest {
+  const selfBirthBody = asObject(body.selfBirth)
+  let selfBirth: BirthInput | undefined
+  let selfBirthTimeKnown: boolean | undefined
+  if (Object.keys(selfBirthBody).length) {
+    const known = body.selfBirthTimeKnown === true || selfBirthBody.birthTimeKnown === true
+    const year = Number(selfBirthBody.year)
+    const month = Number(selfBirthBody.month)
+    const day = Number(selfBirthBody.day)
+    const hour = Number(selfBirthBody.hour ?? (known ? Number.NaN : 12))
+    const minute = Number(selfBirthBody.minute ?? 0)
+    if (!validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) throw new InputError('내 생년월일을 다시 확인해 주세요.')
+    if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('내 성별을 선택해 주세요.')
+    if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('내 생년월일의 양력 또는 음력을 선택해 주세요.')
+    if (known && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) throw new InputError('내 태어난 시간을 다시 확인해 주세요.')
+    selfBirth = { year, month, day, hour: known ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth) }
+    selfBirthTimeKnown = known
+  }
   const relationshipStage = trimmed(body.relationshipStage, 50)
   const signalFocus = trimmed(body.signalFocus, 50)
   if (!relationshipStage) throw new InputError('현재 관계를 선택해 주세요.')
   if (!signalFocus) throw new InputError('가장 신경 쓰이는 신호를 선택해 주세요.')
 
   return {
+    selfName: trimmed(body.selfName, 20),
+    selfBirth,
+    selfBirthTimeKnown,
     relationshipStage,
     signalFocus,
     partnerName: trimmed(body.partnerName, 20),
@@ -223,8 +246,172 @@ export function buildLoveSignalContext(
       dayMasterElement: ELEMENT_KO[partnerAnalysis.dayMasterElement],
       dominantElement: ELEMENT_KO[partnerAnalysis.dominantElement],
       weakElement: ELEMENT_KO[partnerAnalysis.weakElement],
+      elementCount: partnerAnalysis.elementCount,
+      pillarElements: {
+        year: [p.year.stemElement, p.year.branchElement],
+        month: [p.month.stemElement, p.month.branchElement],
+        day: [p.day.stemElement, p.day.branchElement],
+        hour: [p.hour.stemElement, p.hour.branchElement],
+      },
       tenGods: partnerAnalysis.tenGods,
     },
+  }
+}
+
+const PLAIN_ELEMENT: Record<string, string> = {
+  wood: '나무', fire: '불', earth: '흙', metal: '쇠', water: '물',
+  목: '나무', 화: '불', 토: '흙', 금: '쇠', 수: '물',
+}
+
+function safeCell(value: unknown): string {
+  return String(value ?? '').replace(/\r?\n/g, ' ').replace(/\|/g, '｜').trim()
+}
+
+function elementName(value: unknown): string {
+  return PLAIN_ELEMENT[String(value ?? '')] || String(value ?? '').replace(/\([^)]*\)/g, '').trim() || '기운'
+}
+
+function signalFacts(context: SajuReportContext) {
+  const parts = safeCell(context.concern).split(/\s*·\s*/).filter(Boolean)
+  const pick = (label: string) => parts.find((part) => part.startsWith(`${label}:`))?.slice(label.length + 1).trim() || ''
+  const described = parts.filter((part) => !/^(현재 관계|신경 쓰이는 신호|상대):/.test(part)).join(' · ')
+  return {
+    selfName: safeCell(context.name) || '나',
+    partnerName: safeCell(context.partner?.name) || pick('상대') || '상대',
+    relationship: safeCell(context.partner?.relationship) || pick('현재 관계') || '가까운 관계',
+    focus: pick('신경 쓰이는 신호') || '최근 달라진 행동',
+    concern: described,
+  }
+}
+
+function signalInputTable(context: SajuReportContext): string {
+  const facts = signalFacts(context)
+  const rows: Array<[string, string, string]> = [
+    ['현재 두 사람의 관계', facts.relationship, '연락과 약속을 받아들이는 현재 거리'],
+    ['가장 마음에 걸린 변화', facts.focus, '첫 무료 해석에서 먼저 확인할 장면'],
+    ...(facts.concern ? [['직접 적은 고민', facts.concern, '추측과 실제 변화를 나눠 볼 문장'] as [string, string, string]] : []),
+  ]
+  return ['| 확인한 내용 | 직접 알려 준 답 | 이번 풀이에서 읽는 부분 |', '| --- | --- | --- |', ...rows.map((row) => `| ${row.join(' | ')} |`)].join('\n')
+}
+
+function signalPillarTable(analysis: SajuAnalysis, context: SajuReportContext): string {
+  const mine = analysis.fourPillars
+  const theirs = context.partner?.pillarElements
+  const rows = theirs ? [
+    ['태어난 해', `${elementName(mine.year.stemElement)} · ${elementName(mine.year.branchElement)}`, `${elementName(theirs.year[0])} · ${elementName(theirs.year[1])}`],
+    ['태어난 달', `${elementName(mine.month.stemElement)} · ${elementName(mine.month.branchElement)}`, `${elementName(theirs.month[0])} · ${elementName(theirs.month[1])}`],
+    ['태어난 날', `${elementName(mine.day.stemElement)} · ${elementName(mine.day.branchElement)}`, `${elementName(theirs.day[0])} · ${elementName(theirs.day[1])}`],
+    ['태어난 시간', context.birthTimeKnown === false ? '입력하지 않음' : `${elementName(mine.hour.stemElement)} · ${elementName(mine.hour.branchElement)}`, context.partner?.birthTimeKnown === false ? '입력하지 않음' : `${elementName(theirs.hour[0])} · ${elementName(theirs.hour[1])}`],
+  ] : [
+    ['태어난 날의 중심', elementName(analysis.dayMasterElement), elementName(context.partner?.dayMasterElement)],
+    ['전체에서 많이 쓰는 기운', elementName(analysis.dominantElement), elementName(context.partner?.dominantElement)],
+  ]
+  return ['| 사주의 네 기둥 | 나에게 드러난 기운 | 상대에게 드러난 기운 |', '| --- | --- | --- |', ...rows.map((row) => `| ${row.join(' | ')} |`)].join('\n')
+}
+
+function signalElementChart(analysis: SajuAnalysis, context: SajuReportContext) {
+  const elements = [['wood', '나무'], ['fire', '불'], ['earth', '흙'], ['metal', '쇠'], ['water', '물']] as const
+  const facts = signalFacts(context)
+  const withoutUnknownHour = (count: SajuAnalysis['elementCount'], hourElements: [string, string], known: boolean | undefined) => {
+    if (known !== false) return count
+    const visible = { ...count }
+    hourElements.forEach((element) => {
+      const key = element as keyof typeof visible
+      visible[key] = Math.max(0, visible[key] - 1)
+    })
+    return visible
+  }
+  const mineCount = withoutUnknownHour(analysis.elementCount, [analysis.fourPillars.hour.stemElement, analysis.fourPillars.hour.branchElement], context.birthTimeKnown)
+  const mineNote = context.birthTimeKnown === false ? '입력한 세 기둥에서 계산한 개수' : '내 사주 네 기둥에서 계산한 개수'
+  const mine = elements.map(([key, label]) => ({ label: `${facts.selfName} · ${label}`, value: mineCount[key], note: mineNote }))
+  const partner = context.partner?.elementCount
+  const partnerHour = context.partner?.pillarElements?.hour
+  const partnerCount = partner && partnerHour ? withoutUnknownHour(partner, partnerHour, context.partner?.birthTimeKnown) : partner
+  const partnerNote = context.partner?.birthTimeKnown === false ? '입력한 세 기둥에서 계산한 개수' : '상대 사주 네 기둥에서 계산한 개수'
+  return partnerCount ? mine.concat(elements.map(([key, label]) => ({ label: `${facts.partnerName} · ${label}`, value: partnerCount[key], note: partnerNote }))) : mine
+}
+
+function signalTeaserInterpretation(index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): string {
+  const facts = signalFacts(context)
+  const mine = analysis ? elementName(analysis.dominantElement) : '내가 강하게 쓰는 기운'
+  const theirs = elementName(context.partner?.dominantElement)
+  const concern = facts.concern || `${facts.partnerName}님의 ${facts.focus}이 왜 달라졌는지`
+  if (index === 0) return [
+    `[주요 포인트] ${facts.selfName}님이 “${concern}”을 마음에 두게 된 출발점은 ${facts.focus}입니다. 지금 입력에서 먼저 드러나는 것은 외도의 증거가 아니라, 이전과 달라진 행동을 설명하지 않은 채 둘 사이의 약속이 흐려진 장면입니다. 그래서 이 관계는 상대의 마음을 상상하기보다 달라진 연락·약속·표현을 같은 기간에 놓고 보는 것이 맞습니다.`,
+    `${facts.relationship}인 두 사람에게 가장 중요한 단서는 연락 횟수 하나가 아닙니다. 답이 늦어도 약속을 먼저 잡고 이유를 설명한다면 관계를 지키는 행동은 남아 있습니다. 반대로 말은 다정한데 약속이 자주 바뀌고 질문할 때마다 설명이 달라진다면, 불안의 원인은 촉이 예민해서가 아니라 확인할 정보가 계속 비어 있기 때문입니다.`,
+    `[사주와 관계를 함께 보면] ${facts.selfName}님은 ${mine} 기운을 많이 쓰고 ${facts.partnerName}님은 ${theirs} 기운이 두드러집니다. 두 기운의 차이는 사랑의 크기가 아니라 불편함을 처리하는 속도에서 나타납니다. 한 사람은 바로 확인해야 마음이 놓이고 다른 사람은 정리할 시간을 원할 수 있어, 설명 없는 침묵이 길어질수록 의심이 커지기 쉽습니다.`,
+    `[확인할 장면] 최근 가장 마음에 걸린 일 하나를 골라 보세요. 약속이 바뀐 시각, 상대가 먼저 설명했는지, 다음 약속을 다시 잡았는지를 순서대로 적으면 단순한 바쁨과 관계 약속의 후퇴가 분명히 갈립니다.`,
+    `[결정 전에 물어볼 질문] “최근 ${facts.focus}이 달라져서 불안했어. 무슨 일이 있었는지, 앞으로 비슷한 날에는 어떻게 알려 줄 수 있는지 듣고 싶어”라고 물었을 때 구체적인 설명과 다음 행동이 함께 돌아오나요?`,
+    `[해법] 지금 필요한 답은 휴대전화나 사주 속에 있지 않습니다. 달라진 장면을 숨기지 않고 설명하며 둘이 정한 약속을 다시 지키는 행동이 이어지는지 확인하는 것이 첫 결론입니다.`,
+  ].join('\n\n')
+  return [
+    `[주요 포인트] ${facts.selfName}님과 ${facts.partnerName}님의 관계가 흔들리는 순간은 다른 사람의 등장보다, 불편한 질문을 꺼냈을 때 대화가 끊기는 장면에서 먼저 드러납니다. 첫 해석이 달라진 행동을 짚었다면, 이번에는 두 사람이 그 불안을 함께 다룰 수 있는지를 봅니다.`,
+    `${facts.selfName}님은 ${mine}, ${facts.partnerName}님은 ${theirs} 기운을 주로 씁니다. 반응 방식이 다르면 한쪽은 확인 질문을 사랑의 관심으로 느끼고 다른 쪽은 통제로 받아들일 수 있습니다. 이 차이를 모른 채 같은 질문을 반복하면 내용보다 말투가 싸움의 중심이 되지만, 필요한 설명과 사생활의 경계를 함께 정하면 오히려 신뢰를 회복하는 힘이 됩니다.`,
+    `[사주와 관계를 함께 보면] 태어난 날의 기둥은 가까운 사람 앞에서 나오는 반응을, 태어난 달의 기둥은 일상에서 반복되는 방식을 살피는 참고점입니다. 두 사람의 네 기둥을 나란히 놓으면 누가 바람을 피울지를 판정하는 대신, 한 사람이 불안할 때 다른 사람이 설명과 약속으로 응답할 수 있는지를 구체적으로 읽을 수 있습니다.`,
+    `[확인할 장면] 불편한 이야기를 꺼낸 뒤의 24시간을 보세요. 상대가 질문을 비난으로 돌리지 않고 사실을 설명하는지, 둘이 합의한 연락이나 모임의 경계를 다시 정하는지, 다음 행동이 실제로 달라지는지가 신뢰 회복의 핵심 장면입니다.`,
+    `[결정 전에 물어볼 질문] 서로 편안한 모임·SNS·이성 친구의 범위는 어디까지인가요? 일정이 바뀌면 언제 알려 주기로 할까요? 같은 일이 반복될 때 어떤 행동을 관계 약속 위반으로 볼지도 함께 말할 수 있나요?`,
+    `[해법] 대화를 피하지 않고 설명·경계·다음 행동을 함께 정할 수 있다면 이 관계에는 회복할 힘이 있습니다. 질문할 때마다 말을 바꾸거나 합의한 약속을 반복해서 무시한다면, 믿으라는 말보다 거리를 두고 나를 보호하는 판단이 먼저입니다.`,
+  ].join('\n\n')
+}
+
+export function loveSignalTeaserPreview(context: SajuReportContext, sectionCount: number) {
+  const facts = signalFacts(context)
+  return {
+    title: '내 애인 바람필까?',
+    headline: `${facts.partnerName}님의 마음보다 먼저, “${facts.focus}”이 실제 약속과 함께 달라졌는지 봐야 합니다`,
+    summary: `“${facts.concern || facts.focus}”이라는 불안을 두 사람의 네 기둥과 ${facts.relationship}에서 실제로 달라진 행동에 겹쳐, 추측과 확인 가능한 신호를 분리했습니다.`,
+    insights: [], signals: [],
+    paidValue: `전체 해석에서는 ${sectionCount}개 항목으로 관계 온도, 모임·SNS 경계, 새로운 접점, 두 사람의 반응 차이와 지금 꺼낼 질문까지 이어서 풉니다.`,
+  }
+}
+
+const LOVE_SIGNAL_TEASER_IMAGES = [
+  { key: 'relationship-temperature', src: `${SIGNAL_ASSET_BASE}/05-relationship_temperature.webp`, alt: '두 사람 사이의 연락과 약속 변화를 살피는 관계 온도 장면' },
+  { key: 'partner-signal-radar', src: `${SIGNAL_ASSET_BASE}/05-partner_signal_radar.webp`, alt: '두 사람의 사주 기운과 관계 밖 경계를 함께 살피는 장면' },
+] as const
+
+export function loveSignalTeaserSection(
+  section: SajuReportSection,
+  index: number,
+  analysis: SajuAnalysis | undefined,
+  context: SajuReportContext,
+): SajuReportSection {
+  const facts = signalFacts(context)
+  const image = LOVE_SIGNAL_TEASER_IMAGES[index]
+  const story = index === 0 ? {
+    feel: `“${facts.focus}”이 달라진 지금, 불안과 실제 신호는 어디에서 갈릴까요?`,
+    softBridge: '연락 횟수 하나보다 설명·약속·다음 행동이 함께 남아 있는지를 보면, 지금 관계에서 확인할 답이 선명해집니다.',
+    tableMd: signalInputTable(context),
+    tableCaption: '직접 알려 준 관계 상태와 달라진 장면이 이번 풀이에서 맡는 역할입니다.',
+    flowSteps: [
+      { label: '1. 달라진 장면', value: facts.focus, note: '추측 대신 실제 변화를 한 장면으로 좁히기' },
+      { label: '2. 설명과 약속', value: '이유와 다음 행동 확인', note: '말과 행동이 같은 방향인지 보기' },
+      { label: '3. 반복 여부', value: '같은 일이 다시 생겼는지', note: '한 번의 실수와 관계 약속의 후퇴를 구분하기' },
+    ],
+    flowCaption: '입력한 불안을 확인 가능한 관계 장면으로 바꾸는 순서입니다.',
+    scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+  } : {
+    feel: '두 사람의 신뢰는 의심이 없는 상태보다, 불편한 질문 뒤에도 설명과 약속이 이어지는지에서 드러납니다.',
+    softBridge: '두 사람의 네 기둥과 다섯 기운을 생활 언어로 나란히 놓아, 불안을 처리하는 속도와 관계 경계를 비교했습니다.',
+    ...(analysis ? {
+      tableMd: signalPillarTable(analysis, context),
+      tableCaption: '한자를 걷어 내고 두 사람의 네 기둥을 생활 언어의 기운으로 비교했습니다.',
+      chartPoints: signalElementChart(analysis, context),
+      chartCaption: '입력한 출생 정보에서 계산한 다섯 기운의 개수입니다. 태어난 시간을 모르면 시간 기둥은 제외했으며, 외도 확률이나 사랑의 점수가 아닙니다.',
+    } : {}),
+    flowSteps: [
+      { label: '1. 사실 설명', value: '달라진 일을 숨기지 않기', note: '질문을 공격으로 돌리지 않고 답하기' },
+      { label: '2. 경계 합의', value: '모임·SNS·연락 범위 정하기', note: '서로 지킬 수 있는 약속으로 말하기' },
+      { label: '3. 다음 행동', value: '같은 상황의 대응 정하기', note: '말이 아니라 반복 행동으로 신뢰 확인하기' },
+    ],
+    flowCaption: '불안한 관계를 추측에서 합의와 행동으로 옮기는 순서입니다.',
+    scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+  }
+  return {
+    ...section,
+    ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
+    interpretation: signalTeaserInterpretation(index, analysis, context),
+    storytelling: { ...(section.storytelling ?? {}), ...story },
   }
 }
 

@@ -8,7 +8,7 @@ export interface ServicePreviewQuota {
 }
 
 export type JobChoicePreviewQuota = ServicePreviewQuota
-export type PreviewQuotaService = 'job_choice' | 'money_save' | 'work_move' | 'match_couple' | 'love_this_year' | 'cat_compatibility'
+export type PreviewQuotaService = 'job_choice' | 'money_save' | 'work_move' | 'match_couple' | 'love_this_year' | 'cat_compatibility' | 'couple_signal'
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const serviceKey = configuredEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -75,6 +75,11 @@ export function claimServicePreview(service: PreviewQuotaService, ownerId: strin
 export function servicePreviewStatus(service: PreviewQuotaService, ownerId: string): Promise<ServicePreviewQuota> {
   if (!ownerId) throw new Error('무료 결과 조회 계정이 필요합니다.')
   return callQuota('job_choice_free_preview_status', { p_user_id: quotaOwnerId(service, ownerId) })
+}
+
+/** The five free previews gate only unpaid access. Paid/admin users still see usage as status text. */
+export function previewQuotaBlocksAccess(quota: ServicePreviewQuota | undefined, entitled: boolean): boolean {
+  return Boolean(quota && !quota.allowed && !entitled)
 }
 
 export function claimJobChoicePreview(ownerId: string, lineageId: string): Promise<JobChoicePreviewQuota> {

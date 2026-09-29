@@ -78,3 +78,24 @@ test('love signal request validates its required answers', () => {
     /8자리/,
   )
 })
+
+test('love signal accepts a new self saju without replacing the saved profile', () => {
+  const input = parseLoveSignalRequest({
+    selfName: '새 사주',
+    selfBirth: { year: 1988, month: 3, day: 4, hour: 0, minute: 0, gender: 'male', calendar: 'lunar', birthTimeKnown: false },
+    selfBirthTimeKnown: false,
+    relationshipStage: '연애 중',
+    signalFocus: '약속 변화',
+    partnerBirthText: '19940912',
+    partnerBirth: { gender: 'female', calendar: 'solar' },
+  })
+
+  assert.equal(input.selfName, '새 사주')
+  assert.equal(input.selfBirth?.year, 1988)
+  assert.equal(input.selfBirth?.hour, 12)
+  assert.equal(input.selfBirthTimeKnown, false)
+  assert.notEqual(
+    createLoveSignalReportId('user-1', birth, input),
+    createLoveSignalReportId('user-1', input.selfBirth!, input),
+  )
+})

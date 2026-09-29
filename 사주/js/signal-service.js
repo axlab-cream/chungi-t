@@ -169,6 +169,7 @@
   /** Step 02 stores its own shape; this maps it onto what the analyze endpoint expects. */
   function buildRequest(payload) {
     const input = payload?.input;
+    const self = input?.self;
     const partner = input?.partner;
     if (!partner) return null;
     const birth = partner.birth || {};
@@ -176,7 +177,7 @@
       .map((part, index) => String(part ?? '').padStart(index === 0 ? 4 : 2, '0'))
       .join('');
     if (!/^\d{8}$/.test(text)) return null;
-    return {
+    const request = {
       relationshipStage: partner.relationship_label || partner.relationship_status || '',
       signalFocus: input.signal_focus || input.signalFocus || '',
       partnerName: partner.alias || '',
@@ -188,7 +189,82 @@
       partnerBirthTimeKnown: Boolean(partner.birth_time_known),
       concern: input.concern || '',
     };
+    if (self?.source === 'manual') {
+      const selfBirth = self.birth || {};
+      const time = String(self.time || '').split(':');
+      request.selfName = self.alias || '나';
+      request.selfBirthTimeKnown = Boolean(self.birth_time_known);
+      request.selfBirth = {
+        year: Number(selfBirth.year),
+        month: Number(selfBirth.month),
+        day: Number(selfBirth.day),
+        hour: request.selfBirthTimeKnown ? Number(time[0]) : 12,
+        minute: request.selfBirthTimeKnown ? Number(time[1] || 0) : 0,
+        gender: self.gender === 'male' ? 'male' : 'female',
+        calendar: self.calendar === 'lunar' ? 'lunar' : 'solar',
+        birthTimeKnown: request.selfBirthTimeKnown,
+      };
+    }
+    return request;
   }
+
+  function reportIdentity(payload) {
+    return payload?.reportId || payload?.resultId || payload?.publicId
+      || payload?.preview?.reportId || payload?.report?.reportId || '';
+  }
+
+  function teaserUrl(reportId) {
+    const url = new URL('../04-step-4-report/index.html', location.href);
+    url.searchParams.set('service_key', SERVICE.apiKey);
+    url.searchParams.set('service_slug', SERVICE.slug);
+    url.searchParams.set('report_version', 'couple-signal-v1');
+    url.searchParams.set('input_schema_version', 'couple-signal-input-v1');
+    url.searchParams.set('entry', 'step-2-saju-input');
+    if (reportId) url.searchParams.set('reportId', reportId);
+    url.hash = 'step-4-report';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  function showAnalysisLoading() {
+    const existing = document.querySelector('[data-signal-loading]');
+    if (existing) return existing;
+    const overlay = document.createElement('section');
+    overlay.className = 'signal-analysis-loading';
+    overlay.setAttribute('data-signal-loading', 'true');
+    overlay.setAttribute('data-umsh-step', '03-loading');
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.innerHTML = `
+      <div class="signal-analysis-loading__card">
+        <span>03 · 개인화 해석 준비</span>
+        <h2>두 사람의 반응 차이를 사주와 지금 상황에 맞춰 보고 있어요</h2>
+        <p>입력한 관계 장면 확인 → 두 사람의 네 기둥 계산 → 무료 해석 1·2 준비</p>
+        <div class="signal-analysis-loading__bar" aria-hidden="true"><i></i></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  async function createPreviewFromInput(payload) {
+    const request = buildRequest(payload);
+    if (!request) throw new Error('상대의 생년월일과 지금 걸리는 신호를 다시 확인해 주세요.');
+    showAnalysisLoading();
+    const session = await initAuth();
+    if (!session) throw new Error('로그인 후 저장된 내 사주와 상대 정보로 무료 해석을 볼 수 있습니다.');
+    const response = await api('/api/love/signal/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ ...request, preview: true }),
+    });
+    const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response) || response;
+    const report = accepted?.report || response?.report;
+    if (report?.sections?.length) writeJson('sessionStorage', STORAGE.report, report);
+    const reportId = reportIdentity(response) || reportIdentity(accepted);
+    if (!reportId) throw new Error('생성된 무료 해석 번호를 확인하지 못했습니다. 다시 눌러 주세요.');
+    location.assign(teaserUrl(reportId));
+    return response;
+  }
+
+  window.UMSHSignalService = Object.assign(window.UMSHSignalService || {}, { createPreviewFromInput });
 
   let reportPromise = null;
 
@@ -199,8 +275,9 @@
       const cached = readJson('sessionStorage', STORAGE.report);
       if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
+      const reportId = new URLSearchParams(location.search).get('reportId') || new URLSearchParams(location.search).get('report_id') || '';
       const request = buildRequest(readJson('sessionStorage', STORAGE.input));
-      if (!request?.relationshipStage || !request?.signalFocus) return { reason: 'input' };
+      if (!reportId && (!request?.relationshipStage || !request?.signalFocus)) return { reason: 'input' };
 
       const session = await initAuth();
       if (!session) {
@@ -209,7 +286,10 @@
       }
 
       try {
-        const response = await api('/api/love/signal/analyze', { method: 'POST', body: JSON.stringify(request) });
+        const response = await api('/api/love/signal/analyze', {
+          method: 'POST',
+          body: JSON.stringify(reportId ? { reportId, preview: true } : { ...request, preview: true }),
+        });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
         if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
@@ -258,10 +338,10 @@
   }
 
   const GATE_COPY = {
-    input: '두 사람 정보를 먼저 입력하면 같은 흐름으로 이어집니다.',
-    login: '로그인하면 저장된 내 사주와 상대 정보로 풀이를 계산합니다. 지금 화면의 문장은 예시입니다.',
-    payment: '결제가 확인되면 10개 대분류 70개 항목이 모두 열립니다.',
-    error: '풀이를 계산하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+    input: '두 사람의 정보와 마음에 걸린 장면을 알려 주면 첫 해석부터 그 고민을 중심으로 풀어드립니다.',
+    login: '로그인하면 저장된 내 사주와 상대 정보를 이어서 확인할 수 있습니다.',
+    payment: '전체 해석에서는 관계 온도, 모임과 연락의 경계, 두 사람의 반응 차이와 실제 대화까지 이어서 봅니다.',
+    error: '해석을 불러오지 못했습니다. 잠시 뒤 다시 확인해 주세요.',
   };
 
   function groupOrder(report) {
@@ -284,7 +364,7 @@
 
     const primary = $('[data-state-primary]');
     if (outcome.preview) {
-      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
+      window.UMSHReportAccess?.showPreview?.(outcome.payload || outcome);
       const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
       if (line) summary.textContent = line;
       const insights = outcome.preview.signals || outcome.preview.insights || [];

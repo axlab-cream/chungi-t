@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
     <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
-    <script src="/js/umsh-report-access.js?v=20260929-cat-toc-open-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20260929-love-signal-teaser-v1"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>사주 입력 | 내 애인 바람필까?</title>
@@ -656,6 +656,14 @@
       .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
       .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
       .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+      .signal-analysis-loading { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: rgba(5, 1, 2, .94); color: #fff7ea; text-align: center; }
+      .signal-analysis-loading__card { width: min(100%, 360px); padding: 28px 22px; border: 1px solid rgba(233, 191, 106, .48); border-radius: 18px; background: linear-gradient(155deg, rgba(81, 11, 16, .96), rgba(17, 7, 7, .98)); box-shadow: 0 24px 70px rgba(0, 0, 0, .55); }
+      .signal-analysis-loading__card span { color: #e9bf6a; font-size: 13px; font-weight: 800; }
+      .signal-analysis-loading__card h2 { margin: 12px 0 10px; font-size: 22px; line-height: 1.42; }
+      .signal-analysis-loading__card p { margin: 0; color: rgba(255, 247, 234, .74); font-size: 14px; line-height: 1.7; }
+      .signal-analysis-loading__bar { height: 4px; margin-top: 22px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+      .signal-analysis-loading__bar i { display: block; width: 42%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #e9bf6a, #ff7468); animation: signal-loading 1.2s ease-in-out infinite alternate; }
+      @keyframes signal-loading { to { transform: translateX(138%); } }
 </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
       <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
@@ -1354,7 +1362,7 @@
         };
       }
 
-      function continueToReport() {
+      async function continueToReport() {
         const payload = buildPayload();
         const nextRoute = "../04-step-4-report/index.html";
         const params = new URLSearchParams(window.location.search);
@@ -1386,10 +1394,26 @@
 
         if (!writeSession(storageKeys.reportInput, payload)) {
           showStatus("브라우저 저장 공간이 부족합니다. 입력 화면을 유지한 뒤 다시 시도해주세요.", "error");
+          const submit = form.querySelector('[type="submit"]');
+          if (submit) submit.disabled = false;
           return;
         }
 
-        window.location.href = `${nextRoute}?${params.toString()}#step-4-report`;
+        if (!window.UMSHSignalService?.createPreviewFromInput) {
+          showStatus("무료 해석 연결을 불러오지 못했습니다. 입력값은 그대로 두었으니 잠시 후 다시 눌러 주세요.", "error");
+          const submit = form.querySelector('[type="submit"]');
+          if (submit) submit.disabled = false;
+          return;
+        }
+
+        try {
+          await window.UMSHSignalService.createPreviewFromInput(payload);
+        } catch (error) {
+          document.querySelector("[data-signal-loading]")?.remove();
+          showStatus(error?.message || "무료 해석을 준비하지 못했습니다. 잠시 후 다시 눌러 주세요.", "error");
+          const submit = form.querySelector('[type="submit"]');
+          if (submit) submit.disabled = false;
+        }
       }
 
       document.querySelector("[data-back]")?.addEventListener("click", () => {
@@ -1428,12 +1452,14 @@
         persistDraft();
       });
 
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
         if (!validateForm()) return;
         persistDraft();
-        showStatus("입력값을 확인했습니다. 관계 신호 리포트로 이어갑니다.");
-        continueToReport();
+        const submit = form.querySelector('[type="submit"]');
+        if (submit) submit.disabled = true;
+        showStatus("두 사람의 정보와 지금 걸리는 장면을 함께 읽고 있습니다.");
+        await continueToReport();
       });
 
       const restored = restoreDraft();
@@ -1454,7 +1480,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
-    <script src="/js/signal-service.js?v=live-20260917q" defer=""></script>
+    <script src="/js/signal-service.js?v=20260929-love-signal-teaser-v1" defer=""></script>
   
 
 </body></html>

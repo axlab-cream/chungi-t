@@ -4,8 +4,15 @@ import {
   claimJobChoicePreview,
   claimServicePreview,
   jobChoicePreviewStatus,
+  previewQuotaBlocksAccess,
   servicePreviewStatus,
 } from '../../src/work/jobchoice-preview-quota.js'
+
+test('무료 조회를 모두 쓴 뒤에도 구매 또는 관리자 권한은 티저 재열람을 막지 않는다', () => {
+  const exhausted = { used: 5, limit: 5 as const, allowed: false }
+  assert.equal(previewQuotaBlocksAccess(exhausted, false), true)
+  assert.equal(previewQuotaBlocksAccess(exhausted, true), false)
+})
 
 test('직장 선택 무료 결과는 계정별 서로 다른 입력 5건까지 허용하고 같은 입력 재열람은 차감하지 않는다', async () => {
   const owner = 'job-choice-quota-owner'

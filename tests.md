@@ -1,5 +1,14 @@
 # Tests
 
+## 2026-09-29 — 관계 신호 무료 티저
+
+- [PASS] 실제 개인화 공개 1·2번, 서로 다른 이미지, 입력표·네 기둥 표·순서도·다섯 기운 차트
+- [PASS] 실제 03~21번 잠금 목차 기본 닫힘, 중복 CTA 없음, 5회 조회·입력 재확인
+- [PASS] 미결제 결제 페이지·결제 완료 05 목차·06 상세 권한 경계. 5회 소진 후 구매자 재열람도 허용
+- [PASS] 출생시간 미상 시 시간 기둥 제외, 원시 마크다운·전문 한자·내부 QA 문구 미노출
+- [PASS] 집중 회귀 14/14, 전체 회귀 1,676/1,676(166 suites), TypeScript, Vercel production build, JavaScript 구문·diff 검사
+- [PENDING] 운영 배포 후 390px 화면의 가로 넘침·GNB·실제 저장 리포트 검증
+
 ## 2026-09-29 — 관계 신호 STEP2 입력 경험
 
 - [PASS] `npx tsx --test tests/unit/love-signal-input.test.ts tests/unit/love-signal-story.test.ts` — 7/7

@@ -1459,6 +1459,13 @@
       renderProgress(payload.report);
       return renderedCat;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'couple_signal'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideLoveSignalTeaserShell();
+      var renderedSignal = fillSlot('preview', renderLoveSignalTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedSignal;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1640,6 +1647,14 @@
     if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
       if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
     });
+  }
+
+  function hideLoveSignalTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
+    });
+    hideLegacyNode(document.querySelector('.actions'));
   }
 
   /** 이직운은 실제 입력·네 기둥·오행 계산값으로 공개 1·2번을 완성한다. */
@@ -1901,6 +1916,54 @@
       + '</footer>';
   }
 
+  /** 관계 신호는 상대의 마음을 단정하지 않고, 두 사람의 실제 입력과 네 기둥을 확인 가능한 장면으로 연결한다. */
+  function renderLoveSignalTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeLoveSignalTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '불안을 실제 장면과 대화로 확인하는 순서입니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 알려 준 관계 정보와 두 사람의 사주 계산값입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '두 사람의 생년 정보에서 계산한 다섯 기운입니다.')
+        : '';
+      return '<article class="job-teaser-reading couple-teaser-reading love-signal-teaser-reading" aria-labelledby="love-signal-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'couple_signal')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="love-signal-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false, normalizeText: normalizeLoveSignalTocText });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening couple-teaser-opening love-signal-teaser-opening">'
+      + '<span>관계 신호 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '상대의 마음보다 달라진 행동과 약속을 먼저 읽었습니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta couple-teaser-final-cta love-signal-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>관계 온도·모임과 연락의 경계·두 사람의 반응 차이와 지금 꺼낼 질문까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 관계 밖 접점과 두 사람의 생활 반응, 불안을 줄일 대화와 경계를 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
   function teaserQuotaText(quota) {
     if (!quota || !Number.isInteger(quota.used) || quota.limit !== 5) return '';
     var used = Math.min(5, Math.max(0, quota.used));
@@ -2018,6 +2081,38 @@
       .replace(/일지/g, '태어난 날의 관계 반응')
       .replace(/오행/g, '다섯 기운')
       .replace(/궁합의 결/g, '두 사람의 관계 특징')
+      .trim();
+  }
+
+  function normalizeLoveSignalTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 지금 불안이 시작된 장면\n')
+      .replace(/\s*\[사주와 관계를 함께 보면\]\s*/g, '\n\n### 두 사람의 사주와 현실이 만나는 지점\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 현실에서 바로 확인할 장면\n')
+      .replace(/\s*\[결정 전에 물어볼 질문\]\s*/g, '\n\n### 대화에서 꼭 물어볼 질문\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 지금 관계에서 내릴 답\n')
+      .replace(/부부궁|연인궁/g, '가까운 관계에서 보이는 반응')
+      .replace(/오행/g, '다섯 기운')
+      .replace(/일지/g, '태어난 날의 기둥')
+      .replace(/일간/g, '태어난 날의 중심 기운')
+      .replace(/십성/g, '사주 속 열 가지 관계 방식')
+      .trim();
+  }
+
+  function normalizeLoveSignalTocText(value) {
+    return String(value || '')
+      .replace(/부부궁·연인궁 시그널/g, '가까운 관계에서 붙고 부딪히는 방식')
+      .replace(/부부궁 충·합·형·파·해 체크/g, '가까울수록 붙고 부딪히는 방식')
+      .replace(/십성으로 보는 연애 스타일/g, '사랑을 표현하고 약속을 지키는 방식')
+      .replace(/식신:\s*일상 표현의 참고 관점/g, '일상에서 챙기는 방식')
+      .replace(/정재:\s*생활 관리의 참고 관점/g, '생활과 약속을 관리하는 방식')
+      .replace(/정관:\s*약속과 규칙의 참고 관점/g, '규칙과 책임을 대하는 방식')
+      .replace(/오행 상생/g, '다섯 기운이 서로 돕는 구간')
+      .replace(/오행 상극/g, '다섯 기운이 부딪히는 구간')
+      .replace(/세운:\s*/g, '올해 · ')
+      .replace(/일진:\s*/g, '오늘 · ')
+      .replace(/시그널/g, '신호')
       .trim();
   }
 
