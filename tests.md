@@ -7,7 +7,9 @@
 - [PASS] 미결제 결제 페이지·결제 완료 05 목차·06 상세 권한 경계. 5회 소진 후 구매자 재열람도 허용
 - [PASS] 출생시간 미상 시 시간 기둥 제외, 원시 마크다운·전문 한자·내부 QA 문구 미노출
 - [PASS] 집중 회귀 14/14, 전체 회귀 1,676/1,676(166 suites), TypeScript, Vercel production build, JavaScript 구문·diff 검사
-- [PENDING] 운영 배포 후 390px 화면의 가로 넘침·GNB·실제 저장 리포트 검증
+- [PASS] 운영 앱 428px 본문에서 문서·호스트·표 가로 넘침 0, GNB·하단 내비게이션, 이미지 2/2 로드, 실제 잠금 19개 기본 닫힘, CTA 1개 확인
+- [PASS] 내부 코드 `cold_mood`와 원시 마크다운 0개, 고객 문구 `표현이 식은 느낌` 표시, 권한 보유 CTA 05 연결 확인
+- [PASS] 최종 GitHub Actions CI `36555954526`, Vercel Production `dpl_FdbCkoqC6wprRBGZCqUKE2EgfezN`, 운영 홈 3회 연속 HTTP 200
 
 ## 2026-09-29 — 관계 신호 STEP2 입력 경험
 
