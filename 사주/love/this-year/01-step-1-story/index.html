@@ -340,14 +340,6 @@
         margin-top: 2px;
       }
 
-      .cta-note {
-        color: rgba(255, 248, 249, 0.7);
-        font-size: 12px;
-        font-weight: 850;
-        line-height: 1.4;
-        text-align: center;
-      }
-
       .primary-cta,
       .ghost-cta {
         display: inline-flex;
@@ -373,26 +365,6 @@
         border-color: rgba(255, 220, 232, 0.2);
         background: rgba(9, 10, 22, 0.4);
         color: rgba(255, 248, 249, 0.82);
-      }
-
-      .sticky-cta {
-        position: sticky;
-        bottom: 0;
-        z-index: 30;
-        display: grid;
-        gap: 8px;
-        padding: 12px 16px max(14px, env(safe-area-inset-bottom));
-        border-top: 1px solid rgba(255, 220, 232, 0.18);
-        background: linear-gradient(180deg, rgba(8, 9, 21, 0), rgba(8, 9, 21, 0.92) 24%, rgba(8, 9, 21, 0.98));
-        backdrop-filter: blur(18px);
-      }
-
-      .sticky-cta small {
-        color: var(--dim);
-        font-size: 11px;
-        font-weight: 800;
-        line-height: 1.35;
-        text-align: center;
       }
 
       .footer-note {
@@ -479,7 +451,6 @@
          same clipping without the scrollport, and the CTA sticks to the viewport again. */
       body.umsh-has-chrome .phone { overflow: clip; }
       body.umsh-has-chrome .sticky-actions { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
-      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
       body.umsh-has-chrome .toast { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px) + 12px); }
       /* 05 목차의 검색·필터 줄은 sticky로 목록 위에 겹쳐 떠 있었다. 상단 GNB가 이미
          고정이라 두 겹이 되고 뒤 카드가 가려져서, 목록과 같이 흐르게 둔다. */
@@ -525,7 +496,6 @@
               <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story#step-2-saju-input">
                 내 연애가 움직이는 때 보기
               </a>
-              <span class="cta-note">무료 해석 2개 먼저 확인</span>
             </div>
           </div>
         </section>
@@ -669,7 +639,6 @@
             </p>
             <div class="cta-stack">
               <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story-end#step-2-saju-input">내 무료 연애 해석 열기</a>
-              <span class="cta-note">무료 해석 2개 먼저 확인</span>
             </div>
           </div>
         </section>
@@ -680,12 +649,6 @@
         </p>
       </article>
 
-      <div class="sticky-cta" aria-label="고정 진행 버튼">
-        <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=sticky#step-2-saju-input">
-          내 무료 연애 해석 열기
-        </a>
-        <small>무료 해석 2개 먼저 확인</small>
-      </div>
     </main>
 
     <script>

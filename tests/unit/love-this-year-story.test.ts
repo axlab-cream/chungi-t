@@ -7,8 +7,10 @@ const html = readFileSync('사주/love/this-year/01-step-1-story/index.html', 'u
 test('올해 연애운 스토리는 고객 고민에서 시작해 무료 해석 CTA로 이어진다', () => {
   assert.match(html, /이번에도 스쳐 갈까,[\s\S]*이번엔 진짜 시작될까/)
   assert.match(html, /문제는 인연이 없는 게 아니라/)
-  assert.match(html, /무료 해석 2개 먼저 확인/)
+  assert.doesNotMatch(html, /무료 해석 2개 먼저 확인/)
   assert.match(html, /올해 연애가 풀리는[\s\S]*첫 장면부터 열어보세요/)
+  assert.equal((html.match(/내 무료 연애 해석 열기/g) ?? []).length, 1)
+  assert.doesNotMatch(html, /class="sticky-cta"/)
   assert.doesNotMatch(html, /<span class="price-chip">/)
   assert.doesNotMatch(html, /도화 \+ 세운 \+ 배우자성 기준 · 12,900원/)
 })

@@ -1153,3 +1153,4 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | `git diff --check` | PASS |
 
 - 로컬 운영형 화면에서 첫 장면, 중간 리포트 범위, 마지막 무료 CTA를 시각 검수했다. 가로 넘침은 없고 공통 상·하단 내비게이션이 유지된다.
+- 후속 검수: `내 무료 연애 해석 열기` 1개, `무료 해석 2개 먼저 확인` 0개, 고정 CTA 0개, 390px 가로 넘침 0을 회귀 테스트와 브라우저로 확인했다.
