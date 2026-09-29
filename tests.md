@@ -1247,3 +1247,6 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - PASS: 전체 회귀 1,700개 실행. 기능 1,698개 통과, 캐시 키 불일치 2건 수정 후 해당 회귀 26/26 통과.
 - ASSERT: 새 사주는 API 요청의 별도 `selfBirth`로 저장되고 `/api/user/profile` POST를 하지 않는다.
 - ASSERT: 실제 24개 목차 중 공개 2개, 잠금 22개이며 잠금 목록은 `open: true`이다.
+- PASS: Production `dpl_4eN7nVeYLrSS9EZpwbtpMUYGmoZa` Ready, `umsh.kr` 별칭 및 `/api/health` 정상.
+- PASS: 실제 운영 리포트에서 공통 GNB, 서로 다른 이미지의 개인화 해석 1·2, 입력표·기둥표·다섯 기운 시각화, 기본 펼침 잠금 22개, 단일 CTA를 확인했다.
+- PASS: 검증 대상은 기존 권한 리포트여서 CTA가 05 해석 목록으로 연결된다. 미결제 결제 이동은 자동 회귀 계약으로 확인했다.

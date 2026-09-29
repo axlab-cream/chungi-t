@@ -2651,4 +2651,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [FIXED] 실제 03~24번 목차 22개는 잠금 상태로 기본 펼치며, CTA는 한 번만 보여 미결제자는 결제, 구매자·관리자는 05 전체 목차로 보낸다. 무료 조회와 입력값 재확인은 CTA 바로 위에 둔다.
 - [FIXED] STEP2가 서버에 미리보기를 생성하고 03 준비 표시 뒤 reportId 04로 이동한다. 이번 리포트용 새 사주는 계정 기본 사주를 덮지 않고 별도 결과 계보로 저장된다.
 - [DB/API] DB 스키마 변경 없음. 기존 리포트·결제·보관함 API를 재사용하고 `marry_match` 미리보기 응답과 서비스별 5회 조회만 확장했다.
-- [VERIFY] 집중 48/48, 결혼궁합 계약, TypeScript, JS 구문, diff 검사 통과. 전체 1,700개에서 캐시 키 검사 2건을 수정하고 해당 회귀 26/26을 재통과했다. 빌드·배포·운영 검증 진행 중.
+- [VERIFY] 집중 48/48, 결혼궁합 계약, TypeScript, JS 구문, diff 검사 통과. 전체 1,700개에서 캐시 키 검사 2건을 수정하고 해당 회귀 26/26을 재통과했다. 프로덕션 빌드도 통과했다.
+- [DEPLOY] 코드 커밋 `cff877fd`를 `origin/main`에 반영했고 Production `dpl_4eN7nVeYLrSS9EZpwbtpMUYGmoZa`가 Ready이며 `umsh.kr` 별칭에 연결됐다.
+- [PROD] 실제 운영 리포트에서 공통 GNB, 개인화 해석 1·2, 서로 다른 이미지, 입력·기둥 표와 다섯 기운 차트, 03~24번 잠금 22개 기본 펼침, CTA 1개를 확인했다. 기존 권한 리포트 CTA는 05 목록으로 정상 연결된다.
+- [KMS] `personal/carrotcap/notes/umsh-marry-personalized-teaser-20260929.md`에 원인·수정·검증·재사용 교훈을 저장하고 재조회했다.
