@@ -14,6 +14,7 @@
 - [DEPLOYED] 최종 커밋 `c45ea97c`를 `origin/main`에 반영했고 CI `36555954526`이 PASS했다. 로컬에서 정적 산출물을 먼저 생성한 뒤 Vercel prebuilt Production `dpl_FdbCkoqC6wprRBGZCqUKE2EgfezN`을 배포·승격했다.
 - [PASS] 운영 홈 3회 연속 HTTP 200, 실제 저장 리포트에서 이미지 2개, 잠금 목차 19개 기본 닫힘, CTA 1개, 조회 0/5, 원시 마크다운·내부 코드 0개, 표·전체 문서 가로 넘침 0을 확인했다. 검증 계정은 기존 권한 보유자라 CTA가 reportId를 유지한 05 목차로 연결됐다.
 - [DB/API] DB 스키마와 운영 데이터 마이그레이션은 없다. 기존 리포트·결제·보관함 API를 유지하면서 `couple_signal` 요청·응답 문맥, 무료 조회 이름공간, 권한 분기와 정적 배포 패키징만 보강했다.
+- [DEPLOY POLICY] Git 소스 자동 배포는 생성된 대형 정적 산출물을 누락한 채 운영 별칭을 바꿀 수 있어 비활성화했다. 운영은 `vercel build --prod`로 함수·정적 자산을 함께 만든 뒤 `vercel deploy --prebuilt --prod`의 첫 호출과 주요 자산을 검증하고 승격한다.
 
 ## 2026-09-29 — 관계 신호 STEP2 입력 화면 보강 진행
 

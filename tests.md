@@ -11,6 +11,7 @@
 - [PASS] 내부 코드 `cold_mood`와 원시 마크다운 0개, 고객 문구 `표현이 식은 느낌` 표시, 권한 보유 CTA 05 연결 확인
 - [PASS] 최종 GitHub Actions CI `36555954526`, Vercel Production `dpl_FdbCkoqC6wprRBGZCqUKE2EgfezN`, 운영 홈 3회 연속 HTTP 200
 - [PASS] 자동 배포 재현에서 함수 399.23MB·첫 호출 500을 확인하고 정상 배포로 즉시 복구. 텍스트 전용 `.vercel-runtime`과 빌드 미디어 카탈로그 적용 뒤 로컬 Vercel 함수 12.72MB, 전체 회귀 1,695/1,695, 정적/관리자 미디어 집중 69/69 PASS
+- [PASS] Git 자동 배포를 비활성화해 검증되지 않은 소스 빌드가 운영 별칭을 교체하지 않도록 고정. Production은 함수와 정적 자산을 함께 담은 prebuilt 산출물만 승격
 
 ## 2026-09-29 — 관계 신호 STEP2 입력 경험
 

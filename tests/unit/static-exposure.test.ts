@@ -182,6 +182,10 @@ describe('배포 라우팅은 선별한 public 자산만 정적으로 제공한�
   const prepareSource = readFileSync(new URL('../../scripts/prepare-vercel-public.mjs', import.meta.url), 'utf8')
 
   describe('보안', () => {
+    it('검증되지 않은 Git 소스 배포가 운영 별칭을 자동 교체하지 않는다', () => {
+      assert.deepEqual(config.git, { deploymentEnabled: false })
+    })
+
     it('선별된 public 파일만 먼저 보내고 나머지는 함수로 보낸다', () => {
       assert.deepEqual(config.routes, [
         { handle: 'filesystem' },

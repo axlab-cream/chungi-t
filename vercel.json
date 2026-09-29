@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "git": { "deploymentEnabled": false },
   "regions": ["icn1"],
   "functions": {
     "api/index.ts": {
