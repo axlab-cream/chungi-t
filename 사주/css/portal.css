@@ -2026,3 +2026,14 @@ html.splash-disabled .splash-screen,
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Weekly free experiences: one banner, one direct entry. */
+.weekly-free .section-title h2{margin:0;color:var(--cream-100);font-size:19px;font-weight:950;line-height:1.4}
+.weekly-free-card{display:block;overflow:hidden;border:1px solid #695630;border-radius:18px;background:#14130f;text-decoration:none;color:var(--cream-100)}
+.weekly-free-card img{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:contain}
+.weekly-free-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-top:1px solid #423720}
+.weekly-free-caption strong{font-size:15px;line-height:1.4}
+.weekly-free-caption>span{color:#e8c879;font-size:12px;white-space:nowrap}
+.weekly-free-card:hover{border-color:#e8c879}
+.weekly-free-card:focus-visible{outline:3px solid #e8c879;outline-offset:4px}
+@media(max-width:360px){.weekly-free .section-title{gap:8px}.weekly-free .section-title h2{font-size:17px}.weekly-free-caption{padding:13px 12px;gap:8px}.weekly-free-caption strong{font-size:14px}}
