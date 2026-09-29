@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
     <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
-    <script src="/js/umsh-report-access.js?v=20260929-love-this-year-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20260929-cat-teaser-v1"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>고양이랑 나 진짜 궁합 맞아 | 입력 | 운명상회</title>
@@ -610,6 +610,12 @@
         backdrop-filter: blur(12px);
       }
 
+      .cat-analysis-loading { position: fixed; inset: 0; z-index: 80; display: none; place-items: center; padding: 24px; background: rgba(3, 5, 2, .92); color: var(--ink); text-align: center; }
+      .cat-analysis-loading.is-visible { display: grid; }
+      .cat-analysis-loading strong { display: block; margin-bottom: 8px; color: var(--gold); font-family: "MaruBuri", serif; font-size: 22px; }
+      .cat-analysis-loading p { max-width: 300px; color: var(--muted); line-height: 1.65; }
+      @media (prefers-reduced-motion: reduce) { .phone { scroll-behavior: auto; } }
+
       .primary-cta,
       .secondary-button {
         width: 100%;
@@ -1064,6 +1070,10 @@
       </main>
     </div>
 
+    <div class="cat-analysis-loading" id="loadingPanel" data-umsh-step="03-loading" aria-hidden="true" role="status">
+      <div><strong>둘이 편안해지는 순간을 찾고 있어요</strong><p>직접 알려 준 행동과 저장 사주를 함께 놓고 무료 해석 두 장을 준비합니다.</p></div>
+    </div>
+
     <script src="/js/cat-report-store.js"></script>
     <script>
       (() => {
@@ -1377,7 +1387,7 @@
 
           if (state.guardian_profile_mode !== "existing_profile") {
             if (!state.guardian_nickname) add("guardian_nickname", "리포트에서 부를 보호자 닉네임을 입력해주세요.");
-            if (!state.guardian_gender) add("guardian_gender", "사주 기준을 잡기 위해 보호자 성별을 선택해주세요.");
+            if (!state.guardian_gender || state.guardian_gender === "not_disclosed") add("guardian_gender", "새 사주 계산에는 보호자 성별을 선택해주세요.");
             if (!state.guardian_birth_date) add("guardian_birth_date", "보호자 생년월일을 입력해주세요.");
             if (!state.guardian_calendar_type) add("guardian_calendar_type", "양력 또는 음력 기준을 선택해주세요.");
             if (!state.guardian_birth_time_unknown && !state.guardian_birth_time) {
@@ -1478,7 +1488,7 @@
           return url.toString();
         }
 
-        function handleSubmit(event) {
+        async function handleSubmit(event) {
           event.preventDefault();
           if (!validate()) return;
 
@@ -1497,7 +1507,24 @@
           });
 
           submitButton.setAttribute("aria-busy", "true");
-          submitButton.textContent = "리포트 기준 정리 중";
+          submitButton.textContent = "무료 해석 준비 중";
+          const loading = document.querySelector("#loadingPanel");
+          loading?.classList.add("is-visible");
+          loading?.setAttribute("aria-hidden", "false");
+          if (window.UMSHCatService?.createPreviewFromPayload) {
+            try {
+              await window.UMSHCatService.createPreviewFromPayload(payload);
+              return;
+            } catch (error) {
+              loading?.classList.remove("is-visible");
+              loading?.setAttribute("aria-hidden", "true");
+              submitButton.removeAttribute("aria-busy");
+              submitButton.textContent = "거리와 루틴 확인하기";
+              formError.textContent = error?.message || "무료 해석을 준비하지 못했습니다. 잠시 후 다시 눌러 주세요.";
+              formError.classList.add("is-visible");
+              return;
+            }
+          }
           window.setTimeout(() => {
             location.assign(nextReportUrl());
           }, 360);
@@ -1558,7 +1585,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
-    <script src="/js/cat-service.js?v=live-20260917q" defer=""></script>
+    <script src="/js/cat-service.js?v=20260929-cat-teaser-v1" defer=""></script>
   
 
 </body></html>

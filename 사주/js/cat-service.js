@@ -102,6 +102,8 @@
       price: host?.dataset.price || SERVICE.price,
       active: host?.dataset.active || 'home',
     });
+    const top = host?.querySelector(':scope > [data-umsh-service-top]');
+    if (top && top !== host.firstElementChild) host.insertBefore(top, host.firstChild);
   }
 
   // -------------------------------------------------------------------- auth
@@ -202,9 +204,10 @@
   // ------------------------------------------------------- report retrieval
   /** The design stores its own payload shape; map the cat's side onto the analyze body. */
   function buildRequest() {
-    const cat = readJson('sessionStorage', STORAGE.payload)?.cat;
+    const payload = readJson('sessionStorage', STORAGE.payload);
+    const cat = payload?.cat;
     if (!cat?.nickname || !cat.household || !cat.touch_style || !cat.play_energy || !cat.focus_area) return null;
-    return {
+    const request = {
       catName: cat.nickname,
       household: cat.household,
       ageBand: cat.age_band || (cat.birth_known ? 'adult' : 'unknown'),
@@ -216,7 +219,51 @@
       upcomingEvent: cat.upcoming_event || 'none',
       note: cat.note || '',
     };
+    const guardian = payload?.guardian;
+    if (guardian?.profile_mode === 'new_profile' && guardian.birth?.date) {
+      const [year, month, day] = String(guardian.birth.date).split('-').map(Number);
+      const timeKnown = guardian.birth.time_known === true;
+      const [hour, minute] = timeKnown ? String(guardian.birth.time || '').split(':').map(Number) : [12, 0];
+      request.selfName = guardian.nickname || '보호자';
+      request.selfBirthTimeKnown = timeKnown;
+      request.selfBirth = {
+        year, month, day,
+        hour: timeKnown ? hour : 12,
+        minute: timeKnown ? minute : 0,
+        gender: guardian.gender,
+        calendar: guardian.birth.calendar_type === 'lunar' ? 'lunar' : 'solar',
+      };
+    }
+    return request;
   }
+
+  function teaserUrl(reportId) {
+    const url = new URL('/match/cat/04-step-4-report/index.html', location.origin);
+    url.searchParams.set('service_key', SERVICE.apiKey);
+    url.searchParams.set('service_slug', SERVICE.entry);
+    url.searchParams.set('input_schema_version', 'cat-compatibility-input-v1');
+    url.searchParams.set('report_version', 'cat-compatibility-v1');
+    url.searchParams.set('entry', 'step2_submit');
+    if (reportId) url.searchParams.set('reportId', reportId);
+    url.hash = 'step-4-report';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  async function createPreviewFromPayload(payload) {
+    if (payload) writeJson('sessionStorage', STORAGE.payload, payload);
+    const request = buildRequest();
+    if (!request) throw new Error('고양이 정보를 다시 확인해 주세요.');
+    const session = await initAuth();
+    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    const response = await api('/api/match/cat/analyze', {
+      method: 'POST', body: JSON.stringify({ ...request, preview: true }),
+    });
+    const reportId = response.reportId || response.resultId || response.report?.reportId || '';
+    if (!reportId) throw new Error('저장된 무료 해석 주소를 만들지 못했습니다.');
+    location.assign(teaserUrl(reportId));
+  }
+
+  window.UMSHCatService = Object.assign(window.UMSHCatService || {}, { createPreviewFromPayload });
 
   let reportPromise = null;
 
@@ -227,9 +274,6 @@
       const cached = readJson('sessionStorage', STORAGE.report);
       if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
 
-      const request = buildRequest();
-      if (!request) return { reason: 'input' };
-
       const session = await initAuth();
       if (!session) {
         reportPromise = null;
@@ -237,7 +281,12 @@
       }
 
       try {
-        const response = await api('/api/match/cat/analyze', { method: 'POST', body: JSON.stringify(request) });
+        const reportId = new URLSearchParams(location.search).get('reportId') || '';
+        const request = buildRequest();
+        if (!reportId && !request) return { reason: 'input' };
+        const response = await api('/api/match/cat/analyze', {
+          method: 'POST', body: JSON.stringify(reportId ? { reportId, preview: true } : { ...request, preview: true }),
+        });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
         if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;

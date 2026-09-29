@@ -1171,3 +1171,10 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | LOVE-YEAR-TEASER-10 | 운영 실제 리포트 1·2·잠금 TOC·CTA | PASS — 해석 이미지 2, 표 1, 시각화 2, 닫힌 실제 03~N, CTA 1 |
 | LOVE-YEAR-STORY-VIDEO-01 | STEP1 하단 구형 영상·MP4·재생 코드 제거 | PASS — video 0, MP4 0 |
 | LOVE-YEAR-STORY-VIDEO-02 | 여섯 장면 캠페인 이미지 로드·모바일 너비 | PASS — 6/6 로드, 1122×1402, broken 0, overflow 0 |
+## 2026-09-29 — 고양이 궁합 실제 데이터 무료 티저
+
+- [PASS] 집중 회귀 42/42: 고양이 실제 20개 섹션, 개인화 1·2, 서로 다른 이미지, 입력 표, 보호자 네 기둥 표, 실제 다섯 기운 차트, 닫힌 03~N 목차, 단일 CTA, 5회 조회, STEP2→03→04.
+- [PASS] 저장 사주와 이번 리포트용 새 사주 요청을 모두 검증하며 새 사주는 계정 프로필 저장 함수를 호출하지 않는다.
+- [PASS] `npm run typecheck`, `npm run check:cat`, `npm run vercel-build`, JS 구문 검사, `git diff --check`.
+- [PASS] 전체 회귀 1,647/1,647(166 suites), 20개 서비스 계약·전체 서비스 QA, TypeScript, 프로덕션 빌드, JavaScript 구문과 diff 검사.
+- [PENDING] 운영 배포와 로그인 모바일 운영 URL 검증.

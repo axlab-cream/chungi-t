@@ -50,3 +50,11 @@ test('올해 연애운 무료 결과는 다른 서비스와 분리된 5회이고
   assert.deepEqual(await claimServicePreview('love_this_year', owner, 'love-lineage-2'), { used: 2, limit: 5, allowed: true })
   assert.deepEqual(await servicePreviewStatus('love_this_year', owner), { used: 2, limit: 5, allowed: true })
 })
+
+test('고양이 궁합 무료 결과는 다른 서비스와 분리된 5회이고 같은 리포트 재열람은 차감하지 않는다', async () => {
+  const owner = 'cat-compat-preview-quota-owner'
+  assert.deepEqual(await claimServicePreview('cat_compatibility', owner, 'cat-lineage-1'), { used: 1, limit: 5, allowed: true })
+  assert.deepEqual(await claimServicePreview('cat_compatibility', owner, 'cat-lineage-1'), { used: 1, limit: 5, allowed: true })
+  assert.deepEqual(await claimServicePreview('cat_compatibility', owner, 'cat-lineage-2'), { used: 2, limit: 5, allowed: true })
+  assert.deepEqual(await servicePreviewStatus('cat_compatibility', owner), { used: 2, limit: 5, allowed: true })
+})

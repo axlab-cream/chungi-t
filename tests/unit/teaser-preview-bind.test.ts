@@ -16,6 +16,9 @@ const moveServiceSource = readFileSync(join(root, '사주', 'js', 'work-move-ser
 const coupleReportHtml = readFileSync(join(root, '사주', 'match', 'couple', '04-step-4-report', 'index.html'), 'utf8')
 const coupleInputHtml = readFileSync(join(root, '사주', 'match', 'couple', '02-step-2-saju-input', 'index.html'), 'utf8')
 const coupleServiceSource = readFileSync(join(root, '사주', 'js', 'couple-service.js'), 'utf8')
+const catReportHtml = readFileSync(join(root, '사주', 'match', 'cat', '04-step-4-report', 'index.html'), 'utf8')
+const catInputHtml = readFileSync(join(root, '사주', 'match', 'cat', '02-step-2-saju-input', 'index.html'), 'utf8')
+const catServiceSource = readFileSync(join(root, '사주', 'js', 'cat-service.js'), 'utf8')
 const thisYearReportHtml = readFileSync(join(root, '사주', 'love', 'this-year', '04-step-4-report', 'index.html'), 'utf8')
 const thisYearStoryHtml = readFileSync(join(root, '사주', 'love', 'this-year', '01-step-1-story', 'index.html'), 'utf8')
 const thisYearInputHtml = readFileSync(join(root, '사주', 'love', 'this-year', '02-step-2-saju-input', 'index.html'), 'utf8')
@@ -305,6 +308,36 @@ test('올해 연애운 캠페인 이미지는 메인·스토리·입력·티저�
   assert.match(thisYearInputHtml, /campaign-2026\/year-love-input-hero-v1\.webp/)
   assert.match(thisYearServiceSource, /campaign-2026\/year-love-teaser-01-v1\.webp/)
   assert.match(thisYearServiceSource, /campaign-2026\/year-love-teaser-02-v1\.webp/)
+})
+
+test('고양이 궁합 티저는 실제 행동 입력·보호자 사주 1·2번과 닫힌 03~N 목차를 렌더한다', () => {
+  const teaserSections = [
+    { id: 'guardian-dna', imageSrc: '/match/cat/assets/cat-compatibility/reading-v2/01-guardian-dna.webp', interpretation: '[주요 포인트] 실제 첫 본문', storytelling: { tableMd: '| 확인 | 입력 |\n| --- | --- |\n| 손길 | 짧게만 |' } },
+    { id: 'affection-temperature', imageSrc: '/match/cat/assets/cat-compatibility/reading-v2/02-affection-temperature.webp', interpretation: '[사주와 생활을 함께 보면] 실제 둘째 본문', storytelling: { chartPoints: [{ label: '나무', value: 2, note: '서버 계산값' }] } },
+  ]
+  const accepted = loadAccess('/match/cat/04-step-4-report/index.html').acceptAnalyze({
+    previewOnly: true, serviceKey: 'cat_compatibility', preview: { headline: '나비와 편안해지는 거리' }, teaserSections,
+    toc: [...teaserSections, ...Array.from({ length: 18 }, (_, index) => ({ id: `locked-${index + 3}`, classification: `실제 목차 ${index + 3}`, category: '고양이 궁합' }))],
+    freeSearch: { used: 1, limit: 5, allowed: true }, paymentUrl: '/payment?product=cat_compatibility',
+  })
+  assert.equal(accepted.payload.teaserSections.length, 2)
+  assert.match(serverSource, /catCompatTeaserPreview/)
+  assert.match(serverSource, /catCompatTeaserSection/)
+  assert.match(accessSource, /function renderCatCompatTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'cat_compatibility'\)/)
+  assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: false \}\)/)
+  assert.match(catReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
+  assert.ok(catReportHtml.indexOf('data-umsh-service-top') < catReportHtml.indexOf('id="umsh-preview-host"'))
+  assert.match(inplaceCss, /\.cat-teaser-reading/)
+})
+
+test('고양이 궁합 입력은 서버 리포트를 만든 뒤 03 로딩에서 reportId 포함 04 티저로 이동한다', () => {
+  assert.match(catServiceSource, /preview: true/)
+  assert.match(catServiceSource, /createPreviewFromPayload/)
+  assert.match(catServiceSource, /location\.assign\(teaserUrl\(reportId\)\)/)
+  assert.match(catInputHtml, /data-umsh-step="03-loading"/)
 })
 
 test('올해 연애운 입력은 실제 리포트를 만든 뒤 03 로딩에서 reportId 포함 04 티저로 이동한다', () => {

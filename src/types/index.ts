@@ -173,6 +173,19 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  /** Saved observed-cat inputs for the cat compatibility teaser and full reading. */
+  catCompatibility?: {
+    catName?: string
+    household?: string
+    ageBand?: string
+    behaviorTags?: string[]
+    touchStyle?: string
+    playEnergy?: string
+    routineFlags?: string[]
+    focusArea?: string
+    upcomingEvent?: string
+    note?: string
+  }
   /** Saved inputs for the 올해 연애운 teaser and full reading. */
   loveThisYear?: {
     relationshipStatus?: string

@@ -1452,6 +1452,13 @@
       renderProgress(payload.report);
       return renderedThisYear;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'cat_compatibility'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideCatTeaserShell();
+      var renderedCat = fillSlot('preview', renderCatCompatTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedCat;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1626,6 +1633,13 @@
       if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
     });
     hideLegacyNode(document.querySelector('.submit-dock'));
+  }
+
+  function hideCatTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
+    });
   }
 
   /** 이직운은 실제 입력·네 기둥·오행 계산값으로 공개 1·2번을 완성한다. */
@@ -1828,6 +1842,57 @@
       + lockedToc
       + '<span>전체 해석에서 이어집니다</span><h2>들어오는 인연·가까워지는 달·반복되는 연애 습관과 지금 건넬 한 문장까지 이어서 봅니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 올해 인연이 들어오는 장면과 관계가 깊어지는 조건을 현재 상황에 맞춰 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
+  /** 고양이 궁합은 관찰한 행동과 보호자 사주를 분리해 실제 생활 장면으로 연결한다. */
+  function renderCatCompatTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '관찰한 행동으로 편안한 거리를 확인하는 순서입니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 알려 준 생활 정보입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '보호자의 저장 사주에서 계산한 다섯 기운입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '먼저 다가온 순간에는 짧게 반응하고, 몸을 돌리는 순간에는 바로 공간을 돌려줄 때 둘 사이의 편안함이 오래 이어집니다.'
+        : '애정을 더 많이 보여 주는 것보다 고양이가 고른 거리 안에서 정확히 응답하는 것이 함께 쉬는 시간을 안정시킵니다.';
+      return '<article class="job-teaser-reading cat-teaser-reading" aria-labelledby="cat-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'cat_compatibility')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="cat-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(source, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening cat-teaser-opening">'
+      + '<span>고양이 궁합 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '둘이 편안해지는 거리는 먼저 다가온 순간에 드러납니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta cat-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>손길·놀이·수면·공간·반복 갈등과 오래 함께 살 돌봄 속도까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 실제 생활 장면과 보호자의 돌봄 속도를 이어서 확인합니다.')) + '</p>'
       + '<div class="job-teaser-status-row">'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'

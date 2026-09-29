@@ -29,6 +29,9 @@ const OWN_CORPUS_DOMAIN = 'cat_compatibility_service'
 export const CAT_COMPAT_ASSET_BASE = '/match/cat/assets/cat-compatibility'
 
 export interface CatCompatRequest {
+  selfName?: string
+  selfBirth?: BirthInput
+  selfBirthTimeKnown?: boolean
   catName: string
   household: string
   ageBand: string
@@ -240,7 +243,32 @@ function labelList(values: unknown, map: Record<string, string>, limit: number):
   return [...seen]
 }
 
+function asObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+}
+
+function validDateParts(year: number, month: number, day: number): boolean {
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+}
+
 export function parseCatCompatRequest(body: Record<string, unknown>): CatCompatRequest {
+  const selfBirthBody = asObject(body.selfBirth)
+  let selfBirth: BirthInput | undefined
+  let selfBirthTimeKnown: boolean | undefined
+  if (Object.keys(selfBirthBody).length) {
+    selfBirthTimeKnown = body.selfBirthTimeKnown === true || selfBirthBody.birthTimeKnown === true
+    const year = Number(selfBirthBody.year)
+    const month = Number(selfBirthBody.month)
+    const day = Number(selfBirthBody.day)
+    const hour = Number(selfBirthBody.hour ?? (selfBirthTimeKnown ? Number.NaN : 12))
+    const minute = Number(selfBirthBody.minute ?? 0)
+    if (!validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) throw new InputError('보호자 생년월일을 다시 확인해 주세요.')
+    if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('보호자 성별을 선택해 주세요.')
+    if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('보호자 생년월일의 양력 또는 음력을 선택해 주세요.')
+    if (selfBirthTimeKnown && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) throw new InputError('보호자 태어난 시간을 다시 확인해 주세요.')
+    selfBirth = { year, month, day, hour: selfBirthTimeKnown ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth) }
+  }
   const catName = trimmed(body.catName ?? body.cat_nickname, 20)
   const householdRaw = trimmed(body.household ?? body.cat_household, 30)
   const ageRaw = trimmed(body.ageBand ?? body.cat_age_band, 30)
@@ -257,6 +285,9 @@ export function parseCatCompatRequest(body: Record<string, unknown>): CatCompatR
   if (!EVENT_LABEL[eventRaw]) throw new InputError('예정된 일정을 골라 주세요.')
 
   return {
+    selfName: trimmed(body.selfName, 20),
+    selfBirth,
+    selfBirthTimeKnown,
     catName,
     household: householdRaw,
     // 나이는 모를 수 있고, 그때는 행동 태그만으로 읽는다.
@@ -288,6 +319,150 @@ export function buildCatCompatContext(name: string | undefined, input: CatCompat
       `예정: ${EVENT_LABEL[input.upcomingEvent]}`,
       input.note,
     ].filter(Boolean).join(' · '),
+    catCompatibility: {
+      catName: input.catName,
+      household: HOUSEHOLD_LABEL[input.household],
+      ageBand: AGE_LABEL[input.ageBand],
+      behaviorTags: input.behaviorTags,
+      touchStyle: TOUCH_LABEL[input.touchStyle],
+      playEnergy: PLAY_LABEL[input.playEnergy],
+      routineFlags: input.routineFlags,
+      focusArea: FOCUS_LABEL[input.focusArea],
+      upcomingEvent: EVENT_LABEL[input.upcomingEvent],
+      note: input.note,
+    },
+  }
+}
+
+const PLAIN_ELEMENT = {
+  wood: '나무', fire: '불', earth: '흙', metal: '쇠', water: '물',
+} as const
+
+const CAT_TEASER_IMAGES = [
+  { key: 'guardian-dna', src: `${CAT_COMPAT_ASSET_BASE}/reading-v2/01-guardian-dna.webp`, alt: '보호자가 고양이의 편안한 거리를 관찰하는 장면' },
+  { key: 'affection-temperature', src: `${CAT_COMPAT_ASSET_BASE}/reading-v2/02-affection-temperature.webp`, alt: '고양이가 먼저 다가오는 순간과 손길의 속도를 살피는 장면' },
+] as const
+
+function safeCell(value: unknown): string {
+  return String(value ?? '').replace(/\r?\n/g, ' ').replace(/\|/g, '｜').trim()
+}
+
+function catFacts(context: SajuReportContext) {
+  const saved = context.catCompatibility
+  const pieces = String(context.concern ?? '').split(' · ').map((part) => part.trim()).filter(Boolean)
+  const value = (label: string) => pieces.find((part) => part.startsWith(`${label}:`))?.replace(new RegExp(`^${label}:\\s*`), '') || ''
+  const note = saved?.note || pieces.find((part) => !/^(고양이|가정|나이대|성향|손길|놀이|루틴 고민|우선 확인|예정):/.test(part)) || ''
+  return {
+    name: safeCell(context.name) || '보호자',
+    catName: safeCell(saved?.catName || value('고양이')) || '고양이',
+    household: safeCell(saved?.household || value('가정')),
+    ageBand: safeCell(saved?.ageBand || value('나이대')),
+    behaviorTags: (saved?.behaviorTags?.length ? saved.behaviorTags : value('성향').split('·')).map(safeCell).filter(Boolean),
+    touchStyle: safeCell(saved?.touchStyle || value('손길')),
+    playEnergy: safeCell(saved?.playEnergy || value('놀이')),
+    routineFlags: (saved?.routineFlags?.length ? saved.routineFlags : value('루틴 고민').split('·')).map(safeCell).filter(Boolean),
+    focusArea: safeCell(saved?.focusArea || value('우선 확인')),
+    upcomingEvent: safeCell(saved?.upcomingEvent || value('예정')),
+    note: safeCell(note),
+  }
+}
+
+function catInputTable(context: SajuReportContext): string {
+  const facts = catFacts(context)
+  const rows: Array<[string, string, string]> = [
+    ['함께 사는 모습', [facts.household, facts.ageBand].filter(Boolean).join(' · '), '생활 공간과 돌봄 횟수를 읽는 바탕'],
+    ['손길에 보인 반응', facts.touchStyle, '다가갈 때와 멈출 때를 나누는 신호'],
+    ['놀이가 살아나는 때', facts.playEnergy, '보호자와 고양이의 활동 시간이 만나는 장면'],
+  ]
+  if (facts.routineFlags.length) rows.push(['요즘 부딪히는 부분', facts.routineFlags.join(' · '), '먼저 조정할 생활 장면'])
+  if (facts.note) rows.push(['직접 적은 고민', facts.note, '이번 풀이가 먼저 답할 질문'])
+  return ['| 확인한 내용 | 직접 알려 준 답 | 이번 풀이에서 읽는 장면 |', '| --- | --- | --- |', ...rows.filter((row) => Boolean(row[1])).map((row) => `| ${row.join(' | ')} |`)].join('\n')
+}
+
+function catPillarTable(analysis: SajuAnalysis): string {
+  const labels = [['해', analysis.fourPillars.year], ['달', analysis.fourPillars.month], ['날', analysis.fourPillars.day], ['시간', analysis.fourPillars.hour]] as const
+  const purpose = { 해: '돌봄을 시작할 때 먼저 보이는 태도', 달: '반복되는 생활을 정리하는 방식', 날: '가까운 존재에게 애정을 표현하는 방식', 시간: '지쳤을 때 회복하고 싶은 방식' } as const
+  return ['| 보호자 사주의 기둥 | 두 기운 | 함께 살 때 보는 장면 |', '| --- | --- | --- |', ...labels.map(([label, pillar]) => `| ${label} 기둥 | ${PLAIN_ELEMENT[pillar.stemElement]} · ${PLAIN_ELEMENT[pillar.branchElement]} | ${purpose[label]} |`)].join('\n')
+}
+
+function catElementChart(analysis: SajuAnalysis) {
+  return (Object.entries(analysis.elementCount) as Array<[keyof typeof PLAIN_ELEMENT, number]>).map(([element, count]) => ({
+    label: `${PLAIN_ELEMENT[element]} 기운`, value: count, note: '보호자의 저장된 생년월일시에서 계산한 실제 개수',
+  }))
+}
+
+function catTeaserInterpretation(index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): string {
+  const facts = catFacts(context)
+  if (!analysis) return `[주요 포인트] ${facts.catName}와 편안해지는 순간은 더 자주 만지는 때보다, ${facts.touchStyle || '관찰한 손길 반응'}에 맞춰 멈출 때를 알아보는 장면에서 시작됩니다.\n\n[확인할 장면] 먼저 다가온 순간과 몸을 돌린 순간을 하루 동안 나눠 적어 보세요.\n\n[결정 전에 물어볼 질문] ${facts.catName}가 다가온 뒤 어느 정도의 손길에서 편안하게 머무나요?`
+  const dominant = PLAIN_ELEMENT[analysis.dominantElement]
+  const weak = PLAIN_ELEMENT[analysis.weakElement]
+  const day = PLAIN_ELEMENT[analysis.dayMasterElement]
+  if (index === 0) return [
+    `[주요 포인트] ${facts.name}님과 ${facts.catName}의 궁합은 얼마나 붙어 있느냐보다, 다가갈 때와 멈출 때가 서로 맞는지에서 선명해집니다. ${facts.catName}는 ${facts.touchStyle}이고, 놀이는 ${facts.playEnergy}에 살아납니다. 지금 먼저 볼 부분은 ${facts.focusArea || '편안한 거리'}입니다.`,
+    `${facts.name}님의 사주에서는 ${dominant} 기운이 가장 많이 나타나고 ${weak} 기운이 가장 적습니다. 돌봄에서는 잘해 주고 싶은 마음이 먼저 움직일 수 있지만, 반응이 바로 오지 않을 때 한 번 더 확인하려는 행동으로 이어지기 쉽습니다. ${facts.catName}에게 필요한 것은 관심의 양보다 관찰 뒤에 손길을 조절하는 속도입니다.`,
+    `[사주와 생활을 함께 보면] 태어난 날의 ${day} 기운은 가까운 존재에게 애정을 건네는 방식을 보여 줍니다. ${facts.behaviorTags.length ? `${facts.catName}에게서 관찰한 ${facts.behaviorTags.join('·')} 반응과 겹쳐 보면,` : ''} 먼저 와서 머무는 순간에는 짧게 반응하고 몸을 돌리거나 꼬리가 빨라질 때는 손을 거두는 방식이 둘 사이를 더 편하게 만듭니다.`,
+    `[확인할 장면] 오늘 한 번만, ${facts.catName}가 먼저 다가온 시각과 손길을 멈췄을 때의 반응을 적어 보세요. ${facts.routineFlags.length ? `${facts.routineFlags.join('·')}에서 부딪힘이 있었다면 그 직전의 놀이·식사·휴식 순서도 함께 보면 좋습니다.` : '크게 부딪히는 생활 장면이 없다면 지금 편안한 순서를 그대로 유지하세요.'}`,
+    `[결정 전에 물어볼 질문] ${facts.catName}가 먼저 다가왔나요? 손길 뒤 그대로 머물렀나요, 자리를 옮겼나요? 놀이는 어느 시간에 먼저 시작했을 때 가장 오래 이어졌나요? 이 세 장면이 둘에게 맞는 거리를 정해 줍니다.`,
+    `[해법] ${facts.note ? `“${facts.note}”라는 고민의 답은` : '둘 사이를 더 편하게 만드는 방법은'} 관심을 줄이는 데 있지 않습니다. 먼저 다가오는 신호에는 짧고 분명하게 반응하고, 멈추는 신호에는 바로 공간을 돌려주는 것이 ${facts.name}님과 ${facts.catName}에게 맞는 첫 조정입니다.`,
+  ].join('\n\n')
+  return [
+    `[주요 포인트] ${facts.name}님의 애정은 챙김으로 빠르게 드러나지만, ${facts.catName}가 편안함을 느끼는 순간은 손길이 길어질 때보다 자기 속도로 다가왔다가 물러날 수 있을 때입니다. ${facts.touchStyle}이라는 관찰은 둘 사이의 애정 온도를 읽는 가장 구체적인 단서입니다.`,
+    `${facts.name}님의 네 기둥에서 ${dominant} 기운이 두드러지고, 가까운 존재에게 보이는 태어난 날의 중심은 ${day} 기운입니다. 이 조합은 돌봄의 변화를 빨리 알아채고 직접 움직이는 힘으로 나타납니다. 다만 ${weak} 기운이 필요한 장면에서는 기다리는 시간이 짧아질 수 있어, 반응을 재촉하지 않는 여백이 애정 표현의 일부가 됩니다.`,
+    `[사주와 생활을 함께 보면] 보호자의 사주는 보호자가 어떻게 챙기고 쉬는지를 보여 주고, ${facts.catName}의 반응은 입력한 행동에서 확인합니다. 그래서 “궁합이 좋다”는 말은 같은 성향이라는 뜻이 아니라, ${facts.playEnergy}의 놀이 시간과 ${facts.name}님의 회복 시간을 함께 지킬 수 있다는 뜻에 가깝습니다.`,
+    `[확인할 장면] ${facts.catName}가 부비거나 곁에 앉은 뒤 손을 내밀지 않고 잠시 기다려 보세요. 그대로 머물면 목과 볼처럼 평소 허용한 부위부터 짧게 반응하고, 몸을 돌리면 그 자리에서 끝내세요. 반복했을 때 다시 다가오는 간격이 둘의 편안한 애정 온도입니다.`,
+    `[결정 전에 물어볼 질문] 먼저 다가오는 시간대는 언제인가요? 손길 없이 곁에만 있어도 머무나요? ${facts.routineFlags.length ? `${facts.routineFlags.join('·')}이 있는 날에는 이 간격이 달라지나요?` : '평소와 다른 날에는 이 간격이 달라지나요?'}`,
+    `[해법] ${facts.name}님에게 필요한 애정 표현은 더 많이 해 주는 방식이 아니라, ${facts.catName}가 고른 거리 안에서 정확하게 응답하는 방식입니다. 그 거리가 지켜질수록 먼저 다가오는 순간은 더 분명해지고, 함께 쉬는 시간도 안정적으로 이어집니다.`,
+  ].join('\n\n')
+}
+
+export function catCompatTeaserPreview(context: SajuReportContext, sectionCount: number) {
+  const facts = catFacts(context)
+  return {
+    title: '내 고양이랑 나 진짜 궁합 맞아?',
+    headline: `${facts.name}님과 ${facts.catName}는 더 가까이 붙는 순간보다 서로 멈춰 주는 순간에 궁합이 드러납니다`,
+    summary: `${facts.touchStyle}, ${facts.playEnergy}${facts.focusArea ? `, 그리고 ${facts.focusArea}` : ''}을 보호자의 저장 사주와 함께 놓고 둘이 실제로 편안해지는 장면부터 짚었습니다.`,
+    insights: [], signals: [],
+    paidValue: `전체 해석에서는 ${sectionCount}개 항목으로 거리·손길·놀이·수면·공간·반복 갈등과 오래 함께 살기 위한 돌봄 속도까지 이어서 풉니다.`,
+  }
+}
+
+export function catCompatTeaserSection(section: SajuReportSection, index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): SajuReportSection {
+  const facts = catFacts(context)
+  const image = CAT_TEASER_IMAGES[index]
+  const story = index === 0 ? {
+    feel: `${facts.catName}가 곁에 오는데도 손을 내밀면 물러난다면, 좋아하지 않는 게 아니라 편안한 거리의 순서가 다른 것입니다.`,
+    softBridge: `${facts.name}님이 직접 본 행동과 저장 사주를 함께 놓으면, 더 해 줄 때와 멈춰 줄 때가 나뉩니다.`,
+    tableMd: catInputTable(context),
+    tableCaption: '직접 알려 준 생활 장면만 사용해 둘 사이의 거리를 읽었습니다.',
+    flowSteps: [
+      { label: '1. 먼저 다가온 순간', value: '말과 시선으로 짧게 반응', note: '고양이가 고른 거리 확인' },
+      { label: '2. 손길을 허용한 순간', value: '평소 허용한 부위만 짧게', note: '머무는지 몸을 돌리는지 관찰' },
+      { label: '3. 물러난 순간', value: '따라가지 않고 공간 돌려주기', note: '다시 다가올 여백 남기기' },
+    ],
+    flowCaption: '관찰한 행동으로 편안한 거리를 확인하는 실제 순서입니다.',
+    scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+  } : {
+    feel: `${facts.name}님의 챙김과 ${facts.catName}의 자기 속도는 다를 수 있습니다. 그 차이를 맞추는 순간이 둘의 애정 표현이 됩니다.`,
+    softBridge: '보호자의 네 기둥은 챙기고 쉬는 방식을, 고양이의 입력은 실제로 관찰한 반응을 보여 줍니다.',
+    ...(analysis ? {
+      tableMd: catPillarTable(analysis),
+      tableCaption: '보호자의 네 기둥을 한자 없이 함께 사는 장면으로 풀었습니다.',
+      chartPoints: catElementChart(analysis),
+      chartCaption: '보호자의 저장 사주에서 계산한 다섯 기운의 실제 개수입니다. 고양이의 성격 점수는 아닙니다.',
+    } : {}),
+    flowSteps: [
+      { label: '1. 챙기고 싶은 순간', value: '먼저 행동하기 전 반응 보기', note: '보호자의 속도 확인' },
+      { label: '2. 고양이가 머무는 순간', value: '같은 강도의 손길 유지', note: '편안함을 갑자기 키우지 않기' },
+      { label: '3. 함께 쉬는 순간', value: '손길 없이 같은 공간 지키기', note: '접촉 밖의 애정 확인' },
+    ],
+    flowCaption: '보호자의 애정과 고양이의 반응을 같은 생활 안에서 맞추는 순서입니다.',
+    scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+  }
+  return {
+    ...section,
+    ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
+    interpretation: catTeaserInterpretation(index, analysis, context),
+    storytelling: { ...(section.storytelling ?? {}), ...story },
   }
 }
 

@@ -184,6 +184,8 @@ import {
 import {
   buildCatCompatContext,
   buildCatCompatReport,
+  catCompatTeaserPreview,
+  catCompatTeaserSection,
   createCatCompatReportId,
   parseCatCompatRequest,
 } from '../pet/cat-service.js'
@@ -4036,7 +4038,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
   const report = toClientReport(record)
   const entitled = access?.entitled === true
   const serviceKey = record.context.serviceKey ?? 'saju_master'
-  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'love_this_year'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility'
   const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
   const opening = serviceKey === 'quit_fortune'
     && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
@@ -4057,6 +4059,8 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         ? guardPreview(coupleMatchTeaserPreview(record.context, report.sections.length), record.context)
         : serviceKey === 'love_this_year'
           ? guardPreview(loveThisYearTeaserPreview(record.context, report.sections.length), record.context)
+          : serviceKey === 'cat_compatibility'
+            ? guardPreview(catCompatTeaserPreview(record.context, report.sections.length), record.context)
           : storedPreview
   return {
     previewOnly: true,
@@ -4081,6 +4085,8 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
                 ? coupleMatchTeaserSection(savedSection, index, record.analysis, record.context)
                 : serviceKey === 'love_this_year'
                   ? loveThisYearTeaserSection(savedSection, index, record.analysis, record.context)
+                  : serviceKey === 'cat_compatibility'
+                    ? catCompatTeaserSection(savedSection, index, record.analysis, record.context)
                   : savedSection
         return {
         id: section.id,
@@ -4095,7 +4101,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         }
       }) }
       : {}),
-    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'love_this_year' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
+    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
@@ -4116,7 +4122,7 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   let freeSearch: ServicePreviewQuota | undefined
-  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'love_this_year'
+  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'love_this_year' || params.context.serviceKey === 'cat_compatibility'
     ? params.context.serviceKey : undefined
   if (quotaService && params.owner && isCheckoutLive()) {
     const access = await resolvePaidAccess(req, params.owner, quotaService, params.reportId, params.lineageId)
@@ -4169,7 +4175,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple' || record.context.serviceKey === 'love_this_year'
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple' || record.context.serviceKey === 'love_this_year' || record.context.serviceKey === 'cat_compatibility'
         ? record.context.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'
@@ -4378,30 +4384,42 @@ app.post('/api/match/cat/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    const input = parseCatCompatRequest(req.body)
     const profile = await getUserBirthProfile(owner)
-    if (!profile) {
+    if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '고양이 궁합을 보려면 집사님의 기본 사주 정보를 먼저 등록해 주세요.' })
       return
     }
 
-    const input = parseCatCompatRequest(req.body)
-    const context = { ...buildCatCompatContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
-    const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCatCompatReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
-    const templateReport = buildCatCompatReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    const selectedBirth = input.selfBirth ?? profile!.birth
+    const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
+    const selectedName = input.selfBirth ? (input.selfName || '보호자') : profile!.name
+    const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
+      userId: owner.id,
+      name: selectedName,
+      birth: selectedBirth,
+      birthTimeKnown: selectedBirthTimeKnown,
+      context: {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    const context = { ...buildCatCompatContext(selectedName, input), birthTimeKnown: selectedBirthTimeKnown }
+    const analysis = analyzeSaju(selectedBirth)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCatCompatReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const templateReport = buildCatCompatReport(analysis, selectedBirth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       lineageId,
-      birth: profile.birth,
+      birth: selectedBirth,
       context,
       templateReport,
       analysis,
       owner,
       orderId: trimmedString(req.body?.orderId) || undefined,
     })
-    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+    res.json(specializedAnalyzeResponse(progressive, selectedBirth, context, selectedProfile))
   } catch (err) {
     respondRequestFailure(res, err, '고양이 궁합 생성 실패')
   }
@@ -4839,7 +4857,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple' || record.context.serviceKey === 'love_this_year'
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple' || record.context.serviceKey === 'love_this_year' || record.context.serviceKey === 'cat_compatibility'
         ? record.context.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'

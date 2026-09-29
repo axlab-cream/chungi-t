@@ -7,6 +7,8 @@ import { analyzeSaju } from '../../src/saju/analyzer.js'
 import {
   buildCatCompatContext,
   buildCatCompatReport,
+  catCompatTeaserPreview,
+  catCompatTeaserSection,
   CAT_COMPAT_TOC,
   createCatCompatReportId,
   parseCatCompatRequest,
@@ -106,6 +108,30 @@ test('고양이 궁합 separates reported behavior from guardian chart symbols',
   assert.doesNotMatch(burnout.interpretation, /인성이 얇아|소모가 빨리/)
 })
 
+test('고양이 궁합 무료 티저는 실제 입력·보호자 사주를 서로 다른 1·2번 풀이로 만든다', () => {
+  const input = parseCatCompatRequest({ ...answers })
+  const analysis = analyzeSaju(birth)
+  const context = buildCatCompatContext('지민', input)
+  const report = buildCatCompatReport(analysis, birth, context, input, 'cat-teaser')
+  const preview = catCompatTeaserPreview(context, report.sections.length)
+  const first = catCompatTeaserSection(report.sections[0], 0, analysis, context)
+  const second = catCompatTeaserSection(report.sections[1], 1, analysis, context)
+
+  assert.match(preview.headline, /지민.*나비/)
+  assert.match(preview.summary, /짧게만|밤에 몰아서|거리감/)
+  assert.match(preview.paidValue, /20개 항목/)
+  assert.notEqual(first.imageSrc, second.imageSrc)
+  assert.match(first.imageSrc || '', /reading-v2\/01-guardian-dna/)
+  assert.match(second.imageSrc || '', /reading-v2\/02-affection/)
+  assert.match(first.interpretation, /나비/)
+  assert.match(first.interpretation, /밤에 자꾸 깨워서 잠을 못 자요/)
+  assert.match(second.interpretation, /태어난 날|네 기둥/)
+  assert.match(first.storytelling?.tableMd || '', /직접 알려 준 답/)
+  assert.equal(first.storytelling?.flowSteps?.length, 3)
+  assert.equal(second.storytelling?.chartPoints?.length, 5)
+  assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /기본 QA|가상 입력|샘플 데이터|작업실 예시|실제 회원의 결과가 아닙니다/)
+})
+
 test('고양이 궁합 request validates its required answers', () => {
   assert.throws(() => parseCatCompatRequest({}), /이름 또는 애칭/)
   assert.throws(() => parseCatCompatRequest({ cat_nickname: '나비' }), /가정 형태/)
@@ -122,6 +148,24 @@ test('고양이 궁합 request validates its required answers', () => {
   const parsed = parseCatCompatRequest({ ...answers, cat_age_band: '' })
   assert.equal(parsed.ageBand, 'unknown')
   assert.deepEqual(parsed.behaviorTags, ['낯가림', '예민함', '밤 우다다'])
+})
+
+test('고양이 궁합은 이번 리포트용 새 보호자 사주를 검증해 받는다', () => {
+  const parsed = parseCatCompatRequest({
+    ...answers,
+    selfName: '은지',
+    selfBirthTimeKnown: false,
+    selfBirth: { year: 1991, month: 8, day: 23, gender: 'female', calendar: 'solar' },
+  })
+  assert.equal(parsed.selfName, '은지')
+  assert.deepEqual(parsed.selfBirth, {
+    year: 1991, month: 8, day: 23, hour: 12, minute: 0, gender: 'female', calendar: 'solar', isLeapMonth: false,
+  })
+  assert.equal(parsed.selfBirthTimeKnown, false)
+  assert.throws(() => parseCatCompatRequest({
+    ...answers,
+    selfBirth: { year: 1991, month: 2, day: 30, gender: 'female', calendar: 'solar' },
+  }), /생년월일/)
 })
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')

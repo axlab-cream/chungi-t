@@ -1,6 +1,6 @@
 # Plan
 
-- 2026-09-29 `task-love-this-year-teaser-production`: 운영 저장값 기반 1·2번 해석, 닫힌 실제 잠금 목차, 조회 5회, 결제/권한 분기와 신규 캠페인 이미지를 한 수직 슬라이스로 구현·검증·배포한다. 상태: IN_PROGRESS.
+- 2026-09-29 `task-cat-compatibility-teaser-production`: 저장/새 보호자 사주와 관찰한 고양이 행동 기반 1·2번 해석, 닫힌 실제 잠금 목차, 조회 5회, 결제/권한 분기를 한 수직 슬라이스로 구현·검증·배포한다. 상태: IN_PROGRESS.
 
 - 2026-09-13 `task-tone-v2-p04-pass-angle-visual-render-evidence` DONE: verified the immutable 52-section result through the real reader on desktop, exact 390px mobile and complete print; fixed target sizing and print-intro contrast; attached sanitized evidence and advanced aggregate visual coverage to 5/20. No next Task is active before a new user gate.
 - 2026-09-13 `task-tone-v2-p04-pass-angle-2-1-full-outline-generation` DONE: fresh isolated provider generation pinned to corpus 2.1.0 completed 52/52 and replayed 52/52; direct review approved with comments, sanitized evidence attached, aggregate full-outline review 5/20 and release remains NO_GO. Focused 92/92, full 930/930, typecheck/build/determinism PASS.
