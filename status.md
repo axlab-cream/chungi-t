@@ -2552,3 +2552,10 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [PASS] Vercel Production `dpl_91NCASnaf9LTBk4BNXLZm3c9pA7g`가 Ready이며 `umsh.kr` 별칭에 연결됐다.
 - [PASS] 운영 홈에서 새 메인 배너와 구형 영상 0개, STEP1에서 새 스토리 이미지·CTA 1개, STEP2에서 새 입력 이미지·고민 입력·제출 CTA, STEP4에서 새 해석 이미지 2개·개인화 1·2번·표 1개·시각화 2개·닫힌 실제 나머지 46개 목차·단일 CTA·원시 마크다운 0개를 확인했다. 세 운영 화면 모두 가로 넘침이 없다.
 - [DB/API] DB 스키마 변경은 없다. 기존 저장 리포트·결제·보관함 API를 유지하면서 `love_this_year` 요청에 관계 상태·직접 고민·저장 또는 새 사주 문맥을 전달하고, 공용 5회 미리보기 이름공간만 확장했다.
+
+## 2026-09-29 — 올해 연애운 STEP1 하단 영상 전면 교체
+
+- [FOUND] STEP1 첫 대표 이미지는 새 캠페인 이미지였지만 2~6번 장면은 구형 MP4와 포스터, 지연 재생 코드에 남아 있어 페이지 아래로 갈수록 아트 스타일이 다시 달라졌다.
+- [FIXED] 애매한 관계, 놓친 신호, 개인화 분석, 전체 리포트 예고, 무료 해석 시작에 맞는 4:5 실사 이미지 5장을 추가했다. 여섯 장면의 스타일·비율을 통일하고 STEP1의 video·MP4·재생 코드를 모두 제거했다.
+- [PASS] 전체 회귀 1,642/1,642, 집중 7/7, TypeScript, 올해 연애운 22개 계약, 프로덕션 빌드와 diff 검사를 통과했다. 운영에서 이미지 6장 모두 1122×1402 로드, video 0, MP4 참조 0, 깨진 이미지 0, CTA 1, 가로 넘침 0을 확인했다.
+- [PASS] 구현 `1cdb74ee`, Vercel Production `dpl_BRxUtby5gwhrKpkyiuWvTReTVVYn` Ready, `umsh.kr` 별칭 연결을 확인했다.

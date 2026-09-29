@@ -1169,3 +1169,5 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | LOVE-YEAR-TEASER-08 | 전체 회귀·GitHub Actions | PASS — 1,641/1,641, CI `36524605475` |
 | LOVE-YEAR-TEASER-09 | 운영 홈·STEP1·STEP2·STEP4 이미지와 모바일 넘침 | PASS — 새 이미지 5종, 구형 홈 영상 0, 가로 넘침 0 |
 | LOVE-YEAR-TEASER-10 | 운영 실제 리포트 1·2·잠금 TOC·CTA | PASS — 해석 이미지 2, 표 1, 시각화 2, 닫힌 실제 03~N, CTA 1 |
+| LOVE-YEAR-STORY-VIDEO-01 | STEP1 하단 구형 영상·MP4·재생 코드 제거 | PASS — video 0, MP4 0 |
+| LOVE-YEAR-STORY-VIDEO-02 | 여섯 장면 캠페인 이미지 로드·모바일 너비 | PASS — 6/6 로드, 1122×1402, broken 0, overflow 0 |
