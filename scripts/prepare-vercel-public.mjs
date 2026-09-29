@@ -33,6 +33,20 @@ function copyDirectoryContents(from, to) {
   }
 }
 
+function copySelectedFiles(from, to, extensions, skip = new Set()) {
+  mkdirSync(to, { recursive: true })
+  for (const entry of readdirSync(from)) {
+    const source = join(from, entry)
+    const target = join(to, entry)
+    if (skip.has(source)) continue
+    if (statSync(source).isDirectory()) {
+      copySelectedFiles(source, target, extensions, skip)
+    } else if (extensions.some((extension) => entry.toLowerCase().endsWith(extension))) {
+      copyFile(source, target)
+    }
+  }
+}
+
 // `handle: filesystem` exposes only this generated directory. Recreate it from an
 // allowlisted source set on every build so a stale or newly added public file can
 // never survive into Production by accident.
@@ -52,3 +66,14 @@ copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'assets'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'cmdg', 'assets'))
 
 copyDirectory(join(sajuRoot, 'play', 'love-speed'), join(publicRoot, 'play', 'love-speed'))
+
+// Large images, videos and local font sources belong in Vercel's static output,
+// not inside the Node function. Keeping them in the function pushed its traced
+// bundle to roughly 399 MB and fresh production instances failed during startup.
+// The nested cmdg assets are already copied above, so skip that duplicate tree.
+copySelectedFiles(
+  sajuRoot,
+  publicRoot,
+  ['.png', '.mp4', '.ttf'],
+  new Set([cmdgRoot]),
+)
