@@ -47,10 +47,10 @@ test('sharing sends only the public type; cancellation never falls back to clipb
   const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function sampleResult'))
   let payload: any
   let copied = 0
-  const context: any = { types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } }, notice() {} }
+  const context: any = { track() {}, types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } }, notice() {} }
   runInNewContext(shareSource, context)
   await context.share({ type: 'spark', name: 'PRIVATE', mbti: 'ENFP', answers: [0,1,2,3,0], birth: 'PRIVATE' })
-  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?type=spark')
+  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?type=spark&src=share')
   assert.deepEqual(Object.keys(payload), ['title','text','url'])
   assert.ok(!JSON.stringify(payload).includes('PRIVATE'))
   assert.ok(!JSON.stringify(payload).includes('ENFP'))
@@ -66,13 +66,13 @@ test('friend invitation always shares the public test URL and supports copy/manu
   const source = readFileSync(new URL('../../사주/play/love-speed/app.js', import.meta.url), 'utf8')
   const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function sampleResult'))
   let payload: any; let copied = ''; let html = ''; let message = ''
-  const context: any = { types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data } }, notice: (text: string) => { message = text }, esc: (value: string) => value, document: { getElementById: () => ({ set innerHTML(value: string) { html = value } }) } }
+  const context: any = { track() {}, types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data } }, notice: (text: string) => { message = text }, esc: (value: string) => value, document: { getElementById: () => ({ set innerHTML(value: string) { html = value } }) } }
   runInNewContext(shareSource, context)
   await context.share()
-  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/')
+  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?src=share')
   assert.ok(payload.text.includes('같이'))
   await context.share({ type: 'PRIVATE&birth=PRIVATE' })
-  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/')
+  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?src=share')
   assert.ok(!JSON.stringify(payload).includes('PRIVATE'))
   context.navigator.share = async () => { throw Object.assign(Error(), { name: 'AbortError' }) }
   await context.share()
@@ -80,13 +80,13 @@ test('friend invitation always shares the public test URL and supports copy/manu
   delete context.navigator.share
   context.navigator.clipboard = { writeText: async (text: string) => { copied = text } }
   await context.share()
-  assert.equal(copied, 'https://umsh.kr/play/love-speed/')
+  assert.equal(copied, 'https://umsh.kr/play/love-speed/?src=share')
   assert.ok(message.includes('친구'))
   let nativeCalls = 0
   context.navigator.share = async () => { nativeCalls++ }
   await context.share(undefined, true)
   assert.equal(nativeCalls, 0)
-  assert.equal(copied, 'https://umsh.kr/play/love-speed/')
+  assert.equal(copied, 'https://umsh.kr/play/love-speed/?src=share')
   delete context.navigator.share
   context.navigator.clipboard.writeText = async () => { throw Error('denied') }
   await context.share()

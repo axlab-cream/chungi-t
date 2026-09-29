@@ -3,6 +3,7 @@
   const stage = document.getElementById('stage');
   const KEY = 'umsh:love-speed:v1';
   const CTA = 'https://umsh.kr/love/this-year/01-step-1-story/index.html';
+  const track = action => { try { if (!preview) window.UMSHLoveSpeedTelemetry?.track(action); } catch { /* Measurement must never block the game. */ } };
   const preview = location.pathname.endsWith('/preview.html');
   const types = {
     spark: { name: '불꽃급랭형', line: '시작은 100°C, 식는 건 순식간.', detail: '강한 끌림에 마음이 빠르게 움직여요. 기대와 다른 모습을 발견하면 설렘도 빨리 줄어드는 편이에요.', tip: '처음의 이미지와 다른 점 하나를 발견해도, 새로운 매력 하나를 더 찾아보세요.', stats: { ignition: 96, cooling: 59, holding: 18 } },
@@ -31,7 +32,7 @@
     show(`${shared ? `<div class="sample-banner">친구가 공유한 유형 · ${esc(types[shared].name)}</div>` : ''}<div class="center"><span class="pill">30초 연애 속도 테스트</span><h1>시작은 <em>풀악셀,</em><br>마음은 급정거?</h1><p class="muted">나, 금사빠야? 아니면 금사식이야?<br>다섯 장면으로 찾는 내 연애의 속도.</p></div>${artwork()}<div class="meta"><span><b>5</b> 문항</span><span><b>4</b> 가지 유형</span><span><b>30</b> 초면 끝</span></div><button class="primary" id="start">내 연애 엔진 켜기 <span>→</span></button><p class="intro-note">정답은 없어요. 평소의 나를 골라주세요.</p><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><p class="fine center invite-caption">너는 금사빠? 금사식? 같이 해보자!</p><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div>`);
     on('invite', () => share());
     on('copy-link', () => share(undefined, true));
-    on('start', () => { state = { answers: [], mbti: null, at: Date.now() }; save(); mbtiScreen(); });
+    on('start', () => { track('start'); state = { answers: [], mbti: null, at: Date.now() }; save(); mbtiScreen(); });
   }
   function mbtiScreen() {
     show(`<p class="eyebrow">BEFORE WE START</p><h2>MBTI도<br>살짝 알려줄래요?</h2><p class="muted">내 연애를 돌아보는 작은 힌트.<br>몰라도 테스트는 할 수 있어요.</p><div class="mbti-art center" aria-hidden="true">✦</div><label for="mbti">나의 MBTI</label><select id="mbti"><option value="">선택해주세요</option>${['E','I'].flatMap(e => ['N','S'].flatMap(n => ['T','F'].flatMap(t => ['J','P'].map(p => e+n+t+p)))).map(m => `<option${state.mbti === m ? ' selected' : ''}>${m}</option>`).join('')}</select><button class="primary" id="mbti-next">좋아, 시작할게요 →</button><button class="small-button" id="skip" style="width:100%;margin-top:12px">잘 모르겠어요 · 건너뛰기</button><p id="mbti-error" class="error" role="alert"></p>`);
@@ -47,7 +48,7 @@
       if (busy) return; busy = true; state.answers[index] = Number(button.dataset.answer); state.answers = state.answers.slice(0,index+1); save();
       stage.querySelectorAll('button').forEach(b => b.disabled = true); button.classList.add('selected');
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) navigator.vibrate?.(15);
-      setTimeout(() => index < 4 ? question(index+1) : analyze(), 240);
+      setTimeout(() => index < 4 ? question(index+1) : (track('complete'), analyze()), 240);
     }));
   }
   function analyze() {
@@ -56,7 +57,7 @@
   }
   function gate(message = '') {
     show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>내 연애 유형,<br>드디어 찾았어요.</h2><p class="muted">로그인하고 내 마음의 속도를 만나보세요.</p><div class="lock-card"><div class="lock-symbol" aria-hidden="true">♧</div><p>나의 LOVE TYPE</p><div class="locked-lines" aria-hidden="true"><i></i><i></i><i></i></div><span class="pill">결과 열기</span></div></div><button id="login" class="primary">로그인하고 결과 열기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">등록한 사주가 있으면 함께 참고해요.<br>답변은 이 탭에서 최대 2시간 동안 유지돼요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`);
-    on('login', () => { save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('love-speed', '/play/love-speed/') : '/signup?entry=love-speed&returnTo=' + encodeURIComponent('/play/love-speed/') + '#login'; });
+    on('login', () => { track('login'); save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('love-speed', '/play/love-speed/') : '/signup?entry=love-speed&returnTo=' + encodeURIComponent('/play/love-speed/') + '#login'; });
     on('retry', resolveResult);
   }
   async function resolveResult() {
@@ -94,19 +95,22 @@
     finally { busy = false; }
   }
   function renderResult(data, sample = false) {
+    if (!sample) track('result_view');
     const robot = document.createElement('meta'); robot.name = 'robots'; robot.content = 'noindex'; document.head.appendChild(robot);
-    show(`${sample ? '<div class="sample-banner">디자인 미리보기 · 실제 개인 결과가 아닌 샘플입니다</div><div class="sample-types">'+Object.entries(types).map(([id,t]) => `<button data-type="${id}">${t.name}</button>`).join('')+'</div>' : ''}<div class="type-head"><p class="eyebrow">YOUR LOVE TYPE · 0${Object.keys(types).indexOf(data.type)+1}</p><h1>${esc(data.name)}</h1><p class="quote">“${esc(data.line)}”</p></div><div class="ticket"><div class="ticket-top"><span>LOVE TEMPERATURE</span><span>✦ UMSH</span></div>${artwork(true)}<div class="stats">${[['ignition','점화속도','높을수록 빠른 시작'],['cooling','냉각속도','높을수록 빠른 식음'],['holding','관계유지력','높을수록 꾸준함']].map(([key,name,label]) => `<div class="stat"><div class="stat-label"><span>${name} <small>· ${label}</small></span><b>${data.stats[key]}<small> /100</small></b></div><div class="bar" role="meter" aria-label="${name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${data.stats[key]}"><i style="width:${data.stats[key]}%"></i></div></div>`).join('')}</div></div><p class="readout">${esc(data.detail)}</p><div class="tip"><b>나를 위한 작은 힌트</b><p>${esc(data.tip)}</p></div><a class="primary result-cta" href="${CTA}">자세히 보기 · 나, 올해 연애 가능? ↗</a><div class="action-row"><button class="secondary" id="share">내 유형 공유하기 ↗</button><button class="secondary" id="restart">다시 해보기 ↻</button></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><details class="context"><summary>내 결과는 어떻게 나왔나요?</summary><p>수치는 다섯 답변을 기준으로 한 오락용 지표예요. 연애 성공 확률이나 과학적 성격 진단은 아니에요.</p><p>${esc(data.mbtiNote || '이 화면은 샘플이므로 MBTI를 반영하지 않았어요.')}</p><p>${esc(data.sajuNote || '이 화면은 샘플이므로 실제 사주를 반영하지 않았어요.')}</p></details><p class="fine center">내 유형 공유에는 기본 유형만 담겨요.<br>내 답변과 MBTI, 사주 정보는 담기지 않아요.</p>`);
-    on('restart', () => { clear(); if (preview) location.href = './'; else home(); });
+    show(`${sample ? '<div class="sample-banner">디자인 미리보기 · 실제 개인 결과가 아닌 샘플입니다</div><div class="sample-types">'+Object.entries(types).map(([id,t]) => `<button data-type="${id}">${t.name}</button>`).join('')+'</div>' : ''}<div class="type-head"><p class="eyebrow">YOUR LOVE TYPE · 0${Object.keys(types).indexOf(data.type)+1}</p><h1>${esc(data.name)}</h1><p class="quote">“${esc(data.line)}”</p></div><div class="ticket"><div class="ticket-top"><span>LOVE TEMPERATURE</span><span>✦ UMSH</span></div>${artwork(true)}<div class="stats">${[['ignition','점화속도','높을수록 빠른 시작'],['cooling','냉각속도','높을수록 빠른 식음'],['holding','관계유지력','높을수록 꾸준함']].map(([key,name,label]) => `<div class="stat"><div class="stat-label"><span>${name} <small>· ${label}</small></span><b>${data.stats[key]}<small> /100</small></b></div><div class="bar" role="meter" aria-label="${name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${data.stats[key]}"><i style="width:${data.stats[key]}%"></i></div></div>`).join('')}</div></div><p class="readout">${esc(data.detail)}</p><div class="tip"><b>나를 위한 작은 힌트</b><p>${esc(data.tip)}</p></div><a class="primary result-cta" id="love-details" href="${CTA}">자세히 보기 · 나, 올해 연애 가능? ↗</a><div class="action-row"><button class="secondary" id="share">내 유형 공유하기 ↗</button><button class="secondary" id="restart">다시 해보기 ↻</button></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><details class="context"><summary>내 결과는 어떻게 나왔나요?</summary><p>수치는 다섯 답변을 기준으로 한 오락용 지표예요. 연애 성공 확률이나 과학적 성격 진단은 아니에요.</p><p>${esc(data.mbtiNote || '이 화면은 샘플이므로 MBTI를 반영하지 않았어요.')}</p><p>${esc(data.sajuNote || '이 화면은 샘플이므로 실제 사주를 반영하지 않았어요.')}</p></details><p class="fine center">내 유형 공유에는 기본 유형만 담겨요.<br>내 답변과 MBTI, 사주 정보는 담기지 않아요.</p>`);
+    on('love-details', () => track('details'));
+    on('restart', () => { track('restart'); clear(); if (preview) location.href = './'; else home(); });
     on('share', () => share(data));
     on('invite', () => share());
     on('copy-link', () => share(undefined, true));
     stage.querySelectorAll('[data-type]').forEach(button => button.addEventListener('click', () => sampleResult(button.dataset.type)));
   }
   async function share(data, copyOnly = false) {
+    track(copyOnly ? 'copy' : 'share');
     const type = data && Object.hasOwn(types, data.type) ? data.type : null;
-    const url = 'https://umsh.kr/play/love-speed/' + (type ? '?type=' + encodeURIComponent(type) : '');
+    const url = 'https://umsh.kr/play/love-speed/' + (type ? '?type=' + encodeURIComponent(type) + '&src=share' : '?src=share');
     const payload = { title: '시작은 풀악셀, 마음은 급정거? | 운명상회', text: type ? `나는 ${types[type].name}! 너의 연애 속도는? 5문항으로 확인해봐.` : '너는 금사빠? 금사식? 30초, 5문항으로 같이 알아보자!', url };
-    try { if (!copyOnly && navigator.share) { await navigator.share(payload); return; } } catch (e) { if (e.name === 'AbortError') return; }
+    try { if (!copyOnly && navigator.share) { await navigator.share(payload); track('share_success'); return; } } catch (e) { if (e.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(url); notice(type ? '개인정보 없이 유형 링크를 복사했어요.' : '테스트 링크를 복사했어요. 친구에게 보내보세요!'); }
     catch { document.getElementById('share-fallback').innerHTML = `<p class="fine" style="margin-top:16px">아래 링크를 길게 눌러 복사해주세요.</p><input class="share-url" aria-label="공유 링크" readonly value="${esc(url)}">`; }
   }

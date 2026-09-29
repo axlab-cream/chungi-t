@@ -13,6 +13,8 @@
   var MEASUREMENT_ID = 'G-QVQZSPWK6M';
   var document = global.document;
   if (!document || global.__umshAnalyticsLoaded) return;
+  if (/^\/play\/love-speed(?:\/|$)/.test((global.location || {}).pathname || '') && (global.location || {}).origin !== 'https://umsh.kr') return;
+  if (/^\/play\/love-speed\/preview\.html$/.test((global.location || {}).pathname || '')) return;
 
   // 사용자가 추적을 끄는 브라우저 설정을 켜 두었으면 싣지 않는다.
   var navigator = global.navigator || {};
@@ -34,6 +36,9 @@
   var location = global.location || {};
   var cleanLocation = withoutQuery(String(location.origin || '') + String(location.pathname || ''));
   var cleanReferrer = withoutQuery(document.referrer);
+  if (/^\/play\/love-speed(?:\/|$)/.test(location.pathname || '') && cleanReferrer) {
+    try { cleanReferrer = new URL(cleanReferrer).origin + '/'; } catch (_) { cleanReferrer = ''; }
+  }
 
   global.dataLayer = global.dataLayer || [];
   function gtag() { global.dataLayer.push(arguments); }

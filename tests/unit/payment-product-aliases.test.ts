@@ -47,7 +47,7 @@ test('복귀 경로만 있어도 공개 서비스 상품을 찾는다', () => {
   assert.equal(paymentProductKeyFromPath('/work/job'), 'work_job')
 })
 
-const FREE_KEYS = new Set(['today_fortune', 'today'])
+const FREE_KEYS = new Set(['today_fortune', 'today', 'love_speed'])
 
 test('페이지가 결제창에 넘기는 키는 모두 상품으로 해석된다', () => {
   const keys = new Set<string>()

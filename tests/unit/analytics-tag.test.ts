@@ -56,6 +56,7 @@ function runTag(href: string, referrer = '') {
   const scripts: Array<{ src?: string; async?: boolean }> = []
   const listeners: Record<string, () => void> = {}
   const context: Record<string, unknown> = {
+    URL,
     location: { origin: url.origin, pathname: url.pathname, href },
     navigator: {},
     document: {
@@ -128,4 +129,13 @@ test('한 화면에서 두 번 실리지 않는다', () => {
   runInNewContext(source, context)
   runInNewContext(source, context)
   assert.equal(scripts.length, 1)
+})
+
+
+test('무료 테스트 GA는 미리보기/로컬에서 제외되고 유입 URL의 개인 경로를 보내지 않는다', () => {
+  assert.equal(runTag('https://umsh.kr/play/love-speed/preview.html').config, undefined)
+  assert.equal(runTag('http://127.0.0.1:8797/play/love-speed/').config, undefined)
+  const { config } = runTag('https://umsh.kr/play/love-speed/?src=share', 'https://umsh.kr/r/PRIVATE?name=PRIVATE')
+  assert.equal(config?.[2].page_referrer, 'https://umsh.kr/')
+  assert.ok(!JSON.stringify(config).includes('PRIVATE'))
 })

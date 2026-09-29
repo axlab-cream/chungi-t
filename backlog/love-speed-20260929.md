@@ -52,3 +52,10 @@ R1~R6 증거가 있어야 완료. 원격 로그인 완료는 사용자 세션이
 - 구성: 기존 공유배너 재사용, 직접 /play/love-speed/ 이동, 연애 카테고리 필터 및 기존 홈 스타일 유지. 주간 자동갱신 기능은 요청 범위 아님.
 - 완료: 모바일 배너/링크/필터 검증, 관련 회귀·빌드·리뷰, 운영 반영 및 KMS.
 - 검증: 관련 portal38/38, 빌드/타입 PASS. 모바일360/390px 배너 이미지·가로넘침0, 직접 테스트 이동, 연애 표시/재물 숨김 PASS.
+
+## LOVE-SPEED-05 관리자 통계·CTA·SEO·GA
+- 관리자 reports:read 기존 권한 내 전용 무료테스트 유입/행동 집계와 CTA 바로가기. 기존 이벤트 표 재사용, DB 변경 없음. 세션 기반 방문과 클릭/행동 구분.
+- 유입은 allowlist src(home/share/admin) 또는 referrer 분류(internal/search/social/external/direct). 원문 query/referrer/개인답변은 저장하지 않음.
+- GA 기존 측정ID 사용, start/complete/share/copy/details/login/restart/result_view 이벤트. DNT/GPC 준수, preview 제외.
+- SEO 정적 설명/구조화데이터/사이트맵/기존canonical·OG 유지. 원본 CTA URL 유지.
+- 검증: 순수 집계·수집기VM·GA payload 프라이버시·중복·실패·권한·SEO·기존회귀. 운영 전송과 관리자 조회, GA 실제 수신은 별도 증거로 보고.

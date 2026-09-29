@@ -74,7 +74,7 @@
       [/^\/love\/again/, 'love_again'], [/^\/love\/spouse/, 'love_spouse'], [/^\/match\/couple/, 'match_couple'],
       [/^\/match\/marry/, 'marry_match'], [/^\/match\/cat/, 'cat_compatibility'], [/^\/me\/lucky/, 'lucky_color'],
       [/^\/me\/pass-angle/, 'pass_angle'], [/^\/flow\/newyear/, 'newyear_flow'], [/^\/day\/wedding/, 'wedding_day'],
-      [/^\/place\/home/, 'home_pungsu'], [/^\/today\/free/, 'today_fortune'],
+      [/^\/play\/love-speed(?:\/|$)/, 'love_speed'], [/^\/place\/home/, 'home_pungsu'], [/^\/today\/free/, 'today_fortune'],
     ];
     for (var i = 0; i < map.length; i += 1) { if (map[i][0].test(path)) { service = map[i][1]; break; } }
 
@@ -145,12 +145,17 @@
 
   function start() {
     authHeaders();
-    push('step_view');
+    var loveSpeed = placeOf(location.pathname).service === 'love_speed';
+    if (loveSpeed && (/preview\.html$/.test(location.pathname) || global.navigator.doNotTrack === '1' || global.navigator.globalPrivacyControl === true)) return;
+    var source = global.UMSHLoveSpeedSource;
+    push('step_view', loveSpeed ? { target: 'love_speed:source:' + (['home','share','admin','internal','search','social','external','direct'].includes(source) ? source : 'direct') } : undefined);
     document.addEventListener('click', function (event) {
       var node = event.target && event.target.closest ? event.target : null;
       if (!node) return;
       var target = targetOf(node);
+      if (target && target.indexOf('love_speed:') === 0 && (global.navigator.doNotTrack === '1' || global.navigator.globalPrivacyControl === true)) return;
       if (target) push('cta_click', { target: target });
+      if (target === 'love_speed:home' && global.UMSHAnalytics && typeof global.gtag === 'function' && global.navigator.doNotTrack !== '1' && global.navigator.globalPrivacyControl !== true) global.gtag('event', 'love_speed_banner_click', { service_key: 'love_speed', link_source: 'home' });
     }, true);
     // 떠나기 직전에 남은 것을 보낸다.
     global.addEventListener('pagehide', function () { send(false, true); });

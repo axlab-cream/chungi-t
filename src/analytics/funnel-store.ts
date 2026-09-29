@@ -98,7 +98,18 @@ export function periodStart(period: FunnelPeriod, now = new Date()): string {
   return start.toISOString()
 }
 
+export interface LoveSpeedSummary {
+  views: number
+  sessions: number
+  signedInUsers: number
+  sources: Array<{ source: string; views: number; sessions: number }>
+  actions: Array<{ action: string; events: number; sessions: number }>
+  homeClicks: number
+}
+
 export interface FunnelSummary {
+  available?: boolean
+  loveSpeed?: LoveSpeedSummary
   period: FunnelPeriod
   since: string
   /** 선택 기간 전체의 페이지 조회·방문·로그인 방문자. 서로 다른 서비스 행을 더해서 만들지 않는다. */
@@ -121,6 +132,35 @@ type FunnelRow = {
   target: string | null
   session_id: string
   user_id: string | null
+}
+
+/** Only aggregate whitelisted public source/action codes; never return visitor identifiers. */
+export function summarizeLoveSpeedRows(rows: FunnelRow[]): LoveSpeedSummary {
+  const visits = new Set<string>(), users = new Set<string>()
+  const sources = new Map<string, { views: number; sessions: Set<string> }>()
+  const actions = new Map<string, { events: number; sessions: Set<string> }>()
+  const sourceKeys = ['home','share','admin','internal','search','social','external','direct']
+  const actionKeys = ['start','complete','share','copy','details','login','restart']
+  let views = 0, homeClicks = 0
+  for (const row of rows) {
+    if (row.event === 'cta_click' && row.target === 'love_speed:home') homeClicks++
+    if (row.service_key !== 'love_speed') continue
+    if (row.event === 'step_view') {
+      views++; visits.add(row.session_id); if (row.user_id) users.add(row.user_id)
+      const raw = (row.target || '').replace(/^love_speed:source:/, '')
+      const source = sourceKeys.includes(raw) ? raw : 'unknown'
+      const entry = sources.get(source) || { views: 0, sessions: new Set<string>() }
+      entry.views++; entry.sessions.add(row.session_id); sources.set(source, entry)
+    } else if (row.event === 'cta_click') {
+      const action = (row.target || '').replace(/^love_speed:/, '')
+      if (!actionKeys.includes(action)) continue
+      const entry = actions.get(action) || { events: 0, sessions: new Set<string>() }
+      entry.events++; entry.sessions.add(row.session_id); actions.set(action, entry)
+    }
+  }
+  return { views, sessions: visits.size, signedInUsers: users.size, homeClicks,
+    sources: [...sources].map(([source, value]) => ({ source, views: value.views, sessions: value.sessions.size })),
+    actions: actionKeys.map(action => ({ action, events: actions.get(action)?.events || 0, sessions: actions.get(action)?.sessions.size || 0 })) }
 }
 
 /** PostgREST I/O와 분리한 실제 집계 규칙. 관리자 화면과 단위 테스트가 같은 계산을 쓴다. */
@@ -160,6 +200,8 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
   return {
     period,
     since,
+    available: true,
+    loveSpeed: summarizeLoveSpeedRows(rows),
     overview: {
       views: [...stepViews.values()].reduce((sum, entry) => sum + entry.views, 0),
       sessions: sessions.size,
@@ -185,7 +227,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
  */
 export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promise<FunnelSummary> {
   const since = periodStart(period)
-  const empty: FunnelSummary = { period, since, overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], ctas: [], sampled: 0, truncated: false }
+  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], ctas: [], sampled: 0, truncated: false }
   if (!opsStoreAvailable()) return empty
 
   const safeLimit = Math.min(Math.max(limit, 1), 20000)
