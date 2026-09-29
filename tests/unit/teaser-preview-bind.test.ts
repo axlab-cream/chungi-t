@@ -263,6 +263,11 @@ test('커플궁합 reportId 직접 URL은 04에서 미리보기, 05·06에서 �
   assert.match(coupleServiceSource, /const savedReport = await loadSavedReport\(\)/)
 })
 
+test('커플궁합 공통 GNB는 런타임 마운트 뒤에도 티저 슬롯보다 앞에 남는다', () => {
+  assert.match(coupleServiceSource, /querySelector\(':scope > \[data-umsh-service-top\]'\)/)
+  assert.match(coupleServiceSource, /host\.insertBefore\(top, host\.firstChild\)/)
+})
+
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {
   const api = loadAccess('/money/save/05-step-5-chat/chat.html')
   const accepted = api.acceptAnalyze({

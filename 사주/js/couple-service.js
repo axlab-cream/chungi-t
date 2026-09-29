@@ -108,6 +108,11 @@
       price: host?.dataset.price || '19,900원',
       active: host?.dataset.active || 'home',
     });
+    // The legacy appbar sits below the live preview slot. Replacing that appbar moves
+    // the existing shared top host to the same lower position, so restore the actual
+    // runtime order after mount instead of relying on the source HTML order alone.
+    const top = host?.querySelector(':scope > [data-umsh-service-top]');
+    if (top && top !== host.firstElementChild) host.insertBefore(top, host.firstChild);
   }
 
   // -------------------------------------------------------------------- auth
