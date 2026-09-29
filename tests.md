@@ -1166,3 +1166,6 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | LOVE-YEAR-TEASER-05 | 미결제 결제 URL, 권한 회원 05 목차, 새 사주 기본 프로필 비덮어쓰기 | PASS (권한/서비스 회귀) |
 | LOVE-YEAR-TEASER-06 | 원시 마크다운·내부 QA 문구·가짜 점수·모바일 표 넘침 방지 | PASS (렌더/CSS 계약) |
 | LOVE-YEAR-TEASER-07 | TypeScript·올해 연애운 계약·20개 서비스 계약·전체 서비스 QA·프로덕션 빌드 | PASS |
+| LOVE-YEAR-TEASER-08 | 전체 회귀·GitHub Actions | PASS — 1,641/1,641, CI `36524605475` |
+| LOVE-YEAR-TEASER-09 | 운영 홈·STEP1·STEP2·STEP4 이미지와 모바일 넘침 | PASS — 새 이미지 5종, 구형 홈 영상 0, 가로 넘침 0 |
+| LOVE-YEAR-TEASER-10 | 운영 실제 리포트 1·2·잠금 TOC·CTA | PASS — 해석 이미지 2, 표 1, 시각화 2, 닫힌 실제 03~N, CTA 1 |
