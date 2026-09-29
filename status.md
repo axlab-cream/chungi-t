@@ -2587,3 +2587,6 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [FIXED] `달라진 연락 → 반복되는 거리감 → 애정 확인과 갈등 회복 방식 → 관계 밖에서 흔들리는 장면 → 리포트에서 이어질 질문 → 무료 해석` 순서로 전체 문장을 다시 썼다. 서버와 맞추는 중립 주제 키는 화면에 노출하지 않는 데이터 속성으로 유지했다.
 - [PASS] 전용 4/4, 관계 신호·공용 리더 집중 회귀 73/73, 관계 신호 20개 계약, TypeScript, 20개 서비스 계약·QA, 프로덕션 빌드와 diff 검사를 통과했다. 전체 회귀와 운영 배포 검증을 진행한다.
 - [DB/API] 데이터베이스·API·결제·리포트 로직은 변경하지 않았다. STEP1 정적 카피·CTA·정보 구조와 회귀 테스트만 변경했다.
+- [PASS] 전체 회귀 1,651/1,651(166 suites)을 통과했다. 구현 `3645d49a`를 `origin/main`에 반영했고 Production `dpl_GoeE9T7orwKQzgC1GBQK4qFJff2h`가 Ready이며 `umsh.kr` 별칭에 연결됐다.
+- [PASS] 운영 화면에서 공통 GNB, 새 문제 중심 카피, 고정 CTA 0개, 가격 노출 0개, 읽기 전용 범위 카드 5개, 페이지 끝 최종 CTA 1개와 공통 하단 내비게이션을 확인했다. 문서 너비와 앱 너비가 일치해 가로 넘침이 없다.
+- [KMS] `personal/carrotcap/notes/umsh-love-signal-story-hook-cta-20260929.md`에 원인·결정·검증·재사용 교훈을 저장하고 재조회했다.

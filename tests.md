@@ -1194,6 +1194,8 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | `npm run typecheck` | PASS |
 | `npm run vercel-build` | PASS |
 | `git diff --check` | PASS |
+| `npm test` | PASS — 1,651/1,651, 166 suites |
 
 - 로컬 운영형 화면에서 고정 CTA 0개, 가격 문구 0개, 클릭처럼 보이는 미리보기 카드 링크 0개를 확인했다.
 - 첫 화면 CTA와 마지막 CTA는 각 장면에 맞는 서로 다른 문구를 사용하며, 페이지 끝에서는 최종 CTA 하나만 보인다.
+- 운영 DOM은 고정 CTA 0개, 가격 노출 0개, 미리보기 링크 0개, 가로 넘침 0이며 여섯 영상이 스크롤 후 모두 장면 이미지로 로드된다.
