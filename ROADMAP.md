@@ -490,3 +490,8 @@ Step XX
 - [x] 운영 URL에서 GNB y=0/h=85, 티저 y=85와 로고·뒤로·메뉴 마운트를 확인했다.
 
 LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRESS.
+
+## 2026-09-29 — GA-INTEGRITY-01
+- [x] 운영 JS/HTTP 원인 재현, 운영 origin/QA 탭 제한, 캠페인 보존.
+- [x] 집중32/32 및 격리 운영 기준 빌드/타입 PASS.
+- [ ] 운영 반영 및 GA 신규 수신 검증.

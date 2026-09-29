@@ -2621,3 +2621,11 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 브라우저: 5문항/분석/로그인 게이트/4유형/다시하기, 375/390/768/1440px overflow 0, CTA exact PASS.
 - 실제 회원 OAuth 완료 및 운영 개인 결과는 배포 후 확인 예정. 샘플 preview.html은 명확히 표시.
 - 원본 checkout의 기존 서버 누락 모듈/타입 오류는 보존; 릴리스는 7a90f93c 최신 원격 기반.
+
+## 2026-09-29 — GA-INTEGRITY-01 트래킹 정합성
+- 운영 JS 및 HTTP에서 로컬 GA 실행 가능성과 리다이렉트·page_location 광고값 소실을 확인해 수정. 기존 다른 사용자 변경 보존.
+- 집중32/32, 격리 origin/main 93554b82 빌드/타입/SEO, 실제 제공6개 랜딩·job-choice/move HTTP PASS.
+- GA4 Cross-network 10세션/참여0/42이벤트 직접 확인. love-speed 평균1초이므로 전원 무행동 즉시이탈은 미확정. 후속 GA 별도 탭은 ERR_FAILED로 연결 실패. 관리자 설정/광고 변경 없음.
+- 별도 Grok 리뷰는 MCP 오류 후 결과 미반환으로 중단; 직접 diff 리뷰 완료.
+- KMS: personal/carrotcap/notes/umsh-ga-integrity-20260929.md. [GATE] rules.md §6.3에 따른 명시적 운영 배포 요청 전 push/배포 미실행.
+- 최종 격리 검증: 전체 회귀 1,694/1,694 PASS (166 suites), 빌드/타입 PASS. 운영 반영은 미실행.

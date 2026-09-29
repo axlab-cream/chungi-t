@@ -5,7 +5,7 @@
  * 통째로 측정되지 않아, 유입은 보이는데 그 뒤 여정이 비어 있었다. 화면마다 스니펫을 붙이면 새
  * 화면이 생길 때마다 빠지므로 여기 한 곳에서만 싣는다.
  *
- * 주소에서 **물음표 뒤는 떼고 보낸다.** 리포트와 결제 주소에는 reportId·orderId 가 붙는데,
+ * 주소에서 **광고 측정용 허용값 외에는 떼고 보낸다.** 리포트와 결제 주소에는 reportId·orderId 가 붙는데,
  * reportId 는 특정 고객의 사주 해석에 1:1 로 연결되는 값이다. 어느 화면을 봤는지는 그대로
  * 집계되고, 누구의 해석인지는 넘어가지 않는다. 같은 이유로 유입 주소(referrer)도 잘라서 보낸다.
  */
@@ -13,8 +13,20 @@
   var MEASUREMENT_ID = 'G-QVQZSPWK6M';
   var document = global.document;
   if (!document || global.__umshAnalyticsLoaded) return;
-  if (/^\/play\/love-speed(?:\/|$)/.test((global.location || {}).pathname || '') && (global.location || {}).origin !== 'https://umsh.kr') return;
+  if ((global.location || {}).origin !== 'https://umsh.kr') return;
   if (/^\/play\/love-speed\/preview\.html$/.test((global.location || {}).pathname || '')) return;
+
+  // QA에서 운영 링크를 열어도 해당 탭의 후속 탐색까지 운영 통계에 섞이지 않는다.
+  var qaReferrer = false;
+  try {
+    var host = new URL(document.referrer).hostname;
+    qaReferrer = /^(localhost|.*\.localhost|127(?:\.\d+){3}|\[::1\]|10(?:\.\d+){3}|192\.168(?:\.\d+){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d+){2})$/.test(host);
+  } catch (_) { /* 없는 referrer는 정상 직접 유입이다. */ }
+  try {
+    if (qaReferrer) global.sessionStorage.setItem('umsh:analytics:qa', '1');
+    qaReferrer = qaReferrer || global.sessionStorage.getItem('umsh:analytics:qa') === '1';
+  } catch (_) { /* 저장소가 차단돼도 확인된 QA 유입은 제외한다. */ }
+  if (qaReferrer) return;
 
   // 사용자가 추적을 끄는 브라우저 설정을 켜 두었으면 싣지 않는다.
   var navigator = global.navigator || {};
@@ -35,6 +47,18 @@
 
   var location = global.location || {};
   var cleanLocation = withoutQuery(String(location.origin || '') + String(location.pathname || ''));
+  // 전체 쿼리를 제거하면 UTM/자동 태깅도 사라진다. 지정된 광고 키만 복원한다.
+  // 캠페인 값에는 고객 정보를 넣지 않는다. 이메일/URL/제어문자/긴 값은 거부한다.
+  try {
+    var incoming = new URL(location.href);
+    var measured = new URL(cleanLocation);
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid'].forEach(function (key) {
+      var value = incoming.searchParams.get(key);
+      var valid = /^utm_/.test(key) ? /^[\p{L}\p{N} _+.\-]{1,200}$/u : /^[A-Za-z0-9_\-]{1,512}$/;
+      if (value && valid.test(value)) measured.searchParams.set(key, value);
+    });
+    cleanLocation = measured.href;
+  } catch (_) { /* 파싱 실패 시 식별자를 제외한 경로만 사용한다. */ }
   var cleanReferrer = withoutQuery(document.referrer);
   if (/^\/play\/love-speed(?:\/|$)/.test(location.pathname || '') && cleanReferrer) {
     try { cleanReferrer = new URL(cleanReferrer).origin + '/'; } catch (_) { cleanReferrer = ''; }

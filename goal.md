@@ -418,3 +418,6 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 - 가격과 내부 분석 용어를 앞세우지 않고 사용자가 겪는 장면과 얻을 답을 먼저 보여 준다.
 
 2026-09-29: LOVE-SPEED-01 /play/love-speed/ mobile game. User authorized implementation and available deployment; PRD backlog/love-speed-20260929.md.
+
+## 2026-09-29 — GA-INTEGRITY-01
+- 운영 GA 개발유입 혼입 및 캠페인 소실 수정. 광고 성과·미분류 전체 원인은 별도로 검증한다. 기록: personal/carrotcap/notes/umsh-ga-integrity-20260929.md.

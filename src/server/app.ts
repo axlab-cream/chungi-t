@@ -421,7 +421,7 @@ app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html', '/love/t
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -458,7 +458,7 @@ app.get(['/love/signal', '/love/signal/', '/love/signal/index.html'], (req, res)
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -513,7 +513,7 @@ app.get(['/work/quit', '/work/quit/', '/work/quit/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -526,7 +526,7 @@ app.get(['/work/job-choice', '/work/job-choice/', '/work/job-choice/index.html']
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -572,10 +572,10 @@ app.get(['/work/quit/detail', '/work/quit/detail.html'], (_req, res) => {
 app.get(['/match/marry', '/match/marry/', '/match/marry/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result rather than the intro.
-  // Only the checkout round-trip params travel on; Vercel adds its own __umsh_path
+  // Only checkout and campaign params travel on; Vercel adds its own __umsh_path
   // rewrite marker to every request and it must not surface in the address bar.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -620,7 +620,7 @@ app.get(['/money/save', '/money/save/', '/money/save/index.html'], (req, res) =>
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -645,7 +645,7 @@ app.get(['/match/couple', '/match/couple/', '/match/couple/index.html'], (req, r
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -658,7 +658,7 @@ app.get(['/match/cat', '/match/cat/', '/match/cat/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -686,7 +686,7 @@ app.get(['/me/lucky', '/me/lucky/', '/me/lucky/index.html'], (req, res) => {
   // A return from the PG carries ?paid=1&orderId=..., and step 04 is the page that
   // resumes it, so keep the query and send a paid visitor to the result, not the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -711,9 +711,9 @@ app.get('/me/lucky/06-step-6_1-report-detail/index.html', (_req, res) => {
 })
 // 내 2027년, 풀릴 각이야? runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
 function newYearFlowUrl(req: Request, page: string): string {
-  // Forward locators only, never an external returnTo or Vercel rewrite marker.
+  // Forward locators and campaign params, never an external returnTo or Vercel rewrite marker.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -743,7 +743,7 @@ app.get(['/day/wedding', '/day/wedding/', '/day/wedding/index.html'], (req, res)
   // A return from the PG carries ?paid=1&orderId=..., and step 04 resumes it, so keep the
   // query and send a paid visitor to the result instead of the intro.
   const forwarded = new URLSearchParams()
-  for (const key of ['paid', 'orderId', 'reportId']) {
+  for (const key of ['paid', 'orderId', 'reportId', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
     const value = req.query[key]
     if (typeof value === 'string' && value) forwarded.set(key, value)
   }
@@ -787,8 +787,14 @@ app.get(['/place/home/chat', '/place/home/chat.html'], (_req, res) => {
 app.get(['/place/home/detail', '/place/home/detail.html'], (_req, res) => {
   res.redirect(302, '/place/home/06-step-6_1-report-detail/index.html')
 })
-app.get(['/work/move', '/work/move/', '/work/move/index.html'], (_req, res) => {
-  res.redirect(302, '/work/move/01-step-1-story/index.html')
+app.get(['/work/move', '/work/move/', '/work/move/index.html'], (req, res) => {
+  const forwarded = new URLSearchParams()
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  res.redirect(302, `/work/move/01-step-1-story/index.html${query ? `?${query}` : ''}`)
 })
 app.get(['/work/move/input', '/work/move/input.html'], (_req, res) => {
   res.redirect(302, '/work/move/02-step-2-saju-input/index.html')
@@ -802,8 +808,14 @@ app.get(['/work/move/chat', '/work/move/chat.html'], (_req, res) => {
 app.get(['/work/move/detail', '/work/move/detail.html'], (_req, res) => {
   res.redirect(302, '/work/move/06-step-6_1-report-detail/index.html')
 })
-app.get(['/me/pass-angle', '/me/pass-angle/', '/me/pass-angle/index.html'], (_req, res) => {
-  res.redirect(302, '/me/pass-angle/01-step-1-story/index.html')
+app.get(['/me/pass-angle', '/me/pass-angle/', '/me/pass-angle/index.html'], (req, res) => {
+  const forwarded = new URLSearchParams()
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'dclid', 'gbraid', 'wbraid']) {
+    const value = req.query[key]
+    if (typeof value === 'string' && value) forwarded.set(key, value)
+  }
+  const query = forwarded.toString()
+  res.redirect(302, `/me/pass-angle/01-step-1-story/index.html${query ? `?${query}` : ''}`)
 })
 app.get(['/me/pass-angle/input', '/me/pass-angle/input.html'], (_req, res) => {
   res.redirect(302, '/me/pass-angle/02-step-2-saju-input/index.html')

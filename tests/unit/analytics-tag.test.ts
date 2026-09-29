@@ -139,3 +139,54 @@ test('무료 테스트 GA는 미리보기/로컬에서 제외되고 유입 URL�
   assert.equal(config?.[2].page_referrer, 'https://umsh.kr/')
   assert.ok(!JSON.stringify(config).includes('PRIVATE'))
 })
+
+test('운영 도메인 외에서는 모든 화면의 GA를 비활성화한다', () => {
+  for (const origin of ['http://localhost:8800','http://127.0.0.1:8800','http://[::1]:8800','http://192.168.0.2:8800','https://chungi-t.vercel.app','https://umsh.kr.evil.example']) {
+    for (const path of ['/','/vault','/today/free','/play/love-speed/']) {
+      const result = runTag(origin + path)
+      assert.equal(result.scripts.length,0,origin + path)
+      assert.equal(result.config,undefined)
+      assert.equal(result.listeners.pagehide,undefined)
+    }
+  }
+})
+
+test('로컬 QA에서 운영으로 넘어온 유입도 GA에 보내지 않는다', () => {
+  for(const ref of ['http://127.0.0.1:8800/','http://localhost:8800/','http://[::1]:8800/','http://192.168.1.2/','http://10.0.0.2/','http://172.16.0.2/']) {
+    assert.equal(runTag('https://umsh.kr/',ref).scripts.length,0,ref)
+  }
+  assert.equal(runTag('https://umsh.kr/','https://google.com/').scripts.length,1)
+})
+
+test('UTM과 광고 클릭 ID만 보존하고 고객 식별자와 해시는 제외한다', () => {
+  const {config} = runTag('https://umsh.kr/?utm_source=google&utm_medium=cpc&utm_campaign=fall-2026&utm_id=fall&utm_content=ad_a&utm_term=fortune&gclid=Test-123&dclid=Test-456&gbraid=abc&wbraid=def&reportId=PRIVATE&orderId=PRIVATE&name=PRIVATE#PRIVATE')
+  assert.ok(config)
+  const url = new URL(config[2].page_location)
+  assert.equal(url.searchParams.get('utm_source'),'google')
+  assert.equal(url.searchParams.get('utm_medium'),'cpc')
+  assert.equal(url.searchParams.get('utm_campaign'),'fall-2026')
+  assert.equal(url.searchParams.get('gclid'),'Test-123')
+  assert.equal(url.searchParams.size,10)
+  assert.ok(!JSON.stringify(config).includes('PRIVATE'))
+})
+
+test('UTM에 이메일·URL·과도한 길이가 섞여도 외부에 전송하지 않는다', () => {
+  const {config} = runTag('https://umsh.kr/?utm_source=google&utm_campaign=person%40example.com&utm_content=https%3A%2F%2Fexample.com&utm_term='+ 'x'.repeat(201))
+  assert.ok(config)
+  assert.equal(config[2].page_location,'https://umsh.kr/?utm_source=google')
+})
+
+test('QA 탭 표시는 후속 운영 탐색에서도 유지한다', () => {
+  const saved = new Map<string,string>()
+  function visit(referrer: string) {
+    const scripts: unknown[] = []
+    const context: any = { URL, location:{origin:'https://umsh.kr',pathname:'/',href:'https://umsh.kr/'}, navigator:{}, sessionStorage:{getItem:(k:string)=>saved.get(k),setItem:(k:string,v:string)=>saved.set(k,v)}, document:{referrer,createElement:()=>({}),head:{appendChild:(s:unknown)=>scripts.push(s)}} }
+    context.window=context
+    runInNewContext(source,context)
+    return scripts
+  }
+  assert.equal(visit('http://127.0.0.1:8800/').length,0)
+  assert.equal(visit('https://umsh.kr/').length,0)
+  saved.clear()
+  assert.equal(visit('').length,1)
+})

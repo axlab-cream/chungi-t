@@ -1220,3 +1220,10 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 - 번호 원 정렬 후속 검증: 전용 4/4, 관계 신호 계약 20건, TypeScript, production build PASS. 공통 span 규칙이 번호 아이콘을 덮지 않도록 선택자를 분리했다.
 
 LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analytics fix; build/typecheck PASS. Browser 375/390/768/1440 no overflow. Production verification pending.
+
+## 2026-09-29 — GA-INTEGRITY-01
+- PASS: 집중32/32(공용 GA·13개 리다이렉트·love-speed), 구문/diff 검사.
+- PASS: origin/main 93554b82 격리 기준 npm run vercel-build/타입/SEO. 원 작업 폴더는 기존 모듈/타입3건 및 팝업 테스트2건 실패.
+- PASS: 제공된6개 랜딩과 job-choice/move의 실제 Express HTTP200·UTM/gclid 보존.
+- NOT_RUN: GA 새 이벤트 수신/운영 배포. 신년·합격운은 기존 공개중지로 HTTP는 홈 이동, 단위 함수 검사와 구분.
+- 최종 격리 검증: 전체 회귀 1,694/1,694 PASS (166 suites), 빌드/타입 PASS. 운영 반영은 미실행.

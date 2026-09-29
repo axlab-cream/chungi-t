@@ -742,3 +742,12 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 5. 전체 테스트·타입·서비스 QA·빌드 후 main 배포와 운영 화면 검증, CreamWIKI 기록을 완료한다. **완료**
 
 LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
+
+## 2026-09-29 — GA-INTEGRITY-01
+- PRD GA-01: 전 고객 화면의 운영 GA는 https://umsh.kr 에서만 실행한다. localhost/루프백·사설망에서 운영으로 넘어온 QA 유입도 수집하지 않는다.
+- PRD GA-02: page_location에 검증된 UTM/Google 광고 클릭 식별값만 허용하고 reportId/orderId/name/해시 등은 제외한다. 자동 page_view/session_start/engagement 흐름은 유지한다.
+- 순서: 기존 수정 보존 → 실패 테스트 → 공용 태그 최소 수정 → 관련 테스트·타입·리뷰 → KMS 기록.
+- GA-03 조사: 신규 love_speed_view는 오늘 배포된 전용 이벤트다. click/form_start의 Enhanced Measurement 여부 및 광고 0%/not set 실제 원인은 GA 속성·랜딩 데이터 확인 전 미확정. 지표를 좋게 보이게 하는 가짜 참여/전환 이벤트는 만들지 않는다.
+- 완료 기준: 로컬 GA 요청 없음, 광고 파라미터 보존 및 개인정보 제외, 기존 거부/중복 방지 회귀 통과. 운영 배포/GA 관리자 설정은 별도 승인 및 접근 범위로 구분한다.
+
+- 추가 재현: 서버 리다이렉트에서도 광고값 소실. 13개 서비스 진입 허용목록 수정 및 실제 광고 랜딩 HTTP 검증을 포함한다.
