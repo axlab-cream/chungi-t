@@ -1438,6 +1438,13 @@
       renderProgress(payload.report);
       return renderedMove;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'match_couple'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideCoupleTeaserShell();
+      var renderedCouple = fillSlot('preview', renderMatchCoupleTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedCouple;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1606,6 +1613,14 @@
     });
   }
 
+  function hideCoupleTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
+    });
+    hideLegacyNode(document.querySelector('.submit-dock'));
+  }
+
   /** 이직운은 실제 입력·네 기둥·오행 계산값으로 공개 1·2번을 완성한다. */
   function renderWorkMoveTeaserSections(payload) {
     var preview = payload.preview || {};
@@ -1711,6 +1726,58 @@
       + '</footer>';
   }
 
+  /** 커플궁합은 두 사람의 실제 입력·네 기둥·다섯 기운을 공개 1·2번에 연결한다. */
+  function renderMatchCoupleTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeMatchCoupleTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '두 사람의 관계를 실제 장면으로 확인하는 순서입니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '두 사람의 실제 입력과 계산값입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '두 사람의 저장 사주에서 계산한 값입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '마음의 크기를 추측하기보다 연락과 감정 표현의 간격을 구체적으로 맞출 수 있을 때, 두 사람의 편안함이 오래갑니다.'
+        : '어긋난 뒤 돌아오는 방법이 두 사람 모두에게 있고 같은 문제에서 말의 방식을 바꿀 수 있다면, 생활 속에서 오래 갈 힘이 확인됩니다.';
+      return '<article class="job-teaser-reading couple-teaser-reading" aria-labelledby="couple-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'match_couple')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="couple-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening couple-teaser-opening">'
+      + '<span>커플궁합 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '끌리는 이유와 서운해지는 순간을 함께 읽었습니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta couple-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>말투·갈등·애정 표현·생활 습관과 오늘 건넬 한 문장까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 두 사람의 소통과 생활 리듬, 갈등 뒤 회복 방식까지 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
   function teaserQuotaText(quota) {
     if (!quota || !Number.isInteger(quota.used) || quota.limit !== 5) return '';
     var used = Math.min(5, Math.max(0, quota.used));
@@ -1813,6 +1880,21 @@
       .replace(/식상/g, '성과와 표현 방식')
       .replace(/재성/g, '돈과 현실 조건')
       .replace(/십신/g, '사주 속 열 가지 관계')
+      .trim();
+  }
+
+  function normalizeMatchCoupleTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 지금 마음이 움직이는 이유\n')
+      .replace(/\s*\[사주와 관계를 함께 보면\]\s*/g, '\n\n### 두 사람의 네 기둥이 만나는 지점\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 두 사람 사이에서 실제로 볼 장면\n')
+      .replace(/\s*\[결정 전에 물어볼 질문\]\s*/g, '\n\n### 서로에게 꼭 물어볼 질문\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 이 관계를 편안하게 만드는 방법\n')
+      .replace(/일간/g, '태어난 날의 중심')
+      .replace(/일지/g, '태어난 날의 관계 반응')
+      .replace(/오행/g, '다섯 기운')
+      .replace(/궁합의 결/g, '두 사람의 관계 특징')
       .trim();
   }
 

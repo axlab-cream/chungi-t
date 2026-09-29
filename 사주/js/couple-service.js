@@ -99,10 +99,11 @@
    */
   function mountChrome() {
     if (!window.UMSHChrome) return;
-    const host = document.querySelector('.app');
+    const host = document.querySelector('.app, .page, #step-4-report');
+    const root = host?.id ? `#${host.id}` : '.app';
     document.body.dataset.umshChrome = 'off';
     window.UMSHChrome.mount({
-      root: '.app',
+      root,
       service: host?.dataset.service || '커플궁합',
       price: host?.dataset.price || '19,900원',
       active: host?.dataset.active || 'home',
@@ -143,6 +144,7 @@
       error.status = response.status;
       error.code = payload.code;
       error.paymentUrl = payload.paymentUrl;
+      error.freeSearch = payload.freeSearch;
       throw error;
     }
     return payload;
@@ -173,27 +175,168 @@
     }
   }
 
+  function coupleRequestFromForm(form) {
+    const digits = String($('#partnerBirth', form)?.value || '').replace(/\D/g, '');
+    const partnerName = String($('#partnerName', form)?.value || '').trim();
+    const relationshipStage = String($('#partnerRelation', form)?.value || '').trim();
+    const gender = String($('#partnerGender', form)?.value || '').trim();
+    const calendar = String($('#partnerCalendar', form)?.value || '').trim();
+    const focus = String($('#focus', form)?.value || '').trim();
+    const relationshipTemperature = String($('#relationshipTemperature', form)?.value || '').trim();
+    const concern = String($('#question', form)?.value || '').trim();
+    const privacy = $('#privacyAgree', form)?.checked === true;
+    if (digits.length !== 8 || !partnerName || !relationshipStage || !gender || !calendar || !focus || !privacy) return null;
+    const timeUnknown = $('#partnerTimeUnknown', form)?.checked === true;
+    const time = String($('#partnerTime', form)?.value || '');
+    const parts = time.split(':').map(Number);
+    if (!timeUnknown && (!/^\d{2}:\d{2}$/.test(time) || !Number.isInteger(parts[0]) || parts[0] < 0 || parts[0] > 23 || !Number.isInteger(parts[1]) || parts[1] < 0 || parts[1] > 59)) return null;
+    const manualSelf = $('#modeManual', form)?.checked === true;
+    const selfDigits = String($('#selfBirth', form)?.value || '').replace(/\D/g, '');
+    const selfTimeUnknown = $('#selfTimeUnknown', form)?.checked === true;
+    const selfTime = String($('#selfTime', form)?.value || '');
+    const selfParts = selfTime.split(':').map(Number);
+    if (manualSelf && (selfDigits.length !== 8 || !String($('#selfName', form)?.value || '').trim() || !String($('#selfGender', form)?.value || '') || (!selfTimeUnknown && !/^\d{2}:\d{2}$/.test(selfTime)))) return null;
+    return {
+      ...(manualSelf ? {
+        selfName: String($('#selfName', form)?.value || '').trim(),
+        selfBirth: {
+          year: Number(selfDigits.slice(0, 4)), month: Number(selfDigits.slice(4, 6)), day: Number(selfDigits.slice(6, 8)),
+          hour: selfTimeUnknown ? 12 : selfParts[0], minute: selfTimeUnknown ? 0 : selfParts[1],
+          gender: $('#selfGender', form)?.value === 'female' ? 'female' : 'male',
+          calendar: $('#selfCalendar', form)?.value === 'lunar' ? 'lunar' : 'solar',
+        },
+        selfBirthTimeKnown: !selfTimeUnknown,
+      } : {}),
+      partnerName,
+      partnerBirthText: digits,
+      partnerBirth: {
+        gender: gender === 'female' ? 'female' : 'male',
+        calendar: calendar === 'lunar' ? 'lunar' : 'solar',
+        ...(timeUnknown ? {} : { hour: Number.isFinite(parts[0]) ? parts[0] : 12, minute: Number.isFinite(parts[1]) ? parts[1] : 0 }),
+      },
+      partnerBirthTimeKnown: !timeUnknown,
+      relationshipStage,
+      focus,
+      relationshipTemperature,
+      concern,
+      preview: true,
+    };
+  }
+
+  function teaserUrl(reportId) {
+    const url = new URL('../04-step-4-report/index.html', location.href);
+    if (reportId) url.searchParams.set('reportId', reportId);
+    url.hash = 'step-4-report';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  function setupStep2Preview() {
+    const form = $('#coupleForm');
+    if (!form || form.dataset.livePreviewBound === '1') return;
+    form.dataset.livePreviewBound = '1';
+    form.addEventListener('submit', async (event) => {
+      const request = coupleRequestFromForm(form);
+      if (!request) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const button = $('button[type="submit"]', form);
+      const status = $('#formStatus', form);
+      const loading = $('#loadingPanel');
+      if (button) button.disabled = true;
+      if (status) status.textContent = '두 사람의 실제 입력과 사주로 무료 해석을 준비하고 있습니다.';
+      if (loading) {
+        loading.classList.add('is-visible');
+        loading.setAttribute('aria-hidden', 'false');
+        loading.setAttribute('data-umsh-step', '03-loading');
+      }
+      try {
+        const session = await initAuth();
+        if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+        const response = await api('/api/match/couple/analyze', { method: 'POST', body: JSON.stringify(request) });
+        const reportId = response.reportId || response.resultId || response.report?.reportId || '';
+        const cachedInput = {
+          subjects: {
+            ...(request.selfBirth ? { self: {
+              source: 'manual', display_name: request.selfName,
+              birth: { ...request.selfBirth, birthTimeKnown: request.selfBirthTimeKnown },
+            } } : {}),
+            partner: {
+            name: request.partnerName,
+            display_name: request.partnerName,
+            relationship_to_user: request.relationshipStage,
+            birth_date: request.partnerBirthText,
+            birth: { ...request.partnerBirth, birthTimeKnown: request.partnerBirthTimeKnown },
+          } },
+          context: {
+            focus: request.focus,
+            relationship_temperature: request.relationshipTemperature,
+            current_question: request.concern,
+          },
+        };
+        writeJson('sessionStorage', STORAGE.input, cachedInput);
+        location.assign(teaserUrl(reportId));
+      } catch (error) {
+        if (loading) {
+          loading.classList.remove('is-visible');
+          loading.setAttribute('aria-hidden', 'true');
+        }
+        if (button) button.disabled = false;
+        if (status) status.textContent = error?.message || '무료 해석을 준비하지 못했습니다. 잠시 후 다시 눌러 주세요.';
+      }
+    }, true);
+  }
+
   // ------------------------------------------------------- report retrieval
   function buildRequest(payload) {
-    const partner = payload?.partner || payload?.context?.partner || {};
-    const birth = String(partner.birth_date || partner.birthDate || '').replace(/[^0-9]/g, '');
+    const partner = payload?.subjects?.partner || payload?.partner || payload?.context?.partner || {};
+    const partnerBirth = partner.birth || {};
+    const birth = String(partner.birth_date || partner.birthDate || `${partnerBirth.year || ''}${pad2(partnerBirth.month || '')}${pad2(partnerBirth.day || '')}`).replace(/[^0-9]/g, '');
     if (birth.length !== 8) return null;
     const context = payload?.context || {};
+    const self = payload?.subjects?.self || {};
+    const selfBirth = self.birth || {};
     return {
+      ...(self.source === 'manual' ? {
+        selfName: self.display_name || '',
+        selfBirth,
+        selfBirthTimeKnown: selfBirth.birthTimeKnown !== false,
+      } : {}),
       partnerName: partner.name || '',
       partnerBirthText: birth,
       partnerBirth: {
-        gender: partner.gender === 'female' ? 'female' : 'male',
-        calendar: partner.calendar === 'lunar' ? 'lunar' : 'solar',
+        gender: (partner.gender || partnerBirth.gender) === 'female' ? 'female' : 'male',
+        calendar: (partner.calendar || partnerBirth.calendar) === 'lunar' ? 'lunar' : 'solar',
+        ...(partnerBirth.birthTimeKnown === false ? {} : { hour: partnerBirth.hour, minute: partnerBirth.minute || 0 }),
       },
-      partnerBirthTimeKnown: Boolean(partner.birth_time || partner.birthTime),
-      relationshipStage: context.relation || partner.relation || '',
-      conflictPattern: context.focus || '',
+      partnerBirthTimeKnown: partnerBirth.birthTimeKnown !== false && Number.isInteger(Number(partnerBirth.hour)),
+      relationshipStage: context.relation || partner.relationship_to_user || partner.relation || '',
+      conflictPattern: context.conflict_pattern || '',
+      focus: context.focus || '',
+      relationshipTemperature: context.relationship_temperature || '',
       concern: context.current_question || context.question || '',
     };
   }
 
   let reportPromise = null;
+
+  async function loadSavedReport() {
+    const reportId = new URLSearchParams(location.search).get('reportId');
+    if (!reportId) return null;
+    const session = await initAuth();
+    if (!session) return { reason: 'login' };
+    try {
+      const teaser = /\/04-step-4-report(?:\/|$)/.test(location.pathname);
+      const response = await api(`/api/report/${encodeURIComponent(reportId)}${teaser ? '?preview=1' : ''}`);
+      return window.UMSHReportAccess?.acceptAnalyze?.(response) || null;
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) return { reason: 'login' };
+      if (error.status === 404) return null;
+      if (error.code === 'FREE_PREVIEW_LIMIT') {
+        return { reason: 'payment', paymentUrl: error.paymentUrl, freeSearch: error.freeSearch };
+      }
+      throw error;
+    }
+  }
 
   /** Resolves to { report } or { reason } — 'input', 'login', 'payment', 'error'. */
   function loadReport() {
@@ -201,6 +344,9 @@
     reportPromise = (async () => {
       const cached = readJson('sessionStorage', STORAGE.report);
       if (cached?.sections?.length && !window.UMSHReportAccess) return { report: cached };
+
+      const savedReport = await loadSavedReport();
+      if (savedReport) return savedReport;
 
       const request = buildRequest(readJson('sessionStorage', STORAGE.input));
       if (!request) return { reason: 'input' };
@@ -262,8 +408,8 @@
 
   const GATE_COPY = {
     input: '이전 입력을 찾지 못했습니다. 두 사람 정보를 다시 입력하면 같은 궁합으로 이어집니다.',
-    login: '로그인하면 저장된 내 사주와 상대 정보로 풀이를 계산합니다. 지금 화면의 문장은 예시입니다.',
-    payment: '결제가 확인되면 14개 대분류 70개 항목이 모두 열립니다.',
+    login: '로그인하면 저장된 내 사주와 상대 정보로 두 사람의 무료 해석을 준비합니다.',
+    payment: '결제가 확인되면 두 사람의 전체 해석 목차가 열립니다.',
     error: '풀이를 계산하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
   };
 
@@ -286,28 +432,16 @@
     const outcome = await loadReport();
 
     if (outcome.preview) {
-      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
-      const description = $('#accessDescription');
-      if (description) description.textContent = outcome.preview.summary || GATE_COPY.payment;
-      const cta = $('#mainCta');
-      const entitledLink = $('#entitledLink');
-      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
-        if (cta) {
-          cta.textContent = '전체 목차 열기';
-          cta.addEventListener('click', (event) => {
-            event.preventDefault();
-            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
-          });
+      if (outcome.payload) {
+        const entitled = window.UMSHReportAccess?.isEntitled?.(outcome) === true;
+        const previewCta = window.UMSHReportAccess?.previewCta?.(outcome.payload);
+        window.UMSHReportAccess?.showPreview?.(outcome.payload);
+        const renderedCta = document.querySelector('#umsh-preview-host .umsh-preview-checkout');
+        if (renderedCta && previewCta) {
+          renderedCta.href = previewCta.href;
+          renderedCta.textContent = previewCta.label;
+          renderedCta.dataset.entitled = String(entitled);
         }
-        if (entitledLink) entitledLink.hidden = false;
-        return;
-      }
-      if (cta) {
-        cta.textContent = `전체 보기 (${SERVICE.price})`;
-        cta.addEventListener('click', (event) => {
-          event.preventDefault();
-          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
-        });
       }
       return;
     }
@@ -421,6 +555,7 @@
 
   function init() {
     mountChrome();
+    setupStep2Preview();
     enhanceSajuInput();
     enhanceTeaser();
     enhanceList();

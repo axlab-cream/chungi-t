@@ -689,3 +689,12 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 - [x] focused 31/31, full 1624/1624, typecheck, Vercel production build를 통과했다.
 - [x] main `f75872a3`, CI `36508514403`, Production `dpl_6NWMgVRLPy9pWFmvgzZTWsH5QEjM` Ready를 확인했다.
 - [x] 운영 URL에서 GNB y=0/h=85, 티저 y=85와 로고·뒤로·메뉴 마운트를 확인했다.
+
+
+## 2026-09-29 — 커플궁합 무료 티저 vertical slice
+
+1. 커플 입력·사주 계산·저장 리포트·TOC·결제 권한 계약을 조사한다. **완료**
+2. 실제 1·2번 해석, 서로 다른 이미지, 입력/네 기둥 표, 실제 다섯 기운 차트, 닫힌 03~N 잠금 목차를 연결한다. **완료**
+3. STEP2 제출이 03 준비 표시 뒤 04로 이동하고, 직접 reportId 접근도 04는 preview·05/06은 권한 응답을 읽도록 고친다. **완료**
+4. 새 사주 입력은 계정 기본 프로필을 덮지 않고 별도 report identity로 생성한다. **완료**
+5. 전체 회귀·타입·서비스 계약·빌드·모바일 운영 검증 후 main 배포 및 KMS 기록을 완료한다. **진행 중**

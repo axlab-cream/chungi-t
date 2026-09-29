@@ -1119,3 +1119,20 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 | `npm run vercel-build` | PASS |
 | GitHub Actions `36508514403` | PASS |
 | 운영 DOM | GNB y=0, 티저 y=85, 공통 상단 버튼 마운트 PASS |
+
+
+## 2026-09-29 — 커플궁합 무료 티저
+
+| 검증 | 결과 |
+| --- | --- |
+| `npm test` | PASS — 1,630/1,630 |
+| `npm run typecheck` | PASS |
+| `npm run check:couple` | PASS — 20 contracts, 6 pages, 14 groups |
+| `npm run check:service-contracts` | PASS — 20 services |
+| `npm run qa:all-services` | PASS — 20 services |
+| `npm run vercel-build` | PASS |
+| `git diff --check` | PASS |
+
+- 커플궁합 실제 1·2번 개인화, 이미지 2개, 두 사람 입력/네 기둥 표, 실제 다섯 기운 막대 10개, 닫힌 실제 03~N 잠금 목차, 단일 CTA를 회귀 테스트로 고정했다.
+- 동일 입력 재열람 미차감과 서비스별 5회 분리, 미결제 결제 URL·권한 회원 05 목차 URL, 04/05/06 직접 reportId 응답 분리를 검증했다.
+- 새 사주는 계정 기본 프로필을 덮지 않고 서로 다른 리포트 식별자를 만드는 계약을 검증했다.

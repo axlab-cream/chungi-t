@@ -34,3 +34,11 @@ test('이직운 무료 결과도 서비스별 5회이며 같은 리포트 재열
   assert.deepEqual(await claimServicePreview('work_move', owner, 'move-lineage-2'), { used: 2, limit: 5, allowed: true })
   assert.deepEqual(await servicePreviewStatus('work_move', owner), { used: 2, limit: 5, allowed: true })
 })
+
+test('커플궁합 무료 결과는 다른 서비스와 분리된 5회이고 같은 두 사람 리포트는 재차감하지 않는다', async () => {
+  const owner = 'match-couple-preview-quota-owner'
+  assert.deepEqual(await claimServicePreview('match_couple', owner, 'couple-lineage-1'), { used: 1, limit: 5, allowed: true })
+  assert.deepEqual(await claimServicePreview('match_couple', owner, 'couple-lineage-1'), { used: 1, limit: 5, allowed: true })
+  assert.deepEqual(await claimServicePreview('match_couple', owner, 'couple-lineage-2'), { used: 2, limit: 5, allowed: true })
+  assert.deepEqual(await servicePreviewStatus('match_couple', owner), { used: 2, limit: 5, allowed: true })
+})

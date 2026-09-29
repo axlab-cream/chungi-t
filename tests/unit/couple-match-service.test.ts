@@ -4,6 +4,8 @@ import { analyzeSaju } from '../../src/saju/analyzer.js'
 import {
   buildCoupleMatchContext,
   buildCoupleMatchReport,
+  coupleMatchTeaserPreview,
+  coupleMatchTeaserSection,
   createCoupleMatchReportId,
   COUPLE_MATCH_TOC,
   parseCoupleMatchRequest,
@@ -34,7 +36,7 @@ test('couple match service builds a dedicated compatibility report', () => {
   })
   const userAnalysis = analyzeSaju(userBirth)
   const partnerAnalysis = analyzeSaju(input.partnerBirth)
-  const context = buildCoupleMatchContext('홍길동', input, partnerAnalysis)
+  const context = buildCoupleMatchContext('홍길동', input, partnerAnalysis, userAnalysis)
   const reportId = createCoupleMatchReportId('user-1', userBirth, input)
   const report = buildCoupleMatchReport(userAnalysis, partnerAnalysis, userBirth, context, input, reportId)
 
@@ -61,6 +63,8 @@ test('couple match service builds a dedicated compatibility report', () => {
   ])
   assert.match(report.sections[0].interpretation, /오행|일지|궁합|관계/)
   assert.equal(context.partner?.name, '김하나')
+  assert.equal(context.partner?.elementCount?.wood, partnerAnalysis.elementCount.wood)
+  assert.ok(context.partner?.dayBranchRelation)
   assert.match(report.sections[0].interpretation, /연락 속도와 빈도/)
 
   // 05 목차 and 06 상세 route on the design's own section ids.
@@ -78,9 +82,58 @@ test('couple match service builds a dedicated compatibility report', () => {
   })
 })
 
+test('couple free teaser grounds two distinct readings in pair input and computed saju', () => {
+  const input = parseCoupleMatchRequest({
+    partnerName: '김하나', partnerBirthText: '19940912', partnerBirth: { gender: 'female', calendar: 'solar' },
+    relationshipStage: 'dating', focus: 'communication', relationshipTemperature: 'unstable',
+    concern: '연락이 늦으면 서로 마음이 멀어진 것처럼 느껴져요.',
+  })
+  const userAnalysis = analyzeSaju(userBirth)
+  const partnerAnalysis = analyzeSaju(input.partnerBirth)
+  const context = buildCoupleMatchContext('홍길동', input, partnerAnalysis, userAnalysis)
+  const report = buildCoupleMatchReport(userAnalysis, partnerAnalysis, userBirth, context, input, 'couple-preview-1')
+  const preview = coupleMatchTeaserPreview(context, report.sections.length)
+  const first = coupleMatchTeaserSection(report.sections[0], 0, userAnalysis, context)
+  const second = coupleMatchTeaserSection(report.sections[1], 1, userAnalysis, context)
+
+  assert.match(preview.headline, /홍길동.*김하나/)
+  assert.match(preview.summary, /연락과 말투 리듬/)
+  assert.match(first.interpretation, /연락이 늦으면/)
+  assert.match(first.storytelling?.tableMd || '', /연애 중|연락과 말투 리듬/)
+  assert.match(second.storytelling?.tableMd || '', /사주의 네 기둥/)
+  assert.equal(second.storytelling?.chartPoints?.length, 10)
+  assert.notEqual(first.imageSrc, second.imageSrc)
+  assert.doesNotMatch(`${first.interpretation}\n${second.interpretation}`, /[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/)
+})
+
 test('couple match request validates partner birth date', () => {
   assert.throws(() => parseCoupleMatchRequest({ partnerBirthText: '' }), /생년월일/)
   assert.throws(() => parseCoupleMatchRequest({ partnerBirthText: '1994091A' }), /8자리/)
   assert.throws(() => parseCoupleMatchRequest({ partnerBirthText: '19940230', partnerBirth: { gender: 'female', calendar: 'solar' } }), /날짜/)
   assert.throws(() => parseCoupleMatchRequest({ partnerBirthText: '18991231', partnerBirth: { gender: 'female', calendar: 'solar' } }), /연도/)
+})
+
+test('couple match accepts a new self chart and keeps each relationship question as a separate report', () => {
+  const common = {
+    partnerBirthText: '19940912', partnerBirth: { gender: 'female', calendar: 'solar' },
+    relationshipStage: 'dating', focus: 'communication', relationshipTemperature: 'warm',
+  }
+  const withNewSelf = parseCoupleMatchRequest({
+    ...common,
+    selfName: '새 프로필',
+    selfBirth: { year: 1988, month: 3, day: 2, hour: 7, minute: 30, gender: 'male', calendar: 'solar', birthTimeKnown: true },
+    selfBirthTimeKnown: true,
+  })
+  assert.equal(withNewSelf.selfBirth?.year, 1988)
+  assert.equal(withNewSelf.selfBirthTimeKnown, true)
+
+  const savedInput = parseCoupleMatchRequest(common)
+  assert.notEqual(
+    createCoupleMatchReportId('user-1', userBirth, savedInput),
+    createCoupleMatchReportId('user-1', withNewSelf.selfBirth!, withNewSelf),
+  )
+  assert.notEqual(
+    createCoupleMatchReportId('user-1', userBirth, savedInput),
+    createCoupleMatchReportId('user-1', userBirth, { ...savedInput, focus: 'conflict' }),
+  )
 })

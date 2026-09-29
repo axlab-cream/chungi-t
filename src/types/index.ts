@@ -262,7 +262,22 @@ export interface SajuReportContext {
     dayMasterElement?: string
     dominantElement?: string
     weakElement?: string
+    /** Non-identifying computed counts used to compare two charts without storing partner birth data. */
+    elementCount?: ElementCount
+    pillarElements?: {
+      year: [Element, Element]
+      month: [Element, Element]
+      day: [Element, Element]
+      hour: [Element, Element]
+    }
+    dayBranchRelation?: string
     tenGods?: TenGod[]
+  }
+  couple?: {
+    focus?: string
+    relationshipTemperature?: string
+    conflictPattern?: string
+    concern?: string
   }
 }
 

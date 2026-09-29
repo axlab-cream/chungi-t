@@ -13,6 +13,9 @@ const saveReportHtml = readFileSync(join(root, '사주', 'money', 'save', '04-st
 const moveReportHtml = readFileSync(join(root, '사주', 'work', 'move', '04-step-4-report', 'index.html'), 'utf8')
 const moveInputHtml = readFileSync(join(root, '사주', 'work', 'move', '02-step-2-saju-input', 'index.html'), 'utf8')
 const moveServiceSource = readFileSync(join(root, '사주', 'js', 'work-move-service.js'), 'utf8')
+const coupleReportHtml = readFileSync(join(root, '사주', 'match', 'couple', '04-step-4-report', 'index.html'), 'utf8')
+const coupleInputHtml = readFileSync(join(root, '사주', 'match', 'couple', '02-step-2-saju-input', 'index.html'), 'utf8')
+const coupleServiceSource = readFileSync(join(root, '사주', 'js', 'couple-service.js'), 'utf8')
 const jsRoot = join(root, '사주', 'js')
 
 const TEASER_SERVICES = [
@@ -169,8 +172,8 @@ test('저축운 티저는 저장 해석 1·2와 입력 표·계산 차트 뒤에
   assert.match(accessSource, /function showPreviewLimit\(payload\)/)
   assert.match(accessSource, /무료 결과 5회를 모두 확인했습니다/)
   assert.match(inplaceCss, /\.money-teaser-reading \.story-image \{ aspect-ratio: 3 \/ 2; \}/)
-  assert.match(inplaceCss, /\.money-teaser-reading \.story-table,[\s\S]*?\.move-teaser-reading \.story-table \{ width: 100%; table-layout: fixed; \}/)
-  assert.match(inplaceCss, /\.money-teaser-reading \.story-table td,[\s\S]*?\.move-teaser-reading \.story-table td \{[\s\S]*?white-space: normal;[\s\S]*?overflow-wrap: anywhere;/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-table,[\s\S]*?\.move-teaser-reading \.story-table,[\s\S]*?\.couple-teaser-reading \.story-table \{ width: 100%; table-layout: fixed; \}/)
+  assert.match(inplaceCss, /\.money-teaser-reading \.story-table td,[\s\S]*?\.move-teaser-reading \.story-table td,[\s\S]*?\.couple-teaser-reading \.story-table td \{[\s\S]*?white-space: normal;[\s\S]*?overflow-wrap: anywhere;/)
   assert.match(saveReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
   assert.doesNotMatch(saveReportHtml, /class="price-pill">9,900원/)
   assert.doesNotMatch(saveReportHtml, />로그인하고 전체 보기 \(9,900원\)</)
@@ -212,6 +215,52 @@ test('이직운 입력은 03 공통 로딩을 보인 뒤 04 티저로 이동한�
   assert.match(moveServiceSource, /location\.assign\(teaserUrl\(payload\.reportId\)\)/)
   assert.match(moveInputHtml, /\.work-move-analysis-loading/)
   assert.match(moveInputHtml, /@media \(prefers-reduced-motion: reduce\)/)
+})
+
+test('커플궁합 티저는 실제 두 사람 입력·사주 1·2번과 닫힌 03~N 목차를 렌더한다', () => {
+  const api = loadAccess('/match/couple/04-step-4-report/index.html')
+  const teaserSections = [
+    { id: 'relationship_overview__chemistry_one_line', imageSrc: '/match/couple/assets/couple/05-relationship-overview.webp', interpretation: '[주요 포인트] 두 사람의 실제 첫 본문', storytelling: { tableMd: '| 관계 | 입력 |\n| --- | --- |\n| 상태 | 연애 중 |' } },
+    { id: 'relationship_overview__green_light_points', imageSrc: '/match/couple/assets/couple/04-signal-card.webp', interpretation: '[주요 포인트] 두 사람의 실제 둘째 본문', storytelling: { chartPoints: [{ label: '나 · 나무', value: 2, note: '서버 계산값' }] } },
+  ]
+  const accepted = api.acceptAnalyze({
+    previewOnly: true,
+    serviceKey: 'match_couple',
+    preview: { headline: '두 사람의 실제 관계를 읽었습니다.' },
+    teaserSections,
+    toc: [...teaserSections, ...Array.from({ length: 26 }, (_, index) => ({ id: `locked-${index + 3}`, classification: `실제 목차 ${index + 3}`, category: '커플궁합' }))],
+    freeSearch: { used: 1, limit: 5, allowed: true },
+  })
+
+  assert.equal(accepted.payload.teaserSections.length, 2)
+  assert.match(serverSource, /coupleMatchTeaserPreview/)
+  assert.match(serverSource, /coupleMatchTeaserSection/)
+  assert.match(accessSource, /function renderMatchCoupleTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'match_couple'\)/)
+  assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /renderMoneyFlow\(story\.flowSteps/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: false \}\)/)
+  assert.match(accessSource, /class="job-teaser-status-row"/)
+  assert.match(coupleReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
+  assert.ok(coupleReportHtml.indexOf('data-umsh-service-top') < coupleReportHtml.indexOf('id="umsh-preview-host"'))
+  assert.match(inplaceCss, /\.couple-teaser-reading \.story-table/)
+  assert.match(inplaceCss, /\.couple-teaser-reading \.story-image/)
+  assert.doesNotMatch(accessSource, /무료 해석의 이야기 순서/)
+})
+
+test('커플궁합 입력은 서버 리포트를 만든 뒤 03 로딩에서 reportId 포함 04 티저로 이동한다', () => {
+  assert.match(coupleServiceSource, /preview: true/)
+  assert.match(coupleServiceSource, /data-umsh-step', '03-loading'/)
+  assert.match(coupleServiceSource, /location\.assign\(teaserUrl\(reportId\)\)/)
+  assert.match(coupleServiceSource, /relationshipStage: context\.relation \|\| partner\.relationship_to_user/)
+  assert.match(coupleInputHtml, /data-umsh-step="03-loading"/)
+})
+
+test('커플궁합 reportId 직접 URL은 04에서 미리보기, 05·06에서 권한 있는 전체 리포트를 읽는다', () => {
+  assert.match(coupleServiceSource, /function loadSavedReport\(\)/)
+  assert.match(coupleServiceSource, /teaser \? '\?preview=1' : ''/)
+  assert.match(coupleServiceSource, /const savedReport = await loadSavedReport\(\)/)
 })
 
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {
