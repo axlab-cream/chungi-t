@@ -1154,3 +1154,15 @@ Tone V2 (2026-09-12): fresh `pass_angle` provider E2E rerun executed and busines
 
 - 로컬 운영형 화면에서 첫 장면, 중간 리포트 범위, 마지막 무료 CTA를 시각 검수했다. 가로 넘침은 없고 공통 상·하단 내비게이션이 유지된다.
 - 후속 검수: `내 무료 연애 해석 열기` 1개, `무료 해석 2개 먼저 확인` 0개, 고정 CTA 0개, 390px 가로 넘침 0을 회귀 테스트와 브라우저로 확인했다.
+
+## 2026-09-29 — 올해 연애운 통합 이미지·개인화 티저 검증표
+
+| ID | 검증 | 상태 |
+| --- | --- | --- |
+| LOVE-YEAR-TEASER-01 | 메인·STEP1·STEP2·해석 1·2에 서로 다른 캠페인 실사 이미지 연결 | PASS (자산/참조 계약) |
+| LOVE-YEAR-TEASER-02 | 저장 풀이 1·2에 관계 상태·직접 고민·네 기둥·다섯 기운 반영 | PASS (서비스 단위 테스트) |
+| LOVE-YEAR-TEASER-03 | STEP2 → 03 준비 표시 → 저장 reportId 포함 STEP4 이동 | PASS (프런트 계약) |
+| LOVE-YEAR-TEASER-04 | 실제 03~N 목차 기본 닫힘·잠김, 단일 CTA, 입력 재확인·5회 상태 표시 | PASS (렌더 계약) |
+| LOVE-YEAR-TEASER-05 | 미결제 결제 URL, 권한 회원 05 목차, 새 사주 기본 프로필 비덮어쓰기 | PASS (권한/서비스 회귀) |
+| LOVE-YEAR-TEASER-06 | 원시 마크다운·내부 QA 문구·가짜 점수·모바일 표 넘침 방지 | PASS (렌더/CSS 계약) |
+| LOVE-YEAR-TEASER-07 | TypeScript·올해 연애운 계약·20개 서비스 계약·전체 서비스 QA·프로덕션 빌드 | PASS |

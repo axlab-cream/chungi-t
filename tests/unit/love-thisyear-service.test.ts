@@ -6,6 +6,8 @@ import {
   buildLoveThisYearReport,
   createLoveThisYearReportId,
   LOVE_THISYEAR_TOC,
+  loveThisYearTeaserPreview,
+  loveThisYearTeaserSection,
   parseLoveThisYearRequest,
 } from '../../src/love/thisyear-service.js'
 import type { BirthInput } from '../../src/types/index.js'
@@ -113,6 +115,46 @@ test('올해 연애운 request validates its required answers', () => {
   })
   assert.equal(auto.partnerStarBasis, 'gender_auto')
   assert.equal(auto.genderBasis, 'male')
+})
+
+test('올해 연애운 새 사주는 저장 프로필을 덮지 않는 별도 리포트 입력으로 검증한다', () => {
+  const input = parseLoveThisYearRequest({
+    selfName: '새봄',
+    selfBirth: { year: 1998, month: 7, day: 8, hour: 14, minute: 20, gender: 'female', calendar: 'solar' },
+    selfBirthTimeKnown: true,
+    relationship_status: 'solo',
+    partner_star_basis: 'gender_auto',
+    gender: 'female',
+    concern: '올해 소개로 만난 사람이 오래 이어질까요?',
+  })
+  assert.equal(input.selfName, '새봄')
+  assert.deepEqual(input.selfBirth, { year: 1998, month: 7, day: 8, hour: 14, minute: 20, gender: 'female', calendar: 'solar', isLeapMonth: false })
+  assert.equal(input.concern, '올해 소개로 만난 사람이 오래 이어질까요?')
+  assert.throws(() => parseLoveThisYearRequest({
+    selfBirth: { year: 1998, month: 2, day: 31, hour: 14, minute: 20, gender: 'female', calendar: 'solar' },
+    relationship_status: 'solo', partner_star_basis: 'gender_auto', gender: 'female',
+  }), /생년월일/)
+})
+
+test('올해 연애운 무료 1·2번은 입력과 네 기둥 계산값을 서로 다른 시각화에 연결한다', () => {
+  const input = parseLoveThisYearRequest({
+    relationship_status: 'some', partner_star_basis: 'gender_auto', gender: 'female', display_name: '민지',
+    concern: '연락은 이어지는데 다음 약속이 잡히지 않아요.',
+  })
+  const analysis = analyzeSaju(birth)
+  const context = buildLoveThisYearContext('민지', input)
+  const report = buildLoveThisYearReport(analysis, birth, context, input, 'teaser-grounding')
+  const first = loveThisYearTeaserSection(report.sections[0], 0, analysis, context)
+  const second = loveThisYearTeaserSection(report.sections[1], 1, analysis, context)
+  const preview = loveThisYearTeaserPreview(context, report.sections.length)
+  assert.match(first.interpretation, /민지님/)
+  assert.match(first.interpretation, /다음 약속/)
+  assert.match(first.storytelling?.tableMd || '', /연락은 이어지는데/)
+  assert.equal(first.storytelling?.flowSteps?.length, 3)
+  assert.equal(second.storytelling?.chartPoints?.length, 5)
+  assert.match(second.storytelling?.tableMd || '', /날 기둥/)
+  assert.notEqual(first.imageSrc, second.imageSrc)
+  assert.match(preview.paidValue, /24개 항목/)
 })
 
 test('올해 연애운 templates emit bright 해요체 without 자네/일세', () => {

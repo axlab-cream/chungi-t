@@ -537,6 +537,7 @@
   function sectionImageSource(section, serviceKey) {
     var existing = String(section && section.imageSrc || '').trim();
     var config = longformConfigFor(serviceKey);
+    if (/^year-love-teaser-/.test(String(section && section.imageKey || '')) && existing) return existing;
     if (usesSummaryOnlyImages(serviceKey, config)) return '';
     var order = Number(section && section.order) || 1;
     var configured = configuredSectionImage(config, order);
@@ -1445,6 +1446,12 @@
       renderProgress(payload.report);
       return renderedCouple;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'love_this_year'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      var renderedThisYear = fillSlot('preview', renderLoveThisYearTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedThisYear;
+    }
     var preview = payload.preview || {};
     var source = preview.signals && preview.signals.length ? preview.signals : (preview.insights || []);
     var insights = source.filter(function (line) {
@@ -1770,6 +1777,57 @@
       + lockedToc
       + '<span>전체 해석에서 이어집니다</span><h2>말투·갈등·애정 표현·생활 습관과 오늘 건넬 한 문장까지 이어서 봅니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 두 사람의 소통과 생활 리듬, 갈등 뒤 회복 방식까지 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
+  /** 올해 연애운은 저장 사주·현재 관계·직접 적은 고민을 공개 1·2번에 연결한다. */
+  function renderLoveThisYearTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '연애의 신호를 실제 장면으로 확인하는 순서입니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '직접 입력한 관계 정보와 저장 사주입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '저장된 사주에서 계산한 다섯 기운입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '올해의 첫 신호는 호감의 크기가 아니라, 서로 가능한 날짜를 말하고 다음 만남을 함께 만드는 행동에서 확인됩니다.'
+        : '오래 갈 사람은 설렘만 크게 만드는 사람이 아니라, 연락과 만남의 속도를 함께 조정하고 불편함 뒤에도 대화를 이어 가는 사람입니다.';
+      return '<article class="job-teaser-reading love-this-year-teaser-reading" aria-labelledby="love-this-year-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'love_this_year')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="love-this-year-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(source, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening love-this-year-teaser-opening">'
+      + '<span>올해 연애운 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '올해 연애는 다음 약속을 함께 만드는 사람에게서 시작됩니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta love-this-year-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>들어오는 인연·가까워지는 달·반복되는 연애 습관과 지금 건넬 한 문장까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 올해 인연이 들어오는 장면과 관계가 깊어지는 조건을 현재 상황에 맞춰 이어서 확인합니다.')) + '</p>'
       + '<div class="job-teaser-status-row">'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
@@ -2129,8 +2187,9 @@
     var configured = configuredSectionImage(longformConfigFor(serviceKey), order);
     var src = sectionImageSource(section, serviceKey);
     if (!src) return '';
+    var fixedThisYearTeaser = /^year-love-teaser-/.test(String(section && section.imageKey || ''));
     return '<figure class="story-image">' +
-      '<img' + ((configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || canonical(serviceKey) === 'work_move' || canonical(serviceKey) === 'quit_fortune' || canonical(serviceKey) === 'match_couple' || canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility' || original === '/assets/hero-mystic.webp' || !original) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + ((canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility') ? escapeHtml((labelText(section.classification) || (canonical(serviceKey) === 'cat_compatibility' ? '고양이 궁합' : '결혼궁합')) + ' 주제를 표현한 연출 사진') : escapeHtml(section.imageAlt || '')) + '" loading="lazy" decoding="async" />' +
+      '<img' + ((!fixedThisYearTeaser && (configured || canonical(serviceKey) === 'love_this_year' || canonical(serviceKey) === 'job_choice' || canonical(serviceKey) === 'work_move' || canonical(serviceKey) === 'quit_fortune' || canonical(serviceKey) === 'match_couple' || canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility' || original === '/assets/hero-mystic.webp' || !original)) ? ' data-umsh-template-image="' + escapeHtml(String(order)) + '"' : '') + ' src="' + escapeHtml(src) + '" alt="' + ((canonical(serviceKey) === 'marry_match' || canonical(serviceKey) === 'cat_compatibility') ? escapeHtml((labelText(section.classification) || (canonical(serviceKey) === 'cat_compatibility' ? '고양이 궁합' : '결혼궁합')) + ' 주제를 표현한 연출 사진') : escapeHtml(section.imageAlt || '')) + '" loading="lazy" decoding="async" />' +
       '</figure>';
   }
 

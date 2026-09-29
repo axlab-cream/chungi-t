@@ -1,5 +1,7 @@
 # Plan
 
+- 2026-09-29 `task-love-this-year-teaser-production`: 운영 저장값 기반 1·2번 해석, 닫힌 실제 잠금 목차, 조회 5회, 결제/권한 분기와 신규 캠페인 이미지를 한 수직 슬라이스로 구현·검증·배포한다. 상태: IN_PROGRESS.
+
 - 2026-09-13 `task-tone-v2-p04-pass-angle-visual-render-evidence` DONE: verified the immutable 52-section result through the real reader on desktop, exact 390px mobile and complete print; fixed target sizing and print-intro contrast; attached sanitized evidence and advanced aggregate visual coverage to 5/20. No next Task is active before a new user gate.
 - 2026-09-13 `task-tone-v2-p04-pass-angle-2-1-full-outline-generation` DONE: fresh isolated provider generation pinned to corpus 2.1.0 completed 52/52 and replayed 52/52; direct review approved with comments, sanitized evidence attached, aggregate full-outline review 5/20 and release remains NO_GO. Focused 92/92, full 930/930, typecheck/build/determinism PASS.
 - 2026-09-13 `task-tone-v2-p04-quit-fortune-visual-render-evidence` DONE: real reader 10 categories/48 sections, desktop and exact 390px mobile zero overflow, 48-page complete print, sanitized release evidence and aggregate visual coverage 4/20. Focused 18/18, related 72/72, full 916/916, typecheck/build/determinism/review PASS. No next Task is active until a new user gate.
@@ -705,3 +707,11 @@ Completed: RED 8/19 → GREEN 19/19; desktop and exact 390px visual QA, focused/
 2. 사용자 고민 중심의 여섯 장면 서사와 무료 2개 해석 CTA로 교체한다.
 3. 가격 선노출을 제거하고 장면 높이·긴 문장·모바일 CTA를 회귀 테스트로 고정한다.
 4. 전체 테스트·타입·빌드·코드 리뷰 후 main과 운영에 반영하고 실제 화면을 확인한다.
+
+## 2026-09-29 — 올해 연애운 통합 이미지·개인화 무료 티저
+
+1. 메인 카드·STEP1·STEP2·무료 해석 1·2에 같은 겨울 카페 무드의 서로 다른 실사 이미지를 연결한다. **완료**
+2. STEP2가 저장 사주 또는 새 사주와 직접 고민을 서버에 보내고 03 준비 표시 뒤 reportId 포함 STEP4로 이동하도록 연결한다. **완료**
+3. 저장 풀이 1·2를 네 기둥·다섯 기운·관계 상태·직접 고민에 연결하고 실제 03~N 목차는 기본 닫힘·잠김으로 렌더한다. **완료**
+4. 5회 조회, 미결제 결제 이동, 권한 회원 05 목차 이동, 새 사주 비덮어쓰기 계약을 회귀 테스트로 고정한다. **완료**
+5. 전체 회귀·타입·서비스 계약·빌드·수동 리뷰 후 main 배포와 운영 모바일 검증, CreamWIKI 기록을 완료한다. **진행 중**

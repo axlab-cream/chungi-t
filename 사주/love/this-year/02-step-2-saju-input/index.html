@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ko"><head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
     <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
-    <script src="/js/umsh-report-access.js?v=20260929-couple-teaser-v2"></script>
+    <script src="/js/umsh-report-access.js?v=20260929-love-this-year-v1"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>나, 올해 연애 가능? 입력 | 운명상회</title>
@@ -59,7 +59,8 @@
 
       button,
       input,
-      select {
+      select,
+      textarea {
         font: inherit;
       }
 
@@ -353,7 +354,8 @@
       }
 
       input,
-      select {
+      select,
+      textarea {
         width: 100%;
         min-height: 48px;
         padding: 12px;
@@ -364,8 +366,15 @@
         outline: 0;
       }
 
+      textarea {
+        min-height: 104px;
+        resize: vertical;
+        line-height: 1.55;
+      }
+
       input:focus,
-      select:focus {
+      select:focus,
+      textarea:focus {
         border-color: rgba(155, 220, 255, 0.82);
         box-shadow: 0 0 0 3px rgba(155, 220, 255, 0.14);
       }
@@ -499,6 +508,33 @@
         backdrop-filter: blur(18px);
       }
 
+      .thisyear-analysis-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(5, 6, 13, 0.92);
+        backdrop-filter: blur(14px);
+      }
+
+      .thisyear-analysis-loading__card {
+        width: min(100%, 380px);
+        padding: 24px;
+        border: 1px solid rgba(255, 173, 202, 0.45);
+        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(48, 25, 39, 0.96), rgba(14, 17, 32, 0.98));
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+      }
+
+      .thisyear-analysis-loading__card span { color: var(--gold); font-size: 12px; font-weight: 900; }
+      .thisyear-analysis-loading__card h2 { margin: 10px 0 8px; font-size: 22px; line-height: 1.35; }
+      .thisyear-analysis-loading__card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+      .thisyear-analysis-loading__bar { height: 7px; margin-top: 18px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.1); }
+      .thisyear-analysis-loading__bar i { display: block; width: 45%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--pink), var(--blue)); animation: thisyear-loading 1.15s ease-in-out infinite alternate; }
+      @keyframes thisyear-loading { to { transform: translateX(120%); } }
+
       .back-button,
       .submit-button {
         min-height: 54px;
@@ -584,7 +620,7 @@
       </header>
 
       <section class="hero" id="heroVisual" aria-labelledby="pageTitle">
-        <video class="hero-video" poster="../assets/thisyear/videos/04-frontface-astrology-poster.webp" src="../assets/thisyear/videos/04-frontface-astrology.mp4" data-lazy-play="" data-image-role="form-companion" muted="" loop="" playsinline="" preload="none" aria-label="휴대폰과 달력 빛을 보며 올해 연애 흐름을 입력하는 여성 캐릭터"></video>
+        <img class="hero-video" src="../assets/thisyear/campaign-2026/year-love-input-hero-v1.webp" data-image-role="form-companion" alt="카페에서 달력에 올해의 만남 계획을 적는 여성" fetchpriority="high" decoding="async">
         <div class="hero-copy">
           <span class="eyebrow">올해 연애 흐름</span>
           <h1 id="pageTitle">열리는 달과 조심할 때를 봅니다</h1>
@@ -724,6 +760,11 @@
                 </label>
               </div>
             </fieldset>
+            <div class="field" data-field="concern">
+              <label for="concern">올해 연애에서 가장 궁금한 한 가지</label>
+              <textarea id="concern" name="concern" maxlength="160" placeholder="예: 소개는 들어오는데 왜 관계가 오래 이어지지 않을까요?"></textarea>
+              <small>직접 적은 고민을 무료 해석 1·2의 제목과 본문에 연결합니다.</small>
+            </div>
           </section>
 
           <div class="notice" id="privacyNotice">
@@ -858,6 +899,7 @@
           gender: form.gender.value,
           partner_star_basis: PARTNER_STAR_BASIS,
           relationship_status: getRadioValue("relationship_status"),
+          concern: form.concern.value.trim(),
           annual_ten_god: TEN_GOD_AUTO,
           decade_ten_god: TEN_GOD_AUTO,
           monthly_ten_god: TEN_GOD_AUTO,
@@ -880,6 +922,7 @@
           setRadio("calendar_type", draft.calendar_type);
           form.gender.value = draft.gender || "";
           setRadio("relationship_status", draft.relationship_status);
+          form.concern.value = draft.concern || "";
         } catch {
           sessionStorage.removeItem(VOLATILE_DRAFT_KEY);
         }
@@ -891,7 +934,7 @@
         if (radio) radio.checked = true;
       }
 
-      function handleSubmit(event) {
+      async function handleSubmit(event) {
         event.preventDefault();
         clearFieldErrors();
 
@@ -924,14 +967,17 @@
         );
 
         submitButton.disabled = true;
-        submitButton.textContent = "입력값 정리 중";
-        const next = new URL(SERVICE_STATE.next_route, window.location.href);
-        next.searchParams.set("service_key", SERVICE_STATE.service_key);
-        next.searchParams.set("service_slug", SERVICE_STATE.service_slug);
-        next.searchParams.set("schema", SERVICE_STATE.input_schema_version);
-        window.setTimeout(() => {
-          window.location.href = next.href;
-        }, 360);
+        submitButton.textContent = "무료 해석 준비 중";
+        try {
+          if (!window.UMSHThisYearService?.createPreviewFromDraft) throw new Error("무료 해석 연결을 불러오지 못했습니다. 잠시 후 다시 눌러 주세요.");
+          await window.UMSHThisYearService.createPreviewFromDraft(draft);
+        } catch (error) {
+          document.querySelector("[data-thisyear-loading]")?.remove();
+          submitButton.disabled = false;
+          submitButton.textContent = "올해 연애 흐름 보기";
+          errorBox.innerHTML = `<strong>무료 해석을 준비하지 못했습니다.</strong><ul><li>${escapeHtml(error?.message || "잠시 후 다시 눌러 주세요.")}</li></ul>`;
+          errorBox.classList.add("is-visible");
+        }
       }
 
       function escapeHtml(value) {

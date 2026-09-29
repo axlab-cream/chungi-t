@@ -16,6 +16,12 @@ const moveServiceSource = readFileSync(join(root, '사주', 'js', 'work-move-ser
 const coupleReportHtml = readFileSync(join(root, '사주', 'match', 'couple', '04-step-4-report', 'index.html'), 'utf8')
 const coupleInputHtml = readFileSync(join(root, '사주', 'match', 'couple', '02-step-2-saju-input', 'index.html'), 'utf8')
 const coupleServiceSource = readFileSync(join(root, '사주', 'js', 'couple-service.js'), 'utf8')
+const thisYearReportHtml = readFileSync(join(root, '사주', 'love', 'this-year', '04-step-4-report', 'index.html'), 'utf8')
+const thisYearStoryHtml = readFileSync(join(root, '사주', 'love', 'this-year', '01-step-1-story', 'index.html'), 'utf8')
+const thisYearInputHtml = readFileSync(join(root, '사주', 'love', 'this-year', '02-step-2-saju-input', 'index.html'), 'utf8')
+const thisYearClientSource = readFileSync(join(root, '사주', 'js', 'thisyear-service.js'), 'utf8')
+const serviceDirectorySource = readFileSync(join(root, 'src', 'server', 'service-directory.ts'), 'utf8')
+const thisYearServiceSource = readFileSync(join(root, 'src', 'love', 'thisyear-service.ts'), 'utf8')
 const jsRoot = join(root, '사주', 'js')
 
 const TEASER_SERVICES = [
@@ -266,6 +272,48 @@ test('커플궁합 reportId 직접 URL은 04에서 미리보기, 05·06에서 �
 test('커플궁합 공통 GNB는 런타임 마운트 뒤에도 티저 슬롯보다 앞에 남는다', () => {
   assert.match(coupleServiceSource, /querySelector\(':scope > \[data-umsh-service-top\]'\)/)
   assert.match(coupleServiceSource, /host\.insertBefore\(top, host\.firstChild\)/)
+})
+
+test('올해 연애운 티저는 실제 저장 풀이 1·2와 네 기둥·다섯 기운 시각화를 표시한다', () => {
+  const teaserSections = [
+    { id: 'overall-love-mode-on', order: 1, imageSrc: '/love/this-year/assets/thisyear/campaign-2026/year-love-teaser-01-v1.webp', interpretation: '[주요 포인트] 실제 첫 본문', storytelling: { tableMd: '| 확인 | 내용 |\n| --- | --- |\n| 관계 | 솔로 |' } },
+    { id: 'overall-serious-shift', order: 2, imageSrc: '/love/this-year/assets/thisyear/campaign-2026/year-love-teaser-02-v1.webp', interpretation: '[사주와 생활을 함께 보면] 실제 둘째 본문', storytelling: { chartPoints: [{ label: '나무', value: 2, note: '저장 사주 계산값' }] } },
+  ]
+  const accepted = loadAccess('/love/this-year/04-step-4-report/index.html').acceptAnalyze({
+    previewOnly: true, serviceKey: 'love_this_year', preview: { headline: '올해 연애의 첫 장면' }, teaserSections,
+    toc: [...teaserSections, ...Array.from({ length: 22 }, (_, index) => ({ id: `locked-${index + 3}`, classification: `실제 목차 ${index + 3}`, category: '올해 연애운' }))],
+    freeSearch: { used: 1, limit: 5, allowed: true }, paymentUrl: '/payment?product=love_this_year',
+  })
+  assert.equal(accepted.payload.teaserSections.length, 2)
+  assert.match(serverSource, /loveThisYearTeaserPreview/)
+  assert.match(serverSource, /loveThisYearTeaserSection/)
+  assert.match(accessSource, /function renderLoveThisYearTeaserSections\(/)
+  assert.match(accessSource, /renderSectionImage\(section, 'love_this_year'\)/)
+  assert.match(accessSource, /renderMarkdownTable\(story\.tableMd/)
+  assert.match(accessSource, /renderStoryChart\(story\.chartPoints/)
+  assert.match(accessSource, /renderLockedTeaserToc\(payload\.toc, \{ all: true, collapsible: true, open: false \}\)/)
+  assert.match(accessSource, /class="job-teaser-status-row"/)
+  assert.match(thisYearReportHtml, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
+  assert.doesNotMatch(thisYearReportHtml, /class=["']price-chip["']/)
+  assert.match(inplaceCss, /\.love-this-year-teaser-reading/)
+  assert.match(inplaceCss, /\.love-this-year-teaser-reading \.story-table/)
+})
+
+test('올해 연애운 캠페인 이미지는 메인·스토리·입력·티저에서 서로 다른 실사진을 사용한다', () => {
+  assert.match(serviceDirectorySource, /campaign-2026\/year-love-home-banner-v1\.webp/)
+  assert.match(thisYearStoryHtml, /campaign-2026\/year-love-story-hero-v1\.webp/)
+  assert.match(thisYearInputHtml, /campaign-2026\/year-love-input-hero-v1\.webp/)
+  assert.match(thisYearServiceSource, /campaign-2026\/year-love-teaser-01-v1\.webp/)
+  assert.match(thisYearServiceSource, /campaign-2026\/year-love-teaser-02-v1\.webp/)
+})
+
+test('올해 연애운 입력은 실제 리포트를 만든 뒤 03 로딩에서 reportId 포함 04 티저로 이동한다', () => {
+  assert.match(thisYearInputHtml, /name="concern"/)
+  assert.match(thisYearInputHtml, /UMSHThisYearService\.createPreviewFromDraft\(draft\)/)
+  assert.match(thisYearClientSource, /preview: true/)
+  assert.match(thisYearClientSource, /data-umsh-step', '03-loading'/)
+  assert.match(thisYearClientSource, /location\.assign\(teaserUrl\(reportId\)\)/)
+  assert.match(thisYearClientSource, /selfBirthTimeKnown: true/)
 })
 
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {

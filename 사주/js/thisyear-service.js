@@ -208,13 +208,78 @@
   function buildRequest(draft) {
     if (!draft || draft.service_key !== 'love_thisyear') return null;
     if (!draft.relationship_status || !draft.partner_star_basis) return null;
+    const manual = draft.profile_mode === 'new_profile';
+    const dateParts = String(draft.birth_date || '').split('-').map(Number);
+    const timeParts = String(draft.birth_time || '').split(':').map(Number);
+    const selfBirth = manual && dateParts.length === 3 && timeParts.length === 2 ? {
+      year: dateParts[0], month: dateParts[1], day: dateParts[2],
+      hour: timeParts[0], minute: timeParts[1],
+      gender: draft.gender,
+      calendar: draft.calendar_type,
+    } : null;
     return {
+      ...(selfBirth ? { selfName: draft.display_name || '', selfBirth, selfBirthTimeKnown: true } : {}),
       relationshipStatus: draft.relationship_status,
       partnerStarBasis: draft.partner_star_basis,
       gender: draft.gender || '',
       displayName: draft.display_name || '',
+      concern: draft.concern || '',
+      preview: true,
     };
   }
+
+  function reportIdentity(payload) {
+    return payload?.reportId || payload?.resultId || payload?.publicId
+      || payload?.preview?.reportId || payload?.report?.reportId || '';
+  }
+
+  function teaserUrl(reportId) {
+    const url = new URL('../04-step-4-report/index.html', location.href);
+    url.searchParams.set('service_key', 'love_thisyear');
+    url.searchParams.set('service_slug', 'thisyear');
+    url.searchParams.set('schema', 'love-thisyear-input-v1');
+    if (reportId) url.searchParams.set('reportId', reportId);
+    url.hash = 'step-4-report';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  function showAnalysisLoading() {
+    const existing = document.querySelector('[data-thisyear-loading]');
+    if (existing) return existing;
+    const overlay = document.createElement('section');
+    overlay.className = 'thisyear-analysis-loading';
+    overlay.setAttribute('data-thisyear-loading', 'true');
+    overlay.setAttribute('data-umsh-step', '03-loading');
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.innerHTML = `
+      <div class="thisyear-analysis-loading__card">
+        <span>03 · 개인화 해석 준비</span>
+        <h2>올해의 만남 신호를 내 사주와 맞춰 보고 있어요</h2>
+        <p>저장한 현재 상황 확인 → 네 기둥과 올해 기운 계산 → 무료 해석 1·2 준비</p>
+        <div class="thisyear-analysis-loading__bar" aria-hidden="true"><i></i></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  async function createPreviewFromDraft(draft) {
+    const request = buildRequest(draft);
+    if (!request) throw new Error('현재 관계 상태와 생년월일시를 다시 확인해 주세요.');
+    showAnalysisLoading();
+    const session = await initAuth();
+    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
+    const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response) || response;
+    const report = accepted?.report || response?.report;
+    if (report?.sections?.length) writeJson('sessionStorage', STORAGE.report, report);
+    const reportId = reportIdentity(response) || reportIdentity(accepted);
+    if (!reportId) throw new Error('생성된 무료 해석 번호를 확인하지 못했습니다. 다시 눌러 주세요.');
+    location.assign(teaserUrl(reportId));
+    return response;
+  }
+
+  window.UMSHThisYearService = Object.assign(window.UMSHThisYearService || {}, { createPreviewFromDraft });
 
   let reportPromise = null;
 

@@ -225,6 +225,8 @@ import {
   buildLoveThisYearContext,
   buildLoveThisYearReport,
   createLoveThisYearReportId,
+  loveThisYearTeaserPreview,
+  loveThisYearTeaserSection,
   parseLoveThisYearRequest,
 } from '../love/thisyear-service.js'
 import {
@@ -4034,7 +4036,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
   const report = toClientReport(record)
   const entitled = access?.entitled === true
   const serviceKey = record.context.serviceKey ?? 'saju_master'
-  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'love_this_year'
   const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
   const opening = serviceKey === 'quit_fortune'
     && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
@@ -4053,7 +4055,9 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
       ? guardPreview(workMoveTeaserPreview(record.context, report.sections.length), record.context)
       : serviceKey === 'match_couple'
         ? guardPreview(coupleMatchTeaserPreview(record.context, report.sections.length), record.context)
-      : storedPreview
+        : serviceKey === 'love_this_year'
+          ? guardPreview(loveThisYearTeaserPreview(record.context, report.sections.length), record.context)
+          : storedPreview
   return {
     previewOnly: true,
     entitled,
@@ -4075,7 +4079,9 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
               ? workMoveTeaserSection(savedSection, index, record.analysis, record.context)
               : serviceKey === 'match_couple'
                 ? coupleMatchTeaserSection(savedSection, index, record.analysis, record.context)
-              : savedSection
+                : serviceKey === 'love_this_year'
+                  ? loveThisYearTeaserSection(savedSection, index, record.analysis, record.context)
+                  : savedSection
         return {
         id: section.id,
         order: section.order,
@@ -4089,7 +4095,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         }
       }) }
       : {}),
-    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
+    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'love_this_year' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
@@ -4110,7 +4116,7 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   let freeSearch: ServicePreviewQuota | undefined
-  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple'
+  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'love_this_year'
     ? params.context.serviceKey : undefined
   if (quotaService && params.owner && isCheckoutLive()) {
     const access = await resolvePaidAccess(req, params.owner, quotaService, params.reportId, params.lineageId)
@@ -4163,7 +4169,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple'
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple' || record.context.serviceKey === 'love_this_year'
         ? record.context.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'
@@ -4619,34 +4625,47 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    const body = { ...((req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>) }
     const profile = await getUserBirthProfile(owner)
-    if (!profile) {
+    if (!trimmedString(body.gender) && !trimmedString(body.genderBasis) && profile?.birth.gender) {
+      body.gender = profile.birth.gender
+    }
+    const input = parseLoveThisYearRequest(body)
+    if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '올해 연애운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
     }
 
-    const body = { ...((req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>) }
-    if (!trimmedString(body.gender) && !trimmedString(body.genderBasis) && profile.birth.gender) {
-      body.gender = profile.birth.gender
+    const selectedBirth = input.selfBirth ?? profile!.birth
+    const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
+    const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
+    const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
+      userId: owner.id,
+      name: selectedName,
+      birth: selectedBirth,
+      birthTimeKnown: selectedBirthTimeKnown,
+      context: {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
-    const input = parseLoveThisYearRequest(body)
-    const context = { ...buildLoveThisYearContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
-    const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveThisYearReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
-    const templateReport = buildLoveThisYearReport(analysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    const resolvedInput = input.genderBasis ? input : { ...input, genderBasis: selectedBirth.gender }
+    const context = { ...buildLoveThisYearContext(selectedName, resolvedInput), birthTimeKnown: selectedBirthTimeKnown }
+    const analysis = analyzeSaju(selectedBirth)
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveThisYearReportId(owner.id, selectedBirth, resolvedInput), selectedBirthTimeKnown))
+    const templateReport = buildLoveThisYearReport(analysis, selectedBirth, context, resolvedInput, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       lineageId,
-      birth: profile.birth,
+      birth: selectedBirth,
       context,
       templateReport,
       analysis,
       owner,
       orderId: trimmedString(req.body?.orderId) || undefined,
     })
-    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+    res.json(specializedAnalyzeResponse(progressive, selectedBirth, context, selectedProfile))
   } catch (err) {
     respondRequestFailure(res, err, '올해 연애운 생성 실패')
   }
@@ -4775,7 +4794,7 @@ app.post('/api/saju/analyze', async (req, res) => {
         record.reportId,
         createReportLineageId(birth, enriched, owner?.id),
       )
-      const quotaService = enriched.serviceKey === 'job_choice' || enriched.serviceKey === 'money_save' || enriched.serviceKey === WORK_MOVE_SERVICE_KEY || enriched.serviceKey === 'match_couple'
+      const quotaService = enriched.serviceKey === 'job_choice' || enriched.serviceKey === 'money_save' || enriched.serviceKey === WORK_MOVE_SERVICE_KEY || enriched.serviceKey === 'match_couple' || enriched.serviceKey === 'love_this_year'
         ? enriched.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin'
@@ -4820,7 +4839,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
-      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple'
+      const quotaService = record.context.serviceKey === 'job_choice' || record.context.serviceKey === 'money_save' || record.context.serviceKey === WORK_MOVE_SERVICE_KEY || record.context.serviceKey === 'match_couple' || record.context.serviceKey === 'love_this_year'
         ? record.context.serviceKey : undefined
       const freeSearch = quotaService && owner && isCheckoutLive()
         ? (access.reason === 'order' || access.reason === 'admin' || quotaService === 'job_choice'

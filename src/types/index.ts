@@ -173,6 +173,12 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  /** Saved inputs for the 올해 연애운 teaser and full reading. */
+  loveThisYear?: {
+    relationshipStatus?: string
+    partnerStarBasis?: string
+    concern?: string
+  }
   /** Server-calculated wedding candidate evidence, persisted with the report. */
   wedding?: { facts: unknown; teaser: { headline: string; lines: string[] } }
   /** Server-calculated, saved target-year facts; never supplied by the browser. */
