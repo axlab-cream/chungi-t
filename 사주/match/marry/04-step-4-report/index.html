@@ -643,6 +643,7 @@
       .marry-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
 </style>
       <link rel="stylesheet" href="/css/umsh-chrome.css">
+      <link rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260929-marry-teaser-v1">
   </head>
   <body>
     <div class="phone" data-umsh-chrome="" data-service="결혼궁합" data-price="24,900원" data-active="home">
@@ -669,6 +670,8 @@
       </section>
 
       <main id="step-4-report">
+        <div data-umsh-service-top></div>
+        <section id="umsh-preview-host" data-umsh-slot="preview" aria-label="내 입력으로 먼저 보는 결혼궁합 해석"></section>
         <section class="notice" id="expired-notice" aria-live="polite">
           <strong>입력 정보가 만료됐어요.</strong>
           <p>새로고침이나 직접 진입으로 이전 입력을 찾지 못했습니다. 입력 화면으로 돌아가면 같은 서비스로 다시 이어갈 수 있어요. </p>
@@ -1123,7 +1126,7 @@
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/marry-service.js?v=live-20260917q" defer=""></script>
+<script src="/js/marry-service.js?v=20260929-marry-teaser-v1" defer=""></script>
   
 
 </body></html>

@@ -421,3 +421,9 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 
 ## 2026-09-29 — GA-INTEGRITY-01
 - 운영 GA 개발유입 혼입 및 캠페인 소실 수정. 광고 성과·미분류 전체 원인은 별도로 검증한다. 기록: personal/carrotcap/notes/umsh-ga-integrity-20260929.md.
+
+## 2026-09-29 — 결혼궁합 무료 티저 실제 데이터 전환
+
+- 결혼궁합 04에서 저장 리포트 1·2번, 두 사람의 사주 계산값과 실제 관계 입력을 고객 중심 이야기로 공개한다.
+- 03~24번 실제 목차 22개는 잠금 상태로 기본 펼치고 CTA는 미결제 결제·구매자 05 목차로 분기한다.
+- 저장 사주와 이번 리포트용 새 사주를 구분하고, 새 사주는 계정 기본 프로필을 덮지 않은 별도 보관함 결과로 남긴다.

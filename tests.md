@@ -1239,3 +1239,11 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - ASSERT: 전역 `h1` 폭 제한이 없고 `.hero h1`에만 `max-width: 11ch`가 남는다.
 - ASSERT: 관계 신호 잠금 목차 렌더 옵션은 `open: true`이다.
 - PASS: 전체 회귀 1,696/1,696(166 suites), TypeScript, 20개 서비스 계약·QA, 프로덕션 빌드, `git diff --check`.
+
+## 2026-09-29 — 결혼궁합 무료 티저
+
+- PASS: 결혼궁합·공용 티저·개인정보·단계 이동 집중 회귀 48/48.
+- PASS: 결혼궁합 계약 검사 16개 계약·6개 페이지·10개 대분류, TypeScript, JS 구문, diff 검사.
+- PASS: 전체 회귀 1,700개 실행. 기능 1,698개 통과, 캐시 키 불일치 2건 수정 후 해당 회귀 26/26 통과.
+- ASSERT: 새 사주는 API 요청의 별도 `selfBirth`로 저장되고 `/api/user/profile` POST를 하지 않는다.
+- ASSERT: 실제 24개 목차 중 공개 2개, 잠금 22개이며 잠금 목록은 `open: true`이다.

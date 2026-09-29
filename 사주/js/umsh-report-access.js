@@ -1446,6 +1446,13 @@
       renderProgress(payload.report);
       return renderedCouple;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'marry_match'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideMarryTeaserShell();
+      var renderedMarry = fillSlot('preview', renderMarryMatchTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedMarry;
+    }
     if (canonical((payload && payload.serviceKey) || key) === 'love_this_year'
       && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
       var renderedThisYear = fillSlot('preview', renderLoveThisYearTeaserSections(payload));
@@ -1640,6 +1647,14 @@
       if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
     });
     hideLegacyNode(document.querySelector('.submit-dock'));
+  }
+
+  function hideMarryTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
+    });
+    hideLegacyNode(document.querySelector('.hero'));
   }
 
   function hideCatTeaserShell() {
@@ -1857,6 +1872,58 @@
       + lockedToc
       + '<span>전체 해석에서 이어집니다</span><h2>들어오는 인연·가까워지는 달·반복되는 연애 습관과 지금 건넬 한 문장까지 이어서 봅니다</h2>'
       + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 올해 인연이 들어오는 장면과 관계가 깊어지는 조건을 현재 상황에 맞춰 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
+  /** 결혼궁합은 실제 관계 입력과 두 사람의 네 기둥을 결혼 전 생활 장면으로 연결한다. */
+  function renderMarryMatchTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeMarryMatchTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '결혼 전 확인할 내용을 실제 장면 순서로 정리했습니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '두 사람의 실제 입력과 사주 계산값입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '두 사람의 저장 사주에서 계산한 값입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '말로 확인한 마음과 반복되는 책임이 같은 방향이라면, 지금의 망설임은 결혼 전에 맞출 준비 항목으로 바뀔 수 있습니다.'
+        : '돈·집안일·가족 일정의 역할과 마감선을 함께 정하고 실제 행동으로 옮길 수 있다면, 결혼 뒤의 안정감은 이미 생활에서 시작된 것입니다.';
+      return '<article class="job-teaser-reading marry-teaser-reading" aria-labelledby="marry-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'marry_match')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="marry-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: true, normalizeText: normalizeMarryMatchTocText });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening marry-teaser-opening">'
+      + '<span>결혼궁합 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '사랑의 크기보다 함께 책임지는 방식에서 결혼의 답을 읽었습니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta marry-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>생활비·집안일·가족 관계·갈등 회복·결혼 시점과 오늘 꺼낼 질문까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 두 사람의 애정 표현과 생활 책임, 가족과 돈 이야기, 결혼을 구체화할 시점까지 이어서 확인합니다.')) + '</p>'
       + '<div class="job-teaser-status-row">'
       + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
       + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
@@ -2097,6 +2164,37 @@
       .replace(/일지/g, '태어난 날의 기둥')
       .replace(/일간/g, '태어난 날의 중심 기운')
       .replace(/십성/g, '사주 속 열 가지 관계 방식')
+      .trim();
+  }
+
+  function normalizeMarryMatchTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 지금 결혼을 망설이는 이유\n')
+      .replace(/\s*\[사주와 관계를 함께 보면\]\s*/g, '\n\n### 두 사람의 사주와 현실이 만나는 지점\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 현실에서 바로 확인할 장면\n')
+      .replace(/\s*\[결정 전에 물어볼 질문\]\s*/g, '\n\n### 결혼 전에 꼭 물어볼 질문\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 이 장에서 내릴 답\n')
+      .replace(/배우자궁|부부궁/g, '가까운 관계에서 보이는 반응')
+      .replace(/오행/g, '다섯 기운')
+      .replace(/일지/g, '태어난 날의 기둥')
+      .replace(/일간/g, '태어난 날의 중심 기운')
+      .replace(/십성/g, '사주 속 열 가지 관계 방식')
+      .trim();
+  }
+
+  function normalizeMarryMatchTocText(value) {
+    return String(value || '')
+      .replace(/일간 케미/g, '태어난 날의 중심 기운이 만나는 방식')
+      .replace(/오행 밸런스 궁합/g, '다섯 기운의 균형')
+      .replace(/대운에서 관계가 공식화되는 구간/g, '긴 시간대에서 관계가 구체화되는 때')
+      .replace(/월별 연애·결혼 흐름/g, '달마다 달라지는 연애·결혼 시기')
+      .replace(/띠·지지 조화와 충돌/g, '태어난 해와 날에서 붙고 부딪히는 방식')
+      .replace(/십성 관계 궁합/g, '사주 속 열 가지 관계 방식')
+      .replace(/MZ형 결과 라벨/g, '한눈에 보는 결과')
+      .replace(/레드플래그/g, '주의할 신호')
+      .replace(/타이밍/g, '시점')
+      .replace(/액션/g, '실행')
       .trim();
   }
 

@@ -161,6 +161,8 @@ import {
   buildMarryMatchContext,
   buildMarryMatchReport,
   createMarryMatchReportId,
+  marryMatchTeaserPreview,
+  marryMatchTeaserSection,
   parseMarryMatchRequest,
 } from '../match/marry-service.js'
 import {
@@ -4065,7 +4067,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
   const report = toClientReport(record)
   const entitled = access?.entitled === true
   const serviceKey = record.context.serviceKey ?? 'saju_master'
-  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'marry_match' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal'
   const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
   const opening = serviceKey === 'quit_fortune'
     && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
@@ -4084,6 +4086,8 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
       ? guardPreview(workMoveTeaserPreview(record.context, report.sections.length), record.context)
       : serviceKey === 'match_couple'
         ? guardPreview(coupleMatchTeaserPreview(record.context, report.sections.length), record.context)
+        : serviceKey === 'marry_match'
+          ? guardPreview(marryMatchTeaserPreview(record.context, report.sections.length), record.context)
         : serviceKey === 'love_this_year'
           ? guardPreview(loveThisYearTeaserPreview(record.context, report.sections.length), record.context)
           : serviceKey === 'cat_compatibility'
@@ -4112,6 +4116,8 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
               ? workMoveTeaserSection(savedSection, index, record.analysis, record.context)
               : serviceKey === 'match_couple'
                 ? coupleMatchTeaserSection(savedSection, index, record.analysis, record.context)
+                : serviceKey === 'marry_match'
+                  ? marryMatchTeaserSection(savedSection, index, record.analysis, record.context)
                 : serviceKey === 'love_this_year'
                   ? loveThisYearTeaserSection(savedSection, index, record.analysis, record.context)
                   : serviceKey === 'cat_compatibility'
@@ -4132,7 +4138,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         }
       }) }
       : {}),
-    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
+    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'marry_match' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
@@ -4153,7 +4159,7 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   let freeSearch: ServicePreviewQuota | undefined
-  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'love_this_year' || params.context.serviceKey === 'cat_compatibility' || params.context.serviceKey === 'couple_signal'
+  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'marry_match' || params.context.serviceKey === 'love_this_year' || params.context.serviceKey === 'cat_compatibility' || params.context.serviceKey === 'couple_signal'
     ? params.context.serviceKey : undefined
   if (quotaService && params.owner && isCheckoutLive()) {
     const access = await resolvePaidAccess(req, params.owner, quotaService, params.reportId, params.lineageId)
@@ -4572,31 +4578,43 @@ app.post('/api/match/marry/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    const input = parseMarryMatchRequest(req.body)
     const profile = await getUserBirthProfile(owner)
-    if (!profile) {
+    if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
     }
 
-    const input = parseMarryMatchRequest(req.body)
+    const selectedBirth = input.selfBirth ?? profile!.birth
+    const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
+    const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
+    const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
+      userId: owner.id,
+      name: selectedName,
+      birth: selectedBirth,
+      birthTimeKnown: selectedBirthTimeKnown,
+      context: {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
-    const context = { ...buildMarryMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
-    const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
-    const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    const analysis = analyzeSaju(selectedBirth)
+    const context = { ...buildMarryMatchContext(selectedName, input, partnerAnalysis, analysis), birthTimeKnown: selectedBirthTimeKnown }
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, selectedBirth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       lineageId,
-      birth: profile.birth,
+      birth: selectedBirth,
       context,
       templateReport,
       analysis,
       owner,
       orderId: trimmedString(req.body?.orderId) || undefined,
     })
-    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+    res.json(specializedAnalyzeResponse(progressive, selectedBirth, context, selectedProfile))
   } catch (err) {
     respondRequestFailure(res, err, '결혼궁합 생성 실패')
   }

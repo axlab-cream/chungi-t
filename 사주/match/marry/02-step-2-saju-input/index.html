@@ -614,6 +614,13 @@
       /* 38px 은 손가락으로 누르기에 작다. 최소 44px 로 올리고 여백도 함께 넓힌다. */
       .marry-saved-profile button { justify-self: start; margin-top: 6px; min-height: 44px; border: 1px solid rgba(255,255,255,.24); border-radius: 10px; background: rgba(255,255,255,.06); color: inherit; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; transition: border-color 140ms ease, background 140ms ease; }
       .marry-saved-profile button:hover { border-color: rgba(240,192,111,.5); background: rgba(255,255,255,.09); }
+      .marry-analysis-loading { display: none; margin: 14px 0; padding: 18px; border: 1px solid rgba(240,192,111,.42); border-radius: 14px; background: rgba(52,17,17,.94); color: #fff7ec; text-align: center; }
+      .marry-analysis-loading.is-visible { display: grid; justify-items: center; gap: 8px; }
+      .marry-analysis-loading > span { width: 34px; height: 34px; border: 3px solid rgba(240,192,111,.22); border-top-color: #f0c06f; border-radius: 50%; animation: marry-analysis-spin .8s linear infinite; }
+      .marry-analysis-loading strong { font-size: 16px; }
+      .marry-analysis-loading p { margin: 0; color: rgba(255,239,220,.76); font-size: 13px; line-height: 1.65; word-break: keep-all; }
+      @keyframes marry-analysis-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .marry-analysis-loading > span { animation: none; border-color: #f0c06f; } }
 </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
       <link rel="stylesheet" href="/css/umsh-chrome.css">
   </head>
@@ -1185,14 +1192,29 @@
         concernCount.textContent = String(concern.value.length);
       });
 
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
         if (!validate()) return;
         submitButton.disabled = true;
-        submitButton.textContent = "결혼궁합으로 이어가는 중";
+        submitButton.textContent = "두 사람의 결혼궁합을 준비하는 중";
         const payload = collectPayload();
         persistForNextStep(payload);
-        window.location.href = SERVICE_CONTEXT.next_route;
+        try {
+          if (window.UMSHMarryService?.createPreviewFromInput) {
+            await window.UMSHMarryService.createPreviewFromInput(payload);
+            return;
+          }
+          window.location.href = SERVICE_CONTEXT.next_route;
+        } catch (error) {
+          submitButton.disabled = false;
+          submitButton.textContent = "결혼 속도 확인하기";
+          errorList.innerHTML = "";
+          const item = document.createElement("li");
+          item.textContent = error?.message || "무료 해석을 준비하지 못했습니다. 잠시 후 다시 눌러 주세요.";
+          errorList.appendChild(item);
+          errorSummary.classList.remove("hidden");
+          errorSummary.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
       });
 
       restoreDraft();
@@ -1204,7 +1226,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
-    <script src="/js/marry-service.js?v=live-20260917q" defer=""></script>
+    <script src="/js/marry-service.js?v=20260929-marry-teaser-v1" defer=""></script>
   
 
 </body></html>
