@@ -107,4 +107,6 @@ test('marriage teaser is wired to saved preview, expanded locked toc, quota and 
   assert.match(input, /UMSHMarryService\.createPreviewFromInput\(payload\)/)
   assert.match(report, /id="umsh-preview-host"[^>]*data-umsh-slot="preview"/)
   assert.match(report, /umsh-verified-inplace\.css/)
+  assert.match(report, /\.hero h1\s*\{\s*max-width:\s*11ch/)
+  assert.doesNotMatch(report, /(?:^|\n)\s*h1\s*\{\s*max-width:\s*11ch/)
 })

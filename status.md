@@ -2655,3 +2655,9 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - [DEPLOY] 코드 커밋 `cff877fd`를 `origin/main`에 반영했고 Production `dpl_4eN7nVeYLrSS9EZpwbtpMUYGmoZa`가 Ready이며 `umsh.kr` 별칭에 연결됐다.
 - [PROD] 실제 운영 리포트에서 공통 GNB, 개인화 해석 1·2, 서로 다른 이미지, 입력·기둥 표와 다섯 기운 차트, 03~24번 잠금 22개 기본 펼침, CTA 1개를 확인했다. 기존 권한 리포트 CTA는 05 목록으로 정상 연결된다.
 - [KMS] `personal/carrotcap/notes/umsh-marry-personalized-teaser-20260929.md`에 원인·수정·검증·재사용 교훈을 저장하고 재조회했다.
+
+## 2026-09-30 — 결혼궁합 티저 제목 우측 여백 후속
+
+- [FOUND] 결혼궁합 04 정적 히어로의 전역 `h1 { max-width: 11ch }`가 런타임 개인화 헤더까지 제한해 카드 오른쪽 공간을 비웠다.
+- [FIXED] 폭 제한 선택자를 `.hero h1`로 한정해 정적 대표 제목의 조판은 유지하고 개인화 제목은 카드 전체 너비를 쓰게 했다.
+- [VERIFY] 집중 4/4, 결혼궁합 계약, TypeScript, 프로덕션 빌드와 diff 검사를 통과했다. 운영 배포와 모바일 검증을 진행한다.
