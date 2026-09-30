@@ -36,7 +36,8 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   throw new Error('No external requests in this test')
 }) as typeof fetch
 const originalCreate = OpenAI.Chat.Completions.prototype.create
-OpenAI.Chat.Completions.prototype.create = (async () => {
+OpenAI.Chat.Completions.prototype.create = (async (request: any) => {
+  assert.equal(request.model, 'gpt-5.6-luna')
   generated++
   await new Promise(resolve => setTimeout(resolve, 60))
   return { choices: [{ message: { content: JSON.stringify({ answer: '이 질문의 답', basis: '개인 기둥에서 읽은 이유', turn: '달라지는 조건', action: '오늘 확인할 행동', question: '다음 질문?' }) }, finish_reason: 'stop' }] }
@@ -93,6 +94,22 @@ test('로그인·소유권·결제 확인 후에만 장별 답변을 생성하�
   assert.equal(ziweiReply.status, 200)
   assert.equal(ziweiReply.data.reply.sectionId, 'ziwei')
   assert.equal((await request()).data.replies.length, 2)
-  await store.mutateReportRecord(id, owner, current => { current.auxiliary!.readerTools!.attempts = { day: new Date().toISOString().slice(0,10), count: 8 } })
-  assert.equal((await request('/question', { sectionId: section.id, question: '새 질문' })).status, 429)
+  const second = await Promise.all([request('/question', {sectionId:section.id,question:'두 번째 개인 질문'}),request('/question', {sectionId:section.id,question:'동시 개인 질문'})])
+  assert.deepEqual(second.map(x=>x.status).sort(), [200,409])
+  const beforeLimit = generated
+  assert.equal((await request('/question', {sectionId:section.id,question:'세 번째 개인 질문'})).status,429)
+  assert.equal(generated,beforeLimit)
+  assert.equal((await request('/question',body)).status,200,'이력 재조회는 횟수를 쓰지 않는다')
+  const last = await request()
+  assert.equal(last.data.sectionLimit,2)
+  assert.equal(last.data.replies.filter((r:any)=>r.sectionId===section.id).length,2)
+  assert.equal(last.data.replies.at(-1).model,'gpt-5.6-luna')
+  const history = await fetch(origin+'/api/user/reader-history',{headers:{Authorization:'Bearer '+owner.id}}).then(r=>r.json()) as any
+  assert.equal(history.history.length,3)
+  assert.match(history.history[0].href,/readerReply=/)
+  assert.equal(history.history[0].answer,undefined,'보관함 목록에는 답변 본문을 노출하지 않는다')
+  assert.equal((await fetch(origin+'/api/user/reader-history')).status,401)
+  const other = await fetch(origin+'/api/user/reader-history',{headers:{Authorization:'Bearer someone-else'}}).then(r=>r.json()) as any
+  assert.equal(other.history.length,0)
+
 })

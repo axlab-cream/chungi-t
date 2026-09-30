@@ -25,7 +25,17 @@ test('빈 질문과 긴 질문, 불완전 답변은 거부한다', () => {
 test('스케치는 개인 계산 분위기만 전달하며 실명·생년 원문·고민과 회사는 보내지 않는다', () => {
   const prompt = buildPartnerSketchPrompt(record, 'neutral')
   assert.doesNotMatch(prompt, /개인실명|회사기밀|1994|1994-03/)
-  assert.match(prompt, /fictional adult/)
+  assert.match(prompt, /fictional Korean adult/)
   assert.match(prompt, /not a prediction/)
   assert.throws(() => buildPartnerSketchPrompt({ ...record, context: { serviceKey: 'work_move' } }, 'neutral'))
+})
+
+test('연애 추가 답변에는 이전 직장 상담이 섞이지 않는다', () => {
+  const mixed = { ...record, context: { ...record.context, relationship: '회사 이직 고민' } }
+  const section = { ...record.report.sections[0], interpretation: '직함과 업무 제안서를 확인하세요' }
+  const messages = buildReaderQuestionPrompt(mixed, section, '관계를 더 편하게 만들고 싶어요')
+  const data = JSON.parse(messages[1].content)
+  assert.equal(data.context.relationship, undefined)
+  assert.equal(data.section.previousReading, '')
+  assert.ok(data.calculations.calculation.pillars.day)
 })

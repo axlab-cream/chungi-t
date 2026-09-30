@@ -2612,7 +2612,7 @@
     if (script) { script.addEventListener('load', mount, { once: true }); return; }
     script = document.createElement('script');
     script.id = 'cmdg-reader-tools-script';
-    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930b';
+    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930c';
     script.addEventListener('load', mount, { once: true });
     document.head.appendChild(script);
   }

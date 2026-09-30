@@ -16,7 +16,7 @@ import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
 import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
-import { answerReaderQuestion, createPartnerSketch, readPartnerSketch, ReaderToolError } from '../report/cmdg-reader-tools.js'
+import { answerReaderQuestion, createPartnerSketch, readPartnerSketch, ReaderToolError, READER_SECTION_LIMIT, READER_ANSWER_MODEL, SKETCH_STYLE_VERSION } from '../report/cmdg-reader-tools.js'
 import { calculateZiwei, ziweiSection } from '../saju/ziwei.js'
 import { calculateLoveMonthlySignals } from '../report/storytelling.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
@@ -33,6 +33,7 @@ import {
   findReportRecord,
   sectionGenerationId,
   listReportRecords,
+  listReaderHistoryRecords,
   mutateReportRecord,
   reportListViewState,
   reportProgressOf,
@@ -4919,12 +4920,26 @@ app.use('/api/report/:reportId/reader', async (req, res, next) => {
     next()
   } catch { res.status(403).json({ error: '본인의 해석만 이용할 수 있습니다.' }) }
 })
+app.get('/api/user/reader-history', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const rows = await listReaderHistoryRecords(owner)
+    // Only question metadata is listed here. Answers/images still pass report-level purchase checks.
+    const history = rows.filter(r => !r.serviceKey || r.serviceKey === 'saju_master').flatMap(r => (r.replies || []).map(reply => {
+      const id = r.resultId || r.reportId
+      return { id: reply.id, reportId: r.reportId, sectionId: reply.sectionId, input: reply.input, createdAt: reply.createdAt, title: r.title || '천명사주', href: `/r/${encodeURIComponent(id)}?reportId=${encodeURIComponent(id)}&section=${encodeURIComponent(reply.sectionId)}&readerReply=${encodeURIComponent(reply.id)}#reader-reply-${encodeURIComponent(reply.id)}` }
+    })).sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+    res.setHeader('Cache-Control', 'private, no-store')
+    res.json({ history })
+  } catch { res.status(503).json({ error: '추가 풀이 이력을 불러오지 못했습니다. 잠시 후 다시 열어 주세요.' }) }
+})
 app.get('/api/report/:reportId/reader', (_req, res) => {
   const record = res.locals.readerRecord as ReportRecord
   const state = record.auxiliary?.readerTools
   let ziwei
   try { ziwei = calculateZiwei(record.birth, record.context.birthTimeKnown) } catch { ziwei = { available: false, reason: '출생 날짜와 시간을 다시 확인해 주세요.' } }
-  res.json({ replies: state?.replies ?? [], hasSketch: Boolean(state?.sketch), ziwei, pending: Boolean(state?.job && Date.now() - Date.parse(state.job.startedAt) < 600_000) })
+  res.json({ replies: state?.replies ?? [], hasSketch: state?.sketch?.styleVersion === SKETCH_STYLE_VERSION, sectionLimit: READER_SECTION_LIMIT, model: READER_ANSWER_MODEL, ziwei, pending: Boolean(state?.job && Date.now() - Date.parse(state.job.startedAt) < 600_000) })
 })
 app.post('/api/report/:reportId/reader/question', async (req, res) => {
   try {

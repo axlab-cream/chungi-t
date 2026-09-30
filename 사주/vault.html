@@ -253,7 +253,7 @@
 
       .vault-note { margin-top: 11px; padding: 0 4px; font-size: 11px; font-weight: 600; color: #a79d90; word-break: keep-all; }
 
-      .vault-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; padding: 4px; border-radius: 14px; background: rgba(255, 253, 250, 0.05); border: 1px solid rgba(255, 253, 250, 0.08); }
+      .vault-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 14px; padding: 4px; border-radius: 14px; background: rgba(255, 253, 250, 0.05); border: 1px solid rgba(255, 253, 250, 0.08); }
       .vault-tabs button { font: inherit; font-size: 14px; font-weight: 800; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: #a79d90; cursor: pointer; }
       .vault-tabs button[aria-selected="true"] { background: #e2b87b; color: #141210; box-shadow: 0 6px 16px rgba(226, 184, 123, 0.22); }
       .vault-tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
@@ -320,6 +320,7 @@
         <nav class="vault-tabs" role="tablist" aria-label="보관함 구분">
           <button type="button" role="tab" data-tab="today" aria-selected="true">오늘 운</button>
           <button type="button" role="tab" data-tab="paid" aria-selected="false">구매한 운</button>
+          <button type="button" role="tab" data-tab="history" aria-selected="false">추가 풀이</button>
         </nav>
         <!-- 해석이 왜 오래 걸리는지 먼저 말해 준다. 말해 주지 않으면 화면이 멈춘 줄 안다. 구매한 운 탭에서만. -->
         <aside class="vault-notice" role="note" data-tab-only="paid" hidden>
@@ -564,6 +565,8 @@
             const payload = await fetch('/api/user/reports?limit=100&view=list', {
               headers: { Authorization: `Bearer ${auth.access_token}` },
             }).then((response) => response.json());
+            const historyPayload = await fetch('/api/user/reader-history', {headers: {Authorization: `Bearer ${auth.access_token}`}}).then(async response => {if(!response.ok) throw new Error('history'); return response.json();}).catch(() => null);
+            const readerHistory = historyPayload && Array.isArray(historyPayload.history) ? historyPayload.history : [];
             let reports = Array.isArray(payload.reports) ? payload.reports : [];
             // 삭제 버튼은 서버가 admin 을 준 계정(QA 운영자)에만 그린다. 다른 계정은 절대 보지 않는다.
             const admin = payload.admin === true;
@@ -722,6 +725,12 @@
                 button.setAttribute('aria-selected', button.dataset.tab === tab ? 'true' : 'false');
               });
               if (notice) notice.hidden = tab !== 'paid';
+              if (tab === 'history') {
+                todayCalendar.hidden = true; todayRecentHead.hidden = true;
+                list.setAttribute('aria-label', '추가 풀이 이력');
+                list.innerHTML = readerHistory.length ? readerHistory.map(item => `<a class="vault-item" href="${escapeHtml(item.href)}"><article class="vault-card"><div class="vault-body"><span class="vault-badge">추가 풀이</span><h2 class="vault-title">${escapeHtml(item.title)}</h2><p style="overflow-wrap:anywhere;line-height:1.8">${escapeHtml(item.input)}</p><small>${escapeHtml(stamp(item.createdAt))}</small><p>저장된 답변 다시 보기 →</p></div></article></a>`).join('') : empty(historyPayload ? '아직 추가 풀이가 없어요' : '추가 풀이 이력을 불러오지 못했어요', historyPayload ? '각 해석에서 물어본 질문과 답변이 여기에 함께 쌓입니다.' : '잠시 뒤 다시 열어 주세요.', '/vault?tab=history', '다시 확인');
+                return;
+              }
               const todayRows = reports.filter(isToday);
               const rows = tab === 'today' ? todayRows.slice(0, 5) : reports.filter((report) => !isToday(report));
               todayCalendar.hidden = tab !== 'today';
@@ -750,7 +759,7 @@
               calendarMonth = next.getMonth();
               renderTodayCalendar(reports.filter(isToday));
             });
-            renderCurrent('today');
+            renderCurrent(new URLSearchParams(location.search).get('tab') === 'history' ? 'history' : 'today');
 
             /**
              * 관리자 삭제. 두 번 눌러야 지운다 — 첫 탭은 「정말 삭제?」로 바뀌고 3초 안에 다시
