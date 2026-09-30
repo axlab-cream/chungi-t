@@ -495,3 +495,7 @@ LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRES
 - [x] 운영 JS/HTTP 원인 재현, 운영 origin/QA 탭 제한, 캠페인 보존.
 - [x] 집중32/32 및 격리 운영 기준 빌드/타입 PASS.
 - [ ] 운영 반영 및 GA 신규 수신 검증.
+
+## 2026-09-30 — CMDG 개인화 서사·추가 질문·인연 스케치
+- 공통 네 단계 서사, 실제 개인 계산/질문 근거, 안전한 마크다운/밑줄/모바일 표, 본인 구매 리포트의 추가 답변 저장 및 비공개 이미지 API를 구현했다.
+- 상세 근거·검증·운영 설정과 미실행 범위: docs/cmdg-personal-reading-20260930.md. 과거 완료 본문은 보존한다. 운영 반영은 아직 아님.

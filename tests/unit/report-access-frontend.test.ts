@@ -651,8 +651,8 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
   const html=h.nodes.get('umsh-verified-reading').innerHTML
   assert.equal((html.match(/class="umsh-cmdg-visual"/g)||[]).length,16)
   assert.equal((html.match(/class="umsh-cmdg-lead"/g)||[]).length,16)
-  assert.equal((html.match(/>쉬운 풀이·보강</g)||[]).length,16)
-  assert.equal((html.match(/>추가로 확인할 것</g)||[]).length,16)
+  assert.equal((html.match(/data-cmdg-reader-tools=/g)||[]).length,16)
+  assert.doesNotMatch(html,/>추가로 확인할 것</)
   assert.equal((html.match(/class="reading-card"/g)||[]).length,16)
   for(let index=0;index<ids.length;index+=1) assert.match(html,new RegExp(`저장된 전체 풀이 ${index+1}\\.`))
   assert.match(html,/내 힘이 집중되는 곳/)

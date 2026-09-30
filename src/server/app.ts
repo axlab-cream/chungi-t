@@ -16,6 +16,7 @@ import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
 import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { answerReaderQuestion, createPartnerSketch, readPartnerSketch, ReaderToolError } from '../report/cmdg-reader-tools.js'
 import { calculateLoveMonthlySignals } from '../report/storytelling.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow, startReportLongform } from '../report/report-queue.js'
@@ -4898,6 +4899,58 @@ app.post('/api/saju/analyze', async (req, res) => {
   } catch (err) {
     respondRequestFailure(res, err, '분석 실패')
   }
+})
+
+// Each tool request rechecks identity, report ownership, and the existing paid entitlement.
+app.use('/api/report/:reportId/reader', async (req, res, next) => {
+  res.setHeader('Cache-Control', 'private, no-store')
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const record = await findReportRecord(String(req.params.reportId), owner)
+    if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
+    if (record.context.serviceKey !== 'saju_master') { res.status(400).json({ error: '천명사주에서 이용해 주세요.' }); return }
+    if (!isAdminOwner(owner) && !await findUnlockingOrder(owner, productKeyForContext(record.context), record.reportId, record.lineageId)) {
+      res.status(402).json({ error: '구매한 천명사주에서 이용할 수 있습니다.' }); return
+    }
+    res.locals.readerRecord = record
+    res.locals.readerOwner = owner
+    next()
+  } catch { res.status(403).json({ error: '본인의 해석만 이용할 수 있습니다.' }) }
+})
+app.get('/api/report/:reportId/reader', (_req, res) => {
+  const state = (res.locals.readerRecord as ReportRecord).auxiliary?.readerTools
+  res.json({ replies: state?.replies ?? [], hasSketch: Boolean(state?.sketch), pending: Boolean(state?.job && Date.now() - Date.parse(state.job.startedAt) < 600_000) })
+})
+app.post('/api/report/:reportId/reader/question', async (req, res) => {
+  try {
+    const record = res.locals.readerRecord as ReportRecord
+    const section = record.report.sections.find(item => item.id === req.body.sectionId && item.status === 'complete')
+    if (!section) { res.status(400).json({ error: '완료된 해석에서 질문해 주세요.' }); return }
+    const owner = res.locals.readerOwner
+    const life = (await getUserBirthProfile(owner))?.lifeContext
+    res.json({ reply: await answerReaderQuestion(record, owner, section, req.body.question, life) })
+  } catch (error) {
+    res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: error instanceof ReaderToolError ? error.message : '답변을 완성하지 못했습니다. 입력한 질문은 그대로 두고 다시 시도해 주세요.' })
+  }
+})
+app.post('/api/report/:reportId/reader/sketch', async (req, res) => {
+  try {
+    const record = res.locals.readerRecord as ReportRecord
+    if (!record.report.sections.some(item => item.id === 'destiny-partner' && item.status === 'complete')) { res.status(409).json({ error: '인연 풀이가 완성된 뒤 이용해 주세요.' }); return }
+    await createPartnerSketch(record, res.locals.readerOwner, req.body.presentation)
+    res.json({ hasSketch: true })
+  } catch (error) {
+    res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: error instanceof ReaderToolError ? error.message : '이미지를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.' })
+  }
+})
+app.get('/api/report/:reportId/reader/sketch', async (_req, res) => {
+  try {
+    const bytes = await readPartnerSketch(res.locals.readerRecord, res.locals.readerOwner)
+    res.setHeader('Content-Type', 'image/webp')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.send(bytes)
+  } catch (error) { res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: '저장된 이미지를 불러오지 못했습니다.' }) }
 })
 
 app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) => {

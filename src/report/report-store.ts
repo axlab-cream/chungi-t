@@ -29,7 +29,7 @@ export interface ReportRecord {
   revision?: number
   analysis?: SajuAnalysis
   preview?: ReportPreview
-  auxiliary?: { todayFortune?: TodayFortune }
+  auxiliary?: { todayFortune?: TodayFortune; readerTools?: import('./cmdg-reader-tools.js').ReaderToolsState }
   birth: BirthInput
   context: SajuReportContext
   owner?: ReportOwner

@@ -174,6 +174,7 @@
     var next=String(id || '');
     if(next!==ownerId) {
       ownerEpoch+=1;
+      if (global.UMSHCmdgReaderTools) global.UMSHCmdgReaderTools.reset();
       if(ownerId) {
         authorized=null;rememberedId='';headerCache=null;
         if(document.getElementById('umsh-verified-reading') || ((key === 'home_fit' || key === 'wedding_day') && isOutputPage())) gate('계정이 변경되었습니다. 새 계정의 구매 내역에서 결과를 열어 주세요.');
@@ -328,6 +329,7 @@
         continue;
       }
       if (line.trim()) plain.push(line.trim());
+      else flush();
       index += 1;
     }
     flush();
@@ -834,8 +836,7 @@
     var prefix = image + answer;
     var guide = serviceReadingGuideHtml(section, payload, index);
     var editorial = CMDG_EDITORIAL[section.id] || [];
-    var supplement = editorial.length ? readingBlock('evidence umsh-cmdg-editorial', '쉬운 풀이·보강', [editorial[0]])
-      + readingBlock('action umsh-cmdg-editorial', '추가로 확인할 것', [editorial[1]]) : '';
+    var supplement = '<div data-cmdg-reader-tools="' + escapeHtml(section.id) + '"></div>';
     return body.indexOf(prefix) === 0 ? lead + prefix + guide + visual + body.slice(prefix.length) + supplement : lead + body + guide + visual + supplement;
   }
 
@@ -2555,7 +2556,7 @@
     if (document.documentElement) document.documentElement.removeAttribute('data-umsh-toc-check');
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
-    if (renderReportInPlace(payload)) return;
+    if (renderReportInPlace(payload)) { mountCmdgReaderTools(payload); return; }
     if (inPlaceEnabled()) return;
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
@@ -2576,6 +2577,25 @@
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<div class="umsh-report-share"><button type="button" data-umsh-report-share="'+escapeHtml(id)+'">링크 공유하기</button><span role="status" aria-live="polite"></span></div>');
     ensureImportantNotice(node, report);
     ensurePdfDock(node);
+    mountCmdgReaderTools(payload);
+  }
+  function mountCmdgReaderTools(payload) {
+    if (!isCmdgPayload(payload) || payload.entitled === false) return;
+    var epoch = ownerEpoch;
+    function mount() {
+      if (epoch !== ownerEpoch || !global.UMSHCmdgReaderTools) return;
+      global.UMSHCmdgReaderTools.mount(payload, function (path, options) {
+        return rawFetch(path, Object.assign({}, options, { headers: Object.assign({ 'Content-Type': 'application/json' }, headerCache || {}) }));
+      }, richText, function () { return epoch === ownerEpoch; });
+    }
+    if (global.UMSHCmdgReaderTools) { mount(); return; }
+    var script = document.getElementById('cmdg-reader-tools-script');
+    if (script) { script.addEventListener('load', mount, { once: true }); return; }
+    script = document.createElement('script');
+    script.id = 'cmdg-reader-tools-script';
+    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930a';
+    script.addEventListener('load', mount, { once: true });
+    document.head.appendChild(script);
   }
   function expandReportForPrint() {
     printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));

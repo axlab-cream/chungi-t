@@ -1259,3 +1259,8 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - ASSERT: `max-width: 11ch`는 정적 `.hero h1`에만 남고 런타임 `.marry-teaser-opening h1`에는 적용되지 않는다.
 - PASS: Production `dpl_fjpmBgkvFwiC4zTYATMyYw5mxDEi` Ready, `umsh.kr` 별칭과 health 정상.
 - PASS: 실제 운영 모바일 화면에서 개인화 제목이 카드 전체 폭을 사용하며 이미지·본문·기본 펼침 잠금 목차가 유지되는 것을 확인했다.
+
+## 2026-09-30 — CMDG 개인화 서사·추가 질문·인연 스케치
+- 공통 네 단계 서사, 실제 개인 계산/질문 근거, 안전한 마크다운/밑줄/모바일 표, 본인 구매 리포트의 추가 답변 저장 및 비공개 이미지 API를 구현했다.
+- 상세 근거·검증·운영 설정과 미실행 범위: docs/cmdg-personal-reading-20260930.md. 과거 완료 본문은 보존한다. 운영 반영은 아직 아님.
+- 검증: 전체 회귀 1707/1707 통과(193.3초), 이후 장별 고유 질문 보강 집중 7/7, 타입·프로덕션 빌드 통과. 로컬 합성 모바일 320~430px/데스크톱 표 넘침 0. 운영 실호출/배포 미실행.
