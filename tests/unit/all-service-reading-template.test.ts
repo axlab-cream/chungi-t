@@ -46,7 +46,7 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(source, /function serviceCardBody\(section, payload, body, index\)/)
   assert.match(source, /function refreshServiceSectionImages\(serviceKey\)/)
   assert.match(source, /var canShowCurve = Boolean\(currentSegment && payload && payload\.analysis\)/)
-  assert.match(source, /인생의 성공·수입을 예측한 점수는 아닙니다/)
+  assert.match(source, /개인의 실제 대운 시작 나이와 연도를 표시/)
 
   assert.match(css, /\.umsh-reading-guide\s*\{/)
   assert.match(css, /\.umsh-reading-guide-scroll\s*\{ overflow-x: auto/)
@@ -92,7 +92,7 @@ test('공용 리더의 캐시 쿼리를 쓰는 모든 HTML은 최신 버전으�
   })
 
   assert.ok(versions.length > 0, '캐시 쿼리를 사용하는 공용 리더 참조가 없다')
-  assert.deepEqual([...new Set(versions)], ['20260929-love-signal-teaser-v2'])
+  assert.deepEqual([...new Set(versions)], ['20260930-cmdg-reader-v2'])
 })
 
 test('공용 해석 토글은 native details를 유지하고 구형 화면 전환 선택자만 격리한다', () => {

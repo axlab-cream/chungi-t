@@ -50,7 +50,7 @@ async function request(path = '', body?: unknown, token = owner.id) {
   return { status: response.status, data: await response.json() as any }
 }
 before(async () => {
-  await store.saveReportRecord({ reportId: id, owner, birth, context: { serviceKey: 'saju_master' }, analysis: analyzeSaju(birth), report: { title: '합성 점검', subtitle: '', model: 'test', generatedBy: 'template', sections: [section] }, status: 'complete', createdAt: '', updatedAt: '' })
+  await store.saveReportRecord({ reportId: id, owner, birth, context: {}, analysis: analyzeSaju(birth), report: { title: '합성 점검', subtitle: '', model: 'test', generatedBy: 'template', sections: [section] }, status: 'complete', createdAt: '', updatedAt: '' })
   server = app.listen(0, '127.0.0.1')
   await new Promise<void>(resolve => server.once('listening', resolve))
   const address = server.address() as { port: number }; origin = `http://127.0.0.1:${address.port}`
@@ -63,6 +63,7 @@ test('로그인·소유권·결제 확인 후에만 장별 답변을 생성하�
   assert.equal(generated, 0)
   await payments.savePaymentOrder({ orderId: 'reader-paid', ownerId: owner.id, buyerEmail: 'fixture@synthetic.invalid', buyerTel: '00000000000', productKey: 'cmdg', productTitle: 'test', amount: 9900, status: 'paid', reportId: id, createdAt: '', updatedAt: '' })
   assert.equal((await request()).status, 200)
+  assert.equal((await request()).data.ziwei.palaces.length, 12)
   assert.equal((await request('/question', { sectionId: section.id, question: '' })).status, 400)
   assert.equal((await request('/question', { sectionId: 'missing', question: '고민' })).status, 400)
   const body = { sectionId: section.id, question: '약속을 자주 바꾸면 어떻게 대화할까요?' }
@@ -88,6 +89,10 @@ test('로그인·소유권·결제 확인 후에만 장별 답변을 생성하�
   assert.deepEqual(Buffer.from(await imageResponse.arrayBuffer()), imageFixture)
   assert.equal((await request()).data.hasSketch, true)
   assert.equal((await request('/sketch', undefined, 'someone-else')).status, 403)
+  const ziweiReply = await request('/question', { sectionId: 'ziwei', question: '일과 관계에서 반복되는 고민을 풀어 주세요.' })
+  assert.equal(ziweiReply.status, 200)
+  assert.equal(ziweiReply.data.reply.sectionId, 'ziwei')
+  assert.equal((await request()).data.replies.length, 2)
   await store.mutateReportRecord(id, owner, current => { current.auxiliary!.readerTools!.attempts = { day: new Date().toISOString().slice(0,10), count: 8 } })
   assert.equal((await request('/question', { sectionId: section.id, question: '새 질문' })).status, 429)
 })

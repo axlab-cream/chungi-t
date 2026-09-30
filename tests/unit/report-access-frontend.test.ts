@@ -659,10 +659,14 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
   assert.match(html,/실제 보상 조건/)
   assert.match(html,/현재 직장의 역할/)
   assert.match(html,/토요일 약속/)
-  assert.match(html,/제안받은 역할·보상·근무 방식은 확인됐나요/)
-  assert.match(html,/umsh-flow-line/)
-  assert.match(html,/M58 130 L88 35/)
-  assert.match(html,/인생의 성공·수입을 예측한 점수는 아닙니다/)
+  assert.doesNotMatch(html,/제안받은 역할·보상·근무 방식은 확인됐나요/)
+  assert.doesNotMatch(html,/umsh-flow-line/)
+  assert.match(html,/초년/)
+  assert.match(html,/청년/)
+  assert.match(html,/중년/)
+  assert.match(html,/후년/)
+  assert.match(html,/말년/)
+  assert.match(html,/2016~2019년/)
 })
 
 test('cmdg without optional real-world notes does not redirect readers to profile registration',()=>{
@@ -675,8 +679,8 @@ test('cmdg without optional real-world notes does not redirect readers to profil
     report:{title:'검토용 풀이',sections:[{id:'career-transition',order:1,status:'complete',category:'일',classification:'선택',hook:'조건을 비교합니다.',interpretation:'실제 조건은 확인되지 않았습니다.'}]},
   })
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/제안받은 역할·보상·근무 방식은 확인됐나요/)
-  assert.match(html,/개인의 실제 조건은 이 그래프에 포함되지 않습니다/)
+  assert.match(html,/아직 입력하지 않았습니다/)
+  assert.doesNotMatch(html,/umsh-flow-line/)
   assert.doesNotMatch(html,/MY에서 한 번 등록|MY에서 실제 조건 확인하기|\/profile/)
   assert.doesNotMatch(html,/내가 저장한 현실 기준/)
 })

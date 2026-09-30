@@ -17,6 +17,7 @@ import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParen
 import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
 import { answerReaderQuestion, createPartnerSketch, readPartnerSketch, ReaderToolError } from '../report/cmdg-reader-tools.js'
+import { calculateZiwei, ziweiSection } from '../saju/ziwei.js'
 import { calculateLoveMonthlySignals } from '../report/storytelling.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow, startReportLongform } from '../report/report-queue.js'
@@ -4909,7 +4910,7 @@ app.use('/api/report/:reportId/reader', async (req, res, next) => {
     if (!owner) return
     const record = await findReportRecord(String(req.params.reportId), owner)
     if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
-    if (record.context.serviceKey !== 'saju_master') { res.status(400).json({ error: '천명사주에서 이용해 주세요.' }); return }
+    if ((record.context.serviceKey || 'saju_master') !== 'saju_master') { res.status(400).json({ error: '천명사주에서 이용해 주세요.' }); return }
     if (!isAdminOwner(owner) && !await findUnlockingOrder(owner, productKeyForContext(record.context), record.reportId, record.lineageId)) {
       res.status(402).json({ error: '구매한 천명사주에서 이용할 수 있습니다.' }); return
     }
@@ -4919,13 +4920,16 @@ app.use('/api/report/:reportId/reader', async (req, res, next) => {
   } catch { res.status(403).json({ error: '본인의 해석만 이용할 수 있습니다.' }) }
 })
 app.get('/api/report/:reportId/reader', (_req, res) => {
-  const state = (res.locals.readerRecord as ReportRecord).auxiliary?.readerTools
-  res.json({ replies: state?.replies ?? [], hasSketch: Boolean(state?.sketch), pending: Boolean(state?.job && Date.now() - Date.parse(state.job.startedAt) < 600_000) })
+  const record = res.locals.readerRecord as ReportRecord
+  const state = record.auxiliary?.readerTools
+  let ziwei
+  try { ziwei = calculateZiwei(record.birth, record.context.birthTimeKnown) } catch { ziwei = { available: false, reason: '출생 날짜와 시간을 다시 확인해 주세요.' } }
+  res.json({ replies: state?.replies ?? [], hasSketch: Boolean(state?.sketch), ziwei, pending: Boolean(state?.job && Date.now() - Date.parse(state.job.startedAt) < 600_000) })
 })
 app.post('/api/report/:reportId/reader/question', async (req, res) => {
   try {
     const record = res.locals.readerRecord as ReportRecord
-    const section = record.report.sections.find(item => item.id === req.body.sectionId && item.status === 'complete')
+    const section = req.body.sectionId === 'ziwei' ? ziweiSection(record.birth, record.context.birthTimeKnown) : record.report.sections.find(item => item.id === req.body.sectionId && item.status === 'complete')
     if (!section) { res.status(400).json({ error: '완료된 해석에서 질문해 주세요.' }); return }
     const owner = res.locals.readerOwner
     const life = (await getUserBirthProfile(owner))?.lifeContext
