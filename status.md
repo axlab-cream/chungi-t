@@ -2683,3 +2683,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
 
 - 완료: 장별 2회/이력/한국인 스케치 운영 검증. 전체 1713/1713 + 최종 보관함 9/9 PASS, 타입/빌드 PASS. 코드 1b5a39aa, 운영 dpl_2m1BfhVtnAYJXzW6yiQsLnEjkdHT Ready. 상세 운영 근거 docs/cmdg-personal-reading-20260930.md.
+
+- 2026-09-30 쉬운 말 후속: 자미두수 계산명 직접 노출을 생활 제목/질문/뜻으로 수정. 저장 풀이 설명 연결·새 생성 언어 계약·개인 계산 보존 검증 후 운영 배포. 상세 PRD: docs/cmdg-personal-reading-20260930.md.
+
+2026-09-30 생활말 변환과 나이별 상세 카드 완료. 전체 1716/1716, 후속 73/73, 타입/빌드 PASS. 운영 배포 검증 진행.

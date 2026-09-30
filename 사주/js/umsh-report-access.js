@@ -605,6 +605,7 @@
     var card = scope.querySelector('details.reading-card');
     if (!card) return;
     var guide = serviceReadingGuideHtml({}, payload, 0);
+    if (canonical(serviceKey) === 'saju_master') guide = cmdgExplainHtml(guide);
     if (!guide) return;
     var answer = card.querySelector('.reading-answer');
     if (answer && typeof answer.insertAdjacentHTML === 'function') answer.insertAdjacentHTML('afterend', guide);
@@ -618,6 +619,7 @@
     var inner = verdictBlock(report, config) + summaryBlock(report, config, entitled)
       + highlightBlocks(report, config, entitled);
     if (!inner) return '';
+    if (canonical(serviceKey) === 'saju_master') inner = cmdgExplainHtml(inner);
     return '<div class="umsh-longform" id="umsh-longform-host"' + longformAccentStyle(config) + '>' + inner + '</div>';
   }
 
@@ -710,7 +712,7 @@
     var currentSegment = daewoon.find(function (item) { return item.pillar === currentPillar; }) || null;
     var currentLabel = currentSegment ? currentSegment.age : String(current.age || '').trim();
     var currentStart = currentSegment ? Number(currentSegment.startYear) : Number(current.startYear);
-    var currentText = [currentLabel, currentPillar && currentPillar + ' 대운', currentYear && String(currentYear) + '년 기준'].filter(Boolean).join(' · ');
+    var currentText = [currentLabel, currentPillar && (isCmdgPayload(payload) ? cmdgKoreanPillar(currentPillar) : currentPillar) + ' 대운', currentYear && String(currentYear) + '년 기준'].filter(Boolean).join(' · ');
     var samjae = fortune && fortune.samjae && typeof fortune.samjae === 'object' ? fortune.samjae : null;
     var samjaeStart = samjae && Number(samjae.periodStartYear);
     var samjaeEnd = samjae && Number(samjae.periodEndYear);
@@ -720,11 +722,13 @@
     var timeline = daewoon.map(function (item) {
       var isCurrent = (Number.isFinite(currentStart) && item.startYear === currentStart)
         || (!currentStart && currentLabel && item.age === currentLabel && item.pillar === currentPillar);
+      var explanation = isCmdgPayload(payload) ? cmdgPeriodMeaning(item.pillar,payload) : '';
       return '<li class="umsh-life-flow-segment' + (isCurrent ? ' is-current' : '') + '"' + (isCurrent ? ' aria-current="step"' : '') + '>'
         + '<span class="umsh-life-flow-age">' + escapeHtml(item.age) + '</span>'
-        + '<strong>' + escapeHtml(item.pillar) + '</strong>'
+        + '<strong>' + escapeHtml(isCmdgPayload(payload) ? cmdgKoreanPillar(item.pillar) : item.pillar) + '</strong>'
         + '<span>' + escapeHtml(String(item.startYear)) + '년 시작</span>'
         + (isCurrent ? '<em>현재</em>' : '')
+        + (explanation ? '<p class="cmdg-period-explanation">'+escapeHtml(explanation)+'</p>' : '')
         + '</li>';
     }).join('');
     var labels = { work: '일·직장', workAlternative: '새 직장·제안', money: '재물·보상', relationship: '관계·연애', planning: '계획 기준' };
@@ -736,23 +740,24 @@
     var serviceKey = canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
     var canShowCurve = Boolean(currentSegment && payload && payload.analysis);
     var currentLevel = currentSegment ? cmdgFlowLevel(currentSegment.pillar, payload.analysis) : 2;
-    return '<section class="umsh-life-flow" aria-labelledby="umsh-life-flow-title">'
+    var flowHtml = '<section class="umsh-life-flow' + (isCmdgPayload(payload) ? ' cmdg-detailed-periods' : '') + '" aria-labelledby="umsh-life-flow-title">'
       + '<span class="umsh-life-flow-eyebrow">만세력 계산 결과</span>'
       + '<h2 id="umsh-life-flow-title">나의 대운 흐름</h2>'
       + (currentText ? '<p class="umsh-life-flow-current">현재 위치 · ' + escapeHtml(currentText) + '</p>' : '')
       + (serviceKey === 'saju_master' ? cmdgLifeStagesHtml(payload) : (canShowCurve ? '<p class="umsh-flow-intro">선이 위로 갈수록 내 힘을 쓰기 쉬운 구간, 아래로 갈수록 속도와 조건을 살필 구간입니다. 인생의 성공·수입을 예측한 점수는 아닙니다.</p>' + cmdgFlowCurveHtml(payload, false)
         + '<div class="umsh-flow-callout"><strong>지금의 위치 · ' + escapeHtml(currentLabel || '현재') + '</strong><span>' + CMDG_FLOW_LABELS[currentLevel] + '</span></div>' : ''))
-      + '<section class="umsh-life-flow-reference aria-label="올해 참고와 삼재">'
-      + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(String(fortune.yearPillar || '')) + '</span></p>'
+      + '<section class="umsh-life-flow-reference" aria-label="올해 참고와 삼재">'
+      + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(isCmdgPayload(payload) ? cmdgKoreanPillar(String(fortune.yearPillar || '')) : String(fortune.yearPillar || '')) + '</span></p>'
       + (samjaePeriod ? '<p><strong>삼재</strong><span>' + escapeHtml(samjae.status === 'current' ? '현재 삼재 · ' + samjaePeriod + (samjaePhase ? ' · ' + samjaePhase : '') : '다음 삼재 · ' + samjaePeriod) + '</span></p>' : '')
       + '</section>'
-      + '<details class="umsh-life-flow-source" open><summary>만세력 원자료 보기</summary>'
+      + '<details class="umsh-life-flow-source" open><summary>' + (isCmdgPayload(payload) ? '나이별 시기를 자세히 읽기' : '만세력 원자료 보기') + '</summary>'
       + '<ol class="umsh-life-flow-timeline" aria-label="대운 구간">' + timeline + '</ol>'
-      + '<p class="umsh-life-flow-note">대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.</p>'
+      + '<p class="umsh-life-flow-note">' + (isCmdgPayload(payload) ? '나이와 시작 연도는 내 생년월일로 계산한 값입니다. 각 기운의 뜻을 생활 속 말로 풀었습니다. 주의를 권하는 3년이라고 해서 그때 반드시 나쁜 일이 생긴다는 뜻은 아닙니다.' : '대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.') + '</p>'
       + '</details>'
       + (contextRows ? '<section class="umsh-life-context" aria-labelledby="umsh-life-context-title">'
         + '<h3 id="umsh-life-context-title">내가 저장한 현실 기준</h3><ul>' + contextRows + '</ul></section>' : '')
       + '</section>';
+    return serviceKey === 'saju_master' ? cmdgExplainHtml(flowHtml).replace('나의 약 10년씩 나누어 보는 시기(대운) 흐름','나이별로 살펴보는 나의 삶') : flowHtml;
   }
 
   function mountLifeFlow(host, payload) {
@@ -768,11 +773,29 @@
     return canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key) === 'saju_master';
   }
 
+  // Display-only explanations for saved prose; do not rewrite the stored answer or user questions.
+  function cmdgPlainText(raw) {
+    var terms = {
+      '자미':'앞장서서 일을 정하고 책임지는 성향', '태양':'돕고 표현하려는 성향', '자미두수 명반':'태어난 때로 그린 12가지 생활표', '명반':'태어난 때로 그린 생활표', '명궁':'내 성격을 살피는 부분', '신궁':'실제 행동을 살피는 부분', '천이궁':'낯선 곳에서의 행동을 살피는 부분', '천이':'낯선 곳에서의 행동', '관록궁':'일하는 모습을 살피는 부분', '관록':'일하는 모습', '재백궁':'돈을 벌고 쓰는 습관을 살피는 부분', '재백':'돈을 벌고 쓰는 습관', '부처궁':'연애와 결혼 생활을 살피는 부분', '복덕궁':'마음의 여유를 살피는 부분', '전택궁':'집과 생활을 살피는 부분', '질액궁':'몸과 휴식을 살피는 부분', '노복궁':'친구와 동료 관계를 살피는 부분',
+      '염정':'호불호와 관계 속 약속을 중시하는 성향', '천상':'서로의 입장을 듣고 조율하는 성향', '파군':'익숙한 방식을 바꾸려는 성향', '칠살':'어려운 일에 결단하고 움직이는 성향', '탐랑':'새 경험과 사람에게 관심을 넓히는 성향', '천기':'여러 방법을 생각하는 성향', '천부':'가진 것을 관리하고 지키는 성향', '무곡':'목표와 돈을 꼼꼼히 챙기는 성향', '거문':'질문과 대화로 풀어가는 성향', '태음':'작은 변화를 살피고 준비하는 성향', '천동':'편안함과 즐거움을 바라는 성향', '천량':'사람을 챙기고 원칙을 지키는 성향',
+      '사화':'도움·책임·평가·부담의 네 가지 변화', '화록':'도움과 보상에 관심이 가는 표시', '화권':'결정과 책임에 관심이 가는 표시', '화과':'인정과 신뢰에 관심이 가는 표시', '화기':'부담이 커지는 부분을 살피는 표시', '공궁':'중심 별이 없는 부분', '주성':'해석의 중심이 되는 별', '대운':'약 10년씩 나누어 보는 시기', '세운':'한 해의 기운', '일간':'태어난 날을 나타내는 중심 기운', '일주':'태어난 날의 두 기운', '일지':'태어난 날의 아래쪽 기운', '월지':'태어난 달의 아래쪽 기운', '지장간':'겉으로 보이는 기운 안에 함께 담긴 기운', '용신':'균형을 도울 것으로 보는 기운', '희신':'보완에 도움을 주는 기운', '십신':'나와 다른 기운의 관계를 나눈 열 가지 이름', '십성':'나와 다른 기운의 관계를 나눈 열 가지 이름', '합충':'기운이 어울리거나 부딪치는 관계', '삼재':'전통적으로 주의를 권하는 3년 분류', '만세력':'생년월일의 기운을 계산하는 달력', '간지':'하늘과 땅의 기운을 짝지은 이름', '오행':'나무·불·흙·쇠·물의 다섯 기운', '신강':'내 기운을 받쳐주는 힘이 많은 편', '신약':'주변의 도움을 함께 살피는 편', '편관':'압박과 어려움에 대응하는 역할', '정관':'규칙과 책임을 챙기는 역할', '편재':'돈과 기회를 넓혀 쓰는 역할', '정재':'꾸준히 벌고 관리하는 역할', '편인':'새롭게 배우고 생각하는 역할', '정인':'배움과 도움을 받는 역할', '비견':'독립하거나 협력하는 역할', '겁재':'경쟁하고 자원을 나누는 역할', '식신':'꾸준히 만들고 돌보는 역할', '상관':'생각을 표현하고 개선하는 역할'
+    };
+    var seen = {};
+    var pattern = new RegExp('(^|[^가-힣A-Za-z])(' + Object.keys(terms).sort(function(a,b){return b.length-a.length;}).join('|') + ')(?=$|[^가-힣A-Za-z]|은|는|이|가|을|를|의|에|과|와|으로|처럼|이라|에서)', 'g');
+    return String(raw || '').replace(/타고난 그릇과 쓰는 법/g,'내 강점과 활용 방법').replace(/평생 반복되는 매듭/g,'자주 반복되는 어려움').replace(/지금 대운의 위치/g,'지금 지나고 있는 시기').replace(pattern,function(all,before,term,offset,whole){
+      if (seen[term] || before==='(' || whole.charAt(offset+all.length)==='(') return all;
+      seen[term]=true; return before + terms[term] + '(' + term + ')';
+    });
+  }
+  function cmdgExplainHtml(html) {
+    return html.replace('class="umsh-reading-guide"','class="umsh-reading-guide cmdg-plain-guide"').replace(/>([^<]+)</g,function(all,text){return '>'+cmdgPlainText(text)+'<';});
+  }
+
   function cmdgVisualSpec(section, payload) {
     var a = payload && payload.analysis || {}, c = payload && payload.context || {}, m = payload && payload.memberContext || {};
     var rows = [], pillars = a.pillars || {}, f = a.fortune || {};
     var put = function (label, value) { if (typeof value === 'string' && value.trim()) rows.push([label, value]); };
-    var pillar = function (key, label) { put(label, pillars[key] && pillars[key].ko); };
+    var pillar = function (key, label) { put(label, pillars[key] && cmdgKoreanPillar(pillars[key].ko)); };
     if (section.id === 'profile' || section.id === 'balance') {
       var e = a.elements || {};
       return { type: 'facts', caption: '나의 네 기둥에 나타난 다섯 기운의 실제 개수', items: [['나무',e.wood],['불',e.fire],['흙',e.earth],['쇠',e.metal],['물',e.water]].filter(function(x){return Number.isFinite(x[1]);}) };
@@ -783,7 +806,7 @@
       put('기운의 균형', a.dayMaster && ({strong:'내 기운이 강하게 받쳐지는 편',balanced:'내 기운과 주변 기운이 균형을 이루는 편',weak:'주변의 도움과 환경을 함께 살피는 편'})[a.dayMaster.strength]);
       put('계산된 보완 기운', cmdgElementText(a.usefulGod));
     } else if (['love-loop','destiny-partner','avoid-relationship','love-timing'].indexOf(section.id) >= 0) {
-      pillar('day','가까운 관계를 읽는 날 기둥'); put('현재 관계',c.relationship); put('직접 남긴 관계 상황',m.relationship);
+      pillar('day','가까운 관계를 읽는 날 기둥'); put('현재 관계',/직장|회사|업무|이직/.test(c.relationship || '')?'':c.relationship); put('직접 남긴 관계 상황',m.relationship);
       if(section.id==='love-timing') {put('현재 대운',cmdgKoreanPillar(f.currentDaewoon));put('올해 기운',cmdgKoreanPillar(f.yearPillar));}
     } else if (['career-money','career-transition','wealth-flow'].indexOf(section.id) >= 0) {
       pillar('month','사회적 역할을 읽는 달 기둥'); put('지금 하는 일',m.work || c.work); put('비교할 제안',m.workAlternative); put('돈과 보상',m.money);
@@ -802,7 +825,21 @@
   function cmdgKoreanPillar(value) {
     if (typeof value !== 'string') return '';
     var chars='甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥', sounds=['갑','을','병','정','무','기','경','신','임','계','자','축','인','묘','진','사','오','미','신','유','술','해'];
-    return value.split('').map(function(c){var i=chars.indexOf(c);return i<0?c:sounds[i];}).join('');
+    var ko = value.split('').map(function(c){var i=chars.indexOf(c);return i<0?c:sounds[i];}).join('');
+    var stem={갑:'나무',을:'나무',병:'불',정:'불',무:'흙',기:'흙',경:'쇠',신:'쇠',임:'물',계:'물'}, branch={자:'물',축:'흙',인:'나무',묘:'나무',진:'흙',사:'불',오:'불',미:'흙',신:'쇠',유:'쇠',술:'흙',해:'물'};
+    return ko.length===2 && stem[ko[0]] && branch[ko[1]] ? stem[ko[0]]+'·'+branch[ko[1]]+' 조합 ('+ko+')' : ko;
+  }
+
+  function cmdgPeriodMeaning(value, payload) {
+    var name=cmdgKoreanPillar(value), pair=name.split(' 조합')[0].split('·');
+    var meanings={나무:'배우고 시도하며 할 수 있는 일을 넓히는 힘',불:'생각과 감정을 밖으로 표현하는 힘',흙:'생활을 안정시키고 꾸준히 이어가는 힘',쇠:'해야 할 일과 그만둘 일을 구분하고 정리하는 힘',물:'상황을 살피고 유연하게 방법을 찾는 힘'};
+    var actions={나무:'작은 도전 하나를 꾸준히 이어가세요',불:'생각만 하지 말고 말이나 결과물로 표현해 보세요',흙:'지킬 수 있는 약속과 생활 습관부터 만들어요',쇠:'맡을 일과 거절할 일을 분명히 나누세요',물:'서두르기 전에 정보를 모으고 쉴 시간도 남겨두세요'};
+    if(!meanings[pair[0]] || !meanings[pair[1]]) return '';
+    var topic=function(e){return e+(['나무','쇠'].indexOf(e)>=0?'는 ':'은 ');};
+    var text=topic(pair[0])+meanings[pair[0]]+'을 뜻합니다. '+(pair[0]===pair[1]?'이 구간에는 같은 기운이 두 번 놓여 이 주제를 중심으로 살펴봅니다. ':topic(pair[1])+meanings[pair[1]]+'을 뜻합니다. ');
+    var a=payload && payload.analysis || {}, personal=cmdgElementText(a.dayMaster && a.dayMaster.element || a.dayMasterElement);
+    if(meanings[personal]) text+='나의 기본 기운인 '+personal+' 기운과 이 두 기운을 함께 읽는 시기입니다. ';
+    return text+'생활에서는 '+actions[pair[1]]+'.';
   }
 
   function cmdgLifeStagesHtml(payload) {
@@ -812,10 +849,10 @@
       var periods=data.map(function(d){var nums=String(d.age||'').match(/\d+/g)||[];var start=Number.isFinite(d.ageStart)?d.ageStart:Number(nums[0]), end=Number.isFinite(d.ageEnd)?d.ageEnd:Number(nums[1]);
         if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(d.startYear)||end<g[1]||start>g[2])return '';
         var lo=Math.max(start,g[1]),hi=Math.min(end,g[2]),ys=d.startYear+lo-start,ye=d.startYear+hi-start;
-        return '<li'+(f.currentYear>=ys&&f.currentYear<=ye?' aria-current="step"':'')+'><strong>'+lo+'~'+hi+'세</strong><span>'+ys+'~'+ye+'년</span><span>'+escapeHtml(cmdgKoreanPillar(d.pillar))+' 대운</span>'+(f.currentYear>=ys&&f.currentYear<=ye?'<em>현재</em>':'')+'</li>';
+        return '<li'+(f.currentYear>=ys&&f.currentYear<=ye?' aria-current="step"':'')+'><strong>'+lo+'~'+hi+'세</strong><span>'+ys+'~'+ye+'년</span><span>'+escapeHtml(cmdgKoreanPillar(d.pillar))+' 시기</span>'+(f.currentYear>=ys&&f.currentYear<=ye?'<em>현재</em>':'')+'</li>';
       }).filter(Boolean).join('');
-      return '<section><h3>'+g[0]+' <small>'+g[1]+'세'+(g[2]===119?' 이후':'~'+g[2]+'세')+'</small></h3>'+(periods?'<ul>'+periods+'</ul>':'<p>계산된 대운 구간이 없습니다.</p>')+'</section>';
-    }).join('')+'<p class="cmdg-stage-note">읽기 편하도록 나이대로 나눈 분류입니다. 개인의 실제 대운 시작 나이와 연도를 표시하며, 대운이 시작되기 전 기간이나 계산 범위 밖은 임의로 채우지 않습니다.</p></div>';
+      return '<section><h3>'+g[0]+' <small>'+g[1]+'세'+(g[2]===119?' 이후':'~'+g[2]+'세')+'</small></h3>'+(periods?'<ul>'+periods+'</ul>':'<p>이 나이대에 해당하는 계산 결과가 없습니다.</p>')+'</section>';
+    }).join('')+'<p class="cmdg-stage-note">초년부터 말년까지 나누어 보았습니다. 아래에서 각 나이대의 뜻과 생활에서 살필 점을 자세히 읽을 수 있습니다.</p></div>';
   }
 
   function cmdgVisualHtml(spec) {
@@ -856,7 +893,7 @@
     var guide = serviceReadingGuideHtml(section, payload, index);
     var editorial = CMDG_EDITORIAL[section.id] || [];
     var supplement = '<div data-cmdg-reader-tools="' + escapeHtml(section.id) + '"></div>';
-    return body.indexOf(prefix) === 0 ? lead + prefix + guide + visual + body.slice(prefix.length) + supplement : lead + body + guide + visual + supplement;
+    return cmdgExplainHtml(body.indexOf(prefix) === 0 ? lead + prefix + guide + visual + body.slice(prefix.length) + supplement : lead + body + guide + visual + supplement);
   }
 
   function serviceCardBody(section, payload, body, index) {
@@ -2605,14 +2642,14 @@
       if (epoch !== ownerEpoch || !global.UMSHCmdgReaderTools) return;
       global.UMSHCmdgReaderTools.mount(payload, function (path, options) {
         return rawFetch(path, Object.assign({}, options, { headers: Object.assign({ 'Content-Type': 'application/json' }, headerCache || {}) }));
-      }, richText, function () { return epoch === ownerEpoch; });
+      }, function(text){return richText(cmdgPlainText(text));}, function () { return epoch === ownerEpoch; });
     }
     if (global.UMSHCmdgReaderTools) { mount(); return; }
     var script = document.getElementById('cmdg-reader-tools-script');
     if (script) { script.addEventListener('load', mount, { once: true }); return; }
     script = document.createElement('script');
     script.id = 'cmdg-reader-tools-script';
-    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930c';
+    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930d';
     script.addEventListener('load', mount, { once: true });
     document.head.appendChild(script);
   }

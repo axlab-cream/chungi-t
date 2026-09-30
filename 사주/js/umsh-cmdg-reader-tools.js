@@ -5,13 +5,13 @@
   function styles() {
     if (document.getElementById('cmdg-reader-tools-style')) return;
     var link = document.createElement('link');
-    link.id = 'cmdg-reader-tools-style'; link.rel = 'stylesheet'; link.href = '/css/umsh-cmdg-reader-tools.css?v=20260930c'; document.head.appendChild(link);
+    link.id = 'cmdg-reader-tools-style'; link.rel = 'stylesheet'; link.href = '/css/umsh-cmdg-reader-tools.css?v=20260930d'; document.head.appendChild(link);
   }
   function answerHtml(reply, richText) {
     if (!reply) return '';
     return '<section class="cmdg-personal-answer" aria-label="내 질문에 이어지는 풀이"><p class="cmdg-question-echo">' + esc(reply.input) + '</p>'
-      + [['answer','지금의 답'],['basis',reply.sectionId === 'ziwei' ? '내 자미두수 명반에서 읽히는 이유' : '내 사주에서 읽히는 이유'],['turn','놓치기 쉬운 조건'],['action','이제 할 일']].map(function (part) {
-        return '<section class="reading-block cmdg-beat cmdg-beat-' + part[0] + '"><h4>' + part[1] + '</h4>' + richText(String(reply.answer[part[0]] || '').replace(/^\s*(?:#{1,6}\s*)?(?:지금의 답|내 사주에서 읽히는 이유|내 자미두수 명반에서 읽히는 이유|달라지는 조건|놓치기 쉬운 조건|내가 할 일|이제 할 일)\s*(?:\r?\n)+/, '')) + '</section>';
+      + [['answer','지금의 답'],['basis',reply.sectionId === 'ziwei' ? '내 성격과 생활에서 읽히는 이유' : '내 사주에서 읽히는 이유'],['turn','놓치기 쉬운 조건'],['action','이제 할 일']].map(function (part) {
+        return '<section class="reading-block cmdg-beat cmdg-beat-' + part[0] + '"><h4>' + part[1] + '</h4>' + richText(String(reply.answer[part[0]] || '').replace(/^\s*(?:#{1,6}\s*)?(?:지금의 답|내 사주에서 읽히는 이유|내 성격과 생활에서 읽히는 이유|내 자미두수 명반에서 읽히는 이유|달라지는 조건|놓치기 쉬운 조건|내가 할 일|이제 할 일)\s*(?:\r?\n)+/, '')) + '</section>';
       }).join('') + '<p class="cmdg-next-question"><strong>이어서 생각할 질문</strong><br>' + esc(reply.answer.question) + '</p></section>';
   }
   function historyHtml(state, sectionId) {
@@ -42,9 +42,9 @@
       var previousCard = previousHost && previousHost.closest('.reading-card');
       if (previousCard && previousCard.parentNode) {
         var chapter = document.createElement('details'); chapter.id = 'cmdg-ziwei-chapter'; chapter.className = 'reading-card'; chapter.dataset.section = 'ziwei'; chapter.open = Boolean(state.ziweiOpen || new URLSearchParams(location.search).get('section') === 'ziwei'); chapter.addEventListener('toggle', function () { state.ziweiOpen = chapter.open; });
-        chapter.innerHTML = '<summary>자미두수 · 나의 성향과 삶의 역할</summary><div class="cmdg-ziwei-body">' + (state.ziwei.available ? '<p>나의 성향, 일과 돈, 가까운 관계를 열두 영역으로 나눠 봅니다.</p><div class="cmdg-ziwei-grid">' + state.ziwei.palaces.map(function (p) { return '<section><h4>' + esc(p.label) + (p.body ? ' · 행동의 중심' : '') + '</h4><p>' + esc(p.name + ' · ' + p.branch) + '</p><strong>' + esc(p.stars.map(function (s) { return s.name; }).join(' · ') || '주성 없음') + '</strong>' + p.transformations.map(function (t) { return '<p>' + esc(t.star + ' · ' + t.meaning) + '</p>'; }).join('') + '</section>'; }).join('') + '</div><p class="cmdg-ziwei-note">' + esc(state.ziwei.convention) + '</p><div data-cmdg-reader-tools="ziwei"></div>' : '<p>' + esc(state.ziwei.reason) + '</p>') + '</div>';
+        chapter.innerHTML = '<summary>자미두수 · 내 성격과 12가지 생활</summary><div class="cmdg-ziwei-body">' + (state.ziwei.available ? '<p>태어난 날짜와 시간으로 그린 자미두수 표입니다. 내 성격, 돈, 일, 관계를 12가지 생활로 나누어 읽어보세요. 아래 문장은 내 표에 있는 별의 뜻을 쉬운 말로 푼 것입니다.</p><div class="cmdg-ziwei-grid">' + state.ziwei.palaces.map(function (p) { return  '<section><h4>' + esc(p.label) + '</h4><p class="cmdg-ziwei-question">' + esc(p.reading && p.reading.question || '') + '</p>' + (p.reading && p.reading.points.length ? '<ul>' + p.reading.points.map(function(point){return '<li>' + esc(point) + '</li>';}).join('') + '</ul>' : '<p>이 부분은 한 가지 성향으로 정하지 않고 다른 생활 영역과 함께 살펴봅니다.</p>') + (p.body ? '<p class="cmdg-ziwei-emphasis">생각을 실제 행동으로 옮기는 모습도 여기에서 살펴봅니다.</p>' : '') + p.transformations.map(function(t){return '<p>' + esc((t.starMeaning ? t.starMeaning + ': ' : '') + t.meaning) + '</p>';}).join('') + '</section>' ; }).join('') + '</div><details class="cmdg-ziwei-note"><summary>계산에 사용한 날짜와 시간</summary><p>' + esc(state.ziwei.convention) + '</p></details><div data-cmdg-reader-tools="ziwei"></div>' : '<p>' + esc(state.ziwei.reason) + '</p>') + '</div>';
         var cards = previousCard.parentNode.querySelectorAll('.reading-card'); var last = cards[cards.length - 1]; last.insertAdjacentElement('afterend', chapter);
-        if (state.ziwei.available && !state.drafts.ziwei) state.drafts.ziwei = state.concern || '나의 성향과 일·돈·관계에서 반복되는 어려움, 지금 바꿀 수 있는 행동을 자미두수 명반으로 풀어 주세요.';
+        if (state.ziwei.available && !state.drafts.ziwei) state.drafts.ziwei = state.concern || '나의 성향과 일·돈·관계에서 반복되는 어려움, 지금 바꿀 수 있는 행동을 쉽게 풀어 주세요.';
       }
     }
     document.querySelectorAll('[data-cmdg-reader-tools]').forEach(function (host) {

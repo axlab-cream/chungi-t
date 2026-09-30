@@ -623,7 +623,11 @@ test('saved report renders only the API-calculated daewoon timeline and shared m
     report:{title:'저장된 풀이',sections:[{id:'profile',order:1,status:'complete',category:'현재',classification:'기준',interpretation:'저장된 원문입니다.'}]},
   })
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/나의 대운 흐름/)
+  assert.match(html,/나이별로 살펴보는 나의 삶/)
+  assert.match(html,/cmdg-period-explanation/)
+  assert.match(html,/쇠는 해야 할 일과 그만둘 일을 구분하고 정리하는 힘/)
+  assert.doesNotMatch(html,/庚辰|己卯/)
+  assert.match(html,/나이별 시기를 자세히 읽기/)
   assert.match(html,/32~41세/)
   assert.match(html,/2023년 시작/)
   assert.match(html,/현재/)
