@@ -253,6 +253,9 @@
 
       .vault-note { margin-top: 11px; padding: 0 4px; font-size: 11px; font-weight: 600; color: #a79d90; word-break: keep-all; }
 
+      .vault-history-card .vault-body { gap: 12px; }
+      .vault-history-card .vault-body > * { margin: 0; }
+      .vault-history-card .vault-badge { align-self: flex-start; }
       .vault-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 14px; padding: 4px; border-radius: 14px; background: rgba(255, 253, 250, 0.05); border: 1px solid rgba(255, 253, 250, 0.08); }
       .vault-tabs button { font: inherit; font-size: 14px; font-weight: 800; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: #a79d90; cursor: pointer; }
       .vault-tabs button[aria-selected="true"] { background: #e2b87b; color: #141210; box-shadow: 0 6px 16px rgba(226, 184, 123, 0.22); }
@@ -316,7 +319,7 @@
 
       <section class="page-head">
         <h1>보관함</h1>
-        <p>오늘 운과 구매한 풀이를 나눠 보여줍니다. 최근 것이 위로 옵니다.</p>
+        <p>오늘 운, 구매한 풀이와 추가 질문의 답변을 다시 볼 수 있어요.</p>
         <nav class="vault-tabs" role="tablist" aria-label="보관함 구분">
           <button type="button" role="tab" data-tab="today" aria-selected="true">오늘 운</button>
           <button type="button" role="tab" data-tab="paid" aria-selected="false">구매한 운</button>
@@ -728,7 +731,7 @@
               if (tab === 'history') {
                 todayCalendar.hidden = true; todayRecentHead.hidden = true;
                 list.setAttribute('aria-label', '추가 풀이 이력');
-                list.innerHTML = readerHistory.length ? readerHistory.map(item => `<a class="vault-item" href="${escapeHtml(item.href)}"><article class="vault-card"><div class="vault-body"><span class="vault-badge">추가 풀이</span><h2 class="vault-title">${escapeHtml(item.title)}</h2><p style="overflow-wrap:anywhere;line-height:1.8">${escapeHtml(item.input)}</p><small>${escapeHtml(stamp(item.createdAt))}</small><p>저장된 답변 다시 보기 →</p></div></article></a>`).join('') : empty(historyPayload ? '아직 추가 풀이가 없어요' : '추가 풀이 이력을 불러오지 못했어요', historyPayload ? '각 해석에서 물어본 질문과 답변이 여기에 함께 쌓입니다.' : '잠시 뒤 다시 열어 주세요.', '/vault?tab=history', '다시 확인');
+                list.innerHTML = readerHistory.length ? readerHistory.map(item => { const at = stamp(item.createdAt); return `<a class="vault-item" href="${escapeHtml(item.href)}"><article class="vault-card vault-history-card"><div class="vault-body"><span class="vault-badge">추가 풀이</span><h2 class="vault-title">${escapeHtml(item.title)}</h2><p style="overflow-wrap:anywhere;line-height:1.8">${escapeHtml(item.input)}</p><small>${escapeHtml(at ? at.day + ' ' + at.time : '')}</small><p>저장된 답변 다시 보기 →</p></div></article></a>`; }).join('') : empty(historyPayload ? '아직 추가 풀이가 없어요' : '추가 풀이 이력을 불러오지 못했어요', historyPayload ? '각 해석에서 물어본 질문과 답변이 여기에 함께 쌓입니다.' : '잠시 뒤 다시 열어 주세요.', '/vault?tab=history', '다시 확인');
                 return;
               }
               const todayRows = reports.filter(isToday);
