@@ -970,3 +970,12 @@ test('그림이 없는 항목은 빈 자리를 만들지 않는다', () => {
   const html = String(host.innerHTML || '')
   assert.ok(!html.includes('story-image'), '그림이 없는데 빈 figure 를 만들었다')
 })
+
+
+test('천명사주 전용 생애 구간은 다른 서비스의 기존 그래프를 대체하지 않는다',()=>{
+  const h=harness('/r/other-service-stages',[])
+  h.api.consume({reportId:'other-service-stages',context:{serviceKey:'job_choice'},analysis:{fortune:{currentYear:2026,currentDaewoon:'甲申',daewoon:[{age:'20~29세',ageStart:20,ageEnd:29,startYear:2020,pillar:'甲申'}]}},report:{title:'합성 검수',sections:[{id:'other',status:'complete',category:'일',interpretation:'검수 원문'}]}})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.doesNotMatch(html,/cmdg-life-stages/)
+  assert.match(html,/umsh-flow-line/)
+})
