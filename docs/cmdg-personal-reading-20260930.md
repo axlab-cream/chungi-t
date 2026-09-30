@@ -100,3 +100,10 @@
 - 검증: 전체 1716/1716 PASS, 최종 화면 후속 회귀 73/73 PASS, 타입 검사 및 프로덕션 빌드 PASS. 320px 로컬 문서 clientWidth=scrollWidth=305, 상세 카드 1열 235px 확인.
 - 리뷰: 계산 엔진/저장 원문/권한/횟수 변경 없음. 설명은 실제 계산된 별·간지에서만 생성. 사용자 이름과 HTML 속성은 용어 치환에서 보존. 다른 서비스는 기존 표시 유지.
 - API는 자미두수 응답에 생활 설명 필드만 추가. DB 스키마·마이그레이션 없음. 원본 16개 장의 저장된 서사는 재생성하지 않음.
+
+### 생활말·세로 시기표 운영 완료
+- 커밋 a47903106bcd97f0257443a45edee6ad874cd33c, main 반영. 배포 dpl_4ZzLhzTNSWsz267yqdL8vjrLodrc / https://chungi-quqrw7fuq-ax-lab-cream.vercel.app Ready, umsh.kr 별칭 확인.
+- 실제 회원 리포트: 10개 시기 모두 설명 표시, 나이/시작연도/현재 구간 유지, 목록 내 한자 0. 320px 문서 clientWidth=scrollWidth=305, 시기 카드 한 열 235px.
+- 실제 자미두수의 외부 활동 부분: 어려운 별 이름 대신 약속을 중요하게 여김/서로의 입장을 듣고 공평하게 조율함으로 표시. 12개 생활 제목 모두 확인. 기존 추가 질문 이력 1/2 유지.
+- 화면 증거 .cache/cmdg-easy-language-proof.png(개인 결과이므로 Wiki에 이미지 업로드하지 않음). 추가 유료 생성/횟수 차감 없이 재조회 검증.
+- 롤백: 직전 Ready dpl_2m1BfhVtnAYJXzW6yiQsLnEjkdHT. DB 스키마 변경 없음.
