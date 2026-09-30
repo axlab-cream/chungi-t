@@ -1274,3 +1274,5 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - 배포 후속 리뷰: 생애 구간 렌더러가 다른 서비스에도 적용될 여지를 발견해 천명사주에만 한정했다. 다른 서비스 기존 그래프 보존 회귀 추가, 관련 91/91 통과. 전체 1711 통과 이후의 작은 범위 수정이다.
 
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
+
+- 완료: 장별 2회/이력/한국인 스케치 운영 검증. 전체 1713/1713 + 최종 보관함 9/9 PASS, 타입/빌드 PASS. 코드 1b5a39aa, 운영 dpl_2m1BfhVtnAYJXzW6yiQsLnEjkdHT Ready. 상세 운영 근거 docs/cmdg-personal-reading-20260930.md.

@@ -2681,3 +2681,5 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 운영 UAT에서 자미두수 질문 생성·저장·재조회 확인. 생성 응답의 소제목 중복을 표시 단계에서 제거하고, 서버 갱신 뒤에도 자미두수 펼침 상태를 유지하도록 보강한다. 원문은 보존.
 
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
+
+- 완료: 장별 2회/이력/한국인 스케치 운영 검증. 전체 1713/1713 + 최종 보관함 9/9 PASS, 타입/빌드 PASS. 코드 1b5a39aa, 운영 dpl_2m1BfhVtnAYJXzW6yiQsLnEjkdHT Ready. 상세 운영 근거 docs/cmdg-personal-reading-20260930.md.
