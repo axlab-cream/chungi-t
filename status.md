@@ -2660,4 +2660,7 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 
 - [FOUND] 결혼궁합 04 정적 히어로의 전역 `h1 { max-width: 11ch }`가 런타임 개인화 헤더까지 제한해 카드 오른쪽 공간을 비웠다.
 - [FIXED] 폭 제한 선택자를 `.hero h1`로 한정해 정적 대표 제목의 조판은 유지하고 개인화 제목은 카드 전체 너비를 쓰게 했다.
-- [VERIFY] 집중 4/4, 결혼궁합 계약, TypeScript, 프로덕션 빌드와 diff 검사를 통과했다. 운영 배포와 모바일 검증을 진행한다.
+- [VERIFY] 집중 4/4, 결혼궁합 계약, TypeScript, 프로덕션 빌드와 diff 검사를 통과했다.
+- [DEPLOY] `7b4ebd1c`를 `origin/main`에 반영했고 Production `dpl_fjpmBgkvFwiC4zTYATMyYw5mxDEi`가 Ready이며 `umsh.kr`에 연결됐다.
+- [PROD] 운영 모바일 화면에서 개인화 제목이 카드 전체 폭을 사용해 우측 빈 공간이 사라졌고 이미지·본문·기본 펼침 목차는 그대로 유지되는 것을 확인했다.
+- [KMS] `personal/carrotcap/notes/umsh-marry-teaser-headline-width-20260930.md`에 원인·수정·검증을 저장하고 재조회했다.

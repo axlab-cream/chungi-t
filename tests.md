@@ -1257,3 +1257,5 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - PASS: `npm run check:marry` — 16개 계약·6개 페이지·10개 대분류.
 - PASS: TypeScript 및 프로덕션 빌드.
 - ASSERT: `max-width: 11ch`는 정적 `.hero h1`에만 남고 런타임 `.marry-teaser-opening h1`에는 적용되지 않는다.
+- PASS: Production `dpl_fjpmBgkvFwiC4zTYATMyYw5mxDEi` Ready, `umsh.kr` 별칭과 health 정상.
+- PASS: 실제 운영 모바일 화면에서 개인화 제목이 카드 전체 폭을 사용하며 이미지·본문·기본 펼침 잠금 목차가 유지되는 것을 확인했다.
