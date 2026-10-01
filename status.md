@@ -2713,3 +2713,11 @@ origin/main 기반 격리 브랜치 codex/signup-funnel-events에서 이벤트 �
 GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 직접 diff 리뷰 완료. KMS personal/carrotcap/notes/umsh-signup-funnel-events-20261001.md 기록. 운영 GA 수신은 미검증.
 
 2026-10-01 GA-FUNNEL-06 검증 후속: PR #53 CI 1732개 중 1731 PASS, 기존 all-service-reading-template 문구 기대값 1 FAIL 확인. 사라진 안내문 대신 실제 item.age/item.startYear 출력 바인딩 계약으로 테스트 수정(제품 코드 변경 없음). CI 전체 재검증 진행.
+
+## 2026-10-01 GA-FUNNEL-06 운영 배포 및 GA 수신
+- 사용자 운영 배포 요청에 따라 검증 코드 9a3805de를 Vercel Production에 직접 배포. PR #53은 rules §6의 PR 병합 제한에 따라 OPEN 유지.
+- 배포 dpl_3Qf6Vt94PPB9zbDpNkoYFhNwfMP9, https://chungi-67echpk12-ax-lab-cream.vercel.app → https://umsh.kr Ready.
+- health200, 운영 GA JS와 검증 원본 일치, 가입 페이지 버전 및 두 hook 확인 PASS.
+- GA4 속성553037209 실시간 보고서에서 view_signup_wall 1건 및 signup_click 1건, 클릭 상세 method=kakao 수신 확인 PASS. 운영 가입 화면을 직접 열고 카카오 버튼을 1회 클릭한 검증 트래픽이다. 카카오 계정 입력 화면까지 이동 확인, 로그인/동의는 수행하지 않음.
+- sign_up 실제 수신: PENDING_USER. 미가입 소셜 계정으로 사용자 직접 가입이 필요. 합성 가입 이벤트를 보내거나 기존 로그인을 신규가입으로 세지 않음.
+- 이전 운영 배포 chungi-fp1rr4ek8-ax-lab-cream.vercel.app을 복구 기준으로 기록. CI 전체1732/1732 및 서비스/SEO/QA/빌드 PASS 유지.

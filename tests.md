@@ -1290,3 +1290,11 @@ GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dp
 GA-FUNNEL-06: node --import tsx --test tests/unit/analytics-signup.test.ts tests/unit/analytics-tag.test.ts tests/unit/analytics-landing-redirect.test.ts tests/unit/google-auth.test.ts tests/unit/auth-live-session.test.ts — 48/48 PASS. 모달 재렌더/재진입, 3 provider의 정상·로딩·미설정 클릭, GIS click_listener, custom Naver 신규/기존/불일치 포함. npm run vercel-build (tsc 포함) PASS. 실제 외부 OAuth/GA 수신 NOT_VERIFIED. 전체 회귀는 이번 변경에서 재실행하지 않음(기존 GA-SIGNUP-04의 무관한 리포트 문구 실패 기록 참고).
 
 GA-FUNNEL-06 후속: GitHub 전체1732개 중 기존 문구 검사1실패를 실제 나이/시작연도 렌더링 계약으로 교정. 테스트 삭제/skip 없이 제품 코드 보존. 전체 CI 재실행 예정.
+
+## 2026-10-01 GA-FUNNEL-06 운영 배포 및 GA 수신
+- 사용자 운영 배포 요청에 따라 검증 코드 9a3805de를 Vercel Production에 직접 배포. PR #53은 rules §6의 PR 병합 제한에 따라 OPEN 유지.
+- 배포 dpl_3Qf6Vt94PPB9zbDpNkoYFhNwfMP9, https://chungi-67echpk12-ax-lab-cream.vercel.app → https://umsh.kr Ready.
+- health200, 운영 GA JS와 검증 원본 일치, 가입 페이지 버전 및 두 hook 확인 PASS.
+- GA4 속성553037209 실시간 보고서에서 view_signup_wall 1건 및 signup_click 1건, 클릭 상세 method=kakao 수신 확인 PASS. 운영 가입 화면을 직접 열고 카카오 버튼을 1회 클릭한 검증 트래픽이다. 카카오 계정 입력 화면까지 이동 확인, 로그인/동의는 수행하지 않음.
+- sign_up 실제 수신: PENDING_USER. 미가입 소셜 계정으로 사용자 직접 가입이 필요. 합성 가입 이벤트를 보내거나 기존 로그인을 신규가입으로 세지 않음.
+- 이전 운영 배포 chungi-fp1rr4ek8-ax-lab-cream.vercel.app을 복구 기준으로 기록. CI 전체1732/1732 및 서비스/SEO/QA/빌드 PASS 유지.
