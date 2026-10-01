@@ -106,3 +106,102 @@ test('real signup page waits for completion before auth continuation', async () 
   assert.match(html, /await window\.UMSHAnalytics\?\.beginSignup\?\.\("google"\);\s+const \{ data, error \} = await authClient\.auth\.signInWithIdToken/)
   assert.match(html, /await window\.UMSHAnalytics\?\.beginSignup\?\.\(providerName\);\s+const \{ error \} = await authClient\.auth\.signInWithOAuth/)
 })
+
+
+test('wall and click events are synchronous, allowlisted and tolerate blocked analytics', () => {
+  const { api, ctx, events } = setup()
+  api.viewSignupWall()
+  for (const method of ['google', 'kakao', 'naver', 'private@example.com']) api.signupClick(method)
+  assert.deepEqual(events.map(e => [e[1], e[2].method]), [
+    ['view_signup_wall', undefined], ['signup_click', 'google'], ['signup_click', 'kakao'], ['signup_click', 'naver'],
+  ])
+  ctx.gtag = () => { throw new Error('blocked') }
+  assert.doesNotThrow(() => { api.viewSignupWall(); api.signupClick('google') })
+})
+
+test('Naver custom OAuth provider completes once with public method naver', async () => {
+  for (const provider of ['custom:naver', 'custom:naver-production']) {
+    const { api, ctx, events } = setup()
+    ctx.fetch = async () => ({ ok: true, json: async () => ({ serverTime: new Date(now).toISOString(), providers: { naver: provider } }) })
+    await api.beginSignup('naver')
+    await api.completeSignup(auth(provider), session)
+    await api.completeSignup(auth(provider), session)
+    assert.equal(events.length, 1)
+    assert.equal(events[0][1], 'sign_up')
+    assert.equal(events[0][2].method, 'naver')
+  }
+})
+
+test('Naver existing login and wrong provider never count as signup', async () => {
+  for (const mode of ['existing', 'wrong']) {
+    const { api, ctx, events } = setup()
+    ctx.fetch = async () => ({ ok: true, json: async () => ({ serverTime: new Date(now).toISOString(), providers: { naver: 'custom:naver' } }) })
+    await api.beginSignup('naver')
+    await api.completeSignup(auth(mode === 'wrong' ? 'google' : 'custom:naver', mode === 'existing' ? now - 1 : now + 1000), session)
+    assert.equal(events.length, 0)
+  }
+})
+
+const signupPage = readFileSync(new URL('../../사주/사주/index.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+function pageFunction(start: string, end: string) {
+  const from = signupPage.indexOf(start)
+  const to = signupPage.indexOf(end, from)
+  assert.ok(from > 0 && to > from)
+  return signupPage.slice(from, to)
+}
+
+test('actual modal counts entry and reopening, not config/error rerenders', () => {
+  const { api, events } = setup()
+  const stage = { innerHTML: '', querySelector() { return this.innerHTML.includes('role="dialog"') ? {} : null } }
+  const ctx: any = { stage, window: { UMSHAnalytics: api }, authConfigData: {}, authGateMessage: '',
+    protectedEntryLabel: () => '', wantsTodayEntry: () => false, wantsProtectedProfileEntry: () => false,
+    isStandaloneSignupFlow: () => true, escapeHtml: (s: string) => s, renderAuthProviderButton: () => '', shouldUseGoogleIdentity: () => false }
+  runInNewContext(pageFunction('function renderLogin()', 'function renderLoading()'), ctx)
+  ctx.renderLogin()
+  assert.match(stage.innerHTML, /role="dialog"/)
+  ctx.renderLogin()
+  ctx.authGateMessage = 'retry'; ctx.renderLogin()
+  assert.equal(events.length, 1)
+  stage.innerHTML = '<div>concern</div>'
+  ctx.renderLogin()
+  assert.equal(events.length, 2)
+  ctx.window.UMSHAnalytics = undefined
+  assert.doesNotThrow(() => ctx.renderLogin())
+})
+
+test('actual native provider clicks count before auth, including loading/unavailable states', () => {
+  for (const method of ['google', 'kakao', 'naver']) {
+    for (const kind of ['provider', 'loading', 'unavailable']) {
+      const { api, events } = setup()
+      let click: any
+      const calls: string[] = []
+      const ctx: any = { window: { UMSHAnalytics: api }, document: { addEventListener: (_: string, cb: any) => { click = cb } },
+        signInWithProvider: (m: string) => { assert.equal(events.length, 1); calls.push(m) },
+        setAuthMessage: () => { assert.equal(events.length, 1); calls.push('message') }, unavailableAuthMessage: () => '' }
+      runInNewContext(pageFunction('document.addEventListener("click", (event) => {\n        const signupButton', 'function handleValue('), ctx)
+      const key = 'auth' + kind[0].toUpperCase() + kind.slice(1)
+      const button = { dataset: { [key]: method } }
+      click({ target: { closest: (selector: string) => selector.includes(`[data-auth-${kind}]`) ? button : null } })
+      assert.equal(events.length, 1)
+      assert.equal(events[0][1], 'signup_click')
+      assert.equal(events[0][2].method, method)
+      assert.deepEqual(calls, [kind === 'provider' ? method : 'message'])
+    }
+  }
+})
+
+test('Google iframe official click callback counts click before credential callback', async () => {
+  const { api, events } = setup()
+  let config: any
+  const container = { isConnected: true, innerHTML: '', getBoundingClientRect: () => ({ width: 320 }) }
+  const ctx: any = { window: { UMSHAnalytics: api }, document: { querySelector: () => container },
+    initializeGoogleIdentity: async () => ({ renderButton: (_: any, options: any) => { config = options } }),
+    setAuthMessage: (s: string) => assert.fail(s) }
+  runInNewContext(pageFunction('async function renderGoogleIdentityButton()', 'async function handleGoogleCredentialResponse('), ctx)
+  await ctx.renderGoogleIdentityButton()
+  assert.equal(events.length, 0)
+  config.click_listener()
+  assert.equal(events.length, 1)
+  assert.equal(events[0][1], 'signup_click')
+  assert.equal(events[0][2].method, 'google')
+})

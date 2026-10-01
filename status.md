@@ -2706,3 +2706,8 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 GA-SIGNUP-04 전체 회귀: 1725/1726 PASS. 유일 실패는 all-service-reading-template.test.ts:49의 기존 한국어 문구 기대값. 해당 테스트 blob9d44c28a 및 umsh-report-access.js blob52c3cf8a가 origin/main과 동일함을 확인(신규 GA 변경과 무관). 변경 범위는 집중36/36, 타입/빌드/HTTP PASS.
 
 GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dpl_DF8rZkkkEYK2UuCnFZrj7uHWoohT. umsh.kr health200·auth serverTime/no-store·가입3경로·GA JS 일치 PASS. 집중36/36, build/typecheck PASS; 전체1725/1726(기존 리포트 문구 검사1실패, 원격기준 동일). Grok 도구오류 BLOCKED/직접리뷰 완료. 실제 신규가입 GA 수신은 미검증. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회·검색 PASS.
+
+## 2026-10-01 GA-FUNNEL-06
+origin/main 기반 격리 브랜치 codex/signup-funnel-events에서 이벤트 계측만 구현. 주 작업폴더의 미커밋 변경 및 SNS UX 커밋 보존. 집중48/48·빌드/타입 PASS. 첫 테스트 실행에서 CRLF 때문에 함수 추출 실패 → fixture 읽기 개행 정규화 후 PASS(앱 동작 오류 아님). GitHub PR 준비, 운영 배포/실제 GA 수신 NOT_RUN.
+
+GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 직접 diff 리뷰 완료. KMS personal/carrotcap/notes/umsh-signup-funnel-events-20261001.md 기록. 운영 GA 수신은 미검증.

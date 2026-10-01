@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <script src="/js/umsh-analytics.js?v=ga-20261001-signup"></script>
+    <script src="/js/umsh-analytics.js?v=ga-20261001-signup-funnel"></script>
 <script src="/js/umsh-chrome.js?v=20260922c" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -4549,6 +4549,8 @@
           if (!container.isConnected) return;
           container.innerHTML = "";
           googleIdentity.renderButton(container, {
+            // GIS renders an iframe: its click does not reach the document listener.
+            click_listener: () => window.UMSHAnalytics?.signupClick?.("google"),
             type: "standard",
             theme: "outline",
             size: "large",
@@ -5610,6 +5612,10 @@
       });
 
       document.addEventListener("click", (event) => {
+        const signupButton = event.target.closest("[data-auth-provider], [data-auth-loading], [data-auth-unavailable]");
+        if (signupButton) {
+          window.UMSHAnalytics?.signupClick?.(signupButton.dataset.authProvider || signupButton.dataset.authLoading || signupButton.dataset.authUnavailable);
+        }
         const loadingButton = event.target.closest("[data-auth-loading]");
         if (loadingButton) {
           setAuthMessage("소셜 회원가입 설정을 확인하는 중입니다.");
@@ -6963,6 +6969,7 @@
       }
 
       function renderLogin() {
+        const wallAlreadyVisible = Boolean(stage.querySelector('[role="dialog"][aria-label="회원가입"]'));
         if (!authConfigData && !authInitPromise) {
           initAuth()
             .then(() => {
@@ -7011,6 +7018,7 @@
             <button class="auth-cancel" type="button" data-auth-close>${closeLabel}</button>
           </section>
         `;
+        if (!wallAlreadyVisible) window.UMSHAnalytics?.viewSignupWall?.();
         if (shouldUseGoogleIdentity() && authConfigData?.googleClientId && authConfigData?.providers?.google) {
           requestAnimationFrame(() => renderGoogleIdentityButton());
         }

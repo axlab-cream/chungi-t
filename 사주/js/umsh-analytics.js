@@ -102,9 +102,19 @@
   function cancelSignup() {
     try { global.sessionStorage.removeItem(SIGNUP_PENDING); } catch (_) {}
   }
+  function isSignupMethod(method) {
+    return ['google', 'kakao', 'naver'].includes(method);
+  }
+  function viewSignupWall() {
+    try { global.gtag('event', 'view_signup_wall', {}); } catch (_) {}
+  }
+  function signupClick(method) {
+    if (!isSignupMethod(method)) return;
+    try { global.gtag('event', 'signup_click', { method: method }); } catch (_) {}
+  }
   async function beginSignup(method) {
     cancelSignup();
-    if (method !== 'google' && method !== 'kakao') return;
+    if (!isSignupMethod(method)) return;
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, 1500);
     try {
@@ -114,7 +124,7 @@
       var config = await response.json();
       var startedAt = Date.parse(config.serverTime || '');
       if (!Number.isFinite(startedAt)) return;
-      global.sessionStorage.setItem(SIGNUP_PENDING, JSON.stringify({ method: method, startedAt: startedAt, localAt: Date.now() }));
+      global.sessionStorage.setItem(SIGNUP_PENDING, JSON.stringify({ method: method, provider: (config.providers || {})[method] || method, startedAt: startedAt, localAt: Date.now() }));
     } catch (_) { /* Measurement must never prevent authentication. */ }
     finally { clearTimeout(timer); }
   }
@@ -126,7 +136,7 @@
       try {
         var pending = JSON.parse(global.sessionStorage.getItem(SIGNUP_PENDING) || 'null');
         if (!pending) return;
-        if (!['google', 'kakao'].includes(pending.method) || !Number.isFinite(pending.startedAt) || !Number.isFinite(pending.localAt) || Date.now() - pending.localAt > SIGNUP_TTL || Date.now() < pending.localAt) { cancelSignup(); return; }
+        if (!isSignupMethod(pending.method) || !Number.isFinite(pending.startedAt) || !Number.isFinite(pending.localAt) || Date.now() - pending.localAt > SIGNUP_TTL || Date.now() < pending.localAt) { cancelSignup(); return; }
         // Verify with Auth rather than trusting a cached session or editable user_metadata.
         var result = await Promise.race([
           client.auth.getUser(),
@@ -136,7 +146,7 @@
         var user = result.data.user;
         var createdAt = Date.parse(user.created_at || '');
         cancelSignup();
-        if (!user.id || !Number.isFinite(createdAt) || createdAt < pending.startedAt || createdAt > pending.startedAt + SIGNUP_TTL || (user.app_metadata || {}).provider !== pending.method) return;
+        if (!user.id || !Number.isFinite(createdAt) || createdAt < pending.startedAt || createdAt > pending.startedAt + SIGNUP_TTL || (user.app_metadata || {}).provider !== (pending.provider || pending.method)) return;
         var key = 'umsh:analytics:signup-sent:' + user.id;
         if (global.localStorage.getItem(key)) return;
         // Consume before sending: repeated auth callbacks and reloads must not count twice.
@@ -154,5 +164,5 @@
     })().finally(function () { completingSignup = null; });
     return completingSignup;
   }
-  global.UMSHAnalytics = { measurementId: MEASUREMENT_ID, withoutQuery: withoutQuery, beginSignup: beginSignup, completeSignup: completeSignup, cancelSignup: cancelSignup };
+  global.UMSHAnalytics = { measurementId: MEASUREMENT_ID, withoutQuery: withoutQuery, viewSignupWall: viewSignupWall, signupClick: signupClick, beginSignup: beginSignup, completeSignup: completeSignup, cancelSignup: cancelSignup };
 })(typeof window !== 'undefined' ? window : globalThis);

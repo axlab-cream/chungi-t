@@ -786,3 +786,14 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 - S3: 기존 공용 태그 origin/QA/DNT/GPC 차단 유지. 측정 실패가 인증을 막지 않으며 이동 전 GA 콜백은 제한된 시간만 대기.
 - 순서: VM 실패 테스트 → 공용 GA API 및 실제 /signup,/cmdg 인증 경로 연결 → 테스트/빌드/리뷰 → KMS.
 - 배포 범위: 기존 운명상회 GA 보강·운영 반영 요청 범위 내 해당 수정만. 기존 데이터 소급 생성이나 테스트 회원 운영 생성 없음.
+
+## GA-FUNNEL-06 PRD / 단일 vertical slice (2026-10-01)
+- F1: 실제 가입 dialog를 DOM에 표시할 때 view_signup_wall. 설정 로드/오류 재렌더는 중복 제외, 닫고 다시 열면 새 노출.
+- F2: 카카오/네이버/구글 사용자 클릭 즉시 signup_click(method: kakao/naver/google). 로딩/미설정 버튼 클릭 포함. Google GIS iframe은 공식 click_listener 사용.
+- F3: 기존 인증 완료 hook을 유지하고 Naver custom provider도 지원. 서버 시각 이후 생성된 getUser 검증 계정만 sign_up(method), 로그인/갱신/실패/중복 제외.
+- 데이터: 기존 Auth 공개 config 및 검증 계정 생성 시각. 고객 식별자는 이벤트에 보내지 않는다. QA/local/DNT/GPC 제외 유지. DB/권한/소셜 설정 변경 없음.
+- 범위: 공용 GA JS, 실제 /signup 및 /cmdg 페이지, 회귀 테스트. SNS 결과/CTA UX는 제외. main 대신 codex/signup-funnel-events 브랜치 PR만 생성.
+- 완료 기준: 실제 함수 연결 VM 회귀, 신규/기존/실패/중복/세 provider, 빌드·타입 검증, diff 리뷰 및 KMS. 운영 GA 수신은 PR 검증 결과와 구별.
+- 참고: https://developers.google.com/identity/gsi/web/reference/js-reference#GsiButtonConfiguration (click_listener).
+- 분석: GA4 탐색에서 동일 사용자·동일 세션의 순차 퍼널을 사용한다. 반복 클릭/재노출이 있어 단순 이벤트 수 나눗셈은 고유 사용자 전환율이 아니다. sign_up은 신규가입이므로 기존회원 로그인 통과는 이 지표에 포함되지 않는다. 클릭 유실/추적거부 및 실제 OAuth 실패 원인 확정에는 추가 인증 오류 근거가 필요하다.
+- 배포 후 검증: 실제 신규 계정으로 각 provider 가입 시 DebugView의 view_signup_wall → signup_click(method) → sign_up(method) 순서 확인. 기존회원 로그인/취소에는 sign_up 없음 확인. 테스트 계정을 운영에 생성하지 않았으므로 현재 수신 상태 NOT_VERIFIED.

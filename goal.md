@@ -438,3 +438,6 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
 
 GA-SIGNUP-04: 신규 Google/Kakao 가입 완료를 GA4 sign_up(method)로 측정. 기존 로그인/개인정보/QA 제외.
+
+## GA-FUNNEL-06 — 가입 퍼널 3개 이벤트 PR (2026-10-01)
+가입 모달 노출 → 소셜 클릭(method) → 검증된 신규 가입 완료를 측정한다. UI 변경 없이 GitHub PR로 전달하며 운영 반영·실제 GA 수신은 별도 검증한다.
