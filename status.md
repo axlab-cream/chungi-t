@@ -2699,3 +2699,6 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 2026-09-30 생활말 변환과 나이별 상세 카드 완료. 전체 1716/1716, 후속 73/73, 타입/빌드 PASS. 운영 배포 검증 진행.
 
 2026-09-30 DONE: a4790310 / dpl_4ZzLhzTNSWsz267yqdL8vjrLodrc Ready. 운영 10개 세로 설명, 12개 생활 제목, 320px 넘침0, 기존 이력 유지 확인.
+
+## 2026-10-01 GA-SIGNUP-04
+실제 가입 페이지에서 OAuth/ID-token 직전 시도 기록, getUser로 검증한 created_at 기반 신규가입만 sign_up(method:google/kakao) 전송. 클릭/기존로그인/중복/실패 제외. 추적거부·QA 제외 및 개인정보 보호 유지. 집중36/36·build/typecheck·HTTP3경로 PASS. Grok MCP/read_file 오류로 외부리뷰 BLOCKED; 직접 코드리뷰 완료. 운영/전체회귀는 진행 중. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회 PASS.

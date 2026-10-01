@@ -96,5 +96,63 @@
   script.src = 'https://www.googletagmanager.com/gtag/js?id=' + MEASUREMENT_ID;
   (document.head || document.documentElement).appendChild(script);
 
-  global.UMSHAnalytics = { measurementId: MEASUREMENT_ID, withoutQuery: withoutQuery };
+  var SIGNUP_PENDING = 'umsh:analytics:signup-pending';
+  var SIGNUP_TTL = 60 * 60 * 1000;
+  var completingSignup = null;
+  function cancelSignup() {
+    try { global.sessionStorage.removeItem(SIGNUP_PENDING); } catch (_) {}
+  }
+  async function beginSignup(method) {
+    cancelSignup();
+    if (method !== 'google' && method !== 'kakao') return;
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 1500);
+    try {
+      // Browser clocks may be wrong. Compare account creation against our server clock.
+      var response = await global.fetch('/api/auth/config', { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) return;
+      var config = await response.json();
+      var startedAt = Date.parse(config.serverTime || '');
+      if (!Number.isFinite(startedAt)) return;
+      global.sessionStorage.setItem(SIGNUP_PENDING, JSON.stringify({ method: method, startedAt: startedAt, localAt: Date.now() }));
+    } catch (_) { /* Measurement must never prevent authentication. */ }
+    finally { clearTimeout(timer); }
+  }
+  function completeSignup(client, session) {
+    if (completingSignup) return completingSignup;
+    if (!session || !session.access_token) return Promise.resolve();
+    completingSignup = (async function () {
+      var timer;
+      try {
+        var pending = JSON.parse(global.sessionStorage.getItem(SIGNUP_PENDING) || 'null');
+        if (!pending) return;
+        if (!['google', 'kakao'].includes(pending.method) || !Number.isFinite(pending.startedAt) || !Number.isFinite(pending.localAt) || Date.now() - pending.localAt > SIGNUP_TTL || Date.now() < pending.localAt) { cancelSignup(); return; }
+        // Verify with Auth rather than trusting a cached session or editable user_metadata.
+        var result = await Promise.race([
+          client.auth.getUser(),
+          new Promise(function (resolve) { timer = setTimeout(function () { resolve(null); }, 1500); }),
+        ]);
+        if (!result || result.error || !result.data || !result.data.user) return;
+        var user = result.data.user;
+        var createdAt = Date.parse(user.created_at || '');
+        cancelSignup();
+        if (!user.id || !Number.isFinite(createdAt) || createdAt < pending.startedAt || createdAt > pending.startedAt + SIGNUP_TTL || (user.app_metadata || {}).provider !== pending.method) return;
+        var key = 'umsh:analytics:signup-sent:' + user.id;
+        if (global.localStorage.getItem(key)) return;
+        // Consume before sending: repeated auth callbacks and reloads must not count twice.
+        global.localStorage.setItem(key, '1');
+        await new Promise(function (resolve) {
+          var deliveryTimer = setTimeout(resolve, 1000);
+          global.gtag('event', 'sign_up', {
+            method: pending.method,
+            event_callback: function () { clearTimeout(deliveryTimer); resolve(); },
+            event_timeout: 1000,
+          });
+        });
+      } catch (_) { /* Offline/blocked storage or analytics must not break login. */ }
+      finally { clearTimeout(timer); }
+    })().finally(function () { completingSignup = null; });
+    return completingSignup;
+  }
+  global.UMSHAnalytics = { measurementId: MEASUREMENT_ID, withoutQuery: withoutQuery, beginSignup: beginSignup, completeSignup: completeSignup, cancelSignup: cancelSignup };
 })(typeof window !== 'undefined' ? window : globalThis);

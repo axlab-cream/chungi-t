@@ -1280,3 +1280,5 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - 완료: 장별 2회/이력/한국인 스케치 운영 검증. 전체 1713/1713 + 최종 보관함 9/9 PASS, 타입/빌드 PASS. 코드 1b5a39aa, 운영 dpl_2m1BfhVtnAYJXzW6yiQsLnEjkdHT Ready. 상세 운영 근거 docs/cmdg-personal-reading-20260930.md.
 
 2026-09-30 천명사주 생활말/세로 나이표: 전체 1716 PASS, 최종 회귀 73 PASS, 타입/빌드 PASS, 320px 넘침 0.
+
+GA-SIGNUP-04: node --import tsx --test tests/unit/analytics-signup.test.ts tests/unit/analytics-tag.test.ts tests/unit/analytics-landing-redirect.test.ts 36/36 PASS. 신규10개: Google/Kakao, 중복, 기존로그인, 미검증, provider불일치, 만료/손상, OAuth reload, 저장소/광고차단, 실제 initAuth 연결. npm run vercel-build PASS. Express3경로/서버시각/no-store PASS.

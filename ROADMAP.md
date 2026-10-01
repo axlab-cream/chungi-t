@@ -507,3 +507,5 @@ LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRES
 사용자 운영 배포 승인 후 ec1d0f4f 운영 반영 완료. 실제 개인 명반의 독립 장, 실제 대운의 5개 생애 구간, 주의 조건 강조 및 구형 저장본 호환성 수정 진행. 근거/검증/복구 이력: docs/cmdg-personal-reading-20260930.md. 기존 원문·결제 권한 보존.
 
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
+
+GA-SIGNUP-04: 구현·집중36/36·빌드/타입·실제3경로 HTTP PASS. 전체 회귀·운영 확인 진행 중.

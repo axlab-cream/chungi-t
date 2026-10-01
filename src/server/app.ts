@@ -2099,7 +2099,7 @@ app.get('/api/health', async (req, res) => {
 })
 
 app.get('/api/auth/config', (_req, res) => {
-  res.json(authConfig())
+  res.json({ ...authConfig(), serverTime: new Date().toISOString() })
 })
 
 /**

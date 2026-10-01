@@ -779,3 +779,10 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 - 2026-09-30 쉬운 말 후속: 자미두수 계산명 직접 노출을 생활 제목/질문/뜻으로 수정. 저장 풀이 설명 연결·새 생성 언어 계약·개인 계산 보존 검증 후 운영 배포. 상세 PRD: docs/cmdg-personal-reading-20260930.md.
 
 2026-09-30 생활말·세로 시기표: 구현/전체테스트/타입/빌드/리뷰/main/운영검증 완료.
+
+## GA-SIGNUP-04 (2026-10-01)
+- PRD S1: 신규 Google/Kakao 계정 인증 완료에만 GA4 sign_up(method: google/kakao) 1회 전송. 클릭/기존 로그인/갱신/실패 제외.
+- S2: 시도 직전 /api/auth/config의 서버 시각과 인증 서버 getUser.created_at 대조. 1시간 pending을 탭 저장소에 유지하고 완료 시 소비. 계정별 로컬 중복 방지. 개인정보는 GA에 전달하지 않음.
+- S3: 기존 공용 태그 origin/QA/DNT/GPC 차단 유지. 측정 실패가 인증을 막지 않으며 이동 전 GA 콜백은 제한된 시간만 대기.
+- 순서: VM 실패 테스트 → 공용 GA API 및 실제 /signup,/cmdg 인증 경로 연결 → 테스트/빌드/리뷰 → KMS.
+- 배포 범위: 기존 운명상회 GA 보강·운영 반영 요청 범위 내 해당 수정만. 기존 데이터 소급 생성이나 테스트 회원 운영 생성 없음.

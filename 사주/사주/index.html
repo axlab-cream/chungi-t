@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-analytics.js?v=ga-20261001-signup"></script>
 <script src="/js/umsh-chrome.js?v=20260922c" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -3999,12 +3999,14 @@
           const { data, error } = await authClient.auth.getSession();
           if (error) throw error;
           authSession = await enforceDeviceAuthSession(data.session || null);
+          await window.UMSHAnalytics?.completeSignup?.(authClient, authSession);
           authClient.auth.onAuthStateChange((_event, session) => {
             enforceDeviceAuthSession(session || null)
               .then((nextSession) => {
                 authSession = nextSession;
                 if (nextSession?.access_token) {
                   setTimeout(() => {
+                    window.UMSHAnalytics?.completeSignup?.(authClient, nextSession);
                     syncRemoteReportHistory().catch((err) => console.warn("원격 풀이 보관함 동기화에 실패했습니다.", err));
                   }, 0);
                 }
@@ -4577,6 +4579,7 @@
           if (!response?.credential || !googleIdentityNonce) {
             throw new Error("Google 인증 정보를 받지 못했습니다.");
           }
+          await window.UMSHAnalytics?.beginSignup?.("google");
           const { data, error } = await authClient.auth.signInWithIdToken({
             provider: "google",
             token: response.credential,
@@ -4585,8 +4588,10 @@
           if (error) throw error;
           authSession = await enforceDeviceAuthSession(data.session || null);
           if (!authSession?.access_token) throw new Error("로그인 세션을 만들지 못했습니다.");
+          await window.UMSHAnalytics?.completeSignup?.(authClient, authSession);
           location.replace(isStandaloneSignupFlow() ? signupReturnUrl() : authReturnUrl());
         } catch (err) {
+          window.UMSHAnalytics?.cancelSignup?.();
           sessionStorage.removeItem(AUTH_PENDING_KEY);
           authSignInProvider = "";
           providerButton?.classList.remove("is-loading");
@@ -4621,9 +4626,11 @@
             options.scopes = "profile_nickname profile_image";
             options.queryParams = { scope: "profile_nickname profile_image" };
           }
+          await window.UMSHAnalytics?.beginSignup?.(providerName);
           const { error } = await authClient.auth.signInWithOAuth({ provider, options });
           if (error) throw error;
         } catch (err) {
+          window.UMSHAnalytics?.cancelSignup?.();
           sessionStorage.removeItem(AUTH_PENDING_KEY);
           authSignInProvider = "";
           providerButton?.classList.remove("is-loading");
