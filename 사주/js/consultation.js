@@ -65,7 +65,7 @@
     if (error.status === 429) return '현재 상담 요청이 많아요. 잠시 기다렸다 다시 보내 주세요.';
     if (error.status === 409) return '이전 요청을 처리 중이에요. 잠시 후 같은 내용으로 다시 시도해 주세요.';
     if (error.name === 'AbortError') return '응답을 확인하지 못했어요. 입력은 남아 있습니다. 같은 내용으로 다시 보내 주세요.';
-    if (/DISABLED|CONFIG|UNAVAILABLE/.test(error.code || '')) return '현재 상담 연결을 준비 중이에요. 잠시 후 다시 방문해 주세요.';
+    if (/DISABLED|CONFIG|UNAVAILABLE|SETUP_REQUIRED/.test(error.code || '')) return '현재 상담 연결을 준비 중이에요. 잠시 후 다시 방문해 주세요.';
     return '상담을 불러오지 못했어요. 입력은 남아 있습니다. 잠시 후 다시 시도해 주세요.';
   }
   function stateContent(target, title, copy, href, label) {
