@@ -2702,3 +2702,5 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 
 ## 2026-10-01 GA-SIGNUP-04
 실제 가입 페이지에서 OAuth/ID-token 직전 시도 기록, getUser로 검증한 created_at 기반 신규가입만 sign_up(method:google/kakao) 전송. 클릭/기존로그인/중복/실패 제외. 추적거부·QA 제외 및 개인정보 보호 유지. 집중36/36·build/typecheck·HTTP3경로 PASS. Grok MCP/read_file 오류로 외부리뷰 BLOCKED; 직접 코드리뷰 완료. 운영/전체회귀는 진행 중. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회 PASS.
+
+GA-SIGNUP-04 전체 회귀: 1725/1726 PASS. 유일 실패는 all-service-reading-template.test.ts:49의 기존 한국어 문구 기대값. 해당 테스트 blob9d44c28a 및 umsh-report-access.js blob52c3cf8a가 origin/main과 동일함을 확인(신규 GA 변경과 무관). 변경 범위는 집중36/36, 타입/빌드/HTTP PASS.

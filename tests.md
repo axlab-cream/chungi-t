@@ -1282,3 +1282,5 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 2026-09-30 천명사주 생활말/세로 나이표: 전체 1716 PASS, 최종 회귀 73 PASS, 타입/빌드 PASS, 320px 넘침 0.
 
 GA-SIGNUP-04: node --import tsx --test tests/unit/analytics-signup.test.ts tests/unit/analytics-tag.test.ts tests/unit/analytics-landing-redirect.test.ts 36/36 PASS. 신규10개: Google/Kakao, 중복, 기존로그인, 미검증, provider불일치, 만료/손상, OAuth reload, 저장소/광고차단, 실제 initAuth 연결. npm run vercel-build PASS. Express3경로/서버시각/no-store PASS.
+
+GA-SIGNUP-04 전체 회귀: 1725/1726 PASS. 유일 실패는 all-service-reading-template.test.ts:49의 기존 한국어 문구 기대값. 해당 테스트 blob9d44c28a 및 umsh-report-access.js blob52c3cf8a가 origin/main과 동일함을 확인(신규 GA 변경과 무관). 변경 범위는 집중36/36, 타입/빌드/HTTP PASS.
