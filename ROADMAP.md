@@ -509,3 +509,5 @@ LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRES
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
 
 GA-SIGNUP-04: 구현·집중36/36·빌드/타입·실제3경로 HTTP PASS. 전체 회귀·운영 확인 진행 중.
+
+GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dpl_DF8rZkkkEYK2UuCnFZrj7uHWoohT. umsh.kr health200·auth serverTime/no-store·가입3경로·GA JS 일치 PASS. 집중36/36, build/typecheck PASS; 전체1725/1726(기존 리포트 문구 검사1실패, 원격기준 동일). Grok 도구오류 BLOCKED/직접리뷰 완료. 실제 신규가입 GA 수신은 미검증. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회·검색 PASS.
