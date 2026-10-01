@@ -2629,3 +2629,13 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 - 별도 Grok 리뷰는 MCP 오류 후 결과 미반환으로 중단; 직접 diff 리뷰 완료.
 - KMS: personal/carrotcap/notes/umsh-ga-integrity-20260929.md. [GATE] rules.md §6.3에 따른 명시적 운영 배포 요청 전 push/배포 미실행.
 - 최종 격리 검증: 전체 회귀 1,694/1,694 PASS (166 suites), 빌드/타입 PASS. 운영 반영은 미실행.
+
+## 2026-09-29 운영 배포 완료
+- 사용자 명시적 운영 배포 승인. 기존 관계 신호 변경42912e18 보존 후 GA 커밋30626b7a main push. 후속 테스트전용11235a29를 포함한 최신 소스로 최종 배포.
+- 초기 Git 배포2건은 Ready에도 INTERNAL_FUNCTION_INVOCATION_FAILED 500 발생. 앱 오류 로그는 없었고 정확한 플랫폼 원인은 미확정. 직전 정상dpl_HycmQNTbBtqEN9UQhRy58EjzVQa3으로 rollback 및 health200 복구 확인.
+- 캐시 없는 CLI --prod --skip-domain --force 배포에서 health JSON ok:true 및 GA JS 원본 일치를 먼저 확인한 후 promote.
+- 최종 운영 배포 dpl_Ha21yGvGUvrrmuWSRjVH1xTkWPUp / https://chungi-kl54ydmsl-ax-lab-cream.vercel.app. umsh.kr 실제 HTTP 및 inspect에서 이 배포가 제공됨 확인.
+- 운영 검증 PASS: 제공6개 랜딩+job-choice/move 총8개 HTTP200·UTM/gclid 유지, 공용 GA JS 검증본 일치, health200/ok:true. 배포 JS 격리VM에서도 local/preview/QA 차단 및 광고값보존/고객ID제외 PASS. 합성 GA 이벤트는 전송하지 않음.
+- 검증: 이전 전체1694/1694, 최신 관계신호 포함 집중37/37 및 build/typecheck PASS. 최신 GitHub CI36554210668 success.
+- 운영 배포는 완료. 실제 신규 GA 집계와 광고 참여율 개선은 아직 미검증이며 기존 오염 데이터는 소급 정정되지 않는다.
+- lesson: Ready는 런타임 정상의 증거가 아니다. 운영 promote 전 실제 endpoint와 배포된 JS를 검사한다.

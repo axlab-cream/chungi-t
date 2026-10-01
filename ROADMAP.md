@@ -495,3 +495,5 @@ LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRES
 - [x] 운영 JS/HTTP 원인 재현, 운영 origin/QA 탭 제한, 캠페인 보존.
 - [x] 집중32/32 및 격리 운영 기준 빌드/타입 PASS.
 - [ ] 운영 반영 및 GA 신규 수신 검증.
+
+- GA-INTEGRITY-01 운영 배포 DONE: dpl_Ha21yGvGUvrrmuWSRjVH1xTkWPUp. 실제 GA 신규 집계/광고 성과 확인은 별도.

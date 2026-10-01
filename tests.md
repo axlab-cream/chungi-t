@@ -1227,3 +1227,5 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - PASS: 제공된6개 랜딩과 job-choice/move의 실제 Express HTTP200·UTM/gclid 보존.
 - NOT_RUN: GA 새 이벤트 수신/운영 배포. 신년·합격운은 기존 공개중지로 HTTP는 홈 이동, 단위 함수 검사와 구분.
 - 최종 격리 검증: 전체 회귀 1,694/1,694 PASS (166 suites), 빌드/타입 PASS. 운영 반영은 미실행.
+
+- GA-INTEGRITY-01 운영 검증 PASS: dpl_Ha21yGvGUvrrmuWSRjVH1xTkWPUp, 8개 랜딩200/UTM/gclid·JS 일치·health200. CI36554210668 success. GA 신규집계는 미검증.
