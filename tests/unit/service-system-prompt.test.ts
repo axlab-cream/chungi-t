@@ -1,3 +1,5 @@
+import { DEFAULT_CONSULTATION_SETTINGS } from '../../src/consultation/settings.js'
+import { CONSULTATION_RESPONSE_POLICY } from '../../src/consultation/response-policy.js'
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
@@ -119,6 +121,12 @@ describe('service-system prompt wiring', () => {
     const legacy = readFileSync(join(PROMPTS_ROOT, 'system-prompt.md'), 'utf-8')
     const common = loadCommonSystemPrompt()
     for (const product of listPaymentProducts()) {
+      if (product.key === 'cheonmyeong_consultation') {
+        assert.equal(product.returnPath, '/consultation/')
+        assert.ok(DEFAULT_CONSULTATION_SETTINGS.personality.length > 50)
+        assert.ok(CONSULTATION_RESPONSE_POLICY.length > 300)
+        continue // Interactive consultation uses its own persona and response policy.
+      }
       const key = normalizeServiceKey(product.key)
       const assembled = loadSystemPrompt(key)
       assert.ok(

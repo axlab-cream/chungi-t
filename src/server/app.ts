@@ -1,7 +1,7 @@
 import { loveSpeedRouter } from '../play/love-speed-route.js'
 import { respondRequestFailure } from './input-error.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
-import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder } from '../coupons/store.js'
+import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet } from '../coupons/store.js'
 import { CouponError } from '../coupons/contracts.js'
 import { getConsultationCouponUsage } from '../consultation/backend.js'
 import { consultationRouter, isConsultationRecord, getConsultationAccess, reserveConsultationCheckout } from '../consultation/backend.js'
@@ -4039,12 +4039,13 @@ app.get('/api/user/reports', async (req, res) => {
     // 그대로 더해진다 — 경량 뷰로 리포트 쪽을 줄인 뒤에도 응답이 2.2~2.5초였던 이유가
     // 이거였다(각 왕복이 ~1~1.2초, 2026-09-17 운영 실측). 나란히 보내 한 번의 왕복 시간으로 줄인다.
     const dbStarted = performance.now()
-    const [records, orders] = await Promise.all([
+    const [records, orders, coupons] = await Promise.all([
       listReportRecords(owner, 100, { light: true, includeAnalysis: !slim })
         .then((rows) => { timing.lap('records', dbStarted); return rows }),
-      listPaymentOrders(owner.id, 100)
+      listPaymentOrders(owner.id, 100, undefined, true)
         .then((rows) => { timing.lap('orders', dbStarted); return rows })
         .catch(() => null),
+      listWallet(owner.id).catch(() => []),
     ])
     timing.mark('db')
     if (!orders) {
@@ -4064,7 +4065,7 @@ app.get('/api/user/reports', async (req, res) => {
     }
     const listings = isAdminOwner(owner)
       ? selectAdminVaultReadings(records, orders)
-      : selectPurchasedReadings(records, orders)
+      : selectPurchasedReadings(records, orders, coupons)
     const body = {
       userId: owner.id,
       storage: getReportStorageMode(),
@@ -4132,8 +4133,7 @@ app.delete('/api/user/reports/:reportId', async (req, res) => {
       res.status(400).json({ error: 'reportId가 필요합니다.' })
       return
     }
-    const existing = await findReportRecord(reportId, owner)
-    if (existing && isConsultationRecord(existing)) { res.status(409).json({ error: '상담 이용권 기록은 일반 풀이 삭제로 지울 수 없습니다. 상담 기록 삭제는 고객센터로 문의해 주세요.' }); return }
+    if (reportId.startsWith('consultation-')) { res.status(409).json({ error: '상담 이용권 기록은 일반 풀이 삭제로 지울 수 없습니다. 상담 기록 삭제는 고객센터로 문의해 주세요.' }); return }
     const deleted = await deleteReportRecord(reportId, owner)
     // 지운 리포트를 큐가 다시 집으면 REPORT_NOT_FOUND 로 dead 만 쌓인다. 작업도 함께 지운다.
     if (deleted) await deleteOpsJobsForTarget(reportId).catch(() => undefined)

@@ -251,6 +251,16 @@ describe('saved chat HTTP auth, persistence, parent entitlement and retry routes
     assert.equal(modelCalls, 1)
   })
 
+  it('does not delete the member consultation credit ledger through report deletion', async () => {
+    const source = await store.findReportRecord(parentReportId, owner)
+    assert.ok(source)
+    const reportId = 'consultation-' + randomUUID()
+    await store.createOrGetReportRecord({ reportId, birth, context: { serviceKey: 'cheonmyeong_consultation' }, templateReport: source.report, owner })
+    const reply = await request(`/api/user/reports/${reportId}`, undefined, owner.accessToken, 'DELETE')
+    assert.equal(reply.response.status, 409)
+    assert.ok(await store.findReportRecord(reportId, owner))
+  })
+
   it('requires the exact parent entitlement and routes failed chat-section retry through the chat generator', async () => {
     const childBody = { parentReportId: parentResultId, requestId: parentRequestId, message: '저장된 업무 조건을 어떻게 유지하면 좋을까요?' }
     const unpaid = await request('/api/chat', childBody)

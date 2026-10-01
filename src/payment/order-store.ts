@@ -440,11 +440,11 @@ export async function listAllPaymentOrders(query: PaymentOrderQuery = {}): Promi
   return pageOf(result.rows.map(fromRow))
 }
 
-export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string): Promise<PaymentOrder[]> {
+export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string, settledReadings = false): Promise<PaymentOrder[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
   if (storageMode() === 'memory') {
     return Array.from(memoryOrders.values())
-      .filter((order) => order.ownerId === ownerId && (!reportId || order.reportId === reportId))
+      .filter((order) => order.ownerId === ownerId && (!reportId || order.reportId === reportId) && (!settledReadings || (order.productKey !== 'cheonmyeong_consultation' && !!order.reportId && ['paid', 'viewed'].includes(order.status))))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, safeLimit)
       .map(cloneOrder)
@@ -454,6 +454,11 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('owner_id', `eq.${ownerId}`)
     if (reportId) url.searchParams.set('report_id', `eq.${reportId}`)
+    if (settledReadings) {
+      url.searchParams.set('product_key', 'neq.cheonmyeong_consultation')
+      url.searchParams.set('status', 'in.(paid,viewed)')
+      if (!reportId) url.searchParams.set('report_id', 'not.is.null')
+    }
     url.searchParams.set('select', '*')
     url.searchParams.set('order', 'updated_at.desc')
     url.searchParams.set('limit', String(safeLimit))
@@ -466,7 +471,7 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
   if (!pool) return []
   await ensureDb()
   const result = await pool.query<Record<string, unknown>>(
-    'SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 AND ($3::text IS NULL OR report_id = $3) ORDER BY updated_at DESC LIMIT $2',
+    `SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 AND ($3::text IS NULL OR report_id = $3) ${settledReadings ? "AND product_key <> 'cheonmyeong_consultation' AND report_id IS NOT NULL AND status IN ('paid', 'viewed')" : ''} ORDER BY updated_at DESC LIMIT $2`,
     [ownerId, safeLimit, reportId ?? null],
   )
   return result.rows.map(fromRow)
@@ -518,7 +523,7 @@ export async function listConsultationPaymentOrders(ownerId: string): Promise<Pa
 export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> {
   if (storageMode() === 'memory') {
     return Array.from(memoryOrders.values()).some((order) => (
-      order.ownerId === ownerId && (order.status === 'paid' || order.status === 'viewed')
+      order.ownerId === ownerId && order.productKey !== 'cheonmyeong_consultation' && (order.status === 'paid' || order.status === 'viewed')
     ))
   }
 
@@ -526,6 +531,7 @@ export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> 
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('owner_id', `eq.${ownerId}`)
     url.searchParams.set('status', 'in.(paid,viewed)')
+    url.searchParams.set('product_key', 'neq.cheonmyeong_consultation')
     url.searchParams.set('select', 'order_id')
     url.searchParams.set('limit', '1')
     const response = await fetch(url, { headers: supabaseHeaders() })
@@ -537,7 +543,7 @@ export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> 
   if (!pool) return false
   await ensureDb()
   const result = await pool.query(
-    "SELECT 1 FROM cheongi_payment_orders WHERE owner_id = $1 AND status IN ('paid', 'viewed') LIMIT 1",
+    "SELECT 1 FROM cheongi_payment_orders WHERE owner_id = $1 AND status IN ('paid', 'viewed') AND product_key <> 'cheonmyeong_consultation' LIMIT 1",
     [ownerId],
   )
   return result.rowCount !== null && result.rowCount > 0

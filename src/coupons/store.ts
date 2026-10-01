@@ -136,3 +136,6 @@ export async function reserveDiscount(ownerId: string, walletId: string, product
 }
 export async function getDiscountForOrder(ownerId: string, orderId: string): Promise<WalletCoupon | null> { return (await listWallet(ownerId)).find(w => w.orderId === orderId && ['amount_off', 'percent_off'].includes(w.kind)) ?? null }
 export async function listConsultationCoupons(ownerId: string): Promise<WalletCoupon[]> { const s = (await read()).data; return s.wallets.filter(w => w.ownerId === ownerId && w.kind === 'consultation_questions' && active(s.campaigns.find(c => c.id === w.campaignId))).map(w => project(s, w)) }
+
+/** Server-only entitlement snapshot for completion recovery; no payment rows are fabricated. */
+export async function listCouponReportBindings(): Promise<WalletCoupon[]> { const s = (await read()).data; return s.wallets.filter(w => w.kind === 'service_free' && !!w.reportId).map(w => project(s, w)) }

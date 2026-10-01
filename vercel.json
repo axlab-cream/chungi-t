@@ -11,7 +11,7 @@
     },
     "api/index.ts": {
       "maxDuration": 300,
-      "includeFiles": "{admin-ui/**,data/**,prompts/**,사주/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/PRD.md,tone-v2/PLAN.md,tone-v2/HANDOFF-PROMPT-20260912.md,tone-v2/report-budget.json}"
+      "includeFiles": "{admin-ui/**,data/**,prompts/**,.vercel-runtime/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/{PRD.md,PLAN.md,HANDOFF-PROMPT-20260912.md,report-budget.json}}"
     }
   },
   "crons": [
@@ -28,5 +28,8 @@
       "src": "/(.*)",
       "dest": "/api/index?__umsh_path=$1"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": false
+  }
 }

@@ -115,7 +115,7 @@
       } catch (error) {
         if (ticket !== version) return;
         host.className = 'consultation-vault-state';
-        stateContent(host, '추가 풀이를 열지 못했어요', friendly(error), error.code === 'AUTH_REQUIRED' ? loginUrl('/vault?tab=consultation') : null, '로그인하기');
+        stateContent(host, '천명상담 기록을 열지 못했어요', friendly(error), error.code === 'AUTH_REQUIRED' ? loginUrl('/vault?tab=consultation') : null, '로그인하기');
         if (error.code !== 'AUTH_REQUIRED') { const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '다시 불러오기'; retry.onclick = () => window.UMSHConsultationVault(true); host.append(retry); }
       }
     };
