@@ -46,7 +46,9 @@ test('shared reader applies the configured image, guide, and actual fortune grap
   assert.match(source, /function serviceCardBody\(section, payload, body, index\)/)
   assert.match(source, /function refreshServiceSectionImages\(serviceKey\)/)
   assert.match(source, /var canShowCurve = Boolean\(currentSegment && payload && payload\.analysis\)/)
-  assert.match(source, /개인의 실제 대운 시작 나이와 연도를 표시/)
+  // Validate the data binding rather than editorial copy changed by the plain-language UI.
+  assert.match(source, /escapeHtml\(item\.age\)/)
+  assert.match(source, /escapeHtml\(String\(item\.startYear\)\) \+ '년 시작<\/span>'/)
 
   assert.match(css, /\.umsh-reading-guide\s*\{/)
   assert.match(css, /\.umsh-reading-guide-scroll\s*\{ overflow-x: auto/)

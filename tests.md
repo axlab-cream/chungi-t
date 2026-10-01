@@ -1288,3 +1288,5 @@ GA-SIGNUP-04 전체 회귀: 1725/1726 PASS. 유일 실패는 all-service-reading
 GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dpl_DF8rZkkkEYK2UuCnFZrj7uHWoohT. umsh.kr health200·auth serverTime/no-store·가입3경로·GA JS 일치 PASS. 집중36/36, build/typecheck PASS; 전체1725/1726(기존 리포트 문구 검사1실패, 원격기준 동일). Grok 도구오류 BLOCKED/직접리뷰 완료. 실제 신규가입 GA 수신은 미검증. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회·검색 PASS.
 
 GA-FUNNEL-06: node --import tsx --test tests/unit/analytics-signup.test.ts tests/unit/analytics-tag.test.ts tests/unit/analytics-landing-redirect.test.ts tests/unit/google-auth.test.ts tests/unit/auth-live-session.test.ts — 48/48 PASS. 모달 재렌더/재진입, 3 provider의 정상·로딩·미설정 클릭, GIS click_listener, custom Naver 신규/기존/불일치 포함. npm run vercel-build (tsc 포함) PASS. 실제 외부 OAuth/GA 수신 NOT_VERIFIED. 전체 회귀는 이번 변경에서 재실행하지 않음(기존 GA-SIGNUP-04의 무관한 리포트 문구 실패 기록 참고).
+
+GA-FUNNEL-06 후속: GitHub 전체1732개 중 기존 문구 검사1실패를 실제 나이/시작연도 렌더링 계약으로 교정. 테스트 삭제/skip 없이 제품 코드 보존. 전체 CI 재실행 예정.

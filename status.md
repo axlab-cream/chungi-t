@@ -2711,3 +2711,5 @@ GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dp
 origin/main 기반 격리 브랜치 codex/signup-funnel-events에서 이벤트 계측만 구현. 주 작업폴더의 미커밋 변경 및 SNS UX 커밋 보존. 집중48/48·빌드/타입 PASS. 첫 테스트 실행에서 CRLF 때문에 함수 추출 실패 → fixture 읽기 개행 정규화 후 PASS(앱 동작 오류 아님). GitHub PR 준비, 운영 배포/실제 GA 수신 NOT_RUN.
 
 GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 직접 diff 리뷰 완료. KMS personal/carrotcap/notes/umsh-signup-funnel-events-20261001.md 기록. 운영 GA 수신은 미검증.
+
+2026-10-01 GA-FUNNEL-06 검증 후속: PR #53 CI 1732개 중 1731 PASS, 기존 all-service-reading-template 문구 기대값 1 FAIL 확인. 사라진 안내문 대신 실제 item.age/item.startYear 출력 바인딩 계약으로 테스트 수정(제품 코드 변경 없음). CI 전체 재검증 진행.
