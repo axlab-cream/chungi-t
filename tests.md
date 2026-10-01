@@ -1298,3 +1298,6 @@ GA-FUNNEL-06 후속: GitHub 전체1732개 중 기존 문구 검사1실패를 실
 - GA4 속성553037209 실시간 보고서에서 view_signup_wall 1건 및 signup_click 1건, 클릭 상세 method=kakao 수신 확인 PASS. 운영 가입 화면을 직접 열고 카카오 버튼을 1회 클릭한 검증 트래픽이다. 카카오 계정 입력 화면까지 이동 확인, 로그인/동의는 수행하지 않음.
 - sign_up 실제 수신: PENDING_USER. 미가입 소셜 계정으로 사용자 직접 가입이 필요. 합성 가입 이벤트를 보내거나 기존 로그인을 신규가입으로 세지 않음.
 - 이전 운영 배포 chungi-fp1rr4ek8-ax-lab-cream.vercel.app을 복구 기준으로 기록. CI 전체1732/1732 및 서비스/SEO/QA/빌드 PASS 유지.
+
+## 2026-10-01 실제 신규 가입 최종 확인
+사용자 재검증 후 Auth에서 이번 시점의 Google 신규 계정 생성 확인. GA4 속성553037209 실시간 보고서 sign_up 1건, 상세 method=google 1건 확인 PASS. 기존에 확인한 view_signup_wall 및 signup_click(method=kakao)와 함께 세 이벤트 실제 수신 검증 완료. Google 실제 신규가입 완료 기준이며 Kakao/Naver 신규가입 완료의 개별 E2E는 미실행. 합성 이벤트 전송 없음. 개인정보/계정 식별자는 기록하지 않음.
