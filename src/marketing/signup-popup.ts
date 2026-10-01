@@ -27,7 +27,7 @@ export interface ActiveSignupPopup {
 export const DEFAULT_SIGNUP_POPUP: ActiveSignupPopup = {
   id: 'builtin-2026-09-today-fortune',
   startsAt: '2026-09-22T00:00:00.000+09:00',
-  endsAt: '2026-10-01T23:59:59.999+09:00',
+  endsAt: '2026-12-31T23:59:59.999+09:00',
   title: '천명보살의 오늘운',
   headline: '오늘, 밀어붙일까요?',
   subheadline: '한 번 더 지켜볼까요?',
