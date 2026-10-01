@@ -11,6 +11,25 @@ let testMode = false
 
 function canUseTestStore(): boolean { return process.env.NODE_ENV === 'test' || testMode }
 
+/** Freeze unused question credits while a refund is reserved or has succeeded. */
+export async function hasBlockingRefundRequest(orderId: string): Promise<boolean> {
+  const blocked: RefundState[] = ['requested', 'approved', 'processing', 'unknown', 'succeeded']
+  if (base && key) {
+    const url = new URL(`${base}/rest/v1/refund_requests`)
+    url.searchParams.set('order_id', `eq.${orderId}`)
+    url.searchParams.set('state', `in.(${blocked.join(',')})`)
+    url.searchParams.set('select', 'id')
+    url.searchParams.set('limit', '1')
+    const response = await fetch(url, { headers: headers(), signal: AbortSignal.timeout(10000) })
+    if (!response.ok) throw new Error('REFUND_LOOKUP_FAILED')
+    const rows = await response.json()
+    if (!Array.isArray(rows)) throw new Error('REFUND_LOOKUP_FAILED')
+    return rows.length > 0
+  }
+  if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
+  return [...testRequests.values()].some(item => item.orderId === orderId && blocked.includes(item.state))
+}
+
 function headers(): Record<string, string> {
   if (!base || !key) throw new Error('REFUND_STORE_UNAVAILABLE')
   const result: Record<string, string> = { apikey: key, 'content-type': 'application/json' }

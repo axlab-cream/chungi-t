@@ -10,6 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const resultSource = readFileSync(join(root, '사주', 'js', 'payment-result.js'), 'utf8')
 
 const TOC_PRODUCTS: Record<string, string> = {
+  cheonmyeong_consultation: '/consultation/',
   love_this_year: '/love/this-year/05-step-5-chat/chat.html',
   job_choice: '/work/job-choice/05-step-5-chat/chat.html',
   cat_compatibility: '/match/cat/05-step-5-chat/chat.html',

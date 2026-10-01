@@ -113,7 +113,9 @@
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
-  </head>
+  <link rel="stylesheet" href="/css/consultation.css?v=20261002" />
+<script src="/js/consultation-rail.js?v=20261002" defer></script>
+</head>
   <body>
     <script>
       // Supabase Dashboard의 복구 메일은 Site URL(루트)로 돌아올 수 있다.
@@ -247,13 +249,29 @@
 
           <section class="section-block weekly-free" aria-labelledby="weekly-free-title">
             <div class="section-title">
-              <span>WEEKLY FREE</span>
-              <h2 id="weekly-free-title">매주 열리는 무료운세</h2>
+              <span>THIS WEEK</span>
+              <h2 id="weekly-free-title">이번 주, 나를 알아보는 시간</h2>
             </div>
-            <a class="weekly-free-card service-card is-live" data-action="love-speed-open" data-track-target="love_speed:home" href="/play/love-speed/?src=home" data-category="연애" aria-label="금사빠·금사식 테스트 · 5문항, 30초 · 무료로 해보기">
+            <div class="consultation-rail" role="region" aria-roledescription="캐러셀" aria-label="이번 주 테스트와 천명상담">
+              <div class="consultation-rail-slides">
+            <a data-rail-slide aria-roledescription="슬라이드" class="weekly-free-card service-card is-live" href="/play/love-speed/?src=home" data-action="love-speed-open" data-track-target="love_speed:home" data-category="연애" aria-label="금사빠·금사식 테스트 · 5문항, 30초 · 무료로 해보기">
               <img src="/play/love-speed/share-banner-v1.png" alt="시작은 풀악셀, 마음은 급정거? 나 금사빠야, 금사식이야?" width="1200" height="630" loading="lazy" />
               <span class="weekly-free-caption"><strong>금사빠·금사식 테스트</strong><span>무료로 해보기 ↗</span></span>
             </a>
+                <a data-rail-slide class="consultation-promo" href="/consultation/" aria-roledescription="슬라이드" aria-label="천명상담 · 텍스트와 음성으로 상담하기" hidden>
+                  <img data-consultation-image src="/assets/cheonmyeong-scenes/01-idle.png" width="1080" height="1920" alt="상담실에서 이야기를 기다리는 천명" loading="lazy" />
+                  <div class="consultation-promo-copy"><small>나의 사주, 지금의 고민</small><strong data-consultation-title>천명상담</strong><p data-consultation-body>혼자 품었던 질문을<br />천명에게 꺼내보세요.</p><span>텍스트·음성으로 상담하기 ↗</span></div>
+                </a>
+              </div>
+              <div class="consultation-rail-controls">
+                <button type="button" data-rail-prev aria-label="이전 배너">‹</button>
+                <button type="button" data-slide-to="0" aria-label="금사빠·금사식 테스트 보기" aria-current="true">1</button>
+                <button type="button" data-slide-to="1" aria-label="천명상담 보기" aria-current="false">2</button>
+                <span data-rail-position aria-live="off" style="font-size:11px;color:#b7aa8d">1 / 2</span>
+                <button type="button" data-rail-next aria-label="다음 배너">›</button>
+                <button type="button" data-rail-pause aria-pressed="false">자동 넘김 멈춤</button>
+              </div>
+            </div>
           </section>
 
           <section class="section-block">

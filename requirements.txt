@@ -1,0 +1,2 @@
+# Forked from AI Talk: same online Korean neural voice engine.
+edge-tts==7.2.8

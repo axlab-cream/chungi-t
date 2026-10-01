@@ -88,6 +88,7 @@ rmSync(join(root, '.vercel-runtime'), { recursive: true, force: true })
 copySelectedFiles(sajuRoot, runtimeSajuRoot, ['.html', '.css', '.js', '.mjs', '.json', '.txt', '.xml'])
 
 copyFile(join(sajuRoot, 'portal.html'), join(publicRoot, 'portal.html'))
+copyFile(join(sajuRoot, 'coupons.html'), join(publicRoot, 'coupons.html'))
 copyFile(join(sajuRoot, 'destiny.html'), join(publicRoot, 'destiny.html'))
 copyFile(join(sajuRoot, 'chat.html'), join(publicRoot, 'chat.html'))
 copyFile(join(sajuRoot, 'result.html'), join(publicRoot, 'result.html'))
@@ -95,8 +96,10 @@ copyFile(join(cmdgRoot, 'index.html'), join(publicRoot, 'cmdg', 'index.html'))
 
 copyDirectory(join(sajuRoot, 'css'), join(publicRoot, 'css'))
 copyDirectory(join(sajuRoot, 'js'), join(publicRoot, 'js'))
+copyDirectory(join(sajuRoot, 'consultation'), join(publicRoot, 'consultation'))
 copyFile(join(sajuRoot, 'data', 'longform-blocks.json'), join(publicRoot, 'data', 'longform-blocks.json'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'assets'))
+copyDirectory(join(sajuRoot, 'assets', 'cheonmyeong-scenes'), join(publicRoot, 'assets', 'cheonmyeong-scenes'))
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'cmdg', 'assets'))
 
 copyDirectory(join(sajuRoot, 'play', 'love-speed'), join(publicRoot, 'play', 'love-speed'))

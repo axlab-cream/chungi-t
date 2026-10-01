@@ -65,8 +65,10 @@ button { cursor: pointer; }
 
 .payment-form { display: grid; gap: 15px; }
 .payment-label { display: grid; gap: 7px; color: var(--payment-muted); font-size: 12px; font-weight: 800; }
-.payment-label input { width: 100%; height: 52px; padding: 0 14px; border: 1px solid rgba(255, 247, 223, .14); border-radius: 8px; outline: 0; background: #080807; color: var(--payment-cream); font-size: 16px; }
-.payment-label input:focus { border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, .1); }
+.payment-label input, .payment-label select { width: 100%; min-width: 0; height: 52px; padding: 0 14px; border: 1px solid rgba(255, 247, 223, .14); border-radius: 8px; outline: 0; background: #080807; color: var(--payment-cream); font-size: 16px; }
+.payment-label input:focus, .payment-label select:focus { border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, .1); }
+[data-coupon-status] { margin: 0; color: var(--payment-muted); font-size: 12px; line-height: 1.6; }
+[data-coupon-status] a { color: var(--payment-gold); }
 .payment-consent { display: flex; gap: 9px; align-items: flex-start; color: var(--payment-muted); font-size: 12px; line-height: 1.5; }
 .payment-consent input { margin-top: 3px; accent-color: var(--payment-gold); }
 .payment-consent a { color: var(--payment-gold); }

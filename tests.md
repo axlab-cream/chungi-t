@@ -1317,3 +1317,6 @@ GA-FUNNEL-06 후속: GitHub 전체1732개 중 기존 문구 검사1실패를 실
 ### Post-review verification
 - Final focused set after all review changes: 46/46 PASS (admin-popup-repair, content-store, signup-benefit-popup, admin-workspace-data-routes).
 - Fresh vercel-build/typecheck/SEO PASS. The 1736/1736 full run was before the small review follow-up, followed by focused coverage for affected files.
+
+## 2026-10-02 CONSULTATION-COUPON-RELEASE
+사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.

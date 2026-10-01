@@ -201,6 +201,7 @@ export function savedReadingHref(serviceKey: string | undefined, savedId: string
 
 /** 결제 뒤 첫 화면. 표준 퍼널은 05 목차, 단일 화면 서비스는 등록된 상세 화면을 쓴다. */
 export function readingPathForProduct(productKey: string | undefined): string | undefined {
+  if (productKey === 'cheonmyeong_consultation') return '/consultation/'
   const seed = seedForKey(productKey)
   if (!seed?.reportPath) return undefined
   // The standard service funnel always opens the paid table of contents first. The
@@ -222,6 +223,7 @@ export function readingPathForProduct(productKey: string | undefined): string | 
  * `returnPath`(04 미리보기·입력)는 쓰지 않는다 — 결제가 끝난 뒤의 읽기 화면이다.
  */
 export function paidReadingHref(productKey: string | undefined, reportId?: string): string {
+  if (productKey === 'cheonmyeong_consultation') return '/consultation/'
   const id = String(reportId ?? '').trim()
   const path = readingPathForProduct(productKey)
   if (!path) return id ? `/r/${encodeURIComponent(id)}` : seedForKey(productKey)?.href || '/'

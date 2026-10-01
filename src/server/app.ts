@@ -1,5 +1,14 @@
 import { loveSpeedRouter } from '../play/love-speed-route.js'
 import { respondRequestFailure } from './input-error.js'
+import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
+import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder } from '../coupons/store.js'
+import { CouponError } from '../coupons/contracts.js'
+import { getConsultationCouponUsage } from '../consultation/backend.js'
+import { consultationRouter, isConsultationRecord, getConsultationAccess, reserveConsultationCheckout } from '../consultation/backend.js'
+import { authenticateConsultation } from '../consultation/auth.js'
+import { synthesizeConsultation } from '../consultation/voice.js'
+import { DEFAULT_CONSULTATION_SETTINGS, getConsultationSettings } from '../consultation/settings.js'
+import { getConsultationContentSnapshot } from '../admin/content-store.js'
 import '../env/load.js'
 import type { ServerResponse } from 'node:http'
 import express from 'express'
@@ -139,6 +148,9 @@ import {
   PAYMENT_ORDER_STATUSES,
   checkPaymentStorageReadiness,
   savePaymentOrder,
+  createConsultationPaymentOrder,
+  createCouponPaymentOrder,
+  mutatePaymentOrder,
   updatePaymentOrder,
 } from '../payment/order-store.js'
 import type { PaymentOrder } from '../payment/order-store.js'
@@ -304,6 +316,19 @@ const PUBLICLY_DISABLED_PRODUCT_KEYS = CUSTOMER_PAUSED_PRODUCT_KEYS
 
 const app = express()
 app.use(cors())
+app.get('/api/consultation/banner', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const settings = await getConsultationSettings()
+    res.json({ title: settings.bannerTitle, body: settings.bannerBody, image: settings.bannerImage, enabled: settings.enabled })
+  } catch { res.status(503).json({ enabled: false, error: '상담 안내를 불러오지 못했습니다.' }) }
+})
+// Never accept new consultations or sell packs before the configured provider is ready.
+app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, next) => {
+  if (!process.env.GEMINI_API_KEY?.trim()) { res.status(503).json({ code: 'CONSULTATION_SETUP_REQUIRED', error: '천명상담 연결을 준비하고 있어요. 준비가 끝나면 상담을 시작할 수 있습니다.' }); return }
+  next()
+})
+app.use('/api/consultation', express.json({ limit: '4mb' }), consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 // Interpretation/profile responses must never enter browser or shared caches.
@@ -1682,7 +1707,7 @@ function rejectPausedCustomerAnalyze(res: Response, serviceKey: string | undefin
 }
 
 function isCustomerFacingReport(record: ReportRecord): boolean {
-  return !isCustomerPausedProduct(record.context?.serviceKey)
+  return !isConsultationRecord(record) && !isCustomerPausedProduct(record.context?.serviceKey)
 }
 
 type ReportStage = 'complete' | 'failed' | 'generating' | 'waiting'
@@ -1989,7 +2014,7 @@ async function findUnlockingOrder(
 
 interface PaidAccess {
   entitled: boolean
-  reason: 'admin' | 'open' | 'order' | 'none'
+  reason: 'admin' | 'open' | 'order' | 'coupon' | 'none'
   order?: PaymentOrder
 }
 
@@ -2012,7 +2037,11 @@ async function resolvePaidAccess(
     }
   }
   const order = await findUnlockingOrder(owner, productKey, reportId, lineageId)
-  return order ? { entitled: true, reason: 'order', order } : { entitled: false, reason: 'none' }
+  if (order) return { entitled: true, reason: 'order', order }
+  // Coupon storage may be unavailable during rollout. Never grant access on failure,
+  // and keep the existing unpaid preview path available. Paid orders were checked above.
+  if (reportId && await hasCouponReportAccess(owner.id, productKey, reportId).catch(() => false)) return { entitled: true, reason: 'coupon' }
+  return { entitled: false, reason: 'none' }
 }
 
 /** Stamps the unlock flags the report UI reads before revealing paid chapters. */
@@ -2607,6 +2636,12 @@ app.get('/api/admin/v1/corpus/:packId/download', async (req, res) => {
  * content_versions 표를 그대로 쓴다. 발행본을 고객 화면에 얹는 어댑터(T29)는 아직 없다 —
  * 화면이 그 사실을 그대로 말한다. 여기서 임의의 노출 효과를 꾸미지 않는다.
  */
+app.get('/api/admin/v1/consultation/settings', async (req, res) => {
+  if (!await requireStaff(req, res, 'content:read')) return
+  try { res.json({ ...await getConsultationContentSnapshot(), defaults: DEFAULT_CONSULTATION_SETTINGS }) }
+  catch { res.status(503).json({ code: 'CONSULTATION_SETTINGS_UNAVAILABLE', error: '천명상담 설정을 불러오지 못했습니다.' }) }
+})
+
 app.get('/api/admin/v1/content', async (req, res) => {
   if (!await requireStaff(req, res, 'content:read')) return
   try {
@@ -2620,6 +2655,7 @@ app.get('/api/admin/v1/content', async (req, res) => {
 const CONTENT_FAILURES: Record<string, { status: number; error: string }> = {
   SIGNUP_POPUP_PAYLOAD_INVALID: { status: 422, error: '팝업 이름·상단 문구·메인 문구·설명·버튼 문구를 모두 입력하고, 이미지의 /assets/ 경로와 노출 시각을 확인해 주세요.' },
   SIGNUP_POPUP_PERIOD_INVALID: { status: 422, error: '노출 종료 시각은 시작 시각보다 뒤여야 합니다.' },
+  CONSULTATION_SETTINGS_INVALID: { status: 422, error: '천명상담 설정의 문구, 음성 또는 이미지 경로를 확인해 주세요.' },
   CONTENT_TYPE_INVALID: { status: 422, error: '콘텐츠 종류를 확인해 주세요.' },
   CONTENT_PAYLOAD_INVALID: { status: 422, error: '제목(120자)·본문(4,000자)·링크·예약 시각을 확인해 주세요. 태그 문자(<, >)는 받지 않습니다.' },
   CONTENT_PLACEMENT_INVALID: { status: 422, error: '노출 위치는 1~120자의 글자·숫자·_-./: 만 쓸 수 있습니다.' },
@@ -3469,6 +3505,19 @@ app.get('/api/payment/config', (_req, res) => {
   res.json(paymentConfigPayload())
 })
 
+app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff }))
+app.use('/api/coupons', couponRouter({
+  authenticate: requireSupabaseUser,
+  staff: requireStaff,
+  reportProduct: async (owner, reportId) => {
+    const report = await findReportRecord(reportId, owner)
+    return report && !isConsultationRecord(report) ? productKeyForContext(report.context) : null
+  },
+  queueReport: queueReportCompletionAfterPayment,
+  available: async key => { const product = getPaymentProduct(key); return !!product && !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key) && await isServiceSaleAvailable(product.key) },
+  couponUsage: getConsultationCouponUsage,
+}))
+
 app.post('/api/payment/orders', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
@@ -3491,6 +3540,16 @@ app.post('/api/payment/orders', async (req, res) => {
     if (!await isServiceSaleAvailable(product.key)) {
       res.status(409).json({ code: 'SERVICE_SALE_PAUSED', error: '현재 판매가 중단된 서비스입니다.' })
       return
+    }
+    if (product.key === 'cheonmyeong_consultation') {
+      if (!process.env.GEMINI_API_KEY?.trim()) { res.status(503).json({ code: 'CONSULTATION_SETUP_REQUIRED', error: '상담 연결을 준비 중이므로 질문권 구매를 잠시 중단했습니다.' }); return }
+      const settings = await getConsultationSettings()
+      if (!settings.enabled) { res.status(409).json({ code: 'CONSULTATION_DISABLED', error: '현재 천명상담을 이용할 수 없어 질문권 구매를 잠시 중단했습니다.' }); return }
+      const access = await getConsultationAccess(owner)
+      if (!access.purchaseAvailable) { res.status(409).json({ code: 'CONSULTATION_STORAGE_CAPACITY', error: '현재 상담 보관 한도로 추가 질문권을 구매할 수 없습니다. 고객센터로 문의해 주세요.' }); return }
+    } else if (trimmedString(req.body?.reportId)) {
+      const bound = await findReportRecord(trimmedString(req.body.reportId), owner)
+      if (bound && isConsultationRecord(bound)) { res.status(400).json({ error: '상담 질문권은 천명상담에서 구매해 주세요.' }); return }
     }
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
@@ -3526,11 +3585,49 @@ app.post('/api/payment/orders', async (req, res) => {
       productTitle: product.title,
       amount: product.amount,
       status: 'ready',
-      reportId: trimmedString(req.body?.reportId) || undefined,
+      reportId: product.key === 'cheonmyeong_consultation' ? undefined : trimmedString(req.body?.reportId) || undefined,
       createdAt: timestamp,
       updatedAt: timestamp,
     }
-    const saved = await savePaymentOrder(order)
+    let saved: PaymentOrder
+    const couponId = trimmedString(req.body?.couponId)
+    if (couponId) {
+      if (req.body?.billingProvider === 'google_play') throw new CouponError('COUPON_WEB_ONLY', 409)
+      if (product.key !== 'cheonmyeong_consultation') {
+        const report = order.reportId ? await findReportRecord(order.reportId, owner) : null
+        if (!report || isConsultationRecord(report) || productKeyForContext(report.context) !== product.key) throw new CouponError('COUPON_REPORT_REQUIRED', 400)
+      } else {
+        order.orderId = (await reserveConsultationCheckout(owner, order.orderId)).orderId
+        const previous = await getPaymentOrder(order.orderId)
+        if (previous && !await getDiscountForOrder(owner.id, previous.orderId)) throw new CouponError('COUPON_EXISTING_CHECKOUT', 409)
+      }
+      const discount = await reserveDiscount(owner.id, couponId, product.key, product.amount, order.orderId)
+      if (product.key === 'cheonmyeong_consultation' && discount.orderId !== order.orderId) throw new CouponError('COUPON_EXISTING_CHECKOUT', 409)
+      order.orderId = discount.orderId!
+      order.amount = discount.payableAmount!
+      saved = await createCouponPaymentOrder(order)
+      if (saved.status !== 'ready') throw new CouponError('COUPON_ORDER_CLOSED', 409)
+      saved = await mutatePaymentOrder(saved.orderId, current => {
+        if (current.status !== 'ready') throw new CouponError('COUPON_ORDER_CLOSED', 409)
+        return { buyerEmail, buyerTel }
+      }) ?? saved
+    } else if (product.key === 'cheonmyeong_consultation') {
+      const reservation = await reserveConsultationCheckout(owner, order.orderId)
+      order.orderId = reservation.orderId
+      const existing = await getPaymentOrder(order.orderId)
+      if (existing) {
+        if (existing.ownerId !== owner.id || existing.productKey !== product.key || existing.amount !== 4900 || existing.status !== 'ready') {
+          res.status(409).json({ code: 'CONSULTATION_CHECKOUT_BUSY', error: '기존 질문권 결제를 확인 중입니다. 상담 화면에서 이용 횟수를 다시 확인해 주세요.' }); return
+        }
+        saved = await mutatePaymentOrder(existing.orderId, current => {
+          if (current.status !== 'ready') throw new Error('CONSULTATION_CHECKOUT_BUSY')
+          return { buyerEmail, buyerTel }
+        }) ?? existing
+      } else {
+        saved = await createConsultationPaymentOrder(order)
+        if (saved.status !== 'ready') { res.status(409).json({ code: 'CONSULTATION_CHECKOUT_BUSY', error: '기존 결제가 처리되었습니다. 상담 화면에서 이용 횟수를 확인해 주세요.' }); return }
+      }
+    } else saved = await savePaymentOrder(order)
     if (config.testMode) {
       res.json({
         order: clientPaymentOrder(saved),
@@ -3550,6 +3647,19 @@ app.post('/api/payment/orders', async (req, res) => {
       fields,
     })
   } catch (err) {
+    if (err instanceof CouponError) { couponFailure(res, err); return }
+    if (err instanceof Error && /^CONSULTATION_/.test(err.message)) {
+      const copy: Record<string, string> = {
+        CONSULTATION_CREDITS_REMAINING: '남아 있는 상담 횟수를 먼저 사용한 뒤 추가 질문권을 구매해 주세요.',
+        CONSULTATION_CHECKOUT_BUSY: '기존 질문권 결제를 확인 중입니다. 잠시 후 다시 확인해 주세요.',
+        CONSULTATION_STORAGE_CAPACITY: '상담 보관 한도로 추가 구매가 어렵습니다. 고객센터로 문의해 주세요.',
+        CONSULTATION_ORDER_CONFLICT: '기존 결제 주문과 요청이 다릅니다. 상담 화면에서 다시 연결해 주세요.',
+        CONSULTATION_ORDER_CREATE_FAILED: '결제 주문을 저장하지 못했습니다. 아직 결제창을 열지 않았으니 잠시 후 다시 시도해 주세요.',
+        CONSULTATION_ORDER_INVALID: '질문권 주문 정보를 확인하지 못했습니다. 상담 화면에서 다시 연결해 주세요.',
+      }
+      const status = err.message === 'CONSULTATION_ORDER_CREATE_FAILED' ? 503 : err.message === 'CONSULTATION_ORDER_INVALID' ? 400 : copy[err.message] ? 409 : 503
+      res.status(status).json({ code: err.message, error: copy[err.message] || '상담 이용 횟수를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.' }); return
+    }
     respondRequestFailure(res, err, '결제 주문 생성 실패')
   }
 })
@@ -3584,7 +3694,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(500).json({ error: '테스트 주문 상태를 저장하지 못했습니다.' })
       return
     }
-    queueReportCompletionAfterPayment(order.reportId)
+    if (order.productKey !== 'cheonmyeong_consultation') queueReportCompletionAfterPayment(order.reportId)
     res.json({ order: clientPaymentOrder(paid), testMode: true })
   } catch (err) {
     respondRequestFailure(res, err, '테스트 결제 승인 실패')
@@ -3640,6 +3750,10 @@ app.post('/api/payment/google/verify', async (req, res) => {
       return
     }
     const claimedProductId = trimmedString(req.body?.productId)
+    // Play SKUs have a fixed store price; never approve a web-discount order with a full-price SKU receipt.
+    if (order.amount !== product.amount) {
+      res.status(409).json({ code: 'COUPON_WEB_ONLY', error: '할인 쿠폰 주문은 웹 결제창에서 진행해 주세요.' }); return
+    }
     if (claimedProductId && claimedProductId !== product.key) {
       res.status(400).json({ error: '주문과 결제 상품이 다릅니다.' })
       return
@@ -3684,7 +3798,7 @@ app.post('/api/payment/google/verify', async (req, res) => {
       res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
       return
     }
-    queueReportCompletionAfterPayment(order.reportId)
+    if (order.productKey !== 'cheonmyeong_consultation') queueReportCompletionAfterPayment(order.reportId)
     res.json({ order: clientPaymentOrder(paid) })
   } catch (err) {
     respondRequestFailure(res, err, '구글플레이 결제 확인 실패')
@@ -3792,7 +3906,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       approvalCode: approval.approvalCode, message: approval.resultMessage,
     }, undefined, () => { approvalEvidenceRecorded = true })
     if (!paid) throw new Error('승인된 주문을 저장하지 못했습니다.')
-    queueReportCompletionAfterPayment(order.reportId)
+    if (order.productKey !== 'cheonmyeong_consultation') queueReportCompletionAfterPayment(order.reportId)
     res.redirect(303, paymentOrderRedirect(order.orderId, 'paid', undefined, order.productKey, order.reportId))
   } catch (err) {
     let message = err instanceof Error ? err.message : '결제 승인에 실패했습니다.'
@@ -4018,6 +4132,8 @@ app.delete('/api/user/reports/:reportId', async (req, res) => {
       res.status(400).json({ error: 'reportId가 필요합니다.' })
       return
     }
+    const existing = await findReportRecord(reportId, owner)
+    if (existing && isConsultationRecord(existing)) { res.status(409).json({ error: '상담 이용권 기록은 일반 풀이 삭제로 지울 수 없습니다. 상담 기록 삭제는 고객센터로 문의해 주세요.' }); return }
     const deleted = await deleteReportRecord(reportId, owner)
     // 지운 리포트를 큐가 다시 집으면 REPORT_NOT_FOUND 로 dead 만 쌓인다. 작업도 함께 지운다.
     if (deleted) await deleteOpsJobsForTarget(reportId).catch(() => undefined)
@@ -4154,6 +4270,7 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
   if (parentId) {
     const parent = await findReportRecord(parentId, owner)
     if (!parent) { res.status(404).json({ error: '상담의 원본 해석을 찾지 못했습니다.' }); return }
+    if (isConsultationRecord(parent)) { res.status(404).json({ error: '천명상담 화면에서 대화를 이어가 주세요.' }); return }
     if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
   }
   const result = generate ? await generateSavedChat({ resultId: record.reportId, owner, retry: req.body?.retry === true }) : toSavedChatResult(record)
@@ -4214,6 +4331,7 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
     if (!record) { res.status(404).json({ error: '저장된 결과를 찾지 못했습니다. 새 결과로 대체하지 않습니다.' }); return }
     const expected = ANALYZE_SERVICES[req.path]
     if (expected && record.context.serviceKey !== expected) { res.status(409).json({ error: '다른 서비스의 결과 ID입니다.' }); return }
+    if (isConsultationRecord(record)) { res.status(404).json({ error: '상담은 보관함의 추가 풀이에서 확인해 주세요.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const access = await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)
     if (wantsPreview(req) || !access.entitled) {
@@ -4984,6 +5102,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       res.status(404).json({ error: '저장된 리포트를 찾지 못했습니다.' })
       return
     }
+    if (isConsultationRecord(record)) { res.status(404).json({ error: '상담 기록은 보관함 추가 풀이에서 확인해 주세요.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner); return }
     const analysis = toUiAnalysisFromRecord(record)
     if (record.auxiliary?.todayFortune) {
@@ -5097,6 +5216,7 @@ app.post('/api/report/chat-history', async (req, res) => {
     if (!authConfig().developmentReportAccess && !owner) { res.status(401).json({ error: '로그인이 필요합니다.' }); return }
     const existing = await findReportRecord(reportId, owner)
     if (!existing) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
+    if (isConsultationRecord(existing)) { res.status(409).json({ error: '천명상담 대화록은 상담 화면에서만 추가할 수 있습니다.' }); return }
     if (isSavedChatRecord(existing)) { res.status(409).json({ error: '완료된 상담 질문과 답변은 수정할 수 없습니다.' }); return }
     const record = await updateReportChatHistory(existing.reportId, history, owner)
     if (!record) {
@@ -5124,6 +5244,7 @@ app.post('/api/report/section', async (req, res) => {
     if (!id || !sectionId) { res.status(400).json({ error: 'reportId와 sectionId가 필요합니다.' }); return }
     const record = await findReportRecord(id, owner)
     if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
+    if (isConsultationRecord(record)) { res.status(404).json({ error: '상담 기록은 보관함 추가 풀이에서 확인해 주세요.' }); return }
     if (isSavedChatRecord(record)) {
       const section = record.report.sections[0]
       if (section.id !== sectionId && sectionGenerationId(record, section) !== sectionId) { res.status(404).json({ error: '저장된 항목을 찾지 못했습니다.' }); return }
@@ -5224,6 +5345,7 @@ app.post('/api/report/prewarm', async (req, res) => {
     const id = trimmedString(req.body.reportId || req.body.resultId)
     const record = id ? await findReportRecord(id, owner) : null
     if (!record) { res.status(404).json({ error: '저장된 해석을 먼저 선택해 주세요.' }); return }
+    if (isConsultationRecord(record)) { res.status(404).json({ error: '천명상담 화면에서 대화를 이어가 주세요.' }); return }
     if (isSavedChatRecord(record)) { await serveSavedChat(req, res, record, owner, true); return }
     if (owner && !await ensurePaidServiceAccess(req, res, owner, productKeyForContext(record.context), record.reportId)) return
     const next = record.status === 'complete' ? undefined : record.report.sections.find((item) => item.status === 'pending')
@@ -5256,6 +5378,7 @@ app.post('/api/chat', async (req, res) => {
     if (parentReportId) {
       const parent = await findReportRecord(parentReportId, owner)
       if (!parent) { res.status(404).json({ error: '원본 해석을 찾지 못했습니다.' }); return }
+      if (isConsultationRecord(parent)) { res.status(404).json({ error: '천명상담 화면에서 대화를 이어가 주세요.' }); return }
       if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
     }
     const result = await generateSavedChat({
