@@ -10,7 +10,9 @@ test('initial popup form values satisfy the real server validator', () => {
   const form = { elements: Object.fromEntries(names.map(name => [name, { value: '' }])) }
   const defaults = html.slice(html.indexOf('var SIGNUP_POPUP_DEFAULTS'), html.indexOf('function toLocalDateTime'))
   const fill = html.slice(html.indexOf('Object.keys(SIGNUP_POPUP_DEFAULTS)'), html.indexOf("var result = form.querySelector('[data-popup-result]')"))
-  runInNewContext(defaults + fill, { form })
+  const helper = html.slice(html.indexOf('function toLocalDateTime'), html.indexOf('function popupStateLabel'))
+  runInNewContext(defaults + helper + fill, { form })
+  assert.ok(new Date(form.elements.endsAt.value).getTime() > Date.now())
   const value = (key: string) => form.elements[key].value
   assert.doesNotThrow(() => normalizeSignupPopupPayload({title:value('title'),headline:value('headline'),subheadline:value('subheadline'),body:value('bodyText'),imageSrc:value('imageSrc'),ctaLabel:value('ctaLabel'),campaignEndAt:new Date(value('endsAt')).toISOString()},new Date(value('startsAt')).toISOString()))
 })
@@ -45,3 +47,13 @@ test('unavailable statistics are rejected before zero-valued KPI rendering', () 
   assert.ok(funnel.indexOf("payload.available !== true") < funnel.indexOf('appendKpis(overview, payload.sampled'))
 })
 
+
+
+test('the editor prefers the published version and never fills from archive', () => {
+  const ctx: any = {}
+  runInNewContext(html.slice(html.indexOf('function popupEditableVersion'), html.indexOf('async function loadPopupManager')),ctx)
+  const archived={state:'archived'},draft={state:'draft'},published={state:'published'}
+  assert.equal(ctx.popupEditableVersion([archived,draft,published]),published)
+  assert.equal(ctx.popupEditableVersion([archived,draft]),draft)
+  assert.equal(ctx.popupEditableVersion([archived]),undefined)
+})

@@ -2611,7 +2611,8 @@ app.get('/api/admin/v1/content', async (req, res) => {
   if (!await requireStaff(req, res, 'content:read')) return
   try {
     res.json({ ...await getAdminContentSnapshot(Number(req.query?.limit ?? 200), { includeArchived: req.query?.includeArchived === '1', placement: typeof req.query?.placement === 'string' ? req.query.placement : undefined }), contentTypes: CONTENT_TYPES })
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === 'CONTENT_PLACEMENT_INVALID') { respondContentFailure(res, error, 'CONTENT_LOOKUP_FAILED'); return }
     res.status(503).json({ code: 'CONTENT_LOOKUP_FAILED', error: '콘텐츠 저장소를 불러오지 못했습니다.' })
   }
 })

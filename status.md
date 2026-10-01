@@ -2735,3 +2735,10 @@ GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 
 - Build/typecheck/SEO and diff checks PASS. Browser + actual Express lifecycle against isolated synthetic storage PASS. Local QA process stopped; test adapter removed.
 - KMS saved and re-read: personal/carrotcap/notes/umsh-admin-popup-data-repair-20261001.md.
 - [GATE H2] No production deployment for this new admin scope, no remote push, no merge, no DB migration. Implementation and local verification finished; reviewer result pending.
+
+### ADMIN-DATA-01 review resolved
+- Grok report received: Approved with comments, no critical issues. Report retained under CreamAI/logs/review/ADMIN-DATA-01_popup.md.
+- Fixed major comments: never prefill archived campaigns; do not disable submission on generic history-render failures.
+- Fixed related minor findings: forward-looking default dates/past-end validation, bounded archive existence check, placement query 422, generic content unavailable state.
+- Post-review tests 46/46 and fresh vercel-build/typecheck/SEO PASS. Earlier full run 1736/1736 PASS. Direct follow-up diff review complete; no second automated review claimed.
+- Local commit 0806b001 plus follow-up fixes; H2 deployment gate remains. Production was not changed.

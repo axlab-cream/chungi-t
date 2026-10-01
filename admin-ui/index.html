@@ -1075,7 +1075,7 @@
           if (!listResponse.ok) throw new Error('CONTENT_LOOKUP_FAILED');
           var listPayload = await listResponse.json();
           var items = Array.isArray(listPayload.items) ? listPayload.items : [];
-          if (listPayload.versionStore !== 'ready') addLiveError(body, '콘텐츠 저장소 연결을 확인하지 못했습니다.');
+          if (listPayload.versionStore !== 'ready') throw new Error('CONTENT_STORE_UNAVAILABLE');
           var table = document.createElement('table'); table.className = 'admin-table';
           table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
@@ -1134,6 +1134,9 @@
         var id = String(item && item.id || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
         return 'signup_popup:' + (id || 'unknown');
       }
+      function popupEditableVersion(items) {
+        return items.find(function (item) { return item.state === 'published'; }) || items.find(function (item) { return item.state === 'draft'; });
+      }
       async function loadPopupManager(body) {
         body.replaceChildren();
         var section = document.createElement('section'); section.className = 'admin-section';
@@ -1149,7 +1152,8 @@
           + '<div class="admin-field"><label>노출 종료</label><input required name="endsAt" type="datetime-local"></div>'
           + '<div class="admin-actions"><button class="admin-button" type="submit">저장 후 게시</button></div><p class="admin-note" role="status" data-popup-result></p>';
         Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { var field = key === 'body' ? 'bodyText' : key; if (form.elements[field]) form.elements[field].value = SIGNUP_POPUP_DEFAULTS[key]; });
-        form.elements.startsAt.value = '2026-09-22T00:00'; form.elements.endsAt.value = '2026-10-01T23:59';
+        var initialStart = new Date();
+        form.elements.startsAt.value = toLocalDateTime(initialStart); form.elements.endsAt.value = toLocalDateTime(new Date(initialStart.getTime() + 7 * 24 * 60 * 60 * 1000));
         var result = form.querySelector('[data-popup-result]');
         section.appendChild(form); body.appendChild(section);
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>팝업 이력</h3></header><p class="admin-empty">불러오는 중입니다.</p>'; body.appendChild(listSection);
@@ -1157,7 +1161,8 @@
           var response = await fetch('/api/admin/v1/content?placement=home%2Fsignup-benefit-popup&includeArchived=1', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('POPUP_LOOKUP_FAILED');
           var responsePayload = await response.json();
-          if (responsePayload.versionStore !== 'ready' || !Array.isArray(responsePayload.items)) throw new Error('POPUP_STORE_UNAVAILABLE');
+          if (responsePayload.versionStore !== 'ready') { form.querySelector('button[type="submit"]').disabled = true; throw new Error('POPUP_STORE_UNAVAILABLE'); }
+          if (!Array.isArray(responsePayload.items)) throw new Error('POPUP_LOOKUP_FAILED');
           var items = (Array.isArray(responsePayload.items) ? responsePayload.items : []).filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
           // 팝업 이력은 콘텐츠 저장소, 클릭 수는 개인정보 없는 퍼널 이벤트가 원천이다.
           // 통계가 일시적으로 실패해도 팝업 관리 자체는 멈추지 않고 '집계 불가'로 정직하게 표시한다.
@@ -1172,8 +1177,9 @@
               if (typeof cta.target === 'string' && typeof cta.clicks === 'number') popupClickCounts[cta.target] = cta.clicks;
             });
           } catch (_error) { popupClickCounts = null; }
-          if (items[0]) {
-            var active = items[0]; var payload = active.payload || {};
+          var active = popupEditableVersion(items);
+          if (active) {
+            var payload = active.payload || {};
             ['title', 'headline', 'subheadline', 'imageSrc', 'ctaLabel'].forEach(function (key) { if (payload[key] && form.elements[key]) form.elements[key].value = payload[key]; });
             if (payload.body) form.elements.bodyText.value = payload.body;
             form.elements.startsAt.value = toLocalDateTime(active.scheduledAt) || form.elements.startsAt.value;
@@ -1185,13 +1191,13 @@
           items.forEach(function (item) {
             var clickCount = popupClickCounts && popupClickCounts[popupTrackingTarget(item)];
             var clickLabel = popupClickCounts ? Number(clickCount || 0).toLocaleString('ko-KR') + '회' : '집계 불가';
-            var row = document.createElement('tr'); [item.payload.title, item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', item.payload.campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
+            var row = document.createElement('tr'); [(item.payload || {}).title || '이름 미확인', item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', (item.payload || {}).campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
             var cell = document.createElement('td');
             if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!window.confirm('현재 팝업을 즉시 내릴까요?')) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; window.alert('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
             row.appendChild(cell); rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
-        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.'; form.querySelector('button[type="submit"]').disabled = true; }
+        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.'; }
         form.addEventListener('submit', async function (event) {
           event.preventDefault();
           if (!form.reportValidity()) { result.textContent = '필수 항목을 모두 입력해 주세요.'; return; }
@@ -1199,6 +1205,7 @@
           try {
             var startsAt = new Date(form.elements.startsAt.value); var endsAt = new Date(form.elements.endsAt.value);
             if (!(startsAt.getTime() < endsAt.getTime())) throw new Error('종료 시각은 시작 시각보다 뒤여야 합니다.');
+            if (endsAt.getTime() <= Date.now()) throw new Error('노출 종료 시각을 현재보다 뒤로 설정해 주세요.');
             var draftResponse = await fetch('/api/admin/v1/content', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ contentType: 'banner', placement: SIGNUP_POPUP_PLACEMENT, scheduledAt: startsAt.toISOString(), payload: { title: form.elements.title.value.trim(), headline: form.elements.headline.value.trim(), subheadline: form.elements.subheadline.value.trim(), body: form.elements.bodyText.value.trim(), imageSrc: form.elements.imageSrc.value.trim(), ctaLabel: form.elements.ctaLabel.value.trim(), campaignEndAt: endsAt.toISOString() } }) });
             var draftPayload = await draftResponse.json().catch(function () { return {}; }); if (!draftResponse.ok) throw new Error(draftPayload.error || '팝업 저장에 실패했습니다.');
             var draft = draftPayload.content;

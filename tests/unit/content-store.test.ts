@@ -32,7 +32,10 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     let filtered = rows
     const id = url.searchParams.get('id')?.replace(/^eq\./, '')
     if (id) filtered = filtered.filter((row) => row.id === id)
+    const placement = url.searchParams.get('placement')?.replace(/^eq\./, '')
+    if (placement) filtered = filtered.filter(row => row.placement === placement)
     const state = url.searchParams.get('state')
+    if (state?.startsWith('eq.')) filtered = filtered.filter(row => row.state === state.slice(3))
     if (state?.startsWith('in.')) { const allowed = state.slice(4, -1).split(','); filtered = filtered.filter((row) => allowed.includes(row.state as string)) }
     return new Response(JSON.stringify(filtered), { headers: { 'content-type': 'application/json' } })
   }
@@ -177,6 +180,7 @@ it('popup history retains archived versions while the default content list exclu
   await store.archiveContentVersion({id:draft.id,expectedRevision:draft.revision})
   const history = await store.getAdminContentSnapshot(200, {includeArchived:true,placement:'home/signup-benefit-popup'})
   assert.ok(history.items.some(item=>item.id===draft.id && item.state==='archived'))
+  assert.ok(history.items.every(item=>item.placement==='home/signup-benefit-popup'))
   assert.equal(calls.at(-1)?.url.searchParams.get('placement'),'eq.home/signup-benefit-popup')
   assert.ok(!(await store.getAdminContentSnapshot()).items.some(item=>item.id===draft.id))
 })

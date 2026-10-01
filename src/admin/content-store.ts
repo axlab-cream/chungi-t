@@ -203,10 +203,9 @@ export async function getActiveSignupPopup(now = Date.now(), useDefaultWhenUnman
   url.searchParams.set('content_type', 'eq.banner')
   url.searchParams.set('placement', `eq.${SIGNUP_POPUP_PLACEMENT}`)
   url.searchParams.set('service_key', 'is.null')
-  url.searchParams.set('state', useDefaultWhenUnmanaged ? 'in.(published,archived)' : 'eq.published')
+  url.searchParams.set('state', 'eq.published')
   url.searchParams.set('order', 'updated_at.desc')
   const rows = await readRows(url)
-  if (useDefaultWhenUnmanaged && rows.length === 0) return signupPopupIsActive(DEFAULT_SIGNUP_POPUP, now) ? DEFAULT_SIGNUP_POPUP : null
   for (const row of rows) {
     if (row.state !== 'published') continue
     const version = fromRow(row)
@@ -218,7 +217,12 @@ export async function getActiveSignupPopup(now = Date.now(), useDefaultWhenUnman
       // 운영자가 저장한 잘못된 과거 레코드는 공개 화면으로 내보내지 않는다.
     }
   }
-  return null
+  if (!useDefaultWhenUnmanaged || rows.length > 0) return null
+  url.searchParams.set('select', 'id')
+  url.searchParams.set('state', 'eq.archived')
+  url.searchParams.set('limit', '1')
+  if ((await readRows(url)).length > 0) return null
+  return signupPopupIsActive(DEFAULT_SIGNUP_POPUP, now) ? DEFAULT_SIGNUP_POPUP : null
 }
 
 export async function getContentVersion(id: string): Promise<ContentVersion | null> {
