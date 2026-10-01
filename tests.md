@@ -7,7 +7,11 @@
 - [PASS] 미결제 결제 페이지·결제 완료 05 목차·06 상세 권한 경계. 5회 소진 후 구매자 재열람도 허용
 - [PASS] 출생시간 미상 시 시간 기둥 제외, 원시 마크다운·전문 한자·내부 QA 문구 미노출
 - [PASS] 집중 회귀 14/14, 전체 회귀 1,676/1,676(166 suites), TypeScript, Vercel production build, JavaScript 구문·diff 검사
-- [PENDING] 운영 배포 후 390px 화면의 가로 넘침·GNB·실제 저장 리포트 검증
+- [PASS] 운영 앱 428px 본문에서 문서·호스트·표 가로 넘침 0, GNB·하단 내비게이션, 이미지 2/2 로드, 실제 잠금 19개 기본 닫힘, CTA 1개 확인
+- [PASS] 내부 코드 `cold_mood`와 원시 마크다운 0개, 고객 문구 `표현이 식은 느낌` 표시, 권한 보유 CTA 05 연결 확인
+- [PASS] 최종 GitHub Actions CI `36555954526`, Vercel Production `dpl_FdbCkoqC6wprRBGZCqUKE2EgfezN`, 운영 홈 3회 연속 HTTP 200
+- [PASS] 자동 배포 재현에서 함수 399.23MB·첫 호출 500을 확인하고 정상 배포로 즉시 복구. 텍스트 전용 `.vercel-runtime`과 빌드 미디어 카탈로그 적용 뒤 로컬 Vercel 함수 12.72MB, 전체 회귀 1,695/1,695, 정적/관리자 미디어 집중 69/69 PASS
+- [PASS] Git 자동 배포를 비활성화해 검증되지 않은 소스 빌드가 운영 별칭을 교체하지 않도록 고정. Production은 함수와 정적 자산을 함께 담은 prebuilt 산출물만 승격
 
 ## 2026-09-29 — 관계 신호 STEP2 입력 경험
 
@@ -1229,3 +1233,50 @@ LOVE-SPEED-01: focused 5/5, analytics related 12/12; full 1654/1655 before analy
 - 최종 격리 검증: 전체 회귀 1,694/1,694 PASS (166 suites), 빌드/타입 PASS. 운영 반영은 미실행.
 
 - GA-INTEGRITY-01 운영 검증 PASS: dpl_Ha21yGvGUvrrmuWSRjVH1xTkWPUp, 8개 랜딩200/UTM/gclid·JS 일치·health200. CI36554210668 success. GA 신규집계는 미검증.
+
+## 2026-09-29 — 관계 신호 티저 레이아웃 후속
+
+- PASS: 관계 신호·공용 티저·캐시 동기화 집중 회귀 57/57.
+- PASS: `npm run check:signal` — 20 contracts, 6 pages, 10 groups.
+- ASSERT: 전역 `h1` 폭 제한이 없고 `.hero h1`에만 `max-width: 11ch`가 남는다.
+- ASSERT: 관계 신호 잠금 목차 렌더 옵션은 `open: true`이다.
+- PASS: 전체 회귀 1,696/1,696(166 suites), TypeScript, 20개 서비스 계약·QA, 프로덕션 빌드, `git diff --check`.
+
+## 2026-09-29 — 결혼궁합 무료 티저
+
+- PASS: 결혼궁합·공용 티저·개인정보·단계 이동 집중 회귀 48/48.
+- PASS: 결혼궁합 계약 검사 16개 계약·6개 페이지·10개 대분류, TypeScript, JS 구문, diff 검사.
+- PASS: 전체 회귀 1,700개 실행. 기능 1,698개 통과, 캐시 키 불일치 2건 수정 후 해당 회귀 26/26 통과.
+- ASSERT: 새 사주는 API 요청의 별도 `selfBirth`로 저장되고 `/api/user/profile` POST를 하지 않는다.
+- ASSERT: 실제 24개 목차 중 공개 2개, 잠금 22개이며 잠금 목록은 `open: true`이다.
+- PASS: Production `dpl_4eN7nVeYLrSS9EZpwbtpMUYGmoZa` Ready, `umsh.kr` 별칭 및 `/api/health` 정상.
+- PASS: 실제 운영 리포트에서 공통 GNB, 서로 다른 이미지의 개인화 해석 1·2, 입력표·기둥표·다섯 기운 시각화, 기본 펼침 잠금 22개, 단일 CTA를 확인했다.
+- PASS: 검증 대상은 기존 권한 리포트여서 CTA가 05 해석 목록으로 연결된다. 미결제 결제 이동은 자동 회귀 계약으로 확인했다.
+
+## 2026-09-30 — 결혼궁합 티저 제목 폭 후속
+
+- PASS: 결혼궁합 티저 집중 회귀 4/4.
+- PASS: `npm run check:marry` — 16개 계약·6개 페이지·10개 대분류.
+- PASS: TypeScript 및 프로덕션 빌드.
+- ASSERT: `max-width: 11ch`는 정적 `.hero h1`에만 남고 런타임 `.marry-teaser-opening h1`에는 적용되지 않는다.
+- PASS: Production `dpl_fjpmBgkvFwiC4zTYATMyYw5mxDEi` Ready, `umsh.kr` 별칭과 health 정상.
+- PASS: 실제 운영 모바일 화면에서 개인화 제목이 카드 전체 폭을 사용하며 이미지·본문·기본 펼침 잠금 목차가 유지되는 것을 확인했다.
+
+## 2026-09-30 — CMDG 개인화 서사·추가 질문·인연 스케치
+- 공통 네 단계 서사, 실제 개인 계산/질문 근거, 안전한 마크다운/밑줄/모바일 표, 본인 구매 리포트의 추가 답변 저장 및 비공개 이미지 API를 구현했다.
+- 상세 근거·검증·운영 설정과 미실행 범위: docs/cmdg-personal-reading-20260930.md. 과거 완료 본문은 보존한다. 운영 반영은 아직 아님.
+- 검증: 전체 회귀 1707/1707 통과(193.3초), 이후 장별 고유 질문 보강 집중 7/7, 타입·프로덕션 빌드 통과. 로컬 합성 모바일 320~430px/데스크톱 표 넘침 0. 운영 실호출/배포 미실행.
+
+
+### 2026-09-30 천명사주 후속: 자미두수·개인 대운·주의 강조
+사용자 운영 배포 승인 후 ec1d0f4f 운영 반영 완료. 실제 개인 명반의 독립 장, 실제 대운의 5개 생애 구간, 주의 조건 강조 및 구형 저장본 호환성 수정 진행. 근거/검증/복구 이력: docs/cmdg-personal-reading-20260930.md. 기존 원문·결제 권한 보존.
+
+- 최종 검증: 전체 1711/1711 통과(195.9초), 후속 한글 용어 표 집중 69/69, 캐시/프로필 계약 29/29, 타입 검사·프로덕션 빌드·JS 문법·diff 검사 통과. 자체 코드 리뷰에서 구형 레코드 권한, 개인 명반 계산, 사주 원문 보존, 캐시 동기화, 모바일 경계와 주의 영역 여백을 확인했다.
+
+- 배포 후속 리뷰: 생애 구간 렌더러가 다른 서비스에도 적용될 여지를 발견해 천명사주에만 한정했다. 다른 서비스 기존 그래프 보존 회귀 추가, 관련 91/91 통과. 전체 1711 통과 이후의 작은 범위 수정이다.
+
+- 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
+
+- 완료: 장별 2회/이력/한국인 스케치 운영 검증. 전체 1713/1713 + 최종 보관함 9/9 PASS, 타입/빌드 PASS. 코드 1b5a39aa, 운영 dpl_2m1BfhVtnAYJXzW6yiQsLnEjkdHT Ready. 상세 운영 근거 docs/cmdg-personal-reading-20260930.md.
+
+2026-09-30 천명사주 생활말/세로 나이표: 전체 1716 PASS, 최종 회귀 73 PASS, 타입/빌드 PASS, 320px 넘침 0.

@@ -497,3 +497,13 @@ LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRES
 - [ ] 운영 반영 및 GA 신규 수신 검증.
 
 - GA-INTEGRITY-01 운영 배포 DONE: dpl_Ha21yGvGUvrrmuWSRjVH1xTkWPUp. 실제 GA 신규 집계/광고 성과 확인은 별도.
+
+## 2026-09-30 — CMDG 개인화 서사·추가 질문·인연 스케치
+- 공통 네 단계 서사, 실제 개인 계산/질문 근거, 안전한 마크다운/밑줄/모바일 표, 본인 구매 리포트의 추가 답변 저장 및 비공개 이미지 API를 구현했다.
+- 상세 근거·검증·운영 설정과 미실행 범위: docs/cmdg-personal-reading-20260930.md. 과거 완료 본문은 보존한다. 운영 반영은 아직 아님.
+
+
+### 2026-09-30 천명사주 후속: 자미두수·개인 대운·주의 강조
+사용자 운영 배포 승인 후 ec1d0f4f 운영 반영 완료. 실제 개인 명반의 독립 장, 실제 대운의 5개 생애 구간, 주의 조건 강조 및 구형 저장본 호환성 수정 진행. 근거/검증/복구 이력: docs/cmdg-personal-reading-20260930.md. 기존 원문·결제 권한 보존.
+
+- 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.

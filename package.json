@@ -34,6 +34,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "iztro": "2.6.1",
     "korean-lunar-calendar": "^0.4.0",
     "lunar-typescript": "^1.8.6",
     "openai": "^4.77.0",

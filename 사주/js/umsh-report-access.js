@@ -174,6 +174,7 @@
     var next=String(id || '');
     if(next!==ownerId) {
       ownerEpoch+=1;
+      if (global.UMSHCmdgReaderTools) global.UMSHCmdgReaderTools.reset();
       if(ownerId) {
         authorized=null;rememberedId='';headerCache=null;
         if(document.getElementById('umsh-verified-reading') || ((key === 'home_fit' || key === 'wedding_day') && isOutputPage())) gate('계정이 변경되었습니다. 새 계정의 구매 내역에서 결과를 열어 주세요.');
@@ -328,6 +329,7 @@
         continue;
       }
       if (line.trim()) plain.push(line.trim());
+      else flush();
       index += 1;
     }
     flush();
@@ -603,6 +605,7 @@
     var card = scope.querySelector('details.reading-card');
     if (!card) return;
     var guide = serviceReadingGuideHtml({}, payload, 0);
+    if (canonical(serviceKey) === 'saju_master') guide = cmdgExplainHtml(guide);
     if (!guide) return;
     var answer = card.querySelector('.reading-answer');
     if (answer && typeof answer.insertAdjacentHTML === 'function') answer.insertAdjacentHTML('afterend', guide);
@@ -616,6 +619,7 @@
     var inner = verdictBlock(report, config) + summaryBlock(report, config, entitled)
       + highlightBlocks(report, config, entitled);
     if (!inner) return '';
+    if (canonical(serviceKey) === 'saju_master') inner = cmdgExplainHtml(inner);
     return '<div class="umsh-longform" id="umsh-longform-host"' + longformAccentStyle(config) + '>' + inner + '</div>';
   }
 
@@ -708,7 +712,7 @@
     var currentSegment = daewoon.find(function (item) { return item.pillar === currentPillar; }) || null;
     var currentLabel = currentSegment ? currentSegment.age : String(current.age || '').trim();
     var currentStart = currentSegment ? Number(currentSegment.startYear) : Number(current.startYear);
-    var currentText = [currentLabel, currentPillar && currentPillar + ' 대운', currentYear && String(currentYear) + '년 기준'].filter(Boolean).join(' · ');
+    var currentText = [currentLabel, currentPillar && (isCmdgPayload(payload) ? cmdgKoreanPillar(currentPillar) : currentPillar) + ' 대운', currentYear && String(currentYear) + '년 기준'].filter(Boolean).join(' · ');
     var samjae = fortune && fortune.samjae && typeof fortune.samjae === 'object' ? fortune.samjae : null;
     var samjaeStart = samjae && Number(samjae.periodStartYear);
     var samjaeEnd = samjae && Number(samjae.periodEndYear);
@@ -718,11 +722,13 @@
     var timeline = daewoon.map(function (item) {
       var isCurrent = (Number.isFinite(currentStart) && item.startYear === currentStart)
         || (!currentStart && currentLabel && item.age === currentLabel && item.pillar === currentPillar);
+      var explanation = isCmdgPayload(payload) ? cmdgPeriodMeaning(item.pillar,payload) : '';
       return '<li class="umsh-life-flow-segment' + (isCurrent ? ' is-current' : '') + '"' + (isCurrent ? ' aria-current="step"' : '') + '>'
         + '<span class="umsh-life-flow-age">' + escapeHtml(item.age) + '</span>'
-        + '<strong>' + escapeHtml(item.pillar) + '</strong>'
+        + '<strong>' + escapeHtml(isCmdgPayload(payload) ? cmdgKoreanPillar(item.pillar) : item.pillar) + '</strong>'
         + '<span>' + escapeHtml(String(item.startYear)) + '년 시작</span>'
         + (isCurrent ? '<em>현재</em>' : '')
+        + (explanation ? '<p class="cmdg-period-explanation">'+escapeHtml(explanation)+'</p>' : '')
         + '</li>';
     }).join('');
     var labels = { work: '일·직장', workAlternative: '새 직장·제안', money: '재물·보상', relationship: '관계·연애', planning: '계획 기준' };
@@ -734,23 +740,24 @@
     var serviceKey = canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
     var canShowCurve = Boolean(currentSegment && payload && payload.analysis);
     var currentLevel = currentSegment ? cmdgFlowLevel(currentSegment.pillar, payload.analysis) : 2;
-    return '<section class="umsh-life-flow" aria-labelledby="umsh-life-flow-title">'
+    var flowHtml = '<section class="umsh-life-flow' + (isCmdgPayload(payload) ? ' cmdg-detailed-periods' : '') + '" aria-labelledby="umsh-life-flow-title">'
       + '<span class="umsh-life-flow-eyebrow">만세력 계산 결과</span>'
       + '<h2 id="umsh-life-flow-title">나의 대운 흐름</h2>'
       + (currentText ? '<p class="umsh-life-flow-current">현재 위치 · ' + escapeHtml(currentText) + '</p>' : '')
-      + (canShowCurve ? '<p class="umsh-flow-intro">선이 위로 갈수록 내 힘을 쓰기 쉬운 구간, 아래로 갈수록 속도와 조건을 살필 구간입니다. 인생의 성공·수입을 예측한 점수는 아닙니다.</p>' + cmdgFlowCurveHtml(payload, false)
-        + '<div class="umsh-flow-callout"><strong>지금의 위치 · ' + escapeHtml(currentLabel || '현재') + '</strong><span>' + CMDG_FLOW_LABELS[currentLevel] + '</span></div>' : '')
+      + (serviceKey === 'saju_master' ? cmdgLifeStagesHtml(payload) : (canShowCurve ? '<p class="umsh-flow-intro">선이 위로 갈수록 내 힘을 쓰기 쉬운 구간, 아래로 갈수록 속도와 조건을 살필 구간입니다. 인생의 성공·수입을 예측한 점수는 아닙니다.</p>' + cmdgFlowCurveHtml(payload, false)
+        + '<div class="umsh-flow-callout"><strong>지금의 위치 · ' + escapeHtml(currentLabel || '현재') + '</strong><span>' + CMDG_FLOW_LABELS[currentLevel] + '</span></div>' : ''))
       + '<section class="umsh-life-flow-reference" aria-label="올해 참고와 삼재">'
-      + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(String(fortune.yearPillar || '')) + '</span></p>'
+      + '<p><strong>올해 참고</strong><span>' + escapeHtml(String(currentYear || '')) + '년 ' + escapeHtml(isCmdgPayload(payload) ? cmdgKoreanPillar(String(fortune.yearPillar || '')) : String(fortune.yearPillar || '')) + '</span></p>'
       + (samjaePeriod ? '<p><strong>삼재</strong><span>' + escapeHtml(samjae.status === 'current' ? '현재 삼재 · ' + samjaePeriod + (samjaePhase ? ' · ' + samjaePhase : '') : '다음 삼재 · ' + samjaePeriod) + '</span></p>' : '')
       + '</section>'
-      + '<details class="umsh-life-flow-source" open><summary>만세력 원자료 보기</summary>'
+      + '<details class="umsh-life-flow-source" open><summary>' + (isCmdgPayload(payload) ? '나이별 시기를 자세히 읽기' : '만세력 원자료 보기') + '</summary>'
       + '<ol class="umsh-life-flow-timeline" aria-label="대운 구간">' + timeline + '</ol>'
-      + '<p class="umsh-life-flow-note">대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.</p>'
+      + '<p class="umsh-life-flow-note">' + (isCmdgPayload(payload) ? '나이와 시작 연도는 내 생년월일로 계산한 값입니다. 각 기운의 뜻을 생활 속 말로 풀었습니다. 주의를 권하는 3년이라고 해서 그때 반드시 나쁜 일이 생긴다는 뜻은 아닙니다.' : '대운의 나이 구간·간지와 올해 참고는 저장 리포트의 만세력 계산 결과입니다. 삼재는 출생 년주와 절기 기준 해의 지지로 계산한 전통적인 연도 분류이며, 성공·실패 점수나 사건 예측이 아닙니다.') + '</p>'
       + '</details>'
       + (contextRows ? '<section class="umsh-life-context" aria-labelledby="umsh-life-context-title">'
         + '<h3 id="umsh-life-context-title">내가 저장한 현실 기준</h3><ul>' + contextRows + '</ul></section>' : '')
       + '</section>';
+    return serviceKey === 'saju_master' ? cmdgExplainHtml(flowHtml).replace('나의 약 10년씩 나누어 보는 시기(대운) 흐름','나이별로 살펴보는 나의 삶') : flowHtml;
   }
 
   function mountLifeFlow(host, payload) {
@@ -766,31 +773,86 @@
     return canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key) === 'saju_master';
   }
 
+  // Display-only explanations for saved prose; do not rewrite the stored answer or user questions.
+  function cmdgPlainText(raw) {
+    var terms = {
+      '자미':'앞장서서 일을 정하고 책임지는 성향', '태양':'돕고 표현하려는 성향', '자미두수 명반':'태어난 때로 그린 12가지 생활표', '명반':'태어난 때로 그린 생활표', '명궁':'내 성격을 살피는 부분', '신궁':'실제 행동을 살피는 부분', '천이궁':'낯선 곳에서의 행동을 살피는 부분', '천이':'낯선 곳에서의 행동', '관록궁':'일하는 모습을 살피는 부분', '관록':'일하는 모습', '재백궁':'돈을 벌고 쓰는 습관을 살피는 부분', '재백':'돈을 벌고 쓰는 습관', '부처궁':'연애와 결혼 생활을 살피는 부분', '복덕궁':'마음의 여유를 살피는 부분', '전택궁':'집과 생활을 살피는 부분', '질액궁':'몸과 휴식을 살피는 부분', '노복궁':'친구와 동료 관계를 살피는 부분',
+      '염정':'호불호와 관계 속 약속을 중시하는 성향', '천상':'서로의 입장을 듣고 조율하는 성향', '파군':'익숙한 방식을 바꾸려는 성향', '칠살':'어려운 일에 결단하고 움직이는 성향', '탐랑':'새 경험과 사람에게 관심을 넓히는 성향', '천기':'여러 방법을 생각하는 성향', '천부':'가진 것을 관리하고 지키는 성향', '무곡':'목표와 돈을 꼼꼼히 챙기는 성향', '거문':'질문과 대화로 풀어가는 성향', '태음':'작은 변화를 살피고 준비하는 성향', '천동':'편안함과 즐거움을 바라는 성향', '천량':'사람을 챙기고 원칙을 지키는 성향',
+      '사화':'도움·책임·평가·부담의 네 가지 변화', '화록':'도움과 보상에 관심이 가는 표시', '화권':'결정과 책임에 관심이 가는 표시', '화과':'인정과 신뢰에 관심이 가는 표시', '화기':'부담이 커지는 부분을 살피는 표시', '공궁':'중심 별이 없는 부분', '주성':'해석의 중심이 되는 별', '대운':'약 10년씩 나누어 보는 시기', '세운':'한 해의 기운', '일간':'태어난 날을 나타내는 중심 기운', '일주':'태어난 날의 두 기운', '일지':'태어난 날의 아래쪽 기운', '월지':'태어난 달의 아래쪽 기운', '지장간':'겉으로 보이는 기운 안에 함께 담긴 기운', '용신':'균형을 도울 것으로 보는 기운', '희신':'보완에 도움을 주는 기운', '십신':'나와 다른 기운의 관계를 나눈 열 가지 이름', '십성':'나와 다른 기운의 관계를 나눈 열 가지 이름', '합충':'기운이 어울리거나 부딪치는 관계', '삼재':'전통적으로 주의를 권하는 3년 분류', '만세력':'생년월일의 기운을 계산하는 달력', '간지':'하늘과 땅의 기운을 짝지은 이름', '오행':'나무·불·흙·쇠·물의 다섯 기운', '신강':'내 기운을 받쳐주는 힘이 많은 편', '신약':'주변의 도움을 함께 살피는 편', '편관':'압박과 어려움에 대응하는 역할', '정관':'규칙과 책임을 챙기는 역할', '편재':'돈과 기회를 넓혀 쓰는 역할', '정재':'꾸준히 벌고 관리하는 역할', '편인':'새롭게 배우고 생각하는 역할', '정인':'배움과 도움을 받는 역할', '비견':'독립하거나 협력하는 역할', '겁재':'경쟁하고 자원을 나누는 역할', '식신':'꾸준히 만들고 돌보는 역할', '상관':'생각을 표현하고 개선하는 역할'
+    };
+    var seen = {};
+    var pattern = new RegExp('(^|[^가-힣A-Za-z])(' + Object.keys(terms).sort(function(a,b){return b.length-a.length;}).join('|') + ')(?=$|[^가-힣A-Za-z]|은|는|이|가|을|를|의|에|과|와|으로|처럼|이라|에서)', 'g');
+    return String(raw || '').replace(/타고난 그릇과 쓰는 법/g,'내 강점과 활용 방법').replace(/평생 반복되는 매듭/g,'자주 반복되는 어려움').replace(/지금 대운의 위치/g,'지금 지나고 있는 시기').replace(pattern,function(all,before,term,offset,whole){
+      if (seen[term] || before==='(' || whole.charAt(offset+all.length)==='(') return all;
+      seen[term]=true; return before + terms[term] + '(' + term + ')';
+    });
+  }
+  function cmdgExplainHtml(html) {
+    return html.replace('class="umsh-reading-guide"','class="umsh-reading-guide cmdg-plain-guide"').replace(/>([^<]+)</g,function(all,text){return '>'+cmdgPlainText(text)+'<';});
+  }
+
   function cmdgVisualSpec(section, payload) {
-    var analysis = payload && payload.analysis || {};
-    var member = payload && payload.memberContext || {};
-    var fortune = analysis.fortune || {};
-    var fields = analysis.elements || {};
-    var saved = function (value, fallback) { return typeof value === 'string' && value.trim() ? value.trim() : fallback; };
-    switch (section.id) {
-      case 'profile': return { type: 'facts', caption: '저장 리포트의 오행 계산값 · 성격 점수가 아닙니다', items: [['나무', fields.wood], ['불', fields.fire], ['흙', fields.earth], ['쇠', fields.metal], ['물', fields.water]].filter(function (item) { return typeof item[1] === 'number'; }) };
-      case 'day-master-strength': return { type: 'columns', caption: '요청을 받은 뒤 나눠 볼 두 가지', items: [['더 확인할 일', '마감이나 담당 범위가 비어 있음'], ['답해도 될 일', '조건을 확인했고 맡을 범위가 분명함']] };
-      case 'hidden-personality': return { type: 'columns', caption: '약속이 겹칠 때', items: [['겉으로 보이는 행동', '상대의 요청에 답하는 방식'], ['내가 지킬 기준', '가능한 시간과 맡을 범위를 먼저 밝히기']] };
-      case 'balance': return { type: 'steps', caption: '계산값을 일상적인 선택 순서로 옮긴 예', items: [['1', '살피기', '자료와 마감 확인'], ['2', '표현하기', '맡을 일과 처리 순서 전달']] };
-      case 'useful-god-eokbu': return { type: 'steps', caption: '보완 기운은 실제 결과를 보장하지 않습니다', items: [['1', '살피기', '필요한 정보 찾기'], ['2', '말하기', '확인한 결론 전달하기']] };
-      case 'concern-loop': return { type: 'check', caption: '제안받은 일을 살필 때', items: ['내 책임 범위', '받을 대가', '마감 또는 결정 시점'] };
-      case 'career-money': return { type: 'table', caption: '제안의 역할·보상·마감을 확인하는 표', headers: ['구분', '실제 결정 전에 확인할 것'], rows: [['제안 조건', saved(member.money, '받을 보상과 지급 시점은 무엇인가요?')]] };
-      case 'career-transition': return { type: 'table', caption: '현재 자리와 새 선택의 조건을 비교하는 표', headers: ['구분', '실제 결정 전에 확인할 것'], rows: [['현재 자리', saved(member.work, '맡은 역할·평가·보상·소진 정도는 어떤가요?')], ['새 선택', saved(member.workAlternative, '제안받은 역할·보상·근무 방식은 확인됐나요?')]] };
-      case 'wealth-flow': return { type: 'steps', caption: '제안 수락 전 확인 순서', items: [['1', '제안', '누가 어떤 일을 요청했나요?'], ['2', '결과물', '무엇을 완성해야 하나요?'], ['3', '대가', '지급 조건은 무엇인가요?']] };
-      case 'love-loop': return { type: 'table', caption: '약속·부담·조정할 말을 한 문장으로 정리하는 표', headers: ['구분', '실제 관계에서 확인할 것'], rows: [['관계의 조건', saved(member.relationship, '서로 약속한 시간·부담·조정할 점은 무엇인가요?')]] };
-      case 'destiny-partner': return { type: 'check', caption: '관계를 살필 질문', items: ['약속한 시간을 지켰나요?', '변경 사항을 미리 말했나요?', '부담을 함께 조정할 수 있었나요?'] };
-      case 'avoid-relationship': return { type: 'table', caption: '사람의 등급이 아닌 행동 기준', headers: ['반복된 행동', '내 경계', '다음 대응'], rows: [['역할이 계속 바뀜', '맡을 범위 정하기', '수락 전 다시 묻기'], ['약속 변경을 알리지 않음', '가능한 시간 밝히기', '새 일정 합의하기']] };
-      case 'love-timing': return { type: 'check', caption: '다음 약속의 확인 항목 · 날짜 예측이 아닙니다', items: ['답장이 서로 이어지나요?', '시간과 장소가 정해졌나요?', '변경할 때 서로 알리나요?'] };
-      case 'future-flow': return { type: 'columns', caption: '리포트의 기간 표기', items: [['장기 기준', saved(fortune.currentDaewoon, '계산 결과 없음') + ' 대운'], ['올해 참고', saved(fortune.yearPillar, '계산 결과 없음') + ' · ' + saved(member.planning, '결정할 일의 마감·책임 범위를 확인하세요.')]] };
-      case 'sewoon-detail': return { type: 'check', caption: '실제 제안서와 대조할 항목', items: ['담당자는 누구인가요?', '마감은 언제인가요?', '완성할 결과물은 무엇인가요?'] };
-      case 'action-guide': return { type: 'steps', caption: '받은 요청을 정리하는 세 칸', items: [['1', '확인됨', '이미 아는 조건'], ['2', '더 물어볼 것', '결정에 필요한 빈칸'], ['3', '답할 말', '지금 전달할 한 문장']] };
-      default: return null;
+    var a = payload && payload.analysis || {}, c = payload && payload.context || {}, m = payload && payload.memberContext || {};
+    var rows = [], pillars = a.pillars || {}, f = a.fortune || {};
+    var put = function (label, value) { if (typeof value === 'string' && value.trim()) rows.push([label, value]); };
+    var pillar = function (key, label) { put(label, pillars[key] && cmdgKoreanPillar(pillars[key].ko)); };
+    if (section.id === 'profile' || section.id === 'balance') {
+      var e = a.elements || {};
+      return { type: 'facts', caption: '나의 네 기둥에 나타난 다섯 기운의 실제 개수', items: [['나무',e.wood],['불',e.fire],['흙',e.earth],['쇠',e.metal],['물',e.water]].filter(function(x){return Number.isFinite(x[1]);}) };
     }
+    if (['day-master-strength','hidden-personality','useful-god-eokbu'].indexOf(section.id) >= 0) {
+      pillar('day','태어난 날'); pillar('month','태어난 달');
+      put('나의 기본 기운', cmdgElementText(a.dayMaster && a.dayMaster.element));
+      put('기운의 균형', a.dayMaster && ({strong:'내 기운이 강하게 받쳐지는 편',balanced:'내 기운과 주변 기운이 균형을 이루는 편',weak:'주변의 도움과 환경을 함께 살피는 편'})[a.dayMaster.strength]);
+      put('계산된 보완 기운', cmdgElementText(a.usefulGod));
+    } else if (['love-loop','destiny-partner','avoid-relationship','love-timing'].indexOf(section.id) >= 0) {
+      pillar('day','가까운 관계를 읽는 날 기둥'); put('현재 관계',/직장|회사|업무|이직/.test(c.relationship || '')?'':c.relationship); put('직접 남긴 관계 상황',m.relationship);
+      if(section.id==='love-timing') {put('현재 대운',cmdgKoreanPillar(f.currentDaewoon));put('올해 기운',cmdgKoreanPillar(f.yearPillar));}
+    } else if (['career-money','career-transition','wealth-flow'].indexOf(section.id) >= 0) {
+      pillar('month','사회적 역할을 읽는 달 기둥'); put('지금 하는 일',m.work || c.work); put('비교할 제안',m.workAlternative); put('돈과 보상',m.money);
+      put('사주에서 계산된 관계',Array.isArray(a.tenGods)?a.tenGods.map(function(t){return ({비견:'독립과 협력',겁재:'경쟁과 자원 나누기',식신:'꾸준한 생산과 돌봄',상관:'표현과 개선',편재:'기회와 자원 활용',정재:'꾸준한 보상과 관리',편관:'부담과 대응',정관:'역할과 책임',편인:'탐구와 새로운 배움',정인:'지원과 배움'})[t] || t;}).join(' · '):'');
+    } else if (['future-flow','sewoon-detail'].indexOf(section.id) >= 0) {
+      put('현재 대운',cmdgKoreanPillar(f.currentDaewoon)); put('올해 기운',cmdgKoreanPillar(f.yearPillar)); put('기준 연도',Number.isFinite(f.currentYear)?String(f.currentYear)+'년':''); put('직접 세운 계획',m.planning);
+    } else {put('내가 적은 고민',c.concern);put('일과 생활',m.work);put('관계',m.relationship);put('계획',m.planning);pillar('day','나를 읽는 날 기둥');}
+    return {type:'table',caption:'이 장에 연결된 나의 사주와 실제 상황',headers:['구분','나의 정보'],rows:rows.length?rows:[['추가 상황','아직 입력하지 않았습니다. 이 장 아래에 궁금한 상황을 적어 주세요.']]};
+  }
+
+  function cmdgElementText(value) {
+    if (typeof value !== 'string') return '';
+    return ({'목(木)':'나무','화(火)':'불','토(土)':'흙','금(金)':'쇠','수(水)':'물',wood:'나무',fire:'불',earth:'흙',metal:'쇠',water:'물'})[value] || value;
+  }
+
+  function cmdgKoreanPillar(value) {
+    if (typeof value !== 'string') return '';
+    var chars='甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥', sounds=['갑','을','병','정','무','기','경','신','임','계','자','축','인','묘','진','사','오','미','신','유','술','해'];
+    var ko = value.split('').map(function(c){var i=chars.indexOf(c);return i<0?c:sounds[i];}).join('');
+    var stem={갑:'나무',을:'나무',병:'불',정:'불',무:'흙',기:'흙',경:'쇠',신:'쇠',임:'물',계:'물'}, branch={자:'물',축:'흙',인:'나무',묘:'나무',진:'흙',사:'불',오:'불',미:'흙',신:'쇠',유:'쇠',술:'흙',해:'물'};
+    return ko.length===2 && stem[ko[0]] && branch[ko[1]] ? stem[ko[0]]+'·'+branch[ko[1]]+' 조합 ('+ko+')' : ko;
+  }
+
+  function cmdgPeriodMeaning(value, payload) {
+    var name=cmdgKoreanPillar(value), pair=name.split(' 조합')[0].split('·');
+    var meanings={나무:'배우고 시도하며 할 수 있는 일을 넓히는 힘',불:'생각과 감정을 밖으로 표현하는 힘',흙:'생활을 안정시키고 꾸준히 이어가는 힘',쇠:'해야 할 일과 그만둘 일을 구분하고 정리하는 힘',물:'상황을 살피고 유연하게 방법을 찾는 힘'};
+    var actions={나무:'작은 도전 하나를 꾸준히 이어가세요',불:'생각만 하지 말고 말이나 결과물로 표현해 보세요',흙:'지킬 수 있는 약속과 생활 습관부터 만들어요',쇠:'맡을 일과 거절할 일을 분명히 나누세요',물:'서두르기 전에 정보를 모으고 쉴 시간도 남겨두세요'};
+    if(!meanings[pair[0]] || !meanings[pair[1]]) return '';
+    var topic=function(e){return e+(['나무','쇠'].indexOf(e)>=0?'는 ':'은 ');};
+    var text=topic(pair[0])+meanings[pair[0]]+'을 뜻합니다. '+(pair[0]===pair[1]?'이 구간에는 같은 기운이 두 번 놓여 이 주제를 중심으로 살펴봅니다. ':topic(pair[1])+meanings[pair[1]]+'을 뜻합니다. ');
+    var a=payload && payload.analysis || {}, personal=cmdgElementText(a.dayMaster && a.dayMaster.element || a.dayMasterElement);
+    if(meanings[personal]) text+='나의 기본 기운인 '+personal+' 기운과 이 두 기운을 함께 읽는 시기입니다. ';
+    return text+'생활에서는 '+actions[pair[1]]+'.';
+  }
+
+  function cmdgLifeStagesHtml(payload) {
+    var f=payload && payload.analysis && payload.analysis.fortune || {}, data=Array.isArray(f.daewoon)?f.daewoon:[];
+    var groups=[['초년',0,19],['청년',20,39],['중년',40,59],['후년',60,79],['말년',80,119]];
+    return '<div class="cmdg-life-stages">'+groups.map(function(g){
+      var periods=data.map(function(d){var nums=String(d.age||'').match(/\d+/g)||[];var start=Number.isFinite(d.ageStart)?d.ageStart:Number(nums[0]), end=Number.isFinite(d.ageEnd)?d.ageEnd:Number(nums[1]);
+        if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(d.startYear)||end<g[1]||start>g[2])return '';
+        var lo=Math.max(start,g[1]),hi=Math.min(end,g[2]),ys=d.startYear+lo-start,ye=d.startYear+hi-start;
+        return '<li'+(f.currentYear>=ys&&f.currentYear<=ye?' aria-current="step"':'')+'><strong>'+lo+'~'+hi+'세</strong><span>'+ys+'~'+ye+'년</span><span>'+escapeHtml(cmdgKoreanPillar(d.pillar))+' 시기</span>'+(f.currentYear>=ys&&f.currentYear<=ye?'<em>현재</em>':'')+'</li>';
+      }).filter(Boolean).join('');
+      return '<section><h3>'+g[0]+' <small>'+g[1]+'세'+(g[2]===119?' 이후':'~'+g[2]+'세')+'</small></h3>'+(periods?'<ul>'+periods+'</ul>':'<p>이 나이대에 해당하는 계산 결과가 없습니다.</p>')+'</section>';
+    }).join('')+'<p class="cmdg-stage-note">초년부터 말년까지 나누어 보았습니다. 아래에서 각 나이대의 뜻과 생활에서 살필 점을 자세히 읽을 수 있습니다.</p></div>';
   }
 
   function cmdgVisualHtml(spec) {
@@ -812,21 +874,17 @@
   }
 
   function cmdgDomainFlowHtml(section, payload) {
-    var labels = { 'career-money': ['재물·보상', '재물운', 'money'], 'career-transition': ['일·직장', '직장운', 'work'], 'love-loop': ['관계·연애', '연애운', 'relationship'] };
-    var item = labels[section.id];
-    if (!item) return '';
-    var member = payload && payload.memberContext || {};
-    var recorded = typeof member[item[2]] === 'string' && member[item[2]].trim();
-    return '<section class="umsh-cmdg-domain-flow" aria-label="' + item[0] + ' 흐름">'
-      + '<h3>' + item[0] + ' · ' + item[1] + ' 참고 흐름</h3>'
-      + '<p>위의 대운과 같은 기운 균형 흐름입니다. 재물·직장·연애의 결과나 성공률을 예측하지 않습니다.</p>'
-      + cmdgFlowCurveHtml(payload, true)
-      + '<span>' + (recorded ? '함께 참고할 실제 조건이 있습니다.' : '개인의 실제 조건은 이 그래프에 포함되지 않습니다.') + '</span>'
-      + '</section>';
+    return section.id === 'future-flow' ? cmdgLifeStagesHtml(payload) : '';
   }
 
   function cmdgCardBody(section, payload, body, index) {
     if (!isCmdgPayload(payload) || !CMDG_CARD_TITLES[section.id]) return body;
+    var cautions = 0;
+    body = body.replace(/<p>([\s\S]*?)<\/p>/g, function (html, text) {
+      if (cautions >= 2 || !/주의|위험|책임만|권한이 없|불분명/.test(text.replace(/<[^>]*>/g, ''))) return html;
+      cautions += 1;
+      return '<p class="cmdg-caution"><strong class="cmdg-caution-label">놓치지 말아야 할 조건</strong>' + text + '</p>';
+    });
     var lead = '<p class="umsh-cmdg-lead"><strong>' + escapeHtml(CMDG_CARD_LEADS[section.id]) + '</strong></p>';
     var visual = cmdgVisualHtml(cmdgVisualSpec(section, payload)) + cmdgDomainFlowHtml(section, payload);
     var image = renderSectionImage(section, reportServiceKey(payload));
@@ -834,9 +892,8 @@
     var prefix = image + answer;
     var guide = serviceReadingGuideHtml(section, payload, index);
     var editorial = CMDG_EDITORIAL[section.id] || [];
-    var supplement = editorial.length ? readingBlock('evidence umsh-cmdg-editorial', '쉬운 풀이·보강', [editorial[0]])
-      + readingBlock('action umsh-cmdg-editorial', '추가로 확인할 것', [editorial[1]]) : '';
-    return body.indexOf(prefix) === 0 ? lead + prefix + guide + visual + body.slice(prefix.length) + supplement : lead + body + guide + visual + supplement;
+    var supplement = '<div data-cmdg-reader-tools="' + escapeHtml(section.id) + '"></div>';
+    return cmdgExplainHtml(body.indexOf(prefix) === 0 ? lead + prefix + guide + visual + body.slice(prefix.length) + supplement : lead + body + guide + visual + supplement);
   }
 
   function serviceCardBody(section, payload, body, index) {
@@ -1446,6 +1503,13 @@
       renderProgress(payload.report);
       return renderedCouple;
     }
+    if (canonical((payload && payload.serviceKey) || key) === 'marry_match'
+      && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
+      hideMarryTeaserShell();
+      var renderedMarry = fillSlot('preview', renderMarryMatchTeaserSections(payload));
+      renderProgress(payload.report);
+      return renderedMarry;
+    }
     if (canonical((payload && payload.serviceKey) || key) === 'love_this_year'
       && Array.isArray(payload.teaserSections) && payload.teaserSections.length === 2) {
       var renderedThisYear = fillSlot('preview', renderLoveThisYearTeaserSections(payload));
@@ -1640,6 +1704,14 @@
       if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
     });
     hideLegacyNode(document.querySelector('.submit-dock'));
+  }
+
+  function hideMarryTeaserShell() {
+    var root = document.getElementById('step-4-report');
+    if (root && root.children) Array.prototype.forEach.call(root.children, function (child) {
+      if (!child.hasAttribute || (!child.hasAttribute('data-umsh-slot') && !child.hasAttribute('data-umsh-service-top'))) hideLegacyNode(child);
+    });
+    hideLegacyNode(document.querySelector('.hero'));
   }
 
   function hideCatTeaserShell() {
@@ -1865,6 +1937,58 @@
       + '</footer>';
   }
 
+  /** 결혼궁합은 실제 관계 입력과 두 사람의 네 기둥을 결혼 전 생활 장면으로 연결한다. */
+  function renderMarryMatchTeaserSections(payload) {
+    var preview = payload.preview || {};
+    var sections = payload.teaserSections.slice(0, 2);
+    var cta = previewCta(payload);
+    var cards = sections.map(function (section, index) {
+      var story = section.storytelling || {};
+      var source = String(section.interpretation || '');
+      var bodyText = normalizeMarryMatchTeaserCopy(source);
+      var title = String(story.feel || section.hook || section.classification || '').trim();
+      var intro = String(story.softBridge || '').trim();
+      var flow = story.flowSteps && story.flowSteps.length
+        ? renderMoneyFlow(story.flowSteps, story.flowCaption || '결혼 전 확인할 내용을 실제 장면 순서로 정리했습니다.')
+        : '';
+      var table = story.tableMd ? renderMarkdownTable(story.tableMd, story.tableCaption || '두 사람의 실제 입력과 사주 계산값입니다.') : '';
+      var chart = story.chartPoints && story.chartPoints.length
+        ? renderStoryChart(story.chartPoints, story.chartCaption || '두 사람의 저장 사주에서 계산한 값입니다.')
+        : '';
+      var conclusion = index === 0
+        ? '말로 확인한 마음과 반복되는 책임이 같은 방향이라면, 지금의 망설임은 결혼 전에 맞출 준비 항목으로 바뀔 수 있습니다.'
+        : '돈·집안일·가족 일정의 역할과 마감선을 함께 정하고 실제 행동으로 옮길 수 있다면, 결혼 뒤의 안정감은 이미 생활에서 시작된 것입니다.';
+      return '<article class="job-teaser-reading marry-teaser-reading" aria-labelledby="marry-teaser-title-' + (index + 1) + '" data-exact-source-chars="' + source.length + '">'
+        + renderSectionImage(section, 'marry_match')
+        + '<div class="job-teaser-reading-inner">'
+        + '<p class="job-teaser-number">무료 공개 해석 ' + ('0' + (index + 1)).slice(-2) + '</p>'
+        + '<h2 id="marry-teaser-title-' + (index + 1) + '">' + escapeHtml(title) + '</h2>'
+        + (intro ? '<blockquote class="job-teaser-hook">' + inlineMarkdown(escapeHtml(intro)) + '</blockquote>' : '')
+        + '<div class="job-teaser-body">' + richText(bodyText, { orderedNext: 1 }) + '</div>'
+        + flow + table + chart
+        + '<p class="job-teaser-closing"><strong>이 장의 결론</strong>' + escapeHtml(conclusion) + '</p>'
+        + '</div></article>';
+    }).join('');
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: true, normalizeText: normalizeMarryMatchTocText });
+    var quotaText = teaserQuotaText(payload.freeSearch);
+    return '<header class="job-teaser-opening marry-teaser-opening">'
+      + '<span>결혼궁합 · 무료 공개 2개 해석</span>'
+      + '<h1>' + escapeHtml(preview.headline || '사랑의 크기보다 함께 책임지는 방식에서 결혼의 답을 읽었습니다') + '</h1>'
+      + (preview.summary ? '<p>' + inlineMarkdown(escapeHtml(preview.summary)) + '</p>' : '')
+      + '</header>'
+      + cards
+      + '<footer class="job-teaser-final-cta marry-teaser-final-cta">'
+      + lockedToc
+      + '<span>전체 해석에서 이어집니다</span><h2>생활비·집안일·가족 관계·갈등 회복·결혼 시점과 오늘 꺼낼 질문까지 이어서 봅니다</h2>'
+      + '<p>' + inlineMarkdown(escapeHtml(preview.paidValue || '나머지 해석에서는 두 사람의 애정 표현과 생활 책임, 가족과 돈 이야기, 결혼을 구체화할 시점까지 이어서 확인합니다.')) + '</p>'
+      + '<div class="job-teaser-status-row">'
+      + (quotaText ? '<p class="job-teaser-usage">' + escapeHtml(quotaText) + '</p>' : '')
+      + '<a class="job-teaser-retry" href="../02-step-2-saju-input/index.html#step-2-saju-input">입력값 다시 확인</a>'
+      + '</div>'
+      + '<a class="umsh-preview-checkout" href="' + escapeHtml(cta.href) + '">' + escapeHtml(cta.label) + '</a>'
+      + '</footer>';
+  }
+
   /** 고양이 궁합은 관찰한 행동과 보호자 사주를 분리해 실제 생활 장면으로 연결한다. */
   function renderCatCompatTeaserSections(payload) {
     var preview = payload.preview || {};
@@ -1944,7 +2068,7 @@
         + flow + table + chart
         + '</div></article>';
     }).join('');
-    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: false, normalizeText: normalizeLoveSignalTocText });
+    var lockedToc = renderLockedTeaserToc(payload.toc, { all: true, collapsible: true, open: true, normalizeText: normalizeLoveSignalTocText });
     var quotaText = teaserQuotaText(payload.freeSearch);
     return '<header class="job-teaser-opening couple-teaser-opening love-signal-teaser-opening">'
       + '<span>관계 신호 · 무료 공개 2개 해석</span>'
@@ -2097,6 +2221,37 @@
       .replace(/일지/g, '태어난 날의 기둥')
       .replace(/일간/g, '태어난 날의 중심 기운')
       .replace(/십성/g, '사주 속 열 가지 관계 방식')
+      .trim();
+  }
+
+  function normalizeMarryMatchTeaserCopy(value) {
+    return String(value || '')
+      .replace(/^\[주요 포인트\]\s*/, '')
+      .replace(/\s*\[주요 포인트\]\s*/g, '\n\n### 지금 결혼을 망설이는 이유\n')
+      .replace(/\s*\[사주와 관계를 함께 보면\]\s*/g, '\n\n### 두 사람의 사주와 현실이 만나는 지점\n')
+      .replace(/\s*\[확인할 장면\]\s*/g, '\n\n### 현실에서 바로 확인할 장면\n')
+      .replace(/\s*\[결정 전에 물어볼 질문\]\s*/g, '\n\n### 결혼 전에 꼭 물어볼 질문\n')
+      .replace(/\s*\[해법\]\s*/g, '\n\n### 이 장에서 내릴 답\n')
+      .replace(/배우자궁|부부궁/g, '가까운 관계에서 보이는 반응')
+      .replace(/오행/g, '다섯 기운')
+      .replace(/일지/g, '태어난 날의 기둥')
+      .replace(/일간/g, '태어난 날의 중심 기운')
+      .replace(/십성/g, '사주 속 열 가지 관계 방식')
+      .trim();
+  }
+
+  function normalizeMarryMatchTocText(value) {
+    return String(value || '')
+      .replace(/일간 케미/g, '태어난 날의 중심 기운이 만나는 방식')
+      .replace(/오행 밸런스 궁합/g, '다섯 기운의 균형')
+      .replace(/대운에서 관계가 공식화되는 구간/g, '긴 시간대에서 관계가 구체화되는 때')
+      .replace(/월별 연애·결혼 흐름/g, '달마다 달라지는 연애·결혼 시기')
+      .replace(/띠·지지 조화와 충돌/g, '태어난 해와 날에서 붙고 부딪히는 방식')
+      .replace(/십성 관계 궁합/g, '사주 속 열 가지 관계 방식')
+      .replace(/MZ형 결과 라벨/g, '한눈에 보는 결과')
+      .replace(/레드플래그/g, '주의할 신호')
+      .replace(/타이밍/g, '시점')
+      .replace(/액션/g, '실행')
       .trim();
   }
 
@@ -2457,7 +2612,7 @@
     if (document.documentElement) document.documentElement.removeAttribute('data-umsh-toc-check');
     if (key === 'home_fit' && global.UMSHHomeReading && global.UMSHHomeReading.render(payload)) return;
     if (key === 'wedding_day' && global.UMSHWeddingReading && global.UMSHWeddingReading.render(payload)) return;
-    if (renderReportInPlace(payload)) return;
+    if (renderReportInPlace(payload)) { mountCmdgReaderTools(payload); return; }
     if (inPlaceEnabled()) return;
     var selected = new URLSearchParams(location.search).get('section') || '';
     var node = panel();
@@ -2478,6 +2633,25 @@
     if (id && key !== 'home_fit') node.insertAdjacentHTML('beforeend','<div class="umsh-report-share"><button type="button" data-umsh-report-share="'+escapeHtml(id)+'">링크 공유하기</button><span role="status" aria-live="polite"></span></div>');
     ensureImportantNotice(node, report);
     ensurePdfDock(node);
+    mountCmdgReaderTools(payload);
+  }
+  function mountCmdgReaderTools(payload) {
+    if (!isCmdgPayload(payload) || payload.entitled === false) return;
+    var epoch = ownerEpoch;
+    function mount() {
+      if (epoch !== ownerEpoch || !global.UMSHCmdgReaderTools) return;
+      global.UMSHCmdgReaderTools.mount(payload, function (path, options) {
+        return rawFetch(path, Object.assign({}, options, { headers: Object.assign({ 'Content-Type': 'application/json' }, headerCache || {}) }));
+      }, function(text){return richText(cmdgPlainText(text));}, function () { return epoch === ownerEpoch; });
+    }
+    if (global.UMSHCmdgReaderTools) { mount(); return; }
+    var script = document.getElementById('cmdg-reader-tools-script');
+    if (script) { script.addEventListener('load', mount, { once: true }); return; }
+    script = document.createElement('script');
+    script.id = 'cmdg-reader-tools-script';
+    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930d';
+    script.addEventListener('load', mount, { once: true });
+    document.head.appendChild(script);
   }
   function expandReportForPrint() {
     printOpenedSections = Array.from(document.querySelectorAll('details.reading-card:not([open])'));

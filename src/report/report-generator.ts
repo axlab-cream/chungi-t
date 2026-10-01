@@ -29,6 +29,7 @@ import {
   strengthMeaning,
 } from './report-budget.js'
 import { standardReading } from './standard-reading.js'
+import { cmdgChapterInstruction, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
 import { buildSajuFeatureJson } from '../saju/analyzer.js'
@@ -2139,8 +2140,9 @@ const SAJU_MASTER_RELATIONSHIP_STATUS_INSTRUCTION = [
 
 function sectionSpecificInstruction(context: SajuReportContext, section: SajuReportSection): string {
   if (context.serviceKey === 'saju_master' && section.id === 'relationship-status') {
-    return SAJU_MASTER_RELATIONSHIP_STATUS_INSTRUCTION
+    return cmdgChapterInstruction(section.id) + '\n' + SAJU_MASTER_RELATIONSHIP_STATUS_INSTRUCTION
   }
+  if (normalizeServiceKey(context.serviceKey) === 'saju_master') return cmdgChapterInstruction(section.id)
   if (context.serviceKey === PASS_ANGLE_SERVICE_KEY && section.id === 'pass-angle-verdict') return PASS_ANGLE_OPENING_VERDICT_INSTRUCTION
   if (context.serviceKey === QUIT_FORTUNE_SERVICE_KEY) {
     if (section.id === 'flow-1') return `${QUIT_FORTUNE_COMMON_INSTRUCTION}\n${QUIT_FORTUNE_OPENING_VERDICT_INSTRUCTION}`
@@ -2246,6 +2248,9 @@ export function sectionPrompt(
   corpusSnapshot?: CorpusSnapshot,
   verdict?: SajuReportVerdict,
 ): LlmMessage[] {
+  // 종합사주의 한 고민에 대한 판정을 서로 다른 삶의 영역에 강제하지 않는다.
+  if (normalizeServiceKey(rawContext.serviceKey) === 'saju_master') verdict = undefined
+  rawContext = cmdgSectionContext(rawContext, section.id)
   // 이 프롬프트는 외부 모델 제공자로 나간다. 상대의 생년월일시 원본은 어느 필드로도
   // 넘기지 않는다 — `featureJson` 이 문맥을 `userContext` 로 통째로 싣기 때문에
   // `context` 필드만 가려도 부족하다(2026-09-10 Codex 리뷰). 과거에 저장된 레코드에는
@@ -2487,6 +2492,7 @@ export function highlightPrompt(
   topic: HighlightTopic,
   verdict?: SajuReportVerdict,
 ): LlmMessage[] {
+  if (normalizeServiceKey(rawContext.serviceKey) === 'saju_master') verdict = undefined
   const context = publicReportContext(rawContext)
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 하이라이트 항목만 JSON 객체로 출력하세요.' },
@@ -2494,6 +2500,7 @@ export function highlightPrompt(
       instruction: [
         toneWritingInstruction(context.serviceKey),
         '목차 항목을 요약하지 마세요. 이 주제에서 새 판단을 내리세요.',
+        ...(normalizeServiceKey(context.serviceKey) === 'saju_master' ? ['천명사주 요약: 지정된 문단 수 안에서 현재 질문의 답 → 개인 계산 근거 → 달라지는 조건 → 해결 방향 순서로 자연스럽게 연결하세요. 본문용 네 소제목은 넣지 마세요. 다른 장의 결론을 반복하지 말고, 제공되지 않은 자미두수 명반·미래 사건을 계산한 사실처럼 쓰지 마세요.'] : []),
         `서술 형태: ${topic.shape}`,
         `분량 예산: ${lengthBudgetForRole('highlightCard').min}~${lengthBudgetForRole('highlightCard').max}자(공백 포함).`,
         '돈 낮음 같은 등급 라벨을 쓰지 말고 뜻으로 쓰세요.',
@@ -2570,7 +2577,7 @@ export async function buildOpenAiReportHighlight(
     const budget = reviewLengthBudget(highlight.text, 'highlightCard')
     issues = [
       ...reviewToneCopy(highlight.text, context.serviceKey, { context, contentRole: 'body' }).issues,
-      ...reviewReportVerdictConsistency({ verdict, texts: [highlight.text] }).issues,
+      ...reviewReportVerdictConsistency({ verdict: normalizeServiceKey(context.serviceKey) === 'saju_master' ? undefined : verdict, texts: [highlight.text] }).issues,
       ...reviewHighlightShape(highlight.text, topic.paragraphs).issues,
       ...reviewEngineLabelExposure(highlight.text).issues,
       ...budget.issues,
@@ -2717,11 +2724,12 @@ export function reviewGeneratedSajuReportSection(input: {
       || Boolean(context.workMove?.targetCompanyName || context.workMove?.targetRole),
   }).issues)
   review.issues.push(...reviewReportVerdictConsistency({
-    verdict,
+    verdict: normalizeServiceKey(context.serviceKey) === 'saju_master' ? undefined : verdict,
     texts: [hook, interpretation],
   }).issues)
   review.issues.push(...reviewEngineLabelExposure(interpretation).issues)
   review.issues.push(...reviewEngineLabelExposure(hook).issues)
+  if (normalizeServiceKey(context.serviceKey) === 'saju_master') review.issues.push(...reviewCmdgStoryStructure(interpretation))
   if (!hook) review.issues.push('현재 항목의 답을 담은 한 줄 요약을 새로 작성하세요.')
   review.passed = review.issues.length === 0
   if (context.serviceKey === HOME_FIT_SERVICE_KEY) {

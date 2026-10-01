@@ -8,7 +8,7 @@ export interface ServicePreviewQuota {
 }
 
 export type JobChoicePreviewQuota = ServicePreviewQuota
-export type PreviewQuotaService = 'job_choice' | 'money_save' | 'work_move' | 'match_couple' | 'love_this_year' | 'cat_compatibility' | 'couple_signal'
+export type PreviewQuotaService = 'job_choice' | 'money_save' | 'work_move' | 'match_couple' | 'marry_match' | 'love_this_year' | 'cat_compatibility' | 'couple_signal'
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const serviceKey = configuredEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)

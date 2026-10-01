@@ -29,7 +29,7 @@ export interface ReportRecord {
   revision?: number
   analysis?: SajuAnalysis
   preview?: ReportPreview
-  auxiliary?: { todayFortune?: TodayFortune }
+  auxiliary?: { todayFortune?: TodayFortune; readerTools?: import('./cmdg-reader-tools.js').ReaderToolsState }
   birth: BirthInput
   context: SajuReportContext
   owner?: ReportOwner
@@ -1187,4 +1187,26 @@ export async function updateReportChatHistory(
 
 export function getReportStorageMode(): ReportStorageMode {
   return storageMode()
+}
+
+
+/** Owner-only supplemental history projection; never fetches original report bodies for the vault. */
+export interface ReaderHistoryRecord {
+  reportId: string; resultId?: string; title?: string; serviceKey?: string
+  replies?: import('./cmdg-reader-tools.js').ReaderReply[]
+}
+export async function listReaderHistoryRecords(owner: ReportOwner): Promise<ReaderHistoryRecord[]> {
+  if (storageMode() === 'supabase') {
+    assertSupabaseOwner(owner)
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('user_id', `eq.${owner.id}`)
+    url.searchParams.set('select', 'reportId:payload->>reportId,resultId:payload->>resultId,title:payload->report->>title,serviceKey:payload->context->>serviceKey,replies:payload->auxiliary->readerTools->replies')
+    url.searchParams.set('payload->auxiliary->readerTools->replies', 'not.is.null')
+    url.searchParams.set('order', 'updated_at.desc')
+    url.searchParams.set('limit', '100')
+    const response = await fetch(url, { headers: supabaseHeaders() })
+    if (!response.ok) throw new Error('추가 풀이 이력을 불러오지 못했습니다.')
+    return await response.json() as ReaderHistoryRecord[]
+  }
+  return (await listReportRecords(owner, 100)).filter(r => r.auxiliary?.readerTools?.replies?.length).map(r => ({reportId:r.reportId,resultId:r.resultId,title:r.report.title,serviceKey:r.context.serviceKey,replies:r.auxiliary?.readerTools?.replies}))
 }

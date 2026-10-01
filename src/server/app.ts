@@ -7,6 +7,7 @@ import cors from 'cors'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
@@ -15,6 +16,8 @@ import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
 import { generateSavedChat, isSavedChatRecord, toSavedChatResult, savedChatParentId, findSavedChatRequest } from '../report/saved-chat.js'
 import { publicPartnerContext, publicReportContext } from '../report/public-context.js'
 import { buildTemplateSajuReport } from '../report/report-generator.js'
+import { answerReaderQuestion, createPartnerSketch, readPartnerSketch, ReaderToolError, READER_SECTION_LIMIT, READER_ANSWER_MODEL, SKETCH_STYLE_VERSION } from '../report/cmdg-reader-tools.js'
+import { calculateZiwei, ziweiSection } from '../saju/ziwei.js'
 import { calculateLoveMonthlySignals } from '../report/storytelling.js'
 import { beginSpecializedProgressiveReport } from '../report/specialized-progressive.js'
 import { generateReportSectionNow, startReportLongform } from '../report/report-queue.js'
@@ -30,6 +33,7 @@ import {
   findReportRecord,
   sectionGenerationId,
   listReportRecords,
+  listReaderHistoryRecords,
   mutateReportRecord,
   reportListViewState,
   reportProgressOf,
@@ -160,6 +164,8 @@ import {
   buildMarryMatchContext,
   buildMarryMatchReport,
   createMarryMatchReportId,
+  marryMatchTeaserPreview,
+  marryMatchTeaserSection,
   parseMarryMatchRequest,
 } from '../match/marry-service.js'
 import {
@@ -250,8 +256,12 @@ import {
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const ROOT = join(__dirname, '../..')
-const SAJU_UI = join(ROOT, '사주', '사주')
-const SAJU_ROOT = join(ROOT, '사주')
+const DEPLOY_SAJU_ROOT = join(ROOT, '.vercel-runtime', '사주')
+const LOCAL_SAJU_DIRECTORY = String.fromCodePoint(0xc0ac, 0xc8fc)
+const SAJU_ROOT = process.env.VERCEL && existsSync(DEPLOY_SAJU_ROOT)
+  ? DEPLOY_SAJU_ROOT
+  : join(ROOT, LOCAL_SAJU_DIRECTORY)
+const SAJU_UI = join(SAJU_ROOT, '사주')
 const PORTAL_PAGE = join(SAJU_ROOT, 'portal.html')
 const DESTINY_PAGE = join(SAJU_ROOT, 'destiny.html')
 const TERMS_PAGE = join(SAJU_ROOT, 'terms.html')
@@ -4060,7 +4070,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
   const report = toClientReport(record)
   const entitled = access?.entitled === true
   const serviceKey = record.context.serviceKey ?? 'saju_master'
-  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal'
+  const richTeaser = serviceKey === 'job_choice' || serviceKey === 'quit_fortune' || serviceKey === 'money_save' || serviceKey === WORK_MOVE_SERVICE_KEY || serviceKey === 'match_couple' || serviceKey === 'marry_match' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal'
   const savedOpening = richTeaser ? report.sections.slice(0, 2) : []
   const opening = serviceKey === 'quit_fortune'
     && (savedOpening.length !== 2 || savedOpening.some((section) => section.status !== 'complete' || !section.interpretation?.trim()))
@@ -4079,6 +4089,8 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
       ? guardPreview(workMoveTeaserPreview(record.context, report.sections.length), record.context)
       : serviceKey === 'match_couple'
         ? guardPreview(coupleMatchTeaserPreview(record.context, report.sections.length), record.context)
+        : serviceKey === 'marry_match'
+          ? guardPreview(marryMatchTeaserPreview(record.context, report.sections.length), record.context)
         : serviceKey === 'love_this_year'
           ? guardPreview(loveThisYearTeaserPreview(record.context, report.sections.length), record.context)
           : serviceKey === 'cat_compatibility'
@@ -4107,6 +4119,8 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
               ? workMoveTeaserSection(savedSection, index, record.analysis, record.context)
               : serviceKey === 'match_couple'
                 ? coupleMatchTeaserSection(savedSection, index, record.analysis, record.context)
+                : serviceKey === 'marry_match'
+                  ? marryMatchTeaserSection(savedSection, index, record.analysis, record.context)
                 : serviceKey === 'love_this_year'
                   ? loveThisYearTeaserSection(savedSection, index, record.analysis, record.context)
                   : serviceKey === 'cat_compatibility'
@@ -4127,7 +4141,7 @@ function savedPreviewResponse(record: ReportRecord, access?: PaidAccess, freeSea
         }
       }) }
       : {}),
-    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
+    toc: serviceKey === 'money_save' || serviceKey === 'match_couple' || serviceKey === 'marry_match' || serviceKey === 'love_this_year' || serviceKey === 'cat_compatibility' || serviceKey === 'couple_signal' ? reportToc(record) : richTeaser ? reportToc(record).slice(0, 10) : reportToc(record),
     paymentUrl: entitled ? undefined : paymentCheckoutUrl(productKeyForContext(record.context), record.reportId),
   }
 }
@@ -4148,7 +4162,7 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
   let freeSearch: ServicePreviewQuota | undefined
-  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'love_this_year' || params.context.serviceKey === 'cat_compatibility' || params.context.serviceKey === 'couple_signal'
+  const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'marry_match' || params.context.serviceKey === 'love_this_year' || params.context.serviceKey === 'cat_compatibility' || params.context.serviceKey === 'couple_signal'
     ? params.context.serviceKey : undefined
   if (quotaService && params.owner && isCheckoutLive()) {
     const access = await resolvePaidAccess(req, params.owner, quotaService, params.reportId, params.lineageId)
@@ -4567,31 +4581,43 @@ app.post('/api/match/marry/analyze', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
+    const input = parseMarryMatchRequest(req.body)
     const profile = await getUserBirthProfile(owner)
-    if (!profile) {
+    if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
     }
 
-    const input = parseMarryMatchRequest(req.body)
+    const selectedBirth = input.selfBirth ?? profile!.birth
+    const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
+    const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
+    const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
+      userId: owner.id,
+      name: selectedName,
+      birth: selectedBirth,
+      birthTimeKnown: selectedBirthTimeKnown,
+      context: {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
-    const context = { ...buildMarryMatchContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown }
-    const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
-    const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, profile.birth, context, input, reportId)
-    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    const analysis = analyzeSaju(selectedBirth)
+    const context = { ...buildMarryMatchContext(selectedName, input, partnerAnalysis, analysis), birthTimeKnown: selectedBirthTimeKnown }
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, selectedBirth, context, input, reportId)
+    if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
       lineageId,
-      birth: profile.birth,
+      birth: selectedBirth,
       context,
       templateReport,
       analysis,
       owner,
       orderId: trimmedString(req.body?.orderId) || undefined,
     })
-    res.json(specializedAnalyzeResponse(progressive, profile.birth, context, profile))
+    res.json(specializedAnalyzeResponse(progressive, selectedBirth, context, selectedProfile))
   } catch (err) {
     respondRequestFailure(res, err, '결혼궁합 생성 실패')
   }
@@ -4875,6 +4901,75 @@ app.post('/api/saju/analyze', async (req, res) => {
   } catch (err) {
     respondRequestFailure(res, err, '분석 실패')
   }
+})
+
+// Each tool request rechecks identity, report ownership, and the existing paid entitlement.
+app.use('/api/report/:reportId/reader', async (req, res, next) => {
+  res.setHeader('Cache-Control', 'private, no-store')
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const record = await findReportRecord(String(req.params.reportId), owner)
+    if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
+    if ((record.context.serviceKey || 'saju_master') !== 'saju_master') { res.status(400).json({ error: '천명사주에서 이용해 주세요.' }); return }
+    if (!isAdminOwner(owner) && !await findUnlockingOrder(owner, productKeyForContext(record.context), record.reportId, record.lineageId)) {
+      res.status(402).json({ error: '구매한 천명사주에서 이용할 수 있습니다.' }); return
+    }
+    res.locals.readerRecord = record
+    res.locals.readerOwner = owner
+    next()
+  } catch { res.status(403).json({ error: '본인의 해석만 이용할 수 있습니다.' }) }
+})
+app.get('/api/user/reader-history', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const rows = await listReaderHistoryRecords(owner)
+    // Only question metadata is listed here. Answers/images still pass report-level purchase checks.
+    const history = rows.filter(r => !r.serviceKey || r.serviceKey === 'saju_master').flatMap(r => (r.replies || []).map(reply => {
+      const id = r.resultId || r.reportId
+      return { id: reply.id, reportId: r.reportId, sectionId: reply.sectionId, input: reply.input, createdAt: reply.createdAt, title: r.title || '천명사주', href: `/r/${encodeURIComponent(id)}?reportId=${encodeURIComponent(id)}&section=${encodeURIComponent(reply.sectionId)}&readerReply=${encodeURIComponent(reply.id)}#reader-reply-${encodeURIComponent(reply.id)}` }
+    })).sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+    res.setHeader('Cache-Control', 'private, no-store')
+    res.json({ history })
+  } catch { res.status(503).json({ error: '추가 풀이 이력을 불러오지 못했습니다. 잠시 후 다시 열어 주세요.' }) }
+})
+app.get('/api/report/:reportId/reader', (_req, res) => {
+  const record = res.locals.readerRecord as ReportRecord
+  const state = record.auxiliary?.readerTools
+  let ziwei
+  try { ziwei = calculateZiwei(record.birth, record.context.birthTimeKnown) } catch { ziwei = { available: false, reason: '출생 날짜와 시간을 다시 확인해 주세요.' } }
+  res.json({ replies: state?.replies ?? [], hasSketch: state?.sketch?.styleVersion === SKETCH_STYLE_VERSION, sectionLimit: READER_SECTION_LIMIT, model: READER_ANSWER_MODEL, ziwei, pending: Boolean(state?.job && Date.now() - Date.parse(state.job.startedAt) < 600_000) })
+})
+app.post('/api/report/:reportId/reader/question', async (req, res) => {
+  try {
+    const record = res.locals.readerRecord as ReportRecord
+    const section = req.body.sectionId === 'ziwei' ? ziweiSection(record.birth, record.context.birthTimeKnown) : record.report.sections.find(item => item.id === req.body.sectionId && item.status === 'complete')
+    if (!section) { res.status(400).json({ error: '완료된 해석에서 질문해 주세요.' }); return }
+    const owner = res.locals.readerOwner
+    const life = (await getUserBirthProfile(owner))?.lifeContext
+    res.json({ reply: await answerReaderQuestion(record, owner, section, req.body.question, life) })
+  } catch (error) {
+    res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: error instanceof ReaderToolError ? error.message : '답변을 완성하지 못했습니다. 입력한 질문은 그대로 두고 다시 시도해 주세요.' })
+  }
+})
+app.post('/api/report/:reportId/reader/sketch', async (req, res) => {
+  try {
+    const record = res.locals.readerRecord as ReportRecord
+    if (!record.report.sections.some(item => item.id === 'destiny-partner' && item.status === 'complete')) { res.status(409).json({ error: '인연 풀이가 완성된 뒤 이용해 주세요.' }); return }
+    await createPartnerSketch(record, res.locals.readerOwner, req.body.presentation)
+    res.json({ hasSketch: true })
+  } catch (error) {
+    res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: error instanceof ReaderToolError ? error.message : '이미지를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.' })
+  }
+})
+app.get('/api/report/:reportId/reader/sketch', async (_req, res) => {
+  try {
+    const bytes = await readPartnerSketch(res.locals.readerRecord, res.locals.readerOwner)
+    res.setHeader('Content-Type', 'image/webp')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.send(bytes)
+  } catch (error) { res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: '저장된 이미지를 불러오지 못했습니다.' }) }
 })
 
 app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) => {

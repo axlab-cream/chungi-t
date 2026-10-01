@@ -623,7 +623,11 @@ test('saved report renders only the API-calculated daewoon timeline and shared m
     report:{title:'저장된 풀이',sections:[{id:'profile',order:1,status:'complete',category:'현재',classification:'기준',interpretation:'저장된 원문입니다.'}]},
   })
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/나의 대운 흐름/)
+  assert.match(html,/나이별로 살펴보는 나의 삶/)
+  assert.match(html,/cmdg-period-explanation/)
+  assert.match(html,/쇠는 해야 할 일과 그만둘 일을 구분하고 정리하는 힘/)
+  assert.doesNotMatch(html,/庚辰|己卯/)
+  assert.match(html,/나이별 시기를 자세히 읽기/)
   assert.match(html,/32~41세/)
   assert.match(html,/2023년 시작/)
   assert.match(html,/현재/)
@@ -651,18 +655,22 @@ test('cmdg report keeps every stored paragraph and supplies the sixteen review v
   const html=h.nodes.get('umsh-verified-reading').innerHTML
   assert.equal((html.match(/class="umsh-cmdg-visual"/g)||[]).length,16)
   assert.equal((html.match(/class="umsh-cmdg-lead"/g)||[]).length,16)
-  assert.equal((html.match(/>쉬운 풀이·보강</g)||[]).length,16)
-  assert.equal((html.match(/>추가로 확인할 것</g)||[]).length,16)
+  assert.equal((html.match(/data-cmdg-reader-tools=/g)||[]).length,16)
+  assert.doesNotMatch(html,/>추가로 확인할 것</)
   assert.equal((html.match(/class="reading-card"/g)||[]).length,16)
   for(let index=0;index<ids.length;index+=1) assert.match(html,new RegExp(`저장된 전체 풀이 ${index+1}\\.`))
   assert.match(html,/내 힘이 집중되는 곳/)
   assert.match(html,/실제 보상 조건/)
   assert.match(html,/현재 직장의 역할/)
   assert.match(html,/토요일 약속/)
-  assert.match(html,/제안받은 역할·보상·근무 방식은 확인됐나요/)
-  assert.match(html,/umsh-flow-line/)
-  assert.match(html,/M58 130 L88 35/)
-  assert.match(html,/인생의 성공·수입을 예측한 점수는 아닙니다/)
+  assert.doesNotMatch(html,/제안받은 역할·보상·근무 방식은 확인됐나요/)
+  assert.doesNotMatch(html,/umsh-flow-line/)
+  assert.match(html,/초년/)
+  assert.match(html,/청년/)
+  assert.match(html,/중년/)
+  assert.match(html,/후년/)
+  assert.match(html,/말년/)
+  assert.match(html,/2016~2019년/)
 })
 
 test('cmdg without optional real-world notes does not redirect readers to profile registration',()=>{
@@ -675,8 +683,8 @@ test('cmdg without optional real-world notes does not redirect readers to profil
     report:{title:'검토용 풀이',sections:[{id:'career-transition',order:1,status:'complete',category:'일',classification:'선택',hook:'조건을 비교합니다.',interpretation:'실제 조건은 확인되지 않았습니다.'}]},
   })
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/제안받은 역할·보상·근무 방식은 확인됐나요/)
-  assert.match(html,/개인의 실제 조건은 이 그래프에 포함되지 않습니다/)
+  assert.match(html,/아직 입력하지 않았습니다/)
+  assert.doesNotMatch(html,/umsh-flow-line/)
   assert.doesNotMatch(html,/MY에서 한 번 등록|MY에서 실제 조건 확인하기|\/profile/)
   assert.doesNotMatch(html,/내가 저장한 현실 기준/)
 })
@@ -965,4 +973,13 @@ test('그림이 없는 항목은 빈 자리를 만들지 않는다', () => {
   }, { Authorization: 'Bearer test' })
   const html = String(host.innerHTML || '')
   assert.ok(!html.includes('story-image'), '그림이 없는데 빈 figure 를 만들었다')
+})
+
+
+test('천명사주 전용 생애 구간은 다른 서비스의 기존 그래프를 대체하지 않는다',()=>{
+  const h=harness('/r/other-service-stages',[])
+  h.api.consume({reportId:'other-service-stages',context:{serviceKey:'job_choice'},analysis:{fortune:{currentYear:2026,currentDaewoon:'甲申',daewoon:[{age:'20~29세',ageStart:20,ageEnd:29,startYear:2020,pillar:'甲申'}]}},report:{title:'합성 검수',sections:[{id:'other',status:'complete',category:'일',interpretation:'검수 원문'}]}})
+  const html=h.nodes.get('umsh-verified-reading').innerHTML
+  assert.doesNotMatch(html,/cmdg-life-stages/)
+  assert.match(html,/umsh-flow-line/)
 })

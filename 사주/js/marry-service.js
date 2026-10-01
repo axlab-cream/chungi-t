@@ -1,10 +1,10 @@
 /**
  * Bridges the 결혼궁합 design pages (01 → 02 → 04 → 05 → 06_1) to the real service.
  *
- * The design HTML ships with sample copy and a mock payment state machine so it can be
- * reviewed standalone. This file leaves that markup untouched and swaps in the live pieces:
+ * The design HTML includes a static shell. This bridge replaces it with the signed-in
+ * member's stored saju, relationship input and server-generated report:
  *   02 — reuses the saju already on the account instead of asking for it a second time
- *   04 — replaces the sample teaser with the first paragraphs of the real RAG report
+ *   04 — renders the first two sections of the real report as a free preview
  *   05 — replaces every 중분류 preview with that section's own opening line
  *   06 — replaces the detail panels with the section's full RAG interpretation
  *
@@ -225,7 +225,7 @@
       newRadio.checked = true;
       newRadio.dispatchEvent(new Event('change', { bubbles: true }));
       const help = $('#self-mode-help');
-      if (help) help.textContent = '아직 저장된 사주가 없어 이번 한 번만 입력하면, 다음부터는 다시 묻지 않습니다.';
+      if (help) help.textContent = '저장된 사주가 없어 이번 리포트에 사용할 정보를 입력해 주세요. 계정의 기존 사주는 바뀌지 않습니다.';
       return;
     }
 
@@ -235,7 +235,7 @@
     const card = document.createElement('div');
     card.className = 'marry-saved-profile';
     card.innerHTML = '<b>저장된 사주로 진행합니다</b><span></span><button type="button" data-edit-profile>다른 정보로 입력하기</button>';
-    card.querySelector('span').textContent = `${profileLabel(profile)} 기준으로 배우자궁과 대운을 봅니다. 이름·생년월일·태어난 시는 다시 입력하지 않아도 됩니다.`;
+    card.querySelector('span').textContent = `${profileLabel(profile)} 기준으로 두 사람의 관계와 생활 궁합을 봅니다. 이름·생년월일·태어난 시는 다시 입력하지 않아도 됩니다.`;
     selfFields.parentElement.insertBefore(card, selfFields);
 
     card.querySelector('[data-edit-profile]').addEventListener('click', () => {
@@ -268,7 +268,22 @@
     const partner = payload?.partner || {};
     if (!partner.known || !partner.birth_date) return null;
     const relation = payload.relationship_context || {};
+    const self = payload?.self || {};
+    const [selfYear, selfMonth, selfDay] = String(self.birth_date || '').split('-').map(Number);
+    const [selfHour, selfMinute] = String(self.birth_time || '').split(':').map(Number);
+    const selfTimeKnown = self.birth_time_known === 'known' && Number.isInteger(selfHour);
     return {
+      ...(!self.use_saved_profile && self.birth_date ? {
+        selfName: self.name || '',
+        selfBirth: {
+          year: selfYear, month: selfMonth, day: selfDay,
+          hour: selfTimeKnown ? selfHour : 12,
+          minute: Number.isInteger(selfMinute) ? selfMinute : 0,
+          gender: self.gender === 'female' ? 'female' : 'male',
+          calendar: self.calendar === 'lunar' ? 'lunar' : 'solar',
+        },
+        selfBirthTimeKnown: selfTimeKnown,
+      } : {}),
       partnerName: partner.name || '',
       partnerBirthText: String(partner.birth_date).replace(/[^0-9]/g, ''),
       partnerBirth: {
@@ -279,32 +294,42 @@
       relationshipStage: RELATION_LABEL[relation.relationship_status] || '',
       marriagePlan: FOCUS_LABEL[relation.question_focus] || '',
       concern: relation.main_concern || '',
+      preview: true,
     };
   }
 
-  /** Push the self saju the visitor typed in step 02 up to the account before analysing. */
-  async function syncSelfProfile(payload) {
-    const self = payload?.self;
-    if (!self || self.use_saved_profile || !self.birth_date || !self.name) return;
-    const [year, month, day] = String(self.birth_date).split('-').map(Number);
-    const [hour, minute] = String(self.birth_time || '').split(':').map(Number);
-    const birthTimeKnown = self.birth_time_known === 'known' && Number.isFinite(hour);
-    await api('/api/user/profile', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: self.name,
-        birthTimeKnown,
-        birth: {
-          year,
-          month,
-          day,
-          hour: birthTimeKnown ? hour : 12,
-          minute: Number.isFinite(minute) ? minute : 0,
-          gender: self.gender === 'female' ? 'female' : 'male',
-          calendar: self.calendar === 'lunar' ? 'lunar' : 'solar',
-        },
-      }),
-    }).catch(() => undefined);
+  function teaserUrl(reportId) {
+    const url = new URL('../04-step-4-report/index.html', location.href);
+    if (reportId) url.searchParams.set('reportId', reportId);
+    url.hash = 'step-4-report';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  function ensureAnalysisLoading() {
+    let loading = document.querySelector('[data-umsh-step="03-loading"]');
+    if (loading) return loading;
+    loading = document.createElement('section');
+    loading.className = 'marry-analysis-loading';
+    loading.setAttribute('data-umsh-step', '03-loading');
+    loading.setAttribute('role', 'status');
+    loading.setAttribute('aria-live', 'polite');
+    loading.innerHTML = '<span aria-hidden="true"></span><strong>두 사람의 결혼궁합을 준비하고 있어요</strong><p>저장 사주와 상대 정보, 직접 적은 고민을 연결한 뒤 무료 해석으로 이동합니다.</p>';
+    const form = $('#marry-input-form');
+    if (form?.parentNode) form.parentNode.insertBefore(loading, form);
+    return loading;
+  }
+
+  async function createPreviewFromInput(payload) {
+    const request = buildRequest(payload);
+    if (!request) throw new Error('상대 생년월일을 확인해 주세요.');
+    const loading = ensureAnalysisLoading();
+    loading?.classList.add('is-visible');
+    const session = await initAuth();
+    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    const response = await api('/api/match/marry/analyze', { method: 'POST', body: JSON.stringify(request) });
+    const reportId = response.reportId || response.resultId || response.report?.reportId || '';
+    if (!reportId) throw new Error('생성된 결혼궁합 번호를 확인하지 못했습니다.');
+    location.assign(teaserUrl(reportId));
   }
 
   let reportPromise = null;
@@ -312,6 +337,23 @@
   function cachedReport() {
     const cached = readJson('sessionStorage', STORAGE.report);
     return cached?.sections?.length ? cached : null;
+  }
+
+  async function loadSavedReport() {
+    const reportId = new URLSearchParams(location.search).get('reportId');
+    if (!reportId) return null;
+    const session = await initAuth();
+    if (!session) return { reason: 'login' };
+    try {
+      const teaser = /\/04-step-4-report(?:\/|$)/.test(location.pathname);
+      const response = await api(`/api/report/${encodeURIComponent(reportId)}${teaser ? '?preview=1' : ''}`);
+      return window.UMSHReportAccess?.acceptAnalyze?.(response) || null;
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) return { reason: 'login' };
+      if (error.status === 404) return null;
+      if (error.code === 'FREE_PREVIEW_LIMIT') return { reason: 'payment', paymentUrl: error.paymentUrl, freeSearch: error.freeSearch };
+      throw error;
+    }
   }
 
   /**
@@ -322,7 +364,10 @@
     if (reportPromise) return reportPromise;
     reportPromise = (async () => {
       const cached = cachedReport();
-      if (cached) return { report: cached };
+      if (cached && !window.UMSHReportAccess) return { report: cached };
+
+      const savedReport = await loadSavedReport();
+      if (savedReport) return savedReport;
 
       const payload = readJson('sessionStorage', STORAGE.input);
       if (!payload || payload.service_slug !== SERVICE.slug) return { reason: 'input' };
@@ -337,7 +382,6 @@
       }
 
       try {
-        await syncSelfProfile(payload);
         const response = await api('/api/match/marry/analyze', { method: 'POST', body: JSON.stringify(request) });
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
         if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
@@ -412,8 +456,8 @@
   const STEP_04_MESSAGES = {
     input: '이전 입력을 찾지 못했습니다. 두 사람 정보를 다시 입력하면 같은 결혼궁합으로 이어집니다.',
     partner: '상대 생년월일이 없어 두 사람의 궁합 계산을 아직 열지 못했습니다. 상대 정보를 채우면 배우자궁·합충까지 함께 봅니다.',
-    login: '로그인하면 저장된 내 사주와 상대 정보로 풀이를 계산합니다. 지금 화면의 문장은 예시입니다.',
-    payment: '결제가 확인되면 10개 대분류 70개 항목이 모두 열립니다.',
+    login: '로그인하면 저장된 내 사주와 상대 정보로 두 사람의 결혼 궁합을 이어서 볼 수 있습니다.',
+    payment: '결제가 확인되면 24개 전체 해석이 열립니다.',
     error: '풀이를 계산하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
   };
 
@@ -450,28 +494,16 @@
     }
 
     if (outcome.preview) {
-      window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
-      const line = String(outcome.preview.headline || outcome.preview.summary || '').trim();
-      const summary = $('#hero-summary');
-      if (summary && line) summary.textContent = line;
-      if (window.UMSHReportAccess?.isEntitled?.(outcome)) {
-        if (stateCopy) stateCopy.textContent = '권한이 확인되어 전체 목차로 이어집니다.';
-        if (message) message.textContent = outcome.preview.summary || '';
-        if (nextPrimary) {
-          nextPrimary.textContent = '전체 목차 열기';
-          nextPrimary.addEventListener('click', () => {
-            location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
-          });
+      if (outcome.payload) {
+        const entitled = window.UMSHReportAccess?.isEntitled?.(outcome) === true;
+        const previewCta = window.UMSHReportAccess?.previewCta?.(outcome.payload);
+        window.UMSHReportAccess?.showPreview?.(outcome.payload);
+        const renderedCta = document.querySelector('#umsh-preview-host .umsh-preview-checkout');
+        if (renderedCta && previewCta) {
+          renderedCta.href = previewCta.href;
+          renderedCta.textContent = previewCta.label;
+          renderedCta.dataset.entitled = String(entitled);
         }
-        return;
-      }
-      if (stateCopy) stateCopy.textContent = STEP_04_MESSAGES.payment;
-      if (message) message.textContent = outcome.preview.summary || '';
-      if (nextPrimary) {
-        nextPrimary.textContent = '전체 보기 (24,900원)';
-        nextPrimary.addEventListener('click', () => {
-          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
-        });
       }
       return;
     }
@@ -511,7 +543,7 @@
     }
 
     renderTeaser(outcome.report);
-    if (stateCopy) stateCopy.textContent = '권한 확인이 끝났습니다. 10개 대분류 70개 항목을 목록에서 하나씩 열어볼 수 있습니다.';
+    if (stateCopy) stateCopy.textContent = '권한 확인이 끝났습니다. 24개 전체 해석을 목록에서 하나씩 열어볼 수 있습니다.';
     if (message) message.textContent = '결혼각, 타이밍, 레드플래그, 액션 문장까지 이어서 볼 수 있습니다.';
     if (nextPrimary) {
       nextPrimary.textContent = '전체 리포트 목록 열기';
@@ -522,8 +554,8 @@
   }
 
   /**
-   * The design's teaser cards read like a personal verdict. Until the real reading exists
-   * they must not stay on screen, or a visitor would take sample sentences as their own result.
+   * Static teaser cards read like a personal verdict. Until the real reading exists,
+   * replace them with a neutral loading state.
    */
   function clearSampleTeaser(reason) {
     const summary = $('#hero-summary');
@@ -533,7 +565,7 @@
     });
     const signalMain = $('#signal-main');
     if (signalMain) signalMain.textContent = '아직 계산 전입니다. 위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.';
-    [['#person-chip', '계산 대기'], ['#partner-chip', '10개 대분류'], ['#focus-chip', '70개 항목']].forEach(([selector, text]) => {
+    [['#person-chip', '계산 대기'], ['#partner-chip', '두 사람의 사주'], ['#focus-chip', '24개 해석']].forEach(([selector, text]) => {
       const node = $(selector);
       if (node) node.textContent = text;
     });
@@ -737,6 +769,8 @@
     enhanceList();
     enhanceDetail();
   }
+
+  window.UMSHMarryService = { createPreviewFromInput };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
