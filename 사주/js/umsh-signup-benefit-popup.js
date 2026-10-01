@@ -67,7 +67,7 @@
   }
 
   function loadPopup() {
-    if (!global.fetch) return Promise.resolve(DEFAULT_POPUP);
+    if (!global.fetch) return Promise.resolve(null);
     return global.fetch('/api/public/signup-benefit-popup', { credentials: 'same-origin', cache: 'no-store' })
       .then(function (response) {
         if (response.status === 204) return null;
@@ -75,7 +75,7 @@
         return response.json();
       })
       .then(function (payload) { return payload && payload.popup ? payload.popup : null; })
-      .catch(function () { return DEFAULT_POPUP; });
+      .catch(function () { return null; });
   }
 
   function show(popup) {

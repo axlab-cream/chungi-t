@@ -2724,3 +2724,14 @@ GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 
 
 ## 2026-10-01 실제 신규 가입 최종 확인
 사용자 재검증 후 Auth에서 이번 시점의 Google 신규 계정 생성 확인. GA4 속성553037209 실시간 보고서 sign_up 1건, 상세 method=google 1건 확인 PASS. 기존에 확인한 view_signup_wall 및 signup_click(method=kakao)와 함께 세 이벤트 실제 수신 검증 완료. Google 실제 신규가입 완료 기준이며 Kakao/Naver 신규가입 완료의 개별 E2E는 미실행. 합성 이벤트 전송 없음. 개인정보/계정 식별자는 기록하지 않음.
+
+## 2026-10-01 ADMIN-DATA-01 — in progress
+- User selected production popup form after generic save failure; isolated branch codex/admin-data-popup-fix.
+- Evidence: body default maps to absent form.elements.body (actual field bodyText); server does not map SIGNUP_POPUP_PAYLOAD_INVALID. Production content_versions count is zero.
+- Scope/plan: docs/admin-data-popup-repair-20261001.md. Audit remaining administrator loaders and verify without production test writes.
+
+### ADMIN-DATA-01 verification update
+- Full regression: 1736/1736 PASS, 196.6s. Additional post-run network/unavailable guards and archived valid-record fixture: focused 17/17 PASS.
+- Build/typecheck/SEO and diff checks PASS. Browser + actual Express lifecycle against isolated synthetic storage PASS. Local QA process stopped; test adapter removed.
+- KMS saved and re-read: personal/carrotcap/notes/umsh-admin-popup-data-repair-20261001.md.
+- [GATE H2] No production deployment for this new admin scope, no remote push, no merge, no DB migration. Implementation and local verification finished; reviewer result pending.

@@ -80,7 +80,6 @@ import {
   publishContentVersion,
   updateContentDraft,
 } from '../admin/content-store.js'
-import { DEFAULT_SIGNUP_POPUP, signupPopupIsActive } from '../marketing/signup-popup.js'
 import {
   NEW_PROMPT_DRAFT_REVISION,
   getAdminPromptContentSnapshot,
@@ -864,19 +863,19 @@ app.get('/cmdg/06-step-6_1-report-detail/index.html', (_req, res) => {
 
 /**
  * 첫 화면 레이어의 공개 설정. 운영자가 게시한 전용 배너가 현재 기간 안에 있을 때만
- * 내려 보낸다. 저장소가 아직 준비되지 않은 배포에서도 이번 가입 혜택은 기본값으로
- * 유지한다. 종료 시각은 응답 전에 판정하므로 별도 정리 작업 없이 자동으로 내려간다.
+ * 내려 보낸다. 게시 이력이 한 번도 없는 경우에만 기본 가입 혜택을 사용한다.
+ * 내린 이력이 있거나 저장소를 읽지 못하면 기본 팝업으로 되돌리지 않는다. 종료 시각은 응답 전에 판정하므로 별도 정리 작업 없이 자동으로 내려간다.
  */
 app.get('/api/public/signup-benefit-popup', async (_req, res) => {
   try {
-    const popup = (await getActiveSignupPopup()) ?? (signupPopupIsActive(DEFAULT_SIGNUP_POPUP) ? DEFAULT_SIGNUP_POPUP : null)
+    const popup = await getActiveSignupPopup(Date.now(), true)
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
     if (!popup) { res.status(204).end(); return }
     res.json({ popup })
   } catch {
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
-    if (!signupPopupIsActive(DEFAULT_SIGNUP_POPUP)) { res.status(204).end(); return }
-    res.json({ popup: DEFAULT_SIGNUP_POPUP })
+    // 조회 실패로 운영자가 내린 기본 팝업이 다시 노출되지 않게 한다.
+    res.status(204).end()
   }
 })
 
@@ -2611,13 +2610,15 @@ app.get('/api/admin/v1/corpus/:packId/download', async (req, res) => {
 app.get('/api/admin/v1/content', async (req, res) => {
   if (!await requireStaff(req, res, 'content:read')) return
   try {
-    res.json({ ...await getAdminContentSnapshot(Number(req.query?.limit ?? 200)), contentTypes: CONTENT_TYPES })
+    res.json({ ...await getAdminContentSnapshot(Number(req.query?.limit ?? 200), { includeArchived: req.query?.includeArchived === '1', placement: typeof req.query?.placement === 'string' ? req.query.placement : undefined }), contentTypes: CONTENT_TYPES })
   } catch {
     res.status(503).json({ code: 'CONTENT_LOOKUP_FAILED', error: '콘텐츠 저장소를 불러오지 못했습니다.' })
   }
 })
 
 const CONTENT_FAILURES: Record<string, { status: number; error: string }> = {
+  SIGNUP_POPUP_PAYLOAD_INVALID: { status: 422, error: '팝업 이름·상단 문구·메인 문구·설명·버튼 문구를 모두 입력하고, 이미지의 /assets/ 경로와 노출 시각을 확인해 주세요.' },
+  SIGNUP_POPUP_PERIOD_INVALID: { status: 422, error: '노출 종료 시각은 시작 시각보다 뒤여야 합니다.' },
   CONTENT_TYPE_INVALID: { status: 422, error: '콘텐츠 종류를 확인해 주세요.' },
   CONTENT_PAYLOAD_INVALID: { status: 422, error: '제목(120자)·본문(4,000자)·링크·예약 시각을 확인해 주세요. 태그 문자(<, >)는 받지 않습니다.' },
   CONTENT_PLACEMENT_INVALID: { status: 422, error: '노출 위치는 1~120자의 글자·숫자·_-./: 만 쓸 수 있습니다.' },

@@ -797,3 +797,8 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 - 참고: https://developers.google.com/identity/gsi/web/reference/js-reference#GsiButtonConfiguration (click_listener).
 - 분석: GA4 탐색에서 동일 사용자·동일 세션의 순차 퍼널을 사용한다. 반복 클릭/재노출이 있어 단순 이벤트 수 나눗셈은 고유 사용자 전환율이 아니다. sign_up은 신규가입이므로 기존회원 로그인 통과는 이 지표에 포함되지 않는다. 클릭 유실/추적거부 및 실제 OAuth 실패 원인 확정에는 추가 인증 오류 근거가 필요하다.
 - 배포 후 검증: 실제 신규 계정으로 각 provider 가입 시 DebugView의 view_signup_wall → signup_click(method) → sign_up(method) 순서 확인. 기존회원 로그인/취소에는 sign_up 없음 확인. 테스트 계정을 운영에 생성하지 않았으므로 현재 수신 상태 NOT_VERIFIED.
+
+## ADMIN-DATA-01
+- Plan: docs/admin-data-popup-repair-20261001.md
+- Existing content store and audited staff-scoped commands preserved; no schema change.
+- Production inspection read-only. Local synthetic DB adapter used for browser and HTTP lifecycle verification.

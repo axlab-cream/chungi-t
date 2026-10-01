@@ -1148,15 +1148,16 @@
           + '<div class="admin-field"><label>노출 시작</label><input required name="startsAt" type="datetime-local"></div>'
           + '<div class="admin-field"><label>노출 종료</label><input required name="endsAt" type="datetime-local"></div>'
           + '<div class="admin-actions"><button class="admin-button" type="submit">저장 후 게시</button></div><p class="admin-note" role="status" data-popup-result></p>';
-        Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { if (form.elements[key]) form.elements[key].value = SIGNUP_POPUP_DEFAULTS[key]; });
+        Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { var field = key === 'body' ? 'bodyText' : key; if (form.elements[field]) form.elements[field].value = SIGNUP_POPUP_DEFAULTS[key]; });
         form.elements.startsAt.value = '2026-09-22T00:00'; form.elements.endsAt.value = '2026-10-01T23:59';
         var result = form.querySelector('[data-popup-result]');
         section.appendChild(form); body.appendChild(section);
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>팝업 이력</h3></header><p class="admin-empty">불러오는 중입니다.</p>'; body.appendChild(listSection);
         try {
-          var response = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
+          var response = await fetch('/api/admin/v1/content?placement=home%2Fsignup-benefit-popup&includeArchived=1', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('POPUP_LOOKUP_FAILED');
           var responsePayload = await response.json();
+          if (responsePayload.versionStore !== 'ready' || !Array.isArray(responsePayload.items)) throw new Error('POPUP_STORE_UNAVAILABLE');
           var items = (Array.isArray(responsePayload.items) ? responsePayload.items : []).filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
           // 팝업 이력은 콘텐츠 저장소, 클릭 수는 개인정보 없는 퍼널 이벤트가 원천이다.
           // 통계가 일시적으로 실패해도 팝업 관리 자체는 멈추지 않고 '집계 불가'로 정직하게 표시한다.
@@ -1165,6 +1166,7 @@
             var funnelResponse = await fetch('/api/admin/v1/funnel?period=month', { credentials: 'same-origin' });
             if (!funnelResponse.ok) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
             var funnelPayload = await funnelResponse.json();
+            if (funnelPayload.available !== true || !Array.isArray(funnelPayload.ctas)) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
             popupClickCounts = {};
             (Array.isArray(funnelPayload.ctas) ? funnelPayload.ctas : []).forEach(function (cta) {
               if (typeof cta.target === 'string' && typeof cta.clicks === 'number') popupClickCounts[cta.target] = cta.clicks;
@@ -1189,9 +1191,11 @@
             row.appendChild(cell); rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
-        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다.'; }
+        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.'; form.querySelector('button[type="submit"]').disabled = true; }
         form.addEventListener('submit', async function (event) {
-          event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '팝업을 저장하고 게시하는 중입니다.';
+          event.preventDefault();
+          if (!form.reportValidity()) { result.textContent = '필수 항목을 모두 입력해 주세요.'; return; }
+          var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '팝업을 저장하고 게시하는 중입니다.';
           try {
             var startsAt = new Date(form.elements.startsAt.value); var endsAt = new Date(form.elements.endsAt.value);
             if (!(startsAt.getTime() < endsAt.getTime())) throw new Error('종료 시각은 시작 시각보다 뒤여야 합니다.');
@@ -1200,7 +1204,7 @@
             var draft = draftPayload.content;
             var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: draft.revision, checksum: draft.checksum }) });
             var publishPayload = await publishResponse.json().catch(function () { return {}; }); if (!publishResponse.ok) throw new Error(publishPayload.error || '팝업 게시에 실패했습니다.');
-            result.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.'; await loadPopupManager(body);
+            await loadPopupManager(body); var success = body.querySelector('[data-popup-result]'); if (success) success.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '팝업 게시에 실패했습니다.'; submit.disabled = false; }
         });
       }
@@ -1796,6 +1800,7 @@
             var response = await fetch('/api/admin/v1/funnel?period=' + encodeURIComponent(period), { credentials: 'same-origin' });
             if (!response.ok) throw new Error('FUNNEL_SUMMARY_FAILED');
             var payload = await response.json();
+            if (payload.available !== true) throw new Error('FUNNEL_STORE_UNAVAILABLE');
             status.hidden = true;
             var before = Array.from(body.children);
             var overview = payload.overview || { views: 0, sessions: 0, signedInUsers: 0 };
@@ -1813,7 +1818,7 @@
             if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
             resultNodes = Array.from(body.children).filter(function (node) { return before.indexOf(node) === -1; });
           } catch (_error) {
-            status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다.';
+            status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다. 조회 실패는 0건을 의미하지 않습니다.';
           }
         }
         filters.querySelector('select').addEventListener('change', function (event) { load(event.target.value); });

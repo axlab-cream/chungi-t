@@ -15,7 +15,7 @@
   var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
   var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
   var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
-  var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20260922-popup-metrics';
+  var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup';
   var FLAG_JS = '/js/ai-report-flag.js';
   var TRACK_JS = '/js/umsh-track.js?v=20260928-service-pageviews';
 

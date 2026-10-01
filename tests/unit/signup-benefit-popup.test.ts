@@ -55,5 +55,5 @@ test('공용 크롬이 팝업과 기본 시안 이미지를 모든 연결 화면
 test('운명상회 첫 페이지 포털은 팝업 자산을 직접 불러온다', () => {
   assert.match(portal, /umsh-signup-benefit-popup\.css\?v=20260922-default/)
   assert.match(portal, /umsh-track\.js\?v=20260929-love-speed/)
-  assert.match(portal, /umsh-signup-benefit-popup\.js\?v=20260922-popup-metrics/)
+  assert.match(portal, /umsh-signup-benefit-popup\.js\?v=20261001-admin-popup/)
 })

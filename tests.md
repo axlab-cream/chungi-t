@@ -1301,3 +1301,15 @@ GA-FUNNEL-06 후속: GitHub 전체1732개 중 기존 문구 검사1실패를 실
 
 ## 2026-10-01 실제 신규 가입 최종 확인
 사용자 재검증 후 Auth에서 이번 시점의 Google 신규 계정 생성 확인. GA4 속성553037209 실시간 보고서 sign_up 1건, 상세 method=google 1건 확인 PASS. 기존에 확인한 view_signup_wall 및 signup_click(method=kakao)와 함께 세 이벤트 실제 수신 검증 완료. Google 실제 신규가입 완료 기준이며 Kakao/Naver 신규가입 완료의 개별 E2E는 미실행. 합성 이벤트 전송 없음. 개인정보/계정 식별자는 기록하지 않음.
+
+## ADMIN-DATA-01 — 2026-10-01
+- Regression tests: tests/unit/admin-popup-repair.test.ts and tests/unit/content-store.test.ts.
+- Failed-before/pass-after: default body mapping, 422 error map, archived history.
+- Verified real Express routes against isolated synthetic PostgREST: invalid payload 422, create/publish 202, public 200, archive 202, public 204, archived history retained.
+- Browser: default description visible; save/publish success persists; invalid blank description blocked; unavailable clicks show 집계 불가; archive history shows 보관됨.
+- Screenshot: docs/admin-popup-local-verified-20261001.png (local synthetic environment, not production).
+- Production read-only audit: docs/admin-menu-audit-20261001.json; all 22 menus covered. Reconciliation is deferred payment functionality, not a failed lookup.
+
+### Final focused verification
+- Client popup asset query bumped to 20261001-admin-popup to avoid reuse of cached fallback behavior.
+- Final focused suite: 45/45 PASS; fresh vercel-build/typecheck/SEO PASS.
