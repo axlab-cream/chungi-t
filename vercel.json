@@ -7,7 +7,7 @@
     "api/consultation-voice.py": {
       "maxDuration": 60,
       "includeFiles": "integrations/aitalk/**",
-      "excludeFiles": "{node_modules/**,public/**,사주/**,assets/**,data/**,tone-v2/**,docs/**,tests/**,CreamAI/**,design-system/**,design-workspace/**,admin-ui/**,admin-ops-execution-pack/**,android/**,backlog/**,evals/**,mcp/**,ops/**,prompts/**,scripts/**,src/**,supabase/**,wiki/**,.github/**,.claude/**,.vercel-runtime/**,운명상회 서비스 프롬프트 규칙/**}"
+      "excludeFiles": "{node_modules,public,사주,assets,data,tone-v2,docs,tests,CreamAI,design-*,admin-*,android,backlog,evals,mcp,ops,prompts,scripts,src,supabase,wiki,.github,.claude,.vercel-runtime,운명상회*}/**"
     },
     "api/index.ts": {
       "maxDuration": 300,
