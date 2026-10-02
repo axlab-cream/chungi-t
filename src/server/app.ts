@@ -66,6 +66,10 @@ import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/co
 import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
+import { adminPushRouter, pushRouter } from '../push/router.js'
+import { runPushDispatcher } from '../push/dispatcher.js'
+import { rememberVercelOidcToken } from '../push/google-auth.js'
+import { pushStore, pushStoreAvailable } from '../push/store.js'
 import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, deleteOpsJobsBefore, deleteOpsJobsByErrorCode, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
@@ -331,6 +335,9 @@ app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, nex
 app.use('/api/consultation', express.json({ limit: '4mb' }), consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+// 푸시 발송(src/push/google-auth.ts)은 이 헤더의 OIDC 토큰으로 구글 인증을 받는다. 모듈 시점에는
+// 토큰이 없어서 요청마다 받아 둔다. Vercel 밖(로컬)에는 헤더가 없고 발송도 하지 않는다.
+app.use((req, _res, next) => { rememberVercelOidcToken(req.header('x-vercel-oidc-token')); next() })
 // Interpretation/profile responses must never enter browser or shared caches.
 app.use('/api', (_req, res, next) => {
   res.setHeader('Cache-Control', 'private, no-store')
@@ -2306,6 +2313,13 @@ app.get('/api/admin/v1/search', async (req, res) => {
 app.get('/api/cron/ops', async (req, res) => {
   const secret = String(process.env.CRON_SECRET ?? '')
   if (!secret || req.header('authorization') !== `Bearer ${secret}`) { res.status(401).json({ error: 'Unauthorized' }); return }
+  /*
+   * 푸시 발송은 리포트 큐와 따로, 같은 분에 나란히 돈다. 리포트 worker 가 200초를 쓰는 동안
+   * 예약 푸시가 기다리지 않게. 푸시 실패가 리포트 처리를 막지 않도록 오류를 여기서 삼킨다.
+   */
+  const pushRun = pushStoreAvailable()
+    ? runPushDispatcher({ store: pushStore() }, 200_000).catch((cause) => ({ error: cause instanceof Error ? cause.message.slice(0, 120) : 'PUSH_DISPATCH_FAILED' }))
+    : Promise.resolve(undefined)
   try {
     const worked = await runOpsWorker()
     /*
@@ -2319,9 +2333,10 @@ app.get('/api/cron/ops', async (req, res) => {
     // 백필과 함께 큐를 정비한다(sweep). 쌍둥이·끝난 대상·지워진 대상의 작업을 처리기 없이 닫아
     // 다음 분의 차선이 실제로 할 일이 있는 작업에만 쓰이게 한다.
     const maintained = await maintainReportCompletionQueue(200).catch(() => undefined)
-    res.json({ ...worked, ...(maintained ? { backfill: maintained.backfill, ...(maintained.sweep ? { sweep: maintained.sweep } : {}) } : {}) })
+    const push = await pushRun
+    res.json({ ...worked, ...(maintained ? { backfill: maintained.backfill, ...(maintained.sweep ? { sweep: maintained.sweep } : {}) } : {}), ...(push ? { push } : {}) })
   }
-  catch { res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
+  catch { await pushRun; res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
 })
 app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
@@ -3505,6 +3520,14 @@ app.get('/api/payment/config', (_req, res) => {
   res.json(paymentConfigPayload())
 })
 
+const pushDeps = {
+  optionalUser: async (req: Request) => { const owner = await verifySupabaseUser(req).catch(() => undefined); return owner ? { id: owner.id } : null },
+  staff: requireStaff,
+  audit: (actor: string, action: string, targetId: string) => postgrestAdminCommandStore().appendAuditEvent({ actorEmail: actor, action, target: { type: 'push_notification', id: targetId }, result: 'succeeded' }),
+}
+// 앱 푸시: 기기 등록·알림 클릭(공개), 작성·발송·이력(관리자). 설계는 src/push/.
+app.use('/api/push', pushRouter(pushDeps))
+app.use('/api/admin/v1/push', adminPushRouter(pushDeps))
 app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff }))
 app.use('/api/coupons', couponRouter({
   authenticate: requireSupabaseUser,

@@ -32,6 +32,20 @@
     document.head.appendChild(script);
   }
   var YMD_JS = '/js/umsh-ymd.js?v=20260916-ymd3';
+  var PUSH_JS = '/js/umsh-push.js?v=20261002-push';
+
+  /**
+   * 앱 푸시 등록. 웹 브라우저에서는 스크립트가 바로 끝난다(앱 셸 안에서만 동작).
+   * 홈(portal.html)은 공용 크롬을 쓰지 않아 같은 파일을 따로 싣는다.
+   */
+  function loadPush() {
+    if (document.querySelector('script[data-umsh-push-js]')) return;
+    var script = document.createElement('script');
+    script.src = PUSH_JS;
+    script.defer = true;
+    script.setAttribute('data-umsh-push-js', '');
+    document.head.appendChild(script);
+  }
 
   /** Which category chip the shell highlights, chosen from the page path. */
   var CATEGORY_BY_PATH = [
@@ -238,6 +252,7 @@
     // 동적으로 삽입한 스크립트는 defer 순서를 보장하지 않으므로, CTA가 생기기 전에
     // 공용 수집기를 먼저 요청한다.
     loadTracker();
+    loadPush();
     loadSignupBenefitPopup();
     // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
