@@ -153,7 +153,7 @@
   }
   $('#consultation-mode-chat')?.addEventListener('click', () => selectMode('chat'));
   $('#consultation-mode-voice')?.addEventListener('click', () => selectMode('voice'));
-  selectMode('voice', true);
+  selectMode('chat', true);
   function waiting(active, voiceTurn) {
     clearTimeout(waitingTimer);
     $('#consultation-waiting').hidden = !active;

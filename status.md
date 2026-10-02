@@ -2788,3 +2788,5 @@ Production evidence: Google HTTP400 INVALID_ARGUMENT / unknown liveConnectConstr
 2026-10-02 CONSULTATION-FOOTER-02: User requested removal of pictured bottom region on consultation only. Legal/company footer already absent from production; removed remaining reference note and new-consultation link below composer. Shared GNB/bottom navigation preserved. Static markup-only change; verify build and production DOM.
 
 2026-10-02 CONSULTATION-VOICE-DEFAULT: PC and mobile default to voice scene; HTML and JS agree before/after hydration. Portrait remains voice-only. Scene choice never starts microphone or provider requests; existing explicit-connect and idle-return-to-chat behavior retained. Frontend regression checks initial voice plus no Live/chat request. Footer removal included in same final production release.
+
+2026-10-02 CONSULTATION-CHAT-DEFAULT supersedes voice-default per latest user direction: PC/mobile initial text chat; portrait only in voice. HTML omits mobile intro class at first paint, JS initializes chat without API/mic. Frontend tests 21/21 PASS. Voice-default candidate will not be promoted to umsh.kr; final chat release includes footer removal.
