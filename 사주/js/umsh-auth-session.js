@@ -21,11 +21,39 @@
     }
   }
 
+  /**
+   * GA4에 sign_up 이벤트가 전혀 없어 "가입 저조"와 "가입은 되는데 측정이 안 됨"을
+   * 구분할 수 없었다. Supabase는 완전히 새로 가입한 사용자의 경우 created_at과
+   * last_sign_in_at이 같은 요청에서 거의 동시에 찍힌다(수 초 이내). 이 차이를 이용해
+   * "방금 막 가입한 세션"만 걸러내고, 사용자 1명당 한 번만 전송한다.
+   */
+  function trackSignupIfNew(session) {
+    try {
+      var user = session && session.user;
+      if (!user || !user.id) return;
+      var createdAt = Date.parse(user.created_at || '');
+      var lastSignIn = Date.parse(user.last_sign_in_at || '');
+      if (!Number.isFinite(createdAt) || !Number.isFinite(lastSignIn)) return;
+      if (Math.abs(lastSignIn - createdAt) > 15000) return;
+      var trackedKey = 'umsh_signup_ga_tracked:' + user.id;
+      if (global.localStorage.getItem(trackedKey)) return;
+      global.localStorage.setItem(trackedKey, '1');
+      if (typeof global.gtag === 'function') {
+        global.gtag('event', 'sign_up', {
+          method: (user.app_metadata && user.app_metadata.provider) || 'unknown',
+        });
+      }
+    } catch (_error) {
+      // 분석은 최선형(best-effort)이다. 실패해도 인증 흐름을 막지 않는다.
+    }
+  }
+
   function rememberDeviceAuthSession(session) {
     if (!session || !session.access_token) {
       clearDeviceAuthSession();
       return 0;
     }
+    trackSignupIfNew(session);
     var existing = deviceSessionStartedAt();
     if (existing) return existing;
     var lastSignIn = Date.parse((session.user && session.user.last_sign_in_at) || '');
@@ -165,6 +193,7 @@
     DEVICE_KEY: DEVICE_KEY,
     DEVICE_MS: DEVICE_MS,
     createClient: createClient,
+    trackSignupIfNew: trackSignupIfNew,
     rememberDeviceAuthSession: rememberDeviceAuthSession,
     enforceDeviceAuthSession: enforceDeviceAuthSession,
     clearDeviceAuthSession: clearDeviceAuthSession,
