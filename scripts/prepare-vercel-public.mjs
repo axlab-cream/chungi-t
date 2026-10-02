@@ -1,12 +1,25 @@
-import './build-public-faq.mjs'
-import './verify-seo-foundation.mjs'
-import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { basename, dirname, extname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
 const publicRoot = join(root, 'public')
+
+// Vercel runs the project build command once per builder: @vercel/static-build and
+// @vercel/python both ran `vercel-build` in the same deployment. The second run
+// deleted public/ while the first builder was collecting it, and the Git preview
+// failed with ENOENT (2026-10-02). Prepare once per deployment; without a
+// deployment id (local runs) keep rebuilding every time.
+const deploymentKey = process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_URL || ''
+const stampPath = join(root, 'node_modules', '.cache', 'prepare-vercel-public.stamp')
+if (deploymentKey && existsSync(stampPath) && readFileSync(stampPath, 'utf8') === deploymentKey && existsSync(join(publicRoot, 'portal.html'))) {
+  console.log(`prepare-vercel-public: already prepared for ${deploymentKey}, skipping`)
+  process.exit(0)
+}
+
+await import('./build-public-faq.mjs')
+await import('./verify-seo-foundation.mjs')
 const sajuRoot = join(root, '사주')
 const cmdgRoot = join(sajuRoot, '사주')
 const runtimeSajuRoot = join(root, '.vercel-runtime', '사주')
@@ -118,3 +131,8 @@ copySelectedFiles(
 // The admin media screen needs metadata, not hundreds of binary files in the
 // serverless function. Generate the same real-file catalog during the build.
 writeMediaCatalog()
+
+if (deploymentKey) {
+  mkdirSync(dirname(stampPath), { recursive: true })
+  writeFileSync(stampPath, deploymentKey)
+}
