@@ -1,5 +1,7 @@
 package kr.umsh.app;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -20,6 +22,11 @@ public class MainActivity extends BridgeActivity {
     // AndroidManifest.xml 의 App Links 필터, capacitor.config.ts 의 allowNavigation 과 같은 목록.
     private static final Set<String> APP_HOSTS = new HashSet<>(Arrays.asList("umsh.kr", "www.umsh.kr"));
 
+    // 서버(src/push/fcm.ts)가 FCM data payload 에 넣는 키. 바꾸면 양쪽을 같이 바꾼다.
+    private static final String PUSH_PATH_KEY = "umsh_url";
+    private static final String PUSH_NOTIFICATION_KEY = "umsh_nid";
+    private static final String PUSH_DELIVERY_KEY = "umsh_did";
+
     /**
      * Android 15(targetSdk 35+) 는 앱을 시스템 바 뒤까지 그리게 강제한다.
      *
@@ -38,6 +45,7 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         registerBackHandler();
         applySystemBarPadding();
+        createDefaultNotificationChannel();
     }
 
     /**
@@ -55,11 +63,76 @@ public class MainActivity extends BridgeActivity {
         if (getBridge() == null || intent == null) {
             return;
         }
+        if (openPushTarget(intent)) {
+            return;
+        }
         Uri target = intent.getData();
         if (target == null || !"https".equals(target.getScheme()) || !APP_HOSTS.contains(target.getHost())) {
             return;
         }
         getBridge().getWebView().loadUrl(target.toString());
+    }
+
+    /**
+     * 푸시 알림을 눌러 들어온 경우. 백그라운드·종료 상태의 알림은 FCM SDK 가 그리고, 누르면
+     * 런처 액티비티가 data payload 를 extras 로 받아 열린다(intent data 는 비어 있다).
+     * 플러그인은 이미 실행 중일 때만 웹에 이벤트를 넘기고, 콜드 스타트에는 원격 페이지가 아직
+     * 리스너를 달기 전이라 웹에서 이동시키면 놓친다. 그래서 셸이 직접 이동한다.
+     *
+     * 서버의 /api/push/open 을 거쳐 클릭을 기록한 뒤 목적지로 보낸다. 목적지는 서버도 다시
+     * 검증하지만, 셸에서도 우리 사이트 안의 경로("/..." 이고 "//" 아님)만 받는다.
+     */
+    private boolean openPushTarget(Intent intent) {
+        Bundle extras = intent.getExtras();
+        if (extras == null || !extras.containsKey(PUSH_PATH_KEY)) {
+            return false;
+        }
+        String path = extras.getString(PUSH_PATH_KEY, "");
+        String notificationId = extras.getString(PUSH_NOTIFICATION_KEY, "");
+        String deliveryId = extras.getString(PUSH_DELIVERY_KEY, "");
+        // 액티비티가 다시 만들어질 때 같은 알림으로 또 이동하지 않게 지운다.
+        intent.removeExtra(PUSH_PATH_KEY);
+        if (!isInternalPath(path)) {
+            path = "/";
+        }
+        Uri open = new Uri.Builder()
+            .scheme("https")
+            .authority("umsh.kr")
+            .path("/api/push/open")
+            .appendQueryParameter("n", notificationId)
+            .appendQueryParameter("d", deliveryId)
+            .appendQueryParameter("to", path)
+            .build();
+        getBridge().getWebView().loadUrl(open.toString());
+        return true;
+    }
+
+    static boolean isInternalPath(String path) {
+        return path != null
+            && path.startsWith("/")
+            && !path.startsWith("//")
+            && !path.contains("\\")
+            && path.length() <= 500;
+    }
+
+    /**
+     * 기본 알림 채널. Android 8+ 는 채널이 없으면 FCM 이 "기타" 채널로 보내 사용자가 끄기
+     * 어렵다. 권한을 받기 전에 만들어 두어도 알림이 뜨지 않으므로 해가 없다.
+     */
+    private void createDefaultNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        NotificationChannel channel = new NotificationChannel(
+            getString(R.string.default_notification_channel_id),
+            getString(R.string.default_notification_channel_name),
+            NotificationManager.IMPORTANCE_HIGH
+        );
+        channel.setDescription(getString(R.string.default_notification_channel_description));
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager != null) {
+            manager.createNotificationChannel(channel);
+        }
     }
 
     /**

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "267087222795",
+    "project_id": "umsh-989fc",
+    "storage_bucket": "umsh-989fc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267087222795:android:2f32402c06f66e23878f0e",
+        "android_client_info": {
+          "package_name": "kr.umsh.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCR3blQLE1N6Wq6mUVHhKl1HiHqDXV2bU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

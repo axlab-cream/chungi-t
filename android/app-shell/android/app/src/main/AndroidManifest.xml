@@ -41,6 +41,13 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- 푸시 알림(FCM). 앱이 백그라운드·종료 상태면 FCM SDK 가 직접 알림을 그리므로
+             아이콘·색·채널을 여기서 정해 둔다. 작은 아이콘은 흰색 실루엣이어야 하며,
+             앱 아이콘을 그대로 쓰면 상태 표시줄에 흰 네모로 보인다. -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_umsh" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/umsh_notification_accent" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="@string/default_notification_channel_id" />
     </application>
 
     <!-- Permissions -->
@@ -58,4 +65,8 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- 마이크 없는 기기도 설치는 되게 한다. 음성 상담만 쓰지 못한다. -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!-- Android 13+ 알림 권한. firebase-messaging 도 선언하지만 앱이 푸시를 쓴다는 사실을
+         남겨 둔다. 런타임 요청은 웹(umsh-push.js)이 로그인 직후 안내 시트를 보여 준 뒤 한다. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

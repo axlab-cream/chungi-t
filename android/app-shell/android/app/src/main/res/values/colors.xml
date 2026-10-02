@@ -8,4 +8,6 @@
     <color name="colorPrimaryDark">#080302</color>
     <color name="colorAccent">#F2BF6B</color>
     <color name="umshBackground">#080302</color>
+    <!-- 알림 작은 아이콘·앱 이름에 입히는 색. 금색 로고와 맞춘다. -->
+    <color name="umsh_notification_accent">#C9A227</color>
 </resources>

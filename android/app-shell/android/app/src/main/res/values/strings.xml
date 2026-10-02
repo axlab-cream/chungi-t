@@ -4,4 +4,8 @@
     <string name="title_activity_main">운명상회</string>
     <string name="package_name">kr.umsh.app</string>
     <string name="custom_url_scheme">kr.umsh.app</string>
+    <!-- MainActivity 가 이 ID 로 채널을 만든다. 채널 이름은 사용자가 알림 설정 화면에서 본다. -->
+    <string name="default_notification_channel_id">umsh_default</string>
+    <string name="default_notification_channel_name">운명상회 소식</string>
+    <string name="default_notification_channel_description">오늘의 운세, 리포트 완성, 이벤트 소식</string>
 </resources>
