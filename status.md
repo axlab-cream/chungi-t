@@ -2755,3 +2755,12 @@ DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION
 - QA-2PASS-01 feedback complete: coupon canonical binding and failed setup balance status corrected. 1840/1840 fresh-process full checks passed; pending independent review/deployment verification. H2 DB migrations remain unexecuted.
 - QA-2PASS-01 review approved with comments (no critical/major). Both minor findings addressed; final affected45/45 + build/typecheck PASS. Bounded review follow-up includes owner-denial status, isolated test storage, HTML cache busting. Full1840 passed before this final refinement.
 - QA-2PASS-01 production58c1254b promoted as dpl_HUcLJNuTgP56jGE9dn44YMKFhibh. Post-deploy15/15 checks PASS, desktop/mobile rendered fixed recovery copy. DB/provider/staff session/live charge gates remain NOT_RUN. Evidence docs/consultation-qa/two-pass-20261002.md; KMS personal/carrotcap/notes/umsh-consultation-two-pass-qa-20261002.md.
+
+- CONSULTATION-ENV-01: user authorized API key setup. Voice secret registered sensitive Production and inventory verified. AI Talk production GEMINI_API_KEY exists but env run returned no readable value; Gemini setup BLOCKED pending secure user entry. No redeploy or DB changes. KMS notes/umsh-consultation-env-20261002.md saved/re-read.
+
+- CONSULTATION-ENV-01: user registered Gemini key; both env names verified. Deployed/promoted dpl_82kZuQxiqdBneSadSibWZ9cKhuF5, anonymous context401 replaces setup503, health OK, build passed. Logged-in browser still generic load failure; provider/voice E2E not verified. Read-only readiness probe lacked env credentials; DB migration approval requested, not applied. KMS updated/re-read.
+
+- BANNER-FIT-01: same-size carousel and complete copy implemented. Six measured browser widths PASS, related18/18 and build PASS. Review/deployment pending. Evidence docs/consultation-qa/banner-fit.md.
+
+### 2026-10-02 BANNER-FIT-01 production completion
+Unified carousel card sizing and removed text clipping. Runtime d7a0d72c deployed/promoted as dpl_HReMcZKMNVJBavFGeuwAAw8NeYDU. Production CSS exact match; browser both390x269.6875, full copy visible. Relevant tests18/18 + build PASS; six widths and long copy PASS. Evidence docs/consultation-qa/banner-fit.md. Database work is unchanged and not included.

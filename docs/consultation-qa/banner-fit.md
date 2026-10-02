@@ -6,3 +6,8 @@
 
 ## Review feedback / final correction
 Grok requested changes: fixed caption height and long admin copy. Caption is now automatic with64px minimum; long visual copy uses a minimum1200:630 height, not a forced ratio, so text expands both cards equally. At320px maximum100-char title/300-char body test: both592.21875px, copy526.21875px fully inside visual526.21875px. Fixture is local-only. Default published copy passes all six widths:211.94/240.81/269.69px. Added inert and aria-hidden to inactive slide; actual DOM verified. Fixed caption names the service, while overlay is its editable marketing headline; intentionally distinct roles. Clamping was not restored because user requested complete text. Reviewer findings were addressed and manually rechecked via browser measurements; no claim of a second external review.
+
+## Final production verification — 2026-10-02
+- Runtime commit: d7a0d72c; production deployment dpl_HReMcZKMNVJBavFGeuwAAw8NeYDU (https://chungi-donx4slc8-ax-lab-cream.vercel.app), promoted to https://umsh.kr.
+- Downloaded production CSS SHA256 matches tested source. Final browser DOM: both cards 390 x 269.6875px; complete published title/body visible. Screenshot: banner-production-final.png.
+- Final relevant tests18/18 and build/typecheck/SEO PASS. Six widths320/375/430/768/1024/1440 and maximum admin copy verified locally; review findings corrected. No DB changes.

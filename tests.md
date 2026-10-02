@@ -1329,3 +1329,6 @@ DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION
 사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
 - QA-2PASS-01: pass 1 reproduced public-result coupon alias binding defect; canonical ID fix + fixture isolation + setup status correction. Pass 2 full suite 1840/1840 and final focused26/26; build/typecheck PASS. Production activation still gated by DB/config.
 - Final review follow-up45/45 PASS; production15/15 HTTP/hash/security checks PASS. Desktop/mobile observed. Setup gate explicitly not live-service activation.
+
+### BANNER-FIT-01 final QA (2026-10-02)
+PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport widths320-1440 equal cards and full text;100-character title/300-character body grows both cards without clipping. Production d7a0d72c CSS hash matches; actual DOM cards390x269.6875. See docs/consultation-qa/banner-fit.md and banner-production-final.png.
