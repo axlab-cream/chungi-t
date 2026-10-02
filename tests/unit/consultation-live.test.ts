@@ -16,10 +16,12 @@ test('Live token locks transcription and tool contract; permanent key stays serv
   }
   const result = await createLiveToken()
   assert.equal(request.uses, 1)
+  assert.equal(request.liveConnectConstraints, undefined)
+  assert.deepEqual(request.bidiGenerateContentSetup.generationConfig.responseModalities, ['AUDIO'])
   assert.ok(Date.parse(request.expireTime) - Date.now() <= 600000)
-  assert.deepEqual(request.liveConnectConstraints.config.inputAudioTranscription, {})
-  assert.deepEqual(request.liveConnectConstraints.config.outputAudioTranscription, {})
-  assert.equal(request.liveConnectConstraints.config.tools[0].functionDeclarations[0].name, 'consult_saju')
+  assert.deepEqual(request.bidiGenerateContentSetup.inputAudioTranscription, {})
+  assert.deepEqual(request.bidiGenerateContentSetup.outputAudioTranscription, {})
+  assert.equal(request.bidiGenerateContentSetup.tools[0].functionDeclarations[0].name, 'consult_saju')
   assert.doesNotMatch(JSON.stringify(result), /isolated-test-secret/)
 })
 test('upstream error never returns key or provider message', async () => {
