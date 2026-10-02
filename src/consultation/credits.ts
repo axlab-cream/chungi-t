@@ -6,7 +6,13 @@ import { getDiscountForOrder, listConsultationCoupons } from '../coupons/store.j
 import type { WalletCoupon } from '../coupons/contracts.js'
 
 export const CONSULTATION_PRODUCT = 'cheonmyeong_consultation'
-export interface CreditLedger { freeUsed: boolean; usedByOrder: Record<string, number>; usedByCoupon?: Record<string, number> }
+export const CONSULTATION_FREE_QUESTIONS = 5
+export interface CreditLedger { freeUsed: boolean; freeUsedCount?: number; usedByOrder: Record<string, number>; usedByCoupon?: Record<string, number> }
+function freeUsedCount(credits: CreditLedger): number {
+  if (credits.freeUsedCount === undefined) return credits.freeUsed ? 1 : 0
+  if (!Number.isSafeInteger(credits.freeUsedCount) || credits.freeUsedCount < 0) throw new ConsultationError('CONSULTATION_CREDITS_UNAVAILABLE')
+  return Math.max(credits.freeUsed ? 1 : 0, credits.freeUsedCount)
+}
 export interface CreditDependencies {
   paymentOrders?: (ownerId: string) => Promise<PaymentOrder[]>
   paymentOrder?: typeof getPaymentOrder
@@ -58,7 +64,7 @@ export async function creditOrders(ownerId: string, credits: CreditLedger, optio
   } catch { throw new ConsultationError('CONSULTATION_CREDITS_UNAVAILABLE') }
 }
 export function consultationAccess(credits: CreditLedger, orders: PaymentOrder[], coupons: WalletCoupon[] = []): ConsultationAccess {
-  const freeRemaining = credits.freeUsed ? 0 : 1
+  const freeRemaining = Math.max(0, CONSULTATION_FREE_QUESTIONS - freeUsedCount(credits))
   const paidRemaining = orders.reduce((sum, order) => sum + Math.max(0, 5 - (credits.usedByOrder[order.orderId] ?? 0)), 0)
   const couponRemaining = coupons.filter(coupon => coupon.enabled && Date.parse(coupon.expiresAt) > Date.now()).reduce((sum, coupon) => sum + Math.max(0, coupon.value - (credits.usedByCoupon?.[coupon.id] ?? 0)), 0)
   return { freeRemaining, couponRemaining, paidRemaining, remaining: freeRemaining + couponRemaining + paidRemaining, packQuestions: 5, packAmount: 4900, checkoutUrl: '/payment?product=cheonmyeong_consultation' }
@@ -73,7 +79,8 @@ export function requireCredit(credits: CreditLedger, orders: PaymentOrder[], cou
 /** Called in the same CAS mutation that saves the successful substantive answer. */
 export function consumeCredit(credits: CreditLedger, orders: PaymentOrder[], coupons: WalletCoupon[] = []): void {
   requireCredit(credits, orders, coupons)
-  if (!credits.freeUsed) { credits.freeUsed = true; return }
+  const used = freeUsedCount(credits)
+  if (used < CONSULTATION_FREE_QUESTIONS) { credits.freeUsedCount = used + 1; credits.freeUsed = true; return }
   const coupon = coupons.find(coupon => coupon.enabled && Date.parse(coupon.expiresAt) > Date.now() && (credits.usedByCoupon?.[coupon.id] ?? 0) < coupon.value)
   if (coupon) {
     credits.usedByCoupon ??= {}

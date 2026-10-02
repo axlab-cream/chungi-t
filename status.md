@@ -2773,3 +2773,5 @@ User approved DB repair; both migrations applied and catalog verified. Productio
 
 ### 2026-10-02 CONSULTATION-DESKTOP-FIT
 PC viewport sizing implemented and deployed6859b740/dpl_2dy2YzhrdWCsayoHwTtoGQvwDsid. Local720px and production884px browser confirm no page overflow/composer-nav overlap. Tests18/18/build PASS. docs/consultation-qa/desktop-fit.md; KMS saved/read. API key blocker independent. User original checkout preserved.
+
+- CONSULTATION-LIVE-01: implementation and isolated QA85 PASS. PC renders input/output Live transcriptions with textContent; Gemini-backed /live-turn preserves server CAS/idempotence and entitlement. Free allowance5 preserves legacy1 consumed. Local mobile390px photo-only/tap verified. Actual Live is NOT_VERIFIED pending production authentication. External Grok review dispatched; no approval inferred from stalled execution.

@@ -82,3 +82,19 @@
   .consultation-footer .footer-company p{margin:0}
   .consultation-footer .footer-contact{gap:4px 14px}
 }
+
+/* Portrait entrance uses a real button: tap/Enter opens chat, never the microphone. */
+.consultation-enter{display:none}
+.consultation-entry-guide{font-size:11px;line-height:1.6;color:var(--consult-gold);margin:6px 0;padding:8px 10px;border-left:2px solid var(--consult-gold);background:#d9b86808}
+@media(max-width:767px){
+ .consultation-intro{height:100dvh;overflow:hidden;padding-bottom:0!important}
+ .consultation-intro .consultation-layout,.consultation-intro .consultation-shell{height:100dvh;min-height:0}
+ .consultation-intro .consultation-stage{height:100dvh;min-height:0;max-height:none}
+ .consultation-intro .consultation-character{object-position:50% 24%}
+ .consultation-intro .consultation-stage-copy,.consultation-intro .consultation-room,.consultation-intro .consultation-footer,.consultation-intro .umsh-service-shell,.consultation-intro .umsh-service-bottom{display:none!important}
+ .consultation-intro .consultation-enter{display:block;position:absolute;inset:0;z-index:2;width:100%;height:100%;border:0;background:transparent}
+ .consultation-intro .consultation-enter:focus-visible{outline:3px solid #d9b868;outline-offset:-6px}
+ .consultation-page:not(.consultation-intro) .consultation-stage{height:26svh;min-height:180px;max-height:260px}
+ .consultation-page:not(.consultation-intro) .consultation-stage-copy{bottom:12px}
+ .consultation-page:not(.consultation-intro) .consultation-stage-copy p{display:none}
+}

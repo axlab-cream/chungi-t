@@ -157,24 +157,25 @@ it('router returns owner-only conversations, no-store and sanitized failures', a
   } finally { await new Promise<void>((resolve, reject) => server.close(e => e ? reject(e) : resolve())) }
 })
 
-it('grants one member-lifetime free answer, replay costs nothing, and new sessions cannot reset it', async () => {
+it('grants five member-lifetime free answers, replay costs nothing, and new sessions cannot reset it', async () => {
   const s = setup(); s.options.paymentOrders = async () => []
   const input = { requestId: randomUUID(), text: '무료 질문' }
   const first = await consultationChat(s.owner, input, s.options)
   assert.equal(first.charged, true); assert.equal((await consultationChat(s.owner, input, s.options)).charged, true)
-  assert.equal(first.access.freeRemaining, 0); assert.equal(first.access.remaining, 0)
-  assert.equal((await consultationChat(s.owner, input, s.options)).access.remaining, 0)
+  assert.equal(first.access.freeRemaining, 4); assert.equal(first.access.remaining, 4)
+  assert.equal((await consultationChat(s.owner, input, s.options)).access.remaining, 4)
+  for (let i = 0; i < 4; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: `나머지 무료 ${i}` }, s.options)
   const called = s.calls.length
   await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '새 상담' }, s.options), (error: any) => error.code === 'CONSULTATION_PAYMENT_REQUIRED' && error.status === 402 && error.access.remaining === 0)
   assert.equal(s.calls.length, called)
 })
 it('adds exactly five verified paid answers, counts saves only and never regrants a consumed pack', async () => {
   const s = setup()
-  for (let index = 0; index < 6; index++) {
+  for (let index = 0; index < 10; index++) {
     const input = { requestId: randomUUID(), text: `질문${index}` }
     const result = await consultationChat(s.owner, input, s.options)
-    assert.equal(result.access.remaining, 5 - index)
-    assert.equal((await consultationChat(s.owner, input, s.options)).access.remaining, 5 - index)
+    assert.equal(result.access.remaining, 9 - index)
+    assert.equal((await consultationChat(s.owner, input, s.options)).access.remaining, 9 - index)
   }
   await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '일곱째' }, s.options), /CONSULTATION_PAYMENT_REQUIRED/)
 })
@@ -182,12 +183,12 @@ it('partner clarification and provider failure preserve the free allowance', asy
   const s = setup(); s.options.paymentOrders = async () => []
   s.setPartner({ requested: true, personLabel: '상대', identity: 'new' })
   const first = await consultationChat(s.owner, { requestId: randomUUID(), text: '궁합' }, s.options)
-  assert.equal(first.charged, false); assert.equal(first.access.freeRemaining, 1)
+  assert.equal(first.charged, false); assert.equal(first.access.freeRemaining, 5)
   s.setPartner({ requested: false }); s.provider.reply = async () => { throw new Error('provider-down') }
   const input = { requestId: randomUUID(), text: '질문' }
   await assert.rejects(consultationChat(s.owner, input, s.options), /provider-down/)
   s.provider.reply = async () => '성공'
-  assert.equal((await consultationChat(s.owner, input, s.options)).access.freeRemaining, 0)
+  assert.equal((await consultationChat(s.owner, input, s.options)).access.freeRemaining, 4)
 })
 it('rejects wrong-owner, wrong-product, unapproved and wrong-price packs', async () => {
   for (const patch of [{ ownerId: 'other' }, { productKey: 'other' }, { tid: '' }, { amount: 1 }, { status: 'cancelled' }]) {
@@ -195,12 +196,13 @@ it('rejects wrong-owner, wrong-product, unapproved and wrong-price packs', async
     Object.assign(order, patch)
     const first = await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
     assert.equal(first.access.paidRemaining, 0)
+    for (let i = 0; i < 4; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '남은 무료' }, { ...s.options, refundBlocked: async () => true })
     await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '유료' }, s.options), /CONSULTATION_PAYMENT_REQUIRED/)
   }
 })
 it('retains discovered older packs when listing omits them and invalidates refunds by order lookup', async () => {
   const s = setup(); const [order] = await s.options.paymentOrders()
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
   s.options.paymentOrders = async () => []
   const second = await consultationChat(s.owner, { requestId: randomUUID(), text: '유료' }, s.options)
   assert.equal(second.access.paidRemaining, 4)
@@ -233,26 +235,26 @@ it('failed first turns release invisible session capacity and keep the same requ
   const record = (await listReportRecords(s.owner))[0]
   assert.equal((record.auxiliary as any).consultation.sessions.length, 0)
   s.provider.reply = async () => '완료'
-  assert.equal((await consultationChat(s.owner, input, s.options)).access.freeRemaining, 0)
+  assert.equal((await consultationChat(s.owner, input, s.options)).access.freeRemaining, 4)
 })
 it('voice synthesis can supply audio only and cannot overwrite the saved answer or credits', async () => {
   const s = setup()
   const result = await consultationChat(s.owner, { requestId: randomUUID(), text: '질문' }, { ...s.options, synthesize: async () => ({ audio: 'YWJj', audioMime: 'audio/mpeg', text: 'malicious', saved: false, access: { remaining: 999 } }) })
-  assert.equal(result.text, '답변 0'); assert.equal(result.saved, true); assert.equal(result.access.remaining, 5)
+  assert.equal(result.text, '답변 0'); assert.equal(result.saved, true); assert.equal(result.access.remaining, 9)
 })
 
 it('a refund during generation prevents saving and spending the paid answer', async () => {
   const s = setup(); const [order] = await s.options.paymentOrders()
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
   s.provider.reply = async () => { Object.assign(order, { status: 'cancelled' }); return '환불 중 답변' }
   await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '유료' }, s.options), /CONSULTATION_PAYMENT_REQUIRED/)
   const state = ((await listReportRecords(s.owner))[0].auxiliary as any).consultation
   assert.equal(state.credits.usedByOrder[order.orderId], 0)
-  assert.equal(state.sessions.reduce((n: number, session: any) => n + session.history.length, 0), 2)
+  assert.equal(state.sessions.reduce((n: number, session: any) => n + session.history.length, 0), 10)
 })
 it('failed final save does not consume a paid credit', async () => {
   const s = setup(); const [order] = await s.options.paymentOrders()
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, s.options)
   s.provider.reply = async () => {
     const record = (await listReportRecords(s.owner))[0]
     await mutateReportRecord(record.reportId, s.owner, r => { (r.auxiliary as any).consultation.lease.until = 0 })
@@ -267,6 +269,7 @@ it('freezes paid packs with pending or partial refunds even while the order stay
   const s = setup()
   const first = await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, { ...s.options, refundBlocked: async () => true })
   assert.equal(first.access.paidRemaining, 0)
+    for (let i = 0; i < 4; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '남은 무료' }, { ...s.options, refundBlocked: async () => true })
   await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '유료' }, { ...s.options, refundBlocked: async () => true }), /CONSULTATION_PAYMENT_REQUIRED/)
   const renewed = await consultationChat(s.owner, { requestId: randomUUID(), text: '환불요청 거절후' }, { ...s.options, refundBlocked: async () => false })
   assert.equal(renewed.access.paidRemaining, 4)
@@ -274,7 +277,7 @@ it('freezes paid packs with pending or partial refunds even while the order stay
 it('a refund request created during generation freezes the pack before answer save', async () => {
   const s = setup(); let blocked = false
   const options = { ...s.options, refundBlocked: async () => blocked }
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
   s.provider.reply = async () => { blocked = true; return '환불요청 중 답변' }
   await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '유료' }, options), /CONSULTATION_PAYMENT_REQUIRED/)
   const state = ((await listReportRecords(s.owner))[0].auxiliary as any).consultation
@@ -289,7 +292,7 @@ it('refund lookup failure fails closed without contacting the provider', async (
 it('concurrent checkout reservations return one durable ID and reuse an interrupted missing order', async () => {
   const s = setup(); const { reserveConsultationCheckout } = await import('../../src/consultation/backend.js')
   const options = { ...s.options, paymentOrders: async () => [], paymentOrder: async () => null }
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
   const [first, second] = await Promise.all([
     reserveConsultationCheckout(s.owner, 'reserved-first', options),
     reserveConsultationCheckout(s.owner, 'reserved-second', options),
@@ -303,7 +306,7 @@ it('checkout reuses ready orders, rejects approving orders and outstanding credi
   let order: import('../../src/payment/order-store.js').PaymentOrder | null = null
   const options = { ...s.options, paymentOrders: async () => order && ['paid', 'viewed'].includes(order.status) ? [order] : [], paymentOrder: async () => order }
   await assert.rejects(reserveConsultationCheckout(s.owner, 'reserved-first', options), /CONSULTATION_CREDITS_REMAINING/)
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
   const first = await reserveConsultationCheckout(s.owner, 'reserved-first', options)
   order = { ...template, orderId: first.orderId, status: 'ready' }
   assert.equal((await reserveConsultationCheckout(s.owner, 'unused-second', options)).orderId, first.orderId)
@@ -317,7 +320,7 @@ it('checkout reuses ready orders, rejects approving orders and outstanding credi
 it('checkout rejects a reservation pointing to another owner or wrong pack', async () => {
   const s = setup(); const { reserveConsultationCheckout } = await import('../../src/consultation/backend.js')
   const options = { ...s.options, paymentOrders: async () => [], paymentOrder: async (): Promise<import('../../src/payment/order-store.js').PaymentOrder | null> => null }
-  await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
+  for (let i = 0; i < 5; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '무료' }, options)
   const { orderId } = await reserveConsultationCheckout(s.owner, 'reserved-first', options)
   const [template] = await s.options.paymentOrders()
   for (const patch of [{ ownerId: 'another-owner' }, { amount: 1 }, { productKey: 'other' }]) {
@@ -329,16 +332,18 @@ it('checkout rejects a reservation pointing to another owner or wrong pack', asy
 it('pure greeting and thanks preserve free credit without extraction or model replies', async () => {
   const s = setup(); s.options.paymentOrders = async () => []
   const first = await consultationChat(s.owner, { requestId: randomUUID(), text: '안녕하세요!' }, s.options)
-  assert.equal(first.charged, false); assert.equal(first.access.freeRemaining, 1)
+  assert.equal(first.charged, false); assert.equal(first.access.freeRemaining, 5)
   assert.match(first.text, new RegExp(DEFAULT_CONSULTATION_SETTINGS.name))
   const second = await consultationChat(s.owner, { requestId: randomUUID(), conversationId: first.conversationId, text: '감사합니다.' }, s.options)
-  assert.equal(second.charged, false); assert.equal(second.access.freeRemaining, 1)
+  assert.equal(second.charged, false); assert.equal(second.access.freeRemaining, 5)
   assert.deepEqual(s.calls, [])
   const question = await consultationChat(s.owner, { requestId: randomUUID(), conversationId: first.conversationId, text: '안녕하세요 직장 고민이 있어요' }, s.options)
-  assert.equal(question.charged, true); assert.equal(question.access.freeRemaining, 0)
+  assert.equal(question.charged, true); assert.equal(question.access.freeRemaining, 4)
   assert.deepEqual(s.calls, ['extract', 'reply'])
+  for (let i = 0; i < 4; i++) await consultationChat(s.owner, { requestId: randomUUID(), text: '추가 질문' }, s.options)
+  const callCount = s.calls.length
   await assert.rejects(consultationChat(s.owner, { requestId: randomUUID(), text: '안녕하세요' }, s.options), /CONSULTATION_PAYMENT_REQUIRED/)
-  assert.deepEqual(s.calls, ['extract', 'reply'])
+  assert.equal(s.calls.length, callCount)
 })
 it('social acknowledgement retains partner identity and repeats the pending detail without charging', async () => {
   const s = setup(); s.options.paymentOrders = async () => []
@@ -346,7 +351,30 @@ it('social acknowledgement retains partner identity and repeats the pending deta
   const first = await consultationChat(s.owner, { requestId: randomUUID(), text: '민수와 궁합' }, s.options)
   s.setPartner({ requested: false })
   const second = await consultationChat(s.owner, { requestId: randomUUID(), conversationId: first.conversationId, text: '네' }, s.options)
-  assert.equal(second.charged, false); assert.equal(second.access.freeRemaining, 1)
+  assert.equal(second.charged, false); assert.equal(second.access.freeRemaining, 5)
   assert.deepEqual(second.partner, first.partner); assert.deepEqual(second.partners, first.partners)
   assert.match(second.text, /생년월일/); assert.deepEqual(s.calls, ['extract'])
+})
+
+it('Live endpoints authenticate, rate-limit mint failures durably, and save text without legacy speech', async () => {
+  const s = setup(); const priorKey = process.env.GEMINI_API_KEY; delete process.env.GEMINI_API_KEY
+  let speech = 0
+  const app = express(); app.use(express.json()); app.use('/api/consultation', consultationRouter({ ...s.options, synthesize: async () => { speech++; return { audio: 'unused', audioMime: 'audio/mpeg' } }, authenticate: async req => req.headers.authorization === 'owner' ? s.owner : null }))
+  const server = app.listen(0, '127.0.0.1'); await new Promise<void>(resolve => server.once('listening', resolve))
+  const base = `http://127.0.0.1:${(server.address() as { port: number }).port}/api/consultation`
+  const post = (path: string, authorized = true, body = {}) => fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json', ...(authorized ? { authorization: 'owner' } : {}) }, body: JSON.stringify(body) })
+  try {
+    assert.equal((await post('/live-session', false)).status, 401)
+    assert.equal((await post('/live-turn', false)).status, 401)
+    const missing = await post('/live-session'); assert.equal(missing.status, 503); assert.match(missing.headers.get('cache-control')!, /no-store/)
+    assert.equal((await post('/live-session')).status, 429)
+    const record = (await listReportRecords(s.owner))[0], state = (record.auxiliary as any).consultation
+    assert.equal(state.live.count, 1); assert.equal(Object.keys(state.attempts).length, 0)
+    const body = { text: '직장 질문', requestId: randomUUID() }
+    const first = await (await post('/live-turn', true, body)).json()
+    const replay = await (await post('/live-turn', true, body)).json()
+    assert.equal(first.saved, true); assert.equal(first.access.freeRemaining, 4)
+    assert.equal(replay.access.freeRemaining, 4); assert.equal(speech, 0)
+    assert.deepEqual(first.history.map((turn: any) => turn.role), ['user', 'assistant'])
+  } finally { if (priorKey !== undefined) process.env.GEMINI_API_KEY = priorKey; await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())) }
 })

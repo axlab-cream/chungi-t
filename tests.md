@@ -1332,3 +1332,5 @@ DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION
 
 ### BANNER-FIT-01 final QA (2026-10-02)
 PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport widths320-1440 equal cards and full text;100-character title/300-character body grows both cards without clipping. Production d7a0d72c CSS hash matches; actual DOM cards390x269.6875. See docs/consultation-qa/banner-fit.md and banner-production-final.png.
+
+- CONSULTATION-LIVE-01: consultation suite85/85 PASS, frontend+Live transport follow-up23/23 PASS, vercel-build/typecheck PASS. Mocked token/API coverage is distinct from actual Google response. Local390px mobile portrait/tap verified through Codex browser.

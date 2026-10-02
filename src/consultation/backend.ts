@@ -14,10 +14,11 @@ import { creditOrders, creditCoupons, validPackAmount, consultationAccess, consu
 import { getPaymentOrder, type PaymentOrder } from '../payment/order-store.js'
 import { getDiscountForOrder } from '../coupons/store.js'
 import type { WalletCoupon } from '../coupons/contracts.js'
+import { createLiveToken } from './live.js'
 
 interface Session { id: string; title: string; updatedAt: string; profile: UserBirthProfile; partner?: PartnerDetails; partners?: PartnerDetails[]; history: ConversationTurn[] }
 interface Attempt { hash: string; session: string; status: 'pending' | 'complete' | 'failed'; turn?: number; charged?: boolean }
-interface Ledger { credits?: CreditLedger; checkoutOrderId?: string; sessions: Session[]; attempts: Record<string, Attempt>; day: string; count: number; lease?: { id: string; until: number } }
+interface Ledger { credits?: CreditLedger; live?: { day: string; count: number; last: number }; checkoutOrderId?: string; sessions: Session[]; attempts: Record<string, Attempt>; day: string; count: number; lease?: { id: string; until: number } }
 type ConsultationRecord = ReportRecord & { auxiliary: { consultation: Ledger } }
 interface ChatInput { text?: string; audio?: string; mime?: string; requestId: string; conversationId?: string }
 interface Dependencies extends CreditDependencies {
@@ -346,6 +347,30 @@ export function consultationRouter(options: Dependencies): Router {
   }
   router.get('/context', route(async (_req, owner) => ({ profile: await (options.profile ?? getUserBirthProfile)(owner), settings: await (options.settings ?? getConsultationSettings)(), access: await getConsultationAccess(owner, options) })))
   router.post('/chat', route((req, owner) => consultationChat(owner, req.body, options)))
+  router.post('/live-session', route(async (_req, owner) => {
+    try {
+      assertDurableReportStorage()
+      if (getReportStorageMode() === 'memory' && process.env.NODE_ENV !== 'test') throw new Error('memory')
+    } catch { throw new ConsultationError('STORAGE_UNAVAILABLE') }
+    await assertConsultationLedgerProtection()
+    const profile = await (options.profile ?? getUserBirthProfile)(owner)
+    if (!profile) throw new ConsultationError('PROFILE_REQUIRED', 409)
+    const settings = await (options.settings ?? getConsultationSettings)()
+    if (!settings.enabled) throw new ConsultationError('CONSULTATION_DISABLED')
+    const available = await getConsultationAccess(owner, options)
+    if (!available.remaining) throw new ConsultationPaymentRequired(available)
+    await ensureLedger(owner, profile)
+    // Durable, per-member mint limit, including failed upstream attempts.
+    const saved = await mutateReportRecord(ledgerId(owner), owner, record => {
+      const state = data(record), now = Date.now(), day = new Date(now).toISOString().slice(0, 10)
+      const live = state.live?.day === day ? state.live : { day, count: 0, last: 0 }
+      if (live.count >= 20 || now - live.last < 15000) throw new ConsultationError('PROVIDER_LIMIT', 429)
+      state.live = { day, count: live.count + 1, last: now }
+    })
+    if (!saved) throw new ConsultationError('STORAGE_UNAVAILABLE')
+    return createLiveToken()
+  }))
+  router.post('/live-turn', route((req, owner) => consultationChat(owner, req.body, { ...options, synthesize: undefined })))
   router.get('/conversations', route(async (_req, owner) => {
     const record = await getReportRecord(ledgerId(owner), owner)
     return { conversations: record ? data(record).sessions.filter(s => s.history.length).map(s => ({ id: s.id, title: s.title, updatedAt: s.updatedAt, preview: s.history.at(-1)?.content.slice(0, 140) })).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) : [] }

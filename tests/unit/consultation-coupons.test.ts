@@ -23,7 +23,7 @@ function setup() {
 }
 it('spends free, coupon, then paid and replay preserves exactly one coupon charge',async()=>{
   const s=setup()
-  const free=await s.ask(); assert.equal(free.access.couponRemaining,2); assert.equal(free.access.paidRemaining,5)
+  for(let i=0;i<4;i++) await s.ask(); const free=await s.ask(); assert.equal(free.access.couponRemaining,2); assert.equal(free.access.paidRemaining,5)
   const requestId=randomUUID(); const coupon=await s.ask(requestId); assert.equal(coupon.access.couponRemaining,1)
   await s.ask(requestId); assert.deepEqual(await getConsultationCouponUsage(s.owner),{[s.grant.id]:1})
   await s.ask(); const paid=await s.ask(); assert.equal(paid.access.couponRemaining,0); assert.equal(paid.access.paidRemaining,4)
@@ -36,16 +36,16 @@ it('filters other owner, expired, disabled and duplicate grants',async()=>{
 })
 it('rechecks grants before saved answer, rejecting revocation and expiry during generation',async()=>{
   for(const mode of ['disabled','expired']) {
-    const s=setup(); s.options.paymentOrders=async()=>[]; await s.ask()
+    const s=setup(); s.options.paymentOrders=async()=>[]; for(let i=0;i<5;i++) await s.ask()
     s.provider.reply=async()=>{ if(mode==='disabled') s.grant.enabled=false; else s.grant.expiresAt='2020-01-01T00:00:00Z'; return '미저장' }
     await assert.rejects(s.ask(),/CONSULTATION_PAYMENT_REQUIRED/)
     assert.deepEqual(await getConsultationCouponUsage(s.owner),{})
     const state=((await listReportRecords(s.owner))[0].auxiliary as any).consultation
-    assert.equal(state.sessions.reduce((n:number,v:any)=>n+v.history.length,0),2)
+    assert.equal(state.sessions.reduce((n:number,v:any)=>n+v.history.length,0),10)
   }
 })
 it('failed final save and provider failure consume no coupon; lookup errors fail closed',async()=>{
-  const s=setup(); await s.ask()
+  const s=setup(); for(let i=0;i<5;i++) await s.ask()
   s.provider.reply=async()=>{ const r=(await listReportRecords(s.owner))[0]; await mutateReportRecord(r.reportId,s.owner,r=>{(r.auxiliary as any).consultation.lease.until=0}); return '미저장' }
   await assert.rejects(s.ask(),/GENERATION_EXPIRED/); assert.deepEqual(await getConsultationCouponUsage(s.owner),{})
   s.provider.reply=async()=>{throw new Error('provider failure')}
@@ -54,7 +54,7 @@ it('failed final save and provider failure consume no coupon; lookup errors fail
   await assert.rejects(s.ask(),/CONSULTATION_CREDITS_UNAVAILABLE/)
 })
 it('clarification answers do not consume coupons',async()=>{
-  const s=setup(); await s.ask(); s.provider.extract=async()=>({requested:true})
+  const s=setup(); for(let i=0;i<5;i++) await s.ask(); s.provider.extract=async()=>({requested:true})
   await s.ask(); assert.deepEqual(await getConsultationCouponUsage(s.owner),{})
 })
 it('discounted approved packs need matching immutable order reservation and retain refund checks',async()=>{
@@ -72,7 +72,7 @@ it('discounted approved packs need matching immutable order reservation and reta
 })
 it('checkout retry accepts only a server-verified discounted existing reservation',async()=>{
   const s=setup(); s.options.paymentOrders=async()=>[]; s.options.couponGrants=async()=>[]
-  await s.ask(); const reserved=await reserveConsultationCheckout(s.owner,'coupon-checkout',s.options)
+  for(let i=0;i<5;i++) await s.ask(); const reserved=await reserveConsultationCheckout(s.owner,'coupon-checkout',s.options)
   const order={...s.order,orderId:reserved.orderId,amount:2900,status:'ready' as const,tid:undefined}
   const discount:WalletCoupon={...s.grant,kind:'amount_off',value:2000,orderId:order.orderId,originalAmount:4900,payableAmount:2900}
   const options={...s.options,paymentOrder:async()=>order,discountForOrder:async()=>discount}

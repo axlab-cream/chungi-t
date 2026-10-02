@@ -21,16 +21,16 @@ class Node {
   close() { this.open = false; this.emit('close') }
   pause() {} play() { return Promise.resolve() } remove() {} contains() { return false }
 }
-function harness(options: { vault?: boolean; guest?: boolean; configError?: boolean; profile?: boolean; fetch?: Function; mic?: Function; access?: any; owner?: string; storage?: Map<string, string>; timeout?: Function } = {}) {
+function harness(options: { vault?: boolean; guest?: boolean; configError?: boolean; profile?: boolean; fetch?: Function; mic?: Function; access?: any; owner?: string; storage?: Map<string, string>; timeout?: Function; live?: Function } = {}) {
   const nodes = new Map<string, Node>()
-  const ids = ['#consultation-waiting', '#consultation-waiting-copy', '#consultation-waiting-detail', '#consultation-paywall', '#consultation-paywall-dismiss', '#consultation-checkout', '#consultation-access', '#state', '#list', '#consultation-app', '#message', '#send-button', '#voice-button', '#consultation-gate', '#chat-log', '#consultation-status', '#reply-audio', '#consultation-form', '#character-image', '#character-state', '#character-introduction', '#consultation-title', '#profile-state', '#chat-empty', '.vault-tabs', '[data-tab-only="paid"]']
+  const ids = ['#consultation-enter', '#consultation-waiting', '#consultation-waiting-copy', '#consultation-waiting-detail', '#consultation-paywall', '#consultation-paywall-dismiss', '#consultation-checkout', '#consultation-access', '#state', '#list', '#consultation-app', '#message', '#send-button', '#voice-button', '#consultation-gate', '#chat-log', '#consultation-status', '#reply-audio', '#consultation-form', '#character-image', '#character-state', '#character-introduction', '#consultation-title', '#profile-state', '#chat-empty', '.vault-tabs', '[data-tab-only="paid"]']
   for (const id of ids) nodes.set(id, new Node())
   if (options.vault) nodes.set('#consultation-vault', new Node())
   const access = options.access === undefined ? { freeRemaining: 1, paidRemaining: 0, remaining: 1, packQuestions: 5, packAmount: 4900, checkoutUrl: '/payment?product=cheonmyeong_consultation' } : options.access
   const storage = options.storage || new Map<string, string>()
   const calls: { path: string; body?: any }[] = []; let authChange: Function = () => {}; let uuid = 0
   const ctx: any = {
-    document: { hidden: false, querySelector: (id: string) => nodes.get(id), querySelectorAll: () => [], createElement: () => new Node(), addEventListener() {} },
+    document: { body: { classList: { remove: (value: string) => { ctx.removedClass = value } } }, hidden: false, querySelector: (id: string) => nodes.get(id), querySelectorAll: () => [], createElement: () => new Node(), addEventListener() {} },
     fetch: async (path: string, init: any = {}) => {
       calls.push({ path, body: init.body ? JSON.parse(init.body) : undefined })
       if (path === '/api/auth/config') return { ok: !options.configError, json: async () => ({ enabled: true, url: 'auth.example', publishableKey: 'public' }) }
@@ -41,12 +41,14 @@ function harness(options: { vault?: boolean; guest?: boolean; configError?: bool
     supabase: {}, location: { href: 'https://test.example/' + (options.vault ? 'vault?tab=consultation' : 'consultation/'), pathname: '/consultation/', search: options.vault ? '?tab=consultation' : '' },
     sessionStorage: { getItem: (key: string) => storage.get(key), setItem: (key: string, val: string) => storage.set(key, val), removeItem: (key: string) => storage.delete(key) },
     history: { replaceState() {} }, navigator: { mediaDevices: { getUserMedia: options.mic } },
-    crypto: { randomUUID: () => 'request-' + (++uuid) }, AudioContext: function () {},
+    crypto: { randomUUID: () => 'request-' + (++uuid) }, AudioContext: function () { return { resume: async () => {}, close: async () => {} } },
     URL, URLSearchParams, AbortController, setTimeout: options.timeout || setTimeout, clearTimeout, Blob, Uint8Array, Int16Array, Float32Array, ArrayBuffer, DataView,
     addEventListener() {},
   }
   ctx.location.assign = (url: string) => { ctx.destination = url }
   ctx.window = ctx
+  runInNewContext(readFileSync(new URL('../../사주/js/consultation-live.js', import.meta.url), 'utf8'), ctx)
+  if (options.live) ctx.UMSHConsultationLive = options.live
   runInNewContext(source, ctx)
   return { nodes, calls, ctx, storage, ownerChange: () => authChange('SIGNED_IN', { user: { id: 'owner-b' } }), signout: () => authChange('SIGNED_OUT'), submit: (text: string) => { nodes.get('#message')!.value = text; nodes.get('#consultation-form')!.emit('submit') } }
 }
@@ -217,4 +219,30 @@ test('consultation uses the shared UMSH chrome and homepage company-policy foote
   const css = readFileSync(new URL('../../사주/css/consultation.css', import.meta.url), 'utf8')
   assert.match(css, /\.consultation-page\{padding-bottom:calc\(max\(74px,var\(--umsh-chrome-bottom-h,74px\)\)/)
   assert.match(css, /\.consultation-stage:has\(\.consultation-waiting:not\(\[hidden\]\)\)\{z-index:110/)
+})
+
+
+test('portrait tap opens the greeting without starting microphone or spending a question', async () => {
+  let mic = 0
+  const h = harness({ mic: async () => { mic++ } }); await tick()
+  h.nodes.get('#consultation-enter')!.emit('click')
+  assert.equal(h.ctx.removedClass, 'consultation-intro')
+  assert.equal(h.nodes.get('#chat-log')!.focused, true)
+  assert.equal(mic, 0); assert.equal(h.calls.some(c => /chat|live-session|live-turn/.test(c.path)), false)
+})
+test('PC voice input and spoken output render as safe text; stored answer uses Gemini server turn', async () => {
+  let hooks: any
+  const h = harness({ mic: async () => ({}), live: (value: any) => { hooks = value; return { start: async () => hooks.ready(), stop: () => hooks.closed('ended'), interrupt() {} } },
+    fetch: async () => ({ ok: true, json: async () => ({ saved: true, text: '해석 답변', conversationId: 'live-one', access: { freeRemaining: 4, paidRemaining: 0, remaining: 4 }, history: [{ role: 'user', content: '직장 질문' }, { role: 'assistant', content: '해석 답변' }] }) }) })
+  await tick(); h.nodes.get('#voice-button')!.emit('click'); await tick()
+  hooks.transcript('user', '직장 질문'); hooks.transcript('assistant', '<script>기운</script>')
+  let rows = h.nodes.get('#chat-log')!.children
+  assert.equal(rows[0].children[0].textContent, '음성 입력: 직장 질문')
+  assert.equal(rows[1].children[1].textContent, '천명 음성: <script>기운</script>')
+  await hooks.question('직장 질문', 'live-request')
+  assert.equal(h.calls.at(-1)!.path, '/api/consultation/live-turn')
+  rows = h.nodes.get('#chat-log')!.children
+  assert.equal(rows[1].children[1].textContent, '해석 답변')
+  h.signout(); hooks.transcript('assistant', 'old private reply')
+  assert.equal(h.nodes.get('#chat-log')!.children.length, 0)
 })

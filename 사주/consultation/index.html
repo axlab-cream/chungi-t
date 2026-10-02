@@ -7,14 +7,15 @@
   <meta name="referrer" content="same-origin" />
   <title>천명상담 · 운명상회</title>
   <link rel="stylesheet" href="/css/service-shell.css?v=20260917-overlay" data-umsh-shell-css />
-  <link rel="stylesheet" href="/css/consultation.css?v=20261002-desktop-fit" />
+  <link rel="stylesheet" href="/css/consultation.css?v=20261002-welcome5" />
 <script src="/js/umsh-analytics.js?v=20261001-signup" defer></script></head>
-<body class="consultation-page">
+<body class="consultation-page consultation-intro">
   <a class="consultation-skip" href="#message">상담 입력으로 이동</a>
-  <main class="consultation-layout" id="consultation-app" data-umsh-chrome data-service="천명상담" data-price="첫 질문 1회 무료 · 추가 5회 4,900원">
+  <main class="consultation-layout" id="consultation-app" data-umsh-chrome data-service="천명상담" data-price="상담 5회 무료 · 추가 5회 4,900원">
     <div class="consultation-shell">
     <section class="consultation-stage" aria-labelledby="consultation-title">
       <img id="character-image" class="consultation-character" src="/assets/cheonmyeong-scenes/01-idle.png" width="1080" height="1920" alt="검은 부채를 들고 상담실에 앉아 있는 천명" />
+      <button type="button" id="consultation-enter" class="consultation-enter" aria-label="천명 선생과 상담 시작하기"></button>
       <div id="consultation-waiting" class="consultation-waiting" hidden><div class="consultation-waiting-card"><p id="consultation-waiting-copy" role="status" aria-live="polite"></p><div class="consultation-waiting-gauge" role="progressbar" aria-label="천명 상담 답변 준비 중"><span></span></div><p id="consultation-waiting-detail" class="consultation-waiting-detail" role="status" aria-live="polite"></p></div></div>
       <div class="consultation-stage-copy"><span class="consultation-eyebrow">당신의 이야기를 듣는 시간</span><h1 id="consultation-title">천명상담</h1><p id="character-introduction">사주에 담긴 흐름을 짚고,<br />지금의 고민을 함께 풀어봅니다.</p><span class="consultation-state" id="character-state">AI 사주 상담자 · 천명</span></div>
     </section>
@@ -22,9 +23,10 @@
       <div class="consultation-room-heading"><div><span class="consultation-eyebrow">나의 사주에서 시작하는 대화</span><h2>어떤 마음으로 오셨나요?</h2></div><span id="profile-state" class="consultation-profile">연결 확인 중</span></div>
       <div id="consultation-gate" class="consultation-gate" role="status">회원 정보와 저장된 사주를 확인하고 있어요.</div>
       <p id="consultation-access" class="consultation-access" role="status">이용 가능한 질문 횟수를 확인하고 있어요.</p>
-      <div class="consultation-log" id="chat-log" role="log" aria-label="상담 대화" aria-live="polite" aria-relevant="additions text"><div class="consultation-empty" id="chat-empty"><span aria-hidden="true">天命</span><p>마음에 걸리는 일부터<br />편하게 이야기해 주세요.</p><small>관계, 일, 앞으로의 선택에 관하여</small></div></div>
+      <div class="consultation-log" id="chat-log" tabindex="-1" role="log" aria-label="상담 대화" aria-live="polite" aria-relevant="additions text"><div class="consultation-empty" id="chat-empty"><span aria-hidden="true">天命</span><p>자네, 오늘의 기운을 함께 살펴보세.<br />어떤 상담을 하고 싶은가?</p><small>일과 재물, 연애와 궁합… 마음에 걸리는 이야기부터 들려주게.</small></div></div>
+      <p class="consultation-entry-guide">궁합이나 다른 분의 사주를 보려면 생년월일·양력/음력·성별·태어난 시간을 채팅으로 입력해 주세요. 말로 전달하는 것보다 정확하게 확인할 수 있어요. 모르는 정보는 모른다고 알려 주세요.</p>
       <p class="consultation-notice">상담 내용과 대화에서 알려주신 본인·상대방 정보는 회원님의 보관함 ‘추가 풀이’에 저장됩니다. 음성은 전사한 텍스트로 남깁니다.</p>
-      <p class="consultation-charge-note">첫 질문은 회원당 1회 무료예요. 이후 질문 5회는 4,900원이며, 질문을 명확히 하는 확인 대화와 실패한 답변은 차감하지 않아요.</p>
+      <p class="consultation-charge-note">상담은 회원당 5회 무료예요. 이후 질문 5회는 4,900원이며, 질문을 명확히 하는 확인 대화와 실패한 답변은 차감하지 않아요.</p>
       <p id="consultation-status" class="consultation-status" role="status" aria-live="polite"></p>
       <audio id="reply-audio" controls hidden aria-label="천명 답변 듣기"></audio>
       <form id="consultation-form" class="consultation-composer">
@@ -67,6 +69,7 @@
   <script src="/js/common-auth-return.js"></script>
   <script src="/js/umsh-auth-session.js"></script>
   <script src="/js/umsh-chrome.js?v=20260922-love" defer></script>
-  <script src="/js/consultation.js?v=20261002-qa2" defer></script>
+  <script src="/js/consultation-live.js?v=20261002-live1" defer></script>
+  <script src="/js/consultation.js?v=welcome5-20261002-qa2" defer></script>
 </body>
 </html>

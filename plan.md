@@ -817,3 +817,13 @@ Approved DB migrations applied and verified. Context now loads profile and free1
 
 ## CONSULTATION-DESKTOP-FIT — 2026-10-02
 User outcome: PC consultation composer, heading and navigation fit viewport; long transcripts scroll internally. Preserve mobile, home banners, actual auth/provider error states. Remove720px stage and230px log minima only at desktop. Fit app and compact existing footer in viewport flex layout; retain room overflow fallback for zoom/very short screens. Verify720/900px desktop and mobile, long conversation and error/login gates. No provider credential or DB changes.
+
+## CONSULTATION-WELCOME-05 — accepted 2026-10-02
+Mobile opens portrait-only; accessible tap/Enter opens conversation with introductory text. Desktop retains viewport layout. Intro says 자네, 오늘의 기운을 함께 살펴보세. 어떤 상담을 하고 싶은가? and permanent precise text-entry guidance for partner details. Member lifetime5 free substantive successful answers (existing free usage counts toward5, no reset by session/login), then existing5/4900 pack. Greetings/clarifications/failures/replay uncharged. No auto microphone, no synthetic paid answer. Existing API_KEY_INVALID remains separate blocker. Test ledger5/legacy/replay and mobile entry/desktop greeting, then build and deploy.
+
+## CONSULTATION-LIVE-01 — Gemini text and live voice with PC transcripts
+- User result: PC shows typed input, voice transcription and spoken output as text; all substantive interpretations use the existing Gemini/RAG/owner ledger. Mobile portrait tap, greeting and five lifetime free questions are included.
+- Contract: authenticated POST /live-session mints one-use constrained 10-minute Google token (20/day, 15s interval, durable CAS); permanent key remains server-side. /live-turn calls the same authoritative save/credit path without Edge TTS. Live tool consult_saju requests server interpretation; ephemeral audio is not a second billing authority.
+- Failure: unauthorized/profile/disabled/no-credit fail closed; upstream errors sanitized; interruption stops queued audio; navigation/signout releases microphone; failed mint does not charge questions.
+- QA: 85 consultation tests PASS; frontend/transport follow-up23 PASS; build/typecheck PASS. Browser390px portrait/tap PASS; actual Google Live authentication, spoken output and barge-in await valid production key. Do not count mocks as real-provider success.
+- Deployment scope: these consultation files only, no DB migration. Rollback: chungi-3et21055m-ax-lab-cream.vercel.app (6859b740).

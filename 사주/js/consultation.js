@@ -1,6 +1,6 @@
 /* Fork provenance: AIOS/Workspaces/aitalk/aitalk/index.html (2026-10-02).
- * Reused shared text/voice bubble flow, resampleTo16k, encodeWav, toB64 and
- * microphone PCM capture -> authenticated turn -> reply audio lifecycle.
+ * Reused shared text/voice bubble flow. Real-time microphone transport now
+ * uses consultation-live.js; interpretation and saved history stay server-owned.
  * Character images copied unchanged from aitalk/assets/generated/cheonmyeong-scenes.
  * Account, memory and endpoint contracts are 운명상회-only; no POC credentials.
  */
@@ -130,12 +130,18 @@
     return;
   }
   if (!$('#consultation-app')) return;
+  $('#consultation-enter')?.addEventListener('click', () => {
+    document.body.classList.remove('consultation-intro');
+    $('#chat-log').focus({ preventScroll: true });
+  });
   const input = $('#message'), send = $('#send-button'), voice = $('#voice-button'), gate = $('#consultation-gate');
   const chat = $('#chat-log'), status = $('#consultation-status'), audio = $('#reply-audio');
   const paywall = $('#consultation-paywall'), checkout = $('#consultation-checkout');
   const draftKey = 'umsh:consultation:checkout-draft:v1';
   let access = null, returnFocus = null;
   let waitingTimer;
+  let liveVoice = null, liveConnecting = false;
+  const liveCaptions = { user: null, assistant: null };
   function waiting(active, voiceTurn) {
     clearTimeout(waitingTimer);
     $('#consultation-waiting').hidden = !active;
@@ -145,10 +151,10 @@
     waitingTimer = setTimeout(() => { $('#consultation-waiting-detail').textContent = '조금 더 시간이 필요해요. 답변이 준비되면 바로 보여드릴게요.'; }, 12000);
   }
   let ready = false, busy = false, pending = null, renderedId = null, sessionVersion = 0, conversationId = new URLSearchParams(location.search).get('conversationId');
-  let stream, micCtx, micProc, micSrc, micSink, micTimer, recording = false, requestingMic = false, chunks = [], sampleCount = 0, audioUrl;
+  let audioUrl;
   function character(state) {
     const frames = { idle: '01-idle', listen: '02-listen', think: '03-think', talk: '04-talk', finish: '05-finish' };
-    const labels = { idle: 'AI 사주 상담자 · 천명', listen: '듣고 있어요 · 녹음 중', think: '사주의 흐름을 살피고 있어요', talk: '천명이 이야기하고 있어요', finish: '이야기를 이어가 주세요' };
+    const labels = { idle: 'AI 사주 상담자 · 천명', listen: '듣고 있어요 · 실시간 음성 상담', think: '사주의 흐름을 살피고 있어요', talk: '천명이 이야기하고 있어요', finish: '이야기를 이어가 주세요' };
     $('#character-image').src = '/assets/cheonmyeong-scenes/' + frames[state] + '.png'; $('#character-state').textContent = labels[state];
   }
   function notify(text, error) { status.textContent = text; status.classList.toggle('is-error', Boolean(error)); }
@@ -169,7 +175,7 @@
       || value.remaining !== value.freeRemaining + value.couponRemaining + value.paidRemaining) throw Object.assign(new Error(), { code: 'ACCESS_UNAVAILABLE' });
     access = value;
     $('#consultation-access').textContent = value.freeRemaining > 0
-      ? '회원 첫 질문 무료 1회 · 남은 질문 ' + value.remaining + '회'
+      ? '회원 무료 상담 5회 · 무료 잔여 ' + value.freeRemaining + '회 · 전체 잔여 ' + value.remaining + '회'
       : '무료 질문 사용 완료 · 남은 질문 ' + value.remaining + '회';
     if (value.couponRemaining > 0) $('#consultation-access').textContent += ' · 쿠폰 ' + value.couponRemaining + '회 포함';
   }
@@ -194,11 +200,11 @@
     finally { checkout.disabled = false; }
   });
   function controls() {
-    input.disabled = !ready || busy || recording || requestingMic;
-    send.disabled = !ready || busy || recording || requestingMic;
-    voice.disabled = !ready || busy || requestingMic;
-    voice.textContent = recording ? '녹음 끝내고 보내기' : pending?.audio ? '음성 다시 보내기' : '◉ 음성으로 말하기';
-    voice.setAttribute('aria-pressed', String(recording));
+    input.disabled = !ready || busy || liveConnecting;
+    send.disabled = !ready || busy || liveConnecting;
+    voice.disabled = !ready || (!liveVoice && busy);
+    voice.textContent = liveVoice ? (liveConnecting ? '음성 연결 취소' : '실시간 음성 종료') : '◉ 음성으로 말하기';
+    voice.setAttribute('aria-pressed', String(Boolean(liveVoice)));
     $('#consultation-form').setAttribute('aria-busy', String(busy));
   }
   function showGate(error) {
@@ -217,9 +223,9 @@
     $('#chat-empty')?.remove();
     const row = document.createElement('div'); row.className = 'consultation-row ' + (role === 'user' ? 'me' : 'aria');
     if (role !== 'user') { const thumb = document.createElement('img'); thumb.className = 'consultation-thumb'; thumb.src = '/assets/cheonmyeong-scenes/01-idle.png'; thumb.alt = '천명'; row.append(thumb); }
-    const bubble = document.createElement('div'); bubble.className = 'consultation-bubble'; bubble.textContent = text; row.append(bubble); chat.append(row); chat.scrollTop = chat.scrollHeight;
+    const bubble = document.createElement('div'); bubble.className = 'consultation-bubble'; bubble.textContent = text; row.append(bubble); chat.append(row); chat.scrollTop = chat.scrollHeight; return bubble;
   }
-  function renderHistory(rows) { chat.replaceChildren(); for (const row of rows) if (row.role === 'user' || row.role === 'assistant') addBubble(row.role, row.content); }
+  function renderHistory(rows) { liveCaptions.user = liveCaptions.assistant = null; chat.replaceChildren(); for (const row of rows) if (row.role === 'user' || row.role === 'assistant') addBubble(row.role, row.content); }
   function stopAudio() { audio.pause(); audio.removeAttribute('src'); audio.hidden = true; if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = null; }
   function playReply(result) {
     stopAudio();
@@ -231,12 +237,13 @@
       audio.play().catch(() => notify((result.saved ? '대화가 저장됐어요. ' : '') + '재생 버튼을 누르면 답변을 들을 수 있어요.'));
     } catch (_) { notify('음성을 재생하지 못했어요. 답변은 텍스트로 확인해 주세요.'); }
   }
-  audio.addEventListener('play', () => character('talk')); audio.addEventListener('pause', () => { if (!busy && !recording) character('finish'); }); audio.addEventListener('ended', () => character('finish'));
+  audio.addEventListener('play', () => character('talk')); audio.addEventListener('pause', () => { if (!busy && !liveVoice) character('finish'); }); audio.addEventListener('ended', () => character('finish'));
   audio.addEventListener('error', () => { if (audio.src && !audio.hidden) notify('음성을 재생하지 못했어요. 답변은 텍스트로 확인해 주세요.'); });
   async function submit(payload) {
     if (!ready || busy) return;
     if (access?.remaining === 0) { openPaywall(); return; }
     const version = sessionVersion;
+    liveVoice?.stop('텍스트 상담으로 전환했어요.');
     busy = true; waiting(true, Boolean(payload.audio)); controls(); stopAudio(); character('think'); notify('답변과 저장 결과를 기다리고 있어요.');
     try {
       const result = await api('/chat', payload);
@@ -260,69 +267,58 @@
     } finally { waiting(false); busy = false; controls(); }
   }
   $('#consultation-form').addEventListener('submit', (event) => {
-    event.preventDefault(); const text = input.value.trim(); if (!text || !ready || busy || recording) return;
+    event.preventDefault(); const text = input.value.trim(); if (!text || !ready || busy) return;
     if (!pending || pending.text !== text) pending = { text, requestId: crypto.randomUUID(), ...(conversationId ? { conversationId } : {}) };
     void submit(pending);
   });
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) { event.preventDefault(); $('#consultation-form').requestSubmit(); } });
-  // Original PCM helpers retained to preserve the AI Talk WAV turn contract.
-  function resampleTo16k(data, rate) {
-    if (!rate || rate === 16000) return data;
-    const ratio = rate / 16000, out = new Float32Array(Math.floor(data.length / ratio));
-    for (let i = 0; i < out.length; i++) { const at = i * ratio, lo = Math.floor(at), hi = Math.min(lo + 1, data.length - 1), t = at - lo; out[i] = data[lo] * (1 - t) + data[hi] * t; } return out;
-  }
-  function toB64(bytes) { let value = ''; for (let i = 0; i < bytes.length; i += 0x8000) value += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(value); }
-  function encodeWav(samples, rate) {
-    const n = samples.length, buffer = new ArrayBuffer(44 + n * 2), view = new DataView(buffer);
-    const write = (offset, text) => { for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i)); };
-    write(0, 'RIFF'); view.setUint32(4, 36 + n * 2, true); write(8, 'WAVE'); write(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
-    view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); write(36, 'data'); view.setUint32(40, n * 2, true);
-    for (let i = 0; i < n; i++) view.setInt16(44 + i * 2, samples[i], true); return new Uint8Array(buffer);
-  }
-  function releaseMic() {
-    clearTimeout(micTimer); recording = false;
-    if (micProc) micProc.onaudioprocess = null;
-    for (const node of [micProc, micSrc, micSink]) { try { node?.disconnect(); } catch (_) {} }
-    stream?.getTracks().forEach((track) => track.stop()); micCtx?.close().catch(() => {});
-    stream = micCtx = micProc = micSrc = micSink = null;
-  }
-  function finishRecording() {
-    if (!recording) return;
-    releaseMic();
-    if (sampleCount < 5600) { chunks = []; sampleCount = 0; notify('녹음이 너무 짧아요. 버튼을 눌러 다시 이야기해 주세요.', true); character('idle'); controls(); return; }
-    const samples = new Int16Array(sampleCount); let offset = 0; for (const chunk of chunks) { samples.set(chunk, offset); offset += chunk.length; }
-    chunks = []; sampleCount = 0;
-    pending = { audio: toB64(encodeWav(samples, 16000)), mime: 'audio/wav', requestId: crypto.randomUUID(), ...(conversationId ? { conversationId } : {}) };
-    void submit(pending);
-  }
   voice.addEventListener('click', async () => {
-    if (!ready || busy || requestingMic) return;
+    if (liveVoice) { liveVoice.stop(); return; }
+    if (!ready || busy) return;
     if (access?.remaining === 0) { openPaywall(); return; }
-    if (recording) { finishRecording(); return; }
-    if (pending?.audio) { void submit(pending); return; }
-    if (!navigator.mediaDevices?.getUserMedia || !(window.AudioContext || window.webkitAudioContext)) { notify('이 브라우저에서는 음성 입력을 사용할 수 없어요. 텍스트로 상담해 주세요.', true); return; }
-    requestingMic = true; controls(); stopAudio(); notify('마이크 사용 권한을 확인하고 있어요.');
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-      if (document.hidden || !ready) { releaseMic(); return; }
-      micCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 }); await micCtx.resume();
-      micSrc = micCtx.createMediaStreamSource(stream); micProc = micCtx.createScriptProcessor(4096, 1, 1); micSink = micCtx.createGain(); micSink.gain.value = 0;
-      micSrc.connect(micProc); micProc.connect(micSink); micSink.connect(micCtx.destination); chunks = []; sampleCount = 0; recording = true;
-      micProc.onaudioprocess = (event) => {
-        if (!recording || document.hidden) return;
-        const data = resampleTo16k(event.inputBuffer.getChannelData(0), micCtx.sampleRate), pcm = new Int16Array(data.length);
-        for (let i = 0; i < data.length; i++) { const v = Math.max(-1, Math.min(1, data[i])); pcm[i] = v < 0 ? v * 32768 : v * 32767; }
-        chunks.push(pcm); sampleCount += pcm.length;
-        if (sampleCount >= 16000 * 30) finishRecording();
-      };
-      micTimer = setTimeout(finishRecording, 30000); character('listen'); notify('녹음 중이에요. 끝내기를 누르면 전송합니다. 최대 30초까지 녹음해요.');
-    } catch (error) { releaseMic(); character('idle'); notify(error.name === 'NotAllowedError' ? '마이크 권한이 꺼져 있어요. 브라우저에서 허용하거나 텍스트로 상담해 주세요.' : '마이크를 연결하지 못했어요. 기기를 확인하거나 텍스트로 상담해 주세요.', true); }
-    finally { requestingMic = false; controls(); }
+    if (!window.UMSHConsultationLive || !navigator.mediaDevices?.getUserMedia) { notify('음성 연결을 지원하지 않는 브라우저예요. 텍스트로 상담해 주세요.', true); return; }
+    stopAudio(); liveConnecting = true;
+    let connection;
+    const version = sessionVersion;
+    connection = window.UMSHConsultationLive({
+      connect: () => api('/live-session', {}),
+      ready: () => { if (liveVoice !== connection) return; liveConnecting = false; character('listen'); notify('실시간으로 듣고 있어요. 선생님이 말씀하는 중에도 이야기할 수 있어요.'); controls(); },
+      notice: text => notify(text),
+      error: error => notify(friendly(error), true),
+      closed: text => { if (liveVoice !== connection) return; liveVoice = null; liveConnecting = false; character('idle'); notify(text); controls(); },
+      transcript: (role, text) => {
+        if (version !== sessionVersion || liveVoice !== connection) return;
+        if (!liveCaptions[role]?.isConnected) liveCaptions[role] = addBubble(role, role === 'user' ? '음성 입력: ' : '천명 음성: ');
+        liveCaptions[role].textContent += text;
+        chat.scrollTop = chat.scrollHeight;
+      },
+      turnComplete: () => { liveCaptions.user = liveCaptions.assistant = null; },
+      question: async (text, requestId) => {
+        if (version !== sessionVersion || liveVoice !== connection || busy) throw new Error('INACTIVE_TURN');
+        busy = true; waiting(true, true); controls(); character('think');
+        try {
+          const result = await api('/live-turn', { text, requestId, ...(conversationId ? { conversationId } : {}) });
+          if (version !== sessionVersion) throw new Error('SESSION_CHANGED');
+          if (!result.saved || !result.text || !Array.isArray(result.history)) throw new Error('INVALID_TURN');
+          conversationId = result.conversationId; setAccess(result.access); renderHistory(result.history);
+          const url = new URL(location.href); url.searchParams.set('conversationId', conversationId); history.replaceState(null, '', url);
+          notify('음성 상담 질문과 답변을 보관함 ‘추가 풀이’에 저장했어요.');
+          return result;
+        } catch (error) {
+          if (version === sessionVersion) {
+            notify(friendly(error), true);
+            if (error.code === 'CONSULTATION_PAYMENT_REQUIRED') { if (error.access) setAccess(error.access); connection.stop('남은 질문을 모두 사용했어요.'); openPaywall(); }
+          }
+          throw error;
+        } finally { if (version === sessionVersion) { busy = false; waiting(false); controls(); } }
+      },
+    });
+    liveVoice = connection; controls(); await connection.start();
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && recording) { releaseMic(); chunks = []; sampleCount = 0; character('idle'); notify('화면을 벗어나 녹음을 취소했어요. 음성은 전송하지 않았어요.'); controls(); } });
-  window.addEventListener('pagehide', () => { sessionVersion++; ready = false; waiting(false); releaseMic(); stopAudio(); chunks = []; pending = null; });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) liveVoice?.stop('화면을 벗어나 음성 연결을 종료했어요.'); });
+  window.addEventListener('pagehide', () => { sessionVersion++; liveVoice?.stop(); ready = false; waiting(false); stopAudio(); pending = null; });
   window.addEventListener('pageshow', (event) => { if (event.persisted) location.reload(); });
-  onSessionRevoked = () => { sessionVersion++; waiting(false); clearDraft(); access = null; $('#consultation-access').textContent = '로그인 후 질문 횟수를 확인할 수 있어요.'; if (paywall.open) paywall.close(); releaseMic(); stopAudio(); chat.replaceChildren(); input.value = ''; pending = null; showGate({ code: 'AUTH_REQUIRED' }); };
+  onSessionRevoked = () => { sessionVersion++; liveVoice?.stop(); waiting(false); clearDraft(); access = null; $('#consultation-access').textContent = '로그인 후 질문 횟수를 확인할 수 있어요.'; if (paywall.open) paywall.close(); stopAudio(); chat.replaceChildren(); input.value = ''; pending = null; showGate({ code: 'AUTH_REQUIRED' }); };
   async function initialize() {
     ready = false; controls(); gate.hidden = false; gate.textContent = '회원 정보와 저장된 사주를 확인하고 있어요.';
     try {
