@@ -24,6 +24,18 @@ test('Live token locks transcription and tool contract; permanent key stays serv
   assert.equal(request.bidiGenerateContentSetup.tools[0].functionDeclarations[0].name, 'consult_saju')
   assert.doesNotMatch(JSON.stringify(result), /isolated-test-secret/)
 })
+test('Live token uses the configured realtime voice and refuses names Gemini does not ship', async () => {
+  process.env.GEMINI_API_KEY = 'isolated-test-secret'
+  let request: any
+  globalThis.fetch = async (_url, init) => { request = JSON.parse(String(init?.body)); return new Response(JSON.stringify({ name: 'auth_tokens/isolated' })) }
+  await createLiveToken()
+  assert.equal(request.bidiGenerateContentSetup.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName, 'Charon')
+  await createLiveToken('Orus')
+  assert.equal(request.bidiGenerateContentSetup.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName, 'Orus')
+  request = undefined
+  await assert.rejects(createLiveToken('--arbitrary-voice'), error => error instanceof Error && error.message === 'PROVIDER_UNAVAILABLE')
+  assert.equal(request, undefined)
+})
 test('upstream error never returns key or provider message', async () => {
   globalThis.fetch = async () => new Response(JSON.stringify({ error: { message: 'isolated-test-secret' } }), { status: 400 })
   await assert.rejects(createLiveToken(), error => error instanceof Error && error.message === 'PROVIDER_UNAVAILABLE')

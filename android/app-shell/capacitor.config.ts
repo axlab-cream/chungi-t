@@ -35,8 +35,9 @@ const config: CapacitorConfig = {
   android: {
     // 웹 앱이 전부 https 라 섞인 컨텐츠를 허용할 이유가 없다.
     allowMixedContent: false,
-    // 뒤로 가기로 웹 히스토리를 먼저 소비하고, 더 갈 곳이 없을 때 앱을 내린다.
-    webContentsDebuggingEnabled: false,
+    // webContentsDebuggingEnabled 는 두지 않는다. Capacitor 기본값이 "디버그 빌드에서만 켬"
+    // (CapConfig.java: isDebug)이라 릴리스 AAB 는 꺼진 채로 나가고, 디버그 APK 는 PC 에서
+    // chrome://inspect 로 로그인·세션 문제를 들여다볼 수 있다.
   },
 
   plugins: {
