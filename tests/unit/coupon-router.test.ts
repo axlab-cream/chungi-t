@@ -11,7 +11,7 @@ test('admin issuance → own MY claim → report use is authenticated, idempoten
   const deps = {
     authenticate: async (req: express.Request,res:express.Response) => { const id=req.header('x-member'); if (!id) {res.sendStatus(401);return null} return {id} },
     staff: async (req:express.Request,res:express.Response,scope:string) => { if(req.header('x-scope')!==scope) {res.sendStatus(403);return null} return {email:'operator@example.invalid'} },
-    resolveReport: async (owner:{id:string},id:string) => id === `${owner.id}-report` ? {productKey:'cmdg', reportId:id} : null,
+    resolveReport: async (owner:{id:string},id:string) => [ `${owner.id}-report`, `${owner.id}-public` ].includes(id) ? {productKey:'cmdg', reportId:`${owner.id}-report`} : null,
     queueReport: (id:string) => {queued.push(id)}, available: async () => true,
     couponUsage: async () => ({}),
   }
@@ -31,7 +31,7 @@ test('admin issuance → own MY claim → report use is authenticated, idempoten
     assert.equal((await (await call('/coupons',undefined,{'x-member':'bob'})).json()).items.length,0)
     assert.equal((await call('/coupons/use',{couponId:item.id,reportId:'bob-report'},{'x-member':'bob'})).status,404)
     assert.equal((await call('/coupons/use',{couponId:item.id,reportId:'bob-report'},{'x-member':'alice'})).status,400)
-    for (let i=0;i<2;i++) assert.equal((await call('/coupons/use',{couponId:item.id,reportId:'alice-report'},{'x-member':'alice'})).status,200)
+    for (const reportId of ['alice-public','alice-report']) assert.equal((await call('/coupons/use',{couponId:item.id,reportId},{'x-member':'alice'})).status,200)
     assert.deepEqual(queued,['alice-report','alice-report'])
     const list=await call('/coupons',undefined,{'x-member':'alice'}); assert.equal(list.headers.get('cache-control'),'private, no-store')
     assert.equal((await list.json()).items[0].reportId,'alice-report')

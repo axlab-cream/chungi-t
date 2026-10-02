@@ -3510,8 +3510,13 @@ app.use('/api/coupons', couponRouter({
   authenticate: requireSupabaseUser,
   staff: requireStaff,
   resolveReport: async (owner, reportId) => {
-    const report = await findReportRecord(reportId, owner)
-    return report && !isConsultationRecord(report) ? {productKey: productKeyForContext(report.context), reportId: report.reportId} : null
+    try {
+      const report = await findReportRecord(reportId, owner)
+      return report && !isConsultationRecord(report) ? {productKey: productKeyForContext(report.context), reportId: report.reportId} : null
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REPORT_ACCESS_DENIED') return null
+      throw error
+    }
   },
   queueReport: queueReportCompletionAfterPayment,
   available: async key => { const product = getPaymentProduct(key); return !!product && !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key) && await isServiceSaleAvailable(product.key) },

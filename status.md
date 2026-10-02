@@ -2753,3 +2753,4 @@ DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION
 ## 2026-10-02 QA-2PASS
 사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
 - QA-2PASS-01 feedback complete: coupon canonical binding and failed setup balance status corrected. 1840/1840 fresh-process full checks passed; pending independent review/deployment verification. H2 DB migrations remain unexecuted.
+- QA-2PASS-01 review approved with comments (no critical/major). Both minor findings addressed; final affected45/45 + build/typecheck PASS. Bounded review follow-up includes owner-denial status, isolated test storage, HTML cache busting. Full1840 passed before this final refinement.

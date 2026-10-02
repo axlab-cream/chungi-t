@@ -26,7 +26,7 @@ for (const name of ['consultation.js','coupons.js','payment.js']) {
 const voice = await fetch(new URL('/api/consultation-voice',base),{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
 results.push({path:'/api/consultation-voice',status:voice.status,pass:voice.status === 401});
 const context = await fetch(new URL('/api/consultation/context',base));
-const contextBody = await context.json();
+const contextBody = await context.json().catch(() => ({code:'NON_JSON_RESPONSE'}));
 results.push({path:'/api/consultation/context',status:context.status,code:contextBody.code,pass:context.status === 503 && contextBody.code === 'CONSULTATION_SETUP_REQUIRED',note:'Expected current setup gate; this is NOT proof of live consultation success.'});
 const report = {at:new Date().toISOString(),base,results,pass:results.every(row=>row.pass)};
 if(output) await writeFile(output,JSON.stringify(report,null,2)+'\n');
