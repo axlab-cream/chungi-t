@@ -27,7 +27,9 @@ test('upstream error never returns key or provider message', async () => {
   await assert.rejects(createLiveToken(), error => error instanceof Error && error.message === 'PROVIDER_UNAVAILABLE')
 })
 test('Live displays both transcripts, deduplicates tool calls, and stops audio on interruption', async () => {
-  let socket: any, stopped = 0, tracksStopped = 0, questions = 0
+  let socket: any, processor: any, stopped = 0, tracksStopped = 0, questions = 0, now = 0, reason: any
+  const timers = new Map<number, { at: number, fn: () => void }>(); let timerId = 0
+  const tick = (ms: number) => { now += ms; for (const [id, timer] of [...timers]) if (timer.at <= now) { timers.delete(id); timer.fn() } }
   const sent: any[] = [], transcripts: any[] = []
   class Socket {
     readyState = 1; bufferedAmount = 0; onmessage: any; onopen: any
@@ -38,13 +40,13 @@ test('Live displays both transcripts, deduplicates tool calls, and stops audio o
   const node = () => ({ connect() {}, disconnect() {} })
   const ctx: any = { WebSocket: Socket, console, crypto: { randomUUID: () => 'request-one' }, navigator: { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [{ stop: () => tracksStopped++ }] }) } },
     AudioContext: function () { return { currentTime: 0, sampleRate: 16000, destination: {}, resume: async () => {}, close: async () => {},
-      createMediaStreamSource: node, createScriptProcessor: node, createGain: () => ({ ...node(), gain: {} }),
+      createMediaStreamSource: node, createScriptProcessor: () => (processor = node()), createGain: () => ({ ...node(), gain: {} }),
       createBuffer: (_: number, n: number, rate: number) => ({ duration: n / rate, getChannelData: () => new Float32Array(n) }),
       createBufferSource: () => ({ ...node(), start() {}, stop() { stopped++ } }),
-    } }, setTimeout: () => 1, clearTimeout() {}, atob, btoa, Uint8Array, DataView }
+    } }, Date: { now: () => now }, setTimeout: (fn: () => void, ms: number) => { const id = ++timerId; timers.set(id, { at: now + ms, fn }); return id }, clearTimeout(id: number) { timers.delete(id) }, atob, btoa, Uint8Array, DataView }
   ctx.window = ctx
   runInNewContext(readFileSync(new URL('../../사주/js/consultation-live.js', import.meta.url), 'utf8'), ctx)
-  const client = ctx.UMSHConsultationLive({ connect: async () => ({ token: 'short-lived', model: 'models/test', expiresIn: 600 }), ready() {}, closed() {}, error(error: any) { throw error }, notice() {}, turnComplete() {}, transcript: (...args: any[]) => transcripts.push(args), question: async () => { questions++; return { text: '서버 저장 답변' } } })
+  const client = ctx.UMSHConsultationLive({ connect: async () => ({ token: 'short-lived', model: 'models/test', expiresIn: 600 }), ready() {}, closed(_message: string, value: any) { reason = value }, error(error: any) { throw error }, notice() {}, turnComplete() {}, transcript: (...args: any[]) => transcripts.push(args), question: async () => { questions++; return { text: '서버 저장 답변' } } })
   await client.start(); socket.onopen()
   assert.match(socket.url, /BidiGenerateContentConstrained\?access_token=short-lived$/)
   const receive = async (value: any) => socket.onmessage({ data: JSON.stringify(value) })
@@ -56,7 +58,33 @@ test('Live displays both transcripts, deduplicates tool calls, and stops audio o
   await receive(call); await receive(call); await new Promise(resolve => setImmediate(resolve))
   assert.equal(questions, 1)
   assert.equal(sent.filter(v => v.toolResponse).length, 2)
+  // Teacher processing is not mistaken for user inactivity.
+  tick(10000); assert.equal(tracksStopped, 0)
+  await receive({ serverContent: { turnComplete: true } })
+  const frame = (value: number) => processor.onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(2048).fill(value) } })
+  const beforeSilent = sent.length; frame(0); assert.equal(sent.length, beforeSilent)
+  tick(9000); frame(0.1); assert.equal(sent.at(-1).realtimeInput.audio.mimeType, 'audio/pcm;rate=16000')
+  tick(600); frame(0); assert.equal(sent.at(-1).realtimeInput.audioStreamEnd, true)
+  const afterEnd = sent.length; frame(0); assert.equal(sent.length, afterEnd)
+  tick(9399); assert.equal(tracksStopped, 0)
+  tick(1); assert.equal(tracksStopped, 1); assert.equal(reason, 'idle'); assert.equal(socket.readyState, 3)
+  assert.equal(processor.onaudioprocess, null)
+  await receive({ toolCall: { functionCalls: [{ id: 'late', name: 'consult_saju', args: { text: 'late' } }] } })
+  assert.equal(questions, 1)
+  assert.equal(sent.length, afterEnd)
   client.stop(); assert.equal(tracksStopped, 1)
   await receive({ serverContent: { outputTranscription: { text: '종료 뒤 비공개' } } })
   assert.equal(transcripts.length, 2)
+  // Unanswered microphone permission also closes in 10 seconds, without a greeting/API input.
+  let permit: any; let lateTrackStops = 0
+  ctx.navigator.mediaDevices.getUserMedia = () => new Promise(resolve => { permit = resolve })
+  const waiting = ctx.UMSHConsultationLive({ connect: async () => ({ token: 'short-lived', model: 'models/test' }), notice() {}, closed(_text: string, value: any) { reason = value }, error(error: any) { throw error } })
+  await waiting.start(); socket.onopen()
+  const sentBeforePermission = sent.length
+  const pendingPermission = receive({ setupComplete: {} })
+  tick(9999); assert.equal(socket.readyState, 1)
+  tick(1); assert.equal(socket.readyState, 3); assert.equal(reason, 'idle')
+  assert.equal(sent.length, sentBeforePermission)
+  permit({ getTracks: () => [{ stop() { lateTrackStops++ } }] }); await pendingPermission
+  assert.equal(lateTrackStops, 1); assert.equal(sent.length, sentBeforePermission)
 })

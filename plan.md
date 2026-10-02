@@ -840,3 +840,6 @@ Mobile opens portrait-only; accessible tap/Enter opens conversation with introdu
 - Under GNB: 채팅 | 음성 selectors. PC defaults chat; mobile defaults portrait voice scene. Switching mode preserves saved/draft chat, stops active Live connection, and never starts microphone automatically.
 - Latest correction supersedes prior transcript-visible voice request: voice scene shows portrait and connection/status controls only. Chat log remains hidden there; switch to chat to read stored turns. Existing owner-only storage unchanged.
 - Browser local390px tested tabs, navigation and portrait click. Chat loading splash moved into visible room; voice uses non-transcript status/gauge.
+
+## CONSULTATION-IDLE-01
+User outcome: no abandoned Live session. Idle 10 seconds -> socket/mic closed -> chat. Keep answer playback intact. No schema/payment changes. Verify timer boundary, silence suppression, pending permissions, post-close calls, production UI. Rollback: prior e2e4a4e9 deployment.

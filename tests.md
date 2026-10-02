@@ -1334,3 +1334,9 @@ DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION
 PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport widths320-1440 equal cards and full text;100-character title/300-character body grows both cards without clipping. Production d7a0d72c CSS hash matches; actual DOM cards390x269.6875. See docs/consultation-qa/banner-fit.md and banner-production-final.png.
 
 - CONSULTATION-LIVE-01: consultation suite85/85 PASS, frontend+Live transport follow-up23/23 PASS, vercel-build/typecheck PASS. Mocked token/API coverage is distinct from actual Google response. Local390px mobile portrait/tap verified through Codex browser.
+
+## CONSULTATION-IDLE-01 (2026-10-02)
+- Requirement: 10 seconds without voice activity closes microphone/socket and returns to chat. Model response/playback is excluded; response stall bounded at 120 seconds. No automatic reconnect.
+- Implementation: local energy gate + 600ms end-of-speech tail, audioStreamEnd, idle teardown with scene reason; defer greeting until microphone permission. Preserve saved transcript.
+- Verification: 86 consultation tests PASS; additional permission/late-track regression PASS; vercel-build PASS. Self-review completed; external Grok review remains unavailable from prior tool failure.
+- Limitation: already processed/in-flight audio or text can incur provider charges; this is not a provider billing guarantee. Local energy detection is not semantic speech recognition.

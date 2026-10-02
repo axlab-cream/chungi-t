@@ -303,7 +303,7 @@
       ready: () => { if (liveVoice !== connection) return; liveConnecting = false; character('listen'); notify('실시간으로 듣고 있어요. 선생님이 말씀하는 중에도 이야기할 수 있어요.'); controls(); },
       notice: text => notify(text),
       error: error => notify(friendly(error), true),
-      closed: text => { if (liveVoice !== connection) return; liveVoice = null; liveConnecting = false; character('idle'); notify(text); controls(); },
+      closed: (text, reason) => { if (liveVoice !== connection) return; liveVoice = null; liveConnecting = false; if (reason === 'idle') selectMode('chat'); character('idle'); notify(text); controls(); },
       transcript: (role, text) => {
         if (version !== sessionVersion || liveVoice !== connection) return;
         if (!liveCaptions[role]?.isConnected) liveCaptions[role] = addBubble(role, role === 'user' ? '음성 입력: ' : '천명 음성: ');
