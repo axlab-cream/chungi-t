@@ -46,3 +46,39 @@
 .consultation-footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
 .consultation-footer .footer-company p{margin:5px 0}.consultation-footer strong{color:var(--consult-text);font-weight:500}.consultation-footer .footer-contact{display:flex;flex-wrap:wrap;gap:4px 20px}
 @media(max-width:767px){.consultation-footer{padding:24px 20px}.consultation-stage:has(.consultation-waiting:not([hidden])){z-index:110;overflow:visible}}
+
+/* Desktop workspace: keep the composer above navigation; scroll the transcript. */
+@media(min-width:768px){
+  .consultation-page{box-sizing:border-box;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .consultation-layout{width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
+  .consultation-layout>.umsh-service-shell{flex-shrink:0}
+  .consultation-shell{width:100%;flex:1;min-height:0;overflow:hidden}
+  .consultation-stage{min-height:0}
+  .consultation-stage-copy{bottom:24px;left:28px}
+  .consultation-stage h1{font-size:38px;margin:5px 0 10px}
+  .consultation-stage p{font-size:14px;line-height:1.6;margin-bottom:12px}
+  .consultation-room{min-height:0;max-height:none;padding:16px 24px;overflow:auto}
+  .consultation-room>*{flex-shrink:0}
+  .consultation-room-heading{flex-wrap:wrap;gap:4px 12px}
+  .consultation-room h2{font-size:21px;margin-top:2px}
+  .consultation-log{flex:1 1 auto;min-height:64px;max-height:none;padding:12px 0}
+  .consultation-empty{min-height:100%;justify-content:center}
+  .consultation-empty>span{font-size:22px}
+  .consultation-empty p{font-size:16px;margin:6px 0;line-height:1.5}
+  .consultation-gate{margin-top:8px;padding:10px}
+  .consultation-room:has(.consultation-gate:not([hidden])) .consultation-log:has(.consultation-empty:not([hidden])){display:none}
+  .consultation-notice{padding-top:8px;font-size:10px}
+  .consultation-charge-note,.consultation-access{margin:4px 0}
+  .consultation-status{margin:4px 0;min-height:0}
+  .consultation-status:empty{display:none}
+  .consultation-composer{padding:8px 12px;scroll-margin:0}
+  .consultation-composer textarea{resize:none;min-height:48px;max-height:80px}
+  .consultation-bottom{padding-top:4px}
+  .consultation-bottom a{min-height:24px}
+  .consultation-footer{width:100%;flex-shrink:0;padding:6px 24px;font-size:10px;line-height:1.5;max-height:96px;overflow:auto}
+  .consultation-footer .footer-links{gap:4px 14px;margin-bottom:2px}
+  .consultation-footer a{min-height:24px}
+  .consultation-footer .footer-company{display:flex;flex-wrap:wrap;gap:0 14px}
+  .consultation-footer .footer-company p{margin:0}
+  .consultation-footer .footer-contact{gap:4px 14px}
+}

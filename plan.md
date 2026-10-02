@@ -814,3 +814,6 @@ User outcome: same carousel card size for both slides, all title/body/CTA visibl
 
 ### CONSULTATION-CONNECTION-02 follow-up
 Approved DB migrations applied and verified. Context now loads profile and free1. Actual non-social text question fails after persisted failed attempt. Add bounded, non-personal provider HTTP status/code and route error code diagnostics, test redaction and existing fail-closed behavior, deploy same branch, retry actual browser. Preserve original model and credentials; no speculative provider substitution. Acceptance: real reply saved, usage correct, vault reopening.
+
+## CONSULTATION-DESKTOP-FIT — 2026-10-02
+User outcome: PC consultation composer, heading and navigation fit viewport; long transcripts scroll internally. Preserve mobile, home banners, actual auth/provider error states. Remove720px stage and230px log minima only at desktop. Fit app and compact existing footer in viewport flex layout; retain room overflow fallback for zoom/very short screens. Verify720/900px desktop and mobile, long conversation and error/login gates. No provider credential or DB changes.
