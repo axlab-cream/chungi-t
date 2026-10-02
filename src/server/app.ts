@@ -67,6 +67,7 @@ import { listAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { adminPushRouter, pushRouter } from '../push/router.js'
+import { adminKakaoChannelRouter } from '../kakao/channel-messages.js'
 import { runPushDispatcher } from '../push/dispatcher.js'
 import { rememberVercelOidcToken } from '../push/google-auth.js'
 import { pushStore, pushStoreAvailable } from '../push/store.js'
@@ -3528,6 +3529,8 @@ const pushDeps = {
 // 앱 푸시: 기기 등록·알림 클릭(공개), 작성·발송·이력(관리자). 설계는 src/push/.
 app.use('/api/push', pushRouter(pushDeps))
 app.use('/api/admin/v1/push', adminPushRouter(pushDeps))
+// 카카오톡 채널 메시지 문구 보관함. 발송은 파트너센터에서 운영자가 한다(공개 발송 API 없음).
+app.use('/api/admin/v1/kakao-channel', adminKakaoChannelRouter(pushDeps))
 app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff }))
 app.use('/api/coupons', couponRouter({
   authenticate: requireSupabaseUser,
