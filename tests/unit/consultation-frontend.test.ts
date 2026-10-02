@@ -252,6 +252,8 @@ test('PC voice input and spoken output render as safe text; stored answer uses G
 
 test('chat and voice selectors change scenes without sending messages or opening microphone', async () => {
  const h=harness();await tick()
+ assert.equal(h.ctx.document.body.dataset.consultationMode,'voice')
+ assert.equal(h.calls.some(c=>/live-session|live-turn|\/chat$/.test(c.path)),false)
  h.nodes.get('#consultation-mode-voice')!.emit('click')
  assert.equal(h.ctx.document.body.dataset.consultationMode,'voice')
  assert.equal(h.nodes.get('#consultation-mode-voice')!.attrs['aria-pressed'],'true')
