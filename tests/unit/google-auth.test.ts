@@ -14,6 +14,16 @@ test('Google login uses GIS on the umsh.kr origin', async () => {
   assert.match(page, /providerName === "google" && isConfigured && shouldUseGoogleIdentity\(\)/)
 })
 
+test('Google login falls back to OAuth redirect inside the Android app shell', async () => {
+  const page = await readFile(pagePath, 'utf8')
+
+  // GIS popups open as a separate browser tab from the app WebView and never return.
+  assert.match(page, /function isNativeAppShell\(\)/)
+  assert.match(page, /bridge\.isNativePlatform\(\)/)
+  assert.match(page, /if \(isNativeAppShell\(\)\) return false;\s*return googleIdentityOrigins\(\)\.has\(location\.origin\);/)
+  assert.match(page, /authClient\.auth\.signInWithOAuth\(\{ provider, options \}\)/)
+})
+
 test('public auth config exposes the Google Web Client ID', async () => {
   const server = await readFile(serverPath, 'utf8')
 

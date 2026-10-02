@@ -4508,7 +4508,16 @@
         ]);
       }
 
+      function isNativeAppShell() {
+        // 운명상회 안드로이드 앱(Capacitor)이 원격 페이지에 주입하는 브리지. app-billing.js 와 같은 판별.
+        const bridge = window.Capacitor;
+        return Boolean(bridge && typeof bridge.isNativePlatform === "function" && bridge.isNativePlatform());
+      }
+
       function shouldUseGoogleIdentity() {
+        // GIS 팝업은 앱 WebView 에서 외부 브라우저 탭으로 열려 결과를 돌려받지 못한다.
+        // 앱에서는 카카오·네이버와 같은 Supabase OAuth 리다이렉트로 로그인한다.
+        if (isNativeAppShell()) return false;
         return googleIdentityOrigins().has(location.origin);
       }
 
