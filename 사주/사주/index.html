@@ -468,7 +468,7 @@
         overflow: hidden;
         padding: 0 14px;
         border: 1px solid rgba(255, 226, 183, 0.18);
-        border-radius: 8px;
+        border-radius: 12px;
         background: rgba(255, 248, 239, 0.07);
         color: #fff7ea;
         text-align: left;
@@ -511,16 +511,14 @@
 
       .auth-provider-mark {
         display: grid;
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
         flex: 0 0 auto;
         place-items: center;
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.28);
-        font-family: Georgia, "Times New Roman", serif;
-        font-size: 14px;
-        font-weight: 900;
+      }
+
+      .auth-provider-mark svg {
+        display: block;
       }
 
       .auth-provider-copy {
@@ -543,18 +541,21 @@
       }
 
       .auth-provider.kakao {
+        border-color: #fee500;
         background: #fee500;
-        color: #1b1200;
+        color: rgba(0, 0, 0, 0.85);
       }
 
       .auth-provider.naver {
+        border-color: #03c75a;
         background: #03c75a;
         color: #fff;
       }
 
       .auth-provider.google {
+        border-color: #747775;
         background: #fff;
-        color: #211b18;
+        color: #1f1f1f;
       }
 
       .google-identity-shell {
@@ -6945,7 +6946,14 @@
         `;
       }
 
-      function renderAuthProviderButton(providerName, className, label, helper, mark) {
+      // Official provider symbols (Kakao Login, Naver Login, Google Sign-In branding guides).
+      const AUTH_PROVIDER_MARKS = {
+        kakao: '<svg viewBox="0 0 18 18" width="18" height="18"><path fill="#000" d="M9 1.5C4.58 1.5 1 4.32 1 7.8c0 2.24 1.49 4.2 3.73 5.32-.16.6-.6 2.2-.69 2.54-.11.42.15.42.32.3.13-.09 2.1-1.43 2.95-2.01.55.08 1.11.12 1.69.12 4.42 0 8-2.82 8-6.3S13.42 1.5 9 1.5Z"/></svg>',
+        naver: '<svg viewBox="0 0 20 20" width="15" height="15"><path fill="#fff" d="M13.56 10.7 6.17 0H0v20h6.44V9.3L13.83 20H20V0h-6.44v10.7Z"/></svg>',
+        google: '<svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19Z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/></svg>',
+      };
+
+      function renderAuthProviderButton(providerName, className, label, helper) {
         const isLoading = !authConfigData;
         const isConfigured = Boolean(
           authConfigData?.providers?.[providerName]
@@ -6969,7 +6977,7 @@
 
         return `
           <button class="auth-provider ${stateClass}" type="button" ${stateAttrs}>
-            <span class="auth-provider-mark" aria-hidden="true">${escapeHtml(mark)}</span>
+            <span class="auth-provider-mark" aria-hidden="true">${AUTH_PROVIDER_MARKS[providerName] || ""}</span>
             <span class="auth-provider-copy">
               <strong>${escapeHtml(label)}</strong>
               <small>${escapeHtml(statusText)}</small>
@@ -7006,9 +7014,6 @@
               ? "소셜 계정으로 가입하면 오늘운, 운명록, 보관함을 같은 계정에서 이어서 볼 수 있습니다."
               : "로그인 후 고유 ID가 생성되고, 입력한 사주 해석은 같은 계정으로 이어서 볼 수 있습니다.";
         const closeLabel = isStandaloneSignupFlow() ? "상회로 돌아가기" : "돌아가기";
-        const benefitLabels = wantsProtectedProfileEntry()
-          ? ["로그인 필수", "사주등록 필수", protectedLabel]
-          : ["무료 오늘운", "풀이 보관", "30일 로그인 유지"];
         stage.innerHTML = `
           <section class="panel auth-card" role="dialog" aria-label="회원가입">
             <div class="auth-card-head">
@@ -7016,13 +7021,10 @@
               <h2>${title}</h2>
               <p>${description}</p>
             </div>
-            <div class="auth-benefits" aria-label="회원가입 혜택">
-              ${benefitLabels.map((label) => `<span>${escapeHtml(label)}</span>`).join("")}
-            </div>
             <div class="auth-provider-list">
-              ${renderAuthProviderButton("kakao", "kakao", "카카오로 시작하기", "Kakao 간편 가입", "K")}
-              ${renderAuthProviderButton("naver", "naver", "네이버로 시작하기", "Naver 계정 연결", "N")}
-              ${renderAuthProviderButton("google", "google", "구글로 시작하기", "Google 계정 연결", "G")}
+              ${renderAuthProviderButton("kakao", "kakao", "카카오로 시작하기", "Kakao 간편 가입")}
+              ${renderAuthProviderButton("naver", "naver", "네이버로 시작하기", "Naver 계정 연결")}
+              ${renderAuthProviderButton("google", "google", "Google로 시작하기", "Google 계정 연결")}
             </div>
             <div class="auth-message" data-auth-message>${escapeHtml(authGateMessage)}</div>
             <button class="auth-cancel" type="button" data-auth-close>${closeLabel}</button>
