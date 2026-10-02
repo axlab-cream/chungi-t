@@ -811,3 +811,6 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 
 ## BANNER-FIT-01
 User outcome: same carousel card size for both slides, all title/body/CTA visible. Retain admin published copy and original images. Shared grid footprint + matching captions + container-scaled typography. Visual QA both slides/mobile and deployment verification required.
+
+### CONSULTATION-CONNECTION-02 follow-up
+Approved DB migrations applied and verified. Context now loads profile and free1. Actual non-social text question fails after persisted failed attempt. Add bounded, non-personal provider HTTP status/code and route error code diagnostics, test redaction and existing fail-closed behavior, deploy same branch, retry actual browser. Preserve original model and credentials; no speculative provider substitution. Acceptance: real reply saved, usage correct, vault reopening.

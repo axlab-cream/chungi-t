@@ -2764,3 +2764,9 @@ DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION
 
 ### 2026-10-02 BANNER-FIT-01 production completion
 Unified carousel card sizing and removed text clipping. Runtime d7a0d72c deployed/promoted as dpl_HReMcZKMNVJBavFGeuwAAw8NeYDU. Production CSS exact match; browser both390x269.6875, full copy visible. Relevant tests18/18 + build PASS; six widths and long copy PASS. Evidence docs/consultation-qa/banner-fit.md. Database work is unchanged and not included.
+
+### 2026-10-02 CONSULTATION-CONNECTION-02
+Production browser failure reproduced, context503 confirmed by CLI runtime logs. Direct read-only Supabase catalog verifies missing consultation_ledger_protection_ready function and coupon_state table. Both prepared migrations await explicit H2 approval. No DB mutation or customer-row reads. Details docs/consultation-qa/connection-20261002.md and KMS notes/umsh-consultation-connection-20261002.md.
+
+### 2026-10-02 CONSULTATION-CONNECTION-02 applied / credential blocker
+User approved DB repair; both migrations applied and catalog verified. Production context restored (connected profile/free1). Runtime1fff961e safe diagnostics deployed/promoted dpl_GJ6Z5vGj6xepTaJCuL4ijgd6hWHy. Actual provider returns400 INVALID_ARGUMENT/API_KEY_INVALID; needs secure user replacement of GEMINI_API_KEY. No credit consumed by failed tests. Focused30/30 and build PASS. Real answer/vault/voice acceptance incomplete; no complete-service claim.
