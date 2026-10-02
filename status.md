@@ -1,5 +1,20 @@
 # Status
 
+## 2026-10-02 — 앱 푸시(FCM) 운영 반영, 어드민 알림 메뉴, 카카오 채널 문구함(머지 대기)
+
+- [DONE] Firebase `umsh-989fc`(axlab@crea-m.com 소유), Android 앱 `kr.umsh.app` 등록, `google-services.json` 커밋. 빈 GCP 프로젝트 `umsh-app` 은 삭제.
+- [FOUND] crea-m.com 조직이 서비스 계정 키 생성을 막는다(`iam.disableServiceAccountKeyCreation`). axlab 은 조직 관리자가 아니다.
+- [FIXED] 키 없는 인증: Vercel OIDC → Workload Identity 풀 `vercel`(제공자 `vercel` 팀 issuer, `vercel-global` 전역 issuer) → SA `umsh-fcm-sender`(FCM 권한만). 조건은 팀 ID·프로젝트 ID·production/preview.
+- [DONE] 서버 `src/push/`(기기 등록·FCM v1·예약·클릭 기록·이력), 웹 `umsh-push.js`(앱 안에서만, 첫 로그인 직후 안내 시트), 어드민 운영 현황 › 알림 › 팝업·푸시(오른쪽 실시간 미리보기).
+- [DB] `20261002170000_push_notifications.sql` 사용자가 SQL Editor로 적용. 공개 키 조회 시 42501(잠김) 확인.
+- [DEPLOYED] PR #58 → main `daf1a717`, Vercel 자동 배포. 자산 200·내부 문서 404·check:integrations PASS·`/api/push/open` 302(외부 주소는 /).
+- [PASS] Galaxy Z Flip6 실기기: 권한 허용→토큰, 포그라운드·백그라운드·종료 상태 수신, 알림 클릭→지정 화면 이동, 운영 어드민 발송 수신(사용자 확인).
+- [INCIDENT] 다른 Claude 세션이 같은 폴더에서 브랜치를 바꿔 푸시 커밋이 `claude/login-provider-logos` 에 얹혔다(원격 push 전 발견). worktree `umsh-wt-push` 로 분리·cherry-pick, 상대 브랜치는 원격 상태로 복구.
+- [GATE] 미리보기 배포는 어드민 로그인 환경변수가 없어(추정) 로그인 불가 — 시험은 운영에서 했다.
+- [READY] 카카오 채널 문구함 `claude/kakao-channel`(`07b5f4f1`): 작성·채팅방 미리보기·복사 후 파트너센터 열기·발송 완료 표시. `20261002190000_kakao_channel_messages.sql` 적용 확인(42501). 테스트 1,865 PASS. **PR·머지 전.**
+- [DECISION] 파트너센터 채널 메시지는 공개 발송 API가 없다. 자동 발송은 딜러사 브랜드 메시지(유료, 친구톡 2025-12-31 종료)로만 가능 — 계약·과금 결정 대기.
+- [TODO] Flip6 시험 기기 행(`Galaxy Z Flip6 (test)`)은 SQL 로 임시 등록한 것. 알림 아이콘은 맑은고딕 "운" 임시 — 디자인 단색 아이콘으로 교체 필요. 통합 "새 알림 작성" 화면 미착수.
+
 ## 2026-09-29 — 관계 신호 무료 티저 운영 전환 완료
 
 - [FOUND] 04 화면이 브라우저 세션의 정적 요약과 고정 10개 대분류를 그려 저장 리포트의 실제 1·2번 본문과 21개 목차를 사용하지 않았다.
