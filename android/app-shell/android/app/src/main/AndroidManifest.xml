@@ -49,4 +49,13 @@
     <!-- 구글플레이 인앱 결제. billing 라이브러리도 같은 권한을 선언하므로 병합되지만,
          이 앱이 결제를 쓴다는 사실을 매니페스트에 남겨 둔다. -->
     <uses-permission android:name="com.android.vending.BILLING" />
+
+    <!-- 천명상담 음성 상담(Gemini Live)이 getUserMedia 로 마이크를 연다. Capacitor 의
+         BridgeWebChromeClient.onPermissionRequest 가 이 두 권한을 런타임에 요청한 뒤
+         WebView 에 승인을 넘긴다. 선언이 없으면 권한 창 없이 바로 거부된다.
+         거부해도 웹이 텍스트 상담으로 안내하므로 앱은 계속 쓸 수 있다. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- 마이크 없는 기기도 설치는 되게 한다. 음성 상담만 쓰지 못한다. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 </manifest>

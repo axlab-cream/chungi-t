@@ -40,12 +40,30 @@ const config: CapacitorConfig = {
   },
 
   plugins: {
+    App: {
+      // 뒤로 가기는 MainActivity 가 처리한다. 플러그인 기본 처리는 웹 기록이 없을 때
+      // 아무것도 하지 않아 앱이 닫히지 않았다.
+      disableBackButtonHandler: true,
+    },
     SplashScreen: {
-      launchAutoHide: false,
+      // 원격 umsh.kr 에는 SplashScreen.hide() 를 부르는 코드가 없다. false 로 두면
+      // 스플래시가 닫히지 않아 앱이 로고 화면에서 멈춘다(2026-10-02 실기기 확인).
+      // 웹을 앱 때문에 고치지 않도록 셸이 정해진 시간 뒤 스스로 닫는다.
+      launchAutoHide: true,
+      launchShowDuration: 1500,
       backgroundColor: '#080302',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
       androidSplashResourceName: 'splash',
+    },
+    // Capacitor 8 core 의 SystemBars 는 기본값(DEFAULT)이 기기 테마를 따른다. 라이트 모드
+    // 폰에서 검정 배경 위에 검정 아이콘을 그려 시계·배터리가 안 보였다(2026-10-02 실기기).
+    // 웹 배경이 항상 어두우므로 밝은 아이콘(DARK)으로 고정한다.
+    SystemBars: {
+      style: 'DARK',
+      // 여백은 MainActivity 가 항상 직접 넣는다. 'css'(기본값)로 두면 viewport-fit=cover
+      // 페이지에서 여백을 빼 버려 화면이 시스템 바와 겹친다.
+      insetsHandling: 'disable',
     },
     StatusBar: {
       style: 'DARK',

@@ -67,7 +67,7 @@
 | 계정 삭제 | 앱 내 + 웹 URL 모두 있음 | `/leave` |
 | 금융 상품 | 해당 없음 | 투자·대출 상품이 아니다 |
 | 정부 앱 | 아니오 | — |
-| 민감 권한 | **없음** | 매니페스트 권한은 INTERNET 과 BILLING 둘뿐 |
+| 민감 권한 | **마이크(RECORD_AUDIO)** | 2026-10-02 천명상담 음성 상담 때문에 추가. 4절 참조 |
 
 ## 4. 권한 목록 (병합 매니페스트 실측)
 
@@ -80,9 +80,22 @@
 | `com.android.vending.BILLING` | 앱 매니페스트 + billing 8.3.0 | 일반 | Play 결제 |
 | `android.permission.ACCESS_NETWORK_STATE` | 의존성이 끌어옴 | 일반 | 연결 상태 확인 |
 | `kr.umsh.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX 생성 | 자체 서명 | 앱 내부 브로드캐스트 보호 |
+| `android.permission.RECORD_AUDIO` | 앱 매니페스트 (2026-10-02) | **위험(런타임)** | 천명상담 음성 상담. 사용자가 음성 연결을 누를 때만 요청 |
+| `android.permission.MODIFY_AUDIO_SETTINGS` | 앱 매니페스트 (2026-10-02) | 일반 | WebView 음성 입력에 Capacitor 가 함께 요청 |
 
-**민감 권한은 하나도 없다.** 위치·카메라·연락처·저장소·알림 권한을 요청하지 않는다.
-런타임 권한 요청이 없으므로 Play 의 민감 권한 선언도 해당 없음이다.
+`android.hardware.microphone` 은 `required="false"` 로 두어 마이크 없는 기기도 설치된다.
+
+**민감 권한은 마이크 하나다.** 위치·카메라·연락처·저장소·알림 권한은 요청하지 않는다.
+마이크는 앱 시작 때가 아니라 음성 상담에서 연결을 누를 때 Capacitor 의
+`BridgeWebChromeClient.onPermissionRequest` 가 요청한다. 거부해도 텍스트 상담으로 계속 쓸 수 있다.
+
+마이크 추가로 바뀌는 신고:
+
+- Data safety 에 **오디오(음성 녹음)** 수집을 추가해야 한다. 음성은 서버를 거치지 않고
+  브라우저에서 Google Gemini Live 로 바로 전송된다(`사주/js/consultation-live.js`).
+  저장 여부·보관 기간은 아직 확인하지 않았다.
+- 마이크는 Play 의 "권한 선언 양식" 대상 권한(SMS·통화기록·위치 백그라운드 등)이 아니라서
+  별도 양식은 필요 없는 것으로 보인다. 콘솔에서 실제로 확인해야 한다.
 
 ## 5. 16KB 페이지 호환성
 
