@@ -1,0 +1,117 @@
+{
+  "projectId": "marry-step-1",
+  "title": "우리, 언제 결혼하면 좋을까 - 저비용 영상 테스트",
+  "batchSize": 4,
+  "strategy": "free_local",
+  "identityReference": "assets/identity/korean-woman-reference.png",
+  "referenceOrder": [
+    {
+      "priority": 1,
+      "key": "pinterest_images",
+      "label": "핀터레스트 참고 이미지",
+      "purpose": "원하는 실사 톤, 배경 밀도, 정면 구도, 자연스러운 생활감"
+    },
+    {
+      "priority": 2,
+      "key": "source_room",
+      "label": "소스방",
+      "purpose": "만들고자 한 원천 소스, 기준 얼굴, 실제 대상 장면"
+    },
+    {
+      "priority": 3,
+      "key": "higgsfield_results",
+      "label": "힉스필드 결과물",
+      "purpose": "완성도 기준, 빛 움직임, 감정선, 영상 분위기"
+    }
+  ],
+  "defaults": {
+    "durationSeconds": 7,
+    "aspectRatio": "9:16",
+    "quality": "720p",
+    "sound": true,
+    "ageRange": "late 20s",
+    "style": "실사 영상"
+  },
+  "scenes": [
+    {
+      "sceneId": "01-cafe-front",
+      "title": "비 오는 카페 정면 컷",
+      "sourceImage": "assets/source/01-cafe-front.png",
+      "subject": "woman",
+      "view": "front",
+      "setting": "비 오는 서울 카페 창가, 따뜻한 조명, 뒤쪽 사람들은 흐릿하게 보임",
+      "action": "나무 테이블에 앉아 따뜻한 컵을 들고 카메라를 차분하게 바라봄",
+      "camera": "중간 거리에서 얼굴 쪽으로 천천히 가까워짐",
+      "motion": "자연스러운 눈 깜빡임, 작은 호흡, 컵의 김, 창문 위 빗방울 움직임",
+      "audio": "잔잔한 카페 소리, 빗소리, 컵을 살짝 드는 소리",
+      "phoneAllowed": false
+    },
+    {
+      "sceneId": "02-han-river-man",
+      "title": "한강 남성 생각 컷",
+      "sourceImage": "assets/source/02-han-river-man.png",
+      "subject": "man",
+      "view": "three_quarter_front",
+      "setting": "저녁 한강 산책로, 도시 불빛, 약한 바람",
+      "action": "20대 후반 한국 남성이 강가 난간 옆에서 카메라 쪽으로 천천히 고개를 돌림",
+      "camera": "손으로 찍은 듯 자연스럽게 살짝 가까워짐",
+      "motion": "재킷이 바람에 조금 움직이고, 강물 불빛이 잔잔하게 흔들림",
+      "audio": "조용한 강바람, 멀리서 들리는 도시 소리",
+      "phoneAllowed": false
+    },
+    {
+      "sceneId": "03-bookstore",
+      "title": "서점에서 고민하는 컷",
+      "sourceImage": "assets/source/03-bookstore.png",
+      "subject": "woman",
+      "view": "front",
+      "setting": "작은 독립서점, 따뜻한 책장 조명, 메모가 붙은 벽",
+      "action": "책을 펼쳐 들고 있다가 페이지에서 시선을 들어 카메라를 봄",
+      "camera": "책 가장자리에서 얼굴로 초점이 천천히 이동",
+      "motion": "책장이 살짝 움직이고, 눈을 한 번 들어 올리며, 머리카락이 자연스럽게 내려앉음",
+      "audio": "조용한 서점 공간 소리, 종이 넘기는 작은 소리",
+      "phoneAllowed": false
+    },
+    {
+      "sceneId": "04-flower-couple",
+      "title": "꽃시장 커플 시선 컷",
+      "sourceImage": "assets/source/04-flower-couple.png",
+      "subject": "couple",
+      "view": "three_quarter_front",
+      "setting": "밤 꽃시장, 현실적인 네온 불빛, 생화와 젖은 바닥 반사",
+      "action": "여성이 작은 꽃다발을 들고 있고 남성이 옆으로 다가와 서로 짧게 눈을 마주침",
+      "camera": "옆으로 아주 천천히 미끄러지듯 이동",
+      "motion": "꽃이 살짝 흔들리고, 두 사람이 자연스럽게 눈을 깜빡이며, 배경 사람이 흐릿하게 지나감",
+      "audio": "밤시장 소리, 가벼운 발소리, 꽃 포장 비닐 소리",
+      "phoneAllowed": false
+    },
+    {
+      "sceneId": "05-bedroom-slip",
+      "title": "아침 침실 단정한 컷",
+      "sourceImage": "assets/source/05-bedroom-slip.png",
+      "subject": "woman",
+      "view": "front",
+      "setting": "밝고 단정한 침실, 크림색 침구, 부드러운 아침 햇빛",
+      "action": "성인 여성이 단정한 새틴 슬립 원피스와 가디건을 입고 침대에 앉아 카메라를 차분히 봄",
+      "camera": "고정된 인물 사진처럼 천천히 가까워짐",
+      "motion": "커튼이 바람에 조금 움직이고, 손이 이불 위에서 편하게 놓임",
+      "audio": "조용한 아침 방 소리, 부드러운 옷감 움직임",
+      "phoneAllowed": false,
+      "safetyNotes": ["성인", "단정한 스타일", "노출 없는 생활 광고 느낌"]
+    },
+    {
+      "sceneId": "06-pool",
+      "title": "호텔 수영장 산책 컷",
+      "sourceImage": "assets/source/06-pool.png",
+      "subject": "woman",
+      "view": "front",
+      "setting": "해질녘 부티크 호텔 실내 수영장, 현실적인 물빛 반사",
+      "action": "성인 여성이 단정한 원피스 수영복과 커버업을 입고 수영장 옆을 걷다가 카메라를 봄",
+      "camera": "수영장 가장자리를 따라 천천히 이동",
+      "motion": "물이 잔잔하게 흔들리고, 커버업 천이 살짝 움직이며, 자연스럽게 눈을 깜빡임",
+      "audio": "실내 수영장 소리, 물결 소리, 약한 울림",
+      "phoneAllowed": false,
+      "safetyNotes": ["성인", "단정한 수영복", "광고용 생활 장면"]
+    }
+  ]
+}
