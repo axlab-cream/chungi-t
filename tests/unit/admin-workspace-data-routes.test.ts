@@ -12,7 +12,10 @@ const source = readFileSync(new URL('../../admin-ui/index.html', import.meta.url
  */
 
 test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그를 각각의 실제 로더로 연결한다', () => {
-  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 2000)
+  // 고정 글자 수로 자르면 분기가 하나 늘 때마다 안내 문구가 범위 밖으로 밀려 실패한다(2026-10-02 푸시 분기 추가).
+  // 함수 시작부터 마지막 안내 문구까지를 본다 — 검사 내용은 그대로다.
+  const start = source.indexOf('function renderWorkspace')
+  const body = source.slice(start, source.indexOf('아직 생성되지 않았습니다', start) + 40)
   assert.match(body, /if \(route\.key === 'analytics'\) \{ loadFunnelAnalytics\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'releases'\) \{ loadReleaseInfo\(body\); return; \}/)
   assert.match(body, /if \(route\.key === 'evaluations'\) \{ loadQualityEvaluations\(body\); return; \}/)

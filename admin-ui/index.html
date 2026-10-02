@@ -199,6 +199,53 @@
     .admin-refund-evidence dt { color: var(--admin-text-muted); background: var(--admin-bg); font-weight: 600; }
     .admin-refund-alert { margin: var(--admin-space-4); padding: var(--admin-space-3); border-left: 2px solid var(--admin-state-warn); background: #fff8ea; color: var(--admin-text); }
 
+    /* 알림(팝업·푸시): 왼쪽에서 쓰고 오른쪽에서 실제 모양을 본다. 미리보기는 고객 기기 모양이라
+       관리자 토큰이 아닌 고정 색을 쓴다(안드로이드 알림 창·운명상회 어두운 화면). */
+    .admin-notify-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--admin-space-4); align-items: start; padding: var(--admin-space-4); }
+    .admin-notify-layout > .admin-refund-form { padding: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-notify-preview { position: sticky; top: var(--admin-space-4); display: grid; gap: var(--admin-space-2); }
+    .admin-notify-preview > h4 { margin: 0; font-size: 13px; }
+    .admin-notify-form textarea { padding: var(--admin-space-3); font: inherit; color: var(--admin-text); background: var(--admin-surface); border: 1px solid var(--admin-line); border-radius: var(--admin-radius); min-height: 96px; resize: vertical; }
+    .admin-notify-form select { padding: var(--admin-space-3); font: inherit; border: 1px solid var(--admin-line); border-radius: var(--admin-radius); background: var(--admin-surface); }
+    .admin-notify-form fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: var(--admin-space-2); }
+    .admin-notify-form legend { padding: 0; margin-bottom: var(--admin-space-1); font-size: 13px; font-weight: 600; }
+    .admin-notify-form .admin-choice { display: flex; flex-wrap: wrap; align-items: center; gap: var(--admin-space-2); font-size: 13px; }
+    .admin-notify-form .admin-choice input[type='number'] { width: 72px; padding: var(--admin-space-1) var(--admin-space-2); }
+    .admin-counter { font-size: 12px; color: var(--admin-text-muted); }
+    .admin-counter[data-over='true'] { color: var(--admin-state-warn); font-weight: 600; }
+    .admin-user-results { display: grid; gap: var(--admin-space-1); max-height: 180px; overflow: auto; }
+    .admin-user-results label { display: flex; gap: var(--admin-space-2); align-items: center; font-weight: 400; font-size: 13px; }
+    .admin-phone { width: 300px; max-width: 100%; margin: 0 auto; padding: 12px 10px 18px; border-radius: 28px; background: #121216; box-shadow: 0 10px 30px rgba(0, 0, 0, .18); }
+    .admin-phone-bar { display: flex; justify-content: space-between; padding: 0 10px 10px; color: #e8e8ee; font-size: 11px; font-weight: 600; }
+    .admin-phone-shade { display: grid; gap: 8px; padding: 10px 6px 4px; border-radius: 18px; background: #2b2b33; }
+    .admin-phone-caption { margin: 0 4px; color: #b9b9c4; font-size: 11px; }
+    .admin-push-card { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding: 12px; border-radius: 16px; background: #f7f3ec; color: #1b1b1f; }
+    .admin-push-icon { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #c9a227; color: #fff; font-size: 14px; font-weight: 800; }
+    .admin-push-meta { font-size: 11px; color: #5b5b63; }
+    .admin-push-title { margin: 2px 0 0; font-size: 14px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+    .admin-push-body { margin: 2px 0 0; font-size: 13px; line-height: 1.45; color: #3a3a42; white-space: pre-line; overflow-wrap: anywhere; }
+    .admin-push-card[data-collapsed='true'] .admin-push-title, .admin-push-card[data-collapsed='true'] .admin-push-body { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-popup-phone { position: relative; height: 560px; overflow: hidden; border-radius: 22px; background: linear-gradient(180deg, #2a0f0a, #080302); }
+    .admin-popup-phone::before { content: ''; position: absolute; inset: 0; background: rgba(3, 4, 18, .52); }
+    .admin-popup-phone img { position: absolute; left: 50%; top: 50%; width: 240px; transform: translate(-50%, -50%); border-radius: 16px; box-shadow: 0 18px 40px rgba(0, 0, 0, .5); }
+    .admin-popup-phone p { position: absolute; inset: auto 12px 12px; margin: 0; color: #f6ead2; font-size: 12px; text-align: center; }
+    .admin-push-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--admin-line); }
+    .admin-push-stats dt, .admin-push-stats dd { margin: 0; padding: var(--admin-space-2); border-bottom: 1px solid var(--admin-line); font-size: 13px; }
+    .admin-push-stats dt { color: var(--admin-text-muted); }
+    .admin-dialog { max-width: 440px; width: calc(100vw - 32px); padding: 0; border: 1px solid var(--admin-line); border-radius: var(--admin-radius); }
+    .admin-dialog::backdrop { background: rgba(0, 0, 0, .4); }
+    .admin-dialog-body { display: grid; gap: var(--admin-space-3); padding: var(--admin-space-4); }
+    .admin-dialog-body h3 { margin: 0; font-size: 16px; }
+    .admin-dialog-body dl { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: var(--admin-space-2); margin: 0; font-size: 13px; }
+    .admin-dialog-body dt { color: var(--admin-text-muted); font-weight: 600; }
+    .admin-dialog-body dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .admin-nav-sublabel { margin: var(--admin-space-2) 0 0; padding: 0 var(--admin-space-3); color: var(--admin-text-muted); font-size: 12px; font-weight: 700; }
+    .admin-nav a.admin-nav-sub { padding-left: calc(var(--admin-space-3) * 2); }
+    @media (max-width: 1024px) {
+      .admin-notify-layout { grid-template-columns: minmax(0, 1fr); }
+      .admin-notify-preview { position: static; }
+    }
+
     /* 로그인 폼. 관리자에서 사용자 입력을 받는 유일한 지점이다. */
     .admin-form { display: grid; gap: var(--admin-space-4); margin-top: var(--admin-space-4); }
     .admin-field { display: grid; gap: var(--admin-space-1); }
@@ -240,7 +287,7 @@
     @media (max-width: 768px) {
       .admin-header { margin-left: 0; padding: var(--admin-space-3) var(--admin-space-4); }
       .admin-nav { position: sticky; top: 0; width: auto; height: auto; flex-direction: row; overflow-x: auto; padding: var(--admin-space-2) var(--admin-space-4); border-right: 0; border-bottom: 1px solid var(--admin-line); }
-      .admin-nav-title, .admin-nav-label { display: none; }
+      .admin-nav-title, .admin-nav-label, .admin-nav-sublabel { display: none; }
       /* 좁은 화면은 가로로 쭉 늘어선 탭 한 줄이다 — 대분류 토글은 넓은 화면 전용이라 여기서는 무의미하다.
          `.admin-nav-group` 와 `.admin-nav-links` 를 둘 다 `contents` 로 지워서 `<a>` 들이
          `.admin-nav` 의 가로 flex 에 바로 놓이게 한다. `<details>` 는 접히면 요약 외 자식을
@@ -271,6 +318,9 @@
       <summary class="admin-nav-label">운영 현황</summary>
       <div class="admin-nav-links">
         <a href="/ops/constellation-7f3c" data-admin-route="overview">개요</a>
+        <p class="admin-nav-sublabel">알림</p>
+        <a class="admin-nav-sub" href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업</a>
+        <a class="admin-nav-sub" href="/ops/constellation-7f3c/push" data-admin-route="push">푸시</a>
         <a href="/ops/constellation-7f3c/search" data-admin-route="search">통합 검색</a>
         <a href="/ops/constellation-7f3c/orders" data-admin-route="orders">주문</a>
         <a href="/ops/constellation-7f3c/refunds" data-admin-route="refunds">환불</a>
@@ -283,7 +333,6 @@
         <a href="/ops/constellation-7f3c/members" data-admin-route="members">회원 · 리포트</a>
         <a href="/ops/constellation-7f3c/support" data-admin-route="support">고객 지원</a>
         <a href="/ops/constellation-7f3c/content" data-admin-route="content">콘텐츠</a>
-        <a href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업 관리</a>
         <a href="/ops/constellation-7f3c/coupons" data-admin-route="coupons">쿠폰 관리</a>
         <a href="/ops/constellation-7f3c/consultation" data-admin-route="consultation">천명상담</a>
         <a href="/ops/constellation-7f3c/services" data-admin-route="services">서비스</a>
@@ -560,7 +609,8 @@
         '/ops/constellation-7f3c/content': { key: 'content', title: '콘텐츠', detail: '고객 화면에 노출되는 안내·배너·FAQ 콘텐츠를 관리합니다.' },
         '/ops/constellation-7f3c/coupons': { key: 'coupons', title: '쿠폰 관리', detail: '서비스 이용권, 상담 질문권과 할인 쿠폰을 발급하고 사용 현황을 확인합니다.' },
         '/ops/constellation-7f3c/consultation': { key: 'consultation', title: '천명상담 관리', detail: '홈 배너와 상담자의 설정을 초안으로 저장하고 게시합니다. 저장된 상담 원문은 바뀌지 않습니다.' },
-        '/ops/constellation-7f3c/popup': { key: 'popup', title: '첫 페이지 팝업 관리', detail: '오늘운 무료 혜택 팝업의 이미지와 노출 기간을 관리합니다. 종료 시각이 지나면 자동으로 내려갑니다.' },
+        '/ops/constellation-7f3c/popup': { key: 'popup', title: '알림 · 팝업', detail: '첫 페이지 오늘운 무료 혜택 팝업의 이미지와 노출 기간을 관리합니다. 종료 시각이 지나면 자동으로 내려갑니다.' },
+        '/ops/constellation-7f3c/push': { key: 'push', title: '알림 · 푸시', detail: '앱 설치 기기에 보낼 푸시를 쓰고, 바로 보내거나 예약하고, 결과를 확인합니다.' },
         '/ops/constellation-7f3c/services': { key: 'services', title: '서비스', detail: '서비스별 노출·판매·가격 정책과 고객 화면 연결을 관리합니다.' },
         '/ops/constellation-7f3c/media': { key: 'media', title: '미디어', detail: '이미지와 첨부 자산의 사용 위치 및 공개 상태를 관리합니다.' },
         '/ops/constellation-7f3c/jobs': { key: 'jobs', title: '작업 큐', detail: '리포트 생성과 후처리 작업의 진행·재시도 상태를 확인합니다.' },
@@ -1161,7 +1211,21 @@
         var initialStart = new Date();
         form.elements.startsAt.value = toLocalDateTime(initialStart); form.elements.endsAt.value = toLocalDateTime(new Date(initialStart.getTime() + 7 * 24 * 60 * 60 * 1000));
         var result = form.querySelector('[data-popup-result]');
-        section.appendChild(form); body.appendChild(section);
+        // 고객 화면의 팝업은 문구가 이미지 안에 그려진 한 장이다. 미리보기도 이미지를 같은 비율로 띄운다.
+        var popupLayout = document.createElement('div'); popupLayout.className = 'admin-notify-layout';
+        var popupPreview = document.createElement('aside'); popupPreview.className = 'admin-notify-preview'; popupPreview.setAttribute('aria-label', '팝업 미리보기');
+        popupPreview.innerHTML = '<h4>미리보기 · 첫 페이지</h4><div class="admin-phone"><div class="admin-phone-bar"><span>9:41</span><span>운명상회</span></div><div class="admin-popup-phone"><img alt="" data-popup-preview-image><p data-popup-preview-caption></p></div></div><p class="admin-note">실제 팝업은 이미지 한 장으로 보입니다. 위의 문구 칸은 화면 낭독기 안내와 이력 관리에 쓰입니다.</p>';
+        function refreshPopupPreview() {
+          var image = popupPreview.querySelector('[data-popup-preview-image]'); var caption = popupPreview.querySelector('[data-popup-preview-caption]');
+          var src = form.elements.imageSrc.value.trim();
+          image.hidden = !/^\/assets\//.test(src); if (!image.hidden) image.src = src;
+          image.alt = [form.elements.headline.value, form.elements.subheadline.value].join(' ').trim();
+          caption.textContent = image.hidden ? '/assets/ 로 시작하는 이미지 경로를 넣으면 여기에 보입니다.' : '';
+        }
+        form.addEventListener('input', refreshPopupPreview);
+        popupLayout.appendChild(form); popupLayout.appendChild(popupPreview);
+        section.appendChild(popupLayout); body.appendChild(section);
+        refreshPopupPreview();
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>팝업 이력</h3></header><p class="admin-empty">불러오는 중입니다.</p>'; body.appendChild(listSection);
         try {
           var response = await fetch('/api/admin/v1/content?placement=home%2Fsignup-benefit-popup&includeArchived=1', { credentials: 'same-origin' });
@@ -1191,6 +1255,7 @@
             form.elements.startsAt.value = toLocalDateTime(active.scheduledAt) || form.elements.startsAt.value;
             form.elements.endsAt.value = toLocalDateTime(payload.campaignEndAt) || form.elements.endsAt.value;
           }
+          refreshPopupPreview();
           var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">버튼 클릭<br><small>최근 30일</small></th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="6">등록된 팝업이 없습니다. 위 설정을 게시하면 노출이 시작됩니다.</td>'; rows.appendChild(empty); }
@@ -1220,6 +1285,245 @@
             await loadPopupManager(body); var success = body.querySelector('[data-popup-result]'); if (success) success.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '팝업 게시에 실패했습니다.'; submit.disabled = false; }
         });
+      }
+      /*
+       * 알림 · 푸시. 왼쪽에서 쓰고 오른쪽에서 안드로이드 알림 모양을 본다. 발송은 서버
+       * (/api/admin/v1/push)만 한다 — 이 화면은 FCM 인증 정보를 갖지 않는다.
+       * 이력 행을 누르면 오른쪽이 그 푸시의 미리보기와 결과로 바뀐다.
+       */
+      var PUSH_STATUS_LABELS = { draft: '임시 저장', scheduled: '예약 대기', sending: '발송 중', sent: '발송 완료', failed: '발송 실패', cancelled: '취소' };
+      var PUSH_ERROR_LABELS = {
+        NO_TARGET_DEVICES: '보낼 기기가 없었습니다.',
+        ALL_DELIVERIES_FAILED: '모든 기기에서 실패했습니다.',
+        PUSH_OIDC_TOKEN_MISSING: '서버 인증 토큰이 없습니다. 운영·미리보기 배포에서만 보낼 수 있습니다.',
+        FCM_RETRYABLE_ERRORS: 'FCM 일시 오류로 잠시 뒤 다시 보냅니다.'
+      };
+      function pushErrorLabel(code) {
+        if (!code) return '';
+        if (PUSH_ERROR_LABELS[code]) return PUSH_ERROR_LABELS[code];
+        if (/^FCM_AUTH_|^PUSH_STS_|^PUSH_IMPERSONATION_/.test(code)) return 'FCM 인증에 실패했습니다(' + code + '). 1분 뒤 다시 시도합니다.';
+        return code;
+      }
+      function pushStatusLabel(item) {
+        if (item.status === 'scheduled' && item.scheduledAt && new Date(item.scheduledAt).getTime() <= Date.now()) return '발송 대기';
+        return PUSH_STATUS_LABELS[item.status] || item.status;
+      }
+      function pushPreviewCard(title, message, collapsed) {
+        var card = document.createElement('div'); card.className = 'admin-push-card'; card.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
+        var icon = document.createElement('div'); icon.className = 'admin-push-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = '운';
+        var text = document.createElement('div');
+        var meta = document.createElement('div'); meta.className = 'admin-push-meta'; meta.textContent = '운명상회 · 지금';
+        var heading = document.createElement('p'); heading.className = 'admin-push-title'; heading.textContent = title || '제목을 입력하세요';
+        var content = document.createElement('p'); content.className = 'admin-push-body'; content.textContent = message || '메시지를 입력하세요';
+        text.append(meta, heading, content); card.append(icon, text);
+        return card;
+      }
+      function renderPushPhone(host, title, message) {
+        host.replaceChildren();
+        var phone = document.createElement('div'); phone.className = 'admin-phone';
+        phone.innerHTML = '<div class="admin-phone-bar"><span>9:41</span><span>5G ▮▮▮</span></div>';
+        var shade = document.createElement('div'); shade.className = 'admin-phone-shade';
+        var c1 = document.createElement('p'); c1.className = 'admin-phone-caption'; c1.textContent = '알림 창 (접힌 상태)';
+        var c2 = document.createElement('p'); c2.className = 'admin-phone-caption'; c2.textContent = '펼친 상태';
+        shade.append(c1, pushPreviewCard(title, message, true), c2, pushPreviewCard(title, message, false));
+        phone.appendChild(shade); host.appendChild(phone);
+      }
+      async function pushRequest(path, payload) {
+        var response = await fetch('/api/admin/v1/push' + path, { method: payload ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store', headers: payload ? { 'Content-Type': 'application/json' } : {}, body: payload ? JSON.stringify(payload) : undefined });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw new Error(data.error || '푸시 요청을 처리하지 못했습니다.');
+        return data;
+      }
+      async function loadPushManager(body) {
+        body.replaceChildren();
+        var section = document.createElement('section'); section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>푸시 작성</h3><span class="admin-chip">앱 설치 기기 · Android</span></header>';
+        var layout = document.createElement('div'); layout.className = 'admin-notify-layout';
+        var form = document.createElement('form'); form.className = 'admin-refund-form admin-notify-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field" data-span="2"><label for="push-title">제목</label><input id="push-title" name="title" maxlength="100" required placeholder="오늘의 운세가 도착했어요 🔮"><span class="admin-counter" data-count="title"></span></div>'
+          + '<div class="admin-field" data-span="2"><label for="push-body">메시지</label><textarea id="push-body" name="message" maxlength="500" required placeholder="오늘 당신에게 들어오는 운은 무엇일까요?&#10;지금 확인해보세요."></textarea><span class="admin-counter" data-count="message"></span></div>'
+          + '<div class="admin-field" data-span="2"><label for="push-link">누르면 열 페이지</label><input id="push-link" name="deepLink" maxlength="500" value="/" placeholder="/me/lucky"><span class="admin-counter">운명상회 안의 주소만 됩니다. /로 시작해 주세요. 비워 두면 첫 화면이 열립니다.</span></div>'
+          + '<fieldset class="admin-field" data-span="2"><legend>발송 대상</legend>'
+          + '<label class="admin-choice"><input type="radio" name="target" value="all" checked> 앱 설치 기기 전체</label>'
+          + '<label class="admin-choice"><input type="radio" name="target" value="logged_in"> 로그인한 기기</label>'
+          + '<label class="admin-choice"><input type="radio" name="target" value="guests"> 로그인하지 않은 기기</label>'
+          + '<label class="admin-choice"><input type="radio" name="target" value="active_days"> 최근 <input type="number" name="activeDays" min="1" max="365" value="7" aria-label="최근 활동 일수">일 안에 앱을 연 기기</label>'
+          + '<label class="admin-choice"><input type="radio" name="target" value="signup_days"> 최근 <input type="number" name="signupDays" min="1" max="365" value="7" aria-label="최근 가입 일수">일 안에 가입한 회원</label>'
+          + '<label class="admin-choice"><input type="radio" name="target" value="users"> 특정 회원</label>'
+          + '<div data-user-picker hidden><div class="admin-actions"><input name="userQuery" maxlength="60" placeholder="이름 또는 회원 ID" aria-label="회원 검색"><button class="admin-button" data-variant="quiet" type="button" data-user-search>검색</button></div><div class="admin-user-results" data-user-results></div></div>'
+          + '<div class="admin-actions"><button class="admin-button" data-variant="quiet" type="button" data-audience>대상 기기 수 확인</button><span class="admin-counter" data-audience-result></span></div>'
+          + '</fieldset>'
+          + '<fieldset class="admin-field" data-span="2"><legend>발송 시점</legend>'
+          + '<label class="admin-choice"><input type="radio" name="when" value="now" checked> 지금 발송</label>'
+          + '<label class="admin-choice"><input type="radio" name="when" value="scheduled"> 예약 발송 <input type="datetime-local" name="scheduledAt" aria-label="예약 시각"></label>'
+          + '</fieldset>'
+          + '<div class="admin-actions" data-span="2"><button class="admin-button" type="submit">발송하기</button><p class="admin-note" role="status" data-push-result></p></div>';
+        var preview = document.createElement('aside'); preview.className = 'admin-notify-preview'; preview.setAttribute('aria-label', '푸시 미리보기');
+        var previewHead = document.createElement('h4'); var previewHost = document.createElement('div'); var previewDetail = document.createElement('div');
+        preview.append(previewHead, previewHost, previewDetail);
+        layout.append(form, preview); section.appendChild(layout); body.appendChild(section);
+
+        var result = form.querySelector('[data-push-result]');
+        var selectedUsers = {};
+        var later = new Date(Date.now() + 60 * 60 * 1000); later.setMinutes(0, 0, 0); form.elements.scheduledAt.value = toLocalDateTime(later);
+        function counter(name, value, visible, limit) {
+          var node = form.querySelector('[data-count="' + name + '"]');
+          var over = value.length > visible;
+          node.setAttribute('data-over', over ? 'true' : 'false');
+          node.textContent = value.length + ' / ' + limit + '자' + (over ? ' · 접힌 알림에서는 ' + visible + '자 뒤가 잘려 보입니다.' : '');
+        }
+        function showDraftPreview() {
+          previewHead.textContent = '미리보기 · 작성 중';
+          renderPushPhone(previewHost, form.elements.title.value.trim(), form.elements.message.value.trim());
+          previewDetail.replaceChildren();
+          counter('title', form.elements.title.value.trim(), 40, 100);
+          counter('message', form.elements.message.value.trim(), 60, 500);
+        }
+        function selectedTarget() {
+          var type = form.elements.target.value;
+          if (type === 'active_days') return { type: type, days: Number(form.elements.activeDays.value) };
+          if (type === 'signup_days') return { type: type, days: Number(form.elements.signupDays.value) };
+          if (type === 'users') return { type: type, userIds: Object.keys(selectedUsers) };
+          return { type: type };
+        }
+        function targetText(target) {
+          if (target.type === 'all') return '앱 설치 기기 전체';
+          if (target.type === 'logged_in') return '로그인한 기기';
+          if (target.type === 'guests') return '로그인하지 않은 기기';
+          if (target.type === 'active_days') return '최근 ' + target.days + '일 안에 앱을 연 기기';
+          if (target.type === 'signup_days') return '최근 ' + target.days + '일 안에 가입한 회원';
+          return '특정 회원 ' + target.userIds.length + '명 (' + target.userIds.map(function (id) { return selectedUsers[id]; }).join(', ') + ')';
+        }
+        form.addEventListener('input', function (event) {
+          if (event.target.name === 'title' || event.target.name === 'message') showDraftPreview();
+          if (event.target.name === 'target') form.querySelector('[data-user-picker]').hidden = form.elements.target.value !== 'users';
+          if (['target', 'activeDays', 'signupDays'].indexOf(event.target.name) >= 0) form.querySelector('[data-audience-result]').textContent = '';
+        });
+        form.addEventListener('focusin', function () { if (previewHead.textContent !== '미리보기 · 작성 중') showDraftPreview(); });
+        form.querySelector('[data-audience]').addEventListener('click', async function () {
+          var output = form.querySelector('[data-audience-result]'); output.textContent = '세는 중입니다.';
+          try { var data = await pushRequest('/audience', { target: selectedTarget() }); output.textContent = data.label + ': ' + Number(data.count).toLocaleString('ko-KR') + '대'; }
+          catch (error) { output.textContent = error.message; }
+        });
+        form.querySelector('[data-user-search]').addEventListener('click', async function () {
+          var list = form.querySelector('[data-user-results]'); list.textContent = '찾는 중입니다.';
+          try {
+            var data = await pushRequest('/users?q=' + encodeURIComponent(form.elements.userQuery.value.trim()));
+            list.replaceChildren();
+            if (!data.users.length) { list.textContent = '검색 결과가 없습니다.'; return; }
+            data.users.forEach(function (user) {
+              var label = document.createElement('label'); var box = document.createElement('input'); box.type = 'checkbox'; box.checked = Boolean(selectedUsers[user.userId]);
+              box.disabled = user.deviceCount === 0 && !box.checked;
+              box.addEventListener('change', function () { if (box.checked) selectedUsers[user.userId] = user.name; else delete selectedUsers[user.userId]; });
+              var text = document.createElement('span'); text.textContent = user.name + ' · 앱 기기 ' + user.deviceCount + '대 · ' + user.userId.slice(0, 8);
+              label.append(box, text); list.appendChild(label);
+            });
+          } catch (error) { list.textContent = error.message; }
+        });
+
+        var dialog = document.createElement('dialog'); dialog.className = 'admin-dialog';
+        dialog.innerHTML = '<form method="dialog" class="admin-dialog-body"><h3>푸시를 발송하시겠습니까?</h3><dl data-confirm></dl><div class="admin-actions"><button class="admin-button" data-variant="quiet" value="cancel">취소</button><button class="admin-button" value="send">발송하기</button></div></form>';
+        body.appendChild(dialog);
+        function confirmSend(rows) {
+          var list = dialog.querySelector('[data-confirm]'); list.replaceChildren();
+          rows.forEach(function (row) { var dt = document.createElement('dt'); dt.textContent = row[0]; var dd = document.createElement('dd'); dd.textContent = row[1]; list.append(dt, dd); });
+          return new Promise(function (resolve) {
+            dialog.addEventListener('close', function onClose() { dialog.removeEventListener('close', onClose); resolve(dialog.returnValue === 'send'); });
+            dialog.returnValue = '';
+            dialog.showModal();
+          });
+        }
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+          var title = form.elements.title.value.trim(); var message = form.elements.message.value.trim();
+          if (!title || !message) { result.textContent = '제목과 메시지를 입력해 주세요.'; return; }
+          var target = selectedTarget();
+          if (target.type === 'users' && !target.userIds.length) { result.textContent = '보낼 회원을 검색해서 골라 주세요.'; return; }
+          var when = form.elements.when.value; var schedule = { mode: 'now' };
+          if (when === 'scheduled') {
+            var at = new Date(form.elements.scheduledAt.value);
+            if (Number.isNaN(at.getTime())) { result.textContent = '예약 시각을 입력해 주세요.'; return; }
+            schedule = { mode: 'scheduled', at: at.toISOString() };
+          }
+          var ok = await confirmSend([['대상', targetText(target)], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/'], ['시점', schedule.mode === 'now' ? '지금 바로' : new Date(schedule.at).toLocaleString('ko-KR') + ' 예약']]);
+          if (!ok) return;
+          var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = schedule.mode === 'now' ? '보내는 중입니다.' : '예약하는 중입니다.';
+          try {
+            var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule });
+            var item = data.item;
+            result.textContent = item.status === 'sent' ? '발송했습니다. 성공 ' + item.successCount + '대, 실패 ' + item.failureCount + '대.'
+              : item.status === 'scheduled' ? new Date(item.scheduledAt).toLocaleString('ko-KR') + '에 보냅니다.'
+              : item.status === 'failed' ? '발송하지 못했습니다. ' + pushErrorLabel(item.lastError)
+              : '보내는 중입니다. 남은 기기는 1분 안에 이어서 보냅니다.';
+            await loadHistory(); showDetail(item);
+          } catch (error) { result.textContent = error.message; }
+          finally { submit.disabled = false; }
+        });
+
+        function showDetail(item) {
+          previewHead.textContent = '미리보기 · ' + pushStatusLabel(item);
+          renderPushPhone(previewHost, item.title, item.body);
+          previewDetail.replaceChildren();
+          var stats = document.createElement('dl'); stats.className = 'admin-push-stats';
+          var clickRate = item.successCount ? Math.round(item.clickCount / item.successCount * 1000) / 10 + '%' : '-';
+          [['대상', item.targetLabel || item.targetType], ['이동', item.deepLink], ['대상 기기', item.totalCount.toLocaleString('ko-KR') + '대'], ['FCM 접수', item.successCount.toLocaleString('ko-KR') + '대'], ['실패', item.failureCount.toLocaleString('ko-KR') + '대'], ['클릭', item.clickCount.toLocaleString('ko-KR') + '회 (' + clickRate + ')'], ['작성', item.createdBy]].forEach(function (pair) {
+            var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; stats.append(dt, dd);
+          });
+          previewDetail.appendChild(stats);
+          var note = document.createElement('p'); note.className = 'admin-note';
+          note.textContent = 'FCM 접수는 구글 서버가 받았다는 뜻이고, 기기에 도착했다는 뜻은 아닙니다. 클릭은 앱에서 알림을 누른 횟수입니다.' + (item.lastError ? ' 사유: ' + pushErrorLabel(item.lastError) : '');
+          previewDetail.appendChild(note);
+          if (item.failureCount) pushRequest('/' + encodeURIComponent(item.id)).then(function (data) {
+            var codes = Object.keys(data.failures || {}); if (!codes.length) return;
+            var failure = document.createElement('p'); failure.className = 'admin-note';
+            failure.textContent = '실패 사유: ' + codes.map(function (code) { return code + ' ' + data.failures[code] + '대'; }).join(', ');
+            previewDetail.appendChild(failure);
+          }).catch(function () {});
+          var copy = document.createElement('button'); copy.type = 'button'; copy.className = 'admin-button'; copy.setAttribute('data-variant', 'quiet'); copy.textContent = '이 내용으로 새로 쓰기';
+          copy.addEventListener('click', function () { form.elements.title.value = item.title; form.elements.message.value = item.body; form.elements.deepLink.value = item.deepLink; showDraftPreview(); form.elements.title.focus(); });
+          previewDetail.appendChild(copy);
+        }
+
+        var history = document.createElement('section'); history.className = 'admin-section';
+        history.innerHTML = '<header class="admin-section-head"><h3>발송 이력</h3><span class="admin-chip">행을 누르면 오른쪽에서 미리보기와 결과를 봅니다</span></header><p class="admin-empty">불러오는 중입니다.</p>';
+        body.appendChild(history);
+        async function loadHistory() {
+          try {
+            var data = await pushRequest('?limit=50');
+            var table = document.createElement('table'); table.className = 'admin-table';
+            table.innerHTML = '<thead><tr><th scope="col">발송일시</th><th scope="col">제목</th><th scope="col">대상</th><th scope="col">상태</th><th scope="col">성공</th><th scope="col">실패</th><th scope="col">클릭</th><th scope="col">관리</th></tr></thead>';
+            var rows = document.createElement('tbody');
+            if (!data.items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">아직 보낸 푸시가 없습니다.</td>'; rows.appendChild(empty); }
+            data.items.forEach(function (item) {
+              var row = document.createElement('tr'); row.tabIndex = 0; row.style.cursor = 'pointer';
+              var when = item.sentAt || item.scheduledAt || item.createdAt;
+              var done = item.status === 'sent' || item.status === 'sending' || item.status === 'failed';
+              [new Date(when).toLocaleString('ko-KR'), item.title, item.targetLabel || item.targetType, pushStatusLabel(item), done ? item.successCount.toLocaleString('ko-KR') : '-', done ? item.failureCount.toLocaleString('ko-KR') : '-', done ? item.clickCount.toLocaleString('ko-KR') : '-'].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
+              var manage = document.createElement('td');
+              if (item.status === 'draft' || item.status === 'scheduled' || item.status === 'sending') {
+                var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'admin-button'; cancel.setAttribute('data-variant', 'quiet'); cancel.textContent = item.status === 'sending' ? '남은 발송 중단' : '예약 취소';
+                cancel.addEventListener('click', async function (event) {
+                  event.stopPropagation();
+                  if (!window.confirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 중단할까요?' : '이 예약을 취소할까요?')) return;
+                  cancel.disabled = true;
+                  try { await pushRequest('/' + encodeURIComponent(item.id) + '/cancel', {}); await loadHistory(); } catch (error) { window.alert(error.message); cancel.disabled = false; }
+                });
+                manage.appendChild(cancel);
+              }
+              row.appendChild(manage);
+              row.addEventListener('click', function () { showDetail(item); });
+              row.addEventListener('keydown', function (event) { if (event.key === 'Enter') showDetail(item); });
+              rows.appendChild(row);
+            });
+            table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+            history.replaceChildren(history.firstElementChild, scroll);
+          } catch (error) {
+            var message = document.createElement('p'); message.className = 'admin-empty'; message.textContent = '발송 이력을 불러오지 못했습니다. ' + error.message;
+            history.replaceChildren(history.firstElementChild, message);
+          }
+        }
+        showDraftPreview();
+        await loadHistory();
       }
       async function loadCouponManager(body) {
         body.replaceChildren();
@@ -1905,6 +2209,7 @@
         if (route.key === 'logs') { loadGenerationLog(body); return; }
         if (route.key === 'content') { loadLiveContent(body); return; }
         if (route.key === 'popup') { loadPopupManager(body); return; }
+        if (route.key === 'push') { loadPushManager(body); return; }
         if (route.key === 'coupons') { loadCouponManager(body); return; }
         if (route.key === 'consultation') { loadConsultationManager(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');

@@ -66,6 +66,11 @@ const config: CapacitorConfig = {
       // 페이지에서 여백을 빼 버려 화면이 시스템 바와 겹친다.
       insetsHandling: 'disable',
     },
+    // 앱을 보고 있을 때 온 푸시도 알림으로 띄운다. 빈 배열이면 Android 에서는 아무것도
+    // 표시되지 않고 웹 이벤트만 온다. badge 는 iOS 전용이다.
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
     StatusBar: {
       style: 'DARK',
       backgroundColor: '#080302',
