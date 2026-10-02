@@ -327,6 +327,7 @@ export function consultationRouter(options: Dependencies): Router {
         res.json(await handler(req, owner))
       } catch (error) {
         const code = error instanceof ConsultationError ? error.code : error instanceof Error && /^CONSULTATION_SETTINGS_(UNAVAILABLE|INVALID)$/.test(error.message) ? error.message : 'CONSULTATION_UNAVAILABLE'
+        console.warn('[consultation-request]', JSON.stringify({ route: req.route?.path, code }))
         const messages: Record<string, string> = {
           CONSULTATION_PAYMENT_REQUIRED: '무료 상담을 모두 이용했습니다. 4,900원으로 질문 5회를 추가해 주세요.',
           CONSULTATION_CREDITS_UNAVAILABLE: '상담 이용 횟수를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.',

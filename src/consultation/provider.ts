@@ -29,7 +29,15 @@ export function geminiConsultationProvider(): ConsultationProvider {
         body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents,
           generationConfig: { temperature: json ? 0 : 0.65, maxOutputTokens: 4096, ...(json ? { responseMimeType: 'application/json' } : {}) } }),
       })
-      if (!response.ok) throw new ConsultationError(response.status === 429 ? 'PROVIDER_LIMIT' : 'PROVIDER_UNAVAILABLE', response.status === 429 ? 429 : 503)
+      if (!response.ok) {
+        // Never log provider messages: they may echo credentials or customer input.
+        const failure = await response.json().catch(() => null) as { error?: { status?: unknown; details?: Array<{ reason?: unknown }> } } | null
+        const safeCode = (value: unknown) => typeof value === 'string' && /^[A-Z][A-Z0-9_]{0,79}$/.test(value) ? value : 'UNKNOWN'
+        const details = failure?.error?.details
+        const reasons = Array.isArray(details) ? details.slice(0, 3).map(detail => safeCode(detail?.reason)) : []
+        console.warn('[consultation-provider]', JSON.stringify({ status: response.status, model, code: safeCode(failure?.error?.status), reasons }))
+        throw new ConsultationError(response.status === 429 ? 'PROVIDER_LIMIT' : 'PROVIDER_UNAVAILABLE', response.status === 429 ? 429 : 503)
+      }
       const body = await response.json() as { candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string; thought?: boolean }> } }> }
       const candidate = body.candidates?.[0]
       const text = candidate?.content?.parts?.filter(p => !p.thought).map(p => p.text ?? '').join('').trim()
