@@ -1,0 +1,86 @@
+[
+  {
+    "cards": [
+      {
+        "height": 203.93748474121097,
+        "width": 280
+      },
+      {
+        "height": 203.93748474121097,
+        "width": 280
+      }
+    ],
+    "copyInside": true,
+    "viewport": 320
+  },
+  {
+    "cards": [
+      {
+        "height": 232.8125,
+        "width": 335
+      },
+      {
+        "height": 232.8125,
+        "width": 335
+      }
+    ],
+    "copyInside": true,
+    "viewport": 375
+  },
+  {
+    "cards": [
+      {
+        "height": 261.6875,
+        "width": 390
+      },
+      {
+        "height": 261.6875,
+        "width": 390
+      }
+    ],
+    "copyInside": true,
+    "viewport": 430
+  },
+  {
+    "cards": [
+      {
+        "height": 261.6875,
+        "width": 390
+      },
+      {
+        "height": 261.6875,
+        "width": 390
+      }
+    ],
+    "copyInside": true,
+    "viewport": 768
+  },
+  {
+    "cards": [
+      {
+        "height": 261.6875,
+        "width": 390
+      },
+      {
+        "height": 261.6875,
+        "width": 390
+      }
+    ],
+    "copyInside": true,
+    "viewport": 1024
+  },
+  {
+    "cards": [
+      {
+        "height": 261.6875,
+        "width": 390
+      },
+      {
+        "height": 261.6875,
+        "width": 390
+      }
+    ],
+    "copyInside": true,
+    "viewport": 1440
+  }
+]

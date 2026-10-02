@@ -808,3 +808,6 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 
 ## 2026-10-02 QA-2PASS
 사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
+
+## BANNER-FIT-01
+User outcome: same carousel card size for both slides, all title/body/CTA visible. Retain admin published copy and original images. Shared grid footprint + matching captions + container-scaled typography. Visual QA both slides/mobile and deployment verification required.
