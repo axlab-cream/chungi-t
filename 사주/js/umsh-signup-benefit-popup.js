@@ -6,7 +6,7 @@
   var DEFAULT_POPUP = {
     id: 'builtin-2026-09-today-fortune',
     startsAt: '2026-09-22T00:00:00+09:00',
-    endsAt: '2026-10-01T23:59:59.999+09:00',
+    endsAt: '2026-12-31T23:59:59.999+09:00',
     imageSrc: '/assets/signup-benefit-popup-default-2026-09-22.png',
     ctaLabel: '내 사주로 오늘운 무료 보기'
   };
