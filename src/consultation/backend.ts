@@ -346,7 +346,8 @@ export function consultationRouter(options: Dependencies): Router {
     }
   }
   router.get('/context', route(async (_req, owner) => ({ profile: await (options.profile ?? getUserBirthProfile)(owner), settings: await (options.settings ?? getConsultationSettings)(), access: await getConsultationAccess(owner, options) })))
-  router.post('/chat', route((req, owner) => consultationChat(owner, req.body, options)))
+  // Text answers use Gemini only. Live handles speech; do not call legacy Edge TTS.
+  router.post('/chat', route((req, owner) => consultationChat(owner, req.body, { ...options, synthesize: undefined })))
   router.post('/live-session', route(async (_req, owner) => {
     try {
       assertDurableReportStorage()

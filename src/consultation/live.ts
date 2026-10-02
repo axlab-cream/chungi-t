@@ -17,8 +17,14 @@ export async function createLiveToken() {
       body: JSON.stringify({ uses: 1, expireTime: new Date(Date.now() + 10 * 60_000).toISOString(), newSessionExpireTime: new Date(Date.now() + 60_000).toISOString(), liveConnectConstraints: { model: `models/${model}`, config } }),
     })
     if (!response.ok) {
-      // No response body: upstream messages can contain confidential values.
-      console.warn('[consultation-live]', JSON.stringify({ status: response.status, model }))
+      // Log only bounded machine codes and our own known field names, never raw messages.
+      const failure = await response.json().catch(() => null) as { error?: { status?: unknown; message?: unknown; details?: Array<{ reason?: unknown }> } } | null
+      const safeCode = (value: unknown) => typeof value === 'string' && /^[A-Z][A-Z0-9_]{0,79}$/.test(value) ? value : 'UNKNOWN'
+      const details = failure?.error?.details
+      const reasons = Array.isArray(details) ? details.slice(0, 3).map(detail => safeCode(detail?.reason)) : []
+      const message = typeof failure?.error?.message === 'string' ? failure.error.message : ''
+      const invalidFields = ['uses', 'expireTime', 'newSessionExpireTime', 'liveConnectConstraints', 'config', 'responseModalities', 'speechConfig', 'inputAudioTranscription', 'outputAudioTranscription'].filter(field => message.includes(`Unknown name "${field}"`))
+      console.warn('[consultation-live]', JSON.stringify({ status: response.status, model, code: safeCode(failure?.error?.status), reasons, invalidFields }))
       throw new ConsultationError(response.status === 429 ? 'PROVIDER_LIMIT' : 'PROVIDER_UNAVAILABLE', response.status === 429 ? 429 : 503)
     }
     const token = await response.json() as { name?: unknown }

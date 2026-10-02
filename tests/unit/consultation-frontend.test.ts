@@ -34,6 +34,7 @@ function harness(options: { vault?: boolean; guest?: boolean; configError?: bool
     fetch: async (path: string, init: any = {}) => {
       calls.push({ path, body: init.body ? JSON.parse(init.body) : undefined })
       if (path === '/api/auth/config') return { ok: !options.configError, json: async () => ({ enabled: true, url: 'auth.example', publishableKey: 'public' }) }
+      if (path === '/api/consultation/live-session') return { ok: true, json: async () => ({ token: 'test-ephemeral', model: 'models/test', expiresIn: 600 }) }
       if (path === '/api/consultation/context') return { ok: true, json: async () => ({ profile: options.profile === false ? null : { name: 'test-only' }, settings: {}, access }) }
       return options.fetch ? options.fetch(path, init) : { ok: true, json: async () => ({ text: '<img onerror=alert(1)>', conversationId: 'test-id', saved: true, access, conversations: [] }) }
     },
@@ -42,6 +43,7 @@ function harness(options: { vault?: boolean; guest?: boolean; configError?: bool
     sessionStorage: { getItem: (key: string) => storage.get(key), setItem: (key: string, val: string) => storage.set(key, val), removeItem: (key: string) => storage.delete(key) },
     history: { replaceState() {} }, navigator: { mediaDevices: { getUserMedia: options.mic } },
     crypto: { randomUUID: () => 'request-' + (++uuid) }, AudioContext: function () { return { resume: async () => {}, close: async () => {} } },
+    WebSocket: class { readyState = 1; onopen: any; onmessage: any; constructor() { queueMicrotask(() => this.onopen()) } close() {} send(value: string) { if (JSON.parse(value).setup) queueMicrotask(() => this.onmessage({ data: JSON.stringify({ setupComplete: {} }) })) } },
     URL, URLSearchParams, AbortController, setTimeout: options.timeout || setTimeout, clearTimeout, Blob, Uint8Array, Int16Array, Float32Array, ArrayBuffer, DataView,
     addEventListener() {},
   }

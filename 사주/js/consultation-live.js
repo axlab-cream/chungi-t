@@ -45,8 +45,7 @@
       try {
         ctx = new (window.AudioContext || window.webkitAudioContext)(); await ctx.resume();
         if (ended) return;
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-        if (ended) { stream.getTracks().forEach(track => track.stop()); return; }
+        hooks.notice('음성 상담 연결을 확인하고 있어요.');
         const session = await hooks.connect();
         if (ended) return;
         socket = new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(session.token));
@@ -59,8 +58,15 @@
             const message = JSON.parse(typeof event.data === 'string' ? event.data : await event.data.text());
             if (ended) return;
             if (message.setupComplete && !available) {
-              clearTimeout(startupTimer); available = true; hooks.ready();
+              clearTimeout(startupTimer); available = true;
+              timer = setTimeout(() => stop('음성 연결 10분이 지나 종료됐어요. 다시 연결하면 이어갈 수 있어요.'), Math.min(600, session.expiresIn || 600) * 1000);
+              hooks.notice('선생님과 연결됐어요. 마이크 사용을 허용하면 말씀하실 수 있어요.');
               send({ realtimeInput: { text: '인사하고 어떤 상담을 원하는지 물어봐 주세요.' } });
+              startupTimer = setTimeout(() => stop('마이크 허용을 기다리다가 연결을 종료했어요. 마이크를 허용한 뒤 다시 연결해 주세요.'), 45000);
+              try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+              catch (error) { stop(error.name === 'NotAllowedError' ? '마이크 권한이 꺼져 있어요. 브라우저에서 허용하거나 텍스트로 상담해 주세요.' : '마이크를 연결하지 못했어요. 기기를 확인해 주세요.'); return; }
+              if (ended) { stream.getTracks().forEach(track => track.stop()); return; }
+              clearTimeout(startupTimer); hooks.ready();
               source = ctx.createMediaStreamSource(stream); processor = ctx.createScriptProcessor(2048, 1, 1); sink = ctx.createGain(); sink.gain.value = 0;
               source.connect(processor); processor.connect(sink); sink.connect(ctx.destination);
               processor.onaudioprocess = event => {
@@ -71,7 +77,7 @@
                 let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
                 send({ realtimeInput: { audio: { mimeType: 'audio/pcm;rate=16000', data: btoa(binary) } } });
               };
-              timer = setTimeout(() => stop('음성 연결 10분이 지나 종료됐어요. 다시 연결하면 이어갈 수 있어요.'), Math.min(600, session.expiresIn || 600) * 1000);
+
             }
             const content = message.serverContent;
             if (content) {

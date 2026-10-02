@@ -827,3 +827,10 @@ Mobile opens portrait-only; accessible tap/Enter opens conversation with introdu
 - Failure: unauthorized/profile/disabled/no-credit fail closed; upstream errors sanitized; interruption stops queued audio; navigation/signout releases microphone; failed mint does not charge questions.
 - QA: 85 consultation tests PASS; frontend/transport follow-up23 PASS; build/typecheck PASS. Browser390px portrait/tap PASS; actual Google Live authentication, spoken output and barge-in await valid production key. Do not count mocks as real-provider success.
 - Deployment scope: these consultation files only, no DB migration. Rollback: chungi-3et21055m-ax-lab-cream.vercel.app (6859b740).
+
+## CONSULTATION-LIVE-02 — new-key verification and speech-path repair
+- Actual new deployment dpl_5JHZbk5aAwT69AYFxsEnpL4ixDqT generated a Gemini interpretation, saved it, and reduced free5→4. Prior API_KEY_INVALID is resolved with the user's new key/deploy. Do not continue diagnosing current credentials from old logs.
+- Reproduced remaining bug: successful text turn invokes legacy Edge TTS, causing an unnecessary audio-error notice. /chat now returns Gemini text without legacy synthesis; Live owns audio.
+- Live opens authenticated Google connection before requesting microphone, separating provider failure from browser permission wait. Permission wait is bounded45s and late streams stop after cancellation. Existing single-use token, memory and credit controls remain.
+- Acceptance: route test ensures no legacy speech or audioError; Live/frontend tests cover transcript and teardown. Production second interpretation, reload persistence and Google Live setup still to verify.
+- User correction: mobile entrance must retain shared GNB and bottom navigation. Intro layout reserves measured bottom-nav height and gives remaining flex space to a full-width portrait. Photo tap opens chat while keeping navigation; local390x720 actual Codex browser verified.

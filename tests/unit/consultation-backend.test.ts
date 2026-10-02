@@ -376,5 +376,8 @@ it('Live endpoints authenticate, rate-limit mint failures durably, and save text
     assert.equal(first.saved, true); assert.equal(first.access.freeRemaining, 4)
     assert.equal(replay.access.freeRemaining, 4); assert.equal(speech, 0)
     assert.deepEqual(first.history.map((turn: any) => turn.role), ['user', 'assistant'])
+    const typed = await (await post('/chat', true, { text: '글로 이어서 질문', requestId: randomUUID() })).json()
+    assert.equal(typed.saved, true); assert.equal(typed.access.freeRemaining, 3)
+    assert.equal(typed.audioError, undefined); assert.equal(speech, 0)
   } finally { if (priorKey !== undefined) process.env.GEMINI_API_KEY = priorKey; await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())) }
 })
