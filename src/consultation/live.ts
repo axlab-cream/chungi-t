@@ -1,12 +1,14 @@
 import { ConsultationError } from './provider.js'
+import { CONSULTATION_LIVE_VOICES, DEFAULT_CONSULTATION_SETTINGS } from './settings.js'
 
 /** Permanent credentials never cross the authenticated server boundary. */
-export async function createLiveToken() {
+export async function createLiveToken(voiceName: string = DEFAULT_CONSULTATION_SETTINGS.liveVoiceName) {
   const key = process.env.GEMINI_API_KEY
   const model = process.env.GEMINI_LIVE_MODEL || 'gemini-3.8-live'
   if (!key || !/^[a-zA-Z0-9._-]+$/.test(model)) throw new ConsultationError('PROVIDER_UNAVAILABLE')
+  if (!(CONSULTATION_LIVE_VOICES as readonly string[]).includes(voiceName)) throw new ConsultationError('PROVIDER_UNAVAILABLE')
   const config = {
-    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } } } },
+    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } },
     inputAudioTranscription: {}, outputAudioTranscription: {},
     systemInstruction: { parts: [{ text: '당신은 운명상회 천명 선생의 한국어 음성 상담 진행자입니다. 처음에는 “자네, 오늘의 기운을 함께 살펴보세. 어떤 상담을 하고 싶은가?”라고 인사합니다. 사주 질문이나 상대 정보는 반드시 consult_saju 도구에 원문 그대로 전달합니다. 도구가 돌려준 text만 그대로 읽으며 독자적으로 사주를 해석하거나 정보를 추측하지 않습니다. 오류면 답변을 지어내지 말고 채팅창을 확인하도록 안내합니다. 궁합 상대의 생년월일·양음력·성별·시각은 채팅으로 입력하면 더 정확하다고 안내합니다. 이용 횟수·결제·저장 여부를 임의로 확정하지 않습니다.' }] },
     tools: [{ functionDeclarations: [{ name: 'consult_saju', description: '회원의 사주 질문과 상대 정보를 서버에서 해석하고 저장합니다. 매 상담 발화에 호출하세요.', parameters: { type: 'OBJECT', properties: { text: { type: 'STRING', description: '사용자가 실제 말한 질문 또는 상대 정보 원문' } }, required: ['text'] } }] }],

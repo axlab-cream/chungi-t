@@ -369,7 +369,7 @@ export function consultationRouter(options: Dependencies): Router {
       state.live = { day, count: live.count + 1, last: now }
     })
     if (!saved) throw new ConsultationError('STORAGE_UNAVAILABLE')
-    return createLiveToken()
+    return createLiveToken(settings.liveVoiceName)
   }))
   router.post('/live-turn', route((req, owner) => consultationChat(owner, req.body, { ...options, synthesize: undefined })))
   router.get('/conversations', route(async (_req, owner) => {

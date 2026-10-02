@@ -12,6 +12,15 @@ test('consultation defaults preserve the original character and voice', () => {
   assert.equal(normalizeConsultationSettings(DEFAULT_CONSULTATION_SETTINGS).voiceName, 'ko-KR-InJoonNeural')
   assert.equal(DEFAULT_CONSULTATION_SETTINGS.voiceRate, 0.95)
 })
+test('realtime voice defaults to Charon, survives older published settings and rejects unknown names', () => {
+  assert.equal(DEFAULT_CONSULTATION_SETTINGS.liveVoiceName, 'Charon')
+  const { liveVoiceName: _omitted, ...legacy } = DEFAULT_CONSULTATION_SETTINGS
+  assert.equal(normalizeConsultationSettings(legacy).liveVoiceName, 'Charon')
+  assert.equal(normalizeConsultationSettings({ ...DEFAULT_CONSULTATION_SETTINGS, liveVoiceName: 'Orus' }).liveVoiceName, 'Orus')
+  for (const liveVoiceName of ['--arbitrary-option', 'charon', '', 42]) {
+    assert.throws(() => normalizeConsultationSettings({ ...DEFAULT_CONSULTATION_SETTINGS, liveVoiceName }), /INVALID/)
+  }
+})
 test('only the published global consultation record controls runtime; drafts cannot enable it', () => {
   const disabled = { ...DEFAULT_CONSULTATION_SETTINGS, enabled: false }
   const result = resolveConsultationSettings(snapshot([version('draft'), version('published', disabled)]))
