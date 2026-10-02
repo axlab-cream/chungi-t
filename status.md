@@ -2770,3 +2770,6 @@ Production browser failure reproduced, context503 confirmed by CLI runtime logs.
 
 ### 2026-10-02 CONSULTATION-CONNECTION-02 applied / credential blocker
 User approved DB repair; both migrations applied and catalog verified. Production context restored (connected profile/free1). Runtime1fff961e safe diagnostics deployed/promoted dpl_GJ6Z5vGj6xepTaJCuL4ijgd6hWHy. Actual provider returns400 INVALID_ARGUMENT/API_KEY_INVALID; needs secure user replacement of GEMINI_API_KEY. No credit consumed by failed tests. Focused30/30 and build PASS. Real answer/vault/voice acceptance incomplete; no complete-service claim.
+
+### 2026-10-02 CONSULTATION-DESKTOP-FIT
+PC viewport sizing implemented and deployed6859b740/dpl_2dy2YzhrdWCsayoHwTtoGQvwDsid. Local720px and production884px browser confirm no page overflow/composer-nav overlap. Tests18/18/build PASS. docs/consultation-qa/desktop-fit.md; KMS saved/read. API key blocker independent. User original checkout preserved.
