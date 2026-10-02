@@ -98,3 +98,20 @@
  .consultation-page:not(.consultation-intro) .consultation-stage-copy{bottom:12px}
  .consultation-page:not(.consultation-intro) .consultation-stage-copy p{display:none}
 }
+
+/* Keep the opening greeting readable beside the PC composer at 720px height. */
+@media(min-width:768px){
+ .consultation-room{padding:12px 24px}
+ .consultation-room-heading .consultation-eyebrow{display:none}
+ .consultation-access{padding:6px 10px}
+ .consultation-log{min-height:112px;padding:8px 0}
+ .consultation-empty{min-height:0}
+ .consultation-empty>span{display:none}
+ .consultation-empty p{font-size:15px;line-height:1.5;margin:4px 0}
+ .consultation-empty small{font-size:11px;line-height:1.5}
+ .consultation-entry-guide{font-size:10px;line-height:1.6;padding:4px 8px;margin:4px 0}
+ .consultation-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;position:relative}
+ .consultation-input-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .consultation-composer textarea{height:48px;min-height:48px;max-height:48px}
+ .consultation-actions{align-items:center}
+}
