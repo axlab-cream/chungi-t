@@ -23,14 +23,14 @@ class Node {
 }
 function harness(options: { vault?: boolean; guest?: boolean; configError?: boolean; profile?: boolean; fetch?: Function; mic?: Function; access?: any; owner?: string; storage?: Map<string, string>; timeout?: Function; live?: Function } = {}) {
   const nodes = new Map<string, Node>()
-  const ids = ['#consultation-enter', '#consultation-waiting', '#consultation-waiting-copy', '#consultation-waiting-detail', '#consultation-paywall', '#consultation-paywall-dismiss', '#consultation-checkout', '#consultation-access', '#state', '#list', '#consultation-app', '#message', '#send-button', '#voice-button', '#consultation-gate', '#chat-log', '#consultation-status', '#reply-audio', '#consultation-form', '#character-image', '#character-state', '#character-introduction', '#consultation-title', '#profile-state', '#chat-empty', '.vault-tabs', '[data-tab-only="paid"]']
+  const ids = ['#voice-scene-button', '#voice-scene-status', '#voice-gate', '#voice-progress', '#consultation-mode-chat', '#consultation-mode-voice', '#consultation-enter', '#consultation-waiting', '#consultation-waiting-copy', '#consultation-waiting-detail', '#consultation-paywall', '#consultation-paywall-dismiss', '#consultation-checkout', '#consultation-access', '#state', '#list', '#consultation-app', '#message', '#send-button', '#voice-button', '#consultation-gate', '#chat-log', '#consultation-status', '#reply-audio', '#consultation-form', '#character-image', '#character-state', '#character-introduction', '#consultation-title', '#profile-state', '#chat-empty', '.vault-tabs', '[data-tab-only="paid"]']
   for (const id of ids) nodes.set(id, new Node())
   if (options.vault) nodes.set('#consultation-vault', new Node())
   const access = options.access === undefined ? { freeRemaining: 1, paidRemaining: 0, remaining: 1, packQuestions: 5, packAmount: 4900, checkoutUrl: '/payment?product=cheonmyeong_consultation' } : options.access
   const storage = options.storage || new Map<string, string>()
   const calls: { path: string; body?: any }[] = []; let authChange: Function = () => {}; let uuid = 0
   const ctx: any = {
-    document: { body: { classList: { remove: (value: string) => { ctx.removedClass = value } } }, hidden: false, querySelector: (id: string) => nodes.get(id), querySelectorAll: () => [], createElement: () => new Node(), addEventListener() {} },
+    document: { body: { dataset: {}, classList: { remove: (value: string) => { ctx.removedClass = value } } }, hidden: false, querySelector: (id: string) => nodes.get(id), querySelectorAll: () => [], createElement: () => new Node(), addEventListener() {} },
     fetch: async (path: string, init: any = {}) => {
       calls.push({ path, body: init.body ? JSON.parse(init.body) : undefined })
       if (path === '/api/auth/config') return { ok: !options.configError, json: async () => ({ enabled: true, url: 'auth.example', publishableKey: 'public' }) }
@@ -208,11 +208,11 @@ test('coupon balance joins free and paid access and permits sending; malformed c
   }
 })
 
-test('consultation uses the shared UMSH chrome and homepage company-policy footer', () => {
+test('consultation retains shared navigation but omits portrait copy and company footer', () => {
   const page = readFileSync(new URL('../../사주/consultation/index.html', import.meta.url), 'utf8')
-  const home = readFileSync(new URL('../../사주/portal.html', import.meta.url), 'utf8')
-  const footer = home.match(/<footer class="site-footer"[\s\S]*?<\/footer>/)![0]
-  assert.ok(page.replace(/\r\n/g, '\n').includes(footer.replace(/\r\n/g, '\n').replace('class="site-footer"', 'class="site-footer consultation-footer"')))
+  assert.doesNotMatch(page, /consultation-stage-copy|<footer class="site-footer|42세|당신의 이야기를 듣는 시간/)
+  assert.match(page, /id="consultation-mode-chat"/)
+  assert.match(page, /id="consultation-mode-voice"/)
   assert.match(page, /<main[^>]+class="consultation-layout"[^>]+data-umsh-chrome/)
   assert.match(page, /data-service="천명상담"/)
   assert.match(page, /src="\/js\/umsh-chrome\.js/)
@@ -247,4 +247,16 @@ test('PC voice input and spoken output render as safe text; stored answer uses G
   assert.equal(rows[1].children[1].textContent, '해석 답변')
   h.signout(); hooks.transcript('assistant', 'old private reply')
   assert.equal(h.nodes.get('#chat-log')!.children.length, 0)
+})
+
+
+test('chat and voice selectors change scenes without sending messages or opening microphone', async () => {
+ const h=harness();await tick()
+ h.nodes.get('#consultation-mode-voice')!.emit('click')
+ assert.equal(h.ctx.document.body.dataset.consultationMode,'voice')
+ assert.equal(h.nodes.get('#consultation-mode-voice')!.attrs['aria-pressed'],'true')
+ h.nodes.get('#consultation-mode-chat')!.emit('click')
+ assert.equal(h.ctx.document.body.dataset.consultationMode,'chat')
+ assert.equal(h.nodes.get('#consultation-mode-chat')!.attrs['aria-pressed'],'true')
+ assert.equal(h.calls.some(c=>/live-session|live-turn|\/chat$/.test(c.path)),false)
 })

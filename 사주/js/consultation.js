@@ -132,7 +132,8 @@
   if (!$('#consultation-app')) return;
   $('#consultation-enter')?.addEventListener('click', () => {
     document.body.classList.remove('consultation-intro');
-    $('#chat-log').focus({ preventScroll: true });
+    if (document.body.dataset.consultationMode === 'voice') void toggleVoice();
+    else $('#chat-log').focus({ preventScroll: true });
   });
   const input = $('#message'), send = $('#send-button'), voice = $('#voice-button'), gate = $('#consultation-gate');
   const chat = $('#chat-log'), status = $('#consultation-status'), audio = $('#reply-audio');
@@ -142,9 +143,22 @@
   let waitingTimer;
   let liveVoice = null, liveConnecting = false;
   const liveCaptions = { user: null, assistant: null };
+  function selectMode(mode, initial) {
+    if (!initial) liveVoice?.stop('상담 화면을 전환했어요.');
+    document.body.dataset.consultationMode = mode;
+    $('#consultation-mode-chat')?.setAttribute('aria-pressed', String(mode === 'chat'));
+    $('#consultation-mode-voice')?.setAttribute('aria-pressed', String(mode === 'voice'));
+    if (mode === 'chat') document.body.classList.remove('consultation-intro');
+    else if (window.matchMedia?.('(max-width:767px)').matches) document.body.classList.add('consultation-intro');
+  }
+  $('#consultation-mode-chat')?.addEventListener('click', () => selectMode('chat'));
+  $('#consultation-mode-voice')?.addEventListener('click', () => selectMode('voice'));
+  selectMode(window.matchMedia?.('(max-width:767px)').matches ? 'voice' : 'chat', true);
   function waiting(active, voiceTurn) {
     clearTimeout(waitingTimer);
     $('#consultation-waiting').hidden = !active;
+    if ($('#voice-progress')) $('#voice-progress').hidden = !active;
+    if (active && voiceTurn) notify('천명 선생이 상담 내용을 신중히 살펴보고 있어요.');
     if (!active) return;
     $('#consultation-waiting-copy').textContent = '천명 선생이 사주와 상담 내용을 신중히 살펴보고 있어요.';
     $('#consultation-waiting-detail').textContent = voiceTurn ? '음성을 보내고 답변을 기다리고 있어요.' : '답변을 기다리고 있어요.';
@@ -155,9 +169,9 @@
   function character(state) {
     const frames = { idle: '01-idle', listen: '02-listen', think: '03-think', talk: '04-talk', finish: '05-finish' };
     const labels = { idle: 'AI 사주 상담자 · 천명', listen: '듣고 있어요 · 실시간 음성 상담', think: '사주의 흐름을 살피고 있어요', talk: '천명이 이야기하고 있어요', finish: '이야기를 이어가 주세요' };
-    $('#character-image').src = '/assets/cheonmyeong-scenes/' + frames[state] + '.png'; $('#character-state').textContent = labels[state];
+    $('#character-image').src = '/assets/cheonmyeong-scenes/' + frames[state] + '.png'; if ($('#character-state')) $('#character-state').textContent = labels[state];
   }
-  function notify(text, error) { status.textContent = text; status.classList.toggle('is-error', Boolean(error)); }
+  function notify(text, error) { if ($('#voice-scene-status')) $('#voice-scene-status').textContent = text; status.textContent = text; status.classList.toggle('is-error', Boolean(error)); }
   function clearDraft() { try { sessionStorage.removeItem(draftKey); } catch (_) {} }
   function restoreDraft() {
     try {
@@ -205,6 +219,8 @@
     voice.disabled = !ready || (!liveVoice && busy);
     voice.textContent = liveVoice ? (liveConnecting ? '음성 연결 취소' : '실시간 음성 종료') : '◉ 음성으로 말하기';
     voice.setAttribute('aria-pressed', String(Boolean(liveVoice)));
+    const sceneVoice = $('#voice-scene-button');
+    if (sceneVoice) { sceneVoice.disabled = voice.disabled; sceneVoice.textContent = liveVoice ? voice.textContent : '음성 연결'; sceneVoice.setAttribute('aria-pressed', String(Boolean(liveVoice))); }
     $('#consultation-form').setAttribute('aria-busy', String(busy));
   }
   function showGate(error) {
@@ -215,6 +231,8 @@
     $('#consultation-access').textContent = login ? '로그인 후 질문 횟수를 확인할 수 있어요.' : missing ? '사주 정보 연결 후 질문 횟수를 확인할 수 있어요.' : '연결이 복구되면 질문 횟수를 다시 확인할게요.';
     stateContent(gate, login ? '회원님만의 상담을 시작해요' : missing ? '먼저 본인 사주를 연결해 주세요' : '상담 연결을 확인해 주세요', friendly(error), login ? loginUrl(location.pathname + location.search) : missing ? '/profile' : null, login ? '로그인하고 상담하기' : '사주 정보 입력하기');
     if (!login && !missing) { const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '다시 연결하기'; retry.onclick = initialize; gate.append(retry); }
+    const voiceGate = $('#voice-gate');
+    if (voiceGate) { voiceGate.hidden = false; stateContent(voiceGate, login ? '로그인이 필요해요' : missing ? '사주 정보를 연결해 주세요' : '연결을 확인해 주세요', friendly(error), login ? loginUrl(location.pathname + location.search) : missing ? '/profile' : null, login ? '로그인하기' : '사주 정보 입력하기'); if (!login && !missing) { const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '다시 연결하기'; retry.onclick = initialize; voiceGate.append(retry); } }
     $('#profile-state').textContent = missing ? '사주 미등록' : login ? '회원 전용' : '연결 확인 필요'; controls();
   }
   // Original AI Talk addBubble: all user/model text stays in textContent.
@@ -272,7 +290,7 @@
     void submit(pending);
   });
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) { event.preventDefault(); $('#consultation-form').requestSubmit(); } });
-  voice.addEventListener('click', async () => {
+  async function toggleVoice() {
     if (liveVoice) { liveVoice.stop(); return; }
     if (!ready || busy) return;
     if (access?.remaining === 0) { openPaywall(); return; }
@@ -314,7 +332,9 @@
       },
     });
     liveVoice = connection; controls(); await connection.start();
-  });
+  }
+  voice.addEventListener('click', () => { selectMode('voice'); void toggleVoice(); });
+  $('#voice-scene-button')?.addEventListener('click', toggleVoice);
   document.addEventListener('visibilitychange', () => { if (document.hidden) liveVoice?.stop('화면을 벗어나 음성 연결을 종료했어요.'); });
   window.addEventListener('pagehide', () => { sessionVersion++; liveVoice?.stop(); ready = false; waiting(false); stopAudio(); pending = null; });
   window.addEventListener('pageshow', (event) => { if (event.persisted) location.reload(); });
@@ -326,10 +346,10 @@
       if (!result.profile) throw Object.assign(new Error(), { code: 'PROFILE_REQUIRED' });
       if (result.settings?.enabled === false) throw Object.assign(new Error(), { code: 'CONSULTATION_DISABLED' });
       setAccess(result.access);
-      if (result.settings?.introduction) $('#character-introduction').textContent = result.settings.introduction;
-      if (result.settings?.name) $('#consultation-title').textContent = result.settings.name + '상담';
+      if (result.settings?.introduction && $('#character-introduction')) $('#character-introduction').textContent = result.settings.introduction;
+      if (result.settings?.name && $('#consultation-title')) $('#consultation-title').textContent = result.settings.name + '상담';
       if (conversationId) { const saved = await api('/conversations/' + encodeURIComponent(conversationId)); if (!Array.isArray(saved.history)) throw new Error('Invalid history'); renderHistory(saved.history); notify('저장된 상담을 불러왔어요. 이어서 이야기해 주세요.'); }
-      $('#profile-state').textContent = '본인 사주 연결됨'; gate.hidden = true; ready = true; controls();
+      $('#profile-state').textContent = '본인 사주 연결됨'; gate.hidden = true; if ($('#voice-gate')) $('#voice-gate').hidden = true; ready = true; controls();
       restoreDraft();
     } catch (error) { showGate(error); }
   }
