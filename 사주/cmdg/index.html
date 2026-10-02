@@ -6254,6 +6254,9 @@
       }
 
       function renderAuthProviderButton(providerName, className, label, helper, mark) {
+        // 네이버는 검수 전이라 서버가 꺼 두면 비활성 버튼도 남기지 않는다. 설정을 받기 전에도
+        // 그리지 않아야 켜져 있지 않은 버튼이 잠깐 보였다 사라지지 않는다.
+        if (providerName === "naver" && !authConfigData?.providers?.naver) return "";
         const isLoading = !authConfigData;
         const isConfigured = Boolean(authConfigData?.providers?.[providerName]);
         const isSigningIn = authSignInProvider === providerName;

@@ -310,6 +310,10 @@ const SUPABASE_GOOGLE_CLIENT_ID = process.env.SUPABASE_GOOGLE_CLIENT_ID?.trim() 
 const SUPABASE_GOOGLE_PROVIDER = envValue(process.env.SUPABASE_GOOGLE_PROVIDER, 'google')
 const SUPABASE_KAKAO_PROVIDER = envValue(process.env.SUPABASE_KAKAO_PROVIDER, 'kakao')
 const SUPABASE_NAVER_PROVIDER = envValue(process.env.SUPABASE_NAVER_PROVIDER, 'custom:naver')
+// Naver Login is still in development review: only accounts registered in the Naver
+// developer console can sign in, so other customers hit a dead end. Keep it hidden until
+// review passes, then set NAVER_LOGIN_ENABLED=true in the deployment environment.
+const NAVER_LOGIN_ENABLED = process.env.NAVER_LOGIN_ENABLED?.trim() === 'true'
 const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
@@ -1337,7 +1341,7 @@ function authConfig() {
     providers: {
       google: SUPABASE_GOOGLE_PROVIDER,
       kakao: SUPABASE_KAKAO_PROVIDER,
-      naver: SUPABASE_NAVER_PROVIDER,
+      naver: NAVER_LOGIN_ENABLED ? SUPABASE_NAVER_PROVIDER : '',
     },
   }
 }
