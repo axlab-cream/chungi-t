@@ -205,7 +205,8 @@
     ready = false; gate.hidden = false;
     const missing = /PROFILE/.test(error.code || '');
     const login = error.code === 'AUTH_REQUIRED';
-    if (login) $('#consultation-access').textContent = '로그인 후 질문 횟수를 확인할 수 있어요.';
+    access = null;
+    $('#consultation-access').textContent = login ? '로그인 후 질문 횟수를 확인할 수 있어요.' : missing ? '사주 정보 연결 후 질문 횟수를 확인할 수 있어요.' : '연결이 복구되면 질문 횟수를 다시 확인할게요.';
     stateContent(gate, login ? '회원님만의 상담을 시작해요' : missing ? '먼저 본인 사주를 연결해 주세요' : '상담 연결을 확인해 주세요', friendly(error), login ? loginUrl(location.pathname + location.search) : missing ? '/profile' : null, login ? '로그인하고 상담하기' : '사주 정보 입력하기');
     if (!login && !missing) { const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '다시 연결하기'; retry.onclick = initialize; gate.append(retry); }
     $('#profile-state').textContent = missing ? '사주 미등록' : login ? '회원 전용' : '연결 확인 필요'; controls();

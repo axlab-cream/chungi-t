@@ -805,3 +805,6 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 
 ## 2026-10-02 CONSULTATION-COUPON-RELEASE
 사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.
+
+## 2026-10-02 QA-2PASS
+사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.

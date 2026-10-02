@@ -3509,9 +3509,9 @@ app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff }))
 app.use('/api/coupons', couponRouter({
   authenticate: requireSupabaseUser,
   staff: requireStaff,
-  reportProduct: async (owner, reportId) => {
+  resolveReport: async (owner, reportId) => {
     const report = await findReportRecord(reportId, owner)
-    return report && !isConsultationRecord(report) ? productKeyForContext(report.context) : null
+    return report && !isConsultationRecord(report) ? {productKey: productKeyForContext(report.context), reportId: report.reportId} : null
   },
   queueReport: queueReportCompletionAfterPayment,
   available: async key => { const product = getPaymentProduct(key); return !!product && !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key) && await isServiceSaleAvailable(product.key) },

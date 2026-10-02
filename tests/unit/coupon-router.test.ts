@@ -11,7 +11,7 @@ test('admin issuance → own MY claim → report use is authenticated, idempoten
   const deps = {
     authenticate: async (req: express.Request,res:express.Response) => { const id=req.header('x-member'); if (!id) {res.sendStatus(401);return null} return {id} },
     staff: async (req:express.Request,res:express.Response,scope:string) => { if(req.header('x-scope')!==scope) {res.sendStatus(403);return null} return {email:'operator@example.invalid'} },
-    reportProduct: async (owner:{id:string},id:string) => id === `${owner.id}-report` ? 'cmdg' : null,
+    resolveReport: async (owner:{id:string},id:string) => id === `${owner.id}-report` ? {productKey:'cmdg', reportId:id} : null,
     queueReport: (id:string) => {queued.push(id)}, available: async () => true,
     couponUsage: async () => ({}),
   }

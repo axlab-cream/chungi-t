@@ -261,6 +261,25 @@ describe('saved chat HTTP auth, persistence, parent entitlement and retry routes
     assert.ok(await store.findReportRecord(reportId, owner))
   })
 
+  it('binds a free coupon opened by public result ID to the canonical report ID', async () => {
+    const coupons = await import('../../src/coupons/store.js')
+    const source = await store.findReportRecord(parentReportId, owner)
+    assert.ok(source)
+    const created = await store.createOrGetReportRecord({ reportId: randomUUID(), birth: {...birth, day: 12}, context: source.context, templateReport: source.report, owner })
+    const saved = created.record
+    await coupons.createCampaign({code:'QA_ALIAS1',title:'격리된 쿠폰 QA',kind:'service_free',productKey:'work_job',value:1,maxClaims:1,startsAt:'2020-01-01T00:00:00Z',expiresAt:'2099-01-01T00:00:00Z'},'qa@example.invalid','qa-alias-1')
+    const coupon = await coupons.claimCoupon(owner.id,'QA_ALIAS1')
+    const used = await request('/api/coupons/use',{couponId:coupon.id,reportId:saved.resultId})
+    assert.equal(used.response.status,200,used.text)
+    assert.equal(used.payload.item.reportId,saved.reportId)
+    assert.equal(await coupons.hasCouponReportAccess(owner.id,'work_job',saved.reportId),true)
+    assert.equal((await request('/api/coupons/use',{couponId:coupon.id,reportId:saved.reportId})).response.status,200)
+    const vault = await request('/api/user/reports')
+    assert.ok(vault.payload.reports.some((row: {reportId: string}) => row.reportId === saved.reportId))
+    assert.doesNotMatch(vault.text,/mock-api-token-a|generationLease|\"attempts\"/)
+    await store.deleteReportRecord(saved.reportId,owner)
+  })
+
   it('requires the exact parent entitlement and routes failed chat-section retry through the chat generator', async () => {
     const childBody = { parentReportId: parentResultId, requestId: parentRequestId, message: '저장된 업무 조건을 어떻게 유지하면 좋을까요?' }
     const unpaid = await request('/api/chat', childBody)

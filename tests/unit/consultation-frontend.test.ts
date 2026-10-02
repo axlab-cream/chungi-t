@@ -75,6 +75,7 @@ test('member, missing profile and authentication configuration failures are dist
   for (const [opts, label] of [[{ guest: true }, '회원 전용'], [{ profile: false }, '사주 미등록'], [{ configError: true }, '연결 확인 필요']] as const) {
     const h = harness(opts); await tick()
     assert.equal(h.nodes.get('#profile-state')!.textContent, label)
+    assert.match(h.nodes.get('#consultation-access')!.textContent, /로그인 후|사주 정보 연결 후|연결이 복구되면/)
     assert.equal(h.nodes.get('#send-button')!.disabled, true)
     assert.equal(h.calls.some(c => c.path.endsWith('/chat')), false)
   }

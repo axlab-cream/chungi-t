@@ -8,7 +8,7 @@ import { listWallet, claimCoupon, bindFreeCoupon, listCampaigns, createCampaign,
 type Dependencies = {
   authenticate(req: Request, res: Response): Promise<ReportOwner | null | undefined>
   staff(req: Request, res: Response, scope: string): Promise<{email: string} | null | undefined>
-  reportProduct(owner: ReportOwner, reportId: string): Promise<string | null>
+  resolveReport(owner: ReportOwner, reportId: string): Promise<{productKey: string; reportId: string} | null>
   queueReport(reportId: string): void
   available(productKey: string): Promise<boolean>
   couponUsage(owner: ReportOwner): Promise<Record<string, number>>
@@ -62,10 +62,12 @@ export function couponRouter(deps: Dependencies): Router {
   router.post('/use', async (req,res) => {
     const owner = await deps.authenticate(req,res); if (!owner) return
     try {
-      const reportId = text(req.body?.reportId)
-      if (!reportId || reportId.length > 200) throw new CouponError('COUPON_REPORT_REQUIRED',400)
-      const productKey = await deps.reportProduct(owner,reportId)
-      if (!productKey || productKey === 'cheonmyeong_consultation') throw new CouponError('COUPON_REPORT_REQUIRED',400)
+      const requestedId = text(req.body?.reportId)
+      if (!requestedId || requestedId.length > 200) throw new CouponError('COUPON_REPORT_REQUIRED',400)
+      const report = await deps.resolveReport(owner,requestedId)
+      const productKey = report?.productKey
+      const reportId = report?.reportId
+      if (!reportId || !productKey || productKey === 'cheonmyeong_consultation') throw new CouponError('COUPON_REPORT_REQUIRED',400)
       if (!await deps.available(productKey)) throw new CouponError('COUPON_SALE_PAUSED',409)
       const item = await bindFreeCoupon(owner.id,text(req.body?.couponId),productKey,reportId)
       deps.queueReport(reportId)

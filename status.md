@@ -2749,3 +2749,7 @@ GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 
 ## Production verification
 Runtime commit 72eb473c, branch codex/consultation-coupon-release-20261002 pushed. Vercel dpl_aYk5t7xkjYG2J1pdnPfyEzMDxLjc Ready and promoted to umsh.kr; URL chungi-lmpm6pg2e-ax-lab-cream.vercel.app. Node8.41MB/Python9.92MB. Homepage, consultation, coupons, MY, vault and both admin pages200; health200; member/admin coupon APIs401 without auth; unsigned voice401; consultation context503 setup-required. Deployed consultation/coupons JS exactly matches commit. Browser confirmed GNB, five-menu navigation, company/footer and setup gate. Screenshot docs/consultation-qa/production-20261002.png.
 DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION_VOICE_SECRET absent from production env inventory. Actual consultation, coupon issuance/use and real payment NOT_RUN. Code/UI deployment complete; business service activation remains blocked. No main merge or source-workspace staged changes altered.
+
+## 2026-10-02 QA-2PASS
+사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
+- QA-2PASS-01 feedback complete: coupon canonical binding and failed setup balance status corrected. 1840/1840 fresh-process full checks passed; pending independent review/deployment verification. H2 DB migrations remain unexecuted.

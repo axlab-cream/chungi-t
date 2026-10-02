@@ -285,7 +285,7 @@
       // Use only the existing validated local return path; preserve report binding.
       const target = new URL(payload.returnTo || '/',global.location.origin);
       if (target.origin !== global.location.origin) throw new Error('복귀 주소를 확인해 주세요.');
-      target.searchParams.set('reportId',reportId);
+      target.searchParams.set('reportId',payload.reportId || reportId);
       global.location.assign(target.pathname + target.search + target.hash);
     } catch (error) { setStatus(error.message); }
     finally { freeCouponButton.disabled = false; }
