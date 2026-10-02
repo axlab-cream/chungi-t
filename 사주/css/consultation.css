@@ -16,13 +16,13 @@
 /* Both slides share one grid cell, so hidden slides reserve the same height. */
 .consultation-rail{position:relative;container-type:inline-size}
 .consultation-rail-slides{display:grid;position:relative}
-.consultation-rail-slides>[data-rail-slide]{grid-area:1/1;display:grid;grid-template-rows:1fr 56px;min-width:0;border:1px solid #695630;border-radius:18px;overflow:hidden;background:#14130f;color:#f6f0e2;text-decoration:none}
+.consultation-rail-slides>[data-rail-slide]{grid-area:1/1;display:grid;grid-template-rows:1fr auto;min-width:0;border:1px solid #695630;border-radius:18px;overflow:hidden;background:#14130f;color:#f6f0e2;text-decoration:none}
 .consultation-rail-slides>[data-rail-slide][hidden]{display:grid!important;visibility:hidden;pointer-events:none}
 .consultation-rail-slides>.weekly-free-card>img{width:100%;height:100%;min-height:0;aspect-ratio:1200/630;object-fit:contain}
-.consultation-rail .weekly-free-caption{box-sizing:border-box;min-width:0;padding:12px 14px;gap:8px;align-items:center}
+.consultation-rail .weekly-free-caption{min-height:64px;box-sizing:border-box;min-width:0;padding:12px 14px;gap:8px;align-items:center}
 .consultation-rail .weekly-free-caption strong{font-size:14px;line-height:1.4}
 .consultation-rail .weekly-free-caption>span{font-size:11px}
-.consultation-promo-visual{position:relative;aspect-ratio:1200/630;min-width:0;display:grid;align-items:center;isolation:isolate}
+.consultation-promo-visual{position:relative;min-height:calc((100cqw - 2px)*.525);min-width:0;display:grid;align-items:center;isolation:isolate}
 .consultation-promo-visual>img{position:absolute;right:0;top:0;width:62%;height:100%;object-fit:cover;object-position:50% 23%;z-index:-2}
 .consultation-promo-visual:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#090907 16%,#090907d9 39%,transparent 80%);z-index:-1}
 .consultation-promo-copy{box-sizing:border-box;position:relative;width:67%;padding:16px 0 16px 18px;overflow-wrap:anywhere}

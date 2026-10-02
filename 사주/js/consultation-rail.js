@@ -9,7 +9,7 @@
   function hideConsultation() { count = 1; render(0); rail.querySelector('.consultation-rail-controls').hidden = true; schedule(); }
   function render(next) {
     index = (next + count) % count;
-    slides.forEach((slide, i) => { slide.hidden = i !== index; });
+    slides.forEach((slide, i) => { slide.hidden = i !== index; slide.inert = i !== index; slide.setAttribute('aria-hidden', String(i !== index)); });
     dots.forEach((dot, i) => { dot.setAttribute('aria-current', String(i === index)); dot.hidden = i >= count; });
     rail.querySelector('[data-rail-position]').textContent = (index + 1) + ' / ' + count;
   }

@@ -45,3 +45,4 @@
 
 ## Home weekly carousel sizing — 2026-10-02
 Keep existing black/gold character identity: background #090907, surface #14130f, border #695630, accent #d9b868, text #f6f0e2. Serif heading, compact sans body/utility. Both slides use a shared grid footprint, 1200:630 visual and56px caption. Inactive slide reserves size with visibility:hidden and is not interactive. Copy flows normally rather than absolute centered clipping; long published text expands both cards equally. Check both slides at320/375/430 and desktop widths, focus/reduced motion unchanged.
+- Banner follow-up: caption is auto height with64px minimum; visual minimum height preserves1200:630 for normal text and grows for long copy. Both slides reserve identical total height. No ellipsis; inactive slide inert/aria-hidden.
