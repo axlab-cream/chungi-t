@@ -1340,3 +1340,6 @@ PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport width
 - Implementation: local energy gate + 600ms end-of-speech tail, audioStreamEnd, idle teardown with scene reason; defer greeting until microphone permission. Preserve saved transcript.
 - Verification: 86 consultation tests PASS; additional permission/late-track regression PASS; vercel-build PASS. Self-review completed; external Grok review remains unavailable from prior tool failure.
 - Limitation: already processed/in-flight audio or text can incur provider charges; this is not a provider billing guarantee. Local energy detection is not semantic speech recognition.
+
+## CONSULTATION-LIVE-03
+REST auth_tokens schema regression verifies bidiGenerateContentSetup/generationConfig, absent SDK liveConnectConstraints. 86/86 scoped tests pass after correction. Raw provider error messages and credentials never logged.
