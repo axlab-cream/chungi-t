@@ -42,3 +42,7 @@
 ## 경영진 마케팅 브리핑
 
 운영 관리자와 별도로, 경영진용 마케팅 슬라이드는 `design-system/pages/marketing-briefing.md`를 따른다. 흰색 편집형 캔버스와 짙은 남색 단일 강조색을 사용하고, 각 페이지는 결론 한 문장·근거 시각화·결정 요청 순서로 구성한다.
+
+## Home weekly carousel sizing — 2026-10-02
+Keep existing black/gold character identity: background #090907, surface #14130f, border #695630, accent #d9b868, text #f6f0e2. Serif heading, compact sans body/utility. Both slides use a shared grid footprint, 1200:630 visual and56px caption. Inactive slide reserves size with visibility:hidden and is not interactive. Copy flows normally rather than absolute centered clipping; long published text expands both cards equally. Check both slides at320/375/430 and desktop widths, focus/reduced motion unchanged.
+- Banner follow-up: caption is auto height with64px minimum; visual minimum height preserves1200:630 for normal text and grows for long copy. Both slides reserve identical total height. No ellipsis; inactive slide inert/aria-hidden.

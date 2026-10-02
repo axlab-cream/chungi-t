@@ -438,3 +438,9 @@ Render the completed isolated 20-section Wedding Day result through the real sav
 - 2026-09-30 후속: 장별 추가 상담 2회·이력/보관함·5.6 Luna·한국인 성인 스케치 구현 및 최종 검증. 요구/근거: docs/cmdg-personal-reading-20260930.md.
 
 GA-SIGNUP-04: 신규 Google/Kakao 가입 완료를 GA4 sign_up(method)로 측정. 기존 로그인/개인정보/QA 제외.
+
+## GA-FUNNEL-06 — 가입 퍼널 3개 이벤트 PR (2026-10-01)
+가입 모달 노출 → 소셜 클릭(method) → 검증된 신규 가입 완료를 측정한다. UI 변경 없이 GitHub PR로 전달하며 운영 반영·실제 GA 수신은 별도 검증한다.
+
+## 2026-10-02 CONSULTATION-COUPON-RELEASE
+사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.

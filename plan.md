@@ -786,3 +786,60 @@ LOVE-SPEED-01 scoped plan: backlog/love-speed-20260929.md.
 - S3: 기존 공용 태그 origin/QA/DNT/GPC 차단 유지. 측정 실패가 인증을 막지 않으며 이동 전 GA 콜백은 제한된 시간만 대기.
 - 순서: VM 실패 테스트 → 공용 GA API 및 실제 /signup,/cmdg 인증 경로 연결 → 테스트/빌드/리뷰 → KMS.
 - 배포 범위: 기존 운명상회 GA 보강·운영 반영 요청 범위 내 해당 수정만. 기존 데이터 소급 생성이나 테스트 회원 운영 생성 없음.
+
+## GA-FUNNEL-06 PRD / 단일 vertical slice (2026-10-01)
+- F1: 실제 가입 dialog를 DOM에 표시할 때 view_signup_wall. 설정 로드/오류 재렌더는 중복 제외, 닫고 다시 열면 새 노출.
+- F2: 카카오/네이버/구글 사용자 클릭 즉시 signup_click(method: kakao/naver/google). 로딩/미설정 버튼 클릭 포함. Google GIS iframe은 공식 click_listener 사용.
+- F3: 기존 인증 완료 hook을 유지하고 Naver custom provider도 지원. 서버 시각 이후 생성된 getUser 검증 계정만 sign_up(method), 로그인/갱신/실패/중복 제외.
+- 데이터: 기존 Auth 공개 config 및 검증 계정 생성 시각. 고객 식별자는 이벤트에 보내지 않는다. QA/local/DNT/GPC 제외 유지. DB/권한/소셜 설정 변경 없음.
+- 범위: 공용 GA JS, 실제 /signup 및 /cmdg 페이지, 회귀 테스트. SNS 결과/CTA UX는 제외. main 대신 codex/signup-funnel-events 브랜치 PR만 생성.
+- 완료 기준: 실제 함수 연결 VM 회귀, 신규/기존/실패/중복/세 provider, 빌드·타입 검증, diff 리뷰 및 KMS. 운영 GA 수신은 PR 검증 결과와 구별.
+- 참고: https://developers.google.com/identity/gsi/web/reference/js-reference#GsiButtonConfiguration (click_listener).
+- 분석: GA4 탐색에서 동일 사용자·동일 세션의 순차 퍼널을 사용한다. 반복 클릭/재노출이 있어 단순 이벤트 수 나눗셈은 고유 사용자 전환율이 아니다. sign_up은 신규가입이므로 기존회원 로그인 통과는 이 지표에 포함되지 않는다. 클릭 유실/추적거부 및 실제 OAuth 실패 원인 확정에는 추가 인증 오류 근거가 필요하다.
+- 배포 후 검증: 실제 신규 계정으로 각 provider 가입 시 DebugView의 view_signup_wall → signup_click(method) → sign_up(method) 순서 확인. 기존회원 로그인/취소에는 sign_up 없음 확인. 테스트 계정을 운영에 생성하지 않았으므로 현재 수신 상태 NOT_VERIFIED.
+
+## ADMIN-DATA-01
+- Plan: docs/admin-data-popup-repair-20261001.md
+- Existing content store and audited staff-scoped commands preserved; no schema change.
+- Production inspection read-only. Local synthetic DB adapter used for browser and HTTP lifecycle verification.
+
+## 2026-10-02 CONSULTATION-COUPON-RELEASE
+사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.
+
+## 2026-10-02 QA-2PASS
+사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
+
+## BANNER-FIT-01
+User outcome: same carousel card size for both slides, all title/body/CTA visible. Retain admin published copy and original images. Shared grid footprint + matching captions + container-scaled typography. Visual QA both slides/mobile and deployment verification required.
+
+### CONSULTATION-CONNECTION-02 follow-up
+Approved DB migrations applied and verified. Context now loads profile and free1. Actual non-social text question fails after persisted failed attempt. Add bounded, non-personal provider HTTP status/code and route error code diagnostics, test redaction and existing fail-closed behavior, deploy same branch, retry actual browser. Preserve original model and credentials; no speculative provider substitution. Acceptance: real reply saved, usage correct, vault reopening.
+
+## CONSULTATION-DESKTOP-FIT — 2026-10-02
+User outcome: PC consultation composer, heading and navigation fit viewport; long transcripts scroll internally. Preserve mobile, home banners, actual auth/provider error states. Remove720px stage and230px log minima only at desktop. Fit app and compact existing footer in viewport flex layout; retain room overflow fallback for zoom/very short screens. Verify720/900px desktop and mobile, long conversation and error/login gates. No provider credential or DB changes.
+
+## CONSULTATION-WELCOME-05 — accepted 2026-10-02
+Mobile opens portrait-only; accessible tap/Enter opens conversation with introductory text. Desktop retains viewport layout. Intro says 자네, 오늘의 기운을 함께 살펴보세. 어떤 상담을 하고 싶은가? and permanent precise text-entry guidance for partner details. Member lifetime5 free substantive successful answers (existing free usage counts toward5, no reset by session/login), then existing5/4900 pack. Greetings/clarifications/failures/replay uncharged. No auto microphone, no synthetic paid answer. Existing API_KEY_INVALID remains separate blocker. Test ledger5/legacy/replay and mobile entry/desktop greeting, then build and deploy.
+
+## CONSULTATION-LIVE-01 — Gemini text and live voice with PC transcripts
+- User result: PC shows typed input, voice transcription and spoken output as text; all substantive interpretations use the existing Gemini/RAG/owner ledger. Mobile portrait tap, greeting and five lifetime free questions are included.
+- Contract: authenticated POST /live-session mints one-use constrained 10-minute Google token (20/day, 15s interval, durable CAS); permanent key remains server-side. /live-turn calls the same authoritative save/credit path without Edge TTS. Live tool consult_saju requests server interpretation; ephemeral audio is not a second billing authority.
+- Failure: unauthorized/profile/disabled/no-credit fail closed; upstream errors sanitized; interruption stops queued audio; navigation/signout releases microphone; failed mint does not charge questions.
+- QA: 85 consultation tests PASS; frontend/transport follow-up23 PASS; build/typecheck PASS. Browser390px portrait/tap PASS; actual Google Live authentication, spoken output and barge-in await valid production key. Do not count mocks as real-provider success.
+- Deployment scope: these consultation files only, no DB migration. Rollback: chungi-3et21055m-ax-lab-cream.vercel.app (6859b740).
+
+## CONSULTATION-LIVE-02 — new-key verification and speech-path repair
+- Actual new deployment dpl_5JHZbk5aAwT69AYFxsEnpL4ixDqT generated a Gemini interpretation, saved it, and reduced free5→4. Prior API_KEY_INVALID is resolved with the user's new key/deploy. Do not continue diagnosing current credentials from old logs.
+- Reproduced remaining bug: successful text turn invokes legacy Edge TTS, causing an unnecessary audio-error notice. /chat now returns Gemini text without legacy synthesis; Live owns audio.
+- Live opens authenticated Google connection before requesting microphone, separating provider failure from browser permission wait. Permission wait is bounded45s and late streams stop after cancellation. Existing single-use token, memory and credit controls remain.
+- Acceptance: route test ensures no legacy speech or audioError; Live/frontend tests cover transcript and teardown. Production second interpretation, reload persistence and Google Live setup still to verify.
+- User correction: mobile entrance must retain shared GNB and bottom navigation. Intro layout reserves measured bottom-nav height and gives remaining flex space to a full-width portrait. Photo tap opens chat while keeping navigation; local390x720 actual Codex browser verified.
+
+## CONSULTATION-SCENES-01 — final user-directed scene separation
+- Remove portrait introduction/age/role copy and company/legal footer from consultation page only. Keep shared GNB and bottom menu.
+- Under GNB: 채팅 | 음성 selectors. PC defaults chat; mobile defaults portrait voice scene. Switching mode preserves saved/draft chat, stops active Live connection, and never starts microphone automatically.
+- Latest correction supersedes prior transcript-visible voice request: voice scene shows portrait and connection/status controls only. Chat log remains hidden there; switch to chat to read stored turns. Existing owner-only storage unchanged.
+- Browser local390px tested tabs, navigation and portrait click. Chat loading splash moved into visible room; voice uses non-transcript status/gauge.
+
+## CONSULTATION-IDLE-01
+User outcome: no abandoned Live session. Idle 10 seconds -> socket/mic closed -> chat. Keep answer playback intact. No schema/payment changes. Verify timer boundary, silence suppression, pending permissions, post-close calls, production UI. Rollback: prior e2e4a4e9 deployment.

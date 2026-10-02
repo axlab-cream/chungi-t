@@ -29,7 +29,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
-    <link rel="stylesheet" href="/css/payment.css?v=20260916-mobile" />
+    <link rel="stylesheet" href="/css/payment.css?v=20261002-coupons" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260916-mobile" />
     <style>
       /* 공용 하단 메뉴는 화면에 고정된다. 본문 아래에 그만큼 자리를 비워 두지 않으면
@@ -56,6 +56,10 @@
           <div class="payment-price"><span>결제금액</span><b data-product-price>-</b></div>
         </div>
         <form class="payment-form" id="payment-form">
+          <label class="payment-label">쿠폰 선택<select name="couponId" data-payment-coupon><option value="">쿠폰 없이 결제</option></select></label>
+          <p data-coupon-status role="status">MY 쿠폰함에 등록한 쿠폰을 사용할 수 있습니다.</p>
+          <a href="/coupons.html">쿠폰함 열기</a>
+          <button type="button" class="payment-submit" data-free-coupon hidden>무료 이용권으로 풀이 열기</button>
           <label class="payment-label">결제 안내 이메일<input type="email" name="buyerEmail" autocomplete="email" placeholder="you@example.com" required /></label>
           <label class="payment-label">휴대폰 번호<input type="tel" name="buyerTel" autocomplete="tel" inputmode="tel" placeholder="010-0000-0000" required /></label>
           <label class="payment-consent"><input type="checkbox" name="paymentConsent" required /><span><a href="/terms">이용약관</a>, <a href="/privacy">개인정보처리방침</a>, <a href="/refund">환불·취소 정책</a>을 확인했고 결제를 진행합니다.</span></label>
@@ -66,6 +70,6 @@
         <form id="SendPayForm" method="post" accept-charset="UTF-8" style="display:none"></form>
       </section>
     </main>
-    <script src="/js/payment.js?v=20260916-product-alias"></script>
+    <script src="/js/payment.js?v=20261002-coupons-qa2"></script>
   </body>
 </html>

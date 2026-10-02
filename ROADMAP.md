@@ -511,3 +511,13 @@ LOVE-SPEED-01 implementation/verification done; review and deployment IN_PROGRES
 GA-SIGNUP-04: 구현·집중36/36·빌드/타입·실제3경로 HTTP PASS. 전체 회귀·운영 확인 진행 중.
 
 GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dpl_DF8rZkkkEYK2UuCnFZrj7uHWoohT. umsh.kr health200·auth serverTime/no-store·가입3경로·GA JS 일치 PASS. 집중36/36, build/typecheck PASS; 전체1725/1726(기존 리포트 문구 검사1실패, 원격기준 동일). Grok 도구오류 BLOCKED/직접리뷰 완료. 실제 신규가입 GA 수신은 미검증. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회·검색 PASS.
+
+- 2026-10-01 GA-FUNNEL-06: 가입 퍼널 3개 이벤트 구현·집중48개/빌드 검증 완료, PR 준비.
+
+## ADMIN-DATA-01 — 관리자 조회 정합성 및 팝업 폼 (2026-10-01)
+- 사용자 결과: 필수 설명 자동 입력, 누락 안내, 저장·게시 성공 안내 유지, 팝업 전용 보관 이력, 조회 실패와 0건 구분, 내린 팝업의 기본값 재노출 방지.
+- 운영 메뉴 22개 읽기 점검: docs/admin-menu-audit-20261001.json. 정산은 결제 트랙 보류로 미구현이며 이번 범위에서 DB/결제 기능을 생성하지 않는다.
+- 격리된 실제 Express 경로 검증: 누락 422 → 저장/게시 202 → 공개 200 → 내리기 202 → 공개 204 → 보관 이력 유지.
+
+## 2026-10-02 CONSULTATION-COUPON-RELEASE
+사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.

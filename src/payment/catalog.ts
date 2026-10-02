@@ -1,4 +1,5 @@
 export type PaymentProductKey =
+  | 'cheonmyeong_consultation'
   | 'cmdg'
   | 'love_this_year'
   | 'home_pungsu'
@@ -29,6 +30,14 @@ export interface PaymentProduct {
 }
 
 const products: Record<PaymentProductKey, PaymentProduct> = {
+  cheonmyeong_consultation: {
+    key: 'cheonmyeong_consultation',
+    title: '천명상담 질문 5회',
+    eyebrow: '천명상담 · 질문권',
+    amount: 4900,
+    returnPath: '/consultation/',
+    summary: '텍스트·음성 상담 질문 5회. 답변이 저장되면 1회 사용하며, 정보 확인과 실패한 답변은 차감하지 않습니다.',
+  },
   cmdg: {
     key: 'cmdg',
     title: '천명사주',
@@ -232,6 +241,7 @@ export const PAYMENT_PRODUCT_ALIASES: Record<string, PaymentProductKey> = {
 }
 
 export const PAYMENT_PATH_PREFIXES: Array<[string, PaymentProductKey]> = [
+  ['/consultation', 'cheonmyeong_consultation'],
   ['/money/save', 'money_save'],
   ['/match/couple', 'match_couple'],
   ['/match/marry', 'marry_match'],

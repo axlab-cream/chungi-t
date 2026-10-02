@@ -217,7 +217,7 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
   const app = source.slice(start, source.indexOf('app.get(', start + 1))
   assert.ok(app.length > 0 && app.length < 4000, '핸들러 구간을 잘못 잘랐다')
   assert.ok(/listReportRecords\(owner, 100, \{ light: true, includeAnalysis: !slim \}\)/.test(app), '요청한 수만큼만 읽으면 걸러진 만큼 목록이 짧아진다 / 목록은 본문 없는 경량 행을 읽는다')
-  assert.ok(/selectPurchasedReadings\(records, orders\)/.test(app), '일반 계정은 구매 목록을 쓴다')
+  assert.ok(/selectPurchasedReadings\(records, orders, coupons\)/.test(app), '일반 계정은 구매 목록을 쓴다')
   assert.ok(/selectAdminVaultReadings\(records, orders\)/.test(app), '관리자 우회가 없다')
   assert.ok(/isAdminOwner\(owner\)/.test(app), '관리자 판정이 핸들러에 없다')
   assert.ok(
@@ -225,7 +225,7 @@ test('9. 라우트는 거른 뒤 자르고, 주문 조회가 죽으면 목록을
     '거르기 전에 자르고 있다',
   )
   // 구간 측정(.then) 이 끼어도 실패는 null 로 구분되어야 한다.
-  assert.ok(/listPaymentOrders\(owner\.id, 100\)[\s\S]{0,200}?\.catch\(\(\) => null\)/.test(app), '주문 조회 실패를 구분하지 않는다')
+  assert.ok(/listPaymentOrders\(owner\.id, 100, undefined, true\)[\s\S]{0,200}?\.catch\(\(\) => null\)/.test(app), '주문 조회 실패를 구분하지 않는다')
   assert.ok(
     /purchasedOnly: false,\r?\n\s*reports: records\.filter\(isCustomerFacingReport\)\.map\(\(record\) => historyEntryFromRecord\(record, \{ slim \}\)\)\.slice\(0, limit\)/.test(app),
     '주문 조회가 죽으면 보관함이 빈다',

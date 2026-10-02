@@ -141,7 +141,10 @@ after(async () => {
 
 describe('19개 상품의 소비자 6단계', { concurrency: false }, () => {
   it('카탈로그의 모든 상품이 이 점검표에 등록되어 있다', () => {
-    const products = listPaymentProducts().map(item => item.key)
+    const consultation = listPaymentProducts().find(item => item.key === 'cheonmyeong_consultation')
+    assert.equal(consultation?.returnPath, '/consultation/')
+    assert.equal(consultation?.amount, 4900)
+    const products = listPaymentProducts().filter(item => item.key !== 'cheonmyeong_consultation').map(item => item.key)
     assert.equal(products.length, 19, `카탈로그 상품 수가 ${products.length}개입니다. 점검표를 맞춰 주세요.`)
     for (const key of products) {
       assert.ok(ROUTES[key], `${key}: 6단계 점검표에 진입 경로와 생성 엔드포인트가 없습니다.`)

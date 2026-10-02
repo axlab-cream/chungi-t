@@ -17,7 +17,8 @@ import { test } from 'node:test'
  */
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
-const html = readFileSync(join(root, '사주', 'vault.html'), 'utf8')
+// Git checkouts may use CRLF on Windows; source contract checks use normalized lines.
+const html = readFileSync(join(root, '사주', 'vault.html'), 'utf8').replace(/\r\n/g, '\n')
 
 test('진행 숫자는 서버가 내려준 progress 만 쓴다', () => {
   assert.match(html, /report\.progress\?\.total/)

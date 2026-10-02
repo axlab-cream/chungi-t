@@ -1286,3 +1286,60 @@ GA-SIGNUP-04: node --import tsx --test tests/unit/analytics-signup.test.ts tests
 GA-SIGNUP-04 전체 회귀: 1725/1726 PASS. 유일 실패는 all-service-reading-template.test.ts:49의 기존 한국어 문구 기대값. 해당 테스트 blob9d44c28a 및 umsh-report-access.js blob52c3cf8a가 origin/main과 동일함을 확인(신규 GA 변경과 무관). 변경 범위는 집중36/36, 타입/빌드/HTTP PASS.
 
 GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dpl_DF8rZkkkEYK2UuCnFZrj7uHWoohT. umsh.kr health200·auth serverTime/no-store·가입3경로·GA JS 일치 PASS. 집중36/36, build/typecheck PASS; 전체1725/1726(기존 리포트 문구 검사1실패, 원격기준 동일). Grok 도구오류 BLOCKED/직접리뷰 완료. 실제 신규가입 GA 수신은 미검증. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회·검색 PASS.
+
+GA-FUNNEL-06: node --import tsx --test tests/unit/analytics-signup.test.ts tests/unit/analytics-tag.test.ts tests/unit/analytics-landing-redirect.test.ts tests/unit/google-auth.test.ts tests/unit/auth-live-session.test.ts — 48/48 PASS. 모달 재렌더/재진입, 3 provider의 정상·로딩·미설정 클릭, GIS click_listener, custom Naver 신규/기존/불일치 포함. npm run vercel-build (tsc 포함) PASS. 실제 외부 OAuth/GA 수신 NOT_VERIFIED. 전체 회귀는 이번 변경에서 재실행하지 않음(기존 GA-SIGNUP-04의 무관한 리포트 문구 실패 기록 참고).
+
+GA-FUNNEL-06 후속: GitHub 전체1732개 중 기존 문구 검사1실패를 실제 나이/시작연도 렌더링 계약으로 교정. 테스트 삭제/skip 없이 제품 코드 보존. 전체 CI 재실행 예정.
+
+## 2026-10-01 GA-FUNNEL-06 운영 배포 및 GA 수신
+- 사용자 운영 배포 요청에 따라 검증 코드 9a3805de를 Vercel Production에 직접 배포. PR #53은 rules §6의 PR 병합 제한에 따라 OPEN 유지.
+- 배포 dpl_3Qf6Vt94PPB9zbDpNkoYFhNwfMP9, https://chungi-67echpk12-ax-lab-cream.vercel.app → https://umsh.kr Ready.
+- health200, 운영 GA JS와 검증 원본 일치, 가입 페이지 버전 및 두 hook 확인 PASS.
+- GA4 속성553037209 실시간 보고서에서 view_signup_wall 1건 및 signup_click 1건, 클릭 상세 method=kakao 수신 확인 PASS. 운영 가입 화면을 직접 열고 카카오 버튼을 1회 클릭한 검증 트래픽이다. 카카오 계정 입력 화면까지 이동 확인, 로그인/동의는 수행하지 않음.
+- sign_up 실제 수신: PENDING_USER. 미가입 소셜 계정으로 사용자 직접 가입이 필요. 합성 가입 이벤트를 보내거나 기존 로그인을 신규가입으로 세지 않음.
+- 이전 운영 배포 chungi-fp1rr4ek8-ax-lab-cream.vercel.app을 복구 기준으로 기록. CI 전체1732/1732 및 서비스/SEO/QA/빌드 PASS 유지.
+
+## 2026-10-01 실제 신규 가입 최종 확인
+사용자 재검증 후 Auth에서 이번 시점의 Google 신규 계정 생성 확인. GA4 속성553037209 실시간 보고서 sign_up 1건, 상세 method=google 1건 확인 PASS. 기존에 확인한 view_signup_wall 및 signup_click(method=kakao)와 함께 세 이벤트 실제 수신 검증 완료. Google 실제 신규가입 완료 기준이며 Kakao/Naver 신규가입 완료의 개별 E2E는 미실행. 합성 이벤트 전송 없음. 개인정보/계정 식별자는 기록하지 않음.
+
+## ADMIN-DATA-01 — 2026-10-01
+- Regression tests: tests/unit/admin-popup-repair.test.ts and tests/unit/content-store.test.ts.
+- Failed-before/pass-after: default body mapping, 422 error map, archived history.
+- Verified real Express routes against isolated synthetic PostgREST: invalid payload 422, create/publish 202, public 200, archive 202, public 204, archived history retained.
+- Browser: default description visible; save/publish success persists; invalid blank description blocked; unavailable clicks show 집계 불가; archive history shows 보관됨.
+- Screenshot: docs/admin-popup-local-verified-20261001.png (local synthetic environment, not production).
+- Production read-only audit: docs/admin-menu-audit-20261001.json; all 22 menus covered. Reconciliation is deferred payment functionality, not a failed lookup.
+
+### Final focused verification
+- Client popup asset query bumped to 20261001-admin-popup to avoid reuse of cached fallback behavior.
+- Final focused suite: 45/45 PASS; fresh vercel-build/typecheck/SEO PASS.
+
+### Post-review verification
+- Final focused set after all review changes: 46/46 PASS (admin-popup-repair, content-store, signup-benefit-popup, admin-workspace-data-routes).
+- Fresh vercel-build/typecheck/SEO PASS. The 1736/1736 full run was before the small review follow-up, followed by focused coverage for affected files.
+
+## 2026-10-02 CONSULTATION-COUPON-RELEASE
+사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.
+
+## Production verification
+Runtime commit 72eb473c, branch codex/consultation-coupon-release-20261002 pushed. Vercel dpl_aYk5t7xkjYG2J1pdnPfyEzMDxLjc Ready and promoted to umsh.kr; URL chungi-lmpm6pg2e-ax-lab-cream.vercel.app. Node8.41MB/Python9.92MB. Homepage, consultation, coupons, MY, vault and both admin pages200; health200; member/admin coupon APIs401 without auth; unsigned voice401; consultation context503 setup-required. Deployed consultation/coupons JS exactly matches commit. Browser confirmed GNB, five-menu navigation, company/footer and setup gate. Screenshot docs/consultation-qa/production-20261002.png.
+DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION_VOICE_SECRET absent from production env inventory. Actual consultation, coupon issuance/use and real payment NOT_RUN. Code/UI deployment complete; business service activation remains blocked. No main merge or source-workspace staged changes altered.
+
+## 2026-10-02 QA-2PASS
+사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
+- QA-2PASS-01: pass 1 reproduced public-result coupon alias binding defect; canonical ID fix + fixture isolation + setup status correction. Pass 2 full suite 1840/1840 and final focused26/26; build/typecheck PASS. Production activation still gated by DB/config.
+- Final review follow-up45/45 PASS; production15/15 HTTP/hash/security checks PASS. Desktop/mobile observed. Setup gate explicitly not live-service activation.
+
+### BANNER-FIT-01 final QA (2026-10-02)
+PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport widths320-1440 equal cards and full text;100-character title/300-character body grows both cards without clipping. Production d7a0d72c CSS hash matches; actual DOM cards390x269.6875. See docs/consultation-qa/banner-fit.md and banner-production-final.png.
+
+- CONSULTATION-LIVE-01: consultation suite85/85 PASS, frontend+Live transport follow-up23/23 PASS, vercel-build/typecheck PASS. Mocked token/API coverage is distinct from actual Google response. Local390px mobile portrait/tap verified through Codex browser.
+
+## CONSULTATION-IDLE-01 (2026-10-02)
+- Requirement: 10 seconds without voice activity closes microphone/socket and returns to chat. Model response/playback is excluded; response stall bounded at 120 seconds. No automatic reconnect.
+- Implementation: local energy gate + 600ms end-of-speech tail, audioStreamEnd, idle teardown with scene reason; defer greeting until microphone permission. Preserve saved transcript.
+- Verification: 86 consultation tests PASS; additional permission/late-track regression PASS; vercel-build PASS. Self-review completed; external Grok review remains unavailable from prior tool failure.
+- Limitation: already processed/in-flight audio or text can incur provider charges; this is not a provider billing guarantee. Local energy detection is not semantic speech recognition.
+
+## CONSULTATION-LIVE-03
+REST auth_tokens schema regression verifies bidiGenerateContentSetup/generationConfig, absent SDK liveConnectConstraints. 86/86 scoped tests pass after correction. Raw provider error messages and credentials never logged.

@@ -312,6 +312,7 @@
         padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
       }
     </style>
+  <link rel="stylesheet" href="/css/consultation.css?v=20261002" />
   </head>
   <body>
     <main class="phone" data-umsh-chrome data-service="보관함" data-active="vault">
@@ -363,11 +364,14 @@
         <span>최근 기록부터 보여드려요</span>
       </div>
       <section class="list" id="list" aria-label="보관된 풀이"></section>
-    </main>
+    <section id="consultation-vault" class="consultation-vault-state" aria-label="천명상담 대화록" hidden></section>
+</main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
+
+<script src="/js/consultation.js?v=20261002-qa2"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script>
       (() => {
@@ -724,6 +728,8 @@
               </div>
             `;
             const renderTab = (tab) => {
+              if (tab === 'consultation') return;
+              window.UMSHConsultationVault?.(false);
               tabs.querySelectorAll('[data-tab]').forEach((button) => {
                 button.setAttribute('aria-selected', button.dataset.tab === tab ? 'true' : 'false');
               });
@@ -749,7 +755,7 @@
               list.innerHTML = rows.map(cardMarkup).join('');
             };
             let currentTab = 'today';
-            const renderCurrent = (tab) => { currentTab = tab; renderTab(tab); };
+            const renderCurrent = (tab) => { currentTab = tab; renderTab(tab); window.UMSHConsultationVault?.(tab === 'history'); };
             tabs.addEventListener('click', (event) => {
               const button = event.target.closest('[data-tab]');
               if (button) renderCurrent(button.dataset.tab);
@@ -762,7 +768,7 @@
               calendarMonth = next.getMonth();
               renderTodayCalendar(reports.filter(isToday));
             });
-            renderCurrent(new URLSearchParams(location.search).get('tab') === 'history' ? 'history' : 'today');
+            renderCurrent(['history', 'consultation'].includes(new URLSearchParams(location.search).get('tab')) ? 'history' : 'today');
 
             /**
              * 관리자 삭제. 두 번 눌러야 지운다 — 첫 탭은 「정말 삭제?」로 바뀌고 3초 안에 다시

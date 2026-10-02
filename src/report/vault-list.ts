@@ -1,3 +1,4 @@
+import type { WalletCoupon } from '../coupons/contracts.js'
 import type { PaymentOrder } from '../payment/order-store.js'
 import { reportBirthKey, reportLineageId, reportProgressOf, type ReportRecord } from './report-store.js'
 
@@ -25,7 +26,7 @@ export interface VaultListing<T> {
 
 /** 저장된 상담 기록은 같은 표를 쓰지만 해석이 아니다. 보관함에 섞이면 안 된다. */
 function isReading(record: ReportRecord): boolean {
-  return !(record.context as { savedChat?: unknown } | undefined)?.savedChat
+  return record.context?.serviceKey !== 'cheonmyeong_consultation' && !(record.context as { savedChat?: unknown } | undefined)?.savedChat
 }
 
 function serviceKeyOf(record: ReportRecord): string {
@@ -101,6 +102,7 @@ function dedupeSameReading(listings: VaultListing<ReportRecord>[]): VaultListing
 export function selectPurchasedReadings(
   records: ReportRecord[],
   orders: PaymentOrder[],
+  coupons: WalletCoupon[] = [],
 ): VaultListing<ReportRecord>[] {
   const readings = records.filter(isReading)
   const purchasedAt = purchaseTimeByLineage(readings, orders)
@@ -112,7 +114,7 @@ export function selectPurchasedReadings(
       // 보관 시각으로 사용하고, 그 밖의 서비스는 종전대로 결제 주문이 있어야 남긴다.
       const at = isTodayReading(record)
         ? (record.createdAt || record.updatedAt)
-        : purchasedAt.get(reportLineageId(record))
+        : purchasedAt.get(reportLineageId(record)) ?? coupons.find(coupon => coupon.kind === 'service_free' && coupon.ownerId === record.owner?.id && coupon.productKey === serviceKeyOf(record) && coupon.reportId === record.reportId)?.claimedAt
       return at ? [{ record, purchasedAt: at }] : []
     })
     .sort((a, b) => (

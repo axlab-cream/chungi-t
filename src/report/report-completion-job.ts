@@ -1,3 +1,5 @@
+import type { WalletCoupon } from '../coupons/contracts.js'
+import { listCouponReportBindings } from '../coupons/store.js'
 import { closeOpsJobs, deleteOpsJobsForTargets, enqueueOpsJob, listOpsJobRefs, reviveOpsJobByKey, type EnqueueOpsJobResult, type OpsJobRef } from '../admin/ops-queue.js'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { countGenuineFailures, ensureReportLongform, preGenerateReport, providerOutageOf, sectionHitProviderOutage } from './report-queue.js'
@@ -379,6 +381,7 @@ export interface BackfillTarget {
 export function selectBackfillReports(
   candidates: IncompleteReportRef[],
   paid: Set<string> | null,
+  coupons: WalletCoupon[] = [],
 ): BackfillTarget[] {
   const byAge = (a: IncompleteReportRef, b: IncompleteReportRef) =>
     a.updatedAt.localeCompare(b.updatedAt) || a.reportId.localeCompare(b.reportId)
@@ -389,7 +392,8 @@ export function selectBackfillReports(
   const selected: Array<IncompleteReportRef & { paid: boolean }> = []
   const taken = new Set<string>()
   const isPaid = (ref: IncompleteReportRef) => (
-    paid.has(ref.reportId)
+    coupons.some(c => c.ownerId === ref.ownerId && c.kind === 'service_free' && c.productKey === ref.serviceKey && c.reportId === ref.reportId)
+    || paid.has(ref.reportId)
     || Boolean(ref.resultId && paid.has(ref.resultId))
     || Boolean(ref.publicId && paid.has(ref.publicId))
   )
@@ -547,7 +551,8 @@ export async function backfillReportCompletions(limit = 200): Promise<BackfillOu
 export async function maintainReportCompletionQueue(limit = 200): Promise<{ backfill: BackfillOutcome; sweep: SweepOutcome | null }> {
   const candidates = await listIncompleteReportRefs(limit)
   const paid = await cachedPaidReportIds()
-  const targets = selectBackfillReports(candidates, paid)
+  const coupons = await listCouponReportBindings().catch(() => [])
+  const targets = selectBackfillReports(candidates, paid, coupons)
 
   const backfill: BackfillOutcome = { scanned: candidates.length, queued: 0, requeued: 0, duplicate: 0, unavailable: 0 }
   for (const target of targets) {

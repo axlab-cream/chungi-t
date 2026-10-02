@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto'
 import { configuredEnv } from '../env/load.js'
 import { listAdminServiceDirectory } from '../server/service-directory.js'
-import { SIGNUP_POPUP_PLACEMENT, normalizeSignupPopupPayload, signupPopupIsActive, type ActiveSignupPopup } from '../marketing/signup-popup.js'
+import { DEFAULT_SIGNUP_POPUP, SIGNUP_POPUP_PLACEMENT, normalizeSignupPopupPayload, signupPopupIsActive, type ActiveSignupPopup } from '../marketing/signup-popup.js'
+import { CONSULTATION_PLACEMENT, normalizeConsultationContentPayload } from '../consultation/settings.js'
 
 /**
  * T24: 고객 화면 문안(안내·배너·FAQ·서비스 카드·랜딩 문구·약관 링크)의 편집·발행.
@@ -120,6 +121,10 @@ export function normalizeContentPayload(input: unknown): ContentPayload {
 }
 
 function normalizePayloadForPlacement(contentType: ContentType, placement: string, input: unknown, scheduledAt: string | null): ContentPayload {
+  if (placement === CONSULTATION_PLACEMENT) {
+    if (contentType !== 'notice' || scheduledAt) throw new Error('CONSULTATION_SETTINGS_INVALID')
+    return normalizeConsultationContentPayload(input)
+  }
   if (contentType === 'banner' && placement === SIGNUP_POPUP_PLACEMENT) return normalizeSignupPopupPayload(input, scheduledAt) as ContentPayload
   return normalizeContentPayload(input)
 }
@@ -183,19 +188,38 @@ async function readRows(url: URL): Promise<Row[]> {
   return await response.json() as Row[]
 }
 
-export async function getAdminContentSnapshot(limit = 200): Promise<AdminContentSnapshot> {
+export async function getAdminContentSnapshot(limit = 200, options: { includeArchived?: boolean; placement?: string } = {}): Promise<AdminContentSnapshot> {
   if (!contentStoreAvailable()) return { items: [], versionStore: 'unavailable', asOf: new Date().toISOString() }
   const url = tableUrl()
   url.searchParams.set('select', SELECT)
-  url.searchParams.set('state', 'in.(draft,published)')
+  url.searchParams.set('state', options.includeArchived ? 'in.(draft,published,archived)' : 'in.(draft,published)')
+  if (options.placement) url.searchParams.set('placement', `eq.${normalizePlacement(options.placement)}`)
   url.searchParams.set('order', 'updated_at.desc')
   url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 500)))
   const rows = await readRows(url)
   return { items: rows.map(fromRow), versionStore: 'ready', asOf: new Date().toISOString() }
 }
 
+/** Pin the published version independently: an arbitrarily long draft history cannot hide it. */
+export async function getConsultationContentSnapshot(): Promise<AdminContentSnapshot> {
+  if (!contentStoreAvailable()) return { items: [], versionStore: 'unavailable', asOf: new Date().toISOString() }
+  const readState = async (state: string, limit: number) => {
+    const url = tableUrl()
+    url.searchParams.set('select', SELECT)
+    url.searchParams.set('content_type', 'eq.notice')
+    url.searchParams.set('placement', `eq.${CONSULTATION_PLACEMENT}`)
+    url.searchParams.set('service_key', 'is.null')
+    url.searchParams.set('state', `eq.${state}`)
+    url.searchParams.set('order', 'updated_at.desc')
+    url.searchParams.set('limit', String(limit))
+    return (await readRows(url)).map(fromRow)
+  }
+  const [published, drafts, archived] = await Promise.all([readState('published', 2), readState('draft', 100), readState('archived', 1)])
+  return { items: [...published, ...drafts, ...archived], versionStore: 'ready', asOf: new Date().toISOString() }
+}
+
 /** 첫 페이지 공개 API가 쓰는 전용 게시본 조회. 예약 전·종료 후 팝업은 여기서 제외한다. */
-export async function getActiveSignupPopup(now = Date.now()): Promise<ActiveSignupPopup | null> {
+export async function getActiveSignupPopup(now = Date.now(), useDefaultWhenUnmanaged = false): Promise<ActiveSignupPopup | null> {
   if (!contentStoreAvailable()) return null
   const url = tableUrl()
   url.searchParams.set('select', SELECT)
@@ -206,6 +230,7 @@ export async function getActiveSignupPopup(now = Date.now()): Promise<ActiveSign
   url.searchParams.set('order', 'updated_at.desc')
   const rows = await readRows(url)
   for (const row of rows) {
+    if (row.state !== 'published') continue
     const version = fromRow(row)
     try {
       const payload = normalizeSignupPopupPayload(version.payload, version.scheduledAt)
@@ -215,7 +240,12 @@ export async function getActiveSignupPopup(now = Date.now()): Promise<ActiveSign
       // 운영자가 저장한 잘못된 과거 레코드는 공개 화면으로 내보내지 않는다.
     }
   }
-  return null
+  if (!useDefaultWhenUnmanaged || rows.length > 0) return null
+  url.searchParams.set('select', 'id')
+  url.searchParams.set('state', 'eq.archived')
+  url.searchParams.set('limit', '1')
+  if ((await readRows(url)).length > 0) return null
+  return signupPopupIsActive(DEFAULT_SIGNUP_POPUP, now) ? DEFAULT_SIGNUP_POPUP : null
 }
 
 export async function getContentVersion(id: string): Promise<ContentVersion | null> {
@@ -239,6 +269,7 @@ export async function createContentDraft(input: {
 }): Promise<ContentVersion> {
   if (!isContentType(input.contentType)) throw new Error('CONTENT_TYPE_INVALID')
   const placement = normalizePlacement(input.placement)
+  if (placement === CONSULTATION_PLACEMENT && normalizeServiceKey(input.serviceKey) !== null) throw new Error('CONSULTATION_SETTINGS_INVALID')
   const scheduledAt = normalizeScheduledAt(input.scheduledAt)
   const payload = normalizePayloadForPlacement(input.contentType, placement, input.payload, scheduledAt)
   const row = {
@@ -303,6 +334,10 @@ export async function publishContentVersion(input: { id: string; expectedRevisio
   if (target.state !== 'draft') throw new Error('CONTENT_NOT_DRAFT')
   if (target.revision !== input.expectedRevision) throw new Error('CONTENT_REVISION_CONFLICT')
   if (target.checksum !== input.checksum) throw new Error('CONTENT_CHECKSUM_MISMATCH')
+  if (target.placement === CONSULTATION_PLACEMENT) {
+    if (target.serviceKey !== null) throw new Error('CONSULTATION_SETTINGS_INVALID')
+    normalizePayloadForPlacement(target.contentType, target.placement, target.payload, target.scheduledAt)
+  }
   const now = new Date().toISOString()
 
   const archive = tableUrl()

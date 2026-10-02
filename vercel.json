@@ -1,15 +1,24 @@
 {
   "version": 2,
-  "git": { "deploymentEnabled": false },
-  "regions": ["icn1"],
+  "regions": [
+    "icn1"
+  ],
   "functions": {
+    "api/consultation-voice.py": {
+      "maxDuration": 60,
+      "includeFiles": "integrations/aitalk/**",
+      "excludeFiles": "{node_modules,public,사주,assets,data,tone-v2,docs,tests,CreamAI,design-*,admin-*,android,backlog,evals,mcp,ops,prompts,scripts,src,supabase,wiki,.github,.claude,.vercel-runtime,운명상회*}/**"
+    },
     "api/index.ts": {
       "maxDuration": 300,
       "includeFiles": "{admin-ui/**,data/**,prompts/**,.vercel-runtime/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/{PRD.md,PLAN.md,HANDOFF-PROMPT-20260912.md,report-budget.json}}"
     }
   },
   "crons": [
-    { "path": "/api/cron/ops", "schedule": "* * * * *" }
+    {
+      "path": "/api/cron/ops",
+      "schedule": "* * * * *"
+    }
   ],
   "routes": [
     {
@@ -19,5 +28,8 @@
       "src": "/(.*)",
       "dest": "/api/index?__umsh_path=$1"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": false
+  }
 }

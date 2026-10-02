@@ -1,0 +1,87 @@
+{
+  "at": "2026-10-02T00:10:45.877Z",
+  "base": "https://umsh.kr",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/consultation/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/coupons.html",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/my",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/vault?tab=history",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/ops/constellation-7f3c/coupons",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/ops/constellation-7f3c/popup",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "path": "/api/coupons",
+      "status": 401,
+      "pass": true
+    },
+    {
+      "path": "/api/admin/v1/coupons",
+      "status": 401,
+      "pass": true
+    },
+    {
+      "path": "/js/consultation.js",
+      "status": 200,
+      "sha256": "6df3108bb4e93c2a99330fc1940848bc1a602123a30146e356512fcd23f0cca9",
+      "pass": false
+    },
+    {
+      "path": "/js/coupons.js",
+      "status": 200,
+      "sha256": "64f1827133392ec77205518f5d30db7f96e31ae572b886a39817f2402ce9ff7e",
+      "pass": true
+    },
+    {
+      "path": "/js/payment.js",
+      "status": 200,
+      "sha256": "3b611f07027332a0e3f8022fd953ae6f7207cb47491563b6c464963d0853ecfc",
+      "pass": false
+    },
+    {
+      "path": "/api/consultation-voice",
+      "status": 401,
+      "pass": true
+    },
+    {
+      "path": "/api/consultation/context",
+      "status": 503,
+      "code": "CONSULTATION_SETUP_REQUIRED",
+      "pass": true,
+      "note": "Expected current setup gate; this is NOT proof of live consultation success."
+    }
+  ],
+  "pass": false
+}

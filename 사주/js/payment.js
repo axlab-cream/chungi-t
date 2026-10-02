@@ -120,8 +120,27 @@
     authClient = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
     const result = await authClient.auth.getSession();
     session = result.data.session;
+    clearOtherConsultationDraft(session?.user?.id);
     if (!session) openLogin();
-    authClient.auth.onAuthStateChange((_event, nextSession) => { session = nextSession; });
+    authClient.auth.onAuthStateChange((_event, nextSession) => {
+      const changed = session?.user?.id !== nextSession?.user?.id;
+      session = nextSession; clearOtherConsultationDraft(session?.user?.id);
+      if (changed) {
+        couponItems = [];
+        couponSelect?.replaceChildren(new Option('쿠폰 없이 결제', ''));
+        button.disabled = true;
+        if (freeCouponButton) freeCouponButton.hidden = true;
+        setStatus('로그인 계정이 변경되었습니다. 화면을 새로고침해 주세요.');
+      }
+    });
+  }
+
+  function clearOtherConsultationDraft(ownerId) {
+    try {
+      const key = 'umsh:consultation:checkout-draft:v1';
+      const draft = JSON.parse(global.sessionStorage.getItem(key) || 'null');
+      if (draft && (!ownerId || draft.ownerId !== ownerId)) global.sessionStorage.removeItem(key);
+    } catch (_error) { /* Disabled storage cannot retain a readable draft. */ }
   }
 
   function fillInicisForm(fields) {
@@ -145,6 +164,9 @@
   async function startPayment(event) {
     event.preventDefault();
     if (!form.reportValidity() || !paymentConfig?.checkoutEnabled || !product || !session) return;
+    const selectedCoupon = couponItems.find(item => item.id === couponSelect?.value);
+    if (selectedCoupon?.kind === 'service_free') { setStatus('무료 이용권으로 풀이 열기 버튼을 눌러 주세요.'); return; }
+    const paymentOwnerId = session.user.id;
     const testPopup = paymentConfig.testMode ? openTestPopup() : null;
     if (paymentConfig.testMode && !testPopup) {
       setStatus('브라우저에서 팝업을 허용한 뒤 다시 시도해 주세요.');
@@ -158,6 +180,8 @@
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           productKey: product.key,
+          couponId: couponSelect?.value || undefined,
+          billingProvider: global.UMSHAppBilling?.isAvailable() ? 'google_play' : 'web',
           reportId,
           buyerEmail: form.buyerEmail.value.trim(),
           buyerTel: form.buyerTel.value.trim(),
@@ -165,6 +189,7 @@
         }),
       });
       const payload = await response.json().catch(() => ({}));
+      if (session?.user?.id !== paymentOwnerId) { testPopup?.close(); throw new Error('로그인 계정이 변경되었습니다. 화면을 새로고침해 주세요.'); }
       if (!response.ok) throw Object.assign(new Error(payload.error || '결제 주문을 만들지 못했습니다.'), { code: payload.code });
       if (paymentConfig.testMode) {
         testPopup.location.replace(`/payment/test?orderId=${encodeURIComponent(payload.order.orderId)}`);
@@ -200,9 +225,71 @@
       global.INIStdPay.pay(sendForm);
     } catch (error) {
       setStatus(error.code === 'PROFILE_REQUIRED' ? '결제 전에 사주 프로필을 먼저 등록해 주세요.' : error.message);
-      button.disabled = false;
+      button.disabled = session?.user?.id !== paymentOwnerId;
     }
   }
+
+  const couponSelect = document.querySelector('[data-payment-coupon]');
+  const couponStatus = document.querySelector('[data-coupon-status]');
+  const freeCouponButton = document.querySelector('[data-free-coupon]');
+  let couponItems = [];
+  function showCouponPrice() {
+    const item = couponItems.find(coupon => coupon.id === couponSelect?.value);
+    let amount = product.amount;
+    if (item?.kind === 'service_free') amount = 0;
+    if (item?.kind === 'amount_off') amount = Math.max(1, amount - item.value);
+    if (item?.kind === 'percent_off') amount = Math.max(1, amount - Math.floor(amount * item.value / 100));
+    document.querySelector('[data-product-price]').textContent = `${amount.toLocaleString('ko-KR')}원`;
+    freeCouponButton.hidden = item?.kind !== 'service_free';
+    button.hidden = item?.kind === 'service_free';
+    if (couponStatus) couponStatus.textContent = item?.kind === 'service_free'
+      ? '현재 입력한 풀이 1건에 사용됩니다. 사용 후 같은 풀이를 다시 열 수 있습니다.'
+      : item ? '결제 주문에 쿠폰을 적용합니다. 결제 실패로 주문이 종료되면 고객센터에서 재발급을 요청해 주세요.' : 'MY 쿠폰함에 등록한 쿠폰을 선택하세요.';
+  }
+  async function loadCoupons() {
+    if (!couponSelect || !session) return;
+    const ownerId = session.user.id;
+    couponItems = []; couponSelect.replaceChildren(new Option('쿠폰 없이 결제', ''));
+    try {
+      const response = await fetch('/api/coupons', {headers:authHeaders(),cache:'no-store'});
+      const payload = await response.json();
+      if (session?.user?.id !== ownerId) return;
+      if (!response.ok) throw new Error(payload.error || '쿠폰을 불러오지 못했습니다.');
+      couponItems = (payload.items || []).filter(item => item.productKey === product.key && ['service_free','amount_off','percent_off'].includes(item.kind)
+        && (item.orderId || item.reportId === reportId || (item.enabled && Date.parse(item.expiresAt) > Date.now())));
+      couponItems.forEach(item => {
+        if (item.reportId && item.reportId !== reportId) return;
+        if (item.orderReportId && item.orderReportId !== reportId) return;
+        if (item.orderStatus && item.orderStatus !== 'ready') return;
+        if (global.UMSHAppBilling?.isAvailable() && item.kind !== 'service_free') return;
+        const suffix = item.kind === 'service_free' ? '무료 이용' : item.kind === 'percent_off' ? `${item.value}% 할인` : `${item.value.toLocaleString('ko-KR')}원 할인`;
+        couponSelect.add(new Option(`${item.title} · ${suffix}`,item.id));
+      });
+      const requested = query.get('couponId');
+      if (requested && Array.from(couponSelect.options).some(option => option.value === requested)) couponSelect.value = requested;
+      showCouponPrice();
+    } catch (error) { couponStatus.textContent = error.message; }
+  }
+  couponSelect?.addEventListener('change',showCouponPrice);
+  freeCouponButton?.addEventListener('click',async () => {
+    if (!session || !couponSelect.value) return;
+    if (!reportId) { setStatus('서비스의 사주 입력을 마친 뒤 쿠폰을 사용해 주세요.'); return; }
+    if (!form.paymentConsent.checked) { form.paymentConsent.reportValidity(); return; }
+    freeCouponButton.disabled = true;
+    const ownerId = session.user.id;
+    try {
+      const response = await fetch('/api/coupons/use', {method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({couponId:couponSelect.value,reportId})});
+      const payload = await response.json();
+      if (session?.user?.id !== ownerId) return;
+      if (!response.ok) throw new Error(payload.error || '쿠폰을 사용하지 못했습니다.');
+      // Use only the existing validated local return path; preserve report binding.
+      const target = new URL(payload.returnTo || '/',global.location.origin);
+      if (target.origin !== global.location.origin) throw new Error('복귀 주소를 확인해 주세요.');
+      target.searchParams.set('reportId',payload.reportId || reportId);
+      global.location.assign(target.pathname + target.search + target.hash);
+    } catch (error) { setStatus(error.message); }
+    finally { freeCouponButton.disabled = false; }
+  });
 
   async function init() {
     // Keep the caller's own return path across the PG round-trip, so a reader lands back
@@ -227,6 +314,7 @@
     await initAuth();
     if (!session) return;
     form.buyerEmail.value = session.user?.email || '';
+    await loadCoupons();
     if (paymentConfig.testMode) {
       button.textContent = '테스트 결제창 열기';
       setStatus('개발 환경 테스트 모드입니다. 실제 결제는 발생하지 않습니다.');

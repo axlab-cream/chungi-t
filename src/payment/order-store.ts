@@ -1,6 +1,8 @@
 import { configuredEnv } from '../env/load.js'
 import { assertDurableStorage, storageReadiness, type StorageReadiness } from './storage-readiness.js'
 import { Pool } from 'pg'
+import { getDiscountForOrder } from '../coupons/store.js'
+import { CouponError } from '../coupons/contracts.js'
 
 /** 열거 가능한 형태로도 둔다. API 가 조회 인자를 검증할 때 쓴다. */
 export const PAYMENT_ORDER_STATUSES = ['ready', 'approving', 'paid', 'viewed', 'cancelled', 'failed'] as const
@@ -438,11 +440,11 @@ export async function listAllPaymentOrders(query: PaymentOrderQuery = {}): Promi
   return pageOf(result.rows.map(fromRow))
 }
 
-export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string): Promise<PaymentOrder[]> {
+export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: string, settledReadings = false): Promise<PaymentOrder[]> {
   const safeLimit = Math.min(Math.max(Number.isInteger(limit) ? limit : 50, 1), 100)
   if (storageMode() === 'memory') {
     return Array.from(memoryOrders.values())
-      .filter((order) => order.ownerId === ownerId && (!reportId || order.reportId === reportId))
+      .filter((order) => order.ownerId === ownerId && (!reportId || order.reportId === reportId) && (!settledReadings || (order.productKey !== 'cheonmyeong_consultation' && !!order.reportId && ['paid', 'viewed'].includes(order.status))))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, safeLimit)
       .map(cloneOrder)
@@ -452,6 +454,11 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('owner_id', `eq.${ownerId}`)
     if (reportId) url.searchParams.set('report_id', `eq.${reportId}`)
+    if (settledReadings) {
+      url.searchParams.set('product_key', 'neq.cheonmyeong_consultation')
+      url.searchParams.set('status', 'in.(paid,viewed)')
+      if (!reportId) url.searchParams.set('report_id', 'not.is.null')
+    }
     url.searchParams.set('select', '*')
     url.searchParams.set('order', 'updated_at.desc')
     url.searchParams.set('limit', String(safeLimit))
@@ -464,8 +471,45 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
   if (!pool) return []
   await ensureDb()
   const result = await pool.query<Record<string, unknown>>(
-    'SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 AND ($3::text IS NULL OR report_id = $3) ORDER BY updated_at DESC LIMIT $2',
+    `SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 AND ($3::text IS NULL OR report_id = $3) ${settledReadings ? "AND product_key <> 'cheonmyeong_consultation' AND report_id IS NOT NULL AND status IN ('paid', 'viewed')" : ''} ORDER BY updated_at DESC LIMIT $2`,
     [ownerId, safeLimit, reportId ?? null],
+  )
+  return result.rows.map(fromRow)
+}
+
+/** All settled consultation packs, independent of newer unrelated checkout attempts. */
+export async function listConsultationPaymentOrders(ownerId: string): Promise<PaymentOrder[]> {
+  const productKey = 'cheonmyeong_consultation'
+  if (storageMode() === 'memory') {
+    return Array.from(memoryOrders.values()).filter(order => order.ownerId === ownerId && order.productKey === productKey && ['paid', 'viewed'].includes(order.status)).map(cloneOrder)
+  }
+  if (storageMode() === 'supabase') {
+    const orders: PaymentOrder[] = []
+    let afterId = ''
+    for (;;) {
+      const url = new URL(supabaseRestUrl)
+      url.searchParams.set('owner_id', `eq.${ownerId}`)
+      url.searchParams.set('product_key', `eq.${productKey}`)
+      url.searchParams.set('status', 'in.(paid,viewed)')
+      url.searchParams.set('select', '*')
+      url.searchParams.set('order', 'order_id.asc')
+      url.searchParams.set('limit', '100')
+      if (afterId) url.searchParams.set('order_id', `gt.${afterId}`)
+      const response = await fetch(url, { headers: supabaseHeaders(), signal: AbortSignal.timeout(10000) })
+      if (!response.ok) throw new Error('결제 내역 조회에 실패했습니다.')
+      const rows = await response.json() as Array<Record<string, unknown>>
+      if (!Array.isArray(rows)) throw new Error('결제 내역 조회에 실패했습니다.')
+      orders.push(...rows.map(fromRow))
+      if (rows.length < 100) return orders
+      const nextId = String(rows.at(-1)?.order_id || '')
+      if (!nextId || nextId <= afterId) throw new Error('결제 내역 조회에 실패했습니다.')
+      afterId = nextId
+    }
+  }
+  if (!pool) throw new Error('결제 내역 조회에 실패했습니다.')
+  await ensureDb()
+  const result = await pool.query<Record<string, unknown>>(
+    "SELECT * FROM cheongi_payment_orders WHERE owner_id = $1 AND product_key = $2 AND status IN ('paid', 'viewed') ORDER BY order_id ASC", [ownerId, productKey],
   )
   return result.rows.map(fromRow)
 }
@@ -479,7 +523,7 @@ export async function listPaymentOrders(ownerId: string, limit = 50, reportId?: 
 export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> {
   if (storageMode() === 'memory') {
     return Array.from(memoryOrders.values()).some((order) => (
-      order.ownerId === ownerId && (order.status === 'paid' || order.status === 'viewed')
+      order.ownerId === ownerId && order.productKey !== 'cheonmyeong_consultation' && (order.status === 'paid' || order.status === 'viewed')
     ))
   }
 
@@ -487,6 +531,7 @@ export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> 
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('owner_id', `eq.${ownerId}`)
     url.searchParams.set('status', 'in.(paid,viewed)')
+    url.searchParams.set('product_key', 'neq.cheonmyeong_consultation')
     url.searchParams.set('select', 'order_id')
     url.searchParams.set('limit', '1')
     const response = await fetch(url, { headers: supabaseHeaders() })
@@ -498,7 +543,7 @@ export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> 
   if (!pool) return false
   await ensureDb()
   const result = await pool.query(
-    "SELECT 1 FROM cheongi_payment_orders WHERE owner_id = $1 AND status IN ('paid', 'viewed') LIMIT 1",
+    "SELECT 1 FROM cheongi_payment_orders WHERE owner_id = $1 AND status IN ('paid', 'viewed') AND product_key <> 'cheonmyeong_consultation' LIMIT 1",
     [ownerId],
   )
   return result.rowCount !== null && result.rowCount > 0
@@ -512,6 +557,66 @@ export async function hasSettledPaymentOrder(ownerId: string): Promise<boolean> 
  */
 export async function savePaymentOrder(order: PaymentOrder): Promise<PaymentOrder> {
   return writePaymentOrder(order)
+}
+
+/** A reserved consultation ID is shared by concurrent checkout retries. Never
+ * upsert it: a late creator must not reset an already approved order to ready. */
+export async function createConsultationPaymentOrder(order: PaymentOrder): Promise<PaymentOrder> {
+  if (!order.orderId.trim() || !order.ownerId.trim() || order.productKey !== 'cheonmyeong_consultation' || order.amount !== 4900 || order.status !== 'ready' || hasApprovalEvidence(order)) {
+    throw new Error('CONSULTATION_ORDER_INVALID')
+  }
+  return createReservedPaymentOrder(order)
+}
+
+/** Discount reservation is durable before the order is inserted. A retry may
+ * retrieve that order, but may never reset its approval status or report binding. */
+export async function createCouponPaymentOrder(order: PaymentOrder): Promise<PaymentOrder> {
+  const coupon = await getDiscountForOrder(order.ownerId, order.orderId)
+  if (!coupon || coupon.productKey !== order.productKey || coupon.payableAmount !== order.amount || order.amount < 1 || order.status !== 'ready' || hasApprovalEvidence(order)) throw new CouponError('COUPON_ORDER_INVALID',409)
+  try { return await createReservedPaymentOrder(order) }
+  catch (error) {
+    if (error instanceof Error && error.message === 'CONSULTATION_ORDER_CONFLICT') throw new CouponError('COUPON_ORDER_CONFLICT',409)
+    throw error
+  }
+}
+
+async function createReservedPaymentOrder(order: PaymentOrder): Promise<PaymentOrder> {
+  assertDurableStorage('결제 주문', checkPaymentStorageReadiness())
+  const stored = cloneOrder({ ...order, revision: 0, updatedAt: nowIso() })
+  const validate = (existing: PaymentOrder | null): PaymentOrder => {
+    if (!existing || existing.ownerId !== order.ownerId || existing.productKey !== order.productKey || existing.amount !== order.amount || existing.reportId !== order.reportId) throw new Error('CONSULTATION_ORDER_CONFLICT')
+    return existing
+  }
+  if (storageMode() === 'memory') {
+    // No await between the lookup and insert: concurrent calls cannot replace
+    // the first order, including one already transitioned to paid.
+    const existing = memoryOrders.get(order.orderId)
+    if (existing) return validate(cloneOrder(existing))
+    memoryOrders.set(stored.orderId, stored)
+    return cloneOrder(stored)
+  }
+  if (storageMode() === 'supabase') {
+    const response = await fetch(supabaseRestUrl, {
+      method: 'POST',
+      headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'resolution=ignore-duplicates,return=representation' },
+      body: JSON.stringify(toRow(stored)),
+    })
+    if (!response.ok) throw new Error('CONSULTATION_ORDER_CREATE_FAILED')
+    const rows = await response.json() as Array<Record<string, unknown>>
+    if (!Array.isArray(rows)) throw new Error('CONSULTATION_ORDER_CREATE_FAILED')
+    return validate(rows[0] ? fromRow(rows[0]) : await getPaymentOrder(order.orderId))
+  }
+  if (!pool) throw new Error('CONSULTATION_ORDER_CREATE_FAILED')
+  await ensureDb()
+  const row = toRow(stored)
+  const result = await pool.query<Record<string, unknown>>(`
+    INSERT INTO cheongi_payment_orders (
+      order_id, owner_id, owner_email, buyer_email, buyer_tel, product_key, product_title,
+      amount, status, report_id, created_at, updated_at, revision
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 0)
+    ON CONFLICT (order_id) DO NOTHING RETURNING *
+  `, [row.order_id, row.owner_id, row.owner_email, row.buyer_email, row.buyer_tel, row.product_key, row.product_title, row.amount, row.status, row.report_id, row.created_at])
+  return validate(result.rows[0] ? fromRow(result.rows[0]) : await getPaymentOrder(order.orderId))
 }
 
 /**

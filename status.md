@@ -2706,3 +2706,89 @@ ProjectOps implementation harness는 `task-tone...` 파일명 secret 오탐으�
 GA-SIGNUP-04 전체 회귀: 1725/1726 PASS. 유일 실패는 all-service-reading-template.test.ts:49의 기존 한국어 문구 기대값. 해당 테스트 blob9d44c28a 및 umsh-report-access.js blob52c3cf8a가 origin/main과 동일함을 확인(신규 GA 변경과 무관). 변경 범위는 집중36/36, 타입/빌드/HTTP PASS.
 
 GA-SIGNUP-04 운영 반영 완료(2026-10-01): main a403ca09/d3ef8d17, 배포 dpl_DF8rZkkkEYK2UuCnFZrj7uHWoohT. umsh.kr health200·auth serverTime/no-store·가입3경로·GA JS 일치 PASS. 집중36/36, build/typecheck PASS; 전체1725/1726(기존 리포트 문구 검사1실패, 원격기준 동일). Grok 도구오류 BLOCKED/직접리뷰 완료. 실제 신규가입 GA 수신은 미검증. KMS personal/carrotcap/notes/umsh-ga-signup-20261001.md 저장·재조회·검색 PASS.
+
+## 2026-10-01 GA-FUNNEL-06
+origin/main 기반 격리 브랜치 codex/signup-funnel-events에서 이벤트 계측만 구현. 주 작업폴더의 미커밋 변경 및 SNS UX 커밋 보존. 집중48/48·빌드/타입 PASS. 첫 테스트 실행에서 CRLF 때문에 함수 추출 실패 → fixture 읽기 개행 정규화 후 PASS(앱 동작 오류 아님). GitHub PR 준비, 운영 배포/실제 GA 수신 NOT_RUN.
+
+GA-FUNNEL-06: Grok 리뷰는 MCP 초기화 오류 반복으로 BLOCKED(중단), 직접 diff 리뷰 완료. KMS personal/carrotcap/notes/umsh-signup-funnel-events-20261001.md 기록. 운영 GA 수신은 미검증.
+
+2026-10-01 GA-FUNNEL-06 검증 후속: PR #53 CI 1732개 중 1731 PASS, 기존 all-service-reading-template 문구 기대값 1 FAIL 확인. 사라진 안내문 대신 실제 item.age/item.startYear 출력 바인딩 계약으로 테스트 수정(제품 코드 변경 없음). CI 전체 재검증 진행.
+
+## 2026-10-01 GA-FUNNEL-06 운영 배포 및 GA 수신
+- 사용자 운영 배포 요청에 따라 검증 코드 9a3805de를 Vercel Production에 직접 배포. PR #53은 rules §6의 PR 병합 제한에 따라 OPEN 유지.
+- 배포 dpl_3Qf6Vt94PPB9zbDpNkoYFhNwfMP9, https://chungi-67echpk12-ax-lab-cream.vercel.app → https://umsh.kr Ready.
+- health200, 운영 GA JS와 검증 원본 일치, 가입 페이지 버전 및 두 hook 확인 PASS.
+- GA4 속성553037209 실시간 보고서에서 view_signup_wall 1건 및 signup_click 1건, 클릭 상세 method=kakao 수신 확인 PASS. 운영 가입 화면을 직접 열고 카카오 버튼을 1회 클릭한 검증 트래픽이다. 카카오 계정 입력 화면까지 이동 확인, 로그인/동의는 수행하지 않음.
+- sign_up 실제 수신: PENDING_USER. 미가입 소셜 계정으로 사용자 직접 가입이 필요. 합성 가입 이벤트를 보내거나 기존 로그인을 신규가입으로 세지 않음.
+- 이전 운영 배포 chungi-fp1rr4ek8-ax-lab-cream.vercel.app을 복구 기준으로 기록. CI 전체1732/1732 및 서비스/SEO/QA/빌드 PASS 유지.
+
+## 2026-10-01 실제 신규 가입 최종 확인
+사용자 재검증 후 Auth에서 이번 시점의 Google 신규 계정 생성 확인. GA4 속성553037209 실시간 보고서 sign_up 1건, 상세 method=google 1건 확인 PASS. 기존에 확인한 view_signup_wall 및 signup_click(method=kakao)와 함께 세 이벤트 실제 수신 검증 완료. Google 실제 신규가입 완료 기준이며 Kakao/Naver 신규가입 완료의 개별 E2E는 미실행. 합성 이벤트 전송 없음. 개인정보/계정 식별자는 기록하지 않음.
+
+## 2026-10-01 ADMIN-DATA-01 — in progress
+- User selected production popup form after generic save failure; isolated branch codex/admin-data-popup-fix.
+- Evidence: body default maps to absent form.elements.body (actual field bodyText); server does not map SIGNUP_POPUP_PAYLOAD_INVALID. Production content_versions count is zero.
+- Scope/plan: docs/admin-data-popup-repair-20261001.md. Audit remaining administrator loaders and verify without production test writes.
+
+### ADMIN-DATA-01 verification update
+- Full regression: 1736/1736 PASS, 196.6s. Additional post-run network/unavailable guards and archived valid-record fixture: focused 17/17 PASS.
+- Build/typecheck/SEO and diff checks PASS. Browser + actual Express lifecycle against isolated synthetic storage PASS. Local QA process stopped; test adapter removed.
+- KMS saved and re-read: personal/carrotcap/notes/umsh-admin-popup-data-repair-20261001.md.
+- [GATE H2] No production deployment for this new admin scope, no remote push, no merge, no DB migration. Implementation and local verification finished; reviewer result pending.
+
+### ADMIN-DATA-01 review resolved
+- Grok report received: Approved with comments, no critical issues. Report retained under CreamAI/logs/review/ADMIN-DATA-01_popup.md.
+- Fixed major comments: never prefill archived campaigns; do not disable submission on generic history-render failures.
+- Fixed related minor findings: forward-looking default dates/past-end validation, bounded archive existence check, placement query 422, generic content unavailable state.
+- Post-review tests 46/46 and fresh vercel-build/typecheck/SEO PASS. Earlier full run 1736/1736 PASS. Direct follow-up diff review complete; no second automated review claimed.
+- Local commit 0806b001 plus follow-up fixes; H2 deployment gate remains. Production was not changed.
+
+## 2026-10-02 CONSULTATION-COUPON-RELEASE
+사용자 명시 커밋·운영배포 요청. 상담·쿠폰·공통 GNB/푸터 변경만 분리. 155/155 회귀, build/typecheck/SEO PASS. 실제 앱 8824 화면200·회원/관리자 API401 확인. 운영 기존 배포 46275b4f 유지 기준. DB 두 마이그레이션은 별도 승인 대기; Gemini/음성 인증 설정 부재, 상담 신규 구매는 차단. 실제 상담·결제 E2E 미검증. 복구: chungi-d90kgyb0t-ax-lab-cream.vercel.app.
+
+## Production verification
+Runtime commit 72eb473c, branch codex/consultation-coupon-release-20261002 pushed. Vercel dpl_aYk5t7xkjYG2J1pdnPfyEzMDxLjc Ready and promoted to umsh.kr; URL chungi-lmpm6pg2e-ax-lab-cream.vercel.app. Node8.41MB/Python9.92MB. Homepage, consultation, coupons, MY, vault and both admin pages200; health200; member/admin coupon APIs401 without auth; unsigned voice401; consultation context503 setup-required. Deployed consultation/coupons JS exactly matches commit. Browser confirmed GNB, five-menu navigation, company/footer and setup gate. Screenshot docs/consultation-qa/production-20261002.png.
+DB approval unanswered: both migrations NOT_RUN. GEMINI_API_KEY and CONSULTATION_VOICE_SECRET absent from production env inventory. Actual consultation, coupon issuance/use and real payment NOT_RUN. Code/UI deployment complete; business service activation remains blocked. No main merge or source-workspace staged changes altered.
+
+## 2026-10-02 QA-2PASS
+사용자 요청에 따라 1차 검증→재현·수정→2차 회귀 및 운영 확인. docs/consultation-qa/two-pass-20261002.md. 실제 DB/API 설정 차단은 PASS 금지.
+- QA-2PASS-01 feedback complete: coupon canonical binding and failed setup balance status corrected. 1840/1840 fresh-process full checks passed; pending independent review/deployment verification. H2 DB migrations remain unexecuted.
+- QA-2PASS-01 review approved with comments (no critical/major). Both minor findings addressed; final affected45/45 + build/typecheck PASS. Bounded review follow-up includes owner-denial status, isolated test storage, HTML cache busting. Full1840 passed before this final refinement.
+- QA-2PASS-01 production58c1254b promoted as dpl_HUcLJNuTgP56jGE9dn44YMKFhibh. Post-deploy15/15 checks PASS, desktop/mobile rendered fixed recovery copy. DB/provider/staff session/live charge gates remain NOT_RUN. Evidence docs/consultation-qa/two-pass-20261002.md; KMS personal/carrotcap/notes/umsh-consultation-two-pass-qa-20261002.md.
+
+- CONSULTATION-ENV-01: user authorized API key setup. Voice secret registered sensitive Production and inventory verified. AI Talk production GEMINI_API_KEY exists but env run returned no readable value; Gemini setup BLOCKED pending secure user entry. No redeploy or DB changes. KMS notes/umsh-consultation-env-20261002.md saved/re-read.
+
+- CONSULTATION-ENV-01: user registered Gemini key; both env names verified. Deployed/promoted dpl_82kZuQxiqdBneSadSibWZ9cKhuF5, anonymous context401 replaces setup503, health OK, build passed. Logged-in browser still generic load failure; provider/voice E2E not verified. Read-only readiness probe lacked env credentials; DB migration approval requested, not applied. KMS updated/re-read.
+
+- BANNER-FIT-01: same-size carousel and complete copy implemented. Six measured browser widths PASS, related18/18 and build PASS. Review/deployment pending. Evidence docs/consultation-qa/banner-fit.md.
+
+### 2026-10-02 BANNER-FIT-01 production completion
+Unified carousel card sizing and removed text clipping. Runtime d7a0d72c deployed/promoted as dpl_HReMcZKMNVJBavFGeuwAAw8NeYDU. Production CSS exact match; browser both390x269.6875, full copy visible. Relevant tests18/18 + build PASS; six widths and long copy PASS. Evidence docs/consultation-qa/banner-fit.md. Database work is unchanged and not included.
+
+### 2026-10-02 CONSULTATION-CONNECTION-02
+Production browser failure reproduced, context503 confirmed by CLI runtime logs. Direct read-only Supabase catalog verifies missing consultation_ledger_protection_ready function and coupon_state table. Both prepared migrations await explicit H2 approval. No DB mutation or customer-row reads. Details docs/consultation-qa/connection-20261002.md and KMS notes/umsh-consultation-connection-20261002.md.
+
+### 2026-10-02 CONSULTATION-CONNECTION-02 applied / credential blocker
+User approved DB repair; both migrations applied and catalog verified. Production context restored (connected profile/free1). Runtime1fff961e safe diagnostics deployed/promoted dpl_GJ6Z5vGj6xepTaJCuL4ijgd6hWHy. Actual provider returns400 INVALID_ARGUMENT/API_KEY_INVALID; needs secure user replacement of GEMINI_API_KEY. No credit consumed by failed tests. Focused30/30 and build PASS. Real answer/vault/voice acceptance incomplete; no complete-service claim.
+
+### 2026-10-02 CONSULTATION-DESKTOP-FIT
+PC viewport sizing implemented and deployed6859b740/dpl_2dy2YzhrdWCsayoHwTtoGQvwDsid. Local720px and production884px browser confirm no page overflow/composer-nav overlap. Tests18/18/build PASS. docs/consultation-qa/desktop-fit.md; KMS saved/read. API key blocker independent. User original checkout preserved.
+
+- CONSULTATION-LIVE-01: implementation and isolated QA85 PASS. PC renders input/output Live transcriptions with textContent; Gemini-backed /live-turn preserves server CAS/idempotence and entitlement. Free allowance5 preserves legacy1 consumed. Local mobile390px photo-only/tap verified. Actual Live is NOT_VERIFIED pending production authentication. External Grok review dispatched; no approval inferred from stalled execution.
+
+- CONSULTATION-LIVE-01 production: 9699e445 + PC follow-up bb80a9cb promoted as dpl_12Ze9eQYDQxFNvvYzf8Tun1QrFrf. Actual connected PC1280x720 page720, room483/content483, log192/content192 PASS. 11:31 actual generation still HTTP400/API_KEY_INVALID; reload confirms free5 unchanged. Live mic acquisition remained pending and was cancelled; token/setup/audio NOT_VERIFIED. External Grok unavailable, not approved. KMS notes/umsh-consultation-live-transcripts-20261002.md saved/re-read.
+
+2026-10-02 CONSULTATION-IDLE-01: Implemented idle teardown and local silence gating. 86 scoped tests and build PASS. Prior scene release e2e4a4e9 promoted; text provider generated and saved a real response after key replacement. Idle release production verification pending.
+
+## CONSULTATION-LIVE-03: REST token contract correction
+Production evidence: Google HTTP400 INVALID_ARGUMENT / unknown liveConnectConstraints (not API_KEY_INVALID). The SDK option was incorrectly sent directly to REST. Corrected to bidiGenerateContentSetup, with responseModalities/speechConfig under generationConfig; all constraints remain locked server-side. Official reference: https://ai.google.dev/api/generate-content#AuthToken. Runtime commit 54c6400f. 86 consultation tests and typecheck PASS. Live browser recheck pending deploy.
+
+2026-10-02 Production acceptance: 54c6400f / dpl_6nFjDpxvQdWgnqsWPwdNuq2vmTfo promoted. Real Codex browser Google Live setup succeeded; pending mic permission timed out after 10s and switched to chat, free allowance unchanged. Actual captured speech not verified (mic permission pending); simulated PCM gating/answer exclusions PASS. KMS saved and re-read: personal/carrotcap/notes/umsh-consultation-idle-20261002.md. External reviewer unavailable as previously recorded; self-review complete.
+
+2026-10-02 CONSULTATION-FOOTER-02: User requested removal of pictured bottom region on consultation only. Legal/company footer already absent from production; removed remaining reference note and new-consultation link below composer. Shared GNB/bottom navigation preserved. Static markup-only change; verify build and production DOM.
+
+2026-10-02 CONSULTATION-VOICE-DEFAULT: PC and mobile default to voice scene; HTML and JS agree before/after hydration. Portrait remains voice-only. Scene choice never starts microphone or provider requests; existing explicit-connect and idle-return-to-chat behavior retained. Frontend regression checks initial voice plus no Live/chat request. Footer removal included in same final production release.
+
+2026-10-02 CONSULTATION-CHAT-DEFAULT supersedes voice-default per latest user direction: PC/mobile initial text chat; portrait only in voice. HTML omits mobile intro class at first paint, JS initializes chat without API/mic. Frontend tests 21/21 PASS. Voice-default candidate will not be promoted to umsh.kr; final chat release includes footer removal.
+
+2026-10-02 CONSULTATION-CHAT-DEFAULT / FOOTER-02 DONE: fc0ad99d promoted (dpl_GbU7h1X9dBs5YLVjnK6vKxExg2Hv). Production canonical browser verified initial chat/no portrait, voice-only portrait, return to chat, no company footer/reference-note/restart link, shared navigation retained. Frontend21/21 + remote build/typecheck PASS. KMS display note saved/retrieved. No model generation or mic connection requested during visual QA.

@@ -32,7 +32,10 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     let filtered = rows
     const id = url.searchParams.get('id')?.replace(/^eq\./, '')
     if (id) filtered = filtered.filter((row) => row.id === id)
+    const placement = url.searchParams.get('placement')?.replace(/^eq\./, '')
+    if (placement) filtered = filtered.filter(row => row.placement === placement)
     const state = url.searchParams.get('state')
+    if (state?.startsWith('eq.')) filtered = filtered.filter(row => row.state === state.slice(3))
     if (state?.startsWith('in.')) { const allowed = state.slice(4, -1).split(','); filtered = filtered.filter((row) => allowed.includes(row.state as string)) }
     return new Response(JSON.stringify(filtered), { headers: { 'content-type': 'application/json' } })
   }
@@ -170,4 +173,26 @@ describe('콘텐츠 라우트는 scope 별로 나뉘고 감사 명령을 거친�
     const localScopesLine = source.slice(source.indexOf('const LOCAL_ADMIN_SCOPES'), source.indexOf('\n', source.indexOf('const LOCAL_ADMIN_SCOPES')))
     for (const scope of ["'content:read'", "'content:write'", "'content:publish'"]) assert.match(localScopesLine, new RegExp(scope.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
   })
+})
+
+it('popup history retains archived versions while the default content list excludes them', async () => {
+  const draft = await store.createContentDraft({contentType:'banner',placement:'home/signup-benefit-popup',scheduledAt:'2026-09-22T00:00:00Z',authorEmail:'a@example.com',payload:{title:'Popup',headline:'Hello',subheadline:'Today',body:'Details',imageSrc:'/assets/popup.png',ctaLabel:'Save',campaignEndAt:'2026-10-01T23:00:00Z'}})
+  await store.archiveContentVersion({id:draft.id,expectedRevision:draft.revision})
+  const history = await store.getAdminContentSnapshot(200, {includeArchived:true,placement:'home/signup-benefit-popup'})
+  assert.ok(history.items.some(item=>item.id===draft.id && item.state==='archived'))
+  assert.ok(history.items.every(item=>item.placement==='home/signup-benefit-popup'))
+  assert.equal(calls.at(-1)?.url.searchParams.get('placement'),'eq.home/signup-benefit-popup')
+  assert.ok(!(await store.getAdminContentSnapshot()).items.some(item=>item.id===draft.id))
+})
+
+it('an archived managed popup must not resurrect the built-in promotion', async () => {
+  const now=Date.parse('2026-09-22T12:00:00Z')
+  const saved=rows; rows=[]
+  try {
+    assert.equal((await store.getActiveSignupPopup(now, true))?.id,'builtin-2026-09-today-fortune')
+    const archived = saved.find(row => row.placement === 'home/signup-benefit-popup' && row.state === 'archived')
+    assert.ok(archived?.payload, 'Use a valid archived popup, not an invalid fixture')
+    rows=[archived]
+    assert.equal(await store.getActiveSignupPopup(now, true),null)
+  } finally {rows=saved}
 })

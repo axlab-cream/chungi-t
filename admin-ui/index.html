@@ -203,7 +203,7 @@
     .admin-form { display: grid; gap: var(--admin-space-4); margin-top: var(--admin-space-4); }
     .admin-field { display: grid; gap: var(--admin-space-1); }
     .admin-field label { font-size: 13px; font-weight: 600; color: var(--admin-text); }
-    .admin-field input {
+    .admin-field input, .admin-consultation-form textarea, .admin-consultation-form select {
       padding: var(--admin-space-3);
       font: inherit;
       color: var(--admin-text);
@@ -212,6 +212,8 @@
       border-radius: var(--admin-radius);
     }
     .admin-field input:focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 1px; }
+    .admin-consultation-form textarea { min-width: 0; resize: vertical; }
+    .admin-consultation-form .admin-actions { flex-wrap: wrap; }
     .admin-actions { display: flex; align-items: center; gap: var(--admin-space-3); }
     .admin-button {
       padding: var(--admin-space-3) var(--admin-space-6);
@@ -282,6 +284,8 @@
         <a href="/ops/constellation-7f3c/support" data-admin-route="support">고객 지원</a>
         <a href="/ops/constellation-7f3c/content" data-admin-route="content">콘텐츠</a>
         <a href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업 관리</a>
+        <a href="/ops/constellation-7f3c/coupons" data-admin-route="coupons">쿠폰 관리</a>
+        <a href="/ops/constellation-7f3c/consultation" data-admin-route="consultation">천명상담</a>
         <a href="/ops/constellation-7f3c/services" data-admin-route="services">서비스</a>
         <a href="/ops/constellation-7f3c/media" data-admin-route="media">미디어</a>
       </div>
@@ -554,6 +558,8 @@
         '/ops/constellation-7f3c/support': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
         '/ops/constellation-7f3c/cs': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
         '/ops/constellation-7f3c/content': { key: 'content', title: '콘텐츠', detail: '고객 화면에 노출되는 안내·배너·FAQ 콘텐츠를 관리합니다.' },
+        '/ops/constellation-7f3c/coupons': { key: 'coupons', title: '쿠폰 관리', detail: '서비스 이용권, 상담 질문권과 할인 쿠폰을 발급하고 사용 현황을 확인합니다.' },
+        '/ops/constellation-7f3c/consultation': { key: 'consultation', title: '천명상담 관리', detail: '홈 배너와 상담자의 설정을 초안으로 저장하고 게시합니다. 저장된 상담 원문은 바뀌지 않습니다.' },
         '/ops/constellation-7f3c/popup': { key: 'popup', title: '첫 페이지 팝업 관리', detail: '오늘운 무료 혜택 팝업의 이미지와 노출 기간을 관리합니다. 종료 시각이 지나면 자동으로 내려갑니다.' },
         '/ops/constellation-7f3c/services': { key: 'services', title: '서비스', detail: '서비스별 노출·판매·가격 정책과 고객 화면 연결을 관리합니다.' },
         '/ops/constellation-7f3c/media': { key: 'media', title: '미디어', detail: '이미지와 첨부 자산의 사용 위치 및 공개 상태를 관리합니다.' },
@@ -1075,7 +1081,7 @@
           if (!listResponse.ok) throw new Error('CONTENT_LOOKUP_FAILED');
           var listPayload = await listResponse.json();
           var items = Array.isArray(listPayload.items) ? listPayload.items : [];
-          if (listPayload.versionStore !== 'ready') addLiveError(body, '콘텐츠 저장소 연결을 확인하지 못했습니다.');
+          if (listPayload.versionStore !== 'ready') throw new Error('CONTENT_STORE_UNAVAILABLE');
           var table = document.createElement('table'); table.className = 'admin-table';
           table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
@@ -1134,6 +1140,9 @@
         var id = String(item && item.id || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
         return 'signup_popup:' + (id || 'unknown');
       }
+      function popupEditableVersion(items) {
+        return items.find(function (item) { return item.state === 'published'; }) || items.find(function (item) { return item.state === 'draft'; });
+      }
       async function loadPopupManager(body) {
         body.replaceChildren();
         var section = document.createElement('section'); section.className = 'admin-section';
@@ -1148,15 +1157,18 @@
           + '<div class="admin-field"><label>노출 시작</label><input required name="startsAt" type="datetime-local"></div>'
           + '<div class="admin-field"><label>노출 종료</label><input required name="endsAt" type="datetime-local"></div>'
           + '<div class="admin-actions"><button class="admin-button" type="submit">저장 후 게시</button></div><p class="admin-note" role="status" data-popup-result></p>';
-        Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { if (form.elements[key]) form.elements[key].value = SIGNUP_POPUP_DEFAULTS[key]; });
-        form.elements.startsAt.value = '2026-09-22T00:00'; form.elements.endsAt.value = '2026-10-01T23:59';
+        Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { var field = key === 'body' ? 'bodyText' : key; if (form.elements[field]) form.elements[field].value = SIGNUP_POPUP_DEFAULTS[key]; });
+        var initialStart = new Date();
+        form.elements.startsAt.value = toLocalDateTime(initialStart); form.elements.endsAt.value = toLocalDateTime(new Date(initialStart.getTime() + 7 * 24 * 60 * 60 * 1000));
         var result = form.querySelector('[data-popup-result]');
         section.appendChild(form); body.appendChild(section);
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>팝업 이력</h3></header><p class="admin-empty">불러오는 중입니다.</p>'; body.appendChild(listSection);
         try {
-          var response = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
+          var response = await fetch('/api/admin/v1/content?placement=home%2Fsignup-benefit-popup&includeArchived=1', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('POPUP_LOOKUP_FAILED');
           var responsePayload = await response.json();
+          if (responsePayload.versionStore !== 'ready') { form.querySelector('button[type="submit"]').disabled = true; throw new Error('POPUP_STORE_UNAVAILABLE'); }
+          if (!Array.isArray(responsePayload.items)) throw new Error('POPUP_LOOKUP_FAILED');
           var items = (Array.isArray(responsePayload.items) ? responsePayload.items : []).filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
           // 팝업 이력은 콘텐츠 저장소, 클릭 수는 개인정보 없는 퍼널 이벤트가 원천이다.
           // 통계가 일시적으로 실패해도 팝업 관리 자체는 멈추지 않고 '집계 불가'로 정직하게 표시한다.
@@ -1165,13 +1177,15 @@
             var funnelResponse = await fetch('/api/admin/v1/funnel?period=month', { credentials: 'same-origin' });
             if (!funnelResponse.ok) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
             var funnelPayload = await funnelResponse.json();
+            if (funnelPayload.available !== true || !Array.isArray(funnelPayload.ctas)) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
             popupClickCounts = {};
             (Array.isArray(funnelPayload.ctas) ? funnelPayload.ctas : []).forEach(function (cta) {
               if (typeof cta.target === 'string' && typeof cta.clicks === 'number') popupClickCounts[cta.target] = cta.clicks;
             });
           } catch (_error) { popupClickCounts = null; }
-          if (items[0]) {
-            var active = items[0]; var payload = active.payload || {};
+          var active = popupEditableVersion(items);
+          if (active) {
+            var payload = active.payload || {};
             ['title', 'headline', 'subheadline', 'imageSrc', 'ctaLabel'].forEach(function (key) { if (payload[key] && form.elements[key]) form.elements[key].value = payload[key]; });
             if (payload.body) form.elements.bodyText.value = payload.body;
             form.elements.startsAt.value = toLocalDateTime(active.scheduledAt) || form.elements.startsAt.value;
@@ -1183,25 +1197,185 @@
           items.forEach(function (item) {
             var clickCount = popupClickCounts && popupClickCounts[popupTrackingTarget(item)];
             var clickLabel = popupClickCounts ? Number(clickCount || 0).toLocaleString('ko-KR') + '회' : '집계 불가';
-            var row = document.createElement('tr'); [item.payload.title, item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', item.payload.campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
+            var row = document.createElement('tr'); [(item.payload || {}).title || '이름 미확인', item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', (item.payload || {}).campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
             var cell = document.createElement('td');
             if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!window.confirm('현재 팝업을 즉시 내릴까요?')) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; window.alert('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
             row.appendChild(cell); rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
-        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다.'; }
+        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.'; }
         form.addEventListener('submit', async function (event) {
-          event.preventDefault(); var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '팝업을 저장하고 게시하는 중입니다.';
+          event.preventDefault();
+          if (!form.reportValidity()) { result.textContent = '필수 항목을 모두 입력해 주세요.'; return; }
+          var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = '팝업을 저장하고 게시하는 중입니다.';
           try {
             var startsAt = new Date(form.elements.startsAt.value); var endsAt = new Date(form.elements.endsAt.value);
             if (!(startsAt.getTime() < endsAt.getTime())) throw new Error('종료 시각은 시작 시각보다 뒤여야 합니다.');
+            if (endsAt.getTime() <= Date.now()) throw new Error('노출 종료 시각을 현재보다 뒤로 설정해 주세요.');
             var draftResponse = await fetch('/api/admin/v1/content', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ contentType: 'banner', placement: SIGNUP_POPUP_PLACEMENT, scheduledAt: startsAt.toISOString(), payload: { title: form.elements.title.value.trim(), headline: form.elements.headline.value.trim(), subheadline: form.elements.subheadline.value.trim(), body: form.elements.bodyText.value.trim(), imageSrc: form.elements.imageSrc.value.trim(), ctaLabel: form.elements.ctaLabel.value.trim(), campaignEndAt: endsAt.toISOString() } }) });
             var draftPayload = await draftResponse.json().catch(function () { return {}; }); if (!draftResponse.ok) throw new Error(draftPayload.error || '팝업 저장에 실패했습니다.');
             var draft = draftPayload.content;
             var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: draft.revision, checksum: draft.checksum }) });
             var publishPayload = await publishResponse.json().catch(function () { return {}; }); if (!publishResponse.ok) throw new Error(publishPayload.error || '팝업 게시에 실패했습니다.');
-            result.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.'; await loadPopupManager(body);
+            await loadPopupManager(body); var success = body.querySelector('[data-popup-result]'); if (success) success.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '팝업 게시에 실패했습니다.'; submit.disabled = false; }
+        });
+      }
+      async function loadCouponManager(body) {
+        body.replaceChildren();
+        var section = document.createElement('section'); section.className = 'admin-section';
+        var heading = document.createElement('h3'); heading.textContent = '쿠폰 발급'; section.appendChild(heading);
+        var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = '발급한 혜택은 수정할 수 없습니다. 중단하면 신규 등록과 미사용 혜택이 중단됩니다. 이미 사용한 무료 풀이 열람은 유지됩니다.'; section.appendChild(note);
+        var status = document.createElement('p'); status.className = 'admin-note'; status.setAttribute('role', 'status'); status.textContent = '쿠폰과 서비스 목록을 불러오는 중입니다.'; section.appendChild(status); body.appendChild(section);
+        async function request(path, payload, key) {
+          var response = await fetch('/api/admin/v1/coupons' + path, { method: payload ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store', headers: payload ? { 'Content-Type': 'application/json', 'Idempotency-Key': key } : {}, ...(payload ? { body: JSON.stringify(payload) } : {}) });
+          var data = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(response.status === 403 ? '쿠폰 관리 권한이 없습니다.' : response.status === 401 ? '관리자 로그인이 만료되었습니다.' : response.status === 409 ? '같은 코드 또는 요청이 이미 처리되었거나 충돌했습니다. 목록을 확인해 주세요.' : response.status === 400 ? '코드, 혜택과 사용 기간을 확인해 주세요.' : '쿠폰 요청에 실패했습니다. 입력을 보존했습니다. 다시 시도해 주세요.');
+          return data;
+        }
+        var snapshot;
+        try { snapshot = await request(''); if (!Array.isArray(snapshot.items) || !Array.isArray(snapshot.products)) throw new Error('쿠폰 저장소 응답을 확인할 수 없습니다.'); }
+        catch (error) { status.textContent = error.message; var retry = document.createElement('button'); retry.className = 'admin-button'; retry.textContent = '다시 불러오기'; retry.addEventListener('click', function () { loadCouponManager(body); }); section.appendChild(retry); return; }
+        status.textContent = '';
+        var form = document.createElement('form'); form.className = 'admin-refund-form admin-consultation-form';
+        function field(name, labelText, type, attrs) {
+          var wrapper = document.createElement('div'); wrapper.className = 'admin-field';
+          var label = document.createElement('label'); label.htmlFor = 'coupon-admin-' + name; label.textContent = labelText;
+          var input = document.createElement(type === 'select' ? 'select' : 'input'); input.id = label.htmlFor; input.name = name; input.required = true; if (type !== 'select') input.type = type;
+          Object.keys(attrs || {}).forEach(function (key) { input.setAttribute(key, attrs[key]); }); wrapper.append(label, input); form.appendChild(wrapper); return input;
+        }
+        function option(select, value, label) { var item = document.createElement('option'); item.value = value; item.textContent = label; select.appendChild(item); }
+        field('title', '발급명', 'text', { maxlength: '100' }); field('code', '쿠폰 코드 (영문·숫자·하이픈)', 'text', { maxlength: '40', minlength: '8', pattern: '[A-Za-z0-9_-]{8,40}', autocomplete: 'off' });
+        var kinds = { service_free: '무료 이용권', consultation_questions: '상담 질문권', amount_off: '금액 할인', percent_off: '비율 할인' };
+        var kind = field('kind', '쿠폰 종류', 'select'); Object.keys(kinds).forEach(function (key) { option(kind, key, kinds[key]); });
+        var product = field('productKey', '적용 서비스', 'select');
+        var value = field('value', '혜택 수량 · 할인값', 'number', { min: '1', step: '1' }); value.value = '1';
+        field('maxClaims', '전체 등록 한도 (1–20,000명)', 'number', { min: '1', max: '20000', step: '1' }).value = '1';
+        field('startsAt', '사용 시작 (현재 기기 시간대)', 'datetime-local'); field('expiresAt', '사용 종료 (현재 기기 시간대)', 'datetime-local');
+        var help = document.createElement('p'); help.className = 'admin-note'; help.dataset.span = '2'; form.appendChild(help);
+        function updateKind() {
+          var previous = product.value; product.replaceChildren();
+          snapshot.products.filter(function (p) { return kind.value === 'consultation_questions' ? p.key === 'cheonmyeong_consultation' : kind.value === 'service_free' ? p.key !== 'cheonmyeong_consultation' : true; }).forEach(function (p) { option(product, p.key, p.title); });
+          if (Array.from(product.options || []).some(function (o) { return o.value === previous; })) product.value = previous;
+          value.readOnly = kind.value === 'service_free'; value.max = kind.value === 'percent_off' || kind.value === 'consultation_questions' ? '100' : kind.value === 'service_free' ? '1' : '';
+          if (kind.value === 'service_free') value.value = '1';
+          help.textContent = kind.value === 'consultation_questions' ? '상담 질문 수: 1–100회. 등록 후 상담 질문권에 반영됩니다.' : kind.value === 'percent_off' ? '할인율: 1–100%. 최종 결제 금액은 최소 1원입니다.' : kind.value === 'amount_off' ? '할인액을 원 단위로 입력하세요. 최종 결제 금액은 최소 1원입니다.' : '무료 이용권 1장입니다. 회원 본인의 풀이 하나에 적용합니다.';
+        }
+        kind.addEventListener('change', updateKind); updateKind();
+        var actions = document.createElement('div'); actions.className = 'admin-actions'; var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '쿠폰 발급'; actions.appendChild(submit); form.appendChild(actions); section.appendChild(form);
+        var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status'); section.appendChild(result);
+        var list = document.createElement('div'); section.appendChild(list); var busy = false, saveKey = crypto.randomUUID();
+        form.addEventListener('input', function () { saveKey = crypto.randomUUID(); });
+        function dateLabel(raw) { var date = new Date(raw); return Number.isNaN(date.getTime()) ? '확인 필요' : date.toLocaleString('ko-KR'); }
+        function render(items) {
+          list.replaceChildren(); var h = document.createElement('h3'); h.textContent = '발급 이력 · ' + items.length + '건'; list.appendChild(h);
+          if (!items.length) { var empty = document.createElement('p'); empty.textContent = '아직 발급한 쿠폰이 없습니다.'; list.appendChild(empty); }
+          items.forEach(function (item) {
+            var row = document.createElement('section'); row.className = 'admin-section'; var title = document.createElement('h4'); title.textContent = item.title + ' · ' + (kinds[item.kind] || item.kind); row.appendChild(title);
+            var details = document.createElement('p'); details.className = 'admin-note'; var p = snapshot.products.find(function (p) { return p.key === item.productKey; });
+            details.textContent = (p ? p.title : item.productKey) + ' · 혜택 ' + item.value + (item.kind === 'percent_off' ? '%' : item.kind === 'amount_off' ? '원' : '회') + ' · ' + (item.enabled ? '활성' : '중단') + ' · ' + dateLabel(item.startsAt) + ' ~ ' + dateLabel(item.expiresAt); row.appendChild(details);
+            var counts = document.createElement('p'); counts.className = 'admin-note'; counts.textContent = '등록 한도 ' + item.maxClaims + '명' + (Number.isInteger(item.claimCount) ? ' · 등록 ' + item.claimCount + '명' : '') + (item.kind === 'service_free' && Number.isInteger(item.usedCount) ? ' · 무료 풀이 적용 ' + item.usedCount + '건' : '') + (Number.isInteger(item.reservedCount) ? ' · 주문 적용 ' + item.reservedCount + '건' : ''); row.appendChild(counts);
+            var code = document.createElement('code'); code.textContent = item.code; code.style.display = 'inline-block'; code.style.margin = '8px 12px 8px 0'; row.appendChild(code);
+            var copy = document.createElement('button'); copy.type = 'button'; copy.className = 'admin-button'; copy.textContent = '코드 복사'; copy.style.marginRight = '8px'; copy.addEventListener('click', async function () { try { await navigator.clipboard.writeText(item.code); result.textContent = '코드를 복사했습니다.'; } catch (_error) { result.textContent = '복사하지 못했습니다. 표시된 코드를 선택해 복사해 주세요.'; } }); row.appendChild(copy);
+            var disable = document.createElement('button'); disable.type = 'button'; disable.className = 'admin-button'; disable.textContent = item.enabled ? '사용 중단' : '중단됨'; disable.disabled = !item.enabled; var disableKey = crypto.randomUUID();
+            disable.addEventListener('click', async function () { if (disable.disabled) return; if (!window.confirm('신규 등록과 미사용 혜택을 중단할까요?')) return; disable.disabled = true;
+              try { await request('/' + encodeURIComponent(item.id) + '/disable', {}, disableKey); item.enabled = false; disable.textContent = '중단됨'; result.textContent = '쿠폰 사용을 중단했습니다.'; render(snapshot.items); }
+              catch (error) { result.textContent = error.message; disable.disabled = false; }
+            }); row.appendChild(disable); list.appendChild(row);
+          });
+        }
+        render(snapshot.items);
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); if (busy || !form.reportValidity()) return;
+          var f = form.elements; var start = new Date(f.startsAt.value), end = new Date(f.expiresAt.value);
+          if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) { result.textContent = '종료는 시작 이후의 유효한 시각으로 입력해 주세요.'; return; }
+          var payload = { title: f.title.value.trim(), code: f.code.value.trim(), kind: f.kind.value, productKey: f.productKey.value, value: Number(f.value.value), maxClaims: Number(f.maxClaims.value), startsAt: start.toISOString(), expiresAt: end.toISOString() };
+          if (!payload.title || !Number.isInteger(payload.value) || payload.value < 1 || !Number.isInteger(payload.maxClaims) || payload.maxClaims < 1 || payload.maxClaims > 20000 || ((payload.kind === 'percent_off' || payload.kind === 'consultation_questions') && payload.value > 100) || (payload.kind === 'service_free' && payload.value !== 1)) { result.textContent = '혜택 값과 등록 한도를 확인해 주세요.'; return; }
+          busy = true; Array.from(form.elements).forEach(function (control) { control.disabled = true; }); result.textContent = '발급 중입니다.';
+          try { await request('', payload, saveKey); result.textContent = '쿠폰을 발급했습니다.'; saveKey = crypto.randomUUID(); form.reset(); updateKind();
+            try { snapshot = await request(''); render(snapshot.items); } catch (_error) { result.textContent = '발급은 완료했지만 목록을 다시 불러오지 못했습니다. 새로고침해 주세요.'; }
+          } catch (error) { result.textContent = error.message; }
+          finally { busy = false; Array.from(form.elements).forEach(function (control) { control.disabled = false; }); }
+        });
+      }
+      async function loadConsultationManager(body) {
+        body.replaceChildren();
+        var section = document.createElement('section'); section.className = 'admin-section';
+        section.innerHTML = '<header class="admin-section-head"><h3>천명상담 설정</h3><span class="admin-chip">게시본만 고객 화면에 적용</span></header><p class="admin-note">회원 첫 해석 1회 무료 · 이후 질문 5회 4,900원. 확인 질문·실패는 차감하지 않습니다. 가격은 결제 상품 설정을 따릅니다.</p><p class="admin-note" role="status" data-consultation-status>게시본과 초안을 불러오는 중입니다.</p>';
+        body.appendChild(section);
+        var status = section.querySelector('[data-consultation-status]');
+        var snapshot;
+        try {
+          var response = await fetch('/api/admin/v1/consultation/settings', { credentials: 'same-origin', cache: 'no-store' });
+          if (!response.ok) throw new Error(response.status === 403 ? '콘텐츠 조회 권한이 없습니다.' : '설정을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
+          snapshot = await response.json();
+          if (snapshot.versionStore !== 'ready' || !Array.isArray(snapshot.items) || !snapshot.defaults) throw new Error('설정 저장소에 연결할 수 없습니다. 조회 실패 중에는 저장할 수 없습니다.');
+        } catch (error) { status.textContent = error instanceof Error ? error.message : '설정 조회에 실패했습니다.'; return; }
+        var versions = snapshot.items.filter(function (item) { return item.contentType === 'notice' && item.placement === 'cheonmyeong_consultation' && item.serviceKey === null; });
+        var published = versions.find(function (item) { return item.state === 'published'; });
+        var draft = versions.find(function (item) { return item.state === 'draft'; });
+        var settings;
+        try { settings = draft || published ? JSON.parse((draft || published).payload.body) : snapshot.defaults; if (!settings || typeof settings.enabled !== 'boolean') throw new Error('invalid'); }
+        catch (_error) { status.textContent = '저장된 설정 형식이 올바르지 않습니다. 관리자에게 확인해 주세요.'; return; }
+        var archived = versions.some(function (item) { return item.state === 'archived'; });
+        if (!draft && !published && archived) settings = Object.assign({}, settings, { enabled: false });
+        status.textContent = (published ? '현재 게시 revision ' + published.revision : archived ? '게시본이 내려가 상담이 비활성화되어 있습니다.' : '게시된 관리자 설정이 없어 기본 천명 설정을 사용합니다.') + (draft ? ' · 아래는 저장된 초안입니다.' : ' · 편집 후 먼저 초안을 저장해 주세요.');
+        var form = document.createElement('form'); form.className = 'admin-refund-form admin-consultation-form';
+        var fields = [
+          ['bannerTitle', '홈 배너 제목', 100, false], ['bannerBody', '홈 배너 설명', 300, true],
+          ['bannerImage', '배너 이미지 경로 (/assets/ 또는 /images/)', 300, false], ['name', '상담자 이름', 30, false],
+          ['introduction', '상담자 소개', 300, true], ['personality', '퍼소나 · 성격', 900, true],
+          ['speech', '말투 · 답변 방식 (기본 해석 500–800자 · 심화 800–1200자)', 700, true], ['questionRules', '추가정보 수집 규칙 (누락 정보 한 가지씩 확인)', 1000, true]
+        ];
+        fields.forEach(function (field) {
+          var wrapper = document.createElement('div'); wrapper.className = 'admin-field'; wrapper.dataset.span = '2';
+          var label = document.createElement('label'); label.htmlFor = 'consultation-' + field[0]; label.textContent = field[1];
+          var input = document.createElement(field[3] ? 'textarea' : 'input'); input.id = label.htmlFor; input.name = field[0]; input.required = true; input.maxLength = field[2]; input.value = settings[field[0]] || ''; input.style.width = '100%'; input.style.font = 'inherit'; if (field[3]) input.rows = 3;
+          wrapper.append(label, input); form.appendChild(wrapper);
+        });
+        var options = document.createElement('div'); options.className = 'admin-field';
+        options.innerHTML = '<label for="consultation-voice">음성</label><select id="consultation-voice" name="voiceName"><option value="ko-KR-InJoonNeural">InJoon · 편안한 남성</option><option value="ko-KR-HyunsuMultilingualNeural">Hyunsu · 자연스러운 남성</option><option value="ko-KR-SunHiNeural">SunHi · 차분한 여성</option></select>';
+        form.appendChild(options); form.elements.voiceName.value = settings.voiceName;
+        var rate = document.createElement('div'); rate.className = 'admin-field'; rate.innerHTML = '<label for="consultation-rate">말하기 속도 (0.7–1.3)</label><input id="consultation-rate" name="voiceRate" type="number" required min="0.7" max="1.3" step="0.05">'; form.appendChild(rate); form.elements.voiceRate.value = settings.voiceRate;
+        var enabled = document.createElement('div'); enabled.className = 'admin-field'; enabled.innerHTML = '<label for="consultation-enabled">노출 · 상담 이용</label><select id="consultation-enabled" name="enabled"><option value="true">활성화</option><option value="false">비활성화</option></select>'; form.appendChild(enabled); form.elements.enabled.value = String(settings.enabled);
+        var note = document.createElement('p'); note.className = 'admin-note'; note.dataset.span = '2'; note.textContent = '게시하면 홈 배너와 이후 상담 요청에 적용됩니다. 기존 상담 본문·구매 리포트·AI 모델 설정은 변경하지 않습니다. 이미지는 사이트에 배포된 파일 경로를 사용합니다.'; form.appendChild(note);
+        var actions = document.createElement('div'); actions.className = 'admin-actions'; actions.innerHTML = '<button type="submit" class="admin-button">초안 저장</button><button type="button" class="admin-button" data-consultation-publish>저장한 초안 게시</button>'; form.appendChild(actions);
+        var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status'); form.appendChild(result); section.appendChild(form);
+        var publishButton = actions.querySelector('[data-consultation-publish]'); publishButton.disabled = !draft;
+        var busy = false; var dirty = !draft; var saveKey = crypto.randomUUID(); var publishKey = crypto.randomUUID();
+        form.addEventListener('input', function () { dirty = true; publishButton.disabled = true; saveKey = crypto.randomUUID(); result.textContent = '변경사항을 먼저 초안으로 저장해 주세요.'; });
+        function setBusy(value) { busy = value; Array.from(form.elements).forEach(function (control) { control.disabled = value; }); if (!value) publishButton.disabled = !draft || dirty; }
+        function readSettings() {
+          var value = {}; fields.forEach(function (field) { value[field[0]] = form.elements[field[0]].value.trim(); });
+          value.voiceName = form.elements.voiceName.value; value.voiceRate = Number(form.elements.voiceRate.value); value.enabled = form.elements.enabled.value === 'true';
+          if (JSON.stringify(value).length > 4000 || /[<>]/.test(JSON.stringify(value))) throw new Error('설정은 전체 4,000자 이내이며 HTML 태그를 사용할 수 없습니다.');
+          return value;
+        }
+        async function mutate(url, method, payload, key) {
+          var response = await fetch(url, { method: method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
+          var data = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(response.status === 409 ? '다른 변경과 충돌했습니다. 입력을 복사한 뒤 새로고침하여 최신 설정을 확인해 주세요.' : response.status === 403 ? '이 변경을 실행할 콘텐츠 권한이 없습니다.' : data.error || '변경을 저장하지 못했습니다. 입력은 유지됩니다.');
+          if (!data.content || !data.content.id || !Number.isInteger(data.content.revision) || data.content.revision < 0 || !data.content.checksum) throw new Error('저장 응답을 확인하지 못했습니다. 다시 시도하거나 새로고침해 주세요.');
+          return data.content;
+        }
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); if (busy) return;
+          try {
+            var value = readSettings(); setBusy(true); result.textContent = '초안을 저장하는 중입니다.';
+            var payload = { title: value.name + ' 상담 설정', body: JSON.stringify(value) };
+            draft = await mutate('/api/admin/v1/content' + (draft ? '/' + encodeURIComponent(draft.id) : ''), draft ? 'PATCH' : 'POST', draft ? { expectedRevision: draft.revision, payload: payload } : { contentType: 'notice', serviceKey: null, placement: 'cheonmyeong_consultation', payload: payload }, saveKey);
+            dirty = false; saveKey = crypto.randomUUID(); publishKey = crypto.randomUUID(); result.textContent = '초안 revision ' + draft.revision + '을 저장했습니다. 아직 고객 화면에는 반영되지 않았습니다.';
+          } catch (error) { result.textContent = error instanceof Error ? error.message : '초안 저장에 실패했습니다.'; }
+          finally { setBusy(false); }
+        });
+        publishButton.addEventListener('click', async function () {
+          if (busy || !draft || dirty) return;
+          try {
+            setBusy(true); result.textContent = '저장한 초안을 게시하는 중입니다.';
+            published = await mutate('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', 'POST', { expectedRevision: draft.revision, checksum: draft.checksum }, publishKey);
+            draft = null; dirty = true; saveKey = crypto.randomUUID(); result.textContent = '게시 revision ' + published.revision + '이 반영되었습니다. 기존 상담 기록은 유지됩니다.'; status.textContent = '현재 게시 revision ' + published.revision + ' · 추가 변경은 새 초안으로 저장됩니다.';
+          } catch (error) { result.textContent = error instanceof Error ? error.message : '게시하지 못했습니다. 저장된 초안은 유지됩니다.'; }
+          finally { setBusy(false); }
         });
       }
       function renderContentDetail(body, item) {
@@ -1730,6 +1904,8 @@
         if (route.key === 'logs') { loadGenerationLog(body); return; }
         if (route.key === 'content') { loadLiveContent(body); return; }
         if (route.key === 'popup') { loadPopupManager(body); return; }
+        if (route.key === 'coupons') { loadCouponManager(body); return; }
+        if (route.key === 'consultation') { loadConsultationManager(body); return; }
         addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
       }
       /**
@@ -1796,6 +1972,7 @@
             var response = await fetch('/api/admin/v1/funnel?period=' + encodeURIComponent(period), { credentials: 'same-origin' });
             if (!response.ok) throw new Error('FUNNEL_SUMMARY_FAILED');
             var payload = await response.json();
+            if (payload.available !== true) throw new Error('FUNNEL_STORE_UNAVAILABLE');
             status.hidden = true;
             var before = Array.from(body.children);
             var overview = payload.overview || { views: 0, sessions: 0, signedInUsers: 0 };
@@ -1813,7 +1990,7 @@
             if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
             resultNodes = Array.from(body.children).filter(function (node) { return before.indexOf(node) === -1; });
           } catch (_error) {
-            status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다.';
+            status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다. 조회 실패는 0건을 의미하지 않습니다.';
           }
         }
         filters.querySelector('select').addEventListener('change', function (event) { load(event.target.value); });
