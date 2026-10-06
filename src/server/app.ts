@@ -66,7 +66,7 @@ import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.j
 import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
-import { listAdminAuditEvents } from '../admin/audit-store.js'
+import { searchAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { adminPushRouter, pushRouter } from '../push/router.js'
@@ -3453,8 +3453,10 @@ app.get('/api/admin/v1/operations-snapshot', async (req, res) => {
 
 app.get('/api/admin/v1/audit', async (req, res) => {
   if (!await requireStaff(req, res, 'audit:read')) return
+  // 2026-10(8단계): 영역·관리자·기간·결과 필터와 페이지. 거른 결과의 전체 수를 함께 준다.
   try {
-    res.json({ events: await listAdminAuditEvents(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+    const { events, total } = await searchAdminAuditEvents({ area: trimmedString(req.query?.area), actor: trimmedString(req.query?.actor), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, result: req.query?.result === 'all' ? 'all' : 'succeeded', limit: Number(req.query?.limit ?? 50), offset: Number(req.query?.offset ?? 0) })
+    res.json({ events, total, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'ADMIN_AUDIT_LOOKUP_FAILED', error: '감사 기록 저장소를 불러오지 못했습니다.' })
   }
