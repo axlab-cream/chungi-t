@@ -3468,6 +3468,18 @@ app.get('/api/admin/v1/support', async (req, res) => {
   catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '고객 지원 저장소를 불러오지 못했습니다.' }) }
 })
 
+/** 문의 한 건(2026-10 7단계). 목록(최근 100건) 밖의 문의도 링크(?id=)로 열 수 있게 한다. */
+app.get('/api/admin/v1/support/:id', async (req, res) => {
+  if (!await requireStaff(req, res, 'support:read')) return
+  const id = trimmedString(req.params.id)
+  if (!/^[0-9a-f-]{36}$/i.test(id)) { res.status(422).json({ code: 'INVALID_SUPPORT_CASE_ID', error: '문의 번호를 확인해 주세요.' }); return }
+  try {
+    const supportCase = await getSupportCase(id)
+    if (!supportCase) { res.status(404).json({ code: 'SUPPORT_CASE_NOT_FOUND', error: '해당 문의를 찾지 못했습니다.' }); return }
+    res.json({ supportCase })
+  } catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '문의를 불러오지 못했습니다.' }) }
+})
+
 app.get('/api/admin/v1/support/:id/notes', async (req, res) => {
   if (!await requireStaff(req, res, 'support:read')) return
   const id = trimmedString(req.params.id)
@@ -3685,7 +3697,7 @@ const pushDeps = {
 // 앱 푸시: 기기 등록·알림 클릭(공개), 작성·발송·이력(관리자). 설계는 src/push/.
 app.use('/api/push', pushRouter(pushDeps))
 app.use('/api/admin/v1/push', adminPushRouter(pushDeps))
-app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff }))
+app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff, audit: (event) => postgrestAdminCommandStore().appendAuditEvent({ ...event, result: 'succeeded' }) }))
 app.use('/api/coupons', couponRouter({
   authenticate: requireSupabaseUser,
   staff: requireStaff,

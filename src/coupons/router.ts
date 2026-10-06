@@ -76,7 +76,9 @@ export function couponRouter(deps: Dependencies): Router {
   })
   return router
 }
-export function adminCouponRouter(deps: Pick<Dependencies,'staff'>): Router {
+/** 쿠폰 발급·중단을 공통 감사 기록(로그 화면)에 남긴다(2026-10 7단계). 기록 실패가 발급을 막지는 않는다. */
+export type CouponAudit = (event: { actorEmail: string; action: string; target: { type: string; id: string } }) => Promise<void>
+export function adminCouponRouter(deps: Pick<Dependencies,'staff'> & { audit?: CouponAudit }): Router {
   const router = Router()
   router.use((_req,res,next) => { res.setHeader('Cache-Control','private, no-store'); next() })
   router.get('/', async (req,res) => {
@@ -86,11 +88,19 @@ export function adminCouponRouter(deps: Pick<Dependencies,'staff'>): Router {
   // A coupon changes the effective price; issuance requires publishing permission.
   router.post('/', async (req,res) => {
     const actor = await deps.staff(req,res,'content:publish'); if (!actor) return
-    try { res.status(201).json({item:await createCampaign(req.body,actor.email,text(req.header('Idempotency-Key')))}) } catch (error) { couponFailure(res,error) }
+    try {
+      const item = await createCampaign(req.body,actor.email,text(req.header('Idempotency-Key')))
+      await deps.audit?.({ actorEmail: actor.email, action: 'coupon.campaign.create', target: { type: 'coupon_campaign', id: item.id } }).catch(() => undefined)
+      res.status(201).json({item})
+    } catch (error) { couponFailure(res,error) }
   })
   router.post('/:id/disable', async (req,res) => {
     const actor = await deps.staff(req,res,'content:publish'); if (!actor) return
-    try { res.json({item:await disableCampaign(text(req.params.id),actor.email)}) } catch (error) { couponFailure(res,error) }
+    try {
+      const item = await disableCampaign(text(req.params.id),actor.email)
+      await deps.audit?.({ actorEmail: actor.email, action: 'coupon.campaign.disable', target: { type: 'coupon_campaign', id: item.id } }).catch(() => undefined)
+      res.json({item})
+    } catch (error) { couponFailure(res,error) }
   })
   return router
 }
