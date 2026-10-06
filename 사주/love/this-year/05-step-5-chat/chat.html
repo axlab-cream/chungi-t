@@ -743,7 +743,6 @@
         <strong id="contextTitle">올해 리포트 목록</strong>
         <span id="contextMeta">24개 항목 · 원하는 장부터 보기</span>
       </div>
-      <button class="pdf-button" type="button" id="btnPdf">PDF</button>
     </div>
 
     <section class="chat-log" id="chatLog" aria-live="polite">
@@ -1627,7 +1626,6 @@
 
     document.getElementById("btnBack").addEventListener("click", handleBack);
     document.getElementById("btnVault").addEventListener("click", () => showToast("보관함 연결은 운영 로그인 이후 활성화됩니다."));
-    document.getElementById("btnPdf").addEventListener("click", () => showToast("PDF는 상세 풀이가 모두 열린 뒤 준비됩니다."));
 
     document.querySelectorAll("[data-quick]").forEach((button) => {
       button.addEventListener("click", () => {

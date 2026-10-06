@@ -434,16 +434,23 @@
   }
 
   function bindPdfButton() {
-    const host = $('#step-5-chat header') || $('#step-6_1-report header');
-    if (!host) return;
+    const page = $('#step-5-chat') || $('#step-6_1-report');
+    if (!page) return;
     let button = $('#btn-pdf');
     if (!button) {
+      // 다른 서비스와 같은 자리: 상단바가 아니라 본문 끝(목록 링크·입력창 바로 위).
+      const dock = document.createElement('div');
+      dock.className = 'umsh-pdf-dock';
+      dock.style.cssText = 'padding:18px 18px 8px';
       button = document.createElement('button');
       button.id = 'btn-pdf';
       button.type = 'button';
-      button.textContent = 'PDF 다운받기';
-      button.style.cssText = 'display:block;margin:12px 0 0;width:100%;min-height:44px;border:1px solid #1f8a70;border-radius:8px;background:#1f8a70;color:#fff;font-weight:800;cursor:pointer';
-      host.appendChild(button);
+      button.className = 'pdf-button';
+      button.textContent = 'PDF 저장';
+      button.style.cssText = 'display:block;width:100%;min-height:44px;border:1px solid #1f8a70;border-radius:8px;background:#1f8a70;color:#fff;font-weight:800;cursor:pointer';
+      dock.appendChild(button);
+      const before = page.querySelector(':scope > .list-link, :scope > .composer');
+      page.insertBefore(dock, before);
     }
     if (button.dataset.bound === '1') return;
     button.dataset.bound = '1';
