@@ -84,7 +84,7 @@
       흐름으로 남아 옆으로 늘어섰다(실측). 우리가 만든 진짜 엘리먼트로 감싸면 그 익명 박스와
       상관없이 항상 우리가 원하는 레이아웃을 쓴다.
     */
-    .admin-nav-group + .admin-nav-group { margin-top: 2px; }
+    .admin-nav-group + .admin-nav-group { margin-top: 10px; }
     .admin-nav-links { display: flex; flex-direction: column; gap: 1px; }
     /*
       author 규칙은 명시도와 무관하게 UA 기본 규칙(`details:not([open]) > *:not(summary)`)을
@@ -105,13 +105,13 @@
       transform: rotate(45deg); margin-right: var(--admin-space-2); transition: transform .15s ease;
     }
     .admin-nav-group[open] summary::after { transform: rotate(-135deg); }
-    .admin-nav-label { margin: 10px 0 2px; padding: 5px 8px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
+    .admin-nav-label { margin: 12px 0 4px; padding: 5px 8px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
     .admin-nav-group:first-of-type .admin-nav-label { margin-top: 0; }
     /* 대메뉴(대시보드·그룹 제목)는 검정·14px, 하위 메뉴는 회색·12.5px 로 들여 쓴다(2026-10-06 요청). */
     .admin-nav a {
       padding: 5px 8px 5px 18px; color: #6b6b74; text-decoration: none; border-radius: 5px; font-size: 12.5px; font-weight: 500;
     }
-    .admin-nav a.admin-nav-home { padding-left: 8px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
+    .admin-nav a.admin-nav-home { padding-left: 8px; margin-bottom: 4px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
     .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
     .admin-nav a[aria-current='page'] { color: var(--admin-focus); background: #eef3ff; font-weight: 700; }
 
