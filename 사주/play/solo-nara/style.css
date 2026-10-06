@@ -7,8 +7,10 @@ button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;color
 a{color:inherit}button:focus-visible,a:focus-visible{outline:2px solid var(--rose);outline-offset:4px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .shell{max-width:440px;min-height:100dvh;margin:auto;background:var(--paper);overflow-x:hidden}
-header{height:64px;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--rule)}header a{display:flex}header img{object-fit:contain;height:32px;width:auto}
-.edition{font-size:10px;letter-spacing:2.2px;color:var(--ink)}.edition b{color:var(--rose);margin-left:6px;font-weight:600}
+.appbar{display:flex;align-items:center;padding:21px 20px 12px;border-bottom:1px solid #1e1d1b;background:#080807}
+.app-brand{display:inline-grid}.app-brand img{display:block;width:132px;height:50px;object-fit:contain}
+@media(max-width:520px){.appbar{padding:10px 14px 8px}.app-brand img{width:112px;height:40px}}
+@media(max-width:360px){.app-brand img{width:100px;height:36px}}
 main{padding:22px 22px 16px;min-height:610px;outline:none}
 footer{text-align:center;padding:24px 16px max(24px,env(safe-area-inset-bottom));font-size:11px;color:var(--muted);line-height:1.9;border-top:1px solid var(--hair)}footer a{text-decoration:none}footer span{margin:0 8px}footer p{letter-spacing:1px}
 .eyebrow,.kicker{color:var(--rose);font-size:10px;letter-spacing:2.6px;font-weight:600;margin:0 0 10px}
@@ -42,7 +44,7 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .screen.slide-prev{animation:slide-prev .28s cubic-bezier(.2,.8,.3,1)}
 
 /* Intro: the portrait art fills the first screen and already carries the title. */
-.hero{margin:-22px -22px 0;height:calc(100dvh - 64px);min-height:480px;max-height:820px;overflow:hidden}
+.hero{margin:-22px -22px 0;height:calc(100dvh - 84px);min-height:480px;max-height:820px;overflow:hidden}
 .hero img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block;filter:saturate(.85)}
 /* The start button sits on the art so it is visible on the first screen; a soft fade keeps it legible. */
 .hero{position:relative}
@@ -58,8 +60,11 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 
 /* Silhouettes */
 .sil{display:block;width:100%;height:auto}
-.sil .b{fill:var(--sil)}.sil .d{fill:var(--sil-dark)}
-.sil text{font-size:24px;font-weight:700;fill:#fff;font-family:var(--serif)}
+/* Women in rose, men in blue, both with black hair; the "?" takes the deep tone of the body colour. */
+.sil{--sil:#e3a3aa;--sil-head:#f3cdd1;--sil-mark:#b4555f;--sil-hair:#1c1a1a}
+.sil.male{--sil:#9fb6de;--sil-head:#cddaf0;--sil-mark:#4d6fae}
+.sil .b{fill:var(--sil)}.sil .h{fill:var(--sil-head)}.sil .d{fill:var(--sil-hair)}
+.sil text{font-size:24px;font-weight:700;fill:var(--sil-mark);font-family:var(--serif)}
 
 /* Gender */
 .gender-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-top:18px}
@@ -71,7 +76,7 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .gender-card.from-left{animation:fade .3s ease-out both}.gender-card.from-right{animation:fade .3s ease-out .06s both}
 .gender-card:hover{background:#f3f1ed}
 .gender-card.chosen{background:var(--rose-pale)}.gender-card.chosen b{color:var(--rose)}
-.gender-card.chosen .sil .b{fill:#d9b3bd}.gender-card.chosen .sil .d{fill:var(--rose)}
+
 .gender-card:disabled:not(.chosen){opacity:.4}
 
 /* Question */
@@ -106,7 +111,7 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .reel{position:relative;width:100%;overflow:hidden;padding:14px 0;mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
 .reel-track{display:flex;gap:10px;width:max-content;will-change:transform}
 .reel-item{flex:0 0 90px;padding:10px 8px 0;border:1px solid var(--hair);background:#fff;transition:transform .3s,border-color .3s}
-.reel-item.picked{transform:scale(1.12);border-color:var(--rose)}.reel-item.picked .b{fill:#d9b3bd}.reel-item.picked .d{fill:var(--rose)}
+.reel-item.picked{transform:scale(1.12);border-color:var(--rose)}
 .loadbar{background:var(--hair);height:2px;overflow:hidden;margin:18px 0}
 .loadbar i{display:block;height:100%;background:var(--rose);animation:fill 3.3s linear forwards}
 
@@ -137,7 +142,6 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .readout{font-size:14px;color:var(--ink-soft);line-height:1.8}
 .ticket{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:22px 0 22px}
 .ticket-top{display:flex;justify-content:space-between;padding:12px 0 2px;font-size:10px;letter-spacing:2px;color:var(--rose);font-weight:600}
-.ticket-top span:last-child{display:none}
 .stats{padding:0 0 12px}
 .stat{padding:10px 0;border-bottom:1px solid var(--hair)}.stat:last-child{border-bottom:0}
 .stat-label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}.stat-label b{font-family:var(--serif);font-size:20px;line-height:1.2;font-variant-numeric:tabular-nums}.stat-label small{font-size:11px;font-weight:400;color:var(--muted)}
@@ -177,5 +181,6 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
   .name-flip{transform:rotateY(180deg)}
   .loadbar i{width:100%}
 }
-@media(max-width:360px){main{padding-inline:18px}.hero{margin-inline:-18px}h1{font-size:28px}h2{font-size:21px}.q-num{font-size:54px}header{padding-inline:18px}.tag-rail{margin-inline:-18px}}
-@media(min-width:600px){body{background:#e6e3de}.shell{margin:24px auto;border:1px solid var(--ink);min-height:auto}.hero{height:calc(100dvh - 64px - 50px)}}
+@media(max-width:520px){.hero{height:calc(100dvh - 59px)}}
+@media(max-width:360px){main{padding-inline:18px}.hero{margin-inline:-18px}h1{font-size:28px}h2{font-size:21px}.q-num{font-size:54px}.tag-rail{margin-inline:-18px}}
+@media(min-width:600px){body{background:#e6e3de}.shell{margin:24px auto;border:1px solid var(--ink);min-height:auto}.hero{height:calc(100dvh - 84px - 50px)}}
