@@ -34,8 +34,8 @@
     generation++; busy = false;
     const friend = shared ? C.characters[shared] : null;
     const tags = Object.values(C.characters).map(c => `<span>${esc(c.name)}</span>`).join('');
-    // The hero art already carries the title and a start button; a real button sits exactly over the painted one.
-    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero">${hearts()}<img src="./hero.webp" width="880" height="660" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1><button id="start" class="hero-start" aria-label="${esc(C.copy.intro.cta)}"></button></div><div class="intro-meta"><span class="pill">8문항 · 약 1분</span><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
+    // The hero art carries the title and subtitle; the start button is a real button below it.
+    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero">${hearts()}<img src="./hero.webp?v=2" width="880" height="528" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1></div><button id="start" class="primary hero-cta">${esc(C.copy.intro.cta)} →</button><div class="intro-meta"><span class="pill">8문항 · 약 1분</span><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
     on('invite', () => share());
     on('copy-link', () => share(undefined, true));
     const begin = () => { track('start'); state = { gender: null, answers: [], at: Date.now() }; save(); genderScreen(); };

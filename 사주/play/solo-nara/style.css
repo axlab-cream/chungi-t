@@ -41,11 +41,10 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .hearts{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
 .hearts i{position:absolute;bottom:-20px;left:calc(6% + var(--n) * 16%);font-style:normal;font-size:calc(12px + (var(--n) * 3px) % 10px);color:var(--pink-2);opacity:0;animation:float-up 5.5s ease-in infinite;animation-delay:calc(var(--n) * .9s)}
 
-/* Intro: the hero art carries the title; the real start button overlays the painted one (32.5~67.7% x, 82.4~91.2% y). */
+/* Intro: the hero art carries the title and subtitle; the start button lives below it. */
 .hero{position:relative;margin:-22px -22px 0;line-height:0}
 .hero img{width:100%;height:auto;display:block}
-.hero-start{position:absolute;z-index:2;left:32%;top:82%;width:36%;height:9.5%;border:0;border-radius:999px;background:transparent;animation:hero-glow 2.4s ease-in-out .6s infinite}
-.hero-start:hover{background:rgba(255,255,255,.12)}.hero-start:active{transform:scale(.97)}
+.hero-cta{position:relative;z-index:2;margin-top:-28px;animation:cta-glow 2.4s ease-in-out .6s infinite}
 .intro-meta{text-align:center;margin:18px 0 6px}
 .tag-rail{overflow:hidden;margin:14px -22px 18px;mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)}
 .tag-rail>div{display:flex;gap:8px;width:max-content;animation:rail 26s linear infinite}
@@ -163,7 +162,7 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 @keyframes slide-prev{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes float-up{0%{opacity:0;transform:translateY(0) rotate(-8deg)}15%{opacity:.85}100%{opacity:0;transform:translateY(-420px) rotate(14deg)}}
-@keyframes hero-glow{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 6px rgba(255,255,255,.45),0 0 26px rgba(236,79,154,.45)}}
+@keyframes cta-glow{0%,100%{box-shadow:0 8px 22px rgba(236,79,154,.32)}50%{box-shadow:0 0 0 5px rgba(255,255,255,.7),0 10px 30px rgba(236,79,154,.5)}}
 @keyframes rail{to{transform:translateX(-50%)}}
 @keyframes from-left{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
 @keyframes from-right{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
