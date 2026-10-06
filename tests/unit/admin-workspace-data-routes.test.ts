@@ -21,7 +21,7 @@ test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그�
     assert.match(table, new RegExp(`label: '${label}', load: function \\(body\\) \\{ ${loader}\\(body\\); \\}`), `${label} 탭이 ${loader} 로 연결되지 않는다`)
   }
   assert.match(table, /key: 'media'[^\n]*load: function \(body\) \{ loadMediaCatalog\(body\); \}/)
-  const render = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function loadRevenuePending'))
+  const render = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('var ORDER_STATUS = {'))
   assert.match(render, /def\.tabs\[route\.tabIndex\]\.load\(panel\)/)
   assert.match(render, /if \(!def\.tabs\) \{ def\.load\(body\); return; \}/)
 })

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests, resetRefundStoreForTests } from '../../src/payment/refund-store.js'
+import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests, rejectRefundRequest, resetRefundStoreForTests } from '../../src/payment/refund-store.js'
 
 test.beforeEach(() => { resetRefundStoreForTests() })
 const base = { orderId: 'ORDER-1', reason: '중복 결제', actorEmail: 'requester@example.com', idempotencyKey: 'refund-key-001', orderAmount: 19900, orderRevision: 3 }
@@ -24,4 +24,15 @@ test('환불 조회는 실제 요청 원천을 최신 변경 순으로 반환하
   assert.deepEqual(listed.map((item) => item.id), [second.id, first.id])
   assert.equal((await getRefundRequest(first.id))?.amount, 4000)
   assert.equal(await getRefundRequest('missing-refund'), null)
+})
+
+test('반려는 승인 전 요청만 닫고, 반려된 금액은 다시 요청할 수 있다', async () => {
+  const requested = await createRefundRequest({ ...base, amount: 19900 })
+  await assert.rejects(rejectRefundRequest({ refundId: requested.id, actorEmail: 'approver@example.com', expectedRevision: 5 }), /REFUND_REVISION_CONFLICT/)
+  const rejected = await rejectRefundRequest({ refundId: requested.id, actorEmail: base.actorEmail, expectedRevision: 0 })
+  assert.equal(rejected.state, 'rejected'); assert.equal(rejected.revision, 1); assert.equal(rejected.approvedByEmail, base.actorEmail)
+  await assert.rejects(rejectRefundRequest({ refundId: requested.id, actorEmail: 'approver@example.com', expectedRevision: 1 }), /REFUND_NOT_REQUESTED/)
+  await assert.rejects(approveRefundRequest({ refundId: requested.id, actorEmail: 'approver@example.com', expectedRevision: 1 }))
+  const again = await createRefundRequest({ ...base, idempotencyKey: 'refund-key-003', amount: 19900 })
+  assert.equal(again.state, 'requested')
 })

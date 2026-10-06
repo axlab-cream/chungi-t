@@ -290,9 +290,9 @@ describe('관리자 주문 화면 (T09)', () => {
 
     it('결제 내역은 권한 확인 뒤 작업 영역 안에서만 주문을 요청한다', () => {
       // 셸은 데이터를 갖고 있지 않다. 공개 주문 모드는 없어졌고, orders:read 가 있을 때만 조회한다.
-      const tab = shell.slice(shell.indexOf('function loadOrdersTab'), shell.indexOf('function loadOrdersTab') + 1200)
+      const tab = shell.slice(shell.indexOf('async function loadPaymentsHistory'), shell.indexOf('async function openRefundDetail'))
       assert.match(tab, /indexOf\('orders:read'\) < 0\)/)
-      assert.match(tab, /startOrders\(window\.__adminSession/)
+      assert.match(tab, /adminJson\('\/api\/admin\/v1\/orders\?' \+ params\.toString\(\)\)/)
       assert.ok(!shell.includes('isPublicOrdersPath'), '공개 주문 목록 모드가 남아 있다')
     })
 
@@ -301,5 +301,27 @@ describe('관리자 주문 화면 (T09)', () => {
       assert.ok(!shell.includes('@synthetic.invalid'), '픽스처 이메일이 셸에 들어갔다')
       assert.ok(!/010-\d{4}-\d{4}/.test(shell), '전화번호 형태가 셸에 들어갔다')
     })
+  })
+})
+
+describe('결제 관리 › 매출 집계 (2026-10)', { concurrency: false }, () => {
+  it('로그인 없이는 열리지 않는다', async () => {
+    const { response, payload } = await request('/api/admin/v1/payments/revenue')
+    assert.equal(response.status, 401)
+    assert.equal(payload.totals, undefined)
+  })
+
+  it('결제 완료 주문만 결제일(KST) 기준으로 모은다', async () => {
+    const { response, payload } = await request('/api/admin/v1/payments/revenue?from=2026-08-31T15:00:00.000Z&to=2026-09-02T15:00:00.000Z', 'staff')
+    assert.equal(response.status, 200)
+    // 같은 날 만든 주문 6건 중 결제 완료(paid)는 1건뿐이다. 대기·승인 중은 매출이 아니다.
+    assert.deepEqual(payload.totals, { paidAmount: 24900, paidCount: 1, refundAmount: 0, refundCount: 0, netAmount: 24900 })
+    assert.deepEqual(payload.byDay.map((row: { key: string }) => row.key), ['2026-09-01'])
+    assert.equal(payload.byService[0].key, '결혼 택일')
+  })
+
+  it('기간이 뒤집히거나 너무 길면 거절한다', async () => {
+    const { response } = await request('/api/admin/v1/payments/revenue?from=2026-09-02T00:00:00.000Z&to=2026-09-01T00:00:00.000Z', 'staff')
+    assert.equal(response.status, 422)
   })
 })
