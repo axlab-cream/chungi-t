@@ -212,3 +212,63 @@ export async function acknowledgeGooglePlayPurchase(
     throw new Error('구글플레이 결제 확인 통보에 실패했습니다.')
   }
 }
+
+export interface GooglePlayVoidedPurchase {
+  purchaseToken: string
+  orderId?: string
+  voidedTimeMillis?: string
+  /** 0 사용자, 1 개발자, 2 구글. */
+  voidedSource?: number
+  /** 환불·취소 사유 코드. 고객 문의 대조에 쓴다. */
+  voidedReason?: number
+}
+
+/** 한 번에 넘겨 볼 최대 쪽 수. 하루치 환불이 이만큼 쌓일 일은 없다. */
+const VOIDED_MAX_PAGES = 5
+
+/**
+ * 환불·취소된 결제 목록.
+ *
+ * 구글은 사용자가 Play 에서 환불받거나 결제가 취소돼도 우리 서버에 알려 주지 않는다.
+ * 실시간 알림(RTDN)은 Pub/Sub 주제와 구독을 따로 만들어야 해서, 이미 있는 서비스 계정으로
+ * 주기적으로 묻는 쪽을 택했다. 서비스 계정에 Play Console "재무 데이터 보기" 권한이 있어야 한다.
+ */
+export async function listGooglePlayVoidedPurchases(
+  params: { startTimeMillis: number },
+  options: { credentials?: GooglePlayCredentials; request?: FetchLike } = {},
+): Promise<GooglePlayVoidedPurchase[]> {
+  const credentials = options.credentials ?? googlePlayCredentials()
+  if (!credentials) throw new Error('구글플레이 결제가 설정되지 않았습니다.')
+  const request = options.request ?? ((url, init) => fetch(url, init))
+
+  const token = await accessToken(credentials, request)
+  const result: GooglePlayVoidedPurchase[] = []
+  let pageToken = ''
+  for (let page = 0; page < VOIDED_MAX_PAGES; page += 1) {
+    const url = new URL(`${API_BASE}/${encodeURIComponent(credentials.packageName)}/purchases/voidedpurchases`)
+    url.searchParams.set('startTime', String(Math.floor(params.startTimeMillis)))
+    url.searchParams.set('maxResults', '1000')
+    if (pageToken) url.searchParams.set('token', pageToken)
+    const response = await request(url.href, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+    if (!response.ok) throw new Error('구글플레이 환불 내역을 불러오지 못했습니다.')
+    const body = await response.json() as { voidedPurchases?: unknown; tokenPagination?: { nextPageToken?: unknown } }
+    const items = Array.isArray(body.voidedPurchases) ? body.voidedPurchases as Array<Record<string, unknown>> : []
+    for (const item of items) {
+      if (typeof item.purchaseToken !== 'string' || !item.purchaseToken) continue
+      result.push({
+        purchaseToken: item.purchaseToken,
+        orderId: typeof item.orderId === 'string' ? item.orderId : undefined,
+        voidedTimeMillis: typeof item.voidedTimeMillis === 'string' ? item.voidedTimeMillis : undefined,
+        voidedSource: typeof item.voidedSource === 'number' ? item.voidedSource : undefined,
+        voidedReason: typeof item.voidedReason === 'number' ? item.voidedReason : undefined,
+      })
+    }
+    const next = body.tokenPagination?.nextPageToken
+    if (typeof next !== 'string' || !next) break
+    pageToken = next
+  }
+  return result
+}

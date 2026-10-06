@@ -16,6 +16,8 @@
   let authClient = null;
   let session = null;
   let product = null;
+  // 앱 안에서 구글플레이가 알려 준 가격. 있으면 쿠폰을 고르지 않았을 때 이 가격을 보인다.
+  let appPriceText = null;
 
   function isMobileWeb() {
     return Boolean(global.navigator?.userAgentData?.mobile)
@@ -239,7 +241,7 @@
     if (item?.kind === 'service_free') amount = 0;
     if (item?.kind === 'amount_off') amount = Math.max(1, amount - item.value);
     if (item?.kind === 'percent_off') amount = Math.max(1, amount - Math.floor(amount * item.value / 100));
-    document.querySelector('[data-product-price]').textContent = `${amount.toLocaleString('ko-KR')}원`;
+    document.querySelector('[data-product-price]').textContent = !item && appPriceText ? appPriceText : `${amount.toLocaleString('ko-KR')}원`;
     freeCouponButton.hidden = item?.kind !== 'service_free';
     button.hidden = item?.kind === 'service_free';
     if (couponStatus) couponStatus.textContent = item?.kind === 'service_free'
@@ -291,6 +293,32 @@
     finally { freeCouponButton.disabled = false; }
   });
 
+  // 앱 안에서는 실제 청구 금액이 Play Console 가격이다. 그 가격을 받아 화면에 보인다.
+  async function applyAppPrice() {
+    if (!global.UMSHAppBilling?.isAvailable() || typeof global.UMSHAppBilling.priceText !== 'function') return;
+    const text = await global.UMSHAppBilling.priceText(product.key);
+    if (!text) return;
+    appPriceText = text;
+    showCouponPrice();
+  }
+
+  /**
+   * 결제 도중 앱이 꺼져 열리지 않은 결제를 먼저 마저 연다. 결제 버튼을 열기 전에 끝내야
+   * 같은 상품을 두 번 결제하지 않는다. 이 상품 결제가 열렸으면 결과 화면으로 보낸다.
+   */
+  async function recoverAppPurchases() {
+    if (!global.UMSHAppBilling?.isAvailable() || typeof global.UMSHAppBilling.recoverPending !== 'function') return false;
+    const recovered = await global.UMSHAppBilling.recoverPending({ authHeaders }).catch(() => []);
+    if (!recovered.length) return false;
+    const match = recovered.find((order) => order.productKey === product.key);
+    if (match) {
+      global.location.replace(`/payment/result?orderId=${encodeURIComponent(match.orderId)}`);
+      return 'redirect';
+    }
+    setStatus(`완료되지 않았던 결제 ${recovered.length}건을 확인해 반영했습니다. 주문 내역에서 확인해 주세요.`);
+    return true;
+  }
+
   async function init() {
     // Keep the caller's own return path across the PG round-trip, so a reader lands back
     // on the exact step they left instead of the product's generic entry page.
@@ -307,6 +335,7 @@
       return;
     }
     setProduct(product);
+    applyAppPrice().catch(() => {});
     if (!paymentConfig.checkoutEnabled) {
       setStatus(paymentConfig.setupMessage || '결제 모듈 준비 중입니다.');
       return;
@@ -315,13 +344,15 @@
     if (!session) return;
     form.buyerEmail.value = session.user?.email || '';
     await loadCoupons();
+    const recovered = await recoverAppPurchases();
+    if (recovered === 'redirect') return;
     if (paymentConfig.testMode) {
       button.textContent = '테스트 결제창 열기';
       setStatus('개발 환경 테스트 모드입니다. 실제 결제는 발생하지 않습니다.');
     }
     button.disabled = false;
     form.addEventListener('submit', startPayment);
-    if (!paymentConfig.testMode) setStatus('결제 정보를 입력하면 안전한 결제창으로 이동합니다.');
+    if (!paymentConfig.testMode && !recovered) setStatus('결제 정보를 입력하면 안전한 결제창으로 이동합니다.');
   }
 
   init().catch((error) => setStatus(error.message || '결제 화면을 불러오지 못했습니다.'));
