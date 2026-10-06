@@ -17,7 +17,7 @@ test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그�
   // 2026-10 개편: 화면 연결은 renderWorkspace 의 if 분기가 아니라 라우트 표(ADMIN_ROUTE_LIST)의 load 가 맡는다.
   // 메뉴(탭)마다 실제 로더가 달려 있어야 "준비 중" 안내로 떨어지지 않는다.
   const table = source.slice(source.indexOf('var ADMIN_ROUTE_LIST = ['), source.indexOf('var ADMIN_ROUTE_ALIASES'))
-  for (const [label, loader] of [['방문 · 전환', 'loadFunnelAnalytics'], ['배포 정보', 'loadReleaseInfo'], ['품질 점검', 'loadQualityEvaluations'], ['장애 기록', 'loadIncidents'], ['실패 현황', 'loadGenerationLog']]) {
+  for (const [label, loader] of [['방문 · 전환', 'loadFunnelAnalytics'], ['배포 정보', 'loadReleaseInfo'], ['품질 점검', 'loadQualityEvaluations'], ['장애 기록', 'loadIncidents'], ['실패 현황', 'loadAiFailures']]) {
     assert.match(table, new RegExp(`label: '${label}', load: function \\(body\\) \\{ ${loader}\\(body\\); \\}`), `${label} 탭이 ${loader} 로 연결되지 않는다`)
   }
   assert.match(table, /key: 'media'[^\n]*load: function \(body\) \{ loadMediaCatalog\(body\); \}/)
@@ -26,11 +26,19 @@ test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그�
   assert.match(render, /if \(!def\.tabs\) \{ def\.load\(body\); return; \}/)
 })
 
-test('loadGenerationLog 는 실제 로그 엔드포인트를 부르고, 실패 사유를 시간순으로 싣는다', () => {
-  const body = source.slice(source.indexOf('async function loadGenerationLog'), source.indexOf('async function loadGenerationLog') + 900)
-  assert.match(body, /fetch\('\/api\/admin\/v1\/logs'/)
-  assert.match(body, /payload\.failures/)
-  assert.match(body, /item\.errorSummary/)
+test('loadAiFailures 는 실패 현황 집계를 부르고, 실패 행에서 리포트 상세로 이어진다', () => {
+  const body = source.slice(source.indexOf('async function loadAiFailures'), source.indexOf('async function renderReportDiagnostics'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/ai\/failures\?days=' \+ state\.days/)
+  assert.match(body, /data\.byType/)
+  assert.match(body, /renderReportDiagnostics\(document\.body, row\.reportId\)/)
+})
+
+test('리포트 목록은 실제 생성 상태로 거르고, 행에서 리포트 상세를 연다', () => {
+  const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadAiFailures'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/reports\?' \+ params\.toString\(\)/)
+  assert.match(body, /params\.set\('status', reportListState\.status\)/)
+  assert.match(body, /renderReportDiagnostics\(document\.body, item\.id, item\)/)
+  assert.doesNotMatch(body, /admin_status/)
 })
 
 test('loadIncidents 는 실제 장애 엔드포인트를 부르고, 등록 폼을 함께 그린다', () => {
@@ -179,9 +187,9 @@ test('renderContentDetail 은 저장 후에만 게시 버튼을 열고, 게시 �
 test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔드 라우트에 연결한다', () => {
   const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadLiveOverview'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports\/requeue-incomplete', \{ method: 'POST'/)
-  assert.match(body, /fetch\('\/api\/admin\/v1\/reports', \{ credentials: 'same-origin' \}\)/)
-  assert.match(body, /회원 이름/, '회원 열은 사주 입력 이름임을 명확히 표시해야 한다')
-  assert.match(body, /item\.memberName/, '회원 열은 계정 이메일이 아니라 리포트 입력 이름을 표시해야 한다')
+  assert.match(body, /fetch\('\/api\/admin\/v1\/reports\?' \+ params\.toString\(\), \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /입력 이름/, '이름 열은 사주 입력 이름임을 명확히 표시해야 한다')
+  assert.match(body, /item\.subjectName/, '이름 열은 계정 이메일이 아니라 리포트 입력 이름을 표시해야 한다')
   assert.match(body, /item\.serviceTitle/, '서비스 열은 내부 키가 아니라 실제 카탈로그명을 표시해야 한다')
 })
 
