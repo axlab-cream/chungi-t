@@ -41,10 +41,10 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .hearts{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
 .hearts i{position:absolute;bottom:-20px;left:calc(6% + var(--n) * 16%);font-style:normal;font-size:calc(12px + (var(--n) * 3px) % 10px);color:var(--pink-2);opacity:0;animation:float-up 5.5s ease-in infinite;animation-delay:calc(var(--n) * .9s)}
 
-/* Intro: the hero art carries the title; the real start button overlays the painted one (32.5~67.3% x, 80.4~89.1% y). */
+/* Intro: the hero art carries the title; the real start button overlays the painted one (32.5~67.7% x, 82.4~91.2% y). */
 .hero{position:relative;margin:-22px -22px 0;line-height:0}
 .hero img{width:100%;height:auto;display:block}
-.hero-start{position:absolute;z-index:2;left:32%;top:80%;width:36%;height:9.5%;border:0;border-radius:999px;background:transparent;animation:hero-glow 2.4s ease-in-out .6s infinite}
+.hero-start{position:absolute;z-index:2;left:32%;top:82%;width:36%;height:9.5%;border:0;border-radius:999px;background:transparent;animation:hero-glow 2.4s ease-in-out .6s infinite}
 .hero-start:hover{background:rgba(255,255,255,.12)}.hero-start:active{transform:scale(.97)}
 .intro-meta{text-align:center;margin:18px 0 6px}
 .tag-rail{overflow:hidden;margin:14px -22px 18px;mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)}
