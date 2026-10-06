@@ -15,6 +15,9 @@ const previousEnv = { ...process.env }
 process.env.SUPABASE_URL = 'https://member-profile.synthetic.invalid'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
 
+const PAID_MEMBER = 'bbbbbbbb-0000-0000-0000-000000000002'
+const NEW_MEMBER = 'cccccccc-0000-0000-0000-000000000003'
+const DELETED: string[] = []
 const nativeFetch = globalThis.fetch
 const calls: Array<{ method: string; url: URL; headers: Headers; body?: unknown }> = []
 
@@ -48,6 +51,18 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   }
   if (url.pathname === '/rest/v1/cheongi_reports' && method === 'GET') {
     return new Response(JSON.stringify([{ report_id: 'rep_1', created_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-01T00:05:00.000Z', reportStatus: 'complete', reportService: 'saju' }]), { headers: { 'content-type': 'application/json' } })
+  }
+  if (url.pathname === '/rest/v1/cheongi_payment_orders' && method === 'GET') {
+    const owner = url.searchParams.get('owner_id')?.replace(/^eq\./, '')
+    return new Response(JSON.stringify(owner === PAID_MEMBER ? [{ order_id: 'o1', owner_id: PAID_MEMBER, product_key: 'cmdg', product_title: 'x', amount: 1000, status: 'paid', created_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-01T00:00:00.000Z' }] : []), { headers: { 'content-type': 'application/json' } })
+  }
+  if (url.pathname === '/auth/v1/admin/users' && method === 'POST') {
+    if (body.email === 'taken@example.com') return new Response(JSON.stringify({ msg: 'exists' }), { status: 422 })
+    return new Response(JSON.stringify({ id: NEW_MEMBER, email: body.email }), { headers: { 'content-type': 'application/json' } })
+  }
+  if (url.pathname.startsWith('/auth/v1/admin/users/') && method === 'DELETE') {
+    DELETED.push(url.pathname.split('/').pop()!)
+    return new Response(null, { status: 200 })
   }
   if (url.pathname === `/auth/v1/admin/users/${AUTH_USER.id}` && method === 'GET') {
     return new Response(JSON.stringify(AUTH_USER), { headers: { 'content-type': 'application/json' } })
@@ -219,5 +234,44 @@ describe('회원 목록 검색·필터 (2026-10 4단계)', { concurrency: false 
     assert.equal(call.url.searchParams.get('user_id'), `eq.${PROFILE_ROW.user_id}`)
     assert.deepEqual(reports, [{ reportId: 'rep_1', serviceTitle: reports[0].serviceTitle, status: 'complete', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:05:00.000Z' }])
     assert.deepEqual(await liveData.listMemberReports('not-a-uuid'), [])
+  })
+})
+
+describe('회원 등록·삭제 (2026-10 CRUD)', { concurrency: false }, () => {
+  it('등록은 이메일 확인 완료 계정을 만들고 같은 번호로 프로필을 저장한다', async () => {
+    const before = calls.length
+    await liveData.createAdminMember({ email: 'new@example.com', name: '새회원', birth: { year: 1995, month: 1, day: 2, hour: 3, minute: 0, gender: 'female', calendar: 'solar', isLeapMonth: false }, birthTimeKnown: true }).catch(() => undefined)
+    const created = calls.slice(before).find((call) => call.method === 'POST' && call.url.pathname === '/auth/v1/admin/users')
+    assert.deepEqual((created?.body as Record<string, unknown>).email_confirm, true)
+    assert.equal((created?.body as Record<string, unknown>).password, undefined, '비밀번호를 만들지 않는다')
+    const profile = calls.slice(before).find((call) => call.method === 'POST' && call.url.pathname === '/rest/v1/cheongi_user_profiles')
+    assert.equal((profile?.body as Record<string, unknown>).user_id, NEW_MEMBER)
+  })
+
+  it('이미 있는 이메일은 MEMBER_EMAIL_EXISTS', async () => {
+    await assert.rejects(liveData.createAdminMember({ email: 'taken@example.com', name: '중복', birth: { year: 1995, month: 1, day: 2, hour: 3, minute: 0, gender: 'female', calendar: 'solar', isLeapMonth: false }, birthTimeKnown: true }), /MEMBER_EMAIL_EXISTS/)
+  })
+
+  it('결제 기록이 있는 회원은 지우지 않는다', async () => {
+    await assert.rejects(liveData.deleteAdminMember(PAID_MEMBER), /MEMBER_HAS_PAYMENTS/)
+    assert.ok(!DELETED.includes(PAID_MEMBER))
+  })
+
+  it('결제가 없는 회원만 인증 계정을 지운다', async () => {
+    assert.deepEqual(await liveData.deleteAdminMember(PROFILE_ROW.user_id), { userId: PROFILE_ROW.user_id, deleted: true })
+    assert.ok(DELETED.includes(PROFILE_ROW.user_id))
+  })
+
+  it('등록·삭제 라우트는 members:write 와 감사 명령을 거치고, 삭제는 confirm:true 를 요구한다', () => {
+    const source = readFileSync(join(ROOT, 'src/server/app.ts'), 'utf8')
+    const create = source.slice(source.indexOf("app.post('/api/admin/v1/members',"), source.indexOf("app.delete('/api/admin/v1/members/:id'"))
+    const remove = source.slice(source.indexOf("app.delete('/api/admin/v1/members/:id'"), source.indexOf("app.delete('/api/admin/v1/members/:id'") + 1500)
+    for (const route of [create, remove]) {
+      assert.match(route, /requireStaff\(req, res, 'members:write'\)/)
+      assert.match(route, /executeAdminCommand\(/)
+    }
+    assert.match(create, /'member\.account\.create'/)
+    assert.match(remove, /'member\.account\.delete'/)
+    assert.match(remove, /confirm !== true/)
   })
 })

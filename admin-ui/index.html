@@ -183,6 +183,8 @@
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
     .admin-workspace { display: grid; gap: var(--admin-space-3); }
+    /* 격자 칸은 기본으로 안쪽 내용 폭까지 늘어난다. 넓은 표는 표 안에서만 가로로 밀리게 칸 폭을 화면에 맞춘다(2026-10-06 휴대폰 폭에서 페이지 전체가 넓어짐). */
+    .admin-workspace > * { min-width: 0; }
     .admin-page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 6px; margin-bottom: 4px; }
     .admin-page-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
     .admin-page-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
@@ -284,6 +286,10 @@
     .admin-tip-box { position: absolute; left: 50%; top: 21px; z-index: 20; transform: translateX(-50%); width: max-content; max-width: 260px; padding: 8px 10px; border-radius: 6px; background: #1b1b1f; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; text-align: left; white-space: normal; display: none; pointer-events: none; }
     /* 숨김은 display:none — visibility 로 숨기면 화면 오른쪽 끝의 ⓘ 상자가 자리를 차지해 가로 스크롤이 생긴다(2026-10-06). */
     .admin-tip:hover .admin-tip-box, .admin-tip:focus-visible .admin-tip-box { display: block; }
+    /* 2026-10-06: 카드·표 안의 'span { display:block }' 같은 화면별 규칙이 숨김을 덮어써서 ⓘ 설명이 처음부터 펼쳐져 보였다.
+       어디에 들어가도 마우스를 올리거나 키보드로 고를 때만 보이도록 고정한다. 글자색·크기도 화면 규칙에 물들지 않게 한다. */
+    .admin-tip > .admin-tip-box { display: none !important; color: #fff !important; font-size: 12px !important; font-weight: 500 !important; margin: 0 !important; }
+    .admin-tip:hover > .admin-tip-box, .admin-tip:focus-visible > .admin-tip-box { display: block !important; }
     .admin-modal { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 0; border-radius: 10px; box-shadow: 0 24px 64px rgba(0, 0, 0, .24); }
     .admin-modal[data-size='wide'] { width: min(980px, calc(100vw - 32px)); }
     .admin-modal::backdrop { background: rgba(17, 17, 24, .42); }
@@ -386,7 +392,8 @@
     .admin-channel { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
     .admin-channel::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--admin-focus); }
     .admin-pager { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; color: var(--admin-text-muted); font-size: 12px; }
-    .admin-pager-buttons { display: flex; align-items: center; gap: 6px; }
+    .admin-pager-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    @media (max-width: 600px) { .admin-pager { flex-wrap: wrap; gap: 8px; } .admin-section { min-width: 0; } }
     .admin-pager-buttons button { min-width: 30px; height: 30px; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-surface); font: inherit; cursor: pointer; }
     .admin-pager-buttons button:disabled { opacity: .4; cursor: default; }
     .admin-pager-current { min-width: 48px; text-align: center; color: var(--admin-text); }
@@ -439,6 +446,7 @@
     .admin-section-modal-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
     .admin-modal[data-size='small'] { width: min(440px, calc(100vw - 32px)); }
     .admin-confirm-text { margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line; }
+    .admin-confirm-warn { margin: 12px 0 0; padding: 8px 10px; border-radius: 6px; background: #fdeceb; color: var(--admin-state-error); font-size: 13px; font-weight: 700; }
     .admin-prompt label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
     .admin-button[data-tone='danger']:not([disabled]) { background: var(--admin-action-danger); border-color: var(--admin-action-danger); color: #fff; }
     .admin-toasts { position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 40px)); }
@@ -493,6 +501,13 @@
     .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
     .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
     .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
+    /* 회원 CRUD·확인 팝업(2026-10-06) */
+    .admin-row-actions { white-space: nowrap; text-align: right; }
+    .admin-row-actions .admin-icon-button + .admin-icon-button { margin-left: 4px; }
+    th.admin-actions-col { text-align: right; }
+    .admin-confirm-type { display: grid; gap: 6px; margin-top: 14px; font-size: 13px; color: var(--admin-text-muted); }
+    .admin-button[data-tone='danger-text'] { color: var(--admin-action-danger); border-color: #f0c9c6; }
+    .admin-button[data-tone='danger-text']:hover { background: #fdeceb; }
     /* 고객 지원·쿠폰(7단계) */
     .admin-timeline { display: grid; gap: 8px; max-height: 320px; overflow-y: auto; margin-bottom: 10px; }
     .admin-timeline-item { border-left: 2px solid var(--admin-line); padding: 2px 0 2px 10px; }
@@ -970,11 +985,17 @@
         return dialog;
       }
 
-      /** 브라우저 확인 창 대신 쓰는 확인 팝업. 확인을 누르면 true. */
+      /**
+       * 브라우저 확인 창 대신 쓰는 확인 팝업. 확인을 누르면 true.
+       * options: { title, okLabel(동작 이름: '영구 삭제'·'지금 발송' 등), danger(빨간 버튼), irreversible(되돌릴 수 없음 경고) }
+       * 2026-10-06 사용자 요청: 삭제·발송처럼 한 번 하면 되돌릴 수 없는 동작은 반드시 이 팝업으로 한 번 더 묻는다.
+       */
       function adminConfirm(message, options) {
         var opts = options || {};
         return new Promise(function (resolve) {
-          var text = document.createElement('p'); text.className = 'admin-confirm-text'; text.textContent = message;
+          var text = document.createElement('div');
+          var line = document.createElement('p'); line.className = 'admin-confirm-text'; line.textContent = message; text.appendChild(line);
+          if (opts.irreversible) { var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = '이 작업은 되돌릴 수 없습니다.'; text.appendChild(warn); }
           var answered = false;
           var dialog = openAdminModal({ title: opts.title || '확인', body: text, actions: [
             { label: '취소', onClick: function (d) { answered = true; resolve(false); d.close(); } },
@@ -1140,10 +1161,12 @@
         trash: '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         view: '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
       };
+      ICONS.lock = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
       var ICON_BUTTONS = [
         { match: /^(수정|편집)$/, icon: 'edit', label: '수정' },
         { match: /^(삭제|보관\(삭제\)|즉시 내리기|목록에서 내리기)$/, icon: 'trash', label: null },
         { match: /^(상세|상세 확인|승인 검토|처리|원인 확인)$/, icon: 'view', label: null },
+        { match: /^(정지|정지 해제)$/, icon: 'lock', label: null },
       ];
       function iconizeButtons(root) {
         root.querySelectorAll('td button, td .admin-button').forEach(function (button) {
@@ -1345,6 +1368,7 @@
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
         section.appendChild(status);
         body.append(filters, section);
+        adminPageAction('member-create', '＋ 회원 등록', null, { primary: true, onClick: function () { openMemberCreate(function () { memberListState.offset = 0; memberListState.sort = 'joined'; sort.value = 'joined'; refresh(); }); } });
         function refresh() {
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.paid === memberListState.paid ? 'true' : 'false'); });
           return renderMembersPage(body, section);
@@ -1369,21 +1393,27 @@
           var total = Number(payload.total || 0);
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">이메일</th><th scope="col">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">이메일</th><th scope="col">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             [[item.name], [item.email || '—'], [memberDay(item.createdAt)], [memberWhen(item.lastSignInAt)], [MEMBER_PROVIDERS[item.signupProvider] || item.signupProvider || '—'], [item.purchaseCount ? item.purchaseCount + '건' : '—', 'admin-num'], [item.totalPurchaseAmount ? memberWon(item.totalPurchaseAmount) : '—', 'admin-num']].forEach(function (entry) {
               var cell = document.createElement('td'); cell.textContent = entry[0] == null || entry[0] === '' ? '—' : String(entry[0]); if (entry[1]) cell.className = entry[1]; row.appendChild(cell);
             });
-            row.addEventListener('click', function () { openMemberOverview(item.id); });
-            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openMemberOverview(item.id); });
+            var manage = document.createElement('td'); manage.className = 'admin-row-actions';
+            [['수정', function () { renderMemberDetail(document.body, item.id); }], ['정지', async function () { if (!await adminConfirm((item.name || '이 회원') + ' 회원은 정지하는 순간부터 로그인할 수 없습니다. 정지를 풀려면 수정 화면에서 [계정 정지 해제]를 누르면 됩니다.', { title: '계정 정지', okLabel: '정지', danger: true })) return; try { await adminJson('/api/admin/v1/members/' + encodeURIComponent(item.id) + '/status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ banned: true }) }); adminToast('계정을 정지했습니다.'); } catch (error) { adminToast(error.message, 'error'); } }], ['삭제', function () { deleteMemberFlow(item, function () { renderMembersPage(body, section); }); }]].forEach(function (entry) {
+              var button = document.createElement('button'); button.type = 'button'; button.className = 'admin-button'; button.textContent = entry[0];
+              button.addEventListener('click', function (event) { event.stopPropagation(); entry[1](); }); manage.appendChild(button);
+            });
+            row.appendChild(manage);
+            row.addEventListener('click', function (event) { if (event.target.closest('button')) return; openMemberOverview(item.id); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.target.closest('button')) openMemberOverview(item.id); });
             rows.appendChild(row);
           });
-          table.appendChild(rows);
+          table.appendChild(rows); iconizeButtons(table);
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           var pager = document.createElement('div'); pager.className = 'admin-pager';
           var first = total ? memberListState.offset + 1 : 0; var last = Math.min(total, memberListState.offset + members.length);
@@ -1407,6 +1437,72 @@
           var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '회원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
           section.replaceChildren(failed);
         } finally { section.removeAttribute('aria-busy'); }
+      }
+
+      /**
+       * 회원 등록(2026-10 CRUD). 이메일 계정 + 사주 프로필. 비밀번호는 만들지 않는다 — 회원은 이메일 로그인 링크나
+       * 비밀번호 재설정으로 들어온다. 등록 전에 확인 팝업으로 한 번 더 묻는다.
+       */
+      function openMemberCreate(onDone) {
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>이메일</label><input name="email" type="email" required autocomplete="off" placeholder="로그인에 쓸 이메일"></div>'
+          + '<div class="admin-field" data-span="2"><label>이름</label><input name="name" required maxlength="20" placeholder="한글 2~20자"></div>'
+          + '<div class="admin-field"><label>생년월일</label><div style="display:flex;gap:8px"><input name="year" type="number" min="1900" placeholder="연"><input name="month" type="number" min="1" max="12" placeholder="월"><input name="day" type="number" min="1" max="31" placeholder="일"></div></div>'
+          + '<div class="admin-field"><label>태어난 시각</label><div style="display:flex;gap:8px;align-items:center"><input name="hour" type="number" min="0" max="23" placeholder="시"><input name="minute" type="number" min="0" max="59" placeholder="분"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" name="birthTimeKnown" checked> 시간 앎</label></div></div>'
+          + '<div class="admin-field"><label>성별</label><select name="gender"><option value="female">여</option><option value="male">남</option></select></div>'
+          + '<div class="admin-field"><label>달력</label><select name="calendar"><option value="solar">양력</option><option value="lunar">음력</option></select></div>'
+          + '<div class="admin-field"><label><input type="checkbox" name="isLeapMonth"> 윤달</label></div>';
+        var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = '비밀번호는 만들지 않습니다. 회원은 이 이메일로 로그인 링크를 받거나 비밀번호 재설정으로 들어옵니다. 카카오·구글로 가입할 회원은 직접 가입하게 해 주세요.';
+        var wrap = document.createElement('div'); wrap.append(form, note);
+        var key = crypto.randomUUID();
+        form.addEventListener('input', function () { key = crypto.randomUUID(); });
+        openAdminModal({ title: '회원 등록', size: 'wide', body: wrap, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '등록', primary: true, onClick: async function (d) {
+            var f = form.elements; var known = f.birthTimeKnown.checked;
+            var payload = { email: f.email.value.trim(), name: f.name.value.trim(), birthTimeKnown: known, birth: { year: Number(f.year.value), month: Number(f.month.value), day: Number(f.day.value), hour: known ? Number(f.hour.value) : 12, minute: known ? Number(f.minute.value || 0) : 0, gender: f.gender.value, calendar: f.calendar.value, isLeapMonth: f.isLeapMonth.checked } };
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) { adminToast('이메일을 확인해 주세요.', 'error'); return; }
+            if (!payload.name || !payload.birth.year || !payload.birth.month || !payload.birth.day || (known && f.hour.value === '')) { adminToast('이름과 생년월일·태어난 시각을 입력해 주세요.', 'error'); return; }
+            if (!await adminConfirm(payload.email + ' 으로 ' + payload.name + ' 회원을 등록합니다.', { title: '회원 등록', okLabel: '등록' })) return;
+            try {
+              await adminJson('/api/admin/v1/members', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
+              d.close(); adminToast('회원을 등록했습니다.'); if (onDone) onDone();
+            } catch (error) { adminToast(error.message, 'error'); }
+          } },
+        ] });
+      }
+
+      /**
+       * 회원 삭제(2026-10 CRUD). 되돌릴 수 없어서 이름을 직접 입력해야 삭제 버튼이 눌린다.
+       * 결제 기록이 있는 회원은 서버가 거절한다(거래 기록 법정 보관) — 그 경우 계정 정지를 안내한다.
+       */
+      function deleteMemberFlow(item, onDone) {
+        if (item.purchaseCount > 0) {
+          adminConfirm(item.name + ' 회원은 결제 기록이 ' + item.purchaseCount + '건 있어 삭제할 수 없습니다. 거래 기록은 법으로 5년 보관해야 합니다. 대신 계정을 정지하면 로그인을 막을 수 있습니다.', { title: '삭제할 수 없는 회원', okLabel: '계정 정지하러 가기' }).then(function (go) { if (go) renderMemberDetail(document.body, item.id); });
+          return;
+        }
+        var wrap = document.createElement('div');
+        var lead = document.createElement('p'); lead.className = 'admin-confirm-text';
+        lead.textContent = (item.name || '이 회원') + (item.email ? ' (' + item.email + ')' : '') + ' 회원을 삭제합니다. 로그인 계정과 사주 프로필, 이 회원이 만든 리포트가 함께 지워집니다.';
+        var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = '이 작업은 되돌릴 수 없습니다. 지운 회원과 리포트는 복구할 수 없습니다.';
+        var label = document.createElement('label'); label.className = 'admin-confirm-type'; label.textContent = '확인을 위해 회원 이름 "' + (item.name || '삭제') + '"을(를) 그대로 입력해 주세요.';
+        var input = document.createElement('input'); input.type = 'text'; input.autocomplete = 'off'; label.appendChild(input);
+        wrap.append(lead, warn, label);
+        var key = crypto.randomUUID();
+        var dialog = openAdminModal({ title: '정말 삭제할까요?', body: wrap, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '영구 삭제', primary: true, danger: true, onClick: async function (d) {
+            if (input.value.trim() !== (item.name || '삭제')) { adminToast('이름이 일치하지 않습니다.', 'error'); input.focus(); return; }
+            try {
+              await adminJson('/api/admin/v1/members/' + encodeURIComponent(item.id), { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify({ confirm: true }) });
+              d.close(); adminToast('회원을 삭제했습니다.'); if (onDone) onDone();
+            } catch (error) { adminToast(error.message, 'error'); }
+          } },
+        ] });
+        dialog.setAttribute('data-size', 'small');
+        var deleteButton = dialog.querySelector('.admin-modal-foot button:last-child'); deleteButton.disabled = true;
+        input.addEventListener('input', function () { deleteButton.disabled = input.value.trim() !== (item.name || '삭제'); });
+        setTimeout(function () { input.focus(); }, 0);
       }
 
       var MEMBER_ORDER_STATUS = { ready: '결제 대기', approving: '승인 중', paid: '결제 완료', viewed: '결제 완료', cancelled: '취소·환불', failed: '실패' };
@@ -1503,7 +1599,9 @@
           edit.addEventListener('click', function () { dialog.close(); renderMemberDetail(document.body, member.userId); });
           var push = document.createElement('a'); push.className = 'admin-button'; push.setAttribute('data-variant', 'quiet'); push.href = ADMIN_BASE + '/messages'; push.textContent = '메시지 보내기';
           push.title = '메시지 작성에서 "특정 회원"을 골라 이 회원 이름으로 찾으면 됩니다.';
-          actions.append(edit, push);
+          var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'admin-button'; remove.setAttribute('data-variant', 'quiet'); remove.setAttribute('data-tone', 'danger-text'); remove.textContent = '회원 삭제';
+          remove.addEventListener('click', function () { deleteMemberFlow({ id: member.userId, name: member.name, email: member.email, purchaseCount: purchases ? purchases.purchaseCount : null }, function () { dialog.close(); renderWorkspace(currentAdminRoute()); }); });
+          actions.append(edit, push, remove);
           target.append(grid, actions);
           if (data.errors && data.errors.length) { var warn = document.createElement('p'); warn.className = 'admin-note'; warn.textContent = '일부 정보를 불러오지 못했습니다: ' + data.errors.map(function (key) { return { purchases: '결제', reports: '리포트', support: '문의', coupons: '쿠폰', devices: '앱 기기' }[key] || key; }).join(', '); target.appendChild(warn); }
         }
@@ -1570,7 +1668,7 @@
         body.appendChild(requeueSection); adminPageAction('reports-requeue', '미완성 리포트 재시도', requeueSection);
         var requeueButton = requeueSection.querySelector('[data-requeue-incomplete]'); var requeueResult = requeueSection.querySelector('[data-requeue-result]');
         requeueButton.addEventListener('click', async function () {
-          if (!await adminConfirm('완료되지 않은 리포트를 다시 생성 대기열에 넣습니다. 계속할까요?')) return;
+          if (!await adminConfirm('완료되지 않은 리포트를 모두 다시 생성 대기열에 넣습니다. AI 호출 비용이 들 수 있습니다.', { title: '미완성 리포트 재시도', okLabel: '대기열에 넣기' })) return;
           requeueButton.disabled = true; requeueResult.textContent = '대기열에 넣는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/reports/requeue-incomplete', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
@@ -1825,7 +1923,7 @@
           bulkButton.textContent = targets.length ? ('발행 기록 없는 ' + targets.length + '개 서비스 초기화') : '초기화할 대상이 없습니다';
           bulkButton.disabled = payload.versionStore !== 'ready' || !targets.length;
           bulkButton.addEventListener('click', async function () {
-            if (!await adminConfirm('발행 기록이 없는 ' + targets.length + '개 서비스에 현재 카탈로그 값으로 1판을 발행합니다. 계속할까요?')) return;
+            if (!await adminConfirm('발행 기록이 없는 ' + targets.length + '개 서비스에 현재 값으로 1판을 발행합니다. 고객 화면에 바로 반영됩니다.', { title: '서비스 일괄 발행', okLabel: '일괄 발행', danger: true, irreversible: true })) return;
             bulkButton.disabled = true; var done = 0, failed = 0;
             for (var i = 0; i < targets.length; i++) {
               var item = targets[i];
@@ -1884,7 +1982,7 @@
             result.textContent = '초안이 저장되었습니다(v' + saved.version + '). 발행하면 검색 결과와 결제 가능 여부에 바로 반영됩니다.';
             publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!await adminConfirm('이 초안을 발행하면 새 고객 화면에 바로 반영됩니다. 발행할까요?')) return;
+              if (!await adminConfirm('이 초안을 발행하면 고객 화면에 바로 반영됩니다. 정말 발행할까요?', { title: '서비스 발행', okLabel: '발행', danger: true, irreversible: true })) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/services/' + encodeURIComponent(item.canonicalKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
@@ -1988,7 +2086,7 @@
             result.textContent = '초안이 저장되었습니다(v' + saved.version + ').';
             publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!await adminConfirm('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?')) return;
+              if (!await adminConfirm('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?', { title: '프롬프트 발행', okLabel: '발행', danger: true, irreversible: true })) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/prompts/content/' + encodeURIComponent(item.contentType) + '/' + encodeURIComponent(item.contentKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
@@ -2076,7 +2174,7 @@
             } else if (item.state === 'published') {
               var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '보관(삭제)';
               archive.addEventListener('click', async function () {
-                if (!await adminConfirm('이 콘텐츠를 보관 처리합니다. 게시 후보에서 빠집니다. 계속할까요?')) return;
+                if (!await adminConfirm('이 콘텐츠를 보관 처리합니다. 게시 후보에서 빠집니다.', { title: '콘텐츠 보관', okLabel: '보관', danger: true })) return;
                 archive.disabled = true;
                 try {
                   var archiveResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) });
@@ -2192,7 +2290,7 @@
             var clickLabel = popupClickCounts ? Number(clickCount || 0).toLocaleString('ko-KR') + '회' : '집계 불가';
             var row = document.createElement('tr'); [(item.payload || {}).title || '이름 미확인', item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', (item.payload || {}).campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
             var cell = document.createElement('td');
-            if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!await adminConfirm('현재 팝업을 즉시 내릴까요?')) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; adminToast('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
+            if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!await adminConfirm('지금 떠 있는 팝업을 모든 고객 화면에서 즉시 내립니다. 정말 내릴까요?', { title: '팝업 내리기', okLabel: '즉시 내리기', danger: true })) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; adminToast('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
             row.appendChild(cell); rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
@@ -2205,6 +2303,7 @@
             var startsAt = new Date(form.elements.startsAt.value); var endsAt = new Date(form.elements.endsAt.value);
             if (!(startsAt.getTime() < endsAt.getTime())) throw new Error('종료 시각은 시작 시각보다 뒤여야 합니다.');
             if (endsAt.getTime() <= Date.now()) throw new Error('노출 종료 시각을 현재보다 뒤로 설정해 주세요.');
+            if (!await adminConfirm('저장하면 바로 게시되어 ' + startsAt.toLocaleString('ko-KR') + '부터 ' + endsAt.toLocaleString('ko-KR') + '까지 모든 고객의 첫 화면에 뜹니다. 정말 게시할까요?', { title: '팝업 게시', okLabel: '게시', danger: true })) return;
             var draftResponse = await fetch('/api/admin/v1/content', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ contentType: 'banner', placement: SIGNUP_POPUP_PLACEMENT, scheduledAt: startsAt.toISOString(), payload: { title: form.elements.title.value.trim(), headline: form.elements.headline.value.trim(), subheadline: form.elements.subheadline.value.trim(), body: form.elements.bodyText.value.trim(), imageSrc: form.elements.imageSrc.value.trim(), ctaLabel: form.elements.ctaLabel.value.trim(), campaignEndAt: endsAt.toISOString() } }) });
             var draftPayload = await draftResponse.json().catch(function () { return {}; }); if (!draftResponse.ok) throw new Error(draftPayload.error || '팝업 저장에 실패했습니다.');
             var draft = draftPayload.content;
@@ -2446,13 +2545,13 @@
           var actions = [{ label: '내용 복사', onClick: function () { navigator.clipboard.writeText(item.title + '\n' + item.body).then(function () { adminToast('제목과 메시지를 복사했습니다.'); }).catch(function () { adminToast('복사하지 못했습니다.'); }); } }];
           if (item.status === 'scheduled' || item.status === 'sending' || item.status === 'draft') {
             actions.push({ label: item.status === 'sending' ? '남은 발송 중단' : '예약 취소', onClick: async function (dialog) {
-              if (!await adminConfirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 중단할까요?' : '이 예약을 취소할까요?')) return;
+              if (!await adminConfirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 이미 받은 기기의 알림은 회수할 수 없습니다. 정말 중단할까요?' : '이 예약 발송을 취소합니다. 취소한 예약은 다시 살릴 수 없고 새로 만들어야 합니다.', { title: item.status === 'sending' ? '발송 중단' : '예약 취소', okLabel: item.status === 'sending' ? '발송 중단' : '예약 취소', danger: true, irreversible: true })) return;
               try { await pushRequest('/' + encodeURIComponent(item.id) + '/cancel', {}); dialog.close(); load(); } catch (error) { adminToast(error.message); }
             } });
           }
           if ((item.status === 'sent' || item.status === 'failed') && item.failureCount > 0) {
             actions.push({ label: '실패분 재발송 (' + fmtNumber(item.failureCount) + ')', onClick: async function (dialog) {
-              if (!await adminConfirm('실패한 기기 중 지금도 알림을 받을 수 있는 기기에 다시 보냅니다. 앱을 지운 기기는 빠집니다. 보낼까요?')) return;
+              if (!await adminConfirm('실패한 기기 중 지금도 알림을 받을 수 있는 기기에 다시 보냅니다. 앱을 지운 기기는 빠집니다. 보낸 알림은 회수할 수 없습니다. 정말 보낼까요?', { title: '실패분 다시 보내기', okLabel: '다시 보내기', danger: true, irreversible: true })) return;
               try { var data = await pushRequest('/' + encodeURIComponent(item.id) + '/resend-failed', {}); adminToast(fmtNumber(data.reopened) + '대에 다시 보냈습니다.'); dialog.close(); load(); } catch (error) { adminToast(error.message); }
             } });
           }
@@ -2563,10 +2662,11 @@
             [['대상', audience.label || '—'], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/']].forEach(function (pair) {
               var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; dl.append(dt, dd);
             });
-            summary.append(lead, dl);
-            openAdminModal({ title: '발송 확인', body: summary, actions: [
+            var irreversible = document.createElement('p'); irreversible.className = 'admin-confirm-warn'; irreversible.textContent = schedule.mode === 'now' ? '발송하면 취소하거나 회수할 수 없습니다. 내용과 대상을 다시 확인해 주세요.' : '예약 시각이 되면 자동으로 발송됩니다. 그 전에는 발송 내역에서 취소할 수 있습니다.';
+            summary.append(lead, dl, irreversible);
+            openAdminModal({ title: schedule.mode === 'now' ? '정말 발송할까요?' : '예약 확인', body: summary, actions: [
               { label: '돌아가기', onClick: function (d) { d.close(); } },
-              { label: schedule.mode === 'now' ? '발송하기' : '예약하기', primary: true, onClick: async function (d) {
+              { label: schedule.mode === 'now' ? '지금 발송' : '예약하기', primary: true, danger: schedule.mode === 'now', onClick: async function (d) {
                 var buttons = d.querySelectorAll('button'); buttons.forEach(function (b) { b.disabled = true; });
                 try {
                   var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule });
@@ -2673,6 +2773,7 @@
           if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) { result.textContent = '종료는 시작 이후의 유효한 시각으로 입력해 주세요.'; return; }
           var payload = { title: f.title.value.trim(), code: f.code.value.trim(), kind: f.kind.value, productKey: f.productKey.value, value: Number(f.value.value), maxClaims: Number(f.maxClaims.value), startsAt: start.toISOString(), expiresAt: end.toISOString() };
           if (!payload.title || !Number.isInteger(payload.value) || payload.value < 1 || !Number.isInteger(payload.maxClaims) || payload.maxClaims < 1 || payload.maxClaims > 20000 || ((payload.kind === 'percent_off' || payload.kind === 'consultation_questions') && payload.value > 100) || (payload.kind === 'service_free' && payload.value !== 1)) { result.textContent = '혜택 값과 등록 한도를 확인해 주세요.'; return; }
+          if (!await adminConfirm('"' + payload.title + '" 쿠폰(코드 ' + payload.code + ')을 발급합니다. 발급한 혜택은 수정할 수 없고, 고객이 바로 등록할 수 있습니다. 정말 발급할까요?', { title: '쿠폰 발급', okLabel: '발급', danger: true, irreversible: true })) return;
           busy = true; Array.from(form.elements).forEach(function (control) { control.disabled = true; }); result.textContent = '발급 중입니다.';
           try { await request('', payload, saveKey); result.textContent = '쿠폰을 발급했습니다.'; saveKey = crypto.randomUUID(); form.reset(); updateKind();
             try { snapshot = await request(''); render(snapshot.items); } catch (_error) { result.textContent = '발급은 완료했지만 목록을 다시 불러오지 못했습니다. 새로고침해 주세요.'; }
@@ -2786,7 +2887,7 @@
             var saved = responsePayload.content; revision = saved.revision;
             result.textContent = '저장되었습니다.'; publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!await adminConfirm('이 초안을 게시합니다. 계속할까요?')) return;
+              if (!await adminConfirm('이 초안을 게시합니다. 고객 화면에 바로 보입니다. 정말 게시할까요?', { title: '콘텐츠 게시', okLabel: '게시', danger: true })) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ checksum: saved.checksum, expectedRevision: revision }) });
@@ -2821,7 +2922,7 @@
           pauseButton.disabled = false;
           pauseButton.addEventListener('click', async function () {
             var next = !pauseState.paused;
-            if (!await adminConfirm((next ? '리포트 생성을 일시정지' : '리포트 생성을 재개') + '합니다. 계속할까요?')) return;
+            if (!await adminConfirm(next ? '리포트 생성을 일시정지합니다. 결제한 고객의 리포트도 멈춥니다.' : '리포트 생성을 다시 시작합니다.', { title: next ? '생성 일시정지' : '생성 재개', okLabel: next ? '일시정지' : '재개', danger: next })) return;
             pauseButton.disabled = true;
             try {
               var response = await fetch('/api/admin/v1/jobs/pause', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ paused: next }) });
@@ -2850,7 +2951,7 @@
         });
         pruneDelete.addEventListener('click', async function () {
           var before = pruneCutoffIso(); if (!before) return;
-          if (!await adminConfirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(진행 중인 작업 제외). 되돌릴 수 없습니다. 계속할까요?')) return;
+          if (!await adminConfirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(진행 중인 작업 제외). 정말 삭제할까요?', { title: '작업 내역 영구 삭제', okLabel: '영구 삭제', danger: true, irreversible: true })) return;
           pruneDelete.disabled = true; pruneResult.textContent = '삭제하는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/jobs/prune', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ before: before }) });
@@ -2864,7 +2965,7 @@
         purgeButton.addEventListener('click', async function () {
           var ownerId = purgeInput.value.trim();
           if (!/^[a-zA-Z0-9_-]{8,160}$/.test(ownerId)) { controlResult.textContent = '소유자 ID 형식을 확인해 주세요(영문·숫자·_·- 8자 이상).'; return; }
-          if (!await adminConfirm('이 소유자의 대기·재시도·실패 작업을 정리합니다(실행 중인 작업은 건드리지 않습니다). 계속할까요?')) return;
+          if (!await adminConfirm('이 소유자의 대기·재시도·실패 작업을 지웁니다(실행 중인 작업은 건드리지 않습니다). 정말 지울까요?', { title: '작업 정리', okLabel: '지우기', danger: true, irreversible: true })) return;
           purgeButton.disabled = true; controlResult.textContent = '작업을 정리하는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/jobs/purge', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ ownerId: ownerId }) });
@@ -2992,7 +3093,7 @@
             var restart = document.createElement('button'); restart.type = 'button'; restart.className = 'admin-button'; restart.textContent = '다시 생성';
             restart.title = '미완성 항목을 AI로 다시 만듭니다. 항목마다 비용이 듭니다.';
             restart.addEventListener('click', async function () {
-              if (!await adminConfirm('미완성 항목의 포기 상한을 다시 열고 생성을 재시작합니다. 항목마다 AI 호출 비용이 다시 듭니다. 실패 원인(프롬프트·검수 규칙)을 고치지 않았다면 같은 실패가 반복될 수 있습니다. 계속할까요?', { title: '다시 생성', okLabel: '다시 생성' })) return;
+              if (!await adminConfirm('미완성 항목의 포기 상한을 다시 열고 생성을 재시작합니다. 항목마다 AI 호출 비용이 다시 듭니다. 실패 원인(프롬프트·검수 규칙)을 고치지 않았다면 같은 실패가 반복될 수 있습니다. 계속할까요?', { title: '다시 생성', okLabel: '다시 생성', danger: true, irreversible: true })) return;
               restart.disabled = true;
               try {
                 var r = await fetch('/api/admin/v1/reports/' + encodeURIComponent(reportId) + '/restart', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({}) });
@@ -3041,7 +3142,7 @@
         if (currentEmail && currentEmail === String(refund.requestedByEmail).toLowerCase()) { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '요청자는 자신의 환불 요청을 승인할 수 없습니다.'; }
         if (refund.state !== 'requested') { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '지금 상태에서는 승인할 수 없습니다. 결제사 처리 결과를 먼저 확인해 주세요.'; }
         form.appendChild(reason); form.appendChild(submit); form.appendChild(result);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; if (!await adminConfirm('이 환불 요청을 승인합니다. 승인 기록은 지울 수 없습니다. 결제사 환불은 승인 뒤 따로 처리합니다.', { title: '환불 승인', okLabel: '승인', danger: true, irreversible: true })) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
         section.appendChild(form); showSectionModal(section);
       }
       async function loadRefunds(body, onSaved) {
@@ -3052,7 +3153,7 @@
         var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
         async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '결제 번호를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '결제를 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '결제를 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '확인됨: ' + (order.productTitle || '') + ' ' + Number(order.amount).toLocaleString('ko-KR') + '원. 환불 가능 금액은 저장할 때 다시 확인합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '결제를 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
         lookup.addEventListener('click', lookupOrder);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } if (!await adminConfirm(Number(amount).toLocaleString('ko-KR') + '원 환불 요청을 남깁니다. 저장한 요청은 지울 수 없고, 반려로만 닫을 수 있습니다.', { title: '환불 요청', okLabel: '요청 저장', danger: true, irreversible: true })) return; submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
         requestSection.appendChild(form); body.appendChild(requestSection); adminPageAction('refund-request', '＋ 환불 요청', requestSection, { primary: true });
         if (onSaved) return;
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청</h3><span class="admin-chip">결제사 환불은 별도 처리</span></header><p class="admin-empty">환불 요청을 불러오는 중입니다.</p>'; body.appendChild(listSection);
@@ -3139,7 +3240,7 @@
           statusButton.textContent = member.banned ? '계정 정지 해제' : '계정 정지';
           statusButton.addEventListener('click', async function () {
             var next = !member.banned;
-            if (!await adminConfirm((next ? '이 회원 계정을 정지합니다' : '이 회원 계정의 정지를 해제합니다') + '. 재로그인·토큰 갱신에 영향을 줍니다. 계속할까요?')) return;
+            if (!await adminConfirm(next ? '이 회원은 정지하는 순간부터 로그인할 수 없습니다. 정말 정지할까요?' : '이 회원의 정지를 풀어 다시 로그인할 수 있게 합니다.', { title: next ? '계정 정지' : '정지 해제', okLabel: next ? '정지' : '해제', danger: next })) return;
             statusButton.disabled = true;
             try {
               var statusResponse = await fetch('/api/admin/v1/members/' + encodeURIComponent(userId) + '/status', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ banned: next }) });
@@ -3437,6 +3538,7 @@
           { label: '요청 저장', primary: true, onClick: async function (d) {
             var amount = Number(String(form.elements.amount.value).replace(/[^0-9]/g, ''));
             if (!amount || amount > order.amount) { adminToast('환불 금액을 확인해 주세요. 결제 금액을 넘을 수 없습니다.', 'error'); return; }
+            if (!await adminConfirm(won(amount) + ' 환불 요청을 남깁니다. 저장한 요청은 지울 수 없고, 반려로만 닫을 수 있습니다.', { title: '환불 요청', okLabel: '요청 저장', danger: true, irreversible: true })) return;
             try {
               await adminJson('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(), expectedRevision: order.revision }) });
               d.close(); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); if (onDone) onDone();
@@ -3570,11 +3672,11 @@
         var actions = [{ label: '닫기', onClick: function (d) { d.close(); } }];
         if (refund.state === 'requested') {
           actions.push({ label: '반려', danger: true, onClick: async function (d) {
-            if (!await adminConfirm('이 환불 요청을 반려할까요? 결제는 그대로 유지됩니다.', { okLabel: '반려', danger: true })) return;
+            if (!await adminConfirm('이 환불 요청을 반려합니다. 결제는 그대로 유지되고, 반려한 요청은 다시 열 수 없습니다(필요하면 새로 요청).', { title: '환불 요청 반려', okLabel: '반려', danger: true, irreversible: true })) return;
             try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/reject', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision }) }); d.close(); adminToast('반려했습니다.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
           } });
           if (refund.requestedByEmail !== me) actions.push({ label: '승인', primary: true, onClick: async function (d) {
-            var reason = await adminPrompt('승인 근거를 적어 주세요. (감사 기록에 남습니다)', { title: '환불 승인', okLabel: '승인', placeholder: '예: 중복 결제 확인' });
+            var reason = await adminPrompt('승인 근거를 적어 주세요. 승인 기록은 지울 수 없습니다.', { title: '환불 승인', okLabel: '승인', placeholder: '예: 중복 결제 확인' });
             if (reason === null) return; if (!reason.trim()) { adminToast('승인 근거를 적어 주세요.', 'error'); return; }
             try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.trim() }) }); d.close(); adminToast('승인했습니다. 결제사 환불은 따로 처리해 주세요.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
           } });
@@ -3875,7 +3977,7 @@
               var password = document.createElement('button'); password.className = 'admin-button'; password.type = 'button'; password.textContent = '비밀번호 변경';
               password.addEventListener('click', async function () { var next = await adminPrompt('새 비밀번호를 입력하세요. (12자 이상)'); if (!next) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/password', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ password: next, expectedRevision: account.revision }) }); if (!response.ok) { adminToast('비밀번호 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
               var status = document.createElement('button'); status.className = 'admin-button'; status.type = 'button'; status.textContent = account.isActive ? '비활성화' : '활성화';
-              status.addEventListener('click', async function () { if (!await adminConfirm('관리자 계정 상태를 변경하시겠습니까?')) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/status', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ isActive: !account.isActive, expectedRevision: account.revision }) }); if (!response.ok) { adminToast('계정 상태 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
+              status.addEventListener('click', async function () { if (!await adminConfirm('이 관리자 계정의 상태를 바꿉니다. 사용 중지하면 바로 로그인할 수 없습니다.', { title: '관리자 계정 상태 변경', okLabel: '변경', danger: true })) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/status', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ isActive: !account.isActive, expectedRevision: account.revision }) }); if (!response.ok) { adminToast('계정 상태 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
               actions.appendChild(password); actions.appendChild(status); row.appendChild(actions);
               rows.appendChild(row);
             });
@@ -3897,6 +3999,7 @@
             bootstrap.type = 'button';
             bootstrap.textContent = '현재 관리자 계정 등록';
             bootstrap.addEventListener('click', async function () {
+              if (!await adminConfirm('지금 로그인한 계정을 첫 최고 관리자로 등록합니다.', { title: '첫 관리자 등록', okLabel: '등록' })) return;
               bootstrap.disabled = true;
               try {
                 var created = await fetch('/api/admin/v1/admin-accounts/bootstrap', { method: 'POST', credentials: 'same-origin' });
