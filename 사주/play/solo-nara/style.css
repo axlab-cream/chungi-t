@@ -119,13 +119,15 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .sealed-card.small{width:130px;padding:14px;margin:14px auto}.sealed-card.small .sil{width:90px}
 .reveal{text-align:center}
 .name-card.revealing{perspective:900px;background:none;border:0;box-shadow:none;padding:0;overflow:visible}
-.name-flip{position:relative;width:220px;height:250px;transform-style:preserve-3d;animation:flip 1.1s cubic-bezier(.3,.7,.2,1) .15s both}
+.name-flip{position:relative;width:240px;height:300px;transform-style:preserve-3d;animation:flip 1.1s cubic-bezier(.3,.7,.2,1) .15s both}
 .name-flip .name-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);border-radius:26px;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:linear-gradient(170deg,#fff,var(--blush));box-shadow:0 14px 40px rgba(236,79,154,.2);overflow:hidden}
 .name-flip .back .sil{width:140px}
 .name-flip .front{transform:rotateY(180deg);border-color:var(--pink-2);box-shadow:0 0 0 2px var(--pink-2),0 16px 44px rgba(236,79,154,.3)}
-.name-flip .front .sil{position:absolute;width:200px;bottom:-30px;opacity:.28}
-.name-flip .front small{position:relative;font-size:10px;letter-spacing:1.5px;color:var(--muted)}
-.name-flip .front strong{position:relative;font-size:56px;line-height:1.1;letter-spacing:-2px;background:linear-gradient(90deg,var(--pink),var(--lav));-webkit-background-clip:text;background-clip:text;color:transparent}
+/* Shared result art: a blank pink name tag; the name is laid onto its pale panel (x 28~79%, y 43~63%). */
+.name-flip .front .card-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.name-flip .tag-text{position:absolute;left:28%;width:51%;top:43%;height:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.name-flip .front small{font-size:8px;letter-spacing:1.4px;color:var(--muted)}
+.name-flip .front strong{font-size:44px;line-height:1.05;letter-spacing:-1.5px;background:linear-gradient(90deg,var(--pink),var(--lav));-webkit-background-clip:text;background-clip:text;color:transparent}
 .result-title{font-size:26px;margin:4px 0 8px}
 .quote{font-size:15px;color:var(--ink-soft);margin-bottom:12px}
 .keywords{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-bottom:20px}.keywords span{font-size:12px;color:var(--pink);background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 10px}
