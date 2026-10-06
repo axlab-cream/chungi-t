@@ -41,11 +41,13 @@ p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.center{text-align:ce
 .hearts{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
 .hearts i{position:absolute;bottom:-20px;left:calc(6% + var(--n) * 16%);font-style:normal;font-size:calc(12px + (var(--n) * 3px) % 10px);color:var(--pink-2);opacity:0;animation:float-up 5.5s ease-in infinite;animation-delay:calc(var(--n) * .9s)}
 
-/* Intro: the hero art carries the title and subtitle; the start button lives below it. */
-.hero{position:relative;margin:-22px -22px 0;line-height:0}
-.hero img{width:100%;height:auto;display:block}
-.hero-cta{position:relative;z-index:2;margin-top:-28px;animation:cta-glow 2.4s ease-in-out .6s infinite}
-.intro-meta{text-align:center;margin:18px 0 6px}
+/* Intro: the art fills the phone screen (height capped at 165vw so the cover crop never clips the centred title); the bottom fade hides
+   the painted button (82~91% of the art height) and carries the real one. */
+.hero{position:relative;margin:-22px -22px 0;height:min(calc(100dvh - 76px),165vw,726px);min-height:500px;overflow:hidden}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0}
+.hero-bottom{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:120px 22px 26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(255,241,248,0) 0,rgba(255,241,248,.92) 38%,#fff1f8 55%)}
+.hero-cta{animation:cta-glow 2.4s ease-in-out .6s infinite}
+.intro-meta{text-align:center;margin:8px 0 6px}
 .tag-rail{overflow:hidden;margin:14px -22px 18px;mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)}
 .tag-rail>div{display:flex;gap:8px;width:max-content;animation:rail 26s linear infinite}
 .tag-rail span{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 13px;font-size:13px;color:var(--ink-soft)}
