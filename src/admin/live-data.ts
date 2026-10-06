@@ -808,6 +808,45 @@ export async function updateAdminMemberProfile(input: AdminMemberProfileInput): 
 }
 
 /**
+ * 회원 등록(2026-10 회원 관리 CRUD). Supabase Auth 관리자 API 로 이메일 계정을 만들고(이메일 확인 완료 처리,
+ * 비밀번호 없음 — 회원은 이메일 로그인 링크나 비밀번호 재설정으로 들어온다), 같은 번호로 사주 프로필을 저장한다.
+ * 프로필 저장이 실패하면 방금 만든 계정을 지워 반쪽짜리 회원을 남기지 않는다.
+ */
+export async function createAdminMember(input: Omit<AdminMemberProfileInput, 'userId'> & { email: string }): Promise<AdminMemberProfile> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const created = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(), 'content-type': 'application/json' },
+    body: JSON.stringify({ email: input.email, email_confirm: true, app_metadata: { provider: 'email', created_by: 'admin' } }),
+  })
+  if (created.status === 422 || created.status === 409) throw new Error('MEMBER_EMAIL_EXISTS')
+  if (!created.ok) throw new Error('MEMBER_CREATE_FAILED')
+  const user = await created.json() as { id?: string }
+  if (!user.id) throw new Error('MEMBER_CREATE_FAILED')
+  try {
+    return await updateAdminMemberProfile({ userId: user.id, name: input.name, birth: input.birth, birthTimeKnown: input.birthTimeKnown })
+  } catch (error) {
+    await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(user.id)}`, { method: 'DELETE', headers: serviceHeaders() }).catch(() => undefined)
+    throw error
+  }
+}
+
+/**
+ * 회원 삭제(2026-10 회원 관리 CRUD). 결제 기록이 한 건이라도 있으면 지우지 않는다 — 거래 기록은 법으로 보관해야 하고
+ * (전자상거래법 5년), 결제 표도 회원 삭제를 거부하도록(on delete restrict) 만들어져 있다. 그런 회원은 계정 정지를 쓴다.
+ * 결제가 없는 회원만 Supabase Auth 계정을 지운다. 프로필·리포트는 데이터베이스 규칙(on delete cascade)으로 함께 지워진다.
+ */
+export async function deleteAdminMember(userId: string): Promise<{ userId: string; deleted: true }> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const orders = await listPaymentOrders(userId, 1)
+  if (orders.length) throw new Error('MEMBER_HAS_PAYMENTS')
+  const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, { method: 'DELETE', headers: serviceHeaders() })
+  if (response.status === 404) throw new Error('MEMBER_NOT_FOUND')
+  if (!response.ok) throw new Error('MEMBER_DELETE_FAILED')
+  return { userId, deleted: true }
+}
+
+/**
  * Supabase Auth 의 계정 정지 기능을 그대로 쓴다 — 새 컬럼·마이그레이션이 필요 없다.
  * `ban_duration: 'none'` 이 공식 해제 값이다(Supabase Auth Admin API).
  */
