@@ -14,7 +14,7 @@
   var document = global.document;
   if (!document || global.__umshAnalyticsLoaded) return;
   if ((global.location || {}).origin !== 'https://umsh.kr') return;
-  if (/^\/play\/love-speed\/preview\.html$/.test((global.location || {}).pathname || '')) return;
+  if (/^\/play\/(?:love-speed|solo-nara)\/preview\.html$/.test((global.location || {}).pathname || '')) return;
 
   // QA에서 운영 링크를 열어도 해당 탭의 후속 탐색까지 운영 통계에 섞이지 않는다.
   var qaReferrer = false;
@@ -60,7 +60,7 @@
     cleanLocation = measured.href;
   } catch (_) { /* 파싱 실패 시 식별자를 제외한 경로만 사용한다. */ }
   var cleanReferrer = withoutQuery(document.referrer);
-  if (/^\/play\/love-speed(?:\/|$)/.test(location.pathname || '') && cleanReferrer) {
+  if (/^\/play\/(?:love-speed|solo-nara)(?:\/|$)/.test(location.pathname || '') && cleanReferrer) {
     try { cleanReferrer = new URL(cleanReferrer).origin + '/'; } catch (_) { cleanReferrer = ''; }
   }
 

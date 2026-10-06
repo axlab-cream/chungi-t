@@ -44,7 +44,7 @@ jobs:
       - name: 서비스 검수 스크립트
         run: |
           for name in pass-angle marry save quit couple signal thisyear jobchoice \
-                      cat lucky wedding newyear polish prompt-guide service-contracts; do
+                      cat lucky wedding newyear polish prompt-guide service-contracts solo-nara; do
             echo "::group::check:$name"
             npm run --silent "check:$name"
             echo "::endgroup::"

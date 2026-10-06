@@ -5,8 +5,10 @@
   const dots = Array.from(rail.querySelectorAll('[data-slide-to]'));
   const pause = rail.querySelector('[data-rail-pause]');
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // The consultation promo is always the last slide; free tests before it keep rotating when it is off.
+  const base = Math.max(1, slides.length - 1);
   let index = 0, paused = motion.matches, hovered = false, focused = false, timer, count = slides.length;
-  function hideConsultation() { count = 1; render(0); rail.querySelector('.consultation-rail-controls').hidden = true; schedule(); }
+  function hideConsultation() { count = base; render(0); rail.querySelector('.consultation-rail-controls').hidden = base < 2; schedule(); }
   function render(next) {
     index = (next + count) % count;
     slides.forEach((slide, i) => { slide.hidden = i !== index; slide.inert = i !== index; slide.setAttribute('aria-hidden', String(i !== index)); });

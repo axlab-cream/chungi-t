@@ -3829,13 +3829,15 @@
         return url.toString();
       }
 
-      // Keep the existing OAuth callback URL, then resume the game before profile onboarding.
+      // Keep the existing OAuth callback URL, then resume the free play test before profile onboarding.
       function returnToLoveSpeedAfterAuth(session) {
-        if (initialAuthEntry !== "love-speed" || !session?.access_token) return false;
+        const PLAY_RETURN_PATHS = { "love-speed": "/play/love-speed/", "solo-nara": "/play/solo-nara/" };
+        const target = Object.hasOwn(PLAY_RETURN_PATHS, initialAuthEntry) ? PLAY_RETURN_PATHS[initialAuthEntry] : "";
+        if (!target || !session?.access_token) return false;
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         sessionStorage.removeItem(AUTH_FORM_KEY);
         sessionStorage.removeItem("umsh_common_auth_return_to_v1");
-        location.replace("/play/love-speed/");
+        location.replace(target);
         return true;
       }
       function signupReturnUrl() {
