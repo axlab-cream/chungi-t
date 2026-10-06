@@ -144,7 +144,7 @@ test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고,
   assert.match(body, /publishArea\.hidden = true;/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/draft'/)
   assert.match(body, /publishArea\.hidden = false;/)
-  assert.match(body, /window\.confirm\('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다/)
+  assert.match(body, /await adminConfirm\('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/publish'/)
 })
 
@@ -172,7 +172,7 @@ test('renderContentDetail 은 저장 후에만 게시 버튼을 열고, 게시 �
   assert.match(body, /publishArea\.hidden = true;/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\), \{ method: 'PATCH'/)
   assert.match(body, /publishArea\.hidden = false;/)
-  assert.match(body, /window\.confirm\('이 초안을 게시합니다/)
+  assert.match(body, /await adminConfirm\('이 초안을 게시합니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\) \+ '\/publish'/)
 })
 
@@ -209,7 +209,7 @@ test('loadOpsJobs 는 dead 작업에만 진단 버튼을 달고, 진단 화면�
   assert.match(jobs, /renderReportDiagnostics\(body, item\.target_id\)/)
   const diagnostics = source.slice(source.indexOf('async function renderReportDiagnostics'), source.indexOf('function refundStatus'))
   assert.match(diagnostics, /fetch\('\/api\/admin\/v1\/reports\/' \+ encodeURIComponent\(reportId\) \+ '\/diagnostics'/)
-  assert.match(diagnostics, /window\.confirm\('미완성 항목의 포기 상한을 다시 열고/)
+  assert.match(diagnostics, /await adminConfirm\('미완성 항목의 포기 상한을 다시 열고/)
   assert.match(diagnostics, /fetch\('\/api\/admin\/v1\/reports\/' \+ encodeURIComponent\(reportId\) \+ '\/restart', \{ method: 'POST'/)
   assert.match(diagnostics, /if \(d\.status !== 'complete'\)/, '완성된 리포트에는 재시작 버튼을 내지 않는다')
 })
