@@ -16,8 +16,15 @@
   const lines = value => esc(value).replace(/\n/g, '<br>');
   const isType = type => typeof type === 'string' && Object.hasOwn(C.characters, type);
   const candidates = gender => Object.entries(C.characters).filter(([, c]) => c.gender === gender);
-  function save() { try { state.at = Date.now(); sessionStorage.setItem(KEY, JSON.stringify(state)); storageOK = true; } catch { storageOK = false; } }
-  function clear() { try { sessionStorage.removeItem(KEY); } catch {} }
+  // Answers survive login even when the provider returns in another tab (email links, app hand-offs):
+  // the tab copy is preferred, the device copy is the fallback. Both expire after 2 hours and hold no personal data.
+  function save() {
+    state.at = Date.now(); const json = JSON.stringify(state); let ok = false;
+    for (const store of [sessionStorage, localStorage]) { try { store.setItem(KEY, json); ok = true; } catch {} }
+    storageOK = ok;
+  }
+  function clear() { for (const store of [sessionStorage, localStorage]) { try { store.removeItem(KEY); } catch {} } }
+  function readSaved() { for (const store of [sessionStorage, localStorage]) { try { const raw = store.getItem(KEY); if (raw) return JSON.parse(raw); } catch {} } return null; }
   function show(html, motion = 'pop') { stage.innerHTML = `<section class="screen ${motion}">${html}</section>`; stage.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
   function on(id, handler) { const el = document.getElementById(id); if (el) el.addEventListener('click', handler); }
   function notice(message) { const el = document.getElementById('notice'); el.textContent = message; el.className = 'show'; setTimeout(() => el.className = '', 3000); }
@@ -95,7 +102,7 @@
   }
 
   function gate(message = '') {
-    show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>${lines(C.copy.loginGate.default)}</h2><div class="name-card sealed-card" aria-hidden="true"><small>${esc(C.copy.result.heading)}</small>${silhouette(state.gender || 'female')}<span class="seal">이름표 봉인 중</span></div></div><button id="login" class="primary">로그인하고 이름 확인하기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">답변은 이 탭에서 최대 2시간 동안 유지돼요.<br>성별과 답변은 결과 계산에만 쓰고 공유하지 않아요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`, 'fade');
+    show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>${lines(C.copy.loginGate.default)}</h2><div class="name-card sealed-card" aria-hidden="true"><small>${esc(C.copy.result.heading)}</small>${silhouette(state.gender || 'female')}<span class="seal">이름표 봉인 중</span></div></div><button id="login" class="primary">로그인하고 이름 확인하기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">로그인하고 돌아오면 답변이 그대로 남아 있어요. (최대 2시간)<br>성별과 답변은 결과 계산에만 쓰고 공유하지 않아요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`, 'fade');
     on('login', () => { track('login'); save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('solo-nara', '/play/solo-nara/') : '/signup?entry=solo-nara&returnTo=' + encodeURIComponent('/play/solo-nara/') + '#login'; });
     on('retry', resolveResult);
   }
@@ -165,7 +172,7 @@
 
   if (preview) { sampleResult(); return; }
   try {
-    const saved = JSON.parse(sessionStorage.getItem(KEY));
+    const saved = readSaved();
     const fresh = saved && Date.now() - saved.at < 7200000 && Date.now() >= saved.at;
     const valid = fresh && (saved.gender === 'female' || saved.gender === 'male' || (saved.gender === null && Array.isArray(saved.answers) && !saved.answers.length)) && Array.isArray(saved.answers) && saved.answers.length <= N && saved.answers.every(a => Number.isInteger(a) && a >= 0 && a <= 3);
     if (valid) state = saved; else clear();
