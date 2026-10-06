@@ -1,0 +1,884 @@
+{
+  "version": "solo-nara-fixture",
+  "axes": [
+    "direct",
+    "express",
+    "stability",
+    "independence"
+  ],
+  "axisRange": {
+    "direct": {
+      "min": 0,
+      "max": 14
+    },
+    "express": {
+      "min": 0,
+      "max": 14
+    },
+    "stability": {
+      "min": 0,
+      "max": 14
+    },
+    "independence": {
+      "min": 0,
+      "max": 14
+    }
+  },
+  "tieBreak": {
+    "epsilon": 0.5,
+    "order": [
+      "youngsook",
+      "jeongsook",
+      "sunja",
+      "youngja",
+      "oksun",
+      "hyunsook",
+      "jeonghee",
+      "youngsoo",
+      "youngho",
+      "youngsik",
+      "youngchul",
+      "kwangsoo",
+      "sangchul",
+      "kyungsoo"
+    ]
+  },
+  "characters": [
+    {
+      "typeId": "youngsook",
+      "name": "영숙",
+      "gender": "female",
+      "vector": {
+        "direct": 72,
+        "express": 72,
+        "stability": 40,
+        "independence": 45
+      },
+      "primaryAxis": "direct",
+      "oneLiner": "영숙 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "영숙 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 영숙",
+      "best": "sangchul",
+      "bestReason": "fixture",
+      "danger": "kyungsoo",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "jeongsook",
+      "name": "정숙",
+      "gender": "female",
+      "vector": {
+        "direct": 35,
+        "express": 40,
+        "stability": 75,
+        "independence": 30
+      },
+      "primaryAxis": "stability",
+      "oneLiner": "정숙 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "정숙 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 정숙",
+      "best": "youngho",
+      "bestReason": "fixture",
+      "danger": "sangchul",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "sunja",
+      "name": "순자",
+      "gender": "female",
+      "vector": {
+        "direct": 66,
+        "express": 62,
+        "stability": 22,
+        "independence": 25
+      },
+      "primaryAxis": "express",
+      "oneLiner": "순자 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "순자 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 순자",
+      "best": "kyungsoo",
+      "bestReason": "fixture",
+      "danger": "youngsoo",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "youngja",
+      "name": "영자",
+      "gender": "female",
+      "vector": {
+        "direct": 40,
+        "express": 75,
+        "stability": 60,
+        "independence": 22
+      },
+      "primaryAxis": "express",
+      "oneLiner": "영자 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "영자 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 영자",
+      "best": "youngsoo",
+      "bestReason": "fixture",
+      "danger": "kwangsoo",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "oksun",
+      "name": "옥순",
+      "gender": "female",
+      "vector": {
+        "direct": 60,
+        "express": 40,
+        "stability": 40,
+        "independence": 78
+      },
+      "primaryAxis": "independence",
+      "oneLiner": "옥순 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "옥순 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 옥순",
+      "best": "youngsik",
+      "bestReason": "fixture",
+      "danger": "youngchul",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "hyunsook",
+      "name": "현숙",
+      "gender": "female",
+      "vector": {
+        "direct": 45,
+        "express": 28,
+        "stability": 68,
+        "independence": 66
+      },
+      "primaryAxis": "stability",
+      "oneLiner": "현숙 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "현숙 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 현숙",
+      "best": "youngchul",
+      "bestReason": "fixture",
+      "danger": "youngho",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "jeonghee",
+      "name": "정희",
+      "gender": "female",
+      "vector": {
+        "direct": 20,
+        "express": 22,
+        "stability": 27,
+        "independence": 63
+      },
+      "primaryAxis": "independence",
+      "oneLiner": "정희 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "정희 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 정희",
+      "best": "kwangsoo",
+      "bestReason": "fixture",
+      "danger": "youngsik",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "youngsoo",
+      "name": "영수",
+      "gender": "male",
+      "vector": {
+        "direct": 40,
+        "express": 40,
+        "stability": 76,
+        "independence": 35
+      },
+      "primaryAxis": "stability",
+      "oneLiner": "영수 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "영수 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 영수",
+      "best": "youngja",
+      "bestReason": "fixture",
+      "danger": "sunja",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "youngho",
+      "name": "영호",
+      "gender": "male",
+      "vector": {
+        "direct": 59,
+        "express": 70,
+        "stability": 49,
+        "independence": 24
+      },
+      "primaryAxis": "express",
+      "oneLiner": "영호 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "영호 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 영호",
+      "best": "jeongsook",
+      "bestReason": "fixture",
+      "danger": "hyunsook",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "youngsik",
+      "name": "영식",
+      "gender": "male",
+      "vector": {
+        "direct": 35,
+        "express": 70,
+        "stability": 62,
+        "independence": 22
+      },
+      "primaryAxis": "express",
+      "oneLiner": "영식 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "영식 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 영식",
+      "best": "oksun",
+      "bestReason": "fixture",
+      "danger": "jeonghee",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "youngchul",
+      "name": "영철",
+      "gender": "male",
+      "vector": {
+        "direct": 73,
+        "express": 71,
+        "stability": 35,
+        "independence": 43
+      },
+      "primaryAxis": "direct",
+      "oneLiner": "영철 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "영철 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 영철",
+      "best": "hyunsook",
+      "bestReason": "fixture",
+      "danger": "oksun",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "kwangsoo",
+      "name": "광수",
+      "gender": "male",
+      "vector": {
+        "direct": 37,
+        "express": 27,
+        "stability": 37,
+        "independence": 78
+      },
+      "primaryAxis": "independence",
+      "oneLiner": "광수 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "광수 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 광수",
+      "best": "jeonghee",
+      "bestReason": "fixture",
+      "danger": "youngja",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "sangchul",
+      "name": "상철",
+      "gender": "male",
+      "vector": {
+        "direct": 68,
+        "express": 45,
+        "stability": 22,
+        "independence": 70
+      },
+      "primaryAxis": "independence",
+      "oneLiner": "상철 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "상철 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 상철",
+      "best": "youngsook",
+      "bestReason": "fixture",
+      "danger": "jeongsook",
+      "dangerReason": "fixture"
+    },
+    {
+      "typeId": "kyungsoo",
+      "name": "경수",
+      "gender": "male",
+      "vector": {
+        "direct": 24,
+        "express": 25,
+        "stability": 66,
+        "independence": 52
+      },
+      "primaryAxis": "stability",
+      "oneLiner": "경수 fixture",
+      "keywords": [
+        "a",
+        "b",
+        "c"
+      ],
+      "title": "경수 title",
+      "description": "fixture",
+      "strength": "fixture",
+      "weakness": "fixture",
+      "tip": "fixture",
+      "shareText": "나는 경수",
+      "best": "sunja",
+      "bestReason": "fixture",
+      "danger": "youngsook",
+      "dangerReason": "fixture"
+    }
+  ],
+  "questions": [
+    {
+      "questionId": "q1",
+      "scene": "fixture",
+      "question": "q1 fixture",
+      "primaryAxes": [
+        "direct",
+        "express"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q1A",
+          "emoji": "·",
+          "scores": {
+            "direct": 3,
+            "express": 3,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "q1B",
+          "emoji": "·",
+          "scores": {
+            "direct": 2,
+            "express": 0,
+            "stability": 1,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "q1C",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 0,
+            "independence": 1
+          }
+        },
+        {
+          "id": "D",
+          "text": "q1D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 2,
+            "stability": 1,
+            "independence": 0
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q2",
+      "scene": "fixture",
+      "question": "q2 fixture",
+      "primaryAxes": [
+        "stability"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q2A",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 3,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "q2B",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 2,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "q2C",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 1,
+            "independence": 1
+          }
+        },
+        {
+          "id": "D",
+          "text": "q2D",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 1,
+            "stability": 0,
+            "independence": 0
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q3",
+      "scene": "fixture",
+      "question": "q3 fixture",
+      "primaryAxes": [
+        "independence",
+        "express"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q3A",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 0,
+            "independence": 3
+          }
+        },
+        {
+          "id": "B",
+          "text": "q3B",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 3,
+            "stability": 1,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "q3C",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 1,
+            "stability": 0,
+            "independence": 2
+          }
+        },
+        {
+          "id": "D",
+          "text": "q3D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 2,
+            "stability": 0,
+            "independence": 1
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q4",
+      "scene": "fixture",
+      "question": "q4 fixture",
+      "primaryAxes": [
+        "direct"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q4A",
+          "emoji": "·",
+          "scores": {
+            "direct": 3,
+            "express": 0,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "q4B",
+          "emoji": "·",
+          "scores": {
+            "direct": 2,
+            "express": 1,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "q4C",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 1,
+            "independence": 0
+          }
+        },
+        {
+          "id": "D",
+          "text": "q4D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 0,
+            "independence": 1
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q5",
+      "scene": "fixture",
+      "question": "q5 fixture",
+      "primaryAxes": [
+        "stability",
+        "independence"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q5A",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 3,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "q5B",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 0,
+            "independence": 3
+          }
+        },
+        {
+          "id": "C",
+          "text": "q5C",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 2,
+            "independence": 2
+          }
+        },
+        {
+          "id": "D",
+          "text": "q5D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 1,
+            "independence": 1
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q6",
+      "scene": "fixture",
+      "question": "q6 fixture",
+      "primaryAxes": [
+        "express"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q6A",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 3,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "q6B",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 2,
+            "stability": 1,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "q6C",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 0,
+            "independence": 1
+          }
+        },
+        {
+          "id": "D",
+          "text": "q6D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 0,
+            "independence": 1
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q7",
+      "scene": "fixture",
+      "question": "q7 fixture",
+      "primaryAxes": [
+        "direct",
+        "stability"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q7A",
+          "emoji": "·",
+          "scores": {
+            "direct": 3,
+            "express": 1,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "q7B",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 3,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "q7C",
+          "emoji": "·",
+          "scores": {
+            "direct": 2,
+            "express": 0,
+            "stability": 2,
+            "independence": 0
+          }
+        },
+        {
+          "id": "D",
+          "text": "q7D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 1,
+            "independence": 1
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q8",
+      "scene": "fixture",
+      "question": "q8 fixture",
+      "primaryAxes": [
+        "independence"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "q8A",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 0,
+            "independence": 3
+          }
+        },
+        {
+          "id": "B",
+          "text": "q8B",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 1,
+            "independence": 2
+          }
+        },
+        {
+          "id": "C",
+          "text": "q8C",
+          "emoji": "·",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 0,
+            "independence": 1
+          }
+        },
+        {
+          "id": "D",
+          "text": "q8D",
+          "emoji": "·",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 1,
+            "independence": 0
+          }
+        }
+      ]
+    }
+  ],
+  "copy": {
+    "fortuneCta": {
+      "label": "올해 내 연애운 확인하기",
+      "url": "https://umsh.kr/love/this-year/01-step-1-story/index.html"
+    }
+  }
+}
