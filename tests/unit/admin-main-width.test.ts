@@ -34,13 +34,14 @@ test('show(name) 이 상태마다 main 의 data-width 를 직접 설정하거나
  * 그걸 되돌리는 코드가 없어서, 표 중심 화면인 주문 페이지가 유일하게 계속 720px 에 갇혔다
  * (실사용자 재확인 리포트로 발견). startOrders 도 같은 setMainWidth 를 써야 한다.
  */
-test('주문 패널은 show() 를 거치지 않지만, startOrders 가 직접 폭을 넓힌다', () => {
+test('주문(결제 내역) 패널을 여는 startOrders 도 직접 폭을 넓힌다', () => {
   const body = source.slice(source.indexOf('function startOrders('), source.indexOf('function startOrders(') + 400)
   assert.match(body, /setMainWidth\(false\)/, 'startOrders 가 main 을 넓히지 않는다')
 })
 
 test('main[data-width=narrow] 만 720px 로 좁고, 기본 main 은 사이드바를 뺀 폭 전체를 쓴다', () => {
-  assert.match(source, /main \{ max-width: none; width: calc\(100% - 232px\); margin: 0 0 0 232px;/)
+  // 2026-10 개편으로 사이드바를 184px 로 줄였다(docs/admin-ia.md §1). 표 화면은 그만큼 넓어진다.
+  assert.match(source, /main \{ max-width: none; width: calc\(100% - 184px\); margin: 0 0 0 184px;/)
   assert.match(source, /main\[data-width='narrow'\] \{ max-width: 720px; width: auto; \}/)
 })
 

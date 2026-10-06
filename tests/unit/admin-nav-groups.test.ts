@@ -19,14 +19,16 @@ const source = readFileSync(new URL('../../admin-ui/index.html', import.meta.url
  */
 
 test('대분류마다 details/summary 로 감싸고, 소분류는 .admin-nav-links 로 한 번 더 감싼다', () => {
-  const groups = ['overview', 'customer', 'ai-ops', 'system']
+  // 2026-10 개편: 대시보드는 단일 링크, 나머지 6개 업무 영역이 접이식 그룹이다(docs/admin-ia.md §2).
+  const groups = ['members', 'payments', 'services', 'reports-ai', 'marketing', 'system']
+  assert.match(source, /<a class="admin-nav-home" href="\/ops\/constellation-7f3c" data-admin-route="overview">대시보드<\/a>/)
   for (const group of groups) {
     const pattern = new RegExp(`<details class="admin-nav-group" data-nav-group="${group}" open>\\s*<summary class="admin-nav-label">[^<]+</summary>\\s*<div class="admin-nav-links">`)
     assert.match(source, pattern, `${group} 그룹의 마크업이 바뀌었다`)
   }
-  // 네 그룹 모두 details 로 닫혀야 한다 — 하나라도 <p> 로 되돌아가면 토글이 사라진다.
-  assert.equal((source.match(/<details class="admin-nav-group"/g) ?? []).length, 4)
-  assert.equal((source.match(/<\/details>/g) ?? []).length, 4)
+  // 여섯 그룹 모두 details 로 닫혀야 한다 — 하나라도 <p> 로 되돌아가면 토글이 사라진다.
+  assert.equal((source.match(/<details class="admin-nav-group"/g) ?? []).length, 6)
+  assert.equal((source.match(/<\/details>/g) ?? []).length, 6)
 })
 
 test('접힌 소분류는 실제로 안 보인다 — UA 기본 규칙을 되찾는 규칙이 있다', () => {
@@ -35,9 +37,10 @@ test('접힌 소분류는 실제로 안 보인다 — UA 기본 규칙을 되찾
 
 test('좁은 화면에서는 대분류 구분 없이 모든 소분류가 평평하게 다시 보인다', () => {
   const mobile = source.slice(source.indexOf('@media (max-width: 768px)'), source.indexOf('</style>'))
-  assert.match(mobile, /\.admin-nav-group\s*\{\s*display:\s*contents;/, '대분류 박스 자체를 지우는 규칙이 없다')
+  // 크로미움은 <details> 에 display:contents 를 적용하지 않는다(2026-10 실측). 그룹은 가로 한 칸, 링크는 가로 flex.
+  assert.match(mobile, /\.admin-nav-group\s*\{\s*display:\s*block;/, '대분류를 가로 한 칸으로 두는 규칙이 없다')
   assert.match(mobile, /\.admin-nav-group\s+summary\s*\{\s*display:\s*none;\s*\}/)
-  assert.match(mobile, /\.admin-nav-group\s+\.admin-nav-links\s*\{\s*display:\s*contents\s*!important;\s*\}/, '!important 없이는 접힌 상태의 UA 숨김 규칙을 못 이긴다')
+  assert.match(mobile, /\.admin-nav-group\s+\.admin-nav-links\s*\{\s*display:\s*flex\s*!important;\s*flex-direction:\s*row;\s*\}/, '!important 없이는 접힌 상태의 UA 숨김 규칙을 못 이긴다')
 })
 
 test('현재 페이지가 속한 대분류는 접혀 있어도 강제로 편다', () => {
