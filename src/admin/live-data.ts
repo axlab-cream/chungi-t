@@ -570,6 +570,28 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
   }
 }
 
+/** 대시보드(6단계): 기간 안에 만든 행 수. created_at 범위 + exact count 헤더만 쓴다. */
+async function countCreatedBetween(table: string, key: string, from: Date, to: Date): Promise<number> {
+  const url = new URL(tableUrl(table))
+  url.searchParams.set('select', key)
+  url.searchParams.set('limit', '1')
+  url.searchParams.append('created_at', `gte.${from.toISOString()}`)
+  url.searchParams.append('created_at', `lt.${to.toISOString()}`)
+  const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('LIVE_DATA_COUNT_FAILED')
+  const total = response.headers.get('content-range')?.split('/')[1]
+  if (total && /^\d+$/.test(total)) return Number(total)
+  return (await response.json() as unknown[]).length
+}
+
+export function countMembersCreated(from: Date, to: Date): Promise<number> {
+  return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to)
+}
+
+export function countReportsCreated(from: Date, to: Date): Promise<number> {
+  return countCreatedBetween('cheongi_reports', 'report_id', from, to)
+}
+
 export function countLiveReports(): Promise<number> {
   return countRows('cheongi_reports', 'report_id')
 }
