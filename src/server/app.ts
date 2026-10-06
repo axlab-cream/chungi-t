@@ -104,7 +104,7 @@ import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { backfillReportCompletions, describeReportCompletion, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner, restartReportCompletion } from '../report/report-completion-job.js'
 import { backfillCmdgServiceKeyIfMatching } from '../report/report-data-repair.js'
-import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
+import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests, rejectRefundRequest } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -2920,16 +2920,16 @@ const REFUND_FAILURES: Record<string, { status: number; error: string }> = {
   REFUND_SELF_APPROVAL_FORBIDDEN: { status: 403, error: '요청자는 자신의 환불 요청을 승인할 수 없습니다. 다른 관리자가 승인해야 합니다.' },
   REFUND_REVISION_CONFLICT: { status: 409, error: '이 환불 요청이 그사이 변경되었습니다. 목록을 다시 불러온 뒤 확인해 주세요.' },
   REFUND_ORDER_REVISION_CONFLICT: { status: 409, error: '주문이 그사이 변경되었습니다. 주문을 다시 확인한 뒤 요청해 주세요.' },
-  REFUND_NOT_REQUESTED: { status: 409, error: '이미 처리된 요청입니다. PG 결과를 먼저 조회·대사해 주세요.' },
+  REFUND_NOT_REQUESTED: { status: 409, error: '이미 승인·반려된 요청입니다. 목록을 다시 불러와 상태를 확인해 주세요.' },
   REFUND_NOT_FOUND: { status: 404, error: '환불 요청을 찾지 못했습니다.' },
   REFUND_ORDER_NOT_FOUND: { status: 404, error: '주문을 찾지 못했습니다.' },
   REFUND_ORDER_NOT_REFUNDABLE: { status: 409, error: '결제 완료 상태의 주문만 환불을 요청할 수 있습니다.' },
   REFUND_AMOUNT_EXCEEDS_REMAINING: { status: 409, error: '이미 잡혀 있는 환불 요청까지 더하면 주문 금액을 넘습니다.' },
-  REFUND_IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
-  IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
+  REFUND_IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 요청이 다른 내용으로 이미 저장되어 있습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.' },
+  IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 작업이 다른 내용으로 이미 처리되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.' },
   IDEMPOTENCY_IN_PROGRESS: { status: 409, error: '같은 요청이 아직 처리 중입니다. 결과를 확인한 뒤 다시 시도해 주세요.' },
   REFUND_INPUT_INVALID: { status: 422, error: '요청 값을 확인해 주세요.' },
-  REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 저장소에 연결하지 못했습니다. 임의로 처리하지 않았습니다.' },
+  REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 기록을 불러오지 못했습니다. 아무것도 처리하지 않았습니다.' },
 }
 
 function respondRefundFailure(res: Response, error: unknown, fallback: string): void {
@@ -2984,6 +2984,69 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
   } catch (error) { respondRefundFailure(res, error, 'REFUND_APPROVE_FAILED') }
+})
+
+/** 환불 요청 반려(2026-10). 승인 전 요청만, 버전이 맞을 때만. 결제사 환불은 일어나지 않는다. */
+app.post('/api/admin/v1/refunds/:refundId/reject', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:approve'); if (!membership) return
+  const refundId = trimmedString(req.params.refundId); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!refundId || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_REJECT', error: '반려할 요청과 버전을 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.reject', idempotencyKey, body: { refundId, expectedRevision }, target: { type: 'refund_request', id: refundId } }, async () => rejectRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_REJECT_FAILED') }
+})
+
+/**
+ * 결제 관리 › 매출(2026-10). 결제 완료(paid·viewed) 주문과 승인 이후 환불을 기간별로 모은다.
+ * 결제일은 주문이 만들어진 시각(KST) 기준이다. 결제사·구글 수수료는 데이터가 없어 넣지 않는다.
+ */
+app.get('/api/admin/v1/payments/revenue', async (req, res) => {
+  if (!await requireStaff(req, res, 'orders:read')) return
+  const from = trimmedString(req.query?.from); const to = trimmedString(req.query?.to)
+  const fromMs = from ? Date.parse(from) : Date.now() - 30 * 86_400_000
+  const toMs = to ? Date.parse(to) : Date.now() + 60_000
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs || toMs - fromMs > 400 * 86_400_000) { res.status(422).json({ code: 'INVALID_REVENUE_WINDOW', error: '기간을 확인해 주세요(최대 400일).' }); return }
+  try {
+    const orders: PaymentOrder[] = []
+    let cursor: string | undefined
+    for (let page = 0; page < 100; page += 1) {
+      const result = await listAllPaymentOrders({ limit: 100, cursor, from: new Date(fromMs).toISOString() })
+      orders.push(...result.orders)
+      if (!result.nextCursor) break
+      cursor = result.nextCursor
+    }
+    const kstDay = (iso: string) => new Date(Date.parse(iso) + 9 * 3_600_000).toISOString().slice(0, 10)
+    const paid = orders.filter((order) => (order.status === 'paid' || order.status === 'viewed') && Date.parse(order.createdAt) >= fromMs && Date.parse(order.createdAt) < toMs)
+    const refunds = (await listRefundRequests(200)).filter((refund) => ['approved', 'processing', 'succeeded'].includes(refund.state) && Date.parse(refund.updatedAt) >= fromMs && Date.parse(refund.updatedAt) < toMs)
+    const bucket = () => new Map<string, { key: string; paidAmount: number; paidCount: number; refundAmount: number }>()
+    const groups = { day: bucket(), month: bucket(), service: bucket(), method: bucket() }
+    const add = (map: ReturnType<typeof bucket>, key: string, paidAmount: number, refundAmount: number) => {
+      const row = map.get(key) ?? { key, paidAmount: 0, paidCount: 0, refundAmount: 0 }
+      row.paidAmount += paidAmount; row.paidCount += paidAmount ? 1 : 0; row.refundAmount += refundAmount; map.set(key, row)
+    }
+    const byId = new Map(orders.map((order) => [order.orderId, order]))
+    for (const order of paid) {
+      const day = kstDay(order.createdAt)
+      add(groups.day, day, order.amount, 0); add(groups.month, day.slice(0, 7), order.amount, 0)
+      add(groups.service, order.productTitle || order.productKey, order.amount, 0); add(groups.method, order.payMethod || '기타', order.amount, 0)
+    }
+    for (const refund of refunds) {
+      const day = kstDay(refund.updatedAt); const order = byId.get(refund.orderId)
+      add(groups.day, day, 0, refund.amount); add(groups.month, day.slice(0, 7), 0, refund.amount)
+      add(groups.service, order ? (order.productTitle || order.productKey) : '확인 필요', 0, refund.amount); add(groups.method, order?.payMethod || '기타', 0, refund.amount)
+    }
+    const rows = (map: ReturnType<typeof bucket>) => [...map.values()].map((row) => ({ ...row, netAmount: row.paidAmount - row.refundAmount })).sort((a, b) => b.key.localeCompare(a.key))
+    const paidAmount = paid.reduce((sum, order) => sum + order.amount, 0); const refundAmount = refunds.reduce((sum, refund) => sum + refund.amount, 0)
+    res.json({
+      from: new Date(fromMs).toISOString(), to: new Date(toMs).toISOString(),
+      totals: { paidAmount, paidCount: paid.length, refundAmount, refundCount: refunds.length, netAmount: paidAmount - refundAmount },
+      byDay: rows(groups.day), byMonth: rows(groups.month), byService: rows(groups.service).sort((a, b) => b.paidAmount - a.paidAmount), byMethod: rows(groups.method).sort((a, b) => b.paidAmount - a.paidAmount),
+      asOf: new Date().toISOString(),
+    })
+  } catch {
+    res.status(503).json({ code: 'REVENUE_LOOKUP_FAILED', error: '매출을 집계하지 못했습니다.' })
+  }
 })
 
 /**

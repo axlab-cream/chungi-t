@@ -70,10 +70,10 @@
       padding: var(--admin-space-3) var(--admin-space-2);
       background: var(--admin-surface); border-right: 1px solid var(--admin-line);
     }
-    /* 로고 칸: 고객 사이트 상단처럼 짙은 띠 위에 금색 로고. 누르면 대시보드. */
-    .admin-nav .admin-nav-title { display: flex; align-items: center; gap: 9px; margin: -12px -8px 10px; padding: 12px 12px; background: #0b0806; border-radius: 0; text-decoration: none; }
-    .admin-nav .admin-nav-title:hover { background: #1a120d; }
-    .admin-nav-title img:first-child { width: 30px; height: 30px; border-radius: 6px; }
+    /* 로고: 흰 사이드바 위에 배경 없는 금색 로고(2026-10-06 요청). 누르면 대시보드. */
+    .admin-nav .admin-nav-title { display: flex; align-items: center; gap: 9px; margin: 0 0 10px; padding: 6px 6px 10px; border-bottom: 1px solid var(--admin-line); border-radius: 0; text-decoration: none; background: none; }
+    .admin-nav .admin-nav-title:hover { background: none; opacity: .85; }
+    .admin-nav-title img:first-child { height: 30px; width: auto; }
     .admin-nav-title img:last-child { height: 22px; width: auto; }
     /*
       대분류(summary)와 소분류(a)를 크기·색·들여쓰기 세 축으로 구분한다. 대분류는 토글 —
@@ -182,7 +182,7 @@
     .admin-file-link { color: var(--admin-text); font-weight: 600; text-underline-offset: 3px; }
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
-    .admin-workspace { display: grid; gap: var(--admin-space-6); }
+    .admin-workspace { display: grid; gap: var(--admin-space-3); }
     .admin-page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 6px; margin-bottom: 4px; }
     .admin-page-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
     .admin-page-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
@@ -464,7 +464,7 @@
     .admin-section-modal .admin-section > .admin-note, .admin-section-modal .admin-section > p.admin-note { padding: 10px 16px 0; margin: 0; }
     .admin-section-modal .admin-section > form.admin-actions { padding: 16px; flex-wrap: wrap; }
     .admin-icon-button[data-tone='danger-icon']:hover { color: var(--admin-action-danger) !important; border-color: var(--admin-action-danger) !important; }
-    .admin-page-size { min-height: 30px !important; padding-top: 3px !important; padding-bottom: 3px !important; margin-left: 6px; }
+    .admin-page-size { min-height: 30px !important; padding-top: 3px !important; padding-bottom: 3px !important; margin-left: 6px; flex: none; min-width: 92px; }
     /*
      * 2026-10: 브라우저 기본 입력 부품(옛 윈도우 모양 선택 상자·회색 테두리 입력창)을 어드민 전체에서
      * 같은 모양으로 바꾼다. :is(main, .admin-modal, .admin-dialog) 로 화면·모달 안만 잡고, 이 블록을
@@ -492,6 +492,19 @@
     .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
     .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
     .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
+    /* 결제 관리(3단계) */
+    .admin-dl.admin-dl-wide { grid-template-columns: 84px 1fr; }
+    .admin-link { color: var(--admin-focus); text-decoration: none; font-weight: 600; }
+    .admin-link:hover { text-decoration: underline; }
+    .admin-copy { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+    .admin-copy > span { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+    .admin-link-button { border: 0; background: none; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: var(--admin-focus); cursor: pointer; white-space: nowrap; }
+    .admin-mini-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--admin-line); font-size: 13px; }
+    .admin-range { display: inline-flex; align-items: center; gap: 6px; color: var(--admin-text-muted); }
+    .admin-more { display: flex; justify-content: center; padding: 12px; }
+    .admin-kpis.admin-kpis-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 10px; }
+    .admin-kpis small { display: block; margin-top: 2px; color: var(--admin-text-muted); font-size: 11.5px; }
+    @media (max-width: 900px) { .admin-kpis.admin-kpis-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   </style>
 </head>
 <body>
@@ -508,7 +521,7 @@
   </header>
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
-    <a class="admin-nav-title" href="/ops/constellation-7f3c" aria-label="운명상회 운영 관리자 — 대시보드로 이동"><img src="/assets/admin/umsh-mark.png" alt="" width="30" height="30"><img src="/assets/admin/umsh-wordmark.png" alt="운명상회" height="22"></a>
+    <a class="admin-nav-title" href="/ops/constellation-7f3c" aria-label="운명상회 운영 관리자 — 대시보드로 이동"><img src="/assets/admin/umsh-mark.png" alt="" height="30"><img src="/assets/admin/umsh-wordmark.png" alt="운명상회" height="22"></a>
     <a class="admin-nav-home" href="/ops/constellation-7f3c" data-admin-route="overview">대시보드</a>
     <details class="admin-nav-group" data-nav-group="members" open>
       <summary class="admin-nav-label">회원</summary>
@@ -804,9 +817,9 @@
         { path: '/members', key: 'members', title: '회원 관리', detail: '회원의 가입·결제·리포트 이력을 확인합니다.', load: function (body) { loadLiveMembers(body); } },
         { path: '/support', key: 'support', title: '고객 지원', detail: '문의 접수부터 처리 완료까지 관리합니다.', load: function (body) { loadSupportCases(body); } },
         { path: '/payments', key: 'payments', title: '결제 관리', detail: '결제 내역과 환불, 매출을 한곳에서 봅니다.', tabs: [
-          { path: '', label: '결제 내역', load: function (body) { loadOrdersTab(body); } },
-          { path: '/refunds', label: '환불', load: function (body) { loadRefunds(body); } },
-          { path: '/revenue', label: '매출', load: function (body) { loadRevenuePending(body); } },
+          { path: '', label: '결제 내역', load: function (body) { loadPaymentsHistory(body); } },
+          { path: '/refunds', label: '환불', load: function (body) { loadRefundsQueue(body); } },
+          { path: '/revenue', label: '매출', load: function (body) { loadRevenue(body); } },
         ] },
         { path: '/services', key: 'services', title: '서비스 관리', detail: '판매·노출·가격을 관리합니다.', load: function (body) { loadLiveServices(body); } },
         { path: '/content', key: 'content', title: '콘텐츠 관리', detail: '서비스 안에서 쓰는 안내·배너·문구를 관리합니다.', load: function (body) { loadLiveContent(body); } },
@@ -2607,16 +2620,17 @@
         form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
         section.appendChild(form); showSectionModal(section);
       }
-      async function loadRefunds(body) {
+      async function loadRefunds(body, onSaved) {
         body.replaceChildren();
-        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청 등록</h3><span class="admin-chip">주문 기준</span></header>';
+        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>결제 번호로 환불 요청</h3></header>';
         var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
-        form.innerHTML = '<div class="admin-field" data-span="2"><label>주문 ID</label><input required name="orderId" autocomplete="off" placeholder="주문 번호"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="주문 조회 후 입력"></div><div class="admin-field"><label>사유 코드</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">주문 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>주문을 확인하면 결제 금액이 자동으로 채워집니다.</p>';
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>결제 번호</label><input required name="orderId" autocomplete="off" placeholder="결제 상세에서 복사한 번호"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="결제 확인 후 자동 입력"></div><div class="admin-field"><label>사유</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">결제 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>결제를 확인하면 금액이 자동으로 채워집니다. 결제 내역 탭에서 행을 눌러 요청하는 편이 더 쉽습니다.</p>';
         var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
-        async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '주문 ID를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '주문을 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '주문을 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '주문 확인됨: ' + Number(order.amount).toLocaleString('ko-KR') + '원 · 버전 ' + String(order.revision) + '. 서버가 환불 가능 금액을 다시 검증합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '주문을 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
+        async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '결제 번호를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '결제를 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '결제를 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '확인됨: ' + (order.productTitle || '') + ' ' + Number(order.amount).toLocaleString('ko-KR') + '원. 환불 가능 금액은 저장할 때 다시 확인합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '결제를 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
         lookup.addEventListener('click', lookupOrder);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
         requestSection.appendChild(form); body.appendChild(requestSection); adminPageAction('refund-request', '＋ 환불 요청', requestSection, { primary: true });
+        if (onSaved) return;
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청</h3><span class="admin-chip">결제사 환불은 별도 처리</span></header><p class="admin-empty">환불 요청을 불러오는 중입니다.</p>'; body.appendChild(listSection);
         try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 목록을 불러오지 못했습니다.'; }
       }
@@ -2878,27 +2892,323 @@
         def.tabs[route.tabIndex].load(panel);
       }
 
-      /** 결제 관리 › 매출. 결제액·환불액 집계 API(docs/admin-ia.md §5-3)가 생기기 전까지는 숫자를 지어내지 않는다. */
-      function loadRevenuePending(body) {
-        var box = document.createElement('p'); box.className = 'admin-empty';
-        box.textContent = '매출 집계는 결제 관리 개편 단계에서 엽니다. 그 전까지는 결제 내역 탭에서 기간·상태로 걸러 확인해 주세요.';
-        body.appendChild(box);
+      /*
+       * 결제 › 결제 관리 (2026-10 개편 3단계). 탭: 결제 내역 · 환불 · 매출.
+       * 결제 내역 행 → 결제 상세 팝업 → [환불 요청]. 환불 행 → 환불 상세 팝업 → [승인] / [반려].
+       * 결제사(이니시스·구글) 환불은 여기서 실행되지 않는다. 승인은 "환불해도 된다"는 기록이다.
+       */
+      var ORDER_STATUS = {
+        ready: { label: '결제 대기', tone: '' }, approving: { label: '승인 중', tone: 'info' }, paid: { label: '결제 완료', tone: 'ok' },
+        viewed: { label: '결제 완료', tone: 'ok' }, cancelled: { label: '취소·환불', tone: 'warn' }, failed: { label: '실패', tone: 'error' }
+      };
+      var REFUND_STATE = {
+        requested: { label: '요청', tone: 'info' }, approved: { label: '승인됨', tone: 'ok' }, processing: { label: '처리중', tone: 'info' },
+        succeeded: { label: '완료', tone: 'ok' }, failed: { label: '실패', tone: 'error' }, unknown: { label: '확인 필요', tone: 'warn' }, rejected: { label: '반려', tone: '' }
+      };
+      var REFUND_REASONS = { duplicate_payment: '중복 결제', customer_request: '고객 요청', service_issue: '서비스 이슈', other: '기타' };
+      function payMethodLabel(method) {
+        var raw = String(method || '');
+        var map = { GOOGLE_PLAY: '앱 결제(구글)', TEST: '테스트', Card: '카드', CARD: '카드', VBank: '가상계좌', DirectBank: '계좌이체', HPP: '휴대폰', KAKAOPAY: '카카오페이', NAVERPAY: '네이버페이', TOSSPAY: '토스페이' };
+        return map[raw] || (raw ? raw : '—');
+      }
+      function won(value) { return value === null || value === undefined ? '—' : Number(value).toLocaleString('ko-KR') + '원'; }
+      function statusBadge(table, key) { var entry = table[key] || { label: key || '—', tone: '' }; return badge(entry); }
+      function refundReasonLabel(reason) {
+        var text = String(reason || ''); var code = text.split(':')[0];
+        return REFUND_REASONS[code] ? REFUND_REASONS[code] + (text.indexOf(':') > 0 ? ' · ' + text.slice(text.indexOf(':') + 1).trim() : '') : text;
+      }
+      async function adminJson(url, init) {
+        var response = await fetch(url, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, init || {}));
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw new Error(data.error || '요청을 처리하지 못했습니다.');
+        return data;
+      }
+      function dlRows(rows) {
+        var dl = document.createElement('dl'); dl.className = 'admin-dl admin-dl-wide';
+        rows.forEach(function (pair) {
+          var dt = document.createElement('dt'); dt.textContent = pair[0];
+          var dd = document.createElement('dd'); if (pair[1] instanceof Node) dd.appendChild(pair[1]); else dd.textContent = pair[1] === undefined || pair[1] === null || pair[1] === '' ? '—' : pair[1];
+          dl.append(dt, dd);
+        });
+        return dl;
+      }
+      function copyChip(value, label) {
+        var wrap = document.createElement('span'); wrap.className = 'admin-copy';
+        var text = document.createElement('span'); text.textContent = label || value;
+        var button = document.createElement('button'); button.type = 'button'; button.className = 'admin-link-button'; button.textContent = '복사';
+        button.addEventListener('click', function () { navigator.clipboard.writeText(value).then(function () { adminToast('복사했습니다.'); }).catch(function () { adminToast('복사하지 못했습니다.', 'error'); }); });
+        wrap.append(text, button); return wrap;
+      }
+      function adminLink(label, path) { var a = document.createElement('a'); a.className = 'admin-link'; a.href = ADMIN_BASE + path; a.textContent = label; return a; }
+
+      async function openRefundRequestForm(order, onDone) {
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field"><label>환불 금액</label><input name="amount" inputmode="numeric" required></div>'
+          + '<div class="admin-field"><label>사유</label><select name="reasonCode">' + Object.keys(REFUND_REASONS).map(function (key) { return '<option value="' + key + '">' + REFUND_REASONS[key] + '</option>'; }).join('') + '</select></div>'
+          + '<div class="admin-field" data-span="2"><label>상세 사유</label><input name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 적어 주세요"></div>';
+        form.elements.amount.value = String(order.amount);
+        var lead = document.createElement('p'); lead.className = 'admin-note'; lead.textContent = order.productTitle + ' · ' + won(order.amount) + ' 결제에 대한 환불 요청을 남깁니다. 다른 관리자가 승인해야 하고, 결제사 환불은 승인 뒤 따로 처리합니다.';
+        var wrap = document.createElement('div'); wrap.append(lead, form);
+        openAdminModal({ title: '환불 요청', body: wrap, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '요청 저장', primary: true, onClick: async function (d) {
+            var amount = Number(String(form.elements.amount.value).replace(/[^0-9]/g, ''));
+            if (!amount || amount > order.amount) { adminToast('환불 금액을 확인해 주세요. 결제 금액을 넘을 수 없습니다.', 'error'); return; }
+            try {
+              await adminJson('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(), expectedRevision: order.revision }) });
+              d.close(); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); if (onDone) onDone();
+            } catch (error) { adminToast(error.message, 'error'); }
+          } },
+        ] });
       }
 
-      /**
-       * 결제 관리 › 결제 내역. 예전에는 주문 화면만 작업 영역 밖의 별도 패널(로그인 전 공개용)로 떴다.
-       * 2026-10 주문 목록 공개를 닫으면서 다른 화면처럼 작업 영역 안에서 연다.
-       */
-      function loadOrdersTab(body) {
-        var section = document.querySelector('[data-admin-orders-panel]');
-        if (!section) { addLiveError(body, '결제 내역 화면을 불러오지 못했습니다.'); return; }
-        section.hidden = false;
-        body.appendChild(section);
-        var heading = section.querySelector('h2'); if (heading) heading.hidden = true;
+      async function openPaymentDetail(order, refundsForOrder, reload) {
+        var wrap = document.createElement('div'); wrap.className = 'admin-detail-grid';
+        var left = document.createElement('div'); var right = document.createElement('div');
+        var h1 = document.createElement('h4'); h1.textContent = '결제 정보';
+        left.append(h1, dlRows([
+          ['결제 번호', copyChip(order.orderId)], ['결제일', new Date(order.createdAt).toLocaleString('ko-KR')], ['금액', won(order.amount)],
+          ['결제 수단', payMethodLabel(order.payMethod)], ['상태', statusBadge(ORDER_STATUS, order.status)],
+          ['거래 번호', order.tidMasked || '—'],
+        ]));
+        if (order.unsettled) { var warn = document.createElement('p'); warn.className = 'admin-note'; warn.textContent = '결제사 승인 기록은 있는데 정산이 끝나지 않았습니다. 결제사 관리자 화면에서 확인해 주세요.'; left.appendChild(warn); }
+        var h2 = document.createElement('h4'); h2.textContent = '회원 · 서비스';
+        right.append(h2, dlRows([
+          ['회원', order.ownerId ? adminLink(order.ownerEmailMasked || '회원 보기', '/members?id=' + encodeURIComponent(order.ownerId)) : (order.ownerEmailMasked || '—')],
+          ['구매자 연락처', [order.buyerEmailMasked, order.buyerTelMasked].filter(Boolean).join(' · ') || '—'],
+          ['서비스', order.productTitle || '—'],
+          ['리포트', order.reportId ? adminLink('리포트 보기', '/reports?id=' + encodeURIComponent(order.reportId)) : '아직 없음'],
+        ]));
+        var h3 = document.createElement('h4'); h3.textContent = '환불 내역';
+        right.appendChild(h3);
+        if (!refundsForOrder.length) { var none = document.createElement('p'); none.className = 'admin-note'; none.textContent = '환불 요청이 없습니다.'; right.appendChild(none); }
+        refundsForOrder.forEach(function (refund) {
+          var row = document.createElement('div'); row.className = 'admin-mini-row';
+          var text = document.createElement('span'); text.textContent = new Date(refund.createdAt).toLocaleDateString('ko-KR') + ' · ' + won(refund.amount) + ' · ' + refundReasonLabel(refund.reason);
+          row.append(text, statusBadge(REFUND_STATE, refund.state)); right.appendChild(row);
+        });
+        wrap.append(left, right);
+        var actions = [{ label: '닫기', onClick: function (d) { d.close(); } }];
+        if (order.status === 'paid' || order.status === 'viewed') actions.push({ label: '환불 요청', primary: true, onClick: function (d) { d.close(); openRefundRequestForm(order, reload); } });
+        openAdminModal({ title: order.productTitle + ' · ' + won(order.amount), subtitle: (ORDER_STATUS[order.status] || { label: order.status }).label + ' · ' + new Date(order.createdAt).toLocaleString('ko-KR'), body: wrap, actions: actions });
+      }
+
+      async function loadPaymentsHistory(body) {
+        body.replaceChildren();
         var scopes = (window.__adminMembership && window.__adminMembership.scopes) || [];
         if (scopes.indexOf('orders:read') < 0) { addLiveError(body, '이 계정에는 결제 내역을 볼 권한이 없습니다.'); return; }
-        if (!orderState.started) { orderState.started = true; startOrders(window.__adminSession || null); }
-        else loadOrders(true);
+        var linkedId = new URLSearchParams(window.location.search).get('id');
+        var state = { status: '', from: '', to: '', orders: [], refunds: [], cursor: null };
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '결제 상태');
+        [['', '전체'], ['paid', '결제 완료'], ['ready', '결제 대기'], ['cancelled', '취소·환불'], ['failed', '실패']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.status = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.status = entry[0]; load(true); }); seg.appendChild(button);
+        });
+        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '시작일');
+        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '종료일');
+        var range = document.createElement('span'); range.className = 'admin-range'; range.append(from, document.createTextNode('~'), to);
+        [from, to].forEach(function (input) { input.addEventListener('change', function () { state.from = from.value; state.to = to.value; load(true); }); });
+        filters.append(seg, range);
+        var card = document.createElement('section'); card.className = 'admin-section';
+        var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.'; card.appendChild(status);
+        body.append(filters, card);
+        async function load(reset) {
+          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
+          if (reset) { state.orders = []; state.cursor = null; }
+          try {
+            for (var page = 0; page < 5; page += 1) {
+              var params = new URLSearchParams({ limit: '100' });
+              if (state.status) params.set('status', state.status);
+              if (state.from) params.set('from', new Date(state.from + 'T00:00:00+09:00').toISOString());
+              if (state.to) params.set('to', new Date(new Date(state.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+              if (state.cursor) params.set('cursor', state.cursor);
+              var data = await adminJson('/api/admin/v1/orders?' + params.toString());
+              state.orders = state.orders.concat(data.orders || []); state.cursor = data.nextCursor || null;
+              if (!state.cursor) break;
+            }
+            if (!state.refunds.length) state.refunds = (await adminJson('/api/admin/v1/refunds?limit=200').catch(function () { return { refunds: [] }; })).refunds || [];
+            render();
+          } catch (error) { var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '결제 내역을 불러오지 못했습니다. ' + error.message; card.replaceChildren(failed); }
+        }
+        function render() {
+          var refundByOrder = {};
+          state.refunds.forEach(function (refund) { (refundByOrder[refund.orderId] = refundByOrder[refund.orderId] || []).push(refund); });
+          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
+          table.innerHTML = '<thead><tr><th scope="col">결제일</th><th scope="col">회원</th><th scope="col">서비스</th><th scope="col" class="admin-num">금액</th><th scope="col">결제 수단</th><th scope="col">상태</th><th scope="col">환불</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!state.orders.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
+          state.orders.forEach(function (order) {
+            var row = document.createElement('tr'); row.tabIndex = 0;
+            function td(value, cls) { var cell = document.createElement('td'); if (cls) cell.className = cls; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); }
+            td(new Date(order.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }));
+            td(order.ownerEmailMasked || order.buyerEmailMasked || '—');
+            td(order.productTitle || '—'); td(won(order.amount), 'admin-num'); td(payMethodLabel(order.payMethod));
+            td(order.unsettled ? badge({ label: '정산 확인 필요', tone: 'warn' }) : statusBadge(ORDER_STATUS, order.status));
+            var refunds = refundByOrder[order.orderId] || [];
+            td(refunds.length ? statusBadge(REFUND_STATE, refunds[0].state) : '—');
+            row.addEventListener('click', function () { openPaymentDetail(order, refunds, function () { state.refunds = []; load(true); }); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openPaymentDetail(order, refunds, function () { state.refunds = []; load(true); }); });
+            rows.appendChild(row);
+          });
+          table.appendChild(rows);
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          card.replaceChildren(scroll);
+          if (state.cursor) {
+            var more = document.createElement('button'); more.type = 'button'; more.className = 'admin-button'; more.setAttribute('data-variant', 'quiet'); more.textContent = '이전 결제 더 불러오기';
+            more.addEventListener('click', function () { load(false); });
+            var moreWrap = document.createElement('div'); moreWrap.className = 'admin-more'; moreWrap.appendChild(more); card.appendChild(moreWrap);
+          }
+          // 통합 검색·환불 상세의 링크(?id=결제번호)로 들어오면 그 결제 상세를 바로 연다. 목록에 없으면 한 건만 따로 불러온다.
+          if (linkedId) {
+            var wanted = linkedId; linkedId = null;
+            var hit = state.orders.find(function (order) { return order.orderId === wanted; });
+            var open = function (order) { openPaymentDetail(order, refundByOrder[order.orderId] || [], function () { state.refunds = []; load(true); }); };
+            if (hit) open(hit); else adminJson('/api/admin/v1/orders/' + encodeURIComponent(wanted)).then(function (data) { if (data.order) open(data.order); }).catch(function () { adminToast('해당 결제를 찾지 못했습니다.', 'error'); });
+          }
+        }
+        await load(true);
+      }
+
+      async function openRefundDetail(refund, reload) {
+        var me = (window.__adminMembership && window.__adminMembership.email) || '';
+        var wrap = document.createElement('div');
+        wrap.appendChild(dlRows([
+          ['상태', statusBadge(REFUND_STATE, refund.state)], ['요청 금액', won(refund.amount)], ['사유', refundReasonLabel(refund.reason)],
+          ['결제', adminLink('결제 상세 보기', '/payments?id=' + encodeURIComponent(refund.orderId))],
+          ['요청자', refund.requestedByEmail], ['처리자', refund.approvedByEmail || '—'],
+          ['요청일', new Date(refund.createdAt).toLocaleString('ko-KR')], ['최근 변경', new Date(refund.updatedAt).toLocaleString('ko-KR')],
+        ]));
+        var note = document.createElement('p'); note.className = 'admin-note';
+        note.textContent = refund.state === 'requested'
+          ? (refund.requestedByEmail === me ? '본인이 남긴 요청은 승인할 수 없습니다. 다른 관리자가 승인해야 합니다. 반려(요청 취소)는 할 수 있습니다.' : '승인하면 "환불해도 된다"는 기록이 남습니다. 결제사 환불은 승인 뒤 결제사 관리자 화면에서 처리합니다.')
+          : '이미 처리된 요청입니다.';
+        wrap.appendChild(note);
+        var actions = [{ label: '닫기', onClick: function (d) { d.close(); } }];
+        if (refund.state === 'requested') {
+          actions.push({ label: '반려', danger: true, onClick: async function (d) {
+            if (!await adminConfirm('이 환불 요청을 반려할까요? 결제는 그대로 유지됩니다.', { okLabel: '반려', danger: true })) return;
+            try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/reject', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision }) }); d.close(); adminToast('반려했습니다.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
+          } });
+          if (refund.requestedByEmail !== me) actions.push({ label: '승인', primary: true, onClick: async function (d) {
+            var reason = await adminPrompt('승인 근거를 적어 주세요. (감사 기록에 남습니다)', { title: '환불 승인', okLabel: '승인', placeholder: '예: 중복 결제 확인' });
+            if (reason === null) return; if (!reason.trim()) { adminToast('승인 근거를 적어 주세요.', 'error'); return; }
+            try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.trim() }) }); d.close(); adminToast('승인했습니다. 결제사 환불은 따로 처리해 주세요.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
+          } });
+        }
+        openAdminModal({ title: '환불 요청 · ' + won(refund.amount), subtitle: (REFUND_STATE[refund.state] || { label: refund.state }).label, body: wrap, actions: actions });
+      }
+
+      async function loadRefundsQueue(body) {
+        // 주문 번호로 직접 요청하는 기존 폼(＋ 환불 요청 버튼 뒤)은 그대로 쓰고, 목록은 여기서 새로 그린다.
+        await loadRefunds(body, function () { load(); });
+        var state = { filter: 'all', items: [] };
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '환불 상태');
+        [['all', '전체'], ['requested', '요청'], ['processing', '처리중'], ['done', '완료'], ['failed', '실패'], ['rejected', '반려']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.filter = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.filter = entry[0]; render(); }); seg.appendChild(button);
+        });
+        filters.appendChild(seg);
+        var card = document.createElement('section'); card.className = 'admin-section';
+        body.append(filters, card);
+        function matches(refund) {
+          if (state.filter === 'all') return true;
+          if (state.filter === 'processing') return refund.state === 'approved' || refund.state === 'processing' || refund.state === 'unknown';
+          if (state.filter === 'done') return refund.state === 'succeeded';
+          return refund.state === state.filter;
+        }
+        function render() {
+          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.filter === state.filter ? 'true' : 'false'); });
+          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
+          table.innerHTML = '<thead><tr><th scope="col">요청일</th><th scope="col">결제</th><th scope="col" class="admin-num">금액</th><th scope="col">사유</th><th scope="col">상태</th><th scope="col">요청자</th><th scope="col">처리자</th></tr></thead>';
+          var rows = document.createElement('tbody'); var list = state.items.filter(matches);
+          if (!list.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">해당하는 환불 요청이 없습니다.</td>'; rows.appendChild(empty); }
+          list.forEach(function (refund) {
+            var row = document.createElement('tr'); row.tabIndex = 0;
+            [new Date(refund.createdAt).toLocaleString('ko-KR'), refund.orderId.slice(0, 12) + '…', won(refund.amount), refundReasonLabel(refund.reason), statusBadge(REFUND_STATE, refund.state), String(refund.requestedByEmail || '').split('@')[0], String(refund.approvedByEmail || '—').split('@')[0]].forEach(function (value, index) {
+              var cell = document.createElement('td'); if (index === 2) cell.className = 'admin-num'; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell);
+            });
+            row.addEventListener('click', function () { openRefundDetail(refund, load); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openRefundDetail(refund, load); });
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); card.replaceChildren(scroll);
+        }
+        async function load() {
+          try { state.items = (await adminJson('/api/admin/v1/refunds?limit=200')).refunds || []; render(); }
+          catch (error) { var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '환불 요청을 불러오지 못했습니다. ' + error.message; card.replaceChildren(failed); }
+        }
+        await load();
+      }
+
+      async function loadRevenue(body) {
+        body.replaceChildren();
+        var state = { preset: '30', by: 'day', data: null };
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var period = document.createElement('div'); period.className = 'admin-seg'; period.setAttribute('aria-label', '기간');
+        [['7', '최근 7일'], ['30', '최근 30일'], ['thisMonth', '이번 달'], ['lastMonth', '지난 달'], ['90', '최근 90일']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.preset = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.preset = entry[0]; load(); }); period.appendChild(button);
+        });
+        var by = document.createElement('div'); by.className = 'admin-seg'; by.setAttribute('aria-label', '묶음');
+        [['day', '일별'], ['month', '월별'], ['service', '서비스별'], ['method', '결제 수단별']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.by = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.by = entry[0]; render(); }); by.appendChild(button);
+        });
+        var download = document.createElement('button'); download.type = 'button'; download.className = 'admin-button'; download.setAttribute('data-variant', 'quiet'); download.textContent = 'CSV 내려받기';
+        download.style.marginLeft = 'auto';
+        filters.append(period, by, download);
+        var kpis = document.createElement('div'); kpis.className = 'admin-kpis admin-kpis-4';
+        var card = document.createElement('section'); card.className = 'admin-section';
+        body.append(filters, kpis, card);
+        function windowFor(preset) {
+          var now = new Date(); var kst = new Date(now.getTime() + 9 * 3600000);
+          var startOfMonth = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), 1) - 9 * 3600000;
+          if (preset === 'thisMonth') return { from: new Date(startOfMonth), to: now };
+          if (preset === 'lastMonth') return { from: new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth() - 1, 1) - 9 * 3600000), to: new Date(startOfMonth) };
+          return { from: new Date(now.getTime() - Number(preset) * 86400000), to: now };
+        }
+        function rowsFor() {
+          if (!state.data) return [];
+          return state.by === 'day' ? state.data.byDay : state.by === 'month' ? state.data.byMonth : state.by === 'service' ? state.data.byService : state.data.byMethod.map(function (row) { return Object.assign({}, row, { key: payMethodLabel(row.key) }); });
+        }
+        function render() {
+          period.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.preset === state.preset ? 'true' : 'false'); });
+          by.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.by === state.by ? 'true' : 'false'); });
+          if (!state.data) return;
+          kpis.replaceChildren();
+          [['총 결제액', won(state.data.totals.paidAmount), state.data.totals.paidCount.toLocaleString('ko-KR') + '건'], ['환불액', won(state.data.totals.refundAmount), state.data.totals.refundCount.toLocaleString('ko-KR') + '건 · 승인 이후 기준'], ['실결제액', won(state.data.totals.netAmount), '총 결제액 − 환불액'], ['수수료', '—', '결제사·구글 수수료 데이터가 아직 없습니다']].forEach(function (entry) {
+            var box = document.createElement('div'); var name = document.createElement('span'); name.textContent = entry[0];
+            var value = document.createElement('b'); value.textContent = entry[1]; var hint = document.createElement('small'); hint.textContent = entry[2];
+            box.append(name, value, hint); kpis.appendChild(box);
+          });
+          var label = { day: '날짜', month: '월', service: '서비스', method: '결제 수단' }[state.by];
+          var table = document.createElement('table'); table.className = 'admin-table';
+          table.innerHTML = '<thead><tr><th scope="col">' + label + '</th><th scope="col" class="admin-num">결제액</th><th scope="col" class="admin-num">결제 건수</th><th scope="col" class="admin-num">환불액</th><th scope="col" class="admin-num">실결제액</th></tr></thead>';
+          var rows = document.createElement('tbody'); var list = rowsFor();
+          if (!list.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="5">이 기간에 결제가 없습니다.</td>'; rows.appendChild(empty); }
+          list.forEach(function (item) {
+            var row = document.createElement('tr');
+            [item.key, won(item.paidAmount), item.paidCount.toLocaleString('ko-KR'), won(item.refundAmount), won(item.netAmount)].forEach(function (value, index) { var cell = document.createElement('td'); if (index) cell.className = 'admin-num'; cell.textContent = value; row.appendChild(cell); });
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); card.replaceChildren(scroll);
+        }
+        download.addEventListener('click', function () {
+          var list = rowsFor(); if (!list.length) { adminToast('내려받을 행이 없습니다.', 'error'); return; }
+          var lines = [['구분', '결제액', '결제 건수', '환불액', '실결제액']].concat(list.map(function (item) { return [item.key, item.paidAmount, item.paidCount, item.refundAmount, item.netAmount]; }));
+          var csv = '﻿' + lines.map(function (line) { return line.map(function (value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+          var link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); link.download = '운명상회-매출-' + state.by + '.csv'; link.click();
+          setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+        });
+        async function load() {
+          render(); card.innerHTML = '<p class="admin-empty">집계하는 중입니다.</p>';
+          var range = windowFor(state.preset);
+          try { state.data = await adminJson('/api/admin/v1/payments/revenue?from=' + encodeURIComponent(range.from.toISOString()) + '&to=' + encodeURIComponent(range.to.toISOString())); render(); }
+          catch (error) { var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '매출을 불러오지 못했습니다. ' + error.message; card.replaceChildren(failed); kpis.replaceChildren(); }
+        }
+        await load();
       }
       /**
        * 2026-09-19: 백엔드에 `/api/admin/v1/funnel`·`/api/admin/v1/release` 가 이미 있는데
