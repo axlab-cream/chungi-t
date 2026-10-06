@@ -133,6 +133,12 @@ function reportIsComplete(payload: unknown): boolean {
   return Boolean(payload && typeof payload === 'object' && (payload as Record<string, unknown>).status === 'complete')
 }
 
+/** payload.status(pending·generating·complete·failed). 없으면 'unknown' — 지어내지 않는다. */
+function reportStatusOf(payload: unknown): string {
+  const status = payload && typeof payload === 'object' ? (payload as Record<string, unknown>).status : undefined
+  return typeof status === 'string' && status ? status.slice(0, 40) : 'unknown'
+}
+
 function reportServiceKey(payload: unknown): string {
   if (!payload || typeof payload !== 'object') return '기록 없음'
   const context = (payload as Record<string, unknown>).context
@@ -387,12 +393,181 @@ export async function listLiveReports(limit = 100): Promise<AdminReportSummary[]
       memberName: reportMemberName(row.payload),
       serviceKey,
       serviceTitle: serviceTitleForKey(serviceKey) || '서비스 미확인',
-      status: clipped(row.admin_status, 'new'),
+      // admin_status 는 기본값 'new' 에서 바뀌지 않는 칸이라 화면이 늘 "new" 를 보였다(2026-10 5단계). 실제 생성 상태를 쓴다.
+      status: reportStatusOf(row.payload),
       pdfReady: reportIsComplete(row.payload),
       createdAt: clipped(row.created_at, ''),
       updatedAt: clipped(row.updated_at, ''),
     }
   })
+}
+
+export type ReportListQuery = {
+  /** pending · generating · complete · failed */
+  status?: string
+  /** 대상 이름 일부, 계정 이메일 일부, 리포트 번호 전체 */
+  q?: string
+  from?: string
+  to?: string
+  limit?: number
+  offset?: number
+}
+
+export type AdminReportRow = {
+  id: string
+  /** 사주를 본 사람 이름(리포트 입력값). 계정 이름과 다를 수 있다. */
+  subjectName: string
+  userId: string | null
+  memberEmail: string | null
+  orderId: string | null
+  serviceKey: string
+  serviceTitle: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+const REPORT_STATUSES = new Set(['pending', 'generating', 'complete', 'failed'])
+
+/**
+ * 2026-10 리포트 관리 개편(5단계). 실제 생성 상태(payload.status)·검색·만든 날로 서버에서 거르고 전체 수를 함께 준다.
+ * 리포트 본문은 싣지 않는다 — 상태·서비스·이름만 JSON 경로로 뽑는다.
+ */
+export async function searchLiveReports(query: ReportListQuery = {}): Promise<{ reports: AdminReportRow[]; total: number }> {
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('select', 'report_id,user_id,user_email,order_id,created_at,updated_at,reportStatus:payload->>status,reportService:payload->context->>serviceKey,subjectName:payload->context->>name')
+  url.searchParams.set('order', 'created_at.desc')
+  const safeLimit = Math.min(Math.max(Math.trunc(query.limit ?? 50) || 50, 1), 200)
+  const safeOffset = Math.max(Math.trunc(query.offset ?? 0) || 0, 0)
+  url.searchParams.set('limit', String(safeLimit))
+  url.searchParams.set('offset', String(safeOffset))
+  if (query.status && REPORT_STATUSES.has(query.status)) url.searchParams.set('payload->>status', `eq.${query.status}`)
+  const text = (query.q ?? '').trim().replace(/[(),*%\\:"']/g, '').slice(0, 80)
+  if (text) {
+    const filters = [`user_email.ilike.*${text}*`, `payload->context->>name.ilike.*${text}*`]
+    if (/^[a-zA-Z0-9_-]{6,160}$/.test(text)) filters.unshift(`report_id.eq.${text}`)
+    url.searchParams.set('or', `(${filters.join(',')})`)
+  }
+  if (query.from && Number.isFinite(Date.parse(query.from))) url.searchParams.append('created_at', `gte.${new Date(query.from).toISOString()}`)
+  if (query.to && Number.isFinite(Date.parse(query.to))) url.searchParams.append('created_at', `lt.${new Date(query.to).toISOString()}`)
+  const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
+  const rows = await response.json() as RestRow[]
+  const range = response.headers.get('content-range')?.split('/')[1]
+  const total = range && /^\d+$/.test(range) ? Number(range) : safeOffset + rows.length
+  return {
+    total,
+    reports: rows.map((row) => {
+      const serviceKey = clipped(row.reportService, '')
+      return {
+        id: clipped(row.report_id, ''),
+        subjectName: clipped(row.subjectName, '이름 미확인'),
+        userId: clipped(row.user_id, '') || null,
+        memberEmail: row.user_email ? maskEmail(row.user_email) : null,
+        orderId: clipped(row.order_id, '') || null,
+        serviceKey: serviceKey || '기록 없음',
+        serviceTitle: (serviceKey && serviceTitleForKey(serviceKey)) || '서비스 미확인',
+        status: clipped(row.reportStatus, 'unknown'),
+        createdAt: clipped(row.created_at, ''),
+        updatedAt: clipped(row.updated_at, ''),
+      }
+    }),
+  }
+}
+
+/** 실패 사유를 운영자 말로 묶는다. 원문은 그대로 두고(상세에서 봄) 묶음 이름만 붙인다. */
+export const GENERATION_ERROR_TYPES: Record<string, string> = {
+  quota: 'AI 사용량 소진',
+  key: 'AI 키 거절',
+  rate: '요청 몰림(속도 제한)',
+  timeout: '응답 시간 초과',
+  server: 'AI 서버 오류',
+  review: '결과 검수 탈락',
+  other: '기타',
+}
+
+export function classifyGenerationError(error: string): keyof typeof GENERATION_ERROR_TYPES {
+  const text = error.toLowerCase()
+  if (/잔액|quota|insufficient_quota|billing/.test(text)) return 'quota'
+  if (/키가 거절|api 키|api key|401|403|unauthorized|forbidden/.test(text)) return 'key'
+  if (/429|rate.?limit|too many|일시적으로 거절/.test(text)) return 'rate'
+  if (/timeout|timed out|시간 초과|abort|deadline/.test(text)) return 'timeout'
+  if (/\b5\d\d\b|server error|overloaded|unavailable|bad gateway|status=5/.test(text)) return 'server'
+  if (/검수|validation|invalid|형식|json|parse|금지|길이|말투/.test(text)) return 'review'
+  return 'other'
+}
+
+export type GenerationFailureStats = {
+  days: number
+  attempts: number
+  failures: number
+  failedReports: number
+  byType: Array<{ key: string; label: string; count: number }>
+  byService: Array<{ key: string; label: string; attempts: number; failures: number }>
+  byDay: Array<{ day: string; attempts: number; failures: number }>
+  recent: Array<{ reportId: string; member: string; serviceTitle: string; sectionId: string; type: string; typeLabel: string; error: string; model: string; occurredAt: string }>
+}
+
+/**
+ * AI 운영 › 실패 현황(2026-10 5단계). 별도 로그 표가 없어서, 기간 안에 손댄 리포트의 시도 기록(attempts[])을 모아
+ * 시도 수·실패 수·유형별·서비스별·날짜별로 센다. 최근 손댄 리포트 200건까지만 훑는다(본문이 커서).
+ */
+export async function generationFailureStats(days = 7): Promise<GenerationFailureStats> {
+  const safeDays = Math.min(Math.max(Math.trunc(days) || 7, 1), 90)
+  const since = Date.now() - safeDays * 86_400_000
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('select', 'report_id,user_email,updated_at,reportService:payload->context->>serviceKey,sections:payload->report->sections')
+  url.searchParams.set('updated_at', `gte.${new Date(since).toISOString()}`)
+  url.searchParams.set('order', 'updated_at.desc')
+  url.searchParams.set('limit', '200')
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) throw new Error('GENERATION_LOG_LOOKUP_FAILED')
+  const rows = await response.json() as RestRow[]
+  let attempts = 0
+  let failures = 0
+  const failedReports = new Set<string>()
+  const byType = new Map<string, number>()
+  const byService = new Map<string, { key: string; label: string; attempts: number; failures: number }>()
+  const byDay = new Map<string, { day: string; attempts: number; failures: number }>()
+  const recent: GenerationFailureStats['recent'] = []
+  for (const row of rows) {
+    const serviceKey = clipped(row.reportService, '')
+    const serviceLabel = (serviceKey && serviceTitleForKey(serviceKey)) || '서비스 미확인'
+    const sections = Array.isArray(row.sections) ? row.sections as RestRow[] : []
+    for (const section of sections) {
+      const list = Array.isArray(section.attempts) ? section.attempts as RestRow[] : []
+      for (const attempt of list) {
+        const started = Date.parse(String(attempt.startedAt ?? ''))
+        if (!Number.isFinite(started) || started < since) continue
+        const failed = attempt.status === 'failed'
+        attempts += 1
+        const day = new Date(started + 9 * 3_600_000).toISOString().slice(0, 10)
+        const dayRow = byDay.get(day) ?? { day, attempts: 0, failures: 0 }
+        const serviceRow = byService.get(serviceLabel) ?? { key: serviceKey || 'unknown', label: serviceLabel, attempts: 0, failures: 0 }
+        dayRow.attempts += 1; serviceRow.attempts += 1
+        if (failed) {
+          failures += 1; dayRow.failures += 1; serviceRow.failures += 1
+          failedReports.add(clipped(row.report_id, ''))
+          const error = clipped(attempt.error, '사유 기록 없음')
+          const type = classifyGenerationError(error)
+          byType.set(type, (byType.get(type) ?? 0) + 1)
+          recent.push({ reportId: clipped(row.report_id, ''), member: maskEmail(row.user_email), serviceTitle: serviceLabel, sectionId: clipped(section.classification, '') || clipped(section.id, ''), type, typeLabel: GENERATION_ERROR_TYPES[type], error, model: clipped(attempt.model, '알 수 없음'), occurredAt: new Date(started).toISOString() })
+        }
+        byDay.set(day, dayRow); byService.set(serviceLabel, serviceRow)
+      }
+    }
+  }
+  recent.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+  return {
+    days: safeDays,
+    attempts,
+    failures,
+    failedReports: failedReports.size,
+    byType: [...byType.entries()].map(([key, count]) => ({ key, label: GENERATION_ERROR_TYPES[key] ?? key, count })).sort((a, b) => b.count - a.count),
+    byService: [...byService.values()].sort((a, b) => b.failures - a.failures || b.attempts - a.attempts),
+    byDay: [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day)),
+    recent: recent.slice(0, 100),
+  }
 }
 
 export function countLiveReports(): Promise<number> {

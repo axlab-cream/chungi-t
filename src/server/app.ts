@@ -60,7 +60,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveReports, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, searchLiveReports, generationFailureStats, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
@@ -2529,6 +2529,16 @@ app.get('/api/admin/v1/media', async (req, res) => {
  * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도
  * 기록(attempts[])에서 실패한 시도만 뽑아 시간순으로 모은다.
  */
+/** AI 운영 › 실패 현황(2026-10 5단계). 기간 안의 시도 수·실패 수·유형별·서비스별·날짜별. */
+app.get('/api/admin/v1/ai/failures', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json({ ...(await generationFailureStats(Number(req.query?.days ?? 7))), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'GENERATION_LOG_LOOKUP_FAILED', error: 'AI 실패 현황을 불러오지 못했습니다.' })
+  }
+})
+
 app.get('/api/admin/v1/logs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
@@ -3317,8 +3327,12 @@ app.post('/api/admin/v1/reports/requeue-incomplete', async (req, res) => {
 })
 app.get('/api/admin/v1/reports', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
+  // 2026-10(5단계): 실제 생성 상태·검색·만든 날로 서버에서 거르고, 거른 결과의 전체 수로 페이지를 나눈다.
+  const limit = Number(req.query?.limit ?? 50)
+  const offset = Number(req.query?.offset ?? 0)
   try {
-    res.json({ reports: await listLiveReports(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+    const { reports, total } = await searchLiveReports({ status: trimmedString(req.query?.status), q: trimmedString(req.query?.q), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, limit, offset })
+    res.json({ reports, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_REPORT_LOOKUP_FAILED', error: '실제 리포트 저장소를 불러오지 못했습니다.' })
   }

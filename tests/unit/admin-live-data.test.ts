@@ -46,6 +46,22 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     if (exact && exact !== `eq.${MEMBER_A}`) return new Response(JSON.stringify([]), { headers: { 'content-range': '*/0' } })
     return new Response(JSON.stringify([{ user_id: MEMBER_A, name: '홍길동', created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-02T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/6' } })
   }
+  if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select')?.startsWith('report_id,user_id,user_email,order_id')) {
+    return new Response(JSON.stringify([
+      { report_id: 'report-search-0001', user_id: MEMBER_A, user_email: 'member-a@example.com', order_id: 'order-paid-1', created_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-01T00:05:00.000Z', reportStatus: 'failed', reportService: 'cmdg', subjectName: '홍길동' },
+    ]), { headers: { 'content-range': '0-0/41' } })
+  }
+  if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select')?.includes('sections:payload->report->sections')) {
+    const recent = new Date(Date.now() - 3_600_000).toISOString()
+    const old = new Date(Date.now() - 30 * 86_400_000).toISOString()
+    return new Response(JSON.stringify([
+      { report_id: 'report-stat-0001', user_email: 'buyer@example.com', updated_at: recent, reportService: 'cmdg', sections: [
+        { id: 's1', attempts: [{ status: 'failed', error: '요청이 일시적으로 거절되었습니다(status=429)', model: 'm', startedAt: recent }, { status: 'complete', startedAt: recent }] },
+        { id: 's2', attempts: [{ status: 'failed', error: 'OpenAI 잔액이 소진되어 생성할 수 없습니다.', model: 'm', startedAt: recent }, { status: 'failed', error: 'too old', startedAt: old }] },
+      ] },
+      { report_id: 'report-stat-0002', user_email: null, updated_at: recent, reportService: null, sections: [{ id: 's1', attempts: [{ status: 'complete', startedAt: recent }] }] },
+    ]))
+  }
   if (url.pathname.endsWith('/cheongi_reports') && url.searchParams.get('select') === 'report_id') {
     // countLiveReports() 의 count-only 조회. 실제 행은 안 보고 content-range 헤더만 쓴다.
     return new Response(JSON.stringify([]), { headers: { 'content-range': '0-0/68' } })
@@ -140,7 +156,7 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
 
   it('리포트 원문·생년월일·계정 이메일을 DTO로 흘리지 않고 입력 이름과 실제 서비스명을 반환한다', async () => {
     const reports = await liveData.listLiveReports(1)
-    assert.deepEqual(reports, [{ reportId: 'report••••', id: 'report-123456789', memberName: '김천명', serviceKey: 'cmdg', serviceTitle: '천명사주', status: 'new', pdfReady: false, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
+    assert.deepEqual(reports, [{ reportId: 'report••••', id: 'report-123456789', memberName: '김천명', serviceKey: 'cmdg', serviceTitle: '천명사주', status: 'unknown', pdfReady: false, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z' }])
     const reportRequest = requests.find((r) => r.url.pathname.endsWith('/cheongi_reports') && r.url.searchParams.get('select')?.includes('admin_status'))
     assert.equal(reportRequest?.url.searchParams.get('select'), 'report_id,admin_status,payload,created_at,updated_at')
     assert.ok(!JSON.stringify(reports).includes('1990'))
@@ -225,5 +241,52 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
   it('없는 회원 ID 는 임의 값을 지어내지 않고 null 을 돌려준다', async () => {
     const summary = await liveData.findLiveMember('unknown-member-id')
     assert.equal(summary, null)
+  })
+})
+
+describe('리포트 관리·AI 실패 현황 (2026-10 5단계)', { concurrency: false }, () => {
+  it('리포트 목록은 실제 생성 상태로 거르고, 본문 없이 이름·서비스·상태만 뽑는다', async () => {
+    const before = requests.length
+    const result = await liveData.searchLiveReports({ status: 'failed', q: '홍길*동', limit: 500, offset: 20 })
+    const call = requests.slice(before).find((r) => r.url.pathname.endsWith('/cheongi_reports'))!
+    assert.equal(call.url.searchParams.get('payload->>status'), 'eq.failed')
+    assert.equal(call.url.searchParams.get('or'), '(user_email.ilike.*홍길동*,payload->context->>name.ilike.*홍길동*)')
+    assert.equal(call.url.searchParams.get('limit'), '200')
+    assert.equal(call.url.searchParams.get('offset'), '20')
+    assert.doesNotMatch(call.url.searchParams.get('select') ?? '', /(^|,)payload(,|$)/, '리포트 본문 전체를 가져오면 안 된다')
+    assert.equal(call.headers.get('prefer'), 'count=exact')
+    assert.equal(result.total, 41)
+    assert.deepEqual(result.reports[0], { id: 'report-search-0001', subjectName: '홍길동', userId: MEMBER_A, memberEmail: 'm•••@example.com', orderId: 'order-paid-1', serviceKey: 'cmdg', serviceTitle: '천명사주', status: 'failed', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:05:00.000Z' })
+  })
+
+  it('모르는 상태 값은 필터로 쓰지 않고, 리포트 번호는 정확히 일치로도 찾는다', async () => {
+    const before = requests.length
+    await liveData.searchLiveReports({ status: 'drop table', q: 'report-search-0001' })
+    const call = requests.slice(before).find((r) => r.url.pathname.endsWith('/cheongi_reports'))!
+    assert.equal(call.url.searchParams.get('payload->>status'), null)
+    assert.match(call.url.searchParams.get('or') ?? '', /^\(report_id\.eq\.report-search-0001,/)
+  })
+
+  it('실패 사유를 운영자 말 묶음으로 나눈다', () => {
+    assert.equal(liveData.classifyGenerationError('요청이 일시적으로 거절되었습니다(status=429)'), 'rate')
+    assert.equal(liveData.classifyGenerationError('OpenAI 잔액이 소진되어 생성할 수 없습니다.'), 'quota')
+    assert.equal(liveData.classifyGenerationError('OpenAI API 키가 거절되었습니다(401/403).'), 'key')
+    assert.equal(liveData.classifyGenerationError('The operation was aborted due to timeout'), 'timeout')
+    assert.equal(liveData.classifyGenerationError('502 Bad Gateway'), 'server')
+    assert.equal(liveData.classifyGenerationError('검수 실패: 금지 표현'), 'review')
+    assert.equal(liveData.classifyGenerationError('무언가 이상함'), 'other')
+  })
+
+  it('실패 현황은 기간 안의 시도만 세고, 유형·서비스·날짜별로 묶는다', async () => {
+    const stats = await liveData.generationFailureStats(7)
+    assert.equal(stats.attempts, 4, '30일 전 시도는 7일 집계에 들어가면 안 된다')
+    assert.equal(stats.failures, 2)
+    assert.equal(stats.failedReports, 1)
+    assert.deepEqual(stats.byType.map((row) => row.key).sort(), ['quota', 'rate'])
+    assert.equal(stats.byService[0].label, '천명사주')
+    assert.equal(stats.byService[0].failures, 2)
+    assert.equal(stats.recent.length, 2)
+    assert.equal(stats.recent[0].member, 'b•••@example.com')
+    assert.ok(stats.byDay.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.day)))
   })
 })
