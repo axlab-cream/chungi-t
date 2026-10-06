@@ -1,0 +1,17 @@
+{
+  "name": "umsh-video-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Low-cost UMSH photo-to-video production pipeline",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dry-run": "node src/cli/dry-run.js --manifest examples/marry-step-1.scenes.json",
+    "render-motion": "node src/cli/render-motion.js --manifest examples/marry-step-1.scenes.json",
+    "test:quality": "node src/cli/quality-check.js --manifest examples/marry-step-1.scenes.json --min-score 88",
+    "test:ui": "node src/cli/smoke-browser.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
