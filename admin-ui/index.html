@@ -493,6 +493,17 @@
     .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
     .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
     .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
+    /* 고객 지원·쿠폰(7단계) */
+    .admin-timeline { display: grid; gap: 8px; max-height: 320px; overflow-y: auto; margin-bottom: 10px; }
+    .admin-timeline-item { border-left: 2px solid var(--admin-line); padding: 2px 0 2px 10px; }
+    .admin-timeline-item small { color: var(--admin-text-muted); font-size: 12px; }
+    .admin-timeline-item p { margin: 2px 0 0; white-space: pre-wrap; font-size: 13px; }
+    .admin-note-form { display: grid; gap: 8px; }
+    .admin-note-form select { justify-self: start; }
+    .admin-note-form .admin-button { justify-self: end; }
+    .admin-support-form { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; padding: 0 !important; }
+    .admin-coupon-list > div { padding: 12px 16px; }
+    .admin-coupon-list .admin-filterbar { margin-bottom: 10px; }
     /* 대시보드(6단계) */
     .admin-dash-title { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px; font-size: 15px; }
     .admin-dash-todo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px; }
@@ -2613,25 +2624,47 @@
         kind.addEventListener('change', updateKind); updateKind();
         var actions = document.createElement('div'); actions.className = 'admin-actions'; var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '쿠폰 발급'; actions.appendChild(submit); form.appendChild(actions); section.appendChild(form);
         var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status'); section.appendChild(result);
-        var list = document.createElement('div'); var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>발급한 쿠폰</h3></header>'; list.style.padding = '12px 16px'; listSection.appendChild(list); body.appendChild(listSection); adminPageAction('coupon-issue', '＋ 쿠폰 발급', section, { primary: true }); var busy = false, saveKey = crypto.randomUUID();
+        var list = document.createElement('div'); var listSection = document.createElement('section'); listSection.className = 'admin-section admin-coupon-list'; listSection.appendChild(list); body.appendChild(listSection); adminPageAction('coupon-issue', '＋ 쿠폰 발급', section, { primary: true }); var busy = false, saveKey = crypto.randomUUID();
         form.addEventListener('input', function () { saveKey = crypto.randomUUID(); });
-        function dateLabel(raw) { var date = new Date(raw); return Number.isNaN(date.getTime()) ? '확인 필요' : date.toLocaleString('ko-KR'); }
+        // 2026-10 7단계: 카드 나열 대신 표. 상태(발급 중·예정·만료·중단)로 거르고 등록·사용률을 한눈에 본다.
+        var listState = { filter: 'live' };
+        function couponState(item) {
+          var now = Date.now();
+          if (!item.enabled) return { key: 'stopped', label: '중단', tone: '' };
+          if (Date.parse(item.expiresAt) <= now) return { key: 'ended', label: '만료', tone: 'warn' };
+          if (Date.parse(item.startsAt) > now) return { key: 'scheduled', label: '시작 전', tone: 'info' };
+          return { key: 'live', label: '발급 중', tone: 'ok' };
+        }
         function render(items) {
-          list.replaceChildren(); var h = document.createElement('h3'); h.textContent = '발급 이력 · ' + items.length + '건'; list.appendChild(h);
-          if (!items.length) { var empty = document.createElement('p'); empty.textContent = '아직 발급한 쿠폰이 없습니다.'; list.appendChild(empty); }
-          items.forEach(function (item) {
-            var row = document.createElement('section'); row.className = 'admin-section'; var title = document.createElement('h4'); title.textContent = item.title + ' · ' + (kinds[item.kind] || item.kind); row.appendChild(title);
-            var details = document.createElement('p'); details.className = 'admin-note'; var p = snapshot.products.find(function (p) { return p.key === item.productKey; });
-            details.textContent = (p ? p.title : item.productKey) + ' · 혜택 ' + item.value + (item.kind === 'percent_off' ? '%' : item.kind === 'amount_off' ? '원' : '회') + ' · ' + (item.enabled ? '활성' : '중단') + ' · ' + dateLabel(item.startsAt) + ' ~ ' + dateLabel(item.expiresAt); row.appendChild(details);
-            var counts = document.createElement('p'); counts.className = 'admin-note'; counts.textContent = '등록 한도 ' + item.maxClaims + '명' + (Number.isInteger(item.claimCount) ? ' · 등록 ' + item.claimCount + '명' : '') + (item.kind === 'service_free' && Number.isInteger(item.usedCount) ? ' · 무료 풀이 적용 ' + item.usedCount + '건' : '') + (Number.isInteger(item.reservedCount) ? ' · 주문 적용 ' + item.reservedCount + '건' : ''); row.appendChild(counts);
-            var code = document.createElement('code'); code.textContent = item.code; code.style.display = 'inline-block'; code.style.margin = '8px 12px 8px 0'; row.appendChild(code);
-            var copy = document.createElement('button'); copy.type = 'button'; copy.className = 'admin-button'; copy.textContent = '코드 복사'; copy.style.marginRight = '8px'; copy.addEventListener('click', async function () { try { await navigator.clipboard.writeText(item.code); result.textContent = '코드를 복사했습니다.'; } catch (_error) { result.textContent = '복사하지 못했습니다. 표시된 코드를 선택해 복사해 주세요.'; } }); row.appendChild(copy);
-            var disable = document.createElement('button'); disable.type = 'button'; disable.className = 'admin-button'; disable.textContent = item.enabled ? '사용 중단' : '중단됨'; disable.disabled = !item.enabled; var disableKey = crypto.randomUUID();
-            disable.addEventListener('click', async function () { if (disable.disabled) return; if (!await adminConfirm('신규 등록과 미사용 혜택을 중단할까요?')) return; disable.disabled = true;
-              try { await request('/' + encodeURIComponent(item.id) + '/disable', {}, disableKey); item.enabled = false; disable.textContent = '중단됨'; result.textContent = '쿠폰 사용을 중단했습니다.'; render(snapshot.items); }
-              catch (error) { result.textContent = error.message; disable.disabled = false; }
-            }); row.appendChild(disable); list.appendChild(row);
+          list.replaceChildren();
+          var bar = document.createElement('div'); bar.className = 'admin-filterbar';
+          var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '쿠폰 상태');
+          [['live', '발급 중'], ['scheduled', '시작 전'], ['ended', '만료'], ['stopped', '중단'], ['all', '전체']].forEach(function (entry) {
+            var count = entry[0] === 'all' ? items.length : items.filter(function (item) { return couponState(item).key === entry[0]; }).length;
+            var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + (count ? ' ' + count : '');
+            button.setAttribute('aria-pressed', listState.filter === entry[0] ? 'true' : 'false');
+            button.addEventListener('click', function () { listState.filter = entry[0]; render(items); }); seg.appendChild(button);
           });
+          bar.appendChild(seg); list.appendChild(bar);
+          var shown = items.filter(function (item) { return listState.filter === 'all' || couponState(item).key === listState.filter; });
+          if (!shown.length) { list.appendChild(memberEmpty(items.length ? '해당하는 쿠폰이 없습니다.' : '아직 발급한 쿠폰이 없습니다.')); return; }
+          list.appendChild(memberTable(['쿠폰', '코드', '종류', '적용 서비스', '혜택', '#등록', '#사용', '#사용률', '기간', '상태', ''], shown, function (item) {
+            var p = snapshot.products.find(function (p) { return p.key === item.productKey; });
+            var used = item.kind === 'service_free' ? item.usedCount : item.reservedCount;
+            var claimed = Number.isInteger(item.claimCount) ? item.claimCount : 0;
+            var st = couponState(item);
+            var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'admin-link-button'; stop.textContent = item.enabled ? '사용 중단' : '—'; stop.disabled = !item.enabled;
+            var disableKey = crypto.randomUUID();
+            stop.addEventListener('click', async function () {
+              if (stop.disabled) return; if (!await adminConfirm('"' + item.title + '" 쿠폰의 신규 등록과 미사용 혜택을 중단할까요? 이미 사용한 무료 풀이 열람은 유지됩니다.', { title: '쿠폰 사용 중단', okLabel: '사용 중단', danger: true })) return;
+              stop.disabled = true;
+              try { await request('/' + encodeURIComponent(item.id) + '/disable', {}, disableKey); item.enabled = false; adminToast('쿠폰 사용을 중단했습니다.'); render(snapshot.items); }
+              catch (error) { adminToast(error.message, 'error'); stop.disabled = false; }
+            });
+            return [item.title, copyChip(item.code), kinds[item.kind] || item.kind, p ? p.title : item.productKey, Number(item.value).toLocaleString('ko-KR') + (item.kind === 'percent_off' ? '%' : item.kind === 'amount_off' ? '원' : '회'),
+              claimed + ' / ' + item.maxClaims, Number.isInteger(used) ? used : '—', claimed && Number.isInteger(used) ? Math.round(used / claimed * 100) + '%' : '—',
+              memberDay(item.startsAt) + ' ~ ' + memberDay(item.expiresAt), memberChip(st.label, st.tone), stop];
+          }));
         }
         render(snapshot.items);
         form.addEventListener('submit', async function (event) {
@@ -3120,22 +3153,133 @@
           statusForm.appendChild(statusButton); section.appendChild(statusForm);
         } catch (_error) { var note2 = section.querySelector('.admin-note'); if (note2) note2.textContent = '회원 프로필을 불러오지 못했습니다.'; }
       }
-      async function loadSupportCases(body) {
-        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>고객 지원 케이스</h3><span class="admin-chip">최근 100건</span></header><p class="admin-empty">케이스를 불러오는 중입니다.</p>'; body.appendChild(section);
-        try {
-          var response = await fetch('/api/admin/v1/support', { credentials: 'same-origin' }); if (!response.ok) throw new Error('SUPPORT_CASE_LOOKUP_FAILED'); var payload = await response.json(); var cases = Array.isArray(payload.cases) ? payload.cases : [];
-          var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">케이스</th><th scope="col">종류</th><th scope="col">우선순위</th><th scope="col">상태</th><th scope="col">담당자</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>'; var rows = document.createElement('tbody');
-          if (!cases.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 접수된 고객 지원 케이스가 없습니다.</td>'; rows.appendChild(empty); }
-          cases.forEach(function (item) { var row = document.createElement('tr'); [item.id, item.category, item.priority, item.status, item.assigneeEmail || '미배정', item.updatedAt].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); }); var actions = document.createElement('td'); var manage = document.createElement('button'); manage.className = 'admin-button'; manage.type = 'button'; manage.textContent = '처리'; manage.addEventListener('click', function () { renderSupportCaseDetail(body, item); }); actions.appendChild(manage); row.appendChild(actions); rows.appendChild(row); });
-          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); section.replaceChildren(section.firstElementChild, scroll);
-          var create = document.createElement('form'); create.className = 'admin-actions'; create.innerHTML = '<select name="category" aria-label="문의 종류"><option value="payment">결제</option><option value="generation">생성</option><option value="interpretation">해석</option><option value="access">접근</option><option value="privacy">개인정보</option><option value="other">기타</option></select><select name="priority" aria-label="우선순위"><option value="normal">보통</option><option value="low">낮음</option><option value="high">높음</option><option value="urgent">긴급</option></select><input name="orderId" placeholder="연결 주문 ID (선택)"><input name="reportId" placeholder="연결 리포트 ID (선택)"><button class="admin-button" type="submit">케이스 접수</button>'; create.addEventListener('submit', async function (event) { event.preventDefault(); var form = event.currentTarget; var result = await fetch('/api/admin/v1/support', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ category: form.elements.category.value, priority: form.elements.priority.value, orderId: form.elements.orderId.value, reportId: form.elements.reportId.value }) }); if (!result.ok) { adminToast('케이스 접수에 실패했습니다.'); return; } renderWorkspace(currentAdminRoute()); }); var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>문의 케이스 등록</h3></header>'; create.style.padding = '16px'; createSection.appendChild(create); adminPageAction('support-create', '＋ 케이스 등록', createSection, { primary: true });
-        } catch (_error) { var notice = section.querySelector('.admin-empty'); if (notice) notice.textContent = '고객 지원 목록을 불러오지 못했습니다.'; }
+      /*
+       * 회원 › 고객 지원 (2026-10 개편 7단계). 목록 먼저(답변 대기·처리 중·완료), 행 → 문의 상세 팝업.
+       * 상세에서 회원·결제·리포트로 바로 넘어가고, 상태·담당 저장과 처리 기록을 한 화면에서 한다.
+       * 고객에게 자동으로 보내는 것은 없다 — "고객 답변 초안"도 내부 기록이다.
+       */
+      var SUPPORT_GROUPS = { waiting: ['received', 'triaged', 'assigned', 'reopened'], working: ['investigating', 'awaiting_customer'], done: ['resolved', 'closed'] };
+      var SUPPORT_PRIORITY_VIEW = { urgent: { label: '긴급', tone: 'error' }, high: { label: '높음', tone: 'warn' }, normal: { label: '보통', tone: '' }, low: { label: '낮음', tone: '' } };
+      function supportStatusChip(status) {
+        var tone = SUPPORT_GROUPS.done.indexOf(status) >= 0 ? 'ok' : SUPPORT_GROUPS.working.indexOf(status) >= 0 ? 'info' : 'warn';
+        return memberChip(MEMBER_SUPPORT_STATUS[status] || status, tone);
       }
-      async function renderSupportCaseDetail(body, item) {
-        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>케이스 처리</h3><span class="admin-chip">' + String(item.id) + '</span></header>'; showSectionModal(section);
-        var form = document.createElement('form'); form.className = 'admin-actions'; form.innerHTML = '<select name="status" aria-label="상태"><option value="received">접수</option><option value="triaged">분류 완료</option><option value="assigned">배정됨</option><option value="investigating">조사 중</option><option value="awaiting_customer">고객 회신 대기</option><option value="resolved">해결됨</option><option value="closed">종료</option><option value="reopened">재접수</option></select><select name="priority" aria-label="우선순위"><option value="low">낮음</option><option value="normal">보통</option><option value="high">높음</option><option value="urgent">긴급</option></select><input name="assigneeEmail" type="email" placeholder="담당자 이메일 (선택)"><input name="resolutionCode" placeholder="해결 코드 (선택)"><button class="admin-button" type="submit">처리 상태 저장</button>'; form.elements.status.value = item.status; form.elements.priority.value = item.priority; form.elements.assigneeEmail.value = item.assigneeEmail || ''; form.elements.resolutionCode.value = item.resolutionCode || ''; form.addEventListener('submit', async function (event) { event.preventDefault(); var formNode = event.currentTarget; var response = await fetch('/api/admin/v1/support/' + encodeURIComponent(item.id), { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ status: formNode.elements.status.value, priority: formNode.elements.priority.value, assigneeEmail: formNode.elements.assigneeEmail.value, resolutionCode: formNode.elements.resolutionCode.value, expectedRevision: item.revision }) }); if (!response.ok) { adminToast('처리 상태 저장에 실패했습니다. 새로고침 후 다시 시도해 주세요.'); return; } renderWorkspace(currentAdminRoute()); }); section.appendChild(form);
-        var notes = document.createElement('div'); notes.className = 'admin-section'; notes.innerHTML = '<h3>내부 처리 기록</h3><p class="admin-empty">메모를 불러오는 중입니다.</p>'; section.appendChild(notes); try { var response = await fetch('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { credentials: 'same-origin' }); if (!response.ok) throw new Error('SUPPORT_NOTE_LOOKUP_FAILED'); var payload = await response.json(); var entries = Array.isArray(payload.notes) ? payload.notes : []; notes.replaceChildren(notes.firstElementChild); entries.forEach(function (entry) { var line = document.createElement('p'); line.textContent = '[' + (entry.kind === 'internal' ? '내부 메모' : '고객 답변 초안') + '] ' + entry.text + ' · ' + entry.createdAt; notes.appendChild(line); }); if (!entries.length) { var empty = document.createElement('p'); empty.className = 'admin-empty'; empty.textContent = '기록이 없습니다.'; notes.appendChild(empty); } } catch (_error) { var err = notes.querySelector('.admin-empty'); if (err) err.textContent = '메모를 불러오지 못했습니다.'; }
-        var noteForm = document.createElement('form'); noteForm.className = 'admin-actions'; noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option></select><input required name="text" maxlength="4000" placeholder="고객에게 자동 전송되지 않는 처리 기록"><button class="admin-button" type="submit">기록 추가</button>'; noteForm.addEventListener('submit', async function (event) { event.preventDefault(); var formNode = event.currentTarget; var response = await fetch('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: formNode.elements.kind.value, text: formNode.elements.text.value }) }); if (!response.ok) { adminToast('기록 저장에 실패했습니다.'); return; } renderWorkspace(currentAdminRoute()); }); section.appendChild(noteForm);
+      async function loadSupportCases(body) {
+        body.replaceChildren();
+        var state = { group: 'waiting', items: [] };
+        var create = document.createElement('form'); create.className = 'admin-refund-form'; create.noValidate = true;
+        create.innerHTML = '<div class="admin-field"><label>문의 종류</label><select name="category"><option value="payment">결제</option><option value="generation">리포트 생성</option><option value="interpretation">해석</option><option value="access">접속·로그인</option><option value="privacy">개인정보</option><option value="other">기타</option></select></div>'
+          + '<div class="admin-field"><label>우선순위</label><select name="priority"><option value="normal">보통</option><option value="low">낮음</option><option value="high">높음</option><option value="urgent">긴급</option></select></div>'
+          + '<div class="admin-field" data-span="2"><label>회원 번호 (선택)</label><input name="memberId" placeholder="회원 상세에서 복사한 번호" autocomplete="off"></div>'
+          + '<div class="admin-field"><label>결제 번호 (선택)</label><input name="orderId" autocomplete="off"></div><div class="admin-field"><label>리포트 번호 (선택)</label><input name="reportId" autocomplete="off"></div>'
+          + '<div class="admin-actions"><button class="admin-button" type="submit">문의 등록</button></div>';
+        create.addEventListener('submit', async function (event) {
+          event.preventDefault(); var form = event.currentTarget;
+          try {
+            await adminJson('/api/admin/v1/support', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ category: form.elements.category.value, priority: form.elements.priority.value, memberId: form.elements.memberId.value.trim(), orderId: form.elements.orderId.value.trim(), reportId: form.elements.reportId.value.trim() }) });
+            document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); });
+            adminToast('문의를 등록했습니다.'); form.reset(); state.group = 'waiting'; load();
+          } catch (error) { adminToast(error.message, 'error'); }
+        });
+        var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>문의 등록</h3></header>'; create.style.padding = '16px'; createSection.appendChild(create);
+        adminPageAction('support-create', '＋ 문의 등록', createSection, { primary: true });
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '처리 상태');
+        [['waiting', '답변 대기'], ['working', '처리 중'], ['done', '완료'], ['all', '전체']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.group = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.group = entry[0]; render(); }); seg.appendChild(button);
+        });
+        filters.append(seg, adminTip('최근에 바뀐 문의 100건을 보여 줍니다. 고객에게 자동으로 보내는 메시지는 없습니다.'));
+        var card = document.createElement('section'); card.className = 'admin-section'; card.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(filters, card);
+        function render() {
+          seg.querySelectorAll('button').forEach(function (button) {
+            var count = button.dataset.group === 'all' ? state.items.length : state.items.filter(function (item) { return (SUPPORT_GROUPS[button.dataset.group] || []).indexOf(item.status) >= 0; }).length;
+            button.setAttribute('aria-pressed', button.dataset.group === state.group ? 'true' : 'false');
+            button.textContent = button.textContent.replace(/ \d+$/, '') + (count ? ' ' + count : '');
+          });
+          var list = state.items.filter(function (item) { return state.group === 'all' || (SUPPORT_GROUPS[state.group] || []).indexOf(item.status) >= 0; });
+          if (!list.length) { card.replaceChildren(memberEmpty(state.group === 'waiting' ? '답변을 기다리는 문의가 없습니다.' : '해당하는 문의가 없습니다.')); return; }
+          var table = memberTable(['접수일', '종류', '우선순위', '상태', '연결', '담당', '최근 변경'], list, function (item) {
+            var priority = SUPPORT_PRIORITY_VIEW[item.priority] || { label: item.priority, tone: '' };
+            var links = [item.memberId ? '회원' : null, item.orderId ? '결제' : null, item.reportId ? '리포트' : null].filter(Boolean).join('·');
+            return [memberWhen(item.createdAt), MEMBER_SUPPORT_CATEGORY[item.category] || item.category, memberChip(priority.label, priority.tone), supportStatusChip(item.status), links || '—', item.assigneeEmail ? item.assigneeEmail.split('@')[0] : '미배정', memberWhen(item.updatedAt)];
+          }, function (item) { renderSupportCaseDetail(body, item, load); });
+          var inner = table.querySelector('table'); if (inner) inner.removeAttribute('data-plain');
+          card.replaceChildren(table);
+        }
+        async function load() {
+          try {
+            var payload = await adminJson('/api/admin/v1/support');
+            state.items = Array.isArray(payload.cases) ? payload.cases : [];
+            render();
+          } catch (_error) { card.replaceChildren(memberEmpty('고객 지원 목록을 불러오지 못했습니다.')); }
+        }
+        await load();
+        var linked = new URLSearchParams(window.location.search).get('id');
+        if (linked) {
+          var hit = state.items.find(function (item) { return item.id === linked; });
+          if (hit) renderSupportCaseDetail(body, hit, load);
+          else adminJson('/api/admin/v1/support/' + encodeURIComponent(linked)).then(function (data) { if (data.supportCase) renderSupportCaseDetail(body, data.supportCase, load); }).catch(function () { adminToast('해당 문의를 찾지 못했습니다.', 'error'); });
+        }
+      }
+      async function renderSupportCaseDetail(body, item, reload) {
+        var wrap = document.createElement('div'); wrap.className = 'admin-detail-grid';
+        var left = document.createElement('div'); var right = document.createElement('div');
+        var priority = SUPPORT_PRIORITY_VIEW[item.priority] || { label: item.priority, tone: '' };
+        var h1 = document.createElement('h4'); h1.textContent = '문의';
+        left.append(h1, dlRows([
+          ['종류', MEMBER_SUPPORT_CATEGORY[item.category] || item.category], ['상태', supportStatusChip(item.status)], ['우선순위', memberChip(priority.label, priority.tone)],
+          ['접수일', memberWhen(item.createdAt)], ['담당', item.assigneeEmail || '미배정'],
+          ['회원', item.memberId ? adminLink('회원 상세 보기', '/members?id=' + encodeURIComponent(item.memberId)) : '연결 안 됨'],
+          ['결제', item.orderId ? adminLink('결제 상세 보기', '/payments?id=' + encodeURIComponent(item.orderId)) : '연결 안 됨'],
+          ['리포트', item.reportId ? adminLink('리포트 상세 보기', '/reports?id=' + encodeURIComponent(item.reportId)) : '연결 안 됨'],
+        ]));
+        var h2 = document.createElement('h4'); h2.textContent = '처리 상태 바꾸기'; h2.style.marginTop = '16px';
+        var form = document.createElement('form'); form.className = 'admin-refund-form admin-support-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field"><label>상태</label><select name="status"><option value="received">접수</option><option value="triaged">분류됨</option><option value="assigned">담당 지정</option><option value="investigating">확인 중</option><option value="awaiting_customer">고객 답변 대기</option><option value="resolved">해결</option><option value="closed">종료</option><option value="reopened">다시 열림</option></select></div>'
+          + '<div class="admin-field"><label>우선순위</label><select name="priority"><option value="low">낮음</option><option value="normal">보통</option><option value="high">높음</option><option value="urgent">긴급</option></select></div>'
+          + '<div class="admin-field"><label>담당자 이메일</label><input name="assigneeEmail" type="email" placeholder="비우면 미배정"></div>'
+          + '<div class="admin-field"><label>해결 메모 (짧게)</label><input name="resolutionCode" maxlength="80" placeholder="예: 환불 처리, 재생성 완료"></div>';
+        form.elements.status.value = item.status; form.elements.priority.value = item.priority; form.elements.assigneeEmail.value = item.assigneeEmail || ''; form.elements.resolutionCode.value = item.resolutionCode || '';
+        left.append(h2, form);
+        var h3 = document.createElement('h4'); h3.textContent = '처리 기록';
+        var timeline = document.createElement('div'); timeline.className = 'admin-timeline'; timeline.appendChild(memberEmpty('불러오는 중입니다.'));
+        var noteForm = document.createElement('form'); noteForm.className = 'admin-note-form';
+        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option></select><textarea name="text" maxlength="4000" rows="3" placeholder="처리한 내용을 남겨 주세요. 고객에게 보내지지 않습니다."></textarea><button class="admin-button" type="submit">기록 추가</button>';
+        right.append(h3, timeline, noteForm);
+        wrap.append(left, right);
+        async function loadNotes() {
+          try {
+            var payload = await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes');
+            var entries = Array.isArray(payload.notes) ? payload.notes : [];
+            timeline.replaceChildren();
+            if (!entries.length) timeline.appendChild(memberEmpty('아직 기록이 없습니다.'));
+            entries.forEach(function (entry) {
+              var line = document.createElement('div'); line.className = 'admin-timeline-item';
+              var meta = document.createElement('small'); meta.textContent = (entry.kind === 'internal' ? '내부 메모' : '고객 답변 초안') + ' · ' + String(entry.author || '').split('@')[0] + ' · ' + memberWhen(entry.createdAt);
+              var text = document.createElement('p'); text.textContent = entry.text;
+              line.append(meta, text); timeline.appendChild(line);
+            });
+          } catch (_error) { timeline.replaceChildren(memberEmpty('기록을 불러오지 못했습니다.')); }
+        }
+        noteForm.addEventListener('submit', async function (event) {
+          event.preventDefault(); var text = noteForm.elements.text.value.trim(); if (!text) { adminToast('기록할 내용을 적어 주세요.', 'error'); return; }
+          try {
+            await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: noteForm.elements.kind.value, text: text }) });
+            noteForm.elements.text.value = ''; adminToast('기록을 남겼습니다.'); loadNotes();
+          } catch (error) { adminToast(error.message, 'error'); }
+        });
+        openAdminModal({ title: (MEMBER_SUPPORT_CATEGORY[item.category] || '문의') + ' 문의', subtitle: '접수 ' + memberWhen(item.createdAt) + ' · 최근 변경 ' + memberWhen(item.updatedAt), size: 'wide', body: wrap, actions: [
+          { label: '닫기', onClick: function (d) { d.close(); } },
+          { label: '상태 저장', primary: true, onClick: async function (d) {
+            try {
+              await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id), { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ status: form.elements.status.value, priority: form.elements.priority.value, assigneeEmail: form.elements.assigneeEmail.value.trim(), resolutionCode: form.elements.resolutionCode.value.trim(), expectedRevision: item.revision }) });
+              d.close(); adminToast('저장했습니다.'); if (reload) reload(); else renderWorkspace(currentAdminRoute());
+            } catch (error) { adminToast(error.message === '요청을 처리하지 못했습니다.' ? '저장하지 못했습니다. 다른 사람이 먼저 바꿨을 수 있으니 목록을 새로 열어 주세요.' : error.message, 'error'); }
+          } },
+        ] });
+        loadNotes();
       }
       var INCIDENT_SEVERITY_LABELS = { low: '낮음', medium: '보통', high: '높음', critical: '치명적' };
       var INCIDENT_STATUS_LABELS = { open: '접수', investigating: '조사 중', mitigated: '완화됨', resolved: '해결됨', closed: '종료' };
