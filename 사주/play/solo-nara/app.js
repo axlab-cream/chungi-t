@@ -21,7 +21,6 @@
   function show(html, motion = 'pop') { stage.innerHTML = `<section class="screen ${motion}">${html}</section>`; stage.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
   function on(id, handler) { const el = document.getElementById(id); if (el) el.addEventListener('click', handler); }
   function notice(message) { const el = document.getElementById('notice'); el.textContent = message; el.className = 'show'; setTimeout(() => el.className = '', 3000); }
-  const hearts = () => `<div class="hearts" aria-hidden="true">${Array.from({ length: 6 }, (_, i) => `<i style="--n:${i}">♥</i>`).join('')}</div>`;
   // Upper-body silhouettes drawn inline (no image requests); the mark sits on the face.
   function silhouette(gender, mark = '?') {
     const body = gender === 'male'
@@ -34,8 +33,8 @@
     generation++; busy = false;
     const friend = shared ? C.characters[shared] : null;
     const tags = Object.values(C.characters).map(c => `<span>${esc(c.name)}</span>`).join('');
-    // Full-height hero art; its painted button sits under the bottom fade, where the real start button lives.
-    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero"><img src="./hero.webp?v=3" width="1100" height="825" alt="">${hearts()}<h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1><div class="hero-bottom"><span class="pill">${N}문항 · 약 1분</span><button id="start" class="primary hero-cta">${esc(C.copy.intro.cta)} →</button></div></div><div class="intro-meta"><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
+    // Full-height portrait art carries the title; an editorial strip below holds the real start button.
+    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero grain"><img src="./hero.webp?v=4" width="900" height="1599" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1></div><div class="intro-strip"><p class="kicker">THIS WEEK · ${N} SCENES · 약 1분</p><button id="start" class="cta-line">${esc(C.copy.intro.cta)}<span aria-hidden="true">→</span></button><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
     on('invite', () => share());
     on('copy-link', () => share(undefined, true));
     const begin = () => { track('start'); state = { gender: null, answers: [], at: Date.now() }; save(); genderScreen(); };
@@ -60,14 +59,14 @@
     busy = false;
     const q = C.questions[index];
     const prevWidth = Math.round(index / N * 100), width = Math.round((index + 1) / N * 100);
-    show(`<div class="progress-label"><button id="back" class="small-button" aria-label="이전 단계">← 이전</button><span>SCENE ${String(index + 1).padStart(2, '0')} / ${String(N).padStart(2, '0')}</span></div><div class="progress" role="progressbar" aria-label="답변 진행률" aria-valuemin="0" aria-valuemax="${N}" aria-valuenow="${index + 1}"><i style="--from:${prevWidth}%;width:${width}%"></i></div><div class="scene"><span class="scene-chip">${esc(q.scene)}</span>${q.sceneLine ? `<p class="scene-line">${esc(q.sceneLine)}</p>` : ''}</div><h2 class="q-text">${lines(q.question)}</h2><div class="answers">${q.answers.map((answer, i) => `<button class="answer" style="--i:${i}" data-answer="${i}" aria-pressed="${state.answers[index] === i}"><span class="key">${'ABCD'[i]}</span><span>${esc(answer.text)}</span><span class="emoji" aria-hidden="true">${esc(answer.emoji)}</span></button>`).join('')}</div><p class="intro-note">끌리는 답을 누르면 바로 다음 장면으로 넘어가요.</p>`, direction === 'next' ? 'slide-next' : 'slide-prev');
+    const pad = n => String(n).padStart(2, '0');
+    show(`<div class="progress-label"><button id="back" class="small-button" aria-label="이전 단계">← 이전</button><span>${pad(index + 1)} / ${pad(N)}</span></div><div class="progress" role="progressbar" aria-label="답변 진행률" aria-valuemin="0" aria-valuemax="${N}" aria-valuenow="${index + 1}"><i style="--from:${prevWidth}%;width:${width}%"></i></div><div class="q-num" aria-hidden="true">${pad(index + 1)}<small> / ${N}</small></div><p class="kicker">SCENE · ${esc(q.scene)}</p>${q.sceneLine ? `<p class="scene-line">${esc(q.sceneLine)}</p>` : ''}<h2 class="q-text">${lines(q.question)}</h2><div class="answers">${q.answers.map((answer, i) => `<button class="answer" style="--i:${i}" data-answer="${i}" aria-pressed="${state.answers[index] === i}"><span class="key">${'ABCD'[i]}</span><span>${esc(answer.text)}</span></button>`).join('')}</div><p class="intro-note">끌리는 답을 누르면 바로 다음 장면으로 넘어가요.</p>`, direction === 'next' ? 'slide-next' : 'slide-prev');
     on('back', () => { if (busy) return; index ? question(index - 1, 'prev') : genderScreen(); });
     stage.querySelectorAll('[data-answer]').forEach(button => button.addEventListener('click', () => {
       if (busy) return; busy = true;
       state.answers[index] = Number(button.dataset.answer); state.answers = state.answers.slice(0, index + 1); save();
       stage.querySelectorAll('button').forEach(b => b.disabled = true);
       button.classList.add('selected');
-      button.insertAdjacentHTML('beforeend', '<span class="burst" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>');
       if (!reduced()) navigator.vibrate?.(15);
       track('progress', { question_id: q.id });
       setTimeout(() => index < N - 1 ? question(index + 1, 'next') : (track('complete'), analyze()), reduced() ? 0 : 260);
@@ -96,7 +95,7 @@
   }
 
   function gate(message = '') {
-    show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>${lines(C.copy.loginGate.default)}</h2><div class="name-card sealed-card" aria-hidden="true">${hearts()}<small>${esc(C.copy.result.heading)}</small>${silhouette(state.gender || 'female')}<span class="pill">이름표 봉인 중</span></div></div><button id="login" class="primary glow">로그인하고 이름 확인하기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">답변은 이 탭에서 최대 2시간 동안 유지돼요.<br>성별과 답변은 결과 계산에만 쓰고 공유하지 않아요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`, 'fade');
+    show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>${lines(C.copy.loginGate.default)}</h2><div class="name-card sealed-card" aria-hidden="true"><small>${esc(C.copy.result.heading)}</small>${silhouette(state.gender || 'female')}<span class="seal">이름표 봉인 중</span></div></div><button id="login" class="primary">로그인하고 이름 확인하기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">답변은 이 탭에서 최대 2시간 동안 유지돼요.<br>성별과 답변은 결과 계산에만 쓰고 공유하지 않아요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`, 'fade');
     on('login', () => { track('login'); save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('solo-nara', '/play/solo-nara/') : '/signup?entry=solo-nara&returnTo=' + encodeURIComponent('/play/solo-nara/') + '#login'; });
     on('retry', resolveResult);
   }
