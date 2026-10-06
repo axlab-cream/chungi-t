@@ -14,7 +14,7 @@ test('fixture spec passes structure, design rules and the exhaustive distributio
   assert.deepEqual(designIssues(spec), [])
   for (const gender of ['female', 'male'] as const) {
     const result = simulate(spec, gender)
-    assert.equal(Object.values(result.counts).reduce((a, b) => a + b, 0), 65536)
+    assert.equal(Object.values(result.counts).reduce((a, b) => a + b, 0), 4 ** 10)
     assert.ok(Object.values(result.counts).every(n => n > 0), `${gender}: every character must appear`)
     assert.deepEqual(distributionIssues(spec, gender, result), [])
   }
@@ -43,20 +43,20 @@ test('design check catches asymmetric pairs, extreme vectors and crowded charact
   assert.match(issues, /distance .* < 25/)
 })
 
-test('input must name a gender and answer all eight questions within A~D', () => {
-  assert.throws(() => parseSoloInput({ answers: [0, 0, 0, 0, 0, 0, 0, 0] }))
-  assert.throws(() => parseSoloInput({ gender: 'other', answers: [0, 0, 0, 0, 0, 0, 0, 0] }))
-  assert.throws(() => parseSoloInput({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0] }))
-  assert.throws(() => parseSoloInput({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 4] }))
-  assert.throws(() => parseSoloInput({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 1.5] }))
-  assert.deepEqual(parseSoloInput({ gender: 'male', answers: [3, 2, 1, 0, 3, 2, 1, 0], extra: 'ignored' }), { gender: 'male', answers: [3, 2, 1, 0, 3, 2, 1, 0] })
+test('input must name a gender and answer all ten questions within A~D', () => {
+  assert.throws(() => parseSoloInput({ answers: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }))
+  assert.throws(() => parseSoloInput({ gender: 'other', answers: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }))
+  assert.throws(() => parseSoloInput({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 0, 0] }))
+  assert.throws(() => parseSoloInput({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 0, 0, 4] }))
+  assert.throws(() => parseSoloInput({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5] }))
+  assert.deepEqual(parseSoloInput({ gender: 'male', answers: [3, 2, 1, 0, 3, 2, 1, 0, 3, 2], extra: 'ignored' }), { gender: 'male', answers: [3, 2, 1, 0, 3, 2, 1, 0, 3, 2] })
 })
 
 test('results stay within the chosen gender and expose opposite-gender matches only', () => {
   const spec = load()
   for (const gender of ['female', 'male'] as const) {
     const other = gender === 'female' ? 'male' : 'female'
-    for (const answers of [[0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 3, 3, 3, 3], [0, 1, 2, 3, 0, 1, 2, 3]]) {
+    for (const answers of [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [0, 1, 2, 3, 0, 1, 2, 3, 0, 1]]) {
       const result = calculateSoloResult(spec, { gender, answers })
       assert.ok(SOLO_NAMES[gender].includes(result.name))
       assert.ok(SOLO_NAMES[other].includes(result.best.name))
@@ -103,10 +103,10 @@ test('route enforces auth, validates input, refuses invalid specs and never cach
   const { port } = server.address() as { port: number }
   const post = (body: unknown) => fetch(`http://127.0.0.1:${port}/api/play/solo-nara/result`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   try {
-    assert.equal((await post({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 0] })).status, 401)
+    assert.equal((await post({ gender: 'female', answers: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] })).status, 401)
     member = true
     assert.equal((await post({ gender: 'female', answers: [0] })).status, 400)
-    const response = await post({ gender: 'male', answers: [3, 3, 3, 3, 3, 3, 3, 3] })
+    const response = await post({ gender: 'male', answers: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] })
     assert.equal(response.status, 200)
     assert.equal(response.headers.get('cache-control'), 'no-store')
     assert.ok(SOLO_NAMES.male.includes((await response.json()).name))

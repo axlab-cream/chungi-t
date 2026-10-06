@@ -19,7 +19,7 @@
   var actions = ['start','gender','progress','complete','login','result_view','share','share_success','copy','fortune','restart'];
   // Only these never-personal codes leave the page: which question was reached and which public character was shown.
   // Gender, individual answers and axis scores are never sent.
-  var params = { question_id: /^q[1-8]$/, result_character: /^[a-z]{2,20}$/ };
+  var params = { question_id: /^q(?:[1-9]|10)$/, result_character: /^[a-z]{2,20}$/ };
   // Result views and progress are automatic, so they are not counted as admin CTA clicks.
   var notClicks = ['result_view','share_success','progress'];
   var completed = false;

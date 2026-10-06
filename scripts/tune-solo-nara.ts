@@ -1,6 +1,7 @@
 // Usage: npx tsx scripts/tune-solo-nara.ts <in.json> <out.json>
 // Nudges character vectors only (never question scores or copy) until the exhaustive
 // distribution meets SOLO_CRITERIA while every design rule still holds.
+// Local search: try moving one axis of one character by a few points, keep the move if it lowers the cost.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { SOLO_AXES, SOLO_CRITERIA, designIssues, distributionIssues, simulate, type SoloGender, type SoloSpec } from '../src/play/solo-nara.js'
 
@@ -9,37 +10,30 @@ if (!input || !output) { console.error('usage: tune-solo-nara.ts <in.json> <out.
 const original = JSON.parse(readFileSync(input, 'utf8')) as SoloSpec
 const spec = structuredClone(original)
 
-// Mean user vector over every combination equals the per-question mean contribution, normalized.
-const mean = Object.fromEntries(SOLO_AXES.map(axis => {
-  const raw = spec.questions.reduce((s, q) => s + q.answers.reduce((t, a) => t + a.scores[axis], 0) / 4, 0)
-  const { min, max } = spec.axisRange[axis]
-  return [axis, (raw - min) / (max - min) * 100]
-}))
+// Penalise shares outside the allowed band hardest, then ties, then distance from an even split.
+function cost(gender: SoloGender) {
+  const r = simulate(spec, gender, { dominance: false })
+  const shares = Object.values(r.shares)
+  const outside = shares.reduce((s, x) => s + Math.max(0, SOLO_CRITERIA.minShare - x) + Math.max(0, x - SOLO_CRITERIA.maxShare), 0)
+  const even = shares.reduce((s, x) => s + Math.abs(x - 1 / shares.length), 0)
+  return outside * 20 + Math.max(0, r.tieRate - SOLO_CRITERIA.maxTieRate) * 20 + even
+}
 
-const cost = (shares: Record<string, number>, tieRate: number) =>
-  Object.values(shares).reduce((s, x) => s + Math.abs(x - 1 / 7), 0) + Math.max(0, tieRate - SOLO_CRITERIA.maxTieRate) * 4
-
+const DELTAS = [-4, -2, -1, 1, 2, 4]
 for (const gender of ['female', 'male'] as SoloGender[]) {
-  let result = simulate(spec, gender)
-  let best = cost(result.shares, result.tieRate)
-  for (let iter = 0; iter < 40 && distributionIssues(spec, gender, result).length; iter++) {
+  let best = cost(gender)
+  for (let round = 0; round < 30 && distributionIssues(spec, gender, simulate(spec, gender)).length; round++) {
     let improved = false
-    for (const [id, share] of Object.entries(result.shares).sort((a, b) => Math.abs(b[1] - 1 / 7) - Math.abs(a[1] - 1 / 7))) {
-      const c = spec.characters.find(x => x.typeId === id)!
-      const before = { ...c.vector }
-      const toward = share < 1 / 7 ? 1 : -1
-      const step = Math.max(2, Math.round(Math.abs(share - 1 / 7) * 40))
-      for (const axis of SOLO_AXES) {
-        const dir = Math.sign(mean[axis] - c.vector[axis]) * toward
-        c.vector[axis] = Math.min(80, Math.max(20, c.vector[axis] + dir * step))
-      }
-      const trial = designIssues(spec).length ? null : simulate(spec, gender)
-      if (trial && cost(trial.shares, trial.tieRate) < best) { result = trial; best = cost(trial.shares, trial.tieRate); improved = true; break }
-      c.vector = before
+    for (const c of spec.characters.filter(x => x.gender === gender)) for (const axis of SOLO_AXES) for (const d of DELTAS) {
+      const before = c.vector[axis], next = before + d
+      if (next < 20 || next > 80) continue
+      c.vector[axis] = next
+      const trial = designIssues(spec).length ? Infinity : cost(gender)
+      if (trial < best - 1e-9) { best = trial; improved = true } else c.vector[axis] = before
     }
     if (!improved) break
   }
-  console.log(`[${gender}] ${distributionIssues(spec, gender, result).length ? 'still failing' : 'pass'}`)
+  console.log(`[${gender}] ${distributionIssues(spec, gender).length ? 'still failing: ' + distributionIssues(spec, gender).join('; ') : 'pass'}`)
 }
 
 console.log('\nchanged vectors (direct, express, stability, independence):')

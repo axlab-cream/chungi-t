@@ -9,19 +9,19 @@
   "axisRange": {
     "direct": {
       "min": 0,
-      "max": 14
+      "max": 18
     },
     "express": {
       "min": 0,
-      "max": 14
+      "max": 18
     },
     "stability": {
       "min": 0,
-      "max": 14
+      "max": 18
     },
     "independence": {
       "min": 0,
-      "max": 14
+      "max": 18
     }
   },
   "tieBreak": {
@@ -49,7 +49,7 @@
       "name": "영숙",
       "gender": "female",
       "vector": {
-        "direct": 72,
+        "direct": 69,
         "express": 72,
         "stability": 40,
         "independence": 45
@@ -77,9 +77,9 @@
       "name": "정숙",
       "gender": "female",
       "vector": {
-        "direct": 35,
-        "express": 40,
-        "stability": 75,
+        "direct": 28,
+        "express": 41,
+        "stability": 78,
         "independence": 30
       },
       "primaryAxis": "stability",
@@ -105,8 +105,8 @@
       "name": "순자",
       "gender": "female",
       "vector": {
-        "direct": 66,
-        "express": 62,
+        "direct": 67,
+        "express": 63,
         "stability": 22,
         "independence": 25
       },
@@ -133,9 +133,9 @@
       "name": "영자",
       "gender": "female",
       "vector": {
-        "direct": 40,
-        "express": 75,
-        "stability": 60,
+        "direct": 36,
+        "express": 77,
+        "stability": 59,
         "independence": 22
       },
       "primaryAxis": "express",
@@ -161,10 +161,10 @@
       "name": "옥순",
       "gender": "female",
       "vector": {
-        "direct": 60,
-        "express": 40,
-        "stability": 40,
-        "independence": 78
+        "direct": 58,
+        "express": 37,
+        "stability": 34,
+        "independence": 73
       },
       "primaryAxis": "independence",
       "oneLiner": "옥순 fixture",
@@ -189,7 +189,7 @@
       "name": "현숙",
       "gender": "female",
       "vector": {
-        "direct": 45,
+        "direct": 40,
         "express": 28,
         "stability": 68,
         "independence": 66
@@ -218,9 +218,9 @@
       "gender": "female",
       "vector": {
         "direct": 20,
-        "express": 22,
-        "stability": 27,
-        "independence": 63
+        "express": 20,
+        "stability": 26,
+        "independence": 62
       },
       "primaryAxis": "independence",
       "oneLiner": "정희 fixture",
@@ -245,8 +245,8 @@
       "name": "영수",
       "gender": "male",
       "vector": {
-        "direct": 40,
-        "express": 40,
+        "direct": 43,
+        "express": 37,
         "stability": 76,
         "independence": 35
       },
@@ -273,10 +273,10 @@
       "name": "영호",
       "gender": "male",
       "vector": {
-        "direct": 59,
-        "express": 70,
-        "stability": 49,
-        "independence": 24
+        "direct": 60,
+        "express": 69,
+        "stability": 50,
+        "independence": 20
       },
       "primaryAxis": "express",
       "oneLiner": "영호 fixture",
@@ -302,7 +302,7 @@
       "gender": "male",
       "vector": {
         "direct": 35,
-        "express": 70,
+        "express": 69,
         "stability": 62,
         "independence": 22
       },
@@ -329,10 +329,10 @@
       "name": "영철",
       "gender": "male",
       "vector": {
-        "direct": 73,
-        "express": 71,
+        "direct": 72,
+        "express": 70,
         "stability": 35,
-        "independence": 43
+        "independence": 42
       },
       "primaryAxis": "direct",
       "oneLiner": "영철 fixture",
@@ -359,7 +359,7 @@
       "vector": {
         "direct": 37,
         "express": 27,
-        "stability": 37,
+        "stability": 40,
         "independence": 78
       },
       "primaryAxis": "independence",
@@ -385,10 +385,10 @@
       "name": "상철",
       "gender": "male",
       "vector": {
-        "direct": 68,
-        "express": 45,
-        "stability": 22,
-        "independence": 70
+        "direct": 65,
+        "express": 39,
+        "stability": 25,
+        "independence": 66
       },
       "primaryAxis": "independence",
       "oneLiner": "상철 fixture",
@@ -413,9 +413,9 @@
       "name": "경수",
       "gender": "male",
       "vector": {
-        "direct": 24,
-        "express": 25,
-        "stability": 66,
+        "direct": 20,
+        "express": 21,
+        "stability": 68,
         "independence": 52
       },
       "primaryAxis": "stability",
@@ -495,6 +495,62 @@
     },
     {
       "questionId": "q2",
+      "scene": "자기소개 시간",
+      "sceneLine": "모두 앞에서 자기소개를 하는 시간이에요",
+      "question": "자기소개 시간,\n나는 어떻게 말할까?",
+      "primaryAxes": [
+        "express",
+        "independence"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "연애 스타일까지 솔직하게 말한다",
+          "emoji": "💬",
+          "scores": {
+            "direct": 1,
+            "express": 3,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "내 일과 취미를 또렷하게 말한다",
+          "emoji": "🎤",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 1,
+            "independence": 3
+          }
+        },
+        {
+          "id": "C",
+          "text": "짧고 담백하게 마친다",
+          "emoji": "🙂",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 1,
+            "independence": 2
+          }
+        },
+        {
+          "id": "D",
+          "text": "다른 사람 소개에 크게 반응한다",
+          "emoji": "👏",
+          "scores": {
+            "direct": 0,
+            "express": 2,
+            "stability": 0,
+            "independence": 0
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q3",
       "scene": "fixture",
       "question": "q2 fixture",
       "primaryAxes": [
@@ -548,7 +604,7 @@
       ]
     },
     {
-      "questionId": "q3",
+      "questionId": "q4",
       "scene": "fixture",
       "question": "q3 fixture",
       "primaryAxes": [
@@ -603,7 +659,7 @@
       ]
     },
     {
-      "questionId": "q4",
+      "questionId": "q5",
       "scene": "fixture",
       "question": "q4 fixture",
       "primaryAxes": [
@@ -657,7 +713,7 @@
       ]
     },
     {
-      "questionId": "q5",
+      "questionId": "q6",
       "scene": "fixture",
       "question": "q5 fixture",
       "primaryAxes": [
@@ -712,7 +768,7 @@
       ]
     },
     {
-      "questionId": "q6",
+      "questionId": "q7",
       "scene": "fixture",
       "question": "q6 fixture",
       "primaryAxes": [
@@ -766,7 +822,7 @@
       ]
     },
     {
-      "questionId": "q7",
+      "questionId": "q8",
       "scene": "fixture",
       "question": "q7 fixture",
       "primaryAxes": [
@@ -821,7 +877,63 @@
       ]
     },
     {
-      "questionId": "q8",
+      "questionId": "q9",
+      "scene": "슈퍼 데이트권",
+      "sceneLine": "원하는 사람과 데이트할 기회가 생겼어요",
+      "question": "슈퍼 데이트권을 얻었다.\n나는?",
+      "primaryAxes": [
+        "direct",
+        "stability"
+      ],
+      "answers": [
+        {
+          "id": "A",
+          "text": "가장 끌리는 사람에게 바로 쓴다",
+          "emoji": "🎫",
+          "scores": {
+            "direct": 3,
+            "express": 1,
+            "stability": 0,
+            "independence": 0
+          }
+        },
+        {
+          "id": "B",
+          "text": "오래 만날 수 있는 사람에게 쓴다",
+          "emoji": "🤝",
+          "scores": {
+            "direct": 1,
+            "express": 0,
+            "stability": 3,
+            "independence": 0
+          }
+        },
+        {
+          "id": "C",
+          "text": "나를 좋아해 준 사람에게 쓴다",
+          "emoji": "💗",
+          "scores": {
+            "direct": 0,
+            "express": 1,
+            "stability": 2,
+            "independence": 0
+          }
+        },
+        {
+          "id": "D",
+          "text": "아직 아무에게도 쓰지 않는다",
+          "emoji": "🌙",
+          "scores": {
+            "direct": 0,
+            "express": 0,
+            "stability": 1,
+            "independence": 1
+          }
+        }
+      ]
+    },
+    {
+      "questionId": "q10",
       "scene": "fixture",
       "question": "q8 fixture",
       "primaryAxes": [

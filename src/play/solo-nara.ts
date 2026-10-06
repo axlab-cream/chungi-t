@@ -7,7 +7,7 @@ export const SOLO_NAMES: Record<SoloGender, readonly string[]> = {
   female: ['영숙', '정숙', '순자', '영자', '옥순', '현숙', '정희'],
   male: ['영수', '영호', '영식', '영철', '광수', '상철', '경수'],
 }
-export const SOLO_QUESTION_COUNT = 8
+export const SOLO_QUESTION_COUNT = 10
 export const SOLO_FORTUNE_URL = 'https://umsh.kr/love/this-year/01-step-1-story/index.html'
 
 export interface SoloCharacter {
@@ -138,15 +138,18 @@ export function designIssues(spec: SoloSpec): string[] {
 export function parseSoloInput(input: unknown): { gender: SoloGender; answers: number[] } {
   const body = input as { gender?: unknown; answers?: unknown } | null
   if (!body || (body.gender !== 'female' && body.gender !== 'male')) throw new Error('이름을 받을 성별을 선택해주세요.')
-  if (!Array.isArray(body.answers) || body.answers.length !== SOLO_QUESTION_COUNT || body.answers.some(a => !isInt(a, 0, 3))) throw new Error('여덟 문항의 답변을 모두 선택해주세요.')
+  if (!Array.isArray(body.answers) || body.answers.length !== SOLO_QUESTION_COUNT || body.answers.some(a => !isInt(a, 0, 3))) throw new Error('열 문항의 답변을 모두 선택해주세요.')
   return { gender: body.gender, answers: [...body.answers] }
 }
 
 export function normalizedScores(spec: SoloSpec, answers: number[]): AxisVector {
+  return scoresFromRaw(spec, Object.fromEntries(SOLO_AXES.map(axis => [axis, answers.reduce((s, a, i) => s + spec.questions[i].answers[a].scores[axis], 0)])) as AxisVector)
+}
+
+function scoresFromRaw(spec: SoloSpec, raw: AxisVector): AxisVector {
   return Object.fromEntries(SOLO_AXES.map(axis => {
-    const raw = answers.reduce((s, a, i) => s + spec.questions[i].answers[a].scores[axis], 0)
     const { min, max } = spec.axisRange[axis]
-    return [axis, round1((raw - min) / (max - min) * 100)]
+    return [axis, round1((raw[axis] - min) / (max - min) * 100)]
   })) as AxisVector
 }
 
@@ -179,26 +182,56 @@ export function calculateSoloResult(spec: SoloSpec, input: unknown) {
   }
 }
 
-/** Exhaustive 4^8 enumeration per gender, treating every answer combination equally. */
-export function simulate(spec: SoloSpec, gender: SoloGender) {
-  const total = 4 ** SOLO_QUESTION_COUNT
-  const counts: Record<string, number> = Object.fromEntries(spec.characters.filter(c => c.gender === gender).map(c => [c.typeId, 0]))
-  const byAnswer = spec.questions.map(() => [0, 1, 2, 3].map(() => ({ ...counts })))
-  let ties = 0
-  const answers = new Array<number>(SOLO_QUESTION_COUNT).fill(0)
-  for (let n = 0; n < total; n++) {
-    for (let i = 0, x = n; i < SOLO_QUESTION_COUNT; i++, x >>= 2) answers[i] = x & 3
-    const { ranked, tied } = rankCandidates(spec, gender, normalizedScores(spec, answers))
-    const id = ranked[0].character.typeId
-    counts[id]++
-    if (tied) ties++
-    answers.forEach((a, q) => byAnswer[q][a][id]++)
+// Raw axis totals packed into one integer (each total < 64) so equal score sums share one map entry.
+const pack = (v: AxisVector) => v.direct + v.express * 64 + v.stability * 4096 + v.independence * 262144
+const unpack = (k: number): AxisVector => ({ direct: k % 64, express: Math.floor(k / 64) % 64, stability: Math.floor(k / 4096) % 64, independence: Math.floor(k / 262144) })
+
+/** How many answer combinations reach each raw total, skipping one question when asked to. */
+function totalsCount(spec: SoloSpec, skip = -1) {
+  let dist = new Map<number, number>([[0, 1]])
+  spec.questions.forEach((q, i) => {
+    if (i === skip) return
+    const next = new Map<number, number>()
+    for (const [key, count] of dist) for (const a of q.answers) {
+      const k = key + pack(a.scores)
+      next.set(k, (next.get(k) || 0) + count)
+    }
+    dist = next
+  })
+  return dist
+}
+
+/**
+ * Exhaustive count over all 4^N answer combinations per gender, treating every combination equally.
+ * Results depend only on the raw totals, so combinations are grouped by total instead of enumerated one by one.
+ */
+export function simulate(spec: SoloSpec, gender: SoloGender, opts: { dominance?: boolean } = {}) {
+  const total = 4 ** spec.questions.length
+  const blank = () => Object.fromEntries(spec.characters.filter(c => c.gender === gender).map(c => [c.typeId, 0])) as Record<string, number>
+  const verdicts = new Map<number, { id: string; tied: boolean }>()
+  const verdict = (key: number) => {
+    let v = verdicts.get(key)
+    if (!v) {
+      const { ranked, tied } = rankCandidates(spec, gender, scoresFromRaw(spec, unpack(key)))
+      v = { id: ranked[0].character.typeId, tied }
+      verdicts.set(key, v)
+    }
+    return v
   }
+  const counts = blank()
+  let ties = 0
+  for (const [key, n] of totalsCount(spec)) { const v = verdict(key); counts[v.id] += n; if (v.tied) ties += n }
   const perAnswer = total / 4
-  const dominance = byAnswer.flatMap((answerCounts, q) => answerCounts.map((c, a) => {
-    const [typeId, count] = Object.entries(c).sort((x, y) => y[1] - x[1])[0]
-    return { questionId: spec.questions[q].questionId, answer: spec.questions[q].answers[a].id, typeId, share: count / perAnswer }
-  })).sort((a, b) => b.share - a.share)
+  // Per-answer dominance needs one extra pass per question; tuning loops can skip it.
+  const dominance = opts.dominance === false ? [] : spec.questions.flatMap((q, qi) => {
+    const others = totalsCount(spec, qi)
+    return q.answers.map(answer => {
+      const c = blank(), shift = pack(answer.scores)
+      for (const [key, n] of others) c[verdict(key + shift).id] += n
+      const [typeId, count] = Object.entries(c).sort((x, y) => y[1] - x[1])[0]
+      return { questionId: q.questionId, answer: answer.id, typeId, share: count / perAnswer }
+    })
+  }).sort((a, b) => b.share - a.share)
   return { total, counts, shares: Object.fromEntries(Object.entries(counts).map(([id, c]) => [id, c / total])), tieRate: ties / total, dominance }
 }
 
@@ -214,7 +247,7 @@ export function distributionIssues(spec: SoloSpec, gender: SoloGender, result = 
   }
   if (result.tieRate > SOLO_CRITERIA.maxTieRate) issues.push(`${gender} tie rate ${pct(result.tieRate)} > ${pct(SOLO_CRITERIA.maxTieRate)}`)
   const top = result.dominance[0]
-  if (top.share > SOLO_CRITERIA.maxDominance) issues.push(`${gender} ${top.questionId}=${top.answer} gives ${name(top.typeId)} ${pct(top.share)} > ${pct(SOLO_CRITERIA.maxDominance)}`)
+  if (top && top.share > SOLO_CRITERIA.maxDominance) issues.push(`${gender} ${top.questionId}=${top.answer} gives ${name(top.typeId)} ${pct(top.share)} > ${pct(SOLO_CRITERIA.maxDominance)}`)
   return issues
 }
 
