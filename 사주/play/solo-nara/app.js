@@ -34,7 +34,7 @@
     const friend = shared ? C.characters[shared] : null;
     const tags = Object.values(C.characters).map(c => `<span>${esc(c.name)}</span>`).join('');
     // Full-height portrait art carries the title; an editorial strip below holds the real start button.
-    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero grain"><img src="./hero.webp?v=4" width="900" height="1599" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1></div><div class="intro-strip"><p class="kicker">THIS WEEK · ${N} SCENES · 약 1분</p><button id="start" class="cta-line">${esc(C.copy.intro.cta)}<span aria-hidden="true">→</span></button><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
+    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero grain"><img src="./hero.webp?v=4" width="900" height="1599" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1><div class="hero-cta"><p class="hero-meta"><span><b>${N}</b> 문항</span><span><b>${Object.keys(C.characters).length}</b> 가지 이름</span><span><b>1</b> 분이면 끝</span></p><button id="start" class="start-button">${esc(C.copy.intro.cta)}<span aria-hidden="true">→</span></button></div></div><div class="intro-strip"><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
     on('invite', () => share());
     on('copy-link', () => share(undefined, true));
     const begin = () => { track('start'); state = { gender: null, answers: [], at: Date.now() }; save(); genderScreen(); };
@@ -43,7 +43,7 @@
 
   function genderScreen() {
     busy = false;
-    const card = (gender, label, side) => `<button class="gender-card from-${side}" data-gender="${gender}">${silhouette(gender)}<b>${esc(label)}</b><small>${candidates(gender).map(([, c]) => esc(c.name)).join(' · ')}</small></button>`;
+    const card = (gender, label, side) => `<button class="gender-card from-${side}" data-gender="${gender}">${silhouette(gender)}<b>${esc(label)}</b><small>${[0, 3].map(start => `<span>${candidates(gender).slice(start, start ? undefined : 3).map(([, c]) => esc(c.name)).join(' · ')}</span>`).join('')}</small></button>`;
     show(`<p class="eyebrow">NAME TAG</p><h2>${lines(C.copy.genderSelect.question)}</h2><p class="muted">고른 쪽의 이름 7개 중 하나가 결과로 나와요.<br>질문과 계산 방식은 똑같아요.</p><div class="gender-grid">${card('female', C.copy.genderSelect.female, 'left')}${card('male', C.copy.genderSelect.male, 'right')}</div><button id="back-home" class="small-button" style="width:100%;margin-top:14px">← 처음으로</button>`, 'fade');
     on('back-home', () => home());
     stage.querySelectorAll('[data-gender]').forEach(button => button.addEventListener('click', () => {
