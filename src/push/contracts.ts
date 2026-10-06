@@ -199,4 +199,6 @@ export const PUSH_ERROR_MESSAGES: Record<string, string> = {
   PUSH_DEVICE_PLATFORM_INVALID: '기기 종류를 확인해 주세요.',
   PUSH_STORE_UNAVAILABLE: '푸시 저장소에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.',
   PUSH_SEARCH_INVALID: '이름 두 글자 이상 또는 회원 ID를 입력해 주세요.',
+  PUSH_NOT_RESENDABLE: '발송을 마친 메시지만 실패분을 다시 보낼 수 있습니다.',
+  PUSH_NOTHING_TO_RESEND: '다시 보낼 기기가 없습니다. 실패한 기기는 모두 앱을 지웠거나 알림을 끈 기기입니다.',
 }

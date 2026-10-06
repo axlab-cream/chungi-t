@@ -144,7 +144,7 @@ test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고,
   assert.match(body, /publishArea\.hidden = true;/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/draft'/)
   assert.match(body, /publishArea\.hidden = false;/)
-  assert.match(body, /window\.confirm\('이 초안을 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 바로 반영됩니다/)
+  assert.match(body, /window\.confirm\('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/publish'/)
 })
 

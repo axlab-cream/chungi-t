@@ -281,7 +281,8 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /\/api\/admin\/v1\/prompts/, '관리자 프롬프트 API 로더가 없다')
       assert.match(text, /loadPopupManager/, '첫 페이지 팝업 관리 로더가 없다')
       assert.match(text, /home\/signup-benefit-popup/, '첫 페이지 팝업의 고정 노출 위치가 없다')
-      assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
+      // 2026-10: PG → '결제사'로 운영자 말을 쓴다. 불확정 환불 상태를 따로 알리는 의도는 그대로다.
+      assert.match(text, /결제사 재확인 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
 
