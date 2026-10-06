@@ -886,7 +886,7 @@
   "copy": {
     "intro": {
       "title": "솔로나라에서\n나는 누구?",
-      "subtitle": "8번의 선택으로 찾는\n나의 솔로나라 이름",
+      "subtitle": "연애 예능에 나간다면\n나는 어떤 캐릭터일까?",
       "cta": "솔로나라 입장하기"
     },
     "genderSelect": {
@@ -926,12 +926,12 @@
     "homeBanner": {
       "eyebrow": "THIS WEEK",
       "headline": "솔로나라에 들어간다면\n나는 누구일까?",
-      "description": "8번의 선택으로 알아보는 나의 솔로 캐릭터",
+      "description": "연애 예능에 나간다면 나는 어떤 캐릭터일까?",
       "cta": "테스트 시작하기"
     },
     "sharePreview": {
       "title": "솔로나라에서 나는 누구? | 운명상회",
-      "description": "8번의 선택으로 찾는 나의 솔로나라 이름. 너는 어떤 이름일까?"
+      "description": "연애 예능에 나간다면 나는 어떤 캐릭터일까? 8번의 선택으로 알아봐!"
     }
   }
 }
