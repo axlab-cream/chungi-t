@@ -96,11 +96,11 @@ test('friend invitation always shares the public test URL and supports copy/manu
 
 test('public link preview declares a real 1200x630 PNG without personal metadata', () => {
   const html = readFileSync(new URL('../../사주/play/love-speed/index.html', import.meta.url), 'utf8')
-  const png = readFileSync(new URL('../../사주/play/love-speed/share-banner-v1.png', import.meta.url))
+  const png = readFileSync(new URL('../../사주/play/love-speed/share-banner-v2.png', import.meta.url))
   assert.equal(png.subarray(1, 4).toString(), 'PNG')
   assert.equal(png.readUInt32BE(16), 1200)
   assert.equal(png.readUInt32BE(20), 630)
-  assert.ok(html.includes('property="og:image" content="https://umsh.kr/play/love-speed/share-banner-v1.png"'))
+  assert.ok(html.includes('property="og:image" content="https://umsh.kr/play/love-speed/share-banner-v2.png"'))
   assert.ok(html.includes('name="twitter:card" content="summary_large_image"'))
   assert.ok(html.includes('property="og:image:alt"'))
 })
