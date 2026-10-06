@@ -216,12 +216,19 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
 
     it('섹션 아래 딥링크가 해당 운영 화면을 선택한다', async () => {
       const { text } = await request('/ops/constellation-7f3c/members/deep/link')
-      const start = text.indexOf('var adminRoutes = {')
+      const start = text.indexOf('var ADMIN_BASE =')
       const end = text.indexOf('function markCurrentRoute()', start)
       assert.ok(start >= 0 && end > start, '딥링크 선택 로직을 찾지 못했다')
-      const resolveCurrentRoute = new Function('window', `${text.slice(start, end)}; return currentAdminRoute;`) as (window: { location: { pathname: string } }) => () => { key: string }
-      const currentRoute = resolveCurrentRoute({ location: { pathname: '/ops/constellation-7f3c/members/deep/link' } })
-      assert.equal(currentRoute().key, 'members')
+      const resolveCurrentRoute = new Function('window', 'history', `${text.slice(start, end)}; return currentAdminRoute;`) as (window: { location: { pathname: string; search: string } }, history: { replaceState(): void }) => () => { key: string; tabIndex: number }
+      const route = (pathname: string) => resolveCurrentRoute({ location: { pathname, search: '' } }, { replaceState() {} })()
+      assert.equal(route('/ops/constellation-7f3c/members/deep/link').key, 'members')
+      // 옛 주소는 새 위치로 연다(docs/admin-ia.md §3).
+      assert.equal(route('/ops/constellation-7f3c/orders').key, 'payments')
+      assert.deepEqual([route('/ops/constellation-7f3c/refunds').key, route('/ops/constellation-7f3c/refunds').tabIndex], ['payments', 1])
+      assert.deepEqual([route('/ops/constellation-7f3c/jobs').key, route('/ops/constellation-7f3c/jobs').tabIndex], ['ai', 1])
+      assert.equal(route('/ops/constellation-7f3c/push').key, 'messages')
+      assert.equal(route('/ops/constellation-7f3c/settings').key, 'admins')
+      assert.equal(route('/ops/constellation-7f3c/audit').key, 'logs')
     })
 
     it('셸이 직원 로그인 폼을 갖고 있다', async () => {
@@ -253,11 +260,12 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
     it('관리자 메뉴는 좌측 LNB와 모든 운영 화면 경로를 제공한다', async () => {
       const { text } = await request('/ops/constellation-7f3c')
       assert.match(text, /position: fixed; inset: 0 auto 0 0/, '좌측 LNB 레이아웃이 없다')
+      // 2026-10 개편: 사이드바는 업무 영역만. 주문·환불·작업 큐 같은 세부 기능은 화면 안 탭으로 간다.
       for (const path of [
-        '/ops/constellation-7f3c/search', '/ops/constellation-7f3c/orders', '/ops/constellation-7f3c/refunds', '/ops/constellation-7f3c/reconciliation',
-        '/ops/constellation-7f3c/members', '/ops/constellation-7f3c/support', '/ops/constellation-7f3c/content', '/ops/constellation-7f3c/popup', '/ops/constellation-7f3c/services', '/ops/constellation-7f3c/media',
-        '/ops/constellation-7f3c/reports', '/ops/constellation-7f3c/jobs', '/ops/constellation-7f3c/corpus', '/ops/constellation-7f3c/prompts', '/ops/constellation-7f3c/evaluations', '/ops/constellation-7f3c/releases',
-        '/ops/constellation-7f3c/analytics', '/ops/constellation-7f3c/logs', '/ops/constellation-7f3c/incidents', '/ops/constellation-7f3c/audit', '/ops/constellation-7f3c/settings',
+        '/ops/constellation-7f3c', '/ops/constellation-7f3c/members', '/ops/constellation-7f3c/support', '/ops/constellation-7f3c/payments',
+        '/ops/constellation-7f3c/services', '/ops/constellation-7f3c/content', '/ops/constellation-7f3c/consultation', '/ops/constellation-7f3c/media',
+        '/ops/constellation-7f3c/reports', '/ops/constellation-7f3c/ai', '/ops/constellation-7f3c/messages', '/ops/constellation-7f3c/popup',
+        '/ops/constellation-7f3c/coupons', '/ops/constellation-7f3c/admins', '/ops/constellation-7f3c/logs',
       ]) {
         assert.ok(text.includes(`href="${path}"`), `${path} 메뉴가 없다`)
       }
@@ -273,7 +281,8 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /\/api\/admin\/v1\/prompts/, '관리자 프롬프트 API 로더가 없다')
       assert.match(text, /loadPopupManager/, '첫 페이지 팝업 관리 로더가 없다')
       assert.match(text, /home\/signup-benefit-popup/, '첫 페이지 팝업의 고정 노출 위치가 없다')
-      assert.match(text, /PG 재조회 필요/, '불확정 환불 상태 안내가 없다')
+      // 2026-10: PG → '결제사'로 운영자 말을 쓴다. 불확정 환불 상태를 따로 알리는 의도는 그대로다.
+      assert.match(text, /결제사 재확인 필요/, '불확정 환불 상태 안내가 없다')
       assert.ok(!text.includes('route-placeholder'), '메뉴가 공용 미구현 안내 화면으로 남아 있다')
     })
 
@@ -354,7 +363,7 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       }
       const { text } = await request('/ops/constellation-7f3c')
       assert.ok(!text.includes('데이터 연동 대기'), '목업 연동 대기 상태가 셸에 남아 있다')
-      assert.match(text, /실제 운영 원천 테이블은 아직 생성되지 않았습니다/, '원천 미생성 상태를 명시하지 않는다')
+      assert.match(text, /이 메뉴는 아직 준비 중입니다\. 임의 수치나 예시 행은 표시하지 않습니다/, '준비 중 상태를 명시하지 않는다')
     })
 
     it('비밀번호 복구 링크는 관리자 설정 화면으로 이어진다', async () => {
@@ -365,10 +374,10 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.match(text, /window\.location\.replace\('\/ops\/constellation-7f3c' \+ window\.location\.search \+ window\.location\.hash\)/, '복구 토큰을 관리자 화면으로 넘기지 않는다')
     })
 
-    it('주문 목록 경로는 로그인 없이 목록을 불러온다', async () => {
+    it('옛 주문 주소도 로그인한 직원에게만 결제 관리로 열린다', async () => {
       const { text } = await request('/ops/constellation-7f3c/orders')
-      assert.match(text, /isPublicOrdersPath/, '공개 주문 목록 경로를 구분하지 않는다')
-      assert.match(text, /startOrders\(null\)/, '공개 목록을 시작하지 않는다')
+      assert.ok(!text.includes('isPublicOrdersPath'), '공개 주문 목록 모드가 남아 있다')
+      assert.match(text, /'\/orders': '\/payments'/, '옛 주문 주소를 결제 관리로 넘기지 않는다')
       assert.match(text, /if \(await checkAuthority\(null\)\) return;/, '로그인된 관리자에게 전체 LNB를 먼저 열지 않는다')
     })
 

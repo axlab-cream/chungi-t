@@ -96,6 +96,35 @@ export async function approveRefundRequest(input: { refundId: string, actorEmail
   testRequests.set(mapKey, next); return { ...next }
 }
 
+/**
+ * 환불 요청 반려(2026-10 관리자 개편). 아직 승인 전(requested)이고 버전이 맞을 때만 rejected 로 닫는다.
+ * 처리한 관리자는 approved_by_email 칸에 남긴다(화면에서는 "처리자"). 누가 왜 했는지는 감사 기록이 정본이다.
+ */
+export async function rejectRefundRequest(input: { refundId: string, actorEmail: string, expectedRevision: number }): Promise<RefundRequest> {
+  if (!input.refundId || !/^\S+@\S+\.\S+$/.test(input.actorEmail) || !Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) throw new Error('REFUND_INPUT_INVALID')
+  const actorEmail = input.actorEmail.trim().toLowerCase()
+  const now = new Date().toISOString()
+  if (base && key) {
+    const params = new URLSearchParams({ id: `eq.${input.refundId}`, state: 'eq.requested', revision: `eq.${input.expectedRevision}`, select: refundColumns })
+    const response = await fetch(`${base}/rest/v1/refund_requests?${params.toString()}`, { method: 'PATCH', headers: { ...headers(), prefer: 'return=representation' }, body: JSON.stringify({ state: 'rejected', approved_by_email: actorEmail, revision: input.expectedRevision + 1, updated_at: now }) })
+    if (!response.ok) throw refundFailure(await response.text(), 'REFUND_REJECT_FAILED')
+    const rows = await response.json() as Record<string, unknown>[]
+    if (!rows.length) {
+      const current = await getRefundRequest(input.refundId)
+      if (!current) throw new Error('REFUND_NOT_FOUND')
+      throw new Error(current.state !== 'requested' ? 'REFUND_NOT_REQUESTED' : 'REFUND_REVISION_CONFLICT')
+    }
+    return fromRow(rows[0])
+  }
+  if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
+  const found = Array.from(testRequests.entries()).find(([, value]) => value.id === input.refundId)
+  if (!found) throw new Error('REFUND_NOT_FOUND'); const [mapKey, current] = found
+  if (current.state !== 'requested') throw new Error('REFUND_NOT_REQUESTED')
+  if (current.revision !== input.expectedRevision) throw new Error('REFUND_REVISION_CONFLICT')
+  const next = { ...current, state: 'rejected' as const, approvedByEmail: actorEmail, updatedAt: now, revision: current.revision + 1 }
+  testRequests.set(mapKey, next); return { ...next }
+}
+
 export async function listRefundRequests(limit = 100): Promise<RefundRequest[]> {
   const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 200) : 100
   if (base && key) {

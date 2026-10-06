@@ -41,7 +41,7 @@ const html = readFileSync(new URL('../../admin-ui/index.html', import.meta.url),
 const source = html.slice(html.indexOf('async function loadCouponManager(body)'), html.indexOf('async function loadConsultationManager(body)'))
 async function harness(fail = false) {
   const calls: any[] = []; let seq = 0
-  const ctx = vm.createContext({document:{createElement:(tag:string)=>new Element(tag)},crypto:{randomUUID:()=>`synthetic-${++seq}`},window:{confirm:()=>true},navigator:{clipboard:{writeText:async()=>{}}},fetch:async(url:string,init:any)=>{
+  const ctx = vm.createContext({document:{createElement:(tag:string)=>new Element(tag)},crypto:{randomUUID:()=>`synthetic-${++seq}`},window:{confirm:()=>true},adminConfirm:async()=>true,adminToast:()=>{},adminPageAction:()=>null,navigator:{clipboard:{writeText:async()=>{}}},fetch:async(url:string,init:any)=>{
     calls.push({url,...init}); if(init.method==='GET')return {ok:true,json:async()=>({items:[],products:[{key:'cmdg',title:'천명사주'}]})}
     return {ok:!fail,status:fail?503:201,json:async()=>({item:{}})}
   }})

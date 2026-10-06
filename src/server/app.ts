@@ -63,7 +63,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveMembers, listLiveReports, listMemberPurchases, listQualityReviews, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, searchLiveReports, generationFailureStats, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
@@ -77,7 +77,7 @@ import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, de
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
-import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
@@ -107,7 +107,7 @@ import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { backfillReportCompletions, describeReportCompletion, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner, restartReportCompletion } from '../report/report-completion-job.js'
 import { backfillCmdgServiceKeyIfMatching } from '../report/report-data-repair.js'
-import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests } from '../payment/refund-store.js'
+import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests, rejectRefundRequest } from '../payment/refund-store.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -2532,6 +2532,16 @@ app.get('/api/admin/v1/media', async (req, res) => {
  * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도
  * 기록(attempts[])에서 실패한 시도만 뽑아 시간순으로 모은다.
  */
+/** AI 운영 › 실패 현황(2026-10 5단계). 기간 안의 시도 수·실패 수·유형별·서비스별·날짜별. */
+app.get('/api/admin/v1/ai/failures', async (req, res) => {
+  if (!await requireStaff(req, res, 'reports:read')) return
+  try {
+    res.json({ ...(await generationFailureStats(Number(req.query?.days ?? 7))), asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'GENERATION_LOG_LOOKUP_FAILED', error: 'AI 실패 현황을 불러오지 못했습니다.' })
+  }
+})
+
 app.get('/api/admin/v1/logs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
@@ -2857,12 +2867,10 @@ app.post('/api/admin/v1/prompts/content/:contentType/:contentKey/publish', async
   } catch (error) { respondPromptContentFailure(res, error, 'PROMPT_CONTENT_PUBLISH_FAILED') }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
-  // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
-  // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.
-  // 공개 목록은 마스킹된 DTO만 반환하므로 짧은 edge cache를 허용한다. 반복 원격 저장소
-  // 조회를 줄이되, 주문 상태가 오래 보이지 않도록 10초 뒤에는 반드시 재검증한다.
-  res.removeHeader('Vary')
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=10, stale-while-revalidate=30')
+  // 2026-09-11 운영 요청으로 목록을 로그인 없이 공개했으나, 마스킹돼도 회원 고유번호·리포트 번호·
+  // 구매 상품·금액이 커서를 따라 전부 나갔다. 2026-10-06 사용자 결정으로 다시 직원 전용으로 닫는다.
+  // 공개 캐시도 함께 없앤다(/api 공통 미들웨어의 private, no-store 를 그대로 쓴다).
+  if (!await requireStaff(req, res, 'orders:read')) return
   const window = parseAdminWindow(req)
   if (window === 'invalid') {
     res.status(400).json({ code: 'INVALID_WINDOW', error: '조회 기간 형식을 확인해 주세요.' })
@@ -2925,16 +2933,16 @@ const REFUND_FAILURES: Record<string, { status: number; error: string }> = {
   REFUND_SELF_APPROVAL_FORBIDDEN: { status: 403, error: '요청자는 자신의 환불 요청을 승인할 수 없습니다. 다른 관리자가 승인해야 합니다.' },
   REFUND_REVISION_CONFLICT: { status: 409, error: '이 환불 요청이 그사이 변경되었습니다. 목록을 다시 불러온 뒤 확인해 주세요.' },
   REFUND_ORDER_REVISION_CONFLICT: { status: 409, error: '주문이 그사이 변경되었습니다. 주문을 다시 확인한 뒤 요청해 주세요.' },
-  REFUND_NOT_REQUESTED: { status: 409, error: '이미 처리된 요청입니다. PG 결과를 먼저 조회·대사해 주세요.' },
+  REFUND_NOT_REQUESTED: { status: 409, error: '이미 승인·반려된 요청입니다. 목록을 다시 불러와 상태를 확인해 주세요.' },
   REFUND_NOT_FOUND: { status: 404, error: '환불 요청을 찾지 못했습니다.' },
   REFUND_ORDER_NOT_FOUND: { status: 404, error: '주문을 찾지 못했습니다.' },
   REFUND_ORDER_NOT_REFUNDABLE: { status: 409, error: '결제 완료 상태의 주문만 환불을 요청할 수 있습니다.' },
   REFUND_AMOUNT_EXCEEDS_REMAINING: { status: 409, error: '이미 잡혀 있는 환불 요청까지 더하면 주문 금액을 넘습니다.' },
-  REFUND_IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
-  IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 멱등 키로 다른 내용이 이미 저장되어 있습니다. 새 키로 다시 요청해 주세요.' },
+  REFUND_IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 요청이 다른 내용으로 이미 저장되어 있습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.' },
+  IDEMPOTENCY_CONFLICT: { status: 409, error: '같은 작업이 다른 내용으로 이미 처리되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.' },
   IDEMPOTENCY_IN_PROGRESS: { status: 409, error: '같은 요청이 아직 처리 중입니다. 결과를 확인한 뒤 다시 시도해 주세요.' },
   REFUND_INPUT_INVALID: { status: 422, error: '요청 값을 확인해 주세요.' },
-  REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 저장소에 연결하지 못했습니다. 임의로 처리하지 않았습니다.' },
+  REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 기록을 불러오지 못했습니다. 아무것도 처리하지 않았습니다.' },
 }
 
 function respondRefundFailure(res: Response, error: unknown, fallback: string): void {
@@ -2991,6 +2999,69 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
   } catch (error) { respondRefundFailure(res, error, 'REFUND_APPROVE_FAILED') }
 })
 
+/** 환불 요청 반려(2026-10). 승인 전 요청만, 버전이 맞을 때만. 결제사 환불은 일어나지 않는다. */
+app.post('/api/admin/v1/refunds/:refundId/reject', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:approve'); if (!membership) return
+  const refundId = trimmedString(req.params.refundId); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!refundId || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_REJECT', error: '반려할 요청과 버전을 확인해 주세요.' }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.reject', idempotencyKey, body: { refundId, expectedRevision }, target: { type: 'refund_request', id: refundId } }, async () => rejectRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
+    res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_REJECT_FAILED') }
+})
+
+/**
+ * 결제 관리 › 매출(2026-10). 결제 완료(paid·viewed) 주문과 승인 이후 환불을 기간별로 모은다.
+ * 결제일은 주문이 만들어진 시각(KST) 기준이다. 결제사·구글 수수료는 데이터가 없어 넣지 않는다.
+ */
+app.get('/api/admin/v1/payments/revenue', async (req, res) => {
+  if (!await requireStaff(req, res, 'orders:read')) return
+  const from = trimmedString(req.query?.from); const to = trimmedString(req.query?.to)
+  const fromMs = from ? Date.parse(from) : Date.now() - 30 * 86_400_000
+  const toMs = to ? Date.parse(to) : Date.now() + 60_000
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs || toMs - fromMs > 400 * 86_400_000) { res.status(422).json({ code: 'INVALID_REVENUE_WINDOW', error: '기간을 확인해 주세요(최대 400일).' }); return }
+  try {
+    const orders: PaymentOrder[] = []
+    let cursor: string | undefined
+    for (let page = 0; page < 100; page += 1) {
+      const result = await listAllPaymentOrders({ limit: 100, cursor, from: new Date(fromMs).toISOString() })
+      orders.push(...result.orders)
+      if (!result.nextCursor) break
+      cursor = result.nextCursor
+    }
+    const kstDay = (iso: string) => new Date(Date.parse(iso) + 9 * 3_600_000).toISOString().slice(0, 10)
+    const paid = orders.filter((order) => (order.status === 'paid' || order.status === 'viewed') && Date.parse(order.createdAt) >= fromMs && Date.parse(order.createdAt) < toMs)
+    const refunds = (await listRefundRequests(200)).filter((refund) => ['approved', 'processing', 'succeeded'].includes(refund.state) && Date.parse(refund.updatedAt) >= fromMs && Date.parse(refund.updatedAt) < toMs)
+    const bucket = () => new Map<string, { key: string; paidAmount: number; paidCount: number; refundAmount: number }>()
+    const groups = { day: bucket(), month: bucket(), service: bucket(), method: bucket() }
+    const add = (map: ReturnType<typeof bucket>, key: string, paidAmount: number, refundAmount: number) => {
+      const row = map.get(key) ?? { key, paidAmount: 0, paidCount: 0, refundAmount: 0 }
+      row.paidAmount += paidAmount; row.paidCount += paidAmount ? 1 : 0; row.refundAmount += refundAmount; map.set(key, row)
+    }
+    const byId = new Map(orders.map((order) => [order.orderId, order]))
+    for (const order of paid) {
+      const day = kstDay(order.createdAt)
+      add(groups.day, day, order.amount, 0); add(groups.month, day.slice(0, 7), order.amount, 0)
+      add(groups.service, order.productTitle || order.productKey, order.amount, 0); add(groups.method, order.payMethod || '기타', order.amount, 0)
+    }
+    for (const refund of refunds) {
+      const day = kstDay(refund.updatedAt); const order = byId.get(refund.orderId)
+      add(groups.day, day, 0, refund.amount); add(groups.month, day.slice(0, 7), 0, refund.amount)
+      add(groups.service, order ? (order.productTitle || order.productKey) : '확인 필요', 0, refund.amount); add(groups.method, order?.payMethod || '기타', 0, refund.amount)
+    }
+    const rows = (map: ReturnType<typeof bucket>) => [...map.values()].map((row) => ({ ...row, netAmount: row.paidAmount - row.refundAmount })).sort((a, b) => b.key.localeCompare(a.key))
+    const paidAmount = paid.reduce((sum, order) => sum + order.amount, 0); const refundAmount = refunds.reduce((sum, refund) => sum + refund.amount, 0)
+    res.json({
+      from: new Date(fromMs).toISOString(), to: new Date(toMs).toISOString(),
+      totals: { paidAmount, paidCount: paid.length, refundAmount, refundCount: refunds.length, netAmount: paidAmount - refundAmount },
+      byDay: rows(groups.day), byMonth: rows(groups.month), byService: rows(groups.service).sort((a, b) => b.paidAmount - a.paidAmount), byMethod: rows(groups.method).sort((a, b) => b.paidAmount - a.paidAmount),
+      asOf: new Date().toISOString(),
+    })
+  } catch {
+    res.status(503).json({ code: 'REVENUE_LOOKUP_FAILED', error: '매출을 집계하지 못했습니다.' })
+  }
+})
+
 /**
  * 2026-09-19: 가입·최종 방문·SNS·구매 요약까지 목록에 그대로 보여 달라는 요청으로
  * 행마다 외부 호출이 붙는다(listLiveMembers 주석 참고) — 그래서 페이지당 20건으로 자르고
@@ -3000,8 +3071,14 @@ app.get('/api/admin/v1/members', async (req, res) => {
   if (!await requireStaff(req, res, 'members:read')) return
   const limit = Number(req.query?.limit ?? 20)
   const offset = Number(req.query?.offset ?? 0)
+  // 2026-10(4단계): 이름·회원 번호 검색, 결제 여부, 가입일, 정렬. 거른 결과의 전체 수를 함께 준다.
+  const q = trimmedString(req.query?.q)
+  const paid = req.query?.paid === 'yes' || req.query?.paid === 'no' ? req.query.paid : undefined
+  const sort = req.query?.sort === 'joined' || req.query?.sort === 'name' ? req.query.sort : 'recent'
+  const from = trimmedString(req.query?.from) || undefined
+  const to = trimmedString(req.query?.to) || undefined
   try {
-    const [members, total] = await Promise.all([listLiveMembers(limit, offset), countLiveMembers()])
+    const { members, total } = await searchLiveMembers({ q, paid, from, to, sort, limit, offset })
     res.json({ members, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
@@ -3040,6 +3117,35 @@ app.get('/api/admin/v1/members/:id/purchases', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'MEMBER_PURCHASES_LOOKUP_FAILED', error: '구매 내역을 불러오지 못했습니다.' })
   }
+})
+
+/**
+ * 2026-10(4단계): 회원 상세 팝업의 탭(결제·리포트·문의·쿠폰·앱 기기)을 한 번에 채운다.
+ * 한 곳이 실패해도 나머지는 보여 주도록 부분마다 따로 받고, 실패한 부분은 errors 에 이름만 싣는다.
+ */
+app.get('/api/admin/v1/members/:id/overview', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  const userId = trimmedString(req.params.id).toLowerCase()
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(userId)) { res.status(422).json({ code: 'INVALID_MEMBER_ID', error: '회원 번호를 확인해 주세요.' }); return }
+  const parts = {
+    member: getAdminMemberDetail(userId),
+    purchases: listMemberPurchases(userId),
+    reports: listMemberReports(userId),
+    support: listSupportCasesForMember(userId),
+    coupons: listWallet(userId),
+    devices: Promise.resolve().then(() => pushStore().listUserDevices(userId)),
+  }
+  const names = Object.keys(parts) as Array<keyof typeof parts>
+  const settled = await Promise.allSettled(names.map((name) => parts[name]))
+  const result: Record<string, unknown> = {}
+  const errors: string[] = []
+  settled.forEach((outcome, index) => {
+    if (outcome.status === 'fulfilled') result[names[index]] = outcome.value
+    else { result[names[index]] = null; errors.push(names[index]) }
+  })
+  if (errors.includes('member')) { res.status(503).json({ code: 'MEMBER_PROFILE_LOOKUP_FAILED', error: '회원 정보를 불러오지 못했습니다.' }); return }
+  if (!result.member) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '해당 회원을 찾지 못했습니다.' }); return }
+  res.json({ ...result, errors, asOf: new Date().toISOString() })
 })
 
 const MEMBER_PROFILE_FAILURES: Record<string, { status: number; error: string }> = {
@@ -3212,17 +3318,24 @@ app.post('/api/admin/v1/reports/:id/backfill-service-key', async (req, res) => {
 })
 
 app.post('/api/admin/v1/reports/requeue-incomplete', async (req, res) => {
-  if (!await requireStaff(req, res, 'reports:read')) return
+  // 작업 큐에 쓰는 동작이라 읽기 권한이 아니라 쓰기 권한을 요구하고, 누가 눌렀는지 남긴다.
+  const membership = await requireStaff(req, res, 'reports:write'); if (!membership) return
   try {
-    res.json({ ...await backfillReportCompletions(Number(req.body?.limit ?? 200)), asOf: new Date().toISOString() })
+    const outcome = await backfillReportCompletions(Number(req.body?.limit ?? 200))
+    await postgrestAdminCommandStore().appendAuditEvent({ actorEmail: membership.email, action: 'report.generation.requeue_incomplete', target: { type: 'report_queue', id: 'incomplete' }, result: 'succeeded' }).catch(() => undefined)
+    res.json({ ...outcome, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'REPORT_REQUEUE_FAILED', error: '미완성 리포트를 큐에 넣지 못했습니다.' })
   }
 })
 app.get('/api/admin/v1/reports', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
+  // 2026-10(5단계): 실제 생성 상태·검색·만든 날로 서버에서 거르고, 거른 결과의 전체 수로 페이지를 나눈다.
+  const limit = Number(req.query?.limit ?? 50)
+  const offset = Number(req.query?.offset ?? 0)
   try {
-    res.json({ reports: await listLiveReports(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+    const { reports, total } = await searchLiveReports({ status: trimmedString(req.query?.status), q: trimmedString(req.query?.q), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, limit, offset })
+    res.json({ reports, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_REPORT_LOOKUP_FAILED', error: '실제 리포트 저장소를 불러오지 못했습니다.' })
   }

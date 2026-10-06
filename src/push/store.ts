@@ -14,6 +14,8 @@ export interface TargetDevice { id: string; userId: string | null }
 export interface PendingDelivery { id: string; deviceId: string | null; userId: string | null; attempts: number; token: string | null; active: boolean }
 export interface DeliveryUpdate { status: 'pending' | 'sent' | 'failed'; attempts: number; errorCode?: string | null; errorMessage?: string | null; sentAt?: string | null }
 export interface PushUserMatch { userId: string; name: string; createdAt: string; deviceCount: number }
+/** 회원 상세 › 앱 기기 탭. 토큰은 싣지 않는다. */
+export interface PushUserDevice { id: string; platform: string; appVersion: string | null; deviceName: string | null; isActive: boolean; deactivatedReason: string | null; lastActiveAt: string; createdAt: string }
 
 export interface PushStore {
   upsertDevice(input: PushDeviceInput): Promise<{ id: string }>
@@ -37,6 +39,14 @@ export interface PushStore {
   recordOpen(notificationId: string, deliveryId: string): Promise<boolean>
   searchUsers(query: string): Promise<PushUserMatch[]>
   pruneDeliveries(before: Date): Promise<void>
+  /**
+   * 실패분 재발송. 아직 살아 있는(is_active) 기기의 실패 기록만 대기로 되돌리고, 발송 건을 지금 시각
+   * 예약으로 다시 연다. 앱을 지워 비활성화된 기기는 다시 보내도 실패하므로 건드리지 않는다.
+   * 되돌린 기기 수를 돌려준다(0 이면 발송 건도 다시 열지 않는다).
+   */
+  reopenFailedDeliveries(id: string): Promise<number>
+  /** 회원 한 명에게 연결된 기기(비활성 포함, 최근 활동 순). */
+  listUserDevices(userId: string): Promise<PushUserDevice[]>
 }
 
 type Row = Record<string, unknown>
@@ -297,6 +307,33 @@ export function restPushStore(): PushStore {
       const url = table('push_delivery_logs'); url.searchParams.set('created_at', `lt.${before.toISOString()}`)
       await call(url, { method: 'DELETE', headers: { prefer: 'return=minimal' } })
     },
+    async reopenFailedDeliveries(id) {
+      if (!isUuid(id)) return 0
+      const failed = table('push_delivery_logs')
+      failed.searchParams.set('push_notification_id', `eq.${id}`); failed.searchParams.set('status', 'eq.failed')
+      failed.searchParams.set('select', 'id,push_devices!inner(is_active)'); failed.searchParams.set('push_devices.is_active', 'eq.true')
+      failed.searchParams.set('limit', '20000')
+      const ids = (await rows(failed)).map((row) => String(row.id))
+      if (!ids.length) return 0
+      for (let i = 0; i < ids.length; i += 200) {
+        const url = table('push_delivery_logs'); url.searchParams.set('id', `in.(${ids.slice(i, i + 200).join(',')})`)
+        await call(url, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify({ status: 'pending', attempts: 0, error_code: null, error_message: null, sent_at: null }) })
+      }
+      const now = new Date().toISOString()
+      const note = table('push_notifications'); note.searchParams.set('id', `eq.${id}`); note.searchParams.set('status', 'in.(sent,failed)')
+      await call(note, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify({ status: 'scheduled', scheduled_at: now, sent_at: null, lease_until: null, last_error: null, updated_at: now }) })
+      return ids.length
+    },
+    async listUserDevices(userId) {
+      if (!isUuid(userId)) return []
+      const url = table('push_devices')
+      url.searchParams.set('select', 'id,platform,app_version,device_name,is_active,deactivated_reason,last_active_at,created_at')
+      url.searchParams.set('user_id', `eq.${userId.toLowerCase()}`); url.searchParams.set('order', 'last_active_at.desc'); url.searchParams.set('limit', '20')
+      return (await rows(url)).map((row) => ({
+        id: String(row.id), platform: String(row.platform ?? ''), appVersion: str(row.app_version), deviceName: str(row.device_name),
+        isActive: row.is_active === true, deactivatedReason: str(row.deactivated_reason), lastActiveAt: String(row.last_active_at ?? ''), createdAt: String(row.created_at ?? ''),
+      }))
+    },
   }
 }
 
@@ -418,6 +455,20 @@ export function createMemoryPushStore(state: MemoryPushState = { devices: [], no
         .map((profile) => ({ ...profile, deviceCount: state.devices.filter((device) => device.isActive && device.userId === profile.userId).length }))
     },
     async pruneDeliveries(before) { state.deliveries = state.deliveries.filter((row) => row.createdAt >= before.toISOString()) },
+    async reopenFailedDeliveries(id) {
+      const item = find(id)
+      if (!item || !['sent', 'failed'].includes(item.status)) return 0
+      const rows = state.deliveries.filter((row) => row.notificationId === id && row.status === 'failed' && state.devices.some((device) => device.id === row.deviceId && device.isActive))
+      rows.forEach((row) => Object.assign(row, { status: 'pending', attempts: 0, errorCode: null, errorMessage: null, sentAt: null }))
+      if (rows.length) Object.assign(item, { status: 'scheduled', scheduledAt: new Date().toISOString(), sentAt: null, leaseUntil: null, lastError: null })
+      return rows.length
+    },
+    async listUserDevices(userId) {
+      return state.devices
+        .filter((device) => device.userId === userId)
+        .sort((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt))
+        .map((device) => ({ id: device.id, platform: device.platform, appVersion: null, deviceName: null, isActive: device.isActive, deactivatedReason: device.reason, lastActiveAt: device.lastActiveAt, createdAt: device.createdAt }))
+    },
   }
 }
 

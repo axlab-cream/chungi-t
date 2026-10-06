@@ -186,3 +186,37 @@ test('routes: guest registration, safe open redirect with click count, admin sco
     }
   } finally { server.close() }
 })
+
+test('resend-failed retries only live devices, then the push finishes again', async () => {
+  const store = createMemoryPushStore()
+  const live = await store.upsertDevice({ token: TOKEN_A, platform: 'android', appVersion: null, deviceName: null, userId: null })
+  await store.upsertDevice({ token: TOKEN_B, platform: 'android', appVersion: null, deviceName: null, userId: null })
+  const push = await store.createNotification(parseDraft({ title: 't', body: 'b', target: { type: 'all' }, schedule: { mode: 'now' } }), 'ops@example.invalid')
+  // A 는 일시 오류 3회로 실패, B 는 앱 삭제로 영구 실패.
+  let attempt = 0
+  const flaky = async (message: FcmMessage): Promise<FcmResult> => message.token === TOKEN_B
+    ? { ok: false, kind: 'permanent', code: 'UNREGISTERED', message: '' }
+    : (++attempt, { ok: false, kind: 'rejected', code: 'INVALID_ARGUMENT', message: 'payload' })
+  await runPushDispatcher({ store, send: flaky, accessToken: async () => 't' }, 60_000)
+  assert.equal((await store.getNotification(push.id))?.status, 'failed')
+  assert.equal(await store.reopenFailedDeliveries(push.id), 1, 'only the device that is still active comes back')
+  const sent: string[] = []
+  await runPushDispatcher({ store, send: async (message) => { sent.push(message.token); return { ok: true, messageId: 'm' } }, accessToken: async () => 't' }, 60_000)
+  assert.deepEqual(sent, [TOKEN_A])
+  const after = await store.getNotification(push.id)
+  assert.equal(after?.status, 'sent')
+  assert.deepEqual([after?.successCount, after?.failureCount], [1, 1])
+  assert.equal(await store.reopenFailedDeliveries(push.id), 0, 'the dead device is never retried')
+  assert.ok(store.state.devices.some((device) => device.id === live.id && device.isActive))
+})
+
+test('member devices: only that member, newest activity first, no token in the result', async () => {
+  const store = seeded()
+  await store.upsertDevice({ token: TOKEN_A, platform: 'android', appVersion: null, deviceName: null, userId: USER })
+  await store.upsertDevice({ token: TOKEN_B, platform: 'ios', appVersion: null, deviceName: null, userId: null })
+  const devices = await store.listUserDevices(USER)
+  assert.equal(devices.length, 1)
+  assert.equal(devices[0].platform, 'android')
+  assert.equal(devices[0].isActive, true)
+  assert.ok(!JSON.stringify(devices).includes(TOKEN_A), '기기 토큰이 응답에 실리면 안 된다')
+})

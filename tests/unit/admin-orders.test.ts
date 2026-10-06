@@ -89,11 +89,12 @@ after(async () => {
 
 describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
   describe('보안', () => {
-    it('공개 주문 목록은 로그인 없이 마스킹된 정보만 연다', async () => {
+    it('주문 목록은 로그인 없이는 열리지 않는다 (2026-10-06 공개 종료)', async () => {
+      // 마스킹돼도 회원 고유번호·리포트 번호·구매 상품·금액이 커서를 따라 전부 나갔다.
       const { response, payload } = await request('/api/admin/v1/orders')
-      assert.equal(response.status, 200)
-      assert.ok(Array.isArray(payload.orders))
-      assert.ok(!JSON.stringify(payload).includes('hong.gildong@synthetic.invalid'))
+      assert.equal(response.status, 401)
+      assert.equal(payload.code, 'AUTH_REQUIRED')
+      assert.equal(payload.orders, undefined)
     })
 
     it('주문 상세는 로그인 없이는 열리지 않는다', async () => {
@@ -123,10 +124,10 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       assert.equal(payload.order.buyerTelMasked, '***-****-5678')
     })
 
-    it('공개 목록은 짧은 edge cache로 반복 저장소 조회를 줄인다', async () => {
-      const { response } = await request('/api/admin/v1/orders')
-      assert.match(response.headers.get('cache-control') ?? '', /s-maxage=10/)
-      assert.doesNotMatch(response.headers.get('vary') ?? '', /Authorization/i)
+    it('주문 목록은 공유 캐시에 남지 않는다', async () => {
+      const { response } = await request('/api/admin/v1/orders', 'staff')
+      assert.match(response.headers.get('cache-control') ?? '', /private, no-store/)
+      assert.doesNotMatch(response.headers.get('cache-control') ?? '', /s-maxage/)
     })
   })
 
@@ -287,12 +288,12 @@ describe('관리자 주문 화면 (T09)', () => {
       assert.ok(shell.includes('class="admin-amount"'))
     })
 
-    it('공개 경로와 인증된 관리자 경로가 각각 주문을 요청한다', () => {
-      // 셸은 데이터를 갖고 있지 않다. 공개 `/admin/orders`는 무인증으로,
-      // 나머지 관리자 경로는 orders:read scope가 있을 때만 조회한다.
-      assert.match(shell, /indexOf\('orders:read'\) >= 0\) startOrders/)
-      assert.match(shell, /isPublicOrdersPath\(\)/)
-      assert.match(shell, /startOrders\(null\)/)
+    it('결제 내역은 권한 확인 뒤 작업 영역 안에서만 주문을 요청한다', () => {
+      // 셸은 데이터를 갖고 있지 않다. 공개 주문 모드는 없어졌고, orders:read 가 있을 때만 조회한다.
+      const tab = shell.slice(shell.indexOf('async function loadPaymentsHistory'), shell.indexOf('async function openRefundDetail'))
+      assert.match(tab, /indexOf\('orders:read'\) < 0\)/)
+      assert.match(tab, /adminJson\('\/api\/admin\/v1\/orders\?' \+ params\.toString\(\)\)/)
+      assert.ok(!shell.includes('isPublicOrdersPath'), '공개 주문 목록 모드가 남아 있다')
     })
 
     it('셸에 고객 데이터가 인라인되지 않는다', () => {
@@ -300,5 +301,27 @@ describe('관리자 주문 화면 (T09)', () => {
       assert.ok(!shell.includes('@synthetic.invalid'), '픽스처 이메일이 셸에 들어갔다')
       assert.ok(!/010-\d{4}-\d{4}/.test(shell), '전화번호 형태가 셸에 들어갔다')
     })
+  })
+})
+
+describe('결제 관리 › 매출 집계 (2026-10)', { concurrency: false }, () => {
+  it('로그인 없이는 열리지 않는다', async () => {
+    const { response, payload } = await request('/api/admin/v1/payments/revenue')
+    assert.equal(response.status, 401)
+    assert.equal(payload.totals, undefined)
+  })
+
+  it('결제 완료 주문만 결제일(KST) 기준으로 모은다', async () => {
+    const { response, payload } = await request('/api/admin/v1/payments/revenue?from=2026-08-31T15:00:00.000Z&to=2026-09-02T15:00:00.000Z', 'staff')
+    assert.equal(response.status, 200)
+    // 같은 날 만든 주문 6건 중 결제 완료(paid)는 1건뿐이다. 대기·승인 중은 매출이 아니다.
+    assert.deepEqual(payload.totals, { paidAmount: 24900, paidCount: 1, refundAmount: 0, refundCount: 0, netAmount: 24900 })
+    assert.deepEqual(payload.byDay.map((row: { key: string }) => row.key), ['2026-09-01'])
+    assert.equal(payload.byService[0].key, '결혼 택일')
+  })
+
+  it('기간이 뒤집히거나 너무 길면 거절한다', async () => {
+    const { response } = await request('/api/admin/v1/payments/revenue?from=2026-09-02T00:00:00.000Z&to=2026-09-01T00:00:00.000Z', 'staff')
+    assert.equal(response.status, 422)
   })
 })

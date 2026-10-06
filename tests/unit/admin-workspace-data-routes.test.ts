@@ -14,27 +14,31 @@ const source = readFileSync(new URL('../../admin-ui/index.html', import.meta.url
 test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그를 각각의 실제 로더로 연결한다', () => {
   // 고정 글자 수로 자르면 분기가 하나 늘 때마다 안내 문구가 범위 밖으로 밀려 실패한다(2026-10-02 푸시 분기 추가).
   // 함수 시작부터 마지막 안내 문구까지를 본다 — 검사 내용은 그대로다.
-  const start = source.indexOf('function renderWorkspace')
-  const body = source.slice(start, source.indexOf('아직 생성되지 않았습니다', start) + 40)
-  assert.match(body, /if \(route\.key === 'analytics'\) \{ loadFunnelAnalytics\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'releases'\) \{ loadReleaseInfo\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'evaluations'\) \{ loadQualityEvaluations\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'media'\) \{ loadMediaCatalog\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'incidents'\) \{ loadIncidents\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'logs'\) \{ loadGenerationLog\(body\); return; \}/)
-  // 여섯 분기 모두 "아직 생성되지 않았습니다" 안내보다 앞에 있어야 실제로 도달한다.
-  const fallbackAt = body.indexOf('아직 생성되지 않았습니다')
-  for (const key of ['analytics', 'releases', 'evaluations', 'media', 'incidents', 'logs']) {
-    const at = body.indexOf(`route.key === '${key}'`)
-    assert.ok(at >= 0 && at < fallbackAt, `${key} 분기가 없거나 안내 뒤에 있다`)
+  // 2026-10 개편: 화면 연결은 renderWorkspace 의 if 분기가 아니라 라우트 표(ADMIN_ROUTE_LIST)의 load 가 맡는다.
+  // 메뉴(탭)마다 실제 로더가 달려 있어야 "준비 중" 안내로 떨어지지 않는다.
+  const table = source.slice(source.indexOf('var ADMIN_ROUTE_LIST = ['), source.indexOf('var ADMIN_ROUTE_ALIASES'))
+  for (const [label, loader] of [['방문 · 전환', 'loadFunnelAnalytics'], ['배포 정보', 'loadReleaseInfo'], ['품질 점검', 'loadQualityEvaluations'], ['장애 기록', 'loadIncidents'], ['실패 현황', 'loadAiFailures']]) {
+    assert.match(table, new RegExp(`label: '${label}', load: function \\(body\\) \\{ ${loader}\\(body\\); \\}`), `${label} 탭이 ${loader} 로 연결되지 않는다`)
   }
+  assert.match(table, /key: 'media'[^\n]*load: function \(body\) \{ loadMediaCatalog\(body\); \}/)
+  const render = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('var ORDER_STATUS = {'))
+  assert.match(render, /def\.tabs\[route\.tabIndex\]\.load\(panel\)/)
+  assert.match(render, /if \(!def\.tabs\) \{ def\.load\(body\); return; \}/)
 })
 
-test('loadGenerationLog 는 실제 로그 엔드포인트를 부르고, 실패 사유를 시간순으로 싣는다', () => {
-  const body = source.slice(source.indexOf('async function loadGenerationLog'), source.indexOf('async function loadGenerationLog') + 900)
-  assert.match(body, /fetch\('\/api\/admin\/v1\/logs'/)
-  assert.match(body, /payload\.failures/)
-  assert.match(body, /item\.errorSummary/)
+test('loadAiFailures 는 실패 현황 집계를 부르고, 실패 행에서 리포트 상세로 이어진다', () => {
+  const body = source.slice(source.indexOf('async function loadAiFailures'), source.indexOf('async function renderReportDiagnostics'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/ai\/failures\?days=' \+ state\.days/)
+  assert.match(body, /data\.byType/)
+  assert.match(body, /renderReportDiagnostics\(document\.body, row\.reportId\)/)
+})
+
+test('리포트 목록은 실제 생성 상태로 거르고, 행에서 리포트 상세를 연다', () => {
+  const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadAiFailures'))
+  assert.match(body, /fetch\('\/api\/admin\/v1\/reports\?' \+ params\.toString\(\)/)
+  assert.match(body, /params\.set\('status', reportListState\.status\)/)
+  assert.match(body, /renderReportDiagnostics\(document\.body, item\.id, item\)/)
+  assert.doesNotMatch(body, /admin_status/)
 })
 
 test('loadIncidents 는 실제 장애 엔드포인트를 부르고, 등록 폼을 함께 그린다', () => {
@@ -148,7 +152,7 @@ test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고,
   assert.match(body, /publishArea\.hidden = true;/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/draft'/)
   assert.match(body, /publishArea\.hidden = false;/)
-  assert.match(body, /window\.confirm\('이 초안을 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 바로 반영됩니다/)
+  assert.match(body, /await adminConfirm\('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/prompts\/content\/' \+ encodeURIComponent\(item\.contentType\) \+ '\/' \+ encodeURIComponent\(item\.contentKey\) \+ '\/publish'/)
 })
 
@@ -157,13 +161,14 @@ test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고,
  * 않았습니다" 안내로 떨어졌다 — 화면이 비어 보인다는 사용자 보고로 발견.
  */
 test('renderWorkspace 는 콘텐츠 메뉴를 loadLiveContent 로 연결한다', () => {
-  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 2200)
-  assert.match(body, /if \(route\.key === 'content'\) \{ loadLiveContent\(body\); return; \}/)
+  const table = source.slice(source.indexOf('var ADMIN_ROUTE_LIST = ['), source.indexOf('var ADMIN_ROUTE_ALIASES'))
+  assert.match(table, /key: 'content'[^\n]*load: function \(body\) \{ loadLiveContent\(body\); \}/)
 })
 
 test('loadLiveContent 는 T29 어댑터 부재를 화면에 정직하게 알리고, 초안은 등록 후 목록에서 수정·발행·보관할 수 있다', () => {
   const body = source.slice(source.indexOf('async function loadLiveContent'), source.indexOf('function renderContentDetail'))
-  assert.match(body, /T29\)는 아직 없어/)
+  // 화면 문구는 운영자 말로 바꿨다(2026-10 개편). 고객 화면에 안 나간다는 사실은 그대로 알린다.
+  assert.match(body, /아직 고객 화면에 나가지 않습니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content', \{ method: 'POST'/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content', \{ credentials: 'same-origin' \}\)/)
   assert.match(body, /edit\.addEventListener\('click', function \(\) \{ renderContentDetail\(body, item\); \}\)/)
@@ -175,16 +180,16 @@ test('renderContentDetail 은 저장 후에만 게시 버튼을 열고, 게시 �
   assert.match(body, /publishArea\.hidden = true;/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\), \{ method: 'PATCH'/)
   assert.match(body, /publishArea\.hidden = false;/)
-  assert.match(body, /window\.confirm\('이 초안을 게시합니다/)
+  assert.match(body, /await adminConfirm\('이 초안을 게시합니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content\/' \+ encodeURIComponent\(item\.id\) \+ '\/publish'/)
 })
 
 test('loadLiveReports 는 미완성 리포트 재시도 버튼을 기존 백엔드 라우트에 연결한다', () => {
   const body = source.slice(source.indexOf('async function loadLiveReports'), source.indexOf('async function loadLiveOverview'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/reports\/requeue-incomplete', \{ method: 'POST'/)
-  assert.match(body, /fetch\('\/api\/admin\/v1\/reports', \{ credentials: 'same-origin' \}\)/)
-  assert.match(body, /회원 이름/, '회원 열은 사주 입력 이름임을 명확히 표시해야 한다')
-  assert.match(body, /item\.memberName/, '회원 열은 계정 이메일이 아니라 리포트 입력 이름을 표시해야 한다')
+  assert.match(body, /fetch\('\/api\/admin\/v1\/reports\?' \+ params\.toString\(\), \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /입력 이름/, '이름 열은 사주 입력 이름임을 명확히 표시해야 한다')
+  assert.match(body, /item\.subjectName/, '이름 열은 계정 이메일이 아니라 리포트 입력 이름을 표시해야 한다')
   assert.match(body, /item\.serviceTitle/, '서비스 열은 내부 키가 아니라 실제 카탈로그명을 표시해야 한다')
 })
 
@@ -212,7 +217,7 @@ test('loadOpsJobs 는 dead 작업에만 진단 버튼을 달고, 진단 화면�
   assert.match(jobs, /renderReportDiagnostics\(body, item\.target_id\)/)
   const diagnostics = source.slice(source.indexOf('async function renderReportDiagnostics'), source.indexOf('function refundStatus'))
   assert.match(diagnostics, /fetch\('\/api\/admin\/v1\/reports\/' \+ encodeURIComponent\(reportId\) \+ '\/diagnostics'/)
-  assert.match(diagnostics, /window\.confirm\('미완성 항목의 포기 상한을 다시 열고/)
+  assert.match(diagnostics, /await adminConfirm\('미완성 항목의 포기 상한을 다시 열고/)
   assert.match(diagnostics, /fetch\('\/api\/admin\/v1\/reports\/' \+ encodeURIComponent\(reportId\) \+ '\/restart', \{ method: 'POST'/)
   assert.match(diagnostics, /if \(d\.status !== 'complete'\)/, '완성된 리포트에는 재시작 버튼을 내지 않는다')
 })

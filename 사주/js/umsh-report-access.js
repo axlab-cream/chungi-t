@@ -3062,8 +3062,8 @@
       }
     });
     document.addEventListener('click',function(event){
-      // 냥궁합·올해연애의 `#btn-pdf` 는 자체 핸들러가 이미 `window.print()` 로 떨어진다.
-      // 여기서 같이 받으면 인쇄가 두 번 열린다.
+      // `[data-umsh-pdf]` 만 받는다. 화면이 자기 핸들러를 단 `#btn-pdf`(행운 등)까지 받으면
+      // 인쇄가 두 번 열린다.
       var pdf = event.target.closest && event.target.closest('[data-umsh-pdf]');
       if (!pdf) return;
       event.preventDefault();
