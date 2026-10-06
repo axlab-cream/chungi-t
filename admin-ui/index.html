@@ -70,10 +70,10 @@
       padding: var(--admin-space-3) var(--admin-space-2);
       background: var(--admin-surface); border-right: 1px solid var(--admin-line);
     }
-    /* 로고 칸: 고객 사이트 상단처럼 짙은 띠 위에 금색 로고. 누르면 대시보드. */
-    .admin-nav .admin-nav-title { display: flex; align-items: center; gap: 9px; margin: -12px -8px 10px; padding: 12px 12px; background: #0b0806; border-radius: 0; text-decoration: none; }
-    .admin-nav .admin-nav-title:hover { background: #1a120d; }
-    .admin-nav-title img:first-child { width: 30px; height: 30px; border-radius: 6px; }
+    /* 로고: 흰 사이드바 위에 배경 없는 금색 로고(2026-10-06 요청). 누르면 대시보드. */
+    .admin-nav .admin-nav-title { display: flex; align-items: center; gap: 9px; margin: 0 0 10px; padding: 6px 6px 10px; border-bottom: 1px solid var(--admin-line); border-radius: 0; text-decoration: none; background: none; }
+    .admin-nav .admin-nav-title:hover { background: none; opacity: .85; }
+    .admin-nav-title img:first-child { height: 30px; width: auto; }
     .admin-nav-title img:last-child { height: 22px; width: auto; }
     /*
       대분류(summary)와 소분류(a)를 크기·색·들여쓰기 세 축으로 구분한다. 대분류는 토글 —
@@ -508,7 +508,7 @@
   </header>
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
-    <a class="admin-nav-title" href="/ops/constellation-7f3c" aria-label="운명상회 운영 관리자 — 대시보드로 이동"><img src="/assets/admin/umsh-mark.png" alt="" width="30" height="30"><img src="/assets/admin/umsh-wordmark.png" alt="운명상회" height="22"></a>
+    <a class="admin-nav-title" href="/ops/constellation-7f3c" aria-label="운명상회 운영 관리자 — 대시보드로 이동"><img src="/assets/admin/umsh-mark.png" alt="" height="30"><img src="/assets/admin/umsh-wordmark.png" alt="운명상회" height="22"></a>
     <a class="admin-nav-home" href="/ops/constellation-7f3c" data-admin-route="overview">대시보드</a>
     <details class="admin-nav-group" data-nav-group="members" open>
       <summary class="admin-nav-label">회원</summary>
