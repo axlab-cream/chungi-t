@@ -60,7 +60,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, searchLiveReports, generationFailureStats, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
@@ -158,6 +158,8 @@ import {
   updatePaymentOrder,
 } from '../payment/order-store.js'
 import type { PaymentOrder } from '../payment/order-store.js'
+import { hasApprovalEvidence } from '../payment/order-store.js'
+import { buildDashboard } from '../admin/dashboard.js'
 import { ELEMENT_KO, STEM_KO, BRANCH_KO } from '../saju/analyzer-helpers.js'
 import {
   buildMoneySaveContext,
@@ -3335,6 +3337,41 @@ app.get('/api/admin/v1/reports', async (req, res) => {
     res.json({ reports, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_REPORT_LOOKUP_FAILED', error: '실제 리포트 저장소를 불러오지 못했습니다.' })
+  }
+})
+
+/**
+ * 대시보드(2026-10 6단계): 오늘(0시~지금) vs 어제 같은 시각까지 지표 + 처리 필요 목록. 부분 실패는 errors 로.
+ * 결제·환불이 섞여 있어 orders:read 를 요구한다(운영 관리자 역할은 모두 가진다).
+ */
+app.get('/api/admin/v1/dashboard', async (req, res) => {
+  if (!await requireStaff(req, res, 'orders:read')) return
+  try {
+    const dashboard = await buildDashboard({
+      countMembersCreated, countReportsCreated,
+      async listOrdersSince(from) {
+        const orders: PaymentOrder[] = []
+        let cursor: string | undefined
+        for (let page = 0; page < 20; page += 1) {
+          const result = await listAllPaymentOrders({ limit: 100, cursor, from: from.toISOString() })
+          orders.push(...result.orders)
+          if (!result.nextCursor) break
+          cursor = result.nextCursor
+        }
+        return orders
+      },
+      async countUnsettledOrders() {
+        const result = await listAllPaymentOrders({ limit: 100, status: 'approving' })
+        return result.orders.filter(hasApprovalEvidence).length
+      },
+      listRefunds: () => listRefundRequests(200),
+      listSupportCases: () => listSupportCases(),
+      async countFailedReports() { return (await searchLiveReports({ status: 'failed', limit: 1 })).total },
+      async listRecentPushes() { return (await pushStore().listNotifications(50, 0)).items },
+    })
+    res.json({ ...dashboard, asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'DASHBOARD_FAILED', error: '대시보드를 불러오지 못했습니다.' })
   }
 })
 

@@ -493,6 +493,27 @@
     .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
     .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
     .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
+    /* 대시보드(6단계) */
+    .admin-dash-title { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px; font-size: 15px; }
+    .admin-dash-todo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px; }
+    .admin-dash-kpi-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    .admin-dash-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--admin-line); border-radius: 8px; background: var(--admin-surface); color: var(--admin-text); text-decoration: none; transition: border-color .12s, box-shadow .12s; }
+    .admin-dash-card:hover { border-color: var(--admin-focus); box-shadow: 0 2px 8px rgba(31, 79, 216, .08); }
+    .admin-dash-card span { font-size: 13px; color: var(--admin-text-muted); font-weight: 600; }
+    .admin-dash-card b { font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .admin-dash-card small { font-size: 12px; color: var(--admin-text-muted); }
+    .admin-dash-card[data-tone='error'] { border-left: 3px solid var(--admin-state-error); }
+    .admin-dash-card[data-tone='error'] b { color: var(--admin-state-error); }
+    .admin-dash-card[data-tone='warn'] { border-left: 3px solid var(--admin-state-warn); }
+    .admin-dash-card[data-tone='warn'] b { color: var(--admin-state-warn); }
+    .admin-dash-card[data-tone='info'] { border-left: 3px solid var(--admin-focus); }
+    .admin-dash-kpi b { font-size: 20px; }
+    .admin-dash-kpi em { font-style: normal; font-weight: 700; }
+    .admin-dash-kpi em[data-trend='up'] { color: var(--admin-state-ok); }
+    .admin-dash-kpi em[data-trend='down'] { color: var(--admin-state-error); }
+    .admin-dash-foot { margin-top: 14px; }
+    @media (max-width: 1200px) { .admin-dash-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 700px) { .admin-dash-todo-grid, .admin-dash-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     /* 리포트·AI(5단계) */
     .admin-ai-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
     .admin-ai-grid .admin-section { margin: 0; }
@@ -1549,6 +1570,8 @@
           finally { requeueButton.disabled = false; }
         });
         reportListState.offset = 0;
+        var linkedStatus = new URLSearchParams(window.location.search).get('status');
+        if (['generating', 'complete', 'failed', 'pending'].indexOf(linkedStatus) >= 0) reportListState.status = linkedStatus;
         var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
         var search = document.createElement('input'); search.type = 'search'; search.name = 'q'; search.placeholder = '이름·이메일·리포트 번호'; search.setAttribute('aria-label', '리포트 검색'); search.value = reportListState.q; search.style.minWidth = '220px';
         var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
@@ -1693,13 +1716,57 @@
           button.disabled = false;
         }
       }
+      /*
+       * 대시보드 › 운영 현황 (2026-10 개편 6단계). 위: 처리 필요(누르면 그 목록으로), 아래: 오늘 지표(어제 같은 시각까지와 비교).
+       * 어제 하루 전체가 아니라 "어제 이 시각까지"와 비교해야 오전에 숫자가 떨어진 것처럼 보이지 않는다.
+       */
       async function loadLiveOverview(body) {
+        body.replaceChildren();
+        var todoSection = document.createElement('section'); todoSection.className = 'admin-dash-todo';
+        var kpiSection = document.createElement('section'); kpiSection.className = 'admin-dash-kpis';
+        var foot = document.createElement('p'); foot.className = 'admin-note admin-dash-foot';
+        todoSection.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(todoSection, kpiSection, foot);
+        var refresh = adminPageAction('dashboard-refresh', '새로고침', null, { onClick: function () { loadLiveOverview(body); } });
         try {
-          var response = await fetch('/api/admin/v1/operations-snapshot', { credentials: 'same-origin' });
-          if (!response.ok) throw new Error('LIVE_OPERATIONS_LOOKUP_FAILED');
-          var snapshot = await response.json();
-          addLiveTable(body, '운영 요약', ['회원 수', '생성 리포트', '공개 서비스', '참고 자료 묶음', '기준 시각'], [[Number(snapshot.members || 0).toLocaleString('ko-KR'), Number(snapshot.reports || 0).toLocaleString('ko-KR'), snapshot.services, snapshot.corpusPacks, snapshot.asOf ? new Date(snapshot.asOf).toLocaleString('ko-KR') : '—']], function (item) { return item; }, '아직 집계할 데이터가 없습니다.');
-        } catch (_error) { addLiveError(body, '운영 요약을 불러오지 못했습니다.'); }
+          var response = await fetch('/api/admin/v1/dashboard', { credentials: 'same-origin' });
+          var data = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(data.error || '대시보드를 불러오지 못했습니다.');
+          var head = document.createElement('h3'); head.className = 'admin-dash-title'; head.textContent = '처리 필요';
+          var grid = document.createElement('div'); grid.className = 'admin-dash-todo-grid';
+          var pending = 0;
+          data.todo.forEach(function (item) {
+            var card = document.createElement('a'); card.className = 'admin-dash-card'; card.href = ADMIN_BASE + item.href;
+            if (item.count > 0) { card.setAttribute('data-tone', item.tone); pending += item.count; }
+            var label = document.createElement('span'); label.textContent = item.label;
+            var value = document.createElement('b'); value.textContent = item.count < 0 ? '—' : item.count.toLocaleString('ko-KR') + '건';
+            var hint = document.createElement('small'); hint.textContent = item.count < 0 ? '불러오지 못했습니다' : item.count ? item.hint : '없습니다';
+            card.append(label, value, hint); grid.appendChild(card);
+          });
+          head.appendChild(memberChip(pending ? '지금 ' + pending + '건' : '처리할 일 없음', pending ? 'warn' : 'ok'));
+          todoSection.replaceChildren(head, grid);
+          var kHead = document.createElement('h3'); kHead.className = 'admin-dash-title'; kHead.textContent = '오늘';
+          kHead.appendChild(adminTip('오늘 0시부터 지금까지를, 어제 0시부터 어제 이 시각까지와 비교합니다.'));
+          var kGrid = document.createElement('div'); kGrid.className = 'admin-dash-kpi-grid';
+          data.kpis.forEach(function (item) {
+            var card = document.createElement('a'); card.className = 'admin-dash-card admin-dash-kpi'; card.href = ADMIN_BASE + item.href;
+            var label = document.createElement('span'); label.textContent = item.label;
+            var fmt = function (n) { return n < 0 ? '—' : n.toLocaleString('ko-KR') + item.unit; };
+            var value = document.createElement('b'); value.textContent = fmt(item.today);
+            var compare = document.createElement('small');
+            if (item.today >= 0 && item.yesterday >= 0) {
+              var diff = item.today - item.yesterday;
+              var arrow = document.createElement('em'); arrow.setAttribute('data-trend', diff > 0 ? 'up' : diff < 0 ? 'down' : 'same');
+              arrow.textContent = diff > 0 ? '▲ ' + diff.toLocaleString('ko-KR') : diff < 0 ? '▼ ' + Math.abs(diff).toLocaleString('ko-KR') : '같음';
+              compare.append(document.createTextNode('어제 이 시각 ' + fmt(item.yesterday) + ' '), arrow);
+            } else compare.textContent = '불러오지 못했습니다';
+            card.append(label, value, compare); kGrid.appendChild(card);
+          });
+          kpiSection.replaceChildren(kHead, kGrid);
+          var names = { members: '회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '메시지' };
+          foot.textContent = '기준 ' + memberWhen(data.asOf) + (data.errors && data.errors.length ? ' · 불러오지 못한 부분: ' + data.errors.map(function (key) { return names[key] || key; }).join(', ') : '');
+        } catch (error) { todoSection.replaceChildren(memberEmpty(error.message)); }
+        if (refresh) refresh.disabled = false;
       }
       /**
        * 2026-09-19: 코드로 관리되는 카탈로그는 실제로 지울 수 없다 — 판매 중단(saleAvailable
@@ -3374,7 +3441,8 @@
       async function loadRefundsQueue(body) {
         // 주문 번호로 직접 요청하는 기존 폼(＋ 환불 요청 버튼 뒤)은 그대로 쓰고, 목록은 여기서 새로 그린다.
         await loadRefunds(body, function () { load(); });
-        var state = { filter: 'all', items: [] };
+        var initialState = new URLSearchParams(window.location.search).get('state');
+        var state = { filter: ['requested', 'processing', 'done', 'failed', 'rejected'].indexOf(initialState) >= 0 ? initialState : 'all', items: [] };
         var filters = document.createElement('div'); filters.className = 'admin-filterbar';
         var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '환불 상태');
         [['all', '전체'], ['requested', '요청'], ['processing', '처리중'], ['done', '완료'], ['failed', '실패'], ['rejected', '반려']].forEach(function (entry) {
