@@ -46,6 +46,9 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     })
     return new Response(JSON.stringify([PROFILE_ROW]), { headers: { 'content-type': 'application/json' } })
   }
+  if (url.pathname === '/rest/v1/cheongi_reports' && method === 'GET') {
+    return new Response(JSON.stringify([{ report_id: 'rep_1', created_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-01T00:05:00.000Z', reportStatus: 'complete', reportService: 'saju' }]), { headers: { 'content-type': 'application/json' } })
+  }
   if (url.pathname === `/auth/v1/admin/users/${AUTH_USER.id}` && method === 'GET') {
     return new Response(JSON.stringify(AUTH_USER), { headers: { 'content-type': 'application/json' } })
   }
@@ -164,10 +167,57 @@ describe('회원 상세·수정·정지 라우트는 감사 명령을 거치고,
     assert.match(purchasesRoute, /listMemberPurchases\(userId\)/)
   })
 
-  it('회원 목록 라우트는 offset·total 을 페이지네이션에 쓴다', () => {
+  it('회원 목록 라우트는 검색·필터·정렬을 서버에서 걸고 거른 결과의 total 로 페이지를 나눈다', () => {
     const listRoute = source.slice(source.indexOf("app.get('/api/admin/v1/members',"), source.indexOf("app.get('/api/admin/v1/members/:id'"))
     assert.match(listRoute, /requireStaff\(req, res, 'members:read'\)/)
     assert.match(listRoute, /req\.query\?\.offset/)
-    assert.match(listRoute, /countLiveMembers\(\)/)
+    assert.match(listRoute, /searchLiveMembers\(\{ q, paid, from, to, sort, limit, offset \}\)/)
+  })
+
+  it('회원 상세 모음 라우트는 members:read 로 읽기만 하고, 한 부분이 실패해도 나머지를 보낸다', () => {
+    const overview = source.slice(source.indexOf("app.get('/api/admin/v1/members/:id/overview'"), source.indexOf('const MEMBER_PROFILE_FAILURES'))
+    assert.match(overview, /requireStaff\(req, res, 'members:read'\)/)
+    assert.doesNotMatch(overview, /executeAdminCommand\(/)
+    assert.match(overview, /Promise\.allSettled/)
+    assert.match(overview, /errors\.push\(names\[index\]\)/)
+  })
+})
+
+describe('회원 목록 검색·필터 (2026-10 4단계)', { concurrency: false }, () => {
+  const lastProfileQuery = () => calls.filter((call) => call.method === 'GET' && call.url.pathname === '/rest/v1/cheongi_user_profiles').at(-1)!.url
+
+  it('이름 일부는 ilike 로, 필터 문법 글자는 지우고 보낸다', async () => {
+    await liveData.searchLiveMembers({ q: '김*철,수)', sort: 'name', limit: 50, offset: 50 })
+    const url = lastProfileQuery()
+    assert.equal(url.searchParams.get('name'), 'ilike.*김철수*')
+    assert.equal(url.searchParams.get('order'), 'name.asc')
+    assert.equal(url.searchParams.get('limit'), '50')
+    assert.equal(url.searchParams.get('offset'), '50')
+  })
+
+  it('회원 번호 전체는 정확히 일치로 찾고, 행 수는 거른 결과 기준으로 센다', async () => {
+    const result = await liveData.searchLiveMembers({ q: PROFILE_ROW.user_id.toUpperCase() })
+    assert.equal(lastProfileQuery().searchParams.get('user_id'), `eq.${PROFILE_ROW.user_id}`)
+    assert.equal(lastProfileQuery().searchParams.get('name'), null)
+    assert.equal(result.members.length, 1)
+    assert.equal(result.members[0].email, 'member@example.com')
+    assert.equal(calls.filter((call) => call.url.pathname === '/rest/v1/cheongi_user_profiles').at(-1)!.headers.get('prefer'), 'count=exact')
+  })
+
+  it('가입일 범위는 created_at 두 조건으로, 한 번에 100명을 넘지 않는다', async () => {
+    await liveData.searchLiveMembers({ from: '2026-09-01T00:00:00.000Z', to: '2026-10-01T00:00:00.000Z', limit: 500 })
+    const url = lastProfileQuery()
+    assert.deepEqual(url.searchParams.getAll('created_at'), ['gte.2026-09-01T00:00:00.000Z', 'lt.2026-10-01T00:00:00.000Z'])
+    assert.equal(url.searchParams.get('limit'), '100')
+    assert.equal(url.searchParams.get('order'), 'updated_at.desc')
+  })
+
+  it('회원 리포트는 본문 없이 상태·서비스만 JSON 경로로 뽑는다', async () => {
+    const reports = await liveData.listMemberReports(PROFILE_ROW.user_id)
+    const call = calls.filter((item) => item.url.pathname === '/rest/v1/cheongi_reports').at(-1)!
+    assert.doesNotMatch(call.url.searchParams.get('select') ?? '', /(^|,)payload(,|$)/, '리포트 본문 전체를 가져오면 안 된다')
+    assert.equal(call.url.searchParams.get('user_id'), `eq.${PROFILE_ROW.user_id}`)
+    assert.deepEqual(reports, [{ reportId: 'rep_1', serviceTitle: reports[0].serviceTitle, status: 'complete', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:05:00.000Z' }])
+    assert.deepEqual(await liveData.listMemberReports('not-a-uuid'), [])
   })
 })

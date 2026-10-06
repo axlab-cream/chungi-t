@@ -209,3 +209,14 @@ test('resend-failed retries only live devices, then the push finishes again', as
   assert.equal(await store.reopenFailedDeliveries(push.id), 0, 'the dead device is never retried')
   assert.ok(store.state.devices.some((device) => device.id === live.id && device.isActive))
 })
+
+test('member devices: only that member, newest activity first, no token in the result', async () => {
+  const store = seeded()
+  await store.upsertDevice({ token: TOKEN_A, platform: 'android', appVersion: null, deviceName: null, userId: USER })
+  await store.upsertDevice({ token: TOKEN_B, platform: 'ios', appVersion: null, deviceName: null, userId: null })
+  const devices = await store.listUserDevices(USER)
+  assert.equal(devices.length, 1)
+  assert.equal(devices[0].platform, 'android')
+  assert.equal(devices[0].isActive, true)
+  assert.ok(!JSON.stringify(devices).includes(TOKEN_A), '기기 토큰이 응답에 실리면 안 된다')
+})
