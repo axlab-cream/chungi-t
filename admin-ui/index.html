@@ -84,7 +84,7 @@
       흐름으로 남아 옆으로 늘어섰다(실측). 우리가 만든 진짜 엘리먼트로 감싸면 그 익명 박스와
       상관없이 항상 우리가 원하는 레이아웃을 쓴다.
     */
-    .admin-nav-group + .admin-nav-group { margin-top: 2px; }
+    .admin-nav-group + .admin-nav-group { margin-top: 10px; }
     .admin-nav-links { display: flex; flex-direction: column; gap: 1px; }
     /*
       author 규칙은 명시도와 무관하게 UA 기본 규칙(`details:not([open]) > *:not(summary)`)을
@@ -105,12 +105,13 @@
       transform: rotate(45deg); margin-right: var(--admin-space-2); transition: transform .15s ease;
     }
     .admin-nav-group[open] summary::after { transform: rotate(-135deg); }
-    .admin-nav-label { margin: var(--admin-space-2) 0 1px; padding: 2px 8px; color: #8a8a93; font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+    .admin-nav-label { margin: 12px 0 4px; padding: 5px 8px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
     .admin-nav-group:first-of-type .admin-nav-label { margin-top: 0; }
+    /* 대메뉴(대시보드·그룹 제목)는 검정·14px, 하위 메뉴는 회색·12.5px 로 들여 쓴다(2026-10-06 요청). */
     .admin-nav a {
-      padding: 5px 8px; color: #2b2b33; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: 500;
+      padding: 5px 8px 5px 18px; color: #6b6b74; text-decoration: none; border-radius: 5px; font-size: 12.5px; font-weight: 500;
     }
-    .admin-nav a.admin-nav-home { font-weight: 700; }
+    .admin-nav a.admin-nav-home { padding-left: 8px; margin-bottom: 4px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
     .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
     .admin-nav a[aria-current='page'] { color: var(--admin-focus); background: #eef3ff; font-weight: 700; }
 
@@ -1052,7 +1053,7 @@
           var response = await fetch('/api/admin/v1/operations-snapshot', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('LIVE_OPERATIONS_LOOKUP_FAILED');
           var snapshot = await response.json();
-          addLiveTable(body, '운영 요약', ['회원 프로필', '생성 리포트', '공개 서비스', '참고 자료 묶음', '기준 시각'], [[snapshot.members, snapshot.reports, snapshot.services, snapshot.corpusPacks, snapshot.asOf]], function (item) { return item; }, '아직 집계할 데이터가 없습니다.');
+          addLiveTable(body, '운영 요약', ['회원 수', '생성 리포트', '공개 서비스', '참고 자료 묶음', '기준 시각'], [[Number(snapshot.members || 0).toLocaleString('ko-KR'), Number(snapshot.reports || 0).toLocaleString('ko-KR'), snapshot.services, snapshot.corpusPacks, snapshot.asOf ? new Date(snapshot.asOf).toLocaleString('ko-KR') : '—']], function (item) { return item; }, '아직 집계할 데이터가 없습니다.');
         } catch (_error) { addLiveError(body, '운영 요약을 불러오지 못했습니다.'); }
       }
       /**
