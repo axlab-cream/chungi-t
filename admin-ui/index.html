@@ -84,7 +84,7 @@
       흐름으로 남아 옆으로 늘어섰다(실측). 우리가 만든 진짜 엘리먼트로 감싸면 그 익명 박스와
       상관없이 항상 우리가 원하는 레이아웃을 쓴다.
     */
-    .admin-nav-group + .admin-nav-group { margin-top: 10px; }
+    .admin-nav-group + .admin-nav-group { margin-top: 4px; }
     .admin-nav-links { display: flex; flex-direction: column; gap: 1px; }
     /*
       author 규칙은 명시도와 무관하게 UA 기본 규칙(`details:not([open]) > *:not(summary)`)을
@@ -105,13 +105,13 @@
       transform: rotate(45deg); margin-right: var(--admin-space-2); transition: transform .15s ease;
     }
     .admin-nav-group[open] summary::after { transform: rotate(-135deg); }
-    .admin-nav-label { margin: 12px 0 4px; padding: 5px 8px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
+    .admin-nav-label { margin: 8px 0 2px; padding: 4px 8px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
     .admin-nav-group:first-of-type .admin-nav-label { margin-top: 0; }
     /* 대메뉴(대시보드·그룹 제목)는 검정·14px, 하위 메뉴는 회색·12.5px 로 들여 쓴다(2026-10-06 요청). */
     .admin-nav a {
       padding: 5px 8px 5px 18px; color: #6b6b74; text-decoration: none; border-radius: 5px; font-size: 12.5px; font-weight: 500;
     }
-    .admin-nav a.admin-nav-home { padding-left: 8px; margin-bottom: 4px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
+    .admin-nav a.admin-nav-home { padding-left: 8px; margin-bottom: 2px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
     .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
     .admin-nav a[aria-current='page'] { color: var(--admin-focus); background: #eef3ff; font-weight: 700; }
 
@@ -357,6 +357,101 @@
       .admin-refund-form .admin-field[data-span='2'] { grid-column: auto; }
       .admin-refund-evidence { grid-template-columns: 112px minmax(0, 1fr); }
     }
+    /* 2단계 메시지: 목록 위 도구줄 · 상태 구간 · 표 클릭 · 페이지 · 상세 모달 · 작성 모달 */
+    .admin-toolbar { display: flex; align-items: flex-end; gap: 12px; border-bottom: 1px solid var(--admin-line); margin-bottom: 12px; }
+    .admin-toolbar .admin-tabs { border-bottom: 0; margin-bottom: 0; }
+    .admin-toolbar > .admin-button { margin-left: auto; margin-bottom: 8px; }
+    .admin-tabs a em { font-style: normal; margin-left: 4px; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--admin-bg); color: var(--admin-text-muted); }
+    .admin-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .admin-filterbar[hidden] { display: none; }
+    .admin-filter-search { margin-left: auto; min-width: 240px; }
+    .admin-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 7px; background: #eceef3; }
+    .admin-seg button { border: 0; background: none; padding: 5px 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; color: var(--admin-text-muted); cursor: pointer; }
+    .admin-seg button[aria-pressed='true'] { background: var(--admin-surface); color: var(--admin-text); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+    .admin-table .admin-num, .admin-table th.admin-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .admin-table .admin-bad, .admin-bad { color: var(--admin-state-error); font-weight: 700; }
+    .admin-table .admin-muted { color: var(--admin-text-muted); }
+    .admin-table-clickable tbody tr { cursor: pointer; }
+    .admin-table-clickable tbody tr:focus-visible { outline: 2px solid var(--admin-focus); outline-offset: -2px; }
+    .admin-msg-cell { max-width: 380px; white-space: normal; }
+    .admin-msg-cell b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-msg-cell span { display: block; color: var(--admin-text-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-channel { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+    .admin-channel::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--admin-focus); }
+    .admin-pager { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; color: var(--admin-text-muted); font-size: 12px; }
+    .admin-pager-buttons { display: flex; align-items: center; gap: 6px; }
+    .admin-pager-buttons button { min-width: 30px; height: 30px; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-surface); font: inherit; cursor: pointer; }
+    .admin-pager-buttons button:disabled { opacity: .4; cursor: default; }
+    .admin-pager-current { min-width: 48px; text-align: center; color: var(--admin-text); }
+    .admin-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .admin-detail-grid h4, .admin-compose h4 { margin: 0 0 8px; font-size: 12px; color: var(--admin-text-muted); }
+    .admin-detail-grid h4:not(:first-child), .admin-detail-grid div > h4 + * + h4 { margin-top: 16px; }
+    .admin-detail-preview { padding: 12px; border-radius: 14px; background: #2b2b33; }
+    .admin-dl { display: grid; grid-template-columns: 64px 1fr; gap: 6px 10px; margin: 0 0 4px; font-size: 13px; }
+    .admin-dl dt { color: var(--admin-text-muted); }
+    .admin-dl dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .admin-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .admin-kpis div { border: 1px solid var(--admin-line); border-radius: 6px; padding: 9px 12px; }
+    .admin-kpis span { display: block; color: var(--admin-text-muted); font-size: 12px; }
+    .admin-kpis b { font-size: 18px; font-variant-numeric: tabular-nums; }
+    .admin-meter { display: flex; height: 8px; margin-top: 10px; border-radius: 999px; overflow: hidden; background: var(--admin-bg); }
+    .admin-meter i[data-tone='ok'] { background: var(--admin-state-ok); }
+    .admin-meter i[data-tone='error'] { background: var(--admin-state-error); }
+    .admin-reason-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--admin-line); border-radius: 6px; }
+    .admin-reason-list li { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #eeeef2; font-size: 13px; }
+    .admin-reason-list li:last-child { border-bottom: 0; }
+    .admin-compose { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; }
+    .admin-compose-form { display: grid; gap: 18px; }
+    .admin-compose-form section { display: grid; gap: 6px; }
+    .admin-step { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%; background: var(--admin-focus); color: #fff; font-size: 11px; }
+    .admin-compose h4 { display: flex; align-items: center; color: var(--admin-text); font-size: 13px; }
+    .admin-radio-list { display: grid; gap: 8px; }
+    .admin-radio-list label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .admin-radio-list input[type='number'] { width: 70px; }
+    .admin-inline { display: flex; gap: 8px; }
+    .admin-inline input { flex: 1; }
+    .admin-label { margin-top: 4px; font-size: 13px; font-weight: 600; }
+    .admin-hint, .admin-counter { color: var(--admin-text-muted); font-size: 12px; }
+    .admin-counter[data-over='true'] { color: var(--admin-state-warn); font-weight: 600; }
+    .admin-audience { margin: 4px 0 0; padding: 9px 12px; border-radius: 6px; background: #eef3ff; color: var(--admin-text); font-size: 13px; }
+    .admin-compose-preview { position: sticky; top: 0; align-self: start; display: grid; gap: 8px; }
+    .admin-confirm-lead { margin: 0 0 12px; font-size: 15px; font-weight: 700; }
+    @media (max-width: 900px) { .admin-compose, .admin-detail-grid { grid-template-columns: 1fr; } }
+    /* 모달: 머리·아래 버튼은 고정, 본문만 스크롤. 가로 스크롤은 생기지 않게 한다. */
+    .admin-modal[open] { display: flex; flex-direction: column; overflow: hidden; }
+    .admin-modal-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+    .admin-modal-head, .admin-modal-foot { flex: none; }
+    .admin-detail-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .admin-detail-grid .admin-meter + * , .admin-detail-grid .admin-note { margin-top: 12px; }
+    .admin-detail-grid div > div > h4 { margin-top: 16px; }
+    .admin-compose-form .admin-seg { justify-self: start; }
+    /*
+     * 2026-10: 브라우저 기본 입력 부품(옛 윈도우 모양 선택 상자·회색 테두리 입력창)을 어드민 전체에서
+     * 같은 모양으로 바꾼다. :is(main, .admin-modal, .admin-dialog) 로 화면·모달 안만 잡고, 이 블록을
+     * 맨 끝에 둬서 화면별 옛 규칙(.admin-filters select 등)보다 뒤에서 이기게 한다.
+     */
+    :is(main, .admin-modal, .admin-dialog) :is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), select, textarea) {
+      box-sizing: border-box; min-height: 34px; padding: 6px 10px; border: 1px solid var(--admin-line); border-radius: 6px;
+      background-color: var(--admin-surface); color: var(--admin-text); font: inherit; font-size: 13px; line-height: 1.4;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    :is(main, .admin-modal, .admin-dialog) textarea { min-height: 88px; resize: vertical; }
+    :is(main, .admin-modal, .admin-dialog) select {
+      appearance: none; -webkit-appearance: none; padding-right: 30px; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235b5b63' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center;
+    }
+    :is(main, .admin-modal, .admin-dialog) :is(input, select, textarea):hover { border-color: #c5c5cd; }
+    :is(main, .admin-modal, .admin-dialog) :is(input, select, textarea):focus-visible { outline: none; border-color: var(--admin-focus); box-shadow: 0 0 0 3px rgba(31, 79, 216, .14); }
+    :is(main, .admin-modal, .admin-dialog) :is(input, select, textarea):disabled { background-color: var(--admin-bg); color: var(--admin-text-disabled); cursor: not-allowed; }
+    :is(main, .admin-modal, .admin-dialog) ::placeholder { color: #9a9aa3; }
+    :is(main, .admin-modal, .admin-dialog) :is(input[type='checkbox'], input[type='radio']) { width: 16px; height: 16px; margin: 0; accent-color: var(--admin-focus); cursor: pointer; vertical-align: -3px; }
+    :is(main, .admin-modal, .admin-dialog) input[type='date']::-webkit-calendar-picker-indicator,
+    :is(main, .admin-modal, .admin-dialog) input[type='datetime-local']::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
+    .admin-button { border-radius: 6px; min-height: 34px; padding: 0 14px; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
+    .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
+    .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
   </style>
 </head>
 <body>
@@ -685,7 +780,7 @@
           { path: '/quality', label: '품질 점검', load: function (body) { loadQualityEvaluations(body); } },
           { path: '/release', label: '배포 정보', load: function (body) { loadReleaseInfo(body); } },
         ] },
-        { path: '/messages', key: 'messages', title: '메시지', detail: '앱 푸시를 보내고 결과를 확인합니다.', load: function (body) { loadPushManager(body); } },
+        { path: '/messages', key: 'messages', title: '메시지', detail: '보낸 메시지의 결과를 확인하고, 새 메시지를 보냅니다.', load: function (body) { loadMessagesManager(body); } },
         { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', load: function (body) { loadPopupManager(body); } },
         { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', load: function (body) { loadCouponManager(body); } },
         { path: '/admins', key: 'admins', title: '관리자', detail: '관리자 계정을 추가하고 비밀번호·사용 여부를 관리합니다.', load: function (body) { loadAdminAccounts(body); } },
@@ -933,7 +1028,7 @@
           table.innerHTML = '<thead><tr><th scope="col">No</th><th scope="col">UID</th><th scope="col">이름</th><th scope="col">이메일</th><th scope="col">가입일</th><th scope="col">최종 방문</th><th scope="col">SNS</th><th scope="col">개인정보</th><th scope="col">구매 건수</th><th scope="col">총 구매금액</th><th scope="col">상세</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="11">실제 회원 프로필이 아직 없습니다.</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="11">회원 프로필이 아직 없습니다.</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr');
@@ -1201,11 +1296,11 @@
           var bundle = payload.bundle || {};
           var personas = Array.isArray(payload.personas) ? payload.personas : [];
           var sources = Array.isArray(payload.sources) ? payload.sources : [];
-          addLiveTable(body, 'Tone V2 적용 번들', ['버전', '원천 지문', '공통 규칙 파일', '공통 규칙 해시', '퍼소나', '릴리스 상태'], [[bundle.version, bundle.sourceFingerprint, bundle.commonPath, bundle.commonHash, personas.length, bundle.releaseReady ? '릴리스 가능' : '검수 진행 중']], function (item) { return item; }, '현재 배포에서 Tone V2 번들을 찾지 못했습니다.');
-          if (!bundle.releaseReady) addLiveError(body, '현재 번들은 실제 생성 런타임에 연결되어 있지만 전체 출력 평가와 릴리스 승인이 남아 있습니다. 검수 중인 상태를 운영 릴리스로 표시하지 않습니다.');
-          addLiveTable(body, '작업 기준 가이드', ['원천 파일', '크기', '내용 해시'], sources, function (item) { return [item.path, Number(item.bytes).toLocaleString('ko-KR') + ' B', item.contentHash]; }, '연결된 가이드 원천 파일이 없습니다.');
+          addLiveTable(body, 'Tone V2 적용 번들', ['버전', '자료 버전', '공통 규칙 파일', '공통 규칙 해시', '퍼소나', '릴리스 상태'], [[bundle.version, bundle.sourceFingerprint, bundle.commonPath, bundle.commonHash, personas.length, bundle.releaseReady ? '릴리스 가능' : '검수 진행 중']], function (item) { return item; }, '현재 배포에서 Tone V2 번들을 찾지 못했습니다.');
+          if (!bundle.releaseReady) addLiveError(body, '현재 번들은 생성 런타임에 연결되어 있지만 전체 출력 평가와 릴리스 승인이 남아 있습니다. 검수 중인 상태를 운영 릴리스로 표시하지 않습니다.');
+          addLiveTable(body, '작업 기준 가이드', ['파일', '크기', '내용 해시'], sources, function (item) { return [item.path, Number(item.bytes).toLocaleString('ko-KR') + ' B', item.contentHash]; }, '연결된 가이드 파일이 없습니다.');
           addLiveTable(body, '서비스별 상담자·프롬프트', ['서비스', '퍼소나', '정의', '이름 상태', '말투', '핵심 약속', '생성 파일', '내용 해시'], personas, function (item) { return [item.title + ' · ' + item.key, item.displayName, item.definitionStatus === 'specified' ? '정의됨' : item.definitionStatus, item.displayNameStatus === 'draft' ? '이름 초안' : item.displayNameStatus, item.voice, item.promise, item.sourcePath, item.contentHash]; }, '연결된 서비스 퍼소나가 없습니다.');
-        } catch (_error) { addLiveError(body, '현재 배포의 실제 Tone V2 프롬프트 원천을 불러오지 못했습니다.'); }
+        } catch (_error) { addLiveError(body, '프롬프트 정보를 불러오지 못했습니다.'); }
         await loadPromptContentEditor(body);
       }
       /**
@@ -1215,7 +1310,7 @@
        */
       async function loadPromptContentEditor(body) {
         var section = document.createElement('section'); section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 실시간 편집</h3><span class="admin-chip">발행 즉시 실제 리포트에 반영</span></header><p class="admin-note" style="padding:0 16px 12px">발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.</p>';
+        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 실시간 편집</h3><span class="admin-chip">발행 즉시 리포트에 반영</span></header><p class="admin-note" style="padding:0 16px 12px">발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.</p>';
         var noteEl = section.querySelector('.admin-note');
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.'; section.appendChild(status);
         body.appendChild(section);
@@ -1265,7 +1360,7 @@
             result.textContent = '초안이 저장되었습니다(v' + saved.version + ').';
             publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!window.confirm('이 초안을 발행하면 다음 생성 요청부터 실제 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?')) return;
+              if (!window.confirm('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?')) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/prompts/content/' + encodeURIComponent(item.contentType) + '/' + encodeURIComponent(item.contentKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
@@ -1298,7 +1393,7 @@
         var createForm = document.createElement('form'); createForm.className = 'admin-refund-form'; createForm.noValidate = true;
         var typeOptions = CONTENT_TYPES_FALLBACK.map(function (type) { return '<option value="' + type + '">' + (CONTENT_TYPE_LABELS[type] || type) + '</option>'; }).join('');
         createForm.innerHTML = '<div class="admin-field"><label>종류</label><select name="contentType">' + typeOptions + '</select></div>'
-          + '<div class="admin-field"><label>대상 서비스(선택, 실제 서비스 키)</label><input name="serviceKey" maxlength="80" placeholder="예: money_save"></div>'
+          + '<div class="admin-field"><label>대상 서비스(선택)</label><input name="serviceKey" maxlength="80" placeholder="예: money_save"></div>'
           + '<div class="admin-field" data-span="2"><label>노출 위치</label><input required name="placement" maxlength="120" placeholder="예: home/top-banner"></div>'
           + '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="120"></div>'
           + '<div class="admin-field" data-span="2"><label>본문</label><input required name="bodyText" maxlength="4000"></div>'
@@ -1328,7 +1423,7 @@
         createSection.appendChild(createForm); body.appendChild(createSection);
 
         var listSection = document.createElement('section'); listSection.className = 'admin-section';
-        listSection.innerHTML = '<header class="admin-section-head"><h3>실제 콘텐츠 개정</h3></header><p class="admin-empty">불러오는 중입니다.</p>';
+        listSection.innerHTML = '<header class="admin-section-head"><h3>콘텐츠 개정</h3></header><p class="admin-empty">불러오는 중입니다.</p>';
         body.appendChild(listSection);
         try {
           var listResponse = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
@@ -1339,7 +1434,7 @@
           var table = document.createElement('table'); table.className = 'admin-table';
           table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">등록된 실제 콘텐츠 초안·게시본이 없습니다.</td>'; rows.appendChild(empty); }
+          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">등록된 콘텐츠 초안·게시본이 없습니다.</td>'; rows.appendChild(empty); }
           items.forEach(function (item) {
             var row = document.createElement('tr');
             [CONTENT_TYPE_LABELS[item.contentType] || item.contentType, item.serviceKey || '전체', item.placement, item.payload.title, CONTENT_STATE_LABELS[item.state] || item.state, item.revision, item.updatedAt].forEach(function (value) {
@@ -1418,7 +1513,7 @@
         // 고객 화면의 팝업은 문구가 이미지 안에 그려진 한 장이다. 미리보기도 이미지를 같은 비율로 띄운다.
         var popupLayout = document.createElement('div'); popupLayout.className = 'admin-notify-layout';
         var popupPreview = document.createElement('aside'); popupPreview.className = 'admin-notify-preview'; popupPreview.setAttribute('aria-label', '팝업 미리보기');
-        popupPreview.innerHTML = '<h4>미리보기 · 첫 페이지</h4><div class="admin-phone"><div class="admin-phone-bar"><span>9:41</span><span>운명상회</span></div><div class="admin-popup-phone"><img alt="" data-popup-preview-image><p data-popup-preview-caption></p></div></div><p class="admin-note">실제 팝업은 이미지 한 장으로 보입니다. 위의 문구 칸은 화면 낭독기 안내와 이력 관리에 쓰입니다.</p>';
+        popupPreview.innerHTML = '<h4>미리보기 · 첫 페이지</h4><div class="admin-phone"><div class="admin-phone-bar"><span>9:41</span><span>운명상회</span></div><div class="admin-popup-phone"><img alt="" data-popup-preview-image><p data-popup-preview-caption></p></div></div><p class="admin-note">팝업은 이미지 한 장으로 보입니다. 위의 문구 칸은 화면 낭독기 안내와 이력 관리에 쓰입니다.</p>';
         function refreshPopupPreview() {
           var image = popupPreview.querySelector('[data-popup-preview-image]'); var caption = popupPreview.querySelector('[data-popup-preview-caption]');
           var src = form.elements.imageSrc.value.trim();
@@ -1491,26 +1586,44 @@
         });
       }
       /*
-       * 알림 · 푸시. 왼쪽에서 쓰고 오른쪽에서 안드로이드 알림 모양을 본다. 발송은 서버
-       * (/api/admin/v1/push)만 한다 — 이 화면은 FCM 인증 정보를 갖지 않는다.
-       * 이력 행을 누르면 오른쪽이 그 푸시의 미리보기와 결과로 바뀐다.
+       * 마케팅 › 메시지 (2026-10 개편 2단계, docs/admin-ia.md).
+       * 들어오면 발송 내역이 먼저 나온다. 행을 누르면 상세 모달(결과·실패 사유·재발송),
+       * [+ 새 메시지] 는 단계형 작성 모달(오른쪽 미리보기 패널). 발송은 서버(/api/admin/v1/push)만 한다.
        */
-      var PUSH_STATUS_LABELS = { draft: '임시 저장', scheduled: '예약 대기', sending: '발송 중', sent: '발송 완료', failed: '발송 실패', cancelled: '취소' };
+      var PUSH_FAILURE_LABELS = {
+        UNREGISTERED: '앱 삭제·알림 해제', SENDER_ID_MISSMATCH: '다른 앱 설정', SENDER_ID_MISMATCH: '다른 앱 설정',
+        INVALID_ARGUMENT: '메시지 형식 오류', QUOTA_EXCEEDED: '발송 한도 초과', UNAVAILABLE: '구글 서버 일시 오류',
+        INTERNAL: '구글 서버 일시 오류', DEVICE_INACTIVE: '알림을 받을 수 없는 기기', NETWORK: '네트워크 오류'
+      };
       var PUSH_ERROR_LABELS = {
         NO_TARGET_DEVICES: '보낼 기기가 없었습니다.',
         ALL_DELIVERIES_FAILED: '모든 기기에서 실패했습니다.',
-        PUSH_OIDC_TOKEN_MISSING: '서버 인증 토큰이 없습니다. 운영·미리보기 배포에서만 보낼 수 있습니다.',
-        FCM_RETRYABLE_ERRORS: 'FCM 일시 오류로 잠시 뒤 다시 보냅니다.'
+        PUSH_OIDC_TOKEN_MISSING: '서버 인증을 준비하지 못했습니다. 운영 배포에서만 보낼 수 있습니다.',
+        FCM_RETRYABLE_ERRORS: '구글 서버 일시 오류로 1분 뒤 다시 보냅니다.'
       };
       function pushErrorLabel(code) {
         if (!code) return '';
         if (PUSH_ERROR_LABELS[code]) return PUSH_ERROR_LABELS[code];
-        if (/^FCM_AUTH_|^PUSH_STS_|^PUSH_IMPERSONATION_/.test(code)) return 'FCM 인증에 실패했습니다(' + code + '). 1분 뒤 다시 시도합니다.';
-        return code;
+        if (/^FCM_AUTH_|^PUSH_STS_|^PUSH_IMPERSONATION_/.test(code)) return '발송 서버 인증에 실패했습니다. 1분 뒤 다시 시도합니다.';
+        return '발송 중 문제가 생겼습니다.';
       }
-      function pushStatusLabel(item) {
-        if (item.status === 'scheduled' && item.scheduledAt && new Date(item.scheduledAt).getTime() <= Date.now()) return '발송 대기';
-        return PUSH_STATUS_LABELS[item.status] || item.status;
+      /** 서버 상태 + 결과로 운영자에게 보일 상태를 정한다. 다 보냈지만 일부 실패면 "일부 실패". */
+      function pushStatus(item) {
+        if (item.status === 'sent') return item.failureCount > 0 ? { label: '일부 실패', tone: 'warn' } : { label: '완료', tone: 'ok' };
+        if (item.status === 'failed') return { label: '실패', tone: 'error' };
+        if (item.status === 'sending') return { label: '발송중', tone: 'info' };
+        if (item.status === 'scheduled') return { label: item.scheduledAt && new Date(item.scheduledAt).getTime() <= Date.now() ? '발송 대기' : '예약', tone: 'info' };
+        if (item.status === 'cancelled') return { label: '취소', tone: '' };
+        return { label: '임시 저장', tone: '' };
+      }
+      function badge(status) {
+        var node = document.createElement('span'); node.className = 'admin-badge'; if (status.tone) node.setAttribute('data-tone', status.tone); node.textContent = status.label; return node;
+      }
+      function fmtNumber(value) { return value === null || value === undefined ? '—' : Number(value).toLocaleString('ko-KR'); }
+      function fmtWhen(value) {
+        if (!value) return '—';
+        var date = new Date(value); if (Number.isNaN(date.getTime())) return '—';
+        return date.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
       }
       function pushPreviewCard(title, message, collapsed) {
         var card = document.createElement('div'); card.className = 'admin-push-card'; card.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
@@ -1535,199 +1648,309 @@
       async function pushRequest(path, payload) {
         var response = await fetch('/api/admin/v1/push' + path, { method: payload ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store', headers: payload ? { 'Content-Type': 'application/json' } : {}, body: payload ? JSON.stringify(payload) : undefined });
         var data = await response.json().catch(function () { return {}; });
-        if (!response.ok) throw new Error(data.error || '푸시 요청을 처리하지 못했습니다.');
+        if (!response.ok) throw new Error(data.error || '요청을 처리하지 못했습니다.');
         return data;
       }
-      async function loadPushManager(body) {
+
+      async function loadMessagesManager(body) {
         body.replaceChildren();
-        var section = document.createElement('section'); section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>푸시 작성</h3><span class="admin-chip">앱 설치 기기 · Android</span></header>';
-        var layout = document.createElement('div'); layout.className = 'admin-notify-layout';
-        var form = document.createElement('form'); form.className = 'admin-refund-form admin-notify-form'; form.noValidate = true;
-        form.innerHTML = '<div class="admin-field" data-span="2"><label for="push-title">제목</label><input id="push-title" name="title" maxlength="100" required placeholder="오늘의 운세가 도착했어요 🔮"><span class="admin-counter" data-count="title"></span></div>'
-          + '<div class="admin-field" data-span="2"><label for="push-body">메시지</label><textarea id="push-body" name="message" maxlength="500" required placeholder="오늘 당신에게 들어오는 운은 무엇일까요?&#10;지금 확인해보세요."></textarea><span class="admin-counter" data-count="message"></span></div>'
-          + '<div class="admin-field" data-span="2"><label for="push-link">누르면 열 페이지</label><input id="push-link" name="deepLink" maxlength="500" value="/" placeholder="/me/lucky"><span class="admin-counter">운명상회 안의 주소만 됩니다. /로 시작해 주세요. 비워 두면 첫 화면이 열립니다.</span></div>'
-          + '<fieldset class="admin-field" data-span="2"><legend>발송 대상</legend>'
-          + '<label class="admin-choice"><input type="radio" name="target" value="all" checked> 앱 설치 기기 전체</label>'
-          + '<label class="admin-choice"><input type="radio" name="target" value="logged_in"> 로그인한 기기</label>'
-          + '<label class="admin-choice"><input type="radio" name="target" value="guests"> 로그인하지 않은 기기</label>'
-          + '<label class="admin-choice"><input type="radio" name="target" value="active_days"> 최근 <input type="number" name="activeDays" min="1" max="365" value="7" aria-label="최근 활동 일수">일 안에 앱을 연 기기</label>'
-          + '<label class="admin-choice"><input type="radio" name="target" value="signup_days"> 최근 <input type="number" name="signupDays" min="1" max="365" value="7" aria-label="최근 가입 일수">일 안에 가입한 회원</label>'
-          + '<label class="admin-choice"><input type="radio" name="target" value="users"> 특정 회원</label>'
-          + '<div data-user-picker hidden><div class="admin-actions"><input name="userQuery" maxlength="60" placeholder="이름 또는 회원 ID" aria-label="회원 검색"><button class="admin-button" data-variant="quiet" type="button" data-user-search>검색</button></div><div class="admin-user-results" data-user-results></div></div>'
-          + '<div class="admin-actions"><button class="admin-button" data-variant="quiet" type="button" data-audience>대상 기기 수 확인</button><span class="admin-counter" data-audience-result></span></div>'
-          + '</fieldset>'
-          + '<fieldset class="admin-field" data-span="2"><legend>발송 시점</legend>'
-          + '<label class="admin-choice"><input type="radio" name="when" value="now" checked> 지금 발송</label>'
-          + '<label class="admin-choice"><input type="radio" name="when" value="scheduled"> 예약 발송 <input type="datetime-local" name="scheduledAt" aria-label="예약 시각"></label>'
-          + '</fieldset>'
-          + '<div class="admin-actions" data-span="2"><button class="admin-button" type="submit">발송하기</button><p class="admin-note" role="status" data-push-result></p></div>';
-        var preview = document.createElement('aside'); preview.className = 'admin-notify-preview'; preview.setAttribute('aria-label', '푸시 미리보기');
-        var previewHead = document.createElement('h4'); var previewHost = document.createElement('div'); var previewDetail = document.createElement('div');
-        preview.append(previewHead, previewHost, previewDetail);
-        layout.append(form, preview); section.appendChild(layout); body.appendChild(section);
+        var state = { view: 'history', status: 'all', query: '', items: [], page: 0 };
+        var PAGE = 20;
 
-        var result = form.querySelector('[data-push-result]');
-        var selectedUsers = {};
-        var later = new Date(Date.now() + 60 * 60 * 1000); later.setMinutes(0, 0, 0); form.elements.scheduledAt.value = toLocalDateTime(later);
-        function counter(name, value, visible, limit) {
-          var node = form.querySelector('[data-count="' + name + '"]');
-          var over = value.length > visible;
-          node.setAttribute('data-over', over ? 'true' : 'false');
-          node.textContent = value.length + ' / ' + limit + '자' + (over ? ' · 접힌 알림에서는 ' + visible + '자 뒤가 잘려 보입니다.' : '');
-        }
-        function showDraftPreview() {
-          previewHead.textContent = '미리보기 · 작성 중';
-          renderPushPhone(previewHost, form.elements.title.value.trim(), form.elements.message.value.trim());
-          previewDetail.replaceChildren();
-          counter('title', form.elements.title.value.trim(), 40, 100);
-          counter('message', form.elements.message.value.trim(), 60, 500);
-        }
-        function selectedTarget() {
-          var type = form.elements.target.value;
-          if (type === 'active_days') return { type: type, days: Number(form.elements.activeDays.value) };
-          if (type === 'signup_days') return { type: type, days: Number(form.elements.signupDays.value) };
-          if (type === 'users') return { type: type, userIds: Object.keys(selectedUsers) };
-          return { type: type };
-        }
-        function targetText(target) {
-          if (target.type === 'all') return '앱 설치 기기 전체';
-          if (target.type === 'logged_in') return '로그인한 기기';
-          if (target.type === 'guests') return '로그인하지 않은 기기';
-          if (target.type === 'active_days') return '최근 ' + target.days + '일 안에 앱을 연 기기';
-          if (target.type === 'signup_days') return '최근 ' + target.days + '일 안에 가입한 회원';
-          return '특정 회원 ' + target.userIds.length + '명 (' + target.userIds.map(function (id) { return selectedUsers[id]; }).join(', ') + ')';
-        }
-        form.addEventListener('input', function (event) {
-          if (event.target.name === 'title' || event.target.name === 'message') showDraftPreview();
-          if (event.target.name === 'target') form.querySelector('[data-user-picker]').hidden = form.elements.target.value !== 'users';
-          if (['target', 'activeDays', 'signupDays'].indexOf(event.target.name) >= 0) form.querySelector('[data-audience-result]').textContent = '';
+        var toolbar = document.createElement('div'); toolbar.className = 'admin-toolbar';
+        var views = document.createElement('nav'); views.className = 'admin-tabs admin-tabs-inline'; views.setAttribute('aria-label', '메시지 보기');
+        [['history', '발송 내역'], ['scheduled', '예약']].forEach(function (entry) {
+          var link = document.createElement('a'); link.href = '#'; link.dataset.view = entry[0]; link.innerHTML = entry[1] + ' <em data-count></em>';
+          link.addEventListener('click', function (event) { event.preventDefault(); state.view = entry[0]; state.page = 0; render(); });
+          views.appendChild(link);
         });
-        form.addEventListener('focusin', function () { if (previewHead.textContent !== '미리보기 · 작성 중') showDraftPreview(); });
-        form.querySelector('[data-audience]').addEventListener('click', async function () {
-          var output = form.querySelector('[data-audience-result]'); output.textContent = '세는 중입니다.';
-          try { var data = await pushRequest('/audience', { target: selectedTarget() }); output.textContent = data.label + ': ' + Number(data.count).toLocaleString('ko-KR') + '대'; }
-          catch (error) { output.textContent = error.message; }
-        });
-        form.querySelector('[data-user-search]').addEventListener('click', async function () {
-          var list = form.querySelector('[data-user-results]'); list.textContent = '찾는 중입니다.';
-          try {
-            var data = await pushRequest('/users?q=' + encodeURIComponent(form.elements.userQuery.value.trim()));
-            list.replaceChildren();
-            if (!data.users.length) { list.textContent = '검색 결과가 없습니다.'; return; }
-            data.users.forEach(function (user) {
-              var label = document.createElement('label'); var box = document.createElement('input'); box.type = 'checkbox'; box.checked = Boolean(selectedUsers[user.userId]);
-              box.disabled = user.deviceCount === 0 && !box.checked;
-              box.addEventListener('change', function () { if (box.checked) selectedUsers[user.userId] = user.name; else delete selectedUsers[user.userId]; });
-              var text = document.createElement('span'); text.textContent = user.name + ' · 앱 기기 ' + user.deviceCount + '대 · ' + user.userId.slice(0, 8);
-              label.append(box, text); list.appendChild(label);
-            });
-          } catch (error) { list.textContent = error.message; }
-        });
+        var create = document.createElement('button'); create.type = 'button'; create.className = 'admin-button'; create.textContent = '＋ 새 메시지';
+        create.addEventListener('click', function () { openComposer(); });
+        toolbar.append(views, create);
 
-        var dialog = document.createElement('dialog'); dialog.className = 'admin-dialog';
-        dialog.innerHTML = '<form method="dialog" class="admin-dialog-body"><h3>푸시를 발송하시겠습니까?</h3><dl data-confirm></dl><div class="admin-actions"><button class="admin-button" data-variant="quiet" value="cancel">취소</button><button class="admin-button" value="send">발송하기</button></div></form>';
-        body.appendChild(dialog);
-        function confirmSend(rows) {
-          var list = dialog.querySelector('[data-confirm]'); list.replaceChildren();
-          rows.forEach(function (row) { var dt = document.createElement('dt'); dt.textContent = row[0]; var dd = document.createElement('dd'); dd.textContent = row[1]; list.append(dt, dd); });
-          return new Promise(function (resolve) {
-            dialog.addEventListener('close', function onClose() { dialog.removeEventListener('close', onClose); resolve(dialog.returnValue === 'send'); });
-            dialog.returnValue = '';
-            dialog.showModal();
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '상태');
+        [['all', '전체'], ['done', '완료'], ['partial', '일부 실패'], ['failed', '실패'], ['cancelled', '취소']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.status = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.status = entry[0]; state.page = 0; render(); });
+          seg.appendChild(button);
+        });
+        var search = document.createElement('input'); search.type = 'search'; search.placeholder = '메시지 제목 검색'; search.className = 'admin-filter-search'; search.setAttribute('aria-label', '메시지 제목 검색');
+        search.addEventListener('input', function () { state.query = search.value.trim(); state.page = 0; render(); });
+        filters.append(seg, search);
+
+        var card = document.createElement('section'); card.className = 'admin-section';
+        var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
+        card.appendChild(status);
+        body.append(toolbar, filters, card);
+
+        function matches(item) {
+          if (state.view === 'scheduled') return item.status === 'scheduled' || item.status === 'sending';
+          if (item.status === 'scheduled' || item.status === 'draft') return false;
+          if (state.query && String(item.title).indexOf(state.query) < 0) return false;
+          var label = pushStatus(item).label;
+          if (state.status === 'done') return label === '완료';
+          if (state.status === 'partial') return label === '일부 실패';
+          if (state.status === 'failed') return label === '실패';
+          if (state.status === 'cancelled') return label === '취소';
+          return true;
+        }
+        function render() {
+          views.querySelectorAll('a').forEach(function (link) {
+            if (link.dataset.view === state.view) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+            var count = state.items.filter(function (item) { return link.dataset.view === 'scheduled' ? (item.status === 'scheduled' || item.status === 'sending') : (item.status !== 'scheduled' && item.status !== 'draft'); }).length;
+            link.querySelector('[data-count]').textContent = String(count);
           });
-        }
-        form.addEventListener('submit', async function (event) {
-          event.preventDefault();
-          var title = form.elements.title.value.trim(); var message = form.elements.message.value.trim();
-          if (!title || !message) { result.textContent = '제목과 메시지를 입력해 주세요.'; return; }
-          var target = selectedTarget();
-          if (target.type === 'users' && !target.userIds.length) { result.textContent = '보낼 회원을 검색해서 골라 주세요.'; return; }
-          var when = form.elements.when.value; var schedule = { mode: 'now' };
-          if (when === 'scheduled') {
-            var at = new Date(form.elements.scheduledAt.value);
-            if (Number.isNaN(at.getTime())) { result.textContent = '예약 시각을 입력해 주세요.'; return; }
-            schedule = { mode: 'scheduled', at: at.toISOString() };
+          filters.hidden = state.view !== 'history';
+          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
+          var list = state.items.filter(matches);
+          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
+          var head = state.view === 'scheduled'
+            ? ['예약 시각', '채널', '메시지', '대상', '상태', '작성자']
+            : ['발송일시', '채널', '메시지', '대상', '대상수', '성공', '실패', '클릭', '클릭률', '상태', '작성자'];
+          var numeric = { '대상수': 1, '성공': 1, '실패': 1, '클릭': 1, '클릭률': 1 };
+          table.innerHTML = '<thead><tr>' + head.map(function (name) { return '<th scope="col"' + (numeric[name] ? ' class="admin-num"' : '') + '>' + name + '</th>'; }).join('') + '</tr></thead>';
+          var rows = document.createElement('tbody');
+          var pageItems = list.slice(state.page * PAGE, state.page * PAGE + PAGE);
+          if (!pageItems.length) {
+            var empty = document.createElement('tr'); var cell = document.createElement('td'); cell.colSpan = head.length; cell.className = 'admin-empty';
+            cell.textContent = state.view === 'scheduled' ? '예약된 메시지가 없습니다.' : (state.items.length ? '조건에 맞는 메시지가 없습니다.' : '아직 보낸 메시지가 없습니다. ＋ 새 메시지로 첫 메시지를 보내 보세요.');
+            empty.appendChild(cell); rows.appendChild(empty);
           }
-          var ok = await confirmSend([['대상', targetText(target)], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/'], ['시점', schedule.mode === 'now' ? '지금 바로' : new Date(schedule.at).toLocaleString('ko-KR') + ' 예약']]);
-          if (!ok) return;
-          var submit = form.querySelector('button[type="submit"]'); submit.disabled = true; result.textContent = schedule.mode === 'now' ? '보내는 중입니다.' : '예약하는 중입니다.';
-          try {
-            var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule });
-            var item = data.item;
-            result.textContent = item.status === 'sent' ? '발송했습니다. 성공 ' + item.successCount + '대, 실패 ' + item.failureCount + '대.'
-              : item.status === 'scheduled' ? new Date(item.scheduledAt).toLocaleString('ko-KR') + '에 보냅니다.'
-              : item.status === 'failed' ? '발송하지 못했습니다. ' + pushErrorLabel(item.lastError)
-              : '보내는 중입니다. 남은 기기는 1분 안에 이어서 보냅니다.';
-            await loadHistory(); showDetail(item);
-          } catch (error) { result.textContent = error.message; }
-          finally { submit.disabled = false; }
-        });
-
-        function showDetail(item) {
-          previewHead.textContent = '미리보기 · ' + pushStatusLabel(item);
-          renderPushPhone(previewHost, item.title, item.body);
-          previewDetail.replaceChildren();
-          var stats = document.createElement('dl'); stats.className = 'admin-push-stats';
-          var clickRate = item.successCount ? Math.round(item.clickCount / item.successCount * 1000) / 10 + '%' : '-';
-          [['대상', item.targetLabel || item.targetType], ['이동', item.deepLink], ['대상 기기', item.totalCount.toLocaleString('ko-KR') + '대'], ['FCM 접수', item.successCount.toLocaleString('ko-KR') + '대'], ['실패', item.failureCount.toLocaleString('ko-KR') + '대'], ['클릭', item.clickCount.toLocaleString('ko-KR') + '회 (' + clickRate + ')'], ['작성', item.createdBy]].forEach(function (pair) {
-            var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; stats.append(dt, dd);
+          pageItems.forEach(function (item) {
+            var row = document.createElement('tr'); row.tabIndex = 0;
+            var done = item.status === 'sent' || item.status === 'failed' || item.status === 'sending';
+            function td(value, className) { var cell = document.createElement('td'); if (className) cell.className = className; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); return cell; }
+            td(fmtWhen(state.view === 'scheduled' ? item.scheduledAt : (item.sentAt || item.startedAt || item.scheduledAt || item.createdAt)));
+            var channel = document.createElement('span'); channel.className = 'admin-channel'; channel.textContent = '푸시'; td(channel);
+            var message = document.createElement('div'); message.className = 'admin-msg-cell';
+            var title = document.createElement('b'); title.textContent = item.title; var sub = document.createElement('span'); sub.textContent = String(item.body || '').split('\n')[0];
+            message.append(title, sub); td(message);
+            td(item.targetLabel || '—');
+            if (state.view !== 'scheduled') {
+              td(done ? fmtNumber(item.totalCount) : '—', 'admin-num');
+              td(done ? fmtNumber(item.successCount) : '—', 'admin-num');
+              var fail = td(done ? fmtNumber(item.failureCount) : '—', 'admin-num'); if (done && item.failureCount) fail.classList.add('admin-bad');
+              td(done ? fmtNumber(item.clickCount) : '—', 'admin-num');
+              td(done && item.successCount ? (Math.round(item.clickCount / item.successCount * 1000) / 10) + '%' : '—', 'admin-num');
+            }
+            td(badge(pushStatus(item)));
+            td(String(item.createdBy || '').split('@')[0], 'admin-muted');
+            row.addEventListener('click', function () { openDetail(item); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openDetail(item); });
+            rows.appendChild(row);
           });
-          previewDetail.appendChild(stats);
-          var note = document.createElement('p'); note.className = 'admin-note';
-          note.textContent = 'FCM 접수는 구글 서버가 받았다는 뜻이고, 기기에 도착했다는 뜻은 아닙니다. 클릭은 앱에서 알림을 누른 횟수입니다.' + (item.lastError ? ' 사유: ' + pushErrorLabel(item.lastError) : '');
-          previewDetail.appendChild(note);
-          if (item.failureCount) pushRequest('/' + encodeURIComponent(item.id)).then(function (data) {
-            var codes = Object.keys(data.failures || {}); if (!codes.length) return;
-            var failure = document.createElement('p'); failure.className = 'admin-note';
-            failure.textContent = '실패 사유: ' + codes.map(function (code) { return code + ' ' + data.failures[code] + '대'; }).join(', ');
-            previewDetail.appendChild(failure);
-          }).catch(function () {});
-          var copy = document.createElement('button'); copy.type = 'button'; copy.className = 'admin-button'; copy.setAttribute('data-variant', 'quiet'); copy.textContent = '이 내용으로 새로 쓰기';
-          copy.addEventListener('click', function () { form.elements.title.value = item.title; form.elements.message.value = item.body; form.elements.deepLink.value = item.deepLink; showDraftPreview(); form.elements.title.focus(); });
-          previewDetail.appendChild(copy);
+          table.appendChild(rows);
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          var pager = document.createElement('div'); pager.className = 'admin-pager';
+          var pages = Math.max(1, Math.ceil(list.length / PAGE));
+          var info = document.createElement('span'); info.textContent = list.length ? list.length.toLocaleString('ko-KR') + '건 중 ' + (state.page * PAGE + 1) + '–' + Math.min(list.length, state.page * PAGE + PAGE) : '0건';
+          var nav = document.createElement('div'); nav.className = 'admin-pager-buttons';
+          [['‹', state.page - 1], ['›', state.page + 1]].forEach(function (entry) {
+            var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[0]; button.setAttribute('aria-label', entry[0] === '‹' ? '이전 페이지' : '다음 페이지');
+            button.disabled = entry[1] < 0 || entry[1] >= pages;
+            button.addEventListener('click', function () { state.page = entry[1]; render(); });
+            nav.appendChild(button);
+          });
+          var current = document.createElement('span'); current.className = 'admin-pager-current'; current.textContent = (state.page + 1) + ' / ' + pages;
+          nav.insertBefore(current, nav.lastChild);
+          pager.append(info, nav);
+          card.replaceChildren(scroll, pager);
         }
-
-        var history = document.createElement('section'); history.className = 'admin-section';
-        history.innerHTML = '<header class="admin-section-head"><h3>발송 이력</h3><span class="admin-chip">행을 누르면 오른쪽에서 미리보기와 결과를 봅니다</span></header><p class="admin-empty">불러오는 중입니다.</p>';
-        body.appendChild(history);
-        async function loadHistory() {
+        async function load() {
           try {
-            var data = await pushRequest('?limit=50');
-            var table = document.createElement('table'); table.className = 'admin-table';
-            table.innerHTML = '<thead><tr><th scope="col">발송일시</th><th scope="col">제목</th><th scope="col">대상</th><th scope="col">상태</th><th scope="col">성공</th><th scope="col">실패</th><th scope="col">클릭</th><th scope="col">관리</th></tr></thead>';
-            var rows = document.createElement('tbody');
-            if (!data.items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">아직 보낸 푸시가 없습니다.</td>'; rows.appendChild(empty); }
-            data.items.forEach(function (item) {
-              var row = document.createElement('tr'); row.tabIndex = 0; row.style.cursor = 'pointer';
-              var when = item.sentAt || item.scheduledAt || item.createdAt;
-              var done = item.status === 'sent' || item.status === 'sending' || item.status === 'failed';
-              [new Date(when).toLocaleString('ko-KR'), item.title, item.targetLabel || item.targetType, pushStatusLabel(item), done ? item.successCount.toLocaleString('ko-KR') : '-', done ? item.failureCount.toLocaleString('ko-KR') : '-', done ? item.clickCount.toLocaleString('ko-KR') : '-'].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
-              var manage = document.createElement('td');
-              if (item.status === 'draft' || item.status === 'scheduled' || item.status === 'sending') {
-                var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'admin-button'; cancel.setAttribute('data-variant', 'quiet'); cancel.textContent = item.status === 'sending' ? '남은 발송 중단' : '예약 취소';
-                cancel.addEventListener('click', async function (event) {
-                  event.stopPropagation();
-                  if (!window.confirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 중단할까요?' : '이 예약을 취소할까요?')) return;
-                  cancel.disabled = true;
-                  try { await pushRequest('/' + encodeURIComponent(item.id) + '/cancel', {}); await loadHistory(); } catch (error) { window.alert(error.message); cancel.disabled = false; }
-                });
-                manage.appendChild(cancel);
-              }
-              row.appendChild(manage);
-              row.addEventListener('click', function () { showDetail(item); });
-              row.addEventListener('keydown', function (event) { if (event.key === 'Enter') showDetail(item); });
-              rows.appendChild(row);
-            });
-            table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-            history.replaceChildren(history.firstElementChild, scroll);
+            var data = await pushRequest('?limit=100');
+            state.items = Array.isArray(data.items) ? data.items : [];
+            render();
           } catch (error) {
-            var message = document.createElement('p'); message.className = 'admin-empty'; message.textContent = '발송 이력을 불러오지 못했습니다. ' + error.message;
-            history.replaceChildren(history.firstElementChild, message);
+            var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '발송 내역을 불러오지 못했습니다. ' + error.message;
+            card.replaceChildren(failed);
           }
         }
-        showDraftPreview();
-        await loadHistory();
+
+        function openDetail(item) {
+          var statusInfo = pushStatus(item);
+          var wrap = document.createElement('div'); wrap.className = 'admin-detail-grid';
+          var left = document.createElement('div'); var right = document.createElement('div');
+          var h1 = document.createElement('h4'); h1.textContent = '미리보기';
+          var preview = document.createElement('div'); preview.className = 'admin-detail-preview'; preview.appendChild(pushPreviewCard(item.title, item.body, false));
+          var h2 = document.createElement('h4'); h2.textContent = '발송 조건';
+          var cond = document.createElement('dl'); cond.className = 'admin-dl';
+          [['대상', item.targetLabel || '—'], ['시점', item.scheduledAt ? fmtWhen(item.scheduledAt) + (item.status === 'scheduled' ? ' 예약' : '') : '—'], ['이동', item.deepLink || '/'], ['작성', item.createdBy || '—']].forEach(function (pair) {
+            var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; cond.append(dt, dd);
+          });
+          left.append(h1, preview, h2, cond);
+          var h3 = document.createElement('h4'); h3.textContent = '발송 결과';
+          var kpis = document.createElement('div'); kpis.className = 'admin-kpis';
+          var done = item.status === 'sent' || item.status === 'failed' || item.status === 'sending';
+          function kpi(label, value, tip, bad) {
+            var box = document.createElement('div'); var name = document.createElement('span'); name.textContent = label; if (tip) name.appendChild(adminTip(tip));
+            var number = document.createElement('b'); number.textContent = value; if (bad) number.className = 'admin-bad';
+            box.append(name, number); kpis.appendChild(box);
+          }
+          kpi('대상 기기', done ? fmtNumber(item.totalCount) : '—');
+          kpi('전송 성공', done ? fmtNumber(item.successCount) : '—', '구글 알림 서버가 받은 수입니다. 기기에 실제로 도착했다는 뜻은 아닙니다.');
+          kpi('실패', done ? fmtNumber(item.failureCount) : '—', null, done && item.failureCount > 0);
+          kpi('클릭 · 클릭률', done ? fmtNumber(item.clickCount) + (item.successCount ? ' · ' + (Math.round(item.clickCount / item.successCount * 1000) / 10) + '%' : '') : '—', '앱에서 알림을 눌러 연 횟수입니다. 같은 기기는 한 번만 셉니다.');
+          right.append(h3, kpis);
+          if (done && item.totalCount) {
+            var meter = document.createElement('div'); meter.className = 'admin-meter';
+            var ok = document.createElement('i'); ok.style.width = (item.successCount / item.totalCount * 100) + '%'; ok.setAttribute('data-tone', 'ok');
+            var bad = document.createElement('i'); bad.style.width = (item.failureCount / item.totalCount * 100) + '%'; bad.setAttribute('data-tone', 'error');
+            meter.append(ok, bad); right.appendChild(meter);
+          }
+          if (item.lastError) { var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = pushErrorLabel(item.lastError); right.appendChild(note); }
+          var failBox = document.createElement('div');
+          if (item.failureCount) {
+            var h4 = document.createElement('h4'); h4.textContent = '실패 사유'; failBox.appendChild(h4);
+            var list = document.createElement('ul'); list.className = 'admin-reason-list'; list.innerHTML = '<li>불러오는 중입니다.</li>'; failBox.appendChild(list);
+            pushRequest('/' + encodeURIComponent(item.id)).then(function (data) {
+              list.replaceChildren();
+              Object.keys(data.failures || {}).sort(function (a, b) { return data.failures[b] - data.failures[a]; }).forEach(function (code) {
+                var li = document.createElement('li'); var name = document.createElement('span'); name.textContent = PUSH_FAILURE_LABELS[code] || '기타 오류'; name.appendChild(adminTip('오류 코드 ' + code));
+                var count = document.createElement('b'); count.textContent = fmtNumber(data.failures[code]) + '대'; li.append(name, count); list.appendChild(li);
+              });
+            }).catch(function () { list.innerHTML = '<li>실패 사유를 불러오지 못했습니다.</li>'; });
+          }
+          right.appendChild(failBox);
+          wrap.append(left, right);
+          var actions = [{ label: '내용 복사', onClick: function () { navigator.clipboard.writeText(item.title + '\n' + item.body).then(function () { window.alert('제목과 메시지를 복사했습니다.'); }).catch(function () { window.alert('복사하지 못했습니다.'); }); } }];
+          if (item.status === 'scheduled' || item.status === 'sending' || item.status === 'draft') {
+            actions.push({ label: item.status === 'sending' ? '남은 발송 중단' : '예약 취소', onClick: async function (dialog) {
+              if (!window.confirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 중단할까요?' : '이 예약을 취소할까요?')) return;
+              try { await pushRequest('/' + encodeURIComponent(item.id) + '/cancel', {}); dialog.close(); load(); } catch (error) { window.alert(error.message); }
+            } });
+          }
+          if ((item.status === 'sent' || item.status === 'failed') && item.failureCount > 0) {
+            actions.push({ label: '실패분 재발송 (' + fmtNumber(item.failureCount) + ')', onClick: async function (dialog) {
+              if (!window.confirm('실패한 기기 중 지금도 알림을 받을 수 있는 기기에 다시 보냅니다. 앱을 지운 기기는 빠집니다. 보낼까요?')) return;
+              try { var data = await pushRequest('/' + encodeURIComponent(item.id) + '/resend-failed', {}); window.alert(fmtNumber(data.reopened) + '대에 다시 보냈습니다.'); dialog.close(); load(); } catch (error) { window.alert(error.message); }
+            } });
+          }
+          actions.push({ label: '다시 발송', primary: true, onClick: function (dialog) { dialog.close(); openComposer(item); } });
+          openAdminModal({ title: item.title, subtitle: statusInfo.label + ' · 푸시 · ' + fmtWhen(item.sentAt || item.scheduledAt || item.createdAt), body: wrap, actions: actions });
+        }
+
+        function openComposer(source) {
+          var root = document.createElement('div'); root.className = 'admin-compose';
+          var form = document.createElement('form'); form.className = 'admin-compose-form'; form.noValidate = true;
+          form.innerHTML = ''
+            + '<section><h4><span class="admin-step">1</span>채널</h4><div class="admin-seg" role="radiogroup" aria-label="채널"><button type="button" aria-pressed="true">앱 푸시</button></div><p class="admin-hint">카카오 채널은 카카오 채널 화면이 합쳐지면 여기서 함께 고릅니다.</p></section>'
+            + '<section><h4><span class="admin-step">2</span>대상</h4><div class="admin-radio-list">'
+            + '<label><input type="radio" name="target" value="all" checked> 앱 설치 기기 전체</label>'
+            + '<label><input type="radio" name="target" value="logged_in"> 로그인한 기기</label>'
+            + '<label><input type="radio" name="target" value="guests"> 로그인하지 않은 기기</label>'
+            + '<label><input type="radio" name="target" value="active_days"> 최근 <input type="number" name="activeDays" min="1" max="365" value="7" aria-label="최근 활동 일수"> 일 안에 앱을 연 기기</label>'
+            + '<label><input type="radio" name="target" value="signup_days"> 최근 <input type="number" name="signupDays" min="1" max="365" value="7" aria-label="최근 가입 일수"> 일 안에 가입한 회원</label>'
+            + '<label><input type="radio" name="target" value="users"> 특정 회원</label>'
+            + '</div><div class="admin-user-picker" data-user-picker hidden><div class="admin-inline"><input name="userQuery" maxlength="60" placeholder="이름 또는 회원 번호" aria-label="회원 검색"><button class="admin-button" data-variant="quiet" type="button" data-user-search>검색</button></div><div class="admin-user-results" data-user-results></div></div>'
+            + '<p class="admin-audience" data-audience>예상 발송 대상을 세는 중입니다.</p></section>'
+            + '<section><h4><span class="admin-step">3</span>내용</h4>'
+            + '<label class="admin-label" for="msg-title">제목</label><input id="msg-title" name="title" maxlength="100" placeholder="오늘의 운세가 도착했어요 🔮"><span class="admin-counter" data-count="title"></span>'
+            + '<label class="admin-label" for="msg-body">메시지</label><textarea id="msg-body" name="message" maxlength="500" placeholder="오늘 당신에게 들어오는 운은 무엇일까요?"></textarea><span class="admin-counter" data-count="message"></span>'
+            + '<label class="admin-label" for="msg-link">누르면 열 페이지</label><input id="msg-link" name="deepLink" maxlength="500" value="/" placeholder="/me/lucky"><span class="admin-hint">운명상회 안의 주소만 됩니다. 비워 두면 첫 화면이 열립니다.</span></section>'
+            + '<section><h4><span class="admin-step">4</span>발송 시점</h4><div class="admin-radio-list">'
+            + '<label><input type="radio" name="when" value="now" checked> 지금 발송</label>'
+            + '<label><input type="radio" name="when" value="scheduled"> 예약 발송 <input type="datetime-local" name="scheduledAt" aria-label="예약 시각"></label>'
+            + '</div></section>';
+          var aside = document.createElement('aside'); aside.className = 'admin-compose-preview'; aside.setAttribute('aria-label', '미리보기');
+          var asideTitle = document.createElement('h4'); asideTitle.textContent = '미리보기'; var phone = document.createElement('div'); aside.append(asideTitle, phone);
+          root.append(form, aside);
+          var selectedUsers = {};
+          var audience = { count: null, label: '' };
+          var later = new Date(Date.now() + 60 * 60 * 1000); later.setMinutes(0, 0, 0); form.elements.scheduledAt.value = toLocalDateTime(later);
+          if (source) { form.elements.title.value = source.title; form.elements.message.value = source.body; form.elements.deepLink.value = source.deepLink || '/'; }
+          function counter(name, value, visible, limit) {
+            var node = form.querySelector('[data-count="' + name + '"]'); var over = value.length > visible;
+            node.setAttribute('data-over', over ? 'true' : 'false');
+            node.textContent = value.length + ' / ' + limit + '자' + (over ? ' · 접힌 알림에서는 ' + visible + '자 뒤가 잘려 보입니다' : '');
+          }
+          function refreshPreview() {
+            renderPushPhone(phone, form.elements.title.value.trim(), form.elements.message.value.trim());
+            counter('title', form.elements.title.value.trim(), 40, 100); counter('message', form.elements.message.value.trim(), 60, 500);
+          }
+          function selectedTarget() {
+            var type = form.elements.target.value;
+            if (type === 'active_days') return { type: type, days: Number(form.elements.activeDays.value) };
+            if (type === 'signup_days') return { type: type, days: Number(form.elements.signupDays.value) };
+            if (type === 'users') return { type: type, userIds: Object.keys(selectedUsers) };
+            return { type: type };
+          }
+          var countTimer = null;
+          function refreshAudience() {
+            var node = form.querySelector('[data-audience]'); var target = selectedTarget();
+            if (target.type === 'users' && !target.userIds.length) { audience = { count: 0, label: '특정 회원' }; node.textContent = '보낼 회원을 검색해서 골라 주세요.'; return; }
+            node.textContent = '예상 발송 대상을 세는 중입니다.';
+            clearTimeout(countTimer);
+            countTimer = setTimeout(function () {
+              pushRequest('/audience', { target: target }).then(function (data) {
+                audience = { count: data.count, label: data.label };
+                node.innerHTML = ''; var strong = document.createElement('b'); strong.textContent = '예상 발송 대상 ' + fmtNumber(data.count) + '대';
+                node.append(strong, document.createTextNode(' · ' + data.label)); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
+              }).catch(function (error) { audience = { count: null, label: '' }; node.textContent = error.message; });
+            }, 250);
+          }
+          form.addEventListener('input', function (event) {
+            var name = event.target.name;
+            if (name === 'title' || name === 'message') refreshPreview();
+            if (name === 'target') form.querySelector('[data-user-picker]').hidden = form.elements.target.value !== 'users';
+            if (['target', 'activeDays', 'signupDays'].indexOf(name) >= 0) refreshAudience();
+          });
+          form.querySelector('[data-user-search]').addEventListener('click', async function () {
+            var list = form.querySelector('[data-user-results]'); list.textContent = '찾는 중입니다.';
+            try {
+              var data = await pushRequest('/users?q=' + encodeURIComponent(form.elements.userQuery.value.trim()));
+              list.replaceChildren();
+              if (!data.users.length) { list.textContent = '검색 결과가 없습니다.'; return; }
+              data.users.forEach(function (user) {
+                var label = document.createElement('label'); var box = document.createElement('input'); box.type = 'checkbox'; box.checked = Boolean(selectedUsers[user.userId]);
+                box.disabled = user.deviceCount === 0 && !box.checked;
+                box.addEventListener('change', function () { if (box.checked) selectedUsers[user.userId] = user.name; else delete selectedUsers[user.userId]; refreshAudience(); });
+                var text = document.createElement('span'); text.textContent = user.name + ' · 앱 기기 ' + user.deviceCount + '대';
+                label.append(box, text); list.appendChild(label);
+              });
+            } catch (error) { list.textContent = error.message; }
+          });
+          refreshPreview(); refreshAudience();
+          var dialog = openAdminModal({ title: source ? '다시 발송' : '새 메시지', subtitle: '앱 설치 기기에 푸시를 보냅니다.', size: 'wide', body: root, actions: [
+            { label: '취소', onClick: function (d) { d.close(); } },
+            { label: '발송하기', primary: true, onClick: function (d) { confirmSend(d); } },
+          ] });
+          function confirmSend(composer) {
+            var title = form.elements.title.value.trim(); var message = form.elements.message.value.trim();
+            if (!title || !message) { window.alert('제목과 메시지를 입력해 주세요.'); return; }
+            var target = selectedTarget();
+            if (target.type === 'users' && !target.userIds.length) { window.alert('보낼 회원을 검색해서 골라 주세요.'); return; }
+            var schedule = { mode: 'now' };
+            if (form.elements.when.value === 'scheduled') {
+              var at = new Date(form.elements.scheduledAt.value);
+              if (Number.isNaN(at.getTime())) { window.alert('예약 시각을 입력해 주세요.'); return; }
+              schedule = { mode: 'scheduled', at: at.toISOString() };
+            }
+            var summary = document.createElement('div');
+            var lead = document.createElement('p'); lead.className = 'admin-confirm-lead';
+            lead.textContent = '푸시를 ' + (audience.count === null ? '대상 기기' : fmtNumber(audience.count) + '대') + '에 ' + (schedule.mode === 'now' ? '지금 발송합니다.' : new Date(schedule.at).toLocaleString('ko-KR') + '에 예약합니다.');
+            var dl = document.createElement('dl'); dl.className = 'admin-dl';
+            [['대상', audience.label || '—'], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/']].forEach(function (pair) {
+              var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; dl.append(dt, dd);
+            });
+            summary.append(lead, dl);
+            openAdminModal({ title: '발송 확인', body: summary, actions: [
+              { label: '돌아가기', onClick: function (d) { d.close(); } },
+              { label: schedule.mode === 'now' ? '발송하기' : '예약하기', primary: true, onClick: async function (d) {
+                var buttons = d.querySelectorAll('button'); buttons.forEach(function (b) { b.disabled = true; });
+                try {
+                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule });
+                  d.close(); composer.close();
+                  await load(); openDetail(data.item);
+                } catch (error) { window.alert(error.message); buttons.forEach(function (b) { b.disabled = false; }); }
+              } },
+            ] });
+          }
+          return dialog;
+        }
+
+        await load();
       }
       async function loadCouponManager(body) {
         body.replaceChildren();
@@ -1817,7 +2040,7 @@
           var response = await fetch('/api/admin/v1/consultation/settings', { credentials: 'same-origin', cache: 'no-store' });
           if (!response.ok) throw new Error(response.status === 403 ? '콘텐츠 조회 권한이 없습니다.' : '설정을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
           snapshot = await response.json();
-          if (snapshot.versionStore !== 'ready' || !Array.isArray(snapshot.items) || !snapshot.defaults) throw new Error('설정 저장소에 연결할 수 없습니다. 조회 실패 중에는 저장할 수 없습니다.');
+          if (snapshot.versionStore !== 'ready' || !Array.isArray(snapshot.items) || !snapshot.defaults) throw new Error('설정을 불러오지 못해 지금은 저장할 수 없습니다.');
         } catch (error) { status.textContent = error instanceof Error ? error.message : '설정 조회에 실패했습니다.'; return; }
         var versions = snapshot.items.filter(function (item) { return item.contentType === 'notice' && item.placement === 'cheonmyeong_consultation' && item.serviceKey === null; });
         var published = versions.find(function (item) { return item.state === 'published'; });
@@ -2104,11 +2327,11 @@
       function refundStatus(state) {
         var labels = {
           requested: { tone: 'warn', text: '승인 대기' },
-          approved: { tone: 'warn', text: '승인됨 · PG 실행 대기' },
-          processing: { tone: 'warn', text: 'PG 처리 확인 중' },
-          succeeded: { tone: 'ok', text: '환불 완료 · PG 확인됨' },
-          failed: { tone: 'error', text: '처리 실패 · PG 상태 확인 필요' },
-          unknown: { tone: 'warn', text: '확인 대기 · PG 재조회 필요' },
+          approved: { tone: 'warn', text: '승인됨 · 결제사 환불 대기' },
+          processing: { tone: 'warn', text: '결제사 처리 확인 중' },
+          succeeded: { tone: 'ok', text: '환불 완료' },
+          failed: { tone: 'error', text: '처리 실패 · 결제사 확인 필요' },
+          unknown: { tone: 'warn', text: '확인 대기 · 결제사 재확인 필요' },
           rejected: { tone: 'error', text: '승인 거절' }
         };
         return labels[state] || { tone: 'warn', text: '상태 확인 필요' };
@@ -2117,7 +2340,7 @@
       function formatRefundDate(value) { return refundText(value).replace('T', ' ').slice(0, 16); }
       function appendRefundEvidence(section, refund) {
         var evidence = document.createElement('dl'); evidence.className = 'admin-refund-evidence';
-        [['요청 ID', refund.id], ['주문 ID', refund.orderId], ['요청 금액', Number(refund.amount).toLocaleString('ko-KR') + '원'], ['요청 사유', refund.reason], ['요청자', refund.requestedByEmail], ['승인자', refund.approvedByEmail || '미승인'], ['요청 시각', formatRefundDate(refund.createdAt)], ['최근 변경', formatRefundDate(refund.updatedAt)], ['PG 결과', refundStatus(refund.state).text]].forEach(function (entry) {
+        [['요청 ID', refund.id], ['주문 ID', refund.orderId], ['요청 금액', Number(refund.amount).toLocaleString('ko-KR') + '원'], ['요청 사유', refund.reason], ['요청자', refund.requestedByEmail], ['승인자', refund.approvedByEmail || '미승인'], ['요청 시각', formatRefundDate(refund.createdAt)], ['최근 변경', formatRefundDate(refund.updatedAt)], ['결제사 처리 결과', refundStatus(refund.state).text]].forEach(function (entry) {
           var term = document.createElement('dt'); term.textContent = entry[0]; var description = document.createElement('dd'); description.textContent = refundText(entry[1]); evidence.appendChild(term); evidence.appendChild(description);
         });
         section.appendChild(evidence);
@@ -2126,33 +2349,33 @@
         var section = document.createElement('section'); section.className = 'admin-section';
         var head = document.createElement('header'); head.className = 'admin-section-head'; var heading = document.createElement('h3'); heading.textContent = '독립 승인 검토'; var status = refundStatus(refund.state); var chip = document.createElement('span'); chip.className = 'admin-status'; chip.dataset.tone = status.tone; chip.textContent = status.text; head.appendChild(heading); head.appendChild(chip); section.appendChild(head);
         appendRefundEvidence(section, refund);
-        var notice = document.createElement('p'); notice.className = 'admin-refund-alert'; notice.textContent = '승인은 요청자와 다른 관리자만 할 수 있으며, 이 단계에서는 PG 환불을 실행하지 않습니다.'; section.appendChild(notice);
+        var notice = document.createElement('p'); notice.className = 'admin-refund-alert'; notice.textContent = '승인은 요청자와 다른 관리자만 할 수 있습니다. 결제사 환불은 이 단계에서 실행되지 않습니다.'; section.appendChild(notice);
         var currentEmail = String((window.__adminMembership || {}).email || '').toLowerCase();
         var form = document.createElement('form'); form.className = 'admin-actions'; form.style.padding = '0 16px 16px';
         var reason = document.createElement('input'); reason.name = 'reason'; reason.required = true; reason.maxLength = 240; reason.placeholder = '승인 판단 근거'; reason.setAttribute('aria-label', '승인 판단 근거');
         var submit = document.createElement('button'); submit.className = 'admin-button'; submit.type = 'submit'; submit.textContent = '승인';
         var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status');
         if (currentEmail && currentEmail === String(refund.requestedByEmail).toLowerCase()) { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '요청자는 자신의 환불 요청을 승인할 수 없습니다.'; }
-        if (refund.state !== 'requested') { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '현재 상태에서는 승인할 수 없습니다. PG 처리 결과는 먼저 조회·대사해야 합니다.'; }
+        if (refund.state !== 'requested') { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '지금 상태에서는 승인할 수 없습니다. 결제사 처리 결과를 먼저 확인해 주세요.'; }
         form.appendChild(reason); form.appendChild(submit); form.appendChild(result);
         form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
         section.appendChild(form); body.appendChild(section);
       }
       async function loadRefunds(body) {
         body.replaceChildren();
-        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청 등록</h3><span class="admin-chip">실제 주문 기준</span></header>';
+        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청 등록</h3><span class="admin-chip">주문 기준</span></header>';
         var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
-        form.innerHTML = '<div class="admin-field" data-span="2"><label>주문 ID</label><input required name="orderId" autocomplete="off" placeholder="실제 주문 ID"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="주문 조회 후 입력"></div><div class="admin-field"><label>사유 코드</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">주문 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>주문을 확인하면 현재 결제금액과 revision을 사용합니다.</p>';
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>주문 ID</label><input required name="orderId" autocomplete="off" placeholder="주문 번호"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="주문 조회 후 입력"></div><div class="admin-field"><label>사유 코드</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">주문 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>주문을 확인하면 결제 금액이 자동으로 채워집니다.</p>';
         var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
         async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '주문 ID를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '주문을 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '주문을 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '주문 확인됨: ' + Number(order.amount).toLocaleString('ko-KR') + '원 · 버전 ' + String(order.revision) + '. 서버가 환불 가능 금액을 다시 검증합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '주문을 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
         lookup.addEventListener('click', lookupOrder);
         form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
         requestSection.appendChild(form); body.appendChild(requestSection);
-        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 환불 요청</h3><span class="admin-chip">PG 실행 결과와 구분</span></header><p class="admin-empty">환불 요청 원천을 불러오는 중입니다.</p>'; body.appendChild(listSection);
-        try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 실제 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 목록을 불러오지 못했습니다.'; }
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청</h3><span class="admin-chip">결제사 환불은 별도 처리</span></header><p class="admin-empty">환불 요청을 불러오는 중입니다.</p>'; body.appendChild(listSection);
+        try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 목록을 불러오지 못했습니다.'; }
       }
       function loadAdminSearch(body) {
-        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
+        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">최근 100건</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
         var form = document.createElement('form'); form.className = 'admin-actions'; form.innerHTML = '<select name="kind" aria-label="검색 대상"><option value="order">주문</option><option value="member">회원</option><option value="report">리포트</option><option value="support">고객 지원 케이스</option></select><input required name="exactId" maxlength="160" placeholder="정확한 식별자 입력" autocomplete="off"><button class="admin-button" type="submit">검색</button>'; section.appendChild(form);
         var result = document.createElement('div'); result.className = 'admin-section'; result.hidden = true; section.appendChild(result);
         form.addEventListener('submit', async function (event) {
@@ -2299,15 +2522,15 @@
         }
       }
       async function loadSupportCases(body) {
-        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>고객 지원 케이스</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">케이스를 불러오는 중입니다.</p>'; body.appendChild(section);
+        var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>고객 지원 케이스</h3><span class="admin-chip">최근 100건</span></header><p class="admin-empty">케이스를 불러오는 중입니다.</p>'; body.appendChild(section);
         try {
           var response = await fetch('/api/admin/v1/support', { credentials: 'same-origin' }); if (!response.ok) throw new Error('SUPPORT_CASE_LOOKUP_FAILED'); var payload = await response.json(); var cases = Array.isArray(payload.cases) ? payload.cases : [];
           var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">케이스</th><th scope="col">종류</th><th scope="col">우선순위</th><th scope="col">상태</th><th scope="col">담당자</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>'; var rows = document.createElement('tbody');
-          if (!cases.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 접수된 실제 고객 지원 케이스가 없습니다.</td>'; rows.appendChild(empty); }
+          if (!cases.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 접수된 고객 지원 케이스가 없습니다.</td>'; rows.appendChild(empty); }
           cases.forEach(function (item) { var row = document.createElement('tr'); [item.id, item.category, item.priority, item.status, item.assigneeEmail || '미배정', item.updatedAt].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); }); var actions = document.createElement('td'); var manage = document.createElement('button'); manage.className = 'admin-button'; manage.type = 'button'; manage.textContent = '처리'; manage.addEventListener('click', function () { renderSupportCaseDetail(body, item); }); actions.appendChild(manage); row.appendChild(actions); rows.appendChild(row); });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); section.replaceChildren(section.firstElementChild, scroll);
           var create = document.createElement('form'); create.className = 'admin-actions'; create.innerHTML = '<select name="category" aria-label="문의 종류"><option value="payment">결제</option><option value="generation">생성</option><option value="interpretation">해석</option><option value="access">접근</option><option value="privacy">개인정보</option><option value="other">기타</option></select><select name="priority" aria-label="우선순위"><option value="normal">보통</option><option value="low">낮음</option><option value="high">높음</option><option value="urgent">긴급</option></select><input name="orderId" placeholder="연결 주문 ID (선택)"><input name="reportId" placeholder="연결 리포트 ID (선택)"><button class="admin-button" type="submit">케이스 접수</button>'; create.addEventListener('submit', async function (event) { event.preventDefault(); var form = event.currentTarget; var result = await fetch('/api/admin/v1/support', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ category: form.elements.category.value, priority: form.elements.priority.value, orderId: form.elements.orderId.value, reportId: form.elements.reportId.value }) }); if (!result.ok) { window.alert('케이스 접수에 실패했습니다.'); return; } renderWorkspace(currentAdminRoute()); }); section.appendChild(create);
-        } catch (_error) { var notice = section.querySelector('.admin-empty'); if (notice) notice.textContent = '고객 지원 저장소에 연결하지 못했습니다.'; }
+        } catch (_error) { var notice = section.querySelector('.admin-empty'); if (notice) notice.textContent = '고객 지원 목록을 불러오지 못했습니다.'; }
       }
       async function renderSupportCaseDetail(body, item) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>케이스 처리</h3><span class="admin-chip">' + String(item.id) + '</span></header>'; body.appendChild(section);
@@ -2319,7 +2542,7 @@
       var INCIDENT_STATUS_LABELS = { open: '접수', investigating: '조사 중', mitigated: '완화됨', resolved: '해결됨', closed: '종료' };
       function incidentStatusTone(status) { return status === 'resolved' || status === 'closed' ? 'ok' : status === 'critical' ? 'error' : 'warn'; }
       async function loadIncidents(body) {
-        var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>장애 등록</h3><span class="admin-chip">실제 운영 데이터</span></header>';
+        var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>장애 등록</h3><span class="admin-chip">최근 100건</span></header>';
         var createForm = document.createElement('form'); createForm.className = 'admin-refund-form'; createForm.noValidate = true;
         createForm.innerHTML = '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="200" placeholder="한 줄로 요약"></div><div class="admin-field"><label>심각도</label><select name="severity"><option value="low">낮음</option><option value="medium" selected>보통</option><option value="high">높음</option><option value="critical">치명적</option></select></div><div class="admin-field"><label>담당자 이메일 (선택)</label><input name="ownerEmail" type="email"></div><div class="admin-field" data-span="2"><label>영향 범위 (선택)</label><input name="affectedArea" maxlength="200" placeholder="예: 결제, 저축운 생성"></div><div class="admin-field" data-span="2"><label>요약</label><input required name="summary" maxlength="2000" placeholder="무엇이 어떻게 잘못됐는지"></div><div class="admin-actions"><button class="admin-button" type="submit">장애 등록</button></div><p class="admin-note" role="status" data-incident-create-result></p>';
         var createResult = createForm.querySelector('[data-incident-create-result]');
@@ -2334,13 +2557,13 @@
           } catch (error) { createResult.textContent = error instanceof Error ? error.message : '장애 등록에 실패했습니다.'; submit.disabled = false; }
         });
         createSection.appendChild(createForm); body.replaceChildren(); body.appendChild(createSection);
-        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 장애 기록</h3><span class="admin-chip">열린 사건 우선</span></header><p class="admin-empty">장애 기록을 불러오는 중입니다.</p>'; body.appendChild(listSection);
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>장애 기록</h3><span class="admin-chip">열린 사건 우선</span></header><p class="admin-empty">장애 기록을 불러오는 중입니다.</p>'; body.appendChild(listSection);
         try {
           var listResponse = await fetch('/api/admin/v1/incidents', { credentials: 'same-origin' }); if (!listResponse.ok) throw new Error('INCIDENT_LOOKUP_FAILED');
           var listPayload = await listResponse.json(); var incidents = Array.isArray(listPayload.incidents) ? listPayload.incidents : [];
           var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">제목</th><th scope="col">심각도</th><th scope="col">상태</th><th scope="col">영향 범위</th><th scope="col">담당자</th><th scope="col">최근 변경</th><th scope="col">처리</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!incidents.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 등록된 실제 장애가 없습니다.</td>'; rows.appendChild(empty); }
+          if (!incidents.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 등록된 장애가 없습니다.</td>'; rows.appendChild(empty); }
           incidents.forEach(function (item) {
             var row = document.createElement('tr');
             var titleCell = document.createElement('td'); titleCell.textContent = item.title; row.appendChild(titleCell);
@@ -2480,7 +2703,7 @@
           var card = document.createElement('section'); card.className = 'admin-section';
           card.innerHTML = '<header class="admin-section-head"><h3>금사빠·금사식 · 무료 테스트</h3><span class="admin-chip">CTA · SEO · GA4</span></header><div style="padding:16px"><p><a href="/play/love-speed/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/love-speed/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">메인: 매주 열리는 무료운세 → 무료로 해보기. 검색용 기본 주소: https://umsh.kr/play/love-speed/ · 공유 이미지·구조화 데이터·사이트맵 적용.</p><p class="admin-note">GA4: G-QVQZSPWK6M · love_speed_view/start/complete/login/result_view/share/share_success/copy/details/restart/banner_click. love_speed_view는 자동 page_view와 합산하지 않습니다. 아래 수치는 자체 수집 통계이며 GA4와 집계 기준이 다를 수 있습니다.</p></div>';
           body.appendChild(card);
-          if (!available) { addLiveError(body, '무료 테스트 통계 저장소를 읽을 수 없습니다. 0명으로 판단하지 마세요.'); return; }
+          if (!available) { addLiveError(body, '무료 테스트 통계를 불러오지 못했습니다. 0명으로 판단하지 마세요.'); return; }
           data = data || { views: 0, sessions: 0, signedInUsers: 0, homeClicks: 0, sources: [], actions: [] };
           addLiveTable(body, '무료 테스트 이용 요약', ['조회', '방문(세션)', '로그인 방문자', '메인 배너 클릭'], [data], function (item) { return [count(item.views), count(item.sessions), count(item.signedInUsers), count(item.homeClicks)]; });
           addLiveTable(body, '무료 테스트 유입 경로', ['경로', '조회', '방문(세션)'], data.sources || [], function (item) { return [loveSources[item.source] || '미분류', count(item.views), count(item.sessions)]; }, '선택 기간에 수집된 유입이 없습니다. 적용 이후 방문부터 집계합니다.');
@@ -2538,7 +2761,7 @@
           var payload = await response.json();
           var reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
           addLiveTable(body, '2·3차 재검증으로 완성된 항목', ['리포트', '회원', '서비스', '항목', '분류', '검증 단계', '남은 지적', '최근 변경'], reviews, function (item) { return [item.reportId, item.member, item.serviceKey, item.sectionId, item.classification, item.reviewMode === 'repaired' ? '2차 편집' : '3차 안전검수', item.reviewNotes, item.updatedAt]; }, '최근 리포트 중 1차 엄격 검수를 그대로 통과하지 못한 항목이 없습니다.');
-        } catch (_error) { addLiveError(body, '실제 품질 검토 기록을 불러오지 못했습니다.'); }
+        } catch (_error) { addLiveError(body, '품질 검토 기록을 불러오지 못했습니다.'); }
       }
       /**
        * 별도 미디어 저장소가 없다 — 이미지는 배포에 실린 정적 파일 자체다. 실제로 배포된
@@ -2552,8 +2775,8 @@
           var assets = Array.isArray(payload.assets) ? payload.assets : [];
           var unused = assets.filter(function (item) { return item.status === 'unused'; }).length;
           if (unused) addLiveError(body, '어느 페이지에서도 참조되지 않는 이미지가 ' + unused + '개 있습니다. 배포 크기를 줄이려면 정리 대상입니다.');
-          addLiveTable(body, '실제 배포된 이미지 자산', ['경로', '크기', '참조 페이지 수', '공개 상태'], assets, function (item) { return [item.path, Math.round(item.bytes / 1024) + ' KB', item.referencedBy, item.status === 'in_use' ? '사용 중' : '미사용']; }, '실제 배포된 이미지 자산을 찾지 못했습니다.');
-        } catch (_error) { addLiveError(body, '실제 미디어 카탈로그를 불러오지 못했습니다.'); }
+          addLiveTable(body, '배포된 이미지 자산', ['경로', '크기', '참조 페이지 수', '공개 상태'], assets, function (item) { return [item.path, Math.round(item.bytes / 1024) + ' KB', item.referencedBy, item.status === 'in_use' ? '사용 중' : '미사용']; }, '배포된 이미지 자산을 찾지 못했습니다.');
+        } catch (_error) { addLiveError(body, '미디어 카탈로그를 불러오지 못했습니다.'); }
       }
       /**
        * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도
@@ -2566,14 +2789,14 @@
           if (!response.ok) throw new Error('GENERATION_LOG_LOOKUP_FAILED');
           var payload = await response.json();
           var failures = Array.isArray(payload.failures) ? payload.failures : [];
-          addLiveTable(body, '실제 생성 실패 로그', ['시각', '리포트', '회원', '서비스', '항목', '모델', '실패 사유'], failures, function (item) { return [item.occurredAt, item.reportId, item.member, item.serviceKey, item.sectionId, item.model, item.errorSummary]; }, '최근 생성 시도 중 실패한 기록이 없습니다.');
-        } catch (_error) { addLiveError(body, '실제 생성 실패 로그를 불러오지 못했습니다.'); }
+          addLiveTable(body, '생성 실패 로그', ['시각', '리포트', '회원', '서비스', '항목', '모델', '실패 사유'], failures, function (item) { return [item.occurredAt, item.reportId, item.member, item.serviceKey, item.sectionId, item.model, item.errorSummary]; }, '최근 생성 시도 중 실패한 기록이 없습니다.');
+        } catch (_error) { addLiveError(body, '생성 실패 로그를 불러오지 못했습니다.'); }
       }
       async function loadAdminAccounts(body) {
         if (!body) return;
         var section = document.createElement('section');
         section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>관리자 계정</h3><span class="admin-chip">실제 운영 계정</span></header><p class="admin-empty">관리자 계정 목록을 불러오는 중입니다.</p>';
+        section.innerHTML = '<header class="admin-section-head"><h3>관리자 계정</h3><span class="admin-chip">운영 계정</span></header><p class="admin-empty">관리자 계정 목록을 불러오는 중입니다.</p>';
         body.appendChild(section);
         try {
           var response = await fetch('/api/admin/v1/admin-accounts', { credentials: 'same-origin' });
@@ -2590,7 +2813,7 @@
             var cell = document.createElement('td');
             cell.colSpan = 5;
             cell.className = 'admin-empty';
-            cell.textContent = '등록된 관리자 계정이 없습니다. 첫 로그인 시 bootstrap 계정이 실제 계정으로 등록됩니다.';
+            cell.textContent = '등록된 관리자 계정이 없습니다. 첫 로그인 때 그 계정이 관리자로 등록됩니다.';
             empty.appendChild(cell);
             rows.appendChild(empty);
           } else {

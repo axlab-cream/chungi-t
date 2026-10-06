@@ -111,6 +111,22 @@ export function adminPushRouter(deps: Deps): Router {
     } catch (error) { pushFailure(res, error) }
   })
 
+  // 실패분 재발송: 같은 발송 건에서 살아 있는 기기의 실패만 다시 보낸다(앱을 지운 기기는 제외).
+  router.post('/:id/resend-failed', async (req, res) => {
+    const staff = await deps.staff(req, res, 'content:publish')
+    if (!staff) return
+    try {
+      const current = await store().getNotification(req.params.id)
+      if (!current) throw new PushError('PUSH_NOT_FOUND', 404)
+      if (current.status !== 'sent' && current.status !== 'failed') throw new PushError('PUSH_NOT_RESENDABLE', 409)
+      const reopened = await store().reopenFailedDeliveries(current.id)
+      if (!reopened) throw new PushError('PUSH_NOTHING_TO_RESEND', 409)
+      await audit(staff.email, 'push.resend_failed', current.id)
+      await runPushDispatcher({ store: store() }, deps.immediateBudgetMs ?? 20_000).catch(() => undefined)
+      res.json({ reopened, item: await store().getNotification(current.id) })
+    } catch (error) { pushFailure(res, error) }
+  })
+
   router.post('/:id/cancel', async (req, res) => {
     const staff = await deps.staff(req, res, 'content:publish')
     if (!staff) return
