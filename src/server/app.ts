@@ -60,7 +60,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveMembers, listLiveReports, listMemberPurchases, listQualityReviews, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listLiveReports, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { listAdminAuditEvents } from '../admin/audit-store.js'
@@ -74,7 +74,7 @@ import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, de
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
-import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
@@ -3058,8 +3058,14 @@ app.get('/api/admin/v1/members', async (req, res) => {
   if (!await requireStaff(req, res, 'members:read')) return
   const limit = Number(req.query?.limit ?? 20)
   const offset = Number(req.query?.offset ?? 0)
+  // 2026-10(4단계): 이름·회원 번호 검색, 결제 여부, 가입일, 정렬. 거른 결과의 전체 수를 함께 준다.
+  const q = trimmedString(req.query?.q)
+  const paid = req.query?.paid === 'yes' || req.query?.paid === 'no' ? req.query.paid : undefined
+  const sort = req.query?.sort === 'joined' || req.query?.sort === 'name' ? req.query.sort : 'recent'
+  const from = trimmedString(req.query?.from) || undefined
+  const to = trimmedString(req.query?.to) || undefined
   try {
-    const [members, total] = await Promise.all([listLiveMembers(limit, offset), countLiveMembers()])
+    const { members, total } = await searchLiveMembers({ q, paid, from, to, sort, limit, offset })
     res.json({ members, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
@@ -3098,6 +3104,35 @@ app.get('/api/admin/v1/members/:id/purchases', async (req, res) => {
   } catch {
     res.status(503).json({ code: 'MEMBER_PURCHASES_LOOKUP_FAILED', error: '구매 내역을 불러오지 못했습니다.' })
   }
+})
+
+/**
+ * 2026-10(4단계): 회원 상세 팝업의 탭(결제·리포트·문의·쿠폰·앱 기기)을 한 번에 채운다.
+ * 한 곳이 실패해도 나머지는 보여 주도록 부분마다 따로 받고, 실패한 부분은 errors 에 이름만 싣는다.
+ */
+app.get('/api/admin/v1/members/:id/overview', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  const userId = trimmedString(req.params.id).toLowerCase()
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(userId)) { res.status(422).json({ code: 'INVALID_MEMBER_ID', error: '회원 번호를 확인해 주세요.' }); return }
+  const parts = {
+    member: getAdminMemberDetail(userId),
+    purchases: listMemberPurchases(userId),
+    reports: listMemberReports(userId),
+    support: listSupportCasesForMember(userId),
+    coupons: listWallet(userId),
+    devices: Promise.resolve().then(() => pushStore().listUserDevices(userId)),
+  }
+  const names = Object.keys(parts) as Array<keyof typeof parts>
+  const settled = await Promise.allSettled(names.map((name) => parts[name]))
+  const result: Record<string, unknown> = {}
+  const errors: string[] = []
+  settled.forEach((outcome, index) => {
+    if (outcome.status === 'fulfilled') result[names[index]] = outcome.value
+    else { result[names[index]] = null; errors.push(names[index]) }
+  })
+  if (errors.includes('member')) { res.status(503).json({ code: 'MEMBER_PROFILE_LOOKUP_FAILED', error: '회원 정보를 불러오지 못했습니다.' }); return }
+  if (!result.member) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '해당 회원을 찾지 못했습니다.' }); return }
+  res.json({ ...result, errors, asOf: new Date().toISOString() })
 })
 
 const MEMBER_PROFILE_FAILURES: Record<string, { status: number; error: string }> = {

@@ -36,6 +36,12 @@ export async function listSupportCases(): Promise<SupportCase[]> {
   const response = await fetch(request, { headers: headers() }); if (!response.ok) throw new Error('SUPPORT_CASE_LOOKUP_FAILED')
   return (await response.json() as Row[]).map(supportCase)
 }
+/** 회원 상세 › 문의 탭. 회원 번호로 연결된 케이스만, 최근 순 50건. */
+export async function listSupportCasesForMember(memberId: string): Promise<SupportCase[]> {
+  const request = new URL(table('support_cases')); request.searchParams.set('member_id', `eq.${memberId}`); request.searchParams.set('select', 'id,member_id,order_id,report_id,category,status,assignee_email,priority,resolution_code,revision,created_at,updated_at'); request.searchParams.set('order', 'updated_at.desc'); request.searchParams.set('limit', '50')
+  const response = await fetch(request, { headers: headers() }); if (!response.ok) throw new Error('SUPPORT_CASE_LOOKUP_FAILED')
+  return (await response.json() as Row[]).map(supportCase)
+}
 export async function getSupportCase(id: string): Promise<SupportCase | null> {
   const request = new URL(table('support_cases')); request.searchParams.set('id', `eq.${id}`); request.searchParams.set('select', 'id,member_id,order_id,report_id,category,status,assignee_email,priority,resolution_code,revision,created_at,updated_at'); request.searchParams.set('limit', '1')
   const response = await fetch(request, { headers: headers() }); if (!response.ok) throw new Error('SUPPORT_CASE_LOOKUP_FAILED'); const row = (await response.json() as Row[])[0]; return row ? supportCase(row) : null

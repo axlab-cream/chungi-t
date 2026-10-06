@@ -1,5 +1,5 @@
 import { configuredEnv } from '../env/load.js'
-import { listPaymentOrders, type PaymentOrder } from '../payment/order-store.js'
+import { listAllPaymentOrders, listPaymentOrders, type PaymentOrder } from '../payment/order-store.js'
 import { serviceTitleForKey } from '../server/service-directory.js'
 
 type RestRow = Record<string, unknown>
@@ -198,6 +198,114 @@ export async function listLiveMembers(limit = 20, offset = 0): Promise<AdminMemb
       updatedAt: clipped(row.updated_at, ''),
     }
   }))
+}
+
+export type MemberListQuery = {
+  /** 이름 일부 또는 회원 번호(UUID) 전체. */
+  q?: string
+  /** yes = 결제 완료 주문이 있는 회원, no = 없는 회원. */
+  paid?: 'yes' | 'no'
+  /** 가입일(프로필 생성) 범위. ISO, from 포함·to 제외. */
+  from?: string
+  to?: string
+  sort?: 'recent' | 'joined' | 'name'
+  limit?: number
+  offset?: number
+}
+
+const MEMBER_SORTS: Record<NonNullable<MemberListQuery['sort']>, string> = { recent: 'updated_at.desc', joined: 'created_at.desc', name: 'name.asc' }
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** 결제 완료(paid·viewed) 주문이 한 건이라도 있는 회원 번호. 결제 회원 필터에만 쓴다. */
+async function settledOwnerIds(): Promise<string[]> {
+  const ids = new Set<string>()
+  for (const status of ['paid', 'viewed'] as const) {
+    let cursor: string | undefined
+    for (let page = 0; page < 50; page += 1) {
+      const result = await listAllPaymentOrders({ limit: 100, cursor, status })
+      for (const order of result.orders) if (UUID_PATTERN.test(order.ownerId)) ids.add(order.ownerId.toLowerCase())
+      if (!result.nextCursor) break
+      cursor = result.nextCursor
+    }
+  }
+  return [...ids]
+}
+
+/**
+ * 2026-10 회원 관리 개편(4단계). 검색·가입일·결제 여부·정렬을 서버에서 걸고, 거른 결과의 전체 수를 함께 준다.
+ * 행마다 인증·주문 조회가 붙는 건 listLiveMembers 와 같아서 한 번에 최대 100건으로 자른다.
+ */
+export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ members: AdminMemberSummary[]; total: number }> {
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('select', 'user_id,name,created_at,updated_at')
+  url.searchParams.set('order', MEMBER_SORTS[query.sort ?? 'recent'] ?? MEMBER_SORTS.recent)
+  const safeLimit = Math.min(Math.max(Math.trunc(query.limit ?? 20) || 20, 1), 100)
+  const safeOffset = Math.max(Math.trunc(query.offset ?? 0) || 0, 0)
+  url.searchParams.set('limit', String(safeLimit))
+  url.searchParams.set('offset', String(safeOffset))
+  const text = (query.q ?? '').trim()
+  if (UUID_PATTERN.test(text)) url.searchParams.set('user_id', `eq.${text.toLowerCase()}`)
+  else {
+    // PostgREST 필터 문법에 쓰이는 글자는 지운다(이름 검색에 필요 없다).
+    const name = text.replace(/[(),.*%\\:"']/g, '').slice(0, 40)
+    if (name) url.searchParams.set('name', `ilike.*${name}*`)
+  }
+  if (query.from && Number.isFinite(Date.parse(query.from))) url.searchParams.append('created_at', `gte.${new Date(query.from).toISOString()}`)
+  if (query.to && Number.isFinite(Date.parse(query.to))) url.searchParams.append('created_at', `lt.${new Date(query.to).toISOString()}`)
+  if (query.paid === 'yes' || query.paid === 'no') {
+    const ids = await settledOwnerIds()
+    if (query.paid === 'yes') {
+      if (!ids.length) return { members: [], total: 0 }
+      url.searchParams.append('user_id', `in.(${ids.join(',')})`)
+    } else if (ids.length) url.searchParams.append('user_id', `not.in.(${ids.join(',')})`)
+  }
+  const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
+  const rows = await response.json() as RestRow[]
+  const range = response.headers.get('content-range')?.split('/')[1]
+  const total = range && /^\d+$/.test(range) ? Number(range) : safeOffset + rows.length
+  const members = await Promise.all(rows.map(async (row, index) => {
+    const userId = clipped(row.user_id, '')
+    const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
+    return {
+      no: safeOffset + index + 1,
+      id: userId,
+      name: clipped(row.name, '이름 미등록'),
+      email: auth.email,
+      createdAt: clipped(row.created_at, ''),
+      lastSignInAt: auth.lastSignInAt,
+      signupProvider: auth.signupProvider,
+      personalInfoRegistered: Boolean(clipped(row.name, '')),
+      purchaseCount: purchases.purchaseCount,
+      totalPurchaseAmount: purchases.totalPurchaseAmount,
+      updatedAt: clipped(row.updated_at, ''),
+    }
+  }))
+  return { members, total }
+}
+
+export type AdminMemberReport = { reportId: string; serviceTitle: string; status: string; createdAt: string; updatedAt: string }
+
+/** 회원 상세 › 리포트 탭. 본문·생년월일은 싣지 않고 상태(payload.status)·서비스만 JSON 경로로 뽑는다. */
+export async function listMemberReports(userId: string): Promise<AdminMemberReport[]> {
+  if (!UUID_PATTERN.test(userId)) return []
+  const url = new URL(tableUrl('cheongi_reports'))
+  url.searchParams.set('select', 'report_id,created_at,updated_at,reportStatus:payload->>status,reportService:payload->context->>serviceKey')
+  url.searchParams.set('user_id', `eq.${userId.toLowerCase()}`)
+  url.searchParams.set('order', 'created_at.desc')
+  url.searchParams.set('limit', '50')
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED')
+  return (await response.json() as RestRow[]).map((row) => {
+    const serviceKey = clipped(row.reportService, '')
+    return {
+      reportId: clipped(row.report_id, ''),
+      serviceTitle: (serviceKey && serviceTitleForKey(serviceKey)) || '서비스 미확인',
+      status: clipped(row.reportStatus, 'unknown'),
+      createdAt: clipped(row.created_at, ''),
+      updatedAt: clipped(row.updated_at, ''),
+    }
+  })
 }
 
 export function countLiveMembers(): Promise<number> {

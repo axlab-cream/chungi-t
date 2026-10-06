@@ -14,6 +14,8 @@ export interface TargetDevice { id: string; userId: string | null }
 export interface PendingDelivery { id: string; deviceId: string | null; userId: string | null; attempts: number; token: string | null; active: boolean }
 export interface DeliveryUpdate { status: 'pending' | 'sent' | 'failed'; attempts: number; errorCode?: string | null; errorMessage?: string | null; sentAt?: string | null }
 export interface PushUserMatch { userId: string; name: string; createdAt: string; deviceCount: number }
+/** 회원 상세 › 앱 기기 탭. 토큰은 싣지 않는다. */
+export interface PushUserDevice { id: string; platform: string; appVersion: string | null; deviceName: string | null; isActive: boolean; deactivatedReason: string | null; lastActiveAt: string; createdAt: string }
 
 export interface PushStore {
   upsertDevice(input: PushDeviceInput): Promise<{ id: string }>
@@ -43,6 +45,8 @@ export interface PushStore {
    * 되돌린 기기 수를 돌려준다(0 이면 발송 건도 다시 열지 않는다).
    */
   reopenFailedDeliveries(id: string): Promise<number>
+  /** 회원 한 명에게 연결된 기기(비활성 포함, 최근 활동 순). */
+  listUserDevices(userId: string): Promise<PushUserDevice[]>
 }
 
 type Row = Record<string, unknown>
@@ -320,6 +324,16 @@ export function restPushStore(): PushStore {
       await call(note, { method: 'PATCH', headers: { prefer: 'return=minimal' }, body: JSON.stringify({ status: 'scheduled', scheduled_at: now, sent_at: null, lease_until: null, last_error: null, updated_at: now }) })
       return ids.length
     },
+    async listUserDevices(userId) {
+      if (!isUuid(userId)) return []
+      const url = table('push_devices')
+      url.searchParams.set('select', 'id,platform,app_version,device_name,is_active,deactivated_reason,last_active_at,created_at')
+      url.searchParams.set('user_id', `eq.${userId.toLowerCase()}`); url.searchParams.set('order', 'last_active_at.desc'); url.searchParams.set('limit', '20')
+      return (await rows(url)).map((row) => ({
+        id: String(row.id), platform: String(row.platform ?? ''), appVersion: str(row.app_version), deviceName: str(row.device_name),
+        isActive: row.is_active === true, deactivatedReason: str(row.deactivated_reason), lastActiveAt: String(row.last_active_at ?? ''), createdAt: String(row.created_at ?? ''),
+      }))
+    },
   }
 }
 
@@ -448,6 +462,12 @@ export function createMemoryPushStore(state: MemoryPushState = { devices: [], no
       rows.forEach((row) => Object.assign(row, { status: 'pending', attempts: 0, errorCode: null, errorMessage: null, sentAt: null }))
       if (rows.length) Object.assign(item, { status: 'scheduled', scheduledAt: new Date().toISOString(), sentAt: null, leaseUntil: null, lastError: null })
       return rows.length
+    },
+    async listUserDevices(userId) {
+      return state.devices
+        .filter((device) => device.userId === userId)
+        .sort((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt))
+        .map((device) => ({ id: device.id, platform: device.platform, appVersion: null, deviceName: null, isActive: device.isActive, deactivatedReason: device.reason, lastActiveAt: device.lastActiveAt, createdAt: device.createdAt }))
     },
   }
 }
