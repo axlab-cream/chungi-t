@@ -116,6 +116,7 @@ copyDirectory(join(sajuRoot, 'assets', 'cheonmyeong-scenes'), join(publicRoot, '
 copyDirectory(join(cmdgRoot, 'assets'), join(publicRoot, 'cmdg', 'assets'))
 
 copyDirectory(join(sajuRoot, 'play', 'love-speed'), join(publicRoot, 'play', 'love-speed'))
+copyDirectory(join(sajuRoot, 'play', 'solo-nara'), join(publicRoot, 'play', 'solo-nara'))
 
 // Binary media and local font sources belong in Vercel's static output, not inside
 // the Node function. Keeping the whole `사주/**` tree in the function pushed its

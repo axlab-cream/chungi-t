@@ -1,4 +1,5 @@
 import { opsBase, opsHeaders, opsStoreAvailable } from '../admin/ops-queue.js'
+import soloNaraSpec from '../../data/solo-nara-spec.json' with { type: 'json' }
 
 /**
  * 퍼널 이벤트 적재와 집계.
@@ -107,9 +108,15 @@ export interface LoveSpeedSummary {
   homeClicks: number
 }
 
+export interface SoloNaraSummary extends LoveSpeedSummary {
+  /** 결과 화면이 열린 캐릭터별 횟수. 성별·답변·점수는 수집하지 않는다. */
+  results: Array<{ typeId: string; name: string; gender: string; views: number }>
+}
+
 export interface FunnelSummary {
   available?: boolean
   loveSpeed?: LoveSpeedSummary
+  soloNara?: SoloNaraSummary
   period: FunnelPeriod
   since: string
   /** 선택 기간 전체의 페이지 조회·방문·로그인 방문자. 서로 다른 서비스 행을 더해서 만들지 않는다. */
@@ -163,6 +170,44 @@ export function summarizeLoveSpeedRows(rows: FunnelRow[]): LoveSpeedSummary {
     actions: actionKeys.map(action => ({ action, events: actions.get(action)?.events || 0, sessions: actions.get(action)?.sessions.size || 0 })) }
 }
 
+// 결과 화면 표시는 같은 페이지 안의 단계 기록이라 전체 페이지뷰에 다시 더하지 않는다.
+const isSoloResultMarker = (row: FunnelRow) => row.event === 'step_view' && (row.target || '').startsWith('solo_nara:result:')
+
+/** Same whitelist rules as love-speed, plus per-character result counts for tuning the rubric after launch. */
+export function summarizeSoloNaraRows(rows: FunnelRow[]): SoloNaraSummary {
+  const visits = new Set<string>(), users = new Set<string>()
+  const sources = new Map<string, { views: number; sessions: Set<string> }>()
+  const actions = new Map<string, { events: number; sessions: Set<string> }>()
+  const results = new Map<string, number>()
+  const characters = new Map(soloNaraSpec.characters.map(c => [c.typeId, c]))
+  const sourceKeys = ['home','share','admin','internal','search','social','external','direct']
+  const actionKeys = ['start','gender','complete','login','share','copy','fortune','restart']
+  let views = 0, homeClicks = 0
+  for (const row of rows) {
+    if (row.event === 'cta_click' && row.target === 'solo_nara:home') homeClicks++
+    if (row.service_key !== 'solo_nara') continue
+    if (isSoloResultMarker(row)) {
+      const typeId = (row.target || '').slice('solo_nara:result:'.length)
+      if (characters.has(typeId)) results.set(typeId, (results.get(typeId) || 0) + 1)
+    } else if (row.event === 'step_view') {
+      views++; visits.add(row.session_id); if (row.user_id) users.add(row.user_id)
+      const raw = (row.target || '').replace(/^solo_nara:source:/, '')
+      const source = sourceKeys.includes(raw) ? raw : 'unknown'
+      const entry = sources.get(source) || { views: 0, sessions: new Set<string>() }
+      entry.views++; entry.sessions.add(row.session_id); sources.set(source, entry)
+    } else if (row.event === 'cta_click') {
+      const action = (row.target || '').replace(/^solo_nara:/, '')
+      if (!actionKeys.includes(action)) continue
+      const entry = actions.get(action) || { events: 0, sessions: new Set<string>() }
+      entry.events++; entry.sessions.add(row.session_id); actions.set(action, entry)
+    }
+  }
+  return { views, sessions: visits.size, signedInUsers: users.size, homeClicks,
+    sources: [...sources].map(([source, value]) => ({ source, views: value.views, sessions: value.sessions.size })),
+    actions: actionKeys.map(action => ({ action, events: actions.get(action)?.events || 0, sessions: actions.get(action)?.sessions.size || 0 })),
+    results: soloNaraSpec.characters.map(c => ({ typeId: c.typeId, name: c.name, gender: c.gender, views: results.get(c.typeId) || 0 })) }
+}
+
 /** PostgREST I/O와 분리한 실제 집계 규칙. 관리자 화면과 단위 테스트가 같은 계산을 쓴다. */
 export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, since: string, truncated = false): FunnelSummary {
   const stepViews = new Map<string, { serviceKey: string | null; step: string | null; views: number; sessions: Set<string> }>()
@@ -172,6 +217,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
   const signedInUsers = new Set<string>()
 
   for (const row of rows) {
+    if (isSoloResultMarker(row)) continue
     if (row.event === 'step_view') {
       sessions.add(row.session_id)
       if (row.user_id) signedInUsers.add(row.user_id)
@@ -202,6 +248,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
     since,
     available: true,
     loveSpeed: summarizeLoveSpeedRows(rows),
+    soloNara: summarizeSoloNaraRows(rows),
     overview: {
       views: [...stepViews.values()].reduce((sum, entry) => sum + entry.views, 0),
       sessions: sessions.size,
@@ -227,7 +274,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
  */
 export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promise<FunnelSummary> {
   const since = periodStart(period)
-  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], ctas: [], sampled: 0, truncated: false }
+  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], ctas: [], sampled: 0, truncated: false }
   if (!opsStoreAvailable()) return empty
 
   const safeLimit = Math.min(Math.max(limit, 1), 20000)

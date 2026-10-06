@@ -1,4 +1,7 @@
 import { loveSpeedRouter } from '../play/love-speed-route.js'
+import { soloNaraRouter } from '../play/solo-nara-route.js'
+import type { SoloSpec } from '../play/solo-nara.js'
+import soloNaraSpec from '../../data/solo-nara-spec.json' with { type: 'json' }
 import { respondRequestFailure } from './input-error.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
 import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet } from '../coupons/store.js'
@@ -4011,6 +4014,7 @@ app.use('/api/play/love-speed', loveSpeedRouter({
     return { saju: profile ? analyzeSaju(profile.birth) : null, birthTimeKnown: profile?.birthTimeKnown !== false }
   },
 }))
+app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireSupabaseUser, spec: soloNaraSpec as SoloSpec }))
 app.get('/api/user/profile', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)

@@ -19,6 +19,7 @@
     "check:couple": "node scripts/check-couple.mjs",
     "check:signal": "node scripts/check-signal.mjs",
     "check:thisyear": "node scripts/check-thisyear.mjs",
+    "check:solo-nara": "tsx scripts/check-solo-nara.ts",
     "check:jobchoice": "node scripts/check-jobchoice.mjs",
     "check:cat": "node scripts/check-cat.mjs",
     "check:lucky": "node scripts/check-lucky.mjs",

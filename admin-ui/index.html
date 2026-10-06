@@ -2236,7 +2236,7 @@
           love_this_year: '올해 연애운', couple_signal: '연애 신호', love_mind: '상대방 마음', love_again: '재회운',
           love_spouse: '배우자운', match_couple: '커플궁합', marry_match: '결혼궁합', cat_compatibility: '고양이 궁합',
           lucky_color: '행운색', pass_angle: '나, 붙을 각이야?', newyear_flow: '새해운', wedding_day: '결혼 날짜',
-          home_pungsu: '집 풍수', today_fortune: '오늘운', love_speed: '금사빠·금사식 무료 테스트'
+          home_pungsu: '집 풍수', today_fortune: '오늘운', love_speed: '금사빠·금사식 무료 테스트', solo_nara: '솔로나라 캐릭터 테스트'
         };
         var stepNames = { home: '홈', entry: '진입', '01-story': '스토리', '02-input': '입력', '03-service-input': '추가 입력', '04-report': '무료 티저', payment: '결제', '05-toc': '전체 목차', '06-detail': '상세 해석', vault: '보관함', search: '검색' };
         function serviceName(key) { return serviceNames[key] || key || '공통 화면'; }
@@ -2271,6 +2271,20 @@
           addLiveTable(body, '무료 테스트 이용 행동', ['행동', '발생 횟수', '방문(세션)'], data.actions || [], function (item) { return [loveActions[item.action] || '기타', count(item.events), count(item.sessions)]; });
           var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = '방문은 실제 사람 수가 아닌 30분 활동 기준 세션입니다. 유입 경로별 세션은 중복될 수 있고, 행동 수치는 선택 기간 내 활동으로 동일 방문자의 순차 전환율이 아닙니다. 공유와 복사는 시도 횟수입니다. 출처가 전달되지 않는 메신저 유입은 직접/출처 없음으로 잡힐 수 있습니다. GA4에는 개인정보·MBTI·개별 답변을 보내지 않습니다.'; body.appendChild(note);
         }
+        var soloActions = { home: '메인 배너 클릭', start: '테스트 시작', gender: '성별 선택', complete: '8문항 완료', login: '로그인 열기', share: '공유 시도', copy: '테스트 링크 복사 시도', fortune: '올해 연애운 이동', restart: '다시하기' };
+        function appendSoloNara(data, available) {
+          var card = document.createElement('section'); card.className = 'admin-section';
+          card.innerHTML = '<header class="admin-section-head"><h3>솔로나라 · 무료 캐릭터 테스트</h3><span class="admin-chip">CTA · 결과 분포 · GA4</span></header><div style="padding:16px"><p><a href="/play/solo-nara/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/solo-nara/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">GA4: solo_nara_view/start/gender/progress/complete/login/result_view/share/share_success/copy/fortune/restart. 결과 캐릭터만 result_character로 보내고 성별·답변·점수는 보내지 않습니다.</p></div>';
+          body.appendChild(card);
+          if (!available) { addLiveError(body, '솔로나라 통계 저장소를 읽을 수 없습니다. 0명으로 판단하지 마세요.'); return; }
+          data = data || { views: 0, sessions: 0, signedInUsers: 0, homeClicks: 0, sources: [], actions: [], results: [] };
+          addLiveTable(body, '솔로나라 이용 요약', ['조회', '방문(세션)', '로그인 방문자', '메인 배너 클릭'], [data], function (item) { return [count(item.views), count(item.sessions), count(item.signedInUsers), count(item.homeClicks)]; });
+          addLiveTable(body, '솔로나라 유입 경로', ['경로', '조회', '방문(세션)'], data.sources || [], function (item) { return [loveSources[item.source] || '미분류', count(item.views), count(item.sessions)]; }, '선택 기간에 수집된 유입이 없습니다.');
+          addLiveTable(body, '솔로나라 이용 행동', ['행동', '발생 횟수', '방문(세션)'], data.actions || [], function (item) { return [soloActions[item.action] || '기타', count(item.events), count(item.sessions)]; });
+          var total = (data.results || []).reduce(function (sum, item) { return sum + Number(item.views || 0); }, 0);
+          addLiveTable(body, '결과 캐릭터 분포', ['캐릭터', '이름 그룹', '결과 표시', '비율'], data.results || [], function (item) { return [item.name, item.gender === 'female' ? '여자 이름' : '남자 이름', count(item.views), total ? (Number(item.views || 0) / total * 100).toFixed(1) + '%' : '—']; });
+          var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = '결과 표시는 결과 화면이 열린 횟수입니다. 같은 사람이 다시하면 다시 셉니다. 특정 캐릭터가 지나치게 많거나 적으면 기준 점수를 조정하고 버전을 올립니다.'; body.appendChild(note);
+        }
         async function load(period) {
           resultNodes.forEach(function (node) { node.remove(); }); resultNodes = [];
           status.hidden = false; status.textContent = '퍼널 통계를 불러오는 중입니다.';
@@ -2287,12 +2301,13 @@
             var ctas = Array.isArray(payload.ctas) ? payload.ctas : [];
             appendKpis(overview, payload.sampled || 0);
             appendLoveSpeed(payload.loveSpeed, payload.available !== false);
+            appendSoloNara(payload.soloNara, payload.available !== false);
             addLiveTable(body, '서비스별 페이지뷰', ['서비스', '전체 조회', '방문', '스토리', '입력', '무료 티저', '결제', '전체 목차', '상세 해석'], services, function (item) {
               var byStep = item.steps || {};
               return [serviceName(item.serviceKey), count(item.views), count(item.sessions), count(byStep['01-story']), count((byStep['02-input'] || 0) + (byStep['03-service-input'] || 0)), count(byStep['04-report']), count(byStep.payment), count(byStep['05-toc']), count(byStep['06-detail'])];
             }, '선택 기간에 수집된 서비스 페이지뷰가 없습니다.');
             addLiveTable(body, '페이지 단계별 상세', ['서비스', '페이지 단계', '조회', '방문'], steps, function (item) { return [serviceName(item.serviceKey), stepName(item.step), count(item.views), count(item.sessions)]; }, '선택 기간에 수집된 단계 조회가 없습니다.');
-            addLiveTable(body, '많이 눌린 CTA', ['서비스', '대상', '클릭'], ctas, function (item) { return [serviceName(item.serviceKey), loveActions[String(item.target || '').replace(/^love_speed:/, '')] || item.target || '—', count(item.clicks)]; }, '선택 기간에 수집된 CTA 클릭이 없습니다.');
+            addLiveTable(body, '많이 눌린 CTA', ['서비스', '대상', '클릭'], ctas, function (item) { return [serviceName(item.serviceKey), (/^solo_nara:/.test(String(item.target || '')) ? soloActions[String(item.target).replace(/^solo_nara:/, '')] : loveActions[String(item.target || '').replace(/^love_speed:/, '')]) || item.target || '—', count(item.clicks)]; }, '선택 기간에 수집된 CTA 클릭이 없습니다.');
             if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
             resultNodes = Array.from(body.children).filter(function (node) { return before.indexOf(node) === -1; });
           } catch (_error) {
