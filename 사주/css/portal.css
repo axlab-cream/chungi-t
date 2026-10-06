@@ -160,7 +160,7 @@ html.splash-disabled .splash-screen,
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 21px 20px 12px;
+  padding: 14px 20px 9px;
   border-bottom: 1px solid var(--line-soft);
   background: rgba(8, 8, 7, 0.96);
 }
@@ -172,8 +172,8 @@ html.splash-disabled .splash-screen,
 
 .app-brand img {
   display: block;
-  width: 132px;
-  height: 50px;
+  width: 106px;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -1899,20 +1899,20 @@ html.splash-disabled .splash-screen,
   }
 
   .appbar {
-    padding: 10px 14px 8px;
+    padding: 7px 14px 6px;
     gap: 10px;
   }
 
   .app-brand img {
-    width: 112px;
-    height: 40px;
+    width: 90px;
+    height: 32px;
   }
 }
 
 @media (max-width: 360px) {
   .app-brand img {
-    width: 100px;
-    height: 36px;
+    width: 80px;
+    height: 29px;
   }
 }
 
