@@ -506,6 +506,9 @@ export type GenerationFailureStats = {
   byService: Array<{ key: string; label: string; attempts: number; failures: number }>
   byDay: Array<{ day: string; attempts: number; failures: number }>
   recent: Array<{ reportId: string; member: string; serviceTitle: string; sectionId: string; type: string; typeLabel: string; error: string; model: string; occurredAt: string }>
+  /** 9단계: AI 사용량(토큰). 비용은 모델 단가표가 없어 계산하지 않는다. */
+  tokens: { prompt: number; completion: number; total: number }
+  byModel: Array<{ model: string; attempts: number; totalTokens: number }>
 }
 
 /**
@@ -530,6 +533,8 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
   const byService = new Map<string, { key: string; label: string; attempts: number; failures: number }>()
   const byDay = new Map<string, { day: string; attempts: number; failures: number }>()
   const recent: GenerationFailureStats['recent'] = []
+  const tokens = { prompt: 0, completion: 0, total: 0 }
+  const byModel = new Map<string, { model: string; attempts: number; totalTokens: number }>()
   for (const row of rows) {
     const serviceKey = clipped(row.reportService, '')
     const serviceLabel = (serviceKey && serviceTitleForKey(serviceKey)) || '서비스 미확인'
@@ -541,6 +546,11 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
         if (!Number.isFinite(started) || started < since) continue
         const failed = attempt.status === 'failed'
         attempts += 1
+        const usage = (attempt.tokenUsage ?? {}) as Record<string, unknown>
+        const promptTokens = Number(usage.promptTokens) || 0; const completionTokens = Number(usage.completionTokens) || 0; const totalTokens = Number(usage.totalTokens) || promptTokens + completionTokens
+        tokens.prompt += promptTokens; tokens.completion += completionTokens; tokens.total += totalTokens
+        const modelName = clipped(attempt.model, '알 수 없음'); const modelRow = byModel.get(modelName) ?? { model: modelName, attempts: 0, totalTokens: 0 }
+        modelRow.attempts += 1; modelRow.totalTokens += totalTokens; byModel.set(modelName, modelRow)
         const day = new Date(started + 9 * 3_600_000).toISOString().slice(0, 10)
         const dayRow = byDay.get(day) ?? { day, attempts: 0, failures: 0 }
         const serviceRow = byService.get(serviceLabel) ?? { key: serviceKey || 'unknown', label: serviceLabel, attempts: 0, failures: 0 }
@@ -567,6 +577,8 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
     byService: [...byService.values()].sort((a, b) => b.failures - a.failures || b.attempts - a.attempts),
     byDay: [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day)),
     recent: recent.slice(0, 100),
+    tokens,
+    byModel: [...byModel.values()].sort((a, b) => b.totalTokens - a.totalTokens),
   }
 }
 

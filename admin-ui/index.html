@@ -501,6 +501,10 @@
     .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
     .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
     .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
+    /* 8단계 */
+    .admin-media-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--admin-line); background: var(--admin-bg); display: block; }
+    .admin-media-thumb[data-missing] { background: repeating-linear-gradient(45deg, #f1f1f4, #f1f1f4 4px, #fafafa 4px, #fafafa 8px); }
+    .admin-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--admin-text-muted); }
     /* 회원 CRUD·확인 팝업(2026-10-06) */
     .admin-row-actions { white-space: nowrap; text-align: right; }
     .admin-row-actions .admin-icon-button + .admin-icon-button { margin-left: 4px; }
@@ -1795,6 +1799,12 @@
               card('서비스별', data.byService.length ? memberTable(['서비스', '#시도', '#실패', '#실패율'], data.byService, function (row) { return [row.label, fmtNumber(row.attempts), fmtNumber(row.failures), row.attempts ? (Math.round(row.failures / row.attempts * 1000) / 10) + '%' : '—']; }) : memberEmpty('이 기간에 생성 시도가 없습니다.')),
               card('날짜별', data.byDay.length ? memberTable(['날짜', '#시도', '#실패'], data.byDay, function (row) { return [row.day, fmtNumber(row.attempts), fmtNumber(row.failures)]; }) : memberEmpty('이 기간에 생성 시도가 없습니다.'))
             );
+            // 9단계: AI 사용량(토큰). 비용은 모델 단가표가 정해지면 붙인다 — 지금은 숫자를 지어내지 않는다.
+            if (data.tokens) {
+              var usage = card('AI 사용량', data.byModel && data.byModel.length ? memberTable(['모델', '#시도', '#사용 토큰'], data.byModel, function (row) { return [row.model, fmtNumber(row.attempts), fmtNumber(row.totalTokens)]; }) : memberEmpty('이 기간에 기록된 사용량이 없습니다.'));
+              var usageNote = document.createElement('p'); usageNote.className = 'admin-note'; usageNote.textContent = '입력 ' + fmtNumber(data.tokens.prompt) + ' · 출력 ' + fmtNumber(data.tokens.completion) + ' · 합계 ' + fmtNumber(data.tokens.total) + ' 토큰. 비용(원)은 모델별 단가를 정하면 함께 보여 줍니다.';
+              usage.appendChild(usageNote); grid.appendChild(usage);
+            }
             var head = document.createElement('header'); head.className = 'admin-section-head'; var h = document.createElement('h3'); h.textContent = '최근 실패'; head.appendChild(h);
             recent.replaceChildren(head, data.recent.length ? memberTable(['시각', '유형', '서비스', '항목', '사유', '회원'], data.recent, function (row) {
               var reason = document.createElement('span'); reason.className = 'admin-clip'; reason.textContent = row.error; reason.title = row.error;
@@ -1917,6 +1927,18 @@
           var payload = await response.json();
           var services = Array.isArray(payload.services) ? payload.services : [];
           if (payload.versionStore !== 'ready') addLiveError(body, '버전 기록을 불러오지 못했습니다. 아래 목록의 판매·가격은 현재 사이트 기준이고, 버전 칸은 확인되지 않은 상태입니다.');
+          // 2026-10 8단계: 판매·노출 상태로 거른다.
+          var serviceFilter = 'all';
+          var serviceSeg = document.createElement('div'); serviceSeg.className = 'admin-seg admin-service-seg'; serviceSeg.setAttribute('role', 'group'); serviceSeg.setAttribute('aria-label', '판매·노출');
+          function drawServiceSeg() {
+            serviceSeg.replaceChildren();
+            [['all', '전체', services.length], ['selling', '판매 중', services.filter(function (item) { return item.saleAvailable; }).length], ['stopped', '판매 중단', services.filter(function (item) { return !item.saleAvailable; }).length], ['hidden', '숨김', services.filter(function (item) { return !item.discoveryVisible; }).length]].forEach(function (entry) {
+              var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + ' ' + entry[2]; button.setAttribute('aria-pressed', serviceFilter === entry[0] ? 'true' : 'false');
+              button.addEventListener('click', function () { serviceFilter = entry[0]; drawServiceSeg(); renderServiceTable(services.filter(function (item) { return serviceFilter === 'all' || (serviceFilter === 'selling' ? item.saleAvailable : serviceFilter === 'stopped' ? !item.saleAvailable : !item.discoveryVisible); })); });
+              serviceSeg.appendChild(button);
+            });
+          }
+          drawServiceSeg(); var serviceBar = document.createElement('div'); serviceBar.className = 'admin-filterbar'; serviceBar.appendChild(serviceSeg); body.insertBefore(serviceBar, listSection);
           renderServiceTable(services);
           var bulkButton = initSection.querySelector('[data-bulk-init]'); var bulkResult = initSection.querySelector('[data-bulk-init-result]');
           var targets = services.filter(function (item) { return !item.publishedVersion && !item.draftVersion; });
@@ -2854,6 +2876,7 @@
         });
         publishButton.addEventListener('click', async function () {
           if (busy || !draft || dirty) return;
+          if (!await adminConfirm('저장한 초안을 게시합니다. 홈 배너와 이후 상담 요청에 바로 적용됩니다.', { title: '상담 설정 게시', okLabel: '게시', danger: true })) return;
           try {
             setBusy(true); result.textContent = '저장한 초안을 게시하는 중입니다.';
             published = await mutate('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', 'POST', { expectedRevision: draft.revision, checksum: draft.checksum }, publishKey);
@@ -2901,14 +2924,76 @@
         });
         section.appendChild(form); section.appendChild(publishArea);
       }
+      /*
+       * 시스템 › 로그 › 변경 이력 (2026-10 개편 8단계). 영역·기간·관리자로 거르고 서버에서 페이지를 나눈다.
+       * 작업 이름(member.account.suspend 같은 코드)은 운영자 말로 바꿔 보여 주고, 원래 코드는 ⓘ 에 둔다.
+       */
+      var AUDIT_ACTION_LABELS = {
+        'member.account.create': '회원 등록', 'member.account.delete': '회원 삭제', 'member.account.suspend': '회원 정지', 'member.account.restore': '회원 정지 해제', 'member.profile.update': '회원 프로필 수정',
+        'refund.request': '환불 요청', 'refund.approve': '환불 승인', 'refund.reject': '환불 반려',
+        'report.generation.restart': '리포트 다시 생성', 'report.generation.requeue_incomplete': '미완성 리포트 재시도', 'report.context.backfill_service_key': '리포트 서비스 정보 보정',
+        'coupon.campaign.create': '쿠폰 발급', 'coupon.campaign.disable': '쿠폰 사용 중단',
+        'service.draft.save': '서비스 초안 저장', 'service.version.publish': '서비스 발행',
+        'content.draft.create': '콘텐츠 초안 등록', 'content.draft.update': '콘텐츠 초안 수정', 'content.version.publish': '콘텐츠 게시', 'content.version.archive': '콘텐츠 보관',
+        'prompt.draft.save': '프롬프트 초안 저장', 'prompt.version.publish': '프롬프트 발행',
+        'support.case.create': '문의 등록', 'support.case.update': '문의 상태 변경', 'support.note.create': '문의 처리 기록',
+        'incident.create': '장애 등록', 'incident.update': '장애 상태 변경', 'incident.update_note.create': '장애 진행 기록',
+        'admin.account.create': '관리자 추가', 'admin.account.password.reset': '관리자 비밀번호 재설정', 'admin.account.status.change': '관리자 상태 변경',
+        'ops.jobs.prune': '작업 내역 삭제', 'ops.jobs.prune_by_error': '실패 작업 정리', 'ops.jobs.purge': '작업 정리'
+      };
+      var AUDIT_TARGET_LABELS = { member_auth: '회원', member_profile: '회원', refund_request: '환불', report: '리포트', report_queue: '리포트 대기열', coupon_campaign: '쿠폰', service: '서비스', content: '콘텐츠', prompt_content: '프롬프트', support_case: '문의', incident: '장애', admin_account: '관리자', ops_jobs: '작업' };
+      var auditState = { offset: 0, limit: 50, area: '', actor: '', from: '', to: '', all: false };
       async function loadLiveAudit(body) {
-        try {
-          var response = await fetch('/api/admin/v1/audit', { credentials: 'same-origin' });
-          if (!response.ok) throw new Error('ADMIN_AUDIT_LOOKUP_FAILED');
-          var payload = await response.json();
-          var events = Array.isArray(payload.events) ? payload.events : [];
-          addLiveTable(body, '변경 이력', ['시각', '관리자', '작업', '대상', '결과'], events, function (item) { return [item.createdAt, item.actor, item.action, item.targetType + ' · ' + item.targetId, item.result]; }, '아직 실행된 관리자 변경이 없습니다.');
-        } catch (_error) { addLiveError(body, '변경 이력을 불러오지 못했습니다.'); }
+        body.replaceChildren();
+        auditState.offset = 0;
+        var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
+        var area = document.createElement('select'); area.setAttribute('aria-label', '영역');
+        [['', '모든 영역'], ['member.', '회원'], ['refund.', '결제·환불'], ['report.', '리포트'], ['coupon.', '쿠폰'], ['service.', '서비스'], ['content.', '콘텐츠·팝업'], ['prompt.', '프롬프트'], ['support.', '고객 지원'], ['incident.', '장애'], ['admin.', '관리자'], ['ops.', '작업 대기열']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; area.appendChild(option); });
+        area.value = auditState.area;
+        var actor = document.createElement('input'); actor.type = 'search'; actor.placeholder = '관리자 이메일 일부'; actor.setAttribute('aria-label', '관리자'); actor.value = auditState.actor;
+        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '시작일'); from.value = auditState.from;
+        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '종료일'); to.value = auditState.to;
+        var range = document.createElement('span'); range.className = 'admin-range'; range.append(from, document.createTextNode('~'), to);
+        var all = document.createElement('label'); all.className = 'admin-check'; var allBox = document.createElement('input'); allBox.type = 'checkbox'; allBox.checked = auditState.all; all.append(allBox, document.createTextNode(' 시작 기록도 보기'));
+        var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
+        filters.append(area, actor, submit, range, all, adminTip('관리자 화면에서 바꾼 것은 모두 여기에 남습니다. 작업 하나에 시작·완료 두 줄이 쌓여서, 기본은 완료된 것만 보여 줍니다.'));
+        function apply() { auditState.area = area.value; auditState.actor = actor.value.trim(); auditState.from = from.value; auditState.to = to.value; auditState.all = allBox.checked; auditState.offset = 0; render(); }
+        filters.addEventListener('submit', function (event) { event.preventDefault(); apply(); });
+        [area, from, to, allBox].forEach(function (control) { control.addEventListener('change', apply); });
+        var section = document.createElement('section'); section.className = 'admin-section'; section.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(filters, section);
+        async function render() {
+          var params = new URLSearchParams({ limit: String(auditState.limit), offset: String(auditState.offset) });
+          if (auditState.area) params.set('area', auditState.area);
+          if (auditState.actor) params.set('actor', auditState.actor);
+          if (auditState.from) params.set('from', new Date(auditState.from + 'T00:00:00+09:00').toISOString());
+          if (auditState.to) params.set('to', new Date(new Date(auditState.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+          if (auditState.all) params.set('result', 'all');
+          try {
+            var payload = await adminJson('/api/admin/v1/audit?' + params.toString());
+            var events = Array.isArray(payload.events) ? payload.events : []; var total = Number(payload.total || 0);
+            if (!events.length) { section.replaceChildren(memberEmpty(auditState.area || auditState.actor || auditState.from || auditState.to ? '조건에 맞는 변경 이력이 없습니다.' : '아직 기록된 변경이 없습니다.')); return; }
+            var table = memberTable(['시각', '관리자', '작업', '대상', '결과'], events, function (item) {
+              var name = document.createElement('span'); name.textContent = AUDIT_ACTION_LABELS[item.action] || item.action; name.appendChild(adminTip(item.action));
+              var target = (AUDIT_TARGET_LABELS[item.targetType] || item.targetType) + ' · ' + (String(item.targetId).length > 14 ? String(item.targetId).slice(0, 12) + '…' : item.targetId);
+              return [memberWhen(item.createdAt), item.actor, name, target, item.result === 'succeeded' ? memberChip('완료', 'ok') : memberChip('시작', '')];
+            });
+            var pager = document.createElement('div'); pager.className = 'admin-pager';
+            var summary = document.createElement('span'); summary.textContent = '총 ' + total.toLocaleString('ko-KR') + '건 중 ' + (auditState.offset + 1) + '–' + Math.min(total, auditState.offset + events.length);
+            var buttons = document.createElement('div'); buttons.className = 'admin-pager-buttons';
+            var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '‹'; prev.setAttribute('aria-label', '이전 페이지'); prev.disabled = auditState.offset <= 0;
+            var next = document.createElement('button'); next.type = 'button'; next.textContent = '›'; next.setAttribute('aria-label', '다음 페이지'); next.disabled = auditState.offset + auditState.limit >= total;
+            var current = document.createElement('span'); current.className = 'admin-pager-current'; current.textContent = (Math.floor(auditState.offset / auditState.limit) + 1) + ' / ' + Math.max(1, Math.ceil(total / auditState.limit));
+            prev.addEventListener('click', function () { auditState.offset = Math.max(0, auditState.offset - auditState.limit); render(); });
+            next.addEventListener('click', function () { auditState.offset += auditState.limit; render(); });
+            var size = document.createElement('select'); size.className = 'admin-page-size'; size.setAttribute('aria-label', '한 화면에 볼 개수');
+            [20, 50, 100, 200].forEach(function (count) { var option = document.createElement('option'); option.value = String(count); option.textContent = count + '개씩'; size.appendChild(option); });
+            size.value = String(auditState.limit); size.addEventListener('change', function () { auditState.limit = Number(size.value); auditState.offset = 0; render(); });
+            buttons.append(prev, current, next, size); pager.append(summary, buttons);
+            section.replaceChildren(table, pager);
+          } catch (_error) { section.replaceChildren(memberEmpty('변경 이력을 불러오지 못했습니다.')); }
+        }
+        await render();
       }
       async function loadOpsJobs(body) {
         body.replaceChildren();
@@ -3925,16 +4010,46 @@
        * 별도 미디어 저장소가 없다 — 이미지는 배포에 실린 정적 파일 자체다. 실제로 배포된
        * 파일을 훑어 카탈로그를 만들고, 어디에도 안 쓰이는 자산을 위로 올려 정리 대상을 먼저 보인다.
        */
+      /*
+       * 서비스 › 미디어 관리 (2026-10 8단계). 사용 중·미사용으로 나눠 보고, 미사용 용량을 보여 준다.
+       * 이미지는 배포 파일이라 화면에서 지우지 않는다 — 정리는 저장소에서 파일을 지우고 배포해야 한다(ⓘ 안내).
+       */
       async function loadMediaCatalog(body) {
+        body.replaceChildren();
+        var state = { filter: 'all', assets: [] };
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '사용 여부');
+        filters.append(seg, adminTip('사이트에 배포된 이미지 파일입니다. 미사용 이미지는 어느 페이지에서도 쓰이지 않는 파일입니다. 지우려면 개발 저장소에서 파일을 지우고 다시 배포해야 합니다.'));
+        var kpis = document.createElement('div'); kpis.className = 'admin-kpis admin-kpis-4';
+        var card = document.createElement('section'); card.className = 'admin-section'; card.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(filters, kpis, card);
+        function kb(bytes) { return bytes >= 1048576 ? (Math.round(bytes / 104857.6) / 10) + ' MB' : Math.round(bytes / 1024) + ' KB'; }
+        function render() {
+          var used = state.assets.filter(function (item) { return item.status === 'in_use'; }); var unused = state.assets.filter(function (item) { return item.status !== 'in_use'; });
+          seg.replaceChildren();
+          [['all', '전체', state.assets.length], ['in_use', '사용 중', used.length], ['unused', '미사용', unused.length]].forEach(function (entry) {
+            var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + ' ' + entry[2]; button.setAttribute('aria-pressed', state.filter === entry[0] ? 'true' : 'false');
+            button.addEventListener('click', function () { state.filter = entry[0]; render(); }); seg.appendChild(button);
+          });
+          var sum = function (list) { return list.reduce(function (total, item) { return total + (Number(item.bytes) || 0); }, 0); };
+          kpis.replaceChildren();
+          [['전체 이미지', state.assets.length + '개', kb(sum(state.assets))], ['사용 중', used.length + '개', kb(sum(used))], ['미사용', unused.length + '개', kb(sum(unused)) + ' · 정리하면 배포가 가벼워집니다'], ['가장 큰 파일', state.assets.length ? kb(Math.max.apply(null, state.assets.map(function (item) { return Number(item.bytes) || 0; }))) : '—', '']].forEach(function (entry) {
+            var box = document.createElement('div'); var name = document.createElement('span'); name.textContent = entry[0]; var value = document.createElement('b'); value.textContent = entry[1]; var hint = document.createElement('small'); hint.textContent = entry[2]; box.append(name, value, hint); kpis.appendChild(box);
+          });
+          var list = state.assets.filter(function (item) { return state.filter === 'all' || (state.filter === 'in_use' ? item.status === 'in_use' : item.status !== 'in_use'); });
+          if (!list.length) { card.replaceChildren(memberEmpty(state.filter === 'unused' ? '미사용 이미지가 없습니다.' : '배포된 이미지를 찾지 못했습니다.')); return; }
+          var table = memberTable(['미리보기', '파일', '#크기', '#쓰는 페이지', '상태'], list, function (item) {
+            var thumb = document.createElement('img'); thumb.alt = ''; thumb.loading = 'lazy'; thumb.className = 'admin-media-thumb'; thumb.addEventListener('error', function () { thumb.removeAttribute('src'); thumb.setAttribute('data-missing', ''); thumb.title = '사이트 주소로 열리지 않는 파일(원본 폴더 사본)입니다.'; }); thumb.src = item.path;
+            return [thumb, item.path, kb(Number(item.bytes) || 0), item.referencedBy, item.status === 'in_use' ? memberChip('사용 중', 'ok') : memberChip('미사용', 'warn')];
+          });
+          var inner = table.querySelector('table'); if (inner) inner.removeAttribute('data-plain');
+          card.replaceChildren(table);
+        }
         try {
-          var response = await fetch('/api/admin/v1/media', { credentials: 'same-origin' });
-          if (!response.ok) throw new Error('MEDIA_CATALOG_FAILED');
-          var payload = await response.json();
-          var assets = Array.isArray(payload.assets) ? payload.assets : [];
-          var unused = assets.filter(function (item) { return item.status === 'unused'; }).length;
-          if (unused) addLiveError(body, '어느 페이지에서도 참조되지 않는 이미지가 ' + unused + '개 있습니다. 배포 크기를 줄이려면 정리 대상입니다.');
-          addLiveTable(body, '배포된 이미지 자산', ['경로', '크기', '참조 페이지 수', '공개 상태'], assets, function (item) { return [item.path, Math.round(item.bytes / 1024) + ' KB', item.referencedBy, item.status === 'in_use' ? '사용 중' : '미사용']; }, '배포된 이미지 자산을 찾지 못했습니다.');
-        } catch (_error) { addLiveError(body, '미디어 카탈로그를 불러오지 못했습니다.'); }
+          var payload = await adminJson('/api/admin/v1/media');
+          state.assets = Array.isArray(payload.assets) ? payload.assets : [];
+          render();
+        } catch (_error) { card.replaceChildren(memberEmpty('미디어 목록을 불러오지 못했습니다.')); }
       }
       /**
        * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도

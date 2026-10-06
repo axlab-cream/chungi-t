@@ -64,10 +64,12 @@ test('loadQualityEvaluations 는 실제 평가 엔드포인트를 부르고 revi
 })
 
 test('loadMediaCatalog 는 실제 미디어 엔드포인트를 부르고 미사용 자산 수를 알린다', () => {
-  const body = source.slice(source.indexOf('async function loadMediaCatalog'), source.indexOf('async function loadMediaCatalog') + 900)
-  assert.match(body, /fetch\('\/api\/admin\/v1\/media'/)
+  const start = source.indexOf('async function loadMediaCatalog')
+  const body = source.slice(start, source.indexOf('\n      }\n', start))
+  assert.match(body, /adminJson\('\/api\/admin\/v1\/media'\)/)
   assert.match(body, /payload\.assets/)
-  assert.match(body, /item\.status === 'unused'/)
+  assert.match(body, /item\.status !== 'in_use'/, '미사용 수를 따로 센다')
+  assert.match(body, /'미사용'/)
 })
 
 test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 부르고, 서비스별 페이지뷰를 표시한다', () => {

@@ -37,6 +37,49 @@ export async function listAdminAuditEvents(limit = 100): Promise<AdminAuditSumma
   }))
 }
 
+export type AuditQuery = {
+  /** 작업 이름 앞부분(영역). 예: 'member.', 'refund.' */
+  area?: string
+  /** 관리자 이메일 일부 */
+  actor?: string
+  from?: string
+  to?: string
+  /** 기본은 끝난 작업만. 'all' 이면 시작 기록까지 */
+  result?: 'succeeded' | 'all'
+  limit?: number
+  offset?: number
+}
+
+const AUDIT_AREAS = new Set(['member.', 'refund.', 'report.', 'push.', 'coupon.', 'service.', 'content.', 'prompt.', 'support.', 'incident.', 'admin.', 'ops.'])
+
+/**
+ * 시스템 › 로그(2026-10 8단계). 영역·관리자·기간으로 거르고 거른 결과의 전체 수를 함께 준다.
+ * 작업마다 시작·완료 두 줄이 쌓이므로 기본은 완료(succeeded)만 보여 준다.
+ */
+export async function searchAdminAuditEvents(query: AuditQuery = {}): Promise<{ events: AdminAuditSummary[]; total: number }> {
+  const request = new URL(table('admin_audit_events'))
+  request.searchParams.set('select', 'id,actor_email,action,target_type,target_id,result,created_at')
+  request.searchParams.set('order', 'created_at.desc')
+  const limit = Math.min(Math.max(Math.trunc(query.limit ?? 50) || 50, 1), 200)
+  const offset = Math.max(Math.trunc(query.offset ?? 0) || 0, 0)
+  request.searchParams.set('limit', String(limit))
+  request.searchParams.set('offset', String(offset))
+  if (query.area && AUDIT_AREAS.has(query.area)) request.searchParams.set('action', `like.${query.area}*`)
+  const actor = (query.actor ?? '').trim().replace(/[(),*%\\:"']/g, '').slice(0, 80)
+  if (actor) request.searchParams.set('actor_email', `ilike.*${actor}*`)
+  if (query.result !== 'all') request.searchParams.set('result', 'eq.succeeded')
+  if (query.from && Number.isFinite(Date.parse(query.from))) request.searchParams.append('created_at', `gte.${new Date(query.from).toISOString()}`)
+  if (query.to && Number.isFinite(Date.parse(query.to))) request.searchParams.append('created_at', `lt.${new Date(query.to).toISOString()}`)
+  const response = await fetch(request, { headers: { ...headers(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('ADMIN_AUDIT_LOOKUP_FAILED')
+  const rows = await response.json() as Row[]
+  const range = response.headers.get('content-range')?.split('/')[1]
+  return {
+    total: range && /^\d+$/.test(range) ? Number(range) : offset + rows.length,
+    events: rows.map((row) => ({ id: String(row.id), actor: maskedEmail(row.actor_email), action: String(row.action), targetType: String(row.target_type), targetId: String(row.target_id), result: String(row.result), createdAt: String(row.created_at) })),
+  }
+}
+
 export function postgrestAdminCommandStore(): AdminCommandStore {
   const receiptKey = (input: Pick<AdminCommandInput, 'actorEmail' | 'action' | 'idempotencyKey'>) => ({ actor_email: input.actorEmail.toLowerCase(), action: input.action, idempotency_key: input.idempotencyKey })
   return {
