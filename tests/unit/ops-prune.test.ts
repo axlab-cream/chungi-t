@@ -113,6 +113,6 @@ describe('작업 내역 정리', { concurrency: false }, () => {
     const jobs = ui.slice(ui.indexOf('async function loadOpsJobs'), ui.indexOf('async function renderReportDiagnostics'))
     assert.match(jobs, /body: JSON\.stringify\(\{ before: before, dryRun: true \}\)/)
     assert.match(jobs, /pruneDelete\.disabled = !payload\.count;/)
-    assert.match(jobs, /window\.confirm\(before \+ ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다/)
+    assert.match(jobs, /await adminConfirm\(before \+ ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다/)
   })
 })
