@@ -14,20 +14,16 @@ const source = readFileSync(new URL('../../admin-ui/index.html', import.meta.url
 test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그를 각각의 실제 로더로 연결한다', () => {
   // 고정 글자 수로 자르면 분기가 하나 늘 때마다 안내 문구가 범위 밖으로 밀려 실패한다(2026-10-02 푸시 분기 추가).
   // 함수 시작부터 마지막 안내 문구까지를 본다 — 검사 내용은 그대로다.
-  const start = source.indexOf('function renderWorkspace')
-  const body = source.slice(start, source.indexOf('아직 생성되지 않았습니다', start) + 40)
-  assert.match(body, /if \(route\.key === 'analytics'\) \{ loadFunnelAnalytics\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'releases'\) \{ loadReleaseInfo\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'evaluations'\) \{ loadQualityEvaluations\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'media'\) \{ loadMediaCatalog\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'incidents'\) \{ loadIncidents\(body\); return; \}/)
-  assert.match(body, /if \(route\.key === 'logs'\) \{ loadGenerationLog\(body\); return; \}/)
-  // 여섯 분기 모두 "아직 생성되지 않았습니다" 안내보다 앞에 있어야 실제로 도달한다.
-  const fallbackAt = body.indexOf('아직 생성되지 않았습니다')
-  for (const key of ['analytics', 'releases', 'evaluations', 'media', 'incidents', 'logs']) {
-    const at = body.indexOf(`route.key === '${key}'`)
-    assert.ok(at >= 0 && at < fallbackAt, `${key} 분기가 없거나 안내 뒤에 있다`)
+  // 2026-10 개편: 화면 연결은 renderWorkspace 의 if 분기가 아니라 라우트 표(ADMIN_ROUTE_LIST)의 load 가 맡는다.
+  // 메뉴(탭)마다 실제 로더가 달려 있어야 "준비 중" 안내로 떨어지지 않는다.
+  const table = source.slice(source.indexOf('var ADMIN_ROUTE_LIST = ['), source.indexOf('var ADMIN_ROUTE_ALIASES'))
+  for (const [label, loader] of [['방문 · 전환', 'loadFunnelAnalytics'], ['배포 정보', 'loadReleaseInfo'], ['품질 점검', 'loadQualityEvaluations'], ['장애 기록', 'loadIncidents'], ['실패 현황', 'loadGenerationLog']]) {
+    assert.match(table, new RegExp(`label: '${label}', load: function \\(body\\) \\{ ${loader}\\(body\\); \\}`), `${label} 탭이 ${loader} 로 연결되지 않는다`)
   }
+  assert.match(table, /key: 'media'[^\n]*load: function \(body\) \{ loadMediaCatalog\(body\); \}/)
+  const render = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function loadRevenuePending'))
+  assert.match(render, /def\.tabs\[route\.tabIndex\]\.load\(panel\)/)
+  assert.match(render, /if \(!def\.tabs\) \{ def\.load\(body\); return; \}/)
 })
 
 test('loadGenerationLog 는 실제 로그 엔드포인트를 부르고, 실패 사유를 시간순으로 싣는다', () => {
@@ -157,13 +153,14 @@ test('renderPromptContentDetail 은 발행 전 명시적 확인을 요구하고,
  * 않았습니다" 안내로 떨어졌다 — 화면이 비어 보인다는 사용자 보고로 발견.
  */
 test('renderWorkspace 는 콘텐츠 메뉴를 loadLiveContent 로 연결한다', () => {
-  const body = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('function renderWorkspace') + 2200)
-  assert.match(body, /if \(route\.key === 'content'\) \{ loadLiveContent\(body\); return; \}/)
+  const table = source.slice(source.indexOf('var ADMIN_ROUTE_LIST = ['), source.indexOf('var ADMIN_ROUTE_ALIASES'))
+  assert.match(table, /key: 'content'[^\n]*load: function \(body\) \{ loadLiveContent\(body\); \}/)
 })
 
 test('loadLiveContent 는 T29 어댑터 부재를 화면에 정직하게 알리고, 초안은 등록 후 목록에서 수정·발행·보관할 수 있다', () => {
   const body = source.slice(source.indexOf('async function loadLiveContent'), source.indexOf('function renderContentDetail'))
-  assert.match(body, /T29\)는 아직 없어/)
+  // 화면 문구는 운영자 말로 바꿨다(2026-10 개편). 고객 화면에 안 나간다는 사실은 그대로 알린다.
+  assert.match(body, /아직 고객 화면에 나가지 않습니다/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content', \{ method: 'POST'/)
   assert.match(body, /fetch\('\/api\/admin\/v1\/content', \{ credentials: 'same-origin' \}\)/)
   assert.match(body, /edit\.addEventListener\('click', function \(\) \{ renderContentDetail\(body, item\); \}\)/)

@@ -2854,12 +2854,10 @@ app.post('/api/admin/v1/prompts/content/:contentType/:contentKey/publish', async
   } catch (error) { respondPromptContentFailure(res, error, 'PROMPT_CONTENT_PUBLISH_FAILED') }
 })
 app.get('/api/admin/v1/orders', async (req, res) => {
-  // 운영 요청에 따라 목록만 공개한다. DTO는 연락처·거래식별자 원문을 포함하지 않으며,
-  // 개별 주문 상세와 나머지 관리자 API는 계속 requireStaff 관문을 통과해야 한다.
-  // 공개 목록은 마스킹된 DTO만 반환하므로 짧은 edge cache를 허용한다. 반복 원격 저장소
-  // 조회를 줄이되, 주문 상태가 오래 보이지 않도록 10초 뒤에는 반드시 재검증한다.
-  res.removeHeader('Vary')
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=10, stale-while-revalidate=30')
+  // 2026-09-11 운영 요청으로 목록을 로그인 없이 공개했으나, 마스킹돼도 회원 고유번호·리포트 번호·
+  // 구매 상품·금액이 커서를 따라 전부 나갔다. 2026-10-06 사용자 결정으로 다시 직원 전용으로 닫는다.
+  // 공개 캐시도 함께 없앤다(/api 공통 미들웨어의 private, no-store 를 그대로 쓴다).
+  if (!await requireStaff(req, res, 'orders:read')) return
   const window = parseAdminWindow(req)
   if (window === 'invalid') {
     res.status(400).json({ code: 'INVALID_WINDOW', error: '조회 기간 형식을 확인해 주세요.' })
@@ -3209,9 +3207,12 @@ app.post('/api/admin/v1/reports/:id/backfill-service-key', async (req, res) => {
 })
 
 app.post('/api/admin/v1/reports/requeue-incomplete', async (req, res) => {
-  if (!await requireStaff(req, res, 'reports:read')) return
+  // 작업 큐에 쓰는 동작이라 읽기 권한이 아니라 쓰기 권한을 요구하고, 누가 눌렀는지 남긴다.
+  const membership = await requireStaff(req, res, 'reports:write'); if (!membership) return
   try {
-    res.json({ ...await backfillReportCompletions(Number(req.body?.limit ?? 200)), asOf: new Date().toISOString() })
+    const outcome = await backfillReportCompletions(Number(req.body?.limit ?? 200))
+    await postgrestAdminCommandStore().appendAuditEvent({ actorEmail: membership.email, action: 'report.generation.requeue_incomplete', target: { type: 'report_queue', id: 'incomplete' }, result: 'succeeded' }).catch(() => undefined)
+    res.json({ ...outcome, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'REPORT_REQUEUE_FAILED', error: '미완성 리포트를 큐에 넣지 못했습니다.' })
   }

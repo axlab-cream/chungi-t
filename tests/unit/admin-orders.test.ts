@@ -89,11 +89,12 @@ after(async () => {
 
 describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
   describe('보안', () => {
-    it('공개 주문 목록은 로그인 없이 마스킹된 정보만 연다', async () => {
+    it('주문 목록은 로그인 없이는 열리지 않는다 (2026-10-06 공개 종료)', async () => {
+      // 마스킹돼도 회원 고유번호·리포트 번호·구매 상품·금액이 커서를 따라 전부 나갔다.
       const { response, payload } = await request('/api/admin/v1/orders')
-      assert.equal(response.status, 200)
-      assert.ok(Array.isArray(payload.orders))
-      assert.ok(!JSON.stringify(payload).includes('hong.gildong@synthetic.invalid'))
+      assert.equal(response.status, 401)
+      assert.equal(payload.code, 'AUTH_REQUIRED')
+      assert.equal(payload.orders, undefined)
     })
 
     it('주문 상세는 로그인 없이는 열리지 않는다', async () => {
@@ -123,10 +124,10 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       assert.equal(payload.order.buyerTelMasked, '***-****-5678')
     })
 
-    it('공개 목록은 짧은 edge cache로 반복 저장소 조회를 줄인다', async () => {
-      const { response } = await request('/api/admin/v1/orders')
-      assert.match(response.headers.get('cache-control') ?? '', /s-maxage=10/)
-      assert.doesNotMatch(response.headers.get('vary') ?? '', /Authorization/i)
+    it('주문 목록은 공유 캐시에 남지 않는다', async () => {
+      const { response } = await request('/api/admin/v1/orders', 'staff')
+      assert.match(response.headers.get('cache-control') ?? '', /private, no-store/)
+      assert.doesNotMatch(response.headers.get('cache-control') ?? '', /s-maxage/)
     })
   })
 
@@ -287,12 +288,12 @@ describe('관리자 주문 화면 (T09)', () => {
       assert.ok(shell.includes('class="admin-amount"'))
     })
 
-    it('공개 경로와 인증된 관리자 경로가 각각 주문을 요청한다', () => {
-      // 셸은 데이터를 갖고 있지 않다. 공개 `/admin/orders`는 무인증으로,
-      // 나머지 관리자 경로는 orders:read scope가 있을 때만 조회한다.
-      assert.match(shell, /indexOf\('orders:read'\) >= 0\) startOrders/)
-      assert.match(shell, /isPublicOrdersPath\(\)/)
-      assert.match(shell, /startOrders\(null\)/)
+    it('결제 내역은 권한 확인 뒤 작업 영역 안에서만 주문을 요청한다', () => {
+      // 셸은 데이터를 갖고 있지 않다. 공개 주문 모드는 없어졌고, orders:read 가 있을 때만 조회한다.
+      const tab = shell.slice(shell.indexOf('function loadOrdersTab'), shell.indexOf('function loadOrdersTab') + 1200)
+      assert.match(tab, /indexOf\('orders:read'\) < 0\)/)
+      assert.match(tab, /startOrders\(window\.__adminSession/)
+      assert.ok(!shell.includes('isPublicOrdersPath'), '공개 주문 목록 모드가 남아 있다')
     })
 
     it('셸에 고객 데이터가 인라인되지 않는다', () => {

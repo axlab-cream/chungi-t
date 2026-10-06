@@ -12,6 +12,8 @@
     설정값·키·엔드포인트 비밀을 인라인하지 않는다(ADR-0002 D2-5).
     화면에 들어가는 모든 데이터는 인증된 `/api/admin/v1/*` 응답으로만 온다.
   -->
+  <!-- Pretendard 가변 글꼴(OFL). 외부 CDN 없이 사이트 /assets 에서 쓴 글자 조각만 받는다. -->
+  <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css">
   <style>
     /*
       관리자 팔레트는 의미 기반 이름으로 독립 정의한다(ADR-0002 D3).
@@ -44,7 +46,8 @@
       margin: 0;
       background: var(--admin-bg);
       color: var(--admin-text);
-      font-family: 'Pretendard', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+      font-family: 'Pretendard Variable', 'Pretendard', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+      -webkit-font-smoothing: antialiased;
       font-size: 14px;
       line-height: 1.5;
     }
@@ -62,12 +65,13 @@
     .admin-header .admin-who { margin-left: auto; color: var(--admin-text-muted); font-size: 12px; }
 
     .admin-nav {
-      position: fixed; inset: 0 auto 0 0; z-index: 2; width: 232px;
-      display: flex; flex-direction: column; gap: var(--admin-space-1);
-      padding: var(--admin-space-6) var(--admin-space-3);
+      position: fixed; inset: 0 auto 0 0; z-index: 2; width: 184px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 2px;
+      padding: var(--admin-space-3) var(--admin-space-2);
       background: var(--admin-surface); border-right: 1px solid var(--admin-line);
     }
-    .admin-nav-title { margin: 0 0 var(--admin-space-4); padding: 0 var(--admin-space-3); color: var(--admin-text); font-size: 16px; font-weight: 700; }
+    .admin-nav-title { display: flex; align-items: center; gap: 7px; margin: 2px 6px var(--admin-space-3); color: var(--admin-text); font-size: 14px; font-weight: 800; }
+    .admin-nav-title i { width: 22px; height: 22px; border-radius: 5px; display: grid; place-items: center; background: var(--admin-focus); color: #fff; font-style: normal; font-size: 12px; }
     /*
       대분류(summary)와 소분류(a)를 크기·색·들여쓰기 세 축으로 구분한다. 대분류는 토글 —
       `<details>` 는 JS 없이도 열고 닫히고, 자바스크립트는 선호를 localStorage 에 기억하는
@@ -80,8 +84,8 @@
       흐름으로 남아 옆으로 늘어섰다(실측). 우리가 만든 진짜 엘리먼트로 감싸면 그 익명 박스와
       상관없이 항상 우리가 원하는 레이아웃을 쓴다.
     */
-    .admin-nav-group + .admin-nav-group { margin-top: var(--admin-space-2); }
-    .admin-nav-links { display: flex; flex-direction: column; gap: var(--admin-space-1); }
+    .admin-nav-group + .admin-nav-group { margin-top: 2px; }
+    .admin-nav-links { display: flex; flex-direction: column; gap: 1px; }
     /*
       author 규칙은 명시도와 무관하게 UA 기본 규칙(`details:not([open]) > *:not(summary)`)을
       이긴다 — 그래서 위 flex 규칙만 있으면 접어도(open=false) 계속 보인다(실측). 접힌 상태를
@@ -101,20 +105,20 @@
       transform: rotate(45deg); margin-right: var(--admin-space-2); transition: transform .15s ease;
     }
     .admin-nav-group[open] summary::after { transform: rotate(-135deg); }
-    .admin-nav-label { margin: var(--admin-space-4) 0 var(--admin-space-1); padding: 0 var(--admin-space-3); color: var(--admin-text); font-size: 13px; font-weight: 800; letter-spacing: .04em; }
+    .admin-nav-label { margin: var(--admin-space-2) 0 1px; padding: 2px 8px; color: #8a8a93; font-size: 11px; font-weight: 700; letter-spacing: .02em; }
     .admin-nav-group:first-of-type .admin-nav-label { margin-top: 0; }
     .admin-nav a {
-      padding: 9px var(--admin-space-3) 9px 22px; border-left: 2px solid transparent;
-      color: var(--admin-text-muted); text-decoration: none; border-radius: 2px; font-size: 13px;
+      padding: 5px 8px; color: #2b2b33; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: 500;
     }
+    .admin-nav a.admin-nav-home { font-weight: 700; }
     .admin-nav a:hover { background: var(--admin-bg); color: var(--admin-text); }
-    .admin-nav a[aria-current='page'] { color: var(--admin-text); border-left-color: var(--admin-focus); background: var(--admin-bg); font-weight: 700; }
+    .admin-nav a[aria-current='page'] { color: var(--admin-focus); background: #eef3ff; font-weight: 700; }
 
     /*
       표 중심 화면은 화면 폭을 그대로 쓴다 — 넓은 모니터에서 표가 줄어들 이유가 없다.
       폼·상세만 720px 로 좁게 잡는다. 두 단계만 쓴다.
     */
-    main { max-width: none; width: calc(100% - 232px); margin: 0 0 0 232px; padding: var(--admin-space-6); }
+    main { max-width: none; width: calc(100% - 184px); margin: 0 0 0 184px; padding: 18px 20px; }
     main[data-width='narrow'] { max-width: 720px; width: auto; }
 
     .admin-panel {
@@ -175,9 +179,9 @@
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
     .admin-workspace { display: grid; gap: var(--admin-space-6); }
-    .admin-page-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--admin-space-4); padding-bottom: var(--admin-space-4); border-bottom: 1px solid var(--admin-line); }
+    .admin-page-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--admin-space-3); padding-bottom: var(--admin-space-2); }
     .admin-page-head h2 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
-    .admin-page-head p { margin: var(--admin-space-1) 0 0; max-width: 760px; }
+    .admin-page-head p { margin: var(--admin-space-1) 0 0; max-width: 760px; color: var(--admin-text-muted); font-size: 12px; }
     .admin-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--admin-space-3); }
     .admin-kpi { min-height: 104px; padding: var(--admin-space-4); border: 1px solid var(--admin-line); background: var(--admin-surface); }
     .admin-kpi small { display: block; color: var(--admin-text-muted); font-size: 12px; }
@@ -246,6 +250,50 @@
       .admin-notify-preview { position: static; }
     }
 
+
+    /* ── 2026-10 개편 공통 부품: 헤더 검색 · 화면 안 탭 · 배지 · ⓘ 툴팁 · 모달 (docs/admin-ia.md §1) ── */
+    .admin-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .admin-header { margin-left: 184px; min-height: 48px; gap: var(--admin-space-3); align-items: center; padding-top: 8px; padding-bottom: 8px; }
+    .admin-gsearch { flex: 1; max-width: 520px; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-bg); }
+    .admin-gsearch[hidden] { display: none; }
+    .admin-gsearch input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; color: var(--admin-text); outline: none; }
+    .admin-gsearch:focus-within { outline: 2px solid var(--admin-focus); outline-offset: 1px; background: var(--admin-surface); }
+    .admin-gsearch kbd { font: 11px inherit; color: var(--admin-text-muted); border: 1px solid var(--admin-line); border-radius: 4px; padding: 0 5px; }
+    .admin-tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--admin-line); margin-bottom: var(--admin-space-3); overflow-x: auto; scrollbar-width: none; }
+    .admin-tabs::-webkit-scrollbar { display: none; }
+    .admin-header .admin-env { padding: 2px 8px; border-radius: 999px; background: var(--admin-bg); font-size: 11px; font-weight: 600; }
+    .admin-header-signout { border: 0; background: none; color: var(--admin-text-muted); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; border-radius: 4px; }
+    .admin-header-signout:hover { color: var(--admin-text); background: var(--admin-bg); }
+    .admin-header-signout[hidden] { display: none; }
+    .admin-tabs a { padding: 9px 2px; color: var(--admin-text-muted); font-weight: 600; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+    .admin-tabs a[aria-current='page'] { color: var(--admin-text); border-bottom-color: var(--admin-focus); }
+    .admin-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; white-space: nowrap; background: var(--admin-bg); color: var(--admin-text-muted); }
+    .admin-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .admin-badge[data-tone='ok'] { background: #e8f4ec; color: var(--admin-state-ok); }
+    .admin-badge[data-tone='warn'] { background: #fdf3e1; color: var(--admin-state-warn); }
+    .admin-badge[data-tone='error'] { background: #fbeaea; color: var(--admin-state-error); }
+    .admin-badge[data-tone='info'] { background: #eaf0fd; color: var(--admin-focus); }
+    .admin-tip { position: relative; display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 4px; border: 1px solid #b9b9c2; border-radius: 50%; background: var(--admin-surface); color: #6b6b74; font: 700 10px/1 inherit; vertical-align: 1px; cursor: help; padding: 0; }
+    .admin-tip-box { position: absolute; left: 50%; top: 21px; z-index: 20; transform: translateX(-50%); width: max-content; max-width: 260px; padding: 8px 10px; border-radius: 6px; background: #1b1b1f; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; text-align: left; white-space: normal; visibility: hidden; opacity: 0; transition: opacity .12s; pointer-events: none; }
+    .admin-tip:hover .admin-tip-box, .admin-tip:focus-visible .admin-tip-box { visibility: visible; opacity: 1; }
+    .admin-modal { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 0; border-radius: 10px; box-shadow: 0 24px 64px rgba(0, 0, 0, .24); }
+    .admin-modal[data-size='wide'] { width: min(980px, calc(100vw - 32px)); }
+    .admin-modal::backdrop { background: rgba(17, 17, 24, .42); }
+    .admin-modal-head { display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--admin-line); }
+    .admin-modal-head > div { flex: 1; min-width: 0; }
+    .admin-modal-head h3 { margin: 4px 0 2px; font-size: 18px; }
+    .admin-modal-head p { margin: 0; color: var(--admin-text-muted); font-size: 12px; }
+    .admin-modal-close { border: 0; background: none; font-size: 22px; line-height: 1; color: var(--admin-text-muted); cursor: pointer; padding: 2px 6px; border-radius: 5px; }
+    .admin-modal-body { padding: 16px 20px; }
+    .admin-modal-foot { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--admin-line); background: #fafafb; }
+    .admin-modal-foot .admin-spacer { flex: 1; }
+    .admin-search-group + .admin-search-group { margin-top: 14px; }
+    .admin-search-group h4 { margin: 0 0 6px; font-size: 12px; color: var(--admin-text-muted); }
+    .admin-search-hit { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-surface); font: inherit; text-align: left; color: var(--admin-text); cursor: pointer; }
+    .admin-search-hit + .admin-search-hit { margin-top: 6px; }
+    .admin-search-hit:hover { border-color: var(--admin-focus); }
+    .admin-search-hit span { color: var(--admin-text-muted); font-size: 12px; }
+
     /* 로그인 폼. 관리자에서 사용자 입력을 받는 유일한 지점이다. */
     .admin-form { display: grid; gap: var(--admin-space-4); margin-top: var(--admin-space-4); }
     .admin-field { display: grid; gap: var(--admin-space-1); }
@@ -292,12 +340,17 @@
          `.admin-nav-group` 와 `.admin-nav-links` 를 둘 다 `contents` 로 지워서 `<a>` 들이
          `.admin-nav` 의 가로 flex 에 바로 놓이게 한다. `<details>` 는 접히면 요약 외 자식을
          숨기는 것이 기본 동작이라(`:not([open]) > *:not(summary)`), `!important` 로 이긴다. */
-      .admin-nav-group { display: contents; margin-top: 0; }
+      /* 2026-10: 크로미움은 <details> 에 display:contents 를 적용하지 않아(실측 390px), 그룹 안 링크가
+         세로로 쌓였다. 그룹은 가로 한 칸으로 두고, 그 안의 링크를 가로 flex 로 편다. */
+      .admin-nav-group { display: block; flex: none; margin-top: 0; }
       .admin-nav-group summary { display: none; }
-      .admin-nav-group .admin-nav-links { display: contents !important; }
+      .admin-nav-group .admin-nav-links { display: flex !important; flex-direction: row; }
+      .admin-nav a.admin-nav-home { flex: none; }
       .admin-nav a { white-space: nowrap; padding: var(--admin-space-2) var(--admin-space-3); border-left: 0; border-bottom: 2px solid transparent; }
       .admin-nav a[aria-current='page'] { border-left: 0; border-bottom-color: var(--admin-focus); }
       main { width: auto; margin-left: 0; padding: var(--admin-space-4); }
+      .admin-header { margin-left: 0; flex-wrap: wrap; }
+      .admin-gsearch { order: 3; flex-basis: 100%; max-width: none; }
       .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .admin-refund-form { grid-template-columns: 1fr; }
       .admin-refund-form .admin-field[data-span='2'] { grid-column: auto; }
@@ -307,57 +360,62 @@
 </head>
 <body>
   <header class="admin-header">
-    <h1>운영 관리자</h1>
+    <h1 class="admin-visually-hidden">운명상회 운영 관리자</h1>
+    <form class="admin-gsearch" role="search" data-admin-gsearch hidden>
+      <label class="admin-visually-hidden" for="admin-gsearch-q">통합 검색</label>
+      <input id="admin-gsearch-q" name="q" type="search" autocomplete="off" maxlength="160" placeholder="회원 이름·주문번호·리포트 번호·문의 번호 검색">
+      <kbd aria-hidden="true">/</kbd>
+    </form>
     <span class="admin-env" data-admin-env>환경 확인 중</span>
     <span class="admin-who" data-admin-who></span>
+    <button class="admin-header-signout" type="button" data-admin-signout data-admin-header-signout hidden>로그아웃</button>
   </header>
 
   <nav class="admin-nav" aria-label="관리자 메뉴" data-admin-nav hidden>
-    <p class="admin-nav-title">운명상회<br />운영 관리자</p>
-    <details class="admin-nav-group" data-nav-group="overview" open>
-      <summary class="admin-nav-label">운영 현황</summary>
+    <p class="admin-nav-title"><i aria-hidden="true">운</i>운명상회</p>
+    <a class="admin-nav-home" href="/ops/constellation-7f3c" data-admin-route="overview">대시보드</a>
+    <details class="admin-nav-group" data-nav-group="members" open>
+      <summary class="admin-nav-label">회원</summary>
       <div class="admin-nav-links">
-        <a href="/ops/constellation-7f3c" data-admin-route="overview">개요</a>
-        <p class="admin-nav-sublabel">알림</p>
-        <a class="admin-nav-sub" href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업</a>
-        <a class="admin-nav-sub" href="/ops/constellation-7f3c/push" data-admin-route="push">푸시</a>
-        <a href="/ops/constellation-7f3c/search" data-admin-route="search">통합 검색</a>
-        <a href="/ops/constellation-7f3c/orders" data-admin-route="orders">주문</a>
-        <a href="/ops/constellation-7f3c/refunds" data-admin-route="refunds">환불</a>
-        <a href="/ops/constellation-7f3c/reconciliation" data-admin-route="reconciliation">정산</a>
-      </div>
-    </details>
-    <details class="admin-nav-group" data-nav-group="customer" open>
-      <summary class="admin-nav-label">고객 · 콘텐츠</summary>
-      <div class="admin-nav-links">
-        <a href="/ops/constellation-7f3c/members" data-admin-route="members">회원 · 리포트</a>
+        <a href="/ops/constellation-7f3c/members" data-admin-route="members">회원 관리</a>
         <a href="/ops/constellation-7f3c/support" data-admin-route="support">고객 지원</a>
-        <a href="/ops/constellation-7f3c/content" data-admin-route="content">콘텐츠</a>
-        <a href="/ops/constellation-7f3c/coupons" data-admin-route="coupons">쿠폰 관리</a>
-        <a href="/ops/constellation-7f3c/consultation" data-admin-route="consultation">천명상담</a>
-        <a href="/ops/constellation-7f3c/services" data-admin-route="services">서비스</a>
-        <a href="/ops/constellation-7f3c/media" data-admin-route="media">미디어</a>
       </div>
     </details>
-    <details class="admin-nav-group" data-nav-group="ai-ops" open>
-      <summary class="admin-nav-label">AI 운영</summary>
+    <details class="admin-nav-group" data-nav-group="payments" open>
+      <summary class="admin-nav-label">결제</summary>
       <div class="admin-nav-links">
-        <a href="/ops/constellation-7f3c/reports" data-admin-route="reports">리포트</a>
-        <a href="/ops/constellation-7f3c/jobs" data-admin-route="jobs">작업 큐</a>
-        <a href="/ops/constellation-7f3c/corpus" data-admin-route="corpus">코퍼스</a>
-        <a href="/ops/constellation-7f3c/prompts" data-admin-route="prompts">프롬프트</a>
-        <a href="/ops/constellation-7f3c/evaluations" data-admin-route="evaluations">평가</a>
-        <a href="/ops/constellation-7f3c/releases" data-admin-route="releases">릴리스</a>
+        <a href="/ops/constellation-7f3c/payments" data-admin-route="payments">결제 관리</a>
+      </div>
+    </details>
+    <details class="admin-nav-group" data-nav-group="services" open>
+      <summary class="admin-nav-label">서비스</summary>
+      <div class="admin-nav-links">
+        <a href="/ops/constellation-7f3c/services" data-admin-route="services">서비스 관리</a>
+        <a href="/ops/constellation-7f3c/content" data-admin-route="content">콘텐츠 관리</a>
+        <a href="/ops/constellation-7f3c/consultation" data-admin-route="consultation">상담 관리</a>
+        <a href="/ops/constellation-7f3c/media" data-admin-route="media">미디어 관리</a>
+      </div>
+    </details>
+    <details class="admin-nav-group" data-nav-group="reports-ai" open>
+      <summary class="admin-nav-label">리포트 · AI</summary>
+      <div class="admin-nav-links">
+        <a href="/ops/constellation-7f3c/reports" data-admin-route="reports">리포트 관리</a>
+        <a href="/ops/constellation-7f3c/ai" data-admin-route="ai">AI 운영</a>
+      </div>
+    </details>
+    <details class="admin-nav-group" data-nav-group="marketing" open>
+      <summary class="admin-nav-label">마케팅</summary>
+      <div class="admin-nav-links">
+        <a href="/ops/constellation-7f3c/messages" data-admin-route="messages">메시지</a>
+        <a href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업</a>
+        <a href="/ops/constellation-7f3c/coupons" data-admin-route="coupons">쿠폰</a>
       </div>
     </details>
     <details class="admin-nav-group" data-nav-group="system" open>
       <summary class="admin-nav-label">시스템</summary>
       <div class="admin-nav-links">
-        <a href="/ops/constellation-7f3c/analytics" data-admin-route="analytics">통계</a>
+        <a href="/ops/constellation-7f3c/admins" data-admin-route="admins">관리자</a>
         <a href="/ops/constellation-7f3c/logs" data-admin-route="logs">로그</a>
-        <a href="/ops/constellation-7f3c/incidents" data-admin-route="incidents">장애</a>
-        <a href="/ops/constellation-7f3c/audit" data-admin-route="audit">감사 기록</a>
-        <a href="/ops/constellation-7f3c/settings" data-admin-route="settings">설정</a>
       </div>
     </details>
   </nav>
@@ -471,9 +529,6 @@
           <h2 data-admin-workspace-title></h2>
           <p data-admin-workspace-detail></p>
         </div>
-        <div class="admin-actions">
-          <button class="admin-button" type="button" data-variant="quiet" data-admin-signout>로그아웃</button>
-        </div>
       </header>
       <div data-admin-workspace-body></div>
     </section>
@@ -484,19 +539,19 @@
 
       빈 목록 / 필터 결과 없음 / 조회 실패를 서로 다른 상태로 구분한다(A35).
     -->
-    <section class="admin-panel" data-admin-state="orders" hidden>
+    <section class="admin-panel" data-admin-orders-panel hidden>
       <h2>주문</h2>
 
       <form class="admin-filters" data-admin-order-filters>
         <label for="admin-order-status">상태</label>
         <select id="admin-order-status" name="status">
           <option value="">전체</option>
-          <option value="ready">결제 대기 (ready)</option>
-          <option value="approving">승인 중 (approving)</option>
-          <option value="paid">결제 완료 (paid)</option>
-          <option value="viewed">열람 (viewed)</option>
-          <option value="cancelled">취소·환불 (cancelled)</option>
-          <option value="failed">실패 (failed)</option>
+          <option value="ready">결제 대기</option>
+          <option value="approving">승인 중</option>
+          <option value="paid">결제 완료</option>
+          <option value="viewed">열람</option>
+          <option value="cancelled">취소·환불</option>
+          <option value="failed">실패</option>
         </select>
         <label for="admin-order-from">시작</label>
         <input id="admin-order-from" name="from" type="date" />
@@ -597,39 +652,68 @@
         return authConfigPromise;
       }
 
-      var adminRoutes = {
-        '/ops/constellation-7f3c': { key: 'overview', title: '개요', detail: '오늘의 운영 상황과 우선 처리 항목을 한 화면에서 확인합니다.' },
-        '/ops/constellation-7f3c/search': { key: 'search', title: '통합 검색', detail: '주문번호·회원·리포트 식별자를 기준으로 운영 대상을 찾습니다.' },
-        '/ops/constellation-7f3c/orders': { key: 'orders', title: '주문' },
-        '/ops/constellation-7f3c/refunds': { key: 'refunds', title: '환불', detail: '환불 요청과 처리 상태를 주문 단위로 관리합니다.' },
-        '/ops/constellation-7f3c/reconciliation': { key: 'reconciliation', title: '정산', detail: '승인·취소·환불 금액을 정산 기준으로 대조합니다.' },
-        '/ops/constellation-7f3c/members': { key: 'members', title: '회원 · 리포트', detail: '회원의 구매·리포트 이력을 조회하고 지원 요청을 연결합니다.' },
-        '/ops/constellation-7f3c/support': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
-        '/ops/constellation-7f3c/cs': { key: 'support', title: '고객 지원', detail: '문의, 처리 담당자, 답변 상태를 한 흐름으로 관리합니다.' },
-        '/ops/constellation-7f3c/content': { key: 'content', title: '콘텐츠', detail: '고객 화면에 노출되는 안내·배너·FAQ 콘텐츠를 관리합니다.' },
-        '/ops/constellation-7f3c/coupons': { key: 'coupons', title: '쿠폰 관리', detail: '서비스 이용권, 상담 질문권과 할인 쿠폰을 발급하고 사용 현황을 확인합니다.' },
-        '/ops/constellation-7f3c/consultation': { key: 'consultation', title: '천명상담 관리', detail: '홈 배너와 상담자의 설정을 초안으로 저장하고 게시합니다. 저장된 상담 원문은 바뀌지 않습니다.' },
-        '/ops/constellation-7f3c/popup': { key: 'popup', title: '알림 · 팝업', detail: '첫 페이지 오늘운 무료 혜택 팝업의 이미지와 노출 기간을 관리합니다. 종료 시각이 지나면 자동으로 내려갑니다.' },
-        '/ops/constellation-7f3c/push': { key: 'push', title: '알림 · 푸시', detail: '앱 설치 기기에 보낼 푸시를 쓰고, 바로 보내거나 예약하고, 결과를 확인합니다.' },
-        '/ops/constellation-7f3c/services': { key: 'services', title: '서비스', detail: '서비스별 노출·판매·가격 정책과 고객 화면 연결을 관리합니다.' },
-        '/ops/constellation-7f3c/media': { key: 'media', title: '미디어', detail: '이미지와 첨부 자산의 사용 위치 및 공개 상태를 관리합니다.' },
-        '/ops/constellation-7f3c/jobs': { key: 'jobs', title: '작업 큐', detail: '리포트 생성과 후처리 작업의 진행·재시도 상태를 확인합니다.' },
-        '/ops/constellation-7f3c/corpus': { key: 'corpus', title: '코퍼스', detail: '검색 지식 소스의 버전, 출처, 색인 상태를 관리합니다.' },
-        '/ops/constellation-7f3c/prompts': { key: 'prompts', title: '프롬프트', detail: '서비스별 프롬프트 버전과 적용 범위를 검토합니다.' },
-        '/ops/constellation-7f3c/evaluations': { key: 'evaluations', title: '평가', detail: '생성 결과의 품질 평가와 검토 이력을 기록합니다.' },
-        '/ops/constellation-7f3c/reports': { key: 'reports', title: '리포트', detail: '리포트 생성·완료·실패 상태와 제공 이력을 확인합니다.' },
-        '/ops/constellation-7f3c/releases': { key: 'releases', title: '릴리스', detail: '콘텐츠·프롬프트·서비스 변경의 배포 이력을 관리합니다.' },
-        '/ops/constellation-7f3c/analytics': { key: 'analytics', title: '통계', detail: '유입·전환·구매 흐름을 운영 지표로 확인합니다.' },
-        '/ops/constellation-7f3c/logs': { key: 'logs', title: '로그', detail: '시스템 이벤트와 실패 신호를 시간순으로 추적합니다.' },
-        '/ops/constellation-7f3c/incidents': { key: 'incidents', title: '장애', detail: '운영 이슈의 영향 범위·담당자·복구 진행을 관리합니다.' },
-        '/ops/constellation-7f3c/audit': { key: 'audit', title: '감사 기록', detail: '관리자 변경 작업의 주체·대상·시점을 확인합니다.' },
-        '/ops/constellation-7f3c/settings': { key: 'settings', title: '설정', detail: '운영 환경, 권한, 알림 정책을 확인하고 관리합니다.' }
+      /*
+       * 2026-10 개편(docs/admin-ia.md): 사이드바는 업무 영역 7개, 세부 기능은 화면 안 탭.
+       * 탭이 있는 메뉴는 탭마다 주소가 따로 있어 새로고침·링크로 바로 열린다.
+       * 옛 주소(ADMIN_ROUTE_ALIASES)는 새 주소로 바꿔 열어 책갈피가 깨지지 않게 한다.
+       */
+      var ADMIN_BASE = '/ops/constellation-7f3c';
+      var adminRoutes = {};
+      var ADMIN_ROUTE_LIST = [
+        { path: '', key: 'overview', title: '대시보드', detail: '오늘의 운영 상황을 확인합니다.', tabs: [
+          { path: '', label: '운영 현황', load: function (body) { loadLiveOverview(body); } },
+          { path: '/analytics', label: '방문 · 전환', load: function (body) { loadFunnelAnalytics(body); } },
+        ] },
+        { path: '/members', key: 'members', title: '회원 관리', detail: '회원의 가입·결제·리포트 이력을 확인합니다.', load: function (body) { loadLiveMembers(body); } },
+        { path: '/support', key: 'support', title: '고객 지원', detail: '문의 접수부터 처리 완료까지 관리합니다.', load: function (body) { loadSupportCases(body); } },
+        { path: '/payments', key: 'payments', title: '결제 관리', detail: '결제 내역과 환불, 매출을 한곳에서 봅니다.', tabs: [
+          { path: '', label: '결제 내역', load: function (body) { loadOrdersTab(body); } },
+          { path: '/refunds', label: '환불', load: function (body) { loadRefunds(body); } },
+          { path: '/revenue', label: '매출', load: function (body) { loadRevenuePending(body); } },
+        ] },
+        { path: '/services', key: 'services', title: '서비스 관리', detail: '판매·노출·가격을 관리합니다.', load: function (body) { loadLiveServices(body); } },
+        { path: '/content', key: 'content', title: '콘텐츠 관리', detail: '서비스 안에서 쓰는 안내·배너·문구를 관리합니다.', load: function (body) { loadLiveContent(body); } },
+        { path: '/consultation', key: 'consultation', title: '상담 관리', detail: '천명상담 배너와 상담자 설정을 관리합니다.', load: function (body) { loadConsultationManager(body); } },
+        { path: '/media', key: 'media', title: '미디어 관리', detail: '사이트에 올라간 이미지와 사용 위치를 봅니다.', load: function (body) { loadMediaCatalog(body); } },
+        { path: '/reports', key: 'reports', title: '리포트 관리', detail: '리포트 생성 내역과 상태를 확인합니다.', load: function (body) { loadLiveReports(body); } },
+        { path: '/ai', key: 'ai', title: 'AI 운영', detail: '생성 실패와 작업 대기열, 프롬프트를 관리합니다.', tabs: [
+          { path: '', label: '실패 현황', load: function (body) { loadGenerationLog(body); } },
+          { path: '/jobs', label: '작업 대기열', load: function (body) { loadOpsJobs(body); } },
+          { path: '/prompts', label: '프롬프트', load: function (body) { loadLivePrompts(body); } },
+          { path: '/corpus', label: '참고 자료', load: function (body) { loadLiveCorpus(body); } },
+          { path: '/quality', label: '품질 점검', load: function (body) { loadQualityEvaluations(body); } },
+          { path: '/release', label: '배포 정보', load: function (body) { loadReleaseInfo(body); } },
+        ] },
+        { path: '/messages', key: 'messages', title: '메시지', detail: '앱 푸시를 보내고 결과를 확인합니다.', load: function (body) { loadPushManager(body); } },
+        { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', load: function (body) { loadPopupManager(body); } },
+        { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', load: function (body) { loadCouponManager(body); } },
+        { path: '/admins', key: 'admins', title: '관리자', detail: '관리자 계정을 추가하고 비밀번호·사용 여부를 관리합니다.', load: function (body) { loadAdminAccounts(body); } },
+        { path: '/logs', key: 'logs', title: '로그', detail: '누가 무엇을 바꿨는지와 장애 기록을 봅니다.', tabs: [
+          { path: '', label: '변경 이력', load: function (body) { loadLiveAudit(body); } },
+          { path: '/incidents', label: '장애 기록', load: function (body) { loadIncidents(body); } },
+        ] },
+      ];
+      var ADMIN_ROUTE_ALIASES = {
+        '/search': '', '/orders': '/payments', '/refunds': '/payments/refunds', '/reconciliation': '/payments/revenue',
+        '/cs': '/support', '/push': '/messages', '/kakao': '/messages', '/jobs': '/ai/jobs', '/corpus': '/ai/corpus',
+        '/prompts': '/ai/prompts', '/evaluations': '/ai/quality', '/releases': '/ai/release', '/analytics': '/analytics',
+        '/audit': '/logs', '/incidents': '/logs/incidents', '/settings': '/admins',
       };
+      ADMIN_ROUTE_LIST.forEach(function (route) {
+        (route.tabs || [{ path: '' }]).forEach(function (tab, index) {
+          adminRoutes[ADMIN_BASE + route.path + tab.path] = { key: route.key, title: route.title, detail: route.detail, route: route, tabIndex: index };
+        });
+      });
       function currentAdminRoute() {
-        var path = window.location.pathname.replace(/\/$/, '') || '/ops/constellation-7f3c';
+        var path = window.location.pathname.replace(/\/$/, '') || ADMIN_BASE;
+        var rest = path.slice(ADMIN_BASE.length);
+        if (Object.prototype.hasOwnProperty.call(ADMIN_ROUTE_ALIASES, rest)) {
+          path = ADMIN_BASE + ADMIN_ROUTE_ALIASES[rest];
+          try { history.replaceState(null, '', path + window.location.search); } catch (_error) { /* 주소만 못 바꿔도 화면은 연다 */ }
+        }
         if (adminRoutes[path]) return adminRoutes[path];
         var parent = path.split('/').slice(0, 4).join('/');
-        return adminRoutes[parent] || adminRoutes['/ops/constellation-7f3c'];
+        return adminRoutes[parent] || adminRoutes[ADMIN_BASE];
       }
       function markCurrentRoute() {
         var route = currentAdminRoute();
@@ -653,6 +737,118 @@
        * localStorage 가 막혀 있어도(사생활 보호 모드 등) 토글 자체는 그대로 동작해야 하므로
        * 읽기·쓰기 모두 던지지 않는다.
        */
+
+      /** ⓘ 툴팁. 운영자에게 필요한 설명은 화면 글 대신 여기에 넣는다(docs/admin-ia.md §0-4). */
+      function adminTip(text) {
+        var tip = document.createElement('button'); tip.type = 'button'; tip.className = 'admin-tip'; tip.setAttribute('aria-label', text); tip.textContent = 'i';
+        var box = document.createElement('span'); box.className = 'admin-tip-box'; box.setAttribute('aria-hidden', 'true'); box.textContent = text;
+        tip.appendChild(box);
+        return tip;
+      }
+
+      /**
+       * 상세는 모달로 연다. `<dialog>` 라서 Esc·배경 클릭으로 닫히고 초점이 안에 머문다.
+       * options: { title, subtitle, size: 'wide', body: Node, actions: [{ label, primary, onClick }] }
+       */
+      function openAdminModal(options) {
+        var dialog = document.createElement('dialog'); dialog.className = 'admin-modal';
+        if (options.size === 'wide') dialog.setAttribute('data-size', 'wide');
+        var head = document.createElement('header'); head.className = 'admin-modal-head';
+        var text = document.createElement('div');
+        var title = document.createElement('h3'); title.textContent = options.title || '';
+        text.appendChild(title);
+        if (options.subtitle) { var sub = document.createElement('p'); sub.textContent = options.subtitle; text.appendChild(sub); }
+        var close = document.createElement('button'); close.type = 'button'; close.className = 'admin-modal-close'; close.setAttribute('aria-label', '닫기'); close.textContent = '×';
+        close.addEventListener('click', function () { dialog.close(); });
+        head.append(text, close);
+        var main = document.createElement('div'); main.className = 'admin-modal-body';
+        if (options.body) main.appendChild(options.body);
+        dialog.append(head, main);
+        if (options.actions && options.actions.length) {
+          var foot = document.createElement('footer'); foot.className = 'admin-modal-foot';
+          var spacer = document.createElement('span'); spacer.className = 'admin-spacer'; foot.appendChild(spacer);
+          options.actions.forEach(function (action) {
+            var button = document.createElement('button'); button.type = 'button'; button.className = 'admin-button'; button.textContent = action.label;
+            if (!action.primary) button.setAttribute('data-variant', 'quiet');
+            button.addEventListener('click', function () { action.onClick(dialog); });
+            foot.appendChild(button);
+          });
+          dialog.appendChild(foot);
+        }
+        dialog.addEventListener('click', function (event) { if (event.target === dialog) dialog.close(); });
+        dialog.addEventListener('close', function () { dialog.remove(); });
+        document.body.appendChild(dialog);
+        dialog.showModal();
+        return dialog;
+      }
+
+      /**
+       * 상단 통합 검색. 지금 서버가 지원하는 것: 회원 이름(일부), 그리고 회원·주문·리포트·문의의
+       * 정확한 번호. 이메일·전화번호 일부 검색은 회원 관리 개편 단계에서 연다.
+       */
+      var SEARCH_KINDS = [
+        { kind: 'member', label: '회원', path: '/members' },
+        { kind: 'order', label: '결제', path: '/payments' },
+        { kind: 'report', label: '리포트', path: '/reports' },
+        { kind: 'support', label: '문의', path: '/support' },
+      ];
+      function searchHitLabel(kind, value) {
+        if (kind === 'member') return [value.name || '이름 미등록', value.email || ''];
+        if (kind === 'order') return [(value.productTitle || '결제') + ' · ' + Number(value.amount || 0).toLocaleString('ko-KR') + '원', value.status || ''];
+        if (kind === 'report') return [value.memberName || value.serviceTitle || '리포트', value.serviceTitle || ''];
+        return [value.category || '문의', value.status || ''];
+      }
+      async function runGlobalSearch(query) {
+        var wrap = document.createElement('div');
+        var status = document.createElement('p'); status.className = 'admin-note'; status.textContent = '찾는 중입니다.'; wrap.appendChild(status);
+        openAdminModal({ title: '“' + query + '” 검색 결과', body: wrap });
+        var groups = [];
+        var exact = query.length >= 3 ? SEARCH_KINDS.map(function (entry) {
+          return fetch('/api/admin/v1/search?kind=' + entry.kind + '&exactId=' + encodeURIComponent(query), { credentials: 'same-origin' })
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (data) { return data && data.result ? { entry: entry, items: [data.result.value] } : null; })
+            .catch(function () { return null; });
+        }) : [];
+        var byName = query.length >= 2 ? fetch('/api/admin/v1/push/users?q=' + encodeURIComponent(query), { credentials: 'same-origin' })
+          .then(function (response) { return response.ok ? response.json() : null; })
+          .then(function (data) { return data && data.users && data.users.length ? { entry: SEARCH_KINDS[0], items: data.users.map(function (user) { return { id: user.userId, name: user.name, email: '가입 ' + String(user.createdAt || '').slice(0, 10) }; }) } : null; })
+          .catch(function () { return null; }) : Promise.resolve(null);
+        (await Promise.all(exact.concat([byName]))).forEach(function (group) { if (group) groups.push(group); });
+        wrap.replaceChildren();
+        if (!groups.length) { var none = document.createElement('p'); none.className = 'admin-empty'; none.textContent = '일치하는 결과가 없습니다. 회원 이름 두 글자 이상, 또는 주문·리포트·문의 번호 전체를 넣어 주세요.'; wrap.appendChild(none); return; }
+        groups.forEach(function (group) {
+          var section = document.createElement('section'); section.className = 'admin-search-group';
+          var heading = document.createElement('h4'); heading.textContent = group.entry.label; section.appendChild(heading);
+          group.items.forEach(function (item) {
+            var labels = searchHitLabel(group.entry.kind, item);
+            var hit = document.createElement('button'); hit.type = 'button'; hit.className = 'admin-search-hit';
+            var main = document.createElement('b'); main.textContent = labels[0];
+            var sub = document.createElement('span'); sub.textContent = labels[1];
+            hit.append(main, sub);
+            hit.addEventListener('click', function () {
+              var id = item.id || item.orderId || item.reportId || '';
+              window.location.href = ADMIN_BASE + group.entry.path + (id ? '?id=' + encodeURIComponent(id) : '');
+            });
+            section.appendChild(hit);
+          });
+          wrap.appendChild(section);
+        });
+      }
+      function bindGlobalSearch() {
+        var form = document.querySelector('[data-admin-gsearch]');
+        if (!form) return;
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var query = String(form.elements.q.value || '').trim();
+          if (query) runGlobalSearch(query);
+        });
+        document.addEventListener('keydown', function (event) {
+          var target = event.target;
+          var typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+          if (event.key === '/' && !typing && !form.hidden) { event.preventDefault(); form.elements.q.focus(); }
+        });
+      }
+
       function bindNavGroups() {
         document.querySelectorAll('.admin-nav-group[data-nav-group]').forEach(function (group) {
           var key = 'umsh-admin-nav-collapsed:' + group.getAttribute('data-nav-group');
@@ -714,13 +910,16 @@
       async function loadLiveMembers(body) {
         body.replaceChildren();
         var section = document.createElement('section'); section.className = 'admin-section';
-        var heading = document.createElement('h3'); heading.textContent = '실제 회원 프로필';
+        var heading = document.createElement('h3'); heading.textContent = '회원 목록';
         section.appendChild(heading);
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
         section.appendChild(status);
         body.appendChild(section);
         memberListState.offset = 0;
         await renderMembersPage(body, section);
+        // 통합 검색·다른 화면의 링크(?id=회원번호)로 들어오면 그 회원 상세를 바로 연다.
+        var linked = new URLSearchParams(window.location.search).get('id');
+        if (linked && /^[0-9a-f-]{36}$/i.test(linked)) renderMemberDetail(body, linked);
       }
       async function renderMembersPage(body, section) {
         try {
@@ -760,13 +959,13 @@
           section.replaceChildren(section.firstElementChild, scroll, pager);
         } catch (_error) {
           var notice = section.querySelector('.admin-empty');
-          if (notice) notice.textContent = '실제 회원 저장소를 불러오지 못했습니다.';
+          if (notice) notice.textContent = '회원 목록을 불러오지 못했습니다.';
         }
       }
       async function loadLiveReports(body) {
         body.replaceChildren();
         var requeueSection = document.createElement('section'); requeueSection.className = 'admin-section';
-        requeueSection.innerHTML = '<header class="admin-section-head"><h3>미완성 리포트 재시도</h3><span class="admin-chip">기존 백엔드 라우트 연결</span></header><div class="admin-actions" style="padding:0 16px 16px"><button class="admin-button" type="button" data-requeue-incomplete>미완성 리포트 큐에 다시 넣기</button><p class="admin-note" role="status" data-requeue-result></p></div>';
+        requeueSection.innerHTML = '<header class="admin-section-head"><h3>미완성 리포트 재시도</h3><span class="admin-chip">리포트 생성 제어</span></header><div class="admin-actions" style="padding:0 16px 16px"><button class="admin-button" type="button" data-requeue-incomplete>미완성 리포트 큐에 다시 넣기</button><p class="admin-note" role="status" data-requeue-result></p></div>';
         body.appendChild(requeueSection);
         var requeueButton = requeueSection.querySelector('[data-requeue-incomplete]'); var requeueResult = requeueSection.querySelector('[data-requeue-result]');
         requeueButton.addEventListener('click', async function () {
@@ -784,7 +983,7 @@
           var payload = await (await fetch('/api/admin/v1/reports', { credentials: 'same-origin' })).json();
           if (!Array.isArray(payload.reports)) throw new Error('LIVE_REPORT_LOOKUP_FAILED');
           renderReportsTable(body, payload.reports);
-        } catch (_error) { addLiveError(body, '실제 리포트 저장소를 불러오지 못했습니다.'); }
+        } catch (_error) { addLiveError(body, '리포트 목록을 불러오지 못했습니다.'); }
       }
       /**
        * 2026-09-19: 완성된 리포트의 PDF를 관리자가 직접 받을 방법이 없었다 — 서버에 PDF
@@ -795,10 +994,10 @@
        */
       function renderReportsTable(body, reports) {
         var section = document.createElement('section'); section.className = 'admin-section';
-        var heading = document.createElement('h3'); heading.textContent = '실제 생성 리포트';
+        var heading = document.createElement('h3'); heading.textContent = '리포트 생성 내역';
         section.appendChild(heading);
         if (!reports.length) {
-          var empty = document.createElement('p'); empty.className = 'admin-empty'; empty.textContent = '실제 생성 리포트가 아직 없습니다.';
+          var empty = document.createElement('p'); empty.className = 'admin-empty'; empty.textContent = '생성된 리포트가 아직 없습니다.';
           section.appendChild(empty); body.appendChild(section); return;
         }
         var table = document.createElement('table'); table.className = 'admin-table';
@@ -853,8 +1052,8 @@
           var response = await fetch('/api/admin/v1/operations-snapshot', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('LIVE_OPERATIONS_LOOKUP_FAILED');
           var snapshot = await response.json();
-          addLiveTable(body, '실제 운영 요약', ['회원 프로필', '생성 리포트', '공개 서비스', '활성 코퍼스 팩', '기준 시각'], [[snapshot.members, snapshot.reports, snapshot.services, snapshot.corpusPacks, snapshot.asOf]], function (item) { return item; }, '실제 운영 데이터가 아직 없습니다.');
-        } catch (_error) { addLiveError(body, '실제 운영 요약을 불러오지 못했습니다.'); }
+          addLiveTable(body, '운영 요약', ['회원 프로필', '생성 리포트', '공개 서비스', '참고 자료 묶음', '기준 시각'], [[snapshot.members, snapshot.reports, snapshot.services, snapshot.corpusPacks, snapshot.asOf]], function (item) { return item; }, '아직 집계할 데이터가 없습니다.');
+        } catch (_error) { addLiveError(body, '운영 요약을 불러오지 못했습니다.'); }
       }
       /**
        * 2026-09-19: 코드로 관리되는 카탈로그는 실제로 지울 수 없다 — 판매 중단(saleAvailable
@@ -866,19 +1065,23 @@
         var initSection = document.createElement('section'); initSection.className = 'admin-section';
         initSection.innerHTML = '<header class="admin-section-head"><h3>버전 일괄 초기화</h3><span class="admin-chip">발행 기록 없는 서비스만 대상</span></header><p class="admin-note" style="padding:0 16px 12px">현재 배포된 카탈로그 값을 그대로 1판으로 저장·발행합니다. 이미 발행되었거나 초안이 있는 서비스는 건드리지 않습니다.</p><div class="admin-actions" style="padding:0 16px 16px"><button class="admin-button" type="button" data-bulk-init disabled>불러오는 중…</button><p class="admin-note" role="status" data-bulk-init-result></p></div>';
         body.appendChild(initSection);
-        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 운영 서비스</h3><span class="admin-chip">배포된 카탈로그 + 버전 저장소</span></header><p class="admin-empty">서비스 카탈로그를 불러오는 중입니다.</p>';
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>서비스 목록</h3><span class="admin-chip">현재 사이트 기준</span></header><p class="admin-empty">서비스 카탈로그를 불러오는 중입니다.</p>';
         body.appendChild(listSection);
         function renderServiceTable(services) {
           var table = document.createElement('table'); table.className = 'admin-table';
-          table.innerHTML = '<thead><tr><th scope="col">서비스</th><th scope="col">canonicalKey</th><th scope="col">분류</th><th scope="col">검색 노출</th><th scope="col">판매</th><th scope="col">기준 가격</th><th scope="col">발행 버전</th><th scope="col">초안 버전</th><th scope="col">고객 경로</th><th scope="col">관리</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">서비스</th><th scope="col">분류</th><th scope="col">홈·검색 노출</th><th scope="col">판매</th><th scope="col">기준 가격</th><th scope="col">운영 버전</th><th scope="col">초안</th><th scope="col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!services.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">실제 서비스 카탈로그가 비어 있습니다.</td>'; rows.appendChild(empty); }
+          if (!services.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">등록된 서비스가 없습니다.</td>'; rows.appendChild(empty); }
           services.forEach(function (item) {
             var row = document.createElement('tr');
-            [item.title, item.canonicalKey, item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 가능' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion || '없음', item.draftVersion || '없음', item.landingPath].forEach(function (value) {
+            var nameCell = document.createElement('td'); nameCell.textContent = item.title;
+            nameCell.appendChild(adminTip('서비스 코드 ' + item.canonicalKey + ' · 고객 주소 ' + item.landingPath));
+            row.appendChild(nameCell);
+            [item.category, item.discoveryVisible ? '노출' : '숨김', item.saleAvailable ? '판매 중' : '판매 중단', Number(item.amount).toLocaleString('ko-KR') + '원', item.publishedVersion ? item.publishedVersion + '판' : '없음', item.draftVersion ? item.draftVersion + '판' : '없음'].forEach(function (value) {
               var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
             });
             var actionCell = document.createElement('td'); var edit = document.createElement('button'); edit.className = 'admin-button'; edit.type = 'button'; edit.textContent = '수정';
+            edit.setAttribute('data-variant', 'quiet');
             edit.addEventListener('click', function () { renderServiceDetail(body, item); });
             actionCell.appendChild(edit); row.appendChild(actionCell);
             rows.appendChild(row);
@@ -891,7 +1094,7 @@
           if (!response.ok) throw new Error('LIVE_SERVICE_LOOKUP_FAILED');
           var payload = await response.json();
           var services = Array.isArray(payload.services) ? payload.services : [];
-          if (payload.versionStore !== 'ready') addLiveError(body, '서비스 버전 저장소 연결을 확인하지 못했습니다. 아래 목록은 현재 배포 코드의 실제 카탈로그이며 버전 정보는 미확인입니다.');
+          if (payload.versionStore !== 'ready') addLiveError(body, '버전 기록을 불러오지 못했습니다. 아래 목록의 판매·가격은 현재 사이트 기준이고, 버전 칸은 확인되지 않은 상태입니다.');
           renderServiceTable(services);
           var bulkButton = initSection.querySelector('[data-bulk-init]'); var bulkResult = initSection.querySelector('[data-bulk-init-result]');
           var targets = services.filter(function (item) { return !item.publishedVersion && !item.draftVersion; });
@@ -918,7 +1121,7 @@
           });
         } catch (_error) {
           addLiveError(initSection, '초기화 대상을 판단할 수 없어 일괄 초기화를 열지 못했습니다.');
-          var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 서비스 카탈로그를 불러오지 못했습니다.';
+          var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '서비스 목록을 불러오지 못했습니다.';
         }
       }
       function renderServiceDetail(body, item) {
@@ -977,8 +1180,8 @@
           if (!response.ok) throw new Error('CORPUS_SNAPSHOT_FAILED');
           var payload = await response.json();
           var packs = Array.isArray(payload.packs) ? payload.packs : [];
-          addLiveTable(body, '현재 배포 코퍼스', ['레지스트리', '지문', '활성 팩', '정책'], [[payload.registryVersion, payload.fingerprint, packs.length, payload.policy]], function (item) { return item; }, '현재 배포에서 활성 코퍼스를 찾지 못했습니다.');
-          addLiveTable(body, '실제 RAG 원천 파일', ['팩', '서비스', '도메인', '종류', '역할과 사용 방식', '버전', '파일', '내용 해시'], packs, function (item) {
+          addLiveTable(body, '현재 쓰는 참고 자료', ['레지스트리', '지문', '활성 팩', '정책'], [[payload.registryVersion, payload.fingerprint, packs.length, payload.policy]], function (item) { return item; }, '지금 쓰는 참고 자료를 찾지 못했습니다.');
+          addLiveTable(body, '참고 자료 파일', ['팩', '서비스', '도메인', '종류', '역할과 사용 방식', '버전', '파일', '내용 해시'], packs, function (item) {
             var role = document.createElement('span'); role.className = 'admin-role-cell';
             var roleLabel = document.createElement('strong'); roleLabel.textContent = item.roleLabel;
             var roleDescription = document.createElement('span'); roleDescription.textContent = item.roleDescription;
@@ -986,8 +1189,8 @@
             var link = document.createElement('a'); link.className = 'admin-file-link'; link.href = item.downloadUrl;
             link.download = item.fileName; link.textContent = item.fileName + ' 다운로드';
             return [item.id, item.serviceTitle, item.domain, item.kindLabel, role, item.version, link, item.contentHash];
-          }, '현재 배포에서 활성 코퍼스 팩을 찾지 못했습니다.');
-        } catch (_error) { addLiveError(body, '현재 배포의 실제 코퍼스 레지스트리를 불러오지 못했습니다.'); }
+          }, '지금 쓰는 참고 자료 묶음을 찾지 못했습니다.');
+        } catch (_error) { addLiveError(body, '참고 자료 목록을 불러오지 못했습니다.'); }
       }
       async function loadLivePrompts(body) {
         try {
@@ -1000,7 +1203,7 @@
           addLiveTable(body, 'Tone V2 적용 번들', ['버전', '원천 지문', '공통 규칙 파일', '공통 규칙 해시', '퍼소나', '릴리스 상태'], [[bundle.version, bundle.sourceFingerprint, bundle.commonPath, bundle.commonHash, personas.length, bundle.releaseReady ? '릴리스 가능' : '검수 진행 중']], function (item) { return item; }, '현재 배포에서 Tone V2 번들을 찾지 못했습니다.');
           if (!bundle.releaseReady) addLiveError(body, '현재 번들은 실제 생성 런타임에 연결되어 있지만 전체 출력 평가와 릴리스 승인이 남아 있습니다. 검수 중인 상태를 운영 릴리스로 표시하지 않습니다.');
           addLiveTable(body, '작업 기준 가이드', ['원천 파일', '크기', '내용 해시'], sources, function (item) { return [item.path, Number(item.bytes).toLocaleString('ko-KR') + ' B', item.contentHash]; }, '연결된 가이드 원천 파일이 없습니다.');
-          addLiveTable(body, '서비스별 실제 퍼소나·프롬프트', ['서비스', '퍼소나', '정의', '이름 상태', '말투', '핵심 약속', '생성 파일', '내용 해시'], personas, function (item) { return [item.title + ' · ' + item.key, item.displayName, item.definitionStatus === 'specified' ? '정의됨' : item.definitionStatus, item.displayNameStatus === 'draft' ? '이름 초안' : item.displayNameStatus, item.voice, item.promise, item.sourcePath, item.contentHash]; }, '연결된 서비스 퍼소나가 없습니다.');
+          addLiveTable(body, '서비스별 상담자·프롬프트', ['서비스', '퍼소나', '정의', '이름 상태', '말투', '핵심 약속', '생성 파일', '내용 해시'], personas, function (item) { return [item.title + ' · ' + item.key, item.displayName, item.definitionStatus === 'specified' ? '정의됨' : item.definitionStatus, item.displayNameStatus === 'draft' ? '이름 초안' : item.displayNameStatus, item.voice, item.promise, item.sourcePath, item.contentHash]; }, '연결된 서비스 퍼소나가 없습니다.');
         } catch (_error) { addLiveError(body, '현재 배포의 실제 Tone V2 프롬프트 원천을 불러오지 못했습니다.'); }
         await loadPromptContentEditor(body);
       }
@@ -1035,7 +1238,7 @@
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           section.replaceChildren(section.firstElementChild, noteEl, scroll);
-          if (payload.versionStore !== 'ready') addLiveError(body, '프롬프트 개정 저장소 연결을 확인하지 못했습니다.');
+          if (payload.versionStore !== 'ready') addLiveError(body, '프롬프트 버전 기록을 불러오지 못했습니다.');
         } catch (_error) { status.textContent = '프롬프트 개정 목록을 불러오지 못했습니다.'; }
       }
       function renderPromptContentDetail(body, item) {
@@ -1086,7 +1289,7 @@
       async function loadLiveContent(body) {
         body.replaceChildren();
         var notice = document.createElement('p'); notice.className = 'admin-note'; notice.style.padding = '0 0 12px';
-        notice.textContent = '이 메뉴는 콘텐츠 개정을 저장·게시하는 저장소까지만 연결되어 있습니다. 게시본을 실제 고객 화면에 반영하는 경로(T29)는 아직 없어, 여기서 게시해도 고객 화면은 바뀌지 않습니다.';
+        notice.textContent = '여기서 게시한 콘텐츠는 아직 고객 화면에 나가지 않습니다. 고객 화면 연결은 콘텐츠 관리 개편 단계에서 붙입니다.';
         body.appendChild(notice);
 
         var createSection = document.createElement('section'); createSection.className = 'admin-section';
@@ -1164,7 +1367,7 @@
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           listSection.replaceChildren(listSection.firstElementChild, scroll);
-        } catch (_error) { var notice2 = listSection.querySelector('.admin-empty'); if (notice2) notice2.textContent = '실제 콘텐츠 저장소를 불러오지 못했습니다.'; }
+        } catch (_error) { var notice2 = listSection.querySelector('.admin-empty'); if (notice2) notice2.textContent = '콘텐츠 목록을 불러오지 못했습니다.'; }
       }
       var CONTENT_TYPES_FALLBACK = ['service_card', 'landing_copy', 'faq', 'notice', 'banner', 'legal_link'];
       var SIGNUP_POPUP_PLACEMENT = 'home/signup-benefit-popup';
@@ -1538,7 +1741,7 @@
           return data;
         }
         var snapshot;
-        try { snapshot = await request(''); if (!Array.isArray(snapshot.items) || !Array.isArray(snapshot.products)) throw new Error('쿠폰 저장소 응답을 확인할 수 없습니다.'); }
+        try { snapshot = await request(''); if (!Array.isArray(snapshot.items) || !Array.isArray(snapshot.products)) throw new Error('쿠폰 목록을 불러오지 못했습니다.'); }
         catch (error) { status.textContent = error.message; var retry = document.createElement('button'); retry.className = 'admin-button'; retry.textContent = '다시 불러오기'; retry.addEventListener('click', function () { loadCouponManager(body); }); section.appendChild(retry); return; }
         status.textContent = '';
         var form = document.createElement('form'); form.className = 'admin-refund-form admin-consultation-form';
@@ -1623,7 +1826,7 @@
         catch (_error) { status.textContent = '저장된 설정 형식이 올바르지 않습니다. 관리자에게 확인해 주세요.'; return; }
         var archived = versions.some(function (item) { return item.state === 'archived'; });
         if (!draft && !published && archived) settings = Object.assign({}, settings, { enabled: false });
-        status.textContent = (published ? '현재 게시 revision ' + published.revision : archived ? '게시본이 내려가 상담이 비활성화되어 있습니다.' : '게시된 관리자 설정이 없어 기본 천명 설정을 사용합니다.') + (draft ? ' · 아래는 저장된 초안입니다.' : ' · 편집 후 먼저 초안을 저장해 주세요.');
+        status.textContent = (published ? '현재 게시 버전 ' + published.revision : archived ? '게시본이 내려가 상담이 비활성화되어 있습니다.' : '게시된 관리자 설정이 없어 기본 천명 설정을 사용합니다.') + (draft ? ' · 아래는 저장된 초안입니다.' : ' · 편집 후 먼저 초안을 저장해 주세요.');
         var form = document.createElement('form'); form.className = 'admin-refund-form admin-consultation-form';
         var fields = [
           ['bannerTitle', '홈 배너 제목', 100, false], ['bannerBody', '홈 배너 설명', 300, true],
@@ -1669,7 +1872,7 @@
             var value = readSettings(); setBusy(true); result.textContent = '초안을 저장하는 중입니다.';
             var payload = { title: value.name + ' 상담 설정', body: JSON.stringify(value) };
             draft = await mutate('/api/admin/v1/content' + (draft ? '/' + encodeURIComponent(draft.id) : ''), draft ? 'PATCH' : 'POST', draft ? { expectedRevision: draft.revision, payload: payload } : { contentType: 'notice', serviceKey: null, placement: 'cheonmyeong_consultation', payload: payload }, saveKey);
-            dirty = false; saveKey = crypto.randomUUID(); publishKey = crypto.randomUUID(); result.textContent = '초안 revision ' + draft.revision + '을 저장했습니다. 아직 고객 화면에는 반영되지 않았습니다.';
+            dirty = false; saveKey = crypto.randomUUID(); publishKey = crypto.randomUUID(); result.textContent = '초안 버전 ' + draft.revision + '을 저장했습니다. 아직 고객 화면에는 반영되지 않았습니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '초안 저장에 실패했습니다.'; }
           finally { setBusy(false); }
         });
@@ -1678,7 +1881,7 @@
           try {
             setBusy(true); result.textContent = '저장한 초안을 게시하는 중입니다.';
             published = await mutate('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', 'POST', { expectedRevision: draft.revision, checksum: draft.checksum }, publishKey);
-            draft = null; dirty = true; saveKey = crypto.randomUUID(); result.textContent = '게시 revision ' + published.revision + '이 반영되었습니다. 기존 상담 기록은 유지됩니다.'; status.textContent = '현재 게시 revision ' + published.revision + ' · 추가 변경은 새 초안으로 저장됩니다.';
+            draft = null; dirty = true; saveKey = crypto.randomUUID(); result.textContent = '게시 버전 ' + published.revision + '이 반영되었습니다. 기존 상담 기록은 유지됩니다.'; status.textContent = '현재 게시 버전 ' + published.revision + ' · 추가 변경은 새 초안으로 저장됩니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '게시하지 못했습니다. 저장된 초안은 유지됩니다.'; }
           finally { setBusy(false); }
         });
@@ -1728,13 +1931,13 @@
           if (!response.ok) throw new Error('ADMIN_AUDIT_LOOKUP_FAILED');
           var payload = await response.json();
           var events = Array.isArray(payload.events) ? payload.events : [];
-          addLiveTable(body, '실제 관리자 감사 기록', ['시각', '관리자', '작업', '대상', '결과'], events, function (item) { return [item.createdAt, item.actor, item.action, item.targetType + ' · ' + item.targetId, item.result]; }, '아직 실행된 관리자 변경이 없습니다.');
-        } catch (_error) { addLiveError(body, '실제 감사 기록 저장소를 불러오지 못했습니다.'); }
+          addLiveTable(body, '변경 이력', ['시각', '관리자', '작업', '대상', '결과'], events, function (item) { return [item.createdAt, item.actor, item.action, item.targetType + ' · ' + item.targetId, item.result]; }, '아직 실행된 관리자 변경이 없습니다.');
+        } catch (_error) { addLiveError(body, '변경 이력을 불러오지 못했습니다.'); }
       }
       async function loadOpsJobs(body) {
         body.replaceChildren();
         var controlSection = document.createElement('section'); controlSection.className = 'admin-section';
-        controlSection.innerHTML = '<header class="admin-section-head"><h3>작업 큐 제어</h3><span class="admin-chip">기존 백엔드 라우트 연결</span></header><div class="admin-actions" style="padding:0 16px 16px;flex-wrap:wrap"><button class="admin-button" type="button" data-pause-toggle disabled>확인 중…</button><span class="admin-actions" style="gap:8px"><input data-purge-owner placeholder="정리할 소유자 ID" style="padding:8px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit"><button class="admin-button" type="button" data-purge-owner-button>대기·재시도·실패 작업 정리</button></span></div><p class="admin-note" role="status" data-jobs-control-result></p>';
+        controlSection.innerHTML = '<header class="admin-section-head"><h3>작업 큐 제어</h3><span class="admin-chip">리포트 생성 제어</span></header><div class="admin-actions" style="padding:0 16px 16px;flex-wrap:wrap"><button class="admin-button" type="button" data-pause-toggle disabled>확인 중…</button><span class="admin-actions" style="gap:8px"><input data-purge-owner placeholder="정리할 소유자 ID" style="padding:8px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit"><button class="admin-button" type="button" data-purge-owner-button>대기·재시도·실패 작업 정리</button></span></div><p class="admin-note" role="status" data-jobs-control-result></p>';
         body.appendChild(controlSection);
         var pauseButton = controlSection.querySelector('[data-pause-toggle]'); var controlResult = controlSection.querySelector('[data-jobs-control-result]');
         try {
@@ -1767,19 +1970,19 @@
             var response = await fetch('/api/admin/v1/jobs/prune', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ before: before, dryRun: true }) });
             var payload = await response.json().catch(function () { return {}; });
             if (!response.ok) throw new Error(payload.error || '건수를 세지 못했습니다.');
-            pruneResult.textContent = '삭제 대상 ' + payload.count + '건 (' + before + ' 이전, running 제외).'; pruneDelete.disabled = !payload.count;
+            pruneResult.textContent = '삭제 대상 ' + payload.count + '건 (' + before + ' 이전, 진행 중인 작업 제외).'; pruneDelete.disabled = !payload.count;
           } catch (error) { pruneResult.textContent = error instanceof Error ? error.message : '건수를 세지 못했습니다.'; }
         });
         pruneDelete.addEventListener('click', async function () {
           var before = pruneCutoffIso(); if (!before) return;
-          if (!window.confirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(running 제외). 되돌릴 수 없습니다. 계속할까요?')) return;
+          if (!window.confirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(진행 중인 작업 제외). 되돌릴 수 없습니다. 계속할까요?')) return;
           pruneDelete.disabled = true; pruneResult.textContent = '삭제하는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/jobs/prune', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ before: before }) });
             var payload = await response.json().catch(function () { return {}; });
             if (!response.ok) throw new Error(payload.error || '삭제에 실패했습니다.');
             // 목록을 다시 그리면 이 줄이 사라지므로, 다시 그린 뒤 결과를 따로 남긴다.
-            await loadOpsJobs(body); addLiveError(body, payload.deleted + '건 삭제됨 (' + before + ' 이전, running 제외).'); return;
+            await loadOpsJobs(body); addLiveError(body, payload.deleted + '건 삭제됨 (' + before + ' 이전, 진행 중인 작업 제외).'); return;
           } catch (error) { pruneResult.textContent = error instanceof Error ? error.message : '삭제에 실패했습니다.'; }
         });
         var purgeInput = controlSection.querySelector('[data-purge-owner]'); var purgeButton = controlSection.querySelector('[data-purge-owner-button]');
@@ -1797,7 +2000,7 @@
           finally { purgeButton.disabled = false; }
         });
         var listSection = document.createElement('section'); listSection.className = 'admin-section';
-        listSection.innerHTML = '<header class="admin-section-head"><h3>실제 영속 작업 큐</h3><span class="admin-chip">dead 는 진단·재시작 가능</span></header><p class="admin-empty">작업 큐를 불러오는 중입니다.</p>';
+        listSection.innerHTML = '<header class="admin-section-head"><h3>작업 대기열 현황</h3><span class="admin-chip">실패한 작업은 원인 확인·다시 시작 가능</span></header><p class="admin-empty">작업 큐를 불러오는 중입니다.</p>';
         body.appendChild(listSection);
         try {
           var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED');
@@ -1846,7 +2049,7 @@
           var historySummary = document.createElement('summary'); historySummary.className = 'admin-section-head'; historySummary.style.cursor = 'pointer';
           historySummary.innerHTML = '<h4>최근 완료 이력</h4><span class="admin-chip">' + historyJobs.length + '건</span>';
           history.appendChild(historySummary); history.appendChild(buildJobTable(historyJobs, '표시할 완료 이력이 없습니다.')); listSection.appendChild(history);
-        } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 작업 큐를 불러오지 못했습니다.'; }
+        } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '작업 대기열을 불러오지 못했습니다.'; }
       }
       /**
        * 2026-09-19: 죽은 작업의 리포트가 어디까지 됐고 왜 막혔는지, 그리고 재시작하면 모델이 다시
@@ -1926,12 +2129,12 @@
         var currentEmail = String((window.__adminMembership || {}).email || '').toLowerCase();
         var form = document.createElement('form'); form.className = 'admin-actions'; form.style.padding = '0 16px 16px';
         var reason = document.createElement('input'); reason.name = 'reason'; reason.required = true; reason.maxLength = 240; reason.placeholder = '승인 판단 근거'; reason.setAttribute('aria-label', '승인 판단 근거');
-        var submit = document.createElement('button'); submit.className = 'admin-button'; submit.type = 'submit'; submit.textContent = '승인 intent 저장';
+        var submit = document.createElement('button'); submit.className = 'admin-button'; submit.type = 'submit'; submit.textContent = '승인';
         var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status');
         if (currentEmail && currentEmail === String(refund.requestedByEmail).toLowerCase()) { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '요청자는 자신의 환불 요청을 승인할 수 없습니다.'; }
         if (refund.state !== 'requested') { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '현재 상태에서는 승인할 수 없습니다. PG 처리 결과는 먼저 조회·대사해야 합니다.'; }
         form.appendChild(reason); form.appendChild(submit); form.appendChild(result);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인 intent를 저장하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인 intent가 저장되었습니다. PG 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
         section.appendChild(form); body.appendChild(section);
       }
       async function loadRefunds(body) {
@@ -1940,12 +2143,12 @@
         var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
         form.innerHTML = '<div class="admin-field" data-span="2"><label>주문 ID</label><input required name="orderId" autocomplete="off" placeholder="실제 주문 ID"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="주문 조회 후 입력"></div><div class="admin-field"><label>사유 코드</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">주문 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>주문을 확인하면 현재 결제금액과 revision을 사용합니다.</p>';
         var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
-        async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '주문 ID를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '실제 주문을 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '주문을 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '주문 확인됨: ' + Number(order.amount).toLocaleString('ko-KR') + '원 · revision ' + String(order.revision) + '. 서버가 환불 가능 금액을 다시 검증합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '주문을 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
+        async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '주문 ID를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '주문을 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '주문을 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '주문 확인됨: ' + Number(order.amount).toLocaleString('ko-KR') + '원 · 버전 ' + String(order.revision) + '. 서버가 환불 가능 금액을 다시 검증합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '주문을 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
         lookup.addEventListener('click', lookupOrder);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청 intent를 저장하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청 intent가 저장되었습니다. 별도 관리자의 승인이 필요하며 PG 환불은 실행되지 않았습니다.'; form.reset(); order = null; await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
         requestSection.appendChild(form); body.appendChild(requestSection);
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>실제 환불 요청</h3><span class="admin-chip">PG 실행 결과와 구분</span></header><p class="admin-empty">환불 요청 원천을 불러오는 중입니다.</p>'; body.appendChild(listSection);
-        try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 실제 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 원천을 불러오지 못했습니다. 임의 데이터는 표시하지 않습니다.'; }
+        try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 실제 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 목록을 불러오지 못했습니다.'; }
       }
       function loadAdminSearch(body) {
         var section = document.createElement('section'); section.className = 'admin-section'; section.innerHTML = '<header class="admin-section-head"><h3>정확 식별자 검색</h3><span class="admin-chip">실제 운영 데이터</span></header><p class="admin-empty">주문 ID, 회원 ID, 리포트 ID 또는 지원 케이스 ID를 정확히 입력하세요. 이름·이메일 부분 검색은 개인정보 보호를 위해 제공하지 않습니다.</p>'; body.appendChild(section);
@@ -1957,10 +2160,10 @@
           var query = new URLSearchParams({ kind: kind, exactId: exactId });
           try {
             var response = await fetch('/api/admin/v1/search?' + query.toString(), { credentials: 'same-origin' });
-            if (response.status === 404) { result.textContent = '실제 운영 데이터에서 일치하는 결과가 없습니다.'; return; }
+            if (response.status === 404) { result.textContent = '일치하는 결과가 없습니다.'; return; }
             if (!response.ok) throw new Error('ADMIN_SEARCH_FAILED');
             var payload = await response.json();
-            var heading = document.createElement('h3'); heading.textContent = '실제 검색 결과';
+            var heading = document.createElement('h3'); heading.textContent = '검색 결과';
             var table = document.createElement('table'); table.className = 'admin-table'; var rows = document.createElement('tbody');
             Object.entries(payload.result.value || {}).forEach(function (entry) { var row = document.createElement('tr'); var key = document.createElement('th'); key.scope = 'row'; key.textContent = entry[0]; var value = document.createElement('td'); value.textContent = entry[1] == null ? '—' : String(entry[1]); row.appendChild(key); row.appendChild(value); rows.appendChild(row); });
             table.appendChild(rows); result.appendChild(heading); result.appendChild(table);
@@ -1971,7 +2174,7 @@
               editButton.addEventListener('click', function () { renderMemberDetail(result, exactId); });
               result.appendChild(editButton);
             }
-          } catch (_error) { result.textContent = '실제 운영 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
+          } catch (_error) { result.textContent = '검색하지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
         });
       }
       async function renderMemberDetail(body, userId) {
@@ -2147,7 +2350,7 @@
             rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
-        } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '실제 장애 기록 저장소를 불러오지 못했습니다.'; }
+        } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '장애 기록을 불러오지 못했습니다.'; }
       }
       async function renderIncidentDetail(body, item) {
         var previous = body.querySelector('[data-incident-detail]'); if (previous) previous.remove();
@@ -2185,34 +2388,46 @@
       }
       function renderWorkspace(route) {
         setText('[data-admin-workspace-title]', route.title);
-        setText('[data-admin-workspace-detail]', route.detail || '운영 화면을 확인합니다.');
+        setText('[data-admin-workspace-detail]', route.detail || '');
         var body = document.querySelector('[data-admin-workspace-body]');
         if (!body) return;
         body.replaceChildren();
-        if (route.key === 'overview') { loadLiveOverview(body); return; }
-        if (route.key === 'search') { loadAdminSearch(body); return; }
-        if (route.key === 'members') { loadLiveMembers(body); return; }
-        if (route.key === 'reports') { loadLiveReports(body); return; }
-        if (route.key === 'jobs') { loadOpsJobs(body); return; }
-        if (route.key === 'refunds') { loadRefunds(body); return; }
-        if (route.key === 'services') { loadLiveServices(body); return; }
-        if (route.key === 'corpus') { loadLiveCorpus(body); return; }
-        if (route.key === 'prompts') { loadLivePrompts(body); return; }
-        if (route.key === 'audit') { loadLiveAudit(body); return; }
-        if (route.key === 'support') { loadSupportCases(body); return; }
-        if (route.key === 'settings') { loadAdminAccounts(body); return; }
-        if (route.key === 'analytics') { loadFunnelAnalytics(body); return; }
-        if (route.key === 'releases') { loadReleaseInfo(body); return; }
-        if (route.key === 'evaluations') { loadQualityEvaluations(body); return; }
-        if (route.key === 'media') { loadMediaCatalog(body); return; }
-        if (route.key === 'incidents') { loadIncidents(body); return; }
-        if (route.key === 'logs') { loadGenerationLog(body); return; }
-        if (route.key === 'content') { loadLiveContent(body); return; }
-        if (route.key === 'popup') { loadPopupManager(body); return; }
-        if (route.key === 'push') { loadPushManager(body); return; }
-        if (route.key === 'coupons') { loadCouponManager(body); return; }
-        if (route.key === 'consultation') { loadConsultationManager(body); return; }
-        addLiveError(body, '이 메뉴의 실제 운영 원천 테이블은 아직 생성되지 않았습니다. 임의 수치·예시 행·목업 CTA는 표시하지 않습니다.');
+        var def = route.route;
+        if (!def) { addLiveError(body, '이 메뉴는 아직 준비 중입니다. 임의 수치나 예시 행은 표시하지 않습니다.'); return; }
+        if (!def.tabs) { def.load(body); return; }
+        // 화면 안 탭. 탭마다 주소가 있어서 새로고침해도 같은 탭이 열린다.
+        var tabs = document.createElement('nav'); tabs.className = 'admin-tabs'; tabs.setAttribute('aria-label', route.title + ' 탭');
+        def.tabs.forEach(function (tab, index) {
+          var link = document.createElement('a'); link.href = ADMIN_BASE + def.path + tab.path; link.textContent = tab.label;
+          if (index === route.tabIndex) link.setAttribute('aria-current', 'page');
+          tabs.appendChild(link);
+        });
+        var panel = document.createElement('div');
+        body.append(tabs, panel);
+        def.tabs[route.tabIndex].load(panel);
+      }
+
+      /** 결제 관리 › 매출. 결제액·환불액 집계 API(docs/admin-ia.md §5-3)가 생기기 전까지는 숫자를 지어내지 않는다. */
+      function loadRevenuePending(body) {
+        var box = document.createElement('p'); box.className = 'admin-empty';
+        box.textContent = '매출 집계는 결제 관리 개편 단계에서 엽니다. 그 전까지는 결제 내역 탭에서 기간·상태로 걸러 확인해 주세요.';
+        body.appendChild(box);
+      }
+
+      /**
+       * 결제 관리 › 결제 내역. 예전에는 주문 화면만 작업 영역 밖의 별도 패널(로그인 전 공개용)로 떴다.
+       * 2026-10 주문 목록 공개를 닫으면서 다른 화면처럼 작업 영역 안에서 연다.
+       */
+      function loadOrdersTab(body) {
+        var section = document.querySelector('[data-admin-orders-panel]');
+        if (!section) { addLiveError(body, '결제 내역 화면을 불러오지 못했습니다.'); return; }
+        section.hidden = false;
+        body.appendChild(section);
+        var heading = section.querySelector('h2'); if (heading) heading.hidden = true;
+        var scopes = (window.__adminMembership && window.__adminMembership.scopes) || [];
+        if (scopes.indexOf('orders:read') < 0) { addLiveError(body, '이 계정에는 결제 내역을 볼 권한이 없습니다.'); return; }
+        if (!orderState.started) { orderState.started = true; startOrders(window.__adminSession || null); }
+        else loadOrders(true);
       }
       /**
        * 2026-09-19: 백엔드에 `/api/admin/v1/funnel`·`/api/admin/v1/release` 가 이미 있는데
@@ -2307,7 +2522,7 @@
           var response = await fetch('/api/admin/v1/release', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('RELEASE_LOOKUP_FAILED');
           var release = await response.json();
-          addLiveTable(body, '현재 배포 릴리스', ['버전', '프롬프트 규격', '코퍼스 레지스트리', '규격 일치', '기준 시각'], [[release.version, release.promptSpec || '확인 불가', release.corpusRegistry || '확인 불가', release.pinned ? '일치' : '불일치 — 확인 필요', release.asOf]], function (item) { return item; }, '릴리스 정보를 찾지 못했습니다.');
+          addLiveTable(body, '현재 배포 릴리스', ['버전', '프롬프트 규격', '참고 자료 버전', '규격 일치', '기준 시각'], [[release.version, release.promptSpec || '확인 불가', release.corpusRegistry || '확인 불가', release.pinned ? '일치' : '불일치 — 확인 필요', release.asOf]], function (item) { return item; }, '릴리스 정보를 찾지 못했습니다.');
           if (!release.pinned) addLiveError(body, '코드에 박아 둔 규격(' + release.pins.promptSpec + ' · ' + release.pins.corpusRegistry + ')과 지금 올라온 규격이 다릅니다. 버전을 올리지 않은 채 프롬프트나 코퍼스가 바뀌었을 수 있습니다.');
         } catch (_error) { addLiveError(body, '릴리스 정보를 불러오지 못했습니다.'); }
       }
@@ -2528,20 +2743,19 @@
 
         var me = await response.json();
         window.__adminMembership = me;
-        setText('[data-admin-env]', me.environment ? '환경 ' + me.environment : '');
+        var ENV_LABELS = { production: '운영', preview: '미리보기', development: '로컬' };
+        setText('[data-admin-env]', me.environment ? (ENV_LABELS[me.environment] || me.environment) : '');
         setText('[data-admin-who]', me.email || '');
         setText('[data-admin-scope]', '권한: ' + (me.role || '') + ' · ' + (me.scopes || []).join(', '));
+        window.__adminSession = session;
         var nav = document.querySelector('[data-admin-nav]');
         if (nav) nav.hidden = false;
+        setHidden('[data-admin-gsearch]', false);
+        setHidden('[data-admin-header-signout]', false);
         var route = markCurrentRoute();
-        if (route.key !== 'orders') {
-          renderWorkspace(route);
-          show('workspace');
-          return true;
-        }
-        show('ready');
         // 권한이 확인된 뒤에만 데이터를 요청한다. 셸은 데이터를 갖고 있지 않다.
-        if ((me.scopes || []).indexOf('orders:read') >= 0) startOrders(session);
+        renderWorkspace(route);
+        show('workspace');
         return true;
       }
 
@@ -2686,7 +2900,7 @@
 
       function startOrders(session) {
         orderState.session = session;
-        var section = document.querySelector('[data-admin-state="orders"]');
+        var section = document.querySelector('[data-admin-orders-panel]');
         if (section) section.hidden = false;
         // 주문 표는 show() 의 states 맵을 거치지 않는다 — 여기서 직접 넓힌다.
         setMainWidth(false);
@@ -2875,25 +3089,13 @@
         });
       }
 
-      function isPublicOrdersPath() {
-        return /^\/ops\/constellation-7f3c\/orders\/?$/.test(window.location.pathname);
-      }
-
-      function openPublicOrders() {
-        setText('[data-admin-env]', '공개 주문 목록');
-        setText('[data-admin-who]', '');
-        setText('[data-admin-scope]', '마스킹된 주문 목록을 공개로 표시합니다.');
-        setHidden('[data-admin-state="ready"] [data-admin-signout]', true);
-        show('ready');
-        startOrders(null);
-      }
-
       async function start() {
         if (!window.UMSHAccountPages || !window.UMSHAuthSession) { show('error'); return; }
         bindLogin();
         bindPasswordRecovery();
         bindSignOut();
         bindNavGroups();
+        bindGlobalSearch();
         var config;
         try {
           config = await adminAuthConfig();
@@ -2920,8 +3122,7 @@
         if (config.adminLocalAuth) {
           // 로그인된 관리자는 공개 예외보다 먼저 전체 LNB와 권한별 화면을 연다.
           if (await checkAuthority(null)) return;
-          if (isPublicOrdersPath()) openPublicOrders();
-          else show('anonymous');
+          show('anonymous');
           return;
         }
         bindSingleSignOn().catch(function () { return undefined; });
@@ -2934,8 +3135,7 @@
           return;
         }
         if (!session) {
-          if (isPublicOrdersPath()) openPublicOrders();
-          else show('anonymous');
+          show('anonymous');
           return;
         }
         await checkAuthority(session);
