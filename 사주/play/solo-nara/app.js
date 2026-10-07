@@ -157,15 +157,67 @@
     on('copy-link', () => share(undefined, true));
   }
 
-  async function share(type, copyOnly = false) {
-    track(copyOnly ? 'copy' : 'share');
+  // Kakao JavaScript key is public by design (it only works on domains registered in Kakao Developers).
+  const KAKAO_JS_KEY = '';
+  const KAKAO_SDK = { src: 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js', integrity: 'sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka' };
+  // Our Android app shell does not hand Kakao's intent:// links to KakaoTalk yet, so the button stays web-only.
+  const kakaoShareOK = () => !!KAKAO_JS_KEY && !window.Capacitor?.isNativePlatform?.();
+  let kakaoReady = null;
+  function loadKakao() {
+    if (!kakaoShareOK()) return Promise.reject(new Error('no key'));
+    kakaoReady ||= new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = KAKAO_SDK.src; s.integrity = KAKAO_SDK.integrity; s.crossOrigin = 'anonymous';
+      s.onload = () => { try { if (!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY); resolve(window.Kakao); } catch (e) { reject(e); } };
+      s.onerror = () => { kakaoReady = null; reject(new Error('load failed')); };
+      document.head.appendChild(s);
+    });
+    return kakaoReady;
+  }
+  // Android WebView (our app, KakaoTalk/Naver in-app browsers) has no navigator.share, and the
+  // Windows share panel leads with "copy link". So we always open our own sheet with explicit choices.
+  function sharePayload(type) {
     const valid = isType(type) ? type : null;
     const url = 'https://umsh.kr/play/solo-nara/' + (valid ? '?type=' + encodeURIComponent(valid) + '&src=share' : '?src=share');
-    const payload = { title: C.copy.sharePreview.title, text: valid ? C.characters[valid].shareText : C.copy.sharePreview.description, url };
-    try { if (!copyOnly && navigator.share) { await navigator.share(payload); track('share_success'); return; } } catch (e) { if (e.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(url); notice(valid ? '캐릭터 이름만 담은 링크를 복사했어요.' : '테스트 링크를 복사했어요. 친구에게 보내보세요!'); }
-    catch { document.getElementById('share-fallback').innerHTML = `<p class="fine" style="margin-top:16px">아래 링크를 길게 눌러 복사해주세요.</p><input class="share-url" aria-label="공유 링크" readonly value="${esc(url)}">`; }
+    return { valid, url, title: C.copy.sharePreview.title, text: valid ? C.characters[valid].shareText : C.copy.sharePreview.description };
   }
+  function share(type, copyOnly = false) {
+    if (copyOnly) { track('copy'); copyLink(sharePayload(type)); return; }
+    track('share');
+    openSheet(sharePayload(type));
+  }
+  async function copyLink(p) {
+    try { await navigator.clipboard.writeText(p.url); notice(p.valid ? '캐릭터 이름만 담은 링크를 복사했어요.' : '테스트 링크를 복사했어요. 친구에게 보내보세요!'); }
+    catch { const box = document.getElementById('share-fallback'); if (box) box.innerHTML = `<p class="fine" style="margin-top:16px">아래 링크를 길게 눌러 복사해주세요.</p><input class="share-url" aria-label="공유 링크" readonly value="${esc(p.url)}">`; }
+  }
+  async function nativeShare(p) {
+    try { await navigator.share({ title: p.title, text: p.text, url: p.url }); track('share_success'); }
+    catch (e) { if (e.name !== 'AbortError') copyLink(p); }
+  }
+  function openSheet(p) {
+    closeSheet();
+    // Load the SDK as soon as the sheet opens so the Kakao tap still counts as a user gesture (PC opens a popup).
+    loadKakao().catch(() => {});
+    const opener = document.activeElement;
+    const wrap = document.createElement('div');
+    wrap.id = 'share-sheet';
+    wrap.innerHTML = `<div class="sheet-backdrop" data-close></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><p class="eyebrow" id="sheet-title">${p.valid ? '내 결과 공유하기' : '친구에게 테스트 보내기'}</p>${kakaoShareOK() ? '<button class="primary sheet-kakao" id="sheet-kakao">카카오톡으로 보내기</button>' : ''}${navigator.share ? '<button class="secondary" id="sheet-native">다른 앱으로 보내기 ↗</button>' : ''}<button class="secondary" id="sheet-copy">링크 복사하기</button><button class="small-button" data-close>닫기</button></div>`;
+    document.body.appendChild(wrap);
+    const close = () => { closeSheet(); opener?.focus?.(); };
+    wrap.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', close));
+    wrap.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    wrap.querySelector('#sheet-copy').addEventListener('click', () => { close(); copyLink(p); });
+    wrap.querySelector('#sheet-native')?.addEventListener('click', () => { close(); nativeShare(p); });
+    wrap.querySelector('#sheet-kakao')?.addEventListener('click', async () => {
+      try {
+        const Kakao = await loadKakao();
+        Kakao.Share.sendDefault({ objectType: 'feed', content: { title: p.title, description: p.text, imageUrl: 'https://umsh.kr/play/solo-nara/share-banner-v1.jpg', imageWidth: 1200, imageHeight: 630, link: { mobileWebUrl: p.url, webUrl: p.url } }, buttons: [{ title: p.valid ? '나도 해보기' : '테스트 하러 가기', link: { mobileWebUrl: p.url, webUrl: p.url } }] });
+        close();
+      } catch { close(); notice('카카오톡을 열지 못했어요. 링크를 복사해 보내주세요.'); copyLink(p); }
+    });
+    wrap.querySelector('.sheet button').focus();
+  }
+  function closeSheet() { document.getElementById('share-sheet')?.remove(); }
 
   // Preview scores are fixed placeholders; real scores only come from the authenticated result API.
   function sampleResult(type = Object.keys(C.characters)[0]) { renderResult({ type, scores: { direct: 72, express: 58, stability: 41, independence: 66 } }, true); }

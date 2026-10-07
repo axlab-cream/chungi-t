@@ -80,19 +80,26 @@ test('admin summary counts result characters without inflating overall page view
 })
 
 test('sharing sends only the public character; cancellation never falls back to clipboard', async () => {
-  const source = app.slice(app.indexOf('  async function share(type,'), app.indexOf('  // Preview scores'))
+  const source = app.slice(app.indexOf('  function sharePayload(type)'), app.indexOf('  function share(type,'))
+    + app.slice(app.indexOf('  async function copyLink(p)'), app.indexOf('  function openSheet(p)'))
   let payload: any, copied = 0
   const C = { characters: { oksun: { name: '옥순', gender: 'female', shareText: '나는 옥순' } }, copy: { sharePreview: { title: 't', description: 'd' } } }
   const context: any = { C, track() {}, isType: (t: unknown) => t === 'oksun', encodeURIComponent, notice() {}, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } } }
   runInNewContext(source, context)
-  await context.share('oksun')
+  await context.nativeShare(context.sharePayload('oksun'))
   assert.equal(payload.url, 'https://umsh.kr/play/solo-nara/?type=oksun&src=share')
   assert.deepEqual(Object.keys(payload), ['title', 'text', 'url'])
-  await context.share('PRIVATE')
+  await context.nativeShare(context.sharePayload('PRIVATE'))
   assert.equal(payload.url, 'https://umsh.kr/play/solo-nara/?src=share')
   context.navigator.share = async () => { throw Object.assign(Error(), { name: 'AbortError' }) }
-  await context.share('oksun')
+  await context.nativeShare(context.sharePayload('oksun'))
   assert.equal(copied, 0)
+})
+
+test('share buttons open a choice sheet instead of silently copying when the OS share sheet is missing', () => {
+  assert.match(app, /track\('share'\);\s*openSheet\(sharePayload\(type\)\)/)
+  assert.match(app, /navigator\.share \? '<button class="secondary" id="sheet-native">/)
+  assert.match(app, /integrity: 'sha384-/)
 })
 
 test('a result for the other name group is rejected instead of shown', () => {
