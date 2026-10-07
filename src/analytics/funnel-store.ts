@@ -125,6 +125,8 @@ export interface FunnelSummary {
   services: Array<{ serviceKey: string | null; views: number; sessions: number; steps: Record<string, number> }>
   /** 단계별 진입 세션 수. 이탈은 앞 단계와의 차이로 읽는다. */
   steps: Array<{ serviceKey: string | null; step: string | null; sessions: number; views: number }>
+  /** 구매 퍼널: 소개 → 입력 → 무료 결과 → 결제 화면. 결제 완료는 주문 저장소에서 따로 붙인다. */
+  purchase: PurchaseFunnel
   /** 많이 눌린 CTA 순. 고객의 관심사가 여기에 드러난다. */
   ctas: Array<{ serviceKey: string | null; target: string | null; clicks: number }>
   sampled: number
@@ -132,7 +134,55 @@ export interface FunnelSummary {
   truncated: boolean
 }
 
+export const PURCHASE_STAGES = ['intro', 'input', 'teaser', 'checkout'] as const
+export type PurchaseStage = (typeof PURCHASE_STAGES)[number]
+
+/**
+ * 2026-10-07 관리자 구매 퍼널. GA4 퍼널(view_item → input_start → view_teaser → begin_checkout)과 같은 단계를
+ * 자체 수집 기록으로 센다. 단위는 방문(세션)이고, 단계마다 "그 단계 화면을 한 번이라도 연 방문" 수다.
+ * 중간 단계로 바로 들어온 방문도 세는 개방형이라 앞 단계보다 큰 숫자가 나올 수 있다.
+ */
+export interface PurchaseFunnel {
+  stages: Record<PurchaseStage, number>
+  services: Array<{ serviceKey: string } & Record<Exclude<PurchaseStage, 'checkout'>, number>>
+  /** 결제 완료. 주문 조회 권한이 있을 때만 서버가 붙인다. */
+  paid?: { orders: number; amount: number; byProduct: Array<{ productKey: string; orders: number; amount: number }> }
+}
+
+/** 결제 결과·테스트 화면을 빼고 실제 결제 화면만. */
+const CHECKOUT_ROUTE = /^\/payment(\/|\/index\.html)?$/
+
+export function purchaseStageOf(row: { step: string | null; route?: string | null }): PurchaseStage | null {
+  switch (row.step) {
+    case 'entry': case '01-story': return 'intro'
+    case '02-input': case '03-service-input': return 'input'
+    case '04-report': return 'teaser'
+    case 'payment': return CHECKOUT_ROUTE.test(row.route ?? '') ? 'checkout' : null
+    default: return null
+  }
+}
+
+/** 결제 완료(paid·viewed) 주문을 상품별로 묶는다. 금액·상품 외의 주문 정보는 내보내지 않는다. */
+export function summarizePaidOrders(orders: Array<{ productKey: string; amount: number; status: string; createdAt: string }>, since: string): NonNullable<PurchaseFunnel['paid']> {
+  const from = Date.parse(since)
+  const byProduct = new Map<string, { productKey: string; orders: number; amount: number }>()
+  let count = 0
+  let amount = 0
+  for (const order of orders) {
+    if (order.status !== 'paid' && order.status !== 'viewed') continue
+    if (!(Date.parse(order.createdAt) >= from) || !Number.isFinite(order.amount)) continue
+    count += 1
+    amount += order.amount
+    const entry = byProduct.get(order.productKey) ?? { productKey: order.productKey, orders: 0, amount: 0 }
+    entry.orders += 1
+    entry.amount += order.amount
+    byProduct.set(order.productKey, entry)
+  }
+  return { orders: count, amount, byProduct: [...byProduct.values()].sort((a, b) => b.orders - a.orders) }
+}
+
 type FunnelRow = {
+  route?: string | null
   event: string
   service_key: string | null
   step: string | null
@@ -215,10 +265,21 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
   const ctaClicks = new Map<string, { serviceKey: string | null; target: string | null; clicks: number }>()
   const sessions = new Set<string>()
   const signedInUsers = new Set<string>()
+  const stageSessions = Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, new Set<string>()])) as Record<PurchaseStage, Set<string>>
+  const serviceStages = new Map<string, Record<Exclude<PurchaseStage, 'checkout'>, Set<string>>>()
 
   for (const row of rows) {
     if (isSoloResultMarker(row)) continue
     if (row.event === 'step_view') {
+      const stage = purchaseStageOf(row)
+      if (stage) {
+        stageSessions[stage].add(row.session_id)
+        if (stage !== 'checkout' && row.service_key) {
+          const entry = serviceStages.get(row.service_key) ?? { intro: new Set<string>(), input: new Set<string>(), teaser: new Set<string>() }
+          entry[stage].add(row.session_id)
+          serviceStages.set(row.service_key, entry)
+        }
+      }
       sessions.add(row.session_id)
       if (row.user_id) signedInUsers.add(row.user_id)
 
@@ -260,6 +321,12 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
     steps: [...stepViews.values()]
       .map((entry) => ({ serviceKey: entry.serviceKey, step: entry.step, sessions: entry.sessions.size, views: entry.views }))
       .sort((a, b) => b.sessions - a.sessions),
+    purchase: {
+      stages: Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, stageSessions[stage].size])) as Record<PurchaseStage, number>,
+      services: [...serviceStages]
+        .map(([serviceKey, entry]) => ({ serviceKey, intro: entry.intro.size, input: entry.input.size, teaser: entry.teaser.size }))
+        .sort((a, b) => b.intro - a.intro || b.teaser - a.teaser),
+    },
     ctas: [...ctaClicks.values()].sort((a, b) => b.clicks - a.clicks).slice(0, 100),
     sampled: rows.length,
     truncated,
@@ -274,12 +341,12 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
  */
 export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promise<FunnelSummary> {
   const since = periodStart(period)
-  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], ctas: [], sampled: 0, truncated: false }
+  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], purchase: { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] }, ctas: [], sampled: 0, truncated: false }
   if (!opsStoreAvailable()) return empty
 
   const safeLimit = Math.min(Math.max(limit, 1), 20000)
   const url = new URL(`${opsBase()}/rest/v1/umsh_funnel_events`)
-  url.searchParams.set('select', 'event,service_key,step,target,session_id,user_id')
+  url.searchParams.set('select', 'event,service_key,step,target,session_id,user_id,route')
   url.searchParams.set('occurred_at', `gte.${since}`)
   url.searchParams.set('order', 'occurred_at.desc')
   url.searchParams.set('limit', String(safeLimit))

@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { test } from 'node:test'
+import { purchaseStageOf, summarizeFunnelRows, summarizePaidOrders } from '../../src/analytics/funnel-store.js'
+
+/**
+ * 2026-10-07 관리자 구매 퍼널.
+ * 소개 → 입력 → 무료 결과 → 결제 화면을 방문 단위로, 결제 완료를 주문 건수로 센다.
+ * GA4 퍼널과 같은 단계라 두 화면을 나란히 비교할 수 있어야 한다.
+ */
+const view = (session: string, service: string | null, step: string, route = '/x') =>
+  ({ event: 'step_view', service_key: service, step, target: null, session_id: session, user_id: null, route })
+
+test('steps map to the same stages as the GA4 funnel', () => {
+  assert.equal(purchaseStageOf({ step: 'entry' }), 'intro')
+  assert.equal(purchaseStageOf({ step: '01-story' }), 'intro')
+  assert.equal(purchaseStageOf({ step: '02-input' }), 'input')
+  assert.equal(purchaseStageOf({ step: '03-service-input' }), 'input')
+  assert.equal(purchaseStageOf({ step: '04-report' }), 'teaser')
+  assert.equal(purchaseStageOf({ step: 'payment', route: '/payment/' }), 'checkout')
+  assert.equal(purchaseStageOf({ step: 'payment', route: '/payment/index.html' }), 'checkout')
+  // 결과·테스트 화면은 결제 화면이 아니다.
+  assert.equal(purchaseStageOf({ step: 'payment', route: '/payment/result' }), null)
+  assert.equal(purchaseStageOf({ step: 'payment', route: '/payment/test' }), null)
+  assert.equal(purchaseStageOf({ step: 'home' }), null)
+  assert.equal(purchaseStageOf({ step: '06-detail' }), null)
+})
+
+test('stages count distinct visits, not page views', () => {
+  const rows = [
+    view('a', 'couple_signal', 'entry'), view('a', 'couple_signal', 'entry'), view('a', 'couple_signal', '02-input'),
+    view('a', 'couple_signal', '04-report'), view('a', null, 'payment', '/payment/'),
+    view('b', 'couple_signal', 'entry'), view('b', 'couple_signal', '02-input'),
+    view('c', 'cat_compatibility', '01-story'),
+    view('d', null, 'payment', '/payment/result'),
+  ]
+  const { purchase } = summarizeFunnelRows(rows, 'day', '2026-10-06T00:00:00.000Z')
+  assert.deepEqual(purchase.stages, { intro: 3, input: 2, teaser: 1, checkout: 1 })
+  assert.deepEqual(purchase.services[0], { serviceKey: 'couple_signal', intro: 2, input: 2, teaser: 1 })
+  assert.deepEqual(purchase.services[1], { serviceKey: 'cat_compatibility', intro: 1, input: 0, teaser: 0 })
+  assert.equal(purchase.paid, undefined, 'paid orders are attached by the server only with order scope')
+})
+
+test('paid orders count only confirmed payments inside the period, grouped by product', () => {
+  const since = '2026-10-01T00:00:00.000Z'
+  const order = (productKey: string, amount: number, status: string, createdAt = '2026-10-05T00:00:00.000Z') => ({ productKey, amount, status, createdAt, orderId: 'PRIVATE', ownerId: 'PRIVATE' })
+  const paid = summarizePaidOrders([
+    order('couple_signal', 9900, 'paid'), order('couple_signal', 4900, 'viewed'), order('cat_compatibility', 12900, 'paid'),
+    order('couple_signal', 9900, 'ready'), order('couple_signal', 9900, 'failed'), order('couple_signal', 9900, 'paid', '2026-09-20T00:00:00.000Z'),
+  ], since)
+  assert.equal(paid.orders, 3)
+  assert.equal(paid.amount, 27700)
+  assert.deepEqual(paid.byProduct[0], { productKey: 'couple_signal', orders: 2, amount: 14800 })
+  assert.doesNotMatch(JSON.stringify(paid), /PRIVATE/)
+})
+
+test('admin dashboard renders the purchase funnel and the server gates paid orders by scope', () => {
+  const admin = readFileSync(new URL('../../admin-ui/index.html', import.meta.url), 'utf8')
+  const app = readFileSync(new URL('../../src/server/app.ts', import.meta.url), 'utf8')
+  assert.ok(admin.includes('appendPurchaseFunnel(payload.purchase)'))
+  assert.ok(admin.includes("'구매 퍼널'") && admin.includes("'서비스별 구매 퍼널'"))
+  assert.ok(app.includes("staff.scopes.includes('orders:read')"))
+})

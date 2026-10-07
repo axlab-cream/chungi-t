@@ -4139,6 +4139,48 @@
           });
           body.appendChild(grid);
         }
+        /*
+         * 2026-10-07 구매 퍼널. GA4 퍼널과 같은 단계(소개 → 입력 → 무료 결과 → 결제 화면 → 결제 완료)를
+         * 자체 수집 기록과 주문 저장소로 센다. 앞 단계 대비 비율이 가장 낮은 곳이 먼저 고칠 곳이다.
+         */
+        function percent(part, whole) { return whole > 0 ? Math.round(part / whole * 1000) / 10 + '%' : '—'; }
+        function appendPurchaseFunnel(purchase) {
+          if (!purchase || !purchase.stages) return;
+          var s = purchase.stages;
+          var paid = purchase.paid;
+          var rows = [
+            ['1. 서비스 소개', s.intro, ' 방문'],
+            ['2. 입력 시작', s.input, ' 방문'],
+            ['3. 무료 결과', s.teaser, ' 방문'],
+            ['4. 결제 화면', s.checkout, ' 방문'],
+            ['5. 결제 완료', paid ? paid.orders : null, '건']
+          ];
+          var worst = null;
+          rows.forEach(function (row, index) {
+            var prev = index > 0 ? rows[index - 1][1] : null;
+            row.rate = index > 0 && row[1] !== null && prev ? row[1] / prev : null;
+            if (row.rate !== null && (worst === null || row.rate < rows[worst].rate)) worst = index;
+          });
+          addLiveTable(body, '구매 퍼널', ['단계', '수', '앞 단계 대비', '빠진 수'], rows, function (row) {
+            var idx = rows.indexOf(row);
+            var prev = idx > 0 ? rows[idx - 1][1] : null;
+            if (row[1] === null) return [row[0], '확인 불가', '—', '—'];
+            var rate = idx === 0 ? '기준' : percent(row[1], prev);
+            if (idx === worst) rate += ' ← 가장 많이 빠짐';
+            var drop = idx > 0 && prev !== null && prev > row[1] ? count(prev - row[1]) : '—';
+            return [row[0], count(row[1]) + row[2], rate, drop];
+          });
+          var note = document.createElement('p'); note.className = 'admin-note'; note.style.padding = '0 16px 12px';
+          note.textContent = '1~4단계는 그 화면을 한 번이라도 연 방문(30분 활동 기준) 수입니다. 중간 단계로 바로 들어온 방문도 세므로 앞 단계보다 클 수 있습니다. 5단계는 결제가 확인된 주문 건수입니다(' + (paid ? count(paid.amount) + '원' : '주문 조회 권한이 없거나 불러오지 못함') + '). 같은 단계를 GA4 탐색 › 유입경로 탐색분석(view_item → input_start → view_teaser → begin_checkout → purchase)에서도 볼 수 있습니다.';
+          body.appendChild(note);
+          var paidBy = {};
+          (paid && paid.byProduct || []).forEach(function (item) { paidBy[item.productKey] = item; });
+          var services = Array.isArray(purchase.services) ? purchase.services : [];
+          addLiveTable(body, '서비스별 구매 퍼널', ['서비스', '소개', '입력', '무료 결과', '결제 완료', '소개 → 입력', '입력 → 무료 결과', '무료 결과 → 결제'], services, function (item) {
+            var done = paid ? (paidBy[item.serviceKey] ? paidBy[item.serviceKey].orders : 0) : null;
+            return [serviceName(item.serviceKey), count(item.intro), count(item.input), count(item.teaser), done === null ? '확인 불가' : count(done) + '건', percent(item.input, item.intro), percent(item.teaser, item.input), done === null ? '—' : percent(done, item.teaser)];
+          }, '선택 기간에 서비스 단계 기록이 없습니다.');
+        }
         var loveActions = { home: '메인 배너 클릭', start: '테스트 시작', complete: '5문항 완료', share: '공유 시도', copy: '테스트 링크 복사 시도', details: '올해 연애운 이동', login: '로그인 열기', restart: '다시하기' };
         var loveSources = { home: '메인 배너', share: '공유 링크', admin: '관리자 바로가기', internal: '사이트 내부', search: '검색 사이트', social: '소셜 사이트', external: '기타 외부', direct: '직접/출처 없음', unknown: '이전 기록/미분류' };
         function appendLoveSpeed(data, available) {
@@ -4183,6 +4225,7 @@
             var steps = Array.isArray(payload.steps) ? payload.steps : [];
             var ctas = Array.isArray(payload.ctas) ? payload.ctas : [];
             appendKpis(overview, payload.sampled || 0);
+            appendPurchaseFunnel(payload.purchase);
             appendLoveSpeed(payload.loveSpeed, payload.available !== false);
             appendSoloNara(payload.soloNara, payload.available !== false);
             addLiveTable(body, '서비스별 페이지뷰', ['서비스', '전체 조회', '방문', '스토리', '입력', '무료 티저', '결제', '전체 목차', '상세 해석'], services, function (item) {
