@@ -91,6 +91,42 @@
   }
   if (typeof global.addEventListener === 'function') global.addEventListener('pagehide', trackPageExit, { capture: true });
 
+  /*
+   * 2026-10-07 Microsoft Clarity 히트맵. 어디를 누르고 어디까지 내려 읽는지 화면 위에 칠해 본다.
+   * 사주 입력·해석 본문·결제 정보가 녹화에 남으면 안 되므로 —
+   *  1. 기본은 화면 전체 글자 가림(data-clarity-mask). 개인 정보가 없는 홈·서비스 소개·스토리·안내만 풀어 둔다.
+   *  2. 주소에 광고 키 외의 값(reportId·orderId·code 등)이 붙은 화면은 아예 싣지 않는다. GA4 와 같은 원칙이다.
+   * 프로젝트 ID는 페이지 소스에 공개되는 값이라 비밀이 아니다. 비워 두면 싣지 않는다.
+   */
+  var CLARITY_PROJECT_ID = 'ytxpdvt9bu';
+  var CLARITY_SAFE_QUERY = /^(utm_[a-z]+|gclid|dclid|gbraid|wbraid|src)$/;
+  function clarityAllowed(href) {
+    try {
+      var keys = [];
+      new URL(href).searchParams.forEach(function (_value, key) { keys.push(key); });
+      return keys.every(function (key) { return CLARITY_SAFE_QUERY.test(key); });
+    } catch (_) { return false; }
+  }
+  /** 글자를 그대로 보여도 되는 화면. 누구에게나 같은 내용이 나오는 곳만 넣는다. */
+  function clarityUnmasked(pathname) {
+    var path = String(pathname || '');
+    return path === '/' || path === '/index.html'
+      || /^\/(about|faq)(\.html|\/|$)/.test(path)
+      || /\/01-step-1-story(\/|$)/.test(path)
+      || /^\/(love|match|money|work|me|flow|day|place)\/[a-z-]+\/?(index\.html)?$/.test(path);
+  }
+  function loadClarity() {
+    if (!/^[a-z0-9]{6,20}$/.test(CLARITY_PROJECT_ID) || !clarityAllowed(location.href)) return;
+    var root = document.documentElement;
+    if (root && typeof root.setAttribute === 'function') root.setAttribute(clarityUnmasked(location.pathname) ? 'data-clarity-unmask' : 'data-clarity-mask', 'true');
+    global.clarity = global.clarity || function () { (global.clarity.q = global.clarity.q || []).push(arguments); };
+    var tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://www.clarity.ms/tag/' + CLARITY_PROJECT_ID;
+    (document.head || document.documentElement).appendChild(tag);
+  }
+  try { loadClarity(); } catch (_) { /* 히트맵 실패가 화면을 막지 않는다. */ }
+
   var script = document.createElement('script');
   script.async = true;
   script.src = 'https://www.googletagmanager.com/gtag/js?id=' + MEASUREMENT_ID;

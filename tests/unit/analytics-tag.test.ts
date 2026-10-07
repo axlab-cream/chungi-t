@@ -155,7 +155,8 @@ test('로컬 QA에서 운영으로 넘어온 유입도 GA에 보내지 않는다
   for(const ref of ['http://127.0.0.1:8800/','http://localhost:8800/','http://[::1]:8800/','http://192.168.1.2/','http://10.0.0.2/','http://172.16.0.2/']) {
     assert.equal(runTag('https://umsh.kr/',ref).scripts.length,0,ref)
   }
-  assert.equal(runTag('https://umsh.kr/','https://google.com/').scripts.length,1)
+  // 2026-10-07: Clarity 도 같은 조건에서 실린다. GA 태그는 여전히 한 번만.
+  assert.equal(runTag('https://umsh.kr/','https://google.com/').scripts.filter(s => String(s.src).includes('googletagmanager')).length,1)
 })
 
 test('UTM과 광고 클릭 ID만 보존하고 고객 식별자와 해시는 제외한다', () => {
@@ -188,5 +189,5 @@ test('QA 탭 표시는 후속 운영 탐색에서도 유지한다', () => {
   assert.equal(visit('http://127.0.0.1:8800/').length,0)
   assert.equal(visit('https://umsh.kr/').length,0)
   saved.clear()
-  assert.equal(visit('').length,1)
+  assert.equal(visit('').filter((s: any) => String(s.src).includes('googletagmanager')).length,1)
 })
