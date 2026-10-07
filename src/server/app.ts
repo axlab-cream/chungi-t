@@ -116,6 +116,7 @@ import {
   saveUserBirthProfile,
 } from '../user/profile-store.js'
 import type { UserBirthProfile, UserLifeContext } from '../user/profile-store.js'
+import { deleteOwnAccount } from '../user/account-deletion.js'
 import {
   canonicalPaymentProductKey,
   getPaymentProduct,
@@ -4353,6 +4354,19 @@ async function saveUserProfileHandler(req: Request, res: Response) {
 
 app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
+
+// 회원 탈퇴. 결제 기록은 법정 기간 보관하고 나머지는 지운다 — 기준은 src/user/account-deletion.ts.
+app.delete('/api/user/account', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const result = await deleteOwnAccount(owner.id)
+    res.json({ deleted: true, paymentRecordsRetained: result.paymentRecordsRetained })
+  } catch (err) {
+    console.error('[account] 회원 탈퇴 실패', err instanceof Error ? err.message : err)
+    res.status(500).json({ error: '탈퇴 처리에 실패했습니다. 잠시 뒤 다시 시도하거나 고객센터로 문의해 주세요.' })
+  }
+})
 
 /**
  * The 검색 page lists every service from here, so price and title stay in one place.
