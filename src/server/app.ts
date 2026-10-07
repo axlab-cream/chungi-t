@@ -75,7 +75,7 @@ import { rememberVercelOidcToken } from '../push/google-auth.js'
 import { pushStore, pushStoreAvailable } from '../push/store.js'
 import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, deleteOpsJobsBefore, deleteOpsJobsByErrorCode, deleteOpsJobsForTarget, isGenerationPaused, setGenerationPaused } from '../admin/ops-queue.js'
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
-import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
+import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeFunnel, summarizePaidOrders, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
 import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
@@ -2500,11 +2500,27 @@ app.post('/api/events', async (req, res) => {
 
 /** 관심사(CTA 클릭)와 이탈(단계별 진입)을 기간별로 본다. */
 app.get('/api/admin/v1/funnel', async (req, res) => {
-  if (!await requireStaff(req, res, 'reports:read')) return
+  const staff = await requireStaff(req, res, 'reports:read')
+  if (!staff) return
   const asked = String(req.query.period ?? 'day')
   const period: FunnelPeriod = asked === 'week' || asked === 'month' ? asked : 'day'
   try {
-    res.json(await summarizeFunnel(period))
+    const summary = await summarizeFunnel(period)
+    // 구매 퍼널의 마지막 단계(결제 완료)는 주문 저장소에서 센다. 주문을 볼 권한이 없으면 붙이지 않는다.
+    if (summary.available && staff.scopes.includes('orders:read')) {
+      try {
+        const orders: PaymentOrder[] = []
+        let cursor: string | undefined
+        for (let page = 0; page < 50; page += 1) {
+          const result = await listAllPaymentOrders({ limit: 100, cursor, from: summary.since })
+          orders.push(...result.orders)
+          if (!result.nextCursor) break
+          cursor = result.nextCursor
+        }
+        summary.purchase.paid = summarizePaidOrders(orders, summary.since)
+      } catch { /* 주문 조회 실패는 화면에서 '확인 불가'로 보인다. 0건으로 꾸미지 않는다. */ }
+    }
+    res.json(summary)
   } catch {
     res.status(503).json({ code: 'FUNNEL_SUMMARY_FAILED', error: '퍼널 통계를 불러오지 못했습니다.' })
   }

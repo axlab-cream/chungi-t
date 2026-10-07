@@ -1,5 +1,13 @@
 # Status
 
+## 2026-10-07 — 관리자 구매 퍼널 (대시보드 › 방문 · 전환)
+
+- [DONE] "구매 퍼널" 표: 서비스 소개 → 입력 → 무료 결과 → 결제 화면(방문 수, 자체 수집 step_view) → 결제 완료(주문 저장소 paid/viewed 건수·금액). 앞 단계 대비 비율, 빠진 수, 가장 많이 빠진 단계 표시.
+- [DONE] "서비스별 구매 퍼널" 표: 서비스마다 소개·입력·무료 결과 방문, 결제 완료 건수, 단계별 전환율.
+- 결제 완료는 `orders:read` 권한이 있는 관리자에게만 붙인다. 조회 실패는 0이 아니라 '확인 불가'.
+- GA4 퍼널(view_item → input_start → view_teaser → begin_checkout → purchase)과 같은 단계라 나란히 비교 가능. DB 변경 없음(기존 route 칸 조회만 추가).
+- 검증: 신규 4/4, 관련 63/63, 전체 1,938/1,938, tsc PASS. 표 렌더링은 함수 단독 실행으로 확인, 실제 관리자 화면은 배포 후 확인 예정.
+
 ## 2026-10-07 — GA4 구매 퍼널 이벤트 (GA-FUNNEL-07)
 
 - [DONE] 서비스 단계 → GA4: `view_item`(소개) · `input_start`(STEP2·3) · `view_teaser`(STEP4) · `view_full_report`(STEP5·6). 단계 판정은 `umsh-track.js` placeOf 하나만 쓰고 `UMSHAnalytics.funnelStep` 이 GA4 이름으로 옮긴다. 모든 이벤트에 `service_key`.
