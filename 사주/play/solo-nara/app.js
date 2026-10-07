@@ -174,8 +174,7 @@
     });
     return kakaoReady;
   }
-  // Android WebView (our app, KakaoTalk/Naver in-app browsers) has no navigator.share, and the
-  // Windows share panel leads with "copy link". So we always open our own sheet with explicit choices.
+  // Android WebView (our app, KakaoTalk/Naver in-app browsers) has no navigator.share.
   function sharePayload(type) {
     const valid = isType(type) ? type : null;
     const url = 'https://umsh.kr/play/solo-nara/' + (valid ? '?type=' + encodeURIComponent(valid) + '&src=share' : '?src=share');
@@ -184,7 +183,12 @@
   function share(type, copyOnly = false) {
     if (copyOnly) { track('copy'); copyLink(sharePayload(type)); return; }
     track('share');
-    openSheet(sharePayload(type));
+    // The phone's own share sheet wins wherever it exists (phone Chrome/Safari, the app once it ships
+    // the Share plugin). Android WebViews (KakaoTalk/Naver in-app browsers) have none, so they get our sheet.
+    const p = sharePayload(type), Native = window.Capacitor?.Plugins?.Share;
+    if (navigator.share) nativeShare(p);
+    else if (Native) Native.share({ title: p.title, text: p.text, url: p.url, dialogTitle: '친구에게 보내기' }).then(() => track('share_success'), () => {});
+    else openSheet(p);
   }
   async function copyLink(p) {
     try { await navigator.clipboard.writeText(p.url); notice(p.valid ? '캐릭터 이름만 담은 링크를 복사했어요.' : '테스트 링크를 복사했어요. 친구에게 보내보세요!'); }

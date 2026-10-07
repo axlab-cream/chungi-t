@@ -97,7 +97,7 @@ test('sharing sends only the public character; cancellation never falls back to 
 })
 
 test('share buttons open a choice sheet instead of silently copying when the OS share sheet is missing', () => {
-  assert.match(app, /track\('share'\);\s*openSheet\(sharePayload\(type\)\)/)
+  assert.match(app, /if \(navigator\.share\) nativeShare\(p\);[\s\S]*else openSheet\(p\);/)
   assert.match(app, /navigator\.share \? '<button class="secondary" id="sheet-native">/)
   assert.match(app, /integrity: 'sha384-/)
 })
