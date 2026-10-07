@@ -164,5 +164,65 @@
     })().finally(function () { completingSignup = null; });
     return completingSignup;
   }
-  global.UMSHAnalytics = { measurementId: MEASUREMENT_ID, withoutQuery: withoutQuery, viewSignupWall: viewSignupWall, signupClick: signupClick, beginSignup: beginSignup, completeSignup: completeSignup, cancelSignup: cancelSignup };
+  /*
+   * 2026-10-07 구매 퍼널. 유입과 가입만 보이고 그 사이(입력·무료 결과·결제)가 비어 있었다.
+   * 단계 판정은 umsh-track.js 의 placeOf 한 곳에서만 하고, 여기서는 GA4 이름으로 옮기기만 한다.
+   * view_item·begin_checkout·add_payment_info·purchase 는 GA4 표준 이름이라 수익 보고서가 자동으로 채워진다.
+   */
+  var STEP_EVENTS = {
+    entry: 'view_item', '01-story': 'view_item',
+    '02-input': 'input_start', '03-service-input': 'input_start',
+    '04-report': 'view_teaser',
+    '05-toc': 'view_full_report', '06-detail': 'view_full_report',
+  };
+  function isProductKey(value) { return typeof value === 'string' && /^[a-z0-9_]{1,60}$/.test(value); }
+  function funnelStep(place) {
+    var name = place && STEP_EVENTS[place.step];
+    if (!name || !isProductKey(place.service)) return;
+    var params = { service_key: place.service };
+    if (name === 'view_item') params.items = [{ item_id: place.service }];
+    try { global.gtag('event', name, params); } catch (_) {}
+  }
+  function checkoutParams(product, amount) {
+    if (!product || !isProductKey(product.key) || !Number.isInteger(amount) || amount < 0) return null;
+    return { currency: 'KRW', value: amount, service_key: product.key, items: [{ item_id: product.key, item_name: String(product.title || product.key).slice(0, 100), price: amount, quantity: 1 }] };
+  }
+  /** 결제 화면에 상품이 뜸. */
+  function beginCheckout(product) {
+    var params = checkoutParams(product, product && product.amount);
+    if (params) try { global.gtag('event', 'begin_checkout', params); } catch (_) {}
+  }
+  /** 결제창 열기 버튼을 누름. amount 는 쿠폰이 적용된 금액이다. */
+  function addPaymentInfo(product, amount) {
+    var params = checkoutParams(product, amount);
+    if (params) try { global.gtag('event', 'add_payment_info', params); } catch (_) {}
+  }
+  /** 주문번호는 그대로 보내지 않는다. SHA-256 앞 32자리만 보내 중복 집계를 막고, 원래 번호는 우리 DB에서만 대조된다. */
+  async function hashOrderId(orderId) {
+    var subtle = global.crypto && global.crypto.subtle;
+    if (!subtle || typeof global.TextEncoder !== 'function') return null;
+    var digest = new Uint8Array(await subtle.digest('SHA-256', new global.TextEncoder().encode('umsh-order:' + orderId)));
+    var hex = '';
+    for (var i = 0; i < 16; i += 1) hex += (digest[i] < 16 ? '0' : '') + digest[i].toString(16);
+    return hex;
+  }
+  /** 서버에서 확인한 주문(`/api/payment/orders/:id` 응답)만 받는다. 주소의 state=paid 는 믿지 않는다. */
+  async function purchase(order) {
+    try {
+      if (!order || typeof order.orderId !== 'string' || !order.orderId || ['paid', 'viewed'].indexOf(order.status) < 0) return;
+      var params = checkoutParams({ key: order.productKey, title: order.productTitle }, order.amount);
+      if (!params) return;
+      var transactionId = await hashOrderId(order.orderId);
+      if (!transactionId) return;
+      var key = 'umsh:analytics:purchase-sent:' + transactionId;
+      try {
+        if (global.localStorage.getItem(key)) return;
+        // 보내기 전에 표시한다. 결과 화면을 새로고침하거나 나중에 다시 열어도 두 번 세지 않는다.
+        global.localStorage.setItem(key, '1');
+      } catch (_) { /* 저장소가 막혀도 GA4가 같은 transaction_id 를 묶어 준다. */ }
+      params.transaction_id = transactionId;
+      global.gtag('event', 'purchase', params);
+    } catch (_) { /* 측정 실패가 결제 결과 화면을 막지 않는다. */ }
+  }
+  global.UMSHAnalytics = { measurementId: MEASUREMENT_ID, withoutQuery: withoutQuery, viewSignupWall: viewSignupWall, signupClick: signupClick, beginSignup: beginSignup, completeSignup: completeSignup, cancelSignup: cancelSignup, funnelStep: funnelStep, beginCheckout: beginCheckout, addPaymentInfo: addPaymentInfo, purchase: purchase };
 })(typeof window !== 'undefined' ? window : globalThis);

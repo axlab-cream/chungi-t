@@ -1343,3 +1343,5 @@ PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport width
 
 ## CONSULTATION-LIVE-03
 REST auth_tokens schema regression verifies bidiGenerateContentSetup/generationConfig, absent SDK liveConnectConstraints. 86/86 scoped tests pass after correction. Raw provider error messages and credentials never logged.
+
+GA-FUNNEL-07 (2026-10-07): npx tsx --test tests/unit/analytics-purchase-funnel.test.ts — 10/10 PASS(단계 매핑, 식별자 미전송, 체크아웃 금액, 해시 transaction_id·중복 차단, 미결제 미집계, 로컬 비활성). npm test 1,920/1,920 PASS, npm run typecheck PASS. 운영 GA4 수신 NOT_RUN.

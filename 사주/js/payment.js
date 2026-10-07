@@ -167,6 +167,7 @@
     const selectedCoupon = couponItems.find(item => item.id === couponSelect?.value);
     if (selectedCoupon?.kind === 'service_free') { setStatus('무료 이용권으로 풀이 열기 버튼을 눌러 주세요.'); return; }
     const paymentOwnerId = session.user.id;
+    global.UMSHAnalytics?.addPaymentInfo?.(product, couponAmount(selectedCoupon));
     const testPopup = paymentConfig.testMode ? openTestPopup() : null;
     if (paymentConfig.testMode && !testPopup) {
       setStatus('브라우저에서 팝업을 허용한 뒤 다시 시도해 주세요.');
@@ -233,12 +234,17 @@
   const couponStatus = document.querySelector('[data-coupon-status]');
   const freeCouponButton = document.querySelector('[data-free-coupon]');
   let couponItems = [];
-  function showCouponPrice() {
-    const item = couponItems.find(coupon => coupon.id === couponSelect?.value);
+  /** 화면에 보이는 금액. 실제 청구액은 서버가 쿠폰을 다시 확인해 정한다. */
+  function couponAmount(item) {
     let amount = product.amount;
     if (item?.kind === 'service_free') amount = 0;
     if (item?.kind === 'amount_off') amount = Math.max(1, amount - item.value);
     if (item?.kind === 'percent_off') amount = Math.max(1, amount - Math.floor(amount * item.value / 100));
+    return amount;
+  }
+  function showCouponPrice() {
+    const item = couponItems.find(coupon => coupon.id === couponSelect?.value);
+    const amount = couponAmount(item);
     document.querySelector('[data-product-price]').textContent = `${amount.toLocaleString('ko-KR')}원`;
     freeCouponButton.hidden = item?.kind !== 'service_free';
     button.hidden = item?.kind === 'service_free';
@@ -307,6 +313,7 @@
       return;
     }
     setProduct(product);
+    global.UMSHAnalytics?.beginCheckout?.(product);
     if (!paymentConfig.checkoutEnabled) {
       setStatus(paymentConfig.setupMessage || '결제 모듈 준비 중입니다.');
       return;
