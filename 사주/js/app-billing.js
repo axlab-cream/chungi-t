@@ -29,6 +29,20 @@
     return plugin() !== null;
   }
 
+  var PENDING_MESSAGE = '결제가 아직 완료되지 않았습니다. 결제가 끝난 뒤 이 화면을 다시 열면 자동으로 반영됩니다.';
+
+  /**
+   * 플러그인 오류를 화면에 보일 문장으로 바꾼다.
+   *
+   * 플러그인은 취소와 실패를 똑같이 영어 문장("Purchase is not purchased")으로 돌려준다.
+   * 대기 결제("Purchase is pending")만 따로 구분된다.
+   */
+  function purchaseError(error) {
+    var message = String((error && (error.message || error.errorMessage)) || error || '');
+    if (/pending/i.test(message)) return new Error(PENDING_MESSAGE);
+    return new Error('결제가 완료되지 않았습니다. 취소하셨다면 다시 시도해 주세요.');
+  }
+
   async function callJson(path, options) {
     var init = options || {};
     var response = await fetch(path, {
@@ -75,15 +89,20 @@
     if (!product.configured) throw new Error('앱 결제가 아직 준비되지 않았습니다.');
 
     say('구글플레이 결제창을 여는 중입니다.');
-    var transaction = await native.purchaseProduct({
-      productIdentifier: product.productId,
-      productType: 'inapp',
-      // 소비와 확인 통보를 플러그인에 맡기지 않는다. 서버가 검증한 뒤에만 처리한다.
-      isConsumable: false,
-      autoAcknowledgePurchases: false,
-      // 구글의 ObfuscatedAccountId 로 들어간다. 서버가 같은 값을 다시 계산해 대조한다.
-      appAccountToken: product.obfuscatedAccountId,
-    });
+    var transaction;
+    try {
+      transaction = await native.purchaseProduct({
+        productIdentifier: product.productId,
+        productType: 'inapp',
+        // 소비와 확인 통보를 플러그인에 맡기지 않는다. 서버가 검증한 뒤에만 처리한다.
+        isConsumable: false,
+        autoAcknowledgePurchases: false,
+        // 구글의 ObfuscatedAccountId 로 들어간다. 서버가 같은 값을 다시 계산해 대조한다.
+        appAccountToken: product.obfuscatedAccountId,
+      });
+    } catch (error) {
+      throw purchaseError(error);
+    }
     var purchaseToken = transaction && transaction.purchaseToken;
     if (!purchaseToken) throw new Error('결제 정보를 받지 못했습니다. 결제 내역을 확인해 주세요.');
 
@@ -93,6 +112,9 @@
       authHeaders: params.authHeaders,
       body: { orderId: params.orderId, productId: product.productId, purchaseToken: purchaseToken },
     });
+    // 202 도 응답은 성공이다. 대기 결제를 소비하면 안 되고, 결과 화면으로 넘겨도 안 된다.
+    // 결제가 끝나면 다음에 결제 화면을 열 때 recoverPending 이 마저 연다.
+    if (confirmed && confirmed.code === 'PAYMENT_PENDING') throw new Error(PENDING_MESSAGE);
 
     // 여기서 소비해야 같은 상품을 다음에 다시 살 수 있다. 소비는 확인 통보도 함께 한다.
     // 실패해도 열람 권한은 이미 서버에 저장되었으므로 사용자를 막지 않는다.
@@ -107,40 +129,73 @@
   }
 
   /**
-   * 앱을 지웠다 다시 깔았거나 결제 도중 끊긴 건을 다시 확인한다.
-   * 결제는 새로 하지 않고, 남아 있는 결제만 서버에 다시 물어본다.
+   * 결제 도중 끊긴 건을 다시 확인한다.
+   *
+   * 구글 결제가 끝난 직후 앱이 꺼지면 서버 확인을 못 해 리포트가 열리지 않는다. 그 결제는
+   * 소비되지 않은 채 기기에 남는다. 결제 화면을 열 때마다 남은 결제를 서버에 보내고,
+   * 서버가 연 것만 소비한다. 서버가 거절한 결제는 소비하지 않는다. 확인 통보가 없으면
+   * 구글이 3일 뒤 자동 환불한다.
+   *
+   * @returns {Promise<object[]>} 이번에 열린 주문
    */
   async function recoverPending(params) {
     var native = plugin();
     if (!native || typeof native.getPurchases !== 'function') return [];
-    var result = await native.getPurchases().catch(function () { return null; });
+    var result = await native.getPurchases({ productType: 'inapp' }).catch(function () { return null; });
     var purchases = (result && result.purchases) || [];
     var recovered = [];
     for (var index = 0; index < purchases.length; index += 1) {
       var item = purchases[index];
-      if (!item || !item.purchaseToken || !params || !params.orderId) continue;
+      // Android Billing 의 PURCHASED 는 1, PENDING 은 2 다. 대기 결제는 끝날 때까지 둔다.
+      if (!item || !item.purchaseToken || !item.productIdentifier || String(item.purchaseState) !== '1') continue;
       try {
-        var confirmed = await callJson('/api/payment/google/verify', {
+        var confirmed = await callJson('/api/payment/google/recover', {
           method: 'POST',
-          authHeaders: params.authHeaders,
-          body: {
-            orderId: params.orderId,
-            productId: item.productIdentifier,
-            purchaseToken: item.purchaseToken,
-          },
+          authHeaders: params && params.authHeaders,
+          body: { productId: item.productIdentifier, purchaseToken: item.purchaseToken },
         });
-        recovered.push(confirmed);
+        if (!confirmed || !confirmed.order) continue;
         await native.consumePurchase({ purchaseToken: item.purchaseToken }).catch(function () {});
+        if (!confirmed.alreadyPaid) recovered.push(confirmed.order);
       } catch (error) {
-        // 이 주문과 무관한 결제이거나 이미 쓰인 결제다. 다음 것을 본다.
+        // 이 계정 결제가 아니거나 열 주문이 없다. 소비하지 않고 다음 것을 본다.
       }
     }
     return recovered;
+  }
+
+  /**
+   * 구글플레이에 등록된 가격 문자열(예: "24,900원").
+   *
+   * 앱 안에서는 실제로 청구되는 금액이 Play Console 가격이다. 화면 가격을 여기서 받아 오면
+   * 가격을 바꿀 때 Play Console 만 고쳐도 앱 화면이 맞춰진다. 못 받으면 null 을 돌려주고,
+   * 화면은 원래 카탈로그 가격을 그대로 보여 준다.
+   */
+  async function priceText(productKey) {
+    var native = plugin();
+    if (!native || typeof native.getProducts !== 'function' || !productKey) return null;
+    try {
+      var result = await native.getProducts({ productIdentifiers: [productKey], productType: 'inapp' });
+      var products = (result && result.products) || [];
+      for (var index = 0; index < products.length; index += 1) {
+        var item = products[index];
+        if (!item || item.identifier !== productKey) continue;
+        // 원화는 웹과 같은 모양("24,900원")으로 맞춘다. 다른 통화는 구글 표기를 그대로 쓴다.
+        if (item.currencyCode === 'KRW' && Number.isFinite(Number(item.price))) {
+          return Math.round(Number(item.price)).toLocaleString('ko-KR') + '원';
+        }
+        if (item.priceString) return String(item.priceString);
+      }
+    } catch (error) {
+      // Play 에 상품이 없거나 결제 서비스에 닿지 못했다. 카탈로그 가격을 쓴다.
+    }
+    return null;
   }
 
   global.UMSHAppBilling = {
     isAvailable: isAvailable,
     payOrder: payOrder,
     recoverPending: recoverPending,
+    priceText: priceText,
   };
 })(window);

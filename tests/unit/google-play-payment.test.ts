@@ -112,7 +112,7 @@ async function request(path: string, body?: unknown, owner: string | null = OWNE
 }
 
 let seq = 0
-async function seedOrder(options: { owner?: string; productKey?: string; status?: string; tid?: string } = {}) {
+async function seedOrder(options: { owner?: string; productKey?: string; status?: string; tid?: string; createdAt?: string } = {}) {
   seq += 1
   const orderId = `play-order-${seq}`
   await payments.savePaymentOrder({
@@ -125,8 +125,8 @@ async function seedOrder(options: { owner?: string; productKey?: string; status?
     amount: 24900,
     status: (options.status ?? 'ready') as never,
     ...(options.tid ? { tid: options.tid } : {}),
-    createdAt: '2026-09-07T00:00:00Z',
-    updatedAt: '2026-09-07T00:00:00Z',
+    createdAt: options.createdAt ?? '2026-09-07T00:00:00Z',
+    updatedAt: options.createdAt ?? '2026-09-07T00:00:00Z',
   } as never)
   return orderId
 }
@@ -259,6 +259,74 @@ describe('구글플레이 인앱 결제 확인', () => {
     purchaseResponse = { status: 200, body: { orderId: 'GPA.no-state' } }
     const result = await request('/api/payment/google/verify', { orderId, purchaseToken: 'token-no-state' })
     assert.equal(result.status, 202, JSON.stringify(result.payload))
+  })
+
+  // 결제 직후 앱이 꺼져 주문 번호를 잃은 경우. 기기에 남은 결제만 들고 온다.
+  it('복구: 결제 시각 이전에 만든 같은 상품 대기 주문을 연다', async () => {
+    const before = await seedOrder({ productKey: 'marry_match', createdAt: '2026-09-07T12:00:00Z' })
+    const later = await seedOrder({ productKey: 'marry_match', createdAt: '2026-09-09T00:00:00Z' })
+    googleCalls.length = 0
+    purchaseResponse = {
+      status: 200,
+      body: {
+        purchaseState: 0,
+        consumptionState: 0,
+        acknowledgementState: 0,
+        orderId: 'GPA.recover-0001',
+        purchaseTimeMillis: String(Date.parse('2026-09-08T00:00:00Z')),
+        obfuscatedExternalAccountId: googlePlay.obfuscatedAccountId(OWNER),
+      },
+    }
+    const result = await request('/api/payment/google/recover', { productId: 'marry_match', purchaseToken: 'token-recover' })
+    assert.equal(result.status, 200, JSON.stringify(result.payload))
+    assert.equal((result.payload.order as Record<string, unknown>).orderId, before)
+    assert.ok(googleCalls.includes('acknowledge'))
+    assert.equal((await payments.getPaymentOrder(before))?.status, 'paid')
+    assert.equal((await payments.getPaymentOrder(later))?.status, 'ready')
+
+    // 같은 결제를 다시 보내면 이미 연 주문을 돌려준다. 앱은 이 응답을 보고 소비한다.
+    googleCalls.length = 0
+    const again = await request('/api/payment/google/recover', { productId: 'marry_match', purchaseToken: 'token-recover' })
+    assert.equal(again.status, 200)
+    assert.equal(again.payload.alreadyPaid, true)
+    assert.deepEqual(googleCalls, [])
+  })
+
+  it('복구: 열 주문이 없으면 확인 통보 없이 404 로 되돌린다', async () => {
+    googleCalls.length = 0
+    purchaseResponse = {
+      status: 200,
+      body: {
+        purchaseState: 0,
+        consumptionState: 0,
+        acknowledgementState: 0,
+        purchaseTimeMillis: String(Date.parse('2026-09-08T00:00:00Z')),
+        obfuscatedExternalAccountId: googlePlay.obfuscatedAccountId(OWNER),
+      },
+    }
+    const result = await request('/api/payment/google/recover', { productId: 'love_again', purchaseToken: 'token-recover-orphan' })
+    assert.equal(result.status, 404)
+    assert.equal(result.payload.code, 'RECOVERY_ORDER_NOT_FOUND')
+    // 통보하지 않아야 구글이 3일 뒤 자동 환불한다.
+    assert.ok(!googleCalls.includes('acknowledge'), `구글 호출: ${googleCalls.join(', ')}`)
+  })
+
+  it('복구: 계정 식별자가 없는 결제는 누구 것인지 알 수 없어 거절한다', async () => {
+    await seedOrder({ productKey: 'marry_match', createdAt: '2026-09-07T12:00:00Z' })
+    purchaseResponse = {
+      status: 200,
+      body: { purchaseState: 0, consumptionState: 0, acknowledgementState: 0, purchaseTimeMillis: String(Date.parse('2026-09-08T00:00:00Z')) },
+    }
+    const result = await request('/api/payment/google/recover', { productId: 'marry_match', purchaseToken: 'token-recover-anon' })
+    assert.equal(result.status, 409)
+    assert.equal(result.payload.code, 'PURCHASE_ACCOUNT_MISMATCH')
+  })
+
+  it('복구: 다른 사람 주문을 연 결제는 돌려주지 않는다', async () => {
+    await seedOrder({ owner: OTHER, productKey: 'marry_match', status: 'paid', tid: 'token-recover-other' })
+    const result = await request('/api/payment/google/recover', { productId: 'marry_match', purchaseToken: 'token-recover-other' })
+    assert.equal(result.status, 409)
+    assert.equal(result.payload.code, 'PURCHASE_ALREADY_USED')
   })
 
   it('앱이 결제를 시작할 때 쓸 상품 정보와 계정 식별자를 준다', async () => {

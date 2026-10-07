@@ -143,7 +143,9 @@ import {
   fetchGooglePlayPurchase,
   isGooglePlayConfigured,
   obfuscatedAccountId,
+  type GooglePlayPurchase,
 } from '../payment/google-play.js'
+import { shouldSyncVoidedPurchases, syncGooglePlayVoidedPurchases } from '../payment/google-play-voided.js'
 import {
   findPaymentOrderByTid,
   getPaymentOrder,
@@ -2329,6 +2331,10 @@ app.get('/api/cron/ops', async (req, res) => {
   const pushRun = pushStoreAvailable()
     ? runPushDispatcher({ store: pushStore() }, 200_000).catch((cause) => ({ error: cause instanceof Error ? cause.message.slice(0, 120) : 'PUSH_DISPATCH_FAILED' }))
     : Promise.resolve(undefined)
+  // 구글플레이 환불 반영. 호출 한도가 있어 10분마다만 묻고, 실패해도 다른 작업을 막지 않는다.
+  const voidedRun = isGooglePlayConfigured() && shouldSyncVoidedPurchases(new Date())
+    ? syncGooglePlayVoidedPurchases().catch((cause) => ({ error: cause instanceof Error ? cause.message.slice(0, 120) : 'VOIDED_SYNC_FAILED' }))
+    : Promise.resolve(undefined)
   try {
     const worked = await runOpsWorker()
     /*
@@ -2343,9 +2349,10 @@ app.get('/api/cron/ops', async (req, res) => {
     // 다음 분의 차선이 실제로 할 일이 있는 작업에만 쓰이게 한다.
     const maintained = await maintainReportCompletionQueue(200).catch(() => undefined)
     const push = await pushRun
-    res.json({ ...worked, ...(maintained ? { backfill: maintained.backfill, ...(maintained.sweep ? { sweep: maintained.sweep } : {}) } : {}), ...(push ? { push } : {}) })
+    const voided = await voidedRun
+    res.json({ ...worked, ...(maintained ? { backfill: maintained.backfill, ...(maintained.sweep ? { sweep: maintained.sweep } : {}) } : {}), ...(push ? { push } : {}), ...(voided ? { voided } : {}) })
   }
-  catch { await pushRun; res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
+  catch { await pushRun; await voidedRun; res.status(503).json({ code: 'OPS_WORKER_FAILED', error: '영속 작업 worker 실행에 실패했습니다.' }) }
 })
 app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
@@ -4020,41 +4027,129 @@ app.post('/api/payment/google/verify', async (req, res) => {
     }
 
     const purchase = await fetchGooglePlayPurchase({ productId: product.key, purchaseToken })
+    await settleGooglePlayPurchase(res, owner.id, order, product.key, purchaseToken, purchase)
+  } catch (err) {
+    respondRequestFailure(res, err, '구글플레이 결제 확인 실패')
+  }
+})
 
-    if (purchase.purchaseState === PURCHASE_STATE_PENDING) {
-      res.status(202).json({
-        code: 'PAYMENT_PENDING',
-        error: '결제가 아직 완료되지 않았습니다. 완료되면 다시 확인해 주세요.',
-      })
+/**
+ * 영수증을 받은 뒤의 공통 처리. verify 와 recover 가 같은 기준으로 주문을 연다.
+ *
+ * 확인 통보(acknowledge)는 주문을 열기로 정한 뒤에만 한다. 통보하지 않은 결제는 구글이
+ * 3일 뒤 자동 환불하므로, 열어 줄 주문을 못 찾았을 때 그대로 두면 고객 돈이 묶이지 않는다.
+ */
+async function settleGooglePlayPurchase(
+  res: express.Response,
+  ownerId: string,
+  order: PaymentOrder,
+  productId: string,
+  purchaseToken: string,
+  purchase: GooglePlayPurchase,
+): Promise<void> {
+  if (purchase.purchaseState === PURCHASE_STATE_PENDING) {
+    res.status(202).json({
+      code: 'PAYMENT_PENDING',
+      error: '결제가 아직 완료되지 않았습니다. 완료되면 다시 확인해 주세요.',
+    })
+    return
+  }
+  if (purchase.purchaseState !== PURCHASE_STATE_PURCHASED) {
+    res.status(402).json({ code: 'PAYMENT_REQUIRED', error: '완료된 결제가 아닙니다.' })
+    return
+  }
+  // 앱이 결제할 때 넘긴 계정 식별자. 값이 있으면 이 계정 것이어야 한다.
+  if (purchase.obfuscatedExternalAccountId
+      && purchase.obfuscatedExternalAccountId !== obfuscatedAccountId(ownerId)) {
+    res.status(409).json({ code: 'PURCHASE_ACCOUNT_MISMATCH', error: '다른 계정의 결제입니다.' })
+    return
+  }
+
+  if (purchase.acknowledgementState !== 1) {
+    await acknowledgeGooglePlayPurchase({ productId, purchaseToken })
+  }
+
+  const paid = await projectApprovedPayment(order, {
+    provider: 'google_play', sourceRef: purchaseToken, tid: purchaseToken, payMethod: 'GOOGLE_PLAY',
+    approvalCode: purchase.orderId, message: '구글플레이 인앱 결제로 확인되었습니다.',
+  })
+  if (!paid) {
+    res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
+    return
+  }
+  if (order.productKey !== 'cheonmyeong_consultation') queueReportCompletionAfterPayment(order.reportId)
+  res.json({ order: clientPaymentOrder(paid) })
+}
+
+/**
+ * 결제 도중 끊긴 건 복구.
+ *
+ * 구글 결제창에서 돈이 나간 직후 앱이 꺼지면 주문 번호가 함께 사라진다. 앱은 다음에 결제
+ * 화면을 열 때 기기에 남은(소비되지 않은) 결제를 이 주소로 보낸다. 서버는 영수증을 구글에
+ * 직접 확인하고, 이 계정의 같은 상품 대기 주문 중 결제 시각 이전에 만든 가장 최근 주문을 연다.
+ *
+ * 열어 줄 주문을 못 찾으면 확인 통보를 하지 않는다. 앱도 소비하지 않으므로 구글이 3일 뒤
+ * 자동 환불한다. 엉뚱한 주문을 여는 것보다 돌려주는 쪽이 안전하다.
+ */
+app.post('/api/payment/google/recover', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!isGooglePlayConfigured()) {
+      res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
       return
     }
-    if (purchase.purchaseState !== PURCHASE_STATE_PURCHASED) {
-      res.status(402).json({ code: 'PAYMENT_REQUIRED', error: '완료된 결제가 아닙니다.' })
+
+    const productId = trimmedString(req.body?.productId)
+    const purchaseToken = trimmedString(req.body?.purchaseToken)
+    if (!productId || !purchaseToken) {
+      res.status(400).json({ code: 'INPUT_REQUIRED', error: '상품과 결제 정보가 필요합니다.' })
       return
     }
-    // 앱이 결제할 때 넘긴 계정 식별자. 값이 있으면 이 계정 것이어야 한다.
-    if (purchase.obfuscatedExternalAccountId
-        && purchase.obfuscatedExternalAccountId !== obfuscatedAccountId(owner.id)) {
+    const product = getPaymentProduct(productId)
+    if (!product || product.key !== productId) {
+      res.status(404).json({ error: '결제 상품을 확인해 주세요.' })
+      return
+    }
+
+    // 이미 어떤 주문을 연 결제면 그 결과를 돌려준다. 앱은 이 응답을 보고 소비만 마친다.
+    const bound = await findPaymentOrderByTid(purchaseToken)
+    if (bound && bound.ownerId !== owner.id) {
+      res.status(409).json({ code: 'PURCHASE_ALREADY_USED', error: '이미 사용된 결제입니다.' })
+      return
+    }
+    if (bound && (bound.status === 'paid' || bound.status === 'viewed')) {
+      res.json({ order: clientPaymentOrder(bound), alreadyPaid: true })
+      return
+    }
+
+    const purchase = await fetchGooglePlayPurchase({ productId: product.key, purchaseToken })
+    // 주문 번호 없이 들어오므로 계정 식별자가 반드시 있어야 한다. 없으면 누구 결제인지 알 수 없다.
+    if (purchase.obfuscatedExternalAccountId !== obfuscatedAccountId(owner.id)) {
       res.status(409).json({ code: 'PURCHASE_ACCOUNT_MISMATCH', error: '다른 계정의 결제입니다.' })
       return
     }
 
-    if (purchase.acknowledgementState !== 1) {
-      await acknowledgeGooglePlayPurchase({ productId: product.key, purchaseToken })
+    let order = bound && (bound.status === 'ready' || bound.status === 'approving') ? bound : null
+    if (!order) {
+      const purchasedAt = Number(purchase.purchaseTimeMillis) || Date.now()
+      const candidates = (await listPaymentOrders(owner.id, 50))
+        .filter((item) => item.productKey === product.key
+          && (item.status === 'ready' || item.status === 'approving')
+          && item.amount === product.amount
+          && !hasApprovalEvidence(item)
+          // 결제 화면에서 주문을 만든 뒤 결제창을 연다. 시계 차이만큼 여유를 둔다.
+          && Date.parse(item.createdAt) <= purchasedAt + 60_000)
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      order = candidates[0] ?? null
     }
-
-    const paid = await projectApprovedPayment(order, {
-      provider: 'google_play', sourceRef: purchaseToken, tid: purchaseToken, payMethod: 'GOOGLE_PLAY',
-      approvalCode: purchase.orderId, message: '구글플레이 인앱 결제로 확인되었습니다.',
-    })
-    if (!paid) {
-      res.status(500).json({ error: '결제 확인을 저장하지 못했습니다. 다시 시도해 주세요.' })
+    if (!order) {
+      res.status(404).json({ code: 'RECOVERY_ORDER_NOT_FOUND', error: '이 결제로 열 주문을 찾지 못했습니다. 고객센터로 문의해 주세요.' })
       return
     }
-    if (order.productKey !== 'cheonmyeong_consultation') queueReportCompletionAfterPayment(order.reportId)
-    res.json({ order: clientPaymentOrder(paid) })
+    await settleGooglePlayPurchase(res, owner.id, order, product.key, purchaseToken, purchase)
   } catch (err) {
-    respondRequestFailure(res, err, '구글플레이 결제 확인 실패')
+    respondRequestFailure(res, err, '구글플레이 결제 복구 실패')
   }
 })
 
