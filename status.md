@@ -1,5 +1,13 @@
 # Status
 
+## 2026-10-07 — GA4 구매 퍼널 이벤트 (GA-FUNNEL-07)
+
+- [DONE] 서비스 단계 → GA4: `view_item`(소개) · `input_start`(STEP2·3) · `view_teaser`(STEP4) · `view_full_report`(STEP5·6). 단계 판정은 `umsh-track.js` placeOf 하나만 쓰고 `UMSHAnalytics.funnelStep` 이 GA4 이름으로 옮긴다. 모든 이벤트에 `service_key`.
+- [DONE] 결제: `begin_checkout`(결제 화면 상품 표시) · `add_payment_info`(결제창 열기, 쿠폰 반영 금액) · `purchase`(결과 화면에서 `/api/payment/orders/:id` 로 paid/viewed 확인 후, KRW·금액·상품). URL 의 state=paid 는 믿지 않는다.
+- [DONE] 주문번호는 SHA-256(`umsh-order:` + orderId) 앞 32자리만 transaction_id 로 보낸다. 브라우저당 한 주문 한 번(localStorage 표시).
+- 검증: 신규 10/10, 전체 1,920/1,920, tsc PASS. 운영 GA4 수신은 머지 후 DebugView 로 확인 예정(NOT_RUN).
+- [NOTE] 앱(Play) 결제는 `state` 없이 `/payment/result?orderId=` 로 돌아와 화면이 "결제를 완료하지 못했어요"로 읽힐 수 있다(`payment-result.js` state 기본값 failed). 이번 변경 범위 밖, 확인 필요.
+
 ## 2026-10-06 — 운영 관리자 개편 8·9단계 + CRUD 점검 + 전체 재시험
 
 - [DONE] 로그(변경 이력): 영역·관리자·기간 필터, 기본은 완료 기록만(시작 기록 포함 선택), 서버 페이지. 작업 이름을 운영자 말로(원래 코드는 ⓘ). `GET /api/admin/v1/audit?area&actor&from&to&result&limit&offset`.
