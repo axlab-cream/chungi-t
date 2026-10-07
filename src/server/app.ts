@@ -3083,7 +3083,7 @@ app.get('/api/admin/v1/members', async (req, res) => {
   // 2026-10(4단계): 이름·회원 번호 검색, 결제 여부, 가입일, 정렬. 거른 결과의 전체 수를 함께 준다.
   const q = trimmedString(req.query?.q)
   const paid = req.query?.paid === 'yes' || req.query?.paid === 'no' ? req.query.paid : undefined
-  const sort = req.query?.sort === 'joined' || req.query?.sort === 'name' ? req.query.sort : 'recent'
+  const sort = req.query?.sort === 'joined' || req.query?.sort === 'joined_asc' || req.query?.sort === 'name' || req.query?.sort === 'name_desc' ? req.query.sort : 'recent'
   const from = trimmedString(req.query?.from) || undefined
   const to = trimmedString(req.query?.to) || undefined
   try {

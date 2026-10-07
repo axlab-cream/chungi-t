@@ -218,12 +218,12 @@ export type MemberListQuery = {
   /** 가입일(프로필 생성) 범위. ISO, from 포함·to 제외. */
   from?: string
   to?: string
-  sort?: 'recent' | 'joined' | 'name'
+  sort?: 'recent' | 'joined' | 'joined_asc' | 'name' | 'name_desc'
   limit?: number
   offset?: number
 }
 
-const MEMBER_SORTS: Record<NonNullable<MemberListQuery['sort']>, string> = { recent: 'updated_at.desc', joined: 'created_at.desc', name: 'name.asc' }
+const MEMBER_SORTS: Record<NonNullable<MemberListQuery['sort']>, string> = { recent: 'updated_at.desc', joined: 'created_at.desc', joined_asc: 'created_at.asc', name: 'name.asc', name_desc: 'name.desc' }
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** 결제 완료(paid·viewed) 주문이 한 건이라도 있는 회원 번호. 결제 회원 필터에만 쓴다. */
