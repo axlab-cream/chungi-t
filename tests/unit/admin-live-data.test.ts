@@ -145,7 +145,7 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     const members = await liveData.listLiveMembers(1)
     assert.deepEqual(members, [{
       no: 1, id: MEMBER_A, name: '홍길동', email: 'member-a@example.com',
-      createdAt: '2026-09-01T00:00:00.000Z', lastSignInAt: '2026-09-15T03:00:00.000Z', signupProvider: 'kakao',
+      createdAt: '2026-09-01T00:00:00.000Z', lastSignInAt: '2026-09-15T03:00:00.000Z', signupProvider: 'kakao', banned: false,
       personalInfoRegistered: true, purchaseCount: 2, totalPurchaseAmount: 15800,
       updatedAt: '2026-09-02T00:00:00.000Z',
     }])

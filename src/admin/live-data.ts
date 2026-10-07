@@ -16,6 +16,8 @@ export type AdminMemberSummary = {
   lastSignInAt: string | null
   /** Supabase Auth app_metadata.provider (kakao/google/email/…). Null when unknown. */
   signupProvider: string | null
+  /** 2026-10-07: 목록에서 정지 여부를 보이고 잠금 버튼을 정지/정지 해제로 바꾸려고 싣는다. Auth 조회 실패면 false. */
+  banned: boolean
   /** Proxy for "완성된 사주 프로필을 등록했는가" — this app's core personal info is name + birth data, and only name is cheaply checkable here. */
   personalInfoRegistered: boolean
   /** Settled (paid/viewed) order count. */
@@ -161,12 +163,13 @@ async function memberPurchaseFacts(userId: string): Promise<{ purchaseCount: num
 }
 
 /** Best-effort — a single member's Supabase Auth lookup failing must not blank out the whole list. */
-async function memberAuthFacts(userId: string): Promise<{ email: string | null; lastSignInAt: string | null; signupProvider: string | null }> {
+async function memberAuthFacts(userId: string): Promise<{ email: string | null; lastSignInAt: string | null; signupProvider: string | null; banned: boolean }> {
   const authUser = await fetchAuthAdminUser(userId).catch(() => null)
   return {
     email: typeof authUser?.email === 'string' ? authUser.email : null,
     lastSignInAt: typeof authUser?.last_sign_in_at === 'string' ? authUser.last_sign_in_at : null,
     signupProvider: typeof authUser?.app_metadata?.provider === 'string' ? authUser.app_metadata.provider : null,
+    banned: memberIsBanned(authUser?.banned_until),
   }
 }
 
@@ -198,6 +201,7 @@ export async function listLiveMembers(limit = 20, offset = 0): Promise<AdminMemb
       createdAt: clipped(row.created_at, ''),
       lastSignInAt: auth.lastSignInAt,
       signupProvider: auth.signupProvider,
+      banned: auth.banned,
       personalInfoRegistered: Boolean(clipped(row.name, '')),
       purchaseCount: purchases.purchaseCount,
       totalPurchaseAmount: purchases.totalPurchaseAmount,
@@ -281,6 +285,7 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
       createdAt: clipped(row.created_at, ''),
       lastSignInAt: auth.lastSignInAt,
       signupProvider: auth.signupProvider,
+      banned: auth.banned,
       personalInfoRegistered: Boolean(clipped(row.name, '')),
       purchaseCount: purchases.purchaseCount,
       totalPurchaseAmount: purchases.totalPurchaseAmount,
@@ -333,6 +338,7 @@ export async function findLiveMember(memberId: string): Promise<AdminMemberSumma
     createdAt: clipped(row.created_at, ''),
     lastSignInAt: auth.lastSignInAt,
     signupProvider: auth.signupProvider,
+    banned: auth.banned,
     personalInfoRegistered: Boolean(clipped(row.name, '')),
     purchaseCount: purchases.purchaseCount,
     totalPurchaseAmount: purchases.totalPurchaseAmount,
