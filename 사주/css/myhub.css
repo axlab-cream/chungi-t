@@ -83,6 +83,8 @@ body.umsh-has-chrome .payment-page {
 }
 
 .myhub-menu .chip {
+  /* 칸 위치를 정하지 않으면 왼쪽 칸을 먼저 차지해 메뉴 이름이 오른쪽으로 밀린다. */
+  grid-column: 2;
   grid-row: 1 / span 2;
   align-self: center;
   color: var(--payment-gold);
@@ -318,3 +320,110 @@ body.umsh-has-chrome .payment-page {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── 마이페이지 A안(2026-10): 회원 카드 → 묶음 목록 3개 → 하단 작은 글씨 ── */
+.myhub h1 { margin-bottom: 18px; }
+
+.myhub-card,
+.myhub-guest {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 26px;
+  padding: 18px 16px;
+  border: 1px solid var(--payment-line);
+  border-radius: 14px;
+  background: var(--payment-panel);
+}
+
+.myhub-who { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.myhub-who-text { display: grid; gap: 3px; min-width: 0; }
+.myhub-who-text strong { font-family: Georgia, serif; font-size: 20px; line-height: 1.3; }
+.myhub-who-text span { color: var(--payment-muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.myhub-who-text span:empty { display: none; }
+.myhub-who-text span.is-missing { color: var(--payment-gold); }
+
+.myhub-provider {
+  flex: none;
+  padding: 3px 9px;
+  border: 1px solid var(--payment-line);
+  border-radius: 999px;
+  color: var(--payment-gold);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.myhub-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 247, 223, 0.08);
+  text-align: center;
+}
+.myhub-stats a { display: grid; gap: 2px; padding: 2px 4px; color: inherit; text-decoration: none; }
+.myhub-stats a + a { border-left: 1px solid rgba(255, 247, 223, 0.08); }
+.myhub-stats a:hover, .myhub-stats a:focus-visible { background: rgba(232, 199, 111, 0.06); }
+.myhub-stats b { color: var(--payment-gold); font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.myhub-stats span { color: var(--payment-muted); font-size: 11px; }
+
+.myhub-guest strong { font-family: Georgia, serif; font-size: 18px; line-height: 1.4; word-break: keep-all; }
+.myhub-guest > span { color: var(--payment-muted); font-size: 12px; line-height: 1.6; word-break: keep-all; }
+.myhub-guest .payment-submit { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+
+.myhub-group-title {
+  margin: 0 0 8px 2px;
+  color: var(--payment-gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.myhub-list {
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--payment-line);
+  border-radius: 12px;
+  background: var(--payment-panel);
+  overflow: hidden;
+}
+.myhub-list li + li { border-top: 1px solid rgba(255, 247, 223, 0.08); }
+.myhub-list a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 16px;
+  color: var(--payment-cream);
+  text-decoration: none;
+}
+.myhub-list a:hover, .myhub-list a:focus-visible { background: rgba(232, 199, 111, 0.06); }
+.myhub-list a > span { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.myhub-list b { font-size: 14px; font-weight: 800; }
+.myhub-list small { color: var(--payment-muted); font-size: 11.5px; line-height: 1.45; word-break: keep-all; }
+.myhub-list small.is-soon { color: var(--payment-gold); }
+.myhub-list i { color: var(--payment-muted); font-size: 18px; font-style: normal; line-height: 1; }
+
+.myhub-foot { display: grid; gap: 14px; margin-top: 4px; padding: 6px 2px 0; }
+.myhub-quiet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  color: rgba(170, 162, 148, 0.75);
+  font-size: 12px;
+}
+.myhub-account { display: flex; gap: 14px; margin-left: auto; }
+.myhub-account a,
+.myhub-account button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.myhub-account a:hover, .myhub-account button:hover { color: var(--payment-cream); }
+

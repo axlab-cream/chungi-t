@@ -7,7 +7,7 @@
     <title>MY · 운명상회 소개와 이용 안내</title>
     <link rel="canonical" href="https://umsh.kr/my" />
     <meta name="robots" content="index,follow" />
-    <style>[hidden] { display: none !important; } .myhub-public { margin-top: 24px; } .myhub-public a { min-height: 76px; } [data-my-login] { display:flex; align-items:center; justify-content:center; padding:12px 18px; margin-bottom:24px; text-decoration:none; }</style>
+    <style>[hidden] { display: none !important; }</style>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
     <meta property="og:type" content="website" />
@@ -34,54 +34,72 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
-    <link rel="stylesheet" href="/css/myhub.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20261008-hub-a" />
   </head>
   <body>
     <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
       <header class="appbar topbar"></header>
-      <section class="payment-shell" aria-labelledby="my-title">
+      <section class="payment-shell myhub" aria-labelledby="my-title">
         <p class="payment-eyebrow">MY</p>
         <h1 id="my-title">마이페이지</h1>
-        <p class="payment-intro">운명상회 소개와 이용 안내는 로그인 없이, 내 정보와 상담 기록은 로그인 후 확인하세요.</p>
-        <section class="myhub-section myhub-public" aria-label="운명상회 알아보기">
-          <h2>운명상회 알아보기</h2>
-          <ul class="myhub-menu">
-            <li><a href="/about"><strong>운명상회란?</strong><small>상담 소개 · 이용 방법 · 운영 원칙</small><span class="chip">소개</span></a></li>
-            <li><a href="/faq"><strong>자주 묻는 질문</strong><small>이용·결제·환불 안내를 확인하세요</small><span class="chip">FAQ</span></a></li>
-          </ul>
-        </section>
-        <div class="myhub-user" data-my-user role="status" aria-live="polite"><strong>운명상회에 오신 것을 환영합니다</strong><span>개인 프로필과 구매 내역은 로그인 후 이용할 수 있습니다.</span></div>
-        <a class="payment-submit" data-my-login href="/signup?entry=my&amp;returnTo=%2Fmy#login">로그인 / 회원가입 →</a>
-        <section class="myhub-section" aria-label="내 정보">
-          <h2>내 정보</h2>
-          <ul class="myhub-menu">
-            <li><a href="/profile"><strong>개인정보 수정</strong><small>이름·생년월일 등 사주 프로필 수정</small><span class="chip">수정</span></a></li>
-            <li><a href="/vault"><strong>보관함</strong><small>저장한 풀이와 상담 기록 다시 보기</small><span class="chip">열기</span></a></li>
-            <li><a href="/destiny"><strong>운명록</strong><small>원국·신살·대운을 한 화면에서 확인</small><span class="chip">보기</span></a></li>
-          </ul>
-        </section>
-        <section class="myhub-section" aria-label="결제·환불">
-          <h2>결제 · 환불</h2>
-          <ul class="myhub-menu">
-            <li><a href="/coupons.html"><strong>내 쿠폰</strong><small>서비스 무료 이용권 · 상담 질문권 · 할인 쿠폰 등록 및 사용</small><span class="chip">쿠폰</span></a></li>
-            <li><a href="/orders"><strong>결제 내역</strong><small>주문·결제 상태와 풀이 진입점</small><span class="chip">내역</span></a></li>
-            <li><a href="/refunds"><strong>환불 신청 · 내역</strong><small>결제 건 기준 환불 요청과 안내</small><span class="chip">환불</span></a></li>
-          </ul>
-        </section>
-        <section class="myhub-section" aria-label="고객지원">
-          <h2>고객지원</h2>
-          <ul class="myhub-menu">
-            <li><a href="/faq"><strong>자주 묻는 질문</strong><small>이용·결제·환불 전 확인할 안내</small><span class="chip">FAQ</span></a></li>
-            <li><a href="/support"><strong>고객센터</strong><small>FAQ와 문의 접수</small><span class="chip">문의</span></a></li>
-            <li data-my-member hidden><a href="/leave" class="is-danger"><strong>회원 탈퇴</strong><small>사주 프로필과 풀이 기록 삭제</small><span class="chip">탈퇴</span></a></li>
-            <li data-my-member hidden><button type="button" data-my-logout><strong>로그아웃</strong><small>이 기기에서 로그인 세션 종료</small><span class="chip">나가기</span></button></li>
-          </ul>
-        </section>
-        <nav class="myhub-links" aria-label="약관 및 정책">
-          <a href="/terms">이용약관</a>
-          <a href="/privacy">개인정보처리방침</a>
-          <a href="/refund">환불·취소 정책</a>
-        </nav>
+
+        <div class="myhub-card" data-my-user hidden>
+          <div class="myhub-who">
+            <div class="myhub-who-text">
+              <strong data-my-name>회원</strong>
+              <span data-my-birth></span>
+              <span data-my-email></span>
+            </div>
+            <span class="myhub-provider" data-my-provider hidden></span>
+          </div>
+          <div class="myhub-stats">
+            <a href="/vault"><b data-my-count="vault">–</b><span>보관한 풀이</span></a>
+            <a href="/coupons.html"><b data-my-count="coupons">–</b><span>쿠폰·질문권</span></a>
+            <a href="/orders"><b data-my-count="orders">–</b><span>결제 완료</span></a>
+          </div>
+        </div>
+
+        <div class="myhub-guest" data-my-guest>
+          <strong>로그인하면 내 풀이와 쿠폰을 여기서 봅니다</strong>
+          <span>생년월일은 한 번만 적어 두면 모든 풀이에 그대로 쓰입니다.</span>
+          <a class="payment-submit" data-my-login href="/signup?entry=my&amp;returnTo=%2Fmy#login">로그인 · 회원가입</a>
+        </div>
+
+        <h2 class="myhub-group-title">내 정보</h2>
+        <ul class="myhub-list">
+          <li><a href="/profile"><span><b>사주 프로필 수정</b><small>이름·생년월일·태어난 시간</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/vault"><span><b>보관함</b><small>저장한 풀이와 상담 기록</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/destiny"><span><b>운명록</b><small>원국·신살·대운</small></span><i aria-hidden="true">›</i></a></li>
+        </ul>
+
+        <h2 class="myhub-group-title">결제 · 쿠폰</h2>
+        <ul class="myhub-list">
+          <li><a href="/coupons.html"><span><b>내 쿠폰</b><small data-my-coupon-note>무료 이용권·상담 질문권·할인 쿠폰</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/orders"><span><b>결제 내역</b><small>결제 상태와 풀이 바로가기</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/refunds"><span><b>환불 신청 · 내역</b></span><i aria-hidden="true">›</i></a></li>
+        </ul>
+
+        <h2 class="myhub-group-title">도움</h2>
+        <ul class="myhub-list">
+          <li><a href="/support"><span><b>고객센터</b><small>문의 접수</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/faq"><span><b>자주 묻는 질문</b><small>이용·결제·환불 안내</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/about"><span><b>운명상회 소개</b><small>상담 소개·이용 방법·운영 원칙</small></span><i aria-hidden="true">›</i></a></li>
+        </ul>
+
+        <footer class="myhub-foot">
+          <nav class="myhub-links" aria-label="약관 및 정책">
+            <a href="/terms">이용약관</a>
+            <a href="/privacy">개인정보처리방침</a>
+            <a href="/refund">환불·취소 정책</a>
+          </nav>
+          <div class="myhub-quiet">
+            <span data-my-app-version hidden></span>
+            <span class="myhub-account" data-my-member hidden>
+              <button type="button" data-my-logout>로그아웃</button>
+              <a href="/leave">회원 탈퇴</a>
+            </span>
+          </div>
+        </footer>
         <p class="payment-status" data-my-status role="status" aria-live="polite"></p>
       </section>
     </main>
@@ -89,7 +107,7 @@
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
-    <script src="/js/umsh-account-pages.js?v=20260909-public-my"></script>
-    <script src="/js/my.js?v=20260909-public-my"></script>
+    <script src="/js/umsh-account-pages.js?v=20261008-hub-a"></script>
+    <script src="/js/my.js?v=20261008-hub-a"></script>
   </body>
 </html>
