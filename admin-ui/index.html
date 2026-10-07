@@ -378,6 +378,11 @@
     .admin-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
     .admin-filterbar[hidden] { display: none; }
     .admin-filterbar input[data-table-search] { min-width: 220px; }
+    .admin-block-title { margin: 22px 0 8px; font-size: 15px; font-weight: 700; color: var(--admin-text); }
+    .admin-block-title:first-child { margin-top: 4px; }
+    .admin-block { display: flex; flex-direction: column; min-width: 0; }
+    .admin-block > .admin-block-title { margin-top: 0; }
+    .admin-block > .admin-section { flex: 1; }
     .admin-filter-search { min-width: 220px; }
     .admin-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 7px; background: #eceef3; }
     .admin-seg button { border: 0; background: none; padding: 5px 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; color: var(--admin-text-muted); cursor: pointer; }
@@ -1265,7 +1270,7 @@
         if (box && box.parentNode && box.querySelectorAll('table.admin-table').length === 1) {
           for (var node = box.previousElementSibling; node; node = node.previousElementSibling) {
             if (node.classList.contains('admin-filterbar')) { bar = node; break; }
-            if (node.tagName === 'SECTION') break;
+            if (node.tagName === 'SECTION' || node.classList.contains('admin-block-title')) break;
           }
           if (!bar) { bar = document.createElement('div'); bar.className = 'admin-filterbar'; box.parentNode.insertBefore(bar, box); }
           // 같은 상자의 표를 다시 그리면(탭 전환 등) 예전 검색칸을 걷어 내고 입력한 글자는 이어받는다.
@@ -1328,16 +1333,16 @@
         });
       }
 
+      // 2026-10-07 요청: 표 상자 안에 제목을 넣지 않는다. 한 화면에 표가 여러 개라 제목이 필요하면 상자 바깥 위에 둔다.
+      function adminBlockTitle(text) { var heading = document.createElement('h3'); heading.className = 'admin-block-title'; heading.textContent = text; return heading; }
       function addLiveTable(body, title, columns, items, toCells, emptyText) {
         var section = document.createElement('section');
         section.className = 'admin-section';
-        var heading = document.createElement('h3');
-        heading.textContent = title;
-        section.appendChild(heading);
+        body.appendChild(adminBlockTitle(title));
         if (!items.length) {
           var empty = document.createElement('p');
           empty.className = 'admin-empty';
-          empty.textContent = emptyText;
+          empty.textContent = emptyText || '선택 기간에 기록이 없습니다.';
           section.appendChild(empty);
           body.appendChild(section);
           return;
@@ -1825,8 +1830,9 @@
         var kpis = document.createElement('div'); kpis.className = 'admin-kpis admin-kpis-4';
         var grid = document.createElement('div'); grid.className = 'admin-ai-grid';
         var recent = document.createElement('section'); recent.className = 'admin-section';
-        body.append(filters, kpis, grid, recent);
-        function card(title, node) { var section = document.createElement('section'); section.className = 'admin-section'; var head = document.createElement('header'); head.className = 'admin-section-head'; var h = document.createElement('h3'); h.textContent = title; head.appendChild(h); section.append(head, node); return section; }
+        var recentTitle = adminBlockTitle('최근 실패'); recentTitle.hidden = true;
+        body.append(filters, kpis, grid, recentTitle, recent);
+        function card(title, node) { var block = document.createElement('div'); block.className = 'admin-block'; var section = document.createElement('section'); section.className = 'admin-section'; section.appendChild(node); block.append(adminBlockTitle(title), section); block.box = section; return block; }
         async function load() {
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.days === String(state.days) ? 'true' : 'false'); });
           recent.replaceChildren(memberEmpty('불러오는 중입니다.'));
@@ -1850,10 +1856,10 @@
             if (data.tokens) {
               var usage = card('AI 사용량', data.byModel && data.byModel.length ? memberTable(['모델', '#시도', '#사용 토큰'], data.byModel, function (row) { return [row.model, fmtNumber(row.attempts), fmtNumber(row.totalTokens)]; }) : memberEmpty('이 기간에 기록된 사용량이 없습니다.'));
               var usageNote = document.createElement('p'); usageNote.className = 'admin-note'; usageNote.textContent = '입력 ' + fmtNumber(data.tokens.prompt) + ' · 출력 ' + fmtNumber(data.tokens.completion) + ' · 합계 ' + fmtNumber(data.tokens.total) + ' 토큰. 비용(원)은 모델별 단가를 정하면 함께 보여 줍니다.';
-              usage.appendChild(usageNote); grid.appendChild(usage);
+              usage.box.appendChild(usageNote); grid.appendChild(usage);
             }
-            var head = document.createElement('header'); head.className = 'admin-section-head'; var h = document.createElement('h3'); h.textContent = '최근 실패'; head.appendChild(h);
-            recent.replaceChildren(head, data.recent.length ? memberTable(['시각', '유형', '서비스', '항목', '사유', '회원'], data.recent, function (row) {
+            recentTitle.hidden = false;
+            recent.replaceChildren(data.recent.length ? memberTable(['시각', '유형', '서비스', '항목', '사유', '회원'], data.recent, function (row) {
               var reason = document.createElement('span'); reason.className = 'admin-clip'; reason.textContent = row.error; reason.title = row.error;
               return [memberWhen(row.occurredAt), row.typeLabel, row.serviceTitle, row.sectionId, reason, row.member];
             }, function (row) { renderReportDiagnostics(document.body, row.reportId); }) : memberEmpty('이 기간에 실패가 없습니다.'));
@@ -2105,10 +2111,9 @@
        */
       async function loadPromptContentEditor(body) {
         var section = document.createElement('section'); section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 실시간 편집</h3></header><p class="admin-note" style="padding:0 16px 12px">발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.</p>';
-        var noteEl = section.querySelector('.admin-note');
+        var noteEl = document.createElement('p'); noteEl.className = 'admin-note'; noteEl.textContent = '발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.';
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.'; section.appendChild(status);
-        body.appendChild(section);
+        body.append(adminBlockTitle('프롬프트 실시간 편집'), noteEl, section);
         try {
           var response = await fetch('/api/admin/v1/prompts/content', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('PROMPT_CONTENT_LOOKUP_FAILED');
@@ -2128,7 +2133,7 @@
             rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-          section.replaceChildren(section.firstElementChild, noteEl, scroll);
+          section.replaceChildren(scroll);
           if (payload.versionStore !== 'ready') addLiveError(body, '프롬프트 버전 기록을 불러오지 못했습니다.');
         } catch (_error) { status.textContent = '프롬프트 개정 목록을 불러오지 못했습니다.'; }
       }
@@ -3248,8 +3253,9 @@
           } catch (error) { controlResult.textContent = error instanceof Error ? error.message : '작업 정리에 실패했습니다.'; }
           finally { purgeButton.disabled = false; }
         });
-        var listSection = document.createElement('section'); listSection.className = 'admin-section';
-        listSection.innerHTML = '<header class="admin-section-head"><h3>작업 대기열 현황</h3><span class="admin-chip">실패한 작업은 원인 확인·다시 시작 가능</span></header><p class="admin-empty">작업 큐를 불러오는 중입니다.</p>';
+        // 2026-10-07: 묶음마다 제목은 표 상자 바깥 위, 표는 각자 상자에 담는다.
+        var listSection = document.createElement('div');
+        listSection.innerHTML = '<p class="admin-empty">작업 큐를 불러오는 중입니다.</p>';
         body.appendChild(listSection);
         try {
           var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED');
@@ -3282,22 +3288,18 @@
             table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); return scroll;
           }
           function appendJobGroup(title, count, items, emptyText) {
-            var heading = document.createElement('div'); heading.className = 'admin-section-head'; heading.innerHTML = '<h4>' + title + '</h4><span class="admin-chip">' + count + '건</span>';
-            listSection.appendChild(heading); listSection.appendChild(buildJobTable(items, emptyText));
+            var box = document.createElement('section'); box.className = 'admin-section'; box.appendChild(buildJobTable(items, emptyText));
+            listSection.append(adminBlockTitle(title + ' · ' + count + '건'), box);
           }
-          var listHeader = listSection.firstElementChild;
-          listHeader.querySelector('h3').textContent = '작업 큐 현황';
-          listHeader.querySelector('.admin-chip').textContent = '진행 ' + activeJobs.length + '건 · 조치 ' + actionJobs.length + '건';
-          listSection.replaceChildren(listHeader);
-          var summary = document.createElement('p'); summary.className = 'admin-note'; summary.style.padding = '0 16px 12px';
-          summary.textContent = activeJobs.length ? '현재 처리 중이거나 다시 시도할 작업이 있습니다.' : '현재 대기·실행·재시도 중인 작업이 없습니다.';
-          listSection.appendChild(summary);
+          listSection.replaceChildren();
           appendJobGroup('현재 진행 중', activeJobs.length, activeJobs, '현재 대기·실행·재시도 중인 작업이 없습니다.');
           appendJobGroup('조치 필요', actionJobs.length, actionJobs, '원인 확인이 필요한 실패 작업이 없습니다.');
-          var history = document.createElement('details'); history.style.borderTop = '1px solid var(--admin-line)';
-          var historySummary = document.createElement('summary'); historySummary.className = 'admin-section-head'; historySummary.style.cursor = 'pointer';
-          historySummary.innerHTML = '<h4>최근 완료 이력</h4><span class="admin-chip">' + historyJobs.length + '건</span>';
-          history.appendChild(historySummary); history.appendChild(buildJobTable(historyJobs, '표시할 완료 이력이 없습니다.')); listSection.appendChild(history);
+          // 완료 이력은 길어서 접어 둔다. 제목을 누르면 펼쳐진다.
+          var history = document.createElement('details');
+          var historySummary = document.createElement('summary'); historySummary.className = 'admin-block-title'; historySummary.style.cursor = 'pointer';
+          historySummary.textContent = '최근 완료 이력 · ' + historyJobs.length + '건';
+          var historyBox = document.createElement('section'); historyBox.className = 'admin-section'; historyBox.appendChild(buildJobTable(historyJobs, '표시할 완료 이력이 없습니다.'));
+          history.append(historySummary, historyBox); listSection.appendChild(history);
         } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '작업 대기열을 불러오지 못했습니다.'; }
       }
       /**
@@ -4076,13 +4078,11 @@
        * 했을 뿐이다(사용자가 "데이터 안 보이는 곳 전부 확인" 요청으로 발견).
        */
       async function loadFunnelAnalytics(body) {
-        var head = document.createElement('section'); head.className = 'admin-section';
-        head.innerHTML = '<header class="admin-section-head"><h3>서비스별 이용 통계</h3></header><p class="admin-note" style="padding:0 16px 12px">페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.</p>';
-        var filters = document.createElement('form'); filters.className = 'admin-filters';
-        filters.style.padding = '0 16px 12px';
-        filters.innerHTML = '<label for="admin-funnel-period">기간</label><select id="admin-funnel-period" name="period"><option value="day">최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select>';
-        head.querySelector('header').insertAdjacentElement('afterend', filters);
-        body.appendChild(head);
+        // 2026-10-07: 기간 선택은 다른 화면처럼 표 상자 밖 검색줄에, 집계 설명은 ⓘ 에 둔다.
+        var filters = document.createElement('form'); filters.className = 'admin-filterbar';
+        filters.innerHTML = '<select id="admin-funnel-period" name="period" aria-label="기간"><option value="day">최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select>';
+        filters.appendChild(adminTip('페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.'));
+        body.appendChild(filters);
         var status = document.createElement('p'); status.className = 'admin-empty'; body.appendChild(status);
         var resultNodes = [];
         var serviceNames = {
@@ -4117,8 +4117,9 @@
         var loveSources = { home: '메인 배너', share: '공유 링크', admin: '관리자 바로가기', internal: '사이트 내부', search: '검색 사이트', social: '소셜 사이트', external: '기타 외부', direct: '직접/출처 없음', unknown: '이전 기록/미분류' };
         function appendLoveSpeed(data, available) {
           var card = document.createElement('section'); card.className = 'admin-section';
-          card.innerHTML = '<header class="admin-section-head"><h3>금사빠·금사식 · 무료 테스트</h3></header><div style="padding:16px"><p><a href="/play/love-speed/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/love-speed/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">메인: 매주 열리는 무료운세 → 무료로 해보기. 검색용 기본 주소: https://umsh.kr/play/love-speed/ · 공유 이미지·구조화 데이터·사이트맵 적용.</p><p class="admin-note">GA4: G-QVQZSPWK6M · love_speed_view/start/complete/login/result_view/share/share_success/copy/details/restart/banner_click. love_speed_view는 자동 page_view와 합산하지 않습니다. 아래 수치는 자체 수집 통계이며 GA4와 집계 기준이 다를 수 있습니다.</p></div>';
-          body.appendChild(card);
+          card.innerHTML = '<div style="padding:14px 16px;display:flex;align-items:center;gap:8px"><span><a href="/play/love-speed/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/love-speed/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></span></div>';
+          card.firstChild.appendChild(adminTip('메인: 매주 열리는 무료운세 → 무료로 해보기. 검색용 기본 주소: https://umsh.kr/play/love-speed/ · 공유 이미지·구조화 데이터·사이트맵 적용. GA4: G-QVQZSPWK6M · love_speed_view/start/complete/login/result_view/share/share_success/copy/details/restart/banner_click. love_speed_view는 자동 page_view와 합산하지 않습니다. 아래 수치는 자체 수집 통계이며 GA4와 집계 기준이 다를 수 있습니다.'));
+          body.append(adminBlockTitle('금사빠·금사식 · 무료 테스트'), card);
           if (!available) { addLiveError(body, '무료 테스트 통계를 불러오지 못했습니다. 0명으로 판단하지 마세요.'); return; }
           data = data || { views: 0, sessions: 0, signedInUsers: 0, homeClicks: 0, sources: [], actions: [] };
           addLiveTable(body, '무료 테스트 이용 요약', ['조회', '방문(세션)', '로그인 방문자', '메인 배너 클릭'], [data], function (item) { return [count(item.views), count(item.sessions), count(item.signedInUsers), count(item.homeClicks)]; });
@@ -4129,8 +4130,9 @@
         var soloActions = { home: '메인 배너 클릭', start: '테스트 시작', gender: '성별 선택', complete: '10문항 완료', login: '로그인 열기', share: '공유 시도', copy: '테스트 링크 복사 시도', fortune: '올해 연애운 이동', restart: '다시하기' };
         function appendSoloNara(data, available) {
           var card = document.createElement('section'); card.className = 'admin-section';
-          card.innerHTML = '<header class="admin-section-head"><h3>솔로나라 · 무료 캐릭터 테스트</h3></header><div style="padding:16px"><p><a href="/play/solo-nara/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/solo-nara/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">GA4: solo_nara_view/start/gender/progress/complete/login/result_view/share/share_success/copy/fortune/restart. 결과 캐릭터만 result_character로 보내고 성별·답변·점수는 보내지 않습니다.</p></div>';
-          body.appendChild(card);
+          card.innerHTML = '<div style="padding:14px 16px;display:flex;align-items:center;gap:8px"><span><a href="/play/solo-nara/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/solo-nara/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></span></div>';
+          card.firstChild.appendChild(adminTip('GA4: solo_nara_view/start/gender/progress/complete/login/result_view/share/share_success/copy/fortune/restart. 결과 캐릭터만 result_character로 보내고 성별·답변·점수는 보내지 않습니다.'));
+          body.append(adminBlockTitle('솔로나라 · 무료 캐릭터 테스트'), card);
           if (!available) { addLiveError(body, '솔로나라 통계 저장소를 읽을 수 없습니다. 0명으로 판단하지 마세요.'); return; }
           data = data || { views: 0, sessions: 0, signedInUsers: 0, homeClicks: 0, sources: [], actions: [], results: [] };
           addLiveTable(body, '솔로나라 이용 요약', ['조회', '방문(세션)', '로그인 방문자', '메인 배너 클릭'], [data], function (item) { return [count(item.views), count(item.sessions), count(item.signedInUsers), count(item.homeClicks)]; });
